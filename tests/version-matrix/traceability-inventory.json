@@ -34118,11 +34118,11 @@
   "rule-digest": "e12e3ca234b5",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-14",
@@ -34133,11 +34133,11 @@
   "rule-digest": "82dcaa3d7906",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-15",
@@ -34148,11 +34148,11 @@
   "rule-digest": "339b16f1476a",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-16",
@@ -34163,11 +34163,11 @@
   "rule-digest": "eeed9335183e",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-17",
@@ -34178,11 +34178,11 @@
   "rule-digest": "ecec99e8bc3b",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-18",
@@ -34193,11 +34193,11 @@
   "rule-digest": "8438b289d65b",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-19",
@@ -34208,11 +34208,11 @@
   "rule-digest": "a3d93a38739f",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-20",
@@ -34223,11 +34223,11 @@
   "rule-digest": "5062af1ae29e",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-21",
@@ -34238,11 +34238,11 @@
   "rule-digest": "01fd827ab7fc",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-22",
@@ -34253,11 +34253,11 @@
   "rule-digest": "7f8396ae2ea8",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-23",
@@ -34268,11 +34268,11 @@
   "rule-digest": "149d6e32bef9",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-24",
@@ -34298,11 +34298,11 @@
   "rule-digest": "55f0102aef52",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "",
-  "test-ref": "",
+  "test-ref": "conformance:negative/a42-accept-screen-minimal; conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
-  "editions": "",
-  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set. Witnessed by conformance:negative/a42-accept-screen-minimal (the minimal Format-3 shape, token-identical to a Format-1 device ACCEPT, refused COBOLNET1707 at 2002/2014/2023) and conformance:negative/a42-accept-screen-positioned (AT LINE/COLUMN + ON EXCEPTION, the same refusal): A.4.1 admits an optional element's syntax only when support is claimed, so the general rule this row names can never execute here — the rows entered the inventory through PB284's denominator repair after PB260's witness wave and were stamped in the 2026-09-09 batch.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-L2.1",
