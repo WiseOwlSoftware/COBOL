@@ -43,8 +43,8 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         if (so.Using.Count > 0)
             foreach (var input in so.Using)
                 EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null);
-        else if (so.InputProcedure is { } ip && ip.Start <= ip.End)
-            w.Line($"{dispatch.DispatchName}({ip.Start}, {ip.End});   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
+        else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
+            w.Line(dispatch.DispatchCall(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)"));
 
         // Phase b — sequence (GR9b).
         w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
@@ -53,8 +53,8 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         if (so.Giving.Count > 0)
             foreach (var output in so.Giving)
                 EmitGivingFile(output, sd);
-        else if (so.OutputProcedure is { } op && op.Start <= op.End)
-            w.Line($"{dispatch.DispatchName}({op.Start}, {op.End});   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
+        else if (so.OutputProcedure is { IsEmpty: false } op)
+            w.Line(dispatch.DispatchCall(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)"));
 
         w.Line($"{RuntimeApi.SortClose(sd)};");
     }
@@ -78,8 +78,8 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         if (mg.Giving.Count > 0)
             foreach (var output in mg.Giving)
                 EmitGivingFile(output, sd);   // GR12 — each file-name-4 receives the WHOLE merged result
-        else if (mg.OutputProcedure is { } op && op.Start <= op.End)
-            w.Line($"{dispatch.DispatchName}({op.Start}, {op.End});   // OUTPUT PROCEDURE (GR9)");
+        else if (mg.OutputProcedure is { IsEmpty: false } op)
+            w.Line(dispatch.DispatchCall(op, "   // OUTPUT PROCEDURE (GR9)"));
         w.Line($"{RuntimeApi.SortClose(sd)};");
     }
 

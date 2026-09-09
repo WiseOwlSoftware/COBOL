@@ -81,7 +81,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             ctx.Validation.RejectStatementOperand(uerr);   // PB236
             return new BoundNop();
         }
-        (int, int)? inputProc = null;
+        PcRange? inputProc = null;
         if (s.sortInputProcedurePhrase() is { } ipp)
         {
             if (SortRange(ipp.procedureName()) is not { } ipr)
@@ -95,7 +95,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             ctx.Validation.RejectStatementOperand(gerr);   // PB236
             return new BoundNop();
         }
-        (int, int)? outputProc = null;
+        PcRange? outputProc = null;
         if (s.sortOutputProcedurePhrase() is { } opp)
         {
             if (SortRange(opp.procedureName()) is not { } opr)
@@ -257,7 +257,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             ctx.Validation.RejectStatementOperand(gerr);   // PB236
             return new BoundNop();
         }
-        (int, int)? outputProc = null;
+        PcRange? outputProc = null;
         if (m.mergeOutputProcedurePhrase() is { } opp)
         {
             if (SortRange(opp.procedureName()) is not { } opr)
@@ -552,16 +552,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §14.9.40 GR10/GR13 — the range
     /// composes like PERFORM: a single SECTION name is its whole paragraph range, THRU extends through the second
     /// procedure's end). Resolved by the ONE procedure resolver, so section/qualified semantics match PERFORM.</summary>
-    private (int Start, int End)? SortRange(Core.ProcedureNameContext[] names)
+    private PcRange? SortRange(Core.ProcedureNameContext[] names)
     {
         if (names.Length == 0 || ctx.Table.ResolveProcedure(names[0]) is not { } first) return null;
-        (int start, int end) = first;
-        if (names.Length >= 2)
-        {
-            if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return null;
-            end = thru.End;
-        }
-        return (start, end);
+        if (names.Length < 2) return first;
+        if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return null;
+        return first.Through(thru);   // GR4-style composition, EMPTY-aware (kb/Work PB440)
     }
 
     /// <summary>The varying-record model of an SD/FD for the sort verbs (§13.18.43 GR13/GR15), with the DEPENDING

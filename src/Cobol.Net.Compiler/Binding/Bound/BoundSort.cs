@@ -39,8 +39,8 @@ public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
 public sealed record BoundSort(
     FileModel File, int RecordWidth,
     IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, SortCollation Collating,
-    IReadOnlyList<FileModel> Using, (int Start, int End)? InputProcedure,
-    IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
+    IReadOnlyList<FileModel> Using, PcRange? InputProcedure,
+    IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement;
 
 /// <summary><c>SORT data-name-2 …</c> (ISO §14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
@@ -65,7 +65,7 @@ public sealed record BoundMerge(
     FileModel File, int RecordWidth,
     IReadOnlyList<BoundSortMergeKey> Keys, SortCollation Collating,
     IReadOnlyList<FileModel> Using,
-    IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
+    IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
     SortVaryingInfo? Varying) : BoundStatement;
 
 /// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §14.9.32): release the SD record's image to the initial

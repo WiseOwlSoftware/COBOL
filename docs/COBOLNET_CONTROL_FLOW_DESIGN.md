@@ -57,6 +57,48 @@ markers) — never pre-rendered C#-specific fragments (SSOT §18 #23).
 
 **Rejected alternatives.** Inlining the THRU range's paragraph bodies into the call site — rejected: cannot express a GO TO that leaves and re-enters the range, breaks on inverted ranges, and duplicates code. A return-address stack data structure managed by hand — rejected: the C# call stack already IS the return-address stack; recursion is simpler and re-entrant.
 
+### D5a. A resolved procedure range is a `PcRange` whose EMPTINESS is a CARRIED bit, never `End < Start` arithmetic; an EMPTY range emits the control-phrase loop around an EMPTY body and is never handed to `Dispatch`.
+
+**Rationale.** A section with ZERO paragraphs is legal — ISO §14.4.2, "A section consists of a section header followed by
+zero, one, or more successive paragraphs" — and it makes §14.9.28.4 GR4's *specified set of statements* empty. GR4
+DEFINES that set and an empty set is a set, so the PERFORM's own semantics still run in full: GR13 a) sets every
+induction variable BEFORE any transfer, GR9 takes the TIMES count once, GR10 evaluates the condition, GR5 then finds
+no first statement to transfer to. **The control phrase is the statement; the range is only what the body does.**
+
+`ResolveProcedure` therefore returns `PcRange` (`src/Cobol.Net.Compiler/Binding/Model/PcRange.cs`), which carries
+`IsEmpty` alongside `Start`/`End`, composes THRU through `Through` (GR4/GR5b) and answers ALTER's
+"procedure-name-1 shall be a paragraph" through `IsParagraph`. `BoundOutOfLinePerform` carries the range;
+`ControlFlowEmitter` emits `EmitPerform(control, body)` for EVERY range and supplies an EMPTY body action when
+`IsEmpty`, so the emitted C# is the inline emission minus the body and GR4's "function identically" is structural.
+`DispatchState.DispatchCall` is the ONE place a range becomes `__Dispatch(a, b)` and THROWS on an empty one.
+
+**Why the bit cannot be derived (kb/Work PB440).** `End < Start` is ALSO true of a legal INVERTED THRU range — GR6:
+"There is no necessary relationship between procedure-name-1 and procedure-name-2" (NIST NC102A PFM-TEST-F1-10) —
+and when the two procedures are ADJACENT the two cases produce the IDENTICAL pair `(s, s-1)`. One must execute
+nothing; the other must execute from `s` until control reaches `s-1`. Every hand-written `start > end` /
+`Start <= End` test was answering the wrong question, and both answers it got wrong were wrong-answer defects:
+the binder returned a no-op that DELETED the PERFORM's control phrase (no init, no condition, no augment, no
+loop), and with THRU written that test was skipped so the dispatcher ran `Dispatch(s, s-1)` — whose return test
+`__atExit && __pc == __exitPc + 1` can never fire on it — from `s` to the END of the pc space, executing the
+FOLLOWING sections once per iteration. The identical decode in `SortEmitter` dropped an entire inverted
+`INPUT PROCEDURE IS p THRU q`, releasing no records at all.
+
+The canonical empty range is still `(s, s-1)` rather than a sentinel, because that pair is exactly what makes GR4's
+THRU composition come out right with no special case: an empty procedure-name-1's `Start` is where execution
+continues past it, and an empty procedure-name-2's `End` is the last pc before it. `Through` marks the composition
+empty only when BOTH endpoints are empty and nothing lies between them.
+
+**Drift test.** `ProcedureRangeEmptinessDriftTests` pins all of it: the `(s, s-1)` collision, the eight `Through`
+compositions, `DispatchCall`'s refusal, and two SOURCE scans — no second dispatch-call construction site, and no
+`.Start`-vs-`.End` comparison anywhere in the compiler. Both scans carry positive controls and were proved to fail.
+
+**Rejected alternatives.** A guard bolted onto the THRU branch (`if (start > end) return Nop`) — rejected: it is the
+same ambiguous test in a third place, and it keeps deleting the control phrase. An assert inside the GENERATED
+`__Dispatch` — rejected as the primary defence: it costs a branch in every user program and fails at run time; the
+emit-time refusal in `DispatchCall` fails in the compiler's own suite instead. Note that `BoundDeclarative`'s
+ranges stay plain pcs: `DeclCollectSection` materializes a zero-sentence paragraph for an empty declarative
+section, so a USE range is never empty by construction.
+
 ### D6. Inline PERFORM (... END-PERFORM, no procedure-name) → REAL idiomatic C# loop INSIDE the case, never a Dispatch call: PERFORM TIMES→`for`, PERFORM UNTIL TEST BEFORE→`while(!(cond))`, TEST AFTER→`do{...}while(!(cond))`, PERFORM VARYING→`for`-style with COBOL FROM/BY/UNTIL, PERFORM (once)→`do{...}while(false)`. EXIT PERFORM→`break;`, EXIT PERFORM CYCLE→`continue;` (for VARYING/UNTIL-with-increment, continue must hit the increment — emit via a labeled-continue or a do/while-with-increment-at-bottom).
 
 **Rationale.** Inline PERFORM scope is lexically bounded (END-PERFORM) and structured, so it maps to a native C# loop — this is exactly where 'idiomatic' applies. EXIT PERFORM/CYCLE are scoped to the nearest inline PERFORM (ISO §14.9.14 GR for the PERFORM phrase) → C# break/continue. Two DISTINCT mechanisms (inline=loop, out-of-line=Dispatch) because their scoping and EXIT semantics differ.
@@ -234,7 +276,15 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
 - Inverted THRU: PERFORM proc-2 THRU proc-1 where proc-1 physically follows proc-2 in source but is the named exit — handled by following pc, exit on the NAMED exit paragraph's fall-through, never by [min,max] block iteration (NIST NC102A).
 - A paragraph that is BOTH fallen into sequentially AND a PERFORM target: identical case body serves both; PERFORM uses Dispatch(idx,idx) (exit-bounded return), fall-through uses pc=idx (continues).
 - Last paragraph falls off the end: pc becomes N, (uint)pc<(uint)N is false, loop exits = normal run-unit termination (no STOP RUN needed; ISO §14.6.11 then does implicit CLOSE of open files).
-- Empty paragraph (no statements): case body is just `pc = i+1; break;` (pure fall-through).
+- Empty paragraph (no statements): case body is just `pc = i+1; break;` (pure fall-through). It has its OWN pc,
+  so `PERFORM` of it is an ordinary one-pc range — never the empty-SECTION case below.
+- **Section with ZERO paragraphs** (ISO §14.4.2): the resolved range is `PcRange.IsEmpty`. `PERFORM` of it emits the
+  control-phrase loop around an EMPTY body (D5a) — GR13 a) still initializes, GR9 still takes the count, GR10 still
+  tests — and never calls `Dispatch`. `GO TO` it transfers to `Start`, which is the pc at which execution continues
+  past it (the following section's first paragraph, or the end of the pc space when it is last) — a plain transfer,
+  correct for free. A SORT/MERGE `INPUT`/`OUTPUT PROCEDURE` naming one releases/returns nothing. `ALTER` excludes it
+  (`IsParagraph` is false). A DECLARATIVE section is never empty: `DeclCollectSection` materializes a zero-sentence
+  paragraph so the USE range always has a pc.
 - Empty/absent PROCEDURE DIVISION or zero paragraphs: emit a Main with an empty try (N==0 → no Dispatch).
 - GO TO DEPENDING ON selector value 0 or > number of targets: no transfer, control passes to the next statement (fall-through) — ISO §14.9.17.
 - Bare GO TO (alterable) never targeted by an ALTER and never given a written target: default _alter_X = -1 → on dispatch pc=-1 → treated as run-unit end (undefined behavior; ALTER is archaic Annex F.1).

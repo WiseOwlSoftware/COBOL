@@ -297,23 +297,29 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             return new BoundInlinePerform(BindPerformControl(p), host.BindBlocks(p.statementBlock()));
         }
 
-        // Out-of-line: the resolved pc range [start, end] — a paragraph (start==end), a SECTION (its whole
-        // paragraph range, ISO §14.9.28 — first statement of its first paragraph through last of its last), or
-        // the THRU composition (first procedure's start through the last procedure's end).
-        if (ctx.Table.ResolveProcedure(names[0]) is not { } first)
+        // Out-of-line: the resolved procedure range — a paragraph, a SECTION (its whole paragraph range, ISO
+        // §14.9.28.4 GR4 — first statement of its first paragraph through the last of its last), or the THRU
+        // composition (GR4/GR5b — procedure-name-1's start through procedure-name-2's end).
+        if (ctx.Table.ResolveProcedure(names[0]) is not { } range)
             return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'{host.OoScopeHint}");
-        (int start, int end) = first;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
             if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'{host.OoScopeHint}");
-            // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — NC102A
+            // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — GR6
+            // "there is no necessary relationship between procedure-name-1 and procedure-name-2"; NIST NC102A
             // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
-            end = thru.End;
+            range = range.Through(thru);
         }
-        else if (start > end)
-            return new BoundNop();   // PERFORM of an EMPTY section runs nothing (no first statement, ISO §14.9.28)
 
-        return new BoundOutOfLinePerform(start, end, BindPerformControl(p), ctx.SourceLine(p));
+        // ⛔ ONE PATH, EMPTY SET INCLUDED (kb/Work PB440). The specified set MAY be empty — procedure-name-1
+        // (or the whole THRU composition) may name a section with ZERO paragraphs, which §14.4.2 permits — and
+        // GR4 DEFINES that set, so an empty set is a set. The control phrase is the PERFORM's OWN semantics
+        // (GR8/GR9/GR10; GR13 a) sets every induction variable BEFORE any transfer of control), and the range only
+        // says what the body does; returning a BoundNop here deleted the phrase along with the body, so no
+        // condition was ever evaluated and no induction variable was ever set, while the byte-identical INLINE
+        // form of the same phrase gave exactly the GR13 e) answer. Emptiness now rides the RANGE
+        // (PcRange.IsEmpty) into the emitter, which emits the loop scaffold around an EMPTY body.
+        return new BoundOutOfLinePerform(range, BindPerformControl(p), ctx.SourceLine(p));
     }
 
     /// <summary>An inline PERFORM is Format 3 (exception-checking) iff it carries any WHEN phrase (ordinary /

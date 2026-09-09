@@ -74,6 +74,23 @@ internal sealed class DispatchState
     /// restored around each OO method body.</summary>
     public string DispatchName { get; set; } = "__Dispatch";
 
+    /// <summary>Render the bounded dispatch call for ONE resolved procedure range — the single place a
+    /// <see cref="PcRange"/> becomes a <c>__Dispatch(start, end)</c> statement (out-of-line PERFORM, SORT/MERGE
+    /// INPUT/OUTPUT PROCEDURE). <paramref name="comment"/> is appended as a trailing <c>//</c> note.
+    /// <para>⛔ An EMPTY range (a zero-paragraph section, ISO §14.4.2) has no first statement to transfer to
+    /// (§14.9.28.4 GR4/GR5), and the dispatcher's return test (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) can never
+    /// fire on it — it would run from the range start to the END OF THE PC SPACE, executing the following
+    /// sections once per iteration of whatever control phrase was written. Callers must therefore emit NOTHING
+    /// for an empty range; asking for the call is an emitter bug and throws here rather than shipping that
+    /// program (kb/Work PB440). Note that a LEGAL INVERTED range (GR6) also has <c>End &lt; Start</c>, so this
+    /// is <see cref="PcRange.IsEmpty"/> and never an arithmetic test.</para></summary>
+    public string DispatchCall(PcRange range, string comment = "") =>
+        range.IsEmpty
+            ? throw new InvalidOperationException(
+                $"internal: {DispatchName}{range} requested for an EMPTY procedure range — an empty specified "
+                + $"set of statements has no first statement to transfer to (ISO §14.9.28.4 GR4/GR5)")
+            : $"{DispatchName}({range.Start}, {range.End});{comment}";
+
     /// <summary>The program being emitted declares USE procedures (drives the <c>__IoCheck</c> hooks). Set per
     /// unit by the dispatcher emission; cleared by the OO class-unit emission (a class owns no USE
     /// declaratives).</summary>

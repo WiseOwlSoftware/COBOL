@@ -211,6 +211,17 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     public void EmitOutOfLinePerform(BoundOutOfLinePerform p)
     {
         var w = ctx.Writer;
+        // ⛔ THE SCAFFOLD IS THE STATEMENT; THE RANGE IS ONLY THE BODY (ISO §14.9.28.4 GR4 — "an inline PERFORM
+        // statement and an out-of-line PERFORM statement function identically"). An EMPTY specified set (a
+        // zero-paragraph section, §14.4.2) therefore emits the SAME loop — GR13 a)'s induction-variable
+        // initialization, GR9's once-only count, GR10's condition tests, GR13's augments and the return — around a
+        // body that does nothing, and no transfer of control takes place (GR5). It must NOT reach the dispatcher:
+        // the return test cannot fire on an empty range (kb/Work PB440), which is why DispatchCall refuses one.
+        if (p.Range.IsEmpty)
+        {
+            EmitPerform(p.Control, static () => { }, inline: false);
+            return;
+        }
         if (dispatch.DebugActive)
         {
             // DEBUG-LINE for a PERFORM/iteration trigger is the PERFORM statement's own line on EVERY iteration
@@ -220,11 +231,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             EmitPerform(p.Control, () =>
             {
                 w.Line($"__dbgCause = __dbgFirst{fid} ? DebugCause.Transfer : DebugCause.PerformLoop; __dbgFirst{fid} = false; __dbgLine = {p.SourceLine};");
-                w.Line($"{dispatch.DispatchName}({p.StartPc}, {p.EndPc});");
+                w.Line(dispatch.DispatchCall(p.Range));
             }, inline: false);
         }
         else
-            EmitPerform(p.Control, () => w.Line($"{dispatch.DispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
+            EmitPerform(p.Control, () => w.Line(dispatch.DispatchCall(p.Range)), inline: false);
     }
 
 

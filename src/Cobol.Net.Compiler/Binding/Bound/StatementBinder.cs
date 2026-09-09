@@ -264,7 +264,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                         table.AddAnonymousParagraph(section.sentence(), info, used);
                         foreach (var p in section.paragraphDefinition())
                             table.AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
-                        info.EndPc = table.Paragraphs.Count - 1;
+                        info.CloseAt(table.Paragraphs.Count - 1);   // zero paragraphs ⇒ EMPTY (§14.4.2)
                         scope.Sections.TryAdd(info.Name, info);
                     }
                 }

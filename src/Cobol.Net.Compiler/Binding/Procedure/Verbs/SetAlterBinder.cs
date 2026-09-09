@@ -49,7 +49,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                     ctx.CurrentSection = ctx.Table.ParaSections[i];
                     // proc-1 names a PARAGRAPH (a section resolves to a multi-pc range and is excluded; the
                     // sole-GO-TO shape check happens at the ALTER's own bind, where it can fail loud).
-                    if (ctx.Table.ResolveProcedure(names[0]) is { } t && t.Start == t.End)
+                    if (ctx.Table.ResolveProcedure(names[0]) is { IsParagraph: true } t)
                         // Method "P_<name>" → field "_alter_<name>" (D4); COBOL names cannot start with '_',
                         // so the field can never collide with a data item's emitted field.
                         _alterSwFields.TryAdd(t.Start, "_alter_" + ctx.Table.Paragraphs[t.Start].Method[2..]);
@@ -122,7 +122,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         {
             if (entry.procedureName() is not { Length: >= 2 } names)
                 return new BoundUnsupported($"ALTER entry '{entry.GetText()}' (malformed)");
-            if (ctx.Table.ResolveProcedure(names[0]) is not { } target || target.Start != target.End)
+            if (ctx.Table.ResolveProcedure(names[0]) is not { IsParagraph: true } target)
                 return new BoundUnsupported($"ALTER target '{names[0].GetText()}' (not a known paragraph)");
             if (!AlterIsSoleGoToParagraph(target.Start))
                 return new BoundUnsupported($"ALTER target '{names[0].GetText()}' is not a paragraph consisting "

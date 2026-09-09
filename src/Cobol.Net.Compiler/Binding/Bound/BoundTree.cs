@@ -774,14 +774,17 @@ public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool Tes
 /// <summary>An inline <c>PERFORM … END-PERFORM</c> (a real loop over a bound body).</summary>
 public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyList<BoundStatement> Body) : BoundStatement;
 
-/// <summary>An out-of-line <c>PERFORM p [THRU q] [control]</c> — the resolved pc range [<paramref name="StartPc"/>,
-/// <paramref name="EndPc"/>] (inclusive; a single paragraph has StartPc == EndPc), run per the control via the G4
-/// dispatcher (a recursive bounded <c>Dispatch(StartPc, EndPc)</c>).</summary>
+/// <summary>An out-of-line <c>PERFORM p [THRU q] [control]</c> — the resolved procedure <paramref name="Range"/>
+/// (ISO §14.9.28.4 GR4's specified set of statements), run per the <paramref name="Control"/> phrase via the G4
+/// dispatcher (a recursive bounded <c>Dispatch(Range.Start, Range.End)</c>). The control phrase is carried in
+/// EVERY case, the EMPTY range included: an empty specified set (a zero-paragraph section, §14.4.2) still runs
+/// GR13 a)'s initialization, GR9's count and GR10's tests — it just has no body and no transfer of control
+/// (GR5), so the emitter emits the scaffold and never calls the dispatcher (kb/Work PB440).</summary>
 // SourceLine (on the transfer nodes below): the source line of the transferring statement — the X3.23-1985
 // DEBUG-LINE value when the transfer reaches a debug subject (VCR Table 7 row 7.17; the causing statement, DB101A —
 // PERF-ITERATION-TEST pins the PERFORM line :611-617, GO-TO-TEST the GO TO line :482-489, on every iteration). 0
 // when the debug facility is inactive (never read then).
-public sealed record BoundOutOfLinePerform(int StartPc, int EndPc, BoundPerformControl Control, int SourceLine = 0) : BoundStatement;
+public sealed record BoundOutOfLinePerform(PcRange Range, BoundPerformControl Control, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.20 Format 1).</summary>
 public sealed record BoundGoTo(int TargetPc, int SourceLine = 0) : BoundStatement;

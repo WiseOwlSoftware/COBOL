@@ -153,7 +153,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 AddAnonymousParagraph(section.sentence(), info, used);
                 foreach (var p in section.paragraphDefinition())
                     AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
-                info.EndPc = _paras.Count - 1;
+                info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
                 _sections.TryAdd(info.Name, info);
             }
         }
@@ -171,7 +171,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
     /// paragraph of the CURRENT section (implicit qualification of duplicated names), then the global first-defined
     /// paragraph, then a section name. Null when unknown (the caller fails loud).</summary>
-    public (int Start, int End)? ResolveProcedure(Core.ProcedureNameContext pn)
+    public PcRange? ResolveProcedure(Core.ProcedureNameContext pn)
     {
         string head = pn.GetChild(0).GetText();
         string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
@@ -182,18 +182,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             if (qualifier is not null)
                 return m.Sections.TryGetValue(qualifier, out var mq) && mq.Paras.TryGetValue(head, out int mqpc)
-                    ? (mqpc, mqpc) : null;
-            if (ctx.CurrentSection is { } mcur && mcur.Paras.TryGetValue(head, out int mlocal)) return (mlocal, mlocal);
-            if (m.Paras.TryGetValue(head, out int mpc)) return (mpc, mpc);
-            if (m.Sections.TryGetValue(head, out var msec)) return (msec.StartPc, msec.EndPc);
+                    ? PcRange.At(mqpc) : null;
+            if (ctx.CurrentSection is { } mcur && mcur.Paras.TryGetValue(head, out int mlocal)) return PcRange.At(mlocal);
+            if (m.Paras.TryGetValue(head, out int mpc)) return PcRange.At(mpc);
+            if (m.Sections.TryGetValue(head, out var msec)) return msec.Range;
             return null;
         }
         if (qualifier is not null)
             return _sections.TryGetValue(qualifier, out var q) && q.Paras.TryGetValue(head, out int qpc)
-                ? (qpc, qpc) : null;
-        if (ctx.CurrentSection is { } cur && cur.Paras.TryGetValue(head, out int local)) return (local, local);
-        if (_paraIndex.TryGetValue(head, out int pc)) return (pc, pc);
-        if (_sections.TryGetValue(head, out var sec)) return (sec.StartPc, sec.EndPc);
+                ? PcRange.At(qpc) : null;
+        if (ctx.CurrentSection is { } cur && cur.Paras.TryGetValue(head, out int local)) return PcRange.At(local);
+        if (_paraIndex.TryGetValue(head, out int pc)) return PcRange.At(pc);
+        if (_sections.TryGetValue(head, out var sec)) return sec.Range;
         return null;
     }
 
@@ -285,7 +285,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (_paras.Count == info.StartPc)
             AddParagraph(name, [], info, used);
 
-        info.EndPc = _paras.Count - 1;
+        info.CloseAt(_paras.Count - 1);
         _sections.TryAdd(info.Name, info);
 
         if (scope is { } s)
@@ -380,16 +380,16 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>The pc range of each SORT/MERGE INPUT/OUTPUT PROCEDURE in the procedure division (for the debug
     /// SORT/MERGE-overlap staging check). Resolves the phrase's procedure-name(s) via the ordinary procedure
     /// table (THRU forms span first..last).</summary>
-    private List<(string Kind, (int Start, int End) Range)> SortMergeProcedureRanges(
+    private List<(string Kind, PcRange Range)> SortMergeProcedureRanges(
         Core.ProcedureDivisionContext pd)
     {
-        var results = new List<(string, (int, int))>();
+        var results = new List<(string, PcRange)>();
         void Add(string kind, Core.ProcedureNameContext[] pns)
         {
             if (pns.Length == 0) return;
             if (ResolveProcedure(pns[0]) is not { } first) return;
             var last = pns.Length > 1 ? ResolveProcedure(pns[^1]) : first;
-            if (last is { } l) results.Add((kind, (first.Start, l.End)));
+            if (last is { } l) results.Add((kind, first.Through(l)));
         }
         void Walk(Antlr4.Runtime.Tree.IParseTree node)
         {

@@ -188,7 +188,7 @@ internal sealed class VersionConformancePass
 
         // Pass A — the prohibited paragraph-pc ranges: every file-format SORT's input/output procedure + every
         // MERGE's output procedure (a SORT/MERGE with only USING/GIVING files contributes no procedure range).
-        var prohibited = new List<(int Start, int End)>();
+        var prohibited = new List<PcRange>();
         void Collect(BoundStatement s)
         {
             if (s is BoundSort { InputProcedure: { } ip }) prohibited.Add(ip);

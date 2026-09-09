@@ -528,6 +528,7 @@ GO-TO-out-of-and-back-into a PERFORM range are correct *for free*.
 | `GO TO p1 p2 … DEPENDING ON sel` | `switch ((int)sel) { case 1: pc=idx1; break; … default: /* no transfer → fall-through */ }` |
 | `ALTER g TO PROCEED TO t` | `_alter_g = idxT;` (a mutable `private static int _alter_g = <defaultTarget>;`); the alterable GO TO emits `pc = _alter_g; break;` |
 | out-of-line `PERFORM p [THRU q]` | `Dispatch(idxP, idxQ); pc=i+1; break;` (recursive bounded dispatch; idxQ=idxP if no THRU) |
+| out-of-line `PERFORM` of an EMPTY range | the control-phrase loop with an EMPTY body and NO `Dispatch` call — a zero-paragraph section (§14.4.2) makes GR4's specified set empty, and GR4's "function identically" makes that the inline emission minus the body |
 | `PERFORM p n TIMES` | `for (long i=0;i<n;i++) Dispatch(idxP, idxQ);` |
 | inline `PERFORM … END-PERFORM` | a REAL C# loop INSIDE the case (`for`/`while`/`do…while`), never a Dispatch call |
 | `EXIT PERFORM` / `EXIT PERFORM CYCLE` | `break;` / `continue;` (scoped to the nearest inline PERFORM) |
@@ -564,7 +565,10 @@ GO-TO-out-of-and-back-into a PERFORM range are correct *for free*.
 ### 5.4 Hard problems
 
 GO TO that exits/re-enters a PERFORM range (free — return-address model); inverted THRU `B` before `A` (free — never
-iterate `[min,max]`; NC102A); overlapping/recursive PERFORM (the C# call stack IS the return-address stack); duplicate
+iterate `[min,max]`; NC102A); **an EMPTY procedure range is NOT free and is not derivable from the pc pair** — a
+zero-paragraph section and an ADJACENT inverted THRU range are the same `(s, s-1)`, so emptiness is a CARRIED bit on
+`PcRange` and the dispatcher is never handed an empty range (kb/Work PB440; control-flow deep-dive D5a);
+overlapping/recursive PERFORM (the C# call stack IS the return-address stack); duplicate
 paragraph names across SECTIONs (resolve by paragraph SYMBOL to a distinct PcIndex at bind time, never by name);
 NEXT SENTENCE goes to the next *period*, NOT past a scope delimiter (ISO Annex F.1 — the common misconception).
 
