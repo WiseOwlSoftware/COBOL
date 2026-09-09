@@ -433,6 +433,15 @@
       "dns": 365,
       "label": "A.4.2 ACCEPT Format-3 rows:",
       "battery": null
+    },
+    {
+      "sha": "3ac5da64",
+      "date": "2026-09-09",
+      "gap": 2733,
+      "closed": 1615,
+      "dns": 365,
+      "label": "Owner decisions Q25-Q27: thr",
+      "battery": null
     }
   ]
 }
