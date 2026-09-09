@@ -95,16 +95,47 @@ public sealed record BoundDeclarative(
     bool Global,
     ReportGroupModel? ReportGroup = null,
     IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null,
-    Compiler.Oo.OoClassSymbol? EoClass = null);
-// EoClass: Format 4 (USE AFTER EXCEPTION OBJECT class-name, §14.9.49 — the EC-OO wave): the RESOLVED COBOL
-// class symbol object-class-name-1 names. The generated __EcObjDispatch matches the object against the class's
-// FactoryOrInstanceCsTypes — GR14a selects "a factory object or instance object of object-class-name-1 or of a
-// subclass", and those are TWO disjoint emitted C# hierarchies, so the selector needs both type tests. The
-// symbol (not a rendered C# name) rides the bound tree: choosing the C# spelling is the emitter's job.
+    BoundEoOperand? Eo = null);
 // EcEntries: the Format-3 scope (ISO §14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
 // each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
 // selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
 // so the F1 __IoCheck switches naturally exclude it.
+// Eo: Format 4's ONE operand (USE AFTER {EXCEPTION OBJECT | EO} {object-class-name-1 | interface-name-1},
+// §14.9.49.2 — the EC-OO wave). See BoundEoOperand: the two alternatives are ONE discriminated value, never
+// two nullable fields, because §14.9.49.4 GR14 tests them in two SEPARATE passes and a shape that lets one arm
+// be forgotten is the shape that lost SR17 for a year. Each alternative carries its RESOLVED COBOL SYMBOL, never
+// a rendered C# type name: choosing the C# spelling — and how MANY spellings one COBOL name selects — is the
+// emitter's job (kb/Work PB365 + PB366).
+
+/// <summary>The single operand of a Format-4 USE statement (ISO §14.9.49.2): WHICH alternative of the format's
+/// brace group was written, carrying that alternative's RESOLVED symbol. §14.9.49.4 GR14 gives the two
+/// alternatives two DIFFERENT tests in two SEPARATE passes — a) every object-class-name-1 in source order, and
+/// only "otherwise, all of the USE statements in the source element are analyzed again" for b) every
+/// interface-name-1 — so the discriminator is load-bearing at EMIT, not decoration.
+/// <para>Both alternatives render as a C# type test over the alternative's own census of emitted types (see the
+/// two cases); the pass structure and the per-pass census are the emitter's, in <c>EcEmitter</c>.</para></summary>
+public abstract record BoundEoOperand;
+
+/// <summary>The object-class-name-1 alternative — ISO §14.9.49.3 SR16, selected by §14.9.49.4 GR14 a): the
+/// exception object "is a factory object or instance object of object-class-name-1 or of a subclass of
+/// object-class-name-1". ONE clause naming BOTH object kinds, and a COBOL class is emitted as TWO DISJOINT C#
+/// hierarchies (the instance class and its sibling <c>…__FACTORY</c> singleton, each rooted at its base's
+/// corresponding half) — so one COBOL class-name selects a SET of C# types, and the selector renders
+/// <see cref="Compiler.Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/>, the ONE census, as one C# or-pattern
+/// (kb/Work PB366: testing only the instance half selected no declarative for any factory exception object,
+/// silently).</summary>
+public sealed record BoundEoClass(Compiler.Oo.OoClassSymbol Symbol) : BoundEoOperand;
+
+/// <summary>The interface-name-1 alternative — ISO §14.9.49.3 SR17, selected by §14.9.49.4 GR14 b): the
+/// exception object "is described with an IMPLEMENTS clause that references interface-name-1". §11.8.4 GR2
+/// (instance objects) and §11.4.4 GR2 (factory objects) make that a CLOSURE — a) the object's own IMPLEMENTS,
+/// b) "the instance object implements an interface that inherits intf-1", c) "the class containing the instance
+/// object inherits a class whose instance object implements intf-1" — and the emitter renders each emitted half
+/// of a class with exactly that closure as its C# interface list (a COBOL INTERFACE-ID emits ONE C# interface,
+/// carrying its own INHERITS as C# bases), so one test against
+/// <see cref="Compiler.Oo.OoInterfaceSymbol.ImplementedCsTypes"/> realizes all three legs for both halves
+/// (kb/Work PB365: before it this alternative had no resolution path at all and died on SR16's diagnostic).</summary>
+public sealed record BoundEoInterface(Compiler.Oo.OoInterfaceSymbol Symbol) : BoundEoOperand;
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).

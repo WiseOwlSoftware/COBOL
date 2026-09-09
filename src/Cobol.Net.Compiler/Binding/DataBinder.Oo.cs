@@ -307,10 +307,15 @@ public sealed partial class DataBinder
                     else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: an exception-name "
                         + "here shall be a level-3 EC-USER name (ISO §14.2.2 SR7)");
                 }
-                else if (OoClasses?.Find(up) is not null) m.RaisingClasses.Add(up);
-                else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: not an exception-name "
-                    + "or a class of the compilation group (ISO §14.2.2 SR7–SR9; interfaces are a later "
-                    + "refinement)");
+                // §14.2.2 SR8 scopes the class alternative to the REPOSITORY paragraph (§8.4.6.4), so the
+                // partition asks the ONE funnel's non-diagnosing half — the PD-header twin of this arm asks
+                // the same question the same way (kb/Work PB365). SR9's interface arm is still unimplemented.
+                else if (Compiler.Oo.OoNameResolution.Lookup(OoClasses, w, up,
+                             Compiler.Oo.OoNameResolution.Want.Class).Ok)
+                    m.RaisingClasses.Add(up);
+                else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: not an exception-name, "
+                    + "and not a class this source element may reference (ISO §14.2.2 SR7–SR9 / §8.4.6.4; "
+                    + "interfaces are a later refinement)");
             }
         // A GROUP formal/RETURNING item crosses the boundary as its character image (§14.2.3 GR8) and so must be
         // whole-group-referenced (its numeric-DISPLAY leaves image-stored, untouched caller bytes round-tripping) —

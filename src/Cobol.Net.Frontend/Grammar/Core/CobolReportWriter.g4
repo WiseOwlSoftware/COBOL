@@ -32,6 +32,18 @@ reportName
     : cobolWord
     ;
 
+// ⛔ THE ONE PARSE SHAPE OF A REPORT-GROUP REFERENCE (`GENERATE`'s data-name-1, §14.9.16.3 SR1; USE BEFORE
+// REPORTING's identifier-1, §14.9.49.3 SR9). §8.4.2.2.2 Format 1 is `data-name-1 [ data-qualifier ] …
+// [ file-report-qualifier ]`, and a report group is a LEVEL-01 entry — it has no superordinate data-name, so
+// the only available qualifier is the `IN/OF report-name-1` half of file-report-qualifier. §14.9.16.3 SR1
+// spells it out: "Data-name-1 shall name a detail report group. It may be qualified by a report-name."
+// §8.4.2.2.3 SR3 makes IN and OF equivalent. Both consumers bind through ReportGroupResolution — the one
+// funnel that turns (head, qualifier) into exactly one group and diagnoses an ambiguous reference
+// (§8.4.2.2.1 / §8.4.2.2.3 SR1) instead of taking the first report that happens to carry the name.
+reportGroupReference
+    : cobolWord ((IN | OF) reportName)?
+    ;
+
 reportDescriptionClause
     : reportGlobalClause
     | reportCodeClause
@@ -199,11 +211,14 @@ initiateStatement
     : INITIATE reportName+
     ;
 
-// GENERATE {report-group-name | report-name} (§14.9.16) — produce a detail line (or summary reporting).
-// The operand is a report-group-name (detail reporting) or a report-name (summary reporting); the binder
-// distinguishes by resolving the name against the report model.
+// GENERATE {data-name-1 | report-name-1} (§14.9.16.2) — produce a detail line (or summary reporting).
+// The operand is a detail report-group name (SR1, detail reporting) or a report-name (SR2, summary
+// reporting); the binder distinguishes by resolving the name against the report model. SR1's second sentence
+// — "It may be qualified by a report-name" — is why the operand is a `reportGroupReference` and not a bare
+// `reportName`: `GENERATE DET-A OF R-B` is legal COBOL and used to be COBOL0001 (kb/Work PB365). A qualified
+// operand can only be the data-name form (a report-name has no qualifier), which the binder relies on.
 generateStatement
-    : GENERATE reportName
+    : GENERATE reportGroupReference
     ;
 
 // TERMINATE report-name... (§14.9.46) — end report processing: produce final CONTROL/REPORT FOOTINGs.

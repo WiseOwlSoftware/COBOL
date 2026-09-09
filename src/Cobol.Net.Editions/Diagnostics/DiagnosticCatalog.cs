@@ -1144,7 +1144,28 @@ public static class DiagnosticCatalog
         NotImplemented, "report-generate-not-detail", EditionSeverity.Error,
         "GENERATE names a report group that is not a DETAIL group.", "ISO §14.9.16.3 SR1");
 
+    /// <summary>COBOLNET1920 — the §8.4.2.2 uniqueness rule as it applies to a REPORT-GROUP reference
+    /// (kb/Work PB365). The same 01-level group name may be described in two report description entries of one
+    /// source unit; §8.4.2.2.1 then requires the reference to be qualified by a report-name, and §8.4.2.2.3 SR1
+    /// makes it a syntax rule. Emitted from the ONE funnel (<c>ReportGroupResolution.Resolve</c>) for both of
+    /// its consumers — <c>GENERATE data-name-1</c> (§14.9.16.3 SR1) and <c>USE BEFORE REPORTING identifier-1</c>
+    /// (§14.9.49.3 SR9) — which before PB365 each silently bound the FIRST report that carried the name.</summary>
+    public static readonly DiagnosticDescriptor ReportGroupReferenceAmbiguous = new(
+        "COBOLNET1920", "report-group-reference-ambiguous", EditionSeverity.Error,
+        "A report-group reference names a group described in more than one report and is not qualified by a "
+        + "report-name.", "ISO §8.4.2.2.1 / §8.4.2.2.3 SR1");
+
     // ── COBOLNET0899 — object-oriented refinements (deferred) ────────────────────────────────────────
+    /// <summary>COBOLNET0859 — the USE Format-4 operand does not name a class or interface the referring
+    /// SOURCE ELEMENT may reference (ISO §14.9.49.3 SR16/SR17, scoped by §8.4.6.4). The code predates
+    /// kb/Work PB365 and is kept byte-stable (goldens pin it); what changed is the SET the operand is resolved
+    /// against — the source element's REPOSITORY, not the whole compilation group — and that BOTH alternatives
+    /// of the format's brace group now resolve, where only the class arm used to.</summary>
+    public static readonly DiagnosticDescriptor UseExceptionObjectName = new(
+        "COBOLNET0859", "use-exception-object-name", EditionSeverity.Error,
+        "A USE AFTER EXCEPTION OBJECT operand does not name a class or interface in scope.",
+        "ISO §14.9.49.3 SR16/SR17 / §8.4.6.4");
+
     public static readonly DiagnosticDescriptor OoFactoryObjectReference = new(
         NotImplemented, "oo-factory-object-reference", EditionSeverity.Error,
         "USAGE OBJECT REFERENCE FACTORY OF is recognized but not yet implemented.", "ISO §13.18.60", RecognizedNotImplemented);

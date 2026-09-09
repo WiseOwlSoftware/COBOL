@@ -72,23 +72,27 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// reporting) or a report-name whose RD has a CONTROL clause (SR2 — summary reporting, GR2).</summary>
     public BoundStatement BindGenerate(Core.GenerateStatementContext stmt)
     {
-        string name = stmt.reportName().GetText();
-        if (RwFindReport(name) is { } summary)
+        var (name, qualifier) = ReportGroupResolution.Parts(stmt.reportGroupReference());
+        // The report-name form (SR2, summary reporting) has NO qualifier — §8.4.2.2 gives a report-name no
+        // qualifier at all — so a qualified operand can only be the data-name form and skips this arm.
+        if (qualifier is null && RwFindReport(name) is { } summary)
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
                     + "clause in the report description entry (ISO §14.9.16.3 SR2)");
             return new BoundGenerate(summary, null);   // summary reporting (GR2)
         }
-        foreach (var r in ctx.Data.Reports)
-            if (r.Groups.FirstOrDefault(g =>
-                    name.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) is { } group)
-            {
-                if (group.Kind != ReportGroupKindModel.Detail)
-                    ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"GENERATE {name}: the named report group is not a "
-                        + "DETAIL group (ISO §14.9.16.3 SR1)");
-                return new BoundGenerate(r, group);
-            }
+        // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
+        // a report-name") AND the §8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
+        string where = $"GENERATE {name}{(qualifier is null ? "" : $" OF {qualifier}")}";
+        if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.Reports, name, qualifier, where,
+                out var report, out var group) != ReportGroupResolution.Match.None)
+        {
+            if (group!.Kind != ReportGroupKindModel.Detail)
+                ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"{where}: the named report group is not a "
+                    + "DETAIL group (ISO §14.9.16.3 SR1)");
+            return new BoundGenerate(report!, group);
+        }
         return new BoundUnsupported($"GENERATE '{name}' names neither a detail report group nor a report (ISO §14.9.16.3 SR1/SR2)");
     }
 

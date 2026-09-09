@@ -39,6 +39,38 @@ public sealed class OoClassTable
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
     public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
 
+    /// <summary>The §8.4.6.4 name scope visible at <paramref name="site"/> — memoized per SOURCE ELEMENT so the
+    /// ancestor walk runs once per program / class / interface / method definition rather than once per
+    /// reference. ⛔ This table is the GROUP's set and is deliberately NOT the answer to "may this source
+    /// element reference that name": go through <see cref="OoNameResolution"/>, which composes the two.</summary>
+    public OoRepositoryScope RepositoryScopeFor(Antlr4.Runtime.RuleContext? site)
+    {
+        var key = SourceElementOf(site);
+        if (key is null) return OoRepositoryScope.Empty;
+        // Built from the SOURCE ELEMENT, not from `site`: the two walks are identical (nothing between a
+        // reference and its source element carries a REPOSITORY paragraph or names a class), and starting at
+        // the memo key makes that identity a property of the code rather than an argument about it.
+        if (!_scopes.TryGetValue(key, out var scope)) _scopes[key] = scope = OoRepositoryScope.Build(key);
+        return scope;
+    }
+
+    // Keyed by parse-tree node IDENTITY: a ParserRuleContext does not override Equals, so the default
+    // comparer already IS reference equality.
+    private readonly Dictionary<Antlr4.Runtime.RuleContext, OoRepositoryScope> _scopes = [];
+
+    /// <summary>The innermost source element containing <paramref name="site"/> — the memo key, and the unit
+    /// whose REPOSITORY (plus its containers') the scope is. A method definition is its own key even though it
+    /// may not carry a REPOSITORY (§12.3.3 SR2): its scope is its class's, and keying on it costs one entry.</summary>
+    private static Antlr4.Runtime.RuleContext? SourceElementOf(Antlr4.Runtime.RuleContext? site)
+    {
+        for (var c = site; c is not null; c = c.Parent)
+            if (c is Core.ProgramUnitContext or Core.NestedProgramContext or Core.ClassDefinitionContext
+                or Core.InterfaceDefinitionContext or Core.MethodDefinitionContext
+                or Core.FactoryParagraphContext or Core.ObjectParagraphContext)
+                return c;
+        return null;
+    }
+
     /// <summary>True when an item CROSSES the INVOKE boundary as a character string: groups (image crossing),
     /// image-stored numerics, alphanumeric / numeric-edited items. Native numerics and object references cross
     /// typed. The §14.8.2 strict-conformance bind rules guarantee both sides agree on the crossing form's
@@ -186,7 +218,11 @@ public sealed class OoClassTable
         foreach (var isym in table._interfaces)
             foreach (string inh in isym.InheritNames)
             {
-                if (table.FindInterface(inh) is { } b)
+                // §11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
+                // paragraph of this source element" — the class-INHERITS rule's twin, same funnel (PB365).
+                if (OoNameResolution.Resolve(table, edition, isym.Ctx, inh, OoNameResolution.Want.Interface,
+                        $"interface '{isym.Name}': INHERITS FROM", "COBOLNET0840",
+                        "ISO §11.6.3 SR2").Interface is { } b)
                 {
                     if (isym.Inherits.Contains(b))
                         edition.Error("COBOLNET0840",
@@ -194,9 +230,6 @@ public sealed class OoClassTable
                     else
                         isym.Inherits.Add(b);
                 }
-                else
-                    edition.Error("COBOLNET0840",
-                        $"interface '{isym.Name}': INHERITS FROM unknown interface '{inh}' (ISO §11.6 SR2)");
             }
         foreach (var isym in table._interfaces)
         {
@@ -366,7 +399,12 @@ public sealed class OoClassTable
         foreach (var sym in table._classes)
         {
             if (sym.BaseName is not { } baseName) continue;
-            if (table.Find(baseName) is { } baseSym)
+            // §11.3.3 SR2: "Object-class-name-2 shall be the name of a class specified in the REPOSITORY
+            // paragraph of this source element" — an INSTANCE of §8.4.6.4, so it resolves through the ONE
+            // funnel and NOT through this table's group-wide Find (kb/Work PB365).
+            if (OoNameResolution.Resolve(table, edition, sym.Ctx, baseName, OoNameResolution.Want.Class,
+                    $"class '{sym.Name}': INHERITS FROM", "COBOLNET0821", "ISO §11.3.3 SR2").Class
+                is { } baseSym)
             {
                 sym.Base = baseSym;
                 if (baseSym.IsFinal)
@@ -374,11 +412,6 @@ public sealed class OoClassTable
                         $"class '{sym.Name}': INHERITS FROM '{baseName}', which is declared FINAL — a FINAL "
                         + "class shall not be a superclass (ISO §11.3 SR5/GR3)");
             }
-            else
-                edition.Error("COBOLNET0821",
-                    $"class '{sym.Name}': INHERITS FROM unknown class '{baseName}' — object-class-name-2 shall "
-                    + "reference a class defined in the compilation group (ISO §11.3.2; never degraded to a "
-                    + "root class)");
         }
 
         // An inheritance CYCLE would emit circular C# base declarations — a Roslyn CS error on user source
@@ -412,19 +445,29 @@ public sealed class OoClassTable
             MarkRoster(sym, sym.FactoryMethods, sym.Base is null ? null : (n => sym.Base!.FindFactoryMethod(n)), "factory ");
         }
 
-        // IMPLEMENTS capture (§11.8.2 — the OBJECT/FACTORY paragraph headers; interface names resolve
-        // against the group's interface table; §11.8.3 SR1's REPOSITORY requirement is enforced with the
-        // repository binding — staged as a documented follow-up, the conformance pass is the substance).
+        // IMPLEMENTS capture (§11.8.2 — the OBJECT/FACTORY paragraph headers). §11.8.3 SR1 (OBJECT) and
+        // §11.4.3 SR1 (FACTORY) are the SAME sentence — "Interface-name-1 shall be the name of an interface
+        // specified in the REPOSITORY paragraph of the containing class definition" — and both now resolve
+        // through the §8.4.6.4 funnel. Until kb/Work PB365 this comment said the REPOSITORY requirement was
+        // "staged as a documented follow-up"; a staged rule is an accepted illegal program, so it is enforced.
         foreach (var sym in table._classes)
         {
-            CaptureImplements(sym.Ctx.objectParagraph()?.implementsClause(), sym.Implements, "OBJECT");
-            CaptureImplements(sym.Ctx.factoryParagraph()?.implementsClause(), sym.FactoryImplements, "FACTORY");
+            CaptureImplements(sym.Ctx.objectParagraph()?.implementsClause(), sym.Implements,
+                "OBJECT", "ISO §11.8.3 SR1");
+            CaptureImplements(sym.Ctx.factoryParagraph()?.implementsClause(), sym.FactoryImplements,
+                "FACTORY", "ISO §11.4.3 SR1");
 
-            void CaptureImplements(Core.ImplementsClauseContext? impl, List<OoInterfaceSymbol> into, string where)
+            void CaptureImplements(Core.ImplementsClauseContext? impl, List<OoInterfaceSymbol> into,
+                string where, string citation)
             {
                 foreach (var iref in impl?.interfaceName() ?? [])
                 {
-                    if (table.FindInterface(iref.GetText()) is { } isym)
+                    // The site is the CLASS definition (§11.8.3 SR1 says "of the containing class
+                    // definition"), which is also where the OBJECT/FACTORY paragraph's own scope comes from:
+                    // §12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
+                    if (OoNameResolution.Resolve(table, edition, sym.Ctx, iref.GetText(),
+                            OoNameResolution.Want.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
+                            "COBOLNET0840", citation).Interface is { } isym)
                     {
                         if (into.Contains(isym))
                             edition.Error("COBOLNET0840",
@@ -433,10 +476,6 @@ public sealed class OoClassTable
                         else
                             into.Add(isym);
                     }
-                    else
-                        edition.Error("COBOLNET0840",
-                            $"class '{sym.Name}' ({where}): IMPLEMENTS unknown interface '{iref.GetText()}' "
-                            + "(ISO §11.8.3 — interface-name shall reference an interface of the group)");
                 }
             }
         }

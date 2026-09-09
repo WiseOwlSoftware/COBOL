@@ -21,14 +21,28 @@ OO mechanism (feedback_one_mechanism_per_job):
 - **RAISE identifier-1** → `BoundRaiseObject` (grammar takes `objectReference` so NULL/SUPER get the
   targeted 0848, and RAISE SELF parses); NOT TURN-gated (§7.3.25 takes names only); NEVER fatal by itself
   (GR2 — the continue-after-RAISE path is the normal exit).
-- **USE Format 4** (`USE AFTER {EXCEPTION OBJECT | EO} class-name`; EO is context-sensitive like EC) →
-  `BoundDeclarative.EoClass` (the RESOLVED `OoClassSymbol`, not a rendered C# name) → the generated
-  `__EcObjDispatch(object?)`: source-order `is` checks, −3 tail. GR14a names BOTH object kinds in ONE
-  clause — "a factory object or instance object of object-class-name-1 or of a subclass" — and a COBOL
-  class is emitted as TWO DISJOINT C# hierarchies, so each entry tests the symbol's
-  `FactoryOrInstanceCsTypes` pair as ONE or-pattern (`__obj is FOO or FOO__FACTORY`); "or of a subclass"
-  rides C#'s `is` in EACH hierarchy, since both mirror INHERITS. Testing only the instance half selected
-  NO declarative for any factory exception object, silently (kb/Work PB366). GR3: for an OBJECT raise F4 REPLACES the F1/F3 tiers. GR15 holds
+- **USE Format 4** (`USE AFTER {EXCEPTION OBJECT | EO} {object-class-name-1 | interface-name-1}` — a brace
+  group with TWO alternatives, §14.9.49.2; EO is context-sensitive like EC) → `BoundDeclarative.Eo`, the
+  discriminated `BoundEoOperand` (`BoundEoClass(OoClassSymbol)` | `BoundEoInterface(OoInterfaceSymbol)` — ONE
+  value with a discriminator, never two nullable fields, and each case carries the RESOLVED SYMBOL, never a
+  rendered C# name) → the generated `__EcObjDispatch(object?)`. ⛔ **§14.9.49.4 GR14 IS A TWO-PASS RULE and the
+  emitted selector is two passes**: pass a) every object-class-name-1 entry in source order, and only if none
+  qualifies does "all of the USE statements in the source element are analyzed again" for pass b) every
+  interface-name-1 entry; −3 tail → §14.6.13.1.5. Interleaving the two would let an EARLIER interface entry
+  beat a LATER class entry, which GR14 orders the other way (kb/Work PB365; `2002/pb365_use_eo_interface_two_pass`
+  is the program that separates them). **Each pass renders its alternative's OWN CENSUS of emitted C# types as
+  one `is` or-pattern — one COBOL name is not one C# type.** GR14 a) names BOTH object kinds in one clause ("a
+  factory object or instance object of object-class-name-1 or of a subclass") and a COBOL class is emitted as
+  TWO DISJOINT C# hierarchies, so a class entry tests `OoClassSymbol.FactoryOrInstanceCsTypes`
+  (`__obj is FOO or FOO__FACTORY`); testing only the instance half selected NO declarative for any factory
+  exception object, silently (kb/Work PB366). GR14 b)'s "described with an IMPLEMENTS clause that references
+  interface-name-1" is §11.8.4 GR2 / §11.4.4 GR2's IMPLEMENTS closure, which rides C#'s `is` over the single
+  emitted interface (`OoInterfaceSymbol.ImplementedCsTypes`) that both halves carry. "Or of a subclass" rides
+  `is` in EACH hierarchy, since both mirror INHERITS. Both operands resolve through `OoNameResolution` —
+  §14.9.49.3 SR16/SR17 scope them to the source element's REPOSITORY (§8.4.6.4), not to the compilation group.
+  `Format4UseObjectSelectorDriftTests` asserts, against the GENERATED C#, that each census equals what the
+  backend actually emits and that the selector tests every member.
+  GR3: for an OBJECT raise F4 REPLACES the F1/F3 tiers. GR15 holds
   structurally (the raise site sets the register before dispatching).
 - **GOBACK / EXIT PROGRAM / method-return RAISING identifier-1** → `BoundRaising.ObjectSource` (exactly
   one of EcName/IsLast/ObjectSource); SR4d no-universal + SR4a declared-class-in-header (walking the base

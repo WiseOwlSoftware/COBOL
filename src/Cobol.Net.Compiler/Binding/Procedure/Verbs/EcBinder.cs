@@ -218,7 +218,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     public void EcCollectPdRaising(Core.ProcedureDivisionContext pd)
     {
         if (pd.raisingClause() is not { } rc) return;
-        foreach (var w in rc.cobolWord()) EcAddPdRaisingWord(w.GetText());
+        foreach (var w in rc.cobolWord()) EcAddPdRaisingWord(w);
     }
 
     /// <summary>Load a METHOD's pre-partitioned header RAISING lists as the current source element's
@@ -234,9 +234,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Partition ONE PD-header RAISING operand (§14.2.2 — the EC-OO wave, D-EO8): a catalog EC
     /// name must be level-3 EC-USER (SR7 → 0858 otherwise); a class of the group joins the SR4a class list;
     /// anything else is 0858 (SR8/SR9 — interface names are the interface-RAISING refinement).</summary>
-    public void EcAddPdRaisingWord(string word)
+    public void EcAddPdRaisingWord(Core.CobolWordContext word)
     {
-        string up = word.ToUpperInvariant();
+        string up = word.GetText().ToUpperInvariant();
         if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var info))
         {
             // Direct TryGet, not the funnel: an unresolved word here may legally be a CLASS name (SR8/SR9),
@@ -253,10 +253,20 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     + "name (ISO §14.2.2 SR7)");
             return;
         }
-        if (host.OoClasses?.Find(up) is not null) { ctx.EcState.PdRaisingClasses.Add(up); return; }
+        // §14.2.2 SR8: "Object-class-name-1 shall be the name of a class specified in the REPOSITORY
+        // paragraph" — so the partition uses the SOURCE ELEMENT's scope (§8.4.6.4), through the ONE funnel's
+        // non-diagnosing half; a class the element may not reference is not a class-name in this position
+        // (kb/Work PB365). SR9's interface alternative is still unimplemented here.
+        if (Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, word, up,
+                Compiler.Oo.OoNameResolution.Want.Class).Ok)
+        {
+            ctx.EcState.PdRaisingClasses.Add(up);
+            return;
+        }
         ctx.Edition.Error("COBOLNET0858",
-            $"PROCEDURE DIVISION RAISING {up}: not an exception-name or a class of the compilation group "
-            + "(ISO §14.2.2 SR7–SR9; interface names are a later refinement of the EC-OO wave)");
+            $"PROCEDURE DIVISION RAISING {up}: not an exception-name, and not a class this source element "
+            + "may reference (ISO §14.2.2 SR7–SR9 / §8.4.6.4; interface names are a later refinement of the "
+            + "EC-OO wave)");
     }
 
     // ── The per-statement TurnState fold (deep-dive D10) ─────────────────────────────────────────────────────

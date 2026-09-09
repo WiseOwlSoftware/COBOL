@@ -18,6 +18,8 @@
   "pb704-order-as-data-name",
   "pb712-write-two-advancing-operands",
   "pb712-write-before-after-page",
+  "pb365-report-group-ambiguous",
+  "pb365-use-eo-not-in-repository",
   "pb712-write-before-after-below-2023",
   "pb712-write-after-before-below-2023",
   "pb348-release-from-integer-function",

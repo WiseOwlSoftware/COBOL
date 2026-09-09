@@ -289,8 +289,12 @@ alterEntry
 // still claims `USE EXCEPTION F1` unambiguously, because Formats 3 and 4 demand CONDITION/EC/OBJECT/EO right
 // after EXCEPTION and Format 3 demands at least one entry after them.
 useStatement
-    // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1
-    : USE GLOBAL? BEFORE REPORTING procedureName
+    // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a REPORT GROUP (SR9), so
+    // the operand is the shared `reportGroupReference` (§8.4.2.2.2 Format 1's `data-name-1
+    // [ IN/OF report-name-1 ]`), NOT `procedureName`. The two spell the same tokens, but naming the rule after
+    // the thing it references is what lets ONE funnel (ReportGroupResolution) bind this operand and GENERATE's
+    // — the qualified spelling and the ambiguity rule are then the same code (kb/Work PB365).
+    : USE GLOBAL? BEFORE REPORTING reportGroupReference
     // Format 3 (exception-name, EC model 2002+ — binder-gated): USE [AFTER] {EXCEPTION CONDITION | EC}
     // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §14.9.49.2; SR12: EC ≡ EXCEPTION
     // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §14.6.13.1.1 / §7.3.25.3 SR2), so

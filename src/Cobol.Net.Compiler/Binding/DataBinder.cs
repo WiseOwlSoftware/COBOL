@@ -2986,16 +2986,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "REFERENCE (ISO §13.18.60.4 — an object-reference item is picture-less)");
             pictureText = null;
         }
-        // A TYPED reference (spine part 2 — LIVE): the declared class must resolve in the group's pass-1
-        // class symbol table (OO deep-dive D1) — its emitted C# field type IS the class's emitted type
-        // (PicInfo.ClrType), so an unresolved name would surface as a Roslyn CS0246 on user source (a
-        // loud-failure violation). §13.18.60.4: class-name-1 shall reference a class.
-        if (entryUsage is Usage.ObjectReference && objectClassName is not null
-            && OoClasses?.Find(objectClassName) is null && OoClasses?.FindInterface(objectClassName) is null)
-            Edition.Error("COBOLNET0813", $"{entryWhere}: USAGE OBJECT REFERENCE names the unknown class or "
-                + $"interface '{objectClassName}' — the declared name of a typed object reference shall be a "
-                + "class or interface of the compilation group (ISO §13.18.60.2/.4; separate compilation is "
-                + "a later slice)");
+        // A TYPED reference (spine part 2 — LIVE): the declared class must resolve — its emitted C# field type
+        // IS the class's emitted type (PicInfo.ClrType), so an unresolved name would surface as a Roslyn
+        // CS0246 on user source (a loud-failure violation). ⛔ The set is the REFERRING SOURCE ELEMENT's
+        // (§8.4.6.4), not the compilation group's: this site called `OoClasses.Find`/`FindInterface` directly
+        // and so accepted a class the source element may not reference (kb/Work PB365 — the same widened set
+        // as the USE Format-4 arm; §13.18.60 states no REPOSITORY rule of its own, so §8.4.6.4 IS the rule).
+        if (entryUsage is Usage.ObjectReference && objectClassName is not null)
+            Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, entry, objectClassName,
+                Compiler.Oo.OoNameResolution.Want.Either,
+                $"{entryWhere}: USAGE OBJECT REFERENCE", "COBOLNET0813", "ISO §13.18.60.2/.4");
 
         // PICTURE is prohibited on a fixed-width binary usage (ISO §13.16.3 SR8 — the item is picture-less; its
         // width and range are fixed by the usage, §13.18.60.4 GR12). Reject loud, never let Analyze classify an

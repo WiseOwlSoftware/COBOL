@@ -414,30 +414,64 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     }
 
     /// <summary>Generate <c>__EcObjDispatch</c> — the Format-4 exception-OBJECT selector (ISO §14.9.49.4
-    /// GR14): source-order scan ("A declarative is selected for execution by analyzing the USE statements in
-    /// a source element in the order in which they are specified"), first match wins. GR14 a) selects when
-    /// the exception object "is a factory object or instance object of object-class-name-1 or of a subclass
-    /// of object-class-name-1" — ONE clause naming BOTH object kinds, and a COBOL class is emitted as TWO
-    /// DISJOINT C# hierarchies (the instance class and its sibling <c>…__FACTORY</c> singleton class, each
-    /// rooted at its base's corresponding half). So the predicate is the class symbol's
-    /// <see cref="Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/> pair rendered as ONE C# or-pattern — the
-    /// "or of a subclass" reach rides C#'s <c>is</c> in EACH hierarchy, since both mirror INHERITS. Testing
-    /// only the instance name selected NO declarative for any factory exception object, silently
-    /// (kb/Work PB366). GR15 (EXCEPTION-OBJECT references the object on declarative entry) already holds —
-    /// the raise site set the register before dispatching. A null object matches nothing (spec-literal:
-    /// no class describes it) → -3, the caller's §14.6.13.1.5 conversion.</summary>
+    /// GR14): a source-order scan ("A declarative is selected for execution by analyzing the USE statements in
+    /// a source element in the order in which they are specified"), first match wins.
+    /// <para>⛔ GR14 IS A TWO-PASS RULE, and the emitted code is two passes: a) scans the source element's USE
+    /// statements in written order for an <i>object-class-name-1</i> entry matching the raised object's class
+    /// or a subclass; only if none qualifies does "all of the USE statements in the source element are analyzed
+    /// again" and b) scan for an <i>interface-name-1</i> entry the object's IMPLEMENTS clause references. A
+    /// single interleaved pass would let an EARLIER interface entry beat a LATER class entry, which GR14 orders
+    /// the other way round (kb/Work PB365 — before it, pass b) did not exist at all and the interface
+    /// alternative was rejected at bind).</para>
+    /// <para>Each pass renders its alternative's OWN CENSUS of emitted C# types as one <c>is</c> or-pattern:
+    /// ONE COBOL name is not ONE C# type. GR14 a) selects when the exception object "is a factory object or
+    /// instance object of object-class-name-1 or of a subclass of object-class-name-1" — ONE clause naming BOTH
+    /// object kinds, and a COBOL class is emitted as TWO DISJOINT C# hierarchies (the instance class and its
+    /// sibling <c>…__FACTORY</c> singleton, each rooted at its base's corresponding half) — so its census is
+    /// <see cref="Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/>; testing only the instance name selected NO
+    /// declarative for any factory exception object, silently (kb/Work PB366). GR14 b)'s "described with an
+    /// IMPLEMENTS clause that references interface-name-1" is §11.8.4 GR2 (instance objects) / §11.4.4 GR2
+    /// (factory objects) as a CLOSURE — the direct IMPLEMENTS, plus anything an implemented interface inherits,
+    /// plus anything an inherited class implements — and the emitter renders each emitted HALF of a class with
+    /// exactly that closure as its C# interface list, so the one emitted C# interface
+    /// (<see cref="Oo.OoInterfaceSymbol.ImplementedCsTypes"/>) realizes all three legs for both halves.</para>
+    /// <para>"Or of a subclass" rides C#'s <c>is</c> in EACH hierarchy, since both mirror INHERITS. GR15
+    /// (EXCEPTION-OBJECT references the object on declarative entry) already holds — the raise site set the
+    /// register before dispatching. A null object matches nothing (spec-literal: no class describes it) → -3,
+    /// the caller's §14.6.13.1.5 conversion.</para></summary>
     public void EmitObjDispatchSelector(BoundProgram bound, CodeWriter w)
     {
         var decls = bound.Declaratives ?? [];
         using (w.Block("private int __EcObjDispatch(object? __obj)"))
         {
-            for (int i = 0; i < decls.Count; i++)
-                if (decls[i].EoClass is { } cls)
-                    w.Line($"if (__obj is {string.Join(" or ", cls.FactoryOrInstanceCsTypes)}) "
-                        + $"return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
-            w.Line("return -3;   // no matching class entry (GR14 tail → 14.6.13.1.5)");
+            EmitObjDispatchPass(decls, eo => (eo as BoundEoClass)?.Symbol.FactoryOrInstanceCsTypes,
+                "// GR14 a) — object-class-name-1 entries, in the order the USE statements are specified", w);
+            EmitObjDispatchPass(decls, eo => (eo as BoundEoInterface)?.Symbol.ImplementedCsTypes,
+                "// GR14 b) — \"all of the USE statements in the source element are analyzed again\": "
+                + "the interface-name-1 entries", w);
+            w.Line("return -3;   // no qualifying declarative (GR14 b) tail → 14.6.13.1.5)");
         }
         w.Line();
+    }
+
+    /// <summary>One GR14 pass over the declaratives in source order. <paramref name="census"/> IS the pass:
+    /// it returns the emitted C# types the entry's operand selects when the entry belongs to THIS pass, and
+    /// null when it belongs to the other one — the same null-means-skip shape the F3 <c>Tier</c> scans use, so
+    /// the pass structure and the per-alternative census stay one decision each. A pass with no entries emits
+    /// NOTHING — not even its banner — so a unit whose Format-4 declaratives are all class entries carries no
+    /// interface-pass scaffolding at all (MEASURED: its whole selector is the GR14 a) banner, one <c>is</c>
+    /// line and the tail).</summary>
+    private static void EmitObjDispatchPass(IReadOnlyList<BoundDeclarative> decls,
+        Func<BoundEoOperand, IReadOnlyList<string>?> census, string banner, CodeWriter w)
+    {
+        bool any = false;
+        for (int i = 0; i < decls.Count; i++)
+        {
+            if (decls[i].Eo is not { } eo || census(eo) is not { } csTypes) continue;
+            if (!any) { w.Line(banner); any = true; }
+            w.Line($"if (__obj is {string.Join(" or ", csTypes)}) "
+                + $"return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
+        }
     }
 
     /// <summary>Generate <c>__IoCheckEc</c> — the EC-aware after-verb hook a statement with enabled EC-I-O

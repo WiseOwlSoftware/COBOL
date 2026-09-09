@@ -41,6 +41,7 @@
     "pb326_ec_report_active_inactive",
     "pb326_ec_report_file_mode",
     "pb326_flow_report_cross_report",
+    "pb365_report_group_qualified",
     "pb327_national_line_sequential_fill",
     "rw_present_when",
     "rw_suppress",

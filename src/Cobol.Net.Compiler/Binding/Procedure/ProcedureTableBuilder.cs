@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -291,7 +292,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (scope is { } s)
             _declaratives.Add(new BoundDeclarative(
                 name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report,
-                s.EcEntries, s.EoClass));
+                s.EcEntries, s.Eo));
     }
 
     // ── X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17) ────────────────────────────────────────────────
@@ -406,10 +407,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     }
 
     /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
-    /// group, or Format 3's (exception-name, file) entries (ISO §14.9.49).</summary>
+    /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §14.9.49).</summary>
     private readonly record struct DeclScope(
         IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
-        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, Compiler.Oo.OoClassSymbol? EoClass = null);
+        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, BoundEoOperand? Eo = null);
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
@@ -425,48 +426,52 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             return DeclBindUseF3(ecEntries, sectionName);
         if (use.OBJECT() is not null || use.EO() is not null)
         {
-            // Format 4 (§14.9.49.2 — ONE class/interface operand; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an
-            // OBJECT raise, F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
+            // Format 4 (§14.9.49.2 — a brace group requiring exactly one of TWO alternatives,
+            // {object-class-name-1 | interface-name-1}; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an OBJECT raise,
+            // F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
             // use-after-exception-object-2002: the pass owns the edition gate (Exec Step E).
             ctx.EcState.F3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
             string cname = use.cobolWord().GetText();
-            if (ctx.Data.OoClasses?.Find(cname) is not { } cls)
-            {
-                ctx.Edition.Error("COBOLNET0859",
-                    $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT '{cname}' does not "
-                    + "name a class of the compilation group (ISO §14.9.49.3 SR16; interface entries are "
-                    + "the interface-RAISING refinement)");
-                return null;
-            }
-            return new DeclScope([], null, global, null, EoClass: cls);
+            // SR16 and SR17 are ONE rule with two operand kinds, and both scope the name to the REPOSITORY
+            // paragraph — never to the compilation group, which is what OoClassTable holds. Both halves go
+            // through the §8.4.6.4 funnel; before kb/Work PB365 this site called `OoClasses.Find` directly, so a
+            // program with NO REPOSITORY compiled clean (SR16 unenforced) and the interface alternative had no
+            // resolution path at all and died on SR16's diagnostic (SR17 unimplemented).
+            var r = Compiler.Oo.OoNameResolution.Resolve(ctx.Data.OoClasses, ctx.Edition, use, cname,
+                Compiler.Oo.OoNameResolution.Want.Either,
+                $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT",
+                DiagnosticCatalog.UseExceptionObjectName.Code, "ISO §14.9.49.3 SR16/SR17");
+            if (!r.Ok) return null;
+            // The bound operand carries the RESOLVED SYMBOL, never a C# type name: how many emitted types one
+            // COBOL name selects is GR14's question and the emitter's answer (kb/Work PB366 — a class is TWO).
+            return new DeclScope([], null, global, null, Eo: r.Interface is { } ifc
+                ? new BoundEoInterface(ifc)          // SR17 / GR14 b) — the IMPLEMENTS test
+                : new BoundEoClass(r.Class!));       // SR16 / GR14 a) — class-or-subclass, factory or instance
         }
         if (use.REPORTING() is not null)
         {
             // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a report group
-            // (SR9), optionally qualified by its report-name (the procedureName's OF/IN tail).
-            var pn = use.procedureName();
-            string head = pn.GetChild(0).GetText();
-            string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
-            foreach (var report in ctx.Data.Reports)
+            // (SR9), optionally qualified by its report-name (§8.4.2.2.2 Format 1's file-report-qualifier).
+            // Resolution is the ONE funnel's: it collects EVERY candidate and diagnoses an ambiguous reference
+            // (§8.4.2.2.1 / §8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
+            // and therefore could never observe a second (kb/Work PB365).
+            var (head, qualifier) = ReportGroupResolution.Parts(use.reportGroupReference());
+            var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.Reports, head, qualifier,
+                $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group);
+            if (match == ReportGroupResolution.Match.None || group is null)
             {
-                if (qualifier is not null && !report.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase))
-                    continue;
-                if (report.Groups.FirstOrDefault(g =>
-                        head.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) is { } group)
-                {
-                    // SR9: the same identifier-1 shall not appear in more than one USE BEFORE REPORTING
-                    // statement within the same procedure division. Format 2 names exactly one group per
-                    // statement, so only the Duplicate verdict is reachable here.
-                    if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
-                        ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
-                            + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
-                            + "division (ISO §14.9.49.3 SR9)");
-                    return new DeclScope([], null, global, group);
-                }
+                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
+                    + $"'{head}' does not name a report group (ISO §14.9.49 SR9)");
+                return null;
             }
-            ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
-                + $"'{head}' does not name a report group (ISO §14.9.49 SR9)");
-            return null;
+            // SR9: the same identifier-1 shall not appear in more than one USE BEFORE REPORTING
+            // statement within the same procedure division. Format 2 names exactly one group per
+            // statement, so only the Duplicate verdict is reachable here.
+            if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
+                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
+                    + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
+                    + "division (ISO §14.9.49.3 SR9)");
+            return new DeclScope([], null, global, group);
         }
         var target = use.useOnTarget();
         if (target is null) return null;

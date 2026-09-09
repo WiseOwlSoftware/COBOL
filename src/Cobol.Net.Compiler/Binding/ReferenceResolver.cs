@@ -90,12 +90,18 @@ public sealed class ReferenceResolver(DataBinder data)
     /// reference (the caller keeps its generic unknown-name diagnosis). SR checks here: SR1 (:7376) the
     /// REPOSITORY property-specifier, SR2 (:7378) no universal receiver — both COBOLNET0843; SR3/SR4
     /// (accessor existence) belong to the drain, where the sending/receiving polarity is known.</summary>
-    private DataItem? OoTryBindPropertyReference(string name, List<string> qualifiers)
+    private DataItem? OoTryBindPropertyReference(string name, List<string> qualifiers,
+        Antlr4.Runtime.RuleContext? site)
     {
         if (qualifiers.Count != 1 || data.OoClasses is not { } table) return null;
         string recv = qualifiers[0];
 
-        OoClassSymbol? cls = table.Find(recv);
+        // The class-name qualifier is a SOURCE reference and takes the §8.4.6.4 scope — the source element's
+        // REPOSITORY, not the compilation group (kb/Work PB365; `table.Find` stood here). The lookup is the
+        // funnel's non-diagnosing half because a miss is a legal alternative: the qualifier may be an
+        // identifier naming a typed object reference, the instance form below.
+        OoClassSymbol? cls = Compiler.Oo.OoNameResolution.Lookup(table, site, recv,
+            Compiler.Oo.OoNameResolution.Want.Class).Class;
         bool factory = cls is not null;                      // prop OF Class-name → the FACTORY accessors (SR3/SR4 "or in the factory object")
         DataItem? recvItem = null;
         if (cls is null)
@@ -174,7 +180,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (ResolveQualified(name, qualifiers) is not null) return false;
         bool saved = _probing;
         _probing = true;
-        try { return OoTryBindPropertyReference(name, qualifiers) is not null; }
+        try { return OoTryBindPropertyReference(name, qualifiers, dref) is not null; }
         finally { _probing = saved; }
     }
 
@@ -355,7 +361,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // qualified data reference, so it legitimately FAILS normal qualification): the hook synthesizes the
         // GR1–GR3 temp and the rest of THIS method gives the temp the full normal tail (subscript rejection —
         // a temp has no OCCURS — and reference-modification, which SR5/SR6 permit on the property value).
-        item ??= OoTryBindPropertyReference(name, qualifiers);
+        item ??= OoTryBindPropertyReference(name, qualifiers, dref);
         if (item is null)
         {
             // The NAME resolves to nothing — a typo or a mis-qualification, never a feature gap (kb/Work R30).

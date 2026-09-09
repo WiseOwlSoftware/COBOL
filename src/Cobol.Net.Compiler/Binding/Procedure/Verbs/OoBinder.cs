@@ -249,11 +249,14 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // never enter the bound tree — the receiver's subscripts would bypass every position screen.
         if (ctx.Refs.Probe(dref) is not null && ctx.Refs.Resolve(dref) is { } receiver)
             return OoBindInstanceInvoke(inv, receiver, methodName);
-        if (host.OoClasses?.Find(dref.GetText()) is { } cls)
+        // The class-name-1 alternative is scoped by §8.4.6.4 to the names this SOURCE ELEMENT may reference,
+        // so the partition asks the ONE funnel (kb/Work PB365 — `OoClasses.Find` asked the whole group).
+        if (Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(),
+                Compiler.Oo.OoNameResolution.Want.Class).Class is { } cls)
             return OoBindClassInvoke(inv, cls, methodName);
         ctx.Edition.Error("COBOLNET0823",
-            $"INVOKE: '{dref.GetText()}' is neither a resolvable data item nor a class of the compilation "
-            + "group (ISO §14.9.23.2 — identifier-1 or class-name-1)");
+            $"INVOKE: '{dref.GetText()}' is neither a resolvable data item nor a class this source element "
+            + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
         return new BoundNop();
     }
 
@@ -950,7 +953,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 // in the emitter (§9.3.8.2 :12291 — EC-OO-UNIVERSAL on failure; the SR12 closed list is
                 // satisfied through the object-view-equivalent runtime conformance this register carries).
                 return new BoundSetObjectRef(targets, null, false, false) { FromExceptionObject = true };
-            else if (senderRef.cobolWord()?.GetText() is { } sname && host.OoClasses?.Find(sname) is { } scls)
+            // SR13's class-name-1 sender is a source reference and takes the §8.4.6.4 scope (PB365).
+            else if (senderRef.cobolWord()?.GetText() is { } sname
+                     && Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, senderRef, sname,
+                            Compiler.Oo.OoNameResolution.Want.Class).Class is { } scls)
             {
                 // SR13 (:31371): the sender names a CLASS → the factory object of that class. D11's
                 // singleton makes it a direct reference; conformance into a TYPED target is the FACTORY

@@ -25,6 +25,22 @@ public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCor
     public List<string> InheritNames { get; } = [];
     public List<OoInterfaceSymbol> Inherits { get; } = [];
 
+    /// <summary>The emitted C# types a COBOL reference to THIS interface selects when the rule asks whether an
+    /// object IMPLEMENTS it — ISO/IEC 1989:2023 §14.9.49.4 GR14 b): "the exception object that was raised is
+    /// described with an IMPLEMENTS clause that references interface-name-1". The twin of
+    /// <see cref="OoClassSymbol.FactoryOrInstanceCsTypes"/>, and the answer is a SET for the same reason: one
+    /// COBOL name is not one C# type by construction, it is one by MEASUREMENT. Today it measures ONE — a
+    /// COBOL INTERFACE-ID emits exactly one C# interface (<c>OoEmitter.EmitInterfaceUnit</c>), which BOTH
+    /// emitted halves of an implementing class carry (the instance half from the OBJECT paragraph's IMPLEMENTS,
+    /// the factory half from the FACTORY paragraph's, §11.8.2), so a single <c>is</c> test covers both object
+    /// kinds where a class-name needs two. If the interface ever emits a second half, this is the one line that
+    /// changes and <c>Format4UseObjectSelectorDriftTests</c> is what fails first.
+    /// <para>The three legs of §11.8.4 GR2 / §11.4.4 GR2 ("a) defined with an IMPLEMENTS clause specifying
+    /// intf-1, b) implements an interface that inherits intf-1, c) the class … inherits a class whose instance
+    /// object implements intf-1") ride C#'s <c>is</c> rather than this census: the emitted interface carries its
+    /// own INHERITS as C# bases and the emitted class carries its base's implementations.</para></summary>
+    public IReadOnlyList<string> ImplementedCsTypes => [CsName];
+
     private readonly Dictionary<string, OoMethodSymbol> _protos = new(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyList<OoMethodSymbol> Prototypes => _protoList;
     private readonly List<OoMethodSymbol> _protoList = [];

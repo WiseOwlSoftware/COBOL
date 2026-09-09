@@ -207,7 +207,10 @@ internal sealed class FileIoBinder
 
     internal BoundStatement BindGenerate(CobolParserCore.GenerateStatementContext ctx)
     {
-        string name = ctx.reportName().GetText();
+        // The operand is `reportGroupReference` since kb/Work PB365 gave GENERATE its §14.9.16.3 SR1 qualifier
+        // ("It may be qualified by a report-name"). The LEGACY oracle resolves the head only — its report-group
+        // table is flat and it is frozen until the P15 cut-over; the greenfield binder owns the qualified form.
+        string name = ctx.reportGroupReference().cobolWord().GetText();
         // GENERATE report-group-name (detail reporting, §14.9.19) — the common case.
         if (_ctx.Semantic.ResolveReportGroup(name) is { } rg)
             return new BoundGenerateStatement(rg.Report, rg.Group, BuildReportLines(rg.Group));
@@ -789,9 +792,9 @@ internal sealed class FileIoBinder
         // USE [GLOBAL] BEFORE REPORTING report-name
         if (ctx.BEFORE() != null && ctx.REPORTING() != null)
         {
-            string reportName = ctx.procedureName() != null
-                ? ProcedureNameResolver.ExtractProcedureNameText(ctx.procedureName())
-                : "";
+            // Format 2's operand is `reportGroupReference` since kb/Work PB365 (it references a report GROUP,
+            // §14.9.49.3 SR9 — it never was a procedure-name). The legacy oracle keys on the head alone.
+            string reportName = ctx.reportGroupReference() is { } rgr ? rgr.cobolWord().GetText() : "";
             return new BoundUseStatement(isBeforeReporting: true, isGlobal, [], reportName);
         }
 
