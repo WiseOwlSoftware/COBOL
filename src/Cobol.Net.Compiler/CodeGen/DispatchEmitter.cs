@@ -228,7 +228,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             w.Line();
         }
         if (decls.Any(d => d.EcEntries is not null)) ec.EmitDispatchSelector(bound, w);
-        if (decls.Any(d => d.EoClassCsName is not null)) ec.EmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
+        if (decls.Any(d => d.EoClass is not null)) ec.EmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
         if (bound.Ec is { HasIoChecked: true }) ec.EmitIoCheckEc(bound, w);
         if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w);   // __EcPerform + __RunF3 (§14.9.28 F3 interceptor)
         if (!dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks

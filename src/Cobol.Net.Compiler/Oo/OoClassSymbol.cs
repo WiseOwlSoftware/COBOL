@@ -62,6 +62,20 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     /// collision).</summary>
     public string FactoryCsName => CsName + NamingConvention.FactorySuffix;
 
+    /// <summary>The emitted C# types a COBOL reference to THIS class selects when the rule names the class
+    /// WITHOUT distinguishing the two object kinds — ISO/IEC 1989:2023 §14.9.49.4 GR14 a): "the exception
+    /// object that was raised is a factory object or instance object of object-class-name-1 or of a subclass
+    /// of object-class-name-1". A COBOL class is emitted as TWO DISJOINT C# hierarchies —
+    /// <see cref="CsName"/> rooted at its base's instance half, <see cref="FactoryCsName"/> at its base's
+    /// FACTORY half — so ONE COBOL class-name is a SET of C# types, never one, and a single
+    /// <c>is CsName</c> test silently answers false for every factory object (kb/Work PB366). Both halves
+    /// mirror INHERITS, so the pair of C# type tests covers "or of a subclass" in both hierarchies.
+    /// A rule that names only ONE kind takes the single name it means instead — §13.18.60.4 GR22 d) 1. b):
+    /// "If the FACTORY phrase is not specified, the object referenced by this data item shall be an instance
+    /// object of the specified class or of a subclass of the specified class" (the typed OBJECT REFERENCE
+    /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>
+    public IReadOnlyList<string> FactoryOrInstanceCsTypes => [CsName, FactoryCsName];
+
     private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The FACTORY methods in declaration order (§11.4 — a SEPARATE interface from the instance

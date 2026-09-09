@@ -95,9 +95,12 @@ public sealed record BoundDeclarative(
     bool Global,
     ReportGroupModel? ReportGroup = null,
     IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null,
-    string? EoClassCsName = null);
-// EoClassCsName: Format 4 (USE AFTER EXCEPTION OBJECT class-name, §14.9.49 — the EC-OO wave): the emitted
-// C# class the generated __EcObjDispatch matches with `is` (GR14a: the object's class OR a subclass).
+    Compiler.Oo.OoClassSymbol? EoClass = null);
+// EoClass: Format 4 (USE AFTER EXCEPTION OBJECT class-name, §14.9.49 — the EC-OO wave): the RESOLVED COBOL
+// class symbol object-class-name-1 names. The generated __EcObjDispatch matches the object against the class's
+// FactoryOrInstanceCsTypes — GR14a selects "a factory object or instance object of object-class-name-1 or of a
+// subclass", and those are TWO disjoint emitted C# hierarchies, so the selector needs both type tests. The
+// symbol (not a rendered C# name) rides the bound tree: choosing the C# spelling is the emitter's job.
 // EcEntries: the Format-3 scope (ISO §14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
 // each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
 // selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,

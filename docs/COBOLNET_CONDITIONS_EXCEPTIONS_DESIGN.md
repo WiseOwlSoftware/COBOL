@@ -22,8 +22,13 @@ OO mechanism (feedback_one_mechanism_per_job):
   targeted 0848, and RAISE SELF parses); NOT TURN-gated (§7.3.25 takes names only); NEVER fatal by itself
   (GR2 — the continue-after-RAISE path is the normal exit).
 - **USE Format 4** (`USE AFTER {EXCEPTION OBJECT | EO} class-name`; EO is context-sensitive like EC) →
-  `BoundDeclarative.EoClassCsName` → the generated `__EcObjDispatch(object?)`: source-order `is` checks
-  (GR14a class-or-subclass), −3 tail. GR3: for an OBJECT raise F4 REPLACES the F1/F3 tiers. GR15 holds
+  `BoundDeclarative.EoClass` (the RESOLVED `OoClassSymbol`, not a rendered C# name) → the generated
+  `__EcObjDispatch(object?)`: source-order `is` checks, −3 tail. GR14a names BOTH object kinds in ONE
+  clause — "a factory object or instance object of object-class-name-1 or of a subclass" — and a COBOL
+  class is emitted as TWO DISJOINT C# hierarchies, so each entry tests the symbol's
+  `FactoryOrInstanceCsTypes` pair as ONE or-pattern (`__obj is FOO or FOO__FACTORY`); "or of a subclass"
+  rides C#'s `is` in EACH hierarchy, since both mirror INHERITS. Testing only the instance half selected
+  NO declarative for any factory exception object, silently (kb/Work PB366). GR3: for an OBJECT raise F4 REPLACES the F1/F3 tiers. GR15 holds
   structurally (the raise site sets the register before dispatching).
 - **GOBACK / EXIT PROGRAM / method-return RAISING identifier-1** → `BoundRaising.ObjectSource` (exactly
   one of EcName/IsLast/ObjectSource); SR4d no-universal + SR4a declared-class-in-header (walking the base

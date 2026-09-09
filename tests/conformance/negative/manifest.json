@@ -909,7 +909,8 @@
   "pb353-start-with-length-unbindable-names-its-edition",
   "pb353-read-previous-unbindable-file-names-its-edition",
   "pb353-read-advancing-on-lock-unbindable-names-its-edition",
-  "pb353-invoke-unbindable-target-names-its-edition"
+  "pb353-invoke-unbindable-target-names-its-edition",
+  "pb366-use-exception-object-85"
  ],
  "pending": []
 }

@@ -414,8 +414,16 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     }
 
     /// <summary>Generate <c>__EcObjDispatch</c> — the Format-4 exception-OBJECT selector (ISO §14.9.49.4
-    /// GR14): source-order scan; a class entry matches the object's class OR a subclass — exactly C#'s
-    /// <c>is</c> (GR14a); GR15 (EXCEPTION-OBJECT references the object on declarative entry) already holds —
+    /// GR14): source-order scan ("A declarative is selected for execution by analyzing the USE statements in
+    /// a source element in the order in which they are specified"), first match wins. GR14 a) selects when
+    /// the exception object "is a factory object or instance object of object-class-name-1 or of a subclass
+    /// of object-class-name-1" — ONE clause naming BOTH object kinds, and a COBOL class is emitted as TWO
+    /// DISJOINT C# hierarchies (the instance class and its sibling <c>…__FACTORY</c> singleton class, each
+    /// rooted at its base's corresponding half). So the predicate is the class symbol's
+    /// <see cref="Oo.OoClassSymbol.FactoryOrInstanceCsTypes"/> pair rendered as ONE C# or-pattern — the
+    /// "or of a subclass" reach rides C#'s <c>is</c> in EACH hierarchy, since both mirror INHERITS. Testing
+    /// only the instance name selected NO declarative for any factory exception object, silently
+    /// (kb/Work PB366). GR15 (EXCEPTION-OBJECT references the object on declarative entry) already holds —
     /// the raise site set the register before dispatching. A null object matches nothing (spec-literal:
     /// no class describes it) → -3, the caller's §14.6.13.1.5 conversion.</summary>
     public void EmitObjDispatchSelector(BoundProgram bound, CodeWriter w)
@@ -424,8 +432,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         using (w.Block("private int __EcObjDispatch(object? __obj)"))
         {
             for (int i = 0; i < decls.Count; i++)
-                if (decls[i].EoClassCsName is { } cs)
-                    w.Line($"if (__obj is {cs}) return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
+                if (decls[i].EoClass is { } cls)
+                    w.Line($"if (__obj is {string.Join(" or ", cls.FactoryOrInstanceCsTypes)}) "
+                        + $"return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
             w.Line("return -3;   // no matching class entry (GR14 tail → 14.6.13.1.5)");
         }
         w.Line();

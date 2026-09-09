@@ -291,7 +291,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (scope is { } s)
             _declaratives.Add(new BoundDeclarative(
                 name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report,
-                s.EcEntries, s.EoClassCsName));
+                s.EcEntries, s.EoClass));
     }
 
     // ── X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17) ────────────────────────────────────────────────
@@ -409,7 +409,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// group, or Format 3's (exception-name, file) entries (ISO §14.9.49).</summary>
     private readonly record struct DeclScope(
         IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
-        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, string? EoClassCsName = null);
+        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, Compiler.Oo.OoClassSymbol? EoClass = null);
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
@@ -438,7 +438,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     + "the interface-RAISING refinement)");
                 return null;
             }
-            return new DeclScope([], null, global, null, EoClassCsName: cls.CsName);
+            return new DeclScope([], null, global, null, EoClass: cls);
         }
         if (use.REPORTING() is not null)
         {
