@@ -916,6 +916,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // already signed for GR-14.9.30.4-20 and -23 — this is that argument reaching the CLOSE rule it
             // was originally about, not a new ground. CloseTable14Tests reds if the placement ever changes.
             "GR-14.9.6.4-L2.1",
+            // ⚙ The TENTH, ELEVENTH and TWELFTH, added deliberately (owner decisions Q25–Q27, 2026-09-09, after a
+            // plain-language brief; DEVLOG 1577). GR-14.9.27.4-12: OPEN's rewindable-medium rule, arm
+            // unpopulatable-antecedent over the SAME closed medium set as GR-14.9.6.4-L2.1 (GR11 and GR12
+            // partition the media; every connector answers non-unit, forced by §9.1.13.2 item 6; kb/Work PB317).
+            // GR-14.9.20.4-9 and GR-14.9.28.4-2: the MECHANICAL undefined-A.2 arm — Annex A.2 items 20
+            // (INITIALIZE onto overlapping storage) and 37 (overlapping PERFORM ranges) resolve to exactly these
+            // rule-ids, so no expected value exists to test for (kb/Work PB370).
+            "GR-14.9.27.4-12", "GR-14.9.20.4-9", "GR-14.9.28.4-2",
         ];
 
         var s = LoadSchema();
