@@ -12,9 +12,13 @@ namespace CobolNet.Binding;
 /// wrong way: <b>numeric-edited (usage display) is class ALPHANUMERIC</b>, not numeric; and a group item takes
 /// its class from its own kind rather than from an (absent) PICTURE.
 /// <para>
-/// There is no <c>Alphabetic</c> member because <see cref="PicCategory"/> deliberately folds <c>PIC A</c> into
-/// <see cref="PicCategory.Alphanumeric"/> — the distinction is not recoverable here, and inventing a class the
-/// model cannot produce would make the §15.3 type-1 arm dead code that reads as coverage.
+/// ⚠ <see cref="Alphabetic"/> IS a member, and the remark that used to stand here said it could not be — "the
+/// distinction is not recoverable here, and inventing a class the model cannot produce would make the §15.3
+/// type-1 arm dead code that reads as coverage". <see cref="PicCategory"/> does fold <c>PIC A</c> into
+/// <see cref="PicCategory.Alphanumeric"/>, but the CLASS question is answered from
+/// <c>PicInfo.IsAlphabetic</c> in <see cref="ClassOfPlace"/>, not from the category — so the member is
+/// reachable and the exclusions that name it (§15.95.3 r1, §15.93.3 r1) are enforced (kb/Work PB124 wave 5,
+/// PB245). The stale text survived the change that refuted it; it is recorded here so it is not re-argued.
 /// </para>
 /// </remarks>
 internal enum CobolClass
