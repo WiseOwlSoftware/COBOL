@@ -13,6 +13,10 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1580 — 2026-09-09 14:07 PDT — Battery #66 at train 24's head: all green with zero differential flips; plan §9 reference moves to #66
+
+Battery #66 was cut in a detached worktree at 16073192, the head of train 24, and it prints ALL GREEN with nothing to attribute: the full Conformance assembly at 6539 of 6539, the unit assembly at 23075 of 23075 with the GPL corpus present, Characterization at 33 of 33, the three static audits at zero, the guard's NIST leg at 364 matches against the shipped compiler with its audit clean, and the differential at 1323 cases with zero per-case flips. The head is train 24 — the sign over-punch convention behind an option with the IBM default and the two Annex A.1 rows that waited on it, the Format-4 USE selector covering both emitted hierarchies of a COBOL class, the relative READ PREVIOUS after OPEN answering rule b) in both engines, and A.1 item 206 declared provided at the native range — so the differential's zero flips say the GnuCOBOL corpus observes none of those four changes, which is what the goldens predicted: the default sign convention is unchanged, the factory-object selection and the relative backward read have no case in that corpus, and the binary bands were already native. The witness-owed band of the ledger reads zero at this head for the first time. Plan §9's reference moves to #66, #65 becomes the previous record, #64 drops off.
+
 ## Entry 1579 — 2026-09-09 13:29 PDT — Landing train 24: PB803 + PB366 + PB343 + PB592 in one landing — the witness-owed band closes, GAP 2733 → 2726
 
 **PB803 — the DISPLAY over-punch convention becomes TWO conventions behind one option.** Owner decisions Q28 and
