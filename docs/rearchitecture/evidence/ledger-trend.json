@@ -442,6 +442,15 @@
       "dns": 365,
       "label": "Owner decisions Q25-Q27: thr",
       "battery": null
+    },
+    {
+      "sha": "16073192",
+      "date": "2026-09-09",
+      "gap": 2726,
+      "closed": 1622,
+      "dns": 364,
+      "label": "Train 24: DEVLOG 1579 + plan",
+      "battery": null
     }
   ]
 }
