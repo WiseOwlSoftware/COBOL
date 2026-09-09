@@ -85,9 +85,11 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
-    /// <summary>A .NET object reference (a typed class, or universal <c>CobolObject?</c> when ClassName is null).
-    /// Zero character positions.</summary>
-    public sealed record ObjectRef(string? ClassName) : StorageForm
+    /// <summary>A .NET object reference. Carries the WHOLE §13.18.60.2 description (kind × FACTORY × ONLY ×
+    /// name) rather than a class name, so the storage form and <c>PicInfo.ClrType</c> derive the emitted type
+    /// from ONE place — <c>ObjectRefDescriptor.ClrTypeName</c> (kb/Work PB389; before it, the derivation was
+    /// written twice and the FACTORY singleton type could not be spelled at all). Zero character positions.</summary>
+    public sealed record ObjectRef(ObjectRefDescriptor Desc) : StorageForm
     {
         public override bool IsCharacterImage => false;
         public override int ImageWidth => 0;

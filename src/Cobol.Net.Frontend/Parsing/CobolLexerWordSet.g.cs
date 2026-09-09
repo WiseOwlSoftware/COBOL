@@ -11,6 +11,7 @@ public partial class CobolLexer
     private static readonly System.Collections.Generic.HashSet<int> _dataNameTokens = new()
     {
         IDENTIFIER,
+        ACTIVE_CLASS,
         APPLY,
         ARITHMETIC,
         AUTO,
@@ -128,6 +129,7 @@ public partial class CobolLexer
 
     private static readonly System.Collections.Generic.HashSet<int> _reservationGatedTokens = new()
     {
+        ACTIVE_CLASS,
         AS,
         B_AND,
         B_NOT,

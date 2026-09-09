@@ -108,7 +108,8 @@ public sealed class ReferenceResolver(DataBinder data)
         {
             recvItem = data.Symbols.TryResolve(recv, data.ActiveScope, out var recvItems) ? recvItems[0] : null;
             if (recvItem?.Pic is not { Category: PicCategory.ObjectReference } rp) return null;
-            if (rp.ObjectClassName is not { } cn)
+            var rd = rp.ObjectRef ?? ObjectRefDescriptor.Universal;
+            if (rd.IsUniversal)
             {
                 // The shape IS a property reference on a universal receiver — SR2 rejects it by name.
                 // (Silently null under a probe — the committing resolution reports; kb/Work PB157.)
@@ -118,7 +119,10 @@ public sealed class ReferenceResolver(DataBinder data)
                         + "not be a universal object reference (ISO §8.4.3.9.3 SR2)");
                 return null;
             }
-            cls = table.Find(cn);
+            // A FACTORY-OF receiver names the class's FACTORY accessors, the same half a class-NAME receiver
+            // selects above (§8.4.3.9.3 SR3/SR4 "or in the factory object") — kb/Work PB389.
+            factory = rd.Factory;
+            cls = table.Find(rd.Name!);
             if (cls is null) return null;                    // interface-typed receivers: property prototypes are a later refinement (0899 at the interface)
         }
 

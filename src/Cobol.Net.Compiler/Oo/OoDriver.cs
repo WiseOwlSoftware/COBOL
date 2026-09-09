@@ -58,7 +58,9 @@ internal sealed class OoDriver(BindSession session)
     public void BindClassData(OoClassUnit cls)
     {
         var edition = session.Edition;
-        var data = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
+        // OoOwnerClassName is what USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS binds to — §13.18.60.4
+        // GR22 e), the class of the object that invoked the containing method (kb/Work PB389).
+        var data = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, OoOwnerClassName = cls.Name, RefModZeroLength = session.RefModZeroLength };
         data.CallSeedUids(session.TakeUidBand());
         // §10.6.1 / §11.9.4 GR1 (kb/Work PB135): the class skeleton's OPTIONS paragraph is the contained
         // definitions' baseline; the OBJECT paragraph's own overrides it clause by clause.
@@ -80,7 +82,7 @@ internal sealed class OoDriver(BindSession session)
         // invisible to instance methods and vice versa (separate source elements, §10.6), realized exactly
         // like method scoping: a second binder, never a merged namespace. SR 10 (INVOKE-argument ban on
         // factory WS) works free: the factory binder's WS roots are not method-scoped → OoIsObjectData.
-        var fdata = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
+        var fdata = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, OoOwnerClassName = cls.Name, RefModZeroLength = session.RefModZeroLength };
         fdata.CallSeedUids(session.TakeUidBand());
         fdata.CallInheritOptions(Binding.OptionsBinder.BindParagraph(
             cls.Symbol.Ctx.factoryParagraph()?.optionsParagraph(), edition, clsOptions));   // §11.9.4 GR1 (kb/Work PB135)

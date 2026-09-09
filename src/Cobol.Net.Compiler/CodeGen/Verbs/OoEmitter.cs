@@ -212,7 +212,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // The singleton (§9.3.14.2 "created before it is first referenced" — .NET static-readonly type
             // initialization satisfies it exactly). A derived factory needs `new` to shadow the base's.
             $"public {(cls.Symbol.Base is not null ? "new " : "")}static readonly {cls.Symbol.FactoryCsName} __Instance = new();",
-            // The predefined New as a COVARIANT virtual (§16.2.1 GR1 ACTIVE-CLASS creation — an inherited
+            // The predefined New as a COVARIANT virtual (§16.2.1.2 GR1 ACTIVE-CLASS creation — an inherited
             // factory MAKE reached via INVOKE DOG "…" creates a DOG through the runtime override). A FINAL
             // class's factory is SEALED: its root __New emits NON-virtual (a virtual member in a sealed type
             // is Roslyn CS0549 on emitted code — the same trap the method-modifier table guards).
@@ -428,7 +428,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // universal source is a RUNTIME question; failure = EC-OO-UNIVERSAL, Table 13).
             foreach (var tp in s.Targets)
             {
-                if (tp.Item.Pic!.ObjectClassName is null)
+                var td = tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal;
+                if (td.IsUniversal)
                 {
                     w.Line(PlaceRenderer.Write(tp, "ExceptionState.ExceptionObject") + "   // SET universal TO EXCEPTION-OBJECT (§8.4.3.6)");
                     continue;
@@ -438,7 +439,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"var __xo{id} = ExceptionState.ExceptionObject;");
                 w.Line($"if (__xo{id} is not null && __xo{id} is not {clr}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                     + $"\"SET {tp.Item.CobolName} TO EXCEPTION-OBJECT: the current exception object is not a "
-                    + $"{tp.Item.Pic!.ObjectClassName} (ISO 9.3.8.2 runtime conformance; Table 13)\");");
+                    + $"{td.Spelled} (ISO 9.3.8.2 runtime conformance; Table 13)\");");
                 w.Line(PlaceRenderer.Write(tp, $"({clr}?)__xo{id}") + "   // SET typed TO EXCEPTION-OBJECT (runtime-narrowed)");
             }
             return;
@@ -751,7 +752,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line(PlaceRenderer.Write(inv.Returning!, $"new {inv.ClassCsName}()") + "   // INVOKE … \"NEW\" RETURNING (§16.2.1)");
                 return;
             case InvokeForm.NewSelf:
-                // §16.2.1 GR1 — ACTIVE-CLASS creation in a factory method: the covariant __New override on
+                // §16.2.1.2 GR1 — ACTIVE-CLASS creation in a factory method: the covariant __New override on
                 // the RUNTIME factory creates the runtime class (SUPER "NEW" deliberately identical — the
                 // restricted search finds the same predefined New, GR3/GR1).
                 w.Line(PlaceRenderer.Write(inv.Returning!, "this.__New()")

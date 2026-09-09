@@ -2465,6 +2465,39 @@ public static class DiagnosticCatalog
         + "does not reach them.",
         "ISO §14.9.32.3 SR4");
 
+    /// <summary>COBOLNET1924 — ISO §13.18.60.3 syntax rule 16, the placement of the ACTIVE-CLASS phrase of a
+    /// USAGE OBJECT REFERENCE clause (kb/Work PB389). The phrase names "the same class as the object that was
+    /// used to invoke the method in which this data description entry is specified" (§13.18.60.4 GR22 e)), so it
+    /// is meaningless where there is no such class: SR16 admits it only "in a factory definition, an instance
+    /// definition, or the linkage or local-storage section of a method definition". Both excluded shapes reach
+    /// this one descriptor — outside a class definition altogether, and inside a METHOD definition's
+    /// WORKING-STORAGE (a method's other sections are already refused by §13.4.3 SR1 and its siblings) — and the
+    /// site says which.</summary>
+    public static readonly DiagnosticDescriptor ObjectReferenceActiveClassPlacement = new(
+        "COBOLNET1924", "object-reference-active-class-placement", EditionSeverity.Error,
+        "ISO §13.18.60.3 syntax rule 16: \"The ACTIVE-CLASS phrase may be specified only in a factory "
+        + "definition, an instance definition, or the linkage or local-storage section of a method definition.\" "
+        + "USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS binds the item to the class of the object that "
+        + "invoked the containing method, so outside a class definition — or in a method's WORKING-STORAGE, "
+        + "which is per-class static storage rather than per-activation — there is no such class to bind to.",
+        "ISO §13.18.60.3 SR16 / §13.18.60.4 GR22 e)");
+
+    /// <summary>COBOLNET1925 — the FACTORY OF or ONLY phrase written on the interface-name-1 alternative of the
+    /// USAGE OBJECT REFERENCE general format (ISO §13.18.60.2; kb/Work PB389). The printed format stacks THREE
+    /// alternatives in one bracket pair — <c>interface-name-1</c>, <c>[FACTORY OF] ACTIVE-CLASS</c> and
+    /// <c>[FACTORY OF] object-class-name-1 [ONLY]</c> — and only the third carries FACTORY and ONLY together.
+    /// The grammar cannot separate an interface-name from an object-class-name (both are one user-defined word),
+    /// so it parses the superset and the binder makes this rejection once the name resolves.</summary>
+    public static readonly DiagnosticDescriptor ObjectReferenceInterfacePhrase = new(
+        "COBOLNET1925", "object-reference-interface-phrase", EditionSeverity.Error,
+        "The USAGE OBJECT REFERENCE general format (ISO §13.18.60.2) gives interface-name-1 its OWN alternative, "
+        + "written bare: FACTORY OF belongs to the ACTIVE-CLASS and object-class-name-1 alternatives and ONLY to "
+        + "object-class-name-1 alone. §13.18.60.4 general rule 22 c) states the interface reading with no "
+        + "subordinate rules — \"If interface-name-1 is specified, the object referenced by this data item shall "
+        + "implement interface-1\" — while the FACTORY and ONLY readings (22 d) and 22 e)) are stated only for a "
+        + "class or the active class.",
+        "ISO §13.18.60.2 / §13.18.60.4 GR22 c)");
+
     public static readonly DiagnosticDescriptor TypeDeclarationShape = new(
         "COBOLNET1529", "type-declaration-shape", EditionSeverity.Error,
         "A TYPEDEF entry or a TYPE reference is malformed (ISO §13.18.58 TYPEDEF, §13.18.57.3 TYPE, §8.5.3.1 / §8.5.3.3 type declarations and strong typing) — a type declaration at the wrong level or under another entry, an unnamed (FILLER) one, TYPEDEF combined with a clause it excludes, or an ELEMENTARY type definition carrying the STRONG phrase, which §8.5.3.1 forbids. The site names the rule it caught.",

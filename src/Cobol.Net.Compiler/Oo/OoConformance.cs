@@ -57,7 +57,7 @@ public static class OoConformance
                     if (r.Pic is { Category: PicCategory.ObjectReference } rp
                         && br.Pic is { Category: PicCategory.ObjectReference } brp)
                     {
-                        if (ObjectRefWideningMismatch(table, rp, brp) is { } werr)
+                        if (ObjectRefAssignmentMismatch(table, rp, brp, activeClassSenderAdmitted: false) is { } werr)
                             edition.Error("COBOLNET0829", $"{where}: RETURNING item: {werr} "
                                 + "(ISO §9.3.8.2.3 rules 5a/5c2 — the override's class shall be the same "
                                 + "class or a subclass of the overridden method's)");
@@ -125,12 +125,12 @@ public static class OoConformance
                         if (r.Pic is { Category: PicCategory.ObjectReference } rp
                             && pr.Pic is { Category: PicCategory.ObjectReference } prp)
                         {
-                            if (ObjectRefWideningMismatch(table, rp, prp) is { } werr)
+                            if (ObjectRefAssignmentMismatch(table, rp, prp, activeClassSenderAdmitted: false) is { } werr)
                                 edition.Error("COBOLNET0841",
                                     $"class '{cls.Name}', method '{impl.Name}': RETURNING: {werr} "
                                     + "(ISO §9.3.8.2.3 rules 5a/5c2)");
-                            else if (!string.Equals(rp.ObjectClassName, prp.ObjectClassName,
-                                         StringComparison.OrdinalIgnoreCase))
+                            else if (!(rp.ObjectRef ?? ObjectRefDescriptor.Universal)
+                                         .SameDescriptionAs(prp.ObjectRef ?? ObjectRefDescriptor.Universal))
                                 // Conformant-but-covariant: C# needs the explicit-implementation adapter.
                                 adapters.Add(new AdapterPair(iface, proto, impl, factory));
                         }
@@ -167,8 +167,10 @@ public static class OoConformance
         if (item.Pic is not { } p) return "T:!";
         return p.Category switch
         {
-            PicCategory.ObjectReference =>
-                p.ObjectClassName is { } cls ? "O:" + cls.ToUpperInvariant() : "O:*",
+            // The WHOLE §13.18.60.2 description, not just the name (kb/Work PB389): two items described
+            // `OBJECT REFERENCE C` and `OBJECT REFERENCE FACTORY OF C ONLY` are different descriptions and
+            // §9.3.8.2.3 rule 2 c) makes them non-conformant, so their keys must differ.
+            PicCategory.ObjectReference => "O:" + (p.ObjectRef ?? ObjectRefDescriptor.Universal).SignatureKey,
             PicCategory.Numeric =>
                 $"N:{p.Usage}:{p.Digits}:{p.Scale}:{(p.Signed ? "S" : "U")}:{p.SignKind}:"
                 + (item.BlankWhenZero ? "B" : "-"),
@@ -276,10 +278,16 @@ public static class OoConformance
         switch (f.Category)
         {
             case PicCategory.ObjectReference:
-                return string.Equals(f.ObjectClassName, a.ObjectClassName, StringComparison.OrdinalIgnoreCase)
-                    ? null
-                    : $"declared class mismatch (formal '{f.ObjectClassName ?? "universal"}', argument "
-                      + $"'{a.ObjectClassName ?? "universal"}')";
+                // §9.3.8.2.3 rule 2 — the INVARIANT direction, and it names all four axes: a) universal ⇔
+                // universal, b) the SAME interface-name, c) the same object-class-name "and the presence or
+                // absence of the FACTORY and ONLY phrases is the same in both interfaces", d) ACTIVE-CLASS with
+                // the same FACTORY presence. Before kb/Work PB389 this compared the class NAME alone, so a
+                // FACTORY OF or ONLY difference passed as identical.
+                var fd = f.ObjectRef ?? ObjectRefDescriptor.Universal;
+                var ad = a.ObjectRef ?? ObjectRefDescriptor.Universal;
+                return fd.SameDescriptionAs(ad) ? null
+                    : $"object-reference description mismatch (formal {fd.Spelled}, argument {ad.Spelled} — "
+                      + "§9.3.8.2.3 rule 2 requires the same kind, name, FACTORY presence and ONLY presence)";
             case PicCategory.Numeric:
                 if (f.Usage != a.Usage)
                     return $"USAGE mismatch (formal {f.Usage}, argument {a.Usage} — §14.8.2.3.2 rule 2 "
@@ -379,55 +387,190 @@ public static class OoConformance
         }
     }
 
-    /// <summary>The §14.8.3.3-rule-1 / SET-SR12a2 WIDENING direction for object-reference assignment pairs
-    /// (INVOKE RETURNING delivery, BY CONTENT object-reference arguments, covariant override RETURNING —
-    /// specs/ISO_COBOL.md:25456-25458, :31340): a UNIVERSAL receiver accepts any object reference; a typed
-    /// receiver accepts the SAME class or a SUBCLASS. Distinct from <see cref="DescriptionMismatch"/> strict
-    /// identity, which stays correct for BY REFERENCE (§14.8.2.3.2) and invariant override formals.
-    /// Null-tolerant on <paramref name="table"/> (no class table in the group ⇒ no OO checking — preserving
-    /// the former <c>OoClasses?.</c> call shape).</summary>
-    public static string? ObjectRefWideningMismatch(OoClassTable? table, PicInfo sender, PicInfo receiver)
-    {
-        if (table is null) return null;
-        if (receiver.ObjectClassName is not { } recvName) return null;   // universal receiver (SET SR8)
-        if (sender.ObjectClassName is not { } sendName)
-            return "a UNIVERSAL object reference does not conform to a typed receiver "
-                + "(ISO SET SR12 — the sender shall be of the receiver class or a subclass)";
-        // An INTERFACE-typed receiver accepts a class that IMPLEMENTS it — through the §11.8.4 GR2 closure
-        // (SET SR10/§9.3.8.2 interface conformance) — or an interface that INHERITS it.
-        if (table.FindInterface(recvName) is { } recvIface)
-        {
-            if (table.Find(sendName) is { } sc)
-                return table.ImplementsClosure(sc, factory: false).Contains(recvIface)
-                    ? null
-                    : $"class {sendName} does not implement interface {recvName} (ISO §9.3.8.2/SET SR10)";
-            if (table.FindInterface(sendName) is { } si)
-                return si == recvIface || si.Inherits.Contains(recvIface)
-                       || ImpliedBy(si, recvIface)
-                    ? null
-                    : $"interface {sendName} does not inherit interface {recvName}";
-            return $"unresolvable sender '{sendName}'";
+    /// <summary>
+    /// ⛔ THE ONE SENDER-INTO-RECEIVER TABLE FOR OBJECT REFERENCES — ISO §14.9.39.3 SR10 / SR12 / SR14 (SET
+    /// format 5), reached also by §14.8.3.3 rule 1 (RETURNING delivery follows the SET rules), §14.8.2.3.3 (BY
+    /// CONTENT object-reference arguments) and §9.3.8.2.3 rule 5 (covariant override/implements RETURNING).
+    /// The receiver's DESCRIPTION selects the rule; the sender's description answers it.
+    /// <list type="bullet">
+    ///   <item><b>universal receiver</b> — SR8: "identifier-3 shall be any item of class object that is
+    ///     permitted as a receiving item"; GR22 b) makes its content "a reference to any object". Nothing to
+    ///     check.</item>
+    ///   <item><b>interface-name receiver</b> — SR10: a) an interface identifying int-1 or inheriting from it;
+    ///     b) an object-class-name whose b)1. FACTORY object (FACTORY written) or b)2. instance objects
+    ///     implement int-1; c) an ACTIVE-CLASS reference, same two legs over the CONTAINING class.</item>
+    ///   <item><b>object-class-name receiver</b> — SR12: a) an object-class-name sender, a)1. ONLY ⇒ the sender
+    ///     is ONLY and names the SAME class, a)2. no ONLY ⇒ the same class or a subclass, a)3. FACTORY presence
+    ///     equal; b) an ACTIVE-CLASS sender, b)1. the receiver is not ONLY, b)2. the sender's containing class
+    ///     is the receiver's class or a subclass, b)3. FACTORY presence equal.</item>
+    ///   <item><b>ACTIVE-CLASS receiver</b> — SR14: a) an ACTIVE-CLASS sender "where the presence or absence of
+    ///     the FACTORY phrase is the same as in the data item referenced by identifier-3". (The rule as printed
+    ///     constrains only the FACTORY axis — the containing class is necessarily the same one, since both
+    ///     operands are written inside the same class definition, §13.18.60.3 SR16.)</item>
+    /// </list>
+    /// <para>The SELF and NULL senders of SR10 d)/e), SR12 c)/d) and SR14 b)/c) are not DESCRIPTIONS and are
+    /// adjudicated at the SET site (<c>OoBinder.OoBindSetObjectRef</c>), which is also where SR11/SR13's
+    /// class-NAME sender lives.</para>
+    /// <para><paramref name="activeClassSenderAdmitted"/> is the ONE place the two rule sets differ.
+    /// §14.9.39.3 SR10 c) and SR12 b) admit an ACTIVE-CLASS sender into an interface-typed or class-typed
+    /// receiver; §9.3.8.2.3 rule 5 b)/c), the interface-conformance twin, enumerates no ACTIVE-CLASS leg — its
+    /// 5 d) pairs ACTIVE-CLASS only with ACTIVE-CLASS. The interface-conformance callers therefore pass false
+    /// and get the printed rule 5, rather than a shared function quietly widening one of the two.</para>
+    /// <para>Null-tolerant on <paramref name="table"/> (no class table in the group ⇒ no OO checking —
+    /// preserving the former <c>OoClasses?.</c> call shape). Returns null when the pair conforms, else the
+    /// clause it violated.</para>
+    /// <para>kb/Work PB389 renamed this from <c>ObjectRefWideningMismatch</c>: "widening" described only
+    /// SR12 a)2., which was the single rule the scalar descriptor could express.</para>
+    /// </summary>
+    public static string? ObjectRefAssignmentMismatch(OoClassTable? table, PicInfo sender, PicInfo receiver,
+        bool activeClassSenderAdmitted = true)
+        => table is null ? null
+            : ObjectRefAssignmentMismatch(table, sender.ObjectRef ?? ObjectRefDescriptor.Universal,
+                receiver.ObjectRef ?? ObjectRefDescriptor.Universal, activeClassSenderAdmitted);
 
-            static bool ImpliedBy(OoInterfaceSymbol from, OoInterfaceSymbol target)
+    /// <summary>The descriptor-level form of <see cref="ObjectRefAssignmentMismatch(OoClassTable?, PicInfo,
+    /// PicInfo, bool)"/> — the SET format-5 table itself.</summary>
+    public static string? ObjectRefAssignmentMismatch(OoClassTable table, ObjectRefDescriptor send,
+        ObjectRefDescriptor recv, bool activeClassSenderAdmitted = true)
+    {
+        switch (recv.Kind)
+        {
+            // ── SR8 / GR22 b): a universal receiver constrains nothing. ──────────────────────────────────
+            case ObjectRefKind.Universal:
+                return null;
+
+            // ── SR10: the receiver is described with an interface-name that identifies int-1. ────────────
+            case ObjectRefKind.Interface:
             {
-                var seen = new HashSet<OoInterfaceSymbol>();
-                var stack = new Stack<OoInterfaceSymbol>([from]);
-                while (stack.Count > 0)
+                if (table.FindInterface(recv.Name!) is not { } int1)
+                    return $"unresolvable interface '{recv.Name}' in the receiver's description";
+                switch (send.Kind)
                 {
-                    var cur = stack.Pop();
-                    if (!seen.Add(cur)) continue;
-                    if (cur == target) return true;
-                    foreach (var b in cur.Inherits) stack.Push(b);
+                    // a) an object reference described with an interface-name identifying int-1 or an
+                    //    interface inheriting from int-1.
+                    case ObjectRefKind.Interface:
+                        if (table.FindInterface(send.Name!) is not { } si)
+                            return $"unresolvable interface '{send.Name}' in the sending description";
+                        return si == int1 || InheritsClosure(si).Contains(int1) ? null
+                            : $"interface {send.Name} neither identifies nor inherits from interface "
+                              + $"{recv.Name} (ISO §14.9.39.3 SR10 a))";
+                    // b) an object reference described with an object-class-name: b)1. FACTORY written ⇒ the
+                    //    FACTORY object of that class implements int-1; b)2. otherwise ⇒ its instance objects do.
+                    case ObjectRefKind.ObjectClass:
+                    {
+                        if (table.Find(send.Name!) is not { } sc)
+                            return $"unresolvable class '{send.Name}' in the sending description";
+                        return table.ImplementsClosure(sc, send.Factory).Contains(int1) ? null
+                            : $"the {(send.Factory ? "factory object" : "objects")} of class {send.Name} "
+                              + $"do{(send.Factory ? "es" : "")} not implement interface {recv.Name} "
+                              + $"(ISO §14.9.39.3 SR10 b){(send.Factory ? "1" : "2")}.)";
+                    }
+                    // c) an object reference described with an ACTIVE-CLASS phrase — the same two legs, asked
+                    //    of the class CONTAINING the sending data item.
+                    case ObjectRefKind.ActiveClass:
+                    {
+                        if (!activeClassSenderAdmitted)
+                            return $"an ACTIVE-CLASS object reference does not conform to a receiver described "
+                                   + $"with interface-name '{recv.Name}' (ISO §9.3.8.2.3 rule 5 b) — its "
+                                   + "alternatives are an interface-name and an object-class-name)";
+                        if (table.Find(send.Name!) is not { } ac)
+                            return $"unresolvable containing class '{send.Name}' of the ACTIVE-CLASS sender";
+                        return table.ImplementsClosure(ac, send.Factory).Contains(int1) ? null
+                            : $"the {(send.Factory ? "factory object" : "objects")} of the class containing the "
+                              + $"ACTIVE-CLASS sender ({send.Name}) do{(send.Factory ? "es" : "")} not implement "
+                              + $"interface {recv.Name} (ISO §14.9.39.3 SR10 c){(send.Factory ? "1" : "2")}.)";
+                    }
+                    default:
+                        return "a UNIVERSAL object reference does not conform to a receiver described with "
+                               + $"interface-name '{recv.Name}' (ISO §14.9.39.3 SR10 — its closed list of "
+                               + "senders does not include a universal reference)";
                 }
-                return false;
             }
+
+            // ── SR12: the receiver is described with an object-class-name. ───────────────────────────────
+            case ObjectRefKind.ObjectClass:
+                switch (send.Kind)
+                {
+                    // a) an object-class-name sender.
+                    case ObjectRefKind.ObjectClass:
+                    {
+                        // a)3. — the FACTORY axis is INVARIANT, checked first because it is independent of the
+                        // class relation and its violation is the one the name comparison would hide.
+                        if (send.Factory != recv.Factory)
+                            return $"the FACTORY phrase is {(recv.Factory ? "" : "not ")}specified in the "
+                                   + $"receiver's description and {(send.Factory ? "" : "not ")}in the sender's "
+                                   + "— its presence or absence shall be the same (ISO §14.9.39.3 SR12 a)3.)";
+                        // a)1. — an ONLY receiver takes an ONLY sender naming the SAME class, exactly.
+                        if (recv.Only)
+                            return send.Only && string.Equals(send.Name, recv.Name, StringComparison.OrdinalIgnoreCase)
+                                ? null
+                                : $"the receiver is described with the ONLY phrase, so the sender shall also be "
+                                  + $"described ONLY and with the same object-class-name '{recv.Name}' (the "
+                                  + $"sender is {send.Spelled}) (ISO §14.9.39.3 SR12 a)1.)";
+                        // a)2. — otherwise the same class or a subclass.
+                        var sc2 = table.Find(send.Name!);
+                        var rc2 = table.Find(recv.Name!);
+                        if (sc2 is null || rc2 is null)
+                            return $"unresolvable class in the pair (sender {send.Name} to receiver {recv.Name})";
+                        return sc2.ConformsTo(rc2) ? null
+                            : $"class {send.Name} is not {recv.Name} or one of its subclasses "
+                              + "(ISO §14.9.39.3 SR12 a)2.)";
+                    }
+                    // b) an ACTIVE-CLASS sender.
+                    case ObjectRefKind.ActiveClass:
+                    {
+                        if (!activeClassSenderAdmitted)
+                            return $"an ACTIVE-CLASS object reference does not conform to a receiver described "
+                                   + $"with object-class-name '{recv.Name}' (ISO §9.3.8.2.3 rule 5 c) — its "
+                                   + "subject is an object-class-name description)";
+                        if (send.Factory != recv.Factory)
+                            return $"the FACTORY phrase is {(recv.Factory ? "" : "not ")}specified in the "
+                                   + $"receiver's description and {(send.Factory ? "" : "not ")}in the "
+                                   + "ACTIVE-CLASS sender's — its presence or absence shall be the same "
+                                   + "(ISO §14.9.39.3 SR12 b)3.)";
+                        if (recv.Only)
+                            return "the receiver is described with the ONLY phrase, so an ACTIVE-CLASS sender is "
+                                   + "not permitted (ISO §14.9.39.3 SR12 b)1.)";
+                        var ac2 = table.Find(send.Name!);
+                        var rc3 = table.Find(recv.Name!);
+                        if (ac2 is null || rc3 is null)
+                            return $"unresolvable class in the pair (ACTIVE-CLASS sender in {send.Name} to "
+                                   + $"receiver {recv.Name})";
+                        return ac2.ConformsTo(rc3) ? null
+                            : $"the class containing the ACTIVE-CLASS sender ({send.Name}) is not {recv.Name} or "
+                              + "one of its subclasses (ISO §14.9.39.3 SR12 b)2.)";
+                    }
+                    default:
+                        return $"{send.Spelled} does not conform to a receiver described with object-class-name "
+                               + $"'{recv.Name}' (ISO §14.9.39.3 SR12 — its closed list of senders is an "
+                               + "object-class-name reference, an ACTIVE-CLASS reference, SELF and NULL)";
+                }
+
+            // ── SR14: the receiver is described with an ACTIVE-CLASS phrase. ─────────────────────────────
+            default:
+                if (send.Kind is not ObjectRefKind.ActiveClass)
+                    return $"{send.Spelled} does not conform to a receiver described with the ACTIVE-CLASS "
+                           + "phrase (ISO §14.9.39.3 SR14 — its closed list of senders is an ACTIVE-CLASS "
+                           + "reference, SELF and NULL)";
+                return send.Factory == recv.Factory ? null
+                    : $"the FACTORY phrase is {(recv.Factory ? "" : "not ")}specified in the receiver's "
+                      + $"ACTIVE-CLASS description and {(send.Factory ? "" : "not ")}in the sender's — its "
+                      + "presence or absence shall be the same (ISO §14.9.39.3 SR14 a))";
         }
-        var sendCls = table.Find(sendName);
-        var recvCls = table.Find(recvName);
-        if (sendCls is null || recvCls is null)
-            return $"unresolvable class in the pair (sender {sendName} to receiver {recvName})";
-        return sendCls.ConformsTo(recvCls)
-            ? null
-            : $"class {sendName} is not {recvName} or one of its subclasses (ISO SET SR12a2 via §14.8.3.3 rule 1)";
+    }
+
+    /// <summary>The transitive INHERITS closure of one interface (§11.8.4 GR2's interface half), the sender
+    /// side of SR10 a) — "an interface-name that identifies int-1 or an interface inheriting from int-1".</summary>
+    private static HashSet<OoInterfaceSymbol> InheritsClosure(OoInterfaceSymbol from)
+    {
+        var seen = new HashSet<OoInterfaceSymbol>();
+        var stack = new Stack<OoInterfaceSymbol>([from]);
+        while (stack.Count > 0)
+        {
+            var cur = stack.Pop();
+            if (!seen.Add(cur)) continue;
+            foreach (var b in cur.Inherits) stack.Push(b);
+        }
+        return seen;
     }
 }

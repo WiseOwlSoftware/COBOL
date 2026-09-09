@@ -52,6 +52,106 @@ public sealed partial class DataBinder
     /// an item whose 01/77 root is NOT in this set, in a class unit, is object data.</summary>
     public HashSet<DataItem> OoMethodScopedRoots { get; } = [];
 
+    /// <summary>The COBOL name of the class this binder's entries are written in — set once by <c>Oo/OoDriver</c>
+    /// for the instance and factory halves alike, null for a program/function unit. It is what
+    /// <c>USAGE OBJECT REFERENCE ACTIVE-CLASS</c> resolves to: §13.18.60.4 GR22 e) makes the referenced object
+    /// "of the same class as the object that was used to invoke the method in which this data description entry
+    /// is specified", and §13.18.60.3 SR16 guarantees such a containing class exists wherever the phrase is
+    /// legal. kb/Work PB389.</summary>
+    public string? OoOwnerClassName { get; init; }
+
+    /// <summary>
+    /// ⛔ THE ONE ADJUDICATION OF A <c>USAGE OBJECT REFERENCE</c> PHRASE (ISO §13.18.60.2 general format) — the
+    /// written syntax in, an <see cref="ObjectRefDescriptor"/> out. The format prints THREE stacked alternatives
+    /// inside one bracket pair, over four independent axes:
+    /// <code>
+    /// OBJECT REFERENCE ⎡ interface-name-1                            ⎤
+    ///                  ⎢ [ FACTORY OF ] ACTIVE-CLASS                 ⎥
+    ///                  ⎣ [ FACTORY OF ] object-class-name-1 [ ONLY ] ⎦
+    /// </code>
+    /// <para>The grammar cannot tell interface-name-1 from object-class-name-1 (both are one <c>cobolWord</c>),
+    /// so it parses the superset <c>[FACTORY OF] className [ONLY]</c> and THIS method makes the general-format
+    /// rejection once the name resolves: the interface alternative carries neither FACTORY nor ONLY.</para>
+    /// <para>Three verdicts live here and nowhere else — COBOLNET0813 (the name is neither a class nor an
+    /// interface of the compilation group), COBOLNET1925 (FACTORY/ONLY on the interface-name alternative) and
+    /// COBOLNET1924 (§13.18.60.3 SR16, ACTIVE-CLASS outside a factory definition, an instance definition, or the
+    /// linkage or local-storage section of a method definition). kb/Work PB389.</para>
+    /// </summary>
+    internal ObjectRefDescriptor OoBindObjectRefDescriptor(
+        Core.ObjectReferenceUsageContext? oru, string entryWhere, EntrySection section)
+    {
+        // No phrase at all — §13.18.60.4 GR22 b), the universal object reference. (Also the defensive answer for
+        // an object-reference usage acquired without its own written clause: the description it inherits already
+        // carries its own descriptor, so nothing reads this arm.)
+        if (oru is null) return ObjectRefDescriptor.Universal;
+        bool factory = oru.FACTORY() is not null;
+
+        if (oru.ACTIVE_CLASS() is not null)
+        {
+            // §13.18.60.3 SR16: "The ACTIVE-CLASS phrase may be specified only in a factory definition, an
+            // instance definition, or the linkage or local-storage section of a method definition." Two arms:
+            // outside a class definition entirely, and inside a METHOD's data but in a section SR16 excludes
+            // (a method's WORKING-STORAGE is the reachable case — a method has no other sections, §13.4.3 SR1
+            // and friends being enforced in OoBindMethodData).
+            if (!OoIsClassUnit || OoOwnerClassName is null)
+            {
+                Edition.Error(DiagnosticCatalog.ObjectReferenceActiveClassPlacement, $"{entryWhere}: USAGE OBJECT "
+                    + "REFERENCE ACTIVE-CLASS is written outside a class definition — the ACTIVE-CLASS phrase may "
+                    + "be specified only in a factory definition, an instance definition, or the linkage or "
+                    + "local-storage section of a method definition (ISO §13.18.60.3 SR16)");
+                // No containing class → no class to bind to. Fall back to the UNIVERSAL description so the
+                // erroring compile still emits a well-typed field (CobolObject?) instead of a dangling type name.
+                return ObjectRefDescriptor.Universal;
+            }
+            if (_bindingMethodScope is not null && section is not (EntrySection.LocalStorage or EntrySection.Linkage))
+            {
+                Edition.Error(DiagnosticCatalog.ObjectReferenceActiveClassPlacement, $"{entryWhere}: USAGE OBJECT "
+                    + "REFERENCE ACTIVE-CLASS is written in a method definition's WORKING-STORAGE SECTION — "
+                    + "within a method definition the phrase may be specified only in the linkage or "
+                    + "local-storage section (ISO §13.18.60.3 SR16)");
+                return ObjectRefDescriptor.Universal;
+            }
+            return ObjectRefDescriptor.ActiveClass(OoOwnerClassName, factory);
+        }
+
+        if (oru.className()?.GetText() is not { } name) return ObjectRefDescriptor.Universal;
+        bool only = oru.ONLY() is not null;
+
+        // A TYPED reference (spine part 2 — LIVE): the declared name must resolve — its emitted C# field type
+        // IS the named class's or interface's emitted type (PicInfo.ClrType), so an unresolved name would
+        // surface as a Roslyn CS0246 on user source (a loud-failure violation). §13.18.60.2: the operand is
+        // an interface-name or an object-class-name, so the funnel is asked for `Either`.
+        // ⛔ The set is the REFERRING SOURCE ELEMENT's (§8.4.6.4), NOT the compilation group's: this site
+        // called `OoClasses.Find`/`FindInterface` directly and so accepted a class the source element may not
+        // reference (kb/Work PB365 — the same widened set as the USE Format-4 arm; §13.18.60 states no
+        // REPOSITORY rule of its own, so §8.4.6.4 IS the rule). Resolving the name HERE, through the one
+        // funnel, is what makes that scope travel with the descriptor: `oru` is the reference site the
+        // ancestor walk starts from.
+        var resolved = Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, oru, name,
+            Compiler.Oo.OoNameResolution.Want.Either,
+            $"{entryWhere}: USAGE OBJECT REFERENCE", "COBOLNET0813", "ISO §13.18.60.2/.4");
+        bool isInterface = resolved.Interface is not null;
+        if (!resolved.Ok)
+            // The funnel has already reported WHICH of the two failures this is (defined in the group but out
+            // of scope vs. defined nowhere). Keep the name so every later diagnostic about this item still
+            // says what the programmer wrote.
+            return ObjectRefDescriptor.ObjectClass(name, factory, only);
+        if (isInterface)
+        {
+            // The general format's interface-name-1 alternative is the BARE name: FACTORY OF and ONLY belong to
+            // the object-class-name-1 alternative alone, and GR22 c) states the interface reading with no
+            // subordinate rules at all ("the object referenced by this data item shall implement interface-1").
+            if (factory || only)
+                Edition.Error(DiagnosticCatalog.ObjectReferenceInterfacePhrase, $"{entryWhere}: USAGE OBJECT "
+                    + $"REFERENCE names the interface '{name}' with "
+                    + (factory && only ? "the FACTORY OF and ONLY phrases" : factory ? "the FACTORY OF phrase" : "the ONLY phrase")
+                    + " — those phrases belong to the object-class-name-1 alternative of the general format; the "
+                    + "interface-name-1 alternative carries neither (ISO §13.18.60.2; §13.18.60.4 GR22 c))");
+            return ObjectRefDescriptor.Interface(name);
+        }
+        return ObjectRefDescriptor.ObjectClass(name, factory, only);
+    }
+
     /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
     /// consumed by <c>RecordStructEmitter</c> to add the <c>static</c> modifier. TWO producers, one mechanism
     /// (the singular-pattern rule): (a) method WORKING-STORAGE roots (D3 — one copy per class, shared across

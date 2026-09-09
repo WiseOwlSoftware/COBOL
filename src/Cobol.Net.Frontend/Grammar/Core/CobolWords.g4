@@ -9,6 +9,7 @@ options { tokenVocab = CobolLexer; }
 
 cobolWord
     : IDENTIFIER
+    | {userWordHere("ACTIVE-CLASS")}? ACTIVE_CLASS
     | APPLY
     | ARITHMETIC
     | {userWordHere("AS")}? AS
@@ -119,7 +120,8 @@ cobolWord
 // instead of a parse error. VersionConformancePass.VisitReservedGatedWord is the ONE funnel arm:
 // every use of this rule is a definition slot, so a new slot needs no new C# (kb/Work PB693).
 reservedGatedWord
-    : {!userWordHere("AS")}? AS
+    : {!userWordHere("ACTIVE-CLASS")}? ACTIVE_CLASS
+    | {!userWordHere("AS")}? AS
     | {!userWordHere("B-AND")}? B_AND
     | {!userWordHere("B-NOT")}? B_NOT
     | {!userWordHere("B-OR")}? B_OR

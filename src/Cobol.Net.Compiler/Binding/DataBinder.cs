@@ -679,7 +679,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 continue;
             }
 
-            if (BindEntry(entry) is not { } item) continue;
+            if (BindEntry(entry, section) is not { } item) continue;
             item.Uid = _uidCounter++;
 
             // Level 77 is an INDEPENDENT elementary item (ISO §13.18.38): always top-level, like 01, regardless of its
@@ -2738,7 +2738,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? chars.GetText(new Antlr4.Runtime.Misc.Interval(node.Start.StartIndex, stop.StopIndex))
             : Spelled(node);
 
-    private DataItem? BindEntry(Core.DataDescriptionEntryContext entry)
+    private DataItem? BindEntry(Core.DataDescriptionEntryContext entry, EntrySection section)
     {
         DataDescriptionCst e = entry;
         if (e.Level is not { } level) return null;
@@ -2754,7 +2754,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         LocaleEditSpec? pictureLocale = null;           // PICTURE format 2 — the LOCALE phrase (§13.18.40.2; PB64 T6)
         List<TableValueSpec>? tableValues = null;       // Format 2 (table) VALUE phrases (§13.18.63.2)
         bool gluedMultiLiteral = false;                 // a Format-1 VALUE with >1 operand (no FROM) — the glued-list reject
-        string? objectClassName = null;   // USAGE OBJECT REFERENCE class-name (null = universal; §13.18.60.4)
+        // USAGE OBJECT REFERENCE, as WRITTEN — the four independent axes §13.18.60.2 prints, kept raw here and
+        // adjudicated into an ObjectRefDescriptor below (OoBindObjectRefDescriptor), where the class table and
+        // the entry's section are both in hand. kb/Work PB389.
+        Core.ObjectReferenceUsageContext? objectRefUsage = null;
         int? occurs = null;
         OccursSpec? occursSpec = null;
         var indexNames = new List<string>();
@@ -2900,15 +2903,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // captured here rather than four derived locals, so §13.18.60.2's phrase rules stay in one
                     // place. kb/Work PB174.
                     usageCtx = usage;
-                    var oru = usage.usageKeyword()?.objectReferenceUsage();
-                    if (oru?.FACTORY() is not null)
-                        // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
-                        // reference item awaits the universal-reference wave (§16.2.2 FactoryObject).
-                        Edition.Error(DiagnosticCatalog.OoFactoryObjectReference, "USAGE OBJECT REFERENCE FACTORY OF (a factory-object "
-                            + "reference, ISO §13.18.60) is recognized but not yet implemented (the "
-                            + "universal-reference wave)");
-                    else
-                        objectClassName = clause.ObjectClassName;
+                    // USAGE OBJECT REFERENCE — the WHOLE §13.18.60.2 phrase (kind × FACTORY × ONLY × name),
+                    // carried raw to OoBindObjectRefDescriptor below. FACTORY OF used to be loud-staged here
+                    // (COBOLNET0899) and the item left UNTYPED, which produced a SECOND misleading diagnostic at
+                    // every later statement mentioning it; it is implemented now (kb/Work PB389).
+                    objectRefUsage = usage.usageKeyword()?.objectReferenceUsage();
                 }
                 else if (clause.RedefinesTargetName is { } redefTarget)
                     // Capture the target name only; resolution waits until the forest is built (the target is a
@@ -2986,16 +2985,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "REFERENCE (ISO §13.18.60.4 — an object-reference item is picture-less)");
             pictureText = null;
         }
-        // A TYPED reference (spine part 2 — LIVE): the declared class must resolve — its emitted C# field type
-        // IS the class's emitted type (PicInfo.ClrType), so an unresolved name would surface as a Roslyn
-        // CS0246 on user source (a loud-failure violation). ⛔ The set is the REFERRING SOURCE ELEMENT's
-        // (§8.4.6.4), not the compilation group's: this site called `OoClasses.Find`/`FindInterface` directly
-        // and so accepted a class the source element may not reference (kb/Work PB365 — the same widened set
-        // as the USE Format-4 arm; §13.18.60 states no REPOSITORY rule of its own, so §8.4.6.4 IS the rule).
-        if (entryUsage is Usage.ObjectReference && objectClassName is not null)
-            Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, entry, objectClassName,
-                Compiler.Oo.OoNameResolution.Want.Either,
-                $"{entryWhere}: USAGE OBJECT REFERENCE", "COBOLNET0813", "ISO §13.18.60.2/.4");
+        // The §13.18.60.2 description, adjudicated ONCE: which alternative was written, whether the name
+        // resolves to a class or an interface — in the REFERRING SOURCE ELEMENT's scope (§8.4.6.4), through
+        // the one OoNameResolution funnel, kb/Work PB365 — whether FACTORY/ONLY are admissible on that
+        // alternative, and §13.18.60.3 SR16's placement of ACTIVE-CLASS. Every consumer downstream ASKS this
+        // descriptor.
+        var objectRefDesc = entryUsage is Usage.ObjectReference
+            ? OoBindObjectRefDescriptor(objectRefUsage, entryWhere, section)
+            : ObjectRefDescriptor.Universal;
 
         // PICTURE is prohibited on a fixed-width binary usage (ISO §13.16.3 SR8 — the item is picture-less; its
         // width and range are fixed by the usage, §13.18.60.4 GR12). Reject loud, never let Analyze classify an
@@ -3150,7 +3147,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem(restrictedTypeName)
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
-            : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
+            : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectRefDesc)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
             // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED + the 2014

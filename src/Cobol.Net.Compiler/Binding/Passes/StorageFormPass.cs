@@ -206,7 +206,7 @@ internal static class StorageFormPass
         if (item.Pic is not { } pic) return new StorageForm.CharImage(0, PicCategory.Alphanumeric);   // Pic-null recovery leaf
         return pic.Category switch
         {
-            PicCategory.ObjectReference => new StorageForm.ObjectRef(pic.ObjectClassName),
+            PicCategory.ObjectReference => new StorageForm.ObjectRef(pic.ObjectRef ?? ObjectRefDescriptor.Universal),
             PicCategory.Pointer => new StorageForm.PointerRef(),
             PicCategory.ProgramPointer => new StorageForm.ProgramPointerRef(),
             PicCategory.Numeric when pic.Usage == Usage.Index => new StorageForm.IndexCell(item.ImageWidth),
@@ -243,7 +243,7 @@ internal static class StorageFormPass
         StorageForm.NativeInt ni => ni.Wide ? "Int128" : "long",
         StorageForm.NativeFloat nf => nf.Single ? "float" : "double",
         StorageForm.IndexCell => "long",
-        StorageForm.ObjectRef o => o.ClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "CobolObject?",
+        StorageForm.ObjectRef o => o.Desc.ClrTypeName + "?",   // ONE derivation, shared with PicInfo.ClrType (PB389)
         StorageForm.PointerRef => "ManagedPointer",
         StorageForm.ProgramPointerRef => "ProgramPointer",
         StorageForm.TierBWindow => "string",       // a Tier-B window is a string slice (a numeric Tier-B leaf is CharImage)

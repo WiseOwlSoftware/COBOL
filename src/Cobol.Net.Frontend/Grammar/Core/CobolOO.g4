@@ -202,13 +202,29 @@ invokeReturning
     : RETURNING dataReference
     ;
 
-// ── USAGE OBJECT REFERENCE [class-name] (ISO §13.18.60.4) ──
-// Factored as its own rule (two explicit alternatives — NOT an optional-tail className?) so it left-factors cleanly
-// when hooked into usageKeyword (the optional tail was a suspected ambiguity, OO design doc §6.5).
+// ── USAGE OBJECT REFERENCE (ISO §13.18.60.2 general format; §13.18.60.4 GR22) ──
+// ⛔ THE FORMAT IS A TUPLE, NOT A SCALAR (kb/Work PB389). Rendered from the canonical PDF (printed folio 503 —
+// the diagram is load-bearing and the transcription of a stacked bracket is exactly what was mis-read before):
+//
+//     OBJECT REFERENCE ⎡ interface-name-1                            ⎤
+//                      ⎢ [ FACTORY OF ] ACTIVE-CLASS                 ⎥
+//                      ⎣ [ FACTORY OF ] object-class-name-1 [ ONLY ] ⎦
+//
+// ONE bracket pair enclosing THREE stacked alternatives — so at most one is written, and the bare
+// `OBJECT REFERENCE` is GR22 b)'s universal object reference. FACTORY, ACTIVE-CLASS and ONLY are UNDERLINED
+// (required words of their alternatives); OF is not. Four INDEPENDENT axes: kind × FACTORY × ONLY × name.
+//
+// Until PB389 this rule had three alternatives carrying ONE axis (`FACTORY OF className` / `className` / bare),
+// so ACTIVE-CLASS lexed as a user word and drew COBOLNET0813+0901, and a trailing ONLY was a raw COBOL0307.
+//
+// FACTORY/ONLY vs interface-name-1: the grammar CANNOT separate an interface-name from an object-class-name
+// (both are one cobolWord), so the `[FACTORY OF] className [ONLY]` alternative is the SUPERSET parse (P3
+// doctrine) and the binder makes the general-format rejection once the name resolves — COBOLNET1925.
+// ACTIVE-CLASS is its own alternative because it IS its own token.
 objectReferenceUsage
-    : OBJECT REFERENCE FACTORY OF className   // a FACTORY-object reference (§13.18.60 :22681) — binder-staged 0899 (the universal-reference wave)
-    | OBJECT REFERENCE className
-    | OBJECT REFERENCE
+    : OBJECT REFERENCE (FACTORY OF)? ACTIVE_CLASS          // GR22 e) — the active class; SR16 placement checked in the binder
+    | OBJECT REFERENCE (FACTORY OF)? className ONLY?       // GR22 c)/d) — interface-name-1 or object-class-name-1
+    | OBJECT REFERENCE                                     // GR22 b) — the UNIVERSAL object reference
     ;
 
 // ── INLINE METHOD INVOCATION (COBOL-2023, ISO §8.4.3 in-line method invocation) ──

@@ -1539,6 +1539,45 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UOBJ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-O USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
+    "id": "usage-object-reference-active-class-2002",
+    "status": "active",
+    "description": "USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS (ISO §13.18.60.2 general format, GR22 e)) — the reference is bound to \"the same class as the object that was used to invoke the method in which this data description entry is specified\". LIVE since kb/Work PB389: the descriptor carries the ACTIVE-CLASS kind and its containing class, the item emits that class's C# type, §13.18.60.3 SR16 places it (COBOLNET1924), and §14.9.39.3 SR12 b) / SR14 adjudicate it as a SET operand. ACTIVE-CLASS is a §8.9 reserved word 2002+ and an ordinary user word at 85, so the token rides the cobolWord reservation funnel.",
+    "display": "USAGE OBJECT REFERENCE ACTIVE-CLASS",
+    "diagnosticCode": "COBOLNET0900",
+    "citation": "ISO §13.18.60.2 / §13.18.60.4 GR22 e) / §13.18.60.3 SR16 (OO)",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "2002 introduction (OO; derive from the 2002 standard)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UORAC.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM UORAC.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. UORACC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. MK.\nDATA DIVISION.\nLOCAL-STORAGE SECTION.\n01 A USAGE OBJECT REFERENCE ACTIVE-CLASS.\nPROCEDURE DIVISION.\nMAIN.\n    SET A TO SELF.\nEND METHOD MK.\nEND OBJECT.\nEND CLASS UORACC.\n"
+  },
+  {
+    "id": "usage-object-reference-factory-of-2002",
+    "status": "active",
+    "description": "USAGE OBJECT REFERENCE FACTORY OF object-class-name-1 (ISO §13.18.60.2; GR22 d)1.a./d)2.a.) — the item holds a class's FACTORY object, not an instance. LIVE since kb/Work PB389 (it was loud-staged COBOLNET0899 before): the emitted type is the D11 factory singleton class, INVOKE through it resolves the FACTORY method interface (§9.3.6), SET … TO class-name is §14.9.39.3 SR13, and SR12 a)3. makes the FACTORY axis invariant on assignment.",
+    "display": "USAGE OBJECT REFERENCE FACTORY OF",
+    "diagnosticCode": "COBOLNET0900",
+    "citation": "ISO §13.18.60.2 / §13.18.60.4 GR22 d) (OO)",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "2002 introduction (OO; derive from the 2002 standard)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UORFO.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS UORFOC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE OBJECT REFERENCE FACTORY OF UORFOC.\nPROCEDURE DIVISION.\nMAIN.\n    SET F TO UORFOC.\n    STOP RUN.\nEND PROGRAM UORFO.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. UORFOC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nEND OBJECT.\nEND CLASS UORFOC.\n"
+  },
+  {
+    "id": "usage-object-reference-only-2002",
+    "status": "active",
+    "description": "USAGE OBJECT REFERENCE object-class-name-1 ONLY (ISO §13.18.60.2; GR22 d)2.) — the referenced object is of EXACTLY the named class, never a subclass. LIVE since kb/Work PB389 (a trailing ONLY was a raw COBOL0307 parse error before): the descriptor carries the flag and §14.9.39.3 SR12 a)1. / b)1. / c)1. read it. ONLY is §8.10 context-sensitive — a legal user word at every edition — so the shape is gated only by the USAGE OBJECT REFERENCE clause's own 2002 introduction.",
+    "display": "USAGE OBJECT REFERENCE … ONLY",
+    "diagnosticCode": "COBOLNET0900",
+    "citation": "ISO §13.18.60.2 / §13.18.60.4 GR22 d)2. (OO)",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "2002 introduction (OO; derive from the 2002 standard)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UORON.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS UORONC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 C1 USAGE OBJECT REFERENCE UORONC ONLY.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE UORONC \"NEW\" RETURNING C1.\n    STOP RUN.\nEND PROGRAM UORON.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. UORONC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nEND OBJECT.\nEND CLASS UORONC.\n"
+  },
+  {
    "id": "usage-binary-char-family-2002",
    "description": "The fixed-width binary usages BINARY-CHAR/-SHORT/-LONG/-DOUBLE (ISO 13.18.60.4 GR12/GR21) - native two's-complement 1/2/4/8-byte integers, SIGNED default / UNSIGNED widens, realized on the COMP-5 BinaryCapacity discipline. LIVE (Phase 4 M2-DATA-1, DEVLOG 614): compiles at 2002+; below 2002 the introduction gate names the edition (COBOLNET0900).",
    "display": "a fixed-width binary usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE)",

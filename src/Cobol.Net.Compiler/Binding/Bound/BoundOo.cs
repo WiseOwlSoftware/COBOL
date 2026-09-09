@@ -34,7 +34,7 @@ public enum InvokeForm
     /// virtual, so an inherited factory override dispatches).</summary>
     Factory,
     /// <summary><c>INVOKE SELF|SUPER "NEW" RETURNING r</c> inside a FACTORY method → <c>r = this.__New()</c>
-    /// (§16.2.1 GR1 ACTIVE-CLASS creation: the covariant per-class <c>__New</c> override makes an inherited
+    /// (§16.2.1.2 GR1 ACTIVE-CLASS creation: the covariant per-class <c>__New</c> override makes an inherited
     /// factory MAKE create the RUNTIME factory's class — the canonical factory pattern).</summary>
     NewSelf,
 }

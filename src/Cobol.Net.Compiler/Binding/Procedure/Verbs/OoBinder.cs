@@ -111,7 +111,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         if (inv.invokeMethodName().dataReference() is { } mref)
         {
             if (target.dataReference() is not { } uref || ctx.Refs.Resolve(uref) is not { } urecv
-                || urecv.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectClassName: null })
+                || urecv.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectRef.IsUniversal: true })
             {
                 ctx.Edition.Error("COBOLNET0866",
                     "INVOKE: identifier-2 (a method name held in a data item) is permitted only when "
@@ -166,7 +166,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §8.4.3.8 — the predefined object references of the current object)");
                 return new BoundNop();
             }
-            // In a FACTORY method, SELF|SUPER "NEW" is the ACTIVE-CLASS creation (§16.2.1 GR1 — the
+            // In a FACTORY method, SELF|SUPER "NEW" is the ACTIVE-CLASS creation (§16.2.1.2 GR1 — the
             // BaseFactoryInterface's New): bind InvokeForm.NewSelf → `this.__New()` (covariant per class;
             // SUPER restricts the METHOD SEARCH, GR3, but the found method IS the predefined New whose
             // behavior is active-class creation on the SAME runtime factory — the equivalence is deliberate).
@@ -195,10 +195,14 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                         + "be a USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8)");
                     return new BoundNop();
                 }
-                // The runtime class is the CONTAINING class or a subclass — the containing class's
-                // conformance is the strongest compile-time guarantee (§14.8 — a subclass instance still
-                // conforms downstream of anything the containing class conforms to).
-                if (OoConformance.ObjectRefWideningMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(cur.Name), nrp) is { } nwerr)
+                // §16.2.1.2 GR1: New "returns a reference to the created object", and through SELF|SUPER the
+                // creating factory object is polymorphic (§14.9.23.3 SR4f), so the created object is of the
+                // ACTIVE class — the containing class or a subclass of it. That IS the §13.18.60.2 ACTIVE-CLASS
+                // description, so the delivery is adjudicated as one (kb/Work PB389): a plain object-class-name
+                // sender could not deliver into an ACTIVE-CLASS receiver at all, which is the one receiver
+                // shape the covariant creation exists to fill.
+                if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses,
+                        PicInfo.ObjectReferenceItem(ObjectRefDescriptor.ActiveClass(cur.Name)), nrp) is { } nwerr)
                 {
                     ctx.Edition.Error("COBOLNET0826",
                         $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': {nwerr} (ISO §14.8)");
@@ -303,10 +307,13 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + "USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8 / §14.8 conformance)");
             return new BoundNop();
         }
-        // Receiver conformance (§14.8 via the SET/widening direction): universal accepts anything; a typed
-        // receiver accepts the class, a subclass, or — for an INTERFACE-typed receiver — any class whose
-        // §11.8.4 closure implements it (the ONE OoConformance.ObjectRefWideningMismatch rule).
-        if (OoConformance.ObjectRefWideningMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(cls.Name), retPic) is { } werr)
+        // Receiver conformance (§14.8.3.3 rule 1 — the RETURNING delivery follows the SET rules): the ONE
+        // OoConformance.ObjectRefAssignmentMismatch table. §16.2.1.2 GR1 makes the created object an instance
+        // object of EXACTLY cls (the factory object is NAMED here, not polymorphic), so the sending
+        // description carries ONLY — which is what lets it deliver into an ONLY receiver, SR12 a)1.
+        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses,
+                PicInfo.ObjectReferenceItem(ObjectRefDescriptor.ObjectClass(cls.Name, factory: false, only: true)),
+                retPic) is { } werr)
         {
             ctx.Edition.Error("COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': {werr} (ISO §14.8)");
@@ -327,13 +334,18 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + "item (ISO §14.9.23.3 SR3)");
             return new BoundNop();
         }
-        if (pic.ObjectClassName is not { } className)
+        // The receiver's §13.18.60.2 DESCRIPTION picks the roster (kb/Work PB389): universal → the dynamic
+        // path; interface-name → the interface's prototype closure; object-class-name or ACTIVE-CLASS → the
+        // named/containing class, and its FACTORY half when FACTORY OF was written.
+        var rdesc = pic.ObjectRef ?? ObjectRefDescriptor.Universal;
+        if (rdesc.IsUniversal)
             // A UNIVERSAL receiver with a literal selector (SR4 permits literal-1; it still cannot bind
             // statically — no roster exists at compile time): the D10 dynamic path.
             return OoBindUniversalInvoke(inv, receiver, methodLiteral: method, methodSource: null);
+        string className = rdesc.Name!;
         // An INTERFACE-typed receiver: resolution over the interface's prototype closure (§14.9.23.3 SR4e);
         // the emitted call is static C# interface dispatch behind the same GR5 null guard.
-        if (host.OoClasses?.FindInterface(className) is { } recvIface)
+        if (rdesc.Kind is ObjectRefKind.Interface && host.OoClasses?.FindInterface(className) is { } recvIface)
         {
             var proto = recvIface.AllPrototypes()
                 .FirstOrDefault(pm => string.Equals(pm.Name, method, StringComparison.OrdinalIgnoreCase));
@@ -356,19 +368,29 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + "compilation group (ISO §13.18.60.4)");
             return new BoundNop();
         }
-        if (cls.FindMethod(method) is not { } m)
+        // §9.3.6: a class has TWO separate method interfaces, and which one a receiver selects is the FACTORY
+        // axis of its own description — a FACTORY-OF reference holds the factory object (§13.18.60.4 GR22 d)1.a.)
+        // and therefore resolves the FACTORY roster (§14.9.23.3 SR4b/SR4c). Both arms of ONE dispatch.
+        var m = rdesc.Factory ? cls.FindFactoryMethod(method) : cls.FindMethod(method);
+        if (m is null)
         {
-            string hint = cls.FindFactoryMethod(method) is not null
-                ? $" ('{method}' IS a FACTORY method of class '{cls.Name}' — invoke it through the "
-                  + "class-name: an instance receiver resolves the INSTANCE interface, §14.9.23.3 SR4b)"
+            string other = rdesc.Factory ? "an INSTANCE" : "a FACTORY";
+            string hint = (rdesc.Factory ? cls.FindMethod(method) : cls.FindFactoryMethod(method)) is not null
+                ? $" ('{method}' IS {other} method of class '{cls.Name}' — the two interfaces are separate, "
+                  + "§9.3.6, and this receiver's description selects the "
+                  + (rdesc.Factory ? "factory" : "instance") + " one)"
                 : "";
             ctx.Edition.Error("COBOLNET0825",
                 $"INVOKE '{receiver.Item.CobolName}' \"{method}\": class '{cls.Name}' (and its inheritance "
-                + "chain) does not define a method named '" + method + "' (ISO §14.9.23.3 SR4d — compile-time "
+                + $"chain) does not define {(rdesc.Factory ? "a factory" : "an instance")} method named '"
+                + method + "' (ISO §14.9.23.3 SR4d — compile-time "
                 + $"for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b){hint}");
             return new BoundNop();
         }
-        return OoBindResolvedInvoke(inv, m, InvokeForm.Instance, receiver);
+        var bound = OoBindResolvedInvoke(inv, m, InvokeForm.Instance, receiver);
+        // A factory-object receiver's argument PROFILES live in the FACTORY singleton type, not the instance
+        // class — the same qualification InvokeForm.Factory gets by appending the suffix at emit time.
+        return rdesc.Factory && bound is BoundInvoke fbi ? fbi with { OwnerCsName = cls.FactoryCsName } : bound;
     }
 
     /// <summary>The shared USING + RETURNING binding tail for a RESOLVED method — the Instance / SELF / SUPER
@@ -429,7 +451,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // identity rule. Everything else keeps the strict description check.
             string? rerr = m.Binding!.Returning!.Pic is { Category: PicCategory.ObjectReference } sendPic
                     && rp.Item.Pic is { Category: PicCategory.ObjectReference } recvPic
-                ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, sendPic, recvPic)
+                ? OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, sendPic, recvPic)
                 : OoConformanceError(m.Binding!.Returning!, rp.Item);
             if (rerr is not null)
             {
@@ -746,7 +768,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 : "COMPUTE-rule conformance needs a numeric argument (ISO §14.8.2.3.3 rule 2a)",
             PicCategory.ObjectReference =>
                 argCat is PicCategory.ObjectReference && arg.Pic is { } ap
-                    ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, ap, f)
+                    ? OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, ap, f)
                     : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
             // ⭐ BOOLEAN / NATIONAL / NUMERIC-EDITED FORMALS ASK TABLE 16, NOT STRICT IDENTITY (fix-queue PB53).
             // This arm used to call DescriptionMismatch — which is §14.8.2.3.2, the BY **REFERENCE** rule —
@@ -901,33 +923,72 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     "SET … TO SELF: SELF is defined only within a method of a class (ISO §14.9.39.3 SR12c)");
                 return new BoundNop();
             }
-            // The receiver decides WHICH rule governs a SELF sender: SR12c when it is described with an
-            // object-class-name, SR10d when it is described with an interface-name. A UNIVERSAL receiver
-            // (ObjectClassName null) constrains nothing — SR8.
+            // ⛔ THE RECEIVER'S §13.18.60.2 DESCRIPTION DECIDES WHICH RULE GOVERNS A SELF SENDER — one arm per
+            // general-format alternative, and all four are present (kb/Work PB389; before it the descriptor
+            // could spell only two of them and the ONLY / FACTORY axes had nowhere to be read):
+            //   universal      — SR8: unconstrained.
+            //   interface-name — SR10 d)1./d)2.: the factory (in a factory method) or instance (in an instance
+            //                    method) definition of the containing class shall IMPLEMENT int-1.
+            //   object-class   — SR12 c)1.–c)4.
+            //   ACTIVE-CLASS   — SR14 b)1./b)2.
+            // SR12 c)3./c)4. and SR14 b)1./b)2. are the SAME sentence about the SAME axis: SELF is the factory
+            // object inside a factory method and an instance object inside an instance one, so the receiver's
+            // FACTORY presence shall equal host.OoInFactory.
             foreach (var tp in targets)
             {
-                if (tp.Item.Pic!.ObjectClassName is not { } tcn) continue;
-                if (host.OoClasses?.Find(tcn) is { } tcls)
+                var rd = tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal;
+                string where = $"SET '{tp.Item.CobolName}' TO SELF";
+                switch (rd.Kind)
                 {
-                    if (!cur.ConformsTo(tcls))
-                        ctx.Edition.Error("COBOLNET0867",
-                            $"SET '{tp.Item.CobolName}' TO SELF: class '{cur.Name}' is not '{tcls.Name}' or a "
-                            + "subclass of it (ISO §14.9.39.3 SR12c2)");
+                    case ObjectRefKind.Universal:
+                        continue;   // SR8 — a universal receiver accepts any object
+
+                    case ObjectRefKind.Interface:
+                        // `Find` is class-only, so before the SR10d landing an interface-typed receiver fell
+                        // through unchecked and the emitter rendered a raw `(I)(this)` cast — a runtime
+                        // InvalidCastException, or a Roslyn CS error on generated user source for a sealed
+                        // class, which the G4 no-CS-on-user-source rule forbids.
+                        if (host.OoClasses?.FindInterface(rd.Name!) is { } tiface
+                            && !host.OoClasses.ImplementsClosure(cur, host.OoInFactory).Contains(tiface))
+                            ctx.Edition.Error("COBOLNET0867",
+                                $"{where}: the {(host.OoInFactory ? "factory" : "instance")} "
+                                + $"definition of class '{cur.Name}' does not IMPLEMENT interface '{tiface.Name}' "
+                                + $"(ISO §14.9.39.3 SR10d{(host.OoInFactory ? 1 : 2)})");
+                        continue;
+
+                    case ObjectRefKind.ObjectClass:
+                        // c)1. — an ONLY receiver admits no SELF sender at all: SELF's run-time class is the
+                        // ACTIVE class, which may be a subclass, and ONLY forbids exactly that.
+                        if (rd.Only)
+                            ctx.Edition.Error("COBOLNET0867",
+                                $"{where}: the receiving item is described with the ONLY phrase, so SELF is not "
+                                + "a permitted sending operand (ISO §14.9.39.3 SR12c1)");
+                        // c)2. — the class containing the SET statement shall be the receiver's class or a
+                        // subclass of it.
+                        else if (host.OoClasses?.Find(rd.Name!) is { } tcls && !cur.ConformsTo(tcls))
+                            ctx.Edition.Error("COBOLNET0867",
+                                $"{where}: class '{cur.Name}' is not '{tcls.Name}' or a "
+                                + "subclass of it (ISO §14.9.39.3 SR12c2)");
+                        // c)3./c)4. — the FACTORY axis of the receiver picks WHICH definition the method shall
+                        // be defined in, and SELF is the object of that definition.
+                        if (rd.Factory != host.OoInFactory)
+                            ctx.Edition.Error("COBOLNET0867",
+                                $"{where}: the receiving item is described {(rd.Factory ? "with" : "without")} "
+                                + "the FACTORY phrase, so the method containing the SET statement shall be "
+                                + $"defined in the {(rd.Factory ? "factory" : "instance")} definition of its "
+                                + $"containing class (ISO §14.9.39.3 SR12c{(rd.Factory ? 4 : 3)})");
+                        continue;
+
+                    default:   // ObjectRefKind.ActiveClass — SR14 b)
+                        if (rd.Factory != host.OoInFactory)
+                            ctx.Edition.Error("COBOLNET0867",
+                                $"{where}: the receiving item is described ACTIVE-CLASS "
+                                + $"{(rd.Factory ? "with" : "without")} the FACTORY phrase, so the method "
+                                + $"containing the SET statement shall be defined in the "
+                                + $"{(rd.Factory ? "factory" : "instance")} definition of its containing class "
+                                + $"(ISO §14.9.39.3 SR14b{(rd.Factory ? 2 : 1)})");
+                        continue;
                 }
-                // §14.9.39.3 SR10d — "the predefined object reference SELF, subject to the following rules:
-                // 1. if the SET statement is contained in a method within the FACTORY definition of the class,
-                // that factory definition shall be described with an IMPLEMENTS clause that references int-1,
-                // 2. if … within the INSTANCE definition …, that instance definition shall be described with an
-                // IMPLEMENTS clause that references int-1". `Find` is class-only, so before this an
-                // interface-typed receiver fell through both arms unchecked and the emitter rendered a raw
-                // `(I)(this)` cast — a runtime InvalidCastException, or a Roslyn CS error on generated user
-                // source for a sealed class, which the G4 no-CS-on-user-source rule forbids.
-                else if (host.OoClasses?.FindInterface(tcn) is { } tiface
-                         && !host.OoClasses.ImplementsClosure(cur, host.OoInFactory).Contains(tiface))
-                    ctx.Edition.Error("COBOLNET0867",
-                        $"SET '{tp.Item.CobolName}' TO SELF: the {(host.OoInFactory ? "factory" : "instance")} "
-                        + $"definition of class '{cur.Name}' does not IMPLEMENT interface '{tiface.Name}' "
-                        + $"(ISO §14.9.39.3 SR10d{(host.OoInFactory ? 1 : 2)})");
             }
         }
         else if (!senderNull)
@@ -939,12 +1000,14 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             if (sniff is { Item.Pic: { Category: PicCategory.ObjectReference } spic } sn
                 && ctx.Refs.Resolve(senderRef) is { } sp)
             {
+                // The receiver's description selects SR10 / SR12 / SR14 and the sender's answers it — ONE
+                // table, OoConformance.ObjectRefAssignmentMismatch. The former `ObjectClassName is not null`
+                // pre-guard is gone: the table returns null for a universal receiver itself (SR8), so the
+                // guard was a second, weaker copy of that rule.
                 foreach (var tp in targets)
-                    if (tp.Item.Pic!.ObjectClassName is not null
-                        && OoConformance.ObjectRefWideningMismatch(host.OoClasses, spic, tp.Item.Pic!) is { } werr)
+                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, spic, tp.Item.Pic!) is { } werr)
                         ctx.Edition.Error("COBOLNET0867",
-                            $"SET '{tp.Item.CobolName}' TO '{sn.Item.CobolName}': {werr} "
-                            + "(ISO §14.9.39.3 SR12 — a universal sender needs an object view to narrow)");
+                            $"SET '{tp.Item.CobolName}' TO '{sn.Item.CobolName}': {werr}");
                 src = sp;
             }
             else if (string.Equals(senderRef.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase))
@@ -958,17 +1021,27 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                      && Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, senderRef, sname,
                             Compiler.Oo.OoNameResolution.Want.Class).Class is { } scls)
             {
-                // SR13 (:31371): the sender names a CLASS → the factory object of that class. D11's
-                // singleton makes it a direct reference; conformance into a TYPED target is the FACTORY
-                // conformance question — v1 permits only a UNIVERSAL target (factory-class hierarchies
-                // widen via FACTORY OF phrases the USAGE grammar does not carry yet — 0899-noted).
+                // SR11 + SR13: the sender names a CLASS → the FACTORY OBJECT of that class (D11's singleton
+                // makes it a direct reference). ⛔ BOTH RULES FALL OUT OF THE ONE TABLE once the sender is
+                // written as the description that factory object actually has — the factory object OF EXACTLY
+                // object-class-name-1, i.e. FACTORY OF <sname> ONLY:
+                //   • SR13's "the data item shall be described with the FACTORY phrase" is the table's SR12 a)3.
+                //     FACTORY-presence equality against a sender whose Factory is true;
+                //   • SR13 a) (ONLY receiver ⇒ the same object-class-name) is SR12 a)1., which the ONLY sender
+                //     satisfies exactly when the names match;
+                //   • SR13 b) (otherwise, the same class or a subclass) is SR12 a)2.;
+                //   • SR11 (an interface-name receiver ⇒ the FACTORY object of object-class-name-1 IMPLEMENTS
+                //     int-1) is the table's SR10 b)1., which asks the factory closure for exactly that.
+                // Before kb/Work PB389 every typed receiver was refused here, because no FACTORY axis existed
+                // to compare — the rejection WAS the rule's only enforcement.
+                var senderDesc = ObjectRefDescriptor.ObjectClass(scls.Name, factory: true, only: true);
                 foreach (var tp in targets)
-                    if (tp.Item.Pic!.ObjectClassName is not null)
+                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses!,
+                            senderDesc, tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal) is { } ferr)
                     {
                         ctx.Edition.Error("COBOLNET0867",
-                            $"SET '{tp.Item.CobolName}' TO {sname}: a factory-object sender (SR13) into a "
-                            + "TYPED receiver needs the FACTORY OF usage phrase — not yet carried "
-                            + "(universal receivers accept it)");
+                            $"SET '{tp.Item.CobolName}' TO {sname}: the sending operand is the FACTORY OBJECT "
+                            + $"of class '{scls.Name}' (ISO §14.9.39.3 SR13) — {ferr}");
                         return new BoundNop();
                     }
                 srcFactoryClassCs = scls.FactoryCsName;

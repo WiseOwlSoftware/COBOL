@@ -54,7 +54,7 @@ public sealed class OoConformanceCategoryDriftTests
         PicCategory.National => new PicInfo(category, Usage.National, Length: 4, Digits: 0, Scale: 0, Signed: false),
         PicCategory.Boolean => new PicInfo(category, Usage.Bit, Length: 4, Digits: 0, Scale: 0, Signed: false),
         PicCategory.ObjectReference => new PicInfo(category, Usage.ObjectReference, Length: 0, Digits: 0, Scale: 0, Signed: false)
-            { ObjectClassName = "CLS" },
+            { ObjectRef = ObjectRefDescriptor.ObjectClass("CLS") },
         PicCategory.Pointer => new PicInfo(category, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false),
         PicCategory.ProgramPointer => new PicInfo(category, Usage.ProgramPointer, Length: 0, Digits: 0, Scale: 0, Signed: false),
         _ => new PicInfo(category, Usage.Display, Length: 4, Digits: 0, Scale: 0, Signed: false),

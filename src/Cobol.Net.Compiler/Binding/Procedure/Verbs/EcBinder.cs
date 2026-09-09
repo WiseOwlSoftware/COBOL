@@ -178,13 +178,22 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     + "data item (ISO §14.9.18.3 SR4)");
                 return null;
             }
-            if (opic.ObjectClassName is not { } declared)
+            // ⛔ SR4d/SR5d ask ONE thing — is this reference UNIVERSAL — and before kb/Work PB389 it was
+            // spelled "no class name recorded", which is equally true of a factory, an interface and an
+            // ACTIVE-CLASS reference: the moment those became declarable, legal operands would have been
+            // refused by a message naming a rule the program did not break. The descriptor answers it.
+            var od = opic.ObjectRef ?? ObjectRefDescriptor.Universal;
+            if (od.IsUniversal)
             {
                 ctx.Edition.Error("COBOLNET0849",
                     $"{verb} RAISING '{op.Item.CobolName}': identifier-1 shall not be a UNIVERSAL object "
                     + "reference (ISO §14.9.18.3 SR4d)");
                 return null;
             }
+            // SR4a walks the SUPERCLASS chain of the reference's declared class. An interface-described
+            // reference has no such chain — its class is not known until run time — and an ACTIVE-CLASS one
+            // is bounded by its containing class, which IS the chain to walk.
+            string declared = od.Name!;
             bool listed = false;
             for (var c = host.OoClasses?.Find(declared); c is not null; c = c.Base)
                 if (ctx.EcState.PdRaisingClasses.Contains(c.Name)) { listed = true; break; }

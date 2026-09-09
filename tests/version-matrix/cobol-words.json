@@ -2,6 +2,12 @@
  "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4 (cobolWord) + src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). The RESERVATION GATE IS DERIVED, NEVER DECLARED HERE (kb/Work PB693): a nameSlot word that ISO 8.9 reserves at any edition gets `{!reservedHere(...)}?` on its cobolWord alternative plus the inverse-gated reservedGatedWord twin, computed by the generator from reserved-words.json - there is no per-row flag to forget, and 8.3.2.1 rule 1 (reserved words shall not be used as user-defined words) therefore holds by construction. CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
  "words": [
   {
+   "token": "ACTIVE_CLASS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS (13.18.60.2, 2002+): a required word of the general format. ISO 8.9 reserves it from 2002 only (reserved-words.json r85 false), so at --std 85 it is an ordinary user word and `01 ACTIVE-CLASS PIC X.` is legal COBOL-85 - RESERVATION-GATED (the FACTORY precedent, derived in gen-cobol-words.ps1 step 4b), admitted to cobolWord only where 8.9 does not reserve it. kb/Work PB389."
+  },
+  {
    "token": "APPLY",
    "nameSlot": true,
    "subscriptTrigger": true,

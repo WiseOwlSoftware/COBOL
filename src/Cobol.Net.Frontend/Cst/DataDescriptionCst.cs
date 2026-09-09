@@ -79,9 +79,6 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     /// <summary>The REDEFINES target's <c>dataReference</c> text, or null.</summary>
     public string? RedefinesTargetName => ctx.redefinesClause()?.dataReference().GetText();
 
-    /// <summary>The USAGE OBJECT REFERENCE class-name text (null = universal, or not an object-reference usage).</summary>
-    public string? ObjectClassName => ctx.usageClause()?.usageKeyword()?.objectReferenceUsage()?.className()?.GetText();
-
     // (The canonical USAGE keyword text and the VALUE-operand normalization stay in DataBinder's shared
     // UsageKeyword / ExtractValue helpers — reused by BOTH BindEntry and DataBinder.Reports.cs, so the façade does
     // NOT fork a second copy of that computation. This clause façade exposes only the leaf text reads BindEntry

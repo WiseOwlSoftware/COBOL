@@ -375,6 +375,12 @@ XML         : 'XML' ;
 
 // ── Clause/phrase keywords ──
 
+// ACTIVE-CLASS (ISO §13.18.60.2 USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS) — a required word of
+// the format, §8.9-reserved 2002+ and a USER WORD at 85, so it rides the cobolWord reservation funnel like
+// FACTORY (tests/version-matrix/cobol-words.json). Before kb/Work PB389 it had NO token: the phrase lexed as
+// an IDENTIFIER, parsed as `OBJECT REFERENCE className`, and drew COBOLNET0813 'unknown class ACTIVE-CLASS'
+// PLUS COBOLNET0901 'reserved word' — a required word of the general format reported as a botched user name.
+ACTIVE_CLASS : 'ACTIVE-CLASS' ;
 ACCESS      : 'ACCESS' ;
 ADDRESS     : 'ADDRESS' ;
 AREA        : 'AREA' ;

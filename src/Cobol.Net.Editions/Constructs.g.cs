@@ -121,6 +121,9 @@ public static class Constructs
     public const string PicExternalFloat2002 = "pic-external-float-2002";
     public const string UsagePointer2002 = "usage-pointer-2002";
     public const string UsageObjectReference2002 = "usage-object-reference-2002";
+    public const string UsageObjectReferenceActiveClass2002 = "usage-object-reference-active-class-2002";
+    public const string UsageObjectReferenceFactoryOf2002 = "usage-object-reference-factory-of-2002";
+    public const string UsageObjectReferenceOnly2002 = "usage-object-reference-only-2002";
     public const string UsageBinaryCharFamily2002 = "usage-binary-char-family-2002";
     public const string UsageFloatLong2002 = "usage-float-long-2002";
     public const string UsageFloatExtended2002 = "usage-float-extended-2002";

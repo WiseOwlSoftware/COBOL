@@ -30,7 +30,7 @@ public enum PicCategory
     Boolean,
     /// <summary>Object reference (ISO §8.5.2.14; USAGE OBJECT REFERENCE [class-name], §13.18.60.4) — LIVE as of
     /// the Phase-3 OO spine: a PICTURE-less elementary item holding a .NET object reference (typed → the class's
-    /// C# type, universal → <c>object?</c>; <see cref="PicInfo.ObjectClassName"/>). Occupies NO character
+    /// C# type, universal → <c>object?</c>; <see cref="PicInfo.ObjectRef"/>). Occupies NO character
     /// positions — it never participates in a group's character image (its size is implementor-defined storage,
     /// not part of the §13.18.60 GR4 image rules; a whole-group image over one is rejected loud).</summary>
     ObjectReference,
@@ -87,7 +87,7 @@ public enum Usage
     /// and relation conditions may reference it; SET copies it UNCHANGED (no PICTURE store, §14.9.39 GR2b).</summary>
     Index,
     /// <summary>USAGE OBJECT REFERENCE (ISO §13.18.60.4 / §8.5.2.14) — LIVE (the Phase-3 OO spine): a .NET
-    /// reference field (typed or universal — <see cref="PicInfo.ObjectClassName"/>); zero character positions.</summary>
+    /// reference field (typed or universal — <see cref="PicInfo.ObjectRef"/>); zero character positions.</summary>
     ObjectReference,
 
     // ── The post-'85 §13.18.60 usage inventory — every member is LIVE (each keyword's ConstructRegistry
@@ -369,16 +369,19 @@ public sealed record PicInfo(
     /// <see cref="Digits"/> (the two coincide). (CA33.)</summary>
     public int DigitPositions { get => _digitPositions ?? Digits; init => _digitPositions = value; }
 
-    /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the declared class name
-    /// (<c>USAGE OBJECT REFERENCE class-name</c>, ISO §13.18.60.4) — null for a UNIVERSAL object reference
-    /// (bare <c>OBJECT REFERENCE</c>; C# <c>object?</c>). The emitter renders the class's C# type.</summary>
-    public string? ObjectClassName { get; init; }
+    /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the FULL §13.18.60.2 description —
+    /// kind × FACTORY × ONLY × name (<see cref="ObjectRefDescriptor"/>). Null for every other category.
+    /// <para>⛔ It replaced a single <c>string? ObjectClassName</c> (kb/Work PB389): the general format prints
+    /// four INDEPENDENT axes and the scalar carried one, so ACTIVE-CLASS and ONLY were rejected outright and
+    /// every consumer re-derived the KIND by interrogating the class table. Ask the descriptor.</para></summary>
+    public ObjectRefDescriptor? ObjectRef { get; init; }
 
     /// <summary>An object-reference item's representation (the Phase-3 OO spine; PICTURE-less per
-    /// §13.18.60.4 — the <see cref="PicInfo.IndexItem"/> synthesis pattern).</summary>
-    public static PicInfo ObjectReferenceItem(string? className) =>
+    /// §13.18.60.4 — the <see cref="PicInfo.IndexItem"/> synthesis pattern). <paramref name="desc"/> is the
+    /// whole §13.18.60.2 description; <see cref="ObjectRefDescriptor.Universal"/> is the bare form.</summary>
+    public static PicInfo ObjectReferenceItem(ObjectRefDescriptor desc) =>
         new(PicCategory.ObjectReference, Usage.ObjectReference, Length: 0, Digits: 0, Scale: 0, Signed: false)
-        { ObjectClassName = className };
+        { ObjectRef = desc };
 
     /// <summary>A USAGE POINTER item's representation (Phase-4b; PICTURE-less per §13.18.60 — the IndexItem
     /// synthesis pattern). Occupies NO character positions (never part of a group's §13.18.60 GR4 image).
@@ -429,8 +432,7 @@ public sealed record PicInfo(
         // emitted class derives from it (D2), GR2b defers non-COBOL interop, dispatch sites need no cast,
         // and a non-CobolObject can never leak in). The name mapping matches the ClassUnit emission convention
         // (Sanitize + uppercase — COBOL class names are case-insensitive, §8.3.2.2).
-        PicCategory.ObjectReference =>
-            ObjectClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "CobolObject?",
+        PicCategory.ObjectReference => (ObjectRef ?? ObjectRefDescriptor.Universal).ClrTypeName + "?",
         // A data pointer is the runtime ManagedPointer carrier; its COBOL initial state is NULL (the Null
         // singleton), so the field is non-nullable and always at least Null.
         PicCategory.Pointer => "ManagedPointer",
