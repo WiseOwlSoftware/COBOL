@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
+using CobolNet.Runtime;
 using Microsoft.CodeAnalysis;
 
 namespace CobolNet;
@@ -31,6 +32,12 @@ public static class CompilerDriver
     /// edition X" question the INV-1 continuity sweep asks) is produced in Phase 1/2, BEFORE the backend, so a check-only
     /// compile is verdict-equivalent to a full one for that question while skipping the backend — the dominant
     /// cost. Backend (C#-type) errors are NOT surfaced (they are not an edition-continuity concern).</param>
+    /// <param name="SignEncoding">The DISPLAY over-punch convention for a signed item whose sign is not written
+    /// SEPARATE CHARACTER (CLI <c>--sign-encoding</c>; kb/Work PB803, owner decision 2026-09-09). ISO §13.18.52.4
+    /// GR4 leaves the representation to the implementor and GR5 b) the valid-sign set — Annex A.1 items 177 and
+    /// 178 — and the owner's answer is both conventions behind one option, defaulting to
+    /// <see cref="Runtime.SignEncoding.Ibm"/> (IBM / Micro Focus compatibility). Orthogonal to
+    /// <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
@@ -38,7 +45,8 @@ public static class CompilerDriver
         int DialectLevel = 2023,
         IReadOnlyList<string>? CopyPaths = null,
         bool Permissive = false,
-        bool CheckOnly = false);
+        bool CheckOnly = false,
+        SignEncoding SignEncoding = SignEncoding.Ibm);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -115,6 +123,10 @@ public static class CompilerDriver
             // EXCEPTION-LOCATION) name the file and line the USER edits, through the frontend's origin map.
             LineMap = frontend.LineMap,
             SourceFile = options.SourcePath,
+            // kb/Work PB803: the compilation's over-punch convention travels to the emitter on the SAME
+            // per-compilation object the edition does (DataBinder.Edition → EmitContext.SignEncoding), so every
+            // NumProfile and every signed class condition this compile emits states one convention.
+            SignEncoding = options.SignEncoding,
         };
         var emitter = new CSharpEmitter();
         var bound = emitter.Bind(tree, edition, frontend.Directives);   // Phase 2a — BIND (terminal = conformance pass)

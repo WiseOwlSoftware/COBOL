@@ -3,6 +3,7 @@
 using System.CommandLine;
 using System.Diagnostics;
 using CobolNet;
+using CobolNet.Runtime;
 
 namespace CobolNet.Cli;
 
@@ -14,7 +15,7 @@ namespace CobolNet.Cli;
 /// </summary>
 /// <remarks>
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
-/// [--copy DIR] [--run]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--copy DIR] [--run] [--sign-encoding ibm|ascii]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -69,10 +70,26 @@ internal static class Program
         {
             Description = "Run the compiled assembly after a successful compile.",
         };
+        // kb/Work PB803 (owner decision 2026-09-09): the DISPLAY over-punch convention, Annex A.1 items 177/178.
+        // A REPRESENTATION option, orthogonal to --std/--permissive — every edition grants the same latitude
+        // (ISO §13.18.52.4 GR4 / GR5 b). An unknown value is refused by the parser exactly as --std's is: a CLI
+        // argument error, never a COBOLNET source diagnostic (nothing about the SOURCE is wrong).
+        var signEncodingOption = new Option<string?>("--sign-encoding")
+        {
+            Description = "DISPLAY operational-sign convention for a signed item whose sign is not SEPARATE: "
+                + "ibm (default — {A-I / }J-R, IBM / Micro Focus compatible) or ascii (plain digits / p-y).",
+            HelpName = string.Join("|", ZonedSign.OptionSpellings),
+        };
+        signEncodingOption.Validators.Add(result =>
+        {
+            if (result.GetValueOrDefault<string?>() is { } v && !ZonedSign.TryParseOption(v, out _))
+                result.AddError($"--sign-encoding must be one of {string.Join(", ", ZonedSign.OptionSpellings)} (got {v}).");
+        });
 
         var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend).")
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
+            signEncodingOption,
         };
 
         CliOptions Resolve(ParseResult parse)
@@ -87,9 +104,14 @@ internal static class Program
             // --std wins when given; else the NIST CCVS corpus is COBOL-85, otherwise the 2023 default (DEVLOG 519).
             int std = parse.GetValue(stdOption) ?? (nistEnabled ? 85 : 2023);
 
+            // The validator above has already refused any unparseable value, so a false here can only be the
+            // ABSENT option — the documented IBM default (kb/Work PB803).
+            _ = ZonedSign.TryParseOption(parse.GetValue(signEncodingOption), out var signEncoding);
+
             return new CliOptions(
                 source, parse.GetValue(outputOption), nistName, std,
-                parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption));
+                parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption),
+                signEncoding);
         }
 
         // A no-emit BATCH check subcommand (the INV-1 continuity sweep fast path): parse + edition-validate +
@@ -152,7 +174,7 @@ internal static class Program
     {
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
             options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths,
-            options.Permissive));
+            options.Permissive, SignEncoding: options.SignEncoding));
 
         // Edition warnings (obsolete/archaic 0903 flags; removed constructs under --permissive) print to stderr
         // ALWAYS — success or failure — so migration users see them without a failing build (P2.1).

@@ -15,6 +15,11 @@ namespace CobolNet.Cli;
 /// <param name="Permissive">The strict/permissive severity axis (<c>--permissive</c>, orthogonal to
 /// <c>--std</c>/<c>--nist</c>): accept constructs the targeted edition removed, warning instead of rejecting —
 /// the documented migration mode (VERSION_TEST_MATRIX_DESIGN §10 #1; owner decision 4).</param>
+/// <param name="SignEncoding">The DISPLAY over-punch convention (<c>--sign-encoding</c>) for a signed item whose
+/// sign is not written SEPARATE CHARACTER — kb/Work PB803, owner decision 2026-09-09; Annex A.1 items 177 and 178
+/// (ISO §13.18.52.4 GR4 / GR5 b). A REPRESENTATION axis, orthogonal to <paramref name="DialectLevel"/> and
+/// <paramref name="Permissive"/>: every edition grants the identical latitude. Defaults to
+/// <see cref="CobolNet.Runtime.SignEncoding.Ibm"/> — IBM / Micro Focus compatibility.</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
@@ -22,4 +27,5 @@ internal sealed record CliOptions(
     int DialectLevel,
     IReadOnlyList<string> CopyPaths,
     bool Run,
-    bool Permissive);
+    bool Permissive,
+    CobolNet.Runtime.SignEncoding SignEncoding = CobolNet.Runtime.SignEncoding.Ibm);

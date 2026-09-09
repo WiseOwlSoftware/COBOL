@@ -41,7 +41,7 @@ internal sealed class ReportWriterEmitter(
                     // Profiles first (declaration order is irrelevant for statics, but keep them adjacent).
                     foreach (var f in line.Fields)
                         if (f.PrintItem.Pic is { Category: PicCategory.Numeric, IsFloat: false } pic)
-                            w.Line($"private static readonly NumProfile {f.PrintItem.ProfileName} = {pic.ProfileInitializer};");
+                            w.Line($"private static readonly NumProfile {f.PrintItem.ProfileName} = {pic.ProfileInitializer(ctx.SignEncoding)};");
                     EmitCompose(r, group, gi, line, li, w);
                 }
     }

@@ -81,6 +81,25 @@ public sealed class CliParserTests
         Assert.Equal(["d1", "d2"], opts.CopyPaths);
     }
 
+    /// <summary>⛔ <c>--sign-encoding</c> (kb/Work PB803, owner decision 2026-09-09) — the DISPLAY over-punch
+    /// convention, Annex A.1 items 177/178. Both spellings, the documented IBM default when the option is absent,
+    /// and a REFUSAL for an unrecognized value: it is refused by the parser exactly as <c>--std</c>'s year is,
+    /// because nothing about the SOURCE is wrong — a bad option is a CLI argument error, never a COBOLNET
+    /// diagnostic. `ebcdic` is the value most likely to be tried (it is GnuCOBOL's spelling of the default
+    /// convention), so it is the one asserted refused rather than a nonsense string.</summary>
+    [Fact]
+    public void SignEncoding_BothValues_DefaultsToIbm_AndRejectsAnythingElse()
+    {
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ibm, Resolve("a.cob").SignEncoding);
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ibm, Resolve("a.cob", "--sign-encoding", "ibm").SignEncoding);
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ascii, Resolve("a.cob", "--sign-encoding=ascii").SignEncoding);
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ascii, Resolve("a.cob", "--sign-encoding", "ASCII").SignEncoding);
+        Assert.Contains(Errors("a.cob", "--sign-encoding", "ebcdic"),
+            m => m.Contains("--sign-encoding must be one of"));
+        // The option must not swallow a following flag, the defect the whole file exists for.
+        Assert.NotEmpty(Errors("a.cob", "--sign-encoding", "--run"));
+    }
+
     [Fact]
     public void Flags_And_Full_Sweep_Pattern()
     {

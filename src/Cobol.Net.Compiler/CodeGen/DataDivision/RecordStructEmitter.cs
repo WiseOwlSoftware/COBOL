@@ -165,7 +165,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         }
     }
 
-    private static void EmitProfiles(DataItem item, CodeWriter w)
+    private void EmitProfiles(DataItem item, CodeWriter w)
     {
         // FLOATS INCLUDED (kb/Work PB164 wave 2): a float leaf's profile carries the Ieee byte form its image
         // lanes dispatch on — the IsFloat:false here was the PROFILE-emission copy of the drifted filter
@@ -174,7 +174,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // INTERNAL (not private): an INVOKE BY CONTENT conversion composes the FORMAL's value/image at
             // the CALL SITE, qualifying the profile by its owner class ({OWNER}._P_n) — same assembly, one
             // generated file (the OO slice-2 review's cross-class-profile rule).
-            w.Line($"internal static readonly NumProfile {item.ProfileName} = {item.Pic.ProfileInitializer};");
+            w.Line($"internal static readonly NumProfile {item.ProfileName} = {item.Pic.ProfileInitializer(ctx.SignEncoding)};");
         foreach (var child in item.Children) EmitProfiles(child, w);
     }
 

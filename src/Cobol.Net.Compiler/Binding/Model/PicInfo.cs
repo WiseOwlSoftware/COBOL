@@ -607,14 +607,23 @@ public sealed record PicInfo(
     /// <summary>
     /// The C# initializer text for this item's runtime <c>NumProfile</c> (threaded into every numeric store so
     /// arithmetic obeys the receiver's PICTURE+USAGE). Emitted once per numeric item as a static readonly field.
+    /// <para>⛔ A METHOD, NOT A PROPERTY, BECAUSE THE PROFILE CARRIES A COMPILE OPTION (kb/Work PB803): the
+    /// over-punch convention (<c>--sign-encoding</c>, Annex A.1 items 177/178) is a property of the COMPILED
+    /// PROGRAM, and this is the ONE place a <c>NumProfile</c> is written, so a required parameter here is what
+    /// makes every emitted profile state the program's convention — a settable field on <c>PicInfo</c> would have
+    /// to be remembered at every one of its construction sites instead.</para>
     /// </summary>
-    public string ProfileInitializer =>
+    /// <param name="signEncoding">The compilation's over-punch convention (<c>EmitContext.SignEncoding</c>).</param>
+    public string ProfileInitializer(SignEncoding signEncoding) =>
         $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
         $"Signed = {(Signed ? "true" : "false")}, SignKind = NumericSign.{SignKind}, " +
         $"Truncation = NumericTruncation.{Truncation}, ByteForm = NumericByteForm.{ByteForm}, " +
         // HIGH-ORDER-RIGHT (§13.18.60.4 GR19b via §11.9.8, kb/Work PB164 wave 2) — stated only when set, so
         // the emitted profile of every big-endian item (the documented default) is byte-identical to before.
-        $"StorageLength = {StorageWidth}{(FloatLittleEndian ? ", FloatLittleEndian = true" : "")} }}";
+        $"StorageLength = {StorageWidth}{(FloatLittleEndian ? ", FloatLittleEndian = true" : "")}" +
+        // Likewise the over-punch convention: SignEncoding.Ibm is the documented default (kb/Work PB803), so an
+        // ordinary compile's emitted profiles are byte-identical to those from before the option existed.
+        $"{(signEncoding is SignEncoding.Ibm ? "" : $", SignEncoding = SignEncoding.{signEncoding}")} }}";
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed
     /// usages use a leading minus; USAGE DISPLAY uses over-punch (trailing by default, leading under SIGN LEADING)

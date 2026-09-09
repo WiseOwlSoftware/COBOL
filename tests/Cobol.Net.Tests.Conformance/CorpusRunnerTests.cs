@@ -52,6 +52,60 @@ internal static class ConformanceCorpus
 
         yield return ["sentinel"];
     }
+
+    /// <summary>
+    /// ⛔ PER-GOLDEN COMPILE OPTIONS, declared in the PROGRAM'S OWN leading comment block (kb/Work PB803):
+    /// <code>      *&gt; options: sign-encoding=ascii</code>
+    /// Applied to <paramref name="baseline"/> and returned; a program with no such header compiles exactly as
+    /// before.
+    /// <para><b>Why the source and not <c>manifest.json</c>.</b> The manifest is a DISCOVERY register — two flat
+    /// name lists whose only job is that nothing on disk goes unlisted — and the negative corpus already declares
+    /// its per-case compile fact in the source (<c>*&gt; reject-at: 2002 2014 2023</c>, read by
+    /// <see cref="CorpusRunnerTestsBase{TSlot}.EnabledNegativeCase_RejectsWithItsDiagnostic"/>). Putting the
+    /// positive corpus's per-case fact in the same place keeps ONE convention for "what this program needs in
+    /// order to compile", and keeps a golden and the way it must be built in one file that moves together.</para>
+    /// <para>The line must <b>begin</b> with <c>*&gt; options:</c>, not merely contain it: a golden's comment block
+    /// routinely QUOTES its own header while explaining itself, and a contains-test reads those quotations as
+    /// declarations.</para>
+    /// <para><b>An unknown key or an unrecognized value THROWS.</b> Silently ignoring one would compile the
+    /// golden under the DEFAULT convention and report the result only as an output mismatch — a failure that
+    /// names the wrong thing. The value vocabulary is not restated here: it is
+    /// <c>ZonedSign.TryParseOption</c>, the same reader the CLI's <c>--sign-encoding</c> uses.</para>
+    /// </summary>
+    internal static CobolNet.CompilerDriver.Options ApplySourceOptions(
+        string sourceText, CobolNet.CompilerDriver.Options baseline)
+    {
+        const string Header = "*> options:";
+        var options = baseline;
+        foreach (string raw in sourceText.Split('\n'))
+        {
+            string line = raw.Trim();
+            if (line.Length == 0) continue;
+            if (!line.StartsWith("*>", StringComparison.Ordinal)) break;   // past the leading comment block
+            // ⛔ THE LINE MUST *START* WITH THE HEADER, never merely contain it. A golden's own comment block
+            // routinely QUOTES the header while explaining itself ("compiles under `*> options: sign-encoding=
+            // ascii`"), and a contains-test read those quotations as declarations and threw on the backtick —
+            // three reds on the first gate run, none of them about the compiler.
+            if (!line.StartsWith(Header, StringComparison.Ordinal)) continue;
+            foreach (string token in line[Header.Length..]
+                         .Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] kv = token.Split('=', 2);
+                if (kv.Length != 2)
+                    throw new InvalidOperationException($"'*> options:' entry '{token}' is not key=value");
+                options = kv[0] switch
+                {
+                    "sign-encoding" => CobolNet.Runtime.ZonedSign.TryParseOption(kv[1], out var enc)
+                        ? options with { SignEncoding = enc }
+                        : throw new InvalidOperationException(
+                            $"'*> options: sign-encoding={kv[1]}' is not one of "
+                            + string.Join(", ", CobolNet.Runtime.ZonedSign.OptionSpellings)),
+                    _ => throw new InvalidOperationException($"'*> options:' key '{kv[0]}' is not recognized"),
+                };
+            }
+        }
+        return options;
+    }
 }
 
 /// <summary>
@@ -100,8 +154,11 @@ public abstract class CorpusRunnerTestsBase<TSlot>
         try
         {
             string dll = Path.Combine(tmp, name + ".dll");
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(
-                src, dll, DialectLevel: int.Parse(edition)));
+            // kb/Work PB803 — a golden may declare its own compile options in its leading comment block
+            // (`*> options: sign-encoding=ascii`); one with no header compiles exactly as it always did.
+            var r = CobolNet.CompilerDriver.Compile(ConformanceCorpus.ApplySourceOptions(
+                File.ReadAllText(src),
+                new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: int.Parse(edition))));
             Assert.True(r.Success, $"[{edition}/{name}] must compile strict: {string.Join("\n", r.Errors)}");
             if (!File.Exists(outFile)) return;   // compile-only entry (no expected output recorded)
             var (ran, stdout, detail) = CutRunner.Run(dll, tmp);
@@ -178,5 +235,52 @@ public sealed class CorpusRunnerTests
         Assert.True(unlisted.Count == 0, $"{edition}: unlisted programs (add to the manifest): {string.Join(", ", unlisted)}");
         Assert.True(phantom.Count == 0, $"{edition}: manifest lists missing programs: {string.Join(", ", phantom)}");
         Assert.Empty(m.Enabled.Intersect(m.Pending));
+    }
+
+    /// <summary>
+    /// ⛔ THE PER-GOLDEN <c>*&gt; options:</c> HEADER — that it is read, that it is read only from the LEADING
+    /// comment block, and that a typo FAILS rather than falling back to the default (kb/Work PB803).
+    /// <para>The last of those is the one that matters. A golden whose option was silently dropped still compiles;
+    /// it just compiles as a different program, and the only symptom would be an output mismatch that names the
+    /// wrong cause. The scoping half matters for the same reason in reverse: a program that MOVEs the text
+    /// "options: ..." must not be able to reconfigure its own compile.</para>
+    /// </summary>
+    [Fact]
+    public void SourceOptionsHeader_IsScopedToTheCommentBlock_AndRefusesWhatItCannotHonour()
+    {
+        var baseline = new CobolNet.CompilerDriver.Options("x.cob");
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ibm,
+            ConformanceCorpus.ApplySourceOptions("       IDENTIFICATION DIVISION.\n", baseline).SignEncoding);
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ascii,
+            ConformanceCorpus.ApplySourceOptions(
+                "      *> options: sign-encoding=ascii\n      *> more prose\n       IDENTIFICATION DIVISION.\n",
+                baseline).SignEncoding);
+        // Past the leading comment block the header is just text — a program cannot reconfigure its own compile.
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ibm,
+            ConformanceCorpus.ApplySourceOptions(
+                "       IDENTIFICATION DIVISION.\n      *> options: sign-encoding=ascii\n", baseline).SignEncoding);
+        // ⛔ AND A COMMENT THAT MERELY QUOTES THE HEADER IS PROSE, not a declaration — the shape every one of
+        // these goldens' own explanatory blocks has, and the one that turned a contains-test red on its first run.
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ibm,
+            ConformanceCorpus.ApplySourceOptions(
+                "      *> compiles under `*> options: sign-encoding=ascii`.\n", baseline).SignEncoding);
+        Assert.Throws<InvalidOperationException>(() =>
+            ConformanceCorpus.ApplySourceOptions("      *> options: sign-encoding=ebcdic\n", baseline));
+        Assert.Throws<InvalidOperationException>(() =>
+            ConformanceCorpus.ApplySourceOptions("      *> options: sign-encodng=ascii\n", baseline));
+        Assert.Throws<InvalidOperationException>(() =>
+            ConformanceCorpus.ApplySourceOptions("      *> options: sign-encoding\n", baseline));
+    }
+
+    /// <summary>The mechanism is LIVE in the corpus, not merely available: the one golden that needs the
+    /// non-default convention really carries the header, so the option is exercised by a program that runs and
+    /// byte-compares rather than only by a unit test of the parser.</summary>
+    [Fact]
+    public void TheAlternativeSignConventionGolden_CarriesItsOptionsHeader()
+    {
+        string src = File.ReadAllText(
+            Path.Combine(ConformanceCorpus.Root, "2023", "pb803_sign_encoding_ascii.cob"));
+        Assert.Equal(CobolNet.Runtime.SignEncoding.Ascii,
+            ConformanceCorpus.ApplySourceOptions(src, new CobolNet.CompilerDriver.Options("x.cob")).SignEncoding);
     }
 }

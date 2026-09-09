@@ -628,17 +628,17 @@ public static partial class CobolNum
     public static UInt128 StoreDisplay(string image, in NumProfile receiver, UInt128 current) =>
         (UInt128)ParseDisplay(image, receiver);
 
-    // IBM-ASCII over-punch tables (ISO §8.5.1.2 / NIST-verified against the legacy): the units digit fused with the
-    // operational sign. Positive 0–9 → "{ABCDEFGHI"; negative 0–9 → "}JKLMNOPQR".
-    private const string PositiveOverpunch = "{ABCDEFGHI";
-    private const string NegativeOverpunch = "}JKLMNOPQR";
+    // ⛔ THE OVER-PUNCH TABLES LIVE IN ZonedSign, NOT HERE (kb/Work PB803). They used to be two private consts on
+    // this type, which meant the CLASS CONDITION's valid-sign set had to be written a second time in CobolClass —
+    // one rule in two places, and the copy that had to move when the owner made the convention an option.
 
     /// <summary>
     /// The DISPLAY image of a <b>signed</b> fixed-point value, applying the receiver's sign convention to the
     /// zero-padded magnitude digits (COBOLNET_DESIGN §6.4):
     /// <list type="bullet">
     ///   <item><see cref="NumericSign.TrailingOverpunch"/>/<see cref="NumericSign.LeadingOverpunch"/> — fuse the
-    ///         sign onto the last / first digit via the over-punch tables;</item>
+    ///         sign onto the last / first digit via the program's <see cref="ZonedSign"/> tables (ISO §13.18.52.4
+    ///         GR4 / GR5, Annex A.1 item 177 — the convention is <c>receiver.SignEncoding</c>, kb/Work PB803);</item>
     ///   <item><see cref="NumericSign.LeadingSeparate"/>/<see cref="NumericSign.TrailingSeparate"/> — a leading /
     ///         trailing <c>+</c>/<c>-</c> character (always present);</item>
     ///   <item><see cref="NumericSign.BinaryMinus"/> — a leading <c>-</c> only when negative (positive/zero bare).</item>
@@ -653,19 +653,22 @@ public static partial class CobolNum
             NumericSign.BinaryMinus => neg ? "-" + mag : mag,
             NumericSign.LeadingSeparate => (neg ? "-" : "+") + mag,
             NumericSign.TrailingSeparate => mag + (neg ? "-" : "+"),
-            NumericSign.LeadingOverpunch => Overpunch(mag, 0, neg),
-            _ => Overpunch(mag, mag.Length - 1, neg),   // TrailingOverpunch (the default)
+            NumericSign.LeadingOverpunch => Overpunch(mag, 0, neg, receiver.SignEncoding),
+            _ => Overpunch(mag, mag.Length - 1, neg, receiver.SignEncoding),   // TrailingOverpunch (the default)
         };
     }
 
-    /// <summary>Replace the digit at <paramref name="pos"/> of <paramref name="mag"/> with its signed over-punch.</summary>
-    private static string Overpunch(string mag, int pos, bool negative)
+    /// <summary>Replace the digit at <paramref name="pos"/> of <paramref name="mag"/> with its signed over-punch
+    /// under <paramref name="encoding"/> — the program's §13.18.52.4 GR4/GR5 convention (kb/Work PB803).</summary>
+    private static string Overpunch(string mag, int pos, bool negative, SignEncoding encoding)
     {
         if (pos < 0 || pos >= mag.Length) return mag;   // no digit positions (Digits == 0)
         int v = mag[pos] - '0';
         if ((uint)v > 9) return mag;
-        char op = (negative ? NegativeOverpunch : PositiveOverpunch)[v];
-        return mag[..pos] + op + mag[(pos + 1)..];
+        char op = ZonedSign.Punch(encoding, v, negative);
+        // The ASCII convention's POSITIVE table is the plain digits, so the punch is the character already there —
+        // return the string unchanged rather than rebuilding it (the +ve DISPLAY path is the common one).
+        return op == mag[pos] ? mag : mag[..pos] + op + mag[(pos + 1)..];
     }
 
     /// <summary>The DISPLAY image of an unsigned integer with <paramref name="digits"/> digit positions: the
@@ -769,10 +772,10 @@ public static partial class CobolNum
                     if (chars[0] == '-') chars[0] = ' ';
                     break;
                 case NumericSign.LeadingOverpunch:
-                    DecodeOverpunch(chars, 0, ref negative);
+                    DecodeOverpunch(chars, 0, ref negative, receiver.SignEncoding);
                     break;
                 default:   // TrailingOverpunch (the no-SIGN-clause default)
-                    DecodeOverpunch(chars, chars.Length - 1, ref negative);
+                    DecodeOverpunch(chars, chars.Length - 1, ref negative, receiver.SignEncoding);
                     break;
             }
         }
@@ -785,15 +788,18 @@ public static partial class CobolNum
     }
 
     /// <summary>Reduce the over-punch character at <paramref name="pos"/> (in place) to its underlying digit, setting
-    /// <paramref name="negative"/> when the punch is in the negative table (IBM-ASCII <c>{A-I</c> positive,
-    /// <c>}J-R</c> negative). A plain digit or non-digit at the position is left as-is (sign stays positive).</summary>
-    private static void DecodeOverpunch(char[] chars, int pos, ref bool negative)
+    /// <paramref name="negative"/> when the punch is in <paramref name="encoding"/>'s NEGATIVE table (kb/Work PB803 —
+    /// the program's §13.18.52.4 GR5 b) sign set, <see cref="ZonedSign"/>). A character in neither table — a plain
+    /// digit under the IBM convention, or genuinely incompatible content (§14.6.13.2) — is left as-is and the sign
+    /// stays positive.</summary>
+    private static void DecodeOverpunch(char[] chars, int pos, ref bool negative, SignEncoding encoding)
     {
         if (pos < 0 || pos >= chars.Length) return;
-        int p = PositiveOverpunch.IndexOf(chars[pos]);
-        if (p >= 0) { chars[pos] = (char)('0' + p); return; }
-        int n = NegativeOverpunch.IndexOf(chars[pos]);
-        if (n >= 0) { chars[pos] = (char)('0' + n); negative = true; }
+        if (ZonedSign.TryUnpunch(encoding, chars[pos], out int digit, out bool neg))
+        {
+            chars[pos] = (char)('0' + digit);
+            negative = neg;
+        }
     }
 
     /// <summary>

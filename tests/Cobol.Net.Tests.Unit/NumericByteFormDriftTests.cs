@@ -148,16 +148,16 @@ public sealed class NumericByteFormDriftTests
     [Fact]
     public void EmittedProfile_StatesTheFormAndItsWidth()
     {
-        Assert.Contains("ByteForm = NumericByteForm.Binary", Pic(Usage.Binary).ProfileInitializer);
-        Assert.Contains("StorageLength = 2", Pic(Usage.Binary).ProfileInitializer);
-        Assert.Contains("ByteForm = NumericByteForm.Packed", Pic(Usage.Packed).ProfileInitializer);
-        Assert.Contains("StorageLength = 3", Pic(Usage.Packed).ProfileInitializer);
-        Assert.Contains("ByteForm = NumericByteForm.Zoned", Pic(Usage.Display).ProfileInitializer);
-        Assert.Contains("Truncation = NumericTruncation.PackedDecimal", Pic(Usage.Packed).ProfileInitializer);
-        Assert.Contains("ByteForm = NumericByteForm.Ieee32", PicInfo.FloatItem(Usage.Float).ProfileInitializer);
-        Assert.Contains("StorageLength = 8", PicInfo.FloatItem(Usage.Double).ProfileInitializer);
-        Assert.Contains("ByteForm = NumericByteForm.Binary", PicInfo.IndexItem.ProfileInitializer);
-        Assert.Contains("StorageLength = 8", PicInfo.IndexItem.ProfileInitializer);
+        Assert.Contains("ByteForm = NumericByteForm.Binary", Pic(Usage.Binary).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("StorageLength = 2", Pic(Usage.Binary).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("ByteForm = NumericByteForm.Packed", Pic(Usage.Packed).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("StorageLength = 3", Pic(Usage.Packed).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("ByteForm = NumericByteForm.Zoned", Pic(Usage.Display).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("Truncation = NumericTruncation.PackedDecimal", Pic(Usage.Packed).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("ByteForm = NumericByteForm.Ieee32", PicInfo.FloatItem(Usage.Float).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("StorageLength = 8", PicInfo.FloatItem(Usage.Double).ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("ByteForm = NumericByteForm.Binary", PicInfo.IndexItem.ProfileInitializer(SignEncoding.Ibm));
+        Assert.Contains("StorageLength = 8", PicInfo.IndexItem.ProfileInitializer(SignEncoding.Ibm));
     }
 
     /// <summary>The R40 pin at BYTE level, against the decision rather than the lane's own inverse: an index
@@ -215,7 +215,7 @@ public sealed class NumericByteFormDriftTests
     {
         var pic = PicInfo.FloatItem(usage, effective);
         Assert.Equal(expectLittle, pic.FloatLittleEndian);
-        Assert.Equal(expectLittle, pic.ProfileInitializer.Contains("FloatLittleEndian = true"));
+        Assert.Equal(expectLittle, pic.ProfileInitializer(SignEncoding.Ibm).Contains("FloatLittleEndian = true"));
     }
 
     /// <summary>The conflation V59 exists to retire, asserted directly: one capacity discipline, two byte

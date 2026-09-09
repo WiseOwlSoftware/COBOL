@@ -165,10 +165,17 @@ public static class CobolClass
     /// <summary>The NUMERIC class test of a SIGNED zoned item's character image (ISO §8.8.4.4.4 GR3 n)1.a — "the
     /// presence or absence of an operational sign … is in agreement with the data description … and … the content,
     /// except for the operational sign, consists entirely of the characters 0, 1, 2, 3, …, 9"). <paramref name="signMode"/> 1 = overpunch (the
-    /// sign zone shares the digit position: a plain digit, or the ASCII zoned overpunch sets <c>{A–I</c> for
-    /// +0..+9 / <c>}J–R</c> for −0..−9); 2 = SEPARATE (a leading/trailing <c>+</c>/<c>-</c> character position,
-    /// §13.18.49). Every other position must be a digit.</summary>
-    public static bool IsNumericZoned(string? s, int signMode, bool leading)
+    /// sign zone shares the digit position); 2 = SEPARATE (a leading/trailing <c>+</c>/<c>-</c> character position,
+    /// §13.18.52.4 GR6 b, which carries no implementor latitude). Every other position must be a digit.
+    /// <para>⛔ The over-punch set is <b>not written here</b> (kb/Work PB803): n)1.a closes with "Valid operational
+    /// signs are defined in 13.18.52, SIGN clause", §13.18.52.4 GR5 b) makes that set the IMPLEMENTOR's, and the
+    /// owner made it a compile option — so the answer comes from <see cref="ZonedSign.IsSignCharacter"/> over the
+    /// program's <paramref name="encoding"/>, the same tables <c>CobolNum</c> encodes and decodes with. The
+    /// literal range pattern that used to stand here was a second copy of those tables and could only ever have
+    /// answered for one convention.</para></summary>
+    /// <param name="encoding">The compiled program's over-punch convention (Annex A.1 items 177/178). Consulted
+    /// only when <paramref name="signMode"/> is 1 — a SEPARATE sign has no latitude to consult.</param>
+    public static bool IsNumericZoned(string? s, int signMode, bool leading, SignEncoding encoding)
     {
         if (string.IsNullOrEmpty(s)) return false;
         int signIdx = leading ? 0 : s.Length - 1;
@@ -177,9 +184,7 @@ public static class CobolClass
             char c = s[i];
             if (i == signIdx)
             {
-                bool ok = signMode == 2
-                    ? c is '+' or '-'
-                    : c is >= '0' and <= '9' or '{' or '}' or (>= 'A' and <= 'I') or (>= 'J' and <= 'R');
+                bool ok = signMode == 2 ? c is '+' or '-' : ZonedSign.IsSignCharacter(encoding, c);
                 if (!ok) return false;
                 continue;
             }

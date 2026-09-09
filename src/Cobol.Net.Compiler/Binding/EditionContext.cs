@@ -3,6 +3,7 @@
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Common;
+using CobolNet.Runtime;
 
 using CobolNet.Binding.Model;
 
@@ -86,6 +87,16 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>The main source file — the identity origin when no <see cref="LineMap"/> is set.</summary>
     public string SourceFile { get; set; } = "<source>";
+
+    /// <summary>The compilation's DISPLAY over-punch convention — the CLI's <c>--sign-encoding</c> (kb/Work PB803,
+    /// owner decision 2026-09-09; Annex A.1 items 177/178, ISO §13.18.52.4 GR4 / GR5 b). NOT a dialect axis: every
+    /// edition leaves the representation to the implementor, so the option is orthogonal to <see cref="Edition"/>
+    /// exactly as <see cref="LineMap"/> and <see cref="SourceFile"/> are. It rides here because this is the ONE
+    /// per-compilation object <c>CompilerDriver</c> hands to bind, and <c>DataBinder.Edition</c> carries it on to
+    /// the emitter (<c>EmitContext.SignEncoding</c>), which is where a <c>NumProfile</c> and a class-condition call
+    /// are written. Defaults to <see cref="Runtime.SignEncoding.Ibm"/> — the documented default — so every direct
+    /// test construction and every unflagged compile is unchanged.</summary>
+    public SignEncoding SignEncoding { get; set; } = SignEncoding.Ibm;
 
     /// <summary>The <see cref="IDiagnosticSink.Cursor"/> — REAL here (the interface default is a no-op).</summary>
     public DiagnosticCursor Cursor { get; set; }

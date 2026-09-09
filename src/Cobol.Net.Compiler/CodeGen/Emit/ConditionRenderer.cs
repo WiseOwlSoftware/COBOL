@@ -471,7 +471,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         string numericTest = windowedNumeric
             ? RuntimeApi.NumIsNumericImage(PlaceRenderer.Read(fld!.Place), fld.Place.Item.ProfileName)
             : numericCategory && fld!.Place.Item.OperandPic is { Signed: true } sp
-            ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
+            // The valid-sign set is the COMPILATION's over-punch convention (kb/Work PB803; §8.8.4.4.4 GR3 n)1.a
+            // closes "Valid operational signs are defined in 13.18.52, SIGN clause", and §13.18.52.4 GR5 b) makes
+            // that set the implementor's — here, the CLI's --sign-encoding). Stated at the call, so the emitted
+            // class condition and the emitted NumProfile of the same item can never name different conventions.
+            ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")}, SignEncoding.{ctx.SignEncoding})"
             // §8.8.4.4.4 GR3 n)2 — a NON-numeric-category operand (alphanumeric / edited / national) is numeric iff
             // its content "consists entirely of the characters 0, 1, 2, …, 9", with no operational sign admitted.
             : $"CobolClass.IsNumeric({arg})";

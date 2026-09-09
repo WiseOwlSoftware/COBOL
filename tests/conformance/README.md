@@ -1,37 +1,77 @@
-# CobolSharp version-conformance corpus (post-1985 standards)
+# COBOL.NET conformance corpus
 
-NIST CCVS covers **COBOL-85 only**. This corpus is the equivalent for **COBOL-2002 / 2014 / 2023**: a growing set
-of small, focused programs that each exercise a specific ISO spec feature, compiled under the matching
-`--standard` dialect and checked against expected output. It is executed by `ConformanceTests` in the integration
-test project and runs as part of `scripts/guard.sh`, so it provides **both conformance evidence and regression
-protection**.
+NIST CCVS covers **COBOL-85 only**. This corpus is the spec-derived equivalent for every edition COBOL.NET
+compiles: small, focused programs that each exercise a specific ISO rule, compiled at the matching `--std` in
+STRICT mode and byte-compared against expected output. It is executed by `CorpusRunnerTests` in
+`tests/Cobol.Net.Tests.Conformance`, so it provides **both conformance evidence and regression protection**, and
+its programs are the `test-ref` witnesses the P14 traceability inventory cites.
 
 ## Layout
 
 ```
-tests/conformance/2002/   COBOL-2002 programs  (compiled --standard cobol2002)
-tests/conformance/2014/   COBOL-2014 programs  (--standard cobol2014)
-tests/conformance/2023/   COBOL-2023 programs  (--standard cobol2023)
+tests/conformance/85/         compiled --std 85          (the X3.23-1985-only goldens)
+tests/conformance/2002/       compiled --std 2002
+tests/conformance/2014/       compiled --std 2014
+tests/conformance/2023/       compiled --std 2023
+tests/conformance/negative/   programs that MUST be REJECTED, at the editions their own header names
 ```
 
-## Adding a test — PART AND PARCEL OF EVERY POST-1985 FEATURE
+Each directory carries a `manifest.json` with two flat name lists, `enabled` and `pending`. It is a **discovery
+register**: `CorpusRunnerTests.Manifest_CoversEveryProgram_NoOverlap` asserts that every `.cob` on disk is listed
+in exactly one of them, so nothing can be silently undiscovered. `pending` catalogues a program whose feature has
+not landed yet (the mass-red guard) — the wave that lands the feature moves it to `enabled`.
 
-Drop **two files** in the version directory; they are auto-discovered (no test code to write):
+## Adding a positive test
 
-- `<name>.cob` — a self-contained COBOL program (one compilation group; multiple program/function units in one
-  file are fine) that exercises the feature and `DISPLAY`s a deterministic result. Begin it with a comment naming
-  the feature and ISO section, e.g. `*> ISO 8.4.3 — user-defined function inline invocation`.
-- `<name>.out` — the exact expected stdout. Trailing whitespace/newlines are ignored and CRLF is treated as LF.
+Drop **two files** in the edition directory and add the name to that directory's `manifest.json` `enabled` list:
 
-The program's **version directory selects the `--standard`**. Keep each program minimal and deterministic (avoid
-date/time/random unless that is the feature under test).
+- `<name>.cob` — a self-contained COBOL program that exercises the rule and `DISPLAY`s a deterministic result.
+  Open it with a comment block naming the ISO clause, quoting the rule, and stating **why each leg can fail** —
+  the expected values are DERIVED from the spec (or from a documented implementor determination), never copied
+  from a run.
+- `<name>.out` — the exact expected stdout. Compared through `CutRunner.Normalize`: LF line endings, per-line
+  trailing-space trim, no trailing newline. A `.cob` with no sibling `.out` is a COMPILE-ONLY entry.
+
+Both files are CRLF, UTF-8, no BOM. `PROGRAM-ID`s must be unique across the whole corpus (.NET otherwise serves a
+stale same-named assembly).
+
+## Adding a negative test
+
+`<name>.cob` plus `<name>.err` (the expected diagnostic substring, e.g. an edition-band code) in
+`tests/conformance/negative/`, listed in its `manifest.json`. **The editions that must reject are named by the
+SOURCE**, on its first line:
+
+```cobol
+      *> reject-at: 2002 2014 2023
+```
+
+The runner throws when that header is absent — a negative case may not leave its editions unstated.
+
+## Per-golden compile options
+
+A positive golden that needs a non-default compile option declares it **in its own leading comment block**, in the
+same place and the same spirit as `*> reject-at:`:
+
+```cobol
+      *> options: sign-encoding=ascii
+```
+
+Read by `ConformanceCorpus.ApplySourceOptions` and applied to the `CompilerDriver.Options` the runner builds. Only
+lines BEFORE the first non-comment line are scanned, so a program cannot reconfigure its own compile from a
+literal in its PROCEDURE DIVISION, and the line must **begin** with `*> options:` — a comment that merely quotes
+the header while explaining itself is prose. **An unrecognized key or value THROWS** rather than falling back to
+the default: a silently dropped option compiles a different program, and the only symptom would be an output
+mismatch that names the wrong cause.
+
+Recognized keys:
+
+| key | values | meaning |
+|---|---|---|
+| `sign-encoding` | `ibm` (default) · `ascii` | the DISPLAY over-punch convention (`--sign-encoding`; Annex A.1 items 177/178, kb/Work PB803) |
 
 ## The rule
 
-**Every feature added for 2002/2014/2023 MUST ship with at least one conformance test here, in the same commit as
-the feature.** This corpus is the per-version "% to spec" evidence and the regression net as features accrue.
-
-## Roadmap
-
-Backfill conformance tests for already-landed M2 features over time; grow 2014/2023 as those milestones begin.
-See `docs/ISO2023_CONFORMANCE_PLAN.md`.
+**Every rule implemented or determination documented MUST ship with at least one witness here, in the same commit
+as the feature** (CLAUDE.md rule 3 / the `goldens_ship_with_the_feature` discipline). This corpus is the per-edition
+conformance evidence and the regression net as features accrue; `docs/CONFORMANCE.md` is where the
+implementor-defined determinations those goldens pin are written down.

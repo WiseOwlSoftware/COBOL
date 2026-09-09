@@ -35,6 +35,15 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// context of one generated module, so minted temporaries never collide across units.</summary>
     public NameAllocator Names { get; } = names;
 
+    /// <summary>⛔ THE COMPILATION'S DISPLAY OVER-PUNCH CONVENTION (kb/Work PB803, owner decision 2026-09-09;
+    /// Annex A.1 items 177/178, ISO §13.18.52.4 GR4 / GR5 b) — the CLI's <c>--sign-encoding</c>, read from the ONE
+    /// per-compilation context the driver set it on. EVERY emitted <c>NumProfile</c>
+    /// (<c>PicInfo.ProfileInitializer</c>) and every emitted signed class condition
+    /// (<c>ConditionRenderer.RenderClass</c>) states it, which is what makes the convention a property of the
+    /// COMPILED PROGRAM rather than of the process: two programs of one run unit compiled under different options
+    /// each read storage by their own convention, exactly as two vendors' programs do.</summary>
+    public SignEncoding SignEncoding => Data.Edition.SignEncoding;
+
     /// <summary>The trailing collation argument for collated comparison renders — <c>", __COLLATE"</c> (the program's
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
     /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else empty

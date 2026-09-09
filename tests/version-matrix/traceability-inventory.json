@@ -27652,12 +27652,12 @@
   "subject": "SIGN clause",
   "rule-digest": "3e8fb4513ae3",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs",
-  "test-ref": "",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#SignKindFor; docs/CONFORMANCE.md#DOC-A.1-177",
+  "test-ref": "conformance:2023/pb803_sign_default_representation; conformance:2023/pb803_sign_encoding_ascii; conformance:85/pb803_sign_default_representation_85; unit:ZonedSignTableDriftTests.PunchAndUnpunch_RoundTrip",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "THE IMPLEMENTOR DETERMINATION IS MADE, IS CONSISTENT ACROSS FORMAT AND PARSE, AND CORRECTLY DOES NOT IMPOSE GR5/GR6. A signed DISPLAY item with no SIGN clause takes the TRAILING OVER-PUNCH: `01 A PIC S9(3) VALUE -123.` renders `12L` and `VALUE 123` renders `12C` (the IBM-ASCII tables at CobolNum.cs:544-545, '{ABCDEFGHI' positive / '}JKLMNOPQR' negative), the group image is 3 characters and BYTE-LENGTH is 3 -- the sign occupies an EXISTING digit position and no separate character position is created (probes sg_gr5_default, sg_scaled `K=[0123M]`). A signed item of a non-DISPLAY usage takes the leading-minus form (`A=[-0012]`, BinaryMinus -- sg_inert_comp). Both halves of the rule's obligation (position AND representation) were probed, in both the format and the parse direction. NOT A VERDICT CHANGE, BUT NOTE FOR THE DOCUMENTATION ROW: the Annex A.1 item 177 obligation this rule creates ('required ... shall be documented in the implementor's user documentation') is a SEPARATE inventory row, DOC-A.1-177, and it is UNMET -- docs/CONFORMANCE.md's A.1 table jumps 171 -> 179, and DOC-A.1-209 cites §13.18.52.4 GR5 a only for the character-count consequence, never for the over-punch representation. See finding sign-implementor-determinations-undocumented. CONFORMS but the REPRESENTATION half is untested by any spec-derived golden -- conformance:2023/l1_usage_display_character_size pins only the width consequence (NUM=5 5 6). || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs:593-599 (SignKindFor with sign: null) and PicInfo.cs:210 (the SignKind default); src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs:544-545, :559-581 (FormatDisplaySigned / Overpunch), :663-699 (ParseDisplay); src/Cobol.Net.Compiler/Binding/Model/DataItem.cs:472-479",
-  "state": "GAP"
+  "notes": "WITNESSED (kb/Work PB803, owner decision 2026-09-09 questions 28+29). GR4's obligation has TWO halves and both are now pinned by a golden rather than only by a probe. POSITION: a signed item with no SIGN clause takes the TRAILING fused sign -- `12L` for -123 -- and conformance:2023/pb803_sign_default_representation makes that claim REFUTABLE by comparing it against an item that writes SIGN IS TRAILING (must be equal) and one that writes SIGN IS LEADING (must differ, `J23`). REPRESENTATION: the characters are now the compile option --sign-encoding, whose default `ibm` is the previous fixed table (positive {ABCDEFGHI / negative }JKLMNOPQR) and whose `ascii` value is GnuCOBOL's -fsign=ascii (positive digits untouched / negative p-y); conformance:2023/pb803_sign_encoding_ascii compiles under `*> options: sign-encoding=ascii` and pins `123t` / `q234`, so the LATITUDE ITSELF is exercised and not merely one choice within it. WIDTH: a one-byte sentinel immediately after the signed item inside the same group answers `12L|` only for a 3-character item, so GR5 a)'s no-extra-position consequence cannot drift unobserved. EDITION INDEPENDENCE is now a claim with a witness rather than an assumption: conformance:85/pb803_sign_default_representation_85 repeats the representation, the position and the valid-set legs at COBOL-85 (no intrinsic, so the width rides entirely on the sentinel). The A.1 item 177 documentation obligation this rule creates is the separate row DOC-A.1-177, now filed in docs/CONFORMANCE.md section 7.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.52.4-5",
@@ -27667,12 +27667,12 @@
   "subject": "SIGN clause",
   "rule-digest": "daf767c68e18",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs",
-  "test-ref": "",
+  "code-location": "src/Cobol.Net.Runtime/Values/Numeric/ZonedSign.cs#IsSignCharacter; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsNumericZoned; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#ParseDisplay; docs/CONFORMANCE.md#DOC-A.1-178",
+  "test-ref": "conformance:2023/pb803_sign_valid_set; conformance:2023/pb803_sign_encoding_ascii; conformance:85/pb803_sign_default_representation_85; unit:ZonedSignTableDriftTests.TheConventionsAreNotTheSameTable",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "(a) MEASURED IN BOTH DIRECTIONS AND ON SCALED PICTURES. `SIGN IS LEADING` over-punches the LEADING digit position and `SIGN IS TRAILING` the trailing one, and neither adds a character position: `05 A PIC S9(3) SIGN IS LEADING VALUE -123` -> `J23` and `SIGN IS TRAILING` -> `12L`, both 3 bytes (sg_gr5_leading, `GL=3 3`); `PIC S9(3)V9(2) VALUE -12.34` -> `}1234` LEADING / `0123M` TRAILING, 5 characters (sg_scaled) -- the sign lands on a DIGIT position, never on the implied decimal point; a P-scaled `PIC SPP9(3)` holding 0.00012 -> `{12`, 3 characters (sg_pscale). (b) THE IMPLEMENTOR'S VALID-SIGN SET IS DEFINED AND CONSISTENT ACROSS THE TWO SURFACES THAT CAN OBSERVE IT -- the class condition (§8.8.4.1.3.1: 'Valid operational signs are defined in 13.18.52, SIGN clause') and the arithmetic value. Measured over a `PIC S9(3)` loaded through a group MOVE of raw characters (probe sg_gr5b_class): `123` NUMERIC=Y value +123, `12C` Y +123, `12L` Y -123, `12{` Y +120, `12}` Y -120; `12-`, `12+`, `12 `, `12l` and `12Z` are each NUMERIC=N and contribute no digit at that position (value 12) -- deterministic per §14.6.13.2 rather than undefined, and the class test and the value never disagree. NOT A VERDICT CHANGE, BUT NOTE FOR THE DOCUMENTATION ROW: GR5 b's Annex A.1 item 178 obligation is the SEPARATE inventory row DOC-A.1-178 and is UNMET -- docs/CONFORMANCE.md has no such row. See finding sign-implementor-determinations-undocumented. The width half of (a) is pinned spec-derived by conformance:2023/l1_usage_display_character_size (its header derives the 5 for S9(5) from GR5 a); the over-punch REPRESENTATION and the valid-sign set are untested by any spec-derived test. || code sites, verbatim from the adjudication: src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs:567-568 and :573-581 (Overpunch at position 0 / mag.Length-1), :682-687 and :701-709 (DecodeOverpunch), :544-545 (the tables); width at src/Cobol.Net.Compiler/Binding/Model/DataItem.cs:472-479 and :489-494",
-  "state": "GAP"
+  "notes": "WITNESSED (kb/Work PB803). (a) THE WIDTH HALF, which nothing shipped or drafted previously pinned: conformance:2023/pb803_sign_valid_set answers WIDTH=3 3 8 over `PIC S9(3) SIGN IS LEADING` and `PIC S9(3) SIGN IS TRAILING` inside a 3+1+3+1 group. Every leg writes a SIGN clause WITHOUT SEPARATE, because GR5 and GR6 are mutually exclusive by their own antecedents and a SEPARATE leg would pin GR6 a) -- the earlier claim that the EXPL/SEP legs of l1_sync_sign_position and l1_sync_size_unchanged covered GR5 a) was false and is not relied on here. (b) THE VALID-SIGN SET is now derived from the SAME tables the encoder punches with (ZonedSign.IsSignCharacter, reached from both the emitted class condition and CobolNum.IsNumericImage) instead of a literal character-range pattern written a second time beside them -- which is what made the owner's two-convention decision implementable at all: the old pattern could only ever answer for one convention. The golden pins the accepted set at BOTH ends of both tables (`12{` = +120 and `12}` = -120, the position-0 characters a letters-only reading drops) and refuses the four near-misses `+`, `-`, space, lower-case `l` and `Z`; the LEADING legs pin `C23` = +323, which fails for any implementation that treats a punch as a sign-only marker and leaves the underlying digit alone. Every ACCEPTED leg also prints the algebraic value so the class test and the value are pinned to agree; a REFUSED leg deliberately prints none, since what a numeric operation makes of incompatible content is 14.6.13.2's obligation and filing it here would put one determination under another's number. conformance:2023/pb803_sign_encoding_ascii repeats the set under the alternative convention, where `12t` is NUMERIC and `12C` and `12{` are not.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.52.4-6",
@@ -64536,13 +64536,13 @@
   "ordinal": 177,
   "subject": "SIGN clause (representation when PICTURE contains character 'S' with no optional SIGN clause)",
   "rule-digest": "6f46a56e211c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-177; src/Cobol.Net.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ProfileInitializer",
+  "test-ref": "conformance:2023/pb803_sign_default_representation; conformance:2023/pb803_sign_encoding_ascii; conformance:85/pb803_sign_default_representation_85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "DOCUMENTED (kb/Work PB803, owner decision 2026-09-09: \"Keep both behind an option with the default being IBM and Micro Focus compatibility\"). This row did not exist -- docs/CONFORMANCE.md section 7's A.1 table jumped 171 to 179 -- and the golden lane had correctly REFUSED to write a witness for it, because a golden pinning `12L` while no determination was filed would have pinned an undocumented choice as though it were documented. The row now states the position (TRAILING for a no-SIGN-clause item), both conventions with their tables and their surveyed provenance, the option that selects them, the default, the implementing sites, and the INTERCHANGE CONSEQUENCE that the option's existence creates: the convention is a property of the COMPILED PROGRAM, so two programs of one run unit may differ, nothing records the convention of a data file, and a mismatch is silent (a record holding `123t` read by an `ibm` program yields +1230). The escape for data that must cross a convention boundary is SIGN IS SEPARATE, whose characters 13.18.52.4 GR6 b) pins with no latitude.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-178",
@@ -64551,13 +64551,13 @@
   "ordinal": 178,
   "subject": "SIGN clause (valid sign when SEPARATE CHARACTER phrase not present)",
   "rule-digest": "b3445729fe96",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-178; src/Cobol.Net.Runtime/Values/Numeric/ZonedSign.cs#IsSignCharacter; src/Cobol.Net.Runtime/Values/Text/CobolClass.cs#IsNumericZoned",
+  "test-ref": "conformance:2023/pb803_sign_valid_set; conformance:2023/pb803_sign_encoding_ascii; conformance:85/pb803_sign_default_representation_85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "DOCUMENTED (kb/Work PB803). The row states the valid sign set as a RULE over the program's convention rather than as a character list: at the sign position a plain digit 0-9 plus both tables of the selected convention, every other position a plain digit. It records the three things a user has to know and could not previously look up -- that a PLAIN DIGIT is valid and means positive (so a group MOVE of raw characters, and every positive value under the `ascii` convention, is well formed); that a punched character carries a DIGIT as well as a sign, so it fixes the value (`12{` is +120, and at the leading position `C23` is +323); and that the SEPARATE characters `+` and `-` are 13.18.52.4 GR6 b)'s and are NOT valid here. GR5 a) is documented alongside b) although it is not latitude, because it is what makes the width answer 3 and a reader looking up the sign set is exactly the reader who needs it. What a numeric operation makes of a character outside the set stays 14.6.13.2's obligation and is not filed here.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-179",

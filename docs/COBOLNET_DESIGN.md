@@ -636,12 +636,17 @@ keep long-only — silently wrong; `decimal`/`BigInteger` intermediates — owne
   (`%= Pow10(Digits)` silent truncate) is only the no-ON-SIZE-ERROR branch. *(See §14.7: `TryStore` and the
   conditions design's `StoreChecked` are the SAME method — settle on `TryStore`.)*
 
-### 6.4 Signed-DISPLAY overpunch (NumProfile gains `SignKind`)
+### 6.4 Signed-DISPLAY overpunch (`NumProfile.SignKind` = the POSITION, `NumProfile.SignEncoding` = the CHARACTERS)
 
-`NumProfile` adds `SignKind ∈ {TrailingOverpunch[default], LeadingOverpunch, LeadingSeparate, TrailingSeparate}`
-(currently only a `Signed` bool — which cannot reproduce the external image). **IBM-ASCII overpunch tables** (verified
-NIST-exact against the legacy): positive `0→'{',1→'A'…9→'I'`; negative `0→'}',1→'J'…9→'R'`. `PIC S9(3)` +42→`"04B"`,
-−42→`"04K"`, −150→`"0015}"`, SIGN LEADING −37→`"}37"`. The default with no SIGN clause is TRAILING overpunch.
+`NumProfile` carries `SignKind ∈ {TrailingOverpunch[default], LeadingOverpunch, LeadingSeparate, TrailingSeparate,
+BinaryMinus}` — WHERE the sign sits — and `SignEncoding ∈ {Ibm[default], Ascii}` — WHICH characters a fused sign
+uses. The two are orthogonal, and both tables of both conventions live in ONE place, `ZonedSign`, which the encoder,
+the decoder and the NUMERIC class condition all consult (kb/Work PB803; the numeric deep-dive D5 is the full
+determination, and `docs/CONFORMANCE.md` DOC-A.1-177 / DOC-A.1-178 are the Annex A.1 rows). Under the `ibm` default,
+verified NIST-exact against the legacy: positive `0→'{',1→'A'…9→'I'`; negative `0→'}',1→'J'…9→'R'`.
+`PIC S9(3)` +42→`"04B"`, −42→`"04K"`, −150→`"0015}"`, SIGN LEADING −37→`"}37"`. The default with no SIGN
+clause is TRAILING overpunch. Under `ascii` (the compile option `--sign-encoding=ascii`) a positive digit is left
+alone and a negative digit is digit+0x40: `PIC S9(4)` −1234→`"123t"`, SIGN LEADING→`"q234"`.
 **`CobolNum.FormatDisplaySigned`/`ParseDisplay` (encode+decode incl. overpunch + separate sign) must land before §4
 Tier-B/C numeric-view accessors are exact** — the current `FormatDisplay` returns magnitude.
 
@@ -1285,10 +1290,11 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
    to an all-typed sorted-dictionary-of-typed-records store (a one-line flip)? (Q-file-3) Scope v1 to in-memory load/
    flush vs a later pluggable on-disk B-tree/SQLite backend?
 
-4. **Signed-DISPLAY overpunch convention.** v1 DECIDES IBM-ASCII overpunch (`{`/`}`, `A-I`/`J-R`) with TRAILING
-   overpunch as the no-SIGN-clause default (§6.4 — NIST-verified against the legacy). FLAG for owner confirm:
-   ASCII-overpunch vs EBCDIC-overpunch (and whether a dialect/target needs the EBCDIC tables) — the convention is
-   target-character-set dependent.
+4. **Signed-DISPLAY overpunch convention.** ✅ **DECIDED BY THE OWNER, 2026-09-09 (kb/Work PB803, questions 28 and
+   29): "Keep both behind an option with the default being IBM and Micro Focus compatibility."** The two surveyed
+   conventions are the compile option `--sign-encoding=ibm|ascii`, default `ibm` (`{`/`}`, `A-I`/`J-R`) with
+   TRAILING overpunch as the no-SIGN-clause position (§6.4). Annex A.1 items 177 and 178 are documented at
+   `docs/CONFORMANCE.md` DOC-A.1-177 / DOC-A.1-178; the determination is the numeric deep-dive's D5. Never re-ask.
 
 5. **SCREEN / REPORT WRITER / JSON-XML scope.** These are designed only to the seam (registers reserved, deferred to
    their own subsystems — §12.3). Confirm they are NOT part of the near-term graded deliverable, and the intended M2/

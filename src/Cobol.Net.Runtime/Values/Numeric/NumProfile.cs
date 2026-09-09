@@ -94,13 +94,17 @@ public enum NumericByteForm
 }
 
 /// <summary>
-/// How a signed numeric item presents its sign in its DISPLAY image (ISO §13.18.45 SIGN / §8.5.1.2). For USAGE
-/// DISPLAY this is the operational-sign convention; for binary/packed usages the DISPLAY image carries a leading
-/// minus only when negative.
+/// WHERE a signed numeric item presents its sign in its DISPLAY image (ISO §13.18.52 SIGN / §8.5.1.2): fused onto
+/// the leading or trailing digit position, or in a separate leading/trailing character position. For binary/packed
+/// usages the DISPLAY image carries a leading minus only when negative.
+/// <para>WHICH characters a fused sign uses is the ORTHOGONAL axis <see cref="NumProfile.SignEncoding"/> carries
+/// (kb/Work PB803) — conflating the two is what would make a convention option a per-position enum explosion.</para>
 /// </summary>
 public enum NumericSign
 {
-    /// <summary>USAGE DISPLAY default: the sign is over-punched onto the last digit (IBM-ASCII <c>{A-I</c> / <c>}J-R</c>).</summary>
+    /// <summary>USAGE DISPLAY default: the sign is over-punched onto the LAST digit. WHICH characters the punch
+    /// uses is the orthogonal axis <see cref="NumProfile.SignEncoding"/> carries (kb/Work PB803) — this member is
+    /// the POSITION only.</summary>
     TrailingOverpunch = 0,
     /// <summary>USAGE DISPLAY, SIGN LEADING (no SEPARATE): over-punched onto the first digit.</summary>
     LeadingOverpunch = 1,
@@ -140,6 +144,17 @@ public readonly record struct NumProfile
 
     /// <summary>How the sign is represented in the DISPLAY image (only consulted when <see cref="Signed"/>).</summary>
     public NumericSign SignKind { get; init; }
+
+    /// <summary>The OVER-PUNCH CONVENTION this item's compiled program uses (kb/Work PB803, owner decision
+    /// 2026-09-09; Annex A.1 items 177 and 178, ISO §13.18.52.4 GR4 / GR5 b). Consulted only for an
+    /// over-punched sign — <see cref="NumericSign.TrailingOverpunch"/> / <see cref="NumericSign.LeadingOverpunch"/>
+    /// — since §13.18.52.4 GR6 b) pins the SEPARATE signs to '+'/'-' with no latitude. Orthogonal to
+    /// <see cref="SignKind"/>, which is the sign's POSITION: the four combinations are all reachable.
+    /// <para><see cref="Runtime.SignEncoding.Ibm"/> (value 0) is the default and the documented one, so a profile
+    /// that does not state it — including the runtime's own hand-built decoders, which are all unsigned — is the
+    /// IBM/Micro Focus convention, and the emitted profile of every default compile is byte-identical to before the
+    /// option existed.</para></summary>
+    public SignEncoding SignEncoding { get; init; }
 
     /// <summary>Which capacity discipline bounds the value (the SIZE ERROR boundary).</summary>
     public required NumericTruncation Truncation { get; init; }

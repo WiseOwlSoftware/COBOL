@@ -1,0 +1,7 @@
+NEG=[12L|]
+POS=[12C|]
+LEN=3 4
+TRAIL=[12L]
+LEAD=[J23]
+VNEG=[-123]
+VPOS=[ 123]

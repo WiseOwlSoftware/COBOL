@@ -273,12 +273,14 @@ public static partial class CobolNum
         if (!item.Signed) return CobolClass.IsNumeric(image);
         return item.SignKind switch
         {
-            NumericSign.LeadingSeparate => CobolClass.IsNumericZoned(image, 2, leading: true),
-            NumericSign.TrailingSeparate => CobolClass.IsNumericZoned(image, 2, leading: false),
-            NumericSign.LeadingOverpunch => CobolClass.IsNumericZoned(image, 1, leading: true),
+            NumericSign.LeadingSeparate => CobolClass.IsNumericZoned(image, 2, leading: true, item.SignEncoding),
+            NumericSign.TrailingSeparate => CobolClass.IsNumericZoned(image, 2, leading: false, item.SignEncoding),
+            NumericSign.LeadingOverpunch => CobolClass.IsNumericZoned(image, 1, leading: true, item.SignEncoding),
             NumericSign.BinaryMinus => !string.IsNullOrEmpty(image)
                 && CobolClass.IsNumeric(image[0] == '-' ? image[1..] : image),
-            _ => CobolClass.IsNumericZoned(image, 1, leading: false),   // TrailingOverpunch — the DISPLAY default
+            // TrailingOverpunch — the DISPLAY default; the valid-sign set is the item's own §13.18.52.4 GR5 b)
+            // convention (kb/Work PB803), never a fixed one.
+            _ => CobolClass.IsNumericZoned(image, 1, leading: false, item.SignEncoding),
         };
     }
 
