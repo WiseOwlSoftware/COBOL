@@ -266,8 +266,12 @@ public class RelativeFileHandler : IFileHandler
             return FileStatus.ReadNotOpenForInput;
 
         // First reverse read after START: the file position indicator is the record satisfying the START
-        // condition; READ PREVIOUS returns that record itself (inclusive), not its predecessor (ISO §14.9.30
-        // GR21 d.2). The slot-1 NEXT hack would otherwise skip both the FPI and its neighbour.
+        // condition; READ PREVIOUS returns that record itself (inclusive), not its predecessor — ISO
+        // §14.9.30.4 GR21, "When the file is a relative file", rule b): "If the file position indicator was
+        // established by a prior successful OPEN or START statement, the first existing record that is selected
+        // is made available, regardless of whether NEXT or PREVIOUS is specified." (This cited GR21 d.2 until
+        // kb/Work PB343; d.1/d.2/d.3 are the INDEXED sub-rule block's and answer a different question.) The
+        // slot-1 NEXT hack would otherwise skip both the FPI and its neighbour.
         if (_startPositioned && _records!.TryGetValue(_startFpiSlot, out var fpiRec))
         {
             _startPositioned = false;
@@ -278,9 +282,14 @@ public class RelativeFileHandler : IFileHandler
         }
         _startPositioned = false;
 
-        // No file position indicator established (the previous operation was OPEN) — READ PREVIOUS raises the
-        // at-end condition rather than returning the last record (ISO §14.9.30 GR21 d.1, §9.1.13).
-        if (_currentRecord == 0) return FileStatus.AtEnd;
+        // The indicator was established by the OPEN (§14.9.27.4 GR14 sets it to 1; slot 0 is this handler's
+        // spelling of that) — the SAME rule b) as the START arm above: "the first existing record that is
+        // selected is made available, regardless of whether NEXT or PREVIOUS is specified", so a backward read
+        // here selects exactly what a forward one would. ⛔ This arm returned the at end condition, citing GR21
+        // d.1 — the INDEXED block's rule, whose after-OPEN carve-out (d.3) INFORMATIVE Annex E.2 item 22 added
+        // for indexed files alone (kb/Work PB343). Delegating keeps ONE copy of the forward selection, rule d)'s
+        // '14' RELATIVE KEY overflow test included.
+        if (_currentRecord == 0) return ReadNext(recordBuffer);
 
         int best = 0;
         foreach (var k in _records!.Keys)

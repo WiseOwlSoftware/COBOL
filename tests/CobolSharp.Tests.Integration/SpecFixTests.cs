@@ -649,11 +649,18 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.Equal("GOT 20", stdout);   // the equal key, not its predecessor (10)
     }
 
-    // ISO §14.9.30 GR21 d.1 — the RELATIVE-file analog of ReadPrevious_AfterOpen_RaisesAtEnd: a READ PREVIOUS
-    // immediately after OPEN INPUT (no file position indicator established) raises AT END (status 10) instead of
-    // returning the highest-numbered relative record.
+    // ISO §14.9.30.4 GR21, "When the file is a relative file", rule b) — "If the file position indicator was
+    // established by a prior successful OPEN or START statement, the first existing record that is selected is
+    // made available, REGARDLESS of whether NEXT or PREVIOUS is specified." §14.9.27.4 GR14 sets that indicator
+    // to 1 on OPEN INPUT, so a READ PREVIOUS immediately after it makes RRN 1 available — the same record a
+    // READ NEXT would make available, and NOT the at end condition.
+    // ⛔ THIS TEST USED TO ASSERT "ATEND 10" AND CITE GR21 d.1 (kb/Work PB343): d.1/d.2/d.3 are the INDEXED
+    // sub-rule block's, and d.3's after-OPEN at-end carve-out — the one Annex E.2 item 22 (INFORMATIVE) added —
+    // is written for indexed files ALONE. It was inherited onto the relative connector, where rule b) governs.
+    // The at-end analog for an INDEXED file is ReadPrevious_AfterOpen_RaisesAtEnd, which is correct as it
+    // stands. The three-edition behaviour goldens are conformance:{2002,2014,2023}/pb343_read_previous_relative.
     [Fact]
-    public void ReadPrevious_Relative_AfterOpen_RaisesAtEnd()
+    public void ReadPrevious_Relative_AfterOpen_MakesTheFirstRecordAvailable()
     {
         var (ok, stdout, stderr) = CompileAndRun(
             "       IDENTIFICATION DIVISION.\n" +
@@ -689,13 +696,16 @@ public sealed class SpecFixTests : EndToEndTestBase
             "           CLOSE F.\n" +
             "           STOP RUN.\n");
         Assert.True(ok, stderr);
-        Assert.Equal("ATEND 10", stdout);   // at-end status 10, not the highest relative record
+        Assert.Equal("GOT 11", stdout);   // GR21 relative rule b) — RRN 1, "regardless of ... NEXT or PREVIOUS"
     }
 
-    // ISO §14.9.30 GR21 d.2 — the RELATIVE-file analog of ReadPrevious_AfterStartEqual_ReturnsTheEqualKey: after
-    // START KEY = EQUAL n, the first READ PREVIOUS returns the record at the file position indicator (slot n
-    // itself), not the strict predecessor slot. The relative Start() sets _currentRecord = slot-1 for the NEXT
-    // hack, so without the _startPositioned flag READ PREVIOUS would skip both slot n and slot n-1.
+    // ISO §14.9.30.4 GR21, "When the file is a relative file", rule b) — the START leg of the same rule: after
+    // START KEY = EQUAL n the file position indicator IS slot n (§14.9.41.4 GR9 a) sets it to "the relative
+    // record number of the first logical record in the file whose key satisfies the comparison"), and rule b)
+    // makes that record itself available in either direction — not the strict predecessor slot.
+    // (This test cited GR21 d.2 until kb/Work PB343: d.2 is the INDEXED block's, where a START-established
+    // indicator holds a KEY VALUE that need match no record, so the direction still selects. On a relative file
+    // it never can — GR9 c) makes an unsatisfied comparison the invalid key condition instead.)
     [Fact]
     public void ReadPrevious_Relative_AfterStartEqual_ReturnsTheEqualSlot()
     {

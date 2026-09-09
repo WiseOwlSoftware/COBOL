@@ -1397,8 +1397,12 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   condition exists." The RELATIVE and SEQUENTIAL sub-rule blocks print rule b) unamended — "the first existing
   record that is selected is made available, regardless of whether NEXT or PREVIOUS is specified" — so on those
   two organizations the after-OPEN behaviour is **identical at 2002, 2014 and 2023** and the connector takes no
-  edition parameter for it. The sequential leg is asserted at all three editions by
-  `conformance:{2002,2014,2023}/pb334_read_previous_sequential`; the relative leg is kb/Work PB343.
+  edition parameter for it. Both legs are now asserted at all three editions —
+  `conformance:{2002,2014,2023}/pb334_read_previous_sequential` (sequential) and
+  `conformance:{2002,2014,2023}/pb343_read_previous_relative` (relative, kb/Work PB343, which also removed the
+  carve-out from the legacy oracle's `RelativeFileHandler`). The relative golden's SPARSE-file phase is what
+  makes rule b) falsifiable: with the lowest record at RRN 5, OPEN's indicator of 1 names an empty slot, so
+  PREVIOUS and NEXT can only name the same record if the rule ignores the direction.
 - **ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION** (§12.4.5.10.3 GR2), so it is rejected at 85,
   2002 AND 2014 — `constructs.json` row `file-organization-line-sequential-2023`, gated on the clause's
   RECOGNITION by `VersionConformancePass.ParseArm.VisitOrganizationClause` (COBOLNET0900). **The edition IS

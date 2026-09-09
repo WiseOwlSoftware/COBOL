@@ -28,8 +28,14 @@ public sealed class RelativeConnector : KeyedConnector
 
     private long _fpi;                   // file position indicator: the current slot (§9.1.11)
     private bool _fpiValid;
-    private bool _inclusive;             // FPI set by OPEN/START — the positioned record itself is next (§14.9.30 GR21)
-    private char _positioner = 'O';      // 'O' OPEN / 'S' START / 'R' READ — drives READ PREVIOUS-after-OPEN (row 29)
+    /// <summary>Which arm of §14.9.30.4 GR21's relative selection governs the next sequential READ: true while
+    /// the file position indicator "was established by a prior successful OPEN or START statement" (rule b — the
+    /// indicator is INCLUSIVE and the direction is not consulted), false once a READ established it (rule c —
+    /// exclusive, and the direction selects). ⛔ ONE FIELD ANSWERS THIS ONE QUESTION (kb/Work PB343): a second
+    /// `_positioner` char that distinguished OPEN from START lived here in lockstep with this flag and existed
+    /// only to enforce the INDEXED block's after-OPEN carve-out on a relative file. Nothing in this
+    /// organization's rules asks OPEN-or-START.</summary>
+    private bool _inclusive;
     private long _pendingKey;            // the RELATIVE KEY item's value, set by the compiler before keyed verbs
     private long _lastReleasedSlot;      // highest RRN THIS connector has released since OPEN (§14.9.51 GR29a's "ascending")
     private long _lastSlot;              // last slot read/written — the GR25/GR29a store-back + seq REWRITE/DELETE target
@@ -95,7 +101,6 @@ public sealed class RelativeConnector : KeyedConnector
         _pendingKey = 0;
         _lastSlot = 0;
         _lastReleasedSlot = 0;
-        _positioner = 'O';
         // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
         // a refusal can never be read here as "unavailable" (kb/Work PB323).
         bool exists = presence is FilePresence.Present;
@@ -197,10 +202,11 @@ public sealed class RelativeConnector : KeyedConnector
     /// an RRN whose significant digits exceed the RELATIVE KEY item's size → '14', at end (GR21 rule d).</summary>
     public string ReadNext(out string image) => ReadSequential(out image, previous: false);
 
-    /// <summary>Sequential <c>READ PREVIOUS</c> (COBOL-2002+; the compiler edition-gates the phrase). Immediately
-    /// after OPEN it is the at-end condition — the ISO-2023 behavior (VERSION_CHANGE_REFERENCE row 29; the ≤2014
-    /// behavior gate is a noted deferral); after START the selected record itself is made available (GR21 rule b
-    /// — "regardless of whether NEXT or PREVIOUS").</summary>
+    /// <summary>Sequential <c>READ PREVIOUS</c> (COBOL-2002+; the compiler edition-gates the phrase — the ONE
+    /// <c>IBoundRead</c> arm of <c>VersionConformancePass</c>, COBOLNET0900). On THIS organization it selects a
+    /// record by exactly the same §14.9.30.4 GR21 rules a READ NEXT does — see
+    /// <see cref="SelectSequentialSlot"/> for why the after-OPEN at-end carve-out is the INDEXED block's alone
+    /// (kb/Work PB343) and why the selection therefore takes no edition parameter.</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
     /// <summary>ISO §14.9.30.4 GR21's "When the file is a relative file" SELECTION — rules b)/c): the file
@@ -213,18 +219,44 @@ public sealed class RelativeConnector : KeyedConnector
     /// moves, without a second copy of these rules living in the peek.</para></summary>
     private long? SelectSequentialSlot(bool previous)
     {
+        // ⛔ RULE b) IS DIRECTION-BLIND, AND IT IS THE WHOLE RULE FOR AN INCLUSIVE INDICATOR (kb/Work PB343).
+        // §14.9.30.4 GR21, "When the file is a relative file": "b) If the file position indicator was
+        // established by a prior successful OPEN or START statement, the first existing record that is selected
+        // is made available, regardless of whether NEXT or PREVIOUS is specified." One walk serves both
+        // directions, so `previous` is not consulted at all here: the answer is the first existing record at or
+        // after the indicator. That is well defined for every way an inclusive indicator can arise —
+        // §14.9.41.4 GR9 a)/b), GR11 and GR12 only ever set a RELATIVE file's indicator to "the relative record
+        // number of" an EXISTING record (a comparison satisfied by none is GR9 c)'s invalid key, which
+        // invalidates it), so after a START the started-at record itself is the answer in either direction; the
+        // one inclusive indicator that can name an empty slot is §14.9.27.4 GR14's OPEN INPUT/I-O "set to 1"
+        // over a file whose lowest RRN is higher, and rule b's "first existing record" is then that lowest RRN
+        // whichever direction was written.
+        // ⛔ THE INDEXED AFTER-OPEN CARVE-OUT DOES NOT REACH THIS ORGANIZATION. GR21 rule d) 3 — "If no such
+        // record is found or PREVIOUS is specified and the previous operation on the file was an OPEN
+        // statement, the at end condition exists" — is written in the "When the file is an indexed file" block
+        // alone, and Annex E.2 item 22, the amendment that put it there, is INFORMATIVE (Annex E is headed
+        // "(informative)") and names no organization. Enforcing it here returned '10' from a READ PREVIOUS
+        // immediately after OPEN INPUT where rule b) owes the first record. Because the relative block's rule
+        // b) reads identically in 2002, 2014 and 2023, this selection takes NO edition parameter —
+        // docs/COBOLNET_FILES_DESIGN.md, "READ PREVIOUS is not COBOL-85"; VERSION_CHANGE_REFERENCE row 29 is
+        // the indexed leg only.
+        if (_inclusive)
+        {
+            foreach (long k in _slots.Keys) if (k >= _fpi) return k;   // rule b) — ascending, direction ignored
+            return null;                                              // rule e) — no record found: the at end condition
+        }
+        // Rule c) — an indicator established by a prior successful READ is EXCLUSIVE and the direction selects:
+        // "the first existing record in the physical file whose relative key number is greater than the file
+        // position indicator if NEXT is specified or implied or is less than the file position indicator if
+        // PREVIOUS is specified is selected".
         long? slot = null;
-        if (previous && _positioner == 'O')
-            return null;   // READ PREVIOUS immediately after OPEN → at end (2023; VERSION_CHANGE_REFERENCE row 29)
         if (previous)
         {
-            long bound = _inclusive ? _fpi : _fpi - 1;
-            foreach (long k in _slots.Keys) { if (k <= bound) slot = k; else break; }
+            foreach (long k in _slots.Keys) { if (k < _fpi) slot = k; else break; }
         }
         else
         {
-            long bound = _inclusive ? _fpi : _fpi + 1;
-            foreach (long k in _slots.Keys) if (k >= bound) { slot = k; break; }
+            foreach (long k in _slots.Keys) if (k > _fpi) { slot = k; break; }
         }
         return slot;
     }
@@ -272,7 +304,7 @@ public sealed class RelativeConnector : KeyedConnector
             _fpiValid = false;
             return Status = FileStatusCode.RelativeKeyOverflow;
         }
-        _fpi = s; _fpiValid = true; _inclusive = false; _positioner = 'R';   // GR21 rule f
+        _fpi = s; _fpiValid = true; _inclusive = false;   // GR21 rule f + rule c's exclusive bound
         _lastSlot = s;
         LastReadLength = _slots[s].Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(_slots[s]);
@@ -291,7 +323,7 @@ public sealed class RelativeConnector : KeyedConnector
             LastReadUnsuccessful = true;
             return Status = FileStatusCode.RecordNotFound;                 // '23' §9.1.13.5 3a
         }
-        _fpi = _pendingKey; _fpiValid = true; _inclusive = false; _positioner = 'R';
+        _fpi = _pendingKey; _fpiValid = true; _inclusive = false;
         _lastSlot = _pendingKey;
         LastReadLength = rec.Length;         // §13.18.43 GR15 — the stored frame length
         image = Fit(rec);
@@ -433,7 +465,7 @@ public sealed class RelativeConnector : KeyedConnector
 
     private string StartAt(long slot)
     {
-        _fpi = slot; _fpiValid = true; _inclusive = true; _positioner = 'S';
+        _fpi = slot; _fpiValid = true; _inclusive = true;
         LastReadUnsuccessful = false;
         return Status = FileStatusCode.Success;
     }
