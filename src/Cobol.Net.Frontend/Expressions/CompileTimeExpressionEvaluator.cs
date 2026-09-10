@@ -61,11 +61,12 @@ public sealed class CompileTimeExpressionEvaluator
     public CtNumber? EvaluateArithmeticOperand(Core.ArithmeticExpressionContext expr, string where)
     {
         // ⛔ THE §8.8.1.2 TABLE 3 FORMATION SCREEN RUNS FIRST, BEFORE THE SINGLE-LITERAL PROBE BELOW — and that
-        // ORDER is the whole point (kb/Work PB158). SoleNumericLiteral walks a stacked unary chain toggling the
-        // sign, so it would reclassify `- - 5` as the literal 5 and return a value for an expression the standard
-        // does not admit. That is a THIRD evaluating arm beyond this method's own recursion and the compiler's
-        // ExpressionBinder, which is exactly why the rule is one shared frontend screen invoked per tree rather
-        // than a gate copied into each walker.
+        // ORDER is still the point (kb/Work PB158, narrowed by PB400). The screen and the probe below now share
+        // ONE contiguity test — ArithmeticFormationRules.SignIsPartOfLiteral — so `- - 5` is neither a
+        // permissible (unary, literal) pair nor a single literal; what the ORDER buys is that the violation is
+        // reported here instead of falling silently through to EvalArith. This method's recursion, the
+        // compiler's ExpressionBinder and that probe are three evaluating arms of one rule, which is exactly why
+        // the rule is one shared frontend screen invoked per tree rather than a gate copied into each walker.
         if (FormationViolation(expr, where)) return null;
         // §7.3.11.4 GR5 / §13.10.3 SR1 — a single (possibly signed) numeric literal is a LITERAL, not an
         // expression, so it keeps its value (AS 0.25 stays 0.25) and is NOT truncated. As a literal it may be of
@@ -75,14 +76,13 @@ public sealed class CompileTimeExpressionEvaluator
         // (never a silent null — the boundary's "null means already reported" contract).
         if (SoleNumericLiteral(expr) is { } lit)
         {
-            string text = CobolNet.Common.NumericLiteral.Normalize(lit.Text, _decimalPointIsComma, out var issue);
-            ReportSeparator(issue, lit.Text);
-            if (lit.Negative) text = "-" + text.TrimStart('+');
+            string text = CobolNet.Common.NumericLiteral.Normalize(lit, _decimalPointIsComma, out var issue);
+            ReportSeparator(issue, lit);
             if (decimal.TryParse(text,
                     NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign | NumberStyles.AllowExponent,
                     CultureInfo.InvariantCulture, out decimal v))
                 return new CtNumber(true, v, text);
-            _diag.Report(CtDiagCode.ArithmeticRule, $"{where}: the numeric literal '{lit.Text}' exceeds the .NET "
+            _diag.Report(CtDiagCode.ArithmeticRule, $"{where}: the numeric literal '{lit}' exceeds the .NET "
                 + "decimal evaluation range (96-bit, 28–29 significant digits — the documented §7.3.6.2 SR2 "
                 + "implementor limit)");
             return null;
@@ -225,33 +225,18 @@ public sealed class CompileTimeExpressionEvaluator
 
     /// <summary>The single (possibly signed) numeric literal an arithmetic expression consists of, or null — the
     /// §13.10.3 SR1 / §7.3.11.4 GR5 re-classification probe ("if the operand consists of a single numeric literal,
-    /// that operand is treated as a literal, not as an arithmetic-expression"). Walks the sole-child expression
-    /// spine; unary minus toggles the sign.</summary>
-    private static (string Text, bool Negative)? SoleNumericLiteral(Core.ArithmeticExpressionContext expr)
-    {
-        IParseTree n = expr;
-        bool neg = false;
-        while (true)
-        {
-            switch (n)
-            {
-                case Core.ArithmeticExpressionContext or Core.AdditiveExpressionContext
-                    or Core.MultiplicativeExpressionContext or Core.PowerExpressionContext:
-                    if (n.ChildCount != 1) return null;
-                    n = n.GetChild(0);
-                    continue;
-                case Core.UnaryExpressionContext u:
-                    if (u.primaryExpression() is { } pr) { n = pr; continue; }
-                    if (u.addOp().GetText() == "-") neg = !neg;
-                    n = u.unaryExpression();
-                    continue;
-                case Core.PrimaryExpressionContext pe:
-                    return pe.numericLiteral() is { } num ? (num.GetText(), neg) : null;
-                default:
-                    return null;
-            }
-        }
-    }
+    /// that operand is treated as a literal, not as an arithmetic-expression"), canonicalized by dropping a
+    /// redundant leading '+' so the substitution text of <c>+5</c> and <c>5</c> is one string.
+    /// <para>⛔ THE DESCENT IS <see cref="SoleOperand.NumericLiteral"/>, NOT A LOCAL COPY (kb/Work PB400). This
+    /// used to walk its own spine and TOGGLE the sign through a stacked unary chain, which reclassified
+    /// <c>- -5</c> — an operand that does not CONSIST OF a single literal — as the literal 5. The shared descent
+    /// applies §8.3.3.3.2 rule 2's contiguity test instead, so exactly one ADJACENT sign is part of the literal
+    /// and everything else is an arithmetic-expression operand (and is therefore §7.3.6.3 GR3-truncated, which
+    /// the toggling version silently skipped).</para></summary>
+    private static string? SoleNumericLiteral(Core.ArithmeticExpressionContext expr) =>
+        SoleOperand.NumericLiteral(expr) is { } text
+            ? (text.StartsWith('+') ? text[1..] : text)
+            : null;
 
     // ══ Directive-context operand dispatch (§7.3.3 SR10 master constraint) ═══════════════════════════════════════
 

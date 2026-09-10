@@ -108,14 +108,22 @@ public static class ArithmeticFormationRules
         if (u.addOp() is null) return null;                       // not a unary operator at all
         if (u.unaryExpression() is not { } inner) return null;    // operand is a primary — nothing stacked
         if (inner.addOp() is not { } innerSign) return null;      // operand is not itself signed
-        return SignBelongsToLiteral(innerSign.Stop, inner.unaryExpression()) ? null : innerSign.Start;
+        return SignIsPartOfLiteral(innerSign.Stop, inner.unaryExpression()) ? null : innerSign.Start;
     }
 
-    /// <summary>§8.3.3.3.2 rule 2: the sign is part of the numeric literal exactly when the literal is one
-    /// contiguous character-string — the sign's last character immediately precedes the literal's first, on the
-    /// same line — AND the operand is that literal ALONE (an operator anywhere in the operand means the sign
-    /// governs an expression, not a literal, and is therefore a unary operator).</summary>
-    private static bool SignBelongsToLiteral(IToken sign, Core.UnaryExpressionContext? operand)
+    /// <summary>⛔ THE ONE §8.3.3.3.2 rule-2 TEST — "A literal shall not contain more than one sign character.
+    /// If a sign is used, it shall appear as the leftmost character of the literal." The sign is part of the
+    /// numeric literal exactly when the literal is one contiguous character-string — the sign's last character
+    /// immediately precedes the literal's first, on the same line — AND the operand is that literal ALONE (an
+    /// operator, a second sign, or a parenthesis anywhere in the operand means the sign governs an EXPRESSION,
+    /// not a literal, and is therefore a unary operator).
+    /// <para>Two rules consult it, and they are the two halves of the same fact. <see cref="StackedUnarySign"/>
+    /// asks it to separate Table 3's permissible <c>- -2</c> (unary, LITERAL) from its invalid <c>- - 2</c>
+    /// (unary, unary); <see cref="SoleOperand.NumericLiteral"/> asks it to decide whether an operand "consists
+    /// of a single literal" — the question §7.3.11.4 GR5 (DEFINE), §13.10.3 SR1 (CONSTANT) and §14.9.13.4 GR1
+    /// (EVALUATE) each ask in their own words. A second copy of the contiguity test is how a signed literal
+    /// becomes an arithmetic expression on one path and a literal on another (kb/Work PB400).</para></summary>
+    public static bool SignIsPartOfLiteral(IToken sign, Core.UnaryExpressionContext? operand)
     {
         if (operand?.primaryExpression() is not { } primary) return false;
         IToken first = primary.Start;

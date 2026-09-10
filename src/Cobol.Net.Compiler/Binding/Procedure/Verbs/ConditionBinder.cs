@@ -180,7 +180,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         SolePrimary(expr)?.functionCall();
 
     /// <summary>The set of category-boolean ITEMS referenced in a bound boolean expression, for the §14.9.8 GR3
-    /// COMPUTE-store width (the max static boolean positions; literal/ALL operands do not count — GR3).</summary>
+    /// COMPUTE-store width (the max static boolean positions; literal/ALL operands do not count — GR3).
+    /// <para>⚠ ONE OF THREE LENGTH QUESTIONS OVER THIS NODE SHAPE, AND THEY ARE THREE DIFFERENT RULES — do not
+    /// fold them. THIS is §14.9.8 GR3's COMPUTE store width, which counts ITEMS only. <see cref="BoolResultLength"/>
+    /// is §8.8.2 rules 9/10's RESULT length, which counts a literal's own positions (§14.9.13.3 SR6's "results
+    /// in one boolean character" turns on it). <see cref="BoolExprAllLengthOne"/> is §8.8.4.3 SR1's "shall
+    /// reference only boolean items of length 1", a property of EVERY referenced item rather than of the
+    /// result.</para></summary>
     internal static int Gr3Width(BoundBoolExpr e) => e switch
     {
         // OperandPic (kb/Work PB157): a bit GROUP is an elementary PICTURE 1(m) for GR3 (§13.18.29.4 GR1b) —
@@ -631,33 +637,81 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return new BoundConditionError($"condition '{vo?.GetText() ?? "operand"}'");
     }
 
-    /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88
-    /// condition-name (§8.8.4.2.7 r2), a switch-status condition-name (§8.8.4.6), or a simple boolean condition over
-    /// a length-1 boolean item/literal (§8.8.4.3) — or <c>null</c> when the operand is a plain VALUE.
-    /// <para>⛔ THIS IS A SYMBOL-TABLE QUESTION, WHICH IS WHY IT CANNOT LIVE IN THE GRAMMAR. A bare word is equally
-    /// a condition-name and an <c>arithmeticExpression</c>, so it always arrives through the <c>valueOperand</c>
-    /// arm; only the resolved symbol says which it is. Extracted from <see cref="BindSoleOperandCondition"/> so
-    /// EVALUATE's selection-object classification asks the SAME question rather than growing a second copy
-    /// (§14.9.13.4 GR4a3 + Table 15: against a TRUE/FALSE selection subject the only permissible objects are a
-    /// condition, TRUE/FALSE, or ANY — never identifier-2). See <c>EvaluateBinder.BindWhenItem</c>.</para></summary>
-    public BoundCondition? BareOperandAsCondition(Core.ValueOperandContext? vo)
+    /// <summary>⛔ THE ONE ANALYSIS OF A BARE OPERAND — which of the three shapes it is, resolved ONCE
+    /// (kb/Work PB400). A caller that must first CLASSIFY the operand and only then BIND it — EVALUATE's
+    /// Table-15 screen, whose §14.9.13.3 SR6 decides a boolean operand's kind from the OTHER side of the pair —
+    /// would otherwise resolve the same symbol twice, doubling <see cref="ConditionOf"/>'s §8.4.2.2 ambiguity
+    /// diagnostic and binding the boolean operand as a simple boolean condition (with its §8.8.4.3 SR1
+    /// length-1 screen) before knowing whether it IS one.
+    /// <para>⛔ AND IT IS A SYMBOL-TABLE QUESTION, WHICH IS WHY IT CANNOT LIVE IN THE GRAMMAR. A bare word is
+    /// equally a condition-name and an <c>arithmeticExpression</c>, so it always arrives through the
+    /// <c>valueOperand</c> arm; only the resolved symbol says which it is.</para></summary>
+    public BareOperandAnalysis AnalyzeBareOperand(Core.ValueOperandContext? vo)
     {
         if (vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
             // Capture EC-RANGE-INVALID checking (§14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
-            return ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
-                ? new BoundCondition88(parent, cond,
-                    ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
-                : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
+            return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
+                ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
+                    ? new BoundCondition88(parent, cond,
+                        ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
+                    : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)"));
         // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
         // wins), BEFORE the abbreviated-carry fallback.
         if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
-            return swCond;
-        // A SIMPLE BOOLEAN CONDITION over a bare length-1 boolean item/literal (§8.8.4.3).
+            return BareOperandAnalysis.OfCondition(BareOperandForm.SwitchStatus, swCond);
+        // A BOOLEAN operand (§8.8.2). Whether it is a §8.8.4.3 simple boolean CONDITION is the CALLER's
+        // question in EVALUATE (SR6) and settled here everywhere else, so the expression is carried bound but
+        // unwrapped, with its §8.8.2 rules 9/10 result length.
         if (vo is not null && IsBooleanValueOperand(vo))
-            return BindSimpleBooleanCondition(BindBoolOperandValue(vo));
-        return null;
+        {
+            var b = BindBoolOperandValue(vo);
+            return new BareOperandAnalysis(BareOperandForm.Boolean, null, b, BoolResultLength(b));
+        }
+        return default;   // BareOperandForm.Value
     }
+
+    /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88
+    /// condition-name (§8.8.4.2.7 r2), a switch-status condition-name (§8.8.4.6), or a simple boolean condition over
+    /// a length-1 boolean item/literal (§8.8.4.3) — or <c>null</c> when the operand is a plain VALUE. The
+    /// resolution is <see cref="AnalyzeBareOperand"/>'s; this is the arm that WRAPS a boolean expression as the
+    /// §8.8.4.3 condition, which is where that clause's SR1 length screen belongs.</summary>
+    public BoundCondition? BareOperandAsCondition(Core.ValueOperandContext? vo) =>
+        AsCondition(AnalyzeBareOperand(vo));
+
+    /// <inheritdoc cref="BareOperandAsCondition"/>
+    public BoundCondition? AsCondition(in BareOperandAnalysis a) => a.Form switch
+    {
+        BareOperandForm.ConditionName or BareOperandForm.SwitchStatus => a.Condition,
+        BareOperandForm.Boolean => BindSimpleBooleanCondition(a.Boolean!),
+        _ => null,
+    };
+
+    /// <summary>ISO §8.8.2 rules 9 and 10 — the number of boolean positions the RESULT of a boolean expression
+    /// occupies: r10 "a boolean value whose length shall be the number of boolean positions of the larger item
+    /// referenced in that operation", r9 the shift's "the number of boolean positions of the first item
+    /// referenced". <see langword="null"/> when the length is POSITIONLESS (figurative ZERO / <c>ALL B"…"</c>,
+    /// which materialize to the sibling's length — §8.3.3.6.4 GR4) or is not statically known (a boolean
+    /// function whose length argument is a run-time value).
+    /// <para>This is the length §14.9.13.3 SR6 turns on ("a boolean expression that results in one boolean
+    /// character"). It is a SIBLING of <see cref="Gr3Width"/>, not the same function: GR3's COMPUTE store width
+    /// counts ITEMS only and gives a literal 0, while a boolean literal's own length is exactly what SR6 needs
+    /// (<c>EVALUATE TRUE WHEN B"1"</c> vs <c>WHEN B"01"</c> differ on it, and the difference is a Table-15
+    /// verdict).</para></summary>
+    internal static int? BoolResultLength(BoundBoolExpr e) => e switch
+    {
+        BoundBoolLiteral l => l.Bits.Length,
+        BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.OperandPic?.Length,
+        BoundBoolNot n => BoolResultLength(n.Operand),
+        BoundBoolShift s => BoolResultLength(s.Operand),      // r9 — the FIRST item's positions
+        BoundBoolBinary b => LargerOf(BoolResultLength(b.Left), BoolResultLength(b.Right)),   // r10
+        BoundBoolCall c => StaticBoolCallWidth(c),
+        BoundBoolAll => null,                                  // positionless (§8.3.3.6.4 GR4)
+        _ => null,                                             // error nodes already reported
+    };
+
+    /// <summary>r10's "the larger item referenced" with a positionless operand contributing nothing.</summary>
+    private static int? LargerOf(int? a, int? b) => a is null ? b : b is null ? a : System.Math.Max(a.Value, b.Value);
 
     /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §8.8.4.2.2 boolean
     /// relation rules ride every site (IF / EVALUATE pairing + ranges / PERFORM UNTIL / SEARCH): a boolean
@@ -812,10 +866,22 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) =>
         SolePrimary(expr)?.dataReference();
 
-    /// <summary>The raw text of an arithmetic expression that is a SOLE numeric literal, else null.</summary>
+    /// <summary>The raw text of an arithmetic expression that CONSISTS OF a sole numeric literal — sign
+    /// included — else null. Figurative ZERO in an arithmetic context is that literal's <c>"0"</c>
+    /// (§8.3.3.6.4 GR1).
+    /// <para>⛔ THIS MEMBER DOES NOT RIDE <see cref="SolePrimary"/>, AND THAT IS THE RULE, NOT AN EXCEPTION
+    /// (kb/Work PB400). Its siblings answer §8.8.4.7.3 SR2's "a single data item … not enclosed in
+    /// parentheses", for which a leading sign makes the operand compound; this one answers "consists of a
+    /// single literal", and §8.3.3.3.2 rule 2 puts an ADJACENT sign INSIDE the literal. Sharing the
+    /// primary-only descent answered the second question with the first one's answer, so
+    /// <c>EVALUATE -5 WHEN 6</c> classified as an arithmetic expression (Table 15 accepted a blank cell) and
+    /// <c>EVALUATE WS-X WHEN -5</c> over a <c>PIC X</c> item bound the object as a COMPUTED expression instead
+    /// of the literal §8.8.4.2.1 makes participate as its written character form — a run-time fault on
+    /// conforming source, in EVALUATE and in the plain relation alike. The contiguity test itself is
+    /// <see cref="SoleOperand.NumericLiteral"/>, shared with the §7.3.11.4 GR5 / §13.10.3 SR1 arms.</para></summary>
     public static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr) =>
-        SolePrimary(expr) is { } pe ? pe.numericLiteral()?.GetText() ?? (pe.ZERO_ARITH() is not null ? "0" : null)
-        : null;
+        SoleOperand.NumericLiteral(expr)
+        ?? (SolePrimary(expr)?.ZERO_ARITH() is not null ? "0" : null);
 
     /// <summary>⛔ THE ONE "is this expression a single unparenthesized primary" DESCENT — the shared body of
     /// <see cref="SoleDataRef"/>, <see cref="SoleNumLiteral"/>, <see cref="SoleFunctionCall"/> and

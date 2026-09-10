@@ -92,6 +92,50 @@ public sealed class EvaluateOperandCombinationsDriftTests
                                            + string.Join("\n  ", mismatches));
     }
 
+    /// <summary>Table 15's two axes NAME THE SAME OPERAND KINDS, and the compiler's row→column mapping says so
+    /// — derived from the spec's own labels rather than asserted from the enum spellings.
+    /// <para>⛔ This is the structural half of kb/Work PB400. The binder classifies a selection subject and a
+    /// selection object with ONE function and maps the result across the axes through
+    /// <c>AsSubjectOperand</c>; two independently written classifiers is what let the object side recognise a
+    /// switch-status condition-name while the subject side did not. If a future edition adds a row that is also
+    /// a column (or renames one), this fails rather than silently leaving one side unmapped.</para></summary>
+    [Fact]
+    public void TheAxisMapping_NamesTheSameKindOnBothAxes()
+    {
+        // Normalize a label to the KIND it names, across the three spellings in play: the spec's object axis
+        // prints "[NOT] " on the five negatable rows and hyphenates its two-word kinds, the spec's subject axis
+        // does neither, and the compiler's diagnostic labels carry an English article ("an identifier").
+        static string Kind(string label)
+        {
+            string t = label.Replace("[NOT] ", "", StringComparison.Ordinal).Replace('-', ' ').ToLowerInvariant().Trim();
+            foreach (string article in (string[])["an ", "a ", "the "])
+                if (t.StartsWith(article, StringComparison.Ordinal)) return t[article.Length..];
+            return t;
+        }
+
+        var (header, rows) = ScrapeTable15();
+        var columnKinds = header.Select(Kind).ToHashSet(StringComparer.Ordinal);
+        Assert.Equal(6, columnKinds.Count);
+
+        // Every ROW whose kind is also a COLUMN maps to that column; every row whose kind is not maps to null.
+        int mapped = 0;
+        for (int r = 0; r < ObjectRowLabels.Length; r++)
+        {
+            var s = EvaluateOperandCombinations.AsSubjectOperand((EvaluateObjectOperand)r);
+            bool isAlsoAColumn = columnKinds.Contains(Kind(ObjectRowLabels[r]));
+            Assert.True(isAlsoAColumn == (s is not null),
+                $"Table 15 row '{ObjectRowLabels[r]}' {(isAlsoAColumn ? "IS" : "is NOT")} also a subject column, "
+                + $"but AsSubjectOperand returns {(s is null ? "null" : s.ToString())}");
+            if (s is null) continue;
+            mapped++;
+            // The mapped column is the one naming the SAME kind — checked through the compiler's own labels, so
+            // a mapping that pointed at the wrong column would fail even though both ends exist.
+            Assert.Equal(Kind(ObjectRowLabels[r]), Kind(EvaluateOperandCombinations.Label(s.Value)));
+        }
+        Assert.Equal(6, mapped);   // the population — all six columns are reachable, so no side is unmapped
+        Assert.Equal(rows.Count, ObjectRowLabels.Length);
+    }
+
     /// <summary>Spot-checks that state the table's CONSEQUENCES in the compiler's own terms, so the intent is
     /// readable without cross-referencing the spec — and so a scrape that silently inverted would still fail.</summary>
     [Fact]

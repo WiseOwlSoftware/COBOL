@@ -441,13 +441,28 @@ internal static class OperandText
         return digitsExpr;
     }
 
+    /// <summary>A numeric LITERAL's magnitude text — its own characters with the §8.3.3.3.2 rule-2 leading sign
+    /// removed, which leaves exactly the "number of digits in the integer" character positions §8.8.4.2.5 asks
+    /// for (leading zeros are digits and stay). The literal's own text is otherwise untouched.</summary>
+    private static string DeSign(string text) =>
+        text.Length > 0 && text[0] is '+' or '-' ? text[1..] : text;
+
     /// <summary>The operand→DISPLAY-image dispatch (PHASE-07 Step 6f). <paramref name="deSign"/> carried on the
     /// instance so the two cached instances need no per-call allocation. Each Visit is the former <c>AsString</c>
     /// switch arm verbatim.</summary>
     private sealed class AsStringVisitor(bool deSign, SendingRef sending) : IBoundOperandVisitor<string>
     {
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
-        public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
+        // ⛔ A SIGNED numeric LITERAL de-signs exactly as a signed numeric ITEM does (kb/Work PB400). §14.9.25.4
+        // GR6a — "If the sending operand is described as being signed numeric, the operational sign is not
+        // moved" — is a rule about the SENDING VALUE, not about how it was written, and §8.8.4.2.5 routes a text
+        // relation through those same MOVE rules, moving the integer operand to an item "of the same length in
+        // terms of character positions as the NUMBER OF DIGITS in the integer" — a count the sign is not part of.
+        // This arm ignored deSign while the FIELD arm beside it honoured it, so `MOVE WS-S TO WS-X` over
+        // PIC S9 VALUE -5 gave "5 " and `MOVE -5 TO WS-X` gave "-5": the same value, two answers, one of them
+        // wrong. It went unmeasured for as long as it did because the RELATION half of the arm was unreachable —
+        // a signed literal was classified as an arithmetic expression, so it could never arrive here at all.
+        public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(deSign ? DeSign(n.Text) : n.Text);
         public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign, sending);
         // THE CURRENT RECORD (ISO §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b) — kb/Work PB339): the record area's
         // image sliced to the §13.18.43.4 GR16 byte count. deSign is moot (the operand is alphanumeric by

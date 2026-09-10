@@ -40,10 +40,13 @@ public enum EvaluateObjectOperand
 /// this matrix equals it cell for cell, so a transcription fix upstream fails the battery here rather than
 /// silently diverging.</para>
 ///
-/// <para>⚠ <b>What this table does NOT decide is which KIND an operand is.</b> That classification is the binder's
-/// (see <c>EvaluateBinder</c>), it is deliberately CONSERVATIVE, and it declines to answer rather than guess —
-/// because a misclassification here would reject legal source, which is a worse failure than the wrong-stage
-/// defect this closes.</para>
+/// <para>⚠ <b>What this table does NOT decide is which KIND an operand is.</b> That classification is
+/// <c>EvaluateBinder.ClassifyPair</c>'s, and it is a JOINT question, not two independent ones: §14.9.13.3 SR6
+/// changes a boolean operand's kind "for a particular WHEN phrase" according to the OTHER side of the pair. The
+/// classifier still declines rather than guess where it cannot name a shape — a null on either side means no
+/// diagnostic — but that is now the Partial-expression row alone, which no operand can reach while the partial
+/// forms do not parse. It used to include the two BOOLEAN rows as well, and declining them was not free: the
+/// crash SR6 b) was supposed to prevent shipped instead (kb/Work PB400).</para>
 /// </summary>
 public static class EvaluateOperandCombinations
 {
@@ -66,6 +69,26 @@ public static class EvaluateOperandCombinations
     /// </summary>
     public static bool IsPermitted(EvaluateSubjectOperand subject, EvaluateObjectOperand obj) =>
         Permitted[(int)obj, (int)subject];
+
+    /// <summary>Table 15's ROW named as its COLUMN — the same operand kind on the other axis — or null for the
+    /// three rows the table prints with no column of their own (range-expression, partial-expression, ANY are
+    /// selection-OBJECT forms; §14.9.13.2's general format admits no such selection subject).
+    /// <para>⛔ THIS EXISTS SO THE BINDER CAN CLASSIFY A SELECTION SUBJECT AND A SELECTION OBJECT WITH ONE
+    /// FUNCTION (kb/Work PB400). Two independently written classifiers is the two-arm-dispatch shape, and it
+    /// produced exactly that defect: the object classifier recognised a switch-status condition-name and the
+    /// subject classifier did not, so <c>EVALUATE W-ON WHEN TRUE</c> was refused while the level-88 spelling in
+    /// the identical position compiled. <c>EvaluateOperandAxisDriftTests</c> pins the mapping against the
+    /// printed labels.</para></summary>
+    public static EvaluateSubjectOperand? AsSubjectOperand(EvaluateObjectOperand o) => o switch
+    {
+        EvaluateObjectOperand.Identifier => EvaluateSubjectOperand.Identifier,
+        EvaluateObjectOperand.Literal => EvaluateSubjectOperand.Literal,
+        EvaluateObjectOperand.ArithmeticExpression => EvaluateSubjectOperand.ArithmeticExpression,
+        EvaluateObjectOperand.BooleanExpression => EvaluateSubjectOperand.BooleanExpression,
+        EvaluateObjectOperand.Condition => EvaluateSubjectOperand.Condition,
+        EvaluateObjectOperand.TrueOrFalse => EvaluateSubjectOperand.TrueOrFalse,
+        _ => null,   // RangeExpression / PartialExpression / Any — object-only rows
+    };
 
     /// <summary>The printed row/column labels, so a diagnostic can name the pairing in the standard's own words
     /// rather than in this compiler's enum spelling.</summary>
