@@ -24,7 +24,11 @@ internal readonly record struct GroupArea(string Text, bool Bits);
 /// <see cref="DataEmitter"/>.</summary>
 internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
 {
-    public string ComposedInit(DataItem group)
+    /// <param name="subs">The OCCURRENCE CONTEXT — the subscripts of every OCCURS level entered on the way down
+    /// from the record root (see <see cref="ValueInitializer.FieldInit"/>). It selects WHICH occurrence's
+    /// group-level VALUE this composition deposits (§13.18.63.4 GR12–GR15 through <see cref="DataItem.ValueAt"/>)
+    /// and travels on to the members, whose own table VALUEs are keyed by the same tuple.</param>
+    public string ComposedInit(DataItem group, Subscripts subs = default)
     {
         // A GROUP-level VALUE initializes the whole AREA (ISO §13.18.63.4 GR5) — the ONE area rule lives in
         // AreaOf, which also says which UNIT the area is measured in; here it distributes over the subordinate
@@ -33,9 +37,9 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         // else keeps the member-wise default (a SHARED-STORAGE subtree is not a loss — its Tier-B / EXTERNAL /
         // BASED backing is seeded by GroupImageCodec.ImageInitOf, which applies the SAME AreaOf rule to the
         // same group).
-        if (AreaOf(group, ctx) is { } area && DistributableSubtree(group))
+        if (AreaOf(group, ctx, subs) is { } area && DistributableSubtree(group))
             return area.Bits ? SliceBitInit(group, area.Text) : SliceInit(group, area.Text);
-        var parts = phys.PhysicalChildrenOf(group).Select(f => $"{f.Name} = {f.Init}");
+        var parts = phys.PhysicalChildrenOf(group, subs).Select(f => $"{f.Name} = {f.Init}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
     }
 
@@ -85,9 +89,13 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     ///   <item>a quoted literal — its characters (or, for a bit group, its BOOLEAN POSITIONS — <c>B"1010"</c> /
     ///     <c>BX"A"</c>, §8.3.3.4), decoded.</item>
     /// </list></summary>
-    internal static GroupArea? AreaOf(DataItem group, EmitContext ctx)
+    internal static GroupArea? AreaOf(DataItem group, EmitContext ctx, Subscripts subs = default)
     {
-        if (group.RawValue is not { } raw) return null;
+        // ⛔ BOTH VALUE CARRIERS, through the ONE reader (DataItem.ValueAt): a group entry may carry a FORMAT 2
+        // (table) VALUE just as it may carry a format 1 — §13.18.63.3 SR16 pulls SR13 onto it and §13.18.63.4 GR5
+        // still says the GROUP AREA is what gets initialized, per occurrence. Reading RawValue alone silently
+        // discarded `05 GT OCCURS 2 VALUE "ABCD" FROM (1) TO (2).` at every edition (kb/Work PB505).
+        if (group.ValueAt(subs) is not { } raw) return null;
         // ⛔ THE UNIT AND THE WIDTH, in one place. A GROUP-USAGE BIT group's area is its §13.18.29.4 GR1b
         // as-if PICTURE 1(m) — m BOOLEAN POSITIONS from the §8.5.1.6.3 walk; every other group's is its
         // ImageWidth CHARACTER positions.

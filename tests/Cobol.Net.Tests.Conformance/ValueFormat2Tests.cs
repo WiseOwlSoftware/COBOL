@@ -9,9 +9,11 @@ namespace CobolNet.Tests.Conformance;
 /// The Format 2 (table) VALUE clause (ISO/IEC 1989:2023 §13.18.63.2, COBOL-2002): a literal list keyed to occurrence
 /// subscripts by a MANDATORY FROM (subscript) phrase with an optional TO. Per-occurrence initialization — the
 /// odometer fill (GR12), cyclic literal reuse under TO (GR13), no-TO = fill to the maximum (GR14), later-FROM-wins on
-/// overlap (GR15), and the dynamic-capacity computation (GR16). LANDABLE scope: a single-dimension table on its own
-/// OCCURS entry (fixed or dynamic); a multi-dimension odometer or a subordinate-item table VALUE is staged loud
-/// (COBOLNET0899, P14 GAP). The paired glued-multi-literal reject (COBOLNET1585) closes the Format-1 gluing defect.
+/// overlap (GR15), and the dynamic-capacity computation (GR16) — over the WHOLE population §13.18.63.3 SR18 admits:
+/// the subject's own OCCURS entry, an entry SUBORDINATE to an OCCURS entry, and any number of dimensions.
+/// The geometry rules SR18 / SR20 / SR21 / SR22 / SR23 are each asserted here, in both directions (kb/Work PB505:
+/// one staged COBOLNET0899 used to answer for all of them at once, refusing the conforming shapes alongside the
+/// violations). The paired glued-multi-literal reject (COBOLNET1585) closes the Format-1 gluing defect.
 /// Per §13.18.63.4 the initial value of occurrences OUTSIDE every FROM..TO range is UNDEFINED — never asserted here.
 /// </summary>
 public sealed class ValueFormat2Tests
@@ -136,16 +138,178 @@ public sealed class ValueFormat2Tests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1587");
     }
 
-    /// <summary>A multi-dimension table VALUE (a subscript per nested OCCURS) is a documented P14 GAP — recognized,
-    /// bound, then staged loud (COBOLNET0899).</summary>
+    // ── The subscript TUPLE: §13.18.63.3 SR18/SR20/SR21/SR22/SR23 and the §13.18.63.4 GR12 odometer ──
+
+    /// <summary>§13.18.63.4 GR12's ODOMETER over two dimensions: "Consecutive table elements are referenced by
+    /// incrementing by 1 the subscript that represents the least inclusive dimension of the table. When any
+    /// reference to a subscript, prior to incrementing it, is equal to the maximum number of occurrences … that
+    /// subscript is set to 1 and the subscript for the next most inclusive dimension of the table is incremented
+    /// by 1." Six literals over a 2×3 table therefore fill (1 1)…(1 3) then (2 1)…(2 3) — 1 2 3 / 4 5 6.
+    /// <para>This case USED to be the compiler's documented gap: the whole multi-dimension population exited
+    /// through one COBOLNET0899, and the test that stood here pinned that STAGE (kb/Work PB505, the
+    /// [[green_test_can_hold_a_gap_open]] shape — four syntax rules looked covered from the test side because a
+    /// green test asserted the refusal).</para></summary>
     [Fact]
-    public void MultiDimension_StagedGap0899()
+    public void MultiDimension_OdometerFill()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 T-GRP.\n   03 R OCCURS 2.\n      05 C PIC 9 OCCURS 3 VALUES ARE 1 2 3 4 5 6 FROM (1 1) TO (2 3).",
+                 "    DISPLAY \"[\" C(1 1) C(1 2) C(1 3) \"|\" C(2 1) C(2 2) C(2 3) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[123|456]", stdout);
+    }
+
+    /// <summary>§13.18.63.4 GR13's cyclic reuse ACROSS the odometer's carry: two literals from (1 2) to (2 2) on a
+    /// 2×3 table visit (1 2) (1 3) (2 1) (2 2) — A B A B. A per-dimension range would have visited four elements
+    /// of a rectangle instead, which is not what GR12's fill order is.</summary>
+    [Fact]
+    public void MultiDimension_CyclicReuseAcrossTheCarry()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 T-GRP.\n   03 R OCCURS 2.\n      05 C PIC X OCCURS 3 VALUES ARE \"A\" \"B\" FROM (1 2) TO (2 2).",
+                 "    DISPLAY \"[\" C(1 2) C(1 3) C(2 1) C(2 2) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[ABAB]", stdout);
+    }
+
+    /// <summary>SR18 admits a table VALUE on an entry "subordinate to a data description entry that contains an
+    /// OCCURS clause" — CONFORMING source that the staged refusal used to reject. GR14 fills to the maximum and
+    /// GR13 reuses the two literals cyclically: AB CD AB.</summary>
+    [Fact]
+    public void SubordinateToOccurs_IsConforming_Sr18()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 T OCCURS 3.\n   05 X PIC X(2) VALUES ARE \"AB\" \"CD\" FROM (1).",
+                 "    DISPLAY \"[\" X(1) \"|\" X(2) \"|\" X(3) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[AB|CD|AB]", stdout);
+    }
+
+    /// <summary>SR18's violation half — no OCCURS on the entry and none above it — named as the user's bug
+    /// (COBOLNET1944), not as a compiler limitation. Edition-independent: SR18 carries no version proviso, so it
+    /// fires at all four (below 2002 the COBOLNET0900 introduction gate fires as well — both, not either).</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void NoOccursAnywhere_Rejected1944(int edition)
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog("01 X PIC X(2) VALUE \"AB\" FROM (1).", "    DISPLAY \"X\"."), edition);
+        Assert.False(ok, "a Format 2 VALUE on an entry with no OCCURS above it violates §13.18.63.3 SR18");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1944");
+        if (edition == 85) EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0900");
+    }
+
+    /// <summary>SR20 sentence 1 / SR21 sentence 1 — one subscript per OCCURS clause for the subject or
+    /// superordinate to it. Both directions of the mismatch: too many on a one-dimension table, too few on a
+    /// two-dimension one, and a TO phrase whose count disagrees with its own FROM.</summary>
+    [Theory]
+    [InlineData("01 T PIC X(2) OCCURS 3 VALUE \"AB\" FROM (1 1).")]
+    [InlineData("01 G OCCURS 2.\n   05 T PIC X(2) OCCURS 3 VALUE \"AB\" FROM (1).")]
+    [InlineData("01 G OCCURS 2.\n   05 T PIC X(2) OCCURS 3 VALUE \"AB\" FROM (1 1) TO (2).")]
+    public void SubscriptCountMismatch_Rejected1945(string ws)
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog(ws, "    DISPLAY \"X\"."), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1945");
+    }
+
+    /// <summary>SR21 sentence 3 over a TUPLE: "the table element associated with subscript-2 is the same
+    /// occurrence or a successive occurrence of the table element associated with the corresponding subscript-1".
+    /// (2 1) IS successive to (1 3) in a 2×3 table — GR12's fill order carries — so it must COMPILE; (1 1) after
+    /// (2 1) precedes it and must not.</summary>
+    [Fact]
+    public void MultiDimension_SuccessiveIsOdometerOrder_NotPerDimension()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 T-GRP.\n   03 R OCCURS 2.\n      05 C PIC X OCCURS 3 VALUES ARE \"A\" \"B\" FROM (1 3) TO (2 1).",
+                 "    DISPLAY \"[\" C(1 3) C(2 1) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[AB]", stdout);
+
+        var (bad, diag) = EditionHarness.Compile(
+            Prog("01 T-GRP.\n   03 R OCCURS 2.\n      05 C PIC X OCCURS 3 VALUE \"A\" FROM (2 1) TO (1 1).",
+                 "    DISPLAY \"X\"."), 2023);
+        Assert.False(bad);
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1587");
+    }
+
+    /// <summary>SR22's SUBORDINATE arm — "or in any entry subordinate to such an OCCURS clause". The same-entry
+    /// arm was written down; this half exited through the staged refusal, so the program was rejected for the
+    /// wrong reason.</summary>
+    [Fact]
+    public void SubordinateToDynamicWithoutTo_Rejected1588()
     {
         var (ok, diag) = EditionHarness.Compile(
-            Prog("01 T-GRP.\n   03 R OCCURS 2.\n      05 C PIC 9 OCCURS 3 VALUES ARE 1 2 3 4 5 6 FROM (1 1) TO (2 3).",
+            Prog("01 G OCCURS DYNAMIC CAPACITY IN C1.\n   05 X PIC X(2) VALUE \"AB\" FROM (1).", "    DISPLAY \"X\"."), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1588");
+    }
+
+    /// <summary>SR23 — with a TO phrase over a dimension whose OCCURS DYNAMIC clause has no TO, the subscripts for
+    /// every MORE INCLUSIVE level shall be equal (the odometer may not carry out of a dimension with no ceiling).
+    /// The equal-higher-subscript twin compiles and seeds.</summary>
+    [Fact]
+    public void DynamicWithoutTo_HigherSubscriptsShallBeEqual_1946()
+    {
+        var (bad, diag) = EditionHarness.Compile(
+            Prog("01 G OCCURS 2.\n   05 T PIC X OCCURS DYNAMIC CAPACITY IN C1 VALUE \"A\" FROM (1 1) TO (2 3).",
                  "    DISPLAY \"X\"."), 2023);
-        Assert.False(ok, "a multi-dimension table VALUE is a P14 GAP (COBOLNET0899)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET0899");
+        Assert.False(bad);
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1946");
+
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 G OCCURS 2.\n   05 T PIC X OCCURS DYNAMIC CAPACITY IN C1 VALUE \"A\" FROM (1 1) TO (1 3).",
+                 "    DISPLAY \"[\" T(1 1) T(1 2) T(1 3) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[AAA]", stdout);
+    }
+
+    /// <summary>A GROUP entry's Format 2 VALUE is a GROUP-LEVEL VALUE per occurrence: §13.18.63.3 SR16 carries
+    /// SR13 onto it and §13.18.63.4 GR5 initializes "the group area … without consideration for the individual
+    /// elementary or group items contained within this group", so "ABCD" lands positionally as P="AB", Q="CD" in
+    /// BOTH occurrences. It used to be discarded silently at every edition — the group arm read only the Format-1
+    /// carrier (kb/Work PB505).</summary>
+    [Fact]
+    public void GroupLevelTableValue_InitializesTheAreaPerOccurrence()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 R.\n   05 GT OCCURS 2 VALUE \"ABCD\" FROM (1) TO (2).\n"
+               + "      10 P PIC X(2).\n      10 Q PIC X(2).",
+                 "    DISPLAY \"[\" P(1) \"/\" Q(1) \"|\" P(2) \"/\" Q(2) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[AB/CD|AB/CD]", stdout);
+    }
+
+    /// <summary>§13.18.63.4 GR16 with the DYNAMIC dimension OUTSIDE the VALUE-carrying entry: the subordinate
+    /// item's TO (3) raises G's initial capacity to 3 ("the initial capacity is increased, if necessary, to the
+    /// value of the corresponding subscript-2, provided that this value does not lie outside the range defined by
+    /// the minimum and expected capacity"), and each of the three occurrences takes its keyed literal.</summary>
+    [Fact]
+    public void DynamicOuterDimension_SubordinateTableValue_Gr16Capacity()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 G OCCURS DYNAMIC CAPACITY IN C1 FROM 1 TO 4.\n"
+               + "   05 X PIC X(2) VALUES ARE \"AB\" \"CD\" FROM (1) TO (3).",
+                 "    DISPLAY \"[\" C1 \"][\" X(1) \"|\" X(2) \"|\" X(3) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("][AB|CD|AB]", stdout);
+        Assert.Contains("[0000000003]", stdout);
+    }
+
+    /// <summary>A TYPE reference assumes the template's description (ISO §13.18.57.4 GR1), and the VALUE clause is
+    /// in neither that GR's nor §13.18.49 GR1's exclusion list — in EITHER of its two formats. The clone used to
+    /// copy only <c>RawValue</c>, so a template member's table VALUE was dropped silently and every occurrence
+    /// came back VALUE-less (kb/Work PB505's sibling sweep).</summary>
+    [Fact]
+    public void TypeClone_KeepsItsTableValue()
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(
+            Prog("01 TT IS TYPEDEF.\n   05 X PIC X(2) OCCURS 3 VALUES ARE \"AB\" \"CD\" FROM (1).\n01 R TYPE TT.",
+                 "    DISPLAY \"[\" X OF R (1) \"|\" X OF R (2) \"|\" X OF R (3) \"]\"."), 2023);
+        Assert.True(ok, detail);
+        Assert.Contains("[AB|CD|AB]", stdout);
     }
 
     // ── Edition gating ──
@@ -206,6 +370,30 @@ public sealed class ValueFormat2Tests
         Assert.Equal(perm1.Ok, perm2.Ok);
     }
 
+    /// <summary>⛔ THE SAME DRIFT TEST FOR THE GROUP SUBJECT (kb/Work PB505). A GROUP entry's VALUE has its own
+    /// screen — §13.18.63.3 SR13 sentence 1 ("literal-1 shall be of the same category as the group item or shall
+    /// be a figurative constant that is permitted in a MOVE statement to a receiving item of that category") plus
+    /// SR4/SR5/SR10's group SIZE sentences — and SR16 carries SR13 onto the format 2 (table) VALUE. That arm read
+    /// only the format-1 carrier, which was harmless only while a group entry's table VALUE was DISCARDED: once
+    /// §13.18.63.4 GR5's area deposit reached it, an UNSCREENED literal reached storage. MEASURED before the fix:
+    /// <c>05 GT OCCURS 2 VALUE "ABCDEFG" FROM (1) TO (2).</c> over two <c>PIC X(2)</c> members deposited a
+    /// silently truncated "ABCD", and <c>VALUE 42 FROM (1) TO (2)</c> deposited spaces — both rejected on the
+    /// format-1 spelling of the identical entry.</summary>
+    [Theory]
+    [InlineData("\"ABCD\"")]      // legal on both — exactly the group's 4 character positions
+    [InlineData("\"ABCDEFG\"")]   // SR4 sentence 3 — longer than the group item
+    [InlineData("42")]            // SR13 sentence 1 — a numeric literal on an alphanumeric group item
+    [InlineData("SPACES")]        // legal on both — a figurative constant a MOVE would accept
+    public void GroupFormat1AndFormat2_ScreenTheSameLiteralAlike(string literal)
+    {
+        const string members = "\n      10 P PIC X(2).\n      10 Q PIC X(2).";
+        var f1 = Codes(EditionHarness.GetDiagnostics(
+            Prog($"01 R.\n   05 GT VALUE {literal}.{members}", "    DISPLAY \"X\"."), 2023));
+        var f2 = Codes(EditionHarness.GetDiagnostics(
+            Prog($"01 R.\n   05 GT OCCURS 2 VALUE {literal} FROM (1) TO (2).{members}", "    DISPLAY \"X\"."), 2023));
+        Assert.Equal(f1, f2);
+    }
+
     /// <summary>SR2 is EDITION-INDEPENDENT, so the format-2 screen fires at all four (§13.18.63.3 SR2 carries no
     /// version proviso). At COBOL-85 the COBOLNET0900 introduction gate fires as well — both, not either.</summary>
     [Theory]
@@ -238,6 +426,48 @@ public sealed class ValueFormat2Tests
                  "    DISPLAY \"[\" B(1) \"][\" B(2) \"][\" R(7:2) \"]\"."), 2023);
         Assert.True(ok, detail);
         Assert.Contains("[0012][0012][CC]", stdout);
+    }
+
+    /// <summary>⛔ THE DRIFT TEST FOR "ONE OCCURRENCE MAP, EVERY STORAGE LANE" (kb/Work PB505). The identical
+    /// declaration is compiled TWICE — once alone (the typed-native record-struct fields) and once with a
+    /// REDEFINES alias over it, which moves the whole group onto its IMAGE lane (a Tier-B backing: characters for
+    /// an ordinary group, PACKED BOOLEAN POSITIONS for a bit group) — and the two runs must print the same thing,
+    /// and the §13.18.63.4-derived thing.
+    /// <para>Comparing the LANES rather than asserting one code is the point. There are THREE — the record-struct
+    /// fields, the character image, and the bit carrier — and each has independently dropped the format-2 VALUE:
+    /// the image lane in kb/Work PB208, the bit carrier in PB505 (measured `[0000|0000|0000]` where the same
+    /// declaration without the alias gave `[1010|0101|1010]`). The shapes below are the ones the old staged
+    /// refusal excluded (a subordinate-item VALUE, a two-dimension odometer, a group-level area VALUE) plus that
+    /// bit-carrier case, and each lane reaches them through its own recursion, so a future shape wired into only
+    /// one of them reds HERE. §13.18.63.3 SR12 bars a VALUE in the redefinING entry, never in the redefined one,
+    /// so both spellings are conforming.</para></summary>
+    [Theory]
+    // A single-dimension table on its own OCCURS entry — the shape that always worked, as the control.
+    [InlineData("01 G.\n   05 T PIC X(2) OCCURS 3 VALUES ARE \"AB\" \"CD\" FROM (1).",
+                "T(1) \"|\" T(2) \"|\" T(3)", 6, "[AB|CD|AB]")]
+    // SR18's subordinate arm: the VALUE is on X, the OCCURS on T.
+    [InlineData("01 G.\n   05 T OCCURS 3.\n      10 X PIC X(2) VALUES ARE \"AB\" \"CD\" FROM (1).",
+                "X(1) \"|\" X(2) \"|\" X(3)", 6, "[AB|CD|AB]")]
+    // Two dimensions: GR12's odometer, GR13's cyclic reuse.
+    [InlineData("01 G.\n   05 R OCCURS 2.\n      10 T PIC X OCCURS 2 VALUES ARE \"A\" \"B\" \"C\" \"D\" FROM (1 1) TO (2 2).",
+                "T(1 1) T(1 2) \"|\" T(2 1) T(2 2)", 4, "[AB|CD]")]
+    // A GROUP entry's table VALUE — §13.18.63.4 GR5's area, per occurrence.
+    [InlineData("01 G.\n   05 GT OCCURS 2 VALUE \"ABCD\" FROM (1) TO (2).\n      10 P PIC X(2).\n      10 Q PIC X(2).",
+                "P(1) \"/\" Q(1) \"|\" P(2) \"/\" Q(2)", 8, "[AB/CD|AB/CD]")]
+    // The BIT carrier: a USAGE BIT table inside a bit group. 3 × PIC 1(4) = 12 boolean positions, which
+    // §8.5.1.6.3 packs into ceil(12/8) = 2 character positions, so the alias is PIC X(2).
+    [InlineData("01 G GROUP-USAGE BIT.\n   05 T PIC 1(4) OCCURS 3 VALUES ARE B\"1010\" B\"0101\" FROM (1).",
+                "T(1) \"|\" T(2) \"|\" T(3)", 2, "[1010|0101|1010]")]
+    public void AllStorageLanes_SeedTheSameOccurrences(string ws, string reads, int width, string expected)
+    {
+        string body = $"    DISPLAY \"[\" {reads} \"]\".";
+        var native = EditionHarness.CompileAndRun(Prog(ws, body), 2023);
+        Assert.True(native.Ok, native.Detail);
+        Assert.Contains(expected, native.Stdout);
+
+        var imaged = EditionHarness.CompileAndRun(Prog(ws + $"\n01 R REDEFINES G PIC X({width}).", body), 2023);
+        Assert.True(imaged.Ok, imaged.Detail);
+        Assert.Contains(expected, imaged.Stdout);
     }
 
     /// <summary>The --permissive REWRITE reaches the emitter's PER-OCCURRENCE override, not just item.RawValue: a

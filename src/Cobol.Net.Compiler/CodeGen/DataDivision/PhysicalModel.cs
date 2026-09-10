@@ -17,7 +17,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// <summary>Memoized physical-field list per group item — the cache that turns the otherwise-exponential
     /// nested-group emission (width and init recursively recomputing each other) into linear time. The root forest
     /// is cached separately in <see cref="_rootPhysCache"/>.</summary>
-    private readonly Dictionary<DataItem, IReadOnlyList<Physical>> _physCache = [];
+    private readonly Dictionary<(DataItem Owner, Subscripts Subs), IReadOnlyList<Physical>> _physCache = [];
     private IReadOnlyList<Physical>? _rootPhysCache;
 
     /// <summary>The composed-initializer back-edges (set once by <see cref="DataEmitter"/> — the physical
@@ -56,22 +56,35 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// category-national leaf whose carrier is a <c>string</c>. Null on every other field.</param>
     internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null);
 
-    /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).</summary>
-    public IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner)
+    /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).
+    /// <para>⚠ <paramref name="subs"/> is the OCCURRENCE CONTEXT (see <see cref="ValueInitializer.FieldInit"/>) and
+    /// it is the ONLY input <see cref="Physical.Init"/> varies on; every other member of a <see cref="Physical"/> —
+    /// name, type, width, the leaf classifications — is a property of the DECLARATION alone. So the memo stays,
+    /// and is bypassed only along the spine of a group that actually contains a Format-2 (table) VALUE
+    /// (<see cref="DataItem.ContainsTableValue"/>), where two occurrences of the same group genuinely compose
+    /// different initializers. Everywhere else the cache answers, which is what keeps the ~49-level CCVS nesting
+    /// linear (width and init otherwise recompute each other exponentially).</para></summary>
+    public IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner, Subscripts subs = default)
     {
-        if (_physCache.TryGetValue(owner, out var cached)) return cached;
-        var list = BuildPhysicals(owner.Children).ToList();
-        _physCache[owner] = list;
+        // ⛔ THE MEMO SURVIVES THE OCCURRENCE CONTEXT, and it has to: width and Init recompute each other, so
+        // dropping the cache on a table-VALUE spine restores exactly the exponential nested-group emission the
+        // cache exists to kill. The key carries the context ONLY where the subtree's initializers actually vary
+        // with it — one entry per group everywhere else, one per (group, occurrence tuple) on the spine, which
+        // is proportional to the source the emitter writes for that table anyway.
+        var key = (owner, owner.ContainsTableValue ? subs : default);
+        if (_physCache.TryGetValue(key, out var cached)) return cached;
+        var list = BuildPhysicals(owner.Children, subs).ToList();
+        _physCache[key] = list;
         return list;
     }
 
     /// <summary>The memoized physical fields of the top-level (01/77) forest.</summary>
-    public IReadOnlyList<Physical> RootPhysicals() => _rootPhysCache ??= BuildPhysicals(ctx.Data.Roots).ToList();
+    public IReadOnlyList<Physical> RootPhysicals() => _rootPhysCache ??= BuildPhysicals(ctx.Data.Roots, default).ToList();
 
     /// <summary>The physical fields a run of sibling items emits: skip REDEFINES views; substitute a Tier-B class's ONE
     /// string backing (emitted once, at the canonical) for the whole class; a Tier-A view forwards to its canonical's
     /// field. The class's numeric <c>NumProfile</c>s are still emitted elsewhere (EmitProfiles — D9).</summary>
-    private IEnumerable<Physical> BuildPhysicals(IEnumerable<DataItem> items)
+    private IEnumerable<Physical> BuildPhysicals(IEnumerable<DataItem> items, Subscripts subs)
     {
         // D19/PB43 — the §8.5.1.6.3 bit RUNS in this sibling list, keyed by the leaf that starts each one. A run is
         // a maximal stretch of consecutive USAGE BIT leaves at the SAME level: exactly the items the standard puts
@@ -107,7 +120,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // is a window over it. A non-canonical Tier-B member yields no field.
                 if (c.IsCanonical)
                     yield return new Physical(cls.BackingCsName, "string", cls.Width, false,
-                        RuntimeApi.StrStore(Codec.ImageInitOf(c), $"{cls.Width}"), $"REDEFINES backing for {c.CobolName}");
+                        RuntimeApi.StrStore(Codec.ImageInitOf(c, subs: subs), $"{cls.Width}"), $"REDEFINES backing for {c.CobolName}");
                 continue;
             }
             if (c.Class is { Tier: RedefinesTier.Alias } && !c.IsCanonical)
@@ -151,10 +164,10 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // A bit GROUP member keeps its record-struct type (IsGroupStruct) — its own AsImage/FromImage still exist
                 // for the standalone (record) case — but inside the run its slice is the run's (D20/PB79).
                 yield return new Physical(c.CsName, c.FieldType, run is null ? 0 : BitLayout.Characters(runBits),
-                    c.IsGroup, Values.FieldInit(c), comment, occurs, null, run);
+                    c.IsGroup, Values.FieldInit(c, subs), comment, occurs, null, run);
                 continue;
             }
-            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c), comment, occurs, numLeaf, null, natLeaf);
+            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs), comment, occurs, numLeaf, null, natLeaf);
         }
     }
 

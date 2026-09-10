@@ -25,7 +25,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// form (radix-2 / BCD / IEEE / INDEX bytes), never a run of ASCII '0' characters. The EXTERNAL path used to
     /// hand-roll that default in the BINDER (<c>CallInitialImage</c>, a second seeder with a char-fill model that
     /// predated the byte forms); one seeder, one flag (kb/Work PB164 — one-mechanism-per-job).</para></summary>
-    public string ImageInitOf(DataItem item, bool useValues = true)
+    /// <param name="subs">The OCCURRENCE CONTEXT — the subscripts of every OCCURS level entered on the way down
+    /// from the record root, most inclusive first (the twin of <see cref="ValueInitializer.FieldInit"/>'s, so the
+    /// two lanes key a Format 2 (table) VALUE the same way).</param>
+    public string ImageInitOf(DataItem item, bool useValues = true, Subscripts subs = default)
     {
         // ⛔ A FORMAT 2 (table) VALUE GIVES EACH OCCURRENCE ITS OWN IMAGE — §13.18.63.4 GR12 ("A format 2 VALUE
         // clause initializes a table element to the value of literal-1"), GR13 (cyclic reuse under TO), GR14
@@ -36,26 +39,20 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // cell, a BASED record, an OO backing. Measured on 3324d794 with
         // `05 B PIC 9(4) COMP OCCURS 2 VALUE 12 FROM (1) TO (2).` inside a REDEFINES-aliased group: the group
         // image came back `65 65 00 00 00 00 67 67`, the seed simply absent (kb/Work PB208).
-        // ONE map for both lanes — ValueInitializer.ResolveTableValueMap, which the record-struct lane's
-        // TableValueInit already used; an occurrence outside every FROM..TO range takes the same VALUE-less
-        // image it takes today (null override ⇒ the background/default seed below).
-        // ⚠ ELEMENTARY ONLY, the same predicate ValueInitializer.FieldInit guards with: a GROUP entry's
-        // format-2 VALUE is a group-level VALUE (§13.18.63.3 SR16 carries SR13 in) and belongs to the
-        // group-area lane (GroupValueSlicer.AreaTextOf), which composes no per-occurrence text.
-        if (useValues && item.HasElementaryTableValue && item.Occurs is { } occ and > 0)
-        {
-            var map = ValueInitializer.ResolveTableValueMap(item, occ);
+        // The per-occurrence walk is now the SAME shape the record-struct lane uses — one composition per
+        // occurrence against its own subscript tuple — so it covers a SUBORDINATE-item table VALUE and a
+        // multi-dimension odometer without a second rule being written here (kb/Work PB505). An occurrence
+        // outside every FROM..TO range takes the same VALUE-less image it always took.
+        if (useValues && item.ContainsTableValue && item.Occurs is { } occ and > 0)
             return "(" + string.Join(" + ", Enumerable.Range(1, occ)
-                .Select(o => ImageInitOfOne(item, useValues, map.GetValueOrDefault(o)))) + ")";
-        }
-        string one = ImageInitOfOne(item, useValues);
+                .Select(o => ImageInitOfOne(item, useValues, subs.With(o)))) + ")";
+        string one = ImageInitOfOne(item, useValues, item.Occurs is > 0 ? subs.With(1) : subs);
         return item.Occurs is { } n and > 1 ? RuntimeApi.StrRepeat(one, $"{n}") : one;
     }
-
-    /// <param name="rawOverride">The literal for THIS occurrence of a format 2 (table) VALUE — the twin of
+    /// <param name="subs">The subscript tuple of THIS occurrence — the twin of
     /// <see cref="ValueInitializer.InitializerFor"/>'s parameter of the same name, so the image lane and the
-    /// native-field lane compose one occurrence from the same literal text (kb/Work PB208).</param>
-    private string ImageInitOfOne(DataItem item, bool useValues, string? rawOverride = null)
+    /// native-field lane compose one occurrence from the same literal text (kb/Work PB208/PB505).</param>
+    private string ImageInitOfOne(DataItem item, bool useValues, Subscripts subs = default)
     {
         // ⛔ A POINTER-CLASS LEAF CONTRIBUTES RESERVED BYTES AND NO IMAGE (kb/Work PB231 — the pointer third).
         // Its value is a managed reference held in the area's MANAGED SLOT (Place.SlotWindow / StorageCell.SlotAt),
@@ -68,7 +65,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // Placed beside the national coding below because it is the same kind of decision: how the member's
         // value carrier relates to the bytes it occupies.
         if (SlotWindow.CarriedBySlot(item)) return $"new string(' ', {item.ByteWidth})";
-        string image = CarrierInitOfOne(item, useValues, rawOverride);
+        string image = CarrierInitOfOne(item, useValues, subs);
         // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
         // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a
         // BASED/ADDRESS-OF cell, an OO backing — and a national character position occupies TWO of those bytes
@@ -86,7 +83,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The item's initial image in its VALUE CARRIER's own units — see <see cref="ImageInitOfOne"/>,
     /// which applies the storage coding on top (kb/Work PB231).</summary>
-    private string CarrierInitOfOne(DataItem item, bool useValues, string? rawOverride = null)
+    private string CarrierInitOfOne(DataItem item, bool useValues, Subscripts subs = default)
     {
         if (item.IsGroup)
         {
@@ -112,7 +109,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // rule, a refusal. Neither is here now: GroupValueSlicer.AreaOf answers with the area AND its unit,
             // so this lane cannot disagree with the record-struct lane about what a bit group's area is
             // (kb/Work PB207).
-            if (useValues && GroupValueSlicer.AreaOf(item, ctx) is { } area)
+            if (useValues && GroupValueSlicer.AreaOf(item, ctx, subs) is { } area)
                 // A bit group's area is m BOOLEAN POSITIONS (§13.18.29.4 GR1b); its IMAGE is those positions
                 // PACKED — ceil(m/8) characters through CobolBits.Pack, the ONE bit-order law (D19/PB43), never
                 // a second packer written here. The count is asked of ExtentBits, not taken from the area's own
@@ -131,18 +128,18 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // The composition is BitAreaOf's — the same §8.5.1.6.3 placement the VALUE arm above and
             // AsBits()/FromBits use.
             if (item.GroupUsage is GroupUsage.Bit)
-                return RuntimeApi.BitsPack(BitAreaOf(item, m => InitialBitCarrierOf(m, useValues)),
+                return RuntimeApi.BitsPack(BitAreaOf(item, m => InitialBitCarrierOf(m, useValues, subs)),
                                            $"{BitLayout.ExtentBits(item)}");
 
             // Redefining children overlay storage already composed by their targets — never part of the image.
             var parts = item.Children.Where(c => (c.IsGroup || c.IsElementary) && c.RedefinesTargetName is null)
-                .Select(c => ImageInitOf(c, useValues));
+                .Select(c => ImageInitOf(c, useValues, subs));
             return item.Children.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : "\"\"";
         }
         var pic = item.Pic!;
-        // A format 2 (table) VALUE supplies THIS occurrence's literal; otherwise the item's own format 1 VALUE.
-        // (Exactly ValueInitializer.InitializerFor's `effRaw = rawOverride ?? item.RawValue` — one recipe, both lanes.)
-        string? effRaw = rawOverride ?? item.RawValue;
+        // ⛔ THE ONE READER, shared with ValueInitializer.InitializerFor: the Format-1 VALUE or this occurrence's
+        // Format-2 literal (DataItem.ValueAt) — one recipe, both lanes.
+        string? effRaw = item.ValueAt(subs);
         if (useValues && effRaw is { } raw)
         {
             if (vals.FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
@@ -520,21 +517,38 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// §8.5.1.6.3 applies "within that group" at every level), a bit leaf stores its VALUE into its declared
     /// boolean positions (§14.6.8.6 — zero pad, truncate right) or takes the all-zero boolean initial state, and
     /// a fixed-OCCURS member repeats that for every occurrence (§13.18.63.4 GR9).</summary>
-    private string InitialBitCarrierOf(DataItem m, bool useValues)
+    private string InitialBitCarrierOf(DataItem m, bool useValues, Subscripts subs = default)
     {
-        string one =
-            m.IsGroup ? BitAreaOf(m, c => InitialBitCarrierOf(c, useValues))
-            // A member the binder failed to describe still has to occupy its positions, or every member after
-            // it is displaced; WidthBits is asked ONLY here, because for a group it is a whole ExtentBits walk.
-            : m.Pic is not { } pic ? EmitText.CsLiteral(new string('0', BitLayout.WidthBits(m)))
-            : !useValues || m.RawValue is not { } raw ? EmitText.CsLiteral(new string('0', pic.Length))
-            // A FIGURATIVE operand is its one character repeated to the item's boolean positions
-            // (§8.3.3.6.4 GR2; GR4 makes the ZERO format "one or more of the boolean character '0'"). Asked of
-            // the ONE figurative service so the bit lane cannot disagree with every other VALUE lane about it.
-            : vals.FigurativeInitializer(raw, pic)
-              ?? RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
-                                            justifiedRight: false);
+        // ⛔ THE BIT CARRIER IS THE THIRD STORAGE LANE, AND IT DROPPED THE FORMAT 2 (table) VALUE TOO
+        // (kb/Work PB505 — the same shape kb/Work PB208 found on the character-image lane). It read `m.RawValue`,
+        // which is NULL for a table VALUE, and then repeated ONE occurrence carrier `Occurs` times, so every
+        // occurrence of a USAGE BIT table inside a bit group came back all-zero. MEASURED before the fix on
+        // `01 BG GROUP-USAGE BIT. 05 B PIC 1(4) OCCURS 3 VALUES ARE B"1010" B"0101" FROM (1). 01 BV REDEFINES
+        // BG PIC X(2).`: [0000|0000|0000], where the SAME declaration without the alias — the record-struct
+        // lane — gave [1010|0101|1010]. §13.18.63.4 GR12/GR13 govern this lane exactly as they govern the other
+        // two, so it asks DataItem.ValueAt with the occurrence tuple like they do.
+        if (useValues && m.ContainsTableValue && m.Occurs is { } occ and > 0)
+            return "(" + string.Join(" + ", Enumerable.Range(1, occ)
+                .Select(o => OneBitCarrierOf(m, useValues, subs.With(o)))) + ")";
+        string one = OneBitCarrierOf(m, useValues, m.Occurs is > 0 ? subs.With(1) : subs);
         return m.Occurs is { } n and > 1 ? RuntimeApi.StrRepeat(one, $"{n}") : one;
+    }
+
+    /// <summary>ONE occurrence of a bit run member’s initial carrier — see <see cref="InitialBitCarrierOf"/>,
+    /// which repeats or composes it per occurrence.</summary>
+    private string OneBitCarrierOf(DataItem m, bool useValues, Subscripts subs)
+    {
+        if (m.IsGroup) return BitAreaOf(m, c => InitialBitCarrierOf(c, useValues, subs));
+        // A member the binder failed to describe still has to occupy its positions, or every member after
+        // it is displaced; WidthBits is asked ONLY here, because for a group it is a whole ExtentBits walk.
+        if (m.Pic is not { } pic) return EmitText.CsLiteral(new string('0', BitLayout.WidthBits(m)));
+        if (!useValues || m.ValueAt(subs) is not { } raw) return EmitText.CsLiteral(new string('0', pic.Length));
+        // A FIGURATIVE operand is its one character repeated to the item's boolean positions
+        // (§8.3.3.6.4 GR2; GR4 makes the ZERO format "one or more of the boolean character '0'"). Asked of
+        // the ONE figurative service so the bit lane cannot disagree with every other VALUE lane about it.
+        return vals.FigurativeInitializer(raw, pic)
+            ?? RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
+                                          justifiedRight: false);
     }
 
     /// <summary>Distribute one run member's slice of an unpacked bit carrier — THE one distributor, ridden by

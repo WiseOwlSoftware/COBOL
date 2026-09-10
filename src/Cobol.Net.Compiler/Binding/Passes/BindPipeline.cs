@@ -55,6 +55,13 @@ internal static class BindPipeline
         new BindPass("CheckGroupValueDeclarations", PassPhase.StrongTypeChecked, PassPhase.StrongTypeChecked, d => d.CheckGroupValueDeclarations()),
         new BindPass("OdoResolve", PassPhase.StrongTypeChecked, PassPhase.OccursResolved, d => d.OdoResolve()),
         new BindPass("DynamicResolve", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.DynamicResolve()),
+        // The §13.18.63.3 SR18–SR23 Format-2 (table) VALUE geometry + the §13.18.63.4 GR12–GR16 odometer
+        // resolution (kb/Work PB505; DataBinder.TableValue.cs). Placed HERE, and no earlier, because every one of
+        // those rules is written against the entry's OCCURS ANCESTORS — DataItem.Parent is assigned only after
+        // the entry binds — and because the dimension ceilings it measures subscripts against are the ones
+        // OdoResolve / DynamicResolve have settled (§8.5.1.8's allocated maximum, the dynamic expected capacity).
+        // Nothing later than that: it reads declared shape only, and the emitters read the plan it produces.
+        new BindPass("ResolveTableValues", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.ResolveTableValues()),
         new BindPass("ResolveFiles", PassPhase.OccursResolved, PassPhase.FilesResolved, d => d.ResolveFiles()),
         new BindPass("GateFileRecordByteSurface", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.GateFileRecordByteSurface()),
         new BindPass("ResolveReports", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.ResolveReports()),

@@ -2169,7 +2169,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // The provenance of the VALUE travels with it (DataItem.ValueIsCopied): the §13.18.63.3 SR13/SR14
         // screen's subject is the entry that WROTE the VALUE clause, so a copied one must not re-report the
         // template's / target's already-screened entry once per reference site.
-        if (to.RawValue is null && from.RawValue is not null) to.ValueIsCopied = true;
+        // ⛔ BOTH VALUE CARRIERS, not just the Format-1 one (kb/Work PB505's sibling sweep). RawValue and
+        // TableValues are the two spellings of ONE clause (§13.18.63.2 formats 1 and 2, mutually exclusive on the
+        // entry), and copying only the first silently DROPPED a table VALUE across every TYPE / SAME AS reference:
+        // `01 TT TYPEDEF. 05 X PIC X(2) OCCURS 3 VALUE "AB" FROM (1). 01 R TYPE TT.` composed a clone whose
+        // occurrences were all VALUE-less. §13.18.57.4 GR1 / §13.18.49 GR1 copy the DESCRIPTION, and the VALUE
+        // clause is in neither GR's exclusion list, in either of its formats.
+        if (to.RawValue is null && to.TableValues is null && (from.RawValue is not null || from.TableValues is not null))
+            to.ValueIsCopied = true;
+        if (to.RawValue is null && to.TableValues is null) to.TableValues = from.TableValues;
         to.RawValue ??= from.RawValue;
         to.Justified |= from.Justified;
         to.BlankWhenZero |= from.BlankWhenZero;
@@ -2205,7 +2213,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             OwnSign = src.OwnSign,
             OwnUsage = src.OwnUsage,
             RawValue = src.RawValue,
-            ValueIsCopied = src.RawValue is not null,   // a clone never WROTE its VALUE (see DataItem.ValueIsCopied)
+            // ⛔ BOTH VALUE CARRIERS (kb/Work PB505's sibling sweep — the twin of CopyEntryDescription's): a
+            // TEMPLATE MEMBER's Format 2 (table) VALUE is part of the description §13.18.58.4 GR1 clones, and
+            // omitting it here dropped the seed from every referencing record silently.
+            TableValues = src.TableValues,
+            ValueIsCopied = src.RawValue is not null || src.TableValues is not null,   // a clone never WROTE its VALUE
             Occurs = src.Occurs,
             // Clone the OccursSpec — never SHARE it: its Depending / CapacityRegister are RESOLVED per-clone by the
             // post-build OdoResolve / DynamicResolve, so a shared object would let two clones of the same group type
@@ -3216,7 +3228,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "specified when the LOCALE phrase of the PICTURE clause is specified (ISO §13.16.3 SR19)");
 
         // THE VALUE-CLAUSE LITERAL SCREEN — one funnel, every format (see ScreenValueLiteral). The format-2
-        // (table) literals ride the SAME call from ValidateTableValues, per occurrence (kb/Work PB208), and the
+        // (table) literals ride the SAME call from ScreenTableValueLiterals, per occurrence (kb/Work PB208), and the
         // SUBJECT the SR4/SR5/SR10 sentences are written against travels with the literal (kb/Work PB206/PB598) —
         // here an ELEMENTARY item, whose size is null for a DYNAMIC LENGTH / ANY LENGTH subject (its PICTURE
         // indicates a class and no size).
@@ -3320,7 +3332,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             SameAsName = sameAsName,
         };
         if (sameAsName is not null) item.SameAsQualifiers.AddRange(sameAsQuals);
-        ValidateTableValues(item, entryWhere);   // Format 2 (table) VALUE SR18–SR22 (§13.18.63.3)
+        // The Format 2 (table) VALUE's ALL-FORMATS literal screen (§13.18.63.3 SR2/SR3 + SR16's pull-in). The
+        // clause's GEOMETRY (SR18–SR23) and its §13.18.63.4 GR12–GR16 resolution are the post-forest
+        // ResolveTableValues pass — they read the entry's OCCURS ANCESTORS, which do not exist yet here.
+        ScreenTableValueLiterals(item, entryWhere);
 
         // BASED declaration validation (the 0881 declaration-entry band; Phase-4b increment 2): §13.16 SR16 —
         // a BASED entry is a level-01/77 record-description entry (WS/LS/LINKAGE; the file-subsystem sweep is
@@ -3852,7 +3867,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             List<int>? to = ph.TO() is not null ? [] : null;
             foreach (var il in ph.integerLiteral())
             {
-                int v = int.TryParse(il.GetText(), out int n) ? n : 0;
+                // SATURATE rather than fall to 0 on an out-of-int literal: the §13.18.63.3 SR20/SR21 range
+                // diagnostics quote the subscript back at the programmer, and quoting "0" for a source that
+                // wrote 99999999999 reports a number the program does not contain. Either way the value is
+                // out of range for any real table, and the screen says so.
+                int v = long.TryParse(il.GetText(), out long n) ? (int)Math.Clamp(n, 0, int.MaxValue) : int.MaxValue;
                 if (il.Start.TokenIndex < toIdx) from.Add(v); else to!.Add(v);
             }
             list.Add(new TableValueSpec(literals, from, to, i));
@@ -3860,69 +3879,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return ok ? list : null;
     }
 
-    /// <summary>Validate a Format 2 (table) VALUE (ISO §13.18.63.3 SR18–SR22, plus the ALL-FORMATS literal screen
-    /// SR16 carries in). LANDABLE scope: a SINGLE-dimension table VALUE on the SAME entry that carries the OCCURS
-    /// clause (fixed or dynamic). A multi-dimension odometer or a table VALUE on an item SUBORDINATE to the OCCURS
-    /// is recognized but its per-occurrence path threading is not yet implemented — staged loud (COBOLNET0899, P14
-    /// GAP), TableValues cleared so the emitter skips it.
-    /// <para>⚠ Runs at ENTRY BIND, so <see cref="DataItem.Children"/> is still empty and
-    /// <see cref="DataItem.IsGroup"/> is FALSE for every subject — the elementary-vs-group discrimination cannot be
-    /// made here (measured: adding the conjunct changed nothing). A GROUP entry's format-2 VALUE is a group-level
-    /// VALUE, and §13.18.63.3 SR16 carries SR13/SR14 onto it; its subject screen is
-    /// <c>CheckGroupValueDeclarations</c>, which already reads BOTH VALUE carriers, and its area deposit is
-    /// <c>GroupValueSlicer.AreaTextOf</c> (§13.18.63.4 GR5). Both emit lanes guard the shape with the SAME
-    /// <c>!IsGroup</c> predicate at a point where the forest exists (<see cref="ValueInitializer.FieldInit"/>,
-    /// <see cref="GroupImageCodec.ImageInitOf"/>).</para></summary>
-    private void ValidateTableValues(DataItem item, string where)
+    /// <summary>The ALL-FORMATS literal screen a Format 2 (table) VALUE's occurrence-literals ride (ISO
+    /// §13.18.63.3 SR2/SR3 and, through SR16, SR10–SR15) — ONE OCCURRENCE-LITERAL AT A TIME, through the SAME
+    /// <see cref="ScreenValueLiteral"/> funnel the Format-1 <see cref="DataItem.RawValue"/> takes (kb/Work PB208).
+    /// SR2 — "If the category of the subject of the entry is numeric, all literals in the VALUE clause shall be
+    /// numeric and shall be permissible values within the range indicated by the PICTURE clause or the USAGE
+    /// clause" — is an ALL FORMATS rule, and SR16 carries SRs 10–15 in as well, so a format-2 literal is governed
+    /// exactly as the format-1 one. It was not: <see cref="BuildTableValueSpecs"/>' literals went straight to the
+    /// emitter, so <c>05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2).</c> compiled clean at strict 2023
+    /// where its format-1 twin is COBOLNET1657. The text the funnel RETURNS is what gets stored — including the
+    /// <c>--permissive</c> numeric rewrite of a class-mismatched literal, so the emitter's per-occurrence literal
+    /// carries a screened value exactly as <c>item.RawValue</c> does.
+    /// <para>⛔ THE LITERAL screen belongs HERE, at entry bind, beside the Format-1 call site: it is a property of
+    /// the literal and the subject's own PICTURE, and the two formats answering on ONE timeline is what
+    /// <c>ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike</c> pins. The clause's GEOMETRY —
+    /// §13.18.63.3 SR18–SR23 and the §13.18.63.4 GR12–GR16 resolution — is NOT here and cannot be: those rules are
+    /// written against the entry's ANCESTORS ("or superordinate to that entry"), and <see cref="DataItem.Parent"/>
+    /// is assigned by <c>BindEntries</c> only AFTER this returns. They are the post-forest
+    /// <c>ResolveTableValues</c> pass (DataBinder.TableValue.cs; kb/Work PB505).</para></summary>
+    private void ScreenTableValueLiterals(DataItem item, string where)
     {
         if (item.TableValues is not { Count: > 0 } specs) return;
-
-        bool sameItemTable = item.Occurs is not null || item.IsDynamicTable;
-        bool singleDim = specs.All(s => s.From.Count == 1 && (s.To is null || s.To.Count == 1));
-        if (!sameItemTable || !singleDim)
-        {
-            Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{where}: a Format 2 (table) VALUE clause "
-                + "is recognized but currently supported only on a single-dimension table's own OCCURS entry — a "
-                + "multi-dimension or subordinate-item table VALUE is not yet implemented (ISO §13.18.63.2; P14 GAP)");
-            item.TableValues = null;
-            return;
-        }
-
-        // The physical maximum: fixed = Occurs; dynamic = the OCCURS TO expected capacity (null ⇒ unbounded).
-        int? max = item.Occurs ?? item.OccursSpec?.ExpectedMax;
-        bool dynamicNoTo = item.IsDynamicTable && item.OccursSpec?.ExpectedMax is null;
-        foreach (var s in specs)
-        {
-            int from = s.From[0];
-            if (from < 1 || (max is { } mx && from > mx))
-                Edition.Error("COBOLNET1586", $"{where}: a Format 2 VALUE FROM subscript ({from}) is out of range "
-                    + $"1..{(max?.ToString() ?? "the expected capacity")} (ISO §13.18.63.3 SR20)");
-            if (s.To is { } toList)
-            {
-                int t = toList[0];
-                if (t < 1 || (max is { } mx2 && t > mx2))
-                    Edition.Error("COBOLNET1587", $"{where}: a Format 2 VALUE TO subscript ({t}) is out of range "
-                        + $"1..{(max?.ToString() ?? "the expected capacity")} (ISO §13.18.63.3 SR21)");
-                else if (t < from)
-                    Edition.Error("COBOLNET1587", $"{where}: a Format 2 VALUE TO subscript ({t}) is less than its "
-                        + $"FROM subscript ({from}) — subscript-2 shall be the same or a successive occurrence "
-                        + "(ISO §13.18.63.3 SR21)");
-            }
-            else if (dynamicNoTo)
-                Edition.Error("COBOLNET1588", $"{where}: a Format 2 VALUE with no TO phrase is not permitted on an "
-                    + "OCCURS DYNAMIC table declared without an OCCURS TO (expected) capacity (ISO §13.18.63.3 SR22)");
-        }
-
-        // ⛔ THE ALL-FORMATS LITERAL SCREEN, ONE OCCURRENCE-LITERAL AT A TIME (kb/Work PB208). §13.18.63.3 SR2 —
-        // "If the category of the subject of the entry is numeric, all literals in the VALUE clause shall be
-        // numeric and shall be permissible values within the range indicated by the PICTURE clause or the USAGE
-        // clause" — is an ALL FORMATS rule, and SR16 carries SRs 10–15 in as well, so a format-2 literal is
-        // governed exactly as the format-1 one. It was not: BuildTableValueSpecs' literals went straight to the
-        // emitter, so `05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2).` compiled clean at strict 2023
-        // where its format-1 twin is COBOLNET1657. Routing through the SAME funnel the format-1 RawValue takes
-        // (ScreenValueLiteral) makes the two formats answer alike BY CONSTRUCTION, and the text it returns is
-        // what gets stored — including the --permissive numeric rewrite of a class-mismatched literal, so the
-        // emitter's per-occurrence rawOverride carries a screened literal exactly as item.RawValue does.
         if (item.Pic is not { } subject) return;
         // The subject §13.18.63.3 SR4/SR5/SR10 measure each occurrence-literal against is the ELEMENT, an
         // ELEMENTARY item (kb/Work PB206) — described once, exactly as the format-1 call site describes it, so
@@ -3935,8 +3912,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var lits = new List<string>(s.Literals.Count);
             foreach (string lit in s.Literals)
             {
-                string kept = ScreenValueLiteral(subject, lit, $"{where}, Format 2 VALUE FROM ({s.From[0]})",
-                    elementSubject);
+                string kept = ScreenValueLiteral(subject, lit,
+                    $"{where}, Format 2 VALUE FROM ({string.Join(" ", s.From)})", elementSubject);
                 rewritten |= !string.Equals(kept, lit, StringComparison.Ordinal);
                 lits.Add(kept);
             }

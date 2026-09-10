@@ -269,16 +269,22 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
 - **VALUE init** is one recursive object-initializer composed from the leaves, emitted in the static field decl
   (program) or the instance ctor (OO). Extensions: group VALUE, OCCURS VALUE (`Tbl = [.. n elements]`), figurative
   constants (§11), and the **Format 2 (table) VALUE** (§13.18.63.2 — literals keyed to occurrence ranges by a
-  mandatory `FROM (subscript)` phrase). Its per-occurrence map (GR12 sequential fill, GR13 cyclic reuse under TO,
-  GR14 no-TO = fill to the maximum, GR15 later-FROM-wins) is **`ValueInitializer.ResolveTableValueMap`, and BOTH
-  storage lanes read it**: `ValueInitializer.TableValueInit` builds the record-struct array literal and
+  mandatory `FROM (subscript)` phrase). Its per-occurrence map (GR12's odometer over the whole subscript tuple,
+  GR13 cyclic reuse under TO, GR14 no-TO = fill to the maximum, GR15 later-FROM-wins, GR16's dynamic initial
+  capacity) is resolved in the BINDER — `DataBinder.ResolveTableValues`, a post-forest pass that also enforces
+  §13.18.63.3 SR18–SR23 — and stored as a `TableValuePlan` on the entry. **`DataItem.ValueAt(subs)` is THE reader
+  and BOTH storage lanes take it**: `ValueInitializer.InitializerFor` builds the record-struct array literal and
   `GroupImageCodec.ImageInitOf` composes the per-occurrence character images (kb/Work PB208 — the image lane read
   only `item.RawValue`, which is null for a table VALUE, and repeated ONE occurrence image, so a format-2 VALUE was
-  silently discarded for every image-stored leaf). Both lanes guard the shape with the same `!IsGroup` predicate.
+  silently discarded for every image-stored leaf). Both lanes thread the OCCURRENCE CONTEXT — the subscripts of
+  the OCCURS levels already entered — so the VALUE may sit on an entry SUBORDINATE to the OCCURS (§13.18.63.3 SR18)
+  or span several dimensions, and a GROUP entry's table VALUE deposits §13.18.63.4 GR5's area per occurrence
+  (kb/Work PB505 — one staged COBOLNET0899 used to refuse all three, conforming source included).
   **Its literals ride the same screen as a format-1 one**: §13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries
-  SRs 10–15 into format 2, so `DataBinder.ValidateTableValues` calls `DataBinder.ScreenValueLiteral` per
-  occurrence-literal and stores the text it returns (the `--permissive` numeric rewrite therefore reaches the
-  emitter's per-occurrence override exactly as it reaches `item.RawValue`). The Format-1
+  SRs 10–15 into format 2, so `DataBinder.ScreenTableValueLiterals` calls `DataBinder.ScreenValueLiteral` per
+  occurrence-literal at ENTRY BIND — beside the format-1 call site — and stores the text it returns (the
+  `--permissive` numeric rewrite therefore reaches the emitter's per-occurrence override exactly as it reaches
+  `item.RawValue`). The Format-1
   glued-multi-literal defect is fixed: `DataBinder.ExtractValue` GLUES a bare multi-operand list via `GetText` over
   the collapsed `valueItem` (not "first-only") — a data-item VALUE with >1 operand and no FROM is now rejected
   (COBOLNET1585); 88s bind through `BindCondition`'s own per-operand loop (never `ExtractValue`).

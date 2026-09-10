@@ -21,94 +21,94 @@ internal sealed class ValueInitializer(EmitContext ctx)
     public InitialStateBackground Background { get; } = new(ctx);
 
     /// <summary>The C# initializer for a field: an array literal for an OCCURS table (every element initialized so
-    /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.</summary>
-    public string FieldInit(DataItem item)
+    /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.
+    /// <para><paramref name="outer"/> is the OCCURRENCE CONTEXT — the subscripts of every OCCURS level already
+    /// entered on the way down from the record root, most inclusive first. It is empty for a level-01/77 field and
+    /// grows by one at each OCCURS entry, so at any leaf it is exactly the tuple §13.18.63.3 SR20 keys a Format 2
+    /// (table) VALUE by, and <see cref="DataItem.ValueAt"/> can answer "what initializes THIS occurrence" without
+    /// the caller knowing which entry in the chain wrote the clause (kb/Work PB505). Threading it is what lets a
+    /// table VALUE live on an entry SUBORDINATE to the OCCURS (SR18) and span several dimensions (GR12's
+    /// odometer); before it, both were refused.</para></summary>
+    public string FieldInit(DataItem item, Subscripts outer = default)
     {
-        // A Format 2 (table) VALUE (ISO §13.18.63.2, COBOL-2002): per-occurrence initialization. LANDABLE scope is an
-        // elementary single-dimension table on its own OCCURS entry (DataBinder.ValidateTableValues staged the rest).
-        if (item.HasElementaryTableValue)
-            return TableValueInit(item);
-
         // A DYNAMIC-capacity table (§13.18.38 Format 4, D9): an out-of-line CobolDynTable seeded per occurrence with
         // the SAME one-occurrence initializer the fixed path repeats (heed DEVLOG 643 — seed EVERY occurrence). Opens
-        // at FROM (min); TO is the expected capacity; INITIALIZED is carried for the (always-on) new-occurrence seed.
+        // at FROM (min), raised to the §13.18.63.4 GR16 initial capacity when a table VALUE applies; TO is the
+        // expected capacity; INITIALIZED is carried for the (always-on) new-occurrence seed.
         if (item.IsDynamicTable)
         {
-            string seed = item.IsGroup ? Slicer.ComposedInit(item) : InitializerFor(item);
             var s = item.OccursSpec!;
-            return $"new CobolDynTable<{item.ElementType}>(() => {seed}, {s.InitialCap ?? 0}, "
-                 + $"{(s.ExpectedMax is int e ? e.ToString() : "null")}, {(s.Initialized ? "true" : "false")})";
+            int min = s.InitialCap ?? 0;
+            string expected = s.ExpectedMax is int e ? e.ToString() : "null";
+            string init = s.Initialized ? "true" : "false";
+            if (!item.ContainsTableValue)
+                return $"new CobolDynTable<{item.ElementType}>(() => {ElementInit(item, outer.With(1))}, {min}, "
+                     + $"{expected}, {init})";
+            // §13.18.63.4 GR16 fixed the initial capacity in the binder ("If more than one VALUE clause applies,
+            // the maximum value thus calculated becomes the initial capacity"); occurrences within it take their
+            // keyed element, and growth beyond re-seeds through the same function to the VALUE-less default.
+            int cap = Math.Max(min, item.TableValueInitialCapacity ?? min);
+            return $"new CobolDynTable<{item.ElementType}>({SeedSwitch(item, outer, cap)}, {min}, "
+                 + $"{expected}, {init}, {cap})";
         }
         if (item.Occurs is { } n)
         {
-            string element = item.IsGroup ? Slicer.ComposedInit(item) : InitializerFor(item);
-            return $"new {item.ElementType}[] {{ {string.Join(", ", Enumerable.Repeat(element, n))} }}";
+            // Without a table VALUE in the subtree every occurrence is identical — compose ONE and repeat it (the
+            // shape both lanes always had, and the reason a 49-level CCVS record still emits in linear time).
+            if (!item.ContainsTableValue)
+                return $"new {item.ElementType}[] {{ {string.Join(", ", Enumerable.Repeat(ElementInit(item, outer.With(1)), n))} }}";
+            return $"new {item.ElementType}[] {{ "
+                 + string.Join(", ", Enumerable.Range(1, n).Select(o => ElementInit(item, outer.With(o)))) + " }";
         }
-        return item.IsGroup ? Slicer.ComposedInit(item) : InitializerFor(item);
+        return ElementInit(item, outer);
     }
 
-    /// <summary>The per-occurrence initializer of a Format 2 (table) VALUE (ISO §13.18.63.4 GR12–GR16): a fixed table
-    /// becomes an array literal whose occurrences take their keyed literals (default outside any FROM..TO range); a
-    /// dynamic table becomes a CobolDynTable opened at the GR16 initial capacity with a per-occurrence seed.</summary>
-    private string TableValueInit(DataItem item)
-    {
-        var s = item.OccursSpec;
-        int fillMax = item.Occurs ?? s?.ExpectedMax ?? 0;   // GR14 no-TO fill maximum
-        var map = ResolveTableValueMap(item, fillMax);
-        string ElemInit(int occ) => InitializerFor(item, map.TryGetValue(occ, out var lit) ? lit : null);
+    /// <summary>ONE table element / one non-table field at <paramref name="subs"/>: a group composes its members
+    /// (or takes its own §13.18.63.4 GR5 area VALUE), an elementary item takes the literal its VALUE clause gives
+    /// this occurrence.</summary>
+    private string ElementInit(DataItem item, Subscripts subs) =>
+        item.IsGroup ? Slicer.ComposedInit(item, subs) : InitializerFor(item, subs);
 
-        if (item.IsDynamicTable)
+    /// <summary>The per-occurrence seed function of a DYNAMIC-capacity table carrying (or containing) a Format 2
+    /// VALUE: <c>(int __i) =&gt; __i switch { … }</c> over occurrences 1..<paramref name="cap"/>, defaulting to the
+    /// VALUE-less element for anything the table grows to later. Occurrences whose element text is IDENTICAL share
+    /// one arm — the common case is one literal over a whole range, and an arm per occurrence would put a
+    /// thousand identical branches into the generated source.</summary>
+    private string SeedSwitch(DataItem item, Subscripts outer, int cap)
+    {
+        // Subscript 0 identifies no table element (§13.18.63.3 SR20 admits none below 1), so it is the tuple that
+        // deliberately matches no FROM..TO range: the element as it stands with no table VALUE keyed to it.
+        string dflt = ElementInit(item, outer.With(0));
+        var arms = new List<string>();
+        var pending = new List<int>();
+        string? pendingText = null;
+        void Flush()
         {
-            int min = s?.InitialCap ?? 0;
-            int? expected = s?.ExpectedMax;
-            int initialCap = TableInitialCapacity(map, min, expected);
-            string dflt = InitializerFor(item, null);
-            string seedFn = map.Count == 0
-                ? $"(int __i) => {dflt}"
-                : $"(int __i) => __i switch {{ {string.Join(" ", map.Keys.OrderBy(k => k).Select(k => $"{k} => {ElemInit(k)},"))} _ => {dflt} }}";
-            return $"new CobolDynTable<{item.ElementType}>({seedFn}, {min}, "
-                 + $"{(expected is int e ? e.ToString() : "null")}, {(s!.Initialized ? "true" : "false")}, {initialCap})";
+            if (pendingText is null || pendingText == dflt) { pending.Clear(); pendingText = null; return; }
+            arms.Add($"{string.Join(" or ", pending)} => {pendingText},");
+            pending.Clear();
+            pendingText = null;
         }
-        int n = item.Occurs!.Value;
-        return $"new {item.ElementType}[] {{ {string.Join(", ", Enumerable.Range(1, n).Select(ElemInit))} }}";
-    }
-
-    /// <summary>Resolve occurrence → literal text (ISO §13.18.63.4 GR12 sequential fill, GR13 cyclic reuse under TO,
-    /// GR14 no-TO = fill to the maximum, GR15 later FROM wins on overlap). Occurrences outside every FROM..TO range
-    /// are absent (they take the element default — NOT asserted as a spec-guaranteed space/zero, §13.18.63.4).
-    /// <para>⛔ THE ONE MAP, shared with <see cref="GroupImageCodec.ImageInitOf"/> (kb/Work PB208): the image lane
-    /// used to ignore <see cref="DataItem.TableValues"/> altogether and repeat ONE occurrence image, so a format-2
-    /// VALUE was silently dropped for every image-stored leaf. The two lanes now read GR12–GR15 from here, once.</para></summary>
-    internal static Dictionary<int, string> ResolveTableValueMap(DataItem item, int fillMax)
-    {
-        var map = new Dictionary<int, string>();
-        foreach (var spec in item.TableValues!.OrderBy(sp => sp.Ordinal))
+        for (int o = 1; o <= cap; o++)
         {
-            if (spec.Literals.Count == 0) continue;
-            int from = spec.From[0];
-            int to = spec.To?[0] ?? fillMax;
-            for (int occ = from, k = 0; occ <= to; occ++, k++)
-                map[occ] = spec.Literals[k % spec.Literals.Count];   // GR15 last-wins: a later phrase overwrites
+            string text = ElementInit(item, outer.With(o));
+            if (pendingText is not null && !string.Equals(text, pendingText, StringComparison.Ordinal)) Flush();
+            pendingText = text;
+            pending.Add(o);
         }
-        return map;
+        Flush();
+        return arms.Count == 0
+            ? $"(int __i) => {dflt}"
+            : $"(int __i) => __i switch {{ {string.Join(" ", arms)} _ => {dflt} }}";
     }
-
-    /// <summary>The initial current capacity of a dynamic-capacity table from its Format 2 VALUE (ISO §13.18.63.4
-    /// GR16): raised to the highest covered occurrence (= the MAX subscript-2), clamped within [min, expected],
-    /// never below the minimum.</summary>
-    private static int TableInitialCapacity(Dictionary<int, string> map, int min, int? expected)
-    {
-        int cap = map.Count > 0 ? Math.Max(min, map.Keys.Max()) : min;
-        if (expected is { } exp) cap = Math.Min(cap, exp);   // GR16a proviso: within [min, expected]
-        return Math.Max(cap, min);
-    }
-
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>
-    public string InitializerFor(DataItem item, string? rawOverride = null)
+    public string InitializerFor(DataItem item, Subscripts subs = default)
     {
         var pic = item.Pic!;
-        // A Format 2 (table) VALUE supplies a per-occurrence literal (rawOverride); otherwise the item's own VALUE.
-        string? effRaw = rawOverride ?? item.RawValue;
+        // ⛔ THE ONE READER for "what initializes this item at this occurrence" — DataItem.ValueAt: the Format-1
+        // VALUE (the same for every occurrence, §13.18.63.4 GR9) or the Format-2 literal keyed to this subscript
+        // tuple (GR12–GR15). The image lane asks the same property, so the two cannot disagree.
+        string? effRaw = item.ValueAt(subs);
 
         // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
         // defines the initial length (MOVE-like, §13.18.63.4 GR7; stored truncated on the right to the LIMIT, no

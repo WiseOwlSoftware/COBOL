@@ -140,14 +140,34 @@ public sealed class DataItem
     /// per-occurrence emitter map after the forest is built (dimensions / dynamic expected capacity are known then).</summary>
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
-    /// <summary>⛔ THE ONE PREDICATE FOR "this entry's format 2 (table) VALUE is one an emitter implements"
-    /// (kb/Work PB208): a table VALUE survived <c>DataBinder.ValidateTableValues</c>' staging AND the subject is
-    /// ELEMENTARY. A GROUP entry's table VALUE is a group-level VALUE — §13.18.63.3 SR16 carries SR13/SR14 onto
-    /// it and §13.18.63.4 GR5 initializes the AREA — so it belongs to <c>GroupValueSlicer.AreaTextOf</c>, which
-    /// composes no per-occurrence text. It lives HERE because BOTH emit lanes ask it and they may not answer
-    /// differently: <see cref="CobolNet.CodeGen.ValueInitializer.FieldInit"/> (the record-struct array literal)
-    /// and <see cref="CobolNet.CodeGen.GroupImageCodec.ImageInitOf"/> (the character-image backings).</summary>
-    public bool HasElementaryTableValue => TableValues is { Count: > 0 } && !IsGroup;
+    /// <summary>The RESOLVED Format 2 (table) VALUE — the §13.18.63.4 GR12–GR15 subscript-tuple → literal map plus
+    /// the OCCURS chain it is keyed by (§13.18.63.3 SR20's order). Set by the <c>DataBinder.ResolveTableValues</c>
+    /// pass, which needs the COMPLETE forest: an entry's dimensions include every OCCURS clause SUPERORDINATE to
+    /// it (SR18/SR20), and <see cref="Parent"/> is still null while the entry itself binds. Null when the entry
+    /// carries no table VALUE or its clause was rejected.</summary>
+    public TableValuePlan? TableValuePlan { get; set; }
+
+    /// <summary>True for this item OR ANY ITEM IN ITS SUBTREE carrying a resolved <see cref="TableValuePlan"/> —
+    /// set by the same pass, on every ancestor of a plan-carrying entry. ⛔ It is the emitters' FAST PATH GUARD,
+    /// not a semantic predicate: without a table VALUE below it, an OCCURS entry's occurrences are all identical,
+    /// so one element initializer is composed ONCE and repeated (what both lanes always did). With one, each
+    /// occurrence is composed against its own subscript tuple.</summary>
+    public bool ContainsTableValue { get; set; }
+
+    /// <summary>§13.18.63.4 GR16's INITIAL CAPACITY for THIS dynamic-capacity table, computed from every Format-2
+    /// VALUE clause that applies to it ("If more than one VALUE clause applies, the maximum value thus calculated
+    /// becomes the initial capacity" — this property IS that maximum, accumulated by the resolve pass). Null when
+    /// no table VALUE applies, in which case §8.5.1.9.1's FROM (minimum) opens the table.</summary>
+    public int? TableValueInitialCapacity { get; set; }
+
+    /// <summary>⛔ THE ONE READER FOR "what literal initializes this item at this occurrence" — the Format-1
+    /// <see cref="RawValue"/>, which is the same for every occurrence (§13.18.63.4 GR9), or the Format-2 literal
+    /// keyed to <paramref name="subs"/> (GR12–GR15). It lives HERE because the two emit lanes ask it and may not
+    /// answer differently: <see cref="CobolNet.CodeGen.ValueInitializer.InitializerFor"/> (the record-struct
+    /// fields) and <see cref="CobolNet.CodeGen.GroupImageCodec.ImageInitOf"/> (the character-image backings).
+    /// A GROUP subject's answer is its group-level VALUE either way — §13.18.63.3 SR16 carries SR13 onto format 2,
+    /// and §13.18.63.4 GR5 initializes the AREA — so <c>GroupValueSlicer.AreaOf</c> reads this too.</summary>
+    public string? ValueAt(Subscripts subs) => TableValuePlan is { } plan ? plan.LiteralAt(subs) : RawValue;
 
     /// <summary>True when this entry's <see cref="RawValue"/> was TRANSPLANTED from another entry's data
     /// description rather than written in this entry's own — a TYPE template's VALUE assumed by its reference

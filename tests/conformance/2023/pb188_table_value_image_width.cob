@@ -5,7 +5,7 @@
       *> literal on a numeric subject first (COBOLNET1657) and either errors or rewrites the raw text to the
       *> number, so item.RawValue no longer starts with a quote by the time either seeder sees it.  That was
       *> true of the FORMAT 1 input only.  ValueInitializer.InitializerFor's effRaw is
-      *> `rawOverride ?? item.RawValue`, and rawOverride is fed per occurrence by TableValueInit from
+      *> `item.ValueAt(subs)`, whose Format-2 arm is fed per occurrence by the binder's TableValuePlan from
       *> DataBinder.BuildTableValueSpecs, which at the time called no screen at all - so the arm was LIVE
       *> through the format 2 (table) VALUE, and this program is the shape that measured it.
       *>

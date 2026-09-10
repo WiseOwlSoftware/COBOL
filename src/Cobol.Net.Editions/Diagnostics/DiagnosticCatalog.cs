@@ -906,6 +906,31 @@ public static class DiagnosticCatalog
         + "a variable-length group.\" (A variable-length group is §8.5.1.12.1's — a group with a dynamic-length "
         + "elementary item or a dynamic-capacity table subordinate to it.)",
         "ISO §13.18.63.3 SR1");
+    // ── The FORMAT 2 (table) VALUE GEOMETRY band (kb/Work PB505; DataBinder.ResolveTableValues). SR18, SR20's
+    //    and SR21's count sentences, and SR23 had NO site at all: one staged "not implemented" refusal stood in
+    //    for the whole population, so the shapes SR18 expressly PERMITS were rejected alongside the ones SR20/
+    //    SR22/SR23 forbid, and a user reading the diagnostic was told the compiler was incomplete rather than
+    //    that the program was wrong. SR20/SR21's ceiling sentences keep COBOLNET1586/1587 and SR22 keeps
+    //    COBOLNET1588 — those three were written down (one dimension deep) and their codes stay byte-stable.
+    public static readonly DiagnosticDescriptor TableValueWithoutOccurs = new(
+        "COBOLNET1944", "table-value-without-occurs", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 18: \"A data description entry that contains the VALUE clause shall contain "
+        + "an OCCURS clause or be subordinate to a data description entry that contains an OCCURS clause.\"",
+        "ISO §13.18.63.3 SR18");
+    public static readonly DiagnosticDescriptor TableValueSubscriptCount = new(
+        "COBOLNET1945", "table-value-subscript-count", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 20: \"In one FROM phrase, there shall be one subscript-1 specified for each "
+        + "OCCURS clause for the subject of the entry or superordinate to that entry, specified in the same order "
+        + "as a subscripted reference to the subject of the entry would be specified.\"; syntax rule 21, sentence "
+        + "1, states the same requirement for subscript-2 in a TO phrase.",
+        "ISO §13.18.63.3 SR20/SR21");
+    public static readonly DiagnosticDescriptor TableValueDynamicSpanLevels = new(
+        "COBOLNET1946", "table-value-dynamic-span-levels", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 23: \"If the TO phrase is specified and an OCCURS clause with a DYNAMIC "
+        + "phrase but no TO phrase is specified in the same entry or in any superordinate entry, the values of "
+        + "subscript-1 and subscript-2 corresponding to all levels higher than that of the OCCURS clause, if "
+        + "applicable, shall be equal\"",
+        "ISO §13.18.63.3 SR23");
     // ⛔ NO `BitGroupLevelValue` DESCRIPTOR ANY MORE (kb/Work PB207, landed). A group-level VALUE on a group
     // with a USAGE BIT descendant was staged loud here as recognized-not-implemented, on the ground that
     // §13.18.63.4 GR5 had no area to deposit into. It has one, in the OTHER UNIT: §13.18.29.4 GR1b makes a bit

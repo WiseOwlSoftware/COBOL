@@ -115,17 +115,47 @@ public sealed partial class DataBinder
             //    figurative constant that is permitted in a MOVE statement to a receiving item of that
             //    category". That is the SAME question ValidateValueCategory already answers for every elementary
             //    subject, so the group asks IT rather than carrying a second copy of the answer.
-            //    ⚠ FORMAT 1 ONLY. SR16 extends SR13 to the format 2 (table) VALUE, but the per-occurrence
-            //    literals of a table VALUE reach no literal screen at all today — that whole funnel
-            //    (BuildTableValueSpecs → ValidateTableValues) is kb/Work PB208's mechanism, and when it lands it
-            //    routes through this same method rather than growing an arm here.
-            if (item.RawValue is { } literal)
+            //    ⛔ BOTH VALUE CARRIERS. SR16 — "Syntax rules 10, 11,12,13,14,and 15 above apply" — extends
+            //    SR13 to the format 2 (table) VALUE, and this arm read only the format-1 one. That was harmless
+            //    while a group entry's table VALUE was DISCARDED; it stopped being harmless the moment
+            //    §13.18.63.4 GR5's area deposit reached it (kb/Work PB505), because an unscreened literal then
+            //    reaches storage. MEASURED before this arm: `05 GT OCCURS 2 VALUE "ABCDEFG" FROM (1) TO (2).`
+            //    over two PIC X(2) members deposited a SILENTLY TRUNCATED "ABCD" where SR4's group sentence
+            //    ("Alphanumeric literals in the VALUE clause of an alphanumeric group item shall not exceed the
+            //    size of the group item") rejects it, and `VALUE 42 FROM (1) TO (2)` deposited SPACES where
+            //    SR13 sentence 1 requires literal-1 to be of the group's own category — both diagnosed on the
+            //    format-1 spelling of the identical entry. The ELEMENTARY subject's occurrence-literals ride
+            //    DataBinder.ScreenTableValueLiterals; a GROUP subject's ride HERE, through the same
+            //    ValidateValueCategory, because the SUBJECT is the group and its size is the group's.
+            if (item.RawValue is not null || item.TableValues is not null)
             {
                 using var _ = Edition.At(item);
                 var subjectPic = GroupSubjectPic(item);
-                item.RawValue = ValidateValueCategory(subjectPic, literal,
-                    $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, "
-                    + "ISO §13.18.63.3 SR13)", ValueSubject.ForGroup(subjectPic.Length));
+                var groupSubject = ValueSubject.ForGroup(subjectPic.Length);
+                string groupWhere = $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, "
+                    + "ISO §13.18.63.3 SR13)";
+                if (item.RawValue is { } literal)
+                    item.RawValue = ValidateValueCategory(subjectPic, literal, groupWhere, groupSubject);
+                if (item.TableValues is { Count: > 0 } tableSpecs)
+                {
+                    var screened = new List<TableValueSpec>(tableSpecs.Count);
+                    bool rewritten = false;
+                    foreach (var spec in tableSpecs)
+                    {
+                        var lits = new List<string>(spec.Literals.Count);
+                        foreach (string lit in spec.Literals)
+                        {
+                            string kept = ValidateValueCategory(subjectPic, lit,
+                                $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item), "
+                                + $"Format 2 VALUE FROM ({string.Join(" ", spec.From)}) "
+                                + "(ISO §13.18.63.3 SR13 through SR16)", groupSubject);
+                            rewritten |= !string.Equals(kept, lit, StringComparison.Ordinal);
+                            lits.Add(kept);
+                        }
+                        screened.Add(spec with { Literals = lits });
+                    }
+                    if (rewritten) item.TableValues = screened;
+                }
             }
 
             // SR14's usage conjunct is scoped to an ALPHANUMERIC group item — a group for which no GROUP-USAGE
