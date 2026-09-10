@@ -337,10 +337,26 @@ public sealed class SequentialConnector : FileConnector
     // this connector). WRITE/REWRITE outside the VaryMin/VaryMax bounds is the GR14 '44'; a record-sequential
     // REWRITE must also match the replaced record's size (§14.9.35 GR16).
 
-    // ── LINAGE logical-page state (ISO §13.18.34 / §14.9.51 GR26–28) ─────────────────────────────────────────
-    // The LINAGE feature is COUNTER-ONLY on the physical stream: each logical page is contiguous to the next
-    // with no additional spacing (§13.18.34 GR8 — no margin blank lines, nothing emitted at page wrap), so the
-    // connector adds only the counter machine + the end-of-page flag over the unchanged pending-advance stream.
+    // ── LINAGE logical-page state (ISO §13.18.34 / §14.9.51 GR25 g), GR26–28) ────────────────────────────────
+    // ⛔ THE LINAGE FEATURE IS A PHYSICAL PAGE LAYOUT, NOT ONLY A COUNTER (kb/Work PB523). §13.18.34.4 GR1:
+    // "The logical page size is the sum of the values referenced by each phrase except the FOOTING phrase" —
+    // so the logical page IS top margin + page body + bottom margin (GR4: integer-3 "specifies the number of
+    // lines in the top margin on the logical page"; GR5 the same for the bottom), and GR8 — "Each logical page
+    // is contiguous to the next with no additional spacing provided" — lays those pages end to end on the
+    // medium. GR8 forbids spacing ADDITIONAL to the logical page; it does not delete the margins the page is
+    // defined to CONTAIN. Reading GR8 as "counter-only" left GR4 and GR5 with no content at all and made GR1's
+    // "sum ... except the FOOTING phrase" a sum of one term, and it made §14.9.51.4 GR25 g) / GR26 a) — "the
+    // device is repositioned to the first line that may be written on the next logical page" — a plain one-line
+    // advance or a bare form feed.
+    //
+    // THE MODEL. The connector tracks WHERE ON THE CURRENT LOGICAL PAGE the device sits, page-relative:
+    //   physical page line 1 … _top          the top margin      (GR4)      — never written on
+    //   physical page line _top + c          page body line c    (GR2)      — c IS the LINAGE-COUNTER (GR7)
+    //   … + _pageBody + 1 … + _bottom        the bottom margin   (GR5)      — never written on
+    // so the device position is exactly `_top + LinageCounter` and needs no second variable — EXCEPT for the
+    // one moment the two disagree: at the start of a page the counter already reads 1 while the top margin has
+    // not yet reached the stream. <see cref="_topMarginPending"/> is that one bit, and materializing it is the
+    // ONE thing every presentation and every advance does first (<see cref="EmitTopMarginIfPending"/>).
     // ⛔ THE OPERAND VALUES ARRIVE WITH THE STATEMENT (a LinagePage?, null = the file has no LINAGE clause), and
     // ONE argument serves both operand forms — a literal operand renders a constant, a data-name operand renders
     // the EXECUTING element's field read (§13.18.34 GR6a/GR6b). What the connector keeps is the page MODEL most
@@ -348,7 +364,30 @@ public sealed class SequentialConnector : FileConnector
     // a shared connector would answer with whichever element/activation installed one last (kb/Work PB673).
     private int _pageBody;      // page size — the writable page-body line count (GR2)
     private int _footing;       // footing start (GR3 — footing area = [footing, page size] inclusive); 0 = none
-    private int _top, _bottom;  // top/bottom margins (GR4/GR5) — counted into the logical page (GR1), unprinted
+    private int _top, _bottom;  // top/bottom margins (GR4/GR5) — lines OF the logical page (GR1), never written on
+
+    /// <summary>⛔ "THIS CONNECTOR HAS A LIVE LOGICAL PAGE", written down ONCE. A page model exists only between
+    /// an OPEN OUTPUT that established it (§13.18.34.4 GR6 b) 1 and GR7 d) name that mode and no other) and the
+    /// CLOSE that ends it (<see cref="EndLinagePage"/>), and GR6's value rules make the page size positive, so a
+    /// zero body IS the absence of a page. Every arm that has to choose between the logical page and the plain
+    /// print stream asks HERE — <see cref="Position"/>, <see cref="Present"/> and
+    /// <see cref="EmitLineSequentialRecord"/> — rather than each spelling the test its own way, because three
+    /// spellings of one predicate is how one of them ends up disagreeing.</summary>
+    private bool HasLogicalPage => _pageBody > 0;
+
+    /// <summary>The current logical page's top margin (§13.18.34.4 GR4) has not yet reached the medium: the
+    /// device is on physical page line 1 while <see cref="LinageCounter"/> already reads 1 (body line 1).
+    /// <para>⛔ THE MARGIN IS MATERIALIZED LAZILY, AT THE FIRST THING WRITTEN ON THE PAGE, and that is the one
+    /// latitude this model takes — a latitude the standard GRANTS: §14.9.27.4 GR18, <i>"If physical pages have
+    /// meaning for the file, the positioning of the output medium with respect to physical page boundaries is
+    /// implementor-defined following the successful execution of the OPEN statement, whether or not the LINAGE
+    /// clause is specified"</i>. The standard fixes the LOGICAL position (GR7 d) sets the counter to one at OPEN
+    /// OUTPUT, i.e. body line 1) and leaves the medium's own position open, and a stream file has no position
+    /// other than the bytes in it: a file opened OUTPUT and closed with no WRITE released nothing
+    /// (§14.9.51.4 GR12), so it shall not acquire a page's worth of blank lines. Whenever a record IS presented
+    /// the bytes are identical to the eager reading, and the surveyed implementation (GnuCOBOL,
+    /// `flag_needs_top`) defers it the same way (feedback_follow_gnucobol_on_split_latitude).</para></summary>
+    private bool _topMarginPending;
 
     /// <summary>The LINAGE-COUNTER register (ISO §8.4.3.14): the line number at which the device is positioned
     /// within the current page body (§13.18.34 GR7). Only this connector (the I-O control system) modifies it (GR7b).</summary>
@@ -364,9 +403,25 @@ public sealed class SequentialConnector : FileConnector
     public void BeginLinagePage(LinagePage page)
     {
         EvaluateLinage(page);
-        LinageCounter = 1;   // GR7d — the counter is set to one at OPEN OUTPUT
+        LinageCounter = 1;      // GR7d — the counter is set to one at OPEN OUTPUT
+        _topMarginPending = true;   // …and the device is at body line 1, i.e. past this page's top margin (GR4)
         EndOfPage = false;
     }
+
+    /// <summary>⛔ THE END OF THE LINAGE PAGE REGIME — the page model does NOT outlive the open mode that
+    /// established it. §13.18.34.4 GR6 b) 1 determines the values "at the completion of an OPEN statement with
+    /// the OUTPUT phrase" and GR7 d) sets the counter there; no rule establishes one for any other open mode.
+    /// Without this reset a connector CLOSEd after OPEN OUTPUT and reopened in ANY other mode kept the closed
+    /// file's page size, margins and counter and laid the old page's geometry over the new open — a stale model
+    /// driving real bytes. Cleared here, such a write finds no <see cref="HasLogicalPage"/> and takes the plain print
+    /// stream, which is what a mode with no logical page owes. (⚠ The EXTEND case is not legal source anyway —
+    /// §14.9.27.3 SR2, "The EXTEND phrase shall be specified only if the access mode of the file connector
+    /// referenced by file-name-1 is sequential and the LINAGE clause is not specified in the file description
+    /// entry for file-name-1" — but that syntax rule is NOT diagnosed today, so the reset is what stands between
+    /// that source and a stale page model; OPEN INPUT/I-O of a LINAGE file is legal and is covered by the same
+    /// clearing.) The counter itself is left where the last write put it: §8.4.3.14
+    /// gives LINAGE-COUNTER no value for a closed file, and the next OPEN OUTPUT sets it (GR7 d).</summary>
+    private void EndLinagePage() => (_pageBody, _footing, _top, _bottom, _topMarginPending) = (0, 0, 0, 0, false);
 
     /// <summary>Adopt the LINAGE operand values for the (next) logical page (ISO §13.18.34 GR6: at OPEN OUTPUT
     /// completion, during WRITE ADVANCING PAGE, and during a page-overflow WRITE — "the value applies to the next
@@ -384,15 +439,21 @@ public sealed class SequentialConnector : FileConnector
     }
 
     /// <summary>
-    /// Advance the LINAGE-COUNTER for one WRITE (ported VERBATIM from the legacy
-    /// <c>SequentialFileHandler.AdvanceLinageCounter</c>, proven over the SQ goldens) plus the GR6b page-transition
-    /// re-evaluation. <paramref name="lines"/> &lt; 0 = ADVANCING PAGE. Rules:
+    /// ⛔ THE ONE PLACE A WRITE MOVES THE DEVICE ON A LOGICAL PAGE — the physical travel AND the
+    /// LINAGE-COUNTER, decided together because they are one rule: §14.9.51.4 GR26 a) says what the counter
+    /// does and where the device goes in the SAME sentence. <paramref name="lines"/> &lt; 0 = ADVANCING PAGE.
+    /// Rules:
     /// <list type="bullet">
-    /// <item>ADVANCING PAGE resets the counter to 1 (§13.18.34 GR7c1); no observable end-of-page (§14.9.51 SR18
-    ///   bars PAGE+EOP in one statement, so the flag stays false).</item>
-    /// <item>ADVANCING n adds n (GR7c2); a plain WRITE adds 1 (GR7c3 — the caller passes 1).</item>
-    /// <item>Counter past the page body ⇒ page overflow (§14.9.51 GR26a): the device repositions to the FIRST
-    ///   line of the next logical page, counter := 1 (GR7c4 — never a modulo carry), overflow end-of-page.</item>
+    /// <item>ADVANCING PAGE resets the counter to 1 (§13.18.34 GR7c1) and repositions the device — §14.9.51.4
+    ///   GR25 g), <i>"The repositioning is to the first line that may be written on the next logical page as
+    ///   specified in the LINAGE clause"</i>. ⛔ NOT a form feed: GR25 h) is the form-feed arm and it is the
+    ///   NO-LINAGE case. No observable end-of-page (§14.9.51 SR18 bars PAGE+EOP in one statement).</item>
+    /// <item>ADVANCING n travels n lines and adds n (GR7c2/GR25a); a plain WRITE travels 1 and adds 1 (GR7c3 —
+    ///   the caller passes 1). n = 0 is GR25 c)'s "no repositioning".</item>
+    /// <item>Counter past the page body ⇒ page overflow (§14.9.51 GR26a): the device is <i>"repositioned to the
+    ///   first line that may be written on the next logical page"</i> — over the rest of THIS page's body, its
+    ///   bottom margin and the next page's top margin, all of which are lines of the logical pages GR1 defines
+    ///   and GR8 lays contiguously — and counter := 1 (GR7c4 — never a modulo carry), overflow end-of-page.</item>
     /// <item>Else, FOOTING specified and counter at/past the footing start ⇒ footing end-of-page (GR26b).</item>
     /// <item>⚖ <b>counter == page body IS AN ADJUDICATED BOUNDARY — do not "correct" either comparison to match
     ///   GR26's printed words.</b> Arm a) as printed fires at counter ≥ page size and arm b) is clamped to
@@ -406,25 +467,32 @@ public sealed class SequentialConnector : FileConnector
     ///   boundary by tests/conformance/2023/pb686_linage_gr26_boundary.cob (+ the 85 twin) on BOTH arms of the
     ///   FOOTING dispatch, and by LinageConformanceTests.Gr26ab_CounterEqualsBody_IsFootingEopNotOverflow.</item>
     /// <item>GR6b2/3: at the two page transitions — AFTER the overflow decision was made against the OLD page
-    ///   body — re-evaluate the operand values; they apply to the NEXT logical page (§13.18.34 GR6).</item>
+    ///   body AND after all positioning on the current page (GR6 b) 2's own words: <i>"This occurs before the
+    ///   device is positioned and after all positioning on the current page"</i>) — re-evaluate the operand
+    ///   values; they apply to the NEXT logical page (§13.18.34 GR6). <see cref="BeginNextLogicalPage"/> is
+    ///   split along exactly that sentence.</item>
     /// </list>
-    /// The caller invokes this AFTER the physical write — the AT END-OF-PAGE branch then observes the
-    /// post-advance counter (SQ201M's footing lines print the triggering write's line number).
+    /// The AT END-OF-PAGE branch observes the POST-advance counter (SQ201M's footing lines print the triggering
+    /// write's line number), which holds however the caller orders this against the record's presentation:
+    /// §14.9.51.4 GR25 e)/f) place the advance before or after the line, and both orders leave the same counter.
     /// </summary>
-    private void AdvanceLinageCounter(int lines, LinagePage page)
+    private void PositionOnLogicalPage(int lines, LinagePage page)
     {
         EndOfPage = false;   // reset at the start of every counter-advancing write (the legacy entry reset)
-        if (_pageBody <= 0) return;
+        // The device is on the page body only once this page's top margin is behind it (GR4); every travel and
+        // every presentation materializes it first, so the two call sites agree by construction.
+        EmitTopMarginIfPending();
         if (lines < 0)
         {
-            // ADVANCING PAGE: the counter resets to one on the new page (§13.18.34 GR7c1).
-            LinageCounter = 1;
-            EvaluateLinage(page);   // GR6b2 — values for the NEXT logical page
+            // ADVANCING PAGE (§14.9.51.4 GR25 g) + §13.18.34 GR7c1): the device is repositioned to the first
+            // line that may be written on the next logical page — never GR25 h)'s form feed, which is the arm
+            // for a file with NO LINAGE clause.
+            BeginNextLogicalPage(page);
             return;
         }
-        // ADVANCING n (n >= 0) or plain WRITE (n = 1): the counter is incremented (GR7c2/c3).
-        LinageCounter += lines;
-        if (LinageCounter > _pageBody)
+        // ADVANCING n (n >= 0) or plain WRITE (n = 1): the counter is incremented (GR7c2/c3) and the device
+        // travels the same n lines (GR25 a); n = 0 is GR25 c)'s "no repositioning ... is performed").
+        if (LinageCounter + lines > _pageBody)
         {
             // Page overflow (§14.9.51 GR26a): the line does not fit in the page body — the device repositions
             // to the first writable line of the succeeding page and the counter resets to 1 (GR7c4).
@@ -432,11 +500,13 @@ public sealed class SequentialConnector : FileConnector
             // as printed says "equal to or exceeds the page size"; `>=` here would push a record that lands on
             // the LAST body line onto the next page and make that line unwritable forever, against §13.18.34
             // GR2. The doc comment above carries the full derivation and the survey.
-            LinageCounter = 1;
+            BeginNextLogicalPage(page);
             EndOfPage = true;
-            EvaluateLinage(page);   // GR6b3 — after the overflow decision against the OLD body; next-page values
+            return;
         }
-        else if (_footing > 0 && LinageCounter >= _footing)
+        AdvanceLines(lines);
+        LinageCounter += lines;
+        if (_footing > 0 && LinageCounter >= _footing)
         {
             // Footing-area end-of-page (§14.9.51 GR26b): FOOTING is specified and this WRITE prints or spaces
             // within the footing area (counter at/past the footing start, still within the page body).
@@ -448,6 +518,66 @@ public sealed class SequentialConnector : FileConnector
             // last line. IBM Enterprise COBOL documents the footing condition with no upper clamp likewise.
             EndOfPage = true;
         }
+    }
+
+    /// <summary>⛔ THE ONE PAGE TRANSITION, shared by §14.9.51.4 GR25 g)'s ADVANCING PAGE and GR26 a)'s page
+    /// overflow because the standard writes the SAME destination for both — <i>"the first line that may be
+    /// written on the next logical page"</i>. The travel is derived from the LOGICAL PAGE, never from the
+    /// WRITE's own line count, and it is split in three along §13.18.34.4 GR6 b)'s own sentence
+    /// (<i>"before the device is positioned and after all positioning on the current page"</i>):
+    /// <list type="number">
+    /// <item>all remaining positioning on the CURRENT page — its unwritten body lines plus its bottom margin
+    ///   (GR5), against the OLD page model;</item>
+    /// <item>the operand re-evaluation (GR6 b) 2 for ADVANCING PAGE, GR6 b) 3 for overflow), whose values
+    ///   <i>"apply to the next logical page"</i>;</item>
+    /// <item>one line onto the next page's first line — GR8's <i>"Each logical page is contiguous to the next
+    ///   with no additional spacing provided"</i> is what makes it exactly one — leaving the device on page
+    ///   line 1 with the NEW top margin still to be materialized, which is the same state OPEN OUTPUT leaves
+    ///   (<see cref="BeginLinagePage"/>). The two page starts are therefore ONE state, not two.</item>
+    /// </list>
+    /// The counter is reset here and nowhere else for a transition (§13.18.34 GR7 c) 1 and c) 4).</summary>
+    private void BeginNextLogicalPage(LinagePage page)
+    {
+        // 1. the rest of THIS page. The narrowing is total: LINAGE-COUNTER is a long only because
+        // §8.4.3.14 gives the register the widest numeric carrier, and the clamped difference cannot
+        // exceed _pageBody, an int.
+        AdvanceLines((int)Math.Max(0, _pageBody - LinageCounter) + _bottom);
+        EvaluateLinage(page);                                                  // 2. GR6 b) 2 / b) 3
+        AdvanceLines(1);                                                       // 3. onto the next page (GR8)
+        LinageCounter = 1;
+        _topMarginPending = true;
+    }
+
+    /// <summary>Materialize the current logical page's top margin (§13.18.34.4 GR4) — the <c>_top</c> lines
+    /// between page line 1, where <see cref="BeginLinagePage"/> and <see cref="BeginNextLogicalPage"/> leave
+    /// the device, and body line 1, where <see cref="LinageCounter"/> already says it is. Idempotent, and
+    /// called from BOTH the travel and the presentation so neither can reach the page body without it.</summary>
+    private void EmitTopMarginIfPending()
+    {
+        if (!_topMarginPending) return;
+        _topMarginPending = false;
+        AdvanceLines(_top);
+    }
+
+    /// <summary>The device travel of ONE WRITE, whichever kind of file it is: a logical page for a file with an
+    /// established LINAGE page model, and the plain print stream (<see cref="Advance"/>, form feed included)
+    /// otherwise. <paramref name="page"/> null = the FD has no LINAGE clause; a non-null page with
+    /// no <see cref="HasLogicalPage"/> is a LINAGE FD opened in a mode that establishes no page — §13.18.34.4
+    /// GR6 b) 1 and GR7 d) name OPEN OUTPUT alone — and it too takes the plain stream.</summary>
+    private void Position(int lines, LinagePage? page)
+    {
+        if (page is { } pg && HasLogicalPage) PositionOnLogicalPage(lines, pg);
+        else Advance(lines);
+    }
+
+    /// <summary>Present one line on the current logical page — the record, preceded by the page's top margin
+    /// when this is the first thing written on the page (§13.18.34.4 GR4). ⛔ EVERY record that reaches a
+    /// LINAGE file's medium goes through here or through <see cref="EmitLineSequentialRecord"/>, so a page's
+    /// margin cannot be skipped by adding a write arm.</summary>
+    private void Present(string text, LinagePage? page)
+    {
+        if (page is not null && HasLogicalPage) EmitTopMarginIfPending();
+        EmitRecord(text);
     }
 
     /// <summary>True between a successful OPEN and the matching CLOSE (an absent-OPTIONAL INPUT open counts —
@@ -664,6 +794,7 @@ public sealed class SequentialConnector : FileConnector
             // present" state) DOES survive — §14.9.6.4 GR6; the next OPEN resets it.
             _reader = null;
             _writer = null;
+            EndLinagePage();   // …and neither does the logical page — see EndLinagePage
         }
         ModeKnown = false;   // §9.1.4 — after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
@@ -714,23 +845,41 @@ public sealed class SequentialConnector : FileConnector
             int len = length >= 0 ? length : image.Length;
             if (len < VaryMin || len > VaryMax)
                 return Status = FileStatusCode.RecordSizeViolation;   // '44' §13.18.43 GR14a
-            if (_lineSequential) EmitRecordLine(TrimRecordEnd(FitRecord(image, len)));
+            if (_lineSequential) EmitLineSequentialRecord(TrimRecordEnd(FitRecord(image, len)), page);
             else { RecordFraming.WritePrefix(_writer, len); EmitRecord(FitRecord(image, len)); }
         }
-        else if (_lineSequential) EmitRecordLine(TrimRecordEnd(image));
+        else if (_lineSequential) EmitLineSequentialRecord(TrimRecordEnd(image), page);
         else EmitRecord(Fit(image));
         ReleaseRecord();   // §14.9.51.4 GR12 — released to the operating environment, and numbered there
         _afterAdvancing = false;
-        // GR7c3 (§13.18.34): a plain WRITE to a LINAGE file advances the counter by one. Only the
-        // line-sequential/varying shapes reach here (the record-sequential LINAGE write rerouted above).
-        if (page is { } pg) AdvanceLinageCounter(1, pg);
         return Status = FileStatusCode.Success;
+    }
+
+    /// <summary>A line sequential record and its delimiter (ISO §9.1.13.2 — a line sequential record is
+    /// delimited, not fixed-width).
+    /// <para>⛔ ON A LINAGE FILE THE DELIMITER IS THE WRITE'S OWN ONE-LINE ADVANCE, not a delimiter that happens
+    /// to look like one. §14.9.51.4 GR25 makes an omitted ADVANCING phrase a one-line advance and §13.18.34.4
+    /// GR7 c) 3 advances the counter by one for it, so the "newline" this write emits is the device travelling
+    /// one line on the logical page — which means it may instead be a page transition, and it may be preceded by
+    /// the page's top margin. Emitting it as a bare <c>WriteLine</c> is what let a LINE SEQUENTIAL LINAGE file
+    /// ignore its margins while the record-sequential twin (rerouted to <see cref="WriteAdvancing"/>) was fixed:
+    /// the two-arm dispatch with one arm fixed (kb/Work PB523).</para>
+    /// <para>The travel happens BEFORE <see cref="ReleaseRecord"/> flushes, so the record reaches the medium
+    /// delimited — §14.9.51.4 GR12's release is of a whole record, and a sharing sibling shall not meet a line
+    /// with no terminator.</para></summary>
+    private void EmitLineSequentialRecord(string data, LinagePage? page)
+    {
+        if (page is null || !HasLogicalPage) { EmitRecordLine(data); return; }
+        Present(data, page);
+        Position(1, page);
     }
 
     /// <summary>Print-control <c>WRITE record [BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> (ISO §14.9.51.4
     /// GR25): for
     /// AFTER, advance then write the trimmed image; for BEFORE, write then advance. <paramref name="lines"/> = -1
-    /// means ADVANCING PAGE (a form feed). The leading/trailing newline structure matches the legacy print stream.</summary>
+    /// means ADVANCING PAGE — a form feed on a file with no LINAGE clause (GR25 h), a reposition to the next
+    /// logical page on one that has (GR25 g). The leading/trailing newline structure matches the legacy print
+    /// stream; the LOGICAL-page geometry lives in <see cref="Position"/> and <see cref="Present"/>.</summary>
     public string WriteAdvancing(string image, int lines, bool before, LinagePage? page)
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
@@ -741,8 +890,12 @@ public sealed class SequentialConnector : FileConnector
         if (RecordAreaOutsideLineCharacterSet(image)) return Status = FileStatusCode.LineRecordInvalidChar;
         _afterAdvancing = true;
         string text = PrintSafe(TrimRecordEnd(image));
-        if (before) { EmitRecord(text); Advance(lines); }
-        else { Advance(lines); EmitRecord(text); }
+        // §14.9.51.4 GR25 e)/f) — the ONE advance, placed before or after the presentation by the statement's
+        // own word. On a LINAGE file both halves travel the LOGICAL page (GR25 g), GR26 a)); on any other print
+        // file they are the plain stream. The pair is written once, and the page-awareness lives inside
+        // Present/Position, so a future arm cannot get the placement right and the geometry wrong.
+        if (before) { Present(text, page); Position(lines, page); }
+        else { Position(lines, page); Present(text, page); }
         // §14.9.51.4 GR12 — "The successful execution of a WRITE statement releases a logical record to the
         // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
         // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Released HERE and not
@@ -750,10 +903,9 @@ public sealed class SequentialConnector : FileConnector
         // count; kb/Work PB739 made it a RELEASE — the flush and the shared mint — in every write arm:
         // three of them then, TWO since kb/Work PB712 deleted `WriteBeforeAndAfter`).
         ReleaseRecord();
-        // The LINAGE counter advances as part of the write, AFTER the physical presentation (the legacy
-        // ordering): an AT END-OF-PAGE branch then reads the POST-advance counter of the triggering write
-        // (§13.18.34 GR7c; SQ201M's footing lines print line 45).
-        if (page is { } pg) AdvanceLinageCounter(lines, pg);
+        // The LINAGE counter advanced with the device, inside Position() above — one decision, not two — so an
+        // AT END-OF-PAGE branch reads the POST-advance counter of the triggering write whichever side of the
+        // presentation the advance fell on (§13.18.34 GR7c; SQ201M's footing lines print line 45).
         return Status = FileStatusCode.Success;
     }
 
@@ -788,9 +940,20 @@ public sealed class SequentialConnector : FileConnector
     /// <summary>— and the line sequential twin: the record's data converted, its delimiter native.</summary>
     private void EmitRecordLine(string data) => _writer!.WriteLine(ToMedium(data));
 
+    /// <summary>The print stream's own advance: <paramref name="lines"/> lines, or a form feed for ADVANCING
+    /// PAGE. ⛔ The form feed is §14.9.51.4 GR25 h) — <i>"If PAGE is specified and the LINAGE clause is NOT
+    /// specified"</i> — so this arm is reached only for a file with no logical page; a LINAGE file's ADVANCING
+    /// PAGE is GR25 g) and goes through <see cref="BeginNextLogicalPage"/>.</summary>
     private void Advance(int lines)
     {
-        if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE
+        if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
+        AdvanceLines(lines);
+    }
+
+    /// <summary>Move the device down <paramref name="lines"/> lines (never negative) — the one place a blank
+    /// line reaches the medium, so a margin line, a page-fill line and an ADVANCING line are the same byte.</summary>
+    private void AdvanceLines(int lines)
+    {
         for (int i = 0; i < lines; i++) _writer!.Write("\r\n");
     }
 

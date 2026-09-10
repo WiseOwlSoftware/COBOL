@@ -10,9 +10,20 @@ namespace CobolNet.Tests.Conformance;
 /// end-of-page discrimination, and the GR6b data-name re-evaluation timing. Every behavioral test here is
 /// SPEC-PINNED (expected values derived from the cited rules, not the legacy oracle): the legacy evaluates
 /// LINAGE data-names ONLY at OPEN OUTPUT — a verified hole vs §13.18.34 GR6b2/GR6b3 (the SQ208M/SQ210M golden
-/// re-baselines) — so it cannot be the authority for this subsystem. The physical stream is counter-only
-/// (§13.18.34 GR8 — pages are contiguous, no margin spacing), so the observable surface is the LINAGE-COUNTER
-/// register and the END-OF-PAGE branches, DISPLAYed to stdout.
+/// re-baselines) — so it cannot be the authority for this subsystem.
+///
+/// <para>⛔ THE OBSERVABLE SURFACE IS TWO SURFACES, AND FOR YEARS THIS CLASS HAD ONLY ONE. Most tests here read
+/// the LINAGE-COUNTER register and the END-OF-PAGE branches through stdout; that is blind to WHERE ON THE MEDIUM
+/// a record lands, and the class comment used to state the blindness as a property of the FEATURE — "the physical
+/// stream is counter-only (§13.18.34 GR8 — pages are contiguous, no margin spacing)". It is not. §13.18.34.4 GR1
+/// makes the logical page the SUM of top margin + page body + bottom margin, GR4/GR5 name those margins as lines
+/// OF that page, and GR8's "no additional spacing" forbids spacing BEYOND the logical page rather than deleting
+/// the margins the page contains; §14.9.51.4 GR25 g) then repositions an ADVANCING PAGE write to the next logical
+/// page instead of emitting a form feed. Under the counter-only reading GR4 and GR5 had no content at all, and
+/// `LINES AT TOP` / `LINES AT BOTTOM` changed no byte of the output for the whole life of the connector while
+/// every test here stayed green (kb/Work PB523). The <c>Bytes_*</c> tests below close that hole: they assert the
+/// BYTES of the produced file through <see cref="CobolNetCompiler.CompileRunAndReadFile"/>, and a counter-only
+/// implementation cannot pass one of them.</para>
 /// </summary>
 public sealed class LinageConformanceTests
 {
@@ -50,6 +61,190 @@ public sealed class LinageConformanceTests
             MOVE SPACE TO P-REC.
         {proc}
         """;
+
+    // ── The BYTES on the medium (§13.18.34.4 GR1/GR4/GR5/GR8, §14.9.51.4 GR25 g)/GR26 a)) ─────────────────
+
+    /// <summary>The same compiler as <see cref="CobolNet"/>, typed concretely so the file-reading entry is
+    /// reachable — <see cref="ICompilerUnderTest"/> is the DIFFERENTIAL contract (both engines implement it) and
+    /// a run-directory read is a greenfield-only capability.</summary>
+    private static readonly CobolNetCompiler CobolNetBytes = new();
+
+    /// <summary>…and at the shipping default edition, for the one fixture that needs a post-85 construct:
+    /// ORGANIZATION IS LINE SEQUENTIAL is COBOL-2023 (§12.4.5.10.3; COBOLNET0900 rejects it at --std 85). The
+    /// LINAGE rules under test are identical across all four editions, so the arm is exercised where it exists.</summary>
+    private static readonly CobolNetCompiler CobolNetBytes2023 = new(2023);
+
+    /// <summary>Compile-and-run, then assert the EXACT bytes the program left on the medium. The expected string
+    /// is written with explicit <c>\r\n</c> because the physical newline of this connector is CRLF on every host
+    /// (the writer sets <c>NewLine = "\r\n"</c>), so a margin line, a page-fill line and an ADVANCING line are
+    /// the same two bytes everywhere.</summary>
+    private static void AssertBytes(string source, string fileName, string expected, int edition = 85)
+    {
+        var (ok, _, detail, bytes) =
+            (edition == 85 ? CobolNetBytes : CobolNetBytes2023).CompileRunAndReadFile(source, fileName);
+        Assert.True(ok, $"COBOL.NET failed: {detail}");
+        Assert.NotNull(bytes);
+        Assert.Equal(expected, System.Text.Encoding.Latin1.GetString(bytes!));
+    }
+
+    /// <summary>A LINAGE print program over one file: <paramref name="assign"/> is both the ASSIGN literal and
+    /// the host file name, <paramref name="org"/> an ORGANIZATION phrase (or empty).</summary>
+    private static string BytesProgram(string programId, string assign, string org, string fdClauses, string proc)
+        => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {programId}.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT LPF ASSIGN TO "{assign}"{org}.
+        DATA DIVISION.
+        FILE SECTION.
+        FD LPF
+            {fdClauses}.
+        01 P-REC PIC X(4).
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+            OPEN OUTPUT LPF.
+        {proc}
+            CLOSE LPF.
+            STOP RUN.
+        """;
+
+    [Fact]
+    // ⛔ THE TOP AND BOTTOM MARGINS ARE LINES OF THE LOGICAL PAGE, ON THE MEDIUM (kb/Work PB523).
+    // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2. Derivation, entirely from §13.18.34.4:
+    //   GR1  logical page size = 3 + 2 + 2 = 7 lines ("the sum of the values referenced by each phrase except
+    //        the FOOTING phrase"), so page 1 is physical lines 1-7 and — GR8, "each logical page is contiguous
+    //        to the next with no additional spacing provided" — page 2 begins at physical line 8.
+    //   GR4  top margin = 3 lines: page-1 physical lines 1-3, page-2 lines 8-10.
+    //   GR2  page body = 2 writable lines: page-1 physical 4-5 (body lines 1-2), page-2 physical 11-12.
+    //   GR5  bottom margin = 2 lines: page-1 physical 6-7.
+    //   GR7d counter := 1 at OPEN OUTPUT (device at body line 1).
+    // W1 AFTER ADVANCING 1 (§14.9.51.4 GR25 f) advance then present, GR7 c) 2 counter += 1): counter 1→2, so
+    //    AAAA is on page-1 body line 2 = physical line 5.
+    // W2: counter would be 3, past the page size — §14.9.51.4 GR26 a) page overflow, AFTER phrase, so "the
+    //    device is repositioned to the first line that may be written on the next logical page and the logical
+    //    record is presented on that line": page-2 body line 1 = physical line 11. GR7 c) 4 resets the counter.
+    // W3: counter 1→2 ⇒ page-2 body line 2 = physical line 12.
+    // Five blank lines therefore separate AAAA from BBBB (page-1 bottom margin 2 + page-2 top margin 3) — the
+    // exact quantity a counter-only implementation writes as one.
+    public void Bytes_TopAndBottomMarginsAreLinesOfTheLogicalPage()
+        => AssertBytes(BytesProgram("LNGBY1", "lngby1.prt", "", "LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+                MOVE "CCCC" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+            """), "lngby1.prt",
+            "\r\n\r\n\r\n\r\nAAAA\r\n\r\n\r\n\r\n\r\n\r\nBBBB\r\nCCCC\r\n");
+
+    [Fact]
+    // ⛔ ZERO MARGINS ARE THE IDENTITY — the same program with no TOP/BOTTOM phrase produces the print stream
+    // it always produced. §13.18.34.4 GR1: "If the LINES AT TOP or LINES AT BOTTOM phrases are not specified,
+    // the values of these items are zero", so the logical page is 0 + 2 + 0 and every page transition costs
+    // exactly the one line GR8 makes it. This is the regression guard for the whole print corpus: the margin
+    // model may not add a byte to a file that declared no margins.
+    public void Bytes_NoMarginPhrases_LeaveThePrintStreamUnchanged()
+        => AssertBytes(BytesProgram("LNGBY2", "lngby2.prt", "", "LINAGE IS 2 LINES", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+                MOVE "CCCC" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+            """), "lngby2.prt",
+            "\r\nAAAA\r\nBBBB\r\nCCCC\r\n");
+
+    [Fact]
+    // ⛔ ADVANCING PAGE ON A LINAGE FILE IS A REPOSITION, NEVER A FORM FEED. §14.9.51.4 GR25 g): "If PAGE is
+    // specified and the LINAGE clause is specified in the associated file description entry, the record is
+    // presented on the logical page before or after (depending on the phrase used) the device is repositioned
+    // to the next logical page. The repositioning is to the first line that may be written on the next logical
+    // page as specified in the LINAGE clause." The form feed is GR25 h), the arm for a file with NO LINAGE.
+    // FD: LINAGE IS 3 LINES LINES AT TOP 2 LINES AT BOTTOM 1 ⇒ logical page = 6 (GR1); page 1 = physical 1-6,
+    // page 2 = 7-12 with top margin 7-8 and body 9-11 (GR2/GR4/GR5/GR8).
+    // W1 AFTER ADVANCING PAGE: the device leaves page-1 body line 1 (GR7 d) and is repositioned to page-2 body
+    //    line 1 = physical line 9; AAAA is presented there (AFTER ⇒ reposition then present, GR25 f)/g)).
+    // W2 AFTER ADVANCING 1: counter 1→2 ⇒ page-2 body line 2 = physical line 10.
+    // Eight leading blank lines and not one 0x0C anywhere.
+    public void Bytes_AdvancingPage_RepositionsToTheNextLogicalPage_NotAFormFeed()
+        => AssertBytes(BytesProgram("LNGBY3", "lngby3.prt", "", "LINAGE IS 3 LINES LINES AT TOP 2 LINES AT BOTTOM 1", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC AFTER ADVANCING PAGE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+            """), "lngby3.prt",
+            "\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nAAAA\r\nBBBB\r\n");
+
+    [Fact]
+    // §14.9.51.4 GR25 g)'s OTHER half — "the record is presented on the logical page BEFORE ... the device is
+    // repositioned": BEFORE ADVANCING PAGE prints on the page it is standing on and only then leaves it. Same
+    // FD as above (logical page 6 = 2 + 3 + 1).
+    // W1 BEFORE ADVANCING PAGE: AAAA is presented at page-1 body line 1 = physical line 3 (the top margin, GR4,
+    //    reaches the medium ahead of it), then the device is repositioned to page-2 body line 1 = physical 9.
+    // W2 AFTER ADVANCING 1: counter 1→2 ⇒ page-2 body line 2 = physical line 10, so six blank lines separate
+    //    them — page-1 body lines 2-3 unwritten, its bottom margin (1), page-2's top margin (2).
+    public void Bytes_BeforeAdvancingPage_PresentsOnTheCurrentPageThenRepositions()
+        => AssertBytes(BytesProgram("LNGBY4", "lngby4.prt", "", "LINAGE IS 3 LINES LINES AT TOP 2 LINES AT BOTTOM 1", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING PAGE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+            """), "lngby4.prt",
+            "\r\n\r\nAAAA\r\n\r\n\r\n\r\n\r\n\r\n\r\nBBBB\r\n");
+
+    [Fact]
+    // §14.9.51.4 GR26 a)'s OTHER ordering, the one only a BEFORE phrase reaches: "If the BEFORE phrase is
+    // specified, the logical record is presented and the device is repositioned to the first line that may be
+    // written on the next logical page." The AFTER arm can never show this, because it repositions first and so
+    // never presents on the LAST line of a page body.
+    // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2 (page 1 = physical 1-7, page 2 starts at 8).
+    // W1 BEFORE ADVANCING 1: AAAA is presented where the device stands — page-1 body line 1 = physical 4, behind
+    //    the top margin (GR4) — then the counter/device advance to body line 2.
+    // W2: BBBB is presented on page-1 body line 2 = physical 5, and only THEN does its advance overflow
+    //    (GR26 a)) across the bottom margin and the next top margin.
+    // W3: CCCC on page-2 body line 1 = physical 11.
+    // ⚠ THE FINAL CR LF PAIR IS NOT DERIVED FROM THE STANDARD, and this green test is not an endorsement of it:
+    // CCCC's own BEFORE advance already terminated physical line 11, and <c>SequentialConnector.CloseCore</c>
+    // then writes the print stream's closing newline unconditionally on any connector that has seen a
+    // print-control WRITE (`_afterAdvancing`), so a file whose LAST write carried a BEFORE phrase ends with one
+    // blank line the program never travelled. It is invisible to every other gate (both the NIST and the corpus
+    // comparison bases end with TrimEnd('\n')) and it is a DIFFERENT mechanism from this one — the flag answers
+    // two questions at once, "is this a print file" and "is the current line unterminated" — so it is recorded
+    // as its own finding rather than changed here, and the byte string below states what the compiler does.
+    public void Bytes_OverflowWithBeforePhrase_PresentsThenRepositions()
+        => AssertBytes(BytesProgram("LNGBY6", "lngby6.prt", "", "LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING 1 LINE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING 1 LINE.
+                MOVE "CCCC" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING 1 LINE.
+            """), "lngby6.prt",
+            "\r\n\r\n\r\nAAAA\r\nBBBB\r\n\r\n\r\n\r\n\r\n\r\nCCCC\r\n\r\n");
+
+    [Fact]
+    // ⛔ THE SECOND ARM OF THE WRITE DISPATCH — a LINE SEQUENTIAL LINAGE file gets the SAME logical page. This is
+    // the arm kb/Work PB523 found unfixed while its record-sequential twin was fixed: a plain WRITE there emitted
+    // the record and a bare newline, so the margins never reached a line sequential medium. §14.9.51.4 GR25 makes
+    // an omitted ADVANCING phrase a one-line advance and §13.18.34.4 GR7 c) 3 adds one to the counter, so that
+    // newline IS the device travelling one line on the logical page.
+    // FD: LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2 (page 1 = physical 1-7, page 2 starts at 8).
+    // A plain WRITE presents on the line the device is standing on and then advances (§14.9.51.4 GR25 e)), so
+    // AAAA lands on page-1 body line 1 = physical 4, BBBB on body line 2 = physical 5, its advance overflows
+    // (GR26 a)) to page-2 body line 1 = physical 11, and CCCC lands there.
+    public void Bytes_LineSequentialLinageFile_GetsTheSameMargins()
+        => AssertBytes(BytesProgram("LNGBY5", "lngby5.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL",
+            "LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC.
+                MOVE "CCCC" TO P-REC.
+                WRITE P-REC.
+            """), "lngby5.prt",
+            "\r\n\r\n\r\nAAAA\r\nBBBB\r\n\r\n\r\n\r\n\r\n\r\nCCCC\r\n", edition: 2023);
 
     // ── GR7 counter rules (§13.18.34 GR7c1–c4 / GR7d) ─────────────────────────────────────────────────────
 

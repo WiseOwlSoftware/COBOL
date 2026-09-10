@@ -134,6 +134,37 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
         finally { CutRunner.TryDelete(dir); }
     }
 
+    /// <summary>Compile and run <paramref name="source"/>, then return the RAW BYTES the program left in
+    /// <paramref name="fileName"/> inside its run directory — the physical medium, before any line-ending or
+    /// trailing-space normalization.
+    ///
+    /// <para>⛔ THIS IS THE ONLY WAY TO ASSERT A PHYSICAL FILE LAYOUT. <see cref="CompileAndRun"/> deletes the
+    /// run directory in its <c>finally</c>, so every test written through it can observe a program only through
+    /// stdout — and a rule about WHERE ON THE MEDIUM a record lands (ISO §13.18.34.4 GR4/GR5 margins, §14.9.51.4
+    /// GR25 g)'s reposition-not-form-feed) is invisible there. kb/Work PB523 is the defect that proves it: the
+    /// LINAGE margins were evaluated and discarded for the whole life of the connector while every LINAGE test
+    /// stayed green, because they all read LINAGE-COUNTER and never the file.</para></summary>
+    /// <returns><c>bytes</c> is null when the program did not create the file.</returns>
+    public (bool ok, string stdout, string detail, byte[]? bytes) CompileRunAndReadFile(string source, string fileName)
+    {
+        string dir = CutRunner.NewTempDir("cn");
+        try
+        {
+            string src = Path.Combine(dir, "prog.cob");
+            string dll = Path.Combine(dir, "prog.dll");
+            File.WriteAllText(src, source);
+
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            if (!result.Success)
+                return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}", null);
+
+            var (ok, stdout, detail) = CutRunner.Run(dll, dir);
+            string produced = Path.Combine(dir, fileName);
+            return (ok, stdout, detail, File.Exists(produced) ? File.ReadAllBytes(produced) : null);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
     /// <summary>Compile each of <paramref name="companions"/> into its OWN assembly beside
     /// <paramref name="source"/>, then compile and run <paramref name="source"/> — the SEPARATELY COMPILED
     /// module case, resolved at run time by <c>ProgramTable</c>'s sibling-module probe (§8.4.6.3 rule 4).
