@@ -1559,6 +1559,12 @@ internal sealed class VersionConformancePass
         public override object? VisitSetLastExceptionStatement(CobolParserCore.SetLastExceptionStatementContext ctx)
         { _p.Check(Constructs.SetLastException2002, "SET LAST EXCEPTION TO OFF"); return base.VisitChildren(ctx); }
 
+        /// <summary>SET CONTENT OF … TO … (ISO §14.9.39.2 Format 15, numeric-content) — a COBOL-2014 introduction.
+        /// A RECOGNITION gate, not a semantic one: the statement is self-identifying from its own grammar rule, so a
+        /// below-edition occurrence names its edition even when the statement would also fail SR31/SR32.</summary>
+        public override object? VisitSetContentStatement(CobolParserCore.SetContentStatementContext ctx)
+        { _p.Check(Constructs.SetNumericContent2014, "the SET CONTENT OF … TO … statement (numeric-content, Format 15)"); return base.VisitChildren(ctx); }
+
         /// <summary>The statement-level RAISING phrase (ISO §14.9.18.2 / §14.9.14.2 F2 — the ONE rule GOBACK and
         /// the EXIT forms share) — 2002+ exception propagation. Distinct from the PROCEDURE DIVISION header
         /// RAISING clause (<c>raisingClause</c> → procedure-raising-2002).</summary>

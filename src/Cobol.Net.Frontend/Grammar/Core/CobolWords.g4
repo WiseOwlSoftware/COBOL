@@ -51,8 +51,12 @@ cobolWord
     | {userWordHere("EVERY")}? EVERY
     | {userWordHere("EXCLUSIVE-OR")}? EXCLUSIVE_OR
     | {userWordHere("FACTORY")}? FACTORY
+    | {userWordHere("FARTHEST-FROM-ZERO")}? FARTHEST_FROM_ZERO
     | FLOAT_BINARY
     | FLOAT_DECIMAL
+    | {userWordHere("FLOAT-INFINITY")}? FLOAT_INFINITY
+    | {userWordHere("FLOAT-NOT-A-NUMBER")}? FLOAT_NOT_A_NUMBER
+    | {userWordHere("FLOAT-NOT-A-NUMBER-SIGNALING")}? FLOAT_NOT_A_NUMBER_SIGNALING
     | FOREGROUND_COLOR
     | FOREVER
     | {userWordHere("FORMAT")}? FORMAT
@@ -67,12 +71,14 @@ cobolWord
     | IMPLEMENTS
     | {userWordHere("INTERFACE")}? INTERFACE
     | INTERMEDIATE
+    | {userWordHere("IN-ARITHMETIC-RANGE")}? IN_ARITHMETIC_RANGE
     | LENGTH
     | {userWordHere("LOCATION")}? LOCATION
     | LOWLIGHT
     | MANUAL
     | {userWordHere("MESSAGE")}? MESSAGE
     | NATIONAL
+    | {userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
     | NORMAL
     | NUMBERS
     | ONLY
@@ -148,13 +154,19 @@ reservedGatedWord
     | {!userWordHere("EVERY")}? EVERY
     | {!userWordHere("EXCLUSIVE-OR")}? EXCLUSIVE_OR
     | {!userWordHere("FACTORY")}? FACTORY
+    | {!userWordHere("FARTHEST-FROM-ZERO")}? FARTHEST_FROM_ZERO
+    | {!userWordHere("FLOAT-INFINITY")}? FLOAT_INFINITY
+    | {!userWordHere("FLOAT-NOT-A-NUMBER")}? FLOAT_NOT_A_NUMBER
+    | {!userWordHere("FLOAT-NOT-A-NUMBER-SIGNALING")}? FLOAT_NOT_A_NUMBER_SIGNALING
     | {!userWordHere("FORMAT")}? FORMAT
     | {!userWordHere("FUNCTION-POINTER")}? FUNCTION_POINTER
     | {!userWordHere("GET")}? GET
     | {!userWordHere("GROUP-USAGE")}? GROUP_USAGE
     | {!userWordHere("INTERFACE")}? INTERFACE
+    | {!userWordHere("IN-ARITHMETIC-RANGE")}? IN_ARITHMETIC_RANGE
     | {!userWordHere("LOCATION")}? LOCATION
     | {!userWordHere("MESSAGE")}? MESSAGE
+    | {!userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
     | {!userWordHere("ORDER")}? ORDER
     | {!userWordHere("OVERRIDE")}? OVERRIDE
     | {!userWordHere("PADDING")}? PADDING

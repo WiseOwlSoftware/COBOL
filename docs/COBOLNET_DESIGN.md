@@ -1049,6 +1049,18 @@ result does not feed it — decision 20.
   OCCURS → a for-loop).
 - **SET** = dispatch by target kind (index→long, pointer→`ManagedPointer`/NULL, switch→bool, cond-name TO TRUE→store
   the 88's first VALUE) — depends on the §3.5 88/INDEXED-BY binding.
+  **Format 15 (numeric-content, §14.9.39.2, 2014) is a STATEMENT SURFACE OVER AN EXISTING COMPUTATION, not a new
+  value calculator** (kb/Work PB452). `SET CONTENT OF x … TO FARTHEST-FROM-ZERO / NEAREST-TO-ZERO` names exactly the
+  quantity §15.43/§15.58/§15.83's HIGHEST-/LOWEST-/SMALLEST-ALGEBRAIC name — Annex D.32 says so outright — so the
+  extremes live in **ONE evaluator, `AlgebraicRanges.Of`** (`Binding/AlgebraicRange.cs`), and both surfaces read it;
+  the `AlgebraicRange` record carries `Farthest` / `FarthestNegative` / `Nearest` / `Zero` because the two surfaces
+  select *different* members of the same computation (an unsigned item's LOWEST-ALGEBRAIC is 0, but its
+  FARTHEST-FROM-ZERO SIGN NEGATIVE is its magnitude negated). The whole statement folds at BIND time to one store
+  per receiver: a numeric literal through the ONE MOVE path for GR32/GR36, and a bit-exact carrier write for
+  GR33–GR35's infinity and NaNs, whose encodings and A.1 item 176 payload live in `IeeeSpecials`. The
+  IN-ARITHMETIC-RANGE clamp compares against `ArithmeticModes.IntermediateExtremes` — a table distinct from
+  `IntermediateExponentRange`, which is a decade BOUND for a screen and would store an unrepresentable value if
+  used here.
 - **ACCEPT/DISPLAY system sources** = a `CobolSystem` runtime with an INJECTABLE clock (DATE/DAY/TIME/DAY-OF-WEEK/
   YYYYMMDD/YYYYDDD; DAY-OF-WEEK remap `((int)DayOfWeek + 6) % 7 + 1` = 1=Mon..7=Sun) + console UPON SYSOUT/SYSERR.
 - **ALPHABET/CLASS/CURRENCY/DECIMAL-POINT IS COMMA** = a SPECIAL-NAMES config object threaded into emit (mostly

@@ -960,6 +960,37 @@ public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCap
 /// explicit SIZE OF form and the bare re-routed form.</summary>
 public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit, bool CheckStorage) : BoundStatement;
 
+/// <summary>One receiving operand of a Format-15 SET, with the content computed FOR IT (ISO §14.9.39.4 GR32–GR36
+/// each say "the content of identifier-14 is set …", and every value they name is a property of that receiver's own
+/// data description — so a statement with several receivers stores a DIFFERENT value into each).</summary>
+/// <param name="Target">One occurrence of identifier-14.</param>
+/// <param name="Store">The implicit elementary MOVE that deposits GR32/GR36's extreme of <paramref name="Target"/>'s
+/// own description (already carrying its sign, GR32 c / GR36 c) into it — the ONE store path, so conversion,
+/// truncation and an unsigned receiver's sign drop are the ordinary store rules and not a second copy of them.
+/// ⛔ BUILT AT BIND TIME like every other <see cref="BoundMove"/> (kb/Work PB348): a move constructed in the
+/// emitter is downstream of the storage facts codegen itself consumes. Null exactly when <paramref name="Ieee"/>
+/// is set.</param>
+/// <param name="Ieee">WHICH canonical value GR33/GR34/GR35 names — an infinity, a quiet NaN or a signaling NaN.
+/// None of the three can be spelled by any COBOL numeric literal, so this arm writes the receiver's carrier
+/// directly instead of routing through a numeric store; §14.9.39.3 SR32 has already confined that carrier to a
+/// standard floating-point usage, i.e. to the ISO/IEC 60559:2020 basic interchange format the rules name.
+/// ⛔ The ENUM rides here, not the backend expression: a bound node states what the standard requires, and how
+/// to spell an infinity is the code generator's question (a second backend behind <c>ICodeGenBackend</c> spells
+/// it differently). <c>IeeeSpecials.Text</c> does the spelling. Null exactly when <paramref name="Store"/> is
+/// set.</param>
+/// <param name="NegativeSign">GR33/GR34/GR35's own last sentence — the SIGN phrase's sign, false when the phrase
+/// is absent ("otherwise the sign is positive"). Meaningless, and always false, on a <paramref name="Store"/>
+/// arm, whose sign is already inside the literal the binder computed.</param>
+public sealed record SetContentStore(Place Target, BoundMove? Store, IeeeSpecial? Ieee, bool NegativeSign = false);
+
+/// <summary><c>SET CONTENT OF identifier-14 … TO { FARTHEST-FROM-ZERO | NEAREST-TO-ZERO } [IN-ARITHMETIC-RANGE]
+/// [SIGN …]</c> / <c>… TO { FLOAT-INFINITY | FLOAT-NOT-A-NUMBER | FLOAT-NOT-A-NUMBER-SIGNALING } [SIGN …]</c>
+/// (ISO §14.9.39.2 Format 15, numeric-content; COBOL-2014 — kb/Work PB452). Every value is a compile-time property
+/// of the receiver's data description and the arithmetic mode, so the whole statement resolves at BIND time to one
+/// store per receiver; a self-identifying node whose edition gate fires on RECOGNITION in the ParseArm
+/// (set-numeric-content-2014), not here.</summary>
+public sealed record BoundSetContent(IReadOnlyList<SetContentStore> Stores) : BoundStatement;
+
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 
 /// <summary>One WHEN arm of a serial SEARCH: its condition and imperative statements (evaluated in source order;

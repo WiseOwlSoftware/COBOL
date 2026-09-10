@@ -950,7 +950,10 @@
   "pb393-move-varlen-position-mismatch",
   "pb528-picture-composition",
   "pb528-picture-precedence",
-  "pb528-picture-composition-decimal-comma"
+  "pb528-picture-composition-decimal-comma",
+  "pb452-set-content-sign-required",
+  "pb452-set-content-numeric-edited",
+  "pb452-set-content-not-standard-float"
  ],
  "pending": []
 }

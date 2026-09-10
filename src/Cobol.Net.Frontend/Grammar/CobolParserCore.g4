@@ -1293,6 +1293,7 @@ setStatement
     : setLocaleStatement          // F11/F12 (A.4.9 item 9) — FIRST: predicated on the LOCALE word, so no other form can claim it (kb/Work PB92)
     | setScreenAttributeStatement // F6 (A.4.2 item 24) — predicated on the ATTRIBUTE word, refused by name at bind (COBOLNET1707)
     | setLastExceptionStatement
+    | setContentStatement       // F15 (numeric-content) — CONTENT is a reserved token, so no other form can claim it
     | setSwitchStatement
     | setEntryStatement
     | setSizeStatement
@@ -1338,6 +1339,34 @@ setEntryStatement
 // token (never a dataReference head), so no other SET form can claim the prefix.
 setLastExceptionStatement
     : SET LAST EXCEPTION TO OFF
+    ;
+
+// SET CONTENT OF { identifier-14 } … TO { FARTHEST-FROM-ZERO [IN-ARITHMETIC-RANGE] | FLOAT-INFINITY |
+// FLOAT-NOT-A-NUMBER | FLOAT-NOT-A-NUMBER-SIGNALING | NEAREST-TO-ZERO [IN-ARITHMETIC-RANGE] } [SIGN {NEGATIVE |
+// POSITIVE}] (ISO §14.9.39.2 Format 15, numeric-content; COBOL-2014 — kb/Work PB452). Transcribed against the
+// PRINTED general format (folio 732, rendered at 300 dpi): the outer brace of the value list is a PLAIN required
+// choice with NO choice indicators — exactly one alternative — and each SIGN phrase is an optional bracket over a
+// required NEGATIVE/POSITIVE choice, so it is factored out here rather than repeated five times.
+// ⛔ OF IS AN OPTIONAL WORD, on the SAME evidence as Format 7's and Format 16's (kb/Work PB695): the figure
+// underlines SET, CONTENT and TO and leaves OF bare, and §5.2.3 makes an unstressed reserved word optional. CONTENT
+// is a reserved token at every edition (CALL … BY CONTENT is COBOL-85) and can never head a dataReference, so
+// `SET CONTENT X TO …` stays unambiguous against setToValueStatement with or without the word.
+// ⚠ The five value words are NOT reserved below 2014, so each is also a cobolWord alternative under the derived
+// reservation gate; that costs this rule nothing, because the words appear here in KEYWORD position where the
+// alternative is chosen by token type. The FORMAT ITSELF is introduction-gated at BIND (SetBinder.BindSetContent →
+// ConstructRegistry.Check(SetNumericContent2014)) — a parse-level gate would answer a 2002 program with a raw
+// ANTLR cascade instead of naming the edition.
+setContentStatement
+    : SET CONTENT OF? dataReference+ TO setContentValue
+    ;
+
+setContentValue
+    : (FARTHEST_FROM_ZERO | NEAREST_TO_ZERO) IN_ARITHMETIC_RANGE? setContentSign?
+    | (FLOAT_INFINITY | FLOAT_NOT_A_NUMBER | FLOAT_NOT_A_NUMBER_SIGNALING) setContentSign?
+    ;
+
+setContentSign
+    : SIGN (NEGATIVE | POSITIVE)
     ;
 
 // SET mnemonic-name+ TO {ON | OFF} (COBOL-85 §14.9.39 Format 3)

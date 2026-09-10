@@ -129,4 +129,60 @@ public sealed class ArithmeticModeTableTests
             "the SDIDI exponent bound is written down outside ArithmeticModes.IntermediateExponentRange: "
             + string.Join(", ", offenders));
     }
+
+    // ── kb/Work PB452 — the mode's intermediate EXTREME VALUES (SET format 15, §14.9.39.4 GR32 b / GR36 b) ──
+
+    [Fact]
+    public void IntermediateExtremes_AreTotalOverEveryArithmeticMode()
+    {
+        foreach (ArithmeticMode mode in Enum.GetValues<ArithmeticMode>())
+        {
+            var (far, near) = ArithmeticModes.IntermediateExtremes(mode);   // throws for an unmapped mode
+            Assert.False(string.IsNullOrWhiteSpace(far));
+            Assert.False(string.IsNullOrWhiteSpace(near));
+            // A magnitude, never a signed value: GR32 c / GR36 c apply the sign separately.
+            Assert.NotEqual('-', far[0]);
+            Assert.NotEqual('-', near[0]);
+        }
+    }
+
+    [Fact]
+    public void IntermediateExtremes_AgreeWithTheDecadeBoundsTheyAreNot()
+    {
+        // ⛔ THE TWO TABLES ANSWER DIFFERENT QUESTIONS AND MUST STILL AGREE. IntermediateExponentRange is a
+        // DECADE BOUND for a well-formedness screen; IntermediateExtremes is the representable value itself.
+        // The invariant that ties them: every extreme's own decimal exponent lies within [Closest, Farthest].
+        // It is `<=` at the top, not `<`, because IntermediateExponentRange's own doc comment says the column
+        // is read under two conventions (kb/Work PB194/PB275) — the SDIDI row is a STRICT bound (6145, one
+        // past 9.999…E+6144) while the binary64 row is the maximum's OWN exponent (308, because 9.99E+308 is
+        // not representable and 309 would admit it). Conflating the two tables would store 10^6145 into a
+        // decimal128, a value it cannot hold, which is the mistake this pair is shaped to prevent.
+        foreach (ArithmeticMode mode in Enum.GetValues<ArithmeticMode>())
+        {
+            var (farExp, nearExp) = ArithmeticModes.IntermediateExponentRange(mode);
+            var (far, near) = ArithmeticModes.IntermediateExtremes(mode);
+            Assert.True(Exp10Of(far) <= farExp, $"{mode}: {far} is past 1E{farExp}");
+            Assert.True(Exp10Of(near) >= nearExp, $"{mode}: {near} is below 1E{nearExp}");
+        }
+
+        // floor(log10(|literal|)) from the text alone — no binary float in the path (the values reach 1E±6176).
+        static int Exp10Of(string lit)
+        {
+            int e = lit.IndexOf('E', StringComparison.OrdinalIgnoreCase);
+            int exp = e < 0 ? 0 : int.Parse(lit[(e + 1)..], System.Globalization.CultureInfo.InvariantCulture);
+            string mant = e < 0 ? lit : lit[..e];
+            int dot = mant.IndexOf('.');
+            string digits = dot < 0 ? mant : mant[..dot] + mant[(dot + 1)..];
+            int intDigits = dot < 0 ? mant.Length : dot;
+            int lead = 0;
+            while (lead < digits.Length && digits[lead] == '0') lead++;
+            return exp + intDigits - lead - 1;
+        }
+    }
+
+    [Fact]
+    public void IntermediateExtremes_AreOneEngineForStandardAndStandardDecimal() =>
+        // The PB194 invariant, extended to the new table the moment it exists rather than after it drifts.
+        Assert.Equal(ArithmeticModes.IntermediateExtremes(ArithmeticMode.StandardDecimal),
+            ArithmeticModes.IntermediateExtremes(ArithmeticMode.Standard));
 }

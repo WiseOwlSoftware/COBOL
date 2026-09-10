@@ -260,6 +260,12 @@
    "note": "the FACTORY paragraph (11.4, 2002+): a user word at 85, funnel-0901'd >=2002 (ReservedWords.Table)"
   },
   {
+   "token": "FARTHEST_FROM_ZERO",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
+  },
+  {
    "token": "FLOAT_BINARY",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -270,6 +276,24 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+  },
+  {
+   "token": "FLOAT_INFINITY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
+  },
+  {
+   "token": "FLOAT_NOT_A_NUMBER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
+  },
+  {
+   "token": "FLOAT_NOT_A_NUMBER_SIGNALING",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
   },
   {
    "token": "FOREGROUND_COLOR",
@@ -362,6 +386,12 @@
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
   },
   {
+   "token": "IN_ARITHMETIC_RANGE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
+  },
+  {
    "token": "LENGTH",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -402,6 +432,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "FOR NATIONAL: a context-sensitive user word"
+  },
+  {
+   "token": "NEAREST_TO_ZERO",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
   },
   {
    "token": "NORMAL",

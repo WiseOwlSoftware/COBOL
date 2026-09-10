@@ -156,6 +156,40 @@ public static class ArithmeticModes
         _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no intermediate exponent range for this mode"),
     };
 
+    /// <summary>The mode's intermediate data item's own extreme MAGNITUDES, as exact decimal literal text — "the
+    /// value farthest away from zero permitted by the specifications appropriate to the mode of arithmetic" and
+    /// its nearest-to-zero twin, which ISO §14.9.39.4 GR32 b) and GR36 b) compare an item's extremes against for
+    /// the SET Format 15 IN-ARITHMETIC-RANGE phrase.
+    /// <para>⛔ DISTINCT FROM <see cref="IntermediateExponentRange"/>, and the pair must not be conflated: that
+    /// one is a strict DECADE BOUND for a well-formedness SCREEN (its SDIDI row reads 6145 precisely because no
+    /// representable value has that exponent), so using it as a VALUE would store 10^6145 — a magnitude the
+    /// intermediate cannot hold. These are the representable extremes themselves.</para>
+    /// <para>⚠ EVERY ROW IS CURRENTLY UNREACHABLE AS A CLAMP and is written anyway, exactly as
+    /// <see cref="NumvalDigitCap"/>'s standard-binary row is. GR32 b/GR36 b take whichever bound is closer to /
+    /// farther from zero, and for every data description COBOL.NET can declare today the ITEM's bound wins or
+    /// ties: the widest declarable carrier is binary64, whose extremes ARE the native row below, and the
+    /// standard modes' SDIDI is wider still. The clamp bites the moment a wider carrier lands — a true IEEE
+    /// binary128 <c>FLOAT-BINARY-128</c> reaches 1.19E+4932, past the native intermediate — and then it bites
+    /// automatically rather than needing to be remembered.</para>
+    /// <list type="bullet">
+    /// <item>NATIVE — IEEE binary64 (numeric design D16): ±1.7976931348623157E+308, smallest nonzero (subnormal)
+    /// 4.94…E−324.</item>
+    /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI, §8.8.1.5.2 NOTE 2: ±9.999…E+6144 at 34 digits of precision,
+    /// smallest positive nonzero 1.0E−6176.</item>
+    /// <item>STANDARD-BINARY — the SBIDI, §8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271), smallest positive nonzero
+    /// 2**−16494. Declined at bind (COBOLNET0806), recorded for the same reason as above.</item>
+    /// </list></summary>
+    public static (string Farthest, string Nearest) IntermediateExtremes(ArithmeticMode mode) => mode switch
+    {
+        ArithmeticMode.Native =>
+            ("1.7976931348623157E+308", "4.940656458412465441765687928682214E-324"),
+        ArithmeticMode.Standard or ArithmeticMode.StandardDecimal =>
+            ("9.999999999999999999999999999999999E+6144", "1E-6176"),
+        ArithmeticMode.StandardBinary =>
+            ("1.189731495357231765085759326628007E+4932", "6.475175119438025110924438958227646E-4966"),
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no intermediate extremes for this mode"),
+    };
+
     /// <summary>How a diagnostic NAMES the mode's intermediate data item. Beside the bounds so a message can never
     /// describe a compilation as "native (binary64)" while screening it against the SDIDI's numbers, which is
     /// exactly what the two drifted copies did (kb/Work PB194).</summary>

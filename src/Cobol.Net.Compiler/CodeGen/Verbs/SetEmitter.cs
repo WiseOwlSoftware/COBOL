@@ -14,7 +14,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// <summary>The SET-family emitter (P7 Step 9i — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>): SET … TO / UP-DOWN BY / pointer F4 senders / OCCURS-DYNAMIC capacity /
 /// condition-names TO TRUE, plus the ONE SET-target store/augment pair PERFORM VARYING and SEARCH ride.</summary>
-internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, PtrEmitter ptr)
+internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, PtrEmitter ptr, MoveEmitter move)
 {
     /// <summary><c>SET … TO value</c> (ISO §14.9.39 Format 1): the sender is evaluated ONCE into an integer temp
     /// (GR2 — "the value of the sending operand is determined once"), then each receiver takes it by kind: an
@@ -119,6 +119,36 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         ctx.Writer.Line($"double {amt} = {NumericRenderer.Real(num.Render(s.Amount, ReceiverContext.None))};");
         ctx.Writer.Line(PlaceRenderer.Write(s.Target,
             RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString(), s.CheckStorage ? "true" : "false")));
+    }
+
+    /// <summary>SET CONTENT OF identifier-14 … TO … (ISO §14.9.39.2 Format 15, numeric-content; kb/Work PB452) —
+    /// one store per receiver, each with the content the binder computed for THAT receiver's data description.
+    /// <list type="bullet">
+    /// <item>GR32/GR36 (FARTHEST-FROM-ZERO / NEAREST-TO-ZERO): the extreme is a numeric literal, stored through
+    /// the ONE MOVE path — so conversion, truncation and an unsigned receiver's sign drop are the ordinary store
+    /// rules and not a second copy of them. The <see cref="BoundMove"/> was BUILT BY THE BINDER (kb/Work PB348);
+    /// this only renders it.</item>
+    /// <item>GR33/GR34/GR35 (FLOAT-INFINITY / FLOAT-NOT-A-NUMBER[-SIGNALING]): a bit-exact write of the carrier.
+    /// No numeric store path can carry an infinity or a NaN — CobolNum's store rules are stated over algebraic
+    /// values — and §14.9.39.3 SR32 has already confined the receiver to a STANDARD floating-point usage, so the
+    /// carrier IS the ISO/IEC 60559:2020 basic interchange format GR33-GR35 name. A WINDOWED receiver (Tier-B /
+    /// image-stored) takes its IEEE window bytes, the same shape MoveEmitter's and InitializeEmitter's
+    /// float-receiver arms use, so all three deposit identical bytes into the same window.</item></list></summary>
+    public void EmitSetContent(BoundSetContent s)
+    {
+        foreach (var st in s.Stores)
+        {
+            if (st.Ieee is { } which)
+            {
+                string ieee = IeeeSpecials.Text(which,
+                    single: st.Target.Item.Pic!.Usage is Usage.FloatBinary32, negative: st.NegativeSign);
+                ctx.Writer.Line(PlaceRenderer.Write(st.Target, st.Target.Item.StoreAsImage
+                    ? RuntimeApi.NumFormatImageFloat(ieee, st.Target.Item.ProfileName)
+                    : ieee));
+                continue;
+            }
+            move.Emit(st.Store!);
+        }
     }
 
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an

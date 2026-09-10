@@ -237,5 +237,6 @@ public static partial class ConstructRegistry
         new("report-multi-line-2002", "multiple LINE (report group description)", 2002, null, null, "COBOLNET0900", "ISO §13.18.35 Format 1 SR10/GR9; recognized + edition-gated (ParseArm.VisitReportLineClause), repetition staged 0899"),
         new("user-word-underscore-2002", "the underscore in a COBOL word", 2002, null, null, "COBOLNET0900", "ISO §8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only"),
         new("computer-name-optional-2002", "an OBJECT-COMPUTER clause without computer-name-1", 2002, null, null, "COBOLNET0900", "ISO §12.3.6.2 (OBJECT-COMPUTER: [computer-name-1] before the clause set) — 2002 relaxation of the '85 required-name format; parse-arm gate (VisitObjectComputerParagraph)"),
+        new("set-numeric-content-2014", "SET CONTENT OF n TO FARTHEST-FROM-ZERO", 2014, null, null, "COBOLNET0900", "ISO §14.9.39.2 Format 15; §14.9.39.3 SR31/SR32; §14.9.39.4 GR32-GR36; Annex D.32. Edition: the five value words and IN-ARITHMETIC-RANGE are §8.9-reserved from 2014 (reserved-words.json), and Annex E records no SET-statement change into 2023 beyond E.3.3's dynamic-length item, so the format is a 2014 addition."),
     ];
 }

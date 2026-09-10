@@ -2416,31 +2416,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // like 10^(−scale) for fixed-point (kb/Work PB122: the old blanket refusal claimed the increment
             // was "exponent-dependent, not a PICTURE property" — that confuses ULP-of-a-value with the format
             // minimum, and r4's implementor latitude it leaned on covers only NATIVE arithmetic anyway).
-            // Constants at full decimal128 precision (34 correctly-rounded digits — 2^−149 / 2^−1074); the
-            // MAX fold below keeps R10's adjudicated round-trip grain.
-            if (sig.Name == "SMALLEST-ALGEBRAIC")
-                return new BoundNumLiteral(pic.Usage switch
-                {
-                    Usage.Float or Usage.FloatShort or Usage.FloatBinary32
-                        => "1.401298464324817070923729583289916E-45",
-                    Usage.FloatDecimal16 or Usage.FloatDecimal34 => "1E-28",
-                    _ => "4.940656458412465441765687928682214E-324",
-                });
-            // The greatest finite magnitude of the item's CARRIER (PicInfo.ClrType's mapping — §15.43.4 r2's
-            // "represented in argument-1" is a property of this implementation's representation).
-            string max = pic.Usage switch
-            {
-                Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "3.4028235E+38",
-                Usage.FloatDecimal16 or Usage.FloatDecimal34 => "79228162514264337593543950335",
-                _ => "1.7976931348623157E+308",   // binary64 carrier: COMP-2 / FLOAT-LONG / -EXTENDED / -BINARY-64/128
-            };
-            return new BoundNumLiteral(sig.Name == "LOWEST-ALGEBRAIC" ? "-" + max : max);
+            // The constants themselves are AlgebraicRanges' (kb/Work PB452) — SET format 15 needs the same
+            // three values and a second table would be the same rule written twice.
+            return FoldFrom(sig, pic, AlgebraicRanges.Of(pic, ctx.Data.DecimalPointIsComma));
         }
 
-        // SMALLEST — the smallest positive increment 10^(−scale), independent of digit count / sign / container.
-        if (sig.Name == "SMALLEST-ALGEBRAIC")
-            return new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.One, pic.Scale, negative: false));
-
+        // (SMALLEST needs no early return of its own any more: §15.83.3 r1 admits category numeric ONLY, so the
+        // float-edited screen below cannot fire for it, and its 10^(−scale) increment is one of the three
+        // extremes AlgebraicRanges computes.)
         // A FLOATING-POINT numeric-edited argument-1 (D21/PB66; §15.43.4 r1-r2 / §15.58.4 r1-r2): the extreme is the
         // all-nines significand at the maximum exponent (LOWEST = 0 for an unsigned mask, as the standard's own
         // fixed-point NOTE table shows for `$**,**9.99`); r1 is a WELL-FORMEDNESS condition on the entry — its
@@ -2464,64 +2447,32 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l)");
                 return new BoundExprError($"FUNCTION {sig.Name} floating-point edited argument");
             }
-            if (sig.Name == "LOWEST-ALGEBRAIC" && fm.SigSign == '\0')
-                return new BoundNumLiteral("0");
-            // the extreme in E notation: d nines with the point after intDigits of them, then E+maxExp
-            string nines = new string('9', fm.SigDigits);
-            string mantissa = fm.SigScale > 0 ? nines[..intDigits] + "." + nines[intDigits..] : nines;
-            string lit = $"{(sig.Name == "LOWEST-ALGEBRAIC" ? "-" : "")}{mantissa}E+{fm.MaxExp}";
-            return new BoundNumLiteral(lit);
         }
-        int scale; System.Numerics.BigInteger unscaled; bool signable;
-        if (edited && pic.LocaleEdit is not null)
-        {
-            // A format-2 (LOCALE) argument (§15.43.3 r1 admits numeric-edited; PB64 T6 — the MaskCapacity deref
-            // below was a reachable NRE): capacity = the picture's Z+9 digit positions at the picture's scale;
-            // signable = a '+' in character-string-1 (§13.18.40.5 r13 — the analyzer's Signed).
-            scale = pic.Scale;
-            unscaled = Pow10(pic.DigitPositions) - 1;
-            signable = pic.Signed;
-        }
-        else if (edited)
-        {
-            var (cap, frac) = CobolNet.Runtime.CobolEdit.MaskCapacity(pic.EditMask!, '$', ctx.Data.DecimalPointIsComma);
-            scale = frac;
-            unscaled = Pow10(cap) - 1;   // all-nines over the mask's digit positions (§13.18.40.4)
-            signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0
-                       || pic.EditMask!.Contains("CR") || pic.EditMask!.Contains("DB");
-        }
-        else if (pic.Truncation == CobolNet.Runtime.NumericTruncation.BinaryCapacity)
-        {
-            // ⛔ Keyed on the ONE capacity-discipline table (PicInfo.Truncation) — this branch previously carried
-            // its own usage list (Comp5/BinaryChar/BinaryShort/BinaryLong/BinaryDouble), the same rule written
-            // twice (kb/Work R10, F74's drift-test demand); AlgebraicFoldContainerAgreementTests pins the fold's
-            // bound against the runtime capacity for every BinaryCapacity profile. The UNSIGNED container bound
-            // 2^128−1 (a 16-byte container, §13.18.60.4 GR12) exceeds Int128 — Decimalize's BigInteger arm
-            // renders it and EmitCore.IntLiteralX carries it as a UInt128 literal (F73's crash was this value
-            // forced through Int128.Parse).
-            scale = pic.Scale;
-            int bits = 8 * pic.StorageWidth;   // container width (§13.18.60.4 GR12) — the item owns the full range
-            unscaled = sig.Name == "HIGHEST-ALGEBRAIC"
-                ? (pic.Signed ? (System.Numerics.BigInteger.One << (bits - 1)) - 1 : (System.Numerics.BigInteger.One << bits) - 1)
-                : (pic.Signed ? -(System.Numerics.BigInteger.One << (bits - 1)) : System.Numerics.BigInteger.Zero);
-            return new BoundNumLiteral(Decimalize(unscaled, scale, unscaled.Sign < 0));
-        }
-        else
-        {
-            scale = pic.Scale;
-            unscaled = Pow10(pic.Digits) - 1;   // all-nines (DigitCount discipline)
-            signable = pic.Signed;
-        }
+        return FoldFrom(sig, pic, AlgebraicRanges.Of(pic, ctx.Data.DecimalPointIsComma));
+    }
 
-        if (sig.Name == "HIGHEST-ALGEBRAIC")
-            return new BoundNumLiteral(Decimalize(unscaled, scale, negative: false));
-        // LOWEST: sign-representable → −magnitude; else 0 (§15.58.4 / Annex D.32).
-        return signable
-            ? new BoundNumLiteral(Decimalize(unscaled, scale, negative: true))
-            // Zero, but AT THE ITEM'S SCALE — routed through Decimalize rather than a bare "0" literal so the
-            // folded text carries the scale (a 9V99 item's lowest value is "0.00", not "0"), matching the runtime
-            // rule and keeping the literal's precision for any arithmetic it feeds.
-            : new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.Zero, scale, negative: false));
+    /// <summary>Pick the §15.43.4 / §15.58.4 / §15.83.4 r2 value this FUNCTION names out of the description's
+    /// extremes, which <see cref="AlgebraicRanges"/> computes for BOTH surfaces the standard gives them (this and
+    /// §14.9.39 SET format 15 — Annex D.32 states the equivalence; kb/Work PB452). The three r2s differ only in
+    /// WHICH extreme they name, and that difference is this method.</summary>
+    private BoundExpr FoldFrom(IntrinsicSig sig, PicInfo pic, AlgebraicRange? range)
+    {
+        if (range is not { } r) return AlgebraicArgError(sig);   // no numeric capacity — screened above, belt and braces
+        switch (sig.Name)
+        {
+            case "HIGHEST-ALGEBRAIC":
+                return new BoundNumLiteral(r.Farthest);
+            case "SMALLEST-ALGEBRAIC":
+                // §15.83.3 r1 admits category numeric ONLY, so the edited descriptions whose Nearest is
+                // deliberately unmodelled are already refused above; this arm never sees one.
+                return r.Nearest is { } n ? new BoundNumLiteral(n) : AlgebraicArgError(sig);
+            default:
+                // LOWEST: sign-representable → −magnitude; else zero AT THE ITEM'S SCALE (§15.58.4 / Annex D.32).
+                // Routed through the range's own Zero rather than a bare "0" literal so the folded text carries
+                // the scale (a 9V99 item's lowest value is "0.00", not "0"), matching the runtime rule and
+                // keeping the literal's precision for any arithmetic it feeds.
+                return new BoundNumLiteral(r.FarthestNegative ?? r.Zero);
+        }
     }
 
     /// <summary>The HIGHEST/LOWEST/SMALLEST fold for a counter register (kb/Work R26): the registers are
@@ -2556,42 +2507,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
             + $"function (ISO §{sec} rule 1)");
         return new BoundExprError($"FUNCTION {sig.Name} argument");
-    }
-
-    private static System.Numerics.BigInteger Pow10(int n) => System.Numerics.BigInteger.Pow(10, Math.Max(0, n));
-
-    /// <summary>Render an unscaled BigInteger at <paramref name="scale"/> fractional digits as a decimal literal
-    /// string ('.' radix always — an internal C#-facing literal, never COBOL source, so DECIMAL-POINT IS COMMA
-    /// does not apply). A negative scale (trailing P) appends |scale| zeros; a positive scale inserts the point.
-    /// <para>
-    /// ⛔ DELEGATES to <see cref="CobolNet.Runtime.CobolNum.FormatFunctionText"/> — the SAME rule the RUNTIME uses
-    /// to render a computed intrinsic's value as text (DA2). These are the two halves of one job: this one folds a
-    /// constant-argument intrinsic to a literal at COMPILE time, that one renders a runtime-computed result, and a
-    /// COBOL programmer cannot tell which fired. Two hand-written copies of the rule is precisely the
-    /// two-mechanisms anti-pattern, and they HAD already drifted: this method early-returned <c>"0"</c> for a zero
-    /// magnitude and so DROPPED the scale, making <c>LOWEST-ALGEBRAIC</c> of an unsigned scaled item fold to
-    /// <c>"0"</c> where the runtime rule gives <c>"0.00"</c> — a literal at the wrong scale, which then feeds
-    /// subsequent arithmetic. Delegation removes the copy rather than syncing it.
-    /// </para>
-    /// <para>The BigInteger arm is LIVE, not defensive: the HIGHEST-ALGEBRAIC fold of a 16-byte UNSIGNED
-    /// container is 2^128−1 (39 digits, beyond <see cref="Int128"/>), and this arm renders it. ⚠ Its previous
-    /// text asserted "nothing here currently produces one" — an unverified claim that hid exactly this value
-    /// (kb/Work R10, F73): the rendered literal was then forced through <c>Int128.Parse</c> and threw at run
-    /// time. <c>EmitCore.IntLiteralX</c> now carries a positive magnitude beyond Int128 as a <c>UInt128</c>
-    /// literal on the unsigned-wide lane.</para></summary>
-    private static string Decimalize(System.Numerics.BigInteger unscaled, int scale, bool negative)
-    {
-        var mag = System.Numerics.BigInteger.Abs(unscaled);
-        if (mag <= (System.Numerics.BigInteger)Int128.MaxValue)
-        {
-            Int128 v = (Int128)mag;
-            return CobolNet.Runtime.CobolNum.FormatFunctionText(negative ? -v : v, scale);
-        }
-        string s = mag.ToString();
-        string sign = negative ? "-" : "";
-        if (scale <= 0) return sign + s + new string('0', -scale);          // S9PP: 99 @ −2 → "9900"; 1 @ −2 → "100"
-        if (s.Length <= scale) s = s.PadLeft(scale + 1, '0');               // 1 @ 3 → "0001" → "0.001"
-        return sign + s[..^scale] + "." + s[^scale..];                      // 99999 @ 3 → "99.999"
     }
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────

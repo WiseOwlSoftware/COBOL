@@ -238,6 +238,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSetUpDown n) { _set.EmitSetUpDown(n); return false; }
     public bool Visit(BoundSetCapacity n) { _set.EmitSetCapacity(n); return false; }
     public bool Visit(BoundSetSize n) { _set.EmitSetSize(n); return false; }
+    public bool Visit(BoundSetContent n) { _set.EmitSetContent(n); return false; }
     public bool Visit(BoundSearch n) { _controlFlow.EmitSearch(n); return false; }
     public bool Visit(BoundEvaluate n) { _evaluate.Emit(n); return false; }
     public bool Visit(BoundInspect n) { _inspect.Emit(n); return false; }

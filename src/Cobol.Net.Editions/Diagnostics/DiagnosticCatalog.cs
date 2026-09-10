@@ -2618,6 +2618,41 @@ public static class DiagnosticCatalog
         + "precede a leading sign; the trailing-sign and 'CR'/'DB' columns are empty, so nothing may follow one. "
         + "Under DECIMAL-POINT IS COMMA the precedence rules for comma and period are interchanged.",
         "ISO §13.18.40.3 SR2 / §13.18.40.6 Table 10");
+    // ── SET statement Format 15 (numeric-content), ISO §14.9.39.3 SR31/SR32 — kb/Work PB452 ────────────────
+    public static readonly DiagnosticDescriptor SetContentNotNumeric = new(
+        "COBOLNET1938", "set-content-not-numeric", EditionSeverity.Error,
+        "ISO §14.9.39.3 syntax rule 31: \"If FARTHEST-FROM-ZERO or NEAREST-TO-ZERO is specified, identifier-14 "
+        + "shall reference a numeric data item.\" A NUMERIC-EDITED item is NOT one — §8.5.2.13 gives it its own "
+        + "category — which is where this rule is narrower than the equivalent §15.43 HIGHEST-ALGEBRAIC / §15.58 "
+        + "LOWEST-ALGEBRAIC intrinsics Annex D.32 offers as alternatives: their §15.x.3 rule 1 admits \"category "
+        + "numeric or numeric-edited\" and this one does not. An index item, a group, an alphanumeric item and a "
+        + "reference-modified item are refused here for the same reason: none of them is a numeric data item "
+        + "under §8.5.2.12.",
+        "ISO §14.9.39.3 SR31");
+    public static readonly DiagnosticDescriptor SetContentSignRequired = new(
+        "COBOLNET1939", "set-content-sign-required", EditionSeverity.Error,
+        "ISO §14.9.39.3 syntax rule 31 a)/b): when identifier-14 describes a SIGNED numeric item whose positive "
+        + "and negative extremes have DIFFERENT absolute values, the SIGN phrase shall be specified — a) for "
+        + "FARTHEST-FROM-ZERO, b) for NEAREST-TO-ZERO. The rule exists because \"the value farthest away from "
+        + "zero permitted by the specifications of identifier-14\" (GR32 a) is then ambiguous, and it bites "
+        + "exactly the two's-complement containers of §13.18.60.4 GR12: a PIC S9(4) COMP-5 item spans "
+        + "−32768..32767, so FARTHEST-FROM-ZERO alone would have to choose between two different magnitudes. "
+        + "Write SIGN POSITIVE or SIGN NEGATIVE. A DIGIT-COUNT item (PIC S9(4) DISPLAY, ±9999) is symmetric and "
+        + "needs no phrase.",
+        "ISO §14.9.39.3 SR31 a)/b)");
+    public static readonly DiagnosticDescriptor SetContentNotStandardFloat = new(
+        "COBOLNET1940", "set-content-not-standard-float", EditionSeverity.Error,
+        "ISO §14.9.39.3 syntax rule 32: \"If FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, or FLOAT-NOT-A-NUMBER-SIGNALING "
+        + "is specified, identifier-14 shall reference a data item described with a standard floating-point "
+        + "usage.\" That term is defined narrowly and does NOT mean \"any floating-point item\": §3.166 names the "
+        + "standard BINARY usages float-binary-32/-64/-128 and §3.167 the standard DECIMAL usages "
+        + "float-decimal-16/-34, while §8.5.1.6.2 separately calls FLOAT-SHORT, FLOAT-LONG and FLOAT-EXTENDED "
+        + "floating-point numeric data items WITHOUT making them standard ones. The three value words name "
+        + "ISO/IEC 60559:2020 Clause 3 canonical encodings of a BASIC INTERCHANGE FORMAT (GR33/GR34/GR35), which "
+        + "only a standard floating-point usage pins; COMP-1, COMP-2, FLOAT-SHORT, FLOAT-LONG and FLOAT-EXTENDED "
+        + "carry an implementor-defined representation (§13.18.60.4 GR13) and so cannot. Declare the item "
+        + "FLOAT-BINARY-32 or FLOAT-BINARY-64.",
+        "ISO §14.9.39.3 SR32 / §3.166 / §3.167");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

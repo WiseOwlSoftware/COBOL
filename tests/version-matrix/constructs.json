@@ -2958,6 +2958,18 @@
    "expectDiagnostic": "COBOLNET0900",
    "vcr": "2002 relaxation: computer-name-1 optional in SOURCE-COMPUTER and OBJECT-COMPUTER, and the OBJECT-COMPUTER clauses may stand without it (§12.3.5.2 / §12.3.6.2; the '85 formats required the name before any clause)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CNOPT.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER.\n    PROGRAM COLLATING SEQUENCE IS AL.\nSPECIAL-NAMES.\n    ALPHABET AL IS STANDARD-1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X VALUE \"a\".\nPROCEDURE DIVISION.\nMAIN.\n    IF A > \"B\" DISPLAY \"GT\" ELSE DISPLAY \"LE\" END-IF.\n    STOP RUN.\n"
+  },
+  {
+   "id": "set-numeric-content-2014",
+   "description": "SET CONTENT OF { identifier-14 } … TO { FARTHEST-FROM-ZERO [IN-ARITHMETIC-RANGE] | FLOAT-INFINITY | FLOAT-NOT-A-NUMBER | FLOAT-NOT-A-NUMBER-SIGNALING | NEAREST-TO-ZERO [IN-ARITHMETIC-RANGE] } [SIGN {NEGATIVE|POSITIVE}] (ISO §14.9.39.2 Format 15, numeric-content) — set a numeric item to an extreme its own description permits (GR32/GR36) or a standard floating-point item to an ISO/IEC 60559:2020 canonical infinity / quiet NaN / signaling NaN (GR33/GR34/GR35). MANDATORY base language: neither Annex A.3 nor Annex A.4 carries it (A.4's whole SET inventory is formats 6, 11/12 and 14). Recognition gate on setContentStatement — syntactically self-identifying, so it fires in the ParseArm. kb/Work PB452.",
+   "display": "SET CONTENT OF n TO FARTHEST-FROM-ZERO",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §14.9.39.2 Format 15; §14.9.39.3 SR31/SR32; §14.9.39.4 GR32-GR36; Annex D.32. Edition: the five value words and IN-ARITHMETIC-RANGE are §8.9-reserved from 2014 (reserved-words.json), and Annex E records no SET-statement change into 2023 beyond E.3.3's dynamic-length item, so the format is a 2014 addition.",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "the introducing standard (ISO 2014) — VERSION_CHANGE_REFERENCE.md covers 2002→2023 deltas only",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SETNUMCONT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(4)V99.\nPROCEDURE DIVISION.\nMAIN.\n    SET CONTENT OF N TO FARTHEST-FROM-ZERO.\n    DISPLAY N.\n    STOP RUN.\n"
   }
  ]
 }

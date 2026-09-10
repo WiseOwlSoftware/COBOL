@@ -65,7 +65,7 @@ internal sealed class UnitEmitters
         Inspect = new InspectEmitter(Ctx, Num, Arith);
         Strings = new StringEmitter(Ctx, Num, Arith, Ec);
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec);
-        Set = new SetEmitter(Ctx, Num, Arith, Ptr);
+        Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move);
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
         Sort = new SortEmitter(Ctx, dispatchState, SeqIo, Move, Arith);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)

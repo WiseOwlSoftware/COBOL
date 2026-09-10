@@ -278,6 +278,23 @@ FLOAT_BINARY_64   : 'FLOAT-BINARY-64' ;
 FLOAT_BINARY_128  : 'FLOAT-BINARY-128' ;
 FLOAT_DECIMAL_16  : 'FLOAT-DECIMAL-16' ;
 FLOAT_DECIMAL_34  : 'FLOAT-DECIMAL-34' ;
+// The COBOL-2014 NUMERIC-CONTENT value words (ISO §14.9.39.2 Format 15 — `SET CONTENT OF … TO`; kb/Work PB452).
+// Hyphenated, so each must precede IDENTIFIER: the source text lexes as ONE IDENTIFIER of the SAME length
+// otherwise, and an equal-length tie is broken by rule order. FLOAT-NOT-A-NUMBER-SIGNALING needs no ordering
+// against FLOAT-NOT-A-NUMBER (maximal munch takes the longer match regardless of order) but is written first so
+// the pair reads the way it lexes. Reserved only from 2014 (ReservedWords.Table), so every one is ALSO a
+// cobolWord alternative under the derived reservation gate and mirrored in _dataNameTokens
+// (tests/version-matrix/cobol-words.json) — `01 FLOAT-INFINITY PIC X.` stays legal at --std 85/2002 and draws
+// COBOLNET0901 by name at 2014+.
+// ⚠ FLOAT-NOT-A-NUMBER-QUIET is reserved too but has NO token here: its only surface is the §8.8.4.4 class
+// condition (kb/Work PB225), Format 15 does not offer it, and a token nothing reads is a lookup nothing has
+// ever contradicted. It lexes as one IDENTIFIER today, which is what the 85/2002 user-word case needs anyway.
+FARTHEST_FROM_ZERO           : 'FARTHEST-FROM-ZERO' ;
+NEAREST_TO_ZERO              : 'NEAREST-TO-ZERO' ;
+IN_ARITHMETIC_RANGE          : 'IN-ARITHMETIC-RANGE' ;
+FLOAT_INFINITY               : 'FLOAT-INFINITY' ;
+FLOAT_NOT_A_NUMBER_SIGNALING : 'FLOAT-NOT-A-NUMBER-SIGNALING' ;
+FLOAT_NOT_A_NUMBER           : 'FLOAT-NOT-A-NUMBER' ;
 HIGH_ORDER_LEFT   : 'HIGH-ORDER-LEFT' ;
 HIGH_ORDER_RIGHT  : 'HIGH-ORDER-RIGHT' ;
 BINARY_ENCODING   : 'BINARY-ENCODING' ;

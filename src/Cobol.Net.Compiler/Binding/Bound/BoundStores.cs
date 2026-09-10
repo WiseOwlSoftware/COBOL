@@ -170,6 +170,9 @@ public static class BoundStores
         public StoreKind? Visit(BoundSetTo n) => n.Targets.Any(TargetHit) ? StoreKind.Write : StoreKind.None;
         public StoreKind? Visit(BoundSetUpDown n) => n.Targets.Any(TargetHit) ? StoreKind.ReadWrite : StoreKind.None;
         public StoreKind? Visit(BoundSetSize n) => Hit(n.Target) ? StoreKind.ReadWrite : StoreKind.None;   // reads current content, writes resized
+        // Format 15 writes each receiver whole and reads none of them (§14.9.39.4 GR32-GR36 — every value
+        // is a property of the DESCRIPTION, never of the current content).
+        public StoreKind? Visit(BoundSetContent n) => n.Stores.Any(st => Hit(st.Target)) ? StoreKind.Write : StoreKind.None;
 
         // ── SEARCH ──────────────────────────────────────────────────────────────────────────────────────
         public StoreKind? Visit(BoundSearch n) => StoreOrKids(TargetHit(n.AlsoVaried), StoreKind.ReadWrite,
