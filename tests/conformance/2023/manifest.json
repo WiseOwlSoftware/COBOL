@@ -555,10 +555,10 @@
   "pb761_national_through_range",
   "pb725_push_pop_display",
   "pb792_report_value_then_column",
-  "pb452_set_content_smallest_2023"
+  "pb452_set_content_smallest_2023",
+  "pb528_picture_editing_transparency_2023"
  ],
  "pending": [
-  "pb485_value_only_format1",
-  "pb528_picture_editing_transparency_2023"
+  "pb485_value_only_format1"
  ]
 }
