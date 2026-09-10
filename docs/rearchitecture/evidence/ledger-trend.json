@@ -487,6 +487,15 @@
       "dns": 364,
       "label": "Golden round for PB451 and P",
       "battery": null
+    },
+    {
+      "sha": "18525f97",
+      "date": "2026-09-09",
+      "gap": 2609,
+      "closed": 1739,
+      "dns": 365,
+      "label": "Train 26: DEVLOG 1587 + plan",
+      "battery": null
     }
   ]
 }
