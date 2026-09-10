@@ -2125,10 +2125,10 @@ result. Run the long legs ONE AT A TIME.
   drives `cobol`, refuses to start unless the binary references `Cobol.Net.Compiler`, and prints
   `=== NIST (cobol): … ===`; the greenfield NIST evidence in every EARLIER record is the Conformance
   assembly's `NistDifferentialTests` partitions alone.
-- **⛔ BATTERY REFERENCE — CURRENT: battery #68, 2026-09-09, on `18525f97` — train 26 — run in a DETACHED WORKTREE cut at the batch head.**
+- **⛔ BATTERY REFERENCE — CURRENT: battery #69, 2026-09-09, on `e1bf7b3b` — train 27 — run in a DETACHED WORKTREE cut at the batch head.**
+  ✅ ALL GREEN — Conformance **6828 / 6828**, Unit **23239 / 23239** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **0 FLIPS**. Battery #70 at the next train's head must be ALL GREEN with 0 flips.
+- **BATTERY REFERENCE — PREVIOUS (#68, superseded by #69 above): battery #68, 2026-09-09, on `18525f97` — train 26 — run in a DETACHED WORKTREE cut at the batch head.**
   ✅ ALL GREEN — Conformance **6763 / 6763**, Unit **23211 / 23211** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **4 ATTRIBUTED FLIP(S)** — see the DEVLOG entry for the attribution; the baseline row was re-verdicted by hand in the same commit. Battery #69 at the next train's head must be ALL GREEN with 0 flips.
-- **BATTERY REFERENCE — PREVIOUS (#67, superseded by #68 above): battery #67, 2026-09-09, on `42ebf400` — train 25 — run in a DETACHED WORKTREE cut at the batch head.**
-  ✅ ALL GREEN — Conformance **6682 / 6682**, Unit **23096 / 23096** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **1 ATTRIBUTED FLIP(S)** — see the DEVLOG entry for the attribution; the baseline row was re-verdicted by hand in the same commit. Battery #68 at the next train's head must be ALL GREEN with 0 flips.
 - **⛔ PRIOR BATTERY REFERENCE — the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
   review fleet's landing PB266–PB276) plus the PB277 CI repair, battery #41, 2026-09-01.**
   ✅ **Every leg GREEN on ONE tree, in ONE run — `2acbd842` (HEAD, clean), no split and no rebaseline.**
