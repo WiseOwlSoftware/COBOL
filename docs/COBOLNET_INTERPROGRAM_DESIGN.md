@@ -275,10 +275,44 @@ when identifier-4 is an object property", so a bare property reference is a SEND
 a numeric literal" when it OR ITS FORMAL carries BY VALUE) is `COBOLNET1762`, screened on both spellings and, for
 a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
 - Bare argument resolution (§14.9.4.4 GR9): a bare arg with a BY REFERENCE formal becomes BY REFERENCE if it is a valid receiving operand, else BY CONTENT (e.g. a literal/expression).
-- OMITTED / trailing-omitted argument (GR11-12): carrier = Null; omitted-argument condition = IsNull; referencing an omitted param otherwise → EC-PROGRAM-ARG-OMITTED.
+- **OMITTED / trailing-omitted argument (GR11–12), and FORWARDING one (kb/Work PB133 wave C → PB165).** The
+  carrier is Null; the §8.8.4.8 omitted-argument condition IS `IsNull`; referencing an omitted formal outside
+  the two sanctioned forms raises EC-PROGRAM-ARG-OMITTED through the CA10 checked-raise gate **in the callee's**
+  engine (checking off stays lenient with the documented benign-empty read — GR12 leaves the content undefined).
+  GR12's exemption — *“except as an argument”* — and §8.8.4.8.4 GR1c's TRANSITIVE omission are ONE emitted
+  fact: `CallEmitter.WholeFormal` recognizes an argument that IS a whole formal parameter **by identity against
+  the unit's own `LinkageFormal` items** (`CallUnitState.Formals`) — never by a `__lnkp` name match, which could
+  only see a CARRIER-RESIDENT formal — and `CallEmitter.Forwarded` guards EVERY mode's carrier build with the
+  incoming carrier's presence, so the forward neither reads the formal (a BY CONTENT snapshot is a read) nor
+  loses its omitted state (a group formal's copy-in field always answers `IsNull` false). A SUBITEM, a
+  subscripted reference and a reference-modified view are deliberately excluded: GR1c speaks of an argument
+  that *is* a formal parameter, and referencing inside an omitted one is exactly the error GR12 states.
 - Argument/parameter count mismatch → EC-PROGRAM-ARG-MISMATCH (when checking enabled) or diagnostic; a missing parameter behaves as omitted.
+- **Argument DESCRIPTION conformance is ONE rule set, written once, for CALL and INVOKE alike (§14.9.4.3 SR25
+  → §14.8.2; kb/Work PB133 → PB204 → PB165).** Wherever the callee's PD header is known at BIND — the AS NESTED
+  containment table, or a program prototype's §12.3.8.4 GR10 a) definition — `CallBinder`'s conformance loop runs
+  the whole of §14.8.2 against it, and every rule lives in `OoConformance`: `DescriptionMismatch` for
+  §14.8.2.3.2 / §14.8.2.2 (BY REFERENCE, identical description with the rule-1 group-prefix allowance and
+  §8.5.1.12 variable-length compatibility), and `ContentMismatch` + the four value-shape rules for §14.8.2.3.3
+  (BY CONTENT / BY VALUE: 2a COMPUTE for a numeric formal, 2b SET for an index item, 2c ANY LENGTH, 2d MOVE via
+  §14.9.25.3 Table 16, plus the class-pointer / object-reference SET paragraph).
+  `CallBinder.ContentConformanceReason` dispatches on the BOUND argument's shape — identifier, boolean
+  expression, arithmetic expression, alphanumeric literal, numeric literal — and a constant-name needs no arm
+  because §13.10.4 GR1 has already substituted its literal. The verdict is COBOLNET1688, the same code the BY
+  REFERENCE arm uses, because it is the same obligation. ⚠ The §14.8.2.3.3 rules were once PRIVATE to INVOKE, and
+  the CALL lane therefore had no by-content screen at all while `CobolArgAdapt`'s converting views silently
+  adapted whatever arrived; EXTRACTION, not a second copy, is what closed it. The DYNAMIC Format-1 lane still
+  checks only the COUNT at runtime — no per-formal description facts are registered with the program table
+  (kb/Work PB165, weighed against P13's prototype registry).
 - RETURNING a group item: an **image-form** group — every leaf `DataItem.ElementImageCapable`, i.e. character-stored OR any pinned numeric byte form (zoned DISPLAY, binary, packed, COMP-5, IEEE float, INDEX) — is carried; the caller temp deep-clones the description and the image crosses via AsImage/FromImage (§8.4.3.2.4 GR1; §14.2.2 SR5 places no category restriction, and none on usage either). Only the strong-typed / internal-REDEFINES / variable-length shapes and a **pointer- or object-class LEAF** stage loud (the per-shape COBOLNET1510 residues in `UdfBinder.UdfReturningResidue`). A byte-form numeric leaf was listed here as a residue until PB164's F8 widened the screen off its hand-rolled DISPLAY-only usage union onto the derived predicate (kb/Work PB199).
-- RETURNING with no caller target → value discarded.
+- **RETURNING delivery is TOTAL (§14.9.4.4 GR4; kb/Work PB165).** With no caller target the value is discarded —
+  GR4 has no receiver. With one, `CobolArgAdapt.StoreReturn` **stores or raises**, never no-ops: legs exist for
+  every `ElementType` the compiler emits (`long`/`ulong`/`Int128`/`UInt128`, `double`/`float`, `string`,
+  `CobolVarGroup`, `ManagedPointer`, `ProgramPointer`, `CobolObject`), and a pair with no leg raises
+  `CobolCallException("EC-PROGRAM-ARG-MISMATCH")` citing §14.8.3.3 and §14.9.4.4 GR3d. A cross-CARRIER pair can
+  only come from source §14.8.3.3 already declares non-conforming (it requires the same PICTURE and USAGE
+  clauses), so the character legs deliver the result's DIGIT IMAGE — what the receiver would have seen had the
+  pair conformed by length. A silent discard is the one outcome GR4's *“is placed into identifier-3”* excludes.
 - CALL to a NULL program-pointer → EC-PROGRAM-PTR-NULL; unresolvable name → EC-PROGRAM-NOT-FOUND; both are activation failures and take the GR3h partition below.
 - **The GR3h/GR3i partition of a failed activation, and the ACTIVATION BOUNDARY that makes it decidable.** §14.9.4.4 GR3h routes a failure on THREE independent facts, and the emitted CALL expresses each one separately (`CallEmitter.EmitCall`; kb/Work PB233):
   1. **Which phrase is written.** Only ON EXCEPTION diverts — GR3h item 1 names it, and §14.6.13.1.3 #1 admits only "a conditional phrase without the NOT phrase". A CALL carrying only NOT ON EXCEPTION is governed by item 2 or item 3 exactly as a phrase-free CALL is. (It formerly emitted the catch on *either* phrase and silently discarded the failure.)
@@ -293,7 +327,16 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
 - Recursive COMMON program sharing state — deterministic, allowed.
 - REDEFINES-a-pointer-as-bytes or writing a pointer to a file → ISO implementor-defined; reject as undefined (a managed ref cannot serialize to stable bytes).
 - ADDRESS OF as a sending operand passed BY REFERENCE across a CALL (address-identifier, §14.9.4 SR3-4) passes the carrier itself.
-- ANY LENGTH formal parameter (excluded from BY REFERENCE Format-1 outermost; relevant for functions/methods) — defer to UDF/method slices but reserve carrier metadata to carry length.
+- **A character-carried formal has THREE length regimes, and `ProgramEmitter.FormalTextCarrier` is the one place
+  they are distinguished (kb/Work PB165).** ANY LENGTH (§13.18.2 GR1) — the formal's length IS the argument's,
+  fixed for the activation: the full-string view (`CobolArgAdapt.Text`, width sentinel −1). DYNAMIC LENGTH
+  (§13.18.19.4 GR1/GR2) — the length VARIES during execution, minimum zero, maximum the LIMIT phrase:
+  `CobolArgAdapt.DynText`, a full-string view whose store carries §8.5.1.10.4's replace-and-truncate rule.
+  Fixed — the declared width window (§14.2.3 GR8: the callee touches only its formal's character positions).
+  ⚠ The DYNAMIC LENGTH arm is not optional cosmetics: §13.18.19.3 SR1 pins such an item's PICTURE at exactly ONE
+  symbol, so falling to the fixed arm delivers a ONE-CHARACTER formal for every such crossing, in both passing
+  modes. BY VALUE cannot reach the dynamic arm — §14.2.2 SR2 admits only class numeric, message-tag, object or
+  pointer BY VALUE.
 - SET ADDRESS OF on a LINKAGE item re-points the callee's formal mid-execution — the carrier field is reassigned; subsequent refs read the new target.
 
 ## Edition gating (G1 — four per-`--std` compilers in one executable)

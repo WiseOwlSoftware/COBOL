@@ -331,6 +331,38 @@ public static class CobolArgAdapt
         return args[i].Carrier is ManagedPointer<CobolVarGroup> vp ? vp : Omitted<CobolVarGroup>(i);
     }
 
+    /// <summary>Adapt argument <paramref name="i"/> to a DYNAMIC LENGTH formal (ISO §13.18.19; kb/Work PB165).
+    /// The THIRD length regime beside the fixed window and ANY LENGTH's activation-fixed one, and it had no arm
+    /// at all: a dynamic-length formal took <see cref="Text"/> at its PICTURE length, which §13.18.19.3 SR1
+    /// pins at exactly ONE symbol — so every such crossing delivered one character (measured: a 7-character
+    /// argument arrived as <c>LEN=1</c>, and the callee's store spliced one character back into the caller's
+    /// seven).
+    /// <para>The view is the caller's FULL string, and a store carries §8.5.1.10.4's dynamic-length semantics
+    /// through the ONE store helper: the new content replaces the old, the new length IS the sending length —
+    /// never padded, minimum zero (§13.18.19.4 GR1) — truncated on the right at <paramref name="limit"/>
+    /// (GR2's LIMIT phrase; below zero = the implementor-defined maximum).</para>
+    /// <para>BY REFERENCE this is §14.2.3 GR8's shared storage area, so the varying length is the CALLER's item
+    /// varying. BY CONTENT / BY VALUE the caller already snapshotted the argument into a detached cell, and
+    /// §14.2.3 GR9's second regime describes exactly this record — "a dynamic-length elementary item of the
+    /// same category and described with the same dynamic-length-structure-name as the formal parameter" — with
+    /// the argument moved into it, which is what the full-string view plus the dynamic store performs.</para>
+    /// </summary>
+    public static ManagedPointer<string> DynText(CobolArg[] args, int i, int limit)
+    {
+        if (!Present(args, i)) return Omitted<string>(i);
+        return args[i].Carrier switch
+        {
+            ManagedPointer<string> sp => ManagedPointer<string>.OverField(
+                () => sp.Value ?? "",
+                v => sp.Value = CobolDynString.Store(v, limit)),
+            // A numeric carrier reaching a dynamic-length formal is not a crossing to invent: §14.8.2.3.2
+            // rule 2 requires the same DYNAMIC LENGTH and PICTURE clauses BY REFERENCE, and §14.8.2.3.3's MOVE
+            // rules give a numeric sender an alphanumeric receiver only through its digit image — which is a
+            // FIXED width and so contradicts the receiver's varying one. It takes the loud omitted carrier.
+            _ => Omitted<string>(i),
+        };
+    }
+
     /// <summary>The BY VALUE / BY CONTENT twin of <see cref="VarGroup"/> (ISO §14.2.3 GR9/GR10 — a copy
     /// allocated by the activating element): a DETACHED cell holding the argument's carrier value, so the
     /// callee's stores never reach the caller's storage.</summary>
@@ -369,35 +401,72 @@ public static class CobolArgAdapt
     {
         if (ret is null) return;
         if (WriteNumericCell(ret, value)) return;
-        if (ret is ManagedPointer<string> sp) sp.Value = value.ToString();
+        if (WriteRealCell(ret, (double)value)) return;
+        if (ret is ManagedPointer<string> sp) { sp.Value = value.ToString(); return; }
+        Undeliverable(ret, $"the numeric result {value}");
     }
 
-    /// <summary>String-shaped RETURNING delivery (see <see cref="StoreReturn(ManagedPointer?, long)"/>).</summary>
+    /// <summary>String-shaped RETURNING delivery (see <see cref="StoreReturn(ManagedPointer?, long)"/>).
+    /// <para>⛔ TOTAL OVER THE CARRIERS THIS COMPILER EMITS, AND NEVER A SILENT NO-OP (kb/Work PB165 closing
+    /// GR-14.9.4.4-4). This used to be <c>string</c>-carrier or a <c>long</c>-carrier <c>long.TryParse</c> and
+    /// nothing else, so a character result delivered into a <c>ulong</c>/<c>Int128</c>/<c>UInt128</c>
+    /// identifier-3 — every PIC 9(19)+ receiver — was DISCARDED with no store and no diagnostic (measured: a
+    /// callee returning "000123" left a <c>PIC 9(30)</c> identifier-3 at its previous value 7). §14.9.4.4 GR4
+    /// says "the result of the activated program is placed into identifier-3"; nothing happening is the one
+    /// outcome that rule excludes.</para>
+    /// <para>A cross-CARRIER pair can only arise from source §14.8.3.3 already declares non-conforming (it
+    /// requires the same PICTURE and USAGE clauses), which §14.9.4.4 GR3d makes EC-PROGRAM-ARG-MISMATCH when
+    /// checking is enabled in both elements. The delivery therefore reads the result's DIGIT IMAGE — the
+    /// characters the receiver would have seen had the pair conformed by length — and a shape with no delivery
+    /// at all is loud rather than lost.</para></summary>
     public static void StoreReturn(ManagedPointer? ret, string value)
     {
-        if (ret is ManagedPointer<string> sp) sp.Value = value;
-        else if (ret is ManagedPointer<long> lp && long.TryParse(value.Trim(), out long v)) lp.Value = v;
+        if (ret is null) return;                                   // a CALL without RETURNING discards (GR4 has no receiver)
+        if (ret is ManagedPointer<string> sp) { sp.Value = value; return; }
+        string t = value.Trim();
+        if (Int128.TryParse(t, out Int128 v) && WriteNumericCell(ret, v)) return;
+        if (double.TryParse(t, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out double d) && WriteRealCell(ret, d)) return;
+        Undeliverable(ret, $"the character result \"{value}\"");
     }
+
+    /// <summary>The RETURNING delivery has no leg for this (result shape, carrier) pair — §14.9.4.4 GR4's
+    /// "placed into identifier-3" cannot be honoured, and §14.8.3.3's conformance rules are what such a pair
+    /// violates (§14.9.4.4 GR3d ⇒ EC-PROGRAM-ARG-MISMATCH). Raised through the same
+    /// <see cref="CobolCallException"/> the activation-time GR3d count check uses, so a run unit sees ONE
+    /// EC-PROGRAM-ARG-MISMATCH mechanism — never a silent discard, which is what this replaced.</summary>
+    private static void Undeliverable(ManagedPointer ret, string what) =>
+        throw new CobolCallException(
+            $"RETURNING delivery: {what} has no conforming store into the activating element's RETURNING item "
+            + $"(carrier {ret.GetType().Name}) — ISO §14.8.3.3 requires the same PICTURE and USAGE clauses; "
+            + "§14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH",
+            "EC-PROGRAM-ARG-MISMATCH");
 
     /// <summary>Variable-length-group RETURNING delivery (ISO §14.8.3.2's compatibility sentence — the
     /// returning half of the same admission §14.8.2.2 grants arguments; kb/Work PB204).</summary>
     public static void StoreReturn(ManagedPointer? ret, CobolVarGroup value)
     {
-        if (ret is ManagedPointer<CobolVarGroup> vp) vp.Value = value;
+        if (ret is null) return;
+        if (ret is ManagedPointer<CobolVarGroup> vp) { vp.Value = value; return; }
+        Undeliverable(ret, "the variable-length-group result");
     }
 
     /// <summary>Data-pointer RETURNING delivery (kb/Work PB133 wave B — §14.2.3 GR7 over a USAGE POINTER
     /// item; the PB111 shape: legal source drew CS1503 because no overload matched the carrier type).</summary>
     public static void StoreReturn(ManagedPointer? ret, ManagedPointer value)
     {
-        if (ret is ManagedPointer<ManagedPointer> pp) pp.Value = value;
+        if (ret is null) return;
+        if (ret is ManagedPointer<ManagedPointer> pp) { pp.Value = value; return; }
+        Undeliverable(ret, "the data-pointer result");
     }
 
     /// <summary>Program-pointer RETURNING delivery (kb/Work PB133 wave B — §13.18.60 GR24's identity
     /// struct crosses by value; same CS1503 shape as the data pointer).</summary>
     public static void StoreReturn(ManagedPointer? ret, ProgramPointer value)
     {
-        if (ret is ManagedPointer<ProgramPointer> pp) pp.Value = value;
+        if (ret is null) return;
+        if (ret is ManagedPointer<ProgramPointer> pp) { pp.Value = value; return; }
+        Undeliverable(ret, "the program-pointer result");
     }
 
     /// <summary>Object-reference RETURNING delivery (kb/Work PB133 wave B). The CobolObject constraint keeps
@@ -407,8 +476,10 @@ public static class CobolArgAdapt
     /// described relationship rides the §14.8.2/§14.8.3 conformance campaign (PB133 wave C).</summary>
     public static void StoreReturn<T>(ManagedPointer? ret, T? value) where T : CobolObject
     {
-        if (ret is ManagedPointer<T?> tp) tp.Value = value;
-        else if (ret is ManagedPointer<CobolObject?> op) op.Value = value;
+        if (ret is null) return;
+        if (ret is ManagedPointer<T?> tp) { tp.Value = value; return; }
+        if (ret is ManagedPointer<CobolObject?> op) { op.Value = value; return; }
+        Undeliverable(ret, "the object-reference result");
     }
 
     /// <summary>The omitted/absent CALL argument's carrier (ISO §14.9.4.4 GR11–GR12; kb/Work PB133 wave C):

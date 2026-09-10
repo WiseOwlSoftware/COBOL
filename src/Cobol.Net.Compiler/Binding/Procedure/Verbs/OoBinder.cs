@@ -592,10 +592,25 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             }
 
             // Effective BY CONTENT (§14.8.2.3.3): rule-per-formal-category.
-            if (OoContentMismatch(formal, place) is { } cerr)
+            if (OoConformance.ContentMismatch(host.OoClasses, formal, place) is { } cerr)
             {
                 Err($"BY CONTENT argument '{dref.GetText()}' does not conform to formal "
                     + $"'{formal.CobolName}': {cerr} (ISO §14.8.2.3.3)");
+                return null;
+            }
+            // ⛔ AN INVOKE CARRIER LIMIT, NOT A CONFORMANCE RULE (kb/Work PB165). §14.8.2.3.3 rule 2a is "the
+            // same as for a COMPUTE statement", and a COMPUTE takes any numeric sender in either direction —
+            // so this belongs HERE, beside INVOKE's other marshalling limits, not in the shared rule. It used
+            // to live inside the rule, and the moment the Format-2 CALL lane started asking, it refused the
+            // float crossing PB238 landed on purpose (conformance:2023/pb238_call_format2_operands).
+            // OoEmitter's INVOKE argument marshalling carries no fixed-point⇄float CONTENT conversion.
+            if (!byReference && formal.Pic is { Category: PicCategory.Numeric } fp
+                && (fp.IsFloat || place.Item.Pic is { IsFloat: true })
+                && !(fp.IsFloat && place.Item.Pic is { IsFloat: true } ap2 && ap2.Usage == fp.Usage))
+            {
+                Err($"BY CONTENT argument '{dref.GetText()}' for formal '{formal.CobolName}': the "
+                    + "fixed-point⇄float CONTENT conversion is not carried across INVOKE — a float formal "
+                    + "takes the identical float usage (a documented marshalling residue, not ISO §14.8.2.3.3)");
                 return null;
             }
             return new BoundInvokeArg(formal, place, null, null, WriteBack: false, ByContent: true);
@@ -621,17 +636,15 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // sending operand" — §14.9.25.3 Table 16's BOOLEAN row, which admits alphanumeric and boolean
         // receivers and refuses alphabetic, numeric and numeric-edited ones.
         // ⚠ TABLE 16 ALSO ADMITS A NATIONAL RECEIVER, AND THIS ARM REFUSES IT ON PURPOSE — the IDENTIFIER
-        // CONTENT arm above refuses the same pairing through OoContentMismatch's conservative strict gate, and
-        // two arms of one rule disagreeing is worse than one named residue. Both are recorded together.
+        // CONTENT arm above refuses the same pairing through OoConformance.ContentMismatch's conservative
+        // strict gate, and two arms of one rule disagreeing is worse than one named residue. Both are
+        // recorded together.
         if (boolCtx is { } bx && explicitContent)
         {
-            if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Alphanumeric or PicCategory.Boolean }
-                || formal.Pic is { Category: PicCategory.Alphanumeric, IsAlphabetic: true })
+            if (OoConformance.ContentBooleanMismatch(formal) is { } bErr)
             {
                 Err($"BY CONTENT boolean-expression argument '{bx.GetText()}' for formal "
-                    + $"'{formal.CobolName}': §14.8.2.3.3 rule 2d transfers it by the MOVE rules, and "
-                    + "§14.9.25.3 Table 16 admits a boolean sending operand only to a boolean or alphanumeric "
-                    + "receiver");
+                    + $"'{formal.CobolName}': {bErr}");
                 return null;
             }
             var bound = host.Cond.BindBoolExpr(bx);
@@ -641,18 +654,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
         if (arithCtx is { } ax && explicitContent)   // a SOLE reference / numeric literal was taken above
         {
-            if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Numeric })
+            if (OoConformance.ContentArithmeticMismatch(formal) is { } aErr)
             {
                 Err($"BY CONTENT arithmetic-expression argument '{ax.GetText()}' for formal "
-                    + $"'{formal.CobolName}': §14.8.2.3.3 rule 2a transfers an expression by the COMPUTE rules, "
-                    + "which requires a category-numeric formal parameter");
-                return null;
-            }
-            if (formal.Pic is { IsFloat: true })
-            {
-                Err($"BY CONTENT arithmetic-expression argument '{ax.GetText()}' for the floating-point formal "
-                    + $"'{formal.CobolName}': the fixed-point→float CONTENT conversion is the same documented "
-                    + "refinement the identifier arm defers (ISO §14.8.2.3.3)");
+                    + $"'{formal.CobolName}': {aErr}");
                 return null;
             }
             return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
@@ -673,7 +678,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             : null;
         if (alnumTxt is not null)
         {
-            if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
+            if (OoConformance.ContentAlphanumericLiteralMismatch(formal) is null)
                 return new BoundInvokeArg(formal, null, null, alnumTxt, WriteBack: false, ByContent: true);
             Err($"nonnumeric literal argument {nonNumCtx!.GetText()} for the non-alphanumeric formal "
                 + $"'{formal.CobolName}' (ISO §14.8.2.3.3 MOVE-rule conformance)");
@@ -691,13 +696,11 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             : null;
         if (boolTxt is not null)
         {
-            // Table 16's BOOLEAN row again (§14.8.2.3.3 rule 2d) — the same receivers the expression arm takes.
-            if (formal.IsGroup || formal.Pic is not { Category: PicCategory.Alphanumeric or PicCategory.Boolean }
-                || formal.Pic is { Category: PicCategory.Alphanumeric, IsAlphabetic: true })
+            // Table 16's BOOLEAN row again (§14.8.2.3.3 rule 2d) — the same receivers the expression arm takes,
+            // from the SAME rule, so a literal and an expression can never answer differently.
+            if (OoConformance.ContentBooleanMismatch(formal) is { } blErr)
             {
-                Err($"boolean literal argument {nonNumCtx!.GetText()} for formal '{formal.CobolName}': "
-                    + "§14.9.25.3 Table 16 admits a boolean sending operand only to a boolean or alphanumeric "
-                    + "receiver (ISO §14.8.2.3.3 rule 2d MOVE-rule conformance)");
+                Err($"boolean literal argument {nonNumCtx!.GetText()} for formal '{formal.CobolName}': {blErr}");
                 return null;
             }
             // A LITERAL contributes no item width to §8.8.2 rule 10, so the value crosses at the formal's
@@ -707,82 +710,20 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         }
         if (numLitRaw is { } raw)
         {
-            if (formal.Pic is { Category: PicCategory.Numeric, IsFloat: false })
-                return new BoundInvokeArg(formal, null, raw, null, WriteBack: false, ByContent: true);
-            if (!formal.IsGroup && formal.Pic?.Category is PicCategory.Alphanumeric
-                && !raw.Contains('.') && !raw.StartsWith('-') && !raw.StartsWith('+'))
-                // MOVE rules: an unsigned integer numeric literal moves to an alphanumeric receiver as its
-                // digit characters (§14.9.25).
-                return new BoundInvokeArg(formal, null, null, raw, WriteBack: false, ByContent: true);
-            Err($"numeric literal argument {raw} for formal '{formal.CobolName}' "
-                + "(ISO §14.8.2.3.3 — no conforming COMPUTE/MOVE rule applies)");
-            return null;
+            if (OoConformance.ContentNumericLiteralMismatch(formal, raw) is { } nErr)
+            {
+                Err($"numeric literal argument {raw} for formal '{formal.CobolName}' — {nErr}");
+                return null;
+            }
+            // The CARRIER split the shared rule admits: rule 2a's COMPUTE lane for a numeric formal, and rule
+            // 2d's MOVE lane, which moves an unsigned integer literal to an alphanumeric receiver as its digit
+            // characters (§14.9.25).
+            return formal.Pic is { Category: PicCategory.Numeric, IsFloat: false }
+                ? new BoundInvokeArg(formal, null, raw, null, WriteBack: false, ByContent: true)
+                : new BoundInvokeArg(formal, null, null, raw, WriteBack: false, ByContent: true);
         }
         Err($"USING argument form for formal '{formal.CobolName}' is not yet carried across INVOKE");
         return null;
-    }
-
-    /// <summary>§14.8.2.3.3 — the BY CONTENT conformance rules per formal category: COMPUTE for numeric
-    /// (any fixed-point numeric argument; float formals require the identical float usage — the cross-float
-    /// CONTENT conversion is a documented later refinement), SET for object references (widening — the
-    /// argument's class shall be the receiver's class or a subclass), MOVE otherwise (alphanumeric/group
-    /// formals take any alphanumeric/group/integer-display argument, pad/truncate per MOVE).</summary>
-    private string? OoContentMismatch(DataItem formal, Place argPlace)
-    {
-        DataItem arg = argPlace.Item;
-        // §8.4.3.3.4 GR2/GR6 (fix-queue PB72): a REF-MOD argument crosses as the ELEMENTARY plain-alphanumeric
-        // (or GR6b/c national) view it creates, never as the inner item — whose numeric category would satisfy
-        // the COMPUTE arm below for a slice that is class alphanumeric, and whose finer alphabetic/edited flags
-        // refused legal Table-16 crossings. The view's category comes from the ONE GR6 reader
-        // (RefModPlace.CategoryOf); a view is elementary by definition, never a group.
-        PicCategory? argCat = argPlace is RefModPlace rmp ? rmp.Category : arg.Pic?.Category;
-        bool argIsGroup = argPlace is not RefModPlace && arg.IsGroup;
-
-        if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
-        {
-            if (argIsGroup)
-                return arg.IsImageCapable ? null : "the argument group has no character image (Tier-C)";
-            return argCat switch
-            {
-                PicCategory.Alphanumeric or PicCategory.NumericEdited => null,
-                // Table 16: boolean→alphanumeric is a conforming MOVE; national→alphanumeric is NOT
-                // (§14.9.25.3 — DISPLAY-OF is the sanctioned narrowing), so National keeps the mismatch arm.
-                PicCategory.Boolean => null,
-                PicCategory.Numeric when arg.Pic is { IsFloat: false, Scale: 0 } => null,   // MOVE integer→alnum
-                _ => "no conforming MOVE rule applies (ISO §14.8.2.2 rule 2 / §14.9.25)",
-            };
-        }
-        var f = formal.Pic!;
-        return f.Category switch
-        {
-            // The numeric/float/object arms key on the VIEW category — a ref-mod view is never numeric or an
-            // object reference (GR6c), so their arg.Pic detail reads are only reachable for a whole-item arg.
-            PicCategory.Numeric when f.IsFloat =>
-                argCat is PicCategory.Numeric && arg.Pic is { IsFloat: true } a2 && a2.Usage == f.Usage
-                    ? null
-                    : "a float formal takes the identical float usage BY CONTENT (cross-float COMPUTE "
-                      + "conversion is a later refinement)",
-            PicCategory.Numeric =>
-                argIsGroup ? "a group argument does not conform to a numeric formal (§14.8.2.3.3)"
-                : argCat is PicCategory.Numeric && arg.Pic is { IsFloat: false } ? null
-                : "COMPUTE-rule conformance needs a numeric argument (ISO §14.8.2.3.3 rule 2a)",
-            PicCategory.ObjectReference =>
-                argCat is PicCategory.ObjectReference && arg.Pic is { } ap
-                    ? OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, ap, f)
-                    : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
-            // ⭐ BOOLEAN / NATIONAL / NUMERIC-EDITED FORMALS ASK TABLE 16, NOT STRICT IDENTITY (fix-queue PB53).
-            // This arm used to call DescriptionMismatch — which is §14.8.2.3.2, the BY **REFERENCE** rule —
-            // described in its own comment as a "conservative strict gate". It was not conservative, it was the
-            // WRONG CLAUSE: §14.8.2.3.3 rule 2d says a BY CONTENT crossing whose formal is not numeric, not an
-            // index item and not ANY LENGTH conforms "as for a MOVE statement", i.e. by §14.9.25.3 Table 16.
-            // Identity is far narrower, so three pairings the standard admits were refused with a "category
-            // mismatch" naming a rule that does not govern the crossing:
-            //     boolean → national · alphanumeric → boolean · national → boolean
-            // ⚠ ANY LENGTH keeps its own answer FIRST: §14.8.2.3.3 rule 2c makes such a formal's length
-            // "considered to match", which is a statement about LENGTH and leaves the category pair to 2d.
-            _ => formal.IsAnyLength && !arg.IsAnyLength ? null
-                : MoveTable16.Refusal(Table16Operand.Of(argPlace), Table16Operand.Of(formal)),
-        };
     }
 
     /// <summary>Decode INVOKE's literal-1 (§14.9.23.3 SR2 — class alphanumeric or national): an alphanumeric

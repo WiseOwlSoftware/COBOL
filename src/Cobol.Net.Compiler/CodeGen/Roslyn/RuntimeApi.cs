@@ -1084,6 +1084,11 @@ internal static class RuntimeApi
     public static string ArgAdaptText(string args, int position, string width) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width})";
 
+    /// <summary>A DYNAMIC LENGTH formal's text carrier adoption — <c>CobolArgAdapt.DynText</c> (ISO §13.18.19;
+    /// §14.2.3 GR9's second-regime dynamic-length record — kb/Work PB165).</summary>
+    public static string ArgAdaptDynText(string args, int position, string limit) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.DynText)}({args}, {position}, {limit})";
+
     // ── The VARIABLE-LENGTH GROUP boundary carrier (ISO §8.5.1.12; kb/Work PB204). A third crossing form
     //    beside the native cell and the character image, because a variable-length group has neither a fixed
     //    record window nor an invertible flat image — see CobolVarGroup.

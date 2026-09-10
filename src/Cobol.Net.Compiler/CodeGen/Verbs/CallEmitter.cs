@@ -377,32 +377,46 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))
                     + "), 0, 0)";
+            // ⛔ FORWARDING A FORMAL PARAMETER AS AN ARGUMENT — ISO §8.8.4.8.4 GR1c and §14.9.4.4 GR12, for
+            // EVERY passing mode and EVERY residency (kb/Work PB165; PB133 wave C landed only the
+            // BY REFERENCE + carrier-resident corner). GR1c: the omitted-argument condition is true "if the
+            // argument corresponding to data-name-1 is itself a formal parameter for which the omitted-argument
+            // condition is true" — so omission is TRANSITIVE through any number of forwardings. GR12 exempts
+            // exactly this reference form ("except as an argument"), so the forward must not read the formal
+            // either. `WholeFormal` recognizes the case STRUCTURALLY, so a SUBITEM or subscripted reference
+            // keeps the ordinary build below and still raises inside an omitted formal, as GR12 requires.
+            var fwd = WholeFormal(p);
             if (a.Mode == CobolPassMode.Reference)
             {
-                // §14.9.4.4 GR1c/GR12 (kb/Work PB133 wave C): forwarding a CARRIER-RESIDENT formal passes the
-                // carrier ITSELF — presence (the omitted state) rides with it, GR1c's transitive omission
-                // reaches the next callee, and the sanctioned as-an-argument reference form never touches the
-                // accessors (a re-wrapped OverField over `__lnkpN.Value` would read — and GR12-raise — on an
-                // omitted formal). A resident formal's CsName IS its carrier accessor (DataBinder sets
-                // `__lnkpN.Value`); a SUBITEM or subscripted reference keeps the ordinary wrap, so referencing
-                // inside an omitted formal still raises, as GR12 requires.
-                if (p is MemberPlace { Path.Segments: [RootFieldSegment fr] }
-                    && fr.CsField.StartsWith("__lnkp", StringComparison.Ordinal)
-                    && fr.CsField.EndsWith(".Value", StringComparison.Ordinal))
+                // A CARRIER-RESIDENT formal's carrier IS the caller's storage (§14.2.3 GR8), so passing it
+                // through is both the presence fact and the aliasing.
+                if (fwd is { CarrierResident: true } rf)
                     return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, "
-                        + $"{fr.CsField[..^".Value".Length]}, {digits}, {scale})";
-                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(p)}, {digits}, {scale})";
+                        + $"{rf.CarrierField}, {digits}, {scale})";
+                // A NON-resident formal (a group, or a REDEFINED elementary one) keeps a callee-local field
+                // that round-trips the caller's image at the activation boundary — so the carrier to pass on IS
+                // a fresh view over that field, and only the PRESENCE has to be taken from the incoming
+                // carrier. Rebuilding it unconditionally is what made an omitted group formal arrive at the
+                // next callee as PRESENT (measured: `CALL "S8" AS NESTED USING OMITTED` → the inner
+                // `LH IS OMITTED` test answered false).
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, "
+                    + $"{Forwarded(fwd, RefCarrier(p))}, {digits}, {scale})";
             }
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9) — and BY VALUE with
             // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
             // call initiation; the mode rides the wire so the arg is honest about which rule produced it
             // (the BY VALUE callee re-conforms through its own NumValue cell, GR10).
+            // ⛔ The snapshot READS the operand, so when the operand is a forwarded formal the read has to be
+            // guarded: an omitted formal's accessor raises EC-PROGRAM-ARG-OMITTED, and GR12 says this
+            // reference form does not. The guard also carries the omission on, per GR1c.
             return CallPlaceIsVarGroup(p)
                 ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
-                  + $"{RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupImage(p, "CALL argument"))}, {digits}, {scale})"
+                  + $"{Forwarded(fwd, RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupImage(p, "CALL argument")))}, {digits}, {scale})"
                 : CallPlaceIsString(p)
-                ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
-                : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<{CallNumCarrier(p)}>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
+                ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
+                  + $"{Forwarded(fwd, $"ManagedPointer<string>.Cell({CallStringRead(p)})")}, {digits}, {scale})"
+                : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
+                  + $"{Forwarded(fwd, $"ManagedPointer<{CallNumCarrier(p)}>.Cell({PlaceRenderer.Read(p)})")}, {digits}, {scale})";
         }
         switch (a.Value)
         {
@@ -416,7 +430,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // its exact value") produced three different wrong answers depending on how it was spelled.
             case BoundNumericLiteral n:
                 return NumericArgText(a.Mode, n.Text);
-            case BoundComputedOperand ce when ConstLiteralText(ce.Expr) is { } ct:
+            case BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } ct:
                 return NumericArgText(a.Mode, ct);
             case BoundComputedOperand expr:
             {
@@ -460,32 +474,40 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
     }
 
-    /// <summary>The COMPILE-TIME numeric-literal text of an argument expression — the literal itself, with any
-    /// leading sign folded in — or null when the expression is not a literal constant.
-    /// <para>⛔ WHY THE NEGATE ARM EXISTS, and it is the two-arm shape again. At a LITERAL position the sign is
-    /// part of the token (<c>numericLiteral : signedNumericLiteral</c>), but inside an ARITHMETIC EXPRESSION —
-    /// which is what a BY VALUE argument binds as — a leading '−' before the FLOATING-POINT form is taken by
-    /// <c>unaryExpression</c> first, so <c>BY VALUE -1.234E-5</c> arrives as BoundNegate(BoundNumLiteral) while
-    /// <c>BY VALUE -0.00001234</c> arrives as a bare BoundNumLiteral. Matching only the bare shape fixed the
-    /// unsigned spelling and left the signed one falling through to the runtime-expression arm, where the
-    /// receiver-less working scale (6 fraction digits) truncated it: −0.00001234 crossed as −0.000012, a silent
-    /// wrong value on conforming source. One rule, two spellings, and only one of them fixed is exactly the
-    /// defect being repaired here — so the fold is part of the fix, not a refinement of it.</para></summary>
-    private static string? ConstLiteralText(BoundExpr e) => e switch
-    {
-        BoundNumLiteral n => n.Text,
-        BoundNegate g => ConstLiteralText(g.Operand) is { } t ? Negated(t) : null,
-        _ => null,
-    };
+    /// <summary>The PROCEDURE DIVISION USING formal this argument place denotes AS A WHOLE, or null
+    /// (ISO §8.8.4.8.4 GR1c / §14.9.4.4 GR12 — kb/Work PB165).
+    /// <para>⛔ THE TEST IS IDENTITY AGAINST THE UNIT'S FORMAL LIST, not a <c>__lnkp</c> prefix match on the
+    /// emitted field name. The name match could only ever see a CARRIER-RESIDENT formal — <c>DataBinder</c>
+    /// rewrites just those to <c>__lnkpN.Value</c> — so a GROUP formal, whose carrier is a copy-in field with
+    /// an ordinary name, fell through and lost its omitted state on every forward. Identity sees both, and it
+    /// keeps seeing both when a future residency rule changes.</para>
+    /// <para>Identity against the formal's own <c>DataItem</c> is itself the whole-item test: a SUBITEM
+    /// resolves to the subordinate item, never to the level-01 root, and a level-01 entry cannot carry OCCURS,
+    /// so no subscripted place has a formal root as its item. A REFERENCE-MODIFIED view is excluded
+    /// explicitly — §8.8.4.8.4 GR1c speaks of an argument that "is itself a formal parameter", and a window
+    /// into one is not; referencing INSIDE an omitted formal is exactly the error GR12 states.</para></summary>
+    private LinkageFormal? WholeFormal(Place p) =>
+        p is RefModPlace ? null : callState.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, p.Item));
 
-    /// <summary>The literal text of the algebraic negation of <paramref name="text"/> (ISO §8.3.3.3.2 rule 2 —
-    /// a sign, if used, is the leftmost character; §8.3.3.3.3 rule 2 makes a signed significand sign the whole
-    /// floating-point literal).</summary>
-    private static string Negated(string text)
-    {
-        string t = text.Trim().TrimStart('+');
-        return t.StartsWith('-') ? t[1..] : "-" + t;
-    }
+    /// <summary>Guard a freshly built argument carrier with the FORWARDED formal's presence (ISO §8.8.4.8.4
+    /// GR1c — omission is transitive; §14.9.4.4 GR12 — a reference "as an argument" is exempt, so the built
+    /// carrier's read must not happen at all when the formal is omitted). <paramref name="built"/> is returned
+    /// unguarded when the argument is not a formal forward.
+    /// <para>The guard is a C# conditional, not a runtime helper taking a factory: the omitted case allocates
+    /// nothing and the present case allocates exactly what it allocated before — a <c>Func&lt;T&gt;</c> closure
+    /// per argument per CALL would be a new allocation on the hot path for a rule that needs none.</para></summary>
+    private static string Forwarded(LinkageFormal? formal, string built) =>
+        formal is null ? built : $"({formal.CarrierField}.IsNull ? ManagedPointer.Null : {built})";
+
+    // The COMPILE-TIME numeric-literal text of an argument expression is `Gr8ArgumentLiteral.NumericText`
+    // (Binding/Bound/BoundCall.cs). ⛔ It used to be a PRIVATE COPY here, and the binder's §14.8.2.3.3
+    // conformance screen needed the same answer (kb/Work PB165) — the emitted carrier and the conformance
+    // verdict must agree about what §14.9.4.4 GR8 says an argument IS, so the reduction has exactly one home.
+    // Its negate arm is why: at a LITERAL position the sign is part of the token, but inside an ARITHMETIC
+    // EXPRESSION — which is what a BY VALUE argument binds as — a leading '−' before the FLOATING-POINT form
+    // is taken by `unaryExpression` first, so `BY VALUE -1.234E-5` arrives as BoundNegate(BoundNumLiteral)
+    // while `BY VALUE -0.00001234` arrives bare. Matching only the bare shape truncated the signed spelling
+    // at the receiver-less working scale (−0.00001234 crossed as −0.000012 — measured).
 
     /// <summary>⛔ THE ONE numeric-LITERAL argument carrier build, for every notation and every pass mode
     /// (kb/Work PB263 + PB264). A numeric literal argument crosses as the <c>(unscaled value, scale)</c> pair

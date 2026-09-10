@@ -13,6 +13,38 @@ namespace CobolNet.Binding.Bound;
 // ── Bound nodes — CALL / CANCEL / EXIT PROGRAM / GOBACK (ISO §14.9.4 / §14.9.5 / §14.9.14 / §14.9.18;
 //    COBOLNET_INTERPROGRAM_DESIGN D1–D4) ────────────────────────────────────────────────────────────────────────
 
+/// <summary>ISO §14.9.4.4 GR8 over a BOUND argument expression: "an argument that consists merely of a single
+/// identifier or literal is regarded as an identifier or literal rather than an arithmetic or boolean
+/// expression". A BY VALUE argument binds through <c>BindByValueExpr</c>, so a written literal arrives wrapped
+/// in a <see cref="BoundComputedOperand"/> — and inside an expression a leading '−' is taken by
+/// <c>unaryExpression</c> first, so <c>BY VALUE -1.234E-5</c> arrives as <c>BoundNegate(BoundNumLiteral)</c>
+/// while <c>BY VALUE -0.00001234</c> arrives bare. This is the ONE reduction that recovers the literal from
+/// either spelling.
+/// <para>⛔ IT LIVES HERE, NOT IN EITHER CONSUMER (kb/Work PB165). The emitter had a private copy and the
+/// binder needed the same answer for §14.8.2.3.3 conformance; two copies of one rule is how the CONFORMANCE
+/// verdict and the EMITTED carrier come to disagree about what an argument is. The binder's screen and
+/// <c>CallEmitter.ArgText</c>'s numeric-literal funnel now read the same reduction.</para></summary>
+public static class Gr8ArgumentLiteral
+{
+    /// <summary>The literal text of <paramref name="e"/> with any leading sign folded in, or null when it is a
+    /// genuine runtime expression.</summary>
+    public static string? NumericText(BoundExpr e) => e switch
+    {
+        BoundNumLiteral n => n.Text,
+        BoundNegate g => NumericText(g.Operand) is { } t ? Negated(t) : null,
+        _ => null,
+    };
+
+    /// <summary>The literal text of the algebraic negation of <paramref name="text"/> (ISO §8.3.3.3.2 rule 2 —
+    /// a sign, if used, is the leftmost character; §8.3.3.3.3 rule 2 makes a signed significand sign the whole
+    /// floating-point literal).</summary>
+    private static string Negated(string text)
+    {
+        string t = text.Trim().TrimStart('+');
+        return t.StartsWith('-') ? t[1..] : "-" + t;
+    }
+}
+
 /// <summary>One CALL USING argument: its resolved pass mode (the §14.9.4.4 GR5 transitivity already applied at
 /// bind time), and either a resolved <see cref="Place"/> (a data-reference argument) or a bound
 /// <see cref="Value"/> operand (a literal — inherently BY CONTENT — or a BY VALUE expression, §14.9.4.3 SR4).</summary>

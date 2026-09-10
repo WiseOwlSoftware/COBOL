@@ -556,7 +556,10 @@
   "pb725_push_pop_display",
   "pb792_report_value_then_column",
   "pb452_set_content_smallest_2023",
-  "pb528_picture_editing_transparency_2023"
+  "pb528_picture_editing_transparency_2023",
+  "pb165_content_conformance",
+  "pb165_gr12_forward",
+  "pb165_dynamic_length_boundary"
  ],
  "pending": [
   "pb485_value_only_format1"

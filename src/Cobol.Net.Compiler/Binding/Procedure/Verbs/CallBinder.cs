@@ -539,6 +539,23 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
                         $"{calleeWhere} argument {i + 1} ('{ap.Item.CobolName}') does not conform to formal "
                         + $"parameter '{f.Item.CobolName}': {why} (ISO §14.8.2)");
+                // §14.8.2.3.3 (BY CONTENT / BY VALUE) + §14.8.2.2 rule 2 — the OTHER ARM OF THE SAME DISPATCH,
+                // and it had none at all (kb/Work PB165). §14.9.4.3 SR25 imports "the rules for conformance
+                // specified in 14.8.2, Parameters" into a Format-2 CALL, and §14.8.2.3.3's rule 2 is the very
+                // regime this loop runs in (a NESTED call or a program prototype). With no screen here,
+                // CobolArgAdapt's converting views silently ADAPTED a non-conforming pair: measured on the
+                // pre-fix tree, `CALL "S" AS NESTED USING BY CONTENT A` with `A PIC X(4) VALUE "ABCD"` and a
+                // `PIC 9(4)` formal printed `LA=0000` — a wrong answer, on source the standard says is in
+                // error, with no diagnostic. The rule itself lives with its BY REFERENCE sibling in
+                // OoConformance, so the CALL and INVOKE lanes cannot drift.
+                else if (arg.Mode is CobolPassMode.Content or CobolPassMode.Value
+                         && ContentConformanceReason(f.Item, arg) is { } cwhy)
+                    ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
+                        $"{calleeWhere} argument {i + 1} "
+                        + $"({(arg.Place is { } cp2 ? $"'{cp2.Item.CobolName}'" : "the value operand")}) does "
+                        + $"not conform to formal parameter '{f.Item.CobolName}' "
+                        + $"{(arg.Mode is CobolPassMode.Value ? "BY VALUE" : "BY CONTENT")}: {cwhy} "
+                        + "(ISO §14.8.2.3.3 via §14.9.4.3 SR25)");
 
                 // §14.8.2.3.2, last sentence of the class-pointer rule: "If either is a restricted pointer, both
                 // shall be restricted and of the same type." The file already consulted StrongTypeModel for
@@ -634,6 +651,45 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             UsedOverflowSpelling = usedOverflow,
             IsPointerTarget = isPointerTarget,
+        };
+    }
+
+    /// <summary>ISO §14.8.2.3.3's conformance verdict for ONE bound BY CONTENT / BY VALUE argument, dispatched
+    /// on the argument's SHAPE onto the rules that live with their BY REFERENCE sibling in
+    /// <see cref="CobolNet.Compiler.Oo.OoConformance"/> (kb/Work PB165). Null when conformant.
+    /// <para>The shapes are exactly the ones <c>BindCall</c> produces for a Format-2 argument, and each takes
+    /// the clause the standard names for it: an identifier the per-formal-category rule (2a COMPUTE / 2b SET /
+    /// 2c ANY LENGTH / 2d MOVE, plus the class-pointer and object-reference SET paragraph); a boolean
+    /// expression or boolean literal Table 16's BOOLEAN row (rule 2d); an arithmetic expression rule 2a's
+    /// COMPUTE; an alphanumeric literal rule 2d's MOVE; a numeric literal whichever of 2a/2d its value can
+    /// satisfy. A CONSTANT-NAME argument arrives already substituted as its literal (§13.10.4 GR1), so it
+    /// needs no arm of its own.</para>
+    /// <para>⛔ An OMITTED argument never reaches here — the loop's own <c>continue</c> takes it after SR24,
+    /// and §14.8.2's conformance rules are about a formal parameter's DESCRIPTION, which an omitted argument
+    /// has none of. That is §14.9.4.4 GR11/GR12's regime, not this one.</para></summary>
+    private string? ContentConformanceReason(DataItem formal, BoundCallArg arg)
+    {
+        if (arg.ContentBool is not null)
+            return CobolNet.Compiler.Oo.OoConformance.ContentBooleanMismatch(formal);
+        if (arg.Place is { } p)
+            return CobolNet.Compiler.Oo.OoConformance.ContentMismatch(host.OoClasses, formal, p);
+        return arg.Value switch
+        {
+            // A figurative constant and an ALL literal are alphanumeric VALUES (§8.3.2.1 / §14.9.25's MOVE
+            // rules), so they take rule 2d's MOVE arm exactly as a written nonnumeric literal does.
+            BoundStringLiteral or BoundAllLiteral or BoundFigurative =>
+                CobolNet.Compiler.Oo.OoConformance.ContentAlphanumericLiteralMismatch(formal),
+            BoundNumericLiteral n =>
+                CobolNet.Compiler.Oo.OoConformance.ContentNumericLiteralMismatch(formal, n.Text),
+            // A BY VALUE argument binds as a computed operand even when GR8 says it is "merely a single
+            // identifier or literal" — the literal case is recovered so the two spellings of one value get
+            // ONE verdict (the CallEmitter.ArgText discipline, applied to conformance).
+            BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } ct =>
+                CobolNet.Compiler.Oo.OoConformance.ContentNumericLiteralMismatch(formal, ct),
+            BoundComputedOperand => CobolNet.Compiler.Oo.OoConformance.ContentArithmeticMismatch(formal),
+            // No bound value at all (a shape the arms above do not name) is not a conformance verdict to make:
+            // the binder has already reported whatever refused to bind.
+            _ => null,
         };
     }
 

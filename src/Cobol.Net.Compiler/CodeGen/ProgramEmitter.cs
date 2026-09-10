@@ -114,6 +114,30 @@ internal sealed class ProgramEmitter
 
     // ── Program-class emission (design D3/D4) ───────────────────────────────────────────────────────────────
 
+    /// <summary>⛔ THE ONE PLACE A CHARACTER-CARRIED LINKAGE FORMAL'S LENGTH REGIME IS DECIDED — and the
+    /// standard describes THREE of them, where this dispatch used to have two (kb/Work PB165).
+    /// <list type="bullet">
+    ///   <item><b>ANY LENGTH</b> (ISO §13.18.2 GR1) — the formal's length IS the argument's, fixed for the
+    ///     activation: the full-string view, width sentinel −1.</item>
+    ///   <item><b>DYNAMIC LENGTH</b> (ISO §13.18.19.4 GR1/GR2) — the length VARIES during execution, minimum
+    ///     zero, maximum the LIMIT phrase: the full-string view whose store carries §8.5.1.10.4's replace-and-
+    ///     truncate rule. This arm was MISSING, and §13.18.19.3 SR1 makes its absence maximally destructive —
+    ///     the PICTURE of a dynamic-length item is exactly ONE symbol, so the fixed arm below delivered a
+    ///     ONE-CHARACTER formal for every such crossing (measured: a 7-character argument arrived as
+    ///     <c>LEN=1</c>, and the callee's store spliced one character into the caller's seven).</item>
+    ///   <item><b>fixed</b> — the declared width window (§14.2.3 GR8: the callee touches only its formal's
+    ///     character positions).</item>
+    /// </list>
+    /// The BY VALUE leg is the detached value copy (§14.2.3 GR10). A BY VALUE dynamic-length formal cannot
+    /// arise — §14.2.2 SR2 admits only class numeric, message-tag, object or pointer BY VALUE — so the dynamic
+    /// arm is stated first without a mode test rather than duplicated under both.</summary>
+    private static string FormalTextCarrier(LinkageFormal f, int fixedWidth) =>
+        f.Item.IsDynamicLength
+            ? RuntimeApi.ArgAdaptDynText("__args", f.Position, $"{f.Item.DynLengthLimit}")
+        : f.ByValue
+            ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}")
+            : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}");
+
     /// <summary>Emit one program's instantiable class (design D3 — a static class cannot recurse or hold the
     /// per-activation copies INITIAL/RECURSIVE need; the registry's cached singleton realizes last-used state,
     /// §14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
@@ -124,6 +148,7 @@ internal sealed class ProgramEmitter
         var refs = Current.Refs;
         _callState.SelfPath = unit.Path;
         _callState.ReturningPlace = data.LinkageReturning is { } ret ? refs.ResolveItem(ret) : null;
+        _callState.Formals = data.LinkageFormals;   // §8.8.4.8.4 GR1c forwarding (kb/Work PB165)
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
         _ecState.UnitHasF3Perform = unit.Bound.Ec?.HasF3Perform ?? false;   // → __EcPerform + the F3-frame interceptor (§14.9.28)
         _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.Eo is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
@@ -414,7 +439,7 @@ internal sealed class ProgramEmitter
                         ? $"{f.CarrierField} = {(f.ByValue
                             ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
                             : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier))};"
-                        : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{Math.Max(1, f.Item.Pic!.Length)}")};");
+                        : $"{f.CarrierField} = {FormalTextCarrier(f, Math.Max(1, f.Item.Pic!.Length))};");
                     continue;
                 }
                 // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.
@@ -431,9 +456,7 @@ internal sealed class ProgramEmitter
                     ? $"{f.CarrierField} = {(f.ByValue
                         ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position)
                         : RuntimeApi.ArgAdaptVarGroup("__args", f.Position))};"
-                    : $"{f.CarrierField} = {(f.ByValue
-                        ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}")
-                        : RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}"))};");
+                    : $"{f.CarrierField} = {FormalTextCarrier(f, Math.Max(1, f.Item.ImageWidth))};");
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                 {
                     if (place is null)

@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// EC-FUNCTION-NOT-FOUND went unhandled until kb/Work PB233 — nothing in the tree contradicted a name that was
 /// simply absent from a lookup. A STALE entry costs the other way: a dead disjunct in the filter of every CALL
 /// statement compiled under that name's checking.
-/// <para>So the list is not hand-maintained blind. This re-derives it from the three files that own the
+/// <para>So the list is not hand-maintained blind. This re-derives it from the four files that own the
 /// carrier and asserts set equality. The scan is deliberately over TEXT rather than a parse: every
 /// exception-name literal on a CODE line — the raise sites, their messages (each quotes the condition it
 /// raises), the constructor's own <c>ecName</c> default, and <c>CarriedNames</c> itself. Doc-comment lines are
@@ -28,12 +28,15 @@ namespace CobolNet.Tests.Unit;
 public sealed class CallExceptionCarrierDriftTests
 {
     /// <summary>The files that own the carrier: its declaration and every <c>throw new CobolCallException</c>.
-    /// A fourth file gaining a raise site is itself drift — <see cref="OnlyTheCarrierFiles_RaiseIt"/>.</summary>
+    /// A fifth file gaining a raise site is itself drift — <see cref="OnlyTheCarrierFiles_RaiseIt"/>.</summary>
     private static readonly string[] CarrierFiles =
     [
         Path.Combine("Cobol.Net.Runtime", "Control", "ProgramRegistry.cs"),
         Path.Combine("Cobol.Net.Runtime", "Control", "ProgramTable.cs"),
         Path.Combine("Cobol.Net.Runtime", "Control", "ExternalTable.cs"),
+        // PB165: StoreReturn is total — a result it cannot store raises EC-PROGRAM-ARG-MISMATCH (§14.9.4.4 GR4)
+        // instead of being silently discarded, so the RETURNING landing is a carrier file too.
+        Path.Combine("Cobol.Net.Runtime", "Control", "CallAbi.cs"),
     ];
 
     /// <summary>A level-3 exception-name literal — §14.6.13.1.1's open suffix forbids a trailing hyphen, so
@@ -65,7 +68,7 @@ public sealed class CallExceptionCarrierDriftTests
         Assert.Equal(new SortedSet<string>(CobolCallException.CarriedNames, StringComparer.Ordinal), found);
     }
 
-    /// <summary>A raise site outside the three carrier files would be invisible to the scan above, so the set
+    /// <summary>A raise site outside the four carrier files would be invisible to the scan above, so the set
     /// equality it asserts would stop meaning anything. Fail here instead of passing hollowly.</summary>
     [Fact]
     public void OnlyTheCarrierFiles_RaiseIt()

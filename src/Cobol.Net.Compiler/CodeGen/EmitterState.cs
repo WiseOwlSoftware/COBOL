@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 
@@ -182,6 +183,19 @@ internal sealed class CallUnitState
     /// <summary>The LINKAGE RETURNING item's place (null when none) — the EXIT PROGRAM / GOBACK result store.
     /// Set per unit (methods deliver results via slice-2 RETURNING, never the program ABI).</summary>
     public Place? ReturningPlace { get; set; }
+
+    /// <summary>This unit's PROCEDURE DIVISION USING formals (ISO §14.2.3 GR2), so a CALL site can recognize
+    /// an argument that IS a whole formal parameter and forward its ARGUMENT CARRIER rather than a freshly
+    /// built one (kb/Work PB165). That recognition is what realizes §8.8.4.8.4 GR1c — "the omitted-argument
+    /// condition is true … if the argument corresponding to data-name-1 is itself a formal parameter for which
+    /// the omitted-argument condition is true" — and §14.9.4.4 GR12's "except as an argument" exemption: a
+    /// rebuilt carrier answers <c>IsNull</c> false, so the next callee saw a PRESENT argument, and a rebuilt
+    /// BY CONTENT snapshot READ the omitted formal and raised EC-PROGRAM-ARG-OMITTED where the exemption
+    /// applies. ⛔ The recognition is STRUCTURAL (identity against these items), never a <c>__lnkp</c> name
+    /// match: the name match only ever saw a CARRIER-RESIDENT formal, which is exactly why a GROUP formal —
+    /// whose carrier is a copy-in field, not the caller's storage — lost its omission.
+    /// Set per unit alongside <see cref="ReturningPlace"/>.</summary>
+    public IReadOnlyList<LinkageFormal> Formals { get; set; } = [];
 
     /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.30), the place of the OWNER's FILE
     /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where

@@ -68,7 +68,7 @@ public readonly record struct Table16Operand(
 /// </para>
 /// <para>
 /// ⛔ THEY HAD ALREADY DRIFTED, WHICH IS WHY THIS EXISTS (fix-queue PB53). <c>MoveBinder</c> implemented the
-/// table; <c>OoBinder.OoContentMismatch</c> fell back to §14.8.2.3.2 STRICT IDENTITY — the BY <b>REFERENCE</b>
+/// table; <c>OoConformance.ContentMismatch</c> (then <c>OoBinder.OoContentMismatch</c>) fell back to §14.8.2.3.2 STRICT IDENTITY — the BY <b>REFERENCE</b>
 /// rule — for boolean, national and numeric-edited formals. Identity is a much narrower test than Table 16, so
 /// three pairings the standard admits were refused: boolean→national, alphanumeric→boolean and
 /// national→boolean, each reported as a "category mismatch" naming a rule that does not govern the crossing.
