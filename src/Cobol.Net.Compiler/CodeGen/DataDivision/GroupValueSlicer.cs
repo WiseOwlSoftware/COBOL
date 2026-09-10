@@ -213,9 +213,12 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
             {
                 // ISO §13.18.63.4 GR9 gives EVERY occurrence the value at its own position; the stride is the
                 // per-occurrence BIT extent, which is what makes a `PIC 1(4) OCCURS 6` table six sub-byte
-                // windows rather than six bytes.
+                // windows rather than six bytes. ⛔ The stride and the WINDOW WIDTH were one local until
+                // kb/Work PB487; §13.18.1.4 GR2 splits them, because an ALIGNED occurrence still occupies only
+                // its declared bits but the NEXT one starts at the following byte.
+                int stride = BitLayout.StrideBits(c);
                 var elems = new List<string>();
-                for (int k = 0; k < n; k++) elems.Add(SliceBitInit(c, BitWindow(area, at + k * per, per)));
+                for (int k = 0; k < n; k++) elems.Add(SliceBitInit(c, BitWindow(area, at + k * stride, per)));
                 parts.Add($"{c.CsName} = new {c.ElementType}[] {{ {string.Join(", ", elems)} }}");
             }
             else parts.Add($"{c.CsName} = {SliceBitInit(c, BitWindow(area, at, per))}");

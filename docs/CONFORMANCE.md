@@ -477,6 +477,13 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
    and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
    of this edition). Processor-dependent; not provided. The statements are accepted-inert with **COBOLNET1578**.
+   The **MESSAGE-TAG usage** is instead REFUSED BY NAME with **COBOLNET1943**, in BOTH its spellings
+   (§13.18.60.2 prints `[ USAGE IS ]` as optional, so bare `01 M MESSAGE-TAG.` is the same clause as
+   `01 M USAGE MESSAGE-TAG.`). It cannot join the accept-inert band for the reason 1560/1705/1706/1707 cannot:
+   §13.18.60.4 GR9 fixes the class AND category of a message-tag data item as message-tag, so an accepted item
+   would have to bind as some OTHER class and every reference to it would answer wrong. Until kb/Work PB487 the
+   bare spelling was not refused at all — the §13.16.2 vendor catch-all swallowed the word and the entry bound
+   with no usage and no PICTURE, crashing the compiler with an unhandled `NullReferenceException`.
    ⚠ The EC-MCS-\* exception-names are still ACCEPTED against a facility with no setting sites — the same shape
    items 2 and 3 close below; owed with this module's own witnesses.
 2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7 / **Annex A.4.3**), in full — the facility's surface is

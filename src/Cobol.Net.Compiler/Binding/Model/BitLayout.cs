@@ -37,6 +37,29 @@ internal static class BitLayout
     /// leaf, or a GROUP-USAGE BIT group (§13.18.29.4 GR1a — "a bit group and also a bit data item"; D20/PB79).</summary>
     public static bool IsBitItem(DataItem item) => IsBitLeaf(item) || item.GroupUsage is GroupUsage.Bit;
 
+    /// <summary>
+    /// ⛔ THE ONE PLACEMENT PREDICATE: does <paramref name="c"/> continue its predecessor's byte, or start a new
+    /// one? True is §8.5.1.6.3's ONLY byte-sharing case; false is "the first bit position of the first available
+    /// byte", whether the reason is rule 2 (a different-level or non-bit predecessor, or no predecessor at all),
+    /// rule 3 (a non-bit item advancing to its natural boundary) or §13.18.1.4 GR1 (an ALIGNED subject).
+    ///
+    /// <para>⛔ It is a METHOD because the test was previously written out TWICE — once in
+    /// <see cref="ExtentBits"/> and once in <see cref="StartBitWithin"/> — which is this repository's most
+    /// reproducible defect shape: a dispatch with two arms and only one of them fixed. Adding the ALIGNED case
+    /// to one copy and not the other would have made an item's OFFSET disagree with the group's EXTENT, a
+    /// silently wrong layout with no diagnostic anywhere (kb/Work PB487).</para>
+    ///
+    /// <para><b>§13.18.1.4 GR1</b>: "An ALIGNED clause causes the subject of the entry to be aligned on the first
+    /// bit of the first available byte boundary. Implicit filler bits may be generated to complete the assignment
+    /// of bits as described in 8.5.1.6.3." So an ALIGNED item NEVER shares a byte with its predecessor — one
+    /// conjunct, and the round-up both callers already perform does the rest. <b>GR3</b> ("when an ALIGNED clause
+    /// is not specified, bit data items are aligned in accordance with 8.5.1.6.3") is the false arm, unchanged.</para>
+    /// </summary>
+    public static bool SharesByteWith(DataItem? prev, DataItem c) =>
+        !c.IsAligned                                            // §13.18.1.4 GR1 — an ALIGNED subject never shares
+        && IsBitItem(c) && prev is not null && IsBitItem(prev)   // §8.5.1.6.3 rules 1 and 2 — both sides bit items…
+        && prev.Level == c.Level;                                // …"of the same level"
+
     /// <summary>The bit positions a §8.5.1.6.3 run MEMBER contributes — a bit leaf's declared boolean positions, a
     /// bit group's exact extent (its as-if PICTURE 1(m) length), times its OCCURS (D20/PB79).
     /// <para>⛔ Expressed through <see cref="WidthBits"/> rather than re-reading <c>Pic</c>/<c>AsIfPic</c>: for a
@@ -45,15 +68,40 @@ internal static class BitLayout
     /// <see cref="DataItem.AsIfPic"/> reports as §13.18.29.4 GR1b's <c>m</c>), and one spelling means the
     /// per-occurrence extent used as a WIDTH (the Tier-B bit window, kb/Work PB203) and the one used as a STRIDE
     /// (a subscripted bit member) cannot drift apart.</para></summary>
-    public static int RunBits(DataItem m) => WidthBits(m) * (m.Occurs ?? 1);
+    public static int RunBits(DataItem m) =>
+        m.Occurs is not { } n || n <= 1 ? WidthBits(m)
+        : StrideBits(m) * (n - 1) + WidthBits(m);
 
     /// <summary>The bit extent of one item PER OCCURRENCE — a bit leaf's declared boolean-position count, else the
     /// item's byte extent expressed in bits. A group defers to <see cref="ExtentBits"/> so a nested bit run is laid
-    /// out by the same rules (§8.5.1.6.3 applies "within that group" at every level).</summary>
+    /// out by the same rules (§8.5.1.6.3 applies "within that group" at every level).
+    /// <para>⛔ This is a WIDTH, not a STRIDE. For an ALIGNED multiple-occurrence item the two differ — use
+    /// <see cref="StrideBits"/> wherever the number multiplies a subscript.</para></summary>
     public static int WidthBits(DataItem item) =>
         IsBitLeaf(item) ? item.Pic!.Length
         : item.IsElementary ? item.ElementaryByteWidth * BitsPerCharacter
         : ExtentBits(item);
+
+    /// <summary>
+    /// ⛔ THE ONE SUBSCRIPT STRIDE in bits — the distance from one occurrence's first bit to the next
+    /// occurrence's first bit. Equal to <see cref="WidthBits"/> for everything except an ALIGNED item, which is
+    /// exactly what <b>§13.18.1.4 GR2</b> requires: "An ALIGNED clause specified for a multiple-occurrence data
+    /// item applies to each occurrence of that item" — so EVERY occurrence, not just the first, begins at the
+    /// first bit of a byte, and the stride is the per-occurrence width rounded up to a byte.
+    ///
+    /// <para>Because the two coincide whenever <c>IsAligned</c> is false, converting a call site from
+    /// <see cref="WidthBits"/> to this method is provably byte-identical for every program that writes no ALIGNED
+    /// clause — the whole pre-PB487 corpus — which is the same discipline the class header records for gating the
+    /// bit walk on <c>HasBitDescendant</c>.</para>
+    ///
+    /// <para>⚠ The trailing filler of the LAST occurrence is NOT part of the item's extent: §8.5.1.6.3 generates
+    /// implicit filler "as needed to advance alignment to a required natural boundary for the NEXT item", so a
+    /// same-level bit item following an ALIGNED table still starts at the next BIT position after the final
+    /// occurrence. <see cref="RunBits"/> therefore counts <c>stride × (n−1) + width</c>, not <c>stride × n</c>;
+    /// the group's own tail filler is rule 4's round-up, applied once by <see cref="ExtentBits"/>.</para>
+    /// </summary>
+    public static int StrideBits(DataItem item) =>
+        item.IsAligned ? RoundUpToByte(WidthBits(item)) : WidthBits(item);
 
     /// <summary>
     /// The total bit extent of <paramref name="group"/> — the §8.5.1.6.3 cursor walk over its NON-redefining
@@ -87,13 +135,10 @@ internal static class BitLayout
         {
             if (c.RedefinesTargetName is not null) continue;   // overlays its target — no advance (§13.18.44)
 
-            // Rule 1 vs 2: sharing a byte requires the PREVIOUS sibling to be a bit item AT THE SAME LEVEL. Any
-            // other predecessor (a character item, a differently-levelled bit item, or nothing at all) sends this
-            // item to the first bit of the next available byte.
-            bool sharesByte = IsBitItem(c) && prev is not null && IsBitItem(prev) && prev.Level == c.Level;
-            if (!sharesByte) cursor = RoundUpToByte(cursor);   // rules 2 and 3 — the same advance, different reasons
+            // Rule 1 vs 2 (and §13.18.1.4 GR1) — ONE predicate, shared with StartBitWithin below.
+            if (!SharesByteWith(prev, c)) cursor = RoundUpToByte(cursor);   // rules 2 and 3 — same advance, different reasons
 
-            cursor += WidthBits(c) * (c.Occurs ?? 1);
+            cursor += RunBits(c);   // width, or the ALIGNED per-occurrence stride × (n−1) + width (GR2)
             prev = c;
         }
         // Rule 4 — the trailing filler: stated for "a record that is an alphanumeric group or strongly-typed group
@@ -126,10 +171,9 @@ internal static class BitLayout
         foreach (var c in group.Children)
         {
             if (c.RedefinesTargetName is not null) continue;
-            bool sharesByte = IsBitItem(c) && prev is not null && IsBitItem(prev) && prev.Level == c.Level;
-            if (!sharesByte) cursor = RoundUpToByte(cursor);
+            if (!SharesByteWith(prev, c)) cursor = RoundUpToByte(cursor);
             if (ReferenceEquals(c, child)) return cursor;
-            cursor += WidthBits(c) * (c.Occurs ?? 1);
+            cursor += RunBits(c);
             prev = c;
         }
         return -1;
@@ -138,7 +182,7 @@ internal static class BitLayout
     /// <summary>The next byte boundary at or after <paramref name="bits"/> — "the first bit position of the first
     /// available byte" (§8.5.1.6.3), and equally the implicit-filler advance to a natural boundary. Already
     /// byte-aligned input is returned unchanged, so no phantom filler byte is generated.</summary>
-    private static int RoundUpToByte(int bits) =>
+    public static int RoundUpToByte(int bits) =>
         (bits + BitsPerCharacter - 1) / BitsPerCharacter * BitsPerCharacter;
 
     /// <summary>The bit offset of <paramref name="item"/> within <paramref name="ancestor"/> — the sum of each

@@ -18936,13 +18936,13 @@
   "ordinal": 8,
   "subject": "Data description entry",
   "rule-digest": "673abcd97a8c",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "conformance:negative/program-pointer-with-picture",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.PictureRequired.cs#CheckPictureRequired; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/pb487-picture-required-elementary; conformance:negative/program-pointer-with-picture",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB504 + PB520 — Prohibition half, ENFORCED: binary-char/-short/-long/-double (COBOLNET0870; also conformance-test:DataSkeletonEditionTests.BinaryChar_WithPicture_Rejects0870), float-short/-long/-extended (COBOLNET1521), object reference (COBOLNET0812), pointer / program-pointer / function-pointer (COBOLNET0881). STRUCTURAL: 'the subject of a RENAMES clause' cannot carry a PICTURE — `renamesClause` is a whole alternative of `dataDescriptionBody` (CobolData.g4:231-235). UNENFORCED: the INDEX leg — `01 IX PIC 9(4) USAGE INDEX.` compiles clean at every edition and the written PICTURE is silently discarded (FUNCTION LENGTH(IX) = 8, identical to a picture-less index item). UNREACHABLE: the message-tag leg — USAGE MESSAGE-TAG does not parse at all (COBOL0001 'no viable alternative'), a §13.18.60 gap, not this rule's. Positive half ('For any other entry describing an elementary item, a PICTURE clause shall be specified'): UNENFORCED — `01 A USAGE DISPLAY.` binds with Pic == null and `MOVE \"X\" TO A` CRASHES the compiler (NullReferenceException in MoveEmitter.ConvertSource:287). See findings data-description-entry-p2/F5 and /F6. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry — the prohibition roster at ~2428 (OBJECT REFERENCE, 0812), ~2447 (BINARY-CHAR family, 0870, quoting SR8), ~2459 (PROGRAM-POINTER/FUNCTION-POINTER, 0881, quoting SR8), ~2482 (POINTER, 0881), ~2579 (the float family, 1521); the `pic` synthesis at ~2591 passes a written PICTURE straight through for USAGE INDEX. The positive half has no site: #ResolveIndexItems:3262 has arms for GROUP-USAGE, the NATIONAL/BIT pending mark, index and object-reference — and none for a picture-less elementary DISPLAY item.",
-  "state": "GAP"
+  "notes": "Both halves now hold. The prohibition half (no PICTURE on the eleven picture-less usages) was already enforced at BindEntry. The REQUIREMENT half - 'For any other entry describing an elementary item, a PICTURE clause shall be specified except as indicated in Syntax rule 9' - was enforced only for USAGE NATIONAL and USAGE BIT; every other picture-less elementary entry escaped with a null PicInfo and CRASHED the compiler (unhandled NullReferenceException in MoveEmitter.ConvertSource, no diagnostic). CheckPictureRequired is the closing guard: COBOLNET0881 over the conformance forest, a recovery PicInfo over the composition forest, so no elementary item reaches the emitter without one. An unexpanded TYPE / SAME AS reference is excluded by the rule's own words - it describes nothing. kb/Work PB487. The guard's ONE carve-out is SR8's own deferral to SR9: a picture-less entry whose VALUE is a FIGURATIVE constant is not diagnosed, because 7.3.15.4 GR4 k's >>FLAG-14 VALUE-FIG-CON-LENGTH option (\"A figurative constant specified in the VALUE clause of a data item with no specified length shall be flagged\") shows that construct is accepted and flagged rather than rejected, and this guard must not re-adjudicate it. A VALUE LITERAL - SR9's actual case, whose implied PICTURE is synthesized nowhere - IS still diagnosed: that gap is kb/Work PB504, row SR-13.16.3-9, and a silent one-character recovery item was measured to be the alternative.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-9",
@@ -18996,13 +18996,13 @@
   "ordinal": 12,
   "subject": "Data description entry",
   "rule-digest": "c5d360178824",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Frontend/Cst/DataClauseKind.cs#SameAsCoPermitted",
+  "test-ref": "conformance:negative/pb487-aligned-co-clause-rules; unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB487 + PB514 — The SAME AS composition guard (COBOLNET1555, DataBinder.cs:2726-2735) tests `pictureText | usageText | rawValue | ownSign | justified | blankWhenZero | synchronized | redefinesTargetName | isBased | isAnyLength | typeRefName | isTypedef` and correctly ADMITS the six permitted co-clauses (probes sr12_sameas_occurs_ok, s12_sameas_cr; conformance-test SameAsTests.SameAsWithPicture_Rejected1555 and .QualifiedChainedAndComposedSameAs_CompileClean pin both directions). TWO RECOGNIZED CLAUSES ESCAPE IT: GROUP-USAGE (§13.18.29) -- `01 A SAME AS B GROUP-USAGE IS NATIONAL.` compiles clean (probe sr12_sameas_groupusage, h_sameas_gu) -- and PROPERTY (§13.18.42) -- `01 A SAME AS B PROPERTY.` compiles clean (probe sr12_sameas_property). Neither is in SR12's permitted set. Both are load-bearing: GROUP-USAGE would silently re-characterize the copied description (§13.18.29.3 SR2/SR3 imply USAGE on every subordinate) and PROPERTY attaches OO accessors to an entry whose description comes from elsewhere. The sibling DYNAMIC LENGTH guard (SR18, COBOLNET1563) captures PROPERTY and GLOBAL explicitly, so the omission here is a two-arm-dispatch miss, not a design choice. DYNAMIC LENGTH, select-when and the validation clauses are refused on this shape by their own paths (COBOLNET1561 / 1705 / 1708 -- probes s12_sameas_dynlen, s12_sameas_selectwhen, s12_sameas_class), and ALIGNED escapes via the genericDataClause hole recorded on FMT-13.16.2 (probe z_sameas_aligned).",
-  "state": "GAP"
+  "notes": "The rule is over the WHOLE clause list and was an || chain of local decode flags that could not see ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses - so 01 A SAME AS Z ALIGNED. compiled clean. It now reads the WRITTEN clause SET (DataDescriptionCst.WrittenClauses) against SameAsCoPermitted, a constant transcribed from the rule's sentence, and names the offending clause in the message. DataClauseKindDriftTests fails in both directions when a dataDescriptionClause alternative has no DataClauseKind, so the set cannot go incomplete again. kb/Work PB487.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-13",
@@ -19011,13 +19011,13 @@
   "ordinal": 13,
   "subject": "Data description entry",
   "rule-digest": "88e00286bc4a",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntries; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Frontend/Cst/DataClauseKind.cs#ConstantRecordExcluded",
+  "test-ref": "unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences; conformance:negative/pb487-constant-record-excluded-clauses",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB487 + PB514 — THE SAME-ENTRY HALF AND PARAGRAPH 2 ARE RIGHT; THE SUBORDINATE HALF DROPS DYNAMIC LENGTH. Same entry (COBOLNET1549, BindEntry:2741-2765): ANY LENGTH / BASED / BLANK WHEN ZERO / SYNCHRONIZED / TYPEDEF are rejected (probe q_al_cr), DYNAMIC LENGTH is rejected by the SR18 guard's `isConstantRecord` leg (COBOLNET1563, probe s13_cr_dynlen), select-when by COBOLNET1705 (probe s13_cr_selectwhen) and the validation clauses by COBOLNET1708. Paragraph 2 is correctly version-conditioned on DialectLevel >= 2023 -- the presence half in BindEntry, the STRENGTH half in ExpandType -- so `01 A CONSTANT RECORD IS EXTERNAL.` is COBOLNET1549 at 2023 and legal at 2014 (probes s13_cr_ext_notype vs s13_cr_ext_notype_2014; goldens conformance:negative/external-constant-record-no-type-at-2023 and -weak-type-at-2023 pin it, matching Annex E.2 item 10). THE HOLE: the subordinate-entry guard in BindEntries (`item.BlankWhenZero || item.Synchronized || item.IsBased || item.IsAnyLength || item.IsTypedef`) OMITS `item.IsDynamicLength`, although SR13's list names DYNAMIC LENGTH beside the other five and the same-entry arm does honour it. `01 A CONSTANT RECORD. 05 B PIC X DYNAMIC LENGTH.` compiles clean (probe s13_cr_sub_dynlen) -- a variable-length member inside a record whose whole point (§13.18.15.4 GR1) is a fixed, never-re-initialized constant image. A same-entry/subordinate pair with two different lists is the shape to fix: ONE list, asked twice. ALIGNED also escapes the same-entry arm via the genericDataClause hole on FMT-13.16.2 (probe z_cr_aligned).",
-  "state": "GAP"
+  "notes": "Paragraph 1 names EIGHT excluded clauses; the || chain listed five - DYNAMIC LENGTH, select-when and the validation clauses were missing. Now the WRITTEN clause set against ConstantRecordExcluded, transcribed from the sentence and pinned by the drift test; the message names which excluded clause the entry specified. The subordinate-entry half stays in BindEntries where the parent chain exists, and paragraph 2 (EXTERNAL CONSTANT RECORD requires a strong TYPE, a 2023 addition) is unchanged. kb/Work PB487.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-14",
@@ -19071,13 +19071,13 @@
   "ordinal": 17,
   "subject": "Data description entry",
   "rule-digest": "993cf2769b33",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Frontend/Cst/DataClauseKind.cs#LengthClauseCoPermitted",
+  "test-ref": "unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences; conformance:negative/pb487-any-length-excluded-clauses",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB487 + PB514 — The ANY LENGTH co-clause guard (COBOLNET1542, DataBinder.cs:2860-2868) tests `occursSpec | occurs | redefinesTargetName | isBased | hasExternal | justified | blankWhenZero | synchronized | ownSign | isTypedef | typeRefName` and fires correctly for OCCURS and JUSTIFIED (probes h_al_occurs, h_al_just, in a CONTAINED program so §13.18.2.3 SR2's own placement rule does not mask the result). IT OMITS GLOBAL AND PROPERTY, and both are accepted: `01 A ANY LENGTH GLOBAL PIC X.` and `01 A ANY LENGTH PROPERTY PIC X.` compile clean in a contained program's LINKAGE SECTION at 2023 and at 2002 (probes h_al_global, h_al_property, q_al_global_2002). Neither word is in SR17's permitted set (level-number, entry-name, PICTURE, USAGE, VALUE). THIS IS A TWO-ARM DISPATCH MISS WITH THE FIX ALREADY WRITTEN NEXT DOOR: the DYNAMIC LENGTH twin thirty lines below (COBOLNET1563, SR18) captures `hasGlobal` and `hasProperty` explicitly, and its comment states WHY -- 'GLOBAL ... is decoded post-build in CallBindExternalAndGlobal, so it would escape the allowlist without an explicit flag'. The same two flags are in scope here and were never added. SAME AS, CONSTANT RECORD, DYNAMIC LENGTH and select-when are refused on this shape by their own paths (COBOLNET1555 / 1549 / 1563 / 1705 -- probes sr17_al_sameas, q_al_cr, h_al_dynlen, q_al_selectwhen); ALIGNED escapes via the genericDataClause hole on FMT-13.16.2. The two rules want ONE permitted-set predicate, not two hand-maintained condition lists that have already drifted apart.",
-  "state": "GAP"
+  "notes": "'the only other clauses permitted are level-number, entry-name, PICTURE, USAGE, and VALUE' - a whole-list rule implemented as a ten-flag || chain that could not see ALIGNED, CONSTANT RECORD, DYNAMIC LENGTH, GLOBAL, GROUP-USAGE, PROPERTY, SAME AS, SELECT WHEN or the validation clauses, nine of the fourteen it excludes. Now the WRITTEN clause set against LengthClauseCoPermitted OR the subject's own bit; the co-permitted constant excludes BOTH length clauses, which is what makes ANY LENGTH DYNAMIC LENGTH on one entry a violation of both rules rather than neither. kb/Work PB487.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-18",
@@ -19086,13 +19086,13 @@
   "ordinal": 18,
   "subject": "Data description entry",
   "rule-digest": "802beaff7d15",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Frontend/Cst/DataClauseKind.cs#LengthClauseCoPermitted",
+  "test-ref": "conformance:negative/pb487-aligned-co-clause-rules; unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB487 — THE GUARD IS COMPLETE FOR EVERY CLAUSE THE COMPILER RECOGNIZES; the residue is the format-level hole. The COBOLNET1563 guard (DataBinder.cs:2911-2921) tests `occursSpec | occurs | redefinesTargetName | isBased | hasExternal | hasGlobal | hasProperty | justified | blankWhenZero | synchronized | ownSign | isTypedef | typeRefName | sameAsName | isConstantRecord | isAnyLength` -- the whole Format-1 clause list minus the five SR18 permits -- and GROUP-USAGE is refused from the other side (a DYNAMIC LENGTH item always carries a PICTURE, so §13.18.29.3 SR1's COBOLNET1653 fires, probe sr18_dl_groupusage), select-when by COBOLNET1705 and the validation clauses by COBOLNET1708. Positive control `01 A DYNAMIC LENGTH PIC X.` compiles (probe sr18_dl_ok). Spec-derived coverage exists for three legs: conformance-test DynamicLengthTests.OccursCoClause_Rejected1563, .JustifiedCoClause_Rejected1563, .GlobalCoClause_Rejected1563. WHY NOT CONFORMS: the permitted set is CLOSED, and ALIGNED is outside it yet accepted -- `01 A DYNAMIC LENGTH PIC X ALIGNED.` compiles clean (probe z_dl_aligned), because ALIGNED has no grammar rule and is swallowed by genericDataClause (see FMT-13.16.2). Any unrecognized word does the same. That is one shared mechanism, not a defect of this guard, and this row resolves the moment the Format-1 clause list is closed.",
-  "state": "GAP"
+  "notes": "SR18 states the SAME permitted list as SR17, and keeping them as two hand-maintained chains is how they drifted apart (SR18 had fifteen flags to SR17's ten, both still short of ALIGNED, GROUP-USAGE, SELECT WHEN and the validation clauses). ONE constant now serves both rules. The written set also retired the hasGlobal / hasProperty locals, which existed only because GLOBAL and PROPERTY bind post-build and so escaped an allowlist keyed on decode flags. kb/Work PB487.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-19",
@@ -19431,13 +19431,13 @@
   "ordinal": 1,
   "subject": "ALIGNED clause",
   "rule-digest": "18516ff67973",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Aligned.cs#CheckAlignedClauses",
+  "test-ref": "conformance:negative/pb487-aligned-non-bit-subject; conformance:negative/pb487-aligned-co-clause-rules",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "'The ALIGNED clause may be specified only for a bit group item or an elementary bit data item.' The subject predicate is BitLayout.IsBitItem - the SAME predicate 8.5.1.6.3's layout walk uses, since the rule asks the same question in the same words, so the rule that decides whether ALIGNED is legal and the walk that implements it cannot disagree. Adjudicated in a POST-FOREST pass, not BindEntry, because a group becomes a bit group by 13.16.4 GR1 inheritance which UsageInheritancePass settles. A violation clears IsAligned so the item lays out by the default rules under an already-failed compile. COBOLNET1942. kb/Work PB487.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.1.4-1",
@@ -19446,13 +19446,13 @@
   "ordinal": 1,
   "subject": "ALIGNED clause",
   "rule-digest": "3c6ea25945e4",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+  "test-ref": "conformance:2002/pb487_aligned_bit_layout",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "'aligned on the first bit of the first available byte boundary. Implicit filler bits may be generated ... as described in 8.5.1.6.3.' One conjunct on THE one placement predicate: an ALIGNED subject never shares its predecessor's byte, and the round-up every caller already performs does the rest. The predicate was previously written out THREE times - BitLayout.ExtentBits, BitLayout.StartBitWithin and DataBinder.AssignClassOffsets - and is now a single method all three call, so an item's OFFSET, the group's EXTENT and a REDEFINES view of it cannot disagree. Golden derivation: 05 B1 PIC 1(4) BIT. 05 B2 PIC 1(4) BIT ALIGNED. occupies 12 bits padded by rule 4 to 16, so FUNCTION LENGTH is 2 where without ALIGNED it is 1 - measured 2.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.1.4-2",
@@ -19461,13 +19461,13 @@
   "ordinal": 2,
   "subject": "ALIGNED clause",
   "rule-digest": "5ea540306846",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#StrideBits",
+  "test-ref": "conformance:2002/pb487_aligned_bit_layout",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "'An ALIGNED clause specified for a multiple-occurrence data item applies to each occurrence of that item.' The per-occurrence STRIDE therefore rounds up to a byte while the WIDTH stays the declared bit count; the two were one number at every subscript site (ReferenceResolver, CallBinder, InitializeBinder, OdoModel, GroupValueSlicer) and are now split by BitLayout.StrideBits. RunBits counts stride x (n-1) + width, never stride x n, because 8.5.1.6.3 generates trailing filler only 'to advance alignment ... for the NEXT item'. Golden derivation: 05 T PIC 1(4) BIT OCCURS 3 ALIGNED. places occurrences at bits 0, 8, 16 for an extent of 20 padded to 24, so FUNCTION LENGTH is 3 where without ALIGNED it is 2 - measured 3, with each occurrence read back at its own value.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.1.4-3",
@@ -19476,13 +19476,13 @@
   "ordinal": 3,
   "subject": "ALIGNED clause",
   "rule-digest": "b3c2aa76f279",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+  "test-ref": "conformance:2002/pb487_aligned_bit_layout",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "'When an ALIGNED clause is not specified, bit data items are aligned in accordance with 8.5.1.6.3.' This is the FALSE arm of the one placement predicate, unchanged by the GR1 conjunct - which is why the golden carries the no-ALIGNED control groups NOALIGN and TBLPLAIN alongside the ALIGNED ones and pins them at 1 and 2 character positions.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.2.3-1",
@@ -29451,13 +29451,13 @@
   "ordinal": 9,
   "subject": "USAGE clause",
   "rule-digest": "005c05f59acd",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#usageKeyword; src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#Usage; src/Cobol.Net.Editions/ReservedWords.Table.cs; src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#usageKeyword",
+  "test-ref": "conformance:negative/pb487-message-tag-usage",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB487 — THE USAGE DOES NOT EXIST, AND THE SPELLING THE GENERAL FORMAT MAKES LEGAL IS SILENTLY SWALLOWED. Nothing in the rule is implemented: MESSAGE-TAG is not a lexer token, not a usageKeyword alternative, has no Usage enum member and no ParseUsage arm, so none of the rule's three claims - \"a data item is a message-tag data item\", \"contains an implementor-defined value that identifies a message and a server or requestor\", \"The class and category of a message-tag data item are message-tag\", and the implementor's alignment/representation/byte-count determination - has any subject. The binder even says so in its own comment (DataBinder.UsageDeclaration.cs:61: \"The MESSAGE-TAG phrase is a 2023 addition (VCR row 32) and has no Usage member yet\"), and the required A.1 item 212 (\"USAGE MESSAGE-TAG (size and contents) ... General rule 9\") has no DOC row in docs/CONFORMANCE.md. THE PREFIXED SPELLING IS AT LEAST LOUD: probe q13 gives `01 M USAGE MESSAGE-TAG.` -> COBOL0001 \"no viable alternative at input 'MESSAGE-TAG'\" - a raw parse error rather than the named COBOLNET0899/0900 band the rest of the staged inventory uses, but a refusal. THE BARE SPELLING IS NOT. 13.18.60.2 prints `[ USAGE IS ]` optional for EVERY usage (kb/Work PB95 landed exactly that reading), so `01 M MESSAGE-TAG.` is the legal COBOL-2023 way to declare a message-tag item - and probe q14 COMPILES IT CLEAN and runs. Probe q76 shows what it became: `01 M MESSAGE-TAG. 05 S PIC X(3).` binds M as an ORDINARY alphanumeric group (BYTE-LENGTH 3, `MOVE \"ABC\" TO S` works), the MESSAGE-TAG word having been dropped with no diagnostic at any severity. Where the entry is elementary the drop degrades into an unactionable compiler failure: probe q75 (`01 M MESSAGE-TAG.` + `DISPLAY FUNCTION BYTE-LENGTH(M)`) fails in the BACKEND with a raw `error CS0103: The name 'M' does not exist in the current context`, and probe q29 (the same entry plus `MOVE \"ABCD\" TO M`) CRASHES the compiler with an unhandled System.NullReferenceException at CodeGen/Verbs/MoveEmitter.cs:287. THE SWALLOW IS NOT SPECIFIC TO THIS WORD, WHICH IS WHY IT MATTERS BEYOND THIS ROW: probes q77/q78/q79 show `01 M FOOBAR.`, `01 M FOOBAR PIC X(3).` and `01 M FOOBAR BAZQUX PIC X(3).` all compiling clean and running - an arbitrary run of unknown words between the data-name and the clause list is discarded silently by the data-description-entry parse, so ANY misspelled or unimplemented clause word reaches the binder as if it had not been written. See finding usage-p3/F3. No kb/Work note owns either half. || code sites, verbatim from the adjudication: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#usageKeyword (no MESSAGE-TAG alternative) and src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4 (no MESSAGE_TAG token); src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage (no arm); src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#Usage (no member); src/Cobol.Net.Editions/ReservedWords.Table.cs:275 (the word IS reserved at 2023); src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs:61-62 (\"has no Usage member yet, so SR14's message-tag arm and SR21 ... are forward obligations\"); src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry (the swallow site) || editions, verbatim from the adjudication: 2023 only (Annex E.2 item 25 adds MESSAGE-TAG to the reserved words for the asynchronous-messaging facility of E.3.2 item 1, so the rule has no pre-2023 edition; probe q74 confirms COBOLNET0901 'MESSAGE-TAG is a reserved word in COBOL-2023' for a user-defined word of that name)",
-  "state": "GAP"
+  "notes": "The MESSAGE-TAG usage is the DATA half of the asynchronous messaging facility, a processor-dependent element (ISO 4.2.6; Annex A.3 item 4) this implementation does not provide - the owner decision is recorded in docs/CONFORMANCE.md section 4 item 1, alongside SEND/RECEIVE. It is REFUSED BY NAME (COBOLNET1943), not accepted inert like those statements, because GR9 fixes the class AND category of a message-tag data item as message-tag: an accepted item would have to bind as some other class and every reference to it would answer wrong. Both spellings are refused - 13.18.60.2 prints [ USAGE IS ] as optional, so bare 01 M MESSAGE-TAG. is the same clause. Before kb/Work PB487 the bare spelling was not refused at all: it fell to the 13.16.2 catch-all, bound with no usage and no PICTURE, and crashed the compiler.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-10",
@@ -58701,13 +58701,13 @@
   "ordinal": 0,
   "subject": "Data description entry",
   "rule-digest": "58ea2b8a6f10",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClause; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#externalClause; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#genericClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntries",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClause; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#unrecognizedDataClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/pb487-unrecognized-data-clause; conformance:2002/pb487_aligned_bit_layout; unit:DataClauseKindDriftTests.EveryGrammarAlternative_HasADataClauseKind",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB487 + PB511 + PB517 — Format 1 parses for every slot EXCEPT two, and Format 3's required operand is unenforced. (a) THE `AS literal-1` PHRASE OF THE EXTERNAL SLOT IS ABSENT: `externalClause : IS? EXTERNAL` (CobolData.g4:329) has no AS phrase, so `01 A IS EXTERNAL AS 'E1' PIC X(3).` -- printed in Format 1 as `[ IS EXTERNAL [ AS literal-1 ] ]` and again as the whole general format of §13.18.22.2 -- is COBOL0307 \"unexpected 'AS'\" at --std 2002, 2014 and 2023. REJECTS LEGAL SOURCE (probe f_external_as / q_ext_as_2002). (b) THE `[ ALIGNED ]` SLOT HAS NO GRAMMAR RULE AT ALL (grep ALIGNED over src/Cobol.Net.Frontend/Grammar returns nothing; the word is reserved from 2002 in ReservedWords.Table.cs but has no lexer token), so it lexes as IDENTIFIER and is absorbed by `genericDataClause -> genericClause : IDENTIFIER (IDENTIFIER|literal)*`. `05 B2 PIC 1(4) USAGE BIT ALIGNED.` compiles clean and the clause is INERT: FUNCTION LENGTH of a two-nibble bit group is 1 both with and without ALIGNED, where §13.18.1.4 GR1 requires B2 to start on the first bit of the next byte (probe r_aligned vs r_noaligned). (c) THAT SAME genericDataClause MAKES THE FORMAT-1 CLAUSE LIST OPEN-ENDED: `01 A PIC X(3) WIBBLE WOBBLE.` compiles clean at 2023 and at --std 85 (probe h_generic_junk / h_generic_junk_85), so no 'the only other clauses permitted are ...' rule of §13.16.3 can be enforced against an unrecognized word. (d) FORMAT 3 REQUIRES condition-name-1 AND FORMAT 4 REQUIRES THE CONTENT-VALIDATION VALUE CLAUSE, yet `88 VALUE 'xxx'.` -- neither shape -- compiles clean and the entry is SILENTLY DROPPED (DataBinder.BindCondition returns early on an unnamed level-88); the Format-4 shapes that DO carry the §13.18.63.2 format-5 tail are correctly refused by name (COBOLNET1708). Probe q_88_anon_plain vs q_88_anon_f5. WHAT IS RIGHT: level-number + entry-name (data-name / FILLER / omitted), REDEFINES, IS TYPEDEF [STRONG], BASED, BLANK WHEN ZERO, CONSTANT RECORD, DYNAMIC LENGTH [structure-name] [LIMIT IS integer-1], IS EXTERNAL (bare), IS GLOBAL, GROUP-USAGE IS BIT/NATIONAL, JUSTIFIED/JUST [RIGHT], occurs-clause, picture-clause, PROPERTY WITH NO GET/SET IS FINAL, SAME AS, SIGN IS LEADING/TRAILING SEPARATE CHARACTER, SYNCHRONIZED/SYNC LEFT/RIGHT, TYPE, usage-clause and value-clause all parse; Format 2 parses with THRU, THROUGH and the single-data-name form; Format 3 (named 88) parses; select-when and the validation-clauses group are recognize-only and refused by name (COBOLNET1705 / COBOLNET1708, the A.4.8 / A.4.14 declined posture owned by kb/Work PB281 and PB283).",
-  "state": "GAP"
+  "notes": "Format 1 is a CLOSED list of clause slots, rendered from the printed page (PDF p393 / printed folio 363) and matching the transcription exactly. The rule used to end in genericDataClause, a vendor-extension catch-all matching IDENTIFIER (IDENTIFIER|literal)*, which admitted any word run at the tail of an entry and DISCARDED it; ALIGNED - a clause of this very format - had no rule of its own and was swallowed. The list is now closed, ALIGNED has its own alternative, and the tail is the unrecognizedDataClause ERROR PRODUCTION refused by name (COBOLNET1941) at every edition and every strictness. kb/Work PB487.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.17.2",
@@ -58731,13 +58731,13 @@
   "ordinal": 0,
   "subject": "ALIGNED clause",
   "rule-digest": "8e3cac1742da",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#alignedClause; src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#ALIGNED",
+  "test-ref": "conformance:2002/pb487_aligned_bit_layout; conformance:negative/pb487-aligned-non-bit-subject",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "The general format is the single required word ALIGNED, underlined. It had NO lexer token and NO parser rule anywhere in the frontend before kb/Work PB487 - the word arrived as an IDENTIFIER and the 13.16.2 catch-all ate it. ALIGNED is 8.9-reserved from 2002, so the token is cobolWord / reservedGatedWord-admitted (cobol-words.json, generated) and stays a legal user-defined word at 85; the clause's 2002 introduction gate is VersionConformancePass ParseArm.VisitAlignedClause (constructs.json row aligned-clause-2002).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.2.2",

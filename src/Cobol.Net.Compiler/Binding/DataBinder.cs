@@ -2795,13 +2795,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         int dynLengthLimit = -1;       // the LIMIT phrase (§13.18.19.4 GR2); -1 = the implementor-defined maximum
         string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
-        bool hasGlobal = false;        // GLOBAL (§13.18.27) — observed for the DYNAMIC LENGTH §13.16.3 SR18 co-clause check
-        bool hasProperty = false;      // PROPERTY (§13.18.42, OO) — observed for the same SR18 check
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
         string? sameAsName = null;     // SAME AS data-name-1 — the entry this one copies, expanded post-build (§13.18.49)
         IReadOnlyList<string> sameAsQuals = [];   // the SAME AS target's OF/IN qualifiers
+        bool isAligned = false;        // ALIGNED (ISO §13.18.1 — bit alignment at the first bit of the first available byte)
+
+        // The §13.16.2 Format-1 clause slots this entry WRITES (kb/Work PB487). ⛔ THE operand of every §13.16.3
+        // permitted-set rule below — SR12, SR13, SR17, SR18 are all "…in the same data description entry…" rules
+        // over the WHOLE clause list, and each used to be an `||` chain over whichever local decode flags the
+        // author remembered. Read from the CST rather than reconstructed from those flags, because a syntax rule
+        // asks what was SPECIFIED and several of the flags below are CLEARED by their own recovery paths.
+        DataClauseKind written = e.WrittenClauses;
 
         // The dataDescriptionClauses presence guard folds into e.Clauses (empty when the body has no clause list).
             foreach (var clause in e.Clauses)
@@ -2859,9 +2865,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.Context.globalClause() is not null)
-                    hasGlobal = true;   // §13.18.27; observed for the §13.16.3 SR18 DYNAMIC LENGTH co-clause check
+                    { /* §13.18.27 — binds post-build in CallBindExternalAndGlobal; the §13.16.3 co-clause rules
+                         read it off `written`, so no decode flag is needed here (kb/Work PB487). */ }
                 else if (clause.Context.propertyClause() is not null)
-                    hasProperty = true;   // §13.18.42 (OO); observed for the SR18 DYNAMIC LENGTH co-clause check
+                    { /* §13.18.42 (OO) — binds in the OO pass; the co-clause rules read it off `written`. */ }
                 else if (clause.Context.typedefClause() is { } td)
                     // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitTypedefClause
                     // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
@@ -2904,6 +2911,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // (§13.18.51.4 GR1/GR2).
                     Edition.Declined(DiagnosticCatalog.FormatSelectWhenUnclaimed,
                         $"the SELECT WHEN clause on '{cobolName ?? "FILLER"}' ({Spelled(sw)})");
+                else if (clause.Context.alignedClause() is not null)
+                    // ALIGNED (ISO §13.18.1; kb/Work PB487). The COBOL-2002 introduction gate is
+                    // VersionConformancePass ParseArm.VisitAlignedClause; §13.18.1.3 SR1 (a bit group item or an
+                    // elementary bit data item only) is checked below, where the usage and GROUP-USAGE of THIS
+                    // entry are both decoded; §13.18.1.4 GR1/GR2 are honoured at the ONE bit-layout site,
+                    // Binding/Model/BitLayout.cs.
+                    isAligned = true;
+                else if (clause.Context.unrecognizedDataClause() is { } junk)
+                    // ⛔ THE CLOSED §13.16.2 FORMAT-1 CLAUSE LIST (kb/Work PB487). This alternative is an ERROR
+                    // PRODUCTION, not a clause: it exists only so an unrecognized word run at the tail of a data
+                    // description entry is NAMED instead of drawing a generic "no viable alternative" — or, as it
+                    // did before this fix, being SILENTLY DISCARDED by a vendor-extension catch-all, which made
+                    // `01 A PIC X(3) WIBBLE WOBBLE.`, `01 X PIC 9(4) COMP-9.` and a misspelled clause word all
+                    // compile with a data description the programmer did not write. Refused at EVERY edition and
+                    // every strictness: §13.16.2's general format is a closed list, and this compiler declares no
+                    // vendor dialect under which an extension clause could be admitted.
+                    Edition.Error(DiagnosticCatalog.DataClauseUnrecognized,
+                        $"{'\''}{junk.genericClause().IDENTIFIER(0)?.GetText() ?? Spelled(junk)}{'\''} is not a clause of the "
+                        + $"data description entry for '{cobolName ?? "FILLER"}' — the ISO §13.16.2 Format 1 general "
+                        + "format lists the clauses that may be specified, and it is a closed list");
                 else if (clause.Context.groupUsageClause() is { } gu)
                     // GROUP-USAGE (ISO §13.18.29; D20/PB79). The COBOL-2002 introduction gate is VersionConformancePass
                     // ParseArm.VisitGroupUsageClause; SR1 (a group, not strongly typed, not variable-length) and the
@@ -3143,6 +3170,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem(restrictedTypeName)
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
+            // USAGE MESSAGE-TAG — declined non-support, already refused BY NAME in ParseUsage (COBOLNET1943;
+            // Annex A.3 item 4, docs/CONFORMANCE.md §4 item 1). The recovery shape exists for the same reason
+            // the FLOAT-BINARY-128 / FLOAT-DECIMAL forms below have one: §13.16.3 SR8 exempts message-tag from
+            // needing a PICTURE, so without it the errored compile would carry a null Pic into the emitter —
+            // the unhandled NullReferenceException kb/Work PB487 measured. Never a bind: the compile has failed.
+            : entryUsage is Usage.MessageTag ? PicInfo.Recovery()
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectRefDesc)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
@@ -3247,14 +3280,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // description entry with any clause except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number,
         // and OCCURS. A violation reports and clears the reference so the item binds as ordinary storage under
         // an already-failed compile (the IsBased discipline).
+        // ⛔ Over the WRITTEN clause set, not an `||` chain of decode flags (kb/Work PB487). The chain here could
+        // not see ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses, so
+        // `01 A SAME AS Z ALIGNED.` compiled clean; the set makes the rule complete BY CONSTRUCTION and names
+        // the offending clause instead of restating the permitted list.
         if (sameAsName is not null
-            && (pictureText is not null || usageText is not null || rawValue is not null || ownSign is not null
-                || justified || blankWhenZero || synchronized || redefinesTargetName is not null || isBased
-                || isAnyLength || typeRefName is not null || isTypedef))
+            && (written & ~(DataClauseKind.SameAs | DataClauseKinds.SameAsCoPermitted)) is var sameAsBad
+            && sameAsBad != DataClauseKind.None)
         {
             Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"{entryWhere}: the SAME AS clause shall not be "
                 + "specified in the same data description entry with any clauses except CONSTANT RECORD, "
-                + "entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §13.16.3 SR12)");
+                + $"entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §13.16.3 SR12); this entry also "
+                + $"specifies {DataClauseKinds.Name(sameAsBad)}");
             sameAsName = null;
         }
 
@@ -3272,10 +3309,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 : redefinesTargetName is not null
                     ? "REDEFINES shall not be specified in the same data description entry as the CONSTANT "
                       + "RECORD clause (ISO §13.16.3 SR3)"
-                : isAnyLength || isBased || blankWhenZero || synchronized || isTypedef
-                    ? "the ANY LENGTH, BASED, BLANK WHEN ZERO, SYNCHRONIZED, and TYPEDEF clauses shall not be "
-                      + "specified in the same data description entry as the CONSTANT RECORD clause "
-                      + "(ISO §13.16.3 SR13)"
+                // ⛔ SR13 ¶1 over the WRITTEN clause set (kb/Work PB487): the former `||` chain listed five of the
+                // rule's EIGHT excluded clauses — DYNAMIC LENGTH, select-when and the validation clauses were
+                // missing, and no amount of care would have kept a hand list complete as the grammar grew.
+                : (written & DataClauseKinds.ConstantRecordExcluded) is var crBad && crBad != DataClauseKind.None
+                    ? "the ANY LENGTH, BASED, BLANK WHEN ZERO, DYNAMIC LENGTH, select-when, SYNCHRONIZED, and "
+                      + "TYPEDEF clauses and validation-clauses shall not be specified in the same data "
+                      + "description entry with the CONSTANT RECORD clause (ISO §13.16.3 SR13); this entry also "
+                      + $"specifies {DataClauseKinds.Name(crBad)}"
                 // VCR 16 (ISO §13.16.3 SR13 ¶2; Annex E.2 item 10): the "EXTERNAL CONSTANT RECORD requires a strong
                 // TYPE" requirement is a COBOL-2023 addition — below 2023 the bare external constant record (no TYPE)
                 // was the legacy accepted form (its content initializes per §13.18.15.4 GR1 and is not re-initialized
@@ -3371,6 +3412,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
         item.IsBased = isBased;
 
+        // ALIGNED (ISO §13.18.1; kb/Work PB487). Recorded here, ADJUDICATED in CheckAlignedClauses — §13.18.1.3
+        // SR1's subject test asks whether this is "a bit group item or an elementary bit data item", and a group
+        // becomes a bit group by INHERITANCE too (§13.16.4 GR1), which is not settled until UsageInheritancePass
+        // has run. Exactly the placement argument CheckUsageDeclarations records for §13.18.60.3 SR14.
+        item.IsAligned = isAligned;
+
         // ANY LENGTH declaration-shape validation (ISO §13.18.2; the COBOLNET1542 SR band — the 08xx declaration
         // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
         // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
@@ -3390,13 +3437,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 isAnyLength = false;
             }
             // §13.16.3 SR17: with ANY LENGTH the only other clauses permitted are level-number, entry-name,
-            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item.
-            else if (occursSpec is not null || occurs is not null || redefinesTargetName is not null || isBased
-                || hasExternal || justified || blankWhenZero || synchronized || ownSign is not null
-                || isTypedef || typeRefName is not null)
+            // PICTURE, USAGE, and VALUE — reject every other WRITTEN clause loud, never a half-shaped item.
+            // ⛔ Over the written clause set (kb/Work PB487). The former `||` chain listed ten decode flags and
+            // still could not see ALIGNED, CONSTANT RECORD, DYNAMIC LENGTH, GLOBAL, GROUP-USAGE, PROPERTY,
+            // SAME AS, SELECT WHEN or the validation clauses — nine of the fourteen clauses SR17 excludes.
+            else if ((written & ~(DataClauseKind.AnyLength | DataClauseKinds.LengthClauseCoPermitted))
+                     is var alBad && alBad != DataClauseKind.None)
             {
                 Edition.Error("COBOLNET1542", $"{entryWhere}: with the ANY LENGTH clause the only other clauses "
-                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR17)");
+                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR17); "
+                    + $"this entry also specifies {DataClauseKinds.Name(alBad)}");
                 isAnyLength = false;
             }
             // §13.18.2.3 SR2 (the level half — checkable right here): an elementary LEVEL 1 entry only
@@ -3441,15 +3491,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 isDynamicLength = false;
             }
             // §13.16.3 SR18: with DYNAMIC LENGTH the ONLY other clauses permitted are level-number, entry-name,
-            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item. GLOBAL
-            // (§13.18.27) and PROPERTY (§13.18.42) are decoded here for this check (GLOBAL otherwise binds post-build
-            // in CallBindExternalAndGlobal, so it would escape the allowlist without an explicit flag).
-            else if (occursSpec is not null || occurs is not null || redefinesTargetName is not null || isBased
-                || hasExternal || hasGlobal || hasProperty || justified || blankWhenZero || synchronized || ownSign is not null
-                || isTypedef || typeRefName is not null || sameAsName is not null || isConstantRecord || isAnyLength)
+            // PICTURE, USAGE, and VALUE — reject every other WRITTEN clause loud, never a half-shaped item.
+            // ⛔ Over the written clause set (kb/Work PB487), the SAME constant SR17 uses: the two rules state
+            // identical permitted lists, and keeping them as two hand-maintained chains is exactly how they
+            // drifted apart (SR18's had fifteen flags to SR17's ten, and both were still short of ALIGNED,
+            // GROUP-USAGE, SELECT WHEN and the validation clauses). The written set also retires the `hasGlobal`
+            // and `hasProperty` locals, which existed ONLY because GLOBAL and PROPERTY bind post-build and so
+            // escaped an allowlist keyed on decode flags.
+            else if ((written & ~(DataClauseKind.DynamicLength | DataClauseKinds.LengthClauseCoPermitted))
+                     is var dlBad && dlBad != DataClauseKind.None)
             {
                 Edition.Error("COBOLNET1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
-                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR18)");
+                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR18); "
+                    + $"this entry also specifies {DataClauseKinds.Name(dlBad)}");
                 isDynamicLength = false;
             }
         }
@@ -4663,15 +4717,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>⛔ THE ONE STORAGE EXTENT for the byte-addressed class walk: what a member ADVANCES the cursor
     /// by, per occurrence, in the unit §13.18.44.4 GR1 states the association in ("an area sufficient to contain
     /// the number of bits required by the data item referenced by the subject of the entry").
-    /// <para>It is <c>BitLayout.WidthBits</c> and nothing else. That method already answers the storage extent
+    /// <para>It is <c>BitLayout.RunBits</c> and nothing else. That method already answers the storage extent
     /// for every shape: a bit leaf's declared boolean positions, an elementary item's
     /// <c>ElementaryByteWidth × 8</c> — which is where the NATIONAL two-bytes-per-position lives (kb/Work PB231,
-    /// RESIDUE-11) — and a group's §8.5.1.6.3 cursor extent. The walk used to spell the byte case a SECOND way,
-    /// <c>ImageWidth × 8</c>, chosen by a <c>bitLaid</c> flag; the two agree for every leaf kind but national,
-    /// whose character-position count is HALF its storage extent, so the second spelling silently displaced
-    /// every member after a national one and under-sized the area. The flag is gone: the alignment rules below
-    /// still need to know whether sub-byte runs are in play, but the EXTENT has one authority.</para></summary>
-    private static int ClassExtentBits(DataItem c) => BitLayout.WidthBits(c) * (c.Occurs ?? 1);
+    /// RESIDUE-11) — and a group's §8.5.1.6.3 cursor extent, each times its OCCURS. The walk used to spell the
+    /// byte case a SECOND way, <c>ImageWidth × 8</c>, chosen by a <c>bitLaid</c> flag; the two agree for every leaf
+    /// kind but national, whose character-position count is HALF its storage extent, so the second spelling
+    /// silently displaced every member after a national one and under-sized the area. The flag is gone: the
+    /// alignment rules below still need to know whether sub-byte runs are in play, but the EXTENT has one
+    /// authority. It spelled the OCCURS multiplication itself until kb/Work PB487, which was a second place the
+    /// §13.18.1.4 GR2 ALIGNED stride would have had to be remembered.</para></summary>
+    private static int ClassExtentBits(DataItem c) => BitLayout.RunBits(c);
 
     /// <summary>The walk proper, carrying the offset in BITS — the unit §13.18.44.4 GR1 states the storage
     /// association in ("starts at the first BIT … an area sufficient to contain the number of BITS required").
@@ -4698,13 +4754,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (c.RedefinesTarget is { } target) cBit = target.ClassBitOffset;
             else
             {
-                // §8.5.1.6.3 rules 1 and 2, the SAME pair BitLayout.ExtentBits walks: a bit item immediately
-                // following a bit item OF THE SAME LEVEL takes the next bit position — the only case that shares
-                // a byte; every other item starts at the first bit position of the first available byte.
-                if (bitLaid && !(BitLayout.IsBitItem(c) && prev is not null && BitLayout.IsBitItem(prev)
-                                 && prev.Level == c.Level))
-                    childBit = (childBit + BitLayout.BitsPerCharacter - 1)
-                               / BitLayout.BitsPerCharacter * BitLayout.BitsPerCharacter;
+                // §8.5.1.6.3 rules 1 and 2 plus §13.18.1.4 GR1, through THE one placement predicate that
+                // BitLayout.ExtentBits and BitLayout.StartBitWithin also call. ⛔ It was spelled out a THIRD
+                // time here until kb/Work PB487 — the comment even said it was "the SAME pair" — and a third
+                // copy is a third arm to forget: the ALIGNED case would have reached the extent and offset
+                // walks and NOT the REDEFINES class walk, so a redefining view of an ALIGNED bit member would
+                // have read the wrong bits with no diagnostic anywhere.
+                if (bitLaid && !BitLayout.SharesByteWith(prev, c))
+                    childBit = BitLayout.RoundUpToByte(childBit);
                 cBit = childBit;
             }
             AssignClassOffsets(c, cBit, cls, bitLaid);

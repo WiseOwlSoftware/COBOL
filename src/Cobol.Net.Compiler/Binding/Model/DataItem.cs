@@ -342,6 +342,17 @@ public sealed class DataItem
     /// post-build pass routes every reference through the pointer (Phase-4b increment 2).</summary>
     public bool IsBased { get; set; }
 
+    /// <summary>ALIGNED (ISO §13.18.1; kb/Work PB487) — §13.18.1.4 GR1: "An ALIGNED clause causes the subject of
+    /// the entry to be aligned on the first bit of the first available byte boundary. Implicit filler bits may be
+    /// generated to complete the assignment of bits as described in 8.5.1.6.3". Set by <c>DataBinder.BindEntry</c>
+    /// only after §13.18.1.3 SR1 passes (a bit group item or an elementary bit data item — COBOLNET1942), and
+    /// CLEARED on a violation so the item lays out by the default §8.5.1.6.3 rules under an already-failed
+    /// compile (the <see cref="IsBased"/> discipline).
+    /// <para>Read at exactly ONE site — <see cref="BitLayout.SharesByteWith"/>, the placement predicate both the
+    /// extent walk and the offset walk call. GR2 ("applies to each occurrence") is honoured there too, by
+    /// rounding the per-occurrence stride up to a byte.</para></summary>
+    public bool IsAligned { get; set; }
+
     /// <summary>True for an ANY LENGTH elementary level-1 LINKAGE entry (ISO §13.18.2 — the item's length varies
     /// at runtime and is the length of the corresponding argument of the activating element, GR1; PICTURE is
     /// exactly one 'X', 'N', or '1', SR1). Set by <c>DataBinder.BindEntry</c> after the SR1/§13.16.3-SR17 shape

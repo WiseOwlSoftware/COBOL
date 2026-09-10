@@ -39,6 +39,35 @@ public readonly struct DataDescriptionCst(Core.DataDescriptionEntryContext ctx)
         }
     }
 
+    /// <summary>
+    /// The set of §13.16.2 Format-1 clause slots this entry actually WRITES — the operand of every
+    /// "…shall not be specified in the same data description entry with…" rule of §13.16.3.
+    ///
+    /// <para>⛔ <b>Why a SET and not another hand-written condition list.</b> §13.16.3 SR12, SR13, SR14, SR17 and
+    /// SR18 are each a rule over the WHOLE clause list — SR17 and SR18 literally read "the only other clauses
+    /// permitted are …". Every one of them used to be spelled in the binder as an <c>||</c> chain over whichever
+    /// local decode flags the author happened to remember, and every one of them was INCOMPLETE the moment a new
+    /// clause landed: SR12 could not see GROUP-USAGE, PROPERTY, SELECT WHEN, DYNAMIC LENGTH or the validation
+    /// clauses; SR13 could not see DYNAMIC LENGTH or SELECT WHEN; SR17 could not see nine of them. The
+    /// permitted-set rules are therefore expressed as SET operations over this one classification, and
+    /// <c>DataClauseKindDriftTests</c> asserts that every alternative of the <c>dataDescriptionClause</c> grammar
+    /// rule has a <see cref="DataClauseKind"/> — so a clause added to the grammar CANNOT silently fall out of
+    /// the rules that govern its composition (kb/Work PB487; CLAUDE.md rule 5).</para>
+    ///
+    /// <para>This is the WRITTEN set, deliberately: a syntax rule asks what the programmer specified, not what
+    /// survived the binder's per-clause recovery (several decode flags are CLEARED on a violation, which would
+    /// make a second violation in the same entry invisible).</para>
+    /// </summary>
+    public DataClauseKind WrittenClauses
+    {
+        get
+        {
+            var set = DataClauseKind.None;
+            foreach (var c in Clauses) set |= c.Kind;
+            return set;
+        }
+    }
+
     public SourceSpan Span => SourceSpan.Of(ctx);
 
     public static implicit operator DataDescriptionCst(Core.DataDescriptionEntryContext c) => new(c);
@@ -51,6 +80,14 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
 {
     /// <summary>The raw clause context — for the presence-only <c>xxxClause() is [not] null</c> predicates.</summary>
     public Core.DataDescriptionClauseContext Context => ctx;
+
+    /// <summary>Which §13.16.2 Format-1 clause slot this is (<see cref="DataClauseKind.None"/> only when the
+    /// grammar grew an alternative nobody classified — which <c>DataClauseKindDriftTests</c> makes impossible).
+    /// <para>A <c>dataDescriptionClause</c> has exactly ONE child, the chosen alternative's sub-rule, so the
+    /// classification is a single map lookup on that child's context type — no text, no re-parse.</para></summary>
+    public DataClauseKind Kind =>
+        ctx.ChildCount == 1 && DataClauseKinds.ByContextType.TryGetValue(ctx.GetChild(0).GetType(), out var k)
+            ? k : DataClauseKind.None;
 
     /// <summary>The PICTURE string text, or <see langword="null"/> when this is not a picture clause.</summary>
     public string? PictureText => ctx.pictureClause()?.PIC_STRING()?.GetText();

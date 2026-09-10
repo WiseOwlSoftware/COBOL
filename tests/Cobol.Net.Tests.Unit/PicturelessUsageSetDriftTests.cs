@@ -52,8 +52,10 @@ public sealed class PicturelessUsageSetDriftTests
     }
 
     /// <summary>Every usage §13.16.3 SR8 names, that this compiler has a <see cref="Usage"/> member for, is in
-    /// the set. A name with no member yet (message-tag — a 2023 addition, VCR row 32) is a FORWARD OBLIGATION
-    /// the test holds open by naming it, never a silent pass.</summary>
+    /// the set. A name with no member yet would be a FORWARD OBLIGATION the test holds open by naming it, never
+    /// a silent pass — and message-tag, the last one outstanding (a 2023 addition, VCR row 32), acquired its
+    /// member with kb/Work PB487, so the expected set is now EMPTY. ⛔ If a future usage arrives without a
+    /// member, name it here; do not relax the assertion to a subset check.</summary>
     [Fact]
     public void EverySr8NamedUsage_WithAMember_IsPictureless()
     {
@@ -71,7 +73,9 @@ public sealed class PicturelessUsageSetDriftTests
                     + $"be specified\", but UsageFamilies.IsPictureless({u}) is false — a PICTURE beside it would "
                     + "be accepted, on the written-clause arm and the §13.18.60.4 GR1 inherited arm alike.");
         }
-        Assert.Equal(["message-tag"], unmodelled);
+        // Every name SR8 spells now has a Usage member (message-tag was the last, kb/Work PB487). A non-empty
+        // list here means the standard names a usage this compiler does not model — say WHICH, do not pass.
+        Assert.Equal([], unmodelled);
     }
 
     /// <summary>The converse: every member the set claims is EITHER named by SR8 or one of the standard

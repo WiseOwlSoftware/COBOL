@@ -67,6 +67,11 @@ public sealed class NumericByteFormDriftTests
             [Usage.Pointer] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.ProgramPointer] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FunctionPointer] = (NumericByteForm.None, NumericTruncation.DigitCount),
+            // ── USAGE MESSAGE-TAG (kb/Work PB487): DECLINED non-support, refused by name in ParseUsage
+            // (COBOLNET1943) exactly like FLOAT-BINARY-128 above. It has no numeric byte form and cannot acquire
+            // one: §13.18.60.4 GR9 — "The class and category of a message-tag data item are message-tag" — so the
+            // item is not of class numeric at all, and None states that rather than defaulting to a lie. ──
+            [Usage.MessageTag] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.ObjectReference] = (NumericByteForm.None, NumericTruncation.DigitCount),
         };
 

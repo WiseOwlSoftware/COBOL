@@ -8,6 +8,12 @@
    "note": "USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS (13.18.60.2, 2002+): a required word of the general format. ISO 8.9 reserves it from 2002 only (reserved-words.json r85 false), so at --std 85 it is an ordinary user word and `01 ACTIVE-CLASS PIC X.` is legal COBOL-85 - RESERVATION-GATED (the FACTORY precedent, derived in gen-cobol-words.ps1 step 4b), admitted to cobolWord only where 8.9 does not reserve it. kb/Work PB389."
   },
   {
+   "token": "ALIGNED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the ALIGNED clause (13.18.1) of the 13.16.2 Format-1 data description entry. Reserved 2002+; a USER WORD at 85, so the hard lexer token added for kb/Work PB487 must not break its legal 85 use as a data-name (the CONSTANT/BASED precedent). Before PB487 the word had no token at all and the genericDataClause catch-all swallowed the CLAUSE silently"
+  },
+  {
    "token": "APPLY",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -426,6 +432,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31). Reserved 85/2002; USER WORD at 2014/2023 — the reverse direction from the others. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+  },
+  {
+   "token": "MESSAGE_TAG",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the MESSAGE-TAG usage (13.18.60; the MCS data surface, docs/CONFORMANCE.md 4 item 1). Reserved at 2023 only (Annex E.2 item 25); a USER WORD at 85/2002/2014, so the hard lexer token added for kb/Work PB487 must not break its legal use as a data-name below 2023 (the MESSAGE precedent, same direction)"
   },
   {
    "token": "NATIONAL",

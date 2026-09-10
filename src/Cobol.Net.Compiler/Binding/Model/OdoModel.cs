@@ -116,7 +116,7 @@ public static class OdoModel
         // extent computation can raise EC-BOUND-ODO below it; the runtime floor used to be hardcoded 0, which
         // made a below-minimum DEPENDING value clamp silently instead of setting the condition.
         int min = table.OccursSpec?.Min ?? 0;
-        int elem = bitUnits ? BitLayout.WidthBits(table) : table.ImageWidth;   // per-occurrence positions
+        int elem = bitUnits ? BitLayout.StrideBits(table) : table.ImageWidth;   // per-occurrence STRIDE (§13.18.1.4 GR2 for ALIGNED)
         int fixedUnits = bitUnits
             ? BitLayout.StartBitOf(group, table)
             : Model.RecordLayout.PhysicalWidth(group) - elem * max;            // SR22 — the variable tail is trailing

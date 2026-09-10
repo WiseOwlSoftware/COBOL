@@ -636,6 +636,18 @@ public static class PictureAnalyzer
                 edition.Error(DiagnosticCatalog.UsageFunctionPointer,
                     $"{where}: USAGE FUNCTION-POINTER (ISO §13.18.60 — a function-pointer data item)");
                 return Usage.FunctionPointer;
+            // USAGE MESSAGE-TAG — the DATA half of the declined asynchronous-messaging facility (Annex A.3
+            // item 4; docs/CONFORMANCE.md §4 item 1), refused BY NAME at every edition, the FLOAT-BINARY-128
+            // posture. ⛔ There is no accept-inert reading: §13.18.60.4 GR9 makes the class AND category of a
+            // message-tag data item message-tag, so an accepted item would have to bind as some OTHER class and
+            // every reference to it would silently answer wrong. The member flows through so the caller can
+            // synthesize a recovery Pic — a PICTURE-less entry (§13.16.3 SR8 exempts message-tag) would
+            // otherwise reach the emitter with a null Pic, which is the crash kb/Work PB487 measured. ⛔ BOTH
+            // spellings land here: §13.18.60.2 prints [ USAGE IS ] as optional, so bare `01 M MESSAGE-TAG.` is
+            // this same clause, and before PB487 it was swallowed by the §13.16.2 vendor catch-all instead.
+            case "MESSAGE-TAG":
+                edition.Declined(DiagnosticCatalog.MessageTagUsageUnsupported, $"{where}: USAGE MESSAGE-TAG");
+                return Usage.MessageTag;
             // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
             // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
             // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).

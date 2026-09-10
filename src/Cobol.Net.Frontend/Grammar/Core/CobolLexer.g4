@@ -366,6 +366,12 @@ ALLOCATE    : 'ALLOCATE' ;
 FREE        : 'FREE' ;
 INVOKE      : 'INVOKE' ;
 JSON        : 'JSON' ;
+// MESSAGE-TAG usage (ISO §13.18.60 — the MCS data surface; reserved 2023 only per §8.9 / Annex E.2 item 25).
+// Maximal munch keeps this ahead of MESSAGE: 'MESSAGE-TAG' is the longer match. It had NO token until kb/Work
+// PB487, so the bare (USAGE-less) spelling §13.18.60.2 makes legal fell to the genericDataClause catch-all and
+// the entry bound with NO usage at all — a compiler crash on the elementary path. A legal user word below 2023,
+// so it is cobolWord/_dataNameTokens-admitted (cobol-words.json) and funnel-0901'd at 2023.
+MESSAGE_TAG : 'MESSAGE-TAG' ;
 MESSAGE     : 'MESSAGE' ;      // MCS: the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31)
 MERGE       : 'MERGE' ;
 MOVE        : 'MOVE' ;
@@ -400,6 +406,12 @@ XML         : 'XML' ;
 ACTIVE_CLASS : 'ACTIVE-CLASS' ;
 ACCESS      : 'ACCESS' ;
 ADDRESS     : 'ADDRESS' ;
+// ALIGNED clause (ISO §13.18.1; reserved 2002+ per §8.9) — a §13.16.2 Format-1 data-description clause. It had NO
+// token and NO parser rule until kb/Work PB487, so it lexed as IDENTIFIER and the genericDataClause catch-all ate
+// it: the clause was ACCEPTED and INERT, which is the silent-wrong-layout case §13.18.1.4 GR1 exists to prevent.
+// A legal user word at COBOL-85, so it is cobolWord/_dataNameTokens-admitted (cobol-words.json) and funnel-0901'd
+// ≥2002 by the VersionConformancePass §8.9 funnel (the CONSTANT/BASED precedent).
+ALIGNED     : 'ALIGNED' ;
 AREA        : 'AREA' ;
 BASED       : 'BASED' ;
 // CONSTANT (ISO §13.10 constant entry / §13.18.15 CONSTANT RECORD clause; reserved 2002+ per §8.9) — a legal

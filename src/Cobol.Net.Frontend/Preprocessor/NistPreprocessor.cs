@@ -20,6 +20,7 @@ namespace CobolNet.Frontend.Preprocessor;
 ///   XXXXX082     — SOURCE-COMPUTER name
 ///   XXXXX083     — OBJECT-COMPUTER name
 ///   XXXXX084     — Implementor-specific label clause value (LABEL RECORDS)
+///   XXXXX086-088 — Implementor's own DATA DESCRIPTION of a file/label identifier item (kb/Work PB487)
 ///   XXXXX090     — CLASS definition: single character value ("A")
 ///   XXXXX091     — CLASS definition: character range end value ("D")
 /// </summary>
@@ -196,6 +197,21 @@ public static class NistPreprocessor
 
         // XXXXX084: implementor-specific label clause value (LABEL RECORDS)
         source = source.Replace("XXXXX084", "STANDARD");
+
+        // XXXXX086/087/088: the implementor's own DATA DESCRIPTION of a file/label identifier item. The card is
+        // written `01 IX-FD1-ID1` / `XXXXX086.` — the whole clause list is the X-card, and the implementor
+        // supplies it. COBOL.NET provides NO implementor-defined data description clause (§13.16.2 Format 1 is a
+        // closed list, kb/Work PB487), so the description it supplies is a plain alphanumeric item; §13.16.3 SR8
+        // requires an elementary entry to carry a PICTURE, which is exactly what these cards exist to provide.
+        // ⛔ Behaviour-preserving for the whole corpus, verified per site: IX206A declares its three
+        // (IX-FD1-ID1/IX-FD1-ID2/IX-FS1-ID2) and NEVER references them; IX205A's is a `*`-indicator comment
+        // card; SQ401M's `03 VKEY XXXXX086.` is the operand of the obsolete, inert `VALUE OF` FD clause. Until
+        // PB487 these cards were left unsubstituted and the §13.16.2 vendor catch-all ATE the raw token — the
+        // items bound with no description at all and no diagnostic, which is the silent misbind that closing the
+        // clause list exists to end. Token-boundary anchored, the XXXXX063/064/065 discipline (IX106A embeds
+        // these digit runs inside a baselined test-data literal).
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"(?<![A-Za-z0-9])XXXXX08[678](?![A-Za-z0-9])", "PICTURE X(10)");
 
         // ── Literal values ──
 

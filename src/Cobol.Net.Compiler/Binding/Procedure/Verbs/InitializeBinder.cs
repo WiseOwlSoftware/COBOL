@@ -455,7 +455,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         public override InitializeCursor Indexed(string indexVar) => this with
         {
             OccursTerms = $"{OccursTerms} + ({indexVar} - 1) * {Item.ImageWidth}",
-            OccursBitTerms = $"{OccursBitTerms} + ({indexVar} - 1) * {BitLayout.WidthBits(Item)}",
+            OccursBitTerms = $"{OccursBitTerms} + ({indexVar} - 1) * {BitLayout.StrideBits(Item)}",   // §13.18.1.4 GR2
         };
 
         public override Place ToPlace()

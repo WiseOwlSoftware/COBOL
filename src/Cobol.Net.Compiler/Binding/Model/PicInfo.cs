@@ -116,6 +116,16 @@ public enum Usage
     /// prototypes are the P13 repository work; ParseUsage rejects with the named 0899-band descriptor and the
     /// member exists so the 2014 introduction gate (UsageConstructId) still fires below 2014.</summary>
     FunctionPointer,
+    /// <summary>USAGE MESSAGE-TAG (ISO §13.18.60.4 GR9; COBOL-2023, Annex E.2 item 25) — DECLINED
+    /// NON-SUPPORT: the data-item half of the asynchronous messaging facility (Annex A.3 item 4,
+    /// docs/CONFORMANCE.md §4 item 1), refused BY NAME at every edition with COBOLNET1943, the
+    /// FLOAT-BINARY-128 posture. The member exists for exactly the reason that one does: <c>ParseUsage</c> must
+    /// return SOMETHING, and the entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without a member
+    /// of its own the recovery Pic could not be synthesized and the errored compile would carry a null
+    /// <c>Pic</c> into the emitter — which is precisely the unhandled NullReferenceException kb/Work PB487
+    /// found. It also makes the §13.18.60.3 SR4 / SR14 / SR21 message-tag arms EXPRESSIBLE where they were
+    /// forward obligations held open by a comment.</summary>
+    MessageTag,
     /// <summary>USAGE FLOAT-SHORT (ISO §13.18.60; the §13.18.59 D16 split) — LIVE (Phase 6a): the implementor-
     /// defined float trio maps FLOAT-SHORT → <c>float</c> (§13.18.60.4 GR13; <see cref="PicInfo.IsFloat"/> /
     /// <see cref="PicInfo.IsSingle"/>).</summary>
@@ -210,7 +220,12 @@ public static class UsageFamilies
         or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
         or Usage.Index or Usage.ObjectReference
         or Usage.Pointer or Usage.FunctionPointer or Usage.ProgramPointer
-        // (message-tag is SR8's thirteenth entry and has no Usage member yet — VCR row 32, a 2023 addition.)
+        // message-tag is SR8's thirteenth entry. The usage itself is DECLINED non-support (COBOLNET1943, Annex
+        // A.3 item 4) and refused by name in ParseUsage, so this arm is reached only on the errored-recovery
+        // path — but SR8 names it either way, and leaving it out is what
+        // PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless caught the moment kb/Work
+        // PB487 gave message-tag a Usage member.
+        or Usage.MessageTag
         // ── COMP-1 / COMP-2: the implementor spellings of SR8's float-short / float-long ──
         or Usage.Float or Usage.Double
         // ── the DETERMINATION above: the standard float usages SR8's list predates ──

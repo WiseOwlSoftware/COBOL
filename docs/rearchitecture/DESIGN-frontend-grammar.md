@@ -669,6 +669,46 @@ target:
 - Recovery beyond the current sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain).
 
+### 3.10 Closed general formats, and the ERROR PRODUCTION that replaced the vendor catch-all (kb/Work PB487)
+
+**The rule.** A general format in the standard is a CLOSED list. §4.2.2 makes the general formats and syntax
+rules the definition of what may be written, so a word the format does not print is not admissible — and a
+compiler that DISCARDS such a word compiles a program its author did not write.
+
+**What was there.** `dataDescriptionClause` ended in
+`genericDataClause -> genericClause : IDENTIFIER (IDENTIFIER|literal)*`, a vendor-extension hook matching any run
+of words at the tail of a §13.16.2 Format-1 entry. Three harms, all the same harm:
+
+1. the §13.18.1 ALIGNED clause — a REAL clause of that format, with no rule of its own — parsed and did
+   nothing, so `05 B2 PIC 1(4) USAGE BIT ALIGNED.` laid out at the wrong bit offset in silence;
+2. the bare `01 M MESSAGE-TAG.` that §13.18.60.2 makes legal bound with no usage at all, and the missing
+   `PicInfo` escaped the binder into an unhandled `NullReferenceException` in the emitter;
+3. every "…the only other clauses permitted are…" rule of §13.16.3 was unenforceable against a word the parser
+   never classified — SR12, SR13, SR17 and SR18 alike.
+
+**The replacement.** `unrecognizedDataClause`, an ERROR PRODUCTION placed LAST in the alternative list. It still
+RECOGNIZES the word run, which keeps recovery local (one diagnostic per entry rather than a cascade), and the
+binder REFUSES every instance by name — **COBOLNET1941**, naming the word and citing §13.16.2. Refused at every
+edition and every strictness: **a vendor extension is admitted only under the dialect that owns it, never by a
+catch-all**, and this compiler declares no vendor dialect. The strictness axis is for documented leniency about
+REMOVED constructs, which this is not.
+
+**The structural half.** Closing the list is only half the fix, because the §13.16.3 permitted-set rules were
+each an `||` chain over whichever local decode flags their author remembered, and each was incomplete. Those
+rules now read ONE clause-presence SET — `DataClauseKind` / `DataDescriptionCst.WrittenClauses`, one bit per
+Format-1 clause slot — with the permitted/excluded sets written as constants transcribed from the rules' own
+sentences. `DataClauseKindDriftTests` reflects over the GENERATED parser and fails, in both directions, when a
+`dataDescriptionClause` alternative has no `DataClauseKind` or a mapped context type is no longer produced. That
+is what makes the next clause automatic rather than remembered.
+
+**The other `genericClause` sites are NOT closed by this change** and remain open: `genericFileDescriptionClause`
+(FD/SD, §13.5.2), `fileControlClause` (SELECT, §12.4.5.2), the SPECIAL-NAMES paragraph and the IDENTIFICATION
+paragraph each still swallow an arbitrary word run — measured: `FD F WIBBLE WOBBLE.`,
+`SELECT F ASSIGN TO "f.dat" WIBBLE WOBBLE.`, `SPECIAL-NAMES. WIBBLE WOBBLE.`, `SOURCE-COMPUTER. IBM-370 WIBBLE
+WOBBLE.` and a bare `WIBBLE. WOBBLE.` ID paragraph all compile clean. Each is its own closed general format with
+its own inventory rows and its own audit of what the grammar does not yet model; they are separate `kb/Work`
+items, not a silent omission from this one.
+
 ---
 
 ## 4. Current → target module changes

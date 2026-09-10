@@ -76,11 +76,15 @@ public sealed class UsageDeclarationPlacementDriftTests
         ["BinaryShort"] = null,
         ["BinaryLong"] = null,
         ["BinaryDouble"] = null,
-        // ⛔ NO "MessageTag" ROW — because there is no such Usage member yet. MESSAGE-TAG is a COBOL-2023
-        // addition (VCR row 32) and SR14 names it; when the model gains the member this test FAILS, which is
-        // exactly how the forward obligation is held open rather than forgotten. The same landing owes SR21
-        // ("If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description
-        // entry"), which is unimplementable today for the same reason and is NOT written as dead code.
+        // The member landed with kb/Work PB487 and this row is the verdict the missing one was holding open.
+        // SR14 names MESSAGE-TAG FIRST in its five-phrase list, so the phrase arm carries it — the
+        // FUNCTION-POINTER situation exactly: the usage is DECLINED non-support (Annex A.3 item 4), refused by
+        // name at ParseUsage with COBOLNET1943, so its bound PicInfo is a recovery shape and the CLASS arm
+        // never sees it, but the WRITTEN clause is visible to the screen and the rule governs it.
+        // SR21 ("If the MESSAGE-TAG phrase is specified, no other usage phrase shall be specified in the same
+        // data description entry") stays unreachable rather than unimplementable: no message-tag item can ever
+        // BIND, so it is still deliberately NOT written as dead code.
+        ["MessageTag"] = "MESSAGE-TAG",
     };
 
     [Fact]

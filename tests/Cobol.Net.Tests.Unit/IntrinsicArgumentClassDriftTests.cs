@@ -238,9 +238,10 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// usage member must not silently inherit its storage category's answer. An index data item's PicInfo
     /// carries category NUMERIC for the storage model, so before the usage-keyed arm it passed every
     /// class-numeric screen and <c>FUNCTION INTEGER(IX)</c> computed the occurrence number silently. USAGE
-    /// MESSAGE-TAG (Table 2's other unexpressed class) deliberately has NO Usage member — the MCS facility is
-    /// unmodeled — so the moment it (or any new usage) lands, this fact goes red until its Table-2 class is
-    /// decided, wired, and recorded here.</summary>
+    /// MESSAGE-TAG is Table 2's other unexpressed class, and it LANDED as a <c>Usage</c> member with kb/Work
+    /// PB487 — which is this fact doing its job: it went red the moment the member appeared, and stayed red
+    /// until the disposition below was decided and recorded. Its answer is "no usage-keyed arm, and none can be
+    /// needed", argued at the row.</summary>
     [Fact]
     public void EveryUsageMember_HasATable2ClassDisposition()
     {
@@ -261,6 +262,16 @@ public sealed class IntrinsicArgumentClassDriftTests
             [CobolNet.Binding.Model.Usage.Pointer] = "category",
             [CobolNet.Binding.Model.Usage.ProgramPointer] = "category",
             [CobolNet.Binding.Model.Usage.FunctionPointer] = "category",
+            // USAGE MESSAGE-TAG (kb/Work PB487) — §13.18.60.4 GR9 makes the class AND category of a message-tag
+            // data item message-tag, a class this implementation does not model because it DECLINES the facility
+            // (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1): ParseUsage refuses the usage BY NAME with
+            // COBOLNET1943, an Error, at every edition. So no CONFORMING program can present such an item to
+            // ClassOfPlace, and a usage-keyed CobolClass arm would be an arm for a class no bound item can
+            // legally have. In the errored bind the storage category answers, as it does for the other refused
+            // usages above (FLOAT-BINARY-128 and the FLOAT-DECIMAL pair) — hence "category". ⛔ This row is the
+            // DECLINE recorded, not a claim that message-tag IS its storage category: if the facility is ever
+            // implemented, GR9 requires a class of its own and this row must change with it.
+            [CobolNet.Binding.Model.Usage.MessageTag] = "category",
             [CobolNet.Binding.Model.Usage.FloatShort] = "category",
             [CobolNet.Binding.Model.Usage.FloatLong] = "category",
             [CobolNet.Binding.Model.Usage.FloatExtended] = "category",

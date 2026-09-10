@@ -66,6 +66,9 @@ public sealed class UsageFloatFormatPhraseDriftTests : CobolNetTestBase
         ["BINARY"] = (false, false),
         ["PACKED_DECIMAL"] = (false, false),
         ["INDEX"] = (false, false),
+        // USAGE MESSAGE-TAG (kb/Work PB487) - the printed §13.18.60.2 line is the bare word with no tail;
+        // the usage is DECLINED non-support (Annex A.3 item 4) and refused by name, COBOLNET1943.
+        ["MESSAGE_TAG"] = (false, false),
         ["NATIONAL"] = (false, false),
         ["BIT"] = (false, false),
         // USAGE POINTER [TO type-name-1] is a RULE, not a terminal, since kb/Work PB153 added the

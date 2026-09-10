@@ -957,7 +957,14 @@
   "pb528-picture-composition-decimal-comma",
   "pb452-set-content-sign-required",
   "pb452-set-content-numeric-edited",
-  "pb452-set-content-not-standard-float"
+  "pb452-set-content-not-standard-float",
+  "pb487-unrecognized-data-clause",
+  "pb487-aligned-non-bit-subject",
+  "pb487-message-tag-usage",
+  "pb487-picture-required-elementary",
+  "pb487-aligned-co-clause-rules",
+  "pb487-constant-record-excluded-clauses",
+  "pb487-any-length-excluded-clauses"
  ],
  "pending": []
 }

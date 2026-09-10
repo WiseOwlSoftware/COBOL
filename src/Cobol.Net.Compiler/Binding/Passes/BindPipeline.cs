@@ -43,6 +43,19 @@ internal static class BindPipeline
         // declaration's own defect should be reported before the downstream machinery's defense against it.
         // A plain syntax rule, so NOT the terminal VersionConformancePass — that pass is the edition gate.
         new BindPass("CheckUsageDeclarations", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckUsageDeclarations()),
+        // The §13.18.1.3 SR1 ALIGNED subject screen (kb/Work PB487). Placed HERE for the SAME reason as the pass
+        // above: SR1 asks whether the entry is "a bit group item or an elementary bit data item", and a group
+        // becomes a bit group by §13.16.4 GR1 INHERITANCE, which UsageInheritancePass settles. Nothing later
+        // than that — it reads only declared shape, and BitLayout must not lay out an item whose ALIGNED clause
+        // was never adjudicated.
+        new BindPass("CheckAlignedClauses", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckAlignedClauses()),
+        // The §13.16.3 SR8 closing guard — every elementary item has a PICTURE or a synthesized profile
+        // (kb/Work PB487). Placed immediately after UsageInheritancePass because that is the LAST pass which
+        // can legitimately fill a null Pic (a group header shedding its usage to leaves, §13.18.60.4 GR1; a
+        // PICTURE-less INDEX / OBJECT REFERENCE leaf taking the inherited profile), and BEFORE everything that
+        // reads a Pic. Without it `01 M.` — plain COBOL, no exotic clause — reached MoveEmitter with a null Pic
+        // and crashed the compiler with an unhandled NullReferenceException and no diagnostic at all.
+        new BindPass("CheckPictureRequired", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckPictureRequired()),
         new BindPass("InheritSignClauses", PassPhase.UsageResolved, PassPhase.SignResolved, d => d.InheritSignClauses()),
         new BindPass("ResolveRedefines", PassPhase.SignResolved, PassPhase.SignResolved, d => d.ResolveRedefines()),
         new BindPass("ClassifyRedefinesClasses", PassPhase.SignResolved, PassPhase.RedefinesClassified, d => d.ClassifyRedefinesClasses()),

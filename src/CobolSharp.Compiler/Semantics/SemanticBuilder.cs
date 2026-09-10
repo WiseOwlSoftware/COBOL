@@ -1292,9 +1292,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 }
 
                 // An unknown COMP-n (COMP-9, COMPUTATIONAL-7, …) has no usage token, so it lexes as an
-                // IDENTIFIER and is absorbed by the generic (vendor) data clause; reject it rather than
-                // silently treating the item as DISPLAY (ISO §13.18.60.2 — the USAGE format has no such form).
-                var genericClause = clause.genericDataClause()?.genericClause();
+                // IDENTIFIER and lands on the §13.16.2 tail production; reject it rather than silently treating
+                // the item as DISPLAY (ISO §13.18.60.2 — the USAGE format has no such form).
+                // ⛔ kb/Work PB487 renamed that production `genericDataClause` → `unrecognizedDataClause` and
+                // CLOSED the Format-1 clause list: in the GREENFIELD every instance is refused by name
+                // (COBOLNET1941), of which this legacy COMP-n arm is the narrow precursor. The legacy tree keeps
+                // its own behaviour byte-for-byte — it is the differential ORACLE until the P15 cut-over.
+                var genericClause = clause.unrecognizedDataClause()?.genericClause();
                 if (genericClause != null)
                 {
                     var ids = genericClause.IDENTIFIER();
@@ -2165,11 +2169,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitGenericFileDescriptionClause(ctx);
     }
 
-    public override object? VisitGenericDataClause(
-        CobolParserCore.GenericDataClauseContext ctx)
+    // kb/Work PB487 renamed the §13.16.2 tail production `genericDataClause` → `unrecognizedDataClause` (the
+    // Format-1 clause list is CLOSED; the greenfield refuses every instance by name, COBOLNET1941). The legacy
+    // tree keeps capturing it as a DATA DESCRIPTION extension clause — its behaviour is frozen until P15.
+    public override object? VisitUnrecognizedDataClause(
+        CobolParserCore.UnrecognizedDataClauseContext ctx)
     {
         CaptureGenericClause(ctx.genericClause(), GenericClauseContext.DataDescription);
-        return base.VisitGenericDataClause(ctx);
+        return base.VisitUnrecognizedDataClause(ctx);
     }
 
     public override object? VisitVendorFileControlClause(

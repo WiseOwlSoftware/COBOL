@@ -1103,10 +1103,16 @@ group-level pointer USAGE — is now rejected at the declaration. That is what m
 pointer/object Tier-D backstop (D5 / `COBOLNET_REDEFINES_DESIGN.md`) unreachable-by-construction on conforming
 source; the backstop is kept as the recovery-path guard, never deleted.
 
-**Forward obligations, held by a test rather than by memory.** There is no `Usage.MessageTag` member (a 2023
-addition), so SR14's and SR4's message-tag arms and SR21 (MESSAGE-TAG exclusivity) are unimplementable today and
-are deliberately NOT written as dead code; `UsageDeclarationPlacementDriftTests` requires a recorded verdict for
-every `Usage` member and so fails the moment the member lands. The pre-2023 shape of these rules is not derivable
+**Forward obligations, held by a test rather than by memory.** `Usage.MessageTag` EXISTS as of kb/Work PB487,
+but the usage itself is DECLINED non-support — the data-item half of the Annex A.3 item 4 asynchronous messaging
+facility (`docs/CONFORMANCE.md` §4 item 1), refused BY NAME in `PictureAnalyzer.ParseUsage` with COBOLNET1943 at
+every edition. The member is there for the FLOAT-BINARY-128 reason: `ParseUsage` must return something and the
+entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without it the errored compile carried a null
+`PicInfo` into the emitter — which is exactly the unhandled `NullReferenceException` PB487 measured. Because no
+message-tag item can ever BIND, SR14's and SR4's message-tag arms and SR21 (MESSAGE-TAG exclusivity) remain
+unreachable rather than unimplementable, and are still deliberately NOT written as dead code;
+`UsageDeclarationPlacementDriftTests` requires a recorded verdict for every `Usage` member, and the verdict
+recorded for this one is the refusal. The pre-2023 shape of these rules is not derivable
 from the 2023 text (Annex E's scope is 2014→2023 only, so its silence is a missing observation) — the arms ship
 ungated below 2023, recorded as kb/Work PB296.
 

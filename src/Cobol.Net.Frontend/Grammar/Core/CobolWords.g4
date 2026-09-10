@@ -10,6 +10,7 @@ options { tokenVocab = CobolLexer; }
 cobolWord
     : IDENTIFIER
     | {userWordHere("ACTIVE-CLASS")}? ACTIVE_CLASS
+    | {userWordHere("ALIGNED")}? ALIGNED
     | APPLY
     | ARITHMETIC
     | {userWordHere("AS")}? AS
@@ -77,6 +78,7 @@ cobolWord
     | LOWLIGHT
     | MANUAL
     | {userWordHere("MESSAGE")}? MESSAGE
+    | {userWordHere("MESSAGE-TAG")}? MESSAGE_TAG
     | NATIONAL
     | {userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
     | NORMAL
@@ -127,6 +129,7 @@ cobolWord
 // every use of this rule is a definition slot, so a new slot needs no new C# (kb/Work PB693).
 reservedGatedWord
     : {!userWordHere("ACTIVE-CLASS")}? ACTIVE_CLASS
+    | {!userWordHere("ALIGNED")}? ALIGNED
     | {!userWordHere("AS")}? AS
     | {!userWordHere("B-AND")}? B_AND
     | {!userWordHere("B-NOT")}? B_NOT
@@ -166,6 +169,7 @@ reservedGatedWord
     | {!userWordHere("IN-ARITHMETIC-RANGE")}? IN_ARITHMETIC_RANGE
     | {!userWordHere("LOCATION")}? LOCATION
     | {!userWordHere("MESSAGE")}? MESSAGE
+    | {!userWordHere("MESSAGE-TAG")}? MESSAGE_TAG
     | {!userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
     | {!userWordHere("ORDER")}? ORDER
     | {!userWordHere("OVERRIDE")}? OVERRIDE

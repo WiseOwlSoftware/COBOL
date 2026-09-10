@@ -283,6 +283,23 @@ dataDescriptionClauses
     : dataDescriptionClause*
     ;
 
+// ⛔ THE §13.16.2 FORMAT-1 CLAUSE LIST IS CLOSED (kb/Work PB487; the general format is RENDERED from the printed
+// page — PDF p393/folio 363 — and carries exactly the 21 optional clause slots transcribed above at §13.16.2).
+// It used to END in `genericDataClause -> genericClause : IDENTIFIER (IDENTIFIER|literal)*`, a vendor-extension
+// catch-all that swallowed ANY word sequence at the tail of an entry. Three harms followed from that ONE
+// alternative, and all three are the same harm: a word the grammar does not know was DISCARDED rather than
+// diagnosed.
+//   (a) the §13.18.1 ALIGNED clause — a REAL clause of this general format with no rule of its own — parsed and
+//       did nothing, so `05 B2 PIC 1(4) USAGE BIT ALIGNED.` laid out at the WRONG bit offset in silence;
+//   (b) the bare (USAGE IS-less) `01 M MESSAGE-TAG.` that §13.18.60.2 makes legal bound with NO usage, and the
+//       missing PicInfo escaped the binder into an unhandled NullReferenceException in MoveEmitter;
+//   (c) every "…the only other clauses permitted are…" rule of §13.16.3 (SR12/SR13/SR17/SR18) was unenforceable
+//       against a word the parser never classified, however carefully its condition list was maintained.
+// The replacement is `unrecognizedDataClause`, an ERROR PRODUCTION: it still RECOGNIZES the word run — which
+// keeps recovery local, one diagnostic per entry instead of a cascade — but the binder REFUSES it BY NAME
+// (COBOLNET1941) at every edition and every strictness. There is no dialect that admits it: a vendor extension
+// is admitted only under the dialect that owns it, never by a catch-all, and this compiler declares no vendor
+// dialect. It is LAST because ANTLR takes the first matching alternative.
 dataDescriptionClause
     : pictureClause
     | usageClause
@@ -293,6 +310,7 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
+    | alignedClause   // ISO §13.18.1 (COBOL-2002); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitAlignedClause
     | constantRecordClause   // COBOL-2002 §13.18.15; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitConstantRecordClause
     | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitPropertyClause (rearch 14g.2). (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
     | externalClause
@@ -303,10 +321,28 @@ dataDescriptionClause
     | basedClause
     | anyLengthClause
     | dynamicLengthClause
-    | genericDataClause
     | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
     | selectWhenClause   // ISO §13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOLNET1705)
     | {is2002()}? validationClause   // ISO §13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOLNET1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
+    | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME at bind (COBOLNET1941)
+    ;
+
+// ALIGNED clause (ISO §13.18.1.2 — the general format is the single required word `ALIGNED`, underlined).
+// §13.18.1.3 SR1 confines it to "a bit group item or an elementary bit data item" and §13.18.1.4 GR1 makes it
+// align the subject "on the first bit of the first available byte boundary"; both live at the ONE bit-layout
+// site (Binding/Model/BitLayout.cs) and the ONE entry-shape site (DataBinder.BindEntry, COBOLNET1942). The
+// COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitAlignedClause.
+alignedClause
+    : ALIGNED
+    ;
+
+// ⛔ NOT A CLAUSE — the error production that replaced the vendor catch-all (kb/Work PB487; see the block above
+// dataDescriptionClause). It exists ONLY so an unrecognized word at the tail of a data description entry can be
+// NAMED — `COBOLNET1941: 'WIBBLE' is not a clause of the data description entry (ISO §13.16.2 Format 1)` — in
+// place of a generic "no viable alternative", and so the parse continues far enough to report the REST of the
+// division. The binder refuses every instance; nothing binds from it.
+unrecognizedDataClause
+    : genericClause
     ;
 
 // SELECT WHEN clause (§13.18.51.2, printed general format p481 — RENDERED).
@@ -414,10 +450,6 @@ typedefClause
 // Expansion rides the ONE TYPEDEF clone machinery (DataBinder.ExpandSameAs → CloneItem; data-model D17).
 sameAsClause
     : SAME AS cobolWord ((OF | IN) cobolWord)*   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitSameAsClause (recognition; the typedefClause pattern)
-    ;
-
-genericDataClause
-    : genericClause
     ;
 
 // PIC Clause — PIC/PICTURE triggers PICMODE in the lexer, which emits a single PIC_STRING token (IS is consumed
@@ -538,6 +570,12 @@ usageKeyword
     | BINARY
     | PACKED_DECIMAL
     | INDEX
+    | MESSAGE_TAG           // §13.18.60.4 GR9 (COBOL-2023, Annex E.2 item 25) — the MCS message-tag usage. DECLINED
+                            // (docs/CONFORMANCE.md §4 item 1 / Annex A.3 item 4): recognize-only, refused BY NAME
+                            // at bind (COBOLNET1943). ⛔ It is in the CLAUSE grammar, not just the reserved-word
+                            // table, because §13.18.60.2 prints `[ USAGE IS ]` as OPTIONAL for every usage: without
+                            // an arm here the bare `01 M MESSAGE-TAG.` fell to the §13.16.2 catch-all and bound with
+                            // NO usage at all (kb/Work PB487).
     | NATIONAL
     | BIT
     | dataPointerUsage       // USAGE POINTER [TO type-name] (§13.18.60.2; the TO form is a RESTRICTED data-pointer, GR23)

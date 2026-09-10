@@ -2678,6 +2678,64 @@ public static class DiagnosticCatalog
         + "carry an implementor-defined representation (§13.18.60.4 GR13) and so cannot. Declare the item "
         + "FLOAT-BINARY-32 or FLOAT-BINARY-64.",
         "ISO §14.9.39.3 SR32 / §3.166 / §3.167");
+    // ── COBOLNET1941/1942/1943 — the CLOSED §13.16.2 Format-1 data-description clause list (kb/Work PB487).
+    //    The general format used to end in a vendor-extension catch-all (`genericDataClause`) that swallowed any
+    //    trailing word sequence, so an unrecognized word, the never-implemented ALIGNED clause, and the bare
+    //    `01 M MESSAGE-TAG.` were all accepted and DISCARDED. 1941 names the unrecognized word; 1942 is ALIGNED's
+    //    own §13.18.1.3 SR1; 1943 refuses the declined MESSAGE-TAG usage by name. The §13.16.3 permitted-set
+    //    rules those three unblocked keep their existing codes (1555 SR12, 1549 SR13, 1542 SR17, 1563 SR18). ──
+
+    /// <summary>COBOLNET1941 — a word at the tail of a data description entry that is not one of §13.16.2
+    /// Format 1's clauses. It replaces a SILENT DISCARD, which is the whole point: the entry used to bind with a
+    /// data description the programmer did not write.</summary>
+    public static readonly DiagnosticDescriptor DataClauseUnrecognized = new(
+        "COBOLNET1941", "data-clause-unrecognized", EditionSeverity.Error,
+        "A word in a data description entry is not a clause of ISO §13.16.2 Format 1, whose general format is a "
+        + "CLOSED list: level-number, entry-name, REDEFINES, IS TYPEDEF [STRONG], ALIGNED, ANY LENGTH, BASED, "
+        + "BLANK WHEN ZERO, CONSTANT RECORD, DYNAMIC LENGTH, IS EXTERNAL [AS], IS GLOBAL, GROUP-USAGE, "
+        + "JUSTIFIED, occurs-clause, picture-clause, PROPERTY, SAME AS, select-when-clause, SIGN, SYNCHRONIZED, "
+        + "TYPE, usage-clause, validation-clauses and value-clause. The grammar used to end this list in a "
+        + "vendor-extension catch-all matching any run of words, so a misspelled clause word, an undefined "
+        + "COMP-n, and every clause the compiler had not implemented were accepted and SILENTLY DISCARDED — the "
+        + "program then compiled and ran against a data description its author did not write. Refused at every "
+        + "edition and every strictness: §4.2.2 makes a general format's syntax the definition of what may be "
+        + "written, and this implementation declares no vendor dialect under which an extension clause could be "
+        + "admitted. A vendor extension is admitted only under the dialect that owns it, never by a catch-all.",
+        "ISO §13.16.2 / §4.2.2");
+
+    /// <summary>COBOLNET1942 — ISO §13.18.1.3 SR1, the ALIGNED clause's one syntax rule. ALIGNED had no grammar
+    /// rule at all until kb/Work PB487 and was swallowed by the catch-all, so `05 B2 PIC 1(4) USAGE BIT ALIGNED.`
+    /// laid out at the WRONG bit offset in silence — the exact silent-wrong-layout case §13.18.1.4 GR1 exists to
+    /// prevent.</summary>
+    public static readonly DiagnosticDescriptor AlignedClauseSubject = new(
+        "COBOLNET1942", "aligned-clause-subject", EditionSeverity.Error,
+        "ISO §13.18.1.3 syntax rule 1: \"The ALIGNED clause may be specified only for a bit group item or an "
+        + "elementary bit data item.\" A bit group item is a group carrying (or inheriting, §13.16.4 GR1) a "
+        + "GROUP-USAGE BIT clause; an elementary bit data item is an elementary item of category boolean whose "
+        + "usage is BIT (§13.18.60.4 GR5). On any other subject the clause has no defined effect — §13.18.1.4 "
+        + "GR1 states its effect purely in bits (\"aligned on the first bit of the first available byte "
+        + "boundary\", with implicit filler bits per §8.5.1.6.3) — so it is refused rather than accepted inert.",
+        "ISO §13.18.1.3 SR1");
+
+    /// <summary>COBOLNET1943 — the MESSAGE-TAG usage, refused by name. It is the DATA half of the same Annex A.3
+    /// item 4 asynchronous-messaging facility whose STATEMENTS are accept-inert under COBOLNET1578; the data item
+    /// cannot be accept-inert for the same reason COBOLNET1705's clause cannot be — there is no inert reading, so
+    /// an accepted MESSAGE-TAG item would have to bind as some OTHER class and every reference to it would then
+    /// be a wrong answer.</summary>
+    public static readonly DiagnosticDescriptor MessageTagUsageUnsupported = new(
+        "COBOLNET1943", "message-tag-usage-unsupported", EditionSeverity.Error,
+        "the MESSAGE-TAG usage (ISO §13.18.60) is the data-item half of the asynchronous messaging facility, a "
+        + "processor-dependent element (§4.2.6; Annex A.3 item 4) that is not supported — see "
+        + "docs/CONFORMANCE.md §4 item 1, where SEND/RECEIVE are accepted inert under COBOLNET1578. The DATA "
+        + "item is refused instead of accepted inert because there is no inert reading of it: §13.18.60.4 GR9 "
+        + "makes the class and category of a message-tag data item message-tag, so an accepted item would have "
+        + "to bind as some other class and every reference to it — a MOVE, a comparison, a length function — "
+        + "would silently give a wrong answer. MESSAGE-TAG is a COBOL-2023 addition (Annex E.2 item 25); below "
+        + "--std 2023 the word is a user-defined word and the entry draws the ordinary introduction gate. "
+        + "⛔ Both spellings are refused: §13.18.60.2 prints [ USAGE IS ] as OPTIONAL, so bare "
+        + "`01 M MESSAGE-TAG.` is the same clause as `01 M USAGE MESSAGE-TAG.`",
+        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §13.18.60.4 GR9", RecognizedNotImplemented,
+        Annex: DeclinedAnnex.A3);
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

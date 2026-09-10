@@ -1033,7 +1033,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         + $"exponentiation (ISO {clause})");
                     return;
                 }
-                bit += (k - 1) * (long)BitLayout.WidthBits(chain[i]);
+                bit += (k - 1) * (long)BitLayout.StrideBits(chain[i]);   // a SUBSCRIPT stride — ALIGNED strides whole bytes (§13.18.1.4 GR2)
             }
         }
         bit += extra;

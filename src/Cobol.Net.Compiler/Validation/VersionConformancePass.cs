@@ -829,6 +829,18 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The ALIGNED clause (ISO §13.18.1) — a COBOL-2002 introduction (§8.9 reserves ALIGNED from 2002;
+        /// it aligns a bit group item or elementary bit data item on the first bit of the first available byte,
+        /// §13.18.1.4 GR1). Parse-arm (recognition) like the BASED / ANY LENGTH gates: <c>DataItem.IsAligned</c> is
+        /// CLEARED by <c>CheckAlignedClauses</c> on a §13.18.1.3 SR1 violation, so a bound-arm home would drop the
+        /// 0900 on exactly the declaration-error paths. The SR1 subject rule stays bind-time (COBOLNET1942) and the
+        /// GR1/GR2 layout effect lives at the ONE bit-layout site (kb/Work PB487).</summary>
+        public override object? VisitAlignedClause(CobolParserCore.AlignedClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.AlignedClause2002, "the ALIGNED clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The GROUP-USAGE clause (ISO §13.18.29) — a COBOL-2002 introduction (a bit group / national group,
         /// data-model design D20; kb/Work PB79). SR1–SR3 stay in the binder (COBOLNET1653 + the shared §13.18.60.4 GR1
         /// leaf conformance); this arm only names the edition.</summary>

@@ -225,10 +225,17 @@ public sealed partial class DataBinder
     /// <summary>Which of SR14's phrases a WRITTEN group-level <see cref="DataItem.OwnUsage"/> names, or null.
     /// FUNCTION-POINTER is included: <c>PictureAnalyzer.ParseUsage</c> stages it loud (the P13 prototype band)
     /// so its <c>Pic</c> stays null and arm B never sees it, but the written clause is still visible HERE and
-    /// the rule governs it. MESSAGE-TAG has no <see cref="Usage"/> member yet (a 2023 addition, VCR row 32) —
-    /// the drift test holds that forward obligation open.</summary>
+    /// the rule governs it. MESSAGE-TAG (kb/Work PB487) is the SECOND member in that position, for the same
+    /// reason by a different route — the usage is declined non-support and refused by name — so both are
+    /// governed here and neither by arm B. ⛔ That asymmetry is kb/Work PB819, not a decision: arm B should key
+    /// on the written or inherited PHRASE, which is what this method already reads.</summary>
     private static string? Sr14PhraseOf(Usage? u) => u switch
     {
+        // MESSAGE-TAG is the FIRST phrase SR14 names. Its arm lands here rather than staying a forward
+        // obligation because kb/Work PB487 gave the model a Usage member for it — the usage is DECLINED
+        // non-support and refused by name (COBOLNET1943), so like FUNCTION-POINTER above it is the WRITTEN
+        // clause, never a bound class, that this screen sees.
+        Usage.MessageTag => "MESSAGE-TAG",
         Usage.Pointer => "POINTER",
         Usage.ProgramPointer => "PROGRAM-POINTER",
         Usage.FunctionPointer => "FUNCTION-POINTER",

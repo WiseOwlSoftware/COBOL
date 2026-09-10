@@ -774,7 +774,7 @@ public sealed class ReferenceResolver(DataBinder data)
                 // ImageWidth for every other leaf kind, so this is byte-identical elsewhere — the same
                 // relationship the bit twin below has to it.
                 offset += $" + ({indexExprs[k]} - 1) * {occursLevels[k].ByteWidth}";
-                bitTerms += $" + ({indexExprs[k]} - 1) * {BitLayout.WidthBits(occursLevels[k])}";
+                bitTerms += $" + ({indexExprs[k]} - 1) * {BitLayout.StrideBits(occursLevels[k])}";   // ALIGNED strides whole bytes (§13.18.1.4 GR2)
             }
             // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §13.18.5
             // — the view addresses wherever the pointer currently points; Phase-4b increment 2). The backing
