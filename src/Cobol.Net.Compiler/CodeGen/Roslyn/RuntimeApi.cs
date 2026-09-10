@@ -337,14 +337,23 @@ internal static class RuntimeApi
         if (rules is null || rules.Count == 0) return "";
         static string Ch(char c) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(c, quote: true);
         string items = string.Join(", ", rules.Select(r =>
-            $"new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}({Ch(r.Char1)}, {Ch(r.Neg)}, {Ch(r.Pos)})"));
+            $"new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}({Ch(r.Char1)}, {Ch(r.Neg)}, {Ch(r.Pos)}, "
+            + $"{(r.SimpleInsertion ? "true" : "false")})"));
         return $", edits: new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}[] {{ {items} }}";
     }
 
-    /// <summary>Place sending characters into an alphanumeric-edited mask's positions (ISO §13.18.40 insertion) —
-    /// <c>CobolEdit.FormatAlphanumeric</c>.</summary>
-    public static string EditFormatAlphanumeric(string value, string maskLiteral) =>
-        $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatAlphanumeric)}({value}, {maskLiteral})";
+    /// <summary>Place sending characters into an ALPHANUMERIC-EDITED (or national-edited) mask's positions
+    /// (ISO §13.18.40.5 Table 7 — the category's only editing is SIMPLE INSERTION; rule 3 places the insertion
+    /// character at the symbol's own position) — <c>CobolEdit.FormatAlphanumeric</c>.
+    /// <para>⛔ It takes the <see cref="PicInfo"/>, never a bare mask: the mask and the item's PICTURE EDITING
+    /// rules are rendered TOGETHER from the one item, which is what keeps a new emit site from doing what all
+    /// three existing ones did — pass the mask and drop <see cref="PicInfo.EditingRules"/>, so
+    /// <c>PIC XXTXX EDITING "T" IS ":"</c> rendered the mask LETTER (kb/Work PB490; §13.18.40.4 GR7 names
+    /// character-1 as an alphanumeric-edited constituent). This is the alphanumeric twin of
+    /// <see cref="EditFormatFor"/>, which owns the numeric-edited form dispatch for the same reason.</para></summary>
+    public static string EditFormatAlphanumeric(string value, PicInfo pic) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatAlphanumeric)}({value}, "
+        + $"{Emit.EmitText.CsLiteral(pic.EditMask!)}{EditsArg(pic.EditingRules)})";
 
     /// <summary>Decode a digit image's magnitude (non-digits contribute no digit) — <c>CobolNum.FromAlphanumeric</c>.</summary>
     public static string NumFromAlphanumeric(string image) =>

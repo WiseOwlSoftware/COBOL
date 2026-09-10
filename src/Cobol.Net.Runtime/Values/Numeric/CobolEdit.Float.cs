@@ -159,9 +159,14 @@ public static partial class CobolEdit
                 case '9': sb.Append(sigDigits[next++]); break;
                 case '+': sb.Append(negative ? '-' : '+'); break;   // Table 8 fixed insertion
                 case '-': sb.Append(negative ? '-' : ' '); break;
-                case 'B': sb.Append(' '); break;                    // simple insertion
-                case '.': case ',': case '0': case '/': sb.Append(c); break;
-                default: sb.Append(c); break;
+                // SIMPLE INSERTION from the ONE set (§13.18.40.5 rule 3, Table 7's "Simple insertion … for the
+                // significand part") — 'B' inserts a space, '0' '/' ',' insert themselves. `edits` is null by
+                // rule: §13.18.40.3 SR12 keeps an EDITING character-1 off this form entirely
+                // (PictureAnalyzer.AnalyzeFloatEdited, COBOLNET1658). '.' is SPECIAL insertion (rule 4) and
+                // falls to the default, which copies every remaining mask character verbatim.
+                default:
+                    sb.Append(TrySimpleInsertion(c, null, out char ins) ? ins : c);
+                    break;
             }
         }
         sb.Append('E');

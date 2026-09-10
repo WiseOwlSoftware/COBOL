@@ -1,6 +1,7 @@
 {
   "_comment": "The 2014 positive corpus (COBOL-2014 / M3 surface). PHASE-12 populates it: OCCURS DYNAMIC (dyn_*), the arithmetic-standard/OPTIONS/rounded-mode families, and the DYNAMIC LENGTH elementary items (dynamic_length_*).",
   "enabled": [
+  "pb490_simple_insertion_strings",
   "l1_divide_quotient_remainder_standard_decimal",
   "l1_divide_remainder_backmultiply_size_error",
   "l1_formatted_datetime_offset_magnitude",

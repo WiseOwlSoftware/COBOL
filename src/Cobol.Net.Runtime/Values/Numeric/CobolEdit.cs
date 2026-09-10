@@ -39,8 +39,65 @@ public static partial class CobolEdit
     /// defaulting to a space (SR12c). character-1 is NEVER a digit position (SR8 excludes every digit/edit symbol),
     /// so it holds no digit and no fraction. Multi-character literals and floating (character-1 repeated ≥2 under a
     /// FOR phrase) require abandoning the 1:1 mask model — a documented P14 render GAP staged loud at bind
-    /// (COBOLNET0899); they never reach here.</summary>
-    public readonly record struct EditRule(char Char1, char Neg, char Pos);
+    /// (COBOLNET0899); they never reach here.
+    /// <para><paramref name="SimpleInsertion"/> is the phrase's FORM, and it is what decides whether this
+    /// character-1 belongs to a zero-suppression or floating string (§13.18.40.5 rules 6 and 7: "Any of the
+    /// simple insertion editing symbols embedded in this string or to the immediate right of this string are part
+    /// of the string"). It is the IS form: rule 3 — "the symbols 'B', '0', '/', ',' and, if literal=1 is
+    /// specified, character-1 are used as the simple insertion editing symbols"; the FOR form is FIXED insertion
+    /// — rule 5 — "When character-1 is used, and is not a simple insertion character, it represents literal-2, or
+    /// literal-3 as the insertion characters". ⛔ It is NOT derivable from <c>Neg == Pos</c>: a FOR phrase may
+    /// name the same literal on both sides (<c>PIC ZT9 EDITING "T" FOR NEGATIVE IS ":" POSITIVE IS ":"</c>),
+    /// which is fixed insertion and must survive the suppression walk that eats an IS-form ':' beside it.</summary>
+    public readonly record struct EditRule(char Char1, char Neg, char Pos, bool SimpleInsertion);
+
+    /// <summary>⛔ THE SIMPLE INSERTION EDITING SYMBOLS — ISO §13.18.40.5 rule 3, written down ONCE: "the symbols
+    /// 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion editing
+    /// symbols". Every consumer of the set reads <see cref="IsSimpleInsertionSymbol"/> or
+    /// <see cref="TrySimpleInsertion"/> — <see cref="Format"/>'s pass 1 (place the insertion character), its
+    /// pass 2 (a symbol inside a suppression string takes the replacement character),
+    /// <see cref="FindFloatingPlacement"/> (a symbol inside a floating string is a landing position for the
+    /// floating character), <see cref="FormatAlphanumeric"/> and the floating-point significand renderer
+    /// (<c>RenderFloat</c>) — because the set was previously spelled out at
+    /// each site and the copies drifted to the pair {',', 'B'}, so <c>PIC ZZ/ZZ</c> and <c>PIC ZZ0ZZ</c> kept
+    /// their insertion character where no significant numeric character stood to its left and <c>PIC ++/++9</c>
+    /// landed its sign four positions early (kb/Work PB490). <c>CobolEditSimpleInsertionDriftTests</c> fails if
+    /// the consumers disagree again.</summary>
+    public static ReadOnlySpan<char> SimpleInsertionSymbols => "B0/,";
+
+    /// <summary>Is <paramref name="maskChar"/> one of the picture's SIMPLE INSERTION editing symbols
+    /// (§13.18.40.5 rule 3)? <paramref name="grouping"/> is the character playing the GROUPING separator's part —
+    /// ',' in the dot-canonical core, and the caller's own choice on a RAW picture, because DECIMAL-POINT IS
+    /// COMMA exchanges the two (§13.18.40.2 SR13: "the rules for the symbol period apply to the symbol comma, and
+    /// the rules for the symbol comma apply to the symbol period"). Whichever of the pair is NOT the grouping
+    /// separator is the decimal point, whose editing is SPECIAL insertion (rule 4), never simple.</summary>
+    public static bool IsSimpleInsertionSymbol(char maskChar, char grouping = ',')
+    {
+        char u = char.ToUpperInvariant(maskChar);
+        return u is ',' or '.' ? maskChar == grouping : SimpleInsertionSymbols.IndexOf(u) >= 0;
+    }
+
+    /// <summary>The picture's simple insertion symbols INCLUDING every IS-form PICTURE EDITING character-1, with
+    /// the character each one inserts: §13.18.40.5 rule 3 — "Simple insertion editing results in the insertion
+    /// character occupying the same character position in the edited item as the associated symbol occupies in
+    /// character-string-1" — over §13.18.40.4 GR14's per-symbol text ('B' "a character position into which the
+    /// character space will be inserted", '0' "the character zero", '/' "the character slant", ',' "the character
+    /// comma"). The mask given here is the DOT-CANONICAL one <see cref="Format"/> works on, so the grouping
+    /// separator is ','.</summary>
+    private static bool TrySimpleInsertion(char maskChar, EditRule[]? edits, out char inserted)
+    {
+        char u = char.ToUpperInvariant(maskChar);
+        if (edits is not null)
+            foreach (var e in edits)
+                if (e.SimpleInsertion && u == char.ToUpperInvariant(e.Char1))
+                {
+                    inserted = e.Pos;   // rule 3 is sign-independent: the IS form carries Neg == Pos == literal-1
+                    return true;
+                }
+        if (!IsSimpleInsertionSymbol(u)) { inserted = '\0'; return false; }
+        inserted = u == 'B' ? ' ' : maskChar;   // B inserts a space; 0 / and , insert themselves
+        return true;
+    }
 
     /// <summary>Swap <c>.</c>↔<c>,</c> — the §13.18.40.2 SR13 role exchange, applied to a mask entering the
     /// dot-canonical core and to the rendered output leaving it (the swap is its own inverse).</summary>
@@ -128,10 +185,13 @@ public static partial class CobolEdit
         for (int i = pattern.Length - 1; i >= 0; i--)
         {
             char p = char.ToUpperInvariant(pattern[i]);
-            // A user PICTURE EDITING character-1 (ISO §13.18.40.5): a RAW single-character insert, resolved before
-            // the metacharacter switch so a literal that happens to be a mask symbol (':', '/', '(', …) is never
-            // re-interpreted. IS form (Neg==Pos) is sign-independent; FOR form selects Neg on a negative value,
-            // Pos otherwise (SR12c default = space). Not a digit position (SR8) — the digit index is untouched.
+            // SIMPLE INSERTION (ISO §13.18.40.5 rule 3) — 'B', '0', '/', ',' and every IS-form PICTURE EDITING
+            // character-1, from the ONE set (TrySimpleInsertion), resolved BEFORE the metacharacter switch so a
+            // literal that happens to be a mask symbol (':', '/', '(', …) is never re-interpreted. Not a digit
+            // position (SR8 for character-1; GR14 for the four symbols) — the digit index is untouched.
+            if (TrySimpleInsertion(pattern[i], edits, out char simpleIns)) { output[i] = simpleIns; continue; }
+            // FIXED INSERTION with an extended editing sign control symbol (rule 5, Table 8): the FOR form selects
+            // Neg on a negative value, Pos otherwise (SR12c default = space).
             if (edits is not null)
             {
                 bool matched = false;
@@ -155,11 +215,7 @@ public static partial class CobolEdit
                 case '-':
                     output[i] = isFixedMinus ? (negative ? '-' : ' ') : digitIdx >= 0 ? digits[digitIdx--] : '0';
                     break;
-                case '.': output[i] = '.'; break;
-                case ',': output[i] = ','; break;
-                case 'B': output[i] = ' '; break;
-                case '/': output[i] = '/'; break;
-                case '0': output[i] = '0'; break;
+                case '.': output[i] = '.'; break;   // SPECIAL insertion (§13.18.40.5 rule 4)
                 case 'C':   // CR — spaces when the value is not negative (§13.18.40.4 fixed insertion)
                     if (i + 1 < pattern.Length && char.ToUpperInvariant(pattern[i + 1]) == 'R')
                     {
@@ -184,8 +240,22 @@ public static partial class CobolEdit
         }
 
         // Pass 2 — left-to-right zero suppression/replacement (Z → space, * → asterisk; a floating symbol's zone
-        // suppresses like Z). Suppression stops at the first significant digit, a fixed '9', or the point.
+        // suppresses like Z). §13.18.40.5 rule 7 a): "the corresponding replacement character is placed into any
+        // character position immediately preceding whichever of the following is encountered first" — the first
+        // nonzero numeric character, the first character position for which no zero suppression is specified, or
+        // the decimal point position (rule 6 a) is the same walk for a floating string, its landing placed below).
+        // ⛔ THE POSITIONS ARE THE STRING'S. Rules 6 and 7 both say "Any of the simple insertion editing symbols
+        // embedded in this string or to the immediate right of this string are part of the string" — EMBEDDED or
+        // RIGHT, never left, so a simple insertion symbol takes the replacement character only once a member of
+        // the string (Z, * or a floating symbol) has been seen. `PIC 0ZZ9` MOVE 1 keeps its leading zero ("0  1")
+        // while `PIC ZZ0ZZ` MOVE 12 suppresses the embedded one ("   12"); §13.18.40.4 GR15 says the same from
+        // the VALIDATE side — "the character zero if the symbol '0' is neither part of floating insertion editing
+        // nor of zero suppression with replacement editing; otherwise, the character zero or, if no significant
+        // numeric character appears to its left, the corresponding floating insertion character or replacement
+        // character respectively" (kb/Work PB490: the set was the hand-written pair {',', 'B'} and the membership
+        // test was missing altogether, so a leading ',' was eaten and an embedded '0' or '/' survived).
         bool suppressing = true;
+        bool inString = false;   // a Z / * / floating member has been seen — only then is an insertion "part of the string"
         bool asteriskFill = pattern.Contains('*');
         bool allIntegerSuppressed = true;
         for (int i = 0; i < pattern.Length && suppressing; i++)
@@ -193,6 +263,7 @@ public static partial class CobolEdit
             char p = char.ToUpperInvariant(pattern[i]);
             if (p == currencyChar && !isFixedCurrency)
             {
+                inString = true;
                 if (output[i] == '0') output[i] = ' ';
                 else { suppressing = false; allIntegerSuppressed = false; }
                 continue;
@@ -200,20 +271,20 @@ public static partial class CobolEdit
             switch (p)
             {
                 case 'Z':
+                    inString = true;
                     if (output[i] == '0') output[i] = ' ';
                     else { suppressing = false; allIntegerSuppressed = false; }
                     break;
                 case '*':
+                    inString = true;
                     if (output[i] == '0') output[i] = '*';
                     else { suppressing = false; allIntegerSuppressed = false; }
                     break;
                 case '+' when !isFixedPlus:
                 case '-' when !isFixedMinus:
+                    inString = true;
                     if (output[i] == '0') output[i] = ' ';
                     else { suppressing = false; allIntegerSuppressed = false; }
-                    break;
-                case ',' or 'B':
-                    output[i] = asteriskFill ? '*' : ' ';   // insertion inside a suppressed zone suppresses too
                     break;
                 case '.':
                     suppressing = false;
@@ -221,6 +292,15 @@ public static partial class CobolEdit
                 case '9':
                     suppressing = false;
                     allIntegerSuppressed = false;
+                    break;
+                default:
+                    // Inside the string: a simple insertion symbol is part of it and takes the replacement
+                    // character; anything else is "the first character position for which no zero suppression
+                    // with replacement is specified" and ends the walk. Outside it (a leading insertion, a
+                    // leading fixed sign or currency) nothing is replaced and the string has yet to start.
+                    if (!inString) break;
+                    if (TrySimpleInsertion(pattern[i], edits, out _)) output[i] = asteriskFill ? '*' : ' ';
+                    else suppressing = false;
                     break;
             }
         }
@@ -242,17 +322,17 @@ public static partial class CobolEdit
         // Floating symbol placement: the symbol lands at the rightmost suppressed position of its floating zone.
         if (plusCount > 0 && plusCount + minusCount > 1)
         {
-            int pos = FindFloatingPlacement(pattern, output, '+');
+            int pos = FindFloatingPlacement(pattern, output, '+', edits);
             if (pos >= 0) output[pos] = negative ? '-' : '+';
         }
         else if (minusCount > 0 && plusCount + minusCount > 1)
         {
-            int pos = FindFloatingPlacement(pattern, output, '-');
+            int pos = FindFloatingPlacement(pattern, output, '-', edits);
             if (pos >= 0) output[pos] = negative ? '-' : ' ';
         }
         if (currencyCount > 1)
         {
-            int pos = FindFloatingPlacement(pattern, output, currencyChar);
+            int pos = FindFloatingPlacement(pattern, output, currencyChar, edits);
             if (pos >= 0) output[pos] = currencyChar;
         }
 
@@ -498,31 +578,44 @@ public static partial class CobolEdit
         return n;
     }
 
-    /// <summary>ALPHANUMERIC-EDITED formatting (ISO §13.18.40 — X/A/9 with B 0 / simple insertion): source
-    /// characters fill the X/A/9 positions left-to-right (space-padded when exhausted); each insertion position
-    /// supplies its character (B → space).</summary>
-    public static string FormatAlphanumeric(string source, string picture)
+    /// <summary>ALPHANUMERIC-EDITED formatting (ISO §13.18.40.4 GR7 — "at least one symbol 'A' or one symbol 'X',
+    /// and at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'"; §13.18.40.5
+    /// Table 7 gives the category SIMPLE INSERTION and nothing else): source characters fill the X/A/9 positions
+    /// left-to-right (space-padded when exhausted) and every insertion position supplies its character from the
+    /// ONE set (<see cref="TrySimpleInsertion"/>) — rule 3, "the insertion character occupying the same character
+    /// position in the edited item as the associated symbol occupies in character-string-1".
+    /// <para>⛔ <paramref name="edits"/> is the same <c>EditRule[]</c> channel the numeric-edited path takes, and
+    /// it is not optional in practice: GR7 names character-1 as an alphanumeric-edited constituent, so
+    /// <c>PIC XXTXX EDITING "T" IS ":"</c> renders <c>AB:CD</c>, not the mask LETTER (kb/Work PB490 — this arm of
+    /// the dispatch had no rules parameter at all and every emit site dropped <c>PicInfo.EditingRules</c>; the
+    /// compiler now reaches this method only through <c>RuntimeApi.EditFormatAlphanumeric(value, pic)</c>, which
+    /// renders the mask and the rules together from the one <c>PicInfo</c>). A FOR-phrase character-1 cannot occur
+    /// here — §13.18.40.3 SR12 limits it to numeric and numeric-edited items and SR12 b) to the symbols
+    /// 9 . cs P V Z — so every rule reaching this method is simple insertion.</para></summary>
+    public static string FormatAlphanumeric(string source, string picture, EditRule[]? edits = null)
     {
         var output = new char[picture.Length];
         int si = 0;
         for (int i = 0; i < picture.Length; i++)
         {
             char p = char.ToUpperInvariant(picture[i]);
-            output[i] = p switch
-            {
-                'X' or 'A' or '9' => si < source.Length ? source[si++] : ' ',
-                'B' => ' ',
-                '0' => '0',
-                '/' => '/',
-                _ => picture[i],
-            };
+            output[i] = p is 'X' or 'A' or '9' ? si < source.Length ? source[si++] : ' '
+                : TrySimpleInsertion(picture[i], edits, out char ins) ? ins
+                : picture[i];
         }
         return new string(output);
     }
 
-    /// <summary>The rightmost suppressed position within a floating symbol's zone (the symbol's own positions plus
-    /// suppressed <c>,</c>/<c>B</c> insertions inside it).</summary>
-    private static int FindFloatingPlacement(string pattern, char[] output, char floatChar)
+    /// <summary>The rightmost suppressed position within a floating symbol's string — its own occurrences plus the
+    /// SIMPLE INSERTION symbols the string absorbs (ISO §13.18.40.5 rule 6: "Any of the simple insertion editing
+    /// symbols embedded in this string or to the immediate right of this string are part of the string"), read
+    /// from the ONE set (<see cref="TrySimpleInsertion"/>). Rule 6 a) then lands "a single occurrence of the
+    /// replacement character(s) … into the character position(s) immediately preceding whichever of the following
+    /// is encountered first" — the first nonzero numeric character, the first character position for which no
+    /// floating insertion editing is specified, or the decimal point position — which is exactly the rightmost
+    /// position of the string that pass 2 left suppressed; "Any character positions preceding this (these)
+    /// insertion character(s) will contain the space character", which pass 2 has already done.</summary>
+    private static int FindFloatingPlacement(string pattern, char[] output, char floatChar, EditRule[]? edits)
     {
         char target = char.ToUpperInvariant(floatChar);
         int lastSuppressed = -1;
@@ -536,7 +629,7 @@ public static partial class CobolEdit
                 if (output[i] == ' ') lastSuppressed = i;
                 else break;
             }
-            else if (inZone && p is ',' or 'B' && output[i] == ' ') lastSuppressed = i;
+            else if (inZone && output[i] == ' ' && TrySimpleInsertion(pattern[i], edits, out _)) lastSuppressed = i;
             else if (inZone) break;
         }
         return lastSuppressed;

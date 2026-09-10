@@ -3,6 +3,7 @@
  "enabled": [
   "pb400-evaluate-signed-sole-literal-pair",
   "pb400-evaluate-boolean-width-vs-truefalse",
+  "pb490-picture-editing-at-85",
   "l1-call-returning-constant-record",
   "l1-display-object-reference-operand",
   "l1-display-pointer-operand",

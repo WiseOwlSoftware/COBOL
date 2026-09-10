@@ -477,12 +477,14 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             }
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
-            case PicCategory.Alphanumeric when pic.EditMask is { } amask:
+            case PicCategory.Alphanumeric when pic.EditMask is not null:
                 // A figurative source supplies its fill for EVERY data position (§8.3.3.6.4 r2 — repeated to width).
                 string aeSrc = source is BoundFigurative ff
                     ? $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating)}, {pic.Length})"
                     : OperandText.AsString(source, num, deSign: true);
-                return RuntimeApi.EditFormatAlphanumeric(aeSrc, CsLiteral(amask));
+                // The mask AND the item's EDITING rules come from the one PicInfo — never a call-site mask deref
+                // (kb/Work PB490: all three alphanumeric-edited emit sites dropped PicInfo.EditingRules).
+                return RuntimeApi.EditFormatAlphanumeric(aeSrc, pic);
             case PicCategory.Alphanumeric:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).

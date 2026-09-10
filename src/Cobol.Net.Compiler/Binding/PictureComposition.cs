@@ -392,7 +392,15 @@ internal static class PictureComposition
     {
         int n = syms.Count;
         var floating = new bool[n];
-        bool Embedded(char c) => c is 'B' or '0' or '/' || c == grouping || c == decimalSep || char1.Contains(c);
+        // "Any of the SIMPLE INSERTION editing symbols embedded in this string or to the immediate right of this
+        // string are part of the string" (ISO §13.18.40.5 rule 6), plus — by rule 6 b), which represents ALL the
+        // numeric character positions — the decimal point. The simple-insertion SET is CobolEdit's, read and not
+        // re-spelled (kb/Work PB490: it was written out at four sites and two of the copies drifted to {',', 'B'}).
+        // A PICTURE EDITING character-1 stays transparent to this walk in EITHER form, for the reason the role map
+        // below records: it constrains no neighbour, and breaking a floating run on one would answer a Table-10
+        // question the standard does not ask here (kb/Work PB528).
+        bool Embedded(char c) => CobolNet.Runtime.CobolEdit.IsSimpleInsertionSymbol(c, grouping)
+            || c == decimalSep || char1.Contains(c);
         Span<char> floatSymbols = stackalloc char[3];
         floatSymbols[0] = '+'; floatSymbols[1] = '-'; floatSymbols[2] = cs;
         foreach (char sym in floatSymbols)

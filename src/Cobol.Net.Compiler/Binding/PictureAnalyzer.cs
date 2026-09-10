@@ -564,7 +564,9 @@ public static class PictureAnalyzer
                 {
                     char neg = ph.Neg is { Length: 1 } ? ph.Neg[0] : ' ';
                     char pos = ph.Pos is { Length: 1 } ? ph.Pos[0] : ' ';
-                    rules.Add(new CobolEdit.EditRule(char1, neg, pos));
+                    // FOR = an EXTENDED editing sign control symbol: FIXED insertion (ISO §13.18.40.5 rule 5),
+                    // so it is NOT part of a zero-suppression or floating string (rules 6 and 7).
+                    rules.Add(new CobolEdit.EditRule(char1, neg, pos, SimpleInsertion: false));
                 }
                 else staged = true;
             }
@@ -574,7 +576,9 @@ public static class PictureAnalyzer
                 // inserts literal-1 at every occurrence, immune to sign. LANDABLE for a single-character literal
                 // (any occurrence count); a wider literal is the P14 render GAP.
                 string lit = ph.Simple ?? "";
-                if (lit.Length == 1) rules.Add(new CobolEdit.EditRule(char1, lit[0], lit[0]));
+                // IS = SIMPLE insertion (rule 3), so this character-1 joins any zero-suppression or floating
+                // string it is embedded in or immediately right of (rules 6 and 7) — CobolEdit.TrySimpleInsertion.
+                if (lit.Length == 1) rules.Add(new CobolEdit.EditRule(char1, lit[0], lit[0], SimpleInsertion: true));
                 else staged = true;
             }
         }
