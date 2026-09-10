@@ -1166,9 +1166,13 @@ public static class DiagnosticCatalog
         "A USE AFTER EXCEPTION OBJECT operand does not name a class or interface in scope.",
         "ISO §14.9.49.3 SR16/SR17 / §8.4.6.4");
 
-    public static readonly DiagnosticDescriptor OoFactoryObjectReference = new(
-        NotImplemented, "oo-factory-object-reference", EditionSeverity.Error,
-        "USAGE OBJECT REFERENCE FACTORY OF is recognized but not yet implemented.", "ISO §13.18.60", RecognizedNotImplemented);
+    // ⛔ `oo-factory-object-reference` (COBOLNET0899, "USAGE OBJECT REFERENCE FACTORY OF is recognized but not
+    // yet implemented") was DELETED by kb/Work PB496's golden round once kb/Work PB389 made the phrase compile:
+    // the whole §13.18.60.2 general format — [FACTORY OF] ACTIVE-CLASS and [FACTORY OF] object-class-name-1
+    // [ONLY] — is carried by `ObjectRefDescriptor`, so no site could raise it and `docs/DIAGNOSTICS.md` would
+    // have documented a code the compiler cannot produce. COBOLNET0899 itself is the shared
+    // recognized-not-implemented CODE and stays: ~40 other descriptors emit it. Only this NAME is retired, and
+    // the name is never to be reused for anything else.
     public static readonly DiagnosticDescriptor OoBasedInClass = new(
         NotImplemented, "oo-based-in-class", EditionSeverity.Error,
         "BASED data / ADDRESS OF in a class definition's data division is not yet implemented.",

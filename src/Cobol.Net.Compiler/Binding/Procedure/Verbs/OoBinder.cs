@@ -1034,16 +1034,26 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 //     int-1) is the table's SR10 b)1., which asks the factory closure for exactly that.
                 // Before kb/Work PB389 every typed receiver was refused here, because no FACTORY axis existed
                 // to compare — the rejection WAS the rule's only enforcement.
+                // ⛔ The SENDER's identity is §14.9.39.4 GR10 — "If object-class-name-1 is specified, a
+                // reference to the factory object of the class identified by object-class-name-1 is placed
+                // into each data item referenced by identifier-3 in the order specified" — NOT SR13, whose
+                // own precondition ("the data item referenced by identifier-3 is described with an
+                // object-class-name") is FALSE for an interface-name or ACTIVE-CLASS receiver.  Which syntax
+                // rule governs is therefore READ OFF THE RECEIVER, never hard-coded (kb/Work PB451).
                 var senderDesc = ObjectRefDescriptor.ObjectClass(scls.Name, factory: true, only: true);
                 foreach (var tp in targets)
-                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses!,
-                            senderDesc, tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal) is { } ferr)
+                {
+                    var rdesc = tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal;
+                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses!, senderDesc, rdesc) is { } ferr)
                     {
                         ctx.Edition.Error("COBOLNET0867",
-                            $"SET '{tp.Item.CobolName}' TO {sname}: the sending operand is the FACTORY OBJECT "
-                            + $"of class '{scls.Name}' (ISO §14.9.39.3 SR13) — {ferr}");
+                            $"SET '{tp.Item.CobolName}' TO {sname}: object-class-name-1 sends the FACTORY "
+                            + $"OBJECT of class '{scls.Name}' (ISO §14.9.39.4 GR10) and the receiver's "
+                            + $"description puts the statement under {OoConformance.ClassNameSenderRule(rdesc.Kind)} "
+                            + $"— {ferr}");
                         return new BoundNop();
                     }
+                }
                 srcFactoryClassCs = scls.FactoryCsName;
             }
             else

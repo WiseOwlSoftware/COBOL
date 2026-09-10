@@ -559,6 +559,37 @@ public static class OoConformance
         }
     }
 
+    /// <summary>
+    /// Which §14.9.39.3 syntax rule governs a SET format-5 statement whose sender is <b>object-class-name-1</b>
+    /// (a class NAME, not identifier-4), given the RECEIVER's §13.18.60.2 kind. Every one of those rules names
+    /// the receiver's description in its own precondition, so the answer is read off the receiver and never
+    /// hard-coded:
+    /// <list type="bullet">
+    ///   <item><b>interface-name receiver</b> — SR11: "If object-class-name-1 is specified and the data item
+    ///     referenced by identifier-3 is described with an interface-name that identifies the interface int-1,
+    ///     the factory object of object-class-name-1 shall be described with an IMPLEMENTS clause that
+    ///     references int-1."</item>
+    ///   <item><b>object-class-name receiver</b> — SR13: "If object-class-name-1 is specified and the data item
+    ///     referenced by identifier-3 is described with an object-class-name, the data item shall be described
+    ///     with the FACTORY phrase…".</item>
+    ///   <item><b>ACTIVE-CLASS receiver</b> — SR14, whose closed list of senders ("the data item referenced by
+    ///     identifier-4 shall be one of the following") is an ACTIVE-CLASS reference, SELF and NULL: a class
+    ///     name is in none of them.</item>
+    ///   <item><b>universal receiver</b> — SR8 only, which constrains nothing; the table returns null and this
+    ///     label is never rendered.</item>
+    /// </list>
+    /// <para>⚠ kb/Work PB451: the SET site used to print "(ISO §14.9.39.3 SR13)" for ALL FOUR, so a program
+    /// refused under SR11 or SR14 was told it had broken a rule whose own precondition was false for it — and
+    /// the sender's identity, which is §14.9.39.4 GR10, was attributed to SR13 as well.</para>
+    /// </summary>
+    public static string ClassNameSenderRule(ObjectRefKind receiverKind) => receiverKind switch
+    {
+        ObjectRefKind.Interface => "ISO §14.9.39.3 SR11",
+        ObjectRefKind.ObjectClass => "ISO §14.9.39.3 SR13",
+        ObjectRefKind.ActiveClass => "ISO §14.9.39.3 SR14",
+        _ => "ISO §14.9.39.3 SR8",
+    };
+
     /// <summary>The transitive INHERITS closure of one interface (§11.8.4 GR2's interface half), the sender
     /// side of SR10 a) — "an interface-name that identifies int-1 or an interface inheriting from int-1".</summary>
     private static HashSet<OoInterfaceSymbol> InheritsClosure(OoInterfaceSymbol from)

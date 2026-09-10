@@ -79,6 +79,31 @@ public sealed class ObjectRefDescriptorDriftTests
         Assert.Contains("COBOLNET0867", detail);
     }
 
+    /// <summary>⛔ The class-NAME sender's governing rule is READ OFF THE RECEIVER (kb/Work PB451). Every
+    /// <c>ObjectRefKind</c> shall map to its OWN §14.9.39.3 rule — SR11 for an interface-name receiver, SR13
+    /// for an object-class-name receiver, SR14 for an ACTIVE-CLASS receiver, SR8 for the universal one —
+    /// because each of those rules names the receiver's description in its own precondition. A new kind added
+    /// without an arm falls to the discard and collides with SR8, which is exactly the hard-coded-one-rule
+    /// defect this replaced: the SET site printed "SR13" for all four, so a program refused under SR11 or SR14
+    /// was told it had broken a rule whose precondition was false for it.</summary>
+    [Fact]
+    public void EveryObjectRefKind_HasItsOwnClassNameSenderRule()
+    {
+        var kinds = Enum.GetValues<CobolNet.Binding.Model.ObjectRefKind>();
+        var byRule = kinds.ToLookup(CobolNet.Compiler.Oo.OoConformance.ClassNameSenderRule);
+        var collided = byRule.Where(g => g.Count() > 1)
+                             .Select(g => $"{g.Key} ← {string.Join(", ", g)}").ToList();
+        Assert.True(collided.Count == 0,
+            "two ObjectRefKind values share one §14.9.39.3 rule label — a kind added without an arm in "
+            + "OoConformance.ClassNameSenderRule fell through to the discard: " + string.Join(" | ", collided));
+        Assert.Equal("ISO §14.9.39.3 SR11",
+            CobolNet.Compiler.Oo.OoConformance.ClassNameSenderRule(CobolNet.Binding.Model.ObjectRefKind.Interface));
+        Assert.Equal("ISO §14.9.39.3 SR13",
+            CobolNet.Compiler.Oo.OoConformance.ClassNameSenderRule(CobolNet.Binding.Model.ObjectRefKind.ObjectClass));
+        Assert.Equal("ISO §14.9.39.3 SR14",
+            CobolNet.Compiler.Oo.OoConformance.ClassNameSenderRule(CobolNet.Binding.Model.ObjectRefKind.ActiveClass));
+    }
+
     /// <summary>Two items of the given shape (X the receiver, Y the sender), a universal U, and the statement
     /// under test — all in the LOCAL-STORAGE of an instance method of DRIFTC, the one place §13.18.60.3 SR16
     /// admits ACTIVE-CLASS alongside every other shape.</summary>
