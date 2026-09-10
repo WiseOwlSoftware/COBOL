@@ -153,6 +153,16 @@ public sealed class FileModel
     /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>
     public CobolNet.Editions.DiagnosticCursor RecordKeyAt { get; set; }
 
+    /// <summary>Whether the entry WROTE a RECORD KEY clause at all — which is not the same question as whether
+    /// <see cref="RecordKeyName"/> is set, and §12.4.5.1 Format 1's requiredness rule asks THIS one: the clause
+    /// is an unbracketed member of the indexed format, so the rule is about the clause's PRESENCE, never about
+    /// what it named. The two answers diverge for exactly one shape — the declined
+    /// <c>RECORD KEY IS record-key-name-1 SOURCE IS data-name-2 …</c> form (Annex A.3 item 40, COBOLNET1954,
+    /// kb/Work PB358), which names a record-key-name (§8.3.2.2.24) and therefore no data-name. Without this,
+    /// a program that wrote the clause and was told the form is not provided was ALSO told its indexed file
+    /// "has no RECORD KEY clause", which is false and points at a different repair.</summary>
+    public bool RecordKeyClauseWritten { get; set; }
+
     /// <summary>The RECORD KEY reference's IN/OF qualifier words, written order (innermost first) — identically
     /// named key items under different areas of the record are legal and selected by qualification (ISO
     /// §8.4.2.2; IX215A's three IX-FD3-KEY items). Empty = unqualified.</summary>

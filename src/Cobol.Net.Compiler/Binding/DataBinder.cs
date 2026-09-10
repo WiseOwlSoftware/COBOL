@@ -852,23 +852,43 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // would otherwise glue its qualifier into the lookup key (the RENAMES capture pattern).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
                     file.FileStatusName = fs.cobolWord()?.GetText() ?? fs.GetText();
-                else if (clauses.recordKeyClause()?.dataReference() is { } rk)                                       // ISO §12.4.5.12
+                else if (clauses.recordKeyClause() is { } rkc)                                                       // ISO §12.4.5.12
                 {
-                    (file.RecordKeyName, file.RecordKeyQualifiers) = KeyReference(rk);
-                    using var __ = Edition.At(rk);
-                    file.RecordKeyAt = Edition.Cursor;   // §12.4.5.12.3 reports here, from ResolveFiles
+                    // ⛔ THE CLAUSE HAS TWO KEY FORMS AND ONLY ONE IS PROVIDED — take the declined arm FIRST, so
+                    // it can never fall through this chain unread (kb/Work PB358). Before 2026-09-09 this arm
+                    // read `clauses.recordKeyClause()?.dataReference() is { } rk`, which was safe only because
+                    // the SOURCE form had no grammar at all; with the surface added, a null dataReference()
+                    // would have skipped the clause silently and left the file KEYLESS.
+                    file.RecordKeyClauseWritten = true;   // §12.4.5.1 Format 1 requiredness asks PRESENCE, not what it named
+                    if (rkc.recordKeySourcePhrase() is { } rks)
+                        DeclineRecordKeySource(rks, "RECORD KEY", name);
+                    else if (rkc.dataReference() is { } rk)
+                    {
+                        (file.RecordKeyName, file.RecordKeyQualifiers) = KeyReference(rk);
+                        using var __ = Edition.At(rk);
+                        file.RecordKeyAt = Edition.Cursor;   // §12.4.5.12.3 reports here, from ResolveFiles
+                    }
                 }
                 else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
                 {
-                    var (an, aq) = KeyReference(ak.dataReference());
-                    // §12.4.5.6.4 GR6 — the SUPPRESS WHEN key suppression value (decoded literal; null when absent).
-                    string? suppress = ak.alternateKeySuppressWhen()?.literal() is { } sl ? CobolLiteral.Decode(sl.GetText()) : null;
-                    using var __ = Edition.At(ak.dataReference());
-                    file.AlternateKeyNames.Add(new AlternateKeyClause
+                    // The SAME two-form choice as its prime-key twin above, taken in the SAME order and for the
+                    // same reason — §12.4.5.6.2 prints the identical brace group, and Annex A.3 item 40 names
+                    // both clauses in one sentence, so one omission here would be the two-arm defect shape
+                    // (feedback_two_arm_dispatch) on a clause that literally IS the other arm.
+                    if (ak.recordKeySourcePhrase() is { } aks)
+                        DeclineRecordKeySource(aks, "ALTERNATE RECORD KEY", name);
+                    else if (ak.dataReference() is { } akRef)
                     {
-                        Name = an, Qualifiers = aq, Duplicates = ak.DUPLICATES() is not null,
-                        Suppress = suppress, At = Edition.Cursor,   // §12.4.5.6.3 reports here, from ResolveFiles
-                    });
+                        var (an, aq) = KeyReference(akRef);
+                        // §12.4.5.6.4 GR6 — the SUPPRESS WHEN key suppression value (decoded literal; null when absent).
+                        string? suppress = ak.alternateKeySuppressWhen()?.literal() is { } sl ? CobolLiteral.Decode(sl.GetText()) : null;
+                        using var __ = Edition.At(akRef);
+                        file.AlternateKeyNames.Add(new AlternateKeyClause
+                        {
+                            Name = an, Qualifiers = aq, Duplicates = ak.DUPLICATES() is not null,
+                            Suppress = suppress, At = Edition.Cursor,   // §12.4.5.6.3 reports here, from ResolveFiles
+                        });
+                    }
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                 {
@@ -960,6 +980,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ScreenRepositoryIntrinsicName(name, "file-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             FilesByName[name] = file;
         }
+    }
+
+    /// <summary>THE one site that refuses the <c>record-key-name-1 SOURCE IS { data-name-2 } …</c> key form of the
+    /// RECORD KEY (ISO §12.4.5.12.2) and ALTERNATE RECORD KEY (§12.4.5.6.2) clauses — Annex A.3 item 40's
+    /// processor-dependent element, declined at docs/CONFORMANCE.md §2 row 40 (kb/Work PB358).
+    /// <para>ONE helper for BOTH clauses because Annex A.3 item 40 names both in ONE sentence and the two general
+    /// formats print the SAME brace group; the caller supplies only the clause's own spelling, exactly as
+    /// <see cref="ScreenFacility"/> and <c>SequentialIoBinder.DeclinedFilePhrase</c> do for their modules. Nothing
+    /// record-key-name is captured on the <see cref="FileModel"/> and none may be: the clause is refused, so a
+    /// stored record-key-name would be a field nothing reads (feedback_a_dead_lookup_is_also_unverified).
+    /// <see cref="FileModel.RecordKeyClauseWritten"/> is set by the CALLER instead, and is a different fact —
+    /// that the clause APPEARED — which is what §12.4.5.1 Format 1's requiredness rule asks; without it the
+    /// program was told, in the same compile, both that this key form is not provided and that its indexed file
+    /// "has no RECORD KEY clause" (MEASURED on the probe, not assumed).</para>
+    /// <para>The spelling uses <see cref="Spelled"/>, not <see cref="AsWritten"/>: a source slice of a clause
+    /// continued onto a second line carries the RAW NEWLINE AND ITS INDENT into the message, which was measured
+    /// on the ALTERNATE RECORD KEY probe. The direct-children join is exactly the clause's tokens, one space
+    /// apart — the same choice the RECORD DELIMITER decline above makes.</para></summary>
+    private void DeclineRecordKeySource(Core.RecordKeySourcePhraseContext src, string clause, string fileName)
+    {
+        using var _ = Edition.At(src);
+        Edition.Declined(DiagnosticCatalog.RecordKeySourcePhraseUnsupported,
+            $"the {clause} clause on file '{fileName}' ({Spelled(src)})");
     }
 
     /// <summary>Capture one file-control COLLATING SEQUENCE clause as written (ISO §12.4.5.7) — resolved to per-key

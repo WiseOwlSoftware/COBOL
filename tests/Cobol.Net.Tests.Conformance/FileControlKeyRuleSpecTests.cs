@@ -366,4 +366,78 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.DoesNotContain(Diagnostics(relative, edition), e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
         }
     }
+
+    // ── The DECLINED second key form: record-key-name-1 SOURCE IS { data-name-2 } … ────────────────────────
+    //    ISO §12.4.5.12.2 / §12.4.5.6.2 print a required choice of TWO key forms and this implementation
+    //    provides only the first. Annex A.3 item 40 makes the SOURCE phrase processor-dependent, §4.2.6 ¶3
+    //    obliges the compiler to say so at compile time, and its closing sentence — "The implementor is not
+    //    required to produce executable code when unsupported processor-dependent language elements are used" —
+    //    is what makes REFUSING (rather than accepting inert) conforming. kb/Work PB358.
+    //    The refusal itself is pinned by the negative corpus (tests/conformance/negative/pb358-*). What lives
+    //    HERE is what that corpus structurally cannot say: the two properties either side of the refusal.
+    private const string SourcePhraseDecline = "COBOLNET1954";
+
+    /// <summary>⛔ THE CASCADE GUARD, and it is a MEASURED regression, not a hypothetical: the first build of
+    /// the grammar surface emitted COBOLNET1954 <i>and</i> §12.4.5.1 Format 1's "indexed file 'IXF' has no
+    /// RECORD KEY clause" — a false sentence (the program plainly wrote the clause) pointing at a different
+    /// repair. The Format-1 rule's subject is the clause's PRESENCE, so it now reads
+    /// <c>FileKeyOperand.Written</c> rather than inferring absence from a null data-name. Asserting the ABSENCE
+    /// of the second diagnostic is the only way to keep the two facts apart — a count of "at least one error"
+    /// passes either way (feedback_green_gates_arent_evidence).</summary>
+    [Fact]
+    public void PrimeKeySourcePhrase_IsRefusedByName_AndTheClauseIsNotAlsoReportedMissing()
+    {
+        string source = Indexed("        RECORD KEY IS F-COMPOSITE SOURCE IS F-K1 F-K2.",
+            "01 F-REC.\n   05 F-K1 PIC X(2).\n   05 F-K2 PIC X(2).\n   05 F-D PIC X(4).", "", EntryOnlyBody);
+        foreach (int edition in AllEditions)
+        {
+            var d = Diagnostics(source, edition);
+            Assert.Contains(d, e => e.Contains(SourcePhraseDecline, StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("has no RECORD KEY clause", StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("ISO §12.4.5.1 Format 1", StringComparison.Ordinal));
+        }
+    }
+
+    /// <summary>The ALTERNATE twin, refused from the same site under the same code — Annex A.3 item 40 names
+    /// both clauses in ONE sentence, so a fix reaching only the prime key would be this repository's most
+    /// reproducible defect shape (feedback_two_arm_dispatch). The prime key here is legal, so the only thing
+    /// the entry can be refused for is the alternate clause's SOURCE phrase.
+    /// <para>The <c>WITH DUPLICATES</c> row is not decoration: it proves the clause is recognized WHOLE rather
+    /// than up to the SOURCE token, which is what the generic parse error used to do — it reported a second
+    /// unexpected-token error at <c>WITH</c>.</para></summary>
+    [Theory]
+    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-ALT SOURCE IS F-K2 F-D.")]
+    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-ALT SOURCE IS F-K2 WITH DUPLICATES.")]
+    public void AlternateKeySourcePhrase_IsRefusedByName_AtEveryEdition(string keyClauses)
+    {
+        string source = Indexed(keyClauses,
+            "01 F-REC.\n   05 F-K1 PIC X(2).\n   05 F-K2 PIC X(2).\n   05 F-D PIC X(4).", "", EntryOnlyBody);
+        foreach (int edition in AllEditions)
+        {
+            var d = Diagnostics(source, edition);
+            Assert.Contains(d, e => e.Contains(SourcePhraseDecline, StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("has no RECORD KEY clause", StringComparison.Ordinal));
+        }
+    }
+
+    /// <summary>⛔ THE COMPLEMENT — what the decline must NOT reach (feedback_measure_the_selectors_complement).
+    /// A widened grammar that swallowed the ordinary data-name-1 arm into the declined one would refuse every
+    /// indexed file in the corpus, and a test that only asserts the refusal fires would still be green.
+    /// The optional-word spellings are here for the same reason: §12.4.5.12.2's KEY and IS carry no underline
+    /// on the printed page, so <c>RECORD F-KEY</c> is a conforming RECORD KEY clause and must stay one.</summary>
+    [Theory]
+    [InlineData("        RECORD KEY IS F-K1\n        ALTERNATE RECORD KEY IS F-K2 WITH DUPLICATES.")]
+    [InlineData("        RECORD KEY F-K1\n        ALTERNATE RECORD KEY F-K2.")]
+    [InlineData("        RECORD F-K1.")]
+    public void AnOrdinaryKeyClause_DrawsNoSourcePhraseDecline_AtEveryEdition(string keyClauses)
+    {
+        string source = Indexed(keyClauses,
+            "01 F-REC.\n   05 F-K1 PIC X(2).\n   05 F-K2 PIC X(2).\n   05 F-D PIC X(4).", "", EntryOnlyBody);
+        foreach (int edition in AllEditions)
+        {
+            var d = Diagnostics(source, edition);
+            Assert.DoesNotContain(d, e => e.Contains(SourcePhraseDecline, StringComparison.Ordinal));
+            Assert.DoesNotContain(d, e => e.Contains("COBOLNET0863", StringComparison.Ordinal));
+        }
+    }
 }

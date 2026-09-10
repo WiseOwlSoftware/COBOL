@@ -964,7 +964,12 @@
   "pb487-picture-required-elementary",
   "pb487-aligned-co-clause-rules",
   "pb487-constant-record-excluded-clauses",
-  "pb487-any-length-excluded-clauses"
+  "pb487-any-length-excluded-clauses",
+  "pb358-record-key-source",
+  "pb358-record-key-source-optional-words",
+  "pb358-alternate-key-source",
+  "pb358-alternate-key-source-duplicates",
+  "pb358-alternate-key-source-optional-words"
  ],
  "pending": []
 }

@@ -957,8 +957,8 @@ when both rows are live, which is why PB699 recorded no verdict for either.
 
 **Boundaries.** The screen holds only what the standard states about the ENTRY. It does not carry the SEMANTIC
 rules of the same clauses — §12.4.5.12.3 SR3–SR5, §12.4.5.6.3 SR3–SR7 — which need machinery the screen does not
-have (variable-length record geometry; the `record-key-name-1 SOURCE` phrase, which has no grammar carrier:
-Annex A.3 item 40). §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
+have (variable-length record geometry; the `record-key-name-1 SOURCE` phrase, whose declined status is stated
+just below). §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
 is RESOLVED (`DataBinder.ResolveFileCollating`, COBOLNET1582), because the same test is also the guard that stops
 the rest of that method and splitting a guard from its report would leave the resolution running on an entry it
 has already refused; its citation was §12.4.5.7.1, the clause's descriptive General paragraph, and is now SR8.
@@ -971,6 +971,33 @@ deleted `if (file.IsSortMerge) return;` used to protect by construction) (a GROU
 qualifier, an alternate key `WITH DUPLICATES`, a relative key in WORKING-STORAGE);
 `FileControlKeyRuleSpecTests` carries the assertion no `.cob` corpus can make — that the SAME entry, with and
 without a keyed verb, draws the SAME diagnostics, exactly once.
+
+**THE SECOND KEY FORM IS DECLINED, AND IT IS DECLINED BY NAME** (kb/Work PB358, 2026-09-09). §12.4.5.12.2 and
+§12.4.5.6.2 each print a required choice of two key forms — `{ data-name-1 | record-key-name-1 SOURCE IS
+{ data-name-2 } … }` (rendered from printed pages 359 and 350; `RECORD`, `ALTERNATE` and `SOURCE` carry underline
+rules, `KEY` and both occurrences of `IS` do not) — and §12.4.5.12.4 GR2 / §12.4.5.6.4 GR2 give the second one
+its meaning: *"Record-key-name-1 defines a record key consisting of the concatenation of all occurrences of
+data-name-2 in the order specified."* A COBOL.NET record key is **one contiguous byte window** at every layer
+that carries it — `FileModel`, `RecordLayout.KeyIndexOfKeyItem`, `RuntimeApi.FileRegisterIndexed`,
+`IndexedConnector`'s `(Off, Len)` slice, and `FixedFileAttributes.KeyDescriptor` in D10's store header — so the
+concatenated form is **not provided**, which Annex A.3 item 40 expressly permits (*"The capability of specifying
+the SOURCE phrase … is dependent on the capabilities of the processor"*; `docs/CONFORMANCE.md` §2 row 40).
+⛔ **The decline is a REFUSAL, not the accept-inert warning its A.3 sibling the RECORD DELIMITER clause gets**
+(D-item: COBOLNET1778). The axis is not the annex — it is whether an inert reading exists. A declined RECORD
+DELIMITER changes no program-visible value (§12.4.5.11.4 GR1); a declined RECORD KEY names no data item at all
+(record-key-name-1 is its own name class, §8.3.2.2.24, scoped by §8.4.6.2.4), so an inert compile would leave the
+file **keyless** — a wrong answer. §4.2.6 ¶3 licenses refusing outright: *"The implementor is not required to
+produce executable code when unsupported processor-dependent language elements are used."*
+Both clauses PARSE the phrase (`CobolIO.g4#recordKeySourcePhrase`, one shared rule) so that
+`DataBinder.DeclineRecordKeySource` can name it — **ONE diagnostic, COBOLNET1954, for both clauses**, because
+A.3 item 40 names both in one sentence and the two general formats print the same brace group. Until this
+landed the phrase matched no alternative anywhere and a user saw `COBOL0312: unexpected 'SOURCE' … A period
+may be missing at the end of the previous sentence`, so §4.2.6 ¶3's mandatory compile-time indication was
+unbuilt here. ⚠ The §12.4.5.1 Format-1 requiredness rule reads `FileKeyOperand.Written`, not a null data-name,
+for a measured reason: the first build of the surface told the same program both that the form is not provided
+and that its indexed file *"has no RECORD KEY clause"*. **What providing it would cost** is recorded in
+kb/Work PB293 and is not proposed here: a key would become a LIST of windows end-to-end, including a second
+owner-visible break of D10's store-header format.
 
 **Still homeless, and NOT closed by either half** (measured over the entry-rule family while here):
 §12.4.5.5.2 **SR1** (RANDOM banned on a file named in a SORT/MERGE USING or GIVING phrase — a statement-context

@@ -64,9 +64,16 @@ internal enum FileKinds
 /// second kind of rule and a second arm to dispatch on, which is the shape this file exists to avoid.</para>
 /// <para><paramref name="ClauseFace"/> is the clause's name as the standard prints it, and it is the ONLY
 /// spelling of it: every message below renders it rather than repeating a literal, so a role and its
-/// diagnostics cannot drift apart.</para></summary>
+/// diagnostics cannot drift apart.</para>
+/// <para><paramref name="Written"/> is the THIRD state a clause can be in, and it exists because "absent" and
+/// "named nothing" are not the same fact (kb/Work PB358). A clause written in the declined
+/// <c>record-key-name-1 SOURCE IS data-name-2 …</c> form (Annex A.3 item 40 — COBOLNET1954) is refused at bind
+/// and contributes NO data-name, so <paramref name="Name"/> is null while the clause is plainly there. Only the
+/// §12.4.5.1 Format-1 requiredness row reads it, because that is the only rule whose subject is the clause's
+/// PRESENCE; every operand rule below it tests <paramref name="Item"/> or <paramref name="Name"/> and is
+/// correctly silent on a refused clause.</para></summary>
 internal readonly record struct FileKeyOperand(
-    FileKeyRole Role, string ClauseFace, string? Name, DataItem? Item, DiagnosticCursor At);
+    FileKeyRole Role, string ClauseFace, string? Name, DataItem? Item, DiagnosticCursor At, bool Written = true);
 
 /// <summary>ONE syntax rule of the file control entry stated about a key clause.</summary>
 /// <param name="RuleId">The traceability-inventory row this rule closes (<c>SR-12.4.5.12.3-1</c>), or null for a
@@ -176,7 +183,13 @@ internal static class FileControlKeyRules
             "No choice indicators appear anywhere in this figure",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
             f => f.HasFd,
-            (_, op) => op.Name is null,
+            // ⛔ "NAMED NOTHING" IS NOT "ABSENT". The predicate was `op.Name is null` alone until 2026-09-09,
+            // which was safe only while every RECORD KEY clause that parsed also bound a data-name. The declined
+            // SOURCE key form (Annex A.3 item 40 → COBOLNET1954, kb/Work PB358) names a record-key-name and no
+            // data-name, so a program that WROTE the clause was then told its file has none — a false sentence
+            // pointing at a different repair. This rule's subject is the clause's PRESENCE (an unbracketed member
+            // of Format 1), so it reads the presence fact.
+            (_, op) => op.Name is null && !op.Written,
             (f, op) => $"indexed file '{f.CobolName}' has no {op.ClauseFace} clause (ISO §12.4.5.1 Format 1 — the "
                 + "RECORD KEY clause is unbracketed in the indexed format, so it is required for ORGANIZATION "
                 + "INDEXED)"),
@@ -433,8 +446,10 @@ internal static class FileControlKeyRules
         switch (role)
         {
             case FileKeyRole.PrimeRecordKey:
+                // `Written` is the entry's own record of whether the clause appeared, NOT `Name is not null`:
+                // the declined SOURCE key form writes the clause and binds no data-name (kb/Work PB358).
                 yield return new FileKeyOperand(role, "RECORD KEY", file.RecordKeyName, file.RecordKeyItem,
-                    file.RecordKeyAt);
+                    file.RecordKeyAt, file.RecordKeyClauseWritten);
                 break;
             case FileKeyRole.AlternateRecordKey:
                 // The clauses AS WRITTEN, not FileModel.AlternateKeys: a clause whose data-name-1 resolved to
