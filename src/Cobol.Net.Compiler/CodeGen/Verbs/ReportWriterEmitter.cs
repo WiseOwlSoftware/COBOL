@@ -22,7 +22,8 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// pattern.
 /// </summary>
 internal sealed class ReportWriterEmitter(
-    EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond)
+    EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond,
+    DispatchState dispatch)
 {
     /// <summary>Emit the per-report class members: the engine field, the NumProfile statics of the numeric
     /// printable items (synthetic items live outside the storage forest, so <c>FieldEmitter.EmitProfiles</c>
@@ -304,7 +305,7 @@ internal sealed class ReportWriterEmitter(
                 {
                     int gi = r.Groups.IndexOf(hooked);
                     if (gi >= 0)
-                        w.Line($"__rg{r.CsIndex}_{gi}.BeforeReporting = () => __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
+                        w.Line($"__rg{r.CsIndex}_{gi}.BeforeReporting = () => {dispatch.RunUseCall(i, decls[i].Range)};");
                 }
     }
 

@@ -1215,15 +1215,26 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   (so every pc value agrees), `Main` starts at `EntryParagraphIndex`; a USE handler runs via `Dispatch(declStart,
   declEnd)` from the runtime I/O/error path and returns a `ResumeAction` (§11.2). This is the same `ResumeAction`
   used by RESUME — one mechanism.
-  **IMPLEMENTED with two refinements:** the handler invocation is the generated `__RunUse(id, start,
-  handlerEnd)` (a GR2 re-entrancy-guarded bounded `__Dispatch`) called from the generated `__IoCheck` selector
+  **IMPLEMENTED with one refinement:** the handler invocation is the generated `__RunUse(id, start, end)`
+  (a GR2 re-entrancy-guarded bounded `__Dispatch`) called from the generated `__IoCheck` selector
   emitted after every FILE STATUS store — selection is COMPILE-TIME knowledge (the program's USE set), so there is
   no runtime registry for local dispatch and the return is VOID (continue after the failing statement, GR7b; the
-  `ResumeAction` form waits for the §11 EC subsystem where RESUME exists). Two settled deviations: (a) the CCVS
-  termination-tail accommodation — a trivial exit paragraph followed by a STOP-RUN tail inside the section caps
-  `HandlerEndPc` at the exit paragraph (the SQ212A golden's shape; ISO leaves fatal-path behavior implementor-
-  specific, §14.6.3); (b) a successful CLOSE resets the connector's open-mode view to none (§9.1.4) — a failed
-  OPEN records the ATTEMPTED mode for GR6b "being opened" scoping. **Cross-program GLOBAL dispatch (GR4b) is
+  `ResumeAction` form waits for the §11 EC subsystem where RESUME exists). One settled deviation: a successful
+  CLOSE resets the connector's open-mode view to none (§9.1.4) — a failed OPEN records the ATTEMPTED mode for
+  GR6b "being opened" scoping.
+  **⛔ THE PAIR HANDED TO `__RunUse` IS THE DECLARATIVE SECTION'S OWN `PcRange`, AND NOTHING SHORTENS IT**
+  (`BoundDeclarative.Range`, rendered at the ONE site `DispatchState.RunUseCall`). §14.9.49.3 SR1 makes the use
+  procedure "the remainder of the section", §14.4.2 ends that section only at the next section header or END
+  DECLARATIVES, §14.6.3 rule 1 puts the implied transfer back to the controlling USE at the last statement of the
+  last procedure IN THE RANGE, and §14.9.14.4 GR7's NOTE places the USE return mechanism after the section's last
+  paragraph. There WAS a "CCVS termination-tail accommodation" here — a trivial EXIT/CONTINUE paragraph followed
+  anywhere later in the section by a STOP RUN / EXIT PROGRAM / GOBACK paragraph capped the handler end at the
+  exit paragraph, so a user declarative written in that ordinary shape executed only in part on every selection
+  path (kb/Work PB367). It is DELETED. It was never a fatal-path latitude question: it truncated the use
+  procedure itself, before any of GR7/GR12/GR13 chose a return. Its one load-bearing corpus case was NIST
+  SQ212A, whose declarative copies the whole CCVS termination boilerplate inside the section — measured as the
+  only NIST program affected (348 of 349 unchanged); its golden had been self-baselined FROM the accommodation
+  and is re-baselined to the conforming run, with `tests/nist/corpus.tsv` carrying the citation. **Cross-program GLOBAL dispatch (GR4b) is
   IMPLEMENTED (IC233A/IC234A)** as a compile-time `__outer` instance-chain walk — no runtime registry
   (local dispatch uses no runtime registry; ONE pattern): `__IoCheck`'s fallthrough (no
   local match, GR4a) calls `__outer.__RunGlobalUse(fileKey)`, which examines that container's `USE … GLOBAL`

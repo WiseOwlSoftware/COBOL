@@ -435,6 +435,67 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """, "DE 7");
 
+    [Fact]   // §14.9.49.4 GR8 invokes THE DECLARATIVE, and §14.9.49.3 SR1 makes that "the remainder of the
+             // section": BR-P1 and BR-P2 both run, so the group sees 7. The Format-2 hook is a SEPARATE selection
+             // path from the F1/F3 dispatchers and it took the same truncated range — a handler end derived from
+             // paragraph shape stopped at BR-EX and the group would see 3 (kb/Work PB367). §14.9.14.4 GR7 sends
+             // BR-LAST's EXIT SECTION to the return mechanism after the section's last paragraph, so BR-TAIL —
+             // which would set 9 and STOP the run — never runs.
+    public void UseBeforeReporting_UseProcedureIsTheWholeSection()
+        => AssertSpec("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWTSTUB.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT ASSIGN TO "RPTFB".
+                SELECT RBACK ASSIGN TO "RPTFB" ORGANIZATION LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD RPT
+                REPORT IS R-1.
+            FD RBACK.
+            01 RB-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01 WS-FLAG PIC 9 VALUE 0.
+            REPORT SECTION.
+            RD R-1 PAGE LIMIT IS 10 LINES.
+            01 DET-1 TYPE DE LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "DE".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-FLAG.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            BR-SEC SECTION. USE BEFORE REPORTING DET-1.
+            BR-P1.
+                MOVE 3 TO WS-FLAG.
+            BR-EX.
+                EXIT.
+            BR-P2.
+                MOVE 7 TO WS-FLAG.
+            BR-LAST.
+                EXIT SECTION.
+            BR-TAIL.
+                MOVE 9 TO WS-FLAG.
+                STOP RUN.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT.
+                INITIATE R-1.
+                MOVE 0 TO WS-FLAG.
+                GENERATE DET-1.
+                TERMINATE R-1.
+                CLOSE RPT.
+                OPEN INPUT RBACK.
+            RB-LOOP.
+                READ RBACK AT END GO TO RB-DONE.
+                IF RB-REC NOT EQUAL TO SPACES DISPLAY RB-REC(1:4).
+                GO TO RB-LOOP.
+            RB-DONE.
+                CLOSE RBACK.
+                STOP RUN.
+            """, "DE 7");
+
     // ── Counter referencing rules (§8.4.3.15) ───────────────────────────────────────────────────────────────
 
     [Fact]   // SR3: LINE-COUNTER shall not be referenced as a receiving operand — a bind-time rejection, never a

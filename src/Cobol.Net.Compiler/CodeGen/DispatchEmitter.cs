@@ -246,8 +246,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             w.Line($"if (__atEnd && __st[0] == '1') {none}    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
             w.Line($"if (__invKey && __st[0] == '2') {none}   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
             string run(int i) => ecInt
-                ? $"return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});"
-                : $"__RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;";
+                ? $"return {dispatchState.RunUseCall(i, decls[i].Range)};"
+                : $"{dispatchState.RunUseCall(i, decls[i].Range)}; return;";
             if (decls.Any(d => d.Files.Count > 0))
                 using (w.Block("switch (__f)"))   // file-name scope first (GR3a/GR5)
                 {

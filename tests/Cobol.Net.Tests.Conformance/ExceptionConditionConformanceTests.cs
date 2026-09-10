@@ -188,6 +188,38 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "SPECIFIC-HANDLER\nALL-HANDLER\nDONE");
 
+    [Fact]   // §14.9.49.3 SR1 + §14.4.2: the use procedure is the WHOLE remainder of the declarative section, so
+             // this tail-shaped one runs H1 AND H2 — a handler end derived from paragraph SHAPE stopped at D-EX and
+             // printed H1 alone (kb/Work PB367). §14.9.14.4 GR1 makes the bare EXIT a no-op and GR7 sends D-LAST's
+             // EXIT SECTION to the return mechanism after the section's LAST paragraph, so D-TAIL never runs — which
+             // is why the run does NOT stop there. It ends instead through §14.9.49.4 GR13 b): EC-BOUND-SUBSCRIPT is
+             // fatal (Table 13), the declarative completed normally, and §14.6.13.1.3 #5 terminates the run unit
+             // abnormally. Both halves are load-bearing: the stdout pins the truncation, the fatality pins GR13b.
+    public void UseF3_UseProcedureIsTheWholeSection_ThenGr13bTerminates()
+        => AssertFatal(Prog("ECT055", ">>TURN EC-BOUND-SUBSCRIPT CHECKING ON", "", """
+            01 G.
+               05 T PIC 9 OCCURS 3 TIMES.
+            01 IDX PIC 9 VALUE 5.
+            01 R PIC 9 VALUE 0.
+            """, """
+            D SECTION. USE AFTER EC EC-BOUND-SUBSCRIPT.
+            D-P1.
+                DISPLAY "H1".
+            D-EX.
+                EXIT.
+            D-P2.
+                DISPLAY "H2".
+            D-LAST.
+                EXIT SECTION.
+            D-TAIL.
+                DISPLAY "TAIL-MUST-NOT-RUN".
+                STOP RUN.
+            """, """
+                MOVE T (IDX) TO R.
+                DISPLAY "MUST-NOT-REACH".
+                STOP RUN.
+            """), "EC-BOUND-SUBSCRIPT", "H1\nH2");
+
     // ── The EXCEPTION-* functions + WITH LOCATION (§15.28–15.33 / §7.3.25.4 GR7) ─────────────────────────────
 
     [Fact]   // §15.32.3 r2 + §15.30.3 r2: WITH LOCATION captures the statement name and the three-part location.

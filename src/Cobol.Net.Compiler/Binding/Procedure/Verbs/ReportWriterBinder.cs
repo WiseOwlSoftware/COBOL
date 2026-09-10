@@ -119,7 +119,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     public BoundStatement BindSuppress(Core.SuppressStatementContext stmt)
     {
         var decl = ctx.Table.Declaratives.FirstOrDefault(d =>
-            d.ReportGroup is not null && ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
+            d.ReportGroup is not null && d.Contains(ctx.BindCursor));
         if (decl?.ReportGroup is not { } group)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSuppressContext,

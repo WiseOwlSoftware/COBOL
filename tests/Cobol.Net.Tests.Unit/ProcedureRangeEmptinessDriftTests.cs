@@ -26,6 +26,13 @@ namespace CobolNet.Tests.Unit;
 /// deleted a PERFORM's whole control phrase, and the SORT emitter dropped an entire INPUT PROCEDURE.</para>
 /// <para>The bit is now CARRIED by <see cref="PcRange.IsEmpty"/> and the dispatch call is built in exactly one
 /// place, which refuses an empty range. These tests keep both true.</para>
+/// <para>⛔ THE SAME ONE-SITE PROPERTY IS ASSERTED FOR THE USE DECLARATIVE'S <c>__RunUse</c> CALL
+/// (kb/Work PB367). Six selection paths — <c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>,
+/// <c>__EcObjDispatch</c>, <c>__RunGlobalUse</c> and the report engine's BEFORE REPORTING hook — each spelled the
+/// declarative's pc pair out themselves, so ONE wrong handler end (derived from paragraph SHAPE rather than from
+/// ISO §14.9.49.3 SR1's "remainder of the section") truncated the selected declarative on every USE format at
+/// once and no single place could be corrected. It is now
+/// <see cref="DispatchState.RunUseCall(int, PcRange)"/>, and these facts keep it that way.</para>
 /// </summary>
 public sealed class ProcedureRangeEmptinessDriftTests
 {
@@ -201,4 +208,75 @@ public sealed class ProcedureRangeEmptinessDriftTests
             + "ambiguous — use PcRange.IsEmpty / PcRange.IsParagraph (kb/Work PB440):\n  "
             + string.Join("\n  ", hits));
     }
-}
+
+    // ── The USE declarative's bounded call has ONE construction site too (kb/Work PB367) ─────────────────────
+
+    [Fact]
+    public void RunUseCallRefusesAnEmptyRange()
+    {
+        var state = new DispatchState();
+
+        // A declarative's range renders the bounded invoker. The pair is the SECTION's range and nothing
+        // narrows it: ISO §14.9.49.3 SR1 makes the use procedure "the remainder of the section", and
+        // §14.9.14.4 GR7's NOTE puts the USE return mechanism after that section's LAST paragraph.
+        Assert.Equal("__RunUse(0, 2, 6)", state.RunUseCall(0, PcRange.Of(2, 6)));
+        Assert.Equal("__RunUse(3, 9, 9)", state.RunUseCall(3, PcRange.At(9)));
+
+        // An empty one cannot arise — the binder gives a zero-paragraph declarative section one no-op pc so the
+        // SELECTOR can still stop at it (§14.9.49.4 GR3: no other declarative may then run). Asking for the call
+        // anyway is an emitter bug, not something to render.
+        var ex = Assert.Throws<InvalidOperationException>(() => state.RunUseCall(0, PcRange.EmptyAt(5)));
+        Assert.Contains("EMPTY declarative range", ex.Message);
+    }
+
+    /// <summary>Emitted <c>__RunUse</c> calls that do NOT come from a <c>BoundDeclarative</c>'s range, each with
+    /// the reason it is exempt. Adding a line here is an adjudication: it asserts the call's bounds are not a
+    /// declarative section.</summary>
+    private static readonly Dictionary<string, string> ExemptRunUseCalls = new(StringComparer.Ordinal)
+    {
+        ["__RunUse(int __id, int __startPc, int __endPc)"] =
+            "the emitted helper's own signature (class member for a program, local function for an OO method)",
+        ["__RunUse(__u, __pc, __pc)"] =
+            "the exception-checking PERFORM's imp-2 / imp-3 handler — a SYNTHETIC single-pc range appended above "
+            + "the pc space and selected by ISO §14.9.28.4 GR17, not a declarative (§14.9.49.4 GR3)",
+        ["__RunUse(__cu, __cpc, __cpc)"] =
+            "the same interceptor's WHEN COMMON handler (imp-4, §14.9.28.4 GR19) — likewise synthetic",
+        ["__RunUse({id}, {range.Start}, {range.End})"] =
+            "DispatchState.RunUseCall itself — THE one construction site",
+        ["__RunUse({id}, …)"] =
+            "the refusal message inside RunUseCall, naming the call it declined to build",
+    };
+
+    [Fact]
+    public void EveryEmittedRunUseCallIsBuiltInOnePlace()
+    {
+        var call = new Regex(@"__RunUse\((?<args>[^()]*)\)");
+
+        // POSITIVE CONTROL — this is the shape the fix removed from all six selection paths. A scan that quietly
+        // stopped matching would pass forever.
+        Assert.Equal("__RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc})",
+            call.Match("                w.Line($\"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;\");").Value);
+
+        var found = new List<string>();
+        foreach (string file in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler"), "*.cs",
+                     SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")) continue;
+            foreach (string line in File.ReadAllLines(file))
+            {
+                string t = line.TrimStart();
+                if (t.StartsWith("///", StringComparison.Ordinal) || t.StartsWith("//", StringComparison.Ordinal)) continue;
+                if (!line.Contains("$\"", StringComparison.Ordinal) && !line.Contains("\"", StringComparison.Ordinal)) continue;
+                foreach (Match m in call.Matches(line)) found.Add(m.Value.Replace("\\\"", "\""));
+            }
+        }
+
+        Assert.NotEmpty(found);   // the scan itself must never silently match nothing
+        var unexplained = found.Where(s => !ExemptRunUseCalls.ContainsKey(s)).Distinct().ToList();
+        Assert.True(unexplained.Count == 0,
+            "A USE declarative's bounded call is built outside DispatchState.RunUseCall. Six sites each spelled "
+            + "that pc pair themselves, which is why ONE truncated handler end reached every USE format at once "
+            + "(kb/Work PB367). Route it through RunUseCall, or add it to ExemptRunUseCalls with the reason its "
+            + "bounds are not a declarative section:\n  " + string.Join("\n  ", unexplained));
+    }
+}

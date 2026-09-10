@@ -110,7 +110,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             return new BoundNop();
         }
         // The declarative sections occupy the pcs below EntryPc (StatementBinder.Declaratives.cs).
-        var decl = ctx.Table.Declaratives.FirstOrDefault(d => ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
+        var decl = ctx.Table.Declaratives.FirstOrDefault(d => d.Contains(ctx.BindCursor));
         if (ctx.BindCursor >= ctx.Table.EntryPc || decl is null)
         {
             // XS-RESUME-PLACEMENT (§14.9.28.3): a RESUME in imperative-statement-1 or FINALLY of an F3 PERFORM

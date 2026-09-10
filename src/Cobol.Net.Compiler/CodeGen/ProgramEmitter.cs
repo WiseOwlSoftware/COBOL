@@ -370,14 +370,14 @@ internal sealed class ProgramEmitter
                     for (int i = 0; i < decls.Count; i++)
                         if (decls[i].Global)
                             foreach (var f in decls[i].Files)
-                                w.Line($"case {FileKeyExpr(f)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
+                                w.Line($"case {FileKeyExpr(f)}: {_dispatchState.RunUseCall(i, decls[i].Range)}; return true;");
                 }
             if (decls.Any(d => d.Global && d.ModeIndex is not null))
                 using (w.Block($"switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // GLOBAL open-mode scope (GR3b/GR6b–e)
                 {
                     for (int i = 0; i < decls.Count; i++)
                         if (decls[i].Global && decls[i].ModeIndex is { } m)
-                            w.Line($"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
+                            w.Line($"case {m}: {_dispatchState.RunUseCall(i, decls[i].Range)}; return true;");
                 }
             w.Line(unit.Parent is { } p && ChainHasGlobalUse(p)
                 ? "return __outer.__RunGlobalUse(__f);   // continue outward (§14.9.49.4 GR4b)"

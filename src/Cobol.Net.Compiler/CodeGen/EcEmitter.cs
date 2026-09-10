@@ -391,7 +391,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                         if (condition(ec, file, i) is { } cond)
                         {
                             if (!any) { w.Line(comment); any = true; }
-                            w.Line($"if ({cond}) return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
+                            w.Line($"if ({cond}) return {dispatch.RunUseCall(i, decls[i].Range)};");
                         }
                 }
             }
@@ -461,7 +461,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// NOTHING — not even its banner — so a unit whose Format-4 declaratives are all class entries carries no
     /// interface-pass scaffolding at all (MEASURED: its whole selector is the GR14 a) banner, one <c>is</c>
     /// line and the tail).</summary>
-    private static void EmitObjDispatchPass(IReadOnlyList<BoundDeclarative> decls,
+    private void EmitObjDispatchPass(IReadOnlyList<BoundDeclarative> decls,
         Func<BoundEoOperand, IReadOnlyList<string>?> census, string banner, CodeWriter w)
     {
         bool any = false;
@@ -470,7 +470,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             if (decls[i].Eo is not { } eo || census(eo) is not { } csTypes) continue;
             if (!any) { w.Line(banner); any = true; }
             w.Line($"if (__obj is {string.Join(" or ", csTypes)}) "
-                + $"return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
+                + $"return {dispatch.RunUseCall(i, decls[i].Range)};");
         }
     }
 
@@ -529,14 +529,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                     {
                         for (int i = 0; i < decls.Count; i++)
                             foreach (var f in decls[i].Files)
-                                w.Line($"case {FileKeyExpr(f)}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
+                                w.Line($"case {FileKeyExpr(f)}: __sel = {dispatch.RunUseCall(i, decls[i].Range)}; break;");
                     }
                 if (decls.Any(d => d.ModeIndex is not null))
                     using (w.Block($"if (__sel == -3) switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // F1 open-mode scope (GR3b/GR6b–e)
                     {
                         for (int i = 0; i < decls.Count; i++)
                             if (decls[i].ModeIndex is { } m)
-                                w.Line($"case {m}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
+                                w.Line($"case {m}: __sel = {dispatch.RunUseCall(i, decls[i].Range)}; break;");
                     }
                 if (decls.Any(d => d.EcEntries is not null))
                     w.Line("if (__sel == -3 && __en) __sel = __EcDispatch(__ec!, __f);   // F3 tiers behind F1 (GR3c–g)");

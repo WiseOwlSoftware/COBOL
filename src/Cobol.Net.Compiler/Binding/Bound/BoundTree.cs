@@ -78,24 +78,38 @@ public sealed record EcFeatures(
     public bool Any => HasChecked || HasIoChecked || HasRaise || HasResume || HasF3 || HasEcFunctions || HasRaising || HasF3Perform;
 }
 
-/// <summary>One USE declarative section (ISO §14.9.49): its inclusive pc range, the §14.9.49.4 GR7 handler exit
-/// pc (== <paramref name="EndPc"/> except the CCVS termination-tail accommodation — see the binder), and its
-/// trigger scope. Format 1 (AFTER STANDARD ERROR/EXCEPTION): file-scoped (GR3a/GR5, <paramref name="Files"/>
-/// non-empty) or open-mode-scoped (GR3b/GR6b–e, <paramref name="ModeIndex"/> = the runtime <c>FileOpenMode</c>
-/// ordinal). Format 2 (BEFORE REPORTING): <paramref name="ReportGroup"/> names the report group the procedure
-/// runs just before (GR8 — wired into the report engine's per-group hook at emission). <paramref name="Global"/>
-/// is parsed and recorded; cross-program dispatch (GR4) is the post-CALL wave.</summary>
+/// <summary>One USE declarative section (ISO §14.9.49): the pc <paramref name="Range"/> its use procedure spans
+/// and its trigger scope. Format 1 (AFTER STANDARD ERROR/EXCEPTION): file-scoped (GR3a/GR5,
+/// <paramref name="Files"/> non-empty) or open-mode-scoped (GR3b/GR6b–e, <paramref name="ModeIndex"/> = the
+/// runtime <c>FileOpenMode</c> ordinal). Format 2 (BEFORE REPORTING): <paramref name="ReportGroup"/> names the
+/// report group the procedure runs just before (GR8 — wired into the report engine's per-group hook at emission).
+/// <paramref name="Global"/> is parsed and recorded; cross-program dispatch (GR4) is the post-CALL wave.
+/// <para>⛔ <b>THE RANGE IS THE SECTION — there is no second, shape-derived "handler end"</b> (kb/Work PB367).
+/// §14.9.49.3 SR1 makes the use procedure "the remainder of the section", §14.4.2 ends that section only at the
+/// next section header or END DECLARATIVES, and §14.9.14.4 GR7's NOTE places the USE return mechanism after the
+/// section's LAST paragraph ("an unnamed empty paragraph immediately following the last paragraph of the current
+/// section, preceding any return mechanisms for that section" — the NOTE names USE as one of them). A handler end
+/// chosen from paragraph SHAPE — a trivial EXIT/CONTINUE paragraph followed by a STOP RUN tail — executed the
+/// selected declarative only in part on EVERY invocation path, so it is gone: this is the section's own
+/// <see cref="PcRange"/>, produced once by <c>SectionInfo.CloseAt</c>.</para></summary>
 public sealed record BoundDeclarative(
     string SectionName,
-    int StartPc,
-    int EndPc,
-    int HandlerEndPc,
+    PcRange Range,
     IReadOnlyList<FileModel> Files,
     int? ModeIndex,
     bool Global,
     ReportGroupModel? ReportGroup = null,
     IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null,
-    BoundEoOperand? Eo = null);
+    BoundEoOperand? Eo = null)
+{
+    /// <summary>Is <paramref name="pc"/> a paragraph of THIS declarative section — the "am I binding inside this
+    /// declarative?" test (§14.9.49.4 GR2 / the EXCEPTION-STATUS and BEFORE REPORTING scope questions). A
+    /// declarative section is a physically contiguous run of the pc space (§14.4.2: paragraphs flatten in source
+    /// order and the section ends at the next section header or END DECLARATIVES), which is what makes the
+    /// arithmetic test legal HERE and nowhere else — an arbitrary <see cref="PcRange"/> may be a legal INVERTED
+    /// THRU range (§14.9.28.4 GR6) for which containment means nothing (kb/Work PB440).</summary>
+    public bool Contains(int pc) => !Range.IsEmpty && pc >= Range.Start && pc <= Range.End;
+}
 // EcEntries: the Format-3 scope (ISO §14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
 // each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
 // selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,

@@ -69,7 +69,7 @@ internal sealed class UnitEmitters
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
         Sort = new SortEmitter(Ctx, dispatchState, SeqIo, Move, Arith);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
-        ReportWriter = new ReportWriterEmitter(Ctx, Num, Refs, Move, Cond);
+        ReportWriter = new ReportWriterEmitter(Ctx, Num, Refs, Move, Cond, dispatchState);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set);
         Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move);
         Statements = new StatementEmitter(this, oo, dispatchState);

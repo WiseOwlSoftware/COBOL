@@ -240,7 +240,7 @@ The gaps are at the edges:
    Roslyn-specific `ProgramEmitter`/`DispatchEmitter`/`DataEmitter` — so a CIL backend must **re-implement all of it
    from scratch.** That may be acceptable under SSOT §1.1 ("no shared lowered IR; each backend lowers itself"), but
    the plan never says so, never enumerates which skeleton inputs are already neutral (pc integers, `EntryPc`,
-   `Declaratives`, `StartPc/HandlerEndPc`, the EC gate) versus which are C#-runtime-ABI choices, and never states
+   `Declaratives`, each declarative's `PcRange`, the EC gate) versus which are C#-runtime-ABI choices, and never states
    that `ICobolProgram/CobolArg/ProgramRegistry/ManagedPointer` is the **shared runtime contract** both backends
    target. **Correction:** add a short "program-skeleton neutrality" subsection giving the CIL backend a checklist of
    the skeleton surface and declaring the runtime ABI the neutral boundary; otherwise the dual-backend goal is only

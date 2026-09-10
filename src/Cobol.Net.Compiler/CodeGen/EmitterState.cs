@@ -92,6 +92,35 @@ internal sealed class DispatchState
                 + $"set of statements has no first statement to transfer to (ISO §14.9.28.4 GR4/GR5)")
             : $"{DispatchName}({range.Start}, {range.End});{comment}";
 
+    /// <summary>Render the invocation of ONE selected declarative's use procedure — the single place a
+    /// <see cref="BoundDeclarative"/> becomes a <c>__RunUse(id, start, end)</c> expression, for every selection
+    /// path there is (<c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>, <c>__EcObjDispatch</c>,
+    /// <c>__RunGlobalUse</c> and the report engine's BEFORE REPORTING hook). The pair handed to
+    /// <c>__RunUse</c> is the DECLARATIVE SECTION'S OWN RANGE and nothing else: ISO §14.9.49.3 SR1 makes the use
+    /// procedure "the remainder of the section", and §14.9.14.4 GR7's NOTE puts the USE return mechanism after
+    /// that section's last paragraph. Deriving a shorter end from paragraph shape ran the selected declarative
+    /// only in part (kb/Work PB367), and the way that stayed invisible was that SIX call sites each spelled the
+    /// pair out themselves — so the pair is spelled ONCE, here.
+    /// <para>The exception-checking (Format-3) PERFORM's <c>imp-2</c>/<c>imp-3</c>/<c>imp-4</c> handlers
+    /// (<c>EcEmitter.EmitPerformInterceptor</c>) also go through the generated <c>__RunUse</c>, and they do NOT
+    /// come through here — deliberately. They are not declaratives: they are single-pc SYNTHETIC ranges appended
+    /// above the pc space (<see cref="F3HandlerBasePc"/>) and selected by §14.9.28.4 GR17, not §14.9.49.4 GR3, and
+    /// their pcs are runtime values of the interceptor rather than a bound node's. What this renderer owns is the
+    /// question "what is a DECLARATIVE's range", which is the question PB367 was about.</para>
+    /// <para>⛔ An EMPTY range cannot reach here. A declarative section with zero paragraphs is legal
+    /// (§14.4.2 / §14.9.49.3 SR1 "zero, one, or more procedural paragraphs"), but the binder gives it ONE no-op
+    /// pc precisely so the bounded dispatch has a range to run — because the selector must still STOP at it
+    /// (§14.9.49.4 GR3: "The first declarative that satisfies the selection criteria is executed and no other
+    /// declaratives are executed"), which is not the same thing as emitting nothing the way
+    /// <see cref="DispatchCall"/>'s callers must. If that invariant is ever relaxed, the selector arms — not this
+    /// renderer — are what must learn to say "selected, ran nothing".</para></summary>
+    public string RunUseCall(int id, PcRange range) =>
+        range.IsEmpty
+            ? throw new InvalidOperationException(
+                $"internal: __RunUse({id}, …) requested for an EMPTY declarative range — a declarative section "
+                + "always carries at least one pc so its bounded dispatch can run (ISO §14.9.49.3 SR1)")
+            : $"__RunUse({id}, {range.Start}, {range.End})";
+
     /// <summary>The program being emitted declares USE procedures (drives the <c>__IoCheck</c> hooks). Set per
     /// unit by the dispatcher emission; cleared by the OO class-unit emission (a class owns no USE
     /// declaratives).</summary>

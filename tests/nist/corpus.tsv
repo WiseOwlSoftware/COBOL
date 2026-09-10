@@ -311,7 +311,7 @@ SQ208M	SQ	divergent	-	valid	ISO §13.18.34 GR6b2/3 — data-name LINAGE re-evalu
 SQ209M	SQ	green	-	valid	-
 SQ210M	SQ	divergent	-	valid	ISO §13.18.34 GR6 — LINAGE page re-evaluation
 SQ211A	SQ	green	-	valid	-
-SQ212A	SQ	green	-	valid	-
+SQ212A	SQ	divergent	-	valid	ISO §14.9.49.3 SR1 + §14.4.2 — the use procedure is the WHOLE remainder of the declarative section and §14.9.14.4 GR7's NOTE puts the USE return mechanism after that section's LAST paragraph, so SECT-SQ212A-0001's CCVS termination tail (EXIT-PARA. EXIT. → CLOSE-FILES1 footer + CLOSE PRINT-FILE → TERMINATE1-CCVS STOP RUN) is INSIDE the use procedure: the first status-44 WRITE runs it and the run stops after test 1 of 17. The legacy — and this golden before kb/Work PB367 — returned at EXIT-PARA on a paragraph-SHAPE heuristic that also truncated user declaratives; golden re-baselined to the conforming run, which now witnesses the rule (16 CCVS sub-tests no longer reached: the remaining WRITE-44/READ/REWRITE-44 rows)
 SQ213A	SQ	green	-	valid	-
 SQ214A	SQ	green	-	valid	-
 SQ215A	SQ	green	-	valid	-

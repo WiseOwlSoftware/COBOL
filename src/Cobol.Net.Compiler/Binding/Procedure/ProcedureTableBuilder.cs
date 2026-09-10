@@ -17,8 +17,8 @@ using Core = CobolParserCore;
 /// cursor), <see cref="ResolveProcedure"/> (§8.4.2.2 — explicit OF/IN → in-section → global → section-name,
 /// method-confined inside a method), and the DECLARATIVES half (ISO §14.3 / §14.9.49 USE — each
 /// declarative section joins the same pc space; the USE sentence binds into a <see cref="BoundDeclarative"/>
-/// scope, never a bound statement; the §14.9.49.4 GR7 handler exit pc is computed here with the CCVS
-/// termination-tail accommodation, see <see cref="DeclHandlerEndPc"/>).
+/// scope, never a bound statement; the use procedure's range IS that section's own
+/// <see cref="SectionInfo.Range"/>, §14.9.49.3 SR1 + §14.4.2).
 /// </summary>
 internal sealed class ProcedureTableBuilder(BinderContext ctx)
 {
@@ -282,7 +282,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             AddParagraph(name, leading.Skip(1).ToArray(), info, used);
         foreach (var p in sec.declarativeParagraph())
             AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
-        // An empty handler still needs ONE pc so the bounded dispatch has a range (a no-op paragraph).
+        // A declarative section with ZERO paragraphs is legal (§14.9.49.3 SR1 — "zero, one, or more procedural
+        // paragraphs"; §14.4.2), and it is still SELECTED: §14.9.49.4 GR3 says "the first declarative that
+        // satisfies the selection criteria is executed and no other declaratives are executed", so the search
+        // stops at it and nothing else may run. Giving it ONE no-op pc keeps that a plain bounded dispatch
+        // rather than a second selector shape — and it is the invariant DispatchState.RunUseCall asserts when it
+        // refuses an empty PcRange. Relax this and the SELECTOR ARMS, not the renderer, are what must learn to
+        // say "selected, ran nothing".
         if (_paras.Count == info.StartPc)
             AddParagraph(name, [], info, used);
 
@@ -290,9 +296,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _sections.TryAdd(info.Name, info);
 
         if (scope is { } s)
+            // ISO §14.9.49.3 SR1: "The remainder of the section shall consist of zero, one, or more procedural
+            // paragraphs that define the procedures to be used" — so the use procedure IS the section, whose
+            // extent §14.4.2 fixes at the next section header or END DECLARATIVES. The range is taken whole;
+            // nothing inspects paragraph shape to shorten it (kb/Work PB367).
             _declaratives.Add(new BoundDeclarative(
-                name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report,
-                s.EcEntries, s.Eo));
+                name, info.Range, s.Files, s.ModeIndex, s.Global, s.Report, s.EcEntries, s.Eo));
     }
 
     // ── X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17) ────────────────────────────────────────────────
@@ -610,57 +619,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         }
     }
 
-    /// <summary>The pc the bounded handler dispatch ends at (§14.9.49.4 GR7 — normally the section's last
-    /// paragraph). CCVS ACCOMMODATION (documented deviation, the legacy's empirically-validated SQ212A rule):
-    /// some CCVS programs place an UNREFERENCED termination tail (CLOSE-FILES → footer → STOP RUN) inside the
-    /// declarative section after a trivial exit paragraph; the NIST golden requires the handler to RETURN at
-    /// that exit paragraph (the tail stays in pc space — an explicit GO TO still reaches it on the fatal path).
-    /// Rule: the LAST paragraph whose statements are all bare EXIT/CONTINUE that is still followed by a
-    /// paragraph containing STOP RUN / EXIT PROGRAM / GOBACK ⇒ HandlerEndPc = that exit paragraph's pc. It must
-    /// be the LAST such (the boundary adjoining the tail): the handler body's own PERFORM … THRU exit points
-    /// (SQ212A's FAIL-ROUTINE-EX1 before EXIT-PARA) are also trivial-exit paragraphs, and bounding at an
-    /// earlier one lets a handler GO TO past it fall through into the termination tail.</summary>
-    private int DeclHandlerEndPc(Core.DeclarativeSectionContext sec, SectionInfo info)
-    {
-        var paras = sec.declarativeParagraph();
-        int firstNamedPc = info.EndPc - paras.Length + 1;   // leading anonymous paragraph (if any) precedes
-        for (int i = paras.Length - 2; i >= 0; i--)
-        {
-            if (!DeclIsTrivialExit(paras[i])) continue;
-            for (int j = i + 1; j < paras.Length; j++)
-                if (DeclTerminatesRunUnit(paras[j]))
-                    return firstNamedPc + i;
-        }
-        return info.EndPc;
-    }
-
-    private static bool DeclIsTrivialExit(Core.DeclarativeParagraphContext p)
-    {
-        var sentences = p.sentence();
-        if (sentences.Length == 0) return true;   // an empty named paragraph is a pure exit point
-        foreach (var s in sentences)
-            foreach (var st in s.statement())
-            {
-                // kb/Work PB138: bare CONTINUE is a no-op, but CONTINUE AFTER is a SUSPENSION — classifying
-                // it as a pure exit ended a USE handler's bounded dispatch AT this paragraph and the rest of
-                // the handler never ran.
-                if (st.continueStatement() is { } cs) { if (cs.AFTER() is null) continue; return false; }
-                if (st.exitStatement() is { } e
-                    && e.PARAGRAPH() is null && e.PERFORM() is null && e.SECTION() is null
-                    && e.PROGRAM() is null && e.METHOD() is null && e.FUNCTION() is null)
-                    continue;
-                return false;
-            }
-        return true;
-    }
-
-    private static bool DeclTerminatesRunUnit(Core.DeclarativeParagraphContext p)
-    {
-        foreach (var s in p.sentence())
-            foreach (var st in s.statement())
-                if (st.stopStatement() is not null || st.gobackStatement() is not null
-                    || st.exitStatement() is { } e && e.PROGRAM() is not null)
-                    return true;
-        return false;
-    }
+    // ⛔ NO HANDLER-END HEURISTIC LIVES HERE (kb/Work PB367 — the shape-derived `DeclHandlerEndPc` /
+    // `DeclIsTrivialExit` / `DeclTerminatesRunUnit` trio is DELETED, not disabled). It walked the section's
+    // paragraphs backwards and, whenever ANY later paragraph terminated the run unit, ended the bounded USE
+    // dispatch at the last trivial EXIT/CONTINUE paragraph before it — so a user declarative written in that
+    // ordinary shape (a common exit point, then a paragraph that STOPs the run) executed only in part, on every
+    // invocation path (§14.9.49.4 GR7/GR12/GR13 and the Format-2 BEFORE REPORTING hook alike). The standard
+    // leaves no room for it: §14.9.49.3 SR1 makes the use procedure the WHOLE remainder of the section, §14.4.2
+    // ends the section only at the next section header or END DECLARATIVES, §14.6.3 rule 1 puts the implied
+    // transfer back to the controlling USE at "the last statement" of "the last procedure in the range", and
+    // §14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
 }
