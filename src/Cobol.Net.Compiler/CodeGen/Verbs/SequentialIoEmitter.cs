@@ -37,7 +37,11 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// its next implicit transfer. For SORT §14.9.40.4 GR17 says the same thing outright — "If a USE procedure
     /// invoked while a format 1 SORT statement is active does not complete normally, the SORT statement is
     /// terminated" — and §14.6.13.1.2 #1 is what makes a RESUME a completion that is not normal. Returns whether
-    /// that arm was emitted, so the caller emits the label only when something jumps to it.</para></summary>
+    /// that arm was emitted, so the caller emits the label only when something jumps to it.</para>
+    /// <para>The hook does NOT tell the selector which verb raised: §14.9.49.4 GR6's tiers are the same for
+    /// every I-O statement and at every edition (the determination is on <see cref="UseTierEmitter"/> —
+    /// kb/Work PB344), and the only per-statement inputs are the phrases it wrote, which are the flags
+    /// below.</para></summary>
     public bool EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false,
         bool onExceptionHandled = false, string? notNormalLabel = null)
     {
@@ -115,7 +119,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                     int width = Math.Max(1, ctx.Data.Reports
                         .Where(r => ReferenceEquals(r.File, file))
                         .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
-                    w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{width}", "false", file.Optional ? "true" : "false", selectName: CsLiteral(file.SelectName))};");
+                    w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{width}", "false", file.Optional ? "true" : "false", ctx.Data.Edition.DialectLevel, selectName: CsLiteral(file.SelectName))};");
                 }
                 continue;
             }
@@ -124,7 +128,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
-            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", vary, CsLiteral(file.SelectName))};");
+            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.Edition.DialectLevel, vary, CsLiteral(file.SelectName))};");
             EmitAreaRegistrations(w, file);
             EmitSharingRegistration(w, file);
         }

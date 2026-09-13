@@ -308,8 +308,9 @@ public sealed class IndexedConnector : KeyedConnector
     /// <summary>Sequential <c>READ PREVIOUS</c> (COBOL-2002+; compiler-gated) — the same walk in reverse
     /// (§14.9.30.4 GR21 d–g apply symmetrically, and GR26 makes a duplicate set's reverse order the reverse of
     /// its release order — the legacy ignored key-of-reference/arrival on PREVIOUS, brief §2.3 #5; this connector
-    /// orders both directions identically). Immediately after OPEN → at end (the ISO-2023 behavior,
-    /// VERSION_CHANGE_REFERENCE row 29).</summary>
+    /// orders both directions identically). Immediately after OPEN → at end at 2023, the first existing record
+    /// at 2002/2014 (<see cref="DialectBehavior.IndexedReadPreviousAfterOpenAtEnd"/>,
+    /// VERSION_CHANGE_REFERENCE row 29 — kb/Work PB344).</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
     /// <summary>ISO §14.9.30.4 GR21's "When the file is an indexed file" SELECTION — rules d)/e)/f) over the
@@ -332,12 +333,28 @@ public sealed class IndexedConnector : KeyedConnector
         // only then is there a "record that was made available by that prior READ statement" whose "logical
         // position within the set of duplicates" the walk resumes strictly after (or before).
         bool fromRead = _positioner == 'R';
-        if (previous && _positioner == 'O')
-            found = null;   // §14.9.30.4 GR21 d) 3 — PREVIOUS after an OPEN is at end (row 29, 2023)
-        else if (!previous && _positioner == 'O')
+        // ⛔ §14.9.30.4 GR21 d) 3 — "If no such record is found or PREVIOUS is specified and the previous
+        // operation on the file was an OPEN statement, the at end condition exists". THAT SENTENCE IS THE 2023
+        // RULE, and Annex E.2 item 22 is the informative record that 2023 AMENDED it: "READ PREVIOUS statement
+        // following an OPEN statement. Ensure that an at end condition occurs", justified by "the rule itself
+        // stated that the first record would be retrieved. The rule itself has been amended such that an at end
+        // condition would occur." So at 2002/2014 the after-OPEN case is DIRECTION-BLIND — the first existing
+        // record under the key of reference, exactly what NEXT yields and exactly what the relative block's own
+        // rule b) still says at every edition. (E.2 also mentions a prior NOTE that said at end normally
+        // exists; this document is drafted to the ISO/IEC Directives Part 2, under which a note carries no
+        // requirement, so the prior standard's normative content is the rule. And were the prior behaviour
+        // already at end, E.2 — the list of SUBSTANTIVE CHANGES potentially affecting existing programs —
+        // would have no item 22 to carry.) The edition is the COMPILING program's, baked on the connector at
+        // registration; kb/Work PB344, VERSION_CHANGE_REFERENCE row 29.
+        if (previous && _positioner == 'O'
+            && DialectBehaviors.IsActive(DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, Edition))
+            found = null;
+        else if (_positioner == 'O')
         {
             // §14.9.27 GR14 — OPEN INPUT/I-O positions the FPI at the LOWEST record in the key-of-reference's
-            // collating sequence, so the first READ NEXT yields it. Read it off the ordered sequence directly
+            // collating sequence, so the first READ NEXT yields it — and, at 2002/2014, so does the first READ
+            // PREVIOUS, which is why this arm is reached for BOTH directions there (the gate above).
+            // Read it off the ordered sequence directly
             // rather than comparing against the empty-string OPEN sentinel: under a §12.4.5.7 alphabet where the
             // pad SPACE weighs high, that sentinel is NOT the lowest value, so a PositionCompare walk would find
             // nothing (the collating-sequence AT-END bug). Ordinal order is unaffected — seq[0] is still lowest.

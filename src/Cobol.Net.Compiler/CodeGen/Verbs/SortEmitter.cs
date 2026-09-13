@@ -145,6 +145,10 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         seqIo.EmitStoreFileStatus(input);
         // GR12b: the implicit READ is "as if with the AT END phrase" - at-end never fires a declarative; any
         // OTHER read/close failure still does.
+        // ⛔ The status this hook reads is the implicit CLOSE's, not the retrieval's - GR12 c)'s CLOSE was
+        // emitted above and overwrote it - so a record-retrieval failure whose CLOSE then succeeds reaches no
+        // declarative at all, though §14.9.40.4 GR12 b) makes that retrieval an as-if READ (MERGE §14.9.24.4
+        // GR7 b) is word-identical) whose exception §14.9.49.4 GR6 owes one. Filed as a defect, not fixed here.
         return seqIo.EmitUseHook(input, atEndHandled: true, notNormalLabel: endLabel) | terminable;
     }
 

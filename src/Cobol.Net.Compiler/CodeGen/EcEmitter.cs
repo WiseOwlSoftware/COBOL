@@ -552,22 +552,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // The F1 file/open-mode + F3 USE declarative tiers (§14.9.49.4 GR3a–g/GR4b) — byte-identical to a pre-F3
             // build. With an exception-checking PERFORM active they run ONLY when no WHEN matched (GR17: a matching
             // WHEN ignores the USE); the frame is consulted FIRST, above these tiers.
+            // The F1 file-name and open-mode tiers come from the ONE UseTierEmitter that __IoCheck and
+            // __RunGlobalUse also use, so the EC-model arm cannot drift from the plain one. `__sel == -3` is
+            // this arm's OWN precondition (nothing selected yet), never an edition condition: both tiers are
+            // edition-invariant, and the determination is written on UseTierEmitter (kb/Work PB344).
             void EmitUseTiers()
             {
-                if (decls.Any(d => d.Files.Count > 0))
-                    using (w.Block("switch (__f)"))   // F1 file-name scope first (GR3a/GR5)
-                    {
-                        for (int i = 0; i < decls.Count; i++)
-                            foreach (var f in decls[i].Files)
-                                w.Line($"case {FileKeyExpr(f)}: __sel = {dispatch.RunUseCall(i, decls[i].Range)}; break;");
-                    }
-                if (decls.Any(d => d.ModeIndex is not null))
-                    using (w.Block($"if (__sel == -3) switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // F1 open-mode scope (GR3b/GR6b–e)
-                    {
-                        for (int i = 0; i < decls.Count; i++)
-                            if (decls[i].ModeIndex is { } m)
-                                w.Line($"case {m}: __sel = {dispatch.RunUseCall(i, decls[i].Range)}; break;");
-                    }
+                UseTierEmitter.EmitScopeTiers(w, decls,
+                    i => $"__sel = {dispatch.RunUseCall(i, decls[i].Range)}; break;", "__sel == -3");
                 if (decls.Any(d => d.EcEntries is not null))
                     w.Line("if (__sel == -3 && __en) __sel = __EcDispatch(__ec!, __f);   // F3 tiers behind F1 (GR3c–g)");
                 if (dispatch.OuterGlobalUse)

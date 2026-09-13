@@ -32,21 +32,22 @@ public static class CobolFile
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT); the host path is
     /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/>. See <see cref="FileRegistry.Register"/>.</summary>
     public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null)
-        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName);
+        bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023)
+        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName, edition);
 
     /// <summary>Register a SELECTed RELATIVE file (emitted at program start).</summary>
     public static void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1, string? selectName = null)
+        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1, string? selectName = null,
+        int edition = 2023)
         => _reg.RegisterRelative(cobolName, assignTarget, recordWidth, optional, accessMode, relativeKeyDigits,
-            varyMin, varyMax, selectName);
+            varyMin, varyMax, selectName, edition);
 
     /// <summary>Register a SELECTed INDEXED file (emitted at program start).</summary>
     public static void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
         int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1,
-        CobolCollation? primeCollation = null, string? selectName = null)
+        CobolCollation? primeCollation = null, string? selectName = null, int edition = 2023)
         => _reg.RegisterIndexed(cobolName, assignTarget, recordWidth, optional, accessMode, primeOffset,
-            primeLength, varyMin, varyMax, primeCollation, selectName);
+            primeLength, varyMin, varyMax, primeCollation, selectName, edition);
 
     /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b; kb/Work PB63) — the
     /// no-argument FUNCTION EXCEPTION-FILE's display of the last-exception connector.</summary>

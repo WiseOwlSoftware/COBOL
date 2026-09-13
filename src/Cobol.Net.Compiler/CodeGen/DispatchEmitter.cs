@@ -248,20 +248,10 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             string run(int i) => ecInt
                 ? $"return {dispatchState.RunUseCall(i, decls[i].Range)};"
                 : $"{dispatchState.RunUseCall(i, decls[i].Range)}; return;";
-            if (decls.Any(d => d.Files.Count > 0))
-                using (w.Block("switch (__f)"))   // file-name scope first (GR3a/GR5)
-                {
-                    for (int i = 0; i < decls.Count; i++)
-                        foreach (var f in decls[i].Files)
-                            w.Line($"case {FileKeyExpr(f)}: {run(i)}");
-                }
-            if (decls.Any(d => d.ModeIndex is not null))
-                using (w.Block($"switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // open-mode scope (GR3b/GR6b–e)
-                {
-                    for (int i = 0; i < decls.Count; i++)
-                        if (decls[i].ModeIndex is { } m)
-                            w.Line($"case {m}: {run(i)}");
-                }
+            // The GR3a/GR5 file-name tier and the GR3b/GR6b–e open-mode tier are rendered by the ONE
+            // UseTierEmitter that __IoCheckEc and __RunGlobalUse also use. Both tiers are EDITION-INVARIANT —
+            // the determination is written once, on UseTierEmitter itself (kb/Work PB344).
+            UseTierEmitter.EmitScopeTiers(w, decls, run);
             // No local declarative qualified — walk OUTWARD to the nearest containing program with a USE GLOBAL
             // declarative (ISO §14.9.49.4 GR4b: "a qualifying declarative with the GLOBAL attribute in the next
             // inclusive directly containing source element", repeated outward). The declarative executes in the

@@ -587,7 +587,11 @@
   "pb640_call_argument_landing_checked",
   "pb640_invoke_argument_landing_checked",
   "pb640_call_argument_landing_legs",
-  "pb530_picture_editing_order_2023"
+  "pb530_picture_editing_order_2023",
+  "pb344_read_previous_indexed",
+  "pb344_use_mode_invalid_key",
+  "pb344_use_mode_read_exception",
+  "pb344_use_f3_perform_preempt"
  ],
  "pending": [
   "pb485_value_only_format1"

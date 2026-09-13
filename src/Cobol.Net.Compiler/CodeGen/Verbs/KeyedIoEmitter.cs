@@ -56,7 +56,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         if (file.Organization == FileOrganization.Relative)
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
-            w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, CsLiteral(file.SelectName))};");
+            w.Line($"{RuntimeApi.FileRegisterRelative(name, assign, file.RecordWidth, opt, access, digits, vary, ctx.Data.Edition.DialectLevel, CsLiteral(file.SelectName))};");
             SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
             return;
         }
@@ -69,7 +69,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // ⛔ THE KEY WINDOW IS IN BYTES (kb/Work PB327): §12.4.5.12.4 GR4 states key correspondence over "the
         // identical BYTE POSITIONS", and RecordLayout.OffsetOf above is already a byte offset — so the WIDTH must
         // be the key's byte extent too, which for a national key (PIC N(n)) is 2n, not n (§13.18.60.4 GR8; D-N1).
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ByteWidth, vary, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ByteWidth, vary, ctx.Data.Edition.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];

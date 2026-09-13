@@ -370,23 +370,12 @@ internal sealed class ProgramEmitter
     private void EmitRunGlobalUse(BoundUnit unit, CodeWriter w)
     {
         var decls = unit.Bound.Declaratives ?? [];
+        // Both GLOBAL tiers come from the ONE UseTierEmitter the two local selectors use, and both are
+        // edition-invariant — the determination is written there (kb/Work PB344).
         using (w.Block("public bool __RunGlobalUse(string __f)"))
         {
-            if (decls.Any(d => d.Global && d.Files.Count > 0))
-                using (w.Block("switch (__f)"))   // GLOBAL file-name scope first (GR5)
-                {
-                    for (int i = 0; i < decls.Count; i++)
-                        if (decls[i].Global)
-                            foreach (var f in decls[i].Files)
-                                w.Line($"case {FileKeyExpr(f)}: {_dispatchState.RunUseCall(i, decls[i].Range)}; return true;");
-                }
-            if (decls.Any(d => d.Global && d.ModeIndex is not null))
-                using (w.Block($"switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // GLOBAL open-mode scope (GR3b/GR6b–e)
-                {
-                    for (int i = 0; i < decls.Count; i++)
-                        if (decls[i].Global && decls[i].ModeIndex is { } m)
-                            w.Line($"case {m}: {_dispatchState.RunUseCall(i, decls[i].Range)}; return true;");
-                }
+            UseTierEmitter.EmitScopeTiers(w, decls,
+                i => $"{_dispatchState.RunUseCall(i, decls[i].Range)}; return true;", globalOnly: true);
             w.Line(unit.Parent is { } p && ChainHasGlobalUse(p)
                 ? "return __outer.__RunGlobalUse(__f);   // continue outward (§14.9.49.4 GR4b)"
                 : "return false;   // outermost source element reached — no qualifying GLOBAL declarative (GR4b)");

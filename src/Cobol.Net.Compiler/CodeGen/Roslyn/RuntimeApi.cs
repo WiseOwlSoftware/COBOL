@@ -787,9 +787,10 @@ internal static class RuntimeApi
     // ── Keyed file I/O (CobolFile; ISO §14.9.10/.30/.35/.41/.51) ──
 
     /// <summary>Register a RELATIVE connector — <c>CobolFile.RegisterRelative</c>. <paramref name="varyArgs"/> is
-    /// the optional trailing ", min, max" record-bounds fragment (§13.18.43 GR9/GR10), possibly empty.</summary>
-    public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, string? selectName = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)})";
+    /// the optional trailing ", min, max" record-bounds fragment (§13.18.43 GR9/GR10), possibly empty;
+    /// <paramref name="edition"/> is the compiling program's <c>--std</c> (see <see cref="EditionArg"/>).</summary>
+    public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs, int edition, string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)})";
 
     /// <summary>Bytes per national character position — <c>CobolBits.BytesPerNational</c> (ISO §13.18.60.4 GR8
     /// leaves a national character's storage size to the implementor; D-N1 pins TWO, UTF-16BE). Re-exported
@@ -820,12 +821,24 @@ internal static class RuntimeApi
     /// named argument; empty when the caller has none.</summary>
     private static string SelectNameArg(string? selectName) => selectName is null ? "" : $", selectName: {selectName}";
 
+    /// <summary>⛔ THE COMPILING PROGRAM'S ISO EDITION as the registration's trailing named argument — the
+    /// <c>--std</c> year (85 / 2002 / 2014 / 2023) this compilation targets, which becomes
+    /// <c>FileConnector.Edition</c> and is the argument every RUNTIME-side per-edition behaviour gate passes to
+    /// <c>DialectBehaviors.IsActive</c> (kb/Work PB344). It rides on the REGISTRATION, beside
+    /// <c>selectName</c>/<c>optional</c>, because the rule that governs a file's records is the one the source
+    /// element that DESCRIBED the file was compiled under — a run unit may link programs from separate
+    /// compilations, so it can be neither a process-wide setting nor a property of the registry.
+    /// <para>It is ALWAYS rendered, at every edition including the default: a registration whose edition is
+    /// invisible in the generated text is exactly the state PB344 found (no edition reached the runtime at
+    /// all), and an emitted named argument is what makes a wrong one readable in a <c>--emit-cs</c> dump.</para></summary>
+    private static string EditionArg(int edition) => $", edition: {edition}";
+
     /// <summary>Register an INDEXED connector — <c>CobolFile.RegisterIndexed</c> (prime-key window per §12.4.5.12,
     /// plus the optional §12.4.5.7 prime-key collating sequence — a CobolCollation expression; <paramref name="weights"/>
     /// is "null" for native, emitted as a named argument so a no-clause file's registration is byte-identical to the
     /// pre-clause engine).</summary>
-    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, string weights = "null", string? selectName = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)})";
+    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, int edition, string weights = "null", string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)}{EditionArg(edition)})";
 
     /// <summary>Register one ALTERNATE RECORD KEY window (§12.4.5.6) — <c>CobolFile.AddAlternateKey</c>, with its
     /// optional §12.4.5.7 collating weights and §12.4.5.6.4 GR6 SUPPRESS WHEN value ("null" = absent, each emitted
@@ -937,9 +950,10 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
-    /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment.</summary>
-    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, string varyArgs = "", string? selectName = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)})";
+    /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;
+    /// <paramref name="edition"/> is the compiling program's <c>--std</c> (see <see cref="EditionArg"/>).</summary>
+    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, int edition, string varyArgs = "", string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)})";
 
     /// <summary>⛔ THE PER-STATEMENT OPERANDS OF THE RUNTIME ELEMENT EXECUTING A FILE STATEMENT — the
     /// <c>assign, assignDynamic, page</c> argument triple every OPEN entry takes (kb/Work PB673). ISO

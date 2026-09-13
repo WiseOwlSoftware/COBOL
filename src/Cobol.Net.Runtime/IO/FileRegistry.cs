@@ -134,13 +134,14 @@ public sealed class FileRegistry
     /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §13.18.22.4
     /// GR4a) — a later describer keeps the existing live connector (IC227A).</summary>
     public void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin, int varyMax, string? selectName = null)
+        bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
         CloseDisplaced(cobolName);
         _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            lineSequential, varyMin, varyMax) { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName) };
+            lineSequential, varyMin, varyMax)
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), Edition = edition };
     }
 
     /// <summary>Close a still-open INTERNAL connector a registration is about to replace (kb/Work PB168):
@@ -183,27 +184,34 @@ public sealed class FileRegistry
     /// <summary>Register a SELECTed RELATIVE file (§12.4.5.13; <paramref name="relativeKeyDigits"/> drives the
     /// '14'/'24' RRN-digit statuses, 0 = no RELATIVE KEY clause).</summary>
     public void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int relativeKeyDigits, int varyMin, int varyMax, string? selectName = null)
+        int accessMode, int relativeKeyDigits, int varyMin, int varyMax, string? selectName = null,
+        int edition = 2023)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         CloseDisplaced(cobolName);
         _files[cobolName] = new RelativeConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax)
-        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores, KeyCheck = KeyCheck };
+        {
+            IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
+            KeyCheck = KeyCheck, Edition = edition,
+        };
     }
 
     /// <summary>Register a SELECTed INDEXED file with its PRIME key's (offset, length) range (§12.4.5.12).</summary>
     public void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
         int accessMode, int primeOffset, int primeLength, int varyMin, int varyMax, CobolCollation? primeCollation = null,
-        string? selectName = null)
+        string? selectName = null, int edition = 2023)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         CloseDisplaced(cobolName);
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation)
-        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores, KeyCheck = KeyCheck };
+        {
+            IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
+            KeyCheck = KeyCheck, Edition = edition,
+        };
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional

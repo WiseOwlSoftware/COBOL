@@ -143,6 +143,20 @@ public abstract class FileConnector
     /// <summary>True for a SELECT OPTIONAL file (ISO §14.9.27 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
 
+    /// <summary>⛔ THE ISO EDITION THE PROGRAM THAT SELECTED THIS FILE WAS COMPILED FOR (85 / 2002 / 2014 /
+    /// 2023 — the CLI's <c>--std</c>), carried from the compiler at registration exactly as
+    /// <see cref="SelectName"/> and <see cref="IsOptional"/> are (kb/Work PB344). It is the argument every
+    /// runtime-side per-edition behaviour gate passes to
+    /// <see cref="DialectBehaviors.IsActive(DialectBehavior, int)"/> — the ONE place a rule that the standard
+    /// CHANGED is written down.
+    /// <para>PER CONNECTOR, not per process and not per registry: a run unit may link programs from separate
+    /// compilations, and the rule that governs a file's records is the one the source element that DESCRIBED
+    /// the file was compiled under — the same reasoning that makes <c>SignEncoding</c> a property of the
+    /// compiled program. It defaults to the newest edition, which is also the CLI's default target, so a
+    /// connector constructed outside a registration (a focused runtime unit test) behaves as
+    /// <c>--std 2023</c>.</para></summary>
+    public int Edition { get; set; } = 2023;
+
     /// <summary>The registry's per-physical-file record-store table (kb/Work PB143 — §14.9.10.4 GR5's "removed
     /// from the physical file"): the keyed connectors attach their record images through it so every connector
     /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused

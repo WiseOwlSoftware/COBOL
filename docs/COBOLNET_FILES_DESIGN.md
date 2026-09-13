@@ -1542,6 +1542,62 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   carve-out from the legacy oracle's `RelativeFileHandler`). The relative golden's SPARSE-file phase is what
   makes rule b) falsifiable: with the lowest record at RRN 5, OPEN's indicator of 1 names an empty slot, so
   PREVIOUS and NEXT can only name the same record if the rule ignores the direction.
+  ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the first existing record** (kb/Work PB344).
+  `IndexedConnector.SelectSequentialRecord` asks `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd,
+  Edition)`; below 2023 the after-OPEN arm is DIRECTION-BLIND, so a READ PREVIOUS immediately after an OPEN
+  makes the same record NEXT does available. Annex E.2 item 22's justification is what states the prior rule —
+  *"the rule itself stated that the first record would be retrieved. The rule itself has been amended such that
+  an at end condition would occur"* — and the conflicting prior NOTE it also mentions states no requirement
+  (this standard is drafted to the ISO/IEC Directives Part 2), so rule-versus-note is not a normative
+  contradiction and no owner decision was needed. Asserted by
+  `conformance:{2002,2014,2023}/pb344_read_previous_indexed` (P1 differs by edition; P2/P3/P4 are the controls
+  that do not).
+- ⛔ **The OPEN-MODE USE-declarative tier is EDITION-INVARIANT — and that is a DETERMINATION, not an
+  omission** (`VERSION_CHANGE_REFERENCE` rows 25 and 26; Annex E.2 item 19 a)/b); kb/Work PB344). §14.9.49.4
+  GR6 b)–e) selects a declarative by the file's open mode, and Annex E.2 item 19 records that the previous
+  standards did NOT run it (a) for an invalid key condition when no INVALID KEY phrase was written, nor (b) for
+  a READ exception that is neither an invalid key nor an at end condition. **That reading was implemented as a
+  `<=2014` guard and then WITHDRAWN**, because it does not survive its own sources: Annex E is INFORMATIVE;
+  §E.1 scopes it to *"a list of the substantive changes between the previous COBOL standard and this Working
+  Draft International Standard"* — ONE prior edition, so it says nothing about 1985 or 2002 at all; and item
+  19's own justification classes the prior state as defective TEXT rather than a required behaviour — *"The
+  previous COBOL Standard was not clear or missing processing of some I-O exceptions. This change clarifies or
+  corrects that processing"*, each sub-item adding *"This appears to be an error in previous standards."* A
+  silence is not a prohibition. For 1985 the behaviour is positively fixed the OTHER way by that edition's own
+  validation suite: NIST CCVS `SQ122A`, `SQ136A`, `SQ137A` and `SQ138A` require the INPUT declarative to run for
+  a '46' READ and `SQ148A` the OUTPUT one for a '47' READ — `SQ137A` fails with the literal remark
+  "INPUT DECLARATIVE NOT EXECUTED" against ANSI X3.23-1985 VII-2 1.3.5 / VII-51 4.6.4(5) — and the guard made
+  those five programs RED on CI (train 29, 2026-09-13) while every local gate was green. Both tiers therefore
+  run at every edition, the generated selector carries no edition condition, and the USE hook takes no
+  which-verb argument. Asserted by `conformance:{85,2002,2014,2023}/pb344_use_mode_invalid_key` and
+  `…/pb344_use_mode_read_exception`, whose four copies are byte-identical BY DESIGN — that identity is the
+  assertion — plus `conformance:2023/pb344_use_f3_perform_preempt` for GR6's leading exception-checking-PERFORM
+  clause.
+
+**The two mechanisms behind those rows.** (1) **`CobolNet.Runtime.DialectBehaviors` is the named register of
+per-edition BEHAVIOUR changes** — the behaviour twin of `CobolNet.Editions.ConstructRegistry`. A construct row
+answers *does this edition HAVE this construct?* and yields a DIAGNOSTIC; a `DialectBehavior` member answers
+*which edition's RULE does this construct obey?* and yields an ANSWER, which is why it can never be a
+`constructs.json` row: the source is legal at every edition. It lives in the RUNTIME because both sides read it
+— the emitter folds a compile-time-decided behaviour, the connectors ask at run time over the edition the
+compilation baked into them (`FileConnector.Edition`, carried per CONNECTOR from the registration's `edition:`
+argument, since a run unit may link programs from separate compilations). Each member names the
+`VERSION_CHANGE_REFERENCE` row that owns it, which carries a `<!-- behavior:id -->` anchor instead of
+`<!-- todo -->`; `DialectBehaviorRegistryDriftTests` holds the two registers together in both directions.
+⛔ **A member is ADMITTED only when the Annex E item says what the PRIOR RULE STATED.** Item 22 does (*"the
+rule itself stated that the first record would be retrieved"*) and is the register's one member; item 19 a)/b)
+says only that the prior text was missing or unclear, which is a silence, and rows 25/26 are `ref-only`. That
+test is written on the `DialectBehavior` enum itself and in the `VERSION_CHANGE_REFERENCE` legend, because the
+cost of getting it wrong was measured: five NIST programs red on CI and a whole landing dropped.
+(2) **The GR3 a)/GR5 + GR6 b)–e) tier pair is rendered ONCE**, by `CodeGen/UseTierEmitter`, for all THREE
+selectors that need it — `DispatchEmitter.__IoCheck`, `EcEmitter.__IoCheckEc` and `ProgramEmitter`'s GR4 b)
+outward GLOBAL walk `__RunGlobalUse`. Both tiers are edition-invariant and the determination above is written
+on that one emitter, so a fourth selector cannot acquire a per-edition guard by copy. That last clause is a TEST, not a hope:
+`UseTierEditionInvarianceDriftTests` compiles one program — an outer with GLOBAL file-name and open-mode
+declaratives, containing one with its own four-mode declaratives over an INDEXED file — at 85, 2002, 2014
+and 2023 and asserts the EMITTED TEXT of `__IoCheck`, `__IoCheckEc` and `__RunGlobalUse` is byte-identical,
+failing loudly if a selector is not emitted at all (a comparison of nothing is not evidence). Both of its
+failure branches were fired once before it was trusted.
 - **ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION** (§12.4.5.10.3 GR2), so it is rejected at 85,
   2002 AND 2014 — `constructs.json` row `file-organization-line-sequential-2023`, gated on the clause's
   RECOGNITION by `VersionConformancePass.ParseArm.VisitOrganizationClause` (COBOLNET0900). **The edition IS

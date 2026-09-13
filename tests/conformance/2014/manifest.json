@@ -89,7 +89,10 @@
     "pb337_into_receiver_admissible",
     "pb640_call_argument_landing_checked",
     "pb640_invoke_argument_landing_checked",
-    "pb640_call_argument_landing_legs"
+    "pb640_call_argument_landing_legs",
+    "pb344_read_previous_indexed",
+    "pb344_use_mode_invalid_key",
+    "pb344_use_mode_read_exception"
   ],
   "pending": []
 }
