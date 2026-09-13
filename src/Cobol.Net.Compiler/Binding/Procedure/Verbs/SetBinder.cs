@@ -773,15 +773,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (targets.Count > 1)
         {
             ctx.Edition.Error("COBOLNET1524",
-                $"SET '{cap.RegisterItem.CobolName}' {SetCapacityKindText(kind)}: a dynamic-table CAPACITY register "
+                $"SET '{cap.RegisterItem.CobolName}' {SetCapacityKinds.Text(kind)}: a dynamic-table CAPACITY register "
                 + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
             return new BoundNop();
         }
         return new BoundSetCapacity(cap.Table, host.Expr.BindIndexWindowExpr(amount), kind);
     }
-
-    private static string SetCapacityKindText(SetCapacityKind kind) =>
-        kind switch { SetCapacityKind.To => "TO", SetCapacityKind.UpBy => "UP BY", _ => "DOWN BY" };
 
     /// <summary>SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of a
     /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOLNET1568). The 2023

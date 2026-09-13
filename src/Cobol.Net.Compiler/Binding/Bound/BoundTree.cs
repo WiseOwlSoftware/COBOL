@@ -981,6 +981,15 @@ public sealed record BoundSetUpDown(IReadOnlyList<BoundSetTarget> Targets, Bound
 /// data-model D9).</summary>
 public enum SetCapacityKind { To, UpBy, DownBy }
 
+/// <summary>THE ONE spelling of a Format-14 capacity phrase (§14.9.39.2 Format 14), shared by the binder's
+/// receiver diagnostics and by the emitter's GR29 exception detail — the two had a private copy each.</summary>
+public static class SetCapacityKinds
+{
+    /// <inheritdoc cref="SetCapacityKinds"/>
+    public static string Text(SetCapacityKind kind) =>
+        kind switch { SetCapacityKind.To => "TO", SetCapacityKind.UpBy => "UP BY", _ => "DOWN BY" };
+}
+
 /// <summary><c>SET dynamic-capacity-register {TO | UP BY | DOWN BY} amount</c> (ISO §14.9.39 SET Format 14; the
 /// COBOL-2014 OCCURS DYNAMIC feature, data-model D9). The register is a VIEW over its owning table, so the emitter
 /// calls the table's <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> (via <paramref name="Table"/>, the

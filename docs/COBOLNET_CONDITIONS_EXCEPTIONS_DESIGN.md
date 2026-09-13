@@ -105,8 +105,20 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   can actually raise here: EC-SIZE-* (arithmetic), EC-I-O-* per referenced file, EC-OVERFLOW-STRING/-UNSTRING,
   EC-PROGRAM-* (CALL/CANCEL), EC-ARGUMENT-FUNCTION (intrinsic-bearing statements), EC-BOUND-REF-MOD/-OVERFLOW +
   EC-DATA-NOT-FINITE and EC-DATA-INCOMPATIBLE (any statement — ambient gates, below) and EC-DATA-OVERFLOW (a
-  MOVE), EC-STORAGE-NOT-AVAIL (SET SIZE). A name this implementation still cannot raise binds no wrapper — §14.6.13.1.1 sets an indicator only
+  MOVE), EC-STORAGE-NOT-AVAIL (SET SIZE), EC-RANGE-INDEX (any statement — ambient, below). A name this
+  implementation still cannot raise binds no wrapper — §14.6.13.1.1 sets an indicator only
   "when the associated exception occurs".
+- **EC-RANGE-INDEX is AMBIENT, deliberately, and that is the lesson from PB230 applied ahead of time**
+  (kb/Work PB459). §13.18.38.4 GR2 names three statements that may drive an index outside the implementor's
+  range — "An index may be modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET
+  statement" — and the §14.9.39.4 GR2 a) 1. b / 2. a / 3. b and GR4 a) limits are that same limit. A PRECISE
+  `QueryFor` case per node kind would be a hand-maintained list of every emitter path that stores into an index
+  (`SetEmitter`'s store/augment pair alone is ridden by three verbs), and the next such path would silently stop
+  being CHECKABLE — which is exactly the EC-DATA-INCOMPATIBLE `node is BoundMove` defect. The raise fires only
+  inside `CobolIndex`, so the flag around an index-free statement is a no-op. ⛔ **The condition had NO raise
+  site at all before PB459** while reading as wired: `ExceptionCatalog` carried its Table 13 row and
+  `FlagConformancePass` asked `_turn.Enabled("EC-RANGE-INDEX", …)` in order to FLAG a SET, so a grep for the
+  name returned four hits and none of them was a raise.
 - **THE RAISE RULE IS WRITTEN ONCE (`ExceptionEngine.FatalIfEnabled` / `NonfatalIfEnabled`; kb/Work PB676).**
   §14.6.13.1.1 is ONE sentence — "if checking for an exception that occurs is not enabled, no exception condition
   is raised" — applied once per (ambient checking flag, exception-name) pair, and that PAIR is declared in exactly

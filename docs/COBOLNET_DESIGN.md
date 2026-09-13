@@ -258,8 +258,11 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   subscript (1-based → `[expr - 1]`). NO flattened 1-D buffer, NO `stepSize` multipliers. *(Rejected: the legacy
   flattened-1-D-with-multipliers model — it IS the byte-offset arithmetic the owner abolished.)*
 - **Index-names (`INDEXED BY`) → a C# `long` holding a 1-based OCCURRENCE NUMBER**, not a byte displacement. `SET TO`
-  → assign; `SET UP/DOWN BY k` → `±= k`; subscript use → `[idx - 1]`; SEARCH/SEARCH ALL → integer loops. *(Rejected:
-  the legacy byte-displacement index — leaks table-element width into a program-visible value.)*
+  → the guarded store; `SET UP/DOWN BY k` → the guarded augment; subscript use → `[idx - 1]`; SEARCH/SEARCH ALL →
+  integer loops. That carrier IS the implementor's index range (ISO §13.18.38.4 GR2; `docs/CONFORMANCE.md` §7 row
+  `DOC-A.1-128`), so every value that reaches an index goes through `CobolIndex` — the ONE place §14.9.39.4's
+  integrality, sign and range guards are written (D3 deep dive). *(Rejected: the legacy byte-displacement index —
+  leaks table-element width into a program-visible value.)*
 - **Level-88 → C# `bool` properties** over the parent Place (`Ok => St == 1`); SET cond TO TRUE moves the 88's first
   VALUE (low bound of a THRU range) into the parent (ISO §14.9.34/§14.9.39). The binder must **stop skipping 88s**
   (currently dropped) and capture the full multi-literal + THRU value list. *(Rejected: stored bools kept in sync on

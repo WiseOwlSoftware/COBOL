@@ -576,6 +576,17 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 enabled.Add(("EC-BOUND-SUBSCRIPT", null));
             if (ctx.EcState.Turn.Enabled("EC-BOUND-ODO", null, line))
                 enabled.Add(("EC-BOUND-ODO", null));
+            // EC-RANGE-INDEX (fatal, §13.18.38.4 GR2) joins them for the same reason and with the same argument.
+            // §13.18.38.4 GR2 names THREE statements that may create a value for an index — "An index may be
+            // modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET statement" — and the
+            // §14.9.39.4 GR2 a) 1. b / 2. a / 3. b and GR4 a) limits are that same limit. A precise QueryFor case
+            // per node kind would be a hand-maintained list of every emitter path that stores into an index
+            // (SetEmitter's store/augment pair alone is ridden by three verbs), and the next such path would
+            // silently not be checkable — the EC-DATA-INCOMPATIBLE node-kind list is exactly how kb/Work PB230
+            // happened. The raise fires only inside CobolIndex, so the flag around an index-free statement is a
+            // no-op. kb/Work PB459.
+            if (ctx.EcState.Turn.Enabled("EC-RANGE-INDEX", null, line))
+                enabled.Add(("EC-RANGE-INDEX", null));
             // EC-BOUND-TABLE-LIMIT (§14.9.39.4 GR30) is ambient, unlike its CA37 twin: a dynamic table grows
             // both from an explicit capacity SET and from an IMPLICIT receiving reference, and the latter renders
             // inline through CobolDynTable.RefReceiving with no statement-level node of its own.

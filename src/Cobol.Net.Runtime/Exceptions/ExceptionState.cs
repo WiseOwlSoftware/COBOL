@@ -481,6 +481,28 @@ public sealed class ExceptionEngine
     /// enabled; otherwise return and the caller's clamp stands.</summary>
     public void OdoError(string detail) => FatalIfEnabled(BoundOdoChecking, "EC-BOUND-ODO", detail);
 
+    // ── EC-RANGE-INDEX ambient statement gate (an index driven outside the implementor range) ─────────────────
+    //
+    // ⛔ THE CONDITION HAD NO RAISE SITE AT ALL until kb/Work PB459 — the catalog carried its Table 13 row and
+    // FlagConformancePass asked `_turn.Enabled("EC-RANGE-INDEX", …)` to FLAG a SET, so a grep for the name
+    // returned four hits and the condition read as wired while it could never occur.
+
+    /// <summary>True while the currently-executing statement has EC-RANGE-INDEX checking enabled (fatal).
+    /// The index store/augment sites in <see cref="CobolIndex"/> consult it.</summary>
+    public bool RangeIndexChecking
+    {
+        get => _checking.RangeIndex;
+        set => _checking.RangeIndex = value;
+    }
+
+    /// <summary>Raise EC-RANGE-INDEX when a PERFORM VARYING, SEARCH or SET "creates a value for the index that is
+    /// outside the range of the values allowed by the implementor" (§13.18.38.4 GR2 a; §14.9.39.4 GR2 a) 1. b /
+    /// 2. a / 3. b and GR4 a) name the same limit; Table 13 Fatal) when checking is enabled; otherwise return, and
+    /// the caller applies the SET rules' own named outcome — "the execution of the SET statement is unsuccessful,
+    /// and the content of the receiving operand is unchanged" — which is also §13.18.38.4 GR2 b's "the value of
+    /// the index is undefined UNLESS the value of the index is specified by the rules of that statement".</summary>
+    public void RangeIndexError(string detail) => FatalIfEnabled(RangeIndexChecking, "EC-RANGE-INDEX", detail);
+
     /// <summary>True while EC-PROGRAM-ARG-OMITTED checking is enabled (fatal).</summary>
     public bool ProgramArgOmittedChecking
     {
@@ -1061,6 +1083,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.OdoError"/>
     public static void OdoError(string detail) => E.OdoError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.RangeIndexChecking"/>
+    public static bool RangeIndexChecking
+    {
+        get => E.RangeIndexChecking;
+        set => E.RangeIndexChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.RangeIndexError"/>
+    public static void RangeIndexError(string detail) => E.RangeIndexError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.OoUniversalChecking"/>
     public static bool OoUniversalChecking

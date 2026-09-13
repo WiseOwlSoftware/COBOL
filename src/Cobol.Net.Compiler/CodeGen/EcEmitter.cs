@@ -153,6 +153,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-SIZE-ADDRESS", "SizeAddressChecking"),             // §14.9.39 F10 GR19 — non-integer SET UP/DOWN BY amount
         ("EC-BOUND-SUBSCRIPT", "BoundSubscriptChecking"),       // §8.4.2.3.4 GR2 — subscript outside 1..highest
         ("EC-BOUND-ODO", "BoundOdoChecking"),                   // §13.18.38.4 GR7 — DEPENDING value outside int-1..int-2
+        ("EC-RANGE-INDEX", "RangeIndexChecking"),               // §13.18.38.4 GR2 / §14.9.39.4 GR2 a) 1. b + GR4 a) — an index driven outside the implementor range (kb/Work PB459)
         ("EC-PROGRAM-ARG-OMITTED", "ProgramArgOmittedChecking"),// §14.9.4.4 GR12 — reference to an omitted formal (kb/Work PB133 wave C)
         // ⛔ FLAG = null: these two raise sites are UNCONDITIONAL, so there is no checking flag to set. §14.9.23.4
         // GR5 ("If identifier-1 is null, the EC-OO-NULL exception condition is set to exist and execution of the

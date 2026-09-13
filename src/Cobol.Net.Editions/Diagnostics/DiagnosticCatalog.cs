@@ -2835,6 +2835,22 @@ public static class DiagnosticCatalog
         + "and an alphanumeric literal in `PIC NNTNN EDITING \"T\" IS \":\"`. SR9's second sentence — 50 "
         + "characters — is COBOLNET1594.",
         "ISO §13.18.40.3 SR9");
+    /// <summary>COBOLNET1961 — an index-name subscripting a table it is not INDEXED BY (§8.4.2.3.3 SR4).
+    /// kb/Work PB459: §14.9.39.4 GR1 exists so the rest of the SET clause can say "that table", and the
+    /// association was built (<c>DataItem.IndexNames</c>) but consumed by nothing outside SEARCH — so
+    /// <c>MOVE 77 TO E2(IX1)</c>, with IX1 the index of a DIFFERENT table, compiled clean and wrote through an
+    /// unrelated table's occurrence number.</summary>
+    public static readonly DiagnosticDescriptor IndexNameNotInTable = new(
+        "COBOLNET1961", "index-name-not-in-table", EditionSeverity.Error,
+        "ISO §8.4.2.3.3 syntax rule 4: \"Index-name-1 shall correspond to a data description entry in the "
+        + "hierarchy of the table being referenced that contains an INDEXED BY phrase specifying that "
+        + "index-name.\" The index-name written in this subscript is declared in the INDEXED BY phrase of a "
+        + "DIFFERENT table, so it does not identify an occurrence of the table being referenced. Subscript with "
+        + "an index-name of this table's own hierarchy, or with an integer data item / arithmetic expression "
+        + "(§8.4.2.3.2). Refused in BOTH dialect lanes: the reference has a computable occurrence number, so "
+        + "accepting it would silently read or write the wrong table element rather than fail — there is no "
+        + "leniency to offer that is not a wrong answer.",
+        "ISO §8.4.2.3.3 SR4");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

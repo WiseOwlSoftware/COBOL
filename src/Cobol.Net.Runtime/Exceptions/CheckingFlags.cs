@@ -80,6 +80,11 @@ public struct CheckingFlags
     /// (§13.18.38.4 GR7).</summary>
     public bool BoundOdo;
 
+    /// <summary>EC-RANGE-INDEX — a PERFORM VARYING, SEARCH or SET that creates a value for an index outside the
+    /// implementor's range of allowed index values (§13.18.38.4 GR2; SET Format 1's GR2 a) 1. b / 2. a / 3. b and
+    /// Format 2's GR4 a) name the same limit). kb/Work PB459.</summary>
+    public bool RangeIndex;
+
     /// <summary>EC-OO-UNIVERSAL — the ACTIVATOR's half of §14.9.23.4 GR7c's "enabled in BOTH" gate. Set around
     /// an INVOKE by the emitted statement guard and read by the callee's <c>__CobolInvoke</c>, which is entered
     /// synchronously on the same run unit; the METHOD's half is a compile-time literal baked per method.</summary>

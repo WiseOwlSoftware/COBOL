@@ -314,7 +314,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1)
                     {
                         body();
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By));
+                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
                     }
                     else
                     {
@@ -322,7 +322,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // §14.9.28 GR13e ('85 6.20.4 GR10(d)1): the OUTER variable augments FIRST, THEN the inner
                         // re-initializes from its CURRENT FROM value — `AFTER B FROM A` must see the augmented A
                         // (NC201A PFM-TEST-F4-23: 3+2+1 = 6 iterations, not 3+3+2).
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By));
+                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
                         InitVaryingTarget(v, levels[k + 1]);
                     }
                 }
@@ -343,31 +343,43 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         EmitAfter(k + 1);
                     }
                     w.Line($"if ({cond.Render(levels[k].Until)}) break;");
-                    set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By));
+                    set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
                 }
             }
         }
     }
 
-    /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13). When the target
-    /// is an INDEX-NAME initialized from a data-item FROM and EC-RANGE-PERFORM-VARYING checking is enabled
-    /// (§14.9.28.4 GR3), materialize the FROM value ONCE, raise the fatal EC when it is not positive (the runtime
-    /// tests the DATA-ITEM value, GR3 — the throw is caught by the FatalAmbientGates guard for USE-F3 dispatch), then
-    /// assign the index; otherwise the plain store (byte-identical). GR3 governs FROM initialization only, so the
-    /// BY/augment sites are unaffected. A literal FROM (BoundNumLiteral) and an index-name FROM (BoundIndexRef) are
-    /// out of GR3 scope and take the plain path.</summary>
+    /// <summary>Initialize a PERFORM VARYING (or AFTER) level's target from its FROM operand (GR13).
+    /// <para>An INDEX-NAME target takes the FROM value through THE ONE SET-family amount landing
+    /// (<see cref="SetEmitter.LandAmount"/>) — §13.18.38.4 GR2 names PERFORM VARYING beside SET and SEARCH as a
+    /// statement that "creates a value for the index", and makes a value outside the implementor's index range the
+    /// EC-RANGE-INDEX case. The former bare <c>(long)(Align(…, 0))</c> narrowing WRAPPED such a value silently, and
+    /// §14.9.28.3 SR4 a) admits an integer data item of up to 31 digits as the FROM operand, so the wrap is
+    /// reachable from conforming source (kb/Work PB459). The landing's own integrality test is satisfied by that
+    /// same SR4 a)/b), so on legal source it never fires; the range test is the live one.</para>
+    /// <para>Inside that success leg, when EC-RANGE-PERFORM-VARYING checking is enabled (§14.9.28.4 GR3) and the
+    /// FROM operand is a data item, the fatal EC is raised for a non-positive value (the runtime tests the
+    /// DATA-ITEM value, GR3 — the throw is caught by the FatalAmbientGates guard for USE-F3 dispatch). GR3 governs
+    /// FROM initialization only, so the BY/augment sites are unaffected; a literal FROM (BoundNumLiteral) and an
+    /// index-name FROM (BoundIndexRef) are out of GR3 scope.</para>
+    /// <para>A NUMERIC induction variable (§14.9.28.3 SR2 — the only other legal VARYING identifier) is a PICTURE
+    /// store with its own §14.7 size rules and has no index range, so it keeps the plain store.</para></summary>
     private void InitVaryingTarget(PerformVarying v, VaryingLevel lv)
     {
-        if (v.CheckIndexRange && lv.Var is SetIndexTarget ix && lv.From is BoundNumRef)
+        NumX from = num.RenderOperandLike(lv.From);
+        if (lv.Var is not SetIndexTarget)
         {
-            string tmp = $"__pv{ctx.Names.NextVary()}";
-            ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(num.RenderOperandLike(lv.From), 0)});");
-            ctx.Writer.Line($"ExceptionState.PerformVaryingIndexError({tmp}, "
-                + $"{EmitText.CsLiteral("PERFORM VARYING index-name initialized from a non-positive item (ISO 14.9.28.4 GR3)")});");
-            ctx.Writer.Line($"{ix.IndexField} = {tmp};");
+            set.StoreSetTarget(lv.Var, from);
             return;
         }
-        set.StoreSetTarget(lv.Var, num.RenderOperandLike(lv.From));
+        string guard = set.LandAmount(from, SetAmountRule.IndexTo, "PERFORM VARYING … FROM", out string tmp, "pv");
+        using (ctx.Writer.Block($"if ({guard})"))
+        {
+            if (v.CheckIndexRange && lv.From is BoundNumRef)
+                ctx.Writer.Line($"ExceptionState.PerformVaryingIndexError({tmp}, "
+                    + $"{EmitText.CsLiteral("PERFORM VARYING index-name initialized from a non-positive item (ISO 14.9.28.4 GR3)")});");
+            set.StoreSetTarget(lv.Var, new NumX(tmp, 0));
+        }
     }
 
     /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once): a literal verbatim; an
@@ -457,7 +469,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             }
         // (3) advance the index (+ the GR8 varied item); an advance past the end is unsuccessful → NO-MATCH.
         w.Line($"{s.IndexField} += 1;");
-        if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0));
+        if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING");
         using (w.Block($"if ({s.IndexField} > {bound})"))
         {
             if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");

@@ -77,7 +77,10 @@ public sealed class CobolDynTable<T>
             if (_expected is { } exp && occ > exp && _count <= exp)   // first implicit crossing of the expected capacity
                 ExceptionState.BoundOverflowError(
                     $"OCCURS DYNAMIC implicit growth to {occ} exceeds the expected capacity {exp} (ISO §8.5.1.9.6 GR1)");
-            GrowTo((int)occ);
+            // `occ`, not `(int)occ` — the SAME narrowing the explicit path carried (kb/Work PB459). A receiving
+            // reference to occurrence 5 000 000 000 wrapped to 705 032 704 and silently grew the table to it
+            // instead of raising GR30's EC-BOUND-TABLE-LIMIT; the `long` widens to GrowTo's Int128 parameter.
+            GrowTo(occ);
             // ⛔ GrowTo may now DECLINE (GR30 leaves the capacity unchanged when checking is off), so the
             // occurrence it was asked for can still not exist. Falling through to `_store[occ-1]` here would be
             // an IndexOutOfRangeException — a raw .NET failure on user source, from the one path where a benign
@@ -93,7 +96,11 @@ public sealed class CobolDynTable<T>
     /// (§8.5.1.9.6 GR1) is raised by <see cref="RefReceiving"/> BEFORE calling here (only implicit growth qualifies);
     /// EC-BOUND-SET on an explicit SET past the expected capacity (§14.9.39 GR30) stays a nonfatal staged follow-on —
     /// being nonfatal, it produces identical observable results with checking OFF (the default).</summary>
-    private void GrowTo(int newCount)
+    /// <remarks>⛔ <paramref name="newCount"/> is <see cref="Int128"/>, and THAT IS THE POINT (kb/Work PB459):
+    /// the implementor-maximum test is written ONCE, here, and it has to see the request BEFORE any narrowing.
+    /// The explicit-SET path used to hand this an <c>(int)</c> cast of a <c>long</c>, so a capacity request of
+    /// 5 000 000 000 WRAPPED to 705 032 704 — a small VALID capacity, silently allocated — instead of raising.</remarks>
+    private void GrowTo(Int128 newCount)
     {
         if (newCount <= _count) return;
         if (newCount > MaxOccurrences)
@@ -106,20 +113,21 @@ public sealed class CobolDynTable<T>
                 + "— ISO §14.9.39.4 GR30");
             return;   // GR30: capacity unchanged
         }
-        if (newCount > _store.Length)
+        int target = (int)newCount;   // ≤ MaxOccurrences by the test above
+        if (target > _store.Length)
         {
             int cap = _store.Length < 4 ? 4 : _store.Length;
-            while (cap < newCount) cap = cap >= MaxOccurrences / 2 ? MaxOccurrences : cap * 2;
+            while (cap < target) cap = cap >= MaxOccurrences / 2 ? MaxOccurrences : cap * 2;
             Array.Resize(ref _store, cap);
         }
-        for (int i = _count; i < newCount; i++) _store[i] = _seedAt(i + 1);
-        _count = newCount;
+        for (int i = _count; i < target; i++) _store[i] = _seedAt(i + 1);
+        _count = target;
     }
 
     /// <summary>SET Format 14 <c>… TO n</c> (§14.9.39 GR29): set the current capacity to n (raise OR lower), clamped
     /// to ≥ the minimum. Lowering frees the highest occurrences. Illegal during a SEARCH of this same table
     /// (EC-FLOW-SEARCH, GR31). Growth beyond the implementor max raises EC-BOUND-TABLE-LIMIT (capacity unchanged).</summary>
-    public void SetCapacity(long n)
+    public void SetCapacity(Int128 n)
     {
         if (_searching > 0)
         {
@@ -131,16 +139,25 @@ public sealed class CobolDynTable<T>
                 + "(ISO §14.9.39.4 GR31)");
             return;   // GR31: the SET statement is not executed
         }
-        long target = n < _min ? _min : n;
-        if (target > _count) GrowTo((int)target);
-        else if (target < _count) _count = (int)target;   // free the highest occurrences (§8.5.1.9.4)
+        // ⛔ THE NEW CAPACITY ARRIVES AND TRAVELS AS Int128 (kb/Work PB459). GR30 computes it from
+        // arithmetic-expression-4 — "the new capacity is obtained by adding … to the current capacity" for UP BY,
+        // subtracting for DOWN BY — so the UP/DOWN twins below form `_count ± n` WIDER than the carrier: in the
+        // `long` it could overflow before this call was even made. The implementor-maximum test that GR30 states
+        // next is NOT repeated here: it is written once, in GrowTo, which the IMPLICIT-growth path needs too. A
+        // new capacity above the maximum can never be clamped to the minimum (min ≤ max), so reaching GrowTo
+        // through the growth arm below applies GR30's two tests in their stated order anyway.
+        if (n > _count) { GrowTo(n); return; }               // grow: n > _count ≥ _min, so no clamp can apply
+        // GR30's minimum clamp — "If the new capacity of the table is less than the minimum capacity defined in
+        // the corresponding OCCURS clause, the new capacity of the table shall be the minimum capacity" — over a
+        // shrink, where n < _count ≤ MaxOccurrences makes the narrowing exact.
+        if (n < _count) _count = n < _min ? _min : (int)n;   // free the highest occurrences (§8.5.1.9.4)
     }
 
-    /// <summary>SET Format 14 <c>… UP BY n</c> (§14.9.39): raise the current capacity by n.</summary>
-    public void CapacityUpBy(long n) => SetCapacity(_count + n);
+    /// <summary>SET Format 14 <c>… UP BY n</c> (§14.9.39.4 GR30 b): raise the current capacity by n.</summary>
+    public void CapacityUpBy(long n) => SetCapacity((Int128)_count + n);
 
-    /// <summary>SET Format 14 <c>… DOWN BY n</c> (§14.9.39): lower the current capacity by n.</summary>
-    public void CapacityDownBy(long n) => SetCapacity(_count - n);
+    /// <summary>SET Format 14 <c>… DOWN BY n</c> (§14.9.39.4 GR30 c): lower the current capacity by n.</summary>
+    public void CapacityDownBy(long n) => SetCapacity((Int128)_count - n);
 
     /// <summary>INITIALIZE of the whole dynamic table (§14.9 INITIALIZE GR10): re-seed occurrences [1..current];
     /// the current capacity is unchanged.</summary>

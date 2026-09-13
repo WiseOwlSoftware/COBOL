@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Model;
+using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 
@@ -651,6 +652,28 @@ internal static class RuntimeApi
     /// <summary>FREE a pointer's cell — <c>CobolPtr.Free</c> (three-way per GR1; not-alloc out-flag).</summary>
     public static string PtrFree(string ptr, string notAllocVar) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.Free)}({ptr}, out {notAllocVar})";
+
+    // ── Indexes (CobolIndex; ISO §14.9.39.4 GR2 a) 1., GR3, GR4 a), GR29 · §13.18.38.4 GR2 — kb/Work PB459) ──
+
+    /// <summary>THE SET-family amount landing over an EXACT scaled fixed-point amount —
+    /// <c>CobolIndex.TryAmount</c>. The amount keeps its scale all the way in, so the integrality test
+    /// (GR2 a) 1. a / GR3 / GR29) sees the fraction an emitter-side <c>(long)</c> narrowing would have
+    /// destroyed. <see langword="false"/> is "the execution of the SET statement is unsuccessful".</summary>
+    public static string IndexTryAmount(string scaled, string scale, SetAmountRule rule, string detail, string outVar) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmount)}({scaled}, {scale}, "
+        + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
+
+    /// <summary>The NATIVE-FLOAT lane of <see cref="IndexTryAmount"/> — <c>CobolIndex.TryAmountReal</c>, whose
+    /// integrality test runs on the <c>double</c> itself (the <c>CobolPtr.UpByReal</c> shape, kb/Work PB151).</summary>
+    public static string IndexTryAmountReal(string amountDouble, SetAmountRule rule, string detail, string outVar) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmountReal)}({amountDouble}, "
+        + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
+
+    /// <summary>THE guarded index augment — <c>CobolIndex.Augment</c> (§14.9.39.4 GR4 a): a result outside the
+    /// implementor index range raises EC-RANGE-INDEX and returns the index UNCHANGED.</summary>
+    public static string IndexAugment(string index, string amount, bool down, string detail) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.Augment)}({index}, {amount}, {(down ? "true" : "false")}, "
+        + $"{EmitText.CsLiteral(detail)})";
 
     // ── More strings / tables ──
 

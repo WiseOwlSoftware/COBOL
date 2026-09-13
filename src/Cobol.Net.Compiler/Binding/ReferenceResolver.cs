@@ -377,8 +377,10 @@ public sealed class ReferenceResolver(DataBinder data)
         List<string> indexExprs = [];
         if (subCtx is not null)
         {
-            var (e, isRefMod) = InterpretSubscripts(subCtx);
+            List<IToken> ixNames = [];
+            var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
             if (isRefMod || e is null) return null;   // unsupported subscript form → loud
+            ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
             indexExprs = e;
         }
 
@@ -850,8 +852,10 @@ public sealed class ReferenceResolver(DataBinder data)
         List<string> indexExprs = [];
         if (subCtx is not null)
         {
-            var (e, isRefMod) = InterpretSubscripts(subCtx);
+            List<IToken> ixNames = [];
+            var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
             if (isRefMod || e is null) return null;
+            ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
             indexExprs = e;
         }
         return PlaceForItem(item, indexExprs);
@@ -917,8 +921,10 @@ public sealed class ReferenceResolver(DataBinder data)
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
         if (item is null) return null;
         if (subCtx is null) return (item, null);
-        var (exprs, isRefMod) = InterpretSubscripts(subCtx);
+        List<IToken> ixNames = [];
+        var (exprs, isRefMod) = InterpretSubscripts(subCtx, ixNames);
         if (isRefMod || exprs is null) return null;
+        ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
         // The in-class OCCURS levels outer→inner — the PlaceForItem Tier-B walk (same layout, same formula).
         var occursLevels = new List<DataItem>();
         for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, item.Class); n = n.Parent)
@@ -1177,7 +1183,10 @@ public sealed class ReferenceResolver(DataBinder data)
         return false;
     }
 
-    private (List<string>? Exprs, bool IsRefMod) InterpretSubscripts(Core.SubscriptOrRefModContext ctx)
+    /// <param name="indexNames">§8.4.2.3.3 SR4's collector — the index-names used as subscripts, for
+    /// <see cref="ScreenIndexNameAssociation"/> at the caller, which knows the table being referenced.</param>
+    private (List<string>? Exprs, bool IsRefMod) InterpretSubscripts(
+        Core.SubscriptOrRefModContext ctx, List<IToken>? indexNames = null)
     {
         var tokens = new List<IToken>();
         CollectLeafTokens(ctx, tokens);
@@ -1208,7 +1217,7 @@ public sealed class ReferenceResolver(DataBinder data)
         foreach (var seg in SplitSubscriptTokens(tokens,
                      name => ResolveUnqualified(name) is { IsTable: false }))   // kb/Work PB136 — declaration-informed '(' splitting
         {
-            if (RenderSegment(seg, SegmentPosition.Subscript) is not { } e) return (null, false);
+            if (RenderSegment(seg, SegmentPosition.Subscript, indexNames) is not { } e) return (null, false);
             exprs.Add(e);
         }
         return (exprs, false);
@@ -1342,7 +1351,9 @@ public sealed class ReferenceResolver(DataBinder data)
     /// different bound operand — so the screens are QUEUED here and flushed only when this method actually
     /// returns a rendered segment. Every D18 reroute discards the queue, which makes the deduplication a
     /// property of the control flow rather than of a set, and makes the NEXT late exit automatic.</para></summary>
-    private string? RenderSegment(List<IToken> tokens, SegmentPosition position)
+    /// <param name="indexNames">§8.4.2.3.3 SR4's collector — see
+    /// <see cref="ResolveSubscriptName(string,List{string},SegmentPosition,ref List{PendingScreen},out bool,ValueTuple{IToken,List{IToken}})"/>.</param>
+    private string? RenderSegment(List<IToken> tokens, SegmentPosition position, List<IToken>? indexNames = null)
     {
         var sb = new System.Text.StringBuilder();
         List<PendingScreen>? pending = null;
@@ -1417,7 +1428,7 @@ public sealed class ReferenceResolver(DataBinder data)
                     // text, because the fragment binder reaches the individual operand. (That an undefined
                     // subscript name is a RUN-TIME abort at all is a separate, pre-existing wrong-stage
                     // defect; it is recorded in PB50's note, not fixed here.)
-                    if (ResolveSubscriptName(name, qualifiers, position, ref pending, out bool scaled) is not { } readExpr)
+                    if (ResolveSubscriptName(name, qualifiers, position, ref pending, out bool scaled, (t, indexNames)) is not { } readExpr)
                         return MaterializeViaFragment(tokens, position);
                     // A scaled operand inside a compound segment — evaluate the whole expression instead (above).
                     if (scaled && compound) return MaterializeViaFragment(tokens, position);
@@ -1456,6 +1467,45 @@ public sealed class ReferenceResolver(DataBinder data)
     /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
     /// <see cref="RenderSegment"/>.</summary>
     private readonly record struct PendingScreen(DataItem? Item, string Name);
+
+    /// <summary>⛔ §8.4.2.3.3 SR4 — THE ONE CONSUMER OF THE INDEX→TABLE ASSOCIATION on the reference side:
+    /// "Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced
+    /// that contains an INDEXED BY phrase specifying that index-name."
+    /// <para>kb/Work PB459 measured the hole: §14.9.39.4 GR1 builds the association ("Index-names are associated
+    /// with a given table by being specified in the INDEXED BY phrase of the OCCURS clause for that table") and
+    /// <c>DataItem.IndexNames</c> holds it, but outside SEARCH nothing read it — so
+    /// <c>MOVE 77 TO E2(IX1)</c>, with IX1 the index of an unrelated table, compiled clean and wrote through that
+    /// other table's occurrence number, with no diagnostic at any stage.</para>
+    /// <para>The rule is applied EXACTLY as written: the index-name must appear in SOME entry of the referenced
+    /// item's own hierarchy — SR4 says "in the hierarchy of the table being referenced", not "on the OCCURS level
+    /// this subscript position selects", so a multi-dimensional reference that names its own table's indexes out
+    /// of dimension order is NOT refused here. Reading the extra restriction in would reject source the standard
+    /// admits.</para>
+    /// <para>A REDEFINES / RENAMES view resolves to its own entry, and an index-name declared on the redefining
+    /// entry is found through that entry's own hierarchy — no special case.</para></summary>
+    private void ScreenIndexNameAssociation(DataItem item, List<IToken> indexNames)
+    {
+        if (indexNames.Count == 0 || _probing) return;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        foreach (var t in indexNames)
+        {
+            if (IndexNameInHierarchy(item, t.Text)) continue;
+            data.Edition.Error(DiagnosticCatalog.IndexNameNotInTable,
+                $"'{item.CobolName}' subscripted by the index-name '{t.Text}', which is not in the INDEXED BY "
+                + "phrase of any OCCURS clause in this item's hierarchy (ISO §8.4.2.3.3 SR4)");
+        }
+    }
+
+    /// <summary>True when <paramref name="name"/> is an index-name of some entry in <paramref name="item"/>'s own
+    /// hierarchy — the item itself or any containing entry (§8.4.2.3.3 SR4's "hierarchy of the table being
+    /// referenced"). Index-names are user-defined words, and §8.1.3.2 GR3 a) makes "COBOL basic letters appearing
+    /// elsewhere within the compilation group … treated in a case-insensitive manner", so the comparison is too.</summary>
+    private static bool IndexNameInHierarchy(DataItem item, string name)
+    {
+        for (DataItem? e = item; e is not null; e = e.Parent)
+            foreach (string ix in e.IndexNames)
+                if (string.Equals(ix, name, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
 
     /// <summary>True when this segment contains a FUNCTION-IDENTIFIER (ISO §8.4.3.1.2 Format 1) and therefore
     /// belongs to the D18 materialization route rather than the token renderer: either the explicit
@@ -1522,8 +1572,13 @@ public sealed class ReferenceResolver(DataBinder data)
     /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
     /// <param name="scaled">Set when the resolved operand carries a nonzero PICTURE scale, so the caller can send a
     /// COMPOUND segment to the D18 materializer instead (the §8.4.2.3.4 GR1b result-vs-operand distinction).</param>
+    /// <param name="nameToken">The name's own token, and the collector it is recorded into when it resolves to an
+    /// index-name IN A SUBSCRIPT position: the caller is the only frame that knows WHICH table is being
+    /// referenced, so §8.4.2.3.3 SR4 is applied there (<see cref="ScreenIndexNameAssociation"/>). Threaded rather
+    /// than kept on the resolver because the D18 materializer can re-enter this resolver for a nested
+    /// reference (kb/Work PB459).</param>
     private string? ResolveSubscriptName(string name, List<string> qualifiers, SegmentPosition position,
-        ref List<PendingScreen>? pending, out bool scaled)
+        ref List<PendingScreen>? pending, out bool scaled, (IToken Token, List<IToken>? Into) nameToken)
     {
         scaled = false;
         // An index-name is an occurrence number by construction (§13.18.38) and a constant-name substitutes an
@@ -1534,7 +1589,11 @@ public sealed class ReferenceResolver(DataBinder data)
         // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
         if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field))
         {
-            if (position == SegmentPosition.Subscript) return field;
+            if (position == SegmentPosition.Subscript)
+            {
+                nameToken.Into?.Add(nameToken.Token);   // §8.4.2.3.3 SR4 — screened by the caller, which has the table
+                return field;
+            }
             (pending ??= []).Add(new PendingScreen(null, name));
             return field;   // keep rendering: a null here would re-route to D18 and screen the operand twice
         }

@@ -157,6 +157,24 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 **Rejected alternatives.** Legacy byte-displacement index — rejected: layout leak, and undefined under element-width redefines (not in the corpus).
 
+**⛔ THE CARRIER IS THE IMPLEMENTOR'S INDEX RANGE, AND THE RANGE IS ENFORCED IN ONE PLACE** (kb/Work PB459).
+§13.18.38.4 GR2 makes "the rules for the range of values allowed in the index defined by index-name-1"
+implementor-defined and requires them to be DOCUMENTED (A.1 item 128) — so this decision, `long`, IS the
+determination: the range is the full signed 64-bit interval, written down as `docs/CONFORMANCE.md` §7 row
+`DOC-A.1-128` and as `CobolIndex.MinIndex`/`MaxIndex`. GR2 also names the three statements that may create a
+value for an index — PERFORM VARYING, SEARCH, SET — and makes a value outside the range EC-RANGE-INDEX. All
+three funnel through `Cobol.Net.Runtime/Values/Tables/CobolIndex.cs`, which is the ONLY place the guard is
+written: `TryAmount`/`TryAmountReal` land a SET-family AMOUNT (§14.9.39.4 GR2 a) 1., GR3, GR29 — the integrality
+and sign tests, which must run BEFORE the value reaches the `long`), and `Augment` forms a SET / PERFORM VARYING
+augment in `Int128` (GR4 a) — so the 64-bit boundary is a value the runtime can see rather than a wrap it cannot.
+A SEARCH's own scan cannot reach the boundary: §14.9.37.4 GR4's initial-index guard bounds it by the table's
+occurrence count.
+
+⛔ **The range is NOT the table's bounds.** §14.9.39.4 GR2 a) 1. c and GR4 b) each end "even if that occurrence
+is not a valid occurrence within this table", so an index legitimately points outside its own table and a
+table-bounds test here would reject conforming programs. `SetIndexAmountLandingDriftTests` keeps both halves
+true: every SET-family amount site lands, and no emitter narrows an amount with a bare `(long)` cast first.
+
 ### D4. Level-88 condition-names emit as C# bool properties over the parent Place; level-66 RENAMES emit as alias properties (overlapping-byte RENAMES deferred to G6).
 
 **Rationale.** An 88 is a predicate, not storage; a property is the idiomatic, zero-storage encoding and SET TO TRUE just assigns the parent. RENAMES of single/whole items composes from member images; only the overlapping-byte case needs the byte fallback.

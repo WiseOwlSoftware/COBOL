@@ -3,6 +3,7 @@
   "enabled": [
     "pb492_national_edited",
     "pb817_restricted_program_pointer",
+    "pb459_set_index_range_ec",
     "pb490_simple_insertion_strings",
     "pb487_aligned_bit_layout",
     "pb400_evaluate_boolean_sr6_pair",

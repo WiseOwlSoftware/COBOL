@@ -3,6 +3,7 @@
   "enabled": [
   "pb492_national_edited",
   "pb452_set_function_pointer",
+  "pb459_set_capacity_amount_guards",
   "pb490_simple_insertion_strings",
   "l1_divide_quotient_remainder_standard_decimal",
   "l1_divide_remainder_backmultiply_size_error",
