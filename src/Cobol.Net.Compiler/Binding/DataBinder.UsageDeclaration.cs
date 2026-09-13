@@ -179,7 +179,7 @@ public sealed partial class DataBinder
 
             // ARM B — an ELEMENTARY item of one of SR14's classes, however it acquired the usage.
             if (!Sr14Elementary(item) || !Sr14PlacementClass(item)) continue;
-            if (Sr14PermittedLevel(item.Level) || Sr14UnderStrongTypeDeclaration(item)) continue;
+            if (Sr14PermittedLevel(item.Level) || UnderStrongTypeDeclaration(item)) continue;
 
             Edition.Error(DiagnosticCatalog.UsageDeclarationPlacement, $"data item '{name}' is described with "
                 + $"USAGE {Sr14PhraseNameOf(item)} at level {item.Level:00}, subordinate to "
@@ -270,16 +270,18 @@ public sealed partial class DataBinder
     /// level stack attaches an 88 to its conditional variable — so this predicate never sees them.</summary>
     private static bool Sr14PermittedLevel(int level) => level is 1 or 77;
 
-    /// <summary>SR14's second arm: the item is subordinate to a TYPE DECLARATION that includes the STRONG
-    /// phrase. ⛔ The test is the DECLARATION-side <see cref="DataItem.TypedefStrong"/> on an enclosing TYPEDEF
+    /// <summary>"Subordinate to a TYPE DECLARATION that includes the STRONG phrase" — SR14's second arm, and
+    /// §13.16.3 SR24 g)'s second arm, which are the same words and so are ONE predicate (kb/Work PB488 made it
+    /// the second caller and dropped the <c>Sr14</c> prefix; <c>DataBinder.ConditionName.cs</c>).
+    /// ⛔ The test is the DECLARATION-side <see cref="DataItem.TypedefStrong"/> on an enclosing TYPEDEF
     /// template root, NOT the post-expansion <c>StrongTypeModel.StrongRoot</c> / <c>DataItem.StrongType</c>:
-    /// SR14 says "subordinate to a type declaration that includes the STRONG phrase", and screening the
+    /// both rules say "subordinate to a type declaration that includes the STRONG phrase", and screening the
     /// TEMPLATE — which <see cref="ConformanceForest"/> visits once and whose clones it prunes — is what makes
     /// this a once-per-source verdict anchored at the entry the programmer wrote. Reading the post-expansion
     /// flag instead would let a WEAK typedef's pointer member escape at the template and then fire once per
     /// TYPE reference site: wrong site, wrong count, and a diagnostic naming a line that is not the defect.
     /// </summary>
-    private static bool Sr14UnderStrongTypeDeclaration(DataItem item)
+    private static bool UnderStrongTypeDeclaration(DataItem item)
     {
         for (var p = item.Parent; p is not null; p = p.Parent)
             if (p.TypedefStrong) return true;

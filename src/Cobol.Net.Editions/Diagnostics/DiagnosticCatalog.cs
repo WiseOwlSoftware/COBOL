@@ -2907,6 +2907,43 @@ public static class DiagnosticCatalog
         + "be zero-length literals.\"",
         "ISO §14.9.37.3 SR10, SR12, SR13");
 
+    // ── COBOLNET1976–1977 — the level-88 condition-name association rules (ISO §13.16.3 SR24) ──────────
+
+    /// <summary>COBOLNET1976 — the entry a level-88 condition-name entry follows is one ISO §13.16.3 SR24
+    /// EXCLUDES from being a conditional variable. kb/Work PB488: <c>BindCondition</c> was a VALUE decoder with
+    /// no eligibility screen at all, so seven of the rule's eight lettered exclusions were unenforced and the
+    /// eighth (a) held only by construction — <c>01 IX USAGE INDEX. 88 C VALUE 1.</c> compiled AND EVALUATED,
+    /// and the pointer spelling leaked a raw Roslyn <c>CS0103</c> at the user.</summary>
+    public static readonly DiagnosticDescriptor ConditionNameVariableExcluded = new(
+        "COBOLNET1976", "condition-name-variable-excluded", EditionSeverity.Error,
+        "ISO §13.16.3 syntax rule 24: \"A condition-name may be associated with any data description entry that "
+        + "contains a level-number except the following: a) Another level 88 entry. b) A level 66 entry. c) An "
+        + "alphanumeric group containing items with a usage other than display. d) A group containing items "
+        + "described with a JUSTIFIED or SYNCHRONIZED clause. e) A data item of the class index, message-tag, "
+        + "object, or pointer. f) A data item described with the ANY LENGTH clause. g) A type declaration "
+        + "described with the STRONG phrase, or a group item subordinate to such a type declaration. h) A "
+        + "variable-length group.\" The message names the lettered exclusion that applies. Exclusion e) is the "
+        + "same prohibition as §13.18.60.3 SR11 (\"An elementary data item of class index, message-tag, object, "
+        + "or pointer shall not be a conditional variable\") and both are enforced by this one screen. A syntax "
+        + "rule is a \"shall\", so the conforming response is a compile-time diagnostic; there is no permissive "
+        + "lane, because every one of these shapes either evaluates a condition the standard gives no meaning "
+        + "(c, d, e-index, f, g) or reaches code generation with no representation to compare (e-pointer, h).",
+        "ISO §13.16.3 SR24");
+
+    /// <summary>COBOLNET1977 — a level-88 entry with no conditional variable: it does not immediately follow a
+    /// data description entry describing a data item. kb/Work PB488 measured the silent drop — <c>BindEntries</c>
+    /// bound the entry only <c>if (stack.Count > 0)</c> and said nothing otherwise, so a compile-time syntax rule
+    /// surfaced, if at all, as a RUN-TIME <c>NotImplementedCobolFeatureException</c> on the first reference.</summary>
+    public static readonly DiagnosticDescriptor ConditionNameNoConditionalVariable = new(
+        "COBOLNET1977", "condition-name-no-conditional-variable", EditionSeverity.Error,
+        "ISO §13.16.3 syntax rule 24: \"The condition-name entries for a particular conditional variable shall "
+        + "immediately follow the entry describing the item with which the condition-name is associated.\" This "
+        + "level-88 entry follows no such entry — it is the first entry of its section, or the entry before it "
+        + "is a constant entry (§13.10), which describes no data item. A condition-name with no conditional "
+        + "variable has nothing to test, so it is refused at compile time rather than bound to whatever entry "
+        + "happens to precede it.",
+        "ISO §13.16.3 SR24");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

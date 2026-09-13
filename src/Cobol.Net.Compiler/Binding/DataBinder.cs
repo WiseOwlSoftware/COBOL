@@ -630,6 +630,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var newRoots = new List<DataItem>();
         var stack = new Stack<DataItem>();
         bool rootIsTemplate = false;   // true while the current level-1 subtree is a TYPEDEF template (D17)
+        // ⛔ THE ENTRY A LEVEL-88 ENTRY IMMEDIATELY FOLLOWS — ISO §13.16.3 SR24's own subject, and NOT
+        // `stack.Peek()`. The two coincide for every entry that opens or extends the level hierarchy and DIVERGE
+        // for the entries that never enter the stack: a level-66 RENAMES alias (SR24 exclusion b) and a CONSTANT
+        // entry (§13.10, which describes no data item). `stack.Peek()` walked BACK PAST those to an unrelated
+        // item, so `66 R1 RENAMES A THRU B.` / `88 COND-R VALUE "CD".` silently bound COND-R to the preceding
+        // `05 B` and answered about it (kb/Work PB488 — a wrong answer, not a permissiveness). Null = the 88
+        // follows no entry describing a data item; the screen reports that instead of the old silent drop.
+        DataItem? lastDescribed = null;
         foreach (var entry in entries)
         {
             using var _ = Edition.At(entry);   // the entry cursor (kb/Work PB82): every diagnostic below names this entry
@@ -640,6 +648,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (entry.dataDescriptionBody().constantEntryBody() is { } constBody)
             {
                 BindConstantEntry(entry, constBody);
+                // A constant entry describes NO data item, so a level-88 entry written after one has no
+                // conditional variable to associate with (ISO §13.16.3 SR24 — "the entry describing the item").
+                lastDescribed = null;
                 continue;
             }
             // The level-number arrives PRE-SCREENED: LevelNumberPass ran over the whole parse tree before any
@@ -651,18 +662,35 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
             if (lvl == 88)
             {
-                // A TYPEDEF template's condition-names are NOT globally referenceable (§13.18.58.4 GR1) — bind them
-                // onto the item (so CloneItem can carry them into each TYPE reference) but keep them off the global
-                // by-name index; a non-template 88 registers globally as usual (D17 inc 3).
-                if (stack.Count > 0)
+                // The association is RECORDED here — source order is a fact only this walk has — and ADJUDICATED
+                // by CheckConditionNameAssociations once the forest is complete, because four of §13.16.3 SR24's
+                // eight exclusions ask about the conditional variable's SUBORDINATES, which are written AFTER the
+                // 88 and so do not exist yet (DataBinder.ConditionName.cs; kb/Work PB488). ⛔ `lastDescribed` is
+                // deliberately LEFT ALONE by this arm: SR24 exclusion a) ("Another level 88 entry") is what makes
+                // a run of consecutive 88s all associate with the one entry they follow.
+                // ⛔ NO CONDITION-NAME, NO ASSOCIATION RULE. SR24 speaks throughout of "each condition-name" and
+                // "the condition-name entries", so an entry that names none has nothing to associate and this
+                // screen must not invent a subject for a message. That is the SAME precondition BindCondition
+                // has always had, now stated once instead of twice. (A nameless `88 VALUE "AB".` is Format 3
+                // without its required condition-name — §13.16.2 prints `88 condition-name-1 value-clause .`,
+                // brackets only in Format 4 — and the compiler accepts it today. That is a §13.16.2 FORMAT
+                // defect, reported separately; it is not this rule's to fix and must not be mis-reported as one.)
+                if (entry.dataName()?.GetText() is not { } condName) continue;
+                RecordConditionAssociation(condName, lastDescribed);
+                if (lastDescribed is { } condVar)
                 {
                     // §13.18.57.3 SR2 (review DEVLOG 664 fix #2): a TYPE-clause entry shall not be followed
                     // immediately by a level-88 entry.
-                    if (stack.Peek().TypeRefName is not null)
-                        Edition.Error("COBOLNET1537", $"condition-name '{entry.dataName()?.GetText() ?? "?"}': a data "
+                    if (condVar.TypeRefName is not null)
+                        Edition.Error("COBOLNET1537", $"condition-name '{condName}': a data "
                             + "description entry that specifies a TYPE clause shall not be followed immediately by a "
                             + "level-88 entry (ISO §13.18.57.3 SR2)");
-                    BindCondition(entry, stack.Peek(), registerGlobal: !rootIsTemplate);
+                    // A TYPEDEF template's condition-names are NOT globally referenceable (§13.18.58.4 GR1) — bind
+                    // them onto the item (so CloneItem can carry them into each TYPE reference) but keep them off
+                    // the global by-name index; a non-template 88 registers globally as usual (D17 inc 3). Bound
+                    // even when SR24 excludes the variable: the entry has been reported, and binding it keeps the
+                    // condition-name resolvable so the procedure division adds no cascade of "unknown name".
+                    BindCondition(entry, condVar, registerGlobal: !rootIsTemplate);
                 }
                 continue;
             }
@@ -675,11 +703,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     Edition.Error(DiagnosticCatalog.TypedefRenamesStaged, "a level-66 RENAMES inside a TYPEDEF "
                         + "(part of the type per ISO §13.18.58.4 GR1) is recognized but not yet cloned into TYPE "
                         + "references (data-model D17 residue)");
-                BindRenames(entry);
+                // The alias IS "the entry describing the item" for a level-88 entry written after it — and
+                // ISO §13.16.3 SR24 b) then excludes it. Recording it here is what replaces the silent steal.
+                lastDescribed = BindRenames(entry);
                 continue;
             }
 
-            if (BindEntry(entry, section) is not { } item) continue;
+            // A malformed entry describes no item (the level-number is unreadable — LevelNumberPass has already
+            // reported it), so a following 88 has no conditional variable rather than the previous entry's.
+            if (BindEntry(entry, section) is not { } item) { lastDescribed = null; continue; }
             item.Uid = _uidCounter++;
 
             // Level 77 is an INDEPENDENT elementary item (ISO §13.18.38): always top-level, like 01, regardless of its
@@ -750,6 +782,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "format 2 PICTURE clause shall not be specified in any data item subordinate to a data item "
                     + "described with the CONSTANT RECORD clause (ISO §13.18.40.3 SR32)");
             stack.Push(item);
+            lastDescribed = item;   // ISO §13.16.3 SR24's "the entry describing the item", for a following 88
             // A TYPEDEF template's items (root + subordinates) are NOT globally referenceable (ISO §13.18.58.4 GR1) —
             // keep them off ByName; the clones ExpandTypes produces ARE registered.
             if (!rootIsTemplate) RegisterName(item);
@@ -2600,11 +2633,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Bind a level-66 RENAMES entry (ISO §13.18.45): a re-grouping alias <c>RENAMES from [THRU thru]</c>
     /// over a contiguous sibling run of the owning record. It adds no storage (SR2/SR3) — it is attached to the
     /// owning record's <see cref="DataItem.Renames66"/> list (not <see cref="DataItem.Children"/>) and registered for
-    /// reference resolution; the FROM/THRU operands are resolved by the post-build pass.</summary>
-    private void BindRenames(Core.DataDescriptionEntryContext entry)
+    /// reference resolution; the FROM/THRU operands are resolved by the post-build pass.
+    /// <para>Returns the alias item, or null when the entry is too malformed to build one. The RETURN is what
+    /// <c>BindEntries</c> hands a following level-88 entry as "the entry describing the item" (ISO §13.16.3
+    /// SR24), so the alias reaches exclusion b) instead of being stepped over (kb/Work PB488).</para></summary>
+    private DataItem? BindRenames(Core.DataDescriptionEntryContext entry)
     {
         var rc = entry.dataDescriptionBody().renamesClause();
-        if (rc is null || entry.dataName()?.GetText() is not { } name || _lastRoot is null) return;
+        if (rc is null || entry.dataName()?.GetText() is not { } name || _lastRoot is null) return null;
         bool thru = rc.THRU() is not null || rc.THROUGH() is not null;
         var item = new DataItem
         {
@@ -2626,6 +2662,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         item.Parent = _lastRoot;        // owning record — an alias sibling, NOT a storage child
         _lastRoot.Renames66.Add(item);
         RegisterName(item);
+        return item;
     }
 
     /// <summary>Bind a level-88 condition-name on its conditional variable <paramref name="parent"/>, capturing the

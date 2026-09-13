@@ -49,6 +49,14 @@ internal static class BindPipeline
         // than that — it reads only declared shape, and BitLayout must not lay out an item whose ALIGNED clause
         // was never adjudicated.
         new BindPass("CheckAlignedClauses", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckAlignedClauses()),
+        // The §13.16.3 SR24 condition-name ASSOCIATION screen — the entry a level-88 entry may be associated
+        // with, and whether it follows one at all (kb/Work PB488). Placed HERE for the same reason as the two
+        // passes above: exclusion c) asks whether a group contains "items with a usage other than display",
+        // which §13.18.60.4 GR1 inheritance can supply, so UsageInheritancePass must have run; nothing later
+        // is needed, because every other exclusion reads declared shape the entry walk already settled. It
+        // cannot live inside BindCondition at all — four exclusions ask about SUBORDINATE entries, which a
+        // condition-name on a group is written BEFORE.
+        new BindPass("CheckConditionNameAssociations", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckConditionNameAssociations()),
         // The §13.16.3 SR8 closing guard — every elementary item has a PICTURE or a synthesized profile
         // (kb/Work PB487). Placed immediately after UsageInheritancePass because that is the LAST pass which
         // can legitimately fill a null Pic (a group header shedding its usage to leaves, §13.18.60.4 GR1; a
