@@ -71,6 +71,13 @@ internal sealed class ReportWriterEmitter(
             // only when some operand is relative; every placed item then updates it (GR9).
             bool needsHc = line.Fields.Any(f => f.Columns.Any(c => c.Relative));
             if (needsHc) w.Line("int __hc = 0;   // the §13.18.14.4 GR7 horizontal counter");
+            // The step anchors of this line's repeating entries (§13.18.38.4 GR12): each holds the base column of
+            // ONE printable placement, written by its first repetition and read (never rewritten) by the rest, so
+            // the displacement Σ ordinal × integer-3 lands on the column the item occupies in repetition 0.
+            foreach (var a in line.Fields.SelectMany(f => f.Columns)
+                         .Where(c => c.Kind == ReportColumnKindModel.AnchorSeed)
+                         .Select(c => c.AnchorId).Distinct().Order())
+                w.Line($"int __ra{a} = 0;   // §13.18.38.4 GR12 — a repeating entry's step anchor");
             foreach (var f in line.Fields)
                 EmitFieldPlacements(r, f, needsHc, w);
             w.Line("return new string(__ln);");
@@ -82,40 +89,83 @@ internal sealed class ReportWriterEmitter(
     /// its exact single-statement emission (the characterization-pinned text).</summary>
     private void EmitFieldPlacements(ReportModel r, ReportFieldModel f, bool needsHc, CodeWriter w)
     {
-        if (!needsHc && f.Columns.Count == 1 && f.PresentWhen.Count == 0 && f.Varyings.Count == 0)
+        if (!needsHc && f.Columns.Count == 1 && f.PresentWhen.Count == 0 && f.Varyings.Count == 0
+            && f.RepetitionGuards.Count == 0)
         {
             w.Line($"{RuntimeApi.ReportPlace("__ln", f.Column, FieldImage(r, f, 0))};");
             return;
         }
-        using IDisposable? guard = f.PresentWhen.Count > 0
-            ? w.Block($"if ({PresentExpr(f.PresentWhen)})   // PRESENT WHEN (§13.18.41.4 GR2b)")
+        // The placement's presence: the PRESENT WHEN chain (§13.18.41.4 GR2b) AND every enclosing repeating
+        // entry's OCCURS … DEPENDING test (§13.18.38.4 GR13 / §13.18.63.4 GR22 — both "may suppress the
+        // appearance of the item"). An absent item places nothing and never advances the horizontal counter (GR3f).
+        string[] tests = [.. f.PresentWhen.Select(c => $"({cond.Render(c)})"),
+                          .. f.RepetitionGuards.Select(RepetitionTest)];
+        using IDisposable? guard = tests.Length > 0
+            ? w.Block($"if ({string.Join(" && ", tests)})   // presence (§13.18.41.4 GR2b / §13.18.38.4 GR13)")
             : null;
-        // VARYING counters (§13.18.64.4 GR3a): the first occurrence takes FROM (default 1). A noninteger
-        // FROM/BY truncates through Rescale — the EC-REPORT-VARYING seam (GR5; checking default-off, SSOT §18.16).
+        // VARYING counters (§13.18.64.4 GR3): the first occurrence takes FROM (default 1) and "for the second and
+        // subsequent occurrences, the value of arithmetic-expression-2 is added" — so occurrence n holds
+        // FROM + n × BY. It is written as that CLOSED FORM over the repetition ordinal, not as an accumulator,
+        // because an entry made repeating by an OCCURS clause (§13.18.38 Format 3) is REPLAYED into one field per
+        // repetition and an accumulator local to a field could not span them. The two forms are equal, not
+        // approximately: GR3 adds arithmetic-expression-2 itself, and both operands are truncated to scale 0 ONCE
+        // (the noninteger case is the EC-REPORT-VARYING seam, GR5; checking default-off, SSOT §18.16).
         for (int k = 0; k < f.Varyings.Count; k++)
-            w.Line($"long {VaryName(f, k)} = {VaryValue(f.Varyings[k].From)};   // VARYING {f.Varyings[k].Name} (§13.18.64.4 GR3a)");
+        {
+            w.Line($"long {VaryName(f, k)} = {VaryValue(f.Varyings[k].From)};   // VARYING {f.Varyings[k].Name} FROM (§13.18.64.4 GR3a)");
+            w.Line($"long {VaryName(f, k)}b = {VaryValue(f.Varyings[k].By)};   // … BY (§13.18.64.4 GR3b)");
+        }
         for (int rep = 0; rep < f.Columns.Count; rep++)
         {
-            if (rep > 0)
-                for (int k = 0; k < f.Varyings.Count; k++)
-                    w.Line($"{VaryName(f, k)} += {VaryValue(f.Varyings[k].By)};   // §13.18.64.4 GR3b");
+            for (int k = 0; k < f.Varyings.Count; k++)
+                w.Line($"long {VaryName(f, k)}_{rep} = {VaryName(f, k)} + {f.RepetitionOrdinal + rep}L * {VaryName(f, k)}b;"
+                    + $"   // occurrence {f.RepetitionOrdinal + rep + 1} (§13.18.64.4 GR3)");
             var spec = f.Columns[rep];
             // The operand this repetition takes (§13.18.63.4 GR23 / §13.18.53.4 GR4 — the ONE cycling reader is
             // ReportFieldModel.SourceAt). The index is the repetition ORDINAL, so a PRESENT WHEN that suppresses
             // the item does not shift the assignment (GR23's last sentence).
             string image = FieldImage(r, f, rep);
-            if (!spec.Relative)
+            switch (spec.Kind)
             {
-                w.Line($"{RuntimeApi.ReportPlace("__ln", spec.Value, image)};");
-                if (needsHc) w.Line($"__hc = {spec.Value + f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
-            }
-            else
-            {
-                w.Line($"__hc += {spec.Value};   // §13.18.14.4 GR8 — leftmost = horizontal counter + integer-2");
-                w.Line($"{RuntimeApi.ReportPlace("__ln", "__hc", image)};");
-                w.Line($"__hc += {f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                case ReportColumnKindModel.Absolute:
+                    w.Line($"{RuntimeApi.ReportPlace("__ln", spec.Value, image)};");
+                    if (needsHc) w.Line($"__hc = {spec.Value + f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                    break;
+                case ReportColumnKindModel.Relative:
+                    w.Line($"__hc += {spec.Value};   // §13.18.14.4 GR8 — leftmost = horizontal counter + integer-2");
+                    w.Line($"{RuntimeApi.ReportPlace("__ln", "__hc", image)};");
+                    w.Line($"__hc += {f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                    break;
+                case ReportColumnKindModel.AnchorSeed:
+                    // Repetition 0 of a STEP'd repeating entry whose COLUMN operand is relative: place as GR8
+                    // says AND remember the column, because §13.18.38.4 GR12 measures the later repetitions from
+                    // the column this one occupies, not from the horizontal counter (which holds its RIGHTMOST).
+                    w.Line($"__ra{spec.AnchorId} = __hc + {spec.Value};   // §13.18.14.4 GR8 + §13.18.38.4 GR12");
+                    w.Line($"{RuntimeApi.ReportPlace("__ln", $"__ra{spec.AnchorId}", image)};");
+                    w.Line($"__hc = __ra{spec.AnchorId} + {f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                    break;
+                default:
+                    w.Line($"{RuntimeApi.ReportPlace("__ln", $"__ra{spec.AnchorId} + {spec.Value}", image)};"
+                        + $"   // §13.18.38.4 GR12 — {spec.Value} columns right of repetition 0");
+                    if (needsHc)
+                        w.Line($"__hc = __ra{spec.AnchorId} + {spec.Value + f.PrintItem.DisplayTextWidth - 1};   // §13.18.14.4 GR9");
+                    break;
             }
         }
+    }
+
+    /// <summary>ONE repetition's OCCURS … DEPENDING presence test as a C# boolean (ISO §13.18.38.4 GR13 with
+    /// §13.18.63.4 GR22). GR13: the repetition count is data-name-1 when its value lies in integer-1 through
+    /// (integer-2 − 1), and integer-2 otherwise ("the report group is processed as though the OCCURS clause had
+    /// been written without the TO and DEPENDING phrases"), so repetition <c>Ordinal</c> appears exactly when it
+    /// is below that count. data-name-1 is read HERE, at presentation time; §13.18.35 composes a group's lines in
+    /// order, so every placement of one group sees the one value GR13's "just before the processing for the first
+    /// LINE clause of the report group" fixes.</summary>
+    private string RepetitionTest(ReportRepetitionGuard g)
+    {
+        if (g.Spec.DependingItem is not { } dn || refs.ResolveItem(dn) is not { } place) return "true";
+        string v = $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(place))}";   // the ONE integer-read of a count item
+        return $"{g.Ordinal} < ({v} >= {g.Spec.Min} && {v} <= {g.Spec.Max - 1} ? {v} : {g.Spec.Max})";
     }
 
     /// <summary>The compose-local name of a VARYING counter (§13.18.64) — keyed by the synthetic print item's
@@ -147,10 +197,14 @@ internal sealed class ReportWriterEmitter(
     /// excluded transforms and printed three different wrong answers.</para>
     /// <para>The synthetic print item is StoreAsImage for numerics, so both paths yield the printable CHARACTER
     /// image for every category (the display format / edit-mask / string-store renders).</para></summary>
+    /// <param name="rep">The PLACEMENT index within this field (one per COLUMN operand). The entry-wide
+    /// repetition ORDINAL — what §13.18.63.4 GR23 counts when it assigns "successive operands to successive
+    /// repeating printable items", and what §13.18.38's replay makes span the OCCURS repetitions too — is
+    /// <see cref="ReportFieldModel.RepetitionOrdinal"/> + this index (kb/Work PB506 × PB565).</param>
     private string FieldImage(ReportModel r, ReportFieldModel f, int rep)
     {
         BoundOperand source;
-        switch (f.SourceAt(rep))
+        switch (f.SourceAt(f.RepetitionOrdinal + rep))
         {
             case FieldValueSource v:
                 // §13.18.63 — an initialization, NOT the §13.18.53.4 GR1 implicit MOVE (see the remarks above).
@@ -168,7 +222,7 @@ internal sealed class ReportWriterEmitter(
             case FieldVaryingSource v:
                 // The entry's own VARYING counter as the source item (§13.18.64.4 GR4 NOTE) — the compose-local
                 // counter, re-read at each repetition's placement.
-                source = new BoundComputedOperand(new BoundReportVaryingRef(VaryName(f, v.Index)));
+                source = new BoundComputedOperand(new BoundReportVaryingRef($"{VaryName(f, v.Index)}_{rep}"));
                 break;
             case FieldDataSource d when d.Item is { } item && refs.ResolveItem(item) is { } place:
                 source = new BoundFieldOperand(place);

@@ -169,9 +169,82 @@ public sealed class ReportLineModel(ReportLineKindModel kind, int value)
     public List<BoundCondition> PresentWhen { get; } = [];
 }
 
-/// <summary>One COLUMN clause operand (ISO §13.18.14 Format 1): absolute (<c>integer-1</c>) or relative
-/// (<c>PLUS integer-2</c> — positioned against the line's horizontal counter, GR7/GR8).</summary>
-public readonly record struct ReportColumnSpec(bool Relative, int Value);
+/// <summary>How ONE placement of a printable item fixes its leftmost column.</summary>
+public enum ReportColumnKindModel
+{
+    /// <summary>COLUMN NUMBER integer-1 — the leftmost character stands in that column (ISO §13.18.14.4 GR1/GR2).</summary>
+    Absolute,
+    /// <summary>COLUMN PLUS integer-2 — integer-2 columns right of the line's horizontal counter (GR8).</summary>
+    Relative,
+    /// <summary>The FIRST repetition of a STEP'd repeating entry (ISO §13.18.38.4 GR12): placed like
+    /// <see cref="Relative"/>, and its leftmost column is REMEMBERED in the entry's step anchor.</summary>
+    AnchorSeed,
+    /// <summary>A later repetition of a STEP'd repeating entry: "integer-3 columns to the right of the column
+    /// they occupy in the preceding occurrence" (ISO §13.18.38.4 GR12b) — the anchor advanced by integer-3. The
+    /// anchor, not the horizontal counter, is the datum, because GR12 measures from the PRECEDING OCCURRENCE'S
+    /// LEFTMOST while the counter holds the last placed item's RIGHTMOST (§13.18.14.4 GR9).</summary>
+    AnchorStep,
+}
+
+/// <summary>One placement of a printable item: a COLUMN clause operand (ISO §13.18.14 Format 1) or, for a
+/// repetition of a STEP'd repeating entry, its step-anchor placement (§13.18.38.4 GR12).</summary>
+/// <param name="Kind">Which datum fixes the leftmost column.</param>
+/// <param name="Value">integer-1 / integer-2 / integer-3, per <paramref name="Kind"/>.</param>
+/// <param name="AnchorId">The step anchor's compose-local register id; 0 for the two COLUMN-clause kinds.</param>
+public readonly record struct ReportColumnSpec(ReportColumnKindModel Kind, int Value, int AnchorId = 0)
+{
+    /// <summary>A COLUMN clause operand as written: absolute, or relative (PLUS).</summary>
+    public ReportColumnSpec(bool relative, int value)
+        : this(relative ? ReportColumnKindModel.Relative : ReportColumnKindModel.Absolute, value) { }
+
+    /// <summary>True when the placement is NOT a fixed column number — i.e. the line needs the §13.18.14.4 GR7
+    /// horizontal counter. <see cref="ReportColumnKindModel.AnchorSeed"/> reads the counter; its
+    /// <see cref="ReportColumnKindModel.AnchorStep"/> siblings read the anchor the seed wrote, and a step can
+    /// never appear on a line without its seed, so grouping all three here is exact.</summary>
+    public bool Relative => Kind is not ReportColumnKindModel.Absolute;
+}
+
+/// <summary>
+/// A report group description entry's OCCURS clause — ISO §13.18.38 FORMAT 3 (report-writer):
+/// <c>OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]</c>.
+/// <para>The entry is a REPEATING ENTRY: §13.18.38.4 GR10 makes it "define integer-2 distinct report items",
+/// GR11 gives every repetition the same PICTURE/VALUE/JUSTIFIED/BLANK WHEN ZERO/GROUP INDICATE effect, and GR12
+/// makes the STEP phrase the interval between successive occurrences. The binder REPLAYS the entry's subtree
+/// once per repetition (COBOLNET_REPORT_WRITER_DESIGN §3.4), which is what §13.18.63.4 GR21's import of GR9
+/// ("causes every occurrence of the associated data item to be assigned the specified value") asks for.</para>
+/// </summary>
+/// <param name="Min">integer-1 (the DEPENDING minimum); 0 when the TO phrase is absent.</param>
+/// <param name="Max">integer-2 — the number of repetitions the entry defines.</param>
+/// <param name="DependingName">data-name-1 of the DEPENDING phrase, else null.</param>
+/// <param name="DependingQualifiers">its IN/OF qualifier words (§8.4.2.2).</param>
+/// <param name="Step">integer-3 of the STEP phrase, else null.</param>
+public sealed record ReportOccursSpec(
+    int Min, int Max, string? DependingName, IReadOnlyList<string> DependingQualifiers, int? Step)
+{
+    /// <summary>data-name-1, resolved post-build (the SOURCE-operand pattern) — the §13.18.38.4 GR13 count.</summary>
+    public DataItem? DependingItem { get; set; }
+}
+
+/// <summary>
+/// ONE repetition's presence test for a repeating entry with the DEPENDING phrase (ISO §13.18.38.4 GR13 with
+/// §13.18.63.4 GR22 — "The value of literal-1 is used for the content of the printable item whenever it is
+/// printed, except that a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress
+/// the appearance of the item").
+/// <para>GR13: data-name-1 "is evaluated just before the processing for the first LINE clause of the report
+/// group. If the value of data-name-1 is not in the range integer-1 to (integer-2 - 1), the report group is
+/// processed as though the OCCURS clause had been written without the TO and DEPENDING phrases" — i.e. all
+/// integer-2 repetitions appear — "If the value of data-name-1 is in the range integer-1 to (integer-2 - 1), the
+/// OCCURS clause has the same effect as an OCCURS clause with no TO or DEPENDING phrases and with an integer-2
+/// equal to the current value of data-name-1" — i.e. that many appear. So repetition <paramref name="Ordinal"/>
+/// is present exactly when <c>Ordinal &lt; (inRange ? data-name-1 : integer-2)</c>.</para>
+/// <para>⛔ Suppression here is NOT absence for VALUE purposes: §13.18.63.4 GR23's last sentence — "If any of the
+/// printable items are suppressed as a result of a PRESENT WHEN clause or an OCCURS clause with a DEPENDING
+/// phrase, VALUE operands are nevertheless assigned to them, even though they are not printed" — which the
+/// bind-time replay satisfies by construction: every repetition is bound, only its PLACEMENT is guarded.</para>
+/// </summary>
+/// <param name="Spec">The repeating entry's OCCURS clause.</param>
+/// <param name="Ordinal">This repetition's zero-based ordinal within that entry.</param>
+public sealed record ReportRepetitionGuard(ReportOccursSpec Spec, int Ordinal);
 
 /// <summary>One report VARYING counter (ISO §13.18.64): the counter name, the FROM/BY expressions as captured
 /// parse contexts (bound to <see cref="From"/>/<see cref="By"/> in the procedure phase; null = the GR3 default 1),
@@ -225,6 +298,24 @@ public sealed class ReportFieldModel
 
     /// <summary>The entry's VARYING counters (§13.18.64) — empty for a non-VARYING entry.</summary>
     public List<ReportVaryingModel> Varyings { get; } = [];
+
+    /// <summary>The OCCURS … DEPENDING presence tests this placement inherits, outermost repeating entry first
+    /// (ISO §13.18.38.4 GR13 / §13.18.63.4 GR22) — empty unless the item lies inside a repeating entry with the
+    /// DEPENDING phrase. A nested repetition contributes one guard per enclosing level; all shall hold.</summary>
+    public List<ReportRepetitionGuard> RepetitionGuards { get; } = [];
+
+    /// <summary>
+    /// How many PLACEMENTS of this entry precede this field's first one — the ordinal of its first repeating
+    /// printable item, so placement <c>j</c> of this field is repetition <c>RepetitionOrdinal + j</c> of the
+    /// entry. An entry repeats through a multiple COLUMN clause (the operands of ONE field) and/or through an
+    /// OCCURS clause (§13.18.38 Format 3 — a REPLAY producing one field per repetition), and the two compose, so
+    /// the ordinal has to be counted per entry rather than read off either vehicle.
+    /// <para>It is what ISO §13.18.64.4 GR3 counts ("For the first occurrence, the value of
+    /// arithmetic-expression-1 is moved to data-name-1 … For the second and subsequent occurrences, the value of
+    /// arithmetic-expression-2 is added"), and what §13.18.63.4 GR23 counts when a VALUE clause has more than one
+    /// operand ("successive operands are assigned to successive repeating printable items").</para>
+    /// </summary>
+    public int RepetitionOrdinal { get; init; }
 }
 
 /// <summary>A printable item's value source, by clause kind.</summary>
@@ -404,34 +495,292 @@ public sealed partial class DataBinder
     /// Legal-but-unimplemented clauses stage loud (§1.4).</summary>
     private void BindReportGroups(Core.ReportDescriptionEntryContext rd, ReportModel model)
     {
-        ReportGroupModel? group = null;
-        ReportLineModel? line = null;
-        // The entry scope stack: one frame per entry on the current level path. It carries the PRESENT WHEN
-        // condition (§13.18.41 GR2b) AND the frame entry's REPETITION COUNT (§13.15.4 GR3 — "An entry that
-        // contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a
-        // repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the
-        // number of operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of
-        // an entry that is not a repeating entry is defined to be 1."), so §13.18.63.3 SR35 / §13.18.53.3 SR6
-        // can read "the repeating entry, and any number of successive repeating entries at higher levels" off
-        // the stack instead of a hand-maintained special case (kb/Work PB506).
-        var chain = new List<(int Level, Core.ConditionContext? Cond, int Reps)>();
-        int lineChainDepth = 0;   // stack frames whose conditions the CURRENT line already carries
-        foreach (var ge in rd.reportGroupEntry())
+        var entries = rd.reportGroupEntry();
+        BindReportEntries(entries, 0, entries.Length, model, new ReportGroupBuild());
+    }
+
+    /// <summary>
+    /// The mutable state of one RD's group build — what the flat entry walk carries from entry to entry, and what
+    /// a REPEATING ENTRY's replay (ISO §13.18.38 Format 3) therefore has to carry across its repetitions.
+    /// </summary>
+    private sealed class ReportGroupBuild
+    {
+        public ReportGroupModel? Group;
+        public ReportLineModel? Line;
+        /// <summary>The entry scope stack: one frame per entry on the current level path. It carries the
+        /// PRESENT WHEN condition (§13.18.41 GR2b) AND the frame entry's REPETITION COUNT (§13.15.4 GR3), so
+        /// §13.18.63.3 SR35 / §13.18.53.3 SR6 can read "the repeating entry, and any number of successive
+        /// repeating entries at higher levels" off the stack instead of a hand-maintained special case
+        /// (kb/Work PB506).</summary>
+        public readonly List<(int Level, Core.ConditionContext? Cond, int Reps)> Chain = [];
+        /// <summary>Stack frames whose conditions the CURRENT line already carries.</summary>
+        public int LineChainDepth;
+        /// <summary>The repeating entries enclosing the entry being bound, outermost first (§13.18.38 Format 3).</summary>
+        public readonly List<ReportRepetitionFrame> Repetitions = [];
+        /// <summary>The step-anchor register ids, keyed by (entry, COLUMN-operand index) — one per PRINTABLE
+        /// PLACEMENT of a repeating entry whose base column is relative (see <see cref="ReportColumnKindModel"/>).</summary>
+        public readonly Dictionary<(Core.ReportGroupEntryContext Entry, int Operand, string Undisplaced), int> Anchors = [];
+        /// <summary>Placements of each entry bound so far — <see cref="ReportFieldModel.RepetitionOrdinal"/>.</summary>
+        public readonly Dictionary<Core.ReportGroupEntryContext, int> Placements = [];
+
+        /// <summary>Σ ordinalⱼ × integer-3ⱼ over the enclosing repeating entries — the displacement §13.18.38.4
+        /// GR12 gives this repetition ("integer-3 columns to the right of the column they occupy in the preceding
+        /// occurrence"), which is additive across nested repeating entries.</summary>
+        public int ColumnShift
+        {
+            get
+            {
+                int shift = 0;
+                foreach (var rep in Repetitions) shift += rep.Ordinal * (rep.Spec.Step ?? 0);
+                return shift;
+            }
+        }
+
+        /// <summary>The §13.18.38.4 GR13 presence tests this placement inherits (one per enclosing repeating
+        /// entry with a DEPENDING phrase), outermost first.</summary>
+        public List<ReportRepetitionGuard> GuardsHere()
+        {
+            var guards = new List<ReportRepetitionGuard>();
+            foreach (var rep in Repetitions)
+                if (rep.Spec.DependingName is not null) guards.Add(new ReportRepetitionGuard(rep.Spec, rep.Ordinal));
+            return guards;
+        }
+    }
+
+    /// <summary>One enclosing repeating entry during the replay: its OCCURS clause and the ordinal being bound.</summary>
+    private sealed class ReportRepetitionFrame(ReportOccursSpec spec)
+    {
+        public ReportOccursSpec Spec { get; } = spec;
+        public int Ordinal { get; set; }
+    }
+
+    /// <summary>
+    /// Bind the report group entries in <c>[start, end)</c>. A REPEATING ENTRY (ISO §13.18.38 Format 3) binds its
+    /// own subtree once per repetition — "it causes the entry to define integer-2 distinct report items"
+    /// (§13.18.38.4 GR10) — which is the ONE place repetition is expressed, so every clause of every repeated
+    /// entry gets GR11's "same effect on each repetition as they would on a single data item without the OCCURS
+    /// clause" for free, §13.18.63.4 GR21's import of GR9 included.
+    /// </summary>
+    private void BindReportEntries(
+        Core.ReportGroupEntryContext[] entries, int start, int end, ReportModel model, ReportGroupBuild st)
+    {
+        for (int i = start; i < end; i++)
+        {
+            var ge = entries[i];
+            int.TryParse(ge.levelNumber().GetText(), out int entryLevel);
+            // The entry's SUBTREE: itself plus every following entry of a higher level number (§13.15 — the
+            // level-number hierarchy). It is what a repeating entry replays.
+            int subtreeEnd = i + 1;
+            while (subtreeEnd < end && int.TryParse(entries[subtreeEnd].levelNumber().GetText(), out int lv)
+                   && lv > entryLevel) subtreeEnd++;
+
+            if (ReportOccursOf(ge, entries, i, subtreeEnd, model, st) is { } occurs)
+            {
+                var frame = new ReportRepetitionFrame(occurs);
+                st.Repetitions.Add(frame);
+                for (int rep = 0; rep < occurs.Max; rep++)
+                {
+                    frame.Ordinal = rep;
+                    BindReportEntry(ge, entries[i], model, st, occurs);
+                    BindReportEntries(entries, i + 1, subtreeEnd, model, st);
+                }
+                st.Repetitions.RemoveAt(st.Repetitions.Count - 1);
+                i = subtreeEnd - 1;
+                continue;
+            }
+            BindReportEntry(ge, ge, model, st);
+        }
+    }
+
+    /// <summary>
+    /// The OCCURS clause of one report group description entry, as ISO §13.18.38 FORMAT 3 — the report-writer
+    /// format, <c>OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]</c> —
+    /// with its syntax rules enforced; null when the entry is not a repeating entry, when a rule rejected it, or
+    /// when the repetition is on the axis that is still staged.
+    /// </summary>
+    private ReportOccursSpec? ReportOccursOf(
+        Core.ReportGroupEntryContext ge, Core.ReportGroupEntryContext[] entries, int self, int subtreeEnd,
+        ReportModel model, ReportGroupBuild st)
+    {
+        Core.OccursClauseContext? oc = null;
+        foreach (var clause in ge.reportGroupClause())
+            if (clause.occursClause() is { } found) oc = found;
+        if (oc is null) return null;
+
+        using var _ = Edition.At(ge);
+        string name = ge.reportGroupName()?.GetText() ?? "FILLER";
+        string where = $"RD '{model.Name}' entry '{name}'";
+        int.TryParse(ge.levelNumber().GetText(), out int level);
+
+        // The report-writer format has NO DYNAMIC, KEY or INDEXED BY phrase (§13.18.38.2 Format 3, verified
+        // against the printed general-format diagram); §13.18.38.3 SR3/SR7/SR8 place those in Formats 1, 2 and 4.
+        if (oc.DYNAMIC() is not null || oc.occursKeyClause().Length > 0 || oc.INDEXED() is not null)
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an OCCURS clause in a report group description "
+                + "entry is the report-writer format — OCCURS [integer-1 TO] integer-2 TIMES [DEPENDING ON "
+                + "data-name-1] [STEP integer-3]; the DYNAMIC, ASCENDING/DESCENDING KEY and INDEXED BY phrases "
+                + "belong to formats 1, 2 and 4 (ISO §13.18.38.2)");
+            return null;
+        }
+        // SR1a — "The OCCURS clause shall not be specified in a data description entry that … has a level-number
+        // of 01, 66, 77, or 88". A report group description entry's level-number is 1 through 49 (§13.15.3 SR3).
+        if (level == 1)
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the OCCURS clause shall not be specified in an "
+                + "entry that has a level-number of 01 (ISO §13.18.38.3 SR1a)");
+            return null;
+        }
+
+        var bounds = oc.occursBound();
+        bool hasTo = oc.TO() is not null;
+        var depending = oc.dataReference();
+        int? step = oc.occursStepPhrase() is { } sp && int.TryParse(sp.integerLiteral().GetText(), out int s3) ? s3 : null;
+        int max = OccursBoundValue(bounds[^1], where) ?? 0;
+        int min = hasTo ? OccursBoundValue(bounds[0], where) ?? 0 : 0;
+
+        // SR24 — "The TO and DEPENDING phrases shall either be both absent or both present."
+        if (hasTo != (depending is not null))
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the TO and DEPENDING phrases shall either be "
+                + "both absent or both present (ISO §13.18.38.3 SR24)");
+            return null;
+        }
+        // SR16 (formats 2 and 3) — "Integer-1 shall be greater than or equal to zero and integer-2 shall be
+        // greater than integer-1."
+        if (hasTo && (min < 0 || max <= min))
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: OCCURS {min} TO {max} — integer-1 shall be greater "
+                + "than or equal to zero and integer-2 shall be greater than integer-1 (ISO §13.18.38.3 SR16)");
+            return null;
+        }
+        if (max <= 0)
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: OCCURS {max} TIMES — integer-2 is the number of "
+                + "repetitions the entry defines and shall be positive (ISO §13.18.38.4 GR10)");
+            return null;
+        }
+        // SR27 — "A report group description entry that contains an OCCURS clause with a DEPENDING phrase may be
+        // followed within that report group only by report group description entries that are subordinate to it."
+        if (depending is not null && subtreeEnd < entries.Length
+            && int.TryParse(entries[subtreeEnd].levelNumber().GetText(), out int nextLevel) && nextLevel > 1)
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an entry with an OCCURS … DEPENDING clause may be "
+                + "followed within that report group only by entries subordinate to it (ISO §13.18.38.3 SR27)");
+            return null;
+        }
+        // SR10 (formats 1 and 3) — an OCCURS may nest only when the DEPENDING phrase is absent.
+        if (depending is not null && st.Repetitions.Count > 0)
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an OCCURS clause may be subordinate to an entry "
+                + "containing another OCCURS clause only if the DEPENDING ON phrase is not specified (ISO "
+                + "§13.18.38.3 SR10)");
+            return null;
+        }
+
+        // The repetition AXIS (§13.18.38.4 GR10): a LINE clause on the entry or in its subtree repeats the entry
+        // VERTICALLY (GR10c/GR10d, GR12c/GR12d), which stages with its sibling the multiple LINE clause.
+        for (int k = self; k < subtreeEnd; k++)
+            if (entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null))
+            {
+                Edition.Error(DiagnosticCatalog.ReportOccursInGroup, $"{where}: VERTICAL repetition of a report group entry — an "
+                    + "OCCURS clause on an entry that contains or contains subordinate LINE clauses (ISO "
+                    + "§13.18.38.4 GR10c/GR10d) — is not yet implemented; horizontal (COLUMN) repetition is");
+                return null;
+            }
+        // SR25 — the STEP phrase "shall be specified if the entry: a) contains an absolute LINE clause, or b) has
+        // an entry with an absolute LINE clause subordinate to it, or c) contains an absolute COLUMN clause, or
+        // d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause
+        // subordinate to it." (a) and (b) cannot arrive here — a LINE clause in the subtree staged above.
+        if (step is null)
+            for (int k = self; k < subtreeEnd; k++)
+                foreach (var clause in entries[k].reportGroupClause())
+                    if (clause.reportColumnClause() is { } cc && cc.reportColumnOperand().Any(o => o.PLUSWORD() is null))
+                    {
+                        Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
+                            + "repeating entry contains, or has subordinate to it, an absolute COLUMN clause "
+                            + "(ISO §13.18.38.3 SR25c/SR25d) — without it every repetition would print in the "
+                            + "same column");
+                        return null;
+                    }
+        // SR26 — "The value of integer-3 shall be sufficient to prevent the overlapping of any line (in the case
+        // of vertical repetition) or column (in the case of horizontal repetition) of any two consecutive
+        // repetitions of the associated report item." Horizontally that is: integer-3 shall be at least the
+        // repeated item's width, which the entry's own PICTURE fixes.
+        if (step is { } sv)
+        {
+            int span = 0;
+            for (int k = self; k < subtreeEnd; k++)
+                if (ReportEntryPictureWidth(entries[k], model) is { } w) span += w;
+            if (span > 0 && sv < span)
+                Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: STEP {sv} is not sufficient to prevent the "
+                    + $"overlapping of two consecutive repetitions — the repeated report item occupies {span} "
+                    + "columns (ISO §13.18.38.3 SR26)");
+        }
+
+        var (dn, dq) = depending is not null ? KeyReference(depending) : (null, (IReadOnlyList<string>)[]);
+        return new ReportOccursSpec(min, max, dn, dq, step);
+    }
+
+    /// <summary>Resolve one repeating entry's <c>DEPENDING ON data-name-1</c> (ISO §13.18.38 Format 3) and apply
+    /// §13.18.38.3 SR17 — "Data-name-1 shall describe an integer". Reported once per repeating entry.</summary>
+    private void ResolveReportOccursDepending(ReportOccursSpec spec, ReportModel model, HashSet<ReportOccursSpec> seen)
+    {
+        if (spec.DependingName is null || !seen.Add(spec)) return;
+        spec.DependingItem = LookupQualified(spec.DependingName, spec.DependingQualifiers);
+        if (spec.DependingItem is null)
+        {
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"RD '{model.Name}': OCCURS … DEPENDING ON "
+                + $"'{spec.DependingName}' does not resolve to a data item (ISO §8.4.2.1)");
+            return;
+        }
+        // SR17 read exactly as the data-division OCCURS reads it (an index item is NOT an integer data item).
+        if (spec.DependingItem.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Scale: 0 })
+            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"RD '{model.Name}': OCCURS … DEPENDING ON "
+                + $"'{spec.DependingName}' — data-name-1 shall describe an integer (ISO §13.18.38.3 SR17)");
+    }
+
+    /// <summary>The display width of one report group entry's PICTURE, or null when it has none (a group entry).
+    /// The §13.18.38.3 SR26 overlap test measures the repeated item against integer-3.</summary>
+    private int? ReportEntryPictureWidth(Core.ReportGroupEntryContext ge, ReportModel model)
+    {
+        foreach (var clause in ge.reportGroupClause())
+            if (clause.pictureClause()?.PIC_STRING() is { } pic)
+                // The SAME character-position count the print columns use (§13.18.14.4 GR9), through the ONE rule.
+                return PictureAnalyzer.Analyze(pic.GetText(), Usage.Display, Edition,
+                    $"RD '{model.Name}' repeating entry", null, currencies: CurrencySigns,
+                    decimalPointIsComma: DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;
+        return null;
+    }
+
+    /// <summary>Bind ONE report group description entry into the build state (see <see cref="BindReportEntries"/>
+    /// for the walk and <see cref="BindReportGroups"/> for the line-building rule).</summary>
+    /// <param name="ge">The entry.</param>
+    /// <param name="anchorKey">The entry whose identity keys this placement's step anchors — the same context,
+    /// except that a repeating entry's own replayed copies must share one anchor per placement.</param>
+    /// <param name="ownOccurs">This entry's OWN report-writer OCCURS clause when it is a live repeating entry
+    /// (§13.18.38 Format 3) — its §13.15.4 GR3 repetition count, and the evidence that the vehicle was not
+    /// refused, which is what the §13.18.63.3 SR35 / §13.18.53.3 SR6 operand-count screen needs.</param>
+    private void BindReportEntry(
+        Core.ReportGroupEntryContext ge, Core.ReportGroupEntryContext anchorKey, ReportModel model,
+        ReportGroupBuild st, ReportOccursSpec? ownOccurs = null)
+    {
         {
             using var _ = Edition.At(ge);
             int.TryParse(ge.levelNumber().GetText(), out int level);
             string? entryName = ge.reportGroupName()?.GetText();
             if (level == 1)
             {
-                group = new ReportGroupModel { Name = entryName };
-                model.Groups.Add(group);
-                line = null;
+                st.Group = new ReportGroupModel { Name = entryName };
+                model.Groups.Add(st.Group);
+                st.Line = null;
             }
+            var group = st.Group;
             if (group is null)
             {
                 Edition.Error(DiagnosticCatalog.ReportGroupBefore01, $"RD '{model.Name}': report group entry before any 01-level entry");
-                continue;
+                return;
             }
+            var chain = st.Chain;
             while (chain.Count > 0 && chain[^1].Level >= level) chain.RemoveAt(chain.Count - 1);
 
             // Clause capture for THIS entry (clauses may appear in any order within the entry — RW104A).
@@ -443,7 +792,11 @@ public sealed partial class DataBinder
             List<EditingPhraseSpec>? reportEditing = null;   // PICTURE EDITING phrases (§13.18.40.2)
             LocaleEditSpec? reportLocale = null;             // PICTURE format 2 — the LOCALE phrase (PB113 / PB64 T6)
             SignSpec? ownSign = null;
-            bool justified = false, blankWhenZero = false, groupIndicate = false, staysLoud = false;
+            bool justified = false, blankWhenZero = false, groupIndicate = false, repeatingEntry = false;
+            // A repetition VEHICLE that was REFUSED (the multiple LINE clause, a vertical or ill-formed
+            // OCCURS): the entry's §13.15.4 GR3 repetition count is then not knowable, so the operand-count
+            // screen below stands down rather than emitting a second diagnostic about it (kb/Work PB506).
+            bool staysLoud = false;
             var columns = new List<ReportColumnSpec>();
             // The SOURCE clause's operand list (§13.18.53.2 — one entry per written identifier-1); empty when
             // the entry carries no SOURCE clause.
@@ -467,6 +820,7 @@ public sealed partial class DataBinder
                         // it stages LOUD with the report-group OCCURS repetition family.
                         Edition.Error(DiagnosticCatalog.ReportMultipleLine, $"RD '{model.Name}': a multiple LINE clause "
                             + "(ISO §13.18.35.3 SR10 — vertical repetition) is not yet implemented");
+                        repeatingEntry = true;
                         staysLoud = true;
                     }
                     var op = ops[0];
@@ -551,9 +905,13 @@ public sealed partial class DataBinder
                     blankWhenZero = true;
                 else if (clause.occursClause() is not null)
                 {
-                    Edition.Error(DiagnosticCatalog.ReportOccursInGroup, $"RD '{model.Name}': OCCURS in a report group description "
-                        + "(ISO §13.18.38 repeating entries) is not yet implemented");
-                    staysLoud = true;
+                    // The repeating entry itself (ISO §13.18.38 Format 3) is read by ReportOccursOf BEFORE this
+                    // entry is bound — it drives the REPLAY, so there is nothing to capture per repetition.
+                    // `repeatingEntry` records the §13.18.64.3 SR1 vehicle either way; a clause ReportOccursOf
+                    // REFUSED (a syntax rule, or the still-staged vertical axis) leaves ownOccurs null and the
+                    // entry's repetition count unknowable.
+                    repeatingEntry = true;
+                    if (ownOccurs is null) staysLoud = true;
                 }
                 else if (clause.valueClause() is { } value)
                 {
@@ -579,10 +937,11 @@ public sealed partial class DataBinder
                     + "not yet implemented");
 
             // VARYING (§13.18.64): SR1 — the entry shall also contain OCCURS or a multiple LINE or multiple
-            // COLUMN clause (the OCCURS / multiple-LINE vehicles staged loud above ride their own 0899).
+            // COLUMN clause. All three vehicles set `repeatingEntry`/`columns`: OCCURS is LIVE on the horizontal
+            // axis (§13.18.38 Format 3, the replay), the multiple LINE clause still stages loud.
             if (varyings.Count > 0)
             {
-                if (!staysLoud && columns.Count <= 1)
+                if (!repeatingEntry && columns.Count <= 1)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': a VARYING "
                         + "clause requires the entry to also contain an OCCURS clause or a multiple LINE or "
                         + "multiple COLUMN clause (ISO §13.18.64.3 SR1)");
@@ -605,12 +964,12 @@ public sealed partial class DataBinder
             // ⛔ THE MULTI-OPERAND REPETITION RULE, ONE READER FOR BOTH CLAUSES (kb/Work PB506). ISO
             // §13.18.63.3 SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and their
             // general rules (§13.18.63.4 GR23 / §13.18.53.4 GR4) are likewise twins — so the screen is written
-            // once and each clause supplies its own operand count, diagnostic and citation. Skipped when the
-            // entry already staged loud: its repetition vehicle (OCCURS, a multiple LINE clause) is refused, so
-            // its §13.15.4 GR3 repetition count is not knowable here and a second diagnostic would be noise.
+            // once and each clause supplies its own operand count, diagnostic and citation. Skipped when a
+            // repetition vehicle was REFUSED (staysLoud): the entry's §13.15.4 GR3 count is then not knowable
+            // here and a second diagnostic would be noise.
             if (!staysLoud)
             {
-                var repChain = RepetitionChain(columns, chain);
+                var repChain = RepetitionChain(columns, ownOccurs, chain);
                 ScreenRepeatingOperandCount(valueOpsWritten, repChain, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
                     "VALUE", DiagnosticCatalog.ReportValueOperandCount, "ISO §13.18.63.3 SR35");
                 ScreenRepeatingOperandCount(sourceOpsWritten, repChain, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
@@ -619,13 +978,14 @@ public sealed partial class DataBinder
 
             if (opened is not null)
             {
-                line = opened;
-                group.Lines.Add(line);
+                st.Line = opened;
+                group.Lines.Add(opened);
                 // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41 GR2b).
-                foreach (var (_, c, _) in chain) if (c is not null) line.PresentWhenCtxs.Add(c);
-                if (ownCond is not null) line.PresentWhenCtxs.Add(ownCond);
-                lineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
+                foreach (var (_, c, _) in chain) if (c is not null) opened.PresentWhenCtxs.Add(c);
+                if (ownCond is not null) opened.PresentWhenCtxs.Add(ownCond);
+                st.LineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
             }
+            var line = st.Line;
 
             // A SUM entry establishes a counter whether or not it is printable (§13.18.54.4 GR1/GR3); its FULL
             // chain governs the GR10 print/reset suppression (§13.18.41.4 GR3g).
@@ -644,8 +1004,8 @@ public sealed partial class DataBinder
                 {
                     Edition.Error(DiagnosticCatalog.ReportColumnWithoutLine, $"RD '{model.Name}': a COLUMN clause with no LINE clause in "
                         + "effect (ISO §13.18.14 — a printable item belongs to a report line)");
-                    chain.Add((level, ownCond, EntryRepetitions(columns)));
-                    continue;
+                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
+                    return;
                 }
                 // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
                 // MOVE conversion path renders the §13.18.53.4 GR1 implicit MOVE. A printable item is a
@@ -660,8 +1020,8 @@ public sealed partial class DataBinder
                 {
                     Edition.Error(DiagnosticCatalog.ReportItemMissingPicture, $"RD '{model.Name}': printable item at COLUMN {col} has no "
                         + "PICTURE clause (ISO §13.16 — an elementary printable item requires one)");
-                    chain.Add((level, ownCond, EntryRepetitions(columns)));
-                    continue;
+                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
+                    return;
                 }
                 if (pic.Usage is not Usage.Display)
                     Edition.Error(DiagnosticCatalog.ReportNonDisplayItem, $"RD '{model.Name}': a non-DISPLAY printable item at COLUMN "
@@ -696,18 +1056,61 @@ public sealed partial class DataBinder
                         srcs[si] = new FieldVaryingSource(vi);
                 var field = new ReportFieldModel
                 {
-                    Columns = columns, PrintItem = item, Sources = srcs, GroupIndicate = groupIndicate,
+                    Columns = RepeatedPlacements(columns, anchorKey, st),
+                    PrintItem = item,
+                    Sources = srcs,
+                    GroupIndicate = groupIndicate,
+                    RepetitionOrdinal = st.Placements.GetValueOrDefault(anchorKey),
                 };
+                st.Placements[anchorKey] = field.RepetitionOrdinal + field.Columns.Count;
                 // The field-local chain: conditions strictly BELOW the line entry (its own chain gates the line).
-                for (int ci = Math.Min(lineChainDepth, chain.Count); ci < chain.Count; ci++)
+                for (int ci = Math.Min(st.LineChainDepth, chain.Count); ci < chain.Count; ci++)
                     if (chain[ci].Cond is { } c) field.PresentWhenCtxs.Add(c);
                 if (ownCond is not null && opened is null) field.PresentWhenCtxs.Add(ownCond);
                 field.Varyings.AddRange(varyings);
+                field.RepetitionGuards.AddRange(st.GuardsHere());
                 line.Fields.Add(field);
             }
 
-            chain.Add((level, ownCond, EntryRepetitions(columns)));
+            chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
         }
+    }
+
+    /// <summary>
+    /// This repetition's placements for one entry's COLUMN operands (ISO §13.18.38.4 GR12 — "The STEP phrase, if
+    /// specified, defines the vertical or horizontal interval between successive occurrences of the associated
+    /// report item after the first occurrence … each successive occurrence is printed at a horizontal distance
+    /// integer-3 columns to the right of the preceding occurrence").
+    /// <para>The displacement Σ ordinal × integer-3 is ADDITIVE over the enclosing repeating entries, so an
+    /// ABSOLUTE operand simply moves by it. A RELATIVE (PLUS) operand has no compile-time column at all, so its
+    /// FIRST repetition seeds a compose-local anchor with the column it lands on and every later repetition
+    /// places at anchor + displacement — the anchor is the item's base column, never mutated.</para>
+    /// <para>With NO step phrase there is nothing to displace: GR12's closing sentence — "If no STEP phrase is
+    /// specified, the vertical or horizontal interval between successive occurrences is defined by the relative
+    /// LINE or COLUMN numbers, respectively, specified in the corresponding report section entries" — and the
+    /// replayed relative operand reproduces exactly that against the horizontal counter.</para>
+    /// </summary>
+    private static IReadOnlyList<ReportColumnSpec> RepeatedPlacements(
+        List<ReportColumnSpec> columns, Core.ReportGroupEntryContext anchorKey, ReportGroupBuild st)
+    {
+        if (st.Repetitions.TrueForAll(r => r.Spec.Step is null)) return columns;   // nothing to displace
+        int shift = st.ColumnShift;
+        // A step anchor identifies ONE printable placement across the repetitions that displace it, so its key
+        // holds the operand AND the ordinals of the enclosing repeating entries that do NOT displace (those
+        // produce genuinely distinct items whose base columns the horizontal counter fixes independently).
+        string undisplaced = string.Join(".", st.Repetitions.Where(r => r.Spec.Step is null).Select(r => r.Ordinal));
+        var placed = new List<ReportColumnSpec>(columns.Count);
+        for (int op = 0; op < columns.Count; op++)
+        {
+            var spec = columns[op];
+            if (spec.Kind == ReportColumnKindModel.Absolute) { placed.Add(spec with { Value = spec.Value + shift }); continue; }
+            var key = (anchorKey, op, undisplaced);
+            if (!st.Anchors.TryGetValue(key, out int anchor)) st.Anchors[key] = anchor = st.Anchors.Count + 1;
+            placed.Add(shift == 0
+                ? new ReportColumnSpec(ReportColumnKindModel.AnchorSeed, spec.Value, anchor)
+                : new ReportColumnSpec(ReportColumnKindModel.AnchorStep, shift, anchor));
+        }
+        return placed;
     }
 
     /// <summary>True when <paramref name="tree"/> contains a terminal of <paramref name="tokenType"/>.</summary>
@@ -769,20 +1172,23 @@ public sealed partial class DataBinder
     /// entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of
     /// operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of an entry that
     /// is not a repeating entry is defined to be 1."
-    /// <para>Only the multiple COLUMN clause is a LIVE repetition vehicle today — report-group OCCURS
-    /// (COBOLNET0899 <c>report-occurs-in-group</c>) and the multiple LINE clause (COBOLNET0899
-    /// <c>report-multiple-line</c>) both stage loud, and an entry that staged loud never reaches the operand-count
-    /// screen — so the other two arms of GR3 arrive with their vehicles, not as a second rule elsewhere.</para></summary>
-    private static int EntryRepetitions(List<ReportColumnSpec> columns) => columns.Count > 1 ? columns.Count : 1;
+    /// <para>TWO of GR3's three vehicles are LIVE: the multiple COLUMN clause, and — since kb/Work PB565 — the
+    /// report-writer OCCURS clause on the HORIZONTAL axis (§13.18.38 Format 3, the subtree replay). The multiple
+    /// LINE clause and the vertical OCCURS still stage loud (COBOLNET0899 <c>report-multiple-line</c> /
+    /// <c>report-occurs-in-group</c>), and an entry whose vehicle was refused never reaches the operand-count
+    /// screen. An entry carrying BOTH live vehicles defines integer-2 × operands distinct report items — the
+    /// replay produces exactly that — so GR3's "whichever is applicable" is their product here.</para></summary>
+    private static int EntryRepetitions(List<ReportColumnSpec> columns, ReportOccursSpec? occurs = null)
+        => (columns.Count > 1 ? columns.Count : 1) * (occurs?.Max ?? 1);
 
     /// <summary>The repetition counts governing an entry, INNERMOST FIRST: the entry's own (§13.15.4 GR3) then
     /// each enclosing entry's, so §13.18.63.3 SR35 / §13.18.53.3 SR6 read "the repeating entry … multiplied by
     /// the number of repetitions of any number of successive repeating entries at higher levels" straight off
     /// the scope stack.</summary>
-    private static List<int> RepetitionChain(List<ReportColumnSpec> columns,
+    private static List<int> RepetitionChain(List<ReportColumnSpec> columns, ReportOccursSpec? occurs,
         List<(int Level, Core.ConditionContext? Cond, int Reps)> chain)
     {
-        var reps = new List<int>(chain.Count + 1) { EntryRepetitions(columns) };
+        var reps = new List<int>(chain.Count + 1) { EntryRepetitions(columns, occurs) };
         for (int i = chain.Count - 1; i >= 0; i--) reps.Add(chain[i].Reps);
         return reps;
     }
@@ -938,6 +1344,7 @@ public sealed partial class DataBinder
                             + $"modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
                 }
 
+            var seenOccurs = new HashSet<ReportOccursSpec>(ReferenceEqualityComparer.Instance);
             foreach (var group in model.Groups)
             {
                 // CH/CF control level (§13.18.57.3 SR10/SR11): match the operand against the CONTROL hierarchy;
@@ -956,6 +1363,7 @@ public sealed partial class DataBinder
                 }
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
+                    {
                         foreach (var fs in f.Sources)   // EVERY operand of a multi-operand SOURCE clause (§13.18.53.2)
                             if (fs is FieldDataSource ds)
                             {
@@ -964,6 +1372,11 @@ public sealed partial class DataBinder
                                     Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
                                         + "resolve to a data item (ISO §13.18.53.3 SR4)");
                             }
+                        // OCCURS … DEPENDING ON data-name-1 (§13.18.38 Format 3): resolved on the SOURCE operand's
+                        // pattern, ONCE per repeating entry (every repetition's guard shares its one spec).
+                        foreach (var g in f.RepetitionGuards)
+                            ResolveReportOccursDepending(g.Spec, model, seenOccurs);
+                    }
             }
 
             foreach (var sum in model.Sums)
@@ -1014,10 +1427,19 @@ public sealed partial class DataBinder
                 foreach (var ln in g.Lines)
                 {
                     int hc = 0;
+                    // The step anchors of a repeating entry's placements (§13.18.38.4 GR12) — the same registers
+                    // the compose method keeps, walked here so the width bound sees every repetition.
+                    var anchors = new Dictionary<int, int>();
                     foreach (var f in ln.Fields)
                         foreach (var spec in f.Columns)
                         {
-                            int left = spec.Relative ? hc + spec.Value : spec.Value;
+                            int left = spec.Kind switch
+                            {
+                                ReportColumnKindModel.Absolute => spec.Value,
+                                ReportColumnKindModel.Relative => hc + spec.Value,
+                                ReportColumnKindModel.AnchorSeed => anchors[spec.AnchorId] = hc + spec.Value,
+                                _ => anchors.GetValueOrDefault(spec.AnchorId) + spec.Value,
+                            };
                             hc = left + f.PrintItem.DisplayTextWidth - 1;   // GR9 — the rightmost column becomes the counter
                             widest = Math.Max(widest, hc);
                         }

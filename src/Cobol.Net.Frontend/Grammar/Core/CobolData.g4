@@ -635,12 +635,26 @@ binarySign
 occursClause
     : OCCURS occursBound (TO occursBound)? timesKeyword?
       (DEPENDING ON? dataReference)?
+      occursStepPhrase?
       occursKeyClause*
       (INDEXED BY? dataReferenceList)?
     // Format 4 — a DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; D9). LL-disjoint from Format 1/2
     // on the token after OCCURS (DYNAMIC is not an integerLiteral). Phrases are order-independent (occursDynamicPhrase*);
     // duplicate/SR28 checks are bind-time (COBOLNET1522). Edition-gated so a pre-2014 probe upgrades to COBOLNET0900.
     | OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? dataReferenceList)?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitOccursClause (rearch 14g.3)
+    ;
+
+// OCCURS … STEP integer-3 — the REPORT-WRITER format's own phrase (ISO §13.18.38.2 Format 3:
+// `OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]`, verified against the
+// printed general-format diagram). Without it a conforming repeating report entry died at the word STEP.
+// STEP is a §8.10 CONTEXT-SENSITIVE word ("OCCURS clause"), NEVER reserved at any edition, so it gets NO lexer
+// token — a token would have to join `_dataNameTokens` to keep `STEP (1)` subscripting a user item named STEP, and
+// that set is generated from the §8.9 RESERVED word table. It is therefore read as TEXT, the LOCALE / ATTRIBUTE
+// precedent (`pictureLocaleAhead`). Not edition-gated: the phrase is legal only in a report group description
+// entry, which the binder enforces (§13.18.38.3 — the TO/DEPENDING/STEP shape is Format 3), and no other clause
+// can begin with a user word here, so there is no earlier-edition reading to protect.
+occursStepPhrase
+    : {occursStepAhead()}? cobolWord integerLiteral
     ;
 
 occursDynamicPhrase

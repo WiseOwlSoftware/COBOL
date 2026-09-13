@@ -1168,7 +1168,24 @@ internal sealed class VersionConformancePass
         {
             if (ctx.DYNAMIC() is not null && InGatedDataEntry(ctx))
                 _p.Check(Constructs.OccursDynamic2014, "the OCCURS DYNAMIC clause");
+            // The report-writer format (ISO §13.18.38 format 3) is a COBOL-2002 introduction — the COBOL-85 report
+            // group description entry had NO OCCURS clause, which is why its whole repeating-entry family
+            // (multiple LINE/COLUMN, VARYING, PRESENT WHEN) gates at 2002 beside it. The shared `occursClause`
+            // rule serves data, report-group and screen entries alike, so the arm keys on the ANCESTOR (the 14g.3
+            // shared-rule lesson) rather than on any clause token.
+            if (InReportGroupEntry(ctx))
+                _p.Check(Constructs.ReportOccurs2002, "the OCCURS clause (report group description)");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>True when <paramref name="ctx"/> sits inside a REPORT GROUP description entry (ISO §13.15) —
+        /// the ancestor test the shared <c>occursClause</c> rule needs to tell a repeating report entry from a
+        /// data-division or screen-section table.</summary>
+        private static bool InReportGroupEntry(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.ReportGroupEntryContext) return true;
+            return false;
         }
 
         // ── Step 14g.4: the file-control / SPECIAL-NAMES / PROCEDURE-DIVISION-header clause gates ───────────────

@@ -182,6 +182,23 @@ public abstract class CobolParserCoreBase : Parser
     /// with the explanatory introduction diagnostic instead of a raw ANTLR error at SIZE.</para></summary>
     protected bool pictureLocaleAhead() => Word(TokenStream.LT(1), "LOCALE");
 
+    /// <summary>OCCURS … STEP integer-3 — the word in the STEP position spells STEP and an integer follows (ISO
+    /// §13.18.38.2 Format 3, the report-writer OCCURS: <c>OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON
+    /// data-name-1 ] [ STEP integer-3 ]</c>; kb/Work PB565).
+    /// <para>STEP is a §8.10 CONTEXT-SENSITIVE word ("OCCURS clause"), never reserved, so — like LOCALE and
+    /// ATTRIBUTE — it is read as TEXT rather than given a lexer token: a token would have to be added to the
+    /// generated <c>_dataNameTokens</c> set to keep <c>STEP (1)</c> subscripting a user item named STEP, and that
+    /// set is derived from the §8.9 RESERVED word table, which STEP is not in.</para>
+    /// <para>The integer lookahead is what makes the predicate safe: nothing else in an OCCURS clause is a bare
+    /// user word followed by an integer literal, so a data item legitimately named STEP can still be the
+    /// DEPENDING operand or an ASCENDING KEY.</para></summary>
+    protected bool occursStepAhead()
+        => Word(TokenStream.LT(1), "STEP") && TokenStream.LT(2) is { } n && IsIntegerToken(n);
+
+    /// <summary>True when the token is an unsigned integer literal — the STEP-phrase lookahead's second half.</summary>
+    private static bool IsIntegerToken(IToken t)
+        => t.Text.Length > 0 && Array.TrueForAll(t.Text.ToCharArray(), char.IsAsciiDigit);
+
     // ⛔ `orderTableAhead()` WAS HERE and is DELETED (kb/Work PB704). It read the word pair (ORDER, TABLE) by text
     // only because ORDER had no lexer token — and that missing token was itself the defect: a KEYWORD slot that
     // borrows `cobolWord` is refused by the §8.9 funnel's position-blind IDENTIFIER check, which is what made

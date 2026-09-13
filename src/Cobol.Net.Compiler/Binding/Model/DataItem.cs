@@ -618,13 +618,20 @@ public sealed class DataItem
     /// <see cref="ImageWidth"/>.</summary>
     public int DisplayTextWidth =>
         IsElementary && Pic is { } pic
-            ? pic.Category is PicCategory.Numeric
-                ? pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0)
-                : pic.Length
+            ? DisplayTextWidthOf(pic)
             : ImageWidth;   // a group prints its image (its leaves' storage): §8.5.2.1 gives an
                             // alphanumeric group class and category alphanumeric and a usage of display, so its
                             // character positions ARE its leaves' stored representations (kb/Work PB182 — the
                             // §8.8.4.1.1 this used to cite is a phantom clause)
+
+    /// <summary>The ELEMENTARY half of <see cref="DisplayTextWidth"/>, as a function of the PICTURE alone — so a
+    /// caller holding a <see cref="PicInfo"/> with no item yet (the report-writer §13.18.38.3 SR26 overlap test,
+    /// which measures a repeating entry's width before the synthetic print item exists) asks the ONE rule rather
+    /// than restating it.</summary>
+    public static int DisplayTextWidthOf(PicInfo pic)
+        => pic.Category is PicCategory.Numeric
+            ? pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0)
+            : pic.Length;
 
     /// <summary>The item's size in BYTES — the FUNCTION BYTE-LENGTH (§15.14) authority (the D7 byte-vs-position
     /// distinction). A group sums each non-redefining child's byte contribution × its own fixed-OCCURS count

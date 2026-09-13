@@ -664,6 +664,21 @@ public static class DiagnosticCatalog
         + "nor referenced in arithmetic-expression-1 of the same clause (SR3).",
         "ISO §13.15.3 SR16/SR17 / §13.18.64.3 SR1–SR3");
 
+    // ── COBOLNET2021 — the report-writer OCCURS (§13.18.38 format 3) syntax-rule family, one code for the
+    //    family (the COBOLNET1559 bundling precedent); kb/Work PB565. ──
+    public static readonly DiagnosticDescriptor ReportOccursFormat3Rule = new(
+        "COBOLNET2021", "report-occurs-format3-rule", EditionSeverity.Error,
+        "A repeating entry in a report group description violates a syntax rule of the report-writer OCCURS "
+        + "clause (§13.18.38.2 format 3 — OCCURS [integer-1 TO] integer-2 TIMES [DEPENDING ON data-name-1] "
+        + "[STEP integer-3]): the DYNAMIC, KEY and INDEXED BY phrases belong to formats 1, 2 and 4; the clause "
+        + "shall not appear on an 01-level entry (SR1a); integer-1 shall be ≥ 0 and integer-2 > integer-1 "
+        + "(SR16); data-name-1 shall describe an integer (SR17); TO and DEPENDING are both absent or both "
+        + "present (SR24); the STEP phrase shall be specified when the entry contains or has subordinate to it "
+        + "an absolute COLUMN or LINE clause (SR25); integer-3 shall be sufficient to prevent two consecutive "
+        + "repetitions overlapping (SR26); an entry with DEPENDING may be followed within its report group only "
+        + "by entries subordinate to it (SR27); and an OCCURS may nest inside another only without DEPENDING "
+        + "(SR10).", "ISO §13.18.38.3 SR1/SR10/SR16/SR17/SR24–SR27");
+
     public static readonly DiagnosticDescriptor ExternalTypeRule = new(
         "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
         "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
@@ -726,8 +741,10 @@ public static class DiagnosticCatalog
         "The NEXT GROUP clause is not yet implemented.", "ISO §13.18.37", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportOccursInGroup = new(
         NotImplemented, "report-occurs-in-group", EditionSeverity.Error,
-        "OCCURS (repeating entries) in a report group description is not yet implemented.",
-        "ISO §13.18.38", RecognizedNotImplemented);
+        "VERTICAL repetition of a report group description entry — an OCCURS clause (§13.18.38 format 3) on an "
+        + "entry that contains, or has subordinate to it, a LINE clause (§13.18.38.4 GR10c/GR10d, GR12c/GR12d) "
+        + "— is not yet implemented; it stages with its sibling the multiple LINE clause. HORIZONTAL (COLUMN) "
+        + "repetition is live (kb/Work PB565).", "ISO §13.18.38.4 GR10c/GR10d", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportMultipleLine = new(
         NotImplemented, "report-multiple-line", EditionSeverity.Error,
         "A multiple LINE clause (vertical repetition — the §13.18.35.4 GR9 OCCURS equivalence) is not yet "

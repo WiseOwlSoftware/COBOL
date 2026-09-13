@@ -122,6 +122,40 @@ off-by-one through every later counter check.
   clause OPENS a new report line (**LINE is legal at ANY level** — RW101A puts `LINE PLUS 1` on an 03; a
   binder that reads LINE only at the 01 produces a lineless group and a never-moving LINE-COUNTER); an entry
   with a COLUMN clause appends a printable field to the CURRENT line. TYPE abbreviations per §13.18.57.3 SR9.
+- **A REPEATING ENTRY IS A SUBTREE REPLAY, AND THAT IS THE ONLY REPETITION MECHANISM** (§13.18.38 format 3 —
+  `OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]`; kb/Work PB565).
+  `ReportOccursOf` reads the clause and enforces its syntax rules (one bundled code, `COBOLNET2021`: SR1a no
+  OCCURS on an 01 entry · SR10 nesting only without DEPENDING · SR16 bounds · SR17 integer data-name-1 · SR24
+  TO⊥DEPENDING together · SR25 STEP required over an absolute COLUMN · SR26 integer-3 ≥ the repeated item's
+  span · SR27 a DEPENDING entry is followed only by its subordinates · and the DYNAMIC/KEY/INDEXED phrases,
+  which belong to formats 1, 2 and 4). `BindReportEntries` then binds the entry AND every entry subordinate
+  to it once per repetition. **Replaying the subtree is what makes GR11 free** — "any PICTURE, USAGE, SIGN,
+  VALUE, JUSTIFIED, BLANK WHEN ZERO, or GROUP INDICATE clauses have the same effect on each repetition as
+  they would on a single data item without the OCCURS clause" is satisfied by running the whole clause binder
+  again, not by teaching each clause about repetition; §13.18.63.4 GR21's import of GR9 (a VALUE reaches
+  every occurrence, both the *contains* and the *subordinate to* leg) rides it unchanged.
+  - **Placement** (§13.18.38.4 GR12) is `ReportColumnKindModel`: the displacement Σ ordinal × integer-3 is
+    ADDITIVE over the enclosing repeating entries, so an `Absolute` operand simply moves by it. A relative
+    operand has no compile-time column, so its first repetition is an `AnchorSeed` — it places as GR8 says
+    and remembers the column in a compose-local `__raN` — and the later ones are `AnchorStep`, placing at
+    anchor + displacement. The anchor and not the horizontal counter is the datum because GR12 measures from
+    the preceding occurrence's LEFTMOST while §13.18.14.4 GR9's counter holds its RIGHTMOST. With no STEP
+    phrase nothing is displaced — GR12's closing sentence gives the interval to the relative COLUMN numbers,
+    which the replayed operand reproduces against the counter.
+  - **DEPENDING** (GR13) is a presence test composed into the SAME guard as the PRESENT WHEN chain, so the
+    two suppressors §13.18.63.4 GR22 names cannot drift: repetition *n* appears iff
+    `n < (data-name-1 ∈ [integer-1, integer-2−1] ? data-name-1 : integer-2)`. Every repetition is BOUND
+    either way, which is GR23's "VALUE operands are nevertheless assigned to them, even though they are not
+    printed".
+  - **VARYING over a replay**: `ReportFieldModel.RepetitionOrdinal` counts placements PER ENTRY, so the
+    §13.18.64.4 GR3 counter is emitted as the closed form `FROM + n × BY` rather than an accumulator — a
+    replayed entry becomes one field per repetition and a field-local accumulator could not span them. The
+    forms are equal, not approximate: GR3 adds arithmetic-expression-2 itself and both operands truncate to
+    scale 0 once.
+  - **RESIDUE, named**: VERTICAL repetition — an OCCURS on an entry that contains, or has subordinate to it,
+    a LINE clause (GR10c/GR10d, GR12c/GR12d) — still stages LOUD on `COBOLNET0899 report-occurs-in-group`,
+    beside its sibling the multiple LINE clause. `ReportRepeatingEntryDriftTests` holds that diagnostic to
+    naming the AXIS, so it can never be re-broadened over the live horizontal one.
 - **A CONTROL-clause OPERAND is a written reference, and there is ONE of it** (`ReportControlRef` — name +
   IN/OF qualifiers + the reference modification, captured by the one helper `ControlOperandRef`). THREE clauses
   write such an operand and all three permit the ref-mod with the same integer-literal restriction: the CONTROL
@@ -164,7 +198,7 @@ off-by-one through every later counter check.
   condition-1 shall not reference LINE-/PAGE-COUNTER or a report-section data item (token scan in
   `ResolveReports` over report-section-EXCLUSIVE names; a name also in ordinary storage resolves there and is
   exempt); SR17 — GROUP INDICATE ⊥ PRESENT WHEN in one entry; VARYING SR1 — the entry needs OCCURS / multiple
-  LINE / multiple COLUMN (the first two vehicles are 0899-staged, so the LIVE vehicle is multiple COLUMN);
+  LINE / multiple COLUMN (OCCURS and multiple COLUMN are LIVE vehicles; multiple LINE is still 0899-staged);
   SR2 — the counter shall not be defined elsewhere (`ByName` probe); SR3 — the counter shall not appear in its
   own FROM. `SOURCE IS counter` (same entry, unqualified) rebinds to `FieldVaryingSource` (§13.18.64.4 GR4 NOTE).
 
@@ -184,10 +218,12 @@ off-by-one through every later counter check.
   unconditional, no VARYING, all-absolute line — keeps its exact single-statement emission, the
   characterization-pinned text): a field's PRESENT WHEN chain wraps its placements in `if (…)` (the
   `ConditionRenderer` AND — §13.18.41.4 GR2b/GR3f: an absent item places nothing and never advances the
-  horizontal counter); a multiple COLUMN entry unrolls one `Place` per operand with `long __rv{uid}_{k}`
-  VARYING locals stepped between repetitions (§13.18.64.4 GR3a/GR3b; FROM/BY align to scale 0 via `Rescale`
-  truncation — the GR5 EC-REPORT-VARYING seam); `int __hc` (emitted only when a relative operand exists)
-  realizes the §13.18.14.4 GR7/GR8/GR9 horizontal counter.
+  horizontal counter), joined by one OCCURS … DEPENDING presence test per enclosing repeating entry (§13.18.38.4
+  GR13 / §13.18.63.4 GR22 — §3's replay); a multiple COLUMN entry unrolls one `Place` per operand, each with
+  its VARYING counter as the closed form `__rv{uid}_{k} + ordinal × __rv{uid}_{k}b` (§13.18.64.4 GR3; FROM/BY
+  align to scale 0 via `Rescale` truncation — the GR5 EC-REPORT-VARYING seam); `int __hc` (emitted only when a
+  relative operand exists) realizes the §13.18.14.4 GR7/GR8/GR9 horizontal counter, and `int __raN` the
+  §13.18.38.4 GR12 step anchors of this line's repeating entries.
 - Construction decoration: a conditioned line appends `, () => chain` to its `ReportGroupLine` (the engine
   evaluates it once per presentation, GR2); a conditioned SUM entry appends its chain to `AddSum` (the GR3g
   reset suppression). Both parameters are optional — unconditioned emission is byte-identical.
@@ -220,9 +256,9 @@ COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter).
 
 **Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):** NEXT GROUP
 (§13.18.37, incl. the WITH RESET PAGE-COUNTER form); CODE (§13.18.12); LINE … NEXT PAGE / ON NEXT PAGE;
-OCCURS in report groups (§13.18.38 repeating entries — the OTHER repetition vehicle §13.18.63.3 SR35 /
-§13.18.53.3 SR6 admit; the multi-operand VALUE and SOURCE clauses themselves now RIDE over the multiple-COLUMN
-vehicle, kb/Work PB506); **multiple LINE
+**VERTICAL** repetition of a report group entry (§13.18.38.4 GR10c/GR10d — an OCCURS over a LINE clause;
+HORIZONTAL repetition is LIVE, see §3; the multi-operand VALUE and SOURCE clauses themselves RIDE over the
+multiple-COLUMN vehicle, kb/Work PB506); **multiple LINE
 (§13.18.35.3 SR10 — GR9-equivalent to LINE + a simple OCCURS, staged with the OCCURS repetition family;
 `report-multiple-line`)**; **a VARYING counter inside a FROM/BY expression (the §13.18.64.3 SR3-legal BY
 self-reference; `report-varying-counter-in-expression`)**; **FUNCTION inside a PRESENT WHEN condition
