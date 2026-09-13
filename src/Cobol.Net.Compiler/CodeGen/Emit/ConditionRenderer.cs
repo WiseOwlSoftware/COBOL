@@ -135,7 +135,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // (kb/Work PB728). For the three reference categories the two readers agree BY CONSTRUCTION, and that is
         // stated rather than assumed: `OperandPic` is `Pic ?? AsIfPic`, and the only as-if pictures that exist
         // are §13.18.29.4 GR1b/GR2b's — a BIT group's (category boolean) and a NATIONAL group's (category
-        // national) — so no group can carry ObjectReference, Pointer or ProgramPointer. Reading the ONE reader
+        // national) — so no group can carry ObjectReference, Pointer, ProgramPointer or FunctionPointer. Reading the ONE reader
         // here is therefore uniformity, not a behaviour change, and it is what lets the drift rule
         // (scripts/semgrep, cobolnet-condition-category-from-raw-picture) forbid a raw PICTURE read outright in
         // this file, with CollatingComparisonClassDriftTests pinning the comparison-class matrix beside it.
@@ -167,6 +167,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             static string PpRead(BoundOperand o) =>
                 o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "ProgramPointer.Null";
             string core = $"ProgramPointer.SameTarget({PpRead(r.Left)}, {PpRead(r.Right)})";
+            return r.Op == "==" ? core : $"!({core})";
+        }
+        // Function-pointer relations — the ProgramPointer arm's twin over the SEPARATE FunctionPointer carrier
+        // (§8.8.4.2.16 compares pointers only within a category, and §8.4.3.10 GR2/GR3 keep the predefined NULL
+        // function address distinct from the NULL program address). kb/Work PB452/PB817.
+        static bool IsFp(BoundOperand o) =>
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.FunctionPointer;
+        if (IsFp(r.Left) || IsFp(r.Right))
+        {
+            static string FpRead(BoundOperand o) =>
+                o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "FunctionPointer.Null";
+            string core = $"FunctionPointer.SameTarget({FpRead(r.Left)}, {FpRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
         // Boolean-EXPRESSION relations (ISO §8.8.4.2.2 Format 2): when either side is a boolean expression

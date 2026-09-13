@@ -368,15 +368,29 @@ public static class OoConformance
                 return !anyLengthFormal && f.Length != a.Length
                     ? $"length mismatch (formal {f.Category} ({f.Length}), argument {a.Category} ({a.Length}))"
                     : null;
-            // ── Class pointer (ISO §14.8.2.3.2, the class-pointer paragraph): "the corresponding formal
-            // parameter or argument shall be of class pointer and the corresponding items shall be of the same
-            // category" — which the f.Category != a.Category compare above has already proven. A PICTURE-less
-            // pointer has no length, USAGE variant or JUSTIFIED clause left to differ in. The RESTRICTED forms
-            // ("if either is a restricted pointer, both shall be restricted and of the same type") are not
-            // modeled at all — PictureAnalyzer stages the TO-prototype/TO-type-name declarations loud
-            // (COBOLNET0899), so an unrestricted pair is the only shape that reaches here.
+            // ── Class pointer (ISO §14.8.2.3.2, the class-pointer paragraph): "If either the argument or the
+            // formal parameter is of class pointer, the corresponding formal parameter or argument shall be of
+            // class pointer and the corresponding items shall be of the same category" — which the
+            // f.Category != a.Category compare above has already proven. A PICTURE-less pointer has no length,
+            // USAGE variant or JUSTIFIED clause left to differ in. The SECOND sentence — "If either is a
+            // restricted pointer, both shall be restricted and of the same type" — is enforced HERE, over BOTH
+            // restriction models, because both are now declarable: `POINTER TO type-name-1` (§13.18.60.4 GR23,
+            // kb/Work PB153) carries RestrictedTypeName, and `PROGRAM-POINTER TO program-prototype-name-1` /
+            // `FUNCTION-POINTER TO function-prototype-name-1` (GR25/GR26, kb/Work PB452 + PB817) carry
+            // RestrictedPrototypeName. Until they were declarable this was dead text under a staged-loud
+            // declaration, and the comment that stood here said so; a rule whose subject becomes declarable and
+            // whose screen does not follow is a silent under-rejection (feedback_scan_all_similar).
             case PicCategory.Pointer:
             case PicCategory.ProgramPointer:
+            case PicCategory.FunctionPointer:
+                if (!string.Equals(f.RestrictedTypeName, a.RestrictedTypeName, StringComparison.OrdinalIgnoreCase))
+                    return $"restricted data-pointer mismatch (formal {PointerRestrictionText(f.RestrictedTypeName, "type")}, "
+                        + $"argument {PointerRestrictionText(a.RestrictedTypeName, "type")} — §14.8.2.3.2: if either is a "
+                        + "restricted pointer, both shall be restricted and of the same type)";
+                if (!string.Equals(f.RestrictedPrototypeName, a.RestrictedPrototypeName, StringComparison.OrdinalIgnoreCase))
+                    return $"restricted pointer mismatch (formal {PointerRestrictionText(f.RestrictedPrototypeName, "prototype")}, "
+                        + $"argument {PointerRestrictionText(a.RestrictedPrototypeName, "prototype")} — §14.8.2.3.2: if either "
+                        + "is a restricted pointer, both shall be restricted and of the same type)";
                 return null;
             default:
                 // Unreachable by construction: PicCategory.Group never reaches here (formal.IsGroup returned
@@ -386,6 +400,13 @@ public static class OoConformance
                 return $"formal category {f.Category} has no §14.8.2.3.2 conformance rule";
         }
     }
+
+    /// <summary>How one side of the §14.8.2.3.2 restricted-pointer compare reads in a diagnostic: the
+    /// restriction operand, or "unrestricted" when the side carries none. The rule's failure mode is
+    /// restricted-vs-unrestricted as often as it is two different names, so the message has to be able to say
+    /// both.</summary>
+    private static string PointerRestrictionText(string? restriction, string kind) =>
+        restriction is null ? "unrestricted" : $"restricted to {kind} '{restriction}'";
 
     // ══ ISO §14.8.2.3.3 — ELEMENTARY ITEMS PASSED BY CONTENT OR BY VALUE ═════════════════════════════════
     // ⛔ THE ONE HOME FOR THE RULE, for EVERY activation form that imports §14.8.2 (kb/Work PB165). It used

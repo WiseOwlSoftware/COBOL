@@ -286,7 +286,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     {
         BoundNumericLiteral or BoundComputedOperand => true,
         BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric or PicCategory.Pointer
-            or PicCategory.ProgramPointer or PicCategory.ObjectReference,
+            or PicCategory.ProgramPointer or PicCategory.FunctionPointer or PicCategory.ObjectReference,
         _ => false,
     };
 

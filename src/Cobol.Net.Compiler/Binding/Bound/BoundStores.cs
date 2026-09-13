@@ -249,6 +249,8 @@ public static class BoundStores
         public StoreKind? Visit(BoundSetLocale n) => StoreKind.None;
         public StoreKind? Visit(BoundSaveLocale n) => null;
         public StoreKind? Visit(BoundSetProgramPointer n) => null;   // a carrier copy, never a PICTURE store (P10 Step 7)
+        public StoreKind? Visit(BoundSetFunctionPointer n) => null;   // the Format-8 carrier copy (kb/Work PB452)
+        public StoreKind? Visit(BoundSetFunctionAddress n) => null;   // §8.4.3.12 resolve + carrier store, never a PICTURE store
         public StoreKind? Visit(BoundSetEntry n) => null;            // a carrier assignment (§8.4.3.13)
         public StoreKind? Visit(BoundSetPointerUpDown n) => null;
     }

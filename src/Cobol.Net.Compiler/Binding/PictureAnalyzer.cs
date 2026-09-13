@@ -688,12 +688,13 @@ public static class PictureAnalyzer
             // PointerItem pattern). The restricted TO-prototype form stages loud at the BindEntry site.
             case "PROGRAM-POINTER":
                 return Usage.ProgramPointer;
-            // USAGE FUNCTION-POINTER — recognized, STAGED LOUD (function prototypes = P13): the member flows
-            // through so the 2014 introduction gate still fires below 2014; at/above 2014 the named 0899-band
-            // rejection is the honest state (never a silent Display misbind).
+            // USAGE FUNCTION-POINTER — LIVE (kb/Work PB452 + PB817): the introduction gate (0900 below 2014)
+            // fires from UsageConstructId; the caller synthesizes PicInfo.FunctionPointerItem with the MANDATORY
+            // TO function-prototype-name operand (PICTURE-less, the ProgramPointerItem pattern). It used to be
+            // refused here with the 0899 staged-loud band, which also left the entry with no PicInfo at all —
+            // so `01 FP USAGE FUNCTION-POINTER TO FPROTO.` drew a COBOLNET0881 "a PICTURE clause shall be
+            // specified" AND a COBOLNET0844 calling the item "of category alphanumeric" on top of the stage.
             case "FUNCTION-POINTER":
-                edition.Error(DiagnosticCatalog.UsageFunctionPointer,
-                    $"{where}: USAGE FUNCTION-POINTER (ISO §13.18.60 — a function-pointer data item)");
                 return Usage.FunctionPointer;
             // USAGE MESSAGE-TAG — the DATA half of the declined asynchronous-messaging facility (Annex A.3
             // item 4; docs/CONFORMANCE.md §4 item 1), refused BY NAME at every edition, the FLOAT-BINARY-128

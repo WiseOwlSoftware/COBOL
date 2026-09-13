@@ -570,7 +570,7 @@ public sealed class ReferenceResolver(DataBinder data)
             { Category: PicCategory.Numeric } p =>
                 $"a numeric item of USAGE {p.Usage} (SR1 admits usage DISPLAY or NATIONAL only)",
             { Category: PicCategory.ObjectReference } => "an object reference",
-            { Category: PicCategory.Pointer or PicCategory.ProgramPointer } => "a pointer",
+            { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer } => "a pointer",
             { } p => $"an item of category {p.Category}",
         };
     }

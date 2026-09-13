@@ -1002,7 +1002,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             string? kind =
                 StrongTypeModel.IsStrongGroup(item) ? "a strongly-typed group item"
                 : p.Pic?.Category is PicCategory.ObjectReference ? "a data item of class object"
-                : p.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer ? "a data item of class pointer"
+                : p.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer
+                                     or PicCategory.FunctionPointer ? "a data item of class pointer"
                 : null;
             if (kind is not null)
                 ctx.Edition.Error(DiagnosticCatalog.CallByReferenceOperandKind,

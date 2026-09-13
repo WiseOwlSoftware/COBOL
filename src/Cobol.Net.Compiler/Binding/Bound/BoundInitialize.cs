@@ -57,4 +57,4 @@ public sealed record InitializeErrorAction(string Feature) : InitializeAction;
 /// national SPACES" as NATIONAL: GR5c matches a REPLACING/TO VALUE category-name against the receiving operand's
 /// §8.5.2 category, and those are two different categories (§8.5.2.10 vs §8.5.2.11), so folding them would make
 /// `REPLACING NATIONAL DATA BY …` reach a national-edited item the rule does not name (kb/Work PB492).</para></summary>
-public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, NationalEdited, DataPointer, ProgramPointer, ObjectReference }
+public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, NationalEdited, DataPointer, ProgramPointer, FunctionPointer, ObjectReference }

@@ -1299,6 +1299,8 @@ setStatement
     | setSizeStatement
     | setToValueStatement
     | setBooleanStatement
+    | setFunctionAddressStatement // F8 with the §8.4.3.12 ADDRESS OF FUNCTION sender — before setAddressStatement,
+                                  // whose sender arm is `TO ADDRESS OF? dataReference` and would otherwise be tried first
     | setAddressStatement
     | setObjectReferenceStatement
     | setIndexStatement
@@ -1407,6 +1409,26 @@ setBooleanStatement
 setAddressStatement
     : SET ADDRESS OF? dataReference TO (dataReference | NULL_)   // SR19 — identifier-6 is a data-pointer or the predefined address NULL (kb/Work PB89)
     | SET dataReference TO ADDRESS OF? dataReference
+    ;
+
+// SET { identifier-12 } … TO ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }
+// — ISO §14.9.39.2 Format 8 (function-pointer-assignment) with the §8.4.3.12 FUNCTION-ADDRESS-IDENTIFIER as its
+// sender. Format 8's own printed figure (folio 730) is just `SET { identifier-12 } … TO identifier-13` with no
+// choice indicators, so the PLAIN Format 8 (`SET fp1 fp2 TO fp3`, `SET fp TO NULL`) needs no rule of its own —
+// setToValueStatement and setObjectReferenceStatement already parse those shapes and SetBinder re-routes on the
+// receiver's category, exactly as Format 9 does. What needs a rule is the SENDER: §8.4.3.12.2 prints
+// `ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }`, and that phrase appears nowhere else in
+// the grammar. kb/Work PB452 + PB817.
+// ⛔ OF IS AN OPTIONAL WORD (kb/Work PB695 family): the rendered §8.4.3.12.2 figure underlines ADDRESS and
+// FUNCTION and NOT OF, so §8.3.2.4.3 makes `SET FP TO ADDRESS FUNCTION FPROTO` conforming source.
+// ⚠ ONE dataReference operand covers BOTH braced arms: function-prototype-name-1 is a user-defined word and
+// identifier-1 is a data item reference, and the two are told apart at BIND (§8.4.3.12.3 SR1/SR2), where the
+// REPOSITORY function-specifier table and the item's category are both facts. FUNCTION is a reserved token and
+// can never head a dataReference, so this rule cannot be claimed by setAddressStatement's sender arm.
+// ⚠ THERE IS NO literal-1 ARM, and that is measured, not an omission: §8.4.3.13's PROGRAM twin prints three
+// operands including literal-1 and §8.4.3.12's FUNCTION figure prints only two.
+setFunctionAddressStatement
+    : SET dataReference+ TO ADDRESS OF? FUNCTION dataReference
     ;
 
 // ALLOCATE statement (COBOL-2002 §14.9.3): obtain dynamic storage, returned as a managed data-pointer.

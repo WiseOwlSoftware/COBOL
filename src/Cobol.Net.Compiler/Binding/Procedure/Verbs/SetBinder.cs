@@ -48,6 +48,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
         if (set.setSwitchStatement() is { } sw) return host.Alter.SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
+        if (set.setFunctionAddressStatement() is { } sfa) return BindSetFunctionAddress(sfa);   // F8 + §8.4.3.12 sender (kb/Work PB452)
         if (set.setAddressStatement() is { } sa)
             return host.Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
@@ -63,6 +64,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
             if (sorCat is PicCategory.ProgramPointer)
                 return BindSetProgramPointer(sor.dataReference(),
+                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
+                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
+            // A FUNCTION-POINTER target selects Format 8 the same way (SR20; kb/Work PB452 + PB817). ⛔ WITHOUT
+            // THIS ARM a declarable function-pointer falls through into the OO Format-5 bind and, through
+            // BindSetTo, into the Format-1 arithmetic store — the silent wrong answer PB817 filed as "the other
+            // end, which a fixer will otherwise miss".
+            if (sorCat is PicCategory.FunctionPointer)
+                return BindSetFunctionPointer(sor.dataReference(),
                     sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
                     sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
             return host.Oo.OoBindSetObjectRef(sor.dataReference(),
@@ -435,9 +444,215 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             }
             source = sp;
+            // §14.9.39.3 SR22 — "If identifier-7 references a RESTRICTED program-pointer, identifier-8 shall be
+            // the predefined address NULL or shall reference a program-pointer and the program-prototypes
+            // associated with identifier-7 and identifier-8 shall have the same signature." The rule is
+            // conditioned on the RECEIVER being restricted (unlike SR20, where every function-pointer is), which
+            // is the only asymmetry between the two; the compare itself is the same one, so it is the same
+            // helper. kb/Work PB817: "SR20 and SR22 are ONE rule over TWO carriers; write it once."
+            string? senderProto = sp.Item.Pic?.RestrictedPrototypeName;
+            foreach (var t in targets)
+            {
+                string? targetProto = t.Item.Pic?.RestrictedPrototypeName;
+                if (targetProto is null) continue;   // an UNRESTRICTED receiver — SR22's condition is not met
+                // An UNRESTRICTED sender is a violation in its own right, not a vacuous pass: SR22 requires the
+                // prototypes "associated with identifier-7 and identifier-8" to have the same signature, and an
+                // unrestricted program-pointer is associated with none. (§14.8.2.3.2 says the same thing in the
+                // argument-passing direction and says it explicitly — "if either is a restricted pointer, both
+                // shall be restricted and of the same type".) This is DISTINCT from a prototype that names no
+                // compile-time signature, which PrototypeSignatures.Same deliberately lets through.
+                if (senderProto is null
+                    || !PrototypeSignatures.Same(ProgramSignatureOf(targetProto), ProgramSignatureOf(senderProto)))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+                        $"SET '{t.Item.CobolName}' TO '{sp.Item.CobolName}': the receiving program-pointer is "
+                        + $"restricted to program-prototype '{targetProto}' and the sender "
+                        + $"{(senderProto is null ? "is unrestricted" : $"to '{senderProto}'")}, so the associated "
+                        + "program-prototypes do not have the same signature (ISO §14.9.39.3 SR22; §13.18.60.4 GR25)");
+                    return new BoundNop();
+                }
+            }
         }
         return new BoundSetProgramPointer(targets, source, toNull);
     }
+
+    /// <summary>A program-prototype-name's bound signature, through the §8.4.6.8 scope table the declaration was
+    /// already screened against (<c>StatementBinder.ProgramPrototypes</c>, kb/Work PB237 — its hit's Signature is
+    /// null for a §12.3.8.4 GR10 c) external-repository prototype, which <see cref="PrototypeSignatures.Same"/>
+    /// treats as conforming). The function twin is <see cref="FunctionSignatureOf"/>.</summary>
+    private CalleeSignature? ProgramSignatureOf(string? prototypeName) =>
+        prototypeName is not null && host.ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true
+            ? p.Signature
+            : null;
+
+    /// <summary>SET function-pointer assignment (ISO §14.9.39.2 Format 8; §14.9.39.3 SR20 — every target AND the
+    /// sender shall be category function-pointer, the sender may be the predefined address NULL, and "the
+    /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature"): the
+    /// Format-9 program-pointer twin over the FunctionPointer carrier. kb/Work PB452 + PB817.</summary>
+    private BoundStatement BindSetFunctionPointer(
+        IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
+        bool toNull, bool senderIsSelfSuper)
+    {
+        if (senderIsSelfSuper)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                "SET … TO SELF/SUPER: SELF and SUPER are object references, not function pointers "
+                + "(ISO §14.9.39.2 Format 8 — the sender of a function-pointer SET is NULL, another "
+                + "function-pointer, or an ADDRESS OF FUNCTION function-address-identifier)");
+            return new BoundNop();
+        }
+        var targets = new List<Place>(targetRefs.Count);
+        foreach (var t in targetRefs)
+        {
+            if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET '{t.GetText()}': the receiving operand of a function-pointer SET shall be USAGE "
+                    + "FUNCTION-POINTER (ISO §14.9.39.3 SR20)");
+                return new BoundNop();
+            }
+            targets.Add(tp);
+        }
+        Place? source = null;
+        if (!toNull)
+        {
+            if (senderRef is null) return new BoundUnsupported("SET function-pointer — sender shape");
+            if (ctx.Refs.Resolve(senderRef) is not { } sp
+                || sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET … TO '{senderRef?.GetText()}': a function-pointer sender shall be NULL, another "
+                    + "USAGE FUNCTION-POINTER item, or an ADDRESS OF FUNCTION function-address-identifier "
+                    + "(ISO §14.9.39.3 SR20 / §8.4.3.12)");
+                return new BoundNop();
+            }
+            source = sp;
+            // SR20's LAST sentence, over every receiver: the associated function-prototypes shall have the same
+            // signature. §13.18.60.4 GR26 is what makes "associated" a compile-time fact — every function-pointer
+            // carries the prototype its unbracketed TO phrase names.
+            string? senderProto = sp.Item.Pic?.RestrictedPrototypeName;
+            foreach (var t in targets)
+                if (!SameFunctionPrototypeSignature(t.Item.Pic?.RestrictedPrototypeName, senderProto))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+                        $"SET '{t.Item.CobolName}' TO '{sp.Item.CobolName}': the receiving function-pointer is "
+                        + $"restricted to function-prototype '{t.Item.Pic?.RestrictedPrototypeName}' and the sender to "
+                        + $"'{senderProto}', which do not have the same signature — the function-prototypes "
+                        + "associated with identifier-12 and identifier-13 shall have the same signature "
+                        + "(ISO §14.9.39.3 SR20; §13.18.60.4 GR26)");
+                    return new BoundNop();
+                }
+        }
+        return new BoundSetFunctionPointer(targets, source, toNull);
+    }
+
+    /// <summary><c>SET function-pointer… TO ADDRESS OF FUNCTION {function-prototype-name-1 | identifier-1}</c> —
+    /// ISO §14.9.39.2 Format 8 with the §8.4.3.12 function-address-identifier as its sender. Without this the
+    /// category has no non-NULL value it can ever hold (kb/Work PB452).
+    /// <para>Both braced arms arrive as ONE <c>dataReference</c> and are told apart HERE, where the facts exist:
+    /// §8.4.3.12.3 SR2 makes the prototype arm a REPOSITORY function-specifier (plus §8.4.6.6's containing-
+    /// function spelling), and SR1 makes the identifier arm "of category alphanumeric or national". The
+    /// prototype arm resolves at COMPILE time, so §8.4.3.12.4 GR3 ("the function-address-identifier has the
+    /// characteristics of a function-pointer restricted to function-prototype-name-1") puts it straight into
+    /// SR20's same-signature compare; the identifier arm names the function at RUN time (GR1 a), which is
+    /// exactly the case §14.9.39.4 GR14's EC-FUNCTION-PTR-INVALID screen exists for.</para></summary>
+    private BoundStatement BindSetFunctionAddress(Core.SetFunctionAddressStatementContext sfa)
+    {
+        var drefs = sfa.dataReference();
+        if (drefs.Length < 2) return new BoundUnsupported("SET … TO ADDRESS OF FUNCTION — no receiving operand");
+        var targets = new List<Place>(drefs.Length - 1);
+        string? receiverProto = null;
+        for (int i = 0; i < drefs.Length - 1; i++)
+        {
+            if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
+                    + "USAGE FUNCTION-POINTER (ISO §14.9.39.3 SR20 / §8.4.3.12.4 GR1)");
+                return new BoundNop();
+            }
+            targets.Add(tp);
+            // SR20 applies to the receivers among themselves too — identifier-13 is ONE sender, so two receivers
+            // restricted to differently-signed prototypes cannot both conform to it.
+            if (i == 0) receiverProto = tp.Item.Pic?.RestrictedPrototypeName;
+            else if (!SameFunctionPrototypeSignature(receiverProto, tp.Item.Pic?.RestrictedPrototypeName))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+                    $"SET '{targets[0].Item.CobolName}' '{tp.Item.CobolName}' TO ADDRESS OF FUNCTION: the receiving "
+                    + $"function-pointers are restricted to function-prototypes '{receiverProto}' and "
+                    + $"'{tp.Item.Pic?.RestrictedPrototypeName}', which do not have the same signature, so one sender "
+                    + "cannot satisfy both (ISO §14.9.39.3 SR20)");
+                return new BoundNop();
+            }
+        }
+
+        var operand = drefs[^1];
+        string word = operand.GetText();
+        // The PROTOTYPE arm (§8.4.3.12.3 SR2 + §8.4.6.6): a REPOSITORY function-specifier, or the containing
+        // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves.
+        bool isPrototypeName = ctx.Data.UserFunctionNames.Contains(word)
+            || string.Equals(host.UdfSelfName, word, StringComparison.OrdinalIgnoreCase);
+        if (isPrototypeName)
+        {
+            // GR3 makes the sender a function-pointer restricted to this prototype, so SR20's compare is the
+            // same one the pointer-to-pointer arm runs — one rule, one helper.
+            if (!SameFunctionPrototypeSignature(receiverProto, word))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+                    $"SET '{targets[0].Item.CobolName}' TO ADDRESS OF FUNCTION {word}: the receiving function-pointer "
+                    + $"is restricted to function-prototype '{receiverProto}' and the function-address-identifier has "
+                    + $"the characteristics of a function-pointer restricted to '{word}' (ISO §8.4.3.12.4 GR3), and "
+                    + "the two do not have the same signature (ISO §14.9.39.3 SR20)");
+                return new BoundNop();
+            }
+            // §8.4.3.12.4 GR2 names the EXTERNALIZED function-name as the address's identity, and that is what
+            // the run-unit registry holds a unit under (§11.5.4 GR1's AS literal-1 when one is written; the
+            // word otherwise) — so the bound node carries the externalized spelling, never the source word
+            // (kb/Work PB303, the same drift the CALL/ENTRY paths were fixed for).
+            string externalized = host.UserFunctions?.TryGetValue(word, out var proto) == true ? proto.Externalized : word;
+            return new BoundSetFunctionAddress(targets, externalized, null, ExpectedFormalsOf(receiverProto));
+        }
+        // The IDENTIFIER arm (§8.4.3.12.3 SR1): "Identifier-1 shall be of category alphanumeric or national."
+        if (ctx.Refs.Resolve(operand) is not { } namePlace)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.FunctionAddressOperand,
+                $"SET … TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
+                + "the REPOSITORY paragraph (ISO §8.4.3.12.3 SR2 / §8.4.6.6) nor a resolvable identifier "
+                + "(§8.4.3.12.3 SR1)");
+            return new BoundNop();
+        }
+        if (namePlace.Item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.National))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.FunctionAddressOperand,
+                $"SET … TO ADDRESS OF FUNCTION {word}: identifier-1 shall be of category alphanumeric or national "
+                + $"(ISO §8.4.3.12.3 SR1) — '{word}' is of category {namePlace.Item.Pic?.Category.ToString()?.ToLowerInvariant() ?? "(none)"}");
+            return new BoundNop();
+        }
+        return new BoundSetFunctionAddress(targets, null, namePlace, ExpectedFormalsOf(receiverProto));
+    }
+
+    /// <summary>ISO §14.9.39.3 SR20's last sentence over two function-prototype NAMES: resolve each through the
+    /// compilation group's user-function table (the §8.4.6.6 scope the declarations were already screened
+    /// against) and hand the pair to the ONE same-signature test <see cref="PrototypeSignatures.Same"/>, which
+    /// SR22 reads as well. A name with no table entry is a §12.3.8.4 GR11 c) external-repository prototype: no
+    /// compile-time signature exists and the compare conforms (the run-time screen covers it).</summary>
+    private bool SameFunctionPrototypeSignature(string? a, string? b) =>
+        PrototypeSignatures.Same(FunctionSignatureOf(a), FunctionSignatureOf(b));
+
+    private CalleeSignature? FunctionSignatureOf(string? prototypeName) =>
+        prototypeName is not null && host.UserFunctions?.TryGetValue(prototypeName, out var s) == true
+            ? new CalleeSignature(s.Formals, s.Returning)
+            : null;
+
+    /// <summary>The run-time signature granularity of §14.9.39.4 GR14 for a receiver restricted to
+    /// <paramref name="prototypeName"/> — the prototype's formal count, or −1 when no compile-time signature
+    /// exists (a §12.3.8.4 GR11 c) external-repository prototype). ⛔ −1 SUPPRESSES the emitted GR14 screen
+    /// rather than defaulting it to zero: with no declared signature there is nothing for "the same signature as
+    /// the function referenced in the definition of identifier-13" to name, and screening against a guessed
+    /// arity would REJECT a conforming separately-compiled target at run time. GR4's not-found screen still
+    /// runs, because locating the function needs no signature.</summary>
+    private int ExpectedFormalsOf(string? prototypeName) =>
+        FunctionSignatureOf(prototypeName) is { } s ? s.Formals.Count : -1;
 
     /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 with the
     /// §8.4.3.13 program-address-identifier sender; P10 Step 7): every target shall be category
@@ -510,6 +725,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // A PROGRAM-POINTER on either side selects Format 9 (SET pp TO pp — SR21; P10 Step 7).
             if (t0 is PicCategory.ProgramPointer || s0 is PicCategory.ProgramPointer)
                 return BindSetProgramPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
+            // A FUNCTION-POINTER on either side selects Format 8 (SET fp TO fp — SR20; kb/Work PB452 + PB817).
+            if (t0 is PicCategory.FunctionPointer || s0 is PicCategory.FunctionPointer)
+                return BindSetFunctionPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
             // Either side being an object reference selects Format 5 (§14.9.39 F5; D-U7).
             if (t0 is PicCategory.ObjectReference || s0 is PicCategory.ObjectReference)
                 return host.Oo.OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);

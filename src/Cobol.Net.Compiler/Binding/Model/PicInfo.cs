@@ -45,6 +45,16 @@ public enum PicCategory
     /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §8.4.3.13; CALL §14.9.4 SR1; relations
     /// §8.8.4.2.16). Occupies NO character positions (the Pointer/ObjectReference image posture).</summary>
     ProgramPointer,
+    /// <summary>Function pointer (USAGE FUNCTION-POINTER TO function-prototype-name-1, ISO §8.5.2.7 /
+    /// §13.18.60.4 GR26) — LIVE (kb/Work PB452 + PB817): a PICTURE-less elementary item that "may contain the
+    /// address of a function", carried by the runtime <c>FunctionPointer</c> and resolved through the ONE
+    /// run-unit <c>ProgramTable</c> (<c>ADDRESS OF FUNCTION</c> §8.4.3.12; SET Format 8 §14.9.39.4 GR14;
+    /// relations §8.8.4.2.16). ⛔ EVERY function-pointer is RESTRICTED: §13.18.60.2's general format prints
+    /// <c>FUNCTION-POINTER TO function-prototype-name-1</c> with no brackets (measured on the printed folio 503),
+    /// unlike its bracketed POINTER and PROGRAM-POINTER neighbours — so <see cref="PicInfo.RestrictedPrototypeName"/>
+    /// is never null on this category and GR26's signature invariant always has a prototype to compare against.
+    /// Occupies NO character positions (the Pointer/ProgramPointer image posture).</summary>
+    FunctionPointer,
 }
 
 /// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
@@ -314,6 +324,23 @@ public sealed record PicInfo(
     /// <c>StrongTypeModel.AddressOfRestriction</c>. kb/Work PB153.</para></summary>
     public string? RestrictedTypeName { get; init; }
 
+    /// <summary>The <c>{function|program}-prototype-name-1</c> of the RESTRICTED prototype-pointer forms —
+    /// <c>USAGE FUNCTION-POINTER TO function-prototype-name-1</c> (§13.18.60.4 GR26) and <c>USAGE PROGRAM-POINTER
+    /// TO program-prototype-name-1</c> (GR25). ⛔ ONE FIELD FOR BOTH CARRIERS, because the two general rules are
+    /// ONE rule written twice and so are the two syntax rules that consume it — §14.9.39.3 SR20 ("The
+    /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature") and
+    /// SR22 ("the program-prototypes associated with identifier-7 and identifier-8 shall have the same
+    /// signature"). kb/Work PB817 filed exactly that: "SR20 and SR22 are ONE rule (a same-signature test over the
+    /// associated prototypes) over TWO carriers; write it once." The CATEGORY says which namespace the name is
+    /// resolved in (a function-prototype-name per §8.4.6.6, a program-prototype-name per §8.4.6.8); the RULE over
+    /// it is the same compare either way (<c>PrototypeSignatures.SameSignature</c>).
+    /// <para>Distinct from <see cref="RestrictedTypeName"/> on purpose: that one names a TYPE (§13.18.60.4 GR23,
+    /// whose declaration-shape rule is SR18's TYPEDEF requirement), not a prototype, and its restriction is a
+    /// type-identity test rather than a signature test. Null for an unrestricted program-pointer and for every
+    /// non-pointer item; NEVER null on <see cref="PicCategory.FunctionPointer"/>, whose TO phrase is unbracketed
+    /// in the general format.</para></summary>
+    public string? RestrictedPrototypeName { get; init; }
+
     /// <summary>USAGE PACKED-DECIMAL WITH NO SIGN (ISO/IEC 1989:2023 §13.18.60.4 GR11, a 2023 addition): the item
     /// reserves NO trailing sign nibble, so its storage is exactly the digit nibbles — <c>ceil(Digits/2)</c> bytes
     /// (vs a plain packed item's <c>Digits/2+1</c>). The VALUE semantics are identical to an unsigned (S-less)
@@ -507,8 +534,22 @@ public sealed record PicInfo(
     /// the PointerItem synthesis pattern). Occupies NO character positions (§13.18.60 GR24 leaves alignment/
     /// size/representation implementor-defined — this implementation's representation is the managed
     /// <c>ProgramPointer</c> identity carrier, never storage bytes).</summary>
-    public static PicInfo ProgramPointerItem { get; } =
-        new(PicCategory.ProgramPointer, Usage.ProgramPointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
+    public static PicInfo ProgramPointerItem(string? restrictedPrototypeName = null) =>
+        new(PicCategory.ProgramPointer, Usage.ProgramPointer, Length: 0, Digits: 0, Scale: 0, Signed: false)
+        { RestrictedPrototypeName = restrictedPrototypeName };
+
+    /// <summary>A USAGE FUNCTION-POINTER item's representation (kb/Work PB452/PB817; PICTURE-less per
+    /// §13.16.3 SR8 — the ProgramPointerItem synthesis pattern). Occupies NO character positions
+    /// (§13.18.60.4 GR26 leaves alignment/size/representation implementor-defined — this implementation's
+    /// representation is the managed <c>FunctionPointer</c> identity carrier, never storage bytes; the
+    /// determination is published as <c>docs/CONFORMANCE.md</c> §7 row DOC-A.1-210).
+    /// <para><paramref name="restrictedPrototypeName"/> is the MANDATORY <c>TO function-prototype-name-1</c>:
+    /// §13.18.60.2's general format prints it unbracketed, so every function-pointer is restricted and GR26's
+    /// "shall contain only the predefined address NULL or the address of a function with the same signature as
+    /// that identified by the specified function-prototype-name-1" always has a prototype to name.</para></summary>
+    public static PicInfo FunctionPointerItem(string restrictedPrototypeName) =>
+        new(PicCategory.FunctionPointer, Usage.FunctionPointer, Length: 0, Digits: 0, Scale: 0, Signed: false)
+        { RestrictedPrototypeName = restrictedPrototypeName };
 
     /// <summary>The synthesized profile of a PICTURE-less fixed-width binary item (USAGE BINARY-CHAR/-SHORT/
     /// -LONG/-DOUBLE, ISO §13.18.60.4 GR12; PICTURE prohibited per §13.16.3 SR8). Category numeric, realized as
@@ -546,6 +587,10 @@ public sealed record PicInfo(
         // A program pointer is the runtime ProgramPointer carrier (§13.18.60 GR24 — the address of an
         // outermost program; a readonly identity struct whose default IS the NULL program address).
         PicCategory.ProgramPointer => "ProgramPointer",
+        // A function pointer is the runtime FunctionPointer carrier (§13.18.60.4 GR26 — the address of a
+        // function; the ProgramPointer twin, a SEPARATE readonly identity struct so the generated C# cannot
+        // make the two categories assignment-compatible behind the binder's screens).
+        PicCategory.FunctionPointer => "FunctionPointer",
         // National (one UTF-16 char per national position, D-N1) and boolean (one '0'/'1' char per boolean
         // position, D-B1 — §13.18.40.4 GR14 R14) ride the same fixed-width string substrate as alphanumeric.
         PicCategory.Alphanumeric or PicCategory.NumericEdited
@@ -594,6 +639,7 @@ public sealed record PicInfo(
         PicCategory.ObjectReference => "null",
         PicCategory.Pointer => "ManagedPointer.Null",   // the predefined NULL data pointer (§8.4.3.10)
         PicCategory.ProgramPointer => "ProgramPointer.Null",   // the NULL program address (§8.4.3.10 GR3)
+        PicCategory.FunctionPointer => "FunctionPointer.Null",   // the NULL function address (§8.4.3.10.4 GR2)
         // Alphanumeric AND national default to spaces (the national space is U+0020 under the D-N4 Latin-1
         // repertoire); boolean to boolean zeros (§13.18.63 — the category fill values); numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National

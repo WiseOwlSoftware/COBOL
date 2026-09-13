@@ -256,6 +256,14 @@ internal sealed class VersionConformancePass
                 Check(Constructs.SetObjectReference2002, "the SET … TO object-reference statement (Format 5)"); break;
             case BoundSetPointerUpDown:
                 Check(Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)"); break;
+            // SET Format 8 (function-pointer-assignment, §14.9.39.2) — a 2014 introduction (kb/Work PB452).
+            // BOUND arm for the SetObjectReference2002 reason: the PLAIN form has no grammar rule of its own.
+            // `SET fp1 TO fp2` parses as setToValueStatement and `SET fp TO NULL` as setObjectReferenceStatement,
+            // and only the operands' RESOLVED PicCategory.FunctionPointer re-routes either one here — so a
+            // recognition gate would have to gate every SET of an index. The ADDRESS OF FUNCTION sender's own
+            // rule binds to the second node, and both take the SAME id from this one arm.
+            case BoundSetFunctionPointer or BoundSetFunctionAddress:
+                Check(Constructs.SetFunctionPointer2014, "the SET … TO function-pointer statement (Format 8)"); break;
             case BoundSetSize:
                 // SET [SIZE OF] dynamic-length-item TO n (§14.9.39 Format 16) — a 2023 introduction. Semantic (the
                 // target must be dynamic-length), so it stays a bound-tree gate — one arm covers the explicit SIZE
@@ -406,7 +414,8 @@ internal sealed class VersionConformancePass
             : pu is Usage.Pointer || ou is Usage.Pointer ? Constructs.UsagePointer2002
             : cat is PicCategory.ProgramPointer || pu is Usage.ProgramPointer || ou is Usage.ProgramPointer
                 ? Constructs.UsageProgramPointer2002
-            : ou is Usage.FunctionPointer ? Constructs.UsageFunctionPointer2014   // staged loud at 2014+; Pic is the recovery shape, so OwnUsage carries the identity
+            : cat is PicCategory.FunctionPointer || pu is Usage.FunctionPointer || ou is Usage.FunctionPointer
+                ? Constructs.UsageFunctionPointer2014   // LIVE (kb/Work PB452/PB817) — the 0900 introduction gate below 2014, the ProgramPointer2002 shape
             : cat is PicCategory.ObjectReference || pu is Usage.ObjectReference || ou is Usage.ObjectReference
                 ? Constructs.UsageObjectReference2002
             : pu is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble

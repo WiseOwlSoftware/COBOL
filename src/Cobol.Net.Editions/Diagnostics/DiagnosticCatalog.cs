@@ -563,19 +563,45 @@ public static class DiagnosticCatalog
         + "so a program depending on standard-decimal function results never silently gets native ones.",
         "ISO §15.4.1 / §8.8.1.5.1", RecognizedNotImplemented);
 
-    // ── COBOLNET0899 — the staged-loud pointer-usage legs (P10 Step 7) ────────────────────────────────────
-    public static readonly DiagnosticDescriptor UsageFunctionPointer = new(
-        NotImplemented, "usage-function-pointer", EditionSeverity.Error,
-        "USAGE FUNCTION-POINTER (§13.18.60 — a function-pointer data item) is recognized but not yet "
-        + "implemented: its target identities are FUNCTION PROTOTYPES (§11.5 Format 2 / the repository "
-        + "function-specifier), which are the P13 repository work — the pointer lands with them.",
-        "ISO §13.18.60 (FUNCTION-POINTER phrase)", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ProgramPointerRestricted = new(
-        NotImplemented, "program-pointer-restricted", EditionSeverity.Error,
-        "USAGE PROGRAM-POINTER TO program-prototype-name (§13.18.60 GR25 — a RESTRICTED program-pointer, "
-        + "confined to NULL or a same-signature program's address) is recognized but not yet implemented: "
-        + "signature matching needs the program-prototype registry (P13); the unrestricted form is live.",
-        "ISO §13.18.60 GR25 / SR22", RecognizedNotImplemented);
+    // ── COBOLNET1958 — the prototype-pointer RESTRICTION OPERAND, one rule over two carriers ─────────────
+    // ⛔ THIS REPLACED TWO 0899 STAGED-LOUD DESCRIPTORS (`usage-function-pointer`, `program-pointer-restricted`,
+    // P10 Step 7), which are DELETED rather than kept inert: both asserted that the construct was "not yet
+    // implemented", and both constructs are implemented as of kb/Work PB452 + PB817. A staged-loud descriptor
+    // that outlives its stage is a green test's way of holding a gap open
+    // (feedback_green_test_can_hold_a_gap_open).
+    /// <summary>COBOLNET1958 — the <c>TO {function|program}-prototype-name-1</c> phrase of ISO §13.18.60.2's
+    /// USAGE general format: PRESENCE (FUNCTION-POINTER's operand is unbracketed, so the phrase is required) and
+    /// SCOPE (§8.4.6.6 for a function-prototype-name, §8.4.6.8 for a program-prototype-name — the same sentence
+    /// over two namespaces). ONE code because it is one rule over two carriers: §13.18.60.4 GR25 and GR26 differ
+    /// only in the namespace, and so do their §14.9.39.3 SR20/SR22 consumers (kb/Work PB817).
+    /// <para>The SHAPE rule that is NOT here is §13.18.60.3 SR18/SR19's TYPEDEF requirement — that one is the
+    /// 0881 declaration band beside the other USAGE-clause compatibility screens, and it has no function-pointer
+    /// arm at all (§13.18.60.3 carries no function-prototype-name sentence).</para></summary>
+    public static readonly DiagnosticDescriptor PrototypePointerRestriction = new(
+        "COBOLNET1958", "prototype-pointer-restriction", EditionSeverity.Error,
+        "The TO phrase of a USAGE FUNCTION-POINTER / PROGRAM-POINTER clause shall name a function-prototype or "
+        + "program-prototype in the source element's scope, and FUNCTION-POINTER's phrase is not optional.",
+        "ISO §13.18.60.2 / §8.4.6.6 / §8.4.6.8");
+
+    /// <summary>COBOLNET1959 — ISO §14.9.39.3 SR20 and SR22, which are ONE rule over two carriers: "The
+    /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature" and
+    /// "the program-prototypes associated with identifier-7 and identifier-8 shall have the same signature".
+    /// ONE code, because <c>PrototypeSignatures.Same</c> is one test (kb/Work PB817).</summary>
+    public static readonly DiagnosticDescriptor PrototypePointerSignature = new(
+        "COBOLNET1959", "prototype-pointer-signature", EditionSeverity.Error,
+        "A SET between restricted pointers requires the associated function-prototypes or program-prototypes to "
+        + "have the same signature.", "ISO §14.9.39.3 SR20 / SR22");
+
+    /// <summary>COBOLNET1960 — ISO §8.4.3.12.3 SR1/SR2, the function-address-identifier's operand: the braced
+    /// choice is <c>function-prototype-name-1 | identifier-1</c>, the first "a function prototype specified in
+    /// the REPOSITORY paragraph" and the second "of category alphanumeric or national". A word that is neither
+    /// names no function. (There is no literal-1 arm — §8.4.3.13's PROGRAM twin has one and §8.4.3.12 does
+    /// not, measured on the printed folio 141.)</summary>
+    public static readonly DiagnosticDescriptor FunctionAddressOperand = new(
+        "COBOLNET1960", "function-address-operand", EditionSeverity.Error,
+        "The operand of ADDRESS OF FUNCTION shall be a function-prototype-name declared in the REPOSITORY "
+        + "paragraph or an identifier of category alphanumeric or national.",
+        "ISO §8.4.3.12.3 SR1 / SR2");
 
     // ── COBOLNET1533 — strong typing, split by rule (§8.5) ───────────────────────────────────────────
     public static readonly DiagnosticDescriptor StrongMoveMismatch = new(

@@ -335,6 +335,57 @@ public sealed class ProgramTable
         return ProgramPointer.Null;   // §8.4.3.13 GR4 — the value is the predefined address NULL
     }
 
+    /// <summary>Resolve a function-address-identifier (ISO §8.4.3.12, <c>ADDRESS OF FUNCTION</c>): locate the
+    /// function <paramref name="name"/> names — §8.4.3.12.4 GR2, "For a COBOL function, the address is that of
+    /// the function identified by the externalized function-name in its FUNCTION-ID paragraph", which is
+    /// <c>Node.CallName</c> on a FUNCTION-ID node (kb/Work PB303). Not locatable → GR4: "If the runtime system
+    /// cannot locate the function, the EC-FUNCTION-NOT-FOUND exception condition is set to exist and the value
+    /// of the address-identifier is the predefined address NULL" — <paramref name="notFound"/> is set and the
+    /// result is <see cref="FunctionPointer.Null"/>.
+    /// <para>The PROGRAM twin of <see cref="EntryOf"/>, deliberately written to the same shape over the same
+    /// <c>_order</c> scan and the same separately-compiled sibling-module probe (§8.4.6.6 scopes the NAME, and a
+    /// separately compiled function definition is found exactly as a separately compiled program is). The ONE
+    /// difference is the <see cref="Node.IsFunction"/> discriminator, which §8.4.6.3's first paragraph requires
+    /// in both directions: a function-name is not a program-name, so ENTRY must not see a function and this must
+    /// not see a program. Function definitions are NOT nested (§9.4 / §10.6), so the <c>ParentPath is null</c>
+    /// screen the program twin needs is not written here — a FUNCTION-ID unit is always a source element.</para>
+    /// </summary>
+    public FunctionPointer FunctionAddressOf(string name, out bool notFound)
+    {
+        string target = name?.Trim() ?? "";
+        foreach (var n in _order)
+            if (n.IsFunction && NameEquals(n.CallName, target)) { notFound = false; return new FunctionPointer(n.CallName); }
+        if (ProbeSiblingModule(target))
+            foreach (var n in _order)
+                if (n.IsFunction && NameEquals(n.CallName, target)) { notFound = false; return new FunctionPointer(n.CallName); }
+        notFound = true;
+        return FunctionPointer.Null;   // §8.4.3.12.4 GR4 — the value is the predefined address NULL
+    }
+
+    /// <summary>The run-time half of the function-pointer signature invariant (ISO §13.18.60.4 GR26 — "A
+    /// function-pointer shall contain only the predefined address NULL or the address of a function with the same
+    /// signature as that identified by the specified function-prototype-name-1"), enforced statement by statement
+    /// by §14.9.39.4 GR14: true when <paramref name="p"/> is NULL (GR26's first alternative) or addresses a
+    /// registered function whose declared formal count is <paramref name="expectedFormals"/>.
+    /// <para>⛔ GRANULARITY, STATED: the compare is ARITY-ONLY, because a registered unit carries
+    /// <c>FormalCount</c>/<c>RequiredCount</c> and nothing finer. That is the SAME granularity as the
+    /// compile-time COBOLNET1513 prototype-vs-definition check (<c>BinderDriver.BuildUserFunctionTable</c> —
+    /// "Light check (argument count; full §8.13 external-repository conformance is staged residue)"), and the
+    /// COMPILE-TIME §14.9.39.3 SR20 compare in <c>SetBinder</c> is richer: it has both bound
+    /// <c>CalleeSignature</c>s. This site exists for the one case SR20 cannot reach — a sender resolved from a
+    /// run-time NAME (§8.4.3.12.4 GR1 a), the identifier-1 form).</para>
+    /// <para><c>Math.Max(FormalCount, 0)</c> is LOAD-BEARING, not defensive: <c>ProgramEmitter.EmitEntryWrapper</c>
+    /// omits the <c>formalCount:</c> argument entirely when the unit has no formals, so a ZERO-formal function
+    /// registers with the "not registered" sentinel −1.</para></summary>
+    public bool FunctionSignatureMatches(FunctionPointer p, int expectedFormals)
+    {
+        if (p.IsNull) return true;   // §13.18.60.4 GR26 — NULL is always an admissible content
+        foreach (var n in _order)
+            if (n.IsFunction && NameEquals(n.CallName, p.Name!))
+                return Math.Max(n.FormalCount, 0) == expectedFormals;
+        return false;   // an address no registration backs is not "the address of a function … with the same signature"
+    }
+
     /// <summary>Execute a CALL through a program-pointer (ISO §14.9.4 SR1 — identifier-1 references a
     /// program-pointer item; GR at :26177 — the item "contains the location of the program being called").
     /// A NULL pointer has no program to call: §14.9.4.4's "invalid program address" execution is undefined —

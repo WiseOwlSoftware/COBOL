@@ -917,6 +917,30 @@ public sealed record BoundSetProgramPointer(IReadOnlyList<Place> Targets, Place?
 /// NULL and EC-PROGRAM-NOT-FOUND is set to exist (the emitter's checking-gated block).</summary>
 public sealed record BoundSetEntry(IReadOnlyList<Place> Targets, string? NameLiteral, Place? NamePlace) : BoundStatement;
 
+/// <summary><c>SET function-pointer… TO {NULL | function-pointer}</c> (ISO §14.9.39.2 Format 8; §14.9.39.3 SR20
+/// — both sides category function-pointer and the associated function-prototypes of the same signature, checked
+/// at BIND; §14.9.39.4 GR14 — "The address identified by identifier-13 is stored in each data item referenced by
+/// identifier-12 in the order specified"): a straight carrier copy, the Format-9 twin. kb/Work PB452 + PB817.
+/// <para>GR14's run-time EC-FUNCTION-PTR-INVALID screen is NOT emitted for this node, and that is derived rather
+/// than skipped: SR20 has already proven at compile time that the sender's prototype and every receiver's
+/// prototype have the same signature, and §13.18.60.4 GR26 makes the sender's own content NULL-or-same-signature
+/// by construction, so the GR14 condition cannot arise on this shape. It CAN arise on
+/// <see cref="BoundSetFunctionAddress"/>, whose sender names a function at RUN time.</para></summary>
+public sealed record BoundSetFunctionPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;
+
+/// <summary><c>SET function-pointer… TO ADDRESS OF FUNCTION {function-prototype-name-1 | identifier-1}</c>
+/// (ISO §14.9.39.2 Format 8 with the §8.4.3.12 function-address-identifier sender): resolve the named function
+/// through the run-unit ProgramTable at statement time (§8.4.3.12.4 GR2 — the externalized function-name).
+/// Exactly one of <paramref name="PrototypeName"/> (GR1 b, the compile-time prototype form) /
+/// <paramref name="NamePlace"/> (GR1 a, a run-time name read) is set. Not locatable → GR4: the targets take NULL
+/// and EC-FUNCTION-NOT-FOUND is set to exist. A located function whose signature does not match
+/// <paramref name="ExpectedFormals"/> → §14.9.39.4 GR14: EC-FUNCTION-PTR-INVALID, "no data items are changed,
+/// and the execution of the SET statement is terminated". kb/Work PB452.</summary>
+/// <param name="ExpectedFormals">The receiving items' declared function-prototype's formal count — the run-time
+/// signature the located function is screened against. Every receiver carries the SAME one: SR20 requires it.</param>
+public sealed record BoundSetFunctionAddress(IReadOnlyList<Place> Targets, string? PrototypeName, Place? NamePlace,
+    int ExpectedFormals) : BoundStatement;
+
 /// <summary><c>SET pointer… {UP|DOWN} BY integer</c> (ISO §14.9.39 Format 10; 2002+): the address moves by
 /// bytes (GR20 — character positions in this model); NULL → EC-DATA-PTR-NULL at runtime (GR18).</summary>
 public sealed record BoundSetPointerUpDown(IReadOnlyList<Place> Targets, BoundExpr Amount, bool Down) : BoundStatement;

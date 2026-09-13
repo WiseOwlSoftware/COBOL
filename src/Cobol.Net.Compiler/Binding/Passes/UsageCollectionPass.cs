@@ -235,6 +235,8 @@ internal static class UsageCollectionPass
         public bool Visit(BoundSetObjectRef n) => false;
         public bool Visit(BoundSetPointer n) => false;
         public bool Visit(BoundSetProgramPointer n) => false;   // program-pointer carriers never join a character image (P10 Step 7)
+        public bool Visit(BoundSetFunctionPointer n) => false;   // function-pointer carriers likewise (kb/Work PB452)
+        public bool Visit(BoundSetFunctionAddress n) => false;
         public bool Visit(BoundSetEntry n) => false;
         public bool Visit(BoundSetAddressOfBased n) => false;
         public bool Visit(BoundSetPointerUpDown n) => false;

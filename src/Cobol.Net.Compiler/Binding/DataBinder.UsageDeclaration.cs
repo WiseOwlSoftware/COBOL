@@ -257,6 +257,7 @@ public sealed partial class DataBinder
     {
         PicCategory.Pointer => "POINTER",
         PicCategory.ProgramPointer => "PROGRAM-POINTER",
+        PicCategory.FunctionPointer => "FUNCTION-POINTER",
         PicCategory.ObjectReference => "OBJECT REFERENCE",
         var c => $"an unnamed usage of class {c?.ToString() ?? "(none)"} — this is a compiler defect: the "
             + "§13.18.60.3 SR14 class predicate admitted a category this message does not name",

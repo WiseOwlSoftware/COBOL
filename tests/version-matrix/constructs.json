@@ -1112,15 +1112,27 @@
   },
   {
    "id": "usage-function-pointer-2014",
-   "status": "pending",
-   "description": "USAGE FUNCTION-POINTER (§13.18.60 — a function-pointer data item) — reserved-word evidence dates it 2014 (reserved-words.json FUNCTION-POINTER r2002=false r2014=true). PENDING: superset-parsed at every edition as of P10 Step 7 with the semantics STAGED LOUD (DiagnosticCatalog.UsageFunctionPointer, 0899 band — function prototypes are the P13 repository work); the positive leg lands with P13. The introduction gate (0900 below 2014) is live via the bound-arm UsageConstructId.",
+   "status": "active",
+   "description": "USAGE FUNCTION-POINTER TO function-prototype-name-1 (§13.18.60.4 GR26 — a function-pointer data item; §8.5.2.7 category function-pointer) — reserved-word evidence dates it 2014 (reserved-words.json FUNCTION-POINTER r2002=false r2014=true). ACTIVE as of kb/Work PB452 + PB817: the FunctionPointer carrier resolves through the ONE RunUnit ProgramTable (ADDRESS OF FUNCTION §8.4.3.12; SET Format 8 §14.9.39.4 GR14; relations §8.8.4.2.16). The TO phrase is MANDATORY — the printed general format (folio 503) brackets POINTER's and PROGRAM-POINTER's operands and not this one — so a bare USAGE FUNCTION-POINTER is COBOLNET1958. Gate home: the bound-arm UsageConstructId (the usage-program-pointer-2002 pattern).",
    "display": "USAGE FUNCTION-POINTER",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §13.18.60; PENDING (P13 function prototypes)",
+   "citation": "ISO §13.18.60.4 GR26 / §8.5.2.7; the FunctionPointer carrier — LIVE end-to-end (kb/Work PB452 + PB817)",
    "introducedIn": 2014,
    "removedIn": null,
    "vcr": "reserved-words.json FUNCTION-POINTER (added 2014)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP USAGE FUNCTION-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+   "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. KFPPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-R PIC 9(4).\nPROCEDURE DIVISION RETURNING L-R.\nEND FUNCTION KFPPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. KFP.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION KFPPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP USAGE FUNCTION-POINTER TO KFPPROTO.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM KFP.\n"
+  },
+  {
+   "id": "set-function-pointer-2014",
+   "status": "active",
+   "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOLNET1959 and §8.4.3.12.3 SR1/SR2 is COBOLNET1960. LIVE as of kb/Work PB452 + PB817.",
+   "display": "SET … TO function-pointer (Format 8)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §14.9.39.2 Format 8 / §14.9.39.3 SR20 / §14.9.39.4 GR14 / §8.4.3.12",
+   "introducedIn": 2014,
+   "removedIn": null,
+   "vcr": "ISO §14.9.39.2 Format 8 (its operand is the 2014 function-pointer category, §8.5.2.7)",
+   "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. KSFPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-R PIC 9(4).\nPROCEDURE DIVISION RETURNING L-R.\nEND FUNCTION KSFPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. KSETFP.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION KSFPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP1 USAGE FUNCTION-POINTER TO KSFPROTO.\n01 FP2 USAGE FUNCTION-POINTER TO KSFPROTO.\nPROCEDURE DIVISION.\nMAIN.\n    SET FP1 TO ADDRESS OF FUNCTION KSFPROTO\n    SET FP2 TO FP1\n    STOP RUN.\nEND PROGRAM KSETFP.\n"
   },
   {
    "id": "user-word-program-pointer-2002",

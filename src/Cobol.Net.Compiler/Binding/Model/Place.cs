@@ -256,7 +256,8 @@ public sealed record SlotWindow(AccessPath Cell) : WindowCoding
     /// REDEFINES class is barred at the entry by the first two rules or at the declaration by the third.</para></summary>
     public static bool CarriedBySlot(DataItem item) =>
         item.IsElementary && item.Pic is
-            { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.ObjectReference };
+            { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer
+                  or PicCategory.ObjectReference };
 }
 
 /// <summary>

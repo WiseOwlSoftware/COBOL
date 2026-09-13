@@ -215,6 +215,80 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             w.Line($"_ = {nf};   // EC-PROGRAM-NOT-FOUND checking not enabled (§14.6.13.1.4 — not raised; the value is NULL per GR4)");
     }
 
+    /// <summary><c>SET function-pointer… TO ADDRESS OF FUNCTION {function-prototype-name-1 | identifier-1}</c>
+    /// (ISO §14.9.39.2 Format 8 + §8.4.3.12; kb/Work PB452): resolve the named function through the run-unit
+    /// ProgramTable ONCE (§8.4.3.12.4 GR2 — the externalized function-name), screen it, then assign to every
+    /// receiver. The <see cref="EmitSetEntry"/> program twin, with ONE structural difference — Format 8 carries a
+    /// SECOND screen:
+    /// <list type="number">
+    /// <item>§8.4.3.12.4 GR4 — not locatable: EC-FUNCTION-NOT-FOUND is set to exist and "the value of the
+    /// address-identifier is the predefined address NULL". The value is DEFINED, so the store still happens, and
+    /// the raise is checking-gated (§14.6.13.1.4 — an unchecked condition is not raised).</item>
+    /// <item>§14.9.39.4 GR14 — located but of a different signature: EC-FUNCTION-PTR-INVALID, "no data items are
+    /// changed, and the execution of the SET statement is terminated". ⛔ THE STORE-SKIP IS NOT CHECKING-GATED:
+    /// the standard NAMES the outcome, so it holds whether or not the condition is being checked; only the EC
+    /// RAISE is gated. (The two legs are deliberately opposite, and each follows its own rule's wording.)</item>
+    /// </list></summary>
+    public void EmitSetFunctionAddress(BoundSetFunctionAddress s)
+    {
+        var w = ctx.Writer;
+        // §8.4.3.12.4 GR1: a) the CONTENT of identifier-1, resolved at statement time; b) function-prototype-name-1,
+        // whose externalized function-name the binder already resolved to a compile-time constant.
+        string nameExpr = s.PrototypeName is { } proto
+            ? CsLiteral(proto)
+            : $"({PlaceRenderer.Read(s.NamePlace!)}).Trim()";
+        int id = ctx.Names.NextPtr();
+        string nf = $"__fpNf{id}";
+        w.Line($"bool {nf};");
+        w.Line($"var __fpA{id} = ProgramRegistry.FunctionAddressOf({nameExpr}, out {nf});   // ADDRESS OF FUNCTION (ISO §8.4.3.12.4 GR1/GR2)");
+
+        // GR14's signature screen. ExpectedFormals < 0 means the receivers' prototype has no compile-time
+        // signature (a §12.3.8.4 GR11 c) external-repository prototype): there is nothing for "the same
+        // signature" to name, so the screen is not emitted rather than run against a guessed arity.
+        bool screenSignature = s.ExpectedFormals >= 0;
+        string bad = $"__fpBad{id}";
+        if (screenSignature)
+            w.Line($"bool {bad} = !ProgramRegistry.FunctionSignatureMatches(__fpA{id}, {s.ExpectedFormals});"
+                + "   // §14.9.39.4 GR14 / §13.18.60.4 GR26");
+
+        void EmitStores()
+        {
+            foreach (var t in s.Targets)
+                w.Line(PlaceRenderer.Write(t, $"__fpA{id}") + "   // SET function-pointer (ISO §14.9.39.4 GR14)");
+        }
+
+        if (screenSignature)
+        {
+            using (w.Block($"if (!{bad})")) EmitStores();
+            bool checkInvalid = ecState.Info?.Enabled.Any(e => e.Ec == "EC-FUNCTION-PTR-INVALID") == true;
+            if (checkInvalid)
+                using (w.Block("else"))
+                {
+                    // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
+                    w.Line("ExceptionState.Set(\"EC-FUNCTION-PTR-INVALID\", true);   // §14.9.39.4 GR14 — set to exist");
+                    int did = ctx.Names.NextPtr();
+                    w.Line($"int __fe{did} = {ec.EcDispatchExpr("\"EC-FUNCTION-PTR-INVALID\"", "\"\"")};");
+                    w.Line($"if (__fe{did} >= 0) {{ __pc = __fe{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                }
+        }
+        else
+            EmitStores();
+
+        bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-FUNCTION-NOT-FOUND") == true;
+        if (checkNotFound)
+        {
+            using (w.Block($"if ({nf})"))
+            {
+                w.Line("ExceptionState.Set(\"EC-FUNCTION-NOT-FOUND\", true);   // §8.4.3.12.4 GR4 — set to exist");
+                int did = ctx.Names.NextPtr();
+                w.Line($"int __fn{did} = {ec.EcDispatchExpr("\"EC-FUNCTION-NOT-FOUND\"", "\"\"")};");
+                w.Line($"if (__fn{did} >= 0) {{ __pc = __fn{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            }
+        }
+        else
+            w.Line($"_ = {nf};   // EC-FUNCTION-NOT-FOUND checking not enabled (§14.6.13.1.4 — not raised; the value is NULL per GR4)");
+    }
+
     /// <summary>FREE (ISO §14.9.15 GR1/GR2 — per operand, left to right): the helper runs the three-way;
     /// the nonfatal EC-STORAGE-NOT-ALLOC (GR1c) reports through the TurnState-gated status block ONLY when
     /// its checking is enabled (§14.6.13.1.4 — an unchecked nonfatal condition is not raised).</summary>

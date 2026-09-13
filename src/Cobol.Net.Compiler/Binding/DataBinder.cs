@@ -3102,39 +3102,105 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : ObjectRefDescriptor.Universal;
 
         // A VALUE clause is prohibited with USAGE PROGRAM-POINTER / FUNCTION-POINTER (§13.18.63 SR9 — no literal
-        // denotes a program address). The restricted TO-prototype form stages loud (§13.18.60 GR25 — signature
-        // matching needs the P13 prototype registry). The 0881 declaration band. (Their PICTURE prohibition is
-        // the §13.16.3 SR8 screen above, over the ONE picture-less set.)
-        if (entryUsage is Usage.ProgramPointer or Usage.FunctionPointer)
+        // denotes a program address). The 0881 declaration band. (Their PICTURE prohibition is the §13.16.3 SR8
+        // screen above, over the ONE picture-less set.)
+        //
+        // ⛔ THE `TO {function|program}-prototype-name-1` PHRASE IS ONE RULE OVER TWO CARRIERS (kb/Work PB817),
+        // so it binds ONCE here: §13.18.60.4 GR25 ("If program-prototype-name-1 is specified, this data item is a
+        // restricted program-pointer") and GR26 ("A function-pointer shall contain only the predefined address
+        // NULL or the address of a function with the same signature as that identified by the specified
+        // function-prototype-name-1") differ only in which namespace the name is resolved in. The SCOPE rules are
+        // the same sentence twice as well — §8.4.6.6 for function-prototype-names ("either the user-function-name
+        // of the containing function definition or a function-prototype-name declared in the REPOSITORY
+        // paragraph") and §8.4.6.8 for program-prototype-names — so the SELF leg and the REPOSITORY leg are one
+        // lookup parameterized by the carrier. The OPTIONALITY is the only real difference, and it is measured on
+        // the PRINTED general format (folio 503): FUNCTION-POINTER's TO phrase carries NO brackets while
+        // PROGRAM-POINTER's does, so every function-pointer is restricted and a bare one is nonconforming.
+        bool isFunctionPointer = entryUsage is Usage.FunctionPointer;
+        if (entryUsage is Usage.ProgramPointer or Usage.FunctionPointer && rawValue is not null)
         {
-            if (rawValue is not null)
-            {
-                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the VALUE clause shall not be specified with a "
-                    + "USAGE clause carrying the PROGRAM-POINTER or FUNCTION-POINTER phrase (ISO §13.18.63 SR9)");
-                rawValue = null;
-            }
-            if (entryUsage is Usage.ProgramPointer
-                && e.Clauses.Select(c => c.Context.usageClause()?.usageKeyword()?.programPointerUsage())
-                    .FirstOrDefault(ppu => ppu is not null)?.TO() is not null)
-                Edition.Error(DiagnosticCatalog.ProgramPointerRestricted,
-                    $"{entryWhere}: USAGE PROGRAM-POINTER TO program-prototype-name (ISO §13.18.60 GR25)");
+            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the VALUE clause shall not be specified with a "
+                + "USAGE clause carrying the PROGRAM-POINTER or FUNCTION-POINTER phrase (ISO §13.18.63 SR9)");
+            rawValue = null;
         }
 
-        // USAGE POINTER TO type-name-1 — the RESTRICTED data-pointer (§13.18.60.2 general format; §13.18.60.4
-        // GR23). §13.18.60.3 SR18 constrains the DECLARATION SHAPE, and it is the rule that makes the obvious
-        // spelling illegal: "If type-name-1 is specified, the TYPEDEF clause shall be specified for the subject
-        // of the entry." So a restricted data-pointer is declared as a TYPE DECLARATION and then referenced by a
-        // TYPE clause — `01 P USAGE POINTER TO T.` is itself nonconforming. The 0881 declaration band, beside the
-        // PROGRAM-POINTER declaration gates above. kb/Work PB153.
-        var dpu = usageCtx?.usageKeyword()?.dataPointerUsage();
+        // The §13.18.60.2 general format's THREE `TO` phrases — `POINTER [TO type-name-1]`,
+        // `PROGRAM-POINTER [TO program-prototype-name-1]`, `FUNCTION-POINTER TO function-prototype-name-1` —
+        // are READ AND SCREENED HERE, once, off the ONE captured usage-clause node. Splitting them is how the
+        // pair below drifted: SR18 was enforced and its own next sentence SR19 was not, twenty lines apart.
+        //
+        // ⛔ OPTIONALITY IS MEASURED, NOT ASSUMED (printed folio 503, rendered at 300 dpi): POINTER's and
+        // PROGRAM-POINTER's operands are BRACKETED and FUNCTION-POINTER's is NOT, so every function-pointer is
+        // restricted to a prototype and a bare `USAGE FUNCTION-POINTER.` is nonconforming — which is also why
+        // §13.18.60.4 GR26's signature invariant always has a prototype to name. kb/Work PB452/PB817.
+        var usageKeywordCtx = usageCtx?.usageKeyword();
+        var dpu = usageKeywordCtx?.dataPointerUsage();
+        var ppu = usageKeywordCtx?.programPointerUsage();
+        var fpu = usageKeywordCtx?.functionPointerUsage();
         string? restrictedTypeName = dpu?.TO() is not null ? dpu.cobolWord()?.GetText() : null;
-        if (restrictedTypeName is not null && !isTypedef)
+        // ONE field for BOTH prototype carriers (kb/Work PB817: §14.9.39.3 SR20 and SR22 are one same-signature
+        // rule over two carriers; the CATEGORY says which namespace resolves the name).
+        string? restrictedPrototypeName =
+            fpu?.TO() is not null ? fpu.cobolWord()?.GetText()
+            : ppu?.TO() is not null ? ppu.cobolWord()?.GetText()
+            : null;
+
+        // (1) FUNCTION-POINTER's TO phrase is REQUIRED — the general format prints it unbracketed.
+        if (isFunctionPointer && restrictedPrototypeName is null)
+            Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE FUNCTION-POINTER "
+                + "shall be followed by TO function-prototype-name — the phrase is not bracketed in the general "
+                + "format (ISO §13.18.60.2), and §13.18.60.4 GR26 takes every function-pointer's signature "
+                + "restriction from it");
+
+        // (2) §13.18.60.3 SR18 and SR19 — ONE sentence written twice, so ONE screen: "If {type-name-1 |
+        // program-prototype-name-1} is specified, the TYPEDEF clause shall be specified for the subject of the
+        // entry." A restricted data-pointer or a restricted program-pointer is therefore declared as a TYPE
+        // DECLARATION and referenced by a TYPE clause; `01 P USAGE POINTER TO T.` and
+        // `01 PP USAGE PROGRAM-POINTER TO PROTO.` are both nonconforming as written. The 0881 declaration band.
+        // ⛔ THERE IS NO FUNCTION-POINTER TWIN — measured: §13.18.60.3 stops at SR21 and carries no
+        // function-prototype-name sentence, so `01 FP USAGE FUNCTION-POINTER TO FP-PROTO.` at level 1 is
+        // conforming exactly as SR14 allows. Enforcing a third arm here would reject legal source.
+        // kb/Work PB153 (SR18) + PB609 (SR19, the sibling this screen had missing — the note's own fix shape:
+        // "enforce SR19 at the entry (a named diagnostic, not the 0899 loud)").
+        if (!isTypedef)
         {
-            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: USAGE POINTER TO {restrictedTypeName} declares a "
-                + "RESTRICTED data-pointer, and the TYPEDEF clause shall be specified for the subject of such an "
-                + "entry (ISO §13.18.60.3 SR18) — declare the restricted pointer as a type declaration and "
-                + "reference it with a TYPE clause");
-            restrictedTypeName = null;
+            if (restrictedTypeName is not null)
+            {
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: USAGE POINTER TO {restrictedTypeName} declares a "
+                    + "RESTRICTED data-pointer, and the TYPEDEF clause shall be specified for the subject of such an "
+                    + "entry (ISO §13.18.60.3 SR18) — declare the restricted pointer as a type declaration and "
+                    + "reference it with a TYPE clause");
+                restrictedTypeName = null;
+            }
+            if (restrictedPrototypeName is not null && !isFunctionPointer)
+            {
+                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: USAGE PROGRAM-POINTER TO "
+                    + $"{restrictedPrototypeName} declares a RESTRICTED program-pointer, and the TYPEDEF clause "
+                    + "shall be specified for the subject of such an entry (ISO §13.18.60.3 SR19) — declare the "
+                    + "restricted pointer as a type declaration and reference it with a TYPE clause");
+                restrictedPrototypeName = null;
+            }
+        }
+
+        // (3) The prototype name's SCOPE — §8.4.6.6 for a function-prototype-name ("either the user-function-name
+        // of the containing function definition or a function-prototype-name declared in the REPOSITORY
+        // paragraph") and §8.4.6.8 for a program-prototype-name, which is the same sentence over the other
+        // namespace. A name in neither leg names no signature, so the GR25/GR26 restriction would be
+        // unverifiable — and a restriction nothing can check is the a_dead_lookup_is_also_unverified shape.
+        if (restrictedPrototypeName is not null
+            && !(string.Equals(UnitSelfName, restrictedPrototypeName, StringComparison.OrdinalIgnoreCase)
+                 && UnitIsFunction == isFunctionPointer)
+            && !(isFunctionPointer
+                 ? UserFunctionNames.Contains(restrictedPrototypeName)
+                 : ProgramSpecifiers.ContainsKey(restrictedPrototypeName)))
+        {
+            Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE "
+                + $"{(isFunctionPointer ? "FUNCTION" : "PROGRAM")}-POINTER TO {restrictedPrototypeName} — "
+                + $"'{restrictedPrototypeName}' is not a {(isFunctionPointer ? "function" : "program")}-prototype-name "
+                + $"in this source element's scope (ISO {(isFunctionPointer ? "§8.4.6.6" : "§8.4.6.8")}: it shall be "
+                + $"either the {(isFunctionPointer ? "user-function-name of the containing function definition" : "program-name of a containing program definition")} "
+                + "or a name declared in the REPOSITORY paragraph)");
+            restrictedPrototypeName = null;
         }
 
         // ⛔ THE USAGE CLAUSE'S OWN FLOAT FORMAT PHRASES (ISO §13.18.60.2 general format, a COBOL-2014 addition;
@@ -3212,7 +3278,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 localeFormat2: pictureLocale, decimalPointIsComma: DecimalPointIsComma)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem(restrictedTypeName)
-            : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
+            : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem(restrictedPrototypeName)   // §13.18.60.4 GR24/GR25 (P10 Step 7; kb/Work PB817)
+            // USAGE FUNCTION-POINTER (§13.18.60.4 GR26; kb/Work PB452/PB817) — the ProgramPointer twin. The
+            // restriction operand is MANDATORY in the general format, so a null here is the already-diagnosed
+            // shape error; the recovery profile keeps the item in its own category rather than letting the
+            // errored compile misclassify it as alphanumeric (which is what the PICTURE-less fall-through did).
+            : entryUsage is Usage.FunctionPointer ? PicInfo.FunctionPointerItem(restrictedPrototypeName ?? "")
             // USAGE MESSAGE-TAG — declined non-support, already refused BY NAME in ParseUsage (COBOLNET1943;
             // Annex A.3 item 4, docs/CONFORMANCE.md §4 item 1). The recovery shape exists for the same reason
             // the FLOAT-BINARY-128 / FLOAT-DECIMAL forms below have one: §13.16.3 SR8 exempts message-tag from

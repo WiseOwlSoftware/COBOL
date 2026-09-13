@@ -88,6 +88,7 @@ public static class Constructs
     public const string ConstantRecord2002 = "constant-record-2002";
     public const string UsageProgramPointer2002 = "usage-program-pointer-2002";
     public const string UsageFunctionPointer2014 = "usage-function-pointer-2014";
+    public const string SetFunctionPointer2014 = "set-function-pointer-2014";
     public const string UserWordProgramPointer2002 = "user-word-program-pointer-2002";
     public const string UserWordFunctionPointer2014 = "user-word-function-pointer-2014";
     public const string UserWordAs2002 = "user-word-as-2002";

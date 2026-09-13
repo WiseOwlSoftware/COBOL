@@ -111,6 +111,15 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
+    /// <summary>A function pointer (<c>FunctionPointer</c> — the address of a function, ISO §13.18.60.4 GR26;
+    /// kb/Work PB452/PB817). Zero character positions, exactly like its ProgramPointerRef twin (GR26 leaves the
+    /// representation implementor-defined — this implementation's is the managed identity carrier).</summary>
+    public sealed record FunctionPointerRef : StorageForm
+    {
+        public override bool IsCharacterImage => false;
+        public override int ImageWidth => 0;
+    }
+
     /// <summary>A USAGE INDEX cell (a <c>long</c> occurrence number). Zero character positions.</summary>
     public sealed record IndexCell(int Width) : StorageForm
     {

@@ -477,22 +477,15 @@ internal static class IntrinsicArgumentRules
         PicCategory.Numeric => CobolClass.Numeric,
         PicCategory.Boolean => CobolClass.Boolean,
         PicCategory.ObjectReference => CobolClass.Object,
-        // Table 2 collapses all THREE pointer categories into class Pointer. PicCategory has no
-        // FunctionPointer member yet, and THAT IS AN OPEN GAP, NOT A DISPOSITION (kb/Work PB452 — the
-        // justification that stood here until 2026-09-09 read "USAGE FUNCTION-POINTER is documented
-        // non-support (COBOLNET1564, Annex A.3)" and every clause of it was false, each measured:
-        // Annex A.3's processor-dependent list does NOT contain function-pointer, Annex A.4's ENTIRE SET
-        // inventory is three items — format 6 (A.4.2 #24), format 14 (A.4.4 #3), formats 11/12 (A.4.9 #9) —
-        // so §4.2.7 cannot decline it either; the diagnostic actually issued is COBOLNET0899, the
-        // recognized-but-not-implemented staged-loud band, not the COBOLNET1564 non-support band; and
-        // docs/CONFORMANCE.md §4 carries no function-pointer item. USAGE FUNCTION-POINTER and SET format 8
-        // are MANDATORY §4.2.16 base-language surface. The real reason the member is absent is that
-        // §13.18.60's `FUNCTION-POINTER TO function-prototype-name-1` phrase is NOT bracketed — every
-        // function-pointer is restricted to a function prototype — so the category cannot be introduced
-        // without the prototype signature it is checked against (§14.9.39.3 SR20's last sentence,
-        // §14.9.39.4 GR14's EC-FUNCTION-PTR-INVALID). This arm gains the member in the same change set
-        // that makes the usage declarable (a dead lookup is also unverified, so none is kept).
-        PicCategory.Pointer or PicCategory.ProgramPointer => CobolClass.Pointer,
+        // ISO §8.5.2.1 Table 2 collapses all THREE pointer categories — data-pointer, function-pointer and
+        // program-pointer — into class Pointer, and all three are now declarable, so all three are named
+        // here. The FunctionPointer member arrived with kb/Work PB452 + PB817, which made USAGE
+        // FUNCTION-POINTER a real declaration instead of a COBOLNET0899 staged-loud refusal; the comment
+        // that stood here recorded the absence as an OPEN GAP rather than a disposition, because the
+        // justification BEFORE that ("documented non-support, COBOLNET1564, Annex A.3") was false in every
+        // clause — A.3 does not contain function-pointer, A.4's entire SET inventory is three items and
+        // contains neither format 8 nor format 15, and docs/CONFORMANCE.md §4 carries no such item.
+        PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer => CobolClass.Pointer,
         _ => null,                                          // Group is handled by the caller
     };
 

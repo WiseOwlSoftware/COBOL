@@ -452,6 +452,8 @@ internal sealed class BinderDriver
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,
             UnitIsFunction = unit.IsFunction,
+            // §8.4.6.6 / §8.4.6.8 — the SELF leg of the two prototype-name scope rules (kb/Work PB452/PB817).
+            UnitSelfName = unit.Name,
             UnitStaticWs = staticWs,
             // The FILE-CONNECTOR twin of staticWs, WITHOUT the childless conjunct (kb/Work PB168): the
             // static registration flag never crosses an __outer bridge, so containees do not constrain it.

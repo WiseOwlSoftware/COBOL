@@ -78,6 +78,18 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET program-pointer (ISO §14.9.39 Format 9)");
     }
 
+    /// <summary><c>SET function-pointer… TO {NULL | function-pointer}</c> (ISO §14.9.39.2 Format 8; GR14 — the
+    /// address is stored in each receiver in the order specified): the Format-9 twin, a carrier copy. The GR14
+    /// EC-FUNCTION-PTR-INVALID screen belongs to the ADDRESS OF FUNCTION sender, not here — §14.9.39.3 SR20 has
+    /// already proven the two prototypes' signatures equal at bind and §13.18.60.4 GR26 makes the sender's
+    /// content NULL-or-same-signature by construction. kb/Work PB452.</summary>
+    public void EmitSetFunctionPointer(BoundSetFunctionPointer s)
+    {
+        string src = s.ToNull ? "FunctionPointer.Null" : PlaceRenderer.Read(s.Source!);
+        foreach (var t in s.Targets)
+            ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET function-pointer (ISO §14.9.39.2 Format 8)");
+    }
+
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
     /// (GR3), then each index is adjusted by it (GR4).</summary>
     public void EmitSetUpDown(BoundSetUpDown s)

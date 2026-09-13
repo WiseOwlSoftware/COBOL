@@ -88,7 +88,8 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         string? excluded =
             rItem.Pic is { Usage: Usage.Index } ? "an index data item (class index)"
             : rItem.Pic?.Category is PicCategory.ObjectReference ? "a data item of class object"
-            : rItem.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer ? "a data item of class pointer"
+            : rItem.Pic?.Category is PicCategory.Pointer or PicCategory.ProgramPointer
+                                     or PicCategory.FunctionPointer ? "a data item of class pointer"
             : StrongTypeModel.IsStrongGroup(rItem) ? "a strongly-typed group item"
             : null;
         if (excluded is not null)

@@ -118,6 +118,15 @@ public sealed partial class DataBinder
     /// <c>BinderDriver.BindUnitData</c> from <c>BoundUnit.IsFunction</c>.</summary>
     public bool UnitIsFunction { get; init; }
 
+    /// <summary>The unit's own name, for the SELF leg of the two prototype-name scope rules: ISO §8.4.6.6 admits
+    /// "the user-function-name of the containing function definition" as a function-prototype-name, and §8.4.6.8
+    /// admits "the program-name of a containing program definition" as a program-prototype-name — so a
+    /// self-referential <c>USAGE FUNCTION-POINTER TO «this function»</c> declaration is conforming without a
+    /// REPOSITORY entry. The PROCEDURE-phase twin is <c>StatementBinder.UdfSelfName</c>; this is the DATA-phase
+    /// half, because the USAGE clause's restriction operand binds here. Set by <c>BinderDriver.BindUnitData</c>
+    /// from <c>BoundUnit.Name</c>. kb/Work PB452/PB817.</summary>
+    public string? UnitSelfName { get; init; }
+
     /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2). (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<LinkageFormal> LinkageFormals => _linkageFormals;
     private readonly List<LinkageFormal> _linkageFormals = [];
@@ -240,7 +249,8 @@ public sealed partial class DataBinder
                 // CARRIED leg (the §14.2.3 GR10 detached-cell value copy); the remaining SR2-legal shapes
                 // (object/pointer classes, floating-point usage) stage loud by name — never silently by-ref.
                 if (!(item.IsElementary && item.Pic?.Category is PicCategory.Numeric or PicCategory.Pointer
-                        or PicCategory.ProgramPointer or PicCategory.ObjectReference))
+                        or PicCategory.ProgramPointer or PicCategory.FunctionPointer
+                        or PicCategory.ObjectReference))
                     Edition.Error("COBOLNET1553",
                         $"BY VALUE formal parameter '{pname}' shall be of class numeric, message-tag, object, "
                         + "or pointer (ISO §14.2.2 SR2)");

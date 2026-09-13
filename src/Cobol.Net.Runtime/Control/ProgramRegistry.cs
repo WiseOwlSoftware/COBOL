@@ -130,6 +130,14 @@ public static class ProgramRegistry
     public static ProgramPointer EntryOf(string name, out bool notFound)
         => RunUnit.Current.Programs.EntryOf(name, out notFound);
 
+    /// <inheritdoc cref="ProgramTable.FunctionAddressOf"/>
+    public static FunctionPointer FunctionAddressOf(string name, out bool notFound)
+        => RunUnit.Current.Programs.FunctionAddressOf(name, out notFound);
+
+    /// <inheritdoc cref="ProgramTable.FunctionSignatureMatches"/>
+    public static bool FunctionSignatureMatches(FunctionPointer p, int expectedFormals)
+        => RunUnit.Current.Programs.FunctionSignatureMatches(p, expectedFormals);
+
     /// <inheritdoc cref="ProgramTable.CallPointer"/>
     public static void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args,
         ManagedPointer? returning, bool siteHandlesPropagation = false)

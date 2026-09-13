@@ -462,6 +462,21 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundCancel:
                     Query(ProgramNames);    // CANCEL raises no EC-EXTERNAL — external state persists (§14.9.5 GR8)
                     break;
+                // ⛔ THE DEAD RAISE THIS ENUMERATION WAS MISSING (kb/Work PB452, measured before it was fixed:
+                // `>>TURN EC-PROGRAM-NOT-FOUND CHECKING ON` over `SET pp TO ENTRY "NOSUCH"` with a matching
+                // declarative printed only "AFTER SET"). EC-PROGRAM-NOT-FOUND was named ONLY in ProgramNames,
+                // which was queried for BoundCallProgram / BoundCancel — so PtrEmitter.EmitSetEntry's
+                // checking-gated §8.4.3.13 GR4 block could never be emitted: ecState.Info.Enabled never carried
+                // the name for THIS node. PRECISE, like BoundSetCapacity: the §8.4.3.13 GR4 locate miss is the
+                // only condition this node raises.
+                case BoundSetEntry:
+                    Query(["EC-PROGRAM-NOT-FOUND"]);
+                    break;
+                // The Format-8 twin (§8.4.3.12.4 GR4's locate miss and §14.9.39.4 GR14's signature screen) —
+                // PRECISE for the same reason, and added WITH its raise site rather than after it (kb/Work PB452).
+                case BoundSetFunctionAddress:
+                    Query(["EC-FUNCTION-NOT-FOUND", "EC-FUNCTION-PTR-INVALID"]);
+                    break;
                 case BoundFree:
                     Query(["EC-STORAGE-NOT-ALLOC"]);   // §14.9.15 GR1c (nonfatal; Phase-4b inc 2)
                     break;

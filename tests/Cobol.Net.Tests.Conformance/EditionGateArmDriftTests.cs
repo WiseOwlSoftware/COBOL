@@ -56,6 +56,11 @@ public sealed class EditionGateArmDriftTests
             "the Format-5 RE-ROUTE: `SET a TO b` reaches OoBinder as an object-reference SET only when both "
             + "operands RESOLVE to PicCategory.ObjectReference — setObjectReferenceStatement is one spelling of "
             + "several, and the generic setToValueStatement carries the rest (ISO §14.9.39 Format 5)",
+        ["SetFunctionPointer2014"] =
+            "the Format-8 RE-ROUTE, the SetObjectReference2002 shape over the other carrier: `SET fp1 TO fp2` "
+            + "parses as setToValueStatement and `SET fp TO NULL` as setObjectReferenceStatement, and only the "
+            + "operands' RESOLVED PicCategory.FunctionPointer selects §14.9.39.2 Format 8 — the printed format "
+            + "is `SET { identifier-12 } … TO identifier-13` and has no keyword a parse rule could recognize",
         ["PointerArithmetic2002"] =
             "SET x UP/DOWN BY n is ONE printed shape for TWO constructs — the version-invariant index form "
             + "(§14.9.39 Format 8) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "

@@ -57,6 +57,12 @@ public sealed class OoConformanceCategoryDriftTests
             { ObjectRef = ObjectRefDescriptor.ObjectClass("CLS") },
         PicCategory.Pointer => new PicInfo(category, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false),
         PicCategory.ProgramPointer => new PicInfo(category, Usage.ProgramPointer, Length: 0, Digits: 0, Scale: 0, Signed: false),
+        // A function-pointer is PICTURE-less like its two class-pointer siblings, and it is always
+        // RESTRICTED (§13.18.60.2's TO phrase is unbracketed), so the self-consistent description carries a
+        // prototype name — which is also the field §14.8.2.3.2's "both shall be restricted and of the same
+        // type" sentence compares. kb/Work PB452 + PB817.
+        PicCategory.FunctionPointer => new PicInfo(category, Usage.FunctionPointer, Length: 0, Digits: 0, Scale: 0, Signed: false)
+            { RestrictedPrototypeName = "FPROTO" },
         _ => new PicInfo(category, Usage.Display, Length: 4, Digits: 0, Scale: 0, Signed: false),
     };
 
