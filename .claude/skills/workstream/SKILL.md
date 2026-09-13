@@ -50,6 +50,8 @@ largest line item in the burn-down.
 ⛔ **A job that will not fit is SPLIT, never extended.** A fresh agent starting from the checkpoint is on the flat
 part of the curve; the killed one's continuation is on the steep part.
 
+**⭐ Four speed levers adopted by the owner on 2026-09-13** (asked "can we fix many known defects then run a comprehensive test?"): (1) the registrar CLUSTERS leads by root cause into one note per mechanism before any dispatch; (2) an implementer's gate is ITS OWN tests + `~Drift|~EditionGate` + the Unit assembly — the corpus and NIST legs run at the LANDER over the whole train (the train IS the "fix many, test once" step; CI and one battery per train stay); (3) ONE positive golden at the introducing edition + ONE negative below it, a copy per edition only where behaviour differs; (4) the report follows `templates/implementer-report-template.md`, ≤ 60 lines. Measured basis: a fix's gate was ~10 of its ~70 minutes; the transcript, not the tests, is the cost.
+
 **One mechanism per implementer.** ⓜ A mechanism costs ~150 turns and an implementer's fixed cost is only ~70, so
 the quadratic eats the amortization immediately: the **second mechanism in one transcript costs 44.6 M, more than
 a whole fresh implementer at 40.3 M**. Two only when the notes share one code site *and* one gate filter — in

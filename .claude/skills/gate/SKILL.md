@@ -20,6 +20,8 @@ goes green while CI fails.
 
 ## Per commit — wave-local (~2 min)
 
+⭐ **Implementer variant (owner lever 2, 2026-09-13):** an implementer in its own worktree runs ONLY its own test classes plus `~Drift|~EditionGate` and the unfiltered Unit assembly; the corpus (`~CorpusRunner`) and NIST (`~Nist`) legs run once at the lander over the whole train (⛔ always in the landing union), then CI, then one battery per train. Exception: a change to the parser, preprocessor or NIST harness runs `~Nist` at the implementer too.
+
 1. `dotnet test tests/Cobol.Net.Tests.Characterization` (full — it is seconds)
 2. `dotnet test tests/Cobol.Net.Tests.Conformance --filter "FullyQualifiedName~<Area or the fix's own test class>"`
    - add `--filter "FullyQualifiedName~VersionMatrix"` for an edition gate
