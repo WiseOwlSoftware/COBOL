@@ -333,7 +333,57 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// snapshot the value into a cell AT CALL INITIATION — which also realizes the §14.9.4.4 GR3a once-only
     /// evaluation for those modes. (A BY REFERENCE accessor over a SUBSCRIPTED operand re-evaluates the
     /// subscript inside the closure — the GR3a capture-into-locals refinement is a known follow-up.)</summary>
-    public string ArgText(BoundCallArg a)
+    public string ArgText(BoundCallArg a) => LandedForFormal(a, ArgCarrierText(a));
+
+    /// <summary>⛔ THE ACTIVATING ELEMENT'S §14.2.3 GR9/GR10 COMPUTE (kb/Work PB640) — wrapped around EVERY
+    /// argument carrier shape <see cref="ArgCarrierText"/> builds, which is why it is a wrapper and not a
+    /// branch inside one of them.
+    /// <para>GR9's second branch and GR10 both say the linkage record is "allocated by the activating runtime
+    /// element during the process of initiating the activation" and make the argument the sending operand of
+    /// "a COMPUTE statement without the ROUNDED phrase" into it. This implementation used to perform that
+    /// COMPUTE entirely CALLEE-side (<c>CobolArgAdapt.NumValue</c> / <c>Num</c>), where the activating
+    /// element's <c>&gt;&gt;TURN EC-SIZE CHECKING</c> state, its USE declaratives and §14.9.4.4 GR3g's
+    /// "control is transferred to the called program" have all already been left behind — so a BY CONTENT /
+    /// BY VALUE argument overflowing its formal's description under checking stored DOC-A.1-70's low-order
+    /// digits silently where §14.7.5's no-phrase rule 4 sets EC-SIZE-TRUNCATION to exist.</para>
+    /// <para>The raise needs no new machinery: EC-SIZE-TRUNCATION is a FATAL ambient gate
+    /// (<c>EcEmitter.FatalAmbientGates</c>) and a CALL is not an <c>IArithmeticStatement</c>, so a CALL
+    /// compiled under EC-SIZE checking already carries the try/catch that sets the last exception status, runs
+    /// the §14.9.49 F3 selection and honours RESUME. The landing is emitted INSIDE the argument expression, so
+    /// the throw happens while the <c>CobolArg[]</c> is being built — before <c>ProgramRegistry.CallProgram</c>
+    /// is entered, which is exactly GR3g's ordering — and it works in an EXPRESSION-position activation (a
+    /// user-defined function reference, <see cref="FunctionActivationText"/>) where no statement could be
+    /// emitted at all.</para>
+    /// <para>Only BY CONTENT / BY VALUE, and only a FIXED-POINT NUMERIC formal: BY REFERENCE is GR8's storage
+    /// aliasing with no crossing conversion; a group, index, pointer, object or edited formal takes GR9's
+    /// MOVE leg; a formal "of class index, object, or pointer" takes GR9's SET leg — and USAGE INDEX is why the
+    /// guard is <c>PicInfo.IsClassNumericFixedPoint</c> and not a bare category test: an index item's storage
+    /// description carries category Numeric with ZERO digits, so landing it through a numeric profile stored
+    /// <c>value % 10^0</c> = 0 and <c>BY CONTENT</c> an index of 3 crossed as 0 (measured); and a floating-point
+    /// formal has no digit capacity to overflow (§14.6.8.3 GR1 — the IEEE receiver takes the algebraic value). <c>a.Formal</c> is null for exactly GR9's FIRST branch, whose
+    /// record is moved "without conversion" — see <see cref="BoundCallArg.Formal"/>.</para>
+    /// <para>⛔ The carrier is <c>PicInfo.ClrType</c>, NOT <c>DataItem.ElementType</c>: an IMAGE-STORED numeric
+    /// formal (a REDEFINED elementary one, a Tier-B window) answers <c>"string"</c> for its field type, which
+    /// the landing's <c>where T : struct, INumberBase&lt;T&gt;</c> constraint cannot take — generated C# that
+    /// does not compile. The allocated record of GR9/GR10 is a data item of the FORMAL'S DESCRIPTION, and that
+    /// description's value carrier is its PICTURE's; the callee's image-carried adapters
+    /// (<c>CobolArgAdapt.Text</c> / <c>TextValue</c>) read a native numeric cell through the
+    /// <c>(Digits, Scale)</c> meta, which the landing has just set to the formal's own.</para>
+    /// <para>The kernel selection is COMPILE-time (<c>EcState.SizeTruncationChecking</c>), like the arithmetic
+    /// store's <c>checkedLanding</c>: a unit with checking off emits the unchecked landing and the §14.7.5
+    /// no-phrase disposition documented in <c>CONFORMANCE.md</c> DOC-A.1-70 stands.</para></summary>
+    private string LandedForFormal(BoundCallArg a, string built) =>
+        !a.Omitted
+        && a.Mode is CobolPassMode.Content or CobolPassMode.Value
+        && a.Formal is { } f
+        && f.Pic is { IsClassNumericFixedPoint: true } fp
+            ? RuntimeApi.ArgLandForFormal(built, fp.ProfileInitializer(ctx.SignEncoding), $"{fp.Scale}",
+                                          fp.ClrType, ecState.SizeTruncationChecking)
+            : built;
+
+    /// <summary>The C# <c>CobolArg</c> expression for one bound CALL argument BEFORE the §14.2.3 GR9/GR10
+    /// landing <see cref="LandedForFormal"/> wraps around it.</summary>
+    private string ArgCarrierText(BoundCallArg a)
     {
         // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument crosses as the NULL carrier —
         // CobolArgAdapt.Present answers false, the formal's adapters hand out the GR12 checked-raise carrier,

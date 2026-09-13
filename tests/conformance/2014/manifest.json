@@ -86,7 +86,10 @@
     "pb393_move_group_to_dynlen",
     "pb452_set_content_numeric",
     "pb452_set_content_float",
-    "pb337_into_receiver_admissible"
+    "pb337_into_receiver_admissible",
+    "pb640_call_argument_landing_checked",
+    "pb640_invoke_argument_landing_checked",
+    "pb640_call_argument_landing_legs"
   ],
   "pending": []
 }

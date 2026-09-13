@@ -423,6 +423,14 @@ internal static class RuntimeApi
     public static string NumStoreRounded(string argsFragment, CobolRounding mode, bool u = false) =>
         $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.StoreU) : nameof(CobolNum.Store))}({argsFragment}, {RoundingText(mode)})";
 
+    /// <summary>The RAISING store — <c>CobolNum.StoreOrRaise</c> (<c>StoreUOrRaise</c> on the unsigned-wide
+    /// lane, by NAME). The EXPRESSION-position sibling of <see cref="NumTryStore"/>, for a §14.7.5 case-3
+    /// overflow at a store that has no ON SIZE ERROR flag to latch because it is not inside an arithmetic
+    /// statement: the §14.2.3 GR9/GR10 argument crossings of a CALL and an INVOKE (kb/Work PB640).</summary>
+    public static string NumStoreOrRaise(string argsFragment, CobolRounding mode, bool u = false) =>
+        $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.StoreUOrRaise) : nameof(CobolNum.StoreOrRaise))}"
+        + $"({argsFragment}, {RoundingText(mode)})";
+
     /// <summary>The unsigned-wide → Int128 funnel — <c>CobolNum.Widen</c> (kb/Work R10: loud beyond the
     /// documented native intermediate, never a silent wrap).</summary>
     public static string NumWiden(string value) =>
@@ -1170,6 +1178,16 @@ internal static class RuntimeApi
     /// <c>CobolArgAdapt.TextValue</c>.</summary>
     public static string ArgAdaptTextValue(string args, int position, string width) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.TextValue)}({args}, {position}, {width})";
+
+    /// <summary>The ACTIVATING element's §14.2.3 GR9/GR10 argument crossing — <c>CobolArgAdapt.LandForFormal</c>
+    /// wrapped around a built <c>CobolArg</c> (kb/Work PB640). <paramref name="carrier"/> is the FORMAL's
+    /// <c>PicInfo.ClrType</c> and <paramref name="profile"/> / <paramref name="scale"/> come from the same
+    /// <c>PicInfo</c>, so the landing's rescale target and its capacity discipline cannot disagree;
+    /// <paramref name="checking"/> is this statement's <c>&gt;&gt;TURN EC-SIZE</c> state, which selects the
+    /// raising kernel exactly as the arithmetic store's <c>checkedLanding</c> does.</summary>
+    public static string ArgLandForFormal(string arg, string profile, string scale, string carrier, bool checking) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.LandForFormal)}<{carrier}>({arg}, {profile}, {scale}, "
+        + $"checking: {(checking ? "true" : "false")})";
 
     /// <summary>The argument-present probe (OMITTED handling, §14.2.3) — <c>CobolArgAdapt.Present</c>.</summary>
     public static string ArgAdaptPresent(string args, int position) =>

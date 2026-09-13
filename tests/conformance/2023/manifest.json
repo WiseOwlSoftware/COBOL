@@ -583,7 +583,10 @@
   "pb165_content_conformance",
   "pb165_gr12_forward",
   "pb165_dynamic_length_boundary",
-  "pb337_into_receiver_admissible"
+  "pb337_into_receiver_admissible",
+  "pb640_call_argument_landing_checked",
+  "pb640_invoke_argument_landing_checked",
+  "pb640_call_argument_landing_legs"
  ],
  "pending": [
   "pb485_value_only_format1"

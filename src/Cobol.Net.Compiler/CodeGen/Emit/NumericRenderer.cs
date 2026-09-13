@@ -899,12 +899,29 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : value.Real ? $"{RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode, checkedLanding)}, {recvScale}, {profile}"
         : $"{value.Expr}, {value.Scale}, {profile}";
 
-    /// <summary>The unchecked store of a rendered intermediate into a fixed-point receiver — <see cref="StoreArgs"/>
-    /// (the UNCHECKED landing: a MOVE's §14.6.8.2 r4 truncation, INVOKE BY CONTENT) through <c>CobolNum.Store</c>
-    /// (<c>StoreU</c> on the unsigned-wide lane, by name) with <paramref name="mode"/> (MOVE truncation by default,
-    /// §14.6.8.2). Returns the receiver's stored unscaled integer expression.</summary>
-    public static string StoreExpr(NumX value, int recvScale, string profile, CobolRounding mode = CobolRounding.Truncation) =>
-        RuntimeApi.NumStoreRounded(StoreArgs(value, recvScale, mode, profile, checkedLanding: false), mode, value.U);
+    /// <summary>The EXPRESSION-POSITION store of a rendered intermediate into a fixed-point receiver —
+    /// <see cref="StoreArgs"/> through <c>CobolNum.Store</c> (<c>StoreU</c> on the unsigned-wide lane, by name)
+    /// with <paramref name="mode"/> (MOVE truncation by default, §14.6.8.2). Returns the receiver's stored
+    /// unscaled integer expression.
+    /// <para><paramref name="raiseOnSizeError"/> selects the RAISING kernel (<c>CobolNum.StoreOrRaise</c>) for
+    /// the one caller shape that has neither an ON SIZE ERROR phrase nor an arithmetic statement to latch a
+    /// flag in, yet whose statement HAS EC-SIZE checking enabled: the §14.2.3 GR9/GR10 argument crossing of an
+    /// INVOKE, where "if the formal parameter is numeric" the transfer IS "a COMPUTE statement without the
+    /// ROUNDED phrase" and §14.7.5's no-phrase rule 4 therefore sets EC-SIZE-TRUNCATION to exist (kb/Work
+    /// PB640). A MOVE never passes it: §14.6.8.2 r4's alignment truncates by rule, and the MOVE statement is
+    /// not in §14.7.5's list of statements the size error condition may occur as a result of.</para></summary>
+    public static string StoreExpr(NumX value, int recvScale, string profile,
+        CobolRounding mode = CobolRounding.Truncation, bool raiseOnSizeError = false)
+    {
+        // The float lane's own landing is checked TOO when the store raises: past the Int128 carrier
+        // ToScaledUnchecked hands back the low-order digits (kb/Work PB77), which the capacity test would then
+        // accept — §14.7.5 case 3 is a fact about the algebraic result (the same argument CobolArgAdapt's
+        // checked float landing makes).
+        string args = StoreArgs(value, recvScale, mode, profile, checkedLanding: raiseOnSizeError);
+        return raiseOnSizeError
+            ? RuntimeApi.NumStoreOrRaise(args, mode, value.U)
+            : RuntimeApi.NumStoreRounded(args, mode, value.U);
+    }
 
     /// <summary>The trailing <c>checkedLanding: true</c> argument for a runtime quantizer / exact-family parse rendered
     /// under ON SIZE ERROR / EC-SIZE checking (kb/Work PB77): the value's landing past the Int128 carrier is then the

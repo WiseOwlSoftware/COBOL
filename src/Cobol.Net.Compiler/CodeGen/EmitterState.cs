@@ -192,6 +192,17 @@ internal sealed class EcState
     public bool SizeChecking =>
         Info?.Enabled.Any(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)) == true;
 
+    /// <summary>True while the statement being emitted has EC-SIZE-TRUNCATION specifically enabled (ISO
+    /// §7.3.25's TURN directive; §14.6.13.1.1 — "if checking for an exception condition is enabled", which is
+    /// per level-3 NAME, not per family). The narrower sibling of <see cref="SizeChecking"/>, read by the ONE
+    /// store shape that has no arithmetic statement to latch a flag in and therefore RAISES instead: the
+    /// §14.2.3 GR9/GR10 argument crossing performed by the ACTIVATING element, on both the CALL lane
+    /// (<c>CallEmitter.LandedForFormal</c>) and the INVOKE lane (<c>OoEmitter</c>'s BY CONTENT arms) — kb/Work
+    /// PB640. It lives HERE rather than in either emitter because those two lanes are one rule, and a
+    /// per-emitter copy of the enablement test is how they would come to disagree.</summary>
+    public bool SizeTruncationChecking =>
+        Info?.Enabled.Any(p => p.Ec == "EC-SIZE-TRUNCATION") == true;
+
     /// <summary>The current <c>__sizeErr</c> flag while emitting a checked arithmetic body (else null) —
     /// statement-scoped scratch set/cleared by the ON SIZE ERROR two-phase wrapper and read by the checked
     /// arithmetic stores (the EC↔arithmetic interlock).</summary>

@@ -253,7 +253,10 @@
     "pb725_directive_facility",
     "pb366_use_exception_object_factory",
     "pb165_returning_wide_carrier",
-    "pb337_into_receiver_admissible"
+    "pb337_into_receiver_admissible",
+    "pb640_call_argument_landing_checked",
+    "pb640_invoke_argument_landing_checked",
+    "pb640_call_argument_landing_legs"
   ],
   "pending": []
 }

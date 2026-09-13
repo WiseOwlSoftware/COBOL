@@ -476,8 +476,22 @@ public sealed record PicInfo(
     /// category Numeric at scale 0 and would otherwise answer true (kb/Work R27).
     /// </para>
     /// </remarks>
-    public bool IsIntegerDescription =>
-        Category is PicCategory.Numeric && !IsFloat && Scale <= 0 && Usage is not Usage.Index;
+    public bool IsIntegerDescription => IsClassNumericFixedPoint && Scale <= 0;
+
+    /// <summary>True for a description whose item is of CLASS NUMERIC and FIXED-POINT (ISO §8.5.2.1 Table 2).
+    /// <para>⛔ THE ONE PLACE THE USAGE INDEX TRAP IS WRITTEN DOWN (kb/Work R27, kb/Work PB640). §8.5.2.1
+    /// Table 2 makes an index data item class INDEX, never numeric — but its storage
+    /// <see cref="PicInfo"/> is <see cref="IndexItem"/>, which carries category <see cref="PicCategory.Numeric"/>
+    /// with <c>Digits = 0</c>, so a bare <c>Category is Numeric &amp;&amp; !IsFloat</c> test admits it. Anything
+    /// that then treats the item as a numeric RECEIVER stores through a zero-digit profile, whose capacity
+    /// reduction is <c>value % 10^0</c> — ZERO, silently. PB640 hit exactly that: §14.2.3 GR9 splits the
+    /// argument crossing three ways ("if the formal parameter is numeric, a COMPUTE statement without the
+    /// ROUNDED phrase" / "if the formal parameter is of class index, object, or pointer, a SET statement" /
+    /// "otherwise, a MOVE statement"), and an activating-side landing guarded on the bare test sent
+    /// <c>BY CONTENT</c> an index of 3 across as 0. <see cref="IsIntegerDescription"/> narrows this by scale;
+    /// callers asking "is this a numeric receiver / a COMPUTE receiving operand" want THIS one.</para></summary>
+    public bool IsClassNumericFixedPoint =>
+        Category is PicCategory.Numeric && !IsFloat && Usage is not Usage.Index;
 
     /// <summary>True for an UNSIGNED BinaryCapacity item whose 16-byte container range [0, 2^128) exceeds every
     /// signed carrier — its CLR carrier is <see cref="UInt128"/> (kb/Work R10, owner decision 2026-08-07: the item

@@ -884,7 +884,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // spell the native store only, a Roslyn CS1503 on `INVOKE … BY CONTENT A ** 2`.
             else if (a.ContentExpr is { } cex
                      && Num.AsNum(new BoundComputedOperand(cex), ReceiverContext.None) is var ex)
-                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(ex, a.Formal.Pic!.Scale, qualProfile)};");
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(ex, a.Formal.Pic!.Scale, qualProfile, raiseOnSizeError: ecState.SizeTruncationChecking)};");
             else if (a.ByContent && a.Source is { } cp
                      && Num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale
@@ -899,7 +899,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                          || (cp.Item.Pic is { Signed: true } && !a.Formal.Pic!.Signed)))
                 // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
                 // formal's description through the OWNER's internal profile.
-                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(cx, a.Formal.Pic!.Scale, qualProfile)};");
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){NumericRenderer.StoreExpr(cx, a.Formal.Pic!.Scale, qualProfile, raiseOnSizeError: ecState.SizeTruncationChecking)};");
             else if (a.Source is { } np)
                 w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({Num.AsNum(new BoundFieldOperand(np), ReceiverContext.None).Expr});");
             else
@@ -912,9 +912,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // generated code did not compile — a raw Roslyn CS1503 on conforming source. It now decomposes
                 // BOTH notations to the exact scaled integer of ISO §8.3.3.3.3 rule 5 / §8.3.3.3.2 rule 4.
                 // (Evaluated ONCE — this used to call UnscaledLit twice to read its two halves.)
+                // ⛔ THROUGH THE SAME StoreExpr AS THE TWO IDENTIFIER/EXPRESSION ARMS (kb/Work PB640): it was
+                // the bare RuntimeApi.NumStore, so the unsigned-wide lane (StoreU) and the raising kernel the
+                // other two arms now select were both missing HERE — the third arm of one rule.
                 NumX lit = UnscaledLit(a.NumericLiteral!);
                 w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})"
-                    + $"{RuntimeApi.NumStore(lit.Expr, $"{lit.Scale}", qualProfile)};");
+                    + $"{NumericRenderer.StoreExpr(lit, a.Formal.Pic!.Scale, qualProfile, raiseOnSizeError: ecState.SizeTruncationChecking)};");
             }
             argExprs.Add($"ref {tmp}");
 

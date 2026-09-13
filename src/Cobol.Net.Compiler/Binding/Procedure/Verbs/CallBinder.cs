@@ -507,7 +507,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             for (int i = 0; i < args.Count && i < calleeFormals.Count; i++)
             {
                 var f = calleeFormals[i];
-                var arg = args[i];
+                // ISO §14.2.3 GR2's positional correspondence, RECORDED (kb/Work PB640). This loop is where the
+                // activating element learns the formal's description, and GR9's second branch / GR10 make the
+                // ACTIVATING element perform the argument crossing against it — "a COMPUTE statement without the
+                // ROUNDED phrase" for a numeric formal — so the emitter needs the same fact this conformance
+                // screen reads. Recorded for EVERY argument, not only the ones a check below rejects.
+                var arg = args[i] with { Formal = f.Item };
+                args[i] = arg;
                 if (arg.Omitted)
                 {
                     if (!f.Optional)

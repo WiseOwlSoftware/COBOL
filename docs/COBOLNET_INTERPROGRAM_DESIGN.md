@@ -186,6 +186,55 @@ the omitted (loud) carrier by design: §14.8.2.3.2 requires the same category an
 pairing and §14.8.2.3.3's MOVE rules give a float sender no alphanumeric receiver, so that pairing is a
 conformance violation to report, never a crossing to invent.
 
+**WHICH SIDE PERFORMS THE LANDING — THE ACTIVATING ONE, WHENEVER IT CAN (kb/Work PB640).** §14.2.3 GR9's
+second branch and GR10 both say the linkage record is *"allocated by the activating runtime element during the
+process of initiating the activation"*, and both make the argument the sending operand of *"a COMPUTE statement
+without the ROUNDED phrase"* into it. Every consequence of that COMPUTE is therefore the **activating** element's:
+
+- its `>>TURN EC-SIZE CHECKING` state decides between §14.7.5's no-phrase rule 4 (EC-SIZE-TRUNCATION is set to
+  exist) and DOC-A.1-70's low-order digits — enablement is a property of a compilation group (§14.6.13.1.1),
+  never something the callee can be asked about;
+- its USE declaratives are what §14.6.13.1.3 selects over; and
+- §14.9.4.4 GR3 g) transfers control to the called program only *"if a fatal exception condition has not been
+  raised"*, which a landing performed **after** the transfer can no longer honour.
+
+So `CallEmitter.ArgText` wraps every BY CONTENT / BY VALUE argument whose corresponding formal is a fixed-point
+numeric item in `CobolArgAdapt.LandForFormal<T>` — one wrapper around every carrier shape, `T` being the
+formal's `PicInfo.ClrType` (**not** `DataItem.ElementType`, which answers `"string"` for an image-stored formal
+and cannot satisfy the landing's `struct, INumberBase<T>` constraint). The landed `CobolArg` carries the
+**formal's** `(Digits, Scale)`, because GR9's last sentence makes the allocated record *the* argument from that
+point on — which is exactly what makes the callee-side landing the identity.
+
+**When the caller cannot, and why that is the standard's own line.** GR9's FIRST branch — a program with no
+program-specifier in the activating element's REPOSITORY paragraph and no NESTED phrase — allocates a record
+*"of the same length as the argument"* and moves it *"without conversion"*. There is no COMPUTE there, and no
+formal description to perform one against. The set of crossings that ARE a COMPUTE (a prototyped program, a
+NESTED CALL, a method, a function) is precisely the set whose formal is knowable at the call site, and
+§14.8.2.3.3 draws the same partition for conformance (rule 1 vs rule 2 a)). `CobolArgAdapt.NumValue` / `Num`
+therefore keep the landing for that residue and for a non-COBOL activator, sharing `LandScalar` with the
+activating side so the two can never answer differently; `BoundCallArg.Formal` is null exactly on that branch.
+
+**The raise needs no new machinery.** EC-SIZE-TRUNCATION is a FATAL ambient gate (`EcEmitter.FatalAmbientGates`)
+and a CALL/INVOKE is not an `IArithmeticStatement`, so a statement compiled under EC-SIZE checking already
+carries the try/catch that sets the last exception status, runs the §14.9.49 F3 selection and honours RESUME.
+The landing is emitted INSIDE the argument expression, so the raise happens while the `CobolArg[]` is being
+built — before `ProgramRegistry.CallProgram` is entered, which is GR3 g)'s ordering — and it works in an
+EXPRESSION-position activation (a user-defined function reference, `CallEmitter.FunctionActivationText`) where
+no statement could be emitted at all. The kernel is chosen at COMPILE time from `EcState.SizeTruncationChecking`,
+the same way the arithmetic store chooses `checkedLanding`, so a unit with checking off emits the landing it
+always had.
+
+**The INVOKE lane is the same rule and was the same defect's other arm.** `OoEmitter`'s BY CONTENT arms already
+landed caller-side (§14.8.2.3.3 rule 2 a): *"If the formal parameter is numeric, the conformance rules are the
+same as for a COMPUTE statement"*), but always through the UNCHECKED `CobolNum.Store`, so they were silent under
+checking too; they now take `NumericRenderer.StoreExpr(…, raiseOnSizeError:)` → `CobolNum.StoreOrRaise`, which
+is the same primitive `LandForFormal`'s checked lane uses. The numeric-LITERAL arm went through a bare
+`RuntimeApi.NumStore` and joined the other two at the same time — it had been missing the unsigned-wide lane as
+well. Pinned per edition by `{2002,2014,2023}/pb640_call_argument_landing_checked` and
+`{2002,2014,2023}/pb640_invoke_argument_landing_checked`, and structurally by
+`CallAbiNumericCarrierDriftTests.TheCheckedLandingRaisesExactlyWhereTheValueDoesNotFit` plus the
+activating-side identity assertions inside `TheGr8ViewAndTheGr10Copy_LandIdentically`.
+
 **THE ONE NUMERIC LANDING — `CobolArgAdapt.Land` (kb/Work PB288).** Every numeric arm of the callee-side adapter
 reaches its receiving side through a single private helper, because §14.2.3 GR9 and GR10 describe the *same*
 conversion — "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" into a record

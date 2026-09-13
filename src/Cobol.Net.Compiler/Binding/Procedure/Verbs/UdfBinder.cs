@@ -270,12 +270,15 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// BY VALUE for EVERY argument shape (GR5c :6991) — the caller snapshots the value and the callee adopts
     /// the §14.2.3 GR10 detached copy, so a store into the formal never reaches the argument. Null =
     /// unsupported operand form (the caller reports).</summary>
+    /// <remarks>Every arm records <see cref="BoundCallArg.Formal"/>: §14.2.3 GR9's second branch names "a
+    /// function" outright, so a UDF argument's crossing into a numeric formal is the ACTIVATING element's
+    /// COMPUTE (kb/Work PB640), and this binder has always had the formal in hand.</remarks>
     private static BoundCallArg? UdfArg(BoundOperand op, LinkageFormal formal) => op switch
     {
         BoundFieldOperand f => new BoundCallArg(
-            formal.ByValue ? CobolPassMode.Value : CobolPassMode.Reference, f.Place, null),
+            formal.ByValue ? CobolPassMode.Value : CobolPassMode.Reference, f.Place, null) { Formal = formal.Item },
         BoundNumericLiteral or BoundStringLiteral or BoundComputedOperand
-            => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op),
+            => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op) { Formal = formal.Item },
         _ => null,
     };
 

@@ -158,6 +158,102 @@ public static class CobolArgAdapt
         CobolNum.Store(CobolFloat.ToScaledUnchecked(value, toScale, CobolRounding.Truncation),
                        toScale, receiver, CobolRounding.Truncation);
 
+    /// <summary>The EC-SIZE-CHECKED twin of <see cref="Land(Int128, int, int, in NumProfile)"/> — the SAME
+    /// §14.2.3 GR9/GR10 COMPUTE, with §14.7.5's no-phrase rule 4 in force instead of DOC-A.1-70's low-order
+    /// digits (kb/Work PB640). It exists only on the ACTIVATING side (<see cref="LandForFormal"/>): the
+    /// crossing's COMPUTE is performed by the activating runtime element — GR9/GR10 say the allocated record is
+    /// "allocated by the activating runtime element during the process of initiating the activation" — so the
+    /// checking state that decides between the two dispositions is the ACTIVATING element's, and so are the
+    /// declaratives that see the raise. <c>toScale</c> is not a parameter here because it can only ever be
+    /// <c>receiver.FractionScale</c> (the remark on the unchecked overload), and
+    /// <see cref="CobolNum.StoreOrRaise(Int128, int, in NumProfile, CobolRounding)"/> reads it from the
+    /// profile — so the checked landing cannot be handed a scale the capacity check disagrees with.</summary>
+    private static Int128 LandChecked(Int128 unscaled, int fromScale, in NumProfile receiver) =>
+        CobolNum.StoreOrRaise(unscaled, fromScale, receiver, CobolRounding.Truncation);
+
+    /// <summary>The binary64 lane of <see cref="LandChecked(Int128, int, in NumProfile)"/>. The quantizer is
+    /// <see cref="CobolFloat.ToScaled"/>, NOT the unchecked twin: past the <c>Int128</c> carrier
+    /// <c>ToScaledUnchecked</c> hands back the exact expansion's LOW-ORDER digits (kb/Work PB77), which is the
+    /// checking-off disposition and would pass the capacity test as a small value — the §14.7.5 case-3 fact is
+    /// about the ALGEBRAIC result, so the checked lane takes the saturating landing the capacity test then
+    /// rejects.</summary>
+    private static Int128 LandChecked(double value, int toScale, in NumProfile receiver) =>
+        CobolNum.StoreOrRaise(CobolFloat.ToScaled(value, toScale, CobolRounding.Truncation),
+                              toScale, receiver, CobolRounding.Truncation);
+
+    /// <summary>The value of one argument landed into a record of the FORMAL's description (ISO §14.2.3
+    /// GR9/GR10's "COMPUTE statement without the ROUNDED phrase"), or null when the carrier is outside this
+    /// ABI's numeric vocabulary — the drift boundary <c>CallAbiNumericCarrierDriftTests</c> pins, which the
+    /// callers turn into the §14.9.4.4 GR12 omitted carrier rather than a reinterpretation of storage.
+    /// <para>⛔ ONE SCALAR LANDING FOR BOTH SIDES OF THE BOUNDARY (kb/Work PB640). The activating side
+    /// (<see cref="LandForFormal"/>, which is where GR9/GR10 put the COMPUTE whenever the formal's description
+    /// is knowable there) and the activated side (<see cref="NumValue"/>, the residual landing for a crossing
+    /// whose formal the caller could not know) are the same three carrier arms and the same
+    /// <see cref="Land(Int128, int, int, in NumProfile)"/>; only <paramref name="checking"/> differs.</para></summary>
+    private static Int128? LandScalar(in CobolArg a, in NumProfile formal, int formalScale, bool checking) =>
+        a.Carrier switch
+        {
+            // §14.2.3 GR10's COMPUTE from the FLOAT lane (kb/Work PB238): the quantization to the formal's
+            // scale happens at the RECEIVER and truncates — exactly what an un-ROUNDED COMPUTE does.
+            { } rp when ReadRealCell(rp) is { } rv =>
+                checking ? LandChecked(rv, formalScale, formal) : Land(rv, formalScale, formal),
+            { } np when ReadNumericCell(np) is { } nv =>
+                checking ? LandChecked(nv, a.Scale, formal) : Land(nv, a.Scale, formalScale, formal),
+            // A character-carried argument decodes through the formal's profile; the rescale is then the
+            // identity and only the capacity conformance remains.
+            ManagedPointer<string> sp =>
+                checking ? LandChecked(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formal)
+                         : Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal),
+            _ => null,
+        };
+
+    /// <summary>⛔ THE ACTIVATING ELEMENT'S §14.2.3 GR9/GR10 CROSSING (kb/Work PB640) — the caller-side half of
+    /// this ABI's numeric landing, emitted by <c>CallEmitter.ArgText</c> around the argument carrier it just
+    /// built, for every BY CONTENT / BY VALUE argument whose corresponding formal parameter is a fixed-point
+    /// numeric item KNOWN AT THE CALL SITE.
+    /// <para>WHY THE CALLER AND NOT THE CALLEE. GR9 and GR10 both say the allocated record is "allocated by the
+    /// activating runtime element during the process of initiating the activation", and it is the ACTIVATING
+    /// element that supplies the COMPUTE's sending operand — so every consequence of that COMPUTE is the
+    /// activating element's: its <c>&gt;&gt;TURN EC-SIZE CHECKING</c> state decides whether a §14.7.5 case-3
+    /// overflow raises (enablement is a property of a compilation group, §14.6.13.1.1), its USE declaratives
+    /// are the ones §14.6.13.1.3 selects over, and §14.9.4.4 GR3g transfers control to the called program only
+    /// "if a fatal exception condition has not been raised" — which a landing performed after the transfer can
+    /// no longer honour. Before PB640 the whole landing ran callee-side, so an argument that overflowed the
+    /// formal's description under checking arrived as DOC-A.1-70's low-order digits with no raise at all.</para>
+    /// <para>WHEN THE CALLER CANNOT. GR9's FIRST branch — a program with no program-specifier in the activating
+    /// element's REPOSITORY paragraph and no NESTED phrase — allocates a record "of the same length as the
+    /// argument" and moves it "without conversion", so there is no COMPUTE to perform and no formal description
+    /// to perform it against. The set of crossings that ARE a COMPUTE (a prototyped program, a NESTED CALL, a
+    /// method, a function) is exactly the set whose formal is knowable at the call site; §14.8.2.3.3 draws the
+    /// same partition for conformance. <see cref="NumValue"/> and <see cref="Num"/> therefore keep their own
+    /// landing for the residue, and for an already-landed argument it is the identity: the carrier IS the
+    /// formal's, at the formal's scale, within the formal's capacity.</para>
+    /// <para><paramref name="checking"/> is decided at COMPILE time from the CALL statement's own TURN state —
+    /// the same kernel selection the arithmetic store makes — so a unit with checking off emits the landing it
+    /// always had.</para></summary>
+    /// <typeparam name="T">The formal's carrier (<c>PicInfo.ClrType</c>), so the callee's own adapter sees a
+    /// same-carrier same-scale argument and aliases it (§14.2.3 GR9's "treated … as if it were passed by
+    /// reference") rather than converting it a second time.</typeparam>
+    public static CobolArg LandForFormal<T>(CobolArg arg, NumProfile formal, int formalScale, bool checking)
+        where T : struct, System.Numerics.INumberBase<T>
+    {
+        // OMITTED (§14.9.4.4 GR11): there is no argument to be the COMPUTE's sending operand.
+        if (arg.Carrier.IsNull) return arg;
+        // A carrier outside the numeric vocabulary (a variable-length group, an object/pointer handle) is not a
+        // numeric crossing to land — it reaches the callee unchanged and takes that side's own arm.
+        if (LandScalar(arg, formal, formalScale, checking) is not { } v) return arg;
+        T landed = T.CreateTruncating(v);
+        // The allocated record IS the argument from here on (GR9's last sentence), so the meta the ABI carries
+        // becomes the record's own description — which is what makes the callee-side landing the identity.
+        // ⚡ The CONFORMING case — same carrier, same scale, inside the formal's capacity — keeps the cell the
+        // activating element has ALREADY allocated (the BY CONTENT / BY VALUE snapshot this CALL site built),
+        // because the COMPUTE is the identity over it and a second cell would be pure garbage on the call path.
+        // CobolArg is a readonly record struct, so the meta update itself allocates nothing either way.
+        if (arg.Carrier is ManagedPointer<T> same && arg.Scale == formalScale && same.Value == landed)
+            return arg with { Digits = formal.Digits };
+        return arg with { Carrier = ManagedPointer<T>.Cell(landed), Digits = formal.Digits, Scale = formalScale };
+    }
+
     /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
     private static bool WriteNumericCell(ManagedPointer p, Int128 v)
     {
@@ -279,34 +375,19 @@ public static class CobolArgAdapt
     /// cell: the argument's value is rescaled to the formal's scale (truncation — the un-ROUNDED COMPUTE) and
     /// conformed to the formal's digit capacity via <see cref="CobolNum.Store"/>; the callee's stores reach only
     /// the cell, never the caller's storage (contrast <see cref="Num"/>, the §14.2.3 GR8 aliasing view).</summary>
+    /// <remarks>⛔ THE RESIDUAL LANDING, NOT THE ONLY ONE (kb/Work PB640). When the activating element could
+    /// know the formal's description it has ALREADY performed this COMPUTE — <see cref="LandForFormal"/>, which
+    /// is where GR9/GR10 put it — and the argument arrives on the formal's own carrier at the formal's own
+    /// scale, within its capacity, so the three arms below are the identity. This side stays because GR9's
+    /// first branch (a non-prototyped, non-NESTED program CALL) gives the caller no formal to land against and
+    /// because a non-COBOL activator supplies whatever it supplies; it shares
+    /// <see cref="LandScalar"/> with the activating side so the two cannot answer differently.</remarks>
     public static ManagedPointer<T> NumValue<T>(CobolArg[] args, int i, NumProfile formal, int formalScale)
-        where T : struct, System.Numerics.INumberBase<T>
-    {
-        if (!Present(args, i)) return Omitted<T>(i);
-        Int128 v;
-        switch (args[i].Carrier)
-        {
-            case { } rp when ReadRealCell(rp) is { } rv:
-                // §14.2.3 GR10's "COMPUTE statement without the ROUNDED phrase" from the FLOAT lane
-                // (kb/Work PB238): the quantization to the formal's scale happens HERE, at the receiver, and
-                // truncates — which is exactly what an un-ROUNDED COMPUTE does. The caller used to do it, at
-                // scale 0, before the value ever reached the boundary.
-                v = Land(rv, formalScale, formal);
-                break;
-            case { } np when ReadNumericCell(np) is { } nv:
-                v = Land(nv, args[i].Scale, formalScale, formal);
-                break;
-            case ManagedPointer<string> sp:
-                // A character-carried argument decodes through the formal's profile; Land is the identity
-                // rescale plus the same capacity conformance the other arms take.
-                v = Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal);
-                break;
-            default:
-                return Omitted<T>(i);
-        }
+        where T : struct, System.Numerics.INumberBase<T> =>
         // Land's 16-byte-unsigned result is container BITS (R10); CreateTruncating reinterprets them exactly.
-        return ManagedPointer<T>.Cell(T.CreateTruncating(v));
-    }
+        Present(args, i) && LandScalar(args[i], formal, formalScale, checking: false) is { } v
+            ? ManagedPointer<T>.Cell(T.CreateTruncating(v))
+            : Omitted<T>(i);
 
     /// <summary>Adapt argument <paramref name="i"/> to a BY VALUE formal whose callee-side storage is a CHARACTER
     /// image of <paramref name="width"/> positions (a REDEFINED fixed-point numeric formal — still class numeric,

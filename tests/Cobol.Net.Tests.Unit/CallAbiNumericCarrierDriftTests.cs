@@ -140,5 +140,73 @@ public sealed class CallAbiNumericCarrierDriftTests
         long copy = CobolArgAdapt.NumValue<long>(byValue, 0, Wide, 9).Value;
         Assert.Equal(expected, view);
         Assert.Equal(expected, copy);
+
+        // ⛔ AND THE ACTIVATING SIDE IS THE SAME LANDING (kb/Work PB640). ISO §14.2.3 GR9/GR10 put this COMPUTE
+        // in the ACTIVATING runtime element ("allocated by the activating runtime element during the process of
+        // initiating the activation"), so wherever the formal's description is knowable at the call site the
+        // caller performs it -- and the callee's own landing must then be the IDENTITY over the result, or one
+        // crossing would be landed twice and the second landing could move the value again.
+        var landed = CobolArgAdapt.LandForFormal<long>(byValue[0], Wide, 9, checking: false);
+        Assert.Equal(expected, ((ManagedPointer<long>)landed.Carrier).Value);
+        Assert.Equal(9, landed.Scale);
+        Assert.Equal(Wide.Digits, landed.Digits);
+        Assert.Equal(expected, CobolArgAdapt.NumValue<long>([landed], 0, Wide, 9).Value);
+        Assert.Equal(expected, CobolArgAdapt.Num<long>([landed with { Mode = CobolPassMode.Content }], 0, Wide, 9).Value);
+    }
+
+    /// <summary>⛔ THE CHECKED LANDING RAISES WHERE THE UNCHECKED ONE KEEPS LOW-ORDER DIGITS (kb/Work PB640).
+    /// A crossing whose value is "further from zero than permitted for the associated resultant data item"
+    /// (ISO §14.7.5 case 3) sets EC-SIZE-TRUNCATION to exist when checking is enabled (§14.7.5 no-phrase rule
+    /// 4); with checking off the documented disposition (CONFORMANCE.md DOC-A.1-70) is the result's low-order
+    /// digits, which the theory above pins. The SAME argument must take both, selected only by the flag -- a
+    /// checked landing that also changed the VALUE, or an unchecked one that threw, would be a second rule.
+    /// <para>PROVEN TO FAIL: making <c>LandForFormal</c> ignore <c>checking</c> makes the first three rows red;
+    /// making it raise unconditionally makes the fourth red and DOC-A.1-70 unreachable.</para></summary>
+    [Theory]
+    [InlineData("Int128-10e30", true)]
+    [InlineData("double-1e30", true)]
+    [InlineData("Int128-18digit", true)]
+    [InlineData("Int128-inrange", false)]
+    public void TheCheckedLandingRaisesExactlyWhereTheValueDoesNotFit(string shape, bool raises)
+    {
+        (ManagedPointer Carrier, int Scale) arg = shape switch
+        {
+            "Int128-10e30" => (ManagedPointer<Int128>.Cell(Int128.Parse("1000000000000000000000000000000")), 0),
+            "double-1e30" => (ManagedPointer<double>.Cell(1.0e30d), 0),
+            "Int128-18digit" => (ManagedPointer<Int128>.Cell((Int128)123456789012345678L), 0),
+            "Int128-inrange" => (ManagedPointer<Int128>.Cell((Int128)123456), 3),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape)),
+        };
+        var a = new CobolArg(CobolPassMode.Value, arg.Carrier, 38, arg.Scale);
+        if (raises)
+        {
+            var ex = Assert.Throws<CobolSizeError>(() => CobolArgAdapt.LandForFormal<long>(a, Wide, 9, checking: true));
+            Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);
+        }
+        else
+        {
+            var ok = CobolArgAdapt.LandForFormal<long>(a, Wide, 9, checking: true);
+            Assert.Equal(123456000000L, ((ManagedPointer<long>)ok.Carrier).Value);
+        }
+    }
+
+    /// <summary>The §14.9.4.4 GR11 OMITTED argument has no value to be the COMPUTE's sending operand, so the
+    /// activating-side landing passes it through UNCHANGED -- including under checking, where raising for an
+    /// argument that was never supplied would invent a size error out of an omission.</summary>
+    [Fact]
+    public void AnOmittedArgument_IsNotLanded()
+    {
+        var omitted = new CobolArg(CobolPassMode.Content, ManagedPointer.Null, 0, 0);
+        Assert.Equal(omitted, CobolArgAdapt.LandForFormal<long>(omitted, Wide, 9, checking: true));
+    }
+
+    /// <summary>A carrier outside the six (see <see cref="ACarrierOutsideTheSix_DegradesToTheOmittedCarrier"/>)
+    /// crosses the activating side UNCHANGED rather than being reinterpreted here -- the degrade stays the one
+    /// the callee-side adapter owns, written in one place.</summary>
+    [Fact]
+    public void ACarrierOutsideTheSix_CrossesTheActivatingSideUntouched()
+    {
+        var a = new CobolArg(CobolPassMode.Value, ManagedPointer<decimal>.Cell(1.5m), 7, 2);
+        Assert.Equal(a, CobolArgAdapt.LandForFormal<long>(a, Wide, 9, checking: true));
     }
 }

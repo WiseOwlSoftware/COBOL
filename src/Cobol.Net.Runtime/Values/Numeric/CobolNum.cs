@@ -207,6 +207,48 @@ public static partial class CobolNum
         return true;
     }
 
+    /// <summary>⛔ THE RAISING FINAL TRANSFER — the store for a receiver whose statement has EC-SIZE checking
+    /// enabled but NO <c>ON SIZE ERROR</c> flag to latch, because the store is not inside an arithmetic
+    /// statement at all (kb/Work PB640). The two dispositions of a §14.7.5 case-3 overflow are already written
+    /// once each: <see cref="Store(Int128, int, in NumProfile, CobolRounding)"/> is the checking-OFF one
+    /// (<c>CONFORMANCE.md</c> DOC-A.1-70 — the result's LOW-ORDER digits) and
+    /// <see cref="TryStore(Int128, int, in NumProfile, CobolRounding, out Int128)"/> is the phrase-driven one
+    /// (false ⇒ the receiver is left unchanged). This is the THIRD caller shape, and it is an expression:
+    /// §14.7.5's no-phrase rule 4 — "if the result of the arithmetic statement is a value further from zero
+    /// than permitted for the associated resultant data item, the EC-SIZE-TRUNCATION exception condition is set
+    /// to exist" — with the disposition of §14.6.13.1.3, which for this implementation is a
+    /// <see cref="CobolSizeError"/> the enclosing statement's fatal-ambient guard dispatches
+    /// (<c>EcEmitter.FatalAmbientGates</c>).
+    /// <para>Its live callers are the ACTIVATING element's §14.2.3 GR9/GR10 argument crossings — "if the formal
+    /// parameter is numeric, a COMPUTE statement without the ROUNDED phrase" — on the CALL lane (through
+    /// <c>CobolArgAdapt.LandForFormal</c>) and the INVOKE lane (<c>OoEmitter</c>'s BY CONTENT arms), which have
+    /// no SIZE ERROR phrase to offer and no arithmetic statement to hang one on. Every such crossing is
+    /// compiled as this store when EC-SIZE-TRUNCATION checking is enabled at the activating statement and as
+    /// the plain <see cref="Store(Int128, int, in NumProfile, CobolRounding)"/> when it is not — the same
+    /// compile-time kernel selection the arithmetic store makes.</para></summary>
+    public static Int128 StoreOrRaise(Int128 value, int valueScale, in NumProfile receiver,
+        CobolRounding mode = CobolRounding.Truncation) =>
+        TryStore(value, valueScale, receiver, mode, out Int128 stored) ? stored : throw SizeTruncation(receiver);
+
+    /// <summary>The unsigned-wide lane of <see cref="StoreOrRaise(Int128, int, in NumProfile, CobolRounding)"/>
+    /// (kb/Work R10's container-bits contract — named, never overloaded, because an int constant converts
+    /// implicitly to both wide types).</summary>
+    public static Int128 StoreUOrRaise(UInt128 value, int valueScale, in NumProfile receiver,
+        CobolRounding mode = CobolRounding.Truncation) =>
+        TryStoreU(value, valueScale, receiver, mode, out Int128 stored) ? stored : throw SizeTruncation(receiver);
+
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="StoreOrRaise(Int128, int, in NumProfile, CobolRounding)"/>
+    /// — the §14.7 final transfer of an SDIDI intermediate (§8.8.1.5).</summary>
+    public static Int128 StoreOrRaise(CobolDec value, in NumProfile receiver,
+        CobolRounding mode = CobolRounding.Truncation) =>
+        TryStore(value, receiver, mode, out Int128 stored) ? stored : throw SizeTruncation(receiver);
+
+    /// <summary>The one message for every <see cref="StoreOrRaise(Int128, int, in NumProfile, CobolRounding)"/>
+    /// lane (ISO §14.7.5 case 3 + no-phrase rule 4).</summary>
+    private static CobolSizeError SizeTruncation(in NumProfile receiver) =>
+        new($"the value is further from zero than the {receiver.Digits}-digit receiving item permits "
+            + "(ISO §14.7.5 case 3 — EC-SIZE-TRUNCATION)", "EC-SIZE-TRUNCATION");
+
     /// <summary>Reduce an unscaled value to the native two's-complement range of a BinaryCapacity receiver's
     /// storage width — the deterministic no-ON-SIZE-ERROR truncation for COMP-5 / the BINARY-CHAR family (the
     /// width analog of the DigitCount path's <c>%= 10^Digits</c>). A signed receiver folds by modulo 2^bits into
