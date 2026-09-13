@@ -3,6 +3,7 @@
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -114,11 +115,17 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 // shall be specified". literal-1 is what the rule excludes, and it excludes it because GR4 makes
                 // the implicit statement a SET for exactly these five categories and no literal is a SET sending
                 // operand (§14.9.39). Unreachable until the words became spellable (kb/Work PB415).
+                string senderText = lit?.GetText() ?? item.dataReference()?.GetText()
+                    ?? item.functionCall()?.GetText() ?? "the sending operand";
                 if (lit is not null)
                     ctx.Validation.CheckInitializeReplacingSetCategoryIdentifier(cats, lit.GetText());
                 else
-                    CheckSetFormCategoryAgreement(cats, value,
-                        item.dataReference()?.GetText() ?? item.functionCall()?.GetText() ?? "the sending operand");
+                    CheckSetFormCategoryAgreement(cats, value, senderText);
+                // ISO §14.9.20.3 SR4's SECOND paragraph — the MOVE half, for every category-name that is not one
+                // of GR4's five SET-form ones. It is asked HERE, over the phrase, because the rule's receiving
+                // operand is "an item of the specified category" and not any item identifier-1 happens to
+                // contain: the pair is legal or illegal before a single receiver has been walked (kb/Work PB416).
+                CheckReplacingMoveValidity(cats, value, senderText);
                 replacements.Add((cats, value));
             }
 
@@ -185,13 +192,34 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 $"INITIALIZE of the dynamic-capacity table '{dtbl.CobolName ?? dtp}' (no capacity register)"));
             return;
         }
-        if (ctx.Refs.Resolve(dref) is not { } place)
+        // ⛔ identifier-1 RESOLVES THROUGH THE ONE RECEIVING CHOKEPOINT, BECAUSE §14.9.20.3 SR7 SAYS IT IS THE
+        // RECEIVING OPERAND (kb/Work PB416). The statement used to call ctx.Refs.Resolve directly, which answers
+        // "where does this reference live" and nothing else, so every receiving-operand PROHIBITION the compiler
+        // owns was invisible here: a CONSTANT RECORD was silently overwritten at run time (§13.18.15.3 SR2 /
+        // COBOLNET1548 — whose own doc claimed INITIALIZE as a caller), and the same held for a constant-name,
+        // LINE-COUNTER, PAGE-COUNTER and the OCCURS DYNAMIC CAPACITY register. SR7 is not one check but a FUNNEL:
+        // the standard's receiving-operand prohibitions are a growing set, and routing through ResolveReceiving
+        // is what makes the NEXT one automatic instead of a second copy bolted onto this verb.
+        // A null return is already diagnosed there (an undefined name by the resolver, a resolved-but-unsupported
+        // receiver shape as COBOLNET0899), so the old run-time InitializeErrorAction staging is gone with it —
+        // §4.2.2 puts a syntax-rule violation in the compile-time mechanism.
+        if (host.Expr.ResolveReceiving(dref) is not { } place) return;
+        // ISO §14.9.20.3 SR5: "The data description entry for the data item referenced by identifier-1 shall not
+        // contain a RENAMES clause." ⛔ ON THE RESOLVED PATH, WHICH IS THE ONLY ARM THAT CAN REACH IT: the check
+        // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired
+        // and the violation shipped as an unhandled NotImplementedCobolFeatureException naming a missing
+        // compiler feature instead of the reader's illegal program (kb/Work PB416).
+        if (!ctx.Validation.CheckInitializeTargetRenames(dref.GetText(), place.Item)) return;
+        // ISO §14.9.20.3 SR1 — the class screen, asked of the ONE §8.5.2.1 Table-2 classifier. See
+        // DiagnosticCatalog.InitializeTargetClass for why this cannot be folded into GR5a1's exclusion below.
+        if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)
         {
-            // ISO §14.9.20.3 SR5: identifier-1 shall not have a RENAMES clause (a level-66 entry — NC401M territory).
-            string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var named))
-                ctx.Validation.CheckInitializeTargetRenames(name, named);   // §14.9.20.3 SR5 — pure check
-            actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}'"));
+            ctx.Edition.Error(DiagnosticCatalog.InitializeTargetClass,
+                $"INITIALIZE '{dref.GetText()}' — identifier-1 is of class index, the one class ISO "
+                + "§14.9.20.3 SR1's list excludes (it admits a strongly-typed item and classes alphabetic, "
+                + "alphanumeric, boolean, message-tag, national, numeric, object and pointer); only SET, SEARCH, "
+                + "a relation condition and the argument positions of §13.18.60.3 SR10 may reference an index "
+                + "data item");
             return;
         }
         if (place is RefModPlace)
@@ -651,6 +679,53 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             var senderCat = value is BoundFieldOperand { Place.Item: { } si } ? InitializeItemCategory(si) : null;
             if (senderCat != cat)
                 ctx.Validation.CheckInitializeReplacingSetCategoryAgrees(cat, senderCat, senderText);
+        }
+    }
+
+    /// <summary>⛔ ISO §14.9.20.3 SR4's MOVE HALF — "For each of the other categories specified in the REPLACING
+    /// phrase, a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the specified
+    /// category as the receiving operand shall be valid" — the twin of
+    /// <see cref="CheckSetFormCategoryAgreement"/>, which answers SR4's FIRST paragraph for GR4's five SET-form
+    /// categories. §14.9.20.4 GR4's "as though a series of implicit MOVE or SET statements" is what makes a rule
+    /// about MOVE a rule about INITIALIZE.
+    /// <para>The question is asked of <see cref="MoveTable16"/>, the SAME screen <c>MoveBinder</c> asks, so the
+    /// implicit MOVE and the explicit one the programmer could write instead cannot answer differently. Before
+    /// this, <c>MoveTable16</c> had four call sites and INITIALIZE was none of them while
+    /// <c>InitializeEmitter</c> synthesised its <c>BoundMove</c> directly — so every cell an explicit MOVE
+    /// refuses, <c>INITIALIZE … REPLACING</c> accepted and STORED: a <c>PIC A(4)</c> item ended up holding
+    /// <c>0000</c>, which no conforming program can produce and a later class-ALPHABETIC test then reads as
+    /// false (kb/Work PB416).</para>
+    /// <para>ONE message per REPLACING item, naming the first offending category — the same posture
+    /// §14.9.20.3 SR3's check takes, since one item's category-name may be a SET (§5.2.6.4) and a reader fixing
+    /// the phrase fixes it once.</para>
+    /// <para>⚠ SR4 IS ASKED OF EVERY RULE THAT CAN BE ANSWERED FROM (sender, receiver CATEGORY), AND ONE MOVE
+    /// RULE CANNOT BE: §14.9.25.3 SR5's figurative→numeric prohibition, whose three EDITION rows live in
+    /// <c>VersionConformancePass.GateMove</c> and are re-derived from a bound MOVE node this statement never
+    /// builds. <c>INITIALIZE g REPLACING NUMERIC DATA BY SPACE</c> is therefore still un-gated at 2023 where the
+    /// explicit MOVE is COBOLNET0902 — recorded on kb/Work PB416's report as the version lane's own row, not
+    /// papered over here with a second, edition-blind copy of the rule.</para></summary>
+    private void CheckReplacingMoveValidity(InitializeCategorySet cats, BoundOperand value, string senderText)
+    {
+        // §14.9.25.3 SR1 is about the OPERAND, not the pair, so it is asked once and short-circuits: an index
+        // sending item makes the implicit MOVE invalid for every category the item names.
+        if (MoveTable16.SenderClassRefusal(value) is { } classRefusal)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
+                $"INITIALIZE REPLACING … BY {senderText}: ISO §14.9.20.3 SR4 requires the implicit MOVE to be "
+                + $"valid, and {classRefusal}");
+            return;
+        }
+        var senderPos = MoveTable16.SenderPosition(value);
+        foreach (var cat in InitializeCategories.All)
+        {
+            if (!cats.Contains(cat) || InitializeCategories.Table16Receiver(cat) is not { } recvPos) continue;
+            string? refusal = MoveTable16.ShapeRefusal(value, recvPos) ?? MoveTable16.Refusal(senderPos, recvPos);
+            if (refusal is null) continue;
+            ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
+                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {senderText}: ISO §14.9.20.3 SR4 "
+                + $"requires that `MOVE {senderText} TO <an item of category "
+                + $"{InitializeCategories.Spelling(cat)}>` be valid, and {refusal}");
+            return;   // one message per REPLACING item, naming the first offending category
         }
     }
 

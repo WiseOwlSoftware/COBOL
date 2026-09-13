@@ -255,4 +255,80 @@ public sealed class InitializeLaneDriftTests
                 + "and EveryCategoryName_IsGatedAtItsOwnReservationEdition would skip it.");
         Assert.Equal(5, words.Count(w => reserved[w] <= 85));
     }
+
+    // ── 4. THE FOUR §14.9.20.3 OPERAND SCREENS (kb/Work PB416) ────────────────────────────────────────────────
+    //    SR1 (identifier-1's class), SR4 (the implied MOVE's validity), SR5 (no RENAMES on identifier-1) and SR7
+    //    (identifier-1 IS the receiving operand) were ALL unasked at the one place identifier-1 and its REPLACING
+    //    operands are resolved. Two of the four repairs are STRUCTURAL rather than local — SR7 is a routing
+    //    through the ONE receiving chokepoint and SR4 is a call to the ONE move-validity screen — and the whole
+    //    value of that shape is that the NEXT prohibition and the NEXT category word are automatic. These three
+    //    facts are what keeps "automatic" true.
+
+    /// <summary>⛔ ISO §14.9.20.3 SR7 IS A FUNNEL, NOT A CHECK. "The data item referenced by identifier-1 is the
+    /// receiving operand", so identifier-1 is subject to every receiving-operand prohibition the standard states
+    /// — a growing set, already six deep in <c>ExpressionBinder.ResolveReceiving</c> (LINE-COUNTER §8.4.3.15.3
+    /// SR3, a constant-name §13.10.4 GR1, PAGE-COUNTER, an unimplemented receiver shape, the OCCURS DYNAMIC
+    /// CAPACITY register §13.18.38 SR30–32, and a CONSTANT RECORD §13.18.15.3 SR2). INITIALIZE used to resolve
+    /// identifier-1 with the plain reference resolver, which answers only "where does this live", so NONE of them
+    /// was asked and a structured constant was destroyed at run time in silence. Routing is what makes the
+    /// seventh prohibition free; a re-introduced direct resolve would make it a seventh copy.</summary>
+    [Fact]
+    public void InitializeBinder_ResolvesIdentifier1ThroughTheOneReceivingChokepoint()
+    {
+        string code = CodeOf(BinderPath);
+
+        Assert.True(code.Contains("ResolveReceiving(", StringComparison.Ordinal),
+            "InitializeBinder no longer calls ExpressionBinder.ResolveReceiving. ISO §14.9.20.3 SR7 makes "
+            + "identifier-1 the RECEIVING operand, and the receiving-operand prohibitions live behind that one "
+            + "chokepoint — resolving identifier-1 any other way silently opts out of all of them (kb/Work "
+            + "PB416: a CONSTANT RECORD was overwritten at run time with no diagnostic).");
+
+        Assert.False(Regex.IsMatch(code, @"Refs\.Resolve\(\s*dref\s*\)"),
+            "InitializeBinder resolves identifier-1's own dataReference through ctx.Refs.Resolve again. That is "
+            + "the sending-side resolver: it answers where the item lives and screens nothing. identifier-1 is a "
+            + "receiving operand (ISO §14.9.20.3 SR7) and shall go through host.Expr.ResolveReceiving.");
+    }
+
+    /// <summary>⛔ ISO §14.9.20.3 SR4's MOVE half IS ASKED OF THE ONE TABLE-16 SCREEN. "a MOVE statement with
+    /// identifier-2 or literal-1 as the sending item and an item of the specified category as the receiving
+    /// operand shall be valid" is the same question <c>MoveBinder</c> asks of <c>MoveTable16</c>, and
+    /// §14.9.20.4 GR4 ("a series of implicit MOVE or SET statements") is what makes it INITIALIZE's question
+    /// too. A private re-implementation here is how the implicit MOVE and the explicit one come to disagree —
+    /// which is exactly what happened while INITIALIZE was not among <c>MoveTable16.Refusal</c>'s call sites and
+    /// <c>InitializeEmitter</c> synthesised its <c>BoundMove</c> past <c>MoveBinder</c> entirely.</summary>
+    [Fact]
+    public void InitializeBinder_AsksTheOneMoveValidityScreen()
+    {
+        string code = CodeOf(BinderPath);
+        foreach (string member in new[] { "MoveTable16.SenderPosition", "MoveTable16.Refusal",
+                                          "MoveTable16.ShapeRefusal", "MoveTable16.SenderClassRefusal" })
+            Assert.True(code.Contains(member, StringComparison.Ordinal),
+                $"InitializeBinder no longer calls {member}. ISO §14.9.20.3 SR4 makes the validity of the "
+                + "implicit MOVE a condition on the REPLACING phrase, and MoveTable16 is the ONE place that "
+                + "answers it — for MOVE, for the INVOKE argument crossing (§14.8.2.3.3 rule 2d) and for this.");
+    }
+
+    /// <summary>⛔ EVERY CATEGORY-NAME EITHER TAKES THE SET FORM OR HAS A TABLE-16 RECEIVING POSITION — never
+    /// neither, never both. ISO §14.9.20.3 SR4 is written in two paragraphs over exactly that partition: the
+    /// first governs "data-pointer, function-pointer, message-tag, object-reference, and program-pointer" and
+    /// asks about a SET statement, the second governs "each of the other categories" and asks about a MOVE. A
+    /// category-name with neither answer is a REPLACING pair no rule screens; one with both is two rules
+    /// answering for one word. This is the fact that makes the fourteenth category name automatic: adding the
+    /// enum member without deciding which paragraph governs it fails HERE.</summary>
+    [Fact]
+    public void EveryCategoryName_IsScreenedByExactlyOneHalfOfSyntaxRule4()
+    {
+        foreach (var cat in CobolNet.Binding.Bound.InitializeCategories.All)
+        {
+            bool set = CobolNet.Binding.Bound.InitializeCategories.IsSetForm(cat);
+            bool move = CobolNet.Binding.Bound.InitializeCategories.Table16Receiver(cat) is not null;
+            Assert.True(set ^ move,
+                $"category-name {CobolNet.Binding.Bound.InitializeCategories.Spelling(cat)} is "
+                + (set ? "BOTH a SET-form category and carries a Table-16 receiving position — two halves of "
+                       + "ISO §14.9.20.3 SR4 would screen the same REPLACING pair"
+                       : "screened by NEITHER half of ISO §14.9.20.3 SR4: it is not one of GR4's five SET-form "
+                       + "categories and InitializeCategories.Table16Receiver gives it no receiving position, "
+                       + "so `INITIALIZE … REPLACING <it> BY <anything>` is accepted unscreened."));
+        }
+    }
 }

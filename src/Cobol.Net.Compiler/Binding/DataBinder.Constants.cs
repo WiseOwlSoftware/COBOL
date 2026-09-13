@@ -88,11 +88,18 @@ public sealed partial class DataBinder
         return false;
     }
 
-    /// <summary>The §13.18.15.3 SR2 receiving-operand guard for CONSTANT RECORD content, shared by every
-    /// receiving chokepoint that resolves its own <see cref="Place"/> (ACCEPT / INITIALIZE / INSPECT targets /
-    /// MOVE CORRESPONDING receivers) in addition to the ONE <c>ExpressionBinder.ResolveReceiving</c> spine.
-    /// True (and the <c>COBOLNET1548</c> diagnostic reported) when the place stores into a structured
-    /// constant.</summary>
+    /// <summary>The §13.18.15.3 SR2 receiving-operand guard for CONSTANT RECORD content — "Neither the data item
+    /// described by the subject of the entry nor any data item subordinate to the subject of the entry shall be
+    /// specified as a receiving data item". True (and the <c>COBOLNET1548</c> diagnostic reported) when the place
+    /// stores into a structured constant.
+    /// <para>⛔ IT HAS EXACTLY ONE CALL SITE, AND THAT IS THE DESIGN: <c>ExpressionBinder.ResolveReceiving</c>, the
+    /// ONE receiving chokepoint. A verb reaches this rule by RESOLVING ITS RECEIVER THERE, never by calling here.
+    /// The remark that used to stand here claimed it was "shared by every receiving chokepoint that resolves its
+    /// own Place (ACCEPT / INITIALIZE / INSPECT targets / MOVE CORRESPONDING receivers)" — a sentence that
+    /// described an intention, not the code: there was no second caller, and INITIALIZE silently destroyed a
+    /// structured constant at run time for as long as it resolved identifier-1 with the plain resolver (kb/Work
+    /// PB416, which routed it through the chokepoint). A verb whose receiver bypasses <c>ResolveReceiving</c>
+    /// bypasses this rule AND the five others that live beside it, so the repair is always the routing.</para></summary>
     internal bool RejectConstantStore(Place? place, string what)
     {
         if (place is null || !IsConstantRecordItem(place.Item)) return false;

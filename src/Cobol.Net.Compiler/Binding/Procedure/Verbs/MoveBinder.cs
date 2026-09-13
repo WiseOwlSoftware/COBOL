@@ -203,7 +203,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // uses, so a folded integer function (FUNCTION LENGTH constant-folds to a numeric literal, which is how
         // it escaped every earlier reading of this position) still answers "numeric", not "unknown". ──
         if (fc is not null && rules.FunctionCategories is { } admitted
-            && SenderPosition(source).Category is var cat && !admitted.Contains(cat))
+            && MoveTable16.SenderPosition(source).Category is var cat && !admitted.Contains(cat))
             ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
                 $"{rules.Statement} {fc.GetText()}: {rules.FunctionRuleCite} — this function's result is of "
                 + $"category {cat.ToString().ToLowerInvariant()}");
@@ -289,23 +289,19 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // removal (the W2 adversarial review caught the 0902 row mislabeling it "permitted through 2014").
         // Message-tag/object/pointer classes cannot reach a bound MOVE yet (their usages are compile-gated
         // skeletons, W2 track B) — this check gains those arms when their phases land.
-        if (source is BoundFieldOperand { Place.Item.Pic.Usage: Usage.Index } sIdx)
-            ctx.Edition.Error("COBOLNET0809",
-                $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10 — only a "
-                + $"SEARCH or SET statement, a relation condition, an intrinsic-function or inline-method "
-                + $"argument, or a procedure-division / CALL / INVOKE USING phrase may reference an index "
-                + $"data item) — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}");
         // SR1 reaches a FUNCTION sender through §15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
         // These are of the class and category index." — MAX/MIN over index arguments IS one, and its result's
         // storage category (Numeric) made it indistinguishable from a numeric sender here, so
         // MOVE FUNCTION MAX(IX1 IX2) TO 9(n) silently stored an occurrence-number image (GR-15.2-6).
-        // Typed by the SAME IntrinsicResultType.Resolve the binder resolves results with.
-        if (source is BoundComputedOperand { Expr: BoundIntrinsicCall sic }
-            && IntrinsicResultType.Resolve(sic.Sig, sic.Args) is IntrinsicType.Index)
-            ctx.Edition.Error("COBOLNET0809",
-                $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §15.2 item 6 — FUNCTION "
-                + $"{sic.Sig.Name} over index arguments is an INDEX function, of the class and category index)"
-                + ImplicitMovePhrase.Via(implicitOf));
+        // ⛔ BOTH SENDER ARMS NOW ASK ONE READER (kb/Work PB416): MoveTable16.SenderClassRefusal classifies
+        // through IntrinsicArgumentRules.ClassOf — the ONE §8.5.2.1 Table-2 answer — so §14.9.20.3 SR4's
+        // hypothetical MOVE (INITIALIZE REPLACING) gets the identical verdict, and the index-NAME sender shape
+        // neither hand-written arm matched is covered by construction.
+        if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
+            ctx.Edition.Error("COBOLNET0809", classRefusal
+                + (source is BoundFieldOperand sIdx
+                    ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
+                    : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
             if (t.Item.Pic is { Usage: Usage.Index })
                 ctx.Edition.Error("COBOLNET0809",
@@ -371,45 +367,30 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets,
                                       ImplicitMovePhrase? implicitOf)
     {
-        // The SENDER's Table-16 position — the ONE reader (fix-queue PB72; see SenderPosition).
-        Table16Operand senderPos = SenderPosition(source);
-        // §14.9.25.3 SR8: a fixed-width binary sender (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) shall reference
-        // only a numeric or numeric-edited receiver — SR10 (Table 16) applies only to cases NOT covered by
-        // SR8, so this precedes the Table-16 arms. The family is 2002+ (absent from the '85 corpus), so
-        // the check is corpus-safe at every receiver category.
-        bool senderBinaryFamily = source is BoundFieldOperand fb
-            && fb.Place.Item.Pic is { Usage: Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble };
+        // The SENDER's Table-16 position — the ONE reader (fix-queue PB72; MoveTable16.SenderPosition).
+        Table16Operand senderPos = MoveTable16.SenderPosition(source);
 
         foreach (var t in targets)
         {
-            if (MoveReceiverCategory(t) is not { } recvCat) continue;   // group receiver — GR4 exempt
+            if (MoveReceiverCategory(t) is null) continue;   // group receiver — GR4 exempt
             string where = ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName);
+            // The RECEIVER position builds through Table16Operand.Of(Place) (PB72): a ref-mod receiver is
+            // plain alphanumeric (GR2/GR6), never the inner item's alphabetic/edited row — except for the
+            // alphabetic rider Of(Place) keeps deliberately (PB73).
+            Table16Operand recvPos = Table16Operand.Of(t);
 
-            if (senderBinaryFamily && recvCat is not (PicCategory.Numeric or PicCategory.NumericEdited))
-            {
-                ctx.Edition.Error("COBOLNET0819", $"{where}: a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending "
-                    + "operand shall reference only a numeric or numeric-edited receiver (ISO §14.9.25.3 SR8)");
-                continue;
-            }
-
-            // §14.9.25.3 SR7 — a SOURCE-SHAPE rule, not a Table-16 one: a figurative constant whose characters
-            // are not boolean characters (and the ALL-literal form of the same) never moves to a boolean item.
-            // ZERO is boolean zeros by context (§8.3.3.6.4 GR4). This keys on the bound operand's shape, which a
-            // category table cannot see, so it stays here.
-            if (recvCat is PicCategory.Boolean && source is BoundFigurative { Kind: not 'Z' })
-                ctx.Edition.Error("COBOLNET0819", $"{where}: a figurative constant whose characters are "
-                    + "not boolean characters shall not be moved to a boolean data item "
-                    + "(ISO §14.9.25.3 SR7)");
-            else if (recvCat is PicCategory.Boolean && source is BoundAllLiteral bal
-                     && (bal.Literal.Length == 0 || !bal.Literal.All(c => c is '0' or '1')))
-                ctx.Edition.Error("COBOLNET0819", $"{where}: ALL \"{bal.Literal}\" contains non-boolean "
-                    + "characters and shall not be moved to a boolean data item (ISO §14.9.25.3 SR7)");
-            // ⭐ AND THE CATEGORY-PAIR RULE ITSELF IS NOW ASKED OF THE ONE TABLE (fix-queue PB53). It used to be
+            // §14.9.25.3 SR8 / SR7 / SR6 — the SOURCE-SHAPE rules, which key on the bound operand's shape
+            // against the receiver's POSITION rather than on a Table-16 cell. ⛔ THEY LIVE IN MoveTable16 NOW
+            // (kb/Work PB416): §14.9.20.3 SR4 makes an INITIALIZE REPLACING pair legal only when "a MOVE
+            // statement … shall be valid", which is the whole validity question, and a second copy of these
+            // three arms in InitializeBinder is exactly how one answer becomes two. SR8 short-circuits because
+            // SR10 applies only "for all other cases not described in Syntax rules 8 and 9".
+            if (MoveTable16.ShapeRefusal(source, recvPos) is { } shape)
+                ctx.Edition.Error("COBOLNET0819", $"{where}: {shape}");
+            // ⭐ AND THE CATEGORY-PAIR RULE ITSELF IS ASKED OF THE ONE TABLE (fix-queue PB53). It used to be
             // four inline arms here and a §14.8.2.3.2 STRICT-IDENTITY fallback in the INVOKE argument screen —
             // two answers to one question, and §14.8.2.3.3 rule 2d says the INVOKE crossing asks THIS one.
-            // The RECEIVER position likewise builds through Table16Operand.Of(Place) (PB72): a ref-mod receiver is
-            // plain alphanumeric (GR2/GR6), never the inner item's alphabetic/edited row.
-            else if (MoveTable16.Refusal(senderPos, Table16Operand.Of(t)) is { } refusal)
+            else if (MoveTable16.Refusal(senderPos, recvPos) is { } refusal)
             {
                 // The two leniencies (kb/Work PB73): a NUMERIC-typed function into a character receiver (Table 16's
                 // Noninteger row; every earlier release admitted it as the CONFORMANCE.md item-92 text form) and a
@@ -433,38 +414,6 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
     }
 
-
-    /// <summary>The SENDER's position in the §14.9.25.3 Table 16 category matrix (fix-queue PB72: built in ONE
-    /// place, and a FIELD builds through <c>Table16Operand.Of(Place)</c> so a ref-mod view takes §8.4.3.3.4
-    /// GR2/GR6's rewrites — category via the one GR6 reader, and the finer alphabetic/edited/noninteger flags
-    /// erased, because the unique data item a view creates is plain class-and-category alphanumeric). An
-    /// INTRINSIC sender reports the §15.18.4 r3 ALPHABETIC rider alongside its result category — the finer row
-    /// Table 16 keys on and <c>PicCategory</c> deliberately cannot express (the PIC A fold).
-    /// <para>It is a NAMED reader rather than an inline switch because the FROM-phrase function-class rules
-    /// (§14.9.32.3 SR2 · §14.9.51.3 SR4 · §14.9.35.3 SR9) ask the same question of the same operand, and a
-    /// second reading of "what category is this sender" is exactly how a folded <c>FUNCTION LENGTH</c> — which
-    /// reaches the binder as a plain numeric literal — would have been read as "unknown" and waved through
-    /// (kb/Work PB348).</para></summary>
-    private static Table16Operand SenderPosition(BoundOperand source) => source switch
-    {
-            BoundStringLiteral sl => new Table16Operand(sl.Category),
-            BoundAllLiteral al => new Table16Operand(al.Category),
-            BoundFieldOperand f when f.Place is not RefModPlace && f.Place.Item.OperandPic is null =>
-                new Table16Operand(PicCategory.Group),   // GR4 — an ALPHANUMERIC group moves without conversion (D20)
-            BoundFieldOperand f => Table16Operand.Of(f.Place),
-            BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),
-            // An INTRINSIC sender's Table-16 row is its §15.2 TYPE (kb/Work PB73, adjudicated 2026-08-18): an
-            // INTEGER function ("no digits to the right of the decimal point", §15.2 item 5 — resolved per call by
-            // the ONE IntrinsicResultType reader, so MAX over integers is integer) is the Integer row; a NUMERIC
-            // function (item 4) is the NONINTEGER row whatever a particular reference's value — §8.4.3.2.3 SR11's
-            // principle for the integer-operand positions applies to the table's split too. The former admission
-            // (IsNonInteger: false for every function) survives under --permissive as a warning, below.
-            BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-                new Table16Operand(ic.ResultCategory, ic.ResultIsAlphabetic,
-                    IsNonInteger: ic.ResultCategory is PicCategory.Numeric && !IntrinsicResultType.IsIntegerOperand(source)),
-            BoundComputedOperand => new Table16Operand(PicCategory.Numeric),
-            _ => new Table16Operand(PicCategory.Group),   // figuratives (SR7's own arm) / errors — category-exempt
-    };
 
     /// <summary>
     /// Ref-mod STORE backing (the W2 adversarial-review fix, DEVLOG 595): a MOVE into a reference-modified

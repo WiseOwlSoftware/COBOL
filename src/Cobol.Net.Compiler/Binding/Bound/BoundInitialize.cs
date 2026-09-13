@@ -162,6 +162,34 @@ public static class InitializeCategories
             or InitializeCategory.MessageTag or InitializeCategory.ObjectReference
             or InitializeCategory.ProgramPointer;
 
+    /// <summary>⛔ THE CATEGORY-NAME'S POSITION IN ISO §14.9.25.3 TABLE 16, AS A RECEIVING OPERAND — what
+    /// §14.9.20.3 SR4's second paragraph asks about: "For each of the other categories specified in the REPLACING
+    /// phrase, a MOVE statement with identifier-2 or literal-1 as the sending item and <b>an item of the specified
+    /// category</b> as the receiving operand shall be valid." The receiving operand of that hypothetical MOVE is
+    /// the CATEGORY, not any actual receiver, so the whole rule is a bind-time screen over the REPLACING phrase
+    /// and needs no receiver walk (kb/Work PB416).
+    /// <para>The five SET-form categories return <see langword="null"/>: SR4's FIRST paragraph governs them and
+    /// asks about a SET statement, which <c>StatementValidation.CheckInitializeReplacingSetCategoryAgrees</c>
+    /// answers. Table 16 has no row or column for them at all — §14.9.25.3 SR1 bars class index, message-tag,
+    /// object and pointer from a MOVE outright — so returning a position for one would be inventing a cell.</para>
+    /// <para>Table 16's receiving COLUMNS pair the edited forms with their plain ones ("Alphanumeric-edited,
+    /// Alphanumeric"; "National, National-edited"; "Numeric, Numeric-edited"), which is why
+    /// <see cref="Table16Operand.IsEdited"/> is set here for fidelity and read only by the table's ROW arms; the
+    /// ALPHABETIC column is its own, carried by <see cref="Table16Operand.IsAlphabetic"/> over the storage model's
+    /// PIC A fold.</para></summary>
+    public static Table16Operand? Table16Receiver(InitializeCategory cat) => cat switch
+    {
+        InitializeCategory.Alphabetic => new Table16Operand(PicCategory.Alphanumeric, IsAlphabetic: true),
+        InitializeCategory.Alphanumeric => new Table16Operand(PicCategory.Alphanumeric),
+        InitializeCategory.AlphanumericEdited => new Table16Operand(PicCategory.Alphanumeric, IsEdited: true),
+        InitializeCategory.Boolean => new Table16Operand(PicCategory.Boolean),
+        InitializeCategory.National => new Table16Operand(PicCategory.National),
+        InitializeCategory.NationalEdited => new Table16Operand(PicCategory.National, IsEdited: true),
+        InitializeCategory.Numeric => new Table16Operand(PicCategory.Numeric),
+        InitializeCategory.NumericEdited => new Table16Operand(PicCategory.NumericEdited),
+        _ => null,   // the five §14.9.20.4 GR4 SET-form categories — SR4's first paragraph, not Table 16
+    };
+
     /// <summary>The category's PRINTED category-name (ISO §14.9.20.2), for diagnostics — a message about COBOL
     /// source names the COBOL word the programmer wrote, never the C# member spelling.</summary>
     public static string Spelling(InitializeCategory cat) => cat switch

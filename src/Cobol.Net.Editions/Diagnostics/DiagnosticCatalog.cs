@@ -3342,6 +3342,41 @@ public static class DiagnosticCatalog
         + "in its own data item.",
         "ISO §8.4.3.14.3 SR2 / §13.18.34.4 GR7 b)");
 
+    // ── COBOLNET2030/2031 — the two §14.9.20.3 screens INITIALIZE never asked at the one place identifier-1 and
+    //    its REPLACING operands are resolved (kb/Work PB416). The statement's other two unasked rules need no new
+    //    code: SR5 already had COBOLNET0835 (wired to a branch that could not reach a resolved RENAMES entry) and
+    //    SR7 is a FUNNEL, so identifier-1 now resolves through ExpressionBinder.ResolveReceiving and collects that
+    //    chokepoint's own receiving-operand diagnostics (COBOLNET1548 for a CONSTANT RECORD among them). ──
+
+    /// <summary>COBOLNET2030 — identifier-1 of an INITIALIZE statement is of class index, the one class
+    /// §14.9.20.3 SR1's list excludes.</summary>
+    public static readonly DiagnosticDescriptor InitializeTargetClass = new(
+        "COBOLNET2030", "initialize-target-class", EditionSeverity.Error,
+        "§14.9.20.3 SR1: \"Identifier-1 shall be strongly typed or of class alphabetic, alphanumeric, boolean, "
+        + "message-tag, national, numeric, object, or pointer.\" §8.5.2.1 Table 2 lists NINE classes and the rule "
+        + "admits eight, so the whole rule is one exclusion: class INDEX — an elementary item explicitly or "
+        + "implicitly described as usage index (§8.5.2.8). ⚠ It is a DIFFERENT rule from §14.9.20.4 GR5a1, which "
+        + "excludes an index item CONTAINED IN identifier-1 from the receiver set and leaves it silently "
+        + "unchanged; applying that exclusion to identifier-1 itself is what turned this syntax error into a "
+        + "no-op, so a subordinate index item is still skipped without a word and only the target is diagnosed.",
+        "ISO §14.9.20.3 / §8.5.2.1 / §8.5.2.8");
+
+    /// <summary>COBOLNET2031 — §14.9.20.3 SR4's MOVE half: the implicit MOVE the REPLACING phrase names would not
+    /// be a valid MOVE statement.</summary>
+    public static readonly DiagnosticDescriptor InitializeReplacingMoveInvalid = new(
+        "COBOLNET2031", "initialize-replacing-move-invalid", EditionSeverity.Error,
+        "§14.9.20.3 SR4, second paragraph: \"For each of the other categories specified in the REPLACING phrase, "
+        + "a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the specified "
+        + "category as the receiving operand shall be valid.\" §14.9.20.4 GR4 is what makes that a statement "
+        + "about INITIALIZE — \"the effect of the execution of the INITIALIZE statement is as though a series of "
+        + "implicit MOVE or SET statements\" — so every cell §14.9.25.3 refuses an explicit MOVE, it refuses "
+        + "here. The receiving operand is the CATEGORY the REPLACING phrase names, not any particular item "
+        + "identifier-1 contains, so the rule is decided once per REPLACING item and holds whether or not the "
+        + "group happens to contain an item of that category. The same screen answers both statements "
+        + "(MoveTable16), so an INITIALIZE REPLACING pair and the MOVE a programmer would write by hand can no "
+        + "longer disagree.",
+        "ISO §14.9.20.3 / §14.9.20.4 / §14.9.25.3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

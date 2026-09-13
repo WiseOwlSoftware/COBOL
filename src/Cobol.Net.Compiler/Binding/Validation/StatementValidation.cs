@@ -723,12 +723,21 @@ internal sealed class StatementValidation(DataBinder data)
             + "§14.9.39 admits only a sending operand of the receiver's own category");
     }
 
-    /// <summary>SR5 — identifier-1 shall not have a RENAMES clause (a level-66 entry).</summary>
-    public bool CheckInitializeTargetRenames(string name, IReadOnlyList<DataItem> named)
+    /// <summary>ISO §14.9.20.3 SR5 — "The data description entry for the data item referenced by identifier-1
+    /// shall not contain a RENAMES clause" (a level-66 entry).
+    /// <para>⛔ IT TAKES THE <b>RESOLVED</b> ITEM (kb/Work PB416). It used to take the candidate list a NAME
+    /// lookup returns, and its only caller asked it on the arm where the reference did NOT resolve — an arm a
+    /// level-66 entry never reaches, because it resolves perfectly well. The check was written, cited, covered by
+    /// a diagnostic code, and unreachable; the violation reached the user as an unhandled run-time
+    /// <c>NotImplementedCobolFeatureException</c>. Asking the resolved item is also what makes the rule
+    /// QUALIFICATION-correct: `INITIALIZE R66 IN REC-2` names one entry, and a name lookup that returns every
+    /// same-named candidate answers about the wrong one as readily as the right one.</para></summary>
+    public bool CheckInitializeTargetRenames(string refText, DataItem item)
     {
-        if (!named.Any(i => i.Renames is not null)) return true;
+        if (item.Renames is null) return true;
         data.Edition.Error("COBOLNET0835",
-            $"INITIALIZE '{name}' — identifier-1 shall not have a RENAMES clause (ISO §14.9.20.3 SR5)");
+            $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
+            + "clause (ISO §14.9.20.3 SR5)");
         return false;
     }
 

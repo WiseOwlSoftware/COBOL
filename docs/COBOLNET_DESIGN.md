@@ -1057,7 +1057,26 @@ result does not feed it — decision 20.
 - **INITIALIZE** = a compile-time tree-walk to per-elementary typed stores (default/VALUE/REPLACING; FILLER skipped;
   OCCURS → a for-loop). §14.9.20.4 GR4's "series of implicit MOVE or SET statements" is expanded at BIND time, and
   the lane keeps the standard's TWO rules apart: `Qualify` answers GR5c ("is this a receiving-operand, and WHY")
-  and `SenderFor` answers GR6, whose three arms are keyed on that answer (kb/Work PB418). A receiver whose category
+  and `SenderFor` answers GR6, whose three arms are keyed on that answer (kb/Work PB418).
+  **The §14.9.20.3 OPERAND SCREENS are asked where the operands are resolved, and three of the four are ROUTINGS
+  rather than checks** (kb/Work PB416). SR7 — "the data item referenced by identifier-1 is the receiving operand" —
+  is a consequence, not a designation: identifier-1 therefore resolves through `ExpressionBinder.ResolveReceiving`,
+  the ONE receiving chokepoint, and collects every receiving-operand prohibition living there (a CONSTANT RECORD's
+  content §13.18.15.3 SR2, a constant-name §13.10.4 GR1, LINE-COUNTER, PAGE-COUNTER, the OCCURS DYNAMIC CAPACITY
+  register, and an unimplemented receiver shape) so the NEXT prohibition is free. SR4's MOVE half —
+  "a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the specified category as the
+  receiving operand shall be valid" — is asked of **`MoveTable16`, the one home of the whole category-keyed MOVE
+  validity question** (§14.9.25.3 SR1's sending half, SR6, SR7, SR8 and SR10's Table 16), over
+  `InitializeCategories.Table16Receiver`, which is the category-name's Table-16 receiving position; the rule needs
+  no receiver walk because its receiving operand is the CATEGORY. SR4's SET half stays
+  `CheckInitializeReplacingSetCategoryAgrees`, and `InitializeLaneDriftTests` pins that every category-name is
+  screened by exactly one of SR4's two paragraphs. SR1 (identifier-1's class) is one predicate over the one
+  §8.5.2.1 Table-2 classifier — class INDEX is the single exclusion — written as its OWN screen because GR5a1's
+  exclusion of an index item *contained in* identifier-1 is a different rule that must keep its silence. SR5's
+  RENAMES check runs on the RESOLVED item. ⚠ One residue: §14.9.25.3 SR5's figurative→numeric prohibition is an
+  EDITION row in `VersionConformancePass.GateMove`, re-derived from a bound MOVE this statement never builds, so
+  `INITIALIZE … REPLACING NUMERIC DATA BY SPACE` is un-gated at 2023 where the explicit MOVE is COBOLNET0902.
+  A receiver whose category
   is one of GR4's five — data-pointer, function-pointer, message-tag, object-reference, program-pointer — takes the
   implicit **SET** rather than the MOVE path: `InitializeSetNull` for GR6a1/GR6a2 and GR6c's NULL rows,
   `InitializeSetFrom` for GR6b's `SET receiver TO identifier-2`, each rendered exactly as the explicit SET statement
