@@ -49,8 +49,12 @@ public sealed record InitializeSetNull(Place Target) : InitializeAction;
 public sealed record InitializeErrorAction(string Feature) : InitializeAction;
 
 /// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — the
-/// COBOL-85 five plus the Phase-4a BOOLEAN and NATIONAL members (binder-side classification + GR6c default
-/// fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL — like NATIONAL-EDITED, the pointer
-/// categories, and OBJECT-REFERENCE — are still absent from the initializeCategory grammar rule and arrive
-/// with their lexer tokens in the edition-gated grammar fragments, a parse error today = loud).</summary>
-public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, DataPointer, ProgramPointer, ObjectReference }
+/// COBOL-85 five plus the Phase-4a BOOLEAN, NATIONAL and NATIONAL-EDITED members (binder-side classification +
+/// GR6c default fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL/NATIONAL-EDITED, the pointer
+/// categories, MESSAGE-TAG and OBJECT-REFERENCE are still absent from the initializeCategory grammar rule and
+/// arrive with their lexer tokens in the edition-gated grammar fragments, a parse error today = loud).
+/// <para>NATIONAL-EDITED is its OWN member even though GR6c's fill table gives it the same "Figurative constant
+/// national SPACES" as NATIONAL: GR5c matches a REPLACING/TO VALUE category-name against the receiving operand's
+/// §8.5.2 category, and those are two different categories (§8.5.2.10 vs §8.5.2.11), so folding them would make
+/// `REPLACING NATIONAL DATA BY …` reach a national-edited item the rule does not name (kb/Work PB492).</para></summary>
+public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, NationalEdited, DataPointer, ProgramPointer, ObjectReference }

@@ -342,17 +342,19 @@ internal static class RuntimeApi
         return $", edits: new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}[] {{ {items} }}";
     }
 
-    /// <summary>Place sending characters into an ALPHANUMERIC-EDITED (or national-edited) mask's positions
-    /// (ISO §13.18.40.5 Table 7 — the category's only editing is SIMPLE INSERTION; rule 3 places the insertion
-    /// character at the symbol's own position) — <c>CobolEdit.FormatAlphanumeric</c>.
+    /// <summary>Place sending characters into an ALPHANUMERIC-EDITED or NATIONAL-EDITED mask's positions
+    /// (ISO §13.18.40.5 Table 7 — both categories' ONLY editing is SIMPLE INSERTION; rule 3 places the insertion
+    /// character at the symbol's own position) — <c>CobolEdit.FormatSimpleInsertion</c>.
     /// <para>⛔ It takes the <see cref="PicInfo"/>, never a bare mask: the mask and the item's PICTURE EDITING
     /// rules are rendered TOGETHER from the one item, which is what keeps a new emit site from doing what all
     /// three existing ones did — pass the mask and drop <see cref="PicInfo.EditingRules"/>, so
     /// <c>PIC XXTXX EDITING "T" IS ":"</c> rendered the mask LETTER (kb/Work PB490; §13.18.40.4 GR7 names
-    /// character-1 as an alphanumeric-edited constituent). This is the alphanumeric twin of
-    /// <see cref="EditFormatFor"/>, which owns the numeric-edited form dispatch for the same reason.</para></summary>
-    public static string EditFormatAlphanumeric(string value, PicInfo pic) =>
-        $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatAlphanumeric)}({value}, "
+    /// character-1 as an alphanumeric-edited constituent, and GR10 names it identically for national-edited).
+    /// This is the character-category twin of <see cref="EditFormatFor"/>, which owns the numeric-edited form
+    /// dispatch for the same reason. ⛔ ONE entry point for BOTH edited character categories, deliberately: an
+    /// <c>…Alphanumeric</c> name is how the national arm came to have no renderer at all (kb/Work PB492).</para></summary>
+    public static string EditFormatSimpleInsertion(string value, PicInfo pic) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatSimpleInsertion)}({value}, "
         + $"{Emit.EmitText.CsLiteral(pic.EditMask!)}{EditsArg(pic.EditingRules)})";
 
     /// <summary>Decode a digit image's magnitude (non-digits contribute no digit) — <c>CobolNum.FromAlphanumeric</c>.</summary>

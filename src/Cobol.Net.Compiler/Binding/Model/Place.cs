@@ -571,12 +571,13 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// ⚠ <b>GR6 a AND b HAVE NO ARM HERE, AND THAT IS A PROPERTY OF THE MODEL, NOT OF THE RULE.</b>
     /// <see cref="PicCategory"/> has no <c>AlphanumericEdited</c> member — an alphanumeric-edited item already
     /// carries <see cref="PicCategory.Alphanumeric"/> with an <c>EditMask</c> — so GR6a is satisfied by the base
-    /// case rather than skipped. GR6b is the same shape for a different reason: national-edited is a
-    /// recognized-but-unimplemented SKELETON that <c>PictureAnalyzer</c> recovers to
-    /// <see cref="PicCategory.Alphanumeric"/> (<c>SkeletonGate = NationalEdited2002</c>), so this cannot see it
-    /// and must not pretend to — the gap belongs to that skeleton, not to this rule. **If either category ever
-    /// gains its own member, both arms must appear here**, which is why they are named rather than silently
-    /// absent.
+    /// case rather than skipped. GR6b is the SAME shape and now for the same reason (kb/Work PB492): a
+    /// national-edited item carries <see cref="PicCategory.National"/> with an <c>EditMask</c>, so the base arm
+    /// preserves category NATIONAL and the EDIT MASK is the thing that must not survive — it does not, because
+    /// <c>Table16Operand.Of(Place)</c> builds a ref-mod view with <c>IsEdited</c> false, which is exactly what
+    /// GR6b's "considered class and category national" says. **If either category ever gains its own
+    /// <see cref="PicCategory"/> member, both arms must appear here**, which is why they are named rather than
+    /// silently absent.
     /// </remarks>
     /// <summary>The category of THIS view's unique data item — <see cref="CategoryOf"/> over the inner item's
     /// PICTURE, or ALPHANUMERIC for a ref-modified GROUP (§8.4.3.3.3 SR1 "an alphanumeric group item"; a bit group

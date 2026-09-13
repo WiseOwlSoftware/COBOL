@@ -18,10 +18,14 @@ namespace CobolNet.Binding.Model;
 /// item's category, which already resolves a bit / national group's as-if PICTURE (§13.18.29.4 GR1b/GR2b) and
 /// answers <see cref="PicCategory.Group"/> for the plain group. Never a second walk of <c>Pic</c> /
 /// <c>AsIfPic</c> / <c>GroupUsage</c>.</para>
-/// <para>⚠ WHAT THE MODEL CANNOT SEE, said out loud: <see cref="PicCategory"/> has no
-/// <c>AlphanumericEdited</c> member — an alphanumeric-edited item carries category
-/// <see cref="PicCategory.Alphanumeric"/> — so a screen written here admits one where the standard's category
-/// list does not. That is the established posture for a category screen in this compiler
+/// <para>⚠ WHAT THIS SCREEN DELIBERATELY DOES NOT SPLIT, said out loud: <see cref="PicCategory"/> has no
+/// <c>AlphanumericEdited</c> or <c>NationalEdited</c> member — an alphanumeric-edited item carries category
+/// <see cref="PicCategory.Alphanumeric"/> and a national-edited one category <see cref="PicCategory.National"/>,
+/// each distinguished only by <see cref="PicInfo.EditMask"/> (data-model design D-N6; kb/Work PB492) — so a
+/// screen written here admits BOTH edited categories where the standard's category list names only the plain
+/// ones. Since PB492 that is a CHOICE rather than a blindness (<c>PicInfo.IsCharacterEdited</c> would decide it),
+/// and the choice is to keep erring toward accepting legal source. That is the established posture for a
+/// category screen in this compiler
 /// (<c>RecordLayout.CategoryOfItem</c>, §14.9.41.3 SR6 b) 2.: <i>"where the model cannot tell two categories
 /// apart the test passes — this screen exists to reject what the rule NAMES, never what this compiler cannot
 /// classify"</i>), and it errs toward accepting legal source rather than rejecting it. Category ALPHABETIC is

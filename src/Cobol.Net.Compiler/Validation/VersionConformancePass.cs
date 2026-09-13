@@ -59,8 +59,9 @@ namespace CobolNet.Validation;
 /// (14g.3, parse-arm); file SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING (14g.4, parse-arm — the recon's
 /// bound-arm SHARING/LOCK-MODE reclassified for the same drop-proof reason); FUNCTION-PROTOTYPE (14g.5, bound-arm over
 /// <c>BoundUnit.IsPrototype</c>) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
-/// national-edited PICTURE skeletons (14g.5, bound-arm via <c>PicInfo.SkeletonGate</c> — the recovered category erases
-/// the identity, so PicInfo's own exact detection carries the 0900 forward). The one principled exception is the
+/// national-edited PICTURE forms (14g.5, bound-arm via <see cref="PictureConstructId"/> — each keyed on the
+/// analyzed <c>PicInfo</c>'s own shape: <c>IsFloatEdited</c>, and a category-national picture's <c>EditMask</c>).
+/// The one principled exception is the
 /// UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
 /// syntactically identical — only the repository-resolved name set separates them), which stays BIND-TIME
 /// (<c>StatementBinder.Udf.cs</c>) where it already fires on recognition before operand binding.
@@ -364,23 +365,30 @@ internal sealed class VersionConformancePass
         }
     }
 
-    /// <summary>Gate one resolved DataItem's USAGE / PICTURE-category edition attribute. At most ONE gate fires
-    /// (the categories are mutually exclusive).</summary>
+    /// <summary>Gate one resolved DataItem's USAGE / PICTURE-category edition attribute. ⛔ At most ONE gate
+    /// fires, and where both answer the PICTURE SHAPE wins because it is the FINER identity: a national-edited
+    /// picture is construct <c>national-edited-2002</c> (§8.5.2.11, its own registry row), and its item is ALSO
+    /// class and category national (§8.5.2.1 Table 2), so the usage arm would otherwise report a second,
+    /// redundant COBOLNET0900 naming <c>national-data-2002</c> on the same entry (kb/Work PB492).</summary>
     private void GateDataItem(DataItem item, string where)
     {
-        if (UsageConstructId(item) is { } id) Check(id, where);
-        if (item.Pic is { } pic && PictureConstructId(pic) is { } picId) Check(picId, where);
+        string? id = (item.Pic is { } pic ? PictureConstructId(pic) : null) ?? UsageConstructId(item);
+        if (id is { } gate) Check(gate, where);
     }
 
     /// <summary>The 2002-introduction gate a PICTURE's SHAPE carries (or null when version-invariant) — the ONE
     /// function for every Analyze site: the forest / report printable items (<see cref="GateDataItem"/>) and the
     /// report SUM-counter scale Analyze (<c>ReportSumModel.SkeletonGate</c>, DataBinder.Reports.cs — a distinct call
     /// whose PicInfo is otherwise discarded, DEVLOG 740). The floating-point numeric-edited form (symbol E — LIVE,
-    /// data-model design D21 / kb/Work PB66) keys on <see cref="PicInfo.IsFloatEdited"/>; the recognized-but-
-    /// unimplemented national-edited skeleton on <see cref="PicInfo.SkeletonGate"/> (its category was RECOVERED to
-    /// Alphanumeric, so no category key can see it — Step 14g.5).</summary>
+    /// data-model design D21 / kb/Work PB66) keys on <see cref="PicInfo.IsFloatEdited"/>; NATIONAL-EDITED (§8.5.2.11
+    /// / §13.18.40.4 GR10 — LIVE since kb/Work PB492) on the category-national picture's EDIT MASK, which is what
+    /// the category IS in this model (the same <c>{ Category, EditMask: not null }</c> pair alphanumeric-edited
+    /// uses). It used to ride a <c>PicInfo.SkeletonGate</c> string because the analyzer RECOVERED the category to
+    /// Alphanumeric and no category key could see it; the category is real now and the carrier is gone.</summary>
     internal static string? PictureConstructId(PicInfo pic) =>
-        pic.IsFloatEdited ? Constructs.PicExternalFloat2002 : pic.SkeletonGate;
+        pic.IsFloatEdited ? Constructs.PicExternalFloat2002
+        : pic is { Category: PicCategory.National, EditMask: not null } ? Constructs.NationalEdited2002
+        : null;
 
     /// <summary>The 2002-introduction USAGE / PICTURE-category of a resolved item, or null when version-invariant.
     /// Keyed on the resolved <c>(OwnUsage, Pic.Category, Pic.Usage)</c>: <see cref="DataItem.OwnUsage"/> is mandatory

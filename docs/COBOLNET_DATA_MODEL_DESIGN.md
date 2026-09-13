@@ -201,6 +201,27 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
   kind, and national is the ONE place they differ — so which one a site reads is a real decision, not a style
   choice.** A site counting what an item OCCUPIES reads `ByteWidth`; a site counting the carrier's positions
   reads `ImageWidth`.
+- **D-N6 national-edited IS category National carrying an `EditMask`** (kb/Work PB492, 2026-09-12). §8.5.2.11's
+  category has no `PicCategory` member of its own, exactly as alphanumeric-edited has none: an item is
+  national-edited iff `{ Category: National, EditMask: not null }` and alphanumeric-edited iff
+  `{ Category: Alphanumeric, EditMask: not null }`. §8.5.2.1 Table 2 is why that is sound — each edited category
+  shares a CLASS with its plain one, so only the rules worded in CATEGORIES need to tell them apart, and
+  `PicInfo.EditMask` is the one axis that does. **`PicInfo.IsCharacterEdited` is the ONE predicate for the rules
+  that DON'T** — §13.18.40.5 Table 7 gives both categories "Simple insertion" and nothing else, so one renderer
+  (`CobolEdit.FormatSimpleInsertion`, reached only through `RuntimeApi.EditFormatSimpleInsertion(value, pic)`)
+  and one MOVE/ACCEPT/STRING receiver arm serve both. The rules that DO tell them apart read `Category` beside
+  `EditMask`: Table 16's separate national-edited ROW (`MoveTable16`), `InitializeCategory.NationalEdited`
+  (§14.9.20.4 GR5c's category-name match, even though GR6c fills both with national SPACES), and the edition
+  gate (`VersionConformancePass.PictureConstructId` → `national-edited-2002`, the FINER identity, so the usage
+  arm does not also fire `national-data-2002` on the same entry).
+  ⛔ **The category was a staged skeleton until PB492 and the shape of the bug is the reason this entry exists:**
+  the analyzer RECOVERED the category to Alphanumeric and raised COBOLNET0899, so no such item could be defined
+  at any edition — and every consumer that had grown an edited arm had grown only the ALPHANUMERIC half of it,
+  including two whole-width-fill guards in `MoveEmitter.ConvertSource` that sent a figurative or ALL-literal
+  source AROUND the editor instead of through it. Recognition also read the GR7/GR10 insertion set as a literal
+  list that left out the declared EDITING character-1, so `PIC NNTNN EDITING "T" IS N":"` — a shape GR10 names
+  outright — was refused as an invalid PICTURE. The set is now `CobolEdit.IsEditedCategorySymbol`, ONE definition
+  derived from rule 3's simple-insertion set, read by BOTH recognition arms.
 - **D-N2 byte≠char containment** (NARROWED 2026-09-05, kb/Work PB231 — RESIDUE-11 DISCHARGED on the byte-window
   channel). The BYTE-WINDOW surfaces — REDEFINES (`ComputeTier`), and the EXTERNAL / ADDRESS-OF / BASED cells
   (`ForceStringCanonical`) — now CARRY a national leaf: the class walk advances by each member's storage extent
@@ -664,7 +685,9 @@ incompatible content → EC-DATA-INCOMPATIBLE); HIGHEST/LOWEST-ALGEBRAIC per mod
 **As landed (DEVLOG 1322, 2026-08-18):** `PictureAnalyzer.AnalyzeFloatEdited` (COBOLNET1658 per violated rule —
 Table 10 rendered from PDF pages 489–490 to confirm the OCR'd row E); the 2002 introduction gate keys on
 `IsFloatEdited` through the ONE `VersionConformancePass.PictureConstructId` (the forest, report printables and the
-report SUM-counter Analyze alike — `PicInfo.SkeletonGate` now carries only the national-edited skeleton); the
+report SUM-counter Analyze alike — since kb/Work PB492 that ONE function also keys national-edited off the
+category-national picture's own `EditMask`, and `PicInfo.SkeletonGate`, which existed only to carry the recovered
+national-edited identity forward, is gone); the
 EC-DATA-INCOMPATIBLE flag / fatal ambient gate; COBOLNET1659 (§13.18.63.3 SR6's literal-FORM rule, BOTH
 directions, decided once in `DataBinder.ValidateValueCategory`, which every item VALUE reaches through the ONE
 screen `DataBinder.ScreenValueLiteral` — format 1's `RawValue` and format 2's per-occurrence literals alike — and

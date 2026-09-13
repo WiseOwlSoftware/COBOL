@@ -494,7 +494,13 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
     /// <summary>Whether a same-DDE MOVE operand triggers GR4 d: (1) the DDE is category alphanumeric-edited (the ONE
     /// established test — <see cref="PicCategory.Alphanumeric"/> storage carrying an edit mask, §13.18.40), or (2) it
     /// includes a subordinate OCCURS…DEPENDING clause whose DEPENDING item is subordinate to it (§13.18.38 — a group
-    /// moved to itself whose length depends on a count inside the moved region).</summary>
+    /// moved to itself whose length depends on a count inside the moved region).
+    /// <para>⛔ NATIONAL-EDITED IS DELIBERATELY ABSENT, and it is not the PB492 oversight it looks like: §7.3.14.4
+    /// GR4 d) 1. names "category alphanumeric-edited" and stops, while §14.9.25.4 GR6 b) 1. — the rule about the
+    /// same overlap — names "alphanumeric-edited or national-edited". The FLAG is narrower than the undefined
+    /// behaviour it flags, in the printed standard, so this reads <see cref="PicInfo.EditMask"/> beside the
+    /// ALPHANUMERIC category rather than <c>PicInfo.IsCharacterEdited</c>. Widening it would flag conforming
+    /// source under a directive whose own rule does not cover it.</para></summary>
     private static bool MoveToSameNameFlaggable(DataItem item)
         => item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null }
         || (OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } && OdoModel.IsWithin(dep, item));

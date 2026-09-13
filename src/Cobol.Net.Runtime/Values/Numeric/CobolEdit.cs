@@ -77,6 +77,28 @@ public static partial class CobolEdit
         return u is ',' or '.' ? maskChar == grouping : SimpleInsertionSymbols.IndexOf(u) >= 0;
     }
 
+    /// <summary>⛔ THE SYMBOLS THAT DEFINE AN EDITED CHARACTER CATEGORY — the one set ISO §13.18.40.4 GR7 and
+    /// GR10 BOTH name, word for word: "at least one instance of character-1 or one of the symbols from the set
+    /// 'B', '0', '/'". GR7 makes an X/A picture holding one ALPHANUMERIC-EDITED (§8.5.2.4); GR10 makes an N
+    /// picture holding one NATIONAL-EDITED (§8.5.2.11); §13.18.40.5 Table 7 then gives both categories SIMPLE
+    /// INSERTION and nothing else, which is why one predicate serves both.
+    /// <para>It is <see cref="SimpleInsertionSymbols"/> minus the grouping separator: rule 3's set carries ','
+    /// as well, but §13.18.40.6 Table 10 admits a ',' only beside the NUMERIC rows — the 'A X' and 'N' rows
+    /// carry no ',' cell — so a comma can never stand in a character picture and GR7/GR10 leave it out. Deriving
+    /// the set rather than spelling it a third time is the point: it was written out as a literal list at the
+    /// alphanumeric arm and, missing character-1 entirely, at the national arm, which is how GR10's character-1
+    /// leg came to be refused as an INVALID PICTURE (kb/Work PB492; the same shape as PB490 one level up).</para>
+    /// </summary>
+    /// <param name="maskChar">A symbol of the repeat-expanded picture character-string.</param>
+    /// <param name="char1">The picture's declared PICTURE EDITING character-1 letters (§13.18.40.3 SR8),
+    /// uppercased; null or empty when the clause carries no EDITING phrase.</param>
+    public static bool IsEditedCategorySymbol(char maskChar, IReadOnlySet<char>? char1 = null)
+    {
+        char u = char.ToUpperInvariant(maskChar);
+        if (char1 is not null && char1.Contains(u)) return true;
+        return u is not (',' or '.') && SimpleInsertionSymbols.IndexOf(u) >= 0;
+    }
+
     /// <summary>The picture's simple insertion symbols INCLUDING every IS-form PICTURE EDITING character-1, with
     /// the character each one inserts: §13.18.40.5 rule 3 — "Simple insertion editing results in the insertion
     /// character occupying the same character position in the edited item as the associated symbol occupies in
@@ -578,31 +600,38 @@ public static partial class CobolEdit
         return n;
     }
 
-    /// <summary>ALPHANUMERIC-EDITED formatting (ISO §13.18.40.4 GR7 — "at least one symbol 'A' or one symbol 'X',
-    /// and at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'"; §13.18.40.5
-    /// Table 7 gives the category SIMPLE INSERTION and nothing else): source characters fill the X/A/9 positions
-    /// left-to-right (space-padded when exhausted) and every insertion position supplies its character from the
-    /// ONE set (<see cref="TrySimpleInsertion"/>) — rule 3, "the insertion character occupying the same character
-    /// position in the edited item as the associated symbol occupies in character-string-1".
+    /// <summary>⭐ THE EDITED CHARACTER CATEGORIES' formatter — ISO §13.18.40.5 <b>Table 7</b> gives category
+    /// ALPHANUMERIC-EDITED and category NATIONAL-EDITED the SAME single type of editing, "Simple insertion", and
+    /// nothing else, so ONE renderer serves both: every insertion position supplies its character from the ONE
+    /// set (<see cref="TrySimpleInsertion"/>) — rule 3, "the insertion character occupying the same character
+    /// position in the edited item as the associated symbol occupies in character-string-1" — and every OTHER
+    /// position is a data position, filled from <paramref name="source"/> left-to-right and space-padded when the
+    /// source is exhausted (§14.6.8.4/§14.6.8.5 alignment).
+    /// <para>⛔ THE DATA POSITIONS ARE THE COMPLEMENT OF THE INSERTION POSITIONS, not a symbol list, and that is
+    /// what makes this one method rather than two. The alphanumeric-edited mask holds only A X 9 B 0 / and
+    /// character-1 (GR7 + Table 10's 'A X' row) and the national-edited mask only N B 0 / and character-1 (GR10 +
+    /// the 'N' row), so "not an insertion symbol" IS "a data position" in both, while a symbol list has to name
+    /// 'N' in a second arm — the shape that left <c>PIC NNBNN</c> with no renderer at all (kb/Work PB492).</para>
     /// <para>⛔ <paramref name="edits"/> is the same <c>EditRule[]</c> channel the numeric-edited path takes, and
-    /// it is not optional in practice: GR7 names character-1 as an alphanumeric-edited constituent, so
-    /// <c>PIC XXTXX EDITING "T" IS ":"</c> renders <c>AB:CD</c>, not the mask LETTER (kb/Work PB490 — this arm of
-    /// the dispatch had no rules parameter at all and every emit site dropped <c>PicInfo.EditingRules</c>; the
-    /// compiler now reaches this method only through <c>RuntimeApi.EditFormatAlphanumeric(value, pic)</c>, which
-    /// renders the mask and the rules together from the one <c>PicInfo</c>). A FOR-phrase character-1 cannot occur
-    /// here — §13.18.40.3 SR12 limits it to numeric and numeric-edited items and SR12 b) to the symbols
-    /// 9 . cs P V Z — so every rule reaching this method is simple insertion.</para></summary>
-    public static string FormatAlphanumeric(string source, string picture, EditRule[]? edits = null)
+    /// it is not optional in practice: GR7 and GR10 both name character-1 as a constituent, so
+    /// <c>PIC XXTXX EDITING "T" IS ":"</c> renders <c>AB:CD</c> and <c>PIC NNTNN EDITING "T" IS N":"</c> renders
+    /// <c>AB:CD</c> in national characters, never the mask LETTER (kb/Work PB490 — this arm of the dispatch had no
+    /// rules parameter at all and every emit site dropped <c>PicInfo.EditingRules</c>; the compiler reaches this
+    /// method only through <c>RuntimeApi.EditFormatSimpleInsertion(value, pic)</c>, which renders the mask and the
+    /// rules together from the one <c>PicInfo</c>). A FOR-phrase character-1 cannot occur here — §13.18.40.3 SR12
+    /// limits it to numeric and numeric-edited items and SR12 b) to the symbols 9 . cs P V Z — so every rule
+    /// reaching this method is simple insertion.</para>
+    /// <para>The national arm needs no separate character repertoire: §13.18.40.4 GR2 puts the insertion
+    /// characters in "the national character representation" when the item's usage is national, and under the
+    /// D-N1 model one national position IS one UTF-16 <c>char</c>, so the space / zero / slant an edit inserts
+    /// are the very characters this method writes.</para></summary>
+    public static string FormatSimpleInsertion(string source, string picture, EditRule[]? edits = null)
     {
         var output = new char[picture.Length];
         int si = 0;
         for (int i = 0; i < picture.Length; i++)
-        {
-            char p = char.ToUpperInvariant(picture[i]);
-            output[i] = p is 'X' or 'A' or '9' ? si < source.Length ? source[si++] : ' '
-                : TrySimpleInsertion(picture[i], edits, out char ins) ? ins
-                : picture[i];
-        }
+            output[i] = TrySimpleInsertion(picture[i], edits, out char ins) ? ins
+                : si < source.Length ? source[si++] : ' ';
         return new string(output);
     }
 

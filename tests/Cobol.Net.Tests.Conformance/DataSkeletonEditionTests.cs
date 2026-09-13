@@ -37,11 +37,10 @@ public sealed class DataSkeletonEditionTests
     public static TheoryData<string, string, string> SkeletonConstructs() => new()
     {
         // NATIONAL/BOOLEAN data went LIVE at Phase 4a (M2-DATA-3/4) — PIC N / PIC 1 / USAGE BIT left this
-        // set (the positive NationalData_/BooleanData_ facts below). The staged SUB-LEGS of the live rows
-        // remain skeleton shapes: national-form numerics (§13.18.60.4 SR12) and NATIONAL-EDITED pictures
-        // (§13.18.40.4 GR10) — 0899 "Phase 4a residue" at 2002+, 0900 at 85.
+        // set (the positive NationalData_/BooleanData_ facts below). NATIONAL-EDITED (§13.18.40.4 GR10) left it
+        // with kb/Work PB492 — see NationalEditedPicture_CompilesAt2002Plus_RejectedAt85. What remains staged is
+        // the national-form NUMERIC leg (§13.18.60.4 SR12) — 0899 "Phase 4a residue" at 2002+, 0900 at 85.
         { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "Phase 4a residue" },    // national-form numeric, SR12
-        { "NED1", "01 WS-M PIC NN0NN.", "Phase 4a residue" },                  // national-edited, GR10
         // The FLOAT-SHORT/-LONG/-EXTENDED trio went LIVE at Phase 6a (D16) — see the FloatUsage_* positive facts;
         // the floating-point numeric-edited PICTURE (symbol E) went LIVE with data-model design D21 (kb/Work PB66) —
         // see FloatEditedPicture_CompilesAt2002Plus_RejectedAt85. (Its former skeleton row, PIC 9V99E+99, was itself
@@ -131,6 +130,35 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKFE85", wsEntry), 85);
         Assert.False(ok85, "the floating-point numeric-edited PICTURE is a 2002 introduction — rejected at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
+    }
+
+    /// <summary>NATIONAL-EDITED went LIVE with kb/Work PB492 (ISO §8.5.2.11 / §13.18.40.4 GR10 — "at least one
+    /// symbol 'N', and at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'";
+    /// §13.18.40.5 Table 7 gives the category SIMPLE INSERTION): every one of those shapes compiles at every
+    /// 2002+ edition and stays introduction-gated at 85 (COBOLNET0900 naming COBOL-2002 — registry row
+    /// national-edited-2002). The former 0899 not-implemented posture is retired, and so is the COBOLNET0808 that
+    /// refused the character-1 leg by quoting a Table-10 reading GR10 contradicts.</summary>
+    [Theory]
+    [InlineData("01 WS-NE PIC NNBNN.")]
+    [InlineData("01 WS-NE PIC NN0NN.")]
+    [InlineData("01 WS-NE PIC N/N.")]
+    [InlineData("01 WS-NE PIC N(2)B0/N(2).")]
+    [InlineData("01 WS-NE PIC NNTNN EDITING \"T\" IS N\":\".")]
+    public void NationalEditedPicture_CompilesAt2002Plus_RejectedAt85(string wsEntry)
+    {
+        // The COBOL-2023 PICTURE EDITING phrase is itself a 2023 introduction (registry row picture-editing-2023),
+        // so the character-1 shape is exercised at 2023 only — its 85 leg is the EDITING phrase's own 0900.
+        bool editing = wsEntry.Contains("EDITING");
+        foreach (int edition in new[] { 2002, 2014, 2023 })
+        {
+            if (editing && edition < 2023) continue;
+            var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKNE" + edition, wsEntry), edition);
+            Assert.True(ok, $"a national-edited picture must compile at --std {edition}: {string.Join("\n", errors)}");
+        }
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKNE85", wsEntry), 85);
+        Assert.False(ok85, "national-edited data is a 2002 introduction — rejected at --std 85");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }

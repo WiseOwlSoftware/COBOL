@@ -424,7 +424,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `MoveFigurativeToField`; emit-time category dispatch in `CilDataEmitter`/`CilComparisonEmitter`/`CilEmitter`
   (VALUE). **An adversarial review (3 agents) caught that the first slice silently corrupted national↔alpha
   MOVE, figurative/VALUE/INITIALIZE fill, and comparison — all fixed before commit.** Conformance
-  `tests/conformance/2002/national_data` (13 assertions). **Deferred:** NATIONAL-EDITED, `NX"…"`, full
+  `tests/conformance/2002/national_data` (13 assertions); NATIONAL-EDITED landed 2026-09-12 (kb/Work PB492, `tests/conformance/{2002,2014,2023}/pb492_national_edited`). **Deferred:** `NX"…"`, full
   implementor correspondence + `EC-DATA-CONVERSION` (Latin-1 only), collating-sequence national compare,
   ref-mod ×2 byte adjustment, INSPECT-national.
 - ☑ **M2-DATA-4 — Boolean & bit data (CORE DONE — DEVLOG 386).** `PIC 1(n)` / `USAGE BIT` (one byte/position,

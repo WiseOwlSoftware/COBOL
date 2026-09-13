@@ -1,0 +1,10 @@
+NEB=[AB CD]
+NE0=[AB0CD]
+NESL=[A/B]
+NEMIX=[AB 0/CD]
+NESH=[AB   ]
+FLD=[AB CD]
+INITB=[     ]
+INIT0=[  0  ]
+VAL=[AB CD]
+EQ=YES

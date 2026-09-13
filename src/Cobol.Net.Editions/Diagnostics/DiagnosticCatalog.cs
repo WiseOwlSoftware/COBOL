@@ -2792,6 +2792,24 @@ public static class DiagnosticCatalog
         "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §13.18.60.4 GR9", RecognizedNotImplemented,
         Annex: DeclinedAnnex.A3);
 
+    /// <summary>COBOLNET1955 — a PICTURE EDITING phrase's literal is written in the wrong LITERAL CLASS for the
+    /// subject of the entry. ISO §13.18.40.3 SR9 binds in BOTH directions, and neither half was asked while
+    /// category national-edited could not be defined at all (kb/Work PB492) — the decoded literal reached the
+    /// analyzer as a bare string with its class discarded.</summary>
+    public static readonly DiagnosticDescriptor PictureEditingLiteralClass = new(
+        "COBOLNET1955", "picture-editing-literal-class", EditionSeverity.Error,
+        "ISO §13.18.40.3 SR9, first sentence: \"If USAGE IS NATIONAL is specified for the subject of the entry "
+        + "or if character-string-1 contains the symbol 'N', literal-1, literal-2, and literal-3 shall be "
+        + "national literals. Otherwise, literal1, literal-2, and literal-3 shall be alphanumeric literals.\" "
+        + "The two conditions that make the subject national are the same two that make it a category-national "
+        + "or category-national-edited item (§13.18.40.4 GR9/GR10 with §13.18.60.4 SR13a), so the insertion "
+        + "characters a PICTURE EDITING phrase supplies are of the same class as the positions they occupy "
+        + "(GR2: \"When the usage of the item being edited is national, the value is the national character "
+        + "representation\"). Both halves are refused: a national literal in `PIC XXTXX EDITING \"T\" IS N\":\"` "
+        + "and an alphanumeric literal in `PIC NNTNN EDITING \"T\" IS \":\"`. SR9's second sentence — 50 "
+        + "characters — is COBOLNET1594.",
+        "ISO §13.18.40.3 SR9");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

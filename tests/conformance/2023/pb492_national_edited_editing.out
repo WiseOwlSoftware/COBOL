@@ -1,0 +1,4 @@
+NET=[AB:CD]
+NETM=[A-B C]
+NET2=[AB/CD]
+EQ=YES

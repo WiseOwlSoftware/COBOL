@@ -1660,10 +1660,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // spans alphanumeric-edited and numeric-edited, Table 2) that r1's CATEGORY wording excludes — the
         // finer axis screens here (fix-queue PB60 / AR-15.68.3-1). A ref-mod view is plain category
         // alphanumeric (§8.4.3.3.4 GR6) and passes; shapes with no static category pass to the runtime scan.
+        // ⛔ BOTH edited CHARACTER categories, through the ONE predicate (kb/Work PB492): §8.5.2.11 makes a
+        // national-edited item category NATIONAL-EDITED, which r1's "alphanumeric or national" does not name any
+        // more than it names alphanumeric-edited. `OperandCategory` answers National for it (§8.5.2.1 Table 2 —
+        // the CLASS), so the finer axis has to be asked here or the arm admits what r1 excludes. It was
+        // unreachable while no national-edited item could be declared at all.
         if (operands.Count > 0
             && (OperandCategory(operands[0]) is PicCategory.NumericEdited
                 || operands[0] is BoundFieldOperand { Place: not RefModPlace } f1
-                   && f1.Place.Item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null }))
+                   && f1.Place.Item.Pic is { IsCharacterEdited: true }))
             ctx.Edition.Error("COBOLNET1627", $"FUNCTION {sig.Name} argument-1 is of an EDITED category; "
                 + "ISO §15.68.3 rule 1 admits category alphanumeric or national only");
         // §15.68.3 r2's CONTENT halves for a LITERAL argument-2 (the same-class half rides the schema row;

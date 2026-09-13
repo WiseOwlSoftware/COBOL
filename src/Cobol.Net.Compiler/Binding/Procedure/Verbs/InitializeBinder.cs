@@ -285,8 +285,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             if (rcat == cat) return value;
         if (spec.ToDefault || (!spec.ToValue && spec.Replacements.Count == 0))
             // GR6c fill table: ZEROES for numeric/numeric-edited AND boolean (boolean zeros — the figurative
-            // materializes '0' fill against the boolean receiver); SPACES for the character categories
-            // including national (national spaces under the D-N4 Latin-1 identity).
+            // materializes '0' fill against the boolean receiver); SPACES for the character categories, which
+            // the table lists row by row — alphabetic, alphanumeric, alphanumeric-edited, national and
+            // national-edited, the last two "Figurative constant national SPACES" (national spaces under the
+            // D-N4 Latin-1 identity).
             return cat is InitializeCategory.Numeric or InitializeCategory.NumericEdited or InitializeCategory.Boolean
                 ? new BoundFigurative('Z')
                 : new BoundFigurative('S');
@@ -306,6 +308,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => InitializeCategory.Alphabetic,
         { Category: PicCategory.Alphanumeric } => InitializeCategory.Alphanumeric,
         { Category: PicCategory.Boolean } => InitializeCategory.Boolean,     // GR6c: boolean → ZEROES
+        // §8.5.2.11 national-edited is its OWN category, and the `EditMask: not null` pair is what the model
+        // carries it as (the same shape alphanumeric-edited uses, one arm above). GR6c fills it with "Figurative
+        // constant national SPACES" — the same fill as national — but GR5c's category-name MATCH must tell the
+        // two apart, which a folded arm could not (kb/Work PB492).
+        { Category: PicCategory.National, EditMask: not null } => InitializeCategory.NationalEdited,
         { Category: PicCategory.National } => InitializeCategory.National,   // GR6c: national → SPACES
         // GR4/GR6c: pointer & object-reference receivers are initialized by an implicit SET … TO the predefined
         // NULL (data-pointer/program-pointer → NULL address, object-reference → NULL reference), NOT a MOVE.

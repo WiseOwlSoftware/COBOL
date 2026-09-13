@@ -86,7 +86,10 @@ public sealed class RepositoryPrototypeEditionTests
     public void FloatEditedPicture_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("01 WS-EF PIC +9.99E+99."), 85, "floating-point numeric-edited PICTURE"));
 
-    /// <summary>A national-edited PICTURE gates EXACTLY ONCE at 85 (the same SkeletonGate carrier).</summary>
+    /// <summary>A national-edited PICTURE gates EXACTLY ONCE at 85 — and "once" is the load-bearing word, because
+    /// a national-edited item is ALSO class and category national (§8.5.2.1 Table 2), so the picture-shape gate
+    /// (national-edited-2002) and the usage gate (national-data-2002) both answer for it. <c>GateDataItem</c>
+    /// takes the FINER one and stops (kb/Work PB492).</summary>
     [Fact]
     public void NationalEditedPicture_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("01 WS-M PIC NN0NN."), 85, "national-edited data"));

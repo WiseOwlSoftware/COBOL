@@ -104,7 +104,24 @@ public sealed class LoudGuardTests
         Assert.False(ed.HasErrors, "the 0900 is GateData's (14g.5) — Analyze is silent at the picture layer below 2002");
         Assert.True(pic.IsFloatEdited);
         Assert.Equal(PicCategory.NumericEdited, pic.Category);
-        Assert.Null(pic.SkeletonGate);
+    }
+
+    /// <summary>NATIONAL-EDITED (ISO §13.18.40.4 GR10 / §8.5.2.11) — LIVE since kb/Work PB492. Like the
+    /// external-float form above, its introduction gate (COBOLNET0900 below 2002) is the post-bind
+    /// <c>VersionConformancePass</c> GateData enumerator's, so <c>Analyze</c> at 85 emits NO picture-layer
+    /// diagnostic and CLASSIFIES: category national (§8.5.2.1 Table 2 — class national), carrying the edit mask
+    /// that Table 7's "Simple insertion" renders through. It used to be a loud staged skeleton whose category was
+    /// RECOVERED to alphanumeric, so no such item could be defined at any edition.</summary>
+    [Fact]
+    public void Analyze_NationalEdited_At85_ClassifiesSilently()
+    {
+        var ed = Ed(85);
+        var pic = PictureAnalyzer.Analyze("NNBNN", Usage.Display, ed, "data item 'T'");
+        Assert.False(ed.HasErrors, "the 0900 is GateData's (14g.5) — Analyze is silent at the picture layer below 2002");
+        Assert.Equal(PicCategory.National, pic.Category);
+        Assert.Equal(Usage.National, pic.Usage);
+        Assert.Equal("NNBNN", pic.EditMask);
+        Assert.Equal(5, pic.Length);
     }
 
     /// <summary>A floating-point numeric-edited picture whose significand carries a symbol Table 10 (§13.18.40.6, row

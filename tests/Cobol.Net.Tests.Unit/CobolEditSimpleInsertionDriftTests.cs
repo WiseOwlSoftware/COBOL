@@ -88,8 +88,40 @@ public class CobolEditSimpleInsertionDriftTests
     {
         // §13.18.40.5 Table 7 gives category alphanumeric-edited SIMPLE INSERTION, and §13.18.40.4 GR7 admits
         // character-1 as one of its constituents — the same set, so the same inserted character.
-        string image = CobolEdit.FormatAlphanumeric("ABCD", $"XX{symbol}XX", editing ? IsForm : null);
+        string image = CobolEdit.FormatSimpleInsertion("ABCD", $"XX{symbol}XX", editing ? IsForm : null);
         Assert.Equal($"AB{inserted}CD", image);
+    }
+
+    /// <summary>⛔ THE NATIONAL-EDITED TWIN, same theory data, same renderer (kb/Work PB492). §13.18.40.5 Table 7
+    /// gives category NATIONAL-EDITED the SAME one type of editing, "Simple insertion", that it gives
+    /// alphanumeric-edited, so <c>PIC NN{symbol}NN</c> shall render exactly what <c>PIC XX{symbol}XX</c> renders.
+    /// This fails if anyone re-splits the renderer per category: the national arm had no renderer AT ALL, because
+    /// the one that existed was named for, and keyed on, the alphanumeric symbol set.</summary>
+    [Theory]
+    [MemberData(nameof(Symbols))]
+    public void NationalEdited_RendersIdenticallyToAlphanumericEdited(char symbol, char inserted, bool editing)
+    {
+        string national = CobolEdit.FormatSimpleInsertion("ABCD", $"NN{symbol}NN", editing ? IsForm : null);
+        Assert.Equal($"AB{inserted}CD", national);
+        Assert.Equal(CobolEdit.FormatSimpleInsertion("ABCD", $"XX{symbol}XX", editing ? IsForm : null), national);
+    }
+
+    /// <summary>⛔ THE EDITED-CATEGORY SET IS ONE SET — ISO §13.18.40.4 GR7 (alphanumeric-edited) and GR10
+    /// (national-edited) name it word for word: "at least one instance of character-1 or one of the symbols from
+    /// the set 'B', '0', '/'". It is rule 3's simple-insertion set MINUS the grouping separator, which Table 10
+    /// admits only beside the numeric rows. Derived here from <see cref="CobolEdit.SimpleInsertionSymbols"/>, so
+    /// adding a symbol to rule 3's set without deciding this one's membership fails the run (kb/Work PB492).</summary>
+    [Fact]
+    public void TheEditedCategorySetIsRule3sMinusTheGroupingSeparator()
+    {
+        foreach (char s in CobolEdit.SimpleInsertionSymbols)
+            Assert.Equal(s is not ',', CobolEdit.IsEditedCategorySymbol(s));
+        foreach (char s in "9ZAXSVPEN1CD$+-*.") Assert.False(CobolEdit.IsEditedCategorySymbol(s), $"'{s}' is not");
+        // A DECLARED PICTURE EDITING character-1 is a member at both GR7 and GR10 — the leg the two hand-written
+        // literal lists left out, which refused `PIC NNTNN EDITING "T" IS N":"` as an invalid PICTURE.
+        Assert.True(CobolEdit.IsEditedCategorySymbol('T', new HashSet<char> { 'T' }));
+        Assert.True(CobolEdit.IsEditedCategorySymbol('t', new HashSet<char> { 'T' }));   // §8.1.3 GR3 case equivalence
+        Assert.False(CobolEdit.IsEditedCategorySymbol('T'));
     }
 
     [Fact]

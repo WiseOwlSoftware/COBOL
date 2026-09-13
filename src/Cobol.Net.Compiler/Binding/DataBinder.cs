@@ -3897,7 +3897,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var ph in phrases)
         {
             var lits = ph.literal();
-            string char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null) ?? "";
+            string char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null)?.Text ?? "";
             if (ph.editingForPhrase() is { } forp)
             {
                 // FOR (extended sign control): map the literals to NEGATIVE / POSITIVE by keyword position (either
@@ -3906,7 +3906,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var neg = forp.NEGATIVE();
                 var pos = forp.POSITIVE();
                 bool negFirst = neg is not null && (pos is null || neg.Symbol.TokenIndex < pos.Symbol.TokenIndex);
-                string? negLit, posLit;
+                EditLiteral? negLit, posLit;
                 if (negFirst)
                 {
                     negLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
@@ -3929,16 +3929,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return list;
     }
 
-    /// <summary>Decode a PICTURE EDITING literal (character-1 or an insertion literal). A quoted alphanumeric /
-    /// national / hex literal decodes to its content; any other shape (numeric, figurative, concatenation) is
-    /// returned raw so <see cref="PictureAnalyzer"/>'s SR8/SR9 checks reject it with a named diagnostic.</summary>
-    private static string? DecodeEditLiteral(Core.LiteralContext? lit)
+    /// <summary>Decode a PICTURE EDITING literal (character-1 or an insertion literal) — its content AND the
+    /// literal CLASS the source wrote it in, which ISO §13.18.40.3 SR9's first sentence is a rule about
+    /// ("… shall be national literals. Otherwise … shall be alphanumeric literals"; kb/Work PB492). A quoted
+    /// alphanumeric / national / hex literal decodes to its content; any other shape (numeric, figurative,
+    /// concatenation) is returned raw so <see cref="PictureAnalyzer"/>'s SR8/SR9 checks reject it with a named
+    /// diagnostic.</summary>
+    private static EditLiteral? DecodeEditLiteral(Core.LiteralContext? lit)
     {
         if (lit is null) return null;
         var nn = lit.nonNumericLiteral();
-        return nn?.STRINGLIT() is not null || nn?.NATLIT() is not null || nn?.HEXLIT() is not null
-            ? CobolLiteral.Decode(lit.GetText())
-            : lit.GetText();
+        bool national = nn?.NATLIT() is not null;
+        return national || nn?.STRINGLIT() is not null || nn?.HEXLIT() is not null
+            ? new EditLiteral(CobolLiteral.Decode(lit.GetText()), national)
+            : new EditLiteral(lit.GetText(), National: false);
     }
 
     /// <summary>Build the <see cref="TableValueSpec"/> list for a Format 2 (table) VALUE clause (ISO §13.18.63.2):

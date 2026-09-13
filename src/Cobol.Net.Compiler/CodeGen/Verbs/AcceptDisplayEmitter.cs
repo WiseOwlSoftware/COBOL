@@ -189,10 +189,12 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 // dispatch (fixed / floating-point) is RuntimeApi.EditFormatFor's (D21/PB66).
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(call, 0), call, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
                 return;
-            case { Category: PicCategory.Alphanumeric, EditMask: not null } aePic:
-                // Alphanumeric-edited: the sending characters place into the mask positions (§13.18.40.5 Table 7 /
-                // rule 3), the mask and the item's EDITING rules rendered together from the one PicInfo (PB490).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(sendImage, aePic)));
+            case { IsCharacterEdited: true } aePic:
+                // The EDITED CHARACTER categories — alphanumeric-edited AND national-edited — through the ONE
+                // predicate: §13.18.40.5 Table 7 gives them the same single type of editing, "Simple insertion",
+                // and rule 3 places the sending characters into the mask's data positions. The mask and the
+                // item's EDITING rules render together from the one PicInfo (kb/Work PB490; PB492).
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatSimpleInsertion(sendImage, aePic)));
                 return;
             case { Category: PicCategory.Alphanumeric or PicCategory.National } snPic:
                 // Alphanumeric MOVE: left-justified, right space-fill / right truncation; a JUSTIFIED receiver

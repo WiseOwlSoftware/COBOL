@@ -342,18 +342,6 @@ public sealed record PicInfo(
     /// is a value copy that lands in the receiver's own order for free.</summary>
     public bool FloatLittleEndian { get; init; }
 
-    /// <summary>The COBOL-2002 introduction gate (a <c>Constructs.*</c> id) this item's PICTURE carries as a
-    /// recognized-but-unimplemented SKELETON — national-edited data (<c>NationalEdited2002</c>) — after
-    /// <c>PictureAnalyzer.Analyze</c> RECOVERED the category to Alphanumeric so the doomed emit stays crash-free.
-    /// Non-null only on that skeleton path; read by the <c>VersionConformancePass</c> <c>GateData</c> enumerator
-    /// (Step 14g.5), which fires the COBOLNET0900 below 2002. The recovery ERASES the parse identity (category →
-    /// Alphanumeric), so this preserves it for the bound-arm gate; the ≥2002 not-implemented COBOLNET0899 stays inline
-    /// in the analyzer (its <c>StagedNotImplemented</c>). (The floating-point numeric-edited picture — symbol E — is
-    /// LIVE since data-model design D21 / kb/Work PB66: <see cref="IsFloatEdited"/> carries its identity and the
-    /// <c>PicExternalFloat2002</c> gate reads that flag directly.)</summary>
-    public string? SkeletonGate { get; init; }
-
-
     /// <summary>The FLOATING-POINT form of a numeric-edited PICTURE (ISO §13.18.40.4 GR13 b — a significand and an
     /// exponent separated by the symbol <c>E</c>; data-model design D21, kb/Work PB66): the item's category is still
     /// numeric-edited (§8.5.2.13) and its <see cref="EditMask"/> is the whole expanded string, but its VALUE is a
@@ -374,12 +362,21 @@ public sealed record PicInfo(
     /// <c>NumericRenderer.FieldNum</c>) — never at a call site.</summary>
     public LocaleEditSpec? LocaleEdit { get; init; }
 
-    /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
-    /// uppercased, the implied point <c>V</c> retained, and the mask's currency symbol CANONICALIZED to <c>$</c> —
-    /// see <see cref="CurrencyString"/>) — the mask <c>CobolEdit.Format</c> renders into. Null for every other
-    /// category — ⛔ AND for a format-2 (locale) NumericEdited item (<see cref="LocaleEdit"/>): since PB64 T6 a
-    /// NumericEdited category no longer guarantees a mask, so a <c>{ Category: NumericEdited, EditMask: { } m }</c>
-    /// pattern must carry a LocaleEdit arm beside it and a <c>pic.EditMask!</c> deref is reachable-null.</summary>
+    /// <summary>The EXPANDED edited picture (repeats unrolled, uppercased, the implied point <c>V</c> retained,
+    /// and the mask's currency symbol CANONICALIZED to <c>$</c> — see <see cref="CurrencyString"/>) — the mask
+    /// <c>CobolEdit.Format</c> (numeric-edited) or <c>CobolEdit.FormatSimpleInsertion</c> (the character-edited
+    /// categories) renders into.
+    /// <para>⛔ IT IS ALSO WHAT MAKES AN ITEM'S CATEGORY THE **EDITED** ONE, because <see cref="PicCategory"/>
+    /// carries neither edited character category as a member: an alphanumeric-edited item is
+    /// <c>{ Category: Alphanumeric, EditMask: not null }</c> (§8.5.2.4/§13.18.40.4 GR7) and a national-edited item
+    /// is <c>{ Category: National, EditMask: not null }</c> (§8.5.2.11/GR10, kb/Work PB492) — the ONE pair every
+    /// screen that needs the finer §8.5.2 category matches on. §8.5.2.1 Table 2 is why that is sound: the edited
+    /// category and its plain one share a CLASS, and only the rules worded in CATEGORIES need to tell them
+    /// apart.</para>
+    /// <para>Null on a plain alphanumeric / national / numeric item — ⛔ AND on a format-2 (locale)
+    /// NumericEdited item (<see cref="LocaleEdit"/>): since PB64 T6 a NumericEdited category no longer guarantees
+    /// a mask, so a <c>{ Category: NumericEdited, EditMask: { } m }</c> pattern must carry a LocaleEdit arm beside
+    /// it and a <c>pic.EditMask!</c> deref is reachable-null.</para></summary>
     public string? EditMask { get; init; }
 
     /// <summary>For a numeric-edited item whose PICTURE uses a currency symbol: the currency STRING that symbol
@@ -398,6 +395,22 @@ public sealed record PicInfo(
     /// render-staged forms (multi-character literals / floating character-1) which <c>PictureAnalyzer</c> rejects
     /// loud (COBOLNET0899) as a documented P14 render GAP — so a non-null value always renders 1:1.</summary>
     public IReadOnlyList<CobolNet.Runtime.CobolEdit.EditRule>? EditingRules { get; init; }
+
+    /// <summary>⛔ THE ONE "is this an EDITED CHARACTER item?" predicate — category alphanumeric-edited
+    /// (ISO §8.5.2.4 / §13.18.40.4 GR7) or category national-edited (§8.5.2.11 / GR10), the two categories
+    /// §13.18.40.5 Table 7 gives "Simple insertion" and nothing else. Read by every site that treats the two
+    /// ALIKE — the MOVE / ACCEPT / STRING receiver arms, and the two whole-width-fill guards in
+    /// <c>MoveEmitter.ConvertSource</c> that must route a figurative or ALL-literal source THROUGH the editor
+    /// rather than around it (§14.9.25.4 GR6: "any editing specified for … the receiving data item" applies to
+    /// every valid elementary move, so an insertion position keeps its own character — <c>MOVE SPACES TO
+    /// PIC XX/XX</c> yields <c>  /  </c>, NIST NC223A INI-TEST-GF-1).
+    /// <para>It exists because those sites each spelled the pair out and every one of them named only the
+    /// ALPHANUMERIC half, so no national-edited item could be moved into, accepted into, or filled (kb/Work
+    /// PB492). A site that must tell the two categories APART — Table 16's separate ROWS, INITIALIZE's
+    /// category-name match, the edition gate — reads <see cref="Category"/> beside <see cref="EditMask"/>
+    /// instead; this predicate is only for the rules that do not distinguish them.</para></summary>
+    public bool IsCharacterEdited =>
+        Category is PicCategory.Alphanumeric or PicCategory.National && EditMask is not null;
 
     /// <summary>True when every PICTURE position is <c>A</c> — category alphabetic (ISO §8.5.2). INITIALIZE
     /// category matching (§14.9.20 GR5c/GR6c) must distinguish alphabetic from alphanumeric receivers; both map

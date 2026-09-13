@@ -7,11 +7,23 @@ using CobolNet.Runtime;
 
 namespace CobolNet.Binding;
 
+/// <summary>One DECODED PICTURE EDITING literal — its content AND the literal CLASS the source wrote it in.
+/// <para>⛔ The class is carried, not dropped, because ISO §13.18.40.3 SR9 is a rule ABOUT it: "If USAGE IS
+/// NATIONAL is specified for the subject of the entry or if character-string-1 contains the symbol 'N',
+/// literal-1, literal-2, and literal-3 shall be national literals. Otherwise, literal1, literal-2, and literal-3
+/// shall be alphanumeric literals." Only the decoded TEXT used to reach the analyzer, so neither half of that
+/// sentence could be asked and both were unenforced — `PIC NNTNN EDITING "T" IS ":"` and
+/// `PIC XXTXX EDITING "T" IS N":"` both bound silently (kb/Work PB492).</para></summary>
+/// <param name="Text">The literal's decoded content (quotes stripped, doubled quotes folded, hex decoded).</param>
+/// <param name="National">The source wrote it as a national literal (<c>N"…"</c> / <c>NX"…"</c>).</param>
+public readonly record struct EditLiteral(string Text, bool National);
+
 /// <summary>A parsed PICTURE EDITING phrase (ISO §13.18.40.2 Format 1, COBOL-2023) handed to
 /// <see cref="PictureAnalyzer.Analyze"/>: the DECODED editing character-1 text and its DECODED literal(s).
 /// <see cref="IsForForm"/> distinguishes the sign-control FOR form (<see cref="Neg"/>/<see cref="Pos"/>, either
 /// side null when unspecified per SR12c) from the simple-insertion IS form (<see cref="Simple"/>).</summary>
-public sealed record EditingPhraseSpec(string Char1Text, string? Simple, string? Neg, string? Pos, bool IsForForm);
+public sealed record EditingPhraseSpec(string Char1Text, EditLiteral? Simple, EditLiteral? Neg, EditLiteral? Pos,
+    bool IsForForm);
 
 /// <summary>
 /// The PICTURE character-string scanner and the USAGE-keyword mapper (ISO/IEC 1989:2023 §13.18.40 / §13.18.60) —
@@ -106,7 +118,7 @@ public static class PictureAnalyzer
         // (else char-1 letters like 'L'/'T'/'G' would trip COBOLNET0808). The introduction gate below 2023 is fired
         // by VersionConformancePass.ParseArm.VisitPictureClause; the render-staged forms (multi-character literal,
         // floating character-1) raise COBOLNET0899 (P14 render GAP) here at ≥2023.
-        var editRules = ValidateEditing(editing, expanded, edition, where, cs, out var char1Set);
+        var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, out var char1Set);
 
         // ── The §13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
         // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§13.18.40.4 GR14;
@@ -150,72 +162,16 @@ public static class PictureAnalyzer
         //    in VersionConformancePass.UsageConstructId (no SkeletonGate: the category is no longer recovered). ──
         if (hasE && invalid is null && !hasN && !has1)
             return AnalyzeFloatEdited(picture, expanded, usage, edition, where, char1Set.Count > 0);
-        if (hasE || invalid is not null || (hasN && has1))
+        if (invalid is { } bad)
         {
-            if (invalid is { } bad)
-                // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
-                // OTHER obligation — the §13.18.40.6 allowable COMBINATION, i.e. symbol order and multiplicity
-                // (`PIC 99.99.99`, `PIC 9ZZ`) — is PictureComposition, further down this method, and reports
-                // COBOLNET1934 / COBOLNET1935 (kb/Work PB528; data-model design D24).
-                edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
-                    + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
-            if (hasN && has1)
-                // Precedence Table 10: the boolean symbol '1' combines with no other symbol; 'N' admits only
-                // B 0 / N (§13.18.40.4 GR8–GR10) — a picture holding both can never be legal.
-                edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
-                    + "(ISO §13.18.40.6 Table 10: the 'N' and '1' picture symbols may not be combined)");
+            // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
+            // OTHER obligation — the §13.18.40.6 allowable COMBINATION, i.e. symbol order and multiplicity
+            // (`PIC 99.99.99`, `PIC 9ZZ`, `PIC N9`, `PIC NE`) — is PictureComposition, just below, and reports
+            // COBOLNET1934 / COBOLNET1935 (kb/Work PB528; data-model design D24).
+            edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
+                + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
-            // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes). An
-            // external-float picture carries its 0900 forward on SkeletonGate for the bound-arm gate (14g.5).
-            return PicInfo.Recovery(expanded.Length);
-        }
-
-        // ── Category national (§8.5.2.10) / boolean (§8.5.2.5) — LIVE, Phase 4a track (a). The introduction
-        // gate stays at every entry point (COBOLNET0900 below 2002; the registry rows are silent at 2002+),
-        // exactly the BINARY-CHAR/POINTER pattern. Usage resolution per §13.18.60.4: SR13a — PIC N with no
-        // USAGE clause implies NATIONAL; SR20 — PIC N admits ONLY usage NATIONAL; SR13b — PIC 1 with no usage
-        // is DISPLAY; SR5 — usage BIT requires a boolean picture; SR12 national-form boolean (PIC 1 USAGE
-        // NATIONAL) is spec-legal but STAGED (0899). ──
-        if (hasN)
-        {
-            if (expanded.All(c => c is 'N'))
-            {
-                // NationalData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
-                // GateData/GateReports enumerator (keyed on Pic.Category National); Step 14g.1.
-                ScreenUsageAgainstPicture(PicCategory.National, usage, explicitUsage, picture, edition, where);
-                return new PicInfo(PicCategory.National, Usage.National,
-                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
-            }
-            if (expanded.All(c => c is 'N' or 'B' or '0' or '/'))
-            {
-                // NATIONAL-EDITED (§13.18.40.4 GR10 / §8.5.2.11) — recognized, edition-gated, STAGED. The 0900 rides
-                // SkeletonGate to the bound-arm GateData (14g.5); the ≥2002 0899 stays inline.
-                StagedNotImplemented(edition, Constructs.NationalEdited2002, "Phase 4a residue", where);
-                return PicInfo.Recovery(expanded.Length) with { SkeletonGate = Constructs.NationalEdited2002 };
-            }
-            // ⚠ THIS IS A SECOND COPY OF A FACT PictureComposition's TABLE NOW CARRIES (Table 10 row N
-            // admits only the B 0 / column, and no row admits the N column but N and B 0 /). It is left
-            // standing because the national arm returns a STAGED shape whose gate rides SkeletonGate, and
-            // routing it through the walk would change this diagnostic's CODE on a landed path; the
-            // extraction belongs with kb/Work PB492, which owns the national-edited arm. Do not add a THIRD.
-            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
-                + "(ISO §13.18.40.6 Table 10: 'N' may be combined only with the insertion symbols B 0 /)");
-            return PicInfo.Recovery(expanded.Length);
-        }
-        if (has1)
-        {
-            if (expanded.All(c => c is '1'))
-            {
-                // BooleanData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
-                // GateData enumerator (keyed on Pic.Category Boolean); Step 14g.1.
-                usage = ScreenUsageAgainstPicture(PicCategory.Boolean, usage, explicitUsage, picture, edition, where);
-                return new PicInfo(PicCategory.Boolean, usage,
-                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
-            }
-            // ⚠ The same second copy for the boolean symbol (Table 10 row 1 admits only the 1 column, and no
-            // other row admits it). Same reason it stands, same instruction: do not add a third.
-            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
-                + "(ISO §13.18.40.6 Table 10: the boolean symbol '1' may not be combined with any other symbol)");
+            // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
             return PicInfo.Recovery(expanded.Length);
         }
 
@@ -228,9 +184,78 @@ public static class PictureAnalyzer
         // geometry below because that derivation reads the symbol MULTISET and presumes a well-formed string —
         // e.g. the scale, the digit-position count and the floating-string detector all assume the P run, the
         // decimal point and the floating symbol are where the standard requires them.
+        // ⛔ IT ALSO RUNS BEFORE THE CATEGORY ARMS, and that is the whole Table-10 question asked ONCE
+        // (kb/Work PB492). The national and boolean arms each used to carry a hand-written copy of a Table-10
+        // row — "'N' may be combined only with the insertion symbols B 0 /" — which the 24×24 matrix already
+        // answers (row N admits only the 'B 0 /' and 'N' columns; row '1' only the '1' column; and only those
+        // same rows admit their columns). Both copies were WRONG in the same way the copies PB490 found were:
+        // they spelled a SET as a literal list and left out the declared EDITING character-1, so GR10's
+        // character-1 leg — `PIC NNTNN EDITING "T" IS N":"` — was refused as an invalid PICTURE. The matrix is
+        // transparent to character-1 by design (its own note says why), so routing the question here is what
+        // makes the legal shape legal. A THIRD Table-10 copy, `hasN && has1`, was also deleted: N-with-1 is the
+        // blank cell at (row N, column 1) and the walk names the offending pair better than the hand-written
+        // message did — AND its guard was hiding a SILENT REJECTION, because an E-bearing picture that also
+        // held N or '1' (`PIC NE`, `PIC 1E`) entered that block, matched neither message and returned Recovery
+        // with NO diagnostic at all: `01 W PIC NE.` compiled clean as a 2-character item.
         if (!PictureComposition.Validate(picture, expanded, cs, char1Set, blankWhenZero, decimalPointIsComma,
                 edition, where))
             return PicInfo.Recovery(expanded.Length);
+
+        // ── Category national (§8.5.2.10) / national-edited (§8.5.2.11) / boolean (§8.5.2.5) — LIVE. The
+        // introduction gate stays at every entry point (COBOLNET0900 below 2002; the registry rows are silent at
+        // 2002+), exactly the BINARY-CHAR/POINTER pattern. Usage resolution per §13.18.60.4: SR13a — PIC N with
+        // no USAGE clause implies NATIONAL; SR20 — PIC N admits ONLY usage NATIONAL; SR13b — PIC 1 with no usage
+        // is DISPLAY; SR5 — usage BIT requires a boolean picture; SR12 national-form boolean (PIC 1 USAGE
+        // NATIONAL) is spec-legal but STAGED (0899). ──
+        if (hasN)
+        {
+            // §13.18.40.4 GR9 — "To define an item as national, character-string-1 shall contain only one or more
+            // occurrences of the symbol 'N'" — and GR10 — "To define an item as national-edited, character-string-1
+            // shall include — at least one symbol 'N', and — at least one instance of character-1 or one of the
+            // symbols from the set 'B', '0', '/'". The GR10 insertion set is CobolEdit's ONE definition of it, the
+            // same predicate the alphanumeric-edited arm below reads for the WORD-FOR-WORD IDENTICAL set GR7 names
+            // (kb/Work PB492): two arms spelling one set out is how this one lost character-1.
+            // NationalData2002 / NationalEdited2002 (the introduction gates) fire on the RESOLVED item in the
+            // VersionConformancePass GateData/GateReports enumerator (Step 14g.1 / 14g.5).
+            bool nationalEdited = expanded.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
+            if (expanded.All(c => c is 'N' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
+            {
+                ScreenUsageAgainstPicture(PicCategory.National, usage, explicitUsage, picture, edition, where);
+                // GR14: every symbol of a national or national-edited character-string is COUNTED in the size —
+                // each 'N' a national character position (GR1), each 'B'/'0'/'/' an insertion position, and
+                // character-1 "the size of literal-1" (the 'es' entry), which the landable IS form fixes at one.
+                return new PicInfo(PicCategory.National, Usage.National,
+                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false)
+                { EditMask = nationalEdited ? expanded : null, EditingRules = nationalEdited ? editRules : null };
+            }
+            // Unreachable while Table 10 and GR9/GR10 agree — the matrix admits nothing else beside an 'N'. It
+            // stands as the loud assertion of that agreement: a picture that reaches here holds an 'N' and some
+            // symbol no category-defining rule admits, so it defines NO category and must never fall through to
+            // the numeric geometry below.
+            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR9/GR10: a "
+                + "character-string containing the symbol 'N' defines an item only when it is all 'N' (national) "
+                + "or 'N' with the insertion symbols character-1 / B 0 / (national-edited))");
+            return PicInfo.Recovery(expanded.Length);
+        }
+        if (has1)
+        {
+            if (expanded.All(c => c is '1'))
+            {
+                // BooleanData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
+                // GateData enumerator (keyed on Pic.Category Boolean); Step 14g.1.
+                usage = ScreenUsageAgainstPicture(PicCategory.Boolean, usage, explicitUsage, picture, edition, where);
+                return new PicInfo(PicCategory.Boolean, usage,
+                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
+            }
+            // REACHABLE, and the citation is the one that governs: §13.18.40.4 GR8 admits ONLY the symbol '1',
+            // while Table 10 is transparent to a declared EDITING character-1 — so `PIC 11T EDITING "T" IS ":"`
+            // passes the matrix and still defines no category. There is no boolean-edited category (Table 7 gives
+            // category boolean "None").
+            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR8: to define "
+                + "an item as boolean, character-string-1 shall contain only occurrences of the symbol '1'; "
+                + "§13.18.40.5 Table 7 gives category boolean no editing)");
+            return PicInfo.Recovery(expanded.Length);
+        }
 
         bool signed = expanded.Contains('S');
         bool hasV = expanded.Contains('V');
@@ -295,12 +320,14 @@ public static class PictureAnalyzer
 
         if (anyAlpha)
         {
-            // ALPHANUMERIC-EDITED (ISO §13.18.40 — X/A/9 with B 0 / simple insertion, plus any EDITING character-1):
-            // every position counts in the length, and the mask drives MOVE editing. A plain alphanumeric has no
-            // insertion symbols and no editing character-1.
-            bool edited = expanded.Any(c => c is 'B' or '0' or '/') || char1Set.Count > 0;
+            // ALPHANUMERIC-EDITED (ISO §13.18.40.4 GR7 — "at least one symbol 'A' or one symbol 'X', and at least
+            // one instance of character-1 or one of the symbols from the set 'B', '0', '/'"): every position counts
+            // in the length, and the mask drives MOVE editing. A plain alphanumeric has no insertion symbols and no
+            // editing character-1. ⛔ The insertion SET is CobolEdit's one definition of it — the SAME predicate
+            // the national arm above reads, because GR7 and GR10 name the same set word for word (kb/Work PB492).
+            bool edited = expanded.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
             return new PicInfo(PicCategory.Alphanumeric, usage,
-                Length: expanded.Count(c => c is 'X' or 'A' or '9' or 'B' or '0' or '/' || char1Set.Contains(c)),
+                Length: expanded.Count(c => c is 'X' or 'A' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)),
                 Digits: 0, Scale: 0, Signed: false)
             { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A'),
               EditingRules = editRules };
@@ -472,17 +499,28 @@ public static class PictureAnalyzer
     }
 
     /// <summary>Validate the PICTURE EDITING phrases (ISO §13.18.40.3 SR8–SR12; COBOL-2023) and build the
-    /// single-character render rules. Emits the SR diagnostics (COBOLNET1591–1596); the render-staged forms
-    /// (a literal wider than one character, or a floating character-1 — the same character-1 appearing ≥2 times
-    /// under a FOR phrase) raise the P14 render-GAP COBOLNET0899 at ≥2023 and contribute NO render rule (the item
-    /// still binds numeric-edited). <paramref name="char1Set"/> (uppercased) collects every accepted character-1 so
-    /// the SR2 whitelist admits them. Returns null when there are no phrases, an SR error, or a staged phrase.</summary>
+    /// single-character render rules. Emits the SR diagnostics (COBOLNET1591–1596, COBOLNET1955); the
+    /// render-staged forms (a literal wider than one character, or a floating character-1 — the same character-1
+    /// appearing ≥2 times under a FOR phrase) raise the P14 render-GAP COBOLNET0899 at ≥2023 and contribute NO
+    /// render rule (the item still binds numeric-edited). <paramref name="char1Set"/> (uppercased) collects every
+    /// accepted character-1 so the SR2 whitelist admits them. Returns null when there are no phrases, an SR error,
+    /// or a staged phrase.
+    /// <para><paramref name="usage"/> is the subject's usage as the entry resolved it, and it is here for SR9's
+    /// first condition alone — "If USAGE IS NATIONAL is specified for the subject of the entry OR if
+    /// character-string-1 contains the symbol 'N' …".</para></summary>
     private static IReadOnlyList<CobolEdit.EditRule>? ValidateEditing(
-        IReadOnlyList<EditingPhraseSpec>? editing, string expanded, EditionContext edition, string where, char cs,
-        out HashSet<char> char1Set)
+        IReadOnlyList<EditingPhraseSpec>? editing, string expanded, Usage usage, EditionContext edition,
+        string where, char cs, out HashSet<char> char1Set)
     {
         char1Set = [];
         if (editing is null || editing.Count == 0) return null;
+
+        // ── ISO §13.18.40.3 SR9, first sentence — the LITERAL CLASS the phrase's literals shall be written in.
+        // Both halves bind: a national subject takes national literals, any other subject takes alphanumeric
+        // ones. The subject is national when the entry says USAGE IS NATIONAL or the character-string holds an
+        // 'N' — which is also exactly the pair of ways §13.18.40.4 GR9/GR10 make a category-national item, so the
+        // condition needs no category and can be asked here, before the category is decided.
+        bool nationalSubject = usage is Usage.National || expanded.Contains('N');
 
         // Pre-scan every phrase's character-1 (SR25 admits up to two extended sign symbols — e.g. a leftmost 'L'
         // and a rightmost 'F') so SR12b's "only character-1 and 9 . cs P V Z" test admits ALL declared editing
@@ -527,15 +565,32 @@ public static class PictureAnalyzer
                     + "PICTURE character-string (ISO §13.18.40.3 SR10)");
                 error = true; continue;
             }
-            // SR9: no literal may exceed 50 characters (the national-vs-alphanumeric class matches the item's
-            // category; the national-literal sub-check rides the national-edited staging).
-            foreach (string? lit in new[] { ph.Simple, ph.Neg, ph.Pos })
-                if (lit is { Length: > 50 })
+            // SR9, second sentence: "The total number of characters in literal-1, literal-2, or literal-3 shall
+            // not exceed 50." And SR9's FIRST sentence — the literal CLASS — screened against the subject in the
+            // same walk, because they are one rule: a national subject (USAGE IS NATIONAL, or an 'N' in
+            // character-string-1) takes NATIONAL literals and every other subject takes ALPHANUMERIC ones. Both
+            // halves were unenforced while national-edited could not be defined at all (kb/Work PB492): the
+            // decoded literal reached here as a bare string with its class discarded, so `PIC NNTNN EDITING "T"
+            // IS ":"` and `PIC XXTXX EDITING "T" IS N":"` each bound silently.
+            foreach (var (lit, name) in new (EditLiteral?, string)[] { (ph.Simple, "literal-1"), (ph.Neg, "literal-2"), (ph.Pos, "literal-3") })
+            {
+                if (lit is not { } l) continue;
+                if (l.Text.Length > 50)
                 {
                     edition.Error("COBOLNET1594", $"{where}: a PICTURE EDITING literal exceeds 50 characters "
                         + "(ISO §13.18.40.3 SR9)");
                     error = true;
                 }
+                if (l.National != nationalSubject)
+                {
+                    edition.Error(DiagnosticCatalog.PictureEditingLiteralClass, $"{where}: the PICTURE EDITING "
+                        + $"{name} is {(l.National ? "a national literal (N\"…\")" : "an alphanumeric literal")} but the "
+                        + $"subject of the entry is {(nationalSubject ? "national" : "not national")} — "
+                        + $"{(nationalSubject ? "USAGE IS NATIONAL is specified or character-string-1 contains the symbol 'N', so literal-1, literal-2 and literal-3 shall be national literals" : "literal-1, literal-2 and literal-3 shall be alphanumeric literals")} "
+                        + "(ISO §13.18.40.3 SR9)");
+                    error = true;
+                }
+            }
 
             if (ph.IsForForm)
             {
@@ -550,7 +605,7 @@ public static class PictureAnalyzer
                     error = true; break;
                 }
                 // SR12a: the NEGATIVE and POSITIVE literals (when both present) occupy the same number of positions.
-                if (ph.Neg is { } n2 && ph.Pos is { } p3 && n2.Length != p3.Length)
+                if (ph.Neg is { } n2 && ph.Pos is { } p3 && n2.Text.Length != p3.Text.Length)
                 {
                     edition.Error("COBOLNET1595", $"{where}: the NEGATIVE and POSITIVE literals of a FOR EDITING "
                         + "phrase shall occupy the same number of character positions (ISO §13.18.40.3 SR12a)");
@@ -559,11 +614,11 @@ public static class PictureAnalyzer
                 // SR12c: the unspecified side defaults to spaces of the specified literal's width. LANDABLE only for
                 // a single-character literal at a SINGLE character-1 occurrence (fixed sign control); a wider literal
                 // or a repeated character-1 (floating string) is the P14 render GAP.
-                int width = (ph.Neg ?? ph.Pos)?.Length ?? 0;
+                int width = (ph.Neg ?? ph.Pos)?.Text.Length ?? 0;
                 if (width == 1 && occ == 1)
                 {
-                    char neg = ph.Neg is { Length: 1 } ? ph.Neg[0] : ' ';
-                    char pos = ph.Pos is { Length: 1 } ? ph.Pos[0] : ' ';
+                    char neg = ph.Neg is { Text.Length: 1 } n1 ? n1.Text[0] : ' ';
+                    char pos = ph.Pos is { Text.Length: 1 } p1 ? p1.Text[0] : ' ';
                     // FOR = an EXTENDED editing sign control symbol: FIXED insertion (ISO §13.18.40.5 rule 5),
                     // so it is NOT part of a zero-suppression or floating string (rules 6 and 7).
                     rules.Add(new CobolEdit.EditRule(char1, neg, pos, SimpleInsertion: false));
@@ -575,7 +630,7 @@ public static class PictureAnalyzer
                 // IS (simple insertion) form — sign-independent (ISO §13.18.40.5 editing rule 3): character-1
                 // inserts literal-1 at every occurrence, immune to sign. LANDABLE for a single-character literal
                 // (any occurrence count); a wider literal is the P14 render GAP.
-                string lit = ph.Simple ?? "";
+                string lit = ph.Simple?.Text ?? "";
                 // IS = SIMPLE insertion (rule 3), so this character-1 joins any zero-suppression or floating
                 // string it is embedded in or immediately right of (rules 6 and 7) — CobolEdit.TrySimpleInsertion.
                 if (lit.Length == 1) rules.Add(new CobolEdit.EditRule(char1, lit[0], lit[0], SimpleInsertion: true));
@@ -875,12 +930,4 @@ public static class PictureAnalyzer
         { DigitPositions = digits, LocaleEdit = locale2 with { Picture = canonical } };
     }
 
-    private static void StagedNotImplemented(EditionContext edition, string rowId, string phase, string where)
-    {
-        var row = ConstructRegistry.Find(rowId)
-            ?? throw new ArgumentException($"unregistered construct id '{rowId}'", nameof(rowId));
-        if (edition.DialectLevel >= row.IntroducedIn)
-            edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{row.Display} is recognized but not yet implemented (owning "
-                + $"roadmap phase: {phase}) — {where} ({row.Citation})");
-    }
 }

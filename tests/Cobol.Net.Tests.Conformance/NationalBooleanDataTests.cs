@@ -86,9 +86,9 @@ public sealed class NationalBooleanDataTests
 
     public static TheoryData<string, string, string> StagedShapes() => new()
     {
-        // NATIONAL-EDITED pictures (§13.18.40.4 GR10 — N with B/0//; §8.5.2.11): the national-edited-2002
-        // pending registry row.
-        { "NBDAT12", "01 WS-L PIC N(2)B0.", "national-edited PICTURE (GR10)" },
+        // NATIONAL-EDITED pictures (§13.18.40.4 GR10 / §8.5.2.11) left this set with kb/Work PB492 — the
+        // national-edited-2002 registry row is ACTIVE and the category renders through §13.18.40.5 Table 7's
+        // simple insertion (NationalEditedPicture_* in DataSkeletonEditionTests and the pb492_* goldens).
         // National-form NUMERIC (§13.18.60.4 SR12 — PIC 9 USAGE NATIONAL is legal, staged: national digits).
         { "NBDAT13", "01 WS-M PIC 9(3) USAGE NATIONAL.", "national-form numeric (SR12)" },
         // National-form BOOLEAN (SR12 — PIC 1 USAGE NATIONAL is legal, staged).

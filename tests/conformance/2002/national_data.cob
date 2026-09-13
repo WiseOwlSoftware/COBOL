@@ -3,7 +3,9 @@
       *> Covers N"…" literals; MOVE national←national (left-justify, national-space pad, right
       *> truncate); alphanumeric→national widening and numeric→national conversion (Latin-1
       *> subset); literal and figurative VALUE; MOVE SPACE and INITIALIZE (national-space fill);
-      *> and national comparison. (NATIONAL-EDITED, NX"…", non-Latin-1 correspondence, and
+      *> and national comparison. (NATIONAL-EDITED is
+      *> conformance:{2002,2014,2023}/pb492_national_edited - kb/Work PB492.) (NX"…",
+      *> non-Latin-1 correspondence, and
       *> collating-sequence national compare are deferred. The original N2A leg — MOVE national
       *> TO alphanumeric — was REMOVED 2026-07-05: §14.9.25.3 Table 16 marks that move invalid at
       *> every national-bearing edition [National row, Alphanumeric column = No]; FUNCTION

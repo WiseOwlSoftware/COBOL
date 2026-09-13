@@ -420,29 +420,63 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         if (target.IsDynamicLength)
             return RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: true), target.DynLengthLimit.ToString());
         string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
-        // A figurative constant fills the receiver to its width (ISO §8.3.3.6.4 r2 / §14.9.25) — EXCEPT figurative
-        // ZERO into a numeric-edited receiver, which is the numeric value 0 EDITED into the mask (§14.9.25.4 GR5;
-        // 'ZZ9.99' shows '  0.00', not a zero-fill), and EXCEPT an alphanumeric-EDITED receiver, whose insertion
-        // positions keep their characters under the editing move (GR5 — MOVE SPACES TO 'XXXBXX/XX' yields '/' at
-        // its position, NC223A INI-TEST-GF-1; handled in the switch below).
+        // ⛔ A WHOLE-WIDTH FILL GOES THROUGH THE EDITOR, NEVER AROUND IT, when the receiver edits. §8.3.3.6.4 GR2
+        // and §14.9.25.4 GR6 are two different steps and both apply: the figurative / ALL-literal source is first
+        // repeated "until the size of the resultant string is greater than or equal to the number of character
+        // positions in the associated data item", and THEN the move performs "any editing specified for … the
+        // receiving data item", so an INSERTION position still takes its own character — `MOVE SPACES TO
+        // PIC XX/XX` yields `  /  ` (NIST NC223A INI-TEST-GF-1) and `MOVE ALL "X"` yields `XX/XX`. The two guards
+        // below therefore share ONE predicate, PicInfo.IsCharacterEdited, and defer to the switch's edited arm.
+        // (kb/Work PB492: the figurative guard named only the ALPHANUMERIC half — measured `MOVE SPACE TO
+        // PIC NN0NN` → five spaces where the zero must survive — and the ALL-literal guard named neither, so
+        // `MOVE ALL "X" TO PIC XX/XX` stored `XXXXX`. One rule, two call sites, wrong at both.)
+        // The OTHER exception is figurative ZERO into a numeric-edited receiver, which is the numeric value 0
+        // EDITED into the mask ('ZZ9.99' shows '  0.00', not a zero-fill).
         if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
-            && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited)
-            && !(pic.Category is PicCategory.Alphanumeric && pic.EditMask is not null))
+            && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited) && !pic.IsCharacterEdited)
             // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE reads its OWN sequence — the
             // explicit national PCS extremes when declared, else the D-N3 pin — never the ALPHANUMERIC
             // program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
             return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, pic.Category, ctx.Data.NationalCollating)}, {wN})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2). An ANY LENGTH
         // receiver's width exists only at runtime — repeat at runtime, then width-fit (§13.18.2 GR1).
-        if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)
+        if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited)
             return runtimeWidth is null
                 ? CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length))
                 : RuntimeApi.StrStore(RuntimeApi.StrRepeat(CsLiteral(a.Literal), runtimeWidth), runtimeWidth);
 
+        // ⭐ THE EDITED CHARACTER CATEGORIES — alphanumeric-edited and national-edited — take ONE arm, ABOVE the
+        // per-category switch, because §13.18.40.5 Table 7 gives them ONE type of editing between them ("Simple
+        // insertion") and nothing else. Hoisting it here rather than writing a `case` per category is the point:
+        // a case list is what the ACCEPT, STRING and MOVE arms each grew with only the alphanumeric half in it,
+        // leaving a national-edited receiver with no renderer at all (kb/Work PB492). ISO §14.9.25.4 GR6 makes
+        // the editing part of every valid elementary move, and GR6 a) the alignment: "When an alphanumeric,
+        // alphanumeric-edited, national, or national-edited data item is a receiving operand, alignment and any
+        // necessary space filling shall take place as defined in 14.6.8".
+        if (pic.IsCharacterEdited)
+        {
+            // A figurative or ALL-literal source supplies the fill §8.3.3.6.4 GR2 computes — repeated to the
+            // receiver's size — as the EDIT's sending characters, which the data positions then consume in
+            // order while each insertion position takes its own character. The figurative fill is the
+            // CATEGORY-AWARE one, so a national-edited receiver's HIGH/LOW-VALUE reads the national sequence
+            // (§8.3.3.6 GR6/GR7), exactly as the whole-width guard above does.
+            string aeSrc = source switch
+            {
+                BoundFigurative ff =>
+                    $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating, pic.Category, ctx.Data.NationalCollating)}, {pic.Length})",
+                BoundAllLiteral al => CsLiteral(EmitText.RepeatToWidth(al.Literal, pic.Length)),
+                _ => OperandText.AsString(source, num, deSign: true),
+            };
+            // The mask AND the item's EDITING rules come from the one PicInfo — never a call-site mask deref
+            // (kb/Work PB490: all three edited-character emit sites dropped PicInfo.EditingRules).
+            return RuntimeApi.EditFormatSimpleInsertion(aeSrc, pic);
+        }
+
         switch (pic.Category)
         {
             // A NUMERIC source moving to a numeric-edited receiver is EDITED into the receiver's picture
-            // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
+            // (ISO §14.9.25.4 GR6 — "any editing specified for … the receiving data item"; GR6 a) alignment);
+            // an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = num.AsNum(source, SenderContext(target));
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
@@ -475,16 +509,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
                     ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
             }
-            // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
-            // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
-            case PicCategory.Alphanumeric when pic.EditMask is not null:
-                // A figurative source supplies its fill for EVERY data position (§8.3.3.6.4 r2 — repeated to width).
-                string aeSrc = source is BoundFigurative ff
-                    ? $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating)}, {pic.Length})"
-                    : OperandText.AsString(source, num, deSign: true);
-                // The mask AND the item's EDITING rules come from the one PicInfo — never a call-site mask deref
-                // (kb/Work PB490: all three alphanumeric-edited emit sites dropped PicInfo.EditingRules).
-                return RuntimeApi.EditFormatAlphanumeric(aeSrc, pic);
             case PicCategory.Alphanumeric:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).

@@ -9,8 +9,9 @@ namespace CobolNet.Binding;
 /// share <see cref="PicCategory.Alphanumeric"/> here, and the numeric row splits on integer-vs-noninteger.</summary>
 /// <param name="Category">The §8.5.2.1 category.</param>
 /// <param name="IsAlphabetic">PIC A — Table 16's Alphabetic row/column.</param>
-/// <param name="IsEdited">Carries an edit mask — the Alphanumeric-edited row (the COLUMN pairs it with plain
-/// alphanumeric, which is why only the ROW reads this).</param>
+/// <param name="IsEdited">Carries an edit mask — the Alphanumeric-edited and National-edited ROWS, which Table 16
+/// prints separately from their plain categories. Both COLUMNS pair the edited form with the plain one
+/// ("Alphanumeric-edited, Alphanumeric" and "National, National-edited"), which is why only the ROWS read this.</param>
 /// <param name="IsNonInteger">A numeric operand with digits right of the decimal point — Table 16 splits the
 /// numeric ROW into Integer and Noninteger and they differ in three columns.</param>
 public readonly record struct Table16Operand(
@@ -103,6 +104,17 @@ public static class MoveTable16
                 ? "a noninteger numeric sending operand does not move to a national receiver "
                   + "(ISO §14.9.25.3 SR10, Table 16)"
                 : null;
+
+        // ── NATIONAL-EDITED row: the ONLY "Yes" is the "National, National-edited" column — alphabetic,
+        //    alphanumeric, alphanumeric-edited, boolean, numeric and numeric-edited receivers are all "No".
+        //    It is a SEPARATE ROW from National (which is "Yes" into boolean and into the numeric column), and
+        //    for the same reason the alphanumeric-edited row differs from alphanumeric: an edit mask has no
+        //    de-editable value and no boolean characters. The receiving COLUMN, by contrast, PAIRS the two
+        //    ("National, National-edited"), which is why only the ROW reads IsEdited — the column arm above is
+        //    correct for a national-edited receiver as written. (kb/Work PB492.) ──
+        if (sender is { Category: PicCategory.National, IsEdited: true })
+            return "a national-edited sending operand moves only to a national or national-edited receiver "
+                 + "(ISO §14.9.25.3 SR10, Table 16)";
 
         // ── NATIONAL row: alphabetic / alphanumeric / alphanumeric-edited receivers are "No" ──
         if (sender.Category is PicCategory.National)

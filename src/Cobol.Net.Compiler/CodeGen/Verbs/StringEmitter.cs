@@ -212,10 +212,13 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(unsignedInt, 0), unsignedInt, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
                 return;
             }
-            case { Category: PicCategory.Alphanumeric, EditMask: not null } aePic:
+            case { IsCharacterEdited: true } aePic:
                 // The mask and the item's EDITING rules render together from the one PicInfo (§13.18.40.5 rule 3;
-                // kb/Work PB490).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(valueExpr, aePic)));
+                // kb/Work PB490). BOTH edited character categories take this arm through the ONE predicate —
+                // Table 7 gives them the same single type of editing (kb/Work PB492). Unreachable for UNSTRING
+                // today (§14.9.48.3 SR4 names the plain categories, screened in StringUnstringBinder), and kept
+                // so the two arms cannot drift apart if SR4's screen ever moves.
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatSimpleInsertion(valueExpr, aePic)));
                 return;
             case { Category: PicCategory.Alphanumeric, Length: var len }:
                 // A JUSTIFIED receiver right-justifies — left space-fill / left truncation (§14.9.25.4 GR6c).
