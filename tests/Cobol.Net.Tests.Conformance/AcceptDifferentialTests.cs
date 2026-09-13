@@ -268,7 +268,7 @@ public sealed class AcceptDifferentialTests
             clock: "2026-06-10T14:30:45.67",
             dialect: 2002);
 
-    // §14.9.1.4 GR6 via §14.9.25.4 GR6c / §13.18.34: a JUSTIFIED receiver right-justifies the temporal
+    // §14.9.1.4 GR6 via §14.9.25.4 GR6c / §13.18.32: a JUSTIFIED receiver right-justifies the temporal
     // image — left space-fill when larger, LEFT truncation when smaller (DAY's image "26161" keeps its
     // low-order characters "161" in X(3)). The old emitter ignored JUSTIFIED (kb/Work PB139).
     [Fact]

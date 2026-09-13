@@ -23,7 +23,7 @@ tiny coverage of the emitter's shapes.
 
 ## Negatives
 `char_neg_undef` (undefined data-name), `char_neg_typedef85` (a 2002 construct at `--std 85` → an edition-gate
-diagnostic), `char_neg_pic` (`JUSTIFIED` on a numeric item — illegal per §13.18.34).
+diagnostic), `char_neg_pic` (`JUSTIFIED` on a numeric item — illegal per §13.18.32.3 SR3).
 
 ## Re-seeding / re-baselining (LOCAL ONLY — never in CI)
 When a phase INTENTIONALLY changes emission/diagnostics, re-baseline with review:

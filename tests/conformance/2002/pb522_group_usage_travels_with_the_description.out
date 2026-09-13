@@ -1,0 +1,5 @@
+A=4 4 CTL=4 4
+B=3 3 CTL=3 3
+C=4 4 5 5 CTL=4 5
+D=3 CTL=3
+CMP=OK

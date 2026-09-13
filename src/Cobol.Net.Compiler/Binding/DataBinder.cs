@@ -2526,34 +2526,61 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // Clone the template's structure in (children / the entry description / the type's root-level 88s)
         // AFTER the flags above. The entry-description copy (§13.18.58.4 GR3 — "all other data description
         // clauses ... are assumed by data defined using the type-name") shares CopyEntryDescription with the
-        // SAME AS expansion; copySync: false — §13.18.57.4 GR1 EXCLUDES alignment (contrast §13.18.49 GR1,
+        // SAME AS expansion; copyAlignment: false — §13.18.57.4 GR1 EXCLUDES alignment (contrast §13.18.49.4 GR1,
         // which copies it). The subject's own VALUE wins (§13.18.57.4 GR3 — RawValue ??=).
         if (template.IsGroup)
             foreach (var child in template.Children)
                 item.Children.Add(CloneItem(child, item, expanding));
-        CopyEntryDescription(template, item, copySync: false);
+        CopyEntryDescription(template, item, copyAlignment: false);
         foreach (var c88 in template.Own88s) CloneConditionOnto(item, c88);   // the type's ROOT-level 88s (GR1; D17 inc 3)
         expanding.Remove(typeName);
     }
 
-    /// <summary>Copy one entry's data description CLAUSES onto another (the shared GR-1 body of
-    /// <see cref="ExpandType"/> — ISO §13.18.58.4 GR3 / §13.18.57.4 GR1 — and <see cref="ExpandSameAs"/> —
-    /// §13.18.49 GR1): PICTURE / USAGE / SIGN / VALUE / JUSTIFIED / BLANK WHEN ZERO / the deferred
-    /// NATIONAL-BIT mark / the carried TYPE identity. The receiver's OWN clause always wins (<c>??=</c> —
-    /// §13.18.57.4 GR3 for VALUE; a SAME AS subject can own none of these, §13.16.3 SR12). NEVER copied:
-    /// level-number, name, OCCURS (a SAME AS target owns none, SR5; a subject's own OCCURS is the
-    /// array-of-description form, §13.16.3 SR12/SR14), REDEFINES / EXTERNAL / GLOBAL / CONSTANT RECORD
-    /// (both GR-1 exclusion lists), BASED (§13.18.57.4 GR4 — the subject's own applies). SYNCHRONIZED
-    /// (alignment) is copied ONLY for SAME AS (§13.18.49 GR1 has no alignment exclusion; §13.18.57.4 GR1
-    /// excludes it).</summary>
-    private static void CopyEntryDescription(DataItem from, DataItem to, bool copySync)
+    /// <summary>⛔ THE ONE DATA-DESCRIPTION COPY — every clause one entry's description hands to another, for
+    /// all three carriers: <see cref="ExpandType"/> (ISO §13.18.58.4 GR3 / §13.18.57.4 GR1),
+    /// <see cref="ExpandSameAs"/> (§13.18.49.4 GR1) and <see cref="CloneItem"/> (§13.18.58.4 GR1 /
+    /// §13.18.49.4 GR2a — a reproduced SUBORDINATE). The receiver's OWN clause always wins (<c>??=</c> /
+    /// <c>is None</c> — §13.18.57.4 GR3 for VALUE; a SAME AS / TYPE subject can own almost none of these, since
+    /// §13.16.3 SR12 and SR14 list the few clauses admissible in the same entry and no clause copied here is
+    /// among them).
+    ///
+    /// <para>⛔ WHICH FIELDS TRAVEL IS NOT WRITTEN HERE. Both GR-1s state an EXCLUSION list, so the default is
+    /// "carried", and a field-by-field hand list in an object initializer inverts that default silently: a
+    /// clause absent from the list is simply lost, with no diagnostic and no place the loss is visible. That is
+    /// how <see cref="DataItem.GroupUsage"/> — the one field that makes an item a bit or national group — went
+    /// missing from BOTH copiers, so <c>01 R TYPE T</c> over a <c>GROUP-USAGE NATIONAL</c> template bound as an
+    /// ordinary alphanumeric group with the wrong class, category and LENGTH (kb/Work PB522), and how
+    /// SYNCHRONIZED, ALIGNED, ANY LENGTH and DYNAMIC LENGTH were lost with it. Every stored
+    /// <see cref="DataItem"/> property therefore carries a <see cref="DescriptionCopyAttribute"/> saying what it
+    /// is to this copy and why, and <c>DescriptionCopyCompletenessDriftTests</c> (Unit) fails when a property
+    /// has no classification, when a <see cref="DescriptionCopyKind.Clause"/> field is not transferred here, or
+    /// when a <see cref="DescriptionCopyKind.None"/> / <see cref="DescriptionCopyKind.MemberOnly"/> field is.
+    /// Adding a field to <see cref="DataItem"/> is then a CHOICE, not an omission.</para></summary>
+    /// <param name="copyAlignment">Whether the ALIGNMENT clauses — SYNCHRONIZED (§13.18.55) and ALIGNED
+    /// (§13.18.1) — travel. False for a TYPE SUBJECT alone: §13.18.57.4 GR1 is the only GR-1 that excludes
+    /// "alignment" (its GR2d re-aligns that subject "as though it were a level 1 item"); §13.18.49.4 GR1 has no
+    /// alignment exclusion, and a reproduced subordinate carries its own entry's clauses whole.</param>
+    private static void CopyEntryDescription(DataItem from, DataItem to, bool copyAlignment)
     {
         if (to.Pic is null && from.Pic is not null)
         {
             to.Pic = from.Pic;
             to.PicIsUsageSynthesized = from.PicIsUsageSynthesized;   // the profile's provenance travels with it (PB495)
-            to.PictureText = from.PictureText;
         }
+        // ⛔ The WRITTEN character-string travels on its OWN condition, not on Pic's. §13.16.3 SR8's recovery
+        // clears the analyzed profile while keeping the spelling the later screens have to name, so an entry can
+        // carry PictureText with a NULL Pic; guarding this on `from.Pic is not null` would drop the spelling from
+        // every clone of such an entry and change a downstream diagnostic under an already-failed compile. A
+        // receiver never owns one here anyway — §13.16.3 SR12/SR14 forbid a PICTURE clause in the same entry as
+        // SAME AS or TYPE — so the ??= is the subject-wins discipline, not a second condition.
+        to.PictureText ??= from.PictureText;
+        // ⛔ GROUP-USAGE (§13.18.29) — the clause that makes the item a BIT or NATIONAL group, i.e. its class,
+        // its category and the unit its LENGTH counts in (§8.5.2.5 item 3 / §8.5.2.10 item 3; §15.50.4 r1/r2).
+        // It is in NEITHER GR-1 exclusion list, and §13.18.49.4 GR4 propagating a GROUP-USAGE from data-name-1's
+        // SUPERORDINATE shows the clause is plainly meant to travel. Losing it did not merely mis-measure the
+        // subject: §13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, so a false antecedent here
+        // silently re-categorized a whole subtree (kb/Work PB522).
+        if (to.GroupUsage is GroupUsage.None) to.GroupUsage = from.GroupUsage;
         if (to.Pending is PicPending.None) to.Pending = from.Pending;
         // The provenance of the VALUE travels with it (DataItem.ValueIsCopied): the §13.18.63.3 SR13/SR14
         // screen's subject is the entry that WROTE the VALUE clause, so a copied one must not re-report the
@@ -2568,11 +2595,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             to.ValueIsCopied = true;
         if (to.RawValue is null && to.TableValues is null) to.TableValues = from.TableValues;
         to.RawValue ??= from.RawValue;
-        to.Justified |= from.Justified;
-        to.BlankWhenZero |= from.BlankWhenZero;
-        if (copySync) to.Synchronized |= from.Synchronized;
+        to.Justified |= from.Justified;                             // JUSTIFIED (§13.18.32)
+        to.BlankWhenZero |= from.BlankWhenZero;                     // BLANK WHEN ZERO (§13.18.8)
+        // ⛔ BOTH ALIGNMENT CLAUSES, not just SYNCHRONIZED: §13.18.57.4 GR1 excludes "alignment", and ALIGNED
+        // (§13.18.1) is the other clause that word names — §13.18.1.3 SR1 admits it on a bit group item or an
+        // elementary bit data item, i.e. exactly on a TYPEDEF member, where dropping it moved every following
+        // bit item (§13.18.1.4 GR1's "first bit of the first available byte boundary", §8.5.1.6.3).
+        if (copyAlignment)
+        {
+            to.Synchronized |= from.Synchronized;                   // SYNCHRONIZED (§13.18.55)
+            to.IsAligned |= from.IsAligned;                         // ALIGNED (§13.18.1)
+        }
         to.OwnUsage ??= from.OwnUsage;
         to.OwnSign ??= from.OwnSign;
+        // ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) are in neither GR-1 exclusion list either, and
+        // both decide the item's LENGTH: a SAME AS of a DYNAMIC LENGTH item that dropped the clause became a
+        // FIXED one-character item. §13.18.2.3 SR2/SR3/SR4 and the DYNAMIC LENGTH shape rules are re-screened at
+        // the copy's own site by the placement sweeps, which CLEAR the flag where the new site fails them.
+        to.IsAnyLength |= from.IsAnyLength;
+        if (!to.IsDynamicLength && from.IsDynamicLength)
+        {
+            to.IsDynamicLength = true;
+            to.DynMaxSize = from.DynMaxSize;    // §8.5.1.10.1's maximum size rides the clause (kb/Work PB463)
+        }
         to.TypeName ??= from.TypeName;     // a data-name-1 declared with TYPE carries its type identity (§8.5.3)
         to.StrongType |= from.StrongType;
     }
@@ -2586,7 +2631,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// description carrying SAME AS re-expands per clone, the TypeRefName pattern). <paramref name="levelDelta"/>
     /// renumbers the cloned subtree's level-numbers relative to the new subject (ISO §13.18.49.4 GR2b — SAME AS
     /// splices a level-1 description under an arbitrary-level subject, and the adjusted levels may exceed 49,
-    /// GR2c; TYPE expansion passes 0 — its templates clone level-verbatim, byte-stable).</summary>
+    /// GR2c; TYPE expansion passes 0 — its templates clone level-verbatim, byte-stable).
+    ///
+    /// <para>⛔ THE CLAUSES ARE NOT LISTED HERE. This initializer carries only what is NOT a data description
+    /// clause — identity (a fresh Uid, a re-uniquified CsName), the renumbered level, and the
+    /// <see cref="DescriptionCopyKind.MemberOnly"/> fields the two ENTRY-copy GR-1s exclude but §13.18.58.4 GR1
+    /// reproduces on a subordinate (the name, OCCURS, REDEFINES, a nested TYPE / SAME AS reference, the
+    /// declaration cursor). Every actual clause goes through <see cref="CopyEntryDescription"/>, the ONE copy,
+    /// so a clause cannot be present in one copier and absent from the other — which is precisely how
+    /// GROUP-USAGE, SYNCHRONIZED and ALIGNED were lost from this one (kb/Work PB522). <c>copyAlignment: true</c>:
+    /// only §13.18.57.4 GR1's TYPE SUBJECT excludes alignment; a reproduced subordinate carries its own entry's
+    /// clauses whole.</para></summary>
     private DataItem CloneItem(DataItem src, DataItem newParent, HashSet<string> expanding, int levelDelta = 0)
     {
         var clone = new DataItem
@@ -2595,38 +2650,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
-            Pic = src.Pic,
-            PicIsUsageSynthesized = src.PicIsUsageSynthesized,   // where the profile came from travels with it (PB495)
-            PictureText = src.PictureText,
-            Pending = src.Pending,   // the deferred NATIONAL/BIT adjudication travels with the clone (P5.11c)
-            OwnSign = src.OwnSign,
-            OwnUsage = src.OwnUsage,
-            RawValue = src.RawValue,
-            // ⛔ BOTH VALUE CARRIERS (kb/Work PB505's sibling sweep — the twin of CopyEntryDescription's): a
-            // TEMPLATE MEMBER's Format 2 (table) VALUE is part of the description §13.18.58.4 GR1 clones, and
-            // omitting it here dropped the seed from every referencing record silently.
-            TableValues = src.TableValues,
-            ValueIsCopied = src.RawValue is not null || src.TableValues is not null,   // a clone never WROTE its VALUE
             Occurs = src.Occurs,
             // Clone the OccursSpec — never SHARE it: its Depending / CapacityRegister are RESOLVED per-clone by the
             // post-build OdoResolve / DynamicResolve, so a shared object would let two clones of the same group type
             // collide on those fields (D17 risk #1). Copy the declared fields; leave the resolved ones null.
             OccursSpec = src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
-            RedefinesTargetName = src.RedefinesTargetName,
-            Justified = src.Justified,
-            BlankWhenZero = src.BlankWhenZero,
-            TypeRefName = src.TypeRefName,
-            SameAsName = src.SameAsName,   // a pending nested SAME AS re-expands per clone (below)
         };
+        // Every data description CLAUSE of the member's own entry — §13.18.58.4 GR1 ("the subordinate entries
+        // are part of the type") / §13.18.49.4 GR2a ("the same names, DESCRIPTIONS, and hierarchy").
+        CopyEntryDescription(src, clone, copyAlignment: true);
+        clone.RedefinesTargetName = src.RedefinesTargetName;   // a member's REDEFINES is part of the type
+        clone.TypeRefName = src.TypeRefName;                   // a nested TYPE reference re-expands per clone (below)
+        clone.SameAsName = src.SameAsName;                     // a pending nested SAME AS likewise (below)
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
         clone.SameAsQualifiers.AddRange(src.SameAsQualifiers);
-        // An ALREADY-EXPANDED source subtree (a SAME AS target that was declared with TYPE) carries its type
-        // identity on inner nodes — copy it so the clone stays anchored for the §8.5.3 same-type test. For the
-        // TYPE-template flows these are always null/false (templates are never expanded in place; nested refs
-        // expand per-clone), so this is a no-op there.
-        clone.TypeName = src.TypeName;
-        clone.StrongType = src.StrongType;
         foreach (var idx in src.IndexNames)
         {
             clone.IndexNames.Add(idx);
@@ -2706,7 +2744,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
         // §13.18.49.3 SR9: no group containing the subject may carry a GROUP-USAGE, SIGN, or USAGE clause —
         // it would silently override the copied representation (the TYPE-clause §13.18.57.3 SR5 twin, 1538).
-        // (GROUP-USAGE is not modeled — its national/bit group forms are the staged national legs.)
+        // ⚠ RESIDUE, measured and NOT this method's rule: the walk screens only the SIGN and USAGE arms. The
+        // GROUP-USAGE arm the message already names is unchecked, so `01 OUTER GROUP-USAGE NATIONAL. 02 INNER
+        // SAME AS S.` compiles clean where SR9 (and its §13.18.57.3 SR5 twin, whose walk is the same two arms)
+        // requires a rejection. That is an UNDER-rejection of a syntax rule, a different harm and a different
+        // rule from the §13.18.49.4 GR1 copy below; it is reported for its own note rather than folded in here.
         for (var p = item.Parent; p is not null; p = p.Parent)
             if (p.OwnUsage is not null || p.OwnSign is not null)
             {
@@ -2810,8 +2852,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // ── GR1/GR2: the copy. ──────────────────────────────────────────────────────────────────────────────
         // The entry description (PICTURE/USAGE/SIGN/VALUE/JUSTIFIED/BLANK WHEN ZERO/SYNCHRONIZED + the carried
-        // TYPE identity; copySync: true — §13.18.49 GR1 does NOT exclude alignment, unlike §13.18.57.4 GR1).
-        CopyEntryDescription(target, item, copySync: true);
+        // TYPE identity; copyAlignment: true — §13.18.49.4 GR1 does NOT exclude alignment, unlike §13.18.57.4 GR1).
+        CopyEntryDescription(target, item, copyAlignment: true);
         // GR3/GR5: a USAGE / SIGN clause of a group containing data-name-1 takes effect as though specified
         // for the SUBJECT (nearest enclosing clause, the §13.18.60 GR1 discipline; only an ELEMENTARY target
         // can have ancestors — SR7). The subject's chain cannot see data-name-1's ancestors, so the transform
@@ -3319,7 +3361,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // pattern).
                     { sameAsName = san; sameAsQuals = clause.SameAsQualifiers; }
                 else if (clause.Context.justifiedClause() is not null)
-                    justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
+                    justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.32 — right-justify alphanumeric receives)
                 else if (clause.Context.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
                 else if (clause.Context.syncClause() is not null)

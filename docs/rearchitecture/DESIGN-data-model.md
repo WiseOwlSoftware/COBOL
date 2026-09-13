@@ -432,6 +432,52 @@ Ordered, with the **data-model dependency chain made explicit**:
 The pipeline asserts at startup that no pass reads a fact before its producing pass (a `PassPhase` enum guards
 width/offset/form reads). This is where "implicit pass-ordering" — the prime smell — is structurally killed.
 
+#### 2.5.1 The ONE data-description copy — a CLASSIFIED field set, never a hand list (landed; kb/Work PB522)
+
+⛔ **Both GR-1s state an EXCLUSION list, so the default is "carried".** ISO §13.18.57.4 GR1 — the TYPE clause's
+effect "is as though the data description identified by type-name-1 had been coded in place of the TYPE clause,
+*excluding* the level-number, name, alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses" — and
+§13.18.49.4 GR1, the same sentence for SAME AS excluding only the level-number, name, CONSTANT RECORD, EXTERNAL,
+GLOBAL, REDEFINES and SELECT WHEN. §13.18.58.4 GR1 then reproduces a type declaration's SUBORDINATE entries whole.
+
+**The shape that failed.** `ExpandTypesPass` had TWO copiers — `CopyEntryDescription` (the entry copy onto a
+subject) and `CloneItem` (the per-node subordinate clone) — and each spelled its own field list in an object
+initializer. That inverts the standard's default: a clause absent from a list is not a decision, it is an
+omission, with no diagnostic and no site at which it can be read. `DataItem.GroupUsage` — the one field that
+makes an item a bit or national group — was in NEITHER, so `01 R TYPE T` over a `GROUP-USAGE NATIONAL` template
+bound as an ordinary alphanumeric group: wrong class, wrong category, `FUNCTION LENGTH` in alphanumeric instead
+of national positions (§15.50.4 r2 vs r3), and — because §13.16.4 GR1/GR2 imply the clause for every
+SUBORDINATE group — a false antecedent that silently re-categorized the whole subtree. SYNCHRONIZED (§13.18.55),
+ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were lost the same way.
+
+**The shape now.**
+
+1. **One copy.** `DataBinder.CopyEntryDescription(from, to, copyAlignment)` is the only place a clause travels;
+   `CloneItem` funnels through it and its initializer carries nothing but identity, the renumbered level and the
+   `MemberOnly` fields. `copyAlignment` is named for the rule it implements — §13.18.57.4 GR1 is the ONLY GR-1
+   that excludes "alignment" (its GR2d re-aligns the subject "as though it were a level 1 item"), and that word
+   names both alignment clauses, SYNCHRONIZED *and* ALIGNED. Only the TYPE-subject arm passes `false`.
+2. **The classification lives on the field.** Every stored `DataItem` property carries
+   `[DescriptionCopy(DescriptionCopyKind.…, "<the §/GR, or the pass that owns the fact>")]` —
+   `Clause` (travels) · `Alignment` (travels except onto a TYPE subject) · `MemberOnly` (a reproduced subordinate
+   only — the name, OCCURS, REDEFINES, a nested TYPE/SAME AS reference, the declaration cursor) · `CopyWritten`
+   (the copy derives it: `ValueIsCopied`, `ExternalFromType`) · `None` (excluded by a named rule, or owned by a
+   post-build pass). Adding a field to `DataItem` is therefore a CHOICE made where the field is declared.
+3. **The classification is behaviourally true.** `DescriptionCopyCompletenessDriftTests` (Unit) fails when a
+   stored property has no classification, when a `Clause`/`Alignment` field is not transferred by the copy, when
+   a `None`/`MemberOnly` field is, and when `CloneItem` re-spells any clause of its own. It asserts it could give
+   every property a distinct value first (so the audit is evidence about all of them), and drives its own failure
+   branch over a copy that re-introduces the PB522 omission.
+
+`conformance:2002/pb522_group_usage_travels_with_the_description` measures the clauses that exist today, each
+against a byte-identical inline control; the drift test is what makes the NEXT one automatic.
+
+**Residue — a copier this funnel does not yet own.** `CreateCompilerTemp` / `CloneTempNode`
+(`DataBinder.Oo.cs`) wear a model's description onto a synthesized temp under a DIFFERENT rule (§8.4.3.2.4 GR1 /
+§11.7.4) with its own pre-gating residue check, and still hand-list their fields; a user-defined function
+returning a national group therefore still yields an alphanumeric-group temp. Folding them in needs that rule's
+own exclusion story settled first.
+
 ### 2.6 `RecordLayout` — one physical-width authority
 
 New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width geometry over the record tree, reading

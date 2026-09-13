@@ -108,7 +108,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// into a numeric-edited or alphanumeric-edited mask (F1-38 / F1-20, F1-36; GR5 editing applies only to valid
     /// ELEMENTARY moves), NO de-editing. Alignment is §14.6.8 alphanumeric: left-justified, right space-fill /
     /// right truncation — and the receiver's JUSTIFIED still applies ("exactly as if … elementary move";
-    /// §13.18.34 attaches to the receiver). The raw image is then deposited by the receiver's STORAGE shape:
+    /// §13.18.32 attaches to the receiver). The raw image is then deposited by the receiver's STORAGE shape:
     /// string-backed receivers store the width-fitted image directly; a native typed numeric receiver deposits
     /// then decodes through the ONE storage-form bridge (<c>StoreDisplay</c> — the deterministic zoned
     /// decode of possibly-incompatible content that §14.6.13.2 permits; EC-DATA-INCOMPATIBLE is a later EC

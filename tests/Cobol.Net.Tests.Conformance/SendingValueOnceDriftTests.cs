@@ -133,7 +133,7 @@ public sealed class SendingValueOnceDriftTests
 
     /// <summary>⛔ THE INTERMEDIATE MUST HOLD THE SENDER'S LENGTH, NOT A PADDED APPROXIMATION OF IT.
     /// §14.9.25.4 GR1's equivalence is a RESULT equivalence, so the one-receiver and many-receiver forms of the
-    /// same MOVE have to agree — and a JUSTIFIED receiver is what MEASURES that, because §13.18.34.4 GR1 aligns
+    /// same MOVE have to agree — and a JUSTIFIED receiver is what MEASURES that, because §13.18.32.4 GR1 aligns
     /// the sending data at the rightmost character position and space-fills on the LEFT, which makes the sender's
     /// length observable where a left-justified receiver hides it. The sender that can get it wrong is one whose
     /// length is decided at run time: §15.4's temporary for a character-category function is carried by a

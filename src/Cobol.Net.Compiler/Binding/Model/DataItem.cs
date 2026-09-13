@@ -34,6 +34,8 @@ public sealed record TableValueSpec(
 public sealed class DataItem
 {
     /// <summary>The COBOL level number (01, 05, 77, …). Levels 66/88 are not modeled in this slice.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "both GR-1 exclusion lists exclude the level-number (ISO §13.18.57.4 GR1 / §13.18.49.4 GR1); a cloned subordinate RENUMBERS relative to its new subject (§13.18.49.4 GR2b/GR2c)")]
     public required int Level { get; init; }
 
     /// <summary>
@@ -42,21 +44,31 @@ public sealed class DataItem
     /// — two distinct groups both named <c>REC</c>, or two leaves both named <c>NUM</c> in different groups, would
     /// otherwise collide. (The member/field name, <see cref="CsName"/>, only needs to be unique within its struct.)
     /// </summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "identity — every clone gets a FRESH Uid; StructName/ProfileName ride on it, so a shared one would collide the clone's emitted type with the template's")]
     public int Uid { get; set; }
 
     /// <summary>The original COBOL data-name, or <see langword="null"/> for <c>FILLER</c>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "both GR-1 exclusion lists exclude the NAME of a subject; a cloned SUBORDINATE keeps its own (ISO §13.18.49.4 GR2a — 'the same names, descriptions, and hierarchy')")]
     public string? CobolName { get; init; }
 
     /// <summary>The C#-safe member/field identifier for this item (unique within its containing struct scope).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "identity — re-uniquified among the clone's NEW siblings")]
     public required string CsName { get; set; }
 
     /// <summary>The analyzed PICTURE/USAGE for an elementary item; <see langword="null"/> for a group.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "PICTURE (ISO §13.18.40) — in neither GR-1 exclusion list")]
     public PicInfo? Pic { get; set; }
 
     /// <summary>GROUP-USAGE (ISO §13.18.29; data-model design D20; kb/Work PB79) — <see cref="Model.GroupUsage.None"/>
     /// for an ordinary (alphanumeric) group (GR3); Bit / National for a declared bit / national group AND for every
     /// group subordinate to one (SR2/SR3 "explicitly or implicitly" — propagated by <c>DataBinder.ResolveIndexItems</c>,
     /// the usage-inheritance walk). Never set on an elementary item.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "GROUP-USAGE (ISO §13.18.29) — in neither GR-1 exclusion list. ⛔ kb/Work PB522: the clause BOTH hand lists lost, so a TYPE / SAME AS copy of a bit or national group bound as an ordinary alphanumeric group")]
     public GroupUsage GroupUsage { get; set; }
 
     /// <summary>The §13.18.29.4 GR1b/GR2b AS-IF picture of a bit / national group — "treated as though it were an
@@ -92,6 +104,8 @@ public sealed class DataItem
     /// picture-less elementary item (COBOLNET0881) is unknowable until the forest is complete —
     /// <c>DataBinder.MakeItem</c> writes it, <c>DataBinder.ResolveIndexItems</c> adjudicates and CLEARS it
     /// (P5.11c; <see cref="Pic"/> stays null meanwhile, never a sentinel shape).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the deferred ISO §13.18.60.4 GR1 adjudication of the copied USAGE clause — it travels with the clause it defers")]
     public PicPending Pending { get; set; }
 
     /// <summary>This entry's OWN SIGN clause (ISO §13.18.52), or <see langword="null"/> when none — captured even on
@@ -99,6 +113,8 @@ public sealed class DataItem
     /// clause winning (GR1–3, applied by the binder's post-build inheritance pass). Settable (not init-only) for
     /// ONE additional writer: the <c>ExpandTypes</c> description copy (a TYPE / SAME AS subject assumes the
     /// template's / data-name-1's description, §13.18.58.4 GR3 / §13.18.49 GR1+GR5).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "SIGN (ISO §13.18.52) — in neither GR-1 exclusion list")]
     public SignSpec? OwnSign { get; set; }
 
     /// <summary>This entry's OWN USAGE keyword (ISO §13.18.60), or <see langword="null"/> when none — captured even
@@ -106,6 +122,8 @@ public sealed class DataItem
     /// <c>01 U9 USAGE COMPUTATIONAL</c> makes the PICTURE-only U10 binary). Applied by the binder's post-build
     /// <c>InheritUsageClauses</c> pass. Settable for the <c>ExpandTypes</c> description copy (§13.18.58.4 GR3 /
     /// §13.18.49 GR1+GR3).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "USAGE (ISO §13.18.60) — in neither GR-1 exclusion list")]
     public Usage? OwnUsage { get; set; }
 
     /// <summary>This entry's <see cref="Pic"/> was SYNTHESIZED FROM ITS USAGE, not analyzed from a PICTURE
@@ -119,6 +137,8 @@ public sealed class DataItem
     /// category/usage patterns — two hand-written lists that disagreed, so a group-level BINARY-SHORT or FLOAT-LONG
     /// left a ZERO-LENGTH leaf (or a group emitted as a scalar <c>float</c>). This is the fact itself, so no list
     /// can go stale against it.</para></summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the provenance of the copied PICTURE (ISO §13.16.3 SR8) — travels with Pic")]
     public bool PicIsUsageSynthesized { get; set; }
 
     /// <summary>The PICTURE character-string as WRITTEN (repetition factors already expanded from any integer
@@ -127,17 +147,23 @@ public sealed class DataItem
     /// the usage its group wrote, and the §13.18.60.3 SR3/SR5/SR12/SR20 screen that then applies has to name the
     /// offending picture in its message exactly as the written-clause spelling does. Travels with a TYPE /
     /// SAME AS description copy, like <see cref="Pic"/> itself.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the written PICTURE character-string — travels with Pic; the ISO §13.18.60.3 screens name it")]
     public string? PictureText { get; set; }
 
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.
     /// Settable for the <c>ExpandTypes</c> description copy (a subject's OWN VALUE wins, §13.18.57.4 GR3;
     /// otherwise the copied description's VALUE applies, §13.18.49 GR1 — VALUE is not in the exclusion list).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "VALUE format 1 (ISO §13.18.63) — in neither GR-1 exclusion list; §13.18.57.4 GR3 gives the SUBJECT's own VALUE precedence, hence the ??=")]
     public string? RawValue { get; set; }
 
     /// <summary>The Format 2 (table) VALUE phrases (ISO §13.18.63.2, COBOL-2002): each keys a literal list to an
     /// occurrence range via FROM (subscript-1 …) [TO (subscript-2 …)]. Mutually exclusive with <see cref="RawValue"/>
     /// (the grammar's two arms cannot both match). Null unless the entry carries a table VALUE. Resolved to the
     /// per-occurrence emitter map after the forest is built (dimensions / dynamic expected capacity are known then).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "VALUE format 2 (ISO §13.18.63.2) — the same clause in its other spelling (kb/Work PB505)")]
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
     /// <summary>The RESOLVED Format 2 (table) VALUE — the §13.18.63.4 GR12–GR15 subscript-tuple → literal map plus
@@ -145,6 +171,8 @@ public sealed class DataItem
     /// pass, which needs the COMPLETE forest: an entry's dimensions include every OCCURS clause SUPERORDINATE to
     /// it (SR18/SR20), and <see cref="Parent"/> is still null while the entry itself binds. Null when the entry
     /// carries no table VALUE or its clause was rejected.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "resolved post-build by DataBinder.ResolveTableValues, which needs the COMPLETE forest (ISO §13.18.63.3 SR18/SR20 dimensions), in the copy's OWN scope")]
     public TableValuePlan? TableValuePlan { get; set; }
 
     /// <summary>True for this item OR ANY ITEM IN ITS SUBTREE carrying a resolved <see cref="TableValuePlan"/> —
@@ -152,12 +180,16 @@ public sealed class DataItem
     /// not a semantic predicate: without a table VALUE below it, an OCCURS entry's occurrences are all identical,
     /// so one element initializer is composed ONCE and repeated (what both lanes always did). With one, each
     /// occurrence is composed against its own subscript tuple.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the same pass's emitter fast-path guard, set on every ancestor of a plan-carrying entry in the copy's own scope")]
     public bool ContainsTableValue { get; set; }
 
     /// <summary>§13.18.63.4 GR16's INITIAL CAPACITY for THIS dynamic-capacity table, computed from every Format-2
     /// VALUE clause that applies to it ("If more than one VALUE clause applies, the maximum value thus calculated
     /// becomes the initial capacity" — this property IS that maximum, accumulated by the resolve pass). Null when
     /// no table VALUE applies, in which case §8.5.1.9.1's FROM (minimum) opens the table.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the same pass's ISO §13.18.63.4 GR16 maximum, computed in the copy's own scope")]
     public int? TableValueInitialCapacity { get; set; }
 
     /// <summary>⛔ THE ONE READER FOR "what literal initializes this item at this occurrence" — the Format-1
@@ -180,15 +212,21 @@ public sealed class DataItem
     /// entry once per reference site. Measured: `01 A VALUE "ABCD". 05 X PIC 9(4) COMP. 01 B SAME AS A.` emitted
     /// COBOLNET1702 TWICE, both anchored at X's one declaration. Without this flag the fact is unrecoverable at
     /// screen time — the merge has already happened and the text is indistinguishable.</para></summary>
+    [DescriptionCopy(DescriptionCopyKind.CopyWritten,
+        "the copy itself WRITES it — the ISO §13.18.63.3 SR13/SR14 screens' subject is the entry that WROTE the VALUE, never a composed copy")]
     public bool ValueIsCopied { get; set; }
 
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
     /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>DataBinder.TypeDecls</c>, kept OFF
     /// <c>Roots</c>/<c>ByName</c>; its subordinate names are not globally referenceable (GR1).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "ISO §13.18.57.4 GR1 excludes the TYPEDEF clause by name, and §13.18.58.3 SR1 confines it to level 1 so no subordinate carries it")]
     public bool IsTypedef { get; init; }
 
     /// <summary>True when the TYPEDEF carries STRONG (ISO §13.18.58.2) — the declared type is strongly typed, so its
     /// referencing items may interoperate only with the same type (the compile-time §8.5.3.3 checks).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the STRONG phrase OF the TYPEDEF clause (ISO §13.18.58.2) — excluded with it; a subject's carried strength is StrongType")]
     public bool TypedefStrong { get; init; }
 
     /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §13.18.22 SR1 — a level-1
@@ -197,18 +235,24 @@ public sealed class DataItem
     /// EXTERNAL (§13.18.22.4 GR3) and must be level-1 (GR2) — <c>ExpandType</c> marks the subject
     /// <see cref="ExternalFromType"/>, and <c>CallBindExternalAndGlobal</c> re-bases it onto the run-unit
     /// <c>ExternalStore</c> cell like any explicitly-EXTERNAL record.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of the type DECLARATION's own entry; its effect on a referencing subject is ExternalFromType (ISO §13.18.22.4 GR3)")]
     public bool IsExternalTypedef { get; init; }
 
     /// <summary>True when THIS entry carries an explicit EXTERNAL clause (ISO §13.18.22). The external re-basing
     /// itself is parse-tree-driven (<c>CallBindExternalAndGlobal</c>); this stored fact backs the §13.18.22 SR5
     /// conformance check (an external record whose TYPE is STRONG requires the type declaration to be external
     /// too) and the double-registration guard for <see cref="ExternalFromType"/>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "ISO §13.18.49.4 GR1 excludes EXTERNAL by name; for a TYPE subject the carrier is §13.18.22.4 GR3 (ExternalFromType), because the effect is on the RECORD rather than a copied clause")]
     public bool HasExternalClause { get; init; }
 
     /// <summary>True when this record became EXTERNAL by referencing an EXTERNAL type declaration
     /// (ISO §13.18.22.4 GR3 — "the record descriptions in which it is specified are also external"). Set by
     /// <c>ExpandType</c>; consumed by <c>CallBindExternalAndGlobal</c> (which cannot see it in the parse tree —
     /// the record's own entry carries no EXTERNAL clause).</summary>
+    [DescriptionCopy(DescriptionCopyKind.CopyWritten,
+        "ExpandType / ExpandSameAs write it under ISO §13.18.22.4 GR3 with the GR2 level-1 check — a derived effect, never a verbatim copy")]
     public bool ExternalFromType { get; set; }
 
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §13.18.15) — a STRUCTURED
@@ -217,29 +261,41 @@ public sealed class DataItem
     /// initialization already produces), and neither it nor any subordinate may be a receiving operand
     /// (§13.18.15.3 SR2 → COBOLNET1548 at the receiving chokepoints; <c>DataBinder.IsConstantRecordItem</c>
     /// walks ancestors). Set only on the root; subordinates are covered by the ancestor walk.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "ISO §13.18.49.4 GR1 excludes CONSTANT RECORD by name (§13.18.49.3 SR10 also forbids it on data-name-1), and §13.18.15.3 SR1 confines it to level 1 so no subordinate carries it")]
     public bool IsConstantRecord { get; init; }
 
     /// <summary>The type-name of a <c>TYPE IS type-name</c> reference (ISO §13.18.57), or null. The referencing entry
     /// is CLONED from that type declaration's subtree by the post-build <c>DataBinder.ExpandTypes</c> pass (D17), which
     /// clears this once expanded.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "a nested TYPE reference inside a template re-expands PER CLONE (ISO §13.18.57); an ENTRY copy's source is already expanded")]
     public string? TypeRefName { get; set; }
 
     /// <summary>The <c>SAME AS data-name-1</c> target name (ISO §13.18.49), or null. Structurally the TYPE
     /// reference with a DATA-NAME source: <c>DataBinder.ExpandSameAs</c> (inside the ONE <c>ExpandTypes</c> pass)
     /// resolves the target entry and clones its description in via the SAME <c>CloneItem</c> machinery (GR1/GR2),
     /// then clears this. <see cref="SameAsQualifiers"/> carries any OF/IN qualifiers of the reference.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "a nested SAME AS inside a copied description re-expands per clone (ISO §13.18.49.4 GR1)")]
     public string? SameAsName { get; set; }
 
     /// <summary>The OF/IN qualifier names of a <see cref="SameAsName"/> reference, in written order (empty when
     /// unqualified). Each must name an ancestor of the target for the reference to match.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "the OF/IN qualifiers of the SameAsName it rides")]
     public List<string> SameAsQualifiers { get; } = [];
 
     /// <summary>After <c>ExpandTypes</c>: the type-name this item (or its containing subtree root) was cloned from —
     /// backs the §8.5.3.3 STRONG same-type check. Null for a non-typed item.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the carried type identity the ISO §8.5.3 same-type test reads — a subject declared with TYPE keeps it through a further copy")]
     public string? TypeName { get; set; }
 
     /// <summary>After <c>ExpandTypes</c>: true when this item is the subject of a TYPE clause referencing a STRONG
     /// type declaration (an item is strongly typed if it or any ancestor has this set). Drives the §8.8.4 gates.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the same carried identity's strength; ISO §13.18.57.3 SR6 re-checks placement at the new site")]
     public bool StrongType { get; set; }
 
     // The strong-typing overlay (StrongRoot / IsStrongGroup / IsStronglyTyped / TypeAnchor / SameStrongType /
@@ -250,12 +306,16 @@ public sealed class DataItem
     /// item is not a table. For a fixed (Format 1) table this is the OCCURS count; for an occurs-depending (Format 2)
     /// table it is the MAXIMUM, integer-2 (ISO §8.5.1.8 — "the physical capacity is fixed at compile time; the
     /// logical capacity may vary"). The variable current count lives in <see cref="OccursSpec"/>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "ISO §13.18.49.3 SR5 forbids OCCURS on data-name-1 and §13.16.3 SR12/SR14 make a SUBJECT's own OCCURS the array-of-description form; a cloned SUBORDINATE's OCCURS is part of the type (§13.18.58.4 GR1)")]
     public int? Occurs { get; init; }
 
     /// <summary>The structured OCCURS DEPENDING ON / KEY description (ISO §13.18.38 Format 2 + GR3), or
     /// <see langword="null"/> for a non-table or a plain keyless fixed table (which <see cref="Occurs"/> alone
     /// describes). Carries the integer-1..integer-2 bounds, the resolved DEPENDING ON data-name-1, and the
     /// ASCENDING/DESCENDING KEY data-names.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "the same clause's structured form — CLONED, never shared: Depending / CapacityRegister resolve per-clone")]
     public OccursSpec? OccursSpec { get; init; }
 
     /// <summary>True for a Format-4 DYNAMIC-capacity table (ISO §13.18.38, data-model D9): capacity varies at run
@@ -269,6 +329,8 @@ public sealed class DataItem
     public bool IsTable => Occurs is not null || IsDynamicTable;
 
     /// <summary>The INDEXED BY index-names declared on this item's OCCURS clause (empty if none).</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "the INDEXED BY phrase of that OCCURS clause (ISO §13.18.38), riding it")]
     public List<string> IndexNames { get; } = [];
 
     /// <summary>
@@ -286,60 +348,84 @@ public sealed class DataItem
     /// </summary>
     public bool StoreAsImage => Storage is Model.StorageForm.CharImage { Category: PicCategory.Numeric };
 
-    /// <summary>JUSTIFIED [RIGHT] (ISO §13.18.34): alphanumeric/alphabetic receives right-justify — space-fill on
+    /// <summary>JUSTIFIED [RIGHT] (ISO §13.18.32): alphanumeric/alphabetic receives right-justify — space-fill on
     /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§14.9.25.4 GR6c). Settable for
     /// the <c>ExpandTypes</c> description copy (§13.18.58.4 GR3 / §13.18.49 GR1).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "JUSTIFIED (ISO §13.18.32) — in neither GR-1 exclusion list")]
     public bool Justified { get; set; }
 
     /// <summary>BLANK [WHEN] ZERO (ISO §13.18.8): storing a ZERO value fills the item with spaces — applied at
     /// every numeric-edited store (MOVE editing and arithmetic resultants alike). Settable for the
     /// <c>ExpandTypes</c> description copy (§13.18.58.4 GR3 / §13.18.49 GR1).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "BLANK WHEN ZERO (ISO §13.18.8) — in neither GR-1 exclusion list")]
     public bool BlankWhenZero { get; set; }
 
     /// <summary>The entry carried a SYNCHRONIZED / SYNC clause (ISO §13.18.55). A no-op in the typed-native model
     /// (no byte alignment), but recorded so the edition validator can gate SYNCHRONIZED on a GROUP item — a
     /// COBOL-2023 introduction (Annex E.3.2 item 6) — below 2023 (P3 step 10). Not emitted. Settable for the
     /// <c>ExpandTypes</c> description copy (§13.18.49 GR1 — SYNCHRONIZED is not in the exclusion list).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Alignment,
+        "SYNCHRONIZED (ISO §13.18.55) IS 'alignment': §13.18.57.4 GR1 excludes it from a TYPE subject (GR2d re-aligns that subject 'as though it were a level 1 item'); §13.18.49.4 GR1 does not exclude it")]
     public bool Synchronized { get; set; }
 
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the hierarchy a copier REBUILDS itself by cloning each child (ISO §13.18.49.4 GR2a)")]
     public List<DataItem> Children { get; } = [];
 
-    /// <summary>The level-88 condition-names whose conditional variable is THIS item (ISO §13.18.4). Normally these
+    /// <summary>The level-88 condition-names whose conditional variable is THIS item (ISO §13.16.3 SR24). Normally these
     /// also live in <c>DataBinder.Conditions</c> (the global by-name index), but a TYPEDEF template keeps them ONLY
     /// here — its condition-names are not globally referenceable (§13.18.58.4 GR1) until a <c>TYPE</c> reference
     /// clones the item, at which point the clone's copies ARE registered globally (data-model D17 inc 3).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "rebuilt by CloneConditionOnto — a clone's condition-names ARE globally registered where a template's are not (ISO §13.18.58.4 GR1)")]
     public List<Condition88> Own88s { get; } = [];
 
     /// <summary>Where this item's data description entry begins — the diagnostic cursor captured when it was bound
     /// (kb/Work PB82), so a POST-BUILD pass (REDEFINES / RENAMES resolution, ODO, ANY LENGTH, TYPE expansion, …)
     /// can position its diagnostics at the entry: <c>using var _ = Edition.At(item);</c>. Default (unset) for a
     /// synthetic item (a debug register, a subscript-segment temp); a TYPE / SAME AS clone carries its template's.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "the diagnostic cursor: a SUBJECT keeps its own entry's, a cloned subordinate carries its template member's")]
     public CobolNet.Editions.DiagnosticCursor DeclaredAt { get; init; }
 
     /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.
     /// Settable so an UNRESOLVED redefiner (kb/Work PB93 — diagnosed COBOLNET1654) is demoted to an ordinary entry:
     /// the layout consumers key on this name, and a name without a target was the half-state.</summary>
+    [DescriptionCopy(DescriptionCopyKind.MemberOnly,
+        "ISO §13.18.49.4 GR1 excludes REDEFINES from a subject; a cloned subordinate's REDEFINES is part of the type (§13.18.58.4 GR1)")]
     public string? RedefinesTargetName { get; set; }
 
     /// <summary>The resolved REDEFINES target item (the immediately-redefined entry, which may itself be a
     /// redefiner — SR11). Set by the post-build pass; null for a non-redefining entry.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "resolved post-build by the REDEFINES pass, in the clone's OWN scope")]
     public DataItem? RedefinesTarget { get; set; }
 
     /// <summary>The level-66 RENAMES descriptor (ISO §13.18.45), or null unless this is a level-66 entry.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a level-66 entry is not a subordinate (it rides Renames66) and is part of no entry description")]
     public RenamesInfo? Renames { get; set; }
 
     /// <summary>The redefines class (shared-storage equivalence class) this item belongs to, or null if it stands
     /// alone. Every member of a class — the original + every redefiner — points to the SAME instance.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the redefines equivalence class, computed post-build by RedefinesClassifier")]
     public RedefinesClass? Class { get; set; }
 
     /// <summary>True for the ONE stored member of a redefines class (the non-redefining anchor — SR7); every other
     /// member is a computed view. Defaults true so a standalone item (the whole existing corpus) emits normally.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the same classifier's stored-member verdict")]
     public bool IsCanonical { get; set; } = true;
 
     /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
     /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The
     /// post-build pass routes every reference through the pointer (Phase-4b increment 2).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "ISO §13.18.57.4 GR4 — the SUBJECT's own BASED clause applies and type-name-1's 'is ignored for this entry'; §13.16.3 SR16 confines BASED to level 1/77, so no subordinate carries it")]
     public bool IsBased { get; set; }
 
     /// <summary>ALIGNED (ISO §13.18.1; kb/Work PB487) — §13.18.1.4 GR1: "An ALIGNED clause causes the subject of
@@ -351,6 +437,8 @@ public sealed class DataItem
     /// <para>Read at exactly ONE site — <see cref="BitLayout.SharesByteWith"/>, the placement predicate both the
     /// extent walk and the offset walk call. GR2 ("applies to each occurrence") is honoured there too, by
     /// rounding the per-occurrence stride up to a byte.</para></summary>
+    [DescriptionCopy(DescriptionCopyKind.Alignment,
+        "ALIGNED (ISO §13.18.1) is the OTHER alignment clause — the same §13.18.57.4 GR1 'alignment' exclusion as SYNCHRONIZED, and §13.18.49.4 GR1 excludes neither. §13.18.1.3 SR1 admits it on a bit group or an elementary bit item, so a TYPEDEF member can carry it")]
     public bool IsAligned { get; set; }
 
     /// <summary>True for an ANY LENGTH elementary level-1 LINKAGE entry (ISO §13.18.2 — the item's length varies
@@ -359,6 +447,8 @@ public sealed class DataItem
     /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoBindMethodData</c>) on an SR2/SR3/SR4
     /// violation so the item binds as ordinary storage under an already-failed compile (the IsBased pattern).
     /// Emit-side: every width-sensitive render of the item uses the CARRIER's runtime length, never Pic.Length.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "ANY LENGTH (ISO §13.18.2) — in neither GR-1 exclusion list; §13.18.2.3 SR2/SR3/SR4 are re-screened at the copy's own site by the placement sweeps, which CLEAR it on a violation")]
     public bool IsAnyLength { get; set; }
 
     /// <summary>DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19; COBOL-2014) — a variable-length, minimum-length-zero
@@ -367,6 +457,8 @@ public sealed class DataItem
     /// (permitted-co-clause) shape checks pass; CLEARED on any violation so the item binds as ordinary storage under
     /// an already-failed compile (the IsBased pattern). The item's field is a native <c>string</c> (init "" or VALUE);
     /// a receiving MOVE stores through <c>CobolDynString.Store</c> (truncate-to-<see cref="DynMaxSize"/>, no pad).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "DYNAMIC LENGTH (ISO §13.18.19) — in neither GR-1 exclusion list")]
     public bool IsDynamicLength { get; set; }
 
     /// <summary>THE MAXIMUM SIZE of this dynamic-length item in characters (ISO §8.5.1.10.1 — "the smallest of"
@@ -378,12 +470,16 @@ public sealed class DataItem
     /// special-cased that sentinel by skipping their clamp — so an unbounded item's SET SIZE request of 2³²+k wrapped
     /// to k and one past <see cref="int.MaxValue"/> threw out of generated code (kb/Work PB463). "No LIMIT clause" and
     /// "no maximum" are different facts; one field never again holds both.</para></summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the LIMIT phrase of the DYNAMIC LENGTH clause (ISO §13.18.19.4 GR2), riding it")]
     public int DynMaxSize { get; set; } = CobolNet.Runtime.CobolDynString.MaxLength;
 
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.
     /// ONE writer: <c>DataBinder.AssignClassOffsets</c> — the classifier's offset walk, shared by the cell forcer
     /// (P5.11d; init-only inexpressible, the walk runs after construction — the P5.10 <c>Storage</c> pattern).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "computed post-build by DataBinder.AssignClassOffsets over the clone's OWN redefines class")]
     public int ClassOffset { get; internal set; }
 
     /// <summary>The start of this view's window within its class's shared area expressed in BITS — the unit
@@ -392,6 +488,8 @@ public sealed class DataItem
     /// byte-aligned item it is simply <c>8 × <see cref="ClassOffset"/></c>; it DIFFERS only for a
     /// <c>USAGE BIT</c> member that §8.5.1.6.3 places at a bit position inside a shared byte (kb/Work PB203).
     /// Same single writer and same meaningfulness condition as <see cref="ClassOffset"/>.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "the same walk's bit-unit twin (ISO §13.18.44.4 GR1)")]
     public int ClassBitOffset { get; internal set; }
 
     /// <summary>The canonical storage representation of this ELEMENTARY item (null for a group — a group emits as a
@@ -401,14 +499,20 @@ public sealed class DataItem
     /// documents the single-writer discipline. (The design's init-only shape is not expressible with the
     /// pass-assignment pattern; recorded as a P5.10 deviation. Reading before the group tail answers null — the
     /// <see cref="StoreAsImage"/> projection then answers false, the flag's early value.)</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "computed ONCE by StorageFormPass, the LAST data-model pass, over the complete forest")]
     public Model.StorageForm? Storage { get; internal set; }
 
     /// <summary>The level-66 RENAMES entries attached to this record (a 01/FD/SD owner). They are NOT storage
     /// children (they add no storage, ISO §13.18.45) — kept here so layout / struct emission ignores them while
     /// reference resolution can still find them.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "level-66 entries add no storage (ISO §13.18.45) and are part of no copied description")]
     public List<DataItem> Renames66 { get; } = [];
 
     /// <summary>The containing group, or <see langword="null"/> for a top-level (01/77) item.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "structure — the copier sets it to the NEW parent")]
     public DataItem? Parent { get; set; }
 
     /// <summary>True for a SYNTHESIZED compiler temp (a user-function result temp or an object-property temp —
@@ -416,6 +520,8 @@ public sealed class DataItem
     /// as declared data, so a rule whose text admits "a data item" and excludes functions (§15.43.3 r1's shape —
     /// §8.5.2.12 items 6/7 make FUNCTIONS category numeric too, which is why the exclusion must be written)
     /// needs this positive is-a-declared-item discrimination (kb/Work R26).</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a synthesized-temp discrimination (kb/Work R26), not a data description clause")]
     public bool IsCompilerTemp { get; internal set; }
 
     /// <summary>True for a group item (has children, no PICTURE).</summary>
