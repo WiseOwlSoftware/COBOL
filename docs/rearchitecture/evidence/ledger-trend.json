@@ -550,6 +550,15 @@
       "dns": 366,
       "label": "Train 32: DEVLOG 1600 + plan",
       "battery": null
+    },
+    {
+      "sha": "c60a49c5",
+      "date": "2026-09-13",
+      "gap": 2481,
+      "closed": 1867,
+      "dns": 366,
+      "label": "Battery #75 at d80cb676: com",
+      "battery": null
     }
   ]
 }
