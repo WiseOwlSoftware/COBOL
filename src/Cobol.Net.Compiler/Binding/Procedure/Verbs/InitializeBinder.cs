@@ -21,10 +21,54 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <summary>What the statement's phrases select, threaded through the expansion: the receiver filter
     /// (ISO §14.9.20 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
     /// <paramref name="ValueCategory"/> null with <paramref name="ToValue"/> means <c>ALL TO VALUE</c> (a bare
-    /// <c>TO VALUE</c> ≡ ALL, §14.9.20.2 note 2).</summary>
+    /// <c>TO VALUE</c> ≡ ALL, §14.9.20.2 note 2).
+    /// <para>⛔ <paramref name="HasReplacing"/> IS THE PHRASE'S PRESENCE, NOT <paramref name="Replacements"/>'s
+    /// COUNT. §14.9.20.4 GR5c4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
+    /// REPLACING phrase whose every item was dropped (the §14.9.20.3 SR6 duplicate-category skip) is still
+    /// SPECIFIED, so an item of a non-matching category is left unchanged by GR5c and must NOT collect the GR6c
+    /// category default. Reading the count made the two indistinguishable.</para></summary>
     private readonly record struct InitializeSpec(
         bool WithFiller, bool ToValue, InitializeCategory? ValueCategory,
-        IReadOnlyList<(InitializeCategory Cat, BoundOperand Value)> Replacements, bool ToDefault);
+        IReadOnlyList<(InitializeCategory Cat, BoundOperand Value)> Replacements, bool HasReplacing, bool ToDefault);
+
+    /// <summary>⛔ WHY a possible receiving-operand IS a receiving-operand — ISO §14.9.20.4 GR5c's four
+    /// alternatives, collapsed to the ONE fact §14.9.20.4 GR6 then asks for. GR6 is not a free precedence over the
+    /// phrases: its arms are literally keyed on the qualification ("if the data item qualifies as a
+    /// receiving-operand because of the VALUE phrase" → GR6a; "does not qualify because of the VALUE phrase, but
+    /// does qualify because of the REPLACING phrase" → GR6b; "does not qualify in accordance with General rules 6a
+    /// and 6b" → GR6c). So the qualification TEST and the SENDER CHOICE are two rules, and this enum is the value
+    /// that carries the first one's answer into the second.
+    /// <para>⛔ THE DEFECT THIS SHAPE EXISTS TO PREVENT (kb/Work PB418): the two rules used to be ONE method, whose
+    /// VALUE arm returned a sender only when the item carried a Format-1 VALUE clause. That made "has a VALUE
+    /// clause" the qualification premise where GR5c1 states a THREE-way test, so (i) a pointer / object-reference
+    /// receiver — which §13.18.63.3 SR9 and §8.4.3.10.3 forbid a VALUE clause on, and which GR5c1a therefore
+    /// qualifies CATEGORICALLY — was never nulled, and (ii) a table-format VALUE (GR5c1c) was invisible, so
+    /// <c>ALL TO VALUE</c> stored nothing and <c>ALL TO VALUE THEN TO DEFAULT</c> stored SPACES over the very
+    /// values it exists to restore. A fused predicate cannot say "already qualified through VALUE, keep that
+    /// sender"; an ordered qualification can, and every future category word (kb/Work PB415) is one case in
+    /// <see cref="Qualify"/> rather than a new arm in a sender.</para></summary>
+    private enum InitializeQualification
+    {
+        /// <summary>GR5c matched no alternative — the item is left unchanged.</summary>
+        None,
+        /// <summary>GR5c1 — the VALUE phrase (categorically, GR5c1a; or by a Format-1 / Format-2 VALUE clause,
+        /// GR5c1b / GR5c1c). Sender: GR6a.</summary>
+        ViaValue,
+        /// <summary>GR5c2 — the REPLACING phrase names this item's category. Sender: GR6b.</summary>
+        ViaReplacing,
+        /// <summary>GR5c3 (the DEFAULT phrase) or GR5c4 (neither REPLACING nor VALUE specified). Sender: GR6c's
+        /// category-default fill table — the two alternatives are ONE member because GR6c does not distinguish
+        /// them ("does not qualify in accordance with General rules 6a and 6b").</summary>
+        ViaDefault,
+    }
+
+    /// <summary>One entered OCCURS dimension on the way down to an elementary receiver, in §13.18.63.3 SR20's order
+    /// (most inclusive first) — the key a Format-2 (table) VALUE plan is looked up by. A dimension the expansion
+    /// itself loops over is known only as its bind-time loop VARIABLE (the occurrence is a run-time value, so the
+    /// GR5c1c test becomes an emitted branch); a dimension identifier-1 pinned with its own INTEGER-LITERAL
+    /// subscript is known as that number and is resolved entirely at bind time. Both null = an occurrence identifier-1
+    /// supplied as a run-time expression, which no bind-time lookup can key.</summary>
+    private readonly record struct OccurrenceDim(string? Var, int? Fixed);
 
     /// <summary>Bind INITIALIZE (ISO §14.9.20). The COBOL-85 surface — identifier-1‥n (full data references:
     /// qualification AND subscripts) and the REPLACING phrase — binds completely; the 2002+ phrases (WITH FILLER,
@@ -59,7 +103,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             }
 
         var spec = new InitializeSpec(withFiller, toValue is not null,
-            toValue?.initializeCategory() is { } vc ? InitializeCategoryOf(vc) : null, replacements, toDefault);
+            toValue?.initializeCategory() is { } vc ? InitializeCategoryOf(vc) : null, replacements,
+            HasReplacing: replacing is not null, toDefault);
 
         var actions = new List<InitializeAction>();
         foreach (var dref in ini.initializeOperandList().dataReference())
@@ -77,7 +122,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     public BoundInitialize BindAllocateInitialized(Core.DataReferenceContext basedRef)
     {
         var spec = new InitializeSpec(WithFiller: true, ToValue: true, ValueCategory: null,
-            Replacements: [], ToDefault: true);
+            Replacements: [], HasReplacing: false, ToDefault: true);
         var actions = new List<InitializeAction>();
         BindInitializeTarget(basedRef, spec, actions);
         return new BoundInitialize(actions);
@@ -100,8 +145,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             string v = $"__ini{_initializeLoopVar++}";
             var body = new List<InitializeAction>();
             var tblPath = ReferenceResolver.BuildTablePath(dtbl)!;
+            // identifier-1 carries no subscript on this arm (the guard above), so the ONE dimension the expansion
+            // enters is the whole occurrence key a Format-2 VALUE on the element is looked up by.
             ExpandInitialize(new InitializeDynCursor(tblPath.Add(new DynTableSegment(v)), dtbl),
-                spec, body, dtbl, identifier1: true);
+                spec, body, dtbl, [new OccurrenceDim(v, null)], identifier1: true);
             if (body.Count > 0 && DynCapacity(dtbl, tblPath) is { } cap) actions.Add(new InitializeLoop(v, cap, body));
             else if (body.Count > 0) actions.Add(new InitializeErrorAction(
                 $"INITIALIZE of the dynamic-capacity table '{dtbl.CobolName ?? dtp}' (no capacity register)"));
@@ -119,8 +166,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (place is RefModPlace)
         {
             // A reference-modified identifier-1 is the single receiver, of category alphanumeric (ISO §8.4.3.3.4 GR6 —
-            // a reference-modifier defines a unique alphanumeric data item); no VALUE clause attaches to it.
-            if (InitializeSender(InitializeCategory.Alphanumeric, rawValue: null, spec) is { } src)
+            // a reference-modifier defines a unique alphanumeric data item); no VALUE clause attaches to it, so
+            // GR5c1b and GR5c1c are both false and GR5c1a does not name alphanumeric.
+            var rq = Qualify(InitializeCategory.Alphanumeric, effectiveValue: null, spec);
+            if (SenderFor(rq, InitializeCategory.Alphanumeric, effectiveValue: null, spec) is { } src)
                 actions.Add(new InitializeStore(place, src));
             return;
         }
@@ -146,7 +195,47 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}' (unsupported place kind)"));
             return;
         }
-        ExpandInitialize(cursor, spec, actions, place.Item, identifier1: true);
+        ExpandInitialize(cursor, spec, actions, place.Item, SeedOccurrenceKey(place), identifier1: true);
+    }
+
+    /// <summary>The occurrence key identifier-1's OWN reference already pins (ISO §13.18.63.3 SR20 keys a Format-2
+    /// VALUE by "one subscript … for each OCCURS clause for the subject of the entry or superordinate to that
+    /// entry, specified in the same order as a subscripted reference to the subject of the entry would be
+    /// specified" — which IS the order the resolved access path lays its table segments down in). The expansion
+    /// appends one dimension per loop it enters BELOW this; together they are the full tuple
+    /// <see cref="TableValuePlan"/> is looked up by.
+    /// <para>An integer-literal subscript resolves at bind time and needs no emitted test; ANY OTHER subscript
+    /// expression is carried as the dimension's run-time index and is tested exactly like a loop variable — it is
+    /// the same one-based occurrence number, written in the same scope, and it is already the text the resolved
+    /// place splices into its own subscript position. A storage form with no access path (the Tier-B window
+    /// cursor) yields the empty key, which is a length mismatch against any non-empty plan and is the ONE shape
+    /// <see cref="ExpandTableValue"/> has to fail loud on.</para></summary>
+    private static IReadOnlyList<OccurrenceDim> SeedOccurrenceKey(Place place)
+    {
+        // ⛔ THE SWITCH ASKS THE UNDECORATED PLACE, for the same reason BindInitializeTarget's does (kb/Work
+        // PB393): a reference modifier, an ODO extent or a group-image view decorates WHERE the members are
+        // READ, never where they LIVE, and a decorated place sent to a catch-all arm loses the subscripts
+        // identifier-1 actually wrote.
+        AccessPath? path = place.Undecorated switch
+        {
+            MemberPlace mp => mp.Path,
+            DynTablePlace dp => dp.Path,
+            _ => null,
+        };
+        if (path is null) return [];
+        var key = new List<OccurrenceDim>();
+        foreach (var seg in path.Segments)
+        {
+            string? ix = seg switch
+            {
+                FixedTableSegment f => f.OneBasedIndex,
+                DynTableSegment d => d.OneBasedIndex,
+                _ => null,
+            };
+            if (ix is null) continue;
+            key.Add(int.TryParse(ix.Trim(), out int n) ? new OccurrenceDim(null, n) : new OccurrenceDim(ix, null));
+        }
+        return key;
     }
 
     /// <summary>The <see cref="AllCount"/> a subordinate table's per-occurrence loop is bounded by — ISO
@@ -188,31 +277,23 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// §13.18.45); GR5a1 — items that are not valid MOVE receivers (an index data item, §14.9.25.3 SR). A child
     /// with an OCCURS clause expands one loop per dimension (GR5b2 — every occurrence).</summary>
     private void ExpandInitialize(InitializeCursor cur, in InitializeSpec spec, List<InitializeAction> actions,
-        DataItem? identifier1Item, bool identifier1 = false)
+        DataItem? identifier1Item, IReadOnlyList<OccurrenceDim> key, bool identifier1 = false)
     {
         DataItem item = cur.Item;
         if (item.IsElementary)
         {
             if (!identifier1 && item.CobolName is null && !spec.WithFiller) return;            // GR5a2
             if (InitializeItemCategory(item) is not { } cat) return;                            // GR5a1
-            // §14.9.20.4 GR4/GR6c: a data-pointer / program-pointer / object-reference receiver is initialized by an
-            // IMPLICIT SET … TO the predefined NULL — NOT a MOVE, so it must not route through the InitializeStore
-            // MOVE path (GR5a1 keeps these as receiving operands, not MOVE-receiver-excluded). Qualification is the
-            // same GR5c test every category uses: a bare / TO DEFAULT / TO VALUE INITIALIZE touches the item, a
-            // REPLACING of a non-matching category leaves it unchanged — so InitializeSender's non-null result IS the
-            // qualification signal (its returned fill operand is unused here; the SET target is always NULL). (CA2)
-            if (cat is InitializeCategory.DataPointer or InitializeCategory.ProgramPointer
-                    or InitializeCategory.FunctionPointer or InitializeCategory.ObjectReference)
+            // ⛔ GR5c1c MAKES THE RECEIVER'S QUALIFICATION AND SENDER PER-OCCURRENCE, and only a Format-2 (table)
+            // VALUE can do that — every other alternative of GR5c answers the same for all occurrences. So the
+            // per-occurrence expansion is entered ONLY here, and only under the VALUE phrase; this is the same
+            // fast-path guard `ValueInitializer.FieldInit` takes on the declaration lane, keyed on the same fact.
+            if (spec.ToValue && item.TableValuePlan is { } plan)
             {
-                if (InitializeSender(cat, item.RawValue, spec) is not null)                     // GR5c qualification
-                    actions.Add(new InitializeSetNull(cur.ToPlace()));                          // GR4 SET … TO the GR6c predefined NULL
+                ExpandTableValue(cur, item, cat, spec, actions, key, plan);
                 return;
             }
-            if (InitializeSender(cat, item.RawValue, spec) is not { } source) return;           // GR5c — left unchanged
-            // §14.9.20.4 GR7: initializing a dynamic-length elementary item sets its length to zero (overrides the
-            // GR6c figurative SPACE fill — an empty sender flows through the same dynamic-length store to length 0). (CA1)
-            if (item.IsDynamicLength) source = new BoundStringLiteral("");
-            actions.Add(new InitializeStore(cur.ToPlace(), source));
+            if (ElementaryAction(cur, item, cat, spec, item.ValueAt(default)) is { } single) actions.Add(single);
             return;
         }
         if (!item.IsGroup) return;
@@ -241,7 +322,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 if (childCur.StoragePath is { } dtp)
                 {
                     ExpandInitialize(new InitializeDynCursor(dtp.Add(new DynTableSegment(dv)), child),
-                        spec, dbody, identifier1Item);
+                        spec, dbody, identifier1Item, [.. key, new OccurrenceDim(dv, null)]);
                     if (dbody.Count > 0 && TableCount(child, identifier1Item, dtp) is { } dcount)
                         actions.Add(new InitializeLoop(dv, dcount, dbody));
                     else if (dbody.Count > 0)
@@ -258,7 +339,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             {
                 string v = $"__ini{_initializeLoopVar++}";
                 var body = new List<InitializeAction>();
-                ExpandInitialize(childCur.Indexed(v), spec, body, identifier1Item);
+                ExpandInitialize(childCur.Indexed(v), spec, body, identifier1Item,
+                    [.. key, new OccurrenceDim(v, null)]);
                 // GR5b2 over the GR8 count — fixed (GR4), current (GR8a) or maximum (GR8b).
                 if (body.Count > 0 && TableCount(child, identifier1Item, childCur.StoragePath) is { } count)
                     actions.Add(new InitializeLoop(v, count, body));
@@ -267,33 +349,220 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                         + "(its OCCURS DEPENDING ON object is not resolvable — ISO §14.9.20.4 GR8)"));
             }
             else
-                ExpandInitialize(childCur, spec, actions, identifier1Item);
+                ExpandInitialize(childCur, spec, actions, identifier1Item, key);
         }
     }
 
-    /// <summary>The sending operand for one possible receiver, or null when it is NOT a receiving operand and is
-    /// left unchanged (ISO §14.9.20 GR5c — e.g. <c>REPLACING NUMERIC…</c> alone touches no non-numeric item).
-    /// Precedence (GR6): the VALUE phrase (category match + a data-item-format VALUE clause, GR5c1b/GR6a3) → the
-    /// REPLACING operand of the matching category (GR6b) → the category default (GR6c — figurative ZEROES for
-    /// numeric/numeric-edited [the EDITED zero through MOVE editing, never spaces], alphanumeric SPACES for
-    /// alphabetic/alphanumeric/alphanumeric-edited), the default applying only under TO DEFAULT or when neither
-    /// VALUE nor REPLACING is specified (GR5c3/c4 — the bare-85 form defaults everything not excluded).</summary>
-    private static BoundOperand? InitializeSender(InitializeCategory cat, string? rawValue, in InitializeSpec spec)
+    // ── GR5c (qualification) and GR6 (sender), which are TWO rules and used to be one method (kb/Work PB418) ────
+
+    /// <summary>ISO §14.9.20.4 GR5c — "each possible receiving-operand is a receiving-operand if at least one of
+    /// the following is true", evaluated in the rule's own order so the answer also carries GR6's arm selector.
+    /// <paramref name="effectiveValue"/> is the VALUE-clause literal that applies TO THIS OCCURRENCE (
+    /// <see cref="DataItem.ValueAt"/> — the Format-1 text, or the Format-2 literal keyed to the occurrence's
+    /// subscript tuple), so GR5c1b and GR5c1c are ONE test over the one carrier-agnostic reader rather than two
+    /// readers that can disagree.</summary>
+    private static InitializeQualification Qualify(InitializeCategory cat, string? effectiveValue,
+        in InitializeSpec spec)
     {
-        if (spec.ToValue && (spec.ValueCategory is null || spec.ValueCategory == cat) && rawValue is { } raw)
-            return InitializeValueOperand(raw);
+        // GR5c1 — "The VALUE phrase is specified, the category of the elementary data item is one of the categories
+        // specified or implied in the VALUE phrase, and one of the following is true": GR5c1a (categorical),
+        // GR5c1b (a data-item format VALUE clause) or GR5c1c (a table format VALUE clause keyed to this occurrence).
+        // ALL implies every category (GR2), which is the null ValueCategory.
+        if (spec.ToValue && (spec.ValueCategory is null || spec.ValueCategory == cat)
+            && (QualifiesCategorically(cat) || effectiveValue is not null))
+            return InitializeQualification.ViaValue;
+        // GR5c2 — "The REPLACING phrase is specified and the category of the elementary data item is one of the
+        // categories specified in the REPLACING phrase".
+        foreach (var (rcat, _) in spec.Replacements)
+            if (rcat == cat) return InitializeQualification.ViaReplacing;
+        // GR5c3 — "The DEFAULT phrase is specified"; GR5c4 — "Neither the REPLACING phrase nor the VALUE phrase is
+        // specified" (the bare COBOL-85 form, which defaults everything GR5a did not exclude).
+        if (spec.ToDefault || (!spec.ToValue && !spec.HasReplacing)) return InitializeQualification.ViaDefault;
+        return InitializeQualification.None;
+    }
+
+    /// <summary>ISO §14.9.20.4 GR5c1a — "Either the category of the elementary data item is data-pointer,
+    /// message-tag, object-reference, or program-pointer". These categories are receiving-operands under the VALUE
+    /// phrase UNCONDITIONALLY, and the rule exists because they can never satisfy GR5c1b or GR5c1c: §13.18.63.3 SR9
+    /// forbids a VALUE clause on FUNCTION-POINTER / MESSAGE-TAG / OBJECT-REFERENCE / PROGRAM-POINTER outright, and
+    /// for a plain USAGE POINTER the only writable value, the predefined address NULL, may appear per §8.4.3.10.3
+    /// "only as a sending operand in an INITIALIZE or a SET statement", in an argument, or in a relation condition —
+    /// never in a VALUE clause. Reading GR5c1b as the whole premise therefore left this arm 100% dead, and
+    /// <c>INITIALIZE p ALL TO VALUE</c> silently did nothing to a pointer (kb/Work PB418).
+    /// <para>⛔ FUNCTION-POINTER IS DELIBERATELY ABSENT, and that is the PRINTED standard, not a transcription
+    /// loss: GR4's SET-form list, GR6a1's sender list and GR6c's fill table all name function-pointer, and GR5c1a
+    /// alone does not — verified against the licensed PDF (§14.9.20.4 GR5c1a, printed folio 639). A FUNCTION-POINTER
+    /// item is consequently NOT a receiving operand under the VALUE phrase alone (SR9 denies it GR5c1b and GR5c1c
+    /// too); it is still one under REPLACING (GR5c2), DEFAULT (GR5c3) and the bare form (GR5c4), where GR6c gives
+    /// it the predefined address NULL. Do not "even up" this list — the rule is quoted, not paraphrased.</para>
+    /// <para>MESSAGE-TAG is in the rule and has no member here: it belongs to the owner-declined MCS facility and
+    /// no <see cref="PicCategory"/> carries it, so no elementary item can reach this test with that category.</para></summary>
+    private static bool QualifiesCategorically(InitializeCategory cat) =>
+        cat is InitializeCategory.DataPointer or InitializeCategory.ObjectReference
+            or InitializeCategory.ProgramPointer;
+
+    /// <summary>ISO §14.9.20.4 GR6 — "the sending-operand in each implicit MOVE and SET statement", whose three
+    /// arms are keyed on WHY the item qualified, not on which phrases were written: GR6a "if the data item
+    /// qualifies as a receiving-operand because of the VALUE phrase", GR6b "if the data item does not qualify …
+    /// because of the VALUE phrase, but does qualify because of the REPLACING phrase", GR6c "if the data item does
+    /// not qualify in accordance with General rules 6a and 6b". Null when GR5c left the item unchanged, and for
+    /// GR6a1/GR6a2 whose sending-operand is the predefined NULL the SET arm materializes.</summary>
+    private static BoundOperand? SenderFor(InitializeQualification q, InitializeCategory cat, string? effectiveValue,
+        in InitializeSpec spec) => q switch
+    {
+        // GR6a3 — "the sending-operand is determined by the literal in the VALUE clause specified in the data
+        // description entry of the data item. If the data item is a table element, the literal in the VALUE clause
+        // that corresponds to the occurrence being initialized determines the sending-operand." Both carriers
+        // arrive here already resolved to that occurrence's literal. A null value means the item qualified through
+        // GR5c1a, whose senders are GR6a1/GR6a2's predefined NULL — an InitializeSetNull, not an operand.
+        InitializeQualification.ViaValue => effectiveValue is { } raw ? InitializeValueOperand(raw) : null,
+        // GR6b — "the literal-1 or identifier-2 associated with the category specified in the REPLACING phrase".
+        InitializeQualification.ViaReplacing => ReplacementFor(cat, spec),
+        // GR6c fill table: ZEROES for numeric/numeric-edited AND boolean (boolean zeros — the figurative
+        // materializes '0' fill against the boolean receiver); SPACES for the character categories, which
+        // the table lists row by row — alphabetic, alphanumeric, alphanumeric-edited, national and
+        // national-edited, the last two "Figurative constant national SPACES" (national spaces under the
+        // D-N4 Latin-1 identity). The pointer/object-reference rows of the same table are the predefined NULLs,
+        // reached through the SET arm rather than an operand.
+        InitializeQualification.ViaDefault =>
+            cat is InitializeCategory.Numeric or InitializeCategory.NumericEdited or InitializeCategory.Boolean
+                ? new BoundFigurative('Z')
+                : new BoundFigurative('S'),
+        _ => null,
+    };
+
+    /// <summary>The REPLACING operand named for <paramref name="cat"/> (ISO §14.9.20.4 GR6b); null is unreachable
+    /// once <see cref="Qualify"/> has answered <c>ViaReplacing</c>, which it does only on a match.</summary>
+    private static BoundOperand? ReplacementFor(InitializeCategory cat, in InitializeSpec spec)
+    {
         foreach (var (rcat, value) in spec.Replacements)
             if (rcat == cat) return value;
-        if (spec.ToDefault || (!spec.ToValue && spec.Replacements.Count == 0))
-            // GR6c fill table: ZEROES for numeric/numeric-edited AND boolean (boolean zeros — the figurative
-            // materializes '0' fill against the boolean receiver); SPACES for the character categories, which
-            // the table lists row by row — alphabetic, alphanumeric, alphanumeric-edited, national and
-            // national-edited, the last two "Figurative constant national SPACES" (national spaces under the
-            // D-N4 Latin-1 identity).
-            return cat is InitializeCategory.Numeric or InitializeCategory.NumericEdited or InitializeCategory.Boolean
-                ? new BoundFigurative('Z')
-                : new BoundFigurative('S');
         return null;
+    }
+
+    /// <summary>ONE elementary receiver's action under ISO §14.9.20.4 GR4/GR5c/GR6 at ONE occurrence, or null when
+    /// GR5c leaves it unchanged. <paramref name="effectiveValue"/> is the VALUE-clause literal applying to that
+    /// occurrence (<see cref="DataItem.ValueAt"/>).</summary>
+    private static InitializeAction? ElementaryAction(InitializeCursor cur, DataItem item, InitializeCategory cat,
+        in InitializeSpec spec, string? effectiveValue)
+    {
+        var q = Qualify(cat, effectiveValue, spec);
+        if (q is InitializeQualification.None) return null;                                     // GR5c — left unchanged
+        // §14.9.20.4 GR4: "if the category of a receiving-operand is data-pointer, function-pointer, message-tag,
+        // object-reference, or program-pointer, the implicit statement is SET receiving-operand TO sending-operand"
+        // — NOT a MOVE, so it must not route through the InitializeStore MOVE path (GR5a1 keeps these as receiving
+        // operands, not MOVE-receiver-excluded). (CODE-SPEC-AUDIT CA2.)
+        if (cat is InitializeCategory.DataPointer or InitializeCategory.ProgramPointer
+                or InitializeCategory.FunctionPointer or InitializeCategory.ObjectReference)
+            // GR6a1/GR6a2 and every pointer row of GR6c's table give the predefined NULL. GR6b does NOT: under
+            // REPLACING the sending operand is identifier-2, an implicit `SET receiver TO identifier-2`, and
+            // writing NULL there would be a wrong answer rather than a missing one. That arm is unreachable today
+            // — `initializeCategory` cannot yet spell DATA-POINTER / OBJECT-REFERENCE / PROGRAM-POINTER
+            // (kb/Work PB415) — so it is staged LOUD, and the loud is the tripwire that fires the day it can.
+            return q is InitializeQualification.ViaReplacing
+                ? new InitializeErrorAction($"INITIALIZE REPLACING of the {cat} item "
+                    + $"'{item.CobolName ?? "FILLER"}' (the ISO §14.9.20.4 GR6b implicit SET from identifier-2)")
+                : new InitializeSetNull(cur.ToPlace());                                         // GR4 SET … TO the predefined NULL
+        if (SenderFor(q, cat, effectiveValue, spec) is not { } source) return null;
+        // §14.9.20.4 GR7: "when a dynamic-length elementary item is initialized, its length is set to zero"
+        // (overrides the GR6c figurative SPACE fill — an empty sender flows through the same dynamic-length store
+        // to length 0; §8.3.3.6.4 GR3 would otherwise leave it at length 1). (CODE-SPEC-AUDIT CA1.)
+        // ⚠ GR7 IS WRITTEN UNCONDITIONALLY AND THE VALUE / REPLACING ARMS OF THAT READING ARE UNADJUDICATED: GR6a3
+        // requires a sender that "produces the same result as the initial value of the data item as produced by the
+        // application of the VALUE clause", and §8.6.4 makes that a NON-ZERO length for a dynamic-length item that
+        // carries a VALUE clause, so an unconditional GR7 contradicts them both. The behaviour here is unchanged
+        // from before the GR5c/GR6 split and is pinned only on the category-default branch
+        // (conformance:2014/initialize_dynamic_length); the conflict is an OPEN OWNER DETERMINATION recorded on
+        // kb/Work PB418, and the row GR-14.9.20.4-7 stays PARTIAL until it is answered.
+        if (item.IsDynamicLength) source = new BoundStringLiteral("");
+        return new InitializeStore(cur.ToPlace(), source);
+    }
+
+    /// <summary>⛔ THE Format-2 (table) VALUE ARM OF GR5c/GR6, WHICH IS THE ONLY PER-OCCURRENCE ONE (ISO §14.9.20.4
+    /// GR5c1c + GR6a3). The receiver's qualification and its sending-operand both depend on the occurrence, so one
+    /// bind-time action cannot carry the whole element: this composes an
+    /// <see cref="InitializeOccurrenceSelect"/> — one arm per DISTINCT literal (the occurrences sharing it
+    /// coalesced) plus the fall-through for every occurrence the clause does not key, which GR5c re-qualifies from
+    /// scratch (REPLACING, DEFAULT, or nothing).
+    /// <para>The per-occurrence literal comes from <see cref="DataItem.ValueAt"/> through
+    /// <see cref="TableValuePlan.LiteralAt"/> — the SAME reader <c>ValueInitializer</c> and <c>GroupImageCodec</c>
+    /// use for the declaration lane, so a table element's INITIALIZE-restored value and its initial value cannot
+    /// disagree. Before this arm existed the lane read only <see cref="DataItem.RawValue"/>, the Format-1 carrier,
+    /// and a Format-2 element therefore failed GR5c1 entirely: <c>ALL TO VALUE</c> emitted no store at all, and
+    /// <c>ALL TO VALUE THEN TO DEFAULT</c> qualified it through GR5c3 and wrote SPACES over the values the
+    /// statement exists to restore (kb/Work PB418; the same root kb/Work PB499 records from the VALUE-clause side).</para>
+    /// <para>Every dimension of the plan has to be identified: the ones the expansion loops over by their loop
+    /// variable, the ones identifier-1 pinned by its own subscript (an integer literal folds at bind time, any
+    /// other expression is tested at run time). A key SHORTER than the plan's dimension list is the one shape
+    /// nothing can answer — a storage form that carries no access path — and it is staged LOUD rather than
+    /// resolved to an arbitrary literal, because §14.9.20.4 GR6a3 names ONE literal per occurrence and a lane
+    /// that cannot identify the occurrence has no honest answer.</para></summary>
+    private static void ExpandTableValue(InitializeCursor cur, DataItem item, InitializeCategory cat,
+        in InitializeSpec spec, List<InitializeAction> actions, IReadOnlyList<OccurrenceDim> key, TableValuePlan plan)
+    {
+        // The plan is keyed by the subject's FULL OCCURS chain in §13.18.63.3 SR20's order, so the key the walk
+        // carries has to be the same length and every dimension has to be identified.
+        bool keyed = key.Count == plan.Dims.Count;
+        if (keyed)
+            foreach (var d in key)
+                if (d.Var is null && d.Fixed is null) { keyed = false; break; }
+        if (!keyed)
+        {
+            actions.Add(new InitializeErrorAction($"INITIALIZE … TO VALUE of '{item.CobolName ?? "FILLER"}', whose "
+                + "table-format VALUE clause is keyed to occurrences identifier-1 does not pin at compile time "
+                + "(ISO §14.9.20.4 GR5c1c/GR6a3)"));
+            return;
+        }
+
+        // The dimensions identifier-1 PINNED select a bind-time slice of the plan; the ones the expansion loops
+        // over stay as run-time tests, in the same most-inclusive-first order the arms' tuples are written in.
+        var vars = new List<string>();
+        var varAt = new List<int>();
+        for (int i = 0; i < key.Count; i++)
+            if (key[i].Var is { } v) { vars.Add(v); varAt.Add(i); }
+
+        // Deterministic codegen: the plan's map has no defined enumeration order, so walk its tuples in odometer
+        // order (Subscripts.Compare — §13.18.63.4 GR12's own fill order) before grouping.
+        var tuples = plan.Literals.Keys.ToList();
+        tuples.Sort(Subscripts.Compare);
+
+        var order = new List<string>();
+        var byLiteral = new Dictionary<string, List<Subscripts>>(StringComparer.Ordinal);
+        foreach (var subs in tuples)
+        {
+            if (subs.Count != key.Count) continue;                       // not this plan's shape — LiteralAt agrees
+            bool inSlice = true;
+            for (int i = 0; i < key.Count; i++)
+                if (key[i].Fixed is { } f && subs[i] != f) { inSlice = false; break; }
+            if (!inSlice) continue;
+            string lit = plan.Literals[subs];
+            if (!byLiteral.TryGetValue(lit, out var group)) { byLiteral[lit] = group = []; order.Add(lit); }
+            var proj = new int[vars.Count];
+            for (int j = 0; j < vars.Count; j++) proj[j] = subs[varAt[j]];
+            group.Add(new Subscripts(proj));
+        }
+
+        // GR5c re-asked for every occurrence the clause does NOT key: GR5c1c is false there, so the item falls to
+        // GR5c2/c3/c4 exactly as if it carried no VALUE clause at all.
+        var otherwise = ElementaryAction(cur, item, cat, spec, effectiveValue: null);
+
+        // Every dimension pinned at bind time — the occurrence is known, so there is no test to emit.
+        if (vars.Count == 0)
+        {
+            var only = order.Count > 0 ? ElementaryAction(cur, item, cat, spec, order[0]) : otherwise;
+            if (only is not null) actions.Add(only);
+            return;
+        }
+        var arms = new List<InitializeOccurrenceArm>();
+        foreach (string lit in order)
+            if (ElementaryAction(cur, item, cat, spec, lit) is { } act)
+                arms.Add(new InitializeOccurrenceArm(byLiteral[lit], act));
+        if (arms.Count == 0)
+        {
+            if (otherwise is not null) actions.Add(otherwise);
+            return;
+        }
+        actions.Add(new InitializeOccurrenceSelect(vars, arms, otherwise));
     }
 
     /// <summary>The INITIALIZE category of an elementary item (ISO §8.5.2 via §14.9.20.2 category-name), or null

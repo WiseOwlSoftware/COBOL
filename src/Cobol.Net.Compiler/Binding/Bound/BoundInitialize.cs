@@ -38,6 +38,31 @@ public sealed record InitializeStore(Place Target, BoundOperand Source) : Initia
 /// maximum in both quadrants and the dynamic arm aborted the run unit.</para></summary>
 public sealed record InitializeLoop(string Var, AllCount Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
 
+/// <summary>⛔ THE PER-OCCURRENCE ARM SELECTOR — the ONE place a receiver's sending-operand is allowed to differ
+/// between occurrences of the same table element (ISO §14.9.20.4 GR5c1c: an item is a receiving-operand when "a
+/// table format VALUE clause is specified in the data description entry of the elementary item and that VALUE
+/// clause specifies a value for the particular occurrence of the elementary data item"; GR6a3: "if the data item
+/// is a table element, the literal in the VALUE clause that corresponds to the occurrence being initialized
+/// determines the sending-operand").
+/// <para>A Format-2 (table) VALUE keys a DIFFERENT literal to each occurrence, so the single bind-time action an
+/// <see cref="InitializeLoop"/> body carries cannot express it — and the occurrences it does NOT key are not
+/// receiving-operands under the VALUE phrase at all, which is why <paramref name="Otherwise"/> exists and is
+/// nullable: those occurrences fall through GR5c to the REPLACING/DEFAULT arms, or to nothing.
+/// <paramref name="IndexVars"/> are the enclosing <see cref="InitializeLoop"/> variables of the subject's OCCURS
+/// chain, MOST INCLUSIVE FIRST — exactly the order §13.18.63.3 SR20 keys the plan's subscript tuples by, so an
+/// arm's <see cref="InitializeOccurrenceArm.When"/> tuples index straight into them. Arms are TESTED IN ORDER and
+/// are mutually exclusive by construction (one arm per distinct literal, the occurrences sharing it coalesced —
+/// the same folding <c>ValueInitializer.SeedSwitch</c> does, so a literal spanning a thousand occurrences is one
+/// branch and not a thousand).</para></summary>
+public sealed record InitializeOccurrenceSelect(
+    IReadOnlyList<string> IndexVars,
+    IReadOnlyList<InitializeOccurrenceArm> Arms,
+    InitializeAction? Otherwise) : InitializeAction;
+
+/// <summary>One arm of an <see cref="InitializeOccurrenceSelect"/>: the occurrence tuples that take
+/// <paramref name="Do"/>. Never empty — an arm with no tuple is dropped at bind time.</summary>
+public sealed record InitializeOccurrenceArm(IReadOnlyList<Subscripts> When, InitializeAction Do);
+
 /// <summary>An implicit <c>SET</c> … <c>TO NULL</c> (ISO §14.9.20.4 GR4/GR6c): a data-pointer, program-pointer, or
 /// object-reference receiver is initialized to its predefined NULL value. This is a SET, NOT a MOVE — it does not
 /// route through the <see cref="InitializeStore"/> conversion/editing path; the emitter renders the item's

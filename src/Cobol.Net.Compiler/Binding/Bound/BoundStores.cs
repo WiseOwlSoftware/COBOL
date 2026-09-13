@@ -93,6 +93,11 @@ public static class BoundStores
                     case InitializeStore st when st.Target.Item == item: return true;
                     case InitializeSetNull sn when sn.Target.Item == item: return true;
                     case InitializeLoop lp when InitStores(lp.Body): return true;
+                    // A Format-2 (table) VALUE select stores into the receiver on EVERY arm it has (ISO
+                    // §14.9.20.4 GR5c1c) — the arms differ only in which literal reaches it, so any one of them
+                    // answering yes is a store into this item.
+                    case InitializeOccurrenceSelect sel when InitStores(
+                        [.. sel.Arms.Select(x => x.Do), .. sel.Otherwise is { } o ? new[] { o } : []]): return true;
                 }
             return false;
         }

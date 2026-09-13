@@ -256,6 +256,13 @@ internal static class UsageCollectionPass
                 // references, and an occurrence count is always an ELEMENTARY read (an OCCURS DEPENDING integer,
                 // a dynamic table's capacity register), which P() ignores by construction.
                 case InitializeLoop x: foreach (var b in x.Body) InitAct(b); break;
+                // Every arm of a Format-2 (table) VALUE select is a store into the SAME receiver at a different
+                // occurrence (ISO §14.9.20.4 GR5c1c), so all of them are visited — the occurrence tests read only
+                // the enclosing loop variables, which are not data references at all.
+                case InitializeOccurrenceSelect x:
+                    foreach (var arm in x.Arms) InitAct(arm.Do);
+                    if (x.Otherwise is { } o) InitAct(o);
+                    break;
                 default: break;
             }
         }

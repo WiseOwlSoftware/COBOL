@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.CodeGen.Emit;
 
 namespace CobolNet.CodeGen;
@@ -62,9 +63,38 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                     foreach (var b in l.Body)
                         EmitAction(b);
                 break;
+            case InitializeOccurrenceSelect sel:
+                // ISO §14.9.20.4 GR5c1c/GR6a3 — the only per-occurrence arm of the expansion: a Format-2 (table)
+                // VALUE keys a different literal to each occurrence, and the occurrences it does not key are not
+                // receiving-operands under the VALUE phrase at all. Arms are mutually exclusive by construction
+                // (one per distinct literal), so the if/else-if chain is a decision, not a fall-through.
+                bool first = true;
+                foreach (var arm in sel.Arms)
+                {
+                    using (w.Block($"{(first ? "if" : "else if")} ({OccurrenceTest(sel.IndexVars, arm.When)})"))
+                        EmitAction(arm.Do);
+                    first = false;
+                }
+                if (sel.Otherwise is { } fallback)
+                {
+                    if (first) EmitAction(fallback);          // no arm survived — the select degenerates to its tail
+                    else using (w.Block("else")) EmitAction(fallback);
+                }
+                break;
             case InitializeErrorAction e:
                 w.Line(LoudStmt(e.Feature));
                 break;
         }
     }
+
+    /// <summary>The run-time test for one <see cref="InitializeOccurrenceArm"/>: the loop variables of the
+    /// subject's OCCURS chain (most inclusive first, ISO §13.18.63.3 SR20's order) matched against each occurrence
+    /// tuple the arm covers — a conjunction per tuple, disjoined over the tuples. The tuples are bind-time
+    /// constants, so nothing but the loop variables is read at run time.</summary>
+    private static string OccurrenceTest(IReadOnlyList<string> vars, IReadOnlyList<Subscripts> tuples) =>
+        string.Join(" || ", tuples.Select(t =>
+        {
+            string conj = string.Join(" && ", vars.Select((v, i) => $"{v} == {t[i]}"));
+            return vars.Count > 1 && tuples.Count > 1 ? $"({conj})" : conj;
+        }));
 }
