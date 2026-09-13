@@ -409,7 +409,11 @@ internal sealed class VersionConformancePass
         var pu = item.Pic?.Usage;
         var ou = item.OwnUsage;
         return
-            cat is PicCategory.National || ou is Usage.National ? Constructs.NationalData2002
+            // ⛔ The RESOLVED usage is read beside the written keyword, exactly as every arm below does: a
+            // national-form numeric / numeric-edited / boolean item (§13.18.60.3 SR12, LIVE since kb/Work
+            // PB646) is category-neutral, so only Pic.Usage names it — and the §13.18.60.4 GR1 INHERITED
+            // spelling (`01 G USAGE NATIONAL. 05 L PIC 9(3).`) leaves the leaf no OwnUsage at all.
+            cat is PicCategory.National || pu is Usage.National || ou is Usage.National ? Constructs.NationalData2002
             : cat is PicCategory.Boolean || ou is Usage.Bit ? Constructs.BooleanData2002
             : pu is Usage.Pointer || ou is Usage.Pointer ? Constructs.UsagePointer2002
             : cat is PicCategory.ProgramPointer || pu is Usage.ProgramPointer || ou is Usage.ProgramPointer

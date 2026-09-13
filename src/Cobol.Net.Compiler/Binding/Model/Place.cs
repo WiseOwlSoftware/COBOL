@@ -211,16 +211,22 @@ public sealed record BitWindow(string OffsetExpr, int Bits) : WindowCoding;
 public sealed record NationalWindow(int Positions) : WindowCoding
 {
     /// <summary>⛔ THE ONE test for "does this member ride the backing as national bytes?", and the position
-    /// count when it does. It is the CATEGORY plus the national-form NUMERIC (<c>PIC 9 USAGE NATIONAL</c>,
-    /// §13.18.60.3 SR12) — the same two shapes <c>DataBinder.ByteWindowResidueOf</c> used to refuse together,
-    /// so admitting them cannot drift apart from the geometry that carries them. A national GROUP is not one of
-    /// them: §13.18.29.4 GR2b makes it as-if <c>PICTURE N(m)</c> but its LAYOUT stays its children's (D20), and
-    /// each national leaf inside it gets its own window.</summary>
+    /// count when it does. It is exactly <b>USAGE NATIONAL</b> — §13.18.60.4 GR8 is written about the USAGE, not
+    /// about a category ("The implicit or explicit USAGE NATIONAL clause specifies that a national coded
+    /// character set shall be used to represent a data item in the storage of the computer"), so every one of
+    /// §13.18.60.3 SR12's five picture shapes rides here on one test: category national and national-edited
+    /// (whose usage SR13a/SR20 force to NATIONAL), and the national-form boolean, numeric and numeric-edited
+    /// (kb/Work PB646). The count is the item's own CHARACTER-IMAGE width, which §13.18.40.4 GR1 makes a count
+    /// of NATIONAL character positions under this usage — digits plus a SIGN SEPARATE position for a numeric
+    /// item, the mask width for an edited one, the PICTURE length otherwise.
+    /// <para>⚠ It used to name two shapes and read two different widths for them (<c>p.Length</c> for the
+    /// category, <c>ElementaryImageWidth</c> for the numeric), which is a list where a rule belongs: the two
+    /// widths are EQUAL for every category-national item — <c>ElementaryImageWidth</c>'s default arm IS
+    /// <c>pic.Length</c> — so collapsing them changes no answer and makes the next SR12 shape automatic.</para>
+    /// <para>A national GROUP is not one of them: §13.18.29.4 GR2b makes it as-if <c>PICTURE N(m)</c> but its
+    /// LAYOUT stays its children's (D20), and each national leaf inside it gets its own window.</para></summary>
     public static int? PositionsOf(DataItem item) =>
-        item.IsElementary && item.Pic is { } p
-        && (p.Category is PicCategory.National || (p.Category is PicCategory.Numeric && p.Usage is Usage.National))
-            ? p.Category is PicCategory.National ? p.Length : item.ElementaryImageWidth
-            : null;
+        item is { IsElementary: true, Pic.Usage: Usage.National } ? item.ElementaryImageWidth : null;
 }
 
 /// <summary>A <see cref="RedefViewPlace"/>'s MANAGED-SLOT window (kb/Work PB231 — the pointer third): the member

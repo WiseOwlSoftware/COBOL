@@ -531,6 +531,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var child in item.Children)
             {
                 if (child.IsGroup) MarkImageLeaves(child);
+                // ⛔ THE CARRIAGE QUESTION IS NOT THE IMAGE-FORM QUESTION, and this arm asks the CARRIAGE one
+                // (kb/Work PB646). Promotion REPLACES the leaf's native carrier with a string of its
+                // ImageWidth CHARACTER positions; for usage DISPLAY that string IS the leaf's storage, so every
+                // width the model holds stays one number. A national-form numeric's carrier positions and its
+                // STORAGE are two numbers (D-N1 — two bytes per position), and promoting one was MEASURED to
+                // corrupt a plain group-to-group MOVE between two such leaves. Its group-image contribution is
+                // the D-N7 COMPOSITION instead (GroupImageCodec.CarrierImageOf + the national byte transform),
+                // which needs no promotion; the price is that a group move depositing characters incompatible
+                // with the leaf's description leaves it holding §14.6.13.2's value rather than those
+                // characters, which is the same posture every other non-DISPLAY numeric usage already takes.
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                     MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9.25.4 MOVE GR4)
             }
@@ -1844,7 +1854,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE boolean literal exceeds the item's "
                     + $"{boolLimit} boolean positions (ISO §13.18.63.3 SR10)");
                 break;
-            case not (PicCategory.National or PicCategory.Boolean) when isNatLit || isBoolLit:
+            // ⛔ A NUMERIC-EDITED SUBJECT'S CHARACTER LITERAL IS §13.18.63.3 SR7's, AND SR7 IS NOT ASKED HERE
+            //    (kb/Work PB646). Every other arm of this screen reads the subject's CATEGORY, which entry bind
+            //    has settled; SR7 reads its CLASS, and §8.5.2.1 Table 2 makes a numeric-edited item's class its
+            //    USAGE ("Numeric-edited (if usage is display)" under class alphanumeric, "Numeric-edited (if
+            //    usage is national)" under class national) — a fact §13.18.60.4 GR1 group inheritance can still
+            //    change after this point. The verdict therefore belongs to
+            //    <see cref="CheckValueLiteralClasses"/>, which runs once the usage is resolved. Excluding the
+            //    category from the cross-category arm below is what keeps a CONFORMING `PIC ZZ9 USAGE NATIONAL
+            //    VALUE N"  1"` from being refused here as "a national literal may seed only its own category".
+            case not (PicCategory.National or PicCategory.Boolean)
+                    when isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited:
                 Edition.Error("COBOLNET0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
                     + "literal may seed only a data item of its own category (ISO §13.18.63 SR5/SR10)");
                 break;
@@ -1920,6 +1940,75 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 break;
         }
         return raw;
+    }
+
+    /// <summary>⛔ THE §13.18.63.3 SR7 SCREEN — the ONE VALUE-literal rule that reads the subject's CLASS
+    /// instead of its category, asked ONCE per literal, after §13.18.60.4 GR1 usage inheritance has settled
+    /// (kb/Work PB646). <i>"If the item is of category numeric-edited and the literal is of class alphanumeric or
+    /// national, the class of the literal shall conform to that of the data item, if the class is otherwise
+    /// undefined, then the class of the data item shall be that of the literal."</i>
+    /// <para>§8.5.2.1 Table 2 is what makes it a USAGE test and what makes it bite in BOTH directions: category
+    /// numeric-edited is class ALPHANUMERIC when its usage is display and class NATIONAL when its usage is
+    /// national. The national-usage half was unreachable while §13.18.60.3 SR12's national-form numeric-edited
+    /// item was staged loud (COBOLNET0899).</para>
+    /// <para>A NUMERIC literal is SR2/SR6's business, not this rule's, and a figurative constant takes the
+    /// receiver's class (§8.3.3.6), so neither reaches the test. ⚠ SR7's third clause — "if the class is
+    /// otherwise undefined, then the class of the data item shall be that of the literal" — has NO SITE in this
+    /// model and cannot acquire one: §13.18.60.3 SR13 implies a usage for every item given none (NATIONAL for an
+    /// 'N'-bearing picture character-string, else DISPLAY), so a numeric-edited item's usage — and with it its
+    /// Table 2 class — is always defined.</para></summary>
+    private void ScreenNumericEditedLiteralClass(PicInfo pic, string raw, string where)
+    {
+        if (pic.Category is not PicCategory.NumericEdited) return;
+        LiteralClass? lit = CobolLiteral.ClassOf(raw);
+        LiteralClass? allLit = CobolLiteral.AllLiteralRaw(raw) is { } allRaw ? CobolLiteral.ClassOf(allRaw) : null;
+        bool isNatLit = lit is LiteralClass.National || allLit is LiteralClass.National;
+        bool isAlnumLit = lit is LiteralClass.Alphanumeric || allLit is LiteralClass.Alphanumeric;
+        if (!isNatLit && !isAlnumLit) return;   // a numeric literal, a boolean literal or a figurative — not SR7's
+        if (isNatLit == (pic.Usage is Usage.National)) return;
+        Edition.Error("COBOLNET0898", $"{where}: the VALUE literal {raw} is of class "
+            + $"{(isNatLit ? "national" : "alphanumeric")}, but the numeric-edited item is of usage "
+            + $"{(pic.Usage is Usage.National ? "NATIONAL and therefore of class national" : "DISPLAY and therefore of class alphanumeric")}"
+            + " — the class of the literal shall conform to that of the data item (ISO §13.18.63.3 SR7; "
+            + "§8.5.2.1 Table 2)");
+    }
+
+    /// <summary>The §13.18.63.3 SR7 pass — every VALUE literal of every format, over the RESOLVED usage
+    /// (kb/Work PB646). Format 1's item literal and format 2's per-occurrence literals hang off the item; formats
+    /// 3 and 5's hang off the condition-names, whose "item" SR7 speaks of is the conditional variable (the same
+    /// reading <c>ValidateValueCategory</c>'s condition-name call site already uses).
+    /// <para>⛔ It is a PASS and not an entry-bind check because the rule reads §8.5.2.1 Table 2's CLASS, which
+    /// for a numeric-edited item is its usage — and §13.18.60.4 GR1 lets a group's USAGE clause supply that
+    /// usage after the entry has bound. Asking at entry bind gave the GR1 spelling the opposite verdict from its
+    /// written-clause twin in BOTH directions, which is exactly what the inheritance pass's invariant forbids
+    /// ("same syntax-rule verdicts, same diagnostics").</para></summary>
+    internal void CheckValueLiteralClasses()
+    {
+        foreach (var root in Roots) Walk(root);
+        foreach (var list in Conditions.Values)
+            foreach (var cond in list)
+            {
+                if (cond.Parent.OperandPic is not { } cp) continue;
+                using var _ = Edition.At(cond.Parent);
+                foreach (var (lo, hi) in cond.Values)
+                {
+                    ScreenNumericEditedLiteralClass(cp, lo, $"condition-name '{cond.Name}'");
+                    if (hi is not null) ScreenNumericEditedLiteralClass(cp, hi, $"condition-name '{cond.Name}'");
+                }
+            }
+
+        void Walk(DataItem item)
+        {
+            if (item.Pic is { } pic && !pic.IsRecovery)
+            {
+                using var _ = Edition.At(item);
+                string where = $"data item '{item.CobolName ?? "FILLER"}'";
+                if (item.RawValue is { } raw) ScreenNumericEditedLiteralClass(pic, raw, where);
+                if (item.TableValuePlan is { } plan)
+                    foreach (var lit in plan.Literals.Values) ScreenNumericEditedLiteralClass(pic, lit, where);
+            }
+            foreach (var c in item.Children) Walk(c);
+        }
     }
 
     /// <summary>ISO §13.18.63.3 SR2/SR3: a numeric VALUE literal on a fixed-point numeric subject shall be a
@@ -2519,8 +2608,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (p.OwnSign is { } asg)
                 {
                     item.OwnSign = asg;
-                    if (item.Pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display } spic)
-                        item.Pic = spic with { SignKind = PicInfo.SignKindFor(spic.Usage, signed: true, asg) };
+                    // ⛔ THE SAME transform §13.18.52 applies to a subordinate leaf — one method, exactly as the
+                    // USAGE route above, so this second acquisition route cannot drift from the inheritance one
+                    // (it did: it kept a DISPLAY-only guard after PB646 widened the SR2 pair — see
+                    // ApplyEffectiveSign). §13.18.49.4 GR5 names "an alphanumeric group item, national group
+                    // item, or strongly-typed group item to which data-name-1 is subordinate".
+                    ApplyEffectiveSign(item, asg);
                     break;
                 }
         // GR2: a group data-name-1 → the subject becomes a group with the same subordinate names, descriptions,
@@ -4442,19 +4535,39 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             };
     }
 
-    /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY items (ISO §13.18.52 GR1–3):
-    /// a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST enclosing clause takes
-    /// precedence, and an item's OWN clause (already consumed by <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins
-    /// outright. Runs BEFORE the REDEFINES classification pass because a SEPARATE sign occupies its own character
-    /// position (§13.18.52 GR6a) — it widens the item's image, which feeds the class-max width.</summary>
+    /// <summary>Apply an elementary item's EFFECTIVE SIGN clause to its analyzed PICTURE — the SIGN twin of
+    /// <see cref="ApplyEffectiveUsage"/>, and the one <see cref="PicInfo.SignKindFor"/> recomputation.
+    /// <para>⛔ ONE site for every route by which a signed numeric item acquires a SIGN clause its own entry did
+    /// not write: §13.18.52.4 GR1 group inheritance (<see cref="InheritSignClauses"/>) and the §13.18.49.4 GR5
+    /// SAME-AS ancestor transform (<c>ExpandSameAs</c>). Each carried its own copy of the guard, and the copies
+    /// DID drift: when kb/Work PB646 widened the guard to the usage PAIR §13.18.52.3 SR2 names ("The usage of an
+    /// elementary item for which the SIGN clause is specified shall be display or national") the SAME-AS copy
+    /// was left at DISPLAY alone, so <c>01 TN USAGE NATIONAL SIGN IS LEADING SEPARATE. 05 TNE PIC S9(3).
+    /// 01 SNX SAME AS TNE.</c> MEASURED <c>FUNCTION LENGTH</c> 3 / <c>BYTE-LENGTH</c> 6 and the over-punch image
+    /// <c>04N</c> against the inheritance route's 4 / 8 / <c>-045</c> for the very same description — though
+    /// GR5 names "an alphanumeric group item, national group item, or strongly-typed group item" explicitly.
+    /// <see cref="PicInfo.SignKindFor"/> owns what each usage's sign representation IS; this owns WHEN an
+    /// inherited clause reaches it.</para></summary>
+    private static void ApplyEffectiveSign(DataItem item, SignSpec sign)
+    {
+        if (item.Pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display or Usage.National } pic)
+            item.Pic = pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) };
+    }
+
+    /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY/NATIONAL items (ISO
+    /// §13.18.52 GR1–3): a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST
+    /// enclosing clause takes precedence, and an item's OWN clause (already consumed by
+    /// <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins outright. Runs BEFORE the REDEFINES
+    /// classification pass because a SEPARATE sign occupies its own character position (§13.18.52 GR6a) — it
+    /// widens the item's image, which feeds the class-max width.</summary>
     internal void InheritSignClauses()
     {
         static void Walk(DataItem item, SignSpec? inherited)
         {
             SignSpec? effective = item.OwnSign ?? inherited;
-            if (item.OwnSign is null && effective is not null
-                && item.Pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display } pic)
-                item.Pic = pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, effective) };
+            // GR1 applies a group's clause to "each numeric item subordinate to the group", with no usage
+            // condition of its own; ApplyEffectiveSign holds the §13.18.52.3 SR2 usage pair, once.
+            if (item.OwnSign is null && effective is not null) ApplyEffectiveSign(item, effective);
             foreach (var c in item.Children) Walk(c, effective);
         }
         foreach (var root in Roots) Walk(root, null);
@@ -4867,6 +4980,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                         MarkImageForced(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
+                    // A national-form numeric leaf reaches the arm below (kb/Work PB646): its window over the
+                    // one backing is Place.NationalWindow's transcoded CHARACTERS, not its bytes, but the
+                    // image-forced verdict is the same one and this is the arm that already carried it.
                     else if (leaf.Pic is { HasImageByteForm: true, Usage: not Usage.Display })   // the ONE image predicate (kb/Work PB164 — COMP-5/BINARY-* windows included)
                         // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
                         // the one string backing IS its BYTES — radix-2 two's complement or BCD, of exactly

@@ -67,12 +67,20 @@ public sealed class ByteWindowResidueDriftTests
         // (Place.NationalWindow / CobolBits.NatReadWindow). The BYTES column is what proves it: an alias of
         // 2n is what the REDEFINES spelling needs and what §14.9.3.4 GR3 allocates.
         { "BWR09", "PIC N(4)", 8, true },
-        // ⚠ NOT A ROW, AND THE REASON IS MEASURED, NOT DEDUCED: the gate's OTHER national spelling, a
-        // national-form NUMERIC (`PIC 9(3) USAGE NATIONAL`, §13.18.60.3 SR12), never reaches any of these four
-        // surfaces — `CheckDataAttributes` stages it loud at COBOLNET0899 ("national-form numeric data … is
-        // recognized but not yet implemented", the Phase 4a national-DIGITS residue) before storage
-        // classification runs. Its arm in ByteWindowResidueOf is the derived storage answer for the day that
-        // stage lifts, and it is carried there rather than here so the two national spellings cannot drift.
+        // ⛔ AND THE OTHER FOUR SPELLINGS §13.18.60.3 SR12 ADMITS — ROWS AT LAST (kb/Work PB646). The
+        // national-form NUMERIC, NUMERIC-EDITED and BOOLEAN forms used to be a comment here saying why they
+        // could not be rows: `PictureAnalyzer` staged each loud at COBOLNET0899 before storage classification
+        // ran, so the gate's arm for them was a derived answer nothing could contradict
+        // ([[a_dead_lookup_is_also_unverified]]). The staging is gone and the arm is now MEASURED on all four
+        // surfaces. The BYTES column is the §13.18.60.4 GR8 / D-N1 determination applied to §13.18.40.4 GR1's
+        // count of NATIONAL character positions: three digits → 6, a three-symbol edited mask → 6, four boolean
+        // positions → 8. A SIGN IS SEPARATE position counts too (§13.18.52.4 GR6a — a character position that
+        // is not a digit position), which is the row that would have caught PicInfo.SignKindFor's missing
+        // national arm.
+        { "BWR10", "PIC 9(3) USAGE NATIONAL", 6, true },
+        { "BWR11", "PIC ZZ9 USAGE NATIONAL", 6, true },
+        { "BWR12", "PIC 1(4) USAGE NATIONAL", 8, true },
+        { "BWR13", "PIC S9(3) USAGE NATIONAL SIGN IS LEADING SEPARATE", 8, true },
     };
 
     /// <summary>⛔ THE AGREEMENT ASSERTION: all four byte-window surfaces return the same verdict for the

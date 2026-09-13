@@ -62,7 +62,19 @@ public sealed class NumericByteFormDriftTests
             [Usage.FloatBinary128] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FloatDecimal16] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.FloatDecimal34] = (NumericByteForm.None, NumericTruncation.DigitCount),
-            [Usage.National] = (NumericByteForm.None, NumericTruncation.DigitCount),
+            // ── USAGE NATIONAL is ZONED, exactly as DISPLAY is (data-model design D-N7, kb/Work PB646). A
+            // national-form numeric item is its DISPLAY twin COMPOSED with the one national byte transform:
+            // §13.18.40.4 GR1 — "When the usage of the subject of the entry is national, each symbol
+            // representing a character position defines a national character position" — makes its digits, its
+            // separate-sign position and its insertion characters the SAME characters the twin holds, in a
+            // different character set, and §13.18.60.4 GR8 pins only the SIZE of one of those characters (D-N1:
+            // two bytes, UTF-16BE). So the FORM those characters take is the zoned digit run and CobolNum owns
+            // every digit / sign / de-edit rule ONCE; the CHARACTER→BYTE step is applied separately and once, by
+            // NationalWindow.PositionsOf + CobolBits.NatBytes at every byte boundary. A second "NationalZoned"
+            // byte form would have had to re-derive all of them. ⛔ This row read None while §13.18.60.3 SR12's
+            // numeric and numeric-edited shapes were refused by name at COBOLNET0899 — the table stated a
+            // representation for a population that could not be compiled, so nothing could contradict it. ──
+            [Usage.National] = (NumericByteForm.Zoned, NumericTruncation.DigitCount),
             [Usage.Bit] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.Pointer] = (NumericByteForm.None, NumericTruncation.DigitCount),
             [Usage.ProgramPointer] = (NumericByteForm.None, NumericTruncation.DigitCount),

@@ -670,16 +670,27 @@ public static class DiagnosticCatalog
         + "level-number 1 (§13.18.22 GR2), and an external record whose type declaration is strongly typed "
         + "requires that type declaration to be external too (§13.18.22 SR5).", "ISO §13.18.22 SR5 / GR2/GR3");
 
-    // ── COBOLNET0899 — national data (category not yet implemented) ──────────────────────────────────
+    // ── COBOLNET0899 — a file record whose leaf has no byte image ────────────────────────
+    // ⛔ NOT A NATIONAL STAGE ANY MORE, AND THE NAME IS THE LAST TRACE OF ONE (kb/Work PB646). Every national
+    // shape this descriptor was written for is LIVE: the category and the national-edited form (PB492), the
+    // byte surfaces (PB231 + PB327), the SORT/MERGE keys (PB678), and — with PB646 — §13.18.60.3 SR12's
+    // national-form numeric, numeric-edited and boolean. ONE caller remains,
+    // DataBinder.GateFileRecordByteSurface, and its residue clause now names only what
+    // DataBinder.ByteWindowResidueOf still refuses: a leaf with no bound representation (the staged §13.18.60
+    // USAGE band — USAGE FUNCTION-POINTER / MESSAGE-TAG, which gain no PicInfo at all). The id stays
+    // "national-data" because it is a PUBLISHED diagnostic key; the TEXT says what it reports.
     public static readonly DiagnosticDescriptor NationalData = new(
         NotImplemented, "national-data", EditionSeverity.Error,
-        "National-category data whose SHAPE is still staged: a national-form numeric or boolean item (PIC 9 / "
-        + "PIC 1 with USAGE NATIONAL, §13.18.60.3 SR12), and a national-edited item. A national SORT/MERGE key "
-        + "— elementary or a GROUP-USAGE NATIONAL group, in either SORT format — now RIDES: §14.9.40.4 GR5 / "
+        "An FD/SD record cannot be laid out because one of its leaves has no byte image — the byte-window "
+        + "carriage gate (DataBinder.ByteWindowResidueOf) refuses it. What that means today is a leaf of the "
+        + "staged §13.18.60 USAGE band, which gains no representation at all. Every NATIONAL shape this "
+        + "diagnostic once staged now RIDES: the category and national-edited (kb/Work PB492), a national leaf "
+        + "in an FD/SD record, an EXTERNAL/BASED/ADDRESS-OF cell, a REDEFINES overlay and an INDEXED record "
+        + "key (PB231 + PB327 — the record codec lays a national position out as its two UTF-16BE bytes, "
+        + "§13.18.60.4 GR8 / D-N1), a national SORT/MERGE key in either SORT format (PB678 — §14.9.40.4 GR5 / "
         + "§14.9.24.4 GR5 resolve an alphanumeric AND a national sequence and each key takes the one its CLASS "
-        + "names (kb/Work PB678). A national leaf in an FD/SD record, an EXTERNAL/BASED/"
-        + "ADDRESS-OF cell, a REDEFINES overlay and an INDEXED record key all RIDE (kb/Work PB231 + PB327 — the "
-        + "record codec lays a national position out as its two UTF-16BE bytes, §13.18.60.4 GR8 / D-N1).",
+        + "names), and §13.18.60.3 SR12's national-form numeric, numeric-edited and boolean items (PB646 — "
+        + "design D-N7).",
         "ISO §8.5 / §13.18.60", RecognizedNotImplemented);
     // ⛔ `NationalThroughRange` (`national-through-range`) IS GONE — kb/Work PB761, discharged in landing train
     // 18, and this comment stands where it was so it is not re-added. It staged a condition-name THROUGH range

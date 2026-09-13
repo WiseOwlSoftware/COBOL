@@ -5,15 +5,22 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// The W2 data-skeleton × edition matrix (roadmap Phase 2; VERSION_TEST_MATRIX introduction invariants). Every
-/// 2002-introduced data construct that COBOL.NET recognizes but does not yet implement — the FLOAT-SHORT family
-/// (ISO §13.18.60) and the PICTURE symbol E (ISO §13.18.40.4 GR13b) — must NEVER compile silently: below 2002
-/// the ConstructRegistry introduction gate rejects (COBOLNET0900 naming COBOL-2002); at 2002/2014/2023 the
-/// COBOLNET0899 not-implemented error names the owning roadmap phase. Before this sweep each of these silently
-/// misbound to USAGE DISPLAY / "pure numeric, zero digits". The constructs that have since gone LIVE (USAGE
-/// OBJECT REFERENCE, USAGE POINTER, the BINARY-CHAR family, and — Phase 4a M2-DATA-3/4 — NATIONAL data
-/// (PIC N / USAGE NATIONAL, §8.5.2.10) and BOOLEAN data (PIC 1 / USAGE BIT, §8.5.2.5)) keep only the
-/// introduction edge: they compile at 2002+ and 0900 at 85.
+/// The W2 data-skeleton × edition matrix (roadmap Phase 2; VERSION_TEST_MATRIX introduction invariants). A
+/// 2002-introduced data construct that COBOL.NET recognizes must NEVER compile silently: below 2002 the
+/// ConstructRegistry introduction gate rejects (COBOLNET0900 naming COBOL-2002); at 2002/2014/2023 it either
+/// WORKS or says so loudly. Before this sweep each of these silently misbound to USAGE DISPLAY / "pure numeric,
+/// zero digits".
+/// <para>
+/// ⛔ THE STAGED SET IS NOW EMPTY, and it is asserted empty rather than described that way —
+/// <see cref="NoDataSkeleton_StagesAt0899"/> compiles every shape that was ever in it and fails if any of them
+/// returns to a COBOLNET0899 "not yet implemented" posture. The two theories that used to enumerate the staged
+/// rows are gone with the last row: USAGE OBJECT REFERENCE left at the Phase-3 OO spine, USAGE POINTER at Phase
+/// 4b, the BINARY-CHAR family at Phase 4 M2-DATA-1, NATIONAL (§8.5.2.10) and BOOLEAN (§8.5.2.5) data at Phase 4a
+/// M2-DATA-3/4, the FLOAT-SHORT trio at Phase 6a, the PICTURE symbol E with kb/Work PB66, NATIONAL-EDITED with
+/// PB492, and — last — the national-FORM numeric / numeric-edited / boolean shapes of ISO §13.18.60.3 SR12 with
+/// kb/Work PB646. Each kept the introduction edge instead: it compiles at 2002+ and 0900s at 85, one positive
+/// fact per construct below. A construct that is ever staged loud again re-adds its own row and its own theory.
+/// </para>
 /// </summary>
 public sealed class DataSkeletonEditionTests
 {
@@ -29,54 +36,62 @@ public sealed class DataSkeletonEditionTests
             STOP RUN.
         """;
 
-    /// <summary>The skeleton constructs: id-suffix, WS entry, owning roadmap phase (per ConstructRegistry).
-    /// USAGE OBJECT REFERENCE left this set at the Phase-3 OO spine (LIVE); USAGE POINTER left it at Phase-4b
-    /// increment 1 (LIVE, DEVLOG 613); the BINARY-CHAR family left it at Phase 4 M2-DATA-1 (LIVE, DEVLOG 614 —
-    /// native fixed-width integers). Each keeps the <c>{is2002()}?</c>/W1.5 0900 edition-naming hint below 2002;
-    /// the live ones are exercised positively (BinaryCharFamily_CompilesAt2002Plus_RejectedAt85).</summary>
-    public static TheoryData<string, string, string> SkeletonConstructs() => new()
+    /// <summary>⛔ THE SUCCESSOR TO THE STAGED-ROW THEORIES, and the reason deleting them is not a loss of
+    /// coverage: EVERY shape that ever sat in the staged set compiles at 2023 with no COBOLNET0899 in its
+    /// errors OR its warnings. A re-staged data construct fails here even if nobody remembers to re-add a row.
+    /// <para>The last member to leave was the national FORM of ISO §13.18.60.3 SR12 — "An elementary data item
+    /// with usage national shall be described with a picture character-string that describes a boolean,
+    /// national, national-edited, numeric, or numeric-edited data item" — whose numeric, numeric-edited and
+    /// boolean shapes were refused BY NAME as a "Phase 4a residue" (kb/Work PB646). A GREEN theory row asserted
+    /// that refusal, which is how a staged loud reads as a decision
+    /// (<c>feedback_green_test_can_hold_a_gap_open</c>); the shapes are asserted to WORK here and in
+    /// <c>NationalBooleanDataTests.LiveNationalFormShape_CompilesAtNationalBearingEditions</c>.</para></summary>
+    [Fact]
+    public void NoDataSkeleton_StagesAt0899()
     {
-        // NATIONAL/BOOLEAN data went LIVE at Phase 4a (M2-DATA-3/4) — PIC N / PIC 1 / USAGE BIT left this
-        // set (the positive NationalData_/BooleanData_ facts below). NATIONAL-EDITED (§13.18.40.4 GR10) left it
-        // with kb/Work PB492 — see NationalEditedPicture_CompilesAt2002Plus_RejectedAt85. What remains staged is
-        // the national-form NUMERIC leg (§13.18.60.4 SR12) — 0899 "Phase 4a residue" at 2002+, 0900 at 85.
-        { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "Phase 4a residue" },    // national-form numeric, SR12
-        // The FLOAT-SHORT/-LONG/-EXTENDED trio went LIVE at Phase 6a (D16) — see the FloatUsage_* positive facts;
-        // the floating-point numeric-edited PICTURE (symbol E) went LIVE with data-model design D21 (kb/Work PB66) —
-        // see FloatEditedPicture_CompilesAt2002Plus_RejectedAt85. (Its former skeleton row, PIC 9V99E+99, was itself
-        // an illegal picture: §13.18.40.6 Table 10 admits no V before the E.)
-    };
-
-    /// <summary>At COBOL-85 every skeleton construct is a 2002 introduction: rejected with the COBOLNET0900
-    /// introduction diagnostic NAMING COBOL-2002 (ISO §13.18.60 / §13.18.40; VERSION_TEST_MATRIX introduction
-    /// invariant) — never the historical silent DISPLAY misbind.</summary>
-    [Theory]
-    [MemberData(nameof(SkeletonConstructs))]
-    public void SkeletonConstruct_0900At85_NamingCobol2002(string pid, string wsEntry, string phase)
-    {
-        var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKA" + pid, wsEntry), 85);
-        Assert.False(ok, $"{wsEntry} must be rejected at --std 85 (a 2002 introduction owned by {phase}; "
-            + "ISO §13.18.60/§13.18.40)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOL-2002");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Prog("DSKLIVE", """
+            01 WS-OREF USAGE OBJECT REFERENCE.
+            01 WS-PTR  USAGE POINTER.
+            01 WS-BC   USAGE BINARY-CHAR SIGNED.
+            01 WS-FS   USAGE FLOAT-SHORT.
+            01 WS-FL   USAGE FLOAT-LONG.
+            01 WS-FX   USAGE FLOAT-EXTENDED.
+            01 WS-EF   PIC +9.99E+99.
+            01 WS-N    PIC N(4).
+            01 WS-NE   PIC NNBNN.
+            01 WS-B    PIC 1(8).
+            01 WS-BIT  PIC 1(4) USAGE BIT.
+            01 WS-NNUM PIC 9(4) USAGE NATIONAL.
+            01 WS-NED  PIC ZZ9 USAGE NATIONAL.
+            01 WS-NBOO PIC 1(4) USAGE NATIONAL.
+            """), 2023);
+        Assert.True(ok, "every data construct that ever sat in the W2 skeleton set is LIVE: "
+            + string.Join("\n", errors));
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0899");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0899");
     }
 
-    /// <summary>At 2002/2014/2023 the construct is LEGAL but unimplemented: the compile fails with the
-    /// COBOLNET0899 not-implemented error naming the owning roadmap phase — never a silent misbind
-    /// (ISO §13.18.60 / §13.18.40.4).</summary>
+    /// <summary>The national FORM of §13.18.60.3 SR12 keeps the introduction edge the rest of the set keeps
+    /// (kb/Work PB646, registry row national-data-2002): each shape compiles at every 2002+ edition and is
+    /// rejected at 85 with COBOLNET0900 NAMING COBOL-2002 — never the historical silent DISPLAY misbind, and
+    /// never the COBOLNET0899 staging this row used to assert.</summary>
     [Theory]
-    [MemberData(nameof(SkeletonConstructs))]
-    public void SkeletonConstruct_NotImplementedErrorAt2002Plus_NamingOwningPhase(
-        string pid, string wsEntry, string phase)
+    [InlineData("01 WS-A PIC 9(4) USAGE NATIONAL.")]
+    [InlineData("01 WS-A PIC S9(4) USAGE NATIONAL SIGN IS LEADING SEPARATE.")]
+    [InlineData("01 WS-A PIC ZZ9 USAGE NATIONAL.")]
+    [InlineData("01 WS-A PIC 1(4) USAGE NATIONAL.")]
+    public void NationalFormPicture_CompilesAt2002Plus_RejectedAt85(string wsEntry)
     {
         foreach (int edition in new[] { 2002, 2014, 2023 })
         {
-            var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKB" + pid, wsEntry), edition);
-            Assert.False(ok, $"{wsEntry} must NOT compile silently at --std {edition} (not yet implemented)");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-            EditionHarness.AssertHasDiagnostic(errors, "not yet implemented");
-            EditionHarness.AssertHasDiagnostic(errors, phase);
+            var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKNF" + edition, wsEntry), edition);
+            Assert.True(ok, $"a national-form picture must compile at --std {edition}: {string.Join("\n", errors)}");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0899");
         }
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKNF85", wsEntry), 85);
+        Assert.False(ok85, "national data is a 2002 introduction — rejected at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
     /// <summary>USAGE OBJECT REFERENCE went LIVE with the Phase-3 OO spine (ISO §13.18.60.4 / §8.5.2.14): a

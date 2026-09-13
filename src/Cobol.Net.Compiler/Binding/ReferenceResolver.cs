@@ -412,7 +412,7 @@ public sealed class ReferenceResolver(DataBinder data)
                             or PicCategory.National or PicCategory.Boolean;
                     if (!cellString)
                     {
-                        if (leaf.Pic is not { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
+                        if (leaf.Pic is not { IsCharacterFormNumeric: true })   // THE ONE character-form predicate (kb/Work PB646)
                             return null;
                         cell = new NumericImagePlace(cell);
                     }
@@ -435,7 +435,7 @@ public sealed class ReferenceResolver(DataBinder data)
                     // alphanumeric view of the span, §13.18.45 — NC252A's PIC 999 leaves under RENAMES-TEST-1).
                     if (!stringValued)
                     {
-                        if (leaf.Pic is not { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
+                        if (leaf.Pic is not { IsCharacterFormNumeric: true })   // THE ONE character-form predicate (kb/Work PB646)
                             return null;
                         lp = new NumericImagePlace(lp);
                     }
@@ -510,7 +510,17 @@ public sealed class ReferenceResolver(DataBinder data)
         }
         else if (item.Pic?.Category is PicCategory.Numeric)
         {
-            if (item.Pic is not { Usage: Usage.Display, IsFloat: false }) return null;
+            // ⛔ BOTH USAGES §8.4.3.3.3 SR1 ADMITS (kb/Work PB646) — the SAME pair RefModExclusion above already
+            // names, and this gate named only one of them: the exclusion test admitted `PIC 9(6) USAGE NATIONAL`
+            // and then this arm returned null, so the operand fell through to the Tier-C runtime loud
+            // ("a COBOL feature that is not yet implemented was reached at run time: reference 'RM(2:3)'"). The
+            // wrap is the same for both, and §8.4.3.3.4 GR3 is why: a usage-national item "is operated upon for
+            // purposes of reference modification as if it were redefined as a data item of class and category
+            // national of the SAME SIZE", and its size in national character positions is exactly the digit run
+            // NumericImagePlace exposes (GR5a counts character positions; D-N1 makes one national position one
+            // UTF-16 char). GR6c's category answer is already written — RefModPlace.CategoryOf — and this is
+            // the arm that makes it reachable.
+            if (item.Pic is not { IsCharacterFormNumeric: true }) return null;   // THE ONE character-form predicate
             // P5.7: the bind-time wrap decision reads the COLLECTED early facts (same mid-bind timing the
             // deleted flag had — MarkRefModStoreImage records the SAME item during this statement's bind).
             if (!data.IsImageBackedEarly(item) && inner is not RedefViewPlace) inner = new NumericImagePlace(inner);

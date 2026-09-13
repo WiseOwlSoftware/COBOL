@@ -73,6 +73,12 @@ internal static class StorageFormPass
                 // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS
                 // position); same recursion as the legacy MarkStoreAsImage.
                 if (child.IsGroup) AddNumericDisplayLeaves(child, promoted);
+                // ⛔ DISPLAY ONLY — the CARRIAGE question, not PicInfo.IsCharacterFormNumeric's IMAGE-FORM one
+                // (kb/Work PB646): promotion replaces the native carrier with a string of the leaf's
+                // ImageWidth character positions, which is the leaf's whole storage for usage DISPLAY and is
+                // HALF of it for usage NATIONAL (D-N1 — two bytes per position). A national-form numeric leaf
+                // contributes to the group image by the D-N7 composition instead, and promoting one was
+                // measured to corrupt a group-to-group MOVE between two of them.
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                     promoted.Add(child);
             }
@@ -121,7 +127,7 @@ internal static class StorageFormPass
             if (StringCarried(a) == StringCarried(b)) return false;
             var native = a.Storage is StorageForm.CharImage { Category: PicCategory.Numeric } ? b : a;
             if (native.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                return false;   // only the display-numeric pair can diverge; anything else conformance-blocked
+                return false;   // only the display-numeric pair can diverge — the CARRIAGE question (kb/Work PB646)
             native.Storage = new StorageForm.CharImage(native.ImageWidth, PicCategory.Numeric);
             return true;
         }

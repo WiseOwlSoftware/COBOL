@@ -699,9 +699,16 @@ public sealed record PicInfo(
             or Usage.BinaryDouble => NumericByteForm.Binary,
         // Radix 10 BCD (GR11), with or without the trailing sign nibble the 2023 WITH NO SIGN phrase drops.
         Usage.Packed => PackedNoSign ? NumericByteForm.PackedNoSign : NumericByteForm.Packed,
-        // One byte per digit position (GR7). DISPLAY is the only profile-carrying usage that lands here; the
-        // character usages (NATIONAL / BIT) and the carrier usages never reach this property.
-        Usage.Display => NumericByteForm.Zoned,
+        // The CHARACTER image — one character per digit position (GR7 for DISPLAY, GR8 for NATIONAL).
+        // ⛔ NATIONAL SHARES THE ZONED FORM, and that is the whole of design D-N7 (kb/Work PB646): a
+        // national-form numeric item's image is the SAME digit run its DISPLAY twin holds — §13.18.40.4 GR1
+        // makes each of those digits a NATIONAL character position rather than an alphanumeric one, and
+        // §13.18.60.4 GR8 pins what a national character position occupies (two bytes, D-N1). The doubling is
+        // therefore a property of the CHARACTER→BYTE transform, applied once by the one national coding
+        // (NationalWindow / CobolBits.NatBytes) at every byte boundary, never a second numeric byte form: a
+        // "NationalZoned" form would have to re-derive every digit, sign and de-edit rule Zoned already owns.
+        // USAGE BIT and the carrier usages never reach this property.
+        Usage.Display or Usage.National => NumericByteForm.Zoned,
         // IEEE 754 interchange, big-endian (kb/Work PB164 wave 2): GR14/GR15 PIN the FLOAT-BINARY forms and
         // GR13 leaves COMP-1/COMP-2/FLOAT-* to the implementor — one encoding serves both. FLOAT-BINARY-128
         // and the decimal floats never reach here (rejected at ParseUsage).
@@ -728,6 +735,25 @@ public sealed record PicInfo(
     /// closing the last leaf-kind exclusion). EVERY numeric usage that survives ParseUsage now answers true.
     /// A usage added to ByteForm widens every consumer HERE.</summary>
     public bool HasImageByteForm => Category is PicCategory.Numeric && ByteForm is not NumericByteForm.None;
+
+    /// <summary>⛔ THE ONE "is this a fixed-point numeric item whose IMAGE is a run of digit CHARACTERS?"
+    /// predicate — category numeric, not floating-point, and one of the two CHARACTER usages: DISPLAY (ISO
+    /// §13.18.60.4 GR7 — "an alphanumeric coded character set shall be used to represent a data item in the
+    /// storage of the computer") or NATIONAL (GR8 — "a national coded character set shall be used",
+    /// §13.18.60.3 SR12's national-form numeric, LIVE since kb/Work PB646). The two differ only in how one of
+    /// those characters is SERIALIZED — design D-N7 pins two UTF-16BE bytes per national position — never in
+    /// what the image IS, so a site asking about the IMAGE wants both.
+    /// <para>⛔ IT IS THE IMAGE-FORM QUESTION, NOT THE CARRIAGE ONE, and the pair is easy to conflate because
+    /// for usage DISPLAY the two answers coincide. Read it where the item is VIEWED through its characters and
+    /// keeps its native carrier — a reference modification (§8.4.3.3.4 GR3/GR5a), a RENAMES span's
+    /// <c>NumericImagePlace</c> (§13.18.45), a STRING receiver parsing an image. Do NOT read it where the
+    /// question is whether the leaf's carrier may be REPLACED by that character string
+    /// (<c>DataBinder.MarkImageForced</c> / <c>StorageFormPass</c>'s promotion): promotion pins the carrier at
+    /// <c>ImageWidth</c> CHARACTER positions, which for usage DISPLAY is the leaf's whole storage and for usage
+    /// NATIONAL is half of it (D-N1), and promoting a national-form numeric leaf was MEASURED to corrupt a plain
+    /// group-to-group MOVE between two of them. Each such site says so in its own comment.</para></summary>
+    public bool IsCharacterFormNumeric =>
+        Category is PicCategory.Numeric && !IsFloat && Usage is Usage.Display or Usage.National;
 
     /// <summary>The CAPACITY discipline that bounds this item's value — the SIZE ERROR boundary
     /// (<see cref="NumericTruncation"/>). Orthogonal to <see cref="ByteForm"/>, which is the byte
@@ -795,13 +821,22 @@ public sealed record PicInfo(
         $"{(signEncoding is SignEncoding.Ibm ? "" : $", SignEncoding = SignEncoding.{signEncoding}")} }}";
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed
-    /// usages use a leading minus; USAGE DISPLAY uses over-punch (trailing by default, leading under SIGN LEADING)
-    /// or a separate <c>+</c>/<c>-</c> character under SIGN SEPARATE (ISO §13.18.52 GR5/GR6). The ONE computation of
-    /// SignKind — also called by the binder's group-SIGN inheritance pass with the nearest-ancestor clause.</summary>
+    /// usages use a leading minus; the CHARACTER-FORM usages use over-punch (trailing by default, leading under
+    /// SIGN LEADING) or a separate <c>+</c>/<c>-</c> character under SIGN SEPARATE (ISO §13.18.52 GR5/GR6). The ONE
+    /// computation of SignKind — also called by the binder's group-SIGN inheritance pass with the nearest-ancestor
+    /// clause.
+    /// <para>⛔ BOTH CHARACTER-FORM USAGES, not display alone (kb/Work PB646). §13.18.52.3 SR2 names exactly the
+    /// pair — "The usage of an elementary item for which the SIGN clause is specified shall be display or
+    /// national" — and GR6a makes a SEPARATE sign "the leading (or, respectively, trailing) character position of
+    /// the data item to which it applies; this character position is not a digit position", which under usage
+    /// national is a NATIONAL character position (§13.18.40.4 GR1). The display-only arm sent a national-form
+    /// signed item to BinaryMinus, which dropped that position from every width the model derives from
+    /// SignKind: <c>PIC S9(3) USAGE NATIONAL SIGN IS LEADING SEPARATE</c> measured FUNCTION LENGTH 3 and
+    /// BYTE-LENGTH 6 where the item is 4 national positions and 8 bytes, while its DISPLAY twin measured 4.</para></summary>
     public static string SignKindFor(Usage usage, bool signed, SignSpec? sign)
     {
         if (!signed) return "TrailingOverpunch";                        // unused for an unsigned item
-        if (usage is not Usage.Display) return "BinaryMinus";           // COMP / COMP-3 / COMP-5
+        if (usage is not (Usage.Display or Usage.National)) return "BinaryMinus";   // COMP / COMP-3 / COMP-5
         if (sign is { Separate: true }) return sign.Leading ? "LeadingSeparate" : "TrailingSeparate";
         return sign is { Leading: true } ? "LeadingOverpunch" : "TrailingOverpunch";
     }

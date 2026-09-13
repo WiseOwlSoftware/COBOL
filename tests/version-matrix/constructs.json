@@ -1487,10 +1487,10 @@
   {
    "id": "national-data-2002",
    "status": "active",
-   "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). LIVE (Phase 4a track (a)): compiles at 2002+ (one UTF-16 char per national position, D-N1; MOVE Table 16 + 14.6.8.5 alignment + 8.8.4.2.9 ordinal comparison); below 2002 the introduction gate rejects (COBOLNET0900). Byte-surface legs (REDEFINES/cells/FD records) + national-form numerics + NATIONAL-EDITED stage 0899.",
+   "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). LIVE, WHOLE: compiles at 2002+ (one UTF-16 char per national position, D-N1; MOVE Table 16 + 14.6.8.5 alignment + 8.8.4.2.9 ordinal comparison); below 2002 the introduction gate rejects (COBOLNET0900). All FIVE picture shapes 13.18.60.3 SR12 admits are live - national, national-edited, and the national-form boolean / numeric / numeric-edited, whose digits, sign and insertion characters are national character positions (13.18.40.4 GR1) serialized two bytes each (13.18.60.4 GR8, D-N1/D-N7). The byte-surface legs (REDEFINES / EXTERNAL-BASED-ADDRESS-OF cells / FD records) ride too.",
    "display": "national data (PICTURE symbol N / USAGE NATIONAL)",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §8.5.2 category national / §13.18.40 / §13.18.60; LIVE (Phase 4a track (a)): compiles at 2002+, COBOLNET0900 below; byte-surface legs (REDEFINES/cells/records) + national-form numerics stage 0899",
+   "citation": "ISO §8.5.2 category national / §13.18.40 / §13.18.60; LIVE: compiles at 2002+, COBOLNET0900 below; all five §13.18.60.3 SR12 picture shapes and every byte surface",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

@@ -130,17 +130,22 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     }
 
     /// <summary>Whether the group's subtree can take the area text as a compile-time POSITIONAL slice per
-    /// subordinate. Every admitted leaf is string-stored or a native zoned-DISPLAY numeric, so its slice IS its
+    /// subordinate. Every admitted leaf is string-stored or a native CHARACTER-FORM numeric, so its slice IS its
     /// own image and the offsets are character offsets.
     ///
     /// <para>⚠ The usage arms below are NOT a Tier-C boundary and are no longer a known gap (they were read as
     /// one, and PB184 was registered against them). §13.18.63.3 SR14 makes a BINARY / PACKED / float / INDEX /
-    /// NATIONAL-usage / BIT leaf under an alphanumeric group item carrying a VALUE non-conforming, and
-    /// <c>DataBinder.CheckGroupValueDeclarations</c> now rejects it (COBOLNET1702) — so this predicate is
-    /// answering about a population the binder has already screened, and it is kept as the defensive statement
-    /// of what a positional character slice can mean. The <c>Class is null</c> arm is the live one: a
+    /// BIT leaf under an ALPHANUMERIC group item carrying a VALUE non-conforming, and
+    /// <c>DataBinder.CheckGroupValueDeclarations</c> now rejects it (COBOLNET1702) — so for that population the
+    /// predicate is answering about source the binder has already screened, and it is kept as the defensive
+    /// statement of what a positional character slice can mean. The <c>Class is null</c> arm is the live one: a
     /// shared-storage (REDEFINES-class) subtree is seeded through its BACKING by
     /// <see cref="GroupImageCodec.ImageInitOf"/> instead, from the same <see cref="AreaOf"/> rule.</para>
+    /// <para>⛔ SR14 IS WRITTEN ABOUT AN ALPHANUMERIC GROUP AND DOES NOT SCREEN A NATIONAL ONE (kb/Work PB646) —
+    /// a <c>GROUP-USAGE NATIONAL</c> group carrying a VALUE reaches here with every leaf at usage NATIONAL by
+    /// §13.18.29.3 SR3, numeric leaves included by that rule's own wording, so the numeric arm below is LIVE
+    /// source for it, not a defensive statement. Reading the character-form predicate rather than a usage
+    /// spelling is what keeps the two screens from disagreeing.</para>
     /// <para>A BIT group passes on its <c>Boolean</c> arm and takes <see cref="SliceBitInit"/> rather than
     /// <see cref="SliceInit"/>: every member of a bit group is a bit leaf or a nested bit group
     /// (§13.18.29.3 SR2), so each one's slice IS its own boolean carrier — the same property in the other
@@ -150,17 +155,31 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
             ? item.Children.All(DistributableSubtree)
             : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean   // string-stored — the slice is the chars (D-N4 identity)
-              || item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false });
+              // ⛔ BOTH CHARACTER-FORM USAGES (PicInfo.IsCharacterFormNumeric, kb/Work PB646): the slice is
+              // CHARACTER positions and a national-form numeric leaf's image is the same digit run its DISPLAY
+              // twin holds (design D-N7), so it decodes from its slice exactly as that twin does. This arm read
+              // DISPLAY alone, and a NATIONAL GROUP is the case §13.18.63.3 SR14 does NOT screen — SR14's usage
+              // requirement is written about items "subordinate to an alphanumeric group item", while
+              // §13.18.29.3 SR3 requires "All elementary items subordinate to the subject of the entry shall be
+              // explicitly or implicitly described as usage national" and contemplates numeric ones by name
+              // ("Any signed numeric data items shall be described with the SIGN IS SEPARATE clause"). So a
+              // conforming `01 NG GROUP-USAGE NATIONAL VALUE N"AB123". 05 NGA PIC N(2). 05 NGB PIC 9(3).`
+              // reached this predicate, failed on NGB, and took the member-wise default for the WHOLE subtree:
+              // MEASURED `NGA=[  ] NGB=[000]` against its alphanumeric twin's `AGA=[AB] AGB=[123]`. Before
+              // PB646 the shape could not compile at all, so the DISPLAY-only arm had never been contradicted.
+              || item.Pic is { IsCharacterFormNumeric: true });
 
     /// <summary>Build the composed initializer of <paramref name="item"/> from its positional <paramref name="slice"/>
     /// of the group VALUE text — each subordinate (and each OCCURS occurrence) takes its own window.</summary>
     private static string SliceInit(DataItem item, string slice)
     {
-        // A native (long-stored) numeric-DISPLAY leaf decodes its zoned slice to the unscaled value (sign-aware
-        // overpunch/separate decode — the same ParseDisplay every image read uses). String-stored leaves
-        // (alphanumeric / edited / StoreAsImage) keep the characters.
-        if (!item.IsGroup && !item.StoreAsImage
-            && item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
+        // A native (long-stored) CHARACTER-FORM numeric leaf decodes its zoned slice to the unscaled value
+        // (sign-aware overpunch/separate decode — the same ParseDisplay every image read uses). Both usages
+        // §13.18.60.4 GR7/GR8 name, through the one PicInfo.IsCharacterFormNumeric predicate: the national
+        // form's digit characters ARE the twin's (design D-N7), so one decode serves both and the arm cannot
+        // drift from DistributableSubtree's admission above. String-stored leaves (alphanumeric / edited /
+        // national / boolean / StoreAsImage) keep the characters.
+        if (!item.IsGroup && !item.StoreAsImage && item.Pic is { IsCharacterFormNumeric: true })
             return $"({item.ElementType}){RuntimeApi.NumParseDisplay(EmitText.CsLiteral(slice), item.ProfileName)}";
         if (!item.IsGroup) return EmitText.CsLiteral(slice);
         var parts = new List<string>();

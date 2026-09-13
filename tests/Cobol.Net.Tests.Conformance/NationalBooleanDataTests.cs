@@ -82,30 +82,39 @@ public sealed class NationalBooleanDataTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0898");
     }
 
-    // ── COBOLNET0899 — the NAMED staged legs stay loud at every national-bearing edition ───────────────────
+    // ── §13.18.60.3 SR12 — ALL FIVE PICTURE SHAPES COMPILE at every national-bearing edition ─────────
 
-    public static TheoryData<string, string, string> StagedShapes() => new()
+    /// <summary>⛔ THIS SET USED TO PIN A REFUSAL, and that is why it is written this way now (kb/Work PB646;
+    /// the same correction kb/Work PB492 made for national-edited and kb/Work PB327 made for the FD record
+    /// below). SR12 admits FIVE picture shapes under usage national — "a boolean, national, national-edited,
+    /// numeric, or numeric-edited data item" — and a GREEN test asserting COBOLNET0899 on three of them read as
+    /// a DECISION that they were not supported ([[green_test_can_hold_a_gap_open]]). They are supported; the
+    /// theory enumerates all five, so a shape cannot be dropped from the permission without this failing.</summary>
+    public static TheoryData<string, string, string> Sr12Shapes() => new()
     {
-        // NATIONAL-EDITED pictures (§13.18.40.4 GR10 / §8.5.2.11) left this set with kb/Work PB492 — the
-        // national-edited-2002 registry row is ACTIVE and the category renders through §13.18.40.5 Table 7's
-        // simple insertion (NationalEditedPicture_* in DataSkeletonEditionTests and the pb492_* goldens).
-        // National-form NUMERIC (§13.18.60.4 SR12 — PIC 9 USAGE NATIONAL is legal, staged: national digits).
-        { "NBDAT13", "01 WS-M PIC 9(3) USAGE NATIONAL.", "national-form numeric (SR12)" },
-        // National-form BOOLEAN (SR12 — PIC 1 USAGE NATIONAL is legal, staged).
-        { "NBDAT14", "01 WS-N PIC 1 USAGE NATIONAL.", "national-form boolean (SR12)" },
+        { "NBDAT13", "01 WS-M PIC N(3).", "national (§13.18.40.4 GR9)" },
+        { "NBDAT14", "01 WS-N PIC NNBNN.", "national-edited (GR10)" },
+        { "NBDAT16", "01 WS-P PIC 9(3) USAGE NATIONAL.", "national-form numeric" },
+        { "NBDAT17", "01 WS-Q PIC ZZ9 USAGE NATIONAL.", "national-form numeric-edited" },
+        { "NBDAT18", "01 WS-R PIC 1(4) USAGE NATIONAL.", "national-form boolean (GR8)" },
     };
 
+    /// <summary>Every SR12 shape BINDS at 2002 and at 2023, and each is REJECTED at 85 by the introduction gate
+    /// alone (COBOLNET0900 — the national-data-2002 / national-edited-2002 registry rows). The PAIR of
+    /// assertions is what distinguishes "live and edition-gated" from "still refused, differently".</summary>
     [Theory]
-    [MemberData(nameof(StagedShapes))]
-    public void StagedNationalShape_0899AtNationalBearingEditions(string pid, string wsEntry, string shape)
+    [MemberData(nameof(Sr12Shapes))]
+    public void LiveNationalFormShape_CompilesAtNationalBearingEditions(string pid, string wsEntry, string shape)
     {
         foreach (int edition in new[] { 2002, 2023 })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid + edition, wsEntry), edition);
-            Assert.False(ok, $"{shape} must not compile silently at --std {edition} (staged Phase 4a residue)");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-            EditionHarness.AssertHasDiagnostic(errors, "national");
+            Assert.True(ok, $"{shape} is admitted by ISO §13.18.60.3 SR12 and shall compile at --std {edition}"
+                + $" — got: {string.Join(" | ", errors)}");
         }
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog(pid + "85", wsEntry), 85);
+        Assert.False(ok85, $"{shape} is national data, a COBOL-2002 introduction, and shall be gated at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
     }
 
     /// <summary>An FD record with a national leaf COMPILES AND ROUND-TRIPS, and its disk image is the UTF-16BE

@@ -602,9 +602,21 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // serializer CobolBits.NatBytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
         // raw-storage channel already ride. Concatenating the occurrences BEFORE serializing is the same string
         // as serializing each and concatenating, so the OCCURS arm needs no separate spelling.
-        : f.NatLeaf is not null
-            ? RuntimeApi.NatBytes(f.Occurs == 0 ? f.Name : $"string.Concat({f.Name})")
-        : f.Occurs == 0
+        // ⛔ IT IS A TRANSFORM OVER THE CARRIER'S OWN CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7,
+        // kb/Work PB646). A national leaf's category decides what its characters ARE — for the category-national
+        // and boolean forms the carrier IS those characters, and for the national-form NUMERIC of §13.18.60.3
+        // SR12 they are the zoned digit run CobolNum.FormatImage writes from the native carrier — while the
+        // USAGE decides only how a character is SERIALIZED. Composing the two is what let SR12's numeric shapes
+        // land without a second numeric byte form; the two used to be mutually exclusive arms, because the
+        // national-form numeric was staged loud at PictureAnalyzer and could not reach emit.
+        : f.NatLeaf is not null ? RuntimeApi.NatBytes(CarrierImageOf(f)) : CarrierImageOf(f);
+
+    /// <summary>The field's contribution to its group's image in its own CHARACTER alphabet — a nested group's
+    /// <c>AsImage()</c>, a native fixed-point leaf's zoned/radix-2/BCD/IEEE image through its own profile, else the
+    /// carrier string verbatim. <see cref="AsImageOf"/> serializes the result (a national leaf's characters become
+    /// UTF-16BE byte pairs; every other leaf's are its bytes already).</summary>
+    private static string CarrierImageOf(PhysicalModel.Physical f) =>
+        f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
                // A FLOAT leaf encodes through the IEEE lane (kb/Work PB164 wave 2 — distinctly named so
                // integer call sites stay unambiguous).
@@ -659,37 +671,49 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // character") — the connector's byte-level pad and this decode agree on it by construction.
         if (f.NatLeaf is { } nat)
         {
+            // ⛔ THE INVERSE COMPOSITION OF AsImageOf's national arm (design D-N7, kb/Work PB646): the byte
+            // pairs decode to the leaf's CHARACTER positions, and the carrier decoder below turns those
+            // characters into the carrier — a string for the category-national/national-edited/boolean forms,
+            // the native fixed-point value for §13.18.60.3 SR12's national-form NUMERIC. Reading the window and
+            // then NOT decoding the digits is what a single mutually-exclusive arm did, and it stored a string
+            // into a `long` field (uncompilable generated C#, unreachable only while the category was staged).
             int pos = NationalWindow.PositionsOf(nat)!.Value;
             if (f.Occurs == 0)
             {
-                w.Line($"{f.Name} = {RuntimeApi.NatReadWindow("__s", $"{off}", $"{pos}")};");
+                w.Line($"{f.Name} = {CarrierFromChars(f, RuntimeApi.NatReadWindow("__s", $"{off}", $"{pos}"))};");
                 return;
             }
             using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
-                w.Line($"{f.Name}[__i] = {RuntimeApi.NatReadWindow("__s", $"{off} + __i * {RuntimeApi.BytesPerNational * pos}", $"{pos}")};");
+                w.Line($"{f.Name}[__i] = {CarrierFromChars(f, RuntimeApi.NatReadWindow("__s",
+                    $"{off} + __i * {RuntimeApi.BytesPerNational * pos}", $"{pos}"))};");
             return;
         }
         if (f.Occurs == 0)
         {
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
-                : f.NumLeaf is { } leaf
-                // A FLOAT leaf decodes through the IEEE bit-reinterpretation lane — the Int128 lane's cast
-                // would numerically CONVERT the parsed integer (kb/Work PB164 wave 2).
-                ? $"{f.Name} = ({leaf.Pic!.ClrType}){(leaf.Pic!.IsFloat
-                        ? RuntimeApi.NumParseImageFloat($"__s.Substring({off}, {f.Width})", leaf.ProfileName)
-                        : RuntimeApi.NumParseImage($"__s.Substring({off}, {f.Width})", leaf.ProfileName, sending: false))};"
-                : $"{f.Name} = __s.Substring({off}, {f.Width});");
+                : $"{f.Name} = {CarrierFromChars(f, $"__s.Substring({off}, {f.Width})")};");
             return;
         }
         int elem = f.Width / f.Occurs;   // per-occurrence width (Width = elem × Occurs, exact by construction)
         using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
-                : f.NumLeaf is { } l
-                ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){(l.Pic!.IsFloat
-                        ? RuntimeApi.NumParseImageFloat($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName)
-                        : RuntimeApi.NumParseImage($"__s.Substring({off} + __i * {elem}, {elem})", l.ProfileName, sending: false))};"
-                : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
+                : $"{f.Name}[__i] = {CarrierFromChars(f, $"__s.Substring({off} + __i * {elem}, {elem})")};");
     }
+
+    /// <summary>⛔ THE ONE carrier decoder — the inverse of <see cref="CarrierImageOf"/>: the member's CHARACTER
+    /// image (<paramref name="chars"/>) as its stored carrier. A native fixed-point leaf decodes through its own
+    /// profile and is cast to its CLR storage type; a FLOAT leaf takes the IEEE bit-reinterpretation lane, because
+    /// the Int128 lane's cast would numerically CONVERT the parsed integer (kb/Work PB164 wave 2); every
+    /// string-shaped field is its characters already. An incompatible position — e.g. the spaces a short record's
+    /// pad legitimately deposits — decodes deterministically per ISO §14.6.13.2 (see CobolNum).
+    /// <para>It is ONE function because it was three copies, and the national arm was a fourth that decoded
+    /// nothing (kb/Work PB646).</para></summary>
+    private static string CarrierFromChars(PhysicalModel.Physical f, string chars) =>
+        f.NumLeaf is { } leaf
+            ? $"({leaf.Pic!.ClrType}){(leaf.Pic!.IsFloat
+                    ? RuntimeApi.NumParseImageFloat(chars, leaf.ProfileName)
+                    : RuntimeApi.NumParseImage(chars, leaf.ProfileName, sending: false))}"
+            : chars;
 }

@@ -110,7 +110,7 @@ public static class PictureAnalyzer
         // classification above still applies: the picture's cs is the program's currency symbol (§12.3.7.3 SR22
         // — a CURRENCY SIGN clause's symbol classifies exactly like '$'), canonicalized to '$' below.
         if (localeFormat2 is { } locale2)
-            return AnalyzeLocaleEdited(picture, expanded, cs, usage, edition, where, blankWhenZero, locale2,
+            return AnalyzeLocaleEdited(picture, expanded, cs, usage, explicitUsage, edition, where, blankWhenZero, locale2,
                 hasEditingPhrase: editing is { Count: > 0 });
 
         // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
@@ -161,7 +161,7 @@ public static class PictureAnalyzer
         //    IsFloatEdited flag drives every store / read dispatch. The COBOL-2002 introduction gate keys on that flag
         //    in VersionConformancePass.UsageConstructId (no SkeletonGate: the category is no longer recovered). ──
         if (hasE && invalid is null && !hasN && !has1)
-            return AnalyzeFloatEdited(picture, expanded, usage, edition, where, char1Set.Count > 0);
+            return AnalyzeFloatEdited(picture, expanded, usage, explicitUsage, edition, where, char1Set.Count > 0);
         if (invalid is { } bad)
         {
             // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
@@ -338,7 +338,14 @@ public static class PictureAnalyzer
         // BLANK WHEN ZERO on a category-numeric picture DEFINES the item as numeric-edited (ISO §13.18.8 GR2;
         // SR1 admits it only without 'S', SR2 only usage display/national) — NC108M's `PIC 9(9) BLANK ZERO`
         // holds SPACES after a zero store and compares as an alphanumeric item.
-        if (anyEdit || (blankWhenZero && digits > 0 && !signed && usage is Usage.Display))
+        // ⛔ BOTH USAGES SR2 NAMES, not just display (kb/Work PB646). GR2 is written about the PICTURE
+        // CHARACTER-STRING ("If the subject of the entry is described by its picture character-string as
+        // category numeric…") and SR2 names the usages the clause may be written with — "display or usage
+        // national" — so the display-only arm silently DROPPED the clause on `PIC 9(3) USAGE NATIONAL BLANK
+        // WHEN ZERO`: measured storing 000 where GR1 requires spaces, once SR12's staging stopped hiding the
+        // shape. (SR2's own screen — refusing the clause on any OTHER usage — is missing for every usage
+        // alike and is not this arm's; see the report's new-defect paragraph.)
+        if (anyEdit || (blankWhenZero && digits > 0 && !signed && usage is Usage.Display or Usage.National))
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
@@ -393,19 +400,18 @@ public static class PictureAnalyzer
             return Usage.National;
         }
 
-        // ── A BOOLEAN picture ── SR5 admits usage bit, SR13b implies display, SR12 admits national (staged).
+        // ── A BOOLEAN picture ── SR5 admits usage bit, SR13b implies display, SR12 admits national.
         if (category is PicCategory.Boolean)
             switch (usage)
             {
-                case Usage.Display or Usage.Bit:
-                    return usage;   // display-form (SR13b) and bit-form (SR5) — identical D-B1 string storage
-                case Usage.National:
-                    // SR12 admits a boolean picture under USAGE NATIONAL — spec-legal, representation
-                    // staged (one national char per boolean position; nothing constructs it yet).
-                    edition.Error(DiagnosticCatalog.NationalData, $"national-form boolean data (PIC 1 with USAGE NATIONAL) "
-                        + $"is recognized but not yet implemented (Phase 4a residue) — {where} "
-                        + "(ISO §13.18.60.3 SR12)");
-                    return Usage.Display;
+                case Usage.Display or Usage.Bit or Usage.National:
+                    // display-form (SR13b), bit-form (SR5) and NATIONAL-form (SR12) — one D-B1 '0'/'1'
+                    // character per boolean position in every one of them. What usage NATIONAL changes is the
+                    // STORAGE representation, not the carrier: §13.18.60.4 GR8 puts the item in "a national
+                    // coded character set", so each of those characters occupies a national character position
+                    // (two bytes under D-N1) — applied once, by the one national byte transform, at every byte
+                    // boundary (D-N7; kb/Work PB646).
+                    return usage;
                 default:
                     edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
                         + $"DISPLAY, BIT, or NATIONAL, not {UsageFamilies.UsageWord(usage)} "
@@ -423,21 +429,27 @@ public static class PictureAnalyzer
         }
 
         // ── §13.18.60.3 SR12 ── usage national "shall be described with a picture character-string that
-        // describes a boolean, national, national-edited, numeric, or numeric-edited data item". The two
-        // national forms returned above; an alphabetic/alphanumeric picture is illegal outright (SR12 +
-        // §13.18.40.3 SR30), and the national-form NUMERIC legs are spec-legal but STAGED (0899).
+        // describes a boolean, national, national-edited, numeric, or numeric-edited data item". FIVE shapes,
+        // and all five are LIVE (kb/Work PB646): the two category-national forms returned above, the boolean
+        // form in the switch above, and the NUMERIC / NUMERIC-EDITED forms here. The ONLY picture SR12 refuses
+        // is an alphabetic/alphanumeric one, which §13.18.40.3 SR30 refuses from the other side as well.
         if (usage is Usage.National)
         {
             if (category is PicCategory.Alphanumeric)
+            {
                 edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE NATIONAL may not be specified with an "
                     + $"alphabetic or alphanumeric PICTURE ({picture}) — it admits boolean, national, "
                     + "national-edited, numeric, and numeric-edited pictures only (ISO §13.18.60.3 SR12; "
                     + "§13.18.40.3 SR30)");
-            else
-                edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric data (a numeric or numeric-edited "
-                    + $"PICTURE {picture} with USAGE NATIONAL — national digits) is recognized but not yet "
-                    + $"implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
-            return Usage.Display;
+                return Usage.Display;
+            }
+            // A national-form NUMERIC or NUMERIC-EDITED item. §13.18.40.4 GR1 — "When the usage of the subject
+            // of the entry is national, each symbol representing a character position defines a national
+            // character position" — so its digits, its sign and its insertion characters are NATIONAL
+            // characters; §13.18.60.4 GR8 pins their storage size (two bytes, D-N1). Its VALUE is the same
+            // number its DISPLAY twin holds and its CHARACTER IMAGE is the same digit run, so the carrier and
+            // the numeric pipeline are shared verbatim and only the BYTE serialization differs — design D-N7.
+            return Usage.National;
         }
 
         // ── §13.18.60.3 SR3 ── BINARY / COMPUTATIONAL / PACKED-DECIMAL "shall be specified only with a picture
@@ -837,8 +849,8 @@ public static class PictureAnalyzer
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
-    private static PicInfo AnalyzeFloatEdited(string picture, string expanded, Usage usage, EditionContext edition,
-        string where, bool hasEditingPhrase)
+    private static PicInfo AnalyzeFloatEdited(string picture, string expanded, Usage usage, bool explicitUsage,
+        EditionContext edition, string where, bool hasEditingPhrase)
     {
         void Bad(string why) => edition.Error(DiagnosticCatalog.PictureFloatEdited,
             $"invalid floating-point numeric-edited PICTURE {picture} — {where}: {why}");
@@ -884,13 +896,10 @@ public static class PictureAnalyzer
         }
         if (points > 1) { Bad("the decimal point may appear only once (ISO §13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
         if (digits < 1 || digits > 36) { Bad($"the significand carries {digits} digit position(s) — it shall carry 1 to 36 (ISO §13.18.40.3 SR15)"); return PicInfo.Recovery(expanded.Length); }
-        if (usage is Usage.National)
-        {
-            // The national-form numeric-edited leg is the Phase 4a staged residue every national-form numeric item shares.
-            edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric-edited data (a floating-point edited PICTURE with USAGE NATIONAL) "
-                + $"is recognized but not yet implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
-            usage = Usage.Display;
-        }
+        // ⛔ THE §13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646). This arm
+        // used to carry its own SR12 half — a hand-written staging of the national form — and NOTHING else, so
+        // a floating-point edited picture under USAGE BINARY/COMP/PACKED slipped past SR3 entirely.
+        usage = ScreenUsageAgainstPicture(PicCategory.NumericEdited, usage, explicitUsage, picture, edition, where);
         return new PicInfo(PicCategory.NumericEdited, usage, Length: expanded.Length, Digits: digits, Scale: 0, Signed: signed)
         { EditMask = expanded, DigitPositions = 0, IsFloatEdited = true };
     }
@@ -910,7 +919,8 @@ public static class PictureAnalyzer
     /// numeric-edited (GR16), Length = integer-1 (GR17 — never the mask width), Digits/Scale/DigitPositions from
     /// character-string-1, EditMask NULL, <see cref="PicInfo.LocaleEdit"/> carrying the canonical picture.</summary>
     private static PicInfo AnalyzeLocaleEdited(string picture, string expanded, char cs, Usage usage,
-        EditionContext edition, string where, bool blankWhenZero, LocaleEditSpec locale2, bool hasEditingPhrase)
+        bool explicitUsage, EditionContext edition, string where, bool blankWhenZero, LocaleEditSpec locale2,
+        bool hasEditingPhrase)
     {
         PicInfo Bad(string why)
         {
@@ -968,15 +978,11 @@ public static class PictureAnalyzer
             return Bad("character-string-1 shall contain at least one of the symbols 'Z' or '9' (ISO §13.18.40.3 SR33)");
         if (digits > 31)
             return Bad($"character-string-1 describes {digits} digit positions — the number shall range from 1 through 31 (ISO §13.18.40.3 SR35)");
-        if (usage is Usage.National)
-        {
-            // §13.18.40.4 GR1 admits USAGE NATIONAL for format 2 (each position a national character position) —
-            // but the national-form numeric-edited leg is the SAME Phase 4a staged residue every national-form
-            // numeric item carries (one national posture, never a locale-specific fork).
-            edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric-edited data (a format 2 LOCALE PICTURE "
-                + $"with USAGE NATIONAL) is recognized but not yet implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
-            usage = Usage.Display;
-        }
+        // ⛔ THE §13.18.60.3 USAGE × PICTURE SCREEN, asked through the ONE function (kb/Work PB646) — §13.18.40.4
+        // GR1 admits USAGE NATIONAL for format 2 (each position a national character position) and SR12 admits a
+        // numeric-edited picture, so there is ONE national posture, never a locale-specific fork. This arm too
+        // used to carry only a hand-written SR12 staging, leaving SR3 unasked of a format-2 picture.
+        usage = ScreenUsageAgainstPicture(PicCategory.NumericEdited, usage, explicitUsage, picture, edition, where);
         return new PicInfo(PicCategory.NumericEdited, usage, Length: locale2.Size, Digits: digits,
             Scale: digitsRight, Signed: plus > 0)
         { DigitPositions = digits, LocaleEdit = locale2 with { Picture = canonical } };

@@ -83,6 +83,13 @@ internal static class BindPipeline
         // OdoResolve / DynamicResolve have settled (§8.5.1.8's allocated maximum, the dynamic expected capacity).
         // Nothing later than that: it reads declared shape only, and the emitters read the plan it produces.
         new BindPass("ResolveTableValues", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.ResolveTableValues()),
+        // The §13.18.63.3 SR7 VALUE-literal CLASS screen (kb/Work PB646). Placed HERE for two reasons, and it
+        // needs both. SR7 reads §8.5.2.1 Table 2's CLASS of a numeric-edited item, which IS its usage
+        // ("Numeric-edited (if usage is display)" / "(if usage is national)"), so UsageInheritancePass must have
+        // settled §13.18.60.4 GR1 — an INHERITED usage has to give the same verdict as a written one, in both
+        // directions. And the rule reaches formats 2 and 5 as well, whose per-occurrence literals only exist
+        // once ResolveTableValues has built the plan. Nothing later is needed: it reads declared shape only.
+        new BindPass("CheckValueLiteralClasses", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.CheckValueLiteralClasses()),
         new BindPass("ResolveFiles", PassPhase.OccursResolved, PassPhase.FilesResolved, d => d.ResolveFiles()),
         new BindPass("GateFileRecordByteSurface", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.GateFileRecordByteSurface()),
         new BindPass("ResolveReports", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.ResolveReports()),

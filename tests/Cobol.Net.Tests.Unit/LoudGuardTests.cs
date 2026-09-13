@@ -190,11 +190,17 @@ public sealed class LoudGuardTests
         Assert.Equal(Usage.Bit, bit.Usage);
     }
 
-    /// <summary>The SR20/SR5/SR12 usage×picture conformance shapes (ISO §13.18.60.4): PIC N with an explicit
-    /// non-NATIONAL usage and USAGE BIT with a non-boolean picture are declaration errors (0881); the
-    /// SR12-legal national FORMS (numeric/boolean pictures under NATIONAL) stage 0899.</summary>
+    /// <summary>The usage×picture conformance screen's REFUSALS (ISO §13.18.60.3): SR20 — "Only the NATIONAL
+    /// phrase may be specified in a USAGE clause associated with an elementary data item whose explicit or
+    /// implicit picture character-string contains the symbol 'N'" — and SR5 — "An elementary data item with
+    /// usage bit shall be specified only with a picture character-string that describes a boolean data item" —
+    /// are declaration errors, COBOLNET0881.
+    /// <para>⛔ The 0899 half of this fact is GONE (kb/Work PB646), and it was a GREEN TEST HOLDING A GAP OPEN:
+    /// it pinned the "national-form numeric"/"national-form boolean" staging as though it were a decision, so
+    /// the screen's refusal of legal source read as covered. Its replacement is the sibling below — the same
+    /// two shapes asserted to BIND, with the usage and category the standard gives them.</para></summary>
     [Fact]
-    public void Analyze_UsagePictureConformance_0881And0899Shapes()
+    public void Analyze_UsagePictureConformance_0881Shapes()
     {
         var ed = Ed(2002);
         PictureAnalyzer.Analyze("N(4)", Usage.Display, ed, "data item 'T'", explicitUsage: true);   // SR20
@@ -203,14 +209,30 @@ public sealed class LoudGuardTests
         var ed2 = Ed(2002);
         PictureAnalyzer.Analyze("X(4)", Usage.Bit, ed2, "data item 'T'", explicitUsage: true);      // SR5
         Assert.Contains(ed2.Diagnostics, d => d.Contains("COBOLNET0881"));
+    }
 
-        var ed3 = Ed(2002);
-        PictureAnalyzer.Analyze("9(4)", Usage.National, ed3, "data item 'T'", explicitUsage: true); // SR12 staged
-        Assert.Contains(ed3.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("national-form numeric"));
-
-        var ed4 = Ed(2002);
-        PictureAnalyzer.Analyze("1(4)", Usage.National, ed4, "data item 'T'", explicitUsage: true); // SR12 staged
-        Assert.Contains(ed4.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("national-form boolean"));
+    /// <summary>The screen's ADMISSIONS: ISO §13.18.60.3 SR12 — "An elementary data item with usage national
+    /// shall be described with a picture character-string that describes a boolean, national, national-edited,
+    /// numeric, or numeric-edited data item" — names FIVE picture shapes, and the screen must pass every one of
+    /// them with the usage INTACT. Three of them (numeric, numeric-edited, boolean) were refused by name at
+    /// COBOLNET0899 until kb/Work PB646; the category each carries is its ordinary one (§13.18.40.4 GR1 makes
+    /// the usage a statement about the item's CHARACTER POSITIONS, not about its category), which is precisely
+    /// why the data model needed no national-only category: design D-N7.</summary>
+    [Theory]
+    [InlineData("9(4)", PicCategory.Numeric)]
+    [InlineData("ZZ9", PicCategory.NumericEdited)]
+    [InlineData("1(4)", PicCategory.Boolean)]
+    [InlineData("N(4)", PicCategory.National)]
+    [InlineData("NNBNN", PicCategory.National)]     // national-EDITED: category National with an EditMask
+    public void Analyze_Sr12Shapes_BindUnderUsageNational(string picture, PicCategory category)
+    {
+        var ed = Ed(2002);
+        var pic = PictureAnalyzer.Analyze(picture, Usage.National, ed, "data item 'T'", explicitUsage: true);
+        Assert.False(ed.HasErrors, $"PIC {picture} USAGE NATIONAL is admitted by §13.18.60.3 SR12: "
+            + string.Join("; ", ed.Diagnostics));
+        Assert.DoesNotContain(ed.Diagnostics, d => d.Contains("COBOLNET0899"));
+        Assert.Equal(category, pic.Category);
+        Assert.Equal(Usage.National, pic.Usage);
     }
 
     /// <summary>A symbol outside the §13.18.40.3 SR2 set is an invalid PICTURE (COBOLNET0808) at every

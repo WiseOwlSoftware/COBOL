@@ -371,7 +371,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// its local crossing form is native — the FormatDisplay/StoreDisplay bridge applies both directions.</summary>
     private static bool OoUnivImageBridged(DataItem item) =>
         !OoStringCarried(item)
-        && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };
+        && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };   // CARRIAGE, not image form (kb/Work PB646)
 
     /// <summary>The callee-side unbox: box value → a local in the FORMAL's own crossing form.</summary>
     private static string OoUnivUnbox(DataItem item, string box) =>

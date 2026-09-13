@@ -50,10 +50,11 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// size of a national character to the implementor and D-N1 pins two bytes, high-order first). The predicate is
     /// <see cref="NationalWindow.PositionsOf"/> — THE ONE national test, shared with the byte-window carriage gate
     /// (<c>DataBinder.ByteWindowResidueOf</c>) and with the Tier-B window geometry, so the codec cannot disagree
-    /// with them about which leaves are national. Mutually exclusive with <paramref name="NumLeaf"/>: the only
-    /// national leaf with a NUMERIC category is the national-form numeric of §13.18.60.3 SR12, staged loud at
-    /// <c>PictureAnalyzer</c> (COBOLNET0899) and therefore never reaching emit, so this arm is written for the
-    /// category-national leaf whose carrier is a <c>string</c>. Null on every other field.</param>
+    /// with them about which leaves are national. ⛔ It COMPOSES with <paramref name="NumLeaf"/> rather than
+    /// excluding it (design D-N7, kb/Work PB646): this flag decides how a CHARACTER is serialized, NumLeaf decides
+    /// how the CARRIER becomes characters, and §13.18.60.3 SR12's national-form numeric is both at once — a
+    /// native fixed-point carrier whose zoned digit run is written in national characters. Null on every
+    /// non-national field.</param>
     internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).
@@ -151,9 +152,13 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // string-stored and take the pass-through arm.
             // ⛔ A NATIONAL LEAF'S SLICE IS ITS BYTES (kb/Work PB327) — THE ONE national test, so the codec, the
             // byte-window gate and the Tier-B window geometry share one answer about which leaves are national.
+            // ⛔ THE TWO ARE ORTHOGONAL, AND COMPOSE (design D-N7, kb/Work PB646): natLeaf says how a
+            // CHARACTER is serialized (UTF-16BE pairs), numLeaf says how the CARRIER becomes characters (the
+            // zoned/radix-2/BCD/IEEE image). §13.18.60.3 SR12's national-form NUMERIC is both, and asking
+            // numLeaf only where natLeaf was null made them mutually exclusive — sound only while that shape
+            // was staged loud and unreachable.
             DataItem? natLeaf = !c.IsGroup && NationalWindow.PositionsOf(c) is not null ? c : null;
-            DataItem? numLeaf = natLeaf is null && !c.IsGroup && !c.StoreAsImage && c.Pic is { HasImageByteForm: true }
-                ? c : null;
+            DataItem? numLeaf = !c.IsGroup && !c.StoreAsImage && c.Pic is { HasImageByteForm: true } ? c : null;
             // D19/PB43 — a USAGE BIT leaf's image is the PACKED run it belongs to, not its own carrier. The run's
             // leader carries the whole run's byte width; a continuation carries 0, so the group's image width is
             // still a plain sum of Width and every downstream caller is unchanged.

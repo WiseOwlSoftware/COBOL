@@ -2000,7 +2000,17 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (item.OperandPic is { } pic)
         {
             if (pic.Category is PicCategory.Boolean) return pic.Length;                     // r1 — boolean positions
-            if (pic.Usage is Usage.National || pic.Category is PicCategory.National) return pic.Length;   // r2 — national positions
+            // r2 — NATIONAL character positions, counted by THE ONE national-position authority
+            // (Place.NationalWindow.PositionsOf, the same count the storage geometry and the byte-window gate
+            // read), never re-derived as pic.Length. ⛔ The two differ for exactly the shape §13.18.60.3 SR12's
+            // national-form numeric made reachable (kb/Work PB646): a SIGN IS SEPARATE position is a character
+            // position and not a digit position (§13.18.52 GR6a), so `PIC S9(3) USAGE NATIONAL SIGN IS LEADING
+            // SEPARATE` is FOUR national positions while pic.Length is its three digits — and r3's DISPLAY arm
+            // below already counted the separate sign, so the two arms of ONE rule disagreed.
+            // A national GROUP is not elementary: PositionsOf answers null and §13.18.29.4 GR2b's as-if
+            // PICTURE N(m) length is the count (the `?? pic.Length` arm).
+            if (pic.Usage is Usage.National || pic.Category is PicCategory.National)
+                return Model.NationalWindow.PositionsOf(item) ?? pic.Length;                // r2 — national positions
         }
         return item.ByteWidth;                                                              // r3 — alphanumeric positions ≡ bytes
     }

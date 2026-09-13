@@ -152,7 +152,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // A group identifier-3 (§14.9.43.4 GR3a — the alphanumeric MOVE rules): the ONE group-image store.
         if (p.Item.IsGroup) { w.Line(PlaceRenderer.WriteGroupImage(p, imageExpr, "STRING INTO group")); return; }
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
-            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+            && p.Item.Pic is { IsCharacterFormNumeric: true })   // THE ONE character-form predicate (kb/Work PB646)
         {
             w.Line(PlaceRenderer.Write(p, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
             return;

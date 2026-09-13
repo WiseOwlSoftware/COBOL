@@ -335,7 +335,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // already writes its image, and a REDEFINES shared-storage alias keeps its (already-run) tier flag.
             if (all is not { IsDigitOnly: true } && t is not (RedefViewPlace or NumericImagePlace)
                 && t.Item.Class is null
-                && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })   // CARRIAGE, not image form (kb/Work PB646)
                 ctx.Data.MarkImageForced(t.Item);   // the collected image fact
         }
     }
@@ -483,7 +483,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     {
         foreach (var t in targets)
             if (t is RefModPlace rm
-                && rm.Item is { Class: null, Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } } item)
+                && rm.Item is { Class: null, Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } } item)   // CARRIAGE, not image form (kb/Work PB646)
                 ctx.Data.MarkImageForced(item);   // the collected image fact
     }
 }

@@ -242,6 +242,56 @@ true: every SET-family amount site lands, and no emitter narrows an amount with 
   list that left out the declared EDITING character-1, so `PIC NNTNN EDITING "T" IS N":"` — a shape GR10 names
   outright — was refused as an invalid PICTURE. The set is now `CobolEdit.IsEditedCategorySymbol`, ONE definition
   derived from rule 3's simple-insertion set, read by BOTH recognition arms.
+- **D-N7 a national-form NUMERIC / NUMERIC-EDITED / BOOLEAN item is its DISPLAY twin COMPOSED with the one
+  national byte transform** (kb/Work PB646, 2026-09-13). §13.18.60.3 SR12 admits FIVE picture shapes under usage
+  national — boolean, national, national-edited, numeric and numeric-edited — and all five are live. The
+  national-form three are NOT new categories: §13.18.40.4 GR1 ("When the usage of the subject of the entry is
+  national, each symbol representing a character position defines a national character position") says the item's
+  digits, its SIGN IS SEPARATE position (§13.18.52.3 SR2 admits the clause here by name; GR6a makes that position a
+  character position and not a digit position) and its insertion characters are the SAME characters its DISPLAY
+  twin holds, in a different character set, and §13.18.60.4 GR8 pins only the SIZE of one of those characters
+  (D-N1: two bytes, UTF-16BE). So:
+  - the **VALUE CARRIER is the twin's** — `long`/`Int128` for category numeric, the edited image string for
+    numeric-edited, the `'0'`/`'1'` run for boolean. `PicInfo.ClrType` needed no national arm.
+  - the **CHARACTER IMAGE is the twin's** — `PicInfo.ByteForm` is `Zoned` for usage NATIONAL exactly as for
+    DISPLAY, so `CobolNum.FormatImage`/`ParseImage` own every digit, sign and de-edit rule once.
+    `PicInfo.IsCharacterFormNumeric` is THE ONE predicate for "this item's image is a run of digit characters",
+    read by every site that VIEWS an item through its characters (reference modification §8.4.3.3.4 GR3/GR5a, a
+    RENAMES span's `NumericImagePlace`, a STRING receiver). ⚠ It is **not** read by the sites that decide whether
+    the carrier may be REPLACED by that string (`MarkImageForced` / `StorageFormPass`'s whole-group promotion):
+    promotion pins the carrier at `ImageWidth` CHARACTER positions, which is the whole storage of a DISPLAY item
+    and half of a national one, and promoting a national-form numeric leaf was measured to corrupt a plain
+    group-to-group MOVE between two of them. Those sites stay DISPLAY-only and say so.
+  - only the **CHARACTER→BYTE step differs**, and it is applied ONCE, by the one national coding, at every byte
+    boundary: `NationalWindow.PositionsOf` (now a single test — `Pic.Usage is National` → `ElementaryImageWidth`,
+    the count §13.18.40.4 GR1 defines and §15.50.4 r2 returns) plus `CobolBits.NatBytes`/`NatReadWindow`.
+    `GroupImageCodec` COMPOSES it over the carrier codec (`CarrierImageOf` / `CarrierFromChars`); the two used to
+    be mutually exclusive arms, sound only while the shape was staged loud and could not reach emit.
+  - the **SIGN CLAUSE an item INHERITS** reaches its `SignKind` through ONE method, `DataBinder.ApplyEffectiveSign`
+    — the SIGN twin of `ApplyEffectiveUsage` — because there are TWO routes by which an item acquires a clause its
+    own entry did not write: §13.18.52.4 GR1 group inheritance and the §13.18.49.4 GR5 SAME-AS ancestor transform
+    ("If an alphanumeric group item, national group item, or strongly-typed group item to which data-name-1 is
+    subordinate contains a SIGN clause, the effect is as though that SIGN clause had been specified for the subject
+    of the entry"). Each carried its own copy of the §13.18.52.3 SR2 usage guard and the copies DID drift: the
+    SAME-AS one stayed at DISPLAY alone, so `01 TN USAGE NATIONAL SIGN IS LEADING SEPARATE. 05 TNE PIC S9(3).
+    01 SNX SAME AS TNE.` measured LENGTH 3 / BYTE-LENGTH 6 / `04N` against the inheritance route's 4 / 8 / `-045`.
+  - a **GROUP-LEVEL VALUE distributes over a national-form numeric leaf** exactly as over its DISPLAY twin —
+    `GroupValueSlicer.DistributableSubtree` and `SliceInit` read `IsCharacterFormNumeric`, so the positional
+    CHARACTER slice is decoded by the same `ParseDisplay` in both. ⛔ This is the one place where the national
+    form is NOT screened out upstream: §13.18.63.3 SR14's usage-DISPLAY requirement is written about items
+    "subordinate to an alphanumeric group item", while a `GROUP-USAGE NATIONAL` group's subordinates are required
+    to be usage national by §13.18.29.3 SR3, which contemplates numeric ones by name ("Any signed numeric data
+    items shall be described with the SIGN IS SEPARATE clause"). A DISPLAY-only arm there made the WHOLE subtree
+    non-distributable: `01 NG GROUP-USAGE NATIONAL VALUE N"AB123". 05 NGA PIC N(2). 05 NGB PIC 9(3).` measured
+    `NGA=[  ] NGB=[000]` against its alphanumeric twin's `[AB]` / `[123]`.
+  ⛔ **The category was refused BY NAME until this landing** — `PictureAnalyzer` raised COBOLNET0899 "Phase 4a
+  residue" from FOUR hand-written arms (the boolean arm and the numeric arm of the usage screen, plus private
+  copies in the float-edited and locale-edited analyses that were ALSO the only SR12 screen those two paths had,
+  so a float-edited or format-2 picture under USAGE BINARY/COMP/PACKED met no §13.18.60.3 SR3 screen at all).
+  All four are gone: the two analyses now call `ScreenUsageAgainstPicture`, the ONE screen. ⛔ **Both of the
+  defects above were found by the four-lens review of that landing's own diff, and they are the same shape it
+  fixed elsewhere** — a rule written down in two places with only one copy widened. Every such pair in this
+  design is now ONE method with the second caller pointing at it.
 - **D-N2 byte≠char containment** (NARROWED 2026-09-05, kb/Work PB231 — RESIDUE-11 DISCHARGED on the byte-window
   channel). The BYTE-WINDOW surfaces — REDEFINES (`ComputeTier`), and the EXTERNAL / ADDRESS-OF / BASED cells
   (`ForceStringCanonical`) — now CARRY a national leaf: the class walk advances by each member's storage extent
@@ -275,9 +325,10 @@ true: every SET-family amount site lands, and no emitter narrows an amount with 
   the gate — two arms from a residue clause to `null` — plus the geometry behind it, and every one of the four
   surfaces opened together; the POINTER residue then cost one more arm plus the slot carriage (D-SLOT). The
   carried population is now the character categories, every NUMERIC usage on its pinned byte form, BOOLEAN in
-  both representations, NATIONAL in both spellings (the category, and the national-form numeric — whose arm is
-  derived but unreachable while `CheckDataAttributes` stages national DIGITS loud at COBOLNET0899), and the
-  POINTER family. **Nothing is refused today.**
+  both representations, NATIONAL in ALL its spellings — the category, the national-edited form, and the
+  national-form numeric / numeric-edited / boolean of §13.18.60.3 SR12, whose arm stopped being a derived-only
+  answer when kb/Work PB646 removed the COBOLNET0899 staging (D-N7); the predicate is now the single test
+  `Pic.Usage is National` — and the POINTER family. **Nothing is refused today.**
 - **D-SLOT the MANAGED SLOTS of a shared storage area** (kb/Work PB231, 2026-09-05 — the pointer third). A
   data item of class pointer or class object holds a MANAGED REFERENCE, which is not a byte sequence, so it is
   the one leaf kind a byte window genuinely cannot express. It does not ride the area's bytes: **`StorageCell`
@@ -624,7 +675,11 @@ own internal composition is `BitLayout.ExtentBits`, see the placement note above
 character image, stored by `WriteGroupImage`. The MOVE dispatch: `MoveClassifier.Kind` sends an as-if receiver
 down the Convert path over `OperandPic` (`ConvertSource` reads `target.OperandPic`), and `IsGroupSender` excludes
 an as-if sender. Diagnostics: COBOLNET1653 (`GroupUsageRule`) for SR1 + SR2/SR3's explicit-USAGE and
-subordinate-conflict halves; the leaf conformance is the shared 0881 / national-form-staged 0899 legs.
+subordinate-conflict halves; the leaf conformance is the shared §13.18.60.3 screen — 0881 for the shapes SR5 /
+SR12 / SR20 refuse, and nothing staged: SR12's five picture shapes all bind (D-N7, kb/Work PB646), so a national
+group's leaves may be numeric, numeric-edited or boolean as well as national and national-edited, and
+§13.18.29.3 SR3's own wording ("Any signed numeric data items shall be described with the SIGN IS SEPARATE
+clause") is live rather than hypothetical.
 **Goldens:** `2023/pb79_group_usage_national` (LENGTH 5 / BYTE-LENGTH 10; MOVE pad/truncate both ways; national
 comparison; INSPECT; ref-mod read + write; a nested national group), `2023/pb79_group_usage_bit` (LENGTH 12 /
 BYTE-LENGTH 2; MOVE to bit / display / shorter receivers; MOVE into the group distributing to its leaves; equality;
