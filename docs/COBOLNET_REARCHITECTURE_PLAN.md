@@ -2125,10 +2125,10 @@ result. Run the long legs ONE AT A TIME.
   drives `cobol`, refuses to start unless the binary references `Cobol.Net.Compiler`, and prints
   `=== NIST (cobol): … ===`; the greenfield NIST evidence in every EARLIER record is the Conformance
   assembly's `NistDifferentialTests` partitions alone.
-- **⛔ BATTERY REFERENCE — CURRENT: battery #70, 2026-09-13, on `1840778e` — train 28 — run in a DETACHED WORKTREE cut at the batch head.**
+- **⛔ BATTERY REFERENCE — CURRENT: battery #71, 2026-09-13, on `a21b4633` — train 29 — run in a DETACHED WORKTREE cut at the batch head.**
+  ✅ ALL GREEN — Conformance **6911 / 6911**, Unit **23796 / 23796** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **0 FLIPS**. Battery #72 at the next train's head must be ALL GREEN with 0 flips.
+- **BATTERY REFERENCE — PREVIOUS (#70, superseded by #71 above): battery #70, 2026-09-13, on `1840778e` — train 28 — run in a DETACHED WORKTREE cut at the batch head.**
   ✅ ALL GREEN — Conformance **6870 / 6870**, Unit **23253 / 23253** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **0 FLIPS**. Battery #71 at the next train's head must be ALL GREEN with 0 flips.
-- **BATTERY REFERENCE — PREVIOUS (#69, superseded by #70 above): battery #69, 2026-09-09, on `e1bf7b3b` — train 27 — run in a DETACHED WORKTREE cut at the batch head.**
-  ✅ ALL GREEN — Conformance **6828 / 6828**, Unit **23239 / 23239** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **0 FLIPS**. Battery #70 at the next train's head must be ALL GREEN with 0 flips.
 - **⛔ PRIOR BATTERY REFERENCE — the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
   review fleet's landing PB266–PB276) plus the PB277 CI repair, battery #41, 2026-09-01.**
   ✅ **Every leg GREEN on ONE tree, in ONE run — `2acbd842` (HEAD, clean), no split and no rebaseline.**
