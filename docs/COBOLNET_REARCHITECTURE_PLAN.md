@@ -2125,10 +2125,10 @@ result. Run the long legs ONE AT A TIME.
   drives `cobol`, refuses to start unless the binary references `Cobol.Net.Compiler`, and prints
   `=== NIST (cobol): … ===`; the greenfield NIST evidence in every EARLIER record is the Conformance
   assembly's `NistDifferentialTests` partitions alone.
-- **⛔ BATTERY REFERENCE — CURRENT: battery #72, 2026-09-13, on `eb7719b3` — train 30 — run in a DETACHED WORKTREE cut at the batch head.**
+- **⛔ BATTERY REFERENCE — CURRENT: battery #73, 2026-09-13, on `67be3552` — train 31 — run in a DETACHED WORKTREE cut at the batch head.**
+  ✅ ALL GREEN — Conformance **6982 / 6982**, Unit **23861 / 23861** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **1 ATTRIBUTED FLIP(S)** — see the DEVLOG entry for the attribution; the baseline row was re-verdicted by hand in the same commit. Battery #74 at the next train's head must be ALL GREEN with 0 flips.
+- **BATTERY REFERENCE — PREVIOUS (#72, superseded by #73 above): battery #72, 2026-09-13, on `eb7719b3` — train 30 — run in a DETACHED WORKTREE cut at the batch head.**
   ✅ ALL GREEN — Conformance **6936 / 6936**, Unit **23820 / 23820** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **3 ATTRIBUTED FLIP(S)** — see the DEVLOG entry for the attribution; the baseline row was re-verdicted by hand in the same commit. Battery #73 at the next train's head must be ALL GREEN with 0 flips.
-- **BATTERY REFERENCE — PREVIOUS (#71, superseded by #72 above): battery #71, 2026-09-13, on `a21b4633` — train 29 — run in a DETACHED WORKTREE cut at the batch head.**
-  ✅ ALL GREEN — Conformance **6911 / 6911**, Unit **23796 / 23796** (the GPL corpus is present in the battery worktree), characterization **33 / 33**, guard witnesses green, NIST **364 MATCH / 0 REGRESSION** and audit CLEAN (the shipped `cobol` compiler), all three static audits 0, differential **1323 cases** with **0 FLIPS**. Battery #72 at the next train's head must be ALL GREEN with 0 flips.
 - **⛔ PRIOR BATTERY REFERENCE — the ARITHMETIC WAVE batch (owner decisions D-B + D-C, PB194/PB195 and the
   review fleet's landing PB266–PB276) plus the PB277 CI repair, battery #41, 2026-09-01.**
   ✅ **Every leg GREEN on ONE tree, in ONE run — `2acbd842` (HEAD, clean), no split and no rebaseline.**
