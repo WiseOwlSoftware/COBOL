@@ -473,6 +473,12 @@ BLANK       : 'BLANK' ;
 BLOCK       : 'BLOCK' ;
 BOTTOM      : 'BOTTOM' ;
 BY          : 'BY' ;
+// The RECORD clause's BYTES/CHARACTERS brace group (ISO §13.18.43.2, all three formats): §13.18.43.3 SR2 makes
+// the two words SYNONYMOUS ("The words BYTES and CHARACTERS are synonymous and may be used interchangeably"),
+// and until kb/Work PB721 there was no BYTES token at all, so `RECORD CONTAINS 20 BYTES` — legal COBOL in every
+// supported edition — was refused as an unrecognized FD clause (COBOLNET1970). §8.10 context-sensitive ("RECORD
+// clause"), never §8.9-reserved, so it stays a legal user word at every edition through cobolWord.
+BYTES       : 'BYTES' ;
 CF          : 'CF' ;
 CH          : 'CH' ;
 CHARACTER   : 'CHARACTER' ;

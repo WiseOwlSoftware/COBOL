@@ -3188,6 +3188,54 @@ public static class DiagnosticCatalog
         + "repetitions or that number multiplied by the repetitions of successive higher repeating entries.",
         "ISO §13.18.53.3 SR6 / §13.15.4 GR3");
 
+    // ── COBOLNET2009–2010 — the RECORD clause's own size syntax rules (ISO §13.18.43.3) ────────────────
+    // ⛔ TWO CODES, BECAUSE THE TWO KINDS OF VIOLATION HAVE DIFFERENT SUBJECTS AND DIFFERENT REMEDIES. SR5 and
+    // SR9 are about the CLAUSE's own pair of integers and are repaired by editing the clause; SR3 and SR4 are
+    // about a RECORD DESCRIPTION ENTRY disagreeing with the clause and may be repaired at either end. Both arms
+    // are rows of ONE table, `Binding.RecordClauseRules`, run from `DataBinder.ResolveFiles` (kb/Work PB721).
+
+    /// <summary>COBOLNET2009 — the RECORD clause's own integer pair is inconsistent: ISO §13.18.43.3 SR5
+    /// ("Integer-3 shall be greater than integer-2") for Format 2, SR9 ("Integer-5 shall be greater than
+    /// integer-4") for Format 3. The two rules are the same sentence one format apart, so they share one code
+    /// and the message names the operands of the format the program actually wrote.
+    /// <para>⚠ NOT the place for the lower bound itself: §13.18.43.3 SR7/SR8 permit integer-2 / integer-4 to be
+    /// ZERO ("shall be greater than or equal to zero" — the express override of §5.5 1)'s nonzero default), so
+    /// <c>RECORD IS VARYING IN SIZE FROM 0</c> is legal COBOL and draws nothing. A NEGATIVE lower bound cannot be
+    /// written at all: §5.5 1) makes every <c>integer-n</c> an unsigned literal and the general format spells it
+    /// with the grammar's unsigned <c>integerLiteral</c>, so the minus sign is refused at parse.</para></summary>
+    public static readonly DiagnosticDescriptor RecordClauseSizeRange = new(
+        "COBOLNET2009", "record-clause-size-range", EditionSeverity.Error,
+        "A RECORD clause states a maximum record size that is not greater than its minimum. ISO §13.18.43.3 "
+        + "syntax rule 5 requires \"Integer-3 shall be greater than integer-2\" of the Format 2 "
+        + "(RECORD IS VARYING IN SIZE FROM integer-2 TO integer-3) clause, and syntax rule 9 requires "
+        + "\"Integer-5 shall be greater than integer-4\" of the Format 3 (RECORD CONTAINS integer-4 TO "
+        + "integer-5) clause. Equal bounds break the rule as surely as inverted ones — the standard says "
+        + "GREATER, not \"greater than or equal\", and a fixed-size file is written in Format 1. Until "
+        + "kb/Work PB721 an inverted range compiled clean and the program learned about it only as an I-O "
+        + "status '44' from §13.18.43.4 GR14 a) at run time, on the first WRITE.",
+        "ISO §13.18.43.3 SR5 / SR9");
+
+    /// <summary>COBOLNET2010 — a record description entry of the file describes a record whose size falls outside
+    /// the range the FD's RECORD clause states: ISO §13.18.43.3 SR3 (Format 1) and SR4 (Format 2, whose single
+    /// sentence states TWO obligations — "neither … a lesser number of bytes than … integer-2 nor … a greater
+    /// number of bytes than … integer-3" — and therefore has one row per arm, kb/Work PB743's clamp).
+    /// <para>The sizes compared are the standard's own: §13.18.43.4 GR8 a) and b), the sum over the record's
+    /// elementary items excluding redefinitions and renamings with every occurs-depending table at its minimum
+    /// and at its maximum occurrence count respectively. Format 3 has NO such rule — GR18 says the size of each
+    /// record "is completely defined in the record description entry" — so no row screens it.</para></summary>
+    public static readonly DiagnosticDescriptor RecordClauseDescriptionSize = new(
+        "COBOLNET2010", "record-clause-description-size", EditionSeverity.Error,
+        "A record description entry associated with a file description entry describes a record whose size is "
+        + "outside the range its RECORD clause states. ISO §13.18.43.3 syntax rule 3 says of the Format 1 "
+        + "clause \"No record description entry for the file may specify a number of bytes greater than "
+        + "integer-1\", and syntax rule 4 says of the Format 2 clause \"Record descriptions for the file shall "
+        + "describe neither records that contain a lesser number of bytes than that specified by integer-2 nor "
+        + "records that contain a greater number of bytes than that specified by integer-3\". A record "
+        + "description's byte count is §13.18.43.4 GR8's: the sum over its elementary items excluding "
+        + "redefinitions and renamings, with an occurs-depending table contributing its minimum occurrences for "
+        + "the lower comparison (GR8 a) and its maximum for the upper (GR8 b).",
+        "ISO §13.18.43.3 SR3 / SR4");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

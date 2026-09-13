@@ -27,6 +27,7 @@ public static class Constructs
     public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";
     public const string WordLength632023 = "word-length-63-2023";
     public const string ContinueAfter2023 = "continue-after-2023";
+    public const string RecordClauseBytes2023 = "record-clause-bytes-2023";
     public const string PerformUntilExit2023 = "perform-until-exit-2023";
     public const string LeapSecondDirective2002 = "leap-second-directive-2002";
     public const string RefModZeroLength2023 = "ref-mod-zero-length-2023";

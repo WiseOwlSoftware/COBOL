@@ -121,10 +121,21 @@ blockContainsClause
     : BLOCK CONTAINS? integerLiteral (TO integerLiteral)? (CHARACTERS | RECORDS)?
     ;
 
-// RECORD clause (§13.18.43) — fixed-length, variable-length, or VARYING forms
+// RECORD clause (§13.18.43) — fixed-length, variable-length, or VARYING forms.
+// ⛔ THE BYTES/CHARACTERS BRACE GROUP IS A PAIR, NOT ONE WORD: §13.18.43.3 SR2 — "The words BYTES and CHARACTERS
+// are synonymous and may be used interchangeably" — and all three printed general formats carry the same brace
+// group. Only CHARACTERS was admitted until kb/Work PB721, so `RECORD CONTAINS 20 BYTES` drew COBOLNET1970
+// ("not a clause of the file description entry") at COBOL-2023, where it is legal source: refused.
+// ⚠ THE SPELLING IS A 2023 ADDITION and the EDITION gate is NOT here: Annex E.3.3 item 13 adds BYTES to
+// the §8.10 context-sensitive list at 2023, so `VersionConformancePass.VisitRecordClause` refuses it below
+// that edition (COBOLNET0900, `record-clause-bytes-2023`). The word is admitted by the grammar at every
+// edition on purpose — a left-edge predicate cannot steer a mid-alternative token, and a parse-arm gate
+// names the edition instead of throwing a token error. BYTES is also in cobolWord (§8.10: a
+// context-sensitive word outside its format "is treated as a user-defined word"), so `01 BYTES PIC X.`
+// stays legal COBOL-85 — the gate is on the CLAUSE, never on the word.
 recordClause
-    : RECORD CONTAINS? integerLiteral (TO integerLiteral)? CHARACTERS?
-    | RECORD IS? VARYING IN? SIZE? (FROM? integerLiteral)? (TO integerLiteral)? CHARACTERS? (DEPENDING ON? dataReference)?
+    : RECORD CONTAINS? integerLiteral (TO integerLiteral)? (CHARACTERS | BYTES)?
+    | RECORD IS? VARYING IN? SIZE? (FROM? integerLiteral)? (TO integerLiteral)? (CHARACTERS | BYTES)? (DEPENDING ON? dataReference)?
     ;
 
 // CODE-SET clause (§13.18.13.2 — the 2002 two-class format; kb/Work PB110): IS alphabet-name-1

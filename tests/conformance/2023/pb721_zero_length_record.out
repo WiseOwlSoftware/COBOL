@@ -1,0 +1,8 @@
+SQ W=00
+SQ R=00 LEN=0000
+SQ Z=[          ]
+RL W=00
+RL R=00 LEN=0000
+RL Z=[          ]
+F3 W=00
+F3 R=00 [HELLO               ]

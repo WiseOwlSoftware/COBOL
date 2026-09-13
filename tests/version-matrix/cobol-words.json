@@ -80,6 +80,12 @@
    "note": "an INITIALIZE category-name (ISO 14.9.20.2 'where category-name is:' - one of the thirteen words the printed figure encloses in a brace with choice indicators). Its lexer token was added for kb/Work PB415, which found the rule spelling five of the thirteen. ISO 8.9 reserves it from 2002 only (reserved-words.json r85=false), so it is a legal user word at COBOL-85 and this nameSlot row is what keeps `01 Boolean PIC X.` legal there while the DERIVED reservation gate and the 8.9 funnel name it above 85 - the PROGRAM-POINTER/FUNCTION-POINTER precedent exactly. subscriptTrigger=true because a table may be named Boolean and no Boolean-bearing format is followed by a left parenthesis. It is also the USAGE BIT category name (8.5.2.5)"
   },
   {
+   "token": "BYTES",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "the RECORD clause's BYTES/CHARACTERS brace group (13.18.43.2, all three general formats). 13.18.43.3 SR2: 'The words BYTES and CHARACTERS are synonymous and may be used interchangeably'. 8.10 context-sensitive ('RECORD clause'), never 8.9-reserved at any edition, so it is a legal user word everywhere and needs no reservation gate. The CLAUSE is a different question and is gated elsewhere: the BYTES SPELLING is a COBOL-2023 addition (Annex E.3.3 item 13), refused below 2023 by VersionConformancePass.VisitRecordClause / constructs.json row record-clause-bytes-2023 - so this nameSlot row is what keeps `01 BYTES PIC X.` legal COBOL-85 while the clause is named above it, the ORDER precedent exactly. Before kb/Work PB721 the word had no token at all and `RECORD CONTAINS 20 BYTES` - legal COBOL-2023 - was refused COBOLNET1970 as an unrecognized file description clause"
+  },
+  {
    "token": "B_AND",
    "nameSlot": true,
    "subscriptTrigger": true,

@@ -556,6 +556,31 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The RECORD clause's BYTES spelling (ISO §13.18.43.2, all three general formats; §13.18.43.3
+        /// SR2 <i>"The words BYTES and CHARACTERS are synonymous and may be used interchangeably"</i>) — a
+        /// COBOL-2023 ADDITION, gated here so `--std 85/2002/2014` does not accept a construct the targeted
+        /// standard does not contain.
+        /// <para>⛔ THE EDITION FACT IS DERIVED, NOT ASSUMED (kb/Work PB721). Annex E.3.3 item 13 lists BYTES
+        /// among the words that "have either been added to the list of context-sensitive words or the context in
+        /// which they are reserved has been expanded", and that sentence is an OR — but §8.10 gives BYTES exactly
+        /// ONE construct, the RECORD clause, so there is no earlier context for 2023 to have EXPANDED and the
+        /// first arm is the one that applies. CONTINUE AFTER … SECONDS is the precedent: SECONDS is in the same
+        /// item-13 list and its phrase is gated the same way.</para>
+        /// <para>⚖ ONLY THE WORD IS GATED, on BOTH counts. CHARACTERS is 1985-continuous and ungated, so a
+        /// program that spells the clause the old way is untouched at every edition; and BYTES stays a
+        /// <c>nameSlot</c> user word in <c>cobol-words.json</c>, so `01 BYTES PIC X.` remains legal COBOL-85
+        /// source — the gate is on the CLAUSE, never on the word (§8.10: a context-sensitive word used where the
+        /// format does not permit it "is treated as a user-defined word").</para>
+        /// <para>ONE ARM COVERS FD AND SD, because <c>recordClause</c> is one grammar rule shared by the file
+        /// description entry and the sort-merge file description entry — the DATA RECORDS precedent directly
+        /// above.</para></summary>
+        public override object? VisitRecordClause(CobolParserCore.RecordClauseContext ctx)
+        {
+            if (ctx.BYTES() is not null)
+                _p.Check(Constructs.RecordClauseBytes2023, "the RECORD clause's BYTES phrase");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>MULTIPLE FILE [TAPE] (I-O-CONTROL) — reel-sharing description, deleted 2002 (P2.6).</summary>
         public override object? VisitMultipleFileClause(CobolParserCore.MultipleFileClauseContext ctx)
         {

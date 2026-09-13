@@ -220,6 +220,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CONTA.\nPROCEDURE DIVISION.\nMAIN.\n    CONTINUE AFTER 0 SECONDS.\n    STOP RUN.\n"
   },
   {
+   "id": "record-clause-bytes-2023",
+   "description": "The BYTES spelling of the RECORD clause's { BYTES | CHARACTERS } brace group (ISO 13.18.43.2, all three general formats; 13.18.43.3 SR2 \"The words BYTES and CHARACTERS are synonymous and may be used interchangeably\") - a COBOL-2023 addition. Annex E.3.3 item 13 lists BYTES among the words added to the context-sensitive-word list at 2023, and 8.10 gives BYTES exactly ONE construct, the RECORD clause, so item 13's alternative \"or the context in which they are reserved has been expanded\" cannot be what it names here: the spelling did not exist below 2023. CHARACTERS is 1985-continuous and stays ungated; only the BYTES word is gated - the CONTINUE AFTER ... SECONDS precedent, from the same item-13 family. BYTES also stays a nameSlot user word at every edition (cobol-words.json), so `01 BYTES PIC X.` is legal COBOL-85 source: the gate is on the CLAUSE, never on the word. kb/Work PB721.",
+   "display": "the RECORD clause BYTES phrase",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §13.18.43.2 / §13.18.43.3 SR2; Annex E.3.3 item 13",
+   "introducedIn": 2023,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "VCR row 56 (context-sensitive words added/expanded at 2023 — the BYTES member)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RCBY.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"rcby.dat\"\n        ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F RECORD CONTAINS 10 BYTES.\n01 F-REC PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "perform-until-exit-2023",
    "description": "PERFORM … UNTIL EXIT (ISO §14.9.28.4 GR11) — a COBOL-2023 addition: an unconditional infinite loop (a condition that never becomes true). Plain UNTIL condition is edition-invariant; only the EXIT alternative is gated. Escape is by EXIT PERFORM (inline) or GOBACK/STOP RUN (out-of-line).",
    "display": "PERFORM UNTIL EXIT",

@@ -1320,6 +1320,116 @@ already made obsolete: three copies, and the fourth INTO verb inherits none of t
 `CheckStrongMove`* — that screen is about a MOVE's sender/receiver pair and knows nothing of a file's record
 list; giving it a `FileModel` would make the MOVE rule depend on the I-O model to serve one caller. *Re-derive
 "alphanumeric group item" at the INTO screen* — a third copy of §13.18.29.4 GR3, when two had already drifted.
+### D25. The FILE DESCRIPTION entry's own syntax rules are enforced ON THE ENTRY too, and the RECORD clause's are a SECOND TABLE beside the file-control one — `RecordClauseRules`, run from the same `DataBinder.ResolveFiles` pass. D19's criterion generalizes; the FD is simply the other entry.
+
+**The rules.** ISO §13.18.43.3 states nine syntax rules for the RECORD clause, cut on the three general formats of
+§13.18.43.2. Four of them bound the clause's integers against each other or against the file's record description
+entries: **SR3** (Format 1) *"No record description entry for the file may specify a number of bytes greater than
+integer-1"*; **SR4** (Format 2) *"Record descriptions for the file shall describe neither records that contain a
+lesser number of bytes than that specified by integer-2 nor records that contain a greater number of bytes than
+that specified by integer-3"*; **SR5** (Format 2) *"Integer-3 shall be greater than integer-2"*; **SR9**
+(Format 3) *"Integer-5 shall be greater than integer-4"*.
+
+**What was wrong.** `DataBinder.BindRecordClause` parsed the integers and stored them, and nothing checked any of
+it. `FD F RECORD IS VARYING IN SIZE FROM 20 TO 5 DEPENDING ON L.` — an SR5 violation written in two adjacent
+literals — compiled clean at 85, 2002, 2014 and 2023, and the program learned about it only as an I-O status
+`'44'` on the first WRITE, which is §13.18.43.4 GR14 a)'s runtime CONSEQUENCE and not the clause's diagnosis. An
+inverted range makes EVERY write unsuccessful, so the runtime report is also unusably late (kb/Work PB721).
+
+**Where it lives, and why not at the clause.** `src/Cobol.Net.Compiler/Binding/RecordClauseRules.cs`, called from
+`DataBinder.ResolveFiles` immediately after `FileControlKeyRules.Screen`. D19's two-site criterion decides it:
+SR3 and SR4 need a RESOLVED quantity — §13.18.43.4 GR8's byte count of a record description, whose summation
+reads occurrence counts, redefinition targets, group usage and the §8.5.1.6.3 bit layout — and none of that is
+settled while the file description entry is being read. SR5 and SR9 are decidable from the clause alone, but they
+travel with their formats' other rules in one table rather than being split across two sites for the sake of a
+few nanoseconds. The clause's source position is captured at bind time on `FileModel.RecordClauseAt` — the
+`RecordKeyAt` pattern — so a post-build report still points at the clause.
+
+**The quantities are the standard's own, and each is written down once.** `FileModel.MinRecordSize` is GR8 a)
+(every occurs-depending table at its MINIMUM occurrence count) and `FileModel.MaxRecordSize` is GR8 b), which
+delegates to `DataItem.ImageWidth` rather than re-summing: `ImageWidth` already skips redefining children
+(GR8's *"excluding redefinitions and renamings"*) and already takes an ODO table's maximum occurrences. A
+parallel recursion would be the same rule twice, and the copy is the one that would miss the next layout change.
+
+**The format is a COLUMN, and `FileModel.RecordClause` is its one reader.** That property projects the existing
+`Varying` / `RecordContains` pair into a `RecordClauseFacts` — format, lower operand, upper operand, position —
+so no site re-derives "which general format is this". It is a projection and never stored: Format 1 is
+`Varying is null` with a stated `RecordContains`, Format 2 is `Varying.VaryingClause`, Format 3 is the remaining
+variable-length shape, and NO clause at all answers null, which is what keeps the screen silent where
+§13.18.43.4 GR5 implies a clause from the record descriptions (an implied clause cannot contradict what it was
+derived from).
+
+**Two codes, because the subjects differ.** **COBOLNET2009** for the clause's own integer pair (SR5/SR9 — the
+remedy is editing the clause); **COBOLNET2010** for a record description outside it (SR3/SR4 — the remedy may be
+at either end). SR4 is ONE printed sentence with TWO obligations and therefore TWO rows sharing one rule-id, with
+a negative golden per arm: the PB743 clamp applied before the defect rather than after it.
+
+**Format 3 gets no SR4-analogue, deliberately.** §13.18.43.4 GR18 says that for that format *"the size of each
+record is completely defined in the record description entry"*, so the standard states no rule bounding the
+descriptions by integer-4 and integer-5. Inventing one would reject legal source, and
+`conformance:negative/pb721-record-contains-inverted-range` asserts the record draws nothing while the clause is
+reported.
+
+**SR7 and SR8 need no row, and the absence is DERIVED.** §5.5 1) — *"When the term 'integer-n' (n = 1, 2, …) is
+used in a general format and associated rules, it refers to a fixed-point integer literal that shall be unsigned
+and nonzero unless otherwise specified in the associated rules"* — makes every `integer-n` unsigned, and the
+general format spells integer-2 and integer-4 with the grammar's unsigned `integerLiteral`, so a negative
+operand cannot be written at all. SR7 and SR8 (*"shall be greater than or equal to zero"*) are precisely the
+*"unless otherwise specified"* override, and they lift the NONZERO half only: what they require of this compiler
+is that `FROM 0` be ACCEPTED. That is a positive golden, not a screen — and a table row asserting them would be a
+dead lookup. `RecordClauseRuleDriftTests.TheReasonSr7AndSr8NeedNoRow_IsStillWhatTheStandardPrints` fails if that
+sentence ever changes.
+
+**SR2 is discharged by the GRAMMAR, not by a screen — and its spelling is the subclause's ONE edition gate.**
+*"The words BYTES and CHARACTERS are synonymous and may be used interchangeably"*, and all three printed
+general formats carry the same `{ BYTES | CHARACTERS }` brace group, so `recordClause` writes
+`(CHARACTERS | BYTES)` in both of its alternatives. BYTES had no lexer token at all and
+`RECORD CONTAINS 20 BYTES` was refused COBOLNET1970 as an unrecognized FD clause — legal COBOL-2023,
+rejected.
+
+⛔ **BUT THE SPELLING IS A 2023 ADDITION, AND THAT WAS DERIVED RATHER THAN ASSUMED.** Annex E.3.3 item 13
+lists BYTES among the words that *"have either been added to the list of context-sensitive words or the
+context in which they are reserved has been expanded"*. That sentence is an OR, so the word alone does not
+settle it — but §8.10 gives BYTES exactly ONE construct, the *"RECORD clause"*, so there is no earlier
+context for 2023 to have EXPANDED and the first arm is the one that applies. `VisitRecordClause` in the
+version-conformance pass therefore refuses the word below 2023 (**COBOLNET0900**, constructs.json row
+`record-clause-bytes-2023`), on the CONTINUE AFTER … SECONDS precedent — SECONDS is in the same item-13 list.
+The gate is a PARSE ARM and not a `{is2023()}?` predicate because the word sits mid-alternative, where a
+semantic predicate does not steer prediction and would throw a token error instead of naming the edition.
+
+⚖ **Only the word is gated, on both counts.** CHARACTERS is 1985-continuous and ungated, so the old spelling
+of the same clause is untouched everywhere; and BYTES stays a `nameSlot` row in
+`tests/version-matrix/cobol-words.json`, so `01 BYTES PIC X.` is still legal COBOL-85 — §8.10's own sentence
+says a context-sensitive word outside its format *"is treated as a user-defined word"*, and a hard keyword
+token is exactly how that right gets lost silently. Three programs say which is which:
+`conformance:negative/pb721-record-bytes-below-2023` (the spelling, refused at 85/2002/2014),
+`conformance:85/pb721_zero_length_record_85` (the CHARACTERS spelling, accepted at 85) and
+`conformance:85/pb721_bytes_user_word_85` (the word as a data-name, a table and a paragraph-name at 85).
+
+**SR1 stays where it is** (`DataBinder.MaterializeImpliedRecord`, COBOLNET1836): it is about the clause's
+PRESENCE, decidable while the entry is read — D19's first list, not its second.
+
+**SR6 is the one rule of this subclause still without a site, and that is a decision.** *"Data-name-1 shall
+describe an elementary unsigned integer in the working-storage, local-storage, or linkage section"* states THREE
+obligations, and the third needs a fact the data model does not carry: which SECTION an item was described in.
+`EntrySection` is passed to `DataBinder.BindEntries` and discarded; `DataItem` has no section member. Screening
+two arms of three is exactly the defect SR4's split exists to prevent, so SR6 waits for that fact and then
+becomes three rows of this table.
+
+**Edition-invariance was derived, not assumed.** The RECORD clause and its syntax rules predate COBOL-85, Annex E
+— the complete 2014→2023 delta — carries no entry for this subclause, and `docs/VERSION_CHANGE_REFERENCE.md`
+records that this repository's spec cannot speak for the 85↔2002 delta at all, so a gate below 2014 would be
+INVENTED rather than derived. The screen is therefore unconditional and every negative rejects at all four
+editions; `conformance:85/pb721_zero_length_record_85` is the over-rejection twin that proves no gate leaked
+downward.
+
+**Why a table, and the drift guard that keeps it one.** `RecordClauseRuleDriftTests` re-derives every row from
+`specs/ISO_COBOL.md` on every run — the clause region, the printed ordinal, the two arms of SR4, and the FORMAT
+column, which it reads off the standard's own bare `ALL FORMATS` / `FORMAT 1` / `FORMAT 2` / `FORMAT 3` division
+lines. That last one matters more than it looks: a row screened on the wrong format either fires on source the
+standard permits or is silent on source it forbids, and neither shows up as a compile error or a golden failure.
+The three spec-reading helpers both drift guards need now live in `tests/_shared/SpecClauseText.cs` rather than
+as a second paste.
 
 ## C# mapping
 

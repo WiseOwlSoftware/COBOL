@@ -274,6 +274,20 @@ public sealed class FileModel
     /// (COBOLNET_REPORT_WRITER_DESIGN §4).</summary>
     public int? RecordContains { get; set; }
 
+    /// <summary>How a diagnostic NAMES the entry that describes this file: a sort-merge file description
+    /// entry (ISO §13.4.6) or an ordinary file description entry (§13.4.5). ⛔ The two are different GENERAL
+    /// FORMATS, so calling an SD an FD sends the reader to the wrong clause — and the RECORD clause is shared
+    /// by both, which is exactly where the confusion is reachable. The <see cref="OrganizationFace"/>
+    /// pattern: written once, read by every message that needs it.</summary>
+    public string EntryFace => IsSortMerge ? "sort-merge file description entry" : "file description entry";
+
+    /// <summary>The source position of the RECORD clause, where §13.18.43.3's syntax rules report — they are
+    /// screened post-build (<see cref="RecordClauseRules"/>, run from <c>DataBinder.ResolveFiles</c>), because a
+    /// record description's byte count is a §13.18.43.4 GR8 quantity over a forest that is not complete while
+    /// the file description entry is being read. Unset when the entry writes no RECORD clause, in which case
+    /// there is nothing for these rules to speak about.</summary>
+    public CobolNet.Editions.DiagnosticCursor RecordClauseAt { get; set; }
+
     /// <summary>The SHARING clause mode (ISO §12.4.5.15; <see cref="SharingMode.None"/> = the implementor default).
     /// An OPEN SHARING phrase overrides it per-OPEN (§14.9.27; carried on the bound OPEN).</summary>
     public SharingMode Sharing { get; set; } = SharingMode.None;
@@ -313,11 +327,40 @@ public sealed class FileModel
     /// records.</summary>
     public int VaryMax => Varying is { } v ? v.Max ?? Math.Max(1, RecordWidth) : -1;
 
+    /// <summary>⛔ THE ONE READER of WHICH §13.18.43.2 GENERAL FORMAT this file description entry's RECORD clause
+    /// was written in, and of the integers it states — the projection every §13.18.43.3 syntax rule is stated
+    /// over (<see cref="RecordClauseFacts"/>). Null when the entry writes no RECORD clause, which is the one case
+    /// those rules have nothing to say about (§13.18.43.4 GR5 then implies one, and an implied clause is derived
+    /// from the record descriptions and cannot contradict them).
+    /// <para>It is a PROJECTION of <see cref="Varying"/> and <see cref="RecordContains"/>, never a third copy of
+    /// the clause: those two already discriminate all three formats between them — Format 1 is
+    /// <c>Varying is null</c> with a stated <c>RecordContains</c>, Format 2 is
+    /// <c>Varying.VaryingClause</c>, Format 3 is the remaining variable-length shape — and a stored duplicate is
+    /// the copy that would drift.</para></summary>
+    public RecordClauseFacts? RecordClause => Varying is { } v
+        ? new RecordClauseFacts(v.VaryingClause ? RecordClauseFormat.Varying : RecordClauseFormat.FixedOrVariable,
+            v.Min, v.Max, RecordClauseAt)
+        : RecordContains is { } n ? new RecordClauseFacts(RecordClauseFormat.Fixed, null, n, RecordClauseAt)
+        : null;
+
+    /// <summary>The MAXIMUM byte size of one record description (ISO §13.18.43.4 GR8 b): "The maximum number of
+    /// table elements described in the record is used in the summation above to determine the maximum number of
+    /// bytes associated with the record description" — the twin of <see cref="MinRecordSize"/>, and the quantity
+    /// §13.18.43.3 SR3 and SR4's upper arm compare against.
+    /// <para>⛔ IT IS <see cref="DataItem.ImageWidth"/>, not a second summation, and this member exists to say so
+    /// ONCE: GR8's opening sentence is "the sum of the number of bytes in all elementary data items EXCLUDING
+    /// REDEFINITIONS AND RENAMINGS", which is exactly the sum <c>ImageWidth</c> already computes (it skips every
+    /// <c>RedefinesTargetName is not null</c> child), and an occurs-depending table's <see cref="DataItem.Occurs"/>
+    /// is its MAXIMUM occurrence count, which is GR8 b)'s own choice. A parallel recursion here would be the same
+    /// rule written down twice, and the copy is the one that would not learn about the next layout change (the
+    /// §8.5.1.6.3 bit walk is inside <c>ImageWidth</c> and would have been missed).</para></summary>
+    internal static int MaxRecordSize(DataItem item) => item.ImageWidth;
+
     /// <summary>The minimum byte size of one record description (ISO §13.18.43 GR8a): the sum over non-redefining
     /// content with every occurs-depending table at its MINIMUM occurrence count (a bare <c>RECORD IS VARYING</c>
     /// over an ODO record — RL211A — has minimum 120, not the 140 max allocation <see cref="DataItem.ImageWidth"/>
     /// reports).</summary>
-    private static int MinRecordSize(DataItem item) =>
+    internal static int MinRecordSize(DataItem item) =>
         item.IsElementary ? item.ImageWidth
         : item.Children.Where(c => c.RedefinesTargetName is null)
             .Sum(c => MinRecordSize(c) * (c.OccursSpec is { DependingName: not null } od ? od.Min : c.Occurs ?? 1));
@@ -353,6 +396,62 @@ public sealed class FileModel
 /// The two formats were indistinguishable here until kb/Work PB339, which is why a rule keyed on the WORD
 /// VARYING had nothing to key on.</param>
 public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName, bool VaryingClause);
+
+/// <summary>Which of the three general formats of ISO §13.18.43.2 a RECORD clause was written in. The axis
+/// §13.18.43.3's syntax rules are cut on: SR3 is stated under FORMAT 1, SR4/SR5/SR6/SR7 under FORMAT 2, SR8/SR9
+/// under FORMAT 3, and SR1/SR2 under ALL FORMATS.</summary>
+public enum RecordClauseFormat
+{
+    /// <summary>Format 1 (fixed-length): <c>RECORD CONTAINS integer-1 {BYTES|CHARACTERS}</c>.</summary>
+    Fixed = 1,
+
+    /// <summary>Format 2 (variable-length): <c>RECORD IS VARYING IN SIZE [FROM integer-2] [TO integer-3]
+    /// {BYTES|CHARACTERS} [DEPENDING ON data-name-1]</c>.</summary>
+    Varying = 2,
+
+    /// <summary>Format 3 (fixed-or-variable-length): <c>RECORD CONTAINS integer-4 TO integer-5
+    /// {BYTES|CHARACTERS}</c>.</summary>
+    FixedOrVariable = 3,
+}
+
+/// <summary>One RECORD clause AS WRITTEN, reduced to what §13.18.43.3's syntax rules speak about: the general
+/// format, its lower and upper integer operands (null where the format has none or the program omitted it), and
+/// where to report. Produced by <see cref="FileModel.RecordClause"/>; consumed by <c>RecordClauseRules</c>.</summary>
+/// <param name="Format">The §13.18.43.2 general format the clause was written in.</param>
+/// <param name="Lower">integer-2 (Format 2) or integer-4 (Format 3); null for Format 1, which has no lower
+/// operand, and for a Format-2 clause written without the FROM phrase (§13.18.43.4 GR9 then supplies the
+/// minimum from the record descriptions, so it cannot contradict them).</param>
+/// <param name="Upper">integer-1 (Format 1), integer-3 (Format 2) or integer-5 (Format 3); null for a Format-2
+/// clause written without the TO phrase (GR10 supplies it the same way).</param>
+/// <param name="At">The clause's source position.</param>
+public readonly record struct RecordClauseFacts(
+    RecordClauseFormat Format, int? Lower, int? Upper, CobolNet.Editions.DiagnosticCursor At)
+{
+    /// <summary>The printed name of the lower operand in this clause's own general format — so a diagnostic
+    /// names the operand the program's author actually wrote rather than a generic "minimum".</summary>
+    public string LowerName => Format switch
+    {
+        RecordClauseFormat.Varying => "integer-2",
+        RecordClauseFormat.FixedOrVariable => "integer-4",
+        _ => "integer-1",
+    };
+
+    /// <summary>The printed name of the upper operand in this clause's own general format.</summary>
+    public string UpperName => Format switch
+    {
+        RecordClauseFormat.Varying => "integer-3",
+        RecordClauseFormat.FixedOrVariable => "integer-5",
+        _ => "integer-1",
+    };
+
+    /// <summary>The clause as the standard heads its general format, for a diagnostic's first clause.</summary>
+    public string FormatFace => Format switch
+    {
+        RecordClauseFormat.Varying => "RECORD IS VARYING IN SIZE (ISO §13.18.43.2 Format 2)",
+        RecordClauseFormat.FixedOrVariable => "RECORD CONTAINS integer-4 TO integer-5 (ISO §13.18.43.2 Format 3)",
+        _ => "RECORD CONTAINS integer-1 (ISO §13.18.43.2 Format 1)",
+    };
+}
 
 /// <summary>One LINAGE clause operand (ISO §13.18.34 GR6): a fixed literal value (GR6a) or a data-name whose
 /// content is read at the GR6b evaluation points (OPEN OUTPUT / WRITE ADVANCING PAGE / page overflow), resolved

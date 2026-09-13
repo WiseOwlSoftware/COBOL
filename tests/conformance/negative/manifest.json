@@ -1054,7 +1054,16 @@
   "pb530-picture-precedence-residue",
   "pb530-picture-editing-currency-placement",
   "pb535-picture-no-category",
-  "pb535-picture-alphanumeric-combination"
+  "pb535-picture-alphanumeric-combination",
+  "pb721-record-contains-larger-record",
+  "pb721-record-varying-below-minimum",
+  "pb721-record-varying-above-maximum",
+  "pb721-record-varying-inverted-range",
+  "pb721-record-varying-equal-bounds",
+  "pb721-record-contains-inverted-range",
+  "pb721-record-varying-negative-minimum",
+  "pb721-record-contains-negative-minimum",
+  "pb721-record-bytes-below-2023"
  ],
  "pending": []
 }

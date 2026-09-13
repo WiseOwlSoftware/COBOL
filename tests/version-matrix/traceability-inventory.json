@@ -26001,13 +26001,13 @@
   "ordinal": 2,
   "subject": "RECORD clause",
   "rule-digest": "8652215268c0",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#recordClause; src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#BYTES; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+  "test-ref": "conformance:2023/pb721_record_bytes_synonym; conformance:negative/pb721-record-bytes-below-2023; conformance:85/pb721_bytes_user_word_85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "SR2 is a LEXICAL permission, so it is discharged by the general format admitting both words rather than by a screen: all three formats of 13.18.43.2 print the same { BYTES | CHARACTERS } brace group and recordClause now writes (CHARACTERS | BYTES) in both of its alternatives. Before kb/Work PB721 BYTES had no lexer token at all and `RECORD CONTAINS 20 BYTES` was refused COBOLNET1970 as an unrecognized file description clause. EDITIONS = 2023 ONLY, derived not assumed: Annex E.3.3 item 13 lists BYTES among the words 'added to the list of context-sensitive words or the context in which they are reserved has been expanded' at 2023, and 8.10 gives BYTES exactly ONE construct - the RECORD clause - so there is no earlier context for that sentence's second arm to name and the spelling did not exist below 2023. VersionConformancePass.VisitRecordClause refuses it at 85/2002/2014 (COBOLNET0900, constructs.json row record-clause-bytes-2023), the CONTINUE AFTER ... SECONDS precedent from the same item-13 list; the gate is a parse arm rather than a {is2023()}? predicate because the word sits mid-alternative, where a semantic predicate does not steer prediction. ONLY THE CLAUSE IS GATED: CHARACTERS is 1985-continuous, and BYTES stays a nameSlot user word (cobol-words.json), so `01 BYTES PIC X.` and a table and a paragraph named BYTES are legal COBOL-85 - conformance:85/pb721_bytes_user_word_85 is that over-rejection twin.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.43.3-3",
@@ -26016,13 +26016,13 @@
   "ordinal": 3,
   "subject": "RECORD clause",
   "rule-digest": "578f6994fe90",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RecordClauseRules.cs#Screen",
+  "test-ref": "conformance:negative/pb721-record-contains-larger-record; conformance:2023/pb721_record_bytes_synonym",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "Screened as a row of the RecordClauseRules table, run from DataBinder.ResolveFiles over every declared file once the data forest is indexed - post-build because the size compared is 13.18.43.4 GR8 b)'s, a summation over occurrence counts, redefinition targets and group usage that is not settled while the file description entry is being read. The negative witnesses the rejection (a 20-byte record under RECORD CONTAINS 10); the positive witnesses the boundary where the rule must NOT fire (RECORD CONTAINS 10 BYTES over a record of exactly 10). Nothing screened this rule before kb/Work PB721.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.43.3-4",
@@ -26031,13 +26031,13 @@
   "ordinal": 4,
   "subject": "RECORD clause",
   "rule-digest": "7fddd86b10a4",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RecordClauseRules.cs#Screen",
+  "test-ref": "conformance:negative/pb721-record-varying-below-minimum; conformance:negative/pb721-record-varying-above-maximum; conformance:2023/pb721_zero_length_record",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "ONE printed sentence, TWO obligations, TWO rows - 'neither records that contain a lesser number of bytes than that specified by integer-2 NOR records that contain a greater number of bytes than that specified by integer-3' - and a negative golden per arm, because a rule read as one predicate gets one screen and the other arm ships silent (the kb/Work PB743 shape, applied before the defect). The sizes compared are 13.18.43.4 GR8 a) for the lower arm (every occurs-depending table at its MINIMUM occurrences) and GR8 b) for the upper. RecordClauseRuleDriftTests.Sr4StatesTwoObligations_AndTheTableHasARowForEachArm re-derives the split from the printed rule, so a rule that grows a third obligation turns red. The positive golden pins the upper boundary where the rule must NOT fire (a 20-byte record under FROM 0 TO 20).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.43.3-5",
@@ -26046,13 +26046,13 @@
   "ordinal": 5,
   "subject": "RECORD clause",
   "rule-digest": "c9cd847797bc",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RecordClauseRules.cs#Screen",
+  "test-ref": "conformance:negative/pb721-record-varying-inverted-range; conformance:negative/pb721-record-varying-equal-bounds; conformance:2023/pb721_zero_length_record",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "'Integer-3 shall be greater than integer-2' - GREATER, so EQUAL bounds violate it too, and that arm has its own negative because it is where an off-by-one screen passes its inverted-range test and still ships wrong (the standard writes the weaker relation explicitly two rules later, in SR7's 'greater than or equal to zero'). Before kb/Work PB721 `RECORD IS VARYING IN SIZE FROM 20 TO 5` compiled clean at every edition and the program learned about it only as an I-O status '44' on the first WRITE - 13.18.43.4 GR14 a)'s runtime CONSEQUENCE, never the clause's diagnosis.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.43.3-6",
@@ -26076,13 +26076,13 @@
   "ordinal": 7,
   "subject": "RECORD clause",
   "rule-digest": "d605569effe6",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#recordClause; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#integerLiteral",
+  "test-ref": "conformance:2023/pb721_zero_length_record; conformance:85/pb721_zero_length_record_85; conformance:negative/pb721-record-varying-negative-minimum",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "THE RULE HAS TWO HALVES AND BOTH ARE PINNED. The REJECTING half is discharged by the GENERAL FORMAT, not by a screen: 5.5 rule 1 makes every integer-n 'a fixed-point integer literal that shall be unsigned and nonzero unless otherwise specified in the associated rules', the format spells integer-2 with the grammar's unsigned integerLiteral, and a minus sign is therefore refused at parse (the negative golden). SR7 is precisely the 'unless otherwise specified' override, and it lifts the NONZERO half only - so the PERMITTING half is that FROM 0 shall compile and a zero-length record round-trip, which the two positive goldens measure on a sequential file and a relative one (Annex A.3 item 43 names both), at 2023 and at 85. No edition gate anywhere: Annex E is the complete 2014->2023 delta and carries no entry for this, and a gate below 2014 would be invented rather than derived. Reported to kb/Work PB721 as a suspected over-acceptance; it is not one.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.43.3-8",
@@ -26091,13 +26091,13 @@
   "ordinal": 8,
   "subject": "RECORD clause",
   "rule-digest": "bffc3b77d912",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#recordClause; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#integerLiteral",
+  "test-ref": "conformance:negative/pb721-record-contains-negative-minimum; conformance:2023/pb721_zero_length_record",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR7's twin over the Format 3 clause, same mechanism and same two halves: a negative integer-4 is unwritable because 5.5 rule 1 makes integer-n unsigned (the negative golden), and a ZERO integer-4 shall be accepted (the positive golden's F3 arm, RECORD CONTAINS 0 TO 20). What SR8 buys for Format 3 is the ACCEPTANCE of the zero rather than a zero-length record: the format has no DEPENDING register, so 13.18.43.4 GR13 b) fixes the written length at the record's own size and GR18 makes it 'completely defined in the record description entry'. The pair exists because a screen written for Format 2 alone is the two-arm-dispatch shape this repository reproduces most often.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.43.3-9",
@@ -26106,13 +26106,13 @@
   "ordinal": 9,
   "subject": "RECORD clause",
   "rule-digest": "718a5d40d7f3",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RecordClauseRules.cs#Screen",
+  "test-ref": "conformance:negative/pb721-record-contains-inverted-range; conformance:2023/pb721_record_bytes_synonym",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "'Integer-5 shall be greater than integer-4' - SR5 one general format over, and a separate row because the table's FORMAT column is re-derived from the standard's own bare FORMAT 1 / FORMAT 2 / FORMAT 3 division lines (RecordClauseRuleDriftTests.EveryRow_IsScreenedOnTheFormatTheStandardPrintsItUnder). Format 3 deliberately gets NO SR4-analogue: 13.18.43.4 GR18 says the size of each record 'is completely defined in the record description entry', so the standard states no rule bounding the descriptions by integer-4 and integer-5, and the negative golden asserts the record draws nothing while the clause is reported. The positive witnesses the boundary where SR9 must not fire (RECORD CONTAINS 4 TO 12 BYTES).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.43.4-1",

@@ -1404,8 +1404,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// variable-length records; the fixed Format-1 <c>RECORD CONTAINS n</c> leaves it null). Shared by the FD and
     /// SD loops — ONE binding for the clause. The DEPENDING name keeps only the base word (the FILE STATUS
     /// capture pattern) and resolves post-build in <see cref="ResolveFiles"/>.</summary>
-    private static void BindRecordClause(Core.RecordClauseContext rc, FileModel file)
+    private void BindRecordClause(Core.RecordClauseContext rc, FileModel file)
     {
+        // ⛔ The clause's OWN position, captured here for §13.18.43.3's syntax rules, which are screened
+        // post-build by RecordClauseRules (SR3/SR4 compare against §13.18.43.4 GR8 byte counts over a forest
+        // that is not complete yet). The RecordKeyAt pattern; set for EVERY format, on BOTH the FD and SD arms,
+        // because it is set HERE and not at the two call sites.
+        using var _ = Edition.At(rc);
+        file.RecordClauseAt = Edition.Cursor;
         if (rc.VARYING() is null && rc.TO() is null)
         {
             // The fixed Format-1 RECORD CONTAINS n (ISO §13.18.43): captured for the report-file line width
@@ -1542,6 +1548,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // VERB that named the file, so a program that only OPENed and CLOSEd a file whose keys break them
             // compiled clean (kb/Work PB699). One table, one screen: FileControlKeyRules.
             FileControlKeyRules.Screen(file, Edition);
+            // ⛔ The RECORD clause's own size syntax rules (ISO §13.18.43.3 SR3/SR4/SR5/SR9), screened HERE for
+            // the same reason and by the same shape: they are rules of the file description ENTRY, and SR3/SR4
+            // compare the clause's integers against §13.18.43.4 GR8's byte counts of the record descriptions,
+            // which are settled only once the forest is bound. Until kb/Work PB721 nothing checked them at all
+            // and `RECORD IS VARYING IN SIZE FROM 20 TO 5` compiled clean at every edition.
+            RecordClauseRules.Screen(file, Edition);
             // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the
             // length register WRITE/REWRITE/RELEASE read per GR13a and READ/RETURN set per GR15).
             if (file.Varying?.DependingName is { } vn && ByName.TryGetValue(vn, out var vlist) && vlist.Count > 0)

@@ -22,6 +22,7 @@ cobolWord
     | BIT
     | BLINK
     | {userWordHere("BOOLEAN")}? BOOLEAN
+    | BYTES
     | {userWordHere("B-AND")}? B_AND
     | {userWordHere("B-NOT")}? B_NOT
     | {userWordHere("B-OR")}? B_OR

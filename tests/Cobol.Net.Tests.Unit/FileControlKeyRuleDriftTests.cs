@@ -25,34 +25,20 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class FileControlKeyRuleDriftTests
 {
-    /// <summary>Compare on words only — punctuation, quoting and line wrapping are typography, not content.
-    /// The same normalization <c>scripts/spec/cite.py</c> uses, so the two agree about what "contains" means.</summary>
-    private static string Norm(string s) =>
-        Regex.Replace(Regex.Replace(s, @"[^\w\s]", " "), @"\s+", " ").Trim().ToLowerInvariant();
+    // ⛔ THE SPEC READER IS SHARED, NOT COPIED (kb/Work PB721). These three operations — normalize, take a
+    // clause's own region, index its printed ordinals — are what EVERY rule-table drift guard in this repository
+    // needs, and the second such table (RecordClauseRuleDriftTests) was the moment to extract rather than to
+    // paste. The implementation is tests/_shared/SpecClauseText.cs; these forwarders keep the assertions below
+    // reading as they did. The local names stay because they are this file's vocabulary, not a second mechanism.
+    private static string Norm(string s) => SpecClauseText.Norm(s);
 
-    /// <summary>The lines of one clause's OWN region: from its heading to the next heading of any depth — the
-    /// region <c>cite.py --check</c> asserts against, which is what makes a wrong clause number fail.</summary>
-    private static string[] ClauseRegion(string[] lines, string clause)
-    {
-        var heading = new Regex(@"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(\s|$)");
-        int start = Array.FindIndex(lines, l => heading.Match(l) is { Success: true } m && m.Groups[1].Value == clause);
-        Assert.True(start >= 0, $"§{clause} is missing from specs/ISO_COBOL.md — a table row cites a clause the transcription does not have.");
-        int end = Array.FindIndex(lines, start + 1, l => heading.IsMatch(l));
-        return lines[start..(end < 0 ? lines.Length : end)];
-    }
+    private static string[] ClauseRegion(string[] lines, string clause) =>
+        SpecClauseText.ClauseRegion(lines, clause);
 
-    /// <summary>The printed, numbered rules of a clause region, keyed by their printed number. The transcription
-    /// escapes the delimiter (<c>1\)</c>) so Markdown does not eat it as a list; both forms are matched.</summary>
-    private static Dictionary<int, string> NumberedRules(string[] region)
-    {
-        var rules = new Dictionary<int, string>();
-        foreach (string l in region)
-            if (Regex.Match(l, @"^(\d+)\\?\)\s+(.*)$") is { Success: true } m)
-                rules[int.Parse(m.Groups[1].Value)] = m.Groups[2].Value.Trim();
-        return rules;
-    }
+    private static Dictionary<int, string> NumberedRules(string[] region) =>
+        SpecClauseText.NumberedRules(region);
 
-    private static string[] SpecLines() => File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+    private static string[] SpecLines() => SpecClauseText.Lines();
 
     // ── The guard itself ────────────────────────────────────────────────────────────────────────────────────
 

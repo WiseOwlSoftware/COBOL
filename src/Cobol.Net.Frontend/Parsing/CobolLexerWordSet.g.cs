@@ -22,6 +22,7 @@ public partial class CobolLexer
         BINARY_ENCODING,
         BLINK,
         BOOLEAN,
+        BYTES,
         B_AND,
         B_NOT,
         B_OR,
