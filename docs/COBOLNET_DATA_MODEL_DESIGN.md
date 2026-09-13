@@ -773,8 +773,7 @@ variable-length group** in either direction and to or from a compatible FIXED gr
 over an occurs-depending group** · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
 (diagnostic, not a silent wrong answer):** whole-group image of a containing group in the statements that need a
 FIXED record window — WRITE/RELEASE and comparison (§14.6.9; the two shapes CONFORMANCE.md A.1 item 57 excludes
-from the current-extent composer stay loud in MOVE as well) · VALUE-derived initial capacity (**1528**,
-§13.18.63 GR16) · ref-mod of a
+from the current-extent composer stay loud in MOVE as well) · ref-mod of a
 subordinate (**1526**, §13.7.1 SR6) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
 (**1701**, §13.18.44.3 SR5 sentence 1) · REDEFINES **subject** IS a dynamic table (**1525**, §13.18.44.4 GR1 +
 §8.5.1.9.1 — the one side no syntax rule names) · REDEFINES either side a variable-length group, i.e. with a
@@ -787,8 +786,10 @@ order-independent `occursDynamicPhrase*`; the COBOL-2014 introduction gate is th
 `VersionConformancePass` funnel at end state — `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
 NO SET grammar change (Format 14 is the
 existing SET syntax, binder-rerouted). Diagnostics: **1522** (declaration/placement/SR28 — FILE SECTION, ODO-nesting,
-FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1528
-(staged-loud). (08xx band exhausted; 15xx, last-used 1521.)
+FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1527
+(staged-loud). (08xx band exhausted; 15xx, last-used 1521.) **COBOLNET1528 was DELETED** with the PB500 landing —
+the rule it cited, §13.18.63.4 GR16, is a FORMAT 2 general rule and never reached the FORMAT 1 VALUE it refused;
+its code is never reallocated.
 
 **Implemented (the CORE increments):** (1)
 grammar (`CAPACITY` token + the `OCCURS DYNAMIC occursDynamicPhrase* …` alt, `{is2014()}?`-gated) + `OccursSpec`
@@ -850,15 +851,14 @@ being a variable-length group per §8.5.1.12.1, i.e. with a dynamic-length item 
 SUBORDINATE; **1525** (the class loop, narrowed to a NON-canonical member) — the SUBJECT that IS itself a dynamic
 table, the one shape in the family no syntax rule names, decided by §13.18.44.4 GR1's fixed association area
 against §8.5.1.9.1's capacities that "may vary during execution" (§13.18.44 NOTE 3 permits REDEFINES only
-SUBORDINATE to a dynamic table). Each forces the class `Rejected`. **1528** (`DynamicResolve`): §13.18.38 GR16 /
-§13.18.63 GR6 (:24102) — a VALUE on an ELEMENTARY dynamic entry derives the initial capacity (staged); a VALUE on a
-GROUP dynamic table's SUBORDINATE is the element seed (capacity = FROM) and is NOT caught. **1527** (the containing-
+SUBORDINATE to a dynamic table). Each forces the class `Rejected`. **1527** (the containing-
 group INITIALIZE `InitializeErrorAction` message; the whole-dynamic-table value op stays a runtime `NotImplemented`
 loud) — the §14.6.9 variable-length-group family. **1526 is unnecessary and omitted:** reference modification of a
 dynamic-table element works correctly (a `RefModPlace` over the
 `DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the cited "§13.7.1 SR6" restriction is actually the
 §8.4.3.11.4 ADDRESS-OF/bit-item SR6, not a general ref-mod prohibition — so a 1526 guard would over-restrict valid
-code. Negative tests: `OccursDynamicGuardTests` (1522/1525/1528 + the positive companions). **EC-BOUND-OVERFLOW**
+code. Negative tests: `OccursDynamicGuardTests` (1522/1525 + the positive companions, which now include both halves
+of the Format 1 VALUE pair — see the §13.18.63 BAND SCOPING paragraph below). **EC-BOUND-OVERFLOW**
 is LIVE since P13 (the ambient checking-gated raise); **FULL variable-length-group MOVE/COMPARE** (a bind-time 1527 + a
 `DynWholeTablePlace` carrying FUNCTION LENGTH = `Capacity × elemWidth`) remains the flagged follow-on (an EC-integration pass + a
 whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
@@ -871,12 +871,33 @@ fixed OCCURS (`TablePath` null) fails LOUD rather than scanning ZERO occurrences
 later increment). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
 OTHER THAN the file section"). The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
-spurious pending op). The **1528** guard also covers a GROUP dynamic table with a subordinate VALUE AND a TO (the
-§13.18.63 GR16 superordinate-scope derivation; a subordinate VALUE with NO TO stays supported = capacity FROM).
+spurious pending op).
+
+**⛔ §13.18.63 BAND SCOPING — A FORMAT 1 VALUE ON OR UNDER A DYNAMIC ENTRY CARRIES NO CAPACITY DERIVATION** (PB500).
+The VALUE-derived initial capacity is the job of §13.18.63.4 **GR16 alone, and GR16 is a FORMAT 2 general rule**
+(band GR11–GR16). §13.18.63 states cross-band application explicitly and in ONE direction only — GR11 ("General
+rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply"), GR17, GR21 and GR24 all import FORMAT 1 rules into a later
+band, and nothing imports GR12–GR16 back into FORMAT 1. The syntax rules settle it independently: §13.18.63.3 SR22,
+the rule that keeps GR16b from having no operand, is itself FORMAT 2 (band SR16–SR23) with no FORMAT 1 counterpart,
+so a Format 1 VALUE on `OCCURS DYNAMIC FROM 2.` would otherwise hit GR16b with no expected capacity to set. A
+Format 1 VALUE here is therefore conforming source with a fully determined meaning: the capacity is the ordinary
+§14.6.2.3.2 item-6 / §13.18.38.4 GR16 **minimum** (the OCCURS FROM, zero when absent — cross-checked by §8.5.1.9.1,
+which gives the same number from the other side), and §13.18.63.4 GR9 plus §13.18.38.4 GR1 (band "FORMATS 1, 2 AND
+4") give **every occurrence** the value. `ValueInitializer.FieldInit` already does both with no code of its own,
+opening the `CobolDynTable` at `OccursSpec.InitialCap ?? 0` and seeding every occurrence from `DataItem.ValueAt`.
+A `COBOLNET1528` refusal stood at `DynamicResolve` for this, reading GR16b's "no TO phrase … in the VALUE clause"
+as covering a Format 1 `VALUE IS literal-1`; it rejected legal source, and its two arms disagreed with each other —
+the GROUP arm fired only when the OCCURS carried a TO, so `OCCURS DYNAMIC FROM 3.` with subordinate VALUEs compiled
+and seeded correctly while `OCCURS DYNAMIC FROM 3 TO 9.` was refused, while the ELEMENTARY arm ignored the TO and
+refused both. Golden `tests/conformance/2014/pb500_format1_value_dynamic_table` pins all six shapes, including the
+mixed entry where a Format 1 and a Format 2 VALUE sit over one dynamic table and only the latter moves the capacity.
+
 `CobolDynTable` wires **EC-BOUND-OVERFLOW** since P13 (the receiving-subscript implicit grow past the expected
 capacity raises through the ambient `BoundOverflowChecking` gate, first crossing only); **EC-BOUND-SET** remains the
 flagged nonfatal follow-on.
-Resolved open questions: VALUE-capacity staged; EC-FLOW-SEARCH in CORE.
+Resolved open questions: the VALUE-derived capacity is §13.18.63.4 GR16's, implemented over the whole FORMAT 2
+surface by `DataBinder.ResolveTableValues` and reaching no FORMAT 1 VALUE (the band-scoping paragraph above);
+EC-FLOW-SEARCH in CORE.
 
 ### D17. TYPEDEF + the TYPE clause (§13.18.58 / §13.18.57 / §13.16, COBOL-2002) — a template registry + a subtree clone spliced into the forest at declaration-bind; a FRONT-END + BINDER-ONLY feature (ZERO emitter change).
 

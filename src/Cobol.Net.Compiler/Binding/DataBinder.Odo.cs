@@ -215,13 +215,15 @@ public sealed partial class DataBinder
     /// field (no <c>FieldEmitter</c> entry): its value IS the runtime <c>CobolDynTable&lt;T&gt;.Capacity</c>. A
     /// register-name that duplicates an explicit data-name (or another table's register) violates the
     /// implicit-definition rule → COBOLNET1523. Placement/declaration guards: SR28 FROM ≤ TO (1522); the FILE
-    /// SECTION prohibition §8.5.1.9.1 (1526); the VALUE-derived-capacity §13.18.63 GR16 staging (1528).
+    /// SECTION prohibition §8.5.1.9.1 (1526).
+    /// <para>⛔ A FORMAT 1 VALUE ON OR UNDER A DYNAMIC ENTRY IS NOT THIS PASS'S BUSINESS — see the note below the
+    /// SR28 guard. It carries no capacity derivation to stage, so there is nothing here to guard (kb/Work
+    /// PB500).</para>
     /// </summary>
     internal void DynamicResolve()
     {
         // §8.5.1.9.1 item 3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
         var fileRecordRoots = new HashSet<DataItem>(Files.SelectMany(f => f.Records));
-        static bool SubtreeHasValue(DataItem d) => d.RawValue is not null || d.Children.Any(SubtreeHasValue);
 
         foreach (var item in AllItems())
         {
@@ -244,18 +246,53 @@ public sealed partial class DataBinder
                     + $"capacity (TO integer-5) shall be greater than the minimum capacity (FROM integer-4) "
                     + "(ISO §13.18.38 SR28)");
 
-            // §13.18.63 GR16 (:23440) — a VALUE clause in the DYNAMIC entry OR any entry SUPERORDINATE to it derives
-            // the initial capacity (GR16b: no-TO-in-VALUE → the OCCURS expected capacity/TO). That derivation is
-            // staged (data-model D9) → LOUD, never silently mis-sized: (a) an elementary dynamic entry's OWN VALUE;
-            // (b) a GROUP dynamic table whose subtree carries a VALUE AND whose OCCURS has a TO (an expected capacity
-            // for GR16b to use). A subordinate VALUE with NO TO has no expected capacity for GR16b, so the
-            // §14.6.2.3.2 item-6 default (capacity = FROM, elements seeded) applies and IS supported (the
-            // dyn_initialize / dyn_initialized goldens).
-            if ((item.IsElementary && item.RawValue is not null)
-                || (item.IsGroup && spec.ExpectedMax is not null && item.Children.Any(SubtreeHasValue)))
-                Edition.Error("COBOLNET1528", $"OCCURS DYNAMIC on '{subject}' with a VALUE clause: a VALUE in the "
-                    + "dynamic entry or a superordinate entry derives the initial capacity (ISO §13.18.63 GR16) — "
-                    + "that derivation is not yet implemented");
+            // ⛔ NO GUARD BELONGS HERE FOR A **FORMAT 1** VALUE ON OR UNDER A DYNAMIC ENTRY, AND THE RULE THAT
+            //    LOOKS LIKE ONE DOES NOT REACH IT (kb/Work PB500 — this is the SECOND arm of the same two-arm
+            //    dispatch the fixed-capacity lane already got right).
+            //
+            //    A COBOLNET1528 refusal stood here, citing §13.18.63.4 GR16 ("If an OCCURS clause with the DYNAMIC
+            //    phrase is specified in the same entry as the VALUE clause, or in any entry superordinate to it,
+            //    the initial capacity of the associated dynamic-capacity table is calculated according to the
+            //    following subrules") and reading its subrule (b) ("If no TO phrase is specified in the VALUE
+            //    clause, the initial capacity is set equal to the expected capacity specified in the OCCURS
+            //    clause") as reaching a Format 1 `VALUE IS literal-1`, which trivially has no TO phrase. IT DOES
+            //    NOT. GR16 sits under the **FORMAT 2** general-rule heading (GR11–GR16), and §13.18.63 states
+            //    cross-band application EXPLICITLY and in ONE direction only — GR11 "General rules 1, 2, 3, 4, 5,
+            //    6, 7, 8, and 10 above apply", GR17, GR21, GR24 all import FORMAT 1 rules INTO another band, and
+            //    nothing imports GR12–GR16 into FORMAT 1. The syntax rules settle it independently: §13.18.63.3
+            //    SR22 ("A VALUE clause without the TO phrase shall not be specified in the same entry as an OCCURS
+            //    clause with a DYNAMIC phrase but no TO phrase, or in any entry subordinate to such an OCCURS
+            //    clause") is the rule that keeps GR16b from having no operand, and IT TOO is in the FORMAT 2 band
+            //    (SR16–SR23) with no FORMAT 1 counterpart. Were GR16 to reach Format 1, `05 A PIC X OCCURS DYNAMIC
+            //    FROM 2 VALUE "Z".` would hit GR16b with no expected capacity to set — a hole the standard would
+            //    have had to close and did not, because there is no hole.
+            //
+            //    So a Format 1 VALUE here is CONFORMING SOURCE with a fully determined meaning, and refusing it
+            //    was rejecting legal COBOL (§13.18.38.3 has no rule forbidding VALUE on a Format 4 entry):
+            //      • CAPACITY — §14.6.2.3.2 item 6, "For each dynamic-capacity table, except where the table is
+            //        defined by an elementary entry with a VALUE clause, the capacity of the table is set to the
+            //        minimum capacity specified in the corresponding OCCURS clause", with §13.18.38.4 GR16
+            //        "Integer-4 is the minimum capacity of the table. If integer-4 is absent, a value of zero is
+            //        assumed for it." The item-6 EXCEPTION is the carve-out that lets a GR16-derived (Format 2)
+            //        capacity survive this step, and it changes NOTHING for a Format 1 VALUE either way: §8.5.1.9.1
+            //        gives the same number from the other side — "The current capacity of a dynamic-capacity table
+            //        may be initialized explicitly in the FROM phrase of the OCCURS clause or implicitly in the
+            //        VALUE clause. If neither is specified, the current capacity is initialized to zero" — and
+            //        GR16 is the only "implicitly in the VALUE clause" mechanism there is. FROM (or zero) both ways.
+            //      • CONTENT — §13.18.63.4 GR9, "A VALUE clause specified in a data description entry that contains
+            //        an OCCURS clause or in an entry that is subordinate to an OCCURS clause causes every occurrence
+            //        of the associated data item to be assigned the specified value", reinforced by §13.18.38.4 GR1
+            //        (band "FORMATS 1, 2 AND 4" — Format 4 IS the dynamic-capacity table): "Except for the OCCURS
+            //        clause itself, all data description clauses associated with an item whose description includes
+            //        an OCCURS clause apply to each occurrence of the item described."
+            //
+            //    Both are already what the emitter does with no code of its own: ValueInitializer.FieldInit opens a
+            //    CobolDynTable at `OccursSpec.InitialCap ?? 0` and seeds EVERY occurrence from the one-occurrence
+            //    initializer, which for a Format 1 VALUE is DataItem.ValueAt → RawValue. The refusal's two arms
+            //    disagreed with each other, too, which is what gave the defect away: the GROUP arm fired only when
+            //    the OCCURS carried a TO, so `OCCURS DYNAMIC FROM 3.` with subordinate VALUEs compiled and seeded
+            //    correctly while `OCCURS DYNAMIC FROM 3 TO 9.` — the SAME construct, one optional phrase apart —
+            //    was refused, and the ELEMENTARY arm ignored the TO entirely and refused both.
 
             // The register: an unsigned-integer VIEW over the table's Capacity (SR31) — a native-binary PicInfo so
             // the numeric pipeline reads {tablePath}.Capacity (a long) as a scale-0 integer; no stored field. The

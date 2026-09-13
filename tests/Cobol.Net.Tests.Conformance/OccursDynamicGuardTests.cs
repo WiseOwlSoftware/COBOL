@@ -67,32 +67,43 @@ public sealed class OccursDynamicGuardTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1525");
     }
 
-    /// <summary>§13.18.38 GR16 / §13.18.63 GR6 — a VALUE clause on an ELEMENTARY dynamic-capacity entry derives the
-    /// initial capacity (the VALUE-derived-capacity subrules), a construct staged loud (COBOLNET1528) rather than
-    /// silently mis-seeded.</summary>
+    /// <summary>⛔ A **FORMAT 1** VALUE ON AN ELEMENTARY DYNAMIC-CAPACITY ENTRY IS CONFORMING SOURCE, and the
+    /// §13.18.63.4 GR16 capacity derivation does not reach it (kb/Work PB500). GR16 is a FORMAT 2 general rule
+    /// (band GR11–GR16) and §13.18.63.3 SR22 — the rule that keeps GR16b from having no operand — is a FORMAT 2
+    /// syntax rule (band SR16–SR23); §13.18.63 imports rules across bands ONLY into the later band (GR11, GR17,
+    /// GR21, GR24), never back into FORMAT 1. So the capacity is the ordinary §14.6.2.3.2 item-6 / §13.18.38.4
+    /// GR16 minimum — here FROM 3 — and §13.18.63.4 GR9 gives every one of those occurrences the value.
+    /// <para>This test replaced a GREEN assertion that the construct was REJECTED (COBOLNET1528, now retired): a
+    /// passing test pinning a loud stage reads as a decision, and this one was pinning a refusal of legal COBOL
+    /// derived from a rule in the wrong band.</para></summary>
     [Fact]
-    public void ValueOnElementaryDynamicEntry_Rejected1528()
+    public void ValueOnElementaryDynamicEntry_CapacityIsMinimum_EveryOccurrenceTakesTheValue()
     {
         var (ok, diag) = EditionHarness.Compile(Prog(
-            "01 WS-TABLE.\n   05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 3 VALUE 7."), 2014);
-        Assert.False(ok, "a VALUE clause on an elementary dynamic entry (VALUE-derived capacity) is staged loud");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1528");
+            "01 WS-TABLE.\n   05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 3 CAPACITY IN WS-CAP VALUE 7."), 2014);
+        Assert.True(ok, $"a Format 1 VALUE on an elementary dynamic entry is conforming source "
+            + $"(§13.18.38.3 forbids it nowhere; §13.18.63.4 GR16 is FORMAT 2): {string.Join("; ", diag)}");
     }
 
-    /// <summary>§13.18.63 GR16 (review #4) — a VALUE clause in an entry SUPERORDINATE to a DYNAMIC entry derives the
-    /// initial capacity (GR16b: no-TO-in-VALUE → the OCCURS expected capacity). When the OCCURS carries a TO, that
-    /// derivation applies to a GROUP dynamic table's subordinate VALUE too → staged loud COBOLNET1528 (not the
-    /// silently-wrong capacity = FROM).</summary>
+    /// <summary>The same rule one level down: a **FORMAT 1** VALUE SUBORDINATE to a GROUP dynamic-capacity table,
+    /// with the OCCURS carrying a TO (expected) capacity. §13.18.63.4 GR9 covers "an entry that is subordinate to
+    /// an OCCURS clause" explicitly, and §14.6.2.3.2 item 6 still opens the table at its MINIMUM capacity — the
+    /// expected capacity is a ceiling for EC-BOUND-OVERFLOW (§8.5.1.9.6), never an initial size.
+    /// <para>⛔ THE TWO-ARM WITNESS. The retired COBOLNET1528 refusal fired on this arm only when the OCCURS
+    /// carried a TO, so `OCCURS DYNAMIC FROM 2.` compiled and seeded correctly while `OCCURS DYNAMIC FROM 2 TO 10.`
+    /// — the same construct, one optional phrase apart — was refused. This test and
+    /// <see cref="WellFormedAndGroupSubordinateValue_CompileClean"/> are the pair that keeps the two arms
+    /// answering alike.</para></summary>
     [Fact]
-    public void GroupSubordinateValueWithTo_Rejected1528()
+    public void GroupSubordinateValueWithTo_CompilesAndOpensAtMinimumCapacity()
     {
         var (ok, diag) = EditionHarness.Compile(Prog("""
             01 WS-TABLE.
                05 ROW OCCURS DYNAMIC CAPACITY IN WS-CAP FROM 2 TO 10.
                   10 ELEM PIC 99 VALUE 07.
             """), 2014);
-        Assert.False(ok, "a group dynamic table with a subordinate VALUE and a TO derives capacity (GR16) — staged loud");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1528");
+        Assert.True(ok, $"a Format 1 VALUE subordinate to a dynamic table is conforming source, with or without "
+            + $"an OCCURS TO (§13.18.63.4 GR9; GR16 is FORMAT 2): {string.Join("; ", diag)}");
     }
 
     /// <summary>§8.5.1.9.1 item 3 (review #6) — a dynamic-capacity table "may be defined in any place, OTHER THAN the
@@ -121,9 +132,13 @@ public sealed class OccursDynamicGuardTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1526");
     }
 
-    /// <summary>The positive companions: a well-formed FROM/TO, and a VALUE on the SUBORDINATE of a GROUP dynamic
-    /// table (the element's per-occurrence seed, capacity = FROM — supported, NOT a VALUE-derived capacity), both
-    /// compile cleanly. Guards must not over-restrict the supported surface.</summary>
+    /// <summary>The positive companions: a well-formed FROM/TO, and a Format 1 VALUE on the SUBORDINATE of a GROUP
+    /// dynamic table with NO OCCURS TO (the element's per-occurrence seed at capacity = FROM, §13.18.63.4 GR9 +
+    /// §14.6.2.3.2 item 6 — never a VALUE-derived capacity, which is the FORMAT 2 GR16's job alone), both compile
+    /// cleanly. Guards must not over-restrict the supported surface.
+    /// <para>The no-TO half of the pair whose TO half is
+    /// <see cref="GroupSubordinateValueWithTo_CompilesAndOpensAtMinimumCapacity"/>: for two years exactly one of
+    /// these two compiled, which is how the retired COBOLNET1528 arm split a single construct in half.</para></summary>
     [Fact]
     public void WellFormedAndGroupSubordinateValue_CompileClean()
     {
@@ -137,6 +152,6 @@ public sealed class OccursDynamicGuardTests
                   10 WS-NAME PIC X(4) VALUE "----".
                   10 WS-QTY  PIC 9(2) VALUE 7.
             """), 2014);
-        Assert.True(ok2, $"a VALUE on a GROUP dynamic table's subordinate is the element seed, not 1528: {string.Join("; ", diag2)}");
+        Assert.True(ok2, $"a VALUE on a GROUP dynamic table's subordinate is the element seed: {string.Join("; ", diag2)}");
     }
 }
