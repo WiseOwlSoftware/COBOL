@@ -109,6 +109,11 @@ public struct CheckingFlags
     /// BEFORE REPORTING declarative procedure (§14.9.49.4 GR10).</summary>
     public bool FlowReport;
 
+    /// <summary>EC-FLOW-USE — a statement executed during a USE procedure raised an exception condition that
+    /// would cause the execution of a USE procedure "that had previously been activated and had not yet
+    /// returned control to the activating entity" (§14.9.49.4 GR2; Table 13 Fatal).</summary>
+    public bool FlowUse;
+
     /// <summary>EC-REPORT-ACTIVE — an INITIATE of a report that is already in the active state
     /// (§14.9.21.4 GR2).</summary>
     public bool ReportActive;

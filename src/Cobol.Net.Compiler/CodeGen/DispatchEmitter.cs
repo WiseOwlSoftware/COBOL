@@ -200,6 +200,11 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block("private void __RunDebug(string __nm, int __subjLine, int __ds, int __de)"))
         {
             w.Line("if (!RunUnit.Current.DebugMode) return;   // the X3.23-1985 object-time debug switch (default ON)");
+            // ⛔ THIS RE-ENTRANCY GUARD IS NOT §14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
+            // PB368 asked the question of both guards). The two are EDITION-DISJOINT: USE FOR DEBUGGING is the
+            // X3.23-1985 declarative ISO 2002 deleted (`use-for-debugging-removed-2002`, COBOLNET0902), and
+            // EC-FLOW-USE is a 2002 EC-model name — at --std 85 there is no exception-name to set, and at 2002+
+            // there is no debugging declarative to re-enter. GR2's guard is EmitRunUseBody's.
             w.Line("if (__dbgBusy) return;");
             w.Line("__dbgBusy = true;");
             // DEBUG-LINE: START PROGRAM has no causing statement — it is the subject's own first executable
@@ -281,10 +286,43 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// Renders <see cref="DispatchState.DispatchName"/> — <c>__Dispatch</c> as a class member (a program), <c>__MDispatch</c>
     /// as a method-local function (an OO method's F3 PERFORM, design SSOT §9.10) — so the ONE body serves both scopes
     /// (the C3 correction: the former literal <c>__Dispatch</c> hardcode would name a nonexistent method inside a class).
-    /// <paramref name="ecModel"/> = the int RESUME-returning form (an EC-model group) vs the void form.</summary>
+    /// <paramref name="ecModel"/> = the int RESUME-returning form (an EC-model group) vs the void form.
+    /// <para>⛔ <b>THE GUARD IS THE RAISE SITE</b> (kb/Work PB368). §14.9.49.4 GR2's sole normative content is
+    /// the condition, not the decline: "During the execution of a USE procedure, if a statement raises an
+    /// exception condition that would cause the execution of a USE procedure that had previously been activated
+    /// and had not yet returned control to the activating entity, the EC-FLOW-USE exception condition is set to
+    /// exist." This body is the ONE place in the compiler that knows that has happened — every selection path
+    /// (<c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>, <c>__EcObjDispatch</c>, <c>__RunGlobalUse</c>
+    /// and the report engine's BEFORE REPORTING hook) reaches the active procedure only through here — so the
+    /// raise is written here and every path inherits it. With checking enabled the fatal condition unwinds to
+    /// the RAISING statement's own guard for the §14.6.13.1.3 #5/#7 dispatch (a USE AFTER EC EC-FLOW-USE
+    /// declarative, its RESUME, else abnormal termination); with checking off it is not raised
+    /// (§14.6.13.1.1) and the quiet decline below is the #8 implementor answer.</para>
+    /// <para>⛔ Only a DECLARATIVE id is a USE procedure. The ids at and above <see cref="DispatchState.DeclCount"/>
+    /// are the exception-checking PERFORM's imp-2/3/4 handler ranges, which share this array and this invoker but
+    /// are selected by §14.9.28.4 GR17 — they are not USE procedures and GR2 does not reach them. An OO method's
+    /// method-local <c>__RunUse</c> is ALL handlers (DeclCount 0), so it emits the bare guard unchanged.</para></summary>
     internal void EmitRunUseBody(CodeWriter w, bool ecModel)
     {
-        w.Line($"if (__useActive[__id]) return{(ecModel ? " -1" : "")};   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+        string ret = ecModel ? " -1" : "";
+        // The void form belongs to an EC-FREE group (EmitUseMachinery picks it on !ecState.Active), and enabling
+        // EC-FLOW-USE checking anywhere makes the group EC-active by construction — EcBinder.EcWrap binds a
+        // BoundEcChecked for it, which is EcFeatures.HasChecked. So the void arm provably cannot need the raise,
+        // and skipping it there keeps a declarative-bearing EC-free program byte-identical (SSOT §18.16).
+        int decls = ecModel ? dispatchState.DeclCount : 0;
+        if (decls > 0)
+        {
+            using (w.Block("if (__useActive[__id])"))
+            {
+                // The id test is emitted only where handler slots exist; with none, every id is a declarative.
+                string only = dispatchState.F3HandlerBasePc is not null ? $"if (__id < {decls}) " : "";
+                w.Line($"{only}ExceptionState.FlowUseError(\"USE declarative \" + __id + \" is already active"
+                    + " (ISO 14.9.49.4 GR2 - a USE procedure activated during its own execution)\");");
+                w.Line($"return{ret};   // not re-invoked — the §14.6.13.1.3 #8 outcome when checking is off");
+            }
+        }
+        else
+            w.Line($"if (__useActive[__id]) return{ret};   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
         w.Line("__useActive[__id] = true;");
         if (ecModel)
         {

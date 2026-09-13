@@ -552,6 +552,20 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // "references a dynamic table" filter is a documented future refinement.
             if (ctx.EcState.Turn.Enabled("EC-BOUND-OVERFLOW", null, line))
                 enabled.Add(("EC-BOUND-OVERFLOW", null));
+            // EC-FLOW-USE (fatal, §14.9.49.4 GR2 — kb/Work PB368) rides an ambient per-statement gate, and it has
+            // to: GR2's subject is "a statement [that] raises an exception condition that would cause the
+            // execution of a USE procedure that had previously been activated", and the set of statements that
+            // can cause a USE procedure to be executed is every statement that can raise ANY condition with a
+            // declarative — every I-O verb (GR3a/GR3b file and open-mode tiers), every RWCS verb (GR8 BEFORE
+            // REPORTING), a RAISE, a CALL, and any statement whose inline raise site (subscript, ref-mod,
+            // pointer, size error) reaches the GR3c–g Format-3 tiers. There is no node kind to key on, exactly
+            // as for EC-BOUND-REF-MOD below; and the SYNTACTIC alternative — "a statement lexically inside
+            // DECLARATIVES" — is wrong outright, because a declarative may PERFORM a paragraph anywhere in the
+            // procedure division and GR2 says "during the EXECUTION of a USE procedure". The raise fires only
+            // inside the generated __RunUse guard, so the flag around a statement that invokes no declarative
+            // is a no-op.
+            if (ctx.EcState.Turn.Enabled("EC-FLOW-USE", null, line))
+                enabled.Add(("EC-FLOW-USE", null));
             // EC-BOUND-REF-MOD (fatal, §8.4.3.3.4) rides an ambient per-statement gate: a reference modification
             // whose leftmost/length is out of range (or an unallowed zero-length) raises it while checking is
             // enabled. Wrapped conservatively (any statement in a checking-on region) — the raise fires only at an

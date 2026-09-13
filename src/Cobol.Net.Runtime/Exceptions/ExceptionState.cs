@@ -661,6 +661,34 @@ public sealed class ExceptionEngine
     /// return, and the caller leaves the GENERATE / INITIATE / TERMINATE unexecuted exactly as GR10 requires.</summary>
     public void FlowReportError(string detail) => FatalIfEnabled(FlowReportChecking, "EC-FLOW-REPORT", detail);
 
+    // ──── THE USE-PROCEDURE RE-ENTRANCY CONDITION (§14.9.49.4 GR2; kb/Work PB368) ─────────────────────────
+    //
+    // GR2's SOLE normative content is the RAISE — "During the execution of a USE procedure, if a statement
+    // raises an exception condition that would cause the execution of a USE procedure that had previously been
+    // activated and had not yet returned control to the activating entity, the EC-FLOW-USE exception condition
+    // is set to exist". It says nothing about what then happens to the declining invocation, so the generated
+    // __RunUse guard's quiet decline is the §14.6.13.1.3 #8 implementor answer for checking OFF (the condition
+    // is not raised, and this implementation continues by not re-entering the active procedure) and remains the
+    // outcome for the raise's own unwind path. Unlike its EC-FLOW-SEARCH / EC-FLOW-REPORT neighbours the
+    // standard does NOT state a lenient outcome outright — there is no statement to leave unexecuted — so the
+    // decline is a recorded determination rather than a quotation (COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN D11).
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-USE checking enabled (fatal).</summary>
+    public bool FlowUseChecking
+    {
+        get => _checking.FlowUse;
+        set => _checking.FlowUse = value;
+    }
+
+    /// <summary>Raise EC-FLOW-USE (§14.9.49.4 GR2; Table 13 Fatal) when checking is enabled; otherwise return,
+    /// and the caller declines to re-invoke the active USE procedure (the §14.6.13.1.3 #8 implementor choice).
+    /// Called from the generated <c>__RunUse</c> guard — the ONE place that knows a selected DECLARATIVE was
+    /// already active — so every selection path (<c>__IoCheck</c>, <c>__IoCheckEc</c>, <c>__EcDispatch</c>,
+    /// <c>__EcObjDispatch</c>, <c>__RunGlobalUse</c> and the report engine's BEFORE REPORTING hook) raises it
+    /// identically. ⛔ NOT the exception-checking PERFORM's imp-2/3/4 handler slots, which share that array but
+    /// are not USE procedures (§14.9.28.4 GR17, not §14.9.49.4 GR3) — the emitter excludes them by id.</summary>
+    public void FlowUseError(string detail) => FatalIfEnabled(FlowUseChecking, "EC-FLOW-USE", detail);
+
     /// <summary>True while the currently-executing statement has EC-REPORT-ACTIVE checking enabled (fatal).</summary>
     public bool ReportActiveChecking
     {
@@ -1209,6 +1237,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FlowReportError"/>
     public static void FlowReportError(string detail) => E.FlowReportError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowUseChecking"/>
+    public static bool FlowUseChecking
+    {
+        get => E.FlowUseChecking;
+        set => E.FlowUseChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowUseError"/>
+    public static void FlowUseError(string detail) => E.FlowUseError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.ReportActiveChecking"/>
     public static bool ReportActiveChecking

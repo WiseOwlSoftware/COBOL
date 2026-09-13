@@ -374,6 +374,13 @@ internal sealed class ProgramEmitter
         // edition-invariant — the determination is written there (kb/Work PB344).
         using (w.Block("public bool __RunGlobalUse(string __f)"))
         {
+            // ⛔ DISCARDING __RunUse's RESUME ACTION HERE IS THE RULE, NOT the PB141 defect it resembles.
+            // ISO §14.9.33.4 GR1: "If the RESUME statement is executed within the scope of execution of a global
+            // declarative, it is the equivalent of the execution of a CONTINUE statement." Every declarative this
+            // selector can run is a GLOBAL one (globalOnly), so its resume action is a CONTINUE by definition and
+            // there is nothing to hand back — unlike __IoCheck's LOCAL tier, where discarding it WAS kb/Work
+            // PB141. Said out loud because the two call sites look identical and only one of them may discard
+            // (measured as a candidate defect and refuted by the rule, kb/Work PB368).
             UseTierEmitter.EmitScopeTiers(w, decls,
                 i => $"{_dispatchState.RunUseCall(i, decls[i].Range)}; return true;", globalOnly: true);
             w.Line(unit.Parent is { } p && ChainHasGlobalUse(p)

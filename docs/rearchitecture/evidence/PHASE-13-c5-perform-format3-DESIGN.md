@@ -15,7 +15,7 @@ contiguous free block 1597-1617 (batch 2 used 1585-1596). -->
 > RUNTIME interceptor landed 2026-07-22** (the F3 PERFORM compiles and runs — GR17-22; the 0899 program-path staging is
 > lifted). **§9 below is the decision-complete AS-BUILT design (the implementation SSOT).** The residual staged sub-GAPs
 > (each a loud COBOLNET0899, never silent) are: the open-mode WHEN operand form, F3-PERFORM-inside-a-method, the
-> cross-CALL GR1 "in range" reading, EC-FLOW-USE/`>>PROPAGATE`, and an exception-OBJECT raise inside imp-1 (§9.7).
+> cross-CALL GR1 "in range" reading, the `>>PROPAGATE` directive, and an exception-OBJECT raise inside imp-1 (§9.7). EC-FLOW-USE left that list when kb/Work PB368 gave §14.9.49.4 GR2 its raise site.
 > An 8-agent scout of the actual tree surfaced several places the original plan under-specified reality — each reconciled
 > from the spec, not improvised. The **current-state design home is `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12**;
 > the body below is the original front-half plan, corrected by these notes (point 6 below is SUPERSEDED by §9):
@@ -403,7 +403,7 @@ This works because the per-statement dispatch protocol and `ResumeSignal` alread
 1. **`WHEN EXCEPTION INPUT/OUTPUT/I-O/EXTEND` open-mode operand form** — matching an EC-I-O by the raising file's *current open mode* needs the runtime matcher to query the connector's open mode at the raise site (parallel to `__IoCheckEc`'s open-mode tier, on the WHEN path). Disposition: emit **COBOLNET0899** on this operand form until staged; stage after the name-list/FILE forms land. *(Note: the grammar in §1.4 already parses this form; the GAP is the runtime matcher, so 0899 is emitted at bind for the mode-operand form only.)*
 2. **Exhaustive raise-site sweep** — every remaining site that today calls `__EcDispatch` or throws `CobolFatalException` (EC-DATA-CONVERSION, EC-BOUND-OVERFLOW, EC-RANGE-*, and CALL/CANCEL-raised EC-PROGRAM/EC-EXTERNAL surfacing as `CobolCallException` across an activation boundary) must also route through `__EcPerform`. The cross-CALL cases interact with the PERFORM "range" (GR1: performed declaratives / called elements are in range) and frame-stack save/restore across `CallProgram`. Disposition: the un-swept ECs simply fall to normal USE/fatal (a documented behavioral GAP, not a mis-compile); tracked as a mechanical sweep + focused cross-activation design.
 3. **FINALLY-on-abnormal-termination / RESUME-AT-bypasses-FINALLY** — a genuine spec ambiguity: NOTE 8 says end-of-PERFORM *includes* FINALLY (implying it runs on the fatal-terminate path); NOTE 9 says a transfer out during WHEN processing (a declarative `RESUME AT proc`) never hits the PERFORM exit (implying FINALLY is bypassed). This is a GENUINE STANDARD CONTRADICTION (the §14.9.28.4 GR18/NOTE-pair defect already recorded in DEVLOG 925 / CONFORMANCE.md) — not an owner question. Per the standing rule (record the defect, choose a behavior, never silently code around it): the CHOSEN default is **FINALLY runs on the normal fall-through path only** (it does NOT run on the fatal abnormal-termination path). Record this choice as a documented standard-defect disposition in `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` when the abnormal-termination path lands; revisit only if the four-edition inventory surfaces a conformance test that pins the other reading.
-4. **EC-FLOW-USE (§14.9.49.4 GR2) and `>>PROPAGATE`** interactions with active F3 frames — ride the PROPAGATE wave, not this change set.
+4. **`>>PROPAGATE`** interactions with active F3 frames — rides the PROPAGATE wave, not this change set. ✅ **EC-FLOW-USE (§14.9.49.4 GR2) LANDED** (kb/Work PB368): the raise lives in the ONE `__RunUse` re-entrancy guard and reaches declaratives through `EcDispatchExpr`, so in an F3 unit it is `__EcPerform` that sees it first — the frame interaction this item staged.
 5. **Exception *object* raised inside imp-1** — GR17 matches exception *names*; an object raise must bypass the F3 frame and fall to `__EcObjDispatch` (Format 4). Small explicit test; can ride the core or stage.
 
 ### 5.5 Key files
@@ -1124,8 +1124,11 @@ EC-I-O whose file is currently open in that mode via `CobolFile.OpenModeOf(__f)`
 best-effort). ✅ **F3 PERFORM inside an OO method LANDED** (the pc-slice wiring, §9.10 IMPLEMENTED — the
 `F3StagedInMethodStub` 0899 is lifted). Remaining staged (kept explicit): cross-CALL / cross-INVOKE GR1 "in range"
 (the per-activation `TrimPerformTo`/frame-FLOOR default isolates the callee from the activator's frames — the
-cross-activation "in range" reading is the future opt-in, §5.4-2 / §9.10.1-C2); EC-FLOW-USE /
-`>>PROPAGATE` (§5.4-4); exception-OBJECT raise inside imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
+cross-activation "in range" reading is the future opt-in, §5.4-2 / §9.10.1-C2);
+`>>PROPAGATE` (§5.4-4 — ✅ **its EC-FLOW-USE half LANDED**, kb/Work PB368: §14.9.49.4 GR2 now raises from
+the ONE `__RunUse` guard through `EcDispatchExpr`, which is `__EcPerform` in an F3 unit, so the condition meets
+the active frames under GR17 before the USE declaratives — only the `>>PROPAGATE` DIRECTIVE is still
+unimplemented); exception-OBJECT raise inside imp-1 (`ObjDispatchExpr`/`__EcObjDispatch` untouched, §5.4-5). NOTE: editing the single `EcDispatchExpr` funnel DOES
 sweep the `PtrEmitter`/`CallEmitter` sibling sites through the frame — reconcile the §8 doc to record them as SWEPT
 (more correct than §5.4-2's "un-swept" claim).
 

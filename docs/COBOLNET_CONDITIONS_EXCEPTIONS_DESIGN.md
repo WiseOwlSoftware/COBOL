@@ -477,7 +477,36 @@ normal); the RESUME-AT-procedure-name action already leaves through `__pc`, and 
 (GOBACK / EXIT PROGRAM / STOP / a fatal condition) unwinds by its own signal. The label sits before the sort
 store's release, so a terminated SORT statement is not a leaked sort.
 
-### D12. The exception-checking PERFORM (ISO §14.9.28 Format 3, COBOL-2023 — VCR row 79; introduction-gated at --std=85|2002|2014 with COBOLNET0900) is a PER-STATEMENT exception interceptor scoped to imperative-statement-1 — NOT a block C# try/catch. FULLY IMPLEMENTED (recognize/validate/diagnose/gate + the pc-RANGE runtime interceptor — the F3 PERFORM compiles and runs); a few sub-forms remain staged at COBOLNET0899 (open-mode WHEN operand, F3-in-a-method, cross-CALL "in range", EC-FLOW-USE/>>PROPAGATE, exception-object raise in imp-1). The as-built implementation SSOT is `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §9.
+**The re-entrancy guard IS the EC-FLOW-USE raise site (kb/Work PB368).** §14.9.49.4 GR2 (ALL FORMATS) is one
+sentence and its whole normative content is a RAISE: *"During the execution of a USE procedure, if a statement
+raises an exception condition that would cause the execution of a USE procedure that had previously been activated
+and had not yet returned control to the activating entity, the EC-FLOW-USE exception condition is set to exist."*
+It says nothing about the declining invocation, so the generated `__RunUse` guard (`if (__useActive[__id]) …`) is
+the right consequence and was for a long time the ONLY one — EC-FLOW-USE existed nowhere but its
+`ExceptionCatalog` row, so a program could not detect its own declarative recursion and the §14.6.13.1.6 Table 13
+Fatal default could never fire. The raise is written in `DispatchEmitter.EmitRunUseBody`, the ONE body every
+selection path reaches the active procedure through (`__IoCheck`, `__IoCheckEc`, `__EcDispatch`,
+`__EcObjDispatch`, the container's `__RunGlobalUse`, and the report engine's BEFORE REPORTING hook — a per-path
+copy is exactly how an arm comes to disagree), and it calls `ExceptionState.FlowUseError`, the same
+`FatalIfEnabled(flag, name, detail)` one-liner every other fatal condition uses. With checking enabled the fatal
+condition unwinds to the RAISING statement's own guard for the §14.6.13.1.3 #5/#7 dispatch (a USE AFTER EXCEPTION
+CONDITION EC-FLOW-USE declarative and its RESUME, else abnormal termination); with checking off nothing is raised
+(§14.6.13.1.1) and the quiet decline stands as the §14.6.13.1.3 #8 implementor answer.
+
+*Two things this raise gets right by construction.* (a) **It is AMBIENT, per statement.** GR2's subject is *a
+statement* that raises a condition selecting an active USE procedure, and the statements that can do that are
+every statement that can reach a declarative at all — an I-O verb under the GR3 a)/b) tiers, an RWCS verb under
+GR8, a RAISE, a CALL, or any statement whose inline raise site (subscript, ref-mod, pointer, size error) reaches
+the GR3 c)–g) tiers. There is no node kind to key on, so `EcBinder.EcWrap` adds EC-FLOW-USE for any statement in a
+checking-on region, exactly as for EC-BOUND-REF-MOD; the SYNTACTIC filter "a statement inside DECLARATIVES" is
+wrong outright, because a declarative may PERFORM a paragraph anywhere and GR2 says *during the execution of* a
+USE procedure. (b) **Only a DECLARATIVE id is a USE procedure.** The exception-checking PERFORM's imp-2/3/4
+handler ranges share `__RunUse` and its `__useActive` array but are selected by §14.9.28.4 GR17, not §14.9.49.4
+GR3 — GR2 does not reach them — so the emitted guard raises only below `DispatchState.DeclCount` (an OO method's
+method-local `__RunUse` is all handlers, DeclCount 0, and emits the bare guard unchanged). Every arm is pinned by
+`FlowUseReentrancyTests` plus `conformance:2002/pb368_flow_use_reentrancy`.
+
+### D12. The exception-checking PERFORM (ISO §14.9.28 Format 3, COBOL-2023 — VCR row 79; introduction-gated at --std=85|2002|2014 with COBOLNET0900) is a PER-STATEMENT exception interceptor scoped to imperative-statement-1 — NOT a block C# try/catch. FULLY IMPLEMENTED (recognize/validate/diagnose/gate + the pc-RANGE runtime interceptor — the F3 PERFORM compiles and runs); a few sub-forms remain staged at COBOLNET0899 (open-mode WHEN operand, F3-in-a-method, cross-CALL "in range", `>>PROPAGATE`, exception-object raise in imp-1). EC-FLOW-USE is NO LONGER among them (kb/Work PB368): §14.9.49.4 GR2 raises through the ONE `EcDispatchExpr` funnel, which is `__EcPerform` in an F3 unit, so the condition is offered to the active frames (GR17) before the USE declaratives like every other name. The as-built implementation SSOT is `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §9.
 
 **Grammar (greenfield, `CobolControlFlow.g4`).** Formats 2 and 3 merge into ONE inline `performStatement` alternative (`PERFORM performInlineHead? statementBlock* performWhenPhrase* performWhenOther? performWhenCommon? performFinally? END-PERFORM`); ≥1 ordinary WHEN ⇒ Format 3 (enforced at bind, COBOLNET1597). A WHEN operand list's CONTINUATION is bounded by the `whenOperandAhead()` predicate (`CobolParserCoreBase.WhenOperandStopTokens`) so a body verb that is also a `cobolWord` (RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER, + GET/PARSE forward) is not annexed as a spurious exception-name; the merged inline arm precedes the out-of-line `PERFORM procedureName` so `PERFORM LOCATION imp… END-PERFORM` disambiguates on END-PERFORM. `LOCATION`/`FINALLY` are new-2023 reserved tokens: LOCATION stays a `cobolWord` (the continuity invariant — a paragraph named LOCATION / `PERFORM LOCATION` parses below 2023; it appears only in the head, so no operand-swallow); FINALLY is a pure reserved keyword (NOT a `cobolWord`) — as a trailing phrase keyword after imperative statements it would be swallowed by a preceding DISPLAY/MOVE operand list, so it is treated as reserved at every edition (a documented, negligible deviation — FINALLY was never a COBOL identifier idiom).
 
@@ -639,8 +668,12 @@ done).
   declarative form (USE AFTER EXCEPTION CONDITION), and FUNCTION EXCEPTION-STATUS/-FILE/-LOCATION/-STATEMENT. At
   `--std=85` each gets a not-in-this-edition diagnostic.
 - **2023-only EC additions, diagnosed at 85/2002/2014:** the exception-checking PERFORM (VCR row 79), `>>PROPAGATE`,
-  EC-I-O-WARNING and the EC-MCS-*/EC-FLOW-*/EC-CONTINUE-*/EC-EXTERNAL-* names (VCR rows 40/61), and the optional
-  file-connector argument of EXCEPTION-FILE/-N (VCR rows 68/69).
+  EC-I-O-WARNING and the EC-MCS-*/EC-CONTINUE-*/EC-EXTERNAL-* names plus the THREE commit-and-rollback EC-FLOW
+  names — EC-FLOW-APPLY-COMMIT, EC-FLOW-COMMIT, EC-FLOW-ROLLBACK (VCR rows 40/61) — and the optional
+  file-connector argument of EXCEPTION-FILE/-N (VCR rows 68/69). ⛔ NOT `EC-FLOW-*` as a family: VCR row 40 names
+  only those three, and the rest of the EC-FLOW level-3 names (EC-FLOW-USE, EC-FLOW-SEARCH, EC-FLOW-REPORT,
+  EC-FLOW-RELEASE, EC-FLOW-RETURN, EC-FLOW-GLOBAL-EXIT/-GOBACK) are 2002 EC-model names — `ExceptionCatalog`
+  carries each name's own introduction edition, which is what the gate reads.
 - **SET cond-name TO FALSE / WHEN SET TO FALSE (D7): 2002+** — diagnosed at `--std=85`; COBOLNET0705 (missing FALSE
   phrase) applies only in editions that have the phrase.
 - **CALL … ON OVERFLOW: REMOVED in 2023** (VCR row 3) — accepted at 85/2002/2014, diagnosed at 2023 (ON EXCEPTION is

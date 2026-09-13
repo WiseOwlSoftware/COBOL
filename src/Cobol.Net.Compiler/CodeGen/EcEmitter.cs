@@ -199,6 +199,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // synchronously inside the guard. The method's half is a compile-time literal (OoEmitter.OoUnivStop).
         ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
         ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
+        ("EC-FLOW-USE", "FlowUseChecking"),                     // §14.9.49.4 GR2 — a USE procedure re-entered while active (kb/Work PB368)
         // The Report Writer's four statement-precondition conditions (kb/Work PB326). Each rides a flag its
         // runtime raise site in CobolReport consults; each is Table 13 Fatal, and each leaves the verb
         // unexecuted whether or not the raise happens (the standard states every lenient outcome outright).
