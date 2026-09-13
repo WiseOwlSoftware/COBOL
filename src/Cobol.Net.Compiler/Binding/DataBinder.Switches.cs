@@ -105,8 +105,9 @@ public sealed partial class DataBinder
         // SR3 sentence 1 — the phrase is admitted only over a range a COLLATING SEQUENCE can order. §14.7.8 rule 1
         // orders a numeric range algebraically and names no sequence at all, and rule 2 (the sequence rule) is
         // written for "alphanumeric or national literals"; a boolean range cannot carry THROUGH in the first place
-        // (§14.9.13.3 SR4 / §13.18.63.3 SR29).
-        if (rangeClass is not (CollatingClass.Alphanumeric or CollatingClass.National))
+        // (§14.9.13.3 SR4 / §13.18.63.3 SR29). ⛔ THE SAME PREDICATE THE EC GATES ASK — rule 2 owns the sequence,
+        // the IN phrase and the exception together, so the three sites read one antecedent (kb/Work PB401).
+        if (!CollatingSelection.IsCollatedThroughRange(rangeClass))
         {
             Edition.Error(DiagnosticCatalog.RangeAlphabetOperandClass, $"{where}: 'IN {alphabetName}' may be "
                 + "specified only when the operands of the THROUGH phrase are of class alphabetic, alphanumeric or "

@@ -248,4 +248,43 @@ public static class CobolString
     /// <inheritdoc cref="ThruMember(string?,string?,string?,char)"/>
     public static bool ThruMember(string? read, string? lo, string? hi, CobolCollation collation) =>
         collation.ThruMember(read, lo, hi);
+
+    /// <summary>The THROUGH membership of a range ONE OR BOTH OF WHOSE ENDS IS A FIGURATIVE SEED — the GR2-aware
+    /// twin of <see cref="ThruMember(string?,string?,string?,char)"/>, standing to it exactly as
+    /// <see cref="CompareFig(string?,string?,bool,char)"/> stands to <see cref="Compare(string?,string?,char)"/>.
+    /// <para>ISO §8.3.3.6.4 GR2 sizes a figurative to "the associated data item", and in a range test that item is
+    /// the one being tested for membership — <paramref name="read"/> — for BOTH ends, because both ends are
+    /// compared against it (§14.9.13.4 GR4 a) 5.: "selection-subject &gt;= left-part AND selection-subject &lt;=
+    /// right-part"). The sizing runs BEFORE the §14.7.8 rule 2 inversion test, so <c>LOW-VALUE THRU HIGH-VALUE</c>
+    /// is weighed at the tested item's own width rather than one character against one character.</para>
+    /// <para>⛔ IT LIVES HERE, NOT IN THE EMITTER (kb/Work PB401). The generated form would otherwise have to
+    /// spell <c>FigToWidth(seed, (read).Length)</c> and evaluate <paramref name="read"/> a second time, and GR2's
+    /// sizing rule would have a second author. Before it existed, an EVALUATE range with a figurative end took the
+    /// carrier UNSIZED the moment EC checking or an <c>IN alphabet-name</c> phrase routed it there, and answered
+    /// the opposite of the identical test written as a relation pair — measured on PIC X(2) LOW-VALUES against
+    /// <c>LOW-VALUE THRU "AA"</c>: the relation said inside, the carrier said outside.</para>
+    /// <para>⛔ A SEPARATE NAME, NOT AN OVERLOAD OF <see cref="ThruMember(string?,string?,string?,char)"/>, for the
+    /// reason <see cref="CompareFig(string?,string?,bool,char)"/> is a separate name beside
+    /// <see cref="Compare(string?,string?,char)"/>: the collating surface's overload set is COLLAPSED to exactly
+    /// two entries per comparison name — a <c>char</c> pad (native) or the ONE <see cref="CobolCollation"/> — and
+    /// <c>CobolCollationTests.Drift_TheCarrierIsTheOnlyCollatingParameterType</c> measures that. A figurative-aware
+    /// twin is a different QUESTION, so it takes a different name and keeps its own two channels.</para></summary>
+    /// <param name="loFig">Whether <paramref name="lo"/> is a figurative SEED (one fill character, or literal-1 of
+    /// an <c>ALL literal-1</c>) rather than a value of its own.</param>
+    /// <param name="hiFig">The same question for <paramref name="hi"/>.</param>
+    public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig, char pad = ' ') =>
+        ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read), pad);
+
+    /// <inheritdoc cref="ThruMemberFig(string?,string?,string?,bool,bool,char)"/>
+    /// <remarks>The NON-native collating-sequence overload (an <c>ALPHABET</c> literal phrase or a LOCALE-based
+    /// sequence): GR2 materializes the figurative FIRST, exactly as <see cref="CompareFig(string?,string?,bool,CobolCollation)"/>
+    /// does, and §14.7.8 rule 2's sequence then orders the sized operands.</remarks>
+    public static bool ThruMemberFig(string? read, string? lo, string? hi, bool loFig, bool hiFig,
+        CobolCollation collation) =>
+        collation.ThruMember(read, SizedFig(lo, loFig, read), SizedFig(hi, hiFig, read));
+
+    /// <summary>ISO §8.3.3.6.4 GR2's materialization, applied only where the operand IS a figurative seed — the
+    /// ONE place the range carrier's two overloads ask it.</summary>
+    private static string? SizedFig(string? seed, bool isFig, string? associated) =>
+        isFig ? FigToWidth(seed ?? "", (associated ?? "").Length) : seed;
 }

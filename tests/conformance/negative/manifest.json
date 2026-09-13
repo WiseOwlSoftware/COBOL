@@ -1102,7 +1102,9 @@
   "pb555-false-equals-value",
   "pb555-false-in-collated-range",
   "pb555-set-false-no-phrase",
-  "pb555-set-false-below-2002"
+  "pb555-set-false-below-2002",
+  "pb401-range-invalid-turn-below-2002",
+  "pb401-evaluate-range-alphabet-numeric-ends"
  ],
  "pending": []
 }

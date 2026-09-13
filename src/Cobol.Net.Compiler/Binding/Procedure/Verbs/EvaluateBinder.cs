@@ -385,25 +385,36 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
+            // ⛔ THE RANGE'S CLASS, ASKED ONCE, OF BOTH ENDS (§14.9.13.3 SR4 gives the pair one class to have) —
+            // and it is what BOTH of §14.7.8's halves below are keyed on: rule 1 (numeric) is algebraic, names no
+            // sequence and sets no exception; rule 2 (alphanumeric or national) has the sequence, the
+            // IN alphabet-name-1 phrase AND the EC. Two separately-written tests of one antecedent is how the two
+            // halves of rule 2 came to disagree about the same range (kb/Work PB401).
+            var rangeClass = CollatingSelection.ThroughRangeClass(lo, hi);
             // §14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §14.7.8 rule 2 makes that alphabet
             // THE collating sequence the range is evaluated in — overriding the no-phrase arm's "defined by the
             // implementor" default, which for this compiler is the PROGRAM COLLATING SEQUENCE. The SR3 screens and
             // the carrier registration are the ONE resolver §14.7.8's opening sentence asks for ("This specification
             // applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement"), so the VALUE
             // clause's identical phrase reaches the same code (kb/Work PB398).
-            string? alphabet = RangeAlphabet(range, lo, hi);
-            // §14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID. The rule
-            // is scoped to LITERAL alphanumeric/national ranges (rule 1's numeric ranges set no EC), so route only a
-            // string-literal range to the ThruMember carrier under checking; everything else keeps the plain relation
-            // pair (byte-identical when the directive is absent).
+            string? alphabet = RangeAlphabet(range, rangeClass);
+            // §14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
+            // then "execution proceeds as if the range of values were empty". The EC is a property of the RANGE's
+            // CLASS, exactly as the collating sequence one sentence above it is — never of the written FORM of its
+            // ends.
+            // ⛔ THIS GATE USED TO READ `lo is BoundStringLiteral{…} && hi is BoundStringLiteral` (kb/Work PB401),
+            // which raised the exception ONLY where a reader of the source can already see the inversion and NEVER
+            // in the run-time case rule 2's own "in the collating sequence in effect at runtime" is written for:
+            // `EVALUATE X WHEN WS-M THRU WS-A` set nothing while `EVALUATE X WHEN "M" THRU "A"` over the identical
+            // values set EC-RANGE-INVALID, and the level-88 VALUE range — the OTHER clause §14.7.8's first sentence
+            // governs — already asked the CLASS. One rule, one antecedent, both clauses.
+            bool ecApplies = check && CollatingSelection.IsCollatedThroughRange(rangeClass);
             // ⛔ AN IN PHRASE ROUTES HERE WHETHER OR NOT CHECKING IS ON: a relation pair derives its sequence from
             // its operands' categories, which is the very rule the phrase overrides, so the named sequence has
             // nowhere to ride on that lowering. The unchecked render of this node is that same inclusive pair.
-            bool literalRange = lo is BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National }
-                && hi is BoundStringLiteral;
-            if (alphabet is not null || (check && literalRange))
+            if (alphabet is not null || ecApplies)
                 return host.Udf.UdfAttachPerEvaluation(
-                    new BoundRangeMembership(left, lo, hi, CheckInvalid: check && literalRange, Alphabet: alphabet),
+                    new BoundRangeMembership(left, lo, hi, CheckInvalid: ecApplies, Alphabet: alphabet),
                     objMark);
             return host.Udf.UdfAttachPerEvaluation(new BoundLogical("&&",
                 [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
@@ -424,14 +435,14 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// <para>The range's CLASS is asked of the ONE comparison-class rule over BOTH bounds, never of one of them:
     /// SR3's two sentences are a test on the pair ("the literals or identifiers specified in the THROUGH phrase",
     /// then "if literal-3 or identifier-3 is of class national"), and §14.9.13.3 SR4 already requires the two to be
-    /// of the same class — so the pair has one class to have.</para></summary>
-    private string? RangeAlphabet(Core.ValueRangeContext range, BoundOperand lo, BoundOperand hi)
+    /// of the same class — so the pair has one class to have. It is COMPUTED BY THE CALLER and passed in, because
+    /// the EC gate one line below keys on the SAME antecedent and the two must not be able to disagree
+    /// (kb/Work PB401).</para></summary>
+    private string? RangeAlphabet(Core.ValueRangeContext range, CollatingClass rangeClass)
     {
         if (range.cobolWord() is not { } word) return null;
         string name = word.GetText();
-        var cls = CollatingSelection.ForComparison(
-            CollatingSelection.OperandCategory(lo), CollatingSelection.OperandCategory(hi));
-        return ctx.Data.TryResolveRangeAlphabet(name, cls, "an EVALUATE WHEN THROUGH range") ? name : null;
+        return ctx.Data.TryResolveRangeAlphabet(name, rangeClass, "an EVALUATE WHEN THROUGH range") ? name : null;
     }
 
     /// <summary>The selection OBJECT's condition when <see cref="ClassifyPair"/> put it in Table 15's Condition

@@ -203,14 +203,20 @@ public sealed class CobolCollationTests
 
     /// <summary>The overload set stays COLLAPSED (DESIGN-locale-facility §4.4.1's drift test): the comparison entries
     /// take a <c>char</c> pad (native) or the ONE <see cref="CobolCollation"/> — never a raw <c>ushort[]</c> or a
-    /// concrete arm — and every collating slot of the sort / file / MAX-MIN / CHAR-ORD surface is carrier-typed.</summary>
+    /// concrete arm — and every collating slot of the sort / file / MAX-MIN / CHAR-ORD surface is carrier-typed.
+    /// <para>⛔ THE FIGURATIVE-AWARE TWINS ARE IN THE LIST TOO (kb/Work PB401). A §8.3.3.6.4 GR2 variant is a
+    /// different QUESTION, so it takes its own NAME — <c>CompareFig</c> beside <c>Compare</c>,
+    /// <c>ThruMemberFig</c> beside <c>ThruMember</c> — and then owes the same collapsed pair of sequence
+    /// channels. Adding it as a sixth <c>ThruMember</c> overload instead is what this test caught: the entry
+    /// stayed carrier-typed and the SET stopped being two, which is the property the design fixes.</para></summary>
     [Fact]
     public void Drift_TheCarrierIsTheOnlyCollatingParameterType()
     {
         static IEnumerable<MethodInfo> Overloads(Type t, string name) =>
             t.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).Where(m => m.Name == name);
 
-        foreach (string name in new[] { nameof(CobolString.Compare), nameof(CobolString.ThruMember) })
+        foreach (string name in new[] { nameof(CobolString.Compare), nameof(CobolString.ThruMember),
+                                        nameof(CobolString.CompareFig), nameof(CobolString.ThruMemberFig) })
         {
             var lastParams = Overloads(typeof(CobolString), name).Select(m => m.GetParameters()[^1].ParameterType).ToList();
             Assert.Equal(2, lastParams.Count);

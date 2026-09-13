@@ -81,15 +81,40 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // categories' own answer, PROGRAM COLLATING SEQUENCE included: a range written `IN STANDARD-1` collates
         // natively inside a program whose PCS reorders the alphabet. An identity alphabet registers no carrier and
         // renders as the native two-argument overload, which IS its sequence.
-        string collate = RangeCollateArg(n.Alphabet, StringCategoryOf(n.Left), StringCategoryOf(n.Lo));
-        string read = OperandText.AsString(n.Left, num), lo = OperandText.AsString(n.Lo, num),
-               hi = OperandText.AsString(n.Hi, num);
+        PicCategory? subjectCat = StringCategoryOf(n.Left);
+        string collate = RangeCollateArg(n.Alphabet, subjectCat, StringCategoryOf(n.Lo));
+        // ⛔ A FIGURATIVE RANGE END IS A SEED, NOT A VALUE (ISO §8.3.3.6.4 GR2 — it is materialized to "the
+        // associated data item"'s size, which for both ends of a range is the item being tested). It is rendered
+        // through the SAME producer the figurative relation uses — <see cref="FigSeed"/>, so HIGH-/LOW-VALUE is
+        // the tested category's own collating extreme — and SIZED by the runtime, which is the only place the
+        // width is known when the tested operand is a ref-mod slice with computed bounds (kb/Work PB297's rule,
+        // PB401's site). Before this the carrier compared a ONE-CHARACTER seed: `EVALUATE X WHEN LOW-VALUE THRU
+        // "AA"` over PIC X(2) LOW-VALUES answered the OPPOSITE of the identical relation pair, the moment EC
+        // checking or an IN phrase routed it here.
+        static bool IsFigSeed(BoundOperand o) => o is BoundFigurative or BoundAllLiteral;
+        bool loFig = IsFigSeed(n.Lo), hiFig = IsFigSeed(n.Hi);
+        // ⛔ deSign, EXACTLY AS THE DIRECT STRING RELATION DOES IT (kb/Work PB401 sweep). §14.9.13.4 GR4 a) 5.
+        // lowers this node to "selection-subject >= left-part AND selection-subject <= right-part", i.e. to the
+        // very relation pair <see cref="RenderRelational"/> renders, and that pair drops a signed numeric
+        // operand's operational sign when the comparison is alphanumeric (§8.8.4.2.5 → §14.9.25.4 GR6a). This arm
+        // never did, so `EVALUATE S9-ITEM WHEN "A" THRU "Z"` compared an OVERPUNCHED image here and a plain one
+        // one lowering over — the two-arm shape, and reachable the moment the EC gate stopped demanding a
+        // literal pair. A no-op for every non-signed-numeric operand, which is why it is unconditional there too.
+        string read = OperandText.AsString(n.Left, num, deSign: true),
+               lo = loFig ? FigSeed(n.Lo, subjectCat) : OperandText.AsString(n.Lo, num, deSign: true),
+               hi = hiFig ? FigSeed(n.Hi, subjectCat) : OperandText.AsString(n.Hi, num, deSign: true);
         // Unchecked, the node is the inclusive bound test the relation-pair lowering produced — the ONLY difference
         // is that the collating sequence is this range's, which a BoundRelational pair has no slot for. ThruMember
         // adds exactly the EC-set, so emitting it with checking off would set a nonfatal EC no >>TURN asked for.
-        return n.CheckInvalid
-            ? RuntimeApi.ThruMember(read, lo, hi, collate)
-            : $"({RuntimeApi.StrCompare(read, lo, collate)} >= 0 && {RuntimeApi.StrCompare(read, hi, collate)} <= 0)";
+        if (n.CheckInvalid)
+            return loFig || hiFig
+                ? RuntimeApi.ThruMemberFig(read, lo, hi, loFig, hiFig, collate)
+                : RuntimeApi.ThruMember(read, lo, hi, collate);
+        string loCmp = loFig ? RuntimeApi.StrCompareFig(read, lo, figIsLeft: false, collate)
+                             : RuntimeApi.StrCompare(read, lo, collate),
+               hiCmp = hiFig ? RuntimeApi.StrCompareFig(read, hi, figIsLeft: false, collate)
+                             : RuntimeApi.StrCompare(read, hi, collate);
+        return $"({loCmp} >= 0 && {hiCmp} <= 0)";
     }
 
     /// <summary>⛔ THE CLASS-CONDITION classification test, and NOTHING ELSE — its one caller is
@@ -596,8 +621,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // an alphanumeric GROUP's 88 range now reaches §14.7.8 rule 2's exception exactly as its elementary
             // twin does. Boolean and numeric ranges keep the inline byte-identical form (§14.7.8 rule 1 sets no
             // exception; a boolean subject may not carry THROUGH at all, §13.18.63.3 SR29).
-            if (checkRangeInvalid
-                && CollatingSelection.ForComparison(cat, cat) is CollatingClass.Alphanumeric or CollatingClass.National)
+            // ⛔ THE ONE §14.7.8 rule-1/rule-2 predicate, the same call the EVALUATE range's EC gate and
+            // TryResolveRangeAlphabet's SR3 screen make (kb/Work PB401) — never a locally spelled-out class test.
+            if (checkRangeInvalid && CollatingSelection.IsCollatedThroughRange(CollatingSelection.ForComparison(cat, cat)))
                 return RuntimeApi.ThruMember(read, lo, hi, rangeCollate);
             return $"(CobolString.Compare({read}, {lo}{pad}{rangeCollate}) >= 0 && CobolString.Compare({read}, {hi}{pad}{rangeCollate}) <= 0)";
         }

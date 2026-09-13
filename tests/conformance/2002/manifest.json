@@ -278,7 +278,8 @@
     "pb565_report_repeating_entry",
     "pb522_group_usage_travels_with_the_description",
     "pb555_value_false_phrase",
-    "pb555_typedef_condition_clone"
+    "pb555_typedef_condition_clone",
+    "pb401_range_invalid_by_class"
   ],
   "pending": []
 }

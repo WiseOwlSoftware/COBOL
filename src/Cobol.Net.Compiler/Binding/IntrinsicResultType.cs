@@ -253,9 +253,19 @@ internal static class IntrinsicResultType
     }
 
     /// <summary>
-    /// ISO §8.5.2.1 — the data category of a bound function argument, TOTAL over the statically categorized
+    /// ISO §8.5.2.1 — the data category of a bound OPERAND, TOTAL over the statically categorized
     /// shapes (fix-queue PB59 family 7b). THE one definition; <c>IntrinsicBinder</c> reads it from here rather
-    /// than keeping its own copy (<c>feedback_one_rule_one_place</c>). A categorized literal (plain or ALL —
+    /// than keeping its own copy (<c>feedback_one_rule_one_place</c>), and so — since kb/Work PB401 — does
+    /// <see cref="CollatingSelection.OperandCategory"/>, the comparison/collation face of the same question.
+    /// <para>⛔ IT WAS WRITTEN DOWN TWICE, AND THE SECOND COPY DROPPED THREE SHAPES (kb/Work PB401).
+    /// <c>CollatingSelection.OperandCategory</c> carried its own switch that answered NULL for a
+    /// <c>BoundComputedOperand</c>, for a numeric-result <c>BoundIntrinsicCall</c> and for a
+    /// <c>BoundBoolOperand</c>, and <see cref="CollatingSelection.ForComparison"/> reads a null as the
+    /// ALPHANUMERIC arm — so an EVALUATE THROUGH range with ARITHMETIC-EXPRESSION ends (§14.9.13.2's
+    /// arithmetic-expression-3/-4, numeric by §8.8.1.1) classified ALPHANUMERIC and slipped past §14.9.13.3
+    /// SR3's class screen: <c>EVALUATE N WHEN A + 1 THRU B + 2 IN AL</c> compiled clean and was evaluated as a
+    /// STRING range under AL (measured). One reader now, so a shape added here is seen by both faces.</para>
+    /// A categorized literal (plain or ALL —
     /// §8.3.3.6.4 GR9 gives an ALL literal its literal's category), a field reference, a nested intrinsic's own
     /// result category, or numeric for a computed arithmetic expression; null only for the genuinely
     /// context-dependent shapes (figuratives, §8.3.3.6.4 GR1/GR4; error operands).
@@ -287,9 +297,14 @@ internal static class IntrinsicResultType
         BoundFieldOperand { Place: RefModPlace rmp } => rmp.Category,
         // D20/PB79 — THE ONE READER: a bit / national group answers its as-if picture's category (§13.18.29.4
         // GR1a/GR2a), an alphanumeric group ALPHANUMERIC (§8.5.2.1), an elementary item its own.
-        BoundFieldOperand f => f.Place.Item.IsGroup
-            ? f.Place.Item.AsIfPic?.Category ?? PicCategory.Alphanumeric
-            : f.Place.Item.Pic?.Category,
+        // ⛔ THROUGH <c>DataItem.OperandPic</c>, NEVER <c>Pic</c> GUARDED BY <c>IsGroup</c> (kb/Work PB401). The
+        // guarded pair spells out exactly what OperandPic (<c>Pic ?? AsIfPic</c>) already is — the same two
+        // spellings of one reading that D20/PB728 removed from the renderer — and the ONLY part that is not
+        // OperandPic's is the alphanumeric-group fallback, which is §8.5.2.1's own answer for the item whose
+        // OperandPic is null BECAUSE it is an ordinary group (an elementary PICTURE-less usage — INDEX — keeps
+        // its honest null).
+        BoundFieldOperand f => f.Place.Item.OperandPic?.Category
+            ?? (f.Place.Item.IsGroup ? PicCategory.Alphanumeric : null),
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
         BoundComputedOperand => PicCategory.Numeric,
         BoundAllLiteral al => al.Category,

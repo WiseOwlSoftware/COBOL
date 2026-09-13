@@ -547,6 +547,16 @@ internal static class RuntimeApi
     public static string ThruMember(string read, string lo, string hi, string collate) =>
         $"{nameof(CobolString)}.{nameof(CobolString.ThruMember)}({read}, {lo}, {hi}{collate})";
 
+    /// <summary>The same carrier when one or both range ends is a FIGURATIVE SEED —
+    /// <c>CobolString.ThruMemberFig(read, lo, hi, loFig:, hiFig:{collate})</c>, which sizes each figurative end to
+    /// <c>read</c>'s own runtime character-position count (ISO §8.3.3.6.4 GR2) before §14.7.8 rule 2's inversion
+    /// test. A SEPARATE runtime name for the same reason <c>CompareFig</c> is one beside <c>Compare</c> — the
+    /// collating overload set stays collapsed to its two sequence channels. The flags are named so the generated
+    /// text says which end carries the seed (kb/Work PB401).</summary>
+    public static string ThruMemberFig(string read, string lo, string hi, bool loFig, bool hiFig, string collate) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.ThruMemberFig)}({read}, {lo}, {hi}, "
+        + $"loFig: {(loFig ? "true" : "false")}, hiFig: {(hiFig ? "true" : "false")}{collate})";
+
     /// <summary>The emitted-text reference to a <see cref="CobolRounding"/> value — <c>nameof</c>-anchored so a
     /// member rename breaks HERE, never the generated text.</summary>
     public static string RoundingText(CobolRounding mode) => $"{nameof(CobolRounding)}.{mode}";

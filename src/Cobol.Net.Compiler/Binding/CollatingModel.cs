@@ -398,35 +398,63 @@ public static class CollatingSelection
     /// (<see cref="Bound.BoundStringLiteral.Category"/>); a reference-modified field is the unique item of its
     /// inner's class view (alphanumeric for the classic categories, ISO §8.4.3.3 GR6 — but national/boolean ref-mod
     /// stays national/boolean, GR1/GR5a); a plain field asks <c>DataItem.OperandPic</c>, never raw <c>Pic</c>, so a
-    /// bit / national GROUP answers as the elementary item §13.18.29.4 GR1b/GR2b makes it; null for
-    /// figurative/computed/error shapes, which §8.3.3.6.4 GR1 gives their context's category.
-    /// <para>It lives here rather than in the renderer because the BINDER asks it too: §14.9.13.3 SR3 admits a
+    /// bit / national GROUP answers as the elementary item §13.18.29.4 GR1b/GR2b makes it; null only for the
+    /// genuinely context-dependent shapes (a figurative, whose category §8.3.3.6.4 GR1 takes from its context;
+    /// an error operand).
+    /// <para>It is named here rather than in the renderer because the BINDER asks it too: §14.9.13.3 SR3 admits a
     /// range's <c>IN alphabet-name-1</c> phrase only "when the literals or identifiers specified in the THROUGH
     /// phrase are of class alphabetic, alphanumeric, or national", and chooses the alphabet's own class from the
     /// same reading. Two copies of a category reader is precisely the shape that handed a GROUP-USAGE NATIONAL
-    /// operand the alphanumeric weight table twice already (kb/Work PB728 arm 15, PB741).</para></summary>
-    public static PicCategory? OperandCategory(Bound.BoundOperand o) => o switch
-    {
-        Bound.BoundStringLiteral sl => sl.Category,
-        Bound.BoundAllLiteral al => al.Category,
-        // ISO §8.3.3.3.1: "Numeric literals are of the class and category numeric." It used to answer NULL, which
-        // the alphanumeric fall-through of ForComparison then read as an ordinary group — harmless in the relation
-        // renderer (§8.8.4.2.5 makes a numeric operand against an alphanumeric one an ALPHANUMERIC comparison
-        // anyway, and two numeric operands never reach the string branch), but NOT harmless once a BINDER asks
-        // the class of a THROUGH range: `WHEN 1 THRU 9 IN AL` answered "alphanumeric" and slipped past
-        // §14.9.13.3 SR3's class restriction (kb/Work PB398, measured before the arm was added).
-        Bound.BoundNumericLiteral => PicCategory.Numeric,
-        // The ONE ref-mod category reader (kb/Work PB70/PB73) — GR6's rewrites, incl. numeric-national → national.
-        Bound.BoundFieldOperand { Place: RefModPlace rm } => rm.Category,
-        // THE ONE category reader (D20/PB79): an elementary item's picture, a bit / national group's as-if picture;
-        // an alphanumeric group has none and takes the alphanumeric (image) branch.
-        Bound.BoundFieldOperand f => f.Place.Item.OperandPic?.Category,
-        // A COMPUTED operand with a string-class function result — its category is the function's type (§15.2;
-        // kb/Work PB68 — the fifth site of the class-boolean rule: two boolean function results compared each
-        // other rode the alphanumeric collate-and-space-pad branch instead of the boolean right-zero-extension).
-        Bound.BoundComputedOperand { Expr: Bound.BoundIntrinsicCall { ResultCategory: PicCategory.Boolean or PicCategory.National or PicCategory.Alphanumeric } ic } => ic.ResultCategory,
-        _ => null,
-    };
+    /// operand the alphanumeric weight table twice already (kb/Work PB728 arm 15, PB741).</para>
+    /// <para>⛔ AND IT WAS TWO COPIES ANYWAY, HERE (kb/Work PB401). This name used to carry its OWN switch — the
+    /// same literal / ref-mod / field arms as <see cref="IntrinsicResultType.OperandCategory"/>, plus a
+    /// STRING-ONLY arm for a function result — and every shape it did not carry answered null, which
+    /// <see cref="ForComparison"/> reads as the ALPHANUMERIC arm. That is harmless for a RELATION (a numeric
+    /// operand against an alphanumeric one IS an alphanumeric comparison, §8.8.4.2.5, and two numeric operands
+    /// never reach the string branch) and NOT harmless for the question a BINDER asks of a THROUGH range, where
+    /// §14.7.8's rule 1 / rule 2 split IS the range's class: an arithmetic-expression-ended range (numeric by
+    /// §8.8.1.1) answered ALPHANUMERIC, so <c>EVALUATE N WHEN A + 1 THRU B + 2 IN AL</c> sailed past SR3 and was
+    /// evaluated as a STRING range (measured on d80cb676). It is now the OTHER reader's body — the one that was
+    /// already total and already declared itself the single definition — so a shape added there is seen
+    /// here.</para></summary>
+    public static PicCategory? OperandCategory(Bound.BoundOperand o) => IntrinsicResultType.OperandCategory(o);
+
+    /// <summary>⛔ THE §14.7.8 CLASS OF A THROUGH RANGE, asked of BOTH ends at once and written down ONCE for the
+    /// two clauses that print the phrase — "This specification applies to THROUGH phrases specified in the VALUE
+    /// clause and the EVALUATE statement" (§14.7.8 opening sentence), so one sentence governs both and one
+    /// function answers for both.
+    /// <para>The pair has ONE class to have: §14.9.13.3 SR4 — "The two operands in a range-expression shall be of
+    /// the same class and shall not be of class boolean, message-tag, object, or pointer" — and the same-class
+    /// rule is §13.18.63.3's in the VALUE clause, where both ends are literals of the conditional variable's own
+    /// category. Asking <see cref="ForComparison"/> over both ends rather than classifying one of them is the
+    /// kb/Work PB741 rule: a comparison class is a property of the PAIR.</para></summary>
+    public static CollatingClass ThroughRangeClass(Bound.BoundOperand low, Bound.BoundOperand high) =>
+        ForComparison(OperandCategory(low), OperandCategory(high));
+
+    /// <summary>⛔ WHICH OF §14.7.8'S TWO RULES GOVERNS A THROUGH RANGE, in ONE place for every site that asks —
+    /// true when the range is rule 2's ("When the range of values is defined by alphanumeric or national
+    /// literals, the range of values depends on the collating sequence used for evaluation of the range"), false
+    /// when it is rule 1's ("When the range of values is defined by numeric literals, the range of values
+    /// includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2" — algebraic, no
+    /// sequence, and NO exception condition).
+    /// <para>⛔ THE ANSWER IS THE RANGE'S CLASS, NOT ITS OPERANDS' WRITTEN FORM (kb/Work PB401). Rule 2 names
+    /// "literal-1"/"literal-2" because §14.7.8 introduces the phrase with "A THROUGH phrase specifies a range of
+    /// values, literal-1 through literal-2"; EVALUATE's range-expression has no literal-1 or literal-2 at all
+    /// (§14.9.13.2 prints literal-3/identifier-3/arithmetic-expression-3 THROUGH literal-4/identifier-4/
+    /// arithmetic-expression-4), and §14.9.13.3 SR3 — a rule about THIS phrase — says "the literals <b>or
+    /// identifiers</b> specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national".
+    /// Reading rule 2's "literals" as a restriction on the OPERAND FORM would therefore make the whole of rule 2
+    /// — its collating sequence, its IN alphabet-name sentence and its exception alike — inapplicable to every
+    /// EVALUATE range, which is not a reading anything in the standard supports and is not the reading the
+    /// alphabet arm of this compiler already takes.</para>
+    /// <para>THREE CALLERS, ONE RULE: the EVALUATE range's EC gate, the level-88 VALUE range's EC gate, and
+    /// <c>DataBinder.TryResolveRangeAlphabet</c>'s §14.9.13.3 SR3 / §13.18.63.3 SR31 screen. Before this they
+    /// were three separately-written tests and two of them disagreed — the EVALUATE gate demanded a
+    /// string-LITERAL pair while the level-88 gate asked the class, so <c>88 X VALUE "M" THRU "A"</c> raised
+    /// EC-RANGE-INVALID and <c>EVALUATE X WHEN WS-M THRU WS-A</c> over the identical values raised nothing
+    /// (measured on d80cb676).</para></summary>
+    public static bool IsCollatedThroughRange(CollatingClass rangeClass) =>
+        rangeClass is CollatingClass.Alphanumeric or CollatingClass.National;
 
     /// <summary>The SORT/MERGE KEY class of an operand described by <paramref name="operandPic"/> — which shall be
     /// the item's OPERAND picture (<c>DataItem.OperandPic</c>: its own PICTURE for an elementary item, the
