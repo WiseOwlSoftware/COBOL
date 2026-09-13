@@ -441,6 +441,27 @@ of an unsupported facility.
 
 - **USAGE BIT — alignment and representation of data (§13.18.60.4 GR5 · §8.5.1.6.3).** Annex A.1 has NO item for USAGE BIT — it runs 208 (COMPUTATIONAL, GR6) straight to 209 (DISPLAY, GR7), and §8.5.1.6.3 is cross-referenced only by item 195 (SYNCHRONIZED) — so this determination is recorded here under §4.2.6 rather than in the A.1 register, where it sat under item 209’s number until 2026-09-03. A `USAGE BIT` item **occupies bits**, as GR5 requires. Bits per character position is **8** — §8.1.2 leaves it implementor-specified, and 8 is what makes it agree with DISPLAY's one byte per character position. Alignment follows §8.5.1.6.3 exactly: a bit item immediately following an elementary bit item **of the same level** takes the next bit position (they share a byte); any other bit item starts at the first bit of the next available byte; implicit filler advances to the next item's natural boundary and fills a trailing partial byte to an integral number of characters, and §15.50.4 r5 counts that filler. In a record image a bit run is **packed high-order bit first** — §8.5.1.6.3 numbers positions from "the first bit position" — with trailing filler bits zero. ⚠ The item's VALUE CARRIER is a `'0'`/`'1'` string, which is not observable to a COBOL program and is not a conformance claim; what is claimed is the SIZE, ALIGNMENT and IMAGE above. A boolean item with **no** USAGE clause is a different case: §13.18.60.3 SR13(b) implies DISPLAY and GR7 makes it one alphanumeric character per boolean position.
 
+- **NUMVAL-F — a space may not SPLIT the exponent's `n` (§15.69.3 r1/r5 · §15.95.4 r1 b) 1; kb/Work PB256).**
+  §15.69.3 r5 says "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are
+  ignored **except** between the first numeric digit and the last digit that precedes a letter 'E'" — i.e. its
+  except-clause names only the SIGNIFICAND. Read as "elide the space and JOIN the digit runs on either side",
+  that would make `"1E+1 2345"` a five-digit exponent and §15.95.4 r1 b) 5 would want the position of its fifth
+  digit (9). **COBOL.NET's determination is the other reading: "ignored" means the space CONTRIBUTES NOTHING
+  where the format admits one, never that the runs on either side join — so an interior space ends `n` exactly
+  as it ends the significand, and `FUNCTION TEST-NUMVAL-F("1E+1 2345")` is 6.** Two grounds agree. (a) §15.69.3
+  r1's figure — verified on the printed page 898, not only in the transcription — draws `n` as ONE contiguous
+  metavariable ("n is one, two, three, or four digits representing the exponent") with `[ space-string ]` only
+  before and after it; nothing admits a space inside it, and the space in `"1E+1 2345"` is therefore the legal
+  trailing space-string with `'2'` the first character in error. (b) §15.95.4 r1 b) 1 governs the case directly
+  and is UNQUALIFIED as to which run — "if one or more spaces are embedded within a string of numeric
+  characters, the returned value is the position of the first non-space character following the spaces" — where
+  sub-notes 2, 3 and 4 of the same list each say "of the significand" explicitly; the drafters distinguished
+  inside one list, so sub-note 1 reaches the exponent's digit string too. Consequences, all measured:
+  `"1E+ 1234"` and `"1E+1234 "` conform (0), sub-note 5 fires only on a CONTIGUOUS fifth digit (`"1E+12345"`
+  → 8), and the significand keeps its own answer (`"0 1E+2"` → 3, the standard's own example). Implemented at
+  the one exponent loop in `CobolIntrinsics.Exact.cs#NvfScan`; pinned by
+  `conformance:2023/pb256_test_numval_f_spaces`.
+
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following whole facilities are **not implemented**, and every element of each is **recognized and refused or

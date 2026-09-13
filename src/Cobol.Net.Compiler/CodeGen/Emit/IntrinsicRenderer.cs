@@ -288,7 +288,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
             // The §15.93/§15.94 TEST validators — 0 / first-error position / LENGTH+1, scale 0. The digit-cap
             // sub-notes are ARITHMETIC-MODE dependent (§15.93.4 r1b notes 2/4): 31 native, 34 under the SDIDI
-            // standard modes (standard-binary's 35 rides the P12/P13 STANDARD-BINARY wave).
+            // standard modes (standard-binary's 35 is in ArithmeticModes.NumvalDigitCap and unreachable — the
+            // mode is declined at bind on §4.2.6 processor-dependence, kb/Work PB198).
             case "TestNumval":
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);

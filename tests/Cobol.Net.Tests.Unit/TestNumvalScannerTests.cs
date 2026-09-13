@@ -6,12 +6,21 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// The §15.93/§15.94 TEST-NUMVAL/-C position-reporting scanners (P11 Step 6) — the legs the conformance
-/// golden <c>intrinsics_test_validators</c> cannot reach: the DECIMAL-POINT IS COMMA role swap (§15.67.3 r5
+/// The §15.93/§15.94 TEST-NUMVAL/-C position-reporting scanners (P11 Step 6) — the RUNTIME scan alone, at the
+/// shapes a golden would need a whole compilation unit for: the DECIMAL-POINT IS COMMA role swap (§15.67.3 r5
 /// substitutes for NUMVAL; §15.68.3 r4d SWAPS both separator roles for NUMVAL-C), the SDIDI 34-digit cap
-/// (§15.93.4 r1b sub-note 4 — the golden's compilation unit is native-arithmetic), and the b)-vs-c)-leg
-/// discrimination for digit-free strings. Verdict values hand-derived in PHASE-11-scout-notes.md
-/// (spec:validators).
+/// (§15.93.4 r1b sub-note 4), and the b)-vs-c)-leg discrimination for digit-free strings. Verdict values
+/// hand-derived in PHASE-11-scout-notes.md (spec:validators).
+/// <para>
+/// ⛔ EVERY TEST HERE PASSES THE DECISION AS A LITERAL, so none of them measures the COMPILER arm that computes
+/// it (<c>IntrinsicRenderer.CommaFlag</c> from <c>ctx.Data.DecimalPointIsComma</c>; <c>DigitCapFlag</c> from
+/// <c>ArithmeticModes.NumvalDigitCap</c>). That half is measured END TO END by
+/// <c>conformance:2002/pb256_test_numval_mode_flags</c> (both flags, both directions, three compilation units)
+/// and <c>conformance:2014/pb256_test_numval_standard_decimal</c>, and
+/// <c>IntrinsicModeFlagCoverageDriftTests</c> keeps that true for any function that gains such an argument
+/// later. Until kb/Work PB256 neither existed and the second fact below was named
+/// <c>DigitCap_FollowsArithmeticMode</c> — a green check over a name no arithmetic mode was in scope for.
+/// </para>
 /// </summary>
 public sealed class TestNumvalScannerTests
 {
@@ -29,8 +38,10 @@ public sealed class TestNumvalScannerTests
         Assert.Equal(6, CobolIntrinsics.TestNumvalC("$1,23.4", "$", commaMode: true));
     }
 
+    /// <summary>The SCAN's response to each cap value — NOT the mode selection, which is a compile-time arm this
+    /// test cannot reach (see the class remark; the golden pair measures it).</summary>
     [Fact]
-    public void DigitCap_FollowsArithmeticMode()
+    public void DigitCapParameter_SelectsTheSubNoteVerdict()
     {
         string d40 = new('1', 40);
         Assert.Equal(32, CobolIntrinsics.TestNumval(d40));                 // r1b sub-note 2 — native 31-digit cap

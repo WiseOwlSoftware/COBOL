@@ -36,8 +36,21 @@ public sealed class TestNumvalFPositionTests
     [InlineData("1.5X", 4)]
     [InlineData("1E2", 3)]      // §15.69.3: the sign is REQUIRED once E is written
     [InlineData("0 1E+2", 3)]   // r1b.1 — the spec's own embedded-space example
+    [InlineData("1 2E+3", 3)]   // the same, one position along
+    // ⛔ THE EXPONENT-SPACE DETERMINATION (kb/Work PB256; docs/CONFORMANCE.md §3). §15.69.3 r1's figure draws n
+    // as ONE contiguous 1..4-digit run with [space-string] only before and after it, and §15.95.4 r1 b) 1 is
+    // unqualified as to WHICH digit run ("a string of numeric characters") where sub-notes 2/3/4 all say "of
+    // the significand" — so an interior space ends n and the next non-space is the first character in error.
+    // Under the rejected reading (§15.69.3 r5's "ignored" as ELIDE-AND-JOIN) the first case would be 0 and the
+    // second 9, so these two are the discriminating pair. conformance:2023/pb256_test_numval_f_spaces is the
+    // end-to-end witness.
+    [InlineData("1E+1 234", 6)]
+    [InlineData("1E+1 2345", 6)]
+    [InlineData("1E+12345", 8)]  // a CONTIGUOUS fifth exponent digit IS r1 b) 5's shape — its own position
     // Conforming.
     [InlineData("1.5E+3", 0)]
+    [InlineData("1E+ 1234", 0)]  // the figure's [space-string] between the exponent sign and n
+    [InlineData("1E+1234 ", 0)]  // the figure's trailing [space-string] after n
     [InlineData(" -  .5  ", 0)]
     public void Native_PositionLegs(string text, long expected) =>
         Assert.Equal(expected, CobolIntrinsics.TestNumvalF(text));

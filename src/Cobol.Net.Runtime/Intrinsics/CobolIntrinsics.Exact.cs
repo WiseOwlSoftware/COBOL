@@ -566,9 +566,10 @@ public static partial class CobolIntrinsics
     /// the 1-based ordinal position of the first character in error (r1b — an embedded space after the first
     /// digit reports the first NON-space character following it, sub-note 1: <c>"0 1"</c> → 3; the
     /// <paramref name="digitCap"/>+1-th digit reports its own position, sub-notes 2/4 — 31 native, 34
-    /// standard-decimal [standard-binary's 35 rides the P12/P13 STANDARD-BINARY wave]); else — no specific
-    /// character in error: zero-length, only spaces, or valid-but-incomplete like <c>" +."</c> —
-    /// LENGTH+1 (r1c). A pure projection of the ONE <see cref="NvScan"/> the NUMVAL value path also rides
+    /// standard-decimal and 2002's STANDARD [sub-note 3's standard-binary 35 is in
+    /// <c>ArithmeticModes.NumvalDigitCap</c> and unreachable: the mode is declined at bind, kb/Work PB198]);
+    /// else — no specific character in error: zero-length, only spaces, or valid-but-incomplete like
+    /// <c>" +."</c> — LENGTH+1 (r1c). A pure projection of the ONE <see cref="NvScan"/> the NUMVAL value path also rides
     /// (PB60) — positions are ordinal in the ORIGINAL string, which is exactly why the scan never
     /// pre-normalizes.</summary>
     public static long TestNumval(string text, bool commaMode = false, int digitCap = 31) =>
@@ -675,8 +676,9 @@ public static partial class CobolIntrinsics
 
     /// <summary>The §15.69.3 E-form scan (see the family comment above): mantissa sign · significand with one
     /// decimal separator · optional <c>E{+|-}n(1..4)</c>. Spaces are legal leading, trailing, between sign and
-    /// first digit, and around the exponent parts — and ILLEGAL between the first and last significand digits
-    /// (r5's except-clause; r b.1 reports the first non-space after such a space).</summary>
+    /// first digit, and around the exponent parts — and a space may not SPLIT either digit run, the significand's
+    /// (r5's except-clause) or the exponent's <c>n</c> (the determination at the exponent loop below); §15.95.4
+    /// r1 b) 1 reports the first non-space character following such a space in both.</summary>
     /// <param name="CapPos">§15.95.4 r1b sub-note 6 (kb/Work PB121): when the scan CONFORMS but the magnitude
     /// exceeds the standard intermediate data item's capacity for the mode the <c>digitCap</c> encodes
     /// (34 ⇒ standard-decimal, the SDIDI's ±6144 adjusted-exponent range, §8.8.1.5.2 NOTE 2), the 1-based
@@ -704,7 +706,10 @@ public static partial class CobolIntrinsics
             char c = text[i];
             if (char.IsAsciiDigit(c))
             {
-                if (pendingSpace) return new(Pos(), false, false, 0, 0, 0);   // r b.1 — first non-space after an interior space
+                // §15.95.4 r1 b) 1 — the first non-space character following a space embedded in a digit run.
+                // The significand is where §15.69.3 r5's EXCEPT-clause puts it beyond argument; the exponent's
+                // run answers the same way, by the determination at the exponent loop below.
+                if (pendingSpace) return new(Pos(), false, false, 0, 0, 0);
                 anyDigit = true;
                 if (++sig > digitCap) return new(Pos(), true, false, 0, 0, 0);   // r b.2 — the cap+1-th significand digit
                 unscaled = unscaled * 10 + (c - '0');
@@ -733,9 +738,28 @@ public static partial class CobolIntrinsics
             else return new(Pos(), false, false, 0, 0, 0);            // a sign is required after E (§15.69.3)
             while (i < n && text[i] == ' ') i++;
             int ed = 0, ev = 0;
+            // ⛔ DETERMINATION — A SPACE DOES NOT SPLIT THE EXPONENT'S `n` (kb/Work PB256; the loop is
+            // CONTIGUOUS by construction, and that is the recorded reading of a normative tension, not an
+            // oversight). §15.69.3 r5 makes embedded spaces "ignored except between the first numeric digit and
+            // the last digit that precedes a letter 'E'" — the significand — which read as "elide the space and
+            // JOIN the runs on either side" would make "1E+1 2345" a FIVE-digit exponent, and §15.95.4 r1 b) 5
+            // would then want the position of its fifth digit (9). It does not, on two grounds that agree:
+            //   (a) §15.69.3 r1's figure (printed page 898, rendered — the transcription is faithful) draws `n`
+            //       as ONE contiguous metavariable, "one, two, three, or four digits representing the exponent",
+            //       with [ space-string ] only BEFORE and AFTER it. Nothing admits a space inside it.
+            //   (b) §15.95.4 r1 b) 1 governs the case directly and is UNQUALIFIED as to which run: "if one or
+            //       more spaces are embedded within a string of numeric characters, the returned value is the
+            //       position of the first non-space character following the spaces" — where sub-notes 2, 3 and 4
+            //       each say "of the significand" explicitly. The drafters distinguished inside one list, so
+            //       sub-note 1 reaches the exponent's digit string too.
+            // So "ignored" is about a space CONTRIBUTING NOTHING where the figure admits one, never about
+            // joining digit runs: "1E+1 2345" → the space is the figure's trailing space-string, '2' is the
+            // first character in error → 6; "1E+ 1234" and "1E+1234 " → 0. Sub-note 5 fires only on a
+            // CONTIGUOUS fifth digit ("1E+12345" → 8). Witnessed by conformance:2023/pb256_test_numval_f_spaces
+            // and recorded in docs/CONFORMANCE.md §3.
             while (i < n && char.IsAsciiDigit(text[i]))               // n = 1..4 exponent digits
             {
-                if (++ed > 4) return new(Pos(), false, false, 0, 0, 0);
+                if (++ed > 4) return new(Pos(), false, false, 0, 0, 0);   // §15.95.4 r1 b) 5 — the FIFTH digit
                 if (ed == 1) expDig1 = Pos();
                 ev = ev * 10 + (text[i] - '0');
                 i++;
