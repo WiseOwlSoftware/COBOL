@@ -72,20 +72,24 @@ public sealed class ReportGroupResolutionDriftTests
             + string.Join("\n  ", offenders));
     }
 
-    [Fact]   // The two consumers named in the funnel's doc comment really do call it — the complement of the
+    [Fact]   // The consumers named in the funnel's doc comment really do call it — the complement of the
              // scan above, which can only prove that nobody ELSE searches (feedback_measure_the_selectors_complement).
-    public void BothConsumers_CallTheFunnel()
+    public void EveryConsumer_CallsTheFunnel()
     {
         foreach (string rel in new[]
                  {
                      Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),
                      Path.Combine("Binding", "Procedure", "Verbs", "ReportWriterBinder.cs"),
+                     // The DATA-division site: the SUM clause's UPON data-name-2 (ISO §13.18.54.3 SR7),
+                     // resolved in ResolveReports once every report group is described (kb/Work PB482).
+                     Path.Combine("Binding", "DataBinder.Reports.cs"),
                  })
         {
             string text = File.ReadAllText(Path.Combine(TestRepo.Src("Cobol.Net.Compiler"), rel));
             Assert.True(text.Contains("ReportGroupResolution.Resolve(", StringComparison.Ordinal),
                 $"{rel} no longer binds its report-group reference through ReportGroupResolution.Resolve "
-                + "(kb/Work PB365 — USE BEFORE REPORTING and GENERATE are the funnel's two consumers)");
+                + "(kb/Work PB365 / PB482 — GENERATE, USE BEFORE REPORTING and SUM … UPON are the funnel's "
+                + "three consumers)");
         }
     }
 }

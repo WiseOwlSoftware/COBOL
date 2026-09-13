@@ -9,9 +9,12 @@ namespace CobolNet.Binding;
 using Core = CobolParserCore;
 
 /// <summary>
-/// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN REPORT-GROUP REFERENCE (kb/Work PB365). Two statements name a
-/// report group by name — <c>GENERATE data-name-1</c> (ISO §14.9.16.3 SR1) and <c>USE BEFORE REPORTING
-/// identifier-1</c> (§14.9.49.3 SR9) — and before this funnel BOTH were written as
+/// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN REPORT-GROUP REFERENCE (kb/Work PB365). THREE sites name a
+/// report group by name — <c>GENERATE data-name-1</c> (ISO §14.9.16.3 SR1), <c>USE BEFORE REPORTING
+/// identifier-1</c> (§14.9.49.3 SR9) and, since kb/Work PB482, the SUM clause's <c>UPON data-name-2</c>
+/// (§13.18.54.3 SR7: "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name" —
+/// the DATA-division site, resolved in <c>DataBinder.ResolveReports</c> once every group is described) — and
+/// before this funnel the two statement sites were written as
 /// <c>foreach (report) if (report.Groups.FirstOrDefault(name-matches) is {} g) return g;</c>: a loop shape that
 /// encodes <i>find one</i> where §8.4.2.2 requires <i>find exactly one</i>. With the same 01-level group name in
 /// two report description entries, the reference bound to whichever RD was written first, silently — so a
@@ -29,8 +32,8 @@ using Core = CobolParserCore;
 ///
 /// <para><b>Why the ambiguity is diagnosed HERE and not at the call sites.</b> One rule, one place. The callers
 /// differ only in what a MISS means (GENERATE falls back to the report-name form for summary reporting, SR2;
-/// USE has no fallback), so <see cref="Resolve"/> owns Found/Ambiguous and hands <c>None</c> back for the
-/// caller's own SR. On Ambiguous the first candidate is still returned so the bind can continue without a
+/// USE and the SUM clause's UPON operand have no fallback), so <see cref="Resolve"/> owns Found/Ambiguous and
+/// hands <c>None</c> back for the caller's own SR. On Ambiguous the first candidate is still returned so the bind can continue without a
 /// cascade — the diagnostic has already fired.</para>
 /// </summary>
 internal static class ReportGroupResolution

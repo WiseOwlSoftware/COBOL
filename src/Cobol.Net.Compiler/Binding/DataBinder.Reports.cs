@@ -346,17 +346,75 @@ public sealed record FieldSumSource(string CounterId) : ReportFieldSource;
 /// compose-local counter, re-read per repetition.</summary>
 public sealed record FieldVaryingSource(int Index) : ReportFieldSource;
 
+/// <summary>ONE SUM addend written as <c>identifier-1</c> (ISO §13.18.54.3 SR1 — "Each data-name-1,
+/// identifier-1 or arithmetic-expression-1 is an addend"), kept as the WRITTEN REFERENCE rather than a resolved
+/// item. §8.4.3.1.2 Format 2 makes an identifier a <i>qualified-data-name-with-subscripts</i>, so the subscript
+/// is part of the reference and can be evaluated only where the ordinary identifier machinery lives — the
+/// procedure phase. <see cref="Ctx"/> is bound there through the ONE expression binder into <see cref="Value"/>;
+/// <see cref="Name"/>/<see cref="Qualifiers"/> answer the DATA-phase question (which arm of SR4/SR5 this is)
+/// and <see cref="Item"/> is what that lookup found.
+/// <para>⛔ Before kb/Work PB482 the addend was captured by <c>KeyReference</c> — base word + qualifiers, with
+/// the subscript and the reference modification dropped on the floor — so <c>SUM WS-CELL(2)</c> compiled and
+/// then ABORTED at run time in the addend delegate, and <c>SUM WS-TXT(1:2)</c> silently summed the whole
+/// item.</para></summary>
+public sealed class ReportSumAddend
+{
+    public required CobolParserCore.DataReferenceContext Ctx { get; init; }
+    public required string Name { get; init; }
+    public required IReadOnlyList<string> Qualifiers { get; init; }
+    /// <summary>The operand exactly as written — what every diagnostic about it quotes.</summary>
+    public required string Written { get; init; }
+    /// <summary>The item the base name resolves to (the SR5 screen's subject); null when the addend was
+    /// rejected or staged, in which case <see cref="Value"/> stays null and the emitter stays loud.</summary>
+    public DataItem? Item { get; set; }
+    /// <summary>A screen has already rejected this operand and named its rule: no resolution, no binding, no
+    /// emission, and above all NO SECOND DIAGNOSTIC about the same words.</summary>
+    public bool Rejected { get; set; }
+    /// <summary>The addend's value, bound in the procedure phase through <c>ExpressionBinder.BindExpr</c> — the
+    /// same route a procedure-division identifier takes, so subscripts (literal, index-name or expression) and
+    /// qualification are resolved by the ONE machinery. Null when a screen already rejected the operand.</summary>
+    public BoundExpr? Value { get; set; }
+}
+
+/// <summary>ONE <c>SUM OF addend… [UPON data-name-2…]</c> group of a SUM clause (ISO §13.18.54.2 — the general
+/// format's outer brace repeats, and §13.18.54.3 SR1 says so: "The whole clause is referred to as a SUM clause
+/// even though the SUM keyword may appear more than once"). The UPON phrase belongs to ITS group: §13.18.54.4
+/// GR7c2 adds an addend "whenever any GENERATE statement is executed for a detail referenced by the UPON
+/// phrase", so two groups with different UPON lists accumulate on different GENERATEs into the ONE counter
+/// §13.18.54.4 GR1 gives the entry.</summary>
+public sealed class ReportSumTerm
+{
+    public List<ReportSumAddend> Addends { get; } = [];
+    /// <summary>The group's UPON operands (GR7c2); empty = no UPON phrase (GR7c1 — every GENERATE).</summary>
+    public List<ReportDetailRef> Upon { get; } = [];
+}
+
+/// <summary>An <c>UPON data-name-2</c> operand as written (ISO §13.18.54.3 SR7: "Data-name-2 shall be the name
+/// of a detail. It may be qualified only by a report-name"). The qualifier is a REPORT-name — §8.4.2.2.2
+/// Format 1's file-report-qualifier, the same one <c>GENERATE data-name OF report-name</c> writes — so the
+/// operand resolves through the ONE report-group funnel, <see cref="ReportGroupResolution"/>, never by a bare
+/// name scan. <see cref="Detail"/> is null until that resolution succeeds; a rejected operand stays null and
+/// contributes no run-time filter entry.</summary>
+public sealed record ReportDetailRef(string Name, string? Qualifier)
+{
+    public ReportGroupModel? Detail { get; set; }
+
+    /// <summary>The operand as written — the form every diagnostic about it quotes.</summary>
+    public override string ToString() => Qualifier is null ? Name : $"{Name} OF {Qualifier}";
+}
+
 /// <summary>One SUM counter (ISO §13.18.54): its id (the entry's data-name per GR5, else synthesized), the
-/// counter scale (GR1 — derived from the entry's PICTURE), the addend data-names (SR5 — items OUTSIDE the
-/// report section; report-section addends/rolled totals are staged loud), the UPON detail names (GR7c2), and
-/// the RESET operand (GR2).</summary>
+/// counter scale (GR1 — derived from the entry's PICTURE), the addend TERMS (SR5 — items OUTSIDE the
+/// report section; report-section addends/rolled totals are staged loud), each carrying its own UPON detail
+/// names (GR7c2), and the RESET operand (GR2).</summary>
 public sealed class ReportSumModel
 {
     public required string Id { get; init; }
     public int Scale { get; init; }
-    public List<(string Name, IReadOnlyList<string> Qualifiers)> AddendNames { get; } = [];
-    public List<DataItem> Addends { get; } = [];
-    public List<string> UponDetails { get; } = [];
+
+    /// <summary>The clause's <c>SUM … [UPON …]</c> groups in written order — ONE counter per ENTRY (GR1),
+    /// however many times the SUM keyword appears (SR1).</summary>
+    public List<ReportSumTerm> Terms { get; } = [];
 
     /// <summary>The RESET ON operand as written (§13.18.54.3 SR8 — data-name-3 "may be qualified and
     /// reference-modified"; it "shall be an operand of the CONTROL clause of the current report description").
@@ -803,7 +861,11 @@ public sealed partial class DataBinder
             var sourceOps = new List<ReportFieldSource>();
             int sourceOpsWritten = 0;   // operands WRITTEN (a staged/unresolvable one adds none to sourceOps)
             ReportLineModel? opened = null;
-            Core.ReportSumClauseContext? sumClause = null;
+            // ⛔ A LIST, NOT A SLOT (kb/Work PB482): ISO §13.18.54.3 SR1 — "The whole clause is referred to as a
+            // SUM clause even though the SUM keyword may appear more than once", and §13.18.54.4 GR1 gives the
+            // ENTRY one counter. A single slot silently DISCARDED every group but the last:
+            // `SUM WS-A UPON DET SUM WS-B UPON DET2` totalled WS-B alone.
+            var sumClauses = new List<Core.ReportSumClauseContext>();
             Core.ConditionContext? ownCond = null;
             var varyings = new List<ReportVaryingModel>();
 
@@ -848,7 +910,7 @@ public sealed partial class DataBinder
                         if (BindSourceOperand(dref, model) is { } so) sourceOps.Add(so);
                 }
                 else if (clause.reportSumClause() is { } sm)
-                    sumClause = sm;
+                    sumClauses.Add(sm);
                 else if (clause.reportGroupIndicateClause() is not null)
                     groupIndicate = true;
                 else if (clause.reportPresentWhenClause() is { } pw)
@@ -990,9 +1052,9 @@ public sealed partial class DataBinder
             // A SUM entry establishes a counter whether or not it is printable (§13.18.54.4 GR1/GR3); its FULL
             // chain governs the GR10 print/reset suppression (§13.18.41.4 GR3g).
             ReportSumModel? sum = null;
-            if (sumClause is not null)
+            if (sumClauses.Count > 0)
             {
-                sum = BindSumClause(sumClause, entryName, picText, group, model);
+                sum = BindSumClause(sumClauses, entryName, picText, group, model);
                 foreach (var (_, c, _) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
             }
@@ -1274,11 +1336,15 @@ public sealed partial class DataBinder
         return new FieldDataSource(b, qls);
     }
 
-    /// <summary>Bind a SUM clause (ISO §13.18.54) into a <see cref="ReportSumModel"/>: the counter id (the
-    /// entry's data-name, GR5, else synthesized), the addend names, UPON details, and the RESET operand. The
-    /// counter's scale derives from the entry's PICTURE (GR1).</summary>
-    private ReportSumModel BindSumClause(
-        Core.ReportSumClauseContext sm, string? entryName, string? picText, ReportGroupModel group, ReportModel model)
+    /// <summary>Bind ONE ENTRY's SUM clause (ISO §13.18.54) into a <see cref="ReportSumModel"/>: the counter id
+    /// (the entry's data-name, GR5, else synthesized), the addend TERMS, their UPON operands, and the RESET
+    /// operand. The counter's scale derives from the entry's PICTURE (GR1).
+    /// <para>⛔ IT TAKES EVERY <c>SUM …</c> GROUP OF THE ENTRY, not one (kb/Work PB482). §13.18.54.3 SR1 — "The
+    /// whole clause is referred to as a SUM clause even though the SUM keyword may appear more than once" — and
+    /// §13.18.54.4 GR1 establishes ONE counter per ENTRY, so the groups are terms of a single counter and each
+    /// keeps its OWN UPON list (GR7c2 attaches the phrase to its group).</para></summary>
+    private ReportSumModel BindSumClause(IReadOnlyList<Core.ReportSumClauseContext> clauses,
+        string? entryName, string? picText, ReportGroupModel group, ReportModel model)
     {
         // Scale-derivation analysis (GR1) — threads the edition + the program currency symbol like every other
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
@@ -1297,18 +1363,29 @@ public sealed partial class DataBinder
             SkeletonGate = pic is null ? null : CobolNet.Validation.VersionConformancePass.PictureConstructId(pic),
             SkeletonWhere = sumWhere,
         };
-        foreach (var op in sm.sumOperand())
+        bool resetSeen = false;
+        foreach (var sm in clauses)
         {
-            if (op.reportName() is not null)
-                Edition.Error(DiagnosticCatalog.ReportSumCrossReport, $"RD '{model.Name}': SUM … OF report-name (a cross-report sum, "
-                    + "ISO §13.18.54.3 SR4g) is not yet implemented");
-            var (b, q) = KeyReference(op.dataReference());
-            sum.AddendNames.Add((b, q));
-        }
-        foreach (var up in sm.dataReference())
-            sum.UponDetails.Add(up.cobolWord()?.GetText() ?? up.GetText());   // UPON detail-names (GR7c2)
-        if (sm.reportSumReset() is { } reset)
-        {
+            var term = new ReportSumTerm();
+            foreach (var op in sm.sumOperand())
+                term.Addends.Add(SumAddendRef(op.dataReference(), model));
+            // UPON data-name-2 (SR7) — the WHOLE written reference: the one qualifier the rule allows is a
+            // report-name, and §8.4.3.3.3 SR5's NOTE bars a ref-mod wherever a general format writes
+            // data-name-n. Resolution waits for ResolveReports (a detail may be described after this entry).
+            foreach (var up in sm.dataReference())
+                if (UponDetailRef(up, model) is { } det) term.Upon.Add(det);
+            sum.Terms.Add(term);
+            if (sm.reportSumReset() is not { } reset) continue;
+            // §13.18.54.2 — the RESET phrase sits OUTSIDE the repeated SUM … UPON group, so an entry has at
+            // most one. (Reachable only once the SUM keyword repeats, which SR1 permits.)
+            if (resetSeen)
+            {
+                Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': the SUM clause of '{entryName ?? "FILLER"}' "
+                    + "writes more than one RESET phrase; the general format admits one RESET phrase for the "
+                    + "whole clause (ISO §13.18.54.2)");
+                continue;
+            }
+            resetSeen = true;
             if (reset.FINAL() is not null) sum.ResetFinal = true;
             else if (reset.dataReference() is { } rref)
                 sum.ResetOperand = ControlOperandRef(rref, DiagnosticCatalog.ReportResetNotControlOperand,
@@ -1316,6 +1393,67 @@ public sealed partial class DataBinder
         }
         model.Sums.Add(sum);
         return sum;
+    }
+
+    /// <summary>⛔ THE ONE CAPTURE OF A SUM ADDEND (kb/Work PB482). An addend written as <c>identifier-1</c> is an
+    /// ORDINARY IDENTIFIER — §8.4.3.1.2 Format 2, <i>qualified-data-name-with-subscripts</i> — so the whole
+    /// written reference is kept and the VALUE is bound in the procedure phase through the one expression binder.
+    /// Only the shape a syntax rule forbids is screened here, lexically:
+    /// <para>A REFERENCE-MODIFIED addend is rejected. §13.18.54.3 SR5 requires identifier-1 to "specify a numeric
+    /// data item", and §8.4.3.3.4 GR6 c) makes the unique data item reference modification creates "class and
+    /// category alphanumeric" unless the usage is national — never numeric — so no reference-modified spelling
+    /// can satisfy SR5. It was being DROPPED silently: <c>SUM WS-TXT(1:2)</c> summed the whole item.</para>
+    /// <para>The SUBSCRIPT is NOT screened — it is the legal spelling this helper exists to carry (§8.4.2.3
+    /// subscripting an identifier), and it reaches the emitter as a bound expression.</para></summary>
+    private ReportSumAddend SumAddendRef(Core.DataReferenceContext dref, ReportModel model)
+    {
+        var (name, quals) = KeyReference(dref);
+        string written = AsWritten(dref);
+        var addend = new ReportSumAddend { Ctx = dref, Name = name, Qualifiers = quals, Written = written };
+        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        if (sfx.RefMods > 0)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{written}' is reference-modified. "
+                + "The addend shall specify a numeric data item (ISO §13.18.54.3 SR5), and reference "
+                + "modification creates a data item of class and category alphanumeric unless the usage is "
+                + "national (§8.4.3.3.4 GR6 c), so a reference-modified addend is never numeric.");
+            addend.Rejected = true;
+        }
+        return addend;
+    }
+
+    /// <summary>⛔ THE ONE CAPTURE OF AN <c>UPON data-name-2</c> OPERAND (kb/Work PB482). ISO §13.18.54.3 SR7:
+    /// "Data-name-2 shall be the name of a detail. It may be qualified only by a report-name." The operand is
+    /// therefore a report-group reference exactly as <c>GENERATE data-name-1</c> writes one, and it resolves
+    /// through the ONE funnel (<see cref="ReportGroupResolution"/>) in <see cref="ResolveReports"/>, once every
+    /// group is described. Here only the SHAPE is screened — a data-name-n position admits no reference
+    /// modification (§8.4.3.3.3 SR5 NOTE) and no subscript (§8.4.2.3.3 SR2 permits one only for an item that has
+    /// an OCCURS clause, which a report group never does), and SR7 allows at most ONE qualifier.
+    /// <para>Before this, the operand was reduced to <c>up.cobolWord()?.GetText()</c> — the first word — so the
+    /// report-name qualifier was dropped and nothing checked that the name was a detail at all: <c>UPON CFT</c>
+    /// (a control footing) and <c>UPON NOSUCH</c> both compiled clean and silently totalled nothing.</para>
+    /// Returns null when the operand is rejected, so it contributes no run-time filter entry.</summary>
+    private ReportDetailRef? UponDetailRef(Core.DataReferenceContext dref, ReportModel model)
+    {
+        var (name, quals) = KeyReference(dref);
+        string written = AsWritten(dref);
+        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        if (sfx.Subscripts > 0 || sfx.RefMods > 0)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' is "
+                + $"{(sfx.RefMods > 0 ? "reference-modified" : "subscripted")}. Data-name-2 shall be the name of "
+                + "a detail (ISO §13.18.54.3 SR7) — a report group is named, never indexed, and where a general "
+                + "format writes data-name-n reference modification is not permitted (§8.4.3.3.3 SR5 NOTE).");
+            return null;
+        }
+        if (quals.Count > 1)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' carries "
+                + $"{quals.Count} qualifiers; data-name-2 \"may be qualified only by a report-name\" (ISO "
+                + "§13.18.54.3 SR7), which is one qualifier (§8.4.2.2.2 Format 1).");
+            return null;
+        }
+        return new ReportDetailRef(name, quals.Count == 1 ? quals[0] : null);
     }
 
     /// <summary>Post-build resolution for every report (the <c>ResolveFiles</c> pattern — runs after the storage
@@ -1406,18 +1544,10 @@ public sealed partial class DataBinder
 
             foreach (var sum in model.Sums)
             {
-                foreach (var (an, aq) in sum.AddendNames)
+                foreach (var term in sum.Terms)
                 {
-                    if (model.Sums.Any(s => s.Id.Equals(an, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        // A report-section addend (a rolled total, §13.18.54.4 GR6) — staged loud.
-                        Edition.Error(DiagnosticCatalog.ReportSumRolledTotal, $"RD '{model.Name}': SUM addend '{an}' names another sum "
-                            + "counter (rolled totals, ISO §13.18.54.4 GR6) — not yet implemented");
-                        continue;
-                    }
-                    if (LookupQualified(an, aq) is { } item) sum.Addends.Add(item);
-                    else Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{an}' does not resolve "
-                        + "to a data item outside the report section (ISO §13.18.54.3 SR5)");
+                    foreach (var addend in term.Addends) ResolveSumAddend(addend, model);
+                    foreach (var det in term.Upon) ResolveUponDetail(det, model);
                 }
                 if (sum.ResetFinal)
                     sum.ResetLevel = model.Controls.FindIndex(c => c.IsFinal);
@@ -1472,6 +1602,112 @@ public sealed partial class DataBinder
             model.LineWidth = model.File?.RecordContains ?? widest;
         }
     }
+
+    /// <summary>⛔ THE ONE ARM CHOICE FOR A SUM ADDEND (kb/Work PB482). ISO §13.18.54.3 SR1 admits three addend
+    /// forms and the arms differ by WHERE the operand is defined, so the choice is made once, here, after the
+    /// whole storage forest and every report description exist:
+    /// <list type="number">
+    /// <item>SR4's <c>data-name-1</c> — "the name of a numeric data item IN THE REPORT SECTION" (a rolled total,
+    /// §13.18.54.4 GR6). The accumulation chain it needs is staged loud, never silently dropped.</item>
+    /// <item>SR4 g)'s cross-report form — the operand qualified by a REPORT-name; also staged.</item>
+    /// <item>SR5's <c>identifier-1</c> — "it shall specify a numeric data item NOT defined in the report
+    /// section". Both halves of that sentence are screened: resolution against ordinary storage (report-section
+    /// names never enter <see cref="DataBinder.ByName"/>) and the CATEGORY, which nothing checked before —
+    /// <c>SUM WS-TXT</c> over a <c>PIC X(6)</c> holding "123456" totalled 123456 per GENERATE, silently.</item>
+    /// </list>
+    /// The SUBSCRIPT is deliberately absent from this method: the arm choice is about the base name, and the
+    /// subscript is evaluated by <c>ExpressionBinder</c> in the procedure phase off <see cref="ReportSumAddend.Ctx"/>.</summary>
+    private void ResolveSumAddend(ReportSumAddend addend, ReportModel model)
+    {
+        if (addend.Rejected) return;
+        addend.Rejected = true;   // cleared only by the one success path at the end
+        // SR4's data-name-1 — a report-section item. `IsReportSectionOnlyName` is the SAME set §13.18.16.3 SR2
+        // and §13.15.3 SR16 use (built once, kb/Work PB205): a name ALSO declared in ordinary storage resolves
+        // THERE (§8.4.2.1) and is an SR5 identifier-1, not an SR4 data-name-1.
+        if (IsReportSectionOnlyName(addend.Name))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumRolledTotal, $"RD '{model.Name}': SUM addend '{addend.Written}' names a report "
+                + "section data item (data-name-1 — a rolled total, ISO §13.18.54.3 SR4 / §13.18.54.4 GR6) — "
+                + "not yet implemented");
+            return;
+        }
+        // SR4 g) — "If data-name-1 specifies an entry in a different report description". The qualifier that
+        // says so is a REPORT-name (§8.4.2.2.2 Format 1), and `dataReference` swallows it as an ordinary IN/OF
+        // qualification, so the spelling is recognised HERE rather than at `sumOperand`'s own `OF reportName`
+        // alternative, which the qualification tail makes unreachable.
+        if (addend.Qualifiers.Count == 1
+            && Reports.Any(r => r.Name.Equals(addend.Qualifiers[0], StringComparison.OrdinalIgnoreCase)))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumCrossReport, $"RD '{model.Name}': SUM addend '{addend.Written}' names an entry of "
+                + $"report '{addend.Qualifiers[0]}' (a cross-report sum, ISO §13.18.54.3 SR4 g) — not yet "
+                + "implemented");
+            return;
+        }
+        if (LookupQualified(addend.Name, addend.Qualifiers) is not { } item)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{addend.Written}' does not resolve "
+                + "to a data item outside the report section (ISO §13.18.54.3 SR5)");
+            return;
+        }
+        // SR5's category half. A group item and every non-numeric category fail it — the addend is added into
+        // the counter by §13.18.54.4 GR3's ADD, which has no meaning for a non-numeric sending operand.
+        if (item.Pic is not { Category: PicCategory.Numeric })
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{addend.Written}' is "
+                + $"{(item.IsGroup ? "a group item" : $"of category {item.Pic?.Category.ToString().ToLowerInvariant() ?? "unknown"}")}; "
+                + "the addend shall specify a numeric data item (ISO §13.18.54.3 SR5) — its content is added "
+                + "into the sum counter by an implicit ADD (§13.18.54.4 GR3).");
+            return;
+        }
+        addend.Item = item;
+        addend.Rejected = false;
+    }
+
+    /// <summary>Resolve one <c>UPON data-name-2</c> operand (ISO §13.18.54.3 SR7 — "Data-name-2 shall be the name
+    /// of a detail. It may be qualified only by a report-name") through the ONE report-group funnel, which owns
+    /// the §8.4.2.2.3 SR1 ambiguity rule as well (kb/Work PB365). The TYPE test is SR7's own sentence: a
+    /// control footing or a report heading is not a detail, and §13.18.54.4 GR7 c) 2) can only fire for a detail,
+    /// because only a detail is GENERATE-able (§14.9.16.3 SR1).</summary>
+    private void ResolveUponDetail(ReportDetailRef det, ReportModel model)
+    {
+        string where = $"RD '{model.Name}': the UPON operand '{det}'";
+        if (ReportGroupResolution.Resolve(Edition, Reports, det.Name, det.Qualifier, where,
+                out var owner, out var group) == ReportGroupResolution.Match.None)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} does not name a report group. Data-name-2 shall be "
+                + "the name of a detail (ISO §13.18.54.3 SR7).");
+            return;
+        }
+        if (group!.Kind is not ReportGroupKindModel.Detail)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a report group of TYPE "
+                + $"{ReportGroupTypeWords(group.Kind)}; data-name-2 shall be the name of a DETAIL (ISO "
+                + "§13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§14.9.16.3 SR1), "
+                + "which is the event §13.18.54.4 GR7 c) 2) accumulates on.");
+            return;
+        }
+        // A detail of ANOTHER report: GR7 c) 2) accumulates on a GENERATE of that detail, which runs on the
+        // other report's engine — a cross-report wiring this backend does not have. Staged with the family.
+        if (!ReferenceEquals(owner, model))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumUponCrossReport, $"{where} names a detail of report '{owner!.Name}' (ISO "
+                + "§13.18.54.4 GR7 c) 2) — a cross-report UPON) — not yet implemented");
+            return;
+        }
+        det.Detail = group;
+    }
+
+    /// <summary>A report group's TYPE in the standard's own words, for a diagnostic (ISO §13.18.57.2).</summary>
+    private static string ReportGroupTypeWords(ReportGroupKindModel kind) => kind switch
+    {
+        ReportGroupKindModel.ReportHeading => "REPORT HEADING",
+        ReportGroupKindModel.PageHeading => "PAGE HEADING",
+        ReportGroupKindModel.ControlHeading => "CONTROL HEADING",
+        ReportGroupKindModel.ControlFooting => "CONTROL FOOTING",
+        ReportGroupKindModel.PageFooting => "PAGE FOOTING",
+        ReportGroupKindModel.ReportFooting => "REPORT FOOTING",
+        _ => "DETAIL",
+    };
 
     /// <summary>The §13.15.3 SR16 scan: no PRESENT WHEN condition of <paramref name="model"/> may reference
     /// LINE-COUNTER, PAGE-COUNTER, a sum counter, or another report section data item (group / printable-entry

@@ -168,15 +168,29 @@ public sealed class CobolReport(
 
     private readonly List<ControlEntry> _controls = [];   // major→minor (FINAL, if present, is index 0 — GR2)
 
+    /// <summary>ONE <c>SUM … [UPON …]</c> GROUP of a SUM clause (ISO §13.18.54.3 SR1 — the SUM keyword may appear
+    /// more than once, and §13.18.54.4 GR1 still gives the ENTRY one counter): the group's addend total, already
+    /// at the counter's scale (GR9 sums a group's addends together), and the group's OWN UPON filter — GR7 c) 2)
+    /// accumulates "whenever any GENERATE statement is executed for a detail referenced by the UPON phrase", and
+    /// the phrase belongs to its group. Null = no UPON phrase (GR7 c) 1) — every GENERATE for this report).</summary>
+    private readonly record struct SumTerm(Func<long> Addend, string[]? UponDetails)
+    {
+        /// <summary>Whether this term accumulates on a GENERATE of <paramref name="detailName"/> (GR7 c)).</summary>
+        public bool Fires(string? detailName) =>
+            UponDetails is null
+            || (detailName is not null
+                && Array.FindIndex(UponDetails, d => d.Equals(detailName, StringComparison.OrdinalIgnoreCase)) >= 0);
+    }
+
     /// <summary>One SUM counter (ISO §13.18.54): an unscaled integer accumulation at the counter's scale (GR1 —
-    /// digits derived from the entry's PICTURE), an addend delegate over the program's typed storage, the UPON
-    /// detail filter (GR7c2), the RESET control level (GR2; −1 = reset where printed), and the group it prints in.</summary>
-    private sealed class SumEntry(
-        Func<long> addend, string[]? uponDetails, int resetLevel, ReportGroup printedIn, Func<bool>? present)
+    /// digits derived from the entry's PICTURE), the clause's <see cref="Terms"/> over the program's typed
+    /// storage, the RESET control level (GR2; −1 = reset where printed), and the group it prints in.</summary>
+    private sealed class SumEntry(int resetLevel, ReportGroup printedIn, Func<bool>? present)
     {
         public long Value;
-        public Func<long> Addend { get; } = addend;
-        public string[]? UponDetails { get; } = uponDetails;
+
+        /// <summary>The clause's <c>SUM … [UPON …]</c> groups in written order, each with its own UPON filter.</summary>
+        public List<SumTerm> Terms { get; } = [];
         public int ResetLevel { get; } = resetLevel;
         public ReportGroup PrintedIn { get; } = printedIn;
 
@@ -210,15 +224,20 @@ public sealed class CobolReport(
     public void AddControl(bool isFinal, Func<string> get, Action<string> set) =>
         _controls.Add(new ControlEntry(isFinal, get, set));
 
-    /// <summary>Register a SUM counter (ISO §13.18.54). <paramref name="addend"/> yields the addends' current
-    /// total, already at the counter's scale; <paramref name="uponDetails"/> restricts accumulation to the named
-    /// details (GR7c2; null = every GENERATE for this report, GR7c1); <paramref name="resetLevel"/> is the RESET
-    /// control level (GR2; −1 = reset at the end of the group it prints in); <paramref name="present"/> is the
-    /// entry's PRESENT WHEN chain (§13.18.41.4 GR3g — false suppresses the end-of-group reset; null =
-    /// unconditional).</summary>
-    public void AddSum(string id, Func<long> addend, string[]? uponDetails, int resetLevel, ReportGroup printedIn,
-        Func<bool>? present = null) =>
-        _sums[id] = new SumEntry(addend, uponDetails, resetLevel, printedIn, present);
+    /// <summary>Register a SUM counter (ISO §13.18.54.4 GR1 — one per ENTRY containing a SUM clause).
+    /// <paramref name="resetLevel"/> is the RESET control level (GR2; −1 = reset at the end of the group it
+    /// prints in); <paramref name="present"/> is the entry's PRESENT WHEN chain (§13.18.41.4 GR3g — false
+    /// suppresses the end-of-group reset; null = unconditional). The addends arrive through
+    /// <see cref="AddSumTerm"/>, one call per <c>SUM … [UPON …]</c> group.</summary>
+    public void AddSum(string id, int resetLevel, ReportGroup printedIn, Func<bool>? present = null) =>
+        _sums[id] = new SumEntry(resetLevel, printedIn, present);
+
+    /// <summary>Register one <c>SUM … [UPON …]</c> group of the counter <paramref name="id"/> (ISO §13.18.54.3
+    /// SR1 — "the SUM keyword may appear more than once"). <paramref name="addend"/> yields that group's addend
+    /// total, already at the counter's scale (GR9); <paramref name="uponDetails"/> restricts its accumulation to
+    /// the named details (GR7 c) 2); null = every GENERATE for this report, GR7 c) 1).</summary>
+    public void AddSumTerm(string id, Func<long> addend, string[]? uponDetails) =>
+        _sums[id].Terms.Add(new SumTerm(addend, uponDetails));
 
     /// <summary>A SUM counter's current value (unscaled, at the counter's scale) — read by the generated compose
     /// of the printable item the counter is the source of (ISO §13.18.54.4 GR4).</summary>
@@ -346,10 +365,8 @@ public sealed class CobolReport(
         // GENERATE of a named detail (GR7c2) — AFTER the control-break processing, so a control footing printed
         // above showed the ended group's total (its reset happened at the end of its printing, GR2).
         foreach (var s in _sums.Values)
-            if (s.UponDetails is null
-                || (detailName is not null && Array.FindIndex(s.UponDetails,
-                        d => d.Equals(detailName, StringComparison.OrdinalIgnoreCase)) >= 0))
-                s.Value += s.Addend();
+            foreach (var t in s.Terms)
+                if (t.Fires(detailName)) s.Value += t.Addend();
 
         // GR4d / GR5b: the specified detail — unless summary reporting (GR2).
         if (detailName is not null && _details.TryGetValue(detailName, out var detail))

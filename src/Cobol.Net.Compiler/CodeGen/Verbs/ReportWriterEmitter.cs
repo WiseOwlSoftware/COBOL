@@ -349,22 +349,39 @@ internal sealed class ReportWriterEmitter(
             // §13.18.54.3, never float).
             foreach (var sum in r.Sums)
             {
-                var terms = sum.Addends
-                    .Select(a => refs.ResolveItem(a) is { } p
-                        ? "(" + NumericRenderer.Align(num.FieldNum(p), sum.Scale) + ")"
-                        : LoudValue("long", $"report {r.Name}: SUM addend not resolvable to storage (ISO §13.18.54.3 SR5)"))
-                    .ToList();
-                string addend = terms.Count == 0 ? "0L" : string.Join(" + ", terms);
-                string upon = sum.UponDetails.Count == 0
-                    ? "null"
-                    : "new[] { " + string.Join(", ", sum.UponDetails.Select(CsLiteral)) + " }";
                 int printedGi = r.Groups.IndexOf(sum.PrintedIn);
                 // A conditioned SUM entry passes its PRESENT WHEN chain — false at a presentation suppresses
                 // the end-of-group reset (§13.18.41.4 GR3g / §13.18.54.4 GR10); the print half rides the
                 // printable face's identical chain inside the compose.
                 string sumPresent = sum.PresentWhen.Count > 0 ? $", () => {PresentExpr(sum.PresentWhen)}" : "";
-                w.Line($"__RPT_{r.CsIndex}.AddSum({CsLiteral(sum.Id)}, () => (long)({addend}), {upon}, "
-                    + $"{sum.ResetLevel}, __rg{r.CsIndex}_{printedGi}{sumPresent});");
+                w.Line($"__RPT_{r.CsIndex}.AddSum({CsLiteral(sum.Id)}, {sum.ResetLevel}, "
+                    + $"__rg{r.CsIndex}_{printedGi}{sumPresent});");
+                // ONE TERM PER `SUM … [UPON …]` GROUP (§13.18.54.3 SR1 + §13.18.54.4 GR1/GR7c2 — kb/Work
+                // PB482): the counter belongs to the ENTRY, the UPON filter belongs to its own group, and GR9
+                // sums a group's addends together. Each addend is the bound identifier's value — subscripts and
+                // all — rendered through the ONE numeric renderer, so a table addend is an ordinary indexed read
+                // rather than the run-time loud it used to be.
+                foreach (var term in sum.Terms)
+                {
+                    var addends = term.Addends
+                        .Select(a => a.Value is { } v
+                            ? "(" + NumericRenderer.Align(num.Render(v, ReceiverContext.None), sum.Scale) + ")"
+                            : LoudValue("long", $"report {r.Name}: SUM addend '{a.Written}' was rejected at bind "
+                                + "(ISO §13.18.54.3 SR5)"))
+                        .ToList();
+                    string addend = addends.Count == 0 ? "0L" : string.Join(" + ", addends);
+                    // null = no UPON phrase (GR7 c) 1) — every GENERATE for this report). An UPON phrase whose
+                    // operands were ALL rejected emits the EMPTY filter instead, so a suppressed COBOLNET2046
+                    // accumulates on NOTHING rather than on everything: the absence of the phrase and the
+                    // failure to resolve it are opposite answers, and the fallback has to be the narrow one.
+                    var upon = term.Upon.Where(d => d.Detail is not null).ToList();
+                    string uponArg = term.Upon.Count == 0
+                        ? "null"
+                        : upon.Count == 0
+                            ? "System.Array.Empty<string>()"
+                            : "new[] { " + string.Join(", ", upon.Select(d => CsLiteral(d.Detail!.Name!))) + " }";
+                    w.Line($"__RPT_{r.CsIndex}.AddSumTerm({CsLiteral(sum.Id)}, () => (long)({addend}), {uponArg});");
+                }
             }
         }
         // USE BEFORE REPORTING hooks (ISO §14.9.49 Format 2 GR8): the engine invokes the declarative's bounded

@@ -51,7 +51,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     }
                 }
             foreach (var s in r.Sums)
+            {
                 foreach (var c in s.PresentWhenCtxs) s.PresentWhen.Add(Bind(c));
+                // SUM addends (§13.18.54.3 SR5 — kb/Work PB482). An addend written as identifier-1 is an
+                // ORDINARY IDENTIFIER (§8.4.3.1.2 Format 2, qualified-data-name-with-subscripts), so its VALUE
+                // is bound HERE, through the same `BindExpr` a procedure-division reference takes — which is
+                // what makes `SUM WS-CELL(2)`, `SUM WS-CELL(IX)` and `SUM WS-CELL(IX + 1)` resolve at all: a
+                // subscript may be an arithmetic expression or an index-name, and neither has a value at data
+                // bind. A REJECTED addend is skipped: its rule has already been named, and re-binding it would
+                // report the same words twice under a second clause.
+                foreach (var t in s.Terms)
+                    foreach (var a in t.Addends)
+                        if (!a.Rejected) a.Value = host.Expr.BindExpr(a.Ctx);
+            }
         }
     }
     /// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each name shall be an RD entry (SR1); a multi-name

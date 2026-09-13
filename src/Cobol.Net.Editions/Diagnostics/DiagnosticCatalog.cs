@@ -841,8 +841,13 @@ public static class DiagnosticCatalog
         "SUM … OF report-name (a cross-report sum) is not yet implemented.", "ISO §13.18.54.3 SR4g", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportSumRolledTotal = new(
         NotImplemented, "report-sum-rolled-total", EditionSeverity.Error,
-        "A SUM addend naming another sum counter (rolled totals) is not yet implemented.",
-        "ISO §13.18.54.4 GR6", RecognizedNotImplemented);
+        "A SUM addend naming a report section data item (data-name-1 — a rolled total) is not yet implemented.",
+        "ISO §13.18.54.3 SR4 / §13.18.54.4 GR6", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ReportSumUponCrossReport = new(
+        NotImplemented, "report-sum-upon-cross-report", EditionSeverity.Error,
+        "An UPON operand naming a detail of another report description entry is not yet implemented: the "
+        + "accumulation fires on a GENERATE executed against that report's engine.",
+        "ISO §13.18.54.4 GR7 c) 2)", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportMultipleOnFile = new(
         NotImplemented, "report-multiple-on-file", EditionSeverity.Error,
         "Multiple reports on one file (REPORTS ARE …) are not yet implemented.", "ISO §13.18.46", RecognizedNotImplemented);
@@ -3280,6 +3285,38 @@ public static class DiagnosticCatalog
         + "bound learns of the smaller one at compile time instead of through a clamped SET SIZE and a runtime "
         + "EC-STORAGE-NOT-AVAIL.",
         "ISO §8.5.1.10.1 / §13.18.19.4 GR2 / Annex A.1 item 62");
+    // ── COBOLNET2045/2046 — the SUM clause's OPERANDS, once the addend became the written reference it always
+    //    was (kb/Work PB482). Both rules had NO site at all: the addend's category (SR5) and the UPON operand's
+    //    identity as a DETAIL (SR7) were never asked, so `SUM WS-TXT` over a PIC X(6) and `UPON <a control
+    //    footing>` both compiled clean and produced a wrong total. The cross-report halves stay in the shared
+    //    COBOLNET0899 staging family, which is where every other unimplemented Report Writer feature lives. ──
+
+    /// <summary>COBOLNET2045 — a SUM addend that is not a numeric data item (§13.18.54.3 SR5), including every
+    /// reference-modified spelling.</summary>
+    public static readonly DiagnosticDescriptor ReportSumAddendNotNumeric = new(
+        "COBOLNET2045", "report-sum-addend-not-numeric", EditionSeverity.Error,
+        "§13.18.54.3 SR5: \"If the addend is identifier-1, it shall specify a numeric data item not defined in "
+        + "the report section.\" The addend's content is added into the sum counter by the implicit ADD of "
+        + "§13.18.54.4 GR3, which has no meaning for a group item or a non-numeric category. A REFERENCE-MODIFIED "
+        + "addend fails the same rule for a reason worth spelling out: §8.4.3.3.4 GR6 c) makes the unique data "
+        + "item reference modification creates \"class and category alphanumeric\" unless the usage is national, "
+        + "so no reference-modified spelling can be the numeric data item SR5 requires. (The SUBSCRIPTED "
+        + "spelling is legal and supported — identifier-1 is §8.4.3.1.2 Format 2's "
+        + "qualified-data-name-with-subscripts.)",
+        "ISO §13.18.54.3 / §13.18.54.4 / §8.4.3.3.4");
+
+    /// <summary>COBOLNET2046 — an <c>UPON</c> operand that is not the name of a detail, or is qualified by
+    /// something other than a single report-name (§13.18.54.3 SR7).</summary>
+    public static readonly DiagnosticDescriptor ReportSumUponNotDetail = new(
+        "COBOLNET2046", "report-sum-upon-not-detail", EditionSeverity.Error,
+        "§13.18.54.3 SR7: \"Data-name-2 shall be the name of a detail. It may be qualified only by a "
+        + "report-name.\" The UPON phrase names the GENERATE events that accumulate the addend (§13.18.54.4 GR7 "
+        + "c) 2)), and only a detail report group is the operand of a GENERATE statement (§14.9.16.3 SR1), so a "
+        + "name that is not a detail names an event that can never occur. The one qualifier the rule allows is "
+        + "the report-name of §8.4.2.2.2 Format 1; a subscript or a reference modifier is not admitted at all, "
+        + "since §8.4.2.3.3 SR2 permits a subscript only for an item with an OCCURS clause and §8.4.3.3.3 SR5's "
+        + "NOTE bars reference modification wherever a general format writes data-name-n.",
+        "ISO §13.18.54.3 / §13.18.54.4 / §14.9.16.3");
 
     /// <summary>COBOLNET2024 — a file's clause operand is written in a shape a <i>data-name-n</i> position does
     /// not admit (kb/Work PB489). Where a general format prints data-name-n the reference is a

@@ -173,9 +173,12 @@ reportSourceClause
     : (SOURCE | SOURCES) (IS | ARE)? dataReference+
     ;
 
-// SUM data-name... [UPON data-name...] [RESET ON {FINAL|data-name}]  (§13.18.54)
+// SUM OF data-name... [UPON data-name...] [RESET ON {FINAL|data-name}]  (§13.18.54)
+// `OF` is an OPTIONAL word: the printed general format (§13.18.54.2, PDF p487 rendered) underlines SUM, UPON,
+// RESET and FINAL and leaves OF and ON plain, and §8.3.2.4.3 makes an un-underlined uppercase word optional.
+// Without it `SUM OF WS-A` — conforming source — was a raw COBOL0001 parse error (kb/Work PB482).
 reportSumClause
-    : SUM sumOperand (COMMA? sumOperand)*
+    : SUM OF? sumOperand (COMMA? sumOperand)*
       (UPON dataReference (COMMA? dataReference)*)?
       reportSumReset?
     ;
