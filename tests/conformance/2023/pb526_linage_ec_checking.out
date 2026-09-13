@@ -1,0 +1,5 @@
+EC-USE FS=90 LC=000 ST=EC-I-O-LINAGE                  
+C-OPEN FS=90
+EC-USE FS=90 LC=000 ST=EC-I-O-LINAGE                  
+C-W1 FS=90
+C-CLOSE FS=00

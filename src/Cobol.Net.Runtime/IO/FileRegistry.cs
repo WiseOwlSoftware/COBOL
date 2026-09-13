@@ -483,6 +483,23 @@ public sealed class FileRegistry
     /// PB140; the reachable case was an unregistered SD file, now a bind-time rejection).</summary>
     public string Status(string name) => Require(name).Status;
 
+    /// <summary>⛔ THE ONE PLACE THE EC-I-O CONDITION OF THE LAST I-O OPERATION IS DECIDED (ISO §9.1.13.1;
+    /// kb/Work PB526) — the level-3 exception-name set to exist by the operation just executed on
+    /// <paramref name="name"/>, or null when it set none. Two sources, ONE answer:
+    /// <list type="number">
+    /// <item>a name the operation's own rule NAMED (<see cref="FileConnector.IoConditionName"/>) — today
+    ///   §13.18.34.4 GR6 b) 2's EC-I-O-LINAGE, the one EC-I-O condition with no I-O status of its own;</item>
+    /// <item>otherwise §9.1.13.1's status→EC correspondence over the connector's I-O status.</item>
+    /// </list>
+    /// A generated hook asks HERE and never calls <c>ExceptionCatalog.IoEcOfStatus</c> itself: the correspondence
+    /// is a DEFAULT, and a second caller applying only the default is how the named condition would be lost on
+    /// one of the two paths.</summary>
+    public string? IoConditionName(string name)
+    {
+        var c = Require(name);
+        return c.IoConditionName ?? Exceptions.ExceptionCatalog.IoEcOfStatus(c.Status);
+    }
+
     /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §15.28.4 r2): two alphanumeric spaces when the
     /// named connector was never opened, attempted to be opened, or otherwise attempted to be accessed (r2a — or is
     /// unknown); else its two-character I-O status followed by the file-name "exactly as specified in the SELECT
@@ -890,7 +907,16 @@ public sealed class FileRegistry
             // ISO §13.18.34 GR6 b) 1 — the LINAGE operand values are read "at the completion of an OPEN statement
             // with the OUTPUT phrase", so the page model is established HERE, with the page the EXECUTING element's
             // own LINAGE clause evaluated to (kb/Work PB673), and only for an open that actually succeeded.
-            if (mode == FileOpenMode.Output && page is { } pg && c is SequentialConnector sq) sq.BeginLinagePage(pg);
+            // ⛔ AND THE PAGE MODEL CAN MAKE THE OPEN UNSUCCESSFUL (kb/Work PB526). §13.18.34 GR6 b) 1 reads the
+            // operands "at the completion of" this OPEN and GR6 b) 2 applies its two value rules to them: a
+            // violation sets EC-I-O-LINAGE to exist, so the statement has to report an unsuccessful I-O status
+            // for §9.1.12's exception processing to see it at all. The connector STAYS OPEN — GR6 b) 2's counter
+            // "remains at that value until the file is closed" and its "all subsequent WRITE statements
+            // referencing the file" both presuppose an open file connector — so this replaces only the status,
+            // after every piece of successful-open bookkeeping above has run.
+            if (mode == FileOpenMode.Output && page is { } pg && c is SequentialConnector sq
+                && sq.BeginLinagePage(pg) is { } linageStatus)
+                status = linageStatus;
         }
         return status;
     }

@@ -141,6 +141,11 @@ public static class CobolFile
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
     public static string Status(string name) => _reg.Status(name);
 
+    /// <summary>The EC-I-O level-3 exception-name the file's last I-O operation set to exist, or null — the
+    /// generated <c>__IoCheckEc</c> hook's source for the raised name (ISO §9.1.13.1 + the rules that name their
+    /// own condition; see <see cref="FileRegistry.IoConditionName"/>).</summary>
+    public static string? IoConditionName(string name) => _reg.IoConditionName(name);
+
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e).</summary>
     public static int OpenModeOf(string name) => _reg.OpenModeOf(name);
 

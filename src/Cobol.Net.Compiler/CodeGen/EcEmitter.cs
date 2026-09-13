@@ -517,7 +517,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         using (w.Block("private int __IoCheckEc(string __f, bool __atEnd, bool __invKey, bool __onExc, int __mask, int __locMask, string? __stmt, string? __loc)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
-            w.Line("string? __ec = ExceptionCatalog.IoEcOfStatus(__st);   // §9.1.13.1 status→EC correspondence");
+            // ⛔ THE RAISED NAME COMES FROM THE RUNTIME, NOT FROM THE STATUS ALONE (kb/Work PB526). §9.1.13.1's
+            // status→EC correspondence is the DEFAULT and covers every EC-I-O condition reached through a status;
+            // §13.18.34.4 GR6 b) 2 NAMES EC-I-O-LINAGE, for which no status value exists, so the connector
+            // carries the name and CobolFile.IoConditionName is the one place the two are combined.
+            w.Line($"string? __ec = {RuntimeApi.FileIoConditionName("__f")};   // §9.1.13.1 correspondence, or the rule-named condition");
             w.Line("bool __en = __ec is not null && (__mask & ExceptionCatalog.IoBit(__ec)) != 0;");
             // §15.32.3 r1 / §15.30.3 r1 are PER-CONDITION: the location operands record only when the RAISED
             // name's own TURN carried WITH LOCATION (__locMask shares __mask's bit positions — kb/Work R06).

@@ -134,6 +134,26 @@ public static class FileStatusCode
     public const string RunUnitLockLimit = "53";
     /// <summary>54 — the maximum number of record locks for this file connector has been exceeded (§9.1.13.8 item 4).</summary>
     public const string ConnectorLockLimit = "54";
+    /// <summary>'90' — ⛔ THE ONE IMPLEMENTOR-DEFINED I-O STATUS THIS COMPILER DEFINES (ISO §9.1.13.11 item 1:
+    /// <i>"I-O status = 9x. An implementor-defined condition exists. This condition shall not duplicate any other
+    /// condition specified by another I-O status value. The value of x is defined by the implementor."</i>) — the
+    /// LINAGE value-rule violation of §13.18.34.4 GR6 b): the page size is not greater than zero, or a specified
+    /// footing start is not greater than zero or greater than the page size. Annex A.1 item 110 is the
+    /// documentation obligation it carries; the determination is docs/CONFORMANCE.md §7 DOC-A.1-110.
+    /// <para><b>Why 9x and not a value in another class.</b> §9.1.13.2–§9.1.13.10 enumerate every other class's
+    /// values and none of them is this condition, so placing it in one would "duplicate another condition
+    /// specified by another I-O status value" in the only sense that matters: the value would assert a condition
+    /// class the standard defines as something else (a '5x' says the record is locked by another file connector;
+    /// a '4x' is one of the nine enumerated logic errors). §9.1.13.11 is the slot the standard provides for
+    /// exactly this, and '9' is a FATAL first digit under this implementation's own determination
+    /// (<c>ExceptionCatalog.IsFatalIoStatus</c> — §9.1.13.1's <i>"any that begin with the digit 9 that the
+    /// implementor defines as fatal"</i>), which is what Table 13's <b>Fatal</b> for EC-I-O-LINAGE requires.</para>
+    /// <para>⛔ IT TRAVELS WITH AN EXCEPTION-NAME. §9.1.13.1's status→EC correspondence would read a '9x' as
+    /// EC-I-O-IMP, and §13.18.34.4 GR6 b) 2 names EC-I-O-LINAGE, so the connector records the name beside the
+    /// status (<see cref="FileConnector.IoConditionName"/>) and the generated hook reads the pair. A status
+    /// alone cannot carry a condition the status table does not list.</para></summary>
+    public const string LinageValueViolation = "90";
+
     /// <summary>61 — OPEN failed: a sharing conflict, based on the sharing mode of a previously-opened file
     /// connector or this OPEN's SHARING phrase, prevents the open (§9.1.13.9 item 1, sub-cases a–e).</summary>
     public const string FileSharingConflict = "61";

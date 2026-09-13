@@ -365,7 +365,8 @@ public sealed class SequentialConnector : FileConnector
     // recently determined, because GR6 says "the value applies to the next logical page"; it keeps no source, or
     // a shared connector would answer with whichever element/activation installed one last (kb/Work PB673).
     private int _pageBody;      // page size — the writable page-body line count (GR2)
-    private int _footing;       // footing start (GR3 — footing area = [footing, page size] inclusive); 0 = none
+    private int? _footing;      // footing start (GR3 — footing area = [footing, page size] inclusive); null = the
+                                // FOOTING phrase is absent (GR1), which is NOT the value 0 (kb/Work PB525)
     private int _top, _bottom;  // top/bottom margins (GR4/GR5) — lines OF the logical page (GR1), never written on
 
     /// <summary>⛔ "THIS CONNECTOR HAS A LIVE LOGICAL PAGE", written down ONCE. A page model exists only between
@@ -399,15 +400,37 @@ public sealed class SequentialConnector : FileConnector
     /// printing/spacing within the footing area (GR26b). Reset at the start of every counter-advancing write.</summary>
     public bool EndOfPage { get; private set; }
 
+    /// <summary>⛔ THE §13.18.34.4 GR6 b) 2 LATCH — <i>"the LINAGE-COUNTER is set to 0 and remains at that value
+    /// until the file is closed; and all subsequent WRITE statements referencing the file cause the
+    /// EC-I-O-LINAGE exception condition to continue to exist until the file is closed"</i>. Set by
+    /// <see cref="EvaluateLinage"/> when the operand values do not conform to GR6 b)'s two value rules, cleared
+    /// only by <see cref="EndLinagePage"/> (CLOSE) — a fresh OPEN OUTPUT ends the file's open mode first, so
+    /// "until the file is closed" and "cleared at CLOSE" are the same moment.
+    /// <para>It is a SEPARATE bit from <see cref="HasLogicalPage"/> on purpose. A broken page has no geometry, so
+    /// the model is zeroed with it; if the latch were read off the zeroed model, every later WRITE would take the
+    /// plain print-stream arm — the arm for a file with NO LINAGE clause — and would SUCCEED, which is the one
+    /// outcome GR6 b) 2's last clause forbids.</para></summary>
+    private bool _linagePageBroken;
+
     /// <summary>ISO §13.18.34 GR6 b) 1 — establish the logical page model <i>"at the completion of an OPEN
     /// statement with the OUTPUT phrase"</i>, plus GR7 d)'s counter reset. Called by the registry after a
-    /// SUCCESSFUL OPEN OUTPUT, with the page the EXECUTING element's own LINAGE clause evaluates to.</summary>
-    public void BeginLinagePage(LinagePage page)
+    /// SUCCESSFUL OPEN OUTPUT, with the page the EXECUTING element's own LINAGE clause evaluates to. Returns the
+    /// §9.1.13.11 LINAGE value-rule status when GR6 b)'s value rules are violated at the completion of the open,
+    /// and <see langword="null"/> when they hold — <b>null, not '00'</b>, because the OPEN's own successful
+    /// status is not always '00' ('05' for an absent OPTIONAL file, '07' for a phrase on a non-reel medium) and
+    /// this evaluation has nothing to say about it.
+    /// <para>⚠ A violation here does NOT un-open the connector: GR6 b) 2 pins the counter at 0 <i>"until the file
+    /// is closed"</i> and makes <i>"all subsequent WRITE statements referencing the file"</i> re-raise, both of
+    /// which presuppose an open file connector. What the OPEN reports is an unsuccessful I-O status (so the
+    /// standard I-O exception processing of §9.1.12 / §14.9.49.4 GR6 sees it); what it leaves behind is an open
+    /// connector with a broken page.</para></summary>
+    public string? BeginLinagePage(LinagePage page)
     {
-        EvaluateLinage(page);
+        _linagePageBroken = false;   // a fresh OPEN OUTPUT re-determines the values (GR6 b) 1)
         LinageCounter = 1;      // GR7d — the counter is set to one at OPEN OUTPUT
         _topMarginPending = true;   // …and the device is at body line 1, i.e. past this page's top margin (GR4)
         EndOfPage = false;
+        return EvaluateLinage(page) ? null : LinageViolationStatus();
     }
 
     /// <summary>⛔ THE END OF THE LINAGE PAGE REGIME — the page model does NOT outlive the open mode that
@@ -423,21 +446,62 @@ public sealed class SequentialConnector : FileConnector
     /// that source and a stale page model; OPEN INPUT/I-O of a LINAGE file is legal and is covered by the same
     /// clearing.) The counter itself is left where the last write put it: §8.4.3.14
     /// gives LINAGE-COUNTER no value for a closed file, and the next OPEN OUTPUT sets it (GR7 d).</summary>
-    private void EndLinagePage() => (_pageBody, _footing, _top, _bottom, _topMarginPending) = (0, 0, 0, 0, false);
+    private void EndLinagePage() =>
+        (_pageBody, _footing, _top, _bottom, _topMarginPending, _linagePageBroken) = (0, null, 0, 0, false, false);
 
-    /// <summary>Adopt the LINAGE operand values for the (next) logical page (ISO §13.18.34 GR6: at OPEN OUTPUT
-    /// completion, during WRITE ADVANCING PAGE, and during a page-overflow WRITE — "the value applies to the next
-    /// logical page"). GR6's value rules (page size &gt; 0; 0 &lt; footing ≤ page size — footing 0 here = the phrase
-    /// is absent, GR1) violated ⇒ the EC-I-O-LINAGE exception condition (§13.18.34 GR6) — the EC subsystem is a
-    /// later slice, so the seam fails LOUD (COBOLNET_DESIGN §1.4), never a silent bad page model.</summary>
-    private void EvaluateLinage(LinagePage page)
+    /// <summary>Adopt the LINAGE operand values for the (next) logical page (ISO §13.18.34.4 GR6 b: at OPEN
+    /// OUTPUT completion, during a WRITE ADVANCING PAGE, and during a page-overflow WRITE — <i>"the value applies
+    /// to the next logical page"</i>), and APPLY GR6 b)'s two value rules. Returns whether the values conform.
+    /// <list type="number">
+    /// <item>§13.18.34.4 GR6 b) 1 — <i>"The page size shall be greater than zero."</i></item>
+    /// <item>§13.18.34.4 GR6 b) 2 — <i>"The footing start shall be greater than zero and not greater than the
+    ///   page size."</i> ⛔ APPLIED EXACTLY WHEN THE FOOTING PHRASE IS SPECIFIED (kb/Work PB525): there is a
+    ///   footing start to validate only when there is a FOOTING phrase, and GR1 — <i>"If the FOOTING phrase is
+    ///   not specified, no end-of-page condition independent of the page overflow condition exists"</i> — is the
+    ///   rule for the absent one. A specified phrase holding 0 is a VIOLATION, not an absence, which is why
+    ///   <see cref="LinagePage.Footing"/> is nullable and this test is on the null-ness, never on the value.</item>
+    /// </list>
+    /// <para>⛔ A VIOLATION IS AN EXCEPTION CONDITION, NOT A PROCESS KILL (kb/Work PB526). GR6 b) 2 continues:
+    /// <i>"If the value does not conform to these two rules, the EC-I-O-LINAGE exception condition is set to
+    /// exist. If execution continues after processing of this exception condition, it continues with the
+    /// statement following the WRITE statement; the LINAGE-COUNTER is set to 0 and remains at that value until
+    /// the file is closed; and all subsequent WRITE statements referencing the file cause the EC-I-O-LINAGE
+    /// exception condition to continue to exist until the file is closed."</i> All three consequences are
+    /// realized here and in <see cref="LinageViolationStatus"/>: the counter goes to 0, the page model is
+    /// discarded, <see cref="_linagePageBroken"/> latches until CLOSE, and the operation reports the I-O status
+    /// and the exception-name that carry the condition to §9.1.12's exception processing. The raise itself is
+    /// NOT made here — it is the ONE EC-I-O channel every other I-O condition uses, the emitted
+    /// <c>__IoCheckEc</c> hook after the verb (§9.1.13.1 / §14.6.13.1.3 #3), which owns the USE Format-1 and
+    /// Format-3 tiers, the exception-checking PERFORM frames and the fatal default.</para></summary>
+    private bool EvaluateLinage(LinagePage page)
     {
         var (body, footing, top, bottom) = page;
-        if (body <= 0 || footing < 0 || footing > body)
-            throw new InvalidOperationException(
-                $"EC-I-O-LINAGE: LINAGE values page-size={body}, footing={footing} violate ISO §13.18.34 GR6 "
-                + "(page size > 0; 0 < footing <= page size); the EC exception-condition machinery is a later slice");
+        if (body <= 0 || (footing is { } f && (f <= 0 || f > body)))
+        {
+            // GR6 b) 2's continuation, in the order the sentence writes it.
+            LinageCounter = 0;
+            (_pageBody, _footing, _top, _bottom, _topMarginPending) = (0, null, 0, 0, false);
+            _linagePageBroken = true;
+            return false;
+        }
         (_pageBody, _footing, _top, _bottom) = (body, footing, top, bottom);
+        return true;
+    }
+
+    /// <summary>The I-O status of an operation stopped by the §13.18.34.4 GR6 b) 2 LINAGE value-rule violation —
+    /// set with the exception-name that rule NAMES, so §9.1.13.1's status→EC correspondence (which has no entry
+    /// for EC-I-O-LINAGE) does not answer in its place. See <see cref="FileStatusCode.LinageValueViolation"/> for
+    /// the determination behind the value and <see cref="FileConnector.IoConditionName"/> for why the name
+    /// travels beside it.
+    /// <para>⛔ EVERY PATH OUT OF A VIOLATION PASSES THROUGH HERE — the detecting operation's and every later
+    /// WRITE's — so <see cref="EndOfPage"/> is cleared HERE and not in <see cref="EvaluateLinage"/>: the latched
+    /// WRITE never re-evaluates anything, and leaving the previous write's flag standing would let a stale
+    /// end-of-page condition answer for it. §14.9.51.4 GR27 makes an end-of-page WRITE SUCCESSFUL, so an
+    /// unsuccessful one has none by construction.</para></summary>
+    private string LinageViolationStatus()
+    {
+        EndOfPage = false;
+        return SetIoCondition(FileStatusCode.LinageValueViolation, Exceptions.ExceptionCatalog.IoLinage);
     }
 
     /// <summary>
@@ -478,7 +542,7 @@ public sealed class SequentialConnector : FileConnector
     /// write's line number), which holds however the caller orders this against the record's presentation:
     /// §14.9.51.4 GR25 e)/f) place the advance before or after the line, and both orders leave the same counter.
     /// </summary>
-    private void PositionOnLogicalPage(int lines, LinagePage page)
+    private bool PositionOnLogicalPage(int lines, LinagePage page)
     {
         EndOfPage = false;   // reset at the start of every counter-advancing write (the legacy entry reset)
         // The device is on the page body only once this page's top margin is behind it (GR4); every travel and
@@ -489,8 +553,7 @@ public sealed class SequentialConnector : FileConnector
             // ADVANCING PAGE (§14.9.51.4 GR25 g) + §13.18.34 GR7c1): the device is repositioned to the first
             // line that may be written on the next logical page — never GR25 h)'s form feed, which is the arm
             // for a file with NO LINAGE clause.
-            BeginNextLogicalPage(page);
-            return;
+            return BeginNextLogicalPage(page);   // GR6 b) 2 — the re-evaluation may break the page
         }
         // ADVANCING n (n >= 0) or plain WRITE (n = 1): the counter is incremented (GR7c2/c3) and the device
         // travels the same n lines (GR25 a); n = 0 is GR25 c)'s "no repositioning ... is performed").
@@ -502,13 +565,13 @@ public sealed class SequentialConnector : FileConnector
             // as printed says "equal to or exceeds the page size"; `>=` here would push a record that lands on
             // the LAST body line onto the next page and make that line unwritable forever, against §13.18.34
             // GR2. The doc comment above carries the full derivation and the survey.
-            BeginNextLogicalPage(page);
+            if (!BeginNextLogicalPage(page)) return false;   // GR6 b) 3's re-evaluation broke the page
             EndOfPage = true;
-            return;
+            return true;
         }
         AdvanceLines(lines);
         LinageCounter += lines;
-        if (_footing > 0 && LinageCounter >= _footing)
+        if (_footing is { } footingStart && LinageCounter >= footingStart)
         {
             // Footing-area end-of-page (§14.9.51 GR26b): FOOTING is specified and this WRITE prints or spaces
             // within the footing area (counter at/past the footing start, still within the page body).
@@ -518,8 +581,12 @@ public sealed class SequentialConnector : FileConnector
             // page size, inclusive"). The overflow arm above already took every counter past the body, so
             // reaching here means counter ≤ page body and the clamp has nothing left to exclude but GR3's own
             // last line. IBM Enterprise COBOL documents the footing condition with no upper clamp likewise.
+            // ⛔ The test is on the PHRASE'S PRESENCE, not on a positive value (kb/Work PB525): a specified
+            // footing start is in (0, page size] by GR6 b) 2, which EvaluateLinage has already enforced, so a
+            // `_footing > 0` guard here would be re-deciding presence from a value — the sentinel collision.
             EndOfPage = true;
         }
+        return true;
     }
 
     /// <summary>⛔ THE ONE PAGE TRANSITION, shared by §14.9.51.4 GR25 g)'s ADVANCING PAGE and GR26 a)'s page
@@ -538,16 +605,22 @@ public sealed class SequentialConnector : FileConnector
     ///   (<see cref="BeginLinagePage"/>). The two page starts are therefore ONE state, not two.</item>
     /// </list>
     /// The counter is reset here and nowhere else for a transition (§13.18.34 GR7 c) 1 and c) 4).</summary>
-    private void BeginNextLogicalPage(LinagePage page)
+    /// <returns><see langword="false"/> when step 2's re-evaluation found values that violate §13.18.34.4 GR6 b)
+    /// — step 3 does NOT happen (there is no next logical page to step onto), the counter is 0 rather than 1, and
+    /// the caller abandons the rest of the WRITE. Step 1 has already happened, and correctly so: GR6 b) 2/3 place
+    /// the re-evaluation <i>"after all positioning on the current page"</i>, and that positioning belonged to the
+    /// page whose values were still valid.</returns>
+    private bool BeginNextLogicalPage(LinagePage page)
     {
         // 1. the rest of THIS page. The narrowing is total: LINAGE-COUNTER is a long only because
         // §8.4.3.14 gives the register the widest numeric carrier, and the clamped difference cannot
         // exceed _pageBody, an int.
         AdvanceLines((int)Math.Max(0, _pageBody - LinageCounter) + _bottom);
-        EvaluateLinage(page);                                                  // 2. GR6 b) 2 / b) 3
+        if (!EvaluateLinage(page)) return false;                               // 2. GR6 b) 2 / b) 3
         AdvanceLines(1);                                                       // 3. onto the next page (GR8)
         LinageCounter = 1;
         _topMarginPending = true;
+        return true;
     }
 
     /// <summary>Materialize the current logical page's top margin (§13.18.34.4 GR4) — the <c>_top</c> lines
@@ -566,10 +639,14 @@ public sealed class SequentialConnector : FileConnector
     /// otherwise. <paramref name="page"/> null = the FD has no LINAGE clause; a non-null page with
     /// no <see cref="HasLogicalPage"/> is a LINAGE FD opened in a mode that establishes no page — §13.18.34.4
     /// GR6 b) 1 and GR7 d) name OPEN OUTPUT alone — and it too takes the plain stream.</summary>
-    private void Position(int lines, LinagePage? page)
+    /// <returns><see langword="false"/> when the travel crossed a page boundary whose re-evaluated LINAGE values
+    /// violate §13.18.34.4 GR6 b) — the caller shall then abandon the rest of the WRITE (GR6 b) 2: <i>"it
+    /// continues with the statement following the WRITE statement"</i>).</returns>
+    private bool Position(int lines, LinagePage? page)
     {
-        if (page is { } pg && HasLogicalPage) PositionOnLogicalPage(lines, pg);
-        else Advance(lines);
+        if (page is { } pg && HasLogicalPage) return PositionOnLogicalPage(lines, pg);
+        Advance(lines);
+        return true;
     }
 
     /// <summary>Present one line on the current logical page — the record, preceded by the page's top margin
@@ -843,6 +920,12 @@ public sealed class SequentialConnector : FileConnector
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
+        // §13.18.34.4 GR6 b) 2 — "all subsequent WRITE statements referencing the file cause the EC-I-O-LINAGE
+        // exception condition to continue to exist until the file is closed". Ahead of everything, because the
+        // statement is not executed at all: nothing reaches the medium, nothing is released (GR12), the counter
+        // stays 0. Both WRITE entries carry it because a plain WRITE on a LINE SEQUENTIAL LINAGE file does not
+        // route through WriteAdvancing (the two-arm dispatch this connector has been bitten by twice).
+        if (_linagePageBroken) return LinageViolationStatus();
         // On a PRINT file (this connector has seen print-control advancing) — or a LINAGE file, which is
         // line-oriented from its FIRST write (the FILES deep-dive rule; its plain WRITE acts as AFTER
         // ADVANCING 1, ISO §14.9.51 GR25, and the counter advances by one, §13.18.34 GR7c3) — an omitted
@@ -862,10 +945,10 @@ public sealed class SequentialConnector : FileConnector
             int len = length >= 0 ? length : image.Length;
             if (len < VaryMin || len > VaryMax)
                 return Status = FileStatusCode.RecordSizeViolation;   // '44' §13.18.43 GR14a
-            if (_lineSequential) EmitLineSequentialRecord(TrimRecordEnd(FitRecord(image, len)), page);
+            if (_lineSequential) { if (!EmitLineSequentialRecord(TrimRecordEnd(FitRecord(image, len)), page)) return LinageViolationStatus(); }
             else { RecordFraming.WritePrefix(_writer, len); EmitRecord(FitRecord(image, len)); }
         }
-        else if (_lineSequential) EmitLineSequentialRecord(TrimRecordEnd(image), page);
+        else if (_lineSequential) { if (!EmitLineSequentialRecord(TrimRecordEnd(image), page)) return LinageViolationStatus(); }
         else EmitRecord(Fit(image));
         ReleaseRecord();   // §14.9.51.4 GR12 — released to the operating environment, and numbered there
         _afterAdvancing = false;
@@ -884,11 +967,13 @@ public sealed class SequentialConnector : FileConnector
     /// <para>The travel happens BEFORE <see cref="ReleaseRecord"/> flushes, so the record reaches the medium
     /// delimited — §14.9.51.4 GR12's release is of a whole record, and a sharing sibling shall not meet a line
     /// with no terminator.</para></summary>
-    private void EmitLineSequentialRecord(string data, LinagePage? page)
+    /// <returns><see langword="false"/> when the one-line travel's page transition broke the LINAGE page model
+    /// (§13.18.34.4 GR6 b) — see <see cref="Position"/>).</returns>
+    private bool EmitLineSequentialRecord(string data, LinagePage? page)
     {
-        if (page is null || !HasLogicalPage) { EmitRecordLine(data); return; }
+        if (page is null || !HasLogicalPage) { EmitRecordLine(data); return true; }
         Present(data, page);
-        Position(1, page);
+        return Position(1, page);
     }
 
     /// <summary>Print-control <c>WRITE record [BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> (ISO §14.9.51.4
@@ -901,6 +986,7 @@ public sealed class SequentialConnector : FileConnector
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
+        if (_linagePageBroken) return LinageViolationStatus();   // §13.18.34.4 GR6 b) 2's latch — see Write()
         // §14.9.51.4 GR23 again — the SECOND WRITE ARM. GR23 is a property of the FILE, so it binds every entry
         // point a WRITE statement can reach on a line sequential connector, not just the plain-record one; it is
         // tested on the raw record area, ahead of PrintSafe's print-stream mapping.
@@ -911,8 +997,14 @@ public sealed class SequentialConnector : FileConnector
         // own word. On a LINAGE file both halves travel the LOGICAL page (GR25 g), GR26 a)); on any other print
         // file they are the plain stream. The pair is written once, and the page-awareness lives inside
         // Present/Position, so a future arm cannot get the placement right and the geometry wrong.
-        if (before) { Present(text, page); Position(lines, page); }
-        else { Position(lines, page); Present(text, page); }
+        // ⛔ A §13.18.34.4 GR6 b) VIOLATION AT THE PAGE TRANSITION ABANDONS THE REST OF THE STATEMENT — GR6 b) 2:
+        // "it continues with the statement following the WRITE statement". So an AFTER write never presents its
+        // record (the positioning is what failed), and a BEFORE write keeps the line it had already presented on
+        // the page whose values were still valid (GR25 e) puts the presentation first) but does not RELEASE it:
+        // §14.9.51.4 GR12's release is of a SUCCESSFUL write, and this one is not.
+        if (before) { Present(text, page); if (!Position(lines, page)) return LinageViolationStatus(); }
+        else if (!Position(lines, page)) return LinageViolationStatus();
+        else Present(text, page);
         // §14.9.51.4 GR12 — "The successful execution of a WRITE statement releases a logical record to the
         // operating environment" — is an ALL FILES rule, so a print-control WRITE releases an ordinal-identified
         // record exactly as the plain one does, and GR11's WITH LOCK needs that identity. Released HERE and not

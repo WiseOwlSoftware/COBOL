@@ -280,6 +280,21 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   bit order), the F3 tiers BEHIND the F1 tiers, and the fatal-status default (3x/4x/7x/9x). The GR3g
   outward-GLOBAL continuation is realized only on this I-O path — F3 declaratives are not yet GLOBAL-walkable
   (no corpus or conformance driver exercises it; revisit with the OO/2002 wave).
+  **⛔ THE RAISED NAME IS NOT DERIVED FROM THE STATUS BY THE HOOK** (kb/Work PB526). §9.1.13.1's
+  status→EC correspondence is a DEFAULT: it covers every EC-I-O condition the standard reaches THROUGH a
+  status, and it has no entry for the one EC-I-O condition a rule NAMES outright — §13.18.34.4 GR6 b) 2's
+  **EC-I-O-LINAGE**, which would read as EC-I-O-IMP off its `'9x'` status. §14.6.13.1.1 licenses the
+  override (*"Unless otherwise specified, if more than one exception is detected during the execution of a
+  statement, the one that is set to exist is undefined"* — the specific rule is the "otherwise
+  specified"), so the hook's `__ec` now comes from `CobolFile.IoConditionName(__f)`, which is
+  `FileConnector.IoConditionName ?? ExceptionCatalog.IoEcOfStatus(status)` in ONE place. The connector sets
+  the pair through `FileConnector.SetIoCondition` and the single `Status` setter clears the name, so a named
+  condition cannot outlive the operation that named it. Everything downstream is unchanged: the name is
+  masked by the same per-statement `__mask` (EC-I-O-LINAGE is in `IoMaskNames`, appended — the order is
+  a compile-time integer and is APPEND-ONLY), selected by the same F1/F3 tiers, and defaulted by the same
+  `IsFatalIoStatus` arm. **⚠ The other two non-status EC-I-O names, EC-I-O-EOP and EC-I-O-EOP-OVERFLOW
+  (§14.9.51.4 GR27 a), are still never set to exist** — they have no mask bit and no raise site; the
+  channel they would use now exists.
 - **WITH LOCATION (§15.30.3 r1 choice):** without the LOCATION phrase this implementation saves NO location
   information — EXCEPTION-LOCATION returns one space, EXCEPTION-STATEMENT 63 spaces. With it, the bind-time
   pre-rendered "element; paragraph[ OF section]; line" string and the Table-12 statement name travel on the

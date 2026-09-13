@@ -970,7 +970,9 @@ internal static class RuntimeApi
 
     /// <summary>The executing element's LINAGE operand values as a <c>LinagePage</c> (§13.18.34 GR6: page size,
     /// footing start, top margin, bottom margin — a literal operand renders a constant per GR6 a), a data-name
-    /// operand the element's own field read per GR6 b)). <c>null</c> when the FD carries no LINAGE clause.</summary>
+    /// operand the element's own field read per GR6 b)). <c>null</c> when the FD carries no LINAGE clause; a
+    /// <c>null</c> <paramref name="footing"/> is §13.18.34.4 GR1's ABSENT FOOTING phrase, which is not the value
+    /// zero (kb/Work PB525 — see <see cref="LinagePage"/>).</summary>
     public static string LinagePageExpr(string body, string footing, string top, string bottom) =>
         $"new {nameof(LinagePage)}({body}, {footing}, {top}, {bottom})";
 
@@ -1040,6 +1042,11 @@ internal static class RuntimeApi
     /// <summary>The connector's two-character I-O status — <c>CobolFile.Status</c>.</summary>
     public static string FileStatus(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Status)}({name})";
+
+    /// <summary>The EC-I-O level-3 exception-name the connector's last I-O operation set to exist (§9.1.13.1's
+    /// status correspondence, or a name the operation's own rule gave) — <c>CobolFile.IoConditionName</c>.</summary>
+    public static string FileIoConditionName(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.IoConditionName)}({name})";
 
     /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
     public static string FileOpenModeOf(string name) =>

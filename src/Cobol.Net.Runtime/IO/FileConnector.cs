@@ -112,6 +112,7 @@ public abstract class FileConnector
         protected set
         {
             _status = value;
+            IoConditionName = null;   // a fresh operation: §9.1.13.1's correspondence answers unless one is named
             EverAccessed = true;
             // §9.1.13.7 3): the '43' DELETE/REWRITE gate holds only when the IMMEDIATELY-previous operation on
             // this connector was a successful READ. Every status assignment IS an operation's outcome
@@ -128,6 +129,34 @@ public abstract class FileConnector
     /// <summary>Set the I-O status directly (facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE) — an
     /// attempted access like any other status assignment.</summary>
     public void SetStatus(string status) => Status = status;
+
+    /// <summary>⛔ THE EC-I-O LEVEL-3 EXCEPTION-NAME A RULE NAMED FOR THE LAST I-O OPERATION ON THIS CONNECTOR,
+    /// when one did; <see langword="null"/> when ISO §9.1.13.1's status→EC correspondence is the answer (kb/Work
+    /// PB526).
+    /// <para><b>Why a connector needs this at all.</b> §9.1.13.1 maps an I-O status's FIRST DIGIT to an
+    /// exception-name, and that map covers every EC-I-O condition the standard reaches through a status. It does
+    /// not cover EC-I-O-LINAGE: §13.18.34.4 GR6 b) 2 sets that condition to exist by NAME, and no status value
+    /// corresponds to it — so an operation stopped by it has to report a status (§9.1.13.1: the value <i>"is set
+    /// during the execution of a … WRITE statement"</i>, and §14.6.13.1.3 #3 routes a fatal EC-I-O through
+    /// §9.1.13's rules, which are rules about the status) AND the name, because the status alone would raise the
+    /// wrong condition. §14.6.13.1.1 licenses the override: <i>"Unless otherwise specified, if more than one
+    /// exception is detected during the execution of a statement, the one that is set to exist is undefined"</i> —
+    /// GR6 b) 2 is the "otherwise specified".</para>
+    /// <para>⛔ IT IS PER-OPERATION, NOT PER-CONNECTOR STATE: the <see cref="Status"/> setter — the ONE I-O-status
+    /// assignment path — clears it, so a named condition cannot outlive the operation that named it and be read
+    /// by the next verb's hook. Set it with <see cref="SetIoCondition"/>, never by assigning the two
+    /// separately.</para></summary>
+    public string? IoConditionName { get; private set; }
+
+    /// <summary>Report an unsuccessful operation whose exception condition a rule NAMES rather than leaving to
+    /// §9.1.13.1's status→EC correspondence: the status and the name are set together and returned, so the two
+    /// cannot be assigned out of order (the <see cref="Status"/> setter clears the name).</summary>
+    protected string SetIoCondition(string status, string ecName)
+    {
+        Status = status;
+        IoConditionName = ecName;
+        return status;
+    }
 
     /// <summary>The connector has been opened, attempted to be opened, or otherwise attempted to be accessed (ISO
     /// §15.28.4 r2a / §15.29.4 r2a) — FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true.

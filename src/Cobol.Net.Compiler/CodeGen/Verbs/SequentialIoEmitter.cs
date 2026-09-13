@@ -173,8 +173,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// supplies it, so there is no per-registration install for a second emit path to forget.</summary>
     internal string LinageArg(FileModel file) =>
         file.Linage is { } lin
-            ? RuntimeApi.LinagePageExpr(LinageOpExpr(lin.Body), LinageOpExpr(lin.Footing),
-                LinageOpExpr(lin.Top), LinageOpExpr(lin.Bottom))
+            ? RuntimeApi.LinagePageExpr(LinageOpExpr(lin.Body, absent: "0"),
+                LinageOpExpr(lin.Footing, absent: "null"),           // GR1 — an ABSENT phrase, not the value 0
+                LinageOpExpr(lin.Top, absent: "0"), LinageOpExpr(lin.Bottom, absent: "0"))
             : "null";
 
     /// <summary>⛔ §14.9.30.4 GR15's RECORD-AREA CATEGORY, told to the connector (kb/Work PB327): "If the
@@ -263,12 +264,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     }
 
     /// <summary>The C# <c>int</c> expression for one LINAGE clause operand (ISO §13.18.34 GR6): the fixed literal
-    /// (GR6a), the data item's current value (GR6b — scale 0 by SR2's elementary-unsigned-integer rule, with a
-    /// defensive rescale), or <c>0</c> for an absent TOP/BOTTOM/FOOTING phrase (GR1 — margins zero; footing 0 =
-    /// no footing area). A declared data-name that does not resolve to storage fails loud (§1.4).</summary>
-    private string LinageOpExpr(LinageOperand? op)
+    /// (GR6 a), or the data item's current value (GR6 b — scale 0 by SR2's elementary-unsigned-integer rule, with
+    /// a defensive rescale). A declared data-name that does not resolve to storage fails loud (§1.4).
+    /// <para><paramref name="absent"/> is what an OMITTED phrase renders, and it is the caller's decision because
+    /// the standard gives the two kinds of omission different meanings (kb/Work PB525): §13.18.34.4 GR1 says the
+    /// TOP and BOTTOM values ARE zero when their phrases are absent, so <c>"0"</c> is their value; an absent
+    /// FOOTING phrase has no value at all — GR1's <i>"If the FOOTING phrase is not specified, no end-of-page
+    /// condition independent of the page overflow condition exists"</i> — so it renders <c>"null"</c> and GR6
+    /// b) 2's value rule applies to every footing start that IS specified, zero included.</para></summary>
+    private string LinageOpExpr(LinageOperand? op, string absent)
     {
-        if (op is null) return "0";
+        if (op is null) return absent;
         if (op.Literal is { } lit) return lit.ToString();
         if (op.Item is { } item && refs.ResolveItem(item) is { } p)
         {
@@ -473,8 +479,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // means by "the I-O status of the file connector associated with the statement", and it keeps the
         // snapshot independent of which runtime entry the write rendered. Emitted ONLY when the forbidden phrase
         // is present, so the legal Format-1 WRITE renders byte-for-byte as before.
+        // ⛔ THE END-OF-PAGE PHRASES NEED THE SAME SNAPSHOT, AND FOR A STRONGER REASON (kb/Work PB526): they are
+        // guarded on SUCCESSFUL COMPLETION. §14.9.51.4 GR27 — "When an end-of-page condition occurs, the WRITE
+        // statement is successful and then the following actions take place" — and GR28 — "If, during the
+        // SUCCESSFUL EXECUTION of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition
+        // does not occur, then ... control is transferred to imperative-statement-2" — so an UNSUCCESSFUL write
+        // runs neither phrase. Without the guard the NOT arm runs on every unsuccessful write of a LINAGE file:
+        // a '48' write to a closed file, a '71' bad line-sequential character, and — the case that made it
+        // observable — the '90' LINAGE value-rule violation, on which the connector's per-write end-of-page flag
+        // is not even the failed write's own.
         string? wst = null;
-        if (wr.InvalidKey is not null)
+        if (wr.InvalidKey is not null || wr.AtEop is not null || wr.NotAtEop is not null)
         {
             wst = $"__wst{ctx.Names.NextKeyedSeq()}";
             w.Line($"var {wst} = {RuntimeApi.FileStatus(name)};");
@@ -486,17 +501,18 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // §9.1.14 final-rule item 1 completion that the declarative must still see.
         EmitUseHook(wr.File);
         // END-OF-PAGE branches (ISO §14.9.51 GR27b/GR28): an end-of-page WRITE is SUCCESSFUL — the branch runs
-        // after the status store (status 00, so no USE declarative competes). The flag is read in the `if`
-        // HEADER before either body runs: a branch body may WRITE the same file again (SQ208M's footing loop
-        // inside the AT phrase), which clobbers the connector's per-write flag.
+        // after the status store (a successful status, so no USE declarative competes). The flag is read in the
+        // `if` HEADER before either body runs: a branch body may WRITE the same file again (SQ208M's footing loop
+        // inside the AT phrase), which clobbers the connector's per-write flag. The `__wst[0] == '0'` guard is
+        // GR27/GR28's "successful" — see the snapshot above.
         if (wr.AtEop is not null || wr.NotAtEop is not null)
         {
-            using (w.Block($"if ({RuntimeApi.FileEndOfPage(name)})"))
+            using (w.Block($"if ({wst}[0] == '0' && {RuntimeApi.FileEndOfPage(name)})"))
             {
                 if (wr.AtEop is { } at) Statements.EmitStatementList(at);
             }
             if (wr.NotAtEop is { } not)
-                using (w.Block("else"))
+                using (w.Block($"else if ({wst}[0] == '0')"))
                     Statements.EmitStatementList(not);
         }
         // The forbidden-but-tolerated INVALID KEY pair, through THE ONE §9.1.14 renderer the keyed arm uses.

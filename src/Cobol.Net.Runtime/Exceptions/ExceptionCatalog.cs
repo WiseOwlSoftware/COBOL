@@ -39,6 +39,14 @@ public static class ExceptionCatalog
     /// <summary>The level-1 name (§14.6.13.1.1).</summary>
     public const string EcAll = "EC-ALL";
 
+    /// <summary>ISO §13.18.34.4 GR6 b) 2's exception-name — <i>"the EC-I-O-LINAGE exception condition is set to
+    /// exist"</i> (Table 13: Fatal). ⛔ It is the ONE EC-I-O level-3 name a rule NAMES OUTRIGHT rather than
+    /// leaving to §9.1.13.1's status→EC correspondence, which has no entry for it, so the connector that detects
+    /// the violation has to say the NAME (<c>FileConnector.IoConditionName</c>) and not only the status. Spelled
+    /// once, here, because the raise site (<c>SequentialConnector</c>) and the mask
+    /// (<see cref="IoMaskNames"/>) must agree on it exactly.</summary>
+    public const string IoLinage = "EC-I-O-LINAGE";
+
     // ── The level-2 family names (§14.6.13.1.1, 23 names + EC-CONTINUE) ───────────────────────────────────────
     // NOTE: the §14.6.13.1.1 prose lists 23 level-2 names and omits EC-CONTINUE, yet Table 13 carries the
     // EC-CONTINUE family (EC-CONTINUE-IMP / EC-CONTINUE-LESS-THAN-ZERO, the 2023 CONTINUE AFTER addition —
@@ -115,7 +123,7 @@ public static class ExceptionCatalog
         L3("EC-I-O-FILE-SHARING", EcFatality.Nonfatal);
         L3("EC-I-O-IMP", EcFatality.Imp);
         L3("EC-I-O-INVALID-KEY", EcFatality.Nonfatal);
-        L3("EC-I-O-LINAGE", EcFatality.Fatal);
+        L3(IoLinage, EcFatality.Fatal);
         L3("EC-I-O-LOGIC-ERROR", EcFatality.Fatal);
         L3("EC-I-O-PERMANENT-ERROR", EcFatality.Fatal);
         L3("EC-I-O-RECORD-CONTENT", EcFatality.Fatal, 2023);
@@ -265,7 +273,15 @@ public static class ExceptionCatalog
 
     /// <summary>The EC-I-O level-3 exception-name for an I-O status value (ISO §9.1.13.1): first digit 1→AT-END,
     /// 2→INVALID-KEY, 3→PERMANENT-ERROR, 4→LOGIC-ERROR, 5→RECORD-OPERATION, 6→FILE-SHARING, 7→RECORD-CONTENT,
-    /// 9→IMP; '0x' with x≠'0' → EC-I-O-WARNING; '00' (clean success) → null (no exception condition).</summary>
+    /// 9→IMP; '0x' with x≠'0' → EC-I-O-WARNING; '00' (clean success) → null (no exception condition).
+    /// <para>⛔ THIS IS THE DEFAULT CORRESPONDENCE, NOT THE ONLY ANSWER. It is the map §9.1.13.1 prints, and it
+    /// covers every condition the standard reaches THROUGH a status. A rule that NAMES its condition instead —
+    /// §13.18.34.4 GR6 b) 2's EC-I-O-LINAGE is the one such EC-I-O rule — wins over it for that operation
+    /// (§14.6.13.1.1: <i>"Unless otherwise specified, if more than one exception is detected during the execution
+    /// of a statement, the one that is set to exist is undefined"</i> — the specific rule is the "otherwise
+    /// specified"). The connector carries the named one on <c>FileConnector.IoConditionName</c> and
+    /// <c>CobolFile.IoConditionName</c> is the ONE place the two are combined; never call this directly from a
+    /// generated hook.</para></summary>
     public static string? IoEcOfStatus(string status)
     {
         if (status.Length < 2) return null;
@@ -290,16 +306,23 @@ public static class ExceptionCatalog
     public static bool IsFatalIoStatus(string status) =>
         status.Length > 0 && status[0] is '3' or '4' or '7' or '9';
 
-    /// <summary>The status-raised EC-I-O level-3 names in THE canonical mask-bit order — the compiler's
-    /// per-statement enable mask (bit i = name i) and the generated <c>__IoCheckEc</c> consult this one order;
-    /// never re-derive it elsewhere (singular-pattern rule).</summary>
+    /// <summary>The EC-I-O level-3 names a file connector can set to exist, in THE canonical mask-bit order — the
+    /// compiler's per-statement enable mask (bit i = name i) and the generated <c>__IoCheckEc</c> consult this
+    /// one order; never re-derive it elsewhere (singular-pattern rule). ⛔ ORDER IS APPEND-ONLY: the mask is a
+    /// compile-time integer baked into the generated call and decoded at run time, so a reordering would make a
+    /// program's enabled names mean a different set.
+    /// <para>The first nine are §9.1.13.1's status-derived names (first digit → name). <c>EC-I-O-LINAGE</c> is
+    /// NOT one of them — no I-O status value corresponds to it; §13.18.34.4 GR6 b) 2 names it directly — and it
+    /// is in the mask for the same reason the others are: a program enables checking for it by name, per file,
+    /// through <c>&gt;&gt;TURN</c>.</para></summary>
     public static readonly string[] IoMaskNames =
     [
         "EC-I-O-AT-END", "EC-I-O-INVALID-KEY", "EC-I-O-PERMANENT-ERROR", "EC-I-O-LOGIC-ERROR",
         "EC-I-O-RECORD-OPERATION", "EC-I-O-FILE-SHARING", "EC-I-O-RECORD-CONTENT", "EC-I-O-IMP", "EC-I-O-WARNING",
+        IoLinage,
     ];
 
-    /// <summary>The mask bit of a status-raised EC-I-O name (0 for a name outside the mask set).</summary>
+    /// <summary>The mask bit of a connector-raisable EC-I-O name (0 for a name outside the mask set).</summary>
     public static int IoBit(string ecName)
     {
         for (int i = 0; i < IoMaskNames.Length; i++)

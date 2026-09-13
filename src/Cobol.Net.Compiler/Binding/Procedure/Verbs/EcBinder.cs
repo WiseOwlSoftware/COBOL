@@ -289,8 +289,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // EXCEPTION-STATUS read the stale prior name inside the phrase.
         ["EC-SIZE-TRUNCATION", "EC-SIZE-OVERFLOW", "EC-SIZE-UNDERFLOW", "EC-SIZE-ZERO-DIVIDE", "EC-SIZE-EXPONENTIATION"];
 
-    /// <summary>The EC-I-O family raised from I-O status values (§9.1.13.1 correspondence) — THE canonical
-    /// mask order (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
+    /// <summary>The EC-I-O family a file connector can set to exist — §9.1.13.1's status-derived names plus the
+    /// ones a rule names outright (EC-I-O-LINAGE, §13.18.34.4 GR6 b) 2) — in THE canonical mask order
+    /// (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
     private static readonly string[] IoNames = ExceptionCatalog.IoMaskNames;
 
     /// <summary>The OO fatal conditions an INVOKE raises (§14.9.23.4 GR5 EC-OO-NULL, GR7b EC-OO-METHOD).

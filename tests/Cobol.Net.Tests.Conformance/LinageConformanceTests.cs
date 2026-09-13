@@ -640,4 +640,157 @@ public sealed class LinageConformanceTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(diags, "8.4.3.14");
     }
+
+    // ── GR6 b)'s VALUE RULES and what a violation does (kb/Work PB525 + PB526) ────────────────────────────
+    //
+    // §13.18.34.4 GR6 b) 1 "The page size shall be greater than zero." and GR6 b) 2 "The footing start shall be
+    // greater than zero and not greater than the page size.", then: "If the value does not conform to these two
+    // rules, the EC-I-O-LINAGE exception condition is set to exist. If execution continues after processing of
+    // this exception condition, it continues with the statement following the WRITE statement; the
+    // LINAGE-COUNTER is set to 0 and remains at that value until the file is closed; and all subsequent WRITE
+    // statements referencing the file cause the EC-I-O-LINAGE exception condition to continue to exist until the
+    // file is closed."
+    //
+    // EC-I-O-LINAGE is Fatal (Table 13) and §14.6.13.1.3 3) routes a fatal EC-I-O condition through §9.1.13's
+    // rules, which are rules about the I-O STATUS — so the violation reports one: '90', §9.1.13.11's
+    // implementor-defined value (docs/CONFORMANCE.md §7 DOC-A.1-110). That is what these tests read, because it
+    // is what a program with NO >>TURN can see; the exception-NAME half is
+    // tests/conformance/2023/pb526_linage_ec_checking.
+
+    /// <summary>A program whose LINAGE operands are data items, with a FILE STATUS item and a format-1 USE
+    /// declarative on the file — the shape every test below needs, since the observable of a GR6 b) violation is
+    /// the I-O status and the declarative it fires.</summary>
+    private static string ViolationProgram(string fdClauses, string ws, string proc) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. LNGVIO.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT LPF ASSIGN TO "LNG-VIO"
+                FILE STATUS IS FS.
+        DATA DIVISION.
+        FILE SECTION.
+        FD LPF
+            {fdClauses}.
+        01 P-REC PIC X(4).
+        WORKING-STORAGE SECTION.
+        01 FS PIC XX VALUE "??".
+        01 LC-VAL PIC 9(3).
+        {ws}
+        PROCEDURE DIVISION.
+        DECLARATIVES.
+        ERR-SECT SECTION.
+            USE AFTER STANDARD ERROR PROCEDURE ON LPF.
+        ERR-PARA.
+            DISPLAY "USE FS=" FS.
+        END DECLARATIVES.
+        MAIN-SECT SECTION.
+        MAIN-PARA.
+            MOVE SPACE TO P-REC.
+        {proc}
+        """;
+
+    [Fact]   // GR6 b) 1 at the OPEN: the page size is read "at the completion of an OPEN statement with the
+             // OUTPUT phrase" (GR6 b) 1), so a zero there is a violation of the OPEN — status '90', counter 0 —
+             // and NOT a process kill. Before kb/Work PB526 this exact program died with an unhandled
+             // System.InvalidOperationException out of SequentialConnector.EvaluateLinage.
+    public void Gr6b1_PageSizeZeroAtOpenOutput_IsTheLinageStatus_AndExecutionContinues()
+        => AssertSpec(ViolationProgram("LINAGE IS WS-SZ LINES", "01 WS-SZ PIC 9(3) VALUE 0.", """
+                OPEN OUTPUT LPF.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "OPEN FS=" FS " LC=" LC-VAL.
+                CLOSE LPF.
+                DISPLAY "CLOSE FS=" FS.
+                STOP RUN.
+            """), "USE FS=90\nOPEN FS=90 LC=000\nCLOSE FS=00");
+
+    [Fact]   // ⛔ THE DISCRIMINATING PAIR for kb/Work PB525 — the SAME page size, the SAME write, the only
+             // difference being whether the FOOTING PHRASE IS WRITTEN. With the phrase present and its data item
+             // holding 0, GR6 b) 2's value rule applies and 0 does not conform. With the phrase absent, GR1's
+             // "If the FOOTING phrase is not specified, no end-of-page condition independent of the page
+             // overflow condition exists" is the rule and the write is ordinary. A model that encodes "absent"
+             // as the value 0 cannot tell these two programs apart, which is exactly the defect: the first one
+             // used to print NO-EOP / LC=005 like the second.
+    public void Gr6b2_FootingPhraseHoldingZero_IsAViolation_NotAnAbsentPhrase()
+        => AssertSpec(ViolationProgram("LINAGE IS 5 LINES WITH FOOTING AT WS-FT", "01 WS-FT PIC 99 VALUE 0.", """
+                OPEN OUTPUT LPF.
+                WRITE P-REC AFTER ADVANCING 4 LINES
+                    AT EOP DISPLAY "EOP"
+                    NOT AT EOP DISPLAY "NO-EOP"
+                END-WRITE.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "W1 FS=" FS " LC=" LC-VAL.
+                CLOSE LPF.
+                STOP RUN.
+            """), "USE FS=90\nUSE FS=90\nW1 FS=90 LC=000");
+
+    [Fact]   // …the other half of the pair: NO FOOTING phrase, everything else identical. GR1 governs, the write
+             // is successful, and §14.9.51.4 GR28's NOT END-OF-PAGE imperative runs on it.
+    public void Gr1_NoFootingPhrase_SamePageAndWrite_IsAnOrdinarySuccessfulWrite()
+        => AssertSpec(ViolationProgram("LINAGE IS 5 LINES", "", """
+                OPEN OUTPUT LPF.
+                WRITE P-REC AFTER ADVANCING 4 LINES
+                    AT EOP DISPLAY "EOP"
+                    NOT AT EOP DISPLAY "NO-EOP"
+                END-WRITE.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "W1 FS=" FS " LC=" LC-VAL.
+                CLOSE LPF.
+                STOP RUN.
+            """), "NO-EOP\nW1 FS=00 LC=005");
+
+    [Fact]   // GR6 b) 2's LATCH, end to end: the violation arises at a page-overflow WRITE (GR6 b) 3 re-reads
+             // the operands during it), then "the LINAGE-COUNTER is set to 0 and remains at that value until the
+             // file is closed; and all subsequent WRITE statements referencing the file cause the EC-I-O-LINAGE
+             // exception condition to continue to exist until the file is closed" — W2 and W3 each fire the
+             // declarative and each leave the counter at 0 — and the CLOSE ends it: after it the connector
+             // reports its own successful status, and the next OPEN OUTPUT re-determines the values (GR6 b) 1)
+             // and starts a working page at counter 1 (GR7 d).
+    public void Gr6b2_ViolationAtOverflow_LatchesUntilClose_AndTheCloseReleasesIt()
+        => AssertSpec(ViolationProgram("LINAGE IS WS-SZ LINES", "01 WS-SZ PIC 9(3) VALUE 2.", """
+                OPEN OUTPUT LPF.
+                WRITE P-REC.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "W1 FS=" FS " LC=" LC-VAL.
+                MOVE 0 TO WS-SZ.
+                WRITE P-REC.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "W2 FS=" FS " LC=" LC-VAL.
+                WRITE P-REC.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "W3 FS=" FS " LC=" LC-VAL.
+                CLOSE LPF.
+                DISPLAY "CLOSE FS=" FS.
+                MOVE 4 TO WS-SZ.
+                OPEN OUTPUT LPF.
+                MOVE LINAGE-COUNTER TO LC-VAL.
+                DISPLAY "REOPEN FS=" FS " LC=" LC-VAL.
+                CLOSE LPF.
+                STOP RUN.
+            """),
+            "W1 FS=00 LC=002\nUSE FS=90\nW2 FS=90 LC=000\nUSE FS=90\nW3 FS=90 LC=000\n"
+            + "CLOSE FS=00\nREOPEN FS=00 LC=001");
+
+    [Fact]   // §14.9.51.4 GR27 ("When an end-of-page condition occurs, the WRITE statement is successful") and
+             // GR28 ("If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase,
+             // the end-of-page condition does not occur …") both condition the phrase on a SUCCESSFUL write, so
+             // an unsuccessful one runs NEITHER imperative. The latched write below is the case that made this
+             // observable: its status is '90' and the connector's per-write end-of-page flag is not even its own.
+    public void Gr27Gr28_AnUnsuccessfulWrite_RunsNeitherEndOfPageImperative()
+        => AssertSpec(ViolationProgram("LINAGE IS WS-SZ LINES", "01 WS-SZ PIC 9(3) VALUE 2.", """
+                OPEN OUTPUT LPF.
+                MOVE 0 TO WS-SZ.
+                WRITE P-REC AFTER ADVANCING 3 LINES
+                    AT EOP DISPLAY "EOP1"
+                    NOT AT EOP DISPLAY "NO-EOP1"
+                END-WRITE.
+                DISPLAY "W1 FS=" FS.
+                WRITE P-REC AFTER ADVANCING 1 LINE
+                    AT EOP DISPLAY "EOP2"
+                    NOT AT EOP DISPLAY "NO-EOP2"
+                END-WRITE.
+                DISPLAY "W2 FS=" FS.
+                CLOSE LPF.
+                STOP RUN.
+            """), "USE FS=90\nW1 FS=90\nUSE FS=90\nW2 FS=90");
 }
