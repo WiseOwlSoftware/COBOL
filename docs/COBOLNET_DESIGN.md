@@ -979,7 +979,9 @@ stateful runtime + emitted guards that appear ONLY when a program uses the featu
 - **Short-circuit `&&`/`||`** (the §7.3 corpus-safe divergence).
 - **EVALUATE → chained if/else-if** (§5.3).
 - **Level-88 → expression-bodied `bool` properties** derived from the live parent value (§3.5); SET cond TO TRUE
-  moves the first VALUE; SET TO FALSE moves the WHEN SET TO FALSE literal (error if none).
+  moves the first VALUE; SET TO FALSE moves the WHEN SET TO FALSE literal (§14.9.39.4 GR6/GR7 — ONE store path
+  with a `ToTrue` selector; COBOLNET2049 when the FALSE phrase is absent, COBOLNET2048 when §13.18.63.3 SR27
+  makes literal-4 a TRUE value).
 - **Class conditions** run over the character image via a new `CobolClass` runtime; for a pure numeric `long`,
   IS NUMERIC folds to `true` (revisit when REDEFINES/file aliasing lets it hold non-digits). ALPHABETIC is the closed
   Latin set `{A-Z,a-z,space}` (ISO §8.8.4.4) — NOT `char.IsLetter`.

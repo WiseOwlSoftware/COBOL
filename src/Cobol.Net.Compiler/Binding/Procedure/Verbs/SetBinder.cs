@@ -823,12 +823,17 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         : host.Expr.ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
         : null;
 
-    /// <summary><c>SET condition-name+ TO TRUE</c> (ISO §14.9.39 Format 4). TO FALSE needs the 2002 <c>WHEN SET TO
-    /// FALSE</c> VALUE phrase (SR7) — loud until the 88 model captures it.</summary>
+    /// <summary><c>SET condition-name+ TO TRUE | FALSE</c> (ISO §14.9.39 Format 4).
+    /// <para>⛔ ONE ARM, NOT TWO. §14.9.39.4 GR6 and GR7 are the SAME sentence with one word changed — "<i>the
+    /// literal in the VALUE clause</i>" against "<i>the literal in the FALSE phrase of the VALUE clause</i>",
+    /// both "<i>placed in the conditional variable according to the rules for the VALUE clause</i>", both with
+    /// the same group-length and zero-length provisos — so the binder resolves the operands once and carries
+    /// WHICH literal as a flag; the emitter has one store path. The FALSE arm used to return
+    /// <c>BoundUnsupported</c> because <c>Condition88</c> had no literal-4 to store (kb/Work PB555); now that it
+    /// does, the only thing left to check is §14.9.39.3 SR7 — the phrase has to be there.</para></summary>
     public BoundStatement BindSetCondition(Core.SetBooleanStatementContext b)
     {
-        if (b.TRUE_() is null)
-            return new BoundUnsupported("SET condition-name TO FALSE (the VALUE … WHEN SET TO FALSE phrase, COBOL-2002+, ISO §14.9.39 SR7)");
+        bool toTrue = b.TRUE_() is not null;
         var sets = new List<(Place, Condition88)>();
         foreach (var dref in b.dataReference())
         {
@@ -844,8 +849,19 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
             if (ctx.Refs.ResolveForItem(dref, cond.Parent) is not { } parent)
                 return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
+            // §14.9.39.3 SR7 — "If the FALSE phrase is specified, the FALSE phrase shall be specified in the
+            // VALUE clause of the data description entry for condition-name-1." The TRUE arm needs no twin
+            // screen: §13.18.63.3 SR24 already makes a VALUE clause mandatory on a level-88 entry, so
+            // `cond.Values` is never empty where a condition-name exists.
+            if (!toTrue && cond.FalseValue is null)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.SetFalseWithoutFalsePhrase, $"SET '{cond.Name}' TO FALSE: the "
+                    + $"VALUE clause of condition-name '{cond.Name}' writes no WHEN SET TO FALSE phrase, so there "
+                    + "is no literal-4 to place in the conditional variable (ISO §14.9.39.3 SR7)");
+                return new BoundNop();
+            }
             sets.Add((parent, cond));
         }
-        return new BoundSetConditions(sets);
+        return new BoundSetConditions(sets, toTrue);
     }
 }

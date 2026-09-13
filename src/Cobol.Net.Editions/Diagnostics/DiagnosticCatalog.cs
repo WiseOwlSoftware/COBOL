@@ -3413,6 +3413,37 @@ public static class DiagnosticCatalog
         + "(MoveTable16), so an INITIALIZE REPLACING pair and the MOVE a programmer would write by hand can no "
         + "longer disagree.",
         "ISO §14.9.20.3 / §14.9.20.4 / §14.9.25.3");
+    /// <summary>COBOLNET2048 — §13.18.63.3 SR27: the VALUE clause's <c>WHEN SET TO FALSE</c> literal-4 names a
+    /// value the condition-name is TRUE for. kb/Work PB555: unreachable until <c>Condition88</c> carried
+    /// literal-4 at all.</summary>
+    public static readonly DiagnosticDescriptor FalseValueNotDistinct = new(
+        "COBOLNET2048", "false-value-not-distinct", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 27: \"The value of literal-4 shall not be equal to the value of any "
+        + "occurrence of literal-2. When the THROUGH phrase is specified: a) when literal-2 is of a class other "
+        + "than alphanumeric or national, the value of literal-4 shall not be equal to any value in the range of "
+        + "any occurrence of literal-2 through literal-3, inclusive. b) when literal-2 is of class alphanumeric "
+        + "or national, and the runtime collating sequence is known, the value of literal-4 shall not be equal to "
+        + "the value of any literal-2 or any value in the range of any occurrence of literal-2 through literal-3, "
+        + "inclusive.\" literal-4 is the value §13.18.63.4 GR20 places in the conditional variable for "
+        + "'SET condition-name TO FALSE', so naming a value inside the condition's own VALUE set would leave the "
+        + "condition TRUE after a SET that says FALSE. Choose a literal-4 outside every VALUE and every VALUE "
+        + "range. ⚠ b) is conditioned on the runtime collating sequence being KNOWN — SR26's note puts a LOCALE "
+        + "sequence outside it — so a character range ordered by a LOCALE alphabet takes only the unconditional "
+        + "first sentence.",
+        "ISO §13.18.63.3 SR27 / §13.18.63.4 GR20 / §14.7.8");
+
+    /// <summary>COBOLNET2049 — §14.9.39.3 SR7: <c>SET condition-name TO FALSE</c> over a condition-name whose
+    /// VALUE clause writes no <c>WHEN SET TO FALSE</c> phrase. kb/Work PB555.</summary>
+    public static readonly DiagnosticDescriptor SetFalseWithoutFalsePhrase = new(
+        "COBOLNET2049", "set-false-without-false-phrase", EditionSeverity.Error,
+        "ISO §14.9.39.3 syntax rule 7: \"If the FALSE phrase is specified, the FALSE phrase shall be specified in "
+        + "the VALUE clause of the data description entry for condition-name-1.\" §14.9.39.4 GR7 places \"the "
+        + "literal in the FALSE phrase of the VALUE clause associated with condition-name-1\" in the conditional "
+        + "variable, and §13.18.63.4 GR20 says the same from the VALUE clause's side — with no such phrase there "
+        + "is no value to place, and the standard states no default (NOTE 3 on GR20: \"The WHEN SET TO FALSE "
+        + "phrase specifies just one of possibly many false values\", so the processor cannot choose one). Add "
+        + "'WHEN SET TO FALSE IS literal-4' to the condition-name's VALUE clause.",
+        "ISO §14.9.39.3 SR7 / §14.9.39.4 GR7 / §13.18.63.4 GR20");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -27,7 +27,12 @@ internal static class CollationEmit
     /// §12.3.7.4 GR7 k table or the LOCALE arm — and the ONE bit that chooses the runtime class. The two overloads
     /// above differed by exactly that bit and were otherwise identical text; a third caller
     /// (<c>RangeCollationCarrier</c>, which holds the components rather than either def record — §14.7.8 rule 2's
-    /// <c>IN alphabet-name-1</c> phrase) is what made the duplication a drift hazard instead of a curiosity.</summary>
+    /// <c>IN alphabet-name-1</c> phrase) is what made the duplication a drift hazard instead of a curiosity.
+    /// <para>⚠ ITS IN-PROCESS TWIN IS <c>CollatingTable.Collation(national)</c>, which constructs the SAME carrier
+    /// as an object rather than as text, for the compile-time orderings a syntax rule needs (§13.18.63.3 SR27 —
+    /// kb/Work PB555). The constructor's argument list is therefore spelled in two places and only two; a change
+    /// to <c>LiteralPhraseCollation</c>'s signature has to visit both, and the compiler will say so at the twin
+    /// while this one would only fail at run time.</para></summary>
     public static string New(CollatingTable? table, LocaleCollatingSpec? locale, bool national)
     {
         if (table is { } t)

@@ -1098,7 +1098,11 @@
   "pb390-move-corr-elementary-operand",
   "pb565-report-occurs-at-85",
   "pb565-report-occurs-step-required",
-  "pb522-group-usage-copy-below-2002"
+  "pb522-group-usage-copy-below-2002",
+  "pb555-false-equals-value",
+  "pb555-false-in-collated-range",
+  "pb555-set-false-no-phrase",
+  "pb555-set-false-below-2002"
  ],
  "pending": []
 }

@@ -2181,6 +2181,30 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVAL2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY E(1).\n    STOP RUN.\n"
   },
   {
+   "id": "value-false-phrase-2002",
+   "description": "The VALUE clause's Format-3 WHEN SET TO FALSE phrase (ISO 13.18.63.2 format 3 - the bracket [ WHEN SET TO FALSE IS literal-4 ] printed on the line after [ IN alphabet-name-1 ]). literal-4 is the value 13.18.63.4 GR20 places in the conditional variable for 'SET condition-name TO FALSE', and 13.18.63.3 SR27 screens it against the condition's own VALUE set (COBOLNET2048). A COBOL-2002 addition, with the SET Format-4 FALSE phrase it exists to feed - DERIVED, not quoted: the 2023 Annex E carries no 85->2002 VALUE row (the A1 authority gap, D18), and the reserved-word evidence cannot date it because FALSE is already reserved at 85 for EVALUATE. Recognition-fired by VersionConformancePass.ParseArm.VisitValueClauseFalsePhrase: the binder abandons the operand on every 13.18.63.3 SR violation, so a bound-arm gate would lose the 0900 on exactly those paths (the TYPEDEF drop-proof lesson). kb/Work PB555.",
+   "display": "the VALUE clause's WHEN SET TO FALSE phrase",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO 13.18.63.2 format 3 / 13.18.63.4 GR20; a COBOL-2002 addition (derived - no 85->2002 VALUE row in the 2023 Annex E, the A1 gap D18)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "Condition-name WHEN SET TO FALSE phrase (COBOL-2002); A1 authority-sufficiency gap (D18)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVALFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CV PIC 9 VALUE 1.\n   88 CN VALUE 1 WHEN SET TO FALSE IS 7.\nPROCEDURE DIVISION.\nMAIN.\n    IF CN DISPLAY \"Y\" ELSE DISPLAY \"N\" END-IF.\n    STOP RUN.\n"
+  },
+  {
+   "id": "set-condition-false-2002",
+   "description": "SET condition-name TO FALSE (ISO 14.9.39 Format 4 - the FALSE arm). 14.9.39.4 GR7 places 'the literal in the FALSE phrase of the VALUE clause associated with condition-name-1' in the conditional variable, and 14.9.39.3 SR7 requires that phrase to be there (COBOLNET2049). A COBOL-2002 addition on the same derived authority as its VALUE-clause half (value-false-phrase-2002): COBOL-85's Format 4 has the TRUE arm only. Recognition-fired by VersionConformancePass.ParseArm.VisitSetBooleanStatement on the FALSE_ token, so the gate survives the SR7 refusal. The row's source necessarily writes the VALUE phrase too, so below 2002 BOTH gates fire - the matrix asserts presence of the code, not its multiplicity. kb/Work PB555.",
+   "display": "SET condition-name TO FALSE",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO 14.9.39.2 Format 4 / 14.9.39.3 SR7 / 14.9.39.4 GR7; a COBOL-2002 addition (derived - the 2023 Annex E carries no 85->2002 SET row, the A1 gap D18)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "SET condition-name TO FALSE (COBOL-2002); A1 authority-sufficiency gap (D18)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSETFA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CV PIC 9 VALUE 1.\n   88 CN VALUE 1 WHEN SET TO FALSE IS 7.\nPROCEDURE DIVISION.\nMAIN.\n    SET CN TO FALSE.\n    DISPLAY CV.\n    STOP RUN.\n"
+  },
+  {
    "id": "perform-exception-checking-2023",
    "description": "PENDING (runtime staged). The Format 3 (exception-checking) PERFORM (ISO 14.9.28.2 Format 3 / 14.9.28.4 GR14-22) - a per-statement exception interceptor scoped to imperative-statement-1 that dispatches a raised exception condition to a matching WHEN handler in written order (new-in-2023). Fully recognized/validated (COBOLNET1597-1617) + introduction-gated (COBOLNET0900 below 2023, recognition-fired from VersionConformancePass.ParseArm.VisitPerformStatement on a performWhenPhrase, disjoint from the perform-until-exit-2023 gate), but the runtime handler dispatch is a documented next-wave GAP - at 2023 the construct is currently rejected with COBOLNET0899 (staged), so no 2023 program compiles yet. status flips to active + expectDiagnostic drops when the interceptor wave lands.",
    "display": "the Format-3 (exception-checking) PERFORM",

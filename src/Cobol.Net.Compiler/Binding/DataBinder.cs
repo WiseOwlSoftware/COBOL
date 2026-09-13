@@ -2685,13 +2685,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>Clone one level-88 condition-name from a TYPEDEF template item onto its <paramref name="target"/> clone
-    /// (ISO §13.18.58.4 GR1 — the condition-names are part of the type): the clone's Parent is the target, its VALUE
-    /// set is copied, and — unlike the template's copy — it IS registered in the global by-name index (a clone's
-    /// condition-names ARE referenceable). D17 inc 3.</summary>
+    /// (ISO §13.18.58.4 GR1 — the condition-names are part of the type): the clone's Parent is the target, its whole
+    /// Format-3 state is copied by <see cref="Condition88.CopyOnto"/>, and — unlike the template's copy — it IS
+    /// registered in the global by-name index (a clone's condition-names ARE referenceable). D17 inc 3.
+    /// <para>⛔ THE FIELD LIST LIVES ON THE MODEL, NOT HERE (kb/Work PB555). This method used to copy the VALUE set
+    /// and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase — §14.7.8 rule 2's sequence
+    /// fell back to the program default and every THRU range the clone tested could answer differently from the
+    /// template's. One copier next to the state, with a drift test, is what stops the next added field from
+    /// repeating it.</para></summary>
     private void CloneConditionOnto(DataItem target, Condition88 src)
     {
-        var c = new Condition88 { Name = src.Name, Parent = target };
-        c.Values.AddRange(src.Values);
+        var c = src.CopyOnto(target);
         target.Own88s.Add(c);
         if (!Conditions.TryGetValue(c.Name, out var list)) Conditions[c.Name] = list = [];
         list.Add(c);
@@ -3151,8 +3155,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         cond.Alphabet = alphaName;
                     // literal-4 LAST, because the phrase is written last (§13.18.63.2 format 3 prints
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
-                    // diagnostics a malformed entry produces come out in source order.
-                    ScreenFalsePhraseOperand(value, parent, name);
+                    // diagnostics a malformed entry produces come out in source order. It is bound AFTER the
+                    // alphabet because §13.18.63.3 SR27 b) weighs literal-4 against the ranges in the sequence
+                    // §14.7.8 rule 2 gives them, which `cond.Alphabet` is what names.
+                    BindFalsePhraseOperand(value, parent, cond);
                 }
 
         parent.Own88s.Add(cond);   // the item owns its 88s (source of truth; lets CloneItem carry a TYPEDEF's 88s)
@@ -3179,17 +3185,164 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// The subject is <c>ValueSubject.ForConditionName()</c> for the same reason (kb/Work PB598): those rules'
     /// SIZE sentences name an elementary or group item as the VALUE bearer and do not reach a Format-3
     /// subject.</para>
-    /// <para>⛔ The screened value is deliberately NOT stored. <c>SET condition-name TO FALSE</c> (§14.9.39 SR7)
-    /// is an unimplemented feature that declines LOUDLY at its own statement (COBOLNET1756 + a runtime abort),
-    /// so a field here would be a lookup nothing reads. A syntax rule applies to source as WRITTEN whether or
-    /// not the semantics behind it are implemented, which is why the screen runs anyway.</para></summary>
-    private void ScreenFalsePhraseOperand(Core.ValueClauseContext value, DataItem parent, string name)
+    /// <para>⛔ AND THE SCREENED VALUE IS NOW STORED (kb/Work PB555). It used to be screened and dropped, on the
+    /// reasoning that <c>SET condition-name TO FALSE</c> was unimplemented so "a field here would be a lookup
+    /// nothing reads" — but the causality ran the other way: <see cref="Condition88.FalseValue"/> not existing is
+    /// WHY §13.18.63.4 GR20 could not be implemented and WHY §13.18.63.3 SR27 had nothing to compare. Binding the
+    /// operand is one change; SR27 below and the SET store in <c>SetEmitter</c> are its two consequences.</para></summary>
+    private void BindFalsePhraseOperand(Core.ValueClauseContext value, DataItem parent, Condition88 cond)
     {
         if (value.valueClauseFalsePhrase()?.valueClauseOperand() is not { } falseOp) return;
-        string where = $"condition-name '{name}' (WHEN SET TO FALSE)";
+        string where = $"condition-name '{cond.Name}' (WHEN SET TO FALSE)";
         // NULL = not a literal position at all, already reported at the ONE report (kb/Work PB732).
         if (RawValueOperandText(falseOp, where) is not { } raw) return;
-        if (parent.OperandPic is { } fp) ValidateValueCategory(fp, raw, where, ValueSubject.ForConditionName());
+        if (parent.OperandPic is { } fp)
+            raw = ValidateValueCategory(fp, raw, where, ValueSubject.ForConditionName());
+        cond.FalseValue = raw;
+        CheckFalseValueDistinct(cond, parent, where);
+    }
+
+    /// <summary>§13.18.63.3 SR27 — literal-4 shall name a value the condition-name is FALSE for: "<i>The value of
+    /// literal-4 shall not be equal to the value of any occurrence of literal-2. When the THROUGH phrase is
+    /// specified: a) when literal-2 is of a class other than alphanumeric or national, the value of literal-4
+    /// shall not be equal to any value in the range of any occurrence of literal-2 through literal-3, inclusive.
+    /// b) when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, the
+    /// value of literal-4 shall not be equal to the value of any literal-2 or any value in the range of any
+    /// occurrence of literal-2 through literal-3, inclusive.</i>"
+    /// <para>The FIRST sentence is unconditional — it carries no class qualifier and no THROUGH precondition — so
+    /// it is tested against every occurrence of literal-2, singleton or range bound, before the sub-rules are
+    /// reached. a) and b) then add RANGE MEMBERSHIP, and differ only in which ordering decides it: a) is
+    /// §14.7.8 rule 1's algebraic order, b) is rule 2's collating sequence. b)'s "<i>any literal-2</i>" clause is
+    /// the first sentence restated and needs no second test.</para>
+    /// <para>⛔ WHY b) CAN BE ENFORCED AT ALL. The rule is conditioned on the runtime collating sequence being
+    /// KNOWN, and SR26's NOTE says when it is not: "<i>The runtime collating sequence is unknown when the
+    /// collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime</i>".
+    /// This processor fixes every other sequence at compile time — the <c>IN alphabet-name-1</c> phrase's alphabet
+    /// (§14.7.8 rule 2) or, absent it, the PROGRAM COLLATING SEQUENCE — so a LOCALE alphabet is the only arm that
+    /// drops the screen, and it drops it rather than guessing. The ordering itself is the runtime's own
+    /// <c>CobolCollation.Compare</c>, reached through <c>CollatingTable.Collation</c>: one §8.8.4.2.7 comparison,
+    /// not a compile-time paraphrase of it.</para>
+    /// <para>⚠ An operand whose VALUE is not known at compile time — a figurative constant, an <c>ALL</c> literal,
+    /// a symbolic-character — is skipped rather than guessed at: SR27 speaks of "the value of literal-4", and a
+    /// screen that invented one would reject conforming source. The figuratives ZERO/ZEROS/ZEROES over a NUMERIC
+    /// subject are the exception, because §8.3.3.6.4 GR3 gives them the value zero exactly.</para></summary>
+    private void CheckFalseValueDistinct(Condition88 cond, DataItem parent, string where)
+    {
+        if (cond.FalseValue is not { } raw || cond.Values.Count == 0) return;
+        var cat = parent.OperandPic?.Category;
+        bool national = cat is PicCategory.National;
+        // §8.8.4.2.7 (alphanumeric) and §8.8.4.2.9 (national) both extend the shorter operand on the RIGHT with
+        // spaces; §8.8.4.2.8 extends a BOOLEAN one with zeros. THROUGH cannot reach a boolean subject (SR29), but
+        // sentence 1's equality test can, so the boolean pad is named rather than assumed away.
+        char pad = cat is PicCategory.Boolean ? '0' : ' ';
+        // The two decoders. Null from either = the operand names no value the compiler can weigh.
+        decimal? v4n = NumericLiteralValue(raw);
+        string? s4 = StringValue(raw);
+        // §14.7.8 rule 2's sequence, resolved AT MOST ONCE and only when a character comparison actually needs
+        // it (building the carrier materializes a weight block, and most VALUE sets never reach it).
+        CobolNet.Runtime.CobolCollation? order = null;
+        bool resolved = false, known = true;
+
+        foreach (var (lo, hi) in cond.Values)
+        {
+            // ⛔ THE SUB-RULES KEY ON LITERAL-2's CLASS, NOT ON THE SUBJECT'S CATEGORY. SR27 a) opens "when
+            // literal-2 is of a class other than alphanumeric or national" and b) "when literal-2 is of class
+            // alphanumeric or national", per occurrence — so the arm is chosen from the operand in hand. Reading
+            // the subject's category instead would have dropped the whole screen on a NUMERIC-EDITED subject,
+            // whose VALUE literals may be alphanumeric edited-image literals (SR4) or numeric (SR6): one
+            // category, two literal classes, and the screen must follow the literals.
+            if (CobolLiteral.IsStringLiteral(lo))
+            {
+                if (s4 is not { } s || StringValue(lo) is not { } slo) continue;
+                Resolve();
+                if (Cmp(s, slo) == 0) { Report(lo, null); continue; }     // sentence 1
+                if (hi is null) continue;
+                // b) — RANGE membership, and only where the runtime collating sequence is KNOWN (SR26's NOTE:
+                // a LOCALE sequence is not). An INVERTED range is EMPTY (§14.7.8 rule 2's last paragraph), so
+                // nothing can be inside it and the test is skipped rather than inverted.
+                if (!known || StringValue(hi) is not { } shi) continue;
+                if (Cmp(slo, shi) <= 0 && Cmp(s, slo) >= 0 && Cmp(s, shi) <= 0) Report(lo, hi);
+            }
+            else
+            {
+                if (v4n is not { } v || NumericLiteralValue(lo) is not { } vlo) continue;
+                if (vlo == v) { Report(lo, null); continue; }             // sentence 1
+                if (hi is null) continue;
+                // a) — §14.7.8 rule 1's algebraic order. An inverted range is naturally empty here.
+                if (NumericLiteralValue(hi) is { } vhi && v >= vlo && v <= vhi) Report(lo, hi);
+            }
+        }
+
+        void Resolve()
+        {
+            if (resolved) return;
+            resolved = true;
+            (order, known) = RangeOrdering(cond.Alphabet, national);
+        }
+
+        // Sentence 1's equality is asked THROUGH the sequence too, and deliberately: §8.8.4.5.3 GR2 tests the
+        // conditional variable against its values by the ordinary relation rules, which §8.8.4.2.7 evaluates in
+        // the collating sequence in effect — so a literal-4 that COLLATES equal to a literal-2 is a value for
+        // which the condition-name is TRUE, which is exactly what SR27 forbids. A null carrier is the native
+        // sequence, for which the padded ordinal compare IS the ordering.
+        int Cmp(string a, string b) => order is { } c
+            ? CobolNet.Runtime.CobolString.Compare(a, b, c)
+            : CobolNet.Runtime.CobolString.Compare(a, b, pad);
+
+        void Report(string lo, string? hi) => Edition.Error(DiagnosticCatalog.FalseValueNotDistinct,
+            $"{where}: the FALSE-phrase literal {raw} is {(hi is null ? $"equal to the VALUE literal {lo}"
+                : $"within the VALUE range {lo} THRU {hi}")}, so it is a value for which the condition-name is "
+            + "TRUE — literal-4 shall name a FALSE value (ISO §13.18.63.3 SR27)");
+    }
+
+    /// <summary>The compile-time CHARACTER value of a VALUE-clause operand, or null when the operand is not a
+    /// literal whose characters are known here — a figurative constant, an <c>ALL</c> literal or a
+    /// symbolic-character names a value that depends on width or on SPECIAL-NAMES, and §13.18.63.3 SR27 speaks of
+    /// "<i>the value of</i>" its operands, so a screen that invented one would reject conforming source.</summary>
+    private static string? StringValue(string raw) =>
+        CobolLiteral.IsStringLiteral(raw) ? CobolLiteral.Decode(raw) : null;
+
+    /// <summary>The compile-time VALUE of a numeric VALUE-clause operand (ISO §13.18.63.3 SR27's "<i>the value of
+    /// literal-4</i>" / "<i>the value of … literal-2</i>"), or null when the operand names no value the compiler
+    /// can weigh. The binder has already normalized a numeric operand to dot-decimal form (§12.3.7 GR14a), so the
+    /// parse is invariant-culture; the figurative ZERO family is admitted because §8.3.3.6.4 GR3 gives it the
+    /// value zero exactly, and every other figurative (SPACE, HIGH-VALUE, …) is a CHARACTER value that a numeric
+    /// subject could not have taken in the first place (§13.18.63.3 SR2).</summary>
+    private static decimal? NumericLiteralValue(string raw)
+    {
+        string w = raw.Trim();
+        if (w.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && w.Length > 3 && char.IsWhiteSpace(w[3]))
+            w = w[3..].TrimStart();
+        if (CobolNet.CodeGen.FigurativeConstants.KindOf(w) is { } k) return k == 'Z' ? 0m : null;
+        return decimal.TryParse(w, System.Globalization.NumberStyles.AllowDecimalPoint
+                | System.Globalization.NumberStyles.AllowLeadingSign,
+            System.Globalization.CultureInfo.InvariantCulture, out decimal v) ? v : null;
+    }
+
+    /// <summary>The ordering a level-88 THROUGH range is evaluated in (ISO §14.7.8 rule 2) AS THE COMPILER KNOWS
+    /// IT: the <c>IN alphabet-name-1</c> alphabet when the clause writes one, else the PROGRAM COLLATING SEQUENCE
+    /// (§12.3.6), else the native order. <c>Known</c> is false exactly for §13.18.63.3 SR26 NOTE's unknowable arm
+    /// — a LOCALE sequence, whose ordering is the locale current at each use (§12.3.7.4 GR7e) — and its consumers
+    /// then decline to enforce a rule the standard conditions on knowing it.
+    /// <para>A null <c>Order</c> with <c>Known</c> true is the NATIVE (identity) sequence: no carrier exists for
+    /// it, and the caller's two-argument <c>CobolString.Compare</c> is exactly its ordering.</para></summary>
+    private (CobolNet.Runtime.CobolCollation? Order, bool Known) RangeOrdering(string? alphabetName, bool national)
+    {
+        if (alphabetName is not null)
+        {
+            if (national && NationalAlphabets.TryGetValue(alphabetName, out var nd))
+                return nd.Locale is not null ? (null, false) : (nd.Table?.Collation(true), true);
+            if (!national && Alphabets.TryGetValue(alphabetName, out var ad))
+                return ad.Locale is not null ? (null, false) : (ad.Table?.Collation(false), true);
+            return (null, true);       // unresolved: TryResolveRangeAlphabet already reported it; native order
+        }
+        if (national)
+            return NationalCollating is { } pn
+                ? pn.Locale is not null ? (null, false) : (pn.Table?.Collation(true), true)
+                : (null, true);
+        return Collating is { } pa
+            ? pa.Locale is not null ? (null, false) : (pa.Table?.Collation(false), true)
+            : (null, true);
     }
 
     /// <summary>Make <paramref name="name"/> unique within a C# name scope, appending <c>_2</c>, <c>_3</c>, … on collision.</summary>

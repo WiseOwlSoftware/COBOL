@@ -276,7 +276,9 @@
     "pb355_start_length_past_operand",
     "pb355_start_length_national_past_operand",
     "pb565_report_repeating_entry",
-    "pb522_group_usage_travels_with_the_description"
+    "pb522_group_usage_travels_with_the_description",
+    "pb555_value_false_phrase",
+    "pb555_typedef_condition_clone"
   ],
   "pending": []
 }

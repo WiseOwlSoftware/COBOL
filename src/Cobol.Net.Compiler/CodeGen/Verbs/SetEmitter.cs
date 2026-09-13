@@ -316,7 +316,14 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     {
         foreach (var (parent, cond) in set.Sets)
         {
-            var (low, _) = cond.Values[0];   // SET TO TRUE stores the first VALUE (ISO §14.9.39 Format 5)
+            // ⛔ THE ONLY DIFFERENCE BETWEEN THE TWO ARMS (kb/Work PB555). §14.9.39.4 GR6 stores "the literal in
+            // the VALUE clause … If more than one literal is specified in the VALUE clause, the conditional
+            // variable is set to the value of the FIRST literal that appears in the VALUE clause"; GR7 stores
+            // "the literal in the FALSE phrase of the VALUE clause" — §13.18.63.4 GR20's literal-4. Everything
+            // after this line is the ONE store both rules describe in the same words, so the FALSE arm inherits
+            // the figurative fill, the group-image splice and the category funnel without a second copy. The
+            // binder has already refused a FALSE arm with no phrase (§14.9.39.3 SR7, COBOLNET2049).
+            string low = set.ToTrue ? cond.Values[0].Low : cond.FalseValue!;
             // ⛔ THE ONE CATEGORY READER (DataItem.OperandPic — an elementary item's own PICTURE, a bit /
             // national GROUP's §13.18.29.4 GR1b/GR2b as-if PICTURE 1(m) / N(m)), never raw `Pic`, which is NULL
             // for every group. §14.9.39.4 GR6 names the population by name — "when the conditional variable is an
@@ -358,7 +365,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // §13.18.38 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
             // its as-if value is boolean positions / national positions, which Write routes to FromBits / FromNat.
             ctx.Writer.Line(imageGroup
-                ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO TRUE")
+                ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO {(set.ToTrue ? "TRUE" : "FALSE")}")
                 : PlaceRenderer.Write(parent, rhs));
         }
     }

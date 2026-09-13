@@ -970,9 +970,15 @@ public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement;
 /// implicit CONTINUE following the current sentence's separator period.</summary>
 public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 
-/// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
-/// (already-resolved) parent place.</summary>
-public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets) : BoundStatement;
+/// <summary><c>SET condition-name+ TO TRUE | FALSE</c> (ISO §14.9.39 Format 4) — each names a level-88 whose
+/// selected VALUE literal is stored into its (already-resolved) parent place.
+/// <para><paramref name="ToTrue"/> selects WHICH literal §14.9.39.4 places there, and nothing else: GR6 takes
+/// "<i>the literal in the VALUE clause</i>" (the FIRST, when the clause writes several) and GR7 "<i>the literal
+/// in the FALSE phrase of the VALUE clause</i>" (§13.18.63.4 GR20's literal-4), both "<i>according to the rules
+/// for the VALUE clause</i>" with the same group-length and zero-length provisos. One node, one store path —
+/// kb/Work PB555, which is also why the FALSE arm exists at all.</para></summary>
+public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets, bool ToTrue)
+    : BoundStatement;
 
 /// <summary>SET data-pointer assignment (ISO §14.9.39 Format 4 — SET pointer TO {NULL | pointer};
 /// Phase-4b increment 1): copy the NULL singleton or the source pointer into each target in order.

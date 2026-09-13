@@ -407,9 +407,13 @@ GR3 a) — "if the selection subject is a numeric data item or a boolean data it
 
 **Rejected alternatives.** A stored bool kept in sync on every assignment to the parent — fragile, requires intercepting every write path; semantically wrong (the value can change via REDEFINES/group MOVE).
 
-### D7. SET cond-name TO TRUE moves the FIRST VALUE literal into the conditional variable; SET cond TO FALSE moves the WHEN SET TO FALSE literal (error COBOLNET0705 if none).
+### D7. SET cond-name TO TRUE moves the FIRST VALUE literal into the conditional variable; SET cond TO FALSE moves the WHEN SET TO FALSE literal (error COBOLNET2049 if none).
 
-**Rationale.** ISO §14.9.39 GR6 (TRUE → first literal of the VALUE clause; for a THRU range, the range start) and §13.18.63 GR20 (FALSE → the WHEN SET TO FALSE literal-4). The FALSE phrase is required for SET TO FALSE.
+**Rationale.** ISO §14.9.39.4 GR6 (TRUE → "*the literal in the VALUE clause associated with condition-name-1*"; "*If more than one literal is specified … the value of the first literal that appears*", which for a THRU range is the range start) and §14.9.39.4 GR7 (FALSE → "*the literal in the FALSE phrase of the VALUE clause*"), which §13.18.63.4 GR20 states from the VALUE clause's side. §14.9.39.3 SR7 makes the FALSE phrase required for SET TO FALSE.
+
+**⛔ ONE ARM, NOT TWO** (kb/Work PB555). GR6 and GR7 are the SAME sentence with one word changed — both place their literal "*in the conditional variable according to the rules for the VALUE clause, except that when the conditional variable is an alphanumeric group item, bit group item, or national group item to which a table is subordinate, its length is determined as specified in 13.18.38 … If the length of the conditional variable is zero, the SET statement leaves it unchanged*". So `BoundSetConditions` carries a single `ToTrue` flag that selects WHICH literal, and `SetEmitter.EmitSet` has one store path: the FALSE arm inherits the figurative fill, the group-image splice and the category funnel without a second copy. The FALSE arm returned `BoundUnsupported` until `Condition88` carried literal-4 at all; `SetBinder.BindSetCondition` now only has to enforce SR7 before binding.
+
+⚠ **The code is COBOLNET2049, not the COBOLNET0705 this decision reserved.** 0705 was a placeholder that was never registered in `DiagnosticCatalog` and never reached `docs/DIAGNOSTICS.md`; diagnostic codes are now allocated centrally per fix, and this one was allocated with PB555.
 
 **Rejected alternatives.** Treat SET cond TO TRUE as setting a bool flag — wrong; it is a MOVE of a specific literal into the parent per the VALUE-clause rules.
 
@@ -635,7 +639,8 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
 - Figurative ZERO compared with a numeric value is the numeric 0 (ISO §8.3.3.6.4 r4), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).
-- SET cond TO FALSE with no WHEN SET TO FALSE phrase is a syntax error (the FALSE phrase is required) → COBOLNET0705.
+- SET cond TO FALSE with no WHEN SET TO FALSE phrase is a syntax error (§14.9.39.3 SR7 — the FALSE phrase is required) → COBOLNET2049. The TRUE arm needs no twin screen: §13.18.63.3 SR24 already makes a VALUE clause mandatory on a level-88 entry.
+- literal-4 shall not be a value the condition-name is TRUE for (§13.18.63.3 SR27) → COBOLNET2048, screened where literal-4 is bound (`DataBinder.CheckFalseValueDistinct`; derivation in COBOLNET_DATA_MODEL_DESIGN.md).
 - SET cond TO TRUE on a THRU-range condition-name moves the range START (first literal).
 - EVALUATE subjects with side effects (function calls / arithmetic) must be hoisted to a local and evaluated exactly once (ISO §14.9.13.4 GR3); bare identifiers/literals may stay inline.
 - Multiple consecutive WHEN phrases sharing one body are OR-ed (WHEN a WHEN b … imperative = a OR b); ALSO subjects within one WHEN are AND-ed.
@@ -674,7 +679,9 @@ done).
   only those three, and the rest of the EC-FLOW level-3 names (EC-FLOW-USE, EC-FLOW-SEARCH, EC-FLOW-REPORT,
   EC-FLOW-RELEASE, EC-FLOW-RETURN, EC-FLOW-GLOBAL-EXIT/-GOBACK) are 2002 EC-model names — `ExceptionCatalog`
   carries each name's own introduction edition, which is what the gate reads.
-- **SET cond-name TO FALSE / WHEN SET TO FALSE (D7): 2002+** — diagnosed at `--std=85`; COBOLNET0705 (missing FALSE
+- **SET cond-name TO FALSE / WHEN SET TO FALSE (D7): 2002+** — diagnosed at `--std=85` with COBOLNET0900, gated
+  recognition-first in `VersionConformancePass.ParseArm` (`VisitValueClauseFalsePhrase`, `VisitSetBooleanStatement`)
+  on the `constructs.json` rows `value-false-phrase-2002` / `set-condition-false-2002`; COBOLNET2049 (missing FALSE
   phrase) applies only in editions that have the phrase.
 - **CALL … ON OVERFLOW: REMOVED in 2023** (VCR row 3) — accepted at 85/2002/2014, diagnosed at 2023 (ON EXCEPTION is
   the replacement).

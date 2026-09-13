@@ -76,6 +76,30 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
             [.. repByPos.Select(c => (ushort)c)], nextFree, high, low);
     }
 
+    /// <summary>⛔ THIS TABLE AS A LIVE <see cref="CobolNet.Runtime.CobolCollation"/> — the SAME runtime carrier
+    /// class the generated program gets (<c>CollationEmit.New</c> renders its constructor as text; this
+    /// materializes it in the compiler's own process), so a COMPILE-TIME question about the ordering this
+    /// sequence gives is answered by the ONE §12.3.7.4 GR7 k weighting and the ONE §8.8.4.2.7 comparison, never
+    /// by a second copy of either.
+    /// <para>Asked by the §13.18.63.3 SR27 b) screen (kb/Work PB555): "<i>when literal-2 is of class alphanumeric
+    /// or national, and the runtime collating sequence is known, the value of literal-4 shall not be equal to the
+    /// value of any literal-2 or any value in the range of any occurrence of literal-2 through literal-3,
+    /// inclusive</i>" — a rule the compiler can only enforce by ordering the literals itself.</para>
+    /// <para>⚠ NOT memoized, and deliberately: <see cref="CollatingTable"/> is a record, so a cache field would
+    /// join its synthesized value equality and make two identical tables unequal. The carrier's constructor
+    /// builds a weight block, so the ONE caller hoists it into a local for the whole screen rather than asking
+    /// per comparison.</para>
+    /// <para>⚠ A LOCALE sequence has no table and is deliberately NOT reachable here: §13.18.63.3 SR26's NOTE
+    /// puts it on the other side of the rule ("<i>The runtime collating sequence is unknown when the collating
+    /// sequence is defined by a locale or the collating sequence is otherwise determined at runtime</i>"), so the
+    /// caller drops the screen rather than inventing an ordering.</para></summary>
+    /// <param name="national">Which runtime arm — the two differ only in identity and their GR8/GR9 defaults,
+    /// both of which this table supplies explicitly, so the ordering is the same either way.</param>
+    public CobolNet.Runtime.CobolCollation Collation(bool national) =>
+        national
+            ? new CobolNet.Runtime.NationalCollation(Codes, Positions, RepByPos, NextFree, HighValue, LowValue)
+            : new CobolNet.Runtime.AlphanumericCollation(Codes, Positions, RepByPos, NextFree, HighValue, LowValue);
+
     /// <summary>The §12.3.7.4 GR8/GR9 extremes of a non-identity sequence — the characters at the HIGHEST and
     /// LOWEST positions, a tie going to the LAST (GR8) / FIRST (GR9) character specified.
     /// <para>The LOW end is common to both classes: position 0 belongs to the first character specified, and a

@@ -950,6 +950,33 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The Format 3 <c>[ WHEN SET TO FALSE IS literal-4 ]</c> phrase (ISO §13.18.63.2 format 3) — a
+        /// COBOL-2002 introduction, with the <c>SET … TO FALSE</c> arm it exists to feed (§14.9.39.4 GR7 /
+        /// §13.18.63.4 GR20). Recognition-based on the dedicated <c>valueClauseFalsePhrase</c> node for the same
+        /// drop-proof reason as the table format above: the binder abandons literal-4 on a §13.18.63.3 SR2/SR4/SR5
+        /// category violation and on a non-literal operand, so a bound-arm gate would lose the 0900 on exactly
+        /// the paths that already went wrong. kb/Work PB555.
+        /// <para>⚠ The edge is DERIVED, not quoted, and the derivation is one line so it can be overturned in
+        /// one: the repo holds no 2002 or 2014 text, the 2023 Annex E carries no 85→2002 VALUE row (the A.1
+        /// authority gap, D18), and the reserved-word evidence cannot date it because FALSE is already reserved
+        /// at COBOL-85 for the EVALUATE statement.</para></summary>
+        public override object? VisitValueClauseFalsePhrase(CobolParserCore.ValueClauseFalsePhraseContext ctx)
+        {
+            _p.Check(Constructs.ValueFalsePhrase2002, "the VALUE clause's WHEN SET TO FALSE phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary><c>SET condition-name+ TO FALSE</c> (ISO §14.9.39 Format 4's FALSE arm) — a COBOL-2002
+        /// introduction on the same derived authority as its VALUE-clause half; COBOL-85's Format 4 carries the
+        /// TRUE arm only, which is why the gate keys on the FALSE_ token and not on the statement. Recognition-
+        /// based so it survives the §14.9.39.3 SR7 refusal (COBOLNET2049) the binder may raise on the same
+        /// statement.</summary>
+        public override object? VisitSetBooleanStatement(CobolParserCore.SetBooleanStatementContext ctx)
+        {
+            if (ctx.FALSE_() is not null) _p.Check(Constructs.SetConditionFalse2002, "SET condition-name TO FALSE");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The TYPE IS type-name clause (the TYPEDEF family, ISO §13.18.58; D17) — a COBOL-2002 introduction.
         /// Fires once per written <c>TYPE IS</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
         /// nodes, so a TYPEDEF referenced N times yields exactly N typeClause nodes (matching the former per-entry
