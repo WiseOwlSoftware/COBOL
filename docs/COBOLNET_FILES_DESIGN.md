@@ -1335,6 +1335,27 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   `conformance:2023/pb352_start_sequential_first_last_line` (the LINE-sequential framing, 2023 because the
   organization is — kb/Work PB688) and the Sequential-row START cells of
   `conformance:2023/l1_table20_seq_relative`.
+- **EVERY START FORMAT DECIDES THE KEY OF REFERENCE, AND THE EPILOGUE MAKES IT SAY SO** (kb/Work PB356).
+  14.9.41.4 states the decision once per format and never as a default: GR16 for the KEY phrase ("The key
+  specified in the KEY phrase, or that shares a leftmost character with the data item specified in the KEY
+  phrase, becomes the key of reference"), GR18/GR19 for FIRST/LAST ("the file position indicator is set to the
+  value of the primary key of the first [last] existing logical record in the physical file **and the key of
+  reference is set to the primary key**"). So `IndexedConnector` completes every successful START through ONE
+  epilogue, `StartSucceeded(int keyOfReference, KeyedRec found)`, **whose key of reference is a REQUIRED
+  ARGUMENT** — a fourth START format cannot be written without answering the question, and an epilogue that read
+  `_refKey` would have no correct reading at all. `StartFirstLast` passes `PrimeKey` and orders its search with
+  `Ordered(PrimeKey)`: GR18/GR19 name the primary key TWICE, once as the ordering ("in the physical file") and
+  once as the outcome. ⛔ Reading the inherited key of reference instead — justified by 14.9.27.4 GR14, a real
+  clause about what OPEN establishes and not about what START FIRST/LAST does — made START LAST answer the
+  ALTERNATE ordering's last record (with the two orderings inverted, the FIRST record), and left every following
+  sequential READ walking that alternate (14.9.30.4 GR21 b)'s "Otherwise, the key of reference is set to the last
+  key of reference in the file position indicator"); where the alternate carried SUPPRESS WHEN it additionally
+  HID records that 12.4.5.6.4 GR6 withholds from the ALTERNATE path only and GR18/GR19's primary-key view must
+  include. The relative and sequential arms have no key of reference and pass no such argument. Goldens:
+  `conformance:2002/pb356_start_first_last_indexed` (the inverted orderings, the four following prime-order
+  READs, and GR18/GR19's empty-file '23') and `conformance:2023/pb356_start_first_last_suppressed` (the
+  SUPPRESS WHEN records FIRST/LAST must still see); the SHAPE is held by
+  `unit:StartKeyOfReferenceDriftTests`.
 - **The START key operand is screened by TWO rules with one home each** (kb/Work PB354).
   `RecordLayout.KeyIndexOfKeyItem` answers "this IS a record key of the file" — by reference identity, or by
   12.4.5.12.4 GR4's identical BYTE POSITIONS in another record description entry of the SAME file (hence
