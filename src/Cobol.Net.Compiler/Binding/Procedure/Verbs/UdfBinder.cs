@@ -362,7 +362,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// GOBACK RAISING (§14.9.18 GR — re-raised in the activator).</summary>
     internal BoundStatement UdfBindExitFunction(Core.ExitStatementContext e)
     {
-        if (host.UdfSelfName is null)
+        // The EXIT statement's placement rule for the pre-2023 FUNCTION format, asked of the ONE bind-position
+        // probe every other EXIT format now asks (kb/Work PB403) — §14.2.2 SR10's source-element kind, not a
+        // per-verb predicate. A function PROTOTYPE definition is a function procedure division too: EXIT FUNCTION
+        // means "return from this function", and the prototype's procedure division is one.
+        if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
         {
             ctx.Edition.Error("COBOLNET0827",
                 "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "

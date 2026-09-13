@@ -101,7 +101,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // SR1 — RESUME may appear in a declarative OR a WHEN phrase of an exception-checking PERFORM (§14.9.33.3
         // SR1). In a WHEN phrase it shall specify NEXT STATEMENT (XS-RESUME-OPERAND, COBOLNET1610) — the
         // ResumeSignal(targetPc) pc-jump path is bound ONLY for a declarative RESUME AT procedure-name.
-        if (ctx.EcState.InF3When)
+        // ⛔ BOTH POSITIONS COME FROM THE ONE BIND-POSITION PROBE (kb/Work PB403/PB404): `ctx.Enclosing` answers
+        // "am I in a WHEN phrase?" and "which declarative am I in?" for EVERY placement rule, so RESUME's rule
+        // and the EXIT / GOBACK rules that state the same two positions cannot drift apart — which they had,
+        // RESUME being the only one of the family that asked at all.
+        var where = ctx.Enclosing;
+        if (where.InPerformWhen)
         {
             ctx.EcState.Resume = true;
             if (r.NEXT() is not null) return new BoundResume(ResumeSignal.NextStatement);
@@ -109,9 +114,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 + "specify NEXT STATEMENT (ISO §14.9.33.3 SR1)");
             return new BoundNop();
         }
-        // The declarative sections occupy the pcs below EntryPc (StatementBinder.Declaratives.cs).
-        var decl = ctx.Table.Declaratives.FirstOrDefault(d => d.Contains(ctx.BindCursor));
-        if (ctx.BindCursor >= ctx.Table.EntryPc || decl is null)
+        if (where.Declarative is not { } decl)
         {
             // XS-RESUME-PLACEMENT (§14.9.28.3): a RESUME in imperative-statement-1 or FINALLY of an F3 PERFORM
             // (neither a declarative nor a WHEN phrase) lands here too — the same "declarative or WHEN only" rule.

@@ -1104,7 +1104,10 @@
   "pb555-set-false-no-phrase",
   "pb555-set-false-below-2002",
   "pb401-range-invalid-turn-below-2002",
-  "pb401-evaluate-range-alphabet-numeric-ends"
+  "pb401-evaluate-range-alphabet-numeric-ends",
+  "pb403-exit-perform-outside-perform",
+  "pb403-exit-program-in-function",
+  "pb403-exit-perform-below-2002"
  ],
  "pending": []
 }

@@ -1104,7 +1104,9 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// synonym (≡ the §14.9.18.4 GR4 GOBACK); outside one it violates its placement rule.</summary>
     public BoundStatement OoBindExitMethod(Core.ExitStatementContext e)
     {
-        if (!host.InMethod)
+        // The pre-2023 METHOD format's placement rule, through the ONE bind-position probe the other EXIT
+        // formats ask (kb/Work PB403) — §14.2.2 SR10's source-element kind.
+        if (ctx.Enclosing.SourceElement is not SourceElementKind.MethodDefinition)
         {
             ctx.Edition.Error("COBOLNET0827",
                 "EXIT METHOD may be specified only in a method definition (ISO §14.9.14 — the method form "

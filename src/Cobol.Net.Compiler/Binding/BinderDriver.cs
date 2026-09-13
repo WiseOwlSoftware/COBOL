@@ -7,6 +7,7 @@ using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Passes;
+using CobolNet.Binding.Procedure;
 using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 
@@ -593,6 +594,10 @@ internal sealed class BinderDriver
             // §8.4.6.6 — inside a function definition its OWN name is a referable function-prototype-name
             // (self-recursion without a repository entry; §12.3.8 GR11 makes a present self-entry a no-op).
             UdfSelfName = unit.IsFunction ? unit.Name : null,
+            // ISO §14.2.2 SR10's enumeration of the five source elements that may carry a Format-1/2 procedure
+            // division — the input to every EXIT / GOBACK placement rule (kb/Work PB403). Derived HERE, beside
+            // UdfSelfName, from the same two unit facts, so the "am I a function?" answer cannot fork.
+            UnitKind = SourceElementKindOf(unit),
             // §15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
             InNestedProgram = unit.Parent is not null,
             // kb/Work PB131 — the AS NESTED callee set (§14.9.4.3 SR15): the caller's directly-contained
@@ -613,6 +618,20 @@ internal sealed class BinderDriver
         // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
         // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
     }
+
+    /// <summary>Classify a bound unit as one of ISO §14.2.2 SR10's source elements (kb/Work PB403). The two unit
+    /// facts the classification needs — FUNCTION-ID vs PROGRAM-ID, and the <c>IS PROTOTYPE</c> tail — are already
+    /// carried by <see cref="BoundUnit"/>; a method definition is NOT classified here, because a method's
+    /// statements bind on its CLASS unit's binder under an entered method scope (<c>BinderContext.SourceElement</c>).
+    /// <para>A FUNCTION prototype's procedure division is BOUND by this compiler — the §10.1 general format
+    /// admits one and the parser accepts its paragraphs, measured: a prototype carrying <c>EXIT PROGRAM</c>
+    /// reaches <c>BindExit</c>. A PROGRAM prototype is a different story: <c>MakeUnit</c> reads
+    /// <c>IsPrototype</c> off the FUNCTION-ID paragraph alone, and the grammar's <c>programIdAttribute</c> has no
+    /// PROTOTYPE arm at all, so <see cref="SourceElementKind.ProgramPrototype"/> cannot be produced today. It is
+    /// modelled because it is one of §14.2.2 SR10's five, not because it is reachable.</para></summary>
+    private static SourceElementKind SourceElementKindOf(BoundUnit unit) => unit.IsFunction
+        ? (unit.IsPrototype ? SourceElementKind.FunctionPrototype : SourceElementKind.FunctionDefinition)
+        : (unit.IsPrototype ? SourceElementKind.ProgramPrototype : SourceElementKind.Program);
 
     /// <summary>The AS NESTED callee table for one caller (kb/Work PB131; §14.9.4.3 SR15 + §10.7.2):
     /// name → the callee's bound PD-header SIGNATURE. Directly-contained children first; a COMMON program

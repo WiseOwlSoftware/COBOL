@@ -126,6 +126,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// §12.3.8 GR11 — same resolution either way). Null in program units.</summary>
     public string? UdfSelfName { get; set; }
 
+    /// <summary>The kind of source element this binder's PROCEDURE DIVISION belongs to (ISO §14.2.2 SR10) — the
+    /// input every EXIT / GOBACK placement rule needs (kb/Work PB403). Set by <c>BinderDriver</c> from the same
+    /// unit facts as <see cref="UdfSelfName"/>; stored on the <see cref="BinderContext"/> so the ONE placement
+    /// probe (<c>ctx.Enclosing</c>) owns it rather than a second per-verb copy. A method body binds on a CLASS
+    /// unit's binder and overrides this through the entered method scope.</summary>
+    internal SourceElementKind UnitKind { get => Ctx.UnitKind; set => Ctx.UnitKind = value; }
+
     /// <summary>True when the unit being bound is a nested (contained) program — set from <c>BoundUnit.Parent</c>
     /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§15.65.3 argument rule 1 — NESTED shall be
     /// specified only within a contained program).</summary>
@@ -149,9 +156,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     public bool OoInFactory { get; init; }
 
 
-    /// <summary>True while binding a statement inside a METHOD body — the D8 context switch (GOBACK →
-    /// method return; EXIT PROGRAM → §14.9.14.3 SR7 violation).</summary>
-    internal bool InMethod => Ctx.CurrentMethodScope is not null;
+    /// <summary>True while binding a statement inside a METHOD body — the D8 context switch (GOBACK → method
+    /// return; RAISE SELF / INVOKE SELF|SUPER placement, §8.4.3.8; the CALL … AS NESTED context, §14.9.4.3 SR13).
+    /// <para>⛔ A NAMED READING OF THE ONE BIND-POSITION PROBE, not a second derivation (kb/Work PB403): it is
+    /// exactly <c>ctx.Enclosing.SourceElement is MethodDefinition</c>. Keeping it as its own
+    /// <c>CurrentMethodScope is not null</c> test is how the §14.9.14.3 SR7 arm came to answer "is this a program
+    /// procedure division?" with a method/not-method bit and admit the other three §14.2.2 SR10 elements.</para></summary>
+    internal bool InMethod => Ctx.SourceElement is SourceElementKind.MethodDefinition;
 
     /// <summary>Install the D18 segment-materialization hook on this binder's <see cref="ReferenceResolver"/>
     /// (fix-queue PB17). Called from BOTH procedure-bind entry points — <see cref="Bind"/> and

@@ -21,12 +21,17 @@ internal sealed partial class EcBinder
 {
     /// <summary>Bind an inline PERFORM that carries a WHEN / FINALLY phrase or a LOCATION head (§14.9.28 Format 3).
     /// imp-1 binds under the GR14 implicit-TURN overlay (the WHEN-named ECs enabled over its extent); imp-2/3/4
-    /// bind with <see cref="EcBindState.InF3When"/> set (RESUME NEXT STATEMENT is legal there, §14.9.33.3 SR1);
-    /// imp-5 (FINALLY) binds without it (RESUME is not a WHEN phrase). imp-2..5 bind against the BASE TurnState
-    /// (GR21).</summary>
+    /// bind inside an <see cref="EnclosingConstruct.PerformWhen"/> frame (RESUME NEXT STATEMENT is legal there,
+    /// §14.9.33.3 SR1); imp-5 (FINALLY) binds inside a <see cref="EnclosingConstruct.PerformFinally"/> frame
+    /// instead, because RESUME is not admitted in a FINALLY phrase. imp-2..5 bind against the BASE TurnState
+    /// (GR21).
+    /// <para>The whole statement — imp-1, every handler and the FINALLY phrase — binds inside ONE
+    /// <see cref="EnclosingConstruct.ExceptionCheckingPerform"/> frame, which is what §14.9.14.3 SR8 and
+    /// §14.9.14.4 GR4 ask about: an EXIT PERFORM written anywhere in it exits THIS PERFORM (kb/Work PB403).</para></summary>
     public BoundStatement EcBindExceptionPerform(Core.PerformStatementContext p)
     {
         ctx.EcState.F3Perform = true;   // this unit installs the F3-frame interceptor (emitter gate — §14.9.28)
+        using var f3Frame = ctx.EnterConstruct(EnclosingConstruct.ExceptionCheckingPerform);
 
         var whenPhrases = p.performWhenPhrase();
         bool withLocation = p.performInlineHead()?.performLocationPhrase()?.LOCATION() is not null;
@@ -85,25 +90,34 @@ internal sealed partial class EcBinder
         int line = p.Start.Line;
         int handlerLine = whenPhrases.Length > 0 ? whenPhrases[0].Start.Line : p.Stop.Line;
         ctx.EcState.Turn = savedTurn.WithAllDisabledFrom(handlerLine);
-        bool savedInWhen = ctx.EcState.InF3When;
-        ctx.EcState.InF3When = true;
         var whens = new List<BoundExceptionMatch>();
         for (int i = 0; i < whenPhrases.Length; i++)
         {
-            var body = host.BindBlocks(whenPhrases[i].statementBlock());
-            int pc = ctx.Table.AddF3Handler(body, performId, line);
+            int pc = BindHandler(whenPhrases[i].statementBlock(), performId, line);
             whens.Add(new BoundExceptionMatch(headers[i].Mode, headers[i].Ops, pc));
         }
-        int? otherPc = p.performWhenOther() is { } o
-            ? ctx.Table.AddF3Handler(host.BindBlocks(o.statementBlock()), performId, line) : null;
-        int? commonPc = p.performWhenCommon() is { } c
-            ? ctx.Table.AddF3Handler(host.BindBlocks(c.statementBlock()), performId, line) : null;
-        ctx.EcState.InF3When = savedInWhen;
-        var final = p.performFinally() is { } f ? (IReadOnlyList<BoundStatement>)host.BindBlocks(f.statementBlock()) : null;
+        int? otherPc = p.performWhenOther() is { } o ? BindHandler(o.statementBlock(), performId, line) : null;
+        int? commonPc = p.performWhenCommon() is { } c ? BindHandler(c.statementBlock(), performId, line) : null;
+        IReadOnlyList<BoundStatement>? final = null;
+        if (p.performFinally() is { } f)
+        {
+            using var finallyFrame = ctx.EnterConstruct(EnclosingConstruct.PerformFinally);
+            final = host.BindBlocks(f.statementBlock());
+        }
         ctx.EcState.Turn = savedTurn;   // GR14's implicit POP ALL precedes END-PERFORM; GR22 governs from here
 
         bool handlerHasExit = HandlerBodiesContainExitPerform(p);
         return new BoundExceptionPerform(imp1, whens, otherPc, commonPc, final, withLocation, performId, handlerHasExit);
+    }
+
+    /// <summary>Bind ONE handler body (imp-2/3/4) inside a <see cref="EnclosingConstruct.PerformWhen"/> frame and
+    /// register it as a synthetic pc-range paragraph. The frame is what §14.9.33.3 SR1 / §14.9.14.3 SR6 /
+    /// §14.9.18.3 SR5 mean by "a WHEN phrase"; ONE method, so the three handler kinds cannot acquire three
+    /// different answers to it.</summary>
+    private int BindHandler(Core.StatementBlockContext[] body, int performId, int line)
+    {
+        using var whenFrame = ctx.EnterConstruct(EnclosingConstruct.PerformWhen);
+        return ctx.Table.AddF3Handler(host.BindBlocks(body), performId, line);
     }
 
     /// <summary>True when any handler body (imp-2/3/4 — the WHEN / WHEN OTHER / WHEN COMMON statement blocks) contains
@@ -246,12 +260,14 @@ internal sealed partial class EcBinder
         var regionB = ((IEnumerable<IParseTree>)regionA).Concat(regionD).ToList();
 
         // ── Region B (whole PERFORM) ──
-        // XS-EXIT-PERFORM-CYCLE (COBOLNET1604, §14.9.14.3 SR8) — plain EXIT PERFORM is legal (goto END-PERFORM);
-        // EXIT PERFORM CYCLE is not (an F3 PERFORM is not a loop). A CYCLE bound to a NESTED inline PERFORM refers
-        // to that loop, so recursion stops at a nested performStatement.
-        foreach (var ex in regionB.SelectMany(ExitCyclesOfThisPerform))
-            ctx.Edition.Error("COBOLNET1604", "EXIT PERFORM CYCLE shall not appear within an exception-checking "
-                + "PERFORM (ISO §14.9.14.3 SR8)");
+        // ⛔ XS-EXIT-PERFORM-CYCLE (COBOLNET1604, §14.9.14.3 SR8 sentence 2) IS NO LONGER CHECKED HERE, and its
+        // ExitCyclesOfThisPerform walker is gone (kb/Work PB403). SR8 is ONE syntax rule about the EXIT PERFORM
+        // statement — "may be specified only in an inline or exception-checking PERFORM statement. The CYCLE
+        // phrase shall not be specified within an exception-checking PERFORM statement" — and it is now enforced
+        // WHOLE at the one site that binds that statement, ControlFlowBinder.BindExit, against the enclosing
+        // construct stack (ctx.Enclosing.InExceptionCheckingPerform). Splitting it left sentence 1 with no home
+        // at all: an EXIT PERFORM outside every PERFORM compiled clean and emitted a bare `break;` that spun the
+        // pc dispatcher forever. A rule written down in two places is how one of the two ends up empty.
         foreach (var init in regionB.SelectMany(Descendants<Core.InitiateStatementContext>).Where(s => s.reportName().Length > 1))
             ctx.Edition.Error("COBOLNET1605", "an INITIATE naming more than one report-name shall not appear within "
                 + "an exception-checking PERFORM (ISO §14.9.21.3 SR3)");
@@ -301,20 +317,6 @@ internal sealed partial class EcBinder
         foreach (var _ in regionD.SelectMany(Descendants<Core.RaiseStatementContext>))
             ctx.Edition.Error("COBOLNET1611", "RAISE shall appear only in imperative-statement-1 of an "
                 + "exception-checking PERFORM (ISO §14.9.29.3 SR4)");
-    }
-
-    // EXIT PERFORM CYCLE statements whose nearest enclosing inline PERFORM is THIS Format-3 PERFORM (recursion
-    // stops at a nested performStatement, whose EXIT PERFORM CYCLE refers to that nested loop).
-    private static IEnumerable<Core.ExitStatementContext> ExitCyclesOfThisPerform(IParseTree node)
-    {
-        for (int i = 0; i < node.ChildCount; i++)
-        {
-            var child = node.GetChild(i);
-            if (child is Core.ExitStatementContext ex && ex.PERFORM() is not null && ex.CYCLE() is not null)
-                yield return ex;
-            if (child is Core.PerformStatementContext) continue;   // a nested inline PERFORM owns its own CYCLE
-            foreach (var d in ExitCyclesOfThisPerform(child)) yield return d;
-        }
     }
 
     private static IEnumerable<T> Descendants<T>(IParseTree node) where T : class

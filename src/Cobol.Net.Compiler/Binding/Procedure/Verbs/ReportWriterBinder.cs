@@ -130,9 +130,12 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// the runtime half, GR2 — the report engine's one-shot flag).</summary>
     public BoundStatement BindSuppress(Core.SuppressStatementContext stmt)
     {
-        var decl = ctx.Table.Declaratives.FirstOrDefault(d =>
-            d.ReportGroup is not null && d.Contains(ctx.BindCursor));
-        if (decl?.ReportGroup is not { } group)
+        // The containing declarative comes from the ONE bind-position probe (kb/Work PB403) — SUPPRESS's
+        // §14.9.45.3 SR1 is a placement rule like §14.9.14.3 SR2 and §14.9.33.3 SR1/SR2, and each of them used to
+        // walk ctx.Table.Declaratives itself. Ranges are disjoint, so "the declarative containing the cursor,
+        // if it is a USE BEFORE REPORTING one" is the same set as the old "first declarative that has a report
+        // group AND contains the cursor".
+        if (ctx.Enclosing.Declarative?.ReportGroup is not { } group)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSuppressContext,
                 "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");

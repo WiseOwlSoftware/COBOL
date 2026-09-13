@@ -152,11 +152,16 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         // re-test still run, §14.9.14.4 GR5b / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
         // C# loop, wrong for a multi-level VARYING (CA31/CA32). The __pexit/__pcont labels are emitted by EmitPerform.
         F3Region.Inline => Emit(n.Cycle ? $"goto __pcont{_dispatchState.F3Cur.Id};" : $"goto __pexit{_dispatchState.F3Cur.Id};", terminated: true),
-        // No enclosing PERFORM at all — §14.9.14.3 SR8 forbids the statement and the binder does not yet say so
-        // (kb/Work PB403), so this arm is LIVE and its __pc-less jump re-dispatches the same paragraph forever.
-        // It jumps to the dispatcher label rather than breaking: which C# construct a bare `break` left depended on
-        // whatever container the statement sat in (kb/Work PB405), so the hang was not even deterministic.
-        _ => Emit(_dispatchState.TransferJump(), terminated: false),   // defensive fallback (SR8: never reached for a valid bind)
+        // ⛔ THE INVARIANT IS NOW ESTABLISHED, SO THIS ARM THROWS (kb/Work PB403). F3Region.None means "not inside
+        // any PERFORM", which ISO §14.9.14.3 SR8 forbids for EXIT PERFORM — and ControlFlowBinder.BindExit now
+        // REFUSES that program, so a BoundExitPerform can only reach here from a compiler defect. It used to emit
+        // `break;`/`continue;` as a "defensive fallback (SR8: never reached for a valid bind)" while the binder
+        // never established SR8, which made the comment false and the arm live: the bare `break` left the pc
+        // dispatcher's `switch (__pc)` WITHOUT advancing __pc, so the enclosing `while` re-entered the same
+        // paragraph forever. A fallback that silently means something is how that survived.
+        _ => throw new InvalidOperationException(
+            "EXIT PERFORM emitted outside any PERFORM region (ISO §14.9.14.3 SR8 is enforced at bind time by "
+            + "ControlFlowBinder.BindExit — reaching this arm means the binder admitted a statement it must refuse)"),
     };
 
     private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }

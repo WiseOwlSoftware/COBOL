@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Validation;
 
@@ -81,6 +82,58 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// pc space) and its §8.4.2.2 resolver (10t — table ownership relocated per the AS-BUILT plan).</summary>
     private ProcedureTableBuilder? _table;
     public ProcedureTableBuilder Table => _table ??= new(this);
+
+    // ── The placement-rule context (kb/Work PB403): ONE "where am I bound?" probe, read by every syntax rule
+    //    that says a statement "may be specified only in …". See EnclosingContext for the rule inventory. ──
+
+    /// <summary>The kind of source element whose procedure division this binder binds (ISO §14.2.2 SR10) — set
+    /// once per unit by <c>BinderDriver.BindUnitProcedure</c> from the unit's own facts, beside the
+    /// <c>UdfSelfName</c> it is derived from, so the two cannot disagree. A METHOD body overrides it through
+    /// <see cref="CurrentMethodScope"/> (see <see cref="SourceElement"/>), because a method's statements bind on
+    /// a CLASS unit's binder.</summary>
+    public SourceElementKind UnitKind { get; set; } = SourceElementKind.Program;
+
+    /// <summary>The source element kind in force AT THE BIND CURSOR: a method body wherever a method scope is
+    /// entered, and otherwise the unit's own kind.</summary>
+    public SourceElementKind SourceElement =>
+        CurrentMethodScope is not null ? SourceElementKind.MethodDefinition : UnitKind;
+
+    /// <summary>The lexical enclosing-construct stack (innermost last) — pushed by <see cref="EnterConstruct"/>.
+    /// A field rather than a local because the constructs nest across binder collaborators (an inline PERFORM in
+    /// <c>ControlFlowBinder</c>, a WHEN phrase in <c>EcBinder</c>) and every verb must see the same stack.</summary>
+    private readonly List<EnclosingConstruct> _constructs = [];
+
+    /// <summary>⛔ THE PLACEMENT-RULE PROBE. Recomputed per read from the live bind position, never cached.</summary>
+    public EnclosingContext Enclosing => new(SourceElement, _constructs, DeclarativeAtCursor());
+
+    /// <summary>The declarative section containing <see cref="BindCursor"/>, or null. The declarative sections
+    /// occupy the pcs below <c>EntryPc</c> (StatementBinder.Declaratives.cs) — ONE lookup, so a second placement
+    /// rule cannot acquire a second, differently-guarded copy of it (it had exactly one asker, RESUME, and three
+    /// rules that needed it and did not ask).</summary>
+    private BoundDeclarative? DeclarativeAtCursor()
+    {
+        if (_table is null || BindCursor < 0 || BindCursor >= _table.EntryPc) return null;
+        var declaratives = _table.Declaratives;
+        for (int i = 0; i < declaratives.Count; i++)
+            if (declaratives[i].Contains(BindCursor)) return declaratives[i];
+        return null;
+    }
+
+    /// <summary>Push one lexical construct onto <see cref="Enclosing"/>'s stack for the extent of the returned
+    /// token — <c>using var _ = ctx.EnterConstruct(EnclosingConstruct.InlinePerform);</c> around the bind of the
+    /// construct's statement block.</summary>
+    public ConstructScope EnterConstruct(EnclosingConstruct construct)
+    {
+        _constructs.Add(construct);
+        return new ConstructScope(this);
+    }
+
+    /// <summary>The restore token of <see cref="EnterConstruct"/> — disposing pops exactly the frame it
+    /// pushed.</summary>
+    public readonly struct ConstructScope(BinderContext ctx) : IDisposable
+    {
+        public void Dispose() => ctx._constructs.RemoveAt(ctx._constructs.Count - 1);
+    }
 
     /// <summary>Enter a per-pc bind position as ONE scoped operation (10s — replaces the ambient ordered
     /// quadruple mutation): section → method scope → the §11.7 GR5 data shadowing

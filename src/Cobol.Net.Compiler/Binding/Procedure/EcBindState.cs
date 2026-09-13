@@ -27,11 +27,12 @@ internal sealed class EcBindState
     /// <summary>PD-header RAISING class names (§14.2.2 SR8; the SR4a check).</summary>
     public HashSet<string> PdRaisingClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>True while binding imperative-statement-2/3/4 of an exception-checking PERFORM (a WHEN / WHEN
-    /// OTHER / WHEN COMMON body). Relaxes RESUME's SR1 "declarative only" gate (RESUME NEXT STATEMENT is legal
-    /// there) and drives XS-RESUME-OPERAND (RESUME AT procedure-name is rejected in a WHEN phrase). NOT set for
-    /// imperative-statement-1 (the guarded body) or imperative-statement-5 (FINALLY).</summary>
-    public bool InF3When { get; set; }
+    // ⛔ `InF3When` LIVED HERE and is gone (kb/Work PB403). "Am I binding inside a WHEN phrase of an
+    //    exception-checking PERFORM?" is one question that FOUR syntax rules ask — §14.9.33.3 SR1 (RESUME),
+    //    §14.9.14.3 SR6 and §14.9.18.3 SR5 (the RAISING LAST placement), and the XS-RESUME-OPERAND ban — and a
+    //    bool owned by the EC state answered it for exactly one of them. It is now a frame of the ONE bind
+    //    position probe: `ctx.Enclosing.InPerformWhen` (see EnclosingContext), pushed by EcBindExceptionPerform
+    //    around each handler body and popped with it, so a nested bind cannot leave it set.
 
     /// <summary>This unit contains at least one exception-checking (Format-3) PERFORM → the emitter must install
     /// the ambient F3-frame stack and route raise sites through <c>__EcPerform</c> even when the unit declares no

@@ -243,17 +243,92 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         return host.Alter.AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
+    /// <summary>The EXIT statement's own name for a source element kind, for the SR7 diagnostic — the standard's
+    /// noun phrases from ISO §14.2.2 SR10, so the programmer is told which of the five elements this is.</summary>
+    private static string ElementNoun(SourceElementKind kind) => kind switch
+    {
+        SourceElementKind.FunctionDefinition => "a function definition",
+        SourceElementKind.FunctionPrototype => "a function prototype definition",
+        SourceElementKind.MethodDefinition => "a method definition",
+        SourceElementKind.ProgramPrototype => "a program prototype definition",
+        _ => "a program definition",
+    };
+
+    /// <summary>Bind an EXIT statement (ISO §14.9.14), including EVERY placement syntax rule §14.9.14.3 states
+    /// for it — each asked of the ONE bind-position probe <c>ctx.Enclosing</c> (kb/Work PB403), never of a
+    /// per-format predicate re-derived here:
+    /// <list type="bullet">
+    ///   <item><b>SR7</b> "An EXIT PROGRAM statement may be specified only in a program procedure division" —
+    ///         <c>Enclosing.InProgramProcedureDivision</c>. It used to be the single test <c>host.InMethod</c>,
+    ///         so ONE of the four non-program source elements §14.2.2 SR10 names was refused and a FUNCTION
+    ///         definition's EXIT PROGRAM was accepted AND handed the program-activation machinery.</item>
+    ///   <item><b>SR8</b> "The EXIT PERFORM statement may be specified only in an inline or exception-checking
+    ///         PERFORM statement. The CYCLE phrase shall not be specified within an exception-checking PERFORM
+    ///         statement." — BOTH sentences, <c>Enclosing.InPerform</c> and
+    ///         <c>Enclosing.InExceptionCheckingPerform</c>. Sentence 1 was enforced NOWHERE, and the accepted
+    ///         statement did not quietly do nothing: the emitter's F3Region.None arm wrote a bare C# <c>break;</c>
+    ///         into the pc dispatcher's <c>switch (__pc)</c> without advancing <c>__pc</c>, so the paragraph ran
+    ///         forever. Sentence 2 was enforced by a parse-subtree walk owned by the Format-3 PERFORM binder —
+    ///         the same question answered twice, in two places, one of them not at all.</item>
+    ///   <item><b>SR9</b> "The EXIT statement with the SECTION phrase may be specified only in a section" —
+    ///         <c>ctx.CurrentSection</c>, the bind position's section (kept: it is the same probe's data, and the
+    ///         bound node needs the section's end pc anyway).</item>
+    ///   <item><b>SR10</b> "… with the PARAGRAPH phrase may be specified only in a paragraph" — ⛔ NOT A CHECK,
+    ///         AND THE ABSENCE IS THE IMPLEMENTATION. §14.4.3 defines a paragraph as "a paragraph-name followed
+    ///         by a separator period and by zero, one, or more successive sentences OR, IF THE PARAGRAPH-NAME IS
+    ///         OMITTED, one or more successive sentences following the procedure division header or a section
+    ///         header", so EVERY sentence of a procedure division is in a paragraph and SR10 admits no violating
+    ///         program. A screen here would be dead code that could only ever reject legal source.</item>
+    /// </list>
+    /// SR2 ("shall not be specified in a declarative procedure for which the GLOBAL phrase is specified") and
+    /// SR6 (the RAISING LAST placement) are the remaining §14.9.14.3 placement rules; both are stated again for
+    /// GOBACK by §14.9.18.3 SR1/SR5 over the SHARED raising binder, so they are one cluster with the GOBACK verb
+    /// (kb/Work PB404, PB409, PB410) and land with it — each is now one <c>ctx.Enclosing</c> question
+    /// (<c>InGlobalDeclarative</c>, <c>InDeclarative || InPerformWhen</c>).</summary>
     public BoundStatement BindExit(Core.ExitStatementContext e)
     {
-        if (e.PARAGRAPH() is not null) return new BoundExitParagraph(ctx.SourceLine(e));
-        if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
-        if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
+        if (e.PARAGRAPH() is not null) return new BoundExitParagraph(ctx.SourceLine(e));   // SR10: no violating program exists
+        if (e.PERFORM() is not null)
         {
-            if (host.InMethod)   // §14.9.14.3 SR7: EXIT PROGRAM only in a PROGRAM procedure division
+            var where = ctx.Enclosing;
+            // §14.9.14.3 SR8 sentence 1. The rule is what makes §14.9.14.4 GR5 a) meaningful at all: control
+            // passes "to an implicit CONTINUE statement immediately following the END-PERFORM phrase that matches
+            // the most closely preceding, and as yet unterminated, inline PERFORM statement" — outside every
+            // PERFORM there is no such END-PERFORM, so the statement has no meaning to carry.
+            if (!where.InPerform)
             {
                 ctx.Edition.Error("COBOLNET0827",
-                    "EXIT PROGRAM may be specified only in a program procedure division, not in a method "
-                    + "(ISO §14.9.14.3 SR7 — a method returns via GOBACK)");
+                    "EXIT PERFORM may be specified only in an inline or exception-checking PERFORM statement "
+                    + "(ISO §14.9.14.3 SR8)");
+                return new BoundNop();
+            }
+            // §14.9.14.3 SR8 sentence 2 — an exception-checking PERFORM is not a loop, so there is no cycle to
+            // take. Measured against the NEAREST enclosing PERFORM, NOT against "does any ancestor check
+            // exceptions": §14.9.14.4 GR5 a)/b) fix the referent of every EXIT PERFORM as "the END-PERFORM phrase
+            // that matches the most closely preceding, and as yet unterminated, inline PERFORM statement", and
+            // GR4/GR5 partition on the SAME phrase SR8 uses ("specified in an exception-checking PERFORM"). The
+            // any-ancestor reading would make GR4 claim an EXIT PERFORM written in an ordinary inline PERFORM
+            // nested inside a Format-3 one, contradicting GR5 a) and leaving that inner loop with no way out.
+            // So a CYCLE inside an ordinary inline PERFORM nested in a Format-3 PERFORM cycles the inline one
+            // and is legal — which is also what the emitter's innermost-wins F3Region tracking already does.
+            if (e.CYCLE() is not null && where.InExceptionCheckingPerform)
+            {
+                ctx.Edition.Error("COBOLNET1604", "EXIT PERFORM CYCLE shall not appear within an exception-checking "
+                    + "PERFORM (ISO §14.9.14.3 SR8)");
+                return new BoundNop();
+            }
+            return new BoundExitPerform(e.CYCLE() is not null);
+        }
+        if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
+        {
+            var element = ctx.Enclosing.SourceElement;
+            if (!ctx.Enclosing.InProgramProcedureDivision)   // §14.9.14.3 SR7
+            {
+                ctx.Edition.Error("COBOLNET0827",
+                    $"EXIT PROGRAM may be specified only in a program procedure division, not in "
+                    + $"{ElementNoun(element)} (ISO §14.9.14.3 SR7; the five source elements that may "
+                    + "carry this procedure division are §14.2.2 SR10's — a function, function prototype or "
+                    + "method definition returns via GOBACK)");
                 return new BoundNop();
             }
             if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
@@ -308,7 +383,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             // marks the inline PERFORM as exception-checking. Everything else is a Format-2 inline PERFORM.
             if (IsFormat3(p))
                 return BindExceptionPerform(p);
-            return new BoundInlinePerform(BindPerformControl(p), host.BindBlocks(p.statementBlock()));
+            // §14.9.28.2 Format 2. imperative-statement-1 binds INSIDE the enclosing-construct frame, so an
+            // EXIT PERFORM written in it can see the PERFORM that gives it meaning (§14.9.14.3 SR8 / §14.9.14.4
+            // GR5) — and one written OUTSIDE every PERFORM sees no frame and is refused. The control phrase is
+            // bound first and outside the frame: it is the PERFORM's own operand, not part of its body.
+            var control = BindPerformControl(p);
+            using var inlineFrame = ctx.EnterConstruct(EnclosingConstruct.InlinePerform);
+            return new BoundInlinePerform(control, host.BindBlocks(p.statementBlock()));
         }
 
         // Out-of-line: the resolved procedure range — a paragraph, a SECTION (its whole paragraph range, ISO
