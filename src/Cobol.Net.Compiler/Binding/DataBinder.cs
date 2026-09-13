@@ -885,17 +885,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
-                        (file.AssignUsingName, file.AssignUsingQualifiers) = KeyReference(dyn);
+                        (file.AssignUsingName, file.AssignUsingQualifiers) = ClauseDataName(dyn, "ASSIGN … USING");
                         using var __ = Edition.At(dyn);
                         file.AssignUsingAt = Edition.Cursor;   // §12.4.5.2 SR7 reports here, from ResolveFiles
                     }
                 }
                 else if (clauses.organizationClause() is { } org) { file.Organization = MapOrganization(org); file.OrganizationWritten = true; }
                 else if (clauses.accessModeClause() is { } acc) { file.AccessMode = MapAccessMode(acc); accessAt = acc; }
-                // The BASE word only: an OF/IN-qualified status name (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A)
-                // would otherwise glue its qualifier into the lookup key (the RENAMES capture pattern).
+                // The base word PLUS its IN/OF qualifiers (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A): a raw
+                // GetText() would glue the qualifier into the lookup key, and keeping the base word ALONE
+                // resolved the first same-named declaration in order (kb/Work PB489).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
-                    file.FileStatusName = fs.cobolWord()?.GetText() ?? fs.GetText();
+                {
+                    (file.FileStatusName, file.FileStatusQualifiers) = ClauseDataName(fs, "FILE STATUS");
+                    using var __ = Edition.At(fs);
+                    file.FileStatusAt = Edition.Cursor;   // where its post-build resolution reports
+                }
                 else if (clauses.recordKeyClause() is { } rkc)                                                       // ISO §12.4.5.12
                 {
                     // ⛔ THE CLAUSE HAS TWO KEY FORMS AND ONLY ONE IS PROVIDED — take the declined arm FIRST, so
@@ -908,7 +913,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         DeclineRecordKeySource(rks, "RECORD KEY", name);
                     else if (rkc.dataReference() is { } rk)
                     {
-                        (file.RecordKeyName, file.RecordKeyQualifiers) = KeyReference(rk);
+                        (file.RecordKeyName, file.RecordKeyQualifiers) = ClauseDataName(rk, "RECORD KEY");
                         using var __ = Edition.At(rk);
                         file.RecordKeyAt = Edition.Cursor;   // §12.4.5.12.3 reports here, from ResolveFiles
                     }
@@ -923,7 +928,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         DeclineRecordKeySource(aks, "ALTERNATE RECORD KEY", name);
                     else if (ak.dataReference() is { } akRef)
                     {
-                        var (an, aq) = KeyReference(akRef);
+                        var (an, aq) = ClauseDataName(akRef, "ALTERNATE RECORD KEY");
                         // §12.4.5.6.4 GR6 — the SUPPRESS WHEN key suppression value (decoded literal; null when absent).
                         string? suppress = ak.alternateKeySuppressWhen()?.literal() is { } sl ? CobolLiteral.Decode(sl.GetText()) : null;
                         using var __ = Edition.At(akRef);
@@ -936,7 +941,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                 {
-                    file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13.3 SR3 — outside the record
+                    (file.RelativeKeyName, file.RelativeKeyQualifiers) = ClauseDataName(rlk, "RELATIVE KEY");   // ISO §12.4.5.13.3 SR3 — outside the record
                     using var __ = Edition.At(rlk);
                     file.RelativeKeyAt = Edition.Cursor;   // §12.4.5.13.3 reports here, from ResolveFiles
                 }
@@ -1198,15 +1203,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (<c>IX-FD3-KEYINIX-FD3-RECKEY-AREA</c>) and the name could never resolve — the FILE STATUS / RENAMES
     /// capture pattern, applied to keys.
     /// <para>⛔ IT KEEPS THE QUALIFICATION AND DROPS EVERYTHING ELSE — a subscript or a reference modification
-    /// written on the operand is DISCARDED here, silently (kb/Work PB205). That is admissible only where the
-    /// clause's own rules make those spellings illegal, and §8.4.3.3.3's NOTE is what makes them so for the
-    /// data-name clauses: "Because the references to data items are restricted to identifiers, where data-name-n
-    /// is used in a general format or syntax rule, then reference-modification is not permitted." A clause that
-    /// EXPRESSLY permits the ref-mod — §13.18.16.3 SR4's CONTROL operand and its §13.18.57.3 SR10 / §13.18.54.3
-    /// SR8 twins — must NOT use this helper alone: it binds as if the operand were unmodified, which is a silent
-    /// wrong answer. Those three go through <c>DataBinder.Reports.ControlOperandRef</c>, which keeps the whole
-    /// written reference. Where the ref-mod is illegal, dropping it still ACCEPTS illegal source instead of
-    /// rejecting it (measured on a reference-modified RECORD KEY) — a screen those clauses still owe.</para></summary>
+    /// written on the operand is DISCARDED here. That is why it is not the entry point for a <i>data-name-n</i>
+    /// operand: <see cref="ClauseDataName"/> is, and it REFUSES those spellings first (kb/Work PB489), so the
+    /// drop is now unreachable for every clause whose rules make them illegal. Until then, dropping them
+    /// ACCEPTED illegal source instead of rejecting it (kb/Work PB205, measured on a reference-modified RECORD
+    /// KEY). A clause that EXPRESSLY permits a ref-mod — §13.18.16.3 SR4's CONTROL operand and its §13.18.57.3
+    /// SR10 / §13.18.54.3 SR8 twins — must NOT use this helper alone either: it binds as if the operand were
+    /// unmodified, which is a silent wrong answer. Those three go through
+    /// <c>DataBinder.Reports.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
     private static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
     {
         string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
@@ -1215,6 +1219,109 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (s.qualification()?.cobolWord() is { } q)
                 quals.Add(q.GetText());
         return (baseWord, quals);
+    }
+
+    /// <summary>The capture for an operand written where a general format prints <i>data-name-n</i>: the base
+    /// word plus its IN/OF qualifiers (<see cref="KeyReference"/>), SCREENED first by
+    /// <see cref="ScreenClauseOperandShape"/> against the shapes §8.4.2.2.2 Format 1 does not admit.
+    /// <para>⚠ NOT every clause operand goes through here, and the exceptions are principled rather than
+    /// historical: §13.18.16.3 SR4's CONTROL operand and its §13.18.57.3 SR10 / §13.18.54.3 SR8 twins EXPRESSLY
+    /// permit a reference-modifier, so the data-name-n screen would reject source their own rules allow. Those
+    /// three capture with <see cref="KeyReference"/> and apply their own operand rules (kb/Work PB205).</para>
+    /// </summary>
+    private (string Base, IReadOnlyList<string> Quals) ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
+    {
+        if (ScreenClauseOperandShape(dref, clauseFace)) return KeyReference(dref);
+        // REFUSED. The operand is recorded AS WRITTEN — never reduced to a word the programmer did not use as a
+        // data-name, which is the mis-report PB489 measured (`LINAGE IS LINAGE-COUNTER OF LPF LINES` named the
+        // FILE) — and registered so its post-build resolution stays SILENT: the refusal is the cause and the
+        // "references no data item" verdict would be its consequence, not a second fault (cascade control, the
+        // ReportUnidentified precedent). A written reference always contains a space or a parenthesis where a
+        // data-name cannot, so the key can never collide with a real one.
+        string written = WrittenText(dref);
+        _refusedClauseOperands.Add(written);
+        return (written, []);
+    }
+
+    /// <summary>Clause operands whose written shape <see cref="ScreenClauseOperandShape"/> already refused, keyed
+    /// by their source text — read by <see cref="ResolveClauseOperand"/> so one fault draws one verdict.</summary>
+    private readonly HashSet<string> _refusedClauseOperands = new(StringComparer.Ordinal);
+
+    /// <summary>A reference AS THE PROGRAMMER WROTE IT. <c>GetText()</c> concatenates tokens with no separators
+    /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.</summary>
+    private static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) =>
+        ctx.Start.InputStream.GetText(new Antlr4.Runtime.Misc.Interval(ctx.Start.StartIndex, ctx.Stop.StopIndex));
+
+    /// <summary>⛔ THE SHAPES A <i>data-name-n</i> OPERAND MAY NOT BE WRITTEN IN (kb/Work PB489). Where a general
+    /// format prints <c>data-name-n</c>, the reference is a QUALIFIED-DATA-NAME — ISO §8.4.2.2.2 Format 1,
+    /// <c>data-name-1 [ data-qualifier ] … [ file-report-qualifier ]</c> — and nothing else. The grammar feeds
+    /// these clauses the general <c>dataReference</c> nonterminal, which is shared with every procedure-division
+    /// identifier position and therefore also admits the three shapes this screen refuses:
+    /// <list type="bullet">
+    /// <item>a SPECIAL REGISTER — <c>LINAGE-COUNTER</c>, <c>LINE-COUNTER</c> or <c>PAGE-COUNTER</c>. These are
+    /// §8.4.3.1 Format 10 / Format 11 IDENTIFIERS (qualified-linage-counter, qualified-report-counter), not
+    /// qualified-data-names, and each carries its own placement rule besides: §8.4.3.14.3 SR1 —
+    /// <i>"LINAGE-COUNTER may be referenced only in procedure division statements"</i>; §8.4.3.15.3 SR1 restricts
+    /// PAGE-COUNTER and LINE-COUNTER to a report-section SOURCE clause and the procedure division. A file
+    /// description entry is neither.</item>
+    /// <item>a SUBSCRIPT. Subscripting belongs to §8.4.2.3's qualified-data-name-WITH-subscripts, an identifier
+    /// form; Format 1 has no subscript, and each of these clauses independently forbids an operand
+    /// <i>"subject to any OCCURS clauses"</i> (§13.18.34.3 SR1 for LINAGE, §12.4.5.12.3 SR1 / §12.4.5.6.3 SR1 /
+    /// §12.4.5.13.3 SR1 for the keys), so a subscript can never be meaningful here.</item>
+    /// <item>a REFERENCE-MODIFIER. §8.4.3.3.3's closing NOTE: <i>"Because the references to data items are
+    /// restricted to identifiers, where data-name-n is used in a general format or syntax rule, then
+    /// reference-modification is not permitted."</i></item>
+    /// </list>
+    /// <para>⛔ IT IS ONE SCREEN FOR ALL OF THEM because it is one obligation — "this operand is not a
+    /// qualified-data-name" — and the alternative measured badly: the capture used to keep the FIRST cobolWord
+    /// and discard the rest, so <c>LINAGE IS LINAGE-COUNTER OF LPF LINES</c> recorded the FILE NAME as the
+    /// data-name and died at OPEN naming a word the programmer never wrote as a data item, while
+    /// <c>LINAGE IS T-LINES (2) LINES</c> dropped the subscript and crashed the same way (kb/Work PB489). The
+    /// key clauses' own silent drop of a subscript or ref-mod (kb/Work PB205) is the same sentence and ends
+    /// here too.</para></summary>
+    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace)
+    {
+        using var _ = Edition.At(dref);
+        string? register =
+            dref.LINAGE_COUNTER() is not null ? "LINAGE-COUNTER"
+            : dref.LINE_COUNTER() is not null ? "LINE-COUNTER"
+            : dref.PAGE_COUNTER() is not null ? "PAGE-COUNTER" : null;
+        if (register is not null)
+        {
+            Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
+                $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n, which is a "
+                + "qualified-data-name (ISO §8.4.2.2.2 Format 1); "
+                + $"{register} is a special register — an identifier of §8.4.3.1 "
+                + $"Format {(register == "LINAGE-COUNTER" ? "10" : "11")} — and "
+                + (register == "LINAGE-COUNTER"
+                    ? "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §8.4.3.14.3 SR1)"
+                    : "may be referenced only in a report-section SOURCE clause or in the procedure division "
+                      + "(ISO §8.4.3.15.3 SR1)"));
+            return false;   // one true sentence: the operand is not a data-name, so its suffixes say nothing more
+        }
+        // A subscript or a reference-modifier may be written on the base word OR on a qualifier (`qualification`
+        // carries both suffix kinds too), and it is the same violation in either place: every name in
+        // §8.4.2.2.2 Format 1 — data-name-1 and each data-name-2 — is a bare data-name.
+        bool subscripted = false, refModified = false;
+        foreach (var s in dref.dataReferenceSuffix())
+        {
+            subscripted |= s.subscriptPart() is not null;
+            refModified |= s.refModPart() is not null;
+            if (s.qualification() is not { } q) continue;
+            subscripted |= q.subscriptPart().Length > 0;
+            refModified |= q.refModPart().Length > 0;
+        }
+        if (subscripted)
+            Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
+                $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints "
+                + "data-name-n, which is a qualified-data-name (ISO §8.4.2.2.2 Format 1) and carries no subscript "
+                + "— subscripting is §8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and the "
+                + "operand shall not be subject to any OCCURS clauses");
+        else if (refModified)
+            Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
+                $"{clauseFace} '{WrittenText(dref)}' is reference-modified; \"where data-name-n is used in a general "
+                + "format or syntax rule, then reference-modification is not permitted\" (ISO §8.4.3.3.3 NOTE)");
+        return !subscripted && !refModified;
     }
 
     /// <summary>Bind the FILE SECTION's FD records into the storage forest (they emit as Program fields, like
@@ -1403,8 +1510,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Bind a RECORD clause's variable-length forms into <see cref="FileModel.Varying"/> (ISO §13.18.43:
     /// <c>RECORD IS VARYING [FROM m] [TO n] [DEPENDING ON d]</c> and <c>RECORD CONTAINS m TO n</c> describe
     /// variable-length records; the fixed Format-1 <c>RECORD CONTAINS n</c> leaves it null). Shared by the FD and
-    /// SD loops — ONE binding for the clause. The DEPENDING name keeps only the base word (the FILE STATUS
-    /// capture pattern) and resolves post-build in <see cref="ResolveFiles"/>.</summary>
+    /// SD loops — ONE binding for the clause. The DEPENDING operand is a qualified-data-name like every other
+    /// clause operand (<see cref="ClauseDataName"/>) and resolves post-build in <see cref="ResolveFiles"/>; it
+    /// kept only the base word until kb/Work PB489, so a qualified one bound another item of that name.</summary>
     private void BindRecordClause(Core.RecordClauseContext rc, FileModel file)
     {
         // ⛔ The clause's OWN position, captured here for §13.18.43.3's syntax rules, which are screened
@@ -1425,25 +1533,49 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         int? lo = lits.Length > 0 ? int.Parse(lits[0].GetText()) : null;
         int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
-        string? dep = rc.dataReference() is { } d ? d.cobolWord()?.GetText() ?? d.GetText() : null;
+        string? dep = null;
+        IReadOnlyList<string> depQuals = [];
+        Editions.DiagnosticCursor depAt = default;
+        if (rc.dataReference() is { } d)
+        {
+            (dep, depQuals) = ClauseDataName(d, "RECORD … DEPENDING ON");
+            // The OPERAND's own position, inside the clause cursor kb/Work PB721 pushed at the method top.
+            using var _dep = Edition.At(d);
+            depAt = Edition.Cursor;
+        }
         // FORMAT 2 vs FORMAT 3: the WORD VARYING is the discriminator, and it is load-bearing — §13.18.43.4 GR16
         // (the READ/RETURN INTO sending size) sits under the FORMAT 2 heading and §14.9.30.4 GR4 b) designates
         // the implied move an alphanumeric group move only for a RECORD IS VARYING clause (kb/Work PB339).
-        file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: rc.VARYING() is not null);
+        file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: rc.VARYING() is not null)
+        {
+            DependingQualifiers = depQuals, DependingAt = depAt,
+        };
     }
 
     /// <summary>Bind a LINAGE clause into <see cref="FileModel.Linage"/> (ISO §13.18.34: <c>LINAGE IS
     /// {data-name-1 | integer-1} LINES [WITH FOOTING AT {data-name-2 | integer-2}] [LINES AT TOP
     /// {data-name-3 | integer-3}] [LINES AT BOTTOM {data-name-4 | integer-4}]</c>). Each operand is a fixed
-    /// literal (GR6a) or a data-name (GR6b — read at the evaluation points); a data-name keeps only the base
-    /// word (the FILE STATUS capture pattern) and resolves post-build in <see cref="ResolveFiles"/>. Absent
-    /// FOOTING/TOP/BOTTOM phrases stay null (GR1 — margins zero; no footing ⇒ no end-of-page condition
-    /// independent of page overflow).</summary>
-    private static void BindLinageClause(Core.LinageClauseContext lc, FileModel file)
+    /// literal (GR6a) or a data-name (GR6b — read at the evaluation points), resolved post-build by
+    /// <see cref="ResolveLinage"/>. Absent FOOTING/TOP/BOTTOM phrases stay null (GR1 — margins zero; no footing
+    /// ⇒ no end-of-page condition independent of page overflow).
+    /// <para>⛔ A DATA-NAME OPERAND KEEPS ITS WHOLE WRITTEN REFERENCE. It used to keep
+    /// <c>d.cobolWord()?.GetText()</c> — the FIRST word — "the FILE STATUS capture pattern", which is wrong
+    /// wherever the name can be QUALIFIED: §13.18.34.2 prints <i>data-name-1</i>, a qualified-data-name
+    /// (§8.4.2.2.2 Format 1), so <c>LINAGE IS SZ OF GRP-B LINES</c> is legal and — with two SZs — the only legal
+    /// spelling, and the IN/OF qualifier was thrown away and the first same-named item bound instead. The whole
+    /// logical page was then built on another item's value with no diagnostic at any stage (kb/Work PB489,
+    /// measured: EOP / LINAGE-COUNTER 1 where the standard requires NO-EOP / 5). For the special-register
+    /// alternative the first cobolWord is the FILE-NAME QUALIFIER, so the clause recorded the file name as its
+    /// data-name; <see cref="KeyReference"/> refuses that spelling outright.</para></summary>
+    private void BindLinageClause(Core.LinageClauseContext lc, FileModel file)
     {
-        static LinageOperand Operand(Core.DataReferenceContext? d, Core.IntegerLiteralContext? i) =>
-            i is not null ? new LinageOperand(int.Parse(i.GetText()), null)
-            : new LinageOperand(null, d!.cobolWord()?.GetText() ?? d.GetText());
+        LinageOperand Operand(Core.DataReferenceContext? d, Core.IntegerLiteralContext? i)
+        {
+            if (i is not null) return new LinageOperand(int.Parse(i.GetText()), null);
+            var (name, quals) = ClauseDataName(d!, "LINAGE clause operand");
+            using var _ = Edition.At(d!);
+            return new LinageOperand(null, name) { Qualifiers = quals, At = Edition.Cursor };
+        }
         file.Linage = new LinageInfo(
             Operand(lc.dataReference(), lc.integerLiteral()),
             lc.linageFootingPhrase() is { } f ? Operand(f.dataReference(), f.integerLiteral()) : null,
@@ -1522,27 +1654,40 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
     }
 
-    /// <summary>Resolve each file's FILE STATUS data-name to its item (post-build, once the forest is indexed).</summary>
+    /// <summary>Post-build (once the forest is indexed), resolve every file's data-name clause operands — FILE
+    /// STATUS, the keys, ASSIGN … USING, RECORD … DEPENDING ON and the LINAGE operands — and run the syntax
+    /// rules of the file control entry and of the LINAGE clause that need a RESOLVED data item (design D19/D25).
+    /// Every operand goes through <see cref="ResolveClauseOperand"/> or <see cref="QualifiedCandidates"/>: ONE
+    /// ISO §8.4.2.2 resolution, never a per-clause first-match lookup (kb/Work PB489).</summary>
     internal void ResolveFiles()
     {
         foreach (var file in Files)
         {
-            if (file.FileStatusName is { } sn && ByName.TryGetValue(sn, out var list) && list.Count > 0)
-                file.FileStatusItem = list[0];
+            if (file.FileStatusName is { } sn)
+                file.FileStatusItem = ResolveClauseOperand(sn, file.FileStatusQualifiers, "FILE STATUS", file.FileStatusAt);
             // Keyed organizations: RECORD KEY / ALTERNATE RECORD KEY name items WITHIN the file's record
             // descriptions (ISO §12.4.5.12 SR2 / §12.4.5.6 SR2), possibly IN/OF-qualified (§8.4.2.2 — same-named
             // keys under different areas, IX215A); RELATIVE KEY is OUTSIDE the record (ISO §12.4.5.13 SR3) —
             // a plain name lookup.
-            DataItem? InRecords(string keyName, IReadOnlyList<string> quals) =>
-                file.Records.Select(r => FindQualified(r, keyName, quals)).FirstOrDefault(x => x is not null)
-                ?? (quals.Count == 0 && ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
+            // ⛔ THE KEY CLAUSES KEEP THEIR OWN SELECTION, and it is not the uniqueness rule: SR2 puts the key
+            // INSIDE one of this file's record descriptions, so where §8.4.2.2 leaves several candidates the one
+            // in a record of THIS file is the one the clause means, and an operand that resolves outside them is
+            // the case SR2's own FileControlKeyRules row reports. What changed with kb/Work PB489 is only WHERE
+            // the candidates come from — the one §8.4.2.2 resolver, so the file-name qualifier (§8.4.2.2.2
+            // Format 1's file-report-qualifier) works here too, instead of a private record-subtree walk.
+            DataItem? InRecords(string keyName, IReadOnlyList<string> quals)
+            {
+                var cands = QualifiedCandidates(keyName, quals, Model.Scope.Program);
+                return cands.FirstOrDefault(i => RecordLayout.IsInRecordOfFile(file, i))
+                    ?? (cands.Count > 0 ? cands[0] : null);
+            }
             if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers);
             foreach (var clause in file.AlternateKeyNames)
                 if ((clause.Item = InRecords(clause.Name, clause.Qualifiers)) is { } alt)
                     file.AlternateKeys.Add((alt, clause.Duplicates, clause.Suppress));
             ResolveFileCollating(file);   // §12.4.5.7 — per-key collating weights (needs the resolved keys)
-            if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
-                file.RelativeKeyItem = rlist[0];
+            if (file.RelativeKeyName is { } rl)
+                file.RelativeKeyItem = ResolveClauseOperand(rl, file.RelativeKeyQualifiers, "RELATIVE KEY", file.RelativeKeyAt);
             ResolveAssignUsing(file);   // §12.4.5.3 GR3 b + §12.4.5.2 SR7
             // ⛔ THE FILE CONTROL ENTRY'S OWN SYNTAX RULES, screened HERE — at the ENTRY, for EVERY declared file,
             // whatever the procedure division does with it. They used to run from KeyedIoBinder on the first keyed
@@ -1557,14 +1702,78 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             RecordClauseRules.Screen(file, Edition);
             // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the
             // length register WRITE/REWRITE/RELEASE read per GR13a and READ/RETURN set per GR15).
-            if (file.Varying?.DependingName is { } vn && ByName.TryGetValue(vn, out var vlist) && vlist.Count > 0)
-                file.VaryingDependingItem = vlist[0];
-            // LINAGE data-name operands (ISO §13.18.34 GR6b) name elementary unsigned integer items not subject
-            // to OCCURS (SR1/SR2) — a plain name lookup, exactly the VaryingDependingItem pattern.
-            if (file.Linage is { } lin)
-                foreach (var op in lin.Operands)
-                    if (op.DataName is { } ln && ByName.TryGetValue(ln, out var llist) && llist.Count > 0)
-                        op.Item = llist[0];
+            if (file.Varying?.DependingName is { } vn)
+                file.VaryingDependingItem = ResolveClauseOperand(
+                    vn, file.Varying.DependingQualifiers, "RECORD … DEPENDING ON", file.Varying.DependingAt);
+            ResolveLinage(file);   // §13.18.34 — the logical-page operands and §13.18.34.3's syntax rules
+        }
+    }
+
+    /// <summary>⭐ ONE OPERAND OF A FILE'S data-name CLAUSE, RESOLVED (kb/Work PB489) — FILE STATUS, RELATIVE KEY,
+    /// RECORD … DEPENDING ON, and each LINAGE operand. Every one of these clauses prints <i>data-name-n</i>, so
+    /// every one of them means a qualified-data-name resolved by ISO §8.4.2.2, and the number of survivors is the
+    /// answer: §8.4.2.2.1 — <i>"uniqueness shall be established through qualification for each user-defined name
+    /// explicitly referenced"</i> — and §8.4.2.2.3 SR1 repeats it. Exactly one resolves; zero or several is a
+    /// resolution failure REPORTED HERE.
+    /// <para>⛔ THE FIRST-MATCH LOOKUP THIS REPLACES WAS THE SAME LINE IN FOUR PLACES:
+    /// <c>ByName.TryGetValue(n, out var l) &amp;&amp; l.Count &gt; 0 ? l[0] : null</c>, which answered an ambiguous
+    /// reference with the first declaration in source order and an undeclared one with silence. On the LINAGE
+    /// clause that was a measured silent wrong answer (<c>LINAGE IS SZ LINES</c> with two SZs built the whole
+    /// page model on the first), and on the other three it was never probed at all.</para>
+    /// <para>It reports under the SAME descriptor as the procedure division's own unidentified reference
+    /// (COBOLNET1639): the rule broken is §8.4.2.1/§8.4.2.2, not a rule of the clause, and a user who mis-qualifies
+    /// a name in a WRITE and in a LINAGE clause has broken one rule and should read one verdict.</para></summary>
+    private DataItem? ResolveClauseOperand(string name, IReadOnlyList<string> quals, string clauseFace,
+                                           Editions.DiagnosticCursor at)
+    {
+        var survivors = QualifiedCandidates(name, quals, Model.Scope.Program);
+        if (survivors.Count == 1) return survivors[0];
+        if (_refusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
+        using var __ = Edition.At(at);
+        string written = quals.Count == 0 ? name : name + " OF " + string.Join(" OF ", quals);
+        Edition.Error(DiagnosticCatalog.UndefinedReference, survivors.Count == 0
+            ? $"{clauseFace} '{written}': the clause's data-name references no data item — "
+              + (Symbols.TryResolve(name, Model.Scope.Program, out _)
+                  ? $"'{name}' is declared, but not under the given qualifier{(quals.Count == 1 ? "" : "s")} "
+                    + "(ISO §8.4.2.2 — qualification shall establish uniqueness)"
+                  : $"no declaration in this source element gives the name '{name}' (ISO §8.4.2.1: \"a statement "
+                    + "shall contain a reference that uniquely identifies that resource\")")
+            : $"{clauseFace} '{written}' does not uniquely identify a data item — {survivors.Count} declarations "
+              + "match the written reference (ISO §8.4.2.2.3 SR1: \"For each non unique user-defined name that is "
+              + "explicitly referenced, uniqueness shall be established through a sequence of qualifiers that "
+              + "precludes any ambiguity of reference\")");
+        return null;
+    }
+
+    /// <summary>Resolve the LINAGE clause's data-name operands and screen the clause's own syntax rules
+    /// (ISO §13.18.34.3) — the FD-clause twin of <see cref="ResolveFileCollating"/>, run post-build because an
+    /// operand's OCCURS ancestry is unknown until the data forest is indexed.
+    /// <para>SR1, <i>"Data-name-1, data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS
+    /// clauses"</i>, is screened here. It had NO site at all: <c>LINAGE IS T-LINES LINES</c> over a table element
+    /// compiled clean and died at OPEN OUTPUT with a runtime "not resolvable to storage" throw, which is a
+    /// process kill where the standard requires a compile-time rejection (kb/Work PB489/PB524, measured). The
+    /// WRITTEN subscript form — <c>LINAGE IS T-LINES (2) LINES</c> — is refused earlier, at the capture, because
+    /// §13.18.34.2 prints data-name-1 and a subscript is not part of a qualified-data-name.</para>
+    /// <para>⛔ SR2 (elementary unsigned numeric integer) and SR3 (integer-2 not greater than integer-1) belong
+    /// to kb/Work PB524 and are ONE MORE TEST EACH in this method — SR2 over <see cref="LinageOperand.Item"/>'s
+    /// PICTURE, SR3 over the two literals <see cref="BindLinageClause"/> already has in hand. They are named here
+    /// rather than left implicit so the next fixer adds a test beside these, not a screen somewhere else.</para>
+    /// </summary>
+    private void ResolveLinage(FileModel file)
+    {
+        if (file.Linage is not { } lin) return;
+        foreach (var op in lin.Operands)
+        {
+            if (op.DataName is not { } name) continue;   // GR6 a) — a literal operand has no data item
+            op.Item = ResolveClauseOperand(name, op.Qualifiers, "LINAGE clause operand", op.At);
+            if (op.Item is { } item && RecordLayout.IsSubjectToOccurs(item))
+            {
+                using var _ = Edition.At(op.At);
+                Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
+                    $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
+                    + "data-name-3, and data-name-4 shall not be subject to any OCCURS clauses "
+                    + "(ISO §13.18.34.3 SR1)");
+            }
         }
     }
 
@@ -1584,9 +1793,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         if (file.AssignUsingName is not { } dynName) return;
         using var _ = Edition.At(file.AssignUsingAt);
-        DataItem? item = ByName.TryGetValue(dynName, out var list)
-            ? list.FirstOrDefault(i => QualifiersMatch(i, file.AssignUsingQualifiers))
-            : null;
+        // The §8.4.2.2 candidate set (kb/Work PB489 — one resolver); SR7's own verdict below speaks for a
+        // reference that survives nothing, so this site reports the category sentence rather than a second
+        // uniqueness one.
+        DataItem? item = QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program)
+            .FirstOrDefault();
         if (item is null || !ItemCategory.IsAlphanumeric(item))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
@@ -5530,28 +5741,55 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return null;
     }
 
-    /// <summary>Find a (possibly qualified) item within a record subtree: the base name matches the item and
-    /// every IN/OF qualifier matches SOME ancestor, in written (innermost→outermost) order with skips allowed —
-    /// ISO §8.4.2.2 qualification. Identically-named items under different areas are legal and disambiguated by
-    /// their qualifiers (IX215A's three same-named keys).</summary>
-    private static DataItem? FindQualified(DataItem root, string name, IReadOnlyList<string> quals)
+    /// <summary>⭐ THE ONE ISO §8.4.2.2 QUALIFICATION RESOLVER (kb/Work PB489). Every in-scope declaration of
+    /// <paramref name="name"/> whose ancestor chain carries each written qualifier in order (inner → outer,
+    /// §8.4.2.2.2 Format 1 — qualifiers need not name consecutive levels), with the OUTERMOST qualifier
+    /// optionally naming the owning FILE instead: Format 1 is
+    /// <c>data-name-1 [ data-qualifier ] … [ file-report-qualifier ]</c>, so the FD/SD is the highest permissible
+    /// qualifier (SQ207M's <c>WRITE PRINT-REC IN PRINT-FILE</c>).
+    /// <para>⛔ IT RETURNS THE CANDIDATE SET, NOT A WINNER, because §8.4.2.2.1 makes the number of survivors the
+    /// whole answer: "uniqueness shall be established through qualification for each user-defined name explicitly
+    /// referenced". One survivor resolves; zero or several is a resolution FAILURE the caller reports. A caller
+    /// that took the first survivor would be substituting declaration order for the standard's uniqueness
+    /// requirement — which is exactly what the file-clause lookups did (a bare <c>ByName[n][0]</c>) until PB489,
+    /// so <c>LINAGE IS SZ LINES</c> with two SZs silently built the whole page model on the first-declared one.
+    /// </para>
+    /// <para>⛔ AND IT IS THE ONLY COPY. The binder used to carry a weaker private twin
+    /// (<c>FindQualified</c>/<c>QualifiersMatch</c>) that matched the IN/OF chain but knew nothing about the
+    /// file-name qualifier and never counted survivors, beside <c>ReferenceResolver.ResolveQualified</c>, which
+    /// did both — one rule written down twice, with the procedure division reading the complete one and the data
+    /// division the partial one (feedback_one_rule_one_place). <see cref="ReferenceResolver"/> now calls this.
+    /// </para></summary>
+    internal List<DataItem> QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
     {
-        if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase) && QualifiersMatch(root, quals))
-            return root;
-        foreach (var c in root.Children)
-            if (FindQualified(c, name, quals) is { } f) return f;
-        return null;
+        List<DataItem> survivors = [];
+        if (Symbols.TryResolve(name, scope, out var candidates))
+            foreach (var cand in candidates)
+                if (QualifierChainMatches(cand, quals) && !survivors.Contains(cand))
+                    survivors.Add(cand);
+        return survivors;
     }
 
-    /// <summary>ISO §8.4.2.2 — does <paramref name="item"/> satisfy the IN/OF qualifier chain <paramref name="quals"/>
-    /// (innermost first, matched against successive ancestors, gaps allowed)? Lifted out of
-    /// <see cref="FindQualified"/> so the forest-wide lookups (ASSIGN … USING) and the record-scoped ones (RECORD KEY
-    /// / ALTERNATE RECORD KEY) apply ONE qualification rule rather than a copy each.</summary>
-    private static bool QualifiersMatch(DataItem item, IReadOnlyList<string> quals)
+    /// <summary>True when every qualifier names strictly-superordinate context of <paramref name="cand"/>,
+    /// consumed inner → outer with gaps allowed (ISO §8.4.2.2.3 SR4 — "Qualifiers shall be specified in the order
+    /// of successively more inclusive levels in the hierarchy"); when the data ancestors are exhausted, the
+    /// OUTERMOST remaining qualifier may instead name the file whose FD/SD owns the candidate's record
+    /// (§8.4.2.2.2 Format 1's <i>file-report-qualifier</i>).</summary>
+    internal bool QualifierChainMatches(DataItem cand, IReadOnlyList<string> qualifiers)
     {
-        int qi = 0;
-        for (DataItem? a = item.Parent; a is not null && qi < quals.Count; a = a.Parent)
-            if (string.Equals(a.CobolName, quals[qi], StringComparison.OrdinalIgnoreCase)) qi++;
-        return qi == quals.Count;
+        DataItem? anc = cand.Parent;
+        for (int qi = 0; qi < qualifiers.Count; qi++)
+        {
+            string q = qualifiers[qi];
+            while (anc is not null && !string.Equals(anc.CobolName, q, StringComparison.OrdinalIgnoreCase))
+                anc = anc.Parent;
+            if (anc is not null) { anc = anc.Parent; continue; }
+            // Data ancestors exhausted: only the OUTERMOST remaining qualifier may be the file name.
+            if (qi != qualifiers.Count - 1 || !FilesByName.TryGetValue(q, out var file)) return false;
+            DataItem root = cand;
+            while (root.Parent is { } p) root = p;
+            return file.Records.Contains(root);
+        }
+        return true;
     }
 }

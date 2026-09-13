@@ -1431,6 +1431,72 @@ standard permits or is silent on source it forbids, and neither shows up as a co
 The three spec-reading helpers both drift guards need now live in `tests/_shared/SpecClauseText.cs` rather than
 as a second paste.
 
+### D25. A file clause's `data-name-n` operand is a QUALIFIED-DATA-NAME: ONE capture that refuses every other written shape, and ONE ISO §8.4.2.2 resolver whose answer is the NUMBER of survivors — never a base word plus a first-match lookup.
+
+**The rule.** §8.4.2.2.2 Format 1 defines a qualified-data-name as `data-name-1 [ data-qualifier ] …
+[ file-report-qualifier ]`, and §8.4.2.2.1 makes uniqueness the operand's obligation: *"uniqueness shall be
+established through qualification for each user-defined name explicitly referenced"* (§8.4.2.2.3 SR1 repeats it;
+SR2 permits qualification even where it is unnecessary). So every clause that prints `data-name-n` — LINAGE
+(§13.18.34.2), FILE STATUS (§12.4.5.8), RECORD KEY, ALTERNATE RECORD KEY, RELATIVE KEY, ASSIGN … USING,
+RECORD … DEPENDING ON — means exactly that reference, and exactly that resolution.
+
+**What it replaced.** Each of those clauses captured its operand as `d.cobolWord()?.GetText() ?? d.GetText()` —
+the FIRST word of the written reference, every IN/OF qualifier discarded — and then resolved it with
+`ByName.TryGetValue(n, out var l) && l.Count > 0 ? l[0] : null`, the first declaration of that name in source
+order. Both halves are silent. On the LINAGE clause the pair was a measured wrong answer: `LINAGE IS SZ OF GRP-B
+LINES` over `01 GRP-A. 05 SZ VALUE 3.` and `01 GRP-B. 05 SZ VALUE 9.` built the whole logical page on GRP-A's
+value, with empty compile output, and moving the two VALUE clauses between the groups changed the program's
+behaviour with no other edit (kb/Work PB489). For the special-register alternative of the shared `dataReference`
+nonterminal the first word is the FILE-NAME QUALIFIER, so `LINAGE IS LINAGE-COUNTER OF LPF LINES` recorded the
+file name as the clause's data-name and died at OPEN naming a word the programmer never wrote as a data item.
+
+**Where it lives.** Three members of `DataBinder`, and nothing else:
+
+- **`QualifiedCandidates(name, quals, scope)`** — THE §8.4.2.2 matcher: every in-scope declaration whose ancestor
+  chain carries the qualifiers inner → outer with gaps allowed (§8.4.2.2.3 SR4), the outermost qualifier
+  optionally the owning FILE (Format 1's `file-report-qualifier`). It returns the SET, because the count is the
+  standard's answer. `ReferenceResolver.ResolveQualified` — which used to own the only complete copy, while the
+  binder carried a weaker private twin that knew neither the file-name qualifier nor uniqueness — now calls it.
+- **`ClauseDataName(dref, clauseFace)`** — the capture, screened by `ScreenClauseOperandShape` against the three
+  shapes a `data-name-n` position does not admit → **COBOLNET2024**: a SPECIAL REGISTER (LINAGE-COUNTER /
+  LINE-COUNTER / PAGE-COUNTER are §8.4.3.1 Format 10 / Format 11 identifiers, and §8.4.3.14.3 SR1 / §8.4.3.15.3
+  SR1 confine them to the procedure division), a SUBSCRIPT (§8.4.2.3's *with-subscripts* form is an identifier,
+  and each of these clauses independently bans an operand subject to an OCCURS clause), and a
+  REFERENCE-MODIFIER (§8.4.3.3.3's NOTE). A refused operand is recorded AS WRITTEN and its later resolution stays
+  silent — one fault, one verdict.
+- **`ResolveClauseOperand(name, quals, face, at)`** — the resolution, reporting a zero- or many-survivor outcome
+  under **COBOLNET1639**, the same descriptor the procedure division's own unidentified reference uses: the rule
+  broken is §8.4.2.1/§8.4.2.2, not a rule of the clause.
+
+**The exceptions, and why they are principled.** The REPORT SECTION's SOURCE (§13.18.53), SUM (§13.18.54) and
+CONTROL (§13.18.16) operands capture with the unscreened `KeyReference` and apply their own rules, because
+§13.18.16.3 SR4 and its twins EXPRESSLY permit a reference-modifier there — the generic screen would reject
+source those clauses allow. The KEY clauses keep their own SELECTION among the candidates (§12.4.5.12.3 SR2 puts
+the key inside a record description of the file), but take the candidates from the one matcher.
+
+**The LINAGE clause's own syntax rules** live in `DataBinder.ResolveLinage`, the FD-clause twin of
+`ResolveFileCollating` and D19's `ResolveFiles` arm: §13.18.34.3 **SR1** (*"Data-name-1, data-name-2,
+data-name-3, and data-name-4 shall not be subject to any OCCURS clauses"*) → **COBOLNET2025**. It had no site at
+all — a LINAGE operand naming a table element compiled clean and killed the process at OPEN OUTPUT. SR2
+(elementary unsigned numeric integer) and SR3 (integer-2 ≤ integer-1) are one more test each in the same method
+and belong to kb/Work PB524. §8.4.3.14.3 **SR2**, *"The LINAGE-COUNTER identifier shall not be referenced as a
+receiving operand"*, is the third arm of `ExpressionBinder.ResolveReceiving`'s register dispatch →
+**COBOLNET2026**; LINE-COUNTER and PAGE-COUNTER had arms and LINAGE-COUNTER did not, so permanently illegal
+source was refused as a not-yet-implemented receiver shape.
+
+**Pinned by** `ClauseOperandQualificationSpecTests` (behaviour, all four editions: the qualified operand of each
+clause binds the qualified item, the ambiguous one is refused) and `ClauseOperandCaptureDriftTests` (shape: the
+first-word reduction and the §8.4.2.2 matcher are each written down ONCE, and `ResolveFiles` holds no first-match
+lookup — every assertion was red on the pre-change tree).
+
+**Rejected alternatives.** *A row in `FileControlKeyRules`* — that table's organizing axis is §12.4.5.1's four
+FORMATS (its `FileKinds` set and its format-vs-disjoint invariant exist for §12.4.5.2 SR8/SR9), and the LINAGE
+clause is an FD clause with no format axis at all; widening it would have meant a class rename rippling through
+every inventory `code-location` that names it. *Leave the key clauses on their record-subtree walk* — that walk
+was the second copy of the qualification rule, and it could not see the file-name qualifier. *Report the
+resolution failure for an already-refused shape* — a second verdict for one fault, and the shape refusal is the
+cause.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

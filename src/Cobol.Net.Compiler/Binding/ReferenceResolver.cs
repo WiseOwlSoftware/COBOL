@@ -266,7 +266,7 @@ public sealed class ReferenceResolver(DataBinder data)
         else
         {
             int matches = 0;
-            foreach (var c in candidates) if (QualifierChainMatches(c, qualifiers)) matches++;
+            foreach (var c in candidates) if (data.QualifierChainMatches(c, qualifiers)) matches++;
             msg = matches > 1
                 ? $"'{text}' does not uniquely identify a data item — {matches} declarations of '{name}' match "
                   + "the written qualifiers (ISO §8.4.2.2 — qualification shall establish uniqueness; write "
@@ -1053,35 +1053,14 @@ public sealed class ReferenceResolver(DataBinder data)
     /// ambiguous qualifiers" case). Level-66 RENAMES aliases are registered names with the owning record as
     /// <see cref="DataItem.Parent"/>, so <c>HARRY OF A-GLOB</c> (NC209A) matches through the same chain.</para>
     /// </summary>
+    /// <para>⛔ THE MATCHING ITSELF LIVES ON <see cref="DataBinder.QualifiedCandidates"/> — ONE §8.4.2.2 resolver
+    /// for the procedure division AND the file-description / file-control clauses, which used to carry a weaker
+    /// private copy of it (kb/Work PB489). What stays here is only this format's decision about the survivors:
+    /// exactly one resolves.</para>
     private DataItem? ResolveQualified(string name, List<string> qualifiers)
     {
-        List<DataItem> survivors = [];
-        if (data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
-            foreach (var cand in candidates)
-                if (QualifierChainMatches(cand, qualifiers) && !survivors.Contains(cand))
-                    survivors.Add(cand);
+        var survivors = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
         return survivors.Count == 1 ? survivors[0] : null;
-    }
-
-    /// <summary>True when every qualifier names strictly-superordinate context of <paramref name="cand"/>,
-    /// consumed inner → outer; when the data ancestors are exhausted, the OUTERMOST qualifier may instead
-    /// name the file whose FD/SD owns the candidate's record.</summary>
-    private bool QualifierChainMatches(DataItem cand, List<string> qualifiers)
-    {
-        DataItem? anc = cand.Parent;
-        for (int qi = 0; qi < qualifiers.Count; qi++)
-        {
-            string q = qualifiers[qi];
-            while (anc is not null && !string.Equals(anc.CobolName, q, StringComparison.OrdinalIgnoreCase))
-                anc = anc.Parent;
-            if (anc is not null) { anc = anc.Parent; continue; }
-            // Data ancestors exhausted: only the OUTERMOST remaining qualifier may be the file name.
-            if (qi != qualifiers.Count - 1 || !data.FilesByName.TryGetValue(q, out var file)) return false;
-            DataItem root = cand;
-            while (root.Parent is { } p) root = p;
-            return file.Records.Contains(root);
-        }
-        return true;
     }
 
     // ── Access-path construction (subscripts attach to OCCURS levels, outer→inner) ───────────────────────

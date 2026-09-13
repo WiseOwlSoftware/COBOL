@@ -3281,6 +3281,67 @@ public static class DiagnosticCatalog
         + "EC-STORAGE-NOT-AVAIL.",
         "ISO §8.5.1.10.1 / §13.18.19.4 GR2 / Annex A.1 item 62");
 
+    /// <summary>COBOLNET2024 — a file's clause operand is written in a shape a <i>data-name-n</i> position does
+    /// not admit (kb/Work PB489). Where a general format prints data-name-n the reference is a
+    /// QUALIFIED-DATA-NAME — ISO §8.4.2.2.2 Format 1, <c>data-name-1 [ data-qualifier ] … [
+    /// file-report-qualifier ]</c> — and the grammar's shared <c>dataReference</c> nonterminal also admits three
+    /// shapes that are not one: a SPECIAL REGISTER (LINAGE-COUNTER / LINE-COUNTER / PAGE-COUNTER are §8.4.3.1
+    /// Format 10 / Format 11 identifiers, and §8.4.3.14.3 SR1 / §8.4.3.15.3 SR1 confine them to the procedure
+    /// division — and, for the report counters, a report-section SOURCE clause), a SUBSCRIPT (§8.4.2.3's
+    /// qualified-data-name-WITH-subscripts is an identifier form, and each of these clauses independently forbids
+    /// an operand subject to an OCCURS clause), and a REFERENCE-MODIFIER (§8.4.3.3.3's NOTE: "where data-name-n
+    /// is used in a general format or syntax rule, then reference-modification is not permitted").
+    /// <para>ONE code for the three because it is one obligation — the operand is not a qualified-data-name —
+    /// and the message names which shape was written. The alternative was measured: the binder used to keep the
+    /// FIRST word of the reference and discard the rest, so <c>LINAGE IS LINAGE-COUNTER OF LPF LINES</c> recorded
+    /// the FILE NAME as the clause's data-name and died at OPEN naming a word the programmer never wrote as a
+    /// data item (kb/Work PB489), and a subscripted or reference-modified key was accepted with the modifier
+    /// silently dropped (kb/Work PB205).</para></summary>
+    public static readonly DiagnosticDescriptor ClauseOperandNotADataName = new(
+        "COBOLNET2024", "clause-operand-not-a-data-name", EditionSeverity.Error,
+        "A file description or file control clause operand written where the clause's general format prints "
+        + "data-name-n is not a qualified-data-name (ISO §8.4.2.2.2 Format 1): it is a special register "
+        + "(LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER — §8.4.3.1 Format 10 / Format 11 identifiers, confined "
+        + "to the procedure division by §8.4.3.14.3 SR1 and §8.4.3.15.3 SR1), or it carries a subscript "
+        + "(§8.4.2.3 — an identifier form; the operand shall not be subject to any OCCURS clauses), or it is "
+        + "reference-modified (§8.4.3.3.3 NOTE). Write a data-name, with IN/OF qualifiers if it needs them.",
+        "ISO §8.4.2.2.2 / §8.4.2.3 / §8.4.3.1 / §8.4.3.3.3 / §8.4.3.14.3 / §8.4.3.15.3");
+
+    /// <summary>COBOLNET2025 — the LINAGE clause's own operand syntax rules (ISO §13.18.34.3), screened at the
+    /// file description entry once the data forest is indexed (kb/Work PB489). SR1 — "Data-name-1, data-name-2,
+    /// data-name-3, and data-name-4 shall not be subject to any OCCURS clauses" — had no site at all: a LINAGE
+    /// operand naming a table element compiled clean and killed the process at OPEN OUTPUT with a runtime
+    /// "not resolvable to storage" throw, where §4.2.2 requires a compile-time indication.
+    /// <para>SR2 (elementary unsigned numeric integer) and SR3 (integer-2 not greater than integer-1) are one
+    /// more test each in the same screen and belong to kb/Work PB524; they report under this code when they
+    /// land, because the subject is the same — this clause's operand breaking one of its own syntax rules — and
+    /// the message names the rule it caught.</para></summary>
+    public static readonly DiagnosticDescriptor LinageClauseOperandRule = new(
+        "COBOLNET2025", "linage-clause-operand-rule", EditionSeverity.Error,
+        "A LINAGE clause operand breaks one of the clause's syntax rules (ISO §13.18.34.3): SR1 — \"Data-name-1, "
+        + "data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS clauses\". The site "
+        + "names the rule it caught.",
+        "ISO §13.18.34.3");
+
+    /// <summary>COBOLNET2026 — LINAGE-COUNTER as a RECEIVING operand (kb/Work PB489). §8.4.3.14.3 SR2: "The
+    /// LINAGE-COUNTER identifier shall not be referenced as a receiving operand", and §13.18.34.4 GR7 b) gives
+    /// the reason — "only the input-output control system may change the value of LINAGE-COUNTER".
+    /// <para>⛔ IT EXISTS BECAUSE THE ARM WAS MISSING, NOT BECAUSE THE OUTCOME WAS. The receiving chokepoint
+    /// screened LINE-COUNTER with a rule-citing rejection and PAGE-COUNTER with a correctly-labelled
+    /// not-yet-implemented, while LINAGE-COUNTER — the only one of the three that is flatly ILLEGAL as a
+    /// receiver — had no arm and inherited the catch-all, so permanently illegal source was reported as "a
+    /// reference shape COBOL.NET does not yet implement as a receiver" (COBOLNET0899). A user reads that as a
+    /// promise and a future implementer reads it as a gap to close (feedback_two_arm_dispatch).</para></summary>
+    public static readonly DiagnosticDescriptor LinageCounterReceiving = new(
+        "COBOLNET2026", "linage-counter-receiving", EditionSeverity.Error,
+        "LINAGE-COUNTER is referenced as a receiving operand. ISO §8.4.3.14.3 SR2: \"The LINAGE-COUNTER "
+        + "identifier shall not be referenced as a receiving operand.\" §13.18.34.4 GR7 b) states the reason — "
+        + "\"only the input-output control system may change the value of LINAGE-COUNTER\" — so this is a "
+        + "permanent property of the language, not a feature awaiting implementation. The counter is set by "
+        + "OPEN OUTPUT and by each WRITE (GR7 c / GR7 d); a program that needs its own line count shall keep it "
+        + "in its own data item.",
+        "ISO §8.4.3.14.3 SR2 / §13.18.34.4 GR7 b)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

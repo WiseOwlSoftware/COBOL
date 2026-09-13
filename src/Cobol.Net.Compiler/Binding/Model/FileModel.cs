@@ -133,6 +133,16 @@ public sealed class FileModel
     /// <summary>The FILE STATUS data-name as written, resolved to <see cref="FileStatusItem"/> post-build; null if none.</summary>
     public string? FileStatusName { get; set; }
 
+    /// <summary>The FILE STATUS data-name's IN/OF qualifier words, innermost first (ISO §8.4.2.2). Kept because
+    /// the clause's operand is a qualified-data-name and a same-named item elsewhere in the source element makes
+    /// the qualifier the ONLY thing that identifies it — dropping it resolved the first declaration in order
+    /// (kb/Work PB489, the shape measured on the LINAGE clause).</summary>
+    public IReadOnlyList<string> FileStatusQualifiers { get; set; } = [];
+
+    /// <summary>The source position of the FILE STATUS clause's data-name — where its post-build resolution
+    /// reports (the operand resolves only once the data forest is indexed).</summary>
+    public CobolNet.Editions.DiagnosticCursor FileStatusAt { get; set; }
+
     /// <summary>The resolved FILE STATUS data item (set post-build), or null if the file has no FILE STATUS clause.</summary>
     public DataItem? FileStatusItem { get; set; }
 
@@ -213,6 +223,10 @@ public sealed class FileModel
     /// <summary>The RELATIVE KEY data-name as written (ISO §12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
     public string? RelativeKeyName { get; set; }
+
+    /// <summary>The RELATIVE KEY data-name's IN/OF qualifier words, innermost first (ISO §8.4.2.2) — see
+    /// <see cref="FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
+    public IReadOnlyList<string> RelativeKeyQualifiers { get; set; } = [];
 
     /// <summary>The source position of the RELATIVE KEY clause's data-name-1 — where §12.4.5.13.3's three syntax
     /// rules report (screened post-build, once the operand resolves).</summary>
@@ -395,7 +409,17 @@ public sealed class FileModel
 /// is instead "completely defined in the record description entry" (GR18) and its move is classified normally.
 /// The two formats were indistinguishable here until kb/Work PB339, which is why a rule keyed on the WORD
 /// VARYING had nothing to key on.</param>
-public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName, bool VaryingClause);
+public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName, bool VaryingClause)
+{
+    /// <summary>The DEPENDING ON data-name's IN/OF qualifier words, innermost first (ISO §8.4.2.2) — see
+    /// <see cref="FileModel.FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
+    public IReadOnlyList<string> DependingQualifiers { get; set; } = [];
+
+    /// <summary>The source position of the DEPENDING ON data-name — where its post-build resolution reports.
+    /// The RECORD clause is a FILE DESCRIPTION entry clause, so the file control entry's cursor would point at
+    /// a different line of the program.</summary>
+    public CobolNet.Editions.DiagnosticCursor DependingAt { get; set; }
+}
 
 /// <summary>Which of the three general formats of ISO §13.18.43.2 a RECORD clause was written in. The axis
 /// §13.18.43.3's syntax rules are cut on: SR3 is stated under FORMAT 1, SR4/SR5/SR6/SR7 under FORMAT 2, SR8/SR9
@@ -461,6 +485,17 @@ public sealed record LinageOperand(int? Literal, string? DataName)
 {
     /// <summary>The resolved data item for the <see cref="DataName"/> form (set post-build); null for a literal.</summary>
     public DataItem? Item { get; set; }
+
+    /// <summary>The operand's IN/OF qualifier words, innermost first (ISO §8.4.2.2). §13.18.34.2 prints
+    /// <i>data-name-1</i>, which is a qualified-data-name (§8.4.2.2.2 Format 1), so <c>LINAGE IS SZ OF GRP-B
+    /// LINES</c> is a legal — and, with two SZs, the ONLY legal — spelling. The binder used to keep the base word
+    /// alone and resolve it by first match, so that clause silently built the whole logical page on GRP-A's SZ
+    /// (kb/Work PB489, measured: EOP / LINAGE-COUNTER 1 where the standard requires NO-EOP / 5).</summary>
+    public IReadOnlyList<string> Qualifiers { get; set; } = [];
+
+    /// <summary>The source position of this operand — where §13.18.34.3's syntax rules and the operand's own
+    /// resolution report (both run post-build, once the data forest is indexed).</summary>
+    public CobolNet.Editions.DiagnosticCursor At { get; set; }
 }
 
 /// <summary>The LINAGE clause's four operands (ISO §13.18.34): the page-body size (GR2), the footing start

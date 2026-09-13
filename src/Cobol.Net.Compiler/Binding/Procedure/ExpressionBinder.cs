@@ -667,6 +667,18 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 "LINE-COUNTER shall not be referenced as a receiving operand (ISO §8.4.3.15.3 SR3)");
             return null;
         }
+        // ⛔ THE THIRD ARM OF THE SAME DISPATCH (kb/Work PB489). LINE-COUNTER above is rejected by rule and
+        // PAGE-COUNTER below is staged loud as not-yet-implemented; LINAGE-COUNTER — the only one of the three
+        // that is flatly ILLEGAL as a receiver — had no arm at all and fell through to the generic
+        // recognized-not-implemented catch-all, so permanently illegal source was reported as a promise. The
+        // rule that forbids it appeared nowhere in the compiler (feedback_two_arm_dispatch).
+        if (dref.LINAGE_COUNTER() is not null)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.LinageCounterReceiving,
+                "LINAGE-COUNTER shall not be referenced as a receiving operand (ISO §8.4.3.14.3 SR2); "
+                + "only the input-output control system may change its value (ISO §13.18.34.4 GR7 b)");
+            return null;
+        }
         // A constant-name substitutes a LITERAL (ISO §13.10.3 SR2 / §13.10.4 GR1) — a literal can never be a
         // receiving operand; without this the name would fall to Refs.Resolve and fail as merely "unresolved".
         if (ctx.Data.ConstantOf(dref) is not null)
