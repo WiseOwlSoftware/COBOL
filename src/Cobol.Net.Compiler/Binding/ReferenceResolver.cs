@@ -841,14 +841,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// form (the caller fails loud).</summary>
     public Place? ResolveForItem(Core.DataReferenceContext dref, DataItem item)
     {
-        Core.SubscriptOrRefModContext? subCtx = null;
-        foreach (var suffix in dref.dataReferenceSuffix())
-        {
-            if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s && !HasDepth0Colon(s)) subCtx ??= s;
-            else if (suffix.qualification() is { } q)
-                foreach (var sp in q.subscriptPart())
-                    if (sp.subscriptOrRefMod() is { } qs && !HasDepth0Colon(qs)) subCtx ??= qs;
-        }
+        var subCtx = SubscriptGroupOf(dref);
         List<string> indexExprs = [];
         if (subCtx is not null)
         {
@@ -859,6 +852,41 @@ public sealed class ReferenceResolver(DataBinder data)
             indexExprs = e;
         }
         return PlaceForItem(item, indexExprs);
+    }
+
+    /// <summary>The FIRST subscript group of <paramref name="dref"/> — the <c>(…)</c> that carries the reference's
+    /// subscript list rather than a reference modification (no depth-0 colon), taken from the base word's own
+    /// suffix or from a qualification's suffix tail (<c>K OF E (IX)</c> hangs it off the qualification). Shared by
+    /// <see cref="ResolveForItem"/>, which renders it into index expressions, and by
+    /// <see cref="SubscriptSegments"/>, which keeps it as written.</summary>
+    internal static Core.SubscriptOrRefModContext? SubscriptGroupOf(Core.DataReferenceContext dref)
+    {
+        Core.SubscriptOrRefModContext? subCtx = null;
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s && !HasDepth0Colon(s)) subCtx ??= s;
+            else if (suffix.qualification() is { } q)
+                foreach (var sp in q.subscriptPart())
+                    if (sp.subscriptOrRefMod() is { } qs && !HasDepth0Colon(qs)) subCtx ??= qs;
+        }
+        return subCtx;
+    }
+
+    /// <summary>The reference's subscript list AS WRITTEN — one token segment per subscript position, outermost
+    /// first, split by the ONE <see cref="SplitSubscriptTokens"/> splitter with the same declaration-informed
+    /// '(' rule <see cref="InterpretSubscripts"/> uses (kb/Work PB136), or <see langword="null"/> when the
+    /// reference carries no subscript group at all.
+    /// <para>⛔ The RENDERED form cannot answer the question this exists for. ISO §14.9.37.3 SR8 and SR9 are rules
+    /// about the SOURCE TEXT of a SEARCH ALL subscript — "shall be subscripted by the first index-name associated
+    /// with identifier-1 … The index-name subscript shall not be followed by a '+' or a '–'" — and the C# index
+    /// expression <see cref="InterpretSubscripts"/> produces has already erased both facts: an index-name and an
+    /// integer data item of the same value render identically, and <c>IX + 1</c> folds into the arithmetic.</para></summary>
+    internal List<List<IToken>>? SubscriptSegments(Core.DataReferenceContext dref)
+    {
+        if (SubscriptGroupOf(dref) is not { } group) return null;
+        var tokens = new List<IToken>();
+        CollectLeafTokens(group, tokens);
+        return SplitSubscriptTokens(tokens, name => ResolveUnqualified(name) is { IsTable: false });
     }
 
     // ── Intrinsic-argument entries (ISO §15.3; consumed by StatementBinder.Intrinsics.cs) ─────────────────

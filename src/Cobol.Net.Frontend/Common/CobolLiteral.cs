@@ -71,6 +71,18 @@ public static class CobolLiteral
     /// </remarks>
     public static bool IsStringLiteral(string raw) => SplitLiteral(raw) is not null;
 
+    /// <summary>True when <paramref name="raw"/> is a ZERO-LENGTH LITERAL — ISO §3.178, "alphanumeric, boolean, or
+    /// national literal that contains zero characters". The test is the standard's own structural one (§8.3.3.1:
+    /// "If the opening and closing delimiters are contiguous, the length of the literal is zero"), asked of the
+    /// quoted body AFTER the prefix letters, so every spelling the four formats admit — <c>""</c>, <c>''</c>,
+    /// <c>N""</c>, <c>B""</c>, <c>X""</c>, <c>NX""</c>, <c>BX""</c> — answers true and nothing else does.
+    /// <para>⛔ NOT <c>Decode(raw).Length == 0</c>: <see cref="Decode"/> yields the empty string for an ILL-FORMED
+    /// hexadecimal literal too (<c>X"414"</c> — the §8.3.3.2.3 r6 grouping violation <see cref="HexGroupViolation"/>
+    /// reports), so that spelling of the question would answer "zero-length" for a literal that is not one, and the
+    /// several syntax rules that forbid a zero-length literal (§14.9.37.3 SR13, §12.3.7.3 SR11, …) would report the
+    /// wrong rule.</para></summary>
+    public static bool IsZeroLength(string raw) => SplitLiteral(raw) is { Body.Length: 2 };
+
     /// <summary>The CLASS of a quoted literal by its PREFIX — ISO §8.3.3.2 (<c>"…"</c> / <c>X"…"</c> alphanumeric),
     /// §8.3.3.5 (<c>N"…"</c> / <c>NX"…"</c> national), §8.3.3.4 (<c>B"…"</c> / <c>BX"…"</c> boolean) — or
     /// <see langword="null"/> when <paramref name="raw"/> is not a quoted literal. ⛔ THE ONE CLASSIFIER (kb/Work

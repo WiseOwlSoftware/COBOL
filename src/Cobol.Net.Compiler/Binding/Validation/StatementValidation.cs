@@ -5,8 +5,11 @@ using System.Diagnostics.CodeAnalysis;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Validation;
+
+using Core = CobolParserCore;
 
 /// <summary>
 /// The edition-INVARIANT syntax-rule check catalog lifted out of the verb binders (P7 Step 10; the phase
@@ -214,6 +217,19 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule, message);
         return false;
     }
+
+    /// <summary>⛔ THE ONE ENTRY for the <c>SEARCH ALL</c> Format-2 operand rules, ISO §14.9.37.3 SR7–SR13
+    /// (kb/Work PB445) — seven consecutive syntax rules that read the same two things and so were unenforced
+    /// together. The rules themselves live in <see cref="SearchAllFormat2Rules"/> because they are predicates over
+    /// a MODEL (the ordered OCCURS KEY phrase, and the WHEN decomposed into its Format-2 operands) rather than
+    /// field tests, and the model is what makes the next Format-2 rule a predicate instead of a tree walk; this
+    /// entry keeps the check catalog's single front door.
+    /// <para>It takes a PARSE CONTEXT, unlike its neighbours here, and it has to: SR8 and SR9 are rules about the
+    /// subscript AS WRITTEN — "shall be subscripted by the first index-name … shall not be followed by a '+' or a
+    /// '–'" — a fact the bound operand has already erased. The <see cref="ReferenceResolver"/> comes from the
+    /// caller for the same reason (the raw subscript segments are its to read).</para></summary>
+    public bool CheckSearchAllFormat2(Core.SearchAllStatementContext s, DataItem table, ReferenceResolver refs) =>
+        new SearchAllFormat2Rules(data, refs, this).Check(s, table);
 
     // ── INSPECT (ISO §14.9.22.3) — lifted at 10c ─────────────────────────────────────────────────────────────
 

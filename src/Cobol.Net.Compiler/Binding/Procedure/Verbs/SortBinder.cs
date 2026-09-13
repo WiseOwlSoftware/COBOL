@@ -158,8 +158,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             foreach (var dref in drefs)
             {
                 string kn = dref.cobolWord()?.GetText() ?? dref.GetText();
-                DataItem? key = string.Equals(kn, name, StringComparison.OrdinalIgnoreCase)
-                    ? table : SortFindUnder(table, kn);
+                // §14.9.40.3 SR14 a)'s own walk — "The data item identified by a key data-name shall be the same
+                // as, or subordinate to, the data item referenced by data-name-2" — through the ONE
+                // OdoModel.FindWithin (kb/Work PB445): §13.18.38.3 SR3 states the same walk for the OCCURS KEY
+                // phrase, and this binder used to carry a private copy of it (SortFindUnder) with the "the same
+                // as" arm spelled as a separate ternary at the call site.
+                DataItem? key = OdoModel.FindWithin(table, kn);
                 if (key is null)
                 {
                     ctx.Validation.RejectStatementOperand($"SORT table key '{kn}' is not data-name-2 nor "
@@ -180,9 +184,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 keys.Add(new BoundTableSortKey(desc, path, key));
             }
         }
-        // GR21: with NO statement KEY phrase the OCCURS KEY phrase governs — the data model does not capture the
-        // OCCURS KEY phrase yet, and the grammar requires at least one key phrase, so that form fails loud upstream
-        // (SR15; deferred with the OCCURS-KEY capture, alongside SEARCH ALL key validation).
+        // §14.9.40.4 GR21 — "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in
+        // the data description entry of the table referenced by data-name-2" (admitted by §14.9.40.3 SR15, "The
+        // KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY
+        // phrase"). ⚠ THE DATA MODEL DOES CAPTURE THAT PHRASE, AND HAS ALL ALONG — the claim that it did not
+        // stood in this comment while OdoBindOccursSpec was filling OccursSpec's key list, which nothing then
+        // read; since kb/Work PB445 it is ONE list in significance order (OccursSpec.Keys), resolvable through
+        // OdoModel.KeyItems, so this form's model half is present. The surviving obstacle is the GRAMMAR's
+        // `sortKeyPhrase+` arity (CobolIO.g4), which makes `SORT table-name` with the KEY phrase omitted a parse
+        // error — a rejects-legal-source gap on §14.9.40 whose cause is the parse rule, not the model.
 
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase());
         if (collErr is { } ce) return ce;
@@ -610,15 +620,4 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         return string.Join(".", segs);
     }
 
-    /// <summary>Find a named descendant of <paramref name="scope"/> (table-sort key resolution; the keys of a
-    /// Format-2 sort live under the element, §14.9.40.3 SR14a).</summary>
-    private static DataItem? SortFindUnder(DataItem scope, string name)
-    {
-        foreach (var c in scope.Children)
-        {
-            if (string.Equals(c.CobolName, name, StringComparison.OrdinalIgnoreCase)) return c;
-            if (SortFindUnder(c, name) is { } found) return found;
-        }
-        return null;
-    }
 }

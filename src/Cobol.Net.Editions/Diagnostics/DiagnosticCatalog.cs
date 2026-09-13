@@ -2852,6 +2852,61 @@ public static class DiagnosticCatalog
         + "leniency to offer that is not a wrong answer.",
         "ISO §8.4.2.3.3 SR4");
 
+    // ── COBOLNET1964–1966 — the SEARCH ALL Format-2 operand rules (ISO §14.9.37.3 SR7–SR13) ──────────────────
+    //    SEVEN consecutive syntax rules that all read the SAME two things — the OCCURS KEY phrase of identifier-1
+    //    in its own order, and the WHEN's decomposed operands — and none of which existed as a model, so all
+    //    seven were unenforced together (kb/Work PB445). The CODES divide the rules by the OPERAND each is
+    //    about, because that is what a user has to go and change: the TABLE's declaration (1964), the KEY side
+    //    of a WHEN comparison (1965), or the SENDING side (1966). A WHEN whose SHAPE is not Format 2 at all —
+    //    an ordering operator, OR, NOT, a class/sign condition, an abbreviated relation — is the EXISTING
+    //    COBOLNET1757 (an operand the statement's own general format does not admit) and gets no fourth code.
+
+    /// <summary>COBOLNET1964 — SEARCH ALL of a table whose OCCURS clause has no KEY phrase (§14.9.37.3 SR7).
+    /// Reported alone: every other Format-2 rule is written about the key phrase, so continuing would report
+    /// each WHEN operand as "not a key" for a table that declares no keys at all.</summary>
+    public static readonly DiagnosticDescriptor SearchAllTableNoKeyPhrase = new(
+        "COBOLNET1964", "search-all-table-no-key-phrase", EditionSeverity.Error,
+        "ISO §14.9.37.3 syntax rule 7: \"The OCCURS clause associated with identifier-1 shall contain the KEY "
+        + "phrase.\" SEARCH ALL names a table whose OCCURS clause declares no ASCENDING/DESCENDING KEY, so the "
+        + "statement has no key to compare and the §14.9.37.4 GR5 a) sequencing precondition the form is built "
+        + "on cannot even be stated. Add the KEY phrase to the OCCURS clause, or use the serial Format 1 "
+        + "(SEARCH without ALL), whose WHEN admits any conditional expression (SR6).",
+        "ISO §14.9.37.3 SR7");
+
+    /// <summary>COBOLNET1965 — the KEY side of a Format-2 WHEN comparison: data-name-1 / data-name-2 or a
+    /// condition-name, and the subscript it is written with (§14.9.37.3 SR8, SR9, SR11, and SR12's data-name
+    /// arm).</summary>
+    public static readonly DiagnosticDescriptor SearchAllWhenKeyOperand = new(
+        "COBOLNET1965", "search-all-when-key-operand", EditionSeverity.Error,
+        "The four ISO §14.9.37.3 syntax rules about the KEY side of a Format-2 WHEN phrase. SR8: data-name-1 "
+        + "and all repetitions of data-name-2 \"shall be subscripted by the first index-name associated with "
+        + "identifier-1 along with any subscripts required to uniquely identify the data item, and shall be "
+        + "referenced in the KEY phrase in the OCCURS clause associated with identifier-1. The index-name "
+        + "subscript shall not be followed by a '+' or a '–'.\" SR9 states the same two requirements for a "
+        + "condition-name and adds that it \"shall be defined as having only a single value\" and that its "
+        + "associated data-name \"shall be specified in the KEY phrase\". SR11: when a key is referenced, \"all "
+        + "preceding data-names in that KEY phrase or their associated condition-names shall also be "
+        + "referenced\" — the phrase's order is its order of significance (§13.18.38.4 GR3), so a search that "
+        + "skips a more significant key is not a search of an ordered table. SR12 forbids a variable-length "
+        + "group as data-name-1 or data-name-2.",
+        "ISO §14.9.37.3 SR8, SR9, SR11, SR12");
+
+    /// <summary>COBOLNET1966 — the SENDING side of a Format-2 WHEN comparison: identifier-3 / identifier-4, the
+    /// identifiers inside arithmetic-expression-1 / -2, and literal-1 / literal-2 (§14.9.37.3 SR10, SR13, and
+    /// SR12's identifier arm).</summary>
+    public static readonly DiagnosticDescriptor SearchAllWhenSendingOperand = new(
+        "COBOLNET1966", "search-all-when-sending-operand", EditionSeverity.Error,
+        "The ISO §14.9.37.3 syntax rules about the SENDING side of a Format-2 WHEN phrase. SR10: "
+        + "\"Identifier-3, identifier-4, identifiers specified in arithmetic-expression-1, and identifiers "
+        + "specified in arithmetic-expression-2 shall be neither referenced in the KEY phrase of the OCCURS "
+        + "clause associated with identifier-1 nor subscripted by the first index-name associated with "
+        + "identifier-1.\" The sending operand is what the key is compared AGAINST, so an operand that moves "
+        + "with the search index — or that is itself a key — makes the comparison a function of the probe "
+        + "rather than a test of it, and the binary search has nothing to converge on. SR12 forbids a "
+        + "variable-length group as identifier-3 or identifier-4; SR13: \"Neither literal-1 nor literal-2 shall "
+        + "be zero-length literals.\"",
+        "ISO §14.9.37.3 SR10, SR12, SR13");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

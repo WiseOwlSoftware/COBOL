@@ -2,6 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolNet.Binding.Model;
 
+/// <summary>ONE data-name-2 of an OCCURS KEY phrase (ISO §13.18.38) together with the direction word that governs
+/// it. <c>Name</c> is the key's own unqualified name: §13.18.38.3 SR3 confines data-name-2 to "the entry containing
+/// the OCCURS clause or an entry subordinate to" it, so the name always resolves WITHIN the table
+/// (<see cref="OdoModel.FindWithin"/>) and needs no qualifier chain of its own.</summary>
+public readonly record struct OccursKey(string Name, bool Descending);
+
 /// <summary>
 /// The structured OCCURS description (ISO/IEC 1989:2023 §13.18.38) attached to a table's <see cref="DataItem"/>:
 /// the Format-2 occurrence bounds (<c>OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1</c>), the
@@ -30,12 +36,15 @@ public sealed class OccursSpec
     /// resolution must wait for the complete forest).</summary>
     public DataItem? Depending { get; set; }
 
-    /// <summary>ASCENDING KEY data-names in declaration order (§13.18.38 GR3 — the significance order SEARCH ALL
-    /// and the table SORT consult; captured for model completeness, the scan implementation is key-order-free).</summary>
-    public List<string> AscendingKeyNames { get; } = [];
-
-    /// <summary>DESCENDING KEY data-names in declaration order (§13.18.38 GR3).</summary>
-    public List<string> DescendingKeyNames { get; } = [];
+    /// <summary>The KEY phrase as written: EVERY ASCENDING/DESCENDING key data-name in ONE list, in the order the
+    /// phrase specifies them. That order is load-bearing — ISO §13.18.38.4 GR3: "If more than one data-name-2 is
+    /// specified, they are specified in descending order of significance" — and §14.9.37.3 SR11 is a rule ABOUT
+    /// it ("all preceding data-names in that KEY phrase or their associated condition-names shall also be
+    /// referenced"), so the ORDER is what is stored. Two per-direction lists cannot express it: a mixed phrase
+    /// (<c>ASCENDING KEY IS A B DESCENDING KEY IS C</c>) loses which of A/B/C precedes which the moment it is
+    /// split in two. (The two write-only per-direction lists this replaced were READ by nothing, so nothing had
+    /// ever contradicted their shape — feedback_a_dead_lookup_is_also_unverified.)</summary>
+    public List<OccursKey> Keys { get; } = [];
 
     // ── Format 4: DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; data-model D9) ──────────────────
 
@@ -66,6 +75,47 @@ public sealed class OccursSpec
 /// hierarchy in <c>Place.cs</c>, P5.11a.)</summary>
 public static class OdoModel
 {
+    /// <summary>The first item named <paramref name="name"/> AT or WITHIN <paramref name="table"/> — the ONE
+    /// "resolve a name against the table it belongs to" walk. Two rules are written that way and used to carry a
+    /// copy each: the OCCURS KEY phrase (ISO §13.18.38.3 SR3 — data-name-2 is "the name of either the entry
+    /// containing the OCCURS clause or an entry subordinate to the entry containing the OCCURS clause") and the
+    /// SORT table-key phrase (§14.9.40.3 SR14 a) — "The data item identified by a key data-name shall be the same
+    /// as, or subordinate to, the data item referenced by data-name-2"). The table entry itself is tested FIRST
+    /// because both rules admit it in so many words.</summary>
+    public static DataItem? FindWithin(DataItem table, string name)
+    {
+        if (string.Equals(table.CobolName, name, StringComparison.OrdinalIgnoreCase)) return table;
+        foreach (var c in table.Children)
+            if (FindWithin(c, name) is { } found) return found;
+        return null;
+    }
+
+    /// <summary>The table's OCCURS KEY phrase resolved to items, in the phrase's own significance order
+    /// (ISO §13.18.38.4 GR3) — one entry per <see cref="OccursSpec.Keys"/> entry, <see langword="null"/> where the
+    /// key data-name resolves to nothing within the table. Empty for a table with no KEY phrase, which is exactly
+    /// the §14.9.37.3 SR7 condition ("The OCCURS clause associated with identifier-1 shall contain the KEY
+    /// phrase").</summary>
+    public static List<DataItem?> KeyItems(DataItem table) =>
+        table.OccursSpec is { } spec ? [.. spec.Keys.Select(k => FindWithin(table, k.Name))] : [];
+
+    /// <summary>The occurrence of <paramref name="table"/> in the OCCURS nesting <paramref name="item"/> sits
+    /// under, counting OUTERMOST first — i.e. the position, in the subscript list a reference to
+    /// <paramref name="item"/> must write, of the subscript that selects <paramref name="table"/>'s occurrence.
+    /// ISO §8.4.2.3.3 SR3 fixes both the count and the order — "the number of subscripts shall equal the number of
+    /// OCCURS clauses in the description of the table element being referenced … the subscripts are written in the
+    /// order of successively less inclusive dimensions of the table" — and §14.9.37.3 SR8/SR9 single out the one
+    /// belonging to identifier-1 ("shall be subscripted by the first index-name associated with identifier-1 along
+    /// with any subscripts required to uniquely identify the data item"). −1 when <paramref name="item"/> is not
+    /// within <paramref name="table"/>.</summary>
+    public static int SubscriptPositionOf(DataItem item, DataItem table)
+    {
+        var levels = new List<DataItem>();
+        for (DataItem? n = item; n is not null; n = n.Parent)
+            if (n.IsTable) levels.Add(n);
+        levels.Reverse();   // outermost first — the order a subscript list is written in
+        return levels.IndexOf(table);
+    }
+
     /// <summary>The occurs-depending table among <paramref name="group"/>'s STRICT descendants, or
     /// <see langword="null"/>. At most one exists in a legal program: §13.18.38 SR22 makes it the unique trailing
     /// variable part of its record, and SR1(b)/SR10 forbid nesting it under another OCCURS — both validated by

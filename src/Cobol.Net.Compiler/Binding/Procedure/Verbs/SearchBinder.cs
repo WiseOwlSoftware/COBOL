@@ -74,10 +74,22 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line));
     }
 
-    /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the binary-search form). The initial index setting
-    /// is ignored (GR9) and the technique is implementor-specified: this implementation scans from occurrence 1,
-    /// conformant since Format 2 requires the table ordered by its OCCURS KEYs (SR7) and the WHEN tests key
-    /// equality. Bound onto the same <see cref="BoundSearch"/> machinery with <c>FromStart</c>.</summary>
+    /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the ordered-table search form). The initial index
+    /// setting is ignored and this implementation scans from occurrence 1; both are inside the latitude
+    /// §14.9.37.4 GR9 grants — "A non serial type of search operation MAY take place. The initial setting of the
+    /// search index is ignored. Its setting is varied during the search operation in a manner specified by the
+    /// implementor" — so a serial probe is one permitted technique, not a concession.
+    /// <para>⛔ THE CONFORMANCE ARGUMENT DOES NOT REST ON SYNTAX RULE 7, AND MUST NOT BE "RESTORED" TO (kb/Work
+    /// PB445). SR7 requires only that the OCCURS clause CARRY a KEY phrase — a requirement on the data
+    /// description entry, saying nothing about how the data is ordered at run time. The proposition a search
+    /// technique would need is §14.9.37.4 GR5 a) ("The contents of each key data item referenced in the WHEN
+    /// phrase shall be sequenced in the table according to the ASCENDING or DESCENDING phrase"), and that is a
+    /// condition the PROGRAM shall satisfy, never a guarantee the compiler may rely on — GR6 exists precisely to
+    /// define behaviour when it is false, and GR6 a) 2. ends "It is undefined which of these alternatives
+    /// occurs". A serial scan over unsequenced data therefore lands inside GR6 a)'s first alternative, which is
+    /// an outcome the standard explicitly allows. The technique needs no syntax rule at all.</para>
+    /// <para>SR7–SR13 are screened by <c>ctx.Validation.CheckSearchAllFormat2</c> (the ONE Format-2 operand model,
+    /// COBOLNET1964–1966); bound onto the same <see cref="BoundSearch"/> machinery with <c>FromStart</c>.</para></summary>
     public BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {
         string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
@@ -89,6 +101,12 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (table.IsDynamicTable && ctx.Refs.TablePath(table) is null)   // nested dynamic — see BindSearch (review #5, D9)
             return new BoundUnsupported($"SEARCH ALL of the dynamic-capacity table '{tableName}' nested under another "
                 + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
+
+        // The Format-2 operand rules (ISO §14.9.37.3 SR7–SR13; kb/Work PB445). Screened BEFORE the WHEN phrases
+        // bind, so a violation is reported against the source's own operands rather than after whatever the
+        // general condition binder made of them; the bind proceeds either way (§4.2.2 ¶2 — the indication is at
+        // compile time, and one compile reports every violation it can see).
+        ctx.Validation.CheckSearchAllFormat2(s, table, ctx.Refs);
 
         List<BoundStatement>? atEnd = null;
         if (s.searchAtEndClause() is { } ae)

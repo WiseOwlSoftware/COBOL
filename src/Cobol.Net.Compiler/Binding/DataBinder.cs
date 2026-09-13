@@ -2324,8 +2324,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CapacityName = s.CapacityName, InitialCap = s.InitialCap, ExpectedMax = s.ExpectedMax,
             Initialized = s.Initialized,
         };
-        c.AscendingKeyNames.AddRange(s.AscendingKeyNames);
-        c.DescendingKeyNames.AddRange(s.DescendingKeyNames);
+        c.Keys.AddRange(s.Keys);
         return c;
     }
 

@@ -24,11 +24,19 @@ public sealed partial class DataBinder
     private OccursSpec? OdoBindOccursSpec(Core.OccursClauseContext occ, string where, int? maxBound)
     {
         bool depending = occ.DEPENDING() is not null;
-        var asc = new List<string>();
-        var desc = new List<string>();
+        // ONE list in PHRASE ORDER — ISO §13.18.38.4 GR3 "If more than one data-name-2 is specified, they are
+        // specified in descending order of significance", which is what §14.9.37.3 SR11 is a rule about. Splitting
+        // the phrase into per-direction lists would lose the relative order of a mixed
+        // `ASCENDING KEY IS A B DESCENDING KEY IS C`. The BASE name only (`cobolWord`): §13.18.38.3 SR3 confines
+        // data-name-2 to the OCCURS entry or an entry subordinate to it, so the qualifier chain adds nothing and
+        // `GetText()` over the whole dataReference would glue `K OF E` into `KOFE`.
+        var keys = new List<OccursKey>();
         foreach (var kc in occ.occursKeyClause())
+        {
+            bool descending = kc.DESCENDING() is not null;
             foreach (var k in kc.dataReference())
-                (kc.DESCENDING() is not null ? desc : asc).Add(k.GetText());
+                keys.Add(new OccursKey(k.cobolWord()?.GetText() ?? k.GetText(), descending));
+        }
 
         // Format 4 — a DYNAMIC-capacity table (§13.18.38 Format 4, D9): capture CAPACITY IN / FROM / TO / INITIALIZED
         // (phrases order-independent). ALWAYS returns a spec (a keyless dynamic table still needs IsDynamic recorded,
@@ -51,11 +59,10 @@ public sealed partial class DataBinder
                 Min = fromCap ?? 0, Max = 0, IsDynamic = true,
                 CapacityName = capName, InitialCap = fromCap, ExpectedMax = toCap, Initialized = initialized,
             };
-            dyn.AscendingKeyNames.AddRange(asc);
-            dyn.DescendingKeyNames.AddRange(desc);
+            dyn.Keys.AddRange(keys);
             return dyn;
         }
-        if (!depending && asc.Count == 0 && desc.Count == 0) return null;
+        if (!depending && keys.Count == 0) return null;
 
         // Each fixed bound is an integer literal or an integer constant-name (§13.10.3 SR2); the caller already
         // resolved the LAST bound (the maximum) via OccursBoundValue — <paramref name="maxBound"/> — so an
@@ -74,8 +81,7 @@ public sealed partial class DataBinder
             Max = max,
             DependingName = depending ? occ.dataReference()?.GetText() : null,
         };
-        spec.AscendingKeyNames.AddRange(asc);
-        spec.DescendingKeyNames.AddRange(desc);
+        spec.Keys.AddRange(keys);
         return spec;
     }
 
