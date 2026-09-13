@@ -95,6 +95,15 @@ public sealed class EditionGateArmDriftTests
             "PicInfo.IsFloatEdited — the external-floating-point PICTURE is identified by the ANALYSED character "
             + "string (the E and its exponent), not by any token the parse tree distinguishes from an ordinary "
             + "picture-string (Step 14g.5)",
+        ["NationalEdited2002"] =
+            "PicInfo's { Category: National, EditMask: not null } — the twin of PicExternalFloat2002 above, "
+            + "and out of the same PictureConstructId function: national-edited is a shape of the ANALYSED "
+            + "picture string (ISO §13.18.40.4 GR10 — at least one symbol 'N' AND at least one instance of "
+            + "character-1 or of B / 0 / '/'), which no token of the parse tree distinguishes from a plain "
+            + "PIC N; and USAGE NATIONAL reaches the same category through TYPE / SAME AS / TYPEDEF as "
+            + "readily as through its own written clause (kb/Work PB492 — until it, this gate rode "
+            + "PicInfo.SkeletonGate because the analyzer RECOVERED the category to Alphanumeric and no "
+            + "category key could see it)",
     };
 
     private static string MoveFact(string shape) =>
