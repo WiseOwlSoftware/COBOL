@@ -34,6 +34,15 @@ internal static class BindPipeline
     {
         // ── The per-unit resolution passes, in the EXACT pre-P5 BindResolve order (DataBinder.cs). ──
         new BindPass("ExpandTypes", PassPhase.None, PassPhase.TypesExpanded, d => d.ExpandTypes()),
+        // The §13.16.3 SR9 VALUE-implied PICTURE (kb/Work PB504/PB831; DataBinder.ImpliedPicture.cs). Placed
+        // HERE, and the placement is the design: AFTER ExpandTypes so a TYPE / SAME AS clone that inherits the
+        // template's VALUE gets the implied clause too, and BEFORE UsageInheritancePass so that from this point
+        // on the entry is INDISTINGUISHABLE from one whose source wrote `PICTURE X(n)` — §13.18.60.4 GR1
+        // inheritance, the §13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance and every later pass apply to
+        // it through their existing single sites, with no carve-out and no second copy of any rule. Running it
+        // one pass LATER would mean UsageInheritancePass had already rejected `01 A USAGE NATIONAL VALUE N"AB".`
+        // for having no PICTURE, which SR9 says it may omit.
+        new BindPass("SynthesizeImpliedPictures", PassPhase.TypesExpanded, PassPhase.TypesExpanded, d => d.SynthesizeImpliedPictures()),
         new BindPass("UsageInheritancePass", PassPhase.TypesExpanded, PassPhase.UsageResolved, d => d.UsageInheritancePass()),
         // The §13.18.60.3 USAGE declaration-PLACEMENT screen — SR14/SR15/SR4 (kb/Work PB183). Placed HERE, and
         // not one pass earlier or later, for two reasons. It needs UsageInheritancePass to have settled

@@ -769,6 +769,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGN9AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 B1 PIC 1(4) USAGE BIT.\n   05 B2 PIC 1(4) USAGE BIT ALIGNED.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"LEN=\" FUNCTION LENGTH(G).\n    STOP RUN.\n"
   },
   {
+   "id": "value-implied-picture-2002",
+   "description": "The VALUE-implied PICTURE clause (ISO §13.16.3 SR9 for a data description entry, §13.15.3 SR14 for a report group description entry - the SAME rule in the two general formats, and one gate) - 'The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean, or national literal that is not a zero-length literal is specified in the data-item format of the VALUE clause', the implied clause being 'PICTURE X(length)' / '1(length)' / 'N(length)' with 'length ... as specified in 8.3.3, Literals'. COBOL-85 had no such grant: a PICTURE was required for every elementary item bar an index data item and the subject of a RENAMES clause, so the whole rule is a post-85 addition and this row carries its ALPHANUMERIC arm's introduction. SR9's boolean and national arms are gated a second time and independently by boolean-data-2002 / national-data-2002, since the literal forms themselves are 2002 additions. The figurative-constant spelling rides the same grant (§8.3.3.1 makes a figurative constant a literal; §8.3.3.6.4 GR3 b/c supply the length, one character for a bare figurative and literal-1's length for ALL literal-1) - kb/Work PB828 the adjudication, PB504 the rule, PB831 the ALL-literal length.",
+   "display": "the VALUE-implied PICTURE clause (an elementary item with a VALUE literal and no PICTURE)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §13.16.3 SR9; §13.15.3 SR14",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2002 introduction (derive from the 2002 standard); no VERSION_CHANGE_REFERENCE row - that ledger carries no 85->2002 row set",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VIPC9AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-A VALUE \"HELLO\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W-A.\n    STOP RUN.\n"
+  },
+  {
    "id": "group-usage-clause-2002",
    "description": "GROUP-USAGE clause (a bit group / national group: the group item is treated as an elementary item of usage bit and category boolean, or usage national and category national), ISO §13.18.29 — introduced 2002 (GROUP-USAGE is a 2002 reserved word). Data-model design D20; kb/Work PB79.",
    "display": "GROUP-USAGE clause",

@@ -1011,15 +1011,40 @@ public sealed partial class DataBinder
                 // MOVE conversion path renders the §13.18.53.4 GR1 implicit MOVE. A printable item is a
                 // USAGE-DISPLAY elementary item; its numeric face stores its character IMAGE (StoreAsImage).
                 string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
+                Usage itemUsage = PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere);
                 var pic = picText is not null
-                    ? PictureAnalyzer.Analyze(picText, PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere), Edition,
+                    ? PictureAnalyzer.Analyze(picText, itemUsage, Edition,
                         itemWhere, ownSign, currencies: CurrencySigns, blankWhenZero: blankWhenZero, editing: reportEditing,
                         localeFormat2: reportLocale, decimalPointIsComma: DecimalPointIsComma)
+                    // ⛔ ISO §13.15.3 SR14 — THE REPORT GROUP ENTRY'S OWN VALUE-IMPLIED PICTURE, word for word the
+                    // §13.16.3 SR9 rule this compiler synthesizes for a data description entry: "The PICTURE clause
+                    // may be omitted for an elementary item when an alphanumeric, boolean or national literal that
+                    // is not a zero-length literal is specified in the VALUE clause.  A PICTURE clause is implied as
+                    // follows: a) If the literal is alphanumeric, 'PICTURE X(length)' b) If the literal is boolean,
+                    // 'PICTURE 1(length)' c) If the literal is national, 'PICTURE N(length)' where length is the
+                    // length of the literal as specified in 8.3.3, Literals."
+                    // ONE classifier for both formats (DataBinder.ImpliedPicture.cs) — the two-arm shape is this
+                    // repo's most reproducible defect, and this WAS that shape: `02 COLUMN 1 VALUE "HELLO".` is
+                    // legal source the report binder REJECTED, while its data-division twin now compiles.
+                    // The CONTEXT §8.3.3.6.4 GR1/GR4 ask about is this entry's own usage — a report group entry
+                    // is not subject to §13.18.60.4 GR1 inheritance from a data-division group, and §13.18.60.3
+                    // SR7 admits only DISPLAY or NATIONAL here anyway, so GR4's boolean context cannot arise.
+                    // ⛔ THE SINGULAR "the literal": SR14 fixes `length` from THE literal, so the implied
+                    // PICTURE exists only for a clause that supplies exactly ONE operand. A multi-operand
+                    // format-4 VALUE clause (§13.18.63.2, kb/Work PB506) implies none — the standard names no
+                    // rule for which of several literals fixes the ONE description all the repetitions share,
+                    // and taking the first would silently truncate every longer one. Such an entry reaches the
+                    // SR12 diagnostic below, never a guess (DETERMINATION, kb/Work PB504 × PB506).
+                    : valueRaws is [{ } reportValue]
+                        && Sr9ImpliedFor(reportValue, itemUsage) is { } implied
+                    ? ImpliedReportPicture(implied, itemUsage, usageText is not null, ownSign, itemWhere)
                     : null;
                 if (pic is null)
                 {
                     Edition.Error(DiagnosticCatalog.ReportItemMissingPicture, $"RD '{model.Name}': printable item at COLUMN {col} has no "
-                        + "PICTURE clause (ISO §13.16 — an elementary printable item requires one)");
+                        + "PICTURE clause — one shall be specified in every elementary entry that has a SOURCE or "
+                        + "SUM clause (ISO §13.15.3 SR12), and SR14 implies one only from a VALUE clause supplying "
+                        + "an alphanumeric, boolean or national literal that is not a zero-length literal");
                     chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
                     return;
                 }

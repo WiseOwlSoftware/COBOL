@@ -4395,21 +4395,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var root in Roots) UsageInheritanceWalk(root, default);
     }
 
+    /// <summary>⛔ THE ONE "usage this entry carries in its OWN right" derivation: its written USAGE clause, or
+    /// the one a GROUP-USAGE clause IMPLIES (§13.18.29.3 SR2/SR3 — "USAGE BIT / NATIONAL may be implicitly
+    /// specified"), or null when the entry states neither. §13.18.60.4 GR1 is written over "specified OR IMPLIED",
+    /// so the two spellings are one fact and this is where it is computed.
+    /// <para>Read PUSH-style by <see cref="UsageInheritanceWalk"/>, which hands it down the forest, and PULL-style
+    /// by <c>DataBinder.ImpliedPicture</c>'s §8.3.3.6.4 GR1 context question, which runs before that walk.</para></summary>
+    private static Usage? DeclaredUsageOf(DataItem item) => item.OwnUsage ?? item.GroupUsage switch
+    {
+        GroupUsage.Bit => Usage.Bit,
+        GroupUsage.National => Usage.National,
+        _ => null,
+    };
+
     /// <summary>One entry of the §13.18.60.4 GR1 walk: screen its own clause against the one it inherited
     /// (§13.18.60.3 SR2), decide what it hands DOWN, and dispatch to the group or the elementary arm.</summary>
     private void UsageInheritanceWalk(DataItem item, InheritedUsage inherited)
     {
         using var _ = Edition.At(item);
 
-        // The usage this entry carries in its OWN right — its written USAGE clause, or the one a GROUP-USAGE
-        // clause IMPLIES (§13.18.29.3 SR2/SR3: "USAGE BIT / NATIONAL may be implicitly specified"). GR1 is
-        // written over "specified OR IMPLIED", so both spellings hand down.
-        Usage? ownOrImplied = item.OwnUsage ?? item.GroupUsage switch
-        {
-            GroupUsage.Bit => Usage.Bit,
-            GroupUsage.National => Usage.National,
-            _ => null,
-        };
+        // The usage this entry carries in its OWN right (see DeclaredUsageOf). GR1 is written over
+        // "specified OR IMPLIED", so both spellings hand down.
+        Usage? ownOrImplied = DeclaredUsageOf(item);
 
         // ── §13.18.60.3 SR2 ─────────────────────────────────────────────────────────────────────────────────
         // "If the USAGE clause is written in the data description entry for a group item, it may also be written
@@ -4555,10 +4562,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 item.Pic = profile;
                 item.PicIsUsageSynthesized = true;
             }
-            // A picture-less item whose effective usage REQUIRES a picture (§13.16.3 SR8's second sentence, and
-            // its §13.16.3 SR9 VALUE-implied exception) is kb/Work PB504's mechanism, not this pass's — it is
-            // the same hole with or without a group-level clause, so screening it here would write the rule down
-            // in the wrong place.
+            // A picture-less item whose effective usage REQUIRES a picture is §13.16.3 SR8's second sentence,
+            // screened once by the CheckPictureRequired closing guard — the same hole with or without a
+            // group-level clause, so screening it here would write the rule down in the wrong place. Its SR9
+            // exception has already been applied: SynthesizeImpliedPictures ran one pass earlier, so an entry
+            // whose VALUE clause implies a PICTURE reaches this walk with one (DataBinder.ImpliedPicture.cs).
             return;
         }
 

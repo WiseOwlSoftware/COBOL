@@ -411,6 +411,10 @@ interface IBindPass { string Name { get; } PassPhase Requires { get; } PassPhase
 Ordered, with the **data-model dependency chain made explicit**:
 
 1. `ExpandTypesPass` (TYPEDEF/TYPE clone; produces TypeName/StrongType; sets StrongRoot cache)
+1a. **`SynthesizeImpliedPictures`** — ISO §13.16.3 SR9's VALUE-implied PICTURE (§2.7a). Between 1 and 2, and the
+    placement is load-bearing in both directions: **after** the clone so a `TYPE` reference that inherits the
+    template's VALUE gets the implied clause too, and **before** usage inheritance so the entry is already
+    PICTURE-bearing when GR1 and the §13.18.60.3 screens reach it.
 2. `UsageInheritancePass` (merge of `InheritUsageClauses` + `ResolveIndexItems`, renamed — §2.7)
 3. `SignInheritancePass`
 4. `RedefinesClassifier` (produces Class/Tier/ClassOffset/IsCanonical/Width; Tier-C verdict)
@@ -496,8 +500,53 @@ arms a wrong entry in it is invisible to any behavioural test — so it is check
 sentence, re-read out of `specs/ISO_COBOL.md`, by `PicturelessUsageSetDriftTests` (Unit).
 
 **Boundary.** A picture-less elementary item whose effective usage REQUIRES a picture (`01 G USAGE COMP. 05 A.`,
-and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence and its SR9
-VALUE-implied exception (kb/Work PB504).
+and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence, screened by
+the `CheckPictureRequired` closing guard; its SR9 VALUE-implied exception is §2.7a, applied one pass EARLIER.
+
+#### 2.7a `SynthesizeImpliedPictures` — ISO §13.16.3 SR9, the VALUE-implied PICTURE (landed; kb/Work PB504/PB831)
+
+⛔ **SR9 is APPLIED, never excused.** The rule says the PICTURE clause *may be omitted* when the data-item format
+of the VALUE clause supplies a non-zero-length alphanumeric, boolean or national literal, and that a clause is
+then *implied* — `X(length)` / `1(length)` / `N(length)`. So the compiler's obligation is to SYNTHESIZE that
+clause, and the entry then stops being picture-less; the §13.16.3 SR8 guard downstream is left with exactly SR8's
+own population and needs no carve-out. (It once had one, for the figurative spellings, and that carve-out both
+mis-derived `ALL literal-1`'s length — a silent wrong answer, kb/Work PB831 — and admitted `ALL ""`, which SR9
+excludes by name.)
+
+**The design is one sentence: build the string the rule spells out, then go through the SAME door a written
+clause goes through.** `PictureAnalyzer.Analyze` is called with the entry's OWN usage and SIGN clause and
+`explicitUsage = "this entry wrote a USAGE clause"` — argument for argument what `BindEntry` passes — so from
+that moment the item is indistinguishable from one whose source wrote `PICTURE X(n)`. §13.18.60.4 GR1
+inheritance, the §13.18.60.3 SR3/SR5/SR12/SR20 screens, SIGN inheritance, the VALUE initializer and the emitter
+all reach it through their existing single sites, each firing ONCE. The standard licenses this reading directly:
+§13.18.60.3 SR13 a) and SR20 are both written over the "explicit or **implicit** picture character-string".
+
+**The two derivations it owns, and where they come from.**
+
+| question | rule | answer |
+|---|---|---|
+| which arm | §13.16.3 SR9 a/b/c | the literal's CLASS — `CobolLiteral.ClassOf`, the one §8.3.3.2/§8.3.3.4/§8.3.3.5 table |
+| what length | §13.16.3 SR9, "as specified in 8.3.3" | `CobolLiteral.Decode(…).Length`, i.e. the literal's CHARACTERS (2 hex digits per alphanumeric character, 4 per national, 4 boolean characters per hex digit) |
+| a figurative constant's length | §8.3.3.6.4 GR3 b/c | ONE character, except `ALL literal-1`, which takes literal-1's length |
+| a figurative constant's class | §8.3.3.6.4 GR1, GR4 | national in a national context, boolean for the ZERO format in a bit context, else alphanumeric |
+
+The figurative admission itself is the kb/Work PB828 adjudication, ratified in that note: §8.3.3.1 makes a
+figurative constant a literal and §8.3.3.6 is a subclause OF §8.3.3, so SR9's length reference resolves for it.
+
+**Forest and idempotence.** The pass walks `CompositionForest()`, because SR9's subject is the entry AS COMPOSED:
+a TYPEDEF template's own entry needs the implied clause (the SR8 guard reports over it) and so does the `TYPE`
+clone (the emitter lays that one out). The edition gate fires once per SOURCE entry (`TypeAnchor is null`), and
+an item that already has a `Pic` is skipped, so a forest that yields one item twice cannot double-report.
+
+**Edition.** COBOL-85 had no such grant, so the construct row `value-implied-picture-2002` rejects below 2002
+through the canonical `ConstructRegistry.Check` funnel (COBOLNET0900). SR9's boolean and national arms are gated
+a second time and independently by `boolean-data-2002` / `national-data-2002`, the literal forms themselves being
+2002 additions.
+
+**Drift.** `ImpliedPictureTests.Sr9_ImpliedPictureText_MatchesTheStandardsThreeArms` re-reads SR9 a/b/c out of
+`specs/ISO_COBOL.md` on every run and asserts the class→symbol table, for the same reason
+`PicturelessUsageSetDriftTests` exists: a wrong symbol moves the synthesis and every behavioural expectation
+together, so the standard's own sentence is the only independent oracle.
 - `NumProfile` (runtime) stays the runtime projection of `PicInfo`. Today `PicInfo` re-materializes it as an
   initializer STRING (`PicInfo.cs:301`). Keep that boundary (Binding must not depend on a runtime value type for its
   own logic) but generate it through the emitter's `RuntimeApi` façade (companion emitter design) so a

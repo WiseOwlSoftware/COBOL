@@ -1235,6 +1235,22 @@ recorded for this one is the refusal. The pre-2023 shape of these rules is not d
 from the 2023 text (Annex E's scope is 2014→2023 only, so its silence is a missing observation) — the arms ship
 ungated below 2023, recorded as kb/Work PB296.
 
+**The other half of §13.16.3 SR8 — its SR9 exception — is SYNTHESIZED, not excused** (kb/Work PB504/PB831/PB828;
+mechanism design `docs/rearchitecture/DESIGN-data-model.md` §2.7a). SR9 says the PICTURE clause "may be omitted
+for an elementary item when an alphanumeric, boolean, or national literal that is not a zero-length literal is
+specified in the data-item format of the VALUE clause", and implies `X(length)` / `1(length)` / `N(length)`. The
+`SynthesizeImpliedPictures` pass (`DataBinder.ImpliedPicture.cs`, registered between `ExpandTypes` and
+`UsageInheritancePass`) builds that character-string — the arm from `CobolLiteral.ClassOf`, the length from
+`CobolLiteral.Decode(…).Length`, a figurative constant's from §8.3.3.6.4 GR3 b/c with GR1/GR4 choosing its
+category from the context — and hands it to the SAME `PictureAnalyzer.Analyze` call a WRITTEN clause takes, so
+the item is thereafter indistinguishable from one whose source wrote the clause (§13.18.60.3 SR13 a) and SR20 are
+written over the "explicit or IMPLICIT picture character-string", which is the standard licensing exactly that).
+The entry is then no longer picture-less, so the SR8 closing guard never sees it and carries NO carve-out. The
+standard states this rule once per entry kind: §13.15.3 SR14 is the report group entry's copy and shares this
+classifier (`ImpliedReportPicture`, called from `DataBinder.Reports.cs`); §13.17.3 SR10 is the screen entry's and
+needs no site, the SCREEN SECTION being the declined Annex A.4.2 module this doc already owns. Below COBOL-2002
+the construct row `value-implied-picture-2002` refuses it by name (COBOLNET0900).
+
 ### D23. The initial-state BACKGROUND (§11.9.10 OPTIONS INITIALIZE + §14.6.2.3.2 action 1) is ONE choke point, `InitialStateBackground`, that all three consuming arms route through — the fill is a background laid UNDER the VALUE seed, never a substitute for a missing one. (kb/Work PB152.)
 
 **The rule, in order.** §14.6.2.3.2 numbers the initial-state actions: action 1 — "If the INITIALIZE clause is

@@ -59,6 +59,7 @@ public static class Constructs
     public const string BasedClause2002 = "based-clause-2002";
     public const string AnyLengthClause2002 = "any-length-clause-2002";
     public const string AlignedClause2002 = "aligned-clause-2002";
+    public const string ValueImpliedPicture2002 = "value-implied-picture-2002";
     public const string GroupUsageClause2002 = "group-usage-clause-2002";
     public const string ProcedureReturning2002 = "procedure-returning-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";

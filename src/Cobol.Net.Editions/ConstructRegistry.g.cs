@@ -61,6 +61,7 @@ public static partial class ConstructRegistry
         new("based-clause-2002", "BASED clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.5"),
         new("any-length-clause-2002", "ANY LENGTH clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.2"),
         new("aligned-clause-2002", "ALIGNED clause", 2002, null, null, "COBOLNET0900", "ISO 13.18.1"),
+        new("value-implied-picture-2002", "the VALUE-implied PICTURE clause (an elementary item with a VALUE literal and no PICTURE)", 2002, null, null, "COBOLNET0900", "ISO §13.16.3 SR9; §13.15.3 SR14"),
         new("group-usage-clause-2002", "GROUP-USAGE clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.29"),
         new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, "COBOLNET0900", "ISO §14.2"),
         new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, "COBOLNET0893", "ISO §12.3.7; pinned pre-band code (VCR Table 7 row 7.3, DEVLOG 558 — in the roadmap traceability band); the W1.5 registry truth-fix (was mislabeled 0900)"),

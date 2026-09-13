@@ -28,12 +28,10 @@ namespace CobolNet.Binding;
 /// <para><b>Where the picture-less usages are handled instead.</b> §13.16.3 SR8's own first sentence exempts
 /// binary-char/short/long/double, float-short/long/extended, index, message-tag, object reference, pointer,
 /// function-pointer and program-pointer — for those <c>BindEntry</c> SYNTHESIZES a <see cref="PicInfo"/>, and
-/// SR9's VALUE-implied PICTURE would arrive with one too, if it were synthesized — it is not (kb/Work PB504,
-/// inventory row SR-13.16.3-9). So the test here is simply "elementary and still no Pic after every synthesis and
-/// inheritance pass has run", which is exactly the population SR8 governs and needs no second copy of the
-/// exemption list to maintain — plus the one carve-out the diagnostic loop below states and argues: a VALUE that
-/// is a FIGURATIVE constant, the case SR9's "length … as specified in 8.3.3" cannot measure and the case this
-/// tree has already settled as accept-and-flag.</para>
+/// SR9's VALUE-implied PICTURE arrives with one too, synthesized by <c>SynthesizeImpliedPictures</c> two passes
+/// earlier (kb/Work PB504/PB831; <c>DataBinder.ImpliedPicture.cs</c>). So the test here is simply "elementary and
+/// still no Pic after every synthesis and inheritance pass has run", which is exactly the population SR8 governs
+/// and needs no second copy of the exemption list — and no carve-out of any kind — to maintain.</para>
 ///
 /// <para><b>Two forests, deliberately.</b> The DIAGNOSTIC is reported over <see cref="ConformanceForest"/> so a
 /// TYPEDEF template is named once rather than once per <c>TYPE</c> reference site — the entry the programmer
@@ -53,24 +51,17 @@ public sealed partial class DataBinder
         foreach (var item in ConformanceForest())
         {
             if (!IsPictureLessLeaf(item)) continue;
-            // ⛔ THE ONE SR9 CARVE-OUT, AND IT IS THE FIGURATIVE ONE ONLY. SR8 defers to SR9 in its own words —
-            // "except as indicated in Syntax rule 9" — and SR9 keys the implied PICTURE on a LITERAL WITH A
-            // LENGTH: "The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean, or
-            // national literal that is not a zero-length literal is specified in the data-item format of the VALUE
-            // clause" (ISO §13.16.3 SR9), the implied width being "the length of the literal as specified in 8.3.3,
-            // Literals". A FIGURATIVE constant has no such length — that is the whole premise of the >>FLAG-14
-            // VALUE-FIG-CON-LENGTH option (§7.3.15.4 GR4 k: "A figurative constant specified in the VALUE clause of
-            // a data item with no specified length shall be flagged"), whose existence presupposes the construct is
-            // ACCEPTED. That reading is settled on this tree and pinned green by FlagDirectiveTests, and a closing
-            // guard must not silently RE-ADJUDICATE it — so `01 A VALUE SPACE.` is exempt from the DIAGNOSTIC and
-            // from the diagnostic only: the recovery shape below still gives it a Pic.
-            // ⛔ The exemption is NOT "any VALUE clause", and the difference is a WRONG ANSWER. `01 B VALUE "AB".`
-            // is SR9's own case, and this compiler synthesizes the implied PICTURE NOWHERE (kb/Work PB504, inventory
-            // row SR-13.16.3-9 = NOT-IMPLEMENTED); exempting it would bind B as the one-character recovery item and
-            // DISPLAY B would print "A" — measured. Loudly requiring the PICTURE that SR9 says may be omitted is
-            // debt PB504 owns and states; silently storing a truncated value is not. A numeric literal VALUE
-            // (`01 F VALUE 42.`) is outside SR9 altogether and SR8 simply requires the PICTURE.
-            if (item.RawValue is { } rawValue && IsFigurativeValueText(rawValue)) continue;
+            // ⛔ NO CARVE-OUT, AND THE ABSENCE IS THE POINT (kb/Work PB504/PB831). SR8 defers to SR9 in its own
+            // words — "except as indicated in Syntax rule 9" — and SR9 is APPLIED, not excused: the
+            // SynthesizeImpliedPictures pass gives every entry inside SR9's grant the PICTURE the rule implies
+            // (DataBinder.ImpliedPicture.cs), so such an entry is no longer a picture-less leaf and this guard
+            // never sees it. The FIGURATIVE case rides the same synthesis (§8.3.3.1 makes a figurative constant a
+            // literal; §8.3.3.6.4 GR3 b/c supply the length SR9 takes "as specified in 8.3.3"), so the former
+            // exemption — which let `01 G VALUE ALL "AB".` fall to the ONE-CHARACTER recovery item and store "A",
+            // a silent wrong answer — is gone rather than widened. What remains here is exactly SR8's own
+            // population: a numeric literal VALUE (`01 F VALUE 42.`), the class-pointer figurative NULL, a
+            // zero-length literal (SR9 excludes it by name), a Format-2 table VALUE (SR9 grants only the
+            // data-item format), and an entry with no VALUE clause at all.
             using var _ = Edition.At(item);
             Edition.Error(DiagnosticCatalog.UsageClauseCompatibility,
                 $"data item '{item.CobolName ?? "FILLER"}': a PICTURE clause shall be specified for an elementary "
@@ -109,20 +100,4 @@ public sealed partial class DataBinder
         item.Pic is null && item.Children.Count == 0 && item.Level is not (66 or 88)
         && item.TypeRefName is null && item.SameAsName is null;
 
-    /// <summary>Does this raw VALUE operand denote a FIGURATIVE CONSTANT (ISO §8.3.3.6) rather than a literal
-    /// with a length? The word list is <see cref="CobolNet.CodeGen.FigurativeConstants.KindOf"/> — THE
-    /// figurative-word table for the whole compiler, so this rule cannot drift from the emitter's — plus the
-    /// <c>ALL literal-1</c> form, which §8.3.3.6 makes a figurative constant too and which likewise has no
-    /// length of its own (it is repeated to the size of the item, so an item of unstated size gives it none).
-    /// <para>NULL/NULLS is deliberately NOT admitted here (<c>includeNull</c> left false): it is the class-pointer
-    /// figurative, and a pointer item is picture-less by USAGE with a synthesized profile — it never reaches this
-    /// guard. Admitting it would only silence SR8 for `01 P VALUE NULL.`, which has no pointer usage at all.</para>
-    /// <para>The ALL strip is the same one <c>ScreenValueLiteral</c> performs (a parse-tree GetText concatenates
-    /// the tokens, so `ALL SPACES` arrives as "ALLSPACES"); a VALUE operand is a literal or a figurative constant
-    /// and nothing else, so a word beginning "ALL" is always the ALL form.</para></summary>
-    private static bool IsFigurativeValueText(string raw)
-    {
-        bool all = raw.Length > 3 && raw.StartsWith("ALL", StringComparison.OrdinalIgnoreCase);
-        return all || CobolNet.CodeGen.FigurativeConstants.KindOf(raw) is not null;
-    }
 }
