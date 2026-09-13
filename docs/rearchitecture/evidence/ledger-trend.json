@@ -523,6 +523,15 @@
       "dns": 366,
       "label": "Train 29: DEVLOG 1594 + plan",
       "battery": null
+    },
+    {
+      "sha": "eb7719b3",
+      "date": "2026-09-13",
+      "gap": 2533,
+      "closed": 1815,
+      "dns": 366,
+      "label": "Train 30: DEVLOG 1596 + plan",
+      "battery": null
     }
   ]
 }
