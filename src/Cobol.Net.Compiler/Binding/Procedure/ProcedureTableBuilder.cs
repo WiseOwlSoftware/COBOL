@@ -13,8 +13,9 @@ using Core = CobolParserCore;
 /// The ONE procedure table + its builders (P7 Step 10t — the plan's `ProcedureTableBuilder`, per-unit on
 /// <see cref="BinderContext.Table"/>): the pc space (`_paras ∥ _paraSection ∥ _paraMethod` in LOCKSTEP —
 /// every AddParagraph appends to all three), the section map (ISO §14.4.3), the method-local scope maps
-/// (§11.7 — registered through the ambient <see cref="BinderContext.CurrentMethodScope"/> collection
-/// cursor), <see cref="ResolveProcedure"/> (§8.4.2.2 — explicit OF/IN → in-section → global → section-name,
+/// (a method definition is its own source element — §3.164 with §3.165 and §11.7.1 — so §8.4.6.1 confines
+/// its paragraph-names to it; registered through the ambient
+/// <see cref="BinderContext.CurrentMethodScope"/> collection cursor), <see cref="ResolveProcedureOperand"/> (§8.4.2.2 — explicit OF/IN → in-section → global → section-name,
 /// method-confined inside a method), and the DECLARATIVES half (ISO §14.3 / §14.9.49 USE — each
 /// declarative section joins the same pc space; the USE sentence binds into a <see cref="BoundDeclarative"/>
 /// scope, never a bound statement; the use procedure's range IS that section's own
@@ -39,8 +40,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc. Inside a
     /// METHOD body (<see cref="_currentMethodScope"/> set — the class-body collection) the name declares
-    /// METHOD-LOCALLY (ISO §11.7 — sibling methods may reuse names; cross-method resolution must FAIL), so it
-    /// registers in the method's own map, never the program-global fallback.</summary>
+    /// METHOD-LOCALLY (ISO §8.4.6.1 over the method's own source element, §3.164 — sibling methods may reuse
+    /// names and cross-method resolution must FAIL), so it registers in the method's own map, never the
+    /// program-global fallback.</summary>
     public void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
         ctx.Data.ScreenRepositoryIntrinsicName(name, "paragraph-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
@@ -48,7 +50,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         string method = baseName;
         for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
         if (ctx.CurrentMethodScope is { } ms)
-            ms.Paras.TryAdd(name, _paras.Count);   // method-local declaration (§11.7)
+            ms.Paras.TryAdd(name, _paras.Count);   // method-local declaration (§8.4.6.1 / §3.164)
         else
             _paraIndex.TryAdd(name, _paras.Count); // first definition wins for the global fallback
         section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
@@ -166,19 +168,50 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         FinalizeDebug(pd);
     }
 
+    /// <summary>⛔ THE ONE <c>procedure-name</c> OPERAND RESOLUTION for a STATEMENT (kb/Work PB390): resolve, or
+    /// REPORT COBOLNET1639 and return null. Every statement whose general format prints procedure-name — PERFORM,
+    /// GO TO (both formats), ALTER, RESUME AT, SORT/MERGE INPUT and OUTPUT PROCEDURE — enters here, so a name that
+    /// resolves to nothing is a compile-time DIAGNOSTIC by construction and not a per-site habit.
+    /// <para>⛔ THIS EXISTS BECAUSE THE SILENT TWIN WAS USED EIGHT TIMES. Each site turned the null into a
+    /// <c>BoundUnsupported</c> — which the emitter renders as <c>NotImplemented.Run(...)</c> — so a misspelled
+    /// PERFORM COMPILED, produced an assembly, and aborted the run unit claiming COBOL.NET had not implemented a
+    /// feature; on a path the flow skipped it said nothing at all. ISO §4.2.2 ¶2 requires the compile-time
+    /// mechanism. The message itself lives in the ONE syntax-rule catalog
+    /// (<see cref="Validation.StatementValidation.RejectProcedureName"/>), never here.</para></summary>
+    /// <param name="pn">The procedure-name as written.</param>
+    /// <param name="verb">The statement or phrase for the message, e.g. "PERFORM", "SORT INPUT PROCEDURE".</param>
+    /// <param name="rule">The caller's OWN syntax rule quoted with its citation (PERFORM §14.9.28.3 SR12/SR13);
+    /// "" where the statement states none and §8.4.2.1 alone decides (GO TO, ALTER, RESUME AT).</param>
+    public PcRange? ResolveProcedureOperand(Core.ProcedureNameContext pn, string verb, string rule = "")
+    {
+        if (ResolveProcedureQuiet(pn) is { } range) return range;
+        string head = pn.GetChild(0).GetText();
+        string qualifier = pn.ChildCount >= 3 ? " " + pn.GetChild(1).GetText() + " " + pn.GetChild(2).GetText() : "";
+        ctx.Validation.RejectProcedureName(head + qualifier, head, verb, rule, ctx.CurrentMethodScope is not null);
+        return null;
+    }
+
     /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §8.4.2.2): a section name is its
     /// paragraph range; a paragraph is (pc, pc). The head/qualifier are taken from the context's CHILDREN — never
     /// <c>GetText()</c> of the whole context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.
     /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
     /// paragraph of the CURRENT section (implicit qualification of duplicated names), then the global first-defined
-    /// paragraph, then a section name. Null when unknown (the caller fails loud).</summary>
-    public PcRange? ResolveProcedure(Core.ProcedureNameContext pn)
+    /// paragraph, then a section name. Null when unknown.
+    /// <para>⛔ QUIET, AND THE NAME SAYS SO (kb/Work PB390): this arm reports NOTHING, so it belongs only to a
+    /// PRESCAN that is not the statement's own bind — the ALTER switch-field prescan and the USE FOR DEBUGGING
+    /// SORT/MERGE-overlap scan, each of which runs before (or beside) the bind that will report. A STATEMENT
+    /// operand goes through <see cref="ResolveProcedureOperand"/>, which cannot resolve to nothing in
+    /// silence.</para></summary>
+    public PcRange? ResolveProcedureQuiet(Core.ProcedureNameContext pn)
     {
         string head = pn.GetChild(0).GetText();
         string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
-        // Inside a METHOD body resolution is CONFINED to the method's own maps (ISO §11.7 — method-local
-        // procedure names; a cross-method PERFORM/GO TO resolves to nothing and the caller fails loud, the
-        // legacy trap-#10 rule made structural).
+        // Inside a METHOD body resolution is CONFINED to the method's own maps: a method definition begins
+        // with an identification division (ISO §11.7.1), so it is a contained SOURCE UNIT (§3.165) and thus
+        // its own SOURCE ELEMENT (§3.164), and §8.4.6.1 confines paragraph-names and section-names to the
+        // source element that declares them — the legacy trap-#10 cross-method reject made structural.
+        // (NOT §11.7 alone, which the old comment cited: that is the METHOD-ID paragraph, whose GR5 scoping
+        // rule is about the method's DATA DIVISION words — kb/Work PB390.)
         if (ctx.CurrentMethodScope is { } m)
         {
             if (qualifier is not null)
@@ -397,8 +430,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         void Add(string kind, Core.ProcedureNameContext[] pns)
         {
             if (pns.Length == 0) return;
-            if (ResolveProcedure(pns[0]) is not { } first) return;
-            var last = pns.Length > 1 ? ResolveProcedure(pns[^1]) : first;
+            if (ResolveProcedureQuiet(pns[0]) is not { } first) return;
+            var last = pns.Length > 1 ? ResolveProcedureQuiet(pns[^1]) : first;
             if (last is { } l) results.Add((kind, first.Through(l)));
         }
         void Walk(Antlr4.Runtime.Tree.IParseTree node)

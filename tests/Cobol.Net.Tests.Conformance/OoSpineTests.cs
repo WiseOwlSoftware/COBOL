@@ -92,13 +92,18 @@ public sealed class OoSpineTests
         Assert.Equal("M1-A\nM1-B\nAFTER-M1", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>Trap #10 — cross-method PERFORM: procedure names resolve METHOD-LOCALLY (§11.7), so a PERFORM
-    /// of a sibling method's paragraph binds to the loud unknown-procedure guard (with the method-scope hint),
-    /// never a silent cross-method transfer.</summary>
+    /// <summary>Trap #10 — cross-method PERFORM: a method definition is its own SOURCE ELEMENT (§3.164 with
+    /// §3.165 and §11.7.1), so §8.4.6.1 confines its paragraph-names to it and a PERFORM
+    /// of a sibling method's paragraph is REFUSED, never a silent cross-method transfer.
+    /// <para>⛔ THE STAGE MOVED, AND THE INTENT DID NOT (kb/Work PB390). This test used to require the RUN to
+    /// die — it asserted the <c>NotImplementedCobolFeatureException</c> text "unknown procedure 'PARA-C'" — so
+    /// a GREEN test was pinning the broken stage: the program COMPILED, shipped an assembly, and blamed a gap
+    /// in COBOL.NET for what is an error in the source (ISO §4.2.2 ¶2 requires the compile-time mechanism).
+    /// The refusal is now the compile-time COBOLNET1639, and the method-local explanation rides it.</para></summary>
     [Fact]
-    public void Trap10_CrossMethodPerform_FailsLoud()
+    public void Trap10_CrossMethodPerform_IsRefusedAtCompileTime()
     {
-        var (ok, _, detail) = CompileAndRun(DriverAndClass("OOSP2", "OSPC2", """
+        var errors = ErrorsOf(DriverAndClass("OOSP2", "OSPC2", """
                 INVOKE OSPC2 "NEW" RETURNING T.
                 INVOKE T "M1".
             """, """
@@ -113,9 +118,10 @@ public sealed class OoSpineTests
                 DISPLAY "M2-PARA".
             END METHOD M2.
             """));
-        Assert.False(ok, "a cross-method PERFORM must fail loud, never transfer");
-        Assert.Contains("unknown procedure 'PARA-C'", detail);
-        Assert.Contains("method-local resolution", detail);
+        string e = Assert.Single(errors, x => x.Contains("COBOLNET1639", StringComparison.Ordinal));
+        Assert.Contains("PERFORM 'PARA-C' names no procedure", e, StringComparison.Ordinal);
+        Assert.Contains("METHOD-LOCAL", e, StringComparison.Ordinal);
+        Assert.Contains("§3.164", e, StringComparison.Ordinal);
     }
 
     // ── D8: the method-return / run-unit-stop / program-return split (§14.9.18.4 GR4 / §14.9.43) ───────────

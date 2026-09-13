@@ -1966,7 +1966,13 @@ public static class DiagnosticCatalog
         + "procedure-division chokepoint (ReferenceResolver.Resolve — kb/Work R30), and the VALUE clause's "
         + "literal-position screen, where the only names the position admits are a constant-name (§13.10.3 SR2) "
         + "and a symbolic-character (§8.3.3.6.2 Format 7), so a word that is neither identifies no resource "
-        + "(kb/Work PB732).",
+        + "(kb/Work PB732). It also carries the PROCEDURE-NAME space (kb/Work PB390): a word that names no "
+        + "paragraph or section of this source element identifies no procedure, at PERFORM (ISO §14.9.28.3 "
+        + "SR12 / SR13, quoted by the message), GO TO in both formats, ALTER, RESUME AT and the SORT/MERGE "
+        + "INPUT and OUTPUT PROCEDURE phrases — ONE reporting step, "
+        + "ProcedureTableBuilder.ResolveProcedureOperand, since §8.4.6.1 makes paragraph-names and "
+        + "section-names referenceable only in the source element that declares them; and the SET Format-4 "
+        + "operand that names no condition-name at all (§14.9.39.3 SR6).",
         "ISO §8.4.2.1 / §8.4.2.2");
     // ⛔ COBOLNET1576 ("ref-mod-zero-length-malformed-operand") is RETIRED — NEVER REALLOCATE IT. It was
     //    >>REF-MOD-ZERO-LENGTH's own copy of "a directive's operand shall be one its general format admits"
@@ -2356,8 +2362,13 @@ public static class DiagnosticCatalog
         + "or a reference-modified record, is not a record-name (§14.9.51.3 SR5 / §14.9.35.3 SR1 / §14.9.32.3 "
         + "SR1, with §5.2.4 and §8.4.3.3.3 SR5) — a RELEASE record-name whose file is described by an FD rather "
         + "than an SD (§14.9.32.3 SR1), a RETURN file-name not described by an SD (§14.9.34.3 SR1), or a "
-        + "SORT/MERGE operand list the general format does not print (§14.9.24.2 / §14.9.40.3). Rejected at "
-        + "bind — the statement is not run.",
+        + "SORT/MERGE operand list the general format does not print (§14.9.24.2 / §14.9.40.3), a "
+        + "CORRESPONDING operand that is REFERENCE-MODIFIED (§14.9.25.3 SR12's second half, with "
+        + "§8.4.3.3.4 GR6 — the result is an elementary data item, so it is not a group item), or a SET "
+        + "operand the statement's own format does not admit: a switch-status condition-name in Format 4 "
+        + "(§14.9.39.3 SR6 — condition-name-1 shall be associated with a conditional variable) or a "
+        + "Format-3 name that is no external-switch mnemonic (SR5). Rejected at bind — the statement is not "
+        + "run.",
         "ISO §14.9.2.3 / §14.9.25.3 / §14.9.32.3 / §14.9.34.3 / §14.9.35.3 / §14.9.44.3 / §14.9.51.3");
     /// <summary>COBOLNET1756 — the DEFERRAL announcing itself. A statement the grammar accepted but this
     /// compiler binds to <c>BoundUnsupported</c> is staged to a loud run-time refusal (COBOLNET_DESIGN §1.4);

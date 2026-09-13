@@ -84,8 +84,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         PcRange? inputProc = null;
         if (s.sortInputProcedurePhrase() is { } ipp)
         {
-            if (SortRange(ipp.procedureName()) is not { } ipr)
-                return RejectUnknownProcedure("SORT INPUT PROCEDURE", ipp.procedureName(0).GetText());   // PB236
+            if (SortRange(ipp.procedureName(), "SORT INPUT PROCEDURE", "§14.9.40.2") is not { } ipr)
+                return new BoundNop();   // reported by the ONE procedure-name resolution (kb/Work PB390)
             inputProc = ipr;
         }
         // Return phase target (GR9c): GIVING file list or OUTPUT PROCEDURE pc range.
@@ -98,8 +98,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         PcRange? outputProc = null;
         if (s.sortOutputProcedurePhrase() is { } opp)
         {
-            if (SortRange(opp.procedureName()) is not { } opr)
-                return RejectUnknownProcedure("SORT OUTPUT PROCEDURE", opp.procedureName(0).GetText());   // PB236
+            if (SortRange(opp.procedureName(), "SORT OUTPUT PROCEDURE", "§14.9.40.2") is not { } opr)
+                return new BoundNop();   // reported by the ONE procedure-name resolution (kb/Work PB390)
             outputProc = opr;
         }
         if ((usingFiles.Count == 0 && inputProc is null) || (givingFiles.Count == 0 && outputProc is null))
@@ -199,20 +199,6 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         return new BoundTableSort(arrayPath, table, keys, s.sortDuplicatesPhrase() is not null, collating);
     }
 
-    /// <summary>A procedure-name in a SORT/MERGE INPUT/OUTPUT PROCEDURE phrase that names no procedure in this
-    /// source element (kb/Work PB236). ISO §8.4.2.1 — "In order to use a resource, a statement shall contain a
-    /// reference that uniquely identifies that resource" — so this is the SAME verdict a misspelled data-name
-    /// draws, and it rides the SAME descriptor (COBOLNET1639) rather than a second spelling of "not defined".
-    /// It used to be an unreported <c>BoundUnsupported</c>: the program compiled, and the sort aborted the run
-    /// unit if it was ever reached.</summary>
-    private BoundStatement RejectUnknownProcedure(string phrase, string name)
-    {
-        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-            $"{phrase} '{name}' is not defined — no section or paragraph in this source element carries that "
-            + "name, so the phrase identifies no procedure to execute (ISO §8.4.2.1)");
-        return new BoundNop();
-    }
-
     // ── MERGE (ISO §14.9.24) ───────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Bind MERGE (ISO §14.9.24): SD operand (SR — file-name-1 shall be described in an SD), keys
@@ -270,8 +256,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         PcRange? outputProc = null;
         if (m.mergeOutputProcedurePhrase() is { } opp)
         {
-            if (SortRange(opp.procedureName()) is not { } opr)
-                return RejectUnknownProcedure("MERGE OUTPUT PROCEDURE", opp.procedureName(0).GetText());   // PB236
+            if (SortRange(opp.procedureName(), "MERGE OUTPUT PROCEDURE", "§14.9.24.2") is not { } opr)
+                return new BoundNop();   // reported by the ONE procedure-name resolution (kb/Work PB390)
             outputProc = opr;
         }
         if (givingFiles.Count == 0 && outputProc is null)
@@ -561,11 +547,20 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §14.9.40 GR10/GR13 — the range
     /// composes like PERFORM: a single SECTION name is its whole paragraph range, THRU extends through the second
     /// procedure's end). Resolved by the ONE procedure resolver, so section/qualified semantics match PERFORM.</summary>
-    private PcRange? SortRange(Core.ProcedureNameContext[] names)
+    private PcRange? SortRange(Core.ProcedureNameContext[] names, string phrase, string formatClause)
     {
-        if (names.Length == 0 || ctx.Table.ResolveProcedure(names[0]) is not { } first) return null;
+        if (names.Length == 0)
+        {
+            ctx.Validation.RejectStatementOperand(
+                $"{phrase} — the general format prints procedure-name-1 (ISO {formatClause})");
+            return null;
+        }
+        // ⛔ EACH NAME REPORTS ITSELF (kb/Work PB390). SORT's own private "unknown procedure" message folded
+        // into the ONE procedure-name resolution, which also ends a small lie: the caller used to report
+        // procedureName(0) whichever of the two names had failed, so a bad THRU name accused the good one.
+        if (ctx.Table.ResolveProcedureOperand(names[0], phrase) is not { } first) return null;
         if (names.Length < 2) return first;
-        if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return null;
+        if (ctx.Table.ResolveProcedureOperand(names[1], phrase + " THRU") is not { } thru) return null;
         return first.Through(thru);   // GR4-style composition, EMPTY-aware (kb/Work PB440)
     }
 

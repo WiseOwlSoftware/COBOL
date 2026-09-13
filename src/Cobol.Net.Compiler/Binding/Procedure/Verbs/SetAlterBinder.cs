@@ -49,7 +49,9 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                     ctx.CurrentSection = ctx.Table.ParaSections[i];
                     // proc-1 names a PARAGRAPH (a section resolves to a multi-pc range and is excluded; the
                     // sole-GO-TO shape check happens at the ALTER's own bind, where it can fail loud).
-                    if (ctx.Table.ResolveProcedure(names[0]) is { IsParagraph: true } t)
+                    // The QUIET resolution, deliberately: this is a PRESCAN, and the ALTER's own bind reports
+                    // the unresolvable name once, through the ONE operand resolution (kb/Work PB390).
+                    if (ctx.Table.ResolveProcedureQuiet(names[0]) is { IsParagraph: true } t)
                         // Method "P_<name>" → field "_alter_<name>" (D4); COBOL names cannot start with '_',
                         // so the field can never collide with a data item's emitted field.
                         _alterSwFields.TryAdd(t.Start, "_alter_" + ctx.Table.Paragraphs[t.Start].Method[2..]);
@@ -118,20 +120,31 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         // with no failing diagnostic (warning channel pending, as above).
         AlterEnsureScan();
         var entries = new List<BoundAlterEntry>();
+        bool bad = false;   // screen EVERY entry, so a second bad one is not hidden by the first
         foreach (var entry in al.alterEntry())
         {
             if (entry.procedureName() is not { Length: >= 2 } names)
                 return new BoundUnsupported($"ALTER entry '{entry.GetText()}' (malformed)");
-            if (ctx.Table.ResolveProcedure(names[0]) is not { IsParagraph: true } target)
-                return new BoundUnsupported($"ALTER target '{names[0].GetText()}' (not a known paragraph)");
-            if (!AlterIsSoleGoToParagraph(target.Start))
-                return new BoundUnsupported($"ALTER target '{names[0].GetText()}' is not a paragraph consisting "
-                    + "of a single GO TO sentence (ANSI X3.23-1985 ALTER syntax rule)");
-            if (ctx.Table.ResolveProcedure(names[1]) is not { } dest)
-                return new BoundUnsupported($"ALTER new destination '{names[1].GetText()}' (unknown procedure)");
+            // ⛔ BOTH ALTER OPERANDS ARE procedure-names AND GO THROUGH THE ONE RESOLUTION (kb/Work PB390):
+            // an unresolvable name is reported at COMPILE time, not staged to a run-time abort blaming a gap in
+            // COBOL.NET. proc-1 additionally has to be a PARAGRAPH (a section resolves to a multi-pc range and
+            // the ALTER shape rule is about a single GO TO sentence), so a RESOLVED section takes the shape arm
+            // below rather than the name arm — telling the user "that is a section" beats "unknown procedure".
+            if (ctx.Table.ResolveProcedureOperand(names[0], "ALTER") is not { } target) { bad = true; continue; }
+            if (!target.IsParagraph || !AlterIsSoleGoToParagraph(target.Start))
+            {
+                ctx.Validation.RejectStatementOperand($"ALTER '{names[0].GetChild(0).GetText()}' — the procedure "
+                    + "to be altered shall be a paragraph consisting of a single sentence that is one GO TO "
+                    + "statement (ANSI X3.23-1985 ALTER syntax rule)"
+                    + (target.IsParagraph ? "" : "; this name resolves to a SECTION"));
+                bad = true;
+                continue;
+            }
+            if (ctx.Table.ResolveProcedureOperand(names[1], "ALTER TO PROCEED TO") is not { } dest)
+            { bad = true; continue; }
             entries.Add(new BoundAlterEntry(_alterSwFields![target.Start], dest.Start));
         }
-        return new BoundAlter(entries);
+        return bad ? new BoundNop() : new BoundAlter(entries);
     }
 
     /// <summary>True when paragraph <paramref name="pc"/> consists of a SINGLE sentence whose only statement is a
@@ -159,6 +172,14 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             : null;
     }
 
+    /// <summary>The external switch a reference names the ON/OFF STATUS of, else null — asked for the
+    /// DIAGNOSTIC's sake rather than for a bound condition (kb/Work PB390): §14.9.39.3 SR6's discriminating
+    /// operand is a condition-name associated with a switch instead of a conditional variable, and a message
+    /// can only say so if it can tell the two apart. It goes THROUGH <see cref="SwitchCondOf"/> rather than
+    /// re-reading <c>SwitchConditions</c>, so "what is a switch-status condition-name" stays one predicate.</summary>
+    public string? SwitchNameOf(Core.DataReferenceContext dref) =>
+        SwitchCondOf(dref) is BoundSwitchCondition sw ? sw.ImplementorName : null;
+
     /// <summary>Bind <c>SET {{mnemonic-name-1}… TO {ON|OFF}}…</c> (ISO §14.9.39 Format 3). The grammar is FLAT
     /// (<c>SET (dataReference+ TO (ON|OFF))+</c>), so the groups are reassembled by token position: the references
     /// whose stop precedes a TO belong to that TO's group, and the group's position is the ON or OFF token between
@@ -170,6 +191,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         var tos = sw.TO();
         var ons = sw.ON();
         var switches = new List<(string Name, bool On)>();
+        bool bad = false;
         int refIdx = 0, onIdx = 0;
         for (int t = 0; t < tos.Length; t++)
         {
@@ -182,11 +204,19 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             {
                 string name = drefs[refIdx].cobolWord()?.GetText() ?? drefs[refIdx].GetText();
                 if (!ctx.Data.SwitchMnemonics.TryGetValue(name, out var implName))
-                    return new BoundUnsupported(
-                        $"SET '{name}' TO ON/OFF — not a SPECIAL-NAMES external-switch mnemonic (ISO §14.9.39 F3 SR5)");
+                {
+                    // SR5 is decided here, so it is REPORTED here (kb/Work PB390 — the Format-3 sibling of the
+                    // Format-4 condition-name rule; both used to ship as a run-time "not implemented" abort).
+                    ctx.Validation.RejectStatementOperand($"SET '{name}' TO {(on ? "ON" : "OFF")} — "
+                        + "\"mnemonic-name-1 shall be associated with an external switch, the status of which may "
+                        + "be altered\" (ISO §14.9.39.3 SR5), and no SPECIAL-NAMES paragraph in this source "
+                        + $"element associates '{name}' with a switch-name");
+                    bad = true;
+                    continue;   // screen EVERY receiver: two bad mnemonics draw two diagnostics
+                }
                 switches.Add((implName, on));
             }
         }
-        return new BoundSetSwitches(switches);
+        return bad ? new BoundNop() : new BoundSetSwitches(switches);
     }
 }

@@ -58,6 +58,97 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ THE ONE <c>procedure-name</c> OPERAND RULE (kb/Work PB390), reported for every statement
+    /// whose general format prints that operand: PERFORM, GO TO (both formats), ALTER, RESUME AT and the
+    /// SORT/MERGE INPUT/OUTPUT PROCEDURE phrases. The resolution itself is
+    /// <see cref="Procedure.ProcedureTableBuilder.ResolveProcedureOperand"/> — §8.4.2.2's in-section →
+    /// global → section-name order, ONE implementation — and this is where its failure becomes a DIAGNOSTIC
+    /// instead of a bound node.
+    /// <para>⛔ THE STAGE WAS THE DEFECT. Eight sites each turned "this name resolves to nothing" into a
+    /// <c>BoundUnsupported</c>, which the emitter renders as <c>NotImplemented.Run(...)</c>: a misspelled
+    /// <c>PERFORM</c> COMPILED, shipped an assembly, and aborted the run unit with an unhandled .NET exception
+    /// telling the user that COBOL.NET had not implemented a feature — the diagnosis sent to the wrong party,
+    /// at the wrong time, and on an unexecuted path never sent at all. ISO §4.2.2 ¶2 puts violations of "the
+    /// general formats and the explicit syntax rules" in the compile-time mechanism.</para>
+    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOLNET1639)
+    /// and no new code — "this source element defines no such name" is ONE rule (ISO §8.4.2.1), and the
+    /// procedure-name space was simply missing from the place that already reports it for data-names and (since
+    /// kb/Work PB236) for file-names. SORT's own private copy of this message folded into it here.</para>
+    /// <para>The scope half is quoted because it is the half a reader disbelieves: §8.4.6.1 lists paragraph-name
+    /// and section-name among the words that "may be referenced only by statements in the source element in
+    /// which the user-defined word is declared", which is why a CONTAINED program's paragraph, and a sibling
+    /// METHOD's, are correctly not found — a method definition begins with an identification division
+    /// (§11.7.1), so it is a contained source unit (§3.165) and thus its own source element (§3.164).
+    /// ⛔ NOT §11.7 ALONE, which is where the deleted <c>OoScopeHint</c> pointed: that clause is the
+    /// METHOD-ID paragraph, and the only scoping rule it states (§11.7.4 GR5) is about words defined in the
+    /// method's DATA DIVISION — a real clause answering a different question.</para></summary>
+    /// <param name="refText">The procedure-name as written, for the message.</param>
+    /// <param name="head">Its head word (the qualifier stripped), for the data-name discrimination.</param>
+    /// <param name="verb">The statement or phrase, e.g. "PERFORM" or "SORT INPUT PROCEDURE".</param>
+    /// <param name="rule">The caller's own syntax rule quoted with its citation, or "" where the statement
+    /// states none of its own (GO TO and ALTER rest on §8.4.2.1 alone).</param>
+    /// <param name="methodLocal">True inside a method body — resolution is confined there (ISO §11.7).</param>
+    /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
+    public bool RejectProcedureName(string refText, string head, string verb, string rule, bool methodLocal)
+    {
+        bool isDataName = data.Symbols.TryResolve(head, data.ActiveScope, out _);
+        data.Edition.Error(DiagnosticCatalog.UndefinedReference,
+            $"{verb} '{refText}' names no procedure: no paragraph or section in this source element carries "
+            + "that name, so the reference identifies no resource (ISO §8.4.2.1 — \"In order to use a resource, "
+            + "a statement shall contain a reference that uniquely identifies that resource\"; §8.4.6.1 — a "
+            + "paragraph-name or section-name \"may be referenced only by statements in the source element in "
+            + "which the user-defined word is declared\")"
+            + (isDataName
+                ? $"; '{head}' is declared as a DATA ITEM, and a procedure-name is a different class of "
+                  + "user-defined word (§8.3.2.2)"
+                : "")
+            + (methodLocal
+                ? "; resolution inside a method is METHOD-LOCAL — a method definition begins with an "
+                  + "identification division (ISO §11.7.1) so it is a contained source unit (§3.165) and "
+                  + "therefore its own source element (§3.164: \"source unit excluding any contained source "
+                  + "units\"), which is what the scope rule above is measured against — so the paragraphs of "
+                  + "sibling methods and of the driver program are not visible here"
+                : "")
+            + (rule.Length > 0 ? $". {rule}" : ""));
+        return false;
+    }
+
+    /// <summary>⛔ ISO §14.9.39.3 SR6 — "Condition-name-1 shall be associated with a conditional variable"
+    /// (kb/Work PB390), the Format-4 <c>SET condition-name-1 … TO TRUE</c> operand rule. COBOL has TWO kinds of
+    /// condition-name (§8.4.4): one associated with a CONDITIONAL VARIABLE (a level-88 entry) and one
+    /// associated with the status of an EXTERNAL SWITCH (a SPECIAL-NAMES <c>ON STATUS IS</c> / <c>OFF STATUS
+    /// IS</c> name, §12.3.7). SR6 admits the first kind only — the second is set through Format 3,
+    /// <c>SET mnemonic-name-1 TO ON|OFF</c>, whose SR5 requires an external switch "the status of which may be
+    /// altered".
+    /// <para>⛔ THE OLD MESSAGE DENIED THE FACT THE RULE TURNS ON. A switch-status name reached a
+    /// <c>BoundUnsupported</c> reading "SET 'SW-ON' TO TRUE (not a condition-name)" — but SW-ON IS a
+    /// condition-name; what it is not is a condition-name of a conditional VARIABLE, which is exactly what SR6
+    /// says. Told it was not a condition-name at all, a user looks for a missing level-88 instead of reaching
+    /// for Format 3. The rule's own discriminating case was also its silent one: it compiled clean and aborted
+    /// the run unit.</para></summary>
+    /// <param name="refText">The operand as written.</param>
+    /// <param name="switchName">The implementor's external-switch name when the operand IS a switch-status
+    /// condition-name, else null.</param>
+    /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
+    public bool RejectSetConditionName(string refText, string? switchName)
+    {
+        if (switchName is not null)
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"SET '{refText}' TO TRUE — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
+                + $"names the status of external switch {switchName} (ISO §12.3.7), and §8.4.4.1 distinguishes "
+                + "that kind from the level-88 kind, which is the one associated with a conditional variable. "
+                + "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §14.9.39.3 SR6), "
+                + "so this operand is not admitted in Format 4. Set the switch through Format 3 — "
+                + "SET <mnemonic-name> TO ON or OFF (SR5).");
+        else
+            data.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                $"SET '{refText}' TO TRUE — '{refText}' is not a condition-name: no level-88 entry and no "
+                + "SPECIAL-NAMES switch-status name in this source element declares it, so the reference "
+                + "identifies no resource (ISO §8.4.2.1), and §14.9.39.3 SR6 requires a condition-name "
+                + "associated with a conditional variable.");
+        return false;
+    }
+
     /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236):
     /// MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall not be
     /// reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT §14.9.44.3 SR6 — "Identifier-4 and identifier-5
@@ -68,14 +159,38 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>⛔ THE LEVEL-66 CASE GETS ITS OWN REASON. A RENAMES entry has <c>Pic</c> null and no
     /// <c>Children</c>, so <see cref="DataItem.IsGroup"/> is false for it and it used to be reported as an
     /// "elementary operand" — rejected for a reason the rule does not give. It is excluded BY NAME, and the
-    /// message says so.</para></summary>
-    /// <param name="item">The resolved operand.</param>
+    /// message says so.</para>
+    /// <para>⛔ AND THE OPERAND IS A <see cref="Place"/>, NOT A <see cref="DataItem"/>, BECAUSE SR12's SECOND
+    /// HALF IS ABOUT THE REFERENCE (kb/Work PB390). "…and shall not be reference-modified" cannot be asked of
+    /// the resolved item: a reference modifier rides on the <see cref="RefModPlace"/> DECORATOR and
+    /// <c>PlaceDecorator.Item</c> answers with the INNER item, so a ref-modified group passed the group test
+    /// and the prohibition went unchecked — the same blindness kb/Work PB347 measured at RELEASE. What caught
+    /// it instead was an accident of the access-path factory (<c>CorrAccess.Create</c>'s default arm), under a
+    /// storage-shape message naming neither the rule nor reference modification; and once that factory started
+    /// switching on <c>Place.Undecorated</c> (kb/Work PB393) the accident stopped catching it at all, so
+    /// <c>MOVE CORRESPONDING G1(1:3) TO G2</c> silently moved the WHOLE group with the modifier discarded. The
+    /// arithmetic spellings need no separate rule for it: §8.4.3.3.4 GR6 makes the result of reference
+    /// modification an ELEMENTARY data item ("The unique data item is considered to be an elementary data item
+    /// without the JUSTIFIED clause"), which is none of the four group kinds their SR6 admits.</para></summary>
+    /// <param name="operand">The resolved operand, DECORATIONS INTACT.</param>
     /// <param name="refText">The operand as written, for the message.</param>
     /// <param name="verb">MOVE | ADD | SUBTRACT.</param>
     /// <param name="clause">The caller's own rule, e.g. "§14.9.2.3 SR6".</param>
     /// <returns>true when the operand is admitted.</returns>
-    public bool CheckCorrespondingGroupOperand(DataItem item, string refText, string verb, string clause)
+    public bool CheckCorrespondingGroupOperand(Place operand, string refText, string verb, string clause)
     {
+        for (Place p = operand; p is PlaceDecorator d; p = d.Inner)
+            if (d is RefModPlace)
+            {
+                data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                    $"{verb} CORRESPONDING operand '{refText}' is reference-modified — the operands of a "
+                    + "CORRESPONDING statement are group items, and reference modification yields an "
+                    + "elementary data item (ISO §8.4.3.3.4 GR6: \"The unique data item is considered to be an "
+                    + $"elementary data item without the JUSTIFIED clause\"), so it is not one (ISO {clause}). "
+                    + "Name the group itself, or MOVE the modified reference to a matching item.");
+                return false;
+            }
+        DataItem item = operand.Item;
         if (item.Renames is not null)
         {
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,

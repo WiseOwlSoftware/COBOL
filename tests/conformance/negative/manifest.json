@@ -1064,7 +1064,14 @@
   "pb721-record-contains-inverted-range",
   "pb721-record-varying-negative-minimum",
   "pb721-record-contains-negative-minimum",
-  "pb721-record-bytes-below-2023"
+  "pb721-record-bytes-below-2023",
+  "pb390-perform-unknown-procedure-name-1",
+  "pb390-perform-unknown-procedure-name-2",
+  "pb390-goto-unknown-procedure",
+  "pb390-set-switch-status-condition-name",
+  "pb390-move-corr-reference-modified",
+  "pb390-alter-unknown-destination",
+  "pb390-move-corr-elementary-operand"
  ],
  "pending": []
 }

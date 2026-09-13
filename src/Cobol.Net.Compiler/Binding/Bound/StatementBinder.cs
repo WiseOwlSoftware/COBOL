@@ -202,12 +202,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null);
     }
 
-    /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
-    /// (§11.7), so a reference to a sibling method's paragraph fails HERE by design (the legacy trap-#10
-    /// cross-method reject) — the hint tells the reader why the name a human can see is "unknown".</summary>
-    internal string OoScopeHint => InMethod
-        ? " (method-local resolution, ISO §11.7 — paragraphs of sibling methods and of the driver program are not visible in a method)"
-        : "";
+    // ⛔ `OoScopeHint` IS GONE (kb/Work PB390). It appended "names resolve METHOD-LOCALLY (§11.7)" to the four
+    //    unknown-procedure BoundUnsupported guards — a hint on a RUN-TIME abort that told the user COBOL.NET had
+    //    not implemented a feature. The hint survives where it belongs: on the compile-time diagnostic, composed
+    //    once by StatementValidation.RejectProcedureName from the ONE resolution's own method-scope fact, so no
+    //    site can carry the hint without the report or the report without the hint.
 
     /// <summary>
     /// Bind a CLASS body: every method's paragraphs flatten into the class's ONE pc space (source order), each

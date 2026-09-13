@@ -132,8 +132,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 
         // SR3 — procedure-name-1 shall be in the NONdeclarative portion.
         var pn = r.procedureName()!;
-        if (ctx.Table.ResolveProcedure(pn) is not { } target)
-            return new BoundUnsupported($"RESUME AT unknown procedure '{pn.GetText()}'");
+        // An unresolvable procedure-name is the ONE operand resolution's verdict, reported at COMPILE time
+        // (kb/Work PB390) — never a BoundUnsupported claiming COBOL.NET has not implemented RESUME.
+        if (ctx.Table.ResolveProcedureOperand(pn, "RESUME AT") is not { } target)
+            return new BoundNop();
         if (target.Start < ctx.Table.EntryPc)
         {
             ctx.Edition.Error("COBOLNET0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "

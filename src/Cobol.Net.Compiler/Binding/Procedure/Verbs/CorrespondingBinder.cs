@@ -68,8 +68,16 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // "already failed the resolves above"; it does not. DataBinder.BindRenames builds it with Pic null and
         // no Children into `_lastRoot.Renames66`, so DataItem.IsGroup is false for it and it landed in the
         // elementary-operand arm — rejected for a reason the rule does not give. SR6 excludes it BY NAME, and
-        // StatementValidation now says so. (SR12's "not reference-modified" DOES hold structurally: reference
-        // modification resolves only over elementary character items, never a group.)
+        // StatementValidation now says so.
+        // ⛔ AND SR12's SECOND HALF IS NOW CHECKED INSTEAD OF ASSUMED (kb/Work PB390). What stood here claimed
+        // SR12's "not reference-modified" half "DOES hold structurally: reference modification resolves only over
+        // elementary character items, never a group" — false. A group item IS reference-modifiable and has its own
+        // golden (tests/conformance/2023/pb70_group_reference_modification.cob). Nothing checked the prohibition;
+        // the shape was refused only by an accident of CorrAccess.Create's default arm, under a storage-shape
+        // message naming neither the rule nor reference modification — and once that factory switched on
+        // Place.Undecorated (kb/Work PB393) the accident stopped refusing it at all, so `MOVE CORRESPONDING
+        // G1(1:3) TO G2` moved the WHOLE group with the modifier silently discarded. The screen below reads the
+        // PLACE, decorations intact, which is the only level at which a reference modifier is visible.
         string rule = verb switch
         {
             CorrVerb.Move => "§14.9.25.3 SR12",
@@ -78,8 +86,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         };
         // Both operands are screened before the verdict — a statement with two bad operands reports two
         // diagnostics, not the first one only (a short-circuit here would hide the second).
-        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src.Item, groups[0].GetText(), verbName, rule);
-        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst.Item, groups[1].GetText(), verbName, rule);
+        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src, groups[0].GetText(), verbName, rule);
+        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, groups[1].GetText(), verbName, rule);
         if (!srcOk || !dstOk) return new BoundNop();
 
         int id = _corrCounter++;
@@ -243,8 +251,11 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         }
 
         /// <summary>Create the access over a resolved group place, or <see langword="null"/> for a storage shape
-        /// no CORRESPONDING child can be built from (the caller fails loud). A <see cref="RefModPlace"/> group is
-        /// impossible — reference modification resolves only over elementary character items (§14.9.25.3 SR12).
+        /// no CORRESPONDING child can be built from (the caller fails loud — a genuine DEFERRAL: this factory is
+        /// about storage forms a child access can be built over). A <see cref="RefModPlace"/> operand never
+        /// arrives, because §14.9.25.3 SR12's second half REFUSES it at bind in the syntax-rule catalog (kb/Work
+        /// PB390) — not, as the claim here used to read, because a group "cannot" be reference-modified. It can,
+        /// and this switch's <see cref="Place.Undecorated"/> would have let it straight through.
         /// <para>⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS <see cref="Place.Undecorated"/> (kb/Work
         /// PB393). An occurs-depending group operand resolves to an <c>OdoGroupPlace</c> WRAPPING the member
         /// place, and a decoration answers a question about the group's whole-group IMAGE EXTENT — a question

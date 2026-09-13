@@ -222,17 +222,24 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         if (g.dataReference() is { } sel && names.Length >= 1)   // GO TO p1 p2 … DEPENDING ON sel
         {
             var targets = new List<int>();
+            bool resolved = true;
             foreach (var n in names)
             {
-                // A section target transfers to its first paragraph (ISO §14.9.17 GR1).
-                if (ctx.Table.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
-                targets.Add(range.Start);
+                // A section target transfers to its first paragraph (ISO §14.9.17 GR1). An unresolvable
+                // procedure-name is REPORTED by the ONE operand resolution (kb/Work PB390) — GO TO states no
+                // syntax rule of its own about procedure-name-1, so §8.4.2.1 alone decides. EVERY name in the
+                // series is screened: `GO TO A B C DEPENDING` with two bad names draws two diagnostics, not the
+                // first one only (the CheckCorrespondingGroupOperand discipline — a short-circuit hides the rest).
+                if (ctx.Table.ResolveProcedureOperand(n, "GO TO DEPENDING") is { } range) targets.Add(range.Start);
+                else resolved = false;
             }
-            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, ctx.SourceLine(g));
+            return resolved
+                ? new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, ctx.SourceLine(g))
+                : new BoundNop();
         }
         if (names.Length == 0) return host.Alter.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
-        if (ctx.Table.ResolveProcedure(names[0]) is not { } target)
-            return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'{host.OoScopeHint}");
+        if (ctx.Table.ResolveProcedureOperand(names[0], "GO TO") is not { } target)
+            return new BoundNop();
         return host.Alter.AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
@@ -285,6 +292,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     }
 
 
+    /// <summary>PERFORM's own procedure-name rule, quoted, for the operand diagnostic — ONE sentence with the
+    /// operand and rule number substituted, because §14.9.28.3 SR12 and SR13 ARE one sentence written twice
+    /// (kb/Work PB390).</summary>
+    private static string PerformNameRule(string operand, string rule) =>
+        $"\"{operand} shall be the name of either a paragraph or a section in the same source element as that "
+        + $"in which the PERFORM statement is specified\" (ISO §14.9.28.3 {rule})";
+
     public BoundStatement BindPerform(Core.PerformStatementContext p)
     {
         var names = p.procedureName();
@@ -300,11 +314,18 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         // Out-of-line: the resolved procedure range — a paragraph, a SECTION (its whole paragraph range, ISO
         // §14.9.28.4 GR4 — first statement of its first paragraph through the last of its last), or the THRU
         // composition (GR4/GR5b — procedure-name-1's start through procedure-name-2's end).
-        if (ctx.Table.ResolveProcedure(names[0]) is not { } range)
-            return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'{host.OoScopeHint}");
+        // ⛔ SR12 AND SR13 ARE TWO RULES WITH ONE SHAPE, AND THEY GO THROUGH THE ONE RESOLUTION (kb/Work PB390).
+        // "Procedure-name-1 [-2] shall be the name of either a paragraph or a section in the same source element
+        // as that in which the PERFORM statement is specified" (ISO §14.9.28.3 SR12, SR13) — decided here since
+        // the first binder, but delivered as a BoundUnsupported, i.e. compiled into the program as a run-time
+        // abort blaming COBOL.NET for a gap. Each arm names its OWN rule number; fixing one and not the other is
+        // the two-arm defect this project keeps finding.
+        if (ctx.Table.ResolveProcedureOperand(names[0], "PERFORM", PerformNameRule("Procedure-name-1", "SR12")) is not { } range)
+            return new BoundNop();
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
-            if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'{host.OoScopeHint}");
+            if (ctx.Table.ResolveProcedureOperand(names[1], "PERFORM THRU", PerformNameRule("Procedure-name-2", "SR13")) is not { } thru)
+                return new BoundNop();
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — GR6
             // "there is no necessary relationship between procedure-name-1 and procedure-name-2"; NIST NC102A
             // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.

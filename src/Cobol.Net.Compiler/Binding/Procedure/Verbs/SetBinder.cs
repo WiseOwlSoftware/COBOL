@@ -832,7 +832,15 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var sets = new List<(Place, Condition88)>();
         foreach (var dref in b.dataReference())
         {
-            if (host.Cond.ConditionOf(dref) is not { } cond) return new BoundUnsupported($"SET '{dref.GetText()}' TO TRUE (not a condition-name)");
+            // ⛔ SR6 IS DECIDED HERE, SO IT IS REPORTED HERE (kb/Work PB390). "Condition-name-1 shall be
+            // associated with a conditional variable" (ISO §14.9.39.3 SR6) — and the operand that DISCRIMINATES
+            // the rule is a SPECIAL-NAMES switch-status condition-name (§8.4.4.1's second kind), which the old
+            // message denied was a condition-name at all while staging the verdict to a run-time abort.
+            if (host.Cond.ConditionOf(dref) is not { } cond)
+            {
+                ctx.Validation.RejectSetConditionName(dref.GetText(), host.Alter.SwitchNameOf(dref));
+                return new BoundNop();
+            }
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
             if (ctx.Refs.ResolveForItem(dref, cond.Parent) is not { } parent)
                 return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
