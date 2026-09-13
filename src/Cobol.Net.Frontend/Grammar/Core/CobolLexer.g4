@@ -427,6 +427,18 @@ AS          : 'AS' ;
 // funnel-0901'd ≥2002. Their only keyword slots are the usageKeyword alternatives — direct tokens.
 PROGRAM_POINTER  : 'PROGRAM-POINTER' ;
 FUNCTION_POINTER : 'FUNCTION-POINTER' ;
+// ── The remaining INITIALIZE category-names (ISO §14.9.20.2 "where category-name is:") ────────────────────────
+// The printed figure encloses THIRTEEN underlined words in a brace carrying CHOICE INDICATORS; five of them had
+// no lexer token at all, so eight of the thirteen could not be spelled (kb/Work PB415). BOOLEAN / DATA-POINTER /
+// NATIONAL-EDITED / OBJECT-REFERENCE are the four that were still lexing as IDENTIFIER (MESSAGE-TAG,
+// PROGRAM-POINTER, FUNCTION-POINTER and NATIONAL already had one). §8.9 reserves all four from 2002 only
+// (reserved-words.json r85=false), so each gets the CONSTANT/AS interval treatment: a legal user word at
+// COBOL-85, cobolWord/_dataNameTokens-admitted through cobol-words.json, funnel-0901'd ≥2002. The hyphenated
+// spellings out-length DATA / NATIONAL / OBJECT by maximal munch, so rule order against them is not load-bearing.
+BOOLEAN          : 'BOOLEAN' ;            // §8.5.2.5 category boolean (also the §13.18.60 USAGE BIT category)
+DATA_POINTER     : 'DATA-POINTER' ;       // §8.5.2.6 category data-pointer (USAGE POINTER's category-name)
+NATIONAL_EDITED  : 'NATIONAL-EDITED' ;    // §8.5.2.11 category national-edited
+OBJECT_REFERENCE : 'OBJECT-REFERENCE' ;   // §8.5.2.12 category object-reference (USAGE OBJECT REFERENCE is TWO words)
 AREAS       : 'AREAS' ;
 ALPHABETIC       : 'ALPHABETIC' ;
 ALPHABETIC_LOWER : 'ALPHABETIC-LOWER' ;
@@ -527,7 +539,12 @@ EVERY       : 'EVERY' ;       // RERUN … EVERY (row 7.15)
 RERUN       : 'RERUN' ;       // the I-O-CONTROL RERUN clause head (row 7.15)
 REFERENCES  : 'REFERENCES' ;  // USE FOR DEBUGGING ON ALL REFERENCES OF (row 7.17); distinct from REFERENCE
 PROCEDURES  : 'PROCEDURES' ;  // USE FOR DEBUGGING ON ALL PROCEDURES (row 7.17); distinct from PROCEDURE
-EDITED      : 'EDITED' ;
+// ⛔ NO `EDITED` TOKEN, DELIBERATELY (kb/Work PB415). EDITED is not an ISO §8.9 reserved word at 85, 2002, 2014 or
+// 2023 — it has no reserved-words.json row — and its only grammar consumer was the two-token
+// `ALPHANUMERIC EDITED` / `NUMERIC EDITED` spelling of an INITIALIZE category-name, which §14.9.20.2 prints only
+// hyphenated. The hard token shadowed IDENTIFIER, so `01 EDITED PIC X.` was a COBOL0001 at every edition; with
+// the token gone the word is an ordinary user-defined word, which is what §8.3.2.1 makes it. (EDITING, below, is
+// a genuine 2023 reserved word and keeps its token.)
 EDITING     : 'EDITING' ;                 // PICTURE EDITING phrase (ISO §13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25)
 ELSE        : 'ELSE' ;
 END         : 'END' ;

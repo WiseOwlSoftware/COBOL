@@ -69,17 +69,115 @@ public sealed record InitializeOccurrenceArm(IReadOnlyList<Subscripts> When, Ini
 /// <c>DefaultInitializer</c> (the predefined-NULL idiom) directly into the place.</summary>
 public sealed record InitializeSetNull(Place Target) : InitializeAction;
 
+/// <summary>An implicit <c>SET</c> <paramref name="Target"/> <c>TO</c> <paramref name="Source"/> (ISO §14.9.20.4
+/// GR4 — "if the category of a receiving-operand is data-pointer, function-pointer, message-tag,
+/// object-reference, or program-pointer, the implicit statement is SET receiving-operand TO sending-operand" —
+/// with GR6b supplying identifier-2 as that sending-operand: "the sending-operand is the literal-1 or identifier-2
+/// associated with the category specified in the REPLACING phrase").
+/// <para>⛔ THIS IS THE ARM PB418 STAGED LOUD. GR6a1/GR6a2 and every pointer row of GR6c's fill table give the
+/// predefined NULL, which <see cref="InitializeSetNull"/> renders; GR6b does NOT, and writing NULL there would be
+/// a wrong answer rather than a missing one. It was unreachable until kb/Work PB415 gave <c>initializeCategory</c>
+/// the standard's thirteen category-names — DATA-POINTER / FUNCTION-POINTER / OBJECT-REFERENCE / PROGRAM-POINTER
+/// among them — and it is reachable now.</para>
+/// <para>The emitter renders exactly what the EXPLICIT SET statement renders for the same operand pair —
+/// <c>SetEmitter.EmitSetPointer</c>'s straight handle copy for the pointer family, <c>OoEmitter</c>'s Format-5
+/// cast-and-copy (§14.9.39 GR9, "reference copy") for an object-reference receiver — because §14.9.20.4 GR4 does
+/// not describe a similar statement, it names THE SET statement.</para></summary>
+public sealed record InitializeSetFrom(Place Target, Place Source) : InitializeAction;
+
 /// <summary>A receiver the binder could not materialize as a typed place — the backend emits a loud runtime
 /// guard (COBOLNET_DESIGN §1.4), never a silent skip.</summary>
 public sealed record InitializeErrorAction(string Feature) : InitializeAction;
 
-/// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — the
-/// COBOL-85 five plus the Phase-4a BOOLEAN, NATIONAL and NATIONAL-EDITED members (binder-side classification +
-/// GR6c default fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL/NATIONAL-EDITED, the pointer
-/// categories, MESSAGE-TAG and OBJECT-REFERENCE are still absent from the initializeCategory grammar rule and
-/// arrive with their lexer tokens in the edition-gated grammar fragments, a parse error today = loud).
+/// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — ALL
+/// THIRTEEN of the words the printed general format encloses in its choice-indicator brace, one member each
+/// (kb/Work PB415 landed the eight the grammar could not spell).
 /// <para>NATIONAL-EDITED is its OWN member even though GR6c's fill table gives it the same "Figurative constant
 /// national SPACES" as NATIONAL: GR5c matches a REPLACING/TO VALUE category-name against the receiving operand's
 /// §8.5.2 category, and those are two different categories (§8.5.2.10 vs §8.5.2.11), so folding them would make
-/// `REPLACING NATIONAL DATA BY …` reach a national-edited item the rule does not name (kb/Work PB492).</para></summary>
-public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, NationalEdited, DataPointer, ProgramPointer, FunctionPointer, ObjectReference }
+/// `REPLACING NATIONAL DATA BY …` reach a national-edited item the rule does not name (kb/Work PB492).</para>
+/// <para><see cref="MessageTag"/> is spellable as a category-name (§8.9 reserves MESSAGE-TAG from 2023) and can
+/// never CLASSIFY a receiver: no <see cref="PicCategory"/> carries message-tag, because the A.4 message-control
+/// facility is owner-declined (docs/CONFORMANCE.md §4) and the DATA DIVISION refuses such an item loudly. Naming
+/// it in REPLACING is therefore conforming source that matches no receiving-operand — which is the rule's own
+/// answer, not a gap.</para>
+/// <para>⛔ ORDINALS ARE LOAD-BEARING: <see cref="InitializeCategorySet"/> is a bitmask over them, so the member
+/// count must stay under 32. <c>InitializeLaneDriftTests</c> pins that, and pins that every member is reachable
+/// from a grammar category-name.</para></summary>
+public enum InitializeCategory
+{
+    Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National, NationalEdited,
+    DataPointer, ProgramPointer, FunctionPointer, ObjectReference, MessageTag,
+}
+
+/// <summary>⛔ ONE <c>category-name</c> — WHICH IS A SET, NOT A WORD (ISO §14.9.20.2 + §5.2.6.4). The printed
+/// figure encloses the thirteen category names in a brace carrying CHOICE INDICATORS, and §5.2.6.4 reads them
+/// "one or more of the alternatives contained within the choice indicators shall be specified, but any single
+/// alternative shall be specified only once" — so `REPLACING NUMERIC ALPHANUMERIC DATA BY SPACE` names ONE
+/// category-name of two categories, and every rule that consumes a category-name (§14.9.20.4 GR5c1's "one of the
+/// categories specified or implied in the VALUE phrase", GR5c2's "one of the categories specified in the
+/// REPLACING phrase", GR6b's "associated with the category specified in the REPLACING phrase") is a MEMBERSHIP
+/// test. Modelling it as a scalar rejected every multi-category spelling at every edition (kb/Work PB415).
+/// <para>A bitmask rather than a set object: the whole thing is one <c>int</c> on the bind path, membership is one
+/// AND, and the union that §14.9.20.3 SR6 ("the same category shall not be repeated in a REPLACING phrase") and
+/// §5.2.6.4's "only once" both test is one OR — so the fourteenth category-name is a new enum member and nothing
+/// else.</para></summary>
+public readonly record struct InitializeCategorySet(int Mask)
+{
+    /// <summary>No category named. In the VALUE phrase this is ALL's representation (§14.9.20.4 GR2 — "if ALL is
+    /// specified in the VALUE phrase it is as if all of the categories listed in category-name were specified"),
+    /// so the ALL case is the ABSENCE of a restriction rather than a thirteen-bit constant that would have to be
+    /// widened by hand whenever the standard adds a word.</summary>
+    public bool IsEmpty => Mask == 0;
+
+    /// <summary>The set naming exactly <paramref name="c"/>.</summary>
+    public static InitializeCategorySet Of(InitializeCategory c) => new(1 << (int)c);
+
+    /// <summary>§5.2.6.4 membership — is <paramref name="c"/> one of the alternatives this category-name names?</summary>
+    public bool Contains(InitializeCategory c) => (Mask & (1 << (int)c)) != 0;
+
+    /// <summary>This set plus <paramref name="c"/> (idempotent — the caller diagnoses the repetition).</summary>
+    public InitializeCategorySet With(InitializeCategory c) => new(Mask | (1 << (int)c));
+
+    /// <summary>The union — the running "already named in this REPLACING phrase" accumulator SR6 tests against.</summary>
+    public InitializeCategorySet Union(InitializeCategorySet other) => new(Mask | other.Mask);
+}
+
+/// <summary>Facts about <see cref="InitializeCategory"/> that the binder and the pure syntax checks BOTH read —
+/// kept beside the enum so there is exactly one copy of each (CLAUDE.md rule 5's "one rule, one place").</summary>
+public static class InitializeCategories
+{
+    /// <summary>Every member, once. Cached because <c>Enum.GetValues</c> allocates on every call and these scans
+    /// run per REPLACING item.</summary>
+    public static readonly InitializeCategory[] All = Enum.GetValues<InitializeCategory>();
+
+    /// <summary>⛔ THE FIVE CATEGORIES WHOSE IMPLICIT STATEMENT IS A <c>SET</c>, NOT A MOVE — ISO §14.9.20.4 GR4,
+    /// "if the category of a receiving-operand is data-pointer, function-pointer, message-tag, object-reference,
+    /// or program-pointer, the implicit statement is SET receiving-operand TO sending-operand" — which is also
+    /// exactly the list §14.9.20.3 SR3 (identifier-2 shall be specified) and SR4 (the SET shall be valid) name.
+    /// ONE definition, read by both syntax checks, by the sender choice and by the receiver arm, so a sixth
+    /// pointer-ish category is one entry rather than four edits that can drift apart.</summary>
+    public static bool IsSetForm(InitializeCategory cat) =>
+        cat is InitializeCategory.DataPointer or InitializeCategory.FunctionPointer
+            or InitializeCategory.MessageTag or InitializeCategory.ObjectReference
+            or InitializeCategory.ProgramPointer;
+
+    /// <summary>The category's PRINTED category-name (ISO §14.9.20.2), for diagnostics — a message about COBOL
+    /// source names the COBOL word the programmer wrote, never the C# member spelling.</summary>
+    public static string Spelling(InitializeCategory cat) => cat switch
+    {
+        InitializeCategory.Alphabetic => "ALPHABETIC",
+        InitializeCategory.Alphanumeric => "ALPHANUMERIC",
+        InitializeCategory.AlphanumericEdited => "ALPHANUMERIC-EDITED",
+        InitializeCategory.Boolean => "BOOLEAN",
+        InitializeCategory.DataPointer => "DATA-POINTER",
+        InitializeCategory.FunctionPointer => "FUNCTION-POINTER",
+        InitializeCategory.MessageTag => "MESSAGE-TAG",
+        InitializeCategory.National => "NATIONAL",
+        InitializeCategory.NationalEdited => "NATIONAL-EDITED",
+        InitializeCategory.Numeric => "NUMERIC",
+        InitializeCategory.NumericEdited => "NUMERIC-EDITED",
+        InitializeCategory.ObjectReference => "OBJECT-REFERENCE",
+        _ => "PROGRAM-POINTER",
+    };
+}

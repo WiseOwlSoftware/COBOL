@@ -252,6 +252,9 @@ internal static class UsageCollectionPass
             {
                 case InitializeStore x: P(x.Target); Op(x.Source); break;
                 case InitializeSetNull x: P(x.Target); break;
+                // §14.9.20.4 GR4/GR6b's implicit SET — BOTH operands are data references (the receiver and
+                // identifier-2), so both are recorded; only the receiver was, before the arm existed.
+                case InitializeSetFrom x: P(x.Target); P(x.Source); break;
                 // The loop's AllCount bound is deliberately NOT visited: this pass records WHOLE-GROUP image
                 // references, and an occurrence count is always an ELEMENTARY read (an OCCURS DEPENDING integer,
                 // a dynamic table's capacity register), which P() ignores by construction.

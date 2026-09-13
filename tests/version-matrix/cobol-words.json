@@ -74,6 +74,12 @@
    "note": "screen attribute: a legal data-name in non-screen contexts"
   },
   {
+   "token": "BOOLEAN",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "an INITIALIZE category-name (ISO 14.9.20.2 'where category-name is:' - one of the thirteen words the printed figure encloses in a brace with choice indicators). Its lexer token was added for kb/Work PB415, which found the rule spelling five of the thirteen. ISO 8.9 reserves it from 2002 only (reserved-words.json r85=false), so it is a legal user word at COBOL-85 and this nameSlot row is what keeps `01 Boolean PIC X.` legal there while the DERIVED reservation gate and the 8.9 funnel name it above 85 - the PROGRAM-POINTER/FUNCTION-POINTER precedent exactly. subscriptTrigger=true because a table may be named Boolean and no Boolean-bearing format is followed by a left parenthesis. It is also the USAGE BIT category name (8.5.2.5)"
+  },
+  {
    "token": "B_AND",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -156,6 +162,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the SPECIAL-NAMES CURSOR clause word - the CRT twin, same 8.9 2002-only reservation and the same reservation gate. kb/Work PB301."
+  },
+  {
+   "token": "DATA_POINTER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "an INITIALIZE category-name (ISO 14.9.20.2 'where category-name is:' - one of the thirteen words the printed figure encloses in a brace with choice indicators). Its lexer token was added for kb/Work PB415, which found the rule spelling five of the thirteen. ISO 8.9 reserves it from 2002 only (reserved-words.json r85=false), so it is a legal user word at COBOL-85 and this nameSlot row is what keeps `01 Data-Pointer PIC X.` legal there while the DERIVED reservation gate and the 8.9 funnel name it above 85 - the PROGRAM-POINTER/FUNCTION-POINTER precedent exactly. subscriptTrigger=true because a table may be named Data-Pointer and no Data-Pointer-bearing format is followed by a left parenthesis. It is the category-name of a USAGE POINTER item (8.5.2.6); the USAGE spelling is the unhyphenated POINTER"
   },
   {
    "token": "DEBUGGING",
@@ -440,10 +452,22 @@
    "note": "the MESSAGE-TAG usage (13.18.60; the MCS data surface, docs/CONFORMANCE.md 4 item 1). Reserved at 2023 only (Annex E.2 item 25); a USER WORD at 85/2002/2014, so the hard lexer token added for kb/Work PB487 must not break its legal use as a data-name below 2023 (the MESSAGE precedent, same direction)"
   },
   {
+   "token": "OBJECT_REFERENCE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "an INITIALIZE category-name (ISO 14.9.20.2 'where category-name is:' - one of the thirteen words the printed figure encloses in a brace with choice indicators). Its lexer token was added for kb/Work PB415, which found the rule spelling five of the thirteen. ISO 8.9 reserves it from 2002 only (reserved-words.json r85=false), so it is a legal user word at COBOL-85 and this nameSlot row is what keeps `01 Object-Reference PIC X.` legal there while the DERIVED reservation gate and the 8.9 funnel name it above 85 - the PROGRAM-POINTER/FUNCTION-POINTER precedent exactly. subscriptTrigger=true because a table may be named Object-Reference and no Object-Reference-bearing format is followed by a left parenthesis. The USAGE spelling is the TWO words OBJECT REFERENCE (13.18.60.2); only the category-name is hyphenated"
+  },
+  {
    "token": "NATIONAL",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "FOR NATIONAL: a context-sensitive user word"
+  },
+  {
+   "token": "NATIONAL_EDITED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "an INITIALIZE category-name (ISO 14.9.20.2 'where category-name is:' - one of the thirteen words the printed figure encloses in a brace with choice indicators). Its lexer token was added for kb/Work PB415, which found the rule spelling five of the thirteen. ISO 8.9 reserves it from 2002 only (reserved-words.json r85=false), so it is a legal user word at COBOL-85 and this nameSlot row is what keeps `01 National-Edited PIC X.` legal there while the DERIVED reservation gate and the 8.9 funnel name it above 85 - the PROGRAM-POINTER/FUNCTION-POINTER precedent exactly. subscriptTrigger=true because a table may be named National-Edited and no National-Edited-bearing format is followed by a left parenthesis. NATIONAL itself is ungated (a 15 intrinsic function name); NATIONAL-EDITED is not, so it gates normally"
   },
   {
    "token": "NEAREST_TO_ZERO",

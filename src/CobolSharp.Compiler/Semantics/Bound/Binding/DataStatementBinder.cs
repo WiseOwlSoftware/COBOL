@@ -480,18 +480,30 @@ internal sealed class DataStatementBinder
     internal InitializeCategory ClassifyReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
         => ClassifyCategory(ctx.initializeCategory());
 
-    /// <summary>Map an INITIALIZE category keyword node to the InitializeCategory enum (shared by
-    /// the REPLACING and TO VALUE phrases).</summary>
+    /// <summary>Map an INITIALIZE category-name to this FROZEN engine's InitializeCategory enum (shared by the
+    /// REPLACING and TO VALUE phrases).
+    /// <para>⛔ THE GRAMMAR'S category-name IS NOW A SET OF THIRTEEN WORDS (ISO §14.9.20.2's choice-indicator
+    /// brace; kb/Work PB415), and this engine's bound model carries ONE category drawn from six. It is the frozen
+    /// differential ORACLE, opt-in behind <c>COBOLSHARP_LEGACY_DIFFERENTIAL</c> and deleted at P15, so it is not
+    /// extended to the standard's shape: a spelling it cannot represent raises here, failing that one oracle case
+    /// loudly rather than silently answering for a different category than the source names.</para></summary>
     internal static InitializeCategory ClassifyCategory(CobolParserCore.InitializeCategoryContext cat)
     {
-        if (cat.EDITED() != null || cat.ALPHANUMERIC_EDITED() != null || cat.NUMERIC_EDITED() != null)
-        {
-            if (cat.ALPHANUMERIC() != null || cat.ALPHANUMERIC_EDITED() != null) return InitializeCategory.AlphanumericEdited;
-            return InitializeCategory.NumericEdited;
-        }
-        if (cat.ALPHABETIC() != null) return InitializeCategory.Alphabetic;
-        if (cat.ALPHANUMERIC() != null) return InitializeCategory.Alphanumeric;
-        return InitializeCategory.Numeric;
+        var names = cat.initializeCategoryName();
+        if (names.Length != 1)
+            throw new NotSupportedException(
+                "the frozen legacy engine models one category per category-name; ISO §14.9.20.2 admits one or "
+                + $"more ({names.Length} specified). Greenfield-only source — see kb/Work PB415.");
+        var n = names[0];
+        if (n.ALPHANUMERIC_EDITED() != null) return InitializeCategory.AlphanumericEdited;
+        if (n.NUMERIC_EDITED() != null) return InitializeCategory.NumericEdited;
+        if (n.ALPHABETIC() != null) return InitializeCategory.Alphabetic;
+        if (n.ALPHANUMERIC() != null) return InitializeCategory.Alphanumeric;
+        if (n.NUMERIC() != null) return InitializeCategory.Numeric;
+        if (n.BOOLEAN() != null) return InitializeCategory.Boolean;
+        throw new NotSupportedException(
+            $"the frozen legacy engine has no INITIALIZE category for '{n.GetText()}'. Greenfield-only source — "
+            + "see kb/Work PB415.");
     }
 
     internal BoundExpression? BindReplacingValue(CobolParserCore.InitializeReplacingItemContext ctx)

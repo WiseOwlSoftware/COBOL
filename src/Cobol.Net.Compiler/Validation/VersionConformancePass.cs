@@ -1546,6 +1546,30 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>⛔ THE CATEGORY-NAME WORDS THAT POST-DATE COBOL-85 (ISO §14.9.20.2 "where category-name is:";
+        /// kb/Work PB415). Eight of the printed thirteen entered with the editions that made their DATA CATEGORY
+        /// possible, and §8.9 reserves each word from exactly that edition — BOOLEAN, DATA-POINTER, NATIONAL,
+        /// NATIONAL-EDITED, OBJECT-REFERENCE and PROGRAM-POINTER from 2002, FUNCTION-POINTER from 2014,
+        /// MESSAGE-TAG from 2023 (tests/version-matrix/reserved-words.json, and
+        /// <c>InitializeLaneDriftTests</c> pins this mapping against it so a new word cannot be mis-banded).
+        /// The five COBOL-85 words are ungated.
+        /// <para>The gate is HERE and not in the grammar on purpose: a category-name slot can hold nothing but a
+        /// category-name, so no user-defined word competes for it and there is nothing for a
+        /// <c>userWordHere</c> predicate to disambiguate — a named COBOLNET0900 that says which edition
+        /// introduced the word beats the "no viable alternative" a grammar predicate would produce.</para></summary>
+        public override object? VisitInitializeCategoryName(CobolParserCore.InitializeCategoryNameContext ctx)
+        {
+            string? id =
+                ctx.BOOLEAN() is not null || ctx.DATA_POINTER() is not null || ctx.NATIONAL() is not null
+                    || ctx.NATIONAL_EDITED() is not null || ctx.OBJECT_REFERENCE() is not null
+                    || ctx.PROGRAM_POINTER() is not null ? Constructs.InitializeCategory2002
+                : ctx.FUNCTION_POINTER() is not null ? Constructs.InitializeCategory2014
+                : ctx.MESSAGE_TAG() is not null ? Constructs.InitializeCategory2023
+                : null;                                   // the COBOL-85 five: ALPHABETIC/ALPHANUMERIC[-EDITED]/NUMERIC[-EDITED]
+            if (id is not null) _p.Check(id, $"INITIALIZE category-name {ctx.GetText()}");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>RELEASE … FROM literal-1 (ISO §14.9.32.2) — X3.23-1985 allows only an identifier as the
         /// FROM operand; the literal form is 2002+.</summary>
         public override object? VisitReleaseFrom(CobolParserCore.ReleaseFromContext ctx)

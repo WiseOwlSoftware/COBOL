@@ -110,7 +110,149 @@ public sealed class InitializeLaneDriftTests
             + "HasAnEmitterArm is no longer looking at anything.");
         foreach (string expected in new[]
                  { "InitializeStore", "InitializeLoop", "InitializeSetNull", "InitializeErrorAction",
-                   "InitializeOccurrenceSelect" })
+                   "InitializeOccurrenceSelect", "InitializeSetFrom" })
             Assert.Contains(expected, actions);
+    }
+
+    // ── 3. THE CATEGORY-NAME SET (kb/Work PB415) ──────────────────────────────────────────────────────────────
+    //    ISO §14.9.20.2's figure lists THIRTEEN category names and §5.2.6.4 makes a category-name one or more of
+    //    them. The grammar carried FIVE for years behind a comment claiming the rest "require lexer tokens not
+    //    yet defined" — stale the day three of those tokens landed for other reasons, and invisible because
+    //    nothing compared the two lists. These three facts make the FOURTEENTH word automatic instead: the
+    //    grammar rule, the bound enum and the per-word edition band all have to agree, with reserved-words.json
+    //    (which the §8.9 funnel already owns) as the edition authority.
+
+    private static readonly string GrammarPath =
+        TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolData.g4");
+
+    private static readonly string PassPath =
+        TestRepo.Src("Cobol.Net.Compiler", "Validation", "VersionConformancePass.cs");
+
+    /// <summary>The grammar's <c>initializeCategoryName</c> alternatives, as COBOL words.</summary>
+    private static List<string> GrammarCategoryWords()
+    {
+        string g4 = File.ReadAllText(GrammarPath);
+        var m = Regex.Match(g4, @"^initializeCategoryName\s*\r?\n(?<body>.*?)^\s*;\s*$",
+            RegexOptions.Multiline | RegexOptions.Singleline);
+        Assert.True(m.Success, "no initializeCategoryName rule in CobolData.g4 — ISO §14.9.20.2's category-name "
+            + "list moved and this whole section is measuring nothing.");
+        return Regex.Matches(m.Groups["body"].Value, @"^\s*[:|]\s*(?<tok>[A-Z][A-Z0-9_]*)\s*$",
+                RegexOptions.Multiline)
+            .Select(x => x.Groups["tok"].Value.Replace('_', '-'))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(x => x, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>ISO §14.9.20.2 prints THIRTEEN category names, the grammar shall spell all thirteen and nothing
+    /// else, and <c>InitializeCategory</c> shall carry one member per word. A word the grammar cannot spell is
+    /// legal source the compiler refuses; a member the grammar has no word for is a dead decoder arm.</summary>
+    [Fact]
+    public void TheThirteenCategoryNames_AreSpelledByTheGrammarAndCarriedByTheEnum()
+    {
+        // The printed list, transcribed from the rendered figure (licensed PDF p667 / folio 637) — the ONE
+        // hand-written thing here, and the thing the other two artifacts are measured against.
+        string[] printed =
+        [
+            "ALPHABETIC", "ALPHANUMERIC", "ALPHANUMERIC-EDITED", "BOOLEAN", "DATA-POINTER", "FUNCTION-POINTER",
+            "MESSAGE-TAG", "NATIONAL", "NATIONAL-EDITED", "NUMERIC", "NUMERIC-EDITED", "OBJECT-REFERENCE",
+            "PROGRAM-POINTER",
+        ];
+        Assert.Equal(13, printed.Length);
+
+        Assert.Equal(printed.OrderBy(x => x, StringComparer.Ordinal).ToList(), GrammarCategoryWords());
+
+        var members = Enum.GetValues<CobolNet.Binding.Bound.InitializeCategory>();
+        Assert.Equal(printed.Length, members.Length);
+        Assert.Equal(
+            printed.OrderBy(x => x, StringComparer.Ordinal).ToList(),
+            members.Select(CobolNet.Binding.Bound.InitializeCategories.Spelling)
+                .OrderBy(x => x, StringComparer.Ordinal).ToList());
+
+        // InitializeCategorySet is a bitmask over the ordinals; more than 31 members would silently drop one.
+        Assert.True(members.Length < 32,
+            "InitializeCategory has " + members.Length + " members and InitializeCategorySet packs them into an "
+            + "int — widen the mask before adding the 32nd.");
+    }
+
+    /// <summary>Each post-85 category-name is gated at the edition ISO §8.9 reserves its WORD, and that edition
+    /// is read from <c>reserved-words.json</c> — the same table the §8.9 funnel and <c>reservedHere()</c> read.
+    /// The three <c>initialize-category-*</c> construct rows are the bands; this pins that no word is banded
+    /// against a different edition from the one that made its word reserved, and that the five COBOL-85 words
+    /// are gated by nothing.</summary>
+    [Fact]
+    public void EveryCategoryName_IsGatedAtItsOwnReservationEdition()
+    {
+        string pass = CodeOf(PassPath);
+        var m = Regex.Match(pass, @"VisitInitializeCategoryName\b.*?return base\.VisitChildren",
+            RegexOptions.Singleline);
+        Assert.True(m.Success, "VersionConformancePass has no VisitInitializeCategoryName — the per-word edition "
+            + "gate for ISO §14.9.20.2's category-name list is gone.");
+        string arm = m.Value;
+
+        var bandOf = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (marker, year) in new[]
+                 { ("InitializeCategory2002", 2002), ("InitializeCategory2014", 2014),
+                   ("InitializeCategory2023", 2023) })
+        {
+            int at = arm.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(at >= 0, $"VisitInitializeCategoryName no longer references Constructs.{marker}");
+            // The arm is ONE ordered conditional expression, so every token tested before a band's construct id
+            // and not already claimed by an earlier band belongs to that band.
+            foreach (Match w in Regex.Matches(arm[..at], @"ctx\.(?<tok>[A-Z][A-Z0-9_]*)\(\)"))
+                bandOf.TryAdd(w.Groups["tok"].Value.Replace('_', '-'), year);
+        }
+
+        var reserved = ReservedWordIntroductions();
+        foreach (string word in GrammarCategoryWords())
+        {
+            int introduced = reserved[word];
+            if (introduced <= 85)
+            {
+                Assert.False(bandOf.ContainsKey(word),
+                    $"{word} is reserved at COBOL-85 (reserved-words.json r85=true) and is one of ISO "
+                    + "§14.9.20.2's five classic category names — gating it rejects conforming COBOL-85 source.");
+                continue;
+            }
+            Assert.True(bandOf.TryGetValue(word, out int banded),
+                $"{word} is an ISO §14.9.20.2 category-name that §8.9 reserves only from COBOL-{introduced}, and "
+                + "VisitInitializeCategoryName gates it at no edition — it would be accepted below its own "
+                + "introduction, which is the per-edition hole the VERSION TEST MATRIX exists to close.");
+            Assert.True(banded == introduced,
+                $"{word} is gated at COBOL-{banded} but §8.9 reserves it from COBOL-{introduced} "
+                + "(reserved-words.json). The word and its category entered together; band it with its word.");
+        }
+    }
+
+    /// <summary>reserved-words.json's per-word introduction edition (85 when reserved since '85).</summary>
+    private static Dictionary<string, int> ReservedWordIntroductions()
+    {
+        string path = Path.Combine(TestRepo.Root, "tests", "version-matrix", "reserved-words.json");
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+        var map = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var e in doc.RootElement.GetProperty("words").EnumerateArray())
+        {
+            string w = e.GetProperty("word").GetString()!;
+            map[w] = e.GetProperty("r85").GetBoolean() ? 85
+                : e.GetProperty("r2002").GetBoolean() ? 2002
+                : e.GetProperty("r2014").GetBoolean() ? 2014 : 2023;
+        }
+        return map;
+    }
+
+    /// <summary>⛔ THE PROBE'S OWN LIVENESS (feedback_green_gates_arent_evidence). The band scan above is a regex
+    /// over source; if it found no words at all every assertion in it would vacuously pass. Assert the shape it
+    /// actually extracted, and that the reserved-words table answers for every printed category name.</summary>
+    [Fact]
+    public void TheCategoryScans_FindWhatTheyClaimToMeasure()
+    {
+        var words = GrammarCategoryWords();
+        Assert.Equal(13, words.Count);
+        var reserved = ReservedWordIntroductions();
+        foreach (string w in words)
+            Assert.True(reserved.ContainsKey(w),
+                $"reserved-words.json has no row for the category-name {w}; the edition band cannot be derived "
+                + "and EveryCategoryName_IsGatedAtItsOwnReservationEdition would skip it.");
+        Assert.Equal(5, words.Count(w => reserved[w] <= 85));
     }
 }

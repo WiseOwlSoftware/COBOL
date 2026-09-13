@@ -1055,7 +1055,22 @@ result does not feed it — decision 20.
   (§8.4.3.3.4 GR5 — the unique data item's own positions) or a function result, whose character-position count is
   not a compile-time property of any PICTURE (kb/Work PB297).
 - **INITIALIZE** = a compile-time tree-walk to per-elementary typed stores (default/VALUE/REPLACING; FILLER skipped;
-  OCCURS → a for-loop).
+  OCCURS → a for-loop). §14.9.20.4 GR4's "series of implicit MOVE or SET statements" is expanded at BIND time, and
+  the lane keeps the standard's TWO rules apart: `Qualify` answers GR5c ("is this a receiving-operand, and WHY")
+  and `SenderFor` answers GR6, whose three arms are keyed on that answer (kb/Work PB418). A receiver whose category
+  is one of GR4's five — data-pointer, function-pointer, message-tag, object-reference, program-pointer — takes the
+  implicit **SET** rather than the MOVE path: `InitializeSetNull` for GR6a1/GR6a2 and GR6c's NULL rows,
+  `InitializeSetFrom` for GR6b's `SET receiver TO identifier-2`, each rendered exactly as the explicit SET statement
+  renders that operand pair.
+  **`category-name` IS A SET, not a word** (kb/Work PB415): §14.9.20.2's figure encloses THIRTEEN category names in
+  a brace carrying CHOICE INDICATORS, so §5.2.6.4 makes a category-name one or more of them, each at most once —
+  `REPLACING NUMERIC ALPHANUMERIC DATA BY …` is conforming COBOL-85 source. `InitializeCategorySet` (a bitmask over
+  `InitializeCategory`) is that set, so §14.9.20.3 SR6's "the same category shall not be repeated in a REPLACING
+  phrase" and §5.2.6.4's "only once" are ONE check over ONE accumulator, and the fourteenth word would be one enum
+  member. The `{ALL | category-name}` before TO VALUE is a plain BRACE — mandatory (§5.2.6.3), COBOLNET1981 when
+  omitted; `TO` and `THEN` are optional words in both phrases (not underlined). The eight post-85 category names are
+  gated per word at the edition §8.9 reserves the word (`initialize-category-2002/-2014/-2023`), and
+  `InitializeLaneDriftTests` pins the grammar rule, the enum and those bands against `reserved-words.json`.
 - **SET** = dispatch by target kind (index→long, pointer→`ManagedPointer`/NULL, switch→bool, cond-name TO TRUE→store
   the 88's first VALUE) — depends on the §3.5 88/INDEXED-BY binding.
   **Format 15 (numeric-content, §14.9.39.2, 2014) is a STATEMENT SURFACE OVER AN EXISTING COMPUTATION, not a new

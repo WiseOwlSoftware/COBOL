@@ -551,14 +551,61 @@ internal sealed class StatementValidation(DataBinder data)
 
     // ── INITIALIZE (ISO §14.9.20.3) — lifted at 10e ──────────────────────────────────────────────────────────
 
-    /// <summary>SR6 — the same category shall not be repeated in a REPLACING phrase.</summary>
-    public bool CheckInitializeReplacingUnique(
-        IReadOnlyList<(InitializeCategory Cat, BoundOperand Value)> existing, InitializeCategory cat)
+    /// <summary>§14.9.20.3 SR6 ("the same category shall not be repeated in a REPLACING phrase") AND §5.2.6.4
+    /// ("any single alternative shall be specified only once") — ONE check, because a category-name is a SET of
+    /// category words and the two rules are the same ban at two scopes: SR6 across the phrase's items, §5.2.6.4
+    /// within one item's category-name. <paramref name="namedSoFar"/> is the caller's running union.</summary>
+    public bool CheckInitializeCategoryUnique(InitializeCategorySet namedSoFar, InitializeCategory cat)
     {
-        if (!existing.Any(r => r.Cat == cat)) return true;
+        if (!namedSoFar.Contains(cat)) return true;
         data.Edition.Error("COBOLNET0834",
-            $"INITIALIZE REPLACING repeats category {cat} (ISO §14.9.20.3 SR6 — each category at most once)");
+            $"INITIALIZE REPLACING repeats the category-name {InitializeCategories.Spelling(cat)} "
+            + "(ISO §14.9.20.3 SR6 — each category at most once in the phrase; §5.2.6.4 — each alternative at "
+            + "most once within one category-name)");
         return false;
+    }
+
+    /// <summary>ISO §14.9.20.2 + §5.2.6.3 — the VALUE phrase's <c>{ ALL | category-name }</c> is a BRACE, and
+    /// "one of the alternatives contained within the braces shall be explicitly specified or is implicitly
+    /// selected": neither is implicitly selected here, so a bare <c>TO VALUE</c> is not conforming source. It was
+    /// accepted (and read as ALL) on the strength of a §14.9.20.2 "note 2" the clause does not carry — kb/Work
+    /// PB415. The binder recovers as ALL after this diagnostic, so one statement yields one message.</summary>
+    public void CheckInitializeValueChoicePresent() =>
+        data.Edition.Error(DiagnosticCatalog.InitializeValueChoiceMissing,
+            "INITIALIZE ... TO VALUE requires ALL or a category-name before VALUE (ISO §14.9.20.2 — the braced "
+            + "choice is mandatory, §5.2.6.3)");
+
+    /// <summary>ISO §14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or
+    /// PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be
+    /// specified". literal-1 is what the rule excludes, because §14.9.20.4 GR4 makes the implicit statement a SET
+    /// for exactly those five categories and no SET format (§14.9.39) admits a literal sending operand.</summary>
+    public void CheckInitializeReplacingSetCategoryIdentifier(InitializeCategorySet cats, string literalText)
+    {
+        foreach (var cat in InitializeCategories.All)
+            if (cats.Contains(cat) && InitializeCategories.IsSetForm(cat))
+            {
+                data.Edition.Error(DiagnosticCatalog.InitializeReplacingPointerNeedsIdentifier,
+                    $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} ... BY the literal {literalText}: "
+                    + "identifier-2 shall be specified (ISO §14.9.20.3 SR3 — the implicit statement for this "
+                    + "category is a SET, §14.9.20.4 GR4, and no SET format admits a literal sending operand)");
+                return;   // one message per REPLACING item, naming the first offending category
+            }
+    }
+
+    /// <summary>ISO §14.9.20.3 SR4 for the SET-form categories — "a SET statement with identifier-2 as the sending
+    /// operand and an item of the specified category as the receiving operand shall be valid". §14.9.39's pointer
+    /// and object-reference formats admit only a sending operand of the receiver's own category, so category
+    /// agreement is the necessary condition; an object-reference pair's §9.3.8.2 class conformance is the OO
+    /// lane's rule and is not re-stated here.</summary>
+    public void CheckInitializeReplacingSetCategoryAgrees(
+        InitializeCategory cat, InitializeCategory? senderCat, string senderText)
+    {
+        string spelled = InitializeCategories.Spelling(cat);
+        data.Edition.Error(DiagnosticCatalog.InitializeReplacingSetCategoryMismatch,
+            $"INITIALIZE REPLACING {spelled} ... BY {senderText}, which is "
+            + (senderCat is { } sc ? $"an item of category {InitializeCategories.Spelling(sc)}" : "not a data item")
+            + $": ISO §14.9.20.3 SR4 requires that `SET <a {spelled} item> TO identifier-2` be valid, and "
+            + "§14.9.39 admits only a sending operand of the receiver's own category");
     }
 
     /// <summary>SR5 — identifier-1 shall not have a RENAMES clause (a level-66 entry).</summary>

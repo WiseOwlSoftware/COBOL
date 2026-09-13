@@ -797,6 +797,13 @@ initializeOperandList
 // §8.3.2.4.3 makes `INITIALIZE X ALL VALUE` conforming source. VALUE stays the required anchor (it is not in
 // cobolWord, so the preceding initializeOperandList loop cannot swallow it) and the COBOL-2002 gate keys on this
 // SUBRULE's presence (VersionConformancePass.VisitInitializeStatement), never on `ctx.TO()`.
+// ⛔ THE `?` ON THE CHOICE IS AN ERROR-RECOVERY AFFORDANCE, NOT A PERMISSION (kb/Work PB415). The printed figure
+// draws `{ ALL | category-name }` inside a plain BRACE, and §5.2.6.3 says "one of the alternatives contained
+// within the braces shall be explicitly specified or is implicitly selected" — so `INITIALIZE X TO VALUE` is NOT
+// conforming source and InitializeBinder rejects it with COBOLNET1981. The rule keeps the optional subrule so the
+// REJECTION IS THE NAMED RULE rather than a COBOL0001 "extraneous input 'TO'" that never says which rule was
+// broken; with TO itself optional there is no token the parser could blame. ⛔ Do NOT read the `?` as a licence:
+// the binder's check is the enforcement, and InitializeLaneDriftTests pins that it fires.
 initializeCategoryToValue
     : (ALL | initializeCategory)? TO? VALUE
     ;
@@ -823,15 +830,39 @@ initializeReplacingItem
     : initializeCategory DATA? BY (functionCall | dataReference | literal)
     ;
 
-// Category names for INITIALIZE REPLACING and TO VALUE phrases.
-// BOOLEAN, DATA-POINTER, FUNCTION-POINTER, PROGRAM-POINTER, NATIONAL,
-// OBJECT-REFERENCE are COBOL-2002+ and require lexer tokens not yet defined.
+// ⛔ category-name IS A SET, NOT ONE WORD (ISO §14.9.20.2 "where category-name is:"; kb/Work PB415). Rendered off
+// the licensed PDF (p667 / printed folio 637): the thirteen words are enclosed by a BRACE carrying CHOICE
+// INDICATORS — the pair of bars just inside it — and §5.2.6.4 reads them "one or more of the alternatives
+// contained within the choice indicators shall be specified, but any single alternative shall be specified only
+// once". So `REPLACING NUMERIC ALPHANUMERIC DATA BY SPACE` is conforming source (at COBOL-85 too: the five
+// classic words are 85 words), and `category-name` occupies BOTH phrase slots as a set.
+// The rule that produced the defect was a SINGLE-ALTERNATIVE scalar naming five of the thirteen; modelling the
+// set here is what makes the fourteenth word one table row instead of a new shape (CLAUDE.md rule 5).
 initializeCategory
+    : initializeCategoryName+
+    ;
+
+// ONE printed category-name word. ⛔ EVERY ONE OF THE THIRTEEN IS UNDERLINED IN THE FIGURE, so each is a required
+// word with exactly one spelling — the HYPHENATED one. The two-token `ALPHANUMERIC EDITED` / `NUMERIC EDITED`
+// alternatives this rule used to carry are in no edition of the standard (EDITED is not an ISO §8.9 reserved word
+// at 85, 2002, 2014 or 2023 and has no reserved-words.json row); they were the sole consumer of the hard EDITED
+// lexer token, which shadowed IDENTIFIER and made `01 EDITED PIC X.` a COBOL0001 at every edition. Both are gone.
+// EDITION GATING IS NOT HERE: the words that ISO §8.9 reserves above 85 are admitted unconditionally and named by
+// VersionConformancePass.VisitInitializeStatement (COBOLNET0900 with the per-word constructs.json row), because
+// this position only ever takes a category-name — no user-defined word can reach it, so there is nothing for a
+// `userWordHere` predicate to disambiguate and a named gate beats a "no viable alternative".
+initializeCategoryName
     : ALPHABETIC
-    | ALPHANUMERIC
-    | NUMERIC
-    | ALPHANUMERIC EDITED
     | ALPHANUMERIC_EDITED
-    | NUMERIC EDITED
+    | ALPHANUMERIC
+    | BOOLEAN
+    | DATA_POINTER
+    | FUNCTION_POINTER
+    | MESSAGE_TAG
+    | NATIONAL_EDITED
+    | NATIONAL
     | NUMERIC_EDITED
+    | NUMERIC
+    | OBJECT_REFERENCE
+    | PROGRAM_POINTER
     ;

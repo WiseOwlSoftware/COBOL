@@ -21,6 +21,7 @@ cobolWord
     | BINARY_ENCODING
     | BIT
     | BLINK
+    | {userWordHere("BOOLEAN")}? BOOLEAN
     | {userWordHere("B-AND")}? B_AND
     | {userWordHere("B-NOT")}? B_NOT
     | {userWordHere("B-OR")}? B_OR
@@ -35,6 +36,7 @@ cobolWord
     | {userWordHere("CONSTANT")}? CONSTANT
     | {userWordHere("CRT")}? CRT
     | {userWordHere("CURSOR")}? CURSOR
+    | {userWordHere("DATA-POINTER")}? DATA_POINTER
     | {userWordHere("DEBUGGING")}? DEBUGGING
     | DECIMAL_ENCODING
     | {userWordHere("DEFAULT")}? DEFAULT
@@ -80,9 +82,11 @@ cobolWord
     | {userWordHere("MESSAGE")}? MESSAGE
     | {userWordHere("MESSAGE-TAG")}? MESSAGE_TAG
     | NATIONAL
+    | {userWordHere("NATIONAL-EDITED")}? NATIONAL_EDITED
     | {userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
     | NORMAL
     | NUMBERS
+    | {userWordHere("OBJECT-REFERENCE")}? OBJECT_REFERENCE
     | ONLY
     | {userWordHere("ORDER")}? ORDER
     | {userWordHere("OVERRIDE")}? OVERRIDE
@@ -131,6 +135,7 @@ reservedGatedWord
     : {!userWordHere("ACTIVE-CLASS")}? ACTIVE_CLASS
     | {!userWordHere("ALIGNED")}? ALIGNED
     | {!userWordHere("AS")}? AS
+    | {!userWordHere("BOOLEAN")}? BOOLEAN
     | {!userWordHere("B-AND")}? B_AND
     | {!userWordHere("B-NOT")}? B_NOT
     | {!userWordHere("B-OR")}? B_OR
@@ -145,6 +150,7 @@ reservedGatedWord
     | {!userWordHere("CONSTANT")}? CONSTANT
     | {!userWordHere("CRT")}? CRT
     | {!userWordHere("CURSOR")}? CURSOR
+    | {!userWordHere("DATA-POINTER")}? DATA_POINTER
     | {!userWordHere("DEBUGGING")}? DEBUGGING
     | {!userWordHere("DEFAULT")}? DEFAULT
     | {!userWordHere("DESTINATION")}? DESTINATION
@@ -170,7 +176,9 @@ reservedGatedWord
     | {!userWordHere("LOCATION")}? LOCATION
     | {!userWordHere("MESSAGE")}? MESSAGE
     | {!userWordHere("MESSAGE-TAG")}? MESSAGE_TAG
+    | {!userWordHere("NATIONAL-EDITED")}? NATIONAL_EDITED
     | {!userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
+    | {!userWordHere("OBJECT-REFERENCE")}? OBJECT_REFERENCE
     | {!userWordHere("ORDER")}? ORDER
     | {!userWordHere("OVERRIDE")}? OVERRIDE
     | {!userWordHere("PADDING")}? PADDING

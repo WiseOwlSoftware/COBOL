@@ -211,6 +211,9 @@ public static class Constructs
     public const string InitializeToValue2002 = "initialize-to-value-2002";
     public const string InitializeToDefault2002 = "initialize-to-default-2002";
     public const string InitializeThenReplacing2002 = "initialize-then-replacing-2002";
+    public const string InitializeCategory2002 = "initialize-category-2002";
+    public const string InitializeCategory2014 = "initialize-category-2014";
+    public const string InitializeCategory2023 = "initialize-category-2023";
     public const string ReleaseFromLiteral2002 = "release-from-literal-2002";
     public const string SortCollatingNational2002 = "sort-collating-national-2002";
     public const string TableSort2002 = "table-sort-2002";

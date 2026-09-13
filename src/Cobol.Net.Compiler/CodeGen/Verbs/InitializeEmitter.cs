@@ -53,6 +53,18 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 // item's DefaultInitializer, matching SetEmitter.EmitSetPointer / OoEmitter.EmitSetObjectRef.
                 w.Line(PlaceRenderer.Write(s.Target, s.Target.Item.Pic!.DefaultInitializer));
                 break;
+            case InitializeSetFrom s:
+                // §14.9.20.4 GR4 + GR6b: an implicit `SET Target TO identifier-2`, rendered as THE SET STATEMENT
+                // renders it for the same operand pair — SetEmitter.EmitSetPointer's straight handle copy for the
+                // pointer family (§14.9.39 Format 4), OoEmitter's Format-5 cast-and-copy for an object-reference
+                // receiver (§14.9.39 GR9, "reference copy"). §14.9.20.3 SR3 has already refused literal-1 and SR4
+                // the category mismatch, so the pair is a valid SET by the time it reaches here.
+                w.Line(PlaceRenderer.Write(s.Target,
+                        s.Target.Item.Pic is { Category: PicCategory.ObjectReference } orp
+                            ? $"({orp.ClrType})({PlaceRenderer.Read(s.Source)})"
+                            : PlaceRenderer.Read(s.Source))
+                    + "   // INITIALIZE REPLACING — implicit SET (ISO §14.9.20.4 GR4/GR6b)");
+                break;
             case InitializeLoop l:
                 // ONE loop over the ONE occurrence-count model (kb/Work PB393): a fixed OCCURS count, an
                 // occurs-depending table's CURRENT count under §13.18.38.4 GR8a, or a dynamic-capacity table's

@@ -20,16 +20,22 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>What the statement's phrases select, threaded through the expansion: the receiver filter
     /// (ISO §14.9.20 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
-    /// <paramref name="ValueCategory"/> null with <paramref name="ToValue"/> means <c>ALL TO VALUE</c> (a bare
-    /// <c>TO VALUE</c> ≡ ALL, §14.9.20.2 note 2).
+    /// <para>⛔ EVERY CATEGORY SLOT IS A <see cref="InitializeCategorySet"/>, BECAUSE category-name IS A SET
+    /// (§14.9.20.2's choice-indicator brace; §5.2.6.4). <paramref name="ValueCategories"/> EMPTY with
+    /// <paramref name="ToValue"/> means <c>ALL TO VALUE</c> — §14.9.20.4 GR2's "if ALL is specified in the VALUE
+    /// phrase it is as if all of the categories listed in category-name were specified", represented as the
+    /// absence of a restriction. ⛔ A BARE <c>TO VALUE</c> IS NOT ALL AND IS NOT CONFORMING: §14.9.20.2's brace
+    /// requires one of ALL / category-name and §5.2.6.3 makes that mandatory, so <c>Bind</c> rejects it
+    /// (COBOLNET1981) and only then recovers as if ALL. The former code read it as ALL on the strength of a
+    /// "§14.9.20.2 note 2" the clause does not have (kb/Work PB415).</para>
     /// <para>⛔ <paramref name="HasReplacing"/> IS THE PHRASE'S PRESENCE, NOT <paramref name="Replacements"/>'s
     /// COUNT. §14.9.20.4 GR5c4's premise is "neither the REPLACING phrase nor the VALUE phrase is specified" — a
     /// REPLACING phrase whose every item was dropped (the §14.9.20.3 SR6 duplicate-category skip) is still
     /// SPECIFIED, so an item of a non-matching category is left unchanged by GR5c and must NOT collect the GR6c
     /// category default. Reading the count made the two indistinguishable.</para></summary>
     private readonly record struct InitializeSpec(
-        bool WithFiller, bool ToValue, InitializeCategory? ValueCategory,
-        IReadOnlyList<(InitializeCategory Cat, BoundOperand Value)> Replacements, bool HasReplacing, bool ToDefault);
+        bool WithFiller, bool ToValue, InitializeCategorySet ValueCategories,
+        IReadOnlyList<(InitializeCategorySet Cats, BoundOperand Value)> Replacements, bool HasReplacing, bool ToDefault);
 
     /// <summary>⛔ WHY a possible receiving-operand IS a receiving-operand — ISO §14.9.20.4 GR5c's four
     /// alternatives, collapsed to the ONE fact §14.9.20.4 GR6 then asks for. GR6 is not a free precedence over the
@@ -85,25 +91,48 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // initialize-{filler,to-value,to-default,then-replacing}-2002 (§14.9.20): the pass owns the four
         // post-85-surface edition gates (Exec Step E).
 
-        var replacements = new List<(InitializeCategory Cat, BoundOperand Value)>();
+        var replacements = new List<(InitializeCategorySet Cats, BoundOperand Value)>();
+        // §14.9.20.3 SR6 "the same category shall not be repeated in a REPLACING phrase" and §5.2.6.4's "any
+        // single alternative shall be specified only once" are ONE rule over ONE accumulator: the union of every
+        // category already named in this phrase, whether by an earlier item or by an earlier word of THIS item.
+        var namedSoFar = default(InitializeCategorySet);
         if (replacing is not null)
             foreach (var item in replacing.initializeReplacingItem())
             {
-                InitializeCategory cat = InitializeCategoryOf(item.initializeCategory());
-                if (!ctx.Validation.CheckInitializeReplacingUnique(replacements, cat))
-                    continue;   // ISO §14.9.20.3 SR6 — reported by the pure check; the skip stays here
+                var cats = CategorySetOf(item.initializeCategory(), ref namedSoFar);
+                if (cats.IsEmpty) continue;   // every word was a repeat — reported by the pure check
                 // §14.9.20.3 SR4 makes identifier-2 "the SENDING item" of a MOVE, so a function-identifier
                 // is admissible (§8.4.3.1.2 Format 1; §8.4.3.2.3 SR1 bars one only from a RECEIVING
                 // operand). It was a COBOL0001 parse error before — fix-queue PB10.
+                var lit = item.literal();
                 BoundOperand value = item.functionCall() is { } ifc ? host.Intrinsic.IntrinsicOperand(ifc)
-                    : item.literal() is { } lit ? host.Expr.LiteralOperand(lit)
+                    : lit is not null ? host.Expr.LiteralOperand(lit)
                     : item.dataReference() is { } sref ? host.Expr.FieldOperand(sref)
                     : new BoundOperandError("INITIALIZE REPLACING sending operand");
-                replacements.Add((cat, value));
+                // ISO §14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE,
+                // or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2
+                // shall be specified". literal-1 is what the rule excludes, and it excludes it because GR4 makes
+                // the implicit statement a SET for exactly these five categories and no literal is a SET sending
+                // operand (§14.9.39). Unreachable until the words became spellable (kb/Work PB415).
+                if (lit is not null)
+                    ctx.Validation.CheckInitializeReplacingSetCategoryIdentifier(cats, lit.GetText());
+                else
+                    CheckSetFormCategoryAgreement(cats, value,
+                        item.dataReference()?.GetText() ?? item.functionCall()?.GetText() ?? "the sending operand");
+                replacements.Add((cats, value));
             }
 
-        var spec = new InitializeSpec(withFiller, toValue is not null,
-            toValue?.initializeCategory() is { } vc ? InitializeCategoryOf(vc) : null, replacements,
+        // ISO §14.9.20.2 — the VALUE phrase's `{ ALL | category-name }` is a BRACE, and §5.2.6.3 makes one of its
+        // alternatives mandatory. The grammar keeps the subrule optional purely so this rejection can NAME the
+        // rule (see the CobolData.g4 note); the recovery is ALL, which is what the omission used to mean silently.
+        var valueCats = default(InitializeCategorySet);
+        if (toValue is not null)
+        {
+            if (toValue.initializeCategory() is { } vc) valueCats = CategorySetOf(vc);
+            else if (toValue.ALL() is null) ctx.Validation.CheckInitializeValueChoicePresent();
+        }
+
+        var spec = new InitializeSpec(withFiller, toValue is not null, valueCats, replacements,
             HasReplacing: replacing is not null, toDefault);
 
         var actions = new List<InitializeAction>();
@@ -121,7 +150,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// silent skip.</summary>
     public BoundInitialize BindAllocateInitialized(Core.DataReferenceContext basedRef)
     {
-        var spec = new InitializeSpec(WithFiller: true, ToValue: true, ValueCategory: null,
+        // ValueCategories empty = ALL (§14.9.20.4 GR2), which is the category-name §14.9.3.4 GR7's quoted
+        // statement writes: "INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT".
+        var spec = new InitializeSpec(WithFiller: true, ToValue: true, ValueCategories: default,
             Replacements: [], HasReplacing: false, ToDefault: true);
         var actions = new List<InitializeAction>();
         BindInitializeTarget(basedRef, spec, actions);
@@ -367,14 +398,15 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // GR5c1 — "The VALUE phrase is specified, the category of the elementary data item is one of the categories
         // specified or implied in the VALUE phrase, and one of the following is true": GR5c1a (categorical),
         // GR5c1b (a data-item format VALUE clause) or GR5c1c (a table format VALUE clause keyed to this occurrence).
-        // ALL implies every category (GR2), which is the null ValueCategory.
-        if (spec.ToValue && (spec.ValueCategory is null || spec.ValueCategory == cat)
+        // ALL implies every category (GR2), which is the EMPTY ValueCategories set; otherwise it is §5.2.6.4
+        // membership in the category-name, which may name several categories at once.
+        if (spec.ToValue && (spec.ValueCategories.IsEmpty || spec.ValueCategories.Contains(cat))
             && (QualifiesCategorically(cat) || effectiveValue is not null))
             return InitializeQualification.ViaValue;
         // GR5c2 — "The REPLACING phrase is specified and the category of the elementary data item is one of the
         // categories specified in the REPLACING phrase".
-        foreach (var (rcat, _) in spec.Replacements)
-            if (rcat == cat) return InitializeQualification.ViaReplacing;
+        foreach (var (rcats, _) in spec.Replacements)
+            if (rcats.Contains(cat)) return InitializeQualification.ViaReplacing;
         // GR5c3 — "The DEFAULT phrase is specified"; GR5c4 — "Neither the REPLACING phrase nor the VALUE phrase is
         // specified" (the bare COBOL-85 form, which defaults everything GR5a did not exclude).
         if (spec.ToDefault || (!spec.ToValue && !spec.HasReplacing)) return InitializeQualification.ViaDefault;
@@ -395,11 +427,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// item is consequently NOT a receiving operand under the VALUE phrase alone (SR9 denies it GR5c1b and GR5c1c
     /// too); it is still one under REPLACING (GR5c2), DEFAULT (GR5c3) and the bare form (GR5c4), where GR6c gives
     /// it the predefined address NULL. Do not "even up" this list — the rule is quoted, not paraphrased.</para>
-    /// <para>MESSAGE-TAG is in the rule and has no member here: it belongs to the owner-declined MCS facility and
-    /// no <see cref="PicCategory"/> carries it, so no elementary item can reach this test with that category.</para></summary>
+    /// <para>MESSAGE-TAG is in the rule and is named here for fidelity, but no elementary item can reach this test
+    /// with that category: no <see cref="PicCategory"/> carries message-tag (the owner-declined MCS facility,
+    /// docs/CONFORMANCE.md §4), so the DATA DIVISION refuses such an item before any statement sees it.</para></summary>
     private static bool QualifiesCategorically(InitializeCategory cat) =>
-        cat is InitializeCategory.DataPointer or InitializeCategory.ObjectReference
-            or InitializeCategory.ProgramPointer;
+        cat is InitializeCategory.DataPointer or InitializeCategory.MessageTag
+            or InitializeCategory.ObjectReference or InitializeCategory.ProgramPointer;
 
     /// <summary>ISO §14.9.20.4 GR6 — "the sending-operand in each implicit MOVE and SET statement", whose three
     /// arms are keyed on WHY the item qualified, not on which phrases were written: GR6a "if the data item
@@ -431,12 +464,14 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
-    /// <summary>The REPLACING operand named for <paramref name="cat"/> (ISO §14.9.20.4 GR6b); null is unreachable
-    /// once <see cref="Qualify"/> has answered <c>ViaReplacing</c>, which it does only on a match.</summary>
+    /// <summary>The REPLACING operand named for <paramref name="cat"/> (ISO §14.9.20.4 GR6b — "the literal-1 or
+    /// identifier-2 associated with the category specified in the REPLACING phrase"); null is unreachable once
+    /// <see cref="Qualify"/> has answered <c>ViaReplacing</c>, which it does only on a match. The scan is over
+    /// category-name SETS, and §14.9.20.3 SR6 makes at most one of them contain <paramref name="cat"/>.</summary>
     private static BoundOperand? ReplacementFor(InitializeCategory cat, in InitializeSpec spec)
     {
-        foreach (var (rcat, value) in spec.Replacements)
-            if (rcat == cat) return value;
+        foreach (var (rcats, value) in spec.Replacements)
+            if (rcats.Contains(cat)) return value;
         return null;
     }
 
@@ -452,16 +487,22 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // object-reference, or program-pointer, the implicit statement is SET receiving-operand TO sending-operand"
         // — NOT a MOVE, so it must not route through the InitializeStore MOVE path (GR5a1 keeps these as receiving
         // operands, not MOVE-receiver-excluded). (CODE-SPEC-AUDIT CA2.)
-        if (cat is InitializeCategory.DataPointer or InitializeCategory.ProgramPointer
-                or InitializeCategory.FunctionPointer or InitializeCategory.ObjectReference)
+        if (InitializeCategories.IsSetForm(cat))
             // GR6a1/GR6a2 and every pointer row of GR6c's table give the predefined NULL. GR6b does NOT: under
             // REPLACING the sending operand is identifier-2, an implicit `SET receiver TO identifier-2`, and
-            // writing NULL there would be a wrong answer rather than a missing one. That arm is unreachable today
-            // — `initializeCategory` cannot yet spell DATA-POINTER / OBJECT-REFERENCE / PROGRAM-POINTER
-            // (kb/Work PB415) — so it is staged LOUD, and the loud is the tripwire that fires the day it can.
+            // writing NULL there would be a wrong answer rather than a missing one. kb/Work PB415 made the five
+            // category-names spellable, so the arm PB418 staged LOUD is now the real SET. ⛔ THE ERROR ARM IS A
+            // "CANNOT HAPPEN" GUARD, NOT A STAGED FEATURE: §14.9.20.3 SR3 (COBOLNET1982) has already refused
+            // literal-1 for these categories, and SR4's category agreement (COBOLNET1983) refuses every sender
+            // that is not a data item of the named category — a function-identifier among them, since no SET
+            // format admits one (§14.9.39). It stays because `EmitAction`'s switch has no default arm, so a
+            // non-place operand reaching the emitter would be dropped in silence rather than diagnosed.
             return q is InitializeQualification.ViaReplacing
-                ? new InitializeErrorAction($"INITIALIZE REPLACING of the {cat} item "
-                    + $"'{item.CobolName ?? "FILLER"}' (the ISO §14.9.20.4 GR6b implicit SET from identifier-2)")
+                ? ReplacementFor(cat, spec) is BoundFieldOperand { Place: var sp }
+                    ? new InitializeSetFrom(cur.ToPlace(), sp)                                  // GR4 + GR6b
+                    : new InitializeErrorAction($"INITIALIZE REPLACING {cat} … BY a function-identifier into "
+                        + $"'{item.CobolName ?? "FILLER"}' (ISO §14.9.20.4 GR4 makes the implicit statement a SET, "
+                        + "and §14.9.39 admits no function-identifier as a SET sending operand)")
                 : new InitializeSetNull(cur.ToPlace());                                         // GR4 SET … TO the predefined NULL
         if (SenderFor(q, cat, effectiveValue, spec) is not { } source) return null;
         // §14.9.20.4 GR7: "when a dynamic-length elementary item is initialized, its length is set to zero"
@@ -593,17 +634,71 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
-    /// <summary>Decode a grammar category-name, handling BOTH the two-token (<c>ALPHANUMERIC EDITED</c> /
-    /// <c>NUMERIC EDITED</c>) and the hyphenated one-token (<c>ALPHANUMERIC-EDITED</c> / <c>NUMERIC-EDITED</c>)
-    /// spellings (ISO §14.9.20.2 writes the hyphenated form; the corpus uses both).</summary>
-    private static InitializeCategory InitializeCategoryOf(Core.InitializeCategoryContext cat) =>
+    /// <summary>ISO §14.9.20.3 SR4 for the SET-form categories — "for each of the categories data-pointer,
+    /// function-pointer, message-tag, object-reference, and program-pointer specified in the REPLACING phrase, a
+    /// SET statement with identifier-2 as the sending operand and an item of the specified category as the
+    /// receiving operand shall be valid". §14.9.39's pointer and object-reference formats admit only a sending
+    /// operand of the receiver's own category, so category agreement is the NECESSARY condition, checked here
+    /// (an object-reference pair's §9.3.8.2 class conformance is the OO lane's, and is not re-stated).
+    /// <para>It is checked at BIND time rather than left to the backend because <see cref="InitializeSetFrom"/>
+    /// renders the SET statement's own straight copy: a mismatched sender would otherwise reach Roslyn as a
+    /// CS-level type error on emitted code, which names no COBOL rule.</para></summary>
+    private void CheckSetFormCategoryAgreement(InitializeCategorySet cats, BoundOperand value, string senderText)
+    {
+        foreach (var cat in InitializeCategories.All)
+        {
+            if (!cats.Contains(cat) || !InitializeCategories.IsSetForm(cat)) continue;
+            var senderCat = value is BoundFieldOperand { Place.Item: { } si } ? InitializeItemCategory(si) : null;
+            if (senderCat != cat)
+                ctx.Validation.CheckInitializeReplacingSetCategoryAgrees(cat, senderCat, senderText);
+        }
+    }
+
+    /// <summary>Decode ONE grammar <c>category-name</c> — the §5.2.6.4 SET of category words, accumulated left to
+    /// right. <paramref name="namedSoFar"/> is the running union that §14.9.20.3 SR6 ("the same category shall not
+    /// be repeated in a REPLACING phrase") and §5.2.6.4 ("any single alternative shall be specified only once")
+    /// BOTH test against — one accumulator for one rule, so a word repeated within a category-name and a category
+    /// repeated across REPLACING items are diagnosed identically. A repeated word is dropped, never doubled.</summary>
+    private InitializeCategorySet CategorySetOf(Core.InitializeCategoryContext cat, ref InitializeCategorySet namedSoFar)
+    {
+        var set = default(InitializeCategorySet);
+        foreach (var name in cat.initializeCategoryName())
+        {
+            var one = InitializeCategoryOf(name);
+            if (!ctx.Validation.CheckInitializeCategoryUnique(namedSoFar, one)) continue;
+            set = set.With(one);
+            namedSoFar = namedSoFar.With(one);
+        }
+        return set;
+    }
+
+    /// <summary>The VALUE phrase's category-name (ISO §14.9.20.2). Its words are governed by §5.2.6.4's "only
+    /// once" too, but by nothing else — SR6 is written about the REPLACING phrase alone — so the accumulator is
+    /// local to this one category-name.</summary>
+    private InitializeCategorySet CategorySetOf(Core.InitializeCategoryContext cat)
+    {
+        var namedSoFar = default(InitializeCategorySet);
+        return CategorySetOf(cat, ref namedSoFar);
+    }
+
+    /// <summary>Decode ONE printed category-name word (ISO §14.9.20.2 "where category-name is:"). Every one of
+    /// the thirteen is a required word with one hyphenated spelling, so this is a total token switch — the
+    /// two-token <c>ALPHANUMERIC EDITED</c> / <c>NUMERIC EDITED</c> forms the rule used to carry are in no
+    /// edition of the standard and are gone with the EDITED lexer token (kb/Work PB415).</summary>
+    private static InitializeCategory InitializeCategoryOf(Core.InitializeCategoryNameContext cat) =>
         cat.ALPHABETIC() is not null ? InitializeCategory.Alphabetic
         : cat.ALPHANUMERIC_EDITED() is not null ? InitializeCategory.AlphanumericEdited
+        : cat.ALPHANUMERIC() is not null ? InitializeCategory.Alphanumeric
+        : cat.BOOLEAN() is not null ? InitializeCategory.Boolean
+        : cat.DATA_POINTER() is not null ? InitializeCategory.DataPointer
+        : cat.FUNCTION_POINTER() is not null ? InitializeCategory.FunctionPointer
+        : cat.MESSAGE_TAG() is not null ? InitializeCategory.MessageTag
+        : cat.NATIONAL_EDITED() is not null ? InitializeCategory.NationalEdited
+        : cat.NATIONAL() is not null ? InitializeCategory.National
         : cat.NUMERIC_EDITED() is not null ? InitializeCategory.NumericEdited
-        : cat.ALPHANUMERIC() is not null
-            ? (cat.EDITED() is not null ? InitializeCategory.AlphanumericEdited : InitializeCategory.Alphanumeric)
-        : cat.EDITED() is not null ? InitializeCategory.NumericEdited
-        : InitializeCategory.Numeric;
+        : cat.NUMERIC() is not null ? InitializeCategory.Numeric
+        : cat.OBJECT_REFERENCE() is not null ? InitializeCategory.ObjectReference
+        : InitializeCategory.ProgramPointer;
 
     /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §14.9.20 GR6a3 — "a literal that,
     /// when moved to the receiving-operand with a MOVE statement, produces the same result as … the VALUE clause"):

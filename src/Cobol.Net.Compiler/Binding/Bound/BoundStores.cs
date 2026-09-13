@@ -92,6 +92,8 @@ public static class BoundStores
                 {
                     case InitializeStore st when st.Target.Item == item: return true;
                     case InitializeSetNull sn when sn.Target.Item == item: return true;
+                    // §14.9.20.4 GR4/GR6b's implicit SET stores into its TARGET (identifier-2 is the sender).
+                    case InitializeSetFrom sf when sf.Target.Item == item: return true;
                     case InitializeLoop lp when InitStores(lp.Body): return true;
                     // A Format-2 (table) VALUE select stores into the receiver on EVERY arm it has (ISO
                     // §14.9.20.4 GR5c1c) — the arms differ only in which literal reaches it, so any one of them

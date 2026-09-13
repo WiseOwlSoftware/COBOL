@@ -3107,6 +3107,49 @@ public static class DiagnosticCatalog
         + "and says nothing about a third (kb/Work PB530).",
         "ISO §13.18.40.3 SR24");
 
+    // ── COBOLNET1981/1982/1983 — the INITIALIZE category-name, once it became the standard's SET of thirteen
+    //    words (kb/Work PB415). 1981 closes an OVER-acceptance the old scalar shape hid; 1982 and 1983 are the
+    //    two syntax rules (§14.9.20.3 SR3 and SR4) that were unreachable while the five pointer-ish category
+    //    names could not be spelled at all. ──
+
+    /// <summary>COBOLNET1981 — <c>INITIALIZE … TO VALUE</c> written with neither ALL nor a category-name.</summary>
+    public static readonly DiagnosticDescriptor InitializeValueChoiceMissing = new(
+        "COBOLNET1981", "initialize-value-choice-missing", EditionSeverity.Error,
+        "The VALUE phrase of an INITIALIZE statement is printed `{ ALL | category-name } TO VALUE` — a BRACE, and "
+        + "§5.2.6.3 says \"the syntax element contained within the braces or one of the alternatives contained "
+        + "within the braces shall be explicitly specified or is implicitly selected\". Nothing is implicitly "
+        + "selected here, so one of ALL and a category-name shall be written. The compiler used to accept the "
+        + "bare form and read it as ALL, defended by a \"§14.9.20.2 note 2\" the clause does not carry: that "
+        + "subclause has no notes, and the general rule that does mention ALL (§14.9.20.4 GR2) answers what ALL "
+        + "MEANS, not whether the choice may be omitted. Write `ALL TO VALUE` for the meaning the omission used "
+        + "to be given. TO itself is an optional word (it is not underlined), so `ALL VALUE` is equally correct.",
+        "ISO §14.9.20.2 / §5.2.6.3");
+
+    /// <summary>COBOLNET1982 — literal-1 where §14.9.20.3 SR3 requires identifier-2: a REPLACING category-name of
+    /// DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE or PROGRAM-POINTER.</summary>
+    public static readonly DiagnosticDescriptor InitializeReplacingPointerNeedsIdentifier = new(
+        "COBOLNET1982", "initialize-replacing-pointer-needs-identifier", EditionSeverity.Error,
+        "§14.9.20.3 SR3: \"For each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or "
+        + "PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2 shall be "
+        + "specified.\" literal-1 is what the rule excludes, and it excludes it because §14.9.20.4 GR4 makes the "
+        + "implicit statement for exactly those five categories a SET — `SET receiving-operand TO "
+        + "sending-operand` — and no format of the SET statement (§14.9.39) admits a literal as its sending "
+        + "operand. Name a data item of the same category instead.",
+        "ISO §14.9.20.3 / §14.9.20.4 / §14.9.39");
+
+    /// <summary>COBOLNET1983 — §14.9.20.3 SR4's SET validity for a pointer / object-reference REPLACING pair:
+    /// identifier-2's category does not agree with the category-name.</summary>
+    public static readonly DiagnosticDescriptor InitializeReplacingSetCategoryMismatch = new(
+        "COBOLNET1983", "initialize-replacing-set-category-mismatch", EditionSeverity.Error,
+        "§14.9.20.3 SR4: \"For each of the categories data-pointer, function-pointer, message-tag, "
+        + "object-reference, and program-pointer specified in the REPLACING phrase, a SET statement with "
+        + "identifier-2 as the sending operand and an item of the specified category as the receiving operand "
+        + "shall be valid.\" The SET statement's pointer and object-reference formats (§14.9.39) admit only a "
+        + "sending operand of the receiver's own category, so identifier-2 shall be an item of the category the "
+        + "category-name names. ⚠ This is the NECESSARY condition only: whether two object references conform is "
+        + "the §9.3.8.2 question the SET statement itself answers, and it is not restated here.",
+        "ISO §14.9.20.3 / §14.9.39");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
