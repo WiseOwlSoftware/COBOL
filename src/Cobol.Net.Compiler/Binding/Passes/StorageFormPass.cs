@@ -170,7 +170,7 @@ internal static class StorageFormPass
         // (1b) DYNAMIC LENGTH — a variable-length, min-0 native string (§8.5.1.10 / §13.18.19, COBOL-2014). The
         // category (X→Alphanumeric, N→National) comes from the PIC; the limit is the LIMIT phrase (-1 = implementor max).
         if (item.IsDynamicLength)
-            return new StorageForm.DynamicString(item.Pic?.Category ?? PicCategory.Alphanumeric, item.DynLengthLimit);
+            return new StorageForm.DynamicString(item.Pic?.Category ?? PicCategory.Alphanumeric, item.DynMaxSize);
 
         // (2) A REDEFINES view member (non-canonical member of a class).
         if (item.Class is { } cls && !item.IsCanonical)

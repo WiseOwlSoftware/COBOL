@@ -798,7 +798,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §14.9.39 Format 16 SR33)");
             return new BoundNop();
         }
-        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit);
+        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynMaxSize);
     }
 
     /// <summary>The SIZE-OF-absent bare-form peek (ISO §14.9.39 Format 16): reroute `SET dyn TO n` when the sole,
@@ -813,7 +813,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // Resolve would report COBOLNET1639 on a name that is legally not a data item (R30).
         if (host.Expr.IndexFieldOf(targets[0]) is not null) return null;
         if (host.Expr.ResolveReceiving(targets[0]) is not { Item.IsDynamicLength: true } p) return null;
-        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit);
+        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynMaxSize);
     }
 
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item

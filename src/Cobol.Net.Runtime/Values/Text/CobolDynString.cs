@@ -11,21 +11,53 @@ namespace CobolNet.Runtime;
 /// the item IS a native .NET <see cref="string"/> field; this helper carries only the receiving-store rule. A
 /// dynamic-length item read as a SENDER, in a comparison, under reference modification, or in FUNCTION
 /// LENGTH/BYTE-LENGTH uses the plain string at its current length — no helper needed (§8.5.1.10.4).
+/// <para>⛔ EVERY entry point takes the item's MAXIMUM SIZE (§8.5.1.10.1), never "the LIMIT phrase or a sentinel".
+/// <see cref="MaxSizeOf"/> is the ONE place that rule is written, and <see cref="MaxLength"/> is the implementor
+/// maximum it falls back to — so a dynamic-length item ALWAYS has a real bound and the <c>(int)</c> narrowings
+/// below are safe BY CONSTRUCTION. They used to be safe only by inspection, and they were not: a <c>-1</c>
+/// "no LIMIT phrase" sentinel skipped the clamp entirely, so a SET SIZE request of 2³²+k silently wrapped to k
+/// and a request between <see cref="int.MaxValue"/> and 2³² threw a raw <c>ArgumentOutOfRangeException</c> out of
+/// generated code (kb/Work PB463).</para>
 /// </summary>
 public static class CobolDynString
 {
+    /// <summary>THE IMPLEMENTOR MAXIMUM number of characters a dynamic-length elementary item can contain —
+    /// §8.5.1.10.1's third candidate ("the maximum permitted by the implementor"), §13.18.19.4 GR2's
+    /// implementor-defined maximum when no LIMIT phrase is written, and Annex A.1 required-and-documented item 62.
+    /// It is the CARRIER's own ceiling: the item IS a .NET <see cref="string"/>, whose maximum length is
+    /// <c>0x3FFFFFDF</c> characters — the same "the carrier's headroom IS the implementor maximum" determination
+    /// <see cref="CobolDynTable{T}.MaxOccurrences"/> records for a dynamic-capacity table. Documented
+    /// in <c>docs/CONFORMANCE.md</c> §7 row <c>DOC-A.1-62</c>, which <c>DynamicLengthTests</c> pins against
+    /// this constant so the number and its determination cannot drift apart.</summary>
+    public const int MaxLength = 0x3FFF_FFDF;
+
+    /// <summary>§8.5.1.10.1 — THE maximum size of a dynamic-length elementary item, "the smallest of: the value
+    /// declared in the LIMIT phrase; the largest integer that can be stored in an item of the usage specified in
+    /// the PREFIXED phrase; the maximum permitted by the implementor". <paramref name="limitPhrase"/> is
+    /// integer-1 of the LIMIT phrase (§13.18.19.4 GR2) or null when the phrase is absent; it arrives as an
+    /// <see cref="Int128"/> so a literal far past <see cref="int"/> is COMPARED at its written value rather than
+    /// narrowed first. The PREFIXED candidate never applies here: PREFIXED rides a dynamic-length-structure-name
+    /// (§13.18.19.3 SR2 / §12.3.7), which the compiler refuses outright (COBOLNET1562), so no such usage exists
+    /// to bound the size. ⛔ ONE producer, so every consumer — the binder, the emitters and the two helpers below —
+    /// sees a real bound in <c>[0, MaxLength]</c> and nothing needs a "no LIMIT" special case.</summary>
+    public static int MaxSizeOf(Int128? limitPhrase) =>
+        limitPhrase is not { } lim ? MaxLength
+        : lim <= 0 ? 0
+        : lim >= MaxLength ? MaxLength
+        : (int)lim;
+
     /// <summary>
     /// Store <paramref name="value"/> into a dynamic-length receiver (ISO §8.5.1.10.4): the new content replaces the
-    /// old and the new length is the sending length, TRUNCATED ON THE RIGHT to <paramref name="limit"/> characters
+    /// old and the new length is the sending length, TRUNCATED ON THE RIGHT to <paramref name="maxSize"/> characters
     /// ("if the maximum length is reached, the value is truncated on the right as necessary"). There is NO padding —
-    /// the minimum length is zero (§13.18.19.4 GR1), so a short sender simply yields a short item. A
-    /// <paramref name="limit"/> below zero means "no explicit LIMIT phrase" — the implementor-defined maximum
-    /// (§13.18.19.4 GR2), here unbounded within the .NET string limit. A null or zero-length sender yields length 0.
+    /// the minimum length is zero (§13.18.19.4 GR1), so a short sender simply yields a short item. A null or
+    /// zero-length sender yields length 0. <paramref name="maxSize"/> is the item's §8.5.1.10.1 MAXIMUM SIZE from
+    /// <see cref="MaxSizeOf"/> — always a real bound in <c>[0, MaxLength]</c>, never a sentinel.
     /// </summary>
-    public static string Store(string? value, int limit)
+    public static string Store(string? value, int maxSize)
     {
         value ??= "";
-        return limit >= 0 && value.Length > limit ? value[..limit] : value;
+        return value.Length > maxSize ? value[..maxSize] : value;
     }
 
     /// <summary>
@@ -37,38 +69,63 @@ public static class CobolDynString
     /// national space is U+0020 under the Latin-1 identity), NEVER restoring previously-truncated content; shrinking
     /// drops the trailing positions. GR37 — when the evaluated value does not evaluate to a nonnegative number the
     /// length is set to 0 and the nonfatal EC-STORAGE-NOT-AVAIL is raised; a non-integer nonnegative value is
-    /// truncated toward zero. GR38 — a value above <paramref name="limit"/> (the maximum size of data-name-3) is
-    /// clamped to that maximum and the same nonfatal EC-STORAGE-NOT-AVAIL is raised. (GR38's third
-    /// leg — the requested storage not being physically available — is N/A under the .NET managed heap: a within-LIMIT
-    /// length always allocates.) The stored value is identical whether or not checking is on; checking only governs the
-    /// observable exception status and the §14.6.13.1.4 #3 declarative. <paramref name="limit"/> below 0 means no
-    /// LIMIT phrase — the implementor maximum, here unbounded. (The integer-2 literal form is compile-time bounded by
-    /// SR34, so these runtime raises pertain to the arithmetic-expression-5 form.)
+    /// truncated toward zero. GR38 — a value above <paramref name="maxSize"/> (the §8.5.1.10.1 maximum size of
+    /// data-name-3) is clamped to that maximum and the same nonfatal EC-STORAGE-NOT-AVAIL is raised. The stored
+    /// value is identical whether or not checking is on; checking only governs the observable exception status and
+    /// the §14.6.13.1.4 #3 declarative.
+    /// <para>GR38's THIRD leg is implemented, not assumed away: "If the amount of storage required to expand the
+    /// size of data-name-3 is not available, the size of data-name-3 is not changed, and an EC-STORAGE-NOT-AVAIL
+    /// exception condition is set to exist." <see cref="MaxLength"/> is the carrier's ceiling, not a promise that
+    /// the host can hand over two gigabytes, so the growth allocation is the place where "not available" becomes
+    /// observable — an <see cref="OutOfMemoryException"/> there returns the item UNCHANGED with the condition set,
+    /// rather than escaping into generated code. The condition is raised ONCE per statement: a request that already
+    /// took the clamp leg has set it to exist and does not set it twice (kb/Work PB463).</para>
     /// <para>⛔ "Checking was enabled at this statement" used to arrive as a POSITIONAL argument, which made this the
     /// one nonfatal raise site that could not reach a USE declarative: §14.6.13.1.1's rule is applied by
     /// <c>ExceptionEngine</c> per (ambient flag, exception-name) pair, and a site outside that pair also sits outside
     /// the §14.6.13.1.4 #3 selection the pair now runs (kb/Work PB367b).</para>
     /// </summary>
-    public static string SetSize(string? current, double newLen, int limit)
+    public static string SetSize(string? current, double newLen, int maxSize)
     {
         current ??= "";
-        long n;
+        int n;
+        bool raised = false;
         if (newLen < 0.0)
         {
             n = 0;                                                       // GR37 — not nonnegative → length 0
+            raised = true;
             ExceptionState.StorageNotAvailError(
                 $"SET SIZE: the evaluated length {newLen} is not a nonnegative number (ISO §14.9.39 Format 16 GR37)");
         }
-        else if (limit >= 0 && newLen > limit)
+        else if (newLen > maxSize)
         {
-            n = limit;                                                  // GR38 — above the maximum → clamp to it
+            n = maxSize;                                                 // GR38 — above the maximum → clamp to it
+            raised = true;
             ExceptionState.StorageNotAvailError(
-                $"SET SIZE: the evaluated length {newLen} exceeds the item's maximum size {limit} (ISO §14.9.39 Format 16 GR38)");
+                $"SET SIZE: the evaluated length {newLen} exceeds the item's maximum size {maxSize} "
+                + "(ISO §14.9.39 Format 16 GR38 / §8.5.1.10.1)");
         }
         else
         {
-            n = (long)newLen;                                           // GR37 — non-integer truncates toward zero
+            // 0 ≤ newLen ≤ maxSize ≤ MaxLength, so the narrowing is exact — GR37's toward-zero truncation of a
+            // non-integer value, and nothing else. This is the whole point of MaxSizeOf: the bound is applied
+            // BEFORE any narrowing, on the value as written.
+            n = (int)newLen;
         }
-        return n <= current.Length ? current[..(int)n] : current + new string(' ', (int)n - current.Length);
+        if (n <= current.Length) return current[..n];                    // shrink — drop the trailing positions
+        try
+        {
+            return current + new string(' ', n - current.Length);        // GR39 — the added positions are spaces
+        }
+        catch (OutOfMemoryException)
+        {
+            // GR38 third leg — the storage to expand is not available: the size is NOT changed. (The condition is
+            // already set to exist when the clamp leg raised it; a second raise would re-enter the declarative.)
+            if (!raised)
+                ExceptionState.StorageNotAvailError(
+                    $"SET SIZE: the storage required to expand the item to {n} characters is not available "
+                    + "(ISO §14.9.39 Format 16 GR38)");
+            return current;
+        }
     }
 }

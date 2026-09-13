@@ -357,7 +357,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     case VarPartKind.DynLeaf:
                         // §8.5.1.10.4 — the receiving store for a dynamic-length item: replace, truncate on the
                         // right to the LIMIT, never pad. The component IS the item's whole current content.
-                        w.Line($"{p.Field.Name} = {RuntimeApi.DynStore($"__v.Dyn({dynAt})", $"{p.Item!.DynLengthLimit}")};");
+                        w.Line($"{p.Field.Name} = {RuntimeApi.DynStore($"__v.Dyn({dynAt})", $"{p.Item!.DynMaxSize}")};");
                         dynAt++;
                         break;
                     case VarPartKind.DynTable:

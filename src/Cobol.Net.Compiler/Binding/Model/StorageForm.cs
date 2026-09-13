@@ -79,7 +79,7 @@ public abstract record StorageForm
     /// query short-circuits on it just like <see cref="DynamicTable"/>. <paramref name="Category"/> is Alphanumeric
     /// (PIC X) or National (PIC N), §13.18.19.4 GR1. <paramref name="Limit"/> is the maximum character count from
     /// the LIMIT phrase (§13.18.19.4 GR2), or -1 for the implementor-defined maximum (no explicit LIMIT).</summary>
-    public sealed record DynamicString(PicCategory Category, int Limit) : StorageForm
+    public sealed record DynamicString(PicCategory Category, int MaxSize) : StorageForm
     {
         public override bool IsCharacterImage => false;
         public override int ImageWidth => 0;

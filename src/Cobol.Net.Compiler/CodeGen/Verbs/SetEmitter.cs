@@ -200,7 +200,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         string amt = $"__sz{ctx.Names.NextSet()}";
         ctx.Writer.Line($"double {amt} = {NumericRenderer.Real(num.Render(s.Amount, ReceiverContext.None))};");
         ctx.Writer.Line(PlaceRenderer.Write(s.Target,
-            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString())));
+            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.MaxSize.ToString())));
     }
 
     /// <summary>SET CONTENT OF identifier-14 … TO … (ISO §14.9.39.2 Format 15, numeric-content; kb/Work PB452) —

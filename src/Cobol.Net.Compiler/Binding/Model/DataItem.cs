@@ -366,13 +366,19 @@ public sealed class DataItem
     /// <c>DataBinder.BindEntry</c> after the §13.18.19.3 SR1 (PICTURE exactly one N or X) and §13.16.3 SR18
     /// (permitted-co-clause) shape checks pass; CLEARED on any violation so the item binds as ordinary storage under
     /// an already-failed compile (the IsBased pattern). The item's field is a native <c>string</c> (init "" or VALUE);
-    /// a receiving MOVE stores through <c>CobolDynString.Store</c> (truncate-to-<see cref="DynLengthLimit"/>, no pad).</summary>
+    /// a receiving MOVE stores through <c>CobolDynString.Store</c> (truncate-to-<see cref="DynMaxSize"/>, no pad).</summary>
     public bool IsDynamicLength { get; set; }
 
-    /// <summary>The DYNAMIC LENGTH maximum character count — the LIMIT phrase (§13.18.19.4 GR2). -1 = no explicit
-    /// LIMIT (the implementor-defined maximum; here unbounded within the .NET string limit). Meaningful only when
-    /// <see cref="IsDynamicLength"/> is set.</summary>
-    public int DynLengthLimit { get; set; } = -1;
+    /// <summary>THE MAXIMUM SIZE of this dynamic-length item in characters (ISO §8.5.1.10.1 — "the smallest of"
+    /// the LIMIT phrase value, the largest integer storable in the PREFIXED usage, and the maximum permitted by the
+    /// implementor). ALWAYS a real bound in <c>[0, CobolDynString.MaxLength]</c>, computed by the ONE producer
+    /// <see cref="CobolNet.Runtime.CobolDynString.MaxSizeOf"/>; an absent LIMIT phrase (§13.18.19.4 GR2) yields the
+    /// implementor maximum, NOT "no maximum". Meaningful only when <see cref="IsDynamicLength"/> is set.
+    /// <para>⛔ It used to be the LIMIT phrase with <c>-1</c> meaning "no phrase", and the receiving/resize helpers
+    /// special-cased that sentinel by skipping their clamp — so an unbounded item's SET SIZE request of 2³²+k wrapped
+    /// to k and one past <see cref="int.MaxValue"/> threw out of generated code (kb/Work PB463). "No LIMIT clause" and
+    /// "no maximum" are different facts; one field never again holds both.</para></summary>
+    public int DynMaxSize { get; set; } = CobolNet.Runtime.CobolDynString.MaxLength;
 
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.

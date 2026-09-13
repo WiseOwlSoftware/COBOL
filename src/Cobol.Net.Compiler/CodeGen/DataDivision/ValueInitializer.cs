@@ -137,7 +137,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         {
             if (effRaw is not { } dv) return "\"\"";
             if (FigurativeInitializer(dv, pic) is { } figFill) return figFill;
-            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynLengthLimit.ToString());
+            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynMaxSize.ToString());
         }
 
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a NUMERIC item is read AS the numeric literal ISO

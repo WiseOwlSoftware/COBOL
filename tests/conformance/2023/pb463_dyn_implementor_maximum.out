@@ -1,0 +1,6 @@
+MOVE LEN=0005 [ABCDE]
+GROW LEN=0012 [ABCDE       ] EC[                               ]
+SHRINK LEN=0003 [ABC]
+ZERO LEN=0000 []
+REGROW LEN=0004 [    ]
+NEG LEN=0000 EC[EC-STORAGE-NOT-AVAIL           ]

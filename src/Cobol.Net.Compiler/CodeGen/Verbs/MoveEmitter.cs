@@ -130,7 +130,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         if (item.IsDynamicLength)
         {
             ctx.Writer.Line(PlaceRenderer.Write(target,
-                RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: false), item.DynLengthLimit.ToString())));
+                RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: false), item.DynMaxSize.ToString())));
             return;
         }
         if (!item.IsImageCapable)
@@ -418,7 +418,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // DynStore path is exhaustive. A PIC X/N dynamic-length item carries no edit mask, so this precedes the
         // fixed-width figurative/ALL and numeric-edited paths below.
         if (target.IsDynamicLength)
-            return RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: true), target.DynLengthLimit.ToString());
+            return RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: true), target.DynMaxSize.ToString());
         string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
         // ⛔ A WHOLE-WIDTH FILL GOES THROUGH THE EDITOR, NEVER AROUND IT, when the receiver edits. §8.3.3.6.4 GR2
         // and §14.9.25.4 GR6 are two different steps and both apply: the figurative / ALL-literal source is first

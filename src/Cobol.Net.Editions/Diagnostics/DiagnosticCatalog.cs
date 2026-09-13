@@ -3236,6 +3236,23 @@ public static class DiagnosticCatalog
         + "the lower comparison (GR8 a) and its maximum for the upper (GR8 b).",
         "ISO §13.18.43.3 SR3 / SR4");
 
+    /// <summary>COBOLNET2027 — the DYNAMIC LENGTH clause's LIMIT phrase asks for more characters than this
+    /// implementation's maximum for a dynamic-length elementary item (ISO §8.5.1.10.1 / Annex A.1 item 62).
+    /// kb/Work PB463: an out-of-range LIMIT used to be dropped by an <c>int.TryParse</c> and leave the item with
+    /// NO bound at all, which is how a SET SIZE request past 2³² wrapped to its low bits.</summary>
+    public static readonly DiagnosticDescriptor DynLengthLimitAboveImplementorMaximum = new(
+        "COBOLNET2027", "dyn-length-limit-above-implementor-maximum", EditionSeverity.Warning,
+        "ISO §8.5.1.10.1: \"The maximum size of a dynamic-length elementary item is smallest of: the value "
+        + "declared in the LIMIT phrase; the largest integer that can be stored in an item of the usage specified "
+        + "in the PREFIXED phrase; the maximum permitted by the implementor.\" The LIMIT phrase written here is "
+        + "larger than the maximum permitted by this implementor (see docs/CONFORMANCE.md §7 row DOC-A.1-62), so "
+        + "the implementor maximum is the item's maximum size and the phrase cannot raise it. The entry is LEGAL "
+        + "— §13.18.19.3 states no rule bounding integer-1 unless a dynamic-length-structure-name is also written "
+        + "(SR4) — which is why this reports rather than rejects; it exists so a program that plans on the larger "
+        + "bound learns of the smaller one at compile time instead of through a clamped SET SIZE and a runtime "
+        + "EC-STORAGE-NOT-AVAIL.",
+        "ISO §8.5.1.10.1 / §13.18.19.4 GR2 / Annex A.1 item 62");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

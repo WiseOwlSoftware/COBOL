@@ -133,7 +133,7 @@ internal sealed class ProgramEmitter
     /// arm is stated first without a mode test rather than duplicated under both.</summary>
     private static string FormalTextCarrier(LinkageFormal f, int fixedWidth) =>
         f.Item.IsDynamicLength
-            ? RuntimeApi.ArgAdaptDynText("__args", f.Position, $"{f.Item.DynLengthLimit}")
+            ? RuntimeApi.ArgAdaptDynText("__args", f.Position, $"{f.Item.DynMaxSize}")
         : f.ByValue
             ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}")
             : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}");

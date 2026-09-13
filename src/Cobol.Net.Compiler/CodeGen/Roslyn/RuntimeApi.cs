@@ -193,9 +193,10 @@ internal static class RuntimeApi
     public static string StrStore(string value, string width) =>
         $"{nameof(CobolString)}.{nameof(CobolString.Store)}({value}, {width})";
 
-    /// <summary>The DYNAMIC LENGTH receiving store (ISO §8.5.1.10.4 — replace, truncate on the right to the LIMIT,
-    /// NO padding) — <c>CobolDynString.Store</c>. <paramref name="limit"/> is the LIMIT character count, or "-1"
-    /// for the implementor-defined maximum (no explicit LIMIT phrase).</summary>
+    /// <summary>The DYNAMIC LENGTH receiving store (ISO §8.5.1.10.4 — replace, truncate on the right at the
+    /// maximum size, NO padding) — <c>CobolDynString.Store</c>. <paramref name="limit"/> is the item's
+    /// §8.5.1.10.1 MAXIMUM SIZE (<c>DataItem.DynMaxSize</c>, from <c>CobolDynString.MaxSizeOf</c>) — always a real
+    /// character count, never the "-1 = no LIMIT phrase" sentinel it used to be (kb/Work PB463).</summary>
     public static string DynStore(string value, string limit) =>
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Store)}({value}, {limit})";
 

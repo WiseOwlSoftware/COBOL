@@ -9,6 +9,7 @@ using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
 using CobolEdit = CobolNet.Runtime.CobolEdit;
+using CobolDynString = CobolNet.Runtime.CobolDynString;
 
 using CobolNet.Compiler.Oo;
 
@@ -3001,7 +3002,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
-        int dynLengthLimit = -1;       // the LIMIT phrase (§13.18.19.4 GR2); -1 = the implementor-defined maximum
+        Int128? dynLengthLimit = null; // integer-1 of the LIMIT phrase (§13.18.19.4 GR2); null = the phrase is absent
+        string dynLengthLimitText = "";// integer-1 AS WRITTEN, for the COBOLNET2027 report
         string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
@@ -3069,7 +3071,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // IsDynamicLength is cleared on every SR violation, so a bound-arm gate would drop the 0900).
                     isDynamicLength = true;
                     dynLengthStructureName = dl.cobolWord()?.GetText();
-                    if (dl.integerLiteral() is { } lim && int.TryParse(lim.GetText(), out int lv)) dynLengthLimit = lv;
+                    // ⛔ integer-1 is read WIDE and bounded LATER, by CobolDynString.MaxSizeOf: §8.5.1.10.1 makes
+                    // the item's maximum size "the smallest of" this phrase and the implementor maximum, so a
+                    // literal past `int` is not "unparseable", it is simply larger than the maximum. Narrowing it
+                    // HERE is what let such a LIMIT fall through to -1 — "no bound at all" — and take the same
+                    // wrapping path as an item with no LIMIT phrase (kb/Work PB463). A literal too wide even for
+                    // Int128 is larger still; Int128.MaxValue carries it to the same clamp.
+                    if (dl.integerLiteral() is { } lim)
+                    {
+                        dynLengthLimitText = lim.GetText();
+                        dynLengthLimit = Int128.TryParse(dynLengthLimitText, out Int128 lv) ? lv : Int128.MaxValue;
+                    }
                 }
                 else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
@@ -3786,7 +3798,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
         }
         item.IsDynamicLength = isDynamicLength;
-        if (isDynamicLength) item.DynLengthLimit = dynLengthLimit;
+        if (isDynamicLength)
+        {
+            // §8.5.1.10.1 — the item's MAXIMUM SIZE is "the smallest of" the LIMIT phrase value, the largest
+            // integer storable in the PREFIXED usage, and the maximum permitted by the implementor. The PREFIXED
+            // candidate cannot apply: it rides a dynamic-length-structure-name, refused above by COBOLNET1562. The
+            // rule is written ONCE, in CobolDynString.MaxSizeOf, so the binder, the emitters and the two runtime
+            // helpers all see the same real bound — never a "no LIMIT" sentinel (kb/Work PB463).
+            if (dynLengthLimit is { } limitAsked && limitAsked > CobolDynString.MaxLength)
+                Edition.Warning(DiagnosticCatalog.DynLengthLimitAboveImplementorMaximum,
+                    $"{entryWhere}: the DYNAMIC LENGTH clause's LIMIT phrase specifies {dynLengthLimitText} "
+                    + $"characters, above this implementation's maximum of {CobolDynString.MaxLength}; the maximum "
+                    + $"size of the item is therefore {CobolDynString.MaxLength} characters (ISO §8.5.1.10.1)");
+            item.DynMaxSize = CobolDynString.MaxSizeOf(dynLengthLimit);
+        }
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
         // A method's index-names (M2-OO-1h step 4) register into the METHOD's own scope with a FRESH cell — two

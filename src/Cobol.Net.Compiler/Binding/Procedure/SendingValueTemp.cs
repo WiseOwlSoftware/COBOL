@@ -101,8 +101,11 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         var temp = ctx.Data.CreateCompilerTemp(model.Item, "__SENDVAL-", "__sendval", tag);
         // The run-time-length attributes are not part of the cloned DESCRIPTION (CreateCompilerTemp copies the
         // PICTURE and the description clauses); §8.5.1.10 is a storage property, set here for the carrier shapes.
+        // DynLimit 0 means "this clone is FIXED-length", not "a maximum size of zero" — the two are different
+        // facts and DynMaxSize carries only the second (§8.5.1.10.1), so a fixed-length clone keeps the real
+        // default rather than being stamped with a bound no rule gives it (kb/Work PB463).
         temp.IsDynamicLength = model.DynLimit > 0;
-        temp.DynLengthLimit = model.DynLimit;
+        if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;
         if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
         // The store is a plain BoundMove, NOT a re-entry into MoveBinder.BindMoveOf: the statement's own syntax
         // rules (the SR5 edition gates, the Table-16 legality, SR2's strong-typing check, SR9's §8.5.1.12
@@ -161,7 +164,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // intermediate is a dynamic-length item of the same limit, and GR1's "The length of the data item
         // referenced by identifier-1 is evaluated only once" holds for it.
         if (item is { IsDynamicLength: true, IsGroup: false })
-            return new TempModel(item, DynLimit: Math.Max(1, item.DynLengthLimit));
+            return new TempModel(item, DynLimit: Math.Max(1, item.DynMaxSize));
         // ⛔ A GROUP WITH A RUN-TIME EXTENT IS NOT FROZEN BY A CLONE, AND THAT IS MEASURED, NOT ASSUMED. The
         // intermediate result item is a CLONED DESCRIPTION, and a description clone carries a length that is
         // FIXED at compile time: an OCCURS DEPENDING member's clone would name data-name-1 with no resolved item

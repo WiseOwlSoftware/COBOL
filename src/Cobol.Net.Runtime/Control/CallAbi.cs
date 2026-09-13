@@ -438,7 +438,7 @@ public static class CobolArgAdapt
     /// <para>The view is the caller's FULL string, and a store carries §8.5.1.10.4's dynamic-length semantics
     /// through the ONE store helper: the new content replaces the old, the new length IS the sending length —
     /// never padded, minimum zero (§13.18.19.4 GR1) — truncated on the right at <paramref name="limit"/>
-    /// (GR2's LIMIT phrase; below zero = the implementor-defined maximum).</para>
+    /// (the item's §8.5.1.10.1 maximum size — GR2's LIMIT phrase bounded by the implementor maximum).</para>
     /// <para>BY REFERENCE this is §14.2.3 GR8's shared storage area, so the varying length is the CALLER's item
     /// varying. BY CONTENT / BY VALUE the caller already snapshotted the argument into a detached cell, and
     /// §14.2.3 GR9's second regime describes exactly this record — "a dynamic-length elementary item of the

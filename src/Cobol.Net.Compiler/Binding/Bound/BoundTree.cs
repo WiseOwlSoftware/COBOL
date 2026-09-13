@@ -1093,7 +1093,7 @@ public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCap
 /// mechanism is what kept the raise outside the selection — kb/Work PB367b.) A
 /// self-identifying node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the
 /// explicit SIZE OF form and the bare re-routed form.</summary>
-public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit) : BoundStatement;
+public sealed record BoundSetSize(Place Target, BoundExpr Amount, int MaxSize) : BoundStatement;
 
 /// <summary>One receiving operand of a Format-15 SET, with the content computed FOR IT (ISO §14.9.39.4 GR32–GR36
 /// each say "the content of identifier-14 is set …", and every value they name is a property of that receiver's own
