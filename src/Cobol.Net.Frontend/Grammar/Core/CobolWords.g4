@@ -114,6 +114,7 @@ cobolWord
     | SECURE
     | {userWordHere("SEND")}? SEND
     | {userWordHere("SHARING")}? SHARING
+    | {userWordHere("SOURCES")}? SOURCES
     | STANDARD_BINARY
     | STANDARD_DECIMAL
     | STATEMENT
@@ -198,6 +199,7 @@ reservedGatedWord
     | {!userWordHere("SCREEN")}? SCREEN
     | {!userWordHere("SEND")}? SEND
     | {!userWordHere("SHARING")}? SHARING
+    | {!userWordHere("SOURCES")}? SOURCES
     | {!userWordHere("UNLOCK")}? UNLOCK
     | {!userWordHere("VALID")}? VALID
     | {!userWordHere("VALIDATE")}? VALIDATE

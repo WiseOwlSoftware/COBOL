@@ -739,6 +739,7 @@ SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (USAGE clause, ISO 
 UNSIGNED    : 'UNSIGNED' ;   // COBOL-2002 BINARY-xxx UNSIGNED
 SIZE        : 'SIZE' ;
 SOURCE      : 'SOURCE' ;
+SOURCES     : 'SOURCES' ;    // COBOL-2002 SOURCE-clause plural spelling (ISO §13.18.53.2 / §13.18.53.3 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
 STANDARD_1  : 'STANDARD-1' ;
 STANDARD_2  : 'STANDARD-2' ;
 STATUS      : 'STATUS' ;

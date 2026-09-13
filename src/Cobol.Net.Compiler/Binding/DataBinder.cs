@@ -3849,6 +3849,41 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
     }
 
+    /// <summary>EVERY operand of a FORMAT-4 (report-section) VALUE clause, in written order — ISO §13.18.63.2
+    /// format 4 is <c>{ VALUE IS | VALUES ARE } { literal-1 } …</c>, so the clause takes one or MORE literals and
+    /// §13.18.63.4 GR23 distributes them across the entry's repetitions. Each operand goes through the SAME ONE
+    /// reader <see cref="ExtractValue"/>'s single-operand path uses (<see cref="RawValueOperandText"/> — the
+    /// literal-position screen, the §8.8.3.3 GR3 concatenation fold, §13.10.3 SR2 constant-names, §12.3.7.4 GR11
+    /// symbolic-characters, numeric normalization), so a report VALUE and a working-storage VALUE decode one
+    /// literal identically.
+    /// <para>⛔ IT DOES NOT GLUE (kb/Work PB506). <see cref="ExtractValue"/>'s multi-operand tail returns
+    /// <c>item.GetText()</c> — the operand TOKENS run together — which is exactly what the Format-1 caller wants
+    /// (it rejects that shape, COBOLNET1585) and exactly wrong for Format 4: `VALUE "XX" "YY"` reached the
+    /// emitter as the raw text <c>"XX""YY"</c>, whose doubled quote the literal decoder then read as an escaped
+    /// one, so a legal report entry printed <c>XX"YY</c>.</para>
+    /// <para>NULL when the clause is not a bare literal list at all (a THRU range — §13.18.63.3 SR30 keeps the
+    /// condition-name and content-validation formats out of the report section — or a Format-2 table phrase,
+    /// which <see cref="Core.ValueClauseContext.valueClauseTablePhrase"/> carries) or when any operand failed the
+    /// literal-position screen and has been reported: nothing is stored rather than a partial list.</para></summary>
+    private List<string>? ExtractValueOperandList(Core.ValueClauseContext value, string where)
+    {
+        if (value.valueClauseTablePhrase() is { Length: > 0 }) return null;   // Format 2 — not a report-section clause
+        var item = value.valueItem().FirstOrDefault();
+        if (item is null || item.valueClauseRange() is not null) return null;
+        var ops = item.valueClauseOperand();
+        if (ops.Length == 0) return null;
+        var raws = new List<string>(ops.Length);
+        bool ok = true;
+        foreach (var op in ops)
+        {
+            // Screen and fold EVERY operand (never short-circuit): a list with two bad operands draws two
+            // diagnostics, the way the Format-1 multi-operand screen already does.
+            if (RawValueOperandText(op, where) is { } raw) raws.Add(raw);
+            else ok = false;
+        }
+        return ok ? raws : null;
+    }
+
     /// <summary>Bind an FD CODE-SET clause (ISO §13.18.13; kb/Work PB110 — it was parsed as the '85 one-name form
     /// and read by nothing): both formats — <c>IS alphabet-name-1 [alphabet-name-2]</c> and the FOR ALPHANUMERIC /
     /// FOR NATIONAL phrases (one or both, any order, each at most once — §5.2.6.4). SR1/SR2: each name shall

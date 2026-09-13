@@ -668,6 +668,12 @@
    "note": "functionName collision (FUNCTION SORT-*): a reserved keyword. Lexer subscript-trigger only"
   },
   {
+   "token": "SOURCES",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "report SOURCE-clause plural spelling (13.18.53.2 / 13.18.53.3 SR1, 2002+): a user word at 85, funnel-0901'd >=2002 (kb/Work PB506)"
+  },
+  {
    "token": "STANDARD_BINARY",
    "nameSlot": true,
    "subscriptTrigger": true,

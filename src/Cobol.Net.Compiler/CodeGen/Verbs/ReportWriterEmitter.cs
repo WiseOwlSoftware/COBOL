@@ -25,6 +25,13 @@ internal sealed class ReportWriterEmitter(
     EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond,
     DispatchState dispatch)
 {
+    /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the report lane reaches it for
+    /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §13.18.63 VALUE recipe a format-4
+    /// operand is initialized by (kb/Work PB506). Lazy and cached because a compose method asks once per
+    /// printable item per repetition, and a DataEmitter builds a PhysicalModel and its slicer/codec collaborators.</summary>
+    private DataEmitter? _data;
+    private DataEmitter Data => _data ??= new DataEmitter(ctx);
+
     /// <summary>Emit the per-report class members: the engine field, the NumProfile statics of the numeric
     /// printable items (synthetic items live outside the storage forest, so <c>FieldEmitter.EmitProfiles</c>
     /// never sees them), and the per-line compose methods.</summary>
@@ -77,7 +84,7 @@ internal sealed class ReportWriterEmitter(
     {
         if (!needsHc && f.Columns.Count == 1 && f.PresentWhen.Count == 0 && f.Varyings.Count == 0)
         {
-            w.Line($"{RuntimeApi.ReportPlace("__ln", f.Column, FieldImage(r, f))};");
+            w.Line($"{RuntimeApi.ReportPlace("__ln", f.Column, FieldImage(r, f, 0))};");
             return;
         }
         using IDisposable? guard = f.PresentWhen.Count > 0
@@ -93,7 +100,10 @@ internal sealed class ReportWriterEmitter(
                 for (int k = 0; k < f.Varyings.Count; k++)
                     w.Line($"{VaryName(f, k)} += {VaryValue(f.Varyings[k].By)};   // §13.18.64.4 GR3b");
             var spec = f.Columns[rep];
-            string image = FieldImage(r, f);
+            // The operand this repetition takes (§13.18.63.4 GR23 / §13.18.53.4 GR4 — the ONE cycling reader is
+            // ReportFieldModel.SourceAt). The index is the repetition ORDINAL, so a PRESENT WHEN that suppresses
+            // the item does not shift the assignment (GR23's last sentence).
+            string image = FieldImage(r, f, rep);
             if (!spec.Relative)
             {
                 w.Line($"{RuntimeApi.ReportPlace("__ln", spec.Value, image)};");
@@ -122,19 +132,29 @@ internal sealed class ReportWriterEmitter(
     private string PresentExpr(IReadOnlyList<BoundCondition> conds) =>
         string.Join(" && ", conds.Select(c => $"({cond.Render(c)})"));
 
-    /// <summary>The C# expression of one printable item's image — the result of the implicit MOVE of its source
-    /// into the printable item (ISO §13.18.53.4 GR1; a VALUE item per §13.18.63), through the orchestrator's ONE
-    /// MOVE conversion path. The synthetic print item is StoreAsImage for numerics, so <c>ConvertSource</c>
-    /// yields the printable CHARACTER image for every category (the display format / edit-mask / string-store
-    /// renders).</summary>
-    private string FieldImage(ReportModel r, ReportFieldModel f)
+    /// <summary>The C# expression of one printable item's image at REPETITION <paramref name="rep"/> — the
+    /// operand §13.18.63.4 GR23 / §13.18.53.4 GR4 assign to that repetition, rendered by the rule its OWN clause
+    /// carries.
+    /// <para>⛔ TWO CLAUSES, TWO RULES, AND THEY ARE NOT THE SAME RULE (kb/Work PB506). A SOURCE operand is "the
+    /// sending operand of an implicit MOVE statement in which the data item referenced by identifier-1 is moved
+    /// to the printable item" (§13.18.53.4 GR1), so it goes through the orchestrator's ONE MOVE conversion
+    /// (<c>ConvertSource</c> — PIC-governed alignment and editing, JUSTIFIED honoured). A VALUE operand is an
+    /// INITIALIZATION: §13.18.63.4 GR21 imports GR7 ("aligned … except that initialization is not affected by a
+    /// JUSTIFIED clause and no editing takes place") and GR8, and §13.18.63.3 SR34 imports SR11 (an
+    /// alphanumeric-edited or national-edited picture's editing characters "do not cause editing of the initial
+    /// value"), so it goes through the ONE VALUE recipe the working-storage lane uses
+    /// (<see cref="ValueInitializer.InitializerFrom"/>). Routing a VALUE through the MOVE applied all three
+    /// excluded transforms and printed three different wrong answers.</para>
+    /// <para>The synthetic print item is StoreAsImage for numerics, so both paths yield the printable CHARACTER
+    /// image for every category (the display format / edit-mask / string-store renders).</para></summary>
+    private string FieldImage(ReportModel r, ReportFieldModel f, int rep)
     {
         BoundOperand source;
-        switch (f.Source)
+        switch (f.SourceAt(rep))
         {
             case FieldValueSource v:
-                source = ValueOperand(v.Raw);
-                break;
+                // §13.18.63 — an initialization, NOT the §13.18.53.4 GR1 implicit MOVE (see the remarks above).
+                return Data.ValueImageOf(f.PrintItem, v.Raw);
             case FieldCounterSource c:
                 // SOURCE LINE-COUNTER / PAGE-COUNTER (§8.4.3.15 SR1) — composed at presentation time, AFTER the
                 // §13.18.35.4 GR6 counter update, so a PH line's LINE-COUNTER prints the PH's own line number.
@@ -160,17 +180,14 @@ internal sealed class ReportWriterEmitter(
         return move.ConvertSource(source, f.PrintItem);
     }
 
-    /// <summary>A VALUE clause operand (raw text) as a bound operand: a quoted literal, a figurative word
-    /// (ZERO/SPACE/QUOTE/HIGH-VALUE/LOW-VALUE — ISO §8.3.3.6), or a numeric literal.</summary>
-    private static BoundOperand ValueOperand(string raw)
-    {
-        if (CobolLiteral.IsStringLiteral(raw))   // both ISO §8.3.3.1 delimiters (apostrophe VALUE was silently miscompiled)
-            return new BoundStringLiteral(CobolLiteral.Decode(raw));
-        if (CobolLiteral.AllLiteralRaw(raw) is { } allRaw) return BoundAllLiteral.Of(allRaw);   // ALL literal (§8.3.3.6.4 F6; the category rides on literal-1 — PB71)
-        return FigurativeConstants.KindOf(raw) is { } k   // the ONE word-recognition table (P7 Step 4)
-            ? new BoundFigurative(k)
-            : new BoundNumericLiteral(raw);
-    }
+    // ⛔ `ValueOperand(string raw)` IS GONE (kb/Work PB506), and this comment stands where it was so it is not
+    // re-added. It turned a format-4 VALUE operand's raw text into a BoundOperand — a quoted literal, an ALL
+    // literal, a figurative, else a numeric literal — purely so the operand could be pushed through
+    // `move.ConvertSource`, i.e. through §13.18.53.4 GR1's implicit MOVE. §13.18.63.4 GR21/GR7/GR8 and
+    // §13.18.63.3 SR34/SR11 say a VALUE is an INITIALIZATION and exclude exactly the transforms a MOVE applies,
+    // so the whole raw-text→BoundOperand recognition chain was a SECOND, DIVERGENT copy of the decode
+    // `ValueInitializer` already owns (its figurative/ALL/edited arms, the CCVS alphanumeric-on-numeric
+    // leniency, the LOCALE compose). `FieldImage` now calls that one recipe.
 
     /// <summary>Emit the per-instance report-engine construction (called inside <c>__Activate</c>'s
     /// once-per-instance block, right after the file registration — hazard: the report FD must be

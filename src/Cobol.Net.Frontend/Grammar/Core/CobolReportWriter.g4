@@ -158,9 +158,19 @@ reportColumnOperand
     : PLUSWORD? integerLiteral
     ;
 
-// SOURCE IS identifier  (§13.18.53)
+// {SOURCE|SOURCES} [IS|ARE] {identifier-1}...  (§13.18.53 Format)
+// THE OPERAND LIST IS PLURAL BY DESIGN (kb/Work PB506). §13.18.53.2's ellipsis follows the
+// `{ identifier-1 / arithmetic-expression-1 }` brace pair, so the clause takes one or MORE operands, and
+// §13.18.53.3 SR6 confines the multi-operand form to a repeating entry — the VALUE clause's §13.18.63.3 SR35
+// written a second time for SOURCE, with §13.18.53.4 GR4 the twin of §13.18.63.4 GR23. SOURCES/ARE are the
+// 2002 spellings (§13.18.53.3 SR1 — SOURCE and SOURCES are synonyms); the multi-operand form and the plural
+// spellings are introduction-gated post-bind by VersionConformancePass ParseArm.VisitReportSourceClause.
+// What stops the greedy operand list is the §8.9 reservation gate on cobolWord (the PB792 argument): every
+// clause that can follow opens with a reserved word.
+// arithmetic-expression-1 and the ROUNDED phrase (§13.18.53.2 / SR3/SR5/SR7 — the §13.18.53.4 GR2 implicit
+// COMPUTE) have no grammar surface yet; see COBOLNET_REPORT_WRITER_DESIGN §5.
 reportSourceClause
-    : SOURCE IS? dataReference
+    : (SOURCE | SOURCES) (IS | ARE)? dataReference+
     ;
 
 // SUM data-name... [UPON data-name...] [RESET ON {FINAL|data-name}]  (§13.18.54)

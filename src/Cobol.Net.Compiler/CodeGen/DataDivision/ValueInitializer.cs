@@ -103,12 +103,30 @@ internal sealed class ValueInitializer(EmitContext ctx)
     }
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>
     public string InitializerFor(DataItem item, Subscripts subs = default)
-    {
-        var pic = item.Pic!;
         // ⛔ THE ONE READER for "what initializes this item at this occurrence" — DataItem.ValueAt: the Format-1
         // VALUE (the same for every occurrence, §13.18.63.4 GR9) or the Format-2 literal keyed to this subscript
         // tuple (GR12–GR15). The image lane asks the same property, so the two cannot disagree.
-        string? effRaw = item.ValueAt(subs);
+        => InitializerFrom(item, item.ValueAt(subs));
+
+    /// <summary>⛔ THE ONE §13.18.63 VALUE RECIPE, with the operand handed in rather than read off the item —
+    /// the arm the REPORT SECTION needs (kb/Work PB506). A format-4 VALUE operand lives on the report field
+    /// model, not on the synthetic printable item, and a multi-operand clause gives a DIFFERENT operand to each
+    /// repetition (§13.18.63.4 GR23), so there is no single <see cref="DataItem.ValueAt"/> to ask; everything
+    /// after that lookup — alignment, figuratives, ALL, the numeric-edited compose, the image encodings — is the
+    /// same rule and is therefore the same code.
+    /// <para>That identity is the POINT, not a convenience. §13.18.63.4 GR21 imports GR7 into format 4 ("Each
+    /// literal is aligned in the associated data item in accordance with 14.6.8 … except that initialization is
+    /// not affected by a JUSTIFIED clause and no editing takes place") and GR8 (BLANK WHEN ZERO has no effect
+    /// when the literal is alphanumeric or national), and §13.18.63.3 SR34 imports SR11 ("Editing characters in
+    /// a picture character-string for an alphanumeric-edited or national-edited data item do not cause editing
+    /// of the initial value"). The report emitter used to push a VALUE operand through the SOURCE clause's
+    /// implicit MOVE (§13.18.53.4 GR1) instead, which applies exactly the three transforms those rules exclude:
+    /// `PIC XXBXX VALUE "AB CD"` printed `AB  C`, `PIC X(5) JUSTIFIED VALUE "AB"` printed `   AB`, and
+    /// `PIC ZZZ9 BLANK WHEN ZERO VALUE "0000"` printed spaces — each while the IDENTICAL working-storage entry,
+    /// through this method, was right.</para></summary>
+    public string InitializerFrom(DataItem item, string? effRaw)
+    {
+        var pic = item.Pic!;
 
         // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
         // defines the initial length (MOVE-like, §13.18.63.4 GR7; stored truncated on the right to the LIMIT, no

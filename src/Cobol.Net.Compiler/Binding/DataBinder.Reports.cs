@@ -187,16 +187,34 @@ public sealed class ReportVaryingModel
 
 /// <summary>One PRINTABLE item (an entry with a COLUMN clause, ISO §13.18.14): its column operands (one per
 /// repetition — a multiple COLUMN clause is a repeating entry, §13.15.4 GR3), the synthetic
-/// <see cref="DataItem"/> carrying its PICTURE/JUSTIFIED/BLANK WHEN ZERO (so the emitter reuses the ONE MOVE
-/// conversion — §13.18.53.4 GR1's implicit MOVE), its value source, the GROUP INDICATE flag (§13.18.29), its
-/// field-local PRESENT WHEN chain (the conditions BELOW the line entry — the line's own chain already gates the
-/// whole line), and the entry's VARYING counters (§13.18.64).</summary>
+/// <see cref="DataItem"/> carrying its PICTURE/JUSTIFIED/BLANK WHEN ZERO, its value-source OPERAND LIST, the
+/// GROUP INDICATE flag (§13.18.29), its field-local PRESENT WHEN chain (the conditions BELOW the line entry —
+/// the line's own chain already gates the whole line), and the entry's VARYING counters (§13.18.64).</summary>
 public sealed class ReportFieldModel
 {
     public required IReadOnlyList<ReportColumnSpec> Columns { get; init; }
     public required DataItem PrintItem { get; init; }
-    public required ReportFieldSource Source { get; init; }
+
+    /// <summary>⛔ THE VALUE / SOURCE OPERAND LIST — ONE ENTRY PER WRITTEN OPERAND, NEVER A SCALAR (kb/Work
+    /// PB506). ISO §13.18.63.2 format 4 is <c>{ literal-1 } …</c> and §13.18.53.2 is
+    /// <c>{ identifier-1 / arithmetic-expression-1 } …</c>: BOTH clauses take an operand LIST, and the standard
+    /// then writes the same two rules twice — §13.18.63.3 SR35 / §13.18.53.3 SR6 (a multi-operand clause
+    /// requires a repeating entry and an operand count that matches its repetitions) and §13.18.63.4 GR23 /
+    /// §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable items, horizontally
+    /// and then vertically, as applicable, in that hierarchy. If no further operands remain, assignment begins
+    /// again from the first operand"). A single-operand clause is a one-element list, so the cycling rule below
+    /// is the ONE reader for both shapes and the model cannot answer "which operand prints in repetition n"
+    /// two different ways.</summary>
+    public required IReadOnlyList<ReportFieldSource> Sources { get; init; }
     public bool GroupIndicate { get; init; }
+
+    /// <summary>The operand that supplies repetition <paramref name="rep"/> (0-based) — ISO §13.18.63.4 GR23 /
+    /// §13.18.53.4 GR4: successive operands to successive repeating printable items, wrapping to the first when
+    /// no further operands remain. GR23's last sentence ("If any of the printable items are suppressed … VALUE
+    /// operands are nevertheless assigned to them") is honoured BY CONSTRUCTION: the index is the repetition
+    /// ORDINAL, never a count of the items actually placed, so a PRESENT WHEN that suppresses the entry cannot
+    /// shift the assignment.</summary>
+    public ReportFieldSource SourceAt(int rep) => Sources[rep % Sources.Count];
 
     /// <summary>The first column operand's value — the single-absolute fast path and diagnostics anchor.</summary>
     public int Column => Columns[0].Value;
@@ -212,7 +230,9 @@ public sealed class ReportFieldModel
 /// <summary>A printable item's value source, by clause kind.</summary>
 public abstract record ReportFieldSource;
 
-/// <summary>A VALUE clause literal (raw operand text — figurative word or literal; ISO §13.18.63).</summary>
+/// <summary>ONE format-4 VALUE clause operand (raw operand text — figurative word or literal; ISO §13.18.63.2
+/// format 4). A multi-operand clause contributes one of these PER OPERAND to
+/// <see cref="ReportFieldModel.Sources"/> — the raw text of the operands is never glued together.</summary>
 public sealed record FieldValueSource(string Raw) : ReportFieldSource;
 
 /// <summary>A SOURCE clause data reference (ISO §13.18.53), captured as base word + IN/OF qualifiers (the FILE
@@ -386,8 +406,15 @@ public sealed partial class DataBinder
     {
         ReportGroupModel? group = null;
         ReportLineModel? line = null;
-        // The PRESENT WHEN scope stack: one frame per entry on the current level path (§13.18.41 GR2b).
-        var chain = new List<(int Level, Core.ConditionContext? Cond)>();
+        // The entry scope stack: one frame per entry on the current level path. It carries the PRESENT WHEN
+        // condition (§13.18.41 GR2b) AND the frame entry's REPETITION COUNT (§13.15.4 GR3 — "An entry that
+        // contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a
+        // repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the
+        // number of operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of
+        // an entry that is not a repeating entry is defined to be 1."), so §13.18.63.3 SR35 / §13.18.53.3 SR6
+        // can read "the repeating entry, and any number of successive repeating entries at higher levels" off
+        // the stack instead of a hand-maintained special case (kb/Work PB506).
+        var chain = new List<(int Level, Core.ConditionContext? Cond, int Reps)>();
         int lineChainDepth = 0;   // stack frames whose conditions the CURRENT line already carries
         foreach (var ge in rd.reportGroupEntry())
         {
@@ -408,13 +435,20 @@ public sealed partial class DataBinder
             while (chain.Count > 0 && chain[^1].Level >= level) chain.RemoveAt(chain.Count - 1);
 
             // Clause capture for THIS entry (clauses may appear in any order within the entry — RW104A).
-            string? picText = null, usageText = null, rawValue = null;
+            string? picText = null, usageText = null;
+            // The VALUE clause's operand list (§13.18.63.2 format 4) and the count WRITTEN — the SR35 check
+            // reads the written count so a rejected operand cannot make an illegal clause look legal.
+            var valueRaws = new List<string>();
+            int valueOpsWritten = 0;
             List<EditingPhraseSpec>? reportEditing = null;   // PICTURE EDITING phrases (§13.18.40.2)
             LocaleEditSpec? reportLocale = null;             // PICTURE format 2 — the LOCALE phrase (PB113 / PB64 T6)
             SignSpec? ownSign = null;
             bool justified = false, blankWhenZero = false, groupIndicate = false, staysLoud = false;
             var columns = new List<ReportColumnSpec>();
-            ReportFieldSource? source = null;
+            // The SOURCE clause's operand list (§13.18.53.2 — one entry per written identifier-1); empty when
+            // the entry carries no SOURCE clause.
+            var sourceOps = new List<ReportFieldSource>();
+            int sourceOpsWritten = 0;   // operands WRITTEN (a staged/unresolvable one adds none to sourceOps)
             ReportLineModel? opened = null;
             Core.ReportSumClauseContext? sumClause = null;
             Core.ConditionContext? ownCond = null;
@@ -451,7 +485,14 @@ public sealed partial class DataBinder
                     foreach (var op in cc.reportColumnOperand())
                         columns.Add(new ReportColumnSpec(op.PLUSWORD() is not null, int.Parse(op.integerLiteral().GetText())));
                 else if (clause.reportSourceClause() is { } sc)
-                    source = BindSourceClause(sc, model);
+                {
+                    // Every written operand of the clause (§13.18.53.2's ellipsis) — the SR6 count below reads
+                    // the WRITTEN count, so a staged operand (a subscripted reference, another report's
+                    // counter) cannot make an illegal clause look legal.
+                    sourceOpsWritten += sc.dataReference().Length;
+                    foreach (var dref in sc.dataReference())
+                        if (BindSourceOperand(dref, model) is { } so) sourceOps.Add(so);
+                }
                 else if (clause.reportSumClause() is { } sm)
                     sumClause = sm;
                 else if (clause.reportGroupIndicateClause() is not null)
@@ -515,10 +556,15 @@ public sealed partial class DataBinder
                     staysLoud = true;
                 }
                 else if (clause.valueClause() is { } value)
-                    // Format 4 (report-section), ISO §13.18.63.2 — `{literal-1}…`; the same ONE literal-position
-                    // reader as Format 1, so a non-literal operand is reported here too (kb/Work PB732: an
-                    // undefined word used to be written into the report as its own spelling, exit 0).
-                    rawValue = ExtractValue(value, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
+                {
+                    // Format 4 (report-section), ISO §13.18.63.2 — `{literal-1}…`, an operand LIST; the same ONE
+                    // literal-position reader as Format 1 per operand, so a non-literal operand is reported here
+                    // too (kb/Work PB732: an undefined word used to be written into the report as its own
+                    // spelling, exit 0) and the operands are never glued (kb/Work PB506).
+                    valueOpsWritten += value.valueItem().FirstOrDefault()?.valueClauseOperand().Length ?? 0;
+                    if (ExtractValueOperandList(value, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'") is { } raws)
+                        valueRaws.AddRange(raws);
+                }
             }
 
             // GROUP INDICATE shall not share an entry with PRESENT WHEN (ISO §13.15.3 SR17 — GROUP INDICATE IS
@@ -556,12 +602,27 @@ public sealed partial class DataBinder
                 }
             }
 
+            // ⛔ THE MULTI-OPERAND REPETITION RULE, ONE READER FOR BOTH CLAUSES (kb/Work PB506). ISO
+            // §13.18.63.3 SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and their
+            // general rules (§13.18.63.4 GR23 / §13.18.53.4 GR4) are likewise twins — so the screen is written
+            // once and each clause supplies its own operand count, diagnostic and citation. Skipped when the
+            // entry already staged loud: its repetition vehicle (OCCURS, a multiple LINE clause) is refused, so
+            // its §13.15.4 GR3 repetition count is not knowable here and a second diagnostic would be noise.
+            if (!staysLoud)
+            {
+                var repChain = RepetitionChain(columns, chain);
+                ScreenRepeatingOperandCount(valueOpsWritten, repChain, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
+                    "VALUE", DiagnosticCatalog.ReportValueOperandCount, "ISO §13.18.63.3 SR35");
+                ScreenRepeatingOperandCount(sourceOpsWritten, repChain, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
+                    "SOURCE", DiagnosticCatalog.ReportSourceOperandCount, "ISO §13.18.53.3 SR6");
+            }
+
             if (opened is not null)
             {
                 line = opened;
                 group.Lines.Add(line);
                 // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41 GR2b).
-                foreach (var (_, c) in chain) if (c is not null) line.PresentWhenCtxs.Add(c);
+                foreach (var (_, c, _) in chain) if (c is not null) line.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) line.PresentWhenCtxs.Add(ownCond);
                 lineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
             }
@@ -572,7 +633,7 @@ public sealed partial class DataBinder
             if (sumClause is not null)
             {
                 sum = BindSumClause(sumClause, entryName, picText, group, model);
-                foreach (var (_, c) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
+                foreach (var (_, c, _) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
             }
 
@@ -583,7 +644,7 @@ public sealed partial class DataBinder
                 {
                     Edition.Error(DiagnosticCatalog.ReportColumnWithoutLine, $"RD '{model.Name}': a COLUMN clause with no LINE clause in "
                         + "effect (ISO §13.18.14 — a printable item belongs to a report line)");
-                    chain.Add((level, ownCond));
+                    chain.Add((level, ownCond, EntryRepetitions(columns)));
                     continue;
                 }
                 // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
@@ -599,7 +660,7 @@ public sealed partial class DataBinder
                 {
                     Edition.Error(DiagnosticCatalog.ReportItemMissingPicture, $"RD '{model.Name}': printable item at COLUMN {col} has no "
                         + "PICTURE clause (ISO §13.16 — an elementary printable item requires one)");
-                    chain.Add((level, ownCond));
+                    chain.Add((level, ownCond, EntryRepetitions(columns)));
                     continue;
                 }
                 if (pic.Usage is not Usage.Display)
@@ -619,19 +680,23 @@ public sealed partial class DataBinder
                 item.Uid = _uidCounter++;
                 if (pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                     MarkImageForced(item);      // the collected image fact — compose wants the printable CHARACTER image
-                ReportFieldSource src = sum is not null ? new FieldSumSource(sum.Id)
-                    : source
-                    ?? (rawValue is not null ? new FieldValueSource(rawValue)
-                        : new FieldValueSource("SPACE"));   // no VALUE/SOURCE/SUM ⇒ spaces (ISO §13.15 — empty item)
-                // SOURCE naming the entry's own VARYING counter (§13.18.64.4 GR4 NOTE — a counter is a source item).
-                if (src is FieldDataSource { Qualifiers.Count: 0 } fd)
-                {
-                    int vi = varyings.FindIndex(v => v.Name.Equals(fd.Name, StringComparison.OrdinalIgnoreCase));
-                    if (vi >= 0) src = new FieldVaryingSource(vi);
-                }
+                // THE OPERAND LIST (§13.18.63.2 format 4 / §13.18.53.2 — both clauses write `{ operand } …`).
+                // SUM wins the entry (§13.18.54.4 GR4 — the sum counter acts as the source item); then the
+                // SOURCE operands; then the VALUE operands; then §13.15's empty printable item.
+                List<ReportFieldSource> srcs =
+                    sum is not null ? [new FieldSumSource(sum.Id)]
+                    : sourceOps.Count > 0 ? sourceOps
+                    : valueRaws.Count > 0 ? [.. valueRaws.Select(r => (ReportFieldSource)new FieldValueSource(r))]
+                    : [new FieldValueSource("SPACE")];   // no VALUE/SOURCE/SUM ⇒ spaces (ISO §13.15 — empty item)
+                // SOURCE naming the entry's own VARYING counter (§13.18.64.4 GR4 NOTE — a counter is a source
+                // item). Per OPERAND: a multi-operand SOURCE may name a counter in any of its positions.
+                for (int si = 0; si < srcs.Count; si++)
+                    if (srcs[si] is FieldDataSource { Qualifiers.Count: 0 } fd
+                        && varyings.FindIndex(v => v.Name.Equals(fd.Name, StringComparison.OrdinalIgnoreCase)) is var vi and >= 0)
+                        srcs[si] = new FieldVaryingSource(vi);
                 var field = new ReportFieldModel
                 {
-                    Columns = columns, PrintItem = item, Source = src, GroupIndicate = groupIndicate,
+                    Columns = columns, PrintItem = item, Sources = srcs, GroupIndicate = groupIndicate,
                 };
                 // The field-local chain: conditions strictly BELOW the line entry (its own chain gates the line).
                 for (int ci = Math.Min(lineChainDepth, chain.Count); ci < chain.Count; ci++)
@@ -641,7 +706,7 @@ public sealed partial class DataBinder
                 line.Fields.Add(field);
             }
 
-            chain.Add((level, ownCond));
+            chain.Add((level, ownCond, EntryRepetitions(columns)));
         }
     }
 
@@ -699,12 +764,66 @@ public sealed partial class DataBinder
                 + "defines the page limit (ISO §13.18.57.3 SR12)");
     }
 
-    /// <summary>Bind a SOURCE clause (ISO §13.18.53): a LINE-COUNTER/PAGE-COUNTER register (§8.4.3.15 SR1 — the
-    /// only report-section reference position), or a data reference captured as base + qualifiers. Subscripted /
-    /// reference-modified operands stage loud (no corpus surface).</summary>
-    private ReportFieldSource? BindSourceClause(Core.ReportSourceClauseContext sc, ReportModel model)
+    /// <summary>THE §13.15.4 GR3 REPETITION COUNT of one report group description entry: "An entry that contains
+    /// either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a repeating
+    /// entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of
+    /// operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of an entry that
+    /// is not a repeating entry is defined to be 1."
+    /// <para>Only the multiple COLUMN clause is a LIVE repetition vehicle today — report-group OCCURS
+    /// (COBOLNET0899 <c>report-occurs-in-group</c>) and the multiple LINE clause (COBOLNET0899
+    /// <c>report-multiple-line</c>) both stage loud, and an entry that staged loud never reaches the operand-count
+    /// screen — so the other two arms of GR3 arrive with their vehicles, not as a second rule elsewhere.</para></summary>
+    private static int EntryRepetitions(List<ReportColumnSpec> columns) => columns.Count > 1 ? columns.Count : 1;
+
+    /// <summary>The repetition counts governing an entry, INNERMOST FIRST: the entry's own (§13.15.4 GR3) then
+    /// each enclosing entry's, so §13.18.63.3 SR35 / §13.18.53.3 SR6 read "the repeating entry … multiplied by
+    /// the number of repetitions of any number of successive repeating entries at higher levels" straight off
+    /// the scope stack.</summary>
+    private static List<int> RepetitionChain(List<ReportColumnSpec> columns,
+        List<(int Level, Core.ConditionContext? Cond, int Reps)> chain)
     {
-        var dref = sc.dataReference();
+        var reps = new List<int>(chain.Count + 1) { EntryRepetitions(columns) };
+        for (int i = chain.Count - 1; i >= 0; i--) reps.Add(chain[i].Reps);
+        return reps;
+    }
+
+    /// <summary>⛔ THE MULTI-OPERAND REPETITION RULE — ONE READER, TWO CLAUSES (kb/Work PB506). ISO §13.18.63.3
+    /// SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) are the same rule written twice: "If the … clause has more than
+    /// one operand, the entry shall be a repeating entry or shall be subordinate to a repeating entry. The number
+    /// of operands … shall be equal to the number of repetitions of the repeating entry or the same number
+    /// multiplied by the number of repetitions of any number of successive repeating entries at higher levels
+    /// than the repeating entry." The admissible counts are therefore the PREFIX PRODUCTS of
+    /// <paramref name="repChain"/> — a non-repeating frame contributes a factor of 1, so the set is the same
+    /// whether or not the non-repeating frames are filtered out — and sentence 1 is exactly "the full product is
+    /// greater than 1". A single-operand clause is unconstrained by either sentence.</summary>
+    private void ScreenRepeatingOperandCount(int written, List<int> repChain, string where, string clause,
+        DiagnosticDescriptor code, string rule)
+    {
+        if (written <= 1) return;
+        int product = 1;
+        var admissible = new List<int>(repChain.Count);
+        foreach (int r in repChain) { product *= r; admissible.Add(product); }
+        if (product <= 1)
+        {
+            Edition.Error(code, $"{where}: a {clause} clause with more than one operand ({written} written) requires "
+                + $"the entry to be a repeating entry or to be subordinate to a repeating entry ({rule}); this entry "
+                + "has no repetition — a multiple COLUMN clause, a multiple LINE clause or an OCCURS clause "
+                + "(ISO §13.15.4 GR3)");
+            return;
+        }
+        if (!admissible.Contains(written))
+            Edition.Error(code, $"{where}: a {clause} clause with more than one operand shall have as many operands "
+                + $"as the entry has repetitions, or that number multiplied by the repetitions of successive higher "
+                + $"repeating entries ({rule}) — {written} operands against "
+                + $"{string.Join(" / ", admissible.Distinct())} admissible");
+    }
+
+    /// <summary>Bind ONE SOURCE clause operand (ISO §13.18.53.2 — the clause writes `{ identifier-1 } …`): a
+    /// LINE-COUNTER/PAGE-COUNTER register (§8.4.3.15 SR1 — the only report-section reference position), or a data
+    /// reference captured as base + qualifiers. Subscripted / reference-modified operands stage loud (no corpus
+    /// surface).</summary>
+    private ReportFieldSource? BindSourceOperand(Core.DataReferenceContext dref, ReportModel model)
+    {
         if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null)
         {
             // A report-name qualifier naming a DIFFERENT report's counter is legal (§8.4.3.15 SR2) — staged.
@@ -837,13 +956,14 @@ public sealed partial class DataBinder
                 }
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
-                        if (f.Source is FieldDataSource ds)
-                        {
-                            ds.Item = LookupQualified(ds.Name, ds.Qualifiers);
-                            if (ds.Item is null)
-                                Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
-                                    + "resolve to a data item (ISO §13.18.53.3 SR4)");
-                        }
+                        foreach (var fs in f.Sources)   // EVERY operand of a multi-operand SOURCE clause (§13.18.53.2)
+                            if (fs is FieldDataSource ds)
+                            {
+                                ds.Item = LookupQualified(ds.Name, ds.Qualifiers);
+                                if (ds.Item is null)
+                                    Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
+                                        + "resolve to a data item (ISO §13.18.53.3 SR4)");
+                            }
             }
 
             foreach (var sum in model.Sums)

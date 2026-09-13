@@ -1055,7 +1055,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 group.HasColumn = true;
                 group.ColumnValue = col;
             }
-            if (clause.reportSourceClause()?.dataReference() is { } src) group.SourceName = src.GetText();
+            // The SOURCE clause is an operand LIST (ISO §13.18.53.2; kb/Work PB506 gave it its grammar surface).
+            // The legacy oracle carries ONE source name per printable item and no repetition model at all, so it
+            // reads the FIRST operand — the only shape it could ever compile — and the differential simply has no
+            // opinion on a multi-operand clause. It is a regression net, not authority (CLAUDE.md rule 1).
+            if (clause.reportSourceClause()?.dataReference() is { Length: > 0 } src) group.SourceName = src[0].GetText();
             if (clause.reportSumClause() is { } sumc)
                 foreach (var op in sumc.sumOperand()) group.SumFields.Add(op.dataReference().GetText());
             if (clause.pictureClause()?.PIC_STRING() is { } pic)

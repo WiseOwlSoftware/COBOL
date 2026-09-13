@@ -48,12 +48,24 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
   code-composed byte buffers for details) — a singular-pattern violation and the proven source of its two
   §13.18.53 content bugs. The greenfield has no registration kinds, no byte buffers, no storage offsets.
 - **Printable items are SYNTHETIC `DataItem`s** (PicInfo + JUSTIFIED/BLANK WHEN ZERO flags, never added to
-  the storage forest — report items are not accessed as ordinary storage, §13.8.6.2.3). The emitter renders every field through the
-  orchestrator's ONE MOVE conversion (`MoveEmitter.ConvertSource`), so a numeric SOURCE edits through the
-  printable PICTURE exactly like `MOVE src TO item` (alignment, truncation, editing, BLANK WHEN ZERO) —
-  §13.18.53.4 GR1 verbatim. Numeric printable items are `StoreAsImage`, so the conversion yields the
-  printable CHARACTER image directly; their `NumProfile` statics are emitted by the RW emitter
-  (`ReportWriterEmitter`) — the field emitter only walks the storage forest.
+  the storage forest — report items are not accessed as ordinary storage, §13.8.6.2.3). Numeric printable items
+  are `StoreAsImage`, so every rendering path below yields the printable CHARACTER image directly; their
+  `NumProfile` statics are emitted by the RW emitter (`ReportWriterEmitter`) — the field emitter only walks the
+  storage forest.
+- ⛔ **TWO CLAUSES FILL A PRINTABLE ITEM AND THEY ARE NOT THE SAME RULE** (kb/Work PB506). A **SOURCE** operand
+  renders through the orchestrator's ONE MOVE conversion (`MoveEmitter.ConvertSource`), so a numeric SOURCE
+  edits through the printable PICTURE exactly like `MOVE src TO item` (alignment, truncation, editing,
+  JUSTIFIED, BLANK WHEN ZERO) — §13.18.53.4 GR1 verbatim. A **VALUE** operand is an INITIALIZATION and renders
+  through the ONE §13.18.63 VALUE recipe the working-storage lane uses
+  (`ValueInitializer.InitializerFrom`, reached via `DataEmitter.ValueImageOf`), because §13.18.63.4 GR21
+  imports GR7 — "aligned … except that initialization is not affected by a JUSTIFIED clause and no editing
+  takes place" — and GR8 (BLANK WHEN ZERO has no effect for an alphanumeric or national literal), and
+  §13.18.63.3 SR34 imports SR11 ("Editing characters in a picture character-string for an alphanumeric-edited
+  or national-edited data item do not cause editing of the initial value"). Routing a VALUE through the MOVE
+  applied exactly those three excluded transforms: `PIC XXBXX VALUE "AB CD"` printed `AB  C`,
+  `PIC X(5) JUSTIFIED VALUE "AB"` printed `   AB`, `PIC ZZZ9 BLANK WHEN ZERO VALUE "0000"` printed spaces —
+  each while the IDENTICAL working-storage entry was right. `ReportOperandListDriftTests` keeps the MOVE out of
+  the VALUE lane.
 - **Physical output** goes through the report file's ordinary connector (`CobolFile.WriteAdvancing` — the
   print-control stream). The engine tracks `_physLine` (physical position) separately from LINE-COUNTER so
   a future NEXT GROUP (which moves LINE-COUNTER, §8.4.3.15.4 GR4) cannot corrupt positioning.
@@ -78,6 +90,7 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | PRESENT WHEN | §13.18.41 Format 1 — `EvaluatePresent` evaluates every line's condition chain ONCE per presentation, BEFORE any LINE processing (GR2) and AFTER the `BeforeReporting` hook. ⛔ **That order is a DETERMINATION, not a reading** (kb/Work PB367b): §14.9.49.4 GR9 d) performs the declarative "Before the processing of any LINE clauses defined for the report group" and GR2 evaluates condition-1 "before the processing of any LINE clauses for the report group" — the SAME boundary, with no rule ordering them, and both precede the page fit test (GR9 c); §13.18.41.4 GR3 d). It is settled this way because the reverse makes a declarative's execution depend on data the declarative exists to set: condition-1 is any condition (§13.18.41.2), typically over the very items §14.9.49.4 GR8 lets the procedure prepare ("just before the named report group is produced"), and a level-01 PRESENT WHEN would otherwise silently suppress the procedure that would have made the group present. Witnessed by `ReportWriterConformanceTests.UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated`; an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); ALL lines absent ⇒ return-before-flags, as though the whole description were omitted (GR2b — no counters, no fit, no sum reset); an absent SUM entry is neither printed (the compose guard) nor reset (`EndOfGroupSumReset` consults `SumEntry.Present` — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
 | VARYING | §13.18.64 — per-repetition counters over the multiple-COLUMN repetition vehicle (SR1): compose-local `long`s, first occurrence ← FROM (default 1, GR3a — re-evaluated per presentation), += BY per repetition (default 1, GR3b); each value persists through its occurrence (GR4 — `SOURCE IS counter` renders it, GR4 NOTE); a noninteger FROM/BY truncates via `Rescale` (the GR5 EC-REPORT-VARYING seam, checking default-off §18.16) |
 | multiple/relative COLUMN | §13.18.14 F1 — a multiple COLUMN clause defines one printable item per operand (GR12); relative (PLUS) operands place at `horizontal counter + integer-2` (GR8) with the counter starting at 0 (GR7) and set to each placed item's rightmost column (GR9) |
+| the VALUE / SOURCE OPERAND LIST | ⛔ **ONE list, ONE cycling reader, ONE syntax screen** (kb/Work PB506). ISO writes the same two rules twice, once per clause: §13.18.63.3 SR35 = §13.18.53.3 SR6 (a multi-operand clause requires a repeating entry — §13.15.4 GR3 — and an operand count equal to its repetitions, or that number multiplied by the repetitions of successive higher repeating entries) and §13.18.63.4 GR23 = §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable items, horizontally and then vertically … If no further operands remain, assignment begins again from the first operand"). So `ReportFieldModel.Sources` is a LIST (a single-operand clause is a one-element list), `ReportFieldModel.SourceAt(rep)` is the only per-repetition reader — indexed by the repetition ORDINAL, which is what makes GR23's last sentence true by construction ("If any of the printable items are suppressed as a result of a PRESENT WHEN clause … operands are nevertheless assigned to them"), and `DataBinder.Reports.ScreenRepeatingOperandCount` is the ONE screen, fed by both clauses with its own diagnostic each (**COBOLNET2012** VALUE / **COBOLNET2013** SOURCE) and the repetition chain read off the entry scope stack. Before PB506 `FieldValueSource` held ONE glued string (`ExtractValue`'s `GetText()` over the whole list, so `VALUE "XX" "YY"` reached the emitter as `"XX""YY"` and printed `XX"YY`) and the SOURCE clause had no multi-operand grammar surface at all. GR23's wrap-around sentence has no reachable COBOL source while the higher-level repetition vehicles stage loud, so `ReportOperandListDriftTests` asserts it on the model |
 
 **The four statement-precondition conditions, and what `>>TURN` does and does not gate.** EC-FLOW-REPORT
 (§14.9.49.4 GR10), EC-REPORT-ACTIVE (§14.9.21.4 GR2), EC-REPORT-FILE-MODE (§14.9.21.4 GR3) and
@@ -162,8 +175,9 @@ off-by-one through every later counter check.
   with `Records.Count == 0` register in `EmitFileRegistration` with the report's line width (without this
   the OPEN falls into the keyed-organization else-branch and every report write silently no-ops).
 - Per line: `private string __RPT_C_{r}_{g}_{l}()` — a space-filled `char[LineWidth]`
-  (`CobolReport.NewLine`), each field placed at its COLUMN (`CobolReport.Place`) with the `ConvertSource`
-  image. SOURCE counters/sums/VARYING counters render through `NumericRenderer` (`BoundReportCounterRef` /
+  (`CobolReport.NewLine`), each field placed at its COLUMN (`CobolReport.Place`) with the image its own clause
+  gives it (`ConvertSource` for a SOURCE operand, the VALUE recipe for a VALUE operand — see §3), taken from
+  `ReportFieldModel.SourceAt(rep)` so each repetition of a multiple COLUMN entry gets its own operand. SOURCE counters/sums/VARYING counters render through `NumericRenderer` (`BoundReportCounterRef` /
   `BoundReportSumRef` / `BoundReportVaryingRef` — one case each; both relation conditions and MOVE sources
   route through the renderer).
 - Compose-side 2002 decoration (`EmitFieldPlacements`; the plain '85 shape — one absolute operand,
@@ -185,7 +199,9 @@ off-by-one through every later counter check.
 ## 5. The full §13/§14 RW surface — implemented vs staged LOUD
 
 **Implemented:** PAGE LIMIT geometry + GR3 defaults; RH/PH/CH/DE/CF/PF/RF groups; absolute + relative LINE
-(any level); COLUMN/PIC/SOURCE/VALUE/JUSTIFIED/BLANK WHEN ZERO/SIGN printable items; SOURCE
+(any level); COLUMN/PIC/SOURCE/VALUE/JUSTIFIED/BLANK WHEN ZERO/SIGN printable items, **with the multi-operand
+VALUE and SOURCE clauses and the SOURCES/ARE spellings** (§13.18.63.2 format 4 / §13.18.53.2, edition-gated 2002
+for the SOURCE forms — `report-multi-source-2002`); SOURCE
 LINE-/PAGE-COUNTER; CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
 break) **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
 TYPE CH/CF and SUM RESET ON operands that name the level carry the same ref-mod, §13.18.57.3 SR10 /
@@ -204,7 +220,9 @@ COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter).
 
 **Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):** NEXT GROUP
 (§13.18.37, incl. the WITH RESET PAGE-COUNTER form); CODE (§13.18.12); LINE … NEXT PAGE / ON NEXT PAGE;
-OCCURS in report groups (§13.18.38 repeating entries, multi-operand SOURCE §13.18.53 SR6); **multiple LINE
+OCCURS in report groups (§13.18.38 repeating entries — the OTHER repetition vehicle §13.18.63.3 SR35 /
+§13.18.53.3 SR6 admit; the multi-operand VALUE and SOURCE clauses themselves now RIDE over the multiple-COLUMN
+vehicle, kb/Work PB506); **multiple LINE
 (§13.18.35.3 SR10 — GR9-equivalent to LINE + a simple OCCURS, staged with the OCCURS repetition family;
 `report-multiple-line`)**; **a VARYING counter inside a FROM/BY expression (the §13.18.64.3 SR3-legal BY
 self-reference; `report-varying-counter-in-expression`)**; **FUNCTION inside a PRESENT WHEN condition

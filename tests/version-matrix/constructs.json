@@ -2984,6 +2984,19 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRMC1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrmc1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nWORKING-STORAGE SECTION.\n01 W-A PIC 99 VALUE 7.\nREPORT SECTION.\nRD R-1.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMN 1 12 PIC 99 SOURCE IS W-A.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
   },
   {
+   "id": "report-multi-source-2002",
+   "status": "active",
+   "description": "The 2002 SOURCE-clause forms (§13.18.53.2) — more than one operand (the SR6 multi-operand form, whose operands §13.18.53.4 GR4 assigns to successive repetitions of the repeating entry, wrapping to the first when none remain) and the SOURCES/ARE spellings (SR1 — SOURCE and SOURCES are synonyms; SOURCES is 8.9-reserved 'added 2002'). LIVE (kb/Work PB506): the operand list rides ReportFieldModel.Sources, the SR6 count rule is screened by the ONE reader the VALUE clause's twin SR35 uses, and each repetition composes its own operand. The COBOL-85 form was the single 'SOURCE IS identifier-1'.",
+   "display": "multiple SOURCE operands / SOURCES (report group description)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §13.18.53.2 / §13.18.53.3 SR1/SR6 / §13.18.53.4 GR4; introduction gate = VersionConformancePass ParseArm.VisitReportSourceClause",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2002 RW addition (SOURCES reserved 'added 2002' in reserved-words.json; the 85 SOURCE format is single-operand, like the LINE and COLUMN clauses it repeats with)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRMS1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrms1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nWORKING-STORAGE SECTION.\n01 W-A PIC 99 VALUE 7.\n01 W-B PIC 99 VALUE 8.\nREPORT SECTION.\nRD R-1.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMN 1 12 PIC 99 SOURCES ARE W-A W-B.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+  },
+  {
    "id": "report-multi-line-2002",
    "status": "pending",
    "description": "The multiple LINE clause (§13.18.35.3 SR10) — more than one operand defines a set of report lines at possibly-unequal vertical intervals (GR9: functionally a LINE + simple OCCURS). PENDING (P10 Step 13): recognized + introduction-gated (0900 below 2002); the vertical repetition itself stages LOUD (COBOLNET0899 report-multiple-line) with the report-group OCCURS family it is GR9-equivalent to.",

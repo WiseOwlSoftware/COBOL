@@ -1057,6 +1057,18 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The 2002 SOURCE-clause forms (ISO §13.18.53.2; kb/Work PB506): more than one operand (the SR6
+        /// multi-operand form, distributed over the entry's repetitions by §13.18.53.4 GR4) or the SOURCES/ARE
+        /// spellings — the COBOL-85 form was exactly <c>SOURCE IS identifier-1</c>, matching the single-operand
+        /// LINE and COLUMN clauses it repeats with. Fires at most once per written clause; report-section-exclusive
+        /// rule, so recognition is the drop-proof home (the VisitReportColumnClause precedent).</summary>
+        public override object? VisitReportSourceClause(CobolParserCore.ReportSourceClauseContext ctx)
+        {
+            if (ctx.SOURCES() is not null || ctx.ARE() is not null || ctx.dataReference().Length > 1)
+                _p.Check(Constructs.ReportMultiSource2002, "the multiple SOURCE operand / SOURCES clause forms (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The 2002 LINE-clause forms (ISO §13.18.35 Format 1; P10 Step 13): more than one operand
         /// (the SR10 "multiple LINE clause") or the LINES/NUMBERS/ARE spellings — the COBOL-85 form was
         /// <c>LINE NUMBER IS</c> with ONE operand. The repetition itself also stages LOUD at bind

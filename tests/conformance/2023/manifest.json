@@ -70,6 +70,7 @@
     "rw_present_when",
     "rw_suppress",
     "rw_suppress_bare",
+    "pb506_report_value_operand_list",
   "pb673_external_assign_executor",
   "pb673_recursive_assign_linage",
   "pb329_line_sequential_charset_2023",

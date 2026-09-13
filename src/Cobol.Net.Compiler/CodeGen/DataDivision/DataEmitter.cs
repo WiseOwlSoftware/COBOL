@@ -43,6 +43,10 @@ internal sealed class DataEmitter
     /// <summary>See <see cref="GroupImageCodec.ImageInitOf"/>.</summary>
     public string ImageInitOf(DataItem item, bool useValues = true) => _codec.ImageInitOf(item, useValues);
 
+    /// <summary>See <see cref="ValueInitializer.InitializerFrom"/> — the §13.18.63 VALUE recipe over an operand
+    /// the caller supplies (the report section's format-4 lane; kb/Work PB506).</summary>
+    public string ValueImageOf(DataItem item, string raw) => _values.InitializerFrom(item, raw);
+
     /// <summary>The SEED image of one EXTERNAL record's run-unit cell — the expression handed to
     /// <c>ExternalStore.Cell(name, seed)</c>. ⛔ THE ONE COMPOSER, because there are TWO call sites that must
     /// agree: the backing property (<c>OoEmitter.EmitExternalBackings</c>) and the ADDRESS-OF cell reference

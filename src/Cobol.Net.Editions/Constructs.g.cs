@@ -237,6 +237,7 @@ public static class Constructs
     public const string ReportPresentWhen2002 = "report-present-when-2002";
     public const string ReportVarying2002 = "report-varying-2002";
     public const string ReportMultiColumn2002 = "report-multi-column-2002";
+    public const string ReportMultiSource2002 = "report-multi-source-2002";
     public const string ReportMultiLine2002 = "report-multi-line-2002";
     public const string UserWordUnderscore2002 = "user-word-underscore-2002";
     public const string ComputerNameOptional2002 = "computer-name-optional-2002";

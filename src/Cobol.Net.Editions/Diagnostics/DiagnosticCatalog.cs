@@ -3161,6 +3161,33 @@ public static class DiagnosticCatalog
         + "the §9.3.8.2 question the SET statement itself answers, and it is not restated here.",
         "ISO §14.9.20.3 / §14.9.39");
 
+    // ── COBOLNET2012 / COBOLNET2013 — THE MULTI-OPERAND REPETITION RULE, ONE PER CLAUSE (kb/Work PB506) ──
+    // ISO §13.18.63.3 SR35 (VALUE format 4) and §13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and
+    // the compiler screens them through ONE reader (DataBinder.Reports.ScreenRepeatingOperandCount). They keep
+    // SEPARATE codes because a reader who sees one has to be sent to the clause actually written — the shared
+    // mechanism is an implementation fact, the citation is the user's.
+    /// <summary>COBOLNET2012 — a report-section (format 4) VALUE clause with more than one operand on an entry
+    /// that is not repeating, or whose operand count does not match the entry's repetitions. Before kb/Work
+    /// PB506 the whole operand list was collapsed to one glued string, so `VALUE "AAA" "BBB" "CCC"` on a
+    /// three-column entry printed AAA three times and the illegal counts were indistinguishable from the
+    /// legal one — a silent wrong answer on conforming source and silent acceptance of non-conforming source.</summary>
+    public static readonly DiagnosticDescriptor ReportValueOperandCount = new(
+        "COBOLNET2012", "report-value-operand-count", EditionSeverity.Error,
+        "A report-section VALUE clause (format 4) with more than one operand requires the entry to be a "
+        + "repeating entry or to be subordinate to a repeating entry, and its operand count shall equal the "
+        + "entry's number of repetitions or that number multiplied by the repetitions of successive higher "
+        + "repeating entries.", "ISO §13.18.63.3 SR35 / §13.15.4 GR3");
+
+    /// <summary>COBOLNET2013 — the SOURCE clause twin of COBOLNET2012 (ISO §13.18.53.3 SR6). The multi-operand
+    /// SOURCE clause had no grammar surface at all before kb/Work PB506 (`SOURCES ARE A B C` was a raw parse
+    /// error on conforming source), so this rule had nothing to screen.</summary>
+    public static readonly DiagnosticDescriptor ReportSourceOperandCount = new(
+        "COBOLNET2013", "report-source-operand-count", EditionSeverity.Error,
+        "A SOURCE clause with more than one operand requires the entry to be a repeating entry or to be "
+        + "subordinate to a repeating entry, and its operand count shall equal the entry's number of "
+        + "repetitions or that number multiplied by the repetitions of successive higher repeating entries.",
+        "ISO §13.18.53.3 SR6 / §13.15.4 GR3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
