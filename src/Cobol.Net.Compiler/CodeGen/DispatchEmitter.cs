@@ -154,6 +154,10 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 if (isHandler) dispatchState.RestoreF3Region(f3saved);
             }
         }
+        // Each dispatch method owns its transfer label: a `goto` may not leave the C# member it is written in, and
+        // an OO method's __MDispatch is a LOCAL FUNCTION (design SSOT §9.10), so the program's label is not in
+        // scope there. Save/restore keeps a nested emission (a class unit emitted while a program is open) honest.
+        var savedXfer = dispatchState.BeginTransferScope(dispatchState.DispatchName == "__Dispatch" ? "__xfer" : "__mxfer");
         using (w.Block(header))
         {
             w.Line("int __pc = __startPc;");
@@ -171,10 +175,19 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                         for (int i = handlerFromPc; i <= handlerToPc; i++) EmitCase(i);
                     using (w.Block("default:")) { w.Line("__pc = __N;"); w.Line("break;"); }
                 }
+                // The ONE dispatcher exit (kb/Work PB405): every statement that transfers control out of a
+                // paragraph body sets __pc and jumps HERE, so no lowered C# container (an inline PERFORM's loop,
+                // a GO TO … DEPENDING switch) can capture the jump the way a bare `break` was captured, and the
+                // paragraph's fall-through epilogue — which is BEFORE this label, inside the case — can no longer
+                // overwrite a target the statement set. Planted only when a transfer was rendered, so a
+                // transfer-free unit's generated source is unchanged.
+                if (dispatchState.TransferUsed)
+                    w.Line($"{dispatchState.TransferLabel}: ;   // a transfer of control out of a paragraph (ISO §14.9.14.4 GR6/GR7, §14.9.17.4, §14.9.19.4 GR4/GR6, §14.9.33.4 GR3)");
                 w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph fell off its end");
             }
             w.Line("return __pc;");
         }
+        dispatchState.EndTransferScope(savedXfer);
     }
 
     /// <summary>Emit the X3.23-1985 debug trigger runner (VCR Table 7 row 7.17): space-fill DEBUG-ITEM, set
@@ -285,7 +298,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     }
 
     /// <summary>Emit a paragraph body SENTENCE by sentence. When the paragraph contains a NEXT SENTENCE anywhere,
-    /// each inter-sentence boundary gets a label (`__sentP_K:`) — the §14.9.19 GR6 implicit CONTINUE after the
+    /// each inter-sentence boundary gets a label (`__sentP_K:`) — the §14.9.19.4 GR4/GR6 implicit CONTINUE after the
     /// separator period; NEXT SENTENCE in the LAST sentence is the paragraph fall-through. Returns whether the
     /// body ends by transferring control out of the case.</summary>
     private bool EmitParagraphBody(BoundParagraph para, int pc)

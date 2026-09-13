@@ -42,17 +42,18 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
             CollectFields(child, fields);
     }
 
-    /// <summary>The alterable GO TO transfers to the CURRENT field value (D4: <c>__pc = _alter_X; break;</c>) —
-    /// the written target until an ALTER executes, then the most recent ALTER's destination; −1 (a never-ALTERed
-    /// target-less GO TO, undefined per ANSI-85) exits the dispatcher loop.</summary>
+    /// <summary>The alterable GO TO transfers to the CURRENT field value (D4:
+    /// <c>__pc = _alter_X; goto __xfer;</c>) — the written target until an ALTER executes, then the most recent
+    /// ALTER's destination; −1 (a never-ALTERed target-less GO TO, undefined per ANSI-85) exits the dispatcher
+    /// loop. Like every transfer out of a paragraph it leaves through <see cref="DispatchState.TransferOut(string,string)"/>,
+    /// never a bare <c>break</c> a lowered container could capture (kb/Work PB405).</summary>
     public void EmitGoTo(BoundGoToAlterable g)
     {
         var w = ctx.Writer;
         // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an altered GO TO transfer is DEBUG-CONTENTS SPACES (Transfer),
         // DEBUG-LINE the GO TO statement's own line.
         dispatch.EmitDebugCause(w, "Transfer", g.SourceLine);
-        w.Line($"__pc = {g.AlterField};");
-        w.Line("break;");
+        w.Line(dispatch.TransferOut(g.AlterField));
     }
 
     /// <summary>ALTER assigns each entry's new destination pc into the target paragraph's field at the ALTER site

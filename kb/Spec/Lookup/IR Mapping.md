@@ -35,7 +35,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundProgram` | Program unit: paragraphs, entry pc, declaratives | §14.2.3 (procedure division) | §14.2.3 GR1 (begins at first nondeclarative) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundUnit` | One compilation-group program unit + attributes | §11.10 / §8.6.6 | binder invariant (containment/registry key) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundCompilation` | Immutable whole-group Binder result | — | binder invariant (emitter reads read-only) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundParagraph` | Paragraph: sentences at a pc index | §14.9.19 | §14.9.19 GR6 (sentence boundary = NEXT SENTENCE target) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundParagraph` | Paragraph: sentences at a pc index | §14.9.19 | §14.9.19.4 GR4/GR6 (sentence boundary = NEXT SENTENCE target, either arm) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundMethod` | One class METHOD's pc range | §11.7 | exit-bounded dispatch range (fall-off = return) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundDeclarative` | One USE declarative section + trigger scope | §14.9.49 | §14.9.49 GR3/GR7 (file/mode scope, handler exit) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundDebugSubject` | USE FOR DEBUGGING subject procedure | X3.23-1985 debug module | edition gate (85-only; VCR 7.17) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
@@ -122,7 +122,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundExitSection` | EXIT SECTION → section end | §14.9.14 Format 4 GR7 | explicit return when __exitPc == section end | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundExitPerform` | EXIT PERFORM [CYCLE] | §14.9.14 | break/continue nearest inline loop | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundExitProgram` | EXIT PROGRAM [RAISING] | §14.9.14 Format 2 | GR2 CONTINUE in main / GR3 return | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundNextSentence` | NEXT SENTENCE transfer | §14.9.19 GR6 | archaic (Annex F.1) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundNextSentence` | NEXT SENTENCE transfer | §14.9.19.4 GR4/GR6 | archaic (Annex F.1) | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundStop` | STOP RUN [WITH status] | §14.9.42 | exit code = status/ERROR 1/NORMAL 0 | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundStopLiteral` | STOP literal (operator message) | X3.23-1985 §14 Format 2 | edition gate (≥2002 rejected); stderr + continue | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundGoback` | GOBACK [RETURNING/RAISING/STATUS] | §14.9.18 | GR2 return / GR3 STOP-equivalent in main | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |

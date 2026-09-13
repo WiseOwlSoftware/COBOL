@@ -1,5 +1,6 @@
 {
   "enabled": [
+  "pb414_next_sentence_last_sentence_inline",
   "pb489_linage_qualified_operands",
   "pb415_initialize_multi_category_85",
   "pb488_condition_name_associations_ok_85",

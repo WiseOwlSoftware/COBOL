@@ -108,23 +108,35 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): a GO TO transfer is DEBUG-CONTENTS SPACES (Transfer); EXIT PARAGRAPH
     // returns to the paragraph end (a controlled fall-through into pc+1) — DEBUG-CONTENTS "FALL THROUGH". DEBUG-LINE
     // is the transferring statement's own source line.
-    public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
-    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
+    // ⛔ Every one of these leaves the paragraph body through DispatchState.TransferOut — `__pc = t; goto __xfer;`
+    // — and never through a bare `break;`, which C# binds to the innermost lowered container (an inline PERFORM's
+    // loop, a DEPENDING switch) rather than to the dispatcher (kb/Work PB405; see EmitterState.cs).
+    public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line(_dispatchState.TransferOut(n.TargetPc)); return true; }
+
+    // EXIT PARAGRAPH (§14.9.14.4 GR6): control passes to "an implicit CONTINUE statement immediately following the
+    // last explicit statement of the current paragraph, preceding any return mechanisms for that paragraph" — pc+1,
+    // where the dispatcher's at-exit test fires the paragraph's PERFORM/SORT/USE return. GR6's NOTE names those
+    // return mechanisms (PERFORM, SORT, USE); an INLINE PERFORM is none of them — it is a loop inside the paragraph —
+    // so an enclosing inline PERFORM has no standing to intercept the transfer (kb/Work PB405).
+    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line(_dispatchState.TransferOut(_dispatchState.CurrentPc + 1)); return true; }
 
     // EXIT SECTION (§14.9.14.4 GR7): transfer to the unnamed empty paragraph after the section's last paragraph
     // (SectionEndPc+1) from ANY paragraph of the section. When the enclosing bounded dispatch was entered with its
     // exit AT the section end (PERFORM SECTION / PERFORM … THRU the section end / SORT-or-USE / the top-level end
     // wall), the section's return mechanism must fire — an explicit `return __pc` that mirrors the bounded loop's
     // `__atExit` tail-check (which a MID-section EXIT SECTION cannot reach, since __atExit was captured for the
-    // current pc, not the section end). Otherwise (exit ≠ section end) the `break` falls through to SectionEndPc+1
-    // exactly as EXIT PARAGRAPH does at a paragraph boundary.
+    // current pc, not the section end). Otherwise (exit ≠ section end) the transfer lands on SectionEndPc+1 exactly
+    // as EXIT PARAGRAPH does at a paragraph boundary. The `return __pc` is the section's OWN return mechanism
+    // (GR7's "preceding any return mechanisms for that section") and must stay BEFORE the jump: it is a C# `return`,
+    // which no lowered container can capture, so it needs no label — but it is reached only when __pc has already
+    // been set, which is why the assignment is rendered first.
     public bool Visit(BoundExitSection n)
     {
         var w = _ctx.Writer;
         _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine);
         w.Line($"__pc = {n.SectionEndPc + 1};");
         w.Line($"if (__exitPc == {n.SectionEndPc}) return __pc;   // §14.9.14.4 GR7 — the section's PERFORM/SORT/USE return");
-        w.Line("break;");
+        w.Line(_dispatchState.TransferJump());
         return true;
     }
     public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5/GR6; §14.9.28.4 GR16
@@ -137,10 +149,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         F3Region.Finally => Emit($"goto __f3end{_dispatchState.F3Cur.Id};", terminated: true),
         // Ordinary inline PERFORM: EXIT PERFORM → goto __pexit (past the loop, leaving EVERY nested VARYING level,
         // §14.9.14.4 GR5a); EXIT PERFORM CYCLE → goto __pcont (the loop-control boundary, so the VARYING augment +
-        // re-test still run, §14.9.14.4 GR6 / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
+        // re-test still run, §14.9.14.4 GR5b / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
         // C# loop, wrong for a multi-level VARYING (CA31/CA32). The __pexit/__pcont labels are emitted by EmitPerform.
         F3Region.Inline => Emit(n.Cycle ? $"goto __pcont{_dispatchState.F3Cur.Id};" : $"goto __pexit{_dispatchState.F3Cur.Id};", terminated: true),
-        _ => Emit(n.Cycle ? "continue;" : "break;", terminated: false),   // defensive fallback (SR8: never reached for a valid bind)
+        // No enclosing PERFORM at all — §14.9.14.3 SR8 forbids the statement and the binder does not yet say so
+        // (kb/Work PB403), so this arm is LIVE and its __pc-less jump re-dispatches the same paragraph forever.
+        // It jumps to the dispatcher label rather than breaking: which C# construct a bare `break` left depended on
+        // whatever container the statement sat in (kb/Work PB405), so the hang was not even deterministic.
+        _ => Emit(_dispatchState.TransferJump(), terminated: false),   // defensive fallback (SR8: never reached for a valid bind)
     };
 
     private bool Emit(string line, bool terminated) { _ctx.Writer.Line(line); return terminated; }
@@ -182,7 +198,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         using (_ctx.Writer.Block($"if ({call})"))
         {
             _ctx.Writer.Line($"int __r{id} = " + _ecEmit.EcDispatchExpr("\"EC-CONTINUE-LESS-THAN-ZERO\"", "\"\"") + ";");
-            _ctx.Writer.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            _ctx.Writer.Line(_dispatchState.ResumeTransfer($"__r{id}"));
         }
         return false;
     }
@@ -198,13 +214,19 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 
     public bool Visit(BoundNextSentence n)
     {
-        // §14.9.19 GR6: to the implicit CONTINUE after the current sentence; in the LAST sentence that is
-        // the paragraph fall-through (pc+1 — the dispatcher's at-exit check then handles a PERFORM return).
+        // §14.9.19.4 GR4 (the THEN phrase) and GR6 (the ELSE phrase) state the SAME transfer — "control is
+        // transferred to an implicit CONTINUE statement immediately preceding the next separator period" — and the
+        // binder does not record which arm the node came from, so ONE lowering serves both and the two arms cannot
+        // diverge (kb/Work PB414). Within a paragraph that is the label planted at the sentence boundary; in the
+        // LAST sentence there is no following sentence, so the implicit CONTINUE before the separator period IS the
+        // paragraph fall-through (pc+1 — the dispatcher's at-exit check then handles a PERFORM return), reached
+        // through the dispatcher transfer idiom. (It was a bare `break` until PB405/PB414: inside an inline PERFORM
+        // that bound to the loop, so control resumed after END-PERFORM — inside the very sentence GR4/GR6 say to
+        // leave — while the same statement in a NON-last sentence was already correct, being a goto.)
         var w = _ctx.Writer;
         if (_dispatchState.SentenceEndLabel is { } lbl) { w.Line($"goto {lbl};"); return true; }
         _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine);   // to pc+1 (X3.23-1985 "FALL THROUGH", VCR 7.17)
-        w.Line($"__pc = {_dispatchState.CurrentPc + 1};");
-        w.Line("break;");
+        w.Line(_dispatchState.TransferOut(_dispatchState.CurrentPc + 1));
         return true;
     }
 

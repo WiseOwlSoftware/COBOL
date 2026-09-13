@@ -16,7 +16,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// carrier; every runtime rule lives in <c>CobolPtr</c> (Deref/UpBy/Allocate/Free) — the emitters only wire
 /// places to helpers, through the <see cref="RuntimeApi"/> façade.
 /// </summary>
-internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec)
+internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec, DispatchState dispatch)
 {
     /// <summary>The C# expression for an <c>ADDRESS OF identifier</c> value (ISO §8.4.3.11 GR1): a BASED
     /// item's value IS its implicit data-address pointer (§8.6.5 :8791); a cell-forced record renders a
@@ -163,7 +163,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-AVAIL\", false);   // §14.9.3.4 GR5c — set to exist (nonfatal)");
             int did = ctx.Names.NextPtr();
             w.Line($"int __pa{did} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-AVAIL\"", "\"\"")};");
-            w.Line($"if (__pa{did} >= 0) {{ __pc = __pa{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line(dispatch.ResumeTransfer($"__pa{did}"));
         }
     }
 
@@ -208,7 +208,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true);   // §8.4.3.13 GR4 — set to exist");
                 int did = ctx.Names.NextPtr();
                 w.Line($"int __pe{did} = {ec.EcDispatchExpr("\"EC-PROGRAM-NOT-FOUND\"", "\"\"")};");
-                w.Line($"if (__pe{did} >= 0) {{ __pc = __pe{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                w.Line(dispatch.ResumeTransfer($"__pe{did}"));
             }
         }
         else
@@ -268,7 +268,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                     w.Line("ExceptionState.Set(\"EC-FUNCTION-PTR-INVALID\", true);   // §14.9.39.4 GR14 — set to exist");
                     int did = ctx.Names.NextPtr();
                     w.Line($"int __fe{did} = {ec.EcDispatchExpr("\"EC-FUNCTION-PTR-INVALID\"", "\"\"")};");
-                    w.Line($"if (__fe{did} >= 0) {{ __pc = __fe{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                    w.Line(dispatch.ResumeTransfer($"__fe{did}"));
                 }
         }
         else
@@ -282,7 +282,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 w.Line("ExceptionState.Set(\"EC-FUNCTION-NOT-FOUND\", true);   // §8.4.3.12.4 GR4 — set to exist");
                 int did = ctx.Names.NextPtr();
                 w.Line($"int __fn{did} = {ec.EcDispatchExpr("\"EC-FUNCTION-NOT-FOUND\"", "\"\"")};");
-                w.Line($"if (__fn{did} >= 0) {{ __pc = __fn{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                w.Line(dispatch.ResumeTransfer($"__fn{did}"));
             }
         }
         else
@@ -312,7 +312,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                     // status set alone never consulted the declarative model).
                     int id = ctx.Names.NextPtr();
                     w.Line($"int __fr{id} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-ALLOC\"", "\"\"")};");
-                    w.Line($"if (__fr{id} >= 0) {{ __pc = __fr{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                    w.Line(dispatch.ResumeTransfer($"__fr{id}"));
                 }
             }
             else

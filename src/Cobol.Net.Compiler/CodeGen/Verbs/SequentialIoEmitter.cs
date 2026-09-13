@@ -66,7 +66,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 : ("null", "null");
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
                 + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc});");
-            w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line(dispatch.ResumeTransfer($"__ior{id}"));
             NotNormal(id);
             return notNormalLabel is not null;
         }
@@ -80,7 +80,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // __IoCheckEc arm (the old void call discarded it, swallowing RESUME AT — kb/Work PB141).
             int id = ctx.Names.NextEc();
             w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
-            w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line(dispatch.ResumeTransfer($"__ior{id}"));
             NotNormal(id);
             return notNormalLabel is not null;
         }
@@ -409,7 +409,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                     w.Line("ExceptionState.Set(\"EC-REPORT-NOT-TERMINATED\", fatal: false);   // §14.9.6.4 GR5");
                     int id = ctx.Names.NextEc();
                     w.Line($"int __r{id} = {ec.EcDispatchExpr("\"EC-REPORT-NOT-TERMINATED\"", "\"\"")};");
-                    w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}");
+                    w.Line(dispatch.ResumeTransfer($"__r{id}", ""));
                 }
             }
             w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");

@@ -64,7 +64,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         int id = ctx.Names.NextEc();
         w.Line($"ExceptionState.SetObject({(ro.Source is { } roSrc ? PlaceRenderer.Read(roSrc) : "this")});   // §14.6.13.1.5 (1)/(2) — EXCEPTION-OBJECT + the status sentinel");
         w.Line($"int __r{id} = {ObjDispatchExpr($"ExceptionState.ExceptionObject")};");
-        w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+        w.Line(dispatch.ResumeTransfer($"__r{id}"));
         w.Line($"// -1/-2/-3: declarative completed / RESUME NEXT / no match — continue after RAISE (§14.9.29.4 GR2)");
         return false;   // the continue-after-RAISE path IS the normal exit (GR2 — never fatal by itself)
     }
@@ -154,7 +154,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // NonfatalDispatch answers "no qualifying declarative" and nothing is thrown, so the catch would be
             // dead text in every such program (the zero-scaffolding invariant applies to what CAN happen).
             if (UnitHasDispatchFunnel)
-                w.Line($"catch (RaiseResumeSignal __nr{id}) {{ if (__nr{id}.TargetPc >= 0) {{ __pc = __nr{id}.TargetPc; break; }} }}"
+                // A `goto` out of a catch CLAUSE is legal C# (only a finally BLOCK may not be left that way), so the
+                // resume landing uses the same dispatcher-transfer idiom as every other raise site (kb/Work PB405).
+                w.Line($"catch (RaiseResumeSignal __nr{id}) {{ {dispatch.ResumeTransfer($"__nr{id}.TargetPc", "")} }}"
                     + "   // RESUME out of a runtime-site nonfatal raise: AT procedure-name transfers (§14.9.33.4 GR3), "
                     + "AT NEXT STATEMENT abandons the interrupted statement (GR2)");
             w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
@@ -262,7 +264,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
             w.Line($"ExceptionState.Set({ecExpr}, true);");
             w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
-            w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line(dispatch.ResumeTransfer($"__r{id}"));
             w.Line($"if (__r{id} != -2) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
         }
         var reset = gates.Where(g => g.Flag is not null).Select(g => $"ExceptionState.{g.Flag} = false;").ToList();
@@ -295,7 +297,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         string loc = r.WithLocation ? CsLiteral(r.Location) : "null";
         w.Line($"ExceptionState.Set({CsLiteral(r.EcName)}, {(r.Fatal ? "true" : "false")}, {stmt}, {loc});   // §14.9.29.4 GR1 — raise + EXCEPTION-OBJECT null");
         w.Line($"int __r{id} = {EcDispatchExpr(CsLiteral(r.EcName), "\"\"")};");
-        w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+        w.Line(dispatch.ResumeTransfer($"__r{id}"));
         if (r.Fatal)
             w.Line($"if (__r{id} != -2) throw new CobolFatalException({CsLiteral(r.EcName)}, "
                 + "\"raised by RAISE and not resumed (ISO 14.6.13.1.3 #5/#7)\") { Dispatched = true };");
@@ -338,7 +340,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             if (!hasPhrase)
             {
                 w.Line($"int __r{id} = {EcDispatchExpr(ecnVar, "\"\"")};");
-                w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                w.Line(dispatch.ResumeTransfer($"__r{id}"));
                 // The message decoration reads the statement name back from the status Set just recorded —
                 // the ONE channel — rather than a second baked literal.
                 w.Line($"if (__r{id} != -2) throw new CobolFatalException({ecnVar}, "
@@ -366,7 +368,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             if (!hasPhrase)
             {
                 w.Line($"int __r{id} = {EcDispatchExpr(CsLiteral(ecName), "\"\"")};");
-                w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}");
+                w.Line(dispatch.ResumeTransfer($"__r{id}", ""));
             }
         }
     }

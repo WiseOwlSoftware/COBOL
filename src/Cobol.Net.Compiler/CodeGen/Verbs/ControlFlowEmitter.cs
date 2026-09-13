@@ -29,13 +29,15 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// (ISO §14.9.37.4 GR1b2; CA36).</summary>
     internal EcEmitter Ec { get; set; } = null!;
 
-    /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.20 Format 2): a 1-based selector picks a pc; an
-    /// out-of-range value transfers nowhere and falls through to the next statement.</summary>
+    /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.17 Format 2; GR2): a 1-based selector picks a pc;
+    /// an out-of-range value transfers nowhere and falls through to the next statement. (The clause number was
+    /// §14.9.20 here and at the selector read below — that is the INITIALIZE statement; GO TO is §14.9.17.)</summary>
     public void EmitGoToDepending(BoundGoToDepending d)
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextDep();
-        // The selector "shall be an integer" (§14.9.20.3 SR2) — read through the ONE integer landing so a P-scaled or
+        // The selector "shall reference a numeric elementary data item that is an integer" (§14.9.17.3 SR1) — read
+        // through the ONE integer landing so a P-scaled or
         // unsigned-wide item selects by VALUE (kb/Work PB86's sweep of raw integer-identifier reads).
         w.Line($"int __dep{id} = (int)({NumericRenderer.Align(num.AsNum(d.Selector, ReceiverContext.None), 0)});");
         // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an in-range GO TO … DEPENDING transfer is DEBUG-CONTENTS SPACES,
@@ -43,8 +45,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         string cause = dispatch.DebugActive ? $" __dbgCause = DebugCause.Transfer; __dbgLine = {d.SourceLine};" : "";
         using (w.Block($"switch (__dep{id})"))
             for (int k = 0; k < d.Targets.Count; k++)
-                w.Line($"case {k + 1}:{cause} __pc = {d.Targets[k]}; break;");
-        w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) break;   // in range → transfer (exit the dispatcher switch)");
+                w.Line($"case {k + 1}:{cause} __pc = {d.Targets[k]}; break;");   // this `break` is the SELECTOR switch's own
+        // In range ⇒ transfer. The jump is the dispatcher-transfer idiom, not a `break`: the statement's own
+        // selector switch is itself a C# breakable, so a `break` here left the SELECTOR (or, inside an inline
+        // PERFORM, that loop) and the transfer was silently discarded (kb/Work PB405).
+        w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) {dispatch.TransferJump()}   // in range → transfer (ISO §14.9.17.4 GR2)");
     }
 
     // DISPLAY lives on AcceptDisplayEmitter since Step 9c (the ACCEPT/DISPLAY collaborator).
@@ -479,13 +484,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // (4) the shared AT-END emission — both failure sites reach it (emitted ONCE), then the search-end label.
         w.Line($"__searchAtEnd{id}: ;");
         // GR1b2: AT END absent + checking on → dispatch the raised range EC to an applicable USE declarative / F3
-        // WHEN; >=0 = RESUME AT a procedure (transfer via the dispatcher break); -1/-2/-3 (declarative ran / RESUME
+        // WHEN; >=0 = RESUME AT a procedure (the dispatcher transfer idiom — the `break` it used to emit was
+        // captured by an inline PERFORM around the SEARCH, kb/Work PB405); -1/-2/-3 (declarative ran / RESUME
         // NEXT / no handler) fall through to the end of the SEARCH (nonfatal — §14.6.13.1.4 #3/#4).
         if (dispatchEc)
             using (w.Block($"if ({ecVar} != null)"))
             {
                 w.Line($"int __searchR{id} = {Ec.EcDispatchExpr(ecVar, "\"\"")};");
-                w.Line($"if (__searchR{id} >= 0) {{ __pc = __searchR{id}; break; }}");
+                w.Line(dispatch.ResumeTransfer($"__searchR{id}", ""));
             }
         bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
         if (!terminated) w.Line($"goto __searchEnd{id};");

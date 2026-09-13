@@ -152,7 +152,8 @@ public sealed record BoundEoClass(Compiler.Oo.OoClassSymbol Symbol) : BoundEoOpe
 public sealed record BoundEoInterface(Compiler.Oo.OoInterfaceSymbol Symbol) : BoundEoOperand;
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
-/// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).
+/// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19.4 GR4
+/// (the THEN phrase) and GR6 (the ELSE phrase) — the SAME transfer, stated once per arm).
 /// Its pc index is its position in <see cref="BoundProgram.Paragraphs"/> — the G4 PC dispatcher transfers control
 /// by that index.</summary>
 public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyList<BoundStatement>> Sentences,
@@ -916,11 +917,13 @@ public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyLi
 // when the debug facility is inactive (never read then).
 public sealed record BoundOutOfLinePerform(PcRange Range, BoundPerformControl Control, int SourceLine = 0) : BoundStatement;
 
-/// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.20 Format 1).</summary>
+/// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.17 Format 1;
+/// §14.9.17.4 GR1 "control is transferred to procedure-name-1"). (§14.9.20 — carried here and on the DEPENDING
+/// node — is the INITIALIZE statement.)</summary>
 public sealed record BoundGoTo(int TargetPc, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>GO TO p1 p2 … DEPENDING ON sel</c> — transfer to <c>Targets[sel-1]</c>; out-of-range falls through
-/// to the next statement (ISO §14.9.20 Format 2).</summary>
+/// to the next statement (ISO §14.9.17 Format 2; §14.9.17.4 GR2).</summary>
 public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
@@ -961,8 +964,10 @@ public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundS
 /// indistinguishable from CONTINUE forever.</summary>
 public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement;
 
-/// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19 GR6 / §14.9.37 — archaic per Annex F.1, legal at every edition):
-/// transfer to the implicit CONTINUE following the current sentence's separator period.</summary>
+/// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19.4 GR4 in an IF's THEN phrase and GR6 in its ELSE phrase — ONE
+/// node for both, since the two rules state the same transfer and nothing downstream may diverge on the arm; also
+/// §14.9.37 as a SEARCH AT END/WHEN phrase — archaic per Annex F.1, legal at every edition): transfer to the
+/// implicit CONTINUE following the current sentence's separator period.</summary>
 public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its

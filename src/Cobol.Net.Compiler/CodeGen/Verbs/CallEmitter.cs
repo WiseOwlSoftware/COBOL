@@ -17,7 +17,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// the ONE CALL-boundary string-carrier trio (<see cref="CallPlaceIsString"/>/<see cref="CallStringRead"/>/
 /// <see cref="CallStringWrite"/>) Report Writer and the program-class emission reuse.</summary>
 internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, CallUnitState callState,
-    EcEmitter ec, MoveEmitter move)
+    EcEmitter ec, MoveEmitter move, DispatchState dispatch)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the ON/NOT-ON
     /// EXCEPTION phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
@@ -285,7 +285,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             else
             {
                 w.Line($"int __r{id} = {ec.EcDispatchExpr($"__ce{id}.EcName", "\"\"")};");
-                w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                w.Line(dispatch.ResumeTransfer($"__r{id}"));
                 w.Line($"if (__r{id} != -2) throw new CobolFatalException(__ce{id}.EcName, __ce{id}.Message) {{ Dispatched = true }};   // §14.6.13.1.3 #5/#7 (dispatched here)");
             }
         }
@@ -307,12 +307,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             w.Line($"ExceptionState.SetObject(__po{id});   // GR1b2 — the current exception object HERE (the activator)");
             w.Line($"int __or{id} = {ec.ObjDispatchExpr($"__po{id}")};   // rule 2 — USE AFTER EXCEPTION OBJECT (GR14)");
-            w.Line($"if (__or{id} >= 0) {{ __pc = __or{id}; break; }}   // RESUME AT procedure-name");
+            w.Line(dispatch.ResumeTransfer($"__or{id}", "   // RESUME AT procedure-name"));
             using (w.Block($"if (__or{id} == -3)   // rule 3 PROPAGATE ON: directive not implemented (residue); rule 4 —"))
             {
                 w.Line("ExceptionState.Set(\"EC-OO-EXCEPTION\", true);   // as if EXCEPTION EC-OO-EXCEPTION (:24608)");
                 w.Line($"int __oq{id} = {ec.EcDispatchExpr("\"EC-OO-EXCEPTION\"", "\"\"")};   // the name enters the F3 tiers");
-                w.Line($"if (__oq{id} >= 0) {{ __pc = __oq{id}; break; }}");
+                w.Line(dispatch.ResumeTransfer($"__oq{id}", ""));
                 w.Line($"if (__oq{id} != -2) throw new CobolFatalException(\"EC-OO-EXCEPTION\", "
                     + "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\") { Dispatched = true };");
             }
@@ -321,7 +321,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         using (w.Block($"if (ExceptionState.TakePropagated(out var __pn{id}, out var __pf{id}))   // §14.9.18 GR — raised at the end of the CALL"))
         {
             w.Line($"int __pr{id} = {ec.EcDispatchExpr($"__pn{id}", "\"\"")};");
-            w.Line($"if (__pr{id} >= 0) {{ __pc = __pr{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line(dispatch.ResumeTransfer($"__pr{id}"));
             w.Line($"if (__pr{id} != -2 && __pf{id}) throw new CobolFatalException(__pn{id}, "
                 + "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
                 + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\") { Dispatched = true };");

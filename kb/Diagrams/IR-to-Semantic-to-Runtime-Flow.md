@@ -183,7 +183,7 @@ BoundWhenOperand   --[ §14.9.49.4 GR3c-g tiered EC/file match ]-->  Format-3 PE
 ## GO TO / ALTER / EXIT / termination
 *Nodes: `BoundGoTo`, `BoundGoToDepending`, `BoundGoToAlterable`, `BoundAlter`, `BoundAlterEntry`, `BoundExitParagraph`, `BoundExitSection`, `BoundExitPerform`, `BoundExitProgram`, `BoundNextSentence`, `BoundStop`, `BoundStopLiteral`, `BoundGoback`*
 
-**Spec mapping.** These carry the procedure-division transfer and termination verbs. `BoundGoTo`/`BoundGoToDepending` are GO TO Formats 1–2 (ISO §14.9.20; DEPENDING out-of-range falls through). `BoundAlter`/`BoundAlterEntry`/`BoundGoToAlterable` are the alterable GO TO + ALTER (§14.9.2) — obsolete in ANSI-85, deleted at 2002. EXIT forms are §14.9.14: `BoundExitParagraph` (fall-through), `BoundExitSection` Format 4, `BoundExitPerform` [CYCLE], `BoundExitProgram` Format 2. `BoundNextSentence` is §14.9.19 GR6. Termination: `BoundStop`/`BoundStopLiteral` (§14.9.42, literal deleted 2002), `BoundGoback` (§14.9.18). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
+**Spec mapping.** These carry the procedure-division transfer and termination verbs. `BoundGoTo`/`BoundGoToDepending` are GO TO Formats 1–2 (ISO §14.9.17, GR1/GR2 — §14.9.20 is INITIALIZE; DEPENDING out-of-range falls through). `BoundAlter`/`BoundAlterEntry`/`BoundGoToAlterable` are the alterable GO TO + ALTER (§14.9.2) — obsolete in ANSI-85, deleted at 2002. EXIT forms are §14.9.14: `BoundExitParagraph` (fall-through), `BoundExitSection` Format 4, `BoundExitPerform` [CYCLE], `BoundExitProgram` Format 2. `BoundNextSentence` is §14.9.19.4 GR4 (THEN phrase) and GR6 (ELSE phrase) — one node for both arms. Termination: `BoundStop`/`BoundStopLiteral` (§14.9.42, literal deleted 2002), `BoundGoback` (§14.9.18). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
 **Semantic rules.** Transfer-target resolution to a pc is invariant binder work. Edition gating is recognition-based in `VersionConformancePass`: `AlterRemoved2002` (ALTER §14.9.2), `BareGotoRemoved2002` (target-less/alterable GO TO §14.9.17), `ExitSection2002`, `StopLiteralRemoved2002`, and `StopRunStatus2002`/GOBACK STATUS (2002/2023). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
@@ -195,7 +195,7 @@ BoundWhenOperand   --[ §14.9.49.4 GR3c-g tiered EC/file match ]-->  Format-3 PE
   BoundExitParagraph              --[ §14.9.14 F4 ]-->               fall-through to paragraph end
   BoundExitSection                --[ §14.9.14 F4 / ExitSection2002 ]-->  __pc = SectionEndPc+1 (or return)
   BoundExitPerform [CYCLE]        --[ §14.9.14 F3 ]-->               goto __pexit / ExitPerformSignal
-  BoundNextSentence               --[ §14.9.19 GR6 ]-->             transfer to post-period CONTINUE
+  BoundNextSentence               --[ §14.9.19.4 GR4/GR6 ]-->       transfer to post-period CONTINUE
   BoundStop (STOP RUN)            --[ §14.9.42 ]-->                 throw StopRun        -> RunUnit.ExitStatus (run-unit wrapper)
   BoundStopLiteral                --[ §14.9.42 F2 / StopLiteralRemoved2002 ]-->  write operator channel; continue
   BoundGoback / BoundExitProgram  --[ §14.9.18 GR2/GR3 / §14.9.14 GR2/GR3 ]-->  throw ProgramReturn  -> activation entry (main entry = run-unit wrapper ≡ STOP)

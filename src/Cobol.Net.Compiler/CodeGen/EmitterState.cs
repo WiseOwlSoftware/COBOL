@@ -32,7 +32,8 @@ namespace CobolNet.CodeGen;
 internal enum F3Region { None, Imp1, Handler, Finally, Inline }
 
 /// <summary>The PC-dispatcher state the statement emitters cooperate over (COBOLNET_DESIGN §5): which paragraph
-/// is being emitted, the NEXT SENTENCE label, the dispatch-method name, and the USE-declaratives hooks.</summary>
+/// is being emitted, the NEXT SENTENCE label, the dispatch-method name, the ONE way a statement leaves the
+/// current paragraph body (<see cref="TransferOut(string,string)"/>), and the USE-declaratives hooks.</summary>
 internal sealed class DispatchState
 {
     /// <summary>The paragraph index being emitted (for EXIT PARAGRAPH / fall-through). Written per pc case by
@@ -120,6 +121,71 @@ internal sealed class DispatchState
                 $"internal: __RunUse({id}, …) requested for an EMPTY declarative range — a declarative section "
                 + "always carries at least one pc so its bounded dispatch can run (ISO §14.9.49.3 SR1)")
             : $"__RunUse({id}, {range.Start}, {range.End})";
+
+    // ── Leaving the paragraph body: ONE idiom, one label (kb/Work PB405/PB414) ────────────────────────────────
+    //  ⛔ A transfer of control OUT of the current paragraph is spelled `__pc = <target>; goto <TransferLabel>;`
+    //  and NOWHERE spelled as a bare C# `break;`. C# binds `break` to the innermost enclosing breakable
+    //  statement, and the emitter lowers COBOL containers to real C# breakables — an inline PERFORM is a
+    //  for/while/do (ControlFlowEmitter.EmitPerformLoop), GO TO … DEPENDING is a switch — so a `break` written
+    //  for the dispatcher's `switch (__pc)` was CAPTURED by any such container the statement happened to sit in:
+    //  the transfer was silently discarded and the paragraph's fall-through epilogue then overwrote the target
+    //  (§14.9.14.4 GR6/GR7 and §14.9.19.4 GR4/GR6 all measured wrong that way). A `goto` cannot be captured, so
+    //  the NEXT container the emitter learns to lower is correct by construction rather than by review; the
+    //  DispatcherTransferIdiomDriftTests pin that. The same reasoning already governed EXIT PERFORM, which has
+    //  used planted __pexit/__pcont labels since CA31/CA32 — this is that reasoning applied to the statements
+    //  that leave the DISPATCHER instead of a PERFORM.
+
+    /// <summary>The label planted immediately after the dispatcher's <c>switch (__pc)</c> (before the at-exit
+    /// return test) — the ONE landing point for every transfer of control out of a paragraph body. Scoped per
+    /// dispatch method by <see cref="BeginTransferScope"/> so a program's <c>__Dispatch</c> and an OO method's
+    /// local-function <c>__MDispatch</c> each own theirs.</summary>
+    public string TransferLabel { get; private set; } = "__xfer";
+
+    /// <summary>Whether the dispatch method currently being emitted rendered at least one
+    /// <see cref="TransferOut(string,string)"/> — the label is planted only then, so a program with no transfers
+    /// emits no unreferenced label (and its generated source is unchanged).</summary>
+    public bool TransferUsed { get; private set; }
+
+    /// <summary>Open a transfer scope for one dispatch method, returning the previous scope for
+    /// <see cref="EndTransferScope"/> (the save/restore idiom of <see cref="SetF3Region"/>).</summary>
+    public (string Label, bool Used) BeginTransferScope(string label)
+    {
+        var saved = (TransferLabel, TransferUsed);
+        TransferLabel = label;
+        TransferUsed = false;
+        return saved;
+    }
+
+    /// <summary>Close a transfer scope opened by <see cref="BeginTransferScope"/>.</summary>
+    public void EndTransferScope((string Label, bool Used) saved) => (TransferLabel, TransferUsed) = saved;
+
+    /// <summary>Render "leave the current paragraph body and re-dispatch at <paramref name="pcExpr"/>" — the
+    /// single place a transfer of control out of a paragraph becomes C# (GO TO and its alterable/DEPENDING forms,
+    /// EXIT PARAGRAPH §14.9.14.4 GR6, EXIT SECTION GR7, NEXT SENTENCE in a last sentence §14.9.19.4 GR4/GR6, and
+    /// every RESUME AT landing §14.9.33.4 GR3). <paramref name="comment"/> is appended as a trailing <c>//</c>
+    /// note. Marks <see cref="TransferUsed"/> so the dispatch emission plants the label.</summary>
+    public string TransferOut(string pcExpr, string comment = "") => $"__pc = {pcExpr}; {TransferJump()}{comment}";
+
+    /// <summary>The JUMP half of <see cref="TransferOut(string,string)"/>, for the one statement that must run
+    /// something between setting <c>__pc</c> and leaving: EXIT SECTION fires the section's own return mechanism
+    /// first (§14.9.14.4 GR7 "preceding any return mechanisms for that section").</summary>
+    public string TransferJump()
+    {
+        TransferUsed = true;
+        return $"goto {TransferLabel};";
+    }
+
+    /// <summary>The <see cref="TransferOut(string,string)"/> of a compile-time pc.</summary>
+    public string TransferOut(int pc, string comment = "") => TransferOut(pc.ToString(), comment);
+
+    /// <summary>Render the RESUME landing of one dispatch result: a USE declarative / Format-3 handler that
+    /// completed with RESUME AT procedure-name returns that paragraph's pc, and the raise site transfers there
+    /// (ISO §14.9.33.4 GR3); a negative result is "no transfer" (normal completion, RESUME NEXT STATEMENT, or no
+    /// qualifying declarative) and falls through. Written ONCE here because every raise site there is — I/O,
+    /// CALL, pointer, SEARCH, RAISE, size-error, CONTINUE AFTER — lands the same way, and each site that spelled
+    /// it itself spelled the transfer as a capturable <c>break</c> (kb/Work PB405).</summary>
+    public string ResumeTransfer(string resultVar, string comment = "   // RESUME AT procedure-name (§14.9.33.4 GR3)")
+        => $"if ({resultVar} >= 0) {{ {TransferOut(resultVar)} }}{comment}";
 
     /// <summary>The program being emitted declares USE procedures (drives the <c>__IoCheck</c> hooks). Set per
     /// unit by the dispatcher emission; cleared by the OO class-unit emission (a class owns no USE
