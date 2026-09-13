@@ -147,7 +147,12 @@ public sealed class CobolCollationTests
     // ---- the base class and the table arms ---------------------------------------------------------------------
 
     /// <summary>ISO §14.7.8: ONE ThruMember on the base class serves every arm — the inclusive test, and lo > hi
-    /// sets the nonfatal EC-RANGE-INVALID and answers false.</summary>
+    /// raises the nonfatal EC-RANGE-INVALID (rule 2) and answers false.
+    /// <para>The raise is GATED on the ambient checking flag, like every other condition the runtime detects:
+    /// §14.6.13.1.1's "if checking for an exception that occurs is not enabled, no exception condition is raised"
+    /// is applied once, in <c>ExceptionEngine</c>, per (flag, exception-name) pair — this site used to write its
+    /// own unconditional <c>Set</c>, which recorded a condition no TURN had enabled and could not reach the
+    /// §14.6.13.1.4 #3 declarative (kb/Work PB367b). The empty-range ANSWER does not depend on the flag.</para></summary>
     [Fact]
     public void ThruMember_IsOneImplementationOnTheBase()
     {
@@ -158,9 +163,16 @@ public sealed class CobolCollationTests
             Assert.True(Loc.ThruMember("z", "a", "z"));
             Assert.False(Loc.ThruMember("Z", "a", "y"));         // Z sorts after y under the locale order
             ExceptionState.Clear();
-            Assert.False(Loc.ThruMember("m", "z", "a"));         // lo collates after hi
-            Assert.Equal("EC-RANGE-INVALID", ExceptionState.LastName);
-            Assert.False(ExceptionState.LastFatal);
+            Assert.False(Loc.ThruMember("m", "z", "a"));         // lo collates after hi — checking OFF
+            Assert.Null(ExceptionState.LastName);                // §14.6.13.1.1 — not enabled ⇒ not raised
+            ExceptionState.RangeInvalidChecking = true;
+            try
+            {
+                Assert.False(Loc.ThruMember("m", "z", "a"));     // the same inverted range, checking ON
+                Assert.Equal("EC-RANGE-INVALID", ExceptionState.LastName);
+                Assert.False(ExceptionState.LastFatal);
+            }
+            finally { ExceptionState.RangeInvalidChecking = false; }
             Assert.True(CobolString.ThruMember("m", "a", "z", Loc));
         });
         var reversed = Reversed();

@@ -496,6 +496,238 @@ public sealed class ReportWriterConformanceTests
                 STOP RUN.
             """, "DE 7");
 
+    [Fact]   // §14.9.49.4 GR8 — "The declarative is invoked just before the named report group is produced" —
+             // for ALL SEVEN report-group types, not just the detail one (kb/Work PB367b: the engine installs the
+             // hook per group and invokes it as the first act of every presentation path, but only the DETAIL
+             // path had a witness, so the RH / PH / CH / CF / PF / RF invocations were unverified in both
+             // directions). Each declarative writes its OWN digit into WS-F and each group SOURCEs WS-F, so a
+             // group can only print its own digit if ITS declarative ran immediately before IT was produced —
+             // a hook wired to the wrong group, or invoked once for the whole page, prints a neighbour's digit.
+             // The ORDER is the standard's own: §14.9.16.4 GR4 a)–d) (the chronologically first GENERATE prints
+             // the report heading, then a page heading, then each control heading, then the detail) followed by
+             // §14.9.46.4 GR3 b)/c) (TERMINATE prints each control footing, then the report footing) with
+             // §13.18.57.4 GR6 f) placing the page footing as "the last report group on each page" and adding
+             // that "If a report footing is defined and is not on a page by itself, the page footing on the last
+             // page is immediately followed by the report footing".
+    public void UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative()
+        => AssertSpec("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWTSTU7.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT ASSIGN TO "RPTF7".
+                SELECT RBACK ASSIGN TO "RPTF7" ORGANIZATION LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD RPT
+                REPORT IS R-1.
+            FD RBACK.
+            01 RB-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01 WS-F PIC 9 VALUE 0.
+            01 WS-KEY PIC 9 VALUE 1.
+            REPORT SECTION.
+            RD R-1 CONTROL IS WS-KEY PAGE LIMIT IS 20 LINES
+                HEADING 1 FIRST DETAIL 4 LAST DETAIL 14 FOOTING 16.
+            01 RH-1 TYPE RH LINE 1.
+                03 COLUMN 1 PIC X(2) VALUE "RH".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            01 PH-1 TYPE PH LINE 2.
+                03 COLUMN 1 PIC X(2) VALUE "PH".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            01 CH-1 TYPE CH WS-KEY LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "CH".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            01 DET-1 TYPE DE LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "DE".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            01 CF-1 TYPE CF WS-KEY LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "CF".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            01 PF-1 TYPE PF LINE 17.
+                03 COLUMN 1 PIC X(2) VALUE "PF".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            01 RF-1 TYPE RF LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "RF".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            BR-RH SECTION. USE BEFORE REPORTING RH-1.
+            BR-RH-P.
+                MOVE 1 TO WS-F.
+            BR-PH SECTION. USE BEFORE REPORTING PH-1.
+            BR-PH-P.
+                MOVE 2 TO WS-F.
+            BR-CH SECTION. USE BEFORE REPORTING CH-1.
+            BR-CH-P.
+                MOVE 3 TO WS-F.
+            BR-DE SECTION. USE BEFORE REPORTING DET-1.
+            BR-DE-P.
+                MOVE 4 TO WS-F.
+            BR-CF SECTION. USE BEFORE REPORTING CF-1.
+            BR-CF-P.
+                MOVE 5 TO WS-F.
+            BR-PF SECTION. USE BEFORE REPORTING PF-1.
+            BR-PF-P.
+                MOVE 6 TO WS-F.
+            BR-RF SECTION. USE BEFORE REPORTING RF-1.
+            BR-RF-P.
+                MOVE 7 TO WS-F.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT.
+                INITIATE R-1.
+                GENERATE DET-1.
+                TERMINATE R-1.
+                CLOSE RPT.
+                OPEN INPUT RBACK.
+            RB-LOOP.
+                READ RBACK AT END GO TO RB-DONE.
+                IF RB-REC NOT EQUAL TO SPACES DISPLAY RB-REC(1:4).
+                GO TO RB-LOOP.
+            RB-DONE.
+                CLOSE RBACK.
+                STOP RUN.
+            """, "RH 1\nPH 2\nCH 3\nDE 4\nCF 5\nPF 6\nRF 7");
+
+    [Fact]   // §14.9.49.4 GR9 a) and b) — the two logical points that fix WHEN the declarative runs relative to
+             // the rest of a GENERATE, and which had no witness at all (kb/Work PB367b).
+             // GR9 a) "After any control break processing, if the associated report group is a detail and the
+             // associated report description has a CONTROL clause": BR-DE writes 09 into WS-SEEN and no control
+             // heading ever shows it — the first shows 00 (no declarative has run yet) and the one printed during
+             // the break shows 07, the value BR-CF wrote moments earlier. A detail declarative that ran before
+             // the break processing would put 09 on the second control heading.
+             // GR9 b) "After incrementing sum counters defined in the report group": BR-CF changes the ADDEND
+             // (WS-AMT 1 → 5), which is observable precisely because of the ordering GR9 b) asserts. The control
+             // footing printed at the break still shows 01 — the increments belonging to that instance were all
+             // applied before its declarative ran — and the breaking GENERATE's own increment, which
+             // §14.9.16.4 GR5 a) places after the break processing, therefore picks up the 5 the declarative
+             // wrote, so the TERMINATE footing (§14.9.46.4 GR3 b) shows 05. Had the declarative run before the
+             // increments of its own instance, the break footing would read 05 as well.
+             // ⚠ The DIRECT observable for GR9 b) — a declarative reading its group's own sum counter
+             // (§13.18.54.4 GR5 + GR12) — is not available: a named sum counter is rejected as undefined in the
+             // procedure division (COBOLNET1639). That is a separate defect, reported with kb/Work PB367b.
+    public void UseBeforeReporting_Gr9ab_AfterBreakProcessingAndAfterSumIncrement()
+        => AssertSpec("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWTSTU9.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT ASSIGN TO "RPTF9".
+                SELECT RBACK ASSIGN TO "RPTF9" ORGANIZATION LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD RPT
+                REPORT IS R-1.
+            FD RBACK.
+            01 RB-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01 WS-KEY  PIC 9 VALUE 1.
+            01 WS-AMT  PIC 9 VALUE 1.
+            01 WS-SEEN PIC 99 VALUE 0.
+            REPORT SECTION.
+            RD R-1 PAGE LIMIT IS 20 LINES CONTROL IS WS-KEY.
+            01 CH-1 TYPE CH WS-KEY LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "CH".
+                03 COLUMN 4 PIC 99 SOURCE IS WS-SEEN.
+            01 DET-1 TYPE DE LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "DE".
+            01 CF-1 TYPE CF WS-KEY LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "CF".
+                03 COLUMN 4 PIC 99 SUM WS-AMT.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            BR-CF SECTION. USE BEFORE REPORTING CF-1.
+            BR-CF-P.
+                MOVE 7 TO WS-SEEN.
+                MOVE 5 TO WS-AMT.
+            BR-DE SECTION. USE BEFORE REPORTING DET-1.
+            BR-DE-P.
+                MOVE 9 TO WS-SEEN.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT.
+                INITIATE R-1.
+                GENERATE DET-1.
+                MOVE 2 TO WS-KEY.
+                GENERATE DET-1.
+                TERMINATE R-1.
+                CLOSE RPT.
+                OPEN INPUT RBACK.
+            RB-LOOP.
+                READ RBACK AT END GO TO RB-DONE.
+                IF RB-REC NOT EQUAL TO SPACES DISPLAY RB-REC(1:5).
+                GO TO RB-LOOP.
+            RB-DONE.
+                CLOSE RBACK.
+                STOP RUN.
+            """, "CH 00\nDE\nCF 01\nCH 07\nDE\nCF 05");
+
+    [Fact]   // THE DETERMINATION kb/Work PB367b records: a USE BEFORE REPORTING declarative runs BEFORE the
+             // group's PRESENT WHEN conditions are evaluated, so it can decide its own group's presence.
+             // The standard fixes neither event relative to the other — §14.9.49.4 GR9 d) performs the
+             // declarative "Before the processing of any LINE clauses defined for the report group" and
+             // §13.18.41.4 GR2 evaluates condition-1 "before the processing of any LINE clauses for the report
+             // group", the SAME boundary — and both precede the page fit test (§14.9.49.4 GR9 c) and
+             // §13.18.41.4 GR3 d), which disregards absent lines). The order is therefore the implementor's, and
+             // this one is chosen because the reverse makes a declarative's execution depend on data the
+             // declarative is itself there to set: condition-1 is any condition (§13.18.41.2), typically over
+             // exactly the items GR8's "just before the named report group is produced" exists to let the
+             // procedure prepare. Under the reverse order a level-01 PRESENT WHEN would silently suppress the
+             // procedure that would have made the group present, and no rule would let the program say so.
+             // WS-ON starts 0 — absent, "as though the entire report group description were omitted"
+             // (§13.18.41.4 GR2 b) — and only BR-DE makes it 1, so the printed line IS the determination.
+    public void UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated()
+        => AssertSpec("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWTSTUPW.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT ASSIGN TO "RPTFPW".
+                SELECT RBACK ASSIGN TO "RPTFPW" ORGANIZATION LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD RPT
+                REPORT IS R-1.
+            FD RBACK.
+            01 RB-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01 WS-ON PIC 9 VALUE 0.
+            01 WS-F  PIC 9 VALUE 0.
+            REPORT SECTION.
+            RD R-1 PAGE LIMIT IS 20 LINES.
+            01 DET-1 TYPE DE LINE PLUS 1 PRESENT WHEN WS-ON = 1.
+                03 COLUMN 1 PIC X(2) VALUE "DE".
+                03 COLUMN 4 PIC 9 SOURCE IS WS-F.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            BR-DE SECTION. USE BEFORE REPORTING DET-1.
+            BR-DE-P.
+                MOVE 1 TO WS-ON.
+                MOVE 4 TO WS-F.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT.
+                INITIATE R-1.
+                GENERATE DET-1.
+                TERMINATE R-1.
+                CLOSE RPT.
+                OPEN INPUT RBACK.
+            RB-LOOP.
+                READ RBACK AT END GO TO RB-DONE.
+                IF RB-REC NOT EQUAL TO SPACES DISPLAY RB-REC(1:4).
+                GO TO RB-LOOP.
+            RB-DONE.
+                CLOSE RBACK.
+                STOP RUN.
+            """, "DE 4");
+
     // ── Counter referencing rules (§8.4.3.15) ───────────────────────────────────────────────────────────────
 
     [Fact]   // SR3: LINE-COUNTER shall not be referenced as a receiving operand — a bind-time rejection, never a

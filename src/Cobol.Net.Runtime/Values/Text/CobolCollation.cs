@@ -71,7 +71,7 @@ public abstract class CobolCollation
     /// overload set used to need are gone.</summary>
     public bool ThruMember(string? read, string? lo, string? hi)
     {
-        if (Compare(lo, hi) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
+        if (Compare(lo, hi) > 0) { ExceptionState.RangeInvalidError(CobolString.InvertedRange); return false; }
         return Compare(read, lo) >= 0 && Compare(read, hi) <= 0;
     }
 }

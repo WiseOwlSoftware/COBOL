@@ -225,6 +225,12 @@ public static class CobolString
         figIsLeft ? collation.Compare(FigToWidth(left ?? "", (right ?? "").Length), right)
                   : collation.Compare(left, FigToWidth(right ?? "", (left ?? "").Length));
 
+    /// <summary>The ONE detail text for the §14.7.8 rule 2 raise — both THROUGH carriers (native here,
+    /// non-native on <see cref="CobolCollation"/>) describe the same condition, so they do not describe it
+    /// twice.</summary>
+    internal const string InvertedRange =
+        "the THROUGH range's starting value collates after its ending value — the range is empty (ISO §14.7.8 rule 2)";
+
     /// <summary>Membership of <paramref name="read"/> in the alphanumeric/national THROUGH range
     /// [<paramref name="lo"/>, <paramref name="hi"/>] under the effective collating sequence (ISO §14.7.8; a level-88
     /// VALUE THRU or an EVALUATE WHEN range). When <paramref name="lo"/> collates AFTER <paramref name="hi"/> (rule 2)
@@ -232,7 +238,7 @@ public static class CobolString
     /// bound test. The "empty range" behaviour was already emergent from the inclusive test — this adds only the EC.</summary>
     public static bool ThruMember(string? read, string? lo, string? hi, char pad = ' ')
     {
-        if (Compare(lo, hi, pad) > 0) { ExceptionState.Set("EC-RANGE-INVALID", fatal: false); return false; }
+        if (Compare(lo, hi, pad) > 0) { ExceptionState.RangeInvalidError(InvertedRange); return false; }
         return Compare(read, lo, pad) >= 0 && Compare(read, hi, pad) <= 0;
     }
 

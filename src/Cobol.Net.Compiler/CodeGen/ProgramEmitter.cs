@@ -289,6 +289,14 @@ internal sealed class ProgramEmitter
                         // maps to '30' inside FileConnector.Close (PB140), so the loop never abandons the
                         // remaining files ("executed for ALL such files, even when an error occurs").
                         w.Line($"{RuntimeApi.FileCloseIfOpen(FileKeyExpr(file))};");
+            // §14.6.13.1.4 #3 for a condition raised at a RUNTIME site: the ABI face of this unit's Format-3
+            // selection, so the raise site — which has no statement-level node to hang a dispatch on — reaches
+            // the declaratives of the ACTIVATION that is executing (kb/Work PB367b; the activation boundary in
+            // ProgramTable installs it). A unit with no F3 machinery emits nothing and takes the interface
+            // default's "no qualifying declarative", which is what keeps the zero-scaffolding invariant.
+            if (Current.Ec.UnitHasDispatchFunnel)
+                w.Line($"int ICobolProgram.NonfatalDispatch(string __ec) => {Current.Ec.EcDispatchExpr("__ec", "\"\"")};"
+                    + "   // ISO §14.6.13.1.4 #3 / §14.9.49.4 GR3");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
             w.Line();

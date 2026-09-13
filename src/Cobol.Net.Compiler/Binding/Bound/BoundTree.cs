@@ -1000,12 +1000,15 @@ public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCap
 /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of the
 /// dynamic-length elementary item at <paramref name="Target"/> to <paramref name="Amount"/> characters. Growing
 /// space-fills the added positions (GR39); shrinking drops the trailing ones; a value above <paramref name="Limit"/>
-/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). When
-/// <paramref name="CheckStorage"/> (EC-STORAGE-NOT-AVAIL checking was enabled at this statement — captured from the
-/// TurnState at bind time) the clamp/negative legs also set the nonfatal EC-STORAGE-NOT-AVAIL (GR37/GR38). A
+/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). The clamp/negative
+/// legs also raise the nonfatal EC-STORAGE-NOT-AVAIL — through the runtime's ambient
+/// (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair, which the statement's own EC wrapper arms, so the raise
+/// runs the §14.6.13.1.4 #3 declarative selection like every other ambient-gated condition. (This node used to
+/// carry a bind-time <c>CheckStorage</c> bool passed POSITIONALLY to the runtime; that second enablement
+/// mechanism is what kept the raise outside the selection — kb/Work PB367b.) A
 /// self-identifying node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the
 /// explicit SIZE OF form and the bare re-routed form.</summary>
-public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit, bool CheckStorage) : BoundStatement;
+public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit) : BoundStatement;
 
 /// <summary>One receiving operand of a Format-15 SET, with the content computed FOR IT (ISO §14.9.39.4 GR32–GR36
 /// each say "the content of identifier-14 is set …", and every value they name is a property of that receiver's own

@@ -36,29 +36,34 @@ public static class CobolDynString
     /// <see cref="CobolTiming.ContinueAfter"/>). GR39 — growing initializes the ADDED positions to SPACES (the
     /// national space is U+0020 under the Latin-1 identity), NEVER restoring previously-truncated content; shrinking
     /// drops the trailing positions. GR37 — when the evaluated value does not evaluate to a nonnegative number the
-    /// length is set to 0 and, when <paramref name="checkStorage"/> (EC-STORAGE-NOT-AVAIL checking was enabled at the
-    /// statement), the nonfatal EC-STORAGE-NOT-AVAIL is set to exist; a non-integer nonnegative value is truncated
-    /// toward zero. GR38 — a value above <paramref name="limit"/> (the maximum size of data-name-3) is clamped to that
-    /// maximum and, when <paramref name="checkStorage"/>, the same nonfatal EC-STORAGE-NOT-AVAIL is set. (GR38's third
+    /// length is set to 0 and the nonfatal EC-STORAGE-NOT-AVAIL is raised; a non-integer nonnegative value is
+    /// truncated toward zero. GR38 — a value above <paramref name="limit"/> (the maximum size of data-name-3) is
+    /// clamped to that maximum and the same nonfatal EC-STORAGE-NOT-AVAIL is raised. (GR38's third
     /// leg — the requested storage not being physically available — is N/A under the .NET managed heap: a within-LIMIT
-    /// length always allocates.) The stored value is identical whether or not checking is on; the flag only governs the
-    /// observable exception status. <paramref name="limit"/> below 0 means no LIMIT phrase — the implementor maximum,
-    /// here unbounded. (The integer-2 literal form is compile-time bounded by SR34, so these runtime raises pertain to
-    /// the arithmetic-expression-5 form.)
+    /// length always allocates.) The stored value is identical whether or not checking is on; checking only governs the
+    /// observable exception status and the §14.6.13.1.4 #3 declarative. <paramref name="limit"/> below 0 means no
+    /// LIMIT phrase — the implementor maximum, here unbounded. (The integer-2 literal form is compile-time bounded by
+    /// SR34, so these runtime raises pertain to the arithmetic-expression-5 form.)
+    /// <para>⛔ "Checking was enabled at this statement" used to arrive as a POSITIONAL argument, which made this the
+    /// one nonfatal raise site that could not reach a USE declarative: §14.6.13.1.1's rule is applied by
+    /// <c>ExceptionEngine</c> per (ambient flag, exception-name) pair, and a site outside that pair also sits outside
+    /// the §14.6.13.1.4 #3 selection the pair now runs (kb/Work PB367b).</para>
     /// </summary>
-    public static string SetSize(string? current, double newLen, int limit, bool checkStorage)
+    public static string SetSize(string? current, double newLen, int limit)
     {
         current ??= "";
         long n;
         if (newLen < 0.0)
         {
             n = 0;                                                       // GR37 — not nonnegative → length 0
-            if (checkStorage) ExceptionState.Set("EC-STORAGE-NOT-AVAIL", fatal: false);
+            ExceptionState.StorageNotAvailError(
+                $"SET SIZE: the evaluated length {newLen} is not a nonnegative number (ISO §14.9.39 Format 16 GR37)");
         }
         else if (limit >= 0 && newLen > limit)
         {
             n = limit;                                                  // GR38 — above the maximum → clamp to it
-            if (checkStorage) ExceptionState.Set("EC-STORAGE-NOT-AVAIL", fatal: false);
+            ExceptionState.StorageNotAvailError(
+                $"SET SIZE: the evaluated length {newLen} exceeds the item's maximum size {limit} (ISO §14.9.39 Format 16 GR38)");
         }
         else
         {

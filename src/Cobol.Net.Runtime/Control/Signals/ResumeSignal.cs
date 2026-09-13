@@ -22,3 +22,24 @@ public sealed class ResumeSignal(int targetPc) : Exception
     /// <see cref="NextStatement"/>.</summary>
     public int TargetPc { get; } = targetPc;
 }
+
+/// <summary>
+/// The SECOND leg of a resume that began at a RUNTIME raise site (kb/Work PB367b): a nonfatal exception condition
+/// detected inside the runtime runs the §14.6.13.1.4 #3 selection there, so <see cref="ResumeSignal"/> has
+/// already done its job — the declarative's RESUME unwound to <c>__RunUse</c>, which returned the resume action
+/// to the raise site — and what remains is to leave the INTERRUPTED STATEMENT, whose frames sit between the raise
+/// site and the emitted statement wrapper.
+/// <para>⛔ IT IS A DISTINCT TYPE BECAUSE THE TWO SIGNALS HAVE DIFFERENT LANDING SITES, and sharing one made the
+/// nearer landing site swallow the farther signal: the emitted nonfatal-gate wrapper caught the
+/// <see cref="ResumeSignal"/> that an explicit RESUME statement inside a declarative was throwing AT
+/// <c>__RunUse</c> — so <c>RESUME AT NEXT STATEMENT</c> in a declarative became a CONTINUE (§14.9.33.4 GR2 turned
+/// into GR1's global-declarative behaviour) and <c>RESUME AT procedure-name</c> transferred inside the
+/// declarative's own bounded dispatch instead of returning the action. Two landing sites, two types.</para>
+/// </summary>
+public sealed class RaiseResumeSignal(int targetPc) : Exception
+{
+    /// <summary>The resume action returned by the declarative that was selected at the raise site: a
+    /// nondeclarative pc (<c>RESUME AT procedure-name</c> ≡ GO TO, §14.9.33.4 GR3), or
+    /// <see cref="ResumeSignal.NextStatement"/>.</summary>
+    public int TargetPc { get; } = targetPc;
+}

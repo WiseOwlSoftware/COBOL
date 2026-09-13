@@ -28,11 +28,29 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// BEFORE the statement's phrase branches). A statement with ENABLED EC-I-O checking for this file (>>TURN,
     /// ISO §7.3.25) calls the EC-aware <c>__IoCheckEc</c> variant instead — same F1 behavior plus the §9.1.13.1
     /// status→EC raise, F3 selection and fatal default, returning a RESUME transfer pc when a declarative's
-    /// RESUME redirected control (§14.9.33). A no-op for a declarative-free, checking-off program.</summary>
-    public void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false,
-        bool onExceptionHandled = false)
+    /// RESUME redirected control (§14.9.33). A no-op for a declarative-free, checking-off program.
+    /// <para><paramref name="notNormalLabel"/> is the ENCLOSING STATEMENT'S end label, supplied only by the
+    /// SORT/MERGE implicit transfers (§14.9.40.4 GR12/GR15, §14.9.24.4 GR7/GR12): there the I-O the declarative
+    /// was invoked from is not a statement of the program at all, so §14.9.33.4 GR2 a) 1's "the applicable
+    /// statement is the one in which the exception condition was raised" is the SORT/MERGE itself, and a
+    /// declarative that ends in RESUME AT NEXT STATEMENT has to leave the whole statement rather than fall into
+    /// its next implicit transfer. For SORT §14.9.40.4 GR17 says the same thing outright — "If a USE procedure
+    /// invoked while a format 1 SORT statement is active does not complete normally, the SORT statement is
+    /// terminated" — and §14.6.13.1.2 #1 is what makes a RESUME a completion that is not normal. Returns whether
+    /// that arm was emitted, so the caller emits the label only when something jumps to it.</para></summary>
+    public bool EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false,
+        bool onExceptionHandled = false, string? notNormalLabel = null)
     {
         var w = ctx.Writer;
+        // §14.6.13.1.2 #1: a declarative that executes a RESUME does not complete normally. The ≥ 0 arm above
+        // each of these already leaves the statement (a transfer of control), so the arm this adds is the
+        // RESUME AT NEXT STATEMENT one, which otherwise falls through into the rest of the enclosing statement.
+        void NotNormal(int id)
+        {
+            if (notNormalLabel is null) return;
+            w.Line($"if (__ior{id} == ResumeSignal.NextStatement) goto {notNormalLabel};"
+                + "   // the USE procedure did not complete normally (§14.6.13.1.2 #1) — the statement is terminated (§14.9.40.4 GR17; §14.9.33.4 GR2 a) 1.)");
+        }
         if (ec.IoMaskFor(file) is not 0 and var mask)
         {
             int id = ctx.Names.NextEc();
@@ -45,12 +63,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
                 + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
-            return;
+            NotNormal(id);
+            return notNormalLabel is not null;
         }
-        if (!dispatch.UseDecls) return;
+        if (!dispatch.UseDecls) return false;
         // An ON EXCEPTION phrase is the statement's own handler for EVERY unsuccessful family (§14.9.10.4
         // GR20c) — no declarative runs, and the plain path has no EC to raise, so the hook is a no-op.
-        if (onExceptionHandled) return;
+        if (onExceptionHandled) return false;
         if (ecState.Active)
         {
             // The EC-model __IoCheck returns the declarative's RESUME action — consumed exactly like the
@@ -58,9 +77,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             int id = ctx.Names.NextEc();
             w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
-            return;
+            NotNormal(id);
+            return notNormalLabel is not null;
         }
+        // The non-EC void form cannot report a resume action, and it does not need to: RESUME is a §14.9.33
+        // statement of the EC model, so a group without it has no declarative that can end in one.
         w.Line($"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
+        return false;
     }
 
 

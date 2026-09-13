@@ -35,6 +35,14 @@ public struct CheckingFlags
     /// <summary>EC-BOUND-OVERFLOW — a dynamic-capacity table receiving item grown past its expected bound.</summary>
     public bool BoundOverflow;
 
+    /// <summary>EC-RANGE-INVALID — an alphanumeric/national THROUGH range whose starting value collates after its
+    /// ending value (§14.7.8 rule 2), in a level-88 VALUE THRU or an EVALUATE WHEN range.</summary>
+    public bool RangeInvalid;
+
+    /// <summary>EC-STORAGE-NOT-AVAIL — a <c>SET [SIZE OF] dynamic-length-item TO arithmetic-expression-5</c> whose
+    /// value is not nonnegative or exceeds the item's maximum size (§14.9.39 Format 16 GR37/GR38).</summary>
+    public bool StorageNotAvail;
+
     /// <summary>EC-BOUND-REF-MOD — an out-of-range reference modification (§8.4.3.3.4).</summary>
     public bool BoundRefMod;
 

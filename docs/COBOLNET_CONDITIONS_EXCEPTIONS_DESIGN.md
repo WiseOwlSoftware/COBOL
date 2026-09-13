@@ -424,6 +424,44 @@ GR3 a) — "if the selection subject is a numeric data item or a boolean data it
 
 **The USE duplicate-operand screens are ONE mechanism (kb/Work PB364).** §14.9.49.3 SR7 (an open-mode phrase), SR8 (a file-name), SR9 (a report group) and SR14 (an (exception-name-2, file-name-2) pair) are four instances of a single sentence — *"the same X shall not be … in more than one USE statement within the same procedure division"* — so `ProcedureTableBuilder` enforces all four through one `ConstructOperandRegister<TKey>` rather than four hand-rolled sets. **The boundary those rules draw is the STATEMENT, never the operand:** §14.9.49.2 writes Format 1's list as `{ file-name-1 } …` and Format 3's scope as `exception-name-2 { FILE file-name-2 } … …`, so ONE statement may write the same operand twice and one statement is never *more than one*. The register therefore keys each operand to the ORDINAL of the USE statement that most recently registered it and bumps the counter at `DeclEndUseStatement`, called from the ONE place a USE statement is bound: the same ordinal means this statement has already accounted for the operand, an earlier one is the repeat across statements the rule forbids. Because it remembers the LAST statement rather than the first, a violating statement that ALSO repeats the operand internally (`… ON TF TF` after an earlier `… ON TF`) reports the rule ONCE. **The register is not USE-specific and does not live here:** it is `Binding/ConstructOperandRegister.cs`, and §12.4.5.7.3 SR8's COLLATING SEQUENCE screen in `DataBinder.ResolveFileCollating` is its second consumer with the CLAUSE as its construct (kb/Work PB703); the type's own doc comment carries the consumer list. A repeat inside the statement binds ONCE and is silent (it must bind once — the emitted F1 `switch (__f)` would otherwise carry two identical case labels), a repeat across statements is the diagnostic. **SR14's key is the PAIR:** a bare exception-name is exception-name-**1**, not exception-name-2 (the Format-3 figure puts exception-name-2 only in the FILE alternative and §14.9.49.4 GR3 c)/d) against e)/f)/g) split on the same axis), so a repeated bare name never enters the register — GR3 gives it its outcome (*"The first declarative that satisfies the selection criteria is executed and no other declaratives are executed"*) instead of forbidding it.
 
+**The dispatch site of a NONFATAL condition raised INSIDE THE RUNTIME is the runtime (kb/Work PB367b).** D11's
+"injected at the operation site" holds wherever the emitter can see the raise — a RAISE statement, an I-O status,
+a latched ON OVERFLOW-less STRING, ALLOCATE/FREE, CONTINUE AFTER, SEARCH's range conditions. Four conditions have
+no such site: an untranslatable code unit inside an arbitrary expression (EC-DATA-CONVERSION, §15.19.4 r3), a
+dynamic-capacity table grown under a receiving subscript (EC-BOUND-OVERFLOW, §8.5.1.9.6 GR1), an inverted THROUGH
+range inside a condition (EC-RANGE-INVALID, §14.7.8 rule 2) and a dynamic-length resize (EC-STORAGE-NOT-AVAIL,
+§14.9.39 Format 16 GR37/GR38). They are detected by `ExceptionEngine`'s own raise helpers, which is why the
+§14.6.13.1.1 rule already lives there per (ambient flag, exception-name) pair — and why the §14.6.13.1.4 #3
+selection now lives there too: `NonfatalIfEnabled` sets the last exception status AND asks
+`ExceptionEngine.NonfatalDispatcher` — the `ICobolProgram` of the ACTIVATION now executing, installed and
+restored by `ProgramTable.RunMain`/`CallProgram` beside the ModuleStack frame — for its declarative. The
+interface member (`int NonfatalDispatch(string ec)`) defaults to the dispatch protocol's "no qualifying
+declarative", so a program with no Format-3 machinery overrides nothing and the zero-scaffolding invariant is
+untouched; a program with it emits one expression-bodied override onto its existing `EcDispatchExpr` funnel, so
+§14.6.13.1.4 #2's "No associated USE EXCEPTION declarative is executed" (a PERFORM WHEN preempts) keeps holding
+through `__EcPerform`.
+
+*The return.* `-3`/`-1` return to the raise point and the statement finishes under its own rules — §14.6.13.1.4
+#3's "execution continues as specified in the rules for normal execution", and each of the four conditions has a
+rule that names that continuation outright (the substitution character is used, the capacity change happens, the
+range is empty, the length is 0 or clamped). §14.9.49.4 GR13 a)'s "control is returned to an implicit CONTINUE
+statement following the statement" is the alternative for a condition whose statement rules name none, where the
+raise is at the end of the statement's own execution and the two readings coincide. A RESUME is different — it is
+an explicit transfer — and it unwinds through `RaiseResumeSignal`, a type DISTINCT from `ResumeSignal` because the
+two have different landing sites: `ResumeSignal` travels from a RESUME statement to `__RunUse`, `RaiseResumeSignal`
+from the raise site to the emitted nonfatal-gate wrapper. Sharing one type made the nearer landing site swallow the
+farther signal.
+
+*The SORT/MERGE arm.* A USE procedure invoked from a SORT/MERGE **implicit** transfer (§14.9.40.4 GR12/GR15,
+§14.9.24.4 GR7/GR12) is not attached to a statement the program wrote, so §14.9.33.4 GR2 a) 1.'s "applicable
+statement" is the SORT/MERGE itself and §14.9.40.4 GR17 states SORT's half outright: "If a USE procedure invoked
+while a format 1 SORT statement is active does not complete normally, the SORT statement is terminated."
+`SequentialIoEmitter.EmitUseHook` takes the enclosing statement's end label for exactly those call sites and jumps
+to it on the RESUME-AT-NEXT-STATEMENT action (§14.6.13.1.2 #1 is what makes a RESUME a completion that is not
+normal); the RESUME-AT-procedure-name action already leaves through `__pc`, and every other not-normal completion
+(GOBACK / EXIT PROGRAM / STOP / a fatal condition) unwinds by its own signal. The label sits before the sort
+store's release, so a terminated SORT statement is not a leaked sort.
+
 ### D12. The exception-checking PERFORM (ISO §14.9.28 Format 3, COBOL-2023 — VCR row 79; introduction-gated at --std=85|2002|2014 with COBOLNET0900) is a PER-STATEMENT exception interceptor scoped to imperative-statement-1 — NOT a block C# try/catch. FULLY IMPLEMENTED (recognize/validate/diagnose/gate + the pc-RANGE runtime interceptor — the F3 PERFORM compiles and runs); a few sub-forms remain staged at COBOLNET0899 (open-mode WHEN operand, F3-in-a-method, cross-CALL "in range", EC-FLOW-USE/>>PROPAGATE, exception-object raise in imp-1). The as-built implementation SSOT is `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §9.
 
 **Grammar (greenfield, `CobolControlFlow.g4`).** Formats 2 and 3 merge into ONE inline `performStatement` alternative (`PERFORM performInlineHead? statementBlock* performWhenPhrase* performWhenOther? performWhenCommon? performFinally? END-PERFORM`); ≥1 ordinary WHEN ⇒ Format 3 (enforced at bind, COBOLNET1597). A WHEN operand list's CONTINUATION is bounded by the `whenOperandAhead()` predicate (`CobolParserCoreBase.WhenOperandStopTokens`) so a body verb that is also a `cobolWord` (RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER, + GET/PARSE forward) is not annexed as a spurious exception-name; the merged inline arm precedes the out-of-line `PERFORM procedureName` so `PERFORM LOCATION imp… END-PERFORM` disambiguates on END-PERFORM. `LOCATION`/`FINALLY` are new-2023 reserved tokens: LOCATION stays a `cobolWord` (the continuity invariant — a paragraph named LOCATION / `PERFORM LOCATION` parses below 2023; it appears only in the head, so no operand-swallow); FINALLY is a pure reserved keyword (NOT a `cobolWord`) — as a trailing phrase keyword after imperative statements it would be swallowed by a preceding DISPLAY/MOVE operand list, so it is treated as reserved at every edition (a documented, negligible deviation — FINALLY was never a COBOL identifier idiom).

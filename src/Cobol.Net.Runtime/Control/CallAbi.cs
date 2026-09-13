@@ -51,6 +51,23 @@ public interface ICobolProgram
 
     /// <summary>Close every file connector this program owns (CANCEL GR9 / run-unit termination §14.6.11).</summary>
     void CloseFiles();
+
+    /// <summary>Select and execute this element's USE declarative for a NONFATAL exception condition raised at a
+    /// RUNTIME site (ISO §14.6.13.1.4 #3 — "If there is an applicable USE statement in the source unit that
+    /// specifies the exception-name associated with the exception condition … the associated declarative is
+    /// executed"), returning the dispatch result protocol: <c>-1</c> completed normally, <c>-2</c> RESUME AT NEXT
+    /// STATEMENT, <c>-3</c> no qualifying declarative, <c>≥ 0</c> RESUME AT that pc.
+    /// <para>This is the §14.9.49.4 GR3 selection seen from OUTSIDE the generated code. A raise the emitter can
+    /// place a dispatch AT (RAISE, an I-O status, an ON OVERFLOW-less STRING) never needs it; a condition detected
+    /// INSIDE the runtime — an untranslatable code unit deep in an expression, a dynamic table growing under a
+    /// receiving subscript, an inverted THRU range, a dynamic-length resize — has no statement-level node to hang
+    /// a dispatch on, and before this channel existed it set the last exception status and returned, so its
+    /// declarative never ran (kb/Work PB367b).</para>
+    /// <para>The DEFAULT is "no qualifying declarative": an element with no Format-3 selection machinery answers
+    /// it without emitting anything, which is what keeps the zero-scaffolding invariant true for every program
+    /// that declares no USE AFTER EXCEPTION CONDITION declarative and every non-COBOL implementation of this
+    /// interface.</para></summary>
+    int NonfatalDispatch(string ec) => -3;
 }
 
 /// <summary>

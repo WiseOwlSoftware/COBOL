@@ -183,8 +183,9 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): evaluate the amount ONCE, then
     /// resize the dynamic-length item's native string in place — <c>CobolDynString.SetSize</c> space-fills grown
     /// positions (GR39), drops trailing ones on shrink, clamps above the LIMIT and floors a negative to 0
-    /// (GR37/GR38), and sets the nonfatal EC-STORAGE-NOT-AVAIL on the clamp/negative legs when checking was enabled
-    /// at this statement (<see cref="BoundSetSize.CheckStorage"/>).</summary>
+    /// (GR37/GR38), and raises the nonfatal EC-STORAGE-NOT-AVAIL on the clamp/negative legs through the engine's
+    /// ambient (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair — the gate this statement's EC wrapper set —
+    /// so the raise also runs the §14.6.13.1.4 #3 declarative selection (kb/Work PB367b).</summary>
     public void EmitSetSize(BoundSetSize s)
     {
         // Evaluate arithmetic-expression-5 at FULL precision (a double) — the GR37 sign test must precede the
@@ -194,7 +195,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         string amt = $"__sz{ctx.Names.NextSet()}";
         ctx.Writer.Line($"double {amt} = {NumericRenderer.Real(num.Render(s.Amount, ReceiverContext.None))};");
         ctx.Writer.Line(PlaceRenderer.Write(s.Target,
-            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString(), s.CheckStorage ? "true" : "false")));
+            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString())));
     }
 
     /// <summary>SET CONTENT OF identifier-14 … TO … (ISO §14.9.39.2 Format 15, numeric-content; kb/Work PB452) —

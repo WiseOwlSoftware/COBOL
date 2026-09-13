@@ -41,6 +41,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         : ecState.UnitHasF3       ? $"__EcDispatch({ecNameExpr}, {fileExpr})"
         :                           "-3";
 
+    /// <summary>Does <see cref="EcDispatchExpr"/> render a real selector for this unit (rather than the
+    /// no-declarative constant)? Asked by the two emissions that must AGREE with it and with each other: the
+    /// <c>ICobolProgram.NonfatalDispatch</c> override (ProgramEmitter — the runtime raise path's entry into the
+    /// selection) and the RESUME landing the same path needs (<see cref="EmitGatesOrInner"/>). If one were
+    /// emitted without the other a <c>RaiseResumeSignal</c> would have no landing site, so the condition is
+    /// spelled ONCE here rather than at both (kb/Work PB367b).</summary>
+    public bool UnitHasDispatchFunnel => ecState.UnitHasF3 || ecState.UnitHasF3Perform;
+
     /// <summary>The <c>__EcObjDispatch</c> invocation (or the no-declarative constant when this unit has no
     /// Format-4 declaratives) — the §14.9.49.4 GR14 exception-OBJECT selector (the EC-OO wave).</summary>
     public string ObjDispatchExpr(string objExpr) =>
@@ -80,6 +88,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     [
         ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §15.19.4 r1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
         ("EC-BOUND-OVERFLOW", "BoundOverflowChecking"),     // §8.5.1.9.6 GR1 — OCCURS DYNAMIC implicit growth
+        // These two USED TO CARRY THEIR OWN, SECOND enablement mechanism — the ThruMember carrier was emitted
+        // only under checking, and SetSize took a `checkStorage` argument — which put their raises outside the
+        // engine's (flag, name) pair and therefore outside the §14.6.13.1.4 #3 selection it runs (kb/Work PB367b).
+        ("EC-RANGE-INVALID", "RangeInvalidChecking"),       // §14.7.8 r2 — an inverted alphanumeric/national THRU range
+        ("EC-STORAGE-NOT-AVAIL", "StorageNotAvailChecking"),// §14.9.39 F16 GR37/GR38 — a dynamic-length resize
     ];
 
     public bool EmitChecked(BoundEcChecked ec)
@@ -118,16 +131,32 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     }
 
     /// <summary>The nonfatal ambient gates enabled at this statement ride a set/reset wrapper around whichever
-    /// inner dispatch (the fatal-gated or the plain) the statement needs.</summary>
+    /// inner dispatch (the fatal-gated or the plain) the statement needs — plus the RESUME landing for the
+    /// selection those gates' raise sites now run.
+    /// <para>A nonfatal condition raised INSIDE the runtime selects its declarative there (§14.6.13.1.4 #3,
+    /// through <c>ICobolProgram.NonfatalDispatch</c>), because the raise has no statement-level node an emitter
+    /// could hang a dispatch on. A declarative that completes normally returns to the raise point and the
+    /// statement finishes; a RESUME does not — §14.9.33.4 GR2/GR3 transfer control OUT of the interrupted
+    /// statement, and the runtime expresses that as a <c>ResumeSignal</c> it cannot itself land. This catch is
+    /// that landing, and it is emitted with the gates because those gates are exactly the statements whose
+    /// runtime raise sites are armed (kb/Work PB367b).</para></summary>
     private bool EmitGatesOrInner(BoundEcChecked ec)
     {
         var gates = NonfatalAmbientGates.Where(g => ec.Info.Enabled.Any(p => p.Ec == g.Ec)).ToList();
         if (gates.Count > 0)
         {
             var w = ctx.Writer;
+            int id = ctx.Names.NextEc();
             foreach (var g in gates) w.Line($"ExceptionState.{g.Flag} = true;");
             using (w.Block("try"))
                 EmitArgOrPlain(ec);
+            // Only a unit with F3 selection machinery can produce a RESUME here at all — with none,
+            // NonfatalDispatch answers "no qualifying declarative" and nothing is thrown, so the catch would be
+            // dead text in every such program (the zero-scaffolding invariant applies to what CAN happen).
+            if (UnitHasDispatchFunnel)
+                w.Line($"catch (RaiseResumeSignal __nr{id}) {{ if (__nr{id}.TargetPc >= 0) {{ __pc = __nr{id}.TargetPc; break; }} }}"
+                    + "   // RESUME out of a runtime-site nonfatal raise: AT procedure-name transfers (§14.9.33.4 GR3), "
+                    + "AT NEXT STATEMENT abandons the interrupted statement (GR2)");
             w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
             return false;   // conservative: the inner dispatch may itself resume past a transfer
         }

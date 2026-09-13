@@ -130,10 +130,16 @@ public sealed class ProgramTable
         n.Active++;
         n.CalledSinceCancel = true;   // §14.9.5 GR7 — the main activation counts as "called in this run unit"
         _owner.Modules.PushMain(n.Name);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
+        // The §14.6.13.1.4 #3 selector for a NONFATAL condition raised at a RUNTIME site is the ACTIVATION's
+        // (kb/Work PB367b) — same scope, same boundary, as the ModuleStack frame and the §14.9.28.4 PERFORM
+        // depth above it. The main program's activator is the run-unit boundary, so the prior value is null.
+        var mainExc = _owner.Exceptions;
+        var savedNonfatalDispatcher = mainExc.NonfatalDispatcher;
+        mainExc.NonfatalDispatcher = inst;
         try
         {
             try { inst.Activate(); }
-            finally { n.Active--; _owner.Modules.Pop(); }
+            finally { n.Active--; _owner.Modules.Pop(); mainExc.NonfatalDispatcher = savedNonfatalDispatcher; }
             // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
             // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
             ApplyPropagationDefault();
@@ -271,6 +277,13 @@ public sealed class ProgramTable
         // (the cross-activation GR1 "in range" reading is a documented STAGED item). TrimPerformTo on return also
         // balances the stack if the callee unwound abnormally past its own pops.
         int savedPerformDepth = exc.PerformDepth;
+        // Per-activation scope for the §14.6.13.1.4 #3 selector of a NONFATAL condition raised at a RUNTIME site
+        // (kb/Work PB367b): the declaratives that qualify are the ACTIVATED element's (§14.9.49.4 GR3 analyzes
+        // "the USE statements in the source element", GR4 a) "the source element that contains the statement that
+        // caused the condition"), so the callee's own selector — the interface default's "no qualifying
+        // declarative" when it has none — displaces the activator's for the duration of the activation.
+        var savedNonfatalDispatcher = exc.NonfatalDispatcher;
+        exc.NonfatalDispatcher = inst;
         // §14.9.4.4 GR3e→GR3g — the ACTIVATION BOUNDARY, and the one place that knows which side of it a
         // failure came from. GR3e's external-conformance check is an activation-attempt step ("the program
         // call is not successful"), so it runs HERE, before the transfer, and its raise stays attributable to
@@ -291,6 +304,7 @@ public sealed class ProgramTable
             n.Active--; _owner.Modules.Pop();
             exc.ActivatorExternalMask = savedActivator; exc.ExternalCheckMask = 0;
             exc.TrimPerformTo(savedPerformDepth);
+            exc.NonfatalDispatcher = savedNonfatalDispatcher;
             if (freshInstance) n.Instance = displacedInstance;   // kb/Work PB133 — see above
         }
 

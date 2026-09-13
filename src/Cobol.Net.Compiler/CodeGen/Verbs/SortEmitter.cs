@@ -36,13 +36,15 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(so.File);
+        string end = TerminationLabel();
+        bool terminable = false;
         w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
 
         // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
         // EC-SORT-MERGE-FILE-OPEN; EC checking OFF by default, COBOLNET_DESIGN §18.16 — seam in CobolSort).
         if (so.Using.Count > 0)
             foreach (var input in so.Using)
-                EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null);
+                terminable |= EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null, end);
         else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
             w.Line(dispatch.DispatchCall(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)"));
 
@@ -52,12 +54,23 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // Phase c — return (GR9c).
         if (so.Giving.Count > 0)
             foreach (var output in so.Giving)
-                EmitGivingFile(output, sd);
+                terminable |= EmitGivingFile(output, sd, end);
         else if (so.OutputProcedure is { IsEmpty: false } op)
             w.Line(dispatch.DispatchCall(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)"));
 
+        // §14.9.40.4 GR17's landing point: "the SORT statement is terminated" skips the REMAINING implicit
+        // transfers and the phases after them, but still releases the sort store — terminating the statement is
+        // not abandoning the run unit. Emitted only when an implicit transfer can actually jump here, so a SORT
+        // in a program with no USE declaratives is byte-identical.
+        if (terminable) w.Line($"{end}: ;");
         w.Line($"{RuntimeApi.SortClose(sd)};");
     }
+
+    /// <summary>The end-of-statement label a USE procedure that did not complete normally jumps to — SORT's
+    /// §14.9.40.4 GR17 termination, and the §14.9.33.4 GR2 a) 1. landing of a RESUME AT NEXT STATEMENT whose
+    /// "applicable statement" is the SORT/MERGE rather than an I-O statement the program wrote. The `__`
+    /// prefix keeps it out of the COBOL name space exactly as the dispatcher internals do.</summary>
+    private string TerminationLabel() => $"__srtEnd{ctx.Names.NextSort()}";
 
     /// <summary>MERGE (ISO §14.9.24): obtain every USING file's records via the implicit OPEN INPUT / READ / CLOSE
     /// (GR7), k-way-merge the pre-sorted streams — equal keys keep USING-file order, all of one file before the
@@ -68,18 +81,25 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
+        string end = TerminationLabel();
+        bool terminable = false;
         w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
         foreach (var input in mg.Using)
         {
             w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
-            EmitInputFile(input, sd, mg.RecordWidth, mg.Varying is not null);
+            terminable |= EmitInputFile(input, sd, mg.RecordWidth, mg.Varying is not null, end);
         }
         w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys))};   // the GR5 sequences are the Init snapshot's");
         if (mg.Giving.Count > 0)
             foreach (var output in mg.Giving)
-                EmitGivingFile(output, sd);   // GR12 — each file-name-4 receives the WHOLE merged result
+                terminable |= EmitGivingFile(output, sd, end);   // GR12 — each file-name-4 receives the WHOLE merged result
         else if (mg.OutputProcedure is { IsEmpty: false } op)
             w.Line(dispatch.DispatchCall(op, "   // OUTPUT PROCEDURE (GR9)"));
+        // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
+        // rule is the same one: §14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised inside
+        // an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole statement here
+        // rather than falling into the next USING stream.
+        if (terminable) w.Line($"{end}: ;");
         w.Line($"{RuntimeApi.SortClose(sd)};");
     }
 
@@ -88,7 +108,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     /// later) behave exactly as for explicit I/O. The loop ends on AT END or ANY unsuccessful read (a missing
     /// file's failed OPEN makes the first READ unsuccessful — never a spin). The file's FILE STATUS item observes
     /// the final (CLOSE) status, the only value visible after the statement.</summary>
-    private void EmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying)
+    private bool EmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying, string endLabel)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(input);
@@ -99,9 +119,9 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN statement with the
         // INPUT phrase and WITHOUT a SHARING phrase is executed." The condition is a compile-time fact, so it is
         // decided HERE and never re-derived in the runtime (kb/Work PB714).
-        EmitImplicitOpen(input, BoundOpenMode.Input,
+        bool terminable = EmitImplicitOpen(input, BoundOpenMode.Input,
             input.Sharing == SharingMode.AllOther ? SharingMode.ReadOnly : null,
-            "implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
+            "implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)", endLabel);
         // §14.9.40 GR12 b) / §14.9.24 GR7 b): "Each record is obtained as if a READ statement with the NEXT
         // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
         // GOVERNED read (§14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
@@ -125,14 +145,14 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         seqIo.EmitStoreFileStatus(input);
         // GR12b: the implicit READ is "as if with the AT END phrase" - at-end never fires a declarative; any
         // OTHER read/close failure still does.
-        seqIo.EmitUseHook(input, atEndHandled: true);
+        return seqIo.EmitUseHook(input, atEndHandled: true, notNormalLabel: endLabel) | terminable;
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
     /// cursor (EACH file receives the full result), OPEN OUTPUT, RETURN→WRITE loop, CLOSE. A fixed-length GIVING
     /// file space-fills a shorter returned record to its record width (GR16c / MERGE GR13c — the connector's
     /// fixed-width fit); a relative GIVING file's key sequence 1..n (GR15b) is the G5 relative slice.</summary>
-    private void EmitGivingFile(FileModel output, string sdLit)
+    private bool EmitGivingFile(FileModel output, string sdLit, string endLabel)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(output);
@@ -142,8 +162,8 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         // performed as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed."
         // §9.1.15 1) is what that buys: "The sharing with no other mode specifies exclusive access to a physical
         // file" (kb/Work PB714).
-        EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
-            "implicit OPEN OUTPUT (ISO §14.9.40 GR15a / §14.9.24 GR12a)");
+        bool terminable = EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
+            "implicit OPEN OUTPUT (ISO §14.9.40 GR15a / §14.9.24 GR12a)", endLabel);
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
             // "Each record is written as if a WRITE statement without any optional phrases had been executed"
             // (GR15 b) / MERGE GR13 b) — through the ONE governed WRITE entry, like every other emitted WRITE
@@ -153,7 +173,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             w.Line($"{RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
         seqIo.EmitStoreFileStatus(output);
-        seqIo.EmitUseHook(output);
+        return seqIo.EmitUseHook(output, notNormalLabel: endLabel) | terminable;
     }
 
     /// <summary>⛔ THE ONE IMPLICIT OPEN OF SORT AND MERGE — every <i>"as if an OPEN statement …"</i> initiation
@@ -183,7 +203,8 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
     /// <para>No RETRY and no NO REWIND: none of the four rules names either phrase, and §14.7.9.3 GR4 a) makes
     /// the absent RETRY phrase "no further attempt" — which is what <see cref="SequentialIoEmitter.RenderRetry"/>
     /// renders for a null spec, borrowed rather than re-spelled so the two OPEN sites cannot drift.</para></summary>
-    private void EmitImplicitOpen(FileModel file, BoundOpenMode mode, SharingMode? sharing, string ruleComment)
+    private bool EmitImplicitOpen(FileModel file, BoundOpenMode mode, SharingMode? sharing, string ruleComment,
+        string endLabel)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(file);
@@ -202,7 +223,11 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             w.Line($"{RuntimeApi.FileOpen(f, mode, noRewind: false, elementArgs)};   // {ruleComment}");
         }
         seqIo.EmitStoreFileStatus(file);   // §9.1.13.1 / §12.4.5.8.4 GR1 — before the declarative, not after it
-        seqIo.EmitUseHook(file);           // a failed implicit OPEN reaches a USE declarative (GR12a / GR15a)
+        // A failed implicit OPEN reaches a USE declarative (GR12a / GR15a); one that does not complete normally
+        // terminates the SORT/MERGE rather than letting the transfer proceed against an unopened connector
+        // (§14.9.40.4 GR17 — and GR15's own "If a fatal exception condition exists for file-name-3 as a result of
+        // the implicit OPEN during file initiation, the SORT is terminated" is the same rule for the fatal half).
+        return seqIo.EmitUseHook(file, notNormalLabel: endLabel);
     }
 
     /// <summary>RELEASE (ISO §14.9.32): FROM first MOVEs into the record (GR4 — identical to the explicit MOVE),

@@ -259,14 +259,72 @@ public sealed class ExceptionEngine
         throw new CobolFatalException(ec, detail);
     }
 
-    /// <summary>Record a Table 13 NONFATAL exception condition when <paramref name="enabled"/> is true: the last
-    /// exception status is set and execution continues (§14.6.13.1.4), so there is no throw and the caller's own
-    /// outcome is the same either way — which is why there is no <c>detail</c> operand here, a nonfatal condition
-    /// having no exception to carry one. Nothing is recorded when checking is off (§14.6.13.1.1).</summary>
+    /// <summary>Record a Table 13 NONFATAL exception condition when <paramref name="enabled"/> is true — and RUN
+    /// THE §14.6.13.1.4 #3 SELECTION, which is the half a runtime raise site used to skip. Nothing is recorded
+    /// when checking is off (§14.6.13.1.1). There is no <c>detail</c> operand: a nonfatal condition carries no
+    /// exception object to attach one to.
+    /// <para>§14.6.13.1.4: "If checking for that exception condition is enabled, processing of the statement is
+    /// INTERRUPTED and one of the following occurs in the order specified … 3) If there is an applicable USE
+    /// statement in the source unit that specifies the exception-name associated with the exception condition …
+    /// the associated declarative is executed … 4) Execution of the statement continues as specified in the
+    /// rules for that statement." #3 and #4 are ALTERNATIVES, so the outcome is decided by whether a declarative
+    /// qualified:</para>
+    /// <list type="bullet">
+    /// <item><c>-3</c> — no qualifying declarative (or this element has no F3 machinery at all): #4, the raise
+    /// site returns and its caller's documented outcome stands (the substitution character is stored, the table
+    /// grows, the range is empty).</item>
+    /// <item><c>-1</c> — the declarative RAN and completed normally (§14.6.13.1.2). #3's own sentence places the
+    /// return: "If execution of the declarative completes normally, execution continues as specified in the
+    /// RULES FOR NORMAL EXECUTION", and every condition reaching this method has a rule that names that
+    /// continuation outright — §14.7.8 rule 2 ("upon completion of any exception processing, execution proceeds
+    /// as if the range of values were empty"), §8.5.1.9.6 GR1 (the capacity change happens), §14.9.39 Format 16
+    /// GR37/GR38 (the length is 0 / clamped), §15.19.4 r3 (the substitution character is used). So the raise site
+    /// returns and the statement finishes. ⚠ §14.9.49.4 GR13 a) — "control is returned to an implicit CONTINUE
+    /// statement following the statement whose execution caused the exception" — reads as the alternative for a
+    /// condition whose statement rules name NO continuation (a RAISE, a size error: there the raise is at the end
+    /// of the statement's own execution and the two readings coincide). Where a specific rule DOES name one, #3's
+    /// "the rules for normal execution" is that rule, and it is the only reading under which §14.7.8's empty range
+    /// is observable at all. Recorded as PB367b's determination.</item>
+    /// <item><c>-2</c> / <c>≥ 0</c> — RESUME AT NEXT STATEMENT (§14.9.33.4 GR2) / RESUME AT procedure-name
+    /// (GR3, ≡ GO TO): an explicit transfer of control out of the interrupted statement, which unwinds the rest
+    /// of it through <see cref="RaiseResumeSignal"/> — the raise site's own leg of the unwind, landing at the
+    /// emitted nonfatal-gate wrapper (the declarative's own <see cref="ResumeSignal"/> leg ended at
+    /// <c>__RunUse</c>, which is where this result came from).</item>
+    /// </list>
+    /// <para>⛔ The dispatcher is the ACTIVATION's, never a captured one: <see cref="NonfatalDispatcher"/> is set
+    /// by the activation boundary (<c>ProgramTable</c>) to the runtime element now executing, so a condition
+    /// raised inside a CALLed program selects THAT program's declaratives (§14.9.49.4 GR4 a) and never the
+    /// activator's.</para></summary>
     private void NonfatalIfEnabled(bool enabled, string ec)
     {
-        if (enabled) Set(ec, fatal: false);
+        if (!enabled) return;
+        Set(ec, fatal: false);
+        int r = NonfatalDispatcher?.NonfatalDispatch(ec) ?? NoDeclarative;
+        // -1 (#3, the declarative completed normally) and -3 (#4, none qualified) both leave the statement to
+        // finish under its own rules; only an explicit RESUME transfers control out of it.
+        if (r is DeclarativeCompleted or NoDeclarative) return;
+        throw new RaiseResumeSignal(r);   // §14.9.33.4 GR2 (-2 ≡ ResumeSignal.NextStatement) / GR3 (≥ 0)
     }
+
+    /// <summary>The dispatch result protocol's "the declarative completed normally" (§14.6.13.1.2) — shared with
+    /// the generated <c>__RunUse</c> / <c>__EcDispatch</c> (EcEmitter documents the protocol).</summary>
+    private const int DeclarativeCompleted = -1;
+
+    /// <summary>The dispatch result protocol's "no qualifying declarative" (§14.9.49.4 GR3 g) last sentence).</summary>
+    private const int NoDeclarative = -3;
+
+    /// <summary>The runtime element whose declaratives §14.6.13.1.4 #3 selects over — the ACTIVATION now
+    /// executing, installed and restored by the activation boundary (<c>ProgramTable.RunMain</c> /
+    /// <c>CallProgram</c>), null outside any COBOL activation. A generated program class overrides
+    /// <see cref="ICobolProgram.NonfatalDispatch"/> only when it has Format-3 selection machinery; every other
+    /// element takes the interface's default and answers <see cref="NoDeclarative"/>, which is why installing it
+    /// unconditionally is correct and why an element with no declaratives costs nothing.
+    /// <para>⛔ This is the channel a RUNTIME raise site reaches a declarative through, and it has to be the
+    /// ACTIVATION's rather than the statement's: the ambient checking flags are run-unit state that a CALL does
+    /// not currently save (see kb/Work PB367b's report), so binding the selector to the raising STATEMENT would
+    /// let a callee's raise run the ACTIVATOR's declaratives — a wrong-program dispatch. Bound to the activation,
+    /// the callee's own (possibly default) selector answers.</para></summary>
+    public ICobolProgram? NonfatalDispatcher { get; set; }
 
     // ── EC-ARGUMENT-FUNCTION ambient statement gate ───────────────────────────────────────────────────────────
 
@@ -382,6 +440,37 @@ public sealed class ExceptionEngine
     /// implicit grow raises nothing). Nonfatal (Table 13), so it never throws; it sets the last exception status
     /// only while checking is enabled (§14.6.13.1.1). The growth proceeds regardless.</summary>
     public void BoundOverflowError(string detail) => NonfatalIfEnabled(BoundOverflowChecking, "EC-BOUND-OVERFLOW");
+
+    // ── EC-RANGE-INVALID ambient statement gate (an inverted alphanumeric/national THROUGH range) ──────────────
+
+    /// <summary>True while the currently-executing statement has EC-RANGE-INVALID checking enabled. The THROUGH
+    /// range membership test (<c>CobolString.ThruMember</c> / <c>CobolCollation.ThruMember</c>) consults it.</summary>
+    public bool RangeInvalidChecking
+    {
+        get => _checking.RangeInvalid;
+        set => _checking.RangeInvalid = value;
+    }
+
+    /// <summary>Record EC-RANGE-INVALID for a THROUGH range whose starting value collates AFTER its ending value
+    /// (§14.7.8 rule 2 — a level-88 VALUE THRU or an EVALUATE WHEN range). Nonfatal (Table 13): the range is
+    /// treated as empty whether or not the condition is raised.</summary>
+    public void RangeInvalidError(string detail) => NonfatalIfEnabled(RangeInvalidChecking, "EC-RANGE-INVALID");
+
+    // ── EC-STORAGE-NOT-AVAIL ambient statement gate (SET [SIZE OF] dynamic-length-item TO …) ───────────────────
+
+    /// <summary>True while the currently-executing statement has EC-STORAGE-NOT-AVAIL checking enabled. The
+    /// dynamic-length resize site (<c>CobolDynString.SetSize</c>) consults it.</summary>
+    public bool StorageNotAvailChecking
+    {
+        get => _checking.StorageNotAvail;
+        set => _checking.StorageNotAvail = value;
+    }
+
+    /// <summary>Record EC-STORAGE-NOT-AVAIL for a dynamic-length resize whose evaluated value is not nonnegative
+    /// (§14.9.39 Format 16 GR37) or exceeds the item's maximum size (GR38). Nonfatal (Table 13): the length is
+    /// set to 0 / clamped to the maximum whether or not the condition is raised. (The ALLOCATE raise of the same
+    /// name is detected by the GENERATED code — §14.9.3.4 GR5c — and dispatches at its own site.)</summary>
+    public void StorageNotAvailError(string detail) => NonfatalIfEnabled(StorageNotAvailChecking, "EC-STORAGE-NOT-AVAIL");
 
     // ── EC-BOUND-REF-MOD ambient statement gate (reference modification out of bounds / zero-length) ───────────
 
@@ -1262,6 +1351,33 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.BoundOverflowError"/>
     public static void BoundOverflowError(string detail) => E.BoundOverflowError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.RangeInvalidChecking"/>
+    public static bool RangeInvalidChecking
+    {
+        get => E.RangeInvalidChecking;
+        set => E.RangeInvalidChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.RangeInvalidError"/>
+    public static void RangeInvalidError(string detail) => E.RangeInvalidError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.StorageNotAvailChecking"/>
+    public static bool StorageNotAvailChecking
+    {
+        get => E.StorageNotAvailChecking;
+        set => E.StorageNotAvailChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.StorageNotAvailError"/>
+    public static void StorageNotAvailError(string detail) => E.StorageNotAvailError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.NonfatalDispatcher"/>
+    public static ICobolProgram? NonfatalDispatcher
+    {
+        get => E.NonfatalDispatcher;
+        set => E.NonfatalDispatcher = value;
+    }
 
     /// <inheritdoc cref="ExceptionEngine.BoundRefModChecking"/>
     public static bool BoundRefModChecking

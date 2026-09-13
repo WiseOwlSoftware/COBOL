@@ -784,8 +784,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOLNET1568). The 2023
     /// introduction gate is on the <see cref="BoundSetSize"/> node (VersionConformancePass semantic arm), covering
     /// both the explicit SIZE OF form and the bare re-routed form. Whether EC-STORAGE-NOT-AVAIL checking is enabled
-    /// at this statement is captured from the TurnState NOW (§14.9.39.4 GR37/GR38 — the nonfatal condition the
-    /// negative/clamp legs set), mirroring the CONTINUE AFTER EC-CONTINUE-LESS-THAN-ZERO capture.</summary>
+    /// at this statement is NOT captured here: §14.9.39.4 GR37/GR38's nonfatal condition rides the ambient
+    /// (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair the EcBinder already adds to every statement in a
+    /// checking-on region, which is also what carries it into the §14.6.13.1.4 #3 selection (kb/Work PB367b).</summary>
     private BoundStatement BindSetSize(Core.DataReferenceContext dref, Core.ArithmeticExpressionContext amount)
     {
         if (host.Expr.ResolveReceiving(dref) is not { } p)
@@ -797,8 +798,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §14.9.39 Format 16 SR33)");
             return new BoundNop();
         }
-        bool checkStorage = ctx.EcState.Turn.Enabled("EC-STORAGE-NOT-AVAIL", null, dref.Start.Line);
-        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit, checkStorage);
+        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit);
     }
 
     /// <summary>The SIZE-OF-absent bare-form peek (ISO §14.9.39 Format 16): reroute `SET dyn TO n` when the sole,
@@ -813,8 +813,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // Resolve would report COBOLNET1639 on a name that is legally not a data item (R30).
         if (host.Expr.IndexFieldOf(targets[0]) is not null) return null;
         if (host.Expr.ResolveReceiving(targets[0]) is not { Item.IsDynamicLength: true } p) return null;
-        bool checkStorage = ctx.EcState.Turn.Enabled("EC-STORAGE-NOT-AVAIL", null, targets[0].Start.Line);
-        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit, checkStorage);
+        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynLengthLimit);
     }
 
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
