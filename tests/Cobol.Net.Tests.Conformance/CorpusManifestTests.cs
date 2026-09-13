@@ -161,4 +161,54 @@ public sealed class CorpusManifestTests
         Assert.True(missing.Count == 0 && extra.Count == 0,
             $"green set drifted from the [InlineData] baseline — missing [{string.Join(", ", missing)}] extra [{string.Join(", ", extra)}]");
     }
+
+    /// <summary>The token a <c>corpus.tsv</c> note carries to declare that the CCVS PROGRAM'S OWN EXPECTATION,
+    /// not the compiler, is what the ISO text contradicts — so its golden legitimately records a failing CCVS
+    /// test. Distinct from the ordinary <c>divergent</c> reason (the LEGACY diverges from an ISO-conforming
+    /// golden), which never changes a report's PASS/FAIL column.</summary>
+    private const string CcvsDefectMarker = "CCVS-DEFECT";
+
+    /// <summary>⛔ THE GOLDEN-BASELINE INVARIANT, IN BOTH DIRECTIONS. A CCVS report footer reading
+    /// <c>NNN TEST(S) FAILED</c> inside a committed golden is how a bad baseline hides: every later run then
+    /// matches it and the suite is green over a program that fails its own self-check (the IX108A shape).
+    /// <c>scripts/guard-verdict.sh</c> used to police this by scoring any non-zero footer as a REGRESSION, but
+    /// that check sits AFTER a byte-exact match with the golden, so it could only ever fire on a golden defect —
+    /// and it fired on the one golden that is deliberately allowed to carry a failure. The rule therefore moved
+    /// here, where it is a real audit of the BASELINE rather than of the run, and it is stated as a SET EQUALITY
+    /// so neither direction can rot: a golden that quietly acquires a failure is caught, and a declaration left
+    /// behind after a golden is repaired is caught too (feedback_measure_the_selectors_complement).
+    /// <para>The one declared member today is <b>NC201A</b>: PFM-TEST-F4-23 ("ORDER OF INITIALISATION OF VARYING
+    /// IDENTIFIERS") asserts SIX body executions for <c>VARYING A … AFTER B FROM A …</c> under TEST BEFORE,
+    /// while ISO §14.9.28.4 GR13 e) 2 a–c set the inner induction variable to its initialization value BEFORE
+    /// augmenting the one to its left — so B is reset from the PRE-augment A and the statement runs EIGHT.
+    /// The determination is in <c>docs/CONFORMANCE.md</c> §3; the citation-bearing pin is in
+    /// <c>SpecPinnedNistTests</c>; kb/Work PB436.</para></summary>
+    [Fact]
+    public void GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects()
+    {
+        var declared = CorpusManifest.Rows
+            .Where(r => r.Note.Contains(CcvsDefectMarker, StringComparison.Ordinal))
+            .Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // The CCVS footer, read from the golden itself. "NO  TEST(S) FAILED" is the clean form and does not match.
+        var footer = new System.Text.RegularExpressions.Regex(@"^\s*(\d+) TEST\(S\) FAILED",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+        var carrying = Directory.EnumerateFiles(TestRepo.Nist("valid"), "*.txt")
+            .Where(f => footer.Matches(File.ReadAllText(f)).Any(m => int.Parse(m.Groups[1].Value) > 0))
+            .Select(f => Path.GetFileNameWithoutExtension(f)!).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var undeclared = carrying.Except(declared).Order().ToList();
+        var stale = declared.Except(carrying).Order().ToList();
+        Assert.True(undeclared.Count == 0 && stale.Count == 0,
+            $"goldens carrying a CCVS failure but not declared {CcvsDefectMarker} in tests/nist/corpus.tsv "
+            + $"[{string.Join(", ", undeclared)}]; declared but carrying none [{string.Join(", ", stale)}]");
+
+        // A declaration is a spec adjudication, so it takes the divergent status (whose note EveryDivergent_CitesSpec
+        // already forces to carry an ISO §) — a `green` row could otherwise declare one with no citation at all.
+        var notDivergent = CorpusManifest.Rows
+            .Where(r => r.Note.Contains(CcvsDefectMarker, StringComparison.Ordinal) && r.Status != "divergent")
+            .Select(r => r.Name).Order().ToList();
+        Assert.True(notDivergent.Count == 0,
+            $"{CcvsDefectMarker} rows must be status `divergent` so their ISO citation is enforced: {string.Join(", ", notDivergent)}");
+    }
 }

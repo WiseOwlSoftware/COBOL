@@ -149,13 +149,22 @@ guard_output_verdict() {
     if [ -n "$GUARD_ACTUAL" ]; then
         # A FAIL* detail line is a real failure; the AUTHORITATIVE signal is the report footer total, which can
         # be non-zero with no FAIL* line at all (the IX108A false green). "NO TEST(S) FAILED" is not [0-9]+.
-        local fc ff
+        # ⛔ THE ALLOWANCE COMES FROM THE GOLDEN, NOT FROM THE CONSTANT 0. This arm is reached only after a
+        # candidate matched the golden byte-for-byte, so the output's footer IS the golden's footer: comparing
+        # it to 0 was auditing the BASELINE, not the run. One golden legitimately carries a failure — NC201A,
+        # whose PFM-TEST-F4-23 asserts a value §14.9.28.4 GR13 e) 2 contradicts (kb/Work PB436) — and scoring
+        # that as a regression would turn a CONFORMING compiler red. Which goldens may carry one is not decided
+        # here: tests/nist/corpus.tsv declares them CCVS-DEFECT and CorpusManifestTests asserts that the
+        # declared set equals the goldens that actually carry a footer, in BOTH directions — so a golden cannot
+        # quietly acquire a failure, and this comparison cannot quietly stop noticing one.
+        local fc ff ffexp
         fc=$(grep -c "FAIL\*" "$GUARD_ACTUAL" 2>/dev/null); fc=${fc:-0}
         ff=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$GUARD_ACTUAL" 2>/dev/null | grep -oE "^[0-9]+" | head -1); ff=${ff:-0}
-        if [ "$ff" -gt 0 ] 2>/dev/null; then
-            GUARD_CLASS="regression"; GUARD_VERDICT="FOOTER ${ff} TEST(S) FAILED — REGRESSION!"
+        ffexp=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$validfile" 2>/dev/null | grep -oE "^[0-9]+" | head -1); ffexp=${ffexp:-0}
+        if [ "$ff" -gt "$ffexp" ] 2>/dev/null; then
+            GUARD_CLASS="regression"; GUARD_VERDICT="FOOTER ${ff} TEST(S) FAILED, golden allows ${ffexp} — REGRESSION!"
         elif [ "$fc" -gt 0 ] 2>/dev/null; then
-            GUARD_CLASS="match"; GUARD_VERDICT="MATCH (${fc} FAIL*)"
+            GUARD_CLASS="match"; GUARD_VERDICT="MATCH (${fc} FAIL*, golden allows ${ffexp})"
         else
             GUARD_CLASS="match"; GUARD_VERDICT="MATCH"
         fi

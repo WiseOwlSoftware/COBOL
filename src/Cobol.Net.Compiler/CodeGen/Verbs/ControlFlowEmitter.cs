@@ -297,13 +297,29 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         }
     }
 
-    /// <summary>PERFORM VARYING … [AFTER …] (ISO §14.9.28 GR13), leftmost level outermost.
-    /// TEST BEFORE (GR13a/d/e): all induction variables initialize left-to-right ONCE; nested <c>while(!cond)</c>
-    /// loops; the innermost loop runs the body then augments its variable; when an inner condition goes true, its
-    /// variable RESETS to FROM and the variable to its LEFT augments (GR13e.2a–c) before the outer retest.
-    /// TEST AFTER (GR13b/c): body-first loops — the innermost tests after the body (false → augment, repeat);
-    /// when true the next level out tests (false → augment it, REINITIALIZE the inner variable, run again).
-    /// FROM/BY render inline so each set/augment re-reads their current contents (GR12).</summary>
+    /// <summary>PERFORM VARYING … [AFTER …] (ISO §14.9.28.4 GR13), leftmost level outermost.
+    /// <para>TEST BEFORE (GR13 a/d/e) — the nested <c>while(!cond)</c> nest IS GR13 e)'s current-condition machine,
+    /// one level per condition: e) 1 and e) 2's "evaluate the current condition" are the <c>while</c> tests; e) 2's
+    /// FALSE arm a. ("another AFTER phrase to the right … becomes the current condition") is entering the next inner
+    /// <c>while</c>; its FALSE arm b. (body, then augment the current condition's variable) is the innermost level's
+    /// loop body; and e) 2's TRUE arm is the code that runs when an inner <c>while</c> exits — <b>a. the variable of
+    /// the condition that went true is set to its INITIALIZATION VALUE, and only THEN b./c. the condition to its
+    /// LEFT becomes current and THAT variable is augmented.</b> That order is the whole rule: because GR12 does item
+    /// identification for the FROM operand "each time … is used in a setting … operation" and GR13's closing
+    /// paragraph gives every change "immediate effect", <c>AFTER B FROM A</c> resets B from the <b>pre-augment</b> A.
+    /// GR13 a) is the one-shot left-to-right initialization before the outermost test.</para>
+    /// <para>TEST AFTER (GR13 b/c): body-first loops — the innermost tests after the body (false → augment, repeat);
+    /// when true the next level out tests (false → augment it, REINITIALIZE the inner variable, run again). GR13 c) 4
+    /// is the ONE sub-step of GR13 that states the increment BEFORE the reset ("the induction variable associated
+    /// with that condition is incremented …, all induction variables to the right of the false condition are set to
+    /// their initialization values"), and this arm implements exactly it — the two arms are deliberately NOT
+    /// symmetric, and each is written to its own sub-step.</para>
+    /// <para>FROM/BY render inline so each set/augment re-reads their current contents (GR12).</para>
+    /// <para>⚠ NIST NC201A PFM-TEST-F4-23 ("ORDER OF INITIALISATION OF VARYING IDENTIFIERS") asserts 6 executions
+    /// for the TEST BEFORE <c>AFTER B FROM A</c> nest; GR13 e) 2 gives 8. The ISO text is the oracle and the CCVS
+    /// corpus is a regression net (CLAUDE.md rule 1), so NC201A is a recorded ISO-vs-CCVS divergence —
+    /// <c>tests/nist/corpus.tsv</c> row, the pin in <c>SpecPinnedNistTests</c>, and the determination in
+    /// <c>docs/CONFORMANCE.md</c> §3. kb/Work PB436.</para></summary>
     private void EmitVarying(PerformVarying v, Action body)
     {
         var w = ctx.Writer;
@@ -324,11 +340,20 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     else
                     {
                         EmitBefore(k + 1);
-                        // §14.9.28 GR13e ('85 6.20.4 GR10(d)1): the OUTER variable augments FIRST, THEN the inner
-                        // re-initializes from its CURRENT FROM value — `AFTER B FROM A` must see the augmented A
-                        // (NC201A PFM-TEST-F4-23: 3+2+1 = 6 iterations, not 3+3+2).
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
+                        // The inner while exited ⇒ the condition at k+1 is the current condition and it is TRUE, so
+                        // ISO §14.9.28.4 GR13 e) 2's true-branch runs, IN ITS ORDER:
+                        //   a. "the induction variable associated with the current condition is set to its
+                        //      initialization value"   — level k+1 RESETS FIRST, reading its FROM operand NOW, and
+                        //   b. "the condition to the left of the current condition becomes the current condition"
+                        //   c. "the induction variable associated with the new current condition is incremented by
+                        //      its associated augment value"   — level k augments SECOND.
+                        // So `AFTER B FROM A` resets B from the PRE-augment A (GR12 re-identifies the FROM operand
+                        // on every setting operation; GR13's closing paragraph gives the change immediate effect).
+                        // ⛔ Do NOT swap these two: the augment-then-reset order is NIST NC201A PFM-TEST-F4-23's
+                        // CCVS-85 expectation, which GR13 e) 2 contradicts — see the method doc-comment, the
+                        // docs/CONFORMANCE.md §3 determination and kb/Work PB436.
                         InitVaryingTarget(v, levels[k + 1]);
+                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
                     }
                 }
             }
@@ -344,7 +369,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1) body();
                     else
                     {
-                        InitVaryingTarget(v, levels[k + 1]);   // reinit on each entry
+                        // GR13 c) 4: on re-entry from the augment below, "all induction variables to the RIGHT of
+                        // the false condition are set to their initialization values" — so the augment of level k
+                        // (bottom of this block) happens BEFORE this reset of level k+1, the OPPOSITE order to the
+                        // TEST BEFORE arm's GR13 e) 2 a–c. Deliberate: each arm is written to its own sub-step.
+                        InitVaryingTarget(v, levels[k + 1]);
                         EmitAfter(k + 1);
                     }
                     w.Line($"if ({cond.Render(levels[k].Until)}) break;");

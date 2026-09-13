@@ -313,6 +313,28 @@ of an unsupported facility.
   The two cannot both hold. **Pinned choice: FINALLY runs on the NORMAL (and EXIT-PERFORM) fall-through path ONLY, NOT
   on the fatal abnormal-termination path.** (Realized structurally — a `CobolFatalException` unwinds past the inline
   FINALLY block.) Revisit only if the four-edition inventory surfaces a conformance test pinning the other reading.
+- **PERFORM VARYING … AFTER under TEST BEFORE — the reset/augment ORDER (§14.9.28.4 GR13 e) 2; the ISO text and the
+  NIST CCVS-85 corpus disagree)**: GR13 e) 2's true branch is ordered "a. the induction variable associated with the
+  current condition is set to its initialization value", then "b. the condition to the left of the current condition
+  becomes the current condition", then "c. the induction variable associated with the new current condition is
+  incremented by its associated augment value". GR12 does item identification for the FROM operand "each time … is
+  used in a setting or augmenting operation" and GR13's closing paragraph gives every such change "immediate effect",
+  so an AFTER level whose FROM reads the level to its LEFT is reset from that level's **pre-augment** contents. For
+  `PERFORM VARYING A FROM 1 BY 1 UNTIL A > 3 AFTER B FROM A BY 1 UNTIL B > 3` the rule therefore runs the body
+  **eight** times — (1,1)(1,2)(1,3)(2,1)(2,2)(2,3)(3,2)(3,3), leaving A=4 and B=3. **NIST NC201A PFM-TEST-F4-23
+  ("ORDER OF INITIALISATION OF VARYING IDENTIFIERS", referenced to the 1985 text as `VI-114 6.20.4 GR10(d)1`) asserts
+  SIX** — i.e. the opposite order, augment-then-reset. **Pinned choice: the ISO text governs, at EVERY edition.**
+  Process rule 1 makes the standard the oracle and the CCVS corpus a regression net; `docs/VERSION_CHANGE_REFERENCE.md`
+  records no change to §14.9.28 across 1985/2002/2014/2023, so there is no edition on which the CCVS order could be
+  the conforming one, and an edition-gated split would have to be invented rather than cited. The rule text was
+  verified against the canonical PDF page 718 (prose, no figure). NC201A's golden consequently records
+  `FAIL* PFM-TEST-F4-23` with `COMPUTED= 8 / CORRECT = 6` and a `001 TEST(S) FAILED` footer — the ONE golden in
+  `tests/nist/valid` that carries a CCVS failure; the allowance is declared `CCVS-DEFECT` in `tests/nist/corpus.tsv`
+  and audited in both directions by `CorpusManifestTests.GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects`.
+  The TEST AFTER arm is unaffected and is **not** symmetric: GR13 c) 4 is the one sub-step of GR13 that states the
+  increment BEFORE the reset, and that arm implements exactly it. Witnesses:
+  `conformance:85/pb436_varying_after_from_outer`; `SpecPinnedNistTests.NC201A_VaryingAfterFromOuterInductionVariable_RunsEightBodies`.
+  (kb/Work PB436.)
 - **Exception-checking PERFORM — RESUME NEXT STATEMENT in a WHEN skips WHEN COMMON (§14.9.28.4 GR17/GR19, spec silent)**:
   GR17 passes control to imp-4 (WHEN COMMON) "at the completion of the execution of imperative-statement-2"; a RESUME
   (§14.9.33) is a transfer of control OUT of imp-2, so imp-2 does not "complete" and the GR17→imp-4 hand-off is not

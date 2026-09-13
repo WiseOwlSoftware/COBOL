@@ -12,6 +12,11 @@ namespace CobolNet.Tests.Conformance;
 /// RE-BASELINED to the conforming output (owner-approved, DEVLOG 569 — the legacy guard carries them in its
 /// LEGACY_DIVERGENT list), so the programs are ALSO byte-locked in <see cref="NistDifferentialTests"/>;
 /// these pins remain as the citation-bearing documentation of WHY each golden diverges from the legacy.
+/// <para>ONE pin is of a different KIND and is marked as such: <see cref="NC201A_VaryingAfterFromOuterInductionVariable_RunsEightBodies"/>
+/// is not a legacy artefact but a CCVS DEFECT — the CCVS program's own expected value is what the ISO text
+/// contradicts, so the conforming compiler must FAIL that check and the golden records the failure. That is the
+/// only golden in the corpus allowed to carry one, and the allowance is declared in <c>tests/nist/corpus.tsv</c>
+/// and audited by <see cref="CorpusManifestTests.GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects"/>.</para>
 /// </summary>
 public sealed class SpecPinnedNistTests
 {
@@ -101,6 +106,53 @@ public sealed class SpecPinnedNistTests
             // The program's ONE remaining strict-2002 obstacle is the deleted FD/SD clause, not the SORT phrase —
             // asserted so a future change that silently stops compiling the SORT at all cannot pass this test.
             Assert.Contains("COBOLNET0873", all, StringComparison.Ordinal);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
+    /// <summary>NC201A PFM-TEST-F4-23 — the one golden in the corpus that records a FAILING CCVS test, and the
+    /// only one where the CCVS PROGRAM'S OWN EXPECTATION is what the ISO text contradicts (every other
+    /// re-baselined golden corrected a LEGACY non-conformance and stayed all-PASS).
+    /// <para>The CCVS check, titled "ORDER OF INITIALISATION OF VARYING IDENTIFIERS" and referenced to the 1985
+    /// text as <c>VI-114 6.20.4 GR10(d)1</c>, executes
+    /// <c>PERFORM PFM-F4-23-PROC VARYING PFM-A1 FROM 1 BY 1 UNTIL PFM-A1 &gt; 3 AFTER PFM-B1 FROM PFM-A1 BY 1
+    /// UNTIL PFM-B1 &gt; 3</c> and asserts the body ran SIX times — i.e. that PFM-A1 is augmented BEFORE PFM-B1
+    /// is reset from it (3+2+1). ISO §14.9.28.4 GR13 e) 2's true branch orders the two the other way: "a. the
+    /// induction variable associated with the current condition is set to its initialization value", then "b. the
+    /// condition to the left … becomes the current condition, and c. the induction variable associated with the
+    /// new current condition is incremented". With GR12 re-identifying the FROM operand at every setting
+    /// operation and GR13's closing paragraph giving the change immediate effect, PFM-B1 is reset from the
+    /// PRE-augment PFM-A1 and the body runs EIGHT times (3+3+2). Verified against the canonical PDF page 718,
+    /// which carries the rule as prose with no figure. Per CLAUDE.md rule 1 the ISO text is the oracle and the
+    /// CCVS corpus is a regression net, so the golden records the FAIL and the divergence is declared
+    /// CCVS-DEFECT in <c>tests/nist/corpus.tsv</c>, audited by
+    /// <see cref="CorpusManifestTests.GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects"/> and
+    /// determined in <c>docs/CONFORMANCE.md</c> §3. kb/Work PB436.</para>
+    /// <para>⚠ THE ASSERTION IS THE COMPUTED VALUE, NOT THE FAIL LINE. <c>NistDifferentialTests</c> masks the
+    /// <c>COMPUTED=</c> operand on both sides of its byte comparison, so the golden alone cannot pin the number
+    /// COBOL.NET actually produced — a lowering that ran the body nine times would still match it. This pin
+    /// reads the digits.</para></summary>
+    [Fact]
+    public void NC201A_VaryingAfterFromOuterInductionVariable_RunsEightBodies()
+    {
+        string src = TestRepo.Nist("programs", "NC201A.cob");
+        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Pin_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "NC201A.dll"), NistTestName: "NC201A", DialectLevel: 85));
+            Assert.True(r.Success, string.Join("\n", r.Errors));
+            var (runOk, _, detail) = CutRunner.Run(Path.Combine(dir, "NC201A.dll"), dir);
+            Assert.True(runOk, detail);
+            string output = File.ReadAllText(Path.Combine(dir, "nc201a.txt"));
+
+            Assert.Contains("FAIL* PFM-TEST-F4-23", output, StringComparison.Ordinal);
+            Assert.Contains("COMPUTED=  000000000000000008", output, StringComparison.Ordinal);
+            Assert.Contains("CORRECT =  000000000000000006", output, StringComparison.Ordinal);
+            // And nothing ELSE in NC201A regressed: exactly one of its 59 checks fails, and it is this one.
+            Assert.Contains("058 OF 059  TESTS WERE EXECUTED SUCCESSFULLY", output, StringComparison.Ordinal);
+            Assert.Contains("001 TEST(S) FAILED", output, StringComparison.Ordinal);
         }
         finally { CutRunner.TryDelete(dir); }
     }

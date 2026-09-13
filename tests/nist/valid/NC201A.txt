@@ -69,7 +69,11 @@ TEST RESULT OF NC201A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  VARYING BY FRAC.     PASS  PFM-TEST-F4-20                PERFORM VARYING
  CHANGE BY INCR.      PASS  PFM-TEST-F4-21                PERFORM VARYING
  CHANGE BY INCR.      PASS  PFM-TEST-F4-22                PERFORM VARYING
- CHANGE BY INCR.      PASS  PFM-TEST-F4-23
+ CHANGE BY INCR.      FAIL* PFM-TEST-F4-23
+
+                                     COMPUTED=  000000000000000008
+                                     CORRECT =  000000000000000006   VI-114 6.20.4 GR10(d)1
+
  CHANGE BY INCR.      PASS  PFM-TEST-F4-24
  CHANGE BY INCR.      PASS  PFM-TEST-F4-24
  ***********************************************************************************************************************
@@ -79,8 +83,8 @@ TEST RESULT OF NC201A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC201A
 
-                                                    059 OF 059  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    NO  TEST(S) FAILED
+                                                    058 OF 059  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    001 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

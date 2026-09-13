@@ -84,7 +84,8 @@
     "pb535_picture_category_size_85",
     "pb721_zero_length_record_85",
     "pb721_bytes_user_word_85",
-    "pb390_procedure_and_condition_operands"
+    "pb390_procedure_and_condition_operands",
+    "pb436_varying_after_from_outer"
   ],
   "pending": []
 }

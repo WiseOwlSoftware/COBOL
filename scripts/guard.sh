@@ -191,13 +191,23 @@ export COBOL_SWITCH_1=ON
 #   SQ208M/SQ210M   — HOLE: a data-name LINAGE operand re-evaluates at OPEN OUTPUT, WRITE ADVANCING PAGE, and
 #                      page overflow, applying to the NEXT logical page (§13.18.34 GR6b1–3); the legacy evaluated
 #                      only at OPEN, so mid-run MOVEs to the LINAGE data-names never took effect (page stuck at 66).
+#   NC201A          — CCVS DEFECT, not a legacy hole: PFM-TEST-F4-23 "ORDER OF INITIALISATION OF VARYING
+#                      IDENTIFIERS" asserts SIX body executions for `VARYING A … AFTER B FROM A …` under
+#                      TEST BEFORE, but §14.9.28.4 GR13 e) 2 a–c set the INNER induction variable to its
+#                      initialization value BEFORE augmenting the one to its left, so B is reset from the
+#                      PRE-augment A and the statement runs EIGHT bodies. The golden therefore records
+#                      `FAIL* PFM-TEST-F4-23` and a footer of `001 TEST(S) FAILED` — the ONE golden under
+#                      tests/nist/valid that does. It is declared CCVS-DEFECT in tests/nist/corpus.tsv and
+#                      audited from there by CorpusManifestTests, so no other golden can quietly acquire a
+#                      failure. The LEGACY lowerer augments-then-resets and prints 6, so it diverges from
+#                      this ISO baseline like every entry above (kb/Work PB436).
 #
-# ⭐ THE LIST APPLIES TO THE LEGACY ONLY (kb/Work/PB750). Every divergence above is a LEGACY non-conformance, so
-# under the default compiler (`cobol`) these eleven goldens are exactly what COBOL.NET must reproduce —
-# NistDifferentialTests already locks them byte-exact — and exempting them would blind the guard on the eleven
+# ⭐ THE LIST APPLIES TO THE LEGACY ONLY (kb/Work/PB750). Every divergence above is one the LEGACY exhibits, so
+# under the default compiler (`cobol`) these twelve goldens are exactly what COBOL.NET must reproduce —
+# NistDifferentialTests already locks them byte-exact — and exempting them would blind the guard on the twelve
 # programs a codegen regression is most likely to break. The variable is therefore emptied unless the run is
 # the opt-in legacy differential. Both guards read this ONE list (guard-fast.sh extracts it by sed).
-LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
+LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC201A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
 if [ "$GUARD_DIVERGENT" != "1" ]; then LEGACY_DIVERGENT=""; fi
 
 # ⛔ THE EVIDENCE RULES + THE VERDICT AUDIT (plan §11 A12b/A12c; DESIGN-test-build-ci.md §3.10). A verdict is

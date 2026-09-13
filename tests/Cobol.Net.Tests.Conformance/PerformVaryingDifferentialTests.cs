@@ -5,12 +5,20 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// PERFORM VARYING (ISO §14.9.28, the VARYING phrase of Formats 1 and 2 — §14.9.28.4 GR12–13): nested induction loops with the spec's exact reset/augment
-/// ordering (inner condition true ⇒ reset inner variable, augment the one to its left), TEST BEFORE and TEST
-/// AFTER shapes, omitted BY (=1), FROM/BY re-evaluated per use, index-name and numeric induction variables, both
-/// inline and out-of-line. Plus the two fixes the NC243A torture exposed: ALL "literal" repeats to a GROUP
-/// receiver's width (§8.3.3.6.4 GR2), and an out-of-range subscript continues benignly with checking off
-/// (§8.4.2.3.4 GR2 — CobolTable.At). Pinned to the legacy oracle (NIST-85 green across the VARYING series).
+/// PERFORM VARYING (ISO §14.9.28, the VARYING phrase of Formats 1 and 2 — §14.9.28.4 GR12–13): nested induction
+/// loops, TEST BEFORE and TEST AFTER shapes, omitted BY (=1), FROM/BY re-evaluated per use, index-name and
+/// numeric induction variables, both inline and out-of-line. Plus the two fixes the NC243A torture exposed:
+/// ALL "literal" repeats to a GROUP receiver's width (§8.3.3.6.4 GR2), and an out-of-range subscript continues
+/// benignly with checking off (§8.4.2.3.4 GR2 — CobolTable.At). Pinned to the legacy oracle (NIST-85 green
+/// across the VARYING series).
+/// <para>⛔ THESE TESTS DO NOT MEASURE THE RESET/AUGMENT ORDERING, and this comment used to claim they did.
+/// Every FROM operand below is a LITERAL, and GR13 e) 2's order — reset the inner induction variable, THEN
+/// augment the one to its left — is invisible unless an AFTER level's FROM READS the level to its left. The
+/// claim stood over a body of <c>AssertSameAsLegacy</c> differentials for as long as the emitter implemented the
+/// opposite order (kb/Work PB436). The ordering is measured by the spec-derived golden
+/// <c>conformance:85/pb436_varying_after_from_outer</c>, which writes <c>AFTER B FROM A</c> in both the inline
+/// and out-of-line spellings, at two and three levels, with index-name levels, and pins the TEST AFTER arm
+/// (GR13 c) 4, the opposite order) beside it.</para>
 /// </summary>
 public sealed class PerformVaryingDifferentialTests
 {
