@@ -1049,7 +1049,9 @@
   "pb530-picture-editing-phrase-order",
   "pb530-picture-editing-extended-count",
   "pb530-picture-precedence-residue",
-  "pb530-picture-editing-currency-placement"
+  "pb530-picture-editing-currency-placement",
+  "pb535-picture-no-category",
+  "pb535-picture-alphanumeric-combination"
  ],
  "pending": []
 }

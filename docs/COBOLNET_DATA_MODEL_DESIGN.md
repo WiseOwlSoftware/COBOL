@@ -1409,6 +1409,48 @@ which SR12 a) and §13.18.40.4 GR11 both refuse) and the deliberate format-2 neg
 `2023/pb528_picture_editing_transparency_2023` are the standing drift test over the LEGAL shapes, each rendered
 so a wrong accept and a wrong render are both visible.
 
+### D25. A Format-1 PICTURE's CATEGORY is decided by the general rule that DEFINES it, at the arm that answers it, and its SIZE is ISO §13.18.40.4 GR4 asked ONCE — never a per-category whitelist of the symbols that arm expected. (kb/Work PB535.)
+
+**The rule.** §13.18.40.4 GR3 says a PICTURE clause "defines the subject of the entry to fall into ONE OF the
+following categories of data" and lists eight, and GR5–GR13 each state the character-string that defines their
+own: GR5 alphabetic ("only one or more occurrences of the symbol 'A'"), GR6 alphanumeric ("a combination of
+symbols from the set 'A', 'X', and '9', that includes — at least one symbol 'X', or — at least two different
+symbols from this set"), GR7 alphanumeric-edited, GR8 boolean, GR9 national, GR10 national-edited, GR11
+fixed-point numeric ("shall include at least one symbol '9', and — may contain a combination of symbols from the
+set 'P', 'S', and 'V'"), GR13 numeric-edited. GR4 then gives every one of them ONE size rule: "the number of
+symbols in character-string-1 that represent either boolean positions or character positions", and GR14 names
+the only three symbols that represent none — `'P'` and `'V'` ("not counted in the size of the item") and the
+`'S'` of an item with no SIGN SEPARATE phrase — while saying of each of the rest "is counted in the size of the
+item".
+
+**The shape.** `PictureAnalyzer.Analyze` classifies down a chain of arms, and the LAST arm is a fall-through.
+Two properties keep that honest, and both are structural rather than case-by-case:
+
+1. **Each arm states its own general rule as a loud assertion.** The national arm carries GR9/GR10, the boolean
+   arm GR8, the alphanumeric arm GR6/GR7's alphabet, and the pure-numeric fall-through GR11's "at least one
+   symbol '9'" — each a COBOLNET0808 naming the rule. Every one of them is unreachable while `PictureComposition`
+   (D24) and GR5–GR13 agree; they exist so that the agreement is ASSERTED rather than assumed, because a
+   fall-through arm reached by exhaustion is exactly where a character-string that defines NO category ends up.
+   Before the composition validator existed, `PIC S`, `PIC PPP`, `PIC SV` and `PIC SPPP` each bound a
+   ZERO-LENGTH category-numeric item, silently, at every edition.
+2. **GR4 is one function, `PictureAnalyzer.CharacterPositions`, and it states the rule as an EXCLUSION.** Every
+   arm that sizes an item calls it. The exclusion form is load-bearing: the alphanumeric arm used to count a
+   hard-coded WHITELIST of the symbols it expected (`'X'`, `'A'`, `'9'` plus the insertion set), which answers a
+   symbol it does not know about by DROPPING it — `PIC XX,XX` sized 4 and `PIC XXCR` sized 2 where GR4 gives 5
+   and 4, leaving the item SHORTER than its picture and shifting every following member of a group image.
+   Stated as "every symbol except 'P', 'V' and an unseparated 'S'", plus GR14's currency widening, the rule
+   cannot silently drop a symbol nobody anticipated; a picture the validator should have refused is sized
+   honestly instead of being quietly shortened.
+
+**The drift test measures the ACCEPTED SET, not a list of cases.** `PictureCategoryDriftTests` walks the whole
+Format-1 symbol alphabet (7 239 strings of one to three symbols, plus the shapes three symbols cannot spell) and
+asks of every string the compiler ACCEPTS whether the category it bound satisfies that category's defining
+general rule and whether its size is GR4's count. It carries its own POPULATION guard — the accepted count and a
+per-category histogram, with every one of GR3's eight required to appear — because both properties are stated
+over the accepted set and would otherwise pass vacuously if the validator ever widened into a blanket refusal.
+That is what makes the next symbol automatic: a prohibition relaxed in `PictureComposition`, or a category arm
+widened here, changes the accepted set and is measured against the standard's own rules.
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:

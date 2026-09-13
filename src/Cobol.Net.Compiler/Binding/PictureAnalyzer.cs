@@ -221,11 +221,14 @@ public static class PictureAnalyzer
             if (expanded.All(c => c is 'N' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
             {
                 ScreenUsageAgainstPicture(PicCategory.National, usage, explicitUsage, picture, edition, where);
-                // GR14: every symbol of a national or national-edited character-string is COUNTED in the size —
-                // each 'N' a national character position (GR1), each 'B'/'0'/'/' an insertion position, and
-                // character-1 "the size of literal-1" (the 'es' entry), which the landable IS form fixes at one.
+                // GR4 through the ONE count (kb/Work PB535): every symbol of a national or national-edited
+                // character-string is COUNTED in the size — each 'N' a national character position (GR1), each
+                // 'B'/'0'/'/' an insertion position, and character-1 "the size of literal-1" (GR14's 'es'
+                // entry), which the landable IS form fixes at one. None of 'P'/'S'/'V' may stand beside an 'N'
+                // (Table 10), so the exclusion takes nothing away here — that agreement is the point of asking
+                // ONE function rather than writing `expanded.Length` as a second reading of the same rule.
                 return new PicInfo(PicCategory.National, Usage.National,
-                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false)
+                    Length: CharacterPositions(expanded), Digits: 0, Scale: 0, Signed: false)
                 { EditMask = nationalEdited ? expanded : null, EditingRules = nationalEdited ? editRules : null };
             }
             // Unreachable while Table 10 and GR9/GR10 agree — the matrix admits nothing else beside an 'N'. It
@@ -244,8 +247,11 @@ public static class PictureAnalyzer
                 // BooleanData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
                 // GateData enumerator (keyed on Pic.Category Boolean); Step 14g.1.
                 usage = ScreenUsageAgainstPicture(PicCategory.Boolean, usage, explicitUsage, picture, edition, where);
+                // GR4 through the ONE count: GR14's '1' entry — "Each symbol '1' represents a boolean position
+                // … Each symbol '1' is counted in the size of the item" — is the "boolean positions" half of
+                // GR4's own sentence.
                 return new PicInfo(PicCategory.Boolean, usage,
-                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
+                    Length: CharacterPositions(expanded), Digits: 0, Scale: 0, Signed: false);
             }
             // REACHABLE, and the citation is the one that governs: §13.18.40.4 GR8 admits ONLY the symbol '1',
             // while Table 10 is transparent to a declared EDITING character-1 — so `PIC 11T EDITING "T" IS ":"`
@@ -326,8 +332,28 @@ public static class PictureAnalyzer
             // editing character-1. ⛔ The insertion SET is CobolEdit's one definition of it — the SAME predicate
             // the national arm above reads, because GR7 and GR10 name the same set word for word (kb/Work PB492).
             bool edited = expanded.Any(c => CobolEdit.IsEditedCategorySymbol(c, char1Set));
+            // GR5 / GR6 / GR7's ANTECEDENT, stated at the arm that answers it — the same loud assertion the
+            // national (GR9/GR10) and boolean (GR8) arms above carry, and for the same reason (kb/Work PB535).
+            // GR6 admits "a combination of symbols from the set 'A', 'X', and '9'" and GR7 adds character-1 and
+            // 'B'/'0'/'/' to it; GR5's alphabetic is the all-'A' case of the same alphabet. Unreachable while
+            // Table 10 and GR5–GR7 agree — the matrix admits nothing else beside an 'A' or an 'X' — but the
+            // predicate that GETS here is "contains an 'A' or an 'X'", which is not GR6's antecedent, and the
+            // gap between the two is exactly what bound `PIC XX,XX`, `PIC AAZZ`, `PIC XXCR` and `PIC ZZ9AA` as
+            // silently SHORT alphanumeric items for as long as no rule read symbol COMBINATION.
+            if (!expanded.All(c => c is 'A' or 'X' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
+            {
+                edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR6/GR7: a "
+                    + "character-string containing the symbol 'A' or 'X' defines an item only when its symbols "
+                    + "come from the set 'A', 'X', '9' (alphanumeric), optionally with character-1 or the "
+                    + "insertion symbols B 0 / (alphanumeric-edited))");
+                // A recovery width is NOT a GR4 size — the compile has already failed and this shape only keeps
+                // the doomed emit crash-free — so it stays the neighbours' plain symbol count.
+                return PicInfo.Recovery(expanded.Length);
+            }
             return new PicInfo(PicCategory.Alphanumeric, usage,
-                Length: expanded.Count(c => c is 'X' or 'A' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)),
+                // GR4 through the ONE count (kb/Work PB535): this arm used to spell GR4 as a WHITELIST of the
+                // symbols it expected, which answered every other symbol by dropping it from the size.
+                Length: CharacterPositions(expanded),
                 Digits: 0, Scale: 0, Signed: false)
             { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A'),
               EditingRules = editRules };
@@ -350,13 +376,32 @@ public static class PictureAnalyzer
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: expanded.Count(c => c is not ('V' or 'S' or 'P')) + currencyExtra, Digits: digits, Scale: scale, Signed: signed)
+                Length: CharacterPositions(expanded, currencyExtra), Digits: digits, Scale: scale, Signed: signed)
             { SignKind = signKind, EditMask = CanonicalCurrencyMask(expanded, cs), EditingRules = editRules, DigitPositions = digitPos,
               CurrencyString = currencyString == "$" ? null : currencyString };
 
-        // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — P holds no
-        // storage; the implied decimal position lives entirely in the signed Scale.
-        return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed)
+        // ⛔ GR11's ANTECEDENT, at the arm that answers it (kb/Work PB535). This arm is the FALL-THROUGH — it is
+        // reached by exhaustion, by everything that is not national, boolean, alphabetic/alphanumeric or edited —
+        // and for as long as no rule read symbol COMBINATION it had no precondition at all, so `PIC S`,
+        // `PIC PPP`, `PIC SV` and `PIC SPPP` each bound a ZERO-LENGTH category-numeric item at every edition,
+        // silently. §13.18.40.4 GR11: "To define an item as fixed-point numeric, character-string-1 — shall
+        // include at least one symbol '9', and — may contain a combination of symbols from the set 'P', 'S',
+        // and 'V'." §13.18.40.3 SR12 a says the same thing from the other side and PictureComposition now
+        // rejects all four above, so this is the loud assertion of that agreement rather than a second gate —
+        // the same shape the national and boolean arms carry. A character-string that defines NO category must
+        // never reach a PicInfo.
+        if (digits == 0)
+        {
+            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR11: to "
+                + "define an item as fixed-point numeric, character-string-1 shall include at least one symbol "
+                + "'9'; a character-string of 'S', 'V' and 'P' alone defines none of GR3's eight categories)");
+            return PicInfo.Recovery(expanded.Length);
+        }
+
+        // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — which is
+        // GR4's count too, GR14 excluding exactly the 'S', 'V' and 'P' that are all this arm's alphabet holds
+        // beside the '9's. P holds no storage; the implied decimal position lives entirely in the signed Scale.
+        return new PicInfo(PicCategory.Numeric, usage, Length: CharacterPositions(expanded), Digits: digits, Scale: scale, Signed: signed)
         { SignKind = signKind, DigitPositions = digitPos };
     }
 
@@ -486,8 +531,40 @@ public static class PictureAnalyzer
         return new string(a);
     }
 
+    /// <summary>
+    /// ⛔ ISO §13.18.40.4 GR4 — THE SIZE OF A PICTURE-DESCRIBED ELEMENTARY ITEM, WRITTEN ONCE (kb/Work PB535).
+    /// "The size in boolean positions or character positions of an elementary data item that has been defined
+    /// with a PICTURE clause is determined by the number of symbols in character-string-1 that represent either
+    /// boolean positions or character positions."
+    /// <para>GR14 says which symbols represent none, and there are exactly three: <c>'P'</c> — "not counted in
+    /// the size of the item, but each symbol 'P' is counted in the maximum number of digit positions";
+    /// <c>'V'</c> — "not counted in the size of the item"; and <c>'S'</c> — "counted in the size of the item ONLY
+    /// when the subject of the entry is described with a SIGN clause with the SEPARATE phrase" (that one
+    /// character is added by the SIGN pass, not here). EVERY other symbol of every category — 'A' 'B' 'E' 'N' 'X'
+    /// 'Z' '0' '1' '9' '/' ',' '.' '*', each character of 'CR'/'DB', each currency symbol, each EDITING
+    /// character-1 — carries GR14's sentence "is counted in the size of the item".</para>
+    /// <para>⛔ THE POINT OF THE EXTRACTION. This count was spelled FOUR ways across five arms: the national and
+    /// boolean arms as <c>expanded.Length</c>, the float-edited arm as <c>expanded.Length</c> again, the
+    /// numeric-edited arm as this exclusion, the pure-numeric arm as its '9' count, and the alphanumeric arm as
+    /// a hard-coded WHITELIST of the symbols it expected (<c>X A 9</c> plus the insertion set). The whitelist
+    /// is the dangerous spelling, because it answers a symbol it does not know about by DROPPING it: before the
+    /// composition validator (kb/Work PB528) existed, <c>PIC XX,XX</c> bound LENGTH 4 and <c>PIC XXCR</c> bound
+    /// 2 — an item SHORTER than its picture, which shifts every following member of a group image — where GR4
+    /// gives 5 and 4. Stated as an exclusion the rule cannot do that: a symbol nobody anticipated is counted,
+    /// because GR14 counts it. <see cref="PictureCategoryDriftTests"/> pins the property over the whole accepted
+    /// set rather than over a list of cases.</para>
+    /// </summary>
+    /// <param name="expanded">The repeat-expanded character-string.</param>
+    /// <param name="currencyExtra">GR14's currency widening: "the first occurrence of the currency symbol adds
+    /// the number of characters in the currency string to the size of the item. Each subsequent occurrence of the
+    /// currency symbol adds one" — i.e. the occurrences are already counted one apiece above, and this is the
+    /// first one's string length minus that one. Zero for a one-character currency string and for every category
+    /// whose symbols Table 10 will not let stand beside a currency symbol.</param>
+    internal static int CharacterPositions(string expanded, int currencyExtra = 0)
+        => expanded.Count(c => c is not ('P' or 'S' or 'V')) + currencyExtra;
+
     /// <summary>Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased).</summary>
-    private static string ExpandRepeats(string picture)
+    internal static string ExpandRepeats(string picture)
     {
         var sb = new System.Text.StringBuilder();
         string p = picture.ToUpperInvariant();
@@ -900,7 +977,10 @@ public static class PictureAnalyzer
         // used to carry its own SR12 half — a hand-written staging of the national form — and NOTHING else, so
         // a floating-point edited picture under USAGE BINARY/COMP/PACKED slipped past SR3 entirely.
         usage = ScreenUsageAgainstPicture(PicCategory.NumericEdited, usage, explicitUsage, picture, edition, where);
-        return new PicInfo(PicCategory.NumericEdited, usage, Length: expanded.Length, Digits: digits, Scale: 0, Signed: signed)
+        // GR4 through the ONE count (kb/Work PB535). The loop above has already refused 'S', 'V' and 'P' in the
+        // significand and the exponent is '+' and '9's, so nothing is excluded here — asking the one function is
+        // what keeps that agreement from becoming a fourth reading of GR4 that nobody re-derives.
+        return new PicInfo(PicCategory.NumericEdited, usage, Length: CharacterPositions(expanded), Digits: digits, Scale: 0, Signed: signed)
         { EditMask = expanded, DigitPositions = 0, IsFloatEdited = true };
     }
 
