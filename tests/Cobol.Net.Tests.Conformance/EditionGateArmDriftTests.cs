@@ -63,7 +63,7 @@ public sealed class EditionGateArmDriftTests
             + "is `SET { identifier-12 } … TO identifier-13` and has no keyword a parse rule could recognize",
         ["PointerArithmetic2002"] =
             "SET x UP/DOWN BY n is ONE printed shape for TWO constructs — the version-invariant index form "
-            + "(§14.9.39 Format 8) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "
+            + "(§14.9.39 Format 2, index-arithmetic) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "
             + "separates them, so recognition would gate every SET of an index",
         ["SetDynLengthSize2023"] =
             "the bare `SET item TO n` re-routes to BoundSetSize only when the target resolves to a DYNAMIC LENGTH "

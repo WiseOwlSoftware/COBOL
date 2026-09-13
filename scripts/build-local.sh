@@ -21,7 +21,9 @@ F="$(printf '%s' "$F" | sed -E 's/(^|[|&(])(!=|=|~)/\1FullyQualifiedName\2/g')"
 RC=0
 # ⛔ THE CITATION AUDITS RUN FIRST, BEFORE THE BUILD — they are a second and cost nothing, and a wrong § is the
 # one defect class no test can ever catch (CLAUDE.md rule 1: the failure mode is INHERITING a clause number).
-# `audit_code_citations` gates on three checks (clause vs the CONSTRUCT the comment is about) and
+# `audit_code_citations` gates on six checks — three over the clause vs the CONSTRUCT the comment is about, and
+# three over the ORDINAL inside a right clause (a general-format number, and a rule number paired with one; it
+# also MEASURES two more, printing a count under --check and the sites without it) — and
 # `audit_doc_citations` on one (a QUOTED fragment vs the clause it is filed under); both have a proven-zero
 # baseline and a `--self-test` proving each check still fails on a real defect. They need `specs/ISO_COBOL.md`
 # for the phantom check and say so loudly when the submodule is absent — which is why they live HERE and in

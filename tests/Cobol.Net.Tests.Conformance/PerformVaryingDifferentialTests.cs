@@ -5,7 +5,7 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// PERFORM VARYING (ISO §14.9.28 Format 4, GR12–13): nested induction loops with the spec's exact reset/augment
+/// PERFORM VARYING (ISO §14.9.28, the VARYING phrase of Formats 1 and 2 — §14.9.28.4 GR12–13): nested induction loops with the spec's exact reset/augment
 /// ordering (inner condition true ⇒ reset inner variable, augment the one to its left), TEST BEFORE and TEST
 /// AFTER shapes, omitted BY (=1), FROM/BY re-evaluated per use, index-name and numeric induction variables, both
 /// inline and out-of-line. Plus the two fixes the NC243A torture exposed: ALL "literal" repeats to a GROUP

@@ -53,7 +53,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return host.Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
         {
-            // A POINTER target (§14.9.39 Format 4 — SET pointer TO NULL/pointer) is bound BEFORE the
+            // A POINTER target (§14.9.39 Format 7 — SET pointer TO NULL/pointer) is bound BEFORE the
             // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape. A
             // PROGRAM-POINTER target selects Format 9 the same way (SR21; P10 Step 7).
             var sorCat = sor.dataReference().Length > 0
@@ -361,7 +361,29 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary><c>SET receivers… TO value</c> (ISO §14.9.39 Format 1). Receivers may mix index-names and data
     /// items; the sender is any integer-valued operand (an index-name sender reads its occurrence number, §3.5).</summary>
-    /// <summary>SET data-pointer assignment (§14.9.39 Format 4; Phase-4b increment 1): every target shall
+
+    /// <summary>⛔ AN INDEX-NAME OPERAND IS A CATEGORY ERROR, NEVER AN UNDEFINED NAME (kb/Work PB388), and it
+    /// reaches SIX operand positions, not one. The carrier re-routes — data-pointer (§14.9.39 Format 7),
+    /// function-pointer (Format 8), program-pointer (Format 9) — are selected by whichever operand HAS a
+    /// carrier category, so an index-name can stand on the other side of any of them. Each position then
+    /// resolved through <c>ctx.Refs.Resolve</c>, which answers for a DATA ITEM only, and the FIRST thing the
+    /// user read was COBOLNET1639: "'IX' is not defined — no declaration in this source element gives the name
+    /// 'IX'" — false about a name INDEXED BY declared, and it sends the reader hunting a typo. §13.18.38.3 r7
+    /// closes the list of contexts that may reference an index-name and the SET statement IS one of them, as
+    /// Format 1 (§14.9.39.3 SR1). So the statement is still refused — for the category, which is the real
+    /// reason. ONE helper, asked FIRST at every one of the six positions.</summary>
+    private bool SetIndexNameOperand(Core.DataReferenceContext? dref, string position, string carrier,
+                                     string cite)
+    {
+        if (dref is null || host.Expr.IndexFieldOf(dref) is null) return false;
+        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+            $"SET '{dref.GetText()}': an index-name cannot be the {position} of a {carrier} SET — that operand "
+            + $"shall be of category {carrier} ({cite}). An index-name operand belongs to Format 1, whose "
+            + "receiver is a data item of class index or an integer data item (ISO §14.9.39.3 SR1)");
+        return true;
+    }
+
+    /// <summary>SET data-pointer assignment (§14.9.39 Format 7; Phase-4b increment 1): every target shall
     /// be USAGE POINTER (COBOLNET0869 otherwise); the sender is the NULL figurative or another data pointer
     /// (SELF/SUPER are object-only — 0869). ADDRESS OF senders/receivers are increment 2 (staged loud).</summary>
     private BoundStatement BindSetPointer(
@@ -372,17 +394,19 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 "SET … TO SELF/SUPER: SELF and SUPER are object references, not data pointers "
-                + "(ISO §14.9.39 Format 4/5 — the sender of a pointer SET is NULL or another pointer)");
+                + "(ISO §14.9.39 Format 7 — the sender of a data-pointer SET is NULL or another pointer; "
+                + "SELF and SUPER belong to Format 5, the object-reference assignment)");
             return new BoundNop();
         }
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
+            if (SetIndexNameOperand(t, "receiving operand", "data-pointer", "ISO §14.9.39 Format 7, §14.9.39.3 SR17")) return new BoundNop();
             if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be USAGE POINTER "
-                    + "(ISO §14.9.39 Format 4)");
+                    $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be of category "
+                    + "data-pointer (ISO §14.9.39 Format 7, §14.9.39.3 SR17)");
                 return new BoundNop();
             }
             targets.Add(tp);
@@ -391,11 +415,18 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (!toNull)
         {
             if (senderRef is null) return new BoundUnsupported("SET pointer — sender shape");
+            if (SetIndexNameOperand(senderRef, "sending operand", "data-pointer", "ISO §14.9.39 Format 7, §14.9.39.3 SR17")) return new BoundNop();
             if (ctx.Refs.Resolve(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
             {
+                // ⛔ NAME THE RECEIVERS (kb/Work PB388). The message opened `SET … TO 'x'` and the diagnostic
+                // renderer transliterates U+2026 to ASCII, so what the user actually read was `SET . TO 'WS-N'`
+                // — a statement nobody wrote. The receivers are in hand. The "ADDRESS OF senders are a later
+                // increment" tail went with it: `SET p TO ADDRESS OF x` has bound through PtrBinder's sender
+                // form since Phase-4b increment 2, so the message named a non-support that no longer exists.
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET … TO '{senderRef?.GetText()}': a data-pointer sender shall be NULL or another "
-                    + "USAGE POINTER item (ISO §14.9.39 Format 4; ADDRESS OF senders are a later increment)");
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "
+                    + $"'{senderRef?.GetText()}': a data-pointer sender shall be the predefined address NULL, "
+                    + "another USAGE POINTER item, or ADDRESS OF an identifier (ISO §14.9.39 Format 7)");
                 return new BoundNop();
             }
             source = sp;
@@ -404,7 +435,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>SET program-pointer assignment (ISO §14.9.39 Format 9; SR21 — every target AND the sender
-    /// shall be category program-pointer; P10 Step 7): the data-pointer Format-4 twin over the ProgramPointer
+    /// shall be category program-pointer; P10 Step 7): the data-pointer Format-7 twin over the ProgramPointer
     /// carrier. The sender is NULL or another program-pointer; SELF/SUPER are object references (0869).</summary>
     private BoundStatement BindSetProgramPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
@@ -421,6 +452,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
+            if (SetIndexNameOperand(t, "receiving operand", "program-pointer", "ISO §14.9.39 Format 9, §14.9.39.3 SR21")) return new BoundNop();
             if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
@@ -434,6 +466,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (!toNull)
         {
             if (senderRef is null) return new BoundUnsupported("SET program-pointer — sender shape");
+            if (SetIndexNameOperand(senderRef, "sending operand", "program-pointer", "ISO §14.9.39 Format 9, §14.9.39.3 SR21")) return new BoundNop();
             if (ctx.Refs.Resolve(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
@@ -504,6 +537,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
+            if (SetIndexNameOperand(t, "receiving operand", "function-pointer", "ISO §14.9.39 Format 8, §14.9.39.3 SR20")) return new BoundNop();
             if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
@@ -517,6 +551,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (!toNull)
         {
             if (senderRef is null) return new BoundUnsupported("SET function-pointer — sender shape");
+            if (SetIndexNameOperand(senderRef, "sending operand", "function-pointer", "ISO §14.9.39 Format 8, §14.9.39.3 SR20")) return new BoundNop();
             if (ctx.Refs.Resolve(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
@@ -718,8 +753,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             var t0 = ctx.Refs.Probe(tds[0])?.Item.Pic?.Category;        // Probe — format sniffs; the selected
             var s0 = ctx.Refs.Probe(senderDref)?.Item.Pic?.Category;    // format's own bind demands (R30)
-            // A POINTER on either side selects Format 4 (SET pointer TO pointer) — the Format-1 numeric
-            // path cannot carry a ManagedPointer.
+            // A POINTER on either side selects Format 7, data-pointer-assignment (SET pointer TO pointer) —
+            // the Format-1 numeric path cannot carry a ManagedPointer.
             if (t0 is PicCategory.Pointer || s0 is PicCategory.Pointer)
                 return BindSetPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
             // A PROGRAM-POINTER on either side selects Format 9 (SET pp TO pp — SR21; P10 Step 7).

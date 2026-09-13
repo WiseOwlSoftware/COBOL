@@ -399,9 +399,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     };
 
 
-    /// <summary>Serial SEARCH (ISO §14.9.37.4 GR5–8): scan from the index's CURRENT setting; each pass tests
-    /// past-end (→ AT END) then the WHEN conditions in order (first true wins); none true → the index (and the
-    /// in-step varied item, GR8) increments by 1. Emitted as a LABEL loop — not a C# while — so a GO TO inside a
+    /// <summary>Serial SEARCH (ISO §14.9.37.4 GR1–GR4 — the ALL FORMATS and FORMAT 1 partitions; GR5–GR9 are
+    /// SEARCH ALL's): scan from the index's CURRENT setting; each pass tests past-end (→ AT END) then the WHEN
+    /// conditions in order (first true wins); none true → the index (and the in-step varied item, GR3 b) / c) 2)
+    /// increments by 1. Emitted as a LABEL loop — not a C# while — so a GO TO inside a
     /// WHEN/AT END body (`__pc = k; break;`) breaks the DISPATCHER case, not a search loop (transfer-of-control
     /// out of SEARCH per GR5c/6b); a body that runs to completion jumps past the search.</summary>
     public void EmitSearch(BoundSearch s)
@@ -425,7 +426,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// SEARCH a starting index &lt; 1 or &gt; the highest permissible occurrence is unsuccessful and, under checking,
     /// sets EC-RANGE-SEARCH-INDEX (GR4); for SEARCH ALL (the index is already forced to 1, GR9) only an empty table
     /// is unsuccessful and sets EC-RANGE-SEARCH-NO-MATCH. The loop then tries each WHEN in order; none true → the
-    /// index (and the GR8 VARYING item) advance and an advance-past-end check sets EC-RANGE-SEARCH-NO-MATCH (GR6/GR9).
+    /// index (and the GR3 b) / c) 2 VARYING item) advance and an advance-past-end check sets EC-RANGE-SEARCH-NO-MATCH (GR6/GR9).
     /// Both failure sites route to ONE shared AT-END emission. The <c>&lt; 1</c> serial guard is emitted
     /// UNCONDITIONALLY (a correctness fix — the pre-slice loop-top <c>&gt; bound</c> check let a zero/negative index
     /// read a phantom scratch occurrence); only the EC <c>Set</c> calls are checking-gated. The AT-END bound is the
@@ -472,7 +473,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             {
                 if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
             }
-        // (3) advance the index (+ the GR8 varied item); an advance past the end is unsuccessful → NO-MATCH.
+        // (3) advance the index (+ the GR3 b) / c) 2 varied item); an advance past the end is unsuccessful → NO-MATCH.
         w.Line($"{s.IndexField} += 1;");
         if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING");
         using (w.Block($"if ({s.IndexField} > {bound})"))

@@ -77,7 +77,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             Format2SendingOperand("SUBTRACT", "§14.9.44.2", from.receivingArithmeticOperand());
             var fromX = host.Expr.BindExpr(from);
-            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.44.3 (GIVING resultant)");
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§14.9.44.3 SR4");
             // §14.9.44.3 SR1b: the SUBTRACT Format-2 composite excludes the data items following GIVING (§14.7.7
             // rule 2) — the resultants are not superimposed. Pass no receivers (see the ADD GIVING note above).
             ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);
@@ -151,10 +151,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, "§14.9.12.3 SR2");
             if (quotients.Count != 1)
             {
-                // §14.9.12.2 Formats 4–5 print exactly ONE identifier-3 (SR6).
+                // §14.9.12.2 Formats 4–5 print exactly ONE identifier-3. It is a GENERAL FORMAT fact and
+                // there is no syntax rule to pair with it — §14.9.12.3 has four (kb/Work PB388).
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                     "DIVIDE … GIVING … REMAINDER: Formats 4–5 print exactly one quotient receiver "
-                    + "(ISO §14.9.12.2 / §14.9.12.3 SR6)");
+                    + "(ISO §14.9.12.2)");
                 return new BoundNop();
             }
             // kb/Work PB128: identifier-4 rides the ONE receiving chokepoint like every other resultant —

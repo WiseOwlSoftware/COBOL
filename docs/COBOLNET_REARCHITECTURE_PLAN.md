@@ -2077,8 +2077,15 @@ result. Run the long legs ONE AT A TIME.
   bare literals across five binders; all 38 now go through band descriptors, with no emitted byte changed).
   **CITATION GATES (new 2026-09-02, DEVLOG 1439).** `python scripts/spec/audit_code_citations.py --check`
   — PHANTOM (the clause does not exist) · SUBJECT (the cited clause names a different construct) · HEADER
-  (a definition-header cites a clause that is not its construct's) — baseline **ZERO findings** over 2633
-  files, `--self-test` PASS (five firing legs, five silent twins). Wired into `scripts/build-local.{sh,ps1}`
+  (a definition-header cites a clause that is not its construct's) · and, since PB388, the ORDINAL family over
+  the number INSIDE a right clause: FORMAT (no such general format) · FORMAT-RULE (the rule is printed under a
+  DIFFERENT format banner than the one cited beside it) · FORMAT-NAME (the line names one format and cites
+  another) — baseline **ZERO findings** over 2633 files, `--self-test` PASS (ten firing legs, ten silent
+  twins). The ordinal family is LINE-based, so a citation inside a DIAGNOSTIC MESSAGE STRING is under the gate
+  for the first time; two of PB388's defects lived exactly there. Two further ordinal checks — RULE (the clause
+  has no such rule number) and SUBITEM (that rule has no sub-items) — are sound and NOT yet gating: they found
+  **195 sites in 124 files** on the day they were written, each needing its own derivation. They print their
+  count on every gate run and `--check-all` gates on them. Wired into `scripts/build-local.{sh,ps1}`
   before the build and `scripts/battery.sh` PHASE -1; deliberately NOT in CI, where `submodules: false`
   makes the spec absent and PHANTOM would SKIP. **Its sibling `python scripts/spec/audit_doc_citations.py
   --check` (a QUOTED fragment vs the clause it is filed under) now sits in the same three seats and at the

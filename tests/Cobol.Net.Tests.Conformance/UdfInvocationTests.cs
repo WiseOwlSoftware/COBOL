@@ -190,7 +190,7 @@ public sealed class UdfInvocationTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1509", StringComparison.Ordinal));
     }
 
-    /// <summary>The SEARCH WHEN window binds per-evaluation too (per scan pass, §14.9.37.4 GR5b) — the
+    /// <summary>The SEARCH WHEN window binds per-evaluation too (per scan pass, §14.9.37.4 GR1/GR4) — the
     /// runtime pass-count proof is the udf_per_eval golden's SEARCH leg.</summary>
     [Fact]
     public void SearchWhenCondition_BindsPerEvaluation()

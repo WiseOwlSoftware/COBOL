@@ -106,7 +106,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `PerformOnce` | Run body once | §14.9.28 | control descriptor | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `PerformTimes` | Run body N times | §14.9.28 | count operand | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `PerformUntil` | Loop until (TEST BEFORE/AFTER) | §14.9.28 | before→while, after→do/while | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `PerformVarying` | Nested VARYING/AFTER induction loops | §14.9.28 Format 4 | GR12/GR13 re-evaluated per iteration | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `PerformVarying` | Nested VARYING/AFTER induction loops | §14.9.28.4 GR12/GR13 | GR12/GR13 re-evaluated per iteration | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `PerformForever` | PERFORM UNTIL EXIT infinite loop | §14.9.28.4 GR11 | edition gate (2023); while(true) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 
 ## GO TO / ALTER / EXIT / termination
@@ -198,11 +198,11 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundCancel` | CANCEL program(s) | §14.9.5 | GR3 next CALL finds initial state; GR4 cascade | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAllocate` | ALLOCATE storage (chars / BASED) | §14.9.3 | GR1 round-up; GR2 ≤0→NULL; GR6/7 init | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundFree` | FREE pointer(s) | §14.9.15 | GR1 three-way; GR2 left-to-right (EC-STORAGE-NOT-ALLOC) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundSetPointer` | SET data-pointer TO NULL/pointer/ADDRESS | §14.9.39 Format 4 | ManagedPointer carrier copy | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundSetPointer` | SET data-pointer TO NULL/pointer/ADDRESS | §14.9.39 Format 7 | ManagedPointer carrier copy | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAddressOf` | ADDRESS OF identifier as pointer value | §8.4.3.11 GR1 | BASED implicit ptr / cell offset; occurrence displacement | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundSetAddressOfBased` | SET ADDRESS OF based TO pointer | §14.9.39 Format 7 | SR18 receiver BASED; GR12/13 snapshot | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetProgramPointer` | SET program-pointer TO NULL/pointer | §14.9.39 Format 9 | SR21 both category program-pointer | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundSetEntry` | SET program-pointer TO ENTRY name | §14.9.39 Format 9 | GR4 miss→NULL + EC-PROGRAM-NOT-FOUND | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundSetEntry` | SET program-pointer TO ENTRY name | §14.9.39 Format 9 | §8.4.3.13.4 GR4 miss→NULL + EC-PROGRAM-NOT-FOUND | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSetPointerUpDown` | SET pointer UP/DOWN BY bytes | §14.9.39 Format 10 | GR18 NULL→EC-DATA-PTR-NULL (2002+) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 
 ## Object orientation

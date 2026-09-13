@@ -54,9 +54,9 @@ internal enum SendingRef
     /// third dash); it is unreachable for a fixed-point sender, which never takes this path.</summary>
     SameUsageMove,
 
-    /// <summary>An operand processed by a VALIDATE statement (§14.9.47). Exempt from rules 1, 2 AND 3 — the last
+    /// <summary>An operand processed by a VALIDATE statement (§14.9.50). Exempt from rules 1, 2 AND 3 — the last
     /// dash of each list; §14.6.13.2 rule 1 instead sets the condition "when invalid data is detected during item
-    /// identification", which is VALIDATE's own stage discipline (§14.9.47.4 GR6).</summary>
+    /// identification", which is VALIDATE's own stage discipline (§14.9.50.4 GR6).</summary>
     Validate,
 
     /// <summary>A sending operand read under the MOVE rules with a NUMERIC or NUMERIC-EDITED receiving item and

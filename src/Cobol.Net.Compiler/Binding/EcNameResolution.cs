@@ -23,12 +23,16 @@ internal static class EcNameResolution
 {
     /// <summary>Resolve a written exception-name: COBOLNET0711 when it is neither in the §14.6.13.1 catalog nor
     /// a valid EC-USER-/EC-IMP- open-family name; optionally COBOLNET0710 when a level-1/-2 name stands where
-    /// only level-3 is legal (the RAISE/RAISING contexts, §14.9.29.3 SR1 — checked BEFORE the introduction gate
-    /// so the level error keeps priority for a level-2 name of a later family); COBOLNET0878 when the name's
-    /// family postdates the targeted edition. Otherwise <see cref="Advise"/> decides: it carries the §15.33
-    /// width advisory AND the EC-SCREEN refusal (COBOLNET1707), and returns false when it refused.</summary>
+    /// only level-3 is legal (the RAISE/RAISING contexts — checked BEFORE the introduction gate so the level
+    /// error keeps priority for a level-2 name of a later family); COBOLNET0878 when the name's family postdates
+    /// the targeted edition. Otherwise <see cref="Advise"/> decides: it carries the §15.33 width advisory AND the
+    /// EC-SCREEN refusal (COBOLNET1707), and returns false when it refused.
+    /// <para>⛔ <paramref name="level3"/> is the RAISING SITE, not a bool, because the rule it enforces has a
+    /// DIFFERENT ordinal in each of the three statements that reach here (EXIT §14.9.14.3 SR3 · GOBACK
+    /// §14.9.18.3 SR2 · RAISE §14.9.29.3 SR1) and this one message prints it — see <see cref="EcRaiseSite"/>
+    /// (kb/Work PB388).</para></summary>
     public static bool TryResolve(EditionContext edition, string raw, string where, out EcInfo info,
-        bool requireLevel3 = false)
+        EcRaiseSite? level3 = null)
     {
         if (!ExceptionCatalog.TryGet(raw, out info))
         {
@@ -46,10 +50,10 @@ internal static class EcNameResolution
         // Annex A.4.2 is still Not claimed, those four names have no raise site and no reader, and accepting
         // them made a >>TURN or RAISE compile against a facility that does not exist. When the screen module is
         // ever claimed, delete that branch exactly as PB64 T1 deleted this one — the two are one rule.
-        if (requireLevel3 && info.Level != 3)
+        if (level3 is { } site && info.Level != 3)
         {
             edition.Error("COBOLNET0710", $"{where}: exception-name '{info.Name}' is a level-{info.Level} "
-                + "name; only a LEVEL-3 exception-name may be raised (ISO §14.9.29.3 SR1)");
+                + $"name; only a LEVEL-3 exception-name may be raised ({site.Cite(site.Level3Rule)})");
             return false;
         }
         if (info.IntroducedIn > edition.DialectLevel)

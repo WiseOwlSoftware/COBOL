@@ -18,7 +18,7 @@ at grammar scale, and it had a measured consumer: the Phase-B dossier ranks a `.
 BY THE CLAUSE ITS COMMENT CITES, so `phase_b_batch.py 14.9.25` (MOVE) handed an adjudicator `openFileSpec` as
 evidence about MOVE (kb/Work PB159).
 
-THE THREE CHECKS, each narrow on purpose:
+THE CHECKS, each narrow on purpose:
 
   PHANTOM   — the citation names a clause the standard does not have (§8.3.1.2, §8.8.4.1.1, §8.3.3.7 were cited
               ~120 times between them; kb/Work PB159/PB182/PB290). Only ISO-SHAPED numbers are considered — at
@@ -34,6 +34,39 @@ THE THREE CHECKS, each narrow on purpose:
               nor anything under it. Sharper than SUBJECT, and it catches the case SUBJECT structurally cannot:
               a wrong clause whose own subject is not a named construct (§13.16 is "Data description entry", so
               `LINAGE clause (ISO §13.16)` has no wrong CONSTRUCT to notice — only a wrong ANSWER).
+
+  THE ORDINAL FAMILY (kb/Work PB388) — the clause is RIGHT and the number INSIDE it is wrong, which is the one
+  half of rule 1's failure mode neither `cite.py` nor the checks above can see: a format ORDINAL and a rule
+  NUMBER are not quotations, so there is nothing for a quote-based check to resolve. Four sub-checks, each
+  EXACT — they resolve the ordinal against the standard's own lists and never score or guess:
+
+  FORMAT    — `§14.9.28 Format 4` where §14.9.28.2 prints THREE general formats. (Cited four times, including
+              in a differential test's summary; PERFORM VARYING is a PHRASE of formats 1 and 2.)
+  FORMAT-RULE — `§14.9.39 Format 4 … GR12`, where the standard's own `FORMAT n` banners partition the rule
+              block and rule 12 sits under FORMAT 7. The banners (`ALL FORMATS`, `FORMATS 1 AND 2`, `FORMAT 10`)
+              are printed in the rule block itself, so this pairing is decidable with no heuristic at all.
+  RULE      — `§14.9.12.3 SR6` where that clause has four syntax rules, `§14.9.47.4 GR6` where it has three.
+  SUBITEM   — `§14.9.37.4 GR8b` where rule 8 has no sub-items (the serial-SEARCH VARYING rules are GR3 a)–c)).
+  FORMAT-NAME — the context NAMES a format of the cited clause verbatim ("data-pointer assignment") and cites a
+              different ordinal. §14.9.39 was the measured case: eleven sites called the data-pointer slice
+              "Format 4", which is condition-setting, and two of them were the text of COBOLNET0869.
+
+⛔ THE ORDINAL FAMILY IS LINE-BASED, LIKE PHANTOM, AND THAT IS THE POINT. The checks above read only COMMENT
+text, so a citation inside a DIAGNOSTIC MESSAGE STRING — the citation a user actually reads — was covered by
+nothing. Both of PB388's user-visible defects lived there. An ordinal check needs no comment convention, so it
+runs over every line of every file that carries citations, and the message strings come under the gate with the
+comments.
+
+⚠ THE ORDINAL CHECKS NEED `specs/ISO_COBOL.md` — the catalog knows which rules it HARVESTED, which is not the
+same question as which rules the standard prints (it carries a `parse_gaps` count for that very reason), so the
+standard's own text is what every ordinal is resolved against and what vetoes a finding. Without the submodule
+they report SKIPPED, by name, exactly as PHANTOM does.
+
+⚠ RULE AND SUBITEM REPORT BUT DO NOT GATE, and that is a MEASURED debt, not a judgement about the checks. Both
+are sound — each was confirmed against the standard's own rule markers — and on the day they were written they
+found 195 sites in 124 files, every one of them needing its own derivation before it can be repaired. They print
+on every run, with their count; `--check-all` is the gate for the sweep that closes them, and it becomes
+`--check` when it does.
 
 ⚠ THE CONTEXT IS THE COMMENT BLOCK PLUS THE DECLARATION IT INTRODUCES, not the single line, and that is what
 makes SUBJECT quiet enough to gate on. A first draft matched line-by-line and reported 92 candidates of which 64
@@ -88,7 +121,7 @@ NOT_THE_STANDARD = re.compile(
 NAMED_AS_WRONG = re.compile(
     r"(?i)does not (?:exist|have)|no such clause|there is no clause|phantom|used to cite|mis-?cit"
     r"|nonexistent|non-existent|wrong-?\s?§|is not a clause|citations? repaired|fabricat"
-    r"ed|A CLAUSE THAT DOES NOT")
+    r"ed|A CLAUSE THAT DOES NOT|inherited[- ]citation|but Format \d+ is|names nothing")
 #: The heading form `NAME statement` / `NAME clause` / `NAME phrase` / `NAME paragraph`. The name is a COBOL
 #: word: upper case, digits and hyphens (GROUP-USAGE, PROGRAM-ID, BLANK WHEN ZERO, ALTERNATE RECORD KEY).
 NAMED = re.compile(r"^((?:[A-Z][A-Z0-9-]*)(?:\s+[A-Z][A-Z0-9-]*)*)\s+"
@@ -300,8 +333,269 @@ def phantom_scan(universe: set[str] | None):
     return findings
 
 
-def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | None):
-    findings: list[tuple[str, str, str, str]] = phantom_scan(universe)
+# ── THE ORDINAL FAMILY (kb/Work PB388) ───────────────────────────────────────────────────────────────────
+
+#: `§14.9.39 Format 7`, `ISO 14.9.39 format 6`, `14.9.39.2 Formats 11`. The clause may be the CONSTRUCT
+#: (§14.9.39) or its general-format subclause (§14.9.39.2) — this repository writes both, so both are keyed.
+FORMAT_CITE = re.compile(r"(\d+(?:\.\d+){1,4})\s+Formats?\s+(\d+)", re.I)
+
+#: A rule designator and, optionally, the sub-item letter written against it: `GR4`, `SR16g`, `GR3 c) 2`,
+#: `GR7 k)6`, `GR6c's`. The `(?![a-z])` keeps a word (`GRs`, `SRc`… ) out of the sub-item slot.
+RULE_CITE = re.compile(r"\b(GR|SR)\s?(\d+)(?:\s?\(?([a-z])\)?(?![a-z]))?")
+
+#: An ISO-shaped clause number, with or without the `§` — `(ISO 14.9.39 Format 10 GR18)` is how half the
+#: goldens write it. Three segments minimum, so a doc's own `§4.2` is not read as a citation.
+CLAUSE_TOKEN = re.compile(r"(?<![\d.])(\d+(?:\.\d+){2,4})(?![\d.])")
+
+#: How far to the LEFT a rule designator may look for the clause it belongs to. A line cites one clause and
+#: then several of its rules (`§14.9.37.4 GR4/GR6/GR9`, `§14.9.39 Format 9 SR21 / §8.4.3.13`), so the carry is
+#: necessary; bounding it stops a clause named at the head of a long prose line from claiming a rule at its end.
+CARRY = 60
+
+#: How close a `Format n` must sit to a rule designator to be read as CITING it (`§14.9.39 Format 10 GR18`).
+ADJACENT = 12
+
+#: A file that spells wrong ordinals ON PURPOSE declares itself, exactly as it does for the phantom and
+#: misfiling checks. Both markers are honoured here because a note about INHERITED CITATIONS tabulates wrong
+#: clause/quote pairings and wrong clause/ordinal pairings in the same table — one register, one opt-out.
+ORDINAL_MARKERS = (MARKER, "audit-doc-citations: names-misfilings")
+
+#: The two ordinal checks that are SOUND but arrived with a backlog larger than the change that added them.
+#: They report on every run and gate under `--check-all`; see the note in `main`.
+MEASURED_BACKLOG = frozenset({"RULE", "SUBITEM"})
+
+_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)\s*(.*)$")
+_FORMAT_LINE = re.compile(r"^\s*Format\s+(\d+)\s*(?:\(([^)]*)\))?\s*:")
+_RULE_LINE = re.compile(r"^\s*(\d+)\\\)\s")
+#: The standard PARTITIONS a rule block by general format, in its own words, on a line of its own: `ALL
+#: FORMATS`, `FORMAT 1`, `FORMATS 1 AND 2`. That partition is what makes FORMAT-RULE exact.
+_BANNER = re.compile(r"^\s*(ALL FORMATS|FORMATS?(?:\s+\d+)(?:\s*(?:,|AND)\s*\d+)*)\s*$")
+
+
+def _alias(d: dict):
+    """A rule block is cited BOTH ways — `§14.9.39.4 GR29` and `§14.9.39 GR29` — so key it both ways."""
+    for (cl, k), v in list(d.items()):
+        d.setdefault((cl.rsplit(".", 1)[0], k), v)
+    return d
+
+
+def catalog_rule_tops() -> dict[tuple[str, str], int]:
+    """`(clause, kind) -> the highest rule ordinal that block has`, from the COMMITTED rule catalog — so the
+    RULE check runs with no submodule, like SUBJECT and HEADER.
+
+    ⛔ THE CATALOG IS THE AUTHORITY ON WHAT A RULE IS, and this audit does not get a second opinion. The
+    standard's transcription numbers rules `1\\)` in some blocks and `1.` in others, and the SUB-items of a
+    rule are numbered `1.` `2.` in exactly the same shape at exactly the same indent — a second parser written
+    here read a sub-item as a rule and reported `§14.9.10.4 has 21 GRs — there is no GR1` about a block whose
+    rule 1 it had simply mis-parsed. `extract_rule_catalog.py` settled that ambiguity once (`place()`, the
+    sublist machinery); one mechanism, one place (feedback_one_rule_one_place)."""
+    rules = json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]
+    tops: dict[tuple[str, str], int] = {}
+    for r in rules:
+        if r["sublist"] != 1:
+            continue
+        k = (r["section"], r["kind"])
+        tops[k] = max(tops.get(k, 0), r["ordinal"])
+    return _alias(tops)
+
+
+def spec_ordinals():
+    """What only the STANDARD ITSELF carries; None when the private submodule is absent.
+
+    Returns `(formats, spans, owner)`:
+      · `formats[clause] = {n: name}`   — the general formats a construct prints, read from the `Format n
+                                          (name):` lines of its `.2` subclause and keyed under both spellings.
+      · `spans[(clause, kind)] = {n: text}` — each rule's text FROM the standard, delimited by locating the
+                                          catalog's rules inside the clause's own segment. Sub-items (`a)`,
+                                          `k)`) survive, which the catalog's own `text` field does not always
+                                          keep, and SUBITEM needs them.
+      · `owner[(clause, kind)] = {n: {formats} | None}` — the FORMAT partition each rule sits under, from the
+                                          standard's own banners (`ALL FORMATS`, `FORMAT 1`, `FORMATS 1 AND 2`).
+                                          None where the block carries no banner before that rule.
+    """
+    if not SPEC.exists():
+        return None
+    text = SPEC.read_text(encoding="utf-8")
+    heads: list[tuple[int, str, str]] = []
+    banners: list[tuple[int, set[int] | None]] = []
+    formats: dict[str, dict[int, str | None]] = {}
+    pos, in_formats, clause = 0, False, None
+    for line in text.splitlines(keepends=True):
+        stripped = line.rstrip("\r\n")
+        if (h := _HEADING.match(stripped)) is not None:
+            clause, title = h.group(1), h.group(2)
+            heads.append((pos, clause, title))
+            in_formats = "general format" in title.lower()
+        elif in_formats and clause and (f := _FORMAT_LINE.match(stripped)) is not None:
+            for key in (clause, clause.rsplit(".", 1)[0]):
+                formats.setdefault(key, {}).setdefault(int(f.group(1)), f.group(2))
+        elif (b := _BANNER.match(stripped)) is not None:
+            banners.append((pos, None if b.group(1).upper().startswith("ALL")
+                            else {int(n) for n in re.findall(r"\d+", b.group(1))}))
+        pos += len(line)
+    segment = {cl: (start, heads[i + 1][0] if i + 1 < len(heads) else len(text))
+               for i, (start, cl, _t) in enumerate(heads)}
+
+    by_block: dict[tuple[str, str], list[tuple[int, str]]] = {}
+    for r in json.loads(CATALOG.read_text(encoding="utf-8"))["rules"]:
+        if r["sublist"] == 1 and r["section"] in segment:
+            by_block.setdefault((r["section"], r["kind"]), []).append((r["ordinal"], r["text"]))
+
+    spans: dict[tuple[str, str], dict[int, str]] = {}
+    owner: dict[tuple[str, str], dict[int, set[int] | None]] = {}
+    for (cl, kind), items in by_block.items():
+        lo, hi = segment[cl]
+        seg = text[lo:hi]
+        # ⛔ LOCATE THE RULES IN ORDER, EACH AFTER THE LAST. Searching the whole segment per rule matched the
+        # FIRST text that looked like the rule's opening, and sibling rules open alike — §8.8.4.4.4 GR3 ("If
+        # the data item referenced by identifier-1 …") landed on GR1's sentence, so GR3's "span" was GR1's and
+        # every one of its a)–n) sub-items read as absent. Rules are printed in ordinal order; the cursor is
+        # what says so.
+        located: list[tuple[int, int]] = []
+        cursor = 0
+        for ordinal, body in sorted(items):
+            words = body.split()[:6]
+            if not words:
+                continue
+            probe = re.compile(r"\s+".join(re.escape(w) for w in words))
+            if (m := probe.search(seg, cursor)) is not None:
+                located.append((m.start(), ordinal))
+                cursor = m.end()
+        # Ordinal 0 is THE WHOLE BLOCK, and it is what vetoes a RULE finding: the catalog's top ordinal is
+        # evidence about what the catalog HARVESTED, never about what the standard prints.
+        spans.setdefault((cl, kind), {})[0] = seg
+        for idx, (start, ordinal) in enumerate(located):
+            end = located[idx + 1][0] if idx + 1 < len(located) else len(seg)
+            spans.setdefault((cl, kind), {})[ordinal] = seg[start:end]
+            part = [f for p, f in banners if lo <= p < lo + start]
+            owner.setdefault((cl, kind), {})[ordinal] = part[-1] if part else None
+    return formats, _alias(spans), _alias(owner)
+
+
+def _names_format(text: str, name: str) -> bool:
+    """The line spells this format's OWN name — `data-pointer assignment` for `data-pointer-assignment`,
+    hyphen or space.
+
+    ⚠ THREE-PART NAMES ONLY, and the threshold was measured. A one-word name (`all`, `serial`, `inline`,
+    `attribute`, `validation`) is ordinary English; a TWO-word one is ordinary COBOL vocabulary
+    (`condition-name`, `report-writer`, `index-assignment`) and appears in text that is about something else
+    entirely — at two the check reported four correct citations, every one of them a line that merely used the
+    words. At three (`data-pointer-assignment`, `object-reference-assignment`, `dynamic-capacity-table`) the
+    name is specific enough that writing it is a statement about WHICH FORMAT, which is the claim this check
+    is checking."""
+    parts = name.split("-")
+    if len(parts) < 3:
+        return False
+    return re.search(r"\b" + r"[ -]".join(re.escape(p) for p in parts) + r"\b", text, re.I) is not None
+
+
+def _clause_at(line: str, pos: int) -> str | None:
+    """The clause a rule designator at `pos` is filed under: the nearest ISO-shaped number to its left,
+    within CARRY characters."""
+    best = None
+    for m in CLAUSE_TOKEN.finditer(line, 0, pos):
+        if pos - m.end() <= CARRY:
+            best = m.group(1)
+    return best
+
+
+def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, str], int] | None = None):
+    formats, spans, owner = data if data is not None else ({}, {}, {})
+    tops = tops if tops is not None else {}
+    out: list[tuple[str, str, str, str]] = []
+    for i, line in enumerate(lines, 1):
+        site = f"{rel}:{i}"
+        # ⛔ AND A WRONG ORDINAL THAT IS BEING REPORTED AS ONE IS NOT A DEFECT — the same rule PHANTOM lives
+        # by, and the same regex. A `kb/Work` note that says "the site cites Format 4 for a data-pointer SET,
+        # but data-pointer assignment is Format 7" is the REPAIR RECORD; flagging it would make the audit red
+        # on its own fix and teach the next author to delete the forensics.
+        if NAMED_AS_WRONG.search(line):
+            continue
+        cited_formats: list[tuple[int, str, int]] = []
+        for m in FORMAT_CITE.finditer(line):
+            clause, n = m.group(1), int(m.group(2))
+            if (d := formats.get(clause)) is None:
+                continue
+            if n not in d:
+                out.append(("FORMAT", site, clause,
+                            f"§{clause} prints {len(d)} general formats ({', '.join(map(str, sorted(d)))}) — "
+                            f"there is no Format {n}"))
+                continue
+            cited_formats.append((m.end(), clause, n))
+            named = {k for k, v in d.items() if v and _names_format(line, v)}
+            if named and n not in named:
+                k = sorted(named)[0]
+                out.append(("FORMAT-NAME", site, clause,
+                            f"§{clause} Format {n} is {d[n]}, but this line names Format {k} ({d[k]})"))
+        for m in RULE_CITE.finditer(line):
+            kind, num, sub = m.group(1), int(m.group(2)), m.group(3)
+            if (clause := _clause_at(line, m.start())) is None:
+                continue
+            if (top := tops.get((clause, kind))) is None:
+                continue                       # not a rule block this repository's catalog knows
+            block = spans.get((clause, kind)) or {}
+            if num > top:
+                # ⛔ THE CATALOG HAS PARSE GAPS AND THE GATE MUST NOT ACCUSE ON ONE. `spec-rule-catalog.json`
+                # carries a `parse_gaps` count for exactly this reason — a block whose tail did not harvest
+                # reports a low top, and READ's `§14.9.32.4 GR9` was reported missing from a clause that has
+                # it. The standard's own text is the veto: if a line in that clause OPENS with the ordinal,
+                # the rule exists and nothing is said (over-accepting here is free; accusing wrongly is not).
+                if re.search(rf"^\s*{num}\\?[.)]\s", block.get(0, ""), re.M):
+                    continue
+                out.append(("RULE", site, clause,
+                            f"§{clause} has {top} {kind}s — there is no {kind}{num}"))
+                continue
+            body = block.get(num)
+            # ⛔ ABSENCE OF THE LETTER IS ONLY EVIDENCE IN A RULE THAT HAS NO LETTERS AT ALL. A rule whose
+            # sub-items run past a page break can lose one in transcription, so "this rule has a) and b), and
+            # you cited c)" proves nothing about the STANDARD. A rule with no sub-item marker anywhere is a
+            # different statement — §14.9.37.4 GR8 is one sentence, and `GR8b` was cited five times.
+            # ⚠ `\)` — the transcription ESCAPES the closing paren of a list marker in some blocks and not in
+            # others, and reading only the bare form made SUBITEM report thirteen correct citations of
+            # §8.8.4.4.4 GR3's a)–n) table as naming nothing.
+            if body and sub and not re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body):
+                out.append(("SUBITEM", site, clause,
+                            f"§{clause} {kind}{num} has no sub-items — {kind}{num}{sub} names nothing"))
+            part = (owner.get((clause, kind)) or {}).get(num, "absent")
+            if part in (None, "absent"):
+                continue                       # ALL FORMATS, or a block the standard does not partition
+            # ⛔ ONE PAIRING PER CITATION, AND IT HAS TO BE ADJACENT. Pairing every format on the line with
+            # every rule on it is a CROSS PRODUCT, and a line that legitimately discusses several
+            # (`DIAGNOSTICS.md`'s generated rows, a kb table of format→rule) then produced a dozen findings
+            # about a sentence that claimed nothing. A PAIRED citation is written `§14.9.39 Format 10 GR18` —
+            # the rule follows its format immediately — so only the format that ENDS within ADJACENT
+            # characters of the rule is read as making a claim about it.
+            near = [(c, n) for end, c, n in cited_formats if 0 <= m.start() - end <= ADJACENT]
+            if len(near) != 1:
+                continue
+            fclause, fnum = near[0]
+            if fclause.split(".")[:3] == clause.split(".")[:3] and fnum not in part:
+                out.append(("FORMAT-RULE", site, clause,
+                            f"§{clause} {kind}{num} is printed under FORMAT {'/'.join(map(str, sorted(part)))}"
+                            f", not under the Format {fnum} this line cites"))
+    return out
+
+
+def ordinal_scan(data, tops=None):
+    """The ordinal family over EVERY line of every citation-bearing file — message strings included, which is
+    the half the comment-block checks structurally cannot reach."""
+    findings: list[tuple[str, str, str, str]] = []
+    if data is None and not tops:
+        return findings
+    for path in citation_corpus.all_files():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        if any(mk in "\n".join(lines[:40]) for mk in ORDINAL_MARKERS):
+            continue
+        findings += _ordinal_findings(path.relative_to(REPO).as_posix(), lines, data, tops)
+    return findings
+
+
+def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | None, ordinals=None,
+          tops=None):
+    findings: list[tuple[str, str, str, str]] = phantom_scan(universe) + ordinal_scan(ordinals, tops)
     for path in citation_corpus.declaration_files():
         rel = path.relative_to(REPO).as_posix()
         for lineno, parts, context, window, label, head in blocks(path):
@@ -356,7 +650,45 @@ SELF_TEST_CLEAN = [
 ]
 
 
-def self_test(subjects, own, universe) -> int:
+#: ⛔ THE ORDINAL LEGS. Each pair is (kind that must fire, the DEFECT line, its REPAIRED twin) and both halves
+#: go through the real `_ordinal_findings`. Every defect here is one this audit was written against — measured
+#: in the tree on 2026-09-13, not invented (kb/Work PB388).
+ORDINAL_SELF_TEST = [
+    ("FORMAT",
+     "/// PERFORM VARYING (ISO §14.9.28 Format 4, GR12–13): nested induction loops",
+     "/// PERFORM VARYING (ISO §14.9.28, the VARYING phrase of Formats 1 and 2 — §14.9.28.4 GR12–13)"),
+    ("RULE",
+     '    + "(ISO §14.9.12.2 / §14.9.12.3 SR6)");',
+     '    + "(ISO §14.9.12.2)");'),
+    ("SUBITEM",
+     "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §14.9.37.4 GR8b) falls through",
+     "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §14.9.37.4 GR3 c) 2) falls through"),
+    ("FORMAT-NAME",
+     "/// <summary>SET data-pointer assignment (§14.9.39 Format 4; Phase-4b increment 1)",
+     "/// <summary>SET data-pointer assignment (§14.9.39 Format 7; Phase-4b increment 1)"),
+    # The pairing check: rule 12 is printed under the standard's own `FORMAT 7` banner.
+    ("FORMAT-RULE",
+     "// SET pointer TO NULL (ISO §14.9.39 Format 4, GR12 — the address is stored)",
+     "// SET pointer TO NULL (ISO §14.9.39 Format 7, GR12 — the address is stored)"),
+]
+
+
+def ordinal_self_test(ordinals, tops) -> bool:
+    if ordinals is None:
+        print("  ⚠ THE ORDINAL CHECKS could not be self-tested — specs/ISO_COBOL.md is absent")
+        return True
+    ok = True
+    for want, defect, repaired in ORDINAL_SELF_TEST:
+        fires = {k for k, _s, _c, _m in _ordinal_findings("probe", [defect], ordinals, tops)}
+        quiet = {k for k, _s, _c, _m in _ordinal_findings("probe", [repaired], ordinals, tops)}
+        good = want in fires and not quiet
+        ok &= good
+        print(f"  {'ok  ' if good else 'FAIL'} fires {want:12s} on {defect.strip()[:56]}"
+              + ("" if good else f"   (fired {sorted(fires)}, repaired twin fired {sorted(quiet)})"))
+    return ok
+
+
+def self_test(subjects, own, universe, ordinals=None, tops=None) -> int:
     """⛔ A GATE THAT HAS NEVER BEEN SEEN TO FAIL IS NOT EVIDENCE. Each check is fired on the exact defect it
     was written for, and then on its repaired twin, which must be silent."""
     import tempfile
@@ -381,6 +713,7 @@ def self_test(subjects, own, universe) -> int:
         ok &= not got
     if universe is None:
         print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL.md is absent")
+    ok &= ordinal_self_test(ordinals, tops)
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -444,7 +777,10 @@ def _checks(parts, context, window, subjects, own, universe, phantom=False, labe
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--check", action="store_true", help="exit 1 on any finding (the gate)")
+    ap.add_argument("--check", action="store_true", help="exit 1 on any GATING finding (the gate)")
+    ap.add_argument("--check-all", action="store_true",
+                    help="exit 1 on EVERY finding, the measured backlog included — the gate kb/Work's "
+                         "rule-ordinal sweep drives to zero, and what --check becomes the day it gets there")
     ap.add_argument("--self-test", action="store_true", help="prove every check fails on a real defect")
     args = ap.parse_args()
     try:
@@ -455,20 +791,44 @@ def main() -> int:
     subjects = catalog_subjects()
     own = construct_clause(subjects)
     universe = spec_clauses()
+    ordinals = spec_ordinals()
+    tops = catalog_rule_tops()
 
     if args.self_test:
-        return self_test(subjects, own, universe)
+        return self_test(subjects, own, universe, ordinals, tops)
 
     if universe is None:
-        print("⚠ PHANTOM CHECK SKIPPED — specs/ISO_COBOL.md is absent (the private submodule is not checked "
-              "out). SUBJECT and HEADER still run: spec-rule-catalog.json is committed.")
+        print("⚠ PHANTOM AND THE ORDINAL CHECKS SKIPPED — specs/ISO_COBOL.md is absent (the private submodule "
+              "is not checked out). SUBJECT and HEADER still run: spec-rule-catalog.json is committed.")
 
-    findings = audit(subjects, own, universe)
+    findings = audit(subjects, own, universe, ordinals, tops)
+    gating = [f for f in findings if f[0] not in MEASURED_BACKLOG]
+    backlog = [f for f in findings if f[0] in MEASURED_BACKLOG]
     print(f"{len(citation_corpus.all_files())} files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
-    print(f"⛔ {len(findings)} finding(s)\n")
-    for kind, site, cited, msg in findings:
+    print(f"⛔ {len(gating)} finding(s)\n")
+    for kind, site, cited, msg in gating:
         print(f"  [{kind}] {site}\n      {msg}")
-    return 1 if (findings and args.check) else 0
+    if backlog:
+        # ⛔ NOT SILENT, AND NOT GREEN EITHER. RULE and SUBITEM were SOUND on the day they were written and
+        # found a backlog too large for the change that added them (kb/Work PB388 measured 132 + 72 sites in
+        # 124 files, each needing its own derivation from the standard). Hiding them would be a green gate
+        # over a known defect (feedback_green_test_can_hold_a_gap_open); failing on them would stop every
+        # other lane on a backlog none of those lanes wrote. So they PRINT, every run, with their count and
+        # their owner, and `--check-all` is the gate whoever burns them down runs.
+        print(f"\n⚠ {len(backlog)} MEASURED, NOT YET GATING — rule-ordinal citations naming a rule number or "
+              "sub-item its clause does not have. Each needs its own derivation from the standard; they are "
+              "owned as one sweep in kb/Work (see PB388's report). `--check-all` gates on them.")
+        if args.check:
+            # Under the per-commit gate this is a HEADLINE, not a wall: the count is the fact another lane
+            # needs, and the list is one command away. Run without --check (or with --check-all) to see it.
+            print("   (run `python scripts/spec/audit_code_citations.py` for the list)\n")
+        else:
+            print()
+            for kind, site, cited, msg in backlog:
+                print(f"  [{kind}] {site}\n      {msg}")
+    if args.check_all:
+        return 1 if findings else 0
+    return 1 if (gating and args.check) else 0
 
 
 if __name__ == "__main__":

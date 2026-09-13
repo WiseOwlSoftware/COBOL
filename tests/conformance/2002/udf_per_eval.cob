@@ -4,7 +4,7 @@
       *> iteration (14.9.28 GR6); a non-first AND/OR operand activates only when short-circuit
       *> evaluation reaches it (8.8.4.13 r1/r2 - "if and when the conditions containing them are
       *> evaluated"); an EVALUATE selection object activates only when its WHEN is considered
-      *> (14.9.13.4 GR4); a SEARCH WHEN condition activates per scan pass (14.9.37.4 GR5b). The
+      *> (14.9.13.4 GR4); a SEARCH WHEN condition activates per scan pass (14.9.37.4 GR1/GR4). The
       *> activation counter is EXTERNAL data - last-used per run unit (14.6.2.3.3) - because a
       *> function's internal data is per-activation (functions are always recursive, 8.6.6).
        IDENTIFICATION DIVISION.
@@ -52,7 +52,7 @@
                WHEN OTHER DISPLAY "OTHER"
            END-EVALUATE.
            DISPLAY "C5=" CTR-P10UV.
-      *>   14.9.37.4 GR5b: the WHEN re-evaluates each pass; never true -> AT END after 3 passes
+      *>   14.9.37.4 GR1/GR4: the WHEN re-evaluates each pass; never true -> AT END after 3 passes
            SET IX TO 1.
            SEARCH ROWX
                AT END DISPLAY "AT-END"

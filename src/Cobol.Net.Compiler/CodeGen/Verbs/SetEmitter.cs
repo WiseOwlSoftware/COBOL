@@ -78,7 +78,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     private string LandAmount(BoundExpr amount, SetAmountRule rule, string detail, out string valueVar, string prefix) =>
         LandAmount(num.Render(amount, ReceiverContext.None), rule, detail, out valueVar, prefix);
 
-    /// <summary><c>SET pointer… TO {NULL | pointer}</c> (ISO §14.9.39 Format 4; Phase-4b increment 1): copy
+    /// <summary><c>SET pointer… TO {NULL | pointer}</c> (ISO §14.9.39 Format 7; Phase-4b increment 1): copy
     /// the NULL singleton or the source pointer's carrier into each target in order (GR — a straight handle
     /// copy; a data pointer carries no PICTURE store).</summary>
     public void EmitSetPointer(BoundSetPointer s)
@@ -90,7 +90,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             : ctx.SendOnce(s.Address is { } a ? ptr.AddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
                                               : PlaceRenderer.Read(s.Source!), s.Targets.Count, "setPtr");
         foreach (var t in s.Targets)
-            ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
+            ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 7)");
     }
 
     /// <summary><c>SET LOCALE … TO …</c> (ISO §14.9.39 Format 11; kb/Work PB64 T1): one call on the run unit's ONE
@@ -371,7 +371,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     }
 
     /// <summary>The category-aware C# <c>char</c>-literal a level-88 figurative-word VALUE fills with (SET TO
-    /// TRUE, ISO §14.9.39 Format 5 + §8.3.3.6.4 GR2), or null when the operand is not a bare figurative word
+    /// TRUE, ISO §14.9.39 Format 4 + §8.3.3.6.4 GR2), or null when the operand is not a bare figurative word
     /// (a quoted / N"…" / B"…" / numeric literal takes the store path). Tolerates the ALL-prefixed spelling.</summary>
     private string? FigurativeWordFill(string raw, PicCategory cat)
     {

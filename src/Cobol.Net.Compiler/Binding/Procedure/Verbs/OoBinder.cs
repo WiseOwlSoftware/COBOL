@@ -1079,24 +1079,27 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         if (g.dataReference() is not null)
             return new BoundUnsupported("GOBACK with a RETURNING/GIVING phrase inside a method "
                 + "(ISO §14.9.18.4 GR4 returns the METHOD's RETURNING item — an activation-result form)");
-        return new BoundMethodReturn(OoBindMethodRaising(g.raisingPhrase(), "GOBACK"));
+        return new BoundMethodReturn(OoBindMethodRaising(g.raisingPhrase(), EcRaiseSite.Goback));
     }
 
     /// <summary>Bind a method-context RAISING phrase (§14.9.18.4 GR1b — staged before the MethodReturn
-    /// throw; the INVOKE site picks up). RAISING LAST inside a method needs method DECLARATIVES (SR5: only
-    /// in a declarative/WHEN) — staged with the method-declaratives refinement.</summary>
-    private BoundRaising? OoBindMethodRaising(Core.RaisingPhraseContext? raising, string verb)
+    /// throw; the INVOKE site picks up). RAISING LAST inside a method needs method DECLARATIVES (GOBACK
+    /// §14.9.18.3 SR5 / EXIT §14.9.14.3 SR6: only in a declarative/WHEN) — staged with the method-declaratives
+    /// refinement. The <see cref="EcRaiseSite"/> carries which of the two statements this is.</summary>
+    private BoundRaising? OoBindMethodRaising(Core.RaisingPhraseContext? raising, EcRaiseSite site)
     {
         if (raising is null) return null;
         if (raising.LAST() is not null)
         {
+            // The LAST phrase's rule is the SITE's (GOBACK §14.9.18.3 SR5 / EXIT §14.9.14.3 SR6) — this path
+            // serves both statements and printed GOBACK's ordinal at an EXIT METHOD (kb/Work PB388).
             ctx.Edition.Error(DiagnosticCatalog.OoMethodRaisingLast,
-                $"{verb} RAISING LAST EXCEPTION inside a method: LAST is legal only within a declarative "
-                + "or a PERFORM WHEN (ISO §14.9.18.3 SR5) — method declaratives are a later refinement of "
-                + "the EC-OO wave");
+                $"{site.Context} LAST EXCEPTION inside a method: LAST is legal only within a declarative "
+                + $"or a PERFORM WHEN ({site.Cite(site.LastRule)}) — method declaratives are a later refinement "
+                + "of the EC-OO wave");
             return null;
         }
-        return host.Ec.EcBindRaising(raising, raising.Start.Line, verb);
+        return host.Ec.EcBindRaising(raising, raising.Start.Line, site);
     }
 
     /// <summary>EXIT METHOD (pre-2023 editions — REMOVED by 2023, Annex E.2; the <c>exit-method-window</c>
@@ -1113,6 +1116,6 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + "of the EXIT statement; this is not a method procedure division)");
             return new BoundNop();
         }
-        return new BoundMethodReturn(OoBindMethodRaising(e.raisingPhrase(), "EXIT METHOD"));
+        return new BoundMethodReturn(OoBindMethodRaising(e.raisingPhrase(), EcRaiseSite.Exit("EXIT METHOD")));
     }
 }

@@ -36,7 +36,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 
         if (receiverForm)
         {
-            // SET ADDRESS OF based-item TO pointer (GR12–13 — the address VALUE is assigned; a snapshot).
+            // SET ADDRESS OF based-item TO pointer (GR13, the data-name-1 arm — the address VALUE is
+            // assigned to each based item; a snapshot. GR12 is the identifier-5 arm, a pointer RECEIVER).
             var basedRef = sa.dataReference(0);
             if (PtrResolveBased(basedRef) is not { } based) return new BoundNop();   // 0869 reported
             // SR19 — identifier-6 "shall be the predefined address NULL or shall reference a data-pointer": TO NULL

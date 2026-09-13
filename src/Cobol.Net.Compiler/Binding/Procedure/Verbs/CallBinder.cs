@@ -830,7 +830,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             source = p;
         }
         if (g.raisingPhrase() is { } raising)
-            return host.Ec.EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
+            return host.Ec.EcBindRaising(raising, g.Start.Line, EcRaiseSite.Goback) is { } r
                 ? new BoundGoback(source, r)
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
         // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually

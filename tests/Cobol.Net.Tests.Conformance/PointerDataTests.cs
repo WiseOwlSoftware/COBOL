@@ -5,7 +5,7 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// USAGE POINTER data (ISO §8.5.2.6 / §13.18.60 / §14.9.39 Format 4 / §8.8.4.2.16) — Phase-4b increment 1
+/// USAGE POINTER data (ISO §8.5.2.6 / §13.18.60 / §14.9.39 Format 7 / §8.8.4.2.16) — Phase-4b increment 1
 /// (the ManagedPointer carrier; DEVLOG 613). Increment 1 holds only NULL: declaration, SET TO NULL /
 /// pointer, and [NOT] EQUAL comparison against NULL and another pointer. ADDRESS OF / BASED / ALLOCATE are
 /// increment 2+. The end-to-end behavior rides the pointer_data conformance golden; these lock the edition
@@ -41,7 +41,7 @@ public sealed class PointerDataTests
         Assert.True(ok02, "USAGE POINTER + SET TO NULL must bind at 2002: " + string.Join("\n", e02));
     }
 
-    /// <summary>§14.9.39 Format 4 — a data-pointer SET target shall be USAGE POINTER; a non-pointer target
+    /// <summary>§14.9.39 Format 7 — a data-pointer SET target shall be USAGE POINTER; a non-pointer target
     /// (or a non-pointer/non-NULL sender) is COBOLNET0869.</summary>
     [Theory]
     [InlineData("    SET N TO P.")]                 // pointer sender into a non-pointer target (routes to F4)
@@ -51,6 +51,40 @@ public sealed class PointerDataTests
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(body), 2002);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+    }
+
+    /// <summary>⛔ AN INDEX-NAME RECEIVER IS REFUSED FOR THE REASON IT IS REFUSED (kb/Work PB388).
+    /// <c>SET IX TO P</c> re-routes to the data-pointer format on the SENDER's category, and the receiver
+    /// resolution then answered for a DATA ITEM only — so the FIRST thing the user read was COBOLNET1639,
+    /// "'IX' is not defined — no declaration in this source element gives the name 'IX'", about a name
+    /// INDEXED BY declared four lines up. The refusal is right (§14.9.39.3 SR17: identifier-5 shall reference
+    /// a data item of category data-pointer); the statement about the program was not.</summary>
+    /// <remarks>BOTH arms of the dispatch: the carrier re-route is selected by whichever operand HAS a carrier
+    /// category, so an index-name reaches the receiving position AND the sending one (feedback_two_arm_dispatch
+    /// — the sender arm was still printing COBOLNET1639 after the receiver arm was repaired).</remarks>
+    [Theory]
+    [InlineData("    SET IX TO P.")]
+    [InlineData("    SET P TO IX.")]
+    public void SetPointer_IndexNameOperand_IsACategoryError_NotAnUndefinedName(string body)
+    {
+        string prog = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PTRTIXR.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T.
+               05 E PIC X OCCURS 3 INDEXED BY IX.
+            01 P USAGE POINTER.
+            PROCEDURE DIVISION.
+            MAIN.
+            {0}
+                STOP RUN.
+            """.Replace("{0}", body);
+        var (ok, errors, _) = EditionHarness.CompileFull(prog, 2002);
+        Assert.False(ok, "an index-name is not of category data-pointer");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1639");
+        EditionHarness.AssertNoDiagnostic(errors, "is not defined");
     }
 
     /// <summary>§8.8.4.2.16 — a data pointer is not ORDERED: only [NOT] EQUAL; an ordering operator or an

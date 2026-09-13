@@ -897,7 +897,8 @@ public sealed record PerformForever : BoundPerformControl;
 /// conditions at every test (GR12 item identification; changes inside the body have immediate effect).</summary>
 public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr By, BoundCondition Until);
 
-/// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §14.9.28 Format 4, GR13): nested
+/// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §14.9.28, the VARYING phrase of
+/// Formats 1 and 2 — §14.9.28.4 GR13): nested
 /// induction loops, leftmost level outermost.</summary>
 public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter,
     bool CheckIndexRange = false) : BoundPerformControl;
@@ -980,7 +981,7 @@ public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets, bool ToTrue)
     : BoundStatement;
 
-/// <summary>SET data-pointer assignment (ISO §14.9.39 Format 4 — SET pointer TO {NULL | pointer};
+/// <summary>SET data-pointer assignment (ISO §14.9.39 Format 7 — SET pointer TO {NULL | pointer};
 /// Phase-4b increment 1): copy the NULL singleton or the source pointer into each target in order.
 /// <paramref name="ToNull"/> ⇔ the sender is the NULL figurative (renders <c>ManagedPointer.Null</c>);
 /// <paramref name="Address"/> ⇔ the sender is <c>ADDRESS OF identifier</c> (increment 2 — ONE node per job,
@@ -999,11 +1000,11 @@ public sealed record BoundSetPointer(
 public sealed record BoundAddressOf(DataItem Item, string? OccursDisplacement = null);
 
 /// <summary><c>SET ADDRESS OF based-item TO pointer</c> (ISO §14.9.39 Format 7; SR18 — the receiver shall be
-/// BASED; GR12–13 — the address VALUE is assigned, a snapshot): <c>__addr_B = pointer</c>.</summary>
+/// BASED; GR13 — the address VALUE is assigned to the based item, a snapshot): <c>__addr_B = pointer</c>.</summary>
 public sealed record BoundSetAddressOfBased(DataItem Based, Place? Source) : BoundStatement;   // Source null ⇒ TO NULL (SR19; kb/Work PB89)
 
 /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; SR21 — both sides
-/// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-4 twin.</summary>
+/// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-7 twin.</summary>
 public sealed record BoundSetProgramPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;
 
 /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 with the
@@ -1140,7 +1141,8 @@ public sealed record BoundSetContent(IReadOnlyList<SetContentStore> Stores) : Bo
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 
 /// <summary>One WHEN arm of a serial SEARCH: its condition and imperative statements (evaluated in source order;
-/// the first true arm runs and ends the search, ISO §14.9.37.4 GR5).</summary>
+/// the first true arm runs and ends the search, ISO §14.9.37.4 GR4 — "If one of the conditions is satisfied
+/// upon its evaluation, the search operation is successful"; GR1 a) then terminates it).</summary>
 public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<BoundStatement> Statements);
 
 /// <summary><c>SEARCH table [VARYING …] [AT END …] WHEN…</c> (ISO §14.9.37 Format 1): a serial scan from the

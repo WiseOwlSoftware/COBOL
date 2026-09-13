@@ -14,9 +14,9 @@ using Core = CobolParserCore;
 internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). The searched operand names a table with INDEXED BY
-    /// (SR1); the scan uses the table's FIRST index — unless VARYING names another index OF THE SAME TABLE, which
-    /// then IS the search index (GR8a); VARYING a different table's index or a data item increments that item in
-    /// step with the search index (GR8b/c). SEARCH ALL (Format 2) is the binary-search wave (needs OCCURS KEY
+    /// (SR1); the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names another index OF
+    /// THE SAME TABLE, which then IS the search index (GR3 c) 1); VARYING a different table's index (GR3 c) 2) or
+    /// a data item (GR3 b) increments that item in step with the search index. SEARCH ALL (Format 2) is the binary-search wave (needs OCCURS KEY
     /// capture); NOT AT END is a non-ISO extension — both fail loud by name.</summary>
     public BoundStatement BindSearch(Core.SearchStatementContext s)
     {
@@ -42,10 +42,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             var v = drefs[1];
             if (host.Expr.IndexFieldOf(v) is { } vix)
             {
-                if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR8a)
-                else also = new SetIndexTarget(vix);                                          // other table (GR8b)
+                if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR3 c) 1)
+                else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2)
             }
-            else if (ctx.Refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR8c)
+            else if (ctx.Refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR3 b)
             else return new BoundUnsupported($"SEARCH VARYING '{v.GetText()}'");
         }
 
@@ -55,7 +55,9 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
             atEnd = host.BindBlocks(ae.statementBlock());
         }
-        // A WHEN condition re-evaluates on every scan pass (§14.9.37.4 GR5b), so a user-function reference
+        // A WHEN condition re-evaluates on every scan pass (§14.9.37.4 GR1: "Any subscripting specified in a
+        // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated"; the repeat is
+        // GR4), so a user-function reference
         // inside it activates per pass — the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
         var whens = s.searchWhenClause()
             .Select(wc =>

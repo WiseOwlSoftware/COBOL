@@ -77,7 +77,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             return new BoundRaiseObject(op);
         }
 
-        if (EcResolveLevel3(ecWord.GetText(), "RAISE") is not { } info)
+        if (EcResolveLevel3(ecWord.GetText(), EcRaiseSite.Raise) is not { } info)
             return new BoundNop();   // diagnosed — fail the compile, bind a placeholder
         ctx.EcState.Raise = true;
         int line = r.Start.Line;
@@ -87,10 +87,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Resolve and validate a written exception-name for the RAISE/RAISING contexts — the ONE funnel
-    /// (kb/Work R05) plus this site's LEVEL-3 requirement (§14.9.29.3 SR1 / §14.9.18.3 SR2, checked before the
-    /// introduction gate so the level error keeps priority). Null after diagnosing.</summary>
-    private EcInfo? EcResolveLevel3(string name, string context) =>
-        EcNameResolution.TryResolve(ctx.Edition, name, context, out var info, requireLevel3: true)
+    /// (kb/Work R05) plus this site's LEVEL-3 requirement (RAISE §14.9.29.3 SR1 / GOBACK §14.9.18.3 SR2 / EXIT
+    /// §14.9.14.3 SR3, checked before the introduction gate so the level error keeps priority). The SITE carries
+    /// its own clause and ordinal (kb/Work PB388) — this path serves three statements. Null after
+    /// diagnosing.</summary>
+    private EcInfo? EcResolveLevel3(string name, EcRaiseSite site) =>
+        EcNameResolution.TryResolve(ctx.Edition, name, site.Context, out var info, level3: site)
             ? info : null;
 
     // ── RESUME (§14.9.33) ────────────────────────────────────────────────────────────────────────────────────
@@ -161,14 +163,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind a RAISING phrase. Returns null for the identifier (exception-object) form — the caller
     /// degrades to a loud placeholder until the OO wave.</summary>
-    public BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, string verb)
+    public BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, EcRaiseSite site)
     {
         // statement-raising-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.Raising = true;
         if (raising.LAST() is not null) return new BoundRaising(null, IsLast: true, Fatal: false, Enabled: true);
         if (raising.cobolWord() is not { } ecWord)
         {
-            // The identifier leg (§14.9.18.3 SR4 / §14.9.14.3 — the EC-OO wave): propagate an exception
+            // The identifier leg (GOBACK §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 — the EC-OO wave): propagate an exception
             // OBJECT to the activator. SR4d: never a universal reference. SR4a: the DECLARED class (or a
             // superclass) shall appear in the containing source element's PD-header RAISING phrase —
             // discharged at COMPILE time, which makes the activated-side EC-OO-EXCEPTION rule-1 check
@@ -179,11 +181,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 || op.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
             {
                 ctx.Edition.Error("COBOLNET0849",
-                    $"{verb} RAISING '{dref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE "
-                    + "data item (ISO §14.9.18.3 SR4)");
+                    $"{site.Context} '{dref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE "
+                    + $"data item ({site.Cite(site.ObjectRule)})");
                 return null;
             }
-            // ⛔ SR4d/SR5d ask ONE thing — is this reference UNIVERSAL — and before kb/Work PB389 it was
+            // ⛔ SR5d (EXIT) / SR4d (GOBACK) ask ONE thing — is this reference UNIVERSAL — and before kb/Work PB389 it was
             // spelled "no class name recorded", which is equally true of a factory, an interface and an
             // ACTIVE-CLASS reference: the moment those became declarable, legal operands would have been
             // refused by a message naming a rule the program did not break. The descriptor answers it.
@@ -191,11 +193,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             if (od.IsUniversal)
             {
                 ctx.Edition.Error("COBOLNET0849",
-                    $"{verb} RAISING '{op.Item.CobolName}': identifier-1 shall not be a UNIVERSAL object "
-                    + "reference (ISO §14.9.18.3 SR4d)");
+                    $"{site.Context} '{op.Item.CobolName}': identifier-1 shall not be a UNIVERSAL object "
+                    + $"reference ({site.Cite(site.ObjectRule, "d")})");
                 return null;
             }
-            // SR4a walks the SUPERCLASS chain of the reference's declared class. An interface-described
+            // The a) sub-item walks the SUPERCLASS chain of the reference's declared class. An interface-described
             // reference has no such chain — its class is not known until run time — and an ACTIVE-CLASS one
             // is bounded by its containing class, which IS the chain to walk.
             string declared = od.Name!;
@@ -204,27 +206,28 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 if (ctx.EcState.PdRaisingClasses.Contains(c.Name)) { listed = true; break; }
             if (!listed)
                 ctx.Edition.Error("COBOLNET0849",
-                    $"{verb} RAISING '{op.Item.CobolName}': its declared class '{declared}' (or a "
+                    $"{site.Context} '{op.Item.CobolName}': its declared class '{declared}' (or a "
                     + "superclass) shall be specified in the RAISING phrase of the procedure division "
-                    + "header of the containing source element (ISO §14.9.18.3 SR4a)");
+                    + $"header of the containing source element ({site.Cite(site.ObjectRule, "a")})");
             return new BoundRaising(null, IsLast: false, Fatal: false, Enabled: true, ObjectSource: op);
         }
 
-        if (EcResolveLevel3(ecWord.GetText(), $"{verb} RAISING") is not { } info)
+        if (EcResolveLevel3(ecWord.GetText(), site) is not { } info)
             return new BoundRaising("EC-RAISING-IMP", false, false, false);   // diagnosed; placeholder
-        // SR2 (§14.9.18.3 / 27684): an EC-USER name shall appear in the PD-header RAISING phrase — the
-        // statically detectable half binds as an error; the runtime condition is EC-RAISING-NOT-SPECIFIED.
+        // The level-3 rule's SECOND paragraph (GOBACK §14.9.18.3 SR2 / EXIT §14.9.14.3 SR3): an EC-USER name
+        // shall appear in the PD-header RAISING phrase — the statically detectable half binds as an error; the
+        // runtime condition is EC-RAISING-NOT-SPECIFIED.
         if (info.Level2Parent is "EC-USER" && !ctx.EcState.PdRaising.Contains(info.Name))
-            ctx.Edition.Error("COBOLNET0717", $"{verb} RAISING {info.Name}: an EC-USER exception-name shall be "
-                + "specified in the RAISING phrase of the procedure division header (ISO §14.9.18.3 SR2 — "
-                + "otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
+            ctx.Edition.Error("COBOLNET0717", $"{site.Context} {info.Name}: an EC-USER exception-name shall be "
+                + "specified in the RAISING phrase of the procedure division header "
+                + $"({site.Cite(site.Level3Rule)} — otherwise EC-RAISING-NOT-SPECIFIED, Table 13)");
         // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS
         // line (§7.3.25.4 GR7); the statement name is the Table 12 row (verb's first word: GOBACK, or EXIT —
         // EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
         return new BoundRaising(info.Name, IsLast: false,
             Fatal: info.Fatality is not EcFatality.Nonfatal, Enabled: ctx.EcState.Turn.Enabled(info.Name, null, line),
             WithLocation: ctx.EcState.Turn.WithLocation(info.Name, null, line),
-            StatementName: verb.Split(' ')[0], Location: EcLocation(line));
+            StatementName: site.Verb.Split(' ')[0], Location: EcLocation(line));
     }
 
     /// <summary>Capture the PROCEDURE DIVISION header RAISING list (§14.2.1; consumed by the SR2 check above;

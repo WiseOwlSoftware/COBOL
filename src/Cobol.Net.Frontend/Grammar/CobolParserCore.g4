@@ -1410,7 +1410,7 @@ setToValueStatement
     : SET dataReference+ TO arithmeticExpression
     ;
 
-// SET dataReference+ TO TRUE/FALSE (COBOL-85 §14.9.39 Format 5)
+// SET dataReference+ TO TRUE/FALSE (COBOL-85; §14.9.39 Format 4, condition-setting)
 setBooleanStatement
     : SET dataReference+ TO (TRUE_ | FALSE_)
     ;

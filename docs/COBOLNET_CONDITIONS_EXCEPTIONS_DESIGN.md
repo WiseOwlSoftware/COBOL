@@ -44,9 +44,22 @@ OO mechanism (feedback_one_mechanism_per_job):
   backend actually emits and that the selector tests every member.
   GR3: for an OBJECT raise F4 REPLACES the F1/F3 tiers. GR15 holds
   structurally (the raise site sets the register before dispatching).
+- **⛔ THE STATEMENT AND ITS CLAUSE TRAVEL AS ONE VALUE — `EcRaiseSite`** (`Binding/EcRaiseSite.cs`;
+  kb/Work PB388). RAISE (§14.9.29), GOBACK RAISING (§14.9.18) and EXIT PROGRAM / FUNCTION / METHOD RAISING
+  (§14.9.14) are bound by ONE path — `EcBinder.EcBindRaising` over `EcNameResolution.TryResolve` — and every
+  rule that path enforces is written down three times in the standard, once per statement, under a DIFFERENT
+  ordinal: level-3 exception-name EXIT SR3 / GOBACK SR2 / RAISE SR1; identifier-1 an object reference EXIT SR5
+  / GOBACK SR4 / RAISE SR2 (the declared-class constraint at `a)`, the universal one at `d)`); the LAST phrase
+  EXIT SR6 / GOBACK SR5. The VERB was threaded and the CLAUSE was a literal per message, so every one of those
+  messages printed GOBACK's or RAISE's rule number at an EXIT statement. The citation is a property of the
+  SITE; each call site passes `EcRaiseSite.Raise` / `.Goback` / `.Exit(verb)` and the messages compose
+  `site.Cite(site.Level3Rule)`. `EcRaiseSiteDriftTests` re-derives every ordinal from `spec-rule-catalog.json`
+  by matching the rule TEXT and asserting the match is UNIQUE, so a renumbering fails a test instead of
+  misdirecting a reader; the negative pair `l1-exit-raising-level2-name` / `pb388-goback-raising-level2-name`
+  pins BOTH arms through the corpus, each `.err` naming its own statement's citation.
 - **GOBACK / EXIT PROGRAM / method-return RAISING identifier-1** → `BoundRaising.ObjectSource` (exactly
-  one of EcName/IsLast/ObjectSource); SR4d no-universal + SR4a declared-class-in-header (walking the base
-  chain) = 0849 at COMPILE time — which statically discharges the activated-side rule-1 check in v1
+  one of EcName/IsLast/ObjectSource); the no-universal sub-item (EXIT SR5d / GOBACK SR4d) + the
+  declared-class-in-header one (EXIT SR5a / GOBACK SR4a, walking the base chain) = 0849 at COMPILE time — which statically discharges the activated-side rule-1 check in v1
   (D-EO5; revisit when FACTORY OF / interface RAISING legs land). The stage
   (`ExceptionState.SetPropagatingObject`) has no Enabled/Fatal logic — objects are not TURN-gated.
 - **The pickup** (`CallEmitter.EmitPropagationPickup`) has an object branch (slots exclusive): GR1b2

@@ -2327,7 +2327,8 @@ public static class DiagnosticCatalog
     //    `Error(DiagnosticDescriptor, string)` forwards to `Error(descriptor.Code, string)`.
     /// <summary>COBOLNET0869 — the POINTER / ADDRESS OPERAND band: what may be written where a pointer,
     /// an address or an object reference is expected, and what a restricted data-pointer narrows that to.
-    /// Covers ISO §14.9.39 (SET Formats 5–7 — SET ADDRESS OF / a pointer receiver / an index-name),
+    /// Covers ISO §14.9.39 (SET Format 1 index-assignment — an index-name receiver; Format 5
+    /// object-reference-assignment; Format 7 data-pointer-assignment — SET ADDRESS OF / a pointer receiver),
     /// §8.4.3.11 and §8.4.3.13 (the ADDRESS OF and LENGTH OF special registers as operands), §8.8.4.2.16
     /// (the pointer relation condition), §14.9.3 (ALLOCATE's RETURNING operand) and Annex D.9.2.2 (the
     /// restricted data-pointer, whose target type constrains every one of the above).</summary>

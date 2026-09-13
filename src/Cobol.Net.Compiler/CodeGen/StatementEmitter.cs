@@ -139,7 +139,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         w.Line(_dispatchState.TransferJump());
         return true;
     }
-    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5/GR6; §14.9.28.4 GR16
+    public bool Visit(BoundExitPerform n) => _dispatchState.F3Cur.Region switch   // §14.9.14.4 GR4/GR5; §14.9.28.4 GR16
     {
         // Inside a Format-3 PERFORM: imp-1 → goto the implicit-CONTINUE-before-FINALLY label; a handler pc-range →
         // throw ExitPerformSignal (crosses the nested __Dispatch a goto cannot leave); FINALLY (imp-5) → goto the
@@ -149,7 +149,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         F3Region.Finally => Emit($"goto __f3end{_dispatchState.F3Cur.Id};", terminated: true),
         // Ordinary inline PERFORM: EXIT PERFORM → goto __pexit (past the loop, leaving EVERY nested VARYING level,
         // §14.9.14.4 GR5a); EXIT PERFORM CYCLE → goto __pcont (the loop-control boundary, so the VARYING augment +
-        // re-test still run, §14.9.14.4 GR5b / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
+        // re-test still run, §14.9.14.4 GR5 b) / §14.9.28.4 GR13). A bare break/continue exits/cycles only the innermost
         // C# loop, wrong for a multi-level VARYING (CA31/CA32). The __pexit/__pcont labels are emitted by EmitPerform.
         F3Region.Inline => Emit(n.Cycle ? $"goto __pcont{_dispatchState.F3Cur.Id};" : $"goto __pexit{_dispatchState.F3Cur.Id};", terminated: true),
         // ⛔ THE INVARIANT IS NOW ESTABLISHED, SO THIS ARM THROWS (kb/Work PB403). F3Region.None means "not inside
