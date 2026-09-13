@@ -2707,9 +2707,10 @@ public static class DiagnosticCatalog
         + "first 'P' or immediately follow the last; SR20 — 'V' and the decimal separator are mutually "
         + "exclusive; SR21 — 'Z' and '*' are mutually exclusive; SR22 — neither 'S' nor '*' beside a BLANK WHEN "
         + "ZERO clause; SR23 — '+', '-', 'CR', 'DB' are mutually exclusive; SR24 — one currency symbol and one "
-        + "editing sign control symbol as FIXED insertion. Under DECIMAL-POINT IS COMMA every rule written for "
+        + "editing sign control symbol as FIXED insertion; SR29 — for floating insertion, at least one insertion "
+        + "symbol to the LEFT of the decimal point position. Under DECIMAL-POINT IS COMMA every rule written for "
         + "the period reads for the comma and vice versa (SR13), so the message names the separator in force.",
-        "ISO §13.18.40.3 SR12-SR24");
+        "ISO §13.18.40.3 SR12-SR29");
     public static readonly DiagnosticDescriptor PicturePrecedence = new(
         "COBOLNET1935", "picture-precedence", EditionSeverity.Error,
         "A Format-1 PICTURE character-string is not an ALLOWABLE COMBINATION of picture symbols: ISO "
@@ -3066,6 +3067,45 @@ public static class DiagnosticCatalog
         + "UTF-16, whose collating-sequence column in §12.3.7.4 Table 6 is empty — defines no sequence of either "
         + "class and is refused here for the same reason.",
         "ISO §14.9.13.3 SR3 / §13.18.63.3 SR31");
+
+    // ── COBOLNET1984–1985 — the EXTENDED editing sign control symbols as a SET (ISO §13.18.40.3 SR24 and SR25,
+    //    each SECOND sentence) — kb/Work PB530. Both rules are stated over the WHOLE list of EDITING phrases, so
+    //    neither is askable while validating one phrase, and neither was asked: `PIC 9L9F9G` with three FOR
+    //    phrases bound clean, and the phrase order the standard fixes was never compared to the symbol order.
+    //    Sentence 1 of each rule needs no code — Table 10 carries it (COBOLNET1935). ──
+
+    /// <summary>COBOLNET1984 — the two EDITING phrases of a two-extended-symbol PICTURE are written in the
+    /// reverse order of their symbols (ISO §13.18.40.3 SR25, second sentence).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingPhraseOrder = new(
+        "COBOLNET1984", "picture-editing-phrase-order", EditionSeverity.Error,
+        "ISO §13.18.40.3 syntax rule 25, second sentence: \"When extended editing sign control symbols are used "
+        + "and two are specified, the first occurrence of the EDITING phrase shall be for the leftmost symbol in "
+        + "character-string-1 and the second occurrence shall be for the rightmost symbol in character-string-1.\" "
+        + "The phrases here are written in the reverse order of the symbols they are for. The order is not "
+        + "cosmetic: each extended symbol renders its own literal at its own position, so `PIC F999.99L` with "
+        + "the phrases reversed renders -1.5 as \")001.50(\" where the conforming spelling renders \"(001.50)\". "
+        + "⛔ \"The leftmost symbol\" is read as the leftmost OF THE TWO extended symbols the sentence names, so "
+        + "this rule constrains the PHRASE order and not the symbols' placement — the alternative reading, that "
+        + "the two shall also be character-string-1's first and last symbols, is not taken because the only "
+        + "other text that would place an extended symbol (§13.18.40.6: 'es' takes \"the same precedence as the "
+        + "'cs' symbol in the column and row of non-floating insertion symbols\") cannot be applied literally "
+        + "without rejecting the standard's own Annex D.24 example, `PIC IS L9999.99F` with two FOR phrases, "
+        + "against Table 10's blank leading-currency-before-trailing-currency cell (kb/Work PB528, PB530).",
+        "ISO §13.18.40.3 SR25");
+
+    /// <summary>COBOLNET1985 — more than two extended editing sign control symbols in one PICTURE clause (ISO
+    /// §13.18.40.3 SR24, second sentence).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingExtendedCount = new(
+        "COBOLNET1985", "picture-editing-extended-count", EditionSeverity.Error,
+        "ISO §13.18.40.3 syntax rule 24, second sentence: \"For extended editing sign control symbols, either "
+        + "one or two extended editing sign control symbols may be used in character-string-1.\" A third FOR "
+        + "phrase exceeds that maximum. An extended symbol is the FOR form alone (SR12: \"If literal-1 is "
+        + "specified, character-1 is a fixed editing sign control symbol. If the FOR phrase is specified, "
+        + "character-1 is an extended editing sign control symbol\"), so any number of IS-form (simple "
+        + "insertion) phrases is untouched by this rule. The bound is what makes SR25's second sentence "
+        + "well-formed — it pairs the FIRST phrase with the leftmost symbol and the SECOND with the rightmost, "
+        + "and says nothing about a third (kb/Work PB530).",
+        "ISO §13.18.40.3 SR24");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

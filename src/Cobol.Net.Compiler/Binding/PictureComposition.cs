@@ -349,11 +349,62 @@ internal static class PictureComposition
                 + "least one of the symbols 'A', 'N', 'X', 'Z', '1', '9', '*', or at least two occurrences of one "
                 + $"of character-1, 'X', '+', '-', '{cs}' (ISO §13.18.40.3 SR12 a)");
 
+        // The DECIMAL POINT POSITION — derived ONCE, here, because two rules count from it: SR29 just below and
+        // the Table-10 role assignment (which of the eight two-row symbols' halves an occurrence takes).
+        int dp = DecimalPointPosition(syms, n, decimalSep, leadingP, ps);
+
+        // SR29 "For floating insertion, at least one insertion symbol shall be specified to the left of the
+        // decimal point position." A floating string is anchored left of the point BY DEFINITION: §13.18.40.5
+        // rule 6 a) represents "any or all of the leading numeric character positions TO THE LEFT of the decimal
+        // point position by the same insertion symbol", and rule 6 b) "ALL of the numeric character positions",
+        // whose result "is the same as if the floating insertion editing were defined only to the left of the
+        // decimal point position". A string lying WHOLLY to the right of the point matches neither, so the
+        // standard defines no image for it — `PIC .$$` and `PIC V--` are not merely unrejected today, they
+        // render one the rules do not derive (kb/Work PB530). Table 10 refuses most of these shapes already,
+        // because a '9' may not precede a right-of-point floating symbol; what it cannot refuse is the string
+        // that has NOTHING to its left but the point itself (`PIC .$$`, `PIC V$$`, `PIC B.++`), which is exactly
+        // the residue this rule names.
+        int firstFloat = -1;
+        for (int i = 0; i < n; i++) if (IsFloating(i)) { firstFloat = i; break; }
+        if (firstFloat >= 0 && firstFloat >= dp)
+        {
+            string point = dp < n && syms[dp].Kind is 'V'
+                ? $"the symbol 'V' at symbol position {dp + 1}"
+                : dp < n && syms[dp].Kind == decimalSep
+                    ? $"the symbol '{decimalSep}' at symbol position {dp + 1}"
+                    : $"the assumed point to the left of the 'P' string at symbol position {dp + 1}";
+            return Fail(DiagnosticCatalog.PictureComposition,
+                $"the floating insertion string of '{syms[firstFloat].Text}' lies wholly to the RIGHT of the "
+                + $"decimal point position ({point}) — for floating insertion, at least one insertion symbol "
+                + "shall be specified to the LEFT of the decimal point position (ISO §13.18.40.3 SR29"
+                + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma" : "")
+                + "). §13.18.40.5 rule 6 defines the image only for a string that starts left of the point");
+        }
+
         // ── §13.18.40.6 Table 10 — the ORDER question SR2 delegates ("The allowable combinations of symbols for
         // a PICTURE clause are specified in 13.18.40.6, Precedence rules"). Assign every occurrence its role,
         // then require an 'x' for EVERY ordered pair: an 'x' means the column symbol "may precede (BUT NOT
         // NECESSARILY IMMEDIATELY)" the row symbol, so the relation binds non-adjacent pairs too.
-        return Precedence(syms, n, cs, char1, decimalSep, grouping, IsFloating, leadingP, ps, Fail);
+        return Precedence(syms, n, cs, char1, dp, decimalSep, grouping, IsFloating, leadingP, Fail);
+    }
+
+    /// <summary>
+    /// The DECIMAL POINT POSITION of a Format-1 character-string, as the SYMBOL ORDINAL the point stands at — so
+    /// a symbol at a LOWER ordinal is "to the left of the decimal point position" and one at a higher ordinal is
+    /// to its right. 'V' and the decimal separator each state it outright (SR20 has already made them mutually
+    /// exclusive); with neither, a LEADING 'P' string puts it immediately to that string's left (§13.18.40.4
+    /// GR14 — "The symbol 'P' implies an assumed decimal point that is either — to the left of the string of
+    /// 'P's if they indicate the leftmost digit positions in character-string-1; or — to the right of the string
+    /// of 'P's if they indicate the rightmost digit positions"), and otherwise it lies past the last symbol,
+    /// which makes every symbol left of it.
+    /// <para>⛔ ONE DEFINITION for the whole file: SR29 and the Table-10 role assignment both count from it, and
+    /// they must agree about which half of a two-row symbol an occurrence takes (kb/Work PB530).</para>
+    /// </summary>
+    private static int DecimalPointPosition(List<Sym> syms, int n, char decimalSep, bool leadingP, List<int> ps)
+    {
+        for (int i = 0; i < n; i++)
+            if (syms[i].Kind == 'V' || syms[i].Kind == decimalSep) return i;
+        return leadingP ? ps[0] : n;
     }
 
     /// <summary>
@@ -433,19 +484,14 @@ internal static class PictureComposition
     /// one — so the assignment is SEARCHED rather than guessed: the string is an allowable combination when SOME
     /// assignment satisfies the matrix. SR24 has already bounded each to one occurrence, so the search is at most
     /// four assignments. Reporting picks the assignment that got FURTHEST, so the message names the pair a reader
-    /// would name.</summary>
-    private static bool Precedence(List<Sym> syms, int n, char cs, IReadOnlySet<char> char1,
-        char decimalSep, char grouping, Func<int, bool> isFloating, bool leadingP, List<int> ps,
+    /// would name.
+    /// <para><paramref name="dp"/> is the decimal point position from <see cref="DecimalPointPosition"/> — the
+    /// ONE derivation of it (SR29 counts from the same one), and what splits the eight two-row symbols into
+    /// their left-of-point and right-of-point halves.</para></summary>
+    private static bool Precedence(List<Sym> syms, int n, char cs, IReadOnlySet<char> char1, int dp,
+        char decimalSep, char grouping, Func<int, bool> isFloating, bool leadingP,
         Func<DiagnosticDescriptor, string, bool> fail)
     {
-        // The DECIMAL POINT POSITION, which splits the eight two-row symbols. 'V' and the decimal separator each
-        // state it outright (SR20 has already made them mutually exclusive); with neither, a LEADING 'P' string
-        // puts it to the string's left (§13.18.40.4 GR14) and otherwise it lies past the last symbol.
-        int dp = n;
-        for (int i = 0; i < n; i++)
-            if (syms[i].Kind == 'V' || syms[i].Kind == decimalSep) { dp = i; break; }
-        if (dp == n && leadingP) dp = ps[0];
-
         var roleA = new PicRole[n];      // the first candidate role
         var roleB = new PicRole[n];      // the second, where the occurrence is position-ambiguous
         var live = new bool[n];

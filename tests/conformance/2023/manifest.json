@@ -586,7 +586,8 @@
   "pb337_into_receiver_admissible",
   "pb640_call_argument_landing_checked",
   "pb640_invoke_argument_landing_checked",
-  "pb640_call_argument_landing_legs"
+  "pb640_call_argument_landing_legs",
+  "pb530_picture_editing_order_2023"
  ],
  "pending": [
   "pb485_value_only_format1"

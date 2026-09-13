@@ -1037,7 +1037,12 @@
   "pb337-return-into-not-admissible",
   "pb337-read-into-strong-record-areas",
   "pb337-return-into-strong-record-areas",
-  "pb337-assign-using-strong-group"
+  "pb337-assign-using-strong-group",
+  "pb530-picture-floating-left-of-point",
+  "pb530-picture-editing-phrase-order",
+  "pb530-picture-editing-extended-count",
+  "pb530-picture-precedence-residue",
+  "pb530-picture-editing-currency-placement"
  ],
  "pending": []
 }

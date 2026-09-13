@@ -1224,7 +1224,7 @@ message-tag / pointer take NULL, which the same sentence states as a positive re
 packed ceil(n/8) zero seed (D19). **With NO clause the seed is byte-unchanged** — `PicInfo.DefaultInitializer`
 remains the §11.9.10.4 GR6 baseline it correctly is, which is the invariant covering the entire existing corpus.
 
-### D24. The COMPOSITION of a Format-1 PICTURE (§13.18.40.3's composition syntax rules + §13.18.40.6's Table 10) is ONE pass in `PictureComposition`, with the table as DATA and symbol ORDER decided by ROLE ASSIGNMENT — never by hand-written positional `if`s. (kb/Work PB528.)
+### D24. The COMPOSITION of a Format-1 PICTURE (§13.18.40.3's composition syntax rules + §13.18.40.6's Table 10) is ONE pass in `PictureComposition`, with the table as DATA and symbol ORDER decided by ROLE ASSIGNMENT — never by hand-written positional `if`s. (kb/Work PB528, PB530.)
 
 **The rule.** §13.18.40.3 SR2 states two obligations and the compiler had only ever answered the first:
 "Character-string-1 shall consist of an allowable combination of characters used as picture symbols" — the
@@ -1256,7 +1256,11 @@ blank, so nothing may follow one; and the leading-currency row admits only the l
 SR26's "leftmost symbol in character-string-1, optionally preceded by one of the symbols '+' or '-'" exactly.
 SR27's "no more than one of … a string of two or more currency symbols … a string of two or more symbols '+'"
 falls out the same way (row floating-currency-left has a blank floating-sign-left column). A rule the matrix
-already carries is not written down twice. `PictureTable10DriftTests` re-parses the table out of
+already carries is not written down twice. That claim is MEASURED, not argued: PB530 re-derived all three rules
+against a build carrying the walk — SR25's `9+9` / `99-9`, SR26's `99$9` / `9$99+`, SR27's `+++$$$` (NOTE 5's own
+invalid example) / `ZZZ$$$` are COBOLNET1935 at all four editions, while SR26 NOTE 4's six valid strings, SR27
+NOTE 5's valid `+$$$` and the extended-sign spellings `L$999` / `999$L` all bind AND edit correctly.
+`PictureTable10DriftTests` re-parses the table out of
 `specs/ISO_COBOL.md` on every build and compares all 576 cells plus the 163-mark glyph count, so "the table is
 the standard's" stays a measured fact; the markdown transcription was itself verified cell-for-cell against the
 canonical PDF (printed folios 459-460) by geometry.
@@ -1275,6 +1279,26 @@ of at least two identical floating insertion editing symbols", with the simple i
 6 b, the decimal point embedded), never a count. `PictureComposition.FloatingString` is that definition and both
 readers use it — the composition rules and `PictureAnalyzer`'s geometry — so the two can no longer disagree.
 
+**ONE decimal-point-position derivation, and SR29 is the rule that needed it (kb/Work PB530).** SR29 — "For
+floating insertion, at least one insertion symbol shall be specified to the left of the decimal point position" —
+is the one composition rule the matrix genuinely cannot carry. Table 10 refuses most right-of-point floating
+strings because its right-of-point floating rows have blank '9' columns, but those rows ADMIT the decimal
+separator, so a string with nothing but the point to its left (`PIC .$$`, `PIC V$$`, `PIC .++`, `PIC V--`,
+`PIC B.$$`) passed the walk, bound, and rendered an image no rule derives: `.$$` turned `MOVE 0.5` into `.00`.
+§13.18.40.5 rule 6 is why the rule exists — a) edits "the leading numeric character positions to the LEFT of the
+decimal point position" and b) all of them, whose result "is the same as if the floating insertion editing were
+defined only to the left of the decimal point position" — so a string lying wholly right of the point has no
+defined image at all. The check is one comparison against the point, and the point now has ONE derivation,
+`PictureComposition.DecimalPointPosition` ('V' or the decimal separator; else a leading 'P' string's implied
+point, §13.18.40.4 GR14; else past the last symbol), read by SR29 AND by the Table-10 role assignment that splits
+the eight two-row symbols — the two cannot disagree about which side a symbol is on. "Insertion symbol" here is
+the FLOATING insertion symbol, not any insertion symbol: a simple-insertion `B` to the left (`PIC B.$$`) leaves
+the floating string with no digit position of its own before the point, which is exactly what rule 6 cannot edit.
+The rule names floating insertion ALONE — the standard states no analogue for zero suppression — so `PIC .ZZ`
+stays legal, and the positive golden `85/pb530_picture_floating_anchor_85` pins that scope beside the legal
+anchored shapes (`$$.$$`, `$$V99`, `++.++`, `$$$PP`); `negative/pb530-picture-floating-left-of-point` holds the
+seven rejections at all four editions.
+
 **A PICTURE EDITING character-1 is deliberately TRANSPARENT to the walk.** §13.18.40.6 gives a Table-10
 precedence to `es` alone — "If the EDITING phrase is specified, the precedence of 'es' … has the same precedence
 as the 'cs' symbol in the column and row of non-floating insertion symbols" — and SR12 makes `es` the EXTENDED
@@ -1286,6 +1310,30 @@ the rightmost symbol". Applying it would reject `PIC L999F` and `PIC LL EDITING 
 shape SR12 a) names as sufficient. So character-1 constrains no neighbour in the walk; its own placement stays
 SR8–SR12 / SR25 / SR26 in `PictureAnalyzer.ValidateEditing`. Golden
 `2023/pb528_picture_editing_transparency_2023` holds the determination.
+
+**The extended editing sign control symbols are a SET, and two rules are stated over it (kb/Work PB530).** SR24's
+and SR25's SECOND sentences are the two the matrix cannot reach for the same reason the transparency exists, and
+neither is askable while validating ONE phrase — both are properties of the whole EDITING phrase LIST, so both
+live at the end of `ValidateEditing`, over the FOR-form phrases it collected (SR12: the FOR form alone is an
+extended symbol; an IS-form phrase is simple insertion and is not counted). SR24: "either one or two extended
+editing sign control symbols may be used in character-string-1" — a third is COBOLNET1985; `PIC 9L9F9G` with
+three FOR phrases used to bind and render `MOVE -12` as `0(1)2]`. SR25: "the first occurrence of the EDITING
+phrase shall be for the leftmost symbol in character-string-1 and the second occurrence shall be for the
+rightmost symbol" — the reverse order is COBOLNET1984, and the order is not cosmetic, because each extended
+symbol renders its own literal at its own position: `PIC F999.99L` with the phrases reversed rendered `-1.5` as
+`)001.50(` where the conforming spelling renders `(001.50)`.
+**⛔ THE READING**: "the leftmost symbol" is the leftmost OF THE TWO extended symbols the sentence has just
+named, so SR25's second sentence constrains the PHRASE ORDER and not the two symbols' placement in
+character-string-1. The alternative — that the two shall also BE character-string-1's first and last symbols —
+is not taken, because the only other text that would place an extended symbol is the `es`-takes-`cs`-precedence
+sentence above, which cannot be applied literally without rejecting the standard's own Annex D.24 example
+(`PIC IS L9999.99F` with two FOR phrases) against a blank Table-10 cell; with that text unusable, the reading
+that rejects LESS is the one that cannot refuse legal source, and a later tightening stays source-compatible
+where the reverse would not. It is also the reading the character-1 transparency above already rests on.
+Goldens: `2023/pb530_picture_editing_order_2023` (the conforming orders, including D.24's own example and the
+single mid-string symbol SR25 does not constrain), `negative/pb530-picture-editing-phrase-order` and
+`negative/pb530-picture-editing-extended-count`, all at 2023 — the EDITING phrase is a COBOL-2023 introduction
+and `negative/pb490-picture-editing-at-85` is the below-2023 gate.
 
 **Where it runs.** `Analyze` calls it on the fixed-point Format-1 path, after the SR2 membership whitelist and
 the national / boolean / floating-point arms have taken their strings and BEFORE the geometry derivation — which

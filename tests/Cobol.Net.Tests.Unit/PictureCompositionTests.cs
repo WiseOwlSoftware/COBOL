@@ -111,6 +111,80 @@ public sealed class PictureCompositionTests
     }
 
     /// <summary>
+    /// SR29 — "For floating insertion, at least one insertion symbol shall be specified to the left of the
+    /// decimal point position" (kb/Work PB530). §13.18.40.5 rule 6 defines the image ONLY for a string anchored
+    /// left of the point (a: "any or all of the leading numeric character positions to the left of the decimal
+    /// point position"; b: all of them, whose result "is the same as if the floating insertion editing were
+    /// defined only to the left of the decimal point position"), so a string lying wholly to its right has no
+    /// defined image — <c>PIC .$$</c> rendered 0.5 as ".00". Table 10 refuses most of these already (no '9' may
+    /// precede a right-of-point floating symbol); the ones with NOTHING but the point to their left are the
+    /// residue only this rule names.
+    /// </summary>
+    [Theory]
+    [InlineData(".$$")]        // nothing at all to the left of the point
+    [InlineData("V$$")]        // the same with the IMPLIED point
+    [InlineData(".++")]        // the floating-sign leg
+    [InlineData("V--")]
+    [InlineData("B.$$")]       // ⛔ a SIMPLE insertion symbol left of the point does not satisfy it: "for
+                               //    floating insertion … insertion symbol" is the FLOATING one (rule 6)
+    [InlineData("9.$$")]       // also a Table-10 blank; the more specific rule is the one reported
+    [InlineData("999.++")]
+    public void AFloatingStringRightOfThePoint_IsCOBOLNET1934(string picture)
+        => Assert.Contains(Diagnose(picture), d => d.Contains("COBOLNET1934") && d.Contains("SR29"));
+
+    /// <summary>⛔ THE COMPLEMENT OF SR29 — the shapes it must NOT refuse. A floating string that STARTS left of
+    /// the point satisfies it however far right it runs (rule 6 b spans the point); a string with no decimal
+    /// point position written at all is wholly left of it; a TRAILING 'P' string puts the assumed point to its
+    /// right (§13.18.40.4 GR14), not its left; and ZERO SUPPRESSION is not floating insertion — SR29 names
+    /// floating insertion alone and the standard states no analogue for 'Z'/'*', so <c>PIC .ZZ</c> stays
+    /// legal.</summary>
+    [Theory]
+    [InlineData("$$.$$")] [InlineData("$$.99")] [InlineData("$$$$")] [InlineData("$$V99")]
+    [InlineData("++.++")] [InlineData("$$$$PP")] [InlineData(".ZZ")] [InlineData(".99")]
+    public void AFloatingStringAnchoredLeftOfThePoint_IsAccepted(string picture)
+        => Assert.DoesNotContain(Diagnose(picture),
+            d => d.Contains("COBOLNET1934") || d.Contains("COBOLNET1935") || d.Contains("COBOLNET0808"));
+
+    /// <summary>
+    /// SR24 and SR25, each SECOND sentence — the EXTENDED (FOR-phrase) editing sign control symbols as a SET
+    /// (kb/Work PB530). Neither is askable while validating ONE phrase: SR24 bounds the COUNT ("either one or
+    /// two"), SR25 fixes the phrase ORDER against the symbol order ("the first occurrence of the EDITING phrase
+    /// shall be for the leftmost symbol in character-string-1 and the second occurrence … for the rightmost").
+    /// </summary>
+    [Theory]
+    // two phrases in the reverse order of their symbols — SR25
+    [InlineData("F999.99L", new[] { 'L', 'F' }, "COBOLNET1984")]
+    [InlineData("9L9F", new[] { 'F', 'L' }, "COBOLNET1984")]
+    // three extended symbols — SR24
+    [InlineData("9L9F9G", new[] { 'L', 'F', 'G' }, "COBOLNET1985")]
+    public void TheExtendedEditingSymbolSet_IsScreened(string picture, char[] phraseOrder, string code)
+        => Assert.Contains(DiagnoseEditing(picture, phraseOrder), d => d.Contains(code));
+
+    /// <summary>The complement: the conforming phrase order binds, at BOTH ends of the string and mid-string —
+    /// "the leftmost symbol" is read as the leftmost OF THE TWO extended symbols, so a mid-string pair is an
+    /// order question and not a placement one (the determination PB528's character-1 transparency rests on; a
+    /// literal reading of §13.18.40.6's 'es'-takes-'cs'-precedence sentence would reject the standard's own
+    /// Annex D.24 example <c>PIC IS L9999.99F</c>).</summary>
+    [Theory]
+    [InlineData("F999.99L", new[] { 'F', 'L' })]
+    [InlineData("L9999.99F", new[] { 'L', 'F' })]
+    [InlineData("9L9F", new[] { 'L', 'F' })]
+    [InlineData("99L99", new[] { 'L' })]
+    public void AConformingExtendedEditingPhraseOrder_IsAccepted(string picture, char[] phraseOrder)
+        => Assert.DoesNotContain(DiagnoseEditing(picture, phraseOrder),
+            d => d.Contains("COBOLNET1984") || d.Contains("COBOLNET1985"));
+
+    private static string[] DiagnoseEditing(string picture, char[] phraseOrder)
+    {
+        var ed = new EditionContext(2023);
+        var phrases = phraseOrder
+            .Select(c => new EditingPhraseSpec(c.ToString(), null, new EditLiteral("(", false), null, IsForForm: true))
+            .ToList();
+        PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'", editing: phrases);
+        return ed.Diagnostics.ToArray();
+    }
+
+    /// <summary>
     /// ⛔ ONE floating-string definition (§13.18.40.5 rule 6), read by the composition rules AND by
     /// <c>PictureAnalyzer</c>'s geometry. Floating-ness is ADJACENCY ("a string of at least two identical
     /// floating insertion editing symbols", with the simple insertion symbols and — rule 6 b — the decimal point
