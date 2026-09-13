@@ -384,7 +384,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         string digits = EmitText.RepeatToWidth(literal, Math.Max(pic.Digits, 1));
         return digits.Length <= 18
             ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", pic.Scale)
-            : new NumX(RuntimeApi.NumFromAlphanumeric(CsLiteral(digits)), pic.Scale);
+            : new NumX(RuntimeApi.NumDigitMagnitude(CsLiteral(digits)), pic.Scale);
     }
 
     /// <summary>True when a MOVE source carries a NUMERIC VALUE for the §14.9.25.4 GR5 editing path into a
@@ -478,7 +478,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (ISO §14.9.25.4 GR6 — "any editing specified for … the receiving data item"; GR6 a) alignment);
             // an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
-                NumX e = num.AsNum(source, SenderContext(target));
+                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none); the dispatch is RuntimeApi.EditFormatFor's, keyed on the receiver's picture.
                 if (pic.IsFloatEdited)
@@ -505,7 +505,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
             {
-                string unsignedInt = RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true));
+                string unsignedInt = RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true), sending: true);
                 return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
                     ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
             }
@@ -546,7 +546,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 {
                     bool sameUsage = source is BoundFieldOperand fsrc
                         && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
-                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, sameUsage ? SendingRef.SameUsageMove : SendingRef.Normal);
+                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, sameUsage ? SendingRef.SameUsageMove : SendingRef.MoveToNumeric);
                     // §14.9.25.4 GR6 d)4.a: "If the algebraic value of the sending operand is farther from zero than
                     // is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW
                     // exception condition is set to exist" — a FATAL condition (Table 13), MOVE-only, armed by
@@ -569,7 +569,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
-                    : num.AsNum(source, SenderContext(target));
+                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).

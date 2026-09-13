@@ -48,7 +48,12 @@ public static class CobolTable
     public static long Occ(long value) => value;
 
     /// <inheritdoc cref="Occ(long)"/>
-    public static long Occ(string image) => CobolNum.Position(CobolNum.FromAlphanumeric(image));
+    /// <remarks>The string overload decodes a NUMERIC item's own character image, whose size its PICTURE
+    /// already fixes — <see cref="CobolNum.DigitMagnitude"/>, never the §14.9.25.4 GR6 d) 3 capped
+    /// <c>FromAlphanumeric</c>: a subscript is an integer numeric item (§8.4.2.3.2), not an alphanumeric
+    /// sending operand, so the standard's size rule for that operand is not a rule about this read (kb/Work
+    /// PB426).</remarks>
+    public static long Occ(string image) => CobolNum.Position(CobolNum.DigitMagnitude(image));
 
     /// <summary>⛔ THE WIDE AND UNSIGNED CARRIERS, AND THEY ARE NOT OPTIONAL (kb/Work PB201). The bet above
     /// — name the field, let C# overload resolution supply the conversion — is only good for carriers
@@ -93,7 +98,8 @@ public static class CobolTable
     public static long Occ(long unscaled, int scale) => OccScaled(unscaled, scale);
 
     /// <inheritdoc cref="Occ(long,int)"/>
-    public static long Occ(string image, int scale) => OccScaled(CobolNum.FromAlphanumeric(image), scale);
+    /// <inheritdoc cref="Occ(string)" path="/remarks"/>
+    public static long Occ(string image, int scale) => OccScaled(CobolNum.DigitMagnitude(image), scale);
 
     /// <inheritdoc cref="Occ(long,int)"/>
     public static long Occ(Int128 unscaled, int scale) => OccScaled(unscaled, scale);

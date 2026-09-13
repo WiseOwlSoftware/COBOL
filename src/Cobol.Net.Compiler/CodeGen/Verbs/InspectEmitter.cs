@@ -109,6 +109,12 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         if (p is OdoGroupPlace odo) { w.Line(PlaceRenderer.ReceiveInto(odo, img)); return; }
         // A group identifier-1 (§14.9.22.3 SR1 — "an alphanumeric or national group item"): the ONE group-image store.
         if (p.Item.IsGroup) { w.Line(PlaceRenderer.WriteGroupImage(p, img, "INSPECT REPLACING/CONVERTING into group")); return; }
+        // ⛔ THE REPLACED IMAGE OF A NUMERIC ITEM IS NOT AN ALPHANUMERIC SENDING OPERAND. Every decode below
+        // takes CobolNum.DigitMagnitude, never the §14.9.25.4 GR6 d) 3 capped FromAlphanumeric: this image
+        // is the ITEM'S OWN and its PICTURE already fixes the size, so GR6 d) 3 asks nothing here. kb/Work PB426
+        // split the two decodes for that reason — MEASURED: pointing this site at the capped entry changed no
+        // answer on any shape probed (including a group-aliased PIC S9(31) SIGN TRAILING SEPARATE, whose image
+        // IS 32 characters), so this is rule hygiene, not a second bug fix.
         if (p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } pic)
         {
             bool stringStored = p.Item.StoreAsImage || p is RedefViewPlace || p is RefModPlace;
@@ -118,11 +124,11 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 {
                     // GR4d: the original sign is retained — the (still-unmodified) field supplies it.
                     string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
-                    w.Line($"var {mag} = {ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)};");
+                    w.Line($"var {mag} = {ArithmeticEmitter.Narrow(RuntimeApi.NumDigitMagnitude(img), p.Item)};");
                     w.Line(PlaceRenderer.Write(p, $"({PlaceRenderer.Read(p)} < 0 ? -{mag} : {mag})"));
                 }
                 else
-                    w.Line(PlaceRenderer.Write(p, ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)));
+                    w.Line(PlaceRenderer.Write(p, ArithmeticEmitter.Narrow(RuntimeApi.NumDigitMagnitude(img), p.Item)));
                 return;
             }
             if (pic.Signed)
@@ -130,7 +136,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // A string-stored signed zoned image (whole-group-aliased / Tier-B view): decode the original for
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
                 string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
-                w.Line($"Int128 {mag} = {RuntimeApi.NumFromAlphanumeric(img)};");
+                w.Line($"Int128 {mag} = {RuntimeApi.NumDigitMagnitude(img)};");
                 // sending: false — this decode is the STORE side re-deriving the ORIGINAL's sign so the replaced
                 // magnitude keeps it (GR4d), not INSPECT's sending read of the operand. §14.6.13.2 rule 2 attaches to
                 // the reference of the content, which is the image read above; checking it twice inside one statement

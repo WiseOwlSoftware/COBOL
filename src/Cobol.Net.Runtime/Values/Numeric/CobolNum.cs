@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Runtime;
 
@@ -768,6 +769,101 @@ public static partial class CobolNum
         return neg ? "-" + body : body;
     }
 
+    // ── THE ALPHANUMERIC SENDING OPERAND (ISO §14.9.25.4 GR6 d) ─────────────────────────────────────────────
+    //
+    // GR6 d) governs "when a numeric or numeric-edited item is the receiving item". Its three clauses about an
+    // ALPHANUMERIC or NATIONAL sending operand are THREE SEPARATE QUESTIONS, and each has exactly one method
+    // here — that separation is the point of this block (kb/Work PB426 + PB844, one mechanism):
+    //
+    //   d) 3     — HOW BIG is the operand:  the SIZE RULE       → FromAlphanumeric        (the rightmost 31)
+    //   d) 1     — is its content VALID:    EC-DATA-INCOMPATIBLE → FromAlphanumericSending (the checked read)
+    //   §14.6.13.2 — what the digits decode to when it is not   → DigitMagnitude          (the tolerant scan)
+    //
+    // ⛔ DigitMagnitude IS NOT A SPELLING OF FromAlphanumeric. The size rule belongs to the alphanumeric SENDING
+    // OPERAND and to nothing else: a caller decoding an image whose size is already fixed by its OWN data
+    // description — a numeric item's character image on the storage-form bridges (CobolTable.Occ,
+    // CobolString.RefModPosition, INSPECT's re-store of a replaced numeric image), or GR6 d) 3 b)'s figurative
+    // replication across the RECEIVER's digit positions — takes DigitMagnitude, because the standard asks no size
+    // question of them at all.
+    //
+    // MEASURED, so that the next reader does not have to re-derive it: those bridges DO see 32-character images
+    // today (a PIC S9(31) SIGN TRAILING SEPARATE leaf under a whole-group MOVE images as 31 digits plus the sign
+    // character — probed), and routing them through the capped entry was tried and changed NO answer, because the
+    // position the window would drop is a leading zero in every reachable case. The split is therefore not a bug
+    // fix on those paths; it is what stops the NEXT change to the alphanumeric sending rule — a widened window, a
+    // sign reading, a raise — from silently becoming a change to five callers that never asked for it.
+
+    /// <summary>The deterministic digit decode of a character image whose SIZE is already fixed by its own data
+    /// description — no size rule is applied here (ISO §14.6.13.2: incompatible content in a numeric context is
+    /// undefined, and COBOL.NET's determination is deterministic — a non-digit position contributes no digit, an
+    /// all-non-digit or empty image is 0). The unsigned MAGNITUDE only: no operational sign is decoded.
+    /// <para>⛔ An ALPHANUMERIC or NATIONAL SENDING OPERAND takes <see cref="FromAlphanumeric"/> instead, which
+    /// applies §14.9.25.4 GR6 d) 3's 31-character size rule before this scan.</para></summary>
+    public static Int128 DigitMagnitude(string image) => DigitMagnitude(image.AsSpan());
+
+    /// <inheritdoc cref="DigitMagnitude(string)"/>
+    /// <remarks>The span overload is the core, so <see cref="FromAlphanumeric"/>'s 31-position window costs no
+    /// allocation — it slices rather than substrings. The emitted C# always passes a <c>string</c> and binds to
+    /// the overload above.</remarks>
+    public static Int128 DigitMagnitude(ReadOnlySpan<char> image)
+    {
+        Int128 mag = 0;
+        foreach (char c in image)
+            if (c is >= '0' and <= '9') mag = mag * 10 + (c - '0');
+        return mag;
+    }
+
+    /// <summary>⛔ THE SIZE OF AN ALPHANUMERIC SENDING OPERAND, AND THE REASON THE Int128 CARRIER IS UNREACHABLE
+    /// (ISO §14.9.25.4 GR6 d) 3; kb/Work PB426). When the sending operand is described as alphanumeric or
+    /// national it "is treated as if it were an unsigned integer of category numeric" whose size the standard
+    /// CAPS: a) "the number of digits is the number of character positions in the sending data item unless the
+    /// number of character positions is greater than 31, in which case the rightmost 31 character positions are
+    /// used"; c) for a literal, "if the number of characters exceeds 31, the size of the sending operand is 31
+    /// digits and only the rightmost 31 characters in the literal are used". Both clauses say the same thing —
+    /// the rightmost 31 CHARACTER POSITIONS — so one window serves both.
+    /// <para>The cap is on CHARACTER POSITIONS, not on digit characters: §14.6.13.2 lets a non-digit position
+    /// contribute no digit, so the window is taken over the IMAGE and only then scanned
+    /// (<see cref="DigitMagnitude"/>). <c>"12X4567890123456789012345678901234"</c> and
+    /// <c>"1234567890123456789012345678901234"</c> therefore give different answers, as they must.</para>
+    /// <para>Without the cap the accumulator consumed every position of the operand and a 39-character digit run
+    /// WRAPPED the signed Int128: <c>MOVE A40 TO PIC 9(9)</c> stored 838277934 where §14.6.8.2 GR4's
+    /// decimal-point alignment of the capped operand gives 234567890 — a silent wrong answer on ordinary source
+    /// at every edition. 31 digits &lt; 10^31 &lt; Int128.MaxValue, so with the cap in place no alphanumeric
+    /// operand can reach the carrier at all.</para></summary>
+    public static Int128 FromAlphanumeric(string image)
+    {
+        ReadOnlySpan<char> s = image;
+        return DigitMagnitude(s.Length > MaxSendingCharacterPositions ? s[^MaxSendingCharacterPositions..] : s);
+    }
+
+    /// <summary>§14.9.25.4 GR6 d) 3 a) / c): the number of character positions of an alphanumeric or national
+    /// sending operand that a numeric receiver sees.</summary>
+    public const int MaxSendingCharacterPositions = 31;
+
+    /// <summary>The CHECKED read of an alphanumeric or national sending operand moving to a numeric or
+    /// numeric-edited receiver (ISO §14.9.25.4 GR6 d) 1's closing sentence; kb/Work PB844): "Otherwise, if the
+    /// content of the sending operand would result in a false value in a numeric class condition, the
+    /// EC-DATA-INCOMPATIBLE exception condition is set to exist, and the results of the execution of the MOVE
+    /// statement are undefined." The class condition is §8.8.4.4.4 GR3 n) 2 — a non-numeric-category operand is
+    /// numeric iff its content "consists entirely of the characters 0, 1, 2, 3, …, 9" — so the ONE predicate
+    /// <see cref="CobolClass.IsNumeric"/> answers it, including the zero-length answer (GR1: false).
+    /// <para>The exact twin of <see cref="ParseImageSending"/>, which carries §14.6.13.2 rule 2 for a numeric
+    /// sending item; that rule cannot cover this case, because an alphanumeric item holding <c>"Q"</c> is
+    /// perfectly valid for its OWN data description — it is the MOVE that asks a numeric question of it. With
+    /// checking OFF the flag test short-circuits before the scan and the tolerant decode stands, which is
+    /// conformant precisely because the standard makes the result undefined here.</para>
+    /// <para>⛔ The raise is the WHOLE content's, not the capped window's: d) 1 speaks of "the content of the
+    /// sending operand" and is evaluated before d) 3 narrows it, so <c>PIC X(40) VALUE "Q0000…"</c> raises even
+    /// though its rightmost 31 positions are all digits.</para></summary>
+    public static Int128 FromAlphanumericSending(string image)
+    {
+        if (ExceptionState.DataIncompatibleChecking && !CobolClass.IsNumeric(image))
+            ExceptionState.DataIncompatibleError(
+                "the content of an alphanumeric or national sending operand is not numeric "
+                + "(ISO §14.9.25.4 GR6 d) 1 — it would result in a false value in a numeric class condition)");
+        return FromAlphanumeric(image);
+    }
+
     /// <summary>
     /// Decode a USAGE DISPLAY numeric item's character image back to its unscaled <see cref="long"/> value — the
     /// inverse of <see cref="FormatDisplay"/> (COBOLNET_DESIGN §6.4). The image is the zoned digit run at the item's
@@ -778,19 +874,6 @@ public static partial class CobolNum
     /// using incompatible data in a numeric context is undefined (§14.6.13.2 / the EC-DATA-INCOMPATIBLE condition),
     /// so a deterministic 0 is conformant.
     /// </summary>
-    /// <summary>The unsigned integer value of an ALPHANUMERIC operand used in a numeric context (ISO §14.9.25.4
-    /// GR6 — an alphanumeric sending item moving to a numeric receiver is treated as an UNSIGNED integer;
-    /// §14.6.13.2 — incompatible content decodes deterministically: a non-digit position contributes no digit, an
-    /// all-non-digit image is 0).</summary>
-    public static Int128 FromAlphanumeric(string image)
-    {
-        if (string.IsNullOrEmpty(image)) return 0;
-        Int128 mag = 0;
-        foreach (char c in image)
-            if (c is >= '0' and <= '9') mag = mag * 10 + (c - '0');
-        return mag;
-    }
-
     public static Int128 ParseDisplay(string image, in NumProfile receiver)
     {
         if (string.IsNullOrEmpty(image)) return 0;

@@ -31,7 +31,8 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > renderer computes every scale at compile time and emits them as constants; a runtime `Scale` field would box
 > static knowledge into per-value state and add construction ceremony to every generated expression for no
 > semantic gain. The kernel surface (`Rescale`, `Store`, `TryStore`, `Divide`, `DivideOrThrow`, `MulChecked`,
-> `FormatDisplay*`, `ParseDisplay`, `FromAlphanumeric`) IS this section's Align/Add/Sub/Mul/Div engine, in Int128.
+> `FormatDisplay*`, `ParseDisplay`, `DigitMagnitude`/`FromAlphanumeric`/`FromAlphanumericSending` — D25) IS this
+> section's Align/Add/Sub/Mul/Div engine, in Int128.
 > Every emitted operation forces wide math (`(Int128)(a) op (b)`); a ≤18-digit receiver stores through one
 > width-aware `(long)` cast at the store site (`ArithmeticEmitter.Narrow` — Int128 storage for 19+ digits uses the
 > wide tier). The >38-digit single-product ESCAPE raises OverflowException via checked `MulChecked` in ON SIZE
@@ -876,3 +877,50 @@ context, so `A ** 2` was exact under `COMPUTE` and binary64 under `DISPLAY`/an `
 `IF FUNCTION MOD(A ** 2, B) = 930000007` evaluate FALSE. Testing the OPERANDS before the receiver restores §15.4's
 rule that a function's value must not depend on the shape of its receiver. Pinned by
 `2023/pb18_native_power_exact_and_rule6`.
+
+### D25. The ALPHANUMERIC SENDING OPERAND has THREE methods, one per rule — a SIZE rule (`FromAlphanumeric`), an EXCEPTION rule (`FromAlphanumericSending`) and a rule-free digit decode (`DigitMagnitude`) — and the emit side asks which of them applies through `SendingRefRules`, never at the call site. (kb/Work PB426 + PB844.)
+
+**Decision (2026-09-13).** ISO §14.9.25.4 GR6 d) states three separate things about an alphanumeric or national
+operand moving to a numeric or numeric-edited receiver, and each now has exactly one implementation:
+
+| rule | question | method |
+|---|---|---|
+| GR6 d) 3 a) / c) | how BIG is the operand — "the rightmost 31 character positions" | `CobolNum.FromAlphanumeric` |
+| GR6 d) 1 (closing sentence) | is its content VALID — EC-DATA-INCOMPATIBLE | `CobolNum.FromAlphanumericSending` |
+| §14.6.13.2 | what the digits decode to, no size rule | `CobolNum.DigitMagnitude` |
+
+**Rationale.** All three used to be ONE method that implemented only the third. The consequence was a silent wrong
+answer on ordinary source at every edition: with no cap the accumulator consumed every character position of the
+sending operand, so a 39-or-more-digit operand WRAPPED the signed `Int128` and `MOVE A40 TO PIC 9(9)` stored
+838277934 where the rule gives 234567890. **The standard's cap is not a convenience — it is what makes the
+implementation carrier unreachable by construction** (31 digits < 10³¹ < `Int128.MaxValue`), which is why the
+repair belongs in the decode and not in a guard at the two MOVE call sites: the other channels
+(reference modification, the group image, UNSTRING INTO, the numeric-edited arm, the current-record read) each
+had their own copy of the hole.
+
+**Why three methods and not two.** The size rule is a rule about *an alphanumeric sending operand*, and several
+callers decode a character image that is **not** one: the storage-form bridges (`CobolTable.Occ`,
+`CobolString.RefModPosition`) and INSPECT's re-store of a replaced numeric image all decode a NUMERIC item's own
+image, whose size its own PICTURE already fixes, and GR6 d) 3 b)'s figurative leg replicates across the
+RECEIVER's digit positions. Those take `DigitMagnitude`. ⚠ MEASURED, so the next reader need not re-derive it:
+pointing those sites at the capped entry changed no answer on any shape probed (a group-aliased
+`PIC S9(31) SIGN TRAILING SEPARATE` leaf does image as 32 characters, but the position the window would drop is a
+leading zero in every reachable case). The split is therefore not a second bug fix; it is what stops the next
+change to the alphanumeric sending rule from silently becoming a change to five callers that never asked for it.
+
+**Why the EXCEPTION is a separate method, and why the emit side decides.** §14.6.13.2 cannot state GR6 d) 1's
+rule, because content like `"Q"` in a `PIC X` item is perfectly valid for the SENDER's own data description — it
+is the MOVE into a numeric receiver that asks a numeric question of it. So the checked read is the exact twin of
+`ParseImageSending` (§14.6.13.2 rule 2, D-PB230): raw decode + a checking-gated wrapper, with the predicate
+delegated to the ONE class-condition implementation `CobolClass.IsNumeric` (§8.8.4.4.4 GR3 n) 2, including its
+zero-length answer). Which reference gets the wrapper is `SendingRef`'s answer, through a new reading
+`AlphanumericChecked` and a new context `SendingRef.MoveToNumeric` — set by MOVE and by every statement whose own
+rules transfer "according to the rules for the MOVE statement" into such a receiver (§14.9.48.4 GR11 c),
+UNSTRING INTO). It is the one reading in that class stated as an opt-IN, because GR6 d)'s own scope is a single
+context; every other reading there is now written as the standard's EXCLUSION list rather than as `r is Normal`,
+so a context added to the enum defaults to CHECKED. `SendingRefDriftTests` holds all three readings to their
+clause text and fails if a new member is silently exempted.
+
+**Pinned by** `85/pb426_alnum_sender_31_character_cap`, `2002/pb426_alnum_sender_31_digit_receiver`,
+`2002/pb426_alnum_sender_data_incompatible`, `negative/pb844-ec-data-incompatible-turn-below-2002`,
+`MoveAlphanumericSenderTests` and `SendingRefDriftTests`.

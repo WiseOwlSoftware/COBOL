@@ -87,7 +87,10 @@ public static class CobolString
 
     /// <inheritdoc cref="RefModPosition(long,int)"/>
     public static long RefModPosition(string image, int scale) =>
-        RefModScaled(CobolNum.FromAlphanumeric(image), scale);
+        // A ref-mod position is an arithmetic expression (§8.4.3.3.3 SR4) — a NUMERIC item, whose image size
+        // its own PICTURE fixes, so the tolerant digit decode applies and NOT the §14.9.25.4 GR6 d) 3 size
+        // rule, which is a rule about an alphanumeric SENDING operand and about nothing else (kb/Work PB426).
+        RefModScaled(CobolNum.DigitMagnitude(image), scale);
 
     /// <inheritdoc cref="RefModPosition(long,int)"/>
     public static long RefModPosition(Int128 unscaled, int scale) => RefModScaled(unscaled, scale);

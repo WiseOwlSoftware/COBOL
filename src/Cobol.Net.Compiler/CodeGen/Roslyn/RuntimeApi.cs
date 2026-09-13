@@ -360,9 +360,26 @@ internal static class RuntimeApi
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatSimpleInsertion)}({value}, "
         + $"{Emit.EmitText.CsLiteral(pic.EditMask!)}{EditsArg(pic.EditingRules)})";
 
-    /// <summary>Decode a digit image's magnitude (non-digits contribute no digit) — <c>CobolNum.FromAlphanumeric</c>.</summary>
-    public static string NumFromAlphanumeric(string image) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.FromAlphanumeric)}({image})";
+    /// <summary>The §14.9.25.4 GR6 d) 3 read of an ALPHANUMERIC or NATIONAL sending operand in a numeric context —
+    /// an unsigned integer over the operand's rightmost 31 character positions. <paramref name="sending"/> selects
+    /// the MOVE-rules CHECKED form (<c>CobolNum.FromAlphanumericSending</c>, GR6 d) 1's EC-DATA-INCOMPATIBLE); the
+    /// answer for a given reference is <c>SendingRef.AlphanumericChecked()</c>'s, never a call-site bool literal
+    /// invented on the spot.
+    /// <para>⛔ <paramref name="sending"/> HAS NO DEFAULT, deliberately — the same lesson
+    /// <c>SendingRefRules.FloatChecked</c> was rewritten for: a default of <c>false</c> would let a call site
+    /// added later inherit the UNCHECKED read by omission, which is how a raise the standard requires goes
+    /// missing without anyone deciding it should. Every caller answers.</para>
+    /// <para>⛔ NOT the decode of a NUMERIC item's own character image — that is <see cref="NumDigitMagnitude"/>,
+    /// which applies no size rule (kb/Work PB426).</para></summary>
+    public static string NumFromAlphanumeric(string image, bool sending) =>
+        $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.FromAlphanumericSending) : nameof(CobolNum.FromAlphanumeric))}({image})";
+
+    /// <summary>Decode a digit image's magnitude with NO size rule (non-digits contribute no digit, §14.6.13.2) —
+    /// <c>CobolNum.DigitMagnitude</c>. For an image whose size its own data description already fixes: a numeric
+    /// item's character image, or §14.9.25.4 GR6 d) 3 b)'s figurative replication across the RECEIVER's digit
+    /// positions.</summary>
+    public static string NumDigitMagnitude(string image) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.DigitMagnitude)}({image})";
 
     /// <summary>Rescale an unscaled value between fraction scales under a rounding mode — <c>CobolNum.Rescale</c>,
     /// or the size-error-latching <c>CobolNum.RescaleChecked</c> when <paramref name="checkedPath"/>.</summary>

@@ -57,7 +57,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // function's string image, an unsigned integer). It used to be a loud RUNTIME value on legal-shaped
         // source, i.e. an unhandled exception at the wrong stage.
         if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
-            return new NumX(RuntimeApi.NumFromAlphanumeric(RenderString(ic)), 0);
+            // sending: false — the §8.8.1.1 screen already rejected this shape under STRICT conformance, so
+            // this arm IS the DA6 permissive leniency and not a MOVE; §14.9.25.4 GR6 d) 1's condition has no
+            // scope over an arithmetic operand (kb/Work PB844).
+            return new NumX(RuntimeApi.NumFromAlphanumeric(RenderString(ic), sending: false), 0);
 
         // ⛔ THE §15.4.1 NATIVE LATITUDE IS WITHDRAWN WHERE THE FUNCTION DEFINITION FIXES THE VALUE — SO THIS ARM
         // RUNS BEFORE THE ARITHMETIC-MODE DISPATCH, NOT INSIDE ITS STANDARD BRANCH (kb/Work PB251, rows

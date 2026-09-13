@@ -294,14 +294,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // Latin-1 identity); class BOOLEAN is not a numeric operand (§8.8.1) — loud.
     public NumX Visit(BoundStringLiteral n) => n.Category == PicCategory.Boolean
         ? new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0)
-        : new NumX($"CobolNum.FromAlphanumeric({EmitText.CsLiteral(n.Value)})", 0);
+        : AlnumNum(EmitText.CsLiteral(n.Value), _sending);
     public NumX Visit(BoundOperandError n) => new(EmitText.LoudValue("long", n.Feature), 0);
     // THE CURRENT RECORD in a NUMERIC context (kb/Work PB339): an alphanumeric operand decoded as an unsigned
     // integer, exactly as the alphanumeric field arm below decodes one (§14.9.25.3 Table 16). ⛔ REACHABLE, not a
     // backstop: a FORMAT 3 `RECORD CONTAINS m TO n` file (whose §14.9.30.4 GR4 b) move carries no group-move
     // designation) with an ELEMENTARY 01 and `READ F INTO a-numeric-item` classifies MoveKind.Convert and lands
     // here — a loud arm would abort legal source at run time.
-    public NumX Visit(BoundCurrentRecord n) => new(RuntimeApi.NumFromAlphanumeric(OperandText.CurrentRecordImage(n)), 0);
+    public NumX Visit(BoundCurrentRecord n) => AlnumNum(OperandText.CurrentRecordImage(n), _sending);
     // BoundAllLiteral (ALL "x" in a numeric context) and BoundBoolOperand (a class-boolean operand) are not numeric
     // operands — the former loud `_ =>` default handled them; now explicit (byte-identical loud value; §8.8.1).
     public NumX Visit(BoundAllLiteral n) => new(EmitText.LoudValue("long", $"bound operand '{nameof(BoundAllLiteral)}'"), 0);
@@ -336,6 +336,19 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             CobolNet.Runtime.CobolEdit.MaskScale(dem, '$', ctx.Data.DecimalPointIsComma))
         : FieldNumCore(p, _sending);
 
+    /// <summary>⛔ THE ONE RENDERING OF AN ALPHANUMERIC OR NATIONAL OPERAND READ IN A NUMERIC CONTEXT (ISO
+    /// §14.9.25.4 GR6 d) 3 — such an operand "is treated as if it were an unsigned integer of category numeric",
+    /// over its rightmost 31 character positions; §14.9.25.3 Table 16 makes the move valid). Five distinct
+    /// operand shapes reach it — an alphanumeric/national LITERAL, a FIELD, a reference-modified result
+    /// (§8.4.3.3.4 GR6), a GROUP item's image (§8.5.2.1) and the current RECORD area — and every one of them is
+    /// the SAME rule, so they render through one call rather than five copies of the same interpolation.
+    /// <para>The <paramref name="sending"/> context decides the CHECKED form (GR6 d) 1's EC-DATA-INCOMPATIBLE,
+    /// kb/Work PB844) through <see cref="SendingRefRules.AlphanumericChecked"/> — writing that question once here
+    /// is what keeps the next operand shape automatic. Both halves were absent before kb/Work PB426: the size
+    /// rule (a 40-character sender wrapped the Int128 carrier) and the raise.</para></summary>
+    private static NumX AlnumNum(string imageExpr, SendingRef sending) =>
+        new(RuntimeApi.NumFromAlphanumeric(imageExpr, sending.AlphanumericChecked()), 0);
+
     /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the
     /// numeric-edited de-edit, which stays loud here — it requires the instance emission config).
     /// <paramref name="sending"/> names the §14.6.13.2 exempt context of this reference
@@ -347,7 +360,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     internal static NumX FieldNumCore(Place p, SendingRef sending = SendingRef.Normal) => p is TableAllPlace all ? FieldNumCore(all.Element, sending) : p is RefModPlace
         // A reference-modified result is ALPHANUMERIC (ISO §8.4.3.3.4 GR6) — in a numeric context it decodes as an
         // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
-        ? new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.Read(p)})", 0)
+        ? AlnumNum(PlaceRenderer.Read(p), sending)
         : p.Item.Pic switch
     {
         // A GROUP operand in a remaining numeric context (an arithmetic operand, a subscript…) decodes its
@@ -382,7 +395,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //       wrong ANSWER, independent of (a)'s crash.
         // The capability guard now lives in the ONE reader too (it stages the same Tier-C loud), so the
         // former `when p.Item.IsImageCapable` arm and its hand-written twin below collapse into this one.
-        null => new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.SendingGroupImage(p, "numeric use of group item")})", 0),
+        null => AlnumNum(PlaceRenderer.SendingGroupImage(p, "numeric use of group item"), sending),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction). The
         // sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking, §14.6.13.2
@@ -424,8 +437,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
         // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);
         // class BOOLEAN is not a numeric operand (§8.8.1; Table 16 Boolean→Numeric = No) — loud.
-        { Category: PicCategory.Alphanumeric or PicCategory.National } =>
-            new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.Read(p)})", 0),
+        { Category: PicCategory.Alphanumeric or PicCategory.National } => AlnumNum(PlaceRenderer.Read(p), sending),
         { Category: PicCategory.Boolean } =>
             new NumX(EmitText.LoudValue("long", $"boolean operand '{p.Item.CobolName}' in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0),
         // The numeric-edited de-edit lives on the INSTANCE entry (it needs the SPECIAL-NAMES config); a static
@@ -746,7 +758,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// the NEXT literal form automatic; <c>NumericRendererStatusOperandTests</c> holds that true.</para></summary>
     private NumX StatusNum(BoundOperand v) =>
         v is BoundStringLiteral or BoundFigurative or BoundAllLiteral
-            ? new NumX(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(v, this)), 0)
+            // sending: false — the STOP status slot is not a MOVE into a numeric receiver; its numeric
+            // interpretation is CONFORMANCE.md item 192's own determination, and §14.9.25.4 GR6 d) 1's
+            // condition has no scope over it.
+            ? new NumX(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(v, this), sending: false), 0)
             : AsNum(v, ReceiverContext.None);
 
     /// <summary>Exponentiation (ISO §8.8.1.2: a native-arithmetic exponentiation whose result has no exact

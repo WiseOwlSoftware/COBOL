@@ -208,7 +208,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         {
             case { Category: PicCategory.NumericEdited } npic:
             {
-                string unsignedInt = RuntimeApi.NumFromAlphanumeric(valueExpr);   // the form dispatch is EditFormatFor's (D21/PB66)
+                // §14.9.48.4 GR11 c) transfers the examined characters "according to the rules for the MOVE
+                // statement", so a numeric-edited receiver takes the ALPHANUMERIC-sender rules whole: the
+                // §14.9.25.4 GR6 d) 3 31-character size rule AND GR6 d) 1's EC-DATA-INCOMPATIBLE (kb/Work
+                // PB426/PB844 — UNSTRING is a MOVE-rules channel, not a second private conversion).
+                string unsignedInt = RuntimeApi.NumFromAlphanumeric(valueExpr, sending: true);   // the form dispatch is EditFormatFor's (D21/PB66)
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(unsignedInt, 0), unsignedInt, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
                 return;
             }
@@ -228,7 +232,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStoreAligned(valueExpr, wS, target.Item.Justified)));
                 return;
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
-                string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);
+                // The MOVE-rules channel again (§14.9.48.4 GR11 c) → §14.9.25.4 GR6 d) 3 / d) 1): both arms of
+                // this receiver dispatch take the same checked, capped decode — kb/Work PB426.
+                string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr, sending: true), "0", target.Item.ProfileName);
                 w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage
                     ? RuntimeApi.NumFormatImage(stored, target.Item.ProfileName)
                     : ArithmeticEmitter.Narrow(stored, target.Item)));

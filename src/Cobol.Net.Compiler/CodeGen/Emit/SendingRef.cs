@@ -27,6 +27,14 @@ namespace CobolNet.CodeGen.Emit;
 /// neither special rule, so neither exemption.</para>
 /// <para>Rule 1 (a boolean sending item) shares rule 2's two-entry list; when it is wired it reads
 /// <see cref="FixedPointChecked"/>'s sibling off this same value rather than growing a third flag.</para>
+/// <para><b>And one rule that is not §14.6.13.2's at all.</b> §14.9.25.4 GR6 d) 1's closing sentence raises
+/// EC-DATA-INCOMPATIBLE for an ALPHANUMERIC sending operand whose content is not numeric — a rule §14.6.13.2
+/// cannot state, because such content is perfectly valid for the SENDER's own data description; it is the MOVE
+/// into a numeric receiver that asks a numeric question of it. That makes it the one rule here whose list is an
+/// opt-IN of a single context rather than an opt-OUT of several (<see cref="SendingRef.MoveToNumeric"/> /
+/// <see cref="SendingRefRules.AlphanumericChecked"/>, kb/Work PB844) — which is why every other reading below is
+/// written as an EXCLUSION list: a context added to this enum must default to CHECKED for the rules that raise
+/// everywhere, not silently inherit an exemption it was never granted.</para>
 /// </summary>
 internal enum SendingRef
 {
@@ -50,6 +58,14 @@ internal enum SendingRef
     /// dash of each list; §14.6.13.2 rule 1 instead sets the condition "when invalid data is detected during item
     /// identification", which is VALIDATE's own stage discipline (§14.9.47.4 GR6).</summary>
     Validate,
+
+    /// <summary>A sending operand read under the MOVE rules with a NUMERIC or NUMERIC-EDITED receiving item and
+    /// §14.9.25.4 GR6 c) not applying — the scope of GR6 d), and therefore the ONE context in which GR6 d) 1's
+    /// closing sentence can raise EC-DATA-INCOMPATIBLE for an alphanumeric or national sender. Exempt from
+    /// nothing: §14.6.13.2's five conditions all apply to a MOVE sender exactly as to any other reference. Set by
+    /// MOVE itself and by every statement whose own rules transfer "according to the rules for the MOVE
+    /// statement" with such a receiver (§14.9.48.4 GR11 c) — UNSTRING INTO).</summary>
+    MoveToNumeric,
 }
 
 /// <summary>The per-rule readings of <see cref="SendingRef"/> — each one IS its rule's exemption list, written
@@ -62,7 +78,20 @@ internal static class SendingRefRules
         r is not (SendingRef.ClassCondition or SendingRef.Validate);
 
     /// <summary>§14.6.13.2 <b>rule 3</b>: emit the EC-DATA-NOT-FINITE checked read of a STANDARD-FLOAT sending
-    /// operand? Exempt in a class condition, a sign condition, a same-usage MOVE and VALIDATE — i.e. everywhere
-    /// but an ordinary reference.</summary>
-    public static bool FloatChecked(this SendingRef r) => r is SendingRef.Normal;
+    /// operand? Exempt in a class condition, a sign condition, a same-usage MOVE and VALIDATE — and in nothing
+    /// else.
+    /// <para>⛔ WRITTEN AS THE EXCLUSION LIST THE STANDARD WRITES, not as <c>r is Normal</c>. The two are equal
+    /// only while those four are the whole enum: the equality reading silently EXEMPTS every context added
+    /// later, so <see cref="SendingRef.MoveToNumeric"/> would have turned off the float check for
+    /// <c>MOVE &lt;COMP-2&gt; TO &lt;PIC 9(5)&gt;</c> — a raise the standard requires, lost to a new enum member
+    /// that never mentioned floats. <c>SendingRefDriftTests</c> holds both lists to their clause text.</para></summary>
+    public static bool FloatChecked(this SendingRef r) =>
+        r is not (SendingRef.ClassCondition or SendingRef.SignCondition or SendingRef.SameUsageMove or SendingRef.Validate);
+
+    /// <summary>§14.9.25.4 <b>GR6 d) 1</b>: emit the EC-DATA-INCOMPATIBLE checked read of an ALPHANUMERIC or
+    /// NATIONAL sending operand? The rule lives inside GR6 d), whose scope IS "when a numeric or numeric-edited
+    /// item is the receiving item, and General rule 6c does not apply", so it is true in that one context and
+    /// false everywhere else — an arithmetic operand, a subscript, a ref-mod position and a comparison are not
+    /// MOVEs and the standard asks nothing of their content here.</summary>
+    public static bool AlphanumericChecked(this SendingRef r) => r is SendingRef.MoveToNumeric;
 }
