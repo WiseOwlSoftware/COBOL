@@ -1439,6 +1439,39 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   walk bailing out, reported under SR6's message, and the relative arm had no such check at all. The same
   predicate supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
   ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
+- **⛔ START'S SEARCH KEY IS CUT OUT OF THE RECORD AREA, AND THE THREE KEY-VALUED VERBS CUT IT THE SAME WAY**
+  (kb/Work PB355). 14.9.41.4 GR17 a) — *"The specified key is set up by moving the relevant parts of the record
+  area into a temporary data area"* — names the SOURCE (the record area) and, through GR16 (*"The key specified
+  in the KEY phrase, or that shares a leftmost character with the data item specified in the KEY phrase, becomes
+  the key of reference"*), the KEY. data-name-1's whole role is to name that key and, through GR17 b) (*"the
+  length specified in the LENGTH clause, if specified, or else the length of record-key-name-1, if specified, or
+  else the length of data-name-1"*), to supply a default length; it is never itself the source. So
+  `KeyedIoEmitter.EmitStart` sends `OperandText.RecordAreaImage` of `ReferenceResolver.RecordArea(file)` and
+  `IndexedConnector.Start` slices the key of reference out of it with `KeyOf(Fit(image), keyIndex)` truncated to
+  the GR17 b) count — **the same extraction the random READ (14.9.30.4 GR32) and DELETE (14.9.10.4 GR3) already
+  make from the same image**, which is what makes a SOURCE-phrase key's several *parts* (12.4.5.12.4 GR2) fall
+  out with no second mechanism. Nothing is padded: the only fill the model admits is the record area's own
+  (`FitRecord`, per 14.9.30.4 GR15).
+  **What the old shape cost.** The emitter sent `OperandText.AsStorageImage(sta.Operand)` and the connector
+  space-padded it to the count. The two readings agree for every temporary area no longer than data-name-1 —
+  13.18.33.4 GR3 makes the FD's level-1 entries *"implicit redefinitions of the same area"*, so a generic key's
+  own content IS the area's content at those positions — so only `WITH LENGTH` counting PAST the operand told
+  them apart, and there the padded reading searched for characters no record area holds. Under `KEY IS >` it did
+  not even fail loudly: a two-character generic key with `WITH LENGTH 4` compared `"AB  "`, and `"AB01" > "AB  "`
+  is true, so the statement positioned on the WRONG record and the following READ NEXT delivered it. On a
+  NATIONAL key the pad was not even a character — one 0x20 byte where 14.9.30.4 GR15's national space is the
+  pair 0x00 0x20. Goldens: `conformance:2002/pb355_start_length_past_operand` (the alphanumeric arms, including
+  the silent-wrong-record one and the complement arms that pin the short case) and
+  `conformance:2002/pb355_start_length_national_past_operand`; structure `unit:StartTemporaryKeyAreaDriftTests`.
+  Below COBOL-2002 there is no LENGTH phrase, so the temporary area can never be longer than data-name-1 and the
+  two readings coincide — the 85 regression net is `conformance:85/pb358_start_no_key_phrase`.
+- **The record area is resolved in ONE place** — `ReferenceResolver.RecordArea(FileModel)`, the
+  `FileModel.AreaRecord` lookup plus the `ResolveItem` step that five consumers each used to write out (the two
+  keyed emitter sites, the sequential READ emitter, the two READ/RETURN `INTO` binders). 13.18.33.4 GR3 makes the
+  FD's level-1 entries redefinitions of one area and 13.18.43.4 GR5 a) sizes it as *"the record size of the
+  largest record description entry in this file description entry"*, which is why the LARGEST description is the
+  view (a shorter `Records[0]` window truncates the splice — RL106A's 56/102 pair, ST111A's 50/75/100 SD). START
+  built its comparand out of data-name-1 partly because the area was not something a verb could simply ask for.
 - READ INTO lowers to the verb plus a typed MOVE whose SENDER is the current record, WRITE FROM to an ordinary typed MOVE plus the verb (D21; receiving uses the MAX length for ODO records, the ST146A lesson).
 - Record length mismatch on READ (a fixed file whose physical record differs from the FD size) gives status 04; add for conformance since the legacy pads silently.
 - LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status **06 and 09 are both implemented** — 06 is the GR15 over-length truncation (the file position indicator keeps the unread remainder, NOTE 3), 09 the GR16 character-set warning below. LINE SEQUENTIAL itself is a COBOL-2023 introduction; see Per-edition gating.

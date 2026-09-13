@@ -929,8 +929,12 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartRelative)}({name}, {opLiteral}, {rrn})";
 
     /// <summary>START on an indexed file (§14.9.41 GR17 — leftmost-LENGTH key comparison) — <c>CobolFile.StartIndexed</c>.</summary>
-    public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string operandImage, string len) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {operandImage}, {len})";
+    /// <param name="recordAreaImage">The FD's RECORD AREA image — §14.9.41.4 GR17 a) sets the search key up "by
+    /// moving the relevant parts of the record area into a temporary data area", so the connector slices the key
+    /// of reference out of the area exactly as the random READ and DELETE do (kb/Work PB355). NOT data-name-1's
+    /// own rendering: that agreed with the rule only until <paramref name="len"/> reached past it.</param>
+    public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string recordAreaImage, string len) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {recordAreaImage}, {len})";
 
     // ⛔ NO MODE-SPECIFIC "IMPLICIT OPEN" RENDERER LIVES HERE. `FileOpenInput` / `FileOpenOutput` used to, for
     // the SORT/MERGE USING and GIVING transfers alone, and their whole defect was the parameter they did NOT

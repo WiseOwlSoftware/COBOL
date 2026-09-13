@@ -186,9 +186,10 @@ public static class CobolFile
     /// <summary>START on a relative file (§14.9.41 GR8–GR12).</summary>
     public static string StartRelative(string name, string op, long rrn) => _reg.StartRelative(name, op, rrn);
 
-    /// <summary>START on an indexed file (§14.9.41 GR13–GR17).</summary>
-    public static string StartIndexed(string name, int keyIndex, string op, string operand, int compareLength)
-        => _reg.StartIndexed(name, keyIndex, op, operand, compareLength);
+    /// <summary>START on an indexed file (§14.9.41 GR13–GR17); <paramref name="keyedRecordImage"/> is the RECORD
+    /// AREA, which GR17 a) makes the source of the search key (kb/Work PB355).</summary>
+    public static string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, int compareLength)
+        => _reg.StartIndexed(name, keyIndex, op, keyedRecordImage, compareLength);
 
     /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
     public static string StartFirstLast(string name, bool last) => _reg.StartFirstLast(name, last);

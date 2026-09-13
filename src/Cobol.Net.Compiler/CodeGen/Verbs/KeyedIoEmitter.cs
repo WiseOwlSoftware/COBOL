@@ -101,10 +101,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         string name = FileKeyExpr(file);
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}", img = $"__kim{id}";
-        // The RECORD AREA is the LARGEST record description (FileModel.AreaRecord, ISO §13.4.2 — multi-01 FDs
-        // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
+        // The RECORD AREA is the LARGEST record description (ReferenceResolver.RecordArea, §13.18.33.4
+        // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
-        Place? area = file.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
+        Place? area = refs.RecordArea(file);
 
         if (rd.Kind == ReadKind.Random && file.Organization == FileOrganization.Relative)
         {
@@ -285,10 +285,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         // §14.9.10 GR3 — indexed random/dynamic deletes by the PRIME RECORD KEY's current content; DELETE carries
         // no record operand, so the key value is sliced from the record area image (GR8 — the area is unchanged).
-        // The RECORD AREA is the LARGEST record description (FileModel.AreaRecord, ISO §13.4.2 — multi-01 FDs
-        // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
+        // The RECORD AREA is the LARGEST record description (ReferenceResolver.RecordArea, §13.18.33.4
+        // GR3 — multi-01 FDs share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
-        Place? area = file.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
+        Place? area = refs.RecordArea(file);
         string image = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
@@ -363,8 +363,21 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         else
         {
-            // §14.9.41 GR17 — the comparison uses the operand's current content for the leftmost LENGTH
-            // characters (the WITH LENGTH count, else the operand's own length — a generic key compares short).
+            // ⛔ §14.9.41.4 GR17 a) SOURCES THE SEARCH KEY FROM THE RECORD AREA, NOT FROM data-name-1
+            // (kb/Work PB355): "The specified key is set up by moving the relevant parts of the record area into
+            // a temporary data area." The "specified key" is GR16's KEY OF REFERENCE — "The key specified in the
+            // KEY phrase, or that shares a leftmost character with the data item specified in the KEY phrase,
+            // becomes the key of reference" — so the relevant parts are THAT key's character positions in the
+            // area, and data-name-1's role ends at naming the key and (GR17 b)) supplying a default length.
+            // The area image therefore travels, and the connector slices the key of reference out of it with the
+            // SAME `KeyOf` the random READ (§14.9.30.4 GR32) and DELETE (§14.9.10.4 GR3) use — one extraction,
+            // three verbs, and a SOURCE-phrase key's several "parts" (§12.4.5.12.4 GR2) fall out of it.
+            // Sending `OperandText.AsStorageImage(sta.Operand)` instead agreed with the rule only while the
+            // temporary area was no longer than data-name-1: a LENGTH count that reaches PAST the operand into
+            // the rest of the key invented SPACES for the characters the record area actually holds.
+            // GR17 b) fixes only the LENGTH of that area — "the length specified in the LENGTH clause, if
+            // specified, or else the length of record-key-name-1, if specified, or else the length of
+            // data-name-1" — which is what `len` below renders, and GR14 bounds it by the key's own length.
             // The key comparison collates NATIVE at COBOL-85 (§12.4.5.7 file collating; the program collating
             // sequence does NOT silently apply to keys — brief risk note).
             // ⛔ §14.9.41.4 GR13 COUNTS THE OPERAND'S OWN CHARACTER POSITIONS, AND THE CONNECTOR SLICES BYTES
@@ -381,7 +394,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             string len = sta.Length is { } le
                 ? $"{natBytes} * (int)({NumericRenderer.Align(num.Render(le, ReceiverContext.None), 0)})"
                 : sta.Operand!.Item.ByteWidth.ToString();
-            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsStorageImage(sta.Operand!, "START key operand"), len)};");
+            string areaImage = refs.RecordArea(file) is { } ar
+                ? OperandText.RecordAreaImage(ar) : "\"\"";   // THE ONE record-area channel (kb/Work PB327)
+            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len)};");
         }
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);

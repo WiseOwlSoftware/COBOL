@@ -403,7 +403,7 @@ public sealed record BoundFieldOperand(Place Place) : BoundOperand;
 /// <see cref="BoundFieldOperand"/>.</para>
 /// </summary>
 /// <param name="Area">The FD/SD record area the record was made available in (<c>FileModel.AreaRecord</c>'s
-/// resolved place — the LARGEST record's view, §13.4.2).</param>
+/// resolved place — the LARGEST record's view, §13.18.33.4 GR3 / §13.18.43.4 GR5 a)).</param>
 /// <param name="File">The file/sort-file whose current-record length is read at execution: a connector's
 /// last-read length, or — when <c>FileModel.IsSortMerge</c> — the sort store's last-returned length.</param>
 /// <param name="Depending">The resolved <c>RECORD VARYING … DEPENDING ON</c> item, or <see langword="null"/>

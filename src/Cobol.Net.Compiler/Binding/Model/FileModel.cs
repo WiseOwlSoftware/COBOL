@@ -325,12 +325,13 @@ public sealed class FileModel
     /// <summary>The record area's PHYSICAL (codec) width — the max over the FD's records of the extent the
     /// emitted <c>AsImage()</c>/<c>FromImage()</c> spans. (P5.8: <c>ImageWidth</c> under-counted a record whose
     /// REDEFINES redefiner is wider than its target — the codec spans the class-max backing, ISO §13.18.44 /
-    /// §13.4.2 — truncating written frames and mis-registering key windows; identical to the old value for every
+    /// §13.18.43.4 GR5 a) — truncating written frames and mis-registering key windows; identical to the old value for every
     /// equal-width record, i.e. the whole prior corpus.)</summary>
     public int RecordWidth => Records.Count == 0 ? 0 : Records.Max(Model.RecordLayout.PhysicalWidth);
 
-    /// <summary>The record description whose view spans the WHOLE record area — the largest one (ISO §13.4.2: the
-    /// record area's size is that of the largest record description). Reading a record makes it available in the
+    /// <summary>The record description whose view spans the WHOLE record area — the largest one (ISO §13.18.33.4
+    /// GR3: level-1 entries under an FD are "implicit redefinitions of the same area"; §13.18.43.4 GR5 a) sizes it
+    /// as "the record size of the largest record description entry"). Reading a record makes it available in the
     /// whole area, so every area-wide store/read (sequential and keyed READ, sort RETURN) must go through THIS
     /// record's view — a shorter <c>Records[0]</c> window would truncate the splice (ST111A's 50/75/100 FD,
     /// RL106A's 56/102 pair). Null when the FD has no record description.</summary>

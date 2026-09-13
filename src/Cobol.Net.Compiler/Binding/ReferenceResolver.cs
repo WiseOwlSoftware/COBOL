@@ -835,6 +835,18 @@ public sealed class ReferenceResolver(DataBinder data)
     /// item is within an OCCURS table (a subscripted reference is then required) or is an unhandled view form.</summary>
     public Place? ResolveItem(DataItem item) => PlaceForItem(item, []);
 
+    /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §13.18.33.4 GR3 — "Multiple
+    /// level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — so
+    /// the area is ONE place, and it is the LARGEST description's view (<see cref="FileModel.AreaRecord"/>): a
+    /// shorter <c>Records[0]</c> window truncates the splice (RL106A's 56/102-char pair, ST111A's 50/75/100 SD).
+    /// Null only for a file whose record area could not be resolved at all — §14.9.30.4 GR6's implied entry is
+    /// materialized at bind time (kb/Work PB345), so no LEGAL file reaches a consumer with none.
+    /// <para>It lives here because five consumers each wrote the same two-step —
+    /// <c>file.AreaRecord is { } ar ? ResolveItem(ar) : null</c> — and START's own key comparand was built from
+    /// data-name-1 instead of the area precisely because the area was not a thing a verb could simply ask
+    /// for.</para></summary>
+    public Place? RecordArea(FileModel file) => file.AreaRecord is { } area ? ResolveItem(area) : null;
+
     /// <summary>The place for an already-resolved <paramref name="item"/> using the SUBSCRIPTS of
     /// <paramref name="dref"/> — the condition-name-with-subscripts form (ISO §8.4.2.3 Format 2): a level-88
     /// reference's subscripts identify the occurrence of its CONDITIONAL VARIABLE. Null for an unhandled subscript

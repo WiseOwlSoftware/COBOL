@@ -98,8 +98,10 @@ public sealed class StartKeyOfReferenceDriftTests
 
     /// <summary>True when the KEY-phrase START routes its success through the same epilogue instead of carrying
     /// a second copy of the file-position-indicator assignment.</summary>
+    /// <remarks>The signature is matched by its PREFIX so that renaming a later parameter cannot silently empty
+    /// <see cref="MemberBody"/> — the comparand parameter became <c>keyedRecordImage</c> with kb/Work PB355.</remarks>
     internal static bool KeyPhraseStartUsesTheEpilogue(string source) =>
-        MemberBody(source, "public string Start(int keyIndex, string op, string operand, int compareLength)")
+        MemberBody(source, "public string Start(int keyIndex, string op, string ")
             .Contains("return StartSucceeded(keyIndex, found);", StringComparison.Ordinal);
 
     private static int Occurrences(string haystack, string needle)

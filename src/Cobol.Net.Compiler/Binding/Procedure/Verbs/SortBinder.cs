@@ -346,11 +346,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ctx.Validation.ResolveFile(name, "RETURN", out var file)) return new BoundNop();
         if (!ctx.Validation.CheckReturnFile(file)) return new BoundNop();
         // GR3 makes the record available in the WHOLE record area — resolve it through the LARGEST record's view
-        // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the store (ST111A's
-        // 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
+        // (ReferenceResolver.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
+        // store (ST111A's 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
         if (RecordLessSd(file)) return new BoundNop();
-        if (SortRecordOf(file) is null || file.AreaRecord is not { } areaRecord
-            || ctx.Refs.ResolveItem(areaRecord) is not { } area)
+        if (SortRecordOf(file) is null || ctx.Refs.RecordArea(file) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
         // RETURN ... INTO is an IMPLICIT MOVE and is bound as one (ISO §14.9.34.4 GR5 b); kb/Work PB348) -
         // THE SAME call READ ... INTO makes, because GR5 b) and §14.9.30.4 GR4 b) are the same sentence.

@@ -569,8 +569,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string name = FileKeyExpr(rd.File);
         string tmp = $"__rd{ctx.Names.NextRead()}";
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
-        // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the splice (ST111A).
-        Place? area = rd.File.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
+        // (ReferenceResolver.RecordArea, ISO §13.18.33.4 GR3); a shorter Records[0] window would truncate the
+        // splice (ST111A).
+        Place? area = refs.RecordArea(rd.File);
         // §9.1.16 record locking on the sequential organization (P10 Step 8): EVERY READ routes through the
         // governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9, FPI unchanged on a
         // 51 per GR10a), the GR11 lock discipline, and the GR22 ADVANCING ON LOCK skip-scan. Unconditional

@@ -633,14 +633,23 @@ public sealed class IndexedConnector : KeyedConnector
     /// indexed analogue of the relative GR9b reverse search. Success establishes <paramref name="keyIndex"/> as
     /// the key of reference for subsequent sequential READs (GR16); failure invalidates the FPI and leaves the
     /// key of reference undefined (GR7).</summary>
-    public string Start(int keyIndex, string op, string operand, int compareLength)
+    /// <param name="keyedRecordImage">⛔ THE RECORD AREA, NOT data-name-1's own content (kb/Work PB355).
+    /// §14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
+    /// temporary data area" — names the record area as the SOURCE and GR16's key of reference as the key, so the
+    /// first temporary area is <see cref="KeyOf"/> the area under <paramref name="keyIndex"/>, truncated to the
+    /// GR17 b) length the caller passes as <paramref name="compareLength"/>. That is the SAME extraction the
+    /// random READ (§14.9.30.4 GR32) and DELETE (§14.9.10.4 GR3) make from the same image; taking data-name-1's
+    /// own bytes and PADDING them to the count instead made a LENGTH that reaches past the operand search for
+    /// invented spaces where the record area holds the rest of the key.</param>
+    public string Start(int keyIndex, string op, string keyedRecordImage, int compareLength)
     {
         if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent) return StartFail();                           // '23' GR5
         int keyLength = keyIndex < 0 ? _primeLen : _alts[keyIndex].Len;
         if (compareLength < 1 || compareLength > keyLength) return StartFail();   // '23' GR14
-        string value = operand.Length >= compareLength
-            ? operand[..compareLength] : operand.PadRight(compareLength, ' ');
+        // GR17 a)/b) — the first temporary area. KeyOf pads the area to the key's own span, so the slice is
+        // always in range once GR14 above has bounded compareLength by that span.
+        string value = KeyOf(Fit(keyedRecordImage), keyIndex)[..compareLength];
         var seq = Ordered(keyIndex);
         KeyedRec? found = null;
         bool forward = op is "==" or ">" or ">=";

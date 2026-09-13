@@ -46,7 +46,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // SAME call the sequential arm makes, so the two organizations cannot disagree about which rules the
         // phrase carries (feedback_two_arm_dispatch).
         BoundMove? into = r.readInto()?.dataReference() is { } d && ctx.Refs.Resolve(d) is { } recv
-            && file.AreaRecord is { } areaRec && ctx.Refs.ResolveItem(areaRec) is { } readArea
+            && ctx.Refs.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;

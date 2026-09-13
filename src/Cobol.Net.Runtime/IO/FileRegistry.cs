@@ -588,9 +588,11 @@ public sealed class FileRegistry
         Require(name) is RelativeConnector r ? r.Start(op, rrn)
         : throw MisroutedVerb("START (relative)", name, Require(name));
 
-    /// <summary>START on an indexed file (§14.9.41 GR13–GR17) — a leftmost-length partial-key comparison.</summary>
-    public string StartIndexed(string name, int keyIndex, string op, string operand, int compareLength) =>
-        Require(name) is IndexedConnector ix ? ix.Start(keyIndex, op, operand, compareLength)
+    /// <summary>START on an indexed file (§14.9.41 GR13–GR17) — a leftmost-length partial-key comparison whose
+    /// search key is sliced out of <paramref name="keyedRecordImage"/>, the RECORD AREA (GR17 a); kb/Work
+    /// PB355), exactly as the random READ's and DELETE's key values are.</summary>
+    public string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, int compareLength) =>
+        Require(name) is IndexedConnector ix ? ix.Start(keyIndex, op, keyedRecordImage, compareLength)
         : throw MisroutedVerb("START (indexed)", name, Require(name));
 
     /// <summary>START FIRST/LAST (COBOL-2002+), on EVERY organization — the standard writes the rule three
