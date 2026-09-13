@@ -25,6 +25,13 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement Bind(Core.EvaluateStatementContext ev)
     {
         var subjects = ev.evaluateSubject();
+        // ⛔ ONE SLOT PER SELECTION SUBJECT, FOR THE WHOLE STATEMENT (ISO §14.9.13.4 GR3, kb/Work PB394): "At the
+        // beginning of the execution of the EVALUATE statement, each selection subject is evaluated and assigned
+        // a value, a range of values, or a truth value". The subject used to be re-BOUND inside BindWhenItem —
+        // per selection PAIR, and therefore per WHEN — so the subject EXPRESSION was emitted once per relational
+        // use, twice for a THRU arm. A slot binds it once and every pair reads the same node.
+        var slots = new SubjectSlot[subjects.Length];
+        for (int i = 0; i < subjects.Length; i++) slots[i] = new SubjectSlot(this, subjects[i], SubjectUses(ev, i));
         var whens = new List<BoundEvaluateWhen>();
         List<BoundStatement>? other = null;
 
@@ -46,7 +53,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 {
                     if (i >= subjects.Length)
                         return new BoundUnsupported("EVALUATE: more WHEN objects than subjects (ISO §14.9.13 SR)");
-                    terms.Add(BindWhenGroup(subjects[i], groups[i]));
+                    terms.Add(BindWhenGroup(slots[i], groups[i]));
                 }
                 phraseMatches.Add(terms.Count == 1 ? terms[0] : new BoundLogical("&&", terms));
             }
@@ -61,7 +68,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// negation); a value subject pairs with an operand (equality), a THRU range (inclusive bounds), or — when
     /// the object IS a condition over the same item (the grammar's escape) — the condition itself. A leading NOT
     /// on the group negates the whole term.</summary>
-    private BoundCondition BindWhenGroup(Core.EvaluateSubjectContext subject, Core.EvaluateWhenGroupContext group)
+    private BoundCondition BindWhenGroup(SubjectSlot subject, Core.EvaluateWhenGroupContext group)
     {
         // ONE selection-object per position (§14.9.13.2 general format — objects repeat only through ALSO, which is
         // this method's CALLER; §14.9.13.3 SR2 fixes the count against the subjects). The grammar enforces the arity,
@@ -105,13 +112,12 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// particular WHEN phrase" — is what classifies it. Reading it the other way would leave SR6 b) with no
     /// effect on the shape it plainly mirrors (SR6 a), which the object side has always honoured).</para>
     /// </summary>
-    private EvaluatePairing ClassifyPair(Core.EvaluateSubjectContext subject, Core.EvaluateWhenItemContext item)
+    private EvaluatePairing ClassifyPair(SubjectSlot slot, Core.EvaluateWhenItemContext item)
     {
-        // The subject's valueOperand is analyzed only when it really IS a bare operand: under a class-condition
-        // subject it is the class test's operand, and resolving it as a condition-name would be a symbol lookup
-        // no rule asks for (and a diagnostic no rule licenses).
-        var subjectBare = subject.booleanLiteral() is null && subject.classCondition() is null
-            && subject.valueOperand() is { } svo ? host.Cond.AnalyzeBareOperand(svo) : default;
+        // The subject's bare-operand analysis is the SLOT's — resolved once for the statement, not once per pair
+        // (kb/Work PB400's "one resolution, consulted twice", now consulted N times from one resolution).
+        var subject = slot.Node;
+        var subjectBare = slot.Bare;
         var objectBare = item.valueOperand() is { } ovo ? host.Cond.AnalyzeBareOperand(ovo) : default;
 
         var s = SubjectKind(subject, subjectBare);
@@ -242,12 +248,13 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         return EvaluateObjectOperand.ArithmeticExpression;
     }
 
-    private BoundCondition BindWhenItem(Core.EvaluateSubjectContext subject, Core.EvaluateWhenItemContext item)
+    private BoundCondition BindWhenItem(SubjectSlot slot, Core.EvaluateWhenItemContext item)
     {
+        var subject = slot.Node;
         // ⛔ CLASSIFY ONCE, THEN BIND FROM THAT CLASSIFICATION (kb/Work PB400). The screen used to run its own
         // resolution and the bind path a second, identical one — so a level-88 whose reference is ambiguous
         // reported §8.4.2.2 twice, and the two could disagree about what the operand IS with nothing to catch it.
-        var pair = ClassifyPair(subject, item);
+        var pair = ClassifyPair(slot, item);
         ScreenPairing(pair, item);
         if (item.ANY() is not null) return new BoundLogical("&&", []);   // renders as true
 
@@ -255,10 +262,15 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         bool subjFalse = subject.booleanLiteral()?.FALSE_() is not null;
 
         // User-function evaluation cardinality (§8.4.3.2.4 GR1/GR6a) over the EVALUATE windows:
-        // — a SUBJECT is evaluated ONCE "at the beginning of the execution of the EVALUATE statement"
-        //   (§14.9.13.4 GR3), but this chained-selection lowering RE-BINDS the subject expression per WHEN
-        //   pair, so a once-per-statement hoist would activate a subject function once PER WHEN — staged
-        //   loud (the narrowed 1509) rather than over-activating;
+        // — a VALUE SUBJECT is evaluated ONCE "at the beginning of the execution of the EVALUATE statement"
+        //   (§14.9.13.4 GR3) and now IS: the slot binds it once and materializes its value into the
+        //   implementor's intermediate result item, so a subject activation hoists to statement scope exactly
+        //   as the rule describes (kb/Work PB394);
+        // — a CONDITION SUBJECT (§14.9.13.4 GR3 e, "assigned a truth value") still has no place to put a TRUTH
+        //   value — there is no condition→boolean-operand bridge in the bound tree — so its condition is still
+        //   re-analysed per WHEN and a user-function activation inside it stays staged loud (the narrowed
+        //   1509) rather than over-activating. THE STAGE IS NARROWED HERE, NEVER WIDENED: widening it would
+        //   turn a wrong answer into a rejection of legal source;
         // — an OBJECT is evaluated only when its WHEN phrase is considered, pairs left-to-right with a
         //   false pair stopping the phrase (GR4a–d) — its activations attach per-evaluation to the object
         //   term, and the composed &&/|| chain's C# short-circuit realizes GR4c exactly.
@@ -269,7 +281,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // test `EVALUATE X NUMERIC`, a level-88, a switch-status condition-name, and SR6 b)'s one-boolean-
         // character boolean subject — and the CLASSIFIER decided which, so no shape can be recognised here and
         // missed by the screen (or the reverse, which is what refused `EVALUATE W-ON WHEN TRUE`).
-        if (pair.Subject is EvaluateSubjectOperand.Condition && SubjectAsCondition(subject, pair) is { } subjCond)
+        if (pair.Subject is EvaluateSubjectOperand.Condition && SubjectAsCondition(slot, pair) is { } subjCond)
         {
             host.Udf.UdfStagePerEvaluationResidue(subjMark,
                 "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this "
@@ -329,10 +341,6 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return subjFalse ? new BoundNot(bound) : bound;
         }
 
-        // Value subject vs operand / range: equality or inclusive bounds (§14.9.13 GR5b/c).
-        if (subject.valueOperand() is not { } subjOp)
-            return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
-
         // §14.9.13.3 SR8 + §14.9.13.4 GR4 a) 2. — partial-expression-1. The object is "treated as though it were
         // specified as condition-2, where condition-2 is the conditional expression that results from preceding
         // partial-expression-1 by the selection subject", and "the corresponding selection subject is treated as
@@ -341,20 +349,35 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // operand belongs INSIDE the rewritten condition (the relation side binds it, §14.9.13.4 GR2's "as if the
         // corresponding relation condition were written"), not beside it: binding `left` here as well would
         // activate a subject user-function twice for one written reference.
+        // ⛔ AND IT IS ANSWERED BEFORE slot.Value IS EVER READ (train 32, PB398 ∩ PB394). SR8 splices the subject
+        // INTO the condition, where the relation side binds it through ComparisonOperandOf — there is no
+        // receiver here to convert the slot's one value into, so this arm still passes the subject's PARSE NODE.
+        // Touching slot.Value first would materialize the intermediate result item AND then bind the operand a
+        // second time inside the rewrite: two activations for one written reference, which is the very defect
+        // PB394 removed from the equality/range arms. GR3's once-per-statement subject therefore stays defective
+        // on THIS arm alone — the residue stage below is what says so out loud, and it is why PB394's
+        // GR-14.9.13.4-3 row is PARTIAL rather than CONFORMS.
         if (item.partialExpression() is { } partial)
         {
+            if (slot.Node.valueOperand() is not { } subjOp)
+                return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
             int objMark = host.Udf.PendingCount;
             var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindPartialExpression(partial, subjOp), objMark);
             host.Udf.UdfStagePerEvaluationResidue(subjMark,
-                "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this lowering "
-                + "re-binds subjects per WHEN)");
+                "an EVALUATE selection subject under a partial-expression object (evaluated once per statement, "
+                + "§14.9.13.4 GR3 — SR8's rewrite re-binds the subject inside the condition)");
             return bound;
         }
 
-        BoundOperand left = BindValueOperand(subjOp);
-        host.Udf.UdfStagePerEvaluationResidue(subjMark,
-            "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this lowering "
-            + "re-binds subjects per WHEN)");
+        // Value subject vs operand / range: equality or inclusive bounds (§14.9.13 GR5b/c).
+        // ⛔ THE SLOT'S ONE VALUE (§14.9.13.4 GR3, kb/Work PB394) — NEVER a fresh bind of the subject's node. The
+        // subject is "evaluated and assigned a value" at the beginning of the statement, and a RANGE object reads
+        // that one value TWICE ("selection-subject >= left-part AND selection-subject <= right-part", GR4 a) 5.):
+        // before this, the two halves of ONE range test saw two DIFFERENT values of a value-varying subject, an
+        // answer no single subject value can produce. No residue stage here any more — a subject activation
+        // hoists to statement scope with the value, which is what the rule asks for.
+        if (slot.Value is not { } left)
+            return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
 
         if (item.valueRange() is { } range)
         {
@@ -428,8 +451,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// copy of the level-88 arm — the same <c>BoundCondition88</c> construction <c>BareOperandAsCondition</c>
     /// makes — and that copy is exactly why the switch-status and boolean forms existed on the object side and
     /// not on this one. One resolution, consulted twice.</para></summary>
-    private BoundCondition? SubjectAsCondition(Core.EvaluateSubjectContext subject, in EvaluatePairing pair)
+    private BoundCondition? SubjectAsCondition(SubjectSlot slot, in EvaluatePairing pair)
     {
+        var subject = slot.Node;
         if (subject.valueOperand() is not { } vo) return null;
         if (subject.classCondition() is not { } cls) return host.Cond.AsCondition(pair.SubjectBare);
         char? kind = cls.NUMERIC() is not null ? 'N'
@@ -453,6 +477,103 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             n = n.GetChild(0);
         }
         return ((Core.BooleanLiteralContext)n).TRUE_() is not null;
+    }
+
+    /// <summary>
+    /// ⛔ ONE SELECTION SUBJECT, BOUND ONCE FOR THE WHOLE STATEMENT — ISO §14.9.13.4 GR3, "At the beginning of
+    /// the execution of the EVALUATE statement, each selection subject is evaluated and assigned a value, a
+    /// range of values, or a truth value" (kb/Work PB394).
+    /// <para>The chained-selection lowering pairs the subject against every WHEN's object, and a RANGE object
+    /// pairs against it TWICE (GR4 a) 5. — "selection-subject &gt;= left-part AND selection-subject &lt;=
+    /// right-part"). Binding the subject inside that loop meant the subject EXPRESSION was emitted once per
+    /// relational USE, so a value-varying subject gave each use a different value — measured: an EVALUATE with
+    /// two THRU arms consumed FOUR values of <c>FUNCTION RANDOM</c> and printed a branch no single subject value
+    /// can select. The slot binds it once and hands the same node to every pair.</para>
+    /// <para><b>Both halves are lazy on purpose.</b> The bare-operand analysis is the resolution
+    /// <c>ClassifyPair</c> used to redo per pair; the VALUE is bound only if some pair actually asks for one, so
+    /// a condition-name / class-test / TRUE-FALSE subject never runs a value bind (which would be a symbol
+    /// lookup no rule asks for, and a diagnostic no rule licenses).</para>
+    /// </summary>
+    private sealed class SubjectSlot(EvaluateBinder owner, Core.EvaluateSubjectContext node, int uses)
+    {
+        private BareOperandAnalysis _bare;
+        private bool _bareBound;
+        private BoundOperand? _value;
+        private bool _valueBound;
+
+        /// <summary>The subject's parse node — the classifier and the condition path still read it.</summary>
+        public Core.EvaluateSubjectContext Node => node;
+
+        /// <summary>How many relational USES of this subject the WHEN phrases contain (a range counts twice) —
+        /// the §14.9.25.4 GR1 argument applied to GR3: at ONE use the single render already IS one evaluation,
+        /// so the intermediate result item is unobservable and is not created. EVALUATE is a hot verb.</summary>
+        public int Uses => uses;
+
+        /// <summary>The subject's §14.9.13.3 SR6 bare-operand resolution, made once for the statement.</summary>
+        public BareOperandAnalysis Bare
+        {
+            get
+            {
+                if (!_bareBound) { _bare = owner.AnalyzeSubjectBare(node); _bareBound = true; }
+                return _bare;
+            }
+        }
+
+        /// <summary>The subject's assigned VALUE (GR3 a/b/c/d) — materialized into the implementor's
+        /// intermediate result item when more than one pair reads it. Null when the subject has no value form
+        /// (TRUE/FALSE, or a condition-name this classifier already resolved as condition-1).</summary>
+        public BoundOperand? Value
+        {
+            get
+            {
+                if (!_valueBound) { _value = owner.BindSubjectValue(this); _valueBound = true; }
+                return _value;
+            }
+        }
+    }
+
+    /// <summary>The subject's bare-operand analysis (§14.9.13.3 SR6) — analyzed only when the subject really IS
+    /// a bare operand: under a class-condition subject it is the class test's operand, and resolving it as a
+    /// condition-name would be a symbol lookup no rule asks for (and a diagnostic no rule licenses).</summary>
+    private BareOperandAnalysis AnalyzeSubjectBare(Core.EvaluateSubjectContext subject) =>
+        subject.booleanLiteral() is null && subject.classCondition() is null
+        && subject.valueOperand() is { } svo ? host.Cond.AnalyzeBareOperand(svo) : default;
+
+    /// <summary>Bind (and, when more than one pair reads it, MATERIALIZE) one selection subject's assigned value
+    /// — ISO §14.9.13.4 GR3 a)–d). Null when the subject has no value form.
+    /// <para>⛔ A CLASS-CONDITION subject's operand is NOT materialized, and that is a rule, not an omission:
+    /// GR3 e) assigns the subject <b>condition-1</b> a TRUTH value, not its operand a data value, and a class
+    /// test reads the operand's CHARACTER CONTENT — copying a numeric-DISPLAY item through an intermediate
+    /// would normalize content that <c>IS NUMERIC</c> exists to find invalid (§8.8.4.4). The condition is
+    /// re-analysed per WHEN instead, under the narrowed 1509 stage.</para>
+    /// <para>⛔ A bare CONDITION-NAME / switch-status subject has no value form at all (§8.8.4.2.7 r2 /
+    /// §8.8.4.6 make it condition-1), so it returns null rather than being bound as an operand.</para></summary>
+    private BoundOperand? BindSubjectValue(SubjectSlot slot)
+    {
+        var subject = slot.Node;
+        if (subject.classCondition() is not null || subject.valueOperand() is not { } vo) return null;
+        if (slot.Bare.Form is BareOperandForm.ConditionName or BareOperandForm.SwitchStatus) return null;
+        var value = BindValueOperand(vo);
+        return slot.Uses > 1 && host.SendingValue.Materialize(value, "evaluate") is { } frozen
+            ? new BoundFieldOperand(frozen)
+            : value;
+    }
+
+    /// <summary>How many relational uses of selection subject <paramref name="index"/> the statement's WHEN
+    /// phrases contain — GR4 a) 5.'s range form pairs the subject against BOTH bounds, so it counts twice.
+    /// (<c>WHEN OTHER</c> pairs with nothing; <c>ANY</c> pairs but reads no value, and counting it as a use
+    /// only over-materializes, never under-.)</summary>
+    private static int SubjectUses(Core.EvaluateStatementContext ev, int index)
+    {
+        int uses = 0;
+        foreach (var clause in ev.evaluateWhenClause())
+            foreach (var phrase in clause.evaluateWhenPhrase())
+            {
+                var groups = phrase.evaluateWhenGroup();
+                if (index >= groups.Length) continue;
+                uses += groups[index].evaluateWhenItem()?.valueRange() is not null ? 2 : 1;
+            }
+        return uses;
     }
 
     /// <summary>Bind a <c>valueOperand</c> (an arithmetic expression or a non-numeric literal) as a comparison

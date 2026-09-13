@@ -63,9 +63,12 @@ public sealed partial class StatementBinder
     /// high-order truncation could WRAP an out-of-range subscript into an in-range one, converting a detectable
     /// error into a silent wrong answer. The temp is synthetic and never enters
     /// <c>DataBinder.ConformanceForest</c>, so the edition digit-capacity gates (18 at COBOL-85) do not apply to
-    /// it — it is not a PICTURE the programmer wrote.</para></summary>
-    private static readonly PicInfo SegmentTempPic =
-        new(PicCategory.Numeric, Usage.Display, Length: 30, Digits: 30, Scale: 9, Signed: true);
+    /// it — it is not a PICTURE the programmer wrote.</para>
+    /// <para>⛔ THE DESCRIPTION IS WRITTEN ONCE, in <see cref="Procedure.SendingValueTemp.FunctionValuePic"/>
+    /// (kb/Work PB394): the §14.9.25.4 GR1 / §14.9.13.4 GR3 sending-value materializer gives a NUMERIC
+    /// function-identifier's value the SAME §15.4 temporary, and two copies of one implementor choice is how a
+    /// later widening lands in one of them only.</para></summary>
+    private static PicInfo SegmentTempPic => Procedure.SendingValueTemp.FunctionValuePic;
 
     /// <summary>Materialize one function-bearing subscript / ref-mod segment (the D18 route; the
     /// <c>ReferenceResolver.MaterializeSegment</c> hook). Returns the §15.4 temporary the segment's value lands

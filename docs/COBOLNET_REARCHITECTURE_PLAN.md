@@ -1056,10 +1056,14 @@ through the ONE `ExpressionBinder.BindExpr`. **The gate is "can the renderer ren
 PB42 is what the list version cost (`W-E(W-I ** 2)` and `W-E(2.0)`, plain arithmetic, still throwing at run time
 one commit later). The `arithmeticExpression` grammar adjudicates admissibility, so the next arithmetic form needs
 no edit at all.
-⚠ **THE OPEN RESIDUE THIS WAVE LEAVES**, both recorded on their notes and neither an oversight: the three
+⚠ **THE OPEN RESIDUE THIS WAVE LEAVES**, both recorded on their notes and neither an oversight: the
 per-evaluation windows `UdfStagePerEvaluationResidue` stages loud (`COBOLNET1509`) now reject function-bearing
 SUBSCRIPTS in those positions as well as user-function calls; and an alphanumeric-literal or `ALL` subscript is
-correctly refused but at RUN TIME rather than as a bind diagnostic.
+correctly refused but at RUN TIME rather than as a bind diagnostic. **(kb/Work PB394 later removed one of those
+three windows: an EVALUATE VALUE subject binds once per statement, so the stage's premise is false for it and
+`EVALUATE W-E (FUNCTION INTEGER(1))` compiles — the negative case that pinned the rejection is retired and
+replaced by `conformance:*/pb394_evaluate_function_subscript_subject`. The stage survives narrowed to a
+CONDITION subject, VARYING BY, and an AFTER-level FROM.)**
 ⛔ **A CORRECTNESS LESSON WORTH MORE THAN THE FIX: the §15.4 temp's own DESCRIPTION was a latent wrong answer.**
 D18 had specified `Scale: 0`; that truncates, so `W-E(FUNCTION SQRT(2))` would have silently indexed occurrence 1
 instead of setting EC-BOUND-SUBSCRIPT. Asking what that would do is what exposed PB41 — the same bug with no

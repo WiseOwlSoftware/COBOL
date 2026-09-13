@@ -154,18 +154,40 @@ public sealed class UdfInvocationTests
     }
 
     /// <summary>The NARROWED 1509 residue (per-evaluation activation does not yet reach these OPERAND
-    /// windows): a PERFORM VARYING BY operand (per augment, §14.9.28 GR12), an AFTER level's FROM
-    /// (re-evaluated per outer augment, GR13e.2), and an EVALUATE selection SUBJECT (once per statement per
-    /// §14.9.13.4 GR3, but this lowering re-binds subjects per WHEN — a hoist would over-activate).</summary>
+    /// windows): a PERFORM VARYING BY operand (per augment, §14.9.28 GR12) and an AFTER level's FROM
+    /// (re-evaluated per outer augment, GR13e.2).
+    /// <para>⛔ THE EVALUATE SELECTION SUBJECT LEFT THIS LIST, AND ITS DEPARTURE IS THE POINT (kb/Work PB394).
+    /// This theory carried a third row, <c>EVALUATE FUNCTION UDFDBL(2) WHEN 4 …</c>, justified by "this lowering
+    /// re-binds subjects per WHEN — a hoist would over-activate". That premise was the DEFECT, not a rule:
+    /// §14.9.13.4 GR3 evaluates a selection subject ONCE "at the beginning of the execution of the EVALUATE
+    /// statement", and the subject now binds once into <c>EvaluateBinder.SubjectSlot</c> and materializes into
+    /// the implementor's intermediate result item. The source is legal, so pinning the refusal here read as a
+    /// DECISION that it was not (feedback_green_test_can_hold_a_gap_open) — the same pin the retired negative
+    /// <c>pb17-function-subscript-evaluate-subject</c> held. Its replacement is the Fact below.</para></summary>
     [Theory]
     [InlineData("UDFT6F", "    PERFORM VARYING WS-A FROM 1 BY FUNCTION UDFDBL(1) UNTIL WS-A > 9\n        DISPLAY \"X\"\n    END-PERFORM.")]
     [InlineData("UDFT6G", "    PERFORM VARYING WS-A FROM 1 BY 1 UNTIL WS-A > 3\n            AFTER WS-R FROM FUNCTION UDFDBL(1) BY 1 UNTIL WS-R > 3\n        DISPLAY \"X\"\n    END-PERFORM.")]
-    [InlineData("UDFT6H", "    EVALUATE FUNCTION UDFDBL(2)\n        WHEN 4 DISPLAY \"E\"\n    END-EVALUATE.")]
     public void PerEvaluationResidueOperands_1509(string pid, string body)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Group(pid, body), 2002);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1509");
+    }
+
+    /// <summary>A user-function EVALUATE selection SUBJECT compiles, and carries NO 1509 stage: ISO §14.9.13.4
+    /// GR3 evaluates each selection subject once "at the beginning of the execution of the EVALUATE statement",
+    /// which is a statement-scope hoist, not a per-WHEN window (kb/Work PB394). One WHEN renders the value
+    /// inline (one render already IS one evaluation); more than one materializes it into the intermediate result
+    /// item, so the activation count is one either way. The RUN-TIME cardinality proof is the
+    /// <c>pb394_sending_value_evaluated_once</c> golden at four editions; this fact is the compile-clean half,
+    /// and it is what the removed 1509 row used to deny.</summary>
+    [Fact]
+    public void EvaluateValueSubject_HoistsToStatementScope_NoResidue()
+    {
+        const string body = "    EVALUATE FUNCTION UDFDBL(2)\n        WHEN 4 DISPLAY \"E\"\n    END-EVALUATE.";
+        var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT6H", body), 2002);
+        Assert.True(ok, "a user-function EVALUATE subject must bind: " + string.Join("\n", errors));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1509", StringComparison.Ordinal));
     }
 
     /// <summary>The SEARCH WHEN window binds per-evaluation too (per scan pass, §14.9.37.4 GR5b) — the

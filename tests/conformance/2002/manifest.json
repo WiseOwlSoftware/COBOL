@@ -262,7 +262,9 @@
     "pb640_call_argument_landing_legs",
     "pb344_read_previous_indexed",
     "pb344_use_mode_invalid_key",
-    "pb344_use_mode_read_exception"
+    "pb344_use_mode_read_exception",
+    "pb394_sending_value_evaluated_once",
+    "pb394_evaluate_function_subscript_subject"
   ],
   "pending": []
 }

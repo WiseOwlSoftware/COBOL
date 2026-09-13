@@ -29,8 +29,11 @@ using Core = CobolParserCore;
 /// AND/OR operand) instead drains its suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper
 /// (<see cref="UdfAttachPerEvaluation"/> — §8.8.4.13 r2 "if and when the conditions containing them are
 /// evaluated"); the two operand windows per-evaluation does not yet reach (VARYING BY / AFTER-level FROM)
-/// and the per-WHEN-re-bound EVALUATE subject stage LOUD (the narrowed COBOLNET1509,
-/// <see cref="UdfStagePerEvaluationResidue"/>) rather than silently over/under-evaluating. Emission is
+/// and the per-WHEN-re-analysed EVALUATE <b>condition</b> subject stage LOUD (the narrowed COBOLNET1509,
+/// <see cref="UdfStagePerEvaluationResidue"/>) rather than silently over/under-evaluating. An EVALUATE
+/// <b>value</b> subject is no longer among them (kb/Work PB394): it binds once for the statement and its
+/// value is materialized into §14.9.25.4 GR1's intermediate result item, so the statement hoist is EXACT.
+/// Emission is
 /// 100% existing surface:
 /// <c>CallEmitCall</c> → <c>ProgramRegistry.CallProgram</c>; FUNCTION-ID units already emit as callable
 /// program classes with the RETURNING carrier.
@@ -331,10 +334,16 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The NARROWED evaluation-cardinality stage (§1.4 — loud, never silently wrong) for the
     /// operand windows per-evaluation activation does not yet reach: a PERFORM VARYING BY operand (evaluated
     /// per augment, §14.9.28 GR12) or a non-first (AFTER) level's FROM operand (re-evaluated per outer
-    /// augment, GR13e.2), and an EVALUATE selection SUBJECT (this backend's chained-selection lowering
-    /// re-binds subject expressions per WHEN, while §14.9.13 evaluates a subject once per statement — a
-    /// hoist-per-WHEN would over-activate). Conditions are NOT staged — they ride
-    /// <see cref="UdfAttachPerEvaluation"/>.</summary>
+    /// augment, GR13e.2), and an EVALUATE selection subject that is a CONDITION (§14.9.13.4 GR3 e) assigns
+    /// condition-1 a TRUTH value once per statement, and the bound tree has no condition→boolean-operand
+    /// bridge to hold one, so that subject is still re-analysed per WHEN and a hoist would over-activate).
+    /// Conditions elsewhere are NOT staged — they ride <see cref="UdfAttachPerEvaluation"/>.
+    /// <para>⛔ AN EVALUATE <b>VALUE</b> SUBJECT NO LONGER REACHES HERE (kb/Work PB394): it is bound ONCE for
+    /// the statement and its value materialized into §14.9.25.4 GR1's intermediate result item
+    /// (<c>EvaluateBinder</c>'s <c>SubjectSlot</c> over <c>Binding.Procedure.SendingValueTemp</c>), so the
+    /// statement-scoped hoist is EXACT for it — the stage's premise, "this lowering re-binds subject
+    /// expressions per WHEN", stopped being true for that arm. The stage was NARROWED to the condition arm,
+    /// never widened: widening it would turn a wrong answer into a rejection of legal source.</para></summary>
     internal void UdfStagePerEvaluationResidue(int mark, string where)
     {
         if (Pending.Count <= mark) return;

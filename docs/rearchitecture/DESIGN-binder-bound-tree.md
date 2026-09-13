@@ -451,6 +451,56 @@ receiving-side `ScreenResultant` (which DID have the index arm), and this classi
 used. The extraction is what closes the index-data-item, pointer and object holes without a new rule, and what
 preserves the 2026-08-02 numeric-edited owner decision by construction rather than by a hand-written arm.
 
+### 3.7 Statement PRE-ops and the ONE sending-value materialization
+
+Several general rules say a value is computed **once, before the statement's effect**, and then used several
+times. The bound tree expresses that with a statement-scoped **pre-op**: a binder appends a `BoundStatement` to
+the shared `DataBinder.PendingPreOps`, and the `StatementBinder.BindStatement` chokepoint drains its own suffix
+into a `BoundSequence` placed ahead of the carrying statement (mark on entry, drain the suffix — the same
+protocol a hoisted user-function activation and a §15.4 function-bearing subscript temp already use). Registration
+ORDER is evaluation order, so a nested materialization precedes its consumer without extra wiring.
+
+**`Binding/Procedure/SendingValueTemp.cs` is the ONE materializer**, and the rule it implements is written in two
+verbs' general rules:
+
+- **§14.9.25.4 GR1 (MOVE)** — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
+  the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is
+  moved to the first of the receiving operands", stated again as an equivalence: `MOVE a (b) TO b, c (b)` ≡
+  `MOVE a (b) TO temp` / `MOVE temp TO b` / `MOVE temp to c (b)`, "where 'temp' is an intermediate result item
+  provided by the implementor".
+- **§14.9.13.4 GR3 (EVALUATE)** — "At the beginning of the execution of the EVALUATE statement, each selection
+  subject is evaluated and assigned a value, a range of values, or a truth value."
+
+The materializer creates that intermediate result item through `DataBinder.CreateCompilerTemp` (the ONE
+synthesized-temp constructor) with the **operand's own description**, so the store into it is an identity move
+and the equivalence is exact: a data item clones its description (§8.4.3.3.4 GR6's "unique data item" when
+reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a function-identifier takes §15.4's
+"temporary elementary data item" — the same `FunctionValuePic` the §15.4 subscript temp uses, written once.
+A literal or figurative constant is NOT materialized: §8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
+description of its own.
+
+**The one shape it does not freeze** is a group whose length is decided at run time — an `OCCURS DEPENDING`
+or `OCCURS DYNAMIC` table or a dynamic-length member. A cloned DESCRIPTION has a compile-time length, so the
+intermediate would hold the group's MAXIMUM extent rather than its current one, and that is observable: measured
+with a 3-of-5 occurs-depending group into a `PIC X(5) JUSTIFIED` receiver, §13.18.38.4 GR8 a)'s current extent
+right-aligns to `"  125"` while a maximum-extent intermediate gives `"125  "`. Such a sender is therefore left
+un-materialized (its operand is still re-read per receiver, the pre-existing state of GR1's "The length of the
+data item referenced by identifier-1 is evaluated only once") rather than frozen at a different length. Freezing
+it needs a SECOND temp holding data-name-1's value at the hoist with the clone's `OCCURS DEPENDING` pointed at
+it — a change to the shared `CreateCompilerTemp`, not to the materializer's description switch.
+
+**Who calls it, and when.** `MoveBinder.BindMoveOf` materializes the sender when there is more than one
+receiving operand; `EvaluateBinder`'s per-subject `SubjectSlot` materializes a value subject when more than one
+selection pair reads it (a THRU object reads it twice — GR4 a) 5.). At ONE use the single render already IS one
+evaluation and the intermediate is unobservable, so it is not created — MOVE and EVALUATE are hot verbs.
+
+**The emitter half is `EmitContext.SendOnce`** — the same rule where a C# local suffices because the receivers
+do not CONVERT from the value: the SET address formats (§14.9.39.4 GR12/GR14/GR16/GR18, "stored in each data item
+referenced by identifier-N in the order specified"). The arithmetic family's `ArithmeticEmitter.Snapshot` is the
+third face of the rule, for §14.7.7 GR4's one initial evaluation. Three carriers, one rule, each named for the
+clause it serves; `SendingValueOnceDriftTests` measures all of them together with a re-seeded `FUNCTION RANDOM`
+(§15.75.3 r3 / §15.75.4 r2) and pins the `BoundOperand` leaf set the materializer answers for.
+
 ---
 
 ## 4. Current → target module changes

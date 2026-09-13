@@ -83,9 +83,12 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// copy; a data pointer carries no PICTURE store).</summary>
     public void EmitSetPointer(BoundSetPointer s)
     {
+        // §14.9.39.4 GR12/GR16 — "the address identified by identifier-6/-8 is stored in each data item
+        // referenced by identifier-5/-7 in the order specified": ONE evaluation of the sender (kb/Work PB394),
+        // then a store per receiver. A TO NULL sender is the constant and needs no local.
         string src = s.ToNull ? "ManagedPointer.Null"
-            : s.Address is { } a ? ptr.AddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
-            : PlaceRenderer.Read(s.Source!);
+            : ctx.SendOnce(s.Address is { } a ? ptr.AddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
+                                              : PlaceRenderer.Read(s.Source!), s.Targets.Count, "setPtr");
         foreach (var t in s.Targets)
             ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
     }
@@ -122,7 +125,8 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// a straight carrier copy — the Format-4 data-pointer twin over <c>ProgramPointer</c>.</summary>
     public void EmitSetProgramPointer(BoundSetProgramPointer s)
     {
-        string src = s.ToNull ? "ProgramPointer.Null" : PlaceRenderer.Read(s.Source!);
+        string src = s.ToNull ? "ProgramPointer.Null"
+            : ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setPp");   // §14.9.39.4 GR18 (PB394)
         foreach (var t in s.Targets)
             ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET program-pointer (ISO §14.9.39 Format 9)");
     }
@@ -134,7 +138,8 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// content NULL-or-same-signature by construction. kb/Work PB452.</summary>
     public void EmitSetFunctionPointer(BoundSetFunctionPointer s)
     {
-        string src = s.ToNull ? "FunctionPointer.Null" : PlaceRenderer.Read(s.Source!);
+        string src = s.ToNull ? "FunctionPointer.Null"
+            : ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setFp");   // §14.9.39.4 GR14 (PB394)
         foreach (var t in s.Targets)
             ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET function-pointer (ISO §14.9.39.2 Format 8)");
     }

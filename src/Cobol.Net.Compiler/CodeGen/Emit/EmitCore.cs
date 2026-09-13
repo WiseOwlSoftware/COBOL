@@ -35,6 +35,30 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// context of one generated module, so minted temporaries never collide across units.</summary>
     public NameAllocator Names { get; } = names;
 
+    /// <summary>⛔ ONE EVALUATION, N STORES — the emitter half of every "… is stored in each data item referenced
+    /// by identifier-N <b>in the order specified</b>" rule (kb/Work PB394). ISO §14.9.39.4 GR12 / GR14 / GR16 /
+    /// GR18 each state it for a SET format: the address is "identified" once and then stored into every receiver,
+    /// with only the RECEIVER's item identification repeated ("done immediately before the value of that data
+    /// item is changed"). Declaring the sender's value in a local is what makes the emitted code say that;
+    /// pasting the sender's expression text into N stores says the opposite, and a receiver that aliases the
+    /// sender then poisons every store after it.
+    /// <para>Returns the expression unchanged when there is at most one receiver — the text is emitted once
+    /// anyway, so the local would be pure noise. The arithmetic family's <c>ArithmeticEmitter.Snapshot</c> is
+    /// the same rule for a §14.7.7 GR4 intermediate, and <c>Binding.Procedure.SendingValueTemp</c> is the same
+    /// rule for §14.9.25.4 GR1's intermediate result item, which needs a COBOL description rather than a C#
+    /// local because a MOVE's receivers each CONVERT from it.</para></summary>
+    /// <param name="expr">The sender's C# expression. It must be a well-typed initializer (never the bare
+    /// <c>null</c> literal — a <c>TO NULL</c> sender is a constant and needs no local).</param>
+    /// <param name="receivers">How many receiving operands will read it.</param>
+    /// <param name="stem">The generated local's name stem, so the emitted C# reads as the statement it came from.</param>
+    public string SendOnce(string expr, int receivers, string stem)
+    {
+        if (receivers <= 1) return expr;
+        string tmp = $"__{stem}{Names.NextStoreTmp()}";
+        Writer.Line($"var {tmp} = {expr};   // ONE evaluation of the sending operand (ISO §14.9.39.4 GR16)");
+        return tmp;
+    }
+
     /// <summary>⛔ THE COMPILATION'S DISPLAY OVER-PUNCH CONVENTION (kb/Work PB803, owner decision 2026-09-09;
     /// Annex A.1 items 177/178, ISO §13.18.52.4 GR4 / GR5 b) — the CLI's <c>--sign-encoding</c>, read from the ONE
     /// per-compilation context the driver set it on. EVERY emitted <c>NumProfile</c>

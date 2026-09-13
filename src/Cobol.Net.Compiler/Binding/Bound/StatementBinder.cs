@@ -70,6 +70,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private SearchBinder Search => _searchBinder ??= new SearchBinder(Ctx, this);
     private SetAlterBinder? _setAlterBinder;
     internal SetAlterBinder Alter => _setAlterBinder ??= new SetAlterBinder(Ctx);
+    private SendingValueTemp? _sendingValue;
+    /// <summary>The ONE §14.9.25.4 GR1 / §14.9.13.4 GR3 sending-value materializer (kb/Work PB394) — shared by
+    /// every verb that uses one sender in more than one place.</summary>
+    internal SendingValueTemp SendingValue => _sendingValue ??= new SendingValueTemp(Ctx);
 
     private ConditionBinder? _conditionBinder;
     internal ConditionBinder Cond => _conditionBinder ??= new ConditionBinder(Ctx, this);

@@ -149,6 +149,21 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // rules: every implicit move a phrase defines (READ/RETURN … INTO, WRITE/REWRITE/RELEASE … FROM)
         // inherits it, which is what each phrase's "shall be valid … in a MOVE statement" rule requires.
         ctx.Validation.CheckVariableLengthMove(source, targets, implicitOf);
+        // ⛔ §14.9.25.4 GR1 — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
+        // the reference modifier, subscript, or function-identifier is evaluated only once, immediately before
+        // data is moved to the first of the receiving operands", and the rule's own equivalence writes the
+        // required shape out: MOVE a (b) TO b, c (b) ≡ MOVE a (b) TO temp / MOVE temp TO b / MOVE temp to c (b),
+        // "where 'temp' is an intermediate result item provided by the implementor". The SENDING value is
+        // frozen into that item HERE (kb/Work PB394) — the receiver side already conforms, since item
+        // identification for identifier-2 happens immediately before each store (the per-target loop in
+        // MoveEmitter is the receiver half of the same rule).
+        // ⭐ ONLY when there is more than one receiving operand, and that is a PROOF, not a shortcut: with a
+        // single identifier-2 the source expression is rendered exactly once already, and the equivalence's own
+        // first two steps collapse — temp's description IS identifier-1's, so `MOVE a (b) TO temp / MOVE temp TO
+        // b` applies the identity copy and then the same conversion `MOVE a (b) TO b` applies. The intermediate
+        // is unobservable at N = 1, and MOVE is the most executed verb in a COBOL program.
+        if (targets.Count > 1 && host.SendingValue.Materialize(source, "move") is { } frozen)
+            source = new BoundFieldOperand(frozen);
         return new BoundMove(source, targets) { ImplicitOf = implicitOf };
     }
 

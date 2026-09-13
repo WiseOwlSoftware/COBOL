@@ -12,6 +12,7 @@ internal sealed class _PRG_CHAR_CONDITIONALS : ICobolProgram
     internal static readonly NumProfile _P_0 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = true, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private long WS_N = -5L;   // WS-N
     private string WS_C = CobolString.Store("A", 1);   // WS-C
+    private string __sendval2_EVALUATE = new string(' ', 1);   // __SENDVAL-2
 
     public void Call(CobolArg[] __args, ManagedPointer? __ret)
     {
@@ -53,11 +54,12 @@ internal sealed class _PRG_CHAR_CONDITIONALS : ICobolProgram
                     {
                         System.Console.WriteLine("ALPHA");
                     }
-                    if (CobolString.Compare(WS_C, "A") == 0)
+                    __sendval2_EVALUATE = CobolString.Store(WS_C, 1);
+                    if (CobolString.Compare(__sendval2_EVALUATE, "A") == 0)
                     {
                         System.Console.WriteLine("IS-A");
                     }
-                    else if (CobolString.Compare(WS_C, "B") == 0)
+                    else if (CobolString.Compare(__sendval2_EVALUATE, "B") == 0)
                     {
                         System.Console.WriteLine("IS-B");
                     }

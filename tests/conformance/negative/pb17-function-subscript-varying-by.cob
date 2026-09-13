@@ -10,7 +10,10 @@
       *> that machinery reaches (a PERFORM UNTIL condition, a SEARCH WHEN, an
       *> EVALUATE object, a non-first AND/OR operand - all of which WORK, and are
       *> covered positively by pb17_function_subscript) and stages LOUD through the
-      *> narrowed COBOLNET1509 in the three windows it does not reach. Staging loud
+      *> narrowed COBOLNET1509 in the two windows it does not reach (it was three
+      *> until kb/Work PB394: the EVALUATE selection SUBJECT left the list, because
+      *> 14.9.13.4 GR3 evaluates it ONCE per statement and the SubjectSlot now does).
+      *> Staging loud
       *> is what the design required: an over- or under-activating hoist would be a
       *> silent wrong answer, and this is a named, diagnosable refusal instead.
        IDENTIFICATION DIVISION.

@@ -444,10 +444,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             }
             return;
         }
+        // §14.9.39.4 GR9 — the reference is stored in each receiver "in the order specified", so the SENDER is
+        // evaluated once (kb/Work PB394). NULL / SELF / a factory singleton are constants; only a data-item read
+        // (which may be subscripted, and which a prior receiver may alias) needs the local.
         string src = s.SourceIsNull ? "null"
             : s.SourceIsSelf ? "this"
             : s.SourceFactoryCs is { } fac ? $"{fac}.__Instance"
-            : PlaceRenderer.Read(s.Source!);
+            : Ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setOr");
         foreach (var tp in s.Targets)
             w.Line(PlaceRenderer.Write(tp, $"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39 GR9 — reference copy)");
     }
