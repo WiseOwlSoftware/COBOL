@@ -75,7 +75,14 @@ fileControlClauses
     | sharingClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitSharingClause (rearch 14g.4)
     | lockModeClause   // LOCK MODE (LOCK/MODE hard-reserved) introduction-gated post-bind by VersionConformancePass ParseArm.VisitLockModeClause (rearch 14g.4)
     | fileCollatingSequenceClause   // §12.4.5.7 INDEXED per-key collating; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass
-    | vendorFileControlClause
+    // ⛔ THE §12.4.5.1 GENERAL FORMATS ARE CLOSED (kb/Work PB829; RENDERED from the printed pages — PDF p342-344 /
+    // folios 312-314). The union of Format 1 (indexed), 2 (relative), 3 (sequential) and 4 (sort-merge) is SELECT
+    // [OPTIONAL] · ASSIGN · ACCESS MODE · ALTERNATE RECORD KEY · collating-sequence-clause · FILE STATUS ·
+    // LOCK MODE · ORGANIZATION · RECORD KEY · RELATIVE KEY · RECORD DELIMITER · RESERVE · SHARING, plus the
+    // COBOL-85 PADDING CHARACTER clause removed at COBOL-2002. Every one of them opens with a reserved word, so
+    // this last alternative — whose first token is an IDENTIFIER — can only ever match source the general format
+    // does not admit. It is NOT a vendor hook (see CobolExpressions.g4#unrecognizedClause).
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
     ;
 
 // ISO §12.4.5.7 COLLATING SEQUENCE clause — the collating sequence for the record keys of an INDEXED file.
@@ -283,10 +290,6 @@ relativeKeyClause
     : RELATIVE KEY? IS? dataReference
     ;
 
-vendorFileControlClause
-    : genericClause
-    ;
-
 // I-O-CONTROL. The paragraph holds one or more clauses terminated by a period; per ISO §12.4.6 the
 // clauses are not individually period-terminated, but compilers commonly tolerate a period after each,
 // so accept an optional period after every clause (SQ206A writes two SAME clauses before one period).
@@ -297,14 +300,20 @@ ioControlParagraph
 ioControlClause
     : sameClause
     // The DECLINED A.4.3 APPLY COMMIT clause (ISO §12.4.6.3; Grammar/Core/CobolDeclined.g4) — recognized so
-    // DataBinder refuses it BY NAME (COBOLNET1709). It must precede genericClause, which would otherwise
+    // DataBinder refuses it BY NAME (COBOLNET1709). It must precede unrecognizedClause, which would otherwise
     // match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
     // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2) — below 2023 APPLY and
     // COMMIT are user-defined words and the clause simply does not exist.
     | {is2023()}? applyCommitClause
     | multipleFileClause
     | rerunClause
-    | genericClause
+    // ⛔ THE §12.4.6.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p363 /
+    // folio 333): `I-O-CONTROL. [[apply-commit-clause].] [[{same-clause}…].]` and nothing else, plus the
+    // COBOL-85 RERUN and MULTIPLE FILE TAPE clauses removed at COBOL-2002 (superset-parsed, removal-gated
+    // post-bind). ⚠ THIS is the alternative kb/Work PB487's sibling sweep missed: it is INLINE, not a named
+    // `xxxClause : genericClause` wrapper, so a grep read by rule NAME skips it. It is NOT a vendor hook (see
+    // CobolExpressions.g4#unrecognizedClause).
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
     ;
 
 // ISO §12.4.6.4 SAME clause. In every format only SAME (and RECORD/SORT/SORT-MERGE) is a required word;

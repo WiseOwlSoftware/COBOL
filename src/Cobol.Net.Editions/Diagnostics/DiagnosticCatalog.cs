@@ -2944,6 +2944,57 @@ public static class DiagnosticCatalog
         + "happens to precede it.",
         "ISO §13.16.3 SR24");
 
+    // ── COBOLNET1970/1971 — the CLOSED general formats OUTSIDE the data description entry (kb/Work PB829).
+    //    ONE grammar rule — `genericClause : IDENTIFIER (IDENTIFIER|literal)*`, described in the grammar as a
+    //    "vendor/extension hook" — was wired into SIX sites spanning EIGHT closed general formats and swallowed
+    //    any word run the format did not define, at every edition and every strictness, with no diagnostic
+    //    anywhere. kb/Work PB487 closed ONE of them (§13.16.2, COBOLNET1941); these two close the other seven.
+    //    1970 is for the formats whose list is a list of CLAUSES, 1971 for the two whose list is a list of
+    //    PARAGRAPHS — the distinction is not cosmetic: it decides which subclause the reader is sent to. ──
+
+    /// <summary>COBOLNET1970 — a word run inside a closed general format's CLAUSE list that the format does not
+    /// define: the file description entry (§13.4.5.2), the sort-merge file description entry (§13.4.6.2), the
+    /// file control entry (§12.4.5.1), the I-O-CONTROL paragraph (§12.4.6.2) and the SPECIAL-NAMES paragraph
+    /// (§12.3.7.2). Every one of those formats used to accept <c>WIBBLE WOBBLE</c> and run.</summary>
+    public static readonly DiagnosticDescriptor ClosedFormatUnrecognizedClause = new(
+        "COBOLNET1970", "closed-format-unrecognized-clause", EditionSeverity.Error,
+        "A word in this entry is not a clause of the ISO general format named in the message, whose printed "
+        + "syntax diagram is a CLOSED list: it enumerates the clauses that may be specified and admits nothing "
+        + "else. The grammar used to end five such lists in a shared vendor-extension catch-all matching any run "
+        + "of words, so a misspelled clause word, a clause written in the wrong paragraph, and every clause the "
+        + "compiler had not implemented were accepted and SILENTLY DISCARDED — the program then compiled and ran "
+        + "with the clause's intended effect simply absent. ⛔ WHY AN ERROR AND NOT THE §4.2.2 WARNING: that "
+        + "subclause's second paragraph obliges an implementation to be ABLE to \"indicate violations of the "
+        + "general formats and the explicit syntax rules of standard COBOL\", which is the floor; its FIRST "
+        + "paragraph fixes what may be accepted — \"An implementation shall accept the syntax and provide the "
+        + "functionality for all standard language elements required by this Working Draft International "
+        + "Standard and the optional or processor-dependent language elements for which support is claimed\" — "
+        + "and an unrecognized word run is neither. Refused at every edition and every strictness, because this "
+        + "implementation declares no vendor dialect under which an extension clause could be admitted, and a "
+        + "vendor extension is admitted only under the dialect that owns it, never by a catch-all. The clauses "
+        + "each format admits are listed in its own subclause, and are reproduced — rendered from the printed "
+        + "page, not read off the OCR — above each alternative list in the grammar.",
+        "ISO §4.2.2 / §13.4.5.2 / §13.4.6.2 / §12.4.5.1 / §12.4.6.2 / §12.3.7.2");
+
+    /// <summary>COBOLNET1971 — a paragraph header that is not one of the paragraphs its enclosing general format
+    /// lists: the configuration section (§12.3.2, four bracketed paragraphs) and the identification division
+    /// (§11.2.1). Distinct from COBOLNET1970 because the offending construct is a PARAGRAPH, not a clause, and
+    /// naming it a clause would send the reader to the wrong subclause.</summary>
+    public static readonly DiagnosticDescriptor ClosedFormatUnrecognizedParagraph = new(
+        "COBOLNET1971", "closed-format-unrecognized-paragraph", EditionSeverity.Error,
+        "A paragraph header here is not one of the paragraphs the enclosing ISO general format lists, and that "
+        + "list is CLOSED. §12.3.2 admits exactly source-computer-paragraph, object-computer-paragraph, "
+        + "special-names-paragraph and repository-paragraph; §11.2.1 admits the seven source-unit paragraphs "
+        + "(PROGRAM-ID, FUNCTION-ID, CLASS-ID, FACTORY, OBJECT, METHOD-ID, INTERFACE-ID) plus OPTIONS, and — "
+        + "below COBOL-2002, where they had not yet been removed — the AUTHOR, INSTALLATION, DATE-WRITTEN, "
+        + "DATE-COMPILED and SECURITY comment-entry paragraphs. The grammar used to end both lists in a "
+        + "vendor-extension catch-all matching any run of words, so a misspelled or misplaced paragraph header "
+        + "was accepted and SILENTLY DISCARDED together with everything written under it. Refused at every "
+        + "edition and every strictness (§4.2.2). ⚠ The COMMENT-ENTRY bodies of the removed paragraphs are "
+        + "a different matter and are untouched: a comment-entry is arbitrary text by definition, which is why "
+        + "ISO/IEC 1989:2023 defines no syntax for one anywhere.",
+        "ISO §4.2.2 / §12.3.2 / §11.2.1");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

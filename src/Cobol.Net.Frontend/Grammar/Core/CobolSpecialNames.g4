@@ -43,7 +43,16 @@ specialNameEntry
     // NOT this ordering requirement.
     | orderTableClause DOT?
     | implementorSwitchEntry DOT?
-    | genericClause DOT?
+    // ⛔ THE §12.3.7.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p320 /
+    // folio 290): alphabet-name-clause · CLASS · CRT STATUS · CURRENCY SIGN · CURSOR · DECIMAL-POINT ·
+    // dynamic-length-structure-clause · LOCALE · the switch-name/feature-name/device-name entry ·
+    // symbolic-characters-clause · ORDER TABLE, and nothing else.
+    // ⚠ REACH: `implementorSwitchEntry` above is `cobolWord (IS? cobolWord)?`, and IS is un-underlined in the
+    // printed format, so a TWO-word entry (`WIBBLE WOBBLE`) is shape-legal as `device-name-1 [IS]
+    // mnemonic-name-3` and never reaches here — what the standard refuses there is §12.3.7.3 SR8 (the name is
+    // not one the implementor specifies), a SEMANTIC rule, not this general format. This alternative catches
+    // what NO arm of the format admits: a run carrying a literal, or three or more words.
+    | unrecognizedClause DOT?   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
     ;
 
 // LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 } (§12.3.7).
@@ -221,7 +230,3 @@ reserveClause
     : RESERVE integerLiteral IDENTIFIER?
     ;
 
-// fallback for vendor extensions
-vendorConfigurationParagraph
-    : genericClause DOT
-    ;

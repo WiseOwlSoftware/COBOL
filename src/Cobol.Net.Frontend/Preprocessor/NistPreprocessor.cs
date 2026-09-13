@@ -11,11 +11,13 @@ namespace CobolNet.Frontend.Preprocessor;
 ///   XXXXX002     — Sequential file ASSIGN target (SOURCE-COBOL-PROGRAMS)
 ///   XXXXX051     — SPECIAL-NAMES implementor switch name 1
 ///   XXXXX052     — SPECIAL-NAMES implementor switch name 2
+///   XXXXX053     — Implementor's own I-O-CONTROL entry (the obsolete RERUN clause) — DELETED (kb/Work PB829)
 ///   XXXXX055     — System printer file name (ASSIGN TO target for PRINT-FILE)
 ///   XXXXX056     — SPECIAL-NAMES display output device implementor-name
 ///   XXXXX057     — SPECIAL-NAMES accept input device implementor-name
 ///   XXXXX058     — Control card file ASSIGN target
 ///   XXXXX068     — OBJECT-COMPUTER MEMORY SIZE value (obsolete clause)
+///   XXXXX069     — Implementor's own ADDITIONAL FILE DESCRIPTION clause — DELETED (kb/Work PB829)
 ///   XXXXX081     — Non-COBOL characters string value
 ///   XXXXX082     — SOURCE-COMPUTER name
 ///   XXXXX083     — OBJECT-COMPUTER name
@@ -212,6 +214,27 @@ public static class NistPreprocessor
         // these digit runs inside a baselined test-data literal).
         source = System.Text.RegularExpressions.Regex.Replace(
             source, @"(?<![A-Za-z0-9])XXXXX08[678](?![A-Za-z0-9])", "PICTURE X(10)");
+
+        // XXXXX069 / XXXXX053: the two X-cards that name a construct COBOL.NET DOES NOT PROVIDE, so the card is
+        // DELETED — which is the CCVS-documented action for an optional card the implementor does not supply,
+        // and the same treatment kb/Work PB487 gave XXXXX086-088 above.
+        //   • XXXXX069 — the corpus states its own contract on the next line: "REPLACE WITH ADDITIONAL INFO
+        //     (*OPT G ONLY)" (DB104A, DB202A-204A), and the card sits inside an FD clause list (ST139A:147,
+        //     ST147A:170, between BLOCK CONTAINS and RECORD CONTAINS). It is an IMPLEMENTOR'S OWN FILE
+        //     DESCRIPTION CLAUSE, and ISO §13.4.5.2 is a CLOSED list (kb/Work PB829) with no slot for one.
+        //   • XXXXX053 — the whole I-O-CONTROL entry of IX302M:30 / RL302M:30 / SQ302M:29, written `XXXXX053.`
+        //     with "Message expected for above statement: OBSOLETE" beneath it: the implementor's own RERUN
+        //     clause, the obsolete §12.4.6.2 entry removed at COBOL-2002. COBOL.NET supplies none, and an empty
+        //     I-O-CONTROL paragraph is legal (the format brackets both of its clauses), so the card and its
+        //     separator period go together — leaving the period behind would strand a clause-less DOT.
+        // ⛔ Until kb/Work PB829 both cards were left unsubstituted and the vendor catch-all ATE the raw token,
+        // so an FD and an I-O-CONTROL paragraph bound a description the program never wrote and no diagnostic
+        // said so — the same silent misbind PB487 found under XXXXX086-088. Token-boundary anchored, the
+        // XXXXX063/064/065 discipline (IX106A embeds these digit runs inside a baselined test-data literal).
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"(?<![A-Za-z0-9])XXXXX069(?![A-Za-z0-9])", "");
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"(?<![A-Za-z0-9])XXXXX053(?![A-Za-z0-9])\s*\.", "");
 
         // ── Literal values ──
 

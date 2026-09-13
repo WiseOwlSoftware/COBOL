@@ -10,8 +10,32 @@ options {
     tokenVocab = CobolLexer;
 }
 
-// Generic clause pattern for vendor/extension hooks.
-// Shared across all grammars — one rule, one source of truth.
+// ⛔ NOT A CLAUSE, AND NOT A VENDOR HOOK — the ONE error production of the whole grammar (kb/Work PB829; the
+// §13.16.2 half landed first as kb/Work PB487).
+//
+// `IDENTIFIER (IDENTIFIER|literal)*` matches ANY run of words, so wherever it sits in an alternative list it is a
+// TOTAL SINK for everything the named alternatives missed. It used to be reached from SIX sites spanning EIGHT
+// closed general formats — the data description entry (§13.16.2), the file description entry (§13.4.5.2), the
+// sort-merge file description entry (§13.4.6.2), the file control entry (§12.4.5.1), the I-O-CONTROL paragraph
+// (§12.4.6.2), the SPECIAL-NAMES paragraph (§12.3.7.2), the configuration section (§12.3.2) and the
+// identification division (§11.2.1) — under the name of a "vendor/extension hook". It is not one: a vendor
+// extension is admitted only under the dialect that owns it, never by a catch-all, and this compiler declares no
+// vendor dialect. What it actually did was SWALLOW a word run the format does not define, at every edition and
+// every strictness, with no diagnostic anywhere — §4.2.2's warning obligation cannot be met for a construct the
+// compiler never represents.
+//
+// Every one of those sites now spells `unrecognizedClause`, and `genericClause` is referenced from NOWHERE ELSE
+// (`ClosedFormatDriftTests` derives that from these .g4 files and fails the build otherwise). The alternative is
+// still RECOGNIZED rather than deleted, because recognizing it keeps recovery local — the rest of the entry, the
+// paragraph and the division still parse, so the user gets ONE named error instead of a cascade of "no viable
+// alternative". `Validation/ClosedFormatPass.cs` refuses every instance BY NAME, naming the format and its §.
+// It must be the LAST alternative at every site: ANTLR takes the first matching alternative.
+unrecognizedClause
+    : genericClause
+    ;
+
+// The word-run matcher `unrecognizedClause` is built on. Kept as its own rule because the diagnostic quotes the
+// FIRST word of the run (`genericClause.IDENTIFIER(0)`) and the whole run as written.
 genericClause
     : IDENTIFIER (IDENTIFIER | literal)*
     ;

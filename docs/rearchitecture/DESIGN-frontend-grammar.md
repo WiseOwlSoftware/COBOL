@@ -669,7 +669,7 @@ target:
 - Recovery beyond the current sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain).
 
-### 3.10 Closed general formats, and the ERROR PRODUCTION that replaced the vendor catch-all (kb/Work PB487)
+### 3.10 Closed general formats, and the ONE ERROR PRODUCTION that replaced the vendor catch-all (kb/Work PB487, PB829)
 
 **The rule.** A general format in the standard is a CLOSED list. §4.2.2 makes the general formats and syntax
 rules the definition of what may be written, so a word the format does not print is not admissible — and a
@@ -686,12 +686,12 @@ of words at the tail of a §13.16.2 Format-1 entry. Three harms, all the same ha
 3. every "…the only other clauses permitted are…" rule of §13.16.3 was unenforceable against a word the parser
    never classified — SR12, SR13, SR17 and SR18 alike.
 
-**The replacement.** `unrecognizedDataClause`, an ERROR PRODUCTION placed LAST in the alternative list. It still
-RECOGNIZES the word run, which keeps recovery local (one diagnostic per entry rather than a cascade), and the
-binder REFUSES every instance by name — **COBOLNET1941**, naming the word and citing §13.16.2. Refused at every
-edition and every strictness: **a vendor extension is admitted only under the dialect that owns it, never by a
-catch-all**, and this compiler declares no vendor dialect. The strictness axis is for documented leniency about
-REMOVED constructs, which this is not.
+**The replacement.** `unrecognizedClause` (`Core/CobolExpressions.g4`), an ERROR PRODUCTION placed LAST in the
+alternative list. It still RECOGNIZES the word run, which keeps recovery local (one diagnostic per entry rather
+than a cascade), and every instance is REFUSED by name — **COBOLNET1941** for this format, naming the word and
+citing §13.16.2. Refused at every edition and every strictness: **a vendor extension is admitted only under the
+dialect that owns it, never by a catch-all**, and this compiler declares no vendor dialect. The strictness axis
+is for documented leniency about REMOVED constructs, which this is not.
 
 **The structural half.** Closing the list is only half the fix, because the §13.16.3 permitted-set rules were
 each an `||` chain over whichever local decode flags their author remembered, and each was incomplete. Those
@@ -701,13 +701,63 @@ sentences. `DataClauseKindDriftTests` reflects over the GENERATED parser and fai
 `dataDescriptionClause` alternative has no `DataClauseKind` or a mapped context type is no longer produced. That
 is what makes the next clause automatic rather than remembered.
 
-**The other `genericClause` sites are NOT closed by this change** and remain open: `genericFileDescriptionClause`
-(FD/SD, §13.5.2), `fileControlClause` (SELECT, §12.4.5.2), the SPECIAL-NAMES paragraph and the IDENTIFICATION
-paragraph each still swallow an arbitrary word run — measured: `FD F WIBBLE WOBBLE.`,
-`SELECT F ASSIGN TO "f.dat" WIBBLE WOBBLE.`, `SPECIAL-NAMES. WIBBLE WOBBLE.`, `SOURCE-COMPUTER. IBM-370 WIBBLE
-WOBBLE.` and a bare `WIBBLE. WOBBLE.` ID paragraph all compile clean. Each is its own closed general format with
-its own inventory rows and its own audit of what the grammar does not yet model; they are separate `kb/Work`
-items, not a silent omission from this one.
+**The generalization — ONE production, ONE pass, ONE table (kb/Work PB829).** `genericClause` was not one
+catch-all; it was one RULE reached from SIX sites spanning EIGHT closed general formats, and PB487's sibling
+sweep — which read the grammar by rule NAME — counted four of the remaining five and missed the I-O-CONTROL
+paragraph's INLINE alternative, which is not a named `xxxClause : genericClause` wrapper. All eight are now
+closed the same way, and the way is structural rather than repeated:
+
+| § | format | grammar site (alternative list) | code |
+|---|---|---|---|
+| §13.16.2 | data description entry | `dataDescriptionClause` | COBOLNET1941 |
+| §13.4.5.2 | file description entry (FD) | `fileDescriptionClause` | COBOLNET1970 |
+| §13.4.6.2 | sort-merge file description entry (SD) | `sortMergeDescriptionClause` | COBOLNET1970 |
+| §12.4.5.1 | file control entry (SELECT) | `fileControlClauses` | COBOLNET1970 |
+| §12.4.6.2 | I-O-CONTROL paragraph | `ioControlClause` | COBOLNET1970 |
+| §12.3.7.2 | SPECIAL-NAMES paragraph | `specialNameEntry` | COBOLNET1970 |
+| §12.3.2 | configuration section | `configurationParagraph` | COBOLNET1971 |
+| §11.2.1 | identification division | `identificationParagraph` | COBOLNET1971 |
+
+- **ONE production.** `genericClause` is referenced from `unrecognizedClause` and nowhere else; every site spells
+  `| unrecognizedClause`, LAST.
+- **ONE table.** `Frontend/Cst/ClosedFormats.cs` keys the format's §, subject, noun (`clause` vs `paragraph` —
+  the §12.3.2 and §11.2.1 lists are lists of PARAGRAPHS, and calling one a clause sends the reader to the wrong
+  subclause) and code on the PARENT context type.
+- **ONE pass.** `Compiler/Validation/ClosedFormatPass.cs`, a sibling of `DeclinedFacilityPass` run from
+  `BinderDriver`. A parse-tree walk rather than a binder hook, and here that is load-bearing: the §13.16.2
+  refusal used to live in `DataBinder.BindEntry`, which the level-66 and level-88 paths return before, so
+  `88 CN WIBBLE VALUE 1.` dropped the word in silence — measured on the pre-change build, where only
+  COBOLNET1747 fired. Four of the other formats bind nothing at all by construction.
+- **ONE drift guard.** `ClosedFormatDriftTests` reads the `.g4` files (the word-run matcher is referenced only by
+  the error production) AND reflects over the generated parser (every context type carrying an
+  `unrecognizedClause()` accessor has a table row, and every row is still carried), so adding a closed format is
+  `| unrecognizedClause` plus a table row, and forgetting the row fails the build.
+
+**The ordering a fixer owes, and why.** Audit the format from the RENDERED printed page first, model what the
+grammar is missing, and only THEN close the list. Doing (3) before (1) and (2) rejects legal source that is
+silently accepted today, which is strictly worse than the defect — the ALIGNED trap of PB487 in reverse. Each
+site's rendered clause list, with its PDF page and printed folio, is recorded in a comment above its alternative
+list in the `.g4`, and `tests/conformance/2023/pb829_closed_formats_legal.cob` writes a LEGAL clause in every
+newly-closed format as the standing witness that the rendering was right.
+
+**What is NOT this mechanism, and is deliberately still open.**
+
+- **The COMMENT-ENTRY sinks are correct.** `dateCompiledContent`, `securityContent` (`~DOT+`) and
+  `remarksContent` are also unbounded token runs, and a comment-entry is arbitrary text by definition — which is
+  why ISO/IEC 1989:2023 defines no syntax for one anywhere.
+  A sink over a COMMENT-ENTRY is right; a sink over a CLAUSE or PARAGRAPH LIST is the defect.
+- **`computerAttributes`** (`CobolParserCore.g4`, `({!objectComputerClauseAhead()}? ~DOT)+`) is a `~DOT` token
+  SINK, not a `genericClause` site, so `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` is still absorbed — kb/Work
+  PB830.
+- **`SPECIAL-NAMES. WIBBLE WOBBLE.`** is NOT a §12.3.7.2 general-format violation and is not closed here.
+  `implementorSwitchEntry` is `cobolWord (IS? cobolWord)?` and IS is un-underlined in the printed format, so a
+  bare two-word entry is shape-legal as `device-name-1 [IS] mnemonic-name-3`. What refuses it is §12.3.7.3 SR8
+  ("The implementor shall specify the names that are available for switch-name-1, feature-name-1, and
+  device-name-1") — a semantic rule over an implementor-defined name set, a different mechanism.
+- **The §12.3.7.2 `dynamic-length-structure-clause` is not modelled at all**, so
+  `DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers `COBOL0001: unexpected 'DYNAMIC'`. That is a
+  rejects-legal-source gap that predates and is unaffected by this change (DYNAMIC is a reserved token no
+  alternative admits, so the catch-all never saw it).
 
 ---
 

@@ -2997,19 +2997,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // entry are both decoded; §13.18.1.4 GR1/GR2 are honoured at the ONE bit-layout site,
                     // Binding/Model/BitLayout.cs.
                     isAligned = true;
-                else if (clause.Context.unrecognizedDataClause() is { } junk)
-                    // ⛔ THE CLOSED §13.16.2 FORMAT-1 CLAUSE LIST (kb/Work PB487). This alternative is an ERROR
-                    // PRODUCTION, not a clause: it exists only so an unrecognized word run at the tail of a data
-                    // description entry is NAMED instead of drawing a generic "no viable alternative" — or, as it
-                    // did before this fix, being SILENTLY DISCARDED by a vendor-extension catch-all, which made
-                    // `01 A PIC X(3) WIBBLE WOBBLE.`, `01 X PIC 9(4) COMP-9.` and a misspelled clause word all
-                    // compile with a data description the programmer did not write. Refused at EVERY edition and
-                    // every strictness: §13.16.2's general format is a closed list, and this compiler declares no
-                    // vendor dialect under which an extension clause could be admitted.
-                    Edition.Error(DiagnosticCatalog.DataClauseUnrecognized,
-                        $"{'\''}{junk.genericClause().IDENTIFIER(0)?.GetText() ?? Spelled(junk)}{'\''} is not a clause of the "
-                        + $"data description entry for '{cobolName ?? "FILLER"}' — the ISO §13.16.2 Format 1 general "
-                        + "format lists the clauses that may be specified, and it is a closed list");
+                // ⛔ THE CLOSED §13.16.2 FORMAT-1 CLAUSE LIST has NO arm here (kb/Work PB487, generalized by
+                // kb/Work PB829). `unrecognizedClause` is an ERROR PRODUCTION, not a clause, and it is refused —
+                // by name, COBOLNET1941 — from `Validation/ClosedFormatPass.cs`, the ONE place every closed
+                // general format's residue is reported. It moved out of this loop because BindEntry is NOT
+                // reached for every written entry: the level-66 and level-88 paths return before it, so an
+                // unrecognized word on `88 CN WIBBLE VALUE 1.` was dropped in silence here (MEASURED on the pre-change
+                // build: only COBOLNET1747 fired, and WIBBLE vanished). A parse-tree walk
+                // sees the written syntax whether or not anything binds it (the DeclinedFacilityPass argument).
+                // The `DataClauseKind.Unrecognized` BIT is still read below: an entry whose only defect is an
+                // unrecognized word draws COBOLNET1941 alone, and one that ALSO violates a §13.16.3 permitted-set
+                // rule draws both.
                 else if (clause.Context.groupUsageClause() is { } gu)
                     // GROUP-USAGE (ISO §13.18.29; D20/PB79). The COBOL-2002 introduction gate is VersionConformancePass
                     // ParseArm.VisitGroupUsageClause; SR1 (a group, not strongly typed, not variable-length) and the

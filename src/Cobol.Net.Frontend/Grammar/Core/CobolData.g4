@@ -46,16 +46,26 @@ sortMergeDescriptionClauses
     : sortMergeDescriptionClause+
     ;
 
+// ⛔ THE §13.4.6.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p376 / folio
+// 346): `SD file-name-1 [ record-clause ] .` and nothing else. DATA RECORDS is the COBOL-85 §13.4.6.2 clause
+// removed at COBOL-2002 (superset-parsed here, removal-gated post-bind like every other removed construct).
+// The last alternative is the error production, NOT a vendor hook — see CobolExpressions.g4#unrecognizedClause.
 sortMergeDescriptionClause
     : recordClause
     | dataRecordsClause
-    | genericFileDescriptionClause
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
     ;
 
 fileDescriptionClauses
     : fileDescriptionClause+
     ;
 
+// ⛔ THE §13.4.5.2 GENERAL FORMATS ARE CLOSED (kb/Work PB829; RENDERED from the printed pages — PDF p372-373 /
+// folios 342-343). The union of Format 1 (sequential), Format 2 (relative-or-indexed) and Format 3 (report) is
+// IS EXTERNAL [AS literal-1] · IS GLOBAL · FORMAT {BIT|CHARACTER|NUMERIC} DATA · BLOCK CONTAINS · record-clause ·
+// linage-clause · CODE-SET · REPORT(S), plus the COBOL-85 clauses removed at COBOL-2002 (LABEL RECORDS, DATA
+// RECORDS, VALUE OF) which are superset-parsed and removal-gated post-bind. The last alternative is the error
+// production, NOT a vendor hook — see CobolExpressions.g4#unrecognizedClause.
 fileDescriptionClause
     : organizationClause
     | accessModeClause
@@ -72,7 +82,7 @@ fileDescriptionClause
     | fileGlobalExternalClause
     | linageClause
     | reportClause
-    | genericFileDescriptionClause
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
     ;
 
 // FORMAT clause (§13.18.24.2, printed general format p403 — RENDERED, not read off the OCR).
@@ -174,10 +184,6 @@ linageLinesAtTopPhrase
 
 linageLinesAtBottomPhrase
     : LINES? AT? BOTTOM (dataReference | integerLiteral)
-    ;
-
-genericFileDescriptionClause
-    : genericClause
     ;
 
 // ==========================================
@@ -295,11 +301,14 @@ dataDescriptionClauses
 //       missing PicInfo escaped the binder into an unhandled NullReferenceException in MoveEmitter;
 //   (c) every "…the only other clauses permitted are…" rule of §13.16.3 (SR12/SR13/SR17/SR18) was unenforceable
 //       against a word the parser never classified, however carefully its condition list was maintained.
-// The replacement is `unrecognizedDataClause`, an ERROR PRODUCTION: it still RECOGNIZES the word run — which
-// keeps recovery local, one diagnostic per entry instead of a cascade — but the binder REFUSES it BY NAME
-// (COBOLNET1941) at every edition and every strictness. There is no dialect that admits it: a vendor extension
-// is admitted only under the dialect that owns it, never by a catch-all, and this compiler declares no vendor
-// dialect. It is LAST because ANTLR takes the first matching alternative.
+// The replacement is `unrecognizedClause` (CobolExpressions.g4), THE one error production of the whole grammar:
+// it still RECOGNIZES the word run — which keeps recovery local, one diagnostic per entry instead of a cascade —
+// but `Validation/ClosedFormatPass.cs` REFUSES it BY NAME (COBOLNET1941 for this format) at every edition and
+// every strictness. There is no dialect that admits it: a vendor extension is admitted only under the dialect
+// that owns it, never by a catch-all, and this compiler declares no vendor dialect. It is LAST because ANTLR
+// takes the first matching alternative.
+// ⚠ kb/Work PB829 generalized this: the SAME catch-all was wired into seven more closed general formats, and the
+// rule is now written ONCE — one grammar production, one pass, one format table — rather than once per format.
 dataDescriptionClause
     : pictureClause
     | usageClause
@@ -324,7 +333,7 @@ dataDescriptionClause
     | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
     | selectWhenClause   // ISO §13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOLNET1705)
     | {is2002()}? validationClause   // ISO §13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOLNET1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
-    | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME at bind (COBOLNET1941)
+    | unrecognizedClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOLNET1941)
     ;
 
 // ALIGNED clause (ISO §13.18.1.2 — the general format is the single required word `ALIGNED`, underlined).
@@ -334,15 +343,6 @@ dataDescriptionClause
 // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitAlignedClause.
 alignedClause
     : ALIGNED
-    ;
-
-// ⛔ NOT A CLAUSE — the error production that replaced the vendor catch-all (kb/Work PB487; see the block above
-// dataDescriptionClause). It exists ONLY so an unrecognized word at the tail of a data description entry can be
-// NAMED — `COBOLNET1941: 'WIBBLE' is not a clause of the data description entry (ISO §13.16.2 Format 1)` — in
-// place of a generic "no viable alternative", and so the parse continues far enough to report the REST of the
-// division. The binder refuses every instance; nothing binds from it.
-unrecognizedDataClause
-    : genericClause
     ;
 
 // SELECT WHEN clause (§13.18.51.2, printed general format p481 — RENDERED).

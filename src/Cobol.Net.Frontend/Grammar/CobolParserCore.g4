@@ -180,6 +180,15 @@ commonProgramAttribute
 // Other identification paragraphs
 // ------------------------------------------
 
+// ⛔ THE §11.2.1 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p293 / folio 263):
+// `[ IDENTIFICATION DIVISION. ]`, then exactly one of the seven source-unit paragraphs (program-id, function-id,
+// class-id, factory, object, method-id, interface-id — each matched by its own source-unit rule, not here), then
+// `[ options-paragraph ]`. The AUTHOR / INSTALLATION / DATE-WRITTEN / DATE-COMPILED / SECURITY comment-entry
+// paragraphs are the COBOL-85 §11.2.1 list, removed at COBOL-2002 (superset-parsed, removal-gated post-bind);
+// REMARKS is the COBOL-74 one. ⚠ Their `~DOT+` / `(IDENTIFIER|STRINGLIT)+` bodies are ALSO unbounded token runs
+// and are CORRECT: what those removed paragraphs took was a COMMENT-ENTRY — arbitrary text by definition, which
+// is why ISO/IEC 1989:2023 defines no syntax for one anywhere. A sink over a COMMENT-ENTRY is right; a sink over
+// a CLAUSE or PARAGRAPH LIST is what this last alternative closes.
 identificationParagraph
     : optionsParagraph
     | authorParagraph
@@ -188,7 +197,7 @@ identificationParagraph
     | dateCompiledParagraph
     | securityParagraph
     | remarksParagraph
-    | genericIdentificationParagraph
+    | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1971)
     ;
 
 // OPTIONS paragraph (COBOL-2002, ISO §11.9) — fully parsed into a structured clause tree (the model is consumed
@@ -341,18 +350,22 @@ securityContent
     : ~DOT+
     ;
 
-// REMARKS.
+// REMARKS. (a COBOL-74 carryover, accepted at 85 for the CCVS and removal-gated at 2002+ — COBOLNET0902.)
+// ⛔ THE SIXTH COMMENT-ENTRY BODY, AND IT WAS THE ODD ONE OUT (kb/Work PB829). The five paragraphs above all
+// spell their body `~DOT+` with a terminating DOT; this one spelled it `(IDENTIFIER | STRINGLIT)+` with NO
+// terminating DOT, so a comment-entry word that happens to be a LEXER TOKEN ended the content early and the
+// remainder of the entry fell out of the paragraph. That was invisible only because the §11.2.1 paragraph list
+// then ended in a vendor catch-all which swallowed it: `REMARKS. CCVS-STYLE REMARK TEXT.` parsed as the REMARKS
+// paragraph "CCVS-STYLE REMARK" plus a generic paragraph "TEXT." — TEXT being a token — and closing that list
+// turned a silent mis-parse into a diagnostic on legal '85 source (VersionMatrixTests remarks-removed-2002).
+// A comment-entry is arbitrary text by definition, which is why ISO/IEC 1989:2023 defines no syntax for one
+// anywhere; `~DOT+` is what that means, and it is now written the same way in all six places.
 remarksParagraph
-    : REMARKS DOT remarksContent
+    : REMARKS DOT remarksContent? DOT
     ;
 
 remarksContent
-    : (IDENTIFIER | STRINGLIT)+
-    ;
-
-// Fallback for vendor extensions
-genericIdentificationParagraph
-    : genericClause DOT
+    : ~DOT+
     ;
 
 // ==========================================
@@ -373,12 +386,17 @@ configurationSection
     : CONFIGURATION SECTION DOT configurationParagraph*
     ;
 
+// ⛔ THE §12.3.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p313 / folio 283):
+// `CONFIGURATION SECTION.` followed by an optional source-computer-paragraph, object-computer-paragraph,
+// special-names-paragraph and repository-paragraph — four bracketed paragraphs, and nothing else. The last
+// alternative is the error production, NOT a vendor hook (see Core/CobolExpressions.g4#unrecognizedClause); the
+// DOT is written HERE because a PARAGRAPH is period-terminated and the shared production is not.
 configurationParagraph
     : sourceComputerParagraph
     | objectComputerParagraph
     | specialNamesParagraph
     | repositoryParagraph
-    | vendorConfigurationParagraph
+    | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1971)
     ;
 
 // REPOSITORY paragraph (COBOL-2002, ISO §12.3.8) — declares the program prototypes, function prototypes, classes,

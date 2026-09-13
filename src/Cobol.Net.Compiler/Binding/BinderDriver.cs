@@ -132,6 +132,15 @@ internal sealed class BinderDriver
         // funnel (EcNameResolution → COBOLNET1710). A no-op below COBOL-2002.
         global::CobolNet.Validation.DeclinedFacilityPass.Run(ctx, edition);
 
+        // The closed-general-format pass (ISO §4.2.2) — a FOURTH sibling on the same footing, and the one that
+        // ends the grammar's last total sink. `genericClause : IDENTIFIER (IDENTIFIER|literal)*` was reached from
+        // six sites spanning eight closed general formats and swallowed any word run the format did not define,
+        // at every edition and every strictness; it now spells `unrecognizedClause` at every site and this pass
+        // refuses each instance by name, naming the format and its § from ClosedFormats.ByContext (COBOLNET1941
+        // for §13.16.2, 1970 for the clause-list formats, 1971 for the paragraph-list ones). Runs at EVERY
+        // edition — unlike the declined pass there is no edition below which the sink cannot fire. kb/Work PB829.
+        global::CobolNet.Validation.ClosedFormatPass.Run(ctx, edition);
+
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
         // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).

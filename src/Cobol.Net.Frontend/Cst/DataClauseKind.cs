@@ -78,7 +78,7 @@ public enum DataClauseKind : uint
     /// validate-status, which §13.16.2 names as ONE meta-language term and §13.16.3 SR13/SR14 treat as one
     /// group.</summary>
     Validation = 1u << 22,
-    /// <summary>⛔ NOT A CLAUSE — the <c>unrecognizedDataClause</c> error production (kb/Work PB487). It carries a
+    /// <summary>⛔ NOT A CLAUSE — the shared <c>unrecognizedClause</c> error production (kb/Work PB487, generalized to eight closed general formats by kb/Work PB829). It carries a
     /// bit so the permitted-set rules SEE it: an entry whose only defect is an unrecognized word draws
     /// COBOLNET1941 alone, and one that ALSO violates SR17 draws both, rather than the unknown word masking the
     /// composition rule or the reverse.</summary>
@@ -121,7 +121,7 @@ public static class DataClauseKinds
             [typeof(Core.GroupUsageClauseContext)] = DataClauseKind.GroupUsage,
             [typeof(Core.SelectWhenClauseContext)] = DataClauseKind.SelectWhen,
             [typeof(Core.ValidationClauseContext)] = DataClauseKind.Validation,
-            [typeof(Core.UnrecognizedDataClauseContext)] = DataClauseKind.Unrecognized,
+            [typeof(Core.UnrecognizedClauseContext)] = DataClauseKind.Unrecognized,
         }.ToFrozenDictionary();
 
     /// <summary>The clause words as the STANDARD spells them, for a diagnostic that must NAME the offending

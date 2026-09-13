@@ -503,9 +503,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 }
             }
 
-            // Capture generic/vendor extensions
-            if (entry.genericClause() is { } genCtx)
-                CaptureGenericClause(genCtx, GenericClauseContext.SpecialNames);
         }
 
         return base.VisitSpecialNamesParagraph(ctx);
@@ -1295,10 +1292,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 // IDENTIFIER and lands on the §13.16.2 tail production; reject it rather than silently treating
                 // the item as DISPLAY (ISO §13.18.60.2 — the USAGE format has no such form).
                 // ⛔ kb/Work PB487 renamed that production `genericDataClause` → `unrecognizedDataClause` and
-                // CLOSED the Format-1 clause list: in the GREENFIELD every instance is refused by name
-                // (COBOLNET1941), of which this legacy COMP-n arm is the narrow precursor. The legacy tree keeps
-                // its own behaviour byte-for-byte — it is the differential ORACLE until the P15 cut-over.
-                var genericClause = clause.unrecognizedDataClause()?.genericClause();
+                // CLOSED the Format-1 clause list; kb/Work PB829 then unified it with the other five catch-alls
+                // into the ONE `unrecognizedClause` error production. In the GREENFIELD every instance is refused
+                // by name (COBOLNET1941), of which this legacy COMP-n arm is the narrow precursor. The legacy
+                // tree keeps its own behaviour byte-for-byte — it is the differential ORACLE until P15.
+                var genericClause = clause.unrecognizedClause()?.genericClause();
                 if (genericClause != null)
                 {
                     var ids = genericClause.IDENTIFIER();
@@ -2148,42 +2146,29 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Generic clause capture (vendor extensions)
     // ═══════════════════════════════════
 
-    public override object? VisitGenericIdentificationParagraph(
-        CobolParserCore.GenericIdentificationParagraphContext ctx)
+    // kb/Work PB829 unified SIX vendor/extension catch-all productions into the ONE `unrecognizedClause` error
+    // production the greenfield refuses by name (COBOLNET1941/1970/1971, Validation/ClosedFormatPass.cs). The
+    // legacy tree keeps CAPTURING every instance as an extension clause — its behaviour is frozen until the P15
+    // cut-over — so the five per-site overrides collapse into this one, which reads the same fact they encoded
+    // in their names: the extension's context is the alternative list the production was written into.
+    public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx)
     {
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IdentificationParagraph);
-        return base.VisitGenericIdentificationParagraph(ctx);
-    }
-
-    public override object? VisitVendorConfigurationParagraph(
-        CobolParserCore.VendorConfigurationParagraphContext ctx)
-    {
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.ConfigurationVendor);
-        return base.VisitVendorConfigurationParagraph(ctx);
-    }
-
-    public override object? VisitGenericFileDescriptionClause(
-        CobolParserCore.GenericFileDescriptionClauseContext ctx)
-    {
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.FileDescription);
-        return base.VisitGenericFileDescriptionClause(ctx);
-    }
-
-    // kb/Work PB487 renamed the §13.16.2 tail production `genericDataClause` → `unrecognizedDataClause` (the
-    // Format-1 clause list is CLOSED; the greenfield refuses every instance by name, COBOLNET1941). The legacy
-    // tree keeps capturing it as a DATA DESCRIPTION extension clause — its behaviour is frozen until P15.
-    public override object? VisitUnrecognizedDataClause(
-        CobolParserCore.UnrecognizedDataClauseContext ctx)
-    {
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.DataDescription);
-        return base.VisitUnrecognizedDataClause(ctx);
-    }
-
-    public override object? VisitVendorFileControlClause(
-        CobolParserCore.VendorFileControlClauseContext ctx)
-    {
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.FileControl);
-        return base.VisitVendorFileControlClause(ctx);
+        GenericClauseContext? where = ctx.Parent switch
+        {
+            CobolParserCore.IdentificationParagraphContext => GenericClauseContext.IdentificationParagraph,
+            CobolParserCore.ConfigurationParagraphContext => GenericClauseContext.ConfigurationVendor,
+            CobolParserCore.SpecialNameEntryContext => GenericClauseContext.SpecialNames,
+            // The FD and SD arms shared ONE production (`genericFileDescriptionClause`) before the unification,
+            // so both kept the FileDescription context; preserved verbatim rather than split.
+            CobolParserCore.FileDescriptionClauseContext => GenericClauseContext.FileDescription,
+            CobolParserCore.SortMergeDescriptionClauseContext => GenericClauseContext.FileDescription,
+            CobolParserCore.DataDescriptionClauseContext => GenericClauseContext.DataDescription,
+            CobolParserCore.FileControlClausesContext => GenericClauseContext.FileControl,
+            CobolParserCore.IoControlClauseContext => GenericClauseContext.IOControl,
+            _ => null,
+        };
+        if (where is { } w) CaptureGenericClause(ctx.genericClause(), w);
+        return base.VisitUnrecognizedClause(ctx);
     }
 
     public override object? VisitIoControlClause(
@@ -2207,7 +2192,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 "MULTIPLE FILE TAPE");
         }
 
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
         return base.VisitIoControlClause(ctx);
     }
 
