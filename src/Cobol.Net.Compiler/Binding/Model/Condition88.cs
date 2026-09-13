@@ -22,4 +22,17 @@ public sealed class Condition88
     /// parent's category. The first entry's <c>Low</c> is what <c>SET … TO TRUE</c> stores.
     /// </summary>
     public List<(string Low, string? High)> Values { get; } = [];
+
+    /// <summary>alphabet-name-1 of the clause's <c>IN</c> phrase as written (ISO §13.18.63.2 formats 3 and 5 —
+    /// <c>[ IN alphabet-name-1 ]</c> stands OUTSIDE the repeated literal group, so one alphabet governs the whole
+    /// VALUE set), or null when the phrase is absent. §14.7.8 rule 2 makes it the collating sequence every THRU
+    /// range in the set is evaluated in, overriding the no-phrase arm's implementor default — which for this
+    /// compiler is the PROGRAM COLLATING SEQUENCE.
+    /// <para>⛔ IT WAS PARSED AND DROPPED (kb/Work PB398), which is a silent wrong answer rather than a missing
+    /// feature: <c>88 X VALUE "M" THRU "A" IN AL</c> under an AL that reverses the alphabet answered NO for a
+    /// value the range contains, because the range was weighed natively. The EVALUATE twin could not even be
+    /// written. §14.7.8's opening sentence — "This specification applies to THROUGH phrases specified in the VALUE
+    /// clause and the EVALUATE statement" — is why both now resolve through the one
+    /// <c>DataBinder.TryResolveRangeAlphabet</c>.</para></summary>
+    public string? Alphabet { get; set; }
 }

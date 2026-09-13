@@ -129,9 +129,34 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             s = EvaluateSubjectOperand.Condition;
         // SR6 c) and d) are the IDENTITY here: an operand facing a counterpart that is not TRUE or FALSE stays
         // boolean-expression-2 / boolean-expression-1, which is the kind BareOperandKind already gave it.
-        // SR6 e) (a partial-expression object over a boolean/numeric data-item subject) is unreachable while
-        // partial expressions are staged residue — see ScreenPairing.
+        // SR6 e) — "If the selection object is a partial expression and the selection subject is a data item of
+        // the class boolean or numeric, the selection subject is treated as an identifier." It runs AFTER a)–d)
+        // because it is the one arm keyed on the OBJECT being a partial expression, and it OVERRIDES d): a
+        // one-boolean-character boolean data item facing a non-TRUE/FALSE object is boolean-expression-1 by d),
+        // and e) names the narrower case (that object being a partial expression) and makes it identifier-1. The
+        // rule is a no-op for a numeric data item, which BareOperandKind already calls an identifier — stated,
+        // not assumed, because "the class boolean or numeric" is one sentence and implementing half of it would
+        // be the two-arm shape again. A LITERAL or an arithmetic-expression subject is untouched: e) says "a
+        // data item". (kb/Work PB398; unexercisable until this note landed a partial-expression object.)
+        if (o is EvaluateObjectOperand.PartialExpression && IsDataItemOfClassBooleanOrNumeric(subject, subjectBare))
+            s = EvaluateSubjectOperand.Identifier;
         return new EvaluatePairing(s, o, subjectBare, objectBare);
+    }
+
+    /// <summary>§14.9.13.3 SR6 e)'s antecedent — "the selection subject is a data item of the class boolean or
+    /// numeric". A DATA ITEM, so a literal, an arithmetic expression, a function result and a condition-name are
+    /// all excluded by construction (the reference must reduce to one data reference); the CLASS is read from the
+    /// ONE category reader, <c>DataItem.OperandPic</c>, so a bit GROUP or a national group's §13.18.29.4 GR1b/GR2b
+    /// as-if PICTURE answers exactly as its elementary twin does — reading raw <c>Pic</c> would return null for
+    /// every group and silently drop them (the kb/Work PB728/PB741 shape).</summary>
+    private bool IsDataItemOfClassBooleanOrNumeric(Core.EvaluateSubjectContext subject, in BareOperandAnalysis bare)
+    {
+        if (bare.IsConditionName) return false;   // a condition-name is not a data item in this position
+        if (subject.classCondition() is not null || subject.booleanLiteral() is not null) return false;
+        if (subject.valueOperand()?.arithmeticExpression() is not { } expr) return false;
+        if (ConditionBinder.SoleDataRef(expr) is not { } dref) return false;
+        // Probe — a routing predicate is diagnostic-free (R30); an unresolvable subject reports through the bind.
+        return ctx.Refs.Probe(dref) is { Item.OperandPic.Category: PicCategory.Boolean or PicCategory.Numeric };
     }
 
     /// <summary>SR6's "results in one boolean character", over the §8.8.2 rules 9/10 result length. A
@@ -178,6 +203,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     {
         if (item.ANY() is not null) return EvaluateObjectOperand.Any;
         if (item.valueRange() is not null) return EvaluateObjectOperand.RangeExpression;
+        // §14.9.13.3 SR5 — the object's leftmost portion is a relational operator, a class condition without the
+        // identifier, or a sign condition without its operand. The GRAMMAR decides it (that is what SR5 is: a
+        // statement about the written form's left edge), so this row needs no symbol resolution — and with it
+        // Table 15's Partial-expression row stops being a lookup no operand can reach (kb/Work PB398).
+        if (item.partialExpression() is not null) return EvaluateObjectOperand.PartialExpression;
         if (item.condition() is { } c)
             return SoleBooleanLiteral(c) is not null
                 ? EvaluateObjectOperand.TrueOrFalse : EvaluateObjectOperand.Condition;
@@ -302,6 +332,25 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // Value subject vs operand / range: equality or inclusive bounds (§14.9.13 GR5b/c).
         if (subject.valueOperand() is not { } subjOp)
             return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
+
+        // §14.9.13.3 SR8 + §14.9.13.4 GR4 a) 2. — partial-expression-1. The object is "treated as though it were
+        // specified as condition-2, where condition-2 is the conditional expression that results from preceding
+        // partial-expression-1 by the selection subject", and "the corresponding selection subject is treated as
+        // though it were specified by the word TRUE" — so the pair's term IS that condition, with no comparison
+        // against the subject wrapped around it. Bound BEFORE the equality/range arms because the SUBJECT's
+        // operand belongs INSIDE the rewritten condition (the relation side binds it, §14.9.13.4 GR2's "as if the
+        // corresponding relation condition were written"), not beside it: binding `left` here as well would
+        // activate a subject user-function twice for one written reference.
+        if (item.partialExpression() is { } partial)
+        {
+            int objMark = host.Udf.PendingCount;
+            var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindPartialExpression(partial, subjOp), objMark);
+            host.Udf.UdfStagePerEvaluationResidue(subjMark,
+                "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this lowering "
+                + "re-binds subjects per WHEN)");
+            return bound;
+        }
+
         BoundOperand left = BindValueOperand(subjOp);
         host.Udf.UdfStagePerEvaluationResidue(subjMark,
             "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this lowering "
@@ -312,14 +361,27 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             int objMark = host.Udf.PendingCount;
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
+            bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
+            // §14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §14.7.8 rule 2 makes that alphabet
+            // THE collating sequence the range is evaluated in — overriding the no-phrase arm's "defined by the
+            // implementor" default, which for this compiler is the PROGRAM COLLATING SEQUENCE. The SR3 screens and
+            // the carrier registration are the ONE resolver §14.7.8's opening sentence asks for ("This specification
+            // applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement"), so the VALUE
+            // clause's identical phrase reaches the same code (kb/Work PB398).
+            string? alphabet = RangeAlphabet(range, lo, hi);
             // §14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID. The rule
             // is scoped to LITERAL alphanumeric/national ranges (rule 1's numeric ranges set no EC), so route only a
             // string-literal range to the ThruMember carrier under checking; everything else keeps the plain relation
             // pair (byte-identical when the directive is absent).
-            if (ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line)
-                && lo is BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National }
-                && hi is BoundStringLiteral)
-                return host.Udf.UdfAttachPerEvaluation(new BoundRangeMembership(left, lo, hi, CheckInvalid: true), objMark);
+            // ⛔ AN IN PHRASE ROUTES HERE WHETHER OR NOT CHECKING IS ON: a relation pair derives its sequence from
+            // its operands' categories, which is the very rule the phrase overrides, so the named sequence has
+            // nowhere to ride on that lowering. The unchecked render of this node is that same inclusive pair.
+            bool literalRange = lo is BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National }
+                && hi is BoundStringLiteral;
+            if (alphabet is not null || (check && literalRange))
+                return host.Udf.UdfAttachPerEvaluation(
+                    new BoundRangeMembership(left, lo, hi, CheckInvalid: check && literalRange, Alphabet: alphabet),
+                    objMark);
             return host.Udf.UdfAttachPerEvaluation(new BoundLogical("&&",
                 [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
                 objMark);
@@ -331,6 +393,22 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }
         return new BoundConditionError($"EVALUATE WHEN object '{item.GetText()}'");
+    }
+
+    /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §14.9.13.2's range-expression), screened by
+    /// §14.9.13.3 SR3 and registered as a runtime carrier — or null when the phrase is absent or was refused, in
+    /// which case §14.7.8 rule 2's no-phrase arm applies and the sequence stays the implementor's.
+    /// <para>The range's CLASS is asked of the ONE comparison-class rule over BOTH bounds, never of one of them:
+    /// SR3's two sentences are a test on the pair ("the literals or identifiers specified in the THROUGH phrase",
+    /// then "if literal-3 or identifier-3 is of class national"), and §14.9.13.3 SR4 already requires the two to be
+    /// of the same class — so the pair has one class to have.</para></summary>
+    private string? RangeAlphabet(Core.ValueRangeContext range, BoundOperand lo, BoundOperand hi)
+    {
+        if (range.cobolWord() is not { } word) return null;
+        string name = word.GetText();
+        var cls = CollatingSelection.ForComparison(
+            CollatingSelection.OperandCategory(lo), CollatingSelection.OperandCategory(hi));
+        return ctx.Data.TryResolveRangeAlphabet(name, cls, "an EVALUATE WHEN THROUGH range") ? name : null;
     }
 
     /// <summary>The selection OBJECT's condition when <see cref="ClassifyPair"/> put it in Table 15's Condition

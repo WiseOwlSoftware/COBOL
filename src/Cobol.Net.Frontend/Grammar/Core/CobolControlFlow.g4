@@ -193,10 +193,19 @@ evaluateWhenGroup
     : NOT? evaluateWhenItem
     ;
 
+// ⛔ ALTERNATIVE ORDER IS LOAD-BEARING AND IS NOT THE PLACE TABLE 15 IS DECIDED (see the block above). `valueRange`
+// leads because its THRU is what distinguishes it; `valueOperand` precedes `condition` because a BARE word is both
+// and only the resolved SYMBOL can say which (EvaluateBinder.ClassifyPair asks, once); `partialExpression` is last
+// of the shapes because `className`'s user-word alternative would otherwise claim a bare identifier-2.
+// partial-expression-1 (§14.9.13.3 SR5) had NO alternative here at all, so `EVALUATE WS-N WHEN > 5` — the first
+// shape SR5's own list names and the ordinary way to write a threshold arm — was a raw parse error, and FIVE rules
+// (SR5, SR7 d), SR8, SR6 e) and §14.9.13.4 GR4 a) 2.) had no code site, with Table 15's Partial-expression row a
+// permanently dead lookup (kb/Work PB398).
 evaluateWhenItem
-    : valueRange                         // WHEN A THRU N, WHEN 1 THRU 10
+    : valueRange                         // WHEN A THRU N, WHEN 1 THRU 10, WHEN "A" THRU "M" IN ALPH
     | valueOperand                       // single value: "A", 1, VAR
     | condition                          // for EVALUATE TRUE / complex WHEN
+    | partialExpression                  // WHEN > 5, WHEN NUMERIC, WHEN POSITIVE, WHEN > 5 AND < 10 (§14.9.13.3 SR5)
     | ANY                                // match anything
     ;
 

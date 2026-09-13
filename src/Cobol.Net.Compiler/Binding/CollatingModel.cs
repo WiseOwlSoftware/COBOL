@@ -370,6 +370,40 @@ public enum CollatingClass
 /// <c>f798397f</c>).</para></summary>
 public static class CollatingSelection
 {
+    /// <summary>⛔ THE ONE data-CATEGORY reading of a bound relation operand — literals carry their own tag
+    /// (<see cref="Bound.BoundStringLiteral.Category"/>); a reference-modified field is the unique item of its
+    /// inner's class view (alphanumeric for the classic categories, ISO §8.4.3.3 GR6 — but national/boolean ref-mod
+    /// stays national/boolean, GR1/GR5a); a plain field asks <c>DataItem.OperandPic</c>, never raw <c>Pic</c>, so a
+    /// bit / national GROUP answers as the elementary item §13.18.29.4 GR1b/GR2b makes it; null for
+    /// figurative/computed/error shapes, which §8.3.3.6.4 GR1 gives their context's category.
+    /// <para>It lives here rather than in the renderer because the BINDER asks it too: §14.9.13.3 SR3 admits a
+    /// range's <c>IN alphabet-name-1</c> phrase only "when the literals or identifiers specified in the THROUGH
+    /// phrase are of class alphabetic, alphanumeric, or national", and chooses the alphabet's own class from the
+    /// same reading. Two copies of a category reader is precisely the shape that handed a GROUP-USAGE NATIONAL
+    /// operand the alphanumeric weight table twice already (kb/Work PB728 arm 15, PB741).</para></summary>
+    public static PicCategory? OperandCategory(Bound.BoundOperand o) => o switch
+    {
+        Bound.BoundStringLiteral sl => sl.Category,
+        Bound.BoundAllLiteral al => al.Category,
+        // ISO §8.3.3.3.1: "Numeric literals are of the class and category numeric." It used to answer NULL, which
+        // the alphanumeric fall-through of ForComparison then read as an ordinary group — harmless in the relation
+        // renderer (§8.8.4.2.5 makes a numeric operand against an alphanumeric one an ALPHANUMERIC comparison
+        // anyway, and two numeric operands never reach the string branch), but NOT harmless once a BINDER asks
+        // the class of a THROUGH range: `WHEN 1 THRU 9 IN AL` answered "alphanumeric" and slipped past
+        // §14.9.13.3 SR3's class restriction (kb/Work PB398, measured before the arm was added).
+        Bound.BoundNumericLiteral => PicCategory.Numeric,
+        // The ONE ref-mod category reader (kb/Work PB70/PB73) — GR6's rewrites, incl. numeric-national → national.
+        Bound.BoundFieldOperand { Place: RefModPlace rm } => rm.Category,
+        // THE ONE category reader (D20/PB79): an elementary item's picture, a bit / national group's as-if picture;
+        // an alphanumeric group has none and takes the alphanumeric (image) branch.
+        Bound.BoundFieldOperand f => f.Place.Item.OperandPic?.Category,
+        // A COMPUTED operand with a string-class function result — its category is the function's type (§15.2;
+        // kb/Work PB68 — the fifth site of the class-boolean rule: two boolean function results compared each
+        // other rode the alphanumeric collate-and-space-pad branch instead of the boolean right-zero-extension).
+        Bound.BoundComputedOperand { Expr: Bound.BoundIntrinsicCall { ResultCategory: PicCategory.Boolean or PicCategory.National or PicCategory.Alphanumeric } ic } => ic.ResultCategory,
+        _ => null,
+    };
+
     /// <summary>The SORT/MERGE KEY class of an operand described by <paramref name="operandPic"/> — which shall be
     /// the item's OPERAND picture (<c>DataItem.OperandPic</c>: its own PICTURE for an elementary item, the
     /// §13.18.29.4 GR1b/GR2b as-if PICTURE for a bit / national group), never <c>Pic</c> guarded by
@@ -450,3 +484,24 @@ public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDe
     /// <summary>Both halves native — no carrier is emitted for either.</summary>
     public static SortCollation Native { get; } = new(null, null);
 }
+
+/// <summary>
+/// One per-runtime-module carrier for a collating sequence a THROUGH range's <c>IN alphabet-name-1</c> phrase names
+/// (ISO §14.7.8 rule 2). The <see cref="Field"/> is allocated by <c>DataBinder.RegisterRangeCollation</c> and
+/// declared by <c>ObjectComputerEmit</c>; the bound tree carries the COBOL alphabet-NAME and the renderer maps it
+/// through <c>DataBinder.RangeCollations</c>, so no C# identifier ever travels in a bound node.
+/// </summary>
+/// <param name="Field">The <c>CobolCollation</c> field to pass, or NULL when the alphabet is the native order —
+/// an identity sequence has no carrier and the native two-argument comparison IS it (§14.7.8 rule 2's "the
+/// collating sequence defined by that alphabet", where that sequence is the native one).</param>
+/// <param name="Name">alphabet-name-1 as written, for the declaration's comment.</param>
+/// <param name="Table">The non-identity collating table, or null for the LOCALE arm / an identity alphabet.</param>
+/// <param name="Locale">The LOCALE arm, or null for a table / an identity alphabet.</param>
+/// <param name="National">True when the alphabet is an <c>ALPHABET … FOR NATIONAL</c> one — it becomes a
+/// <c>NationalCollation</c> rather than an <c>AlphanumericCollation</c>.</param>
+/// <param name="Declare">True when THIS entry owns the field's declaration. False for an identity alphabet (no
+/// field) and for one that IS the program collating sequence, whose <c>__COLLATE</c> / <c>__COLLATE_NAT</c> is
+/// already declared — the entry still exists so the renderer finds a field for the name, which is the whole point
+/// of keying the map on the NAME rather than on the definition.</param>
+public sealed record RangeCollationCarrier(string? Field, string Name, CollatingTable? Table,
+    LocaleCollatingSpec? Locale, bool National, bool Declare);

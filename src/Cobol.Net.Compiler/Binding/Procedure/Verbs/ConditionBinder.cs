@@ -354,10 +354,41 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         public BoundOperand? Subject;
         public string? Op;
+        /// <summary>ISO §14.9.13.3 SR8 — the EVALUATE SELECTION SUBJECT that the leftmost, elided portion of a
+        /// partial-expression is spliced from ("condition-2 is the conditional expression that results from
+        /// preceding partial-expression-1 by the selection subject"). Null in every ordinary condition context,
+        /// and consumed — set back to null — by the ONE leading <c>partialComparison</c> that reads it, because
+        /// SR5 elides the LEFTMOST portion only: everything after it is an ordinary §8.8.4.12 tail already
+        /// served by <see cref="Subject"/>. Deliberately NOT cleared by <see cref="Reset"/>, which models the
+        /// abbreviation terminating mid-sequence — a thing that cannot have happened before the leading
+        /// portion is bound.</summary>
+        public Core.ValueOperandContext? PartialSubject;
         public void Reset() { Subject = null; Op = null; }
     }
 
     public BoundCondition BindCondition(IParseTree node) => BindCondition(node, new AbbrevCarry());
+
+    /// <summary>⛔ ISO §14.9.13.3 SR8 — THE partial-expression rewrite, and the only place it happens: "If a
+    /// selection object is specified by partial-expression-1, that selection object is treated as though it were
+    /// specified as condition-2, where condition-2 is the conditional expression that results from preceding
+    /// partial-expression-1 by the selection subject." §14.9.13.4 GR4 a) 2. then evaluates that expression and
+    /// makes its truth value the result of the pair's analysis, and SR8's second sentence ("the corresponding
+    /// selection subject is treated as though it were specified by the word TRUE") is what makes the pair's term
+    /// the condition ITSELF rather than a comparison against the subject — so the caller returns this unchanged.
+    /// <para>⛔ THE REWRITE IS THE WHOLE IMPLEMENTATION (kb/Work PB398). SR5 (the definition), SR7 d) (the
+    /// well-formedness test — "were it preceded by the corresponding selection subject, a conditional expression
+    /// would result") and GR4 a) 2. (the semantics) are not three checks: splice the subject in and either an
+    /// ordinary condition results or the ordinary condition binder refuses it, with the ordinary diagnostic. The
+    /// splice IS §8.8.4.12's subject insertion — the leading relational operator's missing operand is carried in
+    /// exactly the field a later abbreviated relation reads — which is why <c>WHEN &gt; 5 AND &lt; 10</c> works
+    /// with no code of its own: SR7 d) licenses it and §8.8.4.12.4 GR1 already knew how.</para></summary>
+    /// <param name="pe">The partial-expression parse node.</param>
+    /// <param name="subject">The corresponding selection subject's operand node (§14.9.13.3 SR7 — "the selection
+    /// subject having the same ordinal position"). Bound HERE rather than by the caller, through the relation
+    /// side's <see cref="ComparisonOperandOf"/>, because SR8 forms a CONDITION: §14.9.13.4 GR2's "as if the
+    /// corresponding relation condition were written" is the same reading the rest of this binder gives.</param>
+    public BoundCondition BindPartialExpression(Core.PartialExpressionContext pe, Core.ValueOperandContext? subject) =>
+        BindCondition(pe, new AbbrevCarry { PartialSubject = subject });
 
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
     {
@@ -366,12 +397,41 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         Core.LogicalXorExpressionContext xorExpr => BindXorSequence(xorExpr, carry),
         Core.LogicalAndExpressionContext andExpr => BindFlatSequence(andExpr, "&&", carry),
         Core.AbbreviatedAndChainContext chain => BindFlatSequence(chain, "&&", carry),
+        // §14.9.13.3 SR5's spine — the SAME three logical tiers with only the leading element elided, so they
+        // fold with the SAME sequence binder and inherit its short-circuit / user-function cardinality rules.
+        Core.PartialExpressionContext pOr => BindFlatSequence(pOr, "||", carry),
+        Core.PartialXorExpressionContext pXor => BindFlatSequence(pXor, "^", carry),
+        Core.PartialAndExpressionContext pAnd => BindFlatSequence(pAnd, "&&", carry),
+        Core.PartialComparisonContext pc => BindPartialComparison(pc, carry),
         Core.UnaryLogicalExpressionContext u => u.NOT() is not null
             ? new BoundNot(BindCondition(u.primaryCondition(), carry)) : BindCondition(u.primaryCondition(), carry),
         Core.AbbreviatedRelationContext ar => BindAbbreviatedRelation(ar, carry),
         Core.PrimaryConditionContext p => BindPrimary(p, carry),
         _ => new BoundConditionError("unsupported condition form"),
     };
+
+    /// <summary>The LEFTMOST, elided portion of a partial-expression (ISO §14.9.13.3 SR5): the selection subject
+    /// is supplied as the operand the written form omits, and the result is the ordinary condition that rule's
+    /// three shapes name — a relation, a class condition, or a sign condition. Each shape is bound by the SAME
+    /// body the fully-written form uses (<see cref="BindClassConditionOn"/> / <see cref="BindSignConditionOn"/> /
+    /// <see cref="BindAbbreviatedRelation"/>), so no rule attached to any of them — §8.8.4.4.3's boolean-operand
+    /// guard, §8.8.4.7.3 SR1's operand closure, the LOCALE-alphabet refusal, the §8.8.4.2 relation band — has a
+    /// second copy that could drift from the written one.</summary>
+    private BoundCondition BindPartialComparison(Core.PartialComparisonContext pc, AbbrevCarry carry)
+    {
+        var subject = carry.PartialSubject;
+        carry.PartialSubject = null;   // SR5 elides the LEFTMOST portion only
+        bool not = pc.NOT() is not null;
+        if (pc.className() is { } cls) return BindClassConditionOn(cls, not, () => ComparisonOperandOf(subject), carry);
+        if (pc.POSITIVE() is not null || pc.NEGATIVE() is not null || pc.ZERO() is not null)
+            return BindSignConditionOn(pc.POSITIVE() is not null ? 'P' : pc.NEGATIVE() is not null ? 'N' : 'Z',
+                not, subject, carry);
+        // The relational shape. SR8's splice and §8.8.4.12.4 GR1's subject insertion are the SAME operation, so
+        // the subject is seeded as the carried subject and the ordinary abbreviated-relation arm does the rest —
+        // which is also what carries it on to a following `AND < 10`.
+        carry.Subject = ComparisonOperandOf(subject);
+        return BindAbbreviatedRelation(pc.abbreviatedRelation(), carry);
+    }
 
     /// <summary>Bind a left-to-right logical sequence (an OR / XOR / AND chain, or an abbreviated-AND chain), threading
     /// the abbreviation <paramref name="carry"/> through every operand in SOURCE ORDER so a later abbreviated relation
@@ -470,63 +530,95 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "shall not be specified for a boolean operand (ISO §8.8.4.4.3 SR4)");
     }
 
+    /// <summary>⛔ THE ONE class-condition body (ISO §8.8.4.4), over an operand the CALLER names. Two callers ask
+    /// the same question about different spellings of the same condition: <see cref="BindComparison"/> for the
+    /// written form <c>identifier-1 IS [NOT] class</c>, and <see cref="BindPartialComparison"/> for
+    /// §14.9.13.3 SR5's "class condition without the identifier", whose operand is the EVALUATE selection subject.
+    /// Extracted rather than copied because FOUR rules live in it — the §8.8.4.4.3 SR4/SR8 boolean-operand guard,
+    /// the SR2 LOCALE-alphabet refusal, the §12.3.7 user-class membership and the §8.8.4.4.4 GR3 a) coded-set
+    /// class — and a second copy would be four chances for the two spellings to diverge.
+    /// <para><paramref name="operand"/> is a thunk so the operand is bound only on the arms that reach it: the
+    /// LOCALE refusal reports a rule about the CLASS-NAME and must not also drag the operand's own diagnostics
+    /// into the same statement.</para></summary>
+    private BoundCondition BindClassConditionOn(Core.ClassNameContext cls, bool not,
+        System.Func<BoundOperand> operand, AbbrevCarry carry)
+    {
+        carry.Reset();   // a class condition is a complete simple condition — terminates the abbreviation
+        char? kind = cls.NUMERIC() is not null ? 'N'
+            : cls.ALPHABETIC() is not null ? 'A'
+            : cls.ALPHABETIC_UPPER() is not null ? 'U'
+            : cls.ALPHABETIC_LOWER() is not null ? 'L'
+            : null;
+        if (kind is { } k)
+        {
+            var opnd = operand();
+            CheckClassConditionOperand(opnd, k);
+            return new BoundClassCondition(opnd, k, not);
+        }
+        // §8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
+        // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
+        // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
+        // — DataBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
+        if (cls.cobolWord() is { } lcls && ctx.Data.IsLocaleAlphabet(lcls.GetText()))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{lcls.GetText()}': "
+                + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
+                + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§12.3.7.4 GR7 Table 6)");
+            return new BoundConditionError($"class condition '{cls.GetText()}'");
+        }
+        // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
+        if (cls.cobolWord() is { } ucls && ctx.Data.UserClasses.TryGetValue(ucls.GetText(), out string? members))
+        {
+            var opnd = operand();
+            CheckClassConditionOperand(opnd, 'C');   // SR4 also forbids a class-name for a boolean operand
+            return new BoundUserClassCondition(opnd, members, not);
+        }
+        // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
+        // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
+        // loud staged BoundConditionError.
+        if (cls.cobolWord() is { } acls
+            && (ctx.Data.Alphabets.TryGetValue(acls.GetText(), out var aDef) && aDef.CodedSet is { } aSet
+                ? aSet : ctx.Data.NationalAlphabets.TryGetValue(acls.GetText(), out var nDef) ? nDef.CodedSet : null) is { } set)
+        {
+            var opnd = operand();
+            CheckClassConditionOperand(opnd, 'C');   // SR3's usage rule covers alphabet-name-1 exactly as a class-name
+            string setKind = set.Phrase switch
+            {
+                "STANDARD-1" or "STANDARD-2" => "Ascii",
+                "UCS-4" or "UTF-8" => "ScalarValues",
+                _ => "AllNative",   // NATIVE / UTF-16 / a literal phrase — GR7 k4's total set
+            };
+            return new BoundCodedSetClassCondition(opnd, setKind, not);
+        }
+        return new BoundConditionError($"class condition '{cls.GetText()}'");
+    }
+
+    /// <summary>⛔ THE ONE sign-condition body (ISO §8.8.4.7), over an operand node the CALLER names — the written
+    /// form's own <c>comparisonOperand</c>, or (§14.9.13.3 SR5's "sign condition without the identifier, or a sign
+    /// condition without the arithmetic expression") the EVALUATE selection subject. Both of SR5's phrasings name
+    /// the SAME elided position — §8.8.4.7.2's format offers identifier-1 or arithmetic-expression-1 there — so
+    /// they are one alternative here, not two.</summary>
+    private BoundCondition BindSignConditionOn(char kind, bool not, Core.ValueOperandContext? operand, AbbrevCarry carry)
+    {
+        carry.Reset();
+        // ISO §8.8.4.7.3 SR1 closes the operand to "any single numeric data item described with a usage other
+        // than a standard floating-point usage, or any form of arithmetic expression" — named here so a
+        // non-numeric operand is sent to the rule it broke, not to §8.8.1.1 alone (kb/Work PB171).
+        if (operand is null) return new BoundConditionError("sign condition with no operand");
+        return new BoundSignCondition(
+            host.Expr.BindOperandExpr(operand,
+                "ISO §8.8.4.7.3 SR1 admits only a single numeric data item or an arithmetic expression as a "
+                + "sign-condition operand"),
+            kind, not, IsFormat2FloatSign(operand));
+    }
+
     private BoundCondition BindComparison(Core.ComparisonExpressionContext cmp, AbbrevCarry carry)
     {
         var operands = cmp.comparisonOperand();
         bool not = cmp.NOT() is not null;
 
         if (cmp.className() is { } cls)
-        {
-            carry.Reset();   // a class condition is a complete simple condition — terminates the abbreviation
-            char? kind = cls.NUMERIC() is not null ? 'N'
-                : cls.ALPHABETIC() is not null ? 'A'
-                : cls.ALPHABETIC_UPPER() is not null ? 'U'
-                : cls.ALPHABETIC_LOWER() is not null ? 'L'
-                : null;
-            if (kind is { } k && operands.Length >= 1)
-            {
-                var opnd = ComparisonOperand(operands[0]);
-                CheckClassConditionOperand(opnd, k);
-                return new BoundClassCondition(opnd, k, not);
-            }
-            // §8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
-            // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
-            // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
-            // — DataBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
-            if (cls.cobolWord() is { } lcls && ctx.Data.IsLocaleAlphabet(lcls.GetText()))
-            {
-                ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{lcls.GetText()}': "
-                    + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
-                    + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§12.3.7.4 GR7 Table 6)");
-                return new BoundConditionError($"class condition '{cls.GetText()}'");
-            }
-            // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
-            if (cls.cobolWord() is { } ucls && operands.Length >= 1
-                && ctx.Data.UserClasses.TryGetValue(ucls.GetText(), out string? members))
-            {
-                var opnd = ComparisonOperand(operands[0]);
-                CheckClassConditionOperand(opnd, 'C');   // SR4 also forbids a class-name for a boolean operand
-                return new BoundUserClassCondition(opnd, members, not);
-            }
-            // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
-            // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
-            // loud staged BoundConditionError.
-            if (cls.cobolWord() is { } acls && operands.Length >= 1
-                && (ctx.Data.Alphabets.TryGetValue(acls.GetText(), out var aDef) && aDef.CodedSet is { } aSet
-                    ? aSet : ctx.Data.NationalAlphabets.TryGetValue(acls.GetText(), out var nDef) ? nDef.CodedSet : null) is { } set)
-            {
-                var opnd = ComparisonOperand(operands[0]);
-                CheckClassConditionOperand(opnd, 'C');   // SR3's usage rule covers alphabet-name-1 exactly as a class-name
-                string setKind = set.Phrase switch
-                {
-                    "STANDARD-1" or "STANDARD-2" => "Ascii",
-                    "UCS-4" or "UTF-8" => "ScalarValues",
-                    _ => "AllNative",   // NATIVE / UTF-16 / a literal phrase — GR7 k4's total set
-                };
-                return new BoundCodedSetClassCondition(opnd, setKind, not);
-            }
-            return new BoundConditionError($"class condition '{cls.GetText()}'");
-        }
+            return BindClassConditionOn(cls, not, () => ComparisonOperand(operands[0]), carry);
 
         if (cmp.OMITTED() is not null)
         {
@@ -550,18 +642,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
-        {
-            carry.Reset();
-            char kind = cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z';
-            // ISO §8.8.4.7.3 SR1 closes the operand to "any single numeric data item described with a usage other
-            // than a standard floating-point usage, or any form of arithmetic expression" — named here so a
-            // non-numeric operand is sent to the rule it broke, not to §8.8.1.1 alone (kb/Work PB171).
-            return new BoundSignCondition(
-                host.Expr.BindOperandExpr(operands[0],
-                    "ISO §8.8.4.7.3 SR1 admits only a single numeric data item or an arithmetic expression as a "
-                    + "sign-condition operand"),
-                kind, not, IsFormat2FloatSign(operands[0]));
-        }
+            return BindSignConditionOn(cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z',
+                not, operands[0].valueOperand(), carry);
 
 
         if (cmp.comparisonOperator() is { } opCtx && operands.Length >= 2)
@@ -734,8 +816,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// A parenthesized float (SR1 makes <c>(FL) IS POSITIVE</c> Format 1), a non-float item, or any compound /
     /// unary-signed expression stays Format 1 (the algebraic test). The paren distinction is invisible in the
     /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
-    private bool IsFormat2FloatSign(Core.ComparisonOperandContext operand) =>
-        SoleDataReference(operand.valueOperand()?.arithmeticExpression()) is { } dref
+    private bool IsFormat2FloatSign(Core.ValueOperandContext? operand) =>
+        SoleDataReference(operand?.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is { Item.Pic.IsFloat: true };   // Probe — a routing predicate is diagnostic-free (R30)
 
     /// <summary>The operand's sole unparenthesized data reference, or null when the arithmetic expression carries

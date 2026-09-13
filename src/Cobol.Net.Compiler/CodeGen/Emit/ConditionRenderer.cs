@@ -66,7 +66,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     public string Visit(BoundClassCondition n) => RenderClass(n);
     // An EVALUATE WHEN alphanumeric/national THRU range (§14.7.8): ThruMember sets EC-RANGE-INVALID (nonfatal) for an
     // inverted range (Lo collating after Hi) and returns false (empty range), else the inclusive-bound membership.
-    // Produced only under EC-RANGE-INVALID checking (else the plain BoundLogical of two relations renders — byte-identical).
+    // Produced under EC-RANGE-INVALID checking OR when the range names its own sequence with an IN phrase — the
+    // plain BoundLogical of two relations has no slot for a per-range collating sequence, and renders byte-identically
+    // for every other range (kb/Work PB398).
     public string Visit(BoundRangeMembership n)
     {
         // The range test is a PAIR of relation conditions (§14.7.8 rule 2 over §8.8.4.2), so its collating
@@ -74,9 +76,20 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // side national" test, which read `Place.Item.Pic` and so missed a national GROUP (Pic null, the
         // §13.18.29.4 GR2b as-if PICTURE lives on OperandPic), a national ref-mod slice and a national function
         // result, handing all three the alphanumeric 256-entry weight table (kb/Work PB741 sweep).
-        string collate = ctx.CollateArgFor(StringCategoryOf(n.Left), StringCategoryOf(n.Lo));
-        return RuntimeApi.ThruMember(
-            OperandText.AsString(n.Left, num), OperandText.AsString(n.Lo, num), OperandText.AsString(n.Hi, num), collate);
+        // §14.7.8 rule 2 — an IN alphabet-name-1 phrase names the sequence OUTRIGHT ("the collating sequence used
+        // for range evaluation is the collating sequence defined by that alphabet"), so it displaces the
+        // categories' own answer, PROGRAM COLLATING SEQUENCE included: a range written `IN STANDARD-1` collates
+        // natively inside a program whose PCS reorders the alphabet. An identity alphabet registers no carrier and
+        // renders as the native two-argument overload, which IS its sequence.
+        string collate = RangeCollateArg(n.Alphabet, StringCategoryOf(n.Left), StringCategoryOf(n.Lo));
+        string read = OperandText.AsString(n.Left, num), lo = OperandText.AsString(n.Lo, num),
+               hi = OperandText.AsString(n.Hi, num);
+        // Unchecked, the node is the inclusive bound test the relation-pair lowering produced — the ONLY difference
+        // is that the collating sequence is this range's, which a BoundRelational pair has no slot for. ThruMember
+        // adds exactly the EC-set, so emitting it with checking off would set a nonfatal EC no >>TURN asked for.
+        return n.CheckInvalid
+            ? RuntimeApi.ThruMember(read, lo, hi, collate)
+            : $"({RuntimeApi.StrCompare(read, lo, collate)} >= 0 && {RuntimeApi.StrCompare(read, hi, collate)} <= 0)";
     }
 
     /// <summary>⛔ THE CLASS-CONDITION classification test, and NOTHING ELSE — its one caller is
@@ -348,25 +361,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
     }
 
-    /// <summary>An operand's STRING data category for the relation dispatch — literals carry their own tag
-    /// (<see cref="BoundStringLiteral.Category"/>); a reference-modified field is the unique item of its
-    /// inner's class view (alphanumeric for the classic categories, §8.4.3.3 GR6 — but national/boolean
-    /// ref-mod stays national/boolean, GR1/GR5a); null for figuratives/computed/error shapes.</summary>
-    private static PicCategory? StringCategoryOf(BoundOperand o) => o switch
-    {
-        BoundStringLiteral sl => sl.Category,
-        BoundAllLiteral al => al.Category,
-        // The ONE ref-mod category reader (kb/Work PB70/PB73) — GR6's rewrites, incl. numeric-national → national.
-        BoundFieldOperand { Place: RefModPlace rm } => rm.Category,
-        // THE ONE category reader (D20/PB79): an elementary item's picture, a bit / national group's as-if picture;
-        // an alphanumeric group has none and takes the alphanumeric (image) branch.
-        BoundFieldOperand f => f.Place.Item.OperandPic?.Category,
-        // A COMPUTED operand with a string-class function result — its category is the function's type (§15.2;
-        // kb/Work PB68 — the fifth site of the class-boolean rule: two boolean function results compared each
-        // other rode the alphanumeric collate-and-space-pad branch instead of the boolean right-zero-extension).
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Boolean or PicCategory.National or PicCategory.Alphanumeric } ic } => ic.ResultCategory,
-        _ => null,
-    };
+    /// <summary>An operand's STRING data category for the relation dispatch. ⛔ THE BODY MOVED to
+    /// <see cref="CollatingSelection.OperandCategory"/> (kb/Work PB398): §14.9.13.3 SR3 asks the SAME question at
+    /// BIND time — "the literals or identifiers specified in the THROUGH phrase are of class alphabetic,
+    /// alphanumeric, or national" — and a second copy in the binder would be two readings of one category rule,
+    /// the shape kb/Work PB728/PB741 already paid for once. This alias stays so the renderer's many call sites
+    /// keep reading as the renderer's own question.</summary>
+    private static PicCategory? StringCategoryOf(BoundOperand o) => CollatingSelection.OperandCategory(o);
 
     /// <summary>Read a relation operand as a '0'/'1' boolean string (for a boolean-expression relation): a
     /// boolean expression via <see cref="BooleanRenderer"/>, a boolean field via its <c>Place.Read()</c>, a
@@ -533,16 +534,28 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
         // never compare its raw image to an unscaled long (diagnosis B3).
         string read = isString ? OperandText.AsString(subject, num) : num.FieldNum(c.Parent).Expr;
-        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, cat, isString, v.Low, v.High, c.CheckRangeInvalid));
+        var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, cat, isString, v.Low, v.High,
+            c.CheckRangeInvalid, c.Condition.Alphabet));
         return "(" + string.Join(" || ", tests) + ")";
     }
+
+    /// <summary>The trailing collation argument for a THROUGH range, when its clause named one with
+    /// <c>IN alphabet-name-1</c> (ISO §14.7.8 rule 2 — "the collating sequence used for range evaluation is the
+    /// collating sequence defined by that alphabet"): the alphabet's carrier, or nothing when it is an identity
+    /// sequence, whose ordering IS the native one. ⛔ It DISPLACES the categories' own answer, PROGRAM COLLATING
+    /// SEQUENCE included — that default is precisely what rule 2's no-phrase arm gives and what the phrase is for.
+    /// The ONE reader, shared by the EVALUATE range and the level-88 VALUE range, because §14.7.8's first sentence
+    /// governs both clauses at once.</summary>
+    private string RangeCollateArg(string? alphabet, PicCategory? left, PicCategory? right) => alphabet is { } a
+        ? ctx.Data.RangeCollations.TryGetValue(a, out var c) && c.Field is { } f ? ", " + f : ""
+        : ctx.CollateArgFor(left, right);
 
     /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
     /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§14.7.8 rule 2), the range
     /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
     /// range (lo collating after hi) and treats it as empty.</summary>
     private string RenderMembershipTest(string read, DataItem parent, PicCategory? cat, bool isString, string low,
-        string? high, bool checkRangeInvalid = false)
+        string? high, bool checkRangeInvalid = false, string? alphabet = null)
     {
         if (isString)
         {
@@ -563,6 +576,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // GROUP-USAGE NATIONAL 88 the ALPHANUMERIC weight table while its operand text was already
             // `.AsNat()`, and lost a bit group's boolean-zero pad (kb/Work PB728 / PB741).
             string collate = ctx.CollateArgFor(cat, cat);
+            // ⛔ THE `IN alphabet-name-1` PHRASE GOVERNS THE RANGES ONLY, and the split is the clause boundary,
+            // not a convenience: §14.7.8 is the THROUGH phrase's specification and its rule 2 names "the collating
+            // sequence used for RANGE evaluation", while a SINGLETON value is compared by §8.8.4.5.3 GR2's plain
+            // relation-condition rules, whose sequence is §8.8.4.2.7's PROGRAM COLLATING SEQUENCE. Handing the
+            // alphabet to the equality tests as well would have made `88 X VALUE "A", "M" THRU "Z" IN AL` weigh
+            // its singleton on a sequence no rule puts there.
+            string rangeCollate = RangeCollateArg(alphabet, cat, cat);
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
             string lo = StringMembershipExpr(low, parent);
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
@@ -578,8 +598,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // exception; a boolean subject may not carry THROUGH at all, §13.18.63.3 SR29).
             if (checkRangeInvalid
                 && CollatingSelection.ForComparison(cat, cat) is CollatingClass.Alphanumeric or CollatingClass.National)
-                return RuntimeApi.ThruMember(read, lo, hi, collate);
-            return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {hi}{pad}{collate}) <= 0)";
+                return RuntimeApi.ThruMember(read, lo, hi, rangeCollate);
+            return $"(CobolString.Compare({read}, {lo}{pad}{rangeCollate}) >= 0 && CobolString.Compare({read}, {hi}{pad}{rangeCollate}) <= 0)";
         }
         // A float (COMP-1/2/FLOAT-*) conditional variable: `read` is the native double `(double)(X)`, so the VALUE
         // literal must render as a native double too — NOT scaled-integer at the float item's Scale 0, which would

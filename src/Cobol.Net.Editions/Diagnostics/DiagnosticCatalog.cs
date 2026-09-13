@@ -3031,6 +3031,41 @@ public static class DiagnosticCatalog
         + "only from COBOL-2002, the edition that introduced the TYPEDEF and TYPE clauses — below it there is no "
         + "strongly-typed item to be identifier-1.",
         "ISO §14.9.30.3 SR2 / §14.9.34.3 SR3");
+    /// <summary>COBOLNET1997 — the <c>IN alphabet-name-1</c> phrase of a THROUGH range names a word that is not a
+    /// declared alphabet. kb/Work PB398: the phrase had no grammar at all in EVALUATE, so none of §14.9.13.3 SR3
+    /// had anywhere to be enforced.</summary>
+    public static readonly DiagnosticDescriptor RangeAlphabetUndeclared = new(
+        "COBOLNET1997", "range-alphabet-undeclared", EditionSeverity.Error,
+        "The IN phrase of a THROUGH range (ISO §14.9.13.2's range-expression, and the VALUE clause's condition-name "
+        + "list, §13.18.63.2 formats 3 and 5) names alphabet-name-1: an alphabet declared by an ALPHABET clause in "
+        + "SPECIAL-NAMES (§12.3.7). The word written here declares no alphabet. §14.7.8 rule 2 makes that alphabet "
+        + "the collating sequence the range is evaluated in, so an unresolved name has no ordering to give: declare "
+        + "the alphabet, or drop the IN phrase and take the implementor's default sequence.",
+        "ISO §14.9.13.3 SR3 / §13.18.63.3 SR31 / §12.3.7");
+
+    /// <summary>COBOLNET1998 — §14.9.13.3 SR3 sentence 1 / §13.18.63.3 SR31 sentence 1: alphabet-name-1 may be
+    /// written only over a range whose operands are of a class a collating sequence orders.</summary>
+    public static readonly DiagnosticDescriptor RangeAlphabetOperandClass = new(
+        "COBOLNET1998", "range-alphabet-operand-class", EditionSeverity.Error,
+        "ISO §14.9.13.3 syntax rule 3: \"Alphabet-name-1 may be specified only when the literals or identifiers "
+        + "specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national.\" (The VALUE clause's "
+        + "twin, §13.18.63.3 SR31, names class alphanumeric or national.) A NUMERIC range is ordered algebraically "
+        + "by §14.7.8 rule 1 — \"the range of values includes literal-1, literal-2, and all algebraic values between\" "
+        + "— and a collating sequence has no part in it, so naming one here has no meaning. Remove the IN phrase.",
+        "ISO §14.9.13.3 SR3 / §13.18.63.3 SR31");
+
+    /// <summary>COBOLNET1999 — §14.9.13.3 SR3 sentence 2 / §13.18.63.3 SR31 sentence 2: the CLASS of the alphabet
+    /// shall match the class of the range's operands.</summary>
+    public static readonly DiagnosticDescriptor RangeAlphabetClassMismatch = new(
+        "COBOLNET1999", "range-alphabet-class-mismatch", EditionSeverity.Error,
+        "ISO §14.9.13.3 syntax rule 3: \"If literal-3 or identifier-3 is of class national, alphabet-name-1 shall "
+        + "reference an alphabet that defines a national collating sequence; otherwise, alphabet-name-1 shall "
+        + "reference an alphabet that defines an alphanumeric collating sequence.\" The two classes are disjoint "
+        + "reference domains (§12.3.6 SR1/SR2): an ALPHABET … FOR NATIONAL clause declares the national one, a plain "
+        + "ALPHABET clause the alphanumeric one. An alphabet that names a coded character set ONLY — UTF-8 and "
+        + "UTF-16, whose collating-sequence column in §12.3.7.4 Table 6 is empty — defines no sequence of either "
+        + "class and is refused here for the same reason.",
+        "ISO §14.9.13.3 SR3 / §13.18.63.3 SR31");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

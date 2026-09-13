@@ -56,6 +56,118 @@ public sealed partial class DataBinder
     /// builds - one §12.3.7.4 GR7 k model for both classes).</summary>
     public Dictionary<string, NationalAlphabetDef> NationalAlphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>⛔ THE per-TYPE runtime carriers a THROUGH range's <c>IN alphabet-name-1</c> phrase needs (ISO
+    /// §14.7.8 rule 2 — "the collating sequence used for range evaluation is the collating sequence defined by that
+    /// alphabet"), keyed by alphabet-name as written. One carrier per NAMED alphabet per runtime module, declared
+    /// beside <c>__COLLATE</c> by <c>ObjectComputerEmit</c>.
+    /// <para>⛔ A FIELD, NOT AN INLINE CARRIER, and that is a correctness-adjacent performance rule rather than a
+    /// preference: a range test sits inside a WHEN pair that is re-analysed on every execution of the EVALUATE, and
+    /// rendering <c>new AlphanumericCollation(new ushort[256]{…}, …)</c> there would allocate a fresh 256-entry
+    /// table per evaluation. SORT / MERGE / the indexed-file key registrations render their alphabet inline because
+    /// each of those runs once per statement; a WHEN does not. The map is populated at BIND, so the field exists
+    /// before any body that names it is rendered.</para></summary>
+    public Dictionary<string, RangeCollationCarrier> RangeCollations { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Record <paramref name="name"/>'s ALPHANUMERIC alphabet as a range collating sequence — with no
+    /// carrier when the alphabet is the native order (an identity sequence needs none: §14.7.8 rule 2's "the
+    /// collating sequence defined by that alphabet" IS the native one, and the two-argument
+    /// <c>CobolString.Compare</c> overload is it).</summary>
+    /// <para>⛔ EVERY ACCEPTED ALPHABET GETS AN ENTRY, the two that need no declaration of their own included — an
+    /// identity sequence (entry with a NULL field: the native comparison IS "the collating sequence defined by that
+    /// alphabet") and one that IS the program collating sequence (whose <c>__COLLATE</c> is already declared). The
+    /// renderer looks the NAME up, so an accepted name with no entry falls back to the category-derived sequence
+    /// and silently reinstates the very default the phrase overrides — measured, while these two cases returned
+    /// early instead of recording themselves.</para>
+    public void RegisterRangeCollation(string name, AlphabetDef def)
+        => Register(name, ReferenceEquals(def, Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
+
+    /// <inheritdoc cref="RegisterRangeCollation(string,AlphabetDef)"/>
+    public void RegisterRangeCollation(string name, NationalAlphabetDef def)
+        => Register(name, ReferenceEquals(def, NationalCollating) ? "__COLLATE_NAT" : null,
+            def.Table, def.Locale, National: true);
+
+    /// <summary>⛔ THE ONE resolution of a THROUGH range's <c>IN alphabet-name-1</c> phrase, for EVERY clause that
+    /// prints one — §14.9.13.2's range-expression and §13.18.63.2 formats 3 and 5 — because §14.7.8 opens with
+    /// "This specification applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement":
+    /// ONE sentence governing both, so one resolver. It enforces both halves of §14.9.13.3 SR3 (§13.18.63.3 SR31 is
+    /// the same rule for the VALUE clause) and registers the runtime carrier.
+    /// <para>Returns true when the phrase is accepted, in which case <paramref name="alphabetName"/> is what the
+    /// bound node carries; false when it was refused, and the range then keeps the implementor default sequence
+    /// (§14.7.8 rule 2's no-phrase arm) rather than acquiring a second, invented error mode.</para></summary>
+    /// <param name="alphabetName">alphabet-name-1 as written.</param>
+    /// <param name="rangeClass">The comparison class of the range's operands, from the ONE comparison-class rule
+    /// (<see cref="CollatingSelection.ForComparison"/> over BOTH bounds' categories) — SR3's "of class alphabetic,
+    /// alphanumeric, or national" test and its national-vs-alphanumeric split are the same question that rule
+    /// answers, so it is asked once and passed in.</param>
+    /// <param name="where">The construct, for the diagnostic ("EVALUATE WHEN range", "condition-name 'X'").</param>
+    public bool TryResolveRangeAlphabet(string alphabetName, CollatingClass rangeClass, string where)
+    {
+        // SR3 sentence 1 — the phrase is admitted only over a range a COLLATING SEQUENCE can order. §14.7.8 rule 1
+        // orders a numeric range algebraically and names no sequence at all, and rule 2 (the sequence rule) is
+        // written for "alphanumeric or national literals"; a boolean range cannot carry THROUGH in the first place
+        // (§14.9.13.3 SR4 / §13.18.63.3 SR29).
+        if (rangeClass is not (CollatingClass.Alphanumeric or CollatingClass.National))
+        {
+            Edition.Error(DiagnosticCatalog.RangeAlphabetOperandClass, $"{where}: 'IN {alphabetName}' may be "
+                + "specified only when the operands of the THROUGH phrase are of class alphabetic, alphanumeric or "
+                + "national (ISO §14.9.13.3 SR3 / §13.18.63.3 SR31)");
+            return false;
+        }
+        // SR3 sentence 2 — the alphabet's class shall be the range's. The two domains are disjoint (§12.3.6
+        // SR1/SR2), so the lookup itself IS the class test: a national range resolves in NationalAlphabets, an
+        // alphanumeric one in Alphabets, and finding the name in the OTHER map is the violation, not an absence.
+        bool national = rangeClass is CollatingClass.National;
+        if (national)
+        {
+            if (NationalAlphabets.TryGetValue(alphabetName, out var nd))
+            {
+                // §12.3.7.4 Table 6 — UTF-8 / UTF-16 name a coded character set only; their collating-sequence
+                // column is empty, so they define no sequence this phrase could use.
+                if (!nd.HasCollatingSequence)
+                {
+                    Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: alphabet '{alphabetName}' "
+                        + $"({nd.Phrase}) names a national CODED CHARACTER SET only — it defines no national "
+                        + "collating sequence (ISO §12.3.7.4 GR7 Table 6; §14.9.13.3 SR3)");
+                    return false;
+                }
+                RegisterRangeCollation(alphabetName, nd);
+                return true;
+            }
+        }
+        else if (Alphabets.TryGetValue(alphabetName, out var ad))
+        {
+            RegisterRangeCollation(alphabetName, ad);
+            return true;
+        }
+        // The name is declared, but in the other class's domain — SR3 sentence 2's violation, told apart from a
+        // name that is not an alphabet at all so the message names the rule the program actually broke.
+        if (national ? Alphabets.ContainsKey(alphabetName) : NationalAlphabets.ContainsKey(alphabetName))
+        {
+            Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: the THROUGH operands are of class "
+                + $"{(national ? "national" : "alphabetic / alphanumeric")}, so alphabet-name-1 shall reference an "
+                + $"alphabet that defines {(national ? "a national" : "an alphanumeric")} collating sequence — "
+                + $"'{alphabetName}' declares the other class (ISO §14.9.13.3 SR3 / §13.18.63.3 SR31)");
+            return false;
+        }
+        Edition.Error(DiagnosticCatalog.RangeAlphabetUndeclared, $"{where}: 'IN {alphabetName}' — '{alphabetName}' "
+            + "does not name an alphabet declared in SPECIAL-NAMES (ISO §12.3.7; §14.9.13.3 SR3)");
+        return false;
+    }
+
+    /// <param name="known">The field that ALREADY names this sequence (<c>__COLLATE</c> / <c>__COLLATE_NAT</c>), or
+    /// null when a fresh carrier is needed. An identity alphabet takes neither, and is recognised here — from both
+    /// components being absent — rather than at each caller.</param>
+    private void Register(string name, string? known, CollatingTable? table, LocaleCollatingSpec? locale, bool National)
+    {
+        if (RangeCollations.ContainsKey(name)) return;
+        bool identity = table is null && locale is null;
+        // An ORDINAL field name, not one derived from the COBOL word: a user-defined word admits both '-' and '_'
+        // (§8.3.2.1), so any sanitizing map could collide two distinct alphabet-names onto one field.
+        string? field = identity ? null : known ?? $"__COLLATE_R{RangeCollations.Count}";
+        RangeCollations[name] = new RangeCollationCarrier(field, name, table, locale, National,
+            Declare: field is not null && known is null);
+    }
+
     /// <summary>Is <paramref name="alphabetName"/> an alphabet "associated with a locale" (ISO §8.8.4.4.3 SR2) /
     /// "specified with the LOCALE phrase" (§12.3.7.3 SR16g / SR17d) — of EITHER class (<c>ALPHABET … IS LOCALE</c>
     /// registers in <see cref="Alphabets"/>, <c>ALPHABET … FOR NATIONAL IS LOCALE</c> in <see cref="NationalAlphabets"/>)?

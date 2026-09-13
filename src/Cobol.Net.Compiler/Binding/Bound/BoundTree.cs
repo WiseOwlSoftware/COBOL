@@ -550,8 +550,19 @@ public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool 
 /// carrier for EC-RANGE-INVALID checking): <c>Left</c> is within [<c>Lo</c>, <c>Hi</c>] in the effective collating
 /// sequence. When <paramref name="CheckInvalid"/> and <c>lo</c> collates after <c>hi</c> (§14.7.8 rule 2) the nonfatal
 /// EC-RANGE-INVALID is set and the range is treated as empty — realized by the runtime <c>CobolString.ThruMember</c>
-/// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).</summary>
-public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, BoundOperand Hi, bool CheckInvalid) : BoundCondition;
+/// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).
+/// <para><paramref name="Alphabet"/> is alphabet-name-1 of the range's <c>IN</c> phrase AS WRITTEN, or null when
+/// the phrase is absent. §14.7.8 rule 2 makes it the ordering outright — "the collating sequence used for range
+/// evaluation is the collating sequence defined by that alphabet" — so it OVERRIDES the implementor default, which
+/// for this compiler is the PROGRAM COLLATING SEQUENCE: a range under <c>IN STANDARD-1</c> collates natively even
+/// inside a program whose PCS reorders the alphabet. A COBOL NAME rides here, never a generated field: the renderer
+/// maps it through <c>DataBinder.RangeCollations</c>.</para>
+/// <para>⛔ A RANGE WITH AN <c>IN</c> PHRASE ALWAYS BINDS TO THIS NODE, checked or not, because the alternative
+/// lowering — a pair of <c>BoundRelational</c>s — has nowhere to put a per-range collating sequence: a relation's
+/// sequence is derived from its operands' categories, which is exactly the rule the IN phrase overrides. The
+/// unchecked rendering of this node is the same inclusive <c>Compare</c> pair that lowering produced.</para></summary>
+public sealed record BoundRangeMembership(BoundOperand Left, BoundOperand Lo, BoundOperand Hi, bool CheckInvalid,
+    string? Alphabet = null) : BoundCondition;
 
 /// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}. <paramref
 /// name="Format2Float"/> marks the ISO §8.8.4.7.3 Format 2 form — a bare (unparenthesized) standard

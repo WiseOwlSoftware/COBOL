@@ -18,29 +18,26 @@ namespace CobolNet.CodeGen;
 internal static class CollationEmit
 {
     /// <summary>The C# expression constructing the carrier of a NON-identity alphanumeric alphabet.</summary>
-    public static string New(AlphabetDef def)
-    {
-        if (def.Table is { } t)
-            return $"new {nameof(AlphanumericCollation)}("
-                + $"new ushort[] {{ {string.Join(", ", t.Codes)} }}, "
-                + $"new ushort[] {{ {string.Join(", ", t.Positions)} }}, "
-                + $"new ushort[] {{ {string.Join(", ", t.RepByPos)} }}, {t.NextFree}, "
-                + $"{SymbolDisplay.FormatLiteral(t.HighValue, quote: true)}, {SymbolDisplay.FormatLiteral(t.LowValue, quote: true)})";
-        if (def.Locale is { } l) return Locale(l);
-        throw new InvalidOperationException("an identity alphabet has no carrier — the native fast path emits nothing");
-    }
+    public static string New(AlphabetDef def) => New(def.Table, def.Locale, national: false);
 
     /// <summary>The C# expression constructing the carrier of a NON-identity national alphabet.</summary>
-    public static string New(NationalAlphabetDef def)
+    public static string New(NationalAlphabetDef def) => New(def.Table, def.Locale, national: true);
+
+    /// <summary>⛔ THE carrier constructor, over the two components EVERY alphabet definition reduces to — the
+    /// §12.3.7.4 GR7 k table or the LOCALE arm — and the ONE bit that chooses the runtime class. The two overloads
+    /// above differed by exactly that bit and were otherwise identical text; a third caller
+    /// (<c>RangeCollationCarrier</c>, which holds the components rather than either def record — §14.7.8 rule 2's
+    /// <c>IN alphabet-name-1</c> phrase) is what made the duplication a drift hazard instead of a curiosity.</summary>
+    public static string New(CollatingTable? table, LocaleCollatingSpec? locale, bool national)
     {
-        if (def.Table is { } t)
-            return $"new {nameof(NationalCollation)}("
+        if (table is { } t)
+            return $"new {(national ? nameof(NationalCollation) : nameof(AlphanumericCollation))}("
                 + $"new ushort[] {{ {string.Join(", ", t.Codes)} }}, "
                 + $"new ushort[] {{ {string.Join(", ", t.Positions)} }}, "
                 + $"new ushort[] {{ {string.Join(", ", t.RepByPos)} }}, {t.NextFree}, "
                 + $"{SymbolDisplay.FormatLiteral(t.HighValue, quote: true)}, {SymbolDisplay.FormatLiteral(t.LowValue, quote: true)})";
-        if (def.Locale is { } l) return Locale(l);
-        throw new InvalidOperationException("an identity national alphabet has no carrier — the native fast path emits nothing");
+        if (locale is { } l) return Locale(l);
+        throw new InvalidOperationException("an identity alphabet has no carrier — the native fast path emits nothing");
     }
 
     /// <summary>The LOCALE arm: the shared current-locale instance (§12.3.7.4 GR7e — resolved at each use) or a

@@ -43,6 +43,13 @@ internal static class ObjectComputerEmit
             // for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every unspecified character's
             // §12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.
             w.Line($"private static readonly CobolCollation __COLLATE_NAT = {CollationEmit.New(nat)};");
+        // The collating sequences NAMED by a THROUGH range's `IN alphabet-name-1` phrase (ISO §14.7.8 rule 2 —
+        // EVALUATE's range-expression and the VALUE clause's condition-name list). One carrier per named alphabet
+        // per type, so the range test itself is a field read rather than a per-evaluation table allocation; the
+        // registry already collapsed an alphabet that IS the program collating sequence onto __COLLATE.
+        foreach (var c in data.RangeCollations.Values.Where(c => c.Declare))
+            w.Line($"private static readonly CobolCollation {c.Field} = {CollationEmit.New(c.Table, c.Locale, c.National)};"
+                + $"   // ALPHABET {c.Name} — a THROUGH range's IN phrase (ISO §14.7.8 rule 2)");
     }
 
     /// <summary>The activation-time resolution expression of a classification (§12.3.6.4 GR5 a–j; GR8; §14.6.6 r2).</summary>

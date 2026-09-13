@@ -2765,6 +2765,31 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 cond.Values.Add((raw, null));
                             }
                     }
+                    // `[ IN alphabet-name-1 ]` — printed AFTER the repeated literal group and BEFORE the
+                    // `[ WHEN SET TO FALSE … ]` line, so it is resolved here, between the two. ONE alphabet
+                    // governs the whole VALUE set (the bracket stands outside the group's ellipsis), and it is
+                    // §14.7.8 rule 2's collating sequence for every THRU range in it.
+                    // ⛔ IT USED TO BE PARSED AND DROPPED — a SILENT WRONG ANSWER, measured: under
+                    // `ALPHABET AL IS "ZYXW…A"`, `88 X VALUE "M" THRU "A" IN AL` answered NO for the value "C"
+                    // that AL's ordering puts inside the range, because the range was weighed natively
+                    // (kb/Work PB398). The resolution is the SAME one EVALUATE's range-expression takes, because
+                    // §14.7.8 opens by governing both clauses in one sentence.
+                    // ⛔ THE SCREENS RUN ONLY WHEN THE CLAUSE ACTUALLY WRITES A THROUGH PHRASE, because that is
+                    // what SR31 is a rule ABOUT: "Alphabet-name-1 may be specified only when the literals
+                    // specified in THE THROUGH PHRASE are of class alphanumeric or national." Over a value list
+                    // with no range the phrase governs nothing — the singletons are compared by §8.8.4.5.3 GR2's
+                    // ordinary relation rules under the PROGRAM collating sequence — so it is inert, not
+                    // erroneous. Keying the screen on the conditional VARIABLE alone instead refused
+                    // `88 CN-ORDER VALUE 1 IN AL1 WHEN SET TO FALSE 0`, conforming source this corpus already
+                    // pins (tests/conformance/2002/pb695_value_false_optional_words), on a rule that says nothing
+                    // about it. The class read is still the variable's, which §13.18.63.3 SR4/SR5 make the
+                    // literals' own class.
+                    if (value.IN() is not null && value.IDENTIFIER()?.GetText() is { } alphaName
+                        && cond.Values.Any(v => v.High is not null)
+                        && TryResolveRangeAlphabet(alphaName,
+                            CollatingSelection.ForComparison(parent.OperandPic?.Category, parent.OperandPic?.Category),
+                            $"condition-name '{name}'"))
+                        cond.Alphabet = alphaName;
                     // literal-4 LAST, because the phrase is written last (§13.18.63.2 format 3 prints
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
                     // diagnostics a malformed entry produces come out in source order.

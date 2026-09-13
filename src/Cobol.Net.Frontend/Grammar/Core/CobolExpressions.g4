@@ -57,9 +57,26 @@ valueClauseOperand
     | nonNumericLiteral
     ;
 
-// Range form for EVALUATE WHEN (full arithmetic).
+// Range form for EVALUATE WHEN (full arithmetic) — §14.9.13.2's range-expression, INCLUDING the trailing
+// `[ IN alphabet-name-1 ]` phrase, which is the only way a program can name the collating sequence that orders an
+// alphanumeric / national range (§14.7.8 rule 2: "When the IN alphabet-name phrase is specified, the collating
+// sequence used for range evaluation is the collating sequence defined by that alphabet"; with no phrase the
+// ordering is "defined by the implementor"). MEASURED off the printed page (PDF p649 / folio 619): the bracket sits
+// AFTER the right-hand operand brace, `IN` is NOT underlined (an optional word, §5.2.3) and alphabet-name-1 is a
+// required operand of the bracketed phrase. The phrase was simply absent, so §14.9.13.3 SR3 — whose entire content
+// is a constraint ON it — had no code site (kb/Work PB398).
+// ⚠ `IN` IS ALSO THE QUALIFICATION CONNECTIVE (`qualification : (OF | IN) cobolWord`), so over an identifier-4 the
+// two readings — `identifier-4 IN group` and `identifier-4` + the alphabet phrase — are BOTH complete parses and
+// ANTLR's greedy `dataReferenceSuffix*` loop takes the qualifier. That is an ambiguity the STANDARD carries (§8.4.1
+// puts alphabet-names and data-names in disjoint name spaces, so only the resolved SYMBOL separates them), and it is
+// NOT settled here: flipping the grammar's preference would make the opposite legal reading — a genuinely qualified
+// identifier-4 — unreachable instead. MEASURED, unchanged by this rule: `WHEN WS-LO THRU WS-HI IN AL` reports
+// COBOLNET1639 on `WS-HI IN AL`, exactly as it did before the phrase existed. The LITERAL-operand spelling the
+// printed figure shows is unaffected, since a literal takes no qualifier. Reported as its own mechanism (a
+// ReferenceResolver that can re-resolve without a trailing qualifier) in the PB398 report; the phrase itself is
+// implemented whole here.
 valueRange
-    : valueOperand (THRU | THROUGH) valueOperand
+    : valueOperand (THRU | THROUGH) valueOperand (IN cobolWord)?
     ;
 
 // Range form for VALUE clauses (no binary arithmetic).
@@ -119,6 +136,51 @@ abbreviatedAndChain
 // NOT + bare operand (IF A = B AND NOT C) is handled by unaryLogicalExpression.
 abbreviatedRelation
     : comparisonOperator comparisonOperand
+    ;
+
+// ── §14.9.13.3 SR5 — partial-expression-1, the EVALUATE selection object whose LEFTMOST portion is elided.
+// "A selection object is a partial-expression if the leftmost portion of the selection object is a relational
+// operator, a class condition without the identifier, a sign condition without the identifier, or a sign condition
+// without the arithmetic expression." SR8 then says what it MEANS: the object "is treated as though it were
+// specified as condition-2, where condition-2 is the conditional expression that results from preceding
+// partial-expression-1 by the selection subject".
+// ⛔ IT IS A CONDITION WITH ITS LEFTMOST OPERAND MISSING, NOT A NEW CONDITION LANGUAGE — SR7 d) says so outright:
+// "Partial-expression-1 shall be a sequence of COBOL words such that, were it preceded by the corresponding
+// selection subject, a conditional expression would result". `WHEN > 5 AND < 10` and `WHEN NUMERIC OR = 0` are
+// therefore conforming source. So the spine below MIRRORS the condition tiers and delegates every TAIL to the very
+// same rules (abbreviatedRelation / unaryLogicalExpression / logicalAndExpression / logicalXorExpression /
+// abbreviatedAndChain): only the LEADING element differs, which is the whole of SR5. Because each tier is an
+// iterative loop whose leftmost element is the tier below, this spine yields the IDENTICAL grouping
+// (OR ( XOR ( AND … ) ) ) that `condition` yields — and PartialExpressionSpineDriftTests re-derives that from the
+// two rules' own text so the mirror cannot rot.
+// The leading element is deliberately NOT folded into `comparisonExpression`: that rule is shared by every IF /
+// PERFORM UNTIL / SEARCH in the corpus and the DEVLOG-621 regression (a booleanExpression alternative there broke
+// subscripted comparisons at 2002+) is the recorded cost of widening it. Partial expressions are EVALUATE's rule,
+// so they get EVALUATE's own entry, reached only from evaluateWhenItem.
+// A user-defined class-name / alphabet-name written BARE (`WHEN MY-CLASS`) is indistinguishable from identifier-2
+// here — `className`'s cobolWord alternative and `valueOperand` both match one word — so evaluateWhenItem keeps
+// valueOperand FIRST and EvaluateBinder resolves that spelling by SYMBOL (the same doctrine that makes a bare
+// level-88 object condition-2). The `IS`-led spelling reaches this rule unambiguously.
+partialExpression
+    : partialXorExpression ( OR ( logicalXorExpression | abbreviatedAndChain ) )*
+    ;
+
+partialXorExpression
+    : partialAndExpression ( ( XOR | EXCLUSIVE_OR ) logicalAndExpression )*
+    ;
+
+partialAndExpression
+    : partialComparison ( AND ( abbreviatedRelation | unaryLogicalExpression ) )*
+    ;
+
+// SR5's four shapes, in `comparisonExpression`'s own order and spelling with the leading comparisonOperand removed:
+// a relational operator (which IS abbreviatedRelation, §8.8.4.12's already-elided relation), a class condition
+// without the identifier, and a sign condition without its identifier / arithmetic expression (one alternative —
+// §8.8.4.7.2's two operand forms occupy the same position).
+partialComparison
+    : IS? NOT? className                                       // class condition without the identifier
+    | IS? NOT? (POSITIVE | NEGATIVE | ZERO)                    // sign condition without its operand
+    | abbreviatedRelation                                      // leftmost portion is a relational operator
     ;
 
 unaryLogicalExpression
