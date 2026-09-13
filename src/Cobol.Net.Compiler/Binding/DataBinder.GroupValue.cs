@@ -163,8 +163,10 @@ public sealed partial class DataBinder
             // (§13.18.29.4 GR3; the last two are unreachable here, SR1 rejected them above, and the predicate
             // states the rule rather than the residue). A national group's / bit group's subordinates take
             // usage NATIONAL / BIT by their OWN rules (§13.18.29.3), which is why SR14 names only the
-            // alphanumeric one.
-            bool alphanumericGroup = IsAlphanumericGroup(item);
+            // alphanumeric one. THE predicate is ItemCategory's — this file used to keep a private second copy
+            // of GR3 (kb/Work PB337); the one in ItemCategory was the incomplete half, which is the drift a
+            // rule written down twice always produces.
+            bool alphanumericGroup = ItemCategory.IsAlphanumericGroup(item);
 
             foreach (var sub in Subordinates(item))
             {
@@ -266,17 +268,6 @@ public sealed partial class DataBinder
             ? "a variable-length group (ISO §8.5.1.12.1 — a dynamic-length elementary item or a "
               + "dynamic-capacity table is subordinate to it)"
         : null;
-
-    /// <summary>§13.18.29.4 GR3: "If a GROUP-USAGE clause is not specified or implied for a group item that is
-    /// not strongly typed and is not a variable-length group, that group item is an alphanumeric group item."
-    /// ⛔ All THREE conjuncts, not just the GROUP-USAGE one — dropping the qualifiers made a strongly-typed or
-    /// variable-length group answer SR14's usage arm, a rule §13.18.29.4 GR3 says does not reach it (measured
-    /// this landing; §13.18.63.3 SR1 now rejects both shapes first, and this states the rule anyway so the next
-    /// caller of the predicate inherits the whole of it).</summary>
-    private static bool IsAlphanumericGroup(DataItem item) =>
-        item.GroupUsage is GroupUsage.None
-        && !StrongTypeModel.IsStronglyTyped(item)
-        && !ReferenceResolver.HasVariableLengthSubordinate(item);
 
     /// <summary>The effective USAGE of one subordinate entry for §13.18.63.3 SR14: an elementary item's own
     /// (already inherited) usage; a nested group's <c>DISPLAY</c> unless it carries GROUP-USAGE NATIONAL or BIT.

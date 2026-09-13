@@ -693,14 +693,88 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     public static string Via(ImplicitMovePhrase? phrase) =>
         phrase is null ? "" : $" — the implicit MOVE of {phrase.Statement} ({phrase.Cite})";
 
+}
+
+/// <summary>
+/// ⛔ <b>THE RULES OF ONE <c>… INTO</c> PHRASE</b> — READ (ISO §14.9.30) and RETURN (§14.9.34), one row each.
+/// It is the INTO twin of <c>FromPhraseRules</c>, and it exists for the same reason: each verb states the
+/// phrase's syntax rules FOR ITSELF, in wording that DIFFERS, so a scalar column would reject legal source on
+/// one arm or wave an illegal program through on the other.
+///
+/// <para><b>What the two verbs say, verbatim.</b> §14.9.30.3 SR1 admits the phrase <i>"a) If no record
+/// description entry or only one record description is subordinate to the file description entry, or b) If the
+/// data item referenced by identifier-1 and all record-names associated with file-name-1 describe an
+/// alphanumeric group item or an elementary item of category alphanumeric or category national."</i>
+/// §14.9.34.3 SR2 is the same rule for RETURN with arm a) reading <i>"If only one record description is
+/// subordinate to the sort-merge file description entry"</i>. §14.9.30.3 SR2 adds, for a strongly-typed
+/// identifier-1, <i>"there shall be at most one record area subordinate to the FD for file-name-1. This record
+/// area, if specified, shall be a strongly-typed group item of the same type as identifier-1"</i>; §14.9.34.3
+/// SR3 is its twin with <i>"exactly one record area subordinate to the SD"</i> and no <i>"if specified"</i>.</para>
+///
+/// <para><b>The ONE difference, and why it is one field rather than two.</b> Both of READ's rules admit a
+/// RECORD-LESS description entry and both of RETURN's require a record; that is not two coincidences but one
+/// fact about the description entry each verb reads — §13.4.5.3 SR3 permits an FD with no record description
+/// entries (which is why <c>MaterializeImpliedRecord</c> exists, kb/Work PB345 / FILES design D18), while
+/// §13.4.6.3 SR2 requires at least one under an SD and the binder already rejects an SD without one. So
+/// <see cref="AdmitsRecordLessEntry"/> is a property of the ENTRY KIND, carried once and read by both rules.</para>
+///
+/// <para><b>What is NOT on this row.</b> The second sentence of SR2 / SR3 — <i>"shall be a strongly-typed group
+/// item of the same type as identifier-1"</i> — is the same predicate over the same pair that §14.9.25.3 SR2
+/// applies to this phrase's implicit-move SENDER, which IS the record area. It is checked once, by
+/// <c>StatementValidation.CheckStrongMove</c> (COBOLNET1533), and writing it here too would be one rule in two
+/// places (kb/Work PB337).</para>
+/// </summary>
+/// <param name="Statement">The phrase as the programmer wrote it, for every diagnostic.</param>
+/// <param name="MoveRuleCite">The general rule that makes the phrase a MOVE — §14.9.30.4 GR4 b) / §14.9.34.4
+/// GR5 b), which are the same sentence twice.</param>
+/// <param name="AdmitsRecordLessEntry">True when the verb's description entry may legally have no record
+/// description entry at all — an FD (§13.4.5.3 SR3) but not an SD (§13.4.6.3 SR2).</param>
+/// <param name="AdmissibilityCite">The verb's own admissibility rule — §14.9.30.3 SR1 / §14.9.34.3 SR2.</param>
+/// <param name="AdmissibilityArmA">That rule's arm a), quoted, because the two verbs word it differently and a
+/// diagnostic that paraphrases it sends the reader to the wrong sentence.</param>
+/// <param name="StrongReceiverCite">The verb's strongly-typed-receiver rule — §14.9.30.3 SR2 / §14.9.34.3 SR3.</param>
+/// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
+/// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
+public sealed record IntoPhraseRules(
+    string Statement,
+    string MoveRuleCite,
+    bool AdmitsRecordLessEntry,
+    string AdmissibilityCite,
+    string AdmissibilityArmA,
+    string StrongReceiverCite,
+    string StrongReceiverCount,
+    string EntryFace)
+{
+    /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries — built once
+    /// per verb beside the two rows, exactly as <c>FromPhraseRules.Phrase</c> is. A phrase is a property of the
+    /// VERB, not of an occurrence of it, so both are singletons.</summary>
+    public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
+
+    /// <summary>The record-area COUNT this verb's admissibility arm a) and strong-receiver rule admit: 1, or
+    /// 0 and 1 where the description entry may be record-less. Read by both rules, never re-derived.</summary>
+    public bool AdmitsRecordCount(int count) => count == 1 || (count == 0 && AdmitsRecordLessEntry);
+
     /// <summary><c>READ … INTO</c> — both organizations. ISO §14.9.30.4 GR4 b): "The current record is moved
     /// from the record area to the area specified by identifier-1 according to the rules for the MOVE statement
     /// without the CORRESPONDING phrase."</summary>
-    public static readonly ImplicitMovePhrase ReadInto = new("READ … INTO", "ISO §14.9.30.4 GR4 b)");
+    public static readonly IntoPhraseRules Read = new(
+        "READ … INTO", "ISO §14.9.30.4 GR4 b)", AdmitsRecordLessEntry: true,
+        "ISO §14.9.30.3 SR1",
+        "\"If no record description entry or only one record description is subordinate to the file description "
+        + "entry\"",
+        "ISO §14.9.30.3 SR2",
+        "\"there shall be at most one record area subordinate to the FD for file-name-1\"",
+        "FD");
 
     /// <summary><c>RETURN … INTO</c>. ISO §14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
-    public static readonly ImplicitMovePhrase ReturnInto = new("RETURN … INTO", "ISO §14.9.34.4 GR5 b)");
+    public static readonly IntoPhraseRules Return = new(
+        "RETURN … INTO", "ISO §14.9.34.4 GR5 b)", AdmitsRecordLessEntry: false,
+        "ISO §14.9.34.3 SR2",
+        "\"If only one record description is subordinate to the sort-merge file description entry\"",
+        "ISO §14.9.34.3 SR3",
+        "\"there shall be exactly one record area subordinate to the SD for file-name-1\"",
+        "SD");
 }
 
 /// <summary><c>MOVE source TO targets</c> (single sending operand) — the explicit MOVE statement, AND the

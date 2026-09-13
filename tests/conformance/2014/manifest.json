@@ -85,7 +85,8 @@
     "pb393_move_varlen_table",
     "pb393_move_group_to_dynlen",
     "pb452_set_content_numeric",
-    "pb452_set_content_float"
+    "pb452_set_content_float",
+    "pb337_into_receiver_admissible"
   ],
   "pending": []
 }

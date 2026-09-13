@@ -2994,6 +2994,43 @@ public static class DiagnosticCatalog
         + "a different matter and are untouched: a comment-entry is arbitrary text by definition, which is why "
         + "ISO/IEC 1989:2023 defines no syntax for one anywhere.",
         "ISO §4.2.2 / §12.3.2 / §11.2.1");
+    /// <summary>COBOLNET1994 — the INTO phrase written where its verb's ADMISSIBILITY rule does not admit it:
+    /// ISO §14.9.30.3 syntax rule 1 for READ, §14.9.34.3 syntax rule 2 for RETURN (kb/Work PB337). ONE descriptor
+    /// because it is one rule stated twice with one difference — the FD arm admits a record-less description
+    /// entry and the SD arm does not — and the site quotes the verb's own sentence.</summary>
+    public static readonly DiagnosticDescriptor IntoPhraseReceiverNotAdmissible = new(
+        "COBOLNET1994", "into-phrase-receiver-not-admissible", EditionSeverity.Error,
+        "ISO §14.9.30.3 syntax rule 1 (READ) and §14.9.34.3 syntax rule 2 (RETURN) each admit the INTO phrase on "
+        + "exactly two grounds: a) the file description entry has at most one record description subordinate to "
+        + "it (the RETURN wording is \"only one\"; READ's also admits \"no record description entry\"), or b) the "
+        + "data item referenced by identifier-1 AND ALL record-names associated with file-name-1 \"describe an "
+        + "alphanumeric group item or an elementary item of category alphanumeric or category national\". "
+        + "Neither ground holds here. The phrase is an implicit MOVE from the record area (§14.9.30.4 GR4 b) / "
+        + "§14.9.34.4 GR5 b)), and with several record descriptions sharing one area the area's content has no "
+        + "single category — which is why the rule confines the multi-record case to the categories a group move "
+        + "copies without conversion. An alphanumeric group item is §13.18.29.4 GR3's: no GROUP-USAGE clause "
+        + "specified or implied, not strongly typed, not a variable-length group; a GROUP-USAGE NATIONAL group "
+        + "qualifies through GR2 b) as an elementary item of category national. Read into the record area and "
+        + "move from the record-name you mean, or reduce the file description entry to one record description.",
+        "ISO §14.9.30.3 SR1 / §14.9.34.3 SR2");
+
+    /// <summary>COBOLNET1995 — a STRONGLY-TYPED identifier-1 on an INTO phrase whose file description entry has
+    /// the wrong NUMBER of record areas: ISO §14.9.30.3 syntax rule 2 for READ ("at most one"), §14.9.34.3 syntax
+    /// rule 3 for RETURN ("exactly one") — kb/Work PB337. The COUNT obligation only; each rule's second sentence
+    /// (the record area shall be a strongly-typed group item of the SAME type) is the same predicate over the
+    /// same pair that §14.9.25.3 SR2 applies to the implicit move's sender, and is reported there — COBOLNET1533
+    /// — rather than written down a second time.</summary>
+    public static readonly DiagnosticDescriptor IntoPhraseStrongReceiverRecordAreas = new(
+        "COBOLNET1995", "into-phrase-strong-receiver-record-areas", EditionSeverity.Error,
+        "ISO §14.9.30.3 syntax rule 2: \"If identifier-1 is a strongly-typed group item, there shall be at most "
+        + "one record area subordinate to the FD for file-name-1.\" §14.9.34.3 syntax rule 3 says the same of "
+        + "RETURN with \"exactly one\", an SD being required to have a record description entry at all "
+        + "(§13.4.6.3 SR2). The INTO phrase is an implicit MOVE into identifier-1, and a strongly-typed group "
+        + "accepts only a whole-record source of its own type (§8.5.3.3); several record descriptions share one "
+        + "record area, so which type the area holds is not decidable from the statement. The rule is reachable "
+        + "only from COBOL-2002, the edition that introduced the TYPEDEF and TYPE clauses — below it there is no "
+        + "strongly-typed item to be identifier-1.",
+        "ISO §14.9.30.3 SR2 / §14.9.34.3 SR3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

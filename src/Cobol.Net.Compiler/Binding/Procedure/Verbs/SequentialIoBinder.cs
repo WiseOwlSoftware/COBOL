@@ -231,7 +231,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // `area is not null` guard had, now decided once, at bind time.
         BoundMove? intoMove = r.readInto()?.dataReference() is { } d && ctx.Refs.Resolve(d) is { } recv
             && file.AreaRecord is { } areaRec && ctx.Refs.ResolveItem(areaRec) is { } readArea
-            ? host.Move.BindIntoPhrase(file, readArea, recv, ImplicitMovePhrase.ReadInto)
+            ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)

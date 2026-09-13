@@ -359,7 +359,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         {
             if (r.dataReference() is not { } d || ctx.Refs.Resolve(d) is not { } ip)
                 return new BoundUnsupported($"RETURN INTO '{r.dataReference()?.GetText()}' (unresolvable receiver)");
-            into = host.Move.BindIntoPhrase(file, area, ip, ImplicitMovePhrase.ReturnInto);
+            into = host.Move.BindIntoPhrase(file, area, ip, IntoPhraseRules.Return);
         }
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.returnAtEndPhrase() is { } ae)

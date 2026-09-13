@@ -1250,6 +1250,77 @@ emitter-built node* — the screens COLLECT (`MarkImageForced`, `MarkRefModStore
 its own copy of its phrase rules at its binder* — three copies of one rule, which is what `WriteSource` was, and
 the reason none of them existed.
 
+### D24. An `… INTO` phrase's RECEIVER ADMISSIBILITY is ONE screen inside `MoveBinder.BindIntoPhrase`, driven by a per-verb rules row — never two verb-local `if`s.
+
+READ and RETURN each state, for themselves, when the INTO phrase may be written at all. §14.9.30.3 SR1 admits it
+*"a) If no record description entry or only one record description is subordinate to the file description entry,
+or b) If the data item referenced by identifier-1 and all record-names associated with file-name-1 describe an
+alphanumeric group item or an elementary item of category alphanumeric or category national"*; §14.9.34.3 SR2 is
+the same rule for RETURN with arm a) reading *"If only one record description is subordinate to the sort-merge
+file description entry"*. §14.9.30.3 SR2 adds, for a strongly-typed identifier-1, *"there shall be at most one
+record area subordinate to the FD for file-name-1. This record area, if specified, shall be a strongly-typed group
+item of the same type as identifier-1"*, and §14.9.34.3 SR3 is its twin with *"exactly one record area subordinate
+to the SD"*.
+
+**Four syntax rules, two verbs, and before kb/Work PB337 none of them had an implementation.** Both READ binders
+and `SortBinder.BindReturn` resolved the INTO operand and inspected nothing; no caller screened it. Measured on
+the pre-fix tree: an FD with `01 REC-A / 05 A-1 PIC X(4)` and `01 REC-B / 05 B-1 PIC 9(4) COMP` read `INTO` a
+`PIC 9(4) COMP` item compiled and printed `GOT=0000`, and the RETURN twin over an SD holding an alphanumeric
+group and an elementary `PIC 9(6)` ran clean. The one descriptor that would have said so — `CBL1704` — is
+declared in `Cobol.Net.Frontend` and reported only from the FROZEN legacy engine's `BoundTreeValidator`.
+
+**The decision:** `StatementValidation.CheckIntoReceiver(file, receiver, rules)` is the one screen, and it is
+called from **`MoveBinder.BindIntoPhrase`** — the single place D23 already routes all three INTO arms through —
+rather than from the three binders. That is the whole architectural point: a verb added tomorrow with an INTO
+phrase gets the rule by calling the phrase binder, which it must do anyway to get its implicit move. `IntoPhraseRules`
+(beside `ImplicitMovePhrase`, and the INTO twin of `FromPhraseRules`) carries each verb's wording and absorbs the
+former `ImplicitMovePhrase.ReadInto` / `ReturnInto` statics as its `Phrase` property — one object per INTO verb,
+not two. Diagnostics: COBOLNET1994 (admissibility), COBOLNET1995 (the strong-receiver count).
+
+- **The two verbs differ in ONE fact, and it is a property of the DESCRIPTION ENTRY, not of the rule.** Both of
+  READ's rules admit a record-less entry (*"no record description entry or only one"*, *"at most one"*) and both
+  of RETURN's require a record (*"only one"*, *"exactly one"*), because §13.4.5.3 SR3 permits an FD with no record
+  description entries — the permission D18's `MaterializeImpliedRecord` implements — while §13.4.6.3 SR2 requires
+  them under an SD. So `AdmitsRecordLessEntry` is one field read by both rules, and `AdmitsRecordCount` is one
+  predicate. Two booleans that can never disagree would have been two chances to make them.
+- **The SAME-TYPE half of SR2/SR3 is deliberately NOT checked here.** Each rule's second sentence — *"shall be a
+  strongly-typed group item of the same type as identifier-1"* — is the same predicate over the same pair that
+  §14.9.25.3 SR2 applies to this move's SENDER, which *is* the record area; `CheckStrongMove` reports it as
+  COBOLNET1533 naming the phrase (D23), and a second copy here would be one rule in two places. What that screen
+  **cannot** express is the COUNT, because it inspects only `FileModel.AreaRecord`: a file whose LARGEST record
+  happened to be a strongly-typed group of the right type passed everything, with a second record area no
+  diagnostic could see. The count is therefore exactly what COBOLNET1995 owns — the division is by what each
+  screen can decide, not by which rule number it belongs to.
+- **A strongly-typed receiver draws ONE diagnostic, not two, and that is derived.** §13.18.29.4 GR3 excludes a
+  strongly-typed group from the alphanumeric group items, so arm b) of the admissibility rule can never admit
+  one — leaving arm a), which is the same count SR2/SR3 tests. For that receiver the two rules impose the same
+  condition, so the specific one speaks and the general one is silent.
+- **The root cause was one rule written down twice, and the fix was to write it once.** §13.18.29.4 GR3 — what an
+  *alphanumeric group item* IS — lived in `ItemCategory.Admits` as `item.IsGroup` (the structural conjunct alone)
+  and, separately and completely, in a private `DataBinder.GroupValue.IsAlphanumericGroup`. The incomplete copy is
+  the one three existing rules read, so §12.4.5.2 SR7 (`ASSIGN … USING`) and the record keys of §12.4.5.12.3 SR2 /
+  §12.4.5.6.3 SR2 each admitted a strongly-typed or variable-length group. `ItemCategory.IsAlphanumericGroup` is
+  now the one spelling, GR3's three conjuncts, and `ItemCategory.Face` names the two exclusions out loud — it used
+  to answer *"not an elementary or group data item"* for every plain group, false but unreachable while no group
+  could fail the predicate. The sweep is witnessed by `conformance:negative/pb337-assign-using-strong-group`.
+- **No edition gate, and the question was asked rather than skipped.** The admissibility rule is an all-editions
+  rule. The two shapes that make the 2023 wording narrower than its '85 ancestor — *alphanumeric* group item
+  rather than any group item, and category *national* — cannot be DECLARED below the edition that introduces them
+  (TYPE/TYPEDEF and USAGE NATIONAL at COBOL-2002, DYNAMIC LENGTH at COBOL-2014), so one predicate is
+  per-edition-correct by construction rather than by a predicate that could drift. §13.4.5.3 SR3's record-less FD
+  is likewise unobservable, because D18 materializes the implied record area at every edition. The positive golden
+  `pb337_into_receiver_admissible` ships in all four edition legs; the strong-receiver negatives list 2002 and up,
+  the admissibility negatives all four.
+- **The over-reject guard is the point of the positive golden.** Arm a) admits a receiver arm b) would refuse — a
+  `PIC 9(4)` identifier-1 over a single-record FD is legal — so a screen that tested only the category set would
+  reject conforming source. Case A of the golden is exactly that program.
+
+**Rejected alternatives.** *Screen at the three binders* — the note's own first sketch, and the shape D23 had
+already made obsolete: three copies, and the fourth INTO verb inherits none of them. *Fold the count test into
+`CheckStrongMove`* — that screen is about a MOVE's sender/receiver pair and knows nothing of a file's record
+list; giving it a `FileModel` would make the MOVE rule depend on the I-O model to serve one caller. *Re-derive
+"alphanumeric group item" at the INTO screen* — a third copy of §13.18.29.4 GR3, when two had already drifted.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

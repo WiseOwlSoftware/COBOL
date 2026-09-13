@@ -250,7 +250,8 @@
   "pb771_keyed_file_lock",
     "pb725_directive_facility",
     "pb366_use_exception_object_factory",
-    "pb165_returning_wide_carrier"
+    "pb165_returning_wide_carrier",
+    "pb337_into_receiver_admissible"
   ],
   "pending": []
 }

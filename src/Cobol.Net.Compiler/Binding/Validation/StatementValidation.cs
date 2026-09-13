@@ -363,6 +363,123 @@ internal sealed class StatementValidation(DataBinder data)
     }
 
 
+    // ── The … INTO phrase's OWN syntax rules (READ §14.9.30.3 · RETURN §14.9.34.3) ───────────────────────────
+
+    /// <summary>
+    /// ⛔ <b>THE ONE ADMISSIBILITY SCREEN FOR AN <c>… INTO</c> RECEIVER</b> — READ (ISO §14.9.30.3 SR1 and SR2)
+    /// and RETURN (§14.9.34.3 SR2 and SR3), four syntax rules over two verbs, reached from the ONE place all
+    /// three INTO arms funnel through (<c>MoveBinder.BindIntoPhrase</c>), so the next INTO-bearing verb inherits
+    /// the rule by construction rather than by an edit.
+    ///
+    /// <para><b>What it enforces.</b> (1) The admissibility pair, which is the whole of the rule: the phrase is
+    /// admitted when the description entry has at most one record description (arm a), OR when identifier-1 AND
+    /// EVERY record-name of the file <i>"describe an alphanumeric group item or an elementary item of category
+    /// alphanumeric or category national"</i> (arm b). (2) The strongly-typed receiver's record-area COUNT.
+    /// Both rules' wording, and the one place they differ, ride <see cref="IntoPhraseRules"/>.</para>
+    ///
+    /// <para><b>Why arm b) is worded over ALL the record-names.</b> Several record descriptions share ONE record
+    /// area (§13.4.2), and the phrase moves <i>the record area</i> (§14.9.30.4 GR4 b). Which description the area
+    /// currently holds is a run-time fact, so the only way the move's category can be known at compile time is
+    /// for every description — and the receiver — to be a shape a group move copies without conversion.</para>
+    ///
+    /// <para><b>What this screen deliberately does NOT check.</b> The second sentence of §14.9.30.3 SR2 /
+    /// §14.9.34.3 SR3 (<i>"shall be a strongly-typed group item of the same type as identifier-1"</i>) is the same
+    /// predicate over the same pair that §14.9.25.3 SR2 already applies to this move's SENDER — which IS the
+    /// record area — and <see cref="CheckStrongMove"/> reports it as COBOLNET1533, naming the phrase. A second
+    /// copy here is one rule in two places, this repository's most reproducible defect. The COUNT obligation is
+    /// checked here because nothing else can express it: with several record areas the MOVE screen inspects only
+    /// <c>FileModel.AreaRecord</c>, so a file whose LARGEST record happens to be the right type passed
+    /// everything (kb/Work PB337, probe 5).</para>
+    ///
+    /// <para><b>No edition gate, and none is needed</b> (feedback_four_editions_one_compiler — the question was
+    /// asked, not skipped). The admissibility rule is an all-editions rule, present since COBOL-85. The two
+    /// shapes that make the 2023 wording NARROWER than its '85 ancestor — <i>alphanumeric</i> group item rather
+    /// than any group item, and category <i>national</i> — cannot be DECLARED below the edition that introduced
+    /// them (TYPEDEF/TYPE and USAGE NATIONAL are COBOL-2002, DYNAMIC LENGTH is COBOL-2014), so one predicate is
+    /// per-edition-correct by construction rather than by a gate that could drift. §13.4.5.3 SR3's record-less FD
+    /// is likewise unobservable: the binder materializes the implied record area (FILES design D18), so arm a)
+    /// answers the same at every edition.</para>
+    /// </summary>
+    /// <param name="file">The file whose record area is the phrase's sender.</param>
+    /// <param name="receiver">identifier-1, as resolved.</param>
+    /// <param name="rules">The verb's own rules row.</param>
+    /// <returns>true when the phrase conforms; false after reporting.</returns>
+    public bool CheckIntoReceiver(FileModel file, Place receiver, IntoPhraseRules rules)
+    {
+        int count = file.Records.Count;
+        // Arm a) of the admissibility rule and the strong-receiver rule impose THE SAME condition, which is why
+        // one predicate answers both: READ's read "no record description entry or only one" and "at most one
+        // record area" (count ≤ 1); RETURN's read "only one" and "exactly one" (count = 1).
+        bool admittedByCount = rules.AdmitsRecordCount(count);
+
+        // ── §14.9.30.3 SR2 / §14.9.34.3 SR3, the COUNT obligation. A strongly-typed identifier-1 is unreachable
+        //    below COBOL-2002 (the TYPE clause's edition), so this arm needs no gate of its own.
+        //    The receiver's PLACE KIND is deliberately not filtered the way arm b) filters it below: a
+        //    reference-modified or RENAMES view of a strongly-typed group — which §8.4.3.3.4 GR6 would make an
+        //    elementary alphanumeric item, outside this rule's reach — cannot BE written. Measured, not assumed:
+        //    `READ f INTO WS-STRONG(1:4)` draws COBOLNET1647 (§8.4.3.3.3 SR1, reference modification of a
+        //    strongly-typed group item) and a RENAMES over one draws COBOLNET1532 (§13.18.57.3 SR4), both before
+        //    this screen runs. A guard for a shape nothing can reach is a guard nothing can contradict. ──
+        if (StrongTypeModel.IsStrongGroup(receiver.Item))
+        {
+            // ⛔ THE ADMISSIBILITY RULE IS NOT ALSO REPORTED FOR A STRONG RECEIVER, and that is a derivation, not
+            // a preference: §13.18.29.4 GR3 excludes a strongly-typed group from the alphanumeric group items, so
+            // arm b) can NEVER admit one, leaving arm a) — which is the condition just tested. For this receiver
+            // the two rules say the same thing and SR2/SR3 is the one that names the reason; emitting both is
+            // emitting one fact twice.
+            if (admittedByCount) return true;
+            data.Edition.Error(DiagnosticCatalog.IntoPhraseStrongReceiverRecordAreas,
+                $"{rules.Statement} '{ReceiverFace(receiver)}': identifier-1 is a strongly-typed group item, so "
+                + $"{rules.StrongReceiverCount} ({rules.StrongReceiverCite}) — {EntryFace(file, rules, count)}. The record descriptions "
+                + "share one record area, so which type the area holds is not decidable from the statement.");
+            return false;
+        }
+
+        // ── §14.9.30.3 SR1 / §14.9.34.3 SR2, arm a) then arm b). ──
+        if (admittedByCount) return true;
+        // BOTH halves of arm b), and the FIRST offender of each is kept so the message names WHICH item failed
+        // rather than restating the rule. identifier-1 is reported in preference to a record: it is the operand
+        // the programmer chose, and a record-name they may not have written.
+        DataItem? badRecord = file.Records.FirstOrDefault(r => !AdmitsIntoRecord(r));
+        bool badReceiver = !AdmitsIntoOperand(receiver);
+        if (badRecord is null && !badReceiver) return true;
+
+        string why = badReceiver
+            ? $"identifier-1 '{ReceiverFace(receiver)}' is {ItemCategory.Face(receiver.Item)}"
+            : $"the record '{badRecord!.CobolName ?? "FILLER"}' is {ItemCategory.Face(badRecord)}";
+        data.Edition.Error(DiagnosticCatalog.IntoPhraseReceiverNotAdmissible,
+            $"{rules.Statement} '{ReceiverFace(receiver)}': {rules.AdmissibilityCite} admits the phrase on two "
+            + $"grounds and neither holds — a) {rules.AdmissibilityArmA}, but {EntryFace(file, rules, count)}; or b) identifier-1 and "
+            + "ALL record-names associated with file-name-1 \"describe an alphanumeric group item or an "
+            + $"elementary item of category alphanumeric or category national\", but {why}. Write the statement "
+            + "without the INTO phrase and MOVE from the record-name you mean.");
+        return false;
+    }
+
+    /// <summary>Arm b) applied to identifier-1. A REFERENCE-MODIFIED or level-66 RENAMES receiver is admitted
+    /// WITHOUT reading the item behind it: §8.4.3.3.4 GR6 makes the unique data item a ref-mod identifies "an
+    /// elementary item of class and category alphanumeric" whatever identifier-1 is described as, and a RENAMES
+    /// alias composes ONE elementary alphanumeric view (§13.18.45) — so asking the underlying entry's category
+    /// would reject a legal <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. The same reading
+    /// <see cref="CheckVariableLengthMove"/> takes of the same two place kinds.</summary>
+    private static bool AdmitsIntoOperand(Place p) =>
+        p is RefModPlace or RenamesPlace || AdmitsIntoRecord(p.Item);
+
+    /// <summary>Arm b) applied to ONE record-name — "an alphanumeric group item or an elementary item of category
+    /// alphanumeric or category national", which is exactly <see cref="ItemCategory.IsAlphanumericOrNational"/>:
+    /// its group arm IS §13.18.29.4 GR3's alphanumeric group item and its national arm covers both the elementary
+    /// national item and the GR2 b) national group. Never a second category walk.</summary>
+    private static bool AdmitsIntoRecord(DataItem item) => ItemCategory.IsAlphanumericOrNational(item);
+
+    /// <summary>How identifier-1 names itself in these two diagnostics.</summary>
+    private static string ReceiverFace(Place p) => p.Item.CobolName ?? p.Item.CsName;
+
+    /// <summary>How the description entry names itself in these two diagnostics. A method rather than a local,
+    /// so the string is built on the DIAGNOSTIC path only — <see cref="CheckIntoReceiver"/> runs on every INTO
+    /// phrase in the source element and almost all of them conform.</summary>
+    private static string EntryFace(FileModel file, IntoPhraseRules rules, int count) =>
+        $"this {rules.EntryFace} for '{file.CobolName}' has {count}";
+
     // ── Arithmetic composite of operands (ISO §14.7 rule 2) — lifted at 10e ──────────────────────────────────
 
     /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7 rule 2, NATIVE arithmetic, the four

@@ -55,7 +55,7 @@ internal sealed record FromPhraseRules(
 {
     /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's FROM phrase carries — built once
     /// per verb, beside the three static rows, rather than once per bound statement. It is the same object the
-    /// two INTO phrases keep as statics (<c>ImplicitMovePhrase.ReadInto</c> / <c>ReturnInto</c>); a phrase is a
+    /// two INTO phrases keep on <c>IntoPhraseRules.Read</c> / <c>.Return</c>, their own twin of this row; a phrase is a
     /// property of the VERB, not of an occurrence of it, so all five are singletons.</summary>
     public ImplicitMovePhrase Phrase { get; } = new(Statement, MoveRuleCite);
 
@@ -214,9 +214,22 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// <c>RECORD IS VARYING</c> file only — designated an alphanumeric group move by those same rules. That
     /// choice is <see cref="BoundCurrentRecord"/>'s and was built in ONE place already (kb/Work PB339); it moved
     /// here from the emitter with the move it belongs to, because an operand is a bind-time object.</para>
+    ///
+    /// <para>⛔ The verb's OWN syntax rules for the phrase are applied FIRST — §14.9.30.3 SR1/SR2 for READ and
+    /// §14.9.34.3 SR2/SR3 for RETURN, through <c>StatementValidation.CheckIntoReceiver</c> (kb/Work PB337) —
+    /// exactly as <see cref="BindFromPhrase"/> applies each FROM verb's own rules before handing the pair to
+    /// <see cref="BindMoveOf"/>. They were applied by NO ONE: the operand was resolved and never inspected, so a
+    /// strongly-typed group could be filled from an alphanumeric record image, which nothing else in this
+    /// compiler allows. The check runs here rather than at the three binders BECAUSE this is the one place all
+    /// three funnel through — the next INTO-bearing verb inherits it by construction.</para>
+    ///
+    /// <para>The move is bound EVEN WHEN the phrase is refused, because these are pure checks (the
+    /// <c>StatementValidation</c> contract) and the bound shape downstream — <c>BoundRead.IntoMove</c> and its
+    /// siblings — stays what every emitter and drift test expects for a statement that was written.</para>
     /// </summary>
-    public BoundMove BindIntoPhrase(FileModel file, Place area, Place receiver, ImplicitMovePhrase phrase)
+    public BoundMove BindIntoPhrase(FileModel file, Place area, Place receiver, IntoPhraseRules rules)
     {
+        ctx.Validation.CheckIntoReceiver(file, receiver, rules);
         // §13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
         // HERE, once, for all three INTO arms — the sequential READ, the keyed READ and the sort RETURN.
         Place? depending = file is { Varying.DependingName: not null, VaryingDependingItem: { } d }
@@ -227,7 +240,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         return BindMoveOf(
             file.Varying is { } v ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
                                   : new BoundFieldOperand(area),
-            [receiver], phrase);
+            [receiver], rules.Phrase);
     }
 
     /// <summary>

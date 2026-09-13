@@ -582,7 +582,8 @@
   "pb528_picture_editing_transparency_2023",
   "pb165_content_conformance",
   "pb165_gr12_forward",
-  "pb165_dynamic_length_boundary"
+  "pb165_dynamic_length_boundary",
+  "pb337_into_receiver_admissible"
  ],
  "pending": [
   "pb485_value_only_format1"
