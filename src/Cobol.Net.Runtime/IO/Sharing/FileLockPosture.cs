@@ -68,7 +68,15 @@ public static class FileLockPosture
 
     /// <summary>The access an open mode needs OF THE PHYSICAL FILE (ISO §9.1.4 open modes): INPUT reads, OUTPUT
     /// and EXTEND write, I-O does both (§14.9.35 GR3 — REWRITE replaces the record a READ retrieved, through the
-    /// one connector).</summary>
+    /// one connector).
+    /// <para>⛔ THIS IS THE OPEN MODE'S FLOOR, NOT NECESSARILY A CONNECTOR'S ANSWER, and the distinction is
+    /// load-bearing (kb/Work PB771). An organization whose physical format is rewritten WHOLE has to read the
+    /// existing records before it can write them back, so its EXTEND handle genuinely needs
+    /// <see cref="FileAccess.ReadWrite"/> where this mapping says <see cref="FileAccess.Write"/>.
+    /// <c>FileConnector.HostAccess</c> is where a connector states what it actually takes, this is its default,
+    /// and <see cref="For"/> widens from the STATED accesses — because a sibling widened by a mode-derived
+    /// guess would refuse the access the handle really asks for, which is kb/Work PB713's '30' by another
+    /// route.</para></summary>
     public static FileAccess AccessOf(FileOpenMode mode) => mode switch
     {
         FileOpenMode.Input => FileAccess.Read,
@@ -86,18 +94,22 @@ public static class FileLockPosture
         | ((access & FileAccess.Write) != 0 ? FileShare.Write : FileShare.None);
 
     /// <summary>The posture ONE connector's own handles shall carry: the §9.1.15 file lock of
-    /// <paramref name="sharing"/>, widened to admit every mode in <paramref name="otherOpenModes"/> — the
-    /// connectors of THIS run unit that the Table-19 arbiter has already admitted on the same physical file
-    /// (<see cref="FileRegistry.Conflicts"/> is what put them there, so the widening never admits an open the
-    /// standard refused).
+    /// <paramref name="sharing"/>, widened to admit every access in <paramref name="otherAccesses"/> — the
+    /// accesses the OTHER connectors of THIS run unit that the Table-19 arbiter has already admitted on the same
+    /// physical file take of it (<see cref="FileRegistry.Conflicts"/> is what put them there, so the widening
+    /// never admits an open the standard refused).
+    /// <para>⛔ THE INPUT IS THE ACCESS EACH SIBLING'S HANDLE ACTUALLY TAKES, NOT ITS OPEN MODE (kb/Work
+    /// PB771). <c>FileConnector.HostAccess</c> answers that, per connector, because an organization whose
+    /// physical format is rewritten whole reads the file in every writable mode — see
+    /// <see cref="AccessOf"/>.</para>
     /// <para>A <c>SHARING WITH NO OTHER</c> connector is never widened in practice and the code needs no special
     /// case for it: every cell of Table 19's <c>NoOtherAnyMode</c> row and column is <i>Unsuccessful open</i>,
-    /// so its <paramref name="otherOpenModes"/> is always empty and the union is <see cref="FileShare.None"/>.
+    /// so its <paramref name="otherAccesses"/> is always empty and the union is <see cref="FileShare.None"/>.
     /// <c>FileLockPostureDriftTests</c> proves that rather than asserting it.</para></summary>
-    public static FileShare For(FileSharing? sharing, IEnumerable<FileOpenMode> otherOpenModes)
+    public static FileShare For(FileSharing? sharing, IEnumerable<FileAccess> otherAccesses)
     {
         var share = OfSharingMode(sharing);
-        foreach (var mode in otherOpenModes) share |= Admitting(AccessOf(mode));
+        foreach (var access in otherAccesses) share |= Admitting(access);
         return share;
     }
 

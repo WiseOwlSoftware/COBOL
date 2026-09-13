@@ -218,9 +218,13 @@ stream, and the SAME posture decides whether that handle may hold a buffer of it
 another writer it is UNBUFFERED, the mirror of the write role below, because the connector above keeps exactly one
 buffer and can invalidate only the one it owns (kb/Work PB753, below). `OpenAuxiliary(path, mode, access)` is a short-lived
 bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
-`RecordFraming`'s whole-store load/persist and its store-header read — and is **always**
+the §14.9.27.4 GR10 store-header read and the varying framing's parse check — and is **always**
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
-holds or the host refuses it. `SharedExtendOpenDriftTests` bans every other host-path open under `Runtime/IO`
+holds or the host refuses it. Every one of those runs BEFORE the connector's own handle for that OPEN exists,
+which is what makes the permissiveness free: this role is never the handle a COBOL statement is served
+through and never stands in for a file lock. **A keyed store's whole-file load and persist LEFT this list**
+(kb/Work PB771) — they were the only handle those organizations ever took, which is why they held no
+§9.1.15 lock; they now travel through the connector's own `OpenConnectorStream` handle. `SharedExtendOpenDriftTests` bans every other host-path open under `Runtime/IO`
 and pins both roles to this file. (kb/Work PB713 — a sharing-active `OPEN EXTEND` measured its write-ordinal
 base from a SECOND handle on the path it had just opened for WRITE: `File.ReadLines` for the line-sequential
 framing, a three-argument `FileStream` for the varying one, both `FileShare.Read`, both refused. The refusal ran
@@ -286,11 +290,21 @@ cannot admit this run unit's second connector while refusing a foreign process. 
   failed OPEN narrows back. A share mode is fixed when the handle is created, so "widen" means REBUILD:
   `FileConnector.Reposture` is virtual, and `SequentialConnector` overrides it to reopen at the logical offset
   it already tracks (`_readOffset` / `_lineByteOffset` — `StreamReader` buffers, so `BaseStream.Position` is
-  never the read position). Only the sequential organization holds a long-lived host handle; the keyed and
-  relative connectors load and persist their store through `OpenAuxiliary` and hold none, so the base
-  implementation is the whole of their obligation — **and, as a consequence, they establish no file lock against
-  other run units at all.** That is a property of the store model, not of this derivation, and it is uniform
-  across their sharing modes, so it inverts nothing.
+  never the read position). **EVERY organization holds a long-lived host handle carrying its derived posture**
+  — §9.1.15 3) names none, so all three owe the lock (kb/Work PB771). `KeyedConnector` is where RELATIVE and
+  INDEXED hold theirs: `TakeFileLock` on each `OpenCore` arm that has a physical file, `ReleaseFileLock` in the
+  CLOSE and on an unsuccessful OPEN, and a `Reposture` that rebuilds it. ⛔ **It is the SAME handle the store
+  travels through** — `RecordFraming.ReadStore`/`WriteStore` take a stream, not a path — because a second
+  handle for the load or the persist would ask for access the connector's own `FileShare.None` forbids, which
+  is kb/Work PB713's defect re-opened by its own cure.
+- the ORDER of that rebuild is one rule for both organizations, `FileConnector.RebuildMustReleaseFirst`: a
+  handle holding WRITE access is itself what would refuse its replacement, so it is released first (and the old
+  posture reopened if the host refuses the new one, the only window a foreign process can use); a read-only
+  handle rebuilds open-then-dispose and is never lockless for an instant. The predicate reads
+  `FileConnector.HostAccess`, which is also what the registry widens SIBLINGS by — not the open mode's floor,
+  because a whole-store organization reads the physical file in every writable mode (§14.9.51.4 GR29 a)'s
+  release number is a fact of the records already there), and a sibling widened by the mode-derived guess
+  would admit the write while the host refused the read.
 
 For DETERMINED sharing modes the widening is never needed — `FileLockPostureDriftTests.DeterminedModesNeedNoWidening`
 proves that every *Normal open* cell of Table 19 already has mutually admissible base postures — so it exists
@@ -309,13 +323,20 @@ the three rules above are enforced there exactly as written. .NET reaches the sa
 advisory `flock` with **two** states — `FileShare.None` takes `LOCK_EX`, every other value takes `LOCK_SH` — and
 that has three consequences a user of this compiler on Linux or macOS is entitled to know:
 
-- **Rule 2 cannot be enforced.** *"restricts concurrent access to a physical file through file connectors other
-  than this one, to input mode"* needs a lock that admits a reader and refuses a writer, and `LOCK_SH` admits
-  both. So `SHARING WITH READ ONLY` — and the undetermined implementor default, which shares its posture — gets
-  the protection of rule 3's *"allows concurrent access to a physical file through other file connectors"*
-  instead. **The posture is deliberately NOT widened to `FileShare.None` to compensate:** that would refuse the
-  reader rule 2 explicitly admits, trading an under-refusal for an over-refusal of access the standard grants.
-  Degrading toward rule 3 is the direction that never denies conforming access.
+- **Rule 2 has no expression through `FileShare` there — and that is a DEFECT, not a property of the host**
+  (kb/Work PB833). *"restricts concurrent access to a physical file through file connectors other than this
+  one, to input mode"* needs a lock that admits a reader and refuses a writer, and `LOCK_SH` admits both. So
+  `SHARING WITH READ ONLY` — and the undetermined implementor default, which shares its posture — currently
+  gets the protection of rule 3's *"allows concurrent access"* instead, and another RUN UNIT may open the file
+  in the extend or I-O mode where Windows refuses it. ⛔ **The BINARY half is a fact about `flock`; the
+  "and therefore unavoidable" half is not.** Advisory is sufficient here — §9.1.15 3) binds *other run units*,
+  and every COBOL.NET run unit reaches the file through this runtime, so every one of them takes whatever lock
+  the runtime takes — and `fcntl` region locks are advisory in the same way while being PER-ACCESS, which is
+  exactly the property `flock` lacks: a read lock for rule 2 admits another reader and refuses a writer. kb/Work
+  PB833 owns closing it, `GR-9.1.15-2` stays PARTIAL until it does, and this paragraph records the CURRENT
+  behaviour rather than a settled determination. **The posture is deliberately NOT widened to `FileShare.None`
+  to compensate, and that part stays:** it would refuse the reader rule 2 explicitly admits, trading an
+  under-refusal for an over-refusal of access the standard grants.
 - **Rule 1 survives, but only against cooperating processes.** `LOCK_EX` is the one thing a binary advisory lock
   can say, so `SHARING WITH NO OTHER` still excludes an outside reader and an outside writer — from any process
   that also takes the lock. A process that simply `open(2)`s the path is not bound by an advisory lock, so the

@@ -112,39 +112,47 @@ public sealed class RelativeConnector : KeyedConnector
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
+                    // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here.
                     Attach();                            // empty — the file is absent
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
+                TakeFileLock(create: false);             // §9.1.15 — the lock, before the store is read through it
                 Attach();
                 break;
             case FileOpenMode.Output:
+            {
+                var fs = TakeFileLock(create: true);     // §14.9.27.4 GR18 — OUTPUT creates the physical file
                 Attach();
                 _st.Clear();                            // OPEN OUTPUT empties the SHARED view (kb/Work PB143)
-                RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // a new physical file; the header IS its §9.1.6 attributes
+                RecordFraming.WriteStore(fs, DeclaredAttributes, []);   // a new physical file; the header IS its §9.1.6 attributes
                 break;
+            }
             case FileOpenMode.IO:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
+                    var io = TakeFileLock(create: true);
                     Attach();
                     _st.Clear();
-                    RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
+                    RecordFraming.WriteStore(io, DeclaredAttributes, []);   // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
+                TakeFileLock(create: false);
                 Attach();
                 break;
             case FileOpenMode.Extend:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
+                    var ex = TakeFileLock(create: true);
                     Attach();
                     _st.Clear();
-                    RecordFraming.WriteStore(HostPath, DeclaredAttributes, []);   // §14.9.27 GR17
+                    RecordFraming.WriteStore(ex, DeclaredAttributes, []);   // §14.9.27 GR17
                     status = FileStatusCode.OptionalFileNotFound;
                 }
-                else Attach();
+                else { TakeFileLock(create: false); Attach(); }
                 // ⛔ NOTHING IS CAPTURED HERE (kb/Work PB739). The extend release number used to be
                 // measured once, at this point, into a private _seqNext — and §14.9.51.4 GR29 a) says in
                 // the same breath that under sharing "the record numbers are not necessarily consecutive",
@@ -184,10 +192,21 @@ public sealed class RelativeConnector : KeyedConnector
         // store, and never aliases a detached one.
         try
         {
-            if (!OptionalAbsent && Mode is not FileOpenMode.Input) Persist();
+            bool owed = !OptionalAbsent && Mode is not FileOpenMode.Input;
+            // ⛔ A PERSIST THAT CANNOT REACH THE FILE IS NOT A SUCCESSFUL CLOSE (kb/Work PB771). The only way
+            // to get here without the handle is a Reposture rebuild whose fallback was also refused, i.e. a
+            // foreign process took the file; reporting '00' over records this connector still holds would be
+            // the silent loss this note exists to remove.
+            if (!PersistIsReachable(owed))
+                throw new IOException($"the §9.1.15 file lock on '{HostPath}' was lost while the file was open, "
+                    + "so the record store cannot be persisted");
+            if (owed) Persist();
         }
         finally
         {
+            // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
+            // file connector", whatever the persist outcome was (kb/Work PB771).
+            ReleaseFileLock();
             SharedStores?.Detach(HostPath);
             _st = new RelativeStore();
         }
@@ -490,13 +509,14 @@ public sealed class RelativeConnector : KeyedConnector
     private void Load(RelativeStore into)
     {
         into.Clear();
-        // An ABSENT file loads empty (OPEN OUTPUT / absent-optional attach, PB143). ONLY absent: a refused
-        // probe must not be read as "no records" (kb/Work PB323). Unauthorized reaches here from OPEN OUTPUT
-        // alone — §14.9.27.4 GR3 answers every other mode '37' before OpenCore runs — and GR18 makes OUTPUT a
-        // creation that discards whatever the file held, so an empty load is what OUTPUT wanted anyway; the
-        // WriteStore that follows raises the authority failure itself, and the base maps it to '37'.
-        if (HostFile.Probe(HostPath) is not FilePresence.Present) return;
-        var frames = RecordFraming.ReadStore(HostPath, CodeSet);
+        // ⛔ NO SECOND PRESENCE QUESTION, AND NO SECOND HANDLE (kb/Work PB771). The load reads the store
+        // through the connector's OWN handle — its §9.1.15 file lock — and the handle's existence IS the answer
+        // this used to ask HostFile.Probe for a second time in the same OPEN. The only arm that reaches here
+        // without one is an absent OPTIONAL file, which holds no records; a file that is PRESENT but refused
+        // never reaches here at all (§14.9.27.4 GR3 answered '37' on FileConnector.Open), and for OPEN OUTPUT
+        // the handle open itself raises the authority failure the base maps to '37'.
+        if (Store is not { } fs) return;
+        var frames = RecordFraming.ReadStore(fs, CodeSet);
         for (int i = 0; i < frames.Count; i++)
             if (frames[i] is { } rec)
                 into.Put(i + 1, rec);       // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
@@ -504,10 +524,11 @@ public sealed class RelativeConnector : KeyedConnector
 
     private void Persist()
     {
+        if (Store is not { } fs) return;   // an absent OPTIONAL file holds no physical store to rewrite
         long max = _st.Highest;
         var frames = new string?[max];
         foreach (var (slot, rec) in _slots) frames[slot - 1] = rec;
-        RecordFraming.WriteStore(HostPath, DeclaredAttributes, frames, CodeSet);
+        RecordFraming.WriteStore(fs, DeclaredAttributes, frames, CodeSet);
     }
 
 }

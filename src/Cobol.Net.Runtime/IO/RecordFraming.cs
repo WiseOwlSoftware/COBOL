@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Text;
 
@@ -103,12 +104,17 @@ internal static class RecordFraming
     /// '39' before <c>OpenCore</c>), so every persist writes back the attributes the file already had — except
     /// under the documented <c>COBOLNET_KEYCHECK</c> opt-out, where a connector admitted with a different key
     /// table writes ITS key table, which is what opting out of the key check means.</para>
-    /// <para>The stream is <see cref="HostFile.OpenAuxiliary"/>, share <see cref="FileShare.ReadWrite"/>: this
-    /// is a bookkeeping handle on a path another file connector of the SAME run unit may hold open under
-    /// §9.1.15 sharing, and it used to be the three-argument <c>FileStream</c> whose default is
-    /// <see cref="FileShare.None"/> — the strictest form of kb/Work PB713's defect, forbidding every other
-    /// handle rather than merely being forbidden by one.</para></summary>
-    /// <param name="path">The physical file.</param>
+    /// <para>⛔ IT WRITES THROUGH THE CONNECTOR'S OWN HANDLE, AND THE WHOLE STORE IS ONE <c>Write</c>
+    /// (kb/Work PB771). The handle is the connector's §9.1.15 FILE LOCK — the only thing that says anything to
+    /// another run unit — so the persist cannot take a second one: a <c>SHARING WITH NO OTHER</c> connector's
+    /// <see cref="FileShare.None"/> would refuse it, and the previous shape (a fresh
+    /// <c>HostFile.OpenAuxiliary(path, FileMode.Create, …)</c> per persist) is exactly why the keyed
+    /// organizations held no lock at all. The stream is TRUNCATED here rather than by a <c>FileMode.Create</c>
+    /// at open, because the handle outlives every persist and a store may shrink. Composing the bytes first and
+    /// writing them once also makes the persist independent of the handle's buffer size — which the posture
+    /// decides (<see cref="HostFile.OpenConnectorStream"/>) and which a whole-store rewrite must not depend
+    /// on.</para></summary>
+    /// <param name="fs">The connector's own open handle on the physical file, positioned anywhere.</param>
     /// <param name="attributes">The writing connector's §9.1.6 fixed file attributes — the header's content.</param>
     /// <param name="frames">One entry per ordinal position; null = an empty (gap) slot. The frames are the
     /// records in the NATIVE character set.</param>
@@ -116,25 +122,34 @@ internal static class RecordFraming
     /// (GR7). ⛔ It converts the PAYLOAD and not the frame: the 4-byte length prefix, the gap tag and this
     /// header are the §9.1.7.2 framing this processor adds, not data of the record (see
     /// <see cref="CodeSetConversion"/>).</param>
-    public static void WriteStore(string path, FixedFileAttributes attributes, IReadOnlyList<string?> frames,
+    public static void WriteStore(Stream fs, FixedFileAttributes attributes, IReadOnlyList<string?> frames,
         CodeSetConversion? codeSet = null)
     {
-        using var fs = HostFile.OpenAuxiliary(path, FileMode.Create, FileAccess.Write);
-        WriteHeader(fs, attributes);
+        // Pre-sized so the compose never doubles: the header is bounded by its key table and every frame is
+        // its 4-byte prefix plus one byte per character (Latin-1, and a CODE-SET conversion is a per-character
+        // map, so it does not change the length).
+        int estimate = 256 + (128 * attributes.Keys.Count);
+        foreach (string? f in frames) estimate += 4 + (f?.Length ?? 0);
+        var composed = new MemoryStream(estimate);
+        WriteHeader(composed, attributes);
         Span<byte> len = stackalloc byte[4];
         foreach (string? frame in frames)
         {
             if (frame is null)
             {
                 BinaryPrimitives.WriteUInt32LittleEndian(len, GapTag);
-                fs.Write(len);
+                composed.Write(len);
                 continue;
             }
             byte[] payload = Encoding.Latin1.GetBytes(codeSet is null ? frame : codeSet.ToMedium(frame));
             BinaryPrimitives.WriteUInt32LittleEndian(len, (uint)payload.Length);
-            fs.Write(len);
-            fs.Write(payload, 0, payload.Length);
+            composed.Write(len);
+            composed.Write(payload, 0, payload.Length);
         }
+        fs.Seek(0, SeekOrigin.Begin);
+        fs.SetLength(0);
+        fs.Write(composed.GetBuffer(), 0, (int)composed.Length);
+        fs.Flush();
     }
 
     /// <summary>Read the whole store back: one entry per frame, null for a gap. A torn tail ends the store.
@@ -143,29 +158,45 @@ internal static class RecordFraming
     /// <see cref="ReadHeader"/> answered <see cref="StoreFormat.Foreign"/> and the OPEN was '39' before
     /// <c>OpenCore</c> ran. The arm exists because <c>OPEN OUTPUT</c> loads before it truncates, and it must
     /// load nothing rather than garbage.)
-    /// <para>The stream is <see cref="HostFile.OpenAuxiliary"/> for the reason <see cref="WriteStore"/> gives;
-    /// here the three-argument <c>FileStream</c>'s default was <see cref="FileShare.Read"/>, which is the exact
-    /// share mode that refused kb/Work PB713's varying-framing arm against the connector's own EXTEND writer.
-    /// </para></summary>
-    /// <param name="path">The physical file.</param>
+    /// <para>⛔ IT READS THROUGH THE CONNECTOR'S OWN HANDLE, IN ONE PASS (kb/Work PB771), for the reason
+    /// <see cref="WriteStore"/> gives: that handle IS the connector's §9.1.15 file lock, so the load cannot take
+    /// a second one. The whole file is taken in a single <c>Read</c> and parsed in memory — the store's records
+    /// are materialized as strings anyway, so the transient byte array is proportionate, and it makes the load
+    /// independent of the handle's posture-decided buffer size instead of paying two reads per frame through
+    /// it.</para></summary>
+    /// <param name="fs">The connector's own open handle on the physical file, positioned anywhere.</param>
     /// <param name="codeSet">The file's §13.18.13 CODE-SET conversion, or null — see
     /// <see cref="WriteStore"/>. The frames come back in the NATIVE character set (§13.18.13.4 GR6 a).</param>
-    public static List<string?> ReadStore(string path, CodeSetConversion? codeSet = null)
+    public static List<string?> ReadStore(Stream fs, CodeSetConversion? codeSet = null)
     {
         var frames = new List<string?>();
-        using var fs = HostFile.OpenAuxiliary(path, FileMode.Open, FileAccess.Read);
-        if (DecodeHeader(fs) is null) return frames;   // empty, or a layout this build cannot locate frames in
-        var len = new byte[4];
-        while (FillExactly(fs, len, 4))
+        fs.Seek(0, SeekOrigin.Begin);
+        int size = checked((int)fs.Length);
+        // RENTED, not allocated: a keyed store is routinely past the 85 KB large-object threshold and this runs
+        // once per OPEN, so a fresh array per open would be LOH churn for a buffer that dies immediately.
+        byte[] all = ArrayPool<byte>.Shared.Rent(size);
+        try
         {
-            uint n = BinaryPrimitives.ReadUInt32LittleEndian(len);
-            if (n == GapTag) { frames.Add(null); continue; }
-            var payload = new byte[n];
-            if (!FillExactly(fs, payload, (int)n)) break;
-            string image = Encoding.Latin1.GetString(payload);
-            frames.Add(codeSet is null ? image : codeSet.ToNative(image));
+            fs.ReadExactly(all, 0, size);
+            // The ONE decoder still answers "where do the frames start" — over the bytes already in hand, so a
+            // header this build cannot read still yields no frames (see the summary of DecodeHeader). The length
+            // is the FILE's, never the rented array's, which is only >= it.
+            var over = new MemoryStream(all, 0, size, writable: false);
+            if (DecodeHeader(over) is null) return frames;   // empty, or a layout this build cannot locate frames in
+            int at = (int)over.Position;
+            while (at + 4 <= size)
+            {
+                uint n = BinaryPrimitives.ReadUInt32LittleEndian(all.AsSpan(at));
+                at += 4;
+                if (n == GapTag) { frames.Add(null); continue; }
+                if ((long)at + n > size) break;          // a torn tail ends the store (long: n is a uint)
+                string image = Encoding.Latin1.GetString(all, at, (int)n);
+                at += (int)n;
+                frames.Add(codeSet is null ? image : codeSet.ToNative(image));
+            }
+            return frames;
         }
-        return frames;
+        finally { ArrayPool<byte>.Shared.Return(all); }
     }
 
     /// <summary>The §9.1.6 fixed file attributes the store at <paramref name="path"/> RECORDS — the read half of

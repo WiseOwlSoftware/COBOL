@@ -223,9 +223,11 @@ public sealed class SequentialConnector : FileConnector
         if (_reader is { } reader)
         {
             long at = _lineSequential ? _lineByteOffset : _readOffset;
-            if (Mode == FileOpenMode.IO)
+            if (RebuildMustReleaseFirst)
             {
-                // WRITE access: the outgoing handle's share mode can forbid the incoming one, so release first.
+                // WRITE access: the outgoing handle's share mode can forbid the incoming one, so release
+                // first — the rule is FileConnector.RebuildMustReleaseFirst's and the keyed connectors read
+                // the same predicate (kb/Work PB771). For a reader that is exactly the I-O mode.
                 reader.Dispose();
                 _reader = null;
                 _reader = OpenReader(share, at, HostShare);
@@ -750,6 +752,21 @@ public sealed class SequentialConnector : FileConnector
             // LINAGE clause evaluates to, which is why it cannot be read from connector state here (PB673).
             return FileStatusCode.Success;
         }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The sibling of <see cref="CloseCore"/>'s stream disposal, for the OPEN that never became one
+    /// (kb/Work PB771). §9.1.15 establishes a file lock on <i>"The SUCCESSFUL opening of a file"</i>, so a body
+    /// that opened its reader or writer and then failed — or threw into <c>FileConnector.Open</c>'s catch, where
+    /// the result is '37' or '30' — shall not leave the handle behind: <c>Close()</c> answers '42' for a
+    /// connector that is not open and would never dispose it. No arm reaches this state today; the override is
+    /// what keeps that true of the arms added later, and it is the same two lines the CLOSE runs.</remarks>
+    protected override void AbandonOpen()
+    {
+        _reader?.Dispose();
+        _writer?.Dispose();
+        _reader = null;
+        _writer = null;
     }
 
     /// <summary>Report a FIXED-LENGTH record-sequential file whose byte length is not a whole multiple of its

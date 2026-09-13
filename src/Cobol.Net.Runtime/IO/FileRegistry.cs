@@ -961,23 +961,35 @@ public sealed class FileRegistry
     /// knows. A second copy of the union would also be the copy nothing measures: <c>FileLockPostureDriftTests</c>
     /// asserts against <see cref="FileLockPosture"/>, so a production rule written out beside it could drift
     /// under a green guard.</summary>
-    private static FileShare PostureOf(PhysicalFileTable.State st, string name, FileSharing? sharing,
-                                       (string Name, FileSharing? Sharing, FileOpenMode Mode)? pending) =>
-        FileLockPosture.For(sharing, OtherAdmittedModes(st, name, pending));
+    private FileShare PostureOf(PhysicalFileTable.State st, string name, FileSharing? sharing,
+                                (string Name, FileSharing? Sharing, FileOpenMode Mode)? pending) =>
+        FileLockPosture.For(sharing, OtherAdmittedAccesses(st, name, pending));
 
-    /// <summary>The open modes of every connector OTHER than <paramref name="name"/> that the Table-19 arbiter
-    /// has admitted on this physical file: those already registered as open, plus <paramref name="pending"/>
-    /// — the OPEN in flight, which <see cref="SharedOpenAttempt"/> registers only after it succeeds and which
-    /// the postures must nevertheless admit BEFORE its handle is created.</summary>
-    private static IEnumerable<FileOpenMode> OtherAdmittedModes(PhysicalFileTable.State st, string name,
+    /// <summary>The ACCESS every connector OTHER than <paramref name="name"/> that the Table-19 arbiter has
+    /// admitted on this physical file takes of it: those already registered as open, plus
+    /// <paramref name="pending"/> — the OPEN in flight, which <see cref="SharedOpenAttempt"/> registers only
+    /// after it succeeds and which the postures must nevertheless admit BEFORE its handle is created.
+    /// <para>⛔ IT IS EACH CONNECTOR'S OWN ANSWER (<see cref="FileConnector.HostAccess"/>), not
+    /// <see cref="FileLockPosture.AccessOf"/> over its open mode, and the registry is the only thing that can
+    /// ask because it is the only thing that holds the connector objects (kb/Work PB771). A keyed connector's
+    /// store is rewritten WHOLE, so its EXTEND handle reads as well as writes; widening a sibling by the
+    /// mode-derived floor would admit the write, the host would refuse the read, and the OPEN the standard
+    /// allowed would answer '30'. A name with no connector object — deregistered between the two maps — falls
+    /// back to the floor, which is the most this side can know about it.</para></summary>
+    private IEnumerable<FileAccess> OtherAdmittedAccesses(PhysicalFileTable.State st, string name,
                                        (string Name, FileSharing? Sharing, FileOpenMode Mode)? pending)
     {
         foreach (var (other, ex) in st.Open)
             if (!string.Equals(other, name, StringComparison.OrdinalIgnoreCase))
-                yield return ex.Mode;
+                yield return AccessTakenBy(other, ex.Mode);
         if (pending is { } p && !string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
-            yield return p.Mode;
+            yield return AccessTakenBy(p.Name, p.Mode);
     }
+
+    /// <summary>The access the connector registered as <paramref name="name"/> takes of its physical file in
+    /// <paramref name="mode"/>; the open mode's floor when no connector object stands under that name.</summary>
+    private FileAccess AccessTakenBy(string name, FileOpenMode mode) =>
+        _files.TryGetValue(name, out var c) ? c.HostAccess(mode) : FileLockPosture.AccessOf(mode);
 
     /// <summary>⛔ THE ONE §12.4.5.9.4 GR6 SITE — <i>"Execution of any I-O statement except START releases any
     /// previously locked record in that file for that file connector"</i> — for all four governed record verbs.

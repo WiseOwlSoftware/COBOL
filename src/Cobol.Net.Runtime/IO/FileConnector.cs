@@ -214,6 +214,48 @@ public abstract class FileConnector
     /// different answer) and lets the OPEN that asked for the widening fail inside its own try.</para></summary>
     internal virtual void Reposture(FileShare share) => HostShare = share;
 
+    /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
+    /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
+    /// open at all, so the registry widens from THIS rather than from the open mode alone.
+    /// <para>The default is the open mode's floor (<see cref="FileLockPosture.AccessOf"/>): INPUT reads, OUTPUT
+    /// and EXTEND write, I-O does both. ⛔ AN ORGANIZATION THAT NEEDS MORE OF THE PHYSICAL FILE THAN ITS OPEN
+    /// MODE IMPLIES SAYS SO HERE (kb/Work PB771), because the widening cannot guess it: a format that is
+    /// rewritten WHOLE — the keyed organizations' framed store — must read the existing records in every
+    /// writable mode before it can write them back, so its EXTEND handle asks for
+    /// <see cref="FileAccess.ReadWrite"/>. A sibling widened by the mode-derived guess would admit only the
+    /// write and the host would refuse the read, which is kb/Work PB713's '30' arriving by another route.</para>
+    /// </summary>
+    internal virtual FileAccess HostAccess(FileOpenMode mode) => FileLockPosture.AccessOf(mode);
+
+    /// <summary>⛔ THE ONE RULE FOR REBUILDING A HOST HANDLE AT A NEW §9.1.15 POSTURE, since two organizations
+    /// now do it: must the OLD handle be RELEASED before the new one is opened?
+    /// <para>Yes exactly when this connector's handle holds WRITE access, and the reason is the outgoing handle
+    /// itself: its own share mode is what the host checks the incoming request against, and no posture narrower
+    /// than <see cref="FileShare.ReadWrite"/> admits a second writer — so an open-then-dispose rebuild asks the
+    /// host to do something its own outstanding handle forbids, and gets an <c>IOException</c> that the
+    /// registry's catch silently turns into "keep the current handle". A connector left at the NARROWER posture
+    /// then refuses the sibling OPEN the arbiter had already allowed, which is kb/Work PB740's '30' restored by
+    /// the very mechanism that removed it. A read-only handle has no such conflict — every posture that admits
+    /// this connector's own read admits another — so it rebuilds open-then-dispose and is never, even for an
+    /// instant, without a lock.</para>
+    /// <para>⚠ The release opens a window in which only a FOREIGN process can take the file; both organizations
+    /// therefore fall back to reopening at the posture they had, which restores the connector exactly.</para>
+    /// </summary>
+    protected bool RebuildMustReleaseFirst => (HostAccess(Mode) & FileAccess.Write) != 0;
+
+    /// <summary>Release whatever host handle this connector's <see cref="OpenCore"/> took before the OPEN turned
+    /// out to be UNSUCCESSFUL — §9.1.15 establishes a file lock on <i>"The SUCCESSFUL opening of a file"</i> and
+    /// §14.9.27.4 GR25 leaves an unsuccessful one with <i>"the file … not affected"</i>, so an unsuccessful OPEN
+    /// shall leave no handle behind at all.
+    /// <para>⛔ THE CLOSE CANNOT DO IT, which is why this hook exists rather than a comment asking each
+    /// organization to be careful: <see cref="Close"/> answers '42' and never reaches <see cref="CloseCore"/>
+    /// for a connector that is not open (§9.1.13.7 item 2), so a handle taken by a body that then failed or
+    /// threw would be held until the process ended — a file lock against other run units that no COBOL
+    /// statement could remove. The base does nothing because a connector that takes no handle has nothing to
+    /// release; every organization that takes one overrides it, and the override is the same code its
+    /// <see cref="CloseCore"/> already runs.</para></summary>
+    protected virtual void AbandonOpen() { }
+
     /// <summary>True while the connector is in an open mode (ISO §9.1.4): set by a success-family OPEN, cleared
     /// by ANY completed CLOSE (§14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).
     /// ⛔ ONE bit with ONE job (kb/Work PB140): the FPI's "optional file not present" state lives on
@@ -518,6 +560,11 @@ public abstract class FileConnector
         catch (ArgumentException) { s = FileStatusCode.PermanentError; }
         catch (NotSupportedException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
+        // §9.1.15 — "The SUCCESSFUL opening of a file establishes a file lock": an unsuccessful one establishes
+        // none, and §14.9.27.4 GR25 leaves the file unaffected. Any handle the body took on its way to failing
+        // goes back HERE, because Close() answers '42' for a connector that is not open and never reaches
+        // CloseCore (kb/Work PB771).
+        if (!_openMode) AbandonOpen();
         // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §9.1.6's fixed file
         // attributes "apply to the file at the time it is created", and the two moments the OPEN statement
         // CREATES a file — GR18's OUTPUT, GR17's absent OPTIONAL I-O/EXTEND — are exactly the moments each

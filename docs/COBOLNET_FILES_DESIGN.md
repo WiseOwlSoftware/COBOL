@@ -558,7 +558,24 @@ three landings later — a `SHARING WITH NO OTHER` connector still admitted a fo
 one refused it, and two clause-less connectors Table 19 permitted to share were refused by the host with '30'.
 `SharedStreams` is now gone: the host share mode is §9.1.15's **file lock**, derived by `FileLockPosture` from
 the arbitrated sharing MODE and widened by the connectors Table 19 has admitted, applied in one place by
-`FileRegistry.SyncHostPostures` (kb/Work PB740; see `DESIGN-runtime-library.md`). The guarding test was six
+`FileRegistry.SyncHostPostures` (kb/Work PB740; see `DESIGN-runtime-library.md`).
+
+**⛔ AND THE LOCK IS OWED BY EVERY ORGANIZATION, WHICH IS A SEPARATE FACT FROM THE DERIVATION BEING RIGHT**
+(kb/Work PB771). §9.1.15 3) names none — *"The successful opening of a file establishes a file lock for the
+applicable sharing rules, thereby preventing other run units from opening that file with incompatible sharing
+rules"* — and a host share mode is the only thing a process can say to another run unit, so a connector that
+holds no handle establishes no lock however correct the derivation above is. RELATIVE and INDEXED held none:
+their whole record store was loaded at the OPEN and rewritten at the CLOSE through short-lived
+`HostFile.OpenAuxiliary` handles, so `SHARING WITH NO OTHER` — §9.1.15 1)'s *"exclusive access to a physical
+file"* — protected a keyed file from nothing outside the run unit, and the CLOSE then truncated it and rewrote
+it from the OPEN's snapshot, discarding another run unit's records with '00' reported on both sides. Measured,
+on both organizations, before the fix. `KeyedConnector` now takes and holds the handle for the life of the
+OPEN and the store travels THROUGH it (`RecordFraming.ReadStore`/`WriteStore` take a stream, not a path),
+which is also what keeps kb/Work PB713 closed: a second handle for the load would ask for access the
+connector's own `FileShare.None` forbids. `FileLockPostureDriftTests.EveryOrganizationHoldsALiveFileLockWhileOpen`
+measures the lock from a handle OUTSIDE the connector for every (organization × open mode), and
+`EveryOrganisationsHandleAccessLiesInThatBand` turns a FOURTH organization red rather than letting it inherit
+the omission. The in-run-unit half is certified from COBOL by `pb771_keyed_file_lock` at both editions. The guarding test was six
 `InlineData` rows against 35 cells with no row whose incoming mode was OUTPUT (kb/Work PB321). Two silent
 defaults went with it — the emitter registered a LOCK-MODE-only file as ALL OTHER, and a RETRY-phrase-only OPEN
 registered ALL OTHER here — three arms of one determination, two of which had already answered it.

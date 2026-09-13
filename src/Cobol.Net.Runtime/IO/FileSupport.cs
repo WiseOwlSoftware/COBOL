@@ -266,8 +266,16 @@ public static class HostFile
             FileLockPosture.AdmitsAnotherWriter(share) ? 1 : 4096, options);
 
     /// <summary>A SHORT-LIVED stream the runtime opens for its own bookkeeping over a host path — the write-base
-    /// measurement of a shared <c>OPEN EXTEND</c>, a keyed store's whole-file load/persist, the fixed-attribute
-    /// store header. It is <b>always</b> <see cref="FileShare.ReadWrite"/>, and the reason is not permissiveness for
+    /// measurement of a shared <c>OPEN EXTEND</c>, the §14.9.27.4 GR10 store-header read, the varying framing's
+    /// parse check. Every one of them runs BEFORE the connector's own handle for that OPEN exists, which is the
+    /// property that lets this role be permissive without weakening anything: it is never the handle a COBOL
+    /// statement is served through, and it never stands in for a §9.1.15 file lock.
+    /// <para>⛔ A KEYED STORE'S WHOLE-FILE LOAD AND PERSIST ARE NOT ON THIS LIST ANY MORE (kb/Work PB771). They
+    /// were, and that is exactly why the RELATIVE and INDEXED organizations established no file lock at all:
+    /// the only handle they ever took was this one, so nothing said anything to another run unit between the
+    /// OPEN and the CLOSE. They now travel through the connector's own long-lived
+    /// <see cref="OpenConnectorStream"/> handle, which both organizations hold for the life of the OPEN.</para>
+    /// It is <b>always</b> <see cref="FileShare.ReadWrite"/>, and the reason is not permissiveness for
     /// its own sake: the path may already be held open by a file connector OF THIS RUN UNIT, and a handle's
     /// share mode has to admit the access every outstanding handle already holds or the operating environment
     /// refuses it. A refusal here is a failure the COBOL statement never asked for — §9.1.15 and §14.9.27.4
