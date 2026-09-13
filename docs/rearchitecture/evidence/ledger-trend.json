@@ -514,6 +514,15 @@
       "dns": 366,
       "label": "Battery #70 at 1840778e: com",
       "battery": null
+    },
+    {
+      "sha": "a21b4633",
+      "date": "2026-09-13",
+      "gap": 2546,
+      "closed": 1802,
+      "dns": 366,
+      "label": "Train 29: DEVLOG 1594 + plan",
+      "battery": null
     }
   ]
 }
