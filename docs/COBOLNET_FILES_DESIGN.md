@@ -1307,6 +1307,9 @@ not two. Diagnostics: COBOLNET1994 (admissibility), COBOLNET1995 (the strong-rec
   now the one spelling, GR3's three conjuncts, and `ItemCategory.Face` names the two exclusions out loud — it used
   to answer *"not an elementary or group data item"* for every plain group, false but unreachable while no group
   could fail the predicate. The sweep is witnessed by `conformance:negative/pb337-assign-using-strong-group`.
+  `ItemCategory` has since become the ONE §8.5.2 CLASS reader as well as the category one — the index /
+  message-tag / object / pointer population that three rules name with identical words lives there too
+  (`IsIndexMessageTagObjectOrPointer`, kb/Work PB391); see `docs/COBOLNET_DATA_MODEL_DESIGN.md`.
 - **The class carries the USAGE half of the same question too — `ItemCategory.UsageOf`** (kb/Work PB411). §8.5.2.1
   states a group's usage in one sentence — *"An alphanumeric group item is treated as though it had a usage of
   display"* — and every rule worded *"a data item with usage display or usage national"* (§14.9.18.3 SR6 /

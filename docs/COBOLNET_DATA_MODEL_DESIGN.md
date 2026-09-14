@@ -250,6 +250,22 @@ true: every SET-family amount site lands, and no emitter narrows an amount with 
   list that left out the declared EDITING character-1, so `PIC NNTNN EDITING "T" IS N":"` — a shape GR10 names
   outright — was refused as an invalid PICTURE. The set is now `CobolEdit.IsEditedCategorySymbol`, ONE definition
   derived from rule 3's simple-insertion set, read by BOTH recognition arms.
+- **`ItemCategory` IS THE ONE §8.5.2 CLASS-AND-CATEGORY READER, not the category one alone** (kb/Work PB391,
+  2026-09-13). Its original charter was the rules worded in CATEGORIES (`IsAlphanumeric`,
+  `IsAlphanumericOrNational`, `IsAlphanumericGroup`, `Face` — the narrative is in
+  `docs/COBOLNET_FILES_DESIGN.md`, where the first three askers live). It now also owns the one rule worded in
+  CLASSES that more than one subsystem asks: **class index, message-tag, object or pointer**, which THREE rules
+  name with word-for-word identical text — §13.16.3 SR24 e) (not a conditional variable), §13.18.60.3 SR11 (the
+  same prohibition the other way round) and §14.7.6 rule 4 (*"Neither data item contains an OCCURS, REDEFINES,
+  or RENAMES clause or is of class index, message-tag, object, or pointer"*, the CORRESPONDING exclusion).
+  `ItemCategory.IsIndexMessageTagObjectOrPointer` is that one predicate and `Sr14PhraseOf` / `Sr4PhraseOf` — the
+  §13.18.60.3 phrase readers that STATE the population, moved here from `DataBinder.UsageDeclaration` — are how
+  it is derived rather than hand-listed. **The third asker is why it moved**: `CorrespondingBinder` is outside
+  `DataBinder` and was carrying a one-usage copy (`Pic?.Usage is not Usage.Index`) under a comment claiming the
+  other three classes had "no representation in this data model yet", which `PicCategory`'s Pointer /
+  ProgramPointer / FunctionPointer / ObjectReference members and `Usage.MessageTag` contradict. A POINTER
+  namesake pair was excluded from MOVE CORRESPONDING only by the ACCIDENT of a private Table-16 copy's
+  `_ => false` default; `ConditionNameAssociationDriftTests` and `CorrespondingRule2DriftTests` pin both halves.
 - **D-N7 a national-form NUMERIC / NUMERIC-EDITED / BOOLEAN item is its DISPLAY twin COMPOSED with the one
   national byte transform** (kb/Work PB646, 2026-09-13). §13.18.60.3 SR12 admits FIVE picture shapes under usage
   national — boolean, national, national-edited, numeric and numeric-edited — and all five are live. The

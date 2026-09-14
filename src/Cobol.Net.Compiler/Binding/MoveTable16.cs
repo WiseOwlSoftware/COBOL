@@ -81,9 +81,21 @@ public readonly record struct Table16Operand(
 /// MoveBinder keeps them" — true of the axis, false of the OWNERSHIP: §14.9.20.3 SR4 says an INITIALIZE REPLACING
 /// pair is legal only if "a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the
 /// specified category as the receiving operand shall be valid", which is the WHOLE validity question, not the
-/// table alone. So <see cref="ShapeRefusal"/> answers the three receiver-position-keyed source-shape rules and
-/// <see cref="SenderClassRefusal"/> answers SR1's sending half, and MOVE and INITIALIZE ask the same code.
+/// table alone. So <see cref="ShapeRefusal(BoundOperand, Table16Operand)"/> answers the three
+/// receiver-position-keyed source-shape rules and <see cref="SenderClassRefusal"/> answers SR1's sending half,
+/// and MOVE and INITIALIZE ask the same code.
 /// Each caller keeps only its own FRAMING (its diagnostic code and the statement text it quotes back).
+/// </para>
+/// <para>
+/// ⛔ AND A THIRD STATEMENT ASKS THE WHOLE QUESTION, WHICH IS WHY SR9 IS HERE TOO AND WHY THERE IS A COMPOSITE
+/// ENTRY (kb/Work PB391). §14.7.6 rule 2 — "In a MOVE statement, at least one of the data items is an elementary
+/// data item and the resulting move is valid according to the rules for the MOVE statement" — makes MOVE / ADD /
+/// SUBTRACT CORRESPONDING's pairing decision the MOVE statement's own validity question, over two DATA ITEMS and
+/// no bound operands. <see cref="DataItemRefusal"/> is that question in SR order; <see cref="VariableLengthRefusal"/>
+/// is SR9's relation moved out of <c>StatementValidation.CheckVariableLengthMove</c>, which keeps its COBOLNET1931
+/// framing. Rule 2 asked only <see cref="Refusal"/>, so SR8 and SR9 — the two rules SR10 explicitly defers to —
+/// were unasked under CORRESPONDING: a BINARY-LONG namesake paired with a PIC X(5) one, and a variable-length-group
+/// namesake paired with an elementary one and reached the run time.
 /// </para>
 /// <para>
 /// ⚠ WHAT STILL STAYS WITH THE CALLER: §14.9.25.3 SR5's figurative→numeric prohibition, whose three edition rows
@@ -228,17 +240,20 @@ public static class MoveTable16
     /// stored <c>0000</c> and <c>INITIALIZE g REPLACING ALPHABETIC DATA BY ZERO</c> stored the same, because a
     /// figurative's Table-16 position is <c>PicCategory.Group</c> — deliberately exempt, since §8.3.3.6.4 GR4
     /// gives ZERO no fixed category — so the table can never be the rule that refuses it. SR6 is written
-    /// precisely to cover what the table cannot.</para></summary>
+    /// precisely to cover what the table cannot.</para>
+    /// <para>⛔ THE ITEM-KEYED HALF IS THE <see cref="ShapeRefusal(DataItem, Table16Operand)"/> OVERLOAD AND THIS
+    /// ENTRY DELEGATES TO IT (kb/Work PB391). Every rule here whose antecedent reads "if identifier-1 references
+    /// a DATA ITEM described with …" needs nothing but the sending ITEM, and §14.7.6 rule 2's CORRESPONDING
+    /// filter has only an item — no bound operand exists for a pair until after the pairing decision is made.
+    /// Writing SR8's test a second time over there is precisely the duplication kb/Work PB391 deleted, so the
+    /// two entries are ONE body: the item-keyed rules live in the overload, this one adds only the arms a data
+    /// item can never satisfy (a figurative constant is not a data item), and the NEXT item-keyed rule reaches
+    /// both askers without an edit.</para></summary>
     public static string? ShapeRefusal(BoundOperand sender, Table16Operand receiver)
     {
-        // §14.9.25.3 SR8 — "If identifier-1 references a data item described with usage binary-char,
-        // binary-short, binary-long, or binary-double, identifier-2 shall reference a numeric or numeric-edited
-        // item." SR10 defers to it explicitly, so it is asked first.
-        if (sender is BoundFieldOperand { Place.Item.Pic.Usage: Usage.BinaryChar or Usage.BinaryShort
-                                                            or Usage.BinaryLong or Usage.BinaryDouble }
-            && receiver.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
-            return "a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending operand shall reference only a numeric or "
-                 + "numeric-edited receiver (ISO §14.9.25.3 SR8)";
+        // SR8 and every other rule keyed on the sending DATA ITEM — asked through the one item-keyed entry.
+        if (sender is BoundFieldOperand f && ShapeRefusal(f.Place.Item, receiver) is { } itemKeyed)
+            return itemKeyed;
 
         // §14.9.25.3 SR7 — "Any figurative constant for which the associated character or characters are not
         // boolean characters shall not be moved to a boolean data item." ZERO is boolean zeros by context
@@ -268,6 +283,86 @@ public static class MoveTable16
                  + "(ISO §14.9.25.3 SR6)";
 
         return null;
+    }
+
+    /// <summary>The ITEM-KEYED source-shape refusals of ISO §14.9.25.3 — the rules whose antecedent is
+    /// <i>"if identifier-1 references a data item described with …"</i>, so the sending DATA ITEM is the whole
+    /// of their input. Today that is SR8 alone: <i>"If identifier-1 references a data item described with usage
+    /// binary-char, binary-short, binary-long, or binary-double, identifier-2 shall reference a numeric or
+    /// numeric-edited item."</i> §14.9.25.3 SR10 defers to it explicitly — <i>"for all other cases not described
+    /// in Syntax rules 8 and 9"</i> — so it is asked BEFORE <see cref="Refusal"/>, never instead of it.
+    /// <para>⛔ THIS IS THE HOME, AND THE <see cref="ShapeRefusal(BoundOperand, Table16Operand)"/> ENTRY CALLS IT
+    /// (kb/Work PB391). Two askers reach it: <c>MoveBinder</c> / <c>InitializeBinder</c> through the bound-operand
+    /// entry, and <c>CorrespondingBinder</c>'s §14.7.6 rule-2 filter through <see cref="DataItemRefusal"/>, which
+    /// has data items and no bound operands at all. A new item-keyed rule goes HERE and both get it; putting one
+    /// in the bound-operand entry instead is the two-arm split that made <c>MOVE CORRESPONDING</c> pair a
+    /// <c>BINARY-LONG</c> sender with a <c>PIC X(5)</c> receiver while the written MOVE of the same two items was
+    /// refused COBOLNET0819.</para>
+    /// <para>⚠ A GROUP RECEIVER IS REFUSED, and that is the rule's letter: SR8 requires identifier-2 to
+    /// reference "a numeric or numeric-edited item", and a group item is neither. The §14.9.25.4 GR4 group
+    /// exemption is Table 16's, not SR8's — SR10 is the rule that routes to the table, and SR10 does not reach
+    /// a case SR8 describes.</para></summary>
+    public static string? ShapeRefusal(DataItem sender, Table16Operand receiver) =>
+        sender.Pic is { Usage: Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble }
+        && receiver.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)
+            ? "a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending operand shall reference only a numeric or "
+              + "numeric-edited receiver (ISO §14.9.25.3 SR8)"
+            : null;
+
+    /// <summary>ISO §14.9.25.3 SR9 — <i>"If identifier-1 or identifier-2 references a variable-length group then
+    /// these groups shall be compatible groups as specified in 8.5.1.12, Variable-length groups"</i> — as the
+    /// REASON the move is invalid, or <see langword="null"/> when the rule is satisfied or not engaged. The
+    /// relation itself is the ONE <see cref="VariableLengthCompatibility"/> module; this is the MOVE statement's
+    /// application of it, and SR10 defers to it exactly as it defers to SR8.
+    /// <para>A <see langword="null"/> operand means <i>"not a plain data item"</i> — a literal, a function
+    /// result, a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item) or a
+    /// level-66 RENAMES alias (§13.18.45 composes ONE elementary item). §8.5.1.12.1 states the prohibition in
+    /// terms of the OTHER OPERAND — <i>"a variable-length group … may not undergo a comparison or a move
+    /// operation, in either direction, explicitly or otherwise, unless the other operand is a compatible
+    /// group"</i> — so such an operand is a violation, not a fall-through.</para>
+    /// <para>⛔ IT IS A READER RATHER THAN A CHECK because its two askers frame it differently (kb/Work PB391),
+    /// the same shape <see cref="SenderClassRefusal"/> already has: <c>StatementValidation</c>
+    /// <c>.CheckVariableLengthMove</c> reports it as COBOLNET1931 about the MOVE the programmer wrote, and
+    /// <see cref="DataItemRefusal"/> reads it SILENTLY, because §14.7.6 rule 2 makes an invalid move a pair that
+    /// does not correspond rather than a diagnostic. Before this, CORRESPONDING did not ask it at all and a
+    /// variable-length-group namesake paired with an elementary one, reaching the run time as a
+    /// <c>NotImplementedCobolFeatureException</c> for the whole-group image the pair can never have.</para>
+    /// <para>No edition gate is needed and none is written: a variable-length group can only be DECLARED from
+    /// COBOL-2014 (the DYNAMIC LENGTH clause §13.18.19 and OCCURS Format 4 §13.18.38), so the rule is
+    /// unreachable below 2014 by construction rather than by a predicate that could drift.</para></summary>
+    public static string? VariableLengthRefusal(DataItem? sender, DataItem? receiver)
+    {
+        bool engaged = (receiver is not null && VariableLengthCompatibility.IsVariableLength(receiver))
+                    || (sender is not null && VariableLengthCompatibility.IsVariableLength(sender));
+        return !engaged ? null
+            : sender is null || receiver is null
+                ? $"the {(receiver is null ? "receiving" : "sending")} operand is not a group item: a "
+                  + "variable-length group may move only to or from a compatible GROUP (ISO §8.5.1.12.1)"
+                : VariableLengthCompatibility.Mismatch(sender, receiver);
+    }
+
+    /// <summary>
+    /// ⭐ <b>THE WHOLE OF ISO §14.9.25.3's VALIDITY QUESTION FOR A DATA-ITEM SENDER AND A DATA-ITEM RECEIVER</b>,
+    /// in SR order — the form §14.7.6 rule 2 asks. Null when the move is valid.
+    /// <para>Rule 2 reads <i>"In a MOVE statement, at least one of the data items is an elementary data item and
+    /// the resulting move is valid according to the rules for the MOVE statement"</i>, so the CORRESPONDING
+    /// pairing decision IS this question, and asking it as three or four separate calls at the call site is how
+    /// the next rule gets added to one asker and not the other. One entry, asked once (kb/Work PB391).</para>
+    /// <para>⚠ SR1's class half (<see cref="SenderClassRefusal"/>) is deliberately NOT in the chain. Its only
+    /// other asker excludes those operands EARLIER and more broadly: §14.7.6 rule 4 — <i>"Neither data item …
+    /// is of class index, message-tag, object, or pointer"</i> — drops such a child on BOTH sides before any
+    /// pair is formed (<c>CorrespondingBinder.CorrEligible</c>), where SR1 as written reaches only the sender.
+    /// Adding it here would put two mechanisms on one question, which is what this class exists to prevent.</para>
+    /// <para>⚠ AND NEITHER IS SR5's figurative→numeric prohibition, for the reason the class header gives: its
+    /// three edition rows live in <c>VersionConformancePass.GateMove</c>, and a figurative constant is not a data
+    /// item, so no operand this entry can be given could reach it.</para>
+    /// </summary>
+    public static string? DataItemRefusal(DataItem sender, DataItem receiver)
+    {
+        Table16Operand recv = Table16Operand.Of(receiver);
+        return ShapeRefusal(sender, recv)                                  // SR8 — SR10 defers to it
+            ?? VariableLengthRefusal(sender, receiver)                     // SR9 — SR10 defers to it
+            ?? Refusal(Table16Operand.Of(sender), recv);                   // SR10 — "all other cases": Table 16
     }
 
     /// <summary>ISO §14.9.25.3 SR1's SENDING half — "The class of identifier-1 or identifier-2 shall not be

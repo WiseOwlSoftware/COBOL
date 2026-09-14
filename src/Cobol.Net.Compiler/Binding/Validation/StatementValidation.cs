@@ -538,18 +538,23 @@ internal sealed class StatementValidation(DataBinder data)
         return ok;
     }
 
-    /// <summary>ISO §14.9.25.3 SR9 (kb/Work PB393): "If identifier-1 or identifier-2 references a variable-length
-    /// group then these groups shall be compatible groups as specified in 8.5.1.12, Variable-length groups." The
-    /// relation itself is the ONE <see cref="VariableLengthCompatibility"/> module (built for the §14.8.2.2 /
-    /// §14.8.3.2 activation-boundary crossing, kb/Work PB204) — this is the MOVE statement's application of it,
-    /// never a second copy.
-    /// <para>⛔ A NON-GROUP sender is a violation, not a fall-through. §8.5.1.12.1 states the prohibition in
-    /// terms of the OTHER OPERAND — "a variable-length group is not equivalent to an alphanumeric data item and
-    /// may not undergo a comparison or a move operation, in either direction, explicitly or otherwise, unless the
-    /// other operand is a compatible group" — so <c>MOVE SPACES TO a-variable-length-group</c>, a literal, a
-    /// function result, a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item)
-    /// and a level-66 RENAMES alias (§13.18.45 composes ONE elementary item) are each refused. INITIALIZE is the
-    /// statement that fills such a group (§14.9.20.4 GR7/GR10).</para>
+    /// <summary>ISO §14.9.25.3 SR9's MOVE-STATEMENT FRAMING (kb/Work PB393): "If identifier-1 or identifier-2
+    /// references a variable-length group then these groups shall be compatible groups as specified in 8.5.1.12,
+    /// Variable-length groups."
+    /// <para>⛔ THE RULE ITSELF IS <see cref="MoveTable16.VariableLengthRefusal"/>, NOT WRITTEN HERE (kb/Work
+    /// PB391). A second statement asks the same rule — §14.7.6 rule 2 makes a CORRESPONDING pair's validity the
+    /// MOVE statement's validity, over two DATA ITEMS and with no diagnostic at all — so the reader moved beside
+    /// the other MOVE syntax rules and this method keeps only what is the MOVE STATEMENT's: which operand shapes
+    /// it unwraps to a data item, which name it puts in the message, and COBOLNET1931 itself. That reader in turn
+    /// asks the ONE <see cref="VariableLengthCompatibility"/> module (built for the §14.8.2.2 / §14.8.3.2
+    /// activation-boundary crossing, kb/Work PB204), so §8.5.1.12 is still written down exactly once.</para>
+    /// <para>⛔ A NON-GROUP sender is a violation, not a fall-through — §8.5.1.12.1 states the prohibition in
+    /// terms of the OTHER OPERAND, so <c>MOVE SPACES TO a-variable-length-group</c>, a literal, a function
+    /// result, a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item) and a
+    /// level-66 RENAMES alias (§13.18.45 composes ONE elementary item) are each refused. That is the reader's
+    /// null-operand arm; what is decided HERE is which of those shapes becomes a null, because it is the MOVE
+    /// statement's own operand vocabulary. INITIALIZE is the statement that fills such a group (§14.9.20.4
+    /// GR7/GR10).</para>
     /// <para>No edition gate is needed and none is written: a variable-length group can only be DECLARED from
     /// COBOL-2014 (the DYNAMIC LENGTH clause §13.18.19 and OCCURS Format 4 §13.18.38), so the screen is
     /// unreachable below 2014 by construction rather than by a predicate that could drift.</para></summary>
@@ -568,14 +573,7 @@ internal sealed class StatementValidation(DataBinder data)
         foreach (var r in receivers)
         {
             var recv = r is RefModPlace or RenamesPlace ? null : r.Item;
-            bool variable = (recv is not null && VariableLengthCompatibility.IsVariableLength(recv))
-                || (sender is not null && VariableLengthCompatibility.IsVariableLength(sender));
-            if (!variable) continue;
-            string? why = sender is null || recv is null
-                ? $"the {(recv is null ? "receiving" : "sending")} operand is not a group item: a "
-                  + "variable-length group may move only to or from a compatible GROUP (ISO §8.5.1.12.1)"
-                : VariableLengthCompatibility.Mismatch(sender, recv);
-            if (why is null) continue;
+            if (MoveTable16.VariableLengthRefusal(sender, recv) is not { } why) continue;
             ok = false;
             string vl = recv is not null && VariableLengthCompatibility.IsVariableLength(recv)
                 ? recv.CobolName ?? recv.CsName : sender!.CobolName ?? sender.CsName;

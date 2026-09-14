@@ -42,9 +42,14 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// <see cref="BoundCorresponding"/> the backend renders as the per-pair implied statements (MOVE GR11 §14.9.25.4 /
     /// ADD GR5 §14.9.2.4 / SUBTRACT GR5 §14.9.44.4 — "the same as if the user had referred to each pair … in
     /// separate statements"). The entire Format-2/Format-3 surface is COBOL-85 (no edition gate on the forms
-    /// themselves); the SR6/SR12 2002+/2014+ operand categories (national / bit / strongly-typed / variable-length
-    /// groups) and the rule-4 object/pointer/message-tag exclusion classes have no representation in this data
-    /// model yet — this binder is the seam that gates them when those usages bind.
+    /// themselves).
+    /// <para>⛔ THE "NO REPRESENTATION IN THIS DATA MODEL YET" CLAIM THAT STOOD HERE WAS FALSE (kb/Work PB391).
+    /// It covered the SR6/SR12 operand categories AND "the rule-4 object/pointer/message-tag exclusion classes",
+    /// and the model carries all of them: <see cref="GroupUsage"/> for bit and national groups,
+    /// <see cref="StrongTypeModel"/> and <see cref="VariableLengthCompatibility"/> for the other two kinds, and
+    /// <see cref="PicCategory"/>'s Pointer / ProgramPointer / FunctionPointer / ObjectReference members plus
+    /// <c>Usage.MessageTag</c> for rule 4's classes. Rule 4's class leg is now in <see cref="CorrEligible"/>; the
+    /// SR6/SR12 operand-kind screen is <c>StatementValidation.CheckCorrespondingGroupOperand</c>.</para>
     /// </summary>
     public BoundStatement Bind(
         CorrVerb verb, Core.DataReferenceContext[] groups, CobolRounding rounding, SizeErrorPhrase? sizeErr)
@@ -139,6 +144,10 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             if (cands.Count > 1) continue;                                     // rule 6, target side
             DataItem d = cands[0];
 
+            // A group × group namesake pair DESCENDS, and that is true of a bit group and a national group too:
+            // NOTE 5 under §14.9.25.4 GR11 — "For purposes of MOVE CORRESPONDING, bit group items and national
+            // group items are processed as group items, rather than as elementary items" — which is the one
+            // place the MOVE statement does NOT treat them as the elementary items §14.9.25.4 GR4 makes them.
             if (s.IsGroup && d.IsGroup)
             {
                 sChain.Add(s); dChain.Add(d);
@@ -149,9 +158,10 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             }
             if (verb is CorrVerb.Move)
             {
-                // Rule 2: at least one elementary (guaranteed — not both groups) AND the move valid per Table 16;
-                // an invalid combination means the pair simply does NOT correspond (silent skip, not an error).
-                if (!CorrMoveValid(s, d)) continue;
+                // Rule 2: at least one elementary (guaranteed — not both groups) AND the move valid per the MOVE
+                // rules; an invalid combination means the pair simply does NOT correspond (silent skip, never an
+                // error). The question goes to the ONE Table 16 — see CorrRule2MoveValid, which is a delegation.
+                if (!CorrRule2MoveValid(s, d)) continue;
             }
             // Rule 3: BOTH shall be numeric data items — a group is class alphanumeric and numeric-edited is
             // category numeric-edited (§8.4.2), so only elementary-numeric × elementary-numeric qualifies; every
@@ -177,49 +187,71 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
 
     /// <summary>A child participates in correspondence matching unless excluded (ISO §14.7.6): rule 1 — FILLER
     /// (and a nameless group's whole subtree, which can never satisfy rule 1's name-qualified identity: a FILLER
-    /// level contributes no qualifier — the legacy/NIST-proven reading); rule 4 — an OCCURS, REDEFINES, or RENAMES
-    /// clause, or class index (USAGE INDEX, §13.18.60). The 2002+/2014 exclusion classes (object, pointer,
-    /// message-tag) have no representation in this data model yet — nothing to test until those usages bind.
+    /// level contributes no qualifier — the legacy/NIST-proven reading); rule 4 — <i>"Neither data item contains
+    /// an OCCURS, REDEFINES, or RENAMES clause or is of class index, message-tag, object, or pointer"</i>.
     /// Level-66 entries never join <see cref="DataItem.Children"/>, so rule 4's RENAMES leg is structural; the
-    /// <see cref="DataItem.Renames"/> test is defensive.</summary>
+    /// <see cref="DataItem.Renames"/> test is defensive.
+    /// <para>⛔ RULE 4'S CLASS LEG IS THE WHOLE FOUR-CLASS SET, THROUGH THE ONE PREDICATE (kb/Work PB391). What
+    /// stood here was <c>Pic?.Usage is not Usage.Index</c> under a comment claiming "the 2002+/2014 exclusion
+    /// classes (object, pointer, message-tag) have no representation in this data model yet" — a premise
+    /// <see cref="PicInfo"/> contradicts (it carries Pointer / ProgramPointer / FunctionPointer /
+    /// ObjectReference categories and a MessageTag usage). A POINTER namesake pair was excluded only by the
+    /// ACCIDENT of the private Table-16 copy's <c>_ =&gt; false</c> default, measured: with that copy deleted and
+    /// this leg absent, <c>MOVE CORRESPONDING</c> over two <c>TYPE PT</c> groups would have silently copied a
+    /// pointer. <see cref="ItemCategory.IsIndexMessageTagObjectOrPointer"/> is §13.16.3 SR24 e)'s and
+    /// §13.18.60.3 SR11's population too — one class test, three rules.</para>
+    /// <para>⛔ AND "IS IT A DATA ITEM AT ALL" IS SCREENED HERE, not inside the rule-2 filter where it used to
+    /// sit. A PICTURE-less entry with no subordinates is neither elementary (§8.5.1.3) nor a group item — an
+    /// error-recovery artifact (a refused MESSAGE-TAG or staged FUNCTION-POINTER entry, a picture-less
+    /// <c>USAGE NATIONAL</c> awaiting COBOLNET0881) — and §14.7.6 speaks only of "a data item in D1". Keeping it
+    /// in a MOVE-validity filter made the exclusion invisible to ADD and SUBTRACT CORRESPONDING, which reached
+    /// it only through rule 3's numeric test by luck of ordering.</para></summary>
     private static bool CorrEligible(DataItem item) =>
         item.CobolName is not null
+        && (item.IsGroup || item.IsElementary)
         && !item.IsTable   // rule 4 — ANY OCCURS: fixed OR Format-4 DYNAMIC (Occurs is null for a dynamic table, D9)
         && item.RedefinesTargetName is null
         && item.Renames is null
-        && item.Pic?.Usage is not Usage.Index;
+        && !ItemCategory.IsIndexMessageTagObjectOrPointer(item);
 
     /// <summary>
-    /// Rule 2's move-validity filter (ISO §14.7.6 r2 → §14.9.25.3 SR10, Table 16) over the modeled categories. A
-    /// group operand is class/category alphanumeric (§8.5.2.1 — kb/Work PB182 corrected the phantom §8.8.4.1.1). Table 16 rows: alphanumeric → every modeled
-    /// receiver; alphanumeric-EDITED → alphanumeric only (numeric / numeric-edited: No); numeric INTEGER (a
-    /// fixed-point item with no fraction digits — a P-scaled ×10ⁿ item included) → every modeled receiver; numeric
-    /// NONINTEGER (fraction digits, or a float usage) → numeric / numeric-edited only; numeric-edited → alphanumeric
-    /// always, numeric / numeric-edited only with DE-EDITING — an ISO-2002 introduction, so gated ≥ 2002 (at
-    /// COBOL-85 the pair does not correspond). The model folds ALPHABETIC (PIC A) into alphanumeric
-    /// (<see cref="PictureAnalyzer.Analyze"/>), so Table 16's alphabetic-only prohibitions (numeric / numeric-edited /
-    /// boolean → alphabetic: No) are not separable here — those pairs are admitted under the alphanumeric column.
+    /// ⛔ ISO §14.7.6 rule 2's move-validity filter, WHICH IS NOT A RULE WRITTEN HERE — it is a DELEGATION, and
+    /// must stay one. Rule 2 reads <i>"In a MOVE statement, at least one of the data items is an elementary data
+    /// item and the resulting move is valid according to the rules for the MOVE statement"</i>, so the question
+    /// belongs to <see cref="MoveTable16"/> — the ONE home of §14.9.25.3 SR10, Table 16 — and asking it a second
+    /// time here is how the two answers drift. The "at least one elementary" half is structural: the caller
+    /// descends every group × group namesake pair (NOTE 5 under §14.9.25.4 GR11) and only reaches this filter
+    /// when one side is elementary.
+    /// <para>⛔ THEY HAD DRIFTED, IN BOTH DIRECTIONS AT ONCE, WHICH IS WHY THIS IS ONE LINE (kb/Work PB391).
+    /// The private copy that stood here had no alphabetic row or column, no national and no boolean row (its
+    /// sender switch ended <c>_ =&gt; false</c>), and a receiver axis that was ONE boolean folding National and
+    /// Boolean receivers into Table 16's "Numeric, Numeric-edited" column. Five cells were measured wrong
+    /// against the SAME compiler's direct-MOVE answer: <c>9(5)</c>→<c>A(5)</c>, <c>A(5)</c>→<c>9(5)</c> and
+    /// <c>9(4)</c>→<c>1(4) BIT</c> were paired where Table 16 says No, and <c>N(3)</c>→<c>N(3)</c> and
+    /// <c>1(4) BIT</c>→<c>1(4) BIT</c> were silently dropped where it says Yes.</para>
+    /// <para>⚠ A REFUSAL IS A SILENT NON-SELECTION, NEVER A DIAGNOSTIC. §14.7.6 defines which pairs CORRESPOND;
+    /// a pair whose implied move would be invalid simply is not one, so the receiving item keeps its prior
+    /// content and the direct-MOVE COBOLNET0819 must not fire from here. That is why this reads
+    /// <see cref="MoveTable16.Refusal"/>'s null-ness and discards its message.</para>
+    /// <para>⚠ THE ≥2002 DE-EDITING GATE THE PRIVATE COPY CARRIED IS GONE, DELIBERATELY. It admitted a
+    /// numeric-edited sender into a numeric receiver only at <c>--std</c> 2002 and above, with no citation and
+    /// no row in <c>docs/VERSION_CHANGE_REFERENCE.md</c>, while the direct MOVE through this same table admits
+    /// it at every edition. Two answers to one question is the defect; if the edition axis is real it belongs in
+    /// <see cref="MoveTable16"/>, where BOTH askers would get it, behind a sourced VCR row.</para>
+    /// <para>⛔ AND IT ASKS THE WHOLE QUESTION, NOT ONLY TABLE 16 (kb/Work PB391, second half). Rule 2 says
+    /// "the rules for the MOVE statement", and §14.9.25.3 SR10 — the rule that routes to Table 16 — governs only
+    /// <i>"all other cases not described in Syntax rules 8 and 9"</i>. Asking <see cref="MoveTable16.Refusal"/>
+    /// alone therefore skipped SR8 (a <c>BINARY-CHAR</c>/<c>-SHORT</c>/<c>-LONG</c>/<c>-DOUBLE</c> sender needs a
+    /// numeric or numeric-edited receiver) and SR9 (a variable-length group operand needs a compatible group on
+    /// the other side), both MEASURED wrong: <c>MOVE CORRESPONDING</c> over a <c>BINARY-LONG</c> K and a
+    /// <c>PIC X(5)</c> K paired them and overwrote the receiver, while the written <c>MOVE K OF G1 TO K OF G2</c>
+    /// was refused COBOLNET0819 by the same compiler; and a variable-length-group namesake paired with an
+    /// elementary one reached the run time as a <c>NotImplementedCobolFeatureException</c>. Both are asked now
+    /// through the ONE composite entry <see cref="MoveTable16.DataItemRefusal"/> — a single call, so the next
+    /// MOVE syntax rule lands here without an edit.</para>
     /// </summary>
-    private bool CorrMoveValid(DataItem src, DataItem dst)
-    {
-        if (!src.IsGroup && src.Pic is null) return false;   // a childless PIC-less entry corresponds to nothing
-        if (!dst.IsGroup && dst.Pic is null) return false;
-        // The receiving side folds to Table 16's "Alphanumeric-edited, Alphanumeric" column (a group receiver is
-        // an alphanumeric receiver) vs its "Numeric, Numeric-edited" column.
-        bool dstIsAlphanumeric = dst.IsGroup || dst.Pic!.Category is PicCategory.Alphanumeric;
-        if (src.IsGroup) return true;                                        // alphanumeric sending row: all Yes
-        PicInfo sp = src.Pic!;
-        return sp.Category switch
-        {
-            PicCategory.Alphanumeric when sp.EditMask is null => true,       // alphanumeric row: all Yes
-            PicCategory.Alphanumeric => dstIsAlphanumeric,                   // AN-edited row: numeric/NE are No
-            PicCategory.Numeric when !sp.IsFloat && sp.Scale <= 0 => true,   // integer row: all modeled Yes
-            PicCategory.Numeric => !dstIsAlphanumeric,                       // noninteger row: AN is No
-            PicCategory.NumericEdited =>                                     // NE row: AN Yes; N/NE = de-editing
-                dstIsAlphanumeric || ctx.Edition.DialectLevel >= 2002,      // (ISO-2002 introduction)
-            _ => false,
-        };
-    }
+    private static bool CorrRule2MoveValid(DataItem src, DataItem dst) =>
+        MoveTable16.DataItemRefusal(src, dst) is null;
 
     /// <summary>
     /// The per-statement child-place factory over ONE resolved group operand: §14.7.6 requires all item

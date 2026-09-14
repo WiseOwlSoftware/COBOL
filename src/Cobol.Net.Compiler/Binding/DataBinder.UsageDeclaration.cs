@@ -165,7 +165,7 @@ public sealed partial class DataBinder
             // reported ONCE, at the entry carrying the clause the programmer must change — not once per leaf.
             // (Screened before arm B so the group's own header, which sheds its synthesized profile in
             // ResolveIndexItems, is not silently skipped by a Pic test that no longer sees the usage.)
-            if (!Sr14Elementary(item) && Sr14PhraseOf(item.OwnUsage) is { } phraseA)
+            if (!Sr14Elementary(item) && ItemCategory.Sr14PhraseOf(item.OwnUsage) is { } phraseA)
             {
                 Edition.Error(DiagnosticCatalog.UsageDeclarationPlacement, $"data item '{name}' is a GROUP item "
                     + $"described with USAGE {phraseA} — that usage applies to each elementary item in the "
@@ -222,27 +222,6 @@ public sealed partial class DataBinder
     /// gain models. A unit pin asserts the identity.</para></summary>
     private static bool Sr14PlacementClass(DataItem d) => PointerObjectClass(d);
 
-    /// <summary>Which of SR14's phrases a WRITTEN group-level <see cref="DataItem.OwnUsage"/> names, or null.
-    /// FUNCTION-POINTER is included: <c>PictureAnalyzer.ParseUsage</c> stages it loud (the P13 prototype band)
-    /// so its <c>Pic</c> stays null and arm B never sees it, but the written clause is still visible HERE and
-    /// the rule governs it. MESSAGE-TAG (kb/Work PB487) is the SECOND member in that position, for the same
-    /// reason by a different route — the usage is declined non-support and refused by name — so both are
-    /// governed here and neither by arm B. ⛔ That asymmetry is kb/Work PB819, not a decision: arm B should key
-    /// on the written or inherited PHRASE, which is what this method already reads.</summary>
-    private static string? Sr14PhraseOf(Usage? u) => u switch
-    {
-        // MESSAGE-TAG is the FIRST phrase SR14 names. Its arm lands here rather than staying a forward
-        // obligation because kb/Work PB487 gave the model a Usage member for it — the usage is DECLINED
-        // non-support and refused by name (COBOLNET1943), so like FUNCTION-POINTER above it is the WRITTEN
-        // clause, never a bound class, that this screen sees.
-        Usage.MessageTag => "MESSAGE-TAG",
-        Usage.Pointer => "POINTER",
-        Usage.ProgramPointer => "PROGRAM-POINTER",
-        Usage.FunctionPointer => "FUNCTION-POINTER",
-        Usage.ObjectReference => "OBJECT REFERENCE",
-        _ => null,
-    };
-
     /// <summary>The phrase to NAME in arm B's message: the item's own written clause when it wrote one, else
     /// the phrase its resolved class implies — a usage acquired by §13.18.60.4 GR1 inheritance, a TYPE clone or
     /// a SAME AS copy has no written clause of its own, and a message that said "described with USAGE &lt;null&gt;"
@@ -253,7 +232,7 @@ public sealed partial class DataBinder
     /// item reported as a pointer) look like an ordinary correct verdict. Measured: with the predicate
     /// deliberately widened to SR4's six-usage list, that default reported <c>05 IX USAGE INDEX.</c> as
     /// "described with USAGE POINTER". A message that cannot be false is worth one arm.</para></summary>
-    private static string Sr14PhraseNameOf(DataItem d) => Sr14PhraseOf(d.OwnUsage) ?? d.Pic?.Category switch
+    private static string Sr14PhraseNameOf(DataItem d) => ItemCategory.Sr14PhraseOf(d.OwnUsage) ?? d.Pic?.Category switch
     {
         PicCategory.Pointer => "POINTER",
         PicCategory.ProgramPointer => "PROGRAM-POINTER",
@@ -288,21 +267,18 @@ public sealed partial class DataBinder
         return false;
     }
 
-    /// <summary>Which of ISO §13.18.60.3 SR4's SIX usage phrases an entry names, or null. ⛔ INDEX IS IN THIS
+    /// <summary>Which of ISO §13.18.60.3 SR4's SIX usage phrases an entry names, or null. ⛔ INDEX IS IN THAT
     /// LIST and NOT in <see cref="Sr14PlacementClass"/>'s — SR4 reads "The INDEX, MESSAGE-TAG, OBJECT
     /// REFERENCE, POINTER, FUNCTION-POINTER, and PROGRAM-POINTER phrases", SR14 reads the same list without
     /// INDEX. Keeping them as two predicates is the whole guard against a future "unification" that would start
     /// rejecting legal <c>05 IX USAGE INDEX.</c>; the unit drift test asserts the difference is exactly INDEX.
+    /// <para>⛔ BOTH PHRASE READERS NOW LIVE ON <see cref="ItemCategory"/> (kb/Work PB391), because SR4's
+    /// population is also §14.7.6 rule 4's CLASS exclusion and §13.16.3 SR24 e)'s, and the CORRESPONDING binder
+    /// is outside <c>DataBinder</c>. This file keeps only what is about USAGE-CLAUSE PLACEMENT.</para>
     /// <para>Reads the RESOLVED class as well as the written clause, because SR4's reach is "in a data item
     /// described with the CONSTANT RECORD clause, or in any item subordinate to" it — an inherited usage inside
     /// that subtree is as much "specified in" it as a written one (§13.18.60.4 GR1).</para></summary>
     private static string? Sr4ConstantRecordUsage(DataItem d) =>
-        Sr4PhraseOf(d.OwnUsage) ?? (Sr14Elementary(d) ? Sr4PhraseOf(d.Pic?.Usage) : null);
-
-    /// <summary>SR4's list stated as what it IS — SR14's five phrases PLUS INDEX. Written as a union rather
-    /// than a second hand-copied list so the one-phrase difference between the two rules is the code's own
-    /// structure and the drift test can assert it directly (<c>Sr4 \ Sr14 == {INDEX}</c>). An index data item's
-    /// <c>PicInfo</c> is <c>(Numeric, Usage.Index)</c> — the class is numeric, so the usage, not the category,
-    /// is what identifies it.</summary>
-    private static string? Sr4PhraseOf(Usage? u) => u is Usage.Index ? "INDEX" : Sr14PhraseOf(u);
+        ItemCategory.Sr4PhraseOf(d.OwnUsage)
+        ?? (Sr14Elementary(d) ? ItemCategory.Sr4PhraseOf(d.Pic?.Usage) : null);
 }

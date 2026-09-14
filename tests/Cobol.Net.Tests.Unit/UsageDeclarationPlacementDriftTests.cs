@@ -34,8 +34,11 @@ public sealed class UsageDeclarationPlacementDriftTests
         ?? throw new InvalidOperationException($"DataBinder.{name} is gone — the §13.18.60.3 screen was "
             + "restructured without updating its drift test. Re-derive the rule before re-shaping the test.");
 
-    private static string? Sr14PhraseOf(Usage? u) => (string?)M("Sr14PhraseOf").Invoke(null, [u]);
-    private static string? Sr4PhraseOf(Usage? u) => (string?)M("Sr4PhraseOf").Invoke(null, [u]);
+    // ⛔ THE TWO PHRASE READERS LIVE ON ItemCategory (kb/Work PB391), not on DataBinder: SR4's population is
+    // also §14.7.6 rule 4's CLASS exclusion and §13.16.3 SR24 e)'s, and CorrespondingBinder — the third asker —
+    // is outside DataBinder. They are public there, so these are direct calls rather than reflection.
+    private static string? Sr14PhraseOf(Usage? u) => ItemCategory.Sr14PhraseOf(u);
+    private static string? Sr4PhraseOf(Usage? u) => ItemCategory.Sr4PhraseOf(u);
     private static bool PointerObjectClass(DataItem d) => (bool)M("PointerObjectClass").Invoke(null, [d])!;
     private static bool Sr14PlacementClass(DataItem d) => (bool)M("Sr14PlacementClass").Invoke(null, [d])!;
 

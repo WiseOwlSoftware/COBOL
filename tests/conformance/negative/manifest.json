@@ -1125,7 +1125,9 @@
   "pb396-if-empty-consequent",
   "pb411-status-strongly-typed-group",
   "pb411-goback-status-in-method-below-2023",
-  "pb420-initialize-float-to-value-85"
+  "pb420-initialize-float-to-value-85",
+  "pb391-move-binary-long-to-alphanumeric-written",
+  "pb391-move-noninteger-to-national-written"
  ],
  "pending": []
 }

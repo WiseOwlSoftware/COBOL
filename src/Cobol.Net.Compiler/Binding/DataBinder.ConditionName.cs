@@ -172,7 +172,7 @@ public sealed partial class DataBinder
         // e) A data item of the class index, message-tag, object, or pointer.
         new('e', "A data item of the class index, message-tag, object, or pointer.",
             "a data item of the class index, message-tag, object, or pointer",
-            static d => ExcludedConditionalVariableClass(d),
+            static d => ItemCategory.IsIndexMessageTagObjectOrPointer(d),
             Also: "; the same prohibition is ISO §13.18.60.3 SR11, \"An elementary data item of class index, "
                 + "message-tag, object, or pointer shall not be a conditional variable\""),
 
@@ -205,21 +205,6 @@ public sealed partial class DataBinder
         new('h', "A variable-length group.", "a variable-length group",
             static d => d.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(d)),
     ];
-
-    /// <summary>SR24 e) / §13.18.60.3 SR11's class test — the classes index, message-tag, object and pointer.
-    /// <para>⛔ IT IS §13.18.60.3 SR4'S POPULATION, resolved through SR4's own predicate rather than a second
-    /// hand-written class list. SR4 names "The INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER,
-    /// and PROGRAM-POINTER phrases" — exactly the six USAGE phrases that produce exactly these four classes
-    /// (§8.5.2) — and <see cref="Sr4PhraseOf"/> already states that list as SR14's five plus INDEX. A second copy
-    /// here would drift the moment MESSAGE-TAG or FUNCTION-POINTER gains a bound model; the drift test asserts
-    /// the two populations are the same set.</para>
-    /// <para>The WRITTEN clause is read as well as the resolved one, and both arms are load-bearing: a
-    /// MESSAGE-TAG entry is refused non-support by <c>ParseUsage</c> (COBOLNET1943) and a FUNCTION-POINTER entry
-    /// is staged there, so neither gains a <c>PicInfo</c> at all and only <see cref="DataItem.OwnUsage"/> sees
-    /// them — while a usage acquired by §13.18.60.4 GR1 inheritance, a TYPE clone or a SAME AS copy writes no
-    /// clause of its own and is visible only in the resolved <c>Pic</c>.</para></summary>
-    private static bool ExcludedConditionalVariableClass(DataItem d) =>
-        Sr4PhraseOf(d.OwnUsage) is not null || Sr4PhraseOf(d.Pic?.Usage) is not null;
 
     /// <summary>"an item with a usage other than display", for SR24 c). A BIT or NATIONAL group counts: it is
     /// "treated as an elementary item of usage bit / national described with PICTURE 1(m) / N(m)"

@@ -1067,10 +1067,26 @@ result does not feed it — decision 20.
   content §13.18.15.3 SR2, a constant-name §13.10.4 GR1, LINE-COUNTER, PAGE-COUNTER, the OCCURS DYNAMIC CAPACITY
   register, and an unimplemented receiver shape) so the NEXT prohibition is free. SR4's MOVE half —
   "a MOVE statement with identifier-2 or literal-1 as the sending item and an item of the specified category as the
-  receiving operand shall be valid" — is asked of **`MoveTable16`, the one home of the whole category-keyed MOVE
-  validity question** (§14.9.25.3 SR1's sending half, SR6, SR7, SR8 and SR10's Table 16), over
+  receiving operand shall be valid" — is asked of **`MoveTable16`, the one home of the whole MOVE
+  validity question** (§14.9.25.3 SR1's sending half, SR6, SR7, SR8, SR9 and SR10's Table 16), over
   `InitializeCategories.Table16Receiver`, which is the category-name's Table-16 receiving position; the rule needs
-  no receiver walk because its receiving operand is the CATEGORY. SR4's SET half stays
+  no receiver walk because its receiving operand is the CATEGORY.
+  **A THIRD STATEMENT ASKS THE SAME QUESTION OVER TWO DATA ITEMS, so the home has a composite item-keyed entry**
+  (kb/Work PB391): §14.7.6 rule 2 — "In a MOVE statement, at least one of the data items is an elementary data
+  item and the resulting move is valid according to the rules for the MOVE statement" — makes MOVE / ADD /
+  SUBTRACT CORRESPONDING's pairing decision the MOVE statement's own validity, with no bound operand in hand (none
+  exists for a pair until after the decision) and, crucially, NO DIAGNOSTIC: a pair whose move would be invalid
+  simply does not correspond. `MoveTable16.DataItemRefusal(sender, receiver)` is that question in SR order — SR8,
+  then SR9, then SR10's table — and `CorrespondingBinder.CorrRule2MoveValid` is ONE call to it, so the next MOVE
+  syntax rule reaches CORRESPONDING without an edit. Its two constituents are each written once and read twice:
+  `ShapeRefusal` has an item-keyed overload that the bound-operand entry DELEGATES to (SR7/SR6 stay at the bound
+  entry, since a data item can never be a figurative constant), and `VariableLengthRefusal` is SR9's relation,
+  moved out of `StatementValidation.CheckVariableLengthMove` — which keeps only the MOVE statement's framing
+  (which operand shapes unwrap to a data item, and COBOLNET1931) and still reads the ONE
+  `VariableLengthCompatibility` module. Asking Table 16 ALONE was measurably wrong, because SR10 governs only
+  "all other cases not described in Syntax rules 8 and 9": a `BINARY-LONG` namesake paired with a `PIC X(5)` one
+  and overwrote it while the written MOVE of the same two items was COBOLNET0819, and a variable-length-group
+  namesake paired with an elementary one and reached the run time. SR4's SET half stays
   `CheckInitializeReplacingSetCategoryAgrees`, and `InitializeLaneDriftTests` pins that every category-name is
   screened by exactly one of SR4's two paragraphs. SR1 (identifier-1's class) is one predicate over the one
   §8.5.2.1 Table-2 classifier — class INDEX is the single exclusion — written as its OWN screen because GR5a1's

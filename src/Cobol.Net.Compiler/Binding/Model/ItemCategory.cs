@@ -3,8 +3,8 @@
 namespace CobolNet.Binding.Model;
 
 /// <summary>
-/// ⛔ THE ONE READER of a described data item's ISO/IEC 1989:2023 §8.5.2 CATEGORY for a syntax rule that is WORDED
-/// in categories, and the ONE English face for it.
+/// ⛔ THE ONE READER of a described data item's ISO/IEC 1989:2023 §8.5.2 CLASS and CATEGORY for a syntax rule
+/// that is WORDED in one of them, and the ONE English face for it.
 /// <para>WHY IT EXISTS. Three rules of the file control entry are worded the same way and were each about to grow
 /// their own copy of "is this item category alphanumeric?": §12.4.5.2 SR7 (<i>"Data-name-1 shall reference an
 /// alphanumeric data item"</i>, ASSIGN … USING), §12.4.5.12.3 SR2 and §12.4.5.6.3 SR2 (<i>"category alphanumeric
@@ -113,6 +113,68 @@ public static class ItemCategory
         { Category: PicCategory.National } => national,
         _ => false,
     };
+
+    /// <summary>
+    /// ⛔ CLASS index, message-tag, object or pointer (ISO §8.5.2) — the four-class set that THREE rules name
+    /// with word-for-word identical text, and which therefore gets ONE predicate:
+    /// <list type="bullet">
+    /// <item>§13.16.3 SR24 e) — <i>"A data item of the class index, message-tag, object, or pointer"</i> may not
+    /// be a conditional variable;</item>
+    /// <item>§13.18.60.3 SR11 — <i>"An elementary data item of class index, message-tag, object, or pointer shall
+    /// not be a conditional variable"</i>, the same prohibition stated the other way round;</item>
+    /// <item>§14.7.6 rule 4 — <i>"Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of
+    /// class index, message-tag, object, or pointer"</i>, the CORRESPONDING-phrase exclusion (kb/Work PB391,
+    /// which found the third asker holding a private one-usage copy: <c>Pic?.Usage is not Usage.Index</c>, so a
+    /// POINTER namesake pair was excluded only by the accident of a private Table-16 copy's
+    /// <c>_ =&gt; false</c> default, and deleting that copy would have turned the accident into a silent
+    /// pointer copy).</item>
+    /// </list>
+    /// <para>⛔ IT IS §13.18.60.3 SR4'S POPULATION, resolved through SR4's own phrase reader rather than a
+    /// hand-written class list. SR4 names "The INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER,
+    /// and PROGRAM-POINTER phrases" — exactly the six USAGE phrases that produce exactly these four classes
+    /// (§8.5.2) — and <see cref="Sr4PhraseOf"/> states that list as <see cref="Sr14PhraseOf"/>'s five plus
+    /// INDEX. A second copy would drift the moment MESSAGE-TAG or FUNCTION-POINTER gains a bound model;
+    /// <c>ConditionNameAssociationDriftTests</c> asserts the two populations are the same set.</para>
+    /// <para>The WRITTEN clause is read as well as the resolved one, and both arms are load-bearing: a
+    /// MESSAGE-TAG entry is refused non-support by <c>PictureAnalyzer.ParseUsage</c> (COBOLNET1943) and a
+    /// FUNCTION-POINTER entry is staged there, so neither gains a <see cref="PicInfo"/> at all and only
+    /// <see cref="DataItem.OwnUsage"/> sees them — while a usage acquired by §13.18.60.4 GR1 inheritance, a TYPE
+    /// clone or a SAME AS copy writes no clause of its own and is visible only in the resolved
+    /// <see cref="DataItem.Pic"/>.</para></summary>
+    public static bool IsIndexMessageTagObjectOrPointer(DataItem item) =>
+        Sr4PhraseOf(item.OwnUsage) is not null || Sr4PhraseOf(item.Pic?.Usage) is not null;
+
+    /// <summary>Which of ISO §13.18.60.3 SR14's phrases a <see cref="DataItem.OwnUsage"/> names, or null.
+    /// FUNCTION-POINTER is included: <c>PictureAnalyzer.ParseUsage</c> stages it loud (the P13 prototype band)
+    /// so its <c>Pic</c> stays null and a resolved-usage arm never sees it, but the written clause is still
+    /// visible here and the rule governs it. MESSAGE-TAG (kb/Work PB487) is the SECOND member in that position,
+    /// for the same reason by a different route — the usage is declined non-support and refused by name.
+    /// <para>SR14: "A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or
+    /// PROGRAM-POINTER phrase may be specified only for an elementary data item at level 1 or an elementary data
+    /// item subordinate to a type declaration that includes the STRONG phrase."</para></summary>
+    public static string? Sr14PhraseOf(Usage? u) => u switch
+    {
+        // MESSAGE-TAG is the FIRST phrase SR14 names. Its arm lands here rather than staying a forward
+        // obligation because kb/Work PB487 gave the model a Usage member for it — the usage is DECLINED
+        // non-support and refused by name (COBOLNET1943), so like FUNCTION-POINTER it is the WRITTEN
+        // clause, never a bound class, that this screen sees.
+        Usage.MessageTag => "MESSAGE-TAG",
+        Usage.Pointer => "POINTER",
+        Usage.ProgramPointer => "PROGRAM-POINTER",
+        Usage.FunctionPointer => "FUNCTION-POINTER",
+        Usage.ObjectReference => "OBJECT REFERENCE",
+        _ => null,
+    };
+
+    /// <summary>ISO §13.18.60.3 SR4's list stated as what it IS — <see cref="Sr14PhraseOf"/>'s five phrases PLUS
+    /// INDEX. Written as a union rather than a second hand-copied list so the one-phrase difference between the
+    /// two rules is the code's own structure and the drift test can assert it directly
+    /// (<c>Sr4 \ Sr14 == {INDEX}</c>). An index data item's <see cref="PicInfo"/> is
+    /// <c>(Numeric, Usage.Index)</c> — the class is numeric, so the usage, not the category, identifies it.
+    /// <para>SR4: "The INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, and PROGRAM-POINTER
+    /// phrases shall not be specified in a data item described with the CONSTANT RECORD clause, or in any item
+    /// subordinate to a data item described with the CONSTANT RECORD clause."</para></summary>
+    public static string? Sr4PhraseOf(Usage? u) => u is Usage.Index ? "INDEX" : Sr14PhraseOf(u);
 
     /// <summary>A short English face for a diagnostic — WHAT THE OPERAND IS, so a message names the reason
     /// instead of restating the rule it broke.

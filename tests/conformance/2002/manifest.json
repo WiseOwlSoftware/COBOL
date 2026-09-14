@@ -284,7 +284,8 @@
     "pb408_raising_enablement_locus",
     "pb419_initialize_resume_boundary",
     "pb427_same_type_by_position",
-    "pb420_initialize_float_value_default_2002"
+    "pb420_initialize_float_value_default_2002",
+    "pb391_corresponding_rule2_sr8_binary"
   ],
   "pending": []
 }

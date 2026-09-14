@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Reflection;
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using Xunit;
@@ -25,15 +24,12 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class ConditionNameAssociationDriftTests
 {
-    private static MethodInfo M(string name) =>
-        typeof(DataBinder).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)
-        ?? throw new InvalidOperationException($"DataBinder.{name} is gone — the §13.16.3 SR24 screen was "
-            + "restructured without updating its drift test. Re-derive the rule before re-shaping the test.");
+    // ⛔ SR24 e)'s class test and SR4's phrase reader live on ItemCategory (kb/Work PB391) — the ONE §8.5.2
+    // class/category reader — because §14.7.6 rule 4 names the SAME four classes with the same words and its
+    // asker, CorrespondingBinder, is outside DataBinder. Public there, so no reflection.
+    private static bool ExcludedClass(DataItem d) => ItemCategory.IsIndexMessageTagObjectOrPointer(d);
 
-    private static bool ExcludedClass(DataItem d) =>
-        (bool)M("ExcludedConditionalVariableClass").Invoke(null, [d])!;
-
-    private static string? Sr4PhraseOf(Usage? u) => (string?)M("Sr4PhraseOf").Invoke(null, [u]);
+    private static string? Sr4PhraseOf(Usage? u) => ItemCategory.Sr4PhraseOf(u);
 
     private static DataItem Elem(string name, PicInfo pic, int level = 1) =>
         new() { Level = level, CobolName = name, CsName = name, Pic = pic };
