@@ -1317,14 +1317,22 @@ public sealed class OoSpineTests
     /// <summary>§8.4.6.2.1 rule 3a — a METHOD-LOCAL declaration shadows the object level in EVERY lookup
     /// path: SEARCH's table resolution and the subscript index-name lookup must see the method's item, never
     /// the object's same-named table/index (the review's scope-bypass findings). And level-66 RENAMES in method
-    /// data is now LIVE (M2-OO-1h step 1, DEVLOG 637 — the alias resolves structurally over the method record).</summary>
+    /// data is now LIVE (M2-OO-1h step 1, DEVLOG 637 — the alias resolves structurally over the method record).
+    /// <para>⛔ THE STAGE MOVED, AND THE INTENT DID NOT (kb/Work PB443, the PB390 shape again). The shadow half
+    /// used to require the RUN to die: `SEARCH TAB2` over a method-local non-table returned a
+    /// <c>BoundUnsupported</c>, so the program COMPILED, shipped an assembly and aborted the run unit claiming
+    /// COBOL.NET had not implemented a feature — a GREEN test pinning the broken stage, on a rule ISO §4.2.2 ¶2
+    /// puts in the compile-time mechanism. It is now COBOLNET2075 quoting §14.9.37.3 SR2, and the SHADOWING
+    /// claim is asserted more sharply than before: the error names TAB2 as "not a table", which only the
+    /// METHOD-LOCAL `PIC X(4)` is — the object's same-named item IS a table with an INDEXED phrase, so a lookup
+    /// that had bypassed the method scope would have compiled clean.</para></summary>
     [Fact]
     public void MethodScope_SearchAndIndexLookups_And66Renames()
     {
         // SEARCH of a method-local NON-table (shadowing an object-level TABLE of the same name) must bind
-        // the METHOD-LOCAL item — the loud not-a-table guard fires, never a silent search of the object's
+        // the METHOD-LOCAL item — the not-a-table verdict fires, never a silent search of the object's
         // table (§8.4.6.2.1 rule 3a: shadowing is replacement).
-        var (okShadow, _, shadowDetail) = CompileAndRun(DriverAndClass("OOSP34", "OSPC34", """
+        var shadowErrors = ErrorsOf(DriverAndClass("OOSP34", "OSPC34", """
                 INVOKE OSPC34 "NEW" RETURNING T.
                 INVOKE T "M".
             """, """
@@ -1346,8 +1354,9 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             METHOD-ID. M.
             """));
-        Assert.False(okShadow, "SEARCH must bind the METHOD-LOCAL TAB2 (not a table) — loud, never the object's table");
-        Assert.Contains("TAB2", shadowDetail);
+        string shadow = Assert.Single(shadowErrors, x => x.Contains("COBOLNET2075", StringComparison.Ordinal));
+        Assert.Contains("'TAB2' is not a table", shadow, StringComparison.Ordinal);
+        Assert.Contains("§14.9.37.3 SR2", shadow, StringComparison.Ordinal);
         // level-66 RENAMES in method LOCAL-STORAGE now compiles and runs — the alias reads the record span
         // (§13.18.45 GR2), resolved structurally over the method's own record (M2-OO-1h step 1).
         var (ok66, out66, detail66) = CompileAndRun(DriverAndClass("OOSP35", "OSPC35", """

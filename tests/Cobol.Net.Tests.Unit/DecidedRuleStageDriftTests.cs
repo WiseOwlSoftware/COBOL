@@ -146,6 +146,80 @@ P2.
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
     }
 
+    /// <summary>SEARCH's identifier-1 rules (ISO §14.9.37.3 SR1–SR3, ALL FORMATS; kb/Work PB443) — the same
+    /// invariant on a statement that needs tables in its data division, so it gets its own program the way ALTER
+    /// and RESUME AT do. Every one of these was a <c>BoundUnsupported</c> or nothing at all: SR2's first sentence
+    /// was DECIDED and shipped as a run-time "not implemented" abort under a message miscited as SR1, and SR1,
+    /// SR2's second sentence and SR3 drew no reaction of any kind because the binder read only identifier-1's
+    /// BASE WORD and never saw a modifier or a subscript.</summary>
+    [Theory]
+    [InlineData("PB443D01", "    SEARCH E1(1:3) AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.", "SR1")]
+    [InlineData("PB443D02", "    SEARCH E1(IX1) AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.", "SR2")]
+    [InlineData("PB443D03", "    SEARCH WS-PLAIN AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.", "SR2")]
+    [InlineData("PB443D04", "    SEARCH NE AT END CONTINUE WHEN NKK (1) = 3 CONTINUE END-SEARCH.", "SR2")]
+    // Format 2 prints the SAME identifier-1 and is bound by the SAME ALL-FORMATS rules — the two-arm question.
+    [InlineData("PB443D06", "    SEARCH ALL E1(1:3) AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.", "SR1")]
+    [InlineData("PB443D07", "    SEARCH ALL WS-PLAIN AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.", "SR2")]
+    public void SearchIdentifier1_IsACompileTimeError_NamingTheRule(string id, string body, string rule)
+    {
+        var (ok, errors, warnings) = Compile(SearchProgram(id, body));
+        Assert.False(ok, "a violated syntax rule shall not compile: " + string.Join("\n", errors));
+        Assert.Contains(errors, e => e.Contains("COBOLNET2075", StringComparison.Ordinal)
+                                     && e.Contains("§14.9.37.3 " + rule, StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+    }
+
+    /// <summary>The SEARCH falsification half — every spelling §14.9.37.3 ADMITS, including the two a blanket
+    /// "identifier-1 takes no subscript" screen would wrongly refuse (SR3 makes the superordinate subscripting
+    /// REQUIRED, so `SEARCH INNER (OX)` is the conforming form for a nested table).</summary>
+    [Theory]
+    [InlineData("PB443L01", "    SEARCH E1 AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.")]
+    [InlineData("PB443L02", "    SEARCH E1 IN G-ONE AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.")]
+    [InlineData("PB443L03", "    SEARCH INNER (OX) AT END CONTINUE WHEN NK (OX IX3) = 3 CONTINUE END-SEARCH.")]
+    [InlineData("PB443L04", "    SEARCH E1 VARYING IX1 AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.")]
+    // ⛔ THE BARE NESTED FORM IS LEGAL, and a lower bound read into SR3 would refuse it: §14.9.37.4 GR1 puts the
+    // superordinate occurrence in the WHEN phrases ("the subscript that is used to determine the occurrence of
+    // each superordinate table to search is specified by the user in the WHEN phrases"), and the CCVS suite
+    // writes exactly this — NC233A's `SEARCH ALL GRP2-ENTRY … WHEN SEC (IDX-1, IDX-2)` over a table nested in
+    // `GRP-ENTRY OCCURS 10`. A lower bound failed SIX NIST programs; this row is why it stays out.
+    [InlineData("PB443L05", "    SEARCH INNER AT END CONTINUE WHEN NK (OX IX3) = 3 CONTINUE END-SEARCH.")]
+    [InlineData("PB443L06", "    SEARCH ALL E1 AT END CONTINUE WHEN K1 (IX1) = 3 CONTINUE END-SEARCH.")]
+    public void SearchIdentifier1_LegalControl(string id, string body)
+    {
+        var (ok, errors, warnings) = Compile(SearchProgram(id, body));
+        Assert.True(ok, string.Join("\n", errors));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET2075", StringComparison.Ordinal)
+                                           || e.Contains("COBOLNET1639", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+    }
+
+    /// <summary>A program with the table shapes §14.9.37.3 SR1–SR3 are about: an indexed table inside a group,
+    /// a NESTED indexed table, a table with NO index phrase, and a non-table.</summary>
+    private static string SearchProgram(string id, string body) => $"""
+IDENTIFICATION DIVISION.
+PROGRAM-ID. {id}.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WS-PLAIN PIC X(4).
+01 G-ONE.
+   05 E1 OCCURS 4 TIMES ASCENDING KEY IS K1 INDEXED BY IX1.
+      10 K1 PIC 9(3).
+01 NEST.
+   05 OUTER OCCURS 2 TIMES INDEXED BY OX.
+      10 INNER OCCURS 4 TIMES INDEXED BY IX3.
+         15 NK PIC 9(3).
+01 NOIX.
+   05 NE OCCURS 4 TIMES.
+      10 NKK PIC 9(3).
+PROCEDURE DIVISION.
+MAIN.
+    SET IX1 TO 1.
+    SET OX TO 1.
+    SET IX3 TO 1.
+{body}
+    STOP RUN.
+""";
+
     // ── The falsification half: these are LEGAL and shall still compile clean ─────────────────────────────
     [Theory]
     // §14.9.28.4 GR6 — an INVERTED THRU range is legal (NIST NC102A PFM-TEST-F1-10).

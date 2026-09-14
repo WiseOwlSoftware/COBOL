@@ -880,6 +880,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §8.4.2.2 Format 2: a
     /// condition-name qualifies by its conditional variable and/or the variable's containing groups, innermost
     /// first) — duplicate 88 names across tables select by the qualifier chain.</summary>
+    private readonly HashSet<Core.DataReferenceContext> _condDiagnosed = [];
+
     public Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
@@ -899,7 +901,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             ? list
             : list.Where(c => MatchesQualifiers(c.Parent, qualifiers)).ToList();
         if (matches.Count == 0) return null;
-        if (matches.Count > 1)
+        // ONE report per SOURCE reference (the ReferenceResolver._diagnosed discipline, kb/Work PB70/PB443): a
+        // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
+        // WHEN operand names BEFORE the condition binds it (§14.9.37.3 SR9/SR11 are about that very 88) — and the
+        // ambiguity is one fact about one reference, not one per asker.
+        if (matches.Count > 1 && _condDiagnosed.Add(dref))
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,

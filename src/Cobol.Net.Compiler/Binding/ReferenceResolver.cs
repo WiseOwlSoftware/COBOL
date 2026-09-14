@@ -321,41 +321,24 @@ public sealed class ReferenceResolver(DataBinder data)
         if (data.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
             return new DebugRegisterPlace(dbg.Item, dbg.Member);
 
-        var qualifiers = new List<string>();
-        Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
-        Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)
-        Core.RefModPartContext? cleanRef = null;         // the refModPart form (parsed arithmeticExpression : ...)
+        // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
+        var written = ReadWritten(dref);
+        var qualifiers = written.Qualifiers;
+        var subCtx = written.SubscriptGroup;    // the subscript group (no depth-0 colon)
+        var refCtx = written.RefModGroup;       // a reference-modification group (start : length)
+        var cleanRef = written.RefModPart;      // the refModPart form (parsed arithmeticExpression : ...)
 
         // ISO §8.4.3.3.3 SR3 — "Identifier-1 shall not be a reference-modification format identifier." The
         // grammar cannot express this (dataReferenceSuffix* and qualification's own (subscriptPart|refModPart)*
-        // both admit unlimited ref-mods), so it is counted here. Before this count, `??=` kept the FIRST of each
-        // carrier and the DEFAULT-mode form then outranked the SUBSCRIPT-mode one, so `MOVE A (3:4)(2:2)`
-        // COMPILED CLEAN and returned A(2:2) — a silent wrong value, not a composition and not a rejection.
-        // ⛔ Counts REF-MODS ONLY: a subscript followed by a ref-mod (T(I) (2:3)) is the legal §8.4.3.1.4 GR1
-        // a→g order and must stay untouched.
-        int refModCount = 0;
-        void Classify(Core.SubscriptOrRefModContext s)
-        {
-            if (HasDepth0Colon(s)) { refModCount++; refCtx ??= s; } else subCtx ??= s;
-        }
-
-        foreach (var suffix in dref.dataReferenceSuffix())
-        {
-            if (suffix.qualification() is { } q)
-            {
-                qualifiers.Add(q.cobolWord().Name());
-                foreach (var sp in q.subscriptPart()) if (sp.subscriptOrRefMod() is { } qs) Classify(qs);
-                refModCount += q.refModPart().Length;
-                if (q.refModPart().Length > 0) cleanRef ??= q.refModPart()[0];
-            }
-            else if (suffix.refModPart() is { } rmp) { refModCount++; cleanRef ??= rmp; }
-            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) Classify(s);
-        }
-        if (refModCount > 1)
+        // both admit unlimited ref-mods), so it is COUNTED (WrittenReference.RefModCount). Before that count,
+        // `??=` kept the FIRST of each carrier and the DEFAULT-mode form then outranked the SUBSCRIPT-mode one,
+        // so `MOVE A (3:4)(2:2)` COMPILED CLEAN and returned A(2:2) — a silent wrong value, not a composition
+        // and not a rejection.
+        if (written.RefModCount > 1)
         {
             if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
-                    $"'{name}' carries {refModCount} reference modifications; a reference-modified item cannot itself "
+                    $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
                     + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
             return null;
         }
@@ -933,17 +916,79 @@ public sealed class ReferenceResolver(DataBinder data)
     /// suffix or from a qualification's suffix tail (<c>K OF E (IX)</c> hangs it off the qualification). Shared by
     /// <see cref="ResolveForItem"/>, which renders it into index expressions, and by
     /// <see cref="SubscriptSegments"/>, which keeps it as written.</summary>
-    internal static Core.SubscriptOrRefModContext? SubscriptGroupOf(Core.DataReferenceContext dref)
+    internal static Core.SubscriptOrRefModContext? SubscriptGroupOf(Core.DataReferenceContext dref) =>
+        ReadWritten(dref).SubscriptGroup;
+
+    /// <summary>A <c>dataReference</c> AS WRITTEN: the qualifier chain, the subscript group and the
+    /// reference-modification carriers, exactly as the source spells them and before any name is looked up.
+    /// <para>⛔ The <b>written</b> reference is a thing in its own right, and it is what a statement's own syntax
+    /// rules are about. ISO §14.9.37.3 SR1 ("Identifier-1 shall not be reference-modified"), SR2 ("… shall not be
+    /// subscripted at the level for which the SEARCH is applicable") and SR3 ("… contained within one or more
+    /// other tables, for which the subscripting is still required") are three predicates over THIS, not over the
+    /// resolved item and not over a rendered access path — which is why SEARCH, which read only
+    /// <c>cobolWord()</c>, could enforce none of them and searched whichever table was declared first
+    /// (kb/Work PB443).</para></summary>
+    /// <param name="Written">The OF/IN qualifiers in written order, inner → outer, or null when the reference
+    /// carries none — the common case, which therefore allocates nothing.</param>
+    /// <param name="SubscriptGroup">The first SUBSCRIPT-mode group with no depth-0 colon: the reference's
+    /// subscript list. Taken from the base word's own suffix or from a qualification's suffix tail
+    /// (<c>K OF E (IX)</c> hangs it off the qualification).</param>
+    /// <param name="RefModGroup">The first SUBSCRIPT-mode group that IS a reference modification (a depth-0 colon).</param>
+    /// <param name="RefModPart">The first parsed <c>refModPart</c> form (<c>start : length</c> as expressions).</param>
+    /// <param name="RefModCount">How many reference modifications the whole reference carries — §8.4.3.3.3 SR3
+    /// admits at most one, and the count is the only way to see a second one.</param>
+    internal readonly record struct WrittenReference(
+        List<string>? Written,
+        Core.SubscriptOrRefModContext? SubscriptGroup,
+        Core.SubscriptOrRefModContext? RefModGroup,
+        Core.RefModPartContext? RefModPart,
+        int RefModCount)
     {
+        /// <summary>The shared empty qualifier list for an unqualified reference. Read-only by contract: every
+        /// consumer (<see cref="ResolveQualified"/>, <see cref="ReportUnidentified"/>) only enumerates it.</summary>
+        private static readonly List<string> NoQualifiers = [];
+
+        /// <summary>The OF/IN qualifiers, inner → outer; empty for an unqualified reference.</summary>
+        public List<string> Qualifiers => Written ?? NoQualifiers;
+
+        /// <summary>True when the reference carries a reference modification in any of its spellings.</summary>
+        public bool IsReferenceModified => RefModCount > 0;
+    }
+
+    /// <summary>⛔ THE ONE DECOMPOSITION OF A <c>dataReference</c> AS WRITTEN (kb/Work PB443). Three resolutions
+    /// each wrote this walk out for themselves — <see cref="ResolveImplCore"/>, <see cref="ResolveForAddressOf"/>
+    /// and <see cref="SubscriptGroupOf"/> — and a fourth, SEARCH's identifier-1, wrote none at all and took
+    /// <c>dref.cobolWord()</c>, the BASE WORD, so every suffix the programmer wrote was discarded unread. Reading
+    /// a written reference is ONE job; the §8.4.2.2 lookup and every shape rule are predicates over the result.
+    /// <para>Mirrors the grammar exactly: <c>dataReference : cobolWord dataReferenceSuffix*</c> with
+    /// <c>dataReferenceSuffix : subscriptPart | refModPart | qualification</c>, and <c>qualification</c> carrying
+    /// its OWN <c>(subscriptPart | refModPart)*</c> tail. ⛔ Counts REF-MODS ONLY: a subscript followed by a
+    /// ref-mod (<c>T(I) (2:3)</c>) is the legal §8.4.3.1.4 GR1 a→g order and must stay untouched.</para></summary>
+    internal static WrittenReference ReadWritten(Core.DataReferenceContext dref)
+    {
+        List<string>? qualifiers = null;
         Core.SubscriptOrRefModContext? subCtx = null;
+        Core.SubscriptOrRefModContext? refCtx = null;
+        Core.RefModPartContext? cleanRef = null;
+        int refModCount = 0;
+        void Classify(Core.SubscriptOrRefModContext s)
+        {
+            if (HasDepth0Colon(s)) { refModCount++; refCtx ??= s; } else subCtx ??= s;
+        }
+
         foreach (var suffix in dref.dataReferenceSuffix())
         {
-            if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s && !HasDepth0Colon(s)) subCtx ??= s;
-            else if (suffix.qualification() is { } q)
-                foreach (var sp in q.subscriptPart())
-                    if (sp.subscriptOrRefMod() is { } qs && !HasDepth0Colon(qs)) subCtx ??= qs;
+            if (suffix.qualification() is { } q)
+            {
+                (qualifiers ??= []).Add(q.cobolWord().Name());
+                foreach (var sp in q.subscriptPart()) if (sp.subscriptOrRefMod() is { } qs) Classify(qs);
+                refModCount += q.refModPart().Length;
+                if (q.refModPart().Length > 0) cleanRef ??= q.refModPart()[0];
+            }
+            else if (suffix.refModPart() is { } rmp) { refModCount++; cleanRef ??= rmp; }
+            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) Classify(s);
         }
-        return subCtx;
+        return new WrittenReference(qualifiers, subCtx, refCtx, cleanRef, refModCount);
     }
 
     /// <summary>The reference's subscript list AS WRITTEN — one token segment per subscript position, outermost
@@ -955,9 +1000,14 @@ public sealed class ReferenceResolver(DataBinder data)
     /// with identifier-1 … The index-name subscript shall not be followed by a '+' or a '–'" — and the C# index
     /// expression <see cref="InterpretSubscripts"/> produces has already erased both facts: an index-name and an
     /// integer data item of the same value render identically, and <c>IX + 1</c> folds into the arithmetic.</para></summary>
-    internal List<List<IToken>>? SubscriptSegments(Core.DataReferenceContext dref)
+    internal List<List<IToken>>? SubscriptSegments(Core.DataReferenceContext dref) =>
+        SubscriptSegmentsOf(ReadWritten(dref).SubscriptGroup);
+
+    /// <summary>The <see cref="SubscriptSegments"/> split over an ALREADY-READ subscript group (the caller has
+    /// the <see cref="WrittenReference"/> in hand and need not walk the suffix tail a second time).</summary>
+    private List<List<IToken>>? SubscriptSegmentsOf(Core.SubscriptOrRefModContext? group)
     {
-        if (SubscriptGroupOf(dref) is not { } group) return null;
+        if (group is null) return null;
         var tokens = new List<IToken>();
         CollectLeafTokens(group, tokens);
         return SplitSubscriptTokens(tokens, CannotBeSubscripted);
@@ -987,7 +1037,51 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>Resolve a (possibly OF/IN-qualified) data-name to its <see cref="DataItem"/>, or null. Used by
     /// the table(ALL) expansion (§15.3) to read the OCCURS counts before building per-occurrence places.</summary>
     internal DataItem? FindItem(string name, IReadOnlyList<string> qualifiers) =>
-        qualifiers.Count > 0 ? ResolveQualified(name, [.. qualifiers]) : ResolveUnqualified(name);
+        qualifiers.Count == 0 ? ResolveUnqualified(name)
+            : ResolveQualified(name, qualifiers as List<string> ?? [.. qualifiers]);
+
+    /// <summary>A reference written where a general format prints a <b>table</b> operand, resolved and read: the
+    /// <see cref="DataItem"/> the qualifiers single out, plus the two facts the statement's own syntax rules are
+    /// about — how many subscripts were written, and whether a reference modification was.</summary>
+    /// <param name="Item">The item the §8.4.2.2 candidate-set match singles out.</param>
+    /// <param name="SubscriptCount">Subscripts AS WRITTEN, 0 for an unsubscripted reference.</param>
+    /// <param name="IsReferenceModified">True when the reference carries a reference modification.</param>
+    public readonly record struct TableOperand(DataItem Item, int SubscriptCount, bool IsReferenceModified);
+
+    /// <summary>⛔ THE ONE RESOLUTION OF A REFERENCE WRITTEN WHERE A GENERAL FORMAT PRINTS A <b>TABLE</b> OPERAND
+    /// (kb/Work PB443) — SEARCH's and SEARCH ALL's identifier-1. It is deliberately NOT <see cref="Resolve"/>: a
+    /// table operand names the TABLE, not one occurrence of it, and ISO §14.9.37.3 SR2 says identifier-1 "shall
+    /// not be subscripted at the level for which the SEARCH is applicable" — so there is no subscript for the
+    /// searched level and therefore no <see cref="Place"/> to build. What such a statement needs is the data item
+    /// plus the reference AS WRITTEN.
+    /// <para>⛔ THE QUALIFICATION IS THE ORDINARY ONE, AND THAT IS THE WHOLE POINT. Before this, SEARCH reduced
+    /// identifier-1 to <c>drefs[0].cobolWord()</c> — its BASE WORD — and took
+    /// <c>candidates.FirstOrDefault(i =&gt; i.IsTable)</c>, so with two groups each declaring a table <c>E</c>,
+    /// <c>SEARCH E IN G2</c> searched whichever <c>E</c> was declared FIRST: a wrong answer on legal, unambiguous
+    /// COBOL, decided by declaration order, with the qualifier that would have settled it thrown away unread
+    /// (§8.4.2.2 — qualification establishes uniqueness; §14.9.37.4 GR1 — the search varies the first index
+    /// associated with identifier-1, and for a qualified reference identifier-1 is the QUALIFIED table).</para>
+    /// <para>Reporting posture — the DEMANDING one of <see cref="Resolve"/>: a name that identifies no item, or
+    /// that qualification cannot single out, draws COBOLNET1639 here, so a null the caller gets back is already
+    /// reported (<see cref="WasDiagnosed"/> answers true). A SPECIAL REGISTER returns null having reported
+    /// NOTHING — it identifies a resource, just not one with a data description, and the verdict that belongs to
+    /// it is the statement's own operand rule, written in the one check catalog.</para></summary>
+    public TableOperand? ResolveTableOperand(Core.DataReferenceContext dref)
+    {
+        DataReferenceCst r = dref;
+        if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
+        var written = ReadWritten(dref);
+        if (FindItem(name, written.Qualifiers) is not { } item)
+        {
+            ReportUnidentified(dref, name, written.Qualifiers);
+            return null;
+        }
+        // The subscripts AS WRITTEN, split by the ONE declaration-informed splitter (kb/Work PB136) — the same
+        // reading SR8/SR9 already demand of a Format-2 key subscript, for the same reason: the RENDERED index
+        // expression has erased how many operands the programmer wrote.
+        return new TableOperand(item, SubscriptSegmentsOf(written.SubscriptGroup)?.Count ?? 0,
+            written.IsReferenceModified);
+    }
 
     /// <summary>Build the <see cref="Place"/> for a by-name reference with ALREADY-RENDERED C# index expressions
     /// (one per OCCURS level, outermost first). A level-66 RENAMES alias stays null (loud) — its composition
@@ -1013,30 +1107,11 @@ public sealed class ReferenceResolver(DataBinder data)
     {
         DataReferenceCst r = dref;
         if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
-        var qualifiers = new List<string>();
-        Core.SubscriptOrRefModContext? subCtx = null;
-        foreach (var suffix in dref.dataReferenceSuffix())
-        {
-            if (suffix.qualification() is { } q)
-            {
-                qualifiers.Add(q.cobolWord().Name());
-                if (q.refModPart().Length > 0) return null;   // ref-mod → loud (a span, not an item)
-                foreach (var sp in q.subscriptPart())
-                    if (sp.subscriptOrRefMod() is { } qs)
-                    {
-                        if (HasDepth0Colon(qs)) return null;
-                        subCtx ??= qs;
-                    }
-            }
-            else if (suffix.refModPart() is not null) return null;
-            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s)
-            {
-                if (HasDepth0Colon(s)) return null;
-                subCtx ??= s;
-            }
-        }
-        DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
-        if (item is null) return null;
+        var written = ReadWritten(dref);                  // the ONE decomposition (kb/Work PB443)
+        if (written.IsReferenceModified) return null;     // ref-mod → loud (a span, not an item)
+        var qualifiers = written.Qualifiers;
+        var subCtx = written.SubscriptGroup;
+        if (FindItem(name, qualifiers) is not { } item) return null;
         if (subCtx is null) return (item, null);
         List<IToken> ixNames = [];
         var (exprs, isRefMod) = InterpretSubscripts(subCtx, ixNames);

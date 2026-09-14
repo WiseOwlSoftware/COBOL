@@ -2953,6 +2953,31 @@ public static class DiagnosticCatalog
         + "be zero-length literals.\"",
         "ISO §14.9.37.3 SR10, SR12, SR13");
 
+    // ── COBOLNET2075 — the SEARCH identifier-1 rules, both formats (ISO §14.9.37.3 SR1–SR3) ───────────────────
+    //    ONE code for ONE operand position, the division COBOLNET1964–1966 above already established: SR1, SR2
+    //    and SR3 are three predicates over the SAME written reference, and what a user has to go and change is
+    //    always identifier-1 itself. Before kb/Work PB443 the binder read only its BASE WORD, so none of the
+    //    three could be asked at all and a QUALIFIED identifier-1 searched whichever same-named table was
+    //    declared first — a silent wrong answer on legal COBOL.
+
+    /// <summary>COBOLNET2075 — identifier-1 of a SEARCH or SEARCH ALL statement (§14.9.37.3 SR1, SR2, SR3).</summary>
+    public static readonly DiagnosticDescriptor SearchIdentifier1Operand = new(
+        "COBOLNET2075", "search-identifier-1-operand", EditionSeverity.Error,
+        "The three ISO §14.9.37.3 ALL-FORMATS syntax rules about SEARCH's identifier-1. SR1: \"Identifier-1 "
+        + "shall not be reference-modified\" — identifier-1 names a TABLE, and a character slice of one is not "
+        + "a table. SR2: \"The data description of identifier-1 shall contain an OCCURS clause with an INDEXED "
+        + "phrase and identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" — "
+        + "the statement varies the first index associated with identifier-1 (§14.9.37.4 GR1), so it needs an "
+        + "index to vary and supplies the searched occurrence itself. SR3: \"Identifier-1 may be contained "
+        + "within one or more other tables, for which the subscripting is still required\" — a PERMISSION, "
+        + "not a demand on identifier-1's written form, because §14.9.37.4 GR1 puts that obligation "
+        + "elsewhere: \"The subscript that is used to determine the occurrence of each superordinate table to "
+        + "search is specified by the user in the WHEN phrases.\" A nested table's identifier-1 may therefore "
+        + "be written bare OR with one subscript per enclosing table (outermost first, and never one for the "
+        + "searched level); this diagnostic asks for no MINIMUM count, and a screen that did would reject "
+        + "legal source — the CCVS suite writes the bare form throughout (kb/Work PB443).",
+        "ISO §14.9.37.3 SR1, SR2, SR3");
+
     // ── COBOLNET1976–1977 — the level-88 condition-name association rules (ISO §13.16.3 SR24) ──────────
 
     /// <summary>COBOLNET1976 — the entry a level-88 condition-name entry follows is one ISO §13.16.3 SR24

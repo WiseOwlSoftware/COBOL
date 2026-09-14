@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
@@ -342,9 +343,117 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>It takes a PARSE CONTEXT, unlike its neighbours here, and it has to: SR8 and SR9 are rules about the
     /// subscript AS WRITTEN — "shall be subscripted by the first index-name … shall not be followed by a '+' or a
     /// '–'" — a fact the bound operand has already erased. The <see cref="ReferenceResolver"/> comes from the
-    /// caller for the same reason (the raw subscript segments are its to read).</para></summary>
-    public bool CheckSearchAllFormat2(Core.SearchAllStatementContext s, DataItem table, ReferenceResolver refs) =>
-        new SearchAllFormat2Rules(data, refs, this).Check(s, table);
+    /// caller for the same reason (the raw subscript segments are its to read), and so does the
+    /// <see cref="ConditionBinder"/>: SR9 and SR11 are rules about WHICH level-88 a WHEN operand names, which is
+    /// ISO §8.4.2.2 Format 2's question and is answered in exactly one place — <c>ConditionBinder.ConditionOf</c>
+    /// (kb/Work PB443; the screen used to answer it again, by base word, and disagree with the bind).</para></summary>
+    public bool CheckSearchAllFormat2(Core.SearchAllStatementContext s, DataItem table, ReferenceResolver refs,
+                                     ConditionBinder conditions) =>
+        new SearchAllFormat2Rules(data, refs, this, conditions).Check(s, table);
+
+    /// <summary>⛔ THE ONE RESOLUTION AND SCREEN OF SEARCH's <c>identifier-1</c>, ISO §14.9.37.3 SR1–SR3 — the
+    /// three ALL-FORMATS rules, which are three predicates over the SAME thing: the reference as written
+    /// (kb/Work PB443). Both formats call it, because both print the same operand.
+    /// <para>⛔ THE RESOLUTION IS HALF THE FIX AND IT IS THE HALF THAT WAS A WRONG ANSWER. Both binder arms read
+    /// <c>dref.cobolWord()</c> — the BASE WORD — and then took <c>candidates.FirstOrDefault(i =&gt; i.IsTable)</c>,
+    /// so with two groups each declaring a table <c>E</c>, <c>SEARCH E IN G2</c> searched whichever <c>E</c> was
+    /// declared FIRST and quietly produced the wrong answer on legal, unambiguous COBOL; swapping the two
+    /// declarations was the whole difference between right and wrong. §8.4.2.2 makes qualification the thing that
+    /// establishes uniqueness, and §14.9.37.4 GR1 ("The SEARCH statement automatically varies the first or only
+    /// index associated with identifier-1") fixes the expected answer: for a qualified reference, identifier-1 is
+    /// the QUALIFIED table. <see cref="ReferenceResolver.ResolveTableOperand"/> is that one resolution.</para>
+    /// <para>Staging: every verdict here is a COMPILE-TIME diagnostic (ISO §4.2.2 ¶2), never the
+    /// <c>BoundUnsupported</c> run-time loud these used to be — which told the user COBOL.NET had not implemented
+    /// a feature, on a program that still compiled and shipped, and said nothing at all on an unexecuted path
+    /// (kb/Work PB390's invariant; PB444 owns the SR4 arm). SR1, SR2's second sentence and SR3 report and let the
+    /// bind CONTINUE, so one compile reports every violation it can see; only SR2's first sentence returns null,
+    /// because without a table there is nothing left to bind.</para></summary>
+    /// <param name="dref">identifier-1 as written.</param>
+    /// <param name="verb">"SEARCH" or "SEARCH ALL", for the message.</param>
+    /// <param name="refs">The resolver whose §8.4.2.2 matcher settles the qualification.</param>
+    /// <returns>The table identifier-1 names, or null after reporting when the statement cannot bind.</returns>
+    public DataItem? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
+    {
+        string written = dref.GetText();
+        if (refs.ResolveTableOperand(dref) is not { } operand)
+        {
+            // A name identifying no item is already reported (COBOLNET1639 — §8.4.2.1 "In order to use a
+            // resource, a statement shall contain a reference that uniquely identifies that resource"). What is
+            // left is a reference that identifies a resource with NO data description — a special register — and
+            // the rule it violates is SR2's first sentence.
+            if (!refs.WasDiagnosed(dref))
+                Identifier1(verb, written, "identifier-1 is a special register, which has no data description "
+                    + "entry: \"the data description of identifier-1 shall contain an OCCURS clause with an "
+                    + "INDEXED phrase\" (ISO §14.9.37.3 SR2)");
+            return null;
+        }
+        var table = operand.Item;
+
+        // SR2, first sentence — the OCCURS clause and its INDEXED phrase. Reported FIRST and alone: SR2's second
+        // sentence and SR3 are both about "the level for which the SEARCH is applicable", which a non-table has
+        // not got, so screening them against one would name a level that does not exist.
+        if (!table.IsTable)
+        {
+            Identifier1(verb, written, $"'{table.CobolName}' is not a table — \"the data description of "
+                + "identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO §14.9.37.3 SR2)");
+            return null;
+        }
+        if (table.IndexNames.Count == 0)
+        {
+            Identifier1(verb, written, $"the OCCURS clause of '{table.CobolName}' has no INDEXED phrase — \"the "
+                + "data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO "
+                + "§14.9.37.3 SR2). The search varies the first index associated with identifier-1 (§14.9.37.4 "
+                + "GR1), so a table with no index cannot be searched; add INDEXED BY to the OCCURS clause.");
+            return null;
+        }
+
+        // SR1 — the reference modifier. Not a shape this backend has not got round to: identifier-1 names a
+        // TABLE, and a character slice of one is not a table.
+        if (operand.IsReferenceModified)
+            Identifier1(verb, written, "\"Identifier-1 shall not be reference-modified\" (ISO §14.9.37.3 SR1)");
+
+        // SR2's second sentence — the ONLY written-form rule the subscript count can decide, and it is an UPPER
+        // bound: a reference to a table item normally takes one subscript per OCCURS level (§8.4.2.3), SR2
+        // removes the SEARCHED level's, so more subscripts than identifier-1 has SUPERORDINATE tables means one
+        // of them is at that level.
+        //
+        // ⛔ THERE IS NO LOWER BOUND, AND SR3 IS NOT ONE. "Identifier-1 may be contained within one or more other
+        // tables, for which the subscripting is still required" reads like a demand on identifier-1's own written
+        // form, and §14.9.37.4 GR1 says in so many words that it is not: "The subscript that is used to determine
+        // the occurrence of each superordinate table to search is specified by the user IN THE WHEN PHRASES.
+        // Therefore, each appropriate subscript shall be set to the desired value before the SEARCH statement is
+        // executed." The subscripting SR3 keeps required is required THERE — in the WHEN phrases, at run time —
+        // not on identifier-1, so SR3 places no screen here at all; a lower bound enforced here REJECTS LEGAL
+        // SOURCE. Measured, and this is how the mistake was caught: the CCVS suite writes the bare spelling
+        // throughout — NC233A line 516 is `SEARCH ALL GRP2-ENTRY … WHEN SEC (IDX-1, IDX-2) = "(01,01)"` over
+        // `02 GRP-ENTRY OCCURS 10 … 03 GRP2-ENTRY OCCURS 10`, the outer occurrence coming from IDX-1 in the WHEN
+        // exactly as GR1 describes — and a lower bound failed six NIST programs (NC231A NC232A NC233A NC234A
+        // NC237A NC238A) outright. Both spellings are legal: bare, and with the superordinate subscripts written
+        // (which SR2 permits, banning only the searched level's).
+        // ⛔ THE ARITY WALK IS WRITTEN ONCE, IN DataItem (kb/Work PB877 — it found FIVE copies, and
+        // SubscriptAdmissionDriftTests.TheSr3ArityWalk_IsWrittenExactlyOnce fails if a sixth appears).
+        // SubscriptArity counts identifier-1 ITSELF plus every table ancestor, and the !IsTable arm above
+        // has already returned, so the SUPERORDINATE count is exactly one less.
+        int superordinate = table.SubscriptArity - 1;
+        if (operand.SubscriptCount > superordinate)
+            Identifier1(verb, written, $"identifier-1 carries {operand.SubscriptCount} subscript"
+                + $"{(operand.SubscriptCount == 1 ? "" : "s")} and '{table.CobolName}' has "
+                + (superordinate == 0 ? "no enclosing table"
+                    : superordinate == 1 ? "1 enclosing table" : $"{superordinate} enclosing tables")
+                + " — \"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" "
+                + "(ISO §14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
+                + "index (§14.9.37.4 GR1); an enclosing table's occurrence may be written here or left to the "
+                + "WHEN phrases, which is where GR1 puts it.");
+        return table;
+    }
+
+    /// <summary>The identifier-1 sink (ISO §14.9.37.3 SR1–SR3) — one code for one operand position, the same way
+    /// COBOLNET1964–1966 group SR7–SR13 by the operand each is about.</summary>
+    private bool Identifier1(string verb, string written, string message)
+    {
+        data.Edition.Error(DiagnosticCatalog.SearchIdentifier1Operand, $"{verb} {written}: {message}");
+        return false;
+    }
 
     // ── INSPECT (ISO §14.9.22.3) — lifted at 10c ─────────────────────────────────────────────────────────────
 

@@ -87,7 +87,8 @@
     "pb390_procedure_and_condition_operands",
     "pb436_varying_after_from_outer",
     "pb877_subscripted_subscript",
-    "pb447_search_all_index_stays_in_table"
+    "pb447_search_all_index_stays_in_table",
+    "pb443_search_identifier_1"
   ],
   "pending": []
 }

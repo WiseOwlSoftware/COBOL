@@ -13,28 +13,54 @@ using Core = CobolParserCore;
 /// resolution rides <c>ctx.Symbols.IndexCellOf</c>, the dynamic-table bound <c>OdoModel.SearchBound</c>).</summary>
 internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). The searched operand names a table with INDEXED BY
-    /// (SR2); the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names another index OF THE
-    /// SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified in the INDEXED BY
-    /// phrase in the OCCURS clause associated with identifier-1, the index referenced by index-name-1 is the
-    /// search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b) increments that item
-    /// in step with the search index. NOT AT END is a non-ISO extension — it fails loud by name.</summary>
-    public BoundStatement BindSearch(Core.SearchStatementContext s)
+    /// <summary>⛔ IDENTIFIER-1, FOR BOTH FORMATS, RESOLVED AND SCREENED IN ONE PLACE (kb/Work PB443). Format 1
+    /// and Format 2 print the SAME operand and are bound by the SAME three ALL-FORMATS syntax rules, and they had
+    /// two copies of the same eight lines — the literal shape of this project's most reproducible defect, a
+    /// dispatch with two arms of which only one ever gets fixed.
+    /// <para>What those eight lines did: <c>dref.cobolWord()</c> reduced the whole written reference to its BASE
+    /// WORD, so the qualifiers, the subscripts and any reference modifier were discarded UNREAD, and
+    /// <c>candidates.FirstOrDefault(i =&gt; i.IsTable)</c> then broke a same-name tie by DECLARATION ORDER.
+    /// <c>SEARCH E IN G2</c>, with a table <c>E</c> in each of two groups, searched <c>G1</c>'s — a silent wrong
+    /// answer on legal, unambiguous COBOL — and none of §14.9.37.3 SR1–SR3 could even be asked, because nothing
+    /// downstream ever saw a subscript or a modifier at all. The resolution is now the ordinary §8.4.2.2 one
+    /// (<c>ReferenceResolver.ResolveTableOperand</c>) and the rules are the one check catalog's.</para>
+    /// <para>The nested-dynamic guard stays HERE and stays a <c>BoundUnsupported</c>: it is a genuine COBOL.NET
+    /// increment, not a rule the source violates (a subscripted capacity path over the enclosing indices), which
+    /// is exactly the job PB236 left the carrier.</para></summary>
+    /// <param name="dref">identifier-1 as written.</param>
+    /// <param name="verb">"SEARCH" or "SEARCH ALL".</param>
+    /// <param name="bail">What to bind INSTEAD when this returns null: a <c>BoundNop</c> after a reported syntax
+    /// rule (the compile has already failed — ISO §4.2.2 ¶2), or the nested-dynamic deferral.</param>
+    /// <returns>The table identifier-1 names, or null.</returns>
+    private DataItem? Identifier1(Core.DataReferenceContext dref, string verb, out BoundStatement bail)
     {
-        var drefs = s.dataReference();
-        string tableName = drefs[0].cobolWord()?.GetText() ?? drefs[0].GetText();
-        if (!ctx.Symbols.TryResolve(tableName, ctx.ActiveScope, out var candidates)
-            || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
-            return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
-        if (table.IndexNames.Count == 0)
-            return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37.3 SR2)");
+        bail = new BoundNop();
+        if (ctx.Validation.ResolveSearchTable(dref, verb, ctx.Refs) is not { } table) return null;   // fixed OR dynamic (D9)
         // A dynamic table NESTED under another table has no whole-table path (TablePath null), so the AT-END bound
         // (§8.5.1.9.1 current capacity) and the EnterSearch/ExitSearch bracket cannot be addressed by name — a
         // subscripted capacity path over the enclosing indices is a later increment. Reject rather than let
         // SearchBound fall back to Count=0 and silently scan ZERO occurrences (OCCURS DYNAMIC review #5; D9).
         if (table.IsDynamicTable && ctx.Refs.TablePath(table) is null)
-            return new BoundUnsupported($"SEARCH of the dynamic-capacity table '{tableName}' nested under another "
-                + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
+        {
+            bail = new BoundUnsupported($"{verb} of the dynamic-capacity table '{table.CobolName}' nested under "
+                + "another table (the scan bound over its current capacity needs a subscripted access path — a "
+                + "later increment)");
+            return null;
+        }
+        return table;
+    }
+
+    /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). identifier-1 is resolved and screened by
+    /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names
+    /// another index OF THE SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified
+    /// in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by
+    /// index-name-1 is the search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b)
+    /// increments that item in step with the search index. NOT AT END is a non-ISO extension — it fails loud by
+    /// name.</summary>
+    public BoundStatement BindSearch(Core.SearchStatementContext s)
+    {
+        var drefs = s.dataReference();
+        if (Identifier1(drefs[0], "SEARCH", out var bail) is not { } table) return bail;
 
         string searchIx = ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope);   // scope-aware (method cell first, M2-OO-1h step 4)
         BoundSetTarget? also = null;
@@ -101,21 +127,13 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// Format-2 lowering.</para></summary>
     public BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {
-        string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
-        if (!ctx.Symbols.TryResolve(tableName, ctx.ActiveScope, out var candidates)
-            || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
-            return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
-        if (table.IndexNames.Count == 0)
-            return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37.3 SR2)");
-        if (table.IsDynamicTable && ctx.Refs.TablePath(table) is null)   // nested dynamic — see BindSearch (review #5, D9)
-            return new BoundUnsupported($"SEARCH ALL of the dynamic-capacity table '{tableName}' nested under another "
-                + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
+        if (Identifier1(s.dataReference(), "SEARCH ALL", out var bail) is not { } table) return bail;
 
         // The Format-2 operand rules (ISO §14.9.37.3 SR7–SR13; kb/Work PB445). Screened BEFORE the WHEN phrases
         // bind, so a violation is reported against the source's own operands rather than after whatever the
         // general condition binder made of them; the bind proceeds either way (§4.2.2 ¶2 — the indication is at
         // compile time, and one compile reports every violation it can see).
-        ctx.Validation.CheckSearchAllFormat2(s, table, ctx.Refs);
+        ctx.Validation.CheckSearchAllFormat2(s, table, ctx.Refs, host.Cond);
 
         List<BoundStatement>? atEnd = null;
         if (s.searchAtEndClause() is { } ae)

@@ -1115,7 +1115,13 @@
   "pb419-initialize-resume-below-2002",
   "pb427-same-type-nonequivalent-declarations",
   "pb427-strong-group-argument-not-same-type",
-  "pb427-same-type-below-2002"
+  "pb427-same-type-below-2002",
+  "pb443-search-identifier-1-reference-modified",
+  "pb443-search-identifier-1-subscripted",
+  "pb443-search-identifier-1-not-a-table",
+  "pb443-search-identifier-1-no-indexed-phrase",
+  "pb443-search-identifier-1-ambiguous-unqualified",
+  "pb443-search-all-condition-name-skips-preceding-key"
  ],
  "pending": []
 }

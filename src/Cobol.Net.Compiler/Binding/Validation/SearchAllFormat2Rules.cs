@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 using CobolNet.Common;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
@@ -46,7 +47,8 @@ using Core = CobolParserCore;
 /// 2023, so all four editions get the same verdict (the PB445 negative goldens carry all four in their
 /// <c>reject-at</c> headers).</para>
 /// </summary>
-internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolver refs, StatementValidation validation)
+internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolver refs, StatementValidation validation,
+                                              ConditionBinder conditions)
 {
     /// <summary>Screen one <c>SEARCH ALL</c> against ISO §14.9.37.3 SR7–SR13. Pure in the check-catalog sense:
     /// every verdict is reported to the ONE sink and the caller's bind is unaffected (a Format-2 violation is the
@@ -219,6 +221,11 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
 
         var item = refs.Probe(dref)?.Item;
         int pos = KeyPositionOf(item, keyItems);
+        // The next test asks EXISTENCE in the condition-name namespace — "is this spelling declared as a
+        // condition-name at all", which chooses between two MESSAGES — and the base word is the right key for
+        // that: a namespace is keyed by the name, and §8.4.2.2 qualification decides only WHICH declaration.
+        // (The SELECTION, where the qualifier is load-bearing, is CheckConditionNameSide's, through the one
+        // §8.4.2.2 Format-2 resolution — kb/Work PB443.)
         // A CONDITION-NAME written on the receiving side of a comparison is a FORMAT verdict, not SR8's: Format 2
         // prints condition-name-1 as an alternative to the whole comparison, so `WHEN cond-name (IX) = 05` is a
         // shape the format does not print. Without this arm it drew SR8's "not referenced in the KEY phrase",
@@ -265,9 +272,18 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + "a WHEN phrase written without a relational operator is Format 2's condition-name-1 alternative "
                 + "(ISO §14.9.37.2 Format 2). Write `data-name-1 IS EQUAL TO …` to compare a key.");
 
-        // A spelling declared under several conditional variables: prefer the one inside identifier-1, which is
-        // the only one SR9's KEY-phrase requirement can be about (§8.4.2.2 ambiguity is its own rule's business).
-        var cond = conds.FirstOrDefault(c => OdoModel.IsWithin(c.Parent, table)) ?? conds[0];
+        // ⛔ WHICH level-88 THIS REFERENCE NAMES IS §8.4.2.2 FORMAT 2's QUESTION, AND IT IS ANSWERED IN ONE PLACE
+        // (kb/Work PB443). This used to pick `conds.FirstOrDefault(c => IsWithin(c.Parent, table)) ?? conds[0]` —
+        // a base-word lookup with a tie broken by DECLARATION ORDER, the condition-name twin of the identifier-1
+        // defect — so the qualifier was read by the condition BINDER and ignored by this SCREEN, and the two
+        // disagreed about which key was referenced. Measured: with `ASCENDING KEY IS K2 K1` and a condition-name
+        // spelled the same on each, the legal `WHEN CN OF K2 (IX)` was REJECTED under SR11 for "referencing K1
+        // and not K2" (it referenced neither — it referenced K2), while with `ASCENDING KEY IS K1 K2` the SR11
+        // violation in `WHEN CN OF K2 (IX)` went unreported. One reference, one resolution.
+        if (conditions.ConditionOf(dref) is not { } cond)
+            return Key(table, $"'{dref.GetText()}' does not uniquely identify a condition-name — '{name}' is "
+                + "declared, but not under the written qualifiers (ISO §8.4.2.2 Format 2 — a condition-name "
+                + "qualifies by its conditional variable and/or that variable's containing groups)");
         bool ok = true;
 
         // SR9 first clause — "All referenced condition-names shall be defined as having only a single value."
