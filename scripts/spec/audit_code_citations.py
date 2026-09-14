@@ -472,9 +472,10 @@ def spec_ordinals():
     return formats, _alias(spans), _alias(owner)
 
 
-def _names_format(text: str, name: str) -> bool:
-    """The line spells this format's OWN name — `data-pointer assignment` for `data-pointer-assignment`,
-    hyphen or space.
+def _name_hits(text: str, name: str) -> list[int]:
+    """WHERE the line spells this format's OWN name — `data-pointer assignment` for
+    `data-pointer-assignment`, hyphen or space. POSITIONS, not a yes/no, because a line may carry more than
+    one format citation and a name belongs to the citation it stands NEXT TO (`_owning_cite`).
 
     ⚠ THREE-PART NAMES ONLY, and the threshold was measured. A one-word name (`all`, `serial`, `inline`,
     `attribute`, `validation`) is ordinary English; a TWO-word one is ordinary COBOL vocabulary
@@ -485,8 +486,23 @@ def _names_format(text: str, name: str) -> bool:
     is checking."""
     parts = name.split("-")
     if len(parts) < 3:
-        return False
-    return re.search(r"\b" + r"[ -]".join(re.escape(p) for p in parts) + r"\b", text, re.I) is not None
+        return []
+    pat = r"\b" + r"[ -]".join(re.escape(p) for p in parts) + r"\b"
+    return [m.start() for m in re.finditer(pat, text, re.I)]
+
+
+def _owning_cite(cites: list[tuple[int, int]], pos: int) -> int:
+    """⛔ A FORMAT NAME BELONGS TO THE CITATION IT STANDS NEXT TO, NOT TO EVERY CITATION ON ITS LINE.
+    Returns the index of the nearest citation span (ties to the earlier one).
+
+    Measured on landing train 36: `§8.4.2.2.2 Format 1 … §8.4.3.1 Format 10, qualified-linage-counter`
+    (tests/conformance/negative/pb489-linage-operand-is-linage-counter.cob:6) is CORRECT on both halves — the
+    two clauses genuinely print the SAME format name under DIFFERENT numbers — and the whole-line test
+    attributed the second citation's name to the first and accused it. No name-uniqueness assumption can
+    stand in for this; the POSITION is the only thing that separates the two claims."""
+    return min(range(len(cites)),
+               key=lambda j: (0 if cites[j][0] <= pos < cites[j][1]
+                              else min(abs(pos - cites[j][0]), abs(pos - cites[j][1])), j))
 
 
 def _clause_at(line: str, pos: int) -> str | None:
@@ -512,7 +528,10 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
         if NAMED_AS_WRONG.search(line):
             continue
         cited_formats: list[tuple[int, str, int]] = []
-        for m in FORMAT_CITE.finditer(line):
+        # Every format citation on the line, in order — the anchors `_owning_cite` measures a spelled format
+        # NAME against. Collected BEFORE the loop so each name can be weighed against all of them.
+        cite_spans = [(c.start(), c.end()) for c in FORMAT_CITE.finditer(line)]
+        for j, m in enumerate(FORMAT_CITE.finditer(line)):
             clause, n = m.group(1), int(m.group(2))
             if (d := formats.get(clause)) is None:
                 continue
@@ -522,7 +541,8 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                             f"there is no Format {n}"))
                 continue
             cited_formats.append((m.end(), clause, n))
-            named = {k for k, v in d.items() if v and _names_format(line, v)}
+            named = {k for k, v in d.items()
+                     if v and any(_owning_cite(cite_spans, q) == j for q in _name_hits(line, v))}
             if named and n not in named:
                 k = sorted(named)[0]
                 out.append(("FORMAT-NAME", site, clause,
@@ -666,6 +686,15 @@ ORDINAL_SELF_TEST = [
     ("FORMAT-NAME",
      "/// <summary>SET data-pointer assignment (§14.9.39 Format 4; Phase-4b increment 1)",
      "/// <summary>SET data-pointer assignment (§14.9.39 Format 7; Phase-4b increment 1)"),
+    # ⛔ THE SILENT TWIN IS A LINE WITH TWO CITATIONS, and it is the one this check accused (landing
+    # train 36, tests/conformance/negative/pb489-linage-operand-is-linage-counter.cob:6). §8.4.2.2.2 Format 7
+    # and §8.4.3.1 Format 10 are BOTH named `qualified-linage-counter`, so a whole-line name test cannot tell
+    # which citation the name belongs to; `_owning_cite` gives it to the one it stands next to. The DEFECT
+    # half is the same name beside the WRONG number with no second citation to own it.
+    ("FORMAT-NAME",
+     "/// The LINAGE clause operand (§13.18.34) is §8.4.2.2.2 Format 1, qualified-linage-counter.",
+     "*> a qualified-data-name (§8.4.2.2.2 Format 1), while LINAGE-COUNTER is an IDENTIFIER "
+     "— §8.4.3.1 Format 10, qualified-linage-counter."),
     # The pairing check: rule 12 is printed under the standard's own `FORMAT 7` banner.
     ("FORMAT-RULE",
      "// SET pointer TO NULL (ISO §14.9.39 Format 4, GR12 — the address is stored)",
