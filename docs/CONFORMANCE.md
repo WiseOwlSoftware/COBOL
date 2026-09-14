@@ -272,6 +272,20 @@ of an unsupported facility.
   process exit code). Two host clamps apply on top of the value mapping and are outside COBOL's control: the
   `long` status is narrowed to `Int32`, and a POSIX host reports only the low 8 bits of the exit code — so a
   STATUS ≥ 256 (or outside `Int32`) is reduced modulo the platform's exit-code width.
+- **Return to a NON-COBOL activating runtime element (§14.9.18.4 GR1 a) — "If the activating runtime element is a
+  non-COBOL element, execution continues in the activating element in an implementor-defined fashion"; the
+  §14.9.14.4 GR3 EXIT PROGRAM twin reads through to the same rule)**: **an ordinary managed return, and no
+  exception condition is raised in the activator.** COBOL.NET declares no §7.3.9 CALL-CONVENTION directive, so a
+  non-COBOL element cannot be the TARGET of a CALL (see the A.1 item 19 determination in §7); the only non-COBOL
+  ACTIVATOR it can have is a .NET host that invokes a generated program class directly instead of entering through
+  `ProgramTable.RunMain`. For that host the activation is a plain method call: the generated entry catches the
+  `ProgramReturn` the GOBACK throws and returns, the PROCEDURE DIVISION header RETURNING item's value is delivered
+  through the activation's returning carrier exactly as for a COBOL activator (GR2), and the host resumes at its
+  own call site. A RAISING phrase stages its condition and nothing consumes it: a non-COBOL element enables
+  checking for nothing, so GR1 b)'s test — "if checking for that exception condition is enabled in the activating
+  runtime element" — is false and `ProgramTable.ApplyPropagationDefault` discards the staged condition without
+  raising it, fatal or not. No COBOL exception condition, and no .NET exception, crosses into a non-COBOL
+  activator. (kb/Work PB408.)
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
   documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —
   .NET `System.Decimal` (a 128-bit decimal type, **28–29 significant decimal digits**, magnitude up to ≈ ±7.9×10²⁸).

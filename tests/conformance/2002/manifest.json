@@ -280,7 +280,8 @@
     "pb555_value_false_phrase",
     "pb555_typedef_condition_clone",
     "pb401_range_invalid_by_class",
-    "pb403_exit_placement_context_2002"
+    "pb403_exit_placement_context_2002",
+    "pb408_raising_enablement_locus"
   ],
   "pending": []
 }

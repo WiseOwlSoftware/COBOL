@@ -1403,6 +1403,30 @@ public sealed record EcStatementInfo(
 /// per-raise-point guards, and clears it. Absent wherever checking is off — checking-off emits NOTHING new.</summary>
 public sealed record BoundEcChecked(BoundStatement Inner, EcStatementInfo Info) : BoundStatement;
 
+/// <summary>A statement that ACTIVATES another runtime element — CALL, INVOKE (typed or universal), and the
+/// lowered user-defined-function reference — and therefore owns ISO §14.9.18.4 GR1 b)'s question: a condition a
+/// <c>GOBACK / EXIT … RAISING</c> stages in the activated element "is raised in the activating runtime element
+/// if checking for that exception condition is enabled in the ACTIVATING runtime element".
+///
+/// <para>The activated element cannot answer that — under separate compilation it cannot even see this element —
+/// and the propagated name is not known until run time (<c>RAISING LAST EXCEPTION</c>), so the answer travels as
+/// the activating STATEMENT's own §7.3.25 checking state and is consulted by the site's propagation pickup.
+/// Implementing this interface is the one thing that obliges a bound node to carry it; before kb/Work PB408 the
+/// test was taken in the callee at bind time and the pickup was gated on nothing finer than the compilation
+/// group's EC participation.</para></summary>
+public interface IActivatingStatement
+{
+    /// <summary>The §7.3.25 checking state governing THIS statement in THIS source element
+    /// (<c>TurnState.ProfileAt</c>), queryable at run time for a name chosen at run time.</summary>
+    CobolNet.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; }
+
+    /// <summary>Return this node carrying <paramref name="profile"/>. It exists so ONE site — the
+    /// <c>BindStatement</c> exit every statement funnels through — stamps every activating node, including the
+    /// hoisted ones inside a desugar sequence: a new activating node inherits the stamp by implementing the
+    /// interface, never by remembering to set a property at its own construction site.</summary>
+    BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile);
+}
+
 /// <summary><c>RAISE EXCEPTION exception-name-1</c> (ISO §14.9.29; SR1 — level-3 only, validated at bind).
 /// The TURN decision is baked in at bind time (§14.6.13.1.1: an exception condition is raised only when checking
 /// is enabled): <paramref name="Enabled"/> false + nonfatal ⇒ the statement is a no-op (§14.6.13.1.4 first
@@ -1454,15 +1478,25 @@ public sealed record BoundSaveLocale(Place Target, bool UserDefault) : BoundStat
 /// <paramref name="Enabled"/> decision at the statement's line) or <paramref name="IsLast"/> (RAISING LAST
 /// EXCEPTION — re-stages the current last exception status). The identifier (exception-object) form binds loud
 /// until the OO wave.</summary>
-public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal, bool Enabled,
+public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal,
     Place? ObjectSource = null,
     // kb/Work R07 — the RAISING statement's §15.32.3 r2 / §15.30.3 r2 operands, per-condition like BoundRaise's
     // (§7.3.25.4 GR7 keys them on the TURN governing THIS name at THIS line). StatementName is the Table 12
     // name: GOBACK, or EXIT (EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
-    bool WithLocation = false, string? StatementName = null, string? Location = null);
+    bool WithLocation = false, string? StatementName = null, string? Location = null,
+    // The LAST leg's §14.9.18.4 GR1b3a input: the containing source element's PROCEDURE DIVISION header RAISING
+    // list. A level-3 EC-USER condition NOT in it propagates as EC-RAISING-NOT-SPECIFIED instead — decidable only
+    // at run time, because the LAST arm's name is.
+    IReadOnlyList<string>? PdRaising = null);
 // ObjectSource: the GOBACK/EXIT … RAISING identifier-1 leg (§14.9.18.3 SR4; the EC-OO wave) — exactly one
 // of EcName / IsLast / ObjectSource is set. Objects are NOT TURN-gated (§7.3.25 takes names only), so the
-// Enabled/Fatal fields are meaningless on this leg (the §14.6.13.1.5 activator rules decide fatality).
+// Fatal field is meaningless on this leg (the §14.6.13.1.5 activator rules decide fatality).
+//
+// ⛔ THERE IS DELIBERATELY NO `Enabled` FIELD (kb/Work PB408, and ExceptionCheckingProfileDriftTests keeps it
+// that way). §14.9.18.4 GR1 b) asks whether checking is enabled in the ACTIVATING runtime element, and the
+// activator is not known when this node is bound — it is not even in the compilation group under separate
+// compilation. The enablement test lives at the activating statement, which carries its own
+// <see cref="CobolNet.Runtime.Exceptions.EcCheckingProfile"/>; staging here is unconditional.
 
 /// <summary>RAISE identifier-1 (ISO §14.9.29; §14.6.13.1.5 — the EC-OO wave): raise an exception OBJECT.
 /// <paramref name="Source"/> null ⇔ SELF (renders <c>this</c>). NEVER fatal by itself (GR2): the F4

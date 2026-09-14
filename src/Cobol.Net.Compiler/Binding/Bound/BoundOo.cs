@@ -50,7 +50,16 @@ public sealed record BoundInvoke(
     InvokeForm Form, string? ClassCsName, Place? Receiver, string? MethodCsName, Place? Returning,
     IReadOnlyList<BoundInvokeArg>? Args = null, DataItem? ReturningSource = null,
     string? OwnerCsName = null)
-    : BoundStatement;
+    : BoundStatement, IActivatingStatement
+{
+    /// <inheritdoc/>
+    public CobolNet.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; init; }
+        = CobolNet.Runtime.Exceptions.EcCheckingProfile.None;
+
+    /// <inheritdoc/>
+    public BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile)
+        => this with { ActivatorChecking = profile };
+}
 
 /// <summary>One bound INVOKE argument (deep-dive D6; §14.9.23.4 GR6): the FORMAL it corresponds to
 /// positionally (its description drives the marshaling — §14.8.2's strict conformance was validated at bind,
@@ -96,7 +105,17 @@ public sealed record BoundInvokeArg(
 /// is BY REFERENCE (SR6 — implicit), so every argument writes back through its box.</summary>
 public sealed record BoundInvokeUniversal(
     Place Receiver, string? MethodLiteral, Place? MethodSource,
-    IReadOnlyList<BoundUniversalArg> Args, Place? Returning, string? ReturningDescriptor) : BoundStatement;
+    IReadOnlyList<BoundUniversalArg> Args, Place? Returning, string? ReturningDescriptor)
+    : BoundStatement, IActivatingStatement
+{
+    /// <inheritdoc/>
+    public CobolNet.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; init; }
+        = CobolNet.Runtime.Exceptions.EcCheckingProfile.None;
+
+    /// <inheritdoc/>
+    public BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile)
+        => this with { ActivatorChecking = profile };
+}
 
 /// <summary>One universal-dispatch argument: the storage and its conformance descriptor (D-U3).</summary>
 public sealed record BoundUniversalArg(Place Source, string Descriptor);

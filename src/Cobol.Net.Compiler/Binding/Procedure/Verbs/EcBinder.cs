@@ -161,13 +161,30 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 
     // ── The GOBACK / EXIT PROGRAM RAISING phrase (§14.9.18 / §14.9.14 F2) ────────────────────────────────────
 
+    /// <summary>Table 13's EC-RAISING-NOT-SPECIFIED (§14.6.13.1.6) — GR1b3a's substitute condition, and the
+    /// name §14.9.18.3 SR2's compile-time diagnostic names.</summary>
+    private const string RaisingNotSpecified = "EC-RAISING-NOT-SPECIFIED";
+
     /// <summary>Bind a RAISING phrase. Returns null for the identifier (exception-object) form — the caller
     /// degrades to a loud placeholder until the OO wave.</summary>
     public BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, EcRaiseSite site)
     {
         // statement-raising-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.Raising = true;
-        if (raising.LAST() is not null) return new BoundRaising(null, IsLast: true, Fatal: false, Enabled: true);
+        if (raising.LAST() is not null)
+        {
+            // RAISING LAST EXCEPTION (§14.9.18.4 GR1b3): the name is the run-unit last exception status, so the
+            // whole determination is a RUN-TIME one. What the BINDER owns is GR1b3a's other operand — "the
+            // RAISING phrase of the procedure division header of the source element in which this EXIT statement
+            // is contained" — and the §15.32.3 r2 / §15.30.3 r2 operands of the SUBSTITUTED condition, which
+            // this statement itself causes (§7.3.25.4 GR7 keys them on the TURN governing THAT name HERE).
+            bool rnsLoc = ctx.EcState.Turn.WithLocation(RaisingNotSpecified, null, line);
+            return new BoundRaising(null, IsLast: true, Fatal: false,
+                WithLocation: rnsLoc,
+                StatementName: rnsLoc ? site.Verb.Split(' ')[0] : null,
+                Location: rnsLoc ? EcLocation(line) : null,
+                PdRaising: [.. ctx.EcState.PdRaising.OrderBy(n => n, StringComparer.OrdinalIgnoreCase)]);
+        }
         if (raising.cobolWord() is not { } ecWord)
         {
             // The identifier leg (GOBACK §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 — the EC-OO wave): propagate an exception
@@ -209,11 +226,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     $"{site.Context} '{op.Item.CobolName}': its declared class '{declared}' (or a "
                     + "superclass) shall be specified in the RAISING phrase of the procedure division "
                     + $"header of the containing source element ({site.Cite(site.ObjectRule, "a")})");
-            return new BoundRaising(null, IsLast: false, Fatal: false, Enabled: true, ObjectSource: op);
+            return new BoundRaising(null, IsLast: false, Fatal: false, ObjectSource: op);
         }
 
         if (EcResolveLevel3(ecWord.GetText(), site) is not { } info)
-            return new BoundRaising("EC-RAISING-IMP", false, false, false);   // diagnosed; placeholder
+            return new BoundRaising("EC-RAISING-IMP", false, false);   // diagnosed; placeholder
         // The level-3 rule's SECOND paragraph (GOBACK §14.9.18.3 SR2 / EXIT §14.9.14.3 SR3): an EC-USER name
         // shall appear in the PD-header RAISING phrase — the statically detectable half binds as an error; the
         // runtime condition is EC-RAISING-NOT-SPECIFIED.
@@ -224,8 +241,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // kb/Work R07: the location operands travel like BoundRaise's — WITH LOCATION per THIS name at THIS
         // line (§7.3.25.4 GR7); the statement name is the Table 12 row (verb's first word: GOBACK, or EXIT —
         // EXIT PROGRAM / FUNCTION / METHOD are formats of the EXIT statement).
+        // ⛔ NO `Enabled:` ARGUMENT (kb/Work PB408). This element's own §7.3.25 fold answers "is checking
+        // enabled HERE"; §14.9.18.4 GR1 b) asks whether it is enabled in the ACTIVATING runtime element, which
+        // is a different element and not knowable here. Staging is unconditional; the activating statement's
+        // EcCheckingProfile decides.
         return new BoundRaising(info.Name, IsLast: false,
-            Fatal: info.Fatality is not EcFatality.Nonfatal, Enabled: ctx.EcState.Turn.Enabled(info.Name, null, line),
+            Fatal: info.Fatality is not EcFatality.Nonfatal,
             WithLocation: ctx.EcState.Turn.WithLocation(info.Name, null, line),
             StatementName: site.Verb.Split(' ')[0], Location: EcLocation(line));
     }
@@ -359,6 +380,18 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         "EC-EXTERNAL-FORMAT-CONFLICT", "EC-EXTERNAL-DATA-MISMATCH", "EC-EXTERNAL-FILE-MISMATCH",
     ];
 
+    /// <summary>Give every <see cref="IActivatingStatement"/> in <paramref name="node"/> the activating
+    /// statement's own checking profile (§14.9.18.4 GR1 b)). A no-op when nothing is enabled at the line — the
+    /// zero-scaffolding gate: such a site emits byte-identical text.</summary>
+    private static BoundStatement StampActivators(BoundStatement node, EcCheckingProfile profile) =>
+        profile.IsEmpty ? node
+        : node switch
+        {
+            BoundSequence seq => new BoundSequence([.. seq.Steps.Select(st => StampActivators(st, profile))]),
+            IActivatingStatement a => a.WithActivatorChecking(profile),
+            _ => node,
+        };
+
     /// <summary>Wrap <paramref name="bound"/> in <see cref="BoundEcChecked"/> when the TurnState enables any
     /// exception-name RELEVANT to its kind at this statement's line (§7.3.25.4 GR6); otherwise return it
     /// untouched — the zero-scaffolding gate. The relevant set is the statement kind's raise points
@@ -368,6 +401,15 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     {
         if (!ctx.EcState.Turn.AnyEnabled) return bound;
         int line = s.Start.Line;
+        // §14.9.18.4 GR1 b) — THE ACTIVATOR'S HALF, stamped here because here is the one exit every statement
+        // funnels through. A condition a callee's GOBACK / EXIT … RAISING stages is raised in the ACTIVATING
+        // runtime element only "if checking for that exception condition is enabled in the activating runtime
+        // element", and RAISING LAST EXCEPTION picks the name at RUN time — so the activating statement carries
+        // THIS element's §7.3.25 state at THIS line into the run. The recursion reaches the activations a
+        // desugar hoisted into a sequence (a user-function reference inside a COMPUTE); a new activating node
+        // inherits the stamp by implementing IActivatingStatement, never by remembering to set a property.
+        if (bound is IActivatingStatement or BoundSequence)   // the only shapes a profile can land on
+            bound = StampActivators(bound, ctx.EcState.Turn.ProfileAt(line));
         var enabled = new List<(string Ec, FileModel? File)>();
         void Query(IEnumerable<string> names, FileModel? file = null)
         {

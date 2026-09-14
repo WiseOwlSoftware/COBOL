@@ -87,7 +87,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // return, so it needs no guard here — GR3i.
             w.Line(invocation);
             if (c.NotOnException is { } notBare) Statements.EmitStatementList(notBare);   // GR3i — a non-exception return
-            EmitPropagationPickup();
+            EmitPropagationPickup(c);
             return false;
         }
         int id = ctx.Names.NextCall();
@@ -120,7 +120,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
         else if (c.NotOnException is { } not)
             using (w.Block($"if (!__callErr{id})")) Statements.EmitStatementList(not);   // GR3i — only on a non-exception return
-        EmitPropagationPickup();
+        EmitPropagationPickup(c);
         return false;
     }
 
@@ -291,14 +291,19 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
     }
 
-    /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM … RAISING</c>
-    /// exception condition (ISO §14.9.18 GR — raised "as if a RAISE statement" at the end of the activating
-    /// statement; §14.6.13.1.3 #6): run the §14.9.49 F3 selection over the DYNAMIC name, honor RESUME, and apply
-    /// the fatal default. Emitted only when the group uses the EC model (<c>EcState.Active</c>) — the propagated name
-    /// is dynamic (RAISING LAST EXCEPTION), so the gate is the group's EC participation, not a per-name TURN
-    /// fold (the documented refinement, recorded in the deep-dive; an EC-free caller gets the registry's
-    /// boundary default instead).</summary>
-    public void EmitPropagationPickup()
+    /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM / method-return …
+    /// RAISING</c> exception condition — ISO §14.9.18.4 GR1 b), RAISED HERE, in the activating runtime element,
+    /// "as if a RAISE statement" at the end of the activating statement (§14.6.13.1.3 #6): test the ACTIVATOR's
+    /// checking state for the propagated name, and when it is enabled set the last exception status
+    /// (§14.6.13.1.1), run the §14.9.49 Format-3 selection over the DYNAMIC name, honor RESUME and apply the
+    /// fatal default.
+    /// <para>Whether the pickup is EMITTED still gates on the group's EC participation (<c>EcState.Active</c>) —
+    /// zero scaffolding for a group that uses no EC feature. Whether it RAISES gates on
+    /// <paramref name="site"/>'s own <see cref="CobolNet.Runtime.Exceptions.EcCheckingProfile"/>, which answers
+    /// the per-name question for a name chosen at run time. Before kb/Work PB408 the group gate was the ONLY
+    /// gate and the per-name test was taken in the callee, so this site raised conditions the activating element
+    /// had turned off and skipped ones it had turned on.</para></summary>
+    public void EmitPropagationPickup(IActivatingStatement site)
     {
         if (!ecState.Active) return;
         var w = ctx.Writer;
@@ -318,7 +323,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             }
             w.Line("// -1/-2: declarative completed / RESUME NEXT — normal continuation (:24604)");
         }
-        using (w.Block($"if (ExceptionState.TakePropagated(out var __pn{id}, out var __pf{id}))   // §14.9.18 GR — raised at the end of the CALL"))
+        using (w.Block($"if (ExceptionState.TakeRaisedPropagation({CsLiteral(site.ActivatorChecking.Encoded)}, "
+            + $"out var __pn{id}, out var __pf{id}))   // §14.9.18.4 GR1b — raised HERE iff checking is enabled HERE"))
         {
             w.Line($"int __pr{id} = {ec.EcDispatchExpr($"__pn{id}", "\"\"")};");
             w.Line(dispatch.ResumeTransfer($"__pr{id}"));
@@ -799,41 +805,55 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
     }
 
-    /// <summary>Stage a <c>RAISING</c> phrase's exception condition for re-raise in the ACTIVATOR
-    /// (ISO §14.9.18 GR / §14.6.13.1.3 #6 — consumed by the activating CALL site's pickup, or by
-    /// <c>ProgramRegistry</c>'s boundary default when the caller is EC-free). The TURN decision was baked in at
-    /// bind time (§14.6.13.1.1: a condition is raised only when checking for it is enabled): disabled + nonfatal
-    /// stages nothing (§14.6.13.1.4 first sentence); disabled + fatal is the §14.6.13.1.3 #8 implementor
-    /// choice — this implementation terminates loudly (mirrors <see cref="EcEmitRaise"/>).</summary>
+    /// <summary>Stage a <c>RAISING</c> phrase's exception condition for the ACTIVATOR (ISO §14.9.18.4 GR1 b) /
+    /// §14.9.14.4 GR3 — consumed by the activating statement's pickup, or discarded by <c>ProgramRegistry</c>'s
+    /// boundary default when the site emitted none). Staging is UNCONDITIONAL and raises nothing here.
+    /// <para>⛔ IT USED TO BRANCH ON A BIND-TIME <c>Enabled</c> FLAG, AND THAT FLAG WAS THIS ELEMENT'S OWN
+    /// <c>&gt;&gt;TURN</c> STATE (kb/Work PB408). GR1 b) names one element and it is the other one: "an exception
+    /// condition is raised in the activating runtime element if checking for that exception condition is enabled
+    /// in the activating runtime element". So a declarative in an activator that had enabled the condition never
+    /// ran when the callee had it off, and one in an activator that had DISABLED it ran when the callee had it
+    /// on — measured in both directions inside a single compilation group, which §7.3.25.4 GR6/GR8 make possible
+    /// because a TURN directive scopes to the statements that FOLLOW IT IN THE COMPILATION GROUP. The disabled +
+    /// fatal arm additionally terminated the run unit from inside the CALLEE citing §14.6.13.1.3 #8; that rule's
+    /// latitude governs a fatal condition that already EXISTS, and GR1 b) stops one coming into existence in an
+    /// unchecked activator at all — the identical misapplication <c>ProgramTable.ApplyPropagationDefault</c> had
+    /// already had removed on the runtime side.</para></summary>
     public void EmitRaisingStage(BoundRaising r, string verb)
     {
         var w = ctx.Writer;
         if (r.ObjectSource is { } os)
         {
-            // The exception-OBJECT leg (§14.9.18.4 GR1b; the EC-OO wave): no Enabled/Fatal logic — objects
-            // are not TURN-gated (§7.3.25 takes names only); the activator's §14.6.13.1.5 rules decide.
+            // The exception-OBJECT leg (§14.9.18.4 GR1b2; the EC-OO wave): objects are not TURN-gated
+            // (§7.3.25 takes names only); the activator's §14.6.13.1.5 rules decide.
             w.Line($"ExceptionState.SetPropagatingObject({PlaceRenderer.Read(os)});   // {verb} RAISING identifier-1 — staged for the activator");
             return;
         }
         if (r.IsLast)
         {
-            w.Line("ExceptionState.SetPropagatingLast();   // RAISING LAST EXCEPTION (§14.9.18.2 — nothing staged when the status is clear)");
+            // §14.9.18.4 GR1b3: the name is the run-unit last exception status (GR1b3b — a clear status stages
+            // nothing), and GR1b3a substitutes EC-RAISING-NOT-SPECIFIED for a level-3 EC-USER condition the
+            // containing element's PD-header RAISING phrase does not name. That list crosses to the RUNTIME
+            // because only the runtime knows which name is being propagated; the membership test is written
+            // ONCE, there, over the names themselves.
+            string names = r.PdRaising is { Count: > 0 } pdr
+                ? $"new[] {{ {string.Join(", ", pdr.Select(CsLiteral))} }}"
+                : "null";
+            string loc = r.WithLocation
+                ? $", {CsLiteral(r.StatementName!)}, {CsLiteral(r.Location!)}"
+                : "";
+            w.Line($"ExceptionState.SetPropagatingLast({names}{loc});"
+                + "   // RAISING LAST EXCEPTION (§14.9.18.4 GR1b3a — the PD-header RAISING list is GR1b3a's operand)");
             return;
         }
-        if (!r.Enabled)
-        {
-            if (!r.Fatal)
-            {
-                w.Line($"// {verb} RAISING {r.EcName}: checking not enabled — nonfatal, not raised (ISO §14.6.13.1.4)");
-                return;
-            }
-            w.Line($"throw new CobolFatalException({CsLiteral(r.EcName!)}, \"raised by {verb} RAISING with checking "
-                + "not enabled (ISO 14.6.13.1.3 #8 - implementor-defined; this implementation terminates)\");");
-            return;
-        }
-        // kb/Work R07: the returning element's own last-exception status carries the §15.32.3 r2 operands when
-        // THIS name's TURN said WITH LOCATION (SetPropagating Sets before staging); null-null keeps the two-arg
-        // call byte-identical for the without-LOCATION case.
+        // kb/Work R07: the §15.32.3 r2 / §15.30.3 r2 operands travel WITH the staged condition and are applied by
+        // the activator-side raise, when THIS name's TURN said WITH LOCATION. §7.3.25.4 GR7 keys them on the
+        // directive governing the SOURCE STATEMENT ("all information necessary to identify a source statement …
+        // is made available to the run unit"), and that statement is this GOBACK/EXIT — so the RAISING element's
+        // own fold is the right one here even though the RAISE happens in the activator. Without LOCATION the
+        // two-arg call stages null-null and the activator's Set falls back to ITS ambient statement context,
+        // which is the §14.6.13.1.3 #6 reading: the condition is raised as if by a RAISE at the end of the
+        // activating statement.
         w.Line(r.WithLocation
             ? $"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")}, "
               + $"{CsLiteral(r.StatementName!)}, {CsLiteral(r.Location!)});   // staged for the activator (§14.9.18 GR)"

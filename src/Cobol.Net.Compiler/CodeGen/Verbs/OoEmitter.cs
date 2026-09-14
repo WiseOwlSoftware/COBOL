@@ -412,7 +412,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line(OoUnivCallerWrite(u.Args[i].Source, $"__ua{id}[{i}].Value") + "   // BY REFERENCE copy-out (SR6)");
         if (u.Returning is { } ret)
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value") + "   // RETURNING delivery (§14.9.23.4 GR8)");
-        EmitInvokePickup();   // §14.6.13.1.5 — the universal path propagates identically (D-EO6)
+        EmitInvokePickup(u);   // §14.6.13.1.5 / §14.9.18.4 GR1b — the universal path propagates identically (D-EO6)
     }
 
     /// <summary>SET Format 5 (D-U7; §14.9.39 GR9/GR10): copy the ONE sender reference into each target in
@@ -996,7 +996,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"{call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, §14.9.23.4 GR5)");
             foreach (var pLine in post) w.Line(pLine);
         }
-        EmitInvokePickup();   // §14.6.13.1.5 — a method GOBACK RAISING obj is consumed HERE (after GR8)
+        EmitInvokePickup(inv);   // §14.6.13.1.5 / §14.9.18.4 GR1b — a method GOBACK … RAISING is consumed HERE (after GR8)
     }
 
     /// <summary>The copy-in read of an identifier argument for a STRING-CARRIED formal: a reference-modified
@@ -1007,7 +1007,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// ACTIVATING site consumes — after the RETURNING delivery and copy-outs (GR1b ordering). Instance/
     /// Self/Super/Factory + UNIVERSAL dispatches all pick up; NEW needs none (the generated ctor runs no
     /// user statements, D4). Gated on <c>EcState.Active</c>, which spans class units.</summary>
-    private void EmitInvokePickup() => U.Call.EmitPropagationPickup();
+    private void EmitInvokePickup(IActivatingStatement site) => U.Call.EmitPropagationPickup(site);
 
     private string OoStringReadOf(Place sp, BoundInvokeArg a)
     {

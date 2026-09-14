@@ -154,14 +154,37 @@ public sealed class TurnState
     }
 
     /// <summary>Does directive name <paramref name="evName"/> cover level-3 <paramref name="level3"/>?
-    /// EC-ALL → everything but EC-I-O-WARNING (GR2); a level-2 name → its level-3 children but EC-I-O-WARNING
-    /// (GR3); a level-3 name → itself (the only way WARNING toggles — GR4).</summary>
-    private static bool NameMatches(string evName, string level3)
+    /// The §7.3.25.4 GR2/GR3/GR4 expansion, owned by <see cref="ExceptionCatalog.DirectiveCovers"/> — the
+    /// RUNTIME fold (<see cref="EcCheckingProfile"/>, which answers the same question about a name chosen at
+    /// run time) walks the identical rule, and a second copy here is how the two would drift (kb/Work PB408).
+    /// </summary>
+    private static bool NameMatches(string evName, string level3) =>
+        ExceptionCatalog.DirectiveCovers(evName, level3);
+
+    /// <summary>The §7.3.25 checking state that governs the statement starting on <paramref name="statementLine"/>,
+    /// as a RUNTIME-queryable profile — the carrier for §14.9.18.4 GR1 b), whose enablement question is asked in
+    /// the ACTIVATING runtime element about an exception-name a callee may not choose until run time
+    /// (<c>GOBACK … RAISING LAST EXCEPTION</c>). It is the same event prefix <see cref="Fold"/> walks, so
+    /// <c>profile.Enabled(n)</c> and <c>Enabled(n, null, statementLine)</c> agree for every level-3 <c>n</c> —
+    /// asserted by <c>ExceptionCheckingProfileDriftTests</c>.
+    /// <para>FILE-SCOPED events are excluded, matching the <c>file: null</c> fold: an activating statement
+    /// references no file, and §7.3.25.4 GR6/GR8 scope a FILE-phrase directive to the statements that do.</para>
+    /// </summary>
+    public EcCheckingProfile ProfileAt(int statementLine)
     {
-        if (evName.Equals(level3, StringComparison.OrdinalIgnoreCase)) return true;
-        if (level3.Equals("EC-I-O-WARNING", StringComparison.OrdinalIgnoreCase)) return false;   // explicit only (GR4)
-        if (evName.Equals(ExceptionCatalog.EcAll, StringComparison.OrdinalIgnoreCase)) return true;   // GR2
-        return ExceptionCatalog.TryGet(evName, out var info) && info.Level == 2
-            && ExceptionCatalog.UnderLevel2(level3, evName);   // GR3
+        List<(string Ec, bool On)>? evs = null;
+        foreach (var e in _events)
+        {
+            if (e.Line >= statementLine && !(e.Inclusive && e.Line == statementLine)) break;
+            if (e.File is not null) continue;
+            // Only the LAST event naming a given exception-name can ever be a query's last match, so an earlier
+            // one with the same name is dead weight in the emitted literal. Dropping it preserves the fold
+            // exactly (the relative order of the surviving, differently-named events is untouched) and bounds
+            // the literal by the count of DISTINCT names the element mentions rather than by directive count.
+            evs ??= [];
+            evs.RemoveAll(x => x.Ec.Equals(e.Ec, StringComparison.OrdinalIgnoreCase));
+            evs.Add((e.Ec, e.On));
+        }
+        return evs is null ? EcCheckingProfile.None : EcCheckingProfile.FromEvents(evs);
     }
 }

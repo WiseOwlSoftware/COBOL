@@ -266,6 +266,24 @@ public static class ExceptionCatalog
     /// (the §14.9.49.3 SR13 / §7.3.25.3 SR4 file-association test).</summary>
     public static bool IsIoName(string name) => name.StartsWith("EC-I-O", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>Does a <c>&gt;&gt;TURN</c> directive naming <paramref name="directiveName"/> cover level-3
+    /// <paramref name="level3"/> — the §7.3.25.4 hierarchy expansion, written ONCE. EC-ALL covers every name
+    /// except EC-I-O-WARNING (GR2); a level-2 name covers its level-3 children except EC-I-O-WARNING (GR3);
+    /// EC-I-O-WARNING toggles only when named explicitly (GR4).
+    /// <para>It lives in the CATALOG rather than in the compiler's <c>TurnState</c> because two folds ask it:
+    /// the compile-time one (a statement whose raised name is known at bind) and the run-time one
+    /// (<see cref="EcCheckingProfile"/> — §14.9.18.4 GR1 b) asks the ACTIVATING element about a name a callee
+    /// chooses at run time). Two copies of an expansion rule is how the two answers would come to disagree
+    /// (kb/Work PB408).</para></summary>
+    public static bool DirectiveCovers(string directiveName, string level3)
+    {
+        if (directiveName.Equals(level3, StringComparison.OrdinalIgnoreCase)) return true;
+        if (level3.Equals("EC-I-O-WARNING", StringComparison.OrdinalIgnoreCase)) return false;   // explicit only (GR4)
+        if (directiveName.Equals(EcAll, StringComparison.OrdinalIgnoreCase)) return true;        // GR2
+        return TryGet(directiveName, out var info) && info.Level == 2
+            && UnderLevel2(level3, directiveName);                                               // GR3
+    }
+
     /// <summary>All catalogued LEVEL-3 names (the >>TURN GR2/GR3 expansion universe). The open EC-USER-*/EC-IMP-*
     /// families are not enumerable — TURN matching treats EC-ALL / a level-2 event as covering them by the
     /// hierarchy predicate instead of by expansion (same observable behavior, ISO §7.3.25.4 GR2/GR3).</summary>

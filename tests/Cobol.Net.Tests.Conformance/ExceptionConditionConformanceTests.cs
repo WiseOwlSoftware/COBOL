@@ -775,14 +775,16 @@ public sealed class ExceptionConditionConformanceTests
              // GOBACK with no activator "operates as if executing a STOP statement … A RAISING phrase, if
              // specified, is ignored."
              //
-             // ⚠ SEPARATELY COMPILED on purpose, and it is the only way this rule is reachable: within ONE
-             // compilation group a >>TURN anywhere makes the whole group EC-active, so the CALL site emits its
-             // own propagation pickup and the unchecked-activator path is never taken. Two assemblies put the
-             // activator genuinely outside the callee's checking state.
+             // ⚠ SEPARATELY COMPILED, which exercises the arm where the activator is in another ASSEMBLY — but
+             // it is NOT "the only way this rule is reachable", as this comment used to claim. §7.3.25.4 GR6/GR8
+             // scope a directive to the statements "that follow in the compilation group", so two elements of ONE
+             // file can sit in different checking states; the PB408 tests below measure exactly that, in both
+             // directions, and it was the axis this test holds fixed (feedback_reachability_is_measured_not_deduced).
              //
-             // Before the fix ProgramTable.ApplyPropagationDefault threw for a staged FATAL condition, citing
-             // §14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what may happen once a fatal
-             // condition EXISTS and GR1b stops it existing in an unchecked activator at all.
+             // Two defects were fixed on this path. ProgramTable.ApplyPropagationDefault used to throw for a
+             // staged FATAL condition citing §14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what
+             // may happen once a fatal condition EXISTS and GR1b stops it existing in an unchecked activator at
+             // all. The staging side then made the same mistake one element further in (kb/Work PB408).
     public void GobackRaising_IntoUncheckedActivator_IsNotRaisedThere()
     {
         var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
@@ -966,7 +968,16 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-USER-PROP.
             """, "CAUGHT: EC-USER-PROP\nAFTER-CALL");
 
-    [Fact]   // §14.9.18.2: RAISING LAST EXCEPTION re-stages the callee's last exception status for the activator.
+    [Fact]   // §14.9.18.4 GR1b3a first sentence: "If an exception condition is currently raised, that exception
+             // condition is set to exist in the activating runtime element." The callee's PD header DOES specify
+             // EC-USER-Q, so no substitution applies and the activator's matching declarative selects.
+             //
+             // ⚠ THE FIXTURE MOVED, TWICE OVER NON-CONFORMING BEFORE kb/Work PB408. (a) The GOBACK sat in an
+             // ordinary paragraph, which §14.9.18.3 SR5 forbids for the LAST phrase ("The LAST phrase may be
+             // specified only in a declarative procedure or WHEN phrase of a PERFORM statement") — it is now in
+             // the callee's own declarative. (b) The PD header carried no RAISING phrase, which is GR1b3a's
+             // SUBSTITUTION case, not this one; that half is now its own test below. The old fixture asserted the
+             // substituted answer never happened, so a GREEN test held the gap open.
     public void GobackRaisingLastException_PropagatesTheLastStatus()
         => AssertSpec("""
             >>TURN EC-USER CHECKING ON
@@ -986,11 +997,292 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             IDENTIFICATION DIVISION.
             PROGRAM-ID. ECT028S.
-            PROCEDURE DIVISION.
+            PROCEDURE DIVISION RAISING EC-USER-Q.
+            DECLARATIVES.
+            SUB-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Q.
+            SUB-H-P.
+                GOBACK RAISING LAST EXCEPTION.
+            END DECLARATIVES.
+            SUB SECTION.
             SUB-PARA.
                 RAISE EXCEPTION EC-USER-Q.
-                GOBACK RAISING LAST EXCEPTION.
+                DISPLAY "NEVER".
             """, "CAUGHT: EC-USER-Q\nAFTER-CALL");
+
+    // ── §14.9.18.4 GR1 b): THE ENABLEMENT TEST IS THE ACTIVATOR'S (kb/Work PB408) ───────────────────────
+    // GR1 b) names ONE runtime element twice: "an exception condition is raised in the activating runtime
+    // element if checking for that exception condition is enabled in the activating runtime element". The
+    // compiler used to fold the CALLEE's own >>TURN state into the RAISING phrase at bind time and act on that,
+    // so the answer was a different element's. Each pair below flips the axis the old tests held fixed — they
+    // all had checking enabled in BOTH elements, the one configuration in which the locus is invisible.
+    //
+    // The two elements sit in ONE compilation group: §7.3.25.4 GR6 enables checking "for the procedure division
+    // statements and procedure division headers that follow in the compilation group" and GR8 disables it the
+    // same way, so a directive written between the elements separates their states.
+
+    [Fact]   // ACTIVATOR ON, CALLEE OFF → raised HERE: the activator's declarative selects (§14.6.13.1.4 #3).
+             // Measured WRONG before the fix: "IN-SUB / AFTER-CALL" — the declarative never ran.
+    public void GobackRaising_ActivatorEnabled_CalleeDisabled_RaisesInTheActivator()
+        => AssertSpec("""
+            >>TURN EC-USER CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408A.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Z.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                CALL "ECT408AS".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            >>TURN EC-USER CHECKING OFF
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408AS.
+            PROCEDURE DIVISION RAISING EC-USER-Z.
+            SUB-PARA.
+                DISPLAY "IN-SUB".
+                GOBACK RAISING EXCEPTION EC-USER-Z.
+            """, "IN-SUB\nCAUGHT: EC-USER-Z\nAFTER-CALL");
+
+    [Fact]   // The MIRROR — ACTIVATOR OFF, CALLEE ON → not raised here at all (§14.6.13.1.1: "if checking for an
+             // exception that occurs is not enabled, no exception condition is raised"), so the activator's
+             // declarative must NOT run even though it names the condition. Measured WRONG before the fix: it ran.
+    public void GobackRaising_ActivatorDisabled_CalleeEnabled_IsNotRaised()
+        => AssertSpec("""
+            >>TURN EC-USER CHECKING OFF
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408B.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Z.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                CALL "ECT408BS".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            >>TURN EC-USER CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408BS.
+            PROCEDURE DIVISION RAISING EC-USER-Z.
+            SUB-PARA.
+                DISPLAY "IN-SUB".
+                GOBACK RAISING EXCEPTION EC-USER-Z.
+            """, "IN-SUB\nAFTER-CALL");
+
+    [Fact]   // The FATAL arm of the same pair. ACTIVATOR ON, CALLEE OFF: the condition comes into existence in
+             // the ACTIVATOR, so its declarative runs (§14.6.13.1.3 #5) and RESUME AT NEXT STATEMENT continues.
+             // Before the fix the callee threw a CobolFatalException at the GOBACK citing §14.6.13.1.3 #8, so the
+             // run unit died inside the element that had checking turned OFF.
+    public void GobackRaising_Fatal_ActivatorEnabled_CalleeDisabled_RunsTheActivatorsDeclarative()
+        => AssertSpec("""
+            >>TURN EC-SIZE CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408C.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-SIZE-OVERFLOW.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                CALL "ECT408CS".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            >>TURN EC-SIZE CHECKING OFF
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408CS.
+            PROCEDURE DIVISION.
+            SUB-PARA.
+                DISPLAY "IN-SUB".
+                GOBACK RAISING EXCEPTION EC-SIZE-OVERFLOW.
+            """, "IN-SUB\nCAUGHT: EC-SIZE-OVERFLOW\nAFTER-CALL");
+
+    [Fact]   // Its mirror, and the sharpest one: a FATAL condition the callee has enabled and the activator has
+             // not. GR1b stops it coming into existence in the activator at all, so §14.6.13.1.3 — whose every
+             // rule is conditioned on checking being enabled — has nothing to dispose of and execution simply
+             // continues after the CALL. Before the fix the run unit terminated abnormally.
+    public void GobackRaising_Fatal_ActivatorDisabled_CalleeEnabled_ExecutionContinues()
+        => AssertSpec("""
+            >>TURN EC-SIZE CHECKING OFF
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408D.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "ECT408DS".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            >>TURN EC-SIZE CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408DS.
+            PROCEDURE DIVISION.
+            SUB-PARA.
+                DISPLAY "IN-SUB".
+                GOBACK RAISING EXCEPTION EC-SIZE-OVERFLOW.
+            """, "IN-SUB\nAFTER-CALL");
+
+    [Fact]   // The EXIT PROGRAM twin: §14.9.14.4 GR3 sends an EXIT PROGRAM under a caller into the GOBACK rules,
+             // and both verbs stage through the one EmitRaisingStage — so the locus fix has to hold for both or
+             // it is a one-armed fix (feedback_two_arm_dispatch).
+    public void ExitProgramRaising_ActivatorEnabled_CalleeDisabled_RaisesInTheActivator()
+        => AssertSpec("""
+            >>TURN EC-USER CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408E.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Z.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                CALL "ECT408ES".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            >>TURN EC-USER CHECKING OFF
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408ES.
+            PROCEDURE DIVISION RAISING EC-USER-Z.
+            SUB-PARA.
+                DISPLAY "IN-SUB".
+                EXIT PROGRAM RAISING EXCEPTION EC-USER-Z.
+            """, "IN-SUB\nCAUGHT: EC-USER-Z\nAFTER-CALL");
+
+    [Fact]   // The INVOKE arm: a method GOBACK … RAISING binds through the same EcBindRaising and is picked up at
+             // the INVOKE site, so the ACTIVATING element is the invoker and the same locus applies (D-EO6).
+    public void MethodGobackRaising_ActivatorEnabled_MethodDisabled_RaisesInTheInvoker()
+        => AssertSpec("""
+            >>TURN EC-USER CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408F.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS ECT408FC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 S USAGE OBJECT REFERENCE ECT408FC.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Z.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                INVOKE ECT408FC "NEW" RETURNING S.
+                INVOKE S "WORK".
+                DISPLAY "AFTER-INVOKE".
+                STOP RUN.
+            END PROGRAM ECT408F.
+
+            >>TURN EC-USER CHECKING OFF
+            IDENTIFICATION DIVISION.
+            CLASS-ID. ECT408FC.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. WORK.
+            PROCEDURE DIVISION RAISING EC-USER-Z.
+            MAIN.
+                DISPLAY "IN-METHOD".
+                GOBACK RAISING EXCEPTION EC-USER-Z.
+            END METHOD WORK.
+            END OBJECT.
+            END CLASS ECT408FC.
+            """, "IN-METHOD\nCAUGHT: EC-USER-Z\nAFTER-INVOKE");
+
+    [Fact]   // §14.9.18.4 GR1b3a, THE SUBSTITUTION: "If the exception condition is a level-3 exception for EC-USER
+             // and that exception condition is not specified in the RAISING phrase of the procedure division
+             // header of the source element in which this EXIT statement is contained, the EC-RAISING-NOT-SPECIFIED
+             // exception condition is set to exist in the activating runtime element instead of the EC-USER
+             // exception condition." ECT408GS's header has no RAISING phrase, so the activator's EC-USER-Q
+             // declarative must NOT select; EC-RAISING-NOT-SPECIFIED is Fatal (Table 13, §14.6.13.1.6, whose third
+             // column names this very case) and has no applicable declarative → §14.6.13.1.3 #7.
+             //
+             // This was the whole of the rule and none of it was implemented: the fixture below and its twin
+             // above differ ONLY in the callee's PD-header RAISING phrase and produced byte-identical output.
+    public void GobackRaisingLast_UserConditionNotInThePdHeader_BecomesRaisingNotSpecified()
+        => AssertFatal("""
+            >>TURN EC-USER CHECKING ON
+            >>TURN EC-RAISING CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408G.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Q.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                CALL "ECT408GS".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408GS.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            SUB-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Q.
+            SUB-H-P.
+                DISPLAY "IN-DECL".
+                GOBACK RAISING LAST EXCEPTION.
+            END DECLARATIVES.
+            SUB SECTION.
+            SUB-PARA.
+                RAISE EXCEPTION EC-USER-Q.
+                DISPLAY "NEVER".
+            """, "EC-RAISING-NOT-SPECIFIED", "IN-DECL");
+
+    [Fact]   // GR1b3a's substitute is itself subject to GR1 b)'s leading condition — the condition that "is set
+             // to exist in the activating runtime element" is EC-RAISING-NOT-SPECIFIED, so the enablement test is
+             // taken on THAT name. Here the activator enables EC-USER but not EC-RAISING, so nothing is raised:
+             // the EC-USER-Q declarative must not run (the substitution replaced the condition) and neither must
+             // the run unit terminate (EC-RAISING-NOT-SPECIFIED is not enabled here).
+    public void GobackRaisingLast_SubstitutedConditionNotEnabledInTheActivator_IsNotRaised()
+        => AssertSpec("""
+            >>TURN EC-USER CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408H.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Q.
+            EC-H-P.
+                DISPLAY "CAUGHT: " FUNCTION EXCEPTION-STATUS.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                CALL "ECT408HS".
+                DISPLAY "AFTER-CALL".
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT408HS.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            SUB-H SECTION. USE AFTER EXCEPTION CONDITION EC-USER-Q.
+            SUB-H-P.
+                DISPLAY "IN-DECL".
+                GOBACK RAISING LAST EXCEPTION.
+            END DECLARATIVES.
+            SUB SECTION.
+            SUB-PARA.
+                RAISE EXCEPTION EC-USER-Q.
+                DISPLAY "NEVER".
+            """, "IN-DECL\nAFTER-CALL");
 
     [Fact]   // §14.9.14 GR2: EXIT PROGRAM in a program NOT under the control of a calling runtime element is
              // CONTINUE — "no exception condition is raised even if the RAISING phrase is specified".
@@ -1585,9 +1877,20 @@ public sealed class ExceptionConditionConformanceTests
              // the returning element's status and what the activator reads answered 63 spaces / one space even
              // with LOCATION on — a silent wrong answer (BoundRaising had no location fields at all, unlike
              // its sibling BoundRaise).
+             //
+             // §7.3.25.4 GR7 keys the operands on the directive governing THE SOURCE STATEMENT — "all information
+             // necessary to identify a source statement … is made available to the run unit" — and that statement
+             // is the CALLEE's GOBACK, so WITH LOCATION stays on the callee's directive here and the activator's
+             // is a plain CHECKING ON. The activator's ON is what kb/Work PB408 added: §14.9.18.4 GR1 b) raises the
+             // condition in the ACTIVATING element only if checking is enabled THERE, and §14.6.13.1.1 sets the
+             // run unit's last exception status only for a condition that was RAISED — so with the activator
+             // enabling nothing (as this fixture used to have it) there is no status for EXCEPTION-STATEMENT to
+             // report, and the old expectation was reading a status the callee wrote for a raise that the
+             // standard puts in the other element.
     public void GobackRaising_WithLocation_RecordsStatementAndLocation()
     {
         var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            >>TURN EC-USER CHECKING ON
             IDENTIFICATION DIVISION.
             PROGRAM-ID. ECT054.
             PROCEDURE DIVISION.
@@ -1608,6 +1911,37 @@ public sealed class ExceptionConditionConformanceTests
         var lines = stdout.Split('\n');
         Assert.Equal($"S=[{"GOBACK",-63}]", lines[0]);
         Assert.StartsWith("L=[ECT054S; SUB-P;", lines[1]);
+    }
+
+    [Fact]   // The complement, and the one that makes the pair EVIDENCE rather than a single reading: with the
+             // activator enabling NOTHING, §14.9.18.4 GR1 b) raises nothing in it, so §14.6.13.1.1's run-unit last
+             // exception status — "set to indicate the last level-3 exception condition that was RAISED in the run
+             // unit" — has nothing to record and both functions answer their no-information values. Before
+             // kb/Work PB408 the RETURNING element wrote the status on its way out, so an activator that had
+             // turned the condition OFF could still read it back (§15.32.3 r1's spaces / §15.30.3 r1's one space).
+    public void GobackRaising_IntoUncheckedActivator_LeavesNoLastExceptionStatus()
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT054B.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                CALL "ECT054BS".
+                DISPLAY "S=[" FUNCTION EXCEPTION-STATEMENT "]".
+                DISPLAY "T=[" FUNCTION EXCEPTION-STATUS "]".
+                STOP RUN.
+            """, """
+            >>TURN EC-USER CHECKING ON WITH LOCATION
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT054BS.
+            PROCEDURE DIVISION RAISING EC-USER-R07.
+            SUB-P.
+                GOBACK RAISING EXCEPTION EC-USER-R07.
+            """);
+        Assert.True(ok, detail + stdout);
+        var lines = stdout.Split('\n');
+        Assert.Equal($"S=[{new string(' ', 63)}]", lines[0]);
+        Assert.Equal($"T=[{new string(' ', 31)}]", lines[1]);
     }
 
     [Fact]   // The hole the funnel closed: USE AFTER EC with a LEVEL-2 name of a 2023-only family (EC-MCS) at

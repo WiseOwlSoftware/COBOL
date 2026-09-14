@@ -134,20 +134,23 @@ public sealed class ExceptionEngine
 
     // ── GOBACK / EXIT … RAISING propagation (§14.9.18 GR / §14.6.13.1.3 #6 shape) ────────────────────────────
 
-    private (string Name, bool Fatal)? _propagated;
+    private (string Name, bool Fatal, string? Statement, string? Location)? _propagated;
 
-    /// <summary>Stage an exception condition for re-raising in the ACTIVATOR after the current program returns
-    /// (GOBACK/EXIT PROGRAM … RAISING, §14.9.18). The generated CALL site consumes it via
-    /// <see cref="TakePropagated"/>; <see cref="ProgramTable"/> applies the fatal default when no CALL-site
-    /// pickup exists (checking off in the caller — the §14.6.13.1.3 #8 implementor choice: terminate loudly).</summary>
+    /// <summary>STAGE an exception condition for the ACTIVATOR (GOBACK / EXIT PROGRAM / method-return … RAISING,
+    /// §14.9.18.4 GR1 b) / §14.9.14.4 GR3). Staging is UNCONDITIONAL and raises nothing here: GR1 b) localises
+    /// both the raise and its enablement test in the activating runtime element — "an exception condition is
+    /// raised in the activating runtime element if checking for that exception condition is enabled in the
+    /// activating runtime element" — and <see cref="TakeRaisedPropagation"/> is where both happen.
+    ///
+    /// <para>⛔ THIS USED TO CALL <see cref="Set"/> (kb/Work PB408). That made the returning element update the
+    /// run unit's last exception status for a condition §14.6.13.1.1 raises only "if checking for [it] is
+    /// enabled" — in the OTHER element. The §15.32.3 r2 / §15.30.3 r2 operands the RAISING statement contributes
+    /// (kb/Work R07) now travel WITH the staged condition and are applied by the raise, so they still reach the
+    /// activator's declarative; they simply no longer pre-empt the enablement question.</para></summary>
     public void SetPropagating(string name, bool fatal, string? statement = null, string? location = null)
     {
-        // kb/Work R07: the returning element's status carries the §15.32.3 r2 / §15.30.3 r2 operands when the
-        // RAISING statement's own TURN said WITH LOCATION — this Set was two-arg, so GOBACK … RAISING answered
-        // 63 spaces / one space even under WITH LOCATION. The activator's pickup dispatches without re-Setting,
-        // so the one Set here serves both elements.
-        Set(name, fatal, statement, location);
-        _propagated = (name.ToUpperInvariant(), fatal);
+        _propagated = (name.ToUpperInvariant(), fatal, statement, location);
+        _propagatedObject = default;   // the slots are mutually exclusive — a name supersedes a staged object
     }
 
     // ── The exception-OBJECT propagation slot (§14.6.13.1.5; GOBACK/EXIT/EXIT METHOD … RAISING identifier).
@@ -175,23 +178,91 @@ public sealed class ExceptionEngine
         return has;
     }
 
-    /// <summary>Stage the LAST EXCEPTION for re-raising (GOBACK RAISING LAST EXCEPTION, §14.9.18.2). A clear
-    /// last-exception status stages nothing.</summary>
-    public void SetPropagatingLast()
+    /// <summary>Stage the LAST EXCEPTION for the activator — <c>GOBACK / EXIT … RAISING LAST EXCEPTION</c>,
+    /// ISO §14.9.18.4 GR1 b) 3.
+    ///
+    /// <para><b>3 a)</b> "If an exception condition is currently raised, that exception condition is set to exist
+    /// in the activating runtime element. If the exception condition is an exception object, additional rules are
+    /// specified in 14.6.13.1.5 … If the exception condition is a level-3 exception for EC-USER and that
+    /// exception condition is not specified in the RAISING phrase of the procedure division header of the source
+    /// element in which this EXIT statement is contained, the EC-RAISING-NOT-SPECIFIED exception condition is set
+    /// to exist in the activating runtime element instead of the EC-USER exception condition."
+    /// Table 13 (§14.6.13.1.6) makes EC-RAISING-NOT-SPECIFIED Fatal and names THIS case in its own third
+    /// column.</para>
+    /// <para><b>3 b)</b> "If no exception condition is raised, the RAISING phrase is ignored and no exception
+    /// condition is set to exist in the activating runtime element" — a clear status stages nothing.</para>
+    ///
+    /// <para>The substitution is a RUN-TIME question and has no compile-time twin: the STATIC sibling of the same
+    /// rule is §14.9.18.3 SR2, discharged at bind (COBOLNET0717) for <c>RAISING EXCEPTION exception-name-1</c>,
+    /// whose name is known then. Only the LAST arm reaches here, which is exactly why it was the arm left out
+    /// (kb/Work PB408).</para></summary>
+    /// <param name="pdRaising">The containing source element's PROCEDURE DIVISION header RAISING list — the
+    /// level-3 exception-names it specifies, or null when the header has no RAISING phrase. It crosses as the
+    /// NAMES, with no encoding: an encode/decode pair would be one membership rule written in two places, and
+    /// the site executes once per activation return.</param>
+    /// <param name="statement">§15.32.3 r2 / §15.30.3 r2 operands for the SUBSTITUTED condition, which the
+    /// RAISING statement itself causes; null unless its TURN carried WITH LOCATION (§7.3.25.4 GR7). The
+    /// unsubstituted condition keeps the operands of the raise that actually set the status.</param>
+    /// <param name="location">See <paramref name="statement"/>.</param>
+    public void SetPropagatingLast(string[]? pdRaising = null, string? statement = null, string? location = null)
     {
-        // GOBACK RAISING LAST EXCEPTION with an OBJECT status re-propagates the OBJECT (§14.9.18.4 GR1b3a
-        // :27724 → the §14.6.13.1.5 rules); a clear status stages nothing.
-        if (LastName == ExceptionState.ObjectSentinel) { _propagatedObject = (true, ExceptionObject); _propagated = null; }
-        else if (LastName is { } n) _propagated = (n, LastFatal);
+        // An OBJECT status re-propagates the OBJECT (GR1b3a's second sentence → the §14.6.13.1.5 rules).
+        if (LastName == ExceptionState.ObjectSentinel) { _propagatedObject = (true, ExceptionObject); _propagated = null; return; }
+        if (LastName is not { } n) return;   // GR1b3b — nothing is raised, the RAISING phrase is ignored
+        if (ExceptionCatalog.UnderLevel2(n, "EC-USER") && !Names(pdRaising).Contains(n, StringComparer.OrdinalIgnoreCase))
+        {
+            // GR1b3a's third sentence — the fatality comes from the catalog (Table 13), never a literal here.
+            bool fatal = !ExceptionCatalog.TryGet(RaisingNotSpecified, out var rns)
+                || rns.Fatality is not EcFatality.Nonfatal;
+            _propagated = (RaisingNotSpecified, fatal, statement, location);
+        }
+        else
+            _propagated = (n, LastFatal, LastStatement, LastLocation);
+        _propagatedObject = default;   // the slots are mutually exclusive
     }
 
-    /// <summary>Consume the staged propagation (the generated CALL-site pickup). Returns false when none.</summary>
+    private const string RaisingNotSpecified = "EC-RAISING-NOT-SPECIFIED";
+
+    private static string[] Names(string[]? names) => names ?? [];
+
+    /// <summary>THE ACTIVATOR-SIDE RAISE of a staged <c>GOBACK / EXIT … RAISING</c> condition — ISO §14.9.18.4
+    /// GR1 b), written in the one element the rule names. Take the staged condition; raise it here only if
+    /// checking for THAT condition is enabled in THIS element at THIS statement
+    /// (<paramref name="activatorChecking"/> is the activating statement's §7.3.25 profile); when it is, update
+    /// the last exception status (§14.6.13.1.1 — "the associated exception condition is raised, the last
+    /// exception status is set to indicate that exception condition") and report true so the site runs the
+    /// §14.9.49 Format-3 selection and the §14.6.13.1.3/.4 disposition.
+    ///
+    /// <para>When it is NOT enabled the condition is discarded and false is reported: §14.6.13.1.1's
+    /// contrapositive — "if checking for an exception that occurs is not enabled, no exception condition is
+    /// raised" — so there is nothing for §14.6.13.1.3 to dispose of, fatal or not. (The FATAL arm used to
+    /// terminate the run unit from inside the CALLEE, citing §14.6.13.1.3 #8; that rule's latitude governs what
+    /// may happen once a fatal condition EXISTS, and GR1 b) stops it coming into existence in an unchecked
+    /// activator at all — the same misapplication <see cref="Control.ProgramTable"/> already had removed on the
+    /// boundary-default path. kb/Work PB408.)</para></summary>
+    public bool TakeRaisedPropagation(string activatorChecking, out string name, out bool fatal)
+    {
+        name = "";
+        fatal = false;
+        if (_propagated is not { } p) return false;
+        _propagated = null;
+        if (!EcCheckingProfile.Of(activatorChecking).Enabled(p.Name)) return false;   // GR1b — not raised here
+        Set(p.Name, p.Fatal, p.Statement, p.Location);
+        name = p.Name;
+        fatal = p.Fatal;
+        return true;
+    }
+
+    /// <summary>DISCARD a staged propagation without raising it — the activation-boundary default for a site
+    /// that emitted no pickup at all (<see cref="Control.ProgramTable.CallProgram"/>'s
+    /// <c>siteHandlesPropagation: false</c>). Such an activator enables checking for nothing, so GR1 b)'s test
+    /// is false by construction and the discard IS the rule, not a fallback.</summary>
     public bool TakePropagated(out string name, out bool fatal)
     {
         if (_propagated is { } p)
         {
             _propagated = null;
-            (name, fatal) = p;
+            (name, fatal) = (p.Name, p.Fatal);
             return true;
         }
         name = "";
@@ -1136,7 +1207,12 @@ public static class ExceptionState
     public static bool TakePropagatedObject(out CobolObject? obj) => E.TakePropagatedObject(out obj);
 
     /// <inheritdoc cref="ExceptionEngine.SetPropagatingLast"/>
-    public static void SetPropagatingLast() => E.SetPropagatingLast();
+    public static void SetPropagatingLast(string[]? pdRaising = null, string? statement = null, string? location = null)
+        => E.SetPropagatingLast(pdRaising, statement, location);
+
+    /// <inheritdoc cref="ExceptionEngine.TakeRaisedPropagation"/>
+    public static bool TakeRaisedPropagation(string activatorChecking, out string name, out bool fatal)
+        => E.TakeRaisedPropagation(activatorChecking, out name, out fatal);
 
     /// <inheritdoc cref="ExceptionEngine.TakePropagated"/>
     public static bool TakePropagated(out string name, out bool fatal) => E.TakePropagated(out name, out fatal);

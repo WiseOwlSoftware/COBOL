@@ -16,8 +16,8 @@ OO mechanism (feedback_one_mechanism_per_job):
   r1's literal EXCEPTION-STATUS value — the EXCEPTION-* functions needed ZERO changes; the sentinel is NOT
   a catalog name and `ExceptionCatalog.TryGet` fails on it by design), `SetObject`,
   `SetPropagatingObject`/`TakePropagatedObject` (the object propagation slot — mutually exclusive with the
-  named `_propagated` slot; a named `Set` clears it and vice versa), and the `SetPropagatingLast` object
-  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §14.9.18.4 GR1b3a).
+  named `_propagated` slot; each staging call clears the other), and the `SetPropagatingLast` object
+  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §14.9.18.4 GR1b3a second sentence).
 - **RAISE identifier-1** → `BoundRaiseObject` (grammar takes `objectReference` so NULL/SUPER get the
   targeted 0848, and RAISE SELF parses); NOT TURN-gated (§7.3.25 takes names only); NEVER fatal by itself
   (GR2 — the continue-after-RAISE path is the normal exit).
@@ -98,7 +98,9 @@ the legacy pipeline keeps consuming TURN there). Compiler: `Binding/TurnState.cs
 `Binding/Procedure/Verbs/EcBinder.cs` (RAISE/RESUME/SET LAST EXCEPTION/RAISING binds + the per-statement
 `EcWrap` fold → `BoundEcChecked`), `CodeGen/EcEmitter.cs` (guards + the generated `__EcDispatch` /
 `__IoCheckEc`), `CodeGen/Verbs/CallEmitter.cs` (RAISING staging, the CALL-site propagation pickup, the EC-PROGRAM
-catch). Runtime: `Runtime/Exceptions/` — `ExceptionCatalog` (Table 13), `ExceptionState` (last-exception register +
+catch). Runtime: `Runtime/Exceptions/` — `ExceptionCatalog` (Table 13 + `DirectiveCovers`, the §7.3.25.4
+GR2/GR3/GR4 expansion), `EcCheckingProfile` (an activating statement's checking state, folded at run time for a
+run-time name — §14.9.18.4 GR1 b)), `ExceptionState` (last-exception register +
 propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.28/30/32/33), `CobolFatalException`,
 `ResumeSignal`. `CompilerDriver` hands `Frontend.TurnEvents` to `CSharpEmitter.Bind`; `EmitBound` renders the bound tree via `ProgramEmitter`.
 
@@ -241,22 +243,43 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   apply to EVERY floating-point usage in the typed-native model (all map to IEEE binary) — mandatory for the standard
   usages (FLOAT-BINARY/-DECIMAL), an implementor determination for FLOAT-SHORT/-LONG/-EXTENDED and COMP-1/COMP-2 (see
   `CONFORMANCE.md §3`). Goldens `2023/ec_data_not_finite` (both chokepoints + all exemptions) and `2023/ec_data_overflow`.
-- **RAISING propagation = a runtime staging slot + a two-tier pickup.** GOBACK/EXIT PROGRAM RAISING stages
-  (name, fatal) via `ExceptionState.SetPropagating[Last]` (¶27403 SR2 — an EC-USER name must appear in the
-  PD-header RAISING phrase, checked at bind as COBOLNET0717). Per §14.9.18.4 GR1b the staged condition is raised
-  in the ACTIVATING runtime element ONLY IF checking for that exception condition is enabled there ("an exception
-  condition is raised in the activating runtime element IF checking for that exception condition is enabled in the
-  activating runtime element"): an EC-active caller's generated CALL site consumes it (`TakePropagated` →
-  `__EcDispatch` → RESUME honored → the §14.6.13 fatal/nonfatal handling) and passes `siteHandlesPropagation:
-  true`. An EC-free caller — one that does NOT enable checking for that condition — does not raise it at all: the
-  staged condition, fatal or nonfatal, is discarded and execution continues in the caller as if the CALL had
-  returned without a RAISING phrase (there is no boundary "terminate loudly" default — §14.6.13.1.3 #8 governs a
-  condition that already EXISTS, and GR1b says a condition whose checking is off in the activator is never raised
-  there). The site pickup gates on the GROUP's EC participation (not a per-name TURN fold) because RAISING LAST
-  EXCEPTION makes the propagated name dynamic. A MAIN program's GOBACK RAISING has no activator, so its RAISING
-  phrase is IGNORED and the program terminates as an ordinary STOP (§14.9.18.4 GR3); an EXIT PROGRAM RAISING with
-  no calling element raises nothing and acts as CONTINUE (§14.9.14.4 GR2) — in both cases `RunMain` discards the
-  staged condition rather than terminating on it.
+- **RAISING propagation = an UNCONDITIONAL staging slot + a pickup that owns the whole raise.** GOBACK / EXIT
+  PROGRAM / method-return RAISING stages (name, fatal, §15.32.3 r2 statement, §15.30.3 r2 location) via
+  `ExceptionState.SetPropagating[Last]` (¶27403 SR2 — an EC-USER name must appear in the PD-header RAISING
+  phrase, checked at bind as COBOLNET0717). **Staging raises nothing and tests nothing**, because §14.9.18.4 GR1 b)
+  names ONE element twice and it is the other one: "an exception condition is raised in the activating runtime
+  element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED IN THE ACTIVATING RUNTIME ELEMENT". The activating
+  statement's pickup therefore does all of it — `ExceptionState.TakeRaisedPropagation(profile, …)` tests the
+  ACTIVATOR's checking state for the propagated name, and only when it is enabled sets the last exception status
+  (§14.6.13.1.1 — the status records conditions that were RAISED) and runs `__EcDispatch` → RESUME → the
+  §14.6.13 fatal/nonfatal handling.
+  - **The per-name question about a dynamic name is answered by `EcCheckingProfile`** (`Runtime/Exceptions/`):
+    the activating statement carries its element's §7.3.25 directive prefix as one interned literal
+    (`+EC-USER;-EC-SIZE`), and the runtime folds it with `ExceptionCatalog.DirectiveCovers` — the GR2/GR3/GR4
+    expansion, written ONCE and shared with `TurnState`'s compile-time fold (`EcCheckingProfileDriftTests` keeps
+    the two answers equal). `TurnState.ProfileAt(line)` builds it; `EcBinder.EcWrap` stamps it on every
+    `IActivatingStatement` at the one `BindStatement` exit, recursing into a desugar sequence, so a new
+    activating node inherits it by implementing the interface. Whether the pickup is EMITTED still gates on the
+    group's EC participation (zero scaffolding); whether it RAISES gates on the profile.
+  - **An activator that enables nothing raises nothing**, fatal or not: the staged condition is discarded by
+    `ProgramTable.ApplyPropagationDefault` and execution continues as if the CALL had returned without a RAISING
+    phrase. There is no boundary "terminate loudly" default — §14.6.13.1.3 #8 governs a condition that already
+    EXISTS, and GR1 b) stops one coming into existence in an unchecked activator.
+  - **`RAISING LAST EXCEPTION` carries GR1b3a** (`SetPropagatingLast(pdRaising, stmt, loc)`): a level-3 EC-USER
+    condition that the containing element's PD-header RAISING phrase does not name propagates as
+    **EC-RAISING-NOT-SPECIFIED** (Table 13 Fatal, §14.6.13.1.6, whose third column names this case) instead. The
+    header list crosses as one interned `;`-separated literal because only the runtime knows which name is being
+    propagated — the STATIC sibling of the rule (§14.9.18.3 SR2) is discharged at bind for the
+    `RAISING EXCEPTION exception-name-1` arm, whose name is known then.
+  - A MAIN program's GOBACK RAISING has no activator, so its RAISING phrase is IGNORED and the program terminates
+    as an ordinary STOP (§14.9.18.4 GR3); an EXIT PROGRAM RAISING with no calling element raises nothing and acts
+    as CONTINUE (§14.9.14.4 GR2) — in both cases `RunMain` discards the staged condition rather than terminating.
+  - ⛔ **Historical (kb/Work PB408):** the enablement test used to be folded into `BoundRaising.Enabled` at bind
+    time from the **RAISING element's own** TURN state, and `EmitRaisingStage` branched on it — staging nothing
+    for a disabled nonfatal name and throwing `CobolFatalException` inside the CALLEE for a disabled fatal one.
+    A declarative in an activator that had enabled the condition never ran when the callee had it off, and one in
+    an activator that had disabled it ran when the callee had it on; §7.3.25.4 GR6/GR8 make both reachable inside
+    ONE compilation group. `BoundRaising` now has no enablement field at all, by design.
 - **The EC-PROGRAM bridge rides `CobolCallException.EcName`.** The registry latches the Table 13 level-3 name
   (NOT-FOUND / RECURSIVE-CALL / CANCEL-ACTIVE / ARG-OMITTED); a CALL/CANCEL under enabled checking emits a
   name-FILTERED catch (`when (__ce.EcName == …)`) that sets the status and either flags the statement's own

@@ -92,8 +92,16 @@ public sealed record BoundCallProgram(
     IReadOnlyList<BoundCallArg> Args,
     Place? Returning,
     IReadOnlyList<BoundStatement>? OnException,
-    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement
+    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement, IActivatingStatement
 {
+    /// <inheritdoc/>
+    public CobolNet.Runtime.Exceptions.EcCheckingProfile ActivatorChecking { get; init; }
+        = CobolNet.Runtime.Exceptions.EcCheckingProfile.None;
+
+    /// <inheritdoc/>
+    public BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile)
+        => this with { ActivatorChecking = profile };
+
     /// <summary>True when this node is the lowering of a user-defined FUNCTION reference (M2-UDF): a locate
     /// miss stamps EC-FUNCTION-NOT-FOUND (Fatal, ISO §8.4.3.2.4 GR6b / Table 13) rather than the CALL's
     /// EC-PROGRAM-NOT-FOUND. Runtime dispatch is otherwise identical (the shared activation ABI).</summary>
