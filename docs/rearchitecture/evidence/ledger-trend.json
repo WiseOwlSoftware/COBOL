@@ -577,6 +577,15 @@
       "dns": 366,
       "label": "Train PB877: DEVLOG 1610 + §",
       "battery": null
+    },
+    {
+      "sha": "c3ce1e52",
+      "date": "2026-09-13",
+      "gap": 2435,
+      "closed": 1913,
+      "dns": 366,
+      "label": "Train 37: DEVLOG 1612 + plan",
+      "battery": null
     }
   ]
 }
