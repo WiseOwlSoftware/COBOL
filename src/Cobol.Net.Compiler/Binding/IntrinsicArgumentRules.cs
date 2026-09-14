@@ -569,6 +569,13 @@ internal static class IntrinsicArgumentRules
         // one rule, one usage, two verdicts, because the group's raw `Pic` is null. An ordinary ALPHANUMERIC
         // group still answers null (OperandPic is null for it), which is the "leave it to the runtime value
         // screen" answer this contract documents.
+        // ⚠ DELIBERATELY NOT ItemCategory.UsageOf, which answers the OTHER usage question
+        // (kb/Work PB411): that reader gives an alphanumeric group §8.5.2.1's "treated as though it had a usage
+        // of display" because the rules it serves — §14.9.18.3 SR6, §8.4.3.3.4 GR6 — ask what usage the item
+        // HAS. This one asks whether the argument has a statically fixed REPRESENTATION the §15.19.3 keyword
+        // screens may key on, and a group's storage is its leaves', not a character string of its own. The two
+        // answers differ for exactly one shape and the divergence is stated here so neither is mistaken for a
+        // duplicate of the other.
         BoundFieldOperand { Place.Item.OperandPic: { } pic } => pic.Usage,
         BoundStringLiteral { Category: PicCategory.National } => Usage.National,
         BoundStringLiteral => Usage.Display,

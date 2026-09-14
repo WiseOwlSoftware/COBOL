@@ -1070,16 +1070,26 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
     // ── Method-context control flow (deep-dive D8) ──────────────────────────────────────────────────────────
 
-    /// <summary>GOBACK inside a METHOD (§14.9.18.4 GR4): terminate the METHOD, control back to the INVOKE
-    /// site. The RETURNING-item delivery is the method entry's job (slice 2 — no formals yet); GOBACK's own
-    /// phrases in a method context stage loud (RAISING → the EC-OO slice; the RETURNING/GIVING and 2023
-    /// status phrases are activation-result forms that do not apply to a method return).</summary>
-    public BoundStatement OoBindMethodGoback(Core.GobackStatementContext g)
+    /// <summary>GOBACK inside a METHOD (§14.9.18.4 GR4): terminate the METHOD, control back to the INVOKE site.
+    /// The RETURNING-item delivery is the method entry's job (slice 2 — no formals yet).
+    /// <para>⛔ IT TAKES THE DECODED PHRASES, NEVER THE PARSE NODE (kb/Work PB411). While it took the
+    /// <c>GobackStatementContext</c> it re-decided which phrases existed and read only two of the three, so the
+    /// 2023 status phrase was dropped in silence here — §14.9.18.3 SR6/SR7/SR8 and the COBOL-2023 introduction
+    /// gate never ran on a method's GOBACK. <c>CallBinder.DecodeGobackPhrases</c> now reads the rule ONCE, before
+    /// the §14.9.18.4 GR2/GR4 fork, so this arm cannot be reached without every phrase having been decoded and
+    /// screened.</para>
+    /// <para>THE STATUS PHRASE IS SCREENED AND THEN INERT, and that is the standard's own division: §14.9.18.3's
+    /// syntax rules carry no context qualifier, while EVERY general rule that gives the phrase an effect —
+    /// GR7, GR8, GR9 and GR10 — opens "If the GOBACK … is executing in a main program". A method is never a main
+    /// program, so there is no operating-system indication for this return to carry and nothing to put on
+    /// <see cref="BoundMethodReturn"/>; the phrase's whole force in a method is its syntax rules, which
+    /// <c>CallBinder.GobackPhrases.Status</c> has already applied.</para></summary>
+    public BoundStatement OoBindMethodGoback(in CallBinder.GobackPhrases p)
     {
-        if (g.dataReference() is not null)
+        if (p.Returning is not null)
             return new BoundUnsupported("GOBACK with a RETURNING/GIVING phrase inside a method "
                 + "(ISO §14.9.18.4 GR4 returns the METHOD's RETURNING item — an activation-result form)");
-        return new BoundMethodReturn(OoBindMethodRaising(g.raisingPhrase(), EcRaiseSite.Goback));
+        return new BoundMethodReturn(OoBindMethodRaising(p.Raising, EcRaiseSite.Goback));
     }
 
     /// <summary>Bind a method-context RAISING phrase (§14.9.18.4 GR1b — staged before the MethodReturn

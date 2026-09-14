@@ -58,11 +58,12 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     ///   <item>SR2/SR6 — "Identifier-1 shall reference an integer data item or a data item with usage display or
     ///         usage national" (§14.9.18.3 SR6 is the same rule word for word, over <b>identifier-2</b> — GOBACK's
     ///         identifier-1 is the RAISING object; cite.py --check fails on the identifier-1 spelling there, so do
-    ///         not propagate it). Excluded: an ALPHANUMERIC group (no elementary description of its own), a BIT
-    ///         group and a usage-BIT item, an index data item, a pointer, an object reference and a non-integer
-    ///         COMP/BINARY item. ADMITTED: a <c>PIC X(3)</c> DISPLAY item, a GROUP-USAGE NATIONAL group
-    ///         (§13.18.29.4 GR2 b), and a REFERENCE-MODIFIED display/national operand (§8.4.3.3.4 GR6 preserves
-    ///         usage) — the last two were the residual over-rejections PB217 closed.</item>
+    ///         not propagate it). Excluded: a BIT group and a usage-BIT item, an index data item, a pointer, an
+    ///         object reference and a non-integer COMP/BINARY item. ADMITTED: a <c>PIC X(3)</c> DISPLAY item, a
+    ///         GROUP-USAGE NATIONAL group (§13.18.29.4 GR2 b), an ALPHANUMERIC group (§8.5.2.1 — "An alphanumeric
+    ///         group item is treated as though it had a usage of display"; kb/Work PB411), and a
+    ///         REFERENCE-MODIFIED display/national operand (§8.4.3.3.4 GR6 preserves usage) — the last three were
+    ///         the residual over-rejections PB217 and PB411 closed.</item>
     ///   <item>SR3/SR7 — "If literal-1 is numeric, it shall be an integer". The CONDITIONAL is what makes the
     ///         non-numeric form conforming: a rule that has to say "if it is numeric" presupposes that it may
     ///         not be.</item>
@@ -159,16 +160,20 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>§14.9.42.3 SR2 / §14.9.18.3 SR6, read as written: an INTEGER data item, or a data item whose
     /// USAGE is DISPLAY or NATIONAL. An index data item, a pointer and an object reference have their own usages
-    /// and are excluded by name; an ALPHANUMERIC group is excluded because §8.5.2.1 gives it class alphanumeric
-    /// with no elementary description of its own.
-    /// <para>⛔ THROUGH <see cref="DataItem.OperandPic"/>, THE ONE OPERAND-CATEGORY READER (D20) — never
-    /// <c>Pic</c> guarded by <c>IsGroup</c>, which is the spelling that reader's own doc comment forbids by name
-    /// and which this screen used to have (kb/Work PB217). §13.18.29.3 SR3 implies USAGE NATIONAL for the subject
-    /// of a GROUP-USAGE NATIONAL entry and §13.18.29.4 GR2 b makes such a group "treated as though it were an
-    /// elementary data item of usage national … described with PICTURE N(m)" — so it IS "a data item with usage
-    /// national" and SR2 admits it. Reading <c>OperandPic</c> settles all four group kinds with no hand-list: a
-    /// national group is admitted, a BIT group (usage bit) is not, an alphanumeric group has no operand PICTURE
-    /// and is not, and every elementary item behaves exactly as before.</para>
+    /// and are excluded by name.
+    /// <para>⛔ THE USAGE ALTERNATIVE ASKS <see cref="ItemCategory.UsageOf"/>, THE ONE §8.5.2.1 USAGE READER —
+    /// never <see cref="DataItem.OperandPic"/> alone, and never <c>Pic</c> guarded by <c>IsGroup</c> (the
+    /// spelling D20's own doc comment forbids by name, and which this screen had before kb/Work PB217).
+    /// §13.18.29.3 SR3 implies USAGE NATIONAL for the subject of a GROUP-USAGE NATIONAL entry and §13.18.29.4
+    /// GR2 b makes such a group "treated as though it were an elementary data item of usage national … described
+    /// with PICTURE N(m)" — so it IS "a data item with usage national" and SR2 admits it; §8.5.2.1 says "An
+    /// alphanumeric group item is treated as though it had a usage of display", so an ALPHANUMERIC group is a
+    /// data item with usage display and SR2 admits it too. Asking <c>OperandPic</c> instead answered NULL for
+    /// that group and the screen concluded "no usage at all", rejecting — with a diagnostic quoting SR6 — the
+    /// very shape SR6's second alternative names (kb/Work PB411: measured on both verbs). The reader settles all
+    /// group kinds with no hand-list: national admitted, BIT (usage bit) not, alphanumeric admitted, and a
+    /// strongly-typed or variable-length group refused because §3.11 excludes it from "alphanumeric group item"
+    /// and the standard gives it no usage of its own.</para>
     /// <para>⛔ A REFERENCE-MODIFIED OPERAND IS ADMITTED ON ITS SUBJECT'S USAGE (kb/Work PB217). §8.4.3.3.3 SR5
     /// permits reference modification "anywhere an identifier referencing a data item of class alphanumeric,
     /// boolean, or national is permitted", and §8.4.3.3.4 GR6 gives the unique data item "the same class,
@@ -176,22 +181,26 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     /// category only, never USAGE. So SR2's SECOND alternative decides a slice, and its FIRST cannot: GR6 c has
     /// already removed category numeric (<see cref="RefModPlace.Category"/>, THE ONE GR6 reader, records that no
     /// ref-mod result is ever category NUMERIC), so a slice of <c>PIC 9(5)</c> DISPLAY is admitted as a
-    /// display item and not as an integer one. A slice of a usage-BIT item or of an alphanumeric group stays
-    /// rejected. The former blanket <c>p is RefModPlace</c> rejected <c>STATUS WS-CODE(1:2)</c> with a diagnostic
+    /// display item and not as an integer one. A slice of a usage-BIT item stays rejected; a slice of an
+    /// ALPHANUMERIC group is admitted on that group's §8.5.2.1 display usage, exactly as the whole group is.
+    /// The former blanket <c>p is RefModPlace</c> rejected <c>STATUS WS-CODE(1:2)</c> with a diagnostic
     /// quoting the very rule that admits it.</para></summary>
     private static bool AdmittedStatusItem(Place p)
     {
-        if (p.Item.OperandPic is not { } pic) return false;
-        if (pic.Usage is Usage.Index) return false;   // §8.5.2.1 Table 2 — class index, not a display/national item
+        // ⛔ THE ONE §8.5.2.1 USAGE READER (kb/Work PB411) — null is an item the standard gives no usage, which
+        // meets neither alternative; it is NOT the same answer as "has no PICTURE".
+        if (ItemCategory.UsageOf(p.Item) is not { } usage) return false;
+        if (usage is Usage.Index) return false;   // §8.5.2.1 Table 2 — class index, not a display/national item
         if (IntrinsicArgumentRules.ClassOfPlace(p) is CobolClass.Pointer or CobolClass.Object) return false;
         // §8.4.3.3.4 GR6 — a slice keeps identifier-1's USAGE and loses category numeric (GR6 c), so only SR2's
         // usage alternative can admit it.
-        if (p is RefModPlace) return pic.Usage is Usage.Display or Usage.National;
-        // An INTEGER data item (any usage — BINARY, PACKED, COMP-5 …) is the first alternative.
-        if (pic is { Category: PicCategory.Numeric, Scale: 0, IsFloat: false }) return true;
+        if (p is RefModPlace) return usage is Usage.Display or Usage.National;
+        // An INTEGER data item (any usage — BINARY, PACKED, COMP-5 …) is the first alternative. A group has no
+        // operand PICTURE, so it can only ever reach the usage alternative below — which is where §8.5.2.1 put it.
+        if (p.Item.OperandPic is { Category: PicCategory.Numeric, Scale: 0, IsFloat: false }) return true;
         // …or a data item WITH USAGE DISPLAY OR NATIONAL, whatever its category (this is the alternative that
         // makes `WS-CODE PIC X(3)` legal, and the one the arithmetic funnel could not express).
-        return pic.Usage is Usage.Display or Usage.National;
+        return usage is Usage.Display or Usage.National;
     }
 
     /// <summary>A numeric literal is an INTEGER when it carries no decimal separator and no exponent

@@ -1536,7 +1536,15 @@ internal sealed class VersionConformancePass
             // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — a COBOL-2023 introduction (annex item 32: GOBACK
             // "now allows the same status phrase as the STOP statement"). DISTINCT edition from the STOP-status
             // gate (StopRunStatus2002 = 2002); the shared statusPhrase rule is 2002-gated on STOP, 2023 on GOBACK.
-            if (ctx.statusPhrase() is not null && !InMethodDefinition(ctx))
+            // ⛔ NO InMethodDefinition EXCLUSION, unlike the two gates above, and the asymmetry is the rule's
+            // (kb/Work PB411). Those two exclude a method because §14.9.18.4 GR4 makes a method's GOBACK a
+            // different STATEMENT MEANING — a method return, not an activation return — so the phrase they gate
+            // is not the phrase that was written. This gate asks a different question: was this SYNTAX available
+            // in the targeted edition? §14.9.18.2 is the ONE general format a method's GOBACK is written in, the
+            // status phrase was added to it at 2023, and §14.9.18.3 SR6/SR7/SR8 carry no context qualifier at
+            // all. Measured before the fix: `GOBACK WITH ERROR STATUS 5.` inside a method compiled clean at
+            // --std 2002 and --std 2014 while the byte-identical statement in a program drew COBOLNET0900.
+            if (ctx.statusPhrase() is not null)
                 _p.Check(Constructs.GobackStatus2023, "the GOBACK … WITH NORMAL/ERROR STATUS phrase");
             return base.VisitChildren(ctx);
         }

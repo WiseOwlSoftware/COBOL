@@ -1307,6 +1307,18 @@ not two. Diagnostics: COBOLNET1994 (admissibility), COBOLNET1995 (the strong-rec
   now the one spelling, GR3's three conjuncts, and `ItemCategory.Face` names the two exclusions out loud — it used
   to answer *"not an elementary or group data item"* for every plain group, false but unreachable while no group
   could fail the predicate. The sweep is witnessed by `conformance:negative/pb337-assign-using-strong-group`.
+- **The class carries the USAGE half of the same question too — `ItemCategory.UsageOf`** (kb/Work PB411). §8.5.2.1
+  states a group's usage in one sentence — *"An alphanumeric group item is treated as though it had a usage of
+  display"* — and every rule worded *"a data item with usage display or usage national"* (§14.9.18.3 SR6 /
+  §14.9.42.3 SR2's termination-status operand; §8.4.3.3.4 GR6's unique data item; §14.9.41.3 SR6 b) 2.'s key
+  comparison) asks it. The reader is `OperandPic?.Usage ?? (IsAlphanumericGroup(item) ? Usage.Display : null)`, so
+  it rides the SAME §3.11 definition-by-exclusion as the category half and a strongly-typed or variable-length
+  group — for which the standard states no usage at all — answers `null` rather than being given an invented one.
+  Every site that instead asked `DataItem.OperandPic` alone read its null for an alphanumeric group as *"no usage"*
+  and rejected legal source: measured at the status operand of both STOP RUN and GOBACK, and as a wrong usage on
+  a reference-modified national group's GR6 intermediate. ⚠ `IntrinsicArgumentRules.StaticUsageOf` deliberately
+  answers differently and says so in its own comment: it asks whether an argument has a statically fixed
+  REPRESENTATION for the §15.19.3 keyword screens, which a group's leaves-only storage does not.
 - **No edition gate, and the question was asked rather than skipped.** The admissibility rule is an all-editions
   rule. The two shapes that make the 2023 wording narrower than its '85 ancestor — *alphanumeric* group item
   rather than any group item, and category *national* — cannot be DECLARED below the edition that introduces them

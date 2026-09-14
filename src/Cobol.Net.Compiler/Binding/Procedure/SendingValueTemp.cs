@@ -217,8 +217,15 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     private const int FunctionTextLimit = 32767;
 
     /// <summary>The usage the §8.4.3.3.4 GR6 unique data item inherits ("the same class, category, and usage as
-    /// that defined for identifier-1") — DISPLAY for a group, which has no PICTURE of its own.</summary>
-    private static Usage UsageOf(DataItem inner) => inner.Pic?.Usage ?? Usage.Display;
+    /// that defined for identifier-1"), through THE ONE §8.5.2.1 usage reader.
+    /// <para>⛔ NOT <c>inner.Pic?.Usage ?? Usage.Display</c>, which is what this was (kb/Work PB411's sibling
+    /// sweep). §8.4.3.3.3 SR5 permits reference modification of "a data item of class alphanumeric, boolean, or
+    /// national", so identifier-1 may be a GROUP-USAGE NATIONAL group — whose <c>Pic</c> is null and whose usage
+    /// is NATIONAL (§13.18.29.4 GR2 b) — and the raw <c>Pic</c> read gave its intermediate usage DISPLAY beside
+    /// the category NATIONAL <see cref="RefModPlace.Category"/> already answers: one item, two usages. The
+    /// reader settles it once. DISPLAY remains the fallback for the shapes §8.5.2.1 states no usage for (a
+    /// strongly-typed or variable-length group), where GR6 still owes the intermediate one.</para></summary>
+    private static Usage UsageOf(DataItem inner) => ItemCategory.UsageOf(inner) ?? Usage.Display;
 
     /// <summary>Does any subordinate give this group a length that is decided at RUN TIME — an OCCURS DEPENDING
     /// or OCCURS DYNAMIC table (ISO §13.18.38 Formats 2 and 4), or a dynamic-length elementary item (§8.5.1.10)?

@@ -814,31 +814,64 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// 1989:2002 — at <c>--std 85</c> it is rejected with a targeted diagnostic (the G1 lacks-it obligation;
     /// COBOL-85 programs use STOP RUN / EXIT PROGRAM). The 2023 WITH ERROR/NORMAL STATUS phrase (§14.9.18.2,
     /// VERSION_CHANGE_REFERENCE row 75) parses through the shared <c>statusPhrase</c> rule and is introduction-
-    /// gated by the VersionConformancePass (GobackStatus2023); it binds presence-only here (the status VALUE →
-    /// exit-code wiring is the shared STOP+GOBACK termination-status slice, matching the presence-only STOP sibling).</summary>
+    /// gated by the VersionConformancePass (GobackStatus2023); it is decoded and screened by the shared
+    /// STOP+GOBACK termination-status slice (<see cref="DecodeGobackPhrases"/>), before the program/method fork.</summary>
     public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
-        if (host.InMethod) return host.Oo.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
+        var p = DecodeGobackPhrases(g);
+        if (host.InMethod) return host.Oo.OoBindMethodGoback(p);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
         // goback-bare-2002 / goback-returning-2002: the VersionConformancePass owns both edition gates
         // (Exec Step E folded the bare-GOBACK 0880; the RETURNING 0900 subsumption lives in its parse arm).
         Place? source = null;
-        if (g.dataReference() is { } dref)
+        if (p.Returning is { } dref)
         {
             // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§14.9.18 GR2
             // — the activation result; the grammar already 2002-gates the phrase).
-            if (ctx.Refs.Resolve(dref) is not { } p)
+            if (ctx.Refs.Resolve(dref) is not { } rp)
                 return new BoundUnsupported($"GOBACK RETURNING '{dref.GetText()}'");
-            source = p;
+            source = rp;
         }
-        if (g.raisingPhrase() is { } raising)
+        if (p.Raising is { } raising)
             return host.Ec.EcBindRaising(raising, g.Start.Line, EcRaiseSite.Goback) is { } r
                 ? new BoundGoback(source, r)
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
         // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually
-        // exclusive with RAISING by the grammar). Decode the shared statusPhrase into the termination status; the
-        // emit passes it to the OS only in a MAIN program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
-        return new BoundGoback(source, null, host.ControlFlow.BindTerminationStatus(g.statusPhrase()));
+        // exclusive with RAISING by the grammar). The emit passes the decoded status to the OS only in a MAIN
+        // program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
+        return new BoundGoback(source, null, p.Status);
     }
+
+    /// <summary>⛔ <b>THE ONE DECODE of every phrase §14.9.18.2's general format gives GOBACK</b>, run BEFORE the
+    /// program/method fork so no arm can be reached without it (kb/Work PB411).
+    /// <para>WHY IT IS A DECODE AND NOT TWO BINDERS. The fork used to hand the whole
+    /// <c>GobackStatementContext</c> to <c>OoBinder.OoBindMethodGoback</c>, which RE-DECIDED which phrases
+    /// exist — and read only <c>dataReference()</c> and <c>raisingPhrase()</c>. The 2023 status phrase was
+    /// therefore discarded in silence on the method arm: §14.9.18.3 SR6/SR7/SR8 never ran there, and neither did
+    /// the COBOL-2023 introduction gate (measured: <c>GOBACK WITH ERROR STATUS ""</c> inside a method compiled
+    /// and ran clean at 2023, and <c>… STATUS 1.5</c> at 2014). That is the two-arm dispatch shape: a phrase is
+    /// added to the ONE grammar rule and only one consumer learns of it. With the decode here and the method arm
+    /// taking <see cref="GobackPhrases"/> instead of the parse node, an arm CANNOT read past a phrase it does
+    /// not know about — <c>GobackPhraseDecodeDriftTests</c> holds both halves of that true.</para>
+    /// <para>The STATUS phrase is decoded to its bound form because its screen is CONTEXT-FREE: §14.9.18.3's
+    /// syntax rules carry no "in a main program" qualifier (only General rules 7–10 do), so SR6/SR7/SR8 are owed
+    /// by a method's GOBACK exactly as by a program's. RETURNING and RAISING stay parse contexts: what the two
+    /// arms DO with them genuinely differs (§14.9.18.4 GR2's activation result vs GR4's method return).</para></summary>
+    private GobackPhrases DecodeGobackPhrases(Core.GobackStatementContext g) =>
+        new(g.dataReference(), g.raisingPhrase(), host.ControlFlow.BindTerminationStatus(g.statusPhrase()));
+
+    /// <summary>The phrases of ONE <c>gobackStatement</c>, decoded once by <see cref="DecodeGobackPhrases"/> and
+    /// consumed by both arms of the §14.9.18.4 GR2/GR4 fork — the activation return (<see cref="BindGoback"/>)
+    /// and the method return (<c>OoBinder.OoBindMethodGoback</c>).</summary>
+    /// <param name="Returning">RETURNING/GIVING identifier-1 (§14.9.18.4 GR2's activation result) — the only
+    /// direct <c>dataReference</c> child of the rule; the RAISING tail nests its own.</param>
+    /// <param name="Raising">The RAISING phrase (§14.9.18.3 SR2–SR5), unbound: the program arm binds it through
+    /// <c>EcBinder.EcBindRaising</c> and the method arm through <c>OoBinder.OoBindMethodRaising</c>.</param>
+    /// <param name="Status">The 2023 status phrase, ALREADY SCREENED by §14.9.18.3 SR6/SR7/SR8 (the shared
+    /// <c>ControlFlowBinder.BindTerminationStatus</c>), or null when the phrase is absent.</param>
+    internal readonly record struct GobackPhrases(
+        Core.DataReferenceContext? Returning,
+        Core.RaisingPhraseContext? Raising,
+        TerminationStatus? Status);
 
     /// <summary>
     /// ISO §14.9.4.3 SR22 — a BY VALUE operand "shall be of class numeric, object, or pointer".

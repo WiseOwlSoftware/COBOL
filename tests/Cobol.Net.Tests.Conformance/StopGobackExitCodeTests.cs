@@ -169,10 +169,16 @@ public sealed class StopGobackExitCodeTests
     ///   <item>A GROUP-USAGE NATIONAL group: §13.18.29.3 SR3 implies USAGE NATIONAL for the subject and
     ///   §13.18.29.4 GR2 b makes it "treated as though it were an elementary data item of usage national … with
     ///   PICTURE N(m)".</item>
+    ///   <item>An ALPHANUMERIC group, and a slice of one (kb/Work PB411): §8.5.2.1 — "An alphanumeric group item
+    ///   is treated as though it had a usage of display" — so it IS a data item with usage display and SR2's
+    ///   second alternative names it. The screen used to ask <c>DataItem.OperandPic</c>, which is null for such a
+    ///   group, and read that null as "no usage at all"; the row asserting the rejection lived in the NEGATIVE
+    ///   theory below and pinned it (<c>feedback_green_test_can_hold_a_gap_open</c>). The usage answer now comes
+    ///   from <c>ItemCategory.UsageOf</c>, the ONE §8.5.2.1 reader.</item>
     /// </list>
-    /// Measured on this tree before the fix: both drew COBOLNET1704. Reading <c>OperandPic</c> settles all four
-    /// group kinds with no hand-list — and the BIT group and the alphanumeric group stay rejected, which is what
-    /// the negative half below asserts.</summary>
+    /// Measured on this tree before each fix: every row drew COBOLNET1704. The reader settles all group kinds
+    /// with no hand-list — the BIT group stays rejected, and so do the two group kinds §3.11 excludes from
+    /// "alphanumeric group item", which is what the negative half below asserts.</summary>
     [Theory]
     [InlineData("STOP RUN WITH ERROR STATUS WS-DISPLAY(2:2).", 7)]   // "007"(2:2) = "07"
     [InlineData("STOP RUN WITH ERROR STATUS WS-DISPLAY(1:3).", 7)]
@@ -184,7 +190,14 @@ public sealed class StopGobackExitCodeTests
     [InlineData("STOP RUN WITH ERROR STATUS WS-NUM9(2:2).", 23)]
     [InlineData("STOP RUN WITH ERROR STATUS WS-NATGRP.", 12)]        // §13.18.29.4 GR2 b
     [InlineData("GOBACK WITH ERROR STATUS WS-DISPLAY(2:2).", 7)]
-    public void RefModAndNationalGroupStatusOperands_AreAdmittedBySR2(string proc, int expectedExit)
+    // §8.5.2.1's group arm (kb/Work PB411) — the whole group images "41", and BOTH verbs take it: §14.9.42.3 SR2
+    // and §14.9.18.3 SR6 are the same rule word for word, and they shared the one screen that rejected it.
+    [InlineData("STOP RUN WITH ERROR STATUS WS-ANGRP.", 41)]
+    [InlineData("GOBACK WITH ERROR STATUS WS-ANGRP.", 41)]
+    // A SLICE of an alphanumeric group: §8.4.3.3.3 SR5 permits reference modification of a class-alphanumeric
+    // identifier and §8.4.3.3.4 GR6 keeps identifier-1's usage, which §8.5.2.1 has just settled as display.
+    [InlineData("STOP RUN WITH ERROR STATUS WS-ANGRP(1:1).", 4)]
+    public void RefModAndGroupStatusOperands_AreAdmittedBySR2(string proc, int expectedExit)
     {
         const string src = """
             IDENTIFICATION DIVISION.
@@ -195,6 +208,9 @@ public sealed class StopGobackExitCodeTests
             01 WS-NUM9    PIC 9(4) VALUE 1234.
             01 WS-NATGRP GROUP-USAGE IS NATIONAL.
                05 WS-NG-A PIC N(3) VALUE N"012".
+            01 WS-ANGRP.
+               05 WS-AG-A PIC X VALUE "4".
+               05 WS-AG-B PIC X VALUE "1".
             PROCEDURE DIVISION.
             MAIN.
                 DISPLAY "ran".
@@ -207,7 +223,8 @@ public sealed class StopGobackExitCodeTests
 
     /// <summary>The position's OWN syntax rules, which nothing enforced while §8.8.1.1 was standing in for them:
     /// SR4/SR8 (no zero-length literal), SR3/SR7 (a numeric literal-1 shall be an integer), SR2/SR6 (identifier-1
-    /// shall be an integer item or a display/national item — a GROUP is none of the three), and §13.18.38.3 r7
+    /// shall be an integer item or a display/national item — which a BIT group is not, and which §8.5.2.1 gives
+    /// an ALPHANUMERIC group, so that shape moved to the positive theory above), and §13.18.38.3 r7
     /// (the STATUS phrase is not one of the five contexts admitting an index-name). Each compiled CLEAN on
     /// 9a89fbd1 — the screen that WAS there rejected the legal shapes and admitted the illegal ones, in both
     /// directions at once. (The corpus fixtures pin the same rules at every edition; these assert the MESSAGE
@@ -215,7 +232,6 @@ public sealed class StopGobackExitCodeTests
     [Theory]
     [InlineData("STOP RUN WITH ERROR STATUS \"\".", "COBOLNET1704", "§14.9.42.3 SR4")]
     [InlineData("STOP RUN WITH ERROR STATUS 1.5.", "COBOLNET1704", "§14.9.42.3 SR3")]
-    [InlineData("STOP RUN WITH ERROR STATUS WS-GRP.", "COBOLNET1704", "§14.9.42.3 SR2")]
     [InlineData("STOP RUN WITH ERROR STATUS WS-IX.", "COBOLNET1637", "§13.18.38.3 r7")]
     [InlineData("GOBACK WITH ERROR STATUS \"\".", "COBOLNET1704", "§14.9.18.3 SR8")]
     // ⛔ THE SCREEN IS KEYED ON THE BOUND SHAPE, NOT ON THE PARSE ARM (kb/Work PB216). §13.10.4 GR1 makes a
@@ -228,9 +244,18 @@ public sealed class StopGobackExitCodeTests
     // object reference, §8.4.3.10.1) and §8.4.3.10.3 SR1 confines it to INITIALIZE/SET, a prototype argument, or
     // a pointer-or-object-reference relation condition.
     [InlineData("STOP RUN WITH ERROR STATUS NULL.", "COBOLNET1704", "§8.4.3.10.3 SR1")]
-    // A BIT group is neither an integer data item nor a display/national one — the arm OperandPic keeps rejecting
-    // while it admits the NATIONAL group (kb/Work PB217).
+    // A BIT group is neither an integer data item nor a display/national one — the arm the ONE §8.5.2.1 usage
+    // reader keeps rejecting (usage bit) while it admits the NATIONAL and the ALPHANUMERIC group (PB217/PB411).
     [InlineData("STOP RUN WITH ERROR STATUS WS-BITGRP.", "COBOLNET1704", "§14.9.42.3 SR2")]
+    // ⛔ THE TWO GROUP KINDS §3.11 EXCLUDES BY NAME from "alphanumeric group item" — "group item except for a
+    // bit group item, a national group item, a strongly-typed group item, or a variable-length group item" — so
+    // §8.5.2.1's "treated as though it had a usage of display" does NOT reach them and neither alternative of
+    // SR2/SR6 admits them. Without these rows the §8.5.2.1 fix would read as "any group is display", which is
+    // the over-correction the rule's own definition forbids (kb/Work PB411; the shape ItemCategory.UsageOf
+    // answers null for).
+    [InlineData("STOP RUN WITH ERROR STATUS WS-STRONG.", "COBOLNET1704", "§14.9.42.3 SR2 + §3.11")]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-VARLEN.", "COBOLNET1704", "§14.9.42.3 SR2 + §3.11")]
+    [InlineData("GOBACK WITH ERROR STATUS WS-STRONG.", "COBOLNET1704", "§14.9.18.3 SR6 + §3.11")]
     public void TheStatusPositionsOwnRules_AreEnforcedAndCited(string proc, string code, string clause)
     {
         const string src = """
@@ -239,8 +264,11 @@ public sealed class StopGobackExitCodeTests
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 WS-K CONSTANT AS 1.5.
-            01 WS-GRP.
-               05 WS-A PIC X(2) VALUE "07".
+            01 WS-TD IS TYPEDEF STRONG.
+               05 WS-TD-A PIC X(2).
+            01 WS-STRONG TYPE WS-TD.
+            01 WS-VARLEN.
+               05 WS-VL-A PIC X DYNAMIC LENGTH LIMIT IS 4.
             01 WS-BITGRP GROUP-USAGE IS BIT.
                05 WS-B PIC 1(8) USAGE BIT VALUE B"00000111".
             01 WS-T.

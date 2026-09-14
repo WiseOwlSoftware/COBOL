@@ -602,7 +602,8 @@
   "pb394_evaluate_function_subscript_subject",
   "pb535_picture_category_size_2023",
   "pb721_zero_length_record",
-  "pb721_record_bytes_synonym"
+  "pb721_record_bytes_synonym",
+  "pb411_goback_status_operand_and_method_arm"
  ],
  "pending": [
   "pb485_value_only_format1"

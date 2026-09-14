@@ -77,6 +77,32 @@ public static class ItemCategory
         && !StrongTypeModel.IsStronglyTyped(item)
         && !VariableLengthCompatibility.IsVariableLength(item);
 
+    /// <summary>
+    /// ⛔ THE ONE READER of the USAGE a data item OPERATES with — the axis every rule worded <i>"a data item
+    /// with usage display or usage national"</i> asks about (ISO §14.9.18.3 SR6 / §14.9.42.3 SR2, the
+    /// termination-status operand; §8.4.3.3.4 GR6's unique data item; §14.9.41.3 SR6 b) 2.'s key comparison).
+    /// <para>⛔ THE GROUP ANSWER IS §8.5.2.1's OWN SENTENCE — <i>"An alphanumeric group item is treated as
+    /// though it had a usage of display."</i> Every site that instead asked <see cref="DataItem.OperandPic"/>
+    /// alone read a NULL for such a group and concluded "no usage", which is not what the standard says: the
+    /// group HAS a usage, and it is display. That conclusion was a measured rejects-legal-source defect at the
+    /// status operand of both STOP RUN and GOBACK (kb/Work PB411), and a latent one at
+    /// <c>SendingValueTemp.UsageOf</c>, where a reference-modified national or bit group's §14.9.25.4 GR1
+    /// intermediate was built with category NATIONAL / BOOLEAN beside usage DISPLAY — one item, two usages.
+    /// (Probed: the intermediate's VALUE is unchanged by the correction, so that half is an inconsistency
+    /// removed rather than a wrong answer fixed — said plainly rather than claimed as a second repro.)</para>
+    /// <para>⚠ §8.5.2.1's sentence is about an ALPHANUMERIC GROUP ITEM, which §3.11 defines by exclusion —
+    /// <i>"group item except for a bit group item, a national group item, a strongly-typed group item, or a
+    /// variable-length group item"</i> — so it is asked through <see cref="IsAlphanumericGroup"/>, the ONE
+    /// spelling of that definition, never through <c>IsGroup</c>. A bit / national group answers from its
+    /// §13.18.29.4 GR1b/GR2b as-if PICTURE (usage bit / usage national) like any elementary item. A STRONGLY-TYPED
+    /// group and a VARIABLE-LENGTH group answer <see langword="null"/>: the standard states a usage for neither
+    /// (§8.5.2.1 gives the first its type-name as class and category and no usage at all, and §8.5.1.12.1 says
+    /// the second "is not equivalent to an alphanumeric data item"), and a caller that must have an answer says
+    /// so at its own site rather than having one invented here.</para>
+    /// </summary>
+    public static Usage? UsageOf(DataItem item) =>
+        item.OperandPic?.Usage ?? (IsAlphanumericGroup(item) ? Usage.Display : null);
+
     /// <summary>ONE walk for both predicates — the two rules differ only in whether category national is in the
     /// admitted set, and writing the walk twice is how the alphabetic and group arms would come to disagree.</summary>
     private static bool Admits(DataItem item, bool national) => Table16Operand.Of(item) switch

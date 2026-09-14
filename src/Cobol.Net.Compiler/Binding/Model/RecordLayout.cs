@@ -280,8 +280,16 @@ internal static class RecordLayout
     private static PicCategory CategoryOfItem(DataItem item) =>
         item.OperandPic?.Category ?? PicCategory.Alphanumeric;
 
-    /// <summary>The item's USAGE (ISO §13.18.60): the PICTURE's resolved usage, else this entry's own USAGE
-    /// keyword, else DISPLAY — GR2's standard data format, the usage an entry with no clause has.</summary>
+    /// <summary>The item's USAGE (ISO §13.18.60), through THE ONE §8.5.2.1 usage reader
+    /// (<see cref="ItemCategory.UsageOf"/>): the PICTURE's resolved usage for an elementary item, the as-if
+    /// PICTURE's for a bit / national group, and DISPLAY for an alphanumeric group — "An alphanumeric group item
+    /// is treated as though it had a usage of display" (kb/Work PB411's sibling sweep; the former
+    /// <c>?? item.OwnUsage</c> gave <c>01 G USAGE COMP.</c> the answer BINARY, which §13.18.60.4 GR1 settles
+    /// outright — "Unless the GROUP-USAGE clause is also specified or implied, the USAGE clause applies only to
+    /// each elementary item in the group and not to the group itself"). The tail
+    /// survives for the group kinds §3.11 excludes from "alphanumeric group item", where the standard states no
+    /// usage and SR6 b) 2. still has to compare something: the entry's own keyword, else DISPLAY — GR2's
+    /// standard data format, the usage an entry with no clause has.</summary>
     private static Usage UsageOfItem(DataItem item) =>
-        item.OperandPic?.Usage ?? item.OwnUsage ?? Usage.Display;
+        ItemCategory.UsageOf(item) ?? item.OwnUsage ?? Usage.Display;
 }
