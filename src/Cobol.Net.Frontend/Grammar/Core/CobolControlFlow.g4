@@ -153,7 +153,7 @@ performVaryingAfter
 // `statementBlock` IS `statement+`, so the bare reference is the format's own cardinality; the former
 // `statementBlock*` restored the zero case and `IF X = 1 END-IF` compiled to an empty C# block in silence.
 // The ELSE arm is the same rule: the bracket encloses `ELSE statement-2` as a UNIT, so writing ELSE obliges
-// statement-2. Pinned by GrammarRequiredImperativeDriftTests (no `statementBlock*` may reappear in any .g4).
+// statement-2. Pinned by RequiredImperativeStatementDriftTests (no `statementBlock*` may reappear in any .g4).
 // ⚠ DETERMINATION (kb/Work PB396, owner-overturnable): the two formats stay ONE rule, so `END_IF?` also admits
 // `IF X = 1 NEXT SENTENCE END-IF` — a Format-2 body under a Format-1 terminator that no single printed format
 // shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4: the combination is a cross-format latitude
