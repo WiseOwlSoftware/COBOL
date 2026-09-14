@@ -283,7 +283,8 @@
     "pb403_exit_placement_context_2002",
     "pb408_raising_enablement_locus",
     "pb419_initialize_resume_boundary",
-    "pb427_same_type_by_position"
+    "pb427_same_type_by_position",
+    "pb420_initialize_float_value_default_2002"
   ],
   "pending": []
 }

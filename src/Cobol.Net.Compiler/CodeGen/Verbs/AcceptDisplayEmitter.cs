@@ -181,8 +181,19 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                     ? RuntimeApi.NumFormatImage(stored, item.ProfileName)
                     : stored));
                 return;
-            case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
-                w.Line(LoudStmt($"ACCEPT temporal into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2, deferred)"));
+            case { Category: PicCategory.Numeric } fpic:   // COMP-1/COMP-2/FLOAT-* — a float receiver
+                // §14.9.1.4 GR6 is explicit — the transfer is "to the data item specified by identifier-2
+                // ACCORDING TO THE RULES FOR THE MOVE STATEMENT" — so a float receiver takes the SAME store
+                // MoveEmitter.ConvertSource's float arm builds for the same (integer sender, float receiver)
+                // pair: the single-precision store is the EC-DATA-OVERFLOW-checked one (§14.9.25.4 GR6 d)4.a),
+                // the wider usages a plain cast, and a WINDOWED (image-stored) receiver re-encodes its IEEE
+                // window bytes. ⛔ This arm used to be a LoudStmt on the premise that the float MOVE path was
+                // "deferred", the same stale premise kb/Work PB420 removed from InitializeEmitter: the sending
+                // value is a conceptual unsigned integer (GR7–GR12), which every float usage can hold.
+                string fstored = fpic.IsSingle ? RuntimeApi.FloatStoreSingleChecked(call) : $"({fpic.ClrType})({call})";
+                w.Line(PlaceRenderer.Write(target, item.StoreAsImage
+                    ? RuntimeApi.NumFormatImageFloat(fstored, item.ProfileName)
+                    : fstored));
                 return;
             case { Category: PicCategory.NumericEdited } npic:
                 // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5) — the form

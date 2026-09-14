@@ -28,24 +28,19 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
         var w = ctx.Writer;
         switch (action)
         {
-            case InitializeStore { Target.Item.Pic: { IsFloat: true } fp } s:
-                // A COMP-1/COMP-2 receiver: the GR6c ZEROES default is the IEEE zero (its declared default
-                // initializer); the float MOVE path (REPLACING/VALUE senders) is deferred backend-wide → loud.
-                // ⛔ A WINDOWED float receiver (Tier-B / image-stored — the Step D arm-1 dissolution) stores its
-                // IEEE window BYTES, never the raw carrier value: the exact shape MoveEmitter's float-receiver
-                // arm uses (`target.StoreAsImage ? NumFormatImageFloat(v) : v`), so INITIALIZE and MOVE deposit
-                // identical bytes into the same window. Writing the bare `0f` here spliced a float into a string
-                // window — a backend CS1503, since §14.9.20 GR4's implicit MOVE has no float exemption from
-                // §13.18.44.4 GR1's one-storage association.
-                w.Line(s.Source is BoundFigurative { Kind: 'Z' }
-                    ? PlaceRenderer.Write(s.Target, s.Target.Item.StoreAsImage
-                        ? RuntimeApi.NumFormatImageFloat(fp.DefaultInitializer, s.Target.Item.ProfileName)
-                        : fp.DefaultInitializer)
-                    : LoudStmt($"INITIALIZE REPLACING/VALUE into floating-point item " +
-                               $"'{s.Target.Item.CobolName ?? PlaceRenderer.Read(s.Target)}' (float MOVE path deferred)"));
-                break;
             case InitializeStore s:
-                move.Emit(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path
+                // §14.9.20.4 GR4 — an implicit MOVE, ONE code path, receiver category by receiver category:
+                // "Otherwise, the implicit statement is: MOVE sending-operand TO receiving-operand." The rule
+                // exempts only the five pointer-ish categories (SET, the arms below); a COMP-1/COMP-2/FLOAT-*
+                // receiver is category NUMERIC (§8.5.2), so it takes exactly the path its explicit MOVE takes —
+                // MoveEmitter's float-receiver arm in ConvertSource, which owns the GR6 d)4.a EC-DATA-OVERFLOW
+                // check, the single/double store cast, AND the WINDOWED (image-stored, Tier-B) re-encode
+                // `target.StoreAsImage ? NumFormatImageFloat(v) : v`. ⛔ There is deliberately NO float arm here:
+                // one was carried until kb/Work PB420 on the premise that "the float MOVE path is deferred
+                // backend-wide", a premise that stopped being true (PB271 hardened that very path) with nothing
+                // to notice — one float leaf then made the WHOLE statement throw at run time.
+                // <c>StaleDeferralDriftTests</c> keeps it that way.
+                move.Emit(new BoundMove(s.Source, [s.Target]));
                 break;
             case InitializeSetNull s:
                 // §14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,

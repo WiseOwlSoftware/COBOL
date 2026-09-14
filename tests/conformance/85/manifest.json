@@ -89,7 +89,8 @@
     "pb877_subscripted_subscript",
     "pb447_search_all_index_stays_in_table",
     "pb443_search_identifier_1",
-    "pb396_required_imperative_85"
+    "pb396_required_imperative_85",
+    "pb420_initialize_float_receiver_85"
   ],
   "pending": []
 }
