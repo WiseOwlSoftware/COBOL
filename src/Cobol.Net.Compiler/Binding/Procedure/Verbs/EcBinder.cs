@@ -382,12 +382,21 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Give every <see cref="IActivatingStatement"/> in <paramref name="node"/> the activating
     /// statement's own checking profile (§14.9.18.4 GR1 b)). A no-op when nothing is enabled at the line — the
-    /// zero-scaffolding gate: such a site emits byte-identical text.</summary>
+    /// zero-scaffolding gate: such a site emits byte-identical text.
+    /// <para>BOTH container shapes are traversed, and both must be: a bind-time desugar hoists its activation
+    /// into a <see cref="BoundSequence"/>, and <see cref="BoundImplicitSeries.Rewrap"/> keeps a multi-operand
+    /// statement's SERIES outermost with that sequence as its FIRST member (kb/Work PB419), so a
+    /// sequence-only recursion would miss a function-identifier written in an operand of a multi-operand
+    /// CLOSE / FREE / INITIALIZE / INITIATE / OPEN / TERMINATE — the activation would carry an empty profile
+    /// and the condition it stages would never be raised here. <c>QueryFor</c> below traverses the same two
+    /// shapes for the same reason.</para></summary>
     private static BoundStatement StampActivators(BoundStatement node, EcCheckingProfile profile) =>
         profile.IsEmpty ? node
         : node switch
         {
             BoundSequence seq => new BoundSequence([.. seq.Steps.Select(st => StampActivators(st, profile))]),
+            BoundImplicitSeries ser =>
+                new BoundImplicitSeries([.. ser.Members.Select(st => StampActivators(st, profile))]),
             IActivatingStatement a => a.WithActivatorChecking(profile),
             _ => node,
         };
@@ -408,7 +417,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // THIS element's §7.3.25 state at THIS line into the run. The recursion reaches the activations a
         // desugar hoisted into a sequence (a user-function reference inside a COMPUTE); a new activating node
         // inherits the stamp by implementing IActivatingStatement, never by remembering to set a property.
-        if (bound is IActivatingStatement or BoundSequence)   // the only shapes a profile can land on
+        if (bound is IActivatingStatement or BoundSequence or BoundImplicitSeries)   // the shapes a profile lands on
             bound = StampActivators(bound, ctx.EcState.Turn.ProfileAt(line));
         var enabled = new List<(string Ec, FileModel? File)>();
         void Query(IEnumerable<string> names, FileModel? file = null)
@@ -428,6 +437,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             if (node is BoundSequence seq)
             {
                 foreach (var step in seq.Steps) QueryFor(step);
+                return;
+            }
+            // An implicit-statement series (ISO §14.9.20.4 GR3 and its six siblings — see BoundImplicitSeries) is
+            // ONE written statement, so the >>TURN query is the UNION over its members: every implicit statement
+            // inherits the same statement's enabled set, which is what §7.3.25.4 GR6 keys on the source LINE.
+            if (node is BoundImplicitSeries series)
+            {
+                foreach (var member in series.Members) QueryFor(member);
                 return;
             }
             switch (node)
@@ -703,7 +720,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         if (enabled.Count == 0) return bound;
         // A sequence's steps can re-contribute a family (two hoisted activations ⇒ ProgramNames twice) —
         // the checked wrapper carries each (name, connector) once.
-        if (bound is BoundSequence) enabled = enabled.Distinct().ToList();
+        if (bound is BoundSequence or BoundImplicitSeries) enabled = enabled.Distinct().ToList();
         ctx.EcState.Checked = true;
         if (enabled.Any(e => e.Ec.StartsWith("EC-I-O", StringComparison.Ordinal))) ctx.EcState.IoChecked = true;
         // §15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column, resolved from the
@@ -712,10 +729,23 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // WITH LOCATION is resolved PER (name, file) pair — §15.32.3 r1 keys the answer on the TURN option of
         // the condition that was RAISED, so one WITH LOCATION directive must not contaminate the statement's
         // other enabled conditions (kb/Work R06; the former statement-level Any() did exactly that).
-        return new BoundEcChecked(bound, new EcStatementInfo(
+        var info = new EcStatementInfo(
             [.. enabled.Select(e => (e.Ec, e.File,
                 ctx.EcState.Turn.WithLocation(e.Ec, e.File?.CobolName, line)))],
-            Table12StatementNames.NameOf(s), EcLocation(line)));
+            Table12StatementNames.NameOf(s), EcLocation(line));
+        // ⛔ THE WRAPPER DISTRIBUTES OVER AN IMPLICIT-STATEMENT SERIES, IT DOES NOT ENCLOSE IT. A multi-operand
+        // CLOSE / FREE / INITIALIZE / INITIATE / OPEN / TERMINATE / VALIDATE *is* a separate statement per operand
+        // (ISO §14.9.6.4 GR10, §14.9.15.4 GR2, §14.9.20.4 GR3, §14.9.21.4 GR5, §14.9.27.4 GR20, §14.9.46.4 GR4,
+        // §14.9.50.4 GR3), and each of those seven rules names the resumption point of a declarative's RESUME …
+        // NEXT STATEMENT as "the next implicit … statement, if any" — the §14.9.33.4 GR2 a) escape ("unless
+        // general rules associated with the applicable statement specify otherwise"). The checked wrapper IS the
+        // statement site the `-2` action falls out of, so one wrapper around the whole series would put the
+        // landing past the LAST operand: measured as a silent wrong answer on INITIALIZE (kb/Work PB419).
+        // Each member gets the SAME EcStatementInfo — one written statement, one >>TURN scope, one Table-12 name
+        // and one §15.30.3 r2 location — because they are one statement's implicit expansion, not seven.
+        return bound is BoundImplicitSeries ser
+            ? new BoundImplicitSeries([.. ser.Members.Select(m => (BoundStatement)new BoundEcChecked(m, info))])
+            : new BoundEcChecked(bound, info);
     }
 
     /// <summary>The §15.30.3 r2 location string for a statement on <paramref name="line"/>:

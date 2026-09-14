@@ -438,7 +438,11 @@ sharing is completely specified in the file control entry."*
 
 **The design.** `BoundOpenFile(FileModel File, BoundOpenMode Mode, SharingMode? Sharing, RetrySpec? Retry,
 string? Unsupported)` is GR20's normal form written down: `BindOpen` flattens the groups into exactly the
-separate OPENs the rule names, in source order, and `BoundOpen` is nothing but that list. The statement node
+separate OPENs the rule names, in source order, and emits ONE `BoundOpen` per file-name inside a
+`BoundImplicitSeries` — GR20's *"the same as if a separate OPEN statement had been written for each
+file-name"* taken literally, so that its next sentence (*"processing resumes at the next implicit OPEN
+statement, if any"*) has a statement boundary to resume at; see COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN D11,
+"The MULTI-OPERAND arm". The statement node
 carries **no** phrase property, so a consumer cannot re-broaden a phrase's scope — the previous shape put
 `SharingOverride` and `Retry` on the statement, and both the binder (a `sharing` local hoisted out of the
 `openClause` loop) and the emitter (one `bool shared` computed before the per-file loop) then leaked one

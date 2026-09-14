@@ -67,17 +67,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         }
     }
     /// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each name shall be an RD entry (SR1); a multi-name
-    /// statement unrolls in written order (GR5).</summary>
+    /// statement IS a separate INITIATE statement per report-name in written order (§14.9.21.4 GR5) — one
+    /// <see cref="BoundInitiate"/> per name inside a <see cref="BoundImplicitSeries"/>, so GR5's second sentence
+    /// ("processing resumes at the next implicit INITIATE statement, if any") has a boundary to land on.</summary>
     public BoundStatement BindInitiate(Core.InitiateStatementContext stmt)
     {
-        var reports = new List<ReportModel>();
+        var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
                 return new BoundUnsupported($"INITIATE '{rn.GetText()}' — not a report description entry (ISO §14.9.21 SR1)");
-            reports.Add(r);
+            members.Add(new BoundInitiate([r]));
         }
-        return new BoundInitiate(reports);
+        return BoundImplicitSeries.Of(members);
     }
 
     /// <summary><c>GENERATE {data-name | report-name}</c> (ISO §14.9.16): a detail report group (SR1 — detail
@@ -108,17 +110,19 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return new BoundUnsupported($"GENERATE '{name}' names neither a detail report group nor a report (ISO §14.9.16.3 SR1/SR2)");
     }
 
-    /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46 SR1/GR4).</summary>
+    /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46 SR1; §14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
+    /// report-name inside a <see cref="BoundImplicitSeries"/>, GR4's "as though a separate TERMINATE statement had
+    /// been executed for each report-name-1" and its per-implicit-statement resumption point.</summary>
     public BoundStatement BindTerminate(Core.TerminateStatementContext stmt)
     {
-        var reports = new List<ReportModel>();
+        var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
                 return new BoundUnsupported($"TERMINATE '{rn.GetText()}' — not a report description entry (ISO §14.9.46 SR1)");
-            reports.Add(r);
+            members.Add(new BoundTerminate([r]));
         }
-        return new BoundTerminate(reports);
+        return BoundImplicitSeries.Of(members);
     }
 
     /// <summary><c>SUPPRESS PRINTING</c> (ISO §14.9.45): inhibit the current instance's printing of the report

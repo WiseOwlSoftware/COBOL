@@ -188,6 +188,7 @@ internal static class UsageCollectionPass
         // ── leaves with no whole-group operand and no non-statement group-bearing part (nested statements, if any,
         //    are recursed by StatementChildren). Explicit so a NEW leaf is a compile error, never a silent miss. ──
         public bool Visit(BoundSequence n) => false;
+        public bool Visit(BoundImplicitSeries n) => false;   // members walked via StatementChildren
         public bool Visit(BoundEcChecked n) => false;
         public bool Visit(BoundAddTo n) => false;
         public bool Visit(BoundAddGiving n) => false;

@@ -958,6 +958,54 @@ public sealed record BoundContinueAfter(BoundExpr Seconds, bool CheckLessThanZer
 /// consecutively; a child that transfers control (GO TO/EXIT) behaves exactly as if written in line.</summary>
 public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundStatement;
 
+/// <summary>⛔ ONE WRITTEN STATEMENT THAT *IS* N SEPARATE STATEMENTS — the multi-operand rule the standard states
+/// SEVEN times, once per verb, in identical words: CLOSE (ISO §14.9.6.4 GR10), FREE (§14.9.15.4 GR2), INITIALIZE
+/// (§14.9.20.4 GR3), INITIATE (§14.9.21.4 GR5), OPEN (§14.9.27.4 GR20), TERMINATE (§14.9.46.4 GR4) and VALIDATE
+/// (§14.9.50.4 GR3) each read "the result of executing this … statement is the same as if a separate … statement
+/// had been written for each … in the same order as specified", and each then adds the sentence THIS NODE EXISTS
+/// FOR: "If an implicit … statement results in the execution of a declarative procedure that executes a RESUME
+/// statement with the NEXT STATEMENT phrase, processing resumes at the next implicit … statement, if any."
+/// <para>That second sentence is what §14.9.33.4 GR2 a) leaves room for — "the implicit CONTINUE statement
+/// immediately follows the end of the statement that was executing when control was transferred to the exception
+/// processing procedure UNLESS GENERAL RULES ASSOCIATED WITH THE APPLICABLE STATEMENT SPECIFY OTHERWISE" — so a
+/// multi-operand verb's resumption point is a PER-OPERAND boundary, never the end of the written statement. The
+/// compiler's resume protocol addresses STATEMENT SITES (a declarative's <c>-2</c> action falls out of the
+/// statement's own EC guard, EcEmitter's dispatch-result protocol), so the boundary exists exactly when each
+/// operand owns a site — and this node is that and nothing else. <c>EcBinder.EcWrap</c> DISTRIBUTES the
+/// <see cref="BoundEcChecked"/> wrapper over <paramref name="Members"/>, which is what makes each member a site
+/// the <c>-2</c> action lands AFTER rather than past the whole verb (kb/Work PB419: a declarative that resumed
+/// NEXT STATEMENT out of the FIRST identifier-1 of <c>INITIALIZE A B</c> skipped B entirely — a silent wrong
+/// answer, measured).</para>
+/// <para>⛔ A ONE-OPERAND STATEMENT NEVER BUILDS ONE — <see cref="Of"/> returns the lone member. Every one of the
+/// seven rules is conditioned on "more than one", and the zero-scaffolding invariant (design SSOT §18.16) holds:
+/// with EC checking OFF no wrapper is built at all, so the series emits its members consecutively and the text is
+/// byte-identical to the former flat run (with no wrapper there is no <c>-2</c> to land).</para>
+/// <para>NOT a <see cref="BoundSequence"/>, and the difference is the whole point: a sequence is ONE statement
+/// made of steps — a desugar's hoisted pre-ops belong to the statement they decorate, and a RESUME out of one
+/// abandons the whole thing — while a series is N statements. <see cref="Rewrap"/> is how a desugar wrap keeps
+/// the series outermost.</para></summary>
+public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) : BoundStatement
+{
+    /// <summary>The ONE constructor a multi-operand verb binder calls: the series when the standard's "more than
+    /// one" premise holds, the bare member otherwise (and an empty series for the operand-less recovery shapes a
+    /// screen may leave behind, which emits nothing).</summary>
+    public static BoundStatement Of(IReadOnlyList<BoundStatement> members) =>
+        members.Count == 1 ? members[0] : new BoundImplicitSeries(members);
+
+    /// <summary>Apply a bind-time desugar wrap (the UDF activation hoist, the OO property pre-op triple) to a
+    /// statement that may be a series, keeping the SERIES OUTERMOST so <c>EcWrap</c> still sees it. The wrap lands
+    /// on the FIRST implicit statement, which is where the hoisted operands are evaluated and therefore which
+    /// implicit statement they belong to; wrapping the series itself would put the boundary back inside a single
+    /// site and silently restore the PB419 defect for exactly the statements that carry a function-identifier or
+    /// a property reference. Returns <paramref name="node"/> untouched when the wrap was a no-op.</summary>
+    public static BoundStatement Rewrap(BoundStatement node, Func<BoundStatement, BoundStatement> wrap)
+    {
+        if (node is not BoundImplicitSeries ser || ser.Members.Count == 0) return wrap(node);
+        var first = wrap(ser.Members[0]);
+        return ReferenceEquals(first, ser.Members[0]) ? ser : new BoundImplicitSeries([first, .. ser.Members.Skip(1)]);
+    }
+}
+
 /// <summary>COMMIT / ROLLBACK (ISO §14.9.7 / §14.9.36; kb/Work PB137): the transaction facility is the
 /// documented A.3 items-6/7 non-support, and with no APPLY COMMIT clause GR1 makes each statement
 /// CONTINUE-equivalent — but the node carries its IDENTITY, so §14.9.7.3/§14.9.36.3 SR2's SORT/MERGE

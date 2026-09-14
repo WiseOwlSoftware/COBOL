@@ -142,6 +142,9 @@ public static class BoundStores
 
         // ── Wrappers / containers ───────────────────────────────────────────────────────────────────────
         public StoreKind? Visit(BoundSequence n) => Kids(n.Steps);
+        // A multi-operand verb's implicit statements (ISO §14.9.20.4 GR3 and siblings — BoundImplicitSeries):
+        // a container exactly like BoundSequence for this query, since any member may carry the store.
+        public StoreKind? Visit(BoundImplicitSeries n) => Kids(n.Members);
         public StoreKind? Visit(BoundEcChecked n) => n.Inner.Accept(this);
         public StoreKind? Visit(BoundIf n) => Kids(n.Then, n.Else);
         public StoreKind? Visit(BoundEvaluate n) => Kids([.. n.Whens.SelectMany(w => w.Statements)], n.Other);

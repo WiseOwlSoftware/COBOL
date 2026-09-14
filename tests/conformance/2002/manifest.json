@@ -281,7 +281,8 @@
     "pb555_typedef_condition_clone",
     "pb401_range_invalid_by_class",
     "pb403_exit_placement_context_2002",
-    "pb408_raising_enablement_locus"
+    "pb408_raising_enablement_locus",
+    "pb419_initialize_resume_boundary"
   ],
   "pending": []
 }

@@ -208,6 +208,19 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         return false;
     }
 
+    public bool Visit(BoundImplicitSeries n)
+    {
+        // The implicit statements of a multi-operand verb, rendered consecutively — ISO §14.9.20.4 GR3 and its six
+        // siblings (see BoundImplicitSeries). There is NOTHING to emit for the boundary itself: the boundary IS
+        // each member's own statement site, which EcBinder.EcWrap gave it by distributing the checked wrapper, and
+        // a declarative's RESUME … NEXT STATEMENT then falls out of that member's guard into the next member.
+        // "Terminates" iff the last member does — a member that transfers control behaves exactly as the separate
+        // statement the standard says it is.
+        bool terminated = false;
+        foreach (var member in n.Members) terminated = EmitStatement(member);
+        return terminated;
+    }
+
     public bool Visit(BoundSequence n)
     {
         // Render children consecutively (D-P2); "terminates" iff the last child does (a GET/SET

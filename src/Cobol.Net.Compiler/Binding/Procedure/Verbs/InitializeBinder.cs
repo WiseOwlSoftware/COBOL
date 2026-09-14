@@ -142,10 +142,23 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         var spec = new InitializeSpec(withFiller, toValue is not null, valueCats, replacements,
             HasReplacing: replacing is not null, toDefault);
 
-        var actions = new List<InitializeAction>();
+        // ⛔ ONE BoundInitialize PER identifier-1, NOT one flat expansion — ISO §14.9.20.4 GR3: "the result of
+        // executing this INITIALIZE statement is the same as if a separate INITIALIZE statement had been written
+        // for each identifier-1 in the same order as specified in the INITIALIZE statement. If an implicit
+        // INITIALIZE statement results in the execution of a declarative procedure that executes a RESUME
+        // statement with the NEXT STATEMENT phrase, processing resumes at the next implicit INITIALIZE statement,
+        // if any." The flat list satisfied sentence 1 (source order) and could not express sentence 2: with one
+        // statement site, a `-2` resume action fell out past EVERY remaining identifier-1 (kb/Work PB419).
+        // BoundImplicitSeries IS the per-implicit-statement boundary, and it collapses to the bare node for the
+        // one-operand case the rule's "more than one" premise excludes.
+        var members = new List<BoundStatement>();
         foreach (var dref in ini.initializeOperandList().dataReference())
+        {
+            var actions = new List<InitializeAction>();
             BindInitializeTarget(dref, spec, actions);   // GR3 — per identifier-1, in source order
-        return new BoundInitialize(actions);
+            members.Add(new BoundInitialize(actions));
+        }
+        return BoundImplicitSeries.Of(members);
     }
 
     /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §14.9.3 GR7): "the allocated storage is

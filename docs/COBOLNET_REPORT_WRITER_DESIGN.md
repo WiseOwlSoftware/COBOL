@@ -104,6 +104,15 @@ around the statement, and `CobolReport` calls the matching `ExceptionState.…Er
 `CobolFatalException` the statement guard catches for USE-F3 dispatch / RESUME. All four were catalogue rows
 with no raise site anywhere in `src` before kb/Work PB326.
 
+A MULTI-NAME INITIATE or TERMINATE is several statements, not one: §14.9.21.4 GR5 and §14.9.46.4 GR4 make it
+"the same as if a separate … statement had been executed for each report-name-1 in the same order", and both
+add "processing resumes at the next implicit … statement, if any" for a declarative that ends in RESUME … NEXT
+STATEMENT. `BindInitiate` / `BindTerminate` therefore build ONE `BoundInitiate` / `BoundTerminate` per
+report-name inside a `BoundImplicitSeries`, and the checked wrapper distributes over its members — so the
+statement guard a raise from `__RPT_n.Initiate()` unwinds to is THAT report's, and a resume lands on the next
+report rather than past the whole verb (kb/Work PB419; COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN D11, "The
+MULTI-OPERAND arm").
+
 **The GR4c trial-sum ambiguity (decided):** the 2023 wording "incremented by integer-2 for each *subsequent*
 LINE clause" is ambiguous for the FIRST relative line's integer-2. The NIST goldens + the legacy resolve it
 as **trial = LINE-COUNTER + Σ integer-2 over ALL relative lines** (RW103A overflows exactly at LC=25 with

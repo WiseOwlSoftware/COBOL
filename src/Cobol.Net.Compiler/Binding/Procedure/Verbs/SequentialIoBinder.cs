@@ -70,7 +70,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 opens.Add(new BoundOpenFile(file, mode, sharing, retry, noRewind, UnsupportedOrg(file, "OPEN")));
             }
         }
-        return new BoundOpen(opens);
+        // ISO §14.9.27.4 GR20 — one implicit OPEN statement per file-name, in source order, each carrying its own
+        // group's phrases (already true of BoundOpenFile), and "processing resumes at the next implicit OPEN
+        // statement, if any". The per-file __IoCheck hook is that landing for an I-O declarative (a -2 action
+        // falls into the next file's open); the series is what gives the same boundary to a condition that
+        // UNWINDS to the statement's EC guard, which otherwise abandons every remaining file (kb/Work PB419).
+        return BoundImplicitSeries.Of([.. opens.Select(f => (BoundStatement)new BoundOpen([f]))]);
     }
 
     public BoundStatement BindClose(Core.CloseStatementContext c)
@@ -108,11 +113,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 : BoundCloseKind.Normal;
             closes.Add((file, kind));
         }
-        return new BoundClose(closes)
-        {
-            // §14.9.6.4 GR5 (report files): the raise site is the emitter's; the CHECKING state is bind-time.
-            ReportNotTerminatedCheck = ctx.EcState.Turn.Enabled("EC-REPORT-NOT-TERMINATED", null, c.Start.Line),
-        };
+        // §14.9.6.4 GR5 (report files): the raise site is the emitter's; the CHECKING state is bind-time.
+        bool rnt = ctx.EcState.Turn.Enabled("EC-REPORT-NOT-TERMINATED", null, c.Start.Line);
+        // ISO §14.9.6.4 GR10 — one implicit CLOSE statement per file-name, in source order, with "processing
+        // resumes at the next implicit CLOSE statement, if any" as the resumption point (kb/Work PB419).
+        return BoundImplicitSeries.Of([.. closes.Select(f =>
+            (BoundStatement)new BoundClose([f]) { ReportNotTerminatedCheck = rnt })]);
     }
 
     /// <summary>⛔ THE ONE SITE for Annex A.4.13 — the declined <c>FILE file-name-1</c> alternative of

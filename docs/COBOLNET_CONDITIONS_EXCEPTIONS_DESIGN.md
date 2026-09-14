@@ -546,6 +546,37 @@ GR3 — GR2 does not reach them — so the emitted guard raises only below `Disp
 method-local `__RunUse` is all handlers, DeclCount 0, and emits the bare guard unchanged). Every arm is pinned by
 `FlowUseReentrancyTests` plus `conformance:2002/pb368_flow_use_reentrancy`.
 
+*The MULTI-OPERAND arm — the per-implicit-statement boundary (kb/Work PB419).* §14.9.33.4 GR2 a) qualifies its
+own answer: the implicit CONTINUE follows the end of the statement that was executing "unless general rules
+associated with the applicable statement specify otherwise". SEVEN statements specify otherwise, in identical
+words — CLOSE (§14.9.6.4 GR10), FREE (§14.9.15.4 GR2), INITIALIZE (§14.9.20.4 GR3), INITIATE (§14.9.21.4 GR5),
+OPEN (§14.9.27.4 GR20), TERMINATE (§14.9.46.4 GR4) and VALIDATE (§14.9.50.4 GR3): a multi-operand statement IS a
+separate statement per operand in source order, and "processing resumes at the next implicit … statement, if
+any". The resume protocol addresses STATEMENT SITES (the `-2` action falls out of the statement's own guard), so
+the boundary exists exactly where each operand owns a site. `BoundImplicitSeries` (Binding/Bound/BoundTree.cs) IS
+that and nothing more: each verb binder builds ONE bound node per operand, `EcBinder.EcWrap` DISTRIBUTES the
+`BoundEcChecked` wrapper over the members (one written statement ⇒ one `EcStatementInfo`, one >>TURN scope, one
+Table-12 name, one §15.30.3 r2 location), and `StatementEmitter` renders the members consecutively. `Of` returns
+the bare member for one operand — every one of the seven rules is conditioned on "more than one" — and with
+checking OFF no wrapper is built, so the emitted text is byte-identical to the pre-series flat run (the
+zero-scaffolding invariant, §18.16). A bind-time desugar (the UDF activation hoist, the OO property pre-op
+triple) goes through `BoundImplicitSeries.Rewrap`, which lands the hoist on the FIRST implicit statement rather
+than burying the series in a `BoundSequence` where `EcWrap` could no longer see it.
+
+The verbs whose raise reaches the declarative through a PER-OPERAND inline dispatch already had the boundary and
+keep it — OPEN/CLOSE through `EmitUseHook`'s `__IoCheck`/`__IoCheckEc` call at each file, FREE through its
+per-operand EC-STORAGE-NOT-ALLOC block: a `-2` there falls into the next operand, which is the next implicit
+statement. What the series adds for them is the same boundary for a condition that UNWINDS to the statement
+guard. INITIALIZE, INITIATE and TERMINATE had NO per-operand dispatch at all, and that is where the defect was
+measured: `INITIALIZE EN (BADX) A1 A2` with a declarative resuming NEXT STATEMENT left `A1` and `A2` at their
+declared values — a silent wrong answer (`tests/conformance/2002/pb419_initialize_resume_boundary.cob` pins all
+four legs; `ImplicitStatementSeriesDriftTests` re-derives the verb census FROM the spec so an eighth verb, or an
+implementation of the declined VALIDATE facility, cannot join without joining the mechanism).
+
+VALIDATE is the one member with no binder: Annex A.4.14 is owner-declined (docs/CONFORMANCE.md §4 item 3), so the
+grammar recognizes `validateFacilityStatement` only to name the refusal. The drift test asserts that premise
+rather than assuming it.
+
 ### D12. The exception-checking PERFORM (ISO §14.9.28 Format 3, COBOL-2023 — VCR row 79; introduction-gated at --std=85|2002|2014 with COBOLNET0900) is a PER-STATEMENT exception interceptor scoped to imperative-statement-1 — NOT a block C# try/catch. FULLY IMPLEMENTED (recognize/validate/diagnose/gate + the pc-RANGE runtime interceptor — the F3 PERFORM compiles and runs); a few sub-forms remain staged at COBOLNET0899 (open-mode WHEN operand, F3-in-a-method, cross-CALL "in range", `>>PROPAGATE`, exception-object raise in imp-1). EC-FLOW-USE is NO LONGER among them (kb/Work PB368): §14.9.49.4 GR2 raises through the ONE `EcDispatchExpr` funnel, which is `__EcPerform` in an F3 unit, so the condition is offered to the active frames (GR17) before the USE declaratives like every other name. The as-built implementation SSOT is `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §9.
 
 **Grammar (greenfield, `CobolControlFlow.g4`).** Formats 2 and 3 merge into ONE inline `performStatement` alternative (`PERFORM performInlineHead? statementBlock* performWhenPhrase* performWhenOther? performWhenCommon? performFinally? END-PERFORM`); ≥1 ordinary WHEN ⇒ Format 3 (enforced at bind, COBOLNET1597). A WHEN operand list's CONTINUATION is bounded by the `whenOperandAhead()` predicate (`CobolParserCoreBase.WhenOperandStopTokens`) so a body verb that is also a `cobolWord` (RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER, + GET/PARSE forward) is not annexed as a spurious exception-name; the merged inline arm precedes the out-of-line `PERFORM procedureName` so `PERFORM LOCATION imp… END-PERFORM` disambiguates on END-PERFORM. `LOCATION`/`FINALLY` are new-2023 reserved tokens: LOCATION stays a `cobolWord` (the continuity invariant — a paragraph named LOCATION / `PERFORM LOCATION` parses below 2023; it appears only in the head, so no operand-swallow); FINALLY is a pure reserved keyword (NOT a `cobolWord`) — as a trailing phrase keyword after imperative statements it would be swallowed by a preceding DISPLAY/MOVE operand list, so it is treated as reserved at every edition (a documented, negligible deviation — FINALLY was never a COBOL identifier idiom).

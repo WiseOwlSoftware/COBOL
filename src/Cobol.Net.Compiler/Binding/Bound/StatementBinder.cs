@@ -383,8 +383,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             data.Edition.Warning(DiagnosticCatalog.StatementNotImplemented,
                 $"{unsupported.Feature} — not implemented; reaching this statement aborts the run unit "
                 + "(COBOLNET_DESIGN §1.4)");
-        core = Udf.UdfWrapCalls(core, udfMark);
-        core = Oo.OoWrapPropertyOps(core, mark);
+        // ⛔ THROUGH Rewrap, NOT AROUND: a multi-operand CLOSE/FREE/INITIALIZE/INITIATE/OPEN/TERMINATE/VALIDATE
+        // binds to a BoundImplicitSeries — N separate statements per the seven identically-worded general rules
+        // (ISO §14.9.20.4 GR3 and siblings) — and EcWrap distributes the checked wrapper over its members to give
+        // each one the statement site a RESUME … NEXT STATEMENT resumes AFTER. A desugar wrap that enclosed the
+        // series in a BoundSequence would hide it from EcWrap and silently restore the PB419 defect for every
+        // such statement carrying a function-identifier or an object-property reference; Rewrap therefore lands
+        // the hoist on the FIRST implicit statement — the one whose operands it evaluates — and leaves the series
+        // outermost. A non-series statement goes through untouched.
+        core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, udfMark));
+        core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, mark));
         return Ec.EcWrap(s, core);
     }
 

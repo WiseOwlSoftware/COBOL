@@ -251,14 +251,20 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         // FREE (§14.9.15) is a COBOL-2002 introduction; edition gate moved to VersionConformancePass (Step 14b),
         // firing on the self-identifying BoundFree node.
-        var operands = new List<Place>();
+        // ISO §14.9.15.4 GR2 — one implicit FREE statement per data-name-1, in source order, and the resumption
+        // point after an exception is "the next implicit FREE statement, if any" for BOTH the nonfatal and the
+        // fatal arm ("If the exception condition is fatal and the applicable exception processing statements do
+        // not result in abnormal run unit termination, processing resumes at the next implicit FREE statement").
+        // The nonfatal EC-STORAGE-NOT-ALLOC arm already dispatches per operand at the operand's own site; the
+        // FATAL arm unwinds to the statement's EC guard, which is a per-operand site only because of the series.
+        var members = new List<BoundStatement>();
         foreach (var dref in fr.dataReference())
         {
             if (PtrResolvePointer(dref, "a FREE operand (ISO §14.9.15 SR1 — data-pointers only)") is not { } p)
                 return new BoundNop();
-            operands.Add(p);
+            members.Add(new BoundFree([p]));
         }
-        return new BoundFree(operands);
+        return BoundImplicitSeries.Of(members);
     }
 
     /// <summary>The SET UP/DOWN BY pointer arm (ISO §14.9.39 Format 10; the D-U7 category re-route pattern —
