@@ -14,10 +14,11 @@ using Core = CobolParserCore;
 internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). The searched operand names a table with INDEXED BY
-    /// (SR1); the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names another index OF
-    /// THE SAME TABLE, which then IS the search index (GR3 c) 1); VARYING a different table's index (GR3 c) 2) or
-    /// a data item (GR3 b) increments that item in step with the search index. SEARCH ALL (Format 2) is the binary-search wave (needs OCCURS KEY
-    /// capture); NOT AT END is a non-ISO extension — both fail loud by name.</summary>
+    /// (SR2); the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names another index OF THE
+    /// SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified in the INDEXED BY
+    /// phrase in the OCCURS clause associated with identifier-1, the index referenced by index-name-1 is the
+    /// search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b) increments that item
+    /// in step with the search index. NOT AT END is a non-ISO extension — it fails loud by name.</summary>
     public BoundStatement BindSearch(Core.SearchStatementContext s)
     {
         var drefs = s.dataReference();
@@ -26,7 +27,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
             return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
-            return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
+            return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37.3 SR2)");
         // A dynamic table NESTED under another table has no whole-table path (TablePath null), so the AT-END bound
         // (§8.5.1.9.1 current capacity) and the EnterSearch/ExitSearch bracket cannot be addressed by name — a
         // subscripted capacity path over the enclosing indices is a later increment. Reject rather than let
@@ -42,8 +43,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             var v = drefs[1];
             if (host.Expr.IndexFieldOf(v) is { } vix)
             {
-                if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR3 c) 1)
-                else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2)
+                if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR3 c) 1.)
+                else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2.)
             }
             else if (ctx.Refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR3 b)
             else return new BoundUnsupported($"SEARCH VARYING '{v.GetText()}'");
@@ -55,10 +56,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
             atEnd = host.BindBlocks(ae.statementBlock());
         }
-        // A WHEN condition re-evaluates on every scan pass (§14.9.37.4 GR1: "Any subscripting specified in a
-        // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated"; the repeat is
-        // GR4), so a user-function reference
-        // inside it activates per pass — the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
+        // A WHEN condition re-evaluates on every scan pass — §14.9.37.4 GR1, "Any subscripting specified in a WHEN
+        // phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The process
+        // is then repeated using the new index setting" — so a user-function reference inside it activates per
+        // pass: the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
         var whens = s.searchWhenClause()
             .Select(wc =>
             {
@@ -81,6 +82,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// §14.9.37.4 GR9 grants — "A non serial type of search operation MAY take place. The initial setting of the
     /// search index is ignored. Its setting is varied during the search operation in a manner specified by the
     /// implementor" — so a serial probe is one permitted technique, not a concession.
+    /// <para>⛔ The LATITUDE IS THE TECHNIQUE, NOT THE RANGE. The same rule's next sentence — "At no time is it
+    /// set to a value that exceeds the value that corresponds to the last element of the table or is less than
+    /// the value that corresponds to the first element of the table" — is a hard bound on whatever technique is
+    /// chosen, and it is why <c>ControlFlowEmitter.EmitAllScan</c> is a SEPARATE lowering from the Format-1
+    /// serial scan rather than the same loop under a flag (kb/Work PB447).</para>
     /// <para>⛔ THE CONFORMANCE ARGUMENT DOES NOT REST ON SYNTAX RULE 7, AND MUST NOT BE "RESTORED" TO (kb/Work
     /// PB445). SR7 requires only that the OCCURS clause CARRY a KEY phrase — a requirement on the data
     /// description entry, saying nothing about how the data is ordered at run time. The proposition a search
@@ -91,7 +97,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// occurs". A serial scan over unsequenced data therefore lands inside GR6 a)'s first alternative, which is
     /// an outcome the standard explicitly allows. The technique needs no syntax rule at all.</para>
     /// <para>SR7–SR13 are screened by <c>ctx.Validation.CheckSearchAllFormat2</c> (the ONE Format-2 operand model,
-    /// COBOLNET1964–1966); bound onto the same <see cref="BoundSearch"/> machinery with <c>FromStart</c>.</para></summary>
+    /// COBOLNET1964–1966); bound onto the same <see cref="BoundSearch"/> node with <c>IsAll</c>, which selects the
+    /// Format-2 lowering.</para></summary>
     public BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {
         string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
@@ -99,7 +106,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
             return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
-            return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
+            return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37.3 SR2)");
         if (table.IsDynamicTable && ctx.Refs.TablePath(table) is null)   // nested dynamic — see BindSearch (review #5, D9)
             return new BoundUnsupported($"SEARCH ALL of the dynamic-capacity table '{tableName}' nested under another "
                 + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
@@ -128,7 +135,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             })
             .ToList();
         return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,
-            AlsoVaried: null, atEnd, whens, FromStart: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
+            AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
             DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;
             // only an unsuccessful scan (incl. an empty table) sets EC-RANGE-SEARCH-NO-MATCH.

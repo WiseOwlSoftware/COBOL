@@ -1138,24 +1138,27 @@ public sealed record SetContentStore(Place Target, BoundMove? Store, IeeeSpecial
 /// (set-numeric-content-2014), not here.</summary>
 public sealed record BoundSetContent(IReadOnlyList<SetContentStore> Stores) : BoundStatement;
 
-// ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
+// ── SEARCH (ISO §14.9.37 — Format 1 serial, Format 2 SEARCH ALL) ───────────────────────────────────────────────
 
-/// <summary>One WHEN arm of a serial SEARCH: its condition and imperative statements (evaluated in source order;
-/// the first true arm runs and ends the search, ISO §14.9.37.4 GR4 — "If one of the conditions is satisfied
-/// upon its evaluation, the search operation is successful"; GR1 a) then terminates it).</summary>
+/// <summary>One WHEN arm of a SEARCH: its condition and imperative statements (evaluated in source order; the
+/// first true arm runs and ends the search — ISO §14.9.37.4 GR1 a), "the search operation is terminated
+/// immediately").</summary>
 public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<BoundStatement> Statements);
 
-/// <summary><c>SEARCH table [VARYING …] [AT END …] WHEN…</c> (ISO §14.9.37 Format 1): a serial scan from the
-/// CURRENT setting of <paramref name="IndexField"/> (the table's first index, or the VARYING same-table index).
-/// Each pass: past-end → AT END; else the WHEN conditions in order; none true → the index (and
-/// <paramref name="AlsoVaried"/>, a different-table index or data item, GR8) increments by 1.
-/// <paramref name="FromStart"/> marks <c>SEARCH ALL</c> (Format 2): the initial index setting is IGNORED (GR9 —
-/// the technique is implementor-specified; this implementation scans from occurrence 1, conformant for the
-/// key-ordered tables Format 2 requires).</summary>
+/// <summary><c>SEARCH table [VARYING …] [AT END …] WHEN…</c> (ISO §14.9.37): a scan of the table over
+/// <paramref name="IndexField"/> — the table's first index, or the VARYING same-table index that GR3 c) 1. makes
+/// the search index. Each probe tries the WHEN conditions in order; none true → the scan advances.
+/// <para><paramref name="IsAll"/> marks <c>SEARCH ALL</c> (Format 2), and the two formats are LOWERED SEPARATELY
+/// because GR4 and GR9 disagree about the index: Format 1 advances and then judges the new value, so an
+/// unsuccessful serial search ends one past the table and carries <paramref name="AlsoVaried"/> (a different
+/// table's index or a data item, GR3 b)/c)) with it; Format 2 ignores the initial setting and, per GR9, is "At no
+/// time … set to a value that exceeds the value that corresponds to the last element of the table", so its index
+/// never leaves the table (kb/Work PB447). Format 2 has no VARYING phrase, so
+/// <paramref name="AlsoVaried"/> is null there.</para></summary>
 public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
-    bool FromStart = false, Place? DependItem = null, string? DynTable = null,
+    bool IsAll = false, Place? DependItem = null, string? DynTable = null,
     bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────

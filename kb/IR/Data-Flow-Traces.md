@@ -76,7 +76,7 @@ numeric→edited MOVE does `CobolEdit` render a `string`; only at `WRITE` does t
 
 ```text
  ReferenceResolver: ENTRY(IDX) ─► MemberPlace(Table[IDX-1])   (1-based COBOL → [expr-1])
- SEARCH ALL TAB ─► BoundSearch(FromStart) ─► EmitSearchScan: IDX walks the CobolTable; WHEN key test
+ SEARCH ALL TAB ─► BoundSearch(IsAll) ─► EmitSearchScan: IDX walks the CobolTable; WHEN key test
    WHEN ENTRY-KEY(IDX)=X ─► BoundSearchWhen ─► CobolString.Compare / scaled-int compare
  MOVE ENTRY-VAL(IDX) TO RESULT ─► BoundMove ─► CobolNum/CobolString via Table[IDX-1] Place
 ```

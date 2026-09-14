@@ -428,17 +428,18 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     };
 
 
-    /// <summary>Serial SEARCH (ISO §14.9.37.4 GR1–GR4 — the ALL FORMATS and FORMAT 1 partitions; GR5–GR9 are
-    /// SEARCH ALL's): scan from the index's CURRENT setting; each pass tests past-end (→ AT END) then the WHEN
-    /// conditions in order (first true wins); none true → the index (and the in-step varied item, GR3 b) / c) 2)
-    /// increments by 1. Emitted as a LABEL loop — not a C# while — so a GO TO inside a
-    /// WHEN/AT END body (`__pc = k; break;`) breaks the DISPATCHER case, not a search loop (transfer-of-control
-    /// out of SEARCH per GR5c/6b); a body that runs to completion jumps past the search.</summary>
+    /// <summary>SEARCH (ISO §14.9.37.4) — ONE frame, TWO lowerings, because the standard writes the scan twice.
+    /// Format 1 is the serial search of GR3/GR4; Format 2 (SEARCH ALL) is the implementor-chosen search of GR9,
+    /// whose index is bounded where Format 1's is not (see <see cref="EmitSerialScan"/> / <see cref="EmitAllScan"/>
+    /// — kb/Work PB447). Emitted as a LABEL loop — not a C# while — so a GO TO inside a WHEN/AT END body
+    /// (`__pc = k; break;`) breaks the DISPATCHER case, not a search loop (GR1 a)/b)1.: "If the execution of a
+    /// procedure branching or conditional statement results in an explicit transfer of control, control is
+    /// transferred in accordance with the rules for that statement"); a body that runs to completion jumps past
+    /// the search.</summary>
     public void EmitSearch(BoundSearch s)
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextSearch();
-        if (s.FromStart) w.Line($"{s.IndexField} = 1;");   // SEARCH ALL ignores the initial setting (GR9)
         // An OCCURS DYNAMIC table brackets the scan with EnterSearch/ExitSearch so a SET Format 14 on that same
         // table WHILE searching raises EC-FLOW-SEARCH (ISO §14.9.39 GR31; data-model D9). A try/finally is required
         // because the WHEN/AT-END arms `goto __searchEnd` OUT of the scan — ExitSearch must run on every exit path.
@@ -451,17 +452,21 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         else EmitSearchScan(s, id);
     }
 
-    /// <summary>The SEARCH scan loop (ISO §14.9.37.4). An INITIAL-index guard runs BEFORE the loop: for a serial
-    /// SEARCH a starting index &lt; 1 or &gt; the highest permissible occurrence is unsuccessful and, under checking,
-    /// sets EC-RANGE-SEARCH-INDEX (GR4); for SEARCH ALL (the index is already forced to 1, GR9) only an empty table
-    /// is unsuccessful and sets EC-RANGE-SEARCH-NO-MATCH. The loop then tries each WHEN in order; none true → the
-    /// index (and the GR3 b) / c) 2 VARYING item) advance and an advance-past-end check sets EC-RANGE-SEARCH-NO-MATCH (GR6/GR9).
-    /// Both failure sites route to ONE shared AT-END emission. The <c>&lt; 1</c> serial guard is emitted
-    /// UNCONDITIONALLY (a correctness fix — the pre-slice loop-top <c>&gt; bound</c> check let a zero/negative index
-    /// read a phantom scratch occurrence); only the EC <c>Set</c> calls are checking-gated. The AT-END bound is the
-    /// table's MAXIMUM occurrence count — or an occurs-depending table's CURRENT count, or (D9) a dynamic table's
-    /// current <c>Capacity</c> (§13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can wrap it in an
-    /// EnterSearch/ExitSearch try/finally.</summary>
+    /// <summary>The SEARCH statement's shared frame (ISO §14.9.37.4): the scan BOUND, the EC-raise plumbing, the
+    /// per-format scan, and the ONE AT-END emission every unsuccessful exit funnels into (GR1 b) — an ALL FORMATS
+    /// rule, which is why it is shared).
+    /// <para>⛔ THE SCAN ITSELF IS NOT SHARED, AND MUST NOT BE RE-MERGED (kb/Work PB447). The standard writes the
+    /// search twice — GR4 for Format 1 and GR9 for Format 2 — and the two texts DISAGREE about where the search
+    /// index may be left: GR4 forms the new value first and repeats "unless the new value for the search index
+    /// corresponds to a table element outside the permissible range of occurrence values", so an unsuccessful
+    /// serial search ends with the index one past the table, while GR9 says of the Format-2 index "At no time is
+    /// it set to a value that exceeds the value that corresponds to the last element of the table or is less than
+    /// the value that corresponds to the first element of the table". One advance-then-test loop serving both gave
+    /// SEARCH ALL the overshoot only Format 1 is licensed for, and the AT END phrase — part of this statement's own
+    /// execution (GR1 b) 1.) — could then read outside the table through the search index.</para>
+    /// <para>The bound is the table's MAXIMUM occurrence count — or an occurs-depending table's CURRENT count, or
+    /// (D9) a dynamic table's current <c>Capacity</c> (§13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can
+    /// wrap it in an EnterSearch/ExitSearch try/finally.</para></summary>
     private void EmitSearchScan(BoundSearch s, int id)
     {
         var w = ctx.Writer;
@@ -477,41 +482,25 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         bool dispatchEc = s.AtEnd is null && (s.CheckSearchIndex || s.CheckSearchNoMatch);
         string ecVar = $"__searchEc{id}";
         if (dispatchEc) w.Line($"string {ecVar} = null;");
-        void RaiseRange(string ecName)
+        // ⛔ ONE EMISSION OF "THE SEARCH OPERATION IS UNSUCCESSFUL" — the test, the exception condition set under
+        // its OWN checking gate, and the transfer to the AT-END funnel (GR1 b), an ALL FORMATS rule) travel
+        // together. Each format's rule reaches it twice, with a different condition and a different EC, and
+        // writing the three steps out per site is how one of them comes to be forgotten at a fifth.
+        void Unsuccessful(string when, string ecName, bool checking)
         {
-            w.Line($"ExceptionState.Set(\"{ecName}\", false);");
-            if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
-        }
-        // (1) Initial-index guard (§14.9.37.4 GR4) — before the loop label.
-        string initGuard = s.FromStart ? $"{s.IndexField} > {bound}"
-                                        : $"{s.IndexField} < 1 || {s.IndexField} > {bound}";
-        using (w.Block($"if ({initGuard})"))
-        {
-            if (s.FromStart)
+            using (w.Block($"if ({when})"))
             {
-                if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");
+                if (checking)
+                {
+                    w.Line($"ExceptionState.Set(\"{ecName}\", false);");
+                    if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
+                }
+                w.Line($"goto __searchAtEnd{id};");
             }
-            else if (s.CheckSearchIndex)
-                RaiseRange("EC-RANGE-SEARCH-INDEX");
-            w.Line($"goto __searchAtEnd{id};");
         }
-        w.Line($"__search{id}:");
-        // (2) the WHEN conditions, first true wins (a body that completes jumps past the search).
-        foreach (var when in s.Whens)
-            using (w.Block($"if ({cond.Render(when.Condition)})"))
-            {
-                if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
-            }
-        // (3) advance the index (+ the GR3 b) / c) 2 varied item); an advance past the end is unsuccessful → NO-MATCH.
-        w.Line($"{s.IndexField} += 1;");
-        if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING");
-        using (w.Block($"if ({s.IndexField} > {bound})"))
-        {
-            if (s.CheckSearchNoMatch) RaiseRange("EC-RANGE-SEARCH-NO-MATCH");
-            w.Line($"goto __searchAtEnd{id};");
-        }
-        w.Line($"goto __search{id};");
-        // (4) the shared AT-END emission — both failure sites reach it (emitted ONCE), then the search-end label.
+        if (s.IsAll) EmitAllScan(s, id, bound, Unsuccessful);
+        else EmitSerialScan(s, id, bound, Unsuccessful);
+        // the shared AT-END emission — every unsuccessful exit reaches it (emitted ONCE), then the search-end label.
         w.Line($"__searchAtEnd{id}: ;");
         // GR1b2: AT END absent + checking on → dispatch the raised range EC to an applicable USE declarative / F3
         // WHEN; >=0 = RESUME AT a procedure (the dispatcher transfer idiom — the `break` it used to emit was
@@ -526,6 +515,91 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
         if (!terminated) w.Line($"goto __searchEnd{id};");
         w.Line($"__searchEnd{id}: ;");
+    }
+
+    /// <summary>FORMAT 1 — the serial search, ISO §14.9.37.4 GR4, with the GR3 index/VARYING augmentation.
+    /// <list type="number">
+    /// <item>The INITIAL setting decides admission: "If, at the start of the execution, the search index contains
+    /// a value that corresponds to an occurrence number that is negative, zero, or greater than the highest
+    /// permissible occurrence number for identifier-1, the search operation is unsuccessful, the
+    /// EC-RANGE-SEARCH-INDEX exception condition is set to exist". The <c>&lt; 1</c> half is emitted
+    /// UNCONDITIONALLY (a zero/negative index would otherwise read a phantom scratch occurrence); only the EC
+    /// <c>Set</c> is checking-gated.</item>
+    /// <item>None of the conditions satisfied → "the search index is incremented by one occurrence number", and
+    /// with it (GR3 b)/c)) the VARYING operand: an index data item "incremented by the same amount as, and at the
+    /// same time as, the search index", an integer data item "incremented by the value one at the same time".
+    /// GR3 c) 1. — VARYING an index OF THIS TABLE — makes that index the search index itself, so it is the
+    /// <c>IndexField</c> here and no separate augment exists.</item>
+    /// <item>ADVANCE-THEN-TEST is the rule's own order and is licensed HERE ONLY: "The process is then repeated
+    /// using the new index setting unless the new value for the search index corresponds to a table element
+    /// outside the permissible range of occurrence values, in which case the search operation is unsuccessful,
+    /// the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist". The new value is formed before it is
+    /// judged, so an unsuccessful serial search leaves the index (and the in-step item) one past the table — a
+    /// state GR4 contemplates in as many words. ⛔ Format 2 forbids exactly this; see
+    /// <see cref="EmitAllScan"/>.</item></list></summary>
+    private void EmitSerialScan(BoundSearch s, int id, string bound, Action<string, string, bool> unsuccessful)
+    {
+        var w = ctx.Writer;
+        unsuccessful($"{s.IndexField} < 1 || {s.IndexField} > {bound}", "EC-RANGE-SEARCH-INDEX", s.CheckSearchIndex);
+        w.Line($"__search{id}:");
+        EmitSearchWhens(s, id);
+        w.Line($"{s.IndexField} += 1;");
+        if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0), "SEARCH VARYING");
+        unsuccessful($"{s.IndexField} > {bound}", "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);
+        w.Line($"goto __search{id};");
+    }
+
+    /// <summary>FORMAT 2 (<c>SEARCH ALL</c>) — ISO §14.9.37.4 GR9, the search whose index the standard BOUNDS.
+    /// <list type="number">
+    /// <item>"The initial setting of the search index is ignored" — the scan's first probe is occurrence 1
+    /// whatever the program left there, so a SET before the statement cannot change the outcome.</item>
+    /// <item>"Its setting is varied during the search operation in a manner specified by the implementor" — the
+    /// TECHNIQUE is latitude (GR9 opens "A non serial type of search operation may take place", a permission, not
+    /// a requirement), and this implementation probes the occurrences in order. The technique rests on no syntax
+    /// rule and on no ordering guarantee: an unsequenced table is GR6's case, and a scan that finds a present
+    /// element lands inside GR6 a) 1. (kb/Work PB445, <c>SearchBinder.BindSearchAll</c>).</item>
+    /// <item>⛔ THE RANGE BOUND IS NOT LATITUDE. "At no time is it set to a value that exceeds the value that
+    /// corresponds to the last element of the table or is less than the value that corresponds to the first
+    /// element of the table" — unconditional, and binding on the unsuccessful exit too, since GR1 b) 1. makes the
+    /// AT END phrase part of this statement's execution and a subscript written there reads through the search
+    /// index. So the bound is tested BEFORE the advance: the index moves only onto an occurrence that exists.
+    /// GR9's later "the final setting of the search index is undefined" forbids a PROGRAM to rely on which
+    /// in-range occurrence is left — it does not license leaving the table. (kb/Work PB447: an
+    /// advance-then-test loop shared with Format 1 parked a five-occurrence table's index at 6, and
+    /// <c>K(KX)</c> under AT END then read storage outside the table.)</item>
+    /// <item>An EMPTY table (an occurs-depending or DYNAMIC current count of 0) has no permissible setting at all,
+    /// so no probe is made: the search is unsuccessful at once with the index at 1, and GR9's bound — worded over
+    /// a first and a last element — has no occurrence to name.</item></list>
+    /// Format 2 has no VARYING phrase (§14.9.37.2 Format 2), so <c>AlsoVaried</c> is null by construction and
+    /// nothing is varied in step; Format 2 also cannot raise EC-RANGE-SEARCH-INDEX, because GR9 leaves it no
+    /// initial setting to reject.</summary>
+    private void EmitAllScan(BoundSearch s, int id, string bound, Action<string, string, bool> unsuccessful)
+    {
+        var w = ctx.Writer;
+        w.Line($"{s.IndexField} = 1;");
+        unsuccessful($"{s.IndexField} > {bound}", "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);
+        w.Line($"__search{id}:");
+        EmitSearchWhens(s, id);
+        unsuccessful($"{s.IndexField} >= {bound}", "EC-RANGE-SEARCH-NO-MATCH", s.CheckSearchNoMatch);
+        w.Line($"{s.IndexField} += 1;");
+        w.Line($"goto __search{id};");
+    }
+
+    /// <summary>The WHEN arms of one probe — the ALL FORMATS half of the statement, so ONE emission serves both
+    /// lowerings. ISO §14.9.37.4 GR1: the SEARCH statement "tests conditions specified in WHEN phrases … to
+    /// determine whether a table element satisfies these conditions", and "Any subscripting specified in a WHEN
+    /// phrase is evaluated each time the conditions in that WHEN phrase are evaluated" — hence the conditions are
+    /// rendered INSIDE the loop, once per probe. First true wins and the search is successful (GR1 a): the index
+    /// "remains set at the occurrence number that caused a WHEN condition to be satisfied", which is exactly the
+    /// value the loop holds, and a body that runs to completion jumps to the end of the SEARCH statement.</summary>
+    private void EmitSearchWhens(BoundSearch s, int id)
+    {
+        var w = ctx.Writer;
+        foreach (var when in s.Whens)
+            using (w.Block($"if ({cond.Render(when.Condition)})"))
+            {
+                if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
+            }
     }
 
 }

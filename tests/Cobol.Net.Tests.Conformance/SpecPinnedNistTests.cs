@@ -21,9 +21,9 @@ namespace CobolNet.Tests.Conformance;
 public sealed class SpecPinnedNistTests
 {
     /// <summary>NC236A: the golden marks SCH-TEST-F1-8 / F1-10 "TEST DELETED" — a legacy ARTIFACT: the legacy's
-    /// serial SEARCH with <c>VARYING index-of-ANOTHER-table</c> (ISO §14.9.37.4 GR3 c) 2) falls through to the
-    /// CCVS DE-LETE paragraph instead of executing the scan (verified by running the legacy directly, DEVLOG 533).
-    /// Per GR3 c) 2 the scan uses the searched table's own first index and varies the other index in step — both
+    /// serial SEARCH with <c>VARYING index-of-ANOTHER-table</c> (ISO §14.9.37.4 GR3 c) 2.) falls through to the CCVS
+    /// DE-LETE paragraph instead of executing the scan (verified by running the legacy directly, DEVLOG 533).
+    /// Per GR3 c) 2. the scan uses the searched table's own first index and varies the other index in step — both
     /// tests then PASS: the conforming run executes 010 OF 010 with nothing deleted.</summary>
     [Fact]
     public void NC236A_SearchVaryingOtherTableIndex_ExecutesAllTests()

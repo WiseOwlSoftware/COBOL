@@ -134,7 +134,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 
 | IR Node | Purpose | Related Spec Construct (ISO §) | Semantic Rule | Compiler Phase | Diagram |
 |---|---|---|---|---|---|
-| `BoundSearch` | Serial / binary SEARCH over table | §14.9.37 | GR5 first-true WHEN; FromStart = SEARCH ALL | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundSearch` | Serial / binary SEARCH over table | §14.9.37 | GR1 a) first-true WHEN; IsAll = SEARCH ALL (GR9 lowering) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSearchWhen` | One SEARCH WHEN arm | §14.9.37.4 GR5 | source-order; first true ends search | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 
 ## String ops

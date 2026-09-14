@@ -5,10 +5,12 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// Serial SEARCH (ISO §14.9.37 Format 1, §14.9.37.4 GR1–GR4): scan from the index's CURRENT setting, AT END on past-end,
+/// Serial SEARCH (ISO §14.9.37 Format 1, §14.9.37.4 GR3–GR4): scan from the index's CURRENT setting, AT END on past-end,
 /// WHEN arms in order (first true wins), VARYING a same-table index / other item in step, and GO TO out of a
-/// WHEN body. Pinned to the legacy oracle (NIST-85 green across the table series). SEARCH ALL is the
-/// binary-search wave (OCCURS KEY capture).
+/// WHEN body. Pinned to the legacy oracle (NIST-85 green across the table series). SEARCH ALL (Format 2) is
+/// implemented and has its own spec-derived suite — <see cref="SearchIndexRangeSpecTests"/> for the GR9 index
+/// range and this class's Format-1 counterpart, <c>SearchAllFormat2RuleCoverageDriftTests</c> for its syntax
+/// rules; nothing about Format 2 is pinned to an oracle here.
 /// </summary>
 public sealed class SearchDifferentialTests
 {
