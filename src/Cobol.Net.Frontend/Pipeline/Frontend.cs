@@ -245,8 +245,14 @@ public sealed class Frontend
             CobolWords = CobolWordsMap,
         };
         parser.RemoveErrorListeners();
-        parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
 
+        // ⛔ THE SLL PASS IS SPECULATIVE AND MUST NOT DIAGNOSE (kb/Work PB396). SLL is an APPROXIMATION of LL:
+        // it can fail on input full LL prediction accepts, and when it fails the LL pass below re-derives every
+        // diagnostic from token 0 — so a listener attached across both passes reported each real syntax error
+        // TWICE (once with ANTLR's own wording from BailErrorStrategy's inherited ReportError, once with
+        // CobolErrorStrategy's), and reported a FALSE error whenever SLL was merely the weaker predictor. The
+        // listener is therefore attached to the AUTHORITATIVE pass only. Measured on `IF X = 1 END-IF`: two
+        // errors at the same (8,12) before, one after.
         CobolParserCore.CompilationUnitContext tree;
         try
         {
@@ -264,6 +270,7 @@ public sealed class Frontend
             parser.Reset();
             parser.Interpreter.PredictionMode = PredictionMode.LL;
             parser.ErrorHandler = new CobolErrorStrategy();
+            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
             tree = parser.compilationUnit();
         }
 

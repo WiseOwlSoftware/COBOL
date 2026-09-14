@@ -30,7 +30,15 @@ internal sealed class EvaluateEmitter(EmitContext ctx, ConditionRenderer cond)
         }
         if (ev.Other is { } other)
         {
-            if (first) { Statements.EmitStatementList(other); return; }   // only WHEN OTHER — unconditional
+            // ⛔ THE "ONLY WHEN OTHER" ARM IS NOW UNREACHABLE FROM SOURCE, AND IT IS NOT WHERE THE BUG WAS
+            // (kb/Work PB396). §14.9.13.2's outer `{ … } …` group is unbracketed, so an EVALUATE has at least
+            // one WHEN phrase with its imperative-statement-1 and the grammar enforces it — `Whens` cannot be
+            // empty for any statement the parser produces. The arm stays because emitting `else` with no `if`
+            // would be invalid C#, and it is CORRECT rather than merely tolerated: the loss this shape used to
+            // cause — the selection subject never evaluated, taking a compile-time COBOLNET1639 and two fatal
+            // exception conditions with it — was the BINDER's lazy subject slot, not this shortcut, and GR3's
+            // evaluation is now a bind-time PRE-op ahead of the whole chain (EvaluateBinder.Bind).
+            if (first) { Statements.EmitStatementList(other); return; }
             using (w.Block("else"))
                 Statements.EmitStatementList(other);
         }

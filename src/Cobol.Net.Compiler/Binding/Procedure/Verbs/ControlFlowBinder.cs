@@ -389,7 +389,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             // bound first and outside the frame: it is the PERFORM's own operand, not part of its body.
             var control = BindPerformControl(p);
             using var inlineFrame = ctx.EnterConstruct(EnclosingConstruct.InlinePerform);
-            return new BoundInlinePerform(control, host.BindBlocks(p.statementBlock()));
+            return new BoundInlinePerform(control, host.BindBlocks([p.statementBlock()]));
         }
 
         // Out-of-line: the resolved procedure range — a paragraph, a SECTION (its whole paragraph range, ISO

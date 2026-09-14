@@ -1121,7 +1121,9 @@
   "pb443-search-identifier-1-not-a-table",
   "pb443-search-identifier-1-no-indexed-phrase",
   "pb443-search-identifier-1-ambiguous-unqualified",
-  "pb443-search-all-condition-name-skips-preceding-key"
+  "pb443-search-all-condition-name-skips-preceding-key",
+  "pb396-evaluate-when-other-repeated",
+  "pb396-if-empty-consequent"
  ],
  "pending": []
 }

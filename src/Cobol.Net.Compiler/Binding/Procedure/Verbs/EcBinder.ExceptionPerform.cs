@@ -59,7 +59,7 @@ internal sealed partial class EcBinder
         // imp-1's line ≈ the PERFORM statement's line (imp-1's statements are at ≥ this line, pre-PERFORM
         // directives at < it) — the GR14 synthetic is placed here so a pre-PERFORM >>TURN OFF loses to it.
         ctx.EcState.Turn = savedTurn.WithImplicitEnable(overlay, withLocation, p.Start.Line);
-        var imp1 = host.BindBlocks(p.statementBlock());
+        var imp1 = host.BindBlocks([p.statementBlock()]);
         ctx.EcState.Turn = savedTurn;
 
         CheckCrossStatementBans(p);   // parse-subtree walks — order-independent; run once for both paths below
@@ -93,16 +93,16 @@ internal sealed partial class EcBinder
         var whens = new List<BoundExceptionMatch>();
         for (int i = 0; i < whenPhrases.Length; i++)
         {
-            int pc = BindHandler(whenPhrases[i].statementBlock(), performId, line);
+            int pc = BindHandler([whenPhrases[i].statementBlock()], performId, line);
             whens.Add(new BoundExceptionMatch(headers[i].Mode, headers[i].Ops, pc));
         }
-        int? otherPc = p.performWhenOther() is { } o ? BindHandler(o.statementBlock(), performId, line) : null;
-        int? commonPc = p.performWhenCommon() is { } c ? BindHandler(c.statementBlock(), performId, line) : null;
+        int? otherPc = p.performWhenOther() is { } o ? BindHandler([o.statementBlock()], performId, line) : null;
+        int? commonPc = p.performWhenCommon() is { } c ? BindHandler([c.statementBlock()], performId, line) : null;
         IReadOnlyList<BoundStatement>? final = null;
         if (p.performFinally() is { } f)
         {
             using var finallyFrame = ctx.EnterConstruct(EnclosingConstruct.PerformFinally);
-            final = host.BindBlocks(f.statementBlock());
+            final = host.BindBlocks([f.statementBlock()]);
         }
         ctx.EcState.Turn = savedTurn;   // GR14's implicit POP ALL precedes END-PERFORM; GR22 governs from here
 
@@ -126,9 +126,9 @@ internal sealed partial class EcBinder
     /// PERFORM whose handlers never EXIT-PERFORM emits no catch.</summary>
     private static bool HandlerBodiesContainExitPerform(Core.PerformStatementContext p)
     {
-        var bodies = p.performWhenPhrase().SelectMany(w => (IEnumerable<IParseTree>)w.statementBlock())
-            .Concat(p.performWhenOther() is { } o ? o.statementBlock() : [])
-            .Concat(p.performWhenCommon() is { } c ? c.statementBlock() : []);
+        var bodies = p.performWhenPhrase().Select(w => (IParseTree)w.statementBlock())
+            .Concat(p.performWhenOther() is { } o ? [o.statementBlock()] : (IParseTree[])[])
+            .Concat(p.performWhenCommon() is { } c ? [c.statementBlock()] : (IParseTree[])[]);
         return bodies.Any(ExitPerformOfThisPerform);
     }
 
@@ -251,13 +251,13 @@ internal sealed partial class EcBinder
     private void CheckCrossStatementBans(Core.PerformStatementContext p)
     {
         // Region content (statement-block subtrees).
-        var regionA = p.statementBlock();
-        var whenBodies = p.performWhenPhrase().SelectMany(w => (IEnumerable<IParseTree>)w.statementBlock())
-            .Concat(p.performWhenOther() is { } o ? o.statementBlock() : [])
-            .Concat(p.performWhenCommon() is { } c ? c.statementBlock() : []).ToList();   // region C
-        var finallyBody = p.performFinally() is { } f ? f.statementBlock() : [];
+        var regionA = new IParseTree[] { p.statementBlock() };
+        var whenBodies = p.performWhenPhrase().Select(w => (IParseTree)w.statementBlock())
+            .Concat(p.performWhenOther() is { } o ? [o.statementBlock()] : (IParseTree[])[])
+            .Concat(p.performWhenCommon() is { } c ? [c.statementBlock()] : (IParseTree[])[]).ToList();   // region C
+        var finallyBody = p.performFinally() is { } f ? new IParseTree[] { f.statementBlock() } : [];
         var regionD = whenBodies.Concat(finallyBody).ToList();
-        var regionB = ((IEnumerable<IParseTree>)regionA).Concat(regionD).ToList();
+        var regionB = regionA.Concat(regionD).ToList();
 
         // ── Region B (whole PERFORM) ──
         // ⛔ XS-EXIT-PERFORM-CYCLE (COBOLNET1604, §14.9.14.3 SR8 sentence 2) IS NO LONGER CHECKED HERE, and its

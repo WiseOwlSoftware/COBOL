@@ -12,6 +12,15 @@
       *> GR13 e) - B walks 1,2,3 and resets to 1 as A is augmented; the statement ends with A=4, B=1.
       *> GR5     - an empty set has no first statement, so no transfer takes place and TAIL-SEC never runs;
       *>            GR8 (the set executed once) and GR9 (three times) both leave N=0.
+      *> ⛔ THE INLINE TWIN'S BODY IS `CONTINUE`, AND THAT IS THE RULE, NOT A CONCESSION (kb/Work PB396).
+      *> 14.9.28.2 Format 2 prints `PERFORM [ times|until|varying ] imperative-statement-1 END-PERFORM`
+      *> with imperative-statement-1 UNBRACKETED, and 5.2.6.2 gives the omission licence to BRACKETED
+      *> portions only — so the standard offers NO inline spelling of an empty imperative-statement-1.
+      *> The EMPTY procedure RANGE this program is about is an out-of-line fact (14.4.2 lets a section
+      *> consist of zero paragraphs); its GR4 inline twin is a body that DOES NOTHING, which 14.9.9 spells
+      *> CONTINUE — "a no operation" — so the loop's induction-variable behaviour, and this program's
+      *> expected output, are unchanged. Written empty, the statement parsed only because the grammar
+      *> said `statementBlock*`; it is now COBOLNET2072.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB440EMPTY14.
        DATA DIVISION.
@@ -29,6 +38,7 @@
                      AFTER B FROM 1 BY 1 UNTIL B > 3
            PERFORM VARYING C FROM 1 BY 1 UNTIL C > 3
                      AFTER D FROM 1 BY 1 UNTIL D > 3
+               CONTINUE
            END-PERFORM
            DISPLAY "OUTOFLINE A=" A " B=" B
            DISPLAY "INLINE    C=" C " D=" D

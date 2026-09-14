@@ -91,7 +91,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             {
                 int udfMark = host.Udf.PendingCount;
                 var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(wc.condition()), udfMark);
-                return new BoundSearchWhen(cond, host.BindBlocks(wc.statementBlock()));
+                return new BoundSearchWhen(cond, host.BindBlocks([wc.statementBlock()]));
             })
             .ToList();
         return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
@@ -149,7 +149,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             {
                 int udfMark = host.Udf.PendingCount;
                 var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(wc.condition()), udfMark);
-                return new BoundSearchWhen(cond, host.BindBlocks(wc.statementBlock()));
+                return new BoundSearchWhen(cond, host.BindBlocks([wc.statementBlock()]));
             })
             .ToList();
         return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,

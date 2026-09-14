@@ -31,18 +31,25 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // per selection PAIR, and therefore per WHEN — so the subject EXPRESSION was emitted once per relational
         // use, twice for a THRU arm. A slot binds it once and every pair reads the same node.
         var slots = new SubjectSlot[subjects.Length];
-        for (int i = 0; i < subjects.Length; i++) slots[i] = new SubjectSlot(this, subjects[i], SubjectUses(ev, i));
+        for (int i = 0; i < subjects.Length; i++) slots[i] = new SubjectSlot(this, subjects[i], SubjectUsageOf(ev, i));
+        // ⛔ GR3 IS AN OBLIGATION OF THE STATEMENT, NOT OF WHICHEVER ARM HAPPENS TO READ THE SUBJECT (kb/Work
+        // PB396). "At the beginning of the execution of the EVALUATE statement, each selection subject is
+        // evaluated and assigned a value, a range of values, or a truth value" (ISO §14.9.13.4 GR3). The slots
+        // were bound LAZILY, from inside the pair binder, so a statement no arm read the subject in never
+        // evaluated it: `WHEN ANY` against every subject — and, before the §14.9.13.2 grammar repair, an
+        // EVALUATE whose only clause was WHEN OTHER — compiled the subject away entirely. Measured: an
+        // undefined selection subject lost its COBOLNET1639 (§8.4.2.1), `EVALUATE R (9)` over `OCCURS 3` lost
+        // EC-BOUND-SUBSCRIPT, and `EVALUATE A / B` with B = 0 lost EC-SIZE-ZERO-DIVIDE — all three fatal on the
+        // identical program with one dead WHEN arm added. Touching every slot HERE, before any arm binds, both
+        // resolves the operand and — through SubjectUsage.NeedsIntermediate, which is true for every shape but
+        // "one use, in the first arm" — registers the evaluation as the statement's PRE-op, which is the
+        // generated-code position of "the beginning of the execution".
+        foreach (var slot in slots) _ = slot.Value;
         var whens = new List<BoundEvaluateWhen>();
-        List<BoundStatement>? other = null;
 
         foreach (var clause in ev.evaluateWhenClause())
         {
-            var body = host.BindBlocks(clause.statementBlock());
-            if (clause.OTHER() is not null)
-            {
-                other = body;   // WHEN OTHER — the else tail (SR: it must be last; later clauses would be dead)
-                continue;
-            }
+            var body = host.BindBlocks([clause.statementBlock()]);
             // Consecutive WHEN phrases share the body: OR their per-phrase matches (§14.9.13 — the 1985 form).
             var phraseMatches = new List<BoundCondition>();
             foreach (var phrase in clause.evaluateWhenPhrase())
@@ -60,6 +67,12 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             BoundCondition match = phraseMatches.Count == 1 ? phraseMatches[0] : new BoundLogical("||", phraseMatches);
             whens.Add(new BoundEvaluateWhen(match, body));
         }
+        // `[ WHEN OTHER imperative-statement-2 ]` — ONE optional phrase, AFTER the `{ … } …` repetition
+        // (§14.9.13.2 + §5.2.7), so the grammar now admits it once and only last. The rule used to live in a
+        // COMMENT on an `other = body` assignment inside this loop, which meant a second WHEN OTHER overwrote
+        // the first and the first's imperative-statement-2 became dead source, never emitted and never
+        // reported; §14.9.13.4 GR5 b) is written for exactly one such phrase and says nothing about two.
+        var other = ev.evaluateWhenOther() is { } o ? host.BindBlocks([o.statementBlock()]) : null;
         return new BoundEvaluate(whens, other);
     }
 
@@ -505,7 +518,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// a condition-name / class-test / TRUE-FALSE subject never runs a value bind (which would be a symbol
     /// lookup no rule asks for, and a diagnostic no rule licenses).</para>
     /// </summary>
-    private sealed class SubjectSlot(EvaluateBinder owner, Core.EvaluateSubjectContext node, int uses)
+    private sealed class SubjectSlot(EvaluateBinder owner, Core.EvaluateSubjectContext node, SubjectUsage usage)
     {
         private BareOperandAnalysis _bare;
         private bool _bareBound;
@@ -515,10 +528,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         /// <summary>The subject's parse node — the classifier and the condition path still read it.</summary>
         public Core.EvaluateSubjectContext Node => node;
 
-        /// <summary>How many relational USES of this subject the WHEN phrases contain (a range counts twice) —
-        /// the §14.9.25.4 GR1 argument applied to GR3: at ONE use the single render already IS one evaluation,
-        /// so the intermediate result item is unobservable and is not created. EVALUATE is a hot verb.</summary>
-        public int Uses => uses;
+        /// <summary>Whether GR3's evaluation needs the implementor's intermediate result item — the
+        /// §14.9.25.4 GR1 argument applied to GR3: at ONE use IN THE FIRST ARM the single render already IS the
+        /// one evaluation, so no intermediate is created. EVALUATE is a hot verb. Every other shape (no use at
+        /// all, a use only in a later arm, more than one use) needs the store. See <see cref="SubjectUsage"/>.</summary>
+        public bool NeedsIntermediate => usage.NeedsIntermediate;
 
         /// <summary>The subject's §14.9.13.3 SR6 bare-operand resolution, made once for the statement.</summary>
         public BareOperandAnalysis Bare
@@ -565,26 +579,53 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (subject.classCondition() is not null || subject.valueOperand() is not { } vo) return null;
         if (slot.Bare.Form is BareOperandForm.ConditionName or BareOperandForm.SwitchStatus) return null;
         var value = BindValueOperand(vo);
-        return slot.Uses > 1 && host.SendingValue.Materialize(value, "evaluate") is { } frozen
+        // ⛔ NeedsIntermediate, NOT `Uses > 1` (kb/Work PB396). The §14.9.25.4 GR1 argument this slot already
+        // carried — at ONE use the single render IS the one evaluation, so nothing is observable and no
+        // intermediate is created — holds only when that use is the FIRST arm's. At ZERO uses (every object
+        // paired with this subject is ANY) it has no premise at all: nothing renders the subject, so without
+        // the intermediate GR3's evaluation never happens. And at one use in a LATER arm the render sits in an
+        // `else if` an earlier arm can skip, which is not "the beginning of the execution of the EVALUATE
+        // statement". Materializing gives it the one PRE-op store §14.9.13.4 GR3 requires, at the head.
+        return slot.NeedsIntermediate && host.SendingValue.Materialize(value, "evaluate") is { } frozen
             ? new BoundFieldOperand(frozen)
             : value;
     }
 
-    /// <summary>How many relational uses of selection subject <paramref name="index"/> the statement's WHEN
-    /// phrases contain — GR4 a) 5.'s range form pairs the subject against BOTH bounds, so it counts twice.
-    /// (<c>WHEN OTHER</c> pairs with nothing; <c>ANY</c> pairs but reads no value, and counting it as a use
-    /// only over-materializes, never under-.)</summary>
-    private static int SubjectUses(Core.EvaluateStatementContext ev, int index)
+    /// <summary>How the statement's WHEN phrases USE selection subject <c>index</c> — the two facts that
+    /// together decide whether §14.9.13.4 GR3's evaluation needs the implementor's intermediate result item.
+    /// <para><c>Uses</c> counts the RELATIONAL uses: GR4 a) 5.'s range form pairs the subject against BOTH
+    /// bounds, so it counts twice, and <c>WHEN OTHER</c> pairs with nothing at all. ⛔ <c>ANY</c> counts ZERO
+    /// (kb/Work PB396): GR4 a) 1. makes the result true WITHOUT consulting the subject, so an ANY object emits
+    /// no render of it — the comment this replaced claimed counting ANY as a use "only over-materializes, never
+    /// under-", and the opposite was true: an EVALUATE whose every object is ANY counted one use, skipped the
+    /// intermediate, and then evaluated the subject NOWHERE.</para>
+    /// <para><c>ReadByFirstPhrase</c> is the other half, and it is what makes a single use safe to leave
+    /// un-hoisted: the one render then sits in the FIRST arm's condition, which the emitted if/else-if chain
+    /// always executes, so it happens "at the beginning of the execution of the EVALUATE statement". A single
+    /// use in a LATER arm does not — an earlier arm can select and the render is skipped — so that shape takes
+    /// the intermediate too.</para></summary>
+    private static SubjectUsage SubjectUsageOf(Core.EvaluateStatementContext ev, int index)
     {
         int uses = 0;
+        bool readByFirst = false, seenFirst = false;
         foreach (var clause in ev.evaluateWhenClause())
             foreach (var phrase in clause.evaluateWhenPhrase())
             {
                 var groups = phrase.evaluateWhenGroup();
-                if (index >= groups.Length) continue;
-                uses += groups[index].evaluateWhenItem()?.valueRange() is not null ? 2 : 1;
+                var item = index < groups.Length ? groups[index].evaluateWhenItem() : null;
+                bool reads = item is not null && item.ANY() is null;
+                if (!seenFirst) { readByFirst = reads; seenFirst = true; }
+                if (reads) uses += item!.valueRange() is not null ? 2 : 1;
             }
-        return uses;
+        return new SubjectUsage(uses, readByFirst);
+    }
+
+    /// <summary>The §14.9.13.4 GR3 usage profile of one selection subject — see <see cref="SubjectUsageOf"/>.</summary>
+    private readonly record struct SubjectUsage(int Uses, bool ReadByFirstPhrase)
+    {
+        /// <summary>True unless the subject's ONE relational use is the first arm's, which is the only shape in
+        /// which the un-hoisted render is itself GR3's evaluation.</summary>
+        public bool NeedsIntermediate => !(Uses == 1 && ReadByFirstPhrase);
     }
 
     /// <summary>Bind a <c>valueOperand</c> (an arithmetic expression or a non-numeric literal) as a comparison

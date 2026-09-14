@@ -29,7 +29,13 @@ performStatement
     // (LOCATION is a cobolWord ⇒ a valid out-of-line target), and only the inline arm's trailing END_PERFORM
     // disambiguates — so it is tried first; a period-terminated `PERFORM LOCATION.` has no END_PERFORM and
     // correctly falls through to the out-of-line alternative (the continuity invariant).
-    | PERFORM performInlineHead? statementBlock*
+    // imperative-statement-1 is UNBRACKETED in BOTH inline formats (rendered from PDF page 712 / printed folio
+    // 682): Format 2 is `PERFORM [ times|until|varying ] imperative-statement-1 END-PERFORM`, Format 3 is
+    // `PERFORM [ WITH LOCATION ] imperative-statement-1 { WHEN … } … [ WHEN OTHER … ] [ WHEN COMMON … ]
+    // [ FINALLY … ] END-PERFORM`. §5.2.6.2 licenses omission only inside brackets, so the body is REQUIRED in
+    // both — `statementBlock`, not `statementBlock*` (kb/Work PB396: `PERFORM UNTIL cond END-PERFORM` with no
+    // body compiled to a loop whose condition the body cannot change).
+    | PERFORM performInlineHead? statementBlock
         performWhenPhrase* performWhenOther? performWhenCommon? performFinally?
       END_PERFORM
     | PERFORM procedureName                                                    // PERFORM para (simple, out-of-line)
@@ -53,9 +59,10 @@ performLocationPhrase
 // by whenOperandAhead() so it cannot annex the leading verb of imperative-statement-2 (design §1.2/§1.5). The
 // first operand after WHEN / WHEN EXCEPTION is taken UNCONDITIONALLY (superset posture — a bad first operand
 // binds and the binder emits the specific COBOLNET0711 rather than a generic parse error).
+// imperative-statement-2 is unbracketed inside the WHEN group's brace ⇒ REQUIRED (§5.2.6.3; kb/Work PB396).
 performWhenPhrase
-    : WHEN EXCEPTION performWhenModeList statementBlock*      // EXCEPTION { INPUT|OUTPUT|I-O|EXTEND | file-name-1… }
-    | WHEN           performWhenEcList   statementBlock*      // exception-name-1… | exception-name-2 FILE file-name-2…
+    : WHEN EXCEPTION performWhenModeList statementBlock      // EXCEPTION { INPUT|OUTPUT|I-O|EXTEND | file-name-1… }
+    | WHEN           performWhenEcList   statementBlock      // exception-name-1… | exception-name-2 FILE file-name-2…
     ;
 
 // EXCEPTION { INPUT | OUTPUT | I-O | EXTEND | {file-name-1}… }. The figure's "IO" denotes I-O (§8.9; a standard
@@ -79,16 +86,19 @@ performWhenEcItem
 // spurious operand — whenOperandAhead() is token-based and cannot see the following '('. The interceptor
 // wave must add an LA(2)==LPAREN gate (or equivalent). Any WHEN body with a preceding statement is unaffected.
 
+// Each of the three trailing phrases is bracketed AS A WHOLE — `[ WHEN OTHER EXCEPTION imperative-statement-3 ]`,
+// `[ WHEN COMMON EXCEPTION imperative-statement-4 ]`, `[ FINALLY imperative-statement-5 ]` — so the PHRASE may be
+// omitted but its imperative-statement may not be written empty (§5.2.6.2; kb/Work PB396).
 performWhenOther
-    : WHEN OTHER  EXCEPTION? statementBlock*   // the 2nd EXCEPTION is an optional word (§8.3.2.4.3)
+    : WHEN OTHER  EXCEPTION? statementBlock   // the 2nd EXCEPTION is an optional word (§8.3.2.4.3)
     ;
 
 performWhenCommon
-    : WHEN COMMON EXCEPTION? statementBlock*   // the 2nd EXCEPTION is an optional word (§8.3.2.4.3)
+    : WHEN COMMON EXCEPTION? statementBlock   // the 2nd EXCEPTION is an optional word (§8.3.2.4.3)
     ;
 
 performFinally
-    : FINALLY statementBlock*
+    : FINALLY statementBlock
     ;
 
 performTarget
@@ -133,10 +143,26 @@ performVaryingAfter
 // IF / END-IF (§14.9.19)
 // ==========================================
 
+// ⛔ THE IMPERATIVE IS REQUIRED, AND THE QUANTIFIER IS WHERE THAT RULE LIVES (kb/Work PB396). Rendered from the
+// PRINTED page (PDF page 665 / printed folio 635): Format 1 is `IF condition-1 THEN statement-1
+// [ ELSE statement-2 ] END-IF` — statement-1 carries NO bracket — and Format 2 stacks
+// `{ statement-1 | NEXT SENTENCE }` inside BRACES. §5.2.6.2 gives the omission licence to BRACKETED portions
+// only; §5.2.6.3 requires one brace alternative to be "explicitly specified". §14.9.19.3 SR1 says it a second
+// way as a cardinality: "Statement-1 and statement-2 represent either one or more imperative statements or a
+// conditional statement optionally preceded by one or more imperative statements".
+// `statementBlock` IS `statement+`, so the bare reference is the format's own cardinality; the former
+// `statementBlock*` restored the zero case and `IF X = 1 END-IF` compiled to an empty C# block in silence.
+// The ELSE arm is the same rule: the bracket encloses `ELSE statement-2` as a UNIT, so writing ELSE obliges
+// statement-2. Pinned by GrammarRequiredImperativeDriftTests (no `statementBlock*` may reappear in any .g4).
+// ⚠ DETERMINATION (kb/Work PB396, owner-overturnable): the two formats stay ONE rule, so `END_IF?` also admits
+// `IF X = 1 NEXT SENTENCE END-IF` — a Format-2 body under a Format-1 terminator that no single printed format
+// shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4: the combination is a cross-format latitude
+// question, not the cardinality slip this rule fixes, and rejecting it would newly refuse source that eight
+// editions of this compiler have compiled. Recorded rather than silently inherited from the quantifier.
 ifStatement
     : IF condition THEN?
-      statementBlock*
-      (ELSE statementBlock*)?
+      statementBlock
+      (ELSE statementBlock)?
       END_IF?
     ;
 
@@ -144,9 +170,24 @@ ifStatement
 // EVALUATE / END-EVALUATE (§14.9.13)
 // ==========================================
 
+// ⛔ THE FORMAT'S OWN SHAPE, ONE ELEMENT PER LINE (kb/Work PB396; rendered from PDF page 648 / printed folio 618):
+//     EVALUATE selection-subject [ ALSO selection-subject ] …
+//     { { WHEN selection-object [ ALSO selection-object ] … } … imperative-statement-1 } …
+//     [ WHEN OTHER imperative-statement-2 ]
+//     [ END-EVALUATE ]
+// Two cardinalities follow and BOTH used to be lost to one flattened `evaluateWhenClause+`:
+//  1. imperative-statement-1 sits INSIDE the outer brace group, unbracketed ⇒ REQUIRED (§5.2.6.3), and the
+//     outer `{ … } …` is itself unbracketed ⇒ at least ONE ordinary WHEN group is required. `EVALUATE X
+//     WHEN OTHER …` with no ordinary WHEN is therefore not a spelling of this statement.
+//  2. `[ WHEN OTHER imperative-statement-2 ]` is ONE optional phrase that follows the repetition: per §5.2.7
+//     the ellipsis applies only to the portion between the matching braces immediately to its left, so WHEN
+//     OTHER is outside it — at most once, and only last. Written as a second ALTERNATIVE of the repeated
+//     clause it became admissible any number of times at any position, and EvaluateBinder's `other = body`
+//     silently discarded every earlier one (§14.9.13.4 GR5 b) is written for exactly one such phrase).
 evaluateStatement
     : EVALUATE evaluateSubject (ALSO evaluateSubject)*
       evaluateWhenClause+
+      evaluateWhenOther?
       END_EVALUATE?
     ;
 
@@ -160,9 +201,16 @@ evaluateSubject
 // One or more consecutive WHEN phrases share the following imperative (ISO 1989:1985
 // 14.8.4): "WHEN a  WHEN b  WHEN c  imperative" executes the imperative if a, b, OR c
 // matches. Each phrase is bound to its own match arm over the shared body.
+// `statementBlock` (= `statement+`) is imperative-statement-1, unbracketed inside the outer brace group.
 evaluateWhenClause
-    : evaluateWhenPhrase+ statementBlock*
-    | WHEN OTHER statementBlock*
+    : evaluateWhenPhrase+ statementBlock
+    ;
+
+// `[ WHEN OTHER imperative-statement-2 ]` — ONE optional trailing phrase of evaluateStatement, never a member
+// of the repeated clause (§5.2.7). OTHER is a hard keyword (CobolLexer.g4) and is not reachable from
+// `cobolWord`, so no selection-object can spell it and the two rules do not compete in prediction.
+evaluateWhenOther
+    : WHEN OTHER statementBlock
     ;
 
 evaluateWhenPhrase
@@ -228,8 +276,11 @@ searchStatement
       END_SEARCH?
     ;
 
+// `{ WHEN condition-1 { imperative-statement-2 | NEXT SENTENCE } } …` (rendered from PDF page 750 / printed
+// folio 720): the body is a BRACE alternation ⇒ exactly one shall be specified (§5.2.6.3), and NEXT SENTENCE is
+// itself a `statement` here, so `statementBlock` spells both alternatives (kb/Work PB396).
 searchWhenClause
-    : WHEN condition statementBlock*
+    : WHEN condition statementBlock
     ;
 
 // ISO 5.2.3: AT is printed WITHOUT an underline in every AT END phrase in the standard — measured across all
@@ -259,8 +310,10 @@ searchAllKeyPhrase
     : KEY IS dataReference
     ;
 
+// Format 2's trailing `{ imperative-statement-2 | NEXT SENTENCE }` is a brace alternation ⇒ required
+// (§5.2.6.3; kb/Work PB396).
 searchAllWhenClause
-    : WHEN condition statementBlock*
+    : WHEN condition statementBlock
     ;
 
 // ==========================================

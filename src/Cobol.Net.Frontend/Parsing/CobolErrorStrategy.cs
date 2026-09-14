@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
@@ -118,6 +119,57 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 $"{(token.Type == CobolLexer.JSON ? "JSON" : "XML")} GENERATE/PARSE is not an ISO/IEC 1989 construct — "
                 + "vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
 
+        // ⛔ 0a. THE REQUIRED IMPERATIVE-STATEMENT ARM — ONE ARM FOR EVERY GENERAL FORMAT (kb/Work PB396).
+        // Nine phrase rules carry an imperative-statement operand that the printed general format leaves
+        // UNBRACKETED or stacks inside BRACES (IF's THEN and ELSE arms, EVALUATE's WHEN clause and its WHEN
+        // OTHER tail, PERFORM's inline body and its WHEN / WHEN OTHER / WHEN COMMON / FINALLY bodies, SEARCH's
+        // and SEARCH ALL's WHEN bodies), and every one of them is now spelled `statementBlock` — a rule that
+        // cannot match empty. So the violation always arrives in the SAME shape: a parse position whose
+        // expected set admits everything that can START a statement block, reached with a token that can start
+        // none of them. That test is computed FROM THE ATN, not from a table of verbs, so a general format
+        // added tomorrow inherits the diagnostic without editing this method — which is the whole reason the
+        // cardinality lives in the grammar rather than in nine bind-time checks.
+        if (IsEmptyRequiredStatementBlock(recognizer, token)
+            && EnclosingStatementName(ruleStack) is { } stmtName)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2072,
+                $"The {stmtName} statement's general format shows an imperative-statement here that is not "
+                + "bracketed, so at least one statement shall be specified: brackets are what license an "
+                + "omission (ISO §5.2.6.2), and one alternative of a brace group shall be explicitly specified "
+                + "(ISO §5.2.6.3).", 0));
+
+        // ⛔ 0b. THE WHEN OTHER PHRASE — BOTH OF ITS RULES, SEPARATED BY LOOKAHEAD (kb/Work PB396).
+        // `[ WHEN OTHER imperative-statement-2 ]` follows the `{ … } …` repetition in EVALUATE's format, and
+        // `[ WHEN OTHER EXCEPTION imperative-statement-3 ]` follows the WHEN group in PERFORM Format 3: ONE
+        // bracketed phrase, LAST, whose imperative-statement is inside the bracket and therefore required once
+        // the phrase is written. A syntax error at the phrase can only be one of those two rules, and which one
+        // is decided by what follows OTHER — a token that can START a statement means the body is there and the
+        // PHRASE is misplaced or repeated; anything else means the phrase is where it belongs and its
+        // imperative-statement is missing. The parser reports at WHEN (the clause-repetition decision) or at
+        // OTHER (a WHEN group cannot spell it), so both spellings are recognised here.
+        int otherIndex = token.Type == CobolLexer.OTHER ? token.TokenIndex
+            : token.Type == CobolLexer.WHEN && GetToken(stream, token.TokenIndex + 1)?.Type == CobolLexer.OTHER
+                ? token.TokenIndex + 1
+                : -1;
+        if (otherIndex >= 0)
+        {
+            // PERFORM Format 3 prints `WHEN OTHER EXCEPTION imperative-statement-3` with EXCEPTION NOT
+            // underlined — an optional word (§8.3.2.4.3), so it is never the body.
+            var afterOther = GetToken(stream, otherIndex + 1);
+            if (afterOther?.Type == CobolLexer.EXCEPTION) afterOther = GetToken(stream, otherIndex + 2);
+            bool bodyPresent = afterOther is not null
+                && StatementBlockStart(recognizer).Contains(afterOther.Type);
+            hints.Add(bodyPresent
+                ? new(Diagnostics.DiagnosticDescriptors.COBOLNET2073,
+                    "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
+                    + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
+                    + "ellipsis applies only to the portion between the delimiters immediately to its left "
+                    + "(ISO §14.9.13.2 / §14.9.28.2 Format 3, with ISO §5.2.7).", 0)
+                : new(Diagnostics.DiagnosticDescriptors.COBOLNET2072,
+                    "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
+                    + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
+                    + "it (ISO §5.2.6.2, with §14.9.13.2 / §14.9.28.2 Format 3).", 0));
+        }
+
         // 1. Missing space before string literal
         if (token.Text?.StartsWith('"') == true && prev != null && IsIdentifier(prev))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0301, "Missing space before string literal.", 20));
@@ -221,6 +273,58 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         public string? Message { get; private set; }
         public void Report(in EditionDiagnostic d) => Message = d.Message;
+    }
+
+    // ── The required-imperative test (kb/Work PB396) ──
+
+    /// <summary>FIRST(<c>statementBlock</c>) — every token that can begin the grammar's imperative-statement
+    /// operand — read ONCE from the ATN. Cached in a static because the ATN is a static of the generated parser;
+    /// a benign race recomputes the same set.</summary>
+    private static IntervalSet? _statementBlockStart;
+
+    private static IntervalSet StatementBlockStart(Parser recognizer)
+        => _statementBlockStart ??= recognizer.Atn.NextTokens(
+               recognizer.Atn.ruleToStartState[CobolParserCore.RULE_statementBlock]);
+
+    /// <summary>True when the parser failed AT a position where a statement block was required and had matched
+    /// nothing: the expected set admits every token that can start one, and the offending token starts none.
+    /// <para>The "expected ⊇ FIRST(statementBlock)" direction is what makes this specific — at a position where
+    /// the block is one of several continuations the parse does not fail at all, and at a position inside a
+    /// half-written statement (<c>MOVE TO Y</c>) the expected set is that statement's operand set, not the
+    /// statement-start set.</para></summary>
+    private static bool IsEmptyRequiredStatementBlock(Parser recognizer, IToken token)
+    {
+        var start = StatementBlockStart(recognizer);
+        if (start.Contains(token.Type)) return false;          // the token CAN start a statement — a later error
+        var expected = recognizer.GetExpectedTokens();
+        if (expected is null) return false;
+        foreach (int t in start.ToIntegerList())
+            if (!expected.Contains(t)) return false;
+        return true;
+    }
+
+    /// <summary>The enclosing statement's COBOL name, taken from the rule invocation stack and spelled from the
+    /// RULE NAME rather than a table: <c>ifStatement</c> → IF, <c>searchAllStatement</c> → SEARCH ALL. Null when
+    /// the failure is not inside a statement at all (a bad token at paragraph level), which is what keeps the
+    /// required-imperative arm from firing outside a general format's operand.</summary>
+    private static string? EnclosingStatementName(string[] ruleStack)
+    {
+        const string suffix = "Statement";
+        foreach (string rule in ruleStack)
+            if (rule.Length > suffix.Length && rule.EndsWith(suffix, StringComparison.Ordinal))
+                return SplitCamelCase(rule[..^suffix.Length]).ToUpperInvariant();
+        return null;
+    }
+
+    private static string SplitCamelCase(string name)
+    {
+        var sb = new System.Text.StringBuilder(name.Length + 4);
+        foreach (char c in name)
+        {
+            if (char.IsUpper(c) && sb.Length > 0) sb.Append(' ');
+            sb.Append(c);
+        }
+        return sb.ToString();
     }
 
     // ── Helpers ──

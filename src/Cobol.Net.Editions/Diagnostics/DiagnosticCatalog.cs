@@ -3509,6 +3509,33 @@ public static class DiagnosticCatalog
         + "a reference that writes none; writing too many has no such exception.",
         "ISO §8.4.2.3.3 SR3");
 
+    // ── COBOLNET2072 / COBOLNET2073 — THE REQUIRED IMPERATIVE-STATEMENT OPERAND (kb/Work PB396) ──────────
+    // Both are PARSE-layer diagnostics: the grammar rules that carry an imperative-statement operand cannot
+    // match empty (`statementBlock` = `statement+`), so the violation arrives as a syntax error and
+    // CobolErrorStrategy re-codes it. Registered here because every emitted code is a catalog descriptor —
+    // that is what the next-free allocation scan and docs/DIAGNOSTICS.md read.
+
+    /// <summary>An imperative-statement the general format shows OUTSIDE brackets (or stacked inside braces) was
+    /// written empty — `IF X = 1 END-IF`, a WHEN with no body, `PERFORM UNTIL … END-PERFORM` with no body. The
+    /// omission licence of §5.2.6.2 belongs to BRACKETED portions only, and §5.2.6.3 requires one alternative of
+    /// a brace group to be explicitly specified; §14.9.19.3 SR1 states the same cardinality for IF a second
+    /// way. Detected structurally from the ATN (the expected set admits everything that can start a statement
+    /// block and the token starts none of it), so a general format added later is covered without new code.</summary>
+    public static readonly DiagnosticDescriptor RequiredImperativeMissing = new(
+        "COBOLNET2072", "required-imperative-missing", EditionSeverity.Error,
+        "An imperative-statement operand that the general format leaves unbracketed was written empty.",
+        "ISO §5.2.6.2 / §5.2.6.3 / §14.9.19.3 SR1");
+
+    /// <summary>A WHEN OTHER phrase was written more than once, or ahead of a WHEN phrase. In EVALUATE's format
+    /// `[ WHEN OTHER imperative-statement-2 ]` is ONE bracketed phrase that FOLLOWS the `{ … } …` repetition —
+    /// §5.2.7 scopes an ellipsis to the portion between the matching delimiters immediately to its left, so the
+    /// OTHER phrase is outside it — and PERFORM Format 3 stacks `[ WHEN OTHER EXCEPTION imperative-statement-3 ]`
+    /// the same way. §14.9.13.4 GR5 b) is written for exactly one such phrase.</summary>
+    public static readonly DiagnosticDescriptor WhenOtherOutOfPosition = new(
+        "COBOLNET2073", "when-other-out-of-position", EditionSeverity.Error,
+        "A WHEN OTHER phrase is repeated or precedes a WHEN phrase.",
+        "ISO §14.9.13.2 / §14.9.28.2 Format 3 / §5.2.7");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

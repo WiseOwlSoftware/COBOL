@@ -515,6 +515,19 @@ public static partial class DiagnosticDescriptors
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
+    // COBOLNET2072/2073: the required imperative-statement operand and the misplaced WHEN OTHER (kb/Work PB396).
+    // Parse-layer twins of catalogue descriptors — the CODE is single-sourced from DiagnosticCatalog so the two
+    // registries cannot drift, exactly as COBOLNET0900 single-sources EditionCodes.Introduction. The message is
+    // composed at the CobolErrorStrategy site (it names the enclosing statement and the offending token).
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOLNET2072 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.RequiredImperativeMissing.Code,
+        DiagnosticSeverity.Error, "{0}");
+    public static readonly DiagnosticDescriptor COBOLNET2073 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.WhenOtherOutOfPosition.Code,
+        DiagnosticSeverity.Error, "{0}");
+
+    // ══════════════════════════════════════
     // COBOL0400–0412: Bound tree builder
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL0400 = new("COBOL0400", DiagnosticSeverity.Warning,

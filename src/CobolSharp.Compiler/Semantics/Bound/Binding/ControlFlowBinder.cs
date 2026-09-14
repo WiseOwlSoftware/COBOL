@@ -72,12 +72,12 @@ internal sealed class ControlFlowBinder
             }
 
             var inlineStmts = new List<BoundStatement>();
-            foreach (var imp in ctx.statementBlock())
-                foreach (var stmt in imp.statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) inlineStmts.Add(bound);
-                }
+            // imperative-statement-1 is a SINGLE required block (ISO §14.9.28.2 Formats 2/3; kb/Work PB396).
+            foreach (var stmt in ctx.statementBlock().statement())
+            {
+                var bound = _ctx.BindStatement(stmt);
+                if (bound != null) inlineStmts.Add(bound);
+            }
 
             if (varying != null)
                 untilCond = varying.UntilCondition;
@@ -295,31 +295,16 @@ internal sealed class ControlFlowBinder
 
         foreach (var whenClause in ctx.evaluateWhenClause())
         {
-            // WHEN OTHER
-            if (whenClause.OTHER() != null)
-            {
-                var otherStmts = new List<BoundStatement>();
-                foreach (var imp in whenClause.statementBlock())
-                    foreach (var stmt in imp.statement())
-                    {
-                        var bound = _ctx.BindStatement(stmt);
-                        if (bound != null) otherStmts.Add(bound);
-                    }
-                whenOther = otherStmts;
-                continue;
-            }
-
             // Bind the shared imperative once: consecutive WHEN phrases (WHEN a WHEN b ...)
             // before a single statement list all execute that list (ISO 14.8.4 — the
             // phrases are OR'd). Each phrase becomes its own match arm over this body, so
             // the first phrase that matches runs it.
             var stmts = new List<BoundStatement>();
-            foreach (var imp in whenClause.statementBlock())
-                foreach (var stmt in imp.statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) stmts.Add(bound);
-                }
+            foreach (var stmt in whenClause.statementBlock().statement())
+            {
+                var bound = _ctx.BindStatement(stmt);
+                if (bound != null) stmts.Add(bound);
+            }
 
             foreach (var phrase in whenClause.evaluateWhenPhrase())
             {
@@ -344,6 +329,20 @@ internal sealed class ControlFlowBinder
 
                 whens.Add(new BoundEvaluateWhen(subjectConditions, stmts));
             }
+        }
+
+        // `[ WHEN OTHER imperative-statement-2 ]` is ONE optional trailing phrase of the statement, not a member
+        // of the repeated clause (ISO §14.9.13.2 with §5.2.7; kb/Work PB396). Bound AFTER the clause loop so the
+        // statements still bind in SOURCE order.
+        if (ctx.evaluateWhenOther() is { } otherClause)
+        {
+            var otherStmts = new List<BoundStatement>();
+            foreach (var stmt in otherClause.statementBlock().statement())
+            {
+                var bound = _ctx.BindStatement(stmt);
+                if (bound != null) otherStmts.Add(bound);
+            }
+            whenOther = otherStmts;
         }
 
         return new BoundEvaluateStatement(subjects, subjectKinds, whens, whenOther);
@@ -602,12 +601,12 @@ internal sealed class ControlFlowBinder
         {
             var cond = _ctx.Condition.BindCondition(whenCtx.condition());
             var stmts = new List<BoundStatement>();
-            foreach (var imp in whenCtx.statementBlock())
-                foreach (var stmt in imp.statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) stmts.Add(bound);
-                }
+            // `{ imperative-statement-2 | NEXT SENTENCE }` — a single required block (ISO §14.9.37.2; PB396).
+            foreach (var stmt in whenCtx.statementBlock().statement())
+            {
+                var bound = _ctx.BindStatement(stmt);
+                if (bound != null) stmts.Add(bound);
+            }
             whens.Add(new BoundSearchWhenClause(cond, stmts));
         }
 
@@ -642,12 +641,12 @@ internal sealed class ControlFlowBinder
         {
             var cond = _ctx.Condition.BindCondition(whenCtx.condition());
             var stmts = new List<BoundStatement>();
-            foreach (var imp in whenCtx.statementBlock())
-                foreach (var stmt in imp.statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) stmts.Add(bound);
-                }
+            // `{ imperative-statement-2 | NEXT SENTENCE }` — a single required block (ISO §14.9.37.2; PB396).
+            foreach (var stmt in whenCtx.statementBlock().statement())
+            {
+                var bound = _ctx.BindStatement(stmt);
+                if (bound != null) stmts.Add(bound);
+            }
             whens.Add(new BoundSearchWhenClause(cond, stmts));
         }
 

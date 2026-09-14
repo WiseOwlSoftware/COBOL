@@ -660,10 +660,16 @@ target:
 ### 3.9 Error recovery
 
 - The two-stage SLL(bail)→LL(recover) strategy stays.
+- ⛔ **The SLL pass carries NO error listener** (kb/Work PB396). SLL is an APPROXIMATION of LL: it can fail on
+  input full LL prediction accepts, and when it fails the LL pass re-derives every diagnostic from token 0. A
+  listener attached across both passes therefore reported each real syntax error TWICE — once in ANTLR's own
+  wording (`BailErrorStrategy` inherits `DefaultErrorStrategy.ReportError`), once in `CobolErrorStrategy`'s —
+  and reported a FALSE error whenever SLL was merely the weaker predictor. `Frontend.Parse` now attaches
+  `CobolErrorListener` inside the LL retry only, so the authoritative pass is the only one that diagnoses.
 - `CobolErrorStrategy` keeps its COBOL-intent heuristics (`GuessCobolIntent`, 19 rules) — these are genuinely
   useful and not duplicative. It carries no edition logic: edition diagnosis lives in the
   `VersionConformancePass` (§3.2), and the recogniser call (`CobolErrorStrategy.cs:113`) is gone with the
-  recogniser. It hosts the token-keyed vendor JSON/XML→COBOL0313 hint (§3.4).
+  recogniser. It hosts the token-keyed vendor JSON/XML→COBOL0313 hint (§3.4), and the two §3.11 arms.
 - The `[code] message` construction (`CobolErrorStrategy.cs:93-95`) is retargeted to build a structured
   `Diagnostic` (descriptor + span) rather than a pre-formatted string, so downstream layers keep structure.
 - Recovery beyond the current sync-point behavior is out of scope for this rearchitecture (the battery does
@@ -758,6 +764,54 @@ newly-closed format as the standing witness that the rendering was right.
   `DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers `COBOL0001: unexpected 'DYNAMIC'`. That is a
   rejects-legal-source gap that predates and is unaffected by this change (DYNAMIC is a reserved token no
   alternative admits, so the catch-all never saw it).
+
+### 3.11 The required imperative-statement operand — the quantifier IS the rule (kb/Work PB396)
+
+**The rule.** ISO §5.2.6.2 gives the omission licence to BRACKETED portions only ("Brackets, [ ], enclosing a
+portion of a general format indicate that the syntax element contained within the brackets … may be explicitly
+specified or that portion of the general format may be omitted"), and §5.2.6.3 requires one alternative of a
+BRACE group to be explicitly specified. So an `imperative-statement-n` a general format prints outside brackets,
+or stacks inside braces, is REQUIRED — and §14.9.19.3 SR1 states the same cardinality for IF a second way
+("Statement-1 and statement-2 represent either one or more imperative statements or a conditional statement
+optionally preceded by one or more imperative statements").
+
+**Where it lives.** In the QUANTIFIER, at every such position. `statementBlock : statement+` is the right
+cardinality, so a BARE `statementBlock` reference already spells the format's own "one or more"; the defect was
+that every USE wrote `statementBlock*`, restoring the zero case. The nine positions — IF's THEN and ELSE arms
+(§14.9.19.2), EVALUATE's WHEN clause (§14.9.13.2), PERFORM's inline body and its WHEN / WHEN OTHER / WHEN COMMON
+/ FINALLY bodies (§14.9.28.2 Formats 2 and 3), SEARCH's and SEARCH ALL's WHEN bodies (§14.9.37.2) — now all read
+`statementBlock`, each with the rendered page and printed folio recorded in the `.g4` comment above it. The
+ON EXCEPTION / AT END / INVALID KEY / ON SIZE ERROR / ON OVERFLOW families already spelled it that way.
+
+**The drift guard, and why it is over the grammar SOURCE.** `RequiredImperativeStatementDriftTests` asserts that
+NO `.g4` under `src/Cobol.Net.Frontend/Grammar/` contains `statementBlock*` or `statementBlock?` (with `//`
+comments stripped, because the prose quotes the forbidden spelling to explain it), plus a population assertion so
+the guard cannot pass vacuously. That makes the NEXT general format automatic: a phrase rule written with the
+zero-admitting quantifier fails the build, which a per-verb list could never do.
+
+**WHEN OTHER is the same format read one level up.** `[ WHEN OTHER imperative-statement-2 ]` is ONE bracketed
+phrase that FOLLOWS the `{ … } …` repetition, because §5.2.7 scopes an ellipsis to "the portion of the format
+between the determined pair of delimiters" immediately to its left. It is therefore a trailing
+`evaluateWhenOther?` on `evaluateStatement`, never a second alternative of the repeated clause — which is what
+had made it admissible any number of times at any position, with `EvaluateBinder`'s `other = body` silently
+discarding all but the last.
+
+**The diagnostics (COBOLNET2072 / COBOLNET2073).** Because the grammar rules cannot match empty, the violation
+arrives as a syntax error, and `CobolErrorStrategy` re-codes it in TWO arms — both structural, neither a table of
+verbs. COBOLNET2072 fires when the expected set admits every token that can start a `statementBlock` (computed
+once from the ATN) and the offending token starts none of them, naming the enclosing statement from the rule
+invocation stack (`searchAllStatement` → "SEARCH ALL"). COBOLNET2073 fires on a WHEN OTHER phrase whose position
+is wrong, separated from an EMPTY WHEN OTHER body by one token of lookahead past OTHER (and past PERFORM Format
+3's un-underlined optional EXCEPTION). **Known message gap:** a wholly empty inline `PERFORM … END-PERFORM` with
+no loop-control phrase fails on `performStatement`'s own alternatives decision, where `GetExpectedTokens()`
+answers with a single token, so it is rejected with the generic parse error rather than COBOLNET2072; pinned by
+`AWhollyEmptyInlinePerform_IsRejected` so the rejection cannot regress.
+
+**⚠ DETERMINATION (owner-overturnable).** The two IF formats stay ONE grammar rule, so `END_IF?` also admits
+`IF X = 1 NEXT SENTENCE END-IF` — a Format-2 body under a Format-1 terminator that no single printed format
+shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4. That combination is a cross-format latitude
+question rather than the cardinality slip §3.11 fixes, and refusing it would newly reject source this compiler
+has always compiled; recorded here and in the `.g4` rather than inherited silently from the quantifier.
 
 ---
 
