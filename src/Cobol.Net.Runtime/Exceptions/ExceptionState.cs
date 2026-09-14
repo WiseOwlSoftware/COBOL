@@ -137,7 +137,7 @@ public sealed class ExceptionEngine
     private (string Name, bool Fatal, string? Statement, string? Location)? _propagated;
 
     /// <summary>STAGE an exception condition for the ACTIVATOR (GOBACK / EXIT PROGRAM / method-return … RAISING,
-    /// §14.9.18.4 GR1 b) / §14.9.14.4 GR3). Staging is UNCONDITIONAL and raises nothing here: GR1 b) localises
+    /// §14.9.18.4 GR1 b) / §14.9.14.4 GR3). Staging is UNCONDITIONAL and raises nothing here: §14.9.18.4 GR1 b) localises
     /// both the raise and its enablement test in the activating runtime element — "an exception condition is
     /// raised in the activating runtime element if checking for that exception condition is enabled in the
     /// activating runtime element" — and <see cref="TakeRaisedPropagation"/> is where both happen.
