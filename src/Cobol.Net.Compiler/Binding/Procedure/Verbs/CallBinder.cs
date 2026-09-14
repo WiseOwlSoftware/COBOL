@@ -567,24 +567,25 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // shall be restricted and of the same type." The file already consulted StrongTypeModel for
                 // §14.9.4.3 SR10 above, so the model was in hand and only this clause of the same conformance
                 // regime was missing (kb/Work PB153).
-                // ⛔ SCOPED DELIBERATELY TO THE AS-NESTED LOOP, i.e. to operands WITHIN ONE SOURCE ELEMENT.
-                // StrongTypeModel's type equivalence is name-based within an element and explicitly DEFERS
-                // cross-program EXTERNAL equivalence, so applying this to a separately-compiled callee would
-                // over-reject on the deferred axis — rejecting legal source, the worse failure.
-                // ⚠ kb/Work PB237 kept the `asNested` guard when the enclosing loop was generalized to every
-                // Format-2 callee: a program prototype's §12.3.8.4 GR10 a) definition is a SEPARATE outermost
-                // source element (it does not inherit the caller's GLOBAL TYPEDEFs the way a contained program
-                // does), so it is exactly the deferred axis this comment excludes.
-                if (asNested && arg.Mode is CobolPassMode.Reference && arg.Place is { } restrictedArg)
+                // ⛔ THE `asNested` SCOPING IS GONE, AND ITS PREMISE WITH IT (kb/Work PB427). The guard existed
+                // because StrongTypeModel's type equivalence was a NAME compare that "deferred cross-program
+                // EXTERNAL equivalence", so a separately-declared callee would have been screened on a test that
+                // could not see the other declaration. §8.5.3.1's equivalence is now decided from the
+                // DECLARATIONS themselves — <c>StrongTypeModel.SameRestriction</c> resolves each restriction to
+                // its own source element's type declaration and compares them structurally — so a program
+                // prototype's §12.3.8.4 GR10 a) definition, a SEPARATE outermost source element that does not
+                // inherit the caller's GLOBAL TYPEDEFs, is exactly the case the rule is FOR. §14.8.2.3.2 carries
+                // no AS-NESTED qualification of its own; the enclosing loop already has both descriptions.
+                if (arg.Mode is CobolPassMode.Reference && arg.Place is { } restrictedArg)
                 {
-                    string? argR = StrongTypeModel.PointerRestriction(restrictedArg.Item);
-                    string? formalR = StrongTypeModel.PointerRestriction(f.Item);
-                    if ((argR is not null || formalR is not null) && !StrongTypeModel.SameRestriction(argR, formalR))
+                    var argR = StrongTypeModel.PointerRestriction(restrictedArg.Item);
+                    var formalR = StrongTypeModel.PointerRestriction(f.Item);
+                    if ((argR.IsRestricted || formalR.IsRestricted) && !StrongTypeModel.SameRestriction(argR, formalR))
                         ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
-                            $"CALL … AS NESTED argument {i + 1} ('{restrictedArg.Item.CobolName}') and formal parameter "
-                            + $"'{f.Item.CobolName}': one is a RESTRICTED data-pointer and the other is not "
-                            + $"restricted to the same type (argument: {argR ?? "unrestricted"}; formal: "
-                            + $"{formalR ?? "unrestricted"}) — ISO §14.8.2.3.2 requires that if either is a "
+                            $"CALL … {(asNested ? "AS NESTED " : "")}argument {i + 1} ('{restrictedArg.Item.CobolName}') "
+                            + $"and formal parameter '{f.Item.CobolName}': one is a RESTRICTED data-pointer and the "
+                            + $"other is not restricted to the same type (argument: {argR}; formal: "
+                            + $"{formalR}) — ISO §14.8.2.3.2 requires that if either is a "
                             + "restricted pointer, both shall be restricted and of the same type");
                 }
             }

@@ -991,10 +991,10 @@ flat `CreateCompilerTemp`, `DataBinder.Oo.cs:362`): a fresh `Uid` per node (CRIT
 on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `CsName` in the NEW scope, and DOES
 `RegisterName` (clones ARE referenceable, unlike the template). **`ExpandType`** runs inside `BindEntries` right after
 an item is placed (so the clone is in the forest BEFORE `BindResolve` — every post-build pass sees it automatically,
-the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `DataItem.StrongRoot` (walk
-to the outermost `StrongType` ancestor) + `SameStrongType(a,b)` (equal strong-root `TypeName` + relative `CsName`
-path), checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation chokepoint) / the
-class-condition arm (`CheckClassConditionOperand`).
+the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `StrongTypeModel.StrongRoot` (walk
+to the outermost `StrongType` ancestor) + `SameType(a,b)` — ISO §8.5.3.1's own two alternatives over
+`EquivalentTypeDeclarations` — checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation
+chokepoint) / the class-condition arm (`CheckClassConditionOperand`) / `OoConformance` (the activation boundary).
 
 **Grammar (shared-.g4 rules → FULL legacy guard per change).** `typedefClause : IS? TYPEDEF STRONG? ;` and
 `sameAsClause : SAME AS cobolWord ((OF|IN) cobolWord)* ;` on `dataDescriptionClause` (superset parse — no edition
@@ -1013,15 +1013,16 @@ subordinate renumbering relative to the subject, may exceed 49 per GR2c; TYPE fl
 data-name-1's level/name/CONSTANT RECORD/EXTERNAL/GLOBAL/REDEFINES are not copied. GR3/GR5: a USAGE/SIGN on a group
 containing data-name-1 applies as though specified for the subject (mirrored onto the copied Pic at expansion —
 the subject's chain cannot see the target's ancestors). A copied TYPE identity keeps the §8.5.3 anchors
-(`SameStrongType` holds across `B SAME AS A` pairs) and re-checks the §13.18.57.3 SR6 strong placement.
+(`SameType` holds across `B SAME AS A` pairs) and re-checks the §13.18.57.3 SR6 strong placement.
 
 **EXTERNAL type declarations (§13.18.22) are LIVE** — a conformance surface + record-external attribution, NOT a
 cross-program type registry: `DataItem.IsExternalTypedef` on the template; `ExpandType` enforces GR2 (a data
 description containing an external type shall be level-1) and SR5 (an external record of a STRONG type requires the
 type external too) → **1558**, and marks GR3 records `ExternalFromType`; `CallBindExternalAndGlobal` re-bases those
 roots onto the run-unit `ExternalStore` cell exactly like explicitly-EXTERNAL records (GR6 matching by externalized
-name rides the existing mechanism). Cross-source-unit §8.5.3 same-type equivalence for external types remains the
-recorded follow-up in `StrongTypeModel`.
+name rides the existing mechanism). Cross-source-unit §8.5.3.1 same-type equivalence is LIVE: `SameType` decides it
+from the two DECLARATIONS, so two source elements declaring the same type-name are equivalent only when their
+STRONG/EXTERNAL presence and their elementary items' positions, lengths and clauses agree (kb/Work PB427).
 
 **Diagnostics (15xx).** **1529** malformed TYPEDEF (SR15 level-1/named; SR1 STRONG-on-elementary; TYPEDEF ×
 REDEFINES/BASED/CONSTANT RECORD/PROPERTY); **1530** TYPE unresolved/recursive; **1531** illegal TYPE-reference
@@ -1045,15 +1046,19 @@ grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 
 `TypeName`/`StrongType` are populated here (the STRONG checks are increment (2)). — **the ONLY grammar/legacy-guard slice** → goldens
 `typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing (all BINDER-ONLY): the
 `DataItem.StrongRoot` walk (outermost `StrongType` ancestor — §8.5.3.1, a group SUBORDINATE to a strong group is
-itself strongly typed) + `IsStrongGroup`/`IsStronglyTyped` + the static `SameStrongType(a,b)` (equal strong-root
-`TypeName` + equal relative member-name path). USE gates → **1533**: `CheckStrongMove` in `BindMove` (§14.9.25.3 SR2),
+itself strongly typed) + `IsStrongGroup`/`IsStronglyTyped` + the static `SameType(a,b)` — ISO §8.5.3.1 exactly:
+declaration EQUIVALENCE (same type-name, same EXTERNAL/STRONG presence, corresponding elementary items at the same
+relative position and length with the same ALIGNED / BLANK WHEN ZERO / DYNAMIC LENGTH / JUSTIFIED / PICTURE / SIGN /
+SYNCHRONIZED / USAGE clauses), plus the same relative position and length for a SUBORDINATE pair. USE gates → **1533**: `CheckStrongMove` in `BindMove` (§14.9.25.3 SR2),
 the strong-group same-type check in the ONE `CheckedRelational` chokepoint (§8.8.4.2.3 SR1 — so it also covers
 EVALUATE/PERFORM UNTIL/SEARCH WHEN), a strong-group guard in `CheckClassConditionOperand` (§8.8.4.4.3 SR1). DECL gates
 → **1532**: SR6 at clone time in `ExpandType` (level-1-or-under-strong; also catches SR7's 77→group), SR3/SR4 in a
 post-resolution `CheckStrongTypeDeclarations` pass (a RENAMES/REDEFINES over any part of a strong subtree, INTERNAL
 template redefines excluded via the shared-strong-root test). Golden `typedef_strong_ok` (same-type whole-record
-MOVE+compare byte-verified) + `TypedefStrongTests` ×8 negatives (SR2/SR1/class-cond/SR6/SR4/SR3/relative-path + a
-clean companion). (3) level-88 condition-names inside a TYPEDEF (§13.18.58.4 GR1):
+MOVE+compare byte-verified), `pb427_same_type_by_position` (§8.5.3.1's two alternatives, the comparison arm and a
+cross-source-element equivalent pair) + `TypedefStrongTests` (SR2/SR1/class-cond/SR6/SR4/SR3, the position-vs-path
+pair, the non-equivalent and equivalent same-named cross-element pairs, the PICTURE conjunct, the §14.8.2.2
+argument sentence, and a clean companion). (3) level-88 condition-names inside a TYPEDEF (§13.18.58.4 GR1):
 `DataItem.Own88s` (the item's own 88s), `BindCondition(…, registerGlobal: !rootIsTemplate)` keeps a template's 88s OFF
 the global by-name index (GR1), and `ExpandType`/`CloneItem` call `CloneConditionOnto` to clone them onto each
 reference (registered globally — clones ARE referenceable). Golden `typedef_88` + `TypedefConditionTests` ×2.
@@ -1076,8 +1081,8 @@ row `usage-pointer-to-type-2014` (the P12 re-scout re-anchored the former "`TYPE
 
 **Additional hardening (current invariants).** `ExpandType` sets `TypeName`/`StrongType` BEFORE cloning children, so a
 nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6 strong-in-strong rejection).
-`DataItem.TypeAnchor` (the NEAREST TYPE-carrying ancestor) drives `SameStrongType`, so a nested `TYPE INNER-T` subgroup
-matches a standalone INNER-T item (§8.5.3 bullet 1). A cloned OCCURS DEPENDING ON resolves data-name-1 in the clone's
+`StrongTypeModel.TypeAnchor` (the NEAREST TYPE-carrying ancestor) drives `SameType`, so a nested `TYPE INNER-T`
+subgroup matches a standalone INNER-T item (§8.5.3.1 alternative 1). A cloned OCCURS DEPENDING ON resolves data-name-1 in the clone's
 OWN record subtree first (`OdoResolve` `FindInSubtree` before the global-scope lookup — §13.18.57.4 GR1 / §13.18.38
 SR20), not a globally-first same-named counter. Three §13.18.57.3 syntax rules are enforced: **1536** SR7 (a level-77
 subject needs an elementary type — weak-invariant, not just STRONG), **1537** SR2 (a TYPE entry must be followed

@@ -356,8 +356,45 @@ Split the god-struct into a **mostly-immutable declared core** plus **init-only 
 - `ElementType`/`FieldType`/`ClrType` become thin projections of `Storage` (+ `Occurs` for the `[]` wrap), not of
   `Pic` + `StoreAsImage`.
 
-`SameStrongType`/`TypeAnchor`/`RelativeMemberPath` (`DataItem.cs:101-133`) move to a `StrongTypeModel` static helper —
-they are strong-typing logic, not core shape.
+`SameType`/`TypeAnchor`/`EquivalentTypeDeclarations` move to a `StrongTypeModel` static helper — they are
+strong-typing logic, not core shape.
+
+**`StrongTypeModel` owns ISO §8.5.3.1's same-type test, whole, and every rule that spends it asks THAT.** The clause
+has two alternatives over typed ITEMS resting on one relation over type DECLARATIONS, so the model has two entry
+points and nothing else:
+
+- `EquivalentTypeDeclarations(a, b)` — *"Two type declarations are considered equivalent when they have the same
+  type-name, both have the same presence or absence of the EXTERNAL clause and the STRONG phrase, and for each
+  elementary item in one type declaration there is a corresponding elementary item in the other type declaration,
+  starting at the same relative byte or bit position and having the same length in bytes or bits"*, each
+  corresponding pair carrying the same ALIGNED / BLANK WHEN ZERO / DYNAMIC LENGTH / JUSTIFIED / PICTURE / SIGN /
+  SYNCHRONIZED / USAGE clauses. It takes a declaration in EITHER form the model holds one: a TYPE-clause SUBJECT
+  (whose subtree `ExpandType` cloned through the ONE `CopyEntryDescription`, so it IS the declaration) or a
+  `TypeDecls` TEMPLATE (also fully expanded — `ExpandTypes` walks the templates). Geometry comes from
+  `BitLayout.StartBitWithin`, the ONE §8.5.1.6.3 cursor walk; the clause list is §8.5.3.1's own, one conjunct each;
+  the PICTURE/SIGN/USAGE conjunct is `PicInfo`'s record equality (so a later analysis axis is included by
+  construction), with §8.5.3.1's currency / decimal-point / LOCALE exceptions falling out of the analysis the
+  analyzer already performs.
+- `SameType(a, b)` — the two alternatives. An item that IS its own `TypeAnchor` is *"described with a TYPE clause"*
+  (alternative 1: equivalent declarations, nothing more); one that is not is *"described as a subordinate item in a
+  type declaration"* (alternative 2: equivalent declarations **plus** the same relative position and length). A
+  MIXED pair is covered by neither and is not of the same type.
+
+⛔ **A TYPE-NAME MATCH IS ONE CONJUNCT OF ONE HALF, and a member-NAME PATH is no part of the rule at all.** The
+predicate was exactly those two things until kb/Work PB427, licensed by §8.5.3.1's informative NOTE read as the
+criterion, and it was wrong in BOTH directions: it ADMITTED a MOVE between two non-equivalent same-named
+declarations in different source elements (alphabetic characters deposited into two `PIC 9(3)` items, silently) and
+REFUSED a legal move between two differently-named subgroups at the same relative position. Cross-source-element
+equivalence is therefore no longer deferred — it is what the walk decides.
+
+**The consumers, all on the one predicate:** §14.9.25.3 SR2 (`CheckStrongMove`, and through `MoveBinder` every
+implicit move — `… FROM`, `… INTO`), §8.8.4.2.3 SR1 + §8.8.4.2.12 (`CheckRelationalOperands`, the ONE relation
+chokepoint), and the activation boundary's one sentence written three times — §14.8.2.2 (arguments), §14.8.3.2
+(returning items), §9.3.8.2.3 rule 7 (interface conformance) — in `OoConformance.StrongTypeMismatch`, reached from
+BOTH `DescriptionMismatch` (BY REFERENCE, RETURNING, override and prototype signatures) and `ContentMismatch` (BY
+CONTENT / BY VALUE), because §14.8.2.2's sentence qualifies neither mode. That last one also completes
+§8.5.1.12.1's *"Two fixed-length groups are always compatible, unless they are strongly typed and have different
+type definitions"*, whose strong half `VariableLengthCompatibility` deliberately leaves to its caller.
 
 #### 2.4.1 Restricted data-pointers — the strong-typing overlay's pointer half
 
@@ -375,10 +412,17 @@ of addresses, pointers, and based items."
    Normative at §8.4.3.11.4 GR2. **This source needs no grammar at all** and was violable from the day strong
    TYPEDEF landed — `StrongTypeModel.AddressOfRestriction`.
 
-A restriction is reduced to a type **name**, not a `DataItem`: a restriction is to a TYPE, not to a member
-position, so `SameRestriction` is name equivalence and deliberately NOT `SameStrongType`, whose relative-member-path
-refinement answers the different question of whether two OPERANDS occupy corresponding positions. Equivalence is
-within one source element (cross-program EXTERNAL equivalence stays deferred, as it is for `SameStrongType`).
+A restriction carries a **`TypeRestriction`** — the type NAME the restriction is spelled with (§13.18.60.4 GR23
+states it as `type-name-1`) together with the type DECLARATION that name resolves to. A restriction is to a TYPE,
+not to a member position, so `SameRestriction` is declaration equivalence and deliberately NOT `SameType`, whose
+second alternative answers the different question of whether two OPERANDS occupy corresponding positions. Within one
+source element §13.18.58 makes a type-name unique, so the name alone decides; ACROSS source elements two
+declarations may share a name and differ, which is why the declaration travels with it —
+`DataBinder.ResolveRestrictedTypes` (the tail of the ONE `ExpandTypes` pass) attaches it to
+`PicInfo.RestrictedTypeDecl`, and `SameRestriction` compares names always and declarations whenever both sides
+resolved to one. Nothing about the restriction network is deferred any more (kb/Work PB427); §14.8.2.3.2's CALL
+screen is consequently no longer scoped to the AS-NESTED loop, because the reason for that scoping was the
+name-only test.
 
 **The declaration shape is not the obvious one.** §13.18.60.3 SR18 — "If type-name-1 is specified, the TYPEDEF
 clause shall be specified for the subject of the entry" — makes `01 P USAGE POINTER TO T.` itself nonconforming:
@@ -389,10 +433,12 @@ strong typedef, a TYPEDEF'd `USAGE POINTER TO` entry, and a `TYPE` item of it �
 
 **Consumption screens** (all in the 0869 pointer band, where `PtrBinder` already reports every other §14.9.39 /
 §14.9.3 operand rule): `PtrBinder.BindAllocate` — §14.9.3.3 SR5 and its SR4 converse, in both the based form and
-the CHARACTERS form; `PtrBinder.BindSetAddress` — §14.9.39.3 SR19 and SR20 in **both** of its arms (`SET ADDRESS OF
-based TO ptr` and `SET ptr TO ADDRESS OF x` are separate code paths); `CallBinder` — §14.8.2.3.2's "If either is a
-restricted pointer, both shall be restricted and of the same type", scoped to the AS-NESTED loop so the deferred
-cross-program axis cannot over-reject.
+the CHARACTERS form (SR5 asks `StrongGroupType`, SR4 the weaker `TypedItemType`: SR5's antecedent is a STRONGLY-TYPED
+GROUP, SR4's only a TYPED item, and conflating them rejects legal source); `PtrBinder.BindSetAddress` — §14.9.39.3
+SR19 and SR20 in **both** of its arms (`SET ADDRESS OF based TO ptr` and `SET ptr TO ADDRESS OF x` are separate code
+paths); `CallBinder` — §14.8.2.3.2's "If either is a restricted pointer, both shall be restricted and of the same
+type", over EVERY Format-2 callee whose formals are bound (the clause carries no AS-NESTED qualification, and the
+restriction now resolves to its own element's declaration).
 
 ⛔ The asymmetry `StrongTypeModel` already documents is load-bearing here: a leaf subordinate to a strong group is
 NOT itself strongly typed, so `SET P TO ADDRESS OF <leaf of a strong record>` is **unrestricted and legal**. An
@@ -625,13 +671,13 @@ elementary / group / `ALL 'x'` / Report-Writer SOURCE VALUEs. This closes the co
 | create | — | `Binding/Passes/IBindPass.cs` + `BindPipeline.cs` | Declared, asserted pass order with Requires/Produces (§2.5); kills implicit ordering. |
 | create | — | `Binding/Model/RecordLayout.cs` | Single physical offset/width authority (§2.6). |
 | create | — | `Binding/PictureAnalyzer.cs` | The extracted 230-line PICTURE scanner; makes `PicInfo` a pure value record (§2.7). |
-| create | — | `Binding/Model/StrongTypeModel.cs` | Homes `SameStrongType`/`TypeAnchor`/`RelativeMemberPath` moved off `DataItem`. |
+| create | — | `Binding/Model/StrongTypeModel.cs` | Homes §8.5.3.1's `SameType`/`EquivalentTypeDeclarations`/`TypeAnchor` moved off `DataItem`. |
 | create | — | `Common/CobolLiteral.cs` | One literal decoder; fixes the apostrophe-VALUE silent bug (§2.8). |
 | delete | `DataItem.StoreAsImage` setter (`DataItem.cs:169`) | — | Replaced by `Storage is CharImage` (§2.1); removes the late-mutated cross-layer flag. |
 | delete | `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`) | — | Cross-layer write-back eliminated; logic moves into StorageFormPass. |
 | move | `OdoGroupPlace` (`OdoModel.cs:89`) | `Binding/Place.cs` | Consolidate the Place hierarchy under one file (§2.2). |
 | create | — | `Binding/PlaceDecorator` base (in `Place.cs`) | Common base for wrapping places (§2.2). |
-| move | `SameStrongType`/`TypeAnchor`/`StrongRoot` logic (`DataItem.cs:74-133`) | `StrongTypeModel` | Strong-typing is not core shape (§2.4). |
+| move | `SameType`/`TypeAnchor`/`StrongRoot` logic (`DataItem.cs:74-133`) | `StrongTypeModel` | Strong-typing is not core shape (§2.4). |
 | refactor | `DataItem.ImageWidth`/`IsCharacterImage`/`IsImageCapable` recursion (`DataItem.cs:245-300`) | cached init-only fields filled by StorageFormPass; width via `RecordLayout` | Removes ~119 O(subtree) re-walks; single owner (§2.4/§2.6). |
 | merge | `OdoModel.PhysicalWidth` + `Sort`/`KeyedIo` geometry | `RecordLayout` | One layout authority; deletes 4 divergent copies (§2.6). |
 | refactor | `RedefinesClass.Tier`/`.Width`/`ClassOffset` (`set`) | init-only, written once by `RedefinesClassifier` | Removes set-then-overwrite temporal state (§2.3). |

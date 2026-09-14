@@ -324,6 +324,19 @@ public sealed record PicInfo(
     /// <c>StrongTypeModel.AddressOfRestriction</c>. kb/Work PB153.</para></summary>
     public string? RestrictedTypeName { get; init; }
 
+    /// <summary>The TYPE DECLARATION <see cref="RestrictedTypeName"/> resolves to — the <c>DataBinder.TypeDecls</c>
+    /// entry, attached post-build by <c>DataBinder.ResolveRestrictedTypes</c> (inside the ONE <c>ExpandTypes</c>
+    /// pass, so the template's own nested TYPE references are already expanded). Null when the item carries no
+    /// restriction, and when the name resolves to no type declaration in this source element.
+    /// <para>It exists because §8.5.3.1's "same type" is declaration EQUIVALENCE, of which the type-name is one
+    /// conjunct: within a source element §13.18.58 makes the type-name unique, so the name alone decides, but
+    /// two source elements may declare non-equivalent types under one name and a restriction compared by name
+    /// only would admit the crossing the restriction exists to forbid (kb/Work PB427). Read ONLY through
+    /// <c>StrongTypeModel.PointerRestriction</c> / <c>SameRestriction</c>; deliberately excluded from the
+    /// same-type profile compare, which already compares <see cref="RestrictedTypeName"/> and would not
+    /// terminate on a type whose pointer member is restricted back to it.</para></summary>
+    public DataItem? RestrictedTypeDecl { get; init; }
+
     /// <summary>The <c>{function|program}-prototype-name-1</c> of the RESTRICTED prototype-pointer forms —
     /// <c>USAGE FUNCTION-POINTER TO function-prototype-name-1</c> (§13.18.60.4 GR26) and <c>USAGE PROGRAM-POINTER
     /// TO program-prototype-name-1</c> (GR25). ⛔ ONE FIELD FOR BOTH CARRIERS, because the two general rules are

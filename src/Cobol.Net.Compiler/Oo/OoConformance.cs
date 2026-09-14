@@ -187,6 +187,30 @@ public static class OoConformance
         };
     }
 
+    /// <summary>ISO §14.8.2.2 / §14.8.3.2 / §9.3.8.2.3 rule 7 — the activation boundary's strongly-typed
+    /// sentence, written ONCE for every mode and every entry point: <i>"If either the formal parameter or the
+    /// corresponding argument is a strongly-typed group item, both shall be of the same type."</i> "Same type"
+    /// is §8.5.3.1's relation and is asked of the ONE model (<see cref="StrongTypeModel.SameType"/>) — never
+    /// re-derived here. Null when the rule is satisfied or does not apply.</summary>
+    /// <param name="formal">The formal parameter, or the SENDING returning item (§14.8.3.1 makes the activated
+    /// element's item the sender).</param>
+    /// <param name="arg">The argument / receiving returning item, or <see langword="null"/> when the operand is
+    /// a REFERENCE-MODIFIED view rather than a data item — §8.4.3.3.4 GR6 makes such a view elementary
+    /// alphanumeric, so it is of no type and can never be the formal's.</param>
+    private static string? StrongTypeMismatch(DataItem formal, DataItem? arg)
+    {
+        bool formalStrong = StrongTypeModel.IsStrongGroup(formal);
+        if (!formalStrong && !(arg is { } a0 && StrongTypeModel.IsStrongGroup(a0))) return null;
+        if (arg is { } a && StrongTypeModel.SameType(formal, a)) return null;
+        string strongSide = formalStrong ? "formal parameter / returning item" : "argument";
+        return $"the {strongSide} is a strongly-typed group item, so both shall be of the SAME type "
+            + "(ISO §14.8.2.2 / §14.8.3.2 / §9.3.8.2.3 rule 7; §8.5.3.1 makes two type declarations equivalent "
+            + "only when they have the same type-name, the same presence or absence of EXTERNAL and STRONG, and "
+            + "corresponding elementary items at the same relative position, of the same length, with the same "
+            + "ALIGNED / BLANK WHEN ZERO / DYNAMIC LENGTH / JUSTIFIED / PICTURE / SIGN / SYNCHRONIZED / USAGE "
+            + "clauses)";
+    }
+
     /// <summary>The ONE strict IDENTICAL-DESCRIPTION check — §14.8.2.3.2 (BY REFERENCE parameters ONLY; BY
     /// CONTENT follows §14.8.2.3.3 COMPUTE/MOVE/SET rules in the binder mode dispatch) and §9.3.8.2
     /// override-signature validation. Identical = same category; numeric: same USAGE + SIGN representation +
@@ -198,6 +222,18 @@ public static class OoConformance
     public static string? DescriptionMismatch(DataItem formal, DataItem arg, bool byRefGroupPrefix = false,
         bool anyLengthActivationRelax = false)
     {
+        // ⛔ THE STRONGLY-TYPED SENTENCE FIRST, and it governs every crossing this comparator answers for.
+        // ONE sentence written three times: §14.8.2.2 "If either the formal parameter or the corresponding
+        // argument is a strongly-typed group item, both shall be of the same type", §14.8.3.2 "If either of the
+        // operands is a strongly-typed group item, both shall be of the same type" (the RETURNING pair), and
+        // §9.3.8.2.3 rule 7 "If either of the corresponding formal parameters or returning items in interface-1
+        // or interface-2 is a strongly-typed group item, both are of the same type". It also completes
+        // §8.5.1.12.1's fixed-length sentence — "Two fixed-length groups are always compatible, UNLESS they are
+        // strongly typed and have different type definitions" — whose strong half VariableLengthCompatibility
+        // deliberately leaves to this caller. Measured missing before kb/Work PB427: a plain `01 G. 05 A PIC
+        // X(4).` argument crossed BY REFERENCE into a `01 LF TYPE CT-T.` strong formal of the same width and
+        // ran, defeating exactly the data integrity §8.5.3.3's restrictions exist to protect.
+        if (StrongTypeMismatch(formal, arg) is { } strongWhy) return strongWhy;
         // ANY LENGTH (ISO §13.18.2). PAIR mode (the default — override/implements signatures and the universal
         // descriptor; the §9.3.8.2/§14.8.2 conformance tables :12177/:12247/:12335/:12383 list ANY LENGTH among
         // the clauses that shall be THE SAME between corresponding items): the clause must match between the
@@ -437,6 +473,13 @@ public static class OoConformance
     public static string? ContentMismatch(OoClassTable? classes, DataItem formal, Place argPlace)
     {
         DataItem arg = argPlace.Item;
+        // §14.8.2.2's strongly-typed sentence carries NO passing-mode qualification — it follows rules 1 (BY
+        // REFERENCE) and 2 (BY CONTENT) and governs both, and §14.8.2.1 routes a strongly-typed group to
+        // §14.8.2.2 because it is a group item. Same rule, same predicate, the other mode's entry point
+        // (kb/Work PB427 — the two-arm question asked and answered). A REF-MOD argument is the elementary
+        // alphanumeric view §8.4.3.3.4 GR6 creates, never the strong group itself, so it is screened as the
+        // non-strong side it is.
+        if (StrongTypeMismatch(formal, argPlace is RefModPlace ? null : arg) is { } strongWhy) return strongWhy;
         // §8.4.3.3.4 GR2/GR6 (fix-queue PB72): a REF-MOD argument crosses as the ELEMENTARY plain-alphanumeric
         // (or GR6b/c national) view it creates, never as the inner item — whose numeric category would satisfy
         // the COMPUTE arm below for a slice that is class alphanumeric, and whose finer alphabetic/edited flags

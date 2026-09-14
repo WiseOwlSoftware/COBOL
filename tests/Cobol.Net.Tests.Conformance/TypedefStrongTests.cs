@@ -134,9 +134,15 @@ public sealed class TypedefStrongTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1532");
     }
 
-    /// <summary>The §8.5.3 same-type rule is by relative POSITION, not just type-name: two DIFFERENT subgroups of the
-    /// SAME strong type (GA vs GB) are NOT the same type, so a cross-position MOVE is COBOLNET1533 — the
-    /// relative-member-path half of <c>SameStrongType</c>.</summary>
+    /// <summary>ISO §8.5.3.1 alternative 2 — two subordinate items in equivalent type declarations are of the same
+    /// type only when they start "at the same relative byte or bit position and [have] the same length in bytes or
+    /// bits". GA (bit 0) and GB (bit 24) are two subgroups of ONE declaration at DIFFERENT positions, so a
+    /// cross-position MOVE is COBOLNET1533.
+    /// <para>⚠ This test stated the criterion correctly while the code it pinned matched member-NAME PATHS, and it
+    /// passed only because this fixture's paths and positions happen to agree (kb/Work PB427). Its companions
+    /// <see cref="MoveSameOffsetDifferentlyNamedSubgroups_Accepted"/> (paths differ, positions agree → legal) and
+    /// <see cref="MoveSamePathDifferentPosition_Rejected1533"/> (paths agree, positions differ → refused) are the
+    /// pair that tells the two criteria apart, and neither existed before.</para></summary>
     [Fact]
     public void MoveDifferentSubgroupPosition_Rejected1533()
     {
@@ -195,5 +201,245 @@ public sealed class TypedefStrongTests
             """, 2002);
         Assert.True(ok, $"same-type / same-position / individual-field strong operations must compile clean: "
             + string.Join("; ", diag));
+    }
+
+    // ── ISO §8.5.3.1, THE SAME-TYPE TEST ITSELF (kb/Work PB427) ──────────────────────────────────────────────
+    // TypedefSameTypeTests-PB427. The clause has TWO alternatives over typed items and ONE relation under them:
+    //   "Two typed items are of the same type when:
+    //    — The items are described with TYPE clauses that reference equivalent type declarations; or
+    //    — The items are described as subordinate items in equivalent type declarations, starting at the same
+    //      relative byte pr bit position and having the same length in bytes or bits."
+    //   "Two type declarations are considered equivalent when they have the same type-name, both have the same
+    //    presence or absence of the EXTERNAL clause and the STRONG phrase, and for each elementary item in one
+    //    type declaration there is a corresponding elementary item in the other type declaration, starting at
+    //    the same relative byte or bit position and having the same length in bytes or bits. Each pair of
+    //    corresponding elementary items shall have the same ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
+    //    PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses …"
+    // The four tests below are the four axes a type-NAME + member-NAME-PATH stand-in got wrong.
+
+    /// <summary>§8.5.3.1 alternative 2, the POSITIVE direction: OUTERG and INNERG are DIFFERENTLY NAMED subgroups
+    /// of one declaration, both starting at relative bit 0 and both 32 bits long, so they are of the same type and
+    /// the MOVE is legal. A member-name-path criterion refused this — legal source, rejected.</summary>
+    [Fact]
+    public void MoveSameOffsetDifferentlyNamedSubgroups_Accepted()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSPOSOK.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 NEST-T TYPEDEF STRONG.
+               05 OUTERG.
+                  10 INNERG.
+                     15 LEAFX PIC X(4).
+            01 N1 TYPE NEST-T.
+            01 N2 TYPE NEST-T.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE OUTERG OF N1 TO INNERG OF N2.
+                STOP RUN.
+            """, 2002);
+        Assert.True(ok, "two subordinate items of equivalent declarations at the same relative position and length "
+            + "ARE of the same type (ISO §8.5.3.1): " + string.Join("; ", diag));
+    }
+
+    /// <summary>§8.5.3.1 alternative 2, the axis the path criterion could not see: the two declarations ARE
+    /// equivalent — identical elementary layout (two PIC X(2) leaves at bits 0 and 16), identical clauses, same
+    /// type-name, same STRONG, no EXTERNAL — but grouping differs, so <c>G</c> spans bits 0–31 in the container and
+    /// bits 16–31 in the contained program. The member-name PATHS agree (<c>G</c> in both); the POSITIONS and
+    /// LENGTHS do not, so the operands are NOT of the same type. §8.5.3.1's first paragraph is why the declarations
+    /// still count as equivalent: the essential characteristics are the elementary items' positions, lengths and
+    /// clauses — an intermediate group level is none of them.</summary>
+    [Fact]
+    public void MoveSamePathDifferentPosition_Rejected1533()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSPATHPOS.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SPLIT-T TYPEDEF STRONG.
+               05 G.
+                  10 GX PIC X(2).
+                  10 GY PIC X(2).
+            01 R1 TYPE SPLIT-T IS GLOBAL.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "TSPATHPOSIN" AS NESTED.
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSPATHPOSIN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SPLIT-T TYPEDEF STRONG.
+               05 GX PIC X(2).
+               05 G.
+                  10 GY PIC X(2).
+            01 R2 TYPE SPLIT-T.
+            PROCEDURE DIVISION.
+            CMAIN.
+                MOVE G OF R1 TO G OF R2.
+                GOBACK.
+            END PROGRAM TSPATHPOSIN.
+            END PROGRAM TSPATHPOS.
+            """, 2002);
+        Assert.False(ok, "equivalent declarations do not make two subordinate items the same type unless they also "
+            + "start at the same relative position and have the same length (ISO §8.5.3.1)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+    }
+
+    /// <summary>§8.5.3.1's equivalence relation: a matching type-NAME is ONE conjunct. Two source elements each
+    /// declare SHAPE-T; the names match and nothing else does (one 6-byte elementary item against two 3-byte ones),
+    /// so the declarations are not equivalent and the whole-record MOVE is refused. Under the name-string criterion
+    /// this program COMPILED AND RAN, depositing "ABC"/"DEF" into two PIC 9(3) items (kb/Work PB427).</summary>
+    [Fact]
+    public void MoveNonEquivalentSameNamedDeclarations_Rejected1533()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSNEQ.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SHAPE-T TYPEDEF STRONG.
+               05 SA PIC X(6).
+            01 OUTER-X TYPE SHAPE-T IS GLOBAL.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "TSNEQIN" AS NESTED.
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSNEQIN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SHAPE-T TYPEDEF STRONG.
+               05 SB PIC 9(3).
+               05 SC PIC 9(3).
+            01 INNER-Y TYPE SHAPE-T.
+            PROCEDURE DIVISION.
+            CMAIN.
+                MOVE OUTER-X TO INNER-Y.
+                GOBACK.
+            END PROGRAM TSNEQIN.
+            END PROGRAM TSNEQ.
+            """, 2002);
+        Assert.False(ok, "two same-named but structurally different type declarations are NOT equivalent, so items "
+            + "described with them are not of the same type (ISO §8.5.3.1 / §14.9.25.3 SR2)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+    }
+
+    /// <summary>§8.5.3.1's equivalence relation, the POSITIVE direction across a source-element boundary: the same
+    /// two declarations made ACTUALLY equivalent — same type-name, same STRONG phrase, no EXTERNAL clause on either,
+    /// and corresponding elementary items at the same relative positions with the same lengths and clauses — are
+    /// equivalent, so the cross-element whole-record MOVE conforms. This is the over-rejection guard on the test
+    /// above: the fix must refuse the non-equivalent pair WITHOUT refusing this one.</summary>
+    [Fact]
+    public void MoveEquivalentSameNamedDeclarationsAcrossElements_Accepted()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSEQ.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SHAPE-T TYPEDEF STRONG.
+               05 SA PIC X(3).
+               05 SB PIC 9(3).
+            01 OUTER-X TYPE SHAPE-T IS GLOBAL.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "TSEQIN" AS NESTED.
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSEQIN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SHAPE-T TYPEDEF STRONG.
+               05 SA PIC X(3).
+               05 SB PIC 9(3).
+            01 INNER-Y TYPE SHAPE-T.
+            PROCEDURE DIVISION.
+            CMAIN.
+                MOVE OUTER-X TO INNER-Y.
+                GOBACK.
+            END PROGRAM TSEQIN.
+            END PROGRAM TSEQ.
+            """, 2002);
+        Assert.True(ok, "two source elements declaring EQUIVALENT same-named types describe items of the same type "
+            + "(ISO §8.5.3.1): " + string.Join("; ", diag));
+    }
+
+    /// <summary>§8.5.3.1's equivalence relation names the ESSENTIAL CHARACTERISTICS clause by clause — "Each pair of
+    /// corresponding elementary items shall have the same ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
+    /// PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses". Here the two declarations agree on name, strength, layout
+    /// and every position and length — the leaves are both 3 bytes — and differ ONLY in the PICTURE clause
+    /// (<c>X(3)</c> against <c>9(3)</c>). That alone makes them non-equivalent.</summary>
+    [Fact]
+    public void MoveSameLayoutDifferentPicture_Rejected1533()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSPIC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SHAPE-T TYPEDEF STRONG.
+               05 SA PIC X(3).
+            01 OUTER-X TYPE SHAPE-T IS GLOBAL.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "TSPICIN" AS NESTED.
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSPICIN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SHAPE-T TYPEDEF STRONG.
+               05 SA PIC 9(3).
+            01 INNER-Y TYPE SHAPE-T.
+            PROCEDURE DIVISION.
+            CMAIN.
+                MOVE OUTER-X TO INNER-Y.
+                GOBACK.
+            END PROGRAM TSPICIN.
+            END PROGRAM TSPIC.
+            """, 2002);
+        Assert.False(ok, "corresponding elementary items with different PICTURE clauses make the two type "
+            + "declarations non-equivalent (ISO §8.5.3.1)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+    }
+
+    /// <summary>ISO §14.8.2.2 — "If either the formal parameter or the corresponding argument is a strongly-typed
+    /// group item, both shall be of the same type." PLAING is an ordinary 4-byte group and the formal is a
+    /// strongly-typed 4-byte group, so every LENGTH test the activation boundary applies is satisfied and only this
+    /// sentence refuses the crossing. It was implemented NOWHERE before kb/Work PB427 — the program ran.</summary>
+    [Fact]
+    public void CallArgumentNotSameTypeAsStrongFormal_Rejected()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSARG.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 PLAING.
+               05 PA PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "TSARGIN" AS NESTED USING PLAING.
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TSARGIN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 CT-T TYPEDEF STRONG.
+               05 CA PIC X(4).
+            LINKAGE SECTION.
+            01 LF TYPE CT-T.
+            PROCEDURE DIVISION USING LF.
+            CMAIN.
+                GOBACK.
+            END PROGRAM TSARGIN.
+            END PROGRAM TSARG.
+            """, 2002);
+        Assert.False(ok, "an argument that is not of the formal's type may not cross into a strongly-typed group "
+            + "formal (ISO §14.8.2.2)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1688");
     }
 }

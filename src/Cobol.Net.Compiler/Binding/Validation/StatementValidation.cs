@@ -418,7 +418,7 @@ internal sealed class StatementValidation(DataBinder data)
         foreach (var r in receivers)
         {
             if (!StrongTypeModel.IsStrongGroup(r.Item)) continue;
-            if (sender is null || !StrongTypeModel.SameStrongType(sender, r.Item))
+            if (sender is null || !StrongTypeModel.SameType(sender, r.Item))
             {
                 ok = false;
                 data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
@@ -1013,7 +1013,7 @@ internal sealed class StatementValidation(DataBinder data)
         DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
         if ((sl is { } && StrongTypeModel.IsStrongGroup(sl)) || (sr is { } && StrongTypeModel.IsStrongGroup(sr)))
         {
-            if (sl is null || sr is null || !StrongTypeModel.SameStrongType(sl, sr))
+            if (sl is null || sr is null || !StrongTypeModel.SameType(sl, sr))
                 data.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
                     + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
             // §8.8.4.2.3 SR4: a strong group whose elementary items include class boolean, message-tag,

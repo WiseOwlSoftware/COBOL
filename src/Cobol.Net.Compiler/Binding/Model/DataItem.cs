@@ -298,8 +298,8 @@ public sealed class DataItem
         "the same carried identity's strength; ISO §13.18.57.3 SR6 re-checks placement at the new site")]
     public bool StrongType { get; set; }
 
-    // The strong-typing overlay (StrongRoot / IsStrongGroup / IsStronglyTyped / TypeAnchor / SameStrongType /
-    // RelativeMemberPath) lives in Model/StrongTypeModel.cs (P5.11b, DESIGN-data-model §2.4) — DataItem keeps
+    // The strong-typing overlay (StrongRoot / IsStrongGroup / IsStronglyTyped / TypeAnchor / SameType /
+    // EquivalentTypeDeclarations) lives in Model/StrongTypeModel.cs (P5.11b, DESIGN-data-model §2.4) — DataItem keeps
     // only the stored facts (StrongType, TypeName) that ExpandTypes writes.
 
     /// <summary>The ALLOCATED occurrence count — the table's physical capacity — or <see langword="null"/> if the

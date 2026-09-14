@@ -50,7 +50,9 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // §14.9.39.3 SR19, second sentence — the RECEIVER arm: "If data-name-1 is a strongly-typed group item
             // or a restricted pointer, identifier-6 shall reference a data-pointer restricted to the type of
             // data-name-1." Here data-name-1 is the BASED receiver and identifier-6 the pointer sender.
-            if ((StrongTypeModel.StrongGroupType(based) ?? StrongTypeModel.PointerRestriction(based)) is { } needed
+            var needed = StrongTypeModel.StrongGroupType(based) is { IsRestricted: true } sg
+                ? sg : StrongTypeModel.PointerRestriction(based);
+            if (needed.IsRestricted
                 && !StrongTypeModel.SameRestriction(needed, StrongTypeModel.PointerRestriction(src.Item)))
             {
                 RejectRestriction(senderRef.GetText(),
@@ -74,16 +76,16 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // data-pointer, either identifier-5 shall reference a data-pointer restricted to the same type or
         // data-name-1 shall be a typed item of the type to which identifier-6 is restricted." Here identifier-5 is
         // the pointer receiver and the ADDRESS OF operand supplies identifier-6's restriction (§8.4.3.11.4 GR2).
-        string? receiverRestriction = StrongTypeModel.PointerRestriction(tp.Item);
-        string? sourceRestriction = StrongTypeModel.AddressOfRestriction(addr.Item);
-        if (receiverRestriction is not null && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
+        var receiverRestriction = StrongTypeModel.PointerRestriction(tp.Item);
+        var sourceRestriction = StrongTypeModel.AddressOfRestriction(addr.Item);
+        if (receiverRestriction.IsRestricted && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
         {
             RejectRestriction(addrRef.GetText(),
                 $"the receiving data-pointer is restricted to type '{receiverRestriction}', so the sender shall "
                 + "be NULL or a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
             return new BoundNop();
         }
-        if (sourceRestriction is not null && receiverRestriction is null)
+        if (sourceRestriction.IsRestricted && !receiverRestriction.IsRestricted)
         {
             RejectRestriction(targetRef.GetText(),
                 $"ADDRESS OF '{addrRef.GetText()}' is a RESTRICTED data-pointer of type '{sourceRestriction}' "
@@ -183,7 +185,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // data-name-1 shall be specified …" — and in Format 1 there IS no data-name-1, so a restricted
             // RETURNING can never be satisfied here. Screening it in this branch too is what keeps the rule from
             // being half-enforced: Form 1 and Form 2 are separate code paths.
-            if (StrongTypeModel.PointerRestriction(returning.Item) is { } charsRestriction)
+            if (StrongTypeModel.PointerRestriction(returning.Item) is { IsRestricted: true } charsRestriction)
             {
                 RejectRestriction(drefs[^1].GetText(),
                     $"the RETURNING data item is a data-pointer restricted to type '{charsRestriction}', which "
@@ -210,28 +212,28 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         //         untyped or absent based item.
         if (returning is { } ret)
         {
-            string? returningRestriction = StrongTypeModel.PointerRestriction(ret.Item);
+            var returningRestriction = StrongTypeModel.PointerRestriction(ret.Item);
             // ⛔ SR4 AND SR5 ASK ABOUT DIFFERENT THINGS, and conflating them rejects legal source. SR5's
             // antecedent is "data-name-1 references a STRONGLY-TYPED GROUP ITEM"; SR4's is "data-name-2
             // references a restricted data-pointer", and its requirement on data-name-1 is only that it
             // "reference a TYPED DATA ITEM" — which a WEAK typedef satisfies. So the two tests take different
-            // type accessors: StrongGroupType for SR5, the plain TYPE anchor for SR4.
-            string? strongType = StrongTypeModel.StrongGroupType(based);
-            string? basedType = StrongTypeModel.TypeAnchor(based)?.TypeName;
-            if (strongType is not null && !StrongTypeModel.SameRestriction(strongType, returningRestriction))
+            // type accessors: StrongGroupType for SR5, TypedItemType (the plain TYPE anchor) for SR4.
+            var strongType = StrongTypeModel.StrongGroupType(based);
+            var basedType = StrongTypeModel.TypedItemType(based);
+            if (strongType.IsRestricted && !StrongTypeModel.SameRestriction(strongType, returningRestriction))
             {
                 RejectRestriction(drefs[^1].GetText(),
                     $"'{basedRef.GetText()}' is a strongly-typed group item of type '{strongType}', so the "
                     + "RETURNING data item shall be a data-pointer restricted to that type (ISO §14.9.3.3 SR5)");
                 return new BoundNop();
             }
-            if (returningRestriction is not null
+            if (returningRestriction.IsRestricted
                 && !StrongTypeModel.SameRestriction(returningRestriction, basedType))
             {
                 RejectRestriction(drefs[^1].GetText(),
                     $"the RETURNING data item is a data-pointer restricted to type '{returningRestriction}', so "
                     + $"'{basedRef.GetText()}' shall reference a typed data item of that type — it is "
-                    + $"{(basedType is null ? "untyped" : $"of type '{basedType}'")} (ISO §14.9.3.3 SR4)");
+                    + $"{(basedType.IsRestricted ? $"of type '{basedType}'" : "untyped")} (ISO §14.9.3.3 SR4)");
                 return new BoundNop();
             }
         }

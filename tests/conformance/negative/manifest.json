@@ -1112,7 +1112,10 @@
   "pb877-subscript-on-non-table-item",
   "pb877-subscript-count-mismatch",
   "pb408-goback-raising-last-below-2002",
-  "pb419-initialize-resume-below-2002"
+  "pb419-initialize-resume-below-2002",
+  "pb427-same-type-nonequivalent-declarations",
+  "pb427-strong-group-argument-not-same-type",
+  "pb427-same-type-below-2002"
  ],
  "pending": []
 }
