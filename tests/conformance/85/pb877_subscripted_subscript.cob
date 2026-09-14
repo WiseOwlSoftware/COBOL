@@ -91,6 +91,11 @@
       *>    keys 1..4 against "a".."d" and T-G(2) the same keys against "w".."z"; T-N(1) = 2 selects
       *>    T-G(2), so the key 3 is found at its occurrence 3 and T-V there is "y". Reading "c" would mean
       *>    the outer subscript had been lost.
+      *>    The subject writes ONLY the enclosing occurrence: 14.9.37.3 SR2 says "identifier-1 shall not be
+      *>    subscripted at the level for which the SEARCH is applicable", and 8.4.2.3.3 SR5 a) exempts "the
+      *>    subject of a SEARCH statement" from the one-subscript-per-OCCURS count for that reason - the
+      *>    searched occurrence is the one the statement itself varies TX over (14.9.37.4 GR1). The WHEN
+      *>    operands DO carry TX, because SR8 requires them to.
            MOVE 2 TO T-N (1)
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > 4
               MOVE I TO T-K (1, I)
@@ -105,7 +110,7 @@
            MOVE "y" TO T-V (2, 3)
            MOVE "z" TO T-V (2, 4)
            MOVE "none" TO R
-           SEARCH ALL T-E (T-N (1), TX)
+           SEARCH ALL T-E (T-N (1))
                AT END MOVE "miss" TO R
                WHEN T-K (T-N (1), TX) = 3
                     MOVE T-V (T-N (1), TX) TO R
