@@ -57,6 +57,8 @@ the quadratic eats the amortization immediately: the **second mechanism in one t
 a whole fresh implementer at 40.3 M**. Two only when the notes share one code site *and* one gate filter — in
 which case the register's own clustering rule says they were one mechanism to begin with.
 
+**⭐ Group related fixes — owner decision 2026-09-13 ("adopt it").** The FILL UNIT is a GROUP: the harm-ranked note plus every open note that shares its named source files or its rule family (the registrar's root-cause cluster, or a grep of the notes' code sites) — three or four notes, one implementer, one branch, one gate, one report with a section per note; the mechanism rule above still governs the WORK inside the group (each note fixed at its root, checkpoint per mechanism, SPLIT at a note boundary at the turn cap). Evidence: trains 37/38 re-merged PB416/PB391 (MOVE validity), PB419/PB420/PB425 (INITIALIZE and MOVE emitters) and PB443/PB877 (the subscript resolver) pairwise, two composition defects appeared that neither implementer could see, and half the reports folded a sibling note. A group touching a shared seam runs `~CorpusRunner` + `~Nist` at the implementer's gate (the PB425 drop).
+
 **One landing per lander transcript.** ⓜ lander-3 carried 4 landings in 794 turns for **295.9 M**; the same turns
 split into four fresh ~198-turn landers model at **140 M — 53 % less**. (What a lander may batch is *clusters
 inside one landing* — §3.)
@@ -65,7 +67,7 @@ inside one landing* — §3.)
 **raised from 3 to 6 by owner decision on 2026-09-05** (`kb/Work/PB468` Q4), on the measurement that the 3-slot lane ran
 at ~100 % utilization all morning while the lander sat idle half the time (≈48 min per implementer, ≈33 min per
 four-cluster landing); six implementers saturate one lander with five- or six-cluster trains, which is the band above.
-⛔ **Fill the six slots ONE ITEM PER SUBSYSTEM** (the top of `work.py next` for each of binding, codegen, frontend/grammar,
+⛔ **Fill the six slots ONE GROUP PER SUBSYSTEM** (a group per the paragraph above; formerly one item) (the top of `work.py next` for each of binding, codegen, frontend/grammar,
 runtime, io …), never six items down the rank list: twelve consecutive file-I/O clusters on 2026-09-05 forced serial
 branches, a six-conflict mid-flight merge (~70 turns) and measured-overlap manifests for every train. It is an
 error-containment cap, and ⓜ it is TOKENS, not slots, that the weekly limit rations — so the budget is a default,
