@@ -272,15 +272,12 @@ wait "$INT"; INT_RC=$?
 echo "=== Unit ==="; grep -E "Passed!|Failed!|error|\[FAIL\]|Failed [A-Za-z]" "$TMP/gf_unit.log" | tail -6
 echo "=== Integration ==="; grep -E "Passed!|Failed!|error|\[FAIL\]|Failed [A-Za-z]" "$TMP/gf_int.log" | tail -6
 
-# (5) Baseline-cleanliness check (parity with guard.sh): no 0-byte / FAIL* / nonzero-footer baselines.
-BASE_FAILS=0
-for f in tests/nist/valid/*.txt; do
-    [ -s "$f" ] || { echo "=== ERROR: $(basename "$f") is EMPTY ==="; BASE_FAILS=$((BASE_FAILS+1)); continue; }
-    fc=$(grep -c "FAIL\*" "$f" 2>/dev/null || true); fc=${fc:-0}
-    [ "$fc" -gt 0 ] 2>/dev/null && { echo "=== ERROR: $(basename "$f") has $fc FAIL* ==="; BASE_FAILS=$((BASE_FAILS+1)); }
-    ff=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$f" 2>/dev/null | grep -oE "^[0-9]+" | head -1); ff=${ff:-0}
-    [ "$ff" -gt 0 ] 2>/dev/null && { echo "=== ERROR: $(basename "$f") footer $ff TEST(S) FAILED ==="; BASE_FAILS=$((BASE_FAILS+1)); }
-done
+# (5) Baseline-cleanliness check — ONE implementation, shared with guard.sh (scripts/guard-baselines.sh).
+# It used to be a hand-kept copy of guard.sh's loop ("parity with guard.sh"), and the copies drifted the moment
+# kb/Work PB436 gave one golden a DECLARED, spec-derived CCVS failure: guard-verdict.sh learned the allowance
+# and neither copy did (landing train 36).
+bash scripts/guard-baselines.sh tests/nist/valid tests/nist/corpus.tsv
+BASE_FAILS=$?
 
 # The verdict says what it measured — `=== ALL GREEN ===` itself is left byte-identical because callers
 # (scripts/battery.sh, CI) gate on that exact token.

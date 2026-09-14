@@ -149,11 +149,16 @@ SHIM
     # ── THE FOOTER/FAIL* RULES (the IX108A false green) — they survive the extraction. ──
     printf 'FEATURE 1                PASS\nFEATURE 2                FAIL*\n NO TEST(S) FAILED\n' \
         > "$FR/tests/nist/valid/WT001A.txt"
-    want "a matching report with FAIL* lines is a MATCH that SAYS SO" \
-         "WT001A: MATCH (1 FAIL*)" "$(run_case correct 0 '' '')"
+    want "a matching report with FAIL* lines is a MATCH that SAYS SO, and names what the golden allows" \
+         "WT001A: MATCH (1 FAIL*, golden allows 0)" "$(run_case correct 0 '' '')"
     printf 'FEATURE 1                PASS\n 001 TEST(S) FAILED\n' > "$FR/tests/nist/valid/WT001A.txt"
-    want "a nonzero footer total is a REGRESSION even with no FAIL* line" \
-         "FOOTER 001 TEST(S) FAILED — REGRESSION!" "$(run_case correct 0 '' '')"
+    # ⛔ THE ALLOWANCE COMES FROM THE GOLDEN (kb/Work PB436). This arm is reached only after a candidate
+    # matched the golden, so comparing its footer to the CONSTANT 0 was auditing the BASELINE and not the run,
+    # and it turned a CONFORMING compiler red on NC201A. What stops a FAILING report from being baselined as
+    # the golden — the IX108A false green — is the baseline audit below, which is now the only place that
+    # question is asked.
+    want "a nonzero footer the GOLDEN itself carries is a MATCH, not a regression" \
+         "WT001A: MATCH" "$(run_case correct 0 '' '')"
     printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
         > "$FR/tests/nist/valid/WT001A.txt"
 
@@ -185,10 +190,42 @@ SHIM
         echo "  ok: a MATCH preserves nothing"
     fi
 
+    # ── THE BASELINE AUDIT (scripts/guard-baselines.sh) — the ONE copy guard.sh and guard-fast.sh both call.
+    # Every arm is fired here, because an allowance nobody has seen refuse is not an allowance, it is a hole.
+    local BV="$d/bl"
+    mkdir -p "$BV/valid"
+    printf 'FEATURE 1                PASS\n NO TEST(S) FAILED\n'   > "$BV/valid/BL001A.txt"
+    printf 'FEATURE 1                FAIL*\n 001 TEST(S) FAILED\n' > "$BV/valid/BL002A.txt"
+    printf '#name\tsuite\tstatus\tpreds\tgolden\tnote\n' > "$BV/none.tsv"
+    printf '#name\tsuite\tstatus\tpreds\tgolden\tnote\nBL002A\tNC\tdivergent\t-\tvalid\tISO 1.1 CCVS-DEFECT: declared\n' > "$BV/ok.tsv"
+    printf '#name\tsuite\tstatus\tpreds\tgolden\tnote\nBL002A\tNC\tgreen\t-\tvalid\tCCVS-DEFECT: uncited\n' > "$BV/green.tsv"
+    printf '#name\tsuite\tstatus\tpreds\tgolden\tnote\nBL001A\tNC\tdivergent\t-\tvalid\tISO 1.1 CCVS-DEFECT: stale\nBL002A\tNC\tdivergent\t-\tvalid\tISO 1.1 CCVS-DEFECT: declared\n' > "$BV/stale.tsv"
+    want "an UNDECLARED baseline carrying a FAIL* is refused" \
+         "BL002A.txt contains 1 FAIL*" "$(bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/none.tsv" 2>&1)"
+    want "an UNDECLARED baseline carrying a nonzero footer is refused (the IX108A false green)" \
+         "BL002A.txt footer reports 001 TEST(S) FAILED" "$(bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/none.tsv" 2>&1)"
+    want "a DECLARED CCVS-DEFECT baseline is allowed, and says so" \
+         "DECLARED CCVS-DEFECT" "$(bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/ok.tsv" 2>&1)"
+    want "a CCVS-DEFECT declaration that is not \`divergent\` is refused (its ISO citation would be unenforced)" \
+         "status is not" "$(bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/green.tsv" 2>&1)"
+    want "a STALE declaration (declared, but the baseline carries nothing) is refused" \
+         "BL001A is declared CCVS-DEFECT but its baseline carries no failure" \
+         "$(bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/stale.tsv" 2>&1)"
+    : > "$BV/valid/BL003A.txt"
+    want "a 0-byte baseline is refused (it would match a crashed run vacuously)" \
+         "BL003A.txt is EMPTY" "$(bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/ok.tsv" 2>&1)"
+    rm -f "$BV/valid/BL003A.txt"
+    if bash "$ROOT/scripts/guard-baselines.sh" "$BV/valid" "$BV/ok.tsv" >/dev/null 2>&1; then
+        echo "  ok: the audit EXITS 0 when every baseline is clean or declared"
+    else
+        echo "  WITNESS FAILED: the baseline audit refuses a clean tree (scripts/guard-baselines.sh)"; rc=1
+    fi
+
     # ── STRUCTURAL: the rule stays in ONE place, and the compare never reads through a pipe it cannot check. ──
     # (Comment lines are exempt — this file and guard-verdict.sh both QUOTE the old construct to explain it.)
     awk '$0 !~ /^[ \t]*#/ && ($0 ~ /diff[ \t]*<\(/ || $0 ~ /comm[ \t].*<\(/) { print FILENAME ":" FNR ": " $0 }' \
         scripts/guard.sh scripts/guard-run-group.sh scripts/guard-fast.sh scripts/guard-verdict.sh \
+        scripts/guard-baselines.sh \
         > "$d/procsub.txt" 2>/dev/null
     if [ -s "$d/procsub.txt" ]; then
         echo "  WITNESS FAILED: a verdict-bearing comparison reads through a PROCESS SUBSTITUTION"

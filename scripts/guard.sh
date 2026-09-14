@@ -309,28 +309,17 @@ if [ $FAILURES -gt 0 ] || [ $NIST_AUDIT -ne 0 ]; then
     exit 1
 fi
 
-# Verify every baseline is clean and non-vacuous — baselines must be 100% trustworthy.
-# (1) a 0-byte baseline matches any empty/crash output vacuously; (2) a FAIL* detail line is a real
-# failure; (3) a nonzero footer "NNN TEST(S) FAILED" is a real failure even with no FAIL* detail line.
-for f in $NIST_VALID/*.txt; do
-    if [ ! -s "$f" ]; then
-        echo "=== ERROR: $(basename "$f") is EMPTY — a 0-byte baseline passes vacuously; remove from valid/ ==="
-        FAILURES=$((FAILURES + 1))
-        continue
-    fi
-    fc=$(grep -c "FAIL\*" "$f" 2>/dev/null || true)
-    fc=${fc:-0}
-    if [ "$fc" -gt 0 ] 2>/dev/null; then
-        echo "=== ERROR: $(basename "$f") contains $fc FAIL* — remove from valid/ ==="
-        FAILURES=$((FAILURES + 1))
-    fi
-    ff=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$f" 2>/dev/null | grep -oE "^[0-9]+" | head -1)
-    ff=${ff:-0}
-    if [ "$ff" -gt 0 ] 2>/dev/null; then
-        echo "=== ERROR: $(basename "$f") footer reports $ff TEST(S) FAILED — not a clean baseline; remove from valid/ ==="
-        FAILURES=$((FAILURES + 1))
-    fi
-done
+# Verify every baseline is clean and non-vacuous — baselines must be 100% trustworthy. ONE implementation,
+# shared with guard-fast.sh (scripts/guard-baselines.sh): a 0-byte baseline matches an empty or crashed run
+# vacuously, a FAIL* detail line is a real failure, a non-zero "NNN TEST(S) FAILED" footer is a real failure
+# even with no FAIL* line — unless the program is DECLARED a CCVS defect in tests/nist/corpus.tsv, the same
+# rule and the same file CorpusManifestTests states as a set equality (kb/Work PB436).
+bash "$(dirname "$0")/guard-baselines.sh" "$NIST_VALID" tests/nist/corpus.tsv
+FAILURES=$((FAILURES + $?))
+if [ $FAILURES -gt 0 ]; then
+    echo "=== BASELINES ($GUARD_COMPILER): $FAILURES defect(s) above ==="
+    exit 1
+fi
 
 # The verdict says what it measured; `=== ALL GREEN ===` itself stays byte-identical because callers gate on it.
 echo "=== COMPILER UNDER TEST WAS: $GUARD_COMPILER ($GUARD_CLI_DLL) ==="
