@@ -85,7 +85,8 @@
     "pb721_zero_length_record_85",
     "pb721_bytes_user_word_85",
     "pb390_procedure_and_condition_operands",
-    "pb436_varying_after_from_outer"
+    "pb436_varying_after_from_outer",
+    "pb877_subscripted_subscript"
   ],
   "pending": []
 }

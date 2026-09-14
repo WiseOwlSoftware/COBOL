@@ -381,6 +381,7 @@ public sealed class ReferenceResolver(DataBinder data)
             var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
             if (isRefMod || e is null) return null;   // unsupported subscript form → loud
             ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
+            if (ScreenSubscriptArity(dref, item, e.Count)) return null;   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
             indexExprs = e;
         }
 
@@ -871,9 +872,60 @@ public sealed class ReferenceResolver(DataBinder data)
             var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
             if (isRefMod || e is null) return null;
             ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
+            // SR2 names the CONDITIONAL VARIABLE for a condition-name reference (§8.4.2.3 Format 2), which is
+            // exactly the item this overload is handed — so the same screen applies unchanged (kb/Work PB877).
+            if (ScreenSubscriptArity(dref, item, e.Count)) return null;   // §8.4.2.3.3 SR2/SR3
             indexExprs = e;
         }
         return PlaceForItem(item, indexExprs);
+    }
+
+    /// <summary>⛔ §8.4.2.3.3 SR2 AND SR3 — THE WRITTEN SUBSCRIPT LIST AGAINST THE ITEM'S DIMENSIONS, asked ONCE
+    /// per source reference and therefore on BOTH sides of every statement (kb/Work PB877). Returns
+    /// <see langword="true"/> when the reference is rejected, so the caller returns null.
+    /// <para><b>SR2</b> — "If a subscript is specified, the data description entry describing qualified-data-name-1
+    /// or the conditional variable associated with qualified-condition-name-1 shall contain an OCCURS clause or
+    /// shall be subordinate to a data description entry that contains an OCCURS clause" — is
+    /// <see cref="DataItem.IsTableElement"/>. <b>SR3</b> — "the number of subscripts shall equal the number of
+    /// OCCURS clauses in the description of the table element being referenced" — is
+    /// <see cref="DataItem.SubscriptArity"/>.</para>
+    /// <para>⛔ BOTH WERE DECIDABLE HERE AND NEITHER WAS DECIDED. The resolver returned a bare null on an arity
+    /// mismatch and what the programmer saw depended on WHICH SIDE OF THE STATEMENT the reference stood on:
+    /// <c>MOVE 1 TO PLAIN (1)</c> drew the receiving chokepoint's catch-all, COBOLNET0899 "a reference shape
+    /// COBOL.NET does not yet implement as a receiver" — a promise, about source no edition of the standard will
+    /// ever admit (the PB489 shape) — while <c>DISPLAY PLAIN (1)</c> COMPILED CLEAN and aborted at run time on
+    /// <c>NotImplementedCobolFeatureException</c>, where §4.2.2 requires a compile-time mechanism.</para>
+    /// <para>⚠ IT SCREENS ONLY A REFERENCE THAT WRITES SUBSCRIPTS, and that boundary is SR5's: "Each table
+    /// element reference shall be subscripted EXCEPT when such reference appears" as a SEARCH subject, in a
+    /// REDEFINES clause, in an OCCURS KEY IS phrase, in a SORT statement's KEY phrase or table subject, in a
+    /// screen description entry's FROM/TO/USING phrase, or as a SUM clause addend — seven contexts only the
+    /// owning binder can recognize, so an OMITTED list is left exactly as it was. Writing a subscript where none
+    /// may be written, or writing the wrong number of them, has no such exception at any edition.</para></summary>
+    private bool ScreenSubscriptArity(Core.DataReferenceContext dref, DataItem item, int written)
+    {
+        // ⛔ THE SR5 BOUNDARY IS STRUCTURAL, NOT A PROPERTY OF THE CALLERS: a reference that writes NO subscript
+        // is never this screen's business, whatever reached it. Both call sites happen to guard on a subscript
+        // group being present, and that is a fact about them; this is the rule.
+        int arity = item.SubscriptArity;
+        if (written == 0 || written == arity) return false;
+        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (_diagnosed).
+        if (_probing) return true;
+        if (!_diagnosed.Add(dref)) return true;
+        string text = dref.GetText();
+        string subject = item.CobolName ?? item.CsName;
+        if (arity == 0)
+            data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
+                $"'{text}': a subscript is written on '{subject}', whose data description entry neither "
+                + "contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it "
+                + "(ISO §8.4.2.3.3 SR2). For a character span write the reference-modification colon form "
+                + $"instead — '{subject} (1:n)' (§8.4.3.3).");
+        else
+            data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
+                $"'{text}': {written} subscript{(written == 1 ? "" : "s")} written, but the description of "
+                + $"'{subject}' contains {arity} OCCURS clause{(arity == 1 ? "" : "s")}; ISO §8.4.2.3.3 SR3 "
+                + "requires one subscript per OCCURS clause, written in the order of successively less inclusive "
+                + "dimensions of the table.");
+        return true;
     }
 
     /// <summary>The FIRST subscript group of <paramref name="dref"/> — the <c>(…)</c> that carries the reference's
@@ -908,8 +960,23 @@ public sealed class ReferenceResolver(DataBinder data)
         if (SubscriptGroupOf(dref) is not { } group) return null;
         var tokens = new List<IToken>();
         CollectLeafTokens(group, tokens);
-        return SplitSubscriptTokens(tokens, name => ResolveUnqualified(name) is { IsTable: false });
+        return SplitSubscriptTokens(tokens, CannotBeSubscripted);
     }
+
+    /// <summary>⛔ THE ONE DECLARATION-INFORMED <c>'('</c> PREDICATE (kb/Work PB136, corrected by PB877) — the
+    /// splitter's question "does this name own the <c>'('</c> that follows it, or does that paren open a new
+    /// subscript?", answered by §8.4.2.3.3 SR2: a name that may carry a subscript owns its paren; a name that may
+    /// not cannot, so the paren can only begin a parenthesized-expression subscript.
+    /// <para>⛔ IT IS A NAMED MEMBER, NOT A LAMBDA AT EACH CALL SITE, AND THAT IS THE POINT. Both callers —
+    /// <see cref="SubscriptSegments"/> (the §14.9.37.3 SR8/SR9 source-text reader) and
+    /// <see cref="InterpretSubscripts"/> (the rendering path) — spelled the lambda out for themselves, and
+    /// <see cref="SubscriptSegments"/>'s own doc-comment CLAIMED they used "the same declaration-informed '(' rule".
+    /// They did, by coincidence of two identical copies; PB877 corrected one of them and the claim would have
+    /// become false in silence. One rule, one place, and the claim is now structural.</para>
+    /// <para>Answers true ONLY for a name that RESOLVES to a data item on which no subscript may be written.
+    /// An UNRESOLVED name answers false — it may be a function reference (<c>FUNCTION INTEGER (X)</c>), whose
+    /// argument list must not be split from it — and so does a table element, which owns its paren.</para></summary>
+    internal bool CannotBeSubscripted(string name) => ResolveUnqualified(name) is { IsTableElement: false };
 
     // ── Intrinsic-argument entries (ISO §15.3; consumed by StatementBinder.Intrinsics.cs) ─────────────────
     // The function-argument mini-parser resolves identifiers from flat SUBSCRIPT-mode tokens, where no
@@ -1108,7 +1175,9 @@ public sealed class ReferenceResolver(DataBinder data)
         var chain = new List<DataItem>();
         for (DataItem? n = item; n is not null; n = n.Parent) chain.Add(n);
         chain.Reverse();
-        if (chain.Count(n => n.IsTable) != indexExprs.Count) return null;   // wrong number of subscripts
+        // §8.4.2.3.3 SR3's count, from THE one place it is written down — the string twin below reads the same
+        // property, so the two access-path builders cannot disagree about arity (kb/Work PB877).
+        if (item.SubscriptArity != indexExprs.Count) return null;   // wrong number of subscripts
         var segs = new List<AccessSegment>();
         int si = 0;
         bool first = true;
@@ -1162,10 +1231,9 @@ public sealed class ReferenceResolver(DataBinder data)
         for (DataItem? n = item; n is not null; n = n.Parent) chain.Add(n);
         chain.Reverse();   // root-first
 
-        // Count ANY table level (fixed OR dynamic) — a dynamic table IS an OCCURS dimension though its Occurs is
-        // null (DataItem.IsTable guidance: use IsTable at subscript-arity sites).
-        int occursLevels = chain.Count(n => n.IsTable);
-        if (occursLevels != indexExprs.Count) return null;   // wrong number of subscripts
+        // §8.4.2.3.3 SR3's count, from THE one place it is written down (DataItem.SubscriptArity, kb/Work PB877):
+        // ANY table level, fixed OR dynamic — a dynamic table IS an OCCURS dimension though its Occurs is null.
+        if (item.SubscriptArity != indexExprs.Count) return null;   // wrong number of subscripts
 
         string path = "";
         int si = 0;
@@ -1243,8 +1311,11 @@ public sealed class ReferenceResolver(DataBinder data)
         }
 
         var exprs = new List<string>();
-        foreach (var seg in SplitSubscriptTokens(tokens,
-                     name => ResolveUnqualified(name) is { IsTable: false }))   // kb/Work PB136 — declaration-informed '(' splitting
+        // kb/Work PB136 — declaration-informed '(' splitting, through the ONE predicate (kb/Work PB877): an
+        // inline `IsTable` lambda stood here and answered only §8.4.2.3.3 SR2's FIRST half, so a name SUBORDINATE
+        // to an OCCURS — legally subscripted, and a legal arithmetic-expression-1 subscript under §8.4.2.3.2 +
+        // §8.8.1.1 + §8.4.3.1.2 Format 2 — had its own '(' split off as an EXTRA subscript.
+        foreach (var seg in SplitSubscriptTokens(tokens, CannotBeSubscripted))
         {
             if (RenderSegment(seg, SegmentPosition.Subscript, indexNames) is not { } e) return (null, false);
             exprs.Add(e);
@@ -1283,10 +1354,13 @@ public sealed class ReferenceResolver(DataBinder data)
             {
                 Core.SUB_RPAREN or Core.SUB_INTEGERLIT or Core.SIGNED_INTEGERLIT or Core.SUB_DECIMALLIT
                     or Core.SIGNED_DECIMALLIT or Core.SUB_STRINGLIT => true,
-                // The predicate answers true ONLY for a name that RESOLVES to a non-table data item: an
-                // unresolved name may be a function reference (`FUNCTION INTEGER (X)` — the first cut split
-                // a function from its own argument list and six goldens went red on "0 given"), and a TABLE
-                // name owns its paren as a subscript. Unknown → no split → the D18 loud names the operand.
+                // The predicate is ReferenceResolver.CannotBeSubscripted — §8.4.2.3.3 SR2's admission test, and
+                // the ONE copy of it (kb/Work PB877). It answers true ONLY for a name that RESOLVES to a data
+                // item NO subscript may be written on (neither carrying an OCCURS clause nor subordinate to
+                // one): an unresolved name may be a function reference (`FUNCTION INTEGER (X)` — the first cut
+                // split a function from its own argument list and six goldens went red on "0 given"), and a
+                // TABLE ELEMENT owns its paren as its own subscript list. Unknown → no split → the D18 loud
+                // names the operand.
                 Core.SUB_IDENTIFIER when parenSplitsAfterName is not null
                     && !lastNonWs.Text.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase)
                     => parenSplitsAfterName(lastNonWs.Text),

@@ -1108,7 +1108,9 @@
   "pb403-exit-perform-outside-perform",
   "pb403-exit-program-in-function",
   "pb403-exit-perform-below-2002",
-  "pb388-goback-raising-level2-name"
+  "pb388-goback-raising-level2-name",
+  "pb877-subscript-on-non-table-item",
+  "pb877-subscript-count-mismatch"
  ],
  "pending": []
 }

@@ -1844,11 +1844,13 @@ public sealed partial class DataBinder
     /// a table-RECOGNITION site, which is exactly what <c>IsTable</c>'s own doc-comment says it is for.</para></summary>
     private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(DataItem item)
     {
-        for (DataItem? n = item; n is not null; n = n.Parent)
-            if (n.IsTable)
-                return (DiagnosticCatalog.ReportControlOperandShape,
-                    $"is subject to the OCCURS clause on '{n.CobolName ?? n.CsName}': data-name-1 shall "
-                    + "not be subject to any OCCURS clauses (ISO §13.18.16.3 SR3)");
+        // "Subject to an OCCURS clause" is §8.4.2.3.3 SR2's question under another name, so it is asked through
+        // THE one walk (DataItem.SubscriptLevels, outermost first — kb/Work PB877); the message names the
+        // INNERMOST level, which is the one the hand-written self→parent loop used to report.
+        if (item.SubscriptLevels() is [.., var innermost])
+            return (DiagnosticCatalog.ReportControlOperandShape,
+                $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.CsName}': data-name-1 shall "
+                + "not be subject to any OCCURS clauses (ISO §13.18.16.3 SR3)");
         if (OdoModel.TableUnder(item) is { } odo)
             return (DiagnosticCatalog.ReportControlOperandShape,
                 $"has the occurs-depending table '{odo.CobolName ?? odo.CsName}' subordinate to it: the "

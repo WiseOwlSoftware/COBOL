@@ -5631,13 +5631,13 @@
   "ordinal": 2,
   "subject": "Subscripts",
   "rule-digest": "8a31dbf61c30",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#IsTableElement; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#CannotBeSubscripted; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ScreenSubscriptArity",
+  "test-ref": "conformance:85/pb877_subscripted_subscript; conformance:negative/pb877-subscript-on-non-table-item; unit:SubscriptAdmissionDriftTests.TheSr2Predicate_AsksIsTableElement_NotIsTable; unit:SubscriptAdmissionDriftTests.IsTableElement_IsDefinedAsANonZeroSubscriptArity",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR2 has two halves - 'shall contain an OCCURS clause OR SHALL BE SUBORDINATE TO a data description entry that contains an OCCURS clause' - and the compiler wrote down only the first, as DataItem.IsTable. Both halves are now one predicate, DataItem.IsTableElement (= SubscriptArity > 0), read by the ONE declaration-informed '(' rule the three subscript-splitting callers share. POSITIVE: the 85 golden subscripts X, which carries no OCCURS clause of its own and is subordinate to one, in every reference position - a receiving operand of MOVE / ADD / COMPUTE / STRING / UNSTRING / INITIALIZE, a sending operand, a relative subscript, a reference-modification leftmost position, an intrinsic-function argument and a SEARCH ALL identifier-1. NEGATIVE: a subscript on an item satisfying NEITHER half is COBOLNET2096 at all four editions. Before kb/Work PB877 that violation drew COBOLNET0899 'not yet implemented' on the receiving side - a promise about permanently illegal source - and compiled clean and aborted at run time on the sending side, where 4.2.2 requires a compile-time mechanism.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.2.3.3-3",
@@ -5646,13 +5646,13 @@
   "ordinal": 3,
   "subject": "Subscripts",
   "rule-digest": "2dfac91389b6",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#SubscriptArity; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#SubscriptLevels; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ScreenSubscriptArity; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#AccessPath",
+  "test-ref": "conformance:85/pb877_subscripted_subscript; conformance:negative/pb877-subscript-count-mismatch; unit:SubscriptAdmissionDriftTests.TheSr3ArityWalk_IsWrittenExactlyOnce; unit:SubscriptAdmissionDriftTests.BothSubscriptScreens_AreWiredAtTheOneResolutionSite",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The COUNT and the ORDER. DataItem.SubscriptArity is the count - one per OCCURS clause in the item's description, fixed or dynamic - and DataItem.SubscriptLevels() is the same walk as a list, outermost first, which is SR3's 'order of successively less inclusive dimensions'. Five hand-written copies of that ancestor walk were in the compiler; the drift test pins it to one. POSITIVE: the 85 golden writes one subscript per dimension in every position, including the two-dimensional Y2 OF Y-REC (X(1), 2) and the nested SEARCH ALL T-E (T-N (1), TX) whose witness value discriminates the outer occurrence. NEGATIVE: X (1, 2) on a one-dimensional element is COBOLNET2097 at all four editions. SR5's seven exceptions are all about OMITTING the subscript list and are decided by the owning binders (a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen entry's FROM/TO/USING phrase, a report SUM addend), so the screen deliberately fires only on a reference that WRITES subscripts.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.2.3.3-4",
@@ -5738,10 +5738,10 @@
   "rule-digest": "30c1560cb5d4",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#PositionRead; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#MaterializeViaFragment; src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#OccScaled",
-  "test-ref": "conformance:2023/pb62_all_subscript_runtime_ranges; conformance:2023/pb136_subscript_expressions; conformance:2023/pb41_position_not_integer; conformance:2023/pb201_position_operand_carriers; conformance:2023/pb170_position_operand_legal_shapes; conformance:2023/pb50_figurative_zero_position_expressions; conformance:85/index_name_r7_windows; unit:PositionCarrierOverloadDriftTests.UnscaledCarriers_AreExactlyTheOneArgumentOccOverloads",
+  "test-ref": "conformance:2023/pb62_all_subscript_runtime_ranges; conformance:2023/pb136_subscript_expressions; conformance:2023/pb41_position_not_integer; conformance:2023/pb201_position_operand_carriers; conformance:2023/pb170_position_operand_legal_shapes; conformance:2023/pb50_figurative_zero_position_expressions; conformance:85/index_name_r7_windows; conformance:85/pb877_subscripted_subscript; unit:PositionCarrierOverloadDriftTests.UnscaledCarriers_AreExactlyTheOneArgumentOccOverloads",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB201 (2026-09-04) closes the last unevidenced arm. All THREE determinations of GR1 are pinned separately. a) ALL - pb62 covers all three ranges GR1a defers to (a fixed OCCURS count, an OCCURS DEPENDING object, a dynamic-capacity current capacity) and the multi-dimension rightmost-varies-fastest order; the arm is vacuous at 85, which has no functions for which the subscript ALL is allowed. b) arithmetic-expression-1 - pb136 (compound expressions), pb41 (the integrality condition itself: a non-integer result raises EC-BOUND-SUBSCRIPT under checking ON, via CobolTable.OccScaled/CobolNum.HasFraction), and pb201_position_operand_carriers (the CARRIER axis - FLOAT-LONG, FLOAT-SHORT, PIC 9(20) COMP and BINARY-DOUBLE UNSIGNED operands each select their occurrence; every one emitted uncompilable C# before PB201). c) index-name-1 [+/- integer-1] - pb170 (E(IX)), pb50 (E(IX + 1)) and 85/index_name_r7_windows (T(IX + 1) at the 85 edition). The implementor-defined index-to-occurrence mapping GR1c reserves is the identity (an IndexCell holds the occurrence number). The renderer is not the adjudicator: any operand PositionRead cannot render routes to the D18 materializer, whose arithmetic-expression grammar decides admissibility - so a shape 8.8.1.1 does not admit cannot parse, and the drift test pins the carrier set to the runtime overload set in both directions.",
+  "notes": "kb/Work PB201 (2026-09-04) closed the last unevidenced arm and kb/Work PB877 (2026-09-13) closed a hole INSIDE a closed arm. All THREE determinations of GR1 are pinned separately. a) ALL - pb62 covers all three ranges GR1a defers to (a fixed OCCURS count, an OCCURS DEPENDING object, a dynamic-capacity current capacity) and the multi-dimension rightmost-varies-fastest order; the arm is vacuous at 85, which has no functions for which the subscript ALL is allowed. b) arithmetic-expression-1 - pb136 (compound expressions), pb41 (the integrality condition itself: a non-integer result raises EC-BOUND-SUBSCRIPT under checking ON, via CobolTable.OccScaled/CobolNum.HasFraction), pb201_position_operand_carriers (the CARRIER axis) and, since PB877, pb877_subscripted_subscript - the OPERAND-SHAPE axis none of the other four touched, an identifier that carries its own subscripts. Five goldens had pinned this arm CONFORMS while that whole shape was refused, which is why the witness list now names the shape as well as the value. c) index-name-1 [+/- integer-1] - pb170 (E(IX)), pb50 (E(IX + 1)) and 85/index_name_r7_windows (T(IX + 1) at the 85 edition). The implementor-defined index-to-occurrence mapping GR1c reserves is the identity (an IndexCell holds the occurrence number). The renderer is not the adjudicator: any operand PositionRead cannot render routes to the D18 materializer, whose arithmetic-expression grammar decides admissibility - so a shape 8.8.1.1 does not admit cannot parse, and the drift test pins the carrier set to the runtime overload set in both directions.",
   "state": "OK"
  },
  {
@@ -57471,13 +57471,13 @@
   "ordinal": 0,
   "subject": "Subscripts",
   "rule-digest": "5cbb1a7db079",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#InterpretSubscripts; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#SplitSubscriptTokens; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#RenderSegment; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#MaterializeViaFragment",
+  "test-ref": "conformance:85/pb877_subscripted_subscript; conformance:2023/pb136_subscript_expressions; conformance:2023/pb62_all_subscript_runtime_ranges; conformance:85/index_name_r7_windows; conformance:2023/pb170_position_operand_legal_shapes",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "The subscript general format has exactly THREE alternatives and each now has a witness. ALL - pb62 (the three ranges GR1a defers to; vacuous at 85, which has no function for which the subscript ALL is allowed). index-name-1 [{+|-} integer-1] - 85/index_name_r7_windows and pb170. arithmetic-expression-1 - pb136 for compound expressions and pb877_subscripted_subscript for the shape that had no vehicle until kb/Work PB877: an identifier operand carrying its OWN subscripts. 8.8.1.1 admits 'an identifier referencing a numeric data item' and 8.4.3.1.2 Format 2 makes that identifier a qualified-data-name-WITH-SUBSCRIPTS, so X(1) is an arithmetic-expression-1 - but the declaration-informed '(' splitter asked DataItem.IsTable, which is only the first half of 8.4.2.3.3 SR2, so the identifier's own '(' opened a SECOND subscript and every such reference failed arity. It was loud on the receiving side (COBOLNET0899) and a run-time abort on the sending side. Format 1 (qualified-data-name-with-subscripts) and Format 2 (qualified-condition-name-with-subscripts) are both covered: the golden subscripts data-names, and ResolveForItem - the condition-name path, whose subscripts identify the occurrence of the CONDITIONAL VARIABLE - applies the same SR2/SR3 screen.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-8.4.3.1.2",

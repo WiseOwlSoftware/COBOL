@@ -2680,7 +2680,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         var inner = new List<IToken>();
         ReferenceResolver.CollectLeafTokens(som, inner);
-        var innerSegs = ReferenceResolver.SplitSubscriptTokens(inner);
+        // THE SAME declaration-informed '(' predicate the two reference-resolution callers use (kb/Work PB877):
+        // this was the one caller that passed none, so the splitter's "unknown → no split" fallback stood here
+        // and a §8.4.2.3.2 NOTE-2 parenthesized-expression subscript (`T (CTR (- OFF) ALL)`) joined itself to the
+        // preceding name. Three callers, one §8.4.2.3.3 SR2 answer.
+        var innerSegs = ReferenceResolver.SplitSubscriptTokens(inner, ctx.Refs.CannotBeSubscripted);
         if (!innerSegs.Any(IsAllSegment)) return false;
 
         if (!sig.RepeatsAnArgument)
@@ -2698,12 +2702,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             args.Add(new BoundOperandError($"table(ALL) reference '{name}'"));
             return true;
         }
-        // The table levels on the item's ancestor chain, outermost first — the AccessPath subscript order. A
-        // dynamic-capacity table IS a level (IsTable), which the former `Occurs is not null` walk missed.
-        var levels = new List<DataItem>();
-        for (DataItem? n = item; n is not null; n = n.Parent)
-            if (n.IsTable) levels.Add(n);
-        levels.Reverse();
+        // The table levels on the item's ancestor chain, outermost first — the AccessPath subscript order, from
+        // THE one §8.4.2.3.3 SR3 walk (DataItem.SubscriptLevels, kb/Work PB877). A dynamic-capacity table IS a
+        // level (IsTable), which the former `Occurs is not null` walk missed.
+        var levels = item.SubscriptLevels();
         if (levels.Count != innerSegs.Count)
         {
             args.Add(new BoundOperandError($"table(ALL) subscript count for '{name}'"));

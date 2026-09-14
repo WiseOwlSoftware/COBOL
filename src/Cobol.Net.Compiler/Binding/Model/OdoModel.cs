@@ -107,14 +107,8 @@ public static class OdoModel
     /// belonging to identifier-1 ("shall be subscripted by the first index-name associated with identifier-1 along
     /// with any subscripts required to uniquely identify the data item"). −1 when <paramref name="item"/> is not
     /// within <paramref name="table"/>.</summary>
-    public static int SubscriptPositionOf(DataItem item, DataItem table)
-    {
-        var levels = new List<DataItem>();
-        for (DataItem? n = item; n is not null; n = n.Parent)
-            if (n.IsTable) levels.Add(n);
-        levels.Reverse();   // outermost first — the order a subscript list is written in
-        return levels.IndexOf(table);
-    }
+    public static int SubscriptPositionOf(DataItem item, DataItem table) =>
+        item.SubscriptLevels().IndexOf(table);   // outermost first — SR3's order, from the ONE walk (kb/Work PB877)
 
     /// <summary>The occurs-depending table among <paramref name="group"/>'s STRICT descendants, or
     /// <see langword="null"/>. At most one exists in a legal program: §13.18.38 SR22 makes it the unique trailing

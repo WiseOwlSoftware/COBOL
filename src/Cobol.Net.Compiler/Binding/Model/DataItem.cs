@@ -328,6 +328,58 @@ public sealed class DataItem
     /// (static image width, fixed-array init) where a dynamic table must NOT be treated as a fixed run.</summary>
     public bool IsTable => Occurs is not null || IsDynamicTable;
 
+    /// <summary>⛔ §8.4.2.3.3 SR2'S ADMISSION TEST, AND NOT <see cref="IsTable"/> (kb/Work PB877). SR2: "If a
+    /// subscript is specified, the data description entry describing qualified-data-name-1 or the conditional
+    /// variable associated with qualified-condition-name-1 shall contain an OCCURS clause <b>or shall be
+    /// subordinate to a data description entry that contains an OCCURS clause</b>." <see cref="IsTable"/> answers
+    /// the FIRST half only — "does THIS entry carry an OCCURS clause" — so it is the right question at a
+    /// table-RECOGNITION site (is this the table SEARCH iterates) and the wrong one at every
+    /// REFERENCE-SHAPE site, where the subject is a reference to a table ELEMENT and every level of the
+    /// element's hierarchy counts.
+    /// <para>The half that was missing had a measurable cost: <c>ReferenceResolver.SplitSubscriptTokens</c>'s
+    /// declaration-informed <c>'('</c> rule asked <c>IsTable</c>, so <c>X</c> — <c>PIC 9</c> under
+    /// <c>02 G2 OCCURS 3</c> — answered "cannot be subscripted", its own <c>'('</c> opened a NEW subscript, and
+    /// <c>Y (X(1))</c> was read as TWO subscripts on a one-dimensional reference. §8.4.2.3.2's <c>subscript</c>
+    /// diagram admits <c>arithmetic-expression-1</c>, §8.8.1.1 admits "an identifier referencing a numeric data
+    /// item" as one, and §8.4.3.1.2 Format 2 makes that identifier a qualified-data-name-WITH-SUBSCRIPTS — so
+    /// the shape is legal, and it was rejected on the receiving side (COBOLNET0899) and aborted at run time on
+    /// the sending side.</para></summary>
+    public bool IsTableElement => SubscriptArity > 0;
+
+    /// <summary>§8.4.2.3.3 SR3's COUNT — "when a reference is made to a table element, the number of subscripts
+    /// shall equal the number of OCCURS clauses in the description of the table element being referenced". THE
+    /// one arity answer: every site that compares a written subscript list's length to the item's dimensions
+    /// reads this rather than re-walking the ancestor chain. Counts ANY table level, fixed or dynamic
+    /// (<see cref="IsTable"/>) — a dynamic-capacity table IS a dimension though its <see cref="Occurs"/> is
+    /// null (D9).
+    /// <para>⚠ Deliberately a COUNT and not <see cref="SubscriptLevels"/>: the arity comparison is on the
+    /// reference-resolution hot path and allocates nothing. Callers that need the levels THEMSELVES — the
+    /// §8.4.2.3.3 SR3 "order of successively less inclusive dimensions" half — take the list instead.</para></summary>
+    public int SubscriptArity
+    {
+        get
+        {
+            int n = 0;
+            for (DataItem? x = this; x is not null; x = x.Parent) if (x.IsTable) n++;
+            return n;
+        }
+    }
+
+    /// <summary>§8.4.2.3.3 SR3's ORDER — the table levels in this item's description, OUTERMOST FIRST: "the
+    /// subscripts are written in the order of successively less inclusive dimensions of the table", so element
+    /// <i>k</i> of this list is the level the <i>k</i>-th written subscript selects. The list form of
+    /// <see cref="SubscriptArity"/>: the same walk over the same predicate, so
+    /// <c>SubscriptLevels().Count == SubscriptArity</c> holds by construction — and it keeps holding because
+    /// <c>SubscriptAdmissionDriftTests.TheSr3ArityWalk_IsWrittenExactlyOnce</c> fails if the walk is written
+    /// anywhere but this file, which is how the five copies that existed before kb/Work PB877 got here.</summary>
+    public List<DataItem> SubscriptLevels()
+    {
+        var levels = new List<DataItem>();
+        for (DataItem? x = this; x is not null; x = x.Parent) if (x.IsTable) levels.Add(x);
+        levels.Reverse();   // outermost first — the order a subscript list is written in
+        return levels;
+    }
+
     /// <summary>The INDEXED BY index-names declared on this item's OCCURS clause (empty if none).</summary>
     [DescriptionCopy(DescriptionCopyKind.MemberOnly,
         "the INDEXED BY phrase of that OCCURS clause (ISO §13.18.38), riding it")]

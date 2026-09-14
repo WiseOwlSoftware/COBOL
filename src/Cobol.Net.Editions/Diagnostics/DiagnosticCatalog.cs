@@ -3446,6 +3446,44 @@ public static class DiagnosticCatalog
         + "'WHEN SET TO FALSE IS literal-4' to the condition-name's VALUE clause.",
         "ISO §14.9.39.3 SR7 / §14.9.39.4 GR7 / §13.18.63.4 GR20");
 
+    // ── COBOLNET2096/2097 — §8.4.2.3.3 SR2 and SR3, the two rules about a WRITTEN subscript list, screened at
+    //    the one reference-resolution site (kb/Work PB877). Both were decidable there and neither was decided:
+    //    the resolver returned a bare null and what the programmer saw depended on WHICH SIDE of the statement
+    //    the reference was on — the receiving chokepoint's catch-all promised `PLAIN(1)` was "a reference shape
+    //    COBOL.NET does not yet implement as a receiver" (COBOLNET0899, a promise about permanently illegal
+    //    source, the PB489 shape again), while the identical SENDING reference compiled clean and aborted at run
+    //    time. §4.2.2 requires a compile-time mechanism for a syntax-rule violation. ──
+
+    /// <summary>COBOLNET2096 — §8.4.2.3.3 SR2: a subscript is written on a data item whose description neither
+    /// contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it at all.</summary>
+    public static readonly DiagnosticDescriptor SubscriptOnNonTableItem = new(
+        "COBOLNET2096", "subscript-on-non-table-item", EditionSeverity.Error,
+        "A subscript is written on a data item that is not a table element. ISO §8.4.2.3.3 SR2: \"If a subscript "
+        + "is specified, the data description entry describing qualified-data-name-1 or the conditional variable "
+        + "associated with qualified-condition-name-1 shall contain an OCCURS clause or shall be subordinate to a "
+        + "data description entry that contains an OCCURS clause.\" Both halves count — an item SUBORDINATE to an "
+        + "OCCURS is a legal subscripted reference even though its own entry carries no OCCURS clause — and an "
+        + "item with neither is a permanent property of the program's data description, not a feature awaiting "
+        + "implementation. Remove the subscript, or describe the item (or a containing group) with an OCCURS "
+        + "clause. ⚠ If the parenthesis was meant to be reference modification, write the colon form "
+        + "(§8.4.3.3) — `ITEM (1:4)`.",
+        "ISO §8.4.2.3.3 SR2");
+
+    /// <summary>COBOLNET2097 — §8.4.2.3.3 SR3: the reference writes a number of subscripts other than the number
+    /// of OCCURS clauses in the description of the table element being referenced.</summary>
+    public static readonly DiagnosticDescriptor SubscriptCountMismatch = new(
+        "COBOLNET2097", "subscript-count-mismatch", EditionSeverity.Error,
+        "A table element reference writes the wrong number of subscripts. ISO §8.4.2.3.3 SR3: \"Except as defined "
+        + "in Syntax rule 5, when a reference is made to a table element, the number of subscripts shall equal the "
+        + "number of OCCURS clauses in the description of the table element being referenced … When more than one "
+        + "subscript is required, the subscripts are written in the order of successively less inclusive "
+        + "dimensions of the table.\" Count every OCCURS clause on the item's own entry and on each of its parents, "
+        + "and write one subscript for each, outermost first. ⚠ SR5 admits an OMITTED subscript list in seven "
+        + "contexts — a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, "
+        + "a screen entry's FROM/TO/USING phrase and a report SUM addend — and this diagnostic is never raised for "
+        + "a reference that writes none; writing too many has no such exception.",
+        "ISO §8.4.2.3.3 SR3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
