@@ -586,6 +586,15 @@
       "dns": 366,
       "label": "Train 37: DEVLOG 1612 + plan",
       "battery": null
+    },
+    {
+      "sha": "bdbe660a",
+      "date": "2026-09-13",
+      "gap": 2423,
+      "closed": 1925,
+      "dns": 366,
+      "label": "Train 38: DEVLOG 1614 + plan",
+      "battery": 80
     }
   ]
 }
