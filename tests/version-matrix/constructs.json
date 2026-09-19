@@ -2577,17 +2577,17 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nPROCEDURE DIVISION RAISING EC-USER-MYERR.\nMAIN.\n    STOP RUN.\n"
   },
   {
-   "id": "inline-method-invocation-2023",
-   "status": "pending",
-   "description": "in-line method invocation - identifier(arguments) as a method call in a statement/expression position (relocated to CobolOO.g4 from the deleted JSON/XML fragment) - COBOL-2023 introduction, {is2023()}?-gated at CobolParserCore.g4:717. PENDING: the identifier(args) form has NO distinctive token (ambiguous with subscripting and function-reference), so below 2023 it does not yield a distinct COBOLNET0900 (documented residue); the OO wave owns clean support and the row activates then.",
-   "display": "in-line method invocation identifier(args)",
+   "id": "inline-method-invocation-2002",
+   "status": "active",
+   "description": "In-line method invocation - the ISO 8.4.3.1.2 Format 4 identifier, `{object-class-name-1 | identifier-1} :: literal-1 [ ( arguments ) ]` (8.4.3.4.2), reachable from every operand position that admits a function-identifier (the Format-1 twin: 8.4.3.2.3 SR1 and 8.4.3.4.3 SR1 exclude both from a RECEIVING operand in the same words, so no receiving rule admits either - InlineMethodInvocationOperandDriftTests pins that invariant over the .g4 text). Gated at 2002 with the rest of the OO CORE; THE EDGE IS DERIVED, NOT QUOTED (the VERSION_CHANGE_REFERENCE discipline - the repo holds no 2002 or 2014 text): (a) A.4.10 lists exactly three OPTIONAL object-orientation elements - CLASS-ID INHERITS repetition, INTERFACE-ID INHERITS repetition, parametric polymorphism - and inline method invocation is NOT among them, so it is mandatory OO surface, which this compiler gates at 2002 throughout, (b) Annex E itemizes the 2014->2023 delta and does not list it, so it predates 2023, (c) 8.4.3.4.4 GR1 defines it as the equivalent INVOKE statement, itself a 2002 introduction. Below 2002 the VersionConformancePass parse arm names the edition on RECOGNITION (VisitInlineMethodInvocation -> 0900), which the superseded inline-method-invocation-2023 row could not do: that row described `id(args)` - a shape ISO defines nowhere, carrying no distinctive token - while the real construct is led by the 8.7.4 invocation operator '::' (kb/Work PB428).",
+   "display": "in-line method invocation id :: \"method\"",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO 8.4.3 (in-line method invocation, introduced 2023); grammar CobolOO.g4 inlineMethodInvocationStatement",
-   "introducedIn": 2023,
+   "citation": "ISO 8.4.3.4 / 8.4.3.1.2 Format 4 / 8.7.4 (OO, introduced 2002)",
+   "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
-   "vcr": "2014->2023 introduction (no distinctive token - OO-wave residue)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 O USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE O \"m\" RETURNING O.\n    STOP RUN.\n"
+   "vcr": "2002 introduction (OO; derived - A.4.10 optional-list silence + Annex E silence + 8.4.3.4.4 GR1)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IMI.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS IMIC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE IMIC.\n01 W PIC X(2).\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE IMIC \"NEW\" RETURNING OBJ.\n    MOVE OBJ :: \"GETIT\" TO W.\n    STOP RUN.\nEND PROGRAM IMI.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. IMIC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. GETIT.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LK PIC X(2).\nPROCEDURE DIVISION RETURNING LK.\nMAIN.\n    MOVE \"OK\" TO LK.\nEND METHOD GETIT.\nEND OBJECT.\nEND CLASS IMIC.\n"
   },
   {
    "id": "arithmetic-intermediate-precision-2023",

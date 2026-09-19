@@ -456,6 +456,23 @@ public sealed class ReferenceResolver(DataBinder data)
             : null;
     }
 
+    /// <summary>Reference-modify an ALREADY-RESOLVED place — §8.4.3.1.4 GR1 g)'s tail ("a reference modifier
+    /// applies to the identifier on the left") over an identifier that is not a data-NAME reference. Its one
+    /// caller today is the §8.4.3.4 inline method invocation, whose §8.4.3.4.4 GR1 c) temporary has no
+    /// <c>dataReference</c> context of its own (kb/Work PB428). It is a thin ENTRY, not a second reading: the
+    /// §8.4.3.3.3 SR1 screen is <see cref="RefModExclusion"/> and the view is <see cref="RefModView"/> — the
+    /// same two the syntactic path runs, in the same order, with the same COBOLNET1647.</summary>
+    internal Place? RefModOf(Place inner, Core.RefModPartContext rmp, string what)
+    {
+        if (RefModExclusion(inner.Item) is { } why)
+        {
+            data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
+                $"'{what}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
+            return null;
+        }
+        return ReadRefMod(rmp) is { } spec ? RefModView(inner.Item, inner, spec) : null;
+    }
+
     /// <summary>⛔ THE ONE REFERENCE-MODIFICATION VIEW BUILDER (kb/Work PB205): the SUBSTRATE wrap that turns an
     /// item's place into the §8.4.3.3.4 GR5 unique data item, written down once for BOTH the syntactic path
     /// (<see cref="Resolve"/>, where the positions come off the source) and the DATA-DIVISION path

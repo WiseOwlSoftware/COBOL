@@ -106,7 +106,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 // is admissible (§8.4.3.1.2 Format 1; §8.4.3.2.3 SR1 bars one only from a RECEIVING
                 // operand). It was a COBOL0001 parse error before — fix-queue PB10.
                 var lit = item.literal();
-                BoundOperand value = item.functionCall() is { } ifc ? host.Intrinsic.IntrinsicOperand(ifc)
+                BoundOperand value = item.inlineMethodInvocation() is { } iimi
+                        ? host.Oo.OoInlineInvocationOperand(iimi)   // §8.4.3.1.2 Format 4; kb/Work PB428
+                    : item.functionCall() is { } ifc ? host.Intrinsic.IntrinsicOperand(ifc)
                     : lit is not null ? host.Expr.LiteralOperand(lit)
                     : item.dataReference() is { } sref ? host.Expr.FieldOperand(sref)
                     : new BoundOperandError("INITIALIZE REPLACING sending operand");

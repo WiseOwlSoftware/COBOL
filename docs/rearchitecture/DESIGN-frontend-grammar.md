@@ -114,8 +114,12 @@ maintainer must reason about.
 `xmlStatement` are wired into the `statement` rule under `{is2014()}?` gates
 (`CobolParserCore.g4:716-717`). JSON/XML have **0 occurrences in the ISO spec** — a hard-invariant violation
 that they sit in a live fragment and a live dispatch arm. The same fragment ALSO holds
-`inlineMethodInvocationStatement` (a real 2023 OO construct, gated at `:719`) — so the fragment is
-mis-named: it is 90% dead-non-ISO and 10% live-OO.
+`inlineMethodInvocationStatement` (at the time believed to be a real 2023 OO construct) — so the fragment
+was mis-named: 90% dead-non-ISO and 10% live-OO. That surviving rule turned out to be a THIRD kind of
+wrong: it matched `dataReference ( argumentList )` as a STATEMENT, a shape ISO defines nowhere, while the
+real §8.4.3.4 construct — the §8.4.3.1.2 Format 4 IDENTIFIER, led by the §8.7.4 `::` invocation operator
+— had no surface at all. It is now `inlineMethodInvocation` in `Core/CobolOO.g4`, an OPERAND alternative
+wherever `functionCall` is one (kb/Work PB428).
 
 ### 1.3 The context-sensitive word set is triplicated and hand-synced
 The set of tokens that are keywords in context but legal user-defined words elsewhere is maintained in
@@ -266,7 +270,7 @@ a one-line banner at the top of each fragment (there is currently no per-fragmen
 | `CobolSpecialNames.g4` | SPECIAL-NAMES, ALPHABET/CLASS/CURRENCY | FOR NATIONAL (2002) |
 | `CobolIO.g4` | FILE-CONTROL/SELECT, OPEN/READ/…, SORT/MERGE, sharing/lock | SHARING/LOCK/RETRY/UNLOCK (2002) |
 | `CobolControlFlow.g4` | IF/EVALUATE/PERFORM/GO/CALL/RAISE/RESUME | RAISE/RESUME/RAISING (2002) |
-| `CobolOO.g4` | CLASS/INTERFACE/METHOD, INVOKE, **inline method invocation** | all (2002), inline-invoke (2023) |
+| `CobolOO.g4` | CLASS/INTERFACE/METHOD, INVOKE, **inline method invocation** (`::`, §8.4.3.4) | all (2002) |
 | `CobolReportWriter.g4` | RD, report groups | — |
 | `CobolScreen.g4` | SCREEN SECTION (parse-only today) | — |
 

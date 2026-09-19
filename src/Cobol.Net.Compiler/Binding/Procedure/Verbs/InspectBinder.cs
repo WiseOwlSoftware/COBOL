@@ -65,6 +65,11 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         }
         if (ins.functionCall() is { } fnTarget)
             return BindFunctionTarget(host.Intrinsic.IntrinsicOperand(fnTarget), fnTarget.GetText());
+        // §8.4.3.1.2 Format 4 in the same SENDING position as Format 1 (kb/Work PB428): INSPECT's
+        // identifier-1 is a sending operand for TALLYING and a receiving one for REPLACING/CONVERTING,
+        // which BindFunctionTarget already partitions — one reading, two identifier formats.
+        if (ins.inlineMethodInvocation() is { } imiTarget)
+            return BindFunctionTarget(host.Oo.OoInlineInvocationOperand(imiTarget), imiTarget.GetText());
         if (host.Intrinsic.KeywordOmittedFunction(ins.dataReference()) is { } kof)
             return BindFunctionTarget(IntrinsicBinder.OperandOf(kof), ins.dataReference().GetText());
         // An INDEX-NAME as identifier-1 (kb/Work R16): INSPECT is none of §13.18.38.3 r7's five index-name
@@ -262,6 +267,8 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // MISLEADING reason — "a numeric literal is not a valid INSPECT literal" — for something that is neither
         // numeric nor a literal. Routed through the ONE intrinsic-operand entry the other verbs use.
         if (c.functionCall() is { } fc) return (host.Intrinsic.IntrinsicOperand(fc), false);
+        if (c.inlineMethodInvocation() is { } imi)   // §8.4.3.1.2 Format 4; kb/Work PB428
+            return (host.Oo.OoInlineInvocationOperand(imi), false);
         // §8.8.3.3 GR3: a concatenation expression is the equivalent single literal — fold and use it as the
         // INSPECT literal operand (not Figurative: the fold result is a plain literal value).
         if (c.literal()?.nonNumericLiteral()?.concatenationExpression() is { } ce)

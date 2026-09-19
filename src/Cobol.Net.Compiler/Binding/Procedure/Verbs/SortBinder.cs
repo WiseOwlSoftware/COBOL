@@ -308,7 +308,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // release-from-literal-2002: the pass owns the edition gate (Exec Step E).
         BoundMove? from = rel.releaseFrom() is { } rf
             ? host.Move.BindFromPhrase(FromPhraseRules.Release, record, rf.dataReference(), rf.literal(),
-                                       rf.functionCall())
+                                       rf.functionCall(), rf.inlineMethodInvocation())
             : null;
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
         // releases at its own length; §14.9.40 GR7c space-fills a short record into a fixed-length sort file).

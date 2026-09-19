@@ -995,6 +995,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (pe.numericLiteral() is { } num) return new BoundNumLiteral(CheckLiteral(num.GetText()));
         if (pe.ZERO_ARITH() is not null) return new BoundNumLiteral("0");
         if (pe.dataReference() is { } dref) return RefExpr(dref, context);
+        // The §8.4.3.1.2 Format 4 identifier (§8.4.3.4 inline method invocation; kb/Work PB428) — the
+        // Format-1 twin below. It binds to a BoundNumRef over the §8.4.3.4.4 GR1 c) temporary, so the
+        // §8.8.1.1 class screen the data-item path applies (OperandRef) reaches it through the temp's own
+        // cloned category rather than through a second screen here.
+        if (pe.inlineMethodInvocation() is { } imi) return host.Oo.OoBindInlineInvocation(imi);
         if (pe.arithmeticExpression() is { } paren) return BindExprCore(paren, context);
         // FUNCTION call (ISO §15; the 1989 Intrinsic Function Module) — StatementBinder.Intrinsics.cs.
         if (pe.functionCall() is { } fc)
@@ -1097,6 +1102,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 // with W-Z = 4 added FOUR instead of TWO. Silent, and it survives "does it compile" entirely —
                 // it was caught only by checking the VALUE against the spec-derived answer.
                 if (c is Core.FunctionCallContext fc) return host.Intrinsic.BindIntrinsic(fc);
+                // The Format-4 twin of the arm above, and caught here for the SAME reason: an
+                // inlineMethodInvocation CONTAINS a dataReference (its receiver, and every identifier
+                // argument), so without this arm the breadth-first walk would descend into it and bind
+                // `O :: "GET" (W)` as plain `O` — the silent wrong answer PB45 measured for FUNCTION.
+                if (c is Core.InlineMethodInvocationContext imi) return host.Oo.OoBindInlineInvocation(imi);
                 // ⛔ THE BARE nonNumericLiteral ARM (kb/Work PB171), BEFORE the LiteralContext arm and for a
                 // reason the tree hides: `valueOperand : arithmeticExpression | nonNumericLiteral` names
                 // `nonNumericLiteral` DIRECTLY, bypassing the `literal : numericLiteral | nonNumericLiteral`

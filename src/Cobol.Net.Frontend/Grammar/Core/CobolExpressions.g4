@@ -343,10 +343,20 @@ unaryExpression
 // Primaries
 // =========================
 
+// ⛔ `inlineMethodInvocation` SITS WHERE `functionCall` SITS, AND THAT PAIRING IS A RULE, NOT A HABIT
+// (kb/Work PB428). §8.4.3.1.2 makes a function-identifier (Format 1) and an inline method invocation
+// (Format 4) two formats of ONE thing — an identifier — and their two exclusions are word-for-word twins:
+// §8.4.3.2.3 SR1 "A function-identifier shall not be specified as a receiving operand" and §8.4.3.4.3 SR1
+// "Inline method invocation shall not be specified as a receiving operand". So the SENDING positions that
+// admit one admit the other, and the RECEIVING rules admit neither. InlineMethodInvocationOperandDriftTests
+// enforces exactly that over the .g4 text, so the NEXT operand rule to gain functionCall cannot forget it.
+// It precedes `dataReference` because its own first element IS a dataReference (ANTLR takes the first
+// matching alternative — feedback_grammar_precedence).
 primaryExpression
     : numericLiteral
     | ZERO_ARITH                       // figurative ZERO rewritten by token rewriter in arithmetic context
     | functionCall
+    | inlineMethodInvocation           // §8.4.3.1.2 Format 4 (§8.4.3.4) — the Format-1 twin above
     | dataReference
     | LPAREN arithmeticExpression RPAREN
     ;
@@ -567,10 +577,24 @@ argumentList
     : argument (COMMA? argument)*
     ;
 
+// ⛔ THE FIVE ARGUMENT FORMS ARE THE PRINTED ONES, AND THREE OF THEM WERE MISSING (kb/Work PB428). §8.4.3.4.2's
+// brace group — rendered from the canonical PDF page 163, printed folio 133 — is
+// `{ arithmetic-expression-1 | boolean-expression-1 | identifier-2 | literal-2 | OMITTED }`, with OMITTED the
+// only underlined word. This rule read `arithmeticExpression | literal | dataReference`, which is the shape the
+// misnamed `id(args)` statement needed; boolean-expression-1 and OMITTED had no surface at all.
+// ⛔ THE ORDER IS THE `invokeArgument` BY-CONTENT ORDER, AND FOR THE SAME MEASURED REASON (CobolOO.g4's PB46
+// note): `arithmeticExpression` SUBSUMES `dataReference` and every numeric literal, so identifier-2 is NOT a
+// separate alternative here — it is recovered IN THE BINDER from a sole-dataReference expression
+// (ConditionBinder.SoleDataReference, the shape OoBindInvokeArg already uses), because the grammar cannot
+// express "a reference, unless it is part of an expression" without the ambiguity that caused PB46. `literal`
+// precedes it so a non-numeric literal-2 keeps the literal arm, and `booleanExpression` takes the proven
+// {boolExprAhead()}? gate because its leaf `valueOperand` matches everything the other two arms match.
+// ⚠ OMITTED IS FIRST AND IS A RESERVED WORD (§8.9), so it can never be a data-name and shadows nothing.
 argument
-    : arithmeticExpression
+    : OMITTED
+    | {boolExprAhead()}? booleanExpression
     | literal
-    | dataReference
+    | arithmeticExpression
     ;
 
 // =========================

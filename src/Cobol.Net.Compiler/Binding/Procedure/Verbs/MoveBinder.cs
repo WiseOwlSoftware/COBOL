@@ -102,6 +102,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             : send.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
             // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
             : send.functionCall() is { } sfc ? host.Intrinsic.IntrinsicOperand(sfc)
+            // MOVE {inline method invocation} TO targets — §14.9.25.3 SR3 designates identifier-1 as a
+            // sending operand, and §8.4.3.1.2 Format 4 is one of the eleven identifiers that designation
+            // reaches (kb/Work PB428). §8.4.3.4.3 SR1 keeps it off the RECEIVING side structurally.
+            : send.inlineMethodInvocation() is { } simi ? host.Oo.OoInlineInvocationOperand(simi)
             : new BoundOperandError("MOVE source");
         // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
         // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOLNET0809).
@@ -196,11 +200,17 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// across into the sequential I-O binder for it.</para>
     /// </summary>
     public BoundMove? BindFromPhrase(FromPhraseRules rules, Place record, Core.DataReferenceContext? dref,
-                                     Core.LiteralContext? lit, Core.FunctionCallContext? fc)
+                                     Core.LiteralContext? lit, Core.FunctionCallContext? fc,
+                                     Core.InlineMethodInvocationContext? imi)
     {
-        if (dref is null && lit is null && fc is null) return null;   // no FROM phrase
+        if (dref is null && lit is null && fc is null && imi is null) return null;   // no FROM phrase
         BoundOperand source =
-            fc is not null ? host.Intrinsic.IntrinsicOperand(fc)
+            // §8.4.3.1.2 Format 4 (kb/Work PB428). The per-verb FunctionCategories screen below is
+            // deliberately NOT extended to it: §14.9.51.3 SR4, §14.9.35.3 SR9 and §14.9.32.3 SR2 each
+            // restrict "a FUNCTION-IDENTIFIER" by name, and none states a rule for an inline invocation —
+            // so what governs it is the phrase's own implicit MOVE, which BindMoveOf applies.
+            imi is not null ? host.Oo.OoInlineInvocationOperand(imi)
+            : fc is not null ? host.Intrinsic.IntrinsicOperand(fc)
             : lit is not null ? host.Expr.LiteralOperand(lit)
             : host.Expr.FieldOperand(dref!);
 

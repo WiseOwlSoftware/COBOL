@@ -862,7 +862,7 @@ initializeDefaultPhrase
 // only from a RECEIVING operand). See the writeFrom note above for why this adds an alternative instead of
 // collapsing to `moveSendingOperand`: the accessors are load-bearing for the shared legacy binders.
 initializeReplacingItem
-    : initializeCategory DATA? BY (functionCall | dataReference | literal)
+    : initializeCategory DATA? BY (functionCall | inlineMethodInvocation | dataReference | literal)
     ;
 
 // ⛔ category-name IS A SET, NOT ONE WORD (ISO §14.9.20.2 "where category-name is:"; kb/Work PB415). Rendered off

@@ -449,7 +449,7 @@ FACTORY (§11.4, D7), PROPERTY (§13.18.42), and EC-OO (Table 13) are net-new he
 ## Greenfield seams (the compiler seams the OO subsystem plugs into)
 
 ### Grammar seam — the OO surface already parses
-The LIVE fragment is `src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4:18-98`: classDefinition (CLASS-ID, single INHERITS FROM), objectParagraph, methodDefinition (full env/data/procedure divisions), invokeStatement (USING BY VALUE/REFERENCE/CONTENT/bare/literal + RETURNING, NO exception phrase — already ISO-correct per Spec corrections #3), and objectReferenceUsage as TWO explicit alternatives (the lesson: never an optional `className?` tail — it regressed '85 `IS [NOT] NUMERIC`). `CobolParserOO.g4` is a DEAD unbuilt sketch (regen inputs are only `Grammar/CobolParserCore.g4;Grammar/Core/*.g4`, `Cobol.Net.Frontend.csproj:44`) — its FACTORY/attributes/generics/invokeOnException content is reference-only, and invokeOnException is spec-WRONG. Gate inventory (nine `{is2002()}?` hooks): `CobolParserCore.g4:105` (classDefinition in compilationGroup), `:412` (repository CLASS entry), `:442` (PD returningClause/raisingClause), `:626-627` (ALLOCATE/FREE), `:663` (invokeStatement), `:904` (BY VALUE arg), `:1004` (SET … TO objectReference), `:1061` (GOBACK RETURNING/GIVING), `Core/CobolData.g4:312` (objectReferenceUsage). Missing: method-name AS literal and class OF SUPER only — added incrementally per the Version-gating rules. Edition-gates to ADD per the Spec corrections: method-WS rejection at 2023 (#1) and `EXIT METHOD` removal at 2023 (#2, `Core/CobolControlFlow.g4:213`).
+The LIVE fragment is `src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4:18-98`: classDefinition (CLASS-ID, single INHERITS FROM), objectParagraph, methodDefinition (full env/data/procedure divisions), invokeStatement (USING BY VALUE/REFERENCE/CONTENT/bare/literal + RETURNING, NO exception phrase — already ISO-correct per Spec corrections #3), and objectReferenceUsage as TWO explicit alternatives (the lesson: never an optional `className?` tail — it regressed '85 `IS [NOT] NUMERIC`). `CobolParserOO.g4` is a DEAD unbuilt sketch (regen inputs are only `Grammar/CobolParserCore.g4;Grammar/Core/*.g4`, `Cobol.Net.Frontend.csproj:44`) — its FACTORY/attributes/generics/invokeOnException content is reference-only, and invokeOnException is spec-WRONG. Gate inventory (nine `{is2002()}?` hooks): `CobolParserCore.g4:105` (classDefinition in compilationGroup), `:412` (repository CLASS entry), `:442` (PD returningClause/raisingClause), `:626-627` (ALLOCATE/FREE), `:663` (invokeStatement), `:904` (BY VALUE arg), `:1004` (SET … TO objectReference), `:1061` (GOBACK RETURNING/GIVING), `Core/CobolData.g4:312` (objectReferenceUsage). **`inlineMethodInvocation` is NOT among them and must not become one** (kb/Work PB428): the §8.4.3.4 construct parses at EVERY edition and the `VersionConformancePass` names 2002 on RECOGNITION (`VisitInlineMethodInvocation` → `Check(InlineMethodInvocation2002)`), because the §8.7.4 `::` invocation operator is a distinctive token — a predicate would give a raw `COBOL0001` about punctuation where a named `COBOLNET0900` belongs. Missing: method-name AS literal and class OF SUPER only — added incrementally per the Version-gating rules. Edition-gates to ADD per the Spec corrections: method-WS rejection at 2023 (#1) and `EXIT METHOD` removal at 2023 (#2, `Core/CobolControlFlow.g4:213`).
 
 ### Binder seam
 `CallCollectUnits` collects `classDefinition` units and builds the pass-1 `OoClassTable`
@@ -473,6 +473,25 @@ a class-name here?" (INVOKE's receiver, the RAISING word, the property-reference
 `Find`/`FindInterface` directly until kb/Work PB365, so `USE AFTER EXCEPTION OBJECT C` in a program with NO
 REPOSITORY compiled clean; `OoNameResolutionDriftTests` pins the remaining direct callers (all of them
 re-lookups of an already-scope-checked declared name).
+⛔ **INVOKE AND THE INLINE METHOD INVOCATION ARE ONE ACTIVATION, NOT TWO** (kb/Work PB428; `OoBinder.InlineInvocation.cs`).
+§8.4.3.4.4 GR1 does not merely resemble the INVOKE statement — it DEFINES the §8.4.3.1.2 Format 4 identifier as one of
+four INVOKE statements written out longhand, and §8.4.3.4.3 SR3 requires that statement to be valid under §14.9.23's own
+syntax rules. So the two syntaxes meet at an `InvocationSite`: the argument operands (as `InvocationArg`, decoupled from
+whether a BY phrase could be written), whether an argument phrase was written at all, and the RETURNING destination —
+either INVOKE's written identifier or, for the inline form, the GR1 b)/c) TEMPORARY. `OoBindByReceiver` (SELF/SUPER,
+typed/interface/universal identifier-1, class-name-1), `OoBindInstanceInvoke`, `OoBindClassInvoke`,
+`OoBindResolvedInvoke` and `OoBindInvocationArg` are shared verbatim; the inline binder adds exactly two things —
+`DataBinder.OoCreateInvocationTemp` (the GR1 b) clone of the method's own RETURNING item, so the delivery is an IDENTITY
+crossing and §14.8.3.3 has nothing to check) and registration of the activation on `DataBinder.PendingPreOps`, the ONE
+statement-scoped pre-op list the user-function activation and the function-bearing subscript already use. It hoists
+through `UdfBinder.UdfWrapCalls` / `UdfAttachPerEvaluation` unchanged, because §8.4.3.4.3 SR1 gives the construct the
+same non-receiving property §8.4.3.2.3 SR1 gives a function-identifier: no store polarity, no post-ops. The expression
+the site yields is a `BoundNumRef` over the temp — the SAME carrier a user-defined function result takes, so every
+general-operand chokepoint (`IntrinsicBinder.OperandOf` → `BoundFieldOperand`) serves it with no new code. SR2 (no NULL,
+no universal receiver) is COBOLNET2138, GR1 b)'s missing RETURNING is COBOLNET2139 and SR4 (ANY LENGTH / ACTIVE-CLASS
+RETURNING) is COBOLNET2140; SR1 holds STRUCTURALLY — the operand alternative was added to exactly the rules that admit
+`functionCall` and to no receiving rule, pinned by `InlineMethodInvocationOperandDriftTests`.
+
 INVOKE binds via `OoBindInvoke` (`Binding/Procedure/Verbs/OoBinder.cs`): identifier-1-shadows-class-name resolution, literal
 selector, `BoundInvoke(Form, …)` for NEW (RETURNING required + §14.8 receiver conformance — 0826) and the
 no-arg instance call (unknown method 0825 — the compile-time GR7b analog); SELF/SUPER (3b), factory calls,

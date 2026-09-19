@@ -227,10 +227,54 @@ objectReferenceUsage
     | OBJECT REFERENCE                                     // GR22 b) — the UNIVERSAL object reference
     ;
 
-// ── INLINE METHOD INVOCATION (COBOL-2023, ISO §8.4.3 in-line method invocation) ──
-// Relocated from the deleted non-ISO JSON/XML fragment (rearch P1 step 3). `argumentList` is defined in
-// Core/CobolExpressions.g4 (already merged into the composite grammar). Dispatched from CobolParserCore.g4 under
-// {is2023()}?; this is the sole surviving rule of the former non-ISO JSON/XML fragment (deleted at P1 step 3).
-inlineMethodInvocationStatement
-    : dataReference LPAREN argumentList? RPAREN
+// ── INLINE METHOD INVOCATION — ISO §8.4.3.4, an IDENTIFIER format (§8.4.3.1.2 Format 4) ──
+// ⛔ THIS RULE USED TO WEAR THE NAME AND MATCH A DIFFERENT SHAPE (kb/Work PB428). It read
+// `inlineMethodInvocationStatement : dataReference LPAREN argumentList? RPAREN` and was dispatched from
+// `statement` under {is2023()}? — i.e. `id(args)` as a STATEMENT. The standard defines no such statement
+// (§14.9's roster has none, and §8.4.3.4 sits in §8.4.3 *Identifiers*), and the real construct carries the
+// §8.7.4 invocation operator, which had no lexer token at all. So the whole of Format 4 was a raw parse error
+// in EVERY position, and the misnamed statement shape accepted source the standard does not define.
+//
+// MEASURED off the canonical PDF (printed page 133 / PDF page 163 — the general-format DIAGRAM is load-bearing
+// and `scripts/render-spec-page.py 163` is what settled it, per CLAUDE.md rule 1):
+//
+//                                        ⎡   ⎧ arithmetic-expression-1 ⎫   ⎤
+//     ⎧ object-class-name-1 ⎫            ⎢   ⎪ boolean-expression-1    ⎪   ⎥
+//     ⎨                     ⎬ :: literal-1 ⎢ ( ⎨ identifier-2            ⎬ … ) ⎥
+//     ⎩ identifier-1        ⎭            ⎢   ⎪ literal-2               ⎪   ⎥
+//                                        ⎣   ⎩ OMITTED                 ⎭   ⎦
+//
+// OMITTED is the ONLY underlined word; `::` and the parentheses are required punctuation; the OUTER bracket
+// makes the whole parenthesised argument list optional and the `…` repeats the brace group INSIDE the one pair.
+//
+// ⛔ THE RECEIVER IS `objectReference`, THE SAME RULE INVOKE'S RECEIVER USES — one activation mechanism, never a
+// second (the dispatch's own words). §8.4.3.4.4 GR1 DEFINES this construct as the INVOKE statement it is
+// equivalent to, so the two must not be able to disagree about what a receiver is: object-class-name-1 and
+// identifier-1 are both one `dataReference` syntactically (the binder partitions them by resolved symbol kind,
+// OoNameResolution.Lookup), and SELF/SUPER are §8.4.3.1.2 Format 6 identifiers of class object and therefore
+// legal identifier-1s. NULL rides in too and is rejected LOUDLY by the binder per §8.4.3.4.3 SR2 ("neither the
+// predefined object reference NULL nor a universal object reference shall be specified") — the P3 superset
+// parse, never a general-format rejection dressed as a syntax error.
+//
+// ⛔ THE `::` SEGMENT REPEATS, because §8.4.3.1.3 SR1 says identifier is defined recursively ("whenever the
+// format for an identifier allows another identifier to be specified, that other identifier may be any of the
+// formats for an identifier, INCLUDING THE ONE BEING DEFINED"): the temporary an invocation references is
+// itself an identifier-1, so `O :: "A" :: "B"` is conforming source. Writing the repetition here is what makes
+// the recursion expressible without indirect left recursion through `objectReference`.
+//
+// ⚠ `refModPart*` mirrors `functionCall`'s tail and is derived, not copied: §8.4.3.1.4 GR1 orders the
+// components — (e) the invocation operator applies "the literal method-name with optional arguments … on the
+// right to the identifier on the left", THEN (g) "a reference modifier applies to the identifier on the left" —
+// and §8.4.3.3.3 names no exclusion for an inline invocation (SR2 constrains a function-identifier, SR3 a
+// ref-mod of a ref-mod). The two parenthesised tails stay disjoint on the COLON exactly as they do for
+// functionCall, so no predicate is needed.
+// ⚠ THE SEGMENT IS ITS OWN RULE so each `::` carries ITS OWN argument list: with the group written inline the
+// generated context would expose FLAT `literal()` and `argumentList()` lists, and `A::"M"::"N"(X)` could not
+// say which method the one argument belongs to.
+inlineMethodInvocation
+    : objectReference inlineInvocationSegment+ refModPart*
+    ;
+
+inlineInvocationSegment
+    : COLONCOLON literal (LPAREN argumentList? RPAREN)?
     ;

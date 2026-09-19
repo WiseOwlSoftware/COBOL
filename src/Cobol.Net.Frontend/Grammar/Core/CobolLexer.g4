@@ -963,6 +963,17 @@ PLUS        : '+' ;
 MINUS       : '-' ;
 STAR        : '*' ;
 SLASH       : '/' ;
+// ⛔ THE INVOCATION OPERATOR IS A TOKEN, AND IT HAD NONE (kb/Work PB428). ISO §8.7.4: "The invocation operator
+// is the two contiguous COBOL characters '::'". §8.4.3.4.2 prints it as the required punctuation of the
+// inline-method-invocation identifier format, and §8.3.5 rule 7 ("The COBOL character colon, EXCEPT AS PART
+// OF THE INVOCATION OPERATOR, is a separator") makes the two characters one lexical unit rather than two
+// colons. With no rule here the whole of §8.4.3.1.2 Format 4 was unwritable in EVERY identifier position: the
+// lexer stopped at the first ':' and the parser reported punctuation. MUST precede COLON in source order for
+// readability — ANTLR's longest-match already decides it, and CobolLexerModeDriftTests pins the token dump.
+// ⚠ §8.7.4's "shall be immediately preceded and followed by a separator space" is NOT enforced at the token
+// level, exactly as §8.7.3's identical sentence about '&' is not (see AMPERSAND below): the parser sees the
+// skipped-WS stream, and '::' has no other lexical role, so `O::"M"` and `O :: "M"` are the same token run.
+COLONCOLON  : '::' ;
 COLON       : ':' ;
 // The concatenation operator (ISO §8.7.3): the COBOL character '&', joining literals into one literal
 // (§8.8.3). The §8.7.3 separator-space requirement ("immediately preceded and followed by a separator

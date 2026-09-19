@@ -1930,6 +1930,30 @@ internal sealed class VersionConformancePass
         public override object? VisitInvokeStatement(CobolParserCore.InvokeStatementContext ctx)
         { _p.Check(Constructs.Invoke2002, "the INVOKE statement"); return base.VisitChildren(ctx); }
 
+        /// <summary>The INLINE METHOD INVOCATION (ISO §8.4.3.4 — the §8.4.3.1.2 Format 4 identifier), gated
+        /// with the rest of the object-orientation facility at 2002 (kb/Work PB428).
+        /// <para>⛔ IT IS GATED ON RECOGNITION AND IT NOW CAN BE, which is the whole reason the row changed.
+        /// The registry row used to read <c>inline-method-invocation-2023</c> and carried its own reason for
+        /// staying PENDING: "the identifier(args) form has NO distinctive token (ambiguous with subscripting
+        /// and function-reference), so below 2023 it does not yield a distinct COBOLNET0900". That was true of
+        /// the misnamed shape the grammar had; the REAL construct is led by the §8.7.4 invocation operator
+        /// <c>::</c>, which is unambiguous with everything — so a below-2002 inline invocation names the
+        /// edition instead of failing as punctuation.</para>
+        /// <para>⚠ THE EDITION EDGE IS DERIVED, NOT QUOTED (the VERSION_CHANGE_REFERENCE discipline — the repo
+        /// holds no 2002 or 2014 text). Three legs: (a) §A.4.10 lists exactly three OPTIONAL
+        /// object-orientation elements — CLASS-ID INHERITS repetition, INTERFACE-ID INHERITS repetition and
+        /// parametric polymorphism — and inline method invocation is NOT among them, so it is mandatory
+        /// surface of the object-orientation facility, whose every other element this compiler gates at
+        /// 2002 (CLASS-ID, INVOKE, USAGE OBJECT REFERENCE …);
+        /// (b) Annex E itemizes the 2014→2023 delta and lists no inline invocation, so it predates 2023;
+        /// (c) §8.4.3.4.4 GR1 defines it in terms of the INVOKE statement, a 2002 introduction — a construct
+        /// cannot be defined by one that does not exist yet.</para></summary>
+        public override object? VisitInlineMethodInvocation(CobolParserCore.InlineMethodInvocationContext ctx)
+        {
+            _p.Check(Constructs.InlineMethodInvocation2002, "an inline method invocation (the '::' operator)");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>START … FIRST / … LAST (ISO §14.9.41.2 general format — <c>cite.py --check 14.9.41.2 "FIRST"</c>
         /// OK, the printed alternative stack <c>FIRST | LAST | KEY …</c>) — a COBOL-2002 introduction. FIRST and
         /// LAST are ONE construct gated once, and §14.9.41.3 SR2 ("If the organization of the file referenced by
@@ -2097,6 +2121,21 @@ internal sealed class VersionConformancePass
         /// live: <c>BY CONTENT B1 B-SHIFT-L 2</c> is a 2023 construct inside a 2002 statement, and without
         /// this call it would compile clean under <c>--std 2002</c> and <c>--std 2014</c>.</summary>
         public override object? VisitInvokeArgument(CobolParserCore.InvokeArgumentContext ctx)
+        {
+            GateBooleanOperators(ctx.booleanExpression());
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The INLINE METHOD INVOCATION's argument — <c>boolean-expression-1</c> of §8.4.3.4.2's
+        /// printed brace (kb/Work PB428), and the exact twin of the INVOKE site above: §8.4.3.4.4 GR1 a) makes
+        /// these operands the arguments of the equivalent <c>INVOKE … USING</c>, so they owe the same boolean
+        /// gates. The BooleanOperators2002 half is again unreachable (the construct is itself 2002), the SHIFT
+        /// half is live — <c>O :: "M" (B1 B-SHIFT-L 2)</c> is a 2023 operator inside a 2002 construct and
+        /// would otherwise compile clean under <c>--std 2002</c> / <c>--std 2014</c>.
+        /// <para>⚠ The gate is owed because the ARGUMENT RULE GAINED THE ALTERNATIVE: `argument` carried no
+        /// `booleanExpression` arm at all until PB428 wrote the general format's five printed operand forms
+        /// into it, and `BooleanExpressionGateSiteDriftTests` is what said so out loud.</para></summary>
+        public override object? VisitArgument(CobolParserCore.ArgumentContext ctx)
         {
             GateBooleanOperators(ctx.booleanExpression());
             return base.VisitChildren(ctx);

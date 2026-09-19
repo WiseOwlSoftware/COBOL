@@ -801,7 +801,6 @@ statement
     | terminateStatement
     | suppressStatement   // §14.9.45 — SUPPRESS PRINTING; SR1/GR1 (USE-BEFORE-REPORTING context) enforced at bind
     | invokeStatement   // introduction-gated in the VersionConformancePass parse arm (VisitInvokeStatement → Check(Invoke2002))
-    | {is2023()}? inlineMethodInvocationStatement
     // ── Wave H: RECOGNIZE-AND-NAME the facilities COBOL.NET does not implement. TWO LICENCES, one posture
     //    (kb/Work PB709): RECEIVE / SEND (Annex A.3 item 4) and COMMIT / ROLLBACK (A.3 items 6-7) are
     //    PROCESSOR-DEPENDENT, and ISO §4.2.6 ¶3 makes the compile-time WARNING MECHANISM mandatory for them, so
@@ -972,6 +971,7 @@ addOperandList
 addOperand
     : literal
     | functionCall
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     | dataReference
     ;
 
@@ -985,6 +985,7 @@ addToPhrase
     : TO receivingArithmeticOperand+
     | TO literal
     | TO functionCall
+    | TO inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4; kb/Work PB428
     ;
 
 addGivingPhrase
@@ -1007,6 +1008,7 @@ subtractOperandList
 subtractOperand
     : literal
     | functionCall
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     | dataReference
     ;
 
@@ -1018,6 +1020,7 @@ subtractFromOperand
     : receivingArithmeticOperand (receivingArithmeticOperand)*
     | receivingOperand
     | functionCall      // §14.9.44.2 Format 2's sending `FROM {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     ;
 
 subtractGivingPhrase
@@ -1035,12 +1038,14 @@ multiplyStatement
 multiplyOperand
     : literal
     | functionCall
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     | dataReference
     ;
 
 multiplyByOperand
     : receivingOperand roundedPhrase?
     | functionCall      // §14.9.26.2 Format 2's sending `BY {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     ;
 
 multiplyGivingPhrase
@@ -1059,6 +1064,7 @@ divideStatement
 divideOperand
     : literal
     | functionCall
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     | dataReference
     ;
 
@@ -1070,6 +1076,7 @@ divideIntoOperand
     : receivingArithmeticOperand+   // dataReference ROUNDED? (non-GIVING form, multiple targets)
     | literal             // numeric literal (GIVING form only)
     | functionCall        // §14.9.12.2 Format 2's sending `INTO {identifier-2 | literal-2}` (§8.4.3.1.2; kb/Work PB134)
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     ;
 
 divideByPhrase
@@ -1118,6 +1125,7 @@ moveStatement
 moveSendingOperand
     : literal
     | functionCall
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     | dataReference
     ;
 
@@ -1532,8 +1540,8 @@ acceptSource
 // both answers: `DISPLAY COLUMN.` binds COLUMN as a dataReference and the funnel names it, while
 // `DISPLAY SG COLUMN 5` still takes SG as its one operand and hands COLUMN 5 to screenTail.
 displayStatement
-    : DISPLAY (dataReference | literal | functionCall)
-      ({!screenPositionAhead()}? (dataReference | literal | functionCall))*
+    : DISPLAY (inlineMethodInvocation | dataReference | literal | functionCall)
+      ({!screenPositionAhead()}? (inlineMethodInvocation | dataReference | literal | functionCall))*
       displayUpon? displayNoAdvancing? screenTail? END_DISPLAY?
     ;
 

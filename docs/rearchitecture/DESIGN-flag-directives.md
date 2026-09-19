@@ -262,7 +262,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     record name to its file via `FileModel.Records`). A file that does not resolve stays unflagged.
   * **FLAG-02 b EC-PROGRAM-EXCEPTIONS (DONE)** — a `>>TURN` for an EC-PROGRAM-family exception (EC-ALL, EC-PROGRAM,
     EC-PROGRAM-ARG-OMITTED, EC-PROGRAM-NOT-FOUND) is flagged when its source element **calls a function** (a
-    `functionCall` node) or **invokes a method** (an `invokeStatement` / `inlineMethodInvocationStatement`) — a CALL
+    `functionCall` node) or **invokes a method** (an `invokeStatement` / `inlineMethodInvocation`) — a CALL
     of a program is deliberately NOT a trigger (GR4 b names only function and method). Because it flags a DIRECTIVE
     (a frontend `>>TURN`, not a parse node), it runs POST-walk: `TurnState.DirectiveLinesNaming` exposes the `>>TURN`
     lines naming any family name (ON/OFF alike; the raw events store the canonical name as-written, so a level-2

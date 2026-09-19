@@ -265,7 +265,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// no literal. This is what §14.9.48.2's `UNSTRING identifier-1` admits, and
     /// <see cref="StrUnstrOperand"/> delegates its two identifier arms here so the shapes cannot drift apart.</summary>
     private BoundOperand StrUnstrSender(Core.StrUnstrSenderContext? snd, string role)
-        => snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
+        => snd?.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)   // §8.4.3.1.2 Format 4; kb/Work PB428
+        : snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
         : snd?.dataReference() is { } dref ? ScreenedField(dref, role)
         : new BoundOperandError(role);
 

@@ -233,6 +233,8 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                 Core.DataReferenceContext dref => host.Expr.FieldOperand(dref),
                 // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
                 Core.FunctionCallContext fc => host.Intrinsic.IntrinsicOperand(fc),
+                // §14.9.11.3 SR1's operand-1 is an identifier: §8.4.3.1.2 Format 4 too (kb/Work PB428).
+                Core.InlineMethodInvocationContext imi => host.Oo.OoInlineInvocationOperand(imi),
                 _ => null,
             };
             if (op is null) continue;

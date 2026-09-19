@@ -26,7 +26,7 @@ using Core = CobolParserCore;
 /// at 10t; BindMethodRoster (the class-roster entry-point twin of Bind()) stays on the host with the
 /// procedure table until the 10t ProcedureTableBuilder hoist.
 /// </summary>
-internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
+internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Drain THIS statement's pending object-property ops (registered by the ReferenceResolver
     /// fallback while the statement bound) into the §8.4.3.9.4 GR1–GR3 desugar: classify each temp's store
@@ -97,6 +97,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// universal/dynamic dispatch (D10 wave) stage loud.</summary>
     public BoundStatement OoBindInvoke(Core.InvokeStatementContext inv)
     {
+        // The INVOKE statement's own reading of the ONE invocation site (see OoBinder.InlineInvocation.cs):
+        // its USING arguments and its written RETURNING identifier. §8.4.3.4.4 GR1 defines the inline form
+        // as the equivalent INVOKE, so both syntaxes reach this same resolution and the same §14.8 checks.
+        var site = InvocationSite.OfInvokeStatement(inv);
         // INVOKE (§14.9.23, OO) is a COBOL-2002 introduction; the edition gate fires on RECOGNITION in the
         // VersionConformancePass parse arm (VisitInvokeStatement), never on the BoundInvoke node this method
         // builds. It keyed on the node until kb/Work PB353, which was wrong BOTH ways: an INVOKE whose target
@@ -131,7 +135,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §14.9.23.3 SR8; national identifier-2 is a later refinement)");
                 return new BoundNop();
             }
-            return OoBindUniversalInvoke(inv, urecv, methodLiteral: null, methodSource: msrc);
+            return OoBindUniversalInvoke(site, urecv, methodLiteral: null, methodSource: msrc);
         }
         // §8.8.3.3 GR3: an alphanumeric/national concatenation expression stands anywhere a literal of that
         // class may — including INVOKE literal-1 (§14.9.23.3 SR2); a boolean-class concat stays null → 0823.
@@ -154,6 +158,20 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             return new BoundNop();
         }
 
+        // ⛔ THE RECEIVER DISPATCH IS SHARED WITH THE INLINE FORM (kb/Work PB428): §8.4.3.4.4 GR1 says an
+        // inline method invocation IS one of the four INVOKE statements it lists, so `O :: "M"` and
+        // `INVOKE O "M"` shall not be able to resolve a receiver, a roster or a method differently.
+        return OoBindByReceiver(site, target, methodName);
+    }
+
+    /// <summary>Resolve an invocation's RECEIVER and dispatch to the roster it selects — the shared tail of
+    /// the INVOKE statement (§14.9.23.2 <c>{identifier-1 | class-name-1}</c>) and of the §8.4.3.4.2 inline
+    /// form's <c>{object-class-name-1 | identifier-1}</c>, which are the SAME operand: §8.4.3.4.4 GR1 defines
+    /// the inline form as one of the INVOKE statements it writes out, and §8.4.3.4.3 SR3 requires that INVOKE
+    /// to be valid by §14.9.23's own syntax rules. One activation mechanism, never a second.</summary>
+    private BoundStatement OoBindByReceiver(InvocationSite site, Core.ObjectReferenceContext target,
+                                            string methodName)
+    {
         if (target.SELF() is not null || target.SUPER() is not null)
         {
             // Slice 3b — §8.4.3.8: SELF/SUPER are the predefined object references of the CURRENT method's
@@ -172,14 +190,14 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // behavior is active-class creation on the SAME runtime factory — the equivalence is deliberate).
             if (host.OoInFactory && string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
             {
-                if (inv.invokeUsing() is not null)
+                if (site.ArgsWritten)
                 {
                     ctx.Edition.Error("COBOLNET0826",
                         "INVOKE SELF/SUPER \"NEW\": the predefined NEW method takes no USING arguments "
                         + "(ISO §16.2.1)");
                     return new BoundNop();
                 }
-                if (inv.invokeReturning()?.dataReference() is not { } nrRef)
+                if (site.ReturningRef is not { } nrRef)
                 {
                     ctx.Edition.Error("COBOLNET0826",
                         "INVOKE SELF/SUPER \"NEW\" without RETURNING — the created object would be lost "
@@ -236,7 +254,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §14.9.23.3 SR4f–SR4i — the SELF/SUPER method-name placement rules)");
                 return new BoundNop();
             }
-            return OoBindResolvedInvoke(inv, sm, isSuper ? InvokeForm.Super : InvokeForm.Self, null);
+            return OoBindResolvedInvoke(site, sm, isSuper ? InvokeForm.Super : InvokeForm.Self, null);
         }
         if (target.dataReference() is not { } dref)
         {
@@ -252,12 +270,12 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // ⛔ Probe to DISCRIMINATE, RESOLVE to commit (kb/Work PB221): a probe is unscreened, so its Place must
         // never enter the bound tree — the receiver's subscripts would bypass every position screen.
         if (ctx.Refs.Probe(dref) is not null && ctx.Refs.Resolve(dref) is { } receiver)
-            return OoBindInstanceInvoke(inv, receiver, methodName);
+            return OoBindInstanceInvoke(site, receiver, methodName);
         // The class-name-1 alternative is scoped by §8.4.6.4 to the names this SOURCE ELEMENT may reference,
         // so the partition asks the ONE funnel (kb/Work PB365 — `OoClasses.Find` asked the whole group).
         if (Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(),
                 Compiler.Oo.OoNameResolution.Want.Class).Class is { } cls)
-            return OoBindClassInvoke(inv, cls, methodName);
+            return OoBindClassInvoke(site, cls, methodName);
         ctx.Edition.Error("COBOLNET0823",
             $"INVOKE: '{dref.GetText()}' is neither a resolvable data item nor a class this source element "
             + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
@@ -266,7 +284,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary><c>INVOKE class-name-1 …</c>: the predefined NEW (§16.2.1) → the generated ctor; any other
     /// method through a class-name is a FACTORY invocation (§11.4) — a later slice.</summary>
-    private BoundStatement OoBindClassInvoke(Core.InvokeStatementContext inv, OoClassSymbol cls, string method)
+    private BoundStatement OoBindClassInvoke(InvocationSite site, OoClassSymbol cls, string method)
     {
         if (!string.Equals(method, "NEW", StringComparison.OrdinalIgnoreCase))
         {
@@ -275,7 +293,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // compile-time analog of EC-OO-METHOD (GR7b).
             if (cls.FindFactoryMethod(method) is { } fm)
             {
-                var bound = OoBindResolvedInvoke(inv, fm, InvokeForm.Factory, null);
+                var bound = OoBindResolvedInvoke(site, fm, InvokeForm.Factory, null);
                 return bound is BoundInvoke bi ? bi with { ClassCsName = cls.CsName } : bound;
             }
             ctx.Edition.Error("COBOLNET0825",
@@ -284,15 +302,20 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + "a method of the factory interface; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
             return new BoundNop();
         }
-        if (inv.invokeUsing() is not null)
+        if (site.ArgsWritten)
         {
             ctx.Edition.Error("COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\": the predefined NEW method takes no USING arguments "
                 + "(ISO §16.2.1 — its only result is the new object reference)");
             return new BoundNop();
         }
-        if (inv.invokeReturning()?.dataReference() is not { } retRef)
+        if (site.ReturningRef is not { } retRef)
         {
+            // The INLINE form's returning item is IMPLICIT (§14.8 — "a returning item is implicitly
+            // specified in the activating element when a function or inline method invocation is
+            // referenced"), so NEW delivers into the §8.4.3.4.4 GR1 c) temporary instead.
+            if (site.ReturningImplicit)
+                return OoBindImplicitNew(site, cls);
             ctx.Edition.Error("COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\" without RETURNING — the created object would be lost; NEW's "
                 + "result is delivered only through the RETURNING identifier (ISO §16.2.1/§14.9.23.4 GR8)");
@@ -325,7 +348,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// <summary><c>INVOKE identifier-1 "method" …</c>: virtual dispatch through a TYPED object reference; the
     /// method resolves over the declared class's hierarchy at COMPILE time (§14.9.23.3 SR4d — for the typed
     /// path a lookup failure is a compile-time diagnostic, the static analog of EC-OO-METHOD, GR7b).</summary>
-    private BoundStatement OoBindInstanceInvoke(Core.InvokeStatementContext inv, Place receiver, string method)
+    private BoundStatement OoBindInstanceInvoke(InvocationSite site, Place receiver, string method)
     {
         if (receiver.Item.Pic is not { Category: PicCategory.ObjectReference } pic)
         {
@@ -341,7 +364,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         if (rdesc.IsUniversal)
             // A UNIVERSAL receiver with a literal selector (SR4 permits literal-1; it still cannot bind
             // statically — no roster exists at compile time): the D10 dynamic path.
-            return OoBindUniversalInvoke(inv, receiver, methodLiteral: method, methodSource: null);
+            return OoBindUniversalInvoke(site, receiver, methodLiteral: method, methodSource: null);
         string className = rdesc.Name!;
         // An INTERFACE-typed receiver: resolution over the interface's prototype closure (§14.9.23.3 SR4e);
         // the emitted call is static C# interface dispatch behind the same GR5 null guard.
@@ -357,7 +380,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §14.9.23.3 SR4e)");
                 return new BoundNop();
             }
-            var ibound = OoBindResolvedInvoke(inv, proto, InvokeForm.Instance, receiver);
+            var ibound = OoBindResolvedInvoke(site, proto, InvokeForm.Instance, receiver);
             return ibound is BoundInvoke ibi ? ibi with { OwnerCsName = recvIface.CsName } : ibound;
         }
         if (host.OoClasses?.Find(className) is not { } cls)
@@ -387,7 +410,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + $"for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b){hint}");
             return new BoundNop();
         }
-        var bound = OoBindResolvedInvoke(inv, m, InvokeForm.Instance, receiver);
+        var bound = OoBindResolvedInvoke(site, m, InvokeForm.Instance, receiver);
         // A factory-object receiver's argument PROFILES live in the FACTORY singleton type, not the instance
         // class — the same qualification InvokeForm.Factory gets by appending the suffix at emit time.
         return rdesc.Factory && bound is BoundInvoke fbi ? fbi with { OwnerCsName = cls.FactoryCsName } : bound;
@@ -396,35 +419,75 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The shared USING + RETURNING binding tail for a RESOLVED method — the Instance / SELF / SUPER
     /// forms differ only in receiver resolution and dispatch rendering (§8.4.3.8), never in marshaling.</summary>
     private BoundStatement OoBindResolvedInvoke(
-        Core.InvokeStatementContext inv, OoMethodSymbol m, InvokeForm form, Place? receiver)
+        InvocationSite site, OoMethodSymbol m, InvokeForm form, Place? receiver)
     {
         // ── USING marshaling (slice 2 — D6; §14.9.23.4 GR3: positional correspondence) ──
-        var argCtxs = inv.invokeUsing()?.invokeArgument() ?? [];
-        if (argCtxs.Length != m.Binding!.Formals.Count)
+        var argCtxs = site.Args;
+        if (argCtxs.Count != m.Binding!.Formals.Count)
         {
             // The trap-#3 rule: an arity mismatch is LOUD — a silently dropped/extra argument would shift
             // every following slot (the legacy DEVLOG-449 blocker: the first USING bound to the RETURNING).
             ctx.Edition.Error("COBOLNET0828",
-                $"INVOKE \"{m.Name}\": {argCtxs.Length} USING argument(s) for {m.Binding!.Formals.Count} formal "
+                $"{site.Verb} \"{m.Name}\": {argCtxs.Count} USING argument(s) for {m.Binding!.Formals.Count} formal "
                 + $"parameter(s) of the method (ISO §14.9.23.4 GR3 — correspondence is positional; "
                 + "trailing-OMITTED support is a later slice)");
             return new BoundNop();
         }
-        var args = new List<BoundInvokeArg>(argCtxs.Length);
-        for (int i = 0; i < argCtxs.Length; i++)
+        var args = new List<BoundInvokeArg>(argCtxs.Count);
+        for (int i = 0; i < argCtxs.Count; i++)
         {
-            if (OoBindInvokeArg(argCtxs[i], m.Binding!.Formals[i].Item, m.Name) is not { } a) return new BoundNop();
+            if (OoBindInvocationArg(argCtxs[i], m.Binding!.Formals[i].Item, m.Name, site.Verb) is not { } a)
+                return new BoundNop();
             args.Add(a);
         }
 
         // ── RETURNING pairing + conformance (GR8; §14.8.3; the deep-dive signature-check edge case:
         // BOTH mismatch directions are compile-time diagnostics) ──
-        var retRef = inv.invokeReturning()?.dataReference();
+        var retRef = site.ReturningRef;
         Place? retPlace = null;
+        // ⛔ THE INLINE FORM'S RETURNING ITEM IS THE §8.4.3.4.4 GR1 b)/c) TEMPORARY, not a written
+        // identifier: "temp-identifier has the same description, class, and category as the RETURNING
+        // parameter in the specification of the method identified by literal-1", and it "is a temporary item
+        // that exists for the purpose of effecting the inline invocation in this way and for no other
+        // purpose". Cloning the method's own RETURNING item is what makes the delivery an IDENTITY crossing,
+        // so §14.8.3.3's conformance check below has nothing to reject and is correctly skipped.
+        if (site.ReturningImplicit)
+        {
+            if (m.Binding!.Returning is not { } retModel)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.InlineInvocationNoReturning,
+                    $"the inline method invocation of \"{m.Name}\": the method's procedure division header "
+                    + "declares no RETURNING item, so there is no temporary data item for the invocation to "
+                    + "reference (ISO §8.4.3.4.1; §8.4.3.4.4 GR1 b))");
+                return new BoundNop();
+            }
+            if (retModel.IsAnyLength)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.InlineInvocationReturningShape,
+                    $"the inline method invocation of \"{m.Name}\": the data item referenced in the "
+                    + "RETURNING phrase of the invoked method's procedure division header shall not be "
+                    + "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase "
+                    + "(ISO §8.4.3.4.3 SR4)");
+                return new BoundNop();
+            }
+            if (retModel.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: ObjectRefKind.ActiveClass } })
+            {
+                ctx.Edition.Error(DiagnosticCatalog.InlineInvocationReturningShape,
+                    $"the inline method invocation of \"{m.Name}\": the invoked method's RETURNING item is "
+                    + "described with the ACTIVE-CLASS phrase (ISO §8.4.3.4.3 SR4)");
+                return new BoundNop();
+            }
+            var temp = ctx.Data.OoCreateInvocationTemp(retModel, m.Name);
+            if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
+                return new BoundUnsupported($"the inline method invocation of \"{m.Name}\" (result temporary)");
+            site.ImplicitReturningPlace = tempPlace;
+            return new BoundInvoke(form, null, receiver, m.CsName, tempPlace, args, m.Binding!.Returning,
+                m.Owner?.CsName);
+        }
         if (retRef is not null && m.Binding!.Returning is null)
         {
             ctx.Edition.Error("COBOLNET0828",
-                $"INVOKE \"{m.Name}\" RETURNING: the method declares no RETURNING item (ISO §14.9.23.4 GR8 / "
+                $"{site.Verb} \"{m.Name}\" RETURNING: the method declares no RETURNING item (ISO §14.9.23.4 GR8 / "
                 + "§14.8.3 — nothing to deliver)");
             return new BoundNop();
         }
@@ -472,11 +535,21 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// argument), SET rules for an object-reference formal (widening), MOVE rules otherwise. A
     /// reference-modified argument conforms by its EFFECTIVE description (a unique elementary alphanumeric
     /// item of the window length, §8.4.3.3.4 GR6). Null on a diagnostic.</summary>
-    private BoundInvokeArg? OoBindInvokeArg(Core.InvokeArgumentContext arg, DataItem formal, string methodName)
+    private BoundInvokeArg? OoBindInvocationArg(InvocationArg arg, DataItem formal, string methodName,
+                                                string verb)
     {
-        void Err(string msg) => ctx.Edition.Error("COBOLNET0828", $"INVOKE \"{methodName}\": {msg}");
+        void Err(string msg) => ctx.Edition.Error("COBOLNET0828", $"{verb} \"{methodName}\": {msg}");
 
-        if (arg.VALUE() is not null)
+        if (arg.Omitted)
+        {
+            // §8.4.3.4.2's argument brace admits OMITTED, and §14.9.23.2's BY REFERENCE branch does too;
+            // an OMITTED argument requires an OPTIONAL formal (§14.8.2), which the procedure-division header
+            // grammar does not yet carry. Loud, never a silently dropped positional slot.
+            Err($"an OMITTED argument for formal '{formal.CobolName}' requires an OPTIONAL formal parameter "
+                + "(ISO §14.8.2); OPTIONAL/OMITTED formals are not modeled for method activation");
+            return null;
+        }
+        if (arg.ByValueWritten)
         {
             // SR5b: a BY VALUE argument requires a BY VALUE formal; every formal is BY REFERENCE today (the
             // procedure-division-header BY phrases are an unparsed grammar extension — added with them).
@@ -485,8 +558,17 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             return null;
         }
 
-        bool explicitReference = arg.REFERENCE() is not null;
-        bool explicitContent = arg.CONTENT() is not null;
+        bool explicitReference = arg.ByReferenceWritten;
+        // ⛔ A BARE ARGUMENT OF THE INLINE FORM IS BY CONTENT, AND THAT IS THE GENERAL FORMAT SPEAKING.
+        // §8.4.3.4.2 prints NO passing phrase at all, and §8.4.3.4.4 GR1 makes the arguments those of
+        // `INVOKE … USING arguments`, so §14.9.23.4 GR6 decides — the same default an INVOKE's bare
+        // argument takes. `Expression` marks the shapes that have no storage to write back to
+        // (§14.9.23.3 SR9 confines BY REFERENCE to an identifier).
+        bool explicitContent = arg.ByContentWritten;
+        // An operand that survives the reductions below as an EXPRESSION has no storage, so §14.9.23.3 SR9
+        // cannot be met and GR6 a)2 assumes BY CONTENT. Only the inline form can reach this: an INVOKE
+        // spells its own phrase, so `arg.Expression` is false there and this path is byte-inert for it.
+        bool impliedContent = arg.Expression && !arg.ByValueWritten;
 
         // ── ONE OPERAND, FOUR CHANNELS — resolved ONCE, here (ISO §14.9.23.2 BY CONTENT: `arithmetic-
         // expression-1 | boolean-expression-1 | identifier-5 | literal-2`) ──────────────────────────────────
@@ -498,10 +580,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // strength of the SECOND argument's B-AND. Normalizing here is what makes that harmless: a boolean node
         // carrying NO boolean operator reduces to its bare `valueOperand` (ConditionBinder.UnwrapBareBool — the
         // same reduction BindPrimaryBoolean uses) and rides exactly the arm it would have without the predicate.
-        var boolCtx = arg.booleanExpression();
-        var arithCtx = arg.arithmeticExpression();
-        var nonNumCtx = arg.literal()?.nonNumericLiteral();
-        string? numLitRaw = arg.literal()?.numericLiteral()?.GetText();
+        var boolCtx = arg.Bool;
+        var arithCtx = arg.Arith;
+        var nonNumCtx = arg.Literal?.nonNumericLiteral();
+        string? numLitRaw = arg.Literal?.numericLiteral()?.GetText();
         if (boolCtx is not null && ConditionBinder.UnwrapBareBool(boolCtx) is { } bare)
         {
             boolCtx = null;
@@ -525,12 +607,32 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // that only the identifier arm performs. The grammar cannot express "a reference, unless it is part of
         // an expression"; the binder can, through the SAME sole-reference reduction ConditionBinder and
         // IntrinsicBinder already use (feedback_one_rule_one_place — that helper is now shared, not re-copied).
-        var dref = arg.dataReference() ?? ConditionBinder.SoleDataReference(arithCtx);
-        if (dref is not null)
+        var dref = arg.Ref ?? ConditionBinder.SoleDataReference(arithCtx);
+        // ⛔ AN INLINE METHOD INVOCATION IS AN IDENTIFIER, NOT AN EXPRESSION — the SAME lesson as the
+        // sole-dataReference recovery on the line above, one identifier format later (kb/Work PB428).
+        // §8.4.3.4.1: "Inline method invocation references a temporary data item returned from invocation of
+        // a method", and §8.4.3.1.2 Format 4 makes it an identifier-2 of §14.9.23.2's argument list, never
+        // arithmetic-expression-1. Left to parse alone it reaches the expression arm below, whose rule is
+        // §14.8.2.3.3 rule 2a ("the same as for a COMPUTE statement") — category-numeric formals only — so
+        // `O :: "ECHO" (O :: "GETNAME")` into a PIC X formal was REFUSED as legal source. Recovered here it
+        // takes rule 2d's MOVE lane like any other identifier.
+        // ⚠ IT IS STILL BY CONTENT, and that is GR6 a)2 rather than a convenience: §8.4.3.4.4 GR1 c) makes
+        // the referenced item "a temporary item that exists for the purpose of effecting the inline
+        // invocation in this way and for no other purpose", which is NOT "a data item defined in the file,
+        // working-storage, local-storage, or linkage section" — so §14.9.23.3 SR9 is not met and GR6 a)2
+        // assumes BY CONTENT.
+        Place? inlinePlace = null;
+        if (dref is null && ConditionBinder.SoleInlineInvocation(arithCtx) is { } soleInline)
         {
-            if (ctx.Refs.Resolve(dref) is not { } place)
+            if (OoBindInlineInvocation(soleInline) is not BoundNumRef inlineRef) return null;   // reported there
+            inlinePlace = inlineRef.Place;
+        }
+        if (dref is not null || inlinePlace is not null)
+        {
+            string argText = dref?.GetText() ?? arithCtx!.GetText();
+            if ((inlinePlace ?? (dref is not null ? ctx.Refs.Resolve(dref) : null)) is not { } place)
             {
-                Err($"USING argument '{dref.GetText()}' is not resolvable to storage (or uses a reference "
+                Err($"USING argument '{argText}' is not resolvable to storage (or uses a reference "
                     + "form not yet carried across INVOKE)");
                 return null;
             }
@@ -539,12 +641,13 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             bool objectData = ctx.Data.OoIsObjectData(place.Item);
             if (explicitReference && objectData)
             {
-                Err($"BY REFERENCE argument '{dref.GetText()}' references OBJECT data — factory/instance "
+                Err($"BY REFERENCE argument '{argText}' references OBJECT data — factory/instance "
                     + "working-storage may not cross an INVOKE by reference (ISO §14.9.23.3 SR 10); pass it "
                     + "BY CONTENT");
                 return null;
             }
-            bool byReference = !explicitContent && !objectData;   // GR6a — REFERENCE assumed when SR9/10 hold
+            // GR6a — REFERENCE assumed when SR9/10 hold; an inline invocation's temporary fails SR9 (above).
+            bool byReference = !explicitContent && !objectData && inlinePlace is null;
 
             // A reference-modified operand is a unique ELEMENTARY ALPHANUMERIC item of the window length
             // (§8.4.3.3.4 GR6): conformance goes against that effective description, never the whole inner item.
@@ -552,7 +655,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 if (formal.IsGroup || formal.Pic?.Category is not PicCategory.Alphanumeric)
                 {
-                    Err($"reference-modified argument '{dref.GetText()}': the operand is elementary "
+                    Err($"reference-modified argument '{argText}': the operand is elementary "
                         + $"alphanumeric (§8.4.3.3.4 GR6) and does not conform to formal '{formal.CobolName}'");
                     return null;
                 }
@@ -562,7 +665,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     if (!int.TryParse(rmp.Start, out _) || rmp.Length is null
                         || !int.TryParse(rmp.Length, out int rlen))
                     {
-                        Err($"BY REFERENCE reference-modified argument '{dref.GetText()}' needs a "
+                        Err($"BY REFERENCE reference-modified argument '{argText}' needs a "
                             + "compile-time (start:length) to prove §14.8.2.3.2 conformance — pass it "
                             + "BY CONTENT or use literal subscripts");
                         return null;
@@ -583,7 +686,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 if (OoConformance.DescriptionMismatch(formal, place.Item, byRefGroupPrefix: true,
                         anyLengthActivationRelax: true) is { } err1)   // §14.8.2.3.2 rules d/e (ANY LENGTH)
                 {
-                    Err($"USING argument '{dref.GetText()}' does not conform to formal parameter "
+                    Err($"USING argument '{argText}' does not conform to formal parameter "
                         + $"'{formal.CobolName}': {err1} (ISO §14.8.2.3.2 — BY REFERENCE requires the "
                         + "identical description)");
                     return null;
@@ -594,7 +697,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // Effective BY CONTENT (§14.8.2.3.3): rule-per-formal-category.
             if (OoConformance.ContentMismatch(host.OoClasses, formal, place) is { } cerr)
             {
-                Err($"BY CONTENT argument '{dref.GetText()}' does not conform to formal "
+                Err($"BY CONTENT argument '{argText}' does not conform to formal "
                     + $"'{formal.CobolName}': {cerr} (ISO §14.8.2.3.3)");
                 return null;
             }
@@ -608,7 +711,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 && (fp.IsFloat || place.Item.Pic is { IsFloat: true })
                 && !(fp.IsFloat && place.Item.Pic is { IsFloat: true } ap2 && ap2.Usage == fp.Usage))
             {
-                Err($"BY CONTENT argument '{dref.GetText()}' for formal '{formal.CobolName}': the "
+                Err($"BY CONTENT argument '{argText}' for formal '{formal.CobolName}': the "
                     + "fixed-point⇄float CONTENT conversion is not carried across INVOKE — a float formal "
                     + "takes the identical float usage (a documented marshalling residue, not ISO §14.8.2.3.3)");
                 return null;
@@ -639,7 +742,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // CONTENT arm above refuses the same pairing through OoConformance.ContentMismatch's conservative
         // strict gate, and two arms of one rule disagreeing is worse than one named residue. Both are
         // recorded together.
-        if (boolCtx is { } bx && explicitContent)
+        if (boolCtx is { } bx && (explicitContent || impliedContent))
         {
             if (OoConformance.ContentBooleanMismatch(formal) is { } bErr)
             {
@@ -652,7 +755,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 { ContentBool = bound, ContentBoolWidth = ConditionBinder.Gr3Width(bound) };
         }
 
-        if (arithCtx is { } ax && explicitContent)   // a SOLE reference / numeric literal was taken above
+        if (arithCtx is { } ax && (explicitContent || impliedContent))   // a SOLE reference / numeric literal / inline invocation was taken above
         {
             if (OoConformance.ContentArithmeticMismatch(formal) is { } aErr)
             {
@@ -722,7 +825,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 ? new BoundInvokeArg(formal, null, raw, null, WriteBack: false, ByContent: true)
                 : new BoundInvokeArg(formal, null, null, raw, WriteBack: false, ByContent: true);
         }
-        Err($"USING argument form for formal '{formal.CobolName}' is not yet carried across INVOKE");
+        Err($"argument form for formal '{formal.CobolName}' is not yet carried across a method activation");
         return null;
     }
 
@@ -738,20 +841,22 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// OBJECT data may not cross at all (SR10 bans by-reference and SR6 removes the typed path's GR6a2
     /// auto-CONTENT fallback); a Tier-C group (no character image) has no crossing form.</summary>
     private BoundStatement OoBindUniversalInvoke(
-        Core.InvokeStatementContext inv, Place receiver, string? methodLiteral, Place? methodSource)
+        InvocationSite site, Place receiver, string? methodLiteral, Place? methodSource)
     {
-        var argCtxs = inv.invokeUsing()?.invokeArgument() ?? [];
-        var args = new List<BoundUniversalArg>(argCtxs.Length);
+        // §8.4.3.4.3 SR2 bars a universal receiver from the INLINE form outright, and OoBindInlineInvocation
+        // reports it there — so this path is reached only by the INVOKE statement.
+        var argCtxs = site.Args;
+        var args = new List<BoundUniversalArg>(argCtxs.Count);
         foreach (var a in argCtxs)
         {
-            if (a.VALUE() is not null || a.CONTENT() is not null)
+            if (a.ByValueWritten || a.ByContentWritten)
             {
                 ctx.Edition.Error("COBOLNET0866",
                     "INVOKE through a universal object reference: neither BY CONTENT nor BY VALUE may be "
                     + "specified — BY REFERENCE is assumed implicitly (ISO §14.9.23.3 SR6)");
                 return new BoundNop();
             }
-            if (a.dataReference() is not { } dref)
+            if (a.Ref is not { } dref)
             {
                 ctx.Edition.Error("COBOLNET0866",
                     "INVOKE through a universal object reference: a literal or arithmetic-expression "
@@ -786,7 +891,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
         Place? retPlace = null;
         string? retDesc = null;
-        if (inv.invokeReturning()?.dataReference() is { } retRef)
+        if (site.ReturningRef is { } retRef)
         {
             if (ctx.Refs.Resolve(retRef) is not { } rp)
             {

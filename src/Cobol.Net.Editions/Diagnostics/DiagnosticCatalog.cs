@@ -3942,6 +3942,49 @@ public static class DiagnosticCatalog
         + "REFERENCE that §8.4.2.2.1 requires to identify one resource uniquely, and a sum counter's only "
         + "available qualifier is the report-name of §8.4.2.2.2 Format 1.",
         "ISO §13.18.54.4 / §8.4.2.2.1 / §8.4.2.2.2");
+    /// <summary>An inline method invocation's receiver (ISO §8.4.3.4.2's <c>{object-class-name-1 |
+    /// identifier-1}</c>) or its method-name literal-1 is one the construct's own syntax rules exclude.
+    /// §8.4.3.4.3 SR2: "Identifier-1 shall be of class object; neither the predefined object reference NULL
+    /// nor a universal object reference shall be specified" — both are syntactically writable here, because
+    /// the rule reuses INVOKE's own <c>objectReference</c> receiver so the two forms cannot disagree about
+    /// what a receiver is (the P3 superset parse), and both are therefore rejected by NAME rather than by a
+    /// general-format rejection dressed up as a syntax error. The universal arm is not a gap: §14.9.23.4
+    /// GR7c's dynamic path exists for it, and the INVOKE statement reaches it.</summary>
+    public static readonly DiagnosticDescriptor InlineInvocationReceiver = new(
+        "COBOLNET2138", "inline-invocation-receiver", EditionSeverity.Error,
+        "An inline method invocation's receiver or method-name literal is excluded by §8.4.3.4.3.",
+        "ISO §8.4.3.4.3 SR2 / §8.4.3.4.2");
+
+    /// <summary>An inline method invocation names a method whose procedure division header declares no
+    /// RETURNING item. §8.4.3.4.1 makes the construct a REFERENCE to "a temporary data item returned from
+    /// invocation of a method", and §8.4.3.4.4 GR1 b) describes that temporary entirely in terms of "the
+    /// RETURNING parameter in the specification of the method identified by literal-1" — with no such
+    /// parameter there is no item for the identifier to reference. §14.8.3.1 states the same obligation from
+    /// the other side — "A returning item is implicitly specified in the activating element when a function
+    /// or inline method invocation is referenced" — and §D.6.5.6.5 spells it out: "A returning item is
+    /// required for function calls and inline method invocation; it is optional for program calls and method
+    /// invocation using the INVOKE statement."
+    /// The INVOKE statement is the form for a method that returns nothing.</summary>
+    public static readonly DiagnosticDescriptor InlineInvocationNoReturning = new(
+        "COBOLNET2139", "inline-invocation-no-returning", EditionSeverity.Error,
+        "The method of an inline method invocation declares no RETURNING item.",
+        "ISO §8.4.3.4.1 / §8.4.3.4.4 GR1 b) / §14.8.3.1");
+
+    /// <summary>§8.4.3.4.3 SR4: "The data item referenced in the RETURNING phrase of the invoked method's
+    /// procedure division header shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS
+    /// phrase." Both would leave GR1 b)'s "same description, class, and category" temporary undescribable at
+    /// the point of reference — an ANY LENGTH item has no length until activation, and an ACTIVE-CLASS
+    /// reference has no class until the runtime class of the receiver is known.
+    /// <para>⚠ ONLY THE ACTIVE-CLASS ARM IS REACHABLE TODAY, and the negative golden says so rather than
+    /// pretending otherwise: an ANY LENGTH RETURNING item is staged loud at
+    /// <see cref="AnyLengthReturning"/> in the data binder before any invocation binds, so a fixture written
+    /// with ANY LENGTH would pin that STAGE and leave SR4's own arm untested (feedback
+    /// green_test_can_hold_a_gap_open). The check below covers both arms; the golden covers the one that
+    /// can be observed, and gains its twin when the ANY-LENGTH-RETURNING wave lands.</para></summary>
+    public static readonly DiagnosticDescriptor InlineInvocationReturningShape = new(
+        "COBOLNET2140", "inline-invocation-returning-shape", EditionSeverity.Error,
+        "The RETURNING item of an inline-invoked method is ANY LENGTH or ACTIVE-CLASS.",
+        "ISO §8.4.3.4.3 SR4");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -128,7 +128,7 @@ performOptions
 // DISPLAY / INSPECT / FROM slots follow the same shape). kb/Work PB86: the arm was missing (a parse error), and
 // the keyword-omitted spelling bound but ran ONCE.
 performTimes
-    : (integerLiteral | functionCall | dataReference) TIMES
+    : (integerLiteral | functionCall | inlineMethodInvocation | dataReference) TIMES
     ;
 
 performUntil

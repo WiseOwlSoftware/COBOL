@@ -594,7 +594,7 @@ writeStatement
 // existing accessor, so the legacy binders compile untouched. The unification belongs to P15, when the
 // legacy side is deleted rather than migrated.
 writeFrom
-    : FROM (functionCall | dataReference | literal)
+    : FROM (functionCall | inlineMethodInvocation | dataReference | literal)
     ;
 
 // ⛔ THIS RULE READ `writeAdvancePhrase writeAdvancePhrase?` — THE WHOLE PHRASE REPEATED — UNTIL kb/Work PB712,
@@ -692,7 +692,7 @@ rewriteStatement
 // existing accessor, so the legacy binders compile untouched. The unification belongs to P15, when the
 // legacy side is deleted rather than migrated.
 rewriteFrom
-    : FROM (functionCall | dataReference | literal)
+    : FROM (functionCall | inlineMethodInvocation | dataReference | literal)
     ;
 
 // ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
@@ -988,7 +988,7 @@ releaseStatement
 // existing accessor, so the legacy binders compile untouched. The unification belongs to P15, when the
 // legacy side is deleted rather than migrated.
 releaseFrom
-    : FROM (functionCall | dataReference | literal)
+    : FROM (functionCall | inlineMethodInvocation | dataReference | literal)
     ;
 
 // ==========================================
@@ -1013,7 +1013,7 @@ stringStatement
 // repository name + parens) still parses as a dataReference and is resolved by the binder's
 // KeywordOmittedFunction path — unchanged.
 strUnstrSender
-    : functionCall | dataReference
+    : functionCall | inlineMethodInvocation | dataReference
     ;
 
 strUnstrOperand
@@ -1112,7 +1112,7 @@ unstringOnOverflow
 // CobolSharp.Compiler until the P15 cut-over, and collapsing the rule would DELETE the generated
 // .dataReference() accessor its binder reads. The legacy binder guards on the new null instead.
 inspectStatement
-    : INSPECT BACKWARD? (functionCall | dataReference)
+    : INSPECT BACKWARD? (functionCall | inlineMethodInvocation | dataReference)
       ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
       | inspectConvertingPhrase )
@@ -1153,6 +1153,7 @@ inspectCountPhrase
 inspectChar
     : literal
     | functionCall
+    | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4) - the Format-1 twin above; kb/Work PB428
     | dataReference
     | figurativeConstant
     ;

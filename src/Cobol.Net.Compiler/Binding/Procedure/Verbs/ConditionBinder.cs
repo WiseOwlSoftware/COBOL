@@ -808,6 +808,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     internal static Core.DataReferenceContext? SoleDataReference(Core.ArithmeticExpressionContext? arith) =>
         SolePrimary(arith)?.dataReference();
 
+    /// <summary>The FOURTH member of the sole-operand family — an expression that is nothing but an INLINE
+    /// METHOD INVOCATION (ISO §8.4.3.1.2 Format 4; kb/Work PB428). Same reason as its three siblings: the
+    /// construct is an IDENTIFIER, <c>arithmeticExpression</c> subsumes it, and a caller that reads the parse
+    /// node instead of the meaning applies an expression rule to an identifier — which is precisely how an
+    /// alphanumeric-returning invocation came to be refused as a method ARGUMENT (§14.8.2.3.3 rule 2a's
+    /// COMPUTE lane instead of rule 2d's MOVE lane). Over the ONE <see cref="SolePrimary"/> descent, never a
+    /// second walk.</summary>
+    internal static Core.InlineMethodInvocationContext? SoleInlineInvocation(
+        Core.ArithmeticExpressionContext? arith) => SolePrimary(arith)?.inlineMethodInvocation();
+
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>
     private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand) =>
         ComparisonOperandOf(operand.valueOperand());

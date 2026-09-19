@@ -551,6 +551,17 @@ public sealed partial class DataBinder
     internal DataItem OoCreatePropertyTemp(DataItem model, string prop) =>
         CreateCompilerTemp(model, "__PROP-TEMP-", "__prop", prop);
 
+    /// <summary>Synthesize the §8.4.3.4.4 GR1 b)/c) temporary of one INLINE METHOD INVOCATION (kb/Work
+    /// PB428): "temp-identifier has the same description, class, and category as the RETURNING parameter in
+    /// the specification of the method identified by literal-1", and it "is a temporary item that exists for
+    /// the purpose of effecting the inline invocation in this way and for no other purpose". <paramref
+    /// name="model"/> is that RETURNING item, so the delivery into the temp is an IDENTITY crossing —
+    /// which is why the §14.8.3.3 conformance check the written-RETURNING form runs has nothing to say here.
+    /// The SAME <see cref="CreateCompilerTemp"/> the property and user-function temps use: one temp
+    /// constructor, three clients.</summary>
+    internal DataItem OoCreateInvocationTemp(DataItem model, string method) =>
+        CreateCompilerTemp(model, "__INV-TEMP-", "__inv", method);
+
     /// <summary>The (temp, model) clone pairs <see cref="CreateCompilerTemp"/> produced — consumed by the
     /// run-unit emitter's post-bind re-sync: <c>StoreAsImage</c> is still MUTABLE while procedure bodies
     /// bind (a ref-mod store or a figurative MOVE inside the MODEL's own unit flips it AFTER a temp cloned

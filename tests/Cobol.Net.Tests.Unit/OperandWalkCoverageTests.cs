@@ -49,7 +49,8 @@ public sealed class OperandWalkCoverageTests
     /// method — it is the ONE place the two must agree, and the test names the file to edit when they do not.
     /// </summary>
     private static readonly string[] WalkArms =
-        ["arithmeticExpression", "functionCall", "nonNumericLiteral", "literal", "dataReference"];
+        ["arithmeticExpression", "functionCall", "inlineMethodInvocation", "nonNumericLiteral",
+         "literal", "dataReference"];
 
     private static readonly string[] GrammarFiles =
     [

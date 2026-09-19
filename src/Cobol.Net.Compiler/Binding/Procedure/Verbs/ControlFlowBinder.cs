@@ -511,6 +511,8 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         BoundOperand op =
             t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.GetText())
             : t.functionCall() is { } fc ? host.Intrinsic.IntrinsicOperand(fc)
+            // §14.9.28.2 Format 2's `{identifier-1 | integer-1} TIMES`; kb/Work PB428.
+            : t.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)
             : t.dataReference() is { } d ? host.Expr.FieldOperand(d)
             : new BoundOperandError("PERFORM … TIMES count shape (ISO §14.9.28.2 Format 2)");
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))

@@ -3339,10 +3339,12 @@ census regression net.
 
 The four review-confirmed mandatory gaps (ledger §11 batch-4 verdicts V16–V19), implemented as ONE feature
 wave per the proven pattern (persisted spec-first scout → supervised implement, CLI-probe each, golden +
-below-edition negative per construct → adversarial review): (1) **inline method invocation** — the ISO
-§8.4.3.4 IDENTIFIER form `{class|id} :: literal [(args)]` usable in sending positions (+ a disposition for the
-shipped non-ISO `inlineMethodInvocationStatement` rule and its dead mis-dated registry gate; ISO intro = 2002,
-not 2023); (2) **object-view** §8.4.3.5 (`identifier AS [FACTORY OF] class [ONLY] | interface | UNIVERSAL`) +
+below-edition negative per construct → adversarial review): (1) **inline method invocation** — ✅ **LANDED**
+(kb/Work PB428): the ISO §8.4.3.4 IDENTIFIER form `{class|id} :: literal [(args)]` in every sending position
+that admits a function-identifier, over the §8.7.4 `::` lexer token; the non-ISO `inlineMethodInvocationStatement`
+rule and its mis-dated `inline-method-invocation-2023` registry row are DELETED, replaced by
+`inline-method-invocation-2002` gated on RECOGNITION (ISO intro = 2002, not 2023, as this entry predicted);
+(2) **object-view** §8.4.3.5 (`identifier AS [FACTORY OF] class [ONLY] | interface | UNIVERSAL`) +
 the EC-OO-CONFORMANCE raise site; (3) **USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS + the ONLY phrase**
 §13.18.60.2 (today ACTIVE-CLASS mis-diagnoses as unknown-class); (4) **parameterized classes/interfaces**
 (CLASS-ID/INTERFACE-ID USING, REPOSITORY EXPANDS/AS — mandatory 2023 surface). Grammar changes ride the
@@ -4922,7 +4924,9 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 >   canonical `Check` funnel and errors on BOTH axes, like every other introduction.
 > 
 > The un-wireable residue is CATALOGUED (not silently absent): `inline-method-invocation-2023` (pending row, Step 5 —
-> `identifier(args)` has no distinctive token, OO-wave-owned) and NO SIGN of PACKED-DECIMAL (a 2023 feature not in the
+> `identifier(args)` has no distinctive token, OO-wave-owned — **SUPERSEDED by kb/Work PB428: that row described a
+> shape ISO defines nowhere; the real construct carries the §8.7.4 `::` operator and its row
+> `inline-method-invocation-2002` IS wired, on RECOGNITION**) and NO SIGN of PACKED-DECIMAL (a 2023 feature not in the
 > grammar → a `COBOL0307`, needs grammar work to gate cleanly; noted for the M4/2023 feature wave). Battery:
 > conformance 3108 · unit 227 · guard 353 MATCH.
 > 
@@ -5190,7 +5194,8 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 >    load-bearing **cross-edition DISAMBIGUATION** predicates (NOT rejection gates) — the two forward-detects (the
 >    `openClause` `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based boolean-condition ENTRY) **PLUS**
 >    `{is2023()}? inlineMethodInvocationStatement` (`CobolParserCore.g4` — genuinely ambiguous with a subscripted
->    `x(args)` reference), `{is2002()}? linkageProcedureParameter` (`CobolData.g4` — the 2002 procedure-parameter form),
+>    `x(args)` reference — **DELETED by kb/Work PB428: the rule matched a shape ISO defines nowhere, and the real
+>    §8.4.3.4 construct needs no predicate because `::` is unambiguous**), `{is2002()}? linkageProcedureParameter` (`CobolData.g4` — the 2002 procedure-parameter form),
 >    and the `{!(is2002() && LA(1)==PROPERTY)}?` VALUE-list negative lookahead (`CobolData.g4` — PROPERTY is a 2002
 >    keyword that can follow a VALUE clause). Each resolves a genuine syntactic ambiguity across editions per the
 >    design's own "a forward, identity-carrying lookahead survives ONLY where a construct is genuinely ambiguous across

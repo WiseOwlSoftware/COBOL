@@ -219,7 +219,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // kb/Work PB348), so it carries the MOVE statement's syntax rules and the storage facts codegen needs.
         return new BoundWrite(file, record,
             host.Move.BindFromPhrase(FromPhraseRules.Write, record, w.writeFrom()?.dataReference(),
-                                     w.writeFrom()?.literal(), w.writeFrom()?.functionCall()),
+                                     w.writeFrom()?.literal(), w.writeFrom()?.functionCall(),
+                                     w.writeFrom()?.inlineMethodInvocation()),
             BindAdvancing(adv), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
@@ -339,7 +340,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         }
         return new BoundRewrite(file, record,
             host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.rewriteFrom()?.dataReference(),
-                                     rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall()),
+                                     rw.rewriteFrom()?.literal(), rw.rewriteFrom()?.functionCall(),
+                                     rw.rewriteFrom()?.inlineMethodInvocation()),
             UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
     }

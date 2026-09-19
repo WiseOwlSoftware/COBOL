@@ -197,7 +197,7 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
     }
 
     // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§7.3.14.4 GR4 b) — record that the current source element calls a function
-    //    (a FUNCTION activation) or invokes a method (INVOKE / an inline 2023 method invocation). The >>TURN
+    //    (a FUNCTION activation) or invokes a method (INVOKE, or the §8.4.3.4 inline method invocation). The >>TURN
     //    directives are flagged post-walk (FlagEcProgramDirectives), keyed on the innermost containing unit. ──
     public override object? VisitFunctionCall(CobolParserCore.FunctionCallContext ctx)
     {
@@ -211,7 +211,7 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
         return base.VisitChildren(ctx);
     }
 
-    public override object? VisitInlineMethodInvocationStatement(CobolParserCore.InlineMethodInvocationStatementContext ctx)
+    public override object? VisitInlineMethodInvocation(CobolParserCore.InlineMethodInvocationContext ctx)
     {
         if (_currentUnitCtx is not null) _unitsWithCall.Add(_currentUnitCtx);
         return base.VisitChildren(ctx);
