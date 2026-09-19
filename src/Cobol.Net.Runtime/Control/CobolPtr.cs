@@ -51,7 +51,15 @@ public static class CobolPtr
             throw new CobolFatalException("EC-BOUND-PTR",
                 "reference to a based item addressing storage released by FREE (ISO 14.9.15 GR1a / 13.18.5.4 GR4)");
         }
-        if (w.Offset < 0 || w.Offset + classWidth > w.Cell.Ref.Length)
+        // ⛔ THE SUBTRACTION IS ON THE CELL SIDE, and that is the whole point (kb/Work PB465). The obvious
+        // `w.Offset + classWidth > w.Cell.Ref.Length` WRAPS at 2^63 — and an offset that high is now a REACHABLE
+        // pointer value, because DOC-A.1-216 makes every representable address a legal data-pointer VALUE and
+        // defers the failure to exactly this test. Measured before the fix: two `SET P UP BY 9223372036854775807`s
+        // produced a window that passed this bound and read position 0 of a 4-character cell. Written this way the
+        // test is exact for EVERY `long` offset with no wide arithmetic on a path every based read takes:
+        // `Ref.Length` is an `int` and `classWidth` a non-negative class width, so their difference cannot
+        // overflow `long`, and a negative difference correctly fails every offset.
+        if (w.Offset < 0 || w.Offset > (long)w.Cell.Ref.Length - classWidth)
         {
             string oob = $"reference to a based item outside its addressed storage (offset {w.Offset} + width "
                 + $"{classWidth} over {w.Cell.Ref.Length} positions — ISO 13.18.5.4 GR4)";
@@ -65,20 +73,47 @@ public static class CobolPtr
     /// FIRST on every generated read/write path, so this never masks a null dereference).</summary>
     public static long OffsetOf(ManagedPointer? p) => p is CellPointer w ? w.Offset : 0;
 
-    /// <summary>SET pointer UP/DOWN BY (ISO §14.9.39 Format 10): GR18 — a NULL operand is
-    /// <c>EC-DATA-PTR-NULL</c> (Fatal); GR20 — the address moves by <paramref name="by"/> bytes (character
-    /// positions here). The implementor data-pointer range is UNBOUNDED (the recorded implementor choice):
-    /// EC-RANGE-PTR is never raised at SET time — an out-of-cell address surfaces at the next dereference as
-    /// EC-BOUND-PTR.</summary>
-    public static ManagedPointer UpBy(ManagedPointer? p, long by)
+    /// <summary>The LOWEST value a data-pointer data item may hold, as a character-position displacement from
+    /// the origin of the storage it addresses (ISO §14.9.39.4 GR20's "the range of values allowed by the
+    /// implementor for a data-pointer data item"; §A.1 216 requires it documented, and
+    /// <c>docs/CONFORMANCE.md</c> §7 DOC-A.1-216 does).</summary>
+    public const long MinAddress = long.MinValue;
+
+    /// <summary>The HIGHEST value a data-pointer data item may hold (the <see cref="MinAddress"/> twin —
+    /// §14.9.39.4 GR20 · §A.1 216 · DOC-A.1-216).</summary>
+    public const long MaxAddress = long.MaxValue;
+
+    /// <summary>The widest displacement that could possibly carry an in-range address to another in-range
+    /// address, <see cref="MaxAddress"/> − <see cref="MinAddress"/> = 2^64 − 1. Testing the amount against it
+    /// FIRST is what lets the sum below be formed in <see cref="Int128"/> without overflowing it in turn —
+    /// the boundary has to be a value this code can SEE, never a wrap it cannot (kb/Work PB459's lesson,
+    /// applied to the pointer carrier by PB465).</summary>
+    private static readonly Int128 AddressSpan = (Int128)MaxAddress - MinAddress;
+
+    /// <summary>Displace a data pointer (ISO §14.9.39.4): GR18 — a NULL operand is <c>EC-DATA-PTR-NULL</c>
+    /// (Fatal); GR20 — "the address contained in each identifier-9 … is incremented, if UP is specified, or
+    /// decremented, if DOWN is specified, by the number of bytes specified by arithmetic-expression-3"
+    /// (character positions in this model), and "if this new address is outside the range of values allowed by
+    /// the implementor for a data-pointer data item, the EC-RANGE-PTR exception condition is set to exist and
+    /// the value of the data item referenced by identifier-9 is unchanged".
+    /// <para>⛔ The range GR20 names is <see cref="MinAddress"/>..<see cref="MaxAddress"/> — the addresses this
+    /// implementation can represent, NOT the bounds of the addressed storage. An address that leaves its cell
+    /// but stays representable is a legal pointer VALUE; §13.18.5.4 GR4 raises EC-BOUND-PTR when it is
+    /// DEREFERENCED. A cell-bounds test here would reject conforming programs (DOC-A.1-216).</para></summary>
+    /// <param name="by">The displacement, as an <see cref="Int128"/>: arithmetic-expression-3 may be a
+    /// 31-digit integer item, and narrowing it at the emitter would WRAP it before this guard could see it —
+    /// measured, <c>SET P UP BY 18446744073709551618</c> moved the pointer by 2 (kb/Work PB465).</param>
+    /// <param name="down">DOWN BY — negated HERE, after the span test, so the negation itself cannot overflow.</param>
+    public static ManagedPointer UpBy(ManagedPointer? p, Int128 by, bool down = false)
     {
-        // §14.9.39 Format 10 GR19 states the unsuccessful outcome for this statement — "the execution of the SET
-        // statement is unsuccessful, and the content of identifier-9 is unchanged" — so with checking OFF these
-        // return the operand UNCHANGED rather than terminating. Unlike Deref there IS a defined thing to return.
+        // §14.9.39.4 GR19 and GR20 each state the unsuccessful outcome for this statement — "the execution of
+        // the SET statement is unsuccessful, and the content of identifier-9 is unchanged" / "the value of the
+        // data item referenced by identifier-9 is unchanged" — so with checking OFF these return the operand
+        // UNCHANGED rather than terminating. Unlike Deref there IS a defined thing to return.
         if (p is null || p.IsNull)
         {
             ExceptionState.DataPtrNullError(
-                "SET pointer UP/DOWN BY with a NULL pointer operand (ISO 14.9.39 Format 10 GR18)");
+                "SET pointer UP/DOWN BY with a NULL pointer operand (ISO 14.9.39.4 GR18)");
             // `ManagedPointer.Null` IS the unchanged value here: the operand already held the predefined
             // address NULL (that is the condition), and the C#-null carrier normalises to the same thing.
             return ManagedPointer.Null;
@@ -89,24 +124,67 @@ public static class CobolPtr
                 "SET pointer UP/DOWN BY over a pointer that does not address data storage (ISO 14.9.39 Format 10)");
             return p;   // unchanged — a non-null carrier that simply does not address storage
         }
-        return new CellPointer(w.Cell, w.Offset + by);
+        if (by >= -AddressSpan && by <= AddressSpan)
+        {
+            Int128 r = (Int128)w.Offset + (down ? -by : by);
+            if (r >= MinAddress && r <= MaxAddress) return new CellPointer(w.Cell, (long)r);
+        }
+        return Unrepresentable(p);
     }
 
-    /// <summary>SET pointer UP/DOWN BY with a SCALED amount (ISO §14.9.39 Format 10 GR19): "if the value …
-    /// is not an integer, the EC-SIZE-ADDRESS exception condition is set to exist" (Fatal) — the amount
-    /// arrives as its scaled fixed-point value and the divisibility test IS the integrality test; an integer
-    /// value at any scale (e.g. 2.0) moves normally. The unscaled fast path is <see cref="UpBy"/>.</summary>
-    public static ManagedPointer UpByScaled(ManagedPointer? p, long scaledBy, int scale)
+    /// <summary>GR20's range arm, written ONCE for every way of reaching it: the new address is outside the
+    /// implementor data-pointer range, so EC-RANGE-PTR is set to exist (Table 13 Fatal) and the operand is
+    /// unchanged. ⛔ This is NOT GR19's condition — GR19 is about whether the AMOUNT is an integer, and
+    /// answering a magnitude question with EC-SIZE-ADDRESS reported a condition whose antecedent was false and
+    /// aborted run units on legal COBOL (kb/Work PB465).</summary>
+    private static ManagedPointer Unrepresentable(ManagedPointer? p)
     {
-        long pow = 1;
-        for (int i = 0; i < scale; i++) pow *= 10;
-        if (scaledBy % pow != 0)
+        ExceptionState.RangePtrError(
+            "a data-pointer displaced outside the implementor range of data-pointer values "
+            + "(ISO 14.9.39.4 GR20; the range is DOC-A.1-216 in docs/CONFORMANCE.md §7)");
+        return p ?? ManagedPointer.Null;   // GR20 verbatim — identifier-9 is unchanged
+    }
+
+    /// <summary>SET pointer UP/DOWN BY with an EXACT scaled fixed-point amount — §14.9.39.4's two rules as TWO
+    /// checks with TWO outcomes (kb/Work PB465):
+    /// <list type="number">
+    /// <item>GR19, on the AMOUNT: "if arithmetic-expression-3 does not evaluate to an integer, the
+    /// EC-SIZE-ADDRESS exception condition is set to exist, the execution of the SET statement is unsuccessful,
+    /// and the content of identifier-9 is unchanged". The amount arrives as its scaled value with its scale, so
+    /// the divisibility test IS the integrality test; an integer value at any scale (2.0, or 1.0E19) is NOT this
+    /// case and must move normally.</item>
+    /// <item>GR20, on the RESULT: an address outside <see cref="MinAddress"/>..<see cref="MaxAddress"/> is
+    /// EC-RANGE-PTR with the operand unchanged — a different rule, a different condition, a different
+    /// message.</item>
+    /// </list>
+    /// The integrality DECISION itself is <see cref="SetAmount"/>'s, shared with the three index formats that
+    /// state the identical test.</summary>
+    public static ManagedPointer UpByAmount(ManagedPointer? p, Int128 scaledBy, int scale, bool down)
+    {
+        if (SetAmount.Land(scaledBy, scale, out Int128 whole) == SetAmountLanding.NotAnInteger)
+            return NotAnInteger(p);
+        return UpBy(p, whole, down);
+    }
+
+    /// <summary>The NATIVE-FLOAT lane of <see cref="UpByAmount"/> (kb/Work PB151): GR19's integrality test runs
+    /// on the DOUBLE — an emitter-side <c>(long)(double)</c> truncation bypasses the raise entirely. An integral
+    /// amount too large for the widest integer carrier is NOT GR19's case (it IS an integer): no representable
+    /// address can result from it, which is GR20's.</summary>
+    public static ManagedPointer UpByAmountReal(ManagedPointer? p, double by, bool down) =>
+        SetAmount.Land(by, out Int128 whole) switch
         {
-            ExceptionState.SizeAddressError(
-                "SET pointer UP/DOWN BY a non-integer amount (ISO 14.9.39 Format 10 GR19)");
-            return p ?? ManagedPointer.Null;   // GR19 verbatim — unsuccessful; identifier-9 unchanged
-        }
-        return UpBy(p, scaledBy / pow);
+            SetAmountLanding.NotAnInteger => NotAnInteger(p),
+            SetAmountLanding.BeyondCarrier => Unrepresentable(p),
+            _ => UpBy(p, whole, down),
+        };
+
+    /// <summary>GR19's arm, written ONCE: the amount does not evaluate to an integer, so EC-SIZE-ADDRESS is set
+    /// to exist (Table 13 Fatal), the SET is unsuccessful, and identifier-9 is unchanged.</summary>
+    private static ManagedPointer NotAnInteger(ManagedPointer? p)
+    {
+        ExceptionState.SizeAddressError(
+            "SET pointer UP/DOWN BY an amount that does not evaluate to an integer (ISO 14.9.39.4 GR19)");
+        return p ?? ManagedPointer.Null;   // GR19 verbatim — unsuccessful; identifier-9 unchanged
     }
 
     /// <summary>ALLOCATE (ISO §14.9.3): a fresh <paramref name="size"/>-character cell. GR2: a request of
@@ -143,21 +221,6 @@ public static class CobolPtr
         if (up <= 0) { notAvail = false; return ManagedPointer.Null; }   // GR2
         if (up > int.MaxValue) { notAvail = true; return ManagedPointer.Null; }
         return Allocate((Int128)up, fill, out notAvail);
-    }
-
-    /// <summary>SET pointer UP/DOWN BY a NATIVE-FLOAT amount (kb/Work PB151): §14.9.39 Format 10 GR19's
-    /// integrality test runs on the DOUBLE — the old emitter's <c>(long)(double)</c> truncation bypassed
-    /// <see cref="UpByScaled"/>'s raise entirely. Non-integral, non-finite or out-of-long amounts are the
-    /// GR19 unsuccessful case: the size-address error is set and the pointer is unchanged.</summary>
-    public static ManagedPointer UpByReal(ManagedPointer? p, double by)
-    {
-        if (!double.IsFinite(by) || by != Math.Truncate(by) || by < long.MinValue || by > long.MaxValue)
-        {
-            ExceptionState.SizeAddressError(
-                "SET pointer UP/DOWN BY a non-integer amount (ISO 14.9.39 Format 10 GR19)");
-            return p ?? ManagedPointer.Null;   // GR19 verbatim — unsuccessful; identifier-9 unchanged
-        }
-        return UpBy(p, (long)by);
     }
 
     /// <summary>FREE (ISO §14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE

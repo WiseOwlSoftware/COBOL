@@ -2380,10 +2380,10 @@
   {
    "id": "pointer-arithmetic-2002",
    "status": "active",
-   "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO §14.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: a non-integer amount VALUE is a runtime EC-SIZE-ADDRESS fatal via CobolPtr.UpByScaled - the exact value rule, never a silent truncation). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated.",
+   "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO §14.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: an amount that does not evaluate to an integer is a runtime EC-SIZE-ADDRESS fatal, and GR20's own arm - a resulting address outside the implementor data-pointer range (DOC-A.1-216) - is EC-RANGE-PTR with the operand unchanged, two rules with two conditions via CobolPtr.UpByAmount). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated.",
    "display": "SET pointer UP/DOWN BY (data-pointer arithmetic)",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §14.9.39 Format 10 (GR20 — byte-granular movement; GR18 NULL → EC-DATA-PTR-NULL; GR19 — a non-integer amount VALUE → runtime EC-SIZE-ADDRESS fatal via CobolPtr.UpByScaled, the exact value rule); LIVE (Phase-4b increment 2, DEVLOG 617) — the D-U7 category re-route on the shared 85 index grammar shape; binder-side gate in PtrTryBindSetUpDown; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+   "citation": "ISO §14.9.39 Format 10 (GR20 — byte-granular movement; GR18 NULL → EC-DATA-PTR-NULL; GR19 — an amount that does not evaluate to an integer → runtime EC-SIZE-ADDRESS fatal; GR20's range arm — a resulting address outside the implementor data-pointer range (DOC-A.1-216) → EC-RANGE-PTR, operand unchanged — via CobolPtr.UpByAmount (kb/Work PB465)); LIVE (Phase-4b increment 2, DEVLOG 617) — the D-U7 category re-route on the shared 85 index grammar shape; binder-side gate in PtrTryBindSetUpDown; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

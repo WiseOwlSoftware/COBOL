@@ -181,7 +181,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-RANGE-PERFORM-VARYING", "PerformVaryingChecking"), // §14.9.28.4 GR3 — index-name varied from a non-positive item
         ("EC-DATA-PTR-NULL", "DataPtrNullChecking"),            // §13.18.5.4 GR3 / §14.9.39 F10 GR18 — NULL data-address
         ("EC-BOUND-PTR", "BoundPtrChecking"),                   // §13.18.5.4 GR4 — address neither NULL nor valid
-        ("EC-SIZE-ADDRESS", "SizeAddressChecking"),             // §14.9.39 F10 GR19 — non-integer SET UP/DOWN BY amount
+        ("EC-SIZE-ADDRESS", "SizeAddressChecking"),             // §14.9.39.4 GR19 — a SET UP/DOWN BY amount that does not evaluate to an integer
+        ("EC-RANGE-PTR", "RangePtrChecking"),                   // §14.9.39.4 GR20 — the NEW ADDRESS outside the implementor data-pointer range (DOC-A.1-216; kb/Work PB465)
         ("EC-BOUND-SUBSCRIPT", "BoundSubscriptChecking"),       // §8.4.2.3.4 GR2 — subscript outside 1..highest
         ("EC-BOUND-ODO", "BoundOdoChecking"),                   // §13.18.38.4 GR7 — DEPENDING value outside int-1..int-2
         ("EC-RANGE-INDEX", "RangeIndexChecking"),               // §13.18.38.4 GR2 / §14.9.39.4 GR2 a) 1. b + GR4 a) — an index driven outside the implementor range (kb/Work PB459)

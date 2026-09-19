@@ -432,9 +432,12 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   the first target resolves `PicCategory.Pointer` ⇒ all targets must be pointers (0869 on a mix, SR23) and the
   amount must be statically integer-typed (0869 on a fractional-scaled expression — the bind-time face of GR19;
   the runtime EC-SIZE-ADDRESS leg is RESIDUE-7) ⇒ `BoundSetPointerUpDown`; emit `«p» = CobolPtr.UpBy(«p», «±n»)`
-  (GR18 null ⇒ EC-DATA-PTR-NULL throw; GR20's implementor data-pointer range is DECIDED unbounded — EC-RANGE-PTR
-  is never raised at SET time and out-of-cell addressing surfaces at deref as EC-BOUND-PTR, a conformant
-  implementor choice to record in the deep-dive).
+  (GR18 null ⇒ EC-DATA-PTR-NULL throw; GR20's implementor data-pointer range is the CARRIER's — the signed
+  64-bit interval of character-position displacements, recorded as DOC-A.1-216 in `docs/CONFORMANCE.md` §7.
+  An address INSIDE it but outside the addressed cell is a legal pointer VALUE and surfaces at deref as
+  EC-BOUND-PTR; an address OUTSIDE it is GR20's own EC-RANGE-PTR with identifier-9 unchanged. kb/Work PB465
+  corrected the earlier "unbounded" wording, which the carrier contradicted: the displacement WRAPPED at 2^63
+  and `SET P UP BY 18446744073709551618` moved the pointer by 2).
 - **EXACT SEAMS (all confirmed by reading — turn-key).** (1) Pre-scan + late hook: `PtrBindAddressables(program)`
   beside `CallBindExternalAndGlobal(program)` at DataBinder.cs:187 (post-`ClassifyRedefinesClasses` :183 —
   the proven tier-overwrite point); factor `ForceStringCanonical` out of `CallMakeExternal`
@@ -565,8 +568,9 @@ zero grammar change). Deviations/realizations, recorded per the process rule:
    `CODE: message` never matches; write the message fragment only.
 6. **Diagnostics:** the SR checks landed on 0869 (statement band) + the NEW 0881 (declaration band:
    PIC-with-POINTER, BASED level/REDEFINES/VALUE); EcWrap gained the BoundFree arm (EC-STORAGE-NOT-ALLOC
-   family selection). GR20's data-pointer range is UNBOUNDED (recorded implementor choice — EC-RANGE-PTR
-   never raises at SET time; out-of-cell addressing surfaces at deref as EC-BOUND-PTR).
+   family selection). GR20's data-pointer range is the CARRIER's signed 64-bit displacement interval
+   (DOC-A.1-216; kb/Work PB465 — EC-RANGE-PTR raises at SET time for an address outside it, with identifier-9
+   unchanged, while out-of-cell-but-representable addressing still surfaces at deref as EC-BOUND-PTR).
 7. **Residue (named):** pointers across the CALL boundary (CobolArgAdapt/CallEmitArg legs, LINKAGE POINTER
    formals), the general data-address-identifier as an operand (relations/args — `ADDRESS` exists only in
    setAddressStatement), multi-receiver F7 + ADDRESS OF/NULL senders in the receiver form,
@@ -587,8 +591,9 @@ The 4-lens find→2-skeptic-verify workflow (wf_4c49e522-ec0) over the landed di
   `ADDRESS OF B2` reads `PQR`, not the base's `XYZ`.
 - **GR19 was a silent truncation (major)** — `SET P UP BY 2.5` moved by 2 via the Align(…, 0) rescale, and
   the shipped registry/matrix text falsely claimed a bind-time reject. Realized EXACTLY now:
-  `CobolPtr.UpByScaled(p, scaledValue, scale)` — the divisibility test IS §14.9.39 F10 GR19's integer-VALUE
-  rule (2.0 moves by 2; 2.5 → EC-SIZE-ADDRESS fatal); registry + matrix text corrected. This SUPERSEDES the
+  `CobolPtr.UpByAmount(p, scaledValue, scale, down)` — the divisibility test IS §14.9.39.4 GR19's integer-VALUE
+  rule (2.0 moves by 2; 2.5 → EC-SIZE-ADDRESS fatal); registry + matrix text corrected. kb/Work PB465 then split
+  GR20's RANGE test out of it: a magnitude no address can hold is EC-RANGE-PTR, never GR19's condition. This SUPERSEDES the
   design's "statically integer-typed 0869" plan — GR19 is a value rule, and the runtime check is strictly
   more conformant than a static-type reject.
 - **BASED+EXTERNAL undetected (§13.16.3 SR5)** — both mechanisms would emit a bridge under the ONE
@@ -616,7 +621,7 @@ silently (pre-existing increment-1 behavior, unchanged by this wave; still open)
 unification's named witness), F10 multi-target + the SR23 mix 0869, UNMASKED gate-identity facts at 85 (the
 review showed the two new 0900 gates were deletable without any test failing — the facts assert the gates'
 own where-texts), the ALLOCATE legs (fractional round-up / INITIALIZED / form-2 RETURNING / zero→NULL),
-FREE under >>TURN'd checking (both emit legs compile), subordinate-of-BASED; CobolPtrTests +1 (UpByScaled
+FREE under >>TURN'd checking (both emit legs compile), subordinate-of-BASED; CobolPtrTests +1 (UpByAmount
 both ways); negative corpus +1 (based-level-05).
 
 ### M2-DATA-3 / M2-DATA-4 — track (a) NATIONAL + BOOLEAN data (data-model legs only) — DECISION-COMPLETE DESIGN (synthesis 2026-07-05; ready to implement)

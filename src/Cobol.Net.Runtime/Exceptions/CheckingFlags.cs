@@ -73,8 +73,14 @@ public struct CheckingFlags
     /// storage (§13.18.5.4 GR4).</summary>
     public bool BoundPtr;
 
-    /// <summary>EC-SIZE-ADDRESS — a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19).</summary>
+    /// <summary>EC-SIZE-ADDRESS — a SET pointer UP/DOWN BY amount that does not evaluate to an integer
+    /// (§14.9.39.4 GR19). ⛔ Its MAGNITUDE is a different rule and a different condition — see
+    /// <see cref="RangePtr"/>.</summary>
     public bool SizeAddress;
+
+    /// <summary>EC-RANGE-PTR — a SET pointer UP/DOWN BY whose new address falls outside the implementor range
+    /// of data-pointer values (§14.9.39.4 GR20; the range is DOC-A.1-216). kb/Work PB465.</summary>
+    public bool RangePtr;
 
     /// <summary>EC-PROGRAM-ARG-OMITTED — a reference to an omitted formal parameter outside the
     /// omitted-argument condition or an argument position (§14.9.4.4 GR12; kb/Work PB133 wave C).</summary>

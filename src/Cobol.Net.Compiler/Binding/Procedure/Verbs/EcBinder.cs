@@ -667,6 +667,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 enabled.Add(("EC-BOUND-PTR", null));
             if (ctx.EcState.Turn.Enabled("EC-SIZE-ADDRESS", null, line))
                 enabled.Add(("EC-SIZE-ADDRESS", null));
+            // EC-RANGE-PTR (fatal, §14.9.39.4 GR20) joins its three neighbours for the same reason: the raise
+            // fires inside CobolPtr's displacement site, which a SET pointer statement reaches through the same
+            // inline render as the three above, so the gate around a pointer-free statement never catches
+            // anything. GR19 and GR20 are TWO rules over one statement — the amount's value and the result's
+            // range — and they need two gates, or turning checking on for one silently arms the other's raise
+            // (kb/Work PB465).
+            if (ctx.EcState.Turn.Enabled("EC-RANGE-PTR", null, line))
+                enabled.Add(("EC-RANGE-PTR", null));
             // EC-BOUND-SUBSCRIPT (§8.4.2.3.4 GR2) and EC-BOUND-ODO (§13.18.38.4 GR7) are ambient for the same
             // reason: a subscripted reference renders inline through CobolTable.At and an ODO group extent
             // through CobolTable.OdoExtent, neither of which is a distinguishable node kind at the statement

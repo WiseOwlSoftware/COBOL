@@ -605,10 +605,31 @@ public sealed class ExceptionEngine
         set => _checking.SizeAddress = value;
     }
 
-    /// <summary>Raise EC-SIZE-ADDRESS for a non-integer SET pointer UP/DOWN BY amount (§14.9.39 Format 10 GR19;
-    /// Table 13 Fatal) when checking is enabled; otherwise return, and GR19's "the execution of the SET statement
-    /// is unsuccessful, and the content of identifier-9 is unchanged" stands.</summary>
+    /// <summary>Raise EC-SIZE-ADDRESS for a SET pointer UP/DOWN BY amount that "does not evaluate to an integer"
+    /// (§14.9.39.4 GR19; Table 13 Fatal) when checking is enabled; otherwise return, and GR19's "the execution of
+    /// the SET statement is unsuccessful, and the content of identifier-9 is unchanged" stands.
+    /// <para>⛔ GR19 is a test on the amount's VALUE and nothing else. A magnitude no address can hold is
+    /// <see cref="RangePtrError"/>'s rule — folding it in here reported a condition whose antecedent was FALSE
+    /// and terminated run units on legal COBOL (kb/Work PB465).</para></summary>
     public void SizeAddressError(string detail) => FatalIfEnabled(SizeAddressChecking, "EC-SIZE-ADDRESS", detail);
+
+    /// <summary>True while the currently-executing statement has EC-RANGE-PTR checking enabled (fatal). The
+    /// displacement site in <see cref="CobolPtr"/> consults it.</summary>
+    public bool RangePtrChecking
+    {
+        get => _checking.RangePtr;
+        set => _checking.RangePtr = value;
+    }
+
+    /// <summary>Raise EC-RANGE-PTR when a SET pointer UP/DOWN BY produces an address "outside the range of
+    /// values allowed by the implementor for a data-pointer data item" (§14.9.39.4 GR20; Table 13 Fatal) — the
+    /// range being DOC-A.1-216 in <c>docs/CONFORMANCE.md</c> §7, as §A.1 216 requires. When checking is not
+    /// enabled this returns and GR20's own named outcome stands: "the value of the data item referenced by
+    /// identifier-9 is unchanged".
+    /// <para>⛔ The condition had NO raise site at all until kb/Work PB465 — the catalog carried its Table 13 row
+    /// while <see cref="CobolPtr"/> answered every out-of-range displacement with EC-SIZE-ADDRESS or with a
+    /// silent 64-bit wrap, so a grep for the name found the row and the condition read as wired.</para></summary>
+    public void RangePtrError(string detail) => FatalIfEnabled(RangePtrChecking, "EC-RANGE-PTR", detail);
 
     // ── The table-bound fatal ECs (CA10): EC-BOUND-SUBSCRIPT / EC-BOUND-ODO ───────────────────────────────────
     // Checking-OFF stays LENIENT for both, per the owner's rule, and here the standard supplies the outcome to
@@ -1285,6 +1306,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
     public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.RangePtrChecking"/>
+    public static bool RangePtrChecking
+    {
+        get => E.RangePtrChecking;
+        set => E.RangePtrChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.RangePtrError"/>
+    public static void RangePtrError(string detail) => E.RangePtrError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.BoundSubscriptChecking"/>
     public static bool BoundSubscriptChecking

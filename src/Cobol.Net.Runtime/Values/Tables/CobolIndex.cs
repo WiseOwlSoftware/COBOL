@@ -5,10 +5,13 @@ using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Runtime;
 
-/// <summary>Which SET-family rule an amount is being landed for. The integrality test is the SAME test in all
-/// three, and the standard states it once per amount-taking format with a DIFFERENT exception-condition name and
-/// a different extra obligation; this enum is the only thing that varies, so the test itself is written once
-/// (<see cref="CobolIndex.TryAmount(System.Int128,int,SetAmountRule,string,out long)"/>).</summary>
+/// <summary>Which SET-family INDEX rule an amount is being landed for. The integrality test is the SAME test in
+/// all three, and the standard states it once per amount-taking format with a DIFFERENT exception-condition name
+/// and a different extra obligation; this enum is the only thing that varies, so the test itself is written once
+/// (<see cref="SetAmount.Land(System.Int128,int,out System.Int128)"/>) and each member below only maps its
+/// outcome. §14.9.39.4's FOURTH amount-taking format, GR19's data pointer, has no member here because its
+/// receiver is not an index: it maps the same landing to EC-SIZE-ADDRESS and GR20's EC-RANGE-PTR in
+/// <see cref="CobolPtr.UpByAmount"/>.</summary>
 public enum SetAmountRule
 {
     /// <summary>ISO §14.9.39.4 GR2 a) 1. — Format 1, <c>SET index-name-1 TO arithmetic-expression-1</c>:
@@ -38,11 +41,14 @@ public enum SetAmountRule
 /// — GR2 a) 1. a (Format 1), GR3 (Format 2), GR19 (Format 10, the data pointer) and GR29 (Format 14) — each time
 /// with the same three consequents (the condition is set to exist · the SET is unsuccessful · the receiving
 /// operand is unchanged) and only the exception-condition NAME differing. Before PB459 exactly ONE of the four
-/// was implemented (<see cref="CobolPtr.UpByScaled"/> / <see cref="CobolPtr.UpByReal"/> for GR19); the other
-/// three each rendered a bare <c>(long)(Align(…, 0))</c> narrowing at the emitter, which TRUNCATES the fraction
-/// the test is supposed to see and WRAPS a magnitude the carrier cannot hold. Writing the guard a fourth and
-/// fifth time would have repeated the shape that produced the defect, so it is written ONCE here and the format
-/// names its own condition through <see cref="SetAmountRule"/>.</para>
+/// was implemented (<see cref="CobolPtr"/>'s own copy, for GR19); the other three each rendered a bare
+/// <c>(long)(Align(…, 0))</c> narrowing at the emitter, which TRUNCATES the fraction the test is supposed to see
+/// and WRAPS a magnitude the carrier cannot hold. Writing the guard a fourth and fifth time would have repeated
+/// the shape that produced the defect, so this type landed all three INDEX formats and named their conditions
+/// through <see cref="SetAmountRule"/>. kb/Work PB465 then hoisted the integrality DECISION itself out to
+/// <see cref="SetAmount"/>, because the fourth format's copy still lived in <see cref="CobolPtr"/> and had a
+/// magnitude guard folded into it; what remains here is the INDEX half — this format's conditions and this
+/// carrier's range.</para>
 ///
 /// <para><b>The implementor index range.</b> §13.18.38.4 GR2 leaves "the rules for the range of values allowed in
 /// the index defined by index-name-1" to the implementor, requiring only that the range cover occurrence numbers
@@ -81,44 +87,37 @@ public static class CobolIndex
     /// <c>false</c> is "the execution of the SET statement is unsuccessful": the caller stores nothing, so every
     /// receiving operand is unchanged.</summary>
     public static bool TryAmount(Int128 scaled, int scale, SetAmountRule rule, string detail, out long value)
+        => Land(SetAmount.Land(scaled, scale, out Int128 whole), whole, rule, detail, out value);
+
+    /// <summary>The NATIVE-FLOAT lane of <see cref="TryAmount(System.Int128,int,SetAmountRule,string,out long)"/>
+    /// — the integrality test runs on the <c>double</c> itself, exactly as <see cref="CobolPtr.UpByAmountReal"/>
+    /// does for GR19 (kb/Work PB151: an emitter-side <c>(long)(double)</c> truncation bypasses the raise entirely).
+    /// A NaN or an infinity is not an integer, so it takes the same unsuccessful leg.</summary>
+    public static bool TryAmountReal(double v, SetAmountRule rule, string detail, out long value)
+        => Land(SetAmount.Land(v, out Int128 whole), whole, rule, detail, out value);
+
+    /// <summary>Map <see cref="SetAmount"/>'s carrier-neutral landing onto THIS format's exception conditions —
+    /// the only part of the four rules that differs between them (kb/Work PB465). <c>false</c> is "the execution
+    /// of the SET statement is unsuccessful", so the caller stores nothing and every receiving operand is
+    /// unchanged.</summary>
+    private static bool Land(SetAmountLanding landing, Int128 whole, SetAmountRule rule, string detail,
+        out long value)
     {
-        Int128 whole;
-        if (scale == 0) whole = scaled;
-        else
+        switch (landing)
         {
-            Int128 pow = Pow10(scale);
-            if (scaled % pow != 0)
-            {
+            case SetAmountLanding.NotAnInteger:
                 ExceptionState.SubscriptError(NonIntegerDetail(rule, detail));
                 value = 0;
                 return false;
-            }
-            whole = scaled / pow;
+            case SetAmountLanding.BeyondCarrier:
+                // An integral amount past Int128 is past every index range and every table capacity, so it takes
+                // the same leg as a value merely outside the 64-bit index range — never the integrality leg.
+                OutOfRange(rule, detail);
+                value = 0;
+                return false;
+            default:
+                return Accept(whole, rule, detail, out value);
         }
-        return Accept(whole, rule, detail, out value);
-    }
-
-    /// <summary>The NATIVE-FLOAT lane of <see cref="TryAmount(System.Int128,int,SetAmountRule,string,out long)"/>
-    /// — the integrality test runs on the <c>double</c> itself, exactly as <see cref="CobolPtr.UpByReal"/> does
-    /// for GR19 (kb/Work PB151: an emitter-side <c>(long)(double)</c> truncation bypasses the raise entirely).
-    /// A NaN or an infinity is not an integer, so it takes the same unsuccessful leg.</summary>
-    public static bool TryAmountReal(double v, SetAmountRule rule, string detail, out long value)
-    {
-        if (!double.IsFinite(v) || v != Math.Truncate(v))
-        {
-            ExceptionState.SubscriptError(NonIntegerDetail(rule, detail));
-            value = 0;
-            return false;
-        }
-        // Tested on the DOUBLE before any conversion — the same spelling CobolPtr.UpByReal uses, and the only
-        // form that is safe: (Int128)v is undefined for a magnitude the target cannot hold.
-        if (v < MinIndex || v > MaxIndex)
-        {
-            OutOfRange(rule, detail);
-            value = 0;
-            return false;
-        }
-        return Accept((Int128)v, rule, detail, out value);
     }
 
     /// <summary>GR29's sign test and the implementor-range test, shared by both lanes.</summary>
@@ -190,11 +189,4 @@ public static class CobolIndex
         SetAmountRule.IndexBy => $"{detail} — a non-integer amount (ISO 14.9.39.4 GR3)",
         _ => $"{detail} — a non-integer amount (ISO 14.9.39.4 GR29)",
     };
-
-    private static Int128 Pow10(int scale)
-    {
-        Int128 p = Int128.One;
-        for (int i = 0; i < scale; i++) p *= 10;
-        return p;
-    }
 }

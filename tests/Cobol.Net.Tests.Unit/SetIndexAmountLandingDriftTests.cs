@@ -21,9 +21,14 @@ namespace CobolNet.Tests.Unit;
 /// consequent could ever be reached. Measured: <c>SET IX UP BY 1.5</c> moved IX by 1; <c>SET CAP TO -3</c>
 /// destroyed five live occurrences; two <c>UP BY</c>s past 2^63 left an index holding a NEGATIVE occurrence
 /// number and the program carried on.</para>
+/// <para>kb/Work PB465 then closed the FOURTH: the pointer arm's own copy of GR19 had a MAGNITUDE guard folded
+/// into it (an integral 1.0E19 set EC-SIZE-ADDRESS, whose antecedent is false, and aborted the run unit), and its
+/// emitter still rendered <c>long __ptrBy = (long)(…)</c> — the same narrowing as the other three, by a
+/// different spelling, which is why the regex below it did not see it. The integrality DECISION now lives in
+/// <c>SetAmount</c>, shared by all four, and each format maps the outcome to its own conditions.</para>
 /// <para>The repair was structural, so this test is structural: the guard is written ONCE in
-/// <c>CobolIndex</c>, every SET-family amount reaches it through <c>SetEmitter.LandAmount</c>, and every
-/// modification of an index goes through <c>CobolIndex.Augment</c>. A SOURCE-TEXT check is the right instrument
+/// <c>SetAmount</c>, every SET-family amount reaches it through <c>SetEmitter.LandAmount</c> or
+/// <c>CobolPtr.UpByAmount</c>, and every modification of an index goes through <c>CobolIndex.Augment</c>. A SOURCE-TEXT check is the right instrument
 /// for exactly the reason the sibling <see cref="NumericRoundUpSiteDriftTests"/> gives: the defect was never that
 /// the helper computed the wrong thing, it was that a call site did not use it, and only the call sites can
 /// witness that. The behavioural half lives in the conformance goldens (set-index-amount-*).</para>
@@ -52,8 +57,8 @@ public sealed class SetIndexAmountLandingDriftTests
         (SetEmitter, "EmitSetCapacity", "LandAmount", "ISO 14.9.39.4 GR29 — SET capacity arithmetic-expression-4"),
         (ControlFlowEmitter, "InitVaryingTarget", "LandAmount",
             "ISO 13.18.38.4 GR2 — PERFORM VARYING creates a value for an index"),
-        (PtrEmitter, "EmitSetPointerUpDown", "PtrUpBy",
-            "ISO 14.9.39.4 GR19 — SET pointer UP/DOWN BY arithmetic-expression-3"),
+        (PtrEmitter, "EmitSetPointerUpDown", "PtrUpByAmount",
+            "ISO 14.9.39.4 GR19/GR20 — SET pointer UP/DOWN BY arithmetic-expression-3"),
     ];
 
     /// <summary>Each site renders its amount through a landing that still has the fraction and the full
@@ -71,6 +76,17 @@ public sealed class SetIndexAmountLandingDriftTests
                 $"{file}#{method} implements {rule} but narrows its amount with `(long)(NumericRenderer.Align(…))` "
                 + "before any guard can see it. That cast IS the PB459 defect: it truncates the fraction "
                 + "the integrality rule tests for and wraps the magnitude the range rule rejects.");
+            // ⛔ kb/Work PB465 — THE COMPLEMENT OF THE ASSERTION ABOVE. It was written against the exact
+            // SPELLING the three index sites used, `(long)(NumericRenderer.Align(…))`, so the pointer site's
+            // `long __ptrBy = (long)({x.Expr})` — the same narrowing by a different route — sat inside this
+            // very loop and passed. Measured on the arm that passed: `SET P UP BY 18446744073709551618` moved the
+            // pointer by 2. The invariant is about the CARRIER the amount is rendered into, not about one cast's
+            // text: an amount temp is `Int128` (exact, full magnitude) or `double` (the native-float lane), never
+            // the 64-bit carrier a guard is supposed to be protecting.
+            Assert.False(Regex.IsMatch(body, @"""long \{"),
+                $"{file}#{method} implements {rule} but renders its amount into a `long` temp. The guard cannot "
+                + "see a fraction or a magnitude that the declaration itself has already destroyed — the amount "
+                + "stays Int128 (or the double of the native-float lane) all the way into the runtime landing.");
         }
     }
 

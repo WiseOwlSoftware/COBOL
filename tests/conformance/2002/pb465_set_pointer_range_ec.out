@@ -1,0 +1,6 @@
+A=[C]
+SIZE=EC-SIZE-ADDRESS                
+B=[C]
+RANGE=EC-RANGE-PTR                   
+C=[C]
+D=[A]

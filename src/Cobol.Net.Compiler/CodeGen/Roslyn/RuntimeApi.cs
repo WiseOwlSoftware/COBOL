@@ -662,13 +662,17 @@ internal static class RuntimeApi
 
     // ── Pointers (CobolPtr; ISO §14.9.39 F7/F10, §14.9.3, §14.9.15) ──
 
-    /// <summary>Displace a pointer by n character positions — <c>CobolPtr.UpBy</c> (GR18 null trap inside).</summary>
+    /// <summary>Displace a pointer by n character positions — <c>CobolPtr.UpBy</c> (GR18's null trap and GR20's
+    /// implementor-range guard inside).</summary>
     public static string PtrUpBy(string ptr, string amount) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpBy)}({ptr}, {amount})";
 
-    /// <summary>Displace by a SCALED amount — <c>CobolPtr.UpByScaled</c> (the GR19 divisibility test).</summary>
-    public static string PtrUpByScaled(string ptr, string amount, string scale) =>
-        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByScaled)}({ptr}, {amount}, {scale})";
+    /// <summary>THE SET pointer UP/DOWN BY amount landing over an EXACT scaled fixed-point amount —
+    /// <c>CobolPtr.UpByAmount</c>. The amount keeps its scale and its FULL magnitude all the way in, so GR19's
+    /// integrality test sees the fraction and GR20's range test sees the magnitude that an emitter-side
+    /// <c>(long)</c> narrowing wrapped away (kb/Work PB465).</summary>
+    public static string PtrUpByAmount(string ptr, string scaled, string scale, bool down) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmount)}({ptr}, {scaled}, {scale}, {(down ? "true" : "false")})";
 
     /// <summary>ALLOCATE a fresh cell — <c>CobolPtr.Allocate</c> (GR1/GR2; GR6 zero fill).</summary>
     /// <summary>ALLOCATE — <c>CobolPtr.Allocate</c> over the FULL Int128 size (no emitter-side narrowing —
@@ -681,10 +685,11 @@ internal static class RuntimeApi
     public static string PtrAllocateReal(string sizeDouble, string fillCharLiteral, string notAvailVar) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.AllocateReal)}({sizeDouble}, {fillCharLiteral}, out {notAvailVar})";
 
-    /// <summary>SET pointer UP/DOWN BY a native-float amount — <c>CobolPtr.UpByReal</c> (GR19's integrality
-    /// test on the double; kb/Work PB151).</summary>
-    public static string PtrUpByReal(string ptr, string amount) =>
-        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByReal)}({ptr}, {amount})";
+    /// <summary>The NATIVE-FLOAT lane of <see cref="PtrUpByAmount"/> — <c>CobolPtr.UpByAmountReal</c>, whose
+    /// GR19 integrality test runs on the <c>double</c> itself (kb/Work PB151) and whose out-of-carrier leg is
+    /// GR20's, not GR19's (kb/Work PB465).</summary>
+    public static string PtrUpByAmountReal(string ptr, string amountDouble, bool down) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmountReal)}({ptr}, {amountDouble}, {(down ? "true" : "false")})";
 
     /// <summary>FREE a pointer's cell — <c>CobolPtr.Free</c> (three-way per GR1; not-alloc out-flag).</summary>
     public static string PtrFree(string ptr, string notAllocVar) =>

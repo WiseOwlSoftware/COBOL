@@ -68,10 +68,15 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     }
 
     /// <summary><c>SET pointer… {UP|DOWN} BY n</c> (ISO §14.9.39 Format 10): the amount evaluates ONCE, then
-    /// each pointer moves by n bytes (GR20; character positions in this model). NULL → EC-DATA-PTR-NULL
-    /// inside the runtime's <c>UpBy</c> (GR18). A SCALED amount keeps its fraction into <c>UpByScaled</c>, whose
-    /// divisibility test realizes GR19 EXACTLY (a non-integer VALUE → EC-SIZE-ADDRESS fatal; 2.0 moves by 2 —
-    /// never the silent Align-truncation the review caught).</summary>
+    /// each pointer moves by n bytes (GR20; character positions in this model). Every §14.9.39.4 rule over the
+    /// statement lives in the runtime's <c>CobolPtr</c> — GR18's NULL trap, GR19's integrality test on the
+    /// AMOUNT (EC-SIZE-ADDRESS) and GR20's range test on the RESULTING ADDRESS (EC-RANGE-PTR).
+    /// <para>⛔ TWO lanes, not three, and the shape is <see cref="SetEmitter.LandAmount"/>'s by construction:
+    /// a NATIVE-FLOAT amount keeps its <c>double</c> so the integrality test runs on the double, and every other
+    /// amount arrives as its EXACT scaled <c>Int128</c> with its scale. The former third lane rendered
+    /// <c>long __ptrBy = (long)(…)</c>, which WRAPPED the magnitude GR20 rejects — measured,
+    /// <c>SET P UP BY 18446744073709551618</c> displaced by 2 and <c>SET P UP BY 1844674407370955162.0</c>
+    /// raised GR19's condition for an amount that IS an integer (kb/Work PB465).</para></summary>
     public void EmitSetPointerUpDown(BoundSetPointerUpDown s)
     {
         var w = ctx.Writer;
@@ -79,25 +84,20 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         // under native arithmetic since PB69, and every STANDARD-DECIMAL expression — was `(long)(CobolDec)`.
         NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Amount, ReceiverContext.None)), ReceiverContext.None);
         string tmp = $"__ptrBy{ctx.Names.NextPtr()}";
-        // A NATIVE-FLOAT amount keeps its double all the way to CobolPtr.UpByReal, whose GR19 integrality
-        // test runs on the DOUBLE — the old `(long)(double)` truncation bypassed the raise entirely
-        // (kb/Work PB151; the same Scale==0/Real split EmitAllocate mispriced).
         if (x.Real)
         {
             w.Line($"double {tmp} = ({x.Expr});");
-            string amountR = s.Down ? $"-{tmp}" : tmp;
             foreach (var t in s.Targets)
-                w.Line(PlaceRenderer.Write(t, RuntimeApi.PtrUpByReal(PlaceRenderer.Read(t), amountR))
-                    + "   // SET pointer UP/DOWN BY float (ISO §14.9.39 F10 GR19)");
+                w.Line(PlaceRenderer.Write(t, RuntimeApi.PtrUpByAmountReal(PlaceRenderer.Read(t), tmp, s.Down))
+                    + "   // SET pointer UP/DOWN BY float (ISO §14.9.39.4 GR19/GR20)");
             return;
         }
-        w.Line($"long {tmp} = (long)({x.Expr});");
-        string amount = s.Down ? $"-{tmp}" : tmp;
+        // DOWN is carried as a FLAG rather than a negated temp: the amount may sit at the carrier's own
+        // boundary, where forming `-tmp` here is the overflow the guard is supposed to catch.
+        w.Line($"Int128 {tmp} = (Int128)({x.Expr});");
         foreach (var t in s.Targets)
-            w.Line(PlaceRenderer.Write(t, x.Scale == 0
-                    ? RuntimeApi.PtrUpBy(PlaceRenderer.Read(t), amount)
-                    : RuntimeApi.PtrUpByScaled(PlaceRenderer.Read(t), amount, $"{x.Scale}"))
-                + "   // SET pointer UP/DOWN BY (ISO §14.9.39 F10 GR19/GR20)");
+            w.Line(PlaceRenderer.Write(t, RuntimeApi.PtrUpByAmount(PlaceRenderer.Read(t), tmp, $"{x.Scale}", s.Down))
+                + "   // SET pointer UP/DOWN BY (ISO §14.9.39.4 GR19/GR20)");
     }
 
     /// <summary>ALLOCATE (ISO §14.9.3). Form 1: a fresh cell of ⌈expr⌉ characters (GR1 — a fractional request
