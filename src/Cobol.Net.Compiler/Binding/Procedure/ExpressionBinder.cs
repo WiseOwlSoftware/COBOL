@@ -1067,6 +1067,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     public BoundExpr BindOperandExpr(IParseTree node, string? positionRule = null) =>
         BindOperandExprCore(node, OperandContext.Arithmetic, positionRule);
 
+    /// <summary>The INDEX-WINDOW twin of <see cref="BindOperandExpr"/>: the same breadth-first wrapper walk, run
+    /// under <see cref="OperandContext.ArithmeticIndexWindow"/> so an index-name is a legal operand (ISO
+    /// §13.18.38.3 r7 — subscripts, SET amounts, PERFORM/SEARCH VARYING operands; kb/Work R29). It exists because
+    /// PERFORM VARYING's FROM/BY slots are a <c>valueOperand</c> WRAPPER (§14.9.28.2's brace group, kb/Work
+    /// PB432): <see cref="BindIndexWindowExpr"/> would reach <see cref="BindOperandExprCore"/> through
+    /// <see cref="BindExprCore"/>'s default arm but could not thread <paramref name="positionRule"/>, so a
+    /// non-numeric literal there cited §8.8.1.1 alone instead of the rule that closes THAT operand list.</summary>
+    /// <param name="positionRule">See <see cref="NonNumericInNumericContext"/>.</param>
+    public BoundExpr BindIndexWindowOperandExpr(IParseTree node, string? positionRule = null) =>
+        BindOperandExprCore(node, OperandContext.ArithmeticIndexWindow, positionRule);
+
     /// <inheritdoc cref="BindOperandExpr"/>
     private BoundExpr BindOperandExprCore(IParseTree node, OperandContext context, string? positionRule = null)
     {

@@ -3670,6 +3670,79 @@ public static class DiagnosticCatalog
         "A WHEN OTHER phrase is repeated or precedes a WHEN phrase.",
         "ISO §14.9.13.2 / §14.9.28.2 Format 3 / §5.2.7");
 
+    // ── COBOLNET2117-2120 — the PERFORM statement's FORMAT rules (kb/Work PB431, PB432). ⛔ WHY THESE ARE
+    //    ERRORS AND NOT THE §4.2.2 WARNING: the COBOLNET1970 reading. §4.2.2's SECOND paragraph obliges an
+    //    implementation to be ABLE to "indicate violations of the general formats and the explicit syntax rules
+    //    of standard COBOL", which is the floor; its FIRST paragraph fixes what may be ACCEPTED — "An
+    //    implementation shall accept the syntax and provide the functionality for all standard language
+    //    elements required by this Working Draft International Standard and the optional or processor-dependent
+    //    language elements for which support is claimed" — and a construct the general format does not print is
+    //    neither. Refused at every edition and every strictness: none of the four formats changed shape across
+    //    1985/2002/2014/2023 (Format 3 itself is 2023-only and gated by COBOLNET0900, upstream of these). ──
+
+    /// <summary>COBOLNET2117 — an inline PERFORM carries more than one loop-control phrase. §14.9.28.2 Format 2
+    /// prints ONE pair of square brackets over three STACKED alternatives (times-phrase / until-phrase /
+    /// varying-phrase), so at most one may be written. kb/Work PB431 measured the silent loss: the grammar spelt
+    /// the head a repetition and <c>BindPerformControl</c> read <c>FirstOrDefault()</c>, so every phrase after
+    /// the first never reached the bound tree at all — <c>PERFORM 3 TIMES UNTIL X &gt; 100</c> ran three times,
+    /// <c>PERFORM UNTIL X &gt; 4 3 TIMES</c> ran five (the FIRST phrase always won, whichever it was), and
+    /// <c>PERFORM 3 TIMES UNTIL … VARYING I FROM 1 …</c> left I never initialized.</summary>
+    public static readonly DiagnosticDescriptor PerformInlineHeadMultipleControlPhrases = new(
+        "COBOLNET2117", "perform-inline-head-multiple-control-phrases", EditionSeverity.Error,
+        "An inline PERFORM statement specifies more than one loop-control phrase. The ISO §14.9.28.2 Format 2 "
+        + "general format is PERFORM [ times-phrase | until-phrase | varying-phrase ] imperative-statement-1 "
+        + "END-PERFORM: one bracket over three stacked alternatives, which admits at most one of them. A "
+        + "varying-phrase already carries its own UNTIL condition; to iterate a fixed count under a further "
+        + "condition, nest one inline PERFORM inside another.",
+        "ISO §4.2.2 / §14.9.28.2 Format 2");
+
+    /// <summary>COBOLNET2118 — an exception-checking (Format-3) PERFORM carries a loop-control phrase.
+    /// §14.9.28.2 Format 3's head is <c>[ WITH LOCATION ]</c> and nothing else: it prints no times-phrase, no
+    /// until-phrase and no varying-phrase. kb/Work PB431: the Formats-2/3 merge put both heads on one grammar
+    /// alternative, and the Format-3 binder never asked for a control phrase, so every one written there was
+    /// dropped and the body ran exactly ONCE — a programmer who believed exception checking wrapped three
+    /// iterations got one, silently.</summary>
+    public static readonly DiagnosticDescriptor PerformFormat3LoopControlPhrase = new(
+        "COBOLNET2118", "perform-format3-loop-control-phrase", EditionSeverity.Error,
+        "An exception-checking PERFORM statement (one with a WHEN, WHEN OTHER, WHEN COMMON or FINALLY phrase, or "
+        + "a [WITH] LOCATION head) specifies a loop-control phrase. The ISO §14.9.28.2 Format 3 general format "
+        + "prints none: its head is [ WITH LOCATION ], followed by imperative-statement-1 and the WHEN phrases. "
+        + "Nest the exception-checking PERFORM inside an ordinary inline PERFORM (or the other way round) to get "
+        + "both behaviours.",
+        "ISO §4.2.2 / §14.9.28.2 Format 3");
+
+    /// <summary>COBOLNET2119 — a PERFORM VARYING FROM or BY operand outside the brace group §14.9.28.2's
+    /// varying-phrase prints: <c>{ identifier-3 | index-name-2 | literal-1 }</c> for FROM,
+    /// <c>{ identifier-4 | literal-2 }</c> for BY. kb/Work PB432: both slots were typed
+    /// <c>arithmeticExpression</c>, which was simultaneously WIDER than the group (<c>FROM A + B BY B * 2</c>
+    /// compiled and ran at every <c>--std</c>) and, through the token rewriter that mints the arithmetic ZERO by
+    /// adjacency alone, NARROWER (the legal figurative <c>FROM ZERO</c> was a hard parse error).</summary>
+    public static readonly DiagnosticDescriptor PerformVaryingOperandShape = new(
+        "COBOLNET2119", "perform-varying-operand-shape", EditionSeverity.Error,
+        "A PERFORM VARYING FROM or BY operand is not one of the alternatives the ISO §14.9.28.2 varying-phrase "
+        + "prints in that slot. FROM admits { identifier-3 | index-name-2 | literal-1 } and BY admits "
+        + "{ identifier-4 | literal-2 } — an identifier in every §8.4.3.1.2 form (qualified, subscripted, "
+        + "reference-modified, a function-identifier), an index-name, or a numeric literal including the "
+        + "figurative ZERO, but not an arithmetic expression. Compute the expression into a data item first.",
+        "ISO §4.2.2 / §14.9.28.2");
+
+    /// <summary>COBOLNET2120 — a PERFORM VARYING operand violates one of §14.9.28.3's lettered operand rules:
+    /// SR4 a)/b)/c) (an index-name in the VARYING or AFTER phrase), SR5 a)/b)/c) (an index-name in the FROM
+    /// phrase) or SR6 (the BY literal shall not be zero). The message names the exact rule and quotes it.
+    /// kb/Work PB432: all seven obligations were absent from ONE binder function that applied no operand screen
+    /// at all, and SR5's premise was never even computed. SR6 is the one whose absence changes a program's
+    /// OUTCOME rather than its legality — <c>BY 0</c> is a guaranteed non-terminating loop.</summary>
+    public static readonly DiagnosticDescriptor PerformVaryingOperandRule = new(
+        "COBOLNET2120", "perform-varying-operand-rule", EditionSeverity.Error,
+        "A PERFORM VARYING operand violates one of the ISO §14.9.28.3 operand syntax rules. SR4 constrains the "
+        + "FROM and BY operands when an INDEX-NAME is varied: the identifiers shall reference integer data "
+        + "items, the FROM literal shall be a positive integer, the BY literal a nonzero integer. SR5 "
+        + "constrains them when the index-name is in the FROM phrase instead: the varied identifier and the BY "
+        + "identifier shall reference integer data items and the BY literal shall be an integer. SR6 forbids a "
+        + "zero BY literal outright, in every case — the augment value would be zero, so no induction variable "
+        + "would ever change and the UNTIL condition could never become true through the phrase.",
+        "ISO §14.9.28.3 SR4 / SR5 / SR6");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

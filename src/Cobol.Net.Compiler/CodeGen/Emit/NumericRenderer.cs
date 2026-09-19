@@ -272,6 +272,17 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
     public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
 
+    /// <summary>A per-evaluation operand window (ISO §14.9.28.4 GR12; kb/Work PB437) reaching a rendering site
+    /// that does NOT own its window. ⛔ LOUD, NEVER SILENTLY WRONG (§1.4): the node exists to make its function
+    /// activations run once per SETTING or AUGMENTING operation, and the ONLY way to do that is to emit them as
+    /// statements at that operation — which is what <c>ControlFlowEmitter.RenderPerEvaluation</c>, the node's one
+    /// consumer, does. Rendering the inner expression here instead would silently drop the activations and read
+    /// an uninitialized result temporary; a site that legitimately wants this window must call the consumer.
+    /// </summary>
+    public NumX Visit(BoundUdfEvaluatedExpr n) => new(EmitText.LoudValue("long",
+        "a PERFORM VARYING per-evaluation operand window rendered outside its setting/augmenting operation "
+        + "(ISO §14.9.28.4 GR12) — the activations must be emitted at the operation"), 0);
+
     // ── IBoundOperandVisitor<NumX> ───────────────────────────────────────────────────────────────────────────
     public NumX Visit(BoundNumericLiteral n) => LiteralNum(n.Text);   // the SAME rendering as the expression arm (D-B)
     public NumX Visit(BoundFieldOperand n) => FieldNum(n.Place);

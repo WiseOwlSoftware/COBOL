@@ -166,6 +166,15 @@ internal sealed class ControlFlowBinder
         return new BoundPerformStatement(paraSym, sectionLastPara);
     }
 
+    /// <summary>The varying-phrase FROM/BY slot at index <paramref name="i"/>, as the additive expression this
+    /// LEGACY oracle binds. ISO 14.9.28.2's varying-phrase prints a brace group there, and the grammar spells the
+    /// slot `valueOperand` since kb/Work PB432 so the figurative ZERO the format admits can reach the greenfield
+    /// binder at all. This engine has no arm for a figurative-literal operand and none for an omitted BY, so it
+    /// DECLINES such a statement (null) rather than binding something else - it is a differential oracle kept
+    /// alive until the P15 cut-over, not a compiler under test.</summary>
+    private static CobolParserCore.AdditiveExpressionContext? Additive(CobolParserCore.ValueOperandContext[] ops, int i) =>
+        i < ops.Length ? ops[i].arithmeticExpression()?.additiveExpression() : null;
+
     internal BoundPerformVarying? BindPerformVaryingOption(CobolParserCore.PerformVaryingContext ctx)
     {
         // Build innermost AFTER clauses first, then chain outward
@@ -180,9 +189,10 @@ internal sealed class ControlFlowBinder
                 var afterExpr = _ctx.Expression.BindDataReferenceWithSubscripts(afterCtx.dataReference());
                 var afterSym = ValidatePerformIndex(afterExpr);
                 if (afterSym == null) continue;
-                var afterExprs = afterCtx.arithmeticExpression();
-                var afterInit = _ctx.Expression.BindAdditiveExpression(afterExprs[0].additiveExpression());
-                var afterStep = _ctx.Expression.BindAdditiveExpression(afterExprs[1].additiveExpression());
+                var afterExprs = afterCtx.valueOperand();
+                if (Additive(afterExprs, 0) is not { } afterFrom || Additive(afterExprs, 1) is not { } afterBy) continue;
+                var afterInit = _ctx.Expression.BindAdditiveExpression(afterFrom);
+                var afterStep = _ctx.Expression.BindAdditiveExpression(afterBy);
                 var afterUntil = _ctx.Condition.BindCondition(afterCtx.condition());
                 inner = new BoundPerformVarying(afterSym, afterExpr, afterInit, afterStep, afterUntil, inner);
             }
@@ -192,9 +202,10 @@ internal sealed class ControlFlowBinder
         var indexExpr = _ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference());
         var indexSym = ValidatePerformIndex(indexExpr);
         if (indexSym == null) return null;
-        var arithExprs = ctx.arithmeticExpression();
-        var initial = _ctx.Expression.BindAdditiveExpression(arithExprs[0].additiveExpression());  // FROM
-        var step = _ctx.Expression.BindAdditiveExpression(arithExprs[1].additiveExpression());      // BY
+        var arithExprs = ctx.valueOperand();
+        if (Additive(arithExprs, 0) is not { } from || Additive(arithExprs, 1) is not { } by) return null;
+        var initial = _ctx.Expression.BindAdditiveExpression(from);  // FROM
+        var step = _ctx.Expression.BindAdditiveExpression(by);       // BY
         var untilCond = _ctx.Condition.BindCondition(ctx.condition());
 
         return new BoundPerformVarying(indexSym, indexExpr, initial, step, untilCond, inner);

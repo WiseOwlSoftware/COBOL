@@ -335,7 +335,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                     if (k == levels.Count - 1)
                     {
                         body();
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
+                        set.AugmentSetTarget(levels[k].Var, down: false, RenderPerEvaluation(levels[k].By), "PERFORM VARYING");
                     }
                     else
                     {
@@ -353,7 +353,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         // CCVS-85 expectation, which GR13 e) 2 contradicts — see the method doc-comment, the
                         // docs/CONFORMANCE.md §3 determination and kb/Work PB436.
                         InitVaryingTarget(v, levels[k + 1]);
-                        set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
+                        set.AugmentSetTarget(levels[k].Var, down: false, RenderPerEvaluation(levels[k].By), "PERFORM VARYING");
                     }
                 }
             }
@@ -377,7 +377,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         EmitAfter(k + 1);
                     }
                     w.Line($"if ({cond.Render(levels[k].Until)}) break;");
-                    set.AugmentSetTarget(levels[k].Var, down: false, num.RenderOperandLike(levels[k].By), "PERFORM VARYING");
+                    set.AugmentSetTarget(levels[k].Var, down: false, RenderPerEvaluation(levels[k].By), "PERFORM VARYING");
                 }
             }
         }
@@ -400,7 +400,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// store with its own §14.7 size rules and has no index range, so it keeps the plain store.</para></summary>
     private void InitVaryingTarget(PerformVarying v, VaryingLevel lv)
     {
-        NumX from = num.RenderOperandLike(lv.From);
+        NumX from = RenderPerEvaluation(lv.From);
         if (lv.Var is not SetIndexTarget)
         {
             set.StoreSetTarget(lv.Var, from);
@@ -409,11 +409,43 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         string guard = set.LandAmount(from, SetAmountRule.IndexTo, "PERFORM VARYING … FROM", out string tmp, "pv");
         using (ctx.Writer.Block($"if ({guard})"))
         {
-            if (v.CheckIndexRange && lv.From is BoundNumRef)
+            // ⛔ THE GUARD ASKS THE RULE'S QUESTION, NOT THE NODE'S C# TYPE (kb/Work PB439). GR3's premise is
+            // "an identifier is specified in the associated FROM phrase", and §8.4.3.1.2 prints THREE identifier
+            // formats — a qualified-and-subscripted data-name, a function-identifier, and a reference-modified
+            // identifier. This test used to be `lv.From is BoundNumRef`, which is the FIRST of those and nothing
+            // else, so `FROM FUNCTION INTEGER(WS-Z)` over a zero silently took the unchecked path: the FATAL
+            // EC-RANGE-PERFORM-VARYING was never set to exist, no USE declarative ran, and the index was
+            // initialized to occurrence 0 and used to subscript the table. The binder now decides the kind once
+            // (VaryingOperandKind), so the next identifier shape is covered by being an identifier.
+            if (v.CheckIndexRange && lv.FromKind is VaryingOperandKind.Identifier)
                 ctx.Writer.Line($"ExceptionState.PerformVaryingIndexError({tmp}, "
                     + $"{EmitText.CsLiteral("PERFORM VARYING index-name initialized from a non-positive item (ISO 14.9.28.4 GR3)")});");
             set.StoreSetTarget(lv.Var, new NumX(tmp, 0));
         }
+    }
+
+    /// <summary>Render a varying-phrase operand AT the setting or augmenting operation that reads it, emitting
+    /// any function activations it carries as STATEMENTS immediately before that operation — ISO §14.9.28.4 GR12:
+    /// "Item identification for identifier-3, identifier-4, identifier-6, identifier-7, index-name-2, and
+    /// index-name-4 is done each time the content of the data item referenced by the identifier or the index
+    /// referenced by the index-name is used in a setting or augmenting operation", and §8.4.3.2.4 GR1/GR6a makes
+    /// a function-identifier's value "determined when the function is referenced at runtime". kb/Work PB437.
+    /// <para>⛔ STATEMENTS, NOT AN IIFE, AND THE DIFFERENCE IS SEMANTIC. The condition twin
+    /// (<c>ConditionRenderer.Visit(BoundUdfEvaluated)</c>) must render an immediately-invoked
+    /// <c>Func&lt;bool&gt;</c> because a condition sits in a C# loop HEADER where no statement can precede it per
+    /// iteration — and it pays for that with <c>CallEmitter.FunctionActivationText</c>, which deliberately omits
+    /// <c>siteHandlesPropagation</c> because a declarative RESUME pickup is a <c>__pc</c>-anchored statement
+    /// surface that cannot run inside an expression. Every site that calls THIS method is a statement position,
+    /// so the activation goes through the ONE statement emitter with that surface intact. Each of the three call
+    /// sites (the GR13 a)/b) initialization, the GR13 e) 2 a. / c) 4 re-initialization, and the augment) emits
+    /// the activations exactly once per operation, because each renders the operand exactly once.</para>
+    /// <para>Every other expression renders unchanged, so a varying phrase with no function reference produces
+    /// byte-identical output.</para></summary>
+    private NumX RenderPerEvaluation(BoundExpr e)
+    {
+        if (e is not BoundUdfEvaluatedExpr w) return num.RenderOperandLike(e);
+        foreach (var activation in w.Activations) Statements.EmitStatement(activation);
+        return num.RenderOperandLike(w.Inner);
     }
 
     /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once): a literal verbatim; an

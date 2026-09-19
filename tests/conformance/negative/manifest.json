@@ -475,7 +475,6 @@
   "pb15-formatted-date-national-result-to-an",
   "pb15-substitute-national-result-to-an",
   "pb15-trim-national-result-to-an",
-  "pb17-function-subscript-varying-by",
   "pb19-boolean-arg-alphanumeric",
   "pb19-numeric-arg-alphanumeric",
   "pb19-string-arg-numeric",
@@ -1150,7 +1149,12 @@
   "pb466-ambiguous-section-name",
   "pb466-ambiguous-alter-85",
   "pb466-ambiguous-resume-at",
-  "pb466-ambiguous-sort-procedure"
+  "pb466-ambiguous-sort-procedure",
+  "pb431-inline-head-two-control-phrases",
+  "pb431-format3-control-phrase",
+  "pb432-varying-operand-expression",
+  "pb432-varying-operand-rules",
+  "pb432-varying-from-nonnumeric-literal"
  ],
  "pending": []
 }

@@ -42,8 +42,19 @@ performStatement
     ;
 
 // The inline head: Format-2 loop control (TIMES/UNTIL/VARYING) OR the Format-3 [WITH] LOCATION phrase.
+// ⛔ THE FORMAT PRINTS **ONE** BRACKET OVER THREE STACKED ALTERNATIVES, so at most ONE loop-control phrase is
+// admitted — `PERFORM [ times-phrase | until-phrase | varying-phrase ] imperative-statement-1 END-PERFORM`
+// (§14.9.28.2 Format 2, rendered from the printed page 683/PDF 713, not read off the OCR), and Format 3 prints
+// NO loop-control phrase at all. The head stays a LIST here on the project's standing superset posture, so the
+// BINDER still SEES a second phrase and can name the format it violates (COBOLNET2117 / COBOLNET2118 in
+// ControlFlowBinder.CheckInlineHeadCardinality) instead of the programmer getting a bare
+// `COBOL0001 no viable alternative`. It is spelled `performOptions performOptions*` — one required element plus
+// a superset tail — rather than `performOptions+`, so the cardinality the format prints is legible in the
+// grammar itself. kb/Work PB431: `BindPerformControl`'s `FirstOrDefault()` SILENTLY DELETED every phrase after
+// the first (`PERFORM 3 TIMES UNTIL X > 100` ran 3 times with no diagnostic), and the Format-3 path dropped all
+// of them (`PERFORM 3 TIMES … WHEN EC-ALL …` ran its body ONCE).
 performInlineHead
-    : performOptions+
+    : performOptions performOptions*
     | performLocationPhrase
     ;
 
@@ -125,17 +136,36 @@ performUntil
     | UNTIL EXIT                                       // §14.9.28.4 GR11 (2023) — an infinite loop; SR8 forbids TEST here
     ;
 
+// §14.9.28.2's varying-phrase, rendered from the printed page 683 / PDF 713 (the OCR'd diagrams are lossy toward
+// falsely-restrictive syntax, so the delimiters below come from the page):
+//     [ WITH TEST {BEFORE|AFTER} ]
+//     VARYING {identifier-2|index-name-1} FROM {identifier-3|index-name-2|literal-1}
+//             [ BY {identifier-4|literal-2} ] UNTIL condition-1
+//     [ AFTER {identifier-5|index-name-3} FROM {identifier-6|index-name-4|literal-3}
+//             [ BY {identifier-7|literal-4} ] UNTIL condition-2 ] …
+// ⛔ EACH FROM/BY SLOT IS A BRACE GROUP, NOT AN ARITHMETIC EXPRESSION. The slots used to be typed
+// `arithmeticExpression`, which was simultaneously WIDER than the printed group (`FROM A + B` compiled with no
+// diagnostic at any --std) and NARROWER (`FROM ZERO` — legal, because §14.9.28.3 SR3 restricts every literal
+// here to NUMERIC and §8.3.3.6.3 SR1 permits ZERO wherever a literal so restricted appears — was a hard parse
+// error, since `primaryExpression`'s only figurative arm is the ZERO_ARITH token ZeroTokenRewriter mints by
+// ADJACENCY to an operator, and a bare operand has no neighbour). kb/Work PB432.
+// The slot is now `valueOperand` — the SAME `arithmeticExpression | nonNumericLiteral` rule every comparison
+// operand uses, so the figurative arm is the one the binder already reads (ExpressionBinder's ONE
+// numeric-context literal reading: ZERO ⇒ 0, every other figurative ⇒ COBOLNET0844) rather than a second copy
+// — and the brace group itself is screened at BIND, where the diagnostic can name the format and the syntax
+// rule (COBOLNET2119 for a shape outside the group, COBOLNET2120 for §14.9.28.3 SR4/SR5/SR6). Superset parse,
+// bind narrow: the project's standing posture for a general-format shape violation.
 performVarying
     : (WITH? TEST (BEFORE | AFTER))?
-      VARYING dataReference FROM arithmeticExpression
-      (BY arithmeticExpression)?    // BY is optional per COBOL-85 spec (default = 1)
+      VARYING dataReference FROM valueOperand
+      (BY valueOperand)?    // BY is optional per COBOL-85 spec (default = 1, §14.9.28.4 GR12)
       UNTIL condition
       performVaryingAfter*
     ;
 
 performVaryingAfter
-    : AFTER dataReference FROM arithmeticExpression
-      (BY arithmeticExpression)?    // BY is optional per COBOL-85 spec (default = 1)
+    : AFTER dataReference FROM valueOperand
+      (BY valueOperand)?    // BY is optional per COBOL-85 spec (default = 1, §14.9.28.4 GR12)
       UNTIL condition
     ;
 

@@ -19,7 +19,9 @@ using Core = CobolParserCore;
 /// 10r/10s), IF, and the PERFORM family (inline/out-of-line/TIMES/UNTIL/VARYING — the one control resolver
 /// covering both grammar shapes, the NC106A/NC176A lesson). The condition/expression/blocks spine stays on
 /// the host until 10o/10q/10t.</summary>
-internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
+/// <remarks>The varying-phrase half — the §14.9.28.2 brace-group operand screen and the §14.9.28.3 SR4/SR5/SR6
+/// operand rules — lives in <c>ControlFlowBinder.PerformVarying.cs</c>.</remarks>
+internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 {
     public BoundStatement BindStop(Core.StopStatementContext stop)
     {
@@ -393,6 +395,12 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         var names = p.procedureName();
         if (names.Length == 0)
         {
+            // ⛔ ONE CARDINALITY SCREEN FOR BOTH INLINE FORMATS, ABOVE THE FORMAT-2/FORMAT-3 SPLIT (kb/Work PB431).
+            // It is asked here — not inside either arm — because the question the two formats ask is the SAME
+            // question with a different bound (Format 2: at most one; Format 3: none), and the Format-3 arm
+            // (EcBindExceptionPerform) never asked it at all: that is this project's most reproducible defect
+            // shape, a dispatch with two arms and only one ever fixed.
+            CheckInlineHeadCardinality(p);
             // Format 3 (exception-checking, §14.9.28.2 Format 3) — any WHEN phrase, or a [WITH] LOCATION head,
             // marks the inline PERFORM as exception-checking. Everything else is a Format-2 inline PERFORM.
             if (IsFormat3(p))
@@ -463,7 +471,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     {
         // The optional control phrase appears in three tree shapes: a direct child (the out-of-line
         // `PERFORM proc TIMES` alternatives), the THRU form's `performOptions?`, or the inline head's
-        // `performInlineHead performOptions+` (the Formats-2/3 merge moved the inline options under the head).
+        // `performInlineHead performOptions…` (the Formats-2/3 merge moved the inline options under the head).
+        // ⛔ THE `FirstOrDefault()` IS RECOVERY AFTER A REPORTED VIOLATION, NOT A CHOICE (kb/Work PB431). The
+        // §14.9.28.2 Format-2 bracket admits ONE phrase, so a well-formed head has exactly one here; a head with
+        // more has already been refused by CheckInlineHeadCardinality (COBOLNET2117) before this runs, and
+        // binding the first phrase merely keeps the rest of the bind from cascading. It used to be the ONLY
+        // treatment — every phrase after the first was silently DELETED from the bound tree, so no later pass
+        // could even see it, and `PERFORM 3 TIMES UNTIL X > 100` ran three times with no diagnostic at any --std.
         var opt = p.performOptions() ?? p.performInlineHead()?.performOptions().FirstOrDefault();
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
         if ((p.performUntil() ?? opt?.performUntil()) is { } u)
@@ -481,55 +495,6 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         }
         if ((p.performVarying() ?? opt?.performVarying()) is { } v) return BindVarying(v);
         return new PerformOnce();
-    }
-
-    /// <summary>Bind a VARYING phrase (ISO §14.9.28, the VARYING phrase of Formats 1 and 2 — §14.9.28.4
-    /// GR12/GR13; §14.9.28.2 prints three formats and none of them is "VARYING") into its ordered induction
-    /// levels — the VARYING
-    /// level first, then each AFTER level left-to-right. TEST AFTER is the phrase's own <c>TEST AFTER</c> (the
-    /// AFTER tokens of the after-levels live in their sub-contexts, not here).</summary>
-    private BoundPerformControl BindVarying(Core.PerformVaryingContext v)
-    {
-        var levels = new List<VaryingLevel>();
-        if (BindVaryingLevel(v.dataReference(), v.arithmeticExpression(), v.condition(), firstLevel: true) is not { } head)
-            return Unsupported($"PERFORM VARYING induction variable '{v.dataReference().GetText()}'");
-        levels.Add(head);
-        foreach (var a in v.performVaryingAfter())
-        {
-            if (BindVaryingLevel(a.dataReference(), a.arithmeticExpression(), a.condition(), firstLevel: false) is not { } level)
-                return Unsupported($"PERFORM VARYING AFTER induction variable '{a.dataReference().GetText()}'");
-            levels.Add(level);
-        }
-        // §14.9.28.4 GR3: an index-name varied/AFTER from a data-item FROM whose value is non-positive raises the
-        // fatal EC-RANGE-PERFORM-VARYING. Capture the enable flag NOW (F10/V3 template) so the emitter keeps the
-        // directive-free output byte-identical (no check emitted when off).
-        bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
-        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, checkIndexRange);
-    }
-
-    /// <summary>One induction level: the variable is a SET-style target (index-name or data item); the expression
-    /// array is [FROM] or [FROM, BY] (BY omitted ⇒ augment 1, GR12). User-function evaluation cardinality per
-    /// window (§8.4.3.2.4 GR1/GR6a): the UNTIL condition re-evaluates per iteration — its activations attach
-    /// per-evaluation; a FIRST-level FROM evaluates exactly once at loop start (GR13a/GR13b init) — its
-    /// activations stay statement-hoisted (exact); an AFTER-level FROM (re-evaluated on each outer augment,
-    /// GR13e.2) and any BY (evaluated per augment, GR12) stage LOUD — the narrowed 1509 residue.</summary>
-    private VaryingLevel? BindVaryingLevel(
-        Core.DataReferenceContext dref, Core.ArithmeticExpressionContext[] exprs, Core.ConditionContext cond,
-        bool firstLevel)
-    {
-        if (host.Set.SetTargetOf(dref) is not { } var) return null;
-        int fromMark = host.Udf.PendingCount;
-        BoundExpr from = host.Expr.BindIndexWindowExpr(exprs[0]);   // PERFORM VARYING is an r7 window (kb/Work R29)
-        if (!firstLevel)
-            host.Udf.UdfStagePerEvaluationResidue(fromMark,
-                "a PERFORM VARYING AFTER level's FROM operand (re-evaluated per outer augment, §14.9.28 GR13e.2)");
-        int byMark = host.Udf.PendingCount;
-        BoundExpr by = exprs.Length > 1 ? host.Expr.BindIndexWindowExpr(exprs[1]) : new BoundNumLiteral("1");
-        host.Udf.UdfStagePerEvaluationResidue(byMark,
-            "a PERFORM VARYING BY operand (evaluated per augment, §14.9.28 GR12)");
-        int untilMark = host.Udf.PendingCount;
-        return new VaryingLevel(var, from, by,
-            host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), untilMark));
     }
 
     private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));

@@ -153,25 +153,28 @@ public sealed class UdfInvocationTests
         Assert.True(ok, "per-evaluation window must bind: " + string.Join("\n", errors));
     }
 
-    /// <summary>The NARROWED 1509 residue (per-evaluation activation does not yet reach these OPERAND
-    /// windows): a PERFORM VARYING BY operand (per augment, §14.9.28 GR12) and an AFTER level's FROM
-    /// (re-evaluated per outer augment, GR13e.2).
-    /// <para>⛔ THE EVALUATE SELECTION SUBJECT LEFT THIS LIST, AND ITS DEPARTURE IS THE POINT (kb/Work PB394).
-    /// This theory carried a third row, <c>EVALUATE FUNCTION UDFDBL(2) WHEN 4 …</c>, justified by "this lowering
-    /// re-binds subjects per WHEN — a hoist would over-activate". That premise was the DEFECT, not a rule:
-    /// §14.9.13.4 GR3 evaluates a selection subject ONCE "at the beginning of the execution of the EVALUATE
-    /// statement", and the subject now binds once into <c>EvaluateBinder.SubjectSlot</c> and materializes into
-    /// the implementor's intermediate result item. The source is legal, so pinning the refusal here read as a
-    /// DECISION that it was not (feedback_green_test_can_hold_a_gap_open) — the same pin the retired negative
-    /// <c>pb17-function-subscript-evaluate-subject</c> held. Its replacement is the Fact below.</para></summary>
+    /// <summary>The two PERFORM VARYING OPERAND windows §14.9.28.4 GR12 names — a BY operand (read at every
+    /// augment) and an AFTER level's FROM operand (re-read at every outer-augment re-initialization) — BIND,
+    /// and carry NO 1509 stage.
+    /// <para>⛔ THIS THEORY USED TO ASSERT THE OPPOSITE, AND THAT IS THE POINT (kb/Work PB437). It pinned
+    /// <c>Assert.False(ok)</c> + COBOLNET1509 on both rows, green, for source the standard admits — the same
+    /// construct the FIRST-level FROM one position over and the UNTIL condition in the same statement both
+    /// accepted, and the diagnostic's own text said the refusal was "an activation cardinality this
+    /// implementation does not yet realize", i.e. a capability limit and not a rule. A green test pinning a
+    /// loud stage reads as a DECISION that the refusal is correct
+    /// (feedback_green_test_can_hold_a_gap_open), which is exactly how it survived; the EVALUATE selection
+    /// subject left the same list for the same reason (kb/Work PB394, the Fact below). The operands now ride
+    /// <c>BoundUdfEvaluatedExpr</c>, the expression twin of the carrier the conditions already used, and the
+    /// RUN-TIME cardinality proof — one activation per setting/augmenting operation — is the
+    /// <c>pb437_varying_operand_windows</c> golden.</para></summary>
     [Theory]
     [InlineData("UDFT6F", "    PERFORM VARYING WS-A FROM 1 BY FUNCTION UDFDBL(1) UNTIL WS-A > 9\n        DISPLAY \"X\"\n    END-PERFORM.")]
     [InlineData("UDFT6G", "    PERFORM VARYING WS-A FROM 1 BY 1 UNTIL WS-A > 3\n            AFTER WS-R FROM FUNCTION UDFDBL(1) BY 1 UNTIL WS-R > 3\n        DISPLAY \"X\"\n    END-PERFORM.")]
-    public void PerEvaluationResidueOperands_1509(string pid, string body)
+    public void PerEvaluationOperandWindows_Bind(string pid, string body)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Group(pid, body), 2002);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1509");
+        Assert.True(ok, "a per-evaluation OPERAND window must bind: " + string.Join("\n", errors));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1509", StringComparison.Ordinal));
     }
 
     /// <summary>A user-function EVALUATE selection SUBJECT compiles, and carries NO 1509 stage: ISO §14.9.13.4

@@ -236,6 +236,29 @@ public sealed record BoundOdoExtent(Place Depending, int MinOccurs, int MaxOccur
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
 
+/// <summary>The EXPRESSION twin of <see cref="BoundUdfEvaluated"/>: an operand carrying the function
+/// <paramref name="Activations"/> its <paramref name="Inner"/> expression consumes, for an operand window the
+/// statement evaluates REPEATEDLY — each activation runs once per evaluation of THAT window, not once per
+/// statement (ISO §8.4.3.2.4 GR1/GR6a "the value … is determined when the function is referenced at runtime";
+/// §8.8.4.13 r2). The windows that produce it today are §14.9.28.4 GR12's: "Item identification for
+/// identifier-3, identifier-4, identifier-6, identifier-7, index-name-2, and index-name-4 is done each time the
+/// content … is used in a setting or augmenting operation" — a PERFORM VARYING BY operand (per augment) and an
+/// AFTER level's FROM operand (per outer-augment re-initialization). kb/Work PB437.
+/// <para>⛔ THE CONSUMER EMITS THE ACTIVATIONS AS STATEMENTS, IT DOES NOT RENDER AN IIFE, and the difference is
+/// semantic, not stylistic. <see cref="BoundUdfEvaluated"/> must be an immediately-invoked <c>Func&lt;bool&gt;</c>
+/// because a condition sits in a C# loop HEADER where no statement can precede it per iteration, and that form
+/// pays a price <see cref="CobolNet.CodeGen.Emit.ConditionRenderer"/> documents: the activation is rendered by
+/// <c>CallEmitter.FunctionActivationText</c>, which deliberately omits <c>siteHandlesPropagation</c> because a
+/// declarative RESUME pickup is a <c>__pc</c>-anchored STATEMENT surface that cannot run inside an expression.
+/// The set/augment windows ARE statement positions, so the consumer (<c>ControlFlowEmitter.RenderPerEvaluation</c>)
+/// emits each activation through the ONE statement emitter immediately before the operation that reads the
+/// value — once per operation, with the full RESUME-capable surface intact.</para>
+/// <para>Like its condition twin, <paramref name="Activations"/> is <see cref="BoundStatement"/> so it carries
+/// BOTH pending pre-op kinds: a user-function activation and a §15.4 function-bearing-subscript temporary
+/// store (kb/Work PB17). A rendering site that does NOT own the window fails LOUD rather than dropping the
+/// activations (<c>NumericRenderer.Visit</c>).</para></summary>
+public sealed record BoundUdfEvaluatedExpr(IReadOnlyList<BoundStatement> Activations, BoundExpr Inner) : BoundExpr;
+
 /// <summary>A resolved intrinsic-function call (ISO §15; COBOLNET_INTRINSICS_DESIGN D2): the catalog row (already
 /// category-resolved for the polymorphic MAX/MIN families) plus the typed bound arguments — table(ALL) expanded,
 /// the §15.68.3 r3 default currency injected — never a pre-rendered C# fragment. <paramref name="Args"/> are
@@ -896,11 +919,38 @@ public sealed record PerformUntil(BoundCondition Until, bool TestAfter) : BoundP
 /// EXIT PERFORM, an out-of-line loop by GOBACK/STOP RUN (NOTE 4).</summary>
 public sealed record PerformForever : BoundPerformControl;
 
+/// <summary>The COBOL KIND of a varying-phrase FROM/BY operand — the brace group §14.9.28.2's varying-phrase
+/// prints: <c>{identifier-3 | index-name-2 | literal-1}</c> for FROM, <c>{identifier-4 | literal-2}</c> for BY
+/// (rendered from the printed page 683 / PDF 713).
+/// <para>⛔ IT EXISTS SO NO LATER PASS RE-DERIVES THE KIND FROM A BOUND-NODE C# TYPE (kb/Work PB439). The
+/// §14.9.28.4 GR3 EC-RANGE-PERFORM-VARYING guard used to ask <c>From is BoundNumRef</c> — one identifier SHAPE
+/// where the rule says "an identifier" — so a FUNCTION-IDENTIFIER FROM operand took the unchecked path and a
+/// FATAL exception condition was never set to exist. The kind is decided ONCE where the operand is bound, and
+/// every consumer (the §14.9.28.3 SR4/SR5/SR6 screens and the GR3 guard) asks the same question.</para></summary>
+public enum VaryingOperandKind
+{
+    /// <summary>literal-1 / literal-2 (§14.9.28.3 SR3 — numeric; a leading sign is part of the literal,
+    /// §8.3.3.3.2 rule 2; the figurative ZERO is one, §8.3.3.6.3 SR1).</summary>
+    Literal,
+    /// <summary>index-name-2 / index-name-4 — legal in the FROM slot only; §14.9.28.4 GR12 takes its OCCURRENCE
+    /// NUMBER as the initialization value, and §14.9.28.4 GR3 is expressly NOT about it.</summary>
+    IndexName,
+    /// <summary>identifier-3 / identifier-4 — EVERY §8.4.3.1.2 identifier format: a (qualified, subscripted,
+    /// reference-modified) data reference, a function-identifier, and a user-function result.</summary>
+    Identifier,
+    /// <summary>A shape the brace group does not print (a compound arithmetic expression, a signed identifier) —
+    /// COBOLNET2119, or already diagnosed upstream.</summary>
+    Invalid,
+}
+
 /// <summary>One VARYING/AFTER level of a PERFORM Format 4 (ISO §14.9.28): the induction variable (an index-name or
 /// data item — SET-style target), its FROM initialization, BY augment (1 when the phrase is omitted, GR12), and
 /// UNTIL condition. FROM/BY stay EXPRESSIONS — they are re-evaluated at every setting/augmenting operation and the
-/// conditions at every test (GR12 item identification; changes inside the body have immediate effect).</summary>
-public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr By, BoundCondition Until);
+/// conditions at every test (GR12 item identification; changes inside the body have immediate effect).
+/// <para><paramref name="FromKind"/> is the FROM operand's §14.9.28.2 brace-group kind, decided by the binder so
+/// the emitter's §14.9.28.4 GR3 guard asks the rule's question instead of a node's C# type (kb/Work PB439).</para></summary>
+public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr By, BoundCondition Until,
+    VaryingOperandKind FromKind);
 
 /// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §14.9.28, the VARYING phrase of
 /// Formats 1 and 2 — §14.9.28.4 GR13): nested

@@ -55,14 +55,21 @@ public sealed class ExitPlacementContextDriftTests
     // A nested inline PERFORM: the EXIT PERFORM belongs to the INNER one (§14.9.14.4 GR5 a) "the most closely
     // preceding, and as yet unterminated, inline PERFORM statement") — either way it is inside one.
     [InlineData("PBEP04", "PERFORM 2 TIMES\n    PERFORM 2 TIMES\n        EXIT PERFORM\n    END-PERFORM\nEND-PERFORM")]
+    // ⛔ EVERY FORMAT-3 ROW BELOW WRITES A BARE `PERFORM` HEAD, AND HAS TO (kb/Work PB431). These rows used to
+    // spell `PERFORM UNTIL W-N > 2 … WHEN EC-SIZE …`, which §14.9.28.2 Format 3 does not print: its head is
+    // [ WITH LOCATION ] and nothing else, so an exception-checking PERFORM carries NO loop-control phrase. The
+    // until-phrase was incidental scaffolding — these rows measure where EXIT PERFORM and RESUME may be written,
+    // not how the PERFORM repeats — and it compiled only because the Format-3 binder silently dropped every
+    // control phrase it was given, which is the defect PB431 closed (COBOLNET2118). imperative-statement-1 is
+    // still required and unbracketed, so `ADD 1 TO W-N` stays.
     // Exception-checking (Format 3) PERFORM — imperative-statement-1.
-    [InlineData("PBEP05", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    EXIT PERFORM\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
+    [InlineData("PBEP05", "PERFORM\n    ADD 1 TO W-N\n    EXIT PERFORM\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
     // … a WHEN handler body (imperative-statement-2).
-    [InlineData("PBEP06", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    EXIT PERFORM\nEND-PERFORM")]
+    [InlineData("PBEP06", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    EXIT PERFORM\nEND-PERFORM")]
     // … a WHEN OTHER handler body (imperative-statement-3).
-    [InlineData("PBEP07", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  WHEN OTHER\n    EXIT PERFORM\nEND-PERFORM")]
+    [InlineData("PBEP07", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  WHEN OTHER\n    EXIT PERFORM\nEND-PERFORM")]
     // … the FINALLY phrase (imperative-statement-5).
-    [InlineData("PBEP08", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  FINALLY\n    EXIT PERFORM\nEND-PERFORM")]
+    [InlineData("PBEP08", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  FINALLY\n    EXIT PERFORM\nEND-PERFORM")]
     public void ExitPerform_InsideAPerform_IsAccepted(string pid, string body)
     {
         // ⛔ THE COMPILE MUST SUCCEED, not merely lack the placement code: `Compile` returns an EMPTY diagnostic
@@ -108,7 +115,7 @@ public sealed class ExitPlacementContextDriftTests
     /// wrong.</summary>
     [Theory]
     [InlineData("PBEC01", "PERFORM VARYING W-N FROM 1 BY 1 UNTIL W-N > 3\n    EXIT PERFORM CYCLE\nEND-PERFORM")]
-    [InlineData("PBEC02", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    PERFORM 2 TIMES\n        EXIT PERFORM CYCLE\n    END-PERFORM\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
+    [InlineData("PBEC02", "PERFORM\n    ADD 1 TO W-N\n    PERFORM 2 TIMES\n        EXIT PERFORM CYCLE\n    END-PERFORM\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
     public void ExitPerformCycle_InAnInlinePerform_IsAccepted(string pid, string body)
     {
         var (ok, diagnostics) = EditionHarness.Compile(MainProgram(pid, body), 2023);
@@ -120,8 +127,8 @@ public sealed class ExitPlacementContextDriftTests
     /// <summary>Inside an exception-checking PERFORM — in imperative-statement-1 or in a handler — CYCLE is
     /// refused: a Format-3 PERFORM is not a loop, so there is no cycle for control to take.</summary>
     [Theory]
-    [InlineData("PBEC03", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    EXIT PERFORM CYCLE\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
-    [InlineData("PBEC04", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    EXIT PERFORM CYCLE\nEND-PERFORM")]
+    [InlineData("PBEC03", "PERFORM\n    ADD 1 TO W-N\n    EXIT PERFORM CYCLE\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
+    [InlineData("PBEC04", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    EXIT PERFORM CYCLE\nEND-PERFORM")]
     public void ExitPerformCycle_InAnExceptionCheckingPerform_IsRejected(string pid, string body) =>
         EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(MainProgram(pid, body), 2023), ExitPerformCycleInF3);
 
@@ -255,12 +262,12 @@ public sealed class ExitPlacementContextDriftTests
     /// FINALLY.</summary>
     [Theory]
     // In a WHEN phrase — admitted, and admitted from inside a statement nested in it.
-    [InlineData("PBRS01", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    RESUME AT NEXT STATEMENT\nEND-PERFORM", null)]
-    [InlineData("PBRS02", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    IF W-N > 0\n        RESUME AT NEXT STATEMENT\n    END-IF\nEND-PERFORM", null)]
+    [InlineData("PBRS01", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    RESUME AT NEXT STATEMENT\nEND-PERFORM", null)]
+    [InlineData("PBRS02", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    IF W-N > 0\n        RESUME AT NEXT STATEMENT\n    END-IF\nEND-PERFORM", null)]
     // imperative-statement-1 of the same PERFORM is NOT a WHEN phrase.
-    [InlineData("PBRS03", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    RESUME AT NEXT STATEMENT\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM", ResumePlacement)]
+    [InlineData("PBRS03", "PERFORM\n    ADD 1 TO W-N\n    RESUME AT NEXT STATEMENT\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM", ResumePlacement)]
     // … nor is the FINALLY phrase.
-    [InlineData("PBRS04", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  FINALLY\n    RESUME AT NEXT STATEMENT\nEND-PERFORM", ResumePlacement)]
+    [InlineData("PBRS04", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  FINALLY\n    RESUME AT NEXT STATEMENT\nEND-PERFORM", ResumePlacement)]
     // … nor an ordinary paragraph.
     [InlineData("PBRS05", "RESUME AT NEXT STATEMENT", ResumePlacement)]
     public void Resume_PlacementVerdicts_AreUnchangedByTheSharedProbe(string pid, string body, string? expected)
@@ -275,7 +282,7 @@ public sealed class ExitPlacementContextDriftTests
     [Fact]
     public void Resume_AtProcedureNameInAWhenPhrase_IsRejected() =>
         EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(
-            MainProgram("PBRS06", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    RESUME AT MAIN-PARA\nEND-PERFORM"), 2023),
+            MainProgram("PBRS06", "PERFORM\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    RESUME AT MAIN-PARA\nEND-PERFORM"), 2023),
             ResumeOperandInWhen);
 
     /// <summary>The declarative arm of RESUME's SR1, and §14.9.33.3 SR2's GLOBAL refusal beside it — the two

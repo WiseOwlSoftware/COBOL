@@ -28,8 +28,10 @@ using Core = CobolParserCore;
 /// window (a PERFORM UNTIL/VARYING UNTIL condition, a SEARCH WHEN, an EVALUATE object term, a non-first
 /// AND/OR operand) instead drains its suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper
 /// (<see cref="UdfAttachPerEvaluation"/> — §8.8.4.13 r2 "if and when the conditions containing them are
-/// evaluated"); the two operand windows per-evaluation does not yet reach (VARYING BY / AFTER-level FROM)
-/// and the per-WHEN-re-analysed EVALUATE <b>condition</b> subject stage LOUD (the narrowed COBOLNET1509,
+/// evaluated"); every repeatedly-evaluated OPERAND window — a PERFORM VARYING BY operand and an AFTER level's
+/// FROM operand, §14.9.28.4 GR12's "each time … is used in a setting or augmenting operation" — drains its
+/// suffix into the expression twin <see cref="BoundUdfEvaluatedExpr"/> (kb/Work PB437), and only the
+/// per-WHEN-re-analysed EVALUATE <b>condition</b> subject still stages LOUD (the narrowed COBOLNET1509,
 /// <see cref="UdfStagePerEvaluationResidue"/>) rather than silently over/under-evaluating. An EVALUATE
 /// <b>value</b> subject is no longer among them (kb/Work PB394): it binds once for the statement and its
 /// value is materialized into §14.9.25.4 GR1's intermediate result item, so the statement hoist is EXACT.
@@ -296,6 +298,22 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         _ => false,
     };
 
+    /// <summary>⛔ THE ONE DRAIN OF THE PENDING PRE-OP SUFFIX, and the only place the list is mutated on the way
+    /// out. Takes everything registered past <paramref name="mark"/> and REMOVES it, so exactly one carrier ends
+    /// up owning each activation — the statement hoist, the per-evaluation condition wrapper, or the
+    /// per-evaluation operand wrapper. Null when nothing was registered, which is what lets every caller return
+    /// its subject UNCHANGED and keeps the generated source byte-identical on the function-free path.
+    /// <para>It is one method because the three callers differ ONLY in the node they wrap the drained suffix in;
+    /// three copies of the take-and-remove pair is the shape where one of them eventually forgets the remove and
+    /// double-activates.</para></summary>
+    private List<BoundStatement>? DrainPending(int mark)
+    {
+        var calls = Pending;
+        if (calls.Count <= mark) return null;
+        var taken = calls.GetRange(mark, calls.Count - mark);
+        calls.RemoveRange(mark, calls.Count - mark);
+        return taken;
+    }
     /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)
     /// into the hoisted <see cref="BoundSequence"/>: every activation is a PRE-op — a function-identifier
     /// is never a receiving operand (§8.4.3.2.3 SR1), so unlike property references there is no polarity
@@ -307,14 +325,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// binding, so what remains pending is evaluated exactly once per statement execution (a plain operand,
     /// a sole IF condition, a TIMES count — §14.9.28 GR7, a first-level VARYING FROM — GR13a init, an
     /// EVALUATE subject occurrence).</summary>
-    internal BoundStatement UdfWrapCalls(BoundStatement core, int mark)
-    {
-        var calls = Pending;
-        if (calls.Count <= mark) return core;
-        var taken = calls.GetRange(mark, calls.Count - mark);
-        calls.RemoveRange(mark, calls.Count - mark);
-        return new BoundSequence([.. taken, core]);
-    }
+    internal BoundStatement UdfWrapCalls(BoundStatement core, int mark) =>
+        DrainPending(mark) is { } taken ? new BoundSequence([.. taken, core]) : core;
 
     /// <summary>Attach the function activations registered while <paramref name="cond"/> bound (those past
     /// <paramref name="mark"/>) to the condition itself as a per-evaluation <see cref="BoundUdfEvaluated"/>
@@ -322,28 +334,42 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// window the statement evaluates conditionally or repeatedly (§8.8.4.13 r2). The drained suffix leaves
     /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
     /// the condition unchanged (zero cost for the UDF-free path).</summary>
-    internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, int mark)
-    {
-        var calls = Pending;
-        if (calls.Count <= mark) return cond;
-        var taken = calls.GetRange(mark, calls.Count - mark);
-        calls.RemoveRange(mark, calls.Count - mark);
-        return new BoundUdfEvaluated(taken, cond);
-    }
+    internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, int mark) =>
+        DrainPending(mark) is { } taken ? new BoundUdfEvaluated(taken, cond) : cond;
 
-    /// <summary>The NARROWED evaluation-cardinality stage (§1.4 — loud, never silently wrong) for the
-    /// operand windows per-evaluation activation does not yet reach: a PERFORM VARYING BY operand (evaluated
-    /// per augment, §14.9.28 GR12) or a non-first (AFTER) level's FROM operand (re-evaluated per outer
-    /// augment, GR13e.2), and an EVALUATE selection subject that is a CONDITION (§14.9.13.4 GR3 e) assigns
-    /// condition-1 a TRUTH value once per statement, and the bound tree has no condition→boolean-operand
-    /// bridge to hold one, so that subject is still re-analysed per WHEN and a hoist would over-activate).
-    /// Conditions elsewhere are NOT staged — they ride <see cref="UdfAttachPerEvaluation"/>.
+    /// <summary>The EXPRESSION twin of <see cref="UdfAttachPerEvaluation"/>: attach the activations registered
+    /// while <paramref name="e"/> bound (those past <paramref name="mark"/>) to the OPERAND as a
+    /// <see cref="BoundUdfEvaluatedExpr"/>, for a window the statement evaluates repeatedly — ISO §14.9.28.4
+    /// GR12's "item identification … is done each time the content … is used in a setting or augmenting
+    /// operation" (§8.4.3.2.4 GR1/GR6a). The drained suffix leaves the pending list, so the statement-level
+    /// hoist never double-activates it; no pending growth returns the expression unchanged, so the UDF-free
+    /// path costs nothing and the generated source is byte-identical.
+    /// <para>⛔ IT REPLACED A REFUSAL, NOT A SILENCE (kb/Work PB437). These two operand positions used to call
+    /// <see cref="UdfStagePerEvaluationResidue"/> and REJECT the program (COBOLNET1509) while the adjacent
+    /// first-level FROM and the UNTIL condition accepted the same construct — a capability limit shipped as a
+    /// diagnostic, pinned green by two tests. The carrier the condition already used is what the augment and
+    /// re-initialization sites needed too.</para></summary>
+    internal BoundExpr UdfAttachPerEvaluation(BoundExpr e, int mark) =>
+        DrainPending(mark) is { } taken ? new BoundUdfEvaluatedExpr(taken, e) : e;
+
+    /// <summary>The NARROWED evaluation-cardinality stage (§1.4 — loud, never silently wrong) for the ONE
+    /// window per-evaluation activation does not yet reach: an EVALUATE selection subject that is a CONDITION
+    /// (§14.9.13.4 GR3 e) assigns condition-1 a TRUTH value once per statement, and the bound tree has no
+    /// condition→boolean-operand bridge to hold one, so that subject is still re-analysed per WHEN and a hoist
+    /// would over-activate). Conditions elsewhere are NOT staged — they ride
+    /// <see cref="UdfAttachPerEvaluation(BoundCondition,int)"/>.
     /// <para>⛔ AN EVALUATE <b>VALUE</b> SUBJECT NO LONGER REACHES HERE (kb/Work PB394): it is bound ONCE for
     /// the statement and its value materialized into §14.9.25.4 GR1's intermediate result item
     /// (<c>EvaluateBinder</c>'s <c>SubjectSlot</c> over <c>Binding.Procedure.SendingValueTemp</c>), so the
     /// statement-scoped hoist is EXACT for it — the stage's premise, "this lowering re-binds subject
-    /// expressions per WHEN", stopped being true for that arm. The stage was NARROWED to the condition arm,
-    /// never widened: widening it would turn a wrong answer into a rejection of legal source.</para></summary>
+    /// expressions per WHEN", stopped being true for that arm.</para>
+    /// <para>⛔ NEITHER DO THE TWO PERFORM VARYING OPERAND WINDOWS (kb/Work PB437). A BY operand (evaluated per
+    /// augment, §14.9.28.4 GR12) and an AFTER level's FROM operand (re-evaluated per outer augment, GR13 e) 2 a.)
+    /// used to be staged here, which meant the compiler REJECTED conforming source — in a slot it accepted one
+    /// operand position over — with a diagnostic whose own text said the refusal was a capability limit, not a
+    /// rule. They now ride <see cref="UdfAttachPerEvaluation(BoundExpr,int)"/>, the expression twin of the
+    /// carrier the conditions already used. ⛔ The stage is only ever NARROWED, never widened: widening it turns
+    /// a wrong answer into a rejection of legal source, which is the worse of the two.</para></summary>
     internal void UdfStagePerEvaluationResidue(int mark, string where)
     {
         if (Pending.Count <= mark) return;

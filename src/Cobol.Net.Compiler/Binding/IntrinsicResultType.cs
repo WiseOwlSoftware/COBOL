@@ -356,6 +356,22 @@ internal static class IntrinsicResultType
         _ => false,
     };
 
+    /// <summary>The EXPRESSION-side entry to the ONE integer classifier above (kb/Work PB432 — §14.9.28.3 SR4 a)
+    /// "shall reference an integer data item", SR4 c) / SR5 c) "shall be a … integer"). The varying-phrase's
+    /// FROM/BY operands are bound as <see cref="BoundExpr"/>, so this REDUCES the shapes that slot can hold to
+    /// their <see cref="BoundOperand"/> twins and asks <see cref="IsIntegerOperand(BoundOperand)"/> — it does not
+    /// restate the test. ⛔ A hand-written second copy is how one of two arms rots (feedback two_arm_dispatch):
+    /// the §5.5 2)b) primitive stays in exactly one place. A leading sign is part of the numeric literal for this
+    /// purpose (§8.3.3.3.2 rule 2), so <see cref="BoundNegate"/> asks its operand.</summary>
+    public static bool IsIntegerOperand(BoundExpr e) => e switch
+    {
+        BoundNumLiteral l => IsIntegerOperand(new BoundNumericLiteral(l.Text)),
+        BoundNumRef r => IsIntegerOperand(new BoundFieldOperand(r.Place)),
+        BoundIntrinsicCall c => IsIntegerOperand(new BoundComputedOperand(c)),
+        BoundNegate n => IsIntegerOperand(n.Operand),
+        _ => false,
+    };
+
     private static bool AllIntegerArgs(IReadOnlyList<BoundOperand> args)
     {
         foreach (var a in args)
