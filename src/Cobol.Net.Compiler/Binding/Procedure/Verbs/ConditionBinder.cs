@@ -655,41 +655,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             carry.Subject = subject;
             carry.Op = op;
             BoundOperand right = ComparisonOperand(operands[1]);
-            // Object relations (ISO §8.8.4.2.1 Format 3 :9591 — D-U8): class-object operands admit ONLY
-            // [NOT] EQUAL, and SR5 (:9614) requires BOTH operands of class object (figurative NULL rides —
-            // it is a class-object sender). Reference IDENTITY (§8.8.4.2.15 :9769) renders in the
-            // ConditionRenderer's object branch. Typed-vs-typed of UNRELATED classes is LEGAL (identity is
-            // simply false); ordering operators and object-vs-non-object mixes are COBOLNET0868.
-            static bool IsObjOperand(BoundOperand o) =>
-                o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ObjectReference;
-            if (IsObjOperand(subject) || IsObjOperand(right))
-            {
-                if (op is not ("==" or "!="))
-                    ctx.Edition.Error("COBOLNET0868",
-                        "an object-reference relation admits only [NOT] EQUAL / '=' / '<>' "
-                        + "(ISO §8.8.4.2.1 Format 3 — ordering is undefined for references)");
-                else if (!(IsObjOperand(subject) || subject is BoundFigurative { Kind: 'N' })
-                         || !(IsObjOperand(right) || right is BoundFigurative { Kind: 'N' }))
-                    ctx.Edition.Error("COBOLNET0868",
-                        "both operands of an object-reference relation shall be of class object — an "
-                        + "object reference or the NULL figurative (ISO §8.8.4.2.1 SR5)");
-            }
-            // Data-pointer relations (ISO §8.8.4.2.16 / §8.8.4.2 — pointers admit ONLY [NOT] EQUAL, against
-            // another pointer or the NULL figurative; the renderer's pointer branch does SameTarget identity).
-            static bool IsPtrOperand(BoundOperand o) =>
-                o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.Pointer;
-            if (IsPtrOperand(subject) || IsPtrOperand(right))
-            {
-                if (op is not ("==" or "!="))
-                    ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                        "a data-pointer relation admits only [NOT] EQUAL (ISO §8.8.4.2.16 — pointers are "
-                        + "not ordered)");
-                else if (!(IsPtrOperand(subject) || subject is BoundFigurative { Kind: 'N' })
-                         || !(IsPtrOperand(right) || right is BoundFigurative { Kind: 'N' }))
-                    ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                        "both operands of a data-pointer relation shall be a data pointer or NULL "
-                        + "(ISO §8.8.4.2.16)");
-            }
+            // ⛔ THE OBJECT-REFERENCE (§8.8.4.2.1 Format 3 / SR5) AND DATA-POINTER (§8.8.4.2.16) BANDS USED TO BE
+            // WRITTEN HERE, in the relation arm, ABOVE the checkpoint (kb/Work PB399). They are now in
+            // StatementValidation.CheckRelationalOperands, beside the class-boolean and strongly-typed-group
+            // rules of the same §8.8.4.2 band, because a rule about what may be COMPARED belongs to the ONE
+            // BoundRelational construction site and not to one of its callers: §14.9.13.4 GR2 makes an EVALUATE
+            // subject↔object pair a comparison "as if the corresponding relation condition were written", and
+            // written here the bands screened `IF P >= Q` and said nothing about `EVALUATE P WHEN Q THRU R` or
+            // `EVALUATE P WHEN X` — the second of which reached the BACKEND and failed as a raw C# CS1503.
+            // SEARCH WHEN, PERFORM UNTIL and the abbreviated-relation path had the same hole.
             // (A boolean-EXPRESSION relation — `IF (a B-AND b) = c` — is staged residue this increment; the
             // item↔item boolean compares of the data increment ride CheckedRelational's 0844 guard below.)
             return CheckedRelational(subject, op, right);

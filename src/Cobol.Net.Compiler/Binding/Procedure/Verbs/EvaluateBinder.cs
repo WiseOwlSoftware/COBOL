@@ -55,13 +55,20 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             foreach (var phrase in clause.evaluateWhenPhrase())
             {
                 var groups = phrase.evaluateWhenGroup();
+                ScreenObjectCount(phrase, groups.Length, subjects.Length);
                 var terms = new List<BoundCondition>();
-                for (int i = 0; i < groups.Length; i++)
-                {
-                    if (i >= subjects.Length)
-                        return new BoundUnsupported("EVALUATE: more WHEN objects than subjects (ISO §14.9.13 SR)");
+                // ⛔ THE COUNT IS A SYNTAX RULE, SCREENED ABOVE — this clamp is pure RECOVERY (kb/Work PB399).
+                // It used to be `if (i >= subjects.Length) return new BoundUnsupported(…)`: a defensive index
+                // guard wearing a rule's clothes, which delivered §14.9.13.3 SR2 as a run-time abort in the
+                // MORE-objects direction and not at all in the FEWER-objects direction, where the loop simply
+                // ran out of written objects and the surplus SUBJECTS were never paired with anything — illegal
+                // source silently branching on a strict subset of its own selection subjects. With the screen
+                // above, an over- or under-long phrase has already failed the compile; binding the pairs the
+                // programmer DID write keeps the rest of the statement's diagnostics flowing instead of
+                // truncating the bind at the first bad phrase.
+                int paired = System.Math.Min(groups.Length, subjects.Length);
+                for (int i = 0; i < paired; i++)
                     terms.Add(BindWhenGroup(slots[i], groups[i]));
-                }
                 phraseMatches.Add(terms.Count == 1 ? terms[0] : new BoundLogical("&&", terms));
             }
             BoundCondition match = phraseMatches.Count == 1 ? phraseMatches[0] : new BoundLogical("||", phraseMatches);
@@ -203,6 +210,108 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             + $"'{item.GetText()}' is {EvaluateOperandCombinations.Label(o)}; ISO §14.9.13.3 SR10 Table 15 marks "
             + "that combination invalid.");
     }
+
+    /// <summary>ISO §14.9.13.3 SR2 — "The number of selection objects within each set of selection objects shall
+    /// be equal to the number of selection subjects." A SYNTAX rule, so a compile-time diagnostic (§4.2.2), and
+    /// an EQUALITY, so BOTH directions (kb/Work PB399).
+    /// <para>⛔ IT LIVES BESIDE <see cref="ScreenPairing"/> AND NOT INSIDE THE PAIRING LOOP, because that is the
+    /// difference between a rule and an index guard. The loop can only notice the direction in which it runs out
+    /// of SUBJECTS; the other direction — fewer objects than subjects — is invisible to it by construction, and
+    /// that was the half with no diagnostic at any stage. Counting the two sets against each other sees both.</para>
+    /// <para>The count is per WHEN PHRASE, which is what "each set of selection objects" names: consecutive WHEN
+    /// phrases sharing one imperative-statement are separate sets and are screened separately.</para></summary>
+    private void ScreenObjectCount(Core.EvaluateWhenPhraseContext phrase, int objects, int subjects)
+    {
+        if (objects == subjects) return;
+        ctx.Edition.Error(DiagnosticCatalog.EvaluateSelectionObjectCount,
+            $"the WHEN phrase '{DataBinder.WrittenText(phrase)}' writes {objects} selection "
+            + (objects == 1 ? "object" : "objects") + $" but the EVALUATE statement has {subjects} selection "
+            + (subjects == 1 ? "subject" : "subjects")
+            + "; ISO §14.9.13.3 SR2 requires the two counts to be equal (write ANY for a position the phrase "
+            + "does not test — SR7 c)");
+    }
+
+    /// <summary>⛔ THE ONE ADMISSIBILITY SCREEN OVER A RANGE-EXPRESSION'S PAIR OF OPERANDS (kb/Work PB399) —
+    /// ISO §14.9.13.3 SR4, "The two operands in a range-expression shall be of the same class and shall not be
+    /// of class boolean, message-tag, object, or pointer", and SR9, "Neither identifier-3 nor identifier-4 shall
+    /// reference a variable-length group". Both are SYNTAX rules, so both are compile-time (§4.2.2).
+    /// <para>ONE screen and not three `if`s, because the two rules ask ONE question — "may these two operands be
+    /// the ends of a range?" — of the SAME pair, at the SAME moment, and <see cref="ScreenPairing"/> structurally
+    /// cannot ask it: <see cref="ObjectKind"/> names a <c>valueRange</c> as a single
+    /// <see cref="EvaluateObjectOperand.RangeExpression"/> row and never looks inside it, which is correct,
+    /// because Table 15 is about the subject↔object PAIRING and not about a range's internals.</para>
+    /// <para>CLASS here is §8.5.2.1 Table 2's, read through the ONE Table-2 lattice
+    /// (<see cref="IntrinsicArgumentRules.ClassOf"/>, projected onto the class column by
+    /// <see cref="IntrinsicArgumentRules.TableTwoClass"/>) — never <see cref="CollatingSelection.ForComparison"/>,
+    /// which answers the different question of which §8.8.4.2 comparison rule a RELATION selects and deliberately
+    /// collapses alphabetic onto alphanumeric and numeric-against-alphanumeric onto alphanumeric. A null class is
+    /// a figurative constant (§8.3.3.6.4 GR1 gives it its context's category, so the lattice answers a SET and
+    /// not a class) or an already-reported error node, and abstains — the direction that cannot reject legal
+    /// source. ⚠ Class MESSAGE-TAG, SR4's fourth exclusion, has no lattice member: USAGE MESSAGE-TAG is declined
+    /// non-support (COBOLNET1943) and refused by name at every edition, so no such operand reaches here; the day
+    /// it lands, the lattice gains the member and this screen sees it with no change.</para>
+    /// <para>The pointer case is the sharpest, and it is why SR4 cannot be left to the relation checkpoint: a
+    /// range lowers to `subject &gt;= low AND subject &lt;= high` (§14.9.13.4 GR4 a) 5.), and where that pair is
+    /// NOT what gets emitted — an inverted or IN-alphabet range builds a <c>BoundRangeMembership</c> instead —
+    /// the checkpoint is never reached at all. SR4 forbids the range outright, one phase earlier than any
+    /// question about the comparison.</para></summary>
+    private bool ScreenRangeOperands(Core.ValueRangeContext range, BoundOperand lo, BoundOperand hi)
+    {
+        bool ok = true;
+        var loClass = TableTwoClassOf(lo);
+        var hiClass = TableTwoClassOf(hi);
+        // SR4, second half — the classes a range-expression may not be of, asked of EACH end so the diagnostic
+        // can name the offender even when the other end abstains.
+        bool excluded = false;
+        for (int end = 0; end < 2; end++)
+        {
+            if ((end == 0 ? loClass : hiClass) is not { } c) continue;
+            if (c is not (CobolClass.Boolean or CobolClass.Object or CobolClass.Pointer)) continue;
+            excluded = true;
+            ok = false;
+            ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
+                $"the {(end == 0 ? "first" : "second")} operand of the range-expression "
+                + $"'{DataBinder.WrittenText(range)}' is of class {c.ToString().ToLowerInvariant()}; ISO §14.9.13.3 SR4 "
+                + "excludes class boolean, message-tag, object and pointer from a range-expression");
+        }
+        // SR4, first half — the same class. Reported only when neither end is already excluded, so one written
+        // range cannot draw two diagnostics about the same operand.
+        if (!excluded && loClass is { } lc && hiClass is { } hc && lc != hc)
+        {
+            ok = false;
+            ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
+                $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
+                + $"{lc.ToString().ToLowerInvariant()} and class {hc.ToString().ToLowerInvariant()}; ISO "
+                + "§14.9.13.3 SR4 requires them to be of the same class (§8.5.2.1 Table 2 — CLASS, not "
+                + "category, so alphabetic and alphanumeric are two classes)");
+        }
+        // SR9 — a variable-length group is §8.5.1.12.1's: "a group item whose data description has at least one
+        // dynamic-length elementary item or dynamic-capacity table as a subordinate item". ⛔ NOT an
+        // occurs-depending group, whose size is its maximum — through the ONE definition
+        // (ReferenceResolver.HasVariableLengthSubordinate) so this screen cannot drift from the REDEFINES, VALUE
+        // and report screens that ask the same question.
+        for (int end = 0; end < 2; end++)
+        {
+            if ((end == 0 ? lo : hi) is not BoundFieldOperand { Place.Item: { IsGroup: true } item }) continue;
+            if (!ReferenceResolver.HasVariableLengthSubordinate(item)) continue;
+            ok = false;
+            ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
+                $"the {(end == 0 ? "first" : "second")} operand of the range-expression '{DataBinder.WrittenText(range)}' "
+                + $"references '{item.CobolName ?? item.CsName}', a variable-length group (ISO §8.5.1.12.1 — a "
+                + "dynamic-length elementary item or a dynamic-capacity table is subordinate to it); ISO "
+                + "§14.9.13.3 SR9 forbids either end of a range-expression to reference one");
+        }
+        return ok;
+    }
+
+    /// <summary>The operand's ISO §8.5.2.1 Table 2 CLASS COLUMN — the lattice's answer projected through
+    /// <see cref="IntrinsicArgumentRules.TableTwoClass"/>, so category numeric-edited answers with the class
+    /// Table 2 gives it (alphanumeric) rather than with the refined member the lattice keeps for the
+    /// category-worded rules. §14.9.13.3 SR4 says CLASS, and §8.5.2.1's closing sentence is why the projection
+    /// is not optional: "Use of the name of a data class or data category in the rules of COBOL refers to the
+    /// category unless class is specifically indicated."</summary>
+    private static CobolClass? TableTwoClassOf(BoundOperand o) =>
+        IntrinsicArgumentRules.ClassOf(o) is { } c ? IntrinsicArgumentRules.TableTwoClass(c) : null;
 
     /// <summary>The subject's Table-15 COLUMN before SR6, or null when the shape cannot be named with
     /// certainty. The two subject-only forms are grammatical (TRUE/FALSE, and the subject's own class test —
@@ -397,6 +506,19 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             int objMark = host.Udf.PendingCount;
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
+            // ⛔ SR4 + SR9 BEFORE THE CLASS IS ASKED (kb/Work PB399). CollatingSelection.ForComparison's own
+            // remark says the message-tag / object / pointer categories "never reach here" — and they DID, by
+            // this route, because nothing screened the range's operands: a pointer pair answered ALPHANUMERIC,
+            // turned EC-RANGE-INVALID checking on, and had the emitter order raw addresses. The screen makes
+            // that remark true again, one phase earlier.
+            // ⛔ A REJECTED RANGE CONTRIBUTES AN ERROR NODE, NOT A COMPARISON. Both lowerings below — the
+            // BoundRangeMembership one and the inclusive CheckedRelational pair — ask questions these operands
+            // have already failed to be admissible for, and the relation checkpoint would draw the §8.8.4.2.2
+            // Format 3 diagnostic TWICE more about the same two operands after SR4 has said the range may not
+            // exist at all.
+            if (!ScreenRangeOperands(range, lo, hi))
+                return new BoundConditionError(
+                    $"EVALUATE range-expression '{DataBinder.WrittenText(range)}'");
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
             // ⛔ THE RANGE'S CLASS, ASKED ONCE, OF BOTH ENDS (§14.9.13.3 SR4 gives the pair one class to have) —
             // and it is what BOTH of §14.7.8's halves below are keyed on: rule 1 (numeric) is algebraic, names no

@@ -288,6 +288,7 @@
     "pb419_initialize_resume_boundary",
     "pb427_same_type_by_position",
     "pb420_initialize_float_value_default_2002",
+    "pb399_format3_relation_legal_shapes",
     "pb391_corresponding_rule2_sr8_binary"
   ],
   "pending": []

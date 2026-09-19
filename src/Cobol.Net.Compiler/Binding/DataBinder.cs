@@ -1248,8 +1248,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private readonly HashSet<string> _refusedClauseOperands = new(StringComparer.Ordinal);
 
     /// <summary>A reference AS THE PROGRAMMER WROTE IT. <c>GetText()</c> concatenates tokens with no separators
-    /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.</summary>
-    private static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) =>
+    /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.
+    /// <para>⛔ ONE DEFINITION for every binder that quotes source back at the programmer — the EVALUATE
+    /// selection-object screens quote a WHEN phrase and a range-expression, and <c>WHEN1ALSO2</c> /
+    /// <c>"A"THRU5</c> are not what anybody wrote (kb/Work PB399).</para></summary>
+    internal static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) =>
         ctx.Start.InputStream.GetText(new Antlr4.Runtime.Misc.Interval(ctx.Start.StartIndex, ctx.Stop.StopIndex));
 
     /// <summary>⛔ THE SHAPES A <i>data-name-n</i> OPERAND MAY NOT BE WRITTEN IN (kb/Work PB489). Where a general

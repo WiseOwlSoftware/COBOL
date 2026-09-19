@@ -2336,6 +2336,17 @@ public static class DiagnosticCatalog
         "COBOLNET0869", "pointer-operand-shape", EditionSeverity.Error,
         "A pointer, address or object-reference OPERAND is not of a shape its statement admits — the SET statement's pointer formats (ISO §14.9.39), the ADDRESS OF / LENGTH OF special registers (§8.4.3.11, §8.4.3.13), the pointer relation condition (§8.8.4.2.16), the ALLOCATE statement's RETURNING operand (§14.9.3), or the target-type restriction a RESTRICTED data-pointer (Annex D.9.2.2) puts on all of them. The site names the rule it caught.",
         "ISO §14.9.39 / §8.4.3.11 / §8.4.3.13 / §8.8.4.2.16 / §14.9.3 / Annex D.9.2.2");
+    /// <summary>COBOLNET0868 — the OBJECT-REFERENCE RELATION band: the fourth bare-string code of the kb/Work
+    /// PB175 sweep above, missed because its only site was inside <c>ConditionBinder</c>'s relation arm rather
+    /// than a verb binder (kb/Work PB399 moved that site to the ONE relation checkpoint and found it). It is
+    /// the class-OBJECT half of ISO §8.8.4.2.2's Format 3 (message-tag-object-or-pointer-reference relation
+    /// condition): that format prints only <c>IS [NOT] EQUAL TO</c> / <c>=</c> / <c>&lt;&gt;</c>, and
+    /// §8.8.4.2.3 SR5 requires both operands to be of class message-tag, object or pointer and of the same
+    /// category. The predefined object reference NULL rides (§8.4.3.9; §8.4.3.10.3 SR1).</summary>
+    public static readonly DiagnosticDescriptor ObjectRelationShape = new(
+        "COBOLNET0868", "object-relation-shape", EditionSeverity.Error,
+        "An object-reference relation condition is not of a shape ISO §8.8.4.2.2 Format 3 admits — an ordering operator (that format prints only [NOT] EQUAL / '=' / '<>'), an operand that is neither of class message-tag, object or pointer nor the predefined NULL, or a pair whose two operands are of different categories (§8.8.4.2.3 SR5). The site names the rule it caught.",
+        "ISO §8.8.4.2.1 / §8.8.4.2.2 Format 3 / §8.8.4.2.3 SR5 / §8.4.3.9 / §8.4.3.10.3");
     /// <summary>COBOLNET0881 — the USAGE-CLAUSE COMPATIBILITY band: which other data description clauses may
     /// share an entry with which usage. Covers ISO §13.18.60.3 (the USAGE clause's own syntax rules, incl.
     /// SR18's restricted-pointer TYPEDEF requirement) and §13.18.60.4, plus the clauses those rules exclude —
@@ -3508,6 +3519,47 @@ public static class DiagnosticCatalog
         + "a screen entry's FROM/TO/USING phrase and a report SUM addend — and this diagnostic is never raised for "
         + "a reference that writes none; writing too many has no such exception.",
         "ISO §8.4.2.3.3 SR3");
+
+    // ── COBOLNET2106 / COBOLNET2107 — EVALUATE's TWO REMAINING SYNTAX-RULE SCREENS (kb/Work PB399) ───────
+    //    §14.9.13.3 SR2 (the selection-object count) and SR4/SR9 (the range-expression's operands). Both were
+    //    SYNTAX rules with no compile-time mechanism at all: SR2 was stood in for by a defensive index guard
+    //    that returned a BoundUnsupported — a run-time abort, and only in the MORE-objects direction, while
+    //    FEWER objects than subjects silently bound the written prefix of the pairs and branched on a strict
+    //    subset of the statement's own selection subjects — and the range operands were handed straight to the
+    //    operand binder with no admissibility question of any kind. §4.2.2 requires a compile-time mechanism
+    //    for a syntax-rule violation.
+
+    /// <summary>COBOLNET2106 — §14.9.13.3 SR2: a WHEN phrase writes a number of selection objects other than the
+    /// number of selection subjects the EVALUATE statement declares. BOTH directions, because the rule is an
+    /// equality and the positional correspondence SR7's stem requires is undefined the moment the counts
+    /// differ.</summary>
+    public static readonly DiagnosticDescriptor EvaluateSelectionObjectCount = new(
+        "COBOLNET2106", "evaluate-selection-object-count", EditionSeverity.Error,
+        "A WHEN phrase writes the wrong number of selection objects. ISO §14.9.13.3 SR2: \"The number of "
+        + "selection objects within each set of selection objects shall be equal to the number of selection "
+        + "subjects.\" The subjects are the operands of EVALUATE itself, separated by ALSO; the objects are the "
+        + "operands of one WHEN phrase, separated by ALSO. Count them and make them equal — write ANY for a "
+        + "position the phrase does not care about (SR7 c): \"The word ANY may correspond to a selection subject "
+        + "of any type.\" ⚠ Each WHEN phrase is counted on its own: `WHEN 1 ALSO 2 WHEN 3` is TWO phrases "
+        + "sharing one imperative-statement, and the second is a one-object phrase.",
+        "ISO §14.9.13.3 SR2");
+
+    /// <summary>COBOLNET2107 — the EVALUATE range-expression OPERAND band: §14.9.13.3 SR4 (the two ends shall be
+    /// of the same class, and of none of four excluded classes) and SR9 (neither end shall reference a
+    /// variable-length group). One band, because one screen over the range PAIR answers both and the rules are
+    /// about the same two operands.</summary>
+    public static readonly DiagnosticDescriptor EvaluateRangeOperandInvalid = new(
+        "COBOLNET2107", "evaluate-range-operand", EditionSeverity.Error,
+        "An EVALUATE range-expression (`WHEN a THROUGH b`) has an inadmissible operand. ISO §14.9.13.3 SR4: "
+        + "\"The two operands in a range-expression shall be of the same class and shall not be of class "
+        + "boolean, message-tag, object, or pointer.\" SR9: \"Neither identifier-3 nor identifier-4 shall "
+        + "reference a variable-length group.\" CLASS is §8.5.2.1 Table 2's, not category — so alphabetic and "
+        + "alphanumeric are two classes, the three pointer categories are one, and numeric-edited takes the "
+        + "class of its usage. A range over pointers has no meaning to give: §8.8.4.2.2 Format 3 (the "
+        + "message-tag-object-or-pointer-reference relation condition) prints no ordering operator at all, so "
+        + "the inclusive `>=`/`<=` pair a range lowers to (§14.9.13.4 GR4 a) 5.) is not a comparison the "
+        + "standard defines. Write a list of WHEN phrases, or an explicit condition, instead of a range.",
+        "ISO §14.9.13.3 SR4 / SR9");
 
     // ── COBOLNET2072 / COBOLNET2073 — THE REQUIRED IMPERATIVE-STATEMENT OPERAND (kb/Work PB396) ──────────
     // Both are PARSE-layer diagnostics: the grammar rules that carry an imperative-statement operand cannot

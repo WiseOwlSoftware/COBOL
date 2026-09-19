@@ -307,9 +307,19 @@ internal static class IntrinsicArgumentRules
     /// a SET and reading the singleton off it keeps both questions on one table
     /// (<c>feedback_model_the_rule_shape_not_one_case</c>); the previous scalar-only shape is why a figurative
     /// had to fall out of the screen entirely as "not statically decidable".
+    /// <para>⚠ THE TWO ARMS BELOW ARE ONE TABLE, NOT TWO. Everything except a figurative constant and an ALL
+    /// literal reaches <see cref="CandidateClasses"/>'s own <c>_ =&gt; ClassOf1(op)</c> arm, so calling
+    /// <see cref="ClassOf1"/> directly for those shapes is the SAME lookup with the one-element array elided —
+    /// the two multi-candidate shapes still go through the set. This matters because the §8.8.4.2.2 Format 3
+    /// relation screen asks this of BOTH operands of EVERY relation in the program (kb/Work PB399), and a
+    /// throwaway array per operand per relation is a bind-path allocation with nothing to show for it. If a
+    /// third multi-candidate shape is ever added to <see cref="CandidateClasses"/>, it must be added to the
+    /// first arm here as well — hence the type test names the shapes rather than defaulting to them.</para>
     /// </remarks>
     public static CobolClass? ClassOf(BoundOperand op) =>
-        CandidateClasses(op) is [var only] ? only : null;
+        op is BoundFigurative or BoundAllLiteral
+            ? (CandidateClasses(op) is [var only] ? only : null)
+            : ClassOf1(op);
 
     /// <summary>⛔ THE ONE ISO §8.8.1.1 OPERAND-CLASS ANSWER (kb/Work PB169–PB172 — the burn-down cluster's
     /// spine): "An arithmetic expression may be an identifier referencing a numeric data item, a numeric literal,

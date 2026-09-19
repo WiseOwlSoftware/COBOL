@@ -1161,9 +1161,24 @@ internal sealed class StatementValidation(DataBinder data)
     /// boolean or the figurative ZERO, equality only — COBOLNET0844), and the strongly-typed-group rules
     /// (§8.8.4.2.3 SR1: same type both sides — COBOLNET1533; SR4: a strong group with a boolean/object/pointer
     /// leaf is equality-only — COBOLNET1535 <c>strong-compare-ordering</c>; plus the §8.8.4.2.12 signed-leaf
-    /// ordering stage — COBOLNET0899 <c>strong-group-ordering-signed-leaf</c>, P10 Step 16).</summary>
+    /// ordering stage — COBOLNET0899 <c>strong-group-ordering-signed-leaf</c>, P10 Step 16), and the
+    /// §8.8.4.2.2 FORMAT 3 band (<see cref="CheckFormat3Relation"/>) — "a relation condition involving operands
+    /// of class message-tag, object, or pointer is a message-tag-object-or-pointer-reference relation
+    /// condition" (§8.8.4.2.1), whose general format admits ONLY <c>IS [NOT] EQUAL TO</c> / <c>=</c> /
+    /// <c>&lt;&gt;</c> and whose SR5 requires both operands to be of one of those three classes AND of the same
+    /// CATEGORY (COBOLNET0868 for a relation naming class object, COBOLNET0869 otherwise).
+    /// <para>⛔ THAT BAND WAS WRITTEN IN <c>ConditionBinder.BindComparison</c>'s relation arm until kb/Work
+    /// PB399 — one caller of this checkpoint, not the checkpoint — so it screened `IF P &gt;= Q` and said
+    /// nothing about the SAME pair under EVALUATE, SEARCH WHEN, PERFORM UNTIL or an abbreviated relation.
+    /// Measured: `EVALUATE WS-P WHEN WS-Q THRU WS-R` compiled clean and ordered raw addresses, and
+    /// `EVALUATE WS-P WHEN WS-X` reached the BACKEND and failed as a raw C# CS1503. §14.9.13.4 GR2 makes an
+    /// EVALUATE pair a comparison "as if the corresponding relation condition were written", so every §8.8.4.2
+    /// rule is owed to it; the two-arm shape is fixed by moving the rule to the arm both sides share, never by
+    /// copying it. It was also written TWICE there, once per class, which is why the two copies disagreed about
+    /// the same category (only the object copy screened its operands' identity at all).</para></summary>
     public void CheckRelationalOperands(BoundOperand left, string op, BoundOperand right)
     {
+        CheckFormat3Relation(left, op, right);
         // ⛔ The class of an operand is asked of the ONE classifier (IntrinsicResultType.OperandCategory — total
         // over literals, fields, ref-mod views, groups, ALL literals, boolean expressions and COMPUTED operands),
         // never re-derived here (kb/Work PB68): the local switch that stood here had no arm for a
@@ -1216,6 +1231,89 @@ internal sealed class StatementValidation(DataBinder data)
                     + "element-by-element algebraic comparison of ISO §8.8.4.2.12/§8.8.4.2.4 — recognized but "
                     + "not yet implemented (the image comparison carries equality and unsigned orderings only)");
         }
+    }
+
+    /// <summary>⛔ THE ONE §8.8.4.2.2 FORMAT 3 SCREEN — the "message-tag-object-or-pointer-reference relation
+    /// condition" ISO §8.8.4.2.1 names: "a relation condition involving operands of class message-tag, object,
+    /// or pointer is a message-tag-object-or-pointer-reference relation condition". Two rules, over one pair:
+    /// <list type="number">
+    /// <item>the Format 3 general format prints only <c>IS [NOT] EQUAL TO</c> / <c>IS [NOT] =</c> / <c>IS
+    /// &lt;&gt;</c> — no ordering operator is written in it at all, so an ordering relation on such an operand
+    /// is a format violation;</item>
+    /// <item>§8.8.4.2.3 SR5 — "Identifier-3 and identifier-4 shall reference data items of class message-tag,
+    /// object, or pointer, and shall be of the same category", which §8.8.4.2.1 item 11 states a second way for
+    /// the pointer class ("Two operands of class pointer where each operand is of the same category").</item>
+    /// </list>
+    /// <para>⛔ ONE SCREEN OVER ALL THREE CLASSES, because the standard writes ONE format and ONE syntax rule
+    /// over all three (kb/Work PB399). The object and pointer halves used to be two independently-written
+    /// blocks, and every difference between them was a hole: only the object half existed for message-tag
+    /// (which is none of it), and NEITHER asked SR5's "same CATEGORY", so a data-pointer compared to a
+    /// program-pointer — two categories §8.8.4.2.1 item 11 keeps apart — was accepted. Both halves also asked
+    /// <c>Pic?.Category == PicCategory.Pointer</c>, which is one of the THREE categories Table 2 gathers into
+    /// class pointer, so a program-pointer or function-pointer operand answered "not a pointer" and left the
+    /// whole band silent.</para>
+    /// <para>The figurative NULL rides on either side and in either class: §8.4.3.10.1 makes it "a predefined
+    /// address of class pointer or a predefined content of class message-tag", §8.4.3.9 makes the object
+    /// spelling "class object and category object reference", and §8.4.3.10.3 SR1 a) admits it "in a
+    /// pointer-or-object-reference relation condition" by name. It has no category of its own, so it is exempt
+    /// from SR5's same-category test as well.</para></summary>
+    private void CheckFormat3Relation(BoundOperand left, string op, BoundOperand right)
+    {
+        // ⛔ CLASS IS ASKED OF THE ONE ISO §8.5.2.1 TABLE-2 LATTICE (IntrinsicArgumentRules), never of a local
+        // `Pic?.Category == …` test. That local test is what the two old copies used, and it is one of the
+        // THREE categories Table 2 gathers into class pointer — so a PROGRAM-POINTER or FUNCTION-POINTER
+        // operand answered "not a pointer" and the whole band stayed silent on it. The lattice also folds a
+        // bit / national GROUP onto its §13.18.29.4 as-if picture and reports an INDEX item as class index
+        // rather than its storage category, neither of which raw `Pic` could see.
+        static bool IsFormat3(CobolClass? c) => c is CobolClass.Object or CobolClass.Pointer;
+        static bool IsNull(BoundOperand o) => o is BoundFigurative { Kind: 'N' };
+        // ⚠ NULL HAS NO CLASS OF ITS OWN IN A RELATION. §8.4.3.10.3 SR1 selects its reading from "the
+        // associated data item's class" (a) pointer, b) message-tag) and §8.4.3.9 gives the object spelling
+        // class object, so in a relation it takes the OTHER operand's class. The lattice reports it as class
+        // POINTER — the right answer for every class-CLOSED operand slot it is asked about, and the wrong one
+        // here, where `IF an-object-reference = NULL` is the relation §8.4.3.10.3 SR1 a) admits by name.
+        var lc = IsNull(left) ? IntrinsicArgumentRules.ClassOf(right) : IntrinsicArgumentRules.ClassOf(left);
+        var rc = IsNull(right) ? IntrinsicArgumentRules.ClassOf(left) : IntrinsicArgumentRules.ClassOf(right);
+        if (!IsFormat3(lc) && !IsFormat3(rc)) return;   // a general-relation or boolean condition — not this band
+        // ⚠ CLASS MESSAGE-TAG — Format 3's third class — has no lattice member, because USAGE MESSAGE-TAG is
+        // DECLINED non-support (COBOLNET1943, Annex A.3 item 4) and `ParseUsage` refuses it BY NAME at every
+        // edition, so no message-tag operand can reach a bound relation on a compile that is not already
+        // errored. The rule below is written over the classes the lattice can present; the day the usage lands,
+        // the lattice gains its member and this screen sees it without a change here.
+        // COBOLNET0868 is the object-reference band, COBOLNET0869 the pointer/address one (whose descriptor
+        // names object references too); a relation that mentions class object reports under 0868.
+        bool obj = lc is CobolClass.Object || rc is CobolClass.Object;
+        string code = obj ? DiagnosticCatalog.ObjectRelationShape.Code : DiagnosticCatalog.PointerOperandShape.Code;
+        string band = obj ? "an object-reference" : "a data-pointer";
+        if (op is not ("==" or "!="))
+        {
+            data.Edition.Error(code, $"{band} relation admits only [NOT] EQUAL / '=' / '<>' — ISO §8.8.4.2.2 "
+                + "Format 3 (message-tag-object-or-pointer-reference) prints no ordering operator, and no "
+                + "ordering is defined for a reference or an address");
+            return;   // ONE diagnostic per written relation: the operand rule below is about the same pair
+        }
+        // §8.8.4.2.3 SR5's two halves, asked of the pair. An operand whose class is not statically decidable
+        // (an already-reported error node, a figurative whose class the context picks) abstains rather than
+        // drawing a second diagnostic about something the binder has already spoken about.
+        if (!IsFormat3(lc) || !IsFormat3(rc))
+        {
+            if (lc is not null && rc is not null)
+                data.Edition.Error(code, $"both operands of {band} relation shall be of class message-tag, "
+                    + "object or pointer — a data item of one of those classes, or the predefined NULL "
+                    + "(ISO §8.8.4.2.3 SR5; §8.4.3.10.3 SR1)");
+            return;
+        }
+        // "… and shall be of the same category" — the three pointer CATEGORIES are ONE class (Table 2) but SR5
+        // keeps them apart, and §8.8.4.2.1 item 11 says the same in the comparison-defined list ("Two operands
+        // of class pointer where each operand is of the same category"). NULL is exempt: it is a predefined
+        // address, not an identifier-3/identifier-4, and has no category of its own.
+        if (IsNull(left) || IsNull(right)) return;
+        if (lc != rc || (IntrinsicResultType.OperandCategory(left) is { } lcat
+                         && IntrinsicResultType.OperandCategory(right) is { } rcat && lcat != rcat))
+            data.Edition.Error(code, $"the two operands of {band} relation are not of the same category "
+                + "(ISO §8.8.4.2.3 SR5 — \"Identifier-3 and identifier-4 shall reference data items of class "
+                + "message-tag, object, or pointer, and shall be of the same category\"; §8.8.4.2.1 item 11 "
+                + "defines the pointer comparison only \"where each operand is of the same category\")");
     }
 
     /// <summary>True when a group (or elementary) item has any leaf of class boolean / object-reference / pointer —

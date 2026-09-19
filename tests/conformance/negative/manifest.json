@@ -1131,7 +1131,16 @@
   "pb391-move-noninteger-to-national-written",
   "pb392-subtract-corresponding-bit-group",
   "pb423-move-pointer-sender",
-  "pb423-move-pointer-receiver"
+  "pb423-move-pointer-receiver",
+  "pb399-evaluate-more-objects-than-subjects",
+  "pb399-evaluate-fewer-objects-than-subjects",
+  "pb399-evaluate-range-class-mix",
+  "pb399-evaluate-range-pointer-class",
+  "pb399-evaluate-range-boolean-class",
+  "pb399-evaluate-range-variable-length-group",
+  "pb399-evaluate-pointer-object-class-mix",
+  "pb399-pointer-relation-category-mix",
+  "pb399-search-when-pointer-ordering"
  ],
  "pending": []
 }
