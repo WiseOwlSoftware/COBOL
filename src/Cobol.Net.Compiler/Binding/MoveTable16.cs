@@ -367,30 +367,82 @@ public static class MoveTable16
 
     /// <summary>ISO §14.9.25.3 SR1's SENDING half — "The class of identifier-1 or identifier-2 shall not be
     /// index, message-tag, object, or pointer" — as the refusal text, or null when the sender's class is
-    /// admitted. §13.18.60.3 SR10 is the closed list of the references an index data item may appear in, and a
-    /// MOVE operand is not on it.
+    /// admitted.
     /// <para>⛔ IT IS A READER RATHER THAN A CHECK because its two askers frame it differently: <c>MoveBinder</c>
     /// reports it as COBOLNET0809 about the MOVE the programmer wrote, and <c>InitializeBinder</c> reports it as
     /// §14.9.20.3 SR4 about a MOVE that exists only in the rule (kb/Work PB416). One rule, one classifier
     /// (<c>IntrinsicArgumentRules.ClassOf</c> — the ONE §8.5.2.1 Table-2 reader), two framings.</para>
-    /// <para>⚠ MESSAGE-TAG, OBJECT and POINTER are in the rule and NOT in this test. Restricting it to class
-    /// INDEX is not a paraphrase of the rule but a statement about what can reach it: <c>CobolClass</c> has no
-    /// message-tag member (the MCS facility is unmodeled — docs/CONFORMANCE.md §4), and a pointer / object
-    /// operand reaching a MOVE is kb/Work's own open question on <c>MoveBinder</c>'s 0809 arms, which have
-    /// carried the same restriction and the same recorded reason since they were written. Widening it here
-    /// would make the two arms disagree — which is the defect shape this method exists to remove.</para>
     /// <para>⛔ THE CLASS COMES FROM <c>IntrinsicArgumentRules.ClassOf</c>, NEVER FROM A RE-DERIVED USAGE TEST.
     /// The two arms this replaced each pattern-matched ONE operand shape — a field whose usage is index, and an
     /// intrinsic call whose §15.2 item 6 type is index — so the THIRD shape, an index-NAME operand
     /// (<c>BoundIndexRef</c>, which the same classifier has reported as class index since kb/Work R27), was
     /// class index to every other screen in the compiler and numeric to this one.</para></summary>
     public static string? SenderClassRefusal(BoundOperand sender) =>
-        IntrinsicArgumentRules.ClassOf(sender) is not CobolClass.Index ? null
-        : sender is BoundComputedOperand { Expr: BoundIntrinsicCall ic }
-            ? $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §15.2 item 6 — FUNCTION "
-              + $"{ic.Sig.Name} over index arguments is an INDEX function, of the class and category index)"
-            : "a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10 — only a "
-              + "SEARCH or SET statement, a relation condition, an intrinsic-function or inline-method "
-              + "argument, or a procedure-division / CALL / INVOKE USING phrase may reference an index "
-              + "data item)";
+        Sr1ClassRefusal(IntrinsicArgumentRules.ClassOf(sender),
+            sender is BoundComputedOperand { Expr: BoundIntrinsicCall ic }
+                ? $"§15.2 item 6 — FUNCTION {ic.Sig.Name} over index arguments is an INDEX function, of the "
+                  + "class and category index"
+                : null);
+
+    /// <summary>ISO §14.9.25.3 SR1's RECEIVING half — the SAME sentence, which names "identifier-1 OR
+    /// identifier-2" and therefore reaches a receiving operand exactly as it reaches a sending one.
+    /// <para>⛔ THIS ARM EXISTS BECAUSE THE OTHER ONE WAS THE ONLY ONE THAT WAS EVER FIXED (kb/Work PB423 —
+    /// <c>feedback_two_arm_dispatch</c>, this repository's most reproducible defect shape). <c>MoveBinder</c>'s
+    /// receiver loop asked <c>t.Item.Pic is { Usage: Usage.Index }</c> — one USAGE, hand-written, beside a
+    /// sending arm that had already been routed through the class table — so <c>MOVE NULL TO P</c> over a
+    /// <c>USAGE POINTER</c> item reached ROSLYN and surfaced <c>CS0029: Cannot implicitly convert type 'string'
+    /// to 'CobolNet.Runtime.ManagedPointer'</c>, a message about generated C#, in place of a COBOL diagnostic.
+    /// Both arms now read one core, so the answer cannot differ by position.</para>
+    /// <para>A reference-modified receiver is classified through <c>IntrinsicArgumentRules.ClassOfPlace</c> like
+    /// any other place: §8.4.3.3.4 GR6's unique data item has the class its rules give it, and §8.4.3.3.3 SR5
+    /// admits reference modification only over class alphanumeric, boolean or national anyway, so no excluded
+    /// class can arrive wearing a modifier.</para></summary>
+    public static string? ReceiverClassRefusal(Place receiver) =>
+        Sr1ClassRefusal(IntrinsicArgumentRules.ClassOfPlace(receiver), null);
+
+    /// <summary>
+    /// ⭐ ISO §14.9.25.3 SR1 ITSELF — <i>"The class of identifier-1 or identifier-2 shall not be index,
+    /// message-tag, object, or pointer"</i> — asked of ONE operand's class, whichever position it occupies.
+    /// <para>⛔ THE EXCLUDED SET IS THE RULE'S WHOLE LIST, NOT THE ONE MEMBER THAT HAPPENED TO BE REACHABLE
+    /// (kb/Work PB423). This test was <c>is not CobolClass.Index</c>, excused by a comment asserting that
+    /// "message-tag/object/pointer classes cannot reach a bound MOVE yet (their usages are compile-gated
+    /// skeletons)". <c>PicInfo</c> contradicted that premise in its own XML docs — <c>Usage.Pointer</c> "LIVE
+    /// (Phase-4b increment 1)", <c>Usage.ProgramPointer</c> "LIVE (P10 Step 7)", <c>Usage.ObjectReference</c>
+    /// "LIVE (the Phase-3 OO spine)" — and <c>conformance:2002/based_pointer</c> exercises a live USAGE POINTER
+    /// end to end. MEASURED at <c>--std 2023</c> and <c>--std 2002</c>: <c>MOVE P TO Y</c> (pointer into
+    /// <c>PIC X(8)</c>) printed <c>Y=[CobolNet]</c> — the CLR type name of the pointer carrier, deposited in a
+    /// user's alphanumeric item with no diagnostic anywhere. A premise about what "cannot reach" a screen is
+    /// self-invalidating: it is written while a feature is staged and never revisited when the feature lands,
+    /// so the rule is written out in full instead.</para>
+    /// <para>⚠ MESSAGE-TAG has no <see cref="CobolClass"/> member and needs none: the MCS facility is unmodeled
+    /// (docs/CONFORMANCE.md §4) and <c>PictureAnalyzer.ParseUsage</c> refuses the usage by name (COBOLNET1943),
+    /// so no operand of that class can be bound. <c>MoveOperandClassDriftTests</c> asserts that every usage
+    /// §13.18.60.3 SR4 names — which is exactly the six producing these four classes — is refused here, so the
+    /// moment MESSAGE-TAG or any other gains a bound model the test fails rather than the screen silently
+    /// narrowing.</para>
+    /// <para>Class POINTER spans THREE categories — data-pointer, function-pointer and program-pointer
+    /// (§8.5.2.1 Table 2) — which is why the question is asked of the CLASS: a usage test would have missed
+    /// FUNCTION-POINTER exactly as the old one missed the others.</para>
+    /// </summary>
+    /// <param name="cls">The operand's §8.5.2.1 Table-2 class, or null when it is not statically decidable (a
+    /// figurative constant whose class the context chooses) — which fails OPEN, as every class screen here does.</param>
+    /// <param name="why">An operand-shape-specific reason to append, or null for the class's own.</param>
+    private static string? Sr1ClassRefusal(CobolClass? cls, string? why) => cls switch
+    {
+        CobolClass.Index => "a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; "
+            + (why ?? "§13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "
+                    + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
+                    + "USING phrase may reference an index data item") + ")",
+        CobolClass.Pointer => "a MOVE operand shall not be of class pointer — §8.5.2.1 Table 2 puts the "
+            + "data-pointer, function-pointer and program-pointer categories in that class (ISO §14.9.25.3 SR1; "
+            + "§13.18.60.3 SR9 — a data-pointer data item \"may be referenced explicitly only in a CALL "
+            + "statement, an INITIALIZE statement, an INVOKE statement, a SET statement, a relation condition, "
+            + "a procedure division header, the argument list of an inline invocation of a method, as an "
+            + "argument in a function-identifier, in the RETURNING phrase of an ALLOCATE statement, or in a "
+            + "FREE statement\", and SR8 says the same of a program-pointer). Use SET to assign a pointer",
+        CobolClass.Object => "a MOVE operand shall not be of class object — §8.5.2.1 Table 2 gives usage "
+            + "OBJECT REFERENCE the object-reference category of class object (ISO §14.9.25.3 SR1). Use SET to "
+            + "assign an object reference",
+        _ => null,
+    };
 }

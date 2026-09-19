@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Validation;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
 
@@ -54,7 +55,19 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     public BoundStatement Bind(
         CorrVerb verb, Core.DataReferenceContext[] groups, CobolRounding rounding, SizeErrorPhrase? sizeErr)
     {
-        string verbName = verb switch { CorrVerb.Move => "MOVE", CorrVerb.Add => "ADD", _ => "SUBTRACT" };
+        // ⛔ EACH VERB ASKS ITS OWN RULE, NOT A SHARED APPROXIMATION (kb/Work PB392). What stood here was a
+        // verb-NAME switch here and a CLAUSE-STRING switch below, so the three rules differed only in the
+        // citation the message printed while the predicate — a boolean `IsGroup` — was the intersection of none
+        // of them: it admitted a GROUP-USAGE BIT group to ADD and SUBTRACT, whose SR6 names four group kinds and
+        // not that one. The row carries the verb's spelling AND the clause AND the admitted kind set AND whether
+        // the rule's text names level-66, so the three cannot drift apart again.
+        CorrespondingOperandRule rule = verb switch
+        {
+            CorrVerb.Move => CorrespondingOperandRule.Move,
+            CorrVerb.Add => CorrespondingOperandRule.Add,
+            _ => CorrespondingOperandRule.Subtract,
+        };
+        string verbName = rule.Verb;
         if (groups.Length < 2)
             return new BoundUnsupported($"{verbName} CORRESPONDING operand shape");
         if (ctx.Refs.Resolve(groups[0]) is not { } src)
@@ -83,16 +96,10 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // Place.Undecorated (kb/Work PB393) the accident stopped refusing it at all, so `MOVE CORRESPONDING
         // G1(1:3) TO G2` moved the WHOLE group with the modifier silently discarded. The screen below reads the
         // PLACE, decorations intact, which is the only level at which a reference modifier is visible.
-        string rule = verb switch
-        {
-            CorrVerb.Move => "§14.9.25.3 SR12",
-            CorrVerb.Add => "§14.9.2.3 SR6",
-            _ => "§14.9.44.3 SR6",
-        };
         // Both operands are screened before the verdict — a statement with two bad operands reports two
         // diagnostics, not the first one only (a short-circuit here would hide the second).
-        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src, groups[0].GetText(), verbName, rule);
-        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, groups[1].GetText(), verbName, rule);
+        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src, groups[0].GetText(), rule);
+        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, groups[1].GetText(), rule);
         if (!srcOk || !dstOk) return new BoundNop();
 
         int id = _corrCounter++;
@@ -201,7 +208,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// pointer. <see cref="ItemCategory.IsIndexMessageTagObjectOrPointer"/> is §13.16.3 SR24 e)'s and
     /// §13.18.60.3 SR11's population too — one class test, three rules.</para>
     /// <para>⛔ AND "IS IT A DATA ITEM AT ALL" IS SCREENED HERE, not inside the rule-2 filter where it used to
-    /// sit. A PICTURE-less entry with no subordinates is neither elementary (§8.5.1.3) nor a group item — an
+    /// sit. A PICTURE-less entry with no subordinates is neither elementary (§8.5.1.3.1 — "The most basic
+    /// subdivisions of a record, that is, those not further subdivided, are called elementary items") nor a group item — an
     /// error-recovery artifact (a refused MESSAGE-TAG or staged FUNCTION-POINTER entry, a picture-less
     /// <c>USAGE NATIONAL</c> awaiting COBOLNET0881) — and §14.7.6 speaks only of "a data item in D1". Keeping it
     /// in a MOVE-validity filter made the exclusion invisible to ADD and SUBTRACT CORRESPONDING, which reached

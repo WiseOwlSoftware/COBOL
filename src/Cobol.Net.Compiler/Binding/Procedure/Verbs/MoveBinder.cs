@@ -279,13 +279,10 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     private void MoveOperandClassChecks(BoundOperand source, IReadOnlyList<Place> targets,
                                         ImplicitMovePhrase? implicitOf)
     {
-        // The §14.9.25.3 SR1 class check FIRST — version-invariant, every sender kind: "The class of
-        // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." An index data
-        // item may be referenced only by SET, SEARCH, relation conditions, and as a function/USING argument
-        // (§13.18.60.3 SR10) — a MOVE operand of class index is invalid at EVERY edition, never an Annex-E
-        // removal (the W2 adversarial review caught the 0902 row mislabeling it "permitted through 2014").
-        // Message-tag/object/pointer classes cannot reach a bound MOVE yet (their usages are compile-gated
-        // skeletons, W2 track B) — this check gains those arms when their phases land.
+        // The §14.9.25.3 SR1 class check FIRST — version-invariant, every operand kind: "The class of
+        // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." A MOVE operand of
+        // one of those classes is invalid at EVERY edition, never an Annex-E removal (the W2 adversarial review
+        // caught the 0902 row mislabeling it "permitted through 2014").
         // SR1 reaches a FUNCTION sender through §15.2 item 6 (kb/Work PB124 wave 5b): "Index functions.
         // These are of the class and category index." — MAX/MIN over index arguments IS one, and its result's
         // storage category (Numeric) made it indistinguishable from a numeric sender here, so
@@ -294,16 +291,21 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // through IntrinsicArgumentRules.ClassOf — the ONE §8.5.2.1 Table-2 answer — so §14.9.20.3 SR4's
         // hypothetical MOVE (INITIALIZE REPLACING) gets the identical verdict, and the index-NAME sender shape
         // neither hand-written arm matched is covered by construction.
+        // ⛔ AND SO DOES THE RECEIVING ARM (kb/Work PB423). It read `t.Item.Pic is { Usage: Usage.Index }` — one
+        // hand-written USAGE, under a comment claiming "message-tag/object/pointer classes cannot reach a bound
+        // MOVE yet (their usages are compile-gated skeletons, W2 track B)". PicInfo's own XML docs called all
+        // three usages LIVE, and the measurement agreed: `MOVE P TO Y` over a USAGE POINTER sender printed
+        // Y=[CobolNet] (the CLR carrier's type name) into an alphanumeric item, and `MOVE NULL TO P` reached
+        // Roslyn and surfaced CS0029 about generated C#. One rule, one core, asked of both positions.
         if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
             ctx.Edition.Error("COBOLNET0809", classRefusal
                 + (source is BoundFieldOperand sIdx
                     ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
                     : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
-            if (t.Item.Pic is { Usage: Usage.Index })
+            if (MoveTable16.ReceiverClassRefusal(t) is { } recvRefusal)
                 ctx.Edition.Error("COBOLNET0809",
-                    $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10) — "
-                    + ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName));
+                    $"{recvRefusal} — {ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName)}");
 
         // (The §14.9.25.3 SR5 EDITION gates — MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
         // MoveAlphanumericFigurativeRemoved2023 — moved to the post-bind VersionConformancePass (Step 14f),

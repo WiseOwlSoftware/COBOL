@@ -719,9 +719,21 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// papered over here with a second, edition-blind copy of the rule.</para></summary>
     private void CheckReplacingMoveValidity(InitializeCategorySet cats, BoundOperand value, string senderText)
     {
-        // §14.9.25.3 SR1 is about the OPERAND, not the pair, so it is asked once and short-circuits: an index
-        // sending item makes the implicit MOVE invalid for every category the item names.
-        if (MoveTable16.SenderClassRefusal(value) is { } classRefusal)
+        // ⛔ SR4'S SECOND PARAGRAPH IS WHAT THIS METHOD IMPLEMENTS, AND IT SAYS "the OTHER categories"
+        // (kb/Work PB423). The MOVE question is not asked at all for the five categories SR4's FIRST paragraph
+        // routes to a SET — data-pointer, function-pointer, message-tag, object-reference and program-pointer —
+        // so a REPLACING phrase naming ONLY those has no implicit MOVE to be valid. The per-category loop below
+        // already honoured that (Table16Receiver answers null for them); the SR1 CLASS screen did not, because
+        // it was hoisted above the loop as "asked once" back when the only class it could refuse was INDEX, and
+        // INDEX is not one of INITIALIZE's thirteen category-names. The moment SR1's screen gained its pointer
+        // and object arms, `INITIALIZE g REPLACING DATA-POINTER DATA BY PTR` — the exact shape SR4's first
+        // paragraph and §14.9.20.4 GR4 describe, and which conformance:2002/pb415_initialize_replacing_set_form
+        // pins — was refused as an invalid MOVE. The hoist stays (one message per REPLACING item, §5.2.6.4's
+        // category-name is a SET), guarded by the paragraph that owns it.
+        bool anyMoveFormCategory = false;
+        foreach (var cat in InitializeCategories.All)
+            if (cats.Contains(cat) && !InitializeCategories.IsSetForm(cat)) { anyMoveFormCategory = true; break; }
+        if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
                 $"INITIALIZE REPLACING … BY {senderText}: ISO §14.9.20.3 SR4 requires the implicit MOVE to be "

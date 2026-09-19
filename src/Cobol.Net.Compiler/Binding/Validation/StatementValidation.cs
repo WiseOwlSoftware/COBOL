@@ -13,6 +13,47 @@ namespace CobolNet.Binding.Validation;
 using Core = CobolParserCore;
 
 /// <summary>
+/// ⭐ ONE ROW PER CORRESPONDING VERB — the operand rule §14.9.25.3 SR12, §14.9.2.3 SR6 and §14.9.44.3 SR6 each
+/// state, AS DATA, so <see cref="StatementValidation.CheckCorrespondingGroupOperand"/> can ask each caller's own
+/// rule instead of the intersection of the three (kb/Work PB392).
+/// <para>The three rules differ on two axes and agreed on neither before this: ADD and SUBTRACT enumerate FOUR
+/// group kinds and exclude level-66 by name; MOVE says only "group data items" and never mentions level-66. A
+/// shared screen therefore has to carry the difference as a row, not as a comment — a fourth CORRESPONDING verb
+/// would be a row here and no edit anywhere else.</para>
+/// </summary>
+/// <param name="Verb">MOVE | ADD | SUBTRACT — the statement the programmer wrote, for the message.</param>
+/// <param name="Clause">The caller's own rule, e.g. "§14.9.2.3 SR6".</param>
+/// <param name="Admitted">The group kinds the rule's own text admits.</param>
+/// <param name="ExcludesLevel66">True when the rule's text names level-number 66 (the arithmetic spellings), so
+/// the diagnostic may quote it. MOVE's SR12 does not, and quoting it there was a miscitation.</param>
+internal readonly record struct CorrespondingOperandRule(
+    string Verb, string Clause, GroupKinds Admitted, bool ExcludesLevel66)
+{
+    /// <summary>ISO §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall
+    /// not be reference-modified." Every group kind is a group data item, and NOTE 5 under §14.9.25.4 GR11 puts
+    /// it beyond doubt for the two the other verbs exclude: "For purposes of MOVE CORRESPONDING, bit group items
+    /// and national group items are processed as group items, rather than as elementary items."</summary>
+    public static readonly CorrespondingOperandRule Move =
+        new("MOVE", "§14.9.25.3 SR12", GroupKinds.Any, ExcludesLevel66: false);
+
+    /// <summary>ISO §14.9.2.3 SR6 — "Identifier-4 and identifier-5 shall be alphanumeric group items, national
+    /// group items, variable-length groups, or strongly-typed group items and shall not be described with
+    /// level-number 66."</summary>
+    public static readonly CorrespondingOperandRule Add = new("ADD", "§14.9.2.3 SR6", ArithmeticKinds, true);
+
+    /// <summary>ISO §14.9.44.3 SR6 — word for word ADD's SR6, with identifier-4 the subtrahend group.</summary>
+    public static readonly CorrespondingOperandRule Subtract =
+        new("SUBTRACT", "§14.9.44.3 SR6", ArithmeticKinds, true);
+
+    /// <summary>SR6's four admitted kinds, written ONCE because the two rules are the same sentence: a bit group
+    /// is the one kind left out, and §14.7.6 rule 3 is why — "In an ADD or SUBTRACT statement, both of the data
+    /// items are numeric data items", which no child of a bit group (category boolean, §13.18.29.4 GR1) can be,
+    /// so every implied pair would silently fail to correspond.</summary>
+    private const GroupKinds ArithmeticKinds =
+        GroupKinds.Alphanumeric | GroupKinds.National | GroupKinds.VariableLength | GroupKinds.StronglyTyped;
+}
+
+/// <summary>
 /// The edition-INVARIANT syntax-rule check catalog lifted out of the verb binders (P7 Step 10; the phase
 /// doc's §Step 10). The contract (fixed at 10c, the AS-BUILT PLAN's convention): every <c>Check*</c> is a
 /// PURE check — it reports to the ONE sink (<c>data.Edition</c>) with byte-identical message text and
@@ -150,13 +191,28 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236):
+    /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236), each
+    /// asked as ITS OWN <see cref="CorrespondingOperandRule"/> row rather than as a shared approximation:
     /// MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall not be
     /// reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT §14.9.44.3 SR6 — "Identifier-4 and identifier-5
     /// shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group
     /// items and shall not be described with level-number 66." The two spellings differ (only the arithmetic
     /// ones exclude level-66 and enumerate the admitted group kinds), so the message names the rule the CALLER
     /// is under rather than reciting all three at everyone.
+    /// <para>⛔ THE ADMITTED KINDS ARE A SET, AND THE SCREEN ASKS THE SET (kb/Work PB392). This read
+    /// <c>if (item.IsGroup) return true;</c> — a boolean where SR6 names FOUR of the five group kinds — so a
+    /// <c>GROUP-USAGE BIT</c> group was admitted to ADD and SUBTRACT CORRESPONDING, and the statement then ran
+    /// as a SILENT NO-OP: §14.7.6 rule 3 requires both items of an implied pair to be numeric and every child of
+    /// a bit group is category boolean, which is precisely WHY SR6 leaves bit groups out. MEASURED at
+    /// <c>--std 2023</c>: <c>SUBTRACT CORRESPONDING SRC FROM DST</c> over two <c>GROUP-USAGE BIT</c> groups
+    /// compiled, ran and changed nothing. MOVE's SR12 admits every group kind — NOTE 5 under §14.9.25.4 GR11
+    /// processes bit and national groups "as group items" for MOVE CORRESPONDING — so the fix is NOT a stricter
+    /// screen for all three verbs but the rule's own set, per verb.</para>
+    /// <para>⛔ AND THE LEVEL-66 ARM IS SR6'S, NOT SR12'S. Its message quoted "shall not be described with
+    /// level-number 66" under whatever <c>clause</c> the caller passed, so a <c>MOVE CORRESPONDING</c> over a
+    /// RENAMES entry attributed to §14.9.25.3 SR12 eight words SR12 does not contain — a citation that passes
+    /// <c>cite.py --check</c> on the arithmetic spelling and is false on the MOVE one. SR12 refuses the same
+    /// operand for its own reason (a RENAMES entry is not a group data item), and now says so.</para>
     /// <para>⛔ THE LEVEL-66 CASE GETS ITS OWN REASON. A RENAMES entry has <c>Pic</c> null and no
     /// <c>Children</c>, so <see cref="DataItem.IsGroup"/> is false for it and it used to be reported as an
     /// "elementary operand" — rejected for a reason the rule does not give. It is excluded BY NAME, and the
@@ -175,34 +231,42 @@ internal sealed class StatementValidation(DataBinder data)
     /// without the JUSTIFIED clause"), which is none of the four group kinds their SR6 admits.</para></summary>
     /// <param name="operand">The resolved operand, DECORATIONS INTACT.</param>
     /// <param name="refText">The operand as written, for the message.</param>
-    /// <param name="verb">MOVE | ADD | SUBTRACT.</param>
-    /// <param name="clause">The caller's own rule, e.g. "§14.9.2.3 SR6".</param>
+    /// <param name="rule">The CALLER's own row — its clause, its admitted group kinds, and whether its text
+    /// names level-66 (see <see cref="CorrespondingOperandRule"/>).</param>
     /// <returns>true when the operand is admitted.</returns>
-    public bool CheckCorrespondingGroupOperand(Place operand, string refText, string verb, string clause)
+    public bool CheckCorrespondingGroupOperand(Place operand, string refText, CorrespondingOperandRule rule)
     {
         for (Place p = operand; p is PlaceDecorator d; p = d.Inner)
             if (d is RefModPlace)
             {
                 data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
-                    $"{verb} CORRESPONDING operand '{refText}' is reference-modified — the operands of a "
+                    $"{rule.Verb} CORRESPONDING operand '{refText}' is reference-modified — the operands of a "
                     + "CORRESPONDING statement are group items, and reference modification yields an "
                     + "elementary data item (ISO §8.4.3.3.4 GR6: \"The unique data item is considered to be an "
-                    + $"elementary data item without the JUSTIFIED clause\"), so it is not one (ISO {clause}). "
+                    + $"elementary data item without the JUSTIFIED clause\"), so it is not one (ISO {rule.Clause}). "
                     + "Name the group itself, or MOVE the modified reference to a matching item.");
                 return false;
             }
         DataItem item = operand.Item;
         if (item.Renames is not null)
         {
-            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
-                $"{verb} CORRESPONDING operand '{refText}' is described with level-number 66 — the operands "
-                + $"\"shall not be described with level-number 66\" (ISO {clause})");
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule, rule.ExcludesLevel66
+                ? $"{rule.Verb} CORRESPONDING operand '{refText}' is described with level-number 66 — the "
+                  + $"operands \"shall not be described with level-number 66\" (ISO {rule.Clause})"
+                : $"{rule.Verb} CORRESPONDING operand '{refText}' is described with level-number 66, so it is "
+                  + $"not a group data item — the operands shall be {ItemCategory.Spell(rule.Admitted)} "
+                  + $"(ISO {rule.Clause})");
             return false;
         }
-        if (item.IsGroup) return true;
-        data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
-            $"{verb} CORRESPONDING operand '{refText}' is an elementary item — both operands shall be group "
-            + $"items (ISO {clause})");
+        GroupKinds kinds = ItemCategory.GroupKindsOf(item);
+        if ((kinds & rule.Admitted) != GroupKinds.None) return true;
+        data.Edition.Error(DiagnosticCatalog.StatementOperandRule, kinds is GroupKinds.None
+            ? $"{rule.Verb} CORRESPONDING operand '{refText}' is an elementary item — both operands shall be "
+              + $"group items (ISO {rule.Clause})"
+            // The kind IS a group kind, and the rule names a narrower set: say which kind it is and which the
+            // rule admits, because "shall be group items" would be a false explanation of a group's refusal.
+            : $"{rule.Verb} CORRESPONDING operand '{refText}' is {ItemCategory.Face(item)} — the operands shall "
+              + $"be {ItemCategory.Spell(rule.Admitted)} (ISO {rule.Clause})");
         return false;
     }
 

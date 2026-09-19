@@ -266,6 +266,29 @@ true: every SET-family amount site lands, and no emitter narrows an amount with 
   ProgramPointer / FunctionPointer / ObjectReference members and `Usage.MessageTag` contradict. A POINTER
   namesake pair was excluded from MOVE CORRESPONDING only by the ACCIDENT of a private Table-16 copy's
   `_ => false` default; `ConditionNameAssociationDriftTests` and `CorrespondingRule2DriftTests` pin both halves.
+- **A GROUP ITEM'S KIND IS A SET, AND `ItemCategory.GroupKindsOf` IS THE ONE READER OF IT** (kb/Work PB392,
+  2026-09-19). The standard distinguishes FIVE kinds of group item — alphanumeric (§3.11, defined as the
+  complement), bit and national (§13.18.29.4 GR1/GR2), strongly-typed (§8.5.3.3) and variable-length
+  (§8.5.1.12.1) — and several syntax rules are worded as a LIST of them: ADD §14.9.2.3 SR6 and SUBTRACT
+  §14.9.44.3 SR6 admit *"alphanumeric group items, national group items, variable-length groups, or
+  strongly-typed group items"*; MOVE §14.9.25.3 SR12 admits every kind ("group data items", and NOTE 5 under
+  §14.9.25.4 GR11 confirms it for bit and national groups). Asked as the boolean `DataItem.IsGroup`, such a rule admits the kinds it names AND
+  the ones it does not: a `GROUP-USAGE BIT` group passed SR6 and the statement then ran as a silent no-op,
+  because §14.7.6 rule 3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a
+  bit group is category boolean. **`GroupKinds` is `[Flags]`, not a scalar classification**: §13.18.29.3 SR1
+  (*"The GROUP-USAGE clause may be specified only if the subject of the entry is a group item that is not
+  strongly typed and not a variable-length group"*) keeps bit and national disjoint from the other two and §3.11
+  makes alphanumeric the complement, but NOTHING keeps STRONGLY-TYPED and VARIABLE-LENGTH apart — a scalar enum
+  would have to pick one and would then answer a rule admitting only the other incorrectly. A rule is therefore
+  `(kinds & admitted) != 0`, its admitted set is a `CorrespondingOperandRule` ROW per verb (clause + admitted
+  kinds + whether the rule's text names level-66), and the diagnostic's admitted-set phrase is GENERATED from
+  the set by `ItemCategory.Spell` so the message cannot disagree with the check. `IsAlphanumericGroup` and
+  `Face`'s group arms — two of the three hand-written copies of this classification — now read the one reader;
+  `GroupKindDriftTests` pins the §3.11 complement, the SR1 disjointness and the three rule rows. ⚠ The
+  CORRESPONDING verbs are the only askers converted so far: `InspectBinder` still admits every group kind where
+  §14.9.22.3 SR1 names *"an alphanumeric or national group item"*, so `INSPECT <a bit group> TALLYING …` is
+  accepted and tallies the bit characters — measured, and registered as a lead for a note of its own rather than
+  swept in with a row this change set cannot re-verdict.
 - **D-N7 a national-form NUMERIC / NUMERIC-EDITED / BOOLEAN item is its DISPLAY twin COMPOSED with the one
   national byte transform** (kb/Work PB646, 2026-09-13). §13.18.60.3 SR12 admits FIVE picture shapes under usage
   national — boolean, national, national-edited, numeric and numeric-edited — and all five are live. The

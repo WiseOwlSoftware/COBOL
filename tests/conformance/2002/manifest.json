@@ -233,6 +233,8 @@
     "pb231_based_bit_leaf",
     "pb231_based_national_leaf",
     "pb231_based_pointer_leaf",
+    "pb392_corresponding_group_kinds",
+    "pb423_move_operand_class_admitted",
     "pb231_national_byte_window",
     "pb327_national_fd_record",
     "pb327_national_record_key",

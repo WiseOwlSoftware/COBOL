@@ -71,11 +71,76 @@ public static class ItemCategory
     /// carries: a PICTURE-less entry with no subordinates is not a group item and has no category at all, and
     /// admitting it would let a rule about data items answer about something that is not one.</para>
     /// </summary>
-    public static bool IsAlphanumericGroup(DataItem item) =>
-        item.IsGroup
-        && item.GroupUsage is GroupUsage.None
-        && !StrongTypeModel.IsStronglyTyped(item)
-        && !VariableLengthCompatibility.IsVariableLength(item);
+    public static bool IsAlphanumericGroup(DataItem item) => GroupKindsOf(item).HasFlag(GroupKinds.Alphanumeric);
+
+    /// <summary>
+    /// ⭐ <b>THE ONE ANSWER TO "WHICH KIND OF GROUP ITEM IS THIS?"</b> — the axis every rule worded as a LIST of
+    /// group kinds asks about, and <see cref="GroupKinds.None"/> for anything that is not a group item.
+    /// <para>⛔ WHY IT IS A SET AND NOT A BOOLEAN (kb/Work PB392). ADD §14.9.2.3 SR6 and SUBTRACT §14.9.44.3 SR6
+    /// read <i>"Identifier-4 and identifier-5 shall be alphanumeric group items, national group items,
+    /// variable-length groups, or strongly-typed group items and shall not be described with level-number
+    /// 66"</i> — a rule that names FOUR of the five kinds. Asked as <c>item.IsGroup</c> it admitted the fifth: a
+    /// <c>GROUP-USAGE BIT</c> group passed, and the statement then executed as a silent no-op, because
+    /// §14.7.6 rule 3 requires both items of an implied ADD/SUBTRACT pair to be numeric and every child of a bit
+    /// group is category boolean — which is exactly WHY SR6 leaves bit groups out. A scalar predicate where the
+    /// rule names a set is <c>feedback_model_the_rule_shape_not_one_case</c>, and it cost in both directions.</para>
+    /// <para>⛔ AND IT IS FLAGS, NOT AN ORDERED CLASSIFICATION. Four of the five kinds are mutually exclusive by
+    /// construction — §13.18.29.3 SR1, <i>"The GROUP-USAGE clause may be specified only if the subject of the
+    /// entry is a group item that is not strongly typed and not a variable-length group"</i>, keeps BIT and
+    /// NATIONAL apart from the other two, and §3.11 defines an <i>alphanumeric group item</i> as the complement
+    /// ("group item except for a bit group item, a national group item, a strongly-typed group item, or a
+    /// variable-length group item"). STRONGLY-TYPED and VARIABLE-LENGTH, however, are NOT exclusive: nothing in
+    /// §13.18.58.3 stops a type declaration from containing a dynamic-length elementary item. A scalar enum
+    /// would have to pick one of the two and would then answer a rule that admits only the OTHER incorrectly, so
+    /// the model is the set of kinds the item IS and a rule is <c>(kinds &amp; admitted) != 0</c>.</para>
+    /// <para>The three hand-written copies of this classification that stood in this file — <c>Admits</c>'s
+    /// <c>item.IsGroup</c>, <see cref="IsAlphanumericGroup"/>'s four conjuncts and <see cref="Face"/>'s ordered
+    /// group arms — now all read this one. <c>GroupKindDriftTests</c> pins the §3.11 complement and the
+    /// §13.18.29.3 SR1 disjointness.</para>
+    /// </summary>
+    public static GroupKinds GroupKindsOf(DataItem item)
+    {
+        // The structural half no classifier carries. §8.5.1.3.1 — "The most basic subdivisions of a record,
+        // that is, those not further subdivided, are called elementary items" — so an entry with NO subordinates
+        // is not a group item whatever else it is, and here it is an error-recovery artifact (a refused
+        // MESSAGE-TAG entry, a picture-less USAGE NATIONAL awaiting COBOLNET0881). It has no kind at all;
+        // admitting it would let a rule about group items answer about something that is not one.
+        if (!item.IsGroup) return GroupKinds.None;
+        // §13.18.29.4 GR1/GR2 — the GROUP-USAGE clause names the kind outright, and SR1 above guarantees such a
+        // group is neither strongly typed nor variable-length, so these two arms are terminal.
+        if (item.GroupUsage is GroupUsage.Bit) return GroupKinds.Bit;
+        if (item.GroupUsage is GroupUsage.National) return GroupKinds.National;
+        GroupKinds kinds = GroupKinds.None;
+        if (StrongTypeModel.IsStronglyTyped(item)) kinds |= GroupKinds.StronglyTyped;
+        if (VariableLengthCompatibility.IsVariableLength(item)) kinds |= GroupKinds.VariableLength;
+        // §13.18.29.4 GR3 — no GROUP-USAGE clause, not strongly typed, not variable-length ⇒ alphanumeric.
+        return kinds is GroupKinds.None ? GroupKinds.Alphanumeric : kinds;
+    }
+
+    /// <summary>The group kinds <paramref name="kinds"/> names, spelled the way the standard spells them, joined
+    /// as a syntax rule joins them — so a diagnostic quoting an admitted SET is generated from the SET rather
+    /// than hand-copied beside it (a second copy is how the message and the check come to disagree). The
+    /// declaration order of <see cref="GroupKinds"/> is §14.9.2.3 / §14.9.44.3 SR6's own order, so those two
+    /// rules' admitted set renders word for word as the rule reads.</summary>
+    public static string Spell(GroupKinds kinds)
+    {
+        // A rule that admits every kind is not written as an enumeration — §14.9.25.3 SR12 says "group data
+        // items" — so the whole set is spelled the way the standard spells it rather than as all five names.
+        if (kinds is GroupKinds.Any) return "group data items";
+        var parts = new List<string>(5);
+        if (kinds.HasFlag(GroupKinds.Alphanumeric)) parts.Add("alphanumeric group items");
+        if (kinds.HasFlag(GroupKinds.National)) parts.Add("national group items");
+        if (kinds.HasFlag(GroupKinds.VariableLength)) parts.Add("variable-length groups");
+        if (kinds.HasFlag(GroupKinds.StronglyTyped)) parts.Add("strongly-typed group items");
+        if (kinds.HasFlag(GroupKinds.Bit)) parts.Add("bit group items");
+        return parts.Count switch
+        {
+            0 => "no group items",
+            1 => parts[0],
+            2 => parts[0] + " or " + parts[1],
+            _ => string.Join(", ", parts.Take(parts.Count - 1)) + ", or " + parts[^1],
+        };
+    }
 
     /// <summary>
     /// ⛔ THE ONE READER of the USAGE a data item OPERATES with — the axis every rule worded <i>"a data item
@@ -186,13 +251,54 @@ public static class ItemCategory
     public static string Face(DataItem item) =>
         item.Pic is { } pic
             ? pic.IsAlphabetic ? "a category-alphabetic item" : $"a category-{pic.Category.ToString().ToLowerInvariant()} item"
-        : item.GroupUsage is not GroupUsage.None ? $"a {item.GroupUsage.ToString().ToLowerInvariant()} group item"
-        : !item.IsGroup ? "not an elementary or group data item"
-        : StrongTypeModel.IsStronglyTyped(item)
-            ? "a strongly-typed group item (ISO §8.5.3.3), which §13.18.29.4 GR3 excludes from the alphanumeric "
-              + "group items"
-        : VariableLengthCompatibility.IsVariableLength(item)
-            ? "a variable-length group (ISO §8.5.1.12.1), which §13.18.29.4 GR3 excludes from the alphanumeric "
-              + "group items"
-        : "an alphanumeric group item";
+        : GroupKindsOf(item) switch
+        {
+            GroupKinds.None => "not an elementary or group data item",
+            GroupKinds.Bit => "a bit group item (ISO §13.18.29.4 GR1)",
+            GroupKinds.National => "a national group item (ISO §13.18.29.4 GR2)",
+            GroupKinds.Alphanumeric => "an alphanumeric group item",
+            // Strongly-typed and variable-length are the one pair §13.18.29.3 SR1 does not keep apart, so the
+            // face names BOTH when an item is both rather than reporting whichever arm happened to run first.
+            var k => (k.HasFlag(GroupKinds.StronglyTyped)
+                        ? "a strongly-typed group item (ISO §8.5.3.3)" : "")
+                   + (k == (GroupKinds.StronglyTyped | GroupKinds.VariableLength) ? " that is also " : "")
+                   + (k.HasFlag(GroupKinds.VariableLength)
+                        ? "a variable-length group (ISO §8.5.1.12.1)" : "")
+                   + ", which §13.18.29.4 GR3 excludes from the alphanumeric group items",
+        };
+}
+
+/// <summary>
+/// ⭐ The FIVE kinds of group item ISO/IEC 1989:2023 distinguishes, as a SET — the shape a syntax rule worded
+/// <i>"shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group
+/// items"</i> (§14.9.2.3 SR6 / §14.9.44.3 SR6) needs in order to be asked as the rule is written.
+/// <para>The declaration order is those two rules' own order, because <see cref="ItemCategory.Spell"/> renders a
+/// set in it. Four of the five are mutually exclusive by §13.18.29.3 SR1 and §3.11; STRONGLY-TYPED and
+/// VARIABLE-LENGTH are not, which is why this is <c>[Flags]</c> rather than a scalar classification — see
+/// <see cref="ItemCategory.GroupKindsOf"/>.</para>
+/// </summary>
+[Flags]
+public enum GroupKinds
+{
+    /// <summary>Not a group item at all — an elementary item, a level-66 RENAMES entry, or a PICTURE-less entry
+    /// with no subordinates (§8.5.1.3.1 reserves "elementary" for a record's undivided subdivisions, and this
+    /// compiler's error recovery leaves such an entry neither).</summary>
+    None = 0,
+    /// <summary>ISO §3.11 — <i>"group item except for a bit group item, a national group item, a strongly-typed
+    /// group item, or a variable-length group item"</i>; §13.18.29.4 GR3 states the same thing positively.</summary>
+    Alphanumeric = 1 << 0,
+    /// <summary><c>GROUP-USAGE NATIONAL</c> (ISO §13.18.29.4 GR2) — class and category national.</summary>
+    National = 1 << 1,
+    /// <summary>ISO §8.5.1.12.1 — <i>"a group item whose data description has at least one dynamic-length
+    /// elementary item or dynamic-capacity table as a subordinate item"</i>.</summary>
+    VariableLength = 1 << 2,
+    /// <summary>ISO §8.5.3.3 — a group described with, or subordinate to nothing but, a <c>TYPEDEF … STRONG</c>
+    /// type declaration.</summary>
+    StronglyTyped = 1 << 3,
+    /// <summary><c>GROUP-USAGE BIT</c> (ISO §13.18.29.4 GR1) — class and category boolean.</summary>
+    Bit = 1 << 4,
+
+    /// <summary>Every kind — what a rule worded simply <i>"group data items"</i> admits (ISO §14.9.25.3 SR12,
+    /// MOVE CORRESPONDING). Stated as the union so a sixth kind joins it without an edit.</summary>
+    Any = Alphanumeric | National | VariableLength | StronglyTyped | Bit,
 }
