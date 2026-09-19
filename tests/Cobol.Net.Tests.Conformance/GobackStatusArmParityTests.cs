@@ -111,6 +111,51 @@ public sealed class GobackStatusArmParityTests
         EditionHarness.AssertHasDiagnostic(methErrors, code);
     }
 
+    // ── §14.9.18.3 SR5 — the LAST phrase's PLACEMENT, on BOTH arms (kb/Work PB410) ───────────────────────
+    //
+    // SR5: "The LAST phrase may be specified only in a declarative procedure or WHEN phrase of a PERFORM
+    // statement." It carries NO method qualifier, and §14.9.18.4 GR4 makes a method's GOBACK a GOBACK — so the
+    // two arms owe the same verdict, which is exactly what this class exists to assert. The measured pre-fix
+    // state was the rule enforced NOWHERE it applies and enforced EVERYWHERE it does not: the program arm
+    // accepted `GOBACK RAISING LAST EXCEPTION.` written in an ordinary paragraph, and the method arm refused it
+    // inside a PERFORM WHEN phrase — one of the two positions SR5 names — by a diagnostic whose own text quoted
+    // SR5's two admitted positions and then rejected source sitting in one of them.
+
+    /// <summary>A WHEN phrase of an exception-checking PERFORM is one of SR5's two admitted positions, so the
+    /// statement is LEGAL on both arms. This is the row that was RED on the method arm (COBOLNET0899).</summary>
+    [Fact]
+    public void RaisingLastInAPerformWhenPhrase_IsAcceptedOnBothArms()
+    {
+        const string body = """
+            PERFORM UNTIL 1 = 1
+                    CONTINUE
+                WHEN EC-SIZE
+                    GOBACK RAISING LAST EXCEPTION
+            END-PERFORM.
+            """;
+        var (progOk, progErrors, _) = EditionHarness.CompileFull(InProgram(body), 2023);
+        var (methOk, methErrors, _) = EditionHarness.CompileFull(InMethod(body), 2023);
+        Assert.True(progOk, string.Join("\n", progErrors));
+        Assert.True(methOk,
+            "the METHOD arm rejected a GOBACK RAISING LAST EXCEPTION written in a PERFORM WHEN phrase — one of "
+            + "the two positions ISO §14.9.18.3 SR5 admits, with no method qualifier anywhere in the clause "
+            + "(kb/Work PB410):\n" + string.Join("\n", methErrors));
+    }
+
+    /// <summary>An ordinary paragraph is NEITHER of SR5's two positions, so the statement is refused on both
+    /// arms, with the same code and the same ordinal. The program arm accepted it before PB410.</summary>
+    [Fact]
+    public void RaisingLastInAnOrdinaryParagraph_IsRejectedOnBothArms()
+    {
+        const string body = "GOBACK RAISING LAST EXCEPTION.";
+        var (progOk, progErrors, _) = EditionHarness.CompileFull(InProgram(body), 2023);
+        var (methOk, methErrors, _) = EditionHarness.CompileFull(InMethod(body), 2023);
+        Assert.False(progOk, "the program arm accepted a RAISING LAST outside both of ISO §14.9.18.3 SR5's positions");
+        Assert.False(methOk, "the method arm accepted a RAISING LAST outside both of ISO §14.9.18.3 SR5's positions");
+        EditionHarness.AssertHasDiagnostic(progErrors, "COBOLNET2103");
+        EditionHarness.AssertHasDiagnostic(methErrors, "COBOLNET2103");
+    }
+
     /// <summary>THE OTHER HALF OF THE RULE, and the reason the fix is a SCREEN and not a new behaviour: a legal
     /// status phrase in a method is accepted and then has no effect. §14.9.18.4 GR7/GR8/GR9/GR10 give the phrase
     /// its whole force only "in a main program", and a method is never one — so the INVOKE returns normally, the

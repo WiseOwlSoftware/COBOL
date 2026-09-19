@@ -15,6 +15,8 @@ namespace CobolNet.Binding;
 ///   <item><term>identifier-1 is an object reference</term><description>EXIT SR5 · GOBACK SR4 · RAISE SR2, with
 ///     the declared-class constraint at <c>a)</c> and the universal-reference one at <c>d)</c></description></item>
 ///   <item><term>the LAST phrase</term><description>EXIT SR6 · GOBACK SR5 (RAISE: no LAST phrase)</description></item>
+///   <item><term>not in a GLOBAL declarative</term><description>EXIT SR2 · GOBACK SR1 (RAISE: none — it does not
+///     return from the source element)</description></item>
 /// </list>
 /// Before this type the VERB was threaded through that path and the CLAUSE was a literal in each message, so
 /// every one of them printed GOBACK's or RAISE's ordinal at an EXIT statement — a wrong rule number shown to the
@@ -35,19 +37,26 @@ namespace CobolNet.Binding;
 /// the declared-class-in-the-PD-header constraint and its <c>d)</c> sub-item the universal-reference one.</param>
 /// <param name="LastRule">The rule restricting the LAST phrase to a declarative or a PERFORM WHEN phrase, or 0
 /// for a statement that has no LAST phrase.</param>
+/// <param name="GlobalDeclarativeRule">The rule forbidding the STATEMENT inside a declarative procedure whose USE
+/// statement carries the GLOBAL phrase, or 0 for a statement that has no such rule. ⛔ It is a rule about the
+/// STATEMENT, not about its RAISING phrase — carried here because it is the same (statement → clause → ordinal)
+/// mapping this value exists to keep honest (kb/Work PB404, PB409), and a bare EXIT PROGRAM / GOBACK with no
+/// RAISING phrase asks it too.</param>
 internal readonly record struct EcRaiseSite(string Verb, string Clause, int Level3Rule, int ObjectRule,
-                                            int LastRule)
+                                            int LastRule, int GlobalDeclarativeRule = 0)
 {
-    /// <summary>RAISE (ISO §14.9.29.3). It has no RAISING phrase and therefore no EC-USER/LAST rules.</summary>
+    /// <summary>RAISE (ISO §14.9.29.3). It has no RAISING phrase and therefore no EC-USER/LAST rules, and it does
+    /// not return from the source element, so §14.9.29.3 states no GLOBAL-declarative prohibition either.</summary>
     public static readonly EcRaiseSite Raise = new("RAISE", "14.9.29.3", Level3Rule: 1, ObjectRule: 2, LastRule: 0);
 
     /// <summary>GOBACK RAISING (ISO §14.9.18.3) — including the method-context GOBACK.</summary>
-    public static readonly EcRaiseSite Goback = new("GOBACK", "14.9.18.3", Level3Rule: 2, ObjectRule: 4, LastRule: 5);
+    public static readonly EcRaiseSite Goback = new("GOBACK", "14.9.18.3", Level3Rule: 2, ObjectRule: 4, LastRule: 5,
+                                                    GlobalDeclarativeRule: 1);
 
     /// <summary>An EXIT statement's RAISING phrase (ISO §14.9.14.3): EXIT PROGRAM, EXIT FUNCTION, EXIT METHOD.
     /// One clause, one set of ordinals — the format differs, the syntax rules do not.</summary>
     public static EcRaiseSite Exit(string verb) =>
-        new(verb, "14.9.14.3", Level3Rule: 3, ObjectRule: 5, LastRule: 6);
+        new(verb, "14.9.14.3", Level3Rule: 3, ObjectRule: 5, LastRule: 6, GlobalDeclarativeRule: 2);
 
     /// <summary>The statement named as a message's subject: "RAISE", or "GOBACK RAISING" / "EXIT PROGRAM
     /// RAISING" for the phrase forms.</summary>

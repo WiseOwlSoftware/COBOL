@@ -1270,9 +1270,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor OoMethodDeclaratives = new(
         NotImplemented, "oo-method-declaratives", EditionSeverity.Error,
         "DECLARATIVES inside a method are recognized but not yet implemented.", "ISO §14.2.1", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor OoMethodRaisingLast = new(
-        NotImplemented, "oo-method-raising-last", EditionSeverity.Error,
-        "RAISING LAST EXCEPTION inside a method is not yet implemented.", "ISO §14.9.18.3 SR5", RecognizedNotImplemented);
+    // ⛔ `oo-method-raising-last` is DELETED, not disabled (kb/Work PB410): the method arm no longer decides
+    // §14.9.18.3 SR5 at all — it asks the same PlacementRules screen the program arm asks, so RAISING LAST in a
+    // method's PERFORM WHEN phrase is ACCEPTED and one outside either admitted position is refused by
+    // COBOLNET2103, with the same ordinal, whichever arm bound it.
     public static readonly DiagnosticDescriptor OoGroupValuedProperty = new(
         NotImplemented, "oo-group-valued-property", EditionSeverity.Error,
         "A group-valued object-property reference is not yet implemented.", "ISO §8.4.3.9.4", RecognizedNotImplemented);
@@ -3560,6 +3561,56 @@ public static class DiagnosticCatalog
         + "the inclusive `>=`/`<=` pair a range lowers to (§14.9.13.4 GR4 a) 5.) is not a comparison the "
         + "standard defines. Write a list of WHEN phrases, or an explicit condition, instead of a range.",
         "ISO §14.9.13.3 SR4 / SR9");
+
+    // ── COBOLNET2102 / COBOLNET2103 — THE TWO PLACEMENT RULES THE EXIT / GOBACK / RESUME FAMILY SHARES ───
+    //    (kb/Work PB404, PB409, PB410). Each of the two is written down THREE TIMES in the standard, once per
+    //    statement under its own ordinal — §14.9.14.3 SR2 / §14.9.18.3 SR1 / §14.9.33.3 SR2 for the GLOBAL
+    //    declarative, and §14.9.14.3 SR6 / §14.9.18.3 SR5 / §14.9.33.3 SR1 for the "declarative or PERFORM WHEN"
+    //    position — so ONE descriptor per RULE carries the shared explanation and each raising site supplies its
+    //    own statement and its own ordinal (the EcRaiseSite value). RESUME keeps COBOLNET0712/0713: its rules are
+    //    about the whole statement and carry a second sentence (the NEXT STATEMENT operand) these do not.
+
+    /// <summary>COBOLNET2102 — the GLOBAL-declarative prohibition: ISO §14.9.14.3 SR2 (EXIT Format 2) and
+    /// §14.9.18.3 SR1 (GOBACK), which are the same sentence about two statements.</summary>
+    public static readonly DiagnosticDescriptor ReturnInGlobalDeclarative = new(
+        "COBOLNET2102", "return-in-global-declarative", EditionSeverity.Error,
+        "A statement that returns from the source element is written inside a declarative procedure whose USE "
+        + "statement carries the GLOBAL phrase. ISO §14.9.18.3 SR1: \"The GOBACK statement shall not be specified "
+        + "in a declarative procedure for which the GLOBAL phrase is specified in the associated USE statement\", "
+        + "and §14.9.14.3 SR2 states the same prohibition for the Format-2 EXIT statement. A GLOBAL declarative "
+        + "may be selected on behalf of a CONTAINED program (§14.9.49.4 GR4 b)) while running in the DECLARING "
+        + "program's data, so \"return to the activator\" has no single meaning there. Move the return out of the "
+        + "declarative — let the declarative fall through to its own end — or drop the GLOBAL phrase from the USE "
+        + "statement. ⚠ A GOBACK written OUTSIDE the declarative but executed within its RANGE is legal source "
+        + "and is governed by §14.9.18.4 GR6 (EC-FLOW-GLOBAL-GOBACK) instead, at run time.",
+        "ISO §14.9.18.3 SR1 / §14.9.14.3 SR2");
+
+    /// <summary>COBOLNET2103 — the RAISING LAST placement rule: ISO §14.9.18.3 SR5 (GOBACK) and §14.9.14.3 SR6
+    /// (EXIT), which admit the phrase in exactly two positions.</summary>
+    public static readonly DiagnosticDescriptor RaisingLastOutOfPlace = new(
+        "COBOLNET2103", "raising-last-out-of-place", EditionSeverity.Error,
+        "A RAISING LAST EXCEPTION phrase is written outside the two positions its syntax rule admits. ISO "
+        + "§14.9.18.3 SR5: \"The LAST phrase may be specified only in a declarative procedure or WHEN phrase of a "
+        + "PERFORM statement\", and §14.9.14.3 SR6 states the same for the EXIT statement. LAST names the "
+        + "run-unit's last exception status (§14.9.18.4 GR1 b) 3.), which only a declarative procedure or an "
+        + "exception-checking PERFORM's WHEN phrase is guaranteed to be running under. Write "
+        + "RAISING EXCEPTION exception-name-1 instead, or move the statement into a declarative or a WHEN phrase. "
+        + "⚠ The rule carries NO method qualifier: inside a method definition the WHEN-phrase position is "
+        + "admitted exactly as it is in a program.",
+        "ISO §14.9.18.3 SR5 / §14.9.14.3 SR6");
+
+    /// <summary>COBOLNET2104 — ISO §5.2.6.4's "only once" half, for a general format whose brace or bracket
+    /// carries CHOICE INDICATORS. The grammar expresses the zero-or-more and any-order halves with a repetition;
+    /// this is the half a parser rule cannot state without enumerating every ordering (kb/Work PB407).</summary>
+    public static readonly DiagnosticDescriptor ChoiceAlternativeRepeated = new(
+        "COBOLNET2104", "choice-alternative-repeated", EditionSeverity.Error,
+        "An alternative of a general format's choice-indicator group is specified more than once. ISO §5.2.6.4: "
+        + "\"Choice indicators are a pair of bars, |, that enclose a portion of a general format. When enclosed "
+        + "by braces, one or more of the alternatives contained within the choice indicators shall be specified, "
+        + "but any single alternative may be specified only once\" — and the bracketed form admits ZERO or more "
+        + "on the same terms. The alternatives may be written in any order; each may be written once. Delete the "
+        + "repeated phrase.",
+        "ISO §5.2.6.4");
 
     // ── COBOLNET2072 / COBOLNET2073 — THE REQUIRED IMPERATIVE-STATEMENT OPERAND (kb/Work PB396) ──────────
     // Both are PARSE-layer diagnostics: the grammar rules that carry an imperative-statement operand cannot

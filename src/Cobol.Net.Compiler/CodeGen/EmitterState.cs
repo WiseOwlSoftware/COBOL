@@ -65,6 +65,24 @@ internal sealed class DispatchState
     public int DeclCount { get; set; }
     public int? F3HandlerBasePc { get; set; }
 
+    /// <summary>The <c>__useActive</c> ids of this unit's <c>USE … GLOBAL</c> declaratives — empty when it
+    /// declares none. Set per unit beside <see cref="DeclCount"/>, and cleared around an OO method body (a
+    /// method has no USE declaratives of its own).</summary>
+    public IReadOnlyList<int> GlobalDeclIds { get; set; } = [];
+
+    /// <summary>ISO §14.9.18.4 GR6's run-time question, rendered — "is one of THIS program's GLOBAL declarative
+    /// procedures currently activated and not yet returned", i.e. is the executing statement within its RANGE —
+    /// or null when the unit declares no GLOBAL declarative and the test can never be true.
+    /// <para>⛔ IT IS THE SAME ARRAY §14.9.49.4 GR2's re-entrancy guard uses, and that is the point (kb/Work
+    /// PB409): "within the range of a declarative procedure" is a DYNAMIC relation — a declarative may PERFORM
+    /// arbitrary procedures — so no bind-time "is this paragraph inside a declarative" test can answer it, and
+    /// <c>__RunUse</c> already maintains exactly the activated-and-not-yet-returned flag the rule asks for.
+    /// "Specified in the same program as the GOBACK statement" comes free: the array is per program instance,
+    /// and a container's GLOBAL declarative selected on behalf of a contained program (GR4 b)) runs in the
+    /// CONTAINER's instance.</para></summary>
+    public string? InGlobalDeclarativeRangeTest =>
+        GlobalDeclIds.Count == 0 ? null : string.Join(" || ", GlobalDeclIds.Select(i => $"__useActive[{i}]"));
+
     /// <summary>The goto target NEXT SENTENCE jumps to (null in the last sentence). Written per sentence by the
     /// paragraph-body emission.</summary>
     public string? SentenceEndLabel { get; set; }

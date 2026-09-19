@@ -1549,10 +1549,21 @@ displayNoAdvancing
 // GOBACK (§14.9.18)
 // ==========================================
 
+// ⛔ THE TAIL IS A CHOICE-INDICATOR GROUP, NOT AN ORDERED AT-MOST-ONE STACK (kb/Work PB407). §14.9.18.2's
+// printed figure (PDF page 661 / printed folio 631, rendered at 300 dpi) encloses `raising-phrase` and
+// `status-phrase` in a bracket carrying CHOICE INDICATORS — the pair of `|` bars just inside `⎡ … ⎤` — and
+// §5.2.6.4 reads that as "zero or more of the alternatives … but any single alternative may be specified only
+// once", with "The alternatives may be specified in any order." The rule used to be `(raisingPhrase |
+// statusPhrase)?`, which is the FALSELY-RESTRICTIVE reading: `GOBACK RAISING EXCEPTION EC-USER-X WITH ERROR
+// STATUS 5` and its reverse were both rejected as syntax errors. `*` expresses "zero or more, any order"; the
+// "each at most once" half is §5.2.6.4's and is screened at bind (CallBinder.DecodeGobackPhrases →
+// ChoiceIndicators.AtMostOnce), because a grammar cannot say it without enumerating the orderings.
+//
+// ⚠ RETURNING / GIVING IS AN EXTENSION, and §14.9.18.2 contains no such phrase — the figure above has exactly
+// two alternatives. It is kept (the `goback-returning` registry row records the latitude and its authority);
+// what it may NOT do is cite a GOBACK clause as if the standard printed it.
 gobackStatement
-    // RETURNING introduction-gated at BIND time (CallBindGoback → Check(GobackReturning2002)); the RAISING and
-    // 2023 STATUS phrases are the mutually-exclusive §14.9.18.2 tail alternatives (statusPhrase shared with STOP).
-    : GOBACK ((RETURNING | GIVING) dataReference)? (raisingPhrase | statusPhrase)?
+    : GOBACK ((RETURNING | GIVING) dataReference)? (raisingPhrase | statusPhrase)*
     ;
 
 // ==========================================
@@ -1579,8 +1590,14 @@ resumeStatement
 
 // RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION} (ISO §14.9.18.2 / §14.9.14.2 F2) —
 // the ONE raising-phrase rule GOBACK and EXIT PROGRAM share.
+// ⛔ THE SECOND `EXCEPTION` IS AN OPTIONAL WORD (kb/Work PB407). Measured on the printed figures at 300 dpi —
+// PDF page 661 (GOBACK, folio 631) and PDF page 653 (EXIT Format 2, folio 623): `RAISING`, `LAST` and the
+// FIRST `EXCEPTION` are underlined; the `EXCEPTION` after `LAST` is NOT, and §5.2.3 makes a non-underlined
+// uppercase word an optional word. `GOBACK RAISING LAST.` and `EXIT PROGRAM RAISING LAST.` are therefore legal
+// and were rejected outright. §7.3.21.4 rule 2 is third-party evidence inside the standard: the PROPAGATE rule
+// writes the phrase back as "as though a GOBACK RAISING LAST statement were executed".
 raisingPhrase
-    : RAISING (EXCEPTION cobolWord | LAST EXCEPTION | dataReference)
+    : RAISING (EXCEPTION cobolWord | LAST EXCEPTION? | dataReference)
     ;
 
 // The PROCEDURE DIVISION header RAISING clause (ISO §14.2.1: RAISING {exception-name | class-name |

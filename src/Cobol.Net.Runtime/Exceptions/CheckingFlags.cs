@@ -114,6 +114,12 @@ public struct CheckingFlags
     /// returned control to the activating entity" (§14.9.49.4 GR2; Table 13 Fatal).</summary>
     public bool FlowUse;
 
+    /// <summary>EC-FLOW-GLOBAL-GOBACK — a GOBACK statement executed within the RANGE of a declarative procedure
+    /// whose USE statement contains the GLOBAL phrase and is specified in the same program as the GOBACK
+    /// (§14.9.18.4 GR6; Table 13 Fatal). ⚠ Its Table 13 neighbour EC-FLOW-GLOBAL-EXIT has NO flag because the
+    /// standard states no general rule that sets it — see <c>ExceptionEngine.FlowGlobalGobackError</c>.</summary>
+    public bool FlowGlobalGoback;
+
     /// <summary>EC-REPORT-ACTIVE — an INITIATE of a report that is already in the active state
     /// (§14.9.21.4 GR2).</summary>
     public bool ReportActive;

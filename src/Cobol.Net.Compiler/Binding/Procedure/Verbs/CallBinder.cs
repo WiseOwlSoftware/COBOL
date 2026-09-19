@@ -818,6 +818,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// STOP+GOBACK termination-status slice (<see cref="DecodeGobackPhrases"/>), before the program/method fork.</summary>
     public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
+        // §14.9.18.3 SR1, asked BEFORE the program/method fork because the rule has no such qualifier — through
+        // the ONE asker that also serves EXIT's §14.9.14.3 SR2 (kb/Work PB409). The run-time twin, §14.9.18.4
+        // GR6's "executed within the RANGE of" a global declarative, is LEGAL source and is raised by
+        // CallEmitter.EmitGoback as EC-FLOW-GLOBAL-GOBACK; this screen must not try to approximate it.
+        if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Goback)) return new BoundNop();
         var p = DecodeGobackPhrases(g);
         if (host.InMethod) return host.Oo.OoBindMethodGoback(p);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
         // goback-bare-2002 / goback-returning-2002: the VersionConformancePass owns both edition gates
@@ -856,8 +861,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// syntax rules carry no "in a main program" qualifier (only General rules 7–10 do), so SR6/SR7/SR8 are owed
     /// by a method's GOBACK exactly as by a program's. RETURNING and RAISING stay parse contexts: what the two
     /// arms DO with them genuinely differs (§14.9.18.4 GR2's activation result vs GR4's method return).</para></summary>
+    /// <remarks>⛔ THE TAIL IS A LIST because §14.9.18.2's bracket carries CHOICE INDICATORS (kb/Work PB407):
+    /// both phrases may be written, in either order, each once. The grammar says zero-or-more-any-order with a
+    /// <c>*</c>; §5.2.6.4's "only once" half is read HERE, through the shared
+    /// <see cref="ChoiceIndicators.AtMostOnce"/> — not as a hand-written "if both, error", so the next figure
+    /// with choice indicators inherits it.</remarks>
     private GobackPhrases DecodeGobackPhrases(Core.GobackStatementContext g) =>
-        new(g.dataReference(), g.raisingPhrase(), host.ControlFlow.BindTerminationStatus(g.statusPhrase()));
+        new(g.dataReference(),
+            ChoiceIndicators.AtMostOnce(ctx.Edition, g.raisingPhrase(), "GOBACK", "the RAISING phrase", "14.9.18.2"),
+            host.ControlFlow.BindTerminationStatus(
+                ChoiceIndicators.AtMostOnce(ctx.Edition, g.statusPhrase(), "GOBACK", "the status phrase", "14.9.18.2")));
 
     /// <summary>The phrases of ONE <c>gobackStatement</c>, decoded once by <see cref="DecodeGobackPhrases"/> and
     /// consumed by both arms of the §14.9.18.4 GR2/GR4 fork — the activation return (<see cref="BindGoback"/>)

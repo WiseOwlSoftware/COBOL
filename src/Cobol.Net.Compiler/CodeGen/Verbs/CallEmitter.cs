@@ -764,6 +764,22 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     public bool EmitGoback(BoundGoback g)
     {
         var w = ctx.Writer;
+        // §14.9.18.4 GR6 — "If a GOBACK statement is executed within the range of a declarative procedure whose
+        // USE statement contains the GLOBAL phrase and that USE statement is specified in the same program as
+        // the GOBACK statement, the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist." This is the
+        // RUN-TIME half of the rule pair whose syntax half (§14.9.18.3 SR1) the binder refuses; GR6 governs
+        // LEGAL source — a GOBACK in an ordinary paragraph a global declarative PERFORMs — so it cannot be
+        // decided at bind time (kb/Work PB409). The raise is FIRST: the condition exists when the statement is
+        // executed, and with checking enabled and no applicable handler §14.6.13.1.3 #7 terminates the run unit
+        // before the return happens. With checking off the helper returns and the GOBACK proceeds.
+        // ⛔ CHECKING-GATED at EMIT, like every other raise site: with the name not enabled at this statement the
+        // condition is not raised at all (§14.6.13.1.1) and a declarative-bearing program that never names it
+        // keeps byte-identical generated source — which also keeps the raise out of an EC-FREE group, whose
+        // generated file carries no ExceptionState using.
+        if (dispatch.InGlobalDeclarativeRangeTest is { } inGlobalRange && ec.EnabledHere("EC-FLOW-GLOBAL-GOBACK"))
+            w.Line($"if ({inGlobalRange}) ExceptionState.FlowGlobalGobackError(\"a GOBACK statement executed "
+                + "within the range of a USE ... GLOBAL declarative procedure of the same program "
+                + "(ISO 14.9.18.4 GR6)\");");
         if (g.ReturningSource is { } src)
         {
             if (callState.ReturningPlace is { } ret)

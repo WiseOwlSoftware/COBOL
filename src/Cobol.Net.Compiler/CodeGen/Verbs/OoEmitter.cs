@@ -609,6 +609,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             bool savedUnitF3P = ecState.UnitHasF3Perform;
             int savedDeclCount = dispatch.DeclCount;
             int? savedBase = dispatch.F3HandlerBasePc;
+            // ⛔ UNCONDITIONAL, unlike the F3 fields beside it: a method definition declares no USE procedures, so
+            // §14.9.18.4 GR6 has no GLOBAL declarative to be within the range of and the emitted method must not
+            // inherit the last PROGRAM's slots from this run-unit-lifetime state object (kb/Work PB409).
+            var savedGlobalDecls = dispatch.GlobalDeclIds;
+            dispatch.GlobalDeclIds = [];
             if (methodF3)
             {
                 ecState.UnitHasF3Perform = true;                    // raise sites in this method emit __EcPerform
@@ -656,6 +661,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             ecState.UnitHasF3Perform = savedUnitF3P;
             dispatch.DeclCount = savedDeclCount;
             dispatch.F3HandlerBasePc = savedBase;
+            dispatch.GlobalDeclIds = savedGlobalDecls;
             // BY REFERENCE copy-out (§14.2.3 GR8) / RETURNING (§14.9.23.4 GR8). A Tier-B REDEFINES canonical's
             // storage IS its string backing (a width-correct image), not the suppressed root struct — write that
             // back / return that, else the generated C# names an undeclared local (review A/emission).

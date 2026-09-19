@@ -42,12 +42,20 @@ public sealed class GobackPhraseDecodeDriftTests
 
     /// <summary>The sub-rule accessors the generated <c>GobackStatementContext</c> exposes — one per rule
     /// reference in <c>gobackStatement</c>'s grammar alternative. ANTLR names each accessor after the rule, so
-    /// this set IS "every phrase the grammar can put on a GOBACK".</summary>
+    /// this set IS "every phrase the grammar can put on a GOBACK".
+    /// <para>⛔ A REPEATED sub-rule counts too, and its accessor has a DIFFERENT SHAPE: for
+    /// <c>(raisingPhrase | statusPhrase)*</c> ANTLR emits <c>RaisingPhraseContext[] raisingPhrase()</c> plus an
+    /// indexed <c>raisingPhrase(int)</c>, neither of which is a zero-argument <c>ParserRuleContext</c> return.
+    /// Matching only the singular shape made this probe BLIND to exactly the phrases §14.9.18.2's choice
+    /// indicators put on the statement (kb/Work PB407) — the element type is what the set is keyed on, so the
+    /// probe answers the same question whether a phrase is written once or repeated.</para></summary>
     private static IReadOnlyList<string> SubRuleAccessors() =>
         typeof(CobolParserCore.GobackStatementContext)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.GetParameters().Length == 0
-                        && typeof(ParserRuleContext).IsAssignableFrom(m.ReturnType))
+                        && (typeof(ParserRuleContext).IsAssignableFrom(m.ReturnType)
+                            || (m.ReturnType.IsArray
+                                && typeof(ParserRuleContext).IsAssignableFrom(m.ReturnType.GetElementType()!))))
             .Select(m => m.Name)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(n => n, StringComparer.Ordinal)

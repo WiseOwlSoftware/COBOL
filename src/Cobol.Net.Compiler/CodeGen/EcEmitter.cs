@@ -200,6 +200,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-OO-UNIVERSAL", "OoUniversalChecking"),             // §14.9.23.4 GR7c — universal-INVOKE conformance
         ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
         ("EC-FLOW-USE", "FlowUseChecking"),                     // §14.9.49.4 GR2 — a USE procedure re-entered while active (kb/Work PB368)
+        // §14.9.18.4 GR6 — a GOBACK executed within the RANGE of one of THIS program's GLOBAL declaratives
+        // (kb/Work PB409). Before this row the name was a catalog entry with no raise site and no gate, so
+        // `>>TURN EC-FLOW-GLOBAL-GOBACK CHECKING ON` was accepted and wired nothing — a green compile that read
+        // as support. Its Table 13 neighbour EC-FLOW-GLOBAL-EXIT has no row because the standard states no
+        // general rule that SETS it (see ExceptionEngine.FlowGlobalGobackError).
+        ("EC-FLOW-GLOBAL-GOBACK", "FlowGlobalGobackChecking"),  // §14.9.18.4 GR6 — GOBACK in a global declarative's range
         // The Report Writer's four statement-precondition conditions (kb/Work PB326). Each rides a flag its
         // runtime raise site in CobolReport consults; each is Table 13 Fatal, and each leaves the verb
         // unexecuted whether or not the raise happens (the standard states every lenient outcome outright).
@@ -357,9 +363,16 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <summary>Emit the EC-OVERFLOW-STRING/-UNSTRING raise after the kernel latched <paramref name="ovfFlag"/>:
     /// set the last exception status; without an ON OVERFLOW phrase run the F3 selection (nonfatal — execution
     /// continues either way, §14.6.13.1.4 #3/#4).</summary>
+    /// <summary>Is <paramref name="ecName"/> enabled at the statement currently being emitted (§7.3.25.4 GR6, as
+    /// folded at bind time into the <see cref="BoundEcChecked"/> wrapper)? The ONE question every
+    /// CHECKING-GATED emission asks before writing a raise site, so "emit nothing when checking is off" is one
+    /// predicate rather than a repeated null-and-Any test.</summary>
+    public bool EnabledHere(string ecName) =>
+        ecState.Info is { } info && info.Enabled.Any(p => p.Ec == ecName);
+
     public void EmitOverflow(string ovfFlag, string ecName, bool hasPhrase)
     {
-        if (ecState.Info is null || !ecState.Info.Enabled.Any(p => p.Ec == ecName)) return;
+        if (!EnabledHere(ecName)) return;
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
         using (w.Block($"if ({ovfFlag})"))

@@ -40,6 +40,8 @@ public sealed class ExitPlacementContextDriftTests
     private const string ExitPerformCycleInF3 = "COBOLNET1604";   // SR8 sentence 2
     private const string ResumePlacement = "COBOLNET0712";
     private const string ResumeOperandInWhen = "COBOLNET1610";
+    private const string ReturnInGlobalDecl = "COBOLNET2102";   // §14.9.14.3 SR2 / §14.9.18.3 SR1
+    private const string RaisingLastOutOfPlace = "COBOLNET2103";   // §14.9.14.3 SR6 / §14.9.18.3 SR5
 
     // ── SR8 sentence 1: "only in an inline or exception-checking PERFORM statement" ──────────────────────
 
@@ -286,6 +288,120 @@ public sealed class ExitPlacementContextDriftTests
         var (ok, diagnostics) = EditionHarness.Compile(DeclarativeProgram(pid, "RESUME AT NEXT STATEMENT", global), 2023);
         if (expected is null) Assert.True(ok, string.Join("\n", diagnostics));
         else EditionHarness.AssertHasDiagnostic(diagnostics, expected);
+    }
+
+    // ── §14.9.14.3 SR2 / §14.9.18.3 SR1 — the GLOBAL-declarative prohibition, over TWO verbs ─────────────
+    //
+    // "The {EXIT | GOBACK} statement shall not be specified in a declarative procedure for which the GLOBAL
+    // phrase is specified in the associated USE statement." One sentence, printed twice under two ordinals, and
+    // enforced for NEITHER verb before kb/Work PB404/PB409 — while the byte-identical RESUME program above WAS
+    // refused, from a declarative lookup sitting ten lines away in the same file. Both verbs now ask the ONE
+    // screen (PlacementRules.RefusedInGlobalDeclarative), each citing its own clause and ordinal.
+
+    /// <summary>The non-GLOBAL declarative is the CONTROL: the rule is about the GLOBAL phrase, not about
+    /// declaratives, so the same statement in a plain declarative is legal and must stay legal.</summary>
+    [Theory]
+    [InlineData("PBGD01", "GOBACK", false, null)]
+    [InlineData("PBGD02", "GOBACK", true, ReturnInGlobalDecl)]
+    [InlineData("PBGD03", "EXIT PROGRAM", false, null)]
+    [InlineData("PBGD04", "EXIT PROGRAM", true, ReturnInGlobalDecl)]
+    public void ReturnStatementInADeclarative_FollowsTheGlobalPhrase(
+        string pid, string verb, bool global, string? expected)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile(DeclarativeProgram(pid, verb, global), 2023);
+        if (expected is null) Assert.True(ok, string.Join("\n", diagnostics));
+        else EditionHarness.AssertHasDiagnostic(diagnostics, expected);
+    }
+
+    // ── The LAST phrase's position: §14.9.14.3 SR6 and §14.9.18.3 SR5 ───────────────────────────────────
+    //
+    // ⚠ The two clauses word the SAME rule differently, and each fragment below is quoted from its own:
+    //   §14.9.14.3 SR6 — "The LAST phrase may be specified only in a declarative procedure or a WHEN phrase
+    //                     in a PERFORM statement."
+    //   §14.9.18.3 SR5 — "The LAST phrase may be specified only in a declarative procedure or WHEN phrase of
+    //                     a PERFORM statement."
+    //
+    // The same two positions §14.9.33.3 SR1 names for RESUME, over the RAISING LAST phrase of two more verbs,
+    // through the SAME EnclosingContext predicate (InDeclarativeOrPerformWhen). Before kb/Work PB410 the rule
+    // was enforced nowhere it applies; the WHEN-phrase half of the admitted set is pinned in
+    // GobackStatusArmParityTests, where both arms of the §14.9.18.4 GR2/GR4 fork are compared.
+
+    /// <summary>A declarative procedure IS one of the two admitted positions, for both verbs.</summary>
+    [Theory]
+    [InlineData("PBRL01", "GOBACK RAISING LAST EXCEPTION")]
+    [InlineData("PBRL02", "EXIT PROGRAM RAISING LAST EXCEPTION")]
+    public void RaisingLastInADeclarative_IsAccepted(string pid, string body)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile(DeclarativeProgram(pid, body), 2023);
+        Assert.True(ok, string.Join("\n", diagnostics));
+    }
+
+    /// <summary>Every position that is NEITHER a declarative NOR a WHEN phrase — an ordinary paragraph, an
+    /// exception-checking PERFORM's imperative-statement-1, and its FINALLY phrase (the frame RESUME's SR1
+    /// excludes for the same reason). Each compiled CLEAN before PB410, and the accepted EXIT form was compiled
+    /// into a live ExceptionState.SetPropagatingLast call.</summary>
+    [Theory]
+    [InlineData("PBRL03", "GOBACK RAISING LAST EXCEPTION")]
+    [InlineData("PBRL04", "EXIT PROGRAM RAISING LAST EXCEPTION")]
+    [InlineData("PBRL05", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n    GOBACK RAISING LAST EXCEPTION\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
+    [InlineData("PBRL06", "PERFORM UNTIL W-N > 2\n    ADD 1 TO W-N\n  WHEN EC-SIZE\n    CONTINUE\n  FINALLY\n    GOBACK RAISING LAST EXCEPTION\nEND-PERFORM")]
+    public void RaisingLastOutsideBothPositions_IsRejected(string pid, string body)
+        => EditionHarness.AssertHasDiagnostic(
+            EditionHarness.GetDiagnostics(MainProgram(pid, body), 2023), RaisingLastOutOfPlace);
+
+    // ── §14.9.18.4 GR6 — the RUN-TIME half of the pair, over LEGAL source ────────────────────────────────
+
+    /// <summary>"If a GOBACK statement is executed within the RANGE of a declarative procedure whose USE
+    /// statement contains the GLOBAL phrase and that USE statement is specified in the same program as the
+    /// GOBACK statement, the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist." The GOBACK here is
+    /// written in an ORDINARY paragraph that the global declarative PERFORMs — SR1 does not reach it, so this is
+    /// legal source and GR6 alone governs it. Table 13 makes the condition Fatal and there is no applicable USE,
+    /// so §14.6.13.1.3 rule 7 terminates the run unit abnormally; the declarative's statement AFTER the PERFORM
+    /// must therefore not run. With checking OFF the condition is not raised at all (§14.6.13.1.1) and the
+    /// GOBACK proceeds — which in this main program is a STOP (§14.9.18.4 GR3), so the output is the same
+    /// prefix and the exit code is what distinguishes them.</summary>
+    [Theory]
+    [InlineData("PBG601", ">>TURN EC-FLOW-GLOBAL-GOBACK CHECKING ON\n", false)]
+    [InlineData("PBG602", "", true)]
+    public void GobackWithinTheRangeOfAGlobalDeclarative_RaisesOnlyWhenChecked(string pid, string turn, bool ok)
+    {
+        string src = $"""
+            {turn}IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN TO "{pid}-absent.dat" ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 F-REC PIC X(10).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            D-SEC SECTION.
+                USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON F.
+            D-PARA.
+                DISPLAY "IN-DECL".
+                PERFORM GB-P.
+                DISPLAY "BACK-IN-DECL".
+            END DECLARATIVES.
+            MAIN-SEC SECTION.
+            MAIN-PARA.
+                OPEN INPUT F.
+                DISPLAY "AFTER-OPEN".
+                STOP RUN.
+            GB-P.
+                DISPLAY "IN-GB-P".
+                GOBACK.
+
+            """;
+        var (exit, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunExit(src);
+        Assert.Equal(ok, exit == 0);
+        // Either way the declarative's PERFORM reaches GB-P and the GOBACK never returns to it: raised, the
+        // fatal condition unwinds; unraised, a main program's GOBACK is a STOP (§14.9.18.4 GR3).
+        Assert.StartsWith("IN-DECL", stdout.ReplaceLineEndings("\n"), StringComparison.Ordinal);
+        Assert.DoesNotContain("BACK-IN-DECL", stdout, StringComparison.Ordinal);
+        if (!ok) Assert.Contains("EC-FLOW-GLOBAL-GOBACK", detail + stdout, StringComparison.Ordinal);
     }
 
     // ── Source shapes ────────────────────────────────────────────────────────────────────────────────────

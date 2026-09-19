@@ -340,6 +340,11 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                     + "method definition returns via GOBACK)");
                 return new BoundNop();
             }
+            // §14.9.14.3 SR2, through the ONE asker that also serves GOBACK's §14.9.18.3 SR1 (kb/Work PB404).
+            // The rule is stated under FORMAT 2, so it is EXIT PROGRAM's; and it is a FLAT prohibition — RESUME's
+            // §14.9.33.4 GR1 dynamic-scope CONTINUE arm has no counterpart in §14.9.14.4.
+            if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Exit("EXIT PROGRAM")))
+                return new BoundNop();
             if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
                 return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT PROGRAM")) is { } r
                     ? new BoundExitProgram(r)

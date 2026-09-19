@@ -173,6 +173,15 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         ctx.EcState.Raising = true;
         if (raising.LAST() is not null)
         {
+            // §14.9.18.3 SR5 / §14.9.14.3 SR6 — the LAST phrase's PLACEMENT, through the ONE asker (kb/Work
+            // PB410, PB404). It sits HERE, on the shared raising binder, because that is the single path every
+            // statement with a RAISING phrase takes — GOBACK, EXIT PROGRAM, EXIT FUNCTION and (since PB410) the
+            // method arm — so no verb can acquire the phrase without acquiring its rule.
+            // ⛔ REPORT AND KEEP BINDING, never `return null`: null is this method's EXCEPTION-OBJECT signal, and
+            // every caller turns it into a BoundUnsupported saying "RAISING identifier (exception object — the OO
+            // wave)". A placement violation would then print a SECOND diagnostic about a form the program did not
+            // write. The Error above already fails the compile, so the node below is never emitted.
+            PlacementRules.RefusedRaisingLastHere(ctx, site);
             // RAISING LAST EXCEPTION (§14.9.18.4 GR1b3): the name is the run-unit last exception status, so the
             // whole determination is a RUN-TIME one. What the BINDER owns is GR1b3a's other operand — "the
             // RAISING phrase of the procedure division header of the source element in which this EXIT statement
@@ -488,6 +497,14 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 // takes the ambient tail gate below. The two are deliberately not merged.
                 case BoundSetCapacity:
                     Query(FlowSearchNames);
+                    break;
+                // §14.9.18.4 GR6 — PRECISE, like BoundSetCapacity: the only statement that can set
+                // EC-FLOW-GLOBAL-GOBACK is a GOBACK, and the emitter's run-time `__useActive` test is the raise
+                // site. Without this arm the name never entered a statement's enabled set, so the runtime flag
+                // stayed false and `>>TURN EC-FLOW-GLOBAL-GOBACK CHECKING ON` reached nothing (kb/Work PB409 —
+                // the same shape as PB452's EC-PROGRAM-NOT-FOUND and PB326's report family).
+                case BoundGoback:
+                    Query(["EC-FLOW-GLOBAL-GOBACK"]);
                     break;
                 // The three Report Writer verbs (kb/Work PB326). PRECISE like BoundSetCapacity: each condition's
                 // ONLY raise site is a precondition of the engine call this node emits, so the guard binds

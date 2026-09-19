@@ -125,10 +125,10 @@
   },
   {
    "id": "goback-returning-2002",
-   "description": "GOBACK RETURNING status, ISO §14.9.18 — the RETURNING phrase is 2002+",
+   "description": "GOBACK RETURNING/GIVING identifier — an IMPLEMENTOR EXTENSION, not an ISO phrase (kb/Work PB407). §14.9.18.2's general format has exactly two alternatives inside its choice-indicator bracket, raising-phrase and status-phrase; there is no RETURNING or GIVING phrase, and §14.9.18.4 GR2's RETURNING is the PROCEDURE DIVISION HEADER's item, not a phrase of the statement. The row is kept because the extension is accepted (the shipped 2002/goback_returning.cob golden runs it) and is gated at 2002 because GOBACK itself is a 2002 introduction — but it no longer cites a GOBACK clause as the authority for a phrase that clause does not contain.",
    "display": "GOBACK RETURNING",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §14.9.18",
+   "citation": "NOT ISO — an extension of §14.9.18.2's general format; gated at the GOBACK statement's own 2002 introduction (ISO §14.9.18)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

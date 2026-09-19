@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
+using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -144,4 +145,67 @@ internal readonly struct EnclosingContext
     /// §14.9.33.3 SR1)? ANY enclosing WHEN frame counts — a statement nested in an inline PERFORM written inside
     /// a WHEN phrase is still an imperative statement in that WHEN phrase.</summary>
     public bool InPerformWhen => _stack is not null && _stack.Contains(EnclosingConstruct.PerformWhen);
+
+    /// <summary>⛔ THE ONE PREDICATE BEHIND "only in a declarative procedure or a WHEN phrase of a PERFORM
+    /// statement" — the position THREE rules name, once per statement: the RAISING LAST phrase of GOBACK
+    /// (§14.9.18.3 SR5) and of EXIT (§14.9.14.3 SR6), and the RESUME statement itself (§14.9.33.3 SR1).
+    /// <para>kb/Work PB410 is what makes it one property rather than three tests: SR5 was written down TWICE in
+    /// the binder — not at all on the program arm, and as an UNCONDITIONAL refusal on the method arm, by a
+    /// diagnostic whose own text quoted the rule the source satisfied. The rule carries no method qualifier and
+    /// no verb qualifier, so neither does this predicate; what differs per statement is only the ORDINAL the
+    /// message cites, which travels on <see cref="EcRaiseSite"/>.</para></summary>
+    public bool InDeclarativeOrPerformWhen => InDeclarative || InPerformWhen;
+}
+
+/// <summary>
+/// ⛔ THE ASKERS — one method per PLACEMENT RULE SHAPE the EXIT / GOBACK / RESUME family shares, so a rule the
+/// standard states once per statement is WRITTEN ONCE here and cited per statement by the caller's
+/// <see cref="EcRaiseSite"/> (kb/Work PB404, PB409, PB410).
+///
+/// <para><b>Why a screen and not an <c>if</c> at each verb.</b> <see cref="EnclosingContext"/> answers "where am
+/// I bound?"; it does not answer "is that legal here?". Before this type the second half was the part that kept
+/// going missing: §14.9.18.3 SR1 and §14.9.14.3 SR2 had NO asker at all (a GOBACK or EXIT PROGRAM in a GLOBAL
+/// declarative compiled clean while the byte-identical RESUME program was refused), and §14.9.18.3 SR5 had TWO
+/// askers that disagreed — nothing on the program arm and an unconditional refusal on the method arm. One
+/// predicate + one message + one citation channel means the next statement that acquires one of these rules is
+/// one call, and <c>ExitPlacementContextDriftTests</c> is where its row goes.</para>
+///
+/// <para>Each returns TRUE when the statement is REFUSED (the diagnostic has been raised), so a caller reads
+/// <c>if (PlacementRules.X(...)) return new BoundNop();</c>.</para>
+/// </summary>
+internal static class PlacementRules
+{
+    /// <summary>ISO §14.9.18.3 SR1 (GOBACK) / §14.9.14.3 SR2 (EXIT Format 2) — "shall not be specified in a
+    /// declarative procedure for which the GLOBAL phrase is specified in the associated USE statement".
+    /// <para>⛔ SPECIFIED IN, not EXECUTED WITHIN THE RANGE OF. The second is §14.9.18.4 GR6's run-time relation
+    /// over legal source (a GOBACK written in an ordinary paragraph that a global declarative PERFORMs), and it
+    /// is raised by the EMITTER as EC-FLOW-GLOBAL-GOBACK — not here. A bind-time approximation of GR6 would
+    /// reject exactly the programs SR1 already covers and miss exactly the ones it does not.</para>
+    /// <para>⚠ RESUME's §14.9.33.3 SR2 is the same sentence for a third statement but keeps its own
+    /// COBOLNET0713: its refusal sits inside a longer decision (GR1 makes a RESUME in a global declarative's
+    /// DYNAMIC scope a CONTINUE, which is the arm this screen has no counterpart for).</para></summary>
+    public static bool RefusedInGlobalDeclarative(BinderContext ctx, EcRaiseSite site)
+    {
+        if (!ctx.Enclosing.InGlobalDeclarative) return false;
+        ctx.Edition.Error(DiagnosticCatalog.ReturnInGlobalDeclarative,
+            $"{site.Verb} shall not be specified in a declarative procedure whose USE statement carries the "
+            + $"GLOBAL phrase ({site.Cite(site.GlobalDeclarativeRule)})");
+        return true;
+    }
+
+    /// <summary>ISO §14.9.18.3 SR5 (GOBACK) / §14.9.14.3 SR6 (EXIT) — "The LAST phrase may be specified only in
+    /// a declarative procedure or WHEN phrase of a PERFORM statement". The two clauses word it differently
+    /// ("or a WHEN phrase in a PERFORM statement") and mean the same two positions, so ONE predicate answers
+    /// both and the ordinal comes from the site.
+    /// <para>⛔ NO METHOD QUALIFIER. §14.9.18.4 GR4 makes a method's GOBACK a GOBACK and §14.9.18.3 carries no
+    /// "in a program" wording, so the method arm asks exactly this — it used to refuse the phrase outright, in a
+    /// message that quoted this very rule (kb/Work PB410).</para></summary>
+    public static bool RefusedRaisingLastHere(BinderContext ctx, EcRaiseSite site)
+    {
+        if (ctx.Enclosing.InDeclarativeOrPerformWhen) return false;
+        ctx.Edition.Error(DiagnosticCatalog.RaisingLastOutOfPlace,
+            $"{site.Context} LAST EXCEPTION: the LAST phrase may be specified only in a declarative procedure "
+            + $"or a WHEN phrase of a PERFORM statement ({site.Cite(site.LastRule)})");
+        return true;
+    }
 }

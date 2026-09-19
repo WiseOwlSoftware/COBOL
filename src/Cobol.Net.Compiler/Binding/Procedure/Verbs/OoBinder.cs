@@ -1093,24 +1093,17 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind a method-context RAISING phrase (§14.9.18.4 GR1b — staged before the MethodReturn
-    /// throw; the INVOKE site picks up). RAISING LAST inside a method needs method DECLARATIVES (GOBACK
-    /// §14.9.18.3 SR5 / EXIT §14.9.14.3 SR6: only in a declarative/WHEN) — staged with the method-declaratives
-    /// refinement. The <see cref="EcRaiseSite"/> carries which of the two statements this is.</summary>
-    private BoundRaising? OoBindMethodRaising(Core.RaisingPhraseContext? raising, EcRaiseSite site)
-    {
-        if (raising is null) return null;
-        if (raising.LAST() is not null)
-        {
-            // The LAST phrase's rule is the SITE's (GOBACK §14.9.18.3 SR5 / EXIT §14.9.14.3 SR6) — this path
-            // serves both statements and printed GOBACK's ordinal at an EXIT METHOD (kb/Work PB388).
-            ctx.Edition.Error(DiagnosticCatalog.OoMethodRaisingLast,
-                $"{site.Context} LAST EXCEPTION inside a method: LAST is legal only within a declarative "
-                + $"or a PERFORM WHEN ({site.Cite(site.LastRule)}) — method declaratives are a later refinement "
-                + "of the EC-OO wave");
-            return null;
-        }
-        return host.Ec.EcBindRaising(raising, raising.Start.Line, site);
-    }
+    /// throw; the INVOKE site picks up). The <see cref="EcRaiseSite"/> carries which of the two statements this
+    /// is (GOBACK §14.9.18.3 / EXIT METHOD §14.9.14.3).
+    /// <para>⛔ THIS ARM NO LONGER DECIDES THE LAST PHRASE'S PLACEMENT (kb/Work PB410). It used to refuse
+    /// <c>RAISING LAST</c> UNCONDITIONALLY inside a method, in a message that quoted §14.9.18.3 SR5's two
+    /// admitted positions and then rejected source sitting in one of them — a WHEN phrase of an exception-
+    /// checking PERFORM, which a method body may contain today. SR5 has no method qualifier, so the method arm
+    /// asks the SAME <c>PlacementRules.RefusedRaisingLastHere</c> screen the program arm asks, inside the shared
+    /// <c>EcBinder.EcBindRaising</c>; the declarative half of the position is simply never true in a method
+    /// until method declaratives land, which the one predicate already says without a second rule.</para></summary>
+    private BoundRaising? OoBindMethodRaising(Core.RaisingPhraseContext? raising, EcRaiseSite site) =>
+        raising is null ? null : host.Ec.EcBindRaising(raising, raising.Start.Line, site);
 
     /// <summary>EXIT METHOD (pre-2023 editions — REMOVED by 2023, Annex E.2; the <c>exit-method-window</c>
     /// registry row already flags 0900/0902 at the window edges): inside a method it is the method-return

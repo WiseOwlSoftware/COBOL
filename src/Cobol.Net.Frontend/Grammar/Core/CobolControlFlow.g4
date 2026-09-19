@@ -427,12 +427,18 @@ stopStatement
 // The shared run-unit-termination status phrase (ISO §14.9.42.2 STOP / §14.9.18.2 GOBACK). ONE rule referenced
 // by BOTH stopStatement and gobackStatement — annex item 32: "GOBACK … now allows the same status phrase as
 // the STOP statement" (feedback_singular_pattern). STOP-status is a 2002 introduction; GOBACK-status is 2023.
-// [WITH] {ERROR|NORMAL} [STATUS [id|lit]] — WITH is an OPTIONAL word (§5.2.3, not underlined); exactly one of the
-// underlined keywords ERROR/NORMAL is REQUIRED (§14.9.42.2/§14.9.18.2 brace group); the STATUS keyword introduces
-// the optional operand (the operand is bracketed = optional). The former rule wrongly required WITH, bound STATUS
-// to its operand, and admitted a keyword-less `STATUS operand` (P13 Wave-I review findings 1/2/3).
+// [WITH] {ERROR|NORMAL} [STATUS] [id|lit] — WITH is an OPTIONAL word (§5.2.3, not underlined); exactly one of the
+// underlined keywords ERROR/NORMAL is REQUIRED (§14.9.42.2/§14.9.18.2 brace group); the operand is bracketed
+// (optional). The former rule wrongly required WITH, bound STATUS to its operand, and admitted a keyword-less
+// `STATUS operand` (P13 Wave-I review findings 1/2/3).
+// ⛔ `STATUS` IS AN OPTIONAL WORD TOO, and this rule used to make it MANDATORY BEFORE AN OPERAND (kb/Work
+// PB407): `GOBACK WITH ERROR 5.` and `STOP RUN WITH ERROR 5.` were both `COBOL0001: no viable alternative at
+// input '5'`. Measured on the printed figure at 300 dpi (PDF page 661 / printed folio 631, the GOBACK
+// status-phrase) — only `ERROR` and `NORMAL` are underlined, and `WITH` and `STATUS` are not; the STOP figure
+// at §14.9.42.2 carries the identical underlining, which is why ONE rule is right for both verbs and why
+// fixing it here fixes both (feedback_scan_all_similar).
 statusPhrase
-    : WITH? (ERROR | NORMAL) (STATUS (dataReference | literal)?)?
+    : WITH? (ERROR | NORMAL) STATUS? (dataReference | literal)?
     ;
 
 // ==========================================

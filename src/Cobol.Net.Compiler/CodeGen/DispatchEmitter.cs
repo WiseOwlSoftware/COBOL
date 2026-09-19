@@ -33,6 +33,12 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // pc let ControlFlowEmitter derive each handler's __useActive id (DeclCount + pc − base). Null base ⇒ no F3.
         dispatchState.DeclCount = bound.Declaratives?.Count ?? 0;
         dispatchState.F3HandlerBasePc = bound.F3HandlerBasePc;
+        // §14.9.18.4 GR6 (kb/Work PB409): the GLOBAL declaratives' __useActive slots, so a GOBACK can ask at run
+        // time whether it is executing within one's RANGE. Empty for a program with no USE … GLOBAL, which keeps
+        // such a program's generated source byte-identical.
+        dispatchState.GlobalDeclIds = bound.Declaratives is { } gds
+            ? [.. Enumerable.Range(0, gds.Count).Where(i => gds[i].Global)]
+            : [];
         // X3.23-1985 USE FOR DEBUGGING procedure-trigger facility (VCR Table 7 row 7.17): active when a
         // procedure-subject debugging declarative was collected under WITH DEBUGGING MODE. Gates all debug
         // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).

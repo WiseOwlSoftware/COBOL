@@ -1550,7 +1550,12 @@ internal sealed class VersionConformancePass
             // status phrase was added to it at 2023, and §14.9.18.3 SR6/SR7/SR8 carry no context qualifier at
             // all. Measured before the fix: `GOBACK WITH ERROR STATUS 5.` inside a method compiled clean at
             // --std 2002 and --std 2014 while the byte-identical statement in a program drew COBOLNET0900.
-            if (ctx.statusPhrase() is not null)
+            // ⛔ `.Length > 0`, NOT `is not null`: §14.9.18.2's tail is a CHOICE-INDICATOR group, so
+            // gobackStatement carries `(raisingPhrase | statusPhrase)*` and ANTLR's accessor returns an ARRAY —
+            // which is never null, so the null test fired this gate on EVERY GOBACK (kb/Work PB407; measured:
+            // a bare `GOBACK.` at --std 2002 drew COBOLNET0900 naming a phrase it did not write). STOP's own
+            // check above stays a null test because `stopStatement` still writes `(statusPhrase)?`.
+            if (ctx.statusPhrase().Length > 0)
                 _p.Check(Constructs.GobackStatus2023, "the GOBACK … WITH NORMAL/ERROR STATUS phrase");
             return base.VisitChildren(ctx);
         }

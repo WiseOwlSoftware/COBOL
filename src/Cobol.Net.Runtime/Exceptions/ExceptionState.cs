@@ -760,6 +760,45 @@ public sealed class ExceptionEngine
     /// are not USE procedures (§14.9.28.4 GR17, not §14.9.49.4 GR3) — the emitter excludes them by id.</summary>
     public void FlowUseError(string detail) => FatalIfEnabled(FlowUseChecking, "EC-FLOW-USE", detail);
 
+    // ──── THE GLOBAL-DECLARATIVE GOBACK CONDITION (§14.9.18.4 GR6; kb/Work PB409) ─────────────────────────
+    //
+    // GR6: "If a GOBACK statement is executed within the RANGE of a declarative procedure whose USE statement
+    // contains the GLOBAL phrase and that USE statement is specified in the same program as the GOBACK
+    // statement, the EC-FLOW-GLOBAL-GOBACK exception condition is set to exist."
+    //
+    // ⛔ WITHIN THE RANGE OF, NOT SPECIFIED IN. §14.9.18.3 SR1 forbids a GOBACK *written inside* a global
+    // declarative and is a COMPILE-TIME refusal (COBOLNET2102). GR6 governs LEGAL source — a GOBACK in an
+    // ordinary paragraph that a global declarative PERFORMs — so it cannot be decided at bind time at all, and
+    // the generated GOBACK asks the run-time question the emitted `__useActive` array already answers: is one of
+    // THIS program's GLOBAL declaratives currently activated and not yet returned. "Same program" comes free:
+    // `__useActive` is per program instance, and a container's global declarative selected on behalf of a
+    // CONTAINED program (§14.9.49.4 GR4 b)) runs in the CONTAINER's instance, so a contained program's GOBACK
+    // sees its own array and correctly raises nothing.
+    //
+    // ⚠ Table 13's neighbour EC-FLOW-GLOBAL-EXIT has NO helper here, and that is a DETERMINATION, not an
+    // omission: §14.9.14.4 gives the Format-2 EXIT statement no general rule that sets it (GR3 imports
+    // "14.9.18, GOBACK statement, General rules 3 and 4" — NOT GR6), and Table 13's third column is a
+    // description, not a setting rule. The only normative statement about EXIT PROGRAM in a global declarative
+    // is §14.9.14.3 SR2, which this compiler enforces at compile time. Inventing a raise site for a condition
+    // the standard never sets would be behaviour with no rule behind it.
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-GLOBAL-GOBACK checking enabled
+    /// (fatal).</summary>
+    public bool FlowGlobalGobackChecking
+    {
+        get => _checking.FlowGlobalGoback;
+        set => _checking.FlowGlobalGoback = value;
+    }
+
+    /// <summary>Raise EC-FLOW-GLOBAL-GOBACK (§14.9.18.4 GR6; Table 13 Fatal) when checking is enabled;
+    /// otherwise return, and the GOBACK proceeds. ⛔ The lenient outcome is a RECORDED DETERMINATION, not a
+    /// quotation: GR6 states only that the condition "is set to exist" and gives the GOBACK no alternative
+    /// behaviour, so with checking off (§14.6.13.1.1 — the condition is not raised at all) there is nothing to
+    /// leave unexecuted and the return proceeds, exactly as EC-FLOW-USE's decline is the §14.6.13.1.3 #8
+    /// implementor answer.</summary>
+    public void FlowGlobalGobackError(string detail) =>
+        FatalIfEnabled(FlowGlobalGobackChecking, "EC-FLOW-GLOBAL-GOBACK", detail);
+
     /// <summary>True while the currently-executing statement has EC-REPORT-ACTIVE checking enabled (fatal).</summary>
     public bool ReportActiveChecking
     {
@@ -1323,6 +1362,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FlowUseError"/>
     public static void FlowUseError(string detail) => E.FlowUseError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowGlobalGobackChecking"/>
+    public static bool FlowGlobalGobackChecking
+    {
+        get => E.FlowGlobalGobackChecking;
+        set => E.FlowGlobalGobackChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowGlobalGobackError"/>
+    public static void FlowGlobalGobackError(string detail) => E.FlowGlobalGobackError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.ReportActiveChecking"/>
     public static bool ReportActiveChecking
