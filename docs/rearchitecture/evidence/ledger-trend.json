@@ -595,6 +595,15 @@
       "dns": 366,
       "label": "Train 38: DEVLOG 1614 + plan",
       "battery": 80
+    },
+    {
+      "sha": "00bd0a01",
+      "date": "2026-09-19",
+      "gap": 2407,
+      "closed": 1941,
+      "dns": 366,
+      "label": "Train 39 close: the inventor",
+      "battery": null
     }
   ]
 }
