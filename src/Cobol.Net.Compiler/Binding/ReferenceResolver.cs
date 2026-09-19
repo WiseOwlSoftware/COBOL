@@ -321,6 +321,14 @@ public sealed class ReferenceResolver(DataBinder data)
         if (data.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
             return new DebugRegisterPlace(dbg.Item, dbg.Member);
 
+        // A REPORT SECTION SUM COUNTER (ISO §13.18.54.4 GR5 — the data-name after the level number names the
+        // COUNTER, not the printable item; GR12 permits procedure division statements to read and alter it): an
+        // IMPLICITLY-defined VIEW over the report engine's counter, not in ByName, so it is resolved HERE — the
+        // CAPACITY-register pattern — to a ReportSumCounterPlace whose read/write are SumValue/SetSumValue
+        // (kb/Work PB840). Qualification is by REPORT-NAME (§8.4.2.2.2 Format 1's file-report-qualifier), which
+        // is what distinguishes two reports' same-named counters.
+        if (SumCounterFor(dref, name, report) is { } sumReg) return sumReg;
+
         // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
         var written = ReadWritten(dref);
         var qualifiers = written.Qualifiers;
@@ -1382,6 +1390,54 @@ public sealed class ReferenceResolver(DataBinder data)
                 throw new InvalidOperationException(
                     $"CapacityRefFault.{cap.Fault} carries no diagnostic (kb/Work PB457).");
         }
+    }
+
+    /// <summary>The <see cref="ReportSumCounterPlace"/> for a reference to a REPORT SECTION sum counter (ISO
+    /// §13.18.54.4 GR5 — the data-name written after the level number of an entry containing a SUM clause "is the
+    /// name of the sum counter, not the name of the associated printable item"; GR12 — "It is permissible for
+    /// procedure division statements to alter the content of sum counters"), or null when the name is not a sum
+    /// counter. kb/Work PB840.
+    /// <para>The covered spelling is the whole one a general format admits here: the bare name, or the name with
+    /// ONE report-name qualifier (§8.4.2.2.2 Format 1's file-report-qualifier — a sum counter is a level-01-free
+    /// report-section item whose only available qualifier is its report). A sum counter is never an OCCURS item
+    /// in this compiler's model and GR1 makes it a numeric conceptual item, so a subscript or reference
+    /// modification on it is not a sum-counter reference at all — the name falls through to ordinary resolution,
+    /// which names the rule it breaks.</para>
+    /// <para>⛔ TWO ENTRIES MAY LEGALLY CARRY ONE NAME (GR1, kb/Work PB882): §8.4.2.2.1's uniqueness requirement
+    /// is about a REFERENCE, so the collision is diagnosed HERE, where a reference exists, and never by dropping
+    /// a declaration.</para></summary>
+    private ReportSumCounterPlace? SumCounterFor(Core.DataReferenceContext dref, string name, bool report)
+    {
+        var suffixes = dref.dataReferenceSuffix();
+        if (suffixes.Any(s => s.qualification() is null)) return null;   // subscripted / reference-modified
+        if (suffixes.Length > 1) return null;                            // more than one qualifier — not a counter reference
+        if (!data.SumCounters.TryGetValue(name, out var homonyms)) return null;
+        string? qualifier = suffixes.Length == 1 ? suffixes[0].qualification().cobolWord().GetText() : null;
+        var matches = qualifier is null
+            ? homonyms
+            : homonyms.Where(h => h.Report.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (matches.Count == 0)
+        {
+            // A qualifier that names no report carrying this counter: the name IS a sum counter, so the ordinary
+            // resolver would only report "not defined". Name the real rule instead (§8.4.2.2.2 / §8.4.2.2.3 SR1).
+            if (report && _diagnosed.Add(dref))
+                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{dref.GetText()}': '{name}' is a sum counter "
+                    + $"(ISO §13.18.54.4 GR5), but no report description entry named '{qualifier}' contains one — a "
+                    + "sum counter may be qualified only by the report-name of the report that defines it "
+                    + "(ISO §8.4.2.2.2 Format 1).");
+            return null;
+        }
+        if (matches.Count > 1)
+        {
+            if (report && _diagnosed.Add(dref))
+                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{dref.GetText()}': the reference is ambiguous — "
+                    + $"{matches.Count} entries establish a sum counter named '{name}' (ISO §13.18.54.4 GR1 gives "
+                    + "each entry its own counter). A reference shall uniquely identify one resource (ISO "
+                    + "§8.4.2.2.1); qualify it by report-name, or give the entries distinct data-names.");
+            return null;
+        }
+        var (rep, sum) = matches[0];
+        return new ReportSumCounterPlace(rep.CsIndex, sum.Id, sum.Register);
     }
 
     /// <summary>The STRUCTURAL access path for an item — the <see cref="MemberPlace"/>/<see cref="DynTablePlace"/>

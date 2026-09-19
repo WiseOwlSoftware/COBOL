@@ -165,6 +165,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
     private readonly Dictionary<string, DataItem> _capacityRegisters = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>REPORT SECTION <b>sum counter</b> names (case-insensitive) → every counter that carries the name,
+    /// with its owning report (ISO §13.18.54.4 GR5 — "If a data-name immediately follows the level number in the
+    /// entry containing the SUM clause, the data-name is the name of the sum counter, not the name of the
+    /// associated printable item"). The counter is IMPLICITLY defined by its entry and is NOT in
+    /// <see cref="ByName"/>; <see cref="ReferenceResolver"/> consults this map to build a
+    /// <see cref="Model.ReportSumCounterPlace"/> so §13.18.54.4 GR12 — "It is permissible for procedure division
+    /// statements to alter the content of sum counters" — has somewhere to land (kb/Work PB840).
+    /// <para>⛔ A LIST PER NAME, NOT ONE ENTRY (kb/Work PB882). GR1 gives every ENTRY its own counter and nothing
+    /// makes two entries' data-names distinct: §8.4.2.2.1's uniqueness requirement bites on a REFERENCE, not on a
+    /// declaration nobody names. A scalar column here would be the same last-write-wins defect the runtime just
+    /// shed; instead a duplicated name is legal to DECLARE and, unless a report-name qualifier resolves it,
+    /// diagnosed where it is REFERENCED.</para>
+    /// (READ-ONLY view — P6 Step 5; the getter carries the P6 Step-6 watermark gate.)</summary>
+    public IReadOnlyDictionary<string, List<(ReportModel Report, ReportSumModel Sum)>> SumCounters
+    {
+        get { Require(PassPhase.FilesResolved, "SumCounters"); return _sumCounters; }
+    }
+    private readonly Dictionary<string, List<(ReportModel Report, ReportSumModel Sum)>> _sumCounters
+        = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO
     /// §13.18.58; data-model D17). The template is built by <see cref="BindEntries"/> but kept OFF <see cref="Roots"/>
     /// and <see cref="ByName"/> (it allocates no storage; its subordinate names are not globally referenceable,

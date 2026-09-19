@@ -93,6 +93,9 @@ internal static class PlaceRenderer
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
+        // A REPORT SECTION sum counter (§13.18.54.4 GR1/GR4/GR12): RWCS engine state, read at the counter's own
+        // scale. The identity is the ENTRY's ordinal, never GR5's data-name (kb/Work PB882).
+        ReportSumCounterPlace s => RuntimeApi.ReportSumRead(s.ReportIndex, s.CounterId),
         // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
         DebugRegisterPlace d => DebugRead(d.Member),
         // A table(ALL) intrinsic argument (ISO §15.3; kb/Work PB62) is an ENUMERATION, never a single value — the
@@ -195,6 +198,10 @@ internal static class PlaceRenderer
         CapacityRegisterPlace => throw new System.InvalidOperationException(
             "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
             + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
+        // A REPORT SECTION sum counter as a RECEIVER — ISO §13.18.54.4 GR12: "It is permissible for procedure
+        // division statements to alter the content of sum counters." The store goes to the RWCS engine, at the
+        // counter's own scale (GR1); there is no storage to write (kb/Work PB840).
+        ReportSumCounterPlace s => RuntimeApi.ReportSumWrite(s.ReportIndex, s.CounterId, rhs),
         // Unreachable: a COBOL program never assigns to a DEBUG-* register (X3.23-1985 — the runtime populates it via
         // the injected debug trigger); a receiving-position use is rejected at bind time. The backstop for a
         // receiver path that forgot the gate.

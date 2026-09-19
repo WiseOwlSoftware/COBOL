@@ -54,7 +54,10 @@ public sealed class ReportSumOperandCaptureDriftTests
         // suffix and stages COBOLNET0899 instead (a LOUD compile-time refusal, not a wrong answer, which is
         // why it is adjudicated rather than fixed here). The clause is being rewritten by kb/Work PB506 in a
         // sibling landing, so the fix belongs on top of that shape, not underneath it.
-        ["BindSourceOperand"] = "SOURCE §13.18.53 — the subscripted/ref-modified operand stages loud; kb/Work PB506 owns this clause",
+        // ⚠ RENAMED BY kb/Work PB852: `BindSourceOperand` is now the FORM CLASSIFIER (identifier-1 vs
+        // arithmetic-expression-1, §13.18.53.2) and calls no key helper; the identifier arm it delegates to is
+        // `BindSourceReference`, which is where the bare call lives and where the residue above still stands.
+        ["BindSourceReference"] = "SOURCE §13.18.53 identifier-1 — the subscripted/ref-modified operand stages loud; kb/Work PB506 owns this clause",
     };
 
     private static readonly Regex MethodDecl = new(

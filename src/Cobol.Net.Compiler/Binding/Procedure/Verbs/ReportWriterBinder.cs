@@ -43,6 +43,18 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     foreach (var f in ln.Fields)
                     {
                         foreach (var c in f.PresentWhenCtxs) f.PresentWhen.Add(Bind(c));
+                        // A SOURCE operand written as arithmetic-expression-1, or as identifier-1 under the
+                        // clause's ROUNDED phrase (§13.18.53.3 SR5) — §13.18.53.4 GR2's implicit COMPUTE. The
+                        // expression binds HERE through the same BindExpr a procedure-division reference takes
+                        // (the kb/Work PB482 argument: a subscript may be an index-name or an expression and has
+                        // no value at data bind), and the ROUNDED phrase resolves through the ONE §14.7.4
+                        // rounding-mode reader (kb/Work PB852).
+                        foreach (var cs in f.Sources.OfType<FieldComputeSource>())
+                        {
+                            if (cs.Rejected) continue;
+                            cs.Value = host.Expr.BindExpr(cs.Ctx);
+                            cs.Rounding = host.Expr.RoundingOf(cs.Rounded);
+                        }
                         foreach (var v in f.Varyings)
                         {
                             if (v.FromCtx is { } fc) v.From = host.Expr.BindIndexWindowExpr(fc);   // RW VARYING (kb/Work R29 — lenient window)
@@ -63,6 +75,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 foreach (var t in s.Terms)
                     foreach (var a in t.Addends)
                         if (!a.Rejected) a.Value = host.Expr.BindExpr(a.Ctx);
+                // The SUM clause's own ROUNDED phrase (§13.18.54.2's trailing rounded-phrase) — §13.18.54.4 GR4
+                // computes the counter's delivery to the printable item "according to the general rules for the
+                // COMPUTE statement with the ROUNDED phrase". Same §14.7.4 reader as SOURCE's (kb/Work PB852).
+                s.Rounding = host.Expr.RoundingOf(s.Rounded);
             }
         }
     }

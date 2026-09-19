@@ -333,13 +333,42 @@ public sealed record FieldDataSource(string Name, IReadOnlyList<string> Qualifie
     public DataItem? Item { get; set; }
 }
 
+/// <summary>A SOURCE clause operand that is an <b>arithmetic-expression-1</b> (ISO §13.18.53.2), or an
+/// identifier-1 written WITH the ROUNDED phrase — §13.18.53.3 SR5: "If identifier-1 is specified with the
+/// ROUNDED phrase, it is considered to be an arithmetic-expression." Its rule is §13.18.53.4 GR2:
+/// "Arithmetic-expression-1 specifies the operand of an implicit COMPUTE statement that is executed implicitly
+/// whenever the associated item is printed. If the ROUNDED phrase is specified, the implicit COMPUTE statement
+/// has the corresponding ROUNDED phrase." (kb/Work PB852.)
+/// <para>The operand is kept as its PARSE TREE and bound in the PROCEDURE phase through the ONE expression
+/// binder — the same route the SUM addend takes since kb/Work PB482, and for the same reason: a subscript may
+/// be an index-name or an expression and has no value at data bind.</para></summary>
+public sealed record FieldComputeSource(Core.ReportValueOperandContext Ctx, string Written) : ReportFieldSource
+{
+    /// <summary>The clause's ROUNDED phrase (§13.18.53.2's trailing <c>[ rounded-phrase ]</c>, §14.7.4), or null
+    /// — in which case GR2's implicit COMPUTE has no ROUNDED phrase and the transfer truncates (§14.7.4.3 r2).</summary>
+    public Core.RoundedPhraseContext? Rounded { get; init; }
+
+    /// <summary>The bound expression (procedure phase); null when a screen rejected the operand.</summary>
+    public BoundExpr? Value { get; set; }
+
+    /// <summary>A screen has already rejected this operand and named its rule: no binding, no emission, and no
+    /// second diagnostic about the same words (the <c>ReportSumAddend.Rejected</c> discipline).</summary>
+    public bool Rejected { get; set; }
+
+    /// <summary>The rounding mode the ROUNDED phrase selects (§14.7.4.3), resolved in the procedure phase
+    /// through the ONE <c>ExpressionBinder.RoundingOf</c>.</summary>
+    public CobolNet.Runtime.CobolRounding Rounding { get; set; } = CobolNet.Runtime.CobolRounding.Truncation;
+}
+
 /// <summary>A <c>SOURCE IS LINE-COUNTER / PAGE-COUNTER</c> reference (ISO §8.4.3.15 SR1 — referable in the
 /// report section only in SOURCE). The counter is the OWN report's (a report-name qualifier naming another
 /// report is staged loud — no corpus surface).</summary>
 public sealed record FieldCounterSource(bool IsPage) : ReportFieldSource;
 
-/// <summary>The printable face of a SUM entry (ISO §13.18.54.4 GR4 — the sum counter acts as the source item).</summary>
-public sealed record FieldSumSource(string CounterId) : ReportFieldSource;
+/// <summary>The printable face of a SUM entry (ISO §13.18.54.4 GR4 — the sum counter acts as the source item).
+/// <paramref name="CounterId"/> is the counter's ENTRY ORDINAL (GR1; <see cref="ReportSumModel.Id"/>), never a
+/// data-name — two entries may legally carry the same one (kb/Work PB882).</summary>
+public sealed record FieldSumSource(int CounterId) : ReportFieldSource;
 
 /// <summary>A SOURCE naming the entry's own VARYING counter (ISO §13.18.64.4 GR4 NOTE — the counter is usable as
 /// a source data item); <paramref name="Index"/> indexes <see cref="ReportFieldModel.Varyings"/>. Renders as the
@@ -359,7 +388,19 @@ public sealed record FieldVaryingSource(int Index) : ReportFieldSource;
 /// item.</para></summary>
 public sealed class ReportSumAddend
 {
-    public required CobolParserCore.DataReferenceContext Ctx { get; init; }
+    /// <summary>The operand's parse tree — a <c>reportValueOperand</c>, i.e. an arithmetic expression whose
+    /// degenerate case is the bare identifier form. Bound through the ONE <c>ExpressionBinder.BindExpr</c>.</summary>
+    public required CobolParserCore.ReportValueOperandContext Ctx { get; init; }
+
+    /// <summary>The bare <c>dataReference</c> this operand IS, when it is written as data-name-1 / identifier-1
+    /// (ISO §13.18.54.3 SR1's first two addend forms); null when the operand is an arithmetic-expression-1, whose
+    /// rules are SR6's rather than SR4/SR5's (kb/Work PB883).</summary>
+    public CobolParserCore.DataReferenceContext? Reference { get; init; }
+
+    /// <summary>True when the addend is written as arithmetic-expression-1 (SR1's third form) — the
+    /// §13.18.54.4 GR3 COMPUTE-with-ON-SIZE-ERROR accumulation rather than GR3's ADD.</summary>
+    public bool IsExpression => Reference is null;
+
     public required string Name { get; init; }
     public required IReadOnlyList<string> Qualifiers { get; init; }
     /// <summary>The operand exactly as written — what every diagnostic about it quotes.</summary>
@@ -403,13 +444,36 @@ public sealed record ReportDetailRef(string Name, string? Qualifier)
     public override string ToString() => Qualifier is null ? Name : $"{Name} OF {Qualifier}";
 }
 
-/// <summary>One SUM counter (ISO §13.18.54): its id (the entry's data-name per GR5, else synthesized), the
-/// counter scale (GR1 — derived from the entry's PICTURE), the addend TERMS (SR5 — items OUTSIDE the
-/// report section; report-section addends/rolled totals are staged loud), each carrying its own UPON detail
-/// names (GR7c2), and the RESET operand (GR2).</summary>
+/// <summary>One SUM counter (ISO §13.18.54): its identity (GR1 — see <see cref="Id"/>), the counter scale
+/// (GR1 — derived from the entry's PICTURE), the addend TERMS (SR5 — items OUTSIDE the report section;
+/// report-section addends/rolled totals are staged loud), each carrying its own UPON detail names (GR7c2), and
+/// the RESET operand (GR2).</summary>
 public sealed class ReportSumModel
 {
-    public required string Id { get; init; }
+    /// <summary>⛔ THE COUNTER'S IDENTITY IS THE ENTRY, NEVER ITS SPELLING (kb/Work PB882). ISO §13.18.54.4
+    /// GR1: "Each entry containing a SUM clause establishes an independent sum counter and size error
+    /// indicator." This is the entry's ORDINAL within its report description — the index of this model in
+    /// <see cref="ReportModel.Sums"/> and, at run time, of its counter in the engine's list. It used to be
+    /// <see cref="Name"/> (the entry's data-name, else a synthesized string), which made two entries that
+    /// legally share a data-name share ONE counter: the second registration overwrote the first and both
+    /// printable faces rendered the second total.</summary>
+    public required int Id { get; init; }
+
+    /// <summary>The data-name that NAMES THIS COUNTER (ISO §13.18.54.4 GR5 — "If a data-name immediately
+    /// follows the level number in the entry containing the SUM clause, the data-name is the name of the sum
+    /// counter, not the name of the associated printable item, if any"), or null for an unnamed entry. It is
+    /// what a procedure division statement writes to read or alter the counter (GR12) — <b>not</b> its
+    /// identity, which is <see cref="Id"/>.</summary>
+    public string? Name { get; init; }
+
+    /// <summary>The IMPLICITLY-DEFINED register this counter is (ISO §13.18.54.4 GR1 — "a conceptual data item
+    /// that behaves as a data item of the category numeric"), carrying the GR1 profile
+    /// (<see cref="PicInfo.SumCounterItem"/>). It is engine state, not storage — kept off
+    /// <c>DataBinder.ByName</c>/<c>Roots</c> and reachable only through <c>DataBinder.SumCounters</c>, the
+    /// resolver hook that builds a <see cref="Model.ReportSumCounterPlace"/> (the CAPACITY-register pattern).
+    /// It is what GR5's data-name names and what GR12 permits the procedure division to alter.</summary>
+    public required DataItem Register { get; init; }
+
     public int Scale { get; init; }
 
     /// <summary>The clause's <c>SUM … [UPON …]</c> groups in written order — ONE counter per ENTRY (GR1),
@@ -421,6 +485,17 @@ public sealed class ReportSumModel
     /// Null for RESET ON FINAL and for no RESET phrase.</summary>
     public ReportControlRef? ResetOperand { get; set; }
     public bool ResetFinal { get; set; }
+
+    /// <summary>The clause's ROUNDED phrase (§13.18.54.2's trailing <c>[ rounded-phrase ]</c>, §14.7.4), or null.
+    /// §13.18.54.4 GR4: "If the ROUNDED phrase is specified …, the content of the sum counter is computed
+    /// according to the general rules for the COMPUTE statement with the ROUNDED phrase" — the phrase governs the
+    /// counter's delivery to the printable item, which is why §13.18.54.3 SR3 admits it only with a COLUMN
+    /// clause. Null (no phrase) ⇒ the transfer truncates (§14.7.4.3 r2).</summary>
+    public Core.RoundedPhraseContext? Rounded { get; set; }
+
+    /// <summary>The rounding mode <see cref="Rounded"/> selects (§14.7.4.3), resolved in the procedure phase
+    /// through the ONE <c>ExpressionBinder.RoundingOf</c>.</summary>
+    public CobolNet.Runtime.CobolRounding Rounding { get; set; } = CobolNet.Runtime.CobolRounding.Truncation;
     /// <summary>The resolved RESET control level; −1 = no RESET phrase (reset where printed, GR2).</summary>
     public int ResetLevel { get; set; } = -1;
     /// <summary>The group whose processing end resets the counter when no RESET phrase is given (GR2).</summary>
@@ -449,8 +524,6 @@ public sealed partial class DataBinder
     /// (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<ReportModel> Reports => _reports;
     private readonly List<ReportModel> _reports = [];
-
-    private int _sumCounterId;
 
     /// <summary>Bind the REPORT SECTION's RD entries into <see cref="Reports"/> (ISO §13.14/§13.15). Runs after
     /// <c>BindFileControl</c>/<c>BindFileSection</c> (the FD REPORT clauses are captured there); SOURCE/CONTROL
@@ -860,6 +933,8 @@ public sealed partial class DataBinder
             // the entry carries no SOURCE clause.
             var sourceOps = new List<ReportFieldSource>();
             int sourceOpsWritten = 0;   // operands WRITTEN (a staged/unresolvable one adds none to sourceOps)
+            // §13.18.53.3 SR3 — set when the clause writes an arithmetic-expression operand or a ROUNDED phrase.
+            bool sourceNeedsNumericEntry = false;
             ReportLineModel? opened = null;
             // ⛔ A LIST, NOT A SLOT (kb/Work PB482): ISO §13.18.54.3 SR1 — "The whole clause is referred to as a
             // SUM clause even though the SUM keyword may appear more than once", and §13.18.54.4 GR1 gives the
@@ -905,9 +980,17 @@ public sealed partial class DataBinder
                     // Every written operand of the clause (§13.18.53.2's ellipsis) — the SR6 count below reads
                     // the WRITTEN count, so a staged operand (a subscripted reference, another report's
                     // counter) cannot make an illegal clause look legal.
-                    sourceOpsWritten += sc.dataReference().Length;
-                    foreach (var dref in sc.dataReference())
-                        if (BindSourceOperand(dref, model) is { } so) sourceOps.Add(so);
+                    var sops = sc.reportValueOperand();
+                    sourceOpsWritten += sops.Length;
+                    ScreenSourceOperandParens(sops, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");   // SR7
+                    // §13.18.53.3 SR3 — an arithmetic-expression operand, or the ROUNDED phrase, requires the
+                    // ENTRY to define a numeric or numeric-edited item. The entry's PICTURE is analyzed below
+                    // (it needs the COLUMN block's usage/editing context), so the obligation is recorded here
+                    // and discharged there, where `pic` exists.
+                    if (sc.roundedPhrase() is not null || sops.Any(o => BareReferenceOf(o) is null))
+                        sourceNeedsNumericEntry = true;
+                    foreach (var op in sops)
+                        if (BindSourceOperand(op, sc.roundedPhrase(), model) is { } so) sourceOps.Add(so);
                 }
                 else if (clause.reportSumClause() is { } sm)
                     sumClauses.Add(sm);
@@ -1055,7 +1138,7 @@ public sealed partial class DataBinder
             ReportSumModel? sum = null;
             if (sumClauses.Count > 0)
             {
-                sum = BindSumClause(sumClauses, entryName, picText, group, model);
+                sum = BindSumClause(sumClauses, entryName, picText, group, model, columns.Count > 0);
                 foreach (var (_, c, _) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
             }
@@ -1114,6 +1197,14 @@ public sealed partial class DataBinder
                 if (pic.Usage is not Usage.Display)
                     Edition.Error(DiagnosticCatalog.ReportNonDisplayItem, $"RD '{model.Name}': a non-DISPLAY printable item at COLUMN "
                         + $"{col} (ISO §13.15 — printable items are DISPLAY) is not supported");
+                // §13.18.53.3 SR3 — "If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry
+                // shall define either a numeric data item or a numeric-edited data item." The receiving operand
+                // of GR2's implicit COMPUTE is this printable item (kb/Work PB852).
+                if (sourceNeedsNumericEntry && pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
+                    Edition.Error(DiagnosticCatalog.ReportSourceExpressionNotNumeric, $"RD '{model.Name}' entry "
+                        + $"'{entryName ?? "FILLER"}': the SOURCE clause specifies an arithmetic-expression or the "
+                        + $"ROUNDED phrase, so the entry shall define a numeric or numeric-edited data item (ISO "
+                        + $"§13.18.53.3 SR3); its PICTURE '{picText}' describes a {pic.Category} item.");
                 var item = new DataItem
                 {
                     Level = level,
@@ -1312,11 +1403,82 @@ public sealed partial class DataBinder
                 + $"{string.Join(" / ", admissible.Distinct())} admissible");
     }
 
-    /// <summary>Bind ONE SOURCE clause operand (ISO §13.18.53.2 — the clause writes `{ identifier-1 } …`): a
-    /// LINE-COUNTER/PAGE-COUNTER register (§8.4.3.15 SR1 — the only report-section reference position), or a data
-    /// reference captured as base + qualifiers. Subscripted / reference-modified operands stage loud (no corpus
-    /// surface).</summary>
-    private ReportFieldSource? BindSourceOperand(Core.DataReferenceContext dref, ReportModel model)
+    /// <summary>⛔ THE ONE CLASSIFIER OF A REPORT VALUE-CLAUSE OPERAND (kb/Work PB852 × PB883). §13.18.53.2 and
+    /// §13.18.54.2 both print `{ identifier-1 | arithmetic-expression-1 }` (SUM adds data-name-1, also an
+    /// identifier), and the grammar gives both clauses ONE production, so the form is decided HERE for both:
+    /// returns the operand's bare <c>dataReference</c> when the whole expression is nothing but that reference —
+    /// no operator, no parentheses, no function — else null, meaning arithmetic-expression-1. Writing the test
+    /// once is the point: SOURCE's SR4/SR5 and SUM's SR4/SR5/SR6 all key on which form was written, and two
+    /// copies of this walk would be the two-arm dispatch this repo keeps rediscovering.</summary>
+    internal static Core.DataReferenceContext? BareReferenceOf(Core.ReportValueOperandContext op)
+    {
+        var add = op.arithmeticExpression()?.additiveExpression();
+        if (add is null || add.addOp().Length > 0) return null;
+        var mul = add.multiplicativeExpression();
+        if (mul.Length != 1 || mul[0].mulOp().Length > 0) return null;
+        var pow = mul[0].powerExpression();
+        if (pow.Length != 1 || pow[0].POWER().Length > 0) return null;
+        var un = pow[0].unaryExpression();
+        if (un.Length != 1) return null;
+        // `unaryExpression : addOp unaryExpression | primaryExpression` — a signed operand is an expression.
+        return un[0].primaryExpression()?.dataReference();
+    }
+
+    /// <summary>True when the operand is written enclosed in parentheses — the shape §13.18.53.3 SR7 requires of
+    /// every operand of a multi-operand SOURCE clause that contains an arithmetic-expression. The parenthesized
+    /// form is <c>primaryExpression : LPAREN arithmeticExpression RPAREN</c> reached with no operator above it,
+    /// so it is the same walk as <see cref="BareReferenceOf"/> ending one alternative over.</summary>
+    internal static bool IsParenthesized(Core.ReportValueOperandContext op)
+    {
+        var add = op.arithmeticExpression()?.additiveExpression();
+        if (add is null || add.addOp().Length > 0) return false;
+        var mul = add.multiplicativeExpression();
+        if (mul.Length != 1 || mul[0].mulOp().Length > 0) return false;
+        var pow = mul[0].powerExpression();
+        if (pow.Length != 1 || pow[0].POWER().Length > 0) return false;
+        var un = pow[0].unaryExpression();
+        // GROUPING-PAREN-ONLY: §13.18.53.3 SR7 asks whether the operand is "enclosed in parentheses", and the
+        // only paren that encloses an OPERAND is `primaryExpression : LPAREN arithmeticExpression RPAREN`. A
+        // FUNCTION argument list's paren (FNARG_LPAREN, §8.4.3.2.3 SR6) belongs to `functionCall`, a different
+        // alternative of the same rule, and does not enclose the operand — `SOURCES ARE FUNCTION MAX(A B) (C)`
+        // leaves the first operand unparenthesized, which is exactly what SR7 refuses.
+        return un.Length == 1 && un[0].primaryExpression()?.LPAREN() is not null;
+    }
+
+    /// <summary>ISO §13.18.53.3 SR7 — "If the SOURCE clause has more than one operand of which at least one is an
+    /// arithmetic-expression, each operand shall be enclosed in parentheses." ENFORCED, not assumed from the
+    /// grammar's shape: operands are separated by nothing but a space, so without the parentheses the standard's
+    /// own general format would not say where one operand ends. EVERY operand takes them, including the bare
+    /// identifiers. (kb/Work PB852.)</summary>
+    private void ScreenSourceOperandParens(Core.ReportValueOperandContext[] ops, string where)
+    {
+        if (ops.Length <= 1) return;
+        if (!ops.Any(o => BareReferenceOf(o) is null)) return;   // every operand is identifier-1 — SR7 is silent
+        foreach (var o in ops.Where(o => !IsParenthesized(o)))
+            Edition.Error(DiagnosticCatalog.ReportSourceOperandParens, $"{where}: the SOURCE clause has "
+                + $"{ops.Length} operands of which at least one is an arithmetic-expression, so each operand "
+                + $"shall be enclosed in parentheses (ISO §13.18.53.3 SR7); '{o.GetText()}' is not.");
+    }
+
+    /// <summary>Bind ONE SOURCE clause operand (ISO §13.18.53.2 — the clause writes
+    /// `{ identifier-1 | arithmetic-expression-1 } …`): a LINE-COUNTER/PAGE-COUNTER register (§8.4.3.15 SR1 — the
+    /// only report-section reference position), a data reference captured as base + qualifiers (GR1's implicit
+    /// MOVE), or — for an expression operand, or an identifier under the clause's ROUNDED phrase (SR5) — a
+    /// <see cref="FieldComputeSource"/> carrying GR2's implicit COMPUTE. Subscripted / reference-modified
+    /// IDENTIFIER operands stage loud (no corpus surface); inside an expression they are ordinary identifiers and
+    /// the one expression binder resolves them.</summary>
+    private ReportFieldSource? BindSourceOperand(Core.ReportValueOperandContext op,
+        Core.RoundedPhraseContext? rounded, ReportModel model)
+    {
+        // §13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
+        // two forms merge here and GR2's COMPUTE governs both (kb/Work PB852).
+        if (BareReferenceOf(op) is not { } dref || rounded is not null)
+            return new FieldComputeSource(op, AsWritten(op)) { Rounded = rounded };
+        return BindSourceReference(dref, model);
+    }
+
+    /// <summary>The identifier-1 arm of <see cref="BindSourceOperand"/> — §13.18.53.4 GR1's implicit MOVE.</summary>
+    private ReportFieldSource? BindSourceReference(Core.DataReferenceContext dref, ReportModel model)
     {
         if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null)
         {
@@ -1345,7 +1507,7 @@ public sealed partial class DataBinder
     /// §13.18.54.4 GR1 establishes ONE counter per ENTRY, so the groups are terms of a single counter and each
     /// keeps its OWN UPON list (GR7c2 attaches the phrase to its group).</para></summary>
     private ReportSumModel BindSumClause(IReadOnlyList<Core.ReportSumClauseContext> clauses,
-        string? entryName, string? picText, ReportGroupModel group, ReportModel model)
+        string? entryName, string? picText, ReportGroupModel group, ReportModel model, bool hasColumn)
     {
         // Scale-derivation analysis (GR1) — threads the edition + the program currency symbol like every other
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
@@ -1356,26 +1518,61 @@ public sealed partial class DataBinder
             : null;
         var sum = new ReportSumModel
         {
-            Id = entryName ?? $"__SUM{_sumCounterId++}",
+            // §13.18.54.4 GR1 — one counter per ENTRY: the identity is this entry's ordinal in the report
+            // description, and GR5's data-name rides alongside as the counter's NAME (kb/Work PB882).
+            Id = model.Sums.Count,
+            Name = entryName,
             Scale = pic?.Scale ?? 0,
             PrintedIn = group,
+            // The counter AS A DATA ITEM (GR1) — the implicitly-defined register a procedure division reference
+            // resolves to (GR5 names it, GR12 permits altering it). Off ByName/Roots, exactly like the OCCURS
+            // DYNAMIC CAPACITY register: its value IS the engine's, so it allocates no storage.
+            Register = new DataItem
+            {
+                Level = 49,
+                DeclaredAt = Edition.Cursor,
+                CobolName = entryName,
+                CsName = $"__sum_{model.Name}_{model.Sums.Count}",
+                Pic = PicInfo.SumCounterItem(pic?.Digits ?? 18, pic?.Scale ?? 0),
+                Uid = _uidCounter++,
+            },
             // Preserve a floating-point-edited / national-edited PICTURE gate for the post-bind GateData report-Sums
             // walk (this PicInfo is otherwise discarded — only Scale is used — so the 0900 would drop; DEVLOG 740).
             SkeletonGate = pic is null ? null : CobolNet.Validation.VersionConformancePass.PictureConstructId(pic),
             SkeletonWhere = sumWhere,
         };
-        bool resetSeen = false;
+        bool resetSeen = false, roundedSeen = false;
         foreach (var sm in clauses)
         {
             var term = new ReportSumTerm();
-            foreach (var op in sm.sumOperand())
-                term.Addends.Add(SumAddendRef(op.dataReference(), model));
+            foreach (var op in sm.reportValueOperand())
+                term.Addends.Add(SumAddendRef(op, model));
             // UPON data-name-2 (SR7) — the WHOLE written reference: the one qualifier the rule allows is a
             // report-name, and §8.4.3.3.3 SR5's NOTE bars a ref-mod wherever a general format writes
             // data-name-n. Resolution waits for ResolveReports (a detail may be described after this entry).
             foreach (var up in sm.dataReference())
                 if (UponDetailRef(up, model) is { } det) term.Upon.Add(det);
             sum.Terms.Add(term);
+            // §13.18.54.2 — the rounded-phrase sits OUTSIDE the repeated SUM … UPON group (PDF p487 rendered),
+            // so an entry has at most one, however many times the SUM keyword appears (SR1). It governs
+            // §13.18.54.4 GR4's delivery of the counter to the printable item, which is why SR3 requires the
+            // COLUMN clause that defines that item (kb/Work PB852's sibling sweep).
+            if (sm.roundedPhrase() is { } rnd)
+            {
+                if (roundedSeen)
+                    Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': the SUM clause of "
+                        + $"'{entryName ?? "FILLER"}' writes more than one ROUNDED phrase; the general format admits "
+                        + "one rounded-phrase for the whole clause (ISO §13.18.54.2)");
+                else if (!hasColumn)
+                    Edition.Error(DiagnosticCatalog.ReportSumRoundedWithoutColumn, $"RD '{model.Name}' entry "
+                        + $"'{entryName ?? "FILLER"}': the SUM clause writes a ROUNDED phrase, which is permitted "
+                        + "only if the COLUMN clause is specified for the subject of the entry (ISO §13.18.54.3 "
+                        + "SR3) — the phrase governs §13.18.54.4 GR4's transfer of the sum counter to the "
+                        + "printable item, and this entry defines none.");
+                else
+                    sum.Rounded = rnd;
+                roundedSeen = true;
+            }
             if (sm.reportSumReset() is not { } reset) continue;
             // §13.18.54.2 — the RESET phrase sits OUTSIDE the repeated SUM … UPON group, so an entry has at
             // most one. (Reachable only once the SUM keyword repeats, which SR1 permits.)
@@ -1393,6 +1590,15 @@ public sealed partial class DataBinder
                     $"RD '{model.Name}': SUM … RESET ON operand", "ISO §13.18.54.3 SR8");
         }
         model.Sums.Add(sum);
+        // §13.18.54.4 GR5 — a data-name immediately after the level number names THE COUNTER. Publish it into
+        // the source element's name space so GR12's permission to read or alter it can be exercised; the entry
+        // keeps its own counter whether or not another entry spells its name the same way (GR1, kb/Work PB882).
+        if (entryName is not null)
+        {
+            if (!_sumCounters.TryGetValue(entryName, out var homonyms))
+                _sumCounters[entryName] = homonyms = [];
+            homonyms.Add((model, sum));
+        }
         return sum;
     }
 
@@ -1405,12 +1611,23 @@ public sealed partial class DataBinder
     /// category alphanumeric" unless the usage is national — never numeric — so no reference-modified spelling
     /// can satisfy SR5. It was being DROPPED silently: <c>SUM WS-TXT(1:2)</c> summed the whole item.</para>
     /// <para>The SUBSCRIPT is NOT screened — it is the legal spelling this helper exists to carry (§8.4.2.3
-    /// subscripting an identifier), and it reaches the emitter as a bound expression.</para></summary>
-    private ReportSumAddend SumAddendRef(Core.DataReferenceContext dref, ReportModel model)
+    /// subscripting an identifier), and it reaches the emitter as a bound expression.</para>
+    /// <para>⛔ THE THIRD ADDEND FORM (kb/Work PB883). §13.18.54.3 SR1 — "Each data-name-1, identifier-1 or
+    /// arithmetic-expression-1 is an addend" — and an EXPRESSION addend is not a reference at all: its rule is
+    /// SR6 ("any identifiers it contains may reference entries in any section of the data division other than
+    /// the report section"), never SR4/SR5's, and §13.18.54.4 GR3 gives it the COMPUTE-with-ON-SIZE-ERROR
+    /// accumulation in place of the ADD. It carries no base name to screen here; the whole tree goes to the ONE
+    /// expression binder, and the SR6 screen runs at resolution where the report-section name set is known.</para></summary>
+    private ReportSumAddend SumAddendRef(Core.ReportValueOperandContext op, ReportModel model)
     {
+        string written = AsWritten(op);
+        if (BareReferenceOf(op) is not { } dref)
+            return new ReportSumAddend { Ctx = op, Reference = null, Name = "", Qualifiers = [], Written = written };
         var (name, quals) = KeyReference(dref);
-        string written = AsWritten(dref);
-        var addend = new ReportSumAddend { Ctx = dref, Name = name, Qualifiers = quals, Written = written };
+        var addend = new ReportSumAddend
+        {
+            Ctx = op, Reference = dref, Name = name, Qualifiers = quals, Written = written,
+        };
         var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
         if (sfx.RefMods > 0)
         {
@@ -1529,12 +1746,28 @@ public sealed partial class DataBinder
                     foreach (var f in ln.Fields)
                     {
                         foreach (var fs in f.Sources)   // EVERY operand of a multi-operand SOURCE clause (§13.18.53.2)
-                            if (fs is FieldDataSource ds)
+                            switch (fs)
                             {
-                                ds.Item = LookupQualified(ds.Name, ds.Qualifiers);
-                                if (ds.Item is null)
-                                    Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
-                                        + "resolve to a data item (ISO §13.18.53.3 SR4)");
+                                case FieldDataSource ds:
+                                    ds.Item = LookupQualified(ds.Name, ds.Qualifiers);
+                                    if (ds.Item is null)
+                                        Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
+                                            + "resolve to a data item (ISO §13.18.53.3 SR4)");
+                                    break;
+                                // §13.18.53.3 SR4, last sentence — "This same Syntax rule applies to any
+                                // identifier appearing in arithmetic-expression-1": a report-section identifier
+                                // inside the expression shall be a report counter or a sum counter OF THIS
+                                // REPORT. The identifiers themselves are resolved by the ONE expression binder
+                                // in the procedure phase (kb/Work PB852).
+                                case FieldComputeSource cs when ReportSectionNameIn(cs.Ctx, model) is { } bad:
+                                    Edition.Error(DiagnosticCatalog.ReportExpressionOperandSection, $"RD '{model.Name}': SOURCE "
+                                        + $"'{cs.Written}' contains '{bad}', which names a report section item that "
+                                        + "is neither a report counter nor a sum counter of this report. An "
+                                        + "identifier of a SOURCE clause — including any identifier inside "
+                                        + "arithmetic-expression-1 — may name a report section item only in those "
+                                        + "two shapes (ISO §13.18.53.3 SR4).");
+                                    cs.Rejected = true;
+                                    break;
                             }
                         // OCCURS … DEPENDING ON data-name-1 (§13.18.38 Format 3): resolved on the SOURCE operand's
                         // pattern, ONCE per repeating entry (every repetition's guard shares its one spec).
@@ -1622,6 +1855,24 @@ public sealed partial class DataBinder
     {
         if (addend.Rejected) return;
         addend.Rejected = true;   // cleared only by the one success path at the end
+        // ⛔ AN ARITHMETIC-EXPRESSION ADDEND TAKES SR6, NOT SR4/SR5 (ISO §13.18.54.3 SR6 — "If the addend is
+        // arithmetic-expression-1, any identifiers it contains may reference entries in any section of the data
+        // division other than the report section"; kb/Work PB883). There is no base name to look up: the whole
+        // tree binds through the ONE expression binder in the procedure phase, and the only DATA-phase question
+        // is SR6's — does any identifier in it name a report-section item?
+        if (addend.IsExpression)
+        {
+            if (ReportSectionNameIn(addend.Ctx) is { } rsName)
+            {
+                Edition.Error(DiagnosticCatalog.ReportExpressionOperandSection, $"RD '{model.Name}': SUM addend "
+                    + $"'{addend.Written}' contains '{rsName}', which names a report section item. If the addend "
+                    + "is arithmetic-expression-1, any identifiers it contains may reference entries in any "
+                    + "section of the data division OTHER THAN the report section (ISO §13.18.54.3 SR6).");
+                return;
+            }
+            addend.Rejected = false;
+            return;
+        }
         // SR4's data-name-1 — a report-section item. `IsReportSectionOnlyName` is the SAME set §13.18.16.3 SR2
         // and §13.15.3 SR16 use (built once, kb/Work PB205): a name ALSO declared in ordinary storage resolves
         // THERE (§8.4.2.1) and is an SR5 identifier-1, not an SR4 data-name-1.
@@ -1772,6 +2023,45 @@ public sealed partial class DataBinder
         return false;
     }
 
+    /// <summary>⛔ THE ONE SECTION SCREEN OVER A REPORT VALUE CLAUSE'S ARITHMETIC-EXPRESSION OPERAND (kb/Work
+    /// PB852 × PB883). Both clauses constrain which items the identifiers INSIDE the expression may name, and
+    /// they draw the line in different places — so one walk, one caller-supplied policy:
+    /// <list type="bullet">
+    /// <item>SUM, ISO §13.18.54.3 SR6: "If the addend is arithmetic-expression-1, any identifiers it contains may
+    /// reference entries in any section of the data division other than the report section." Nothing of the
+    /// report section is admitted — not a sum counter, and (by §8.4.3.15.3 SR1, "In the report section,
+    /// PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause") not a report counter either.
+    /// Pass <paramref name="countersOf"/> = null.</item>
+    /// <item>SOURCE, ISO §13.18.53.3 SR4: "If identifier-1 specifies a report section item, it shall be a report
+    /// counter identifier or a sum counter defined in the current report. This same Syntax rule applies to any
+    /// identifier appearing in arithmetic-expression-1." Pass the CURRENT report.</item>
+    /// </list>
+    /// Returns the first offending identifier as written, or null when every identifier is admissible.</summary>
+    private string? ReportSectionNameIn(Antlr4.Runtime.Tree.IParseTree node, ReportModel? countersOf = null)
+    {
+        if (node is Core.DataReferenceContext dref)
+        {
+            if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null)
+                // A report counter is admissible only in a SOURCE clause, and only the CURRENT report's
+                // (§8.4.3.15.3 SR1/SR2 — an unqualified counter is the own report's).
+                return countersOf is not null
+                    && (dref.cobolWord() is not { } q
+                        || q.GetText().Equals(countersOf.Name, StringComparison.OrdinalIgnoreCase))
+                    ? null : dref.GetText();
+            if (dref.cobolWord()?.GetText() is { } w && IsReportSectionOnlyName(w))
+            {
+                // A sum counter of the CURRENT report is SR4's other admitted report-section item.
+                bool ownCounter = countersOf is not null
+                    && countersOf.Sums.Any(s => s.Name is { } sn && sn.Equals(w, StringComparison.OrdinalIgnoreCase));
+                return ownCounter ? null : dref.GetText();
+            }
+            return null;
+        }
+        for (int i = 0; i < node.ChildCount; i++)
+            if (ReportSectionNameIn(node.GetChild(i), countersOf) is { } bad) return bad;
+        return null;
+    }
+
     /// <summary>The report-section-exclusive names of one report: its group names, its printable entries' names
     /// and its sum counters, each only when <see cref="ByName"/> does not also carry it (see
     /// <see cref="IsReportSectionOnlyName"/> for why).</summary>
@@ -1785,7 +2075,9 @@ public sealed partial class DataBinder
                 foreach (var f in ln.Fields)
                     if (f.PrintItem.CobolName is { } fn && !ByName.ContainsKey(fn)) names.Add(fn);
         }
-        foreach (var s in model.Sums) if (!ByName.ContainsKey(s.Id)) names.Add(s.Id);
+        // A sum counter contributes the name GR5 gives it (its identity is the ENTRY — kb/Work PB882 — but this
+        // set is about NAMES: the §13.18.16.3 SR2 / §13.15.3 SR16 "declared in the report section" question).
+        foreach (var s in model.Sums) if (s.Name is { } sn && !ByName.ContainsKey(sn)) names.Add(sn);
         return names;
     }
 

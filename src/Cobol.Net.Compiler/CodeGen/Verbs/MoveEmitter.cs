@@ -456,7 +456,15 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// receiver (ISO §13.18.2 GR1: the item behaves as n repetitions of its picture symbol where n is the
     /// activating argument's length, so a MOVE stores at the CARRIER's current length, never Pic.Length=1);
     /// null (every other receiver) keeps the compile-time width.</summary>
-    public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null)
+    /// <param name="rounding">The ROUNDING MODE of the transfer. A MOVE never passes it — §14.6.8.2 r4's
+    /// alignment truncates by rule — and the default therefore preserves that. The ONE caller that does is the
+    /// REPORT SECTION's implicit COMPUTE: §13.18.53.4 GR2 ("If the ROUNDED phrase is specified, the implicit
+    /// COMPUTE statement has the corresponding ROUNDED phrase") and §13.18.54.4 GR4 ("the content of the sum
+    /// counter is computed according to the general rules for the COMPUTE statement with the ROUNDED phrase").
+    /// A rounded implicit transfer is still THIS conversion — the receiver's PICTURE governs the store either
+    /// way — so the mode is threaded rather than a second conversion written (kb/Work PB852).</param>
+    public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null,
+        CobolRounding rounding = CobolRounding.Truncation)
     {
         var pic = target.OperandPic!;   // an elementary receiver's picture, or a bit / national group's as-if picture (D20/PB79)
         // A DYNAMIC LENGTH receiver (ISO §8.5.1.10.4 / §13.18.19): store the sender's DISPLAY image, replacing the
@@ -543,8 +551,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A STANDARD-DECIMAL intermediate lands at the receiver's scale (the §14.7 final transfer — the same
                 // form ArithmeticEmitter's edited path uses; fix-queue PB65: MOVE FUNCTION E under the mode handed
                 // the CobolDec to the Int128 edit path, CS1503 on conforming source).
-                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation, checkedLanding: false)   // a MOVE: §14.6.8.2 r4 truncation, low-order digits past the carrier (kb/Work PB77)
-                    : e.Dec ? RuntimeApi.DecToUnscaled(e.Expr, $"{ems}", CobolRounding.Truncation)
+                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", rounding, checkedLanding: false)   // a MOVE: §14.6.8.2 r4 truncation, low-order digits past the carrier (kb/Work PB77)
+                    : e.Dec ? RuntimeApi.DecToUnscaled(e.Expr, $"{ems}", rounding)
                     : e.Expr;
                 int editScale = e.Real || e.Dec ? ems : e.Scale;
                 // The form dispatch (mask vs LOCALE) is EditFormatFor's — never a call-site EditMask deref.
@@ -630,7 +638,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.
                 // …and every carrier stores through the ONE store (NumericRenderer.StoreExpr — kb/Work PB84), so
                 // the Dec/float/native switch is written once for MOVE, the arithmetic store and INVOKE alike.
-                string stored = ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName), target);
+                string stored = ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName, rounding), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
             default:

@@ -1168,6 +1168,21 @@ internal static class RuntimeApi
     public static string ReportPlace(string lineVar, string columnExpr, string image) =>
         $"{nameof(CobolReport)}.{nameof(CobolReport.Place)}({lineVar}, {columnExpr}, {image})";
 
+    /// <summary>The per-program-instance engine field of the report at <paramref name="reportIndex"/>
+    /// (<c>ReportModel.CsIndex</c>) — the ONE spelling of that field, so the emitter and the place renderer
+    /// cannot drift apart.</summary>
+    public static string ReportEngine(int reportIndex) => $"__RPT_{reportIndex}";
+
+    /// <summary>Read a SUM counter's content, unscaled at the counter's own scale (ISO §13.18.54.4 GR1/GR4) —
+    /// <c>CobolReport.SumValue</c>. <paramref name="counterId"/> is the ENTRY's ordinal, GR1's identity.</summary>
+    public static string ReportSumRead(int reportIndex, int counterId) =>
+        $"{ReportEngine(reportIndex)}.{nameof(CobolReport.SumValue)}({counterId})";
+
+    /// <summary>Alter a SUM counter's content from the procedure division (ISO §13.18.54.4 GR12) —
+    /// <c>CobolReport.SetSumValue</c>, at the counter's own scale.</summary>
+    public static string ReportSumWrite(int reportIndex, int counterId, string valueExpr) =>
+        $"{ReportEngine(reportIndex)}.{nameof(CobolReport.SetSumValue)}({counterId}, (long)({valueExpr}));";
+
     /// <summary>Decode a DISPLAY image back into a native numeric leaf, preserving unset positions from the
     /// current value — <c>CobolNum.StoreDisplay</c>.</summary>
     public static string NumStoreDisplay(string image, string profile, string current) =>

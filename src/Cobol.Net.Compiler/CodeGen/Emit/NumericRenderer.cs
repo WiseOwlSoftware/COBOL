@@ -174,7 +174,6 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         new($"__RPT_{n.Report.CsIndex}.{(n.IsPage ? "PageCounter" : "LineCounter")}", 0);
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
-    public NumX Visit(BoundReportSumRef n) => new($"__RPT_{n.Report.CsIndex}.SumValue({EmitText.CsLiteral(n.Id)})", n.Scale);
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
     public NumX Visit(BoundReportVaryingRef n) => new(n.CsName, 0);
     // An OCCURS DEPENDING table's current extent (ISO §13.18.38 GR8; the §15.50.4 r4b / §15.14.4 r2b channel,
@@ -680,25 +679,31 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// scale; a quotient with more fraction digits than that is truncated before the function sees it. That is a
     /// strictly smaller wrong than "does not compile" and it is not the end state — the §15.4.1 r1 answer is a
     /// Dec-carrier body, ledgered as PB38.</para></para></summary>
-    public static string Align(NumX x, int toScale) =>
+    /// <param name="mode">The rounding of the narrowing. TRUNCATION is this helper's contract and every
+    /// value-semantics caller takes it (alignment is not a ROUNDED transfer; §14.7 NOTE 1 gives ROUNDED only to
+    /// the final transfer). The ONE caller that passes otherwise is the report SUM accumulation, where the
+    /// alignment IS the final transfer: §13.18.54.4 GR3 adds each addend into the counter "consistent with the
+    /// general rules of the ADD statement … or, in the case of an arithmetic expression, the COMPUTE statement",
+    /// and GR4 gives that computation the clause's ROUNDED phrase (kb/Work PB852).</param>
+    public static string Align(NumX x, int toScale, CobolRounding mode = CobolRounding.Truncation) =>
         // CHECKED: an intermediate consumer has no capacity check downstream, so a value past the carrier stays the
         // loud sentinel here — never the low-order digits a STORE may take (kb/Work PB77; the Dec arm below raises).
-        x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", CobolRounding.Truncation, checkedLanding: true)
+        x.Real ? RuntimeApi.FloatToScaled(x.Expr, $"{toScale}", mode, checkedLanding: true)
         // A Dec that the Int128 carrier cannot hold at this scale is a SIZE ERROR condition (EC-SIZE-OVERFLOW —
         // §14.7.5 case 5, A.1 item 179 "checked"; kb/Work PB69), never the low-order-digits landing a STORE may
         // use: an intermediate consumer has no capacity check downstream to catch a truncated value.
-        : x.Dec ? RuntimeApi.DecToUnscaledIntermediate(x.Expr, $"{toScale}", CobolRounding.Truncation)
+        : x.Dec ? RuntimeApi.DecToUnscaledIntermediate(x.Expr, $"{toScale}", mode)
         // Unsigned-wide (kb/Work R10): the receiver-less integral sites this helper feeds (a subscript, a SET
         // amount, PERFORM VARYING, RETRY, exit status) are Int128-lane consumers — the Widen funnel applies
         // (loud beyond the intermediate; a 39-digit subscript is not a computable position).
-        : x.U ? Align(DeU(x), toScale)
+        : x.U ? Align(DeU(x), toScale, mode)
         : toScale == x.Scale ? x.Expr
         // ⛔ ESCAPE-CHECKED (fix-queue PB65): Align's consumers are VALUE-semantics sites — intrinsic argument
         // alignment, comparisons, subscript/status intake — where a silent Int128 wrap on widening handed MIN a
         // negative result over two positive arguments. RescaleEscape raises the size-error condition at the D1
         // escape boundary instead; the arithmetic store path keeps its documented wrap (item 179) and does not
         // come through here.
-        : RuntimeApi.NumRescaleEscape(x.Expr, $"{x.Scale}", $"{toScale}", CobolRounding.Truncation);
+        : RuntimeApi.NumRescaleEscape(x.Expr, $"{x.Scale}", $"{toScale}", mode);
 
     /// <summary>Land an arithmetic-expression at scale 0 ROUNDED UP — the sibling of <see cref="Align"/> for the
     /// clauses that say "rounded up to the next whole number" rather than taking the value-semantics truncation.

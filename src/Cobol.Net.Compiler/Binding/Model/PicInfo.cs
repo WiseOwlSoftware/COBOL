@@ -599,6 +599,25 @@ public sealed record PicInfo(
             { SignKind = SignKindFor(usage, signed, sign: null) };
     }
 
+    /// <summary>The synthesized profile of a REPORT SECTION <b>sum counter</b> (ISO §13.18.54.4 GR1): "The sum
+    /// counter is a conceptual data item that behaves as a data item of the category numeric. The number of
+    /// decimal digits in the sum counter, both integral and fractional, is derived from the corresponding number
+    /// of digits, excluding insertion editing characters, in the PICTURE clause of the entry containing the SUM
+    /// clause. The sum counter is signed, whether or not the corresponding PICTURE clause has an operational
+    /// sign." The counter is engine state, never storage, so the realization is the native two's-complement
+    /// integer the engine accumulates in — <paramref name="digits"/>/<paramref name="scale"/> taken from the
+    /// entry's own analyzed PICTURE, and SIGNED unconditionally per GR1's last sentence.
+    /// <para>USAGE BINARY, not a fixed-width binary usage: GR1 derives the counter's capacity from the digit
+    /// COUNT, which is <see cref="NumericTruncation.DigitCount"/>, while COMP-5 and the BINARY-* family hold
+    /// their container's native range instead. The engine accumulates in a <c>long</c>, so the profile is capped
+    /// at the 18 digits that carrier holds — the same ceiling the report engine has always had.</para></summary>
+    public static PicInfo SumCounterItem(int digits, int scale)
+    {
+        int d = System.Math.Clamp(digits, 1, 18);
+        return new PicInfo(PicCategory.Numeric, Usage.Binary, Length: d, Digits: d, Scale: scale, Signed: true)
+            { SignKind = SignKindFor(Usage.Binary, signed: true, sign: null) };
+    }
+
     /// <summary>The C# type used to store this item's value.</summary>
     public string ClrType => Category switch
     {

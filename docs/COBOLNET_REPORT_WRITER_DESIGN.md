@@ -81,7 +81,7 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | line placement | §13.18.35.4 GR5a (absolute → integer-1), GR5b1 RH (HEADING+n−1), GR5b2 PH (RH-on-page aware), **GR5b3 body (FIRST body group on page → FIRST DETAIL, relative value IGNORED; else LC+n)**, GR5b4 PF (FOOTING+n), GR5b5 RF (PF-on-page aware), GR7 subsequent lines, GR6 LC-before-compose, GR8 final LC = last line printed |
 | `Terminate` | §14.9.46.4 GR1 (inactive → **EC-REPORT-INACTIVE**, the statement is unsuccessful), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d (controls→prior, CFs minor→major, restore), §13.18.57.4 GR6f (final-page PF, "immediately followed by" the RF), GR3c (RF), GR6 (file NOT closed) |
 | controls | §13.18.16.4 GR1 (operand order = hierarchy), GR2 (FINAL highest, never breaks mid-report), GR3 (first GENERATE saves priors; major→minor compare), GR4a (CF composes under restored prior values), GR5 (TERMINATE = most-major break). Break key = the item's CHARACTER IMAGE via generated get/set delegates (representation-faithful for every category; restore decodes via `CobolNum.StoreDisplay` for native numeric leaves) |
-| SUM | §13.18.54.4 GR1 (ONE counter per ENTRY, scale from the entry's PICTURE), GR2 (reset where printed / RESET ON level), GR4 (the counter is the printable entry's source item — `BoundReportSumRef`), GR7c1/c2 (accumulate per GENERATE / per the term's OWN UPON filter), GR9 (multi-addend). The counter carries a LIST of `SumTerm`s — one per `SUM … [UPON …]` group, because §13.18.54.3 SR1 lets the SUM keyword "appear more than once" in one clause and GR7c2 attaches each UPON phrase to ITS group |
+| SUM | §13.18.54.4 GR1 (ONE counter per ENTRY, scale from the entry's PICTURE, and its IDENTITY is that entry's ORDINAL, never GR5's data-name — two entries may legally share one name, kb/Work PB882), GR2 (reset where printed / RESET ON level), GR4 (the counter is the printable entry's source item — `ReportSumCounterPlace`, the ONE place a counter is read and written), GR7c1/c2 (accumulate per GENERATE / per the term's OWN UPON filter), GR9 (multi-addend). The counter carries a LIST of `SumTerm`s — one per `SUM … [UPON …]` group, because §13.18.54.3 SR1 lets the SUM keyword "appear more than once" in one clause and GR7c2 attaches each UPON phrase to ITS group |
 | GROUP INDICATE | §13.18.28 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose); one blank span per ABSOLUTE COLUMN operand |
 | USE BEFORE REPORTING | §14.9.49 Format 2 GR8/SR9 — the declarative section binds to the named group (`BoundDeclarative.ReportGroup`) and runs via the group's `BeforeReporting` hook (a `__RunUse` bounded dispatch) just before the group is produced |
 | the REPORT-GROUP REFERENCE | ⛔ **ONE funnel, `Binding/ReportGroupResolution.cs`** — THREE sites name a report group by name (`GENERATE data-name-1` §14.9.16.3 SR1, `USE BEFORE REPORTING identifier-1` §14.9.49.3 SR9, and the SUM clause's `UPON data-name-2` §13.18.54.3 SR7 — the DATA-division one, resolved in `ResolveReports`). The two statement sites share the parse rule `reportGroupReference` (`cobolWord ((IN|OF) reportName)?` — §8.4.2.2.2 Format 1's file-report-qualifier, the only qualifier a level-01 group has; §8.4.2.2.3 SR3 makes IN ≡ OF) and the one resolver. It collects EVERY candidate and reports **COBOLNET1920** when more than one survives (§8.4.2.2.1 / §8.4.2.2.3 SR1). Before kb/Work PB365 both sites returned on the FIRST match, so the same 01-level name in two RDs bound to whichever report was written first, silently — and GENERATE's qualifier did not parse at all. `ReportGroupResolutionDriftTests` keeps the search out of every other file |
@@ -206,6 +206,44 @@ off-by-one through every later counter check.
   ⚠ The SOURCE clause's operand (§13.18.53) is the SAME mechanism's other arm and is NOT converted: a
   subscripted or reference-modified SOURCE still stages COBOLNET0899. `ReportSumOperandCaptureDriftTests`
   carries that as its one adjudicated `KeyReference` caller, so the residue is visible rather than remembered.
+- **ONE OPERAND PRODUCTION FOR BOTH VALUE CLAUSES, AND THE BINDER DECIDES THE FORM** (kb/Work PB852 × PB883).
+  §13.18.53.2 and §13.18.54.2 print the SAME operand brace — `{ identifier-1 | arithmetic-expression-1 }`, SUM
+  adding *data-name-1*, itself an identifier — and both close with `[ rounded-phrase ]`. The grammar therefore
+  has ONE `reportValueOperand : arithmeticExpression`, referenced by `reportSourceClause` and `reportSumClause`,
+  and ONE `roundedPhrase?` on each (the shared §14.7.4 production, so the 2014 `MODE IS` gate rides along with
+  no report-local rule). `DataBinder.Reports.BareReferenceOf` is the ONE classifier: a tree that is exactly one
+  `dataReference` is the identifier form (§13.18.53.4 GR1's implicit MOVE / §13.18.54.4 GR3's implicit ADD);
+  anything else, and any operand under the clause's ROUNDED phrase (§13.18.53.3 SR5 — "it is considered to be an
+  arithmetic-expression"), is `FieldComputeSource` / an expression `ReportSumAddend`, bound in the PROCEDURE
+  phase through the ONE `ExpressionBinder.BindExpr` and rendered into GR2's implicit COMPUTE. The screens are
+  each clause's own: **COBOLNET2141** (§13.18.53.3 SR3 — the entry shall be numeric or numeric-edited),
+  **COBOLNET2142** (SR7 — a multi-operand clause containing an expression parenthesizes EVERY operand; enforced,
+  never inferred from the greedy parse), **COBOLNET2143** (§13.18.54.3 SR3 — SUM's ROUNDED needs a COLUMN
+  clause) and **COBOLNET2144** (the SECTION rules, which differ by clause and are screened by the one walk
+  `ReportSectionNameIn`: SOURCE's SR4 admits a report counter or a sum counter of the CURRENT report, SUM's SR6
+  admits nothing of the report section at all).
+  ⚠ **DETERMINATION — what the SUM clause's ROUNDED phrase rounds.** §13.18.54.4 GR4 ("the content of the sum
+  counter is computed according to the general rules for the COMPUTE statement with the ROUNDED phrase") is read
+  as governing GR3's ACCUMULATION of each addend into the counter. The rejected reading — that it governs GR4's
+  subsequent MOVE of the counter to the printable item — makes the phrase provably dead, because GR1 derives the
+  counter's integral AND fractional digits from that item's own PICTURE, so that transfer is always
+  scale-identical. The mode reaches the accumulation through `NumericRenderer.Align`'s one optional parameter.
+- **THE SUM COUNTER IS A PLACE, AND ITS IDENTITY IS ITS ENTRY** (kb/Work PB882 × PB840). §13.18.54.4 GR1 gives
+  EACH entry its own counter, so `ReportSumModel.Id` is the entry's ORDINAL in its report description and the
+  engine holds the counters in a `List<SumEntry>` indexed by it; GR5's data-name rides alongside as
+  `ReportSumModel.Name`. (It used to BE the id, and `CobolReport._sums` was keyed by it: two entries legally
+  sharing a data-name shared one counter and the second registration destroyed the first — `0022  0022` printed
+  where the standard owes `0011  0022`.) GR5 also puts that name in the source element's name space, because
+  GR12 permits procedure division statements to "alter the content of sum counters" and altering presupposes
+  referencing: `DataBinder.SumCounters` (name → EVERY counter carrying it, a list because the collision is legal
+  to DECLARE) feeds `ReferenceResolver.SumCounterFor`, which builds a `ReportSumCounterPlace` — the CAPACITY /
+  DEBUG register pattern, a VIEW over engine state whose read and write `PlaceRenderer` maps to
+  `CobolReport.SumValue` / `SetSumValue`. Because it is a Place, every verb reaches it through the machinery it
+  already has, receiving side included; the former read-only `BoundReportSumRef` is DELETED, and the compose of
+  a SUM entry's printable face now goes through the same place (which is what GR4's "moved, according to the
+  general rules of the MOVE statement" asks for). An ambiguous or mis-qualified reference is **COBOLNET2145**;
+  the counter's own profile (§13.18.54.4 GR1 — signed, digits from the entry's PICTURE) is
+  `PicInfo.SumCounterItem`, emitted beside the printable items' `NumProfile`s.
 - **The FD side**: `FileModel.ReportNames` (the §13.18.46 REPORT clause, captured in `BindFileSection`);
   a report file is an FD with a non-empty list — legally record-less (§9.1.22). `FileModel.RecordContains`
   captures the fixed Format-1 RECORD CONTAINS for the line width; otherwise the width is the widest field
@@ -272,7 +310,11 @@ off-by-one through every later counter check.
 (any level); COLUMN/PIC/SOURCE/VALUE/JUSTIFIED/BLANK WHEN ZERO/SIGN printable items, **with the multi-operand
 VALUE and SOURCE clauses and the SOURCES/ARE spellings** (§13.18.63.2 format 4 / §13.18.53.2, edition-gated 2002
 for the SOURCE forms — `report-multi-source-2002`); SOURCE
-LINE-/PAGE-COUNTER; CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
+LINE-/PAGE-COUNTER; **the arithmetic-expression-1 operand of BOTH value clauses and their ROUNDED phrase**
+(§13.18.53.2 / §13.18.54.2 — one shared `reportValueOperand` production, §13.18.53.4 GR2's implicit COMPUTE,
+SR3/SR5/SR7 screened, §13.18.54.3 SR3/SR6 screened; kb/Work PB852 × PB883); **the SUM counter's data-name in
+the procedure division's name space** (§13.18.54.4 GR5 + GR12 — read AND altered, `ReportSumCounterPlace`;
+kb/Work PB840); CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
 break) **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
 TYPE CH/CF and SUM RESET ON operands that name the level carry the same ref-mod, §13.18.57.3 SR10 /
 §13.18.54.3 SR8); **SUM with SUBSCRIPTED addends** (§13.18.54.3 SR5's identifier-1 is §8.4.3.1.2 Format 2's qualified-data-name-with-subscripts — a literal, index-name or expression subscript, bound in the procedure phase) + UPON (SR7-screened against the report-group funnel) + RESET, the repeated `SUM … UPON …` group into the ONE counter of the entry (SR1 / GR1 / GR7c2) and the `SUM OF` optional word; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
@@ -301,7 +343,11 @@ an entry with a relative COLUMN operand (`report-indicate-relative-column` — t
 static columns)**; GLOBAL RD (§13.18.27); multi-report FDs (`REPORTS ARE r1 r2`); subscripted/ref-modified
 SOURCE; SOURCE of another report's counter; rolled SUM totals (§13.18.54.3 SR4 / §13.18.54.4 GR6 — a
 report-section addend); cross-report SUM (a SUM addend qualified by a report-name, SR4 g); a cross-report
-`UPON` detail (GR7 c 2); an arithmetic-expression-1 SUM addend (SR1/SR6 — no grammar surface, see §6);
+`UPON` detail (GR7 c 2); an arithmetic-expression-1 SUM addend written with a LEADING PARENTHESIS
+(`SUM (A * B)` — the lexer's §8.4.3.2.3 SR2 keyword-omitted-intrinsic trigger on the SUM token pushes
+SUBSCRIPT mode at that `(`, against §13.18.54.3 SR9's "Otherwise, SUM refers to the report writer SUM
+clause"; every OTHER spelling of the expression addend is LIVE, and §13.18.54.3 states no parenthesization
+rule that would force the refused one);
 non-DISPLAY printable items; PAGE-COUNTER as a receiving operand. PAGE
 `COLS`/width, LAST CONTROL HEADING (the GR3c default applies), and **the COLUMN LEFT/CENTER/RIGHT alignment
 phrase (§13.18.14 F1 — the SR9 LEFT default is what the grammar parses)** have no grammar surface. The §13.18.14.3 SR4/SR5 IS/ARE-spelling pairings and the

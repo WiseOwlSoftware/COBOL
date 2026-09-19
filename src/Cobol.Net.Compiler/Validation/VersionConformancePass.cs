@@ -1122,7 +1122,7 @@ internal sealed class VersionConformancePass
         /// rule, so recognition is the drop-proof home (the VisitReportColumnClause precedent).</summary>
         public override object? VisitReportSourceClause(CobolParserCore.ReportSourceClauseContext ctx)
         {
-            if (ctx.SOURCES() is not null || ctx.ARE() is not null || ctx.dataReference().Length > 1)
+            if (ctx.SOURCES() is not null || ctx.ARE() is not null || ctx.reportValueOperand().Length > 1)
                 _p.Check(Constructs.ReportMultiSource2002, "the multiple SOURCE operand / SOURCES clause forms (report group description)");
             return base.VisitChildren(ctx);
         }

@@ -1059,9 +1059,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // The legacy oracle carries ONE source name per printable item and no repetition model at all, so it
             // reads the FIRST operand — the only shape it could ever compile — and the differential simply has no
             // opinion on a multi-operand clause. It is a regression net, not authority (CLAUDE.md rule 1).
-            if (clause.reportSourceClause()?.dataReference() is { Length: > 0 } src) group.SourceName = src[0].GetText();
+            // The operand is now `reportValueOperand` (an arithmetic expression whose degenerate case is the bare
+            // identifier — kb/Work PB852/PB883); the legacy oracle models only the identifier form, so it reads
+            // the operand's TEXT exactly as before and has no opinion on an expression operand either.
+            if (clause.reportSourceClause()?.reportValueOperand() is { Length: > 0 } src) group.SourceName = src[0].GetText();
             if (clause.reportSumClause() is { } sumc)
-                foreach (var op in sumc.sumOperand()) group.SumFields.Add(op.dataReference().GetText());
+                foreach (var op in sumc.reportValueOperand()) group.SumFields.Add(op.GetText());
             if (clause.pictureClause()?.PIC_STRING() is { } pic)
             {
                 group.PicString = pic.GetText();

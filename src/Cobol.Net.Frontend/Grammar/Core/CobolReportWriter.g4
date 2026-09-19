@@ -167,25 +167,52 @@ reportColumnOperand
 // spellings are introduction-gated post-bind by VersionConformancePass ParseArm.VisitReportSourceClause.
 // What stops the greedy operand list is the §8.9 reservation gate on cobolWord (the PB792 argument): every
 // clause that can follow opens with a reserved word.
-// arithmetic-expression-1 and the ROUNDED phrase (§13.18.53.2 / SR3/SR5/SR7 — the §13.18.53.4 GR2 implicit
-// COMPUTE) have no grammar surface yet; see COBOLNET_REPORT_WRITER_DESIGN §5.
+// The operand is `reportValueOperand` — identifier-1 AND arithmetic-expression-1, one production (kb/Work
+// PB852). The `[ rounded-phrase ]` closing the general format sits OUTSIDE the ellipsis (PDF p485 rendered), so
+// ONE phrase governs the whole clause; §13.18.53.3 SR5 then makes a ROUNDED identifier an arithmetic-expression
+// and §13.18.53.4 GR2 gives it the implicit COMPUTE.
 reportSourceClause
-    : (SOURCE | SOURCES) (IS | ARE)? dataReference+
+    : (SOURCE | SOURCES) (IS | ARE)? reportValueOperand+ roundedPhrase?
     ;
 
-// SUM OF data-name... [UPON data-name...] [RESET ON {FINAL|data-name}]  (§13.18.54)
+// ⛔ THE ONE OPERAND OF A REPORT VALUE CLAUSE (kb/Work PB852 × PB883). §13.18.53.2 (SOURCE) and §13.18.54.2
+// (SUM) print the SAME operand brace — `{ identifier-1 | arithmetic-expression-1 }`, SUM adding `data-name-1`,
+// which is an identifier too — so both clauses reference ONE production and a second copy cannot drift from it.
+// §8.4.3.1.2 Format 2 makes an identifier a primary of an arithmetic expression, so `arithmeticExpression`
+// admits the identifier form as its degenerate case and the BINDER classifies which form was written (a tree
+// that is exactly one `dataReference` is identifier-1 / data-name-1; anything else is arithmetic-expression-1).
+// That is also the standard's own reading: SR5 says an identifier written WITH the ROUNDED phrase "is
+// considered to be an arithmetic-expression".
+// ⚠ The operand list is separated by nothing but a space, so a written operator BINDS (the `(addOp
+// multiplicativeExpression)*` loop is greedy): `SOURCES ARE A + B` is ONE operand. §13.18.53.3 SR7 is what makes
+// that unambiguous — with more than one operand and any of them an expression, "each operand shall be enclosed
+// in parentheses" — and the binder ENFORCES it (COBOLNET2142) rather than inferring it from this shape.
+// What stops the greedy list is unchanged: the §8.9 reservation gate on cobolWord (the PB792 argument) — every
+// clause that can follow opens with a reserved word, and so does ROUNDED.
+reportValueOperand
+    : arithmeticExpression
+    ;
+
+// SUM OF {data-name-1|identifier-1|arithmetic-expression-1}... [UPON data-name-2...]
+//   [RESET ON {FINAL|data-name-3}] [rounded-phrase]   (§13.18.54.2)
 // `OF` is an OPTIONAL word: the printed general format (§13.18.54.2, PDF p487 rendered) underlines SUM, UPON,
 // RESET and FINAL and leaves OF and ON plain, and §8.3.2.4.3 makes an un-underlined uppercase word optional.
 // Without it `SUM OF WS-A` — conforming source — was a raw COBOL0001 parse error (kb/Work PB482).
+// The addend is `reportValueOperand`, the SAME production SOURCE uses: §13.18.54.3 SR1 — "Each data-name-1,
+// identifier-1 or arithmetic-expression-1 is an addend" — and §13.18.54.4 GR3 gives an expression addend the
+// COMPUTE-with-ON-SIZE-ERROR accumulation (kb/Work PB883). The RESET group and the rounded-phrase sit OUTSIDE
+// the repeated `SUM … [UPON …]` group (PDF p487 rendered), so at most one of each governs the whole clause,
+// however many times the SUM keyword appears (SR1) — the binder diagnoses a second one.
 reportSumClause
-    : SUM OF? sumOperand (COMMA? sumOperand)*
+    : SUM OF? reportValueOperand (COMMA? reportValueOperand)*
       (UPON dataReference (COMMA? dataReference)*)?
-      reportSumReset?
+      reportSumReset? roundedPhrase?
     ;
-
-sumOperand
-    : dataReference (OF reportName)?
-    ;
+// ⛔ `sumOperand : dataReference (OF reportName)?` IS GONE, and this comment stands where it was so the trailing
+// qualifier is not re-added. It was DEAD: `dataReference`'s own `dataReferenceSuffix*` swallows `OF word` as an
+// ordinary qualification before the optional tail is ever tried, the binder read only `op.dataReference()`, and
+// §13.18.54.2's general format prints no qualifier on the addend at all. A cross-report addend's report-name
+// qualifier is recognised where it is resolved (DataBinder.Reports ResolveSumAddend, SR4 g).
 
 reportSumReset
     : RESET ON? (FINAL | dataReference)

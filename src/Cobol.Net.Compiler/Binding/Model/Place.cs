@@ -474,6 +474,26 @@ public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterIt
     public override DataItem Item => RegisterItem;
 }
 
+/// <summary>
+/// A REPORT SECTION <b>sum counter</b> (ISO/IEC 1989:2023 §13.18.54.4 GR1/GR5/GR12; kb/Work PB840 × PB882): the
+/// conceptual numeric data item an entry containing a SUM clause establishes. It is RWCS engine state, never
+/// program storage, so this is a VIEW — reading renders <c>__RPT_{n}.SumValue({id})</c> and writing renders
+/// <c>__RPT_{n}.SetSumValue({id}, …)</c>, the ONE place GR12's "It is permissible for procedure division
+/// statements to alter the content of sum counters" lands. <paramref name="CounterId"/> is the ENTRY's ordinal
+/// (GR1 — the identity is the entry, never GR5's data-name, which two entries may legally share);
+/// <paramref name="RegisterItem"/> carries the GR1 profile (<see cref="PicInfo.SumCounterItem"/>) so the numeric
+/// pipeline reads and writes it at the counter's own scale. Backend-neutral, like
+/// <see cref="CapacityRegisterPlace"/>: no C# text lives here.
+/// </summary>
+public sealed record ReportSumCounterPlace(int ReportIndex, int CounterId, DataItem RegisterItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => RegisterItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => RegisterItem;
+}
+
 /// <summary>The member of the X3.23-1985 <c>DEBUG-ITEM</c> register a <see cref="DebugRegisterPlace"/> refers to
 /// (the whole group, or one elementary member). A STRUCTURAL selector — the backend
 /// (<c>CodeGen.PlaceRenderer</c>) maps it to the C# read expression, so no C# text lives in the bound tree

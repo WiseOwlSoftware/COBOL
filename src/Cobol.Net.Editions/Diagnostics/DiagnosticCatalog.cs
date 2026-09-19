@@ -3866,6 +3866,82 @@ public static class DiagnosticCatalog
         + "only so that it can be named: the grammar used to REQUIRE it, which made every conforming EDITING "
         + "phrase a parse error (kb/Work PB568).",
         "ISO §13.18.40.2 Format 1 / §13.18.40.3 SR8");
+    // ── COBOLNET2141–2145 — the REPORT SECTION value clauses' EXPRESSION operand, its ROUNDED phrase, and the
+    //    SUM counter's name (kb/Work PB852 × PB883 × PB840). §13.18.53.2 and §13.18.54.2 both print
+    //    `arithmetic-expression-1` as an operand form and both close with `[ rounded-phrase ]`; neither had a
+    //    grammar surface, so §13.18.53.3 SR3/SR5/SR7, §13.18.54.3 SR3/SR6 and the §13.18.53.4 GR2 implicit
+    //    COMPUTE had no reachable population at all. ──
+
+    /// <summary>COBOLNET2141 — an expression-valued SOURCE operand (or an operand carrying the ROUNDED phrase)
+    /// on an entry that defines neither a numeric nor a numeric-edited item (ISO §13.18.53.3 SR3). SR5 folds the
+    /// ROUNDED case in: "If identifier-1 is specified with the ROUNDED phrase, it is considered to be an
+    /// arithmetic-expression", so the rule screens both spellings through one site.</summary>
+    public static readonly DiagnosticDescriptor ReportSourceExpressionNotNumeric = new(
+        "COBOLNET2141", "report-source-expression-not-numeric", EditionSeverity.Error,
+        "§13.18.53.3 SR3: \"If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry shall "
+        + "define either a numeric data item or a numeric-edited data item.\" The operand is the subject of the "
+        + "implicit COMPUTE statement of §13.18.53.4 GR2, whose receiving operand is the printable item, and a "
+        + "COMPUTE has no receiving category outside numeric and numeric-edited. SR5 brings a ROUNDED identifier "
+        + "under the same rule: \"If identifier-1 is specified with the ROUNDED phrase, it is considered to be "
+        + "an arithmetic-expression.\"",
+        "ISO §13.18.53.3 / §13.18.53.4");
+
+    /// <summary>COBOLNET2142 — a multi-operand SOURCE clause with at least one arithmetic-expression operand
+    /// whose operands are not each parenthesized (ISO §13.18.53.3 SR7). The rule is what makes the operand LIST
+    /// readable at all once an operand may itself contain operators, so it is enforced, never assumed from the
+    /// grammar's shape.</summary>
+    public static readonly DiagnosticDescriptor ReportSourceOperandParens = new(
+        "COBOLNET2142", "report-source-operand-parens", EditionSeverity.Error,
+        "§13.18.53.3 SR7: \"If the SOURCE clause has more than one operand of which at least one is an "
+        + "arithmetic-expression, each operand shall be enclosed in parentheses.\" Operands of a SOURCE clause "
+        + "are separated by nothing but a space (§13.18.53.2's ellipsis repeats the brace pair), so without the "
+        + "parentheses `SOURCES ARE A + B C` has two readings and the standard removes the choice by requiring "
+        + "`(A + B) (C)`. EVERY operand takes them, including the ones that are bare identifiers.",
+        "ISO §13.18.53.2 / §13.18.53.3");
+
+    /// <summary>COBOLNET2143 — a ROUNDED phrase in a SUM clause on an entry with no COLUMN clause (ISO
+    /// §13.18.54.3 SR3). §13.18.54.4 GR4 is the phrase's only general rule and it opens "If the entry also
+    /// contains a COLUMN clause, the sum counter acts as a source data item" — with no printable item there is
+    /// no transfer for the rounding to govern.</summary>
+    public static readonly DiagnosticDescriptor ReportSumRoundedWithoutColumn = new(
+        "COBOLNET2143", "report-sum-rounded-without-column", EditionSeverity.Error,
+        "§13.18.54.3 SR3: \"The ROUNDED phrase may be specified in the SUM clause only if the COLUMN clause is "
+        + "specified for the subject of the entry.\" The phrase governs §13.18.54.4 GR4's delivery of the sum "
+        + "counter to the printable item, and an entry with no COLUMN clause defines no printable item "
+        + "(§13.18.14), so the phrase would have nothing to round.",
+        "ISO §13.18.54.3 / §13.18.54.4");
+
+    /// <summary>COBOLNET2144 — an identifier inside a report value clause's arithmetic-expression operand that
+    /// references a section the clause's syntax rule excludes: §13.18.53.3 SR4 (SOURCE — a report-section
+    /// identifier shall be a report counter or a sum counter of the CURRENT report) or §13.18.54.3 SR6 (SUM — an
+    /// identifier in the expression shall reference an entry in a section OTHER than the report section).</summary>
+    public static readonly DiagnosticDescriptor ReportExpressionOperandSection = new(
+        "COBOLNET2144", "report-expression-operand-section", EditionSeverity.Error,
+        "An identifier inside a report value clause's arithmetic-expression operand references a data item its "
+        + "clause does not admit. §13.18.53.3 SR4 says of SOURCE: \"Identifier-1 specifies a data item defined in "
+        + "any section of the data division. If identifier-1 specifies a report section item, it shall be a "
+        + "report counter identifier or a sum counter defined in the current report. This same Syntax rule "
+        + "applies to any identifier appearing in arithmetic-expression-1.\" §13.18.54.3 SR6 says of SUM: \"If "
+        + "the addend is arithmetic-expression-1, any identifiers it contains may reference entries in any "
+        + "section of the data division other than the report section.\" The two clauses draw the line in "
+        + "different places and each is enforced against its own rule.",
+        "ISO §13.18.53.3 / §13.18.54.3");
+
+    /// <summary>COBOLNET2145 — a procedure division reference to a SUM COUNTER that identifies no single counter:
+    /// the report-name qualifier names no report defining one, or the bare name is established by more than one
+    /// entry. ISO §13.18.54.4 GR5 makes the data-name the counter's name and GR12 permits statements to read and
+    /// alter it, but GR1 gives EVERY entry its own counter, so a name two entries share identifies none of them
+    /// (§8.4.2.2.1) until a report-name qualifier (§8.4.2.2.2 Format 1) picks one.</summary>
+    public static readonly DiagnosticDescriptor ReportSumCounterReference = new(
+        "COBOLNET2145", "report-sum-counter-reference", EditionSeverity.Error,
+        "A reference to a sum counter does not identify exactly one counter. §13.18.54.4 GR5: \"If a data-name "
+        + "immediately follows the level number in the entry containing the SUM clause, the data-name is the "
+        + "name of the sum counter, not the name of the associated printable item, if any\", and GR12: \"It is "
+        + "permissible for procedure division statements to alter the content of sum counters.\" GR1 establishes "
+        + "an independent counter for EACH such entry, so two entries may carry one data-name legally; it is the "
+        + "REFERENCE that §8.4.2.2.1 requires to identify one resource uniquely, and a sum counter's only "
+        + "available qualifier is the report-name of §8.4.2.2.2 Format 1.",
+        "ISO §13.18.54.4 / §8.4.2.2.1 / §8.4.2.2.2");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

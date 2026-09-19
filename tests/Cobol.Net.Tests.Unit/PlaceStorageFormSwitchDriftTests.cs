@@ -39,6 +39,10 @@ public sealed class PlaceStorageFormSwitchDriftTests
     private static readonly string[] StorageForms =
     [
         "MemberPlace", "RedefViewPlace", "DynTablePlace", "CapacityRegisterPlace", "RenamesPlace",
+        // A REPORT SECTION sum counter (ISO §13.18.54.4 GR1/GR5/GR12; kb/Work PB840): engine state rather than
+        // program storage, but a LEAF all the same — a switch over storage forms that meets it and falls into a
+        // catch-all is the very defect this detector exists for, and GR12 makes it a RECEIVER too.
+        "ReportSumCounterPlace",
         "DebugRegisterPlace",
     ];
 

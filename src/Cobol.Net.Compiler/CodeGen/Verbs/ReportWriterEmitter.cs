@@ -5,6 +5,7 @@ using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
+using CobolNet.Runtime;
 
 namespace CobolNet.CodeGen;
 
@@ -42,6 +43,15 @@ internal sealed class ReportWriterEmitter(
         w.Line();
         foreach (var r in reports)
             w.Line($"private CobolReport __RPT_{r.CsIndex} = null!;   // RD {r.Name} (ISO §13.14) — constructed in __Activate");
+        // The NumProfile of each SUM counter's implicitly-defined register (ISO §13.18.54.4 GR1 — "a conceptual
+        // data item that behaves as a data item of the category numeric"). Like a printable item, the register
+        // lives OUTSIDE the storage forest, so FieldEmitter.EmitProfiles never sees it — and unlike a printable
+        // item it is a RECEIVER too (GR12), so the store needs its profile emitted here (kb/Work PB840).
+        foreach (var r in reports)
+            foreach (var sum in r.Sums)
+                if (sum.Register.Pic is { } rpic)
+                    w.Line($"private static readonly NumProfile {sum.Register.ProfileName} = {rpic.ProfileInitializer(ctx.SignEncoding)};"
+                        + $"   // {r.Name} sum counter {sum.Id}{(sum.Name is null ? "" : $" '{sum.Name}'")} (ISO §13.18.54.4 GR1)");
         foreach (var r in reports)
             foreach (var (group, gi) in r.Groups.Select((g, i) => (g, i)))
                 foreach (var (line, li) in group.Lines.Select((l, i) => (l, i)))
@@ -204,6 +214,10 @@ internal sealed class ReportWriterEmitter(
     private string FieldImage(ReportModel r, ReportFieldModel f, int rep)
     {
         BoundOperand source;
+        // The transfer's ROUNDING MODE (§14.7.4). Only a report value clause's own ROUNDED phrase sets it:
+        // §13.18.53.4 GR2 for a SOURCE operand and §13.18.54.4 GR4 for a SUM counter's printable face. With no
+        // phrase the transfer is §13.18.53.4 GR1's MOVE / GR4's MOVE, which truncates (kb/Work PB852).
+        var rounding = CobolRounding.Truncation;
         switch (f.SourceAt(f.RepetitionOrdinal + rep))
         {
             case FieldValueSource v:
@@ -215,10 +229,30 @@ internal sealed class ReportWriterEmitter(
                 source = new BoundComputedOperand(new BoundReportCounterRef(r, c.IsPage));
                 break;
             case FieldSumSource s:
-                // The SUM counter is the printable entry's source item (§13.18.54.4 GR4).
-                var sum = r.Sums.First(x => x.Id.Equals(s.CounterId, StringComparison.OrdinalIgnoreCase));
-                source = new BoundComputedOperand(new BoundReportSumRef(r, sum.Id, sum.Scale));
+                // The SUM counter is the printable entry's source item (§13.18.54.4 GR4 — "the content of the
+                // sum counter is moved, according to the general rules of the MOVE statement, to the printable
+                // item"), reached through the ONE sum-counter place the procedure division also reads and writes
+                // (kb/Work PB840): one identity, one accessor, one conversion. The counter is indexed by its
+                // ENTRY ORDINAL (GR1) — `First(Id == name)` used to pick whichever entry spelled its data-name
+                // first (kb/Work PB882).
+                var sum = r.Sums[s.CounterId];
+                source = new BoundFieldOperand(new ReportSumCounterPlace(r.CsIndex, s.CounterId, sum.Register));
+                // §13.18.54.4 GR4 — with the clause's ROUNDED phrase "the content of the sum counter is computed
+                // according to the general rules for the COMPUTE statement with the ROUNDED phrase".
+                rounding = sum.Rounding;
                 break;
+            case FieldComputeSource { Value: { } expr } cs:
+                // §13.18.53.4 GR2 — "Arithmetic-expression-1 specifies the operand of an implicit COMPUTE
+                // statement that is executed implicitly whenever the associated item is printed. If the ROUNDED
+                // phrase is specified, the implicit COMPUTE statement has the corresponding ROUNDED phrase."
+                // The COMPUTE's receiving operand is the printable item, so the transfer IS the one conversion
+                // every other operand takes — with the clause's rounding mode (kb/Work PB852).
+                source = new BoundComputedOperand(expr);
+                rounding = cs.Rounding;
+                break;
+            case FieldComputeSource bad:
+                return LoudValue("string",
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)");
             case FieldVaryingSource v:
                 // The entry's own VARYING counter as the source item (§13.18.64.4 GR4 NOTE) — the compose-local
                 // counter, re-read at each repetition's placement.
@@ -231,7 +265,7 @@ internal sealed class ReportWriterEmitter(
                 return LoudValue("string",
                     $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)");
         }
-        return move.ConvertSource(source, f.PrintItem);
+        return move.ConvertSource(source, f.PrintItem, rounding: rounding);
     }
 
     // ⛔ `ValueOperand(string raw)` IS GONE (kb/Work PB506), and this comment stands where it was so it is not
@@ -354,7 +388,7 @@ internal sealed class ReportWriterEmitter(
                 // the end-of-group reset (§13.18.41.4 GR3g / §13.18.54.4 GR10); the print half rides the
                 // printable face's identical chain inside the compose.
                 string sumPresent = sum.PresentWhen.Count > 0 ? $", () => {PresentExpr(sum.PresentWhen)}" : "";
-                w.Line($"__RPT_{r.CsIndex}.AddSum({CsLiteral(sum.Id)}, {sum.ResetLevel}, "
+                w.Line($"__RPT_{r.CsIndex}.AddSum({sum.Id}, {sum.ResetLevel}, "
                     + $"__rg{r.CsIndex}_{printedGi}{sumPresent});");
                 // ONE TERM PER `SUM … [UPON …]` GROUP (§13.18.54.3 SR1 + §13.18.54.4 GR1/GR7c2 — kb/Work
                 // PB482): the counter belongs to the ENTRY, the UPON filter belongs to its own group, and GR9
@@ -365,7 +399,11 @@ internal sealed class ReportWriterEmitter(
                 {
                     var addends = term.Addends
                         .Select(a => a.Value is { } v
-                            ? "(" + NumericRenderer.Align(num.Render(v, ReceiverContext.None), sum.Scale) + ")"
+                            // §13.18.54.4 GR3 — the addend is added into the counter at the COUNTER's scale
+                            // (GR1), and that alignment IS the transfer, so the clause's ROUNDED phrase governs
+                            // it (GR4: "the content of the sum counter is computed according to the general
+                            // rules for the COMPUTE statement with the ROUNDED phrase"; kb/Work PB852).
+                            ? "(" + NumericRenderer.Align(num.Render(v, ReceiverContext.None), sum.Scale, sum.Rounding) + ")"
                             : LoudValue("long", $"report {r.Name}: SUM addend '{a.Written}' was rejected at bind "
                                 + "(ISO §13.18.54.3 SR5)"))
                         .ToList();
@@ -380,7 +418,7 @@ internal sealed class ReportWriterEmitter(
                         : upon.Count == 0
                             ? "System.Array.Empty<string>()"
                             : "new[] { " + string.Join(", ", upon.Select(d => CsLiteral(d.Detail!.Name!))) + " }";
-                    w.Line($"__RPT_{r.CsIndex}.AddSumTerm({CsLiteral(sum.Id)}, () => (long)({addend}), {uponArg});");
+                    w.Line($"__RPT_{r.CsIndex}.AddSumTerm({sum.Id}, () => (long)({addend}), {uponArg});");
                 }
             }
         }

@@ -204,11 +204,13 @@ public sealed record BoundLinageCounterRef(FileModel File) : BoundExpr;
 /// item. SR3 bars LINE-COUNTER from receiving positions (receiving resolution rejects at bind).</summary>
 public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage) : BoundExpr;
 
-/// <summary>A report SUM counter read (ISO §13.18.54.4 GR4 — the counter is the source item of its printable
-/// entry): an unscaled integer at <paramref name="Scale"/>, runtime-sourced from the report engine. Produced
-/// only by the report-section compose emission (sum counters are report-section names, unreachable from
-/// PROCEDURE DIVISION references in this slice).</summary>
-public sealed record BoundReportSumRef(ReportModel Report, string Id, int Scale) : BoundExpr;
+// ⛔ `BoundReportSumRef` IS GONE (kb/Work PB840 × PB882), and this comment stands where it was so it is not
+// re-added. It was a SECOND way to read a sum counter, alongside the ordinary identifier machinery, and it
+// carried the counter's identity as a STRING — the entry's data-name — which is exactly how two entries that
+// legally share a name came to share one counter. A sum counter is now `Model.ReportSumCounterPlace`: one
+// identity (the entry's ordinal, §13.18.54.4 GR1), one accessor, and a RECEIVING side, which is what §13.18.54.4
+// GR12 ("It is permissible for procedure division statements to alter the content of sum counters") needs and a
+// read-only BoundExpr could never have.
 
 /// <summary>A report VARYING counter read (ISO §13.18.64.4 GR3/GR4 — the per-repetition counter persists
 /// through its occurrence and acts as a source item): a scale-0 integer, <paramref name="CsName"/> naming the
