@@ -124,6 +124,15 @@ RENAMES THRU (GR2 — NC252A: 66 RENAME1 RENAMES NAME1 THRU NAME3): composed acc
     get => ReadImage(NAME1A) + ReadImage(NAME1B) + ReadImage(NAME2) + ReadImage(NAME3A) + ReadImage(NAME3B); // each leaf's DISPLAY image
     set { /* distribute value left-to-right back into the spanned fields by width via each leaf's MOVE-into path */ } }
   (all-PIC X span → plain string concat; a numeric leaf in the span → CobolNum.FormatDisplay on get, the numeric MOVE path on set.)
+  ⛔ THE THROUGH ALIAS IS AN ALPHANUMERIC **GROUP ITEM**, not one composed elementary item, and statements whose rules turn on
+  that distinction must read it that way. §13.18.45.4 GR2: "When the THROUGH phrase is specified, data-name-1 defines an
+  alphanumeric group item that includes all elementary items starting with data-name-2 …" — so in a MOVE it is NOT an
+  elementary operand on EITHER side (§14.9.25.4 GR4), which means no receiver-category editing when it sends and no GR6 a)
+  operational-sign drop when it receives; `MoveClassifier.IsGroupPlace` is the one reader of that designation and
+  `PlaceRenderer.WriteGroupImage` routes a group-image store into one through `WriteRenames` (kb/Work PB430). The
+  WITHOUT-THROUGH alias is the opposite by GR1 ("all of the data attributes of data-name-2 become the data attributes of
+  data-name-1"), which is why `ReferenceResolver` forwards it to the renamed item's own place and builds no `RenamesPlace`
+  at all — the Tier-A/Tier-B split above is exactly this rule split, and the two must stay in step.
 
 TIER C (scoped byte[] — mixed-USAGE pun): 01 PUN. / 05 AS-TEXT PIC X(4). / 05 AS-NUM REDEFINES AS-TEXT PIC 9(8) COMP-5. →
   private static byte[] _redef_AS_TEXT = new byte[4];   // ONE stored backing, class width 4 (persistent, NOT materialize-on-demand).

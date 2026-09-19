@@ -41,7 +41,19 @@ internal static class FigurativeConstants
     /// PCS (§8.3.3.6 GR6/GR7 — each category reads its OWN sequence): a NATIONAL anchor under an explicit
     /// non-native NATIONAL program collating sequence (<paramref name="natCollate"/> — an <c>ALPHABET … FOR
     /// NATIONAL</c> literal phrase, §12.3.7 GR8/GR9) takes THAT sequence's extremes; otherwise the D-N3
-    /// pins (U+00FF/U+0000 — the flagged native-pin divergence stays byte-stable).</summary>
+    /// pins (U+00FF/U+0000 — the flagged native-pin divergence stays byte-stable).
+    /// <para>⛔ <b>DETERMINATION D-B2 — the figurative SPACE against a BOOLEAN receiving operand is the boolean
+    /// character '0'</b> (CONFORMANCE.md §3; kb/Work PB425). The standard leaves this undefined and the gap is
+    /// reachable: §14.9.25.4 Table 17 gives SPACE against a Boolean receiving operand the category BOOLEAN, but
+    /// §8.3.3.6.4 GR5 defines the space format only as "one or more of the character space in the computer's
+    /// runtime coded character set" and names no boolean value, while §8.3.3.4.3 SR2 admits only '0' and '1' in a
+    /// boolean item. §14.9.25.4 GR2's substitution reaches it — <c>MOVE "" TO PIC 1(4)</c> is legal (Table 16
+    /// admits an alphanumeric sender into a boolean receiver, and §14.9.25.3 SR7's prohibition names figurative
+    /// constants WRITTEN in the source, which a zero-length literal is not) — so a choice is required. The
+    /// boolean zero is taken because it is the only boolean character the standard associates with a fill:
+    /// §14.6.8.6 aligns a boolean receiver "with zero fill or truncation to the right", and §8.3.3.6.4 GR4 gives
+    /// the ZERO format "one or more of the boolean character '0'". It is also the answer GR3 already gives a
+    /// boolean zero-length literal, so the two GR arms agree.</para></summary>
     public static char FillChar(char kind, AlphabetDef? collate, PicCategory? cat = null,
         NationalAlphabetDef? natCollate = null)
     {
@@ -50,6 +62,7 @@ internal static class FigurativeConstants
         return kind switch
         {
             'Z' => '0',
+            'S' when cat is PicCategory.Boolean => '0',   // DETERMINATION D-B2 — see the remarks above
             'S' => ' ',
             'Q' => '"',
             'H' when nat => natCollate!.HighValue,
@@ -80,6 +93,7 @@ internal static class FigurativeConstants
             'H' when !pinned && collate is { } hc => SymbolDisplay.FormatLiteral(hc.HighValue, quote: true),
             'L' or 'N' when !pinned && collate is { } lc => SymbolDisplay.FormatLiteral(lc.LowValue, quote: true),
             'Z' => "'0'",
+            'S' when cat is PicCategory.Boolean => "'0'",   // DETERMINATION D-B2 — see FillChar's remarks
             'S' => "' '",
             'H' => "'\\u00ff'",
             'L' or 'N' => "'\\u0000'",

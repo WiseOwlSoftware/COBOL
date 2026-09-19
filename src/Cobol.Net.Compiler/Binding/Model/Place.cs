@@ -267,8 +267,16 @@ public sealed record SlotWindow(AccessPath Cell) : WindowCoding
 }
 
 /// <summary>
-/// A level-66 RENAMES place (ISO §13.18.45): ONE elementary-alphanumeric view composed over the spanned record
-/// leaves. Reading concatenates the leaves' character images (each leaf field invariantly holds exactly its image
+/// A level-66 RENAMES place — the THROUGH form ONLY: ONE alphanumeric view composed over the spanned record
+/// leaves. ⛔ <b>The composed CARRIER is one string; the DATA ITEM it stands for is a GROUP item</b>, and the two
+/// must not be confused: ISO §13.18.45.4 GR2 — "When the THROUGH phrase is specified, data-name-1 defines an
+/// alphanumeric GROUP item that includes all elementary items starting with data-name-2 …" — so every rule that
+/// turns on elementary-vs-group (§14.9.25.4 GR4's MOVE classification above all, through
+/// <c>MoveClassifier.IsGroupPlace</c>) must read it as a group. Calling the carrier "an elementary alphanumeric
+/// item" here is what propagated the opposite claim into three call sites (kb/Work PB430). The WITHOUT-THROUGH
+/// alias never reaches this record at all: §13.18.45.4 GR1 gives it data-name-2's own attributes, and
+/// <c>ReferenceResolver</c> forwards it to that item's place.
+/// Reading concatenates the leaves' character images (each leaf field invariantly holds exactly its image
 /// width); writing stores the value at the span's width and distributes the slices back into the leaves left to
 /// right — so a write through the alias is visible through every renamed item and vice versa (no second storage,
 /// SR/GR — RENAMES adds no data item). Rendered by <c>CodeGen.PlaceRenderer</c>.

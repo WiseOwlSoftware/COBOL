@@ -16,16 +16,35 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// conversion path Report Writer's synthetic print items and INITIALIZE's implicit stores share.</summary>
 internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs)
 {
-    /// <summary>Render one MOVE — a PURE per-kind renderer since P7 Step 7: the dispatch travels on the node
-    /// (<see cref="BoundMove.Kinds"/>, classified once by <see cref="MoveClassifier"/> at construction — ISO
+    /// <summary>Render one MOVE — a PURE per-store renderer since P7 Step 7: the dispatch travels on the node
+    /// (<see cref="BoundMove.Stores"/>, classified once by <see cref="MoveClassifier"/> at construction — ISO
     /// §14.9.25.4 GR4's elementary-vs-group decision incl. the sender side, NC105A MOVE-TEST-F1-16/-17/-20/-36/-38);
-    /// the emitter re-derives nothing.</summary>
+    /// the emitter re-derives nothing.
+    /// <para>⛔ The SENDER is read per target off the store, never off <c>m.Source</c>: §14.9.25.4 GR2/GR3
+    /// substitute the figurative constant SPACE / ZERO for a zero-length literal-1 PER RECEIVING OPERAND
+    /// (excluding a dynamic-length one), so one statement can legitimately store two different senders
+    /// (kb/Work PB425). Rendering <c>m.Source</c> here is the defect that shape prevents.</para></summary>
     public void Emit(BoundMove m)
     {
         for (int i = 0; i < m.Targets.Count; i++)
         {
             var target = m.Targets[i];
-            switch (m.Kinds[i])
+            var (source, kind, origin) = m.Stores[i];
+            // ⛔ ISO §14.9.25.4 GR1's ZERO-LENGTH-ITEM clause — "If identifier-1 is a zero-length item, it is as
+            // if literal-1 were specified as a zero-length literal" — which lands in the GR2/GR3 substitution the
+            // store above already carries for a written literal. Whether the sending ITEM is zero-length is a
+            // RUNTIME state (§8.5.1.10), so this is the one arm of the rule that must be a runtime test; the
+            // classifier decides WHEN one is needed and over which sending place (kb/Work PB425). The length is
+            // read ONCE and both arms are the two stores the rule names, side by side.
+            if (MoveClassifier.ZeroLengthItemRoute(source, target) is { } zlSend)
+            {
+                ctx.Writer.Line($"if ({PlaceRenderer.Read(zlSend)}.Length == 0) {{ "
+                    + ElementaryStore(target, MoveClassifier.ZeroLengthItemFigurative(zlSend),
+                                      MoveSenderOrigin.ZeroLengthItem)
+                    + $" }} else {{ {ElementaryStore(target, source, origin)} }}");
+                continue;
+            }
+            switch (kind)
             {
                 case MoveKind.RefModSlice:
                     // The slice takes the source's characters (SpliceInto left-justifies, space-fills, and
@@ -39,28 +58,58 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     // figurative fill into a BIT-GROUP slice chose the alphanumeric SPACE instead of the boolean
                     // zero §14.6.8.6 requires. `OperandPic` answers the as-if PICTURE 1(m) of §13.18.29.4 GR1b —
                     // the ONE category reader, the same one RefModPlace.Category uses.
-                    ctx.Writer.Line(m.Source is BoundFigurative fig
+                    ctx.Writer.Line(source is BoundFigurative fig
                         ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.OperandPic?.Category, ctx.Data.NationalCollating))
-                        : PlaceRenderer.Write(rmp, OperandText.AsString(m.Source, num)));
+                        : PlaceRenderer.Write(rmp, OperandText.AsString(source, num)));
                     break;
                 case MoveKind.Group:
-                    EmitGroupMove(target, m.Source);
+                    EmitGroupMove(target, source);
                     break;
                 case MoveKind.GroupToElementary:
-                    EmitGroupToElementaryMove(target, m.Source);
+                    EmitGroupToElementaryMove(target, source);
                     break;
                 case MoveKind.FigurativeToNumericImage:
-                    EmitFigurativeToNumericImage(target, m.Source);
-                    break;
                 case MoveKind.Convert:
-                    // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — the
-                    // item is n repetitions of its picture symbol, n = the activating argument's length).
-                    ctx.Writer.Line(PlaceRenderer.Write(target, ConvertSource(m.Source, target.Item,
-                        target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : null)));
+                    // WHY this store may be a fill decides how an unstorable one is NAMED: the written
+                    // figurative is the pre-2023 residue §14.9.25.3 SR5 removed, the substituted one is
+                    // §14.9.25.4 GR2 acting on a zero-length literal the standard still permits. Blaming the
+                    // wrong rule in a loud is the misattribution kb/Work PB393 measured, one verb over — and the
+                    // provenance rides the STORE, because it is a bind-time fact and reading m.Source to recover
+                    // it is the scalar read this shape exists to remove.
+                    ctx.Writer.Line(ElementaryStore(target, source, origin));
                     break;
             }
         }
     }
+
+    /// <summary>The ONE-STATEMENT store of an ELEMENTARY move — the <see cref="MoveKind.Convert"/> and
+    /// <see cref="MoveKind.FigurativeToNumericImage"/> renderings, RETURNED rather than written so GR1's
+    /// zero-length-item test can place BOTH of its arms inside one emitted <c>if/else</c> (kb/Work PB425)
+    /// instead of the emitter growing a second copy of either rendering. The kind is re-asked of THIS sender
+    /// because GR1's two arms differ in it: the substituted figurative into a numeric receiver is the image
+    /// fill, the written sender is the conversion.</summary>
+    /// <summary>Why a FILL is being stored into a numeric receiver — the rule to blame when the receiver has no
+    /// character image to hold it (<see cref="FigurativeToNumericImageStore"/>'s narrow loud). Three provenances,
+    /// three different rules, and only one of them is the removed construct.</summary>
+    private static string FillCite(MoveSenderOrigin origin) => origin switch
+    {
+        MoveSenderOrigin.ZeroLengthLiteral =>
+            "the figurative constant ISO §14.9.25.4 GR2/GR3 substitutes for a zero-length literal-1 (legal "
+            + "source at every edition — §14.9.25.3 SR5 names only figurative constants written in the source)",
+        MoveSenderOrigin.ZeroLengthItem =>
+            "the figurative constant ISO §14.9.25.4 GR1 substitutes when identifier-1 is a zero-length item at "
+            + "run time (§8.5.1.10), by way of GR2/GR3",
+        _ => "an alphanumeric figurative constant — narrow pre-2023 residue of the move ISO 2023 removed, "
+             + "§14.9.25.3 SR5 / Annex E.2 item 1",
+    };
+
+    private string ElementaryStore(Place target, BoundOperand source, MoveSenderOrigin origin) =>
+        MoveClassifier.Kind(source, target) is MoveKind.FigurativeToNumericImage
+            ? FigurativeToNumericImageStore(target, source, FillCite(origin))
+            // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — the item is n
+            // repetitions of its picture symbol, n = the activating argument's length).
+            : PlaceRenderer.Write(target, ConvertSource(source, target.Item,
+                target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : null));
 
     /// <summary>MOVE of an alphanumeric figurative constant (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE) or an ALL
     /// "literal" containing a non-digit into an ELEMENTARY NUMERIC receiver — the PRE-REMOVAL semantics of a
@@ -77,7 +126,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// non-DISPLAY numeric receiver (BINARY / PACKED / COMP-5 / float — no character image in the typed-native
     /// model) remains a NARROW loud guard (§1.4). Eligibility is the NODE's <see cref="MoveKind"/> (classified
     /// once — figurative ZERO and digit-only ALL classify as Convert, VALUE moves not fills).</summary>
-    private void EmitFigurativeToNumericImage(Place target, BoundOperand source)
+    private string FigurativeToNumericImageStore(Place target, BoundOperand source, string fillCite)
     {
         // The KIND already decided eligibility (MoveClassifier — numeric receiver + S/Q/H/L figurative or
         // non-digit ALL); an unmatched shape here is a classifier/renderer drift bug, not a fallthrough.
@@ -91,12 +140,11 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 $"MoveKind.FigurativeToNumericImage with a non-fill source ({source.GetType().Name}) — "
                 + "MoveClassifier and this renderer have drifted"),
         };
-        ctx.Writer.Line(target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
+        return target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
             ? PlaceRenderer.Write(target, image)
-            : LoudStmt($"MOVE of an alphanumeric figurative constant into the numeric item "
-                + $"'{target.Item.CobolName}' without image-backed storage (a BINARY/PACKED/COMP-5/float or "
-                + "Tier-A shared-storage receiver has no character image to fill — narrow pre-2023 residue of "
-                + "the move ISO 2023 removed, §14.9.25.3 SR5 / Annex E.2 item 1)"));
+            : LoudStmt($"MOVE of {fillCite} into the numeric item '{target.Item.CobolName}' without "
+                + "image-backed storage (a BINARY/PACKED/COMP-5/float or Tier-A shared-storage receiver has no "
+                + "character image to fill)");
     }
 
     // IsGroupSender lives on MoveClassifier since P7 Step 7 (the ONE GR4 sender-side test).
@@ -130,7 +178,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         if (item.IsDynamicLength)
         {
             ctx.Writer.Line(PlaceRenderer.Write(target,
-                RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: false), item.DynMaxSize.ToString())));
+                RuntimeApi.DynStore(OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), item.DynMaxSize.ToString())));
             return;
         }
         if (!item.IsImageCapable)
@@ -142,7 +190,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
         // An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the carrier's current length).
         string gw = item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{item.ImageWidth}";
-        string image = RuntimeApi.StrStoreAligned(OperandText.AsString(source, num), gw, item.Justified);
+        string image = RuntimeApi.StrStoreAligned(OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw, item.Justified);
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
@@ -213,7 +261,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating)}, {width})"
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
-            : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: false), $"{width}");
+            : RuntimeApi.StrStore(OperandText.NonElementaryMoveSender(source, num, "MOVE to group"), $"{width}");
         // The ONE group-image store (PlaceRenderer.WriteGroupImage — kb/Work PB70): the §13.18.38 GR8a current-extent
         // splice for an occurs-depending receiver with data-name-1 outside, the Tier-B view's window, the OCCURS
         // DYNAMIC receiving accessor, and the plain FromImage — written once for every verb that deposits an image.
@@ -266,9 +314,12 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// activation boundary.</para></summary>
     private bool VariableLengthGroupMove(Place target, BoundOperand source)
     {
-        // GR9's antecedent: BOTH operands are GROUP items. A reference-modified or level-66 operand is an
-        // ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6 / §13.18.45), never a group — the same
-        // discrimination MoveClassifier.IsGroupPlace makes, and the same one SR9's screen made at bind.
+        // GR9's antecedent: BOTH operands are group items AND one or both is a VARIABLE-LENGTH group. A
+        // reference-modified operand is an ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6), never a group.
+        // ⚠ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2 — MoveClassifier.IsGroupPlace says so) but
+        // never a VARIABLE-LENGTH one: its span is a fixed sequence of leaf widths, so GR9's second conjunct can
+        // only be met by the OTHER operand, and the alias side cannot supply the §8.5.1.12 component carrier
+        // this walk needs. It is excluded here for that reason — recorded, not assumed (kb/Work PB430).
         Place? send = source switch
         {
             BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f => f.Place,

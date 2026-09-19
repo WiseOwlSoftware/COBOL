@@ -24,7 +24,7 @@ using Core = CobolParserCore;
 /// </summary>
 /// <summary>The MOVE verb binder (P7 Step 10e — a real collaborator over <see cref="BinderContext"/>;
 /// absorbs the former <c>StatementBinder.MoveFigurative</c> partial WHOLE: the SR1 class-index errors, the
-/// SR5 pre-removal <c>MarkImageForced</c> storage marking, the Table-16 legality arms, and the W2 ref-mod
+/// pre-removal <c>MarkImageForced</c> storage marking, the Table-16 legality arms, and the W2 ref-mod
 /// image marking fire at the SAME per-statement points — the collected-fact choreography the
 /// <c>StorageFormPass</c> and <c>VersionConformancePass.GateMove</c> depend on is byte-preserved).</summary>
 /// <summary>
@@ -136,8 +136,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     public BoundMove BindMoveOf(BoundOperand source, IReadOnlyList<Place> targets,
                                 ImplicitMovePhrase? implicitOf = null)
     {
-        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check.
-        MoveFigurativeEditionGates(source, targets, implicitOf);
+        // The §14.9.25.3 SR1 operand-class check (the SR5 edition gates are VersionConformancePass Step 14f).
+        MoveOperandClassChecks(source, targets, implicitOf);
         // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
         MoveCategoryLegality(source, targets, implicitOf);
         // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.3.3.4 GR6;
@@ -162,9 +162,20 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // first two steps collapse — temp's description IS identifier-1's, so `MOVE a (b) TO temp / MOVE temp TO
         // b` applies the identity copy and then the same conversion `MOVE a (b) TO b` applies. The intermediate
         // is unobservable at N = 1, and MOVE is the most executed verb in a COBOL program.
-        if (targets.Count > 1 && host.SendingValue.Materialize(source, "move") is { } frozen)
+        // ⭐ AND the SECOND reason to freeze it, the same rule's other sentence: GR1's "If identifier-1 is a
+        // zero-length item, it is as if literal-1 were specified as a zero-length literal" makes the sender's
+        // LENGTH decide which value is stored, and "the length … is evaluated only once" then forbids reading a
+        // reference modifier or a function-identifier twice to learn it. Materializing lands the value in
+        // SendingValueTemp's dynamic-length carrier, whose length the emitted test reads off a field
+        // (kb/Work PB425; MoveClassifier.NeedsLengthFreeze names the shapes).
+        if ((targets.Count > 1 || MoveClassifier.NeedsLengthFreeze(source, targets))
+            && host.SendingValue.Materialize(source, "move") is { } frozen)
             source = new BoundFieldOperand(frozen);
-        return new BoundMove(source, targets) { ImplicitOf = implicitOf };
+        var move = new BoundMove(source, targets) { ImplicitOf = implicitOf };
+        // The fill's STORAGE fact is collected off the CONSTRUCTED node, so it is asked of the same per-target
+        // store the emitter renders — including the sender §14.9.25.4 GR2 substitutes (kb/Work PB425).
+        MarkFillImageStorage(move);
+        return move;
     }
 
     // ── The … FROM and … INTO phrases (kb/Work PB348) ───────────────────────────────────────────────────────
@@ -259,28 +270,14 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     }
 
     /// <summary>
-    /// Apply the §14.9.25.3 SR5 gates to one bound MOVE (Format 1) and flag the pre-removal receivers'
-    /// storage. Exemptions honored:
-    /// <list type="bullet">
-    /// <item>ZERO/ZEROS/ZEROES — the NUMERIC figurative (§8.3.3.6.4 GR4 "the numeric value '0'"); SR5's
-    /// prohibition names only the alphanumeric figuratives, and Table 17 gives ZERO category numeric against a
-    /// numeric receiver.</item>
-    /// <item>GROUP receivers — a group move is a character copy without conversion (§14.9.25.4 GR4), not a
-    /// numeric elementary move, so SR5 does not reach it.</item>
-    /// <item>Reference-modified receivers — the unique result of reference modification is an elementary
-    /// ALPHANUMERIC item whatever the underlying item (§8.4.3.3.4 GR6), so the receiver is not numeric.</item>
-    /// <item>The digit-only single-character ALL "literal" into an INTEGER numeric item — SR5's surviving
-    /// exception, valid at every edition; obsolete-flagged 0903 at ≥2023 (SR5 NOTE; Annex F.2 item 2).</item>
-    /// </list>
-    /// A digit-only ALL longer than one character is NOT the exception even though its characters are digits:
-    /// §8.3.3.6.3 SR3 forbids associating an ALL literal whose length is greater than one with a numeric or
-    /// numeric-edited item (the '85 obsolete element the legacy oracle still accepts — MOVE ALL "57" TO PIC 9(3)
-    /// stores 575), so at 2023 it falls under the 0902 removal row with the other prohibited shapes.
-    /// A digit-only ALL to a NON-integer numeric receiver (PIC 9V9) is likewise outside SR5's exception —
-    /// 0902 at 2023; pre-2023 it fills every digit position (legacy-oracle adjudicated, provisional).
+    /// The §14.9.25.3 SR1 OPERAND-CLASS check on one bound MOVE (Format 1) — version-invariant, every sender and
+    /// receiver kind. The SR5 figurative EDITION gates it used to carry live in
+    /// <c>VersionConformancePass.GateMove</c> (Step 14f) and the pre-removal storage marking in
+    /// <see cref="MarkFigurativeFillImage"/>, so what is left here is one rule: "The class of identifier-1 or
+    /// identifier-2 shall not be index, message-tag, object, or pointer."
     /// </summary>
-    private void MoveFigurativeEditionGates(BoundOperand source, IReadOnlyList<Place> targets,
-                                            ImplicitMovePhrase? implicitOf)
+    private void MoveOperandClassChecks(BoundOperand source, IReadOnlyList<Place> targets,
+                                        ImplicitMovePhrase? implicitOf)
     {
         // The §14.9.25.3 SR1 class check FIRST — version-invariant, every sender kind: "The class of
         // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." An index data
@@ -308,30 +305,44 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                     $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60.3 SR10) — "
                     + ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName));
 
-        // Classify the SENDER (only the SR5 alphanumeric figuratives / ALL "literal" participate). The §14.9.25.3
-        // SR5 EDITION gates (MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
-        // MoveAlphanumericFigurativeRemoved2023) moved to the post-bind VersionConformancePass (Step 14f), which
-        // re-derives the SAME classification from the bound MOVE. The binder keeps ONLY the pre-removal STORAGE
-        // marking below (needed at 85/2002/2014 + 2023 --permissive regardless of the gate), with the same eligibility.
-        var all = source as BoundAllLiteral;
-        if (source is not (BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } or BoundAllLiteral)) return;
-        foreach (var t in targets)
-        {
-            if (t is RefModPlace || t.Item.OperandPic is not { } pic) continue;   // SR5 exemptions (an alphanumeric group; D20)
-            if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
-            if (pic.Usage is Usage.Index) continue;   // class index — SR1 errored above
+        // (The §14.9.25.3 SR5 EDITION gates — MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
+        // MoveAlphanumericFigurativeRemoved2023 — moved to the post-bind VersionConformancePass (Step 14f),
+        // which re-derives the SAME classification from the bound MOVE's WRITTEN source. The pre-removal STORAGE
+        // marking is MarkFigurativeFillImage, off the constructed node.)
+    }
 
-            // Pre-removal storage (reachable at 85/2002/2014 + 2023 --permissive): a NON-digit fill
-            // (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, or an ALL literal with a non-digit) deposits the fill CHARACTERS as
-            // the receiver's character image (provisional; the legacy oracle's byte fill — MOVE QUOTE TO PIC 9(3)
-            // leaves three quotation marks, IS NUMERIC then false, a later read decodes deterministically per
-            // §14.6.13.2). Flag an eligible elementary numeric-DISPLAY receiver StoreAsImage — the SAME §14.9 MOVE
-            // GR4 whole-group image substrate; a digit-only ALL stores its numeric value natively (no image), a
-            // numeric-edited receiver is string-backed by nature, a Tier-B REDEFINES window / NumericImagePlace
-            // already writes its image, and a REDEFINES shared-storage alias keeps its (already-run) tier flag.
-            if (all is not { IsDigitOnly: true } && t is not (RedefViewPlace or NumericImagePlace)
-                && t.Item.Class is null
-                && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })   // CARRIAGE, not image form (kb/Work PB646)
+    /// <summary>
+    /// Pre-removal FILL STORAGE (reachable at 85/2002/2014 + 2023 --permissive regardless of the SR5 gate, and at
+    /// EVERY edition through §14.9.25.4 GR2): a NON-digit fill — SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, an ALL literal
+    /// with a non-digit, or the figurative SPACE GR2 substitutes for a zero-length literal — deposits the fill
+    /// CHARACTERS as the receiver's character image (provisional; the legacy oracle's byte fill — MOVE QUOTE TO
+    /// PIC 9(3) leaves three quotation marks, IS NUMERIC is then false, and a later read decodes deterministically
+    /// per §14.6.13.2). Flag an eligible elementary numeric-DISPLAY receiver <c>StoreAsImage</c> — the SAME §14.9
+    /// MOVE GR4 whole-group image substrate, never a parallel mechanism.
+    /// <para>⛔ ELIGIBILITY IS THE NODE'S OWN <see cref="MoveKind"/>, asked of the constructed
+    /// <see cref="BoundMove"/> (kb/Work PB425). It used to be a hand-copy of <see cref="MoveClassifier"/>'s
+    /// figurative-into-numeric test written out again here — two statements of one rule, and the copy could not
+    /// see the GR2/GR3 substitution the classifier applies, so <c>MOVE "" TO PIC 9(3)</c> would have rendered a
+    /// space image into an item with no image backing. What remains below is only the STORAGE-shape half the kind
+    /// does not decide: a digit-only ALL stores its numeric value natively (it classifies Convert, so the kind
+    /// already excludes it), a numeric-edited receiver is string-backed by nature (likewise not this kind), a
+    /// Tier-B REDEFINES window / NumericImagePlace already writes its image, and a REDEFINES shared-storage alias
+    /// keeps its (already-run) tier flag. <c>MoveEmitter.EmitFigurativeToNumericImage</c> reads the same kind and
+    /// the same flag, which is what keeps the two ends in step.</para>
+    /// </summary>
+    private void MarkFillImageStorage(BoundMove move)
+    {
+        for (int i = 0; i < move.Targets.Count; i++)
+        {
+            var t = move.Targets[i];
+            // Two reasons, one storage fact: the sender IS the fill (a written figurative / non-digit ALL, or the
+            // one §14.9.25.4 GR2 substitutes for a zero-length literal), or the sender MAY BE the fill at run
+            // time (GR1's zero-length-item clause — the emitted store's zero arm writes the same image, so the
+            // receiver has to be able to hold one whichever way the test goes).
+            if (move.Stores[i].Kind is not MoveKind.FigurativeToNumericImage
+                && MoveClassifier.ZeroLengthItemRoute(move.Stores[i].Sender, t) is null) continue;
+            if (t is not (RedefViewPlace or NumericImagePlace) && t.Item.Class is null
+                && t.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })   // CARRIAGE, not image form (kb/Work PB646)
                 ctx.Data.MarkImageForced(t.Item);   // the collected image fact
         }
     }

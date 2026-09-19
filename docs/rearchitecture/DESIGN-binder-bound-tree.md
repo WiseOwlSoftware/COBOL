@@ -297,6 +297,55 @@ public sealed record BoundMove(Place Target, BoundOperand Source, MoveKind Kind,
 `ConvertSource`'s emit-time category switch (`CSharpEmitter.cs:714`) is deleted; `EmitMove` reads `move.Kind`.
 The emitter stops reading `DataItem.StoreAsImage`/`IsStrongGroup` — those facts arrive on the bound node.
 
+**AS BUILT, the classification is PER RECEIVING OPERAND and carries the SENDER with it.** One `MOVE` has a list
+of receivers (`BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets)`), and they genuinely differ — a
+ref-mod slice, a group and an elementary receiver can appear in one statement — so the sketch's scalar `Kind`
+became `IReadOnlyList<MoveStore> Stores`, one `MoveStore(BoundOperand Sender, MoveKind Kind, MoveSenderOrigin Origin)` per target,
+computed once at construction by `MoveClassifier.Classify`. The **sender** half is there because ISO §14.9.25.4
+GR2/GR3 rewrite the sending operand *per receiver*: a zero-length literal-1 "is treated as if it were the
+figurative constant SPACE" (GR3: ZERO for a boolean literal) "and the receiving operand is other than a
+dynamic-length elementary item", so `MOVE "" TO D-DYN, N-NUM` empties the dynamic-length item and space-fills
+the numeric one from one statement (kb/Work PB425). `MoveClassifier.Sender` is the one home of that rule,
+`ZeroLengthItemRoute` the runtime half GR1's zero-length-*item* clause needs, `Origin` says WHICH rule
+put the sender there (a written figurative is §14.9.25.3 SR5's removed construct; a substituted one is
+legal source, and a diagnostic about an unstorable fill must not blame the wrong rule), and every consumer — the
+emitter's per-store renderer, `MoveBinder.MarkFillImageStorage`'s `StoreAsImage` fact — reads the answer off
+`Stores` rather than re-deriving it. ⛔ `BoundMove.Source` remains the **written** sending operand and is what
+every syntax screen reads (`MoveBinder`'s SR1/Table-16 arms, `VersionConformancePass.GateMove`'s SR5 gates):
+GR2/GR3 substitute a *value*, and gating on the substitution would reject `MOVE "" TO PIC 9(3)`, which the
+standard permits at every edition.
+
+**GR1's zero-length-*item* clause is CONDITIONAL, and §8.5.4 says on what.** `ZeroLengthItemRoute` emits a
+runtime length test only for a sending shape that carries its own length field; a reference-modified or
+function-identifier sender is first frozen into `SendingValueTemp`'s carrier by `MoveBinder`, and
+`MoveClassifier.NeedsLengthFreeze` decides when. It asks `CanBeZeroLengthItem` — §8.5.4's own enumeration —
+because the *shape* is not the whole antecedent: item 9 admits a reference-modified item only "when that has
+been permitted by use of the compiler directive REF-MOD-ZERO-LENGTH" (outside such a region §7.3.23.3 GR1 raises
+EC-BOUND-REF-MOD instead of producing a zero-length item), and item 6 admits "an intrinsic function that returns
+a zero-length value", which a NUMERIC function never is — §15.4 puts its returned value in a temporary
+elementary data item with at least one digit position. Freezing on the shape alone was a wrong answer rather
+than a wasted temp: a numeric function sender was re-described into `SendingValueTemp.FunctionValuePic` (21
+integer + 9 fraction digits), narrower than a standard-decimal or floating-point result, so `MOVE FUNCTION E`
+into a 31-digit item re-rounded (kb/Work PB425 finisher).
+
+**GR4's elementary-vs-group decision is ONE predicate asked of BOTH operands** — `MoveClassifier.IsGroupPlace`,
+read by `IsGroupSender` for the sending side and by `Kind` for the receiving one, because GR4 states one rule
+over both ("the sending operand is either a literal or an elementary item AND the receiving item is an
+elementary item"). It is not purely structural in either direction: §13.18.45.4 GR2 makes a level-66
+`RENAMES … THROUGH` alias an alphanumeric GROUP item although this compiler models it as one composed
+elementary alphanumeric view (`RenamesPlace`, which exists only for the THROUGH form — GR1's no-THROUGH alias
+forwards to the renamed item's own place), §13.18.29.4 GR1b/GR2b make a bit or national group act as an
+elementary item, and §8.4.3.3.4 GR6 makes a reference-modified result elementary. Re-spelling the test on the
+receiving side is how the two sides came to disagree (kb/Work PB430).
+
+**GR4's "no conversion of data from one form of internal representation to another" is ONE codec asked in BOTH
+directions** — `OperandText.NonElementaryMoveSender`, called by the group-receiver and group-sender arms of
+`MoveEmitter` alike. For a field operand it is `AsStorageImage`, the per-shape storage recipes (zoned, radix-2,
+BCD, IEEE, UTF-16BE national, packed bits); for a literal or figurative it is the operand text, which has no
+internal representation to preserve. The operand *text* is the wrong reader for that clause on an elementary
+sender: it renders a COMP-3 item as its zoned DISPLAY digits, which is the conversion the clause forbids and
+also occupies the wrong number of character positions.
+
 **Place stays the lvalue abstraction but stops being a string.** Today `Place.Read()/Write()` return raw C#
 (`Place.cs:124-138`). Target: `Place` holds STRUCTURED path segments (root item + subscript `BoundExpr`s + optional
 ref-mod span); the *emitter* owns rendering path→C# text. This removes the "binder builds emit-time strings"

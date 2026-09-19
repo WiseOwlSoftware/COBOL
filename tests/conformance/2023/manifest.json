@@ -604,7 +604,8 @@
   "pb721_zero_length_record",
   "pb721_record_bytes_synonym",
   "pb411_goback_status_operand_and_method_arm",
-  "pb391_corresponding_rule2_rule4_categories"
+  "pb391_corresponding_rule2_rule4_categories",
+  "pb425_zero_length_sender_shapes"
  ],
  "pending": [
   "pb485_value_only_format1"

@@ -298,6 +298,10 @@ internal static class PlaceRenderer
     public static string WriteGroupImage(Place group, string image, string context) => group switch
     {
         RedefViewPlace => Write(group, image),
+        // A level-66 THROUGH alias is an alphanumeric GROUP item (ISO §13.18.45.4 GR2), so a §14.9.25.4 GR4
+        // group-image store can land on one; distributing it into the spanned leaves IS the WriteRenames store
+        // the Write switch already owns, never a second FromImage (kb/Work PB430).
+        RenamesPlace => Write(group, image),
         _ when !group.Item.IsImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
         OdoGroupPlace { DependingInside: false } odo => ReceiveInto(odo, image),
         OdoGroupPlace odo => WriteGroupImage(odo.Inner, image, context),   // GR8b — the maximum length, whatever the inner's storage shape

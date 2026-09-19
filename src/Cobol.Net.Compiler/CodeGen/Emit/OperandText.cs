@@ -169,6 +169,29 @@ internal static class OperandText
                 ? RuntimeApi.SortLastReturnedLength(EmitText.FileKeyExpr(n.File))
                 : RuntimeApi.FileLastReadLength(EmitText.FileKeyExpr(n.File)))}";
 
+    /// <summary>⛔ <b>THE SENDING OPERAND OF A NON-ELEMENTARY MOVE — ISO §14.9.25.4 GR4, asked in BOTH
+    /// directions</b> (kb/Work PB430). GR4: "Any move that is not an elementary move, and does not reference a
+    /// variable-length group, is treated exactly as if it were an alphanumeric to alphanumeric elementary move,
+    /// EXCEPT THAT THERE IS NO CONVERSION OF DATA FROM ONE FORM OF INTERNAL REPRESENTATION TO ANOTHER." The
+    /// operand TEXT (<see cref="AsString"/>) is the wrong reader for that clause on an ELEMENTARY sender: it
+    /// renders a COMP-3 / COMP / COMP-5 / floating-point item as its zoned DISPLAY digits, which is precisely a
+    /// conversion of internal representation — and makes the item occupy the wrong number of character positions
+    /// in the receiving area.
+    /// <para>The compiler already owned the right answer, in the OTHER direction: the group-sender arm deposits
+    /// the pinned representation bytes of exactly these items, through <see cref="AsStorageImage"/>'s per-shape
+    /// recipes. This is that one codec, so the two arms of the group move cannot answer the same question
+    /// differently (feedback_two_arm_dispatch). A LITERAL or figurative sender keeps the operand text: it has no
+    /// internal representation to preserve — GR4's own first sentence names "a literal OR an elementary item" as
+    /// the sending side, and §8.3.3.6.4 GR2 sizes a figurative from the receiver.</para>
+    /// <para>A <c>BoundCurrentRecord</c> also keeps <see cref="AsString"/>, which routes it to
+    /// <see cref="CurrentRecordImage"/> — the record-area STORAGE image sliced to §13.18.43.4 GR16's byte count,
+    /// i.e. this same channel plus the rule only that operand has (kb/Work PB327/PB339).</para></summary>
+    public static string NonElementaryMoveSender(BoundOperand op, NumericRenderer num, string context) => op switch
+    {
+        BoundFieldOperand f => AsStorageImage(f.Place, context),
+        _ => AsString(op, num, deSign: false),
+    };
+
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>

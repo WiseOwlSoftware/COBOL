@@ -562,7 +562,12 @@ internal sealed class StatementValidation(DataBinder data)
                                         ImplicitMovePhrase? implicitOf = null)
     {
         // The sending DATA ITEM, when the sender is one at all. A ref-modified or RENAMES place is deliberately
-        // NOT unwrapped to its underlying item — those places ARE elementary alphanumeric operands by rule.
+        // NOT unwrapped to its underlying item. For a ref-mod that is the RULE: §8.4.3.3.4 GR6 makes its unique
+        // data item elementary alphanumeric whatever identifier-1 is. ⚠ A level-66 THROUGH alias is NOT
+        // elementary — §13.18.45.4 GR2 makes it an alphanumeric GROUP item, and MoveClassifier.IsGroupPlace is
+        // the one reader of that designation — but it is never a VARIABLE-LENGTH group (its span is a fixed
+        // sequence of leaf widths), so it can only ever be the compatible side of §14.9.25.3 SR9's screen and
+        // unwrapping it would test the RECORD behind it instead. Recorded, not assumed (kb/Work PB430).
         DataItem? sender = source switch
         {
             BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } sf => sf.Place.Item,
@@ -680,10 +685,12 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>Arm b) applied to identifier-1. A REFERENCE-MODIFIED or level-66 RENAMES receiver is admitted
     /// WITHOUT reading the item behind it: §8.4.3.3.4 GR6 makes the unique data item a ref-mod identifies "an
-    /// elementary item of class and category alphanumeric" whatever identifier-1 is described as, and a RENAMES
-    /// alias composes ONE elementary alphanumeric view (§13.18.45) — so asking the underlying entry's category
-    /// would reject a legal <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. The same reading
-    /// <see cref="CheckVariableLengthMove"/> takes of the same two place kinds.</summary>
+    /// elementary item of class and category alphanumeric" whatever identifier-1 is described as, and a level-66
+    /// THROUGH alias is "an alphanumeric group item" by §13.18.45.4 GR2 — the FIRST alternative arm b) admits,
+    /// not the elementary one — so asking the underlying entry's category would reject a legal
+    /// <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. Both places are admitted, by two
+    /// different clauses; the alias is a group item, NOT a composed elementary view (kb/Work PB430). The same
+    /// reading <see cref="CheckVariableLengthMove"/> takes of the same two place kinds.</summary>
     private static bool AdmitsIntoOperand(Place p) =>
         p is RefModPlace or RenamesPlace || AdmitsIntoRecord(p.Item);
 

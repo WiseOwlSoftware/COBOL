@@ -290,9 +290,15 @@ internal sealed class VersionConformancePass
     // ── MOVE figurative-constant category gates (ISO §14.9.25.3 SR5) ─────────────────────────────────────────
     // Genuinely SEMANTIC: which of the three edition rows applies depends on the source figurative × each
     // receiver's RESOLVED picture — re-derived here from the bound MOVE (Group B). Mirrors the binder's former
-    // MoveFigurativeEditionGates classification EXACTLY (same figText, same per-target exemptions, same
+    // MoveBinder classification EXACTLY (same figText, same per-target exemptions, same
     // integer/QUOTE/digit-only split, same where-string); the binder keeps only the SR1 class-index error (0809,
     // version-invariant) and the pre-removal StoreAsImage marking.
+    // ⛔ IT READS m.Source — THE WRITTEN SENDING OPERAND — NEVER m.Stores[i].Sender. SR5 is a SYNTAX rule over a
+    // closed list of figurative constants SPELLED IN THE SOURCE ("SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
+    // "literal", or ALL symbolic-character"); §14.9.25.4 GR2/GR3 substitute the figurative SPACE / ZERO for a
+    // zero-length literal as a VALUE, and a zero-length literal is not on SR5's list. Gating the substituted
+    // sender would make `MOVE "" TO PIC 9(3)` — permitted at every edition — a COBOLNET0902 rejection, i.e. a
+    // wrong answer traded for a false one (kb/Work PB425).
     private void GateMove(BoundMove m)
     {
         var all = m.Source as BoundAllLiteral;

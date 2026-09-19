@@ -799,11 +799,16 @@ public sealed record IntoPhraseRules(
 /// <c>new BoundMove</c>.</para></summary>
 public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement
 {
-    /// <summary>Per-target dispatch kinds, classified ONCE at construction by the single authority
-    /// (<see cref="MoveClassifier"/>, P7 Step 7) — a computed record property, so EVERY construction (the
-    /// explicit MOVE statement and every implicit phrase move alike) carries them; the emitter renders
-    /// by kind and re-derives nothing.</summary>
-    public IReadOnlyList<MoveKind> Kinds { get; } = MoveClassifier.Classify(Source, Targets);
+    /// <summary>Per-target stores — the §14.9.25.4 GR2/GR3 SENDING operand for that receiver and the dispatch
+    /// kind it classifies to — computed ONCE at construction by the single authority
+    /// (<see cref="MoveClassifier"/>, P7 Step 7; kb/Work PB425 added the sender half) — a computed record
+    /// property, so EVERY construction (the explicit MOVE statement and every implicit phrase move alike)
+    /// carries them; the emitter renders by store and re-derives nothing.
+    /// <para>⛔ <see cref="Source"/> stays the WRITTEN sending operand and is what every SYNTAX screen reads
+    /// (§14.9.25.3 SR5/SR6/SR7 in <c>MoveBinder</c> and <c>VersionConformancePass.GateMove</c>): GR2/GR3
+    /// substitute a VALUE, not a written figurative constant, and gating on the substitution would reject
+    /// <c>MOVE "" TO PIC 9(3)</c>, which the standard permits.</para></summary>
+    public IReadOnlyList<MoveStore> Stores { get; } = MoveClassifier.Classify(Source, Targets);
 
     /// <summary>The phrase this move is the implicit move OF, or null for the explicit MOVE statement. It rides
     /// the node so a later consumer — a diagnostic, an edition gate — can name the statement without asking its
