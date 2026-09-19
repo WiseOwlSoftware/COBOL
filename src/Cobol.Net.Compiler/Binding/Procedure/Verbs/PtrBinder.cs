@@ -18,9 +18,13 @@ using Core = CobolParserCore;
 /// operands).
 /// P7 Step 10g: a real collaborator over <see cref="BinderContext"/> — the tri-state
 /// <see cref="TryBindSetUpDown"/> contract (null = fall through to the index path · BoundNop = error
-/// consumed · node = bound) and the non-consuming first-target peek move VERBATIM, as does the raw
-/// <c>ctx.Data.ByName</c> lookup in <c>PtrResolveBased</c> (the documented SymbolTable bypass — the
-/// convergence is a flagged behavior-sensitive follow-up, per the §Step 10 plan block).</summary>
+/// consumed · node = bound) and the non-consuming first-target peek move VERBATIM.
+/// <para>⛔ NO NAME LOOKUP LIVES HERE. Every operand resolves through <see cref="ReferenceResolver"/> — a place
+/// via <c>Resolve</c>, a declaration via <c>DeclarationOf</c> — so the scoping rules are the resolver's in ONE
+/// place. The raw <c>ctx.Data.ByName</c> lookup <c>PtrResolveBased</c> used to carry (the documented SymbolTable
+/// bypass, moved verbatim by P7 Step 10g and flagged as a behavior-sensitive follow-up) is GONE: it answered a
+/// scoped question from the unit-wide map, so inside a method definition the §14.9.39.3 SR18 / §14.9.3.3 SR1
+/// based-item verdict was wrong in both directions (kb/Work PB467).</para></summary>
 internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind SET Format 7 — both grammar alternatives of <c>setAddressStatement</c>:
@@ -310,12 +314,27 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §14.9.3 SR1).</summary>
+    /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §14.9.3 SR1).
+    /// <para>⛔ THE LOOKUP IS THE RESOLVER'S, AND IT IS SCOPE-AWARE (kb/Work PB467). This used to read
+    /// <c>ctx.Data.ByName</c> — the UNIT-WIDE multimap, which has no notion of the reference's scope — and the
+    /// SR18 verdict then went wrong in BOTH directions inside a method definition: a legal method-local
+    /// <c>01 MB BASED</c> was refused, and a method-local NON-based item that legally shadows an object-level
+    /// BASED one was accepted for rebasing (§11.7.4 GR5 — "the use of that word in this method refers to the
+    /// declaration in this method. The declaration in the containing object definition is inaccessible to this
+    /// method"). It is <see cref="ReferenceResolver.DeclarationOf"/> now, so every scope the resolver learns
+    /// reaches this screen for free; a special-case "also look in <c>scope.Method.ByName</c>" written here would
+    /// have been <see cref="Model.SymbolTable.TryResolve"/>'s precedence copied into a second place.</para>
+    /// <para>The BARE-NAME guard stays, and it is SR18's rule rather than the resolver's: a based entry is
+    /// level 01 or 77 (§13.16.3 SR16), so no qualified, subscripted or reference-modified spelling of
+    /// data-name-1 is legal here and none is turned away by refusing them.</para></summary>
     private DataItem? PtrResolveBased(Core.DataReferenceContext dref)
     {
-        DataItem? item = dref.ChildCount == 1 && ctx.Data.ByName.TryGetValue(dref.GetText(), out var list) && list.Count > 0
-            ? list[0] : null;
+        DataItem? item = dref.ChildCount == 1 ? ctx.Refs.DeclarationOf(dref, dref.GetText()) : null;
         if (item is { IsBased: true }) return item;
+        // A name no declaration in scope carries — or one several carry — is an §8.4.2.1/§8.4.2.2.1 failure the
+        // resolver has already stated precisely. Adding "shall be a BASED level-01/77 item" on top of it would
+        // send the reader hunting a BASED clause for a name that is not declared at all (the PB457 shape).
+        if (item is null && ctx.Refs.WasDiagnosed(dref)) return null;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
             $"'{dref.GetText()}': the operand shall be a BASED level-01/77 item (ISO §14.9.39 SR18 / "
             + "§14.9.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");

@@ -856,6 +856,30 @@ dynamic-table DataItem` (`DataBinder._capacityRegisters`); resolution returns a 
 SET Format 14 (SR30–32). Initial capacity = `FROM ?? 0` (§8.5.1.9.1 :8199). `FUNCTION LENGTH` over a dynamic
 table/containing group = `Capacity * elemWidth` (§15.50, not a static width).
 
+**The register's REFERENCE forms (kb/Work PB457).** The register is off `ByName` — it is a view, never storage — so
+`ReferenceResolver.CapacityRegisterFor` is the END of resolution for its name, not a first attempt. It therefore
+judges the reference **as written** rather than testing a parse shape: the base name identifies the register outright
+(§13.18.38.3 SR30 first sentence — "Data-name-3 shall not be defined elsewhere in the source element"), and every
+remaining question is a syntax rule reported by `CapacityPlaceOf`, never a "not defined".
+- The register carries a real `Parent` — the OCCURS entry's parent, SR30's "treated as though implicitly defined at
+  the same level as the entry containing the OCCURS clause" — set where it is minted. It is NOT added to
+  `Parent.Children`: it takes no record slot.
+- **Qualified** (`WS-CAP OF WS-TABLE`, `IN` likewise) resolves through the ONE §8.4.2.2 matcher,
+  `DataBinder.QualifierChainMatches`, off that `Parent`. §8.4.2.2.3 SR2 permits qualifying a name that needs no
+  qualification; a qualifier that names no context of the register is **COBOLNET2127**.
+- **Subscripted** is **COBOLNET2125** — §13.18.38.3 SR31, "Data-name-3 shall not be subscripted."
+- **Reference-modified** goes to the ONE §8.4.3.3.3 SR1 screen (`RefModExclusion` → COBOLNET1647): the register is a
+  numeric item of an implementor-chosen binary usage, and SR1 admits only usage DISPLAY or NATIONAL.
+- **⚠ DETERMINATION — a register on a table NESTED inside another table has no writable reference form**
+  (**COBOLNET2126**). Defining such a table is legal (§8.5.1.9.1 item 3: it "may be nested in any combination to the
+  same number of levels as a fixed-capacity table") and naming its register is legal, but SR30 places the register
+  *inside* the outer table — deliberately unlike the occurs-depending item, which §13.18.38.3 SR20 forces *outside*
+  the table it sizes — so §8.4.2.3.3 SR3/SR5 require one subscript per enclosing OCCURS clause while SR31 forbids
+  any. The reading REJECTED was the occurs-depending analogy, "the bare name means every occurrence's capacity": it
+  has no textual support and contradicts the per-outer-occurrence capacity model §15.3's `table(ALL)` enumeration
+  already rests on (kb/Work PB62). `CapacityRegisterReferenceDriftTests` pins the one lookup path, the written-
+  reference read, the fault/diagnostic pairing and the SR30 `Parent`.
+
 **Group image (decided).** A dynamic table is NOT image-capable (`IsCharacterImage`/`IsImageCapable` return false) —
 a containing group drops out of the STATIC record codec exactly like the Tier-C float/COMP-5 island; the element
 `record struct` keeps its own AsImage/FromImage (single-element MOVE works). A containing group instead carries a

@@ -1154,7 +1154,10 @@
   "pb431-format3-control-phrase",
   "pb432-varying-operand-expression",
   "pb432-varying-operand-rules",
-  "pb432-varying-from-nonnumeric-literal"
+  "pb432-varying-from-nonnumeric-literal",
+  "pb457-capacity-register-subscripted",
+  "pb457-capacity-register-under-table",
+  "pb457-capacity-register-bad-qualifier"
  ],
  "pending": []
 }

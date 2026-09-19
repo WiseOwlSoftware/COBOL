@@ -3642,6 +3642,52 @@ public static class DiagnosticCatalog
         + "on the same terms. The alternatives may be written in any order; each may be written once. Delete the "
         + "repeated phrase.",
         "ISO §5.2.6.4");
+    // ── COBOLNET2125 / COBOLNET2126 / COBOLNET2127 — REFERENCES TO AN OCCURS DYNAMIC CAPACITY REGISTER
+    //    (kb/Work PB457). The register is NOT in ByName (it is a view over the table's capacity, never storage),
+    //    so a reference the resolver's capacity hook refused was not falling back to a slower path — it was the
+    //    END of resolution, and the general resolver then said COBOLNET1639 "'…' is not defined — no declaration
+    //    in this source element gives the name '…'", which is false about a name §13.18.38.3 SR30 declares. Every
+    //    ill-formed reference form now names the rule it actually breaks. ──
+
+    /// <summary>COBOLNET2125 — §13.18.38.3 SR31: a subscript is written on a dynamic-capacity table's CAPACITY
+    /// register.</summary>
+    public static readonly DiagnosticDescriptor CapacityRegisterSubscripted = new(
+        "COBOLNET2125", "capacity-register-subscripted", EditionSeverity.Error,
+        "A subscript is written on the CAPACITY register of a dynamic-capacity table. ISO §13.18.38.3 SR31: "
+        + "\"Data-name-3 shall not be subscripted.\" The register is a single numeric item holding the current "
+        + "capacity of the associated table (§13.18.38.4 GR15), not one of the table's elements — write its name "
+        + "alone, optionally qualified (§13.18.38.3 SR30), and subscript the table's elements instead.",
+        "ISO §13.18.38.3 SR31");
+
+    /// <summary>COBOLNET2126 — a CAPACITY register whose table is itself subordinate to a table: §13.18.38.3 SR30
+    /// places the register inside that outer table, so §8.4.2.3.3 SR3/SR5 require a subscript that §13.18.38.3
+    /// SR31 forbids, and no reference form is writable. ⚠ A DETERMINATION — see ReferenceResolver.CapacityPlaceOf
+    /// for the reading chosen and the reading rejected.</summary>
+    public static readonly DiagnosticDescriptor CapacityRegisterUnderTable = new(
+        "COBOLNET2126", "capacity-register-under-table", EditionSeverity.Error,
+        "A CAPACITY register is referenced whose dynamic-capacity table is itself subordinate to another table. "
+        + "ISO §13.18.38.3 SR30 treats data-name-3 \"as though implicitly defined at the same level as the entry "
+        + "containing the OCCURS clause\" — inside that outer table, and deliberately unlike an occurs-depending "
+        + "item, which SR20 forces outside the table it sizes — so ISO §8.4.2.3.3 SR3 and SR5 require one "
+        + "subscript per enclosing OCCURS clause while ISO §13.18.38.3 SR31 forbids subscripting data-name-3 at "
+        + "all. No reference form satisfies both: each outer occurrence holds its own dynamic-capacity table with "
+        + "its own capacity, and the bare name designates none of them. DEFINING such a table is legal "
+        + "(§8.5.1.9.1: it \"may be nested in any combination to the same number of levels as a fixed-capacity "
+        + "table\") — only naming and then referencing its register is not. Drop the CAPACITY phrase from the "
+        + "nested table and read its current capacity with FUNCTION LENGTH over the subscripted inner table.",
+        "ISO §13.18.38.3 SR30/SR31 · §8.4.2.3.3 SR3/SR5");
+
+    /// <summary>COBOLNET2127 — §13.18.38.3 SR30 with §8.4.2.2.3 SR4: the OF/IN qualifiers written on a CAPACITY
+    /// register reference do not name successively more inclusive context of its implied position.</summary>
+    public static readonly DiagnosticDescriptor CapacityRegisterQualifier = new(
+        "COBOLNET2127", "capacity-register-qualifier", EditionSeverity.Error,
+        "The OF/IN qualifiers written on a reference to a dynamic-capacity table's CAPACITY register do not name "
+        + "its context. ISO §13.18.38.3 SR30 treats data-name-3 \"as though implicitly defined at the same level "
+        + "as the entry containing the OCCURS clause\", so its qualifiers are the group names above that entry, "
+        + "and ISO §8.4.2.2.3 SR4 requires them \"in the order of successively more inclusive levels in the "
+        + "hierarchy\". Qualification is never REQUIRED here — SR30's first sentence makes data-name-3 unique in "
+        + "the source element — but §8.4.2.2.3 SR2 permits it, and a written qualifier shall still be correct.",
+        "ISO §13.18.38.3 SR30 · §8.4.2.2.3 SR4");
 
     // ── COBOLNET2072 / COBOLNET2073 — THE REQUIRED IMPERATIVE-STATEMENT OPERAND (kb/Work PB396) ──────────
     // Both are PARSE-layer diagnostics: the grammar rules that carry an imperative-statement operand cannot

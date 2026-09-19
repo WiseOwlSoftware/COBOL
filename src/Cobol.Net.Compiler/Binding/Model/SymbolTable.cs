@@ -4,7 +4,7 @@
 namespace CobolNet.Binding.Model;
 
 /// <summary>The name-resolution SCOPE of one lookup (P6 Step 7): <see cref="Program"/> for program/object-level
-/// code, or a METHOD scope carrying the method's own name overlay (ISO §11.7 GR5 — method-local names SHADOW
+/// code, or a METHOD scope carrying the method's own name overlay (ISO §11.7.4 GR5 — method-local names SHADOW
 /// object/program names and are invisible to sibling methods). The scope is an EXPLICIT parameter of every
 /// <see cref="SymbolTable"/> lookup — the "which overload" decision the old <c>LookupData</c>/
 /// <c>LookupDataInScopeOf</c> pair encoded in the METHOD NAME is now data.</summary>
@@ -21,7 +21,12 @@ public readonly record struct Scope(OoMethodDataScope? Method)
 /// <list type="bullet">
 /// <item>§8.4.6.2.1 rule 3a / §11.7.4 GR5 — a method-local name REPLACES (never unions with) the object/program
 /// name: a lookup consults the scope's method overlay FIRST and falls through to the global maps only when the
-/// overlay has NO entry for the name.</item>
+/// overlay has NO entry for the name. ⛔ §11.7.4 GR5 VERBATIM, re-derived on this tree (kb/Work PB467 doubted
+/// it after probing for wording GR5 does not use): "If a given user-defined word is defined in the data division
+/// of this method definition and in the data division of the containing object definition, the use of that word
+/// in this method refers to the declaration in this method. The declaration in the containing object definition
+/// is inaccessible to this method." The rule is real, it is this clause, and it says exactly what this table
+/// implements.</item>
 /// <item>§8.4.6.2.3 — a method-local DATA-name shadows an object-level INDEX-name of the same spelling
 /// (<see cref="TryResolveIndex"/> returns false; without this every IndexFields-first consumer would silently
 /// bind the subscript/SET target to the OBJECT's index cell — a torn read/write of the wrong storage).</item>

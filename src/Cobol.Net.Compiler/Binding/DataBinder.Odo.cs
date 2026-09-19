@@ -310,12 +310,21 @@ public sealed partial class DataBinder
             // variable-length group (§15.50.4 r7c / §15.14.4 r6c — "based on their current capacity"), whether or
             // not the program gave the register a name. An unnamed register has no CobolName and no
             // CapacityRegisters entry, so no COBOL reference can reach it.
+            // ⛔ IT CARRIES A REAL POSITION IN THE HIERARCHY (kb/Work PB457): §13.18.38.3 SR30 — "If qualifiers are
+            // required for uniqueness, it shall be treated as though implicitly defined at the same level as the
+            // entry containing the OCCURS clause" — so its Parent is the OCCURS entry's Parent, making it a SIBLING
+            // of the table. That one assignment is what lets the ONE §8.4.2.2 qualifier matcher
+            // (DataBinder.QualifierChainMatches) answer `WS-CAP OF WS-TABLE`, and what makes the register of a table
+            // NESTED under another table answer SubscriptArity > 0 — the §8.4.2.3.3 SR3/SR5-vs-SR31 conflict that
+            // ReferenceResolver.CapacityRegisterFor reports, instead of the flat name-dictionary's false "not
+            // defined". It is NOT added to Parent.Children: the register has no storage and takes no record slot.
             var reg = new DataItem
             {
                 Level = 49,
                 CsName = "__cap_" + item.CsName,
                 CobolName = spec.CapacityName,
                 Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
+                Parent = item.Parent,
                 Uid = _uidCounter++,
             };
             spec.CapacityRegister = reg;

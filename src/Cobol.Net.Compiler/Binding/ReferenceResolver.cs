@@ -308,10 +308,10 @@ public sealed class ReferenceResolver(DataBinder data)
         // The OCCURS DYNAMIC CAPACITY register (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9): an implicitly-
         // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
         // ByName and is resolved HERE (before ordinary name lookup) to a CapacityRegisterPlace whose Read() emits
-        // {tablePath}.Capacity. An unqualified, unsubscripted reference is the covered form; a register nested under
-        // a fixed OCCURS (whose ancestor levels would need subscripts) or an OF/IN-qualified reference falls through
-        // to loud (AccessPath null / normal resolution fails) — a later refinement.
-        if (CapacityRegisterFor(dref) is { } capReg) return capReg;
+        // {tablePath}.Capacity. The NAME identifies it outright (§13.18.38.3 SR30 first sentence — "Data-name-3
+        // shall not be defined elsewhere in the source element"), so every other question is a predicate over the
+        // reference AS WRITTEN and belongs to this one screen, not to a fall-through (kb/Work PB457).
+        if (CapacityRegisterFor(dref) is { } capReg) return CapacityPlaceOf(dref, capReg);
 
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
@@ -1180,6 +1180,33 @@ public sealed class ReferenceResolver(DataBinder data)
         return list[0];
     }
 
+    /// <summary>⛔ THE DECLARATION AN UNQUALIFIED DATA-NAME NAMES, IN THE REFERENCE'S OWN SCOPE (kb/Work PB467) —
+    /// for the verbs whose operand is a <i>data-name</i> and whose rule is a predicate over the DECLARATION
+    /// rather than over a storage place (SET ADDRESS OF / ALLOCATE's §14.9.39.3 SR18 and §14.9.3.3 SR1 based-item
+    /// screen). It is <see cref="ResolveUnqualified"/> plus this resolver's own §8.4.2.1 report, so such a verb
+    /// inherits EVERY scoping rule the resolver knows — now and later — instead of restating one.
+    /// <para>⛔ THE BYPASS THIS REPLACED ANSWERED A SCOPED QUESTION FROM THE FLAT MAP. <c>PtrResolveBased</c> read
+    /// <c>ctx.Data.ByName</c> directly, which has no notion of a reference's scope, and the based-item verdict
+    /// went wrong in BOTH directions inside a method: a legal method-local <c>01 MB BASED</c> was refused as
+    /// not-BASED (the method's own declaration was invisible), and a method-local NON-based item that legally
+    /// shadows an object-level BASED one was ACCEPTED for rebasing (the object declaration was visible when it
+    /// must not be). Moving the same declaration between the object's data division and the method's flipped the
+    /// verdict — the proof that scope, not the declaration, was deciding. §11.7.4 GR5 is the rule: "If a given
+    /// user-defined word is defined in the data division of this method definition and in the data division of
+    /// the containing object definition, the use of that word in this method refers to the declaration in this
+    /// method. The declaration in the containing object definition is inaccessible to this method" — which
+    /// <see cref="Model.SymbolTable.TryResolve"/> already implements, one file away.</para>
+    /// <para>Returns null having REPORTED (COBOLNET1639) when no declaration in scope carries the name or when
+    /// several do — §8.4.2.2.1's ambiguity is the ordinary qualification question and gets the ordinary
+    /// diagnostic, never the silent first-wins the bypass took. A caller distinguishes "reported" from "resolved
+    /// to the wrong kind of item" with <see cref="WasDiagnosed"/>.</para></summary>
+    internal DataItem? DeclarationOf(Core.DataReferenceContext dref, string name)
+    {
+        if (ResolveUnqualified(name) is { } item) return item;
+        if (!_probing) ReportUnidentified(dref, name, []);
+        return null;
+    }
+
     /// <summary>
     /// Resolve a qualified reference <c>name OF q[0] OF q[1] …</c> (ISO §8.4.2.2) by CANDIDATE-SET matching:
     /// every in-scope declaration of <paramref name="name"/> whose ancestor chain carries each written
@@ -1227,19 +1254,134 @@ public sealed class ReferenceResolver(DataBinder data)
         return string.Join(".", chain.Select(n => n.CsName));
     }
 
-    /// <summary>The <see cref="CapacityRegisterPlace"/> for an unqualified, unsubscripted reference to an OCCURS
-    /// DYNAMIC CAPACITY register, or null — a PURE check over <see cref="DataBinder.CapacityRegisters"/> with NO side
-    /// effects (unlike the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
-    /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never mints
-    /// a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).</summary>
-    internal CapacityRegisterPlace? CapacityRegisterFor(Core.DataReferenceContext dref)
+    /// <summary>Why a written reference that NAMES a CAPACITY register still has no place (kb/Work PB457). Each arm
+    /// is a syntax rule, not a hole: the register's name identifies it outright (§13.18.38.3 SR30 first sentence),
+    /// so a reference that names it is never "not defined".</summary>
+    internal enum CapacityRefFault
+    {
+        /// <summary>A legal reference — <see cref="CapacityRef.Place"/> is non-null.</summary>
+        None,
+        /// <summary>§13.18.38.3 SR31 — "Data-name-3 shall not be subscripted."</summary>
+        Subscripted,
+        /// <summary>§8.4.3.3.3 SR1 — the register is not an identifier-1 reference modification may name.</summary>
+        RefModified,
+        /// <summary>§13.18.38.3 SR30 second sentence with §8.4.2.2.3 SR4 — the written OF/IN qualifiers do not name
+        /// successively more inclusive context of the register's implied position.</summary>
+        Qualifiers,
+        /// <summary>The register's table is itself subordinate to a table, so SR30 puts the register inside that
+        /// outer table: §8.4.2.3.3 SR3/SR5 then REQUIRE a subscript that §13.18.38.3 SR31 FORBIDS, and no reference
+        /// form is writable. ⚠ DETERMINATION — see the diagnostic's own note.</summary>
+        UnderATable,
+    }
+
+    /// <summary>A written reference matched against the source element's named CAPACITY registers: the owning
+    /// dynamic-capacity <paramref name="Table"/>, the <paramref name="Register"/> view item, the
+    /// <paramref name="Place"/> when the reference is legal, and the <paramref name="Fault"/> otherwise.</summary>
+    internal readonly record struct CapacityRef(
+        DataItem Table, DataItem Register, CapacityRegisterPlace? Place, CapacityRefFault Fault);
+
+    /// <summary>⛔ THE ONE MATCH OF A WRITTEN REFERENCE AGAINST THE NAMED OCCURS DYNAMIC CAPACITY REGISTERS
+    /// (kb/Work PB457) — a PURE check over <see cref="DataBinder.CapacityRegisters"/> with NO side effects (unlike
+    /// the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
+    /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never
+    /// mints a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).
+    /// <see langword="null"/> means the base name names NO register; a non-null result with a null
+    /// <see cref="CapacityRef.Place"/> is a rule violation the reporting caller states.
+    /// <para>⛔ IT MATCHES THE REFERENCE, NOT A BARE NAME. The prior shape was
+    /// <c>r.HasNoSuffix &amp;&amp; CapacityRegisters.TryGetValue(...) &amp;&amp; BuildTablePath(table) is { }</c> —
+    /// two conjuncts that each DELETED a reference form instead of judging it. <c>HasNoSuffix</c> is a test on the
+    /// PARSE shape and <c>dataReferenceSuffix</c> carries QUALIFICATION as well as subscripts, so the legal
+    /// <c>SET WS-CAP OF WS-TABLE TO 7</c> (§13.18.38.3 SR30 with §8.4.2.2.3 SR2 — "A name may be qualified even
+    /// though it does not need qualification") failed it; the zero-index <c>BuildTablePath</c> returned null for
+    /// every table with a table ancestor. Because the register is off <c>ByName</c>, failing either conjunct was
+    /// not a fallback but the END of resolution, and the general resolver then said COBOLNET1639 "is not defined"
+    /// — false about a name the OCCURS clause declares.</para>
+    /// <para>The qualifier test is the ONE §8.4.2.2 matcher (<see cref="DataBinder.QualifierChainMatches"/>), read
+    /// off the register's real <see cref="DataItem.Parent"/> — SR30's "treated as though implicitly defined at the
+    /// same level as the entry containing the OCCURS clause", set where the register is minted
+    /// (<c>DataBinder.Odo.cs</c>). The candidate SET has exactly one member by SR30's first sentence, so there is
+    /// no survivor count to take.</para></summary>
+    internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref)
     {
         DataReferenceCst r = dref;
-        return r.HasNoSuffix && r.BaseName is { } name
-            && data.CapacityRegisters.TryGetValue(name, out var capTable)
-            && capTable.OccursSpec?.CapacityRegister is { } capReg
-            && BuildTablePath(capTable) is { } capPath
-            ? new CapacityRegisterPlace(capPath, capReg) : null;
+        if (r.BaseName is not { } name
+            || !data.CapacityRegisters.TryGetValue(name, out var table)
+            || table.OccursSpec?.CapacityRegister is not { } reg) return null;
+        var written = ReadWritten(dref);
+        var path = BuildTablePath(table);
+        var fault =
+              written.SubscriptGroup is not null                     ? CapacityRefFault.Subscripted
+            : written.RefModCount > 0                                ? CapacityRefFault.RefModified
+            : !data.QualifierChainMatches(reg, written.Qualifiers)   ? CapacityRefFault.Qualifiers
+            : path is null                                           ? CapacityRefFault.UnderATable
+            : CapacityRefFault.None;
+        return fault is CapacityRefFault.None && path is not null
+            ? new CapacityRef(table, reg, new CapacityRegisterPlace(path, reg), CapacityRefFault.None)
+            : new CapacityRef(table, reg, null, fault);
+    }
+
+    /// <summary>The place a matched <see cref="CapacityRef"/> resolves to, REPORTING its fault when it has one —
+    /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every
+    /// arm names the rule the reference breaks; none of them can be "not defined", because the name IS defined.
+    /// <para>⚠ <b>DETERMINATION (<see cref="CapacityRefFault.UnderATable"/>)</b> — a dynamic-capacity table nested
+    /// within another table is legal to DEFINE (§8.5.1.9.1 item 3: it "may be nested in any combination to the same
+    /// number of levels as a fixed-capacity table") and its register may be NAMED, but no reference to that register
+    /// is writable. §13.18.38.3 SR30 puts the register at the same level as the OCCURS entry — inside the outer
+    /// table, and deliberately unlike the occurs-depending item, which §13.18.38.3 SR20 forces OUTSIDE the table —
+    /// so §8.4.2.3.3 SR3 ("the number of subscripts shall equal the number of OCCURS clauses in the description of
+    /// the table element being referenced") and SR5 ("Each table element reference shall be subscripted except
+    /// when such reference appears" — seven contexts, none of them this) require one subscript per enclosing table,
+    /// while §13.18.38.3 SR31 forbids any. The reading REJECTED was "the bare name designates the capacity of every
+    /// occurrence", the occurs-depending analogy: it has no textual support, and it contradicts the per-occurrence
+    /// capacity model §15.3's table(ALL) enumeration already rests on (kb/Work PB62) — each outer occurrence holds
+    /// its own <c>CobolDynTable</c> with its own capacity, so one SET cannot mean all of them.</para></summary>
+    private Place? CapacityPlaceOf(Core.DataReferenceContext dref, CapacityRef cap)
+    {
+        if (cap.Place is { } place) return place;
+        if (_probing || !_diagnosed.Add(dref)) return null;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        string text = dref.GetText();
+        string subject = cap.Register.CobolName ?? cap.Register.CsName;
+        string table = cap.Table.CobolName ?? cap.Table.CsName;
+        switch (cap.Fault)
+        {
+            case CapacityRefFault.Subscripted:
+                data.Edition.Error(DiagnosticCatalog.CapacityRegisterSubscripted,
+                    $"'{text}': '{subject}' is the CAPACITY register of the dynamic-capacity table '{table}' and "
+                    + "ISO §13.18.38.3 SR31 says \"Data-name-3 shall not be subscripted\". Write the register's "
+                    + "name alone (optionally qualified), and subscript the TABLE's elements instead.");
+                return null;
+            case CapacityRefFault.RefModified:
+                // §8.4.3.3.3 SR1 lives in ONE place — RefModExclusion — and the register answers it like any item.
+                data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
+                    $"'{text}': reference modification of {RefModExclusion(cap.Register) ?? "a CAPACITY register"} "
+                    + "is not permitted (ISO §8.4.3.3.3 SR1)");
+                return null;
+            case CapacityRefFault.Qualifiers:
+                string innermost = cap.Register.Parent is { CobolName: { } p }
+                    ? $"; the innermost permitted qualifier is '{p}'" : "";
+                data.Edition.Error(DiagnosticCatalog.CapacityRegisterQualifier,
+                    $"'{text}': the written qualifiers do not name context of '{subject}'. ISO §13.18.38.3 SR30 "
+                    + "treats a CAPACITY register \"as though implicitly defined at the same level as the entry "
+                    + $"containing the OCCURS clause\", so '{subject}' stands beside '{table}' and its qualifiers "
+                    + $"are the group names above it{innermost}. ISO §8.4.2.2.3 SR4 requires them \"in the order "
+                    + "of successively more inclusive levels in the hierarchy\".");
+                return null;
+            case CapacityRefFault.UnderATable:
+                data.Edition.Error(DiagnosticCatalog.CapacityRegisterUnderTable,
+                    $"'{text}': '{subject}' is the CAPACITY register of '{table}', which is itself subordinate to a "
+                    + "table, so ISO §13.18.38.3 SR30 places the register inside that outer table. ISO §8.4.2.3.3 "
+                    + "SR3 and SR5 then require one subscript per enclosing OCCURS clause, and ISO §13.18.38.3 SR31 "
+                    + "forbids subscripting data-name-3 — no reference form is writable. Name the register only on "
+                    + "a dynamic-capacity table that has no table ancestor, or read the capacity with FUNCTION "
+                    + "LENGTH over the subscripted inner table instead.");
+                return null;
+            default:
+                // CapacityRefFault.None cannot reach here (its Place is non-null by construction), and every other
+                // member has a case above — CapacityRegisterReferenceDriftTests pins that, so a new fault cannot
+                // ship diagnostic-less. This arm is an internal-error backstop, never a user-reachable path.
+                throw new InvalidOperationException(
+                    $"CapacityRefFault.{cap.Fault} carries no diagnostic (kb/Work PB457).");
+        }
     }
 
     /// <summary>The STRUCTURAL access path for an item — the <see cref="MemberPlace"/>/<see cref="DynTablePlace"/>

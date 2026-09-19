@@ -805,14 +805,21 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // A PURE capacity-register peek (NOT refs.Resolve, which would route an OO `prop OF obj` first target through
         // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7).
         if (targets.Count == 0 || ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap) return null;
+        // The target NAMES a register but breaks one of its reference rules (§13.18.38.3 SR30/SR31, §8.4.2.2.3 SR4,
+        // §8.4.3.3.3 SR1; kb/Work PB457). This is still SET Format 14 — the statement is selected by the receiver's
+        // being a CAPACITY register, and that is what it is — so the format is CONSUMED here and the reference's own
+        // rule is stated by the ONE screen that owns it (Refs.Resolve → CapacityPlaceOf). Returning null instead
+        // would let the Format-1/2 path add a COBOLNET1756 "SET receiver … not implemented" on top of it, which is
+        // false: the receiver is implemented; the reference is illegal.
+        if (cap.Place is not { } place) { ctx.Refs.Resolve(targets[0]); return new BoundNop(); }
         if (targets.Count > 1)
         {
             ctx.Edition.Error("COBOLNET1524",
-                $"SET '{cap.RegisterItem.CobolName}' {SetCapacityKinds.Text(kind)}: a dynamic-table CAPACITY register "
+                $"SET '{cap.Register.CobolName}' {SetCapacityKinds.Text(kind)}: a dynamic-table CAPACITY register "
                 + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
             return new BoundNop();
         }
-        return new BoundSetCapacity(cap.Table, host.Expr.BindIndexWindowExpr(amount), kind);
+        return new BoundSetCapacity(place.Table, host.Expr.BindIndexWindowExpr(amount), kind);
     }
 
     /// <summary>SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of a
