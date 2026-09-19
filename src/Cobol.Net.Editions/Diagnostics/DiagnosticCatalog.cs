@@ -3788,6 +3788,18 @@ public static class DiagnosticCatalog
         + "zero BY literal outright, in every case — the augment value would be zero, so no induction variable "
         + "would ever change and the UNTIL condition could never become true through the phrase.",
         "ISO §14.9.28.3 SR4 / SR5 / SR6");
+    /// <summary>A TYPE entry violates §13.16.3 SR14's same-entry composition rule — the TYPE clause's twin of
+    /// SR12, which COBOLNET1555 carries for SAME AS. The two rules are the WARRANT for the one description copy
+    /// (<c>DataBinder.CopyEntryDescription</c>, whose receiver-wins <c>??=</c> is safe only while neither
+    /// subject can own the clauses it carries), so leaving SR14 unenforced did not merely accept illegal source:
+    /// the subject's own PICTURE / USAGE / REDEFINES won, and silently DISCARDED the type's declared description
+    /// — <c>01 T IS TYPEDEF PIC X(3). 01 A TYPE T PIC 9(5).</c> gave A a 5-digit numeric description the type
+    /// never declared (kb/Work PB513).</summary>
+    public static readonly DiagnosticDescriptor TypeEntryRule = new(
+        "COBOLNET2150", "type-entry-rule", EditionSeverity.Error,
+        "A TYPE entry specifies a clause that may not share the entry: only BASED, CLASS, CONSTANT RECORD, "
+        + "DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL, INVALID, level-number, OCCURS, PRESENT WHEN, "
+        + "PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING may.", "ISO §13.16.3 SR14");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

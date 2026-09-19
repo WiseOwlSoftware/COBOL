@@ -74,6 +74,15 @@ internal static class BindPipeline
         // and crashed the compiler with an unhandled NullReferenceException and no diagnostic at all.
         new BindPass("CheckPictureRequired", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckPictureRequired()),
         new BindPass("InheritSignClauses", PassPhase.UsageResolved, PassPhase.SignResolved, d => d.InheritSignClauses()),
+        // The §13.18.13.3 SR3 a)/b) CODE-SET record screen — §13.18.52.3 SR3's twin (kb/Work PB536). Placed
+        // HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record
+        // item is "described with the SIGN IS SEPARATE clause" and "described as usage display", and BOTH facts
+        // can arrive by GROUP INHERITANCE — §13.18.52.4 GR1 for the sign, §13.18.60.4 GR1 for the usage — so the
+        // screen must run no earlier than the last pass that can supply one. Run from BindFileSection, where it
+        // used to live, it read the entry-bind default trailing over-punch and REFUSED a legal record whose
+        // group carried SIGN IS SEPARATE. Nothing later is needed: it reads declared shape only, and ExpandTypes
+        // (the first pass) has already composed the leaves of a record described with TYPE or SAME AS.
+        new BindPass("CheckCodeSetRecordItems", PassPhase.SignResolved, PassPhase.SignResolved, d => d.CheckCodeSetRecordItems()),
         new BindPass("ResolveRedefines", PassPhase.SignResolved, PassPhase.SignResolved, d => d.ResolveRedefines()),
         new BindPass("ClassifyRedefinesClasses", PassPhase.SignResolved, PassPhase.RedefinesClassified, d => d.ClassifyRedefinesClasses()),
         new BindPass("CheckStrongTypeDeclarations", PassPhase.RedefinesClassified, PassPhase.StrongTypeChecked, d => d.CheckStrongTypeDeclarations()),

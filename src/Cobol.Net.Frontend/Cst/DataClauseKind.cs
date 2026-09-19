@@ -180,6 +180,23 @@ public static class DataClauseKinds
         DataClauseKind.ConstantRecord | DataClauseKind.External
         | DataClauseKind.Global | DataClauseKind.Occurs;
 
+    /// <summary>§13.16.3 SR14: "The TYPE clause shall not be specified in the same data description entry with
+    /// any clauses except BASED, CLASS, CONSTANT RECORD, DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL,
+    /// INVALID, level-number, OCCURS, PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING."
+    /// <para>CLASS, DEFAULT, DESTINATION, INVALID, PRESENT WHEN, VALIDATE-STATUS and VARYING are exactly the
+    /// seven clauses §13.16.2's <c>validation-clauses</c> meta-term names, so they arrive here as the single
+    /// <see cref="DataClauseKind.Validation"/> bit — the same way SR13 ¶1 reads them.</para>
+    /// <para>⛔ CO-permitted: the TYPE bit itself is the subject and is OR-ed in at the check site. This is
+    /// SR12's twin, and the pair is the WARRANT for <c>DataBinder.CopyEntryDescription</c>'s receiver-wins
+    /// copy (<c>to.Pic ??= from.Pic</c>): the subject of either clause can own none of the clauses that copy
+    /// carries. SR12 was enforced and SR14 was not, so a TYPE subject's own illegal PICTURE / USAGE /
+    /// REDEFINES silently DISCARDED the type's declared description — a wrong answer, not mere acceptance
+    /// (kb/Work PB513).</para></summary>
+    public const DataClauseKind TypeCoPermitted =
+        DataClauseKind.Based | DataClauseKind.ConstantRecord | DataClauseKind.External
+        | DataClauseKind.Global | DataClauseKind.Occurs | DataClauseKind.Property
+        | DataClauseKind.Typedef | DataClauseKind.Validation | DataClauseKind.Value;
+
     /// <summary>§13.16.3 SR13 ¶1: "The ANY LENGTH, BASED, BLANK WHEN ZERO, DYNAMIC LENGTH, select-when,
     /// SYNCHRONIZED, and TYPEDEF clauses and validation-clauses shall not be specified in the same data
     /// description entry with the CONSTANT RECORD clause…"</summary>

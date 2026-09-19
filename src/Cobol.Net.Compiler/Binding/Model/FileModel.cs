@@ -220,6 +220,16 @@ public sealed class FileModel
     /// weights are (kb/Work PB793).</summary>
     public char[]? CodeSetCorrespondence { get; set; }
 
+    /// <summary>Which class the FD's CODE-SET clause selected for its §13.18.13.3 SR3 a)/b) record screen —
+    /// <c>true</c> = alphabet-name-2 / national (b), <c>false</c> = alphabet-name-1 / alphanumeric (a),
+    /// <c>null</c> = no clause, or a clause whose alphabet failed SR1/SR2 and is not screened against.
+    /// <para>⛔ The screen itself is <c>DataBinder.CheckCodeSetRecordItems</c>, a DECLARED pass at
+    /// <see cref="CobolNet.Binding.Passes.PassPhase.SignResolved"/>, not the FD walk: SR3's "described with the SIGN IS SEPARATE
+    /// clause" and "described as usage display" are both facts a LATER pass settles (§13.18.52.4 GR1 group-SIGN
+    /// inheritance; §13.18.60.4 GR1 group-USAGE inheritance), and reading them at the FD refused legal source
+    /// (kb/Work PB536). This property is the only thing that travels between the two.</para></summary>
+    public bool? CodeSetRecordClass { get; set; }
+
     /// <summary>The RELATIVE KEY data-name as written (ISO §12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
     public string? RelativeKeyName { get; set; }

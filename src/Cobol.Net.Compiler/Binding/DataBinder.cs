@@ -2478,6 +2478,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "or indirectly reference itself (ISO §13.18.58.3 SR2)");
             return;
         }
+        // ⛔ A CHAINED TYPE DECLARATION EXPANDS FIRST — the TYPE arm's copy of the hop ExpandSameAs has always
+        // had for its target (kb/Work PB513's sibling sweep; the two-arm dispatch shape). §13.18.58.3 SR2 is
+        // written for exactly this shape — "The description of the subject of the entry, including its
+        // subordinate items, shall not contain a TYPE clause that directly or indirectly references this type
+        // definition" — so a type declaration whose OWN description is a TYPE clause is legal, and
+        // §13.18.58.4 GR3 then hands "all other data description clauses and subordinate data descriptions" of
+        // it to data defined using the type-name. Without this hop the template was copied UNEXPANDED: it owns
+        // no PICTURE and no children of its own, so `01 T IS TYPEDEF PIC X(3). 01 TT IS TYPEDEF TYPE T.
+        // 01 F TYPE TT.` made F a synthesized one-character item instead of the PIC X(3) the chain declares —
+        // a wrong answer, from the same missing arm PB513's SR14 guard was. `expanding` travels, so a cyclic
+        // chain is the SR2 rejection above rather than an unbounded recursion; ExpandType is idempotent
+        // through the TypeRefName-null mark, so the template expands once however many references it has.
+        if (template.TypeRefName is not null) ExpandType(template, expanding);
         // Record the TYPE identity BEFORE cloning children (review DEVLOG 664 fix #5): a nested TYPE reference is
         // expanded inside CloneItem, and its SR6 strong-placement check walks THIS item's ancestor chain — so the
         // enclosing strong item's StrongType must already be set, else legal strong-in-strong nesting is falsely
@@ -4061,6 +4074,30 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "clause shall not be specified in a data item described with the CONSTANT RECORD clause "
                     + "(ISO §13.18.40.3 SR32)");
         }
+        // TYPE same-entry composition (ISO §13.16.3 SR14) — SR12's twin, over the same WRITTEN clause set, with
+        // the same recovery: report and clear the reference so the item binds as ordinary storage under an
+        // already-failed compile (the IsBased discipline).
+        // ⛔ THIS IS THE WARRANT FOR CopyEntryDescription's RECEIVER-WINS COPY (kb/Work PB513). That method's
+        // `to.Pic ??= from.Pic` is documented as safe because "§13.16.3 SR12 and SR14 list the few clauses
+        // admissible in the same entry and no clause copied here is among them" — true of SAME AS, whose SR12
+        // guard is above, and FALSE of TYPE until now. With SR14 unenforced the subject's own illegal PICTURE /
+        // USAGE / REDEFINES silently DISCARDED the type's declared description: `01 T IS TYPEDEF PIC X(3).
+        // 01 A TYPE T PIC 9(5).` gave A a 5-digit numeric description, defeating §8.5.3's whole purpose. One
+        // permitted-set constant per rule, so neither arm can drift from the other's warrant.
+        // ⛔ PLACED AFTER the CONSTANT RECORD block, not beside SR12's guard: SR13 ¶2 asks whether the entry
+        // specifies a TYPE clause, and it must see the one the PROGRAMMER wrote rather than the one this
+        // recovery cleared — otherwise one violation reports as two.
+        if (typeRefName is not null
+            && (written & ~(DataClauseKind.Type | DataClauseKinds.TypeCoPermitted)) is var typeBad
+            && typeBad != DataClauseKind.None)
+        {
+            Edition.Error(DiagnosticCatalog.TypeEntryRule, $"{entryWhere}: the TYPE clause shall not be "
+                + "specified in the same data description entry with any clauses except BASED, CLASS, CONSTANT "
+                + "RECORD, DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL, INVALID, level-number, OCCURS, "
+                + "PRESENT WHEN, PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING (ISO §13.16.3 SR14); "
+                + $"this entry also specifies {DataClauseKinds.Name(typeBad)}");
+            typeRefName = null;
+        }
         var item = new DataItem
         {
             Level = level,
@@ -4433,26 +4470,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 file.CodeSetCorrespondence = set.MediumCorrespondence;
         }
         // SR3 a/b — the selected class's usage over every elementary record item; signed numeric SIGN SEPARATE.
-        if (records.Count > 0 && (alnumName is not null || natName is not null))
-        {
-            bool wantNational = natName is not null;
-            void CheckItem(DataItem it)
-            {
-                foreach (var child in it.Children) CheckItem(child);
-                if (it.Pic is not { } pic || it.Children.Count > 0) return;   // elementary items only (SR3 a/b)
-                bool right = !wantNational && pic.Usage is Usage.Display || wantNational && pic.Usage is Usage.National;
-                if (!right)
-                    Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the record item "
-                        + $"'{it.CobolName}' is not usage {(wantNational ? "NATIONAL" : "DISPLAY")} — all elementary "
-                        + $"data items of all record description entries shall be described as usage "
-                        + $"{(wantNational ? "national" : "display")} (ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
-                else if (pic is { Signed: true } sp && !sp.SignKind.Contains("Separate"))
-                    Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET: the signed numeric record "
-                        + $"item '{it.CobolName}' shall be described with the SIGN IS SEPARATE clause "
-                        + $"(ISO §13.18.13.3 SR3 {(wantNational ? "b" : "a")})");
-            }
-            foreach (var rec in records) CheckItem(rec);
-        }
+        // ⛔ DEFERRED, not written here (kb/Work PB536): both sentences ask what an item IS DESCRIBED WITH, and
+        // a group-level SIGN (§13.18.52.4 GR1) / USAGE (§13.18.60.4 GR1) clause reaches the leaf only in a later
+        // pass, so a screen run from this FD walk refused the legal `05 G SIGN IS LEADING SEPARATE. 10 N PIC
+        // S9(4).`. The CLASS the clause selected is all that travels; the screen is the declared pass
+        // DataBinder.CheckCodeSetRecordItems, at PassPhase.SignResolved.
+        if (alnumName is not null || natName is not null)
+            file.CodeSetRecordClass = natName is not null;
     }
 
     /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
