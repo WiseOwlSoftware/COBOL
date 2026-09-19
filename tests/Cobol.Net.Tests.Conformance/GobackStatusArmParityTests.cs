@@ -122,12 +122,19 @@ public sealed class GobackStatusArmParityTests
     // SR5's two admitted positions and then rejected source sitting in one of them.
 
     /// <summary>A WHEN phrase of an exception-checking PERFORM is one of SR5's two admitted positions, so the
-    /// statement is LEGAL on both arms. This is the row that was RED on the method arm (COBOLNET0899).</summary>
+    /// statement is LEGAL on both arms. This is the row that was RED on the method arm (COBOLNET0899).
+    /// <para>⛔ THE HEAD IS A BARE `PERFORM`, AND HAS TO BE (kb/Work PB431). This fixture used to spell it
+    /// `PERFORM UNTIL 1 = 1 … WHEN EC-SIZE …`, which ISO §14.9.28.2 Format 3 does not print: Format 3's head is
+    /// `PERFORM [ WITH LOCATION ]` and nothing else, so an exception-checking PERFORM carries NO loop-control
+    /// phrase. The until-phrase was incidental scaffolding — this fact measures WHERE a GOBACK RAISING LAST may
+    /// be written (§14.9.18.3 SR5), not how the PERFORM repeats — and it compiled only because the Format-3
+    /// binder silently DROPPED the phrase. PB431's COBOLNET2118 now refuses it, which is why the same correction
+    /// was made to twelve <c>ExitPlacementContextDriftTests</c> rows in the same change set.</para></summary>
     [Fact]
     public void RaisingLastInAPerformWhenPhrase_IsAcceptedOnBothArms()
     {
         const string body = """
-            PERFORM UNTIL 1 = 1
+            PERFORM
                     CONTINUE
                 WHEN EC-SIZE
                     GOBACK RAISING LAST EXCEPTION
