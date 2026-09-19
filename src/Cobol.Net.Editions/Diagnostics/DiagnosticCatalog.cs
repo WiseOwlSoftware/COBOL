@@ -1997,6 +1997,37 @@ public static class DiagnosticCatalog
         + "section-names referenceable only in the source element that declares them; and the SET Format-4 "
         + "operand that names no condition-name at all (§14.9.39.3 SR6).",
         "ISO §8.4.2.1 / §8.4.2.2");
+    // ⛔ THE TWO PROCEDURE-NAME UNIQUENESS RULES (kb/Work PB466). COBOLNET1639 above is "identifies NO
+    // resource"; these two are "identifies MORE THAN ONE", and they are separate codes because the two rules
+    // have different repairs: rule-1 ambiguity is cured by writing the qualifier the standard asks for, and an
+    // SR7 in-section duplicate cannot be qualified at all — the section-name is the only qualifier a
+    // paragraph-name takes, and both declarations already carry it, so one of them has to be renamed.
+    public static readonly DiagnosticDescriptor AmbiguousProcedureName = new(
+        "COBOLNET2121", "ambiguous-procedure-name", EditionSeverity.Error,
+        "An explicitly referenced procedure-name does not identify exactly one procedure. ISO §8.4.2.2.1: "
+        + "\"Identical user-defined names may be specified in a source unit; however, uniqueness shall be "
+        + "established through qualification for each user-defined name explicitly referenced, except as "
+        + "specified in rules 2 through 6.\" Rule 1 — \"No other name has the identical spelling\" — is false "
+        + "for the reference, and rule 6, the only excuse that reaches a paragraph-name (\"The name is a "
+        + "paragraph-name and the section containing the reference also contains the named paragraph\"), does "
+        + "not apply; §8.4.2.2.3 SR1 then requires \"a sequence of qualifiers that precludes any ambiguity of "
+        + "reference\". Write the qualifier (paragraph-name IN section-name — §8.4.2.2.2 format 4), or rename "
+        + "one of the duplicated procedures. Duplicated SECTION-names cannot be qualified at all, since a "
+        + "section-name takes no qualifier, so those shall be renamed. Reported at every statement whose "
+        + "general format prints procedure-name — PERFORM (both operands of a THRU range), GO TO in both "
+        + "formats, ALTER, RESUME AT and the SORT/MERGE INPUT and OUTPUT PROCEDURE phrases — from the ONE "
+        + "resolution step, ProcedureTableBuilder.ResolveProcedureOperand.",
+        "ISO §8.4.2.2.1 / §8.4.2.2.3 SR1");
+    public static readonly DiagnosticDescriptor ParagraphNameDuplicatedInSection = new(
+        "COBOLNET2122", "paragraph-name-duplicated-in-section", EditionSeverity.Error,
+        "A paragraph-name that is explicitly referenced is declared more than once within one section. ISO "
+        + "§8.4.2.2.3 SR7: \"If explicitly referenced, a paragraph-name shall not be duplicated within a "
+        + "section.\" Qualification cannot repair this one — §8.4.2.2.2 format 4 offers a paragraph-name only "
+        + "its section-name as a qualifier and both declarations carry the same one — so one of the two "
+        + "paragraphs shall be renamed. A duplicated paragraph-name that is never referenced is legal and is "
+        + "not reported: SR7 is conditioned on the explicit reference, which is why the check lives at the "
+        + "reference and not at the declaration.",
+        "ISO §8.4.2.2.3 SR7");
     // ⛔ COBOLNET1576 ("ref-mod-zero-length-malformed-operand") is RETIRED — NEVER REALLOCATE IT. It was
     //    >>REF-MOD-ZERO-LENGTH's own copy of "a directive's operand shall be one its general format admits"
     //    (ISO §7.3.3 SR6), one of six such codes; kb/Work PB794 made the rule DATA on the directive's

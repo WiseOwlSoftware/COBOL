@@ -8,8 +8,11 @@ namespace CobolNet.Binding.Procedure;
 /// (the legacy traps #4/#5/#10 are structural here, not checks).</summary>
 internal sealed class OoMethodScope
 {
-    public readonly Dictionary<string, int> Paras = new(StringComparer.OrdinalIgnoreCase);
-    public readonly Dictionary<string, SectionInfo> Sections = new(StringComparer.OrdinalIgnoreCase);
+    // ⛔ ProcedureNameMap, not Dictionary: a method's paragraph/section scope owes the SAME §8.4.2.2.1
+    // uniqueness answer the program-level scope owes, one level down — the method scope had the identical
+    // TryAdd hole (kb/Work PB466).
+    public readonly ProcedureNameMap<int> Paras = new();
+    public readonly ProcedureNameMap<SectionInfo> Sections = new();
     /// <summary>The method's DATA name scope (§11.7 GR5) — activated on <c>DataBinder.ActiveMethodScope</c>
     /// while this method's statements bind (slice 2).</summary>
     public OoMethodDataScope? Data;

@@ -279,7 +279,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                         foreach (var p in section.paragraphDefinition())
                             table.AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                         info.CloseAt(table.Paragraphs.Count - 1);   // zero paragraphs ⇒ EMPTY (§14.4.2)
-                        scope.Sections.TryAdd(info.Name, info);
+                        scope.Sections.Declare(info.Name, info);
                     }
                 }
             }

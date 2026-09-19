@@ -22,7 +22,11 @@ internal sealed class SectionInfo(string name, int startPc)
 
     public int StartPc => Range.Start;
     public int EndPc => Range.End;
-    public Dictionary<string, int> Paras { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>The section's own paragraph declarations. A <see cref="ProcedureNameMap{T}"/>, not a bare
+    /// dictionary, because ISO §8.4.2.2.3 SR7 — "If explicitly referenced, a paragraph-name shall not be
+    /// duplicated within a section" — is a question about MULTIPLICITY, and a <c>TryAdd</c> map has already
+    /// thrown the answer away by the time a reference asks (kb/Work PB466).</summary>
+    public ProcedureNameMap<int> Paras { get; } = new();
 
     /// <summary>Close the section at the LAST pc its paragraph collection reached. A section that collected
     /// nothing passes <c>StartPc − 1</c> and stays EMPTY (§14.4.2) — the one place the zero-paragraph case is

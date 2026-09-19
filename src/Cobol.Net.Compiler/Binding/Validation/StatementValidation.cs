@@ -155,6 +155,53 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ THE OTHER HALF OF §8.4.2.1's "UNIQUELY identifies that resource" (kb/Work PB466): the
+    /// reference names MORE than one procedure. <see cref="RejectProcedureName"/> above answers "no such name";
+    /// this answers "which one?", and the two are separate diagnostics because a user sent to look for a
+    /// missing paragraph will not find the second one they wrote.
+    /// <para>Which rule broke decides which code and which repair the message can honestly offer.
+    /// §8.4.2.2.1 rule 1 — "No other name has the identical spelling" — false with no rule-2-through-6 excuse
+    /// means §8.4.2.2.3 SR1's "sequence of qualifiers that precludes any ambiguity of reference" was owed and
+    /// not written, which the user CAN supply (§8.4.2.2.2 format 4, <c>paragraph-name IN section-name</c>) —
+    /// unless the duplicated word is the section-name itself, which takes no qualifier at all. §8.4.2.2.3 SR7 —
+    /// "If explicitly referenced, a paragraph-name shall not be duplicated within a section" — admits no
+    /// qualifier by construction, so the only repair is a rename, and telling the user to qualify would be
+    /// telling them to write something the standard has no format for.</para>
+    /// <para>Reported at the REFERENCE, never at the declaration: both rules are conditioned on the name being
+    /// "explicitly referenced", so a program that declares a duplicate and never mentions it is conforming and
+    /// shall compile (§4.2.2 — an implementation "shall accept the syntax … for all standard language elements
+    /// required by" the standard).</para></summary>
+    /// <param name="ambiguity">The rule that failed, the spelling, and every declaration carrying it.</param>
+    /// <param name="verb">The statement or phrase, e.g. "PERFORM" or "SORT INPUT PROCEDURE".</param>
+    /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
+    public bool RejectAmbiguousProcedureName(Procedure.ProcedureAmbiguity ambiguity, string verb)
+    {
+        string candidates = string.Join("; ", ambiguity.Candidates);
+        if (ambiguity.Rule == Procedure.ProcedureAmbiguityRule.InSectionDuplicate)
+        {
+            data.Edition.Error(DiagnosticCatalog.ParagraphNameDuplicatedInSection,
+                $"{verb} '{ambiguity.Name}': that paragraph-name is declared {ambiguity.Candidates.Count} times "
+                + $"within section '{ambiguity.Section}' ({candidates}), "
+                + "and it is explicitly referenced here (ISO §8.4.2.2.3 SR7 — \"If explicitly referenced, a "
+                + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
+                + "two: §8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
+                + "both declarations carry the same one — rename one of the paragraphs.");
+            return false;
+        }
+        data.Edition.Error(DiagnosticCatalog.AmbiguousProcedureName,
+            $"{verb} '{ambiguity.Name}': the reference is not unique — this source element declares that name "
+            + $"{ambiguity.Candidates.Count} times ({candidates}) — so it identifies no one procedure (ISO "
+            + "§8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\"). "
+            + "§8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
+            + "user-defined name explicitly referenced, except as specified in rules 2 through 6\": rule 1 "
+            + "(\"No other name has the identical spelling\") is false here, and rule 6 (\"The name is a "
+            + "paragraph-name and the section containing the reference also contains the named paragraph\") "
+            + "does not apply to this reference. Write the qualifier — paragraph-name IN section-name, "
+            + "§8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
+            + "qualifier at all and can only be renamed.");
+        return false;
+    }
+
     /// <summary>⛔ ISO §14.9.39.3 SR6 — "Condition-name-1 shall be associated with a conditional variable"
     /// (kb/Work PB390), the Format-4 <c>SET condition-name-1 … TO TRUE</c> operand rule. COBOL has TWO kinds of
     /// condition-name (§8.4.4): one associated with a CONDITIONAL VARIABLE (a level-88 entry) and one

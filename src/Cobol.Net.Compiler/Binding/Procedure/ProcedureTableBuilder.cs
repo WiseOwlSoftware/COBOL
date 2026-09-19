@@ -24,8 +24,10 @@ using Core = CobolParserCore;
 internal sealed class ProcedureTableBuilder(BinderContext ctx)
 {
     private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
-    private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, SectionInfo> _sections = new(StringComparer.OrdinalIgnoreCase);
+    // ⛔ ProcedureNameMap, never a bare Dictionary + TryAdd: §8.4.2.2.1 asks whether a spelling is UNIQUE, and
+    // TryAdd's contract is to discard the evidence (kb/Work PB466).
+    private readonly ProcedureNameMap<int> _paraIndex = new();
+    private readonly ProcedureNameMap<SectionInfo> _sections = new();
     private readonly List<SectionInfo?> _paraSection = [];   // per-pc owning section (parallel to _paras;
                                                               // the ambient CURRENT section lives on Ctx — 10s)
 
@@ -49,11 +51,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
         string method = baseName;
         for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
+        // ⛔ DECLARE, never TryAdd (kb/Work PB466): a repeated spelling is KEPT, so §8.4.2.2.1's "No other name
+        // has the identical spelling" stays answerable at the reference. The FIRST definition is still what an
+        // unambiguous lookup returns; what changed is that the map now knows there was a second.
         if (ctx.CurrentMethodScope is { } ms)
-            ms.Paras.TryAdd(name, _paras.Count);   // method-local declaration (§8.4.6.1 / §3.164)
+            ms.Paras.Declare(name, _paras.Count);   // method-local declaration (§8.4.6.1 / §3.164)
         else
-            _paraIndex.TryAdd(name, _paras.Count); // first definition wins for the global fallback
-        section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
+            _paraIndex.Declare(name, _paras.Count); // the program-wide paragraph declarations
+        section?.Paras.Declare(name, _paras.Count); // in-section map for qualified / same-section resolution
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
         _paraLine.Add(sentences.Length > 0 ? ctx.SourceLine(sentences[0]) : 0);   // DEBUG-LINE source line (VCR 7.17)
@@ -157,7 +162,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 foreach (var p in section.paragraphDefinition())
                     AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                 info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§14.4.2)
-                _sections.TryAdd(info.Name, info);
+                _sections.Declare(info.Name, info);
             }
         }
 
@@ -184,8 +189,19 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// "" where the statement states none and §8.4.2.1 alone decides (GO TO, ALTER, RESUME AT).</param>
     public PcRange? ResolveProcedureOperand(Core.ProcedureNameContext pn, string verb, string rule = "")
     {
-        if (ResolveProcedureQuiet(pn) is { } range) return range;
+        var resolved = Resolve(pn);
+        if (resolved.Range is { } range) return range;
         string head = pn.GetChild(0).GetText();
+        // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
+        // reference that uniquely identifies that resource", but they are different rules with different
+        // repairs, so the ambiguous case gets its own message and its own code rather than being folded into
+        // COBOLNET1639's "no paragraph or section carries that name", which would be a false statement about
+        // a program that carries the name twice.
+        if (resolved.Ambiguity is { } ambiguity)
+        {
+            ctx.Validation.RejectAmbiguousProcedureName(ambiguity, verb);
+            return null;
+        }
         string qualifier = pn.ChildCount >= 3 ? " " + pn.GetChild(1).GetText() + " " + pn.GetChild(2).GetText() : "";
         ctx.Validation.RejectProcedureName(head + qualifier, head, verb, rule, ctx.CurrentMethodScope is not null);
         return null;
@@ -201,35 +217,128 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// PRESCAN that is not the statement's own bind — the ALTER switch-field prescan and the USE FOR DEBUGGING
     /// SORT/MERGE-overlap scan, each of which runs before (or beside) the bind that will report. A STATEMENT
     /// operand goes through <see cref="ResolveProcedureOperand"/>, which cannot resolve to nothing in
-    /// silence.</para></summary>
-    public PcRange? ResolveProcedureQuiet(Core.ProcedureNameContext pn)
+    /// silence.</para>
+    /// <para>An AMBIGUOUS name resolves to nothing here, exactly as an unknown one does: a prescan has no use
+    /// for "some procedure with this spelling", and the statement's own operand bind reports the ambiguity and
+    /// fails the compile either way (kb/Work PB466).</para></summary>
+    public PcRange? ResolveProcedureQuiet(Core.ProcedureNameContext pn) => Resolve(pn).Range;
+
+    /// <summary>⛔ THE ONE §8.4.2.2 procedure-name resolution algorithm — <b>one body, not one per scope</b>.
+    /// It runs over whichever pair of name maps the reference stands in: a METHOD body's own maps when one is
+    /// current, the program's otherwise. Inside a method resolution is CONFINED to the method's maps because a
+    /// method definition begins with an identification division (ISO §11.7.1), so it is a contained SOURCE UNIT
+    /// (§3.165) and thus its own SOURCE ELEMENT (§3.164), and §8.4.6.1 confines paragraph-names and
+    /// section-names to the source element that declares them — the legacy trap-#10 cross-method reject made
+    /// structural. (NOT §11.7 alone, which the old comment cited: that is the METHOD-ID paragraph, whose GR5
+    /// scoping rule is about the method's DATA DIVISION words — kb/Work PB390.)
+    /// <para>⛔ THE TWO SCOPES WERE TWO COPIES OF THIS ALGORITHM, and the second inherited every defect of the
+    /// first — which is exactly how the method scope came to have the SAME uniqueness hole one level down
+    /// (kb/Work PB466). Selecting the maps and running one body is what keeps them equal.</para>
+    /// <para><b>The order, and the rule each step implements.</b> An explicit <c>IN/OF section-name</c>
+    /// qualifier resolves against that section's own map (§8.4.2.2.2 format 4). Unqualified: first a paragraph
+    /// of the CURRENT section — §8.4.2.2.1 rule 6, "The name is a paragraph-name and the section containing the
+    /// reference also contains the named paragraph", the one excuse a duplicated paragraph-name gets — then the
+    /// whole source element, where §8.4.2.2.1 rule 1 ("No other name has the identical spelling") decides: the
+    /// reference is unique only if the spelling is carried by EXACTLY ONE procedure, counting paragraphs and
+    /// sections together, because §14.4.1 makes a procedure-name "a word used to refer to a paragraph or
+    /// section". Two or more and the reference identifies no one resource: §8.4.2.2.3 SR1 requires
+    /// qualification, and this returns the ambiguity instead of an arbitrary pick.</para>
+    /// <para>The head/qualifier are taken from the context's CHILDREN — never <c>GetText()</c> of the whole
+    /// context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.</para></summary>
+    private ProcedureResolution Resolve(Core.ProcedureNameContext pn) =>
+        ResolveProcedureWord(pn.GetChild(0).GetText(),
+            pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null,
+            ctx.CurrentSection);
+
+    /// <summary>The resolution algorithm over WORDS, so the one reference site that has no
+    /// <c>procedureName</c> parse context — USE FOR DEBUGGING's <c>ON procedure-name</c> subject, which the
+    /// grammar spells as a dataReference because the phrase also admits file-, cd- and data-names — resolves
+    /// through this method and not through a second copy of it.</summary>
+    /// <param name="head">The procedure-name.</param>
+    /// <param name="qualifier">The <c>IN/OF section-name</c> qualifier, or null.</param>
+    /// <param name="referencingSection">The section CONTAINING the reference — what §8.4.2.2.1 rule 6 is
+    /// measured against. Passed in rather than read from the ambient cursor, because the debug subject is
+    /// resolved after collection, when the cursor no longer stands where the reference was written.</param>
+    private ProcedureResolution ResolveProcedureWord(string head, string? qualifier, SectionInfo? referencingSection)
     {
-        string head = pn.GetChild(0).GetText();
-        string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
-        // Inside a METHOD body resolution is CONFINED to the method's own maps: a method definition begins
-        // with an identification division (ISO §11.7.1), so it is a contained SOURCE UNIT (§3.165) and thus
-        // its own SOURCE ELEMENT (§3.164), and §8.4.6.1 confines paragraph-names and section-names to the
-        // source element that declares them — the legacy trap-#10 cross-method reject made structural.
-        // (NOT §11.7 alone, which the old comment cited: that is the METHOD-ID paragraph, whose GR5 scoping
-        // rule is about the method's DATA DIVISION words — kb/Work PB390.)
-        if (ctx.CurrentMethodScope is { } m)
-        {
-            if (qualifier is not null)
-                return m.Sections.TryGetValue(qualifier, out var mq) && mq.Paras.TryGetValue(head, out int mqpc)
-                    ? PcRange.At(mqpc) : null;
-            if (ctx.CurrentSection is { } mcur && mcur.Paras.TryGetValue(head, out int mlocal)) return PcRange.At(mlocal);
-            if (m.Paras.TryGetValue(head, out int mpc)) return PcRange.At(mpc);
-            if (m.Sections.TryGetValue(head, out var msec)) return msec.Range;
-            return null;
-        }
+        var (paras, sections) = ctx.CurrentMethodScope is { } m
+            ? (m.Paras, m.Sections)
+            : (_paraIndex, _sections);
+
         if (qualifier is not null)
-            return _sections.TryGetValue(qualifier, out var q) && q.Paras.TryGetValue(head, out int qpc)
-                ? PcRange.At(qpc) : null;
-        if (ctx.CurrentSection is { } cur && cur.Paras.TryGetValue(head, out int local)) return PcRange.At(local);
-        if (_paraIndex.TryGetValue(head, out int pc)) return PcRange.At(pc);
-        if (_sections.TryGetValue(head, out var sec)) return sec.Range;
-        return null;
+        {
+            if (!sections.TryResolve(qualifier, out var q)) return default;   // no such section → COBOLNET1639
+            // The QUALIFIER itself has to identify one section, and a section-name takes no qualifier of its
+            // own (§8.4.2.2.2 format 4), so a duplicated one cannot be repaired by writing more.
+            if (sections.IsDuplicated(qualifier))
+                return Ambiguous(ProcedureAmbiguityRule.Qualification, qualifier, DescribeSections(sections, qualifier));
+            if (!q.Paras.TryResolve(head, out int qpc)) return default;
+            if (q.Paras.IsDuplicated(head))
+                return Ambiguous(ProcedureAmbiguityRule.InSectionDuplicate, head, DescribeInSection(q, head), q.Name);
+            return new ProcedureResolution(PcRange.At(qpc), null);
+        }
+
+        // §8.4.2.2.1 rule 6 — and §8.4.2.2.3 SR7 is its other half: the excuse holds only while the containing
+        // section declares the name ONCE ("If explicitly referenced, a paragraph-name shall not be duplicated
+        // within a section"), which is why the SR7 test sits here, at the reference, rather than at the
+        // declaration — an unreferenced duplicate is legal.
+        if (referencingSection is { } cur && cur.Paras.TryResolve(head, out int local))
+        {
+            if (cur.Paras.IsDuplicated(head))
+                return Ambiguous(ProcedureAmbiguityRule.InSectionDuplicate, head, DescribeInSection(cur, head), cur.Name);
+            return new ProcedureResolution(PcRange.At(local), null);
+        }
+
+        int candidates = paras.CountOf(head) + sections.CountOf(head);   // §8.4.2.2.1 rule 1, over §14.4.1's
+        if (candidates == 0) return default;                             // "paragraph or section"
+        if (candidates > 1)
+            return Ambiguous(ProcedureAmbiguityRule.Qualification, head, DescribeCandidates(paras, sections, head));
+        return new ProcedureResolution(
+            paras.TryResolve(head, out int pc) ? PcRange.At(pc)
+            : sections.TryResolve(head, out var sec) ? sec.Range
+            : null,
+            null);
     }
+
+    private static ProcedureResolution Ambiguous(
+        ProcedureAmbiguityRule rule, string name, IReadOnlyList<string> candidates, string? section = null) =>
+        new(null, new ProcedureAmbiguity(rule, name, candidates, section));
+
+    /// <summary>The SR7 candidates: the section's OWN repeated declarations of the name, each at its source
+    /// line — the two places the user has to look, which naming the section alone does not tell them.</summary>
+    private List<string> DescribeInSection(SectionInfo section, string head)
+    {
+        var described = new List<string>(section.Paras.CountOf(head));
+        foreach (int pc in section.Paras.Definitions(head)) described.Add($"paragraph '{head}'" + AtLine(pc));
+        return described;
+    }
+
+    /// <summary>Every procedure carrying <paramref name="head"/>, described for the diagnostic in declaration
+    /// order — paragraphs first (each with its containing section and source line), then sections. The line
+    /// numbers are what makes the message actionable: the user has to find the OTHER declaration.</summary>
+    private List<string> DescribeCandidates(
+        ProcedureNameMap<int> paras, ProcedureNameMap<SectionInfo> sections, string head)
+    {
+        var described = new List<string>(paras.CountOf(head) + sections.CountOf(head));
+        foreach (int pc in paras.Definitions(head))
+            described.Add($"paragraph '{head}'"
+                + (_paraSection[pc] is { } s ? $" in section '{s.Name}'" : " (in no section)")
+                + AtLine(pc));
+        foreach (var sec in sections.Definitions(head)) described.Add(DescribeSection(sec));
+        return described;
+    }
+
+    private List<string> DescribeSections(ProcedureNameMap<SectionInfo> sections, string name)
+    {
+        var described = new List<string>(sections.CountOf(name));
+        foreach (var sec in sections.Definitions(name)) described.Add(DescribeSection(sec));
+        return described;
+    }
+
+    private string DescribeSection(SectionInfo sec) =>
+        $"section '{sec.Name}'" + (sec.Range.IsEmpty ? "" : AtLine(sec.StartPc));
+
+    private string AtLine(int pc) => pc < _paraLine.Count && _paraLine[pc] > 0 ? $" at line {_paraLine[pc]}" : "";
 
     /// <summary>The pc space (name + uniquified method key + sentences) — the bind loops walk it; parallel
     /// in LOCKSTEP to <see cref="ParaSections"/> (owning section) and <see cref="ParaMethods"/> (owning
@@ -326,7 +435,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             AddParagraph(name, [], info, used);
 
         info.CloseAt(_paras.Count - 1);
-        _sections.TryAdd(info.Name, info);
+        _sections.Declare(info.Name, info);
 
         if (scope is { } s)
             // ISO §14.9.49.3 SR1: "The remainder of the section shall consist of zero, one, or more procedural
@@ -378,10 +487,19 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
                 {
                     string nm = dr.cobolWord()?.GetText() ?? dr.GetText();
-                    if (dr.dataReferenceSuffix().Length == 0 && _paraIndex.TryGetValue(nm, out int ppc))
-                        AddDebugSubject(ppc, section);                       // procedure-name (paragraph)
-                    else if (dr.dataReferenceSuffix().Length == 0 && _sections.TryGetValue(nm, out var psec))
-                        for (int pc = psec.StartPc; pc <= psec.EndPc; pc++)  // procedure-name (section → its paragraphs)
+                    // ⛔ THE SAME §8.4.2.2 RESOLUTION AS EVERY OTHER PROCEDURE-NAME REFERENCE, through the same
+                    // method (kb/Work PB466) — USE FOR DEBUGGING ON procedure-name is an explicit reference, so
+                    // an ambiguous spelling owes the same diagnostic here as it does at GO TO. The referencing
+                    // section is THIS declarative section, which is what §8.4.2.2.1 rule 6 is measured against.
+                    // A range covers both cases the leg needs: a paragraph is (pc, pc), a section is its whole
+                    // paragraph range, and every pc in the range becomes a trigger point either way.
+                    var subject = dr.dataReferenceSuffix().Length == 0
+                        ? ResolveProcedureWord(nm, null, section)
+                        : default;
+                    if (subject.Ambiguity is { } dambiguity)
+                        ctx.Validation.RejectAmbiguousProcedureName(dambiguity, "USE FOR DEBUGGING ON");
+                    else if (subject.Range is { } drange)
+                        for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
                     else
                         ctx.Edition.Error("COBOLNET1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
