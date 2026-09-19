@@ -604,6 +604,15 @@
       "dns": 366,
       "label": "Train 39 close: the inventor",
       "battery": null
+    },
+    {
+      "sha": "937b4835",
+      "date": "2026-09-19",
+      "gap": 2396,
+      "closed": 1952,
+      "dns": 366,
+      "label": "CI fix: train 39's GOBACK pa",
+      "battery": null
     }
   ]
 }
