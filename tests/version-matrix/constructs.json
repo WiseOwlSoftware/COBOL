@@ -2816,7 +2816,7 @@
   },
   {
    "id": "statement-raising-2002",
-   "description": "The statement-level RAISING phrase (GOBACK / EXIT PROGRAM / EXIT METHOD / EXIT FUNCTION) - a 2002 introduction (the EC model); distinct from the PROCEDURE DIVISION header RAISING clause (procedure-raising-2002). The fixture's bare GOBACK also gates (0880) below 2002; the reject cells assert THIS row's 0879. Folded from the inline EcBinder gate (Exec Step E).",
+   "description": "The statement-level RAISING phrase (GOBACK / EXIT PROGRAM / EXIT METHOD / EXIT FUNCTION) - a 2002 introduction (the EC model); distinct from the PROCEDURE DIVISION header RAISING clause (procedure-raising-2002). The fixture's bare GOBACK also gates (0880) below 2002; the reject cells assert THIS row's 0879. Folded from the inline EcBinder gate (Exec Step E). The LAST phrase sits in a DECLARATIVE because \u00a714.9.18.3 SR5 admits it only there or in a WHEN phrase of a PERFORM: the probe's original ordinary-paragraph GOBACK became illegal source when PB410 landed that screen (COBOLNET2103), and CI caught it because no wave-local gate runs ~VersionMatrix. The EC-model declarative is the right host anyway - this row IS the 2002 EC model - and a Format-3 PERFORM was rejected as the alternative because it is 2023-only and would have broken the 2002/2014 compile cells.",
    "display": "the GOBACK / EXIT ... RAISING phrase",
    "diagnosticCode": "COBOLNET0879",
    "citation": "ISO §14.9.18.2 / §14.9.14.2 Format 2 (exception propagation; the EC model is 2002+)",
@@ -2824,7 +2824,7 @@
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0879",
    "vcr": "2002 introduction (the EC model)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWSRA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 W PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    IF W = 2 GOBACK RAISING LAST EXCEPTION END-IF.\n    STOP RUN.\n"
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWSRA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 W PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nDECLARATIVES.\nD-SEC SECTION.\n    USE AFTER EXCEPTION CONDITION EC-BOUND-SUBSCRIPT.\nD-PARA.\n    IF W = 2 GOBACK RAISING LAST EXCEPTION END-IF.\nEND DECLARATIVES.\nMAIN SECTION.\nMAIN-PARA.\n    STOP RUN.\n"
   },
   {
    "id": "use-after-exception-object-2002",
