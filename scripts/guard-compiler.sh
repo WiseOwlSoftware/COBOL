@@ -69,11 +69,13 @@ guard_select_compiler() {
         GUARD_CLI_BIN="src/CobolSharp.CLI/bin/Debug/net10.0"
         GUARD_CLI_DLL="$GUARD_CLI_BIN/cobolsharp.dll"
         GUARD_RUNTIME_DLL="src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll"
-        # ⭐ THE EXEMPTION LIST IS THE LEGACY'S, AND ONLY THE LEGACY'S. The eleven LEGACY_DIVERGENT programs are
-        # ones whose golden was RE-BASELINED to the ISO-conforming output because the legacy is non-conforming
-        # there (guard.sh carries the per-program § citation). Under `cobol` those goldens are exactly what the
-        # compiler must reproduce — NistDifferentialTests locks them byte-exact — so applying the exemption
-        # would skip the comparison on the eleven programs most likely to catch a codegen regression.
+        # ⭐ THE EXEMPTION LIST IS THE LEGACY'S, AND ONLY THE LEGACY'S. The LEGACY_DIVERGENT programs are the
+        # `divergent` rows of tests/nist/corpus.tsv, derived there by scripts/guard-population.sh (kb/Work
+        # PB898 — guard.sh used to carry a hand copy that had drifted a program behind it). Their goldens were
+        # RE-BASELINED to the ISO-conforming output because the legacy is non-conforming there, and the
+        # manifest's note column carries each one's § citation. Under `cobol` those goldens are exactly what
+        # the compiler must reproduce — NistDifferentialTests locks them byte-exact — so applying the exemption
+        # would skip the comparison on the programs most likely to catch a codegen regression.
         GUARD_DIVERGENT=1
     else
         GUARD_COMPILER="cobol"

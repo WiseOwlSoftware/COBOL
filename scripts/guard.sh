@@ -168,46 +168,30 @@ RW101A RW102A RW103A RW104A
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)
 export COBOL_SWITCH_1=ON
 
+# ── THE LEGACY-DIVERGENT EXEMPTION, DERIVED (kb/Work PB898) ───────────────────────────────────────────────
 # Programs whose golden was RE-BASELINED to the ISO-conforming output (owner-approved, DEVLOG 569/570): the
 # LEGACY's output legitimately differs — either a verified legacy NON-CONFORMANCE (process rule #1 — the ISO
 # spec is authority; the legacy is a regression net with holes) or a different implementor choice of
 # spec-UNDEFINED behavior. The guard still compiles and runs them, but the output diff is EXPECTED and is
 # reported, never counted as a regression; the greenfield differential suite (NistDifferentialTests) locks the
-# conforming goldens byte-exact. Each divergence, verified against the legacy directly:
-#   IX111A          — HOLE: a failed OPEN fires the file-scoped USE declarative (§14.9.49.4 GR3a); the legacy never fired it
-#   IX210A/214A/215A — HOLE: the legacy printed FAIL-ROUTINE info lines after PASS rows (unreachable per §14.9.17) and
-#                      self-deleted 18 START tests whose spec statuses are '00'/'23' (§14.9.41 GR9 / §9.1.13.5)
-#   NC235A/NC236A   — HOLE: the legacy's SEARCH fell through to the CCVS DE-LETE paragraph (§14.9.37.4 GR8b / F2)
-#   SQ207M          — HOLE: the legacy DROPPED the AFTER-ADVANCING-mnemonic WRITE (§14.9.46 GR1 always releases the record)
-#   ST146A          — UNDEFINED-CHOICE: its X-card dump READs SQ-FS1 while CLOSED (a CCVS bug — F-D-1 never opens
-#                      it; status '47', §9.1.13.7 item 7) and prints the record area, whose content after an
-#                      unsuccessful READ is spec-UNDEFINED (§14.9.30 GR18 + the Annex catalog item 40). COBOL.NET's
-#                      documented refinement: the area is UNCHANGED (the spec's own pattern for every other
-#                      unsuccessful I-O verb — REWRITE GR14, WRITE GR15, DELETE GR8, START GR2); the legacy's
-#                      LOW-VALUE fill was a byte-engine artifact.
-#   SQ101M          — HOLE: the legacy text-parsed a WRITE ADVANCING identifier operand's raw bytes (signed-
-#                      overpunch S99 / COMP fail int.TryParse → advanced 0 lines); §14.9.51 GR25a — the operand's
-#                      VALUE governs (DEVLOG 573; evidence /e/tmp/phase1-out/linage/).
-#   SQ208M/SQ210M   — HOLE: a data-name LINAGE operand re-evaluates at OPEN OUTPUT, WRITE ADVANCING PAGE, and
-#                      page overflow, applying to the NEXT logical page (§13.18.34 GR6b1–3); the legacy evaluated
-#                      only at OPEN, so mid-run MOVEs to the LINAGE data-names never took effect (page stuck at 66).
-#   NC201A          — CCVS DEFECT, not a legacy hole: PFM-TEST-F4-23 "ORDER OF INITIALISATION OF VARYING
-#                      IDENTIFIERS" asserts SIX body executions for `VARYING A … AFTER B FROM A …` under
-#                      TEST BEFORE, but §14.9.28.4 GR13 e) 2 a–c set the INNER induction variable to its
-#                      initialization value BEFORE augmenting the one to its left, so B is reset from the
-#                      PRE-augment A and the statement runs EIGHT bodies. The golden therefore records
-#                      `FAIL* PFM-TEST-F4-23` and a footer of `001 TEST(S) FAILED` — the ONE golden under
-#                      tests/nist/valid that does. It is declared CCVS-DEFECT in tests/nist/corpus.tsv and
-#                      audited from there by CorpusManifestTests, so no other golden can quietly acquire a
-#                      failure. The LEGACY lowerer augments-then-resets and prints 6, so it diverges from
-#                      this ISO baseline like every entry above (kb/Work PB436).
+# conforming goldens byte-exact.
 #
-# ⭐ THE LIST APPLIES TO THE LEGACY ONLY (kb/Work/PB750). Every divergence above is one the LEGACY exhibits, so
-# under the default compiler (`cobol`) these twelve goldens are exactly what COBOL.NET must reproduce —
-# NistDifferentialTests already locks them byte-exact — and exempting them would blind the guard on the twelve
+# ⛔ THE SET AND ITS PER-PROGRAM RATIONALE LIVE IN tests/nist/corpus.tsv — status `divergent`, with the ISO
+# citation in the note column, which CorpusManifestTests.EveryDivergent_CitesSpec enforces. This file used to
+# carry BOTH a hand-written name list and a hand-written digest of those rationales, and the list had already
+# drifted a program behind the manifest (THIRTEEN rows, TWELVE names; SQ212A missing), so its expected legacy
+# difference scored as a REGRESSION. Read the set with its reasons:
+#     awk -F'\t' '$3=="divergent"{print $1"\t"$6}' tests/nist/corpus.tsv
+#
+# ⭐ THE SET APPLIES TO THE LEGACY ONLY (kb/Work/PB750). Every divergence is one the LEGACY exhibits, so under
+# the default compiler (`cobol`) these goldens are exactly what COBOL.NET must reproduce —
+# NistDifferentialTests already locks them byte-exact — and exempting them would blind the guard on the very
 # programs a codegen regression is most likely to break. The variable is therefore emptied unless the run is
-# the opt-in legacy differential. Both guards read this ONE list (guard-fast.sh extracts it by sed).
-LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC201A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
+# the opt-in legacy differential. Both guards derive it from the ONE manifest, through the ONE reader in
+# scripts/guard-population.sh, which is the same fact scripts/guard-nist-audit.sh already reads to decide what
+# verdict each row is expected to produce.
+. "$(dirname "$0")/guard-population.sh"
+LEGACY_DIVERGENT="$(guard_legacy_divergent)" || exit 1
 if [ "$GUARD_DIVERGENT" != "1" ]; then LEGACY_DIVERGENT=""; fi
 
 # ⛔ THE EVIDENCE RULES + THE VERDICT AUDIT (plan §11 A12b/A12c; DESIGN-test-build-ci.md §3.10). A verdict is

@@ -39,12 +39,21 @@ python scripts/spec/audit_doc_citations.py --check || { echo "=== DOC CITATIONS:
 python scripts/spec/audit_evidence_supersession.py --check || { echo "=== EVIDENCE SUPERSESSION: RED (see above) ==="; RC=1; }
 # The GPL GnuCOBOL corpus is git-ignored and PER WORKTREE (scripts/fetch-gnucobol-tests.ps1): a fresh worktree has
 # none, and ExternalCorpusPopulationDriftTests in the UNFILTERED unit leg is RED BY DESIGN when it is absent
-# (kb/Work PB209). Fetch it here so every worktree's gate measures the population; a failed fetch stays LOUD
-# through that test — this only names the cause. (Same block as build-local.ps1.)
+# (kb/Work PB209). Fetch it here so every worktree's gate measures the population.
+# ⛔ A FAILED FETCH REFUSES THE GATE (kb/Work PB897), and `|| true` is exactly how this arm used to swallow the
+# fetch's exit code — the two-arm defect: the pwsh twin checked $LASTEXITCODE and this one discarded it. The reds
+# are ATTRIBUTED by cause and exit code, and the verdict line says the population was never measured.
+# (Same block as build-local.ps1 — change BOTH.)
+CORPUS_NOTE=""
 if [ ! -d tests/external/gnucobol/tests/testsuite.src ]; then
     echo "=== EXTERNAL CORPUS: absent in this worktree — fetching (GPL, git-ignored, never committed) ==="
-    pwsh -NoProfile -File scripts/fetch-gnucobol-tests.ps1 || true
-    [ -d tests/external/gnucobol/tests/testsuite.src ] || echo "=== EXTERNAL CORPUS: FETCH FAILED — the two ExternalCorpusPopulationDriftTests reds in the unit leg are ENVIRONMENTAL, not a defect of the change under test ==="
+    FETCH_RC=0
+    pwsh -NoProfile -File scripts/fetch-gnucobol-tests.ps1 || FETCH_RC=$?
+    if [ "$FETCH_RC" -ne 0 ] || [ ! -d tests/external/gnucobol/tests/testsuite.src ]; then
+        echo "=== EXTERNAL CORPUS: FETCH FAILED (exit $FETCH_RC; the FETCH FAILED line above names the cause) — the ExternalCorpusPopulationDriftTests reds in the unit leg are ATTRIBUTABLE TO IT, not to the change under test, and this gate is RED because it could not measure that population ==="
+        CORPUS_NOTE=" — EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED"
+        RC=1
+    fi
 fi
 dotnet build CobolSharp.sln -v quiet || { echo "=== WAVE-LOCAL GATE: BUILD FAILED ==="; exit 1; }
 # ⛔ EVERY TERM OF THE FILTER MUST NAME A REAL TEST (kb/Work PB708) — the NO-VERDICT-LINE check on each
@@ -72,5 +81,5 @@ leg() {   # leg <name> <dotnet test args…> — the verdict is the Passed!/Fail
 leg conformance      tests/Cobol.Net.Tests.Conformance --no-build --filter "$F"
 leg unit             tests/Cobol.Net.Tests.Unit --no-build
 leg characterization tests/Cobol.Net.Tests.Characterization --no-build
-[ "$RC" -eq 0 ] && echo "=== WAVE-LOCAL GATE: GREEN (filter $F)$INERT ===" || echo "=== WAVE-LOCAL GATE: RED (filter $F)$INERT ==="
+[ "$RC" -eq 0 ] && echo "=== WAVE-LOCAL GATE: GREEN (filter $F)$INERT ===" || echo "=== WAVE-LOCAL GATE: RED (filter $F)$INERT$CORPUS_NOTE ==="
 exit $RC

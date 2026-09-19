@@ -136,8 +136,12 @@ the work, not to wait. Stage the earliest-stage, largest jobs behind the near-do
   (`git worktree add --detach <path> <sha>`), never stash/build/probe/pop.
 - The GPL GnuCOBOL corpus (`tests/external/gnucobol`) is git-ignored and **per worktree**. `build-local.{ps1,sh}` fetches it
   when absent (train 23), so a fresh implementer or lander worktree measures the population from its first gate;
-  `ExternalCorpusPopulationDriftTests` is RED BY DESIGN without it (`kb/Work/PB209`), and a `FETCH FAILED` line makes that
-  red environmental — name it, never attribute it to a cluster. Three trains re-attributed the same pair by hand.
+  `ExternalCorpusPopulationDriftTests` is RED BY DESIGN without it (`kb/Work/PB209`). ⛔ **The two population reds are NOT
+  "the known worktree shape" any more** (`kb/Work/PB897`): the fetch was broken on every host whose PATH `tar` is GNU tar —
+  it deleted the corpus and then failed to extract — so those reds were permanent and everyone was told to ignore them.
+  The fetch now stages and swaps, tries each `tar` it can find, and prints one `FETCH FAILED: <cause>` line; a failed fetch
+  makes the gate RED with `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED` on the verdict line. **Without that line
+  the population reds are a real red** — attribute them, never wave them through.
 - Read-only fleets probe a **pinned worktree with its own built compiler** (`git worktree add --detach <path> <sha>`,
   build there once) so no landing swaps a binary under them.
 - One comprehensive battery per landing batch, run by the orchestrator when no fleet is live — ⭐ **in a WORKTREE cut

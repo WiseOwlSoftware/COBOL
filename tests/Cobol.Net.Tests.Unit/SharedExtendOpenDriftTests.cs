@@ -316,8 +316,17 @@ public sealed class SharedExtendOpenDriftTests
     private static readonly Regex TextStreamCtor =
         new(@"\bnew\s+Stream(?:Reader|Writer)\s*\(\s*([^,)]*)", RegexOptions.Compiled);
 
+    /// <remarks>
+    /// <c>Console.OpenStandard…</c> is admitted by NAME and by argument shape: it takes no path at all — it
+    /// hands back the process's already-open standard handle — so there is no share mode to state and §9.1.15
+    /// has nothing to say about it. <c>StandardStreams.EnsureUtf8</c> (kb/Work PB899) wraps those handles in
+    /// UTF-8 writers on a host where the <c>Console.OutputEncoding</c> setter is unavailable. The allowlist
+    /// stays POSITIVE and this entry cannot widen to a path, so the next spelling of a real path open is still
+    /// rejected.
+    /// </remarks>
     private static readonly Regex AllowedStreamArgument =
-        new(@"^(?:[a-z_][A-Za-z0-9_]*|HostFile\.Open[A-Za-z]*\s*\()", RegexOptions.Compiled);
+        new(@"^(?:[a-z_][A-Za-z0-9_]*|HostFile\.Open[A-Za-z]*\s*\(|Console\.OpenStandard(?:Input|Output|Error)\s*\()",
+            RegexOptions.Compiled);
 
     /// <summary>The one file allowed to open a host path.</summary>
     private const string StreamHome = "FileSupport.cs";

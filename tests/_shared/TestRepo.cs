@@ -42,6 +42,27 @@ internal static class TestRepo
     /// <summary><c>src/</c> — the five product assemblies.</summary>
     public static string Src(params string[] segments) => At(["src", .. segments]);
 
+    /// <summary>
+    /// The build configuration (<c>Debug</c> | <c>Release</c>) and target framework this test assembly was
+    /// built for, read from its own output path.
+    /// </summary>
+    /// <remarks>
+    /// A test that drives a SIBLING project's binary — the <c>cobol</c> driver, say — must run the binary
+    /// built in the SAME configuration, or a Release CI leg silently tests a stale Debug build. Hard-coding
+    /// "Debug" is the bug; re-deriving the answer per test file is the duplication <see cref="TestRepo"/>
+    /// exists to prevent, and <c>TestRepoDriftTests</c> fails any test source that climbs from
+    /// <c>AppContext.BaseDirectory</c> on its own. So the derivation lives HERE, once.
+    /// </remarks>
+    public static string Configuration { get; } = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
+
+    /// <inheritdoc cref="Configuration"/>
+    public static string TargetFramework { get; } = new DirectoryInfo(AppContext.BaseDirectory).Name;
+
+    /// <summary>A path inside a <c>src/</c> project's build output for THIS configuration and framework —
+    /// <c>SrcBin("Cobol.Net.Cli", "cobol.exe")</c>.</summary>
+    public static string SrcBin(string project, params string[] segments) =>
+        Src([project, "bin", Configuration, TargetFramework, .. segments]);
+
     /// <summary><c>tests/</c> — the corpora, the goldens and the test projects.</summary>
     public static string Tests(params string[] segments) => At(["tests", .. segments]);
 

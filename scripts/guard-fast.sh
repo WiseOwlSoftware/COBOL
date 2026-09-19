@@ -88,14 +88,18 @@ fi
 # The POPULATION, written down so the audit can assert against it rather than against a remembered count.
 POP="$TMP/gf_population.txt"
 echo "$TESTS" | tr ' ' '\n' | grep . | sort > "$POP"
-# The ISO-re-baselined goldens the LEGACY legitimately diverges from — extracted from guard.sh (the ONE list;
-# see the per-program rationale there) and passed to the group runner, which reports them instead of failing.
-# ⭐ LEGACY ONLY (kb/Work/PB750). Those eleven goldens were re-baselined to the ISO-CONFORMING output precisely
-# because the legacy is non-conforming there, so under `cobol` they are not exempt — they are the eleven
-# programs a codegen regression is most likely to break, and NistDifferentialTests already locks them
-# byte-exact. An empty list makes the group runner compare them like every other program.
+# The ISO-re-baselined goldens the LEGACY legitimately diverges from, DERIVED from tests/nist/corpus.tsv
+# through scripts/guard-population.sh — the same ONE reader guard.sh uses, and the same fact
+# guard-nist-audit.sh already derives to decide each row's expected verdict. ⛔ This used to `sed` the name
+# list out of guard.sh, which was itself a hand copy of the manifest and had drifted a program behind it
+# (kb/Work PB898); the per-program rationale is the manifest's note column.
+# ⭐ LEGACY ONLY (kb/Work/PB750). Those goldens were re-baselined to the ISO-CONFORMING output precisely
+# because the legacy is non-conforming there, so under `cobol` they are not exempt — they are the programs a
+# codegen regression is most likely to break, and NistDifferentialTests already locks them byte-exact. An
+# empty list makes the group runner compare them like every other program.
+. "$(dirname "$0")/guard-population.sh"
 if [ "$GUARD_DIVERGENT" = "1" ]; then
-    LEGACY_DIVERGENT=$(sed -n 's/^LEGACY_DIVERGENT="\(.*\)"$/\1/p' scripts/guard.sh)
+    LEGACY_DIVERGENT="$(guard_legacy_divergent)" || exit 1
 else
     LEGACY_DIVERGENT=""
 fi

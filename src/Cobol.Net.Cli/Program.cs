@@ -21,7 +21,16 @@ namespace CobolNet.Cli;
 /// </remarks>
 internal static class Program
 {
-    private static int Main(string[] args) => BuildParser().Command.Parse(args).Invoke();
+    private static int Main(string[] args)
+    {
+        // ⛔ BEFORE ANYTHING IS WRITTEN. Diagnostics carry ISO citations — `(ISO §11.10.3 SR5–6)` — and on a
+        // default Windows console (cp437) the section sign left this process as the single byte 0x15 and the
+        // en dash as '-', in every redirected capture and every CI log, because this entry point never set an
+        // encoding while CobolNet.Runtime's did (kb/Work PB899 — the two-arm dispatch with one arm fixed). One
+        // rule, one place: CobolNet.Runtime.IO.StandardStreams, which the run-unit entry calls too.
+        CobolNet.Runtime.IO.StandardStreams.EnsureUtf8();
+        return BuildParser().Command.Parse(args).Invoke();
+    }
 
     /// <summary>Build the argument parser (exposed for unit testing the grammar without spawning a process):
     /// the configured <see cref="RootCommand"/> plus a pure resolver that maps a <see cref="ParseResult"/> to the

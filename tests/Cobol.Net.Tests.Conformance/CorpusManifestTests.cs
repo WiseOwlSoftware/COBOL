@@ -145,6 +145,93 @@ public sealed class CorpusManifestTests
         Assert.Contains("src/Cobol.Net.Cli", resolver, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// ⛔ THE DIVERGENT SET IS DERIVED FROM THE MANIFEST, NEVER COPIED INTO A SCRIPT (kb/Work PB898).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>corpus.tsv</c>’s own header says it "folds … scripts/guard.sh LEGACY_DIVERGENT", and
+    /// <c>scripts/guard-nist-audit.sh</c> already derives each row’s EXPECTED verdict straight out of the
+    /// <c>divergent</c> column. The RUNNER, though, carried the set as a hand-written string that
+    /// <c>guard-fast.sh</c> then <c>sed</c>-extracted — so the fact was written down three times and nothing
+    /// compared them. It had drifted: THIRTEEN divergent rows, TWELVE names, <c>SQ212A</c> missing, and under
+    /// <c>GUARD_DIVERGENT=1</c> its expected legacy difference therefore scored as a REGRESSION while the audit
+    /// beside it expected <c>LEGACY DIVERGENT</c>.
+    /// </para>
+    /// <para>
+    /// The repair is the derivation (<c>scripts/guard-population.sh</c>), which makes the equality true BY
+    /// CONSTRUCTION; this fact is what keeps "by construction" true (CLAUDE.md rule 5 — pair the structure with
+    /// a drift test). It is deliberately stated over ANY NIST-shaped name list in ANY guard script rather than
+    /// over <c>LEGACY_DIVERGENT</c> alone, because the defect is the SHAPE — a hand-maintained list where a
+    /// manifest column exists — and the next one will have a different variable name
+    /// (<c>feedback_scan_all_similar</c>). <c>NIST_TESTS</c> is the one population still written out, and it is a
+    /// multi-line block already asserted against the manifest by the three <c>GuardNistPopulation_*</c> facts
+    /// above.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void GuardScripts_CarryNoHandMaintainedNistNameList()
+    {
+        // A NIST program name: two letters, three digits, a letter (NC101A, SQ212A, IX214A).
+        var name = new System.Text.RegularExpressions.Regex(@"^[A-Z]{2}[0-9]{3}[A-Z]$");
+        var assignment = new System.Text.RegularExpressions.Regex(@"^\s*([A-Za-z_][A-Za-z0-9_]*)=""([^""]*)""\s*$");
+
+        var offenders = new List<string>();
+        foreach (string script in Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh").Order())
+        {
+            int lineNo = 0;
+            foreach (string line in File.ReadLines(script))
+            {
+                lineNo++;
+                var m = assignment.Match(line);
+                if (!m.Success) continue;
+                int names = m.Groups[2].Value
+                    .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+                    .Count(t => name.IsMatch(t));
+                if (names >= 2) offenders.Add($"{Path.GetFileName(script)}:{lineNo} {m.Groups[1].Value} ({names} names)");
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            "a guard script writes a NIST program list out by hand where tests/nist/corpus.tsv already holds it "
+            + "(kb/Work PB898). Derive it — scripts/guard-population.sh is the ONE reader, and "
+            + "scripts/guard-nist-audit.sh derives the same column to decide each row's expected verdict:\n  "
+            + string.Join("\n  ", offenders));
+
+        // ⛔ AND THE EXTRACTION-BY-sed IS THE SAME DEFECT ONE LEVEL DOWN: guard-fast.sh used to lift the string
+        // out of guard.sh, which made the copy invisible to a reader of either file alone.
+        foreach (string script in Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh"))
+        {
+            foreach (string line in File.ReadLines(script))
+            {
+                Assert.False(
+                    line.Contains("LEGACY_DIVERGENT=", StringComparison.Ordinal)
+                    && (line.Contains("sed ", StringComparison.Ordinal) || line.Contains("grep ", StringComparison.Ordinal)),
+                    $"{Path.GetFileName(script)} extracts the divergent set out of another SCRIPT instead of "
+                    + $"deriving it from tests/nist/corpus.tsv (kb/Work PB898):\n{line}");
+            }
+        }
+
+        // The derivation exists, reads the manifest, and keys on the status column the manifest actually uses.
+        string helper = TestRepo.Scripts("guard-population.sh");
+        Assert.True(File.Exists(helper), $"the ONE divergent-set reader is missing: {helper}");
+        string text = File.ReadAllText(helper);
+        Assert.Contains("tests/nist/corpus.tsv", text, StringComparison.Ordinal);
+        Assert.Contains("\"divergent\"", text, StringComparison.Ordinal);
+
+        // Both guards read it — the two-arm check: fixing one arm and leaving the other is this repo's most
+        // reproducible defect shape (feedback_two_arm_dispatch).
+        foreach (string script in new[] { "guard.sh", "guard-fast.sh" })
+        {
+            Assert.Contains("guard-population.sh", File.ReadAllText(TestRepo.Scripts(script)), StringComparison.Ordinal);
+        }
+
+        // And the manifest really has divergent rows to derive — a reader over an empty column would pass every
+        // check above while exempting nothing (feedback_a_dead_lookup_is_also_unverified).
+        Assert.True(CorpusManifest.Rows.Count(r => r.Status == "divergent") > 0,
+            "tests/nist/corpus.tsv declares no `divergent` rows, so this fact is asserting over an empty set.");
+    }
+
     /// <summary>The fold is provably LOSSLESS: green∪divergent equals the committed snapshot of the former
     /// <c>[InlineData]</c> names (<c>corpus-green-baseline.txt</c>). If step 8 or any later edit adds/drops a green
     /// program, this fails until the baseline is deliberately re-pinned.</summary>

@@ -224,8 +224,17 @@ IX999Z  IX     pending        -                                        none     
 - The bash guard reads the same file for its `NIST_TESTS` and `LEGACY_DIVERGENT`, and since kb/Work/PB750 its
   EXPECTED verdict is derived per compiler: a `divergent` row expects `LEGACY DIVERGENT` under the legacy
   oracle and `MATCH` under `cobol` (the golden IS the ISO-conforming output COBOL.NET must reproduce).
+  ⛔ **`LEGACY_DIVERGENT` is DERIVED, through one reader** — `scripts/guard-population.sh`'s
+  `guard_legacy_divergent()`, sourced by `guard.sh` AND `guard-fast.sh` — and an unreadable or divergent-free
+  manifest is a LOUD non-zero return, never an empty exemption set. Until kb/Work PB898 this sentence described
+  an intent the code did not keep: `guard.sh` held the names as a hand-written string, `guard-fast.sh` `sed`-ed
+  that string out of it, and `guard-nist-audit.sh` derived the same fact from the manifest — three writings, no
+  comparison. The string had drifted a program behind (THIRTEEN rows, TWELVE names; `SQ212A`), so the runner
+  scored a difference the auditor beside it expected.
 - A drift test (`CorpusManifestTests`) asserts: every `tests/nist/programs/*.cob` is listed; every `green` row has a
-  `valid/<name>.txt`; every `divergent` row has a non-empty note containing a `§` citation.
+  `valid/<name>.txt`; every `divergent` row has a non-empty note containing a `§` citation; and
+  `GuardScripts_CarryNoHandMaintainedNistNameList` fails on ANY NIST-shaped name list written out by hand in any
+  `scripts/guard*.sh`, so the next such list cannot be a different variable and go unseen.
 
 This kills smell #3 and makes "add a green program" a one-line manifest edit.
 
@@ -327,6 +336,17 @@ public readonly record struct Diagnostic(
 
 This makes gate (2) precise (snapshots key on stable codes) and lets the version matrix and `--suppress` target a
 rule.
+
+**The wire encoding of a diagnostic is part of the diagnostic** (`kb/Work/PB899`). A message carries its ISO
+citation, so it carries non-ASCII — `(ISO §11.10.3 SR5–6)` holds U+00A7 and U+2013. `CobolNet.Runtime.IO.StandardStreams.EnsureUtf8()`
+is the ONE place that rule is written down, and BOTH entry points call it: `Program.Main` in the CLI before it
+parses an argument, and `ProgramTable.RunMain` for a run unit — which is where it used to live ALONE, so every
+citation the compiler printed left the process at the OS code page (on cp437 the section sign is the single byte
+`0x15`) in every redirected capture and every CI log. No golden could see it: the corpus runner matches `.err`
+files on a pure-ASCII diagnostic CODE substring, and the harness decodes every capture as UTF-8. The witness is
+therefore a BYTE assertion through a redirected stream, `CliDiagnosticEncodingTests`, which drives the CLI from a
+console forced to cp437 on Windows and FAILS if that code page was not actually in force — a child with no console
+inherits .NET's UTF-8 default and would pass on the broken build.
 
 ### 3.6 Build & driver seams the harness depends on
 Two build-side changes this dimension REQUIRES (owned by the driver/emitter dimensions but gated here):
@@ -474,6 +494,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 | `scripts/gnucobol_differential.py` | A rejection needs a non-zero exit **and** a diagnostic; an acceptance needs the artifact. Evidence-free compiles are retried once and then bucketed `NO_COMPILER_EVIDENCE`, which counts as a harness failure and is **named for re-run**, never folded into a divergence bucket. Its population is no longer its own: it filters with `gnucobol_extract.differential_cases()` before dispatch, so `len(payload)` IS `cases run` and the corpus has one definition. |
 | `scripts/gnucobol_extract.py` | **THE external-corpus population, as an API** — `primary_source` (the one "is this a case" predicate, returning the `(member, compile-check)` pair the caller actually needs so nothing re-derives half of it), `differential_cases` (the 1,323), `iter_programs` (the 1,611 COBOL members, what a sweep must read). Both readers call it; there is no second place to define the corpus. |
 | `scripts/corpus_sweep.py` + `ExternalCorpusPopulationDriftTests` | The reachability instrument and its lock. The sweep prints a per-population census on EVERY run and refuses to report hit counts when its population check fails. The drift test asserts the sweep's live external population equals the differential's COMMITTED per-case baseline — two independently produced numbers, so agreement is evidence. It was **proved failing first**, driven against the old `*.cob` reader, where it reported `{"external": 2, "baseline": 1323, "state": "drift"}`; `TheDriftCheck_ActuallyFails_WhenTheExtractionIsEmptied` keeps that red permanently reachable. A missing interpreter or an absent corpus is a LOUD failure, never a skip. |
+| `scripts/fetch-gnucobol-tests.ps1` | **THE fetch the population gate depends on, and a gate in its own right.** It broke all three of its own contracts at once (`kb/Work/PB897`): it `Remove-Item`d `tests/external/gnucobol` BEFORE an extraction that then failed, it passed the archive as a drive-letter path that GNU tar reads as `host:path` (`Cannot connect to E: resolve failed`, exit 128) while bsdtar accepts it, and Git-for-Windows’ GNU tar cannot read a `.tar.xz` at all (it execs an `xz` it does not ship). Which `tar` was first on PATH therefore decided whether the corpus existed — so the two `ExternalCorpusPopulationDriftTests` reds became permanent and every implementer brief told agents to ignore them, which is a gate that has stopped gating. Now: extraction lands in a STAGING directory and is swapped in only after tar succeeded **and** the payload was verified (nothing is ever deleted before its replacement exists); the archive is named RELATIVE to its own directory, which neither tar misreads (⛔ `--force-local` is the wrong repair — bsdtar rejects it outright); and the tar is chosen by ATTEMPTING the work down an ordered candidate list rather than by trusting `Get-Command`. Every failure prints one `FETCH FAILED: <cause>` line and exits non-zero, and `build-local.{ps1,sh}` both surface it: the gate goes RED with `EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED` on the verdict line. `-SelfTest` drives the REAL `Invoke-CorpusExtraction` over a synthetic `.tar.xz` — including the failure branches — and `ExternalCorpusFetchTests` runs it; it was proved failing first against the old shape (4 of 8 checks red under GNU tar, and 4 of 8 under bsdtar too, since the delete-first fault is tar-independent). |
 
 **What this does not claim.** The invariant makes a false GREEN and a false RED *visible*; it does not by itself
 prove the battery is deterministic. That is the measurement A12/A12d asks for, and it is recorded in plan §11

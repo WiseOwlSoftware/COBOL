@@ -118,13 +118,11 @@ public sealed class ProgramTable
     /// boundary; the STOP status itself is flushed run-unit-side by the <see cref="RunUnit.ExitStatus"/> setter).</summary>
     public void RunMain(string path)
     {
-        // The standard display device writes UTF-8 (fix-queue PB59; CONFORMANCE.md item 59). The repertoires are
-        // UTF-16 (item 188) and the alphanumeric↔national correspondence is the total identity (item 33), so the
-        // DEVICE boundary must carry the repertoire or every wide character silently becomes '?' at the OS
-        // codepage — a data loss no rule authorizes. BOM-less (a BOM would prefix every capture); idempotent
-        // (re-setting re-creates Console.Out/Error); defensive against consoleless hosts where the setter throws.
-        if (Console.OutputEncoding.CodePage != 65001)
-            try { Console.OutputEncoding = new System.Text.UTF8Encoding(false); } catch (System.IO.IOException) { }
+        // The standard display device writes UTF-8 (fix-queue PB59; CONFORMANCE.md item 59). ⛔ The rule lives in
+        // ONE place — CobolNet.Runtime.IO.StandardStreams — because this `if` used to BE that place and the
+        // `cobol` CLI's diagnostic path had no copy of it, so every ISO citation the compiler printed left the
+        // process mangled at the OS code page (kb/Work PB899, feedback_two_arm_dispatch).
+        IO.StandardStreams.EnsureUtf8();
         var n = _byPath[path];
         var inst = n.Instance ??= n.Factory(null);
         n.Active++;

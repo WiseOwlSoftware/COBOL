@@ -31,12 +31,20 @@ if ($LASTEXITCODE -ne 0) { Write-Host '=== EVIDENCE SUPERSESSION: RED (see above
 # none, and ExternalCorpusPopulationDriftTests in the UNFILTERED unit leg is RED BY DESIGN when it is absent
 # (kb/Work PB209 — a missing population is not an empty one). Fetch it here so the gate measures the population in
 # every worktree, not only where someone remembered to; three landing trains re-attributed that pair by hand before
-# train 23 made it automatic. A failed fetch stays LOUD through that test — this only names the cause.
+# train 23 made it automatic.
+# ⛔ A FAILED FETCH REFUSES THE GATE (kb/Work PB897). It used to print a line saying the two population reds were
+# environmental and carry on — which, while the fetch was broken on every GNU-tar host, trained every agent to
+# ignore a permanently red gate. The reds are ATTRIBUTED here, by cause and exit code, and the verdict line says
+# so; a gate that could not measure its population must not read as green.
+$corpusNote = ''
 if (-not (Test-Path 'tests/external/gnucobol/tests/testsuite.src')) {
     Write-Host '=== EXTERNAL CORPUS: absent in this worktree — fetching (GPL, git-ignored, never committed) ==='
     pwsh -NoProfile -File scripts/fetch-gnucobol-tests.ps1
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path 'tests/external/gnucobol/tests/testsuite.src')) {
-        Write-Host '=== EXTERNAL CORPUS: FETCH FAILED — the two ExternalCorpusPopulationDriftTests reds in the unit leg are ENVIRONMENTAL, not a defect of the change under test ==='
+    $fetchRc = $LASTEXITCODE
+    if ($fetchRc -ne 0 -or -not (Test-Path 'tests/external/gnucobol/tests/testsuite.src')) {
+        Write-Host "=== EXTERNAL CORPUS: FETCH FAILED (exit $fetchRc; the FETCH FAILED line above names the cause) — the ExternalCorpusPopulationDriftTests reds in the unit leg are ATTRIBUTABLE TO IT, not to the change under test, and this gate is RED because it could not measure that population ==="
+        $corpusNote = ' — EXTERNAL CORPUS FETCH FAILED, POPULATION UNMEASURED'
+        $rc = 1
     }
 }
 dotnet build CobolSharp.sln -v quiet
@@ -64,5 +72,5 @@ function Leg([string]$name, [string[]]$testArgs) {
 Leg 'conformance'      @('tests/Cobol.Net.Tests.Conformance', '--no-build', '--filter', $Filter)
 Leg 'unit'             @('tests/Cobol.Net.Tests.Unit', '--no-build')
 Leg 'characterization' @('tests/Cobol.Net.Tests.Characterization', '--no-build')
-if ($rc -eq 0) { Write-Host "=== WAVE-LOCAL GATE: GREEN (filter $Filter)$inert ===" } else { Write-Host "=== WAVE-LOCAL GATE: RED (filter $Filter)$inert ===" }
+if ($rc -eq 0) { Write-Host "=== WAVE-LOCAL GATE: GREEN (filter $Filter)$inert ===" } else { Write-Host "=== WAVE-LOCAL GATE: RED (filter $Filter)$inert$corpusNote ===" }
 exit $rc
