@@ -228,13 +228,9 @@ public static class CobolLiteral
 
     /// <summary>If <paramref name="raw"/> is the figurative <c>ALL "literal"</c> / <c>ALL 'literal'</c> form (a
     /// VALUE / level-88 operand text), the decoded literal; otherwise <see langword="null"/> (e.g. <c>ALL ZEROS</c>,
-    /// a figurative word, is handled elsewhere). Tolerant of whether the front-end preserved the space between
-    /// <c>ALL</c> and the literal; delimiter-agnostic (the former <c>'"'</c>-only guard was the miscompile).</summary>
-    public static string? AllLiteralText(string raw)
-    {
-        string t = raw.TrimStart();
-        if (t.Length < 3 || !t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)) return null;
-        string rest = t[3..].TrimStart();
-        return IsStringLiteral(rest) ? Decode(rest) : null;
-    }
+    /// a figurative word, is handled elsewhere). The decoded twin of <see cref="AllLiteralRaw"/> and NOT a second
+    /// copy of its test (kb/Work PB461 — the ALL prefix was parted in seven places and no two of them the same
+    /// way): tolerant of whether the front-end preserved the space between <c>ALL</c> and the literal, and
+    /// delimiter-agnostic (the former <c>'"'</c>-only guard was the miscompile) because that ONE test is.</summary>
+    public static string? AllLiteralText(string raw) => AllLiteralRaw(raw) is { } lit ? Decode(lit) : null;
 }

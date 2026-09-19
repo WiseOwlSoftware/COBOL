@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
+using CobolNet.Common;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace CobolNet.CodeGen;
@@ -14,12 +15,46 @@ namespace CobolNet.CodeGen;
 /// word map). ISO §8.3.3.6: HIGH-/LOW-VALUE under a PROGRAM COLLATING SEQUENCE are the sequence's extreme
 /// CHARACTERS (GR6/GR7 + §12.3.7 GR8/GR9 — character identity, not just comparison weight), natively
 /// U+00FF/U+0000 (COBOLNET_DESIGN §14.9); category national/boolean use their OWN sequence, so the alphanumeric
-/// PCS never applies to them (the D-N3 pin). The three call-site ALL-strip variants (whitespace-only vs
-/// whitespace-or-letter vs pre-stripped) deliberately REMAIN at their sites — they differ observably and
-/// unifying them is a behavior change queued for spec adjudication (§8.3.3.6.4), not a refactor.
+/// PCS never applies to them (the D-N3 pin). It is also THE OPERAND CLASSIFIER (<see cref="Classify"/>, kb/Work
+/// PB461): the five ALL-strip variants that once lived at the call sites (whitespace-only, whitespace-or-letter,
+/// glued-only, unconditional) each recognized a DIFFERENT subset of the spellings §8.3.3.6.2 admits, so the SET
+/// store, the VALUE initializer and the condition TEST disagreed about the same operand text.
 /// </summary>
 internal static class FigurativeConstants
 {
+    /// <summary>The §8.3.3.6.2 FORM of one VALUE-clause / level-88 operand text: <paramref name="Kind"/> is the
+    /// Formats 1–5 figurative word (see <see cref="KindOf"/>) and <paramref name="AllLiteral"/> the Format-6
+    /// <c>ALL literal-1</c> operand's literal-1, still PREFIXED so <see cref="CobolLiteral.ClassOf"/> and
+    /// <see cref="CobolLiteral.Decode"/> apply to it. At most one is non-null; both null means an ordinary
+    /// literal, which every caller stores or compares verbatim.</summary>
+    public readonly record struct FigurativeOperand(char? Kind, string? AllLiteral);
+
+    /// <summary>⛔ THE ONE READER of a VALUE-clause / level-88 VALUE operand's figurative form (ISO §8.3.3.6.2;
+    /// kb/Work PB461). §14.9.39.4 GR6 stores a <c>SET condition-name TO TRUE</c> value "<i>according to the rules
+    /// for the VALUE clause</i>", and §8.8.4.5.3 GR2 compares the condition against that same value, so the store,
+    /// the initializer and the test are required to read the operand IDENTICALLY — they did not, and a
+    /// <c>SET</c> whose whole purpose is to make a condition true stored the parse text <c>ALL"*"</c> and left
+    /// its own condition FALSE.
+    /// <para>In Formats 1–5 the word <c>ALL</c> is an OPTIONAL word (the printed diagrams underline only
+    /// <c>ZERO</c>/<c>SPACE</c>/…, never <c>ALL</c>), so <c>ALL SPACES</c> IS the Format-2 constant and takes the
+    /// §8.3.3.6.4 GR2 fill; in Format 6 <c>ALL</c> is REQUIRED and underlined, and literal-1 is repeated to the
+    /// receiver's size by that same GR2. The parse tree's <c>GetText()</c> glues the two words, so the operand
+    /// arrives spelled <c>ALLSPACES</c> / <c>ALL"*"</c> — BOTH spellings are accepted here, once, because a
+    /// strip that admits only one of them is a rule that fires for half its inputs.</para></summary>
+    /// <param name="includeNull">Whether the pointer figurative NULL/NULLS is admitted as a character fill —
+    /// see <see cref="KindOf"/>. The VALUE/level-88 value producers pass true (the historical map); the
+    /// §13.18.63.3 class validator and the SR9 implied-picture reader pass false, because NULL names no
+    /// character class and implies no picture.</param>
+    public static FigurativeOperand Classify(string raw, bool includeNull = true)
+    {
+        string t = raw.Trim();
+        bool hasAll = t.Length > 3 && t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase);
+        string rest = hasAll ? t[3..].TrimStart() : t;
+        if (KindOf(rest, includeNull) is { } k) return new(k, null);                  // Formats 1–5 (ALL optional)
+        if (hasAll && CobolLiteral.IsStringLiteral(rest)) return new(null, rest);     // Format 6 (ALL required)
+        return default;
+    }
+
     /// <summary>The figurative KIND of a figurative-constant word (already ALL-stripped by the caller), or
     /// <see langword="null"/> when the text is not a figurative word: Z(ERO/S/ES), S(PACE/S), Q(UOTE/S),
     /// H(IGH-VALUE/S), L(OW-VALUE/S), and — where the caller's context admits the pointer figurative as a

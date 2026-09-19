@@ -1,0 +1,16 @@
+A=[****]
+A-TRUE
+B=[ABAB]
+B-TRUE
+C=[ABABA]
+C-TRUE
+D=[    ]
+D-TRUE
+E=[""""]
+E-TRUE
+F=[0000]
+F-TRUE
+G=[0000]
+G-TRUE
+H=[****]
+H-TRUE

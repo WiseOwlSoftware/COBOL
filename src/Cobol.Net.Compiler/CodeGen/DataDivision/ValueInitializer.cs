@@ -205,9 +205,11 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
 
-        // ALL "literal": the literal repeated to the item width (ISO §8.3.3.6.4 GR2; SR3 forbids it on a numeric item).
-        if (EmitText.AllLiteralText(raw) is { } allLit && pic.Category is not PicCategory.Numeric)
-            return EmitText.CsLiteral(EmitText.RepeatToWidth(allLit, pic.Length));
+        // ALL "literal" (§8.3.3.6.2 Format 6, where ALL is REQUIRED): the literal repeated to the item width
+        // (ISO §8.3.3.6.4 GR2; §8.3.3.6.3 SR3 forbids a multi-character literal-1 on a numeric item). Read through
+        // THE one operand classifier, so this arm and the SET store see the same spellings (kb/Work PB461).
+        if (FigurativeConstants.Classify(raw).AllLiteral is { } allLit && pic.Category is not PicCategory.Numeric)
+            return EmitText.CsLiteral(EmitText.RepeatToWidth(CobolLiteral.Decode(allLit), pic.Length));
 
         return pic.Category switch
         {
@@ -308,23 +310,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
         return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
     }
 
-    /// <summary>The figurative KIND of a VALUE text (ALL-stripped, ISO §8.3.3.6.4), or null when it is not a
-    /// figurative constant. The ONE detector shared by <see cref="FigurativeInitializer"/>, the VCR 35
-    /// numeric-edited figurative-ZERO branch, and the §13.18.63.4 GR5 group-area rule
-    /// (<see cref="GroupValueSlicer.AreaTextOf"/> — internal for that third rider, kb/Work PB184).</summary>
-    internal static char? FigurativeKind(string raw)
-    {
-        string key = raw.ToUpperInvariant();
-        // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character
-        // figurative repeated to the width); strip the ALL prefix when the remainder is a figurative WORD. (ALL "literal"
-        // — repeating a multi-character literal — is a separate form left to the literal path. This strip predates
-        // upper-casing, so only the GLUED spelling reaches the retry — preserved verbatim, see the FigurativeConstants
-        // ALL-strip note.)
-        if (FigurativeConstants.KindOf(key, includeNull: true) is null && key.StartsWith("ALL") && key.Length > 3
-            && FigurativeConstants.KindOf(key[3..], includeNull: true) is not null)
-            key = key[3..];
-        return FigurativeConstants.KindOf(key, includeNull: true);
-    }
+    /// <summary>The figurative KIND of a VALUE text — Formats 1–5, where the word <c>ALL</c> is OPTIONAL
+    /// (ISO §8.3.3.6.2) — or null when it is not one of those (a Format-6 <c>ALL literal-1</c> is the literal
+    /// path below). The ONE detector shared by <see cref="FigurativeInitializer"/>, the VCR 35 numeric-edited
+    /// figurative-ZERO branch, and the §13.18.63.4 GR5 group-area rule
+    /// (<see cref="GroupValueSlicer.AreaTextOf"/> — internal for that third rider, kb/Work PB184); it reads the
+    /// operand through <see cref="FigurativeConstants.Classify"/>, THE one classifier the SET store and the
+    /// condition test read it through as well (kb/Work PB461).</summary>
+    internal static char? FigurativeKind(string raw) => FigurativeConstants.Classify(raw).Kind;
 
     /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item. Internal:
     /// the ONE literal recipe — the group-image codec's float backing seed reuses it (Step D).</summary>

@@ -1997,22 +1997,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // literal-1's (§8.3.3.6.3 SR2 / §14.9.25.4 GR7 Table 17). `ALL "AB"` (an alphanumeric literal-1) stays
         // illegal for a national or boolean item; `ALL SPACES` / `ALL ZEROS` is the figurative WORD (legal).
         LiteralClass? lit = CobolLiteral.ClassOf(raw);
-        string? allRaw = CobolLiteral.AllLiteralRaw(raw);
+        // THE one §8.3.3.6.2 operand classifier (kb/Work PB461) decides which FORMAT this operand is, so the
+        // validator, the VALUE initializer, the SET store and the condition test all part the same text the same
+        // way. NULL/NULLS stays out (includeNull: false) — it is not a character figurative and this rule's
+        // national/alphanumeric allowance never covered it.
+        var figOp = CobolNet.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
+        string? allRaw = figOp.AllLiteral;
         LiteralClass? allLit = allRaw is null ? null : CobolLiteral.ClassOf(allRaw);
         bool isNatLit = lit is LiteralClass.National || allLit is LiteralClass.National;
         bool isBoolLit = lit is LiteralClass.Boolean || allLit is LiteralClass.Boolean;
         bool isPlainString = lit is LiteralClass.Alphanumeric;
         bool isNumeric = raw.Length >= 1 && (char.IsAsciiDigit(raw[0]) || raw[0] is '+' or '-' or '.');
         bool isFloatLit = isNumeric && CobolNet.Common.NumericLiteral.IsFloatingPointForm(raw);
-        // The part after a leading ALL (GetText concatenates tokens, so `ALL SPACES` → "ALLSPACES").
-        string afterAll = raw.Length > 3 && raw.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)
-            ? raw[3..] : raw;
         bool isAllQuoted = allLit is LiteralClass.Alphanumeric;
-        string word = afterAll.ToUpperInvariant();
-        bool isZeroWord = word is "ZERO" or "ZEROS" or "ZEROES";
-        bool isNationalFigurative = isZeroWord
-            || word is "SPACE" or "SPACES" or "QUOTE" or "QUOTES"
-                or "HIGH-VALUE" or "HIGH-VALUES" or "LOW-VALUE" or "LOW-VALUES";
+        // Formats 1-5 — the KEYWORD figuratives, each of which admits the optional word ALL, both in the spelling
+        // the parse tree glues ("ALLSPACES") and in the one it preserves. The word table is FigurativeConstants'
+        // (it was written out a second time here, and its ALL strip a fifth time, kb/Work PB461).
+        bool isZeroWord = figOp.Kind is 'Z';
+        bool isNationalFigurative = figOp.Kind is not null;
         switch (pic.Category)
         {
             // ── The numeric literal's FORM vs the subject's (kb/Work PB97; the floating-point form is ISO §8.3.3.3.3):
@@ -2105,11 +2107,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 string content = CobolLiteral.Decode(isAllQuoted ? allRaw! : raw);
                 if (isAllQuoted && content.Length > 0 && content.All(char.IsAsciiDigit))
-                {
-                    // ALL "digits" repeats to the receiver's digit positions (§8.3.3.6.4 GR2 — MoveEmitter.AllDigitFill's rule)
-                    int w = Math.Max(pic.Digits, 1);
-                    content = string.Concat(Enumerable.Repeat(content, w / content.Length + 1))[..w];
-                }
+                    // ALL "digits" repeats to the receiver's DIGIT positions — §8.3.3.6.4 GR2, through THE one
+                    // fold (EmitText.RepeatToWidth → the runtime's CobolString.FigToWidth), which is where
+                    // MoveEmitter.AllDigitFill takes the same rule from. It was open-coded here (kb/Work PB461):
+                    // a second copy of GR2 that could drift from the runtime the emitted code measures against.
+                    content = CobolNet.CodeGen.Emit.EmitText.RepeatToWidth(content, Math.Max(pic.Digits, 1));
                 if (IsNumericLiteralForm(content))
                 {
                     Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal "
@@ -3333,9 +3335,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static decimal? NumericLiteralValue(string raw)
     {
         string w = raw.Trim();
-        if (w.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && w.Length > 3 && char.IsWhiteSpace(w[3]))
-            w = w[3..].TrimStart();
-        if (CobolNet.CodeGen.FigurativeConstants.KindOf(w) is { } k) return k == 'Z' ? 0m : null;
+        // THE one §8.3.3.6.2 operand classifier (kb/Work PB461) — the private strip here fired only before a
+        // SPACE, and the parse tree glues the words, so `VALUE ALL ZEROS` arrived as "ALLZEROS" and this reader
+        // answered "no value the compiler can weigh" for a constant whose value §8.3.3.6.4 GR4 states exactly.
+        if (CobolNet.CodeGen.FigurativeConstants.Classify(w).Kind is { } k) return k == 'Z' ? 0m : null;
         return decimal.TryParse(w, System.Globalization.NumberStyles.AllowDecimalPoint
                 | System.Globalization.NumberStyles.AllowLeadingSign,
             System.Globalization.CultureInfo.InvariantCulture, out decimal v) ? v : null;

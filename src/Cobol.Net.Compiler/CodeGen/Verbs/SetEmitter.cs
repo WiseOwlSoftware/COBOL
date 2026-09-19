@@ -338,12 +338,28 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             bool imageGroup = pic is null && parent.Item.IsGroup;
             PicCategory? cat = pic?.Category ?? (imageGroup ? PicCategory.Alphanumeric : null);
             int width = pic?.Length ?? parent.Item.ImageWidth;
-            // A FIGURATIVE-word VALUE (SPACE/ZERO/QUOTE/HIGH-VALUE/LOW-VALUE, incl. ALL forms) fills the
-            // conditional variable to its width (§8.3.3.6.4 GR2), not the WORD stored as characters — the
-            // fill char is category-aware (national/boolean HIGH/LOW-VALUE = the D-N3 pin). '0' for boolean/
-            // numeric ZERO. Only reaches the string categories here (numeric SET handles ZERO natively).
-            string? figFill = cat is PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean ? FigurativeWordFill(low, cat.Value) : null;
+            // ⛔ THE ONE §8.3.3.6.2 OPERAND CLASSIFIER (FigurativeConstants.Classify, kb/Work PB461). §14.9.39.4
+            // GR6 places the level-88 literal "according to the rules for the VALUE clause", so this store, the
+            // VALUE initializer and the condition TEST are REQUIRED to read the operand text identically — and
+            // did not: this emitter carried a Formats-1-5 word map and NO Format-6 arm at all, so
+            // `88 A-ALLSTAR VALUE ALL "*"` stored the glued parse text `ALL"` and left its own condition false
+            // (§8.8.4.5.3 GR3 — the test is true exactly when the stored value is one of the condition's values).
+            var op = FigurativeConstants.Classify(low);
+            // FORMATS 1-5 (SPACE/ZERO/QUOTE/HIGH-VALUE/LOW-VALUE, the word ALL being OPTIONAL there) fill the
+            // conditional variable to its width (§8.3.3.6.4 GR2), not the WORD stored as characters — the fill
+            // char is category-aware (national/boolean HIGH/LOW-VALUE = the D-N3 pin). '0' for boolean ZERO;
+            // a NUMERIC parent takes the §8.3.3.6.4 GR4 numeric value 0 in its own arm below.
+            string? figFill = op.Kind is { } figKind && cat is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean
+                ? FigurativeConstants.Fill(figKind, ctx.Data.Collating, cat, ctx.Data.NationalCollating) : null;
+            // FORMAT 6 (`ALL literal-1`, ALL required): literal-1 repeated to the conditional variable's width by
+            // the SAME §8.3.3.6.4 GR2 fold the VALUE initializer and the membership test use (EmitText.RepeatToWidth
+            // → the one runtime rule). §8.3.3.6.3 SR3 keeps a multi-character literal-1 off a numeric subject.
+            string? allImage = op.AllLiteral is { } allRaw && cat is not PicCategory.Numeric
+                ? RepeatToWidth(CobolLiteral.Decode(allRaw), width) : null;
+            // The decoded sending text every string category below stores: the Format-6 image when there is one,
+            // else the literal as written (an ordinary literal decodes to itself).
+            string sendText = allImage ?? CobolLiteral.Decode(low);
             string rhs = figFill is not null
                 ? $"new string({figFill}, {width})"
                 : cat switch
@@ -351,11 +367,16 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                 // National joins the character store (its 88-VALUE is the prefix-stripped N"…" text);
                 // a boolean parent stores its B"…" bits with the §14.6.8.6 zero pad.
                 PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
-                    RuntimeApi.StrStore(CsLiteral(CobolLiteral.Decode(low)), $"{width}"),
+                    RuntimeApi.StrStore(CsLiteral(sendText), $"{width}"),
                 PicCategory.Boolean =>
-                    RuntimeApi.StrStoreBoolean(CsLiteral(CobolLiteral.Decode(low)), $"{width}", false),
+                    RuntimeApi.StrStoreBoolean(CsLiteral(sendText), $"{width}", false),
+                // §8.3.3.6.4 GR4 — "the zero format represents the numeric value '0' … depending on context";
+                // on a numeric conditional variable that context is numeric, so ZERO (with or without ALL) is
+                // the value 0. Reaching UnscaledAtScale with the WORD emitted the bare identifier `ZEROL`, a
+                // Roslyn CS0103 that failed the whole compilation of legal COBOL.
                 PicCategory.Numeric =>
-                    ArithmeticEmitter.Narrow(RuntimeApi.NumStore(UnscaledAtScale(low, pic!.Scale), $"{pic.Scale}", parent.Item.ProfileName), parent.Item),
+                    ArithmeticEmitter.Narrow(RuntimeApi.NumStore(op.Kind is 'Z' ? "0L" : UnscaledAtScale(low, pic!.Scale),
+                        $"{pic!.Scale}", parent.Item.ProfileName), parent.Item),
                 _ => LoudValue("string", $"SET condition '{cond.Name}' over a '{parent.Item.CobolName}' of no category"),
             };
             // ⛔ An ORDINARY group receiver takes the value through THE ONE GROUP-IMAGE STORE, not a bare
@@ -368,19 +389,6 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                 ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO {(set.ToTrue ? "TRUE" : "FALSE")}")
                 : PlaceRenderer.Write(parent, rhs));
         }
-    }
-
-    /// <summary>The category-aware C# <c>char</c>-literal a level-88 figurative-word VALUE fills with (SET TO
-    /// TRUE, ISO §14.9.39 Format 4 + §8.3.3.6.4 GR2), or null when the operand is not a bare figurative word
-    /// (a quoted / N"…" / B"…" / numeric literal takes the store path). Tolerates the ALL-prefixed spelling.</summary>
-    private string? FigurativeWordFill(string raw, PicCategory cat)
-    {
-        string w = raw.Trim();
-        if (w.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && w.Length > 3
-            && (char.IsWhiteSpace(w[3]) || char.IsLetter(w[3])))
-            w = w[3..].TrimStart();
-        return FigurativeConstants.KindOf(w, includeNull: true) is { } k
-            ? FigurativeConstants.Fill(k, ctx.Data.Collating, cat, ctx.Data.NationalCollating) : null;   // the ONE service (P7 Step 4)
     }
 
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ─────────────────────────────────────────────────────────────

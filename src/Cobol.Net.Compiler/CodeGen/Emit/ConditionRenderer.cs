@@ -647,14 +647,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// otherwise the fixed-point literal takes the <c>d</c> suffix. Keeps both sides of the membership test IEEE
     /// doubles (§8.8.4.2.4 algebraic compare), matching the direct relation-condition path.</summary>
     private static string FloatMembershipValue(string raw) =>
-        raw.ToUpperInvariant() is "ZERO" or "ZEROS" or "ZEROES" ? "0.0"
+        FigurativeConstants.Classify(raw).Kind is 'Z' ? "0.0"
         : raw.IndexOf('E') >= 0 || raw.IndexOf('e') >= 0 ? raw.Trim().TrimStart('+')
         : $"{raw.Trim().TrimStart('+')}d";
 
     /// <summary>A string level-88 VALUE operand's character value: a NUMERIC-EDITED conditional variable's numeric
     /// literal (or figurative ZERO at >= 2023) is its EDITED image — ISO §13.18.63.3 SR6 converts a numeric-edited
     /// item's numeric VALUE literals "according to the rules for the MOVE statement" in formats 1, 2 AND 4, and
-    /// §8.8.4.5 GR2 then compares by the relation-condition rules (kb/Work PB97: the raw text "10" was compared to the
+    /// §8.8.4.5.3 GR2 then compares by the relation-condition rules (kb/Work PB97: the raw text "10" was compared to the
     /// image " 10.00" — every such condition-name was silently false); a figurative <c>ALL "literal"</c> repeated to
     /// the conditional variable's width (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE / HIGH-VALUE /
     /// LOW-VALUE / ZERO — §8.3.3.6.4 r2, materialized to the variable's width, NC250A IF--TEST-26/27), else the decoded
@@ -686,31 +686,30 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
             && ValueInitializer.EditedImageOfNumericValue(ctx, parent, npic, raw) is { } edited)
             return edited;
-        return EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
-            : FigurativeFillChar(raw) is { } fill ? new string(fill, width)
+        // ⛔ THE ONE §8.3.3.6.2 OPERAND CLASSIFIER (kb/Work PB461). §14.9.39.4 GR6 stores this same operand
+        // "according to the rules for the VALUE clause" and §8.8.4.5.3 GR3 makes the test true exactly when the
+        // stored value equals it, so the TEST is required to read the text the way the STORE and the VALUE
+        // initializer do. This site's private strip fired only before a SPACE, and the parse tree glues the two
+        // words — so `88 B-ALLSP VALUE ALL SPACES` arrived as "ALLSPACES", never stripped, and was compared as
+        // the ten characters A-L-L-S-P-A-C-E-S against an item this compiler had correctly filled with spaces.
+        // The fill is category-aware here as it is at the store (§8.3.3.6.4 GR6/GR7 — a national or boolean
+        // anchor reads its OWN sequence, never the alphanumeric PCS).
+        var op = FigurativeConstants.Classify(raw);
+        return op.AllLiteral is { } lit ? EmitText.RepeatToWidth(CobolLiteral.Decode(lit), width)
+            : op.Kind is { } k ? new string(
+                FigurativeConstants.FillChar(k, ctx.Data.Collating, parent.OperandPic?.Category, ctx.Data.NationalCollating), width)
             : CobolLiteral.Decode(raw);
     }
 
-    /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
-    /// the same figurative either way, ISO §8.3.3.6.2), or null when the text is not a figurative word. The fill
-    /// characters match <see cref="FigurativeConstants.FillChar"/> (HIGH/LOW = U+00FF/U+0000, COBOLNET_DESIGN §14.9).</summary>
-    private char? FigurativeFillChar(string raw)
-    {
-        string t = raw.Trim();
-        if (t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && t.Length > 3 && char.IsWhiteSpace(t[3]))
-            t = t[3..].Trim();
-        // The membership fill takes the RAW character (no category pin — this site's historical semantics;
-        // the pin question is the flagged §8.3.3.6 GR6/GR7 divergence in FigurativeConstants' doc), NULL not
-        // admitted here. ONE service (P7 Step 4).
-        return FigurativeConstants.KindOf(t) is { } k
-            ? FigurativeConstants.FillChar(k, ctx.Data.Collating) : null;
-    }
-
     /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>
-    /// (ISO §8.3.3.6.4 r4 — the zero format represents the numeric value 0); otherwise the literal is scaled. Without this a figurative VALUE word
-    /// (e.g. <c>88 IS-ZERO VALUE ZERO</c>) would reach <c>UnscaledAtScale("ZERO", …)</c> and emit a bare identifier.</summary>
+    /// (ISO §8.3.3.6.4 GR4 — "the zero format represents the numeric value '0' … depending on context"); otherwise
+    /// the literal is scaled. Without this a figurative VALUE word (e.g. <c>88 IS-ZERO VALUE ZERO</c>) would reach
+    /// <c>UnscaledAtScale("ZERO", …)</c> and emit a bare identifier — which is exactly what the ALL-prefixed
+    /// spelling did until this read the operand through THE one classifier (kb/Work PB461: the private word list
+    /// here spelled out three of the forms §8.3.3.6.2 Format 1 admits, and `ALL ZEROS` — the same constant, ALL
+    /// being an optional word there — emitted `ALLZEROSL`, a C# CS0103 on legal COBOL).</summary>
     private static string NumericMembershipValue(string raw, int scale) =>
-        raw.ToUpperInvariant() is "ZERO" or "ZEROS" or "ZEROES" ? "0L" : EmitText.UnscaledAtScale(raw, scale);
+        FigurativeConstants.Classify(raw).Kind is 'Z' ? "0L" : EmitText.UnscaledAtScale(raw, scale);
 
     /// <summary>The statically known fraction-digit count of a relation operand — a numeric literal's digits
     /// right of the decimal point, a field's declared scale (a numeric-edited comparand cannot appear in a

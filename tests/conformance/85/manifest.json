@@ -2,6 +2,7 @@
  "enabled": [
   "pb413_go_to_out_of_inline_perform",
   "pb466_procedure_name_uniqueness",
+  "pb461_all_literal_value_roundtrip_85",
   "pb482_sum_addend_written_reference_85",
   "pb426_alnum_sender_31_character_cap",
   "pb416_initialize_operand_screens_85",

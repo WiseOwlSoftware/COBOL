@@ -1,0 +1,10 @@
+A=[ABAB]
+A-TRUE
+B=[ABABA]
+B-TRUE
+C=[1010]
+C-TRUE
+D=[10101]
+D-TRUE
+E=[    ]
+E-TRUE

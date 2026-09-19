@@ -183,12 +183,10 @@ internal static class EmitText
     /// ratchet makes <c>RuntimeApi</c> the ONE CodeGen file that names the runtime.</para></summary>
     public static string RepeatToWidth(string literal, int width) => RuntimeApi.FigToWidthFold(literal, width);
 
-    /// <summary>Thin forward to the one codec — see <see cref="CobolNet.Common.CobolLiteral.AllLiteralText"/>
-    /// (the ALL literal-1 figurative form, ISO §8.3.3.6.2 Format 6 / §8.3.3.6.4 GR9; the delimiters are
-    /// interchangeable per §8.3.3.1 — "The paired quotation symbols specified in the opening and closing
-    /// delimiters of alphanumeric, boolean, and national literals may be either apostrophes or quotation
-    /// marks". §8.3.1.2 does not exist; see kb/Work PB290).</summary>
-    public static string? AllLiteralText(string raw) => CobolNet.Common.CobolLiteral.AllLiteralText(raw);
+    // The ALL literal-1 form (ISO §8.3.3.6.2 Format 6 / §8.3.3.6.4 GR9) is no longer forwarded from here: every
+    // CodeGen reader of a VALUE / level-88 operand now asks FigurativeConstants.Classify, which parts Formats 1-5
+    // from Format 6 in ONE place and delegates the Format-6 half to CobolLiteral.AllLiteralRaw (kb/Work PB461).
+    // A forward with no callers is a second name for a rule, and this rule had five of those.
 
     /// <summary>⛔ THE ONE exact unscaled decomposition of a numeric literal, in EITHER notation: the signed
     /// unscaled digit string and the fraction-digit SCALE, so that the literal's value is exactly

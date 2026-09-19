@@ -193,7 +193,10 @@ public sealed partial class DataBinder
         // which repeats the string to the receiver's size, governs the case where "the length of the string IS
         // specified in the rules for the context", i.e. a SIZED receiver. Taking `ALL "AB"` to be length-less
         // gave it the one-character recovery item and stored "A" — a silent wrong answer on legal source.
-        if (CobolLiteral.AllLiteralRaw(raw) is { } literal1) return LiteralImplied(literal1);
+        // THE one §8.3.3.6.2 operand classifier (kb/Work PB461). NULL/NULLS is not admitted: it names no
+        // character class and so implies no picture (§8.3.3.6.4 GR1 speaks of character values).
+        var figOp = CobolNet.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
+        if (figOp.AllLiteral is { } literal1) return LiteralImplied(literal1);
         // ── A literal written in any of the six quoted spellings (§8.3.3.2 / §8.3.3.4 / §8.3.3.5, plain and
         // hexadecimal). SR9's own arms, read straight off the literal.
         if (CobolLiteral.IsStringLiteral(raw)) return LiteralImplied(raw);
@@ -202,11 +205,8 @@ public sealed partial class DataBinder
         // formats (only Format 6 underlines ALL as required), so `ALL SPACES` is Format 2 and §8.3.3.6.4 GR3 b)
         // — "When a figurative constant is other than ALL literal-1, the length of the string is one character"
         // — gives it length ONE, exactly as the bare word. The parse-tree GetText concatenates the two words, so
-        // the operand arrives spelled "ALLSPACES"; the strip tolerates a preserved space.
-        string word = raw.TrimStart();
-        if (word.Length > 3 && word.StartsWith("ALL", StringComparison.OrdinalIgnoreCase))
-            word = word[3..].TrimStart();
-        if (CobolNet.CodeGen.FigurativeConstants.KindOf(word) is not { } kind) return null;
+        // the operand arrives spelled "ALLSPACES"; the classifier above accepts both spellings.
+        if (figOp.Kind is not { } kind) return null;
         // §8.3.3.6.4 GR1 — "When a figurative constant is used in a context requiring national characters, the
         // figurative constant represents a national character value. Otherwise … an alphanumeric character
         // value." GR4 adds the third form, and ONLY for the ZERO format ('Z'): "The zero format represents the

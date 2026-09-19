@@ -5,6 +5,7 @@
   "pb404-exit-program-in-global-declarative",
   "pb410-goback-raising-last-out-of-place",
   "pb407-goback-phrase-repeated",
+  "pb461-level88-all-literal-zero-length",
   "pb368-flow-use-name-below-2002",
   "pb482-sum-addend-not-numeric",
   "pb482-sum-addend-ref-modified",

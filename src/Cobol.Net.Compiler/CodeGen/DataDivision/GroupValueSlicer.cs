@@ -112,11 +112,15 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         if (!bits && group.HasBitDescendant) return null;
         int width = bits ? group.AsIfPic!.Length : group.ImageWidth;
         if (width <= 0) return null;
+        // THE one §8.3.3.6.2 operand classifier decides which format this text is (kb/Work PB461): Formats 1-5
+        // (ALL optional) fill the area, Format 6 (ALL literal-1) repeats literal-1 into it — both by §8.3.3.6.4
+        // GR2, and both spellings the parse tree can produce.
+        var op = FigurativeConstants.Classify(raw);
         string? text =
-            ValueInitializer.FigurativeKind(raw) is { } kind
+            op.Kind is { } kind
                 ? new string(FigurativeConstants.FillChar(kind, ctx.Data.Collating,
                         group.AsIfPic?.Category ?? PicCategory.Alphanumeric, ctx.Data.NationalCollating), width)
-            : EmitText.AllLiteralText(raw) is { } all ? EmitText.RepeatToWidth(all, width)
+            : op.AllLiteral is { } all ? EmitText.RepeatToWidth(CobolLiteral.Decode(all), width)
             : CobolLiteral.IsStringLiteral(raw) ? CobolLiteral.Decode(raw)
             : null;
         if (text is null) return null;
