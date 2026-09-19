@@ -83,7 +83,7 @@ the work, not to wait. Stage the earliest-stage, largest jobs behind the near-do
   build, gate, DEVLOG, commit, push — so ⓜ **10.4 M per cluster at k = 1 against 5.1 M at k = 5**, and 4.0 minutes
   of lander per cluster against 9.8. The corpus proves it directly: the golden lander landed 151 rows for 52.9 M =
   0.35 M/row; the PB383 lander landed 2 rows for 7.2 M = 3.6 M/row — **10×**. Mechanics: bring in each implementer's
-  diff in turn, **one build**, the **union** of their gate filters, **one commit per cluster inside the landing** so
+  diff in turn, **one build**, the **union** of their gate filters plus `~VersionMatrixTests`, `~Nist` and `~CorpusRunner` (the three legs no implementer filter runs), **one commit per cluster inside the landing** so
   a red bisects by cluster, one DEVLOG entry naming every cluster, one push. Past six clusters the token curve is
   flat and the gate-attribution risk is not. Template: `templates/lander-train-brief.md`.
 - ⛔ **Never spend a lander on a 1–2 cluster landing** unless nothing else is ready — that is the k = 1 corner of the
