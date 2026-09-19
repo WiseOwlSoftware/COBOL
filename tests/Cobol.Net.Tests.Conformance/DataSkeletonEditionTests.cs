@@ -160,7 +160,7 @@ public sealed class DataSkeletonEditionTests
     [InlineData("01 WS-NE PIC NN0NN.")]
     [InlineData("01 WS-NE PIC N/N.")]
     [InlineData("01 WS-NE PIC N(2)B0/N(2).")]
-    [InlineData("01 WS-NE PIC NNTNN EDITING \"T\" IS N\":\".")]
+    [InlineData("01 WS-NE PIC NNTNN EDITING T IS N\":\".")]
     public void NationalEditedPicture_CompilesAt2002Plus_RejectedAt85(string wsEntry)
     {
         // The COBOL-2023 PICTURE EDITING phrase is itself a 2023 introduction (registry row picture-editing-2023),

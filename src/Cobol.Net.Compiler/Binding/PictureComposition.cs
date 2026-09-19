@@ -178,7 +178,8 @@ internal static class PictureComposition
     /// comma and period ROLES (SR13).
     /// </summary>
     public static bool Validate(string picture, string expanded, char cs, IReadOnlySet<char> char1,
-        bool blankWhenZero, bool decimalPointIsComma, EditionContext edition, string where)
+        IReadOnlySet<char> char1Extended, bool blankWhenZero, bool decimalPointIsComma, EditionContext edition,
+        string where)
     {
         char decimalSep = decimalPointIsComma ? ',' : '.';
         char grouping = decimalPointIsComma ? '.' : ',';
@@ -201,7 +202,7 @@ internal static class PictureComposition
             return k;
         }
 
-        var floating = MarkFloating(syms, cs, char1, decimalSep, grouping);
+        var floating = MarkFloating(syms, cs, char1, char1Extended, decimalSep, grouping);
         bool IsFloating(int i) => floating[i];
 
         // The DIGIT POSITIONS (§13.18.40.4 GR14): 9, the zero-suppression symbols, every 'P' ("not counted in
@@ -421,10 +422,10 @@ internal static class PictureComposition
     /// character-string has none. §13.18.40.3 SR27 admits at most one such string, and the Table-10 walk rejects
     /// a second, so the first one found is the only one.</returns>
     internal static (char Symbol, int Occurrences) FloatingString(string expanded, char cs,
-        IReadOnlySet<char> char1, char decimalSep, char grouping)
+        IReadOnlySet<char> char1, IReadOnlySet<char> char1Extended, char decimalSep, char grouping)
     {
         var syms = Tokenize(expanded);
-        var floating = MarkFloating(syms, cs, char1, decimalSep, grouping);
+        var floating = MarkFloating(syms, cs, char1, char1Extended, decimalSep, grouping);
         for (int i = 0; i < syms.Count; i++)
         {
             if (!floating[i]) continue;
@@ -439,7 +440,7 @@ internal static class PictureComposition
     /// <summary>Mark every symbol occurrence that belongs to a floating insertion string — see
     /// <see cref="FloatingString"/> for the rule this implements.</summary>
     private static bool[] MarkFloating(List<Sym> syms, char cs, IReadOnlySet<char> char1,
-        char decimalSep, char grouping)
+        IReadOnlySet<char> char1Extended, char decimalSep, char grouping)
     {
         int n = syms.Count;
         var floating = new bool[n];
@@ -452,8 +453,16 @@ internal static class PictureComposition
         // question the standard does not ask here (kb/Work PB528).
         bool Embedded(char c) => CobolNet.Runtime.CobolEdit.IsSimpleInsertionSymbol(c, grouping)
             || c == decimalSep || char1.Contains(c);
-        Span<char> floatSymbols = stackalloc char[3];
-        floatSymbols[0] = '+'; floatSymbols[1] = '-'; floatSymbols[2] = cs;
+        // ⛔ THE FLOATING INSERTION SYMBOLS are §13.18.40.5 rule 6's own list, all four kinds: "The currency
+        // symbol, the EXTENDED EDITING SIGN CONTROL SYMBOLS, if specified, and the fixed editing sign control
+        // symbols '+' and '-' are used as the floating insertion symbols." The extended ones are exactly the
+        // character-1 letters declared with a FOR phrase (SR12), which is why they arrive as their own set
+        // rather than being guessed from the character-string: an IS-form character-1 is a SIMPLE insertion
+        // symbol (rule 3) and stays transparent to this walk, an extended one is a candidate for the ≥2 test
+        // below. Leaving them out is what made `PIC LLLL9.99F` a render GAP (kb/Work PB491) — its LLLL is a
+        // floating string that no detector saw.
+        var floatSymbols = new List<char>(3 + char1Extended.Count) { '+', '-', cs };
+        floatSymbols.AddRange(char1Extended);
         foreach (char sym in floatSymbols)
         {
             for (int i = 0; i < n;)

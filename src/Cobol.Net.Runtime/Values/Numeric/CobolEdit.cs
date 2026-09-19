@@ -19,9 +19,10 @@ namespace CobolNet.Runtime;
 /// to when it is not the single character <c>$</c> (§12.3.7.3 r23: "Literal-7 may have any length"; §13.18.40.4
 /// GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the
 /// size of the item. Each subsequent occurrence of the currency symbol adds one" — kb/Work PB60 / AR-15.68.3-3).
-/// The core edits on the LOGICAL one-character-per-symbol image and <see cref="ExpandCurrency"/> /
-/// <see cref="CollapseCurrency"/> map that image to and from the physical one, so the multi-character string
-/// touches no editing rule; <c>commaMode</c> is DECIMAL-POINT IS COMMA (GR14 — the decimal and grouping
+/// The core edits on the LOGICAL one-character-per-symbol image and <see cref="Materialize"/> maps that image to
+/// the physical one — the ONE place a symbol wider than one character position is written out, shared with the
+/// PICTURE EDITING literal of §13.18.40.4 GR14 'es' (kb/Work PB491) — so neither multi-character string touches
+/// an editing rule; <c>commaMode</c> is DECIMAL-POINT IS COMMA (GR14 — the decimal and grouping
 /// separators EXCHANGE functionality; §13.18.40.2 SR13: "the rules for the symbol period apply to the symbol
 /// comma, and the rules for the symbol comma apply to the symbol period", and §13.18.40.6: "the precedence rules
 /// … are interchanged"). The public entries CANONICALIZE: under comma-mode the mask's <c>.</c>/<c>,</c> are
@@ -32,14 +33,24 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static partial class CobolEdit
 {
-    /// <summary>One resolved PICTURE EDITING phrase for the single-character render (ISO §13.18.40.5): the user
-    /// editing <paramref name="Char1"/> renders as <paramref name="Neg"/> when the value is negative and
-    /// <paramref name="Pos"/> otherwise. The simple-insertion (IS) form is sign-independent (<c>Neg == Pos</c> =
-    /// the single-character literal); the extended sign-control (FOR) form selects by sign, the unspecified side
-    /// defaulting to a space (SR12c). character-1 is NEVER a digit position (SR8 excludes every digit/edit symbol),
-    /// so it holds no digit and no fraction. Multi-character literals and floating (character-1 repeated ≥2 under a
-    /// FOR phrase) require abandoning the 1:1 mask model — a documented P14 render GAP staged loud at bind
-    /// (COBOLNET0899); they never reach here.
+    /// <summary>One resolved PICTURE EDITING phrase (ISO §13.18.40.5): the user editing <paramref name="Char1"/>
+    /// renders as <paramref name="Neg"/> when the value is negative and <paramref name="Pos"/> otherwise
+    /// (Table 8 for fixed insertion, Table 9 for floating). The simple-insertion (IS) form is sign-independent
+    /// (<c>Neg == Pos</c> = literal-1); the extended sign-control (FOR) form selects by sign, the unspecified
+    /// side defaulting to "the space character repeated for the number of characters in" the specified one
+    /// (SR12c). character-1 is NEVER a digit position while it renders its literal (SR8 excludes every
+    /// digit/edit symbol); a FLOATING character-1's other occurrences ARE digit positions, exactly as a floating
+    /// currency symbol's are.
+    /// <para>⛔ <paramref name="Neg"/> and <paramref name="Pos"/> are STRINGS, not characters, because
+    /// §13.18.40.4 GR14's 'es' entry sizes the item from the literal: "If character-1 is a simple insertion
+    /// symbol or a fixed insertion symbol, the size of literal-1 is counted in the size of the item. … For
+    /// floating inserting, one occurrence of literal-2 or literal-3 is counted in the size of the item plus one
+    /// character for each repetition of character-1." A literal of up to 50 characters is legal (SR9), so the
+    /// render is VARIABLE-WIDTH and the 1:1 mask model cannot carry it — which is why both shapes used to be
+    /// staged loud at bind (COBOLNET0899, kb/Work PB491) although Annex D.24 demonstrates both. They are now
+    /// rendered by the SAME logical-image-then-materialize mechanism the multi-character currency string uses
+    /// (<see cref="Materialize"/>): the editing rules still edit one position per symbol, and the one pass that
+    /// knows a symbol's physical width expands it.</para>
     /// <para><paramref name="SimpleInsertion"/> is the phrase's FORM, and it is what decides whether this
     /// character-1 belongs to a zero-suppression or floating string (§13.18.40.5 rules 6 and 7: "Any of the
     /// simple insertion editing symbols embedded in this string or to the immediate right of this string are part
@@ -48,8 +59,18 @@ public static partial class CobolEdit
     /// — rule 5 — "When character-1 is used, and is not a simple insertion character, it represents literal-2, or
     /// literal-3 as the insertion characters". ⛔ It is NOT derivable from <c>Neg == Pos</c>: a FOR phrase may
     /// name the same literal on both sides (<c>PIC ZT9 EDITING "T" FOR NEGATIVE IS ":" POSITIVE IS ":"</c>),
-    /// which is fixed insertion and must survive the suppression walk that eats an IS-form ':' beside it.</summary>
-    public readonly record struct EditRule(char Char1, char Neg, char Pos, bool SimpleInsertion);
+    /// which is fixed insertion and must survive the suppression walk that eats an IS-form ':' beside it.</para>
+    /// <para><paramref name="Floating"/> is rule 6's own test applied to THIS character-1 — "Floating insertion
+    /// editing is indicated by specifying a string of at least two identical floating insertion editing symbols",
+    /// and rule 6's first sentence lists "the extended editing sign control symbols, if specified" among the
+    /// floating insertion symbols. It is decided at bind, where the character-string is in hand.</para></summary>
+    public readonly record struct EditRule(char Char1, string Neg, string Pos, bool SimpleInsertion, bool Floating)
+    {
+        /// <summary>The character positions this character-1 renders into — SR12a ("Literal-2 and literal-3 shall
+        /// occupy the same number of character positions") and SR12c (the defaulted side is that many spaces)
+        /// make the two sides agree, so either answers.</summary>
+        public int Width => Neg.Length;
+    }
 
     /// <summary>⛔ THE SIMPLE INSERTION EDITING SYMBOLS — ISO §13.18.40.5 rule 3, written down ONCE: "the symbols
     /// 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion editing
@@ -113,12 +134,25 @@ public static partial class CobolEdit
             foreach (var e in edits)
                 if (e.SimpleInsertion && u == char.ToUpperInvariant(e.Char1))
                 {
-                    inserted = e.Pos;   // rule 3 is sign-independent: the IS form carries Neg == Pos == literal-1
+                    // Rule 3 is sign-independent: the IS form carries Neg == Pos == literal-1. The LOGICAL
+                    // image holds one character per symbol, so a literal wider than one character stands here
+                    // as its first character and Materialize writes the whole of it (GR14 'es').
+                    inserted = e.Pos.Length > 0 ? e.Pos[0] : ' ';
                     return true;
                 }
         if (!IsSimpleInsertionSymbol(u)) { inserted = '\0'; return false; }
         inserted = u == 'B' ? ' ' : maskChar;   // B inserts a space; 0 / and , insert themselves
         return true;
+    }
+
+    /// <summary>The EditRule whose character-1 is <paramref name="maskChar"/>, or null.</summary>
+    private static EditRule? RuleFor(char maskChar, EditRule[]? edits)
+    {
+        if (edits is null) return null;
+        char u = char.ToUpperInvariant(maskChar);
+        foreach (var e in edits)
+            if (u == char.ToUpperInvariant(e.Char1)) return e;
+        return null;
     }
 
     /// <summary>Swap <c>.</c>↔<c>,</c> — the §13.18.40.2 SR13 role exchange, applied to a mask entering the
@@ -137,25 +171,44 @@ public static partial class CobolEdit
     public static string Format(Int128 value, int valueScale, string picture, bool blankWhenZero = false,
         char currency = '$', bool commaMode = false, EditRule[]? edits = null, string? currencyString = null)
     {
-        // A currency STRING other than the symbol itself (§12.3.7.4 GR13 — a one-character '#' for the '$'
-        // canonical symbol, or a multi-character "USD"; §13.18.40.4 GR14): edit the LOGICAL image (one position
-        // per symbol), then expand the one currency position into the string — a multi-character string makes
-        // the physical item len(string) − 1 wider.
-        if (currencyString is not null && currencyString != currency.ToString())
-            return ExpandCurrency(Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits), currency, currencyString);
+        // DECIMAL-POINT IS COMMA: canonicalize the mask (dot = decimal), render, swap the rendered separators
+        // back (GR14b). ⛔ The swap is applied to the LOGICAL image and only at the positions whose SYMBOL is a
+        // separator, never to the physical one: a currency string or an editing literal may itself hold a '.'
+        // or a ',' (§12.3.7.3 r23 lets literal-7 be any length; SR9 lets a literal be 50 characters), and
+        // §13.18.40.2 SR13 exchanges the roles of the two SYMBOLS, not the characters of a literal.
+        string mask = commaMode ? SwapSeparators(picture) : picture;
+        // The output pattern: V marks the implied point but holds no character position (ISO §13.18.40.3).
+        string pattern = mask.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
+        // The currency STRING replaces the canonical '$' the mask carries whenever it is not that single
+        // character — a one-character '#' (§12.3.7.4 GR13) as much as a multi-character "USD" (§12.3.7.3 r23).
+        bool wideCurrency = currencyString is not null && currencyString != currency.ToString();
+        var (logical, placed) = Render(value, valueScale, mask, pattern, blankWhenZero, currency, edits, wideCurrency);
         if (commaMode)
-        {
-            // Canonicalize the mask (dot = decimal), render, swap the rendered separators back (GR14b).
-            string canonical = Format(value, valueScale, SwapSeparators(picture), blankWhenZero, currency, false, edits);
-            return SwapSeparators(canonical);
-        }
+            for (int i = 0; i < pattern.Length; i++)
+                if (pattern[i] is '.' or ',')
+                    logical[i] = logical[i] switch { '.' => ',', ',' => '.', _ => logical[i] };
+        return Materialize(pattern, logical, placed, edits, currency, currencyString, value < 0);
+    }
+
+    /// <summary>⭐ THE LOGICAL RENDER — one character per picture SYMBOL, which is the image every editing rule
+    /// of §13.18.40.5 is written about. <see cref="Materialize"/> turns it into the physical image by giving the
+    /// two variable-width symbols of §13.18.40.4 GR14 — the currency symbol ('cs', whose currency string "may
+    /// have any length") and a PICTURE EDITING character-1 ('es', whose literal may be 50 characters) — the
+    /// width GR14 gives them. <paramref name="placed"/> is null (and never read) unless some symbol IS wider
+    /// than one character, so an ordinary program's render allocates and walks exactly what it did before.</summary>
+    private static (char[] Logical, bool[]? Placed) Render(Int128 value, int valueScale, string picture,
+        string pattern, bool blankWhenZero, char currency, EditRule[]? edits, bool wideCurrency)
+    {
         bool negative = value < 0;
 
-        // The output pattern: V marks the implied point but holds no character position (ISO §13.18.40.3).
-        string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
+        // ⛔ THE VARIABLE-WIDTH MARKER. `placed[i]` says the symbol at position i renders its whole STRING here
+        // — the currency string, or literal-2/literal-3/literal-1 — as opposed to holding a digit, a space or a
+        // replacement character. It is the ONE fact Materialize cannot re-derive, because where a FLOATING
+        // symbol lands is decided by the suppression walk (§13.18.40.5 rule 6 a) and not by the mask.
+        bool[]? placed = wideCurrency || HasWideLiteral(edits) ? new bool[pattern.Length] : null;
 
         // BLANK WHEN ZERO (ISO §13.18.8): a zero value stores ALL spaces — before any editing.
-        if (blankWhenZero && value == 0) return new string(' ', pattern.Length);
+        if (blankWhenZero && value == 0) return (Filled(' ', pattern.Length), placed);
 
         // Pre-scan (on the full picture): fixed vs floating sign/currency — ONE occurrence is a fixed-insertion
         // character; TWO OR MORE form a floating string whose members are also digit positions (§13.18.40.4).
@@ -173,9 +226,16 @@ public static partial class CobolEdit
         bool isFixedMinus = minusCount == 1 && plusCount == 0;
         bool isFixedCurrency = currencyCount == 1;
 
-        // Digit capacity: 9/Z/* always; floating $/+/- are digit positions, but the floating string reserves ONE
-        // position for the symbol itself.
+        // Digit capacity: 9/Z/* always; floating $/+/- and a floating EXTENDED editing sign control character-1
+        // are digit positions, but the floating string reserves ONE position for the symbol itself.
+        // ⛔ §13.18.40.5 rule 6, first sentence: "The currency symbol, the extended editing sign control
+        // symbols, if specified, and the fixed editing sign control symbols '+' and '-' are used as the floating
+        // insertion symbols" — character-1 under a FOR phrase is one of them, and rule 6's fourth paragraph
+        // ("The second floating symbol represents the leftmost limit of the numeric data that may be stored in
+        // the item") is what makes its repetitions digit positions. The rule that decided FLOATING was asked at
+        // bind, where the character-string is in hand, and travels on EditRule.Floating (kb/Work PB491).
         int trueDigitCount = 0;
+        bool floatingChar1 = false;
         foreach (char raw in pattern)
         {
             char p = char.ToUpperInvariant(raw);
@@ -183,8 +243,9 @@ public static partial class CobolEdit
             else if (p == currencyChar && !isFixedCurrency) trueDigitCount++;
             else if (p == '+' && !isFixedPlus) trueDigitCount++;
             else if (p == '-' && !isFixedMinus) trueDigitCount++;
+            else if (RuleFor(raw, edits) is { Floating: true }) { trueDigitCount++; floatingChar1 = true; }
         }
-        bool hasFloating = currencyCount > 1 || plusCount > 1 || minusCount > 1;
+        bool hasFloating = currencyCount > 1 || plusCount > 1 || minusCount > 1 || floatingChar1;
         int effectiveDigitCount = hasFloating ? trueDigitCount - 1 : trueDigitCount;
 
         // The mask's fraction scale: digit positions after the point (V in the picture, or the '.' insertion).
@@ -211,19 +272,32 @@ public static partial class CobolEdit
             // character-1, from the ONE set (TrySimpleInsertion), resolved BEFORE the metacharacter switch so a
             // literal that happens to be a mask symbol (':', '/', '(', …) is never re-interpreted. Not a digit
             // position (SR8 for character-1; GR14 for the four symbols) — the digit index is untouched.
-            if (TrySimpleInsertion(pattern[i], edits, out char simpleIns)) { output[i] = simpleIns; continue; }
-            // FIXED INSERTION with an extended editing sign control symbol (rule 5, Table 8): the FOR form selects
-            // Neg on a negative value, Pos otherwise (SR12c default = space).
-            if (edits is not null)
+            if (TrySimpleInsertion(pattern[i], edits, out char simpleIns))
             {
-                bool matched = false;
-                foreach (var e in edits)
-                    if (p == char.ToUpperInvariant(e.Char1)) { output[i] = negative ? e.Neg : e.Pos; matched = true; break; }
-                if (matched) continue;
+                output[i] = simpleIns;
+                if (placed is not null && RuleFor(pattern[i], edits) is not null) placed[i] = true;
+                continue;
+            }
+            // FIXED INSERTION with an extended editing sign control symbol (rule 5, Table 8): the FOR form selects
+            // Neg on a negative value, Pos otherwise (SR12c default = space). A FLOATING one (rule 6) is skipped
+            // here and treated below exactly as a floating currency symbol is: its occurrences are DIGIT
+            // positions and the literal lands once, at the placement pass (kb/Work PB491).
+            if (RuleFor(pattern[i], edits) is { } rule)
+            {
+                if (!rule.Floating)
+                {
+                    string lit = negative ? rule.Neg : rule.Pos;
+                    output[i] = lit.Length > 0 ? lit[0] : ' ';
+                    if (placed is not null) placed[i] = true;
+                    continue;
+                }
+                output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                continue;
             }
             if (p == currencyChar)
             {
                 output[i] = isFixedCurrency ? currencyChar : digitIdx >= 0 ? digits[digitIdx--] : '0';
+                if (placed is not null && isFixedCurrency) placed[i] = true;
                 continue;
             }
             switch (p)
@@ -283,7 +357,7 @@ public static partial class CobolEdit
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
-            if (p == currencyChar && !isFixedCurrency)
+            if ((p == currencyChar && !isFixedCurrency) || RuleFor(pattern[i], edits) is { Floating: true })
             {
                 inString = true;
                 if (output[i] == '0') output[i] = ' ';
@@ -321,7 +395,14 @@ public static partial class CobolEdit
                     // with replacement is specified" and ends the walk. Outside it (a leading insertion, a
                     // leading fixed sign or currency) nothing is replaced and the string has yet to start.
                     if (!inString) break;
-                    if (TrySimpleInsertion(pattern[i], edits, out _)) output[i] = asteriskFill ? '*' : ' ';
+                    if (TrySimpleInsertion(pattern[i], edits, out _))
+                    {
+                        output[i] = asteriskFill ? '*' : ' ';
+                        // The literal is no longer AT this position — the replacement character is (rule 7 a),
+                        // and GR14 'es' still counts the literal's width, so Materialize repeats the
+                        // replacement character across it rather than writing literal-1.
+                        if (placed is not null) placed[i] = false;
+                    }
                     else suppressing = false;
                     break;
             }
@@ -337,9 +418,13 @@ public static partial class CobolEdit
             {
                 char p = char.ToUpperInvariant(pattern[i]);
                 output[i] = asteriskFill ? (p == '.' ? '.' : '*') : ' ';
+                // "all character positions of the item will contain the character space / asterisk" (rule 7 b)
+                // — every position, so no symbol renders its string; Materialize still gives each the width
+                // GR14 gives it, so the physical image stays the item's own size.
+                if (placed is not null) placed[i] = false;
             }
         }
-        if (fullFieldBlanked && !asteriskFill) return new string(output);
+        if (fullFieldBlanked && !asteriskFill) return (output, placed);
 
         // Floating symbol placement: the symbol lands at the rightmost suppressed position of its floating zone.
         if (plusCount > 0 && plusCount + minusCount > 1)
@@ -355,10 +440,23 @@ public static partial class CobolEdit
         if (currencyCount > 1)
         {
             int pos = FindFloatingPlacement(pattern, output, currencyChar, edits);
-            if (pos >= 0) output[pos] = currencyChar;
+            if (pos >= 0) { output[pos] = currencyChar; if (placed is not null) placed[pos] = true; }
         }
+        // A FLOATING extended editing sign control symbol lands by the SAME rule 6 a) walk — Table 9 selects
+        // literal-2 on a negative value and literal-3 otherwise, the unspecified side being SR12c's spaces
+        // (kb/Work PB491). Its other occurrences stay the digits pass 1 wrote.
+        if (floatingChar1 && edits is not null)
+            foreach (var e in edits)
+            {
+                if (!e.Floating) continue;
+                int pos = FindFloatingPlacement(pattern, output, e.Char1, edits);
+                if (pos < 0) continue;
+                string lit = negative ? e.Neg : e.Pos;
+                output[pos] = lit.Length > 0 ? lit[0] : ' ';
+                if (placed is not null) placed[pos] = true;
+            }
 
-        return new string(output);
+        return (output, placed);
     }
 
     /// <summary>DE-EDIT a numeric-edited item's image back to its numeric value (ISO §14.9.25.4 GR5 — a
@@ -377,10 +475,7 @@ public static partial class CobolEdit
         EditRule[]? edits = null, string? currencyString = null, bool blankWhenZero = false)
     {
         string physical = image;
-        // A currency string other than the symbol itself: collapse the physical image to the logical one first
-        // (§12.3.7.4 GR13 — the string is "de-edited from the data item when it is used as a sending item").
-        if (currencyString is not null && currencyString != currency.ToString())
-            image = CollapseCurrency(image, picture, currency, currencyString);
+        string rawPicture = picture;
         if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13) — digit POSITIONS are unchanged
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
         char currencyChar = char.ToUpperInvariant(currency);
@@ -393,24 +488,51 @@ public static partial class CobolEdit
             else if (p == currencyChar) cs++;
         }
         bool fixedPlus = plus == 1 && minus == 0, fixedMinus = minus == 1 && plus == 0, fixedCs = cs == 1;
+        int csWidth = currencyString is { Length: > 1 } ? currencyString.Length : 1;
 
         Int128 value = 0;
         bool negative = false;
-        for (int i = 0; i < pattern.Length && i < image.Length; i++)
+        // ⛔ THE PHYSICAL CURSOR. The mask's positions and the image's characters are 1:1 only while every symbol
+        // is one character wide; §13.18.40.4 GR14 gives TWO symbols a width of their own — the currency symbol
+        // ('cs', whose currency string "may have any length") and a PICTURE EDITING character-1 ('es', whose
+        // literal may be 50 characters, SR9) — so the walk advances the image by each symbol's own width. A
+        // symbol used with FIXED insertion is unconditionally that wide; a FLOATING one renders its string at
+        // exactly one occurrence, so its occurrences are tested against the string and the one that matches is
+        // the landing (the others are digit positions, rule 6). This replaces the search-and-collapse pass that
+        // served the currency string alone and could not have served the editing literal at all (kb/Work PB491).
+        int phys = 0;
+        for (int i = 0; i < pattern.Length && phys < image.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
-            char c = image[i];
-            // A user EDITING character-1 holds no digit; a sign-control (FOR) character-1 whose image char is its
-            // NEGATIVE literal recovers the sign (ISO §13.18.40.5 — the de-editing MOVE, §14.9.25.4 GR5).
-            if (edits is not null)
+            char c = image[phys];
+            // A user EDITING character-1 holds no digit while it renders its literal; a sign-control (FOR)
+            // character-1 whose image text is literal-2 recovers the sign (ISO §13.18.40.5 Table 8 / Table 9 —
+            // the de-editing MOVE, §14.9.25.4 GR5).
+            if (RuleFor(pattern[i], edits) is { } e)
             {
-                bool isChar1 = false;
-                foreach (var e in edits)
-                    if (p == char.ToUpperInvariant(e.Char1)) { isChar1 = true; if (e.Neg != e.Pos && c == e.Neg) negative = true; break; }
-                if (isChar1) continue;
+                int w = Math.Max(1, e.Width);
+                if (!e.Floating)
+                {
+                    if (e.Neg != e.Pos && Matches(image, phys, e.Neg)) negative = true;
+                    phys += w;
+                    continue;
+                }
+                if (Matches(image, phys, e.Neg)) { if (e.Neg != e.Pos) negative = true; phys += w; continue; }
+                if (Matches(image, phys, e.Pos)) { phys += w; continue; }
+                value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);   // a floating repetition — a digit position
+                phys++;
+                continue;
             }
+            if (p == currencyChar)
+            {
+                if (fixedCs) { phys += csWidth; continue; }
+                if (csWidth > 1 && Matches(image, phys, currencyString!)) { phys += csWidth; continue; }
+                value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0);
+                phys++;
+                continue;
+            }
+            phys++;
             bool digitPos = p is '9' or 'Z' or '*'
-                || (p == currencyChar && !fixedCs)
                 || (p == '+' && !fixedPlus)
                 || (p == '-' && !fixedMinus);
             if (digitPos) { value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0); continue; }
@@ -418,13 +540,17 @@ public static partial class CobolEdit
             else if (p == 'C' && c == 'C') negative = true;     // CR rendered (negative value)
             else if (p == 'D' && c == 'D') negative = true;     // DB rendered
         }
-        if (image.Contains('-')) negative = true;               // a floating minus landed inside its zone
+        // A floating minus landed inside its zone. ⛔ Gated on the mask actually HAVING a floating '-' — an
+        // ungated scan reads a '-' that belongs to a currency string or an EDITING literal as the item's sign.
+        if (minus > 1 && image.Contains('-')) negative = true;
         Int128 result = negative ? -value : value;
         if (ExceptionState.DataIncompatibleChecking)
         {
-            string expected = Format(result, MaskScale(picture, currency, commaMode: false), picture, blankWhenZero,
-                currency, commaMode: false, edits, currencyString);
-            if (commaMode) expected = SwapSeparators(expected);
+            // Re-edit through the PUBLIC entry with the ORIGINAL mask and flag: the comma swap belongs to the
+            // logical image (a currency string or an editing literal may itself hold a separator), so it is
+            // Format's to apply, never a swap over the physical result.
+            string expected = Format(result, MaskScale(picture, currency, commaMode: false, edits), rawPicture,
+                blankWhenZero, currency, commaMode, edits, currencyString);
             if (expected != physical)
                 ExceptionState.DataIncompatibleError(
                     $"the content '{physical}' is not a possible result of editing into {picture} (a de-editing MOVE, ISO 14.6.13.2 rule 4)");
@@ -452,60 +578,115 @@ public static partial class CobolEdit
         return true;
     }
 
-    // ── The multi-character currency string (§13.18.40.4 GR14; kb/Work PB60 / AR-15.68.3-3) ────────────────────
-    // The editing rules are written for a currency SYMBOL that occupies one logical position; the currency STRING
-    // it stands for may have any length (§12.3.7.3 r23). GR14 sizes the item so that the FIRST occurrence of the
-    // symbol contributes the whole string and every other occurrence one character — which is exactly "edit the
-    // logical image, then let the ONE rendered currency position expand". Fixed insertion: the string sits where
-    // the symbol sits (§13.18.40.5 r5). Floating insertion (r6a): the single rendered occurrence sits immediately
-    // before the first nonzero digit / the first non-floating position / the decimal point, so it expands there;
-    // a zero value under r6b renders NO currency at all ("all character positions will contain the space
-    // character"), so the physical image is all spaces at the physical width. The collapse is the inverse.
+    // ── THE VARIABLE-WIDTH SYMBOLS (§13.18.40.4 GR14; kb/Work PB60 / AR-15.68.3-3, PB491) ─────────────────────
+    // The editing rules of §13.18.40.5 are written for symbols that each occupy ONE character position, and two
+    // symbols do not: the currency symbol, whose currency string "may have any length" (§12.3.7.3 r23), and a
+    // PICTURE EDITING character-1, whose literal may be 50 characters (§13.18.40.3 SR9). Both are handled the
+    // same way and in one place — edit the LOGICAL image (one position per symbol, so every editing rule reads
+    // as written), then let Materialize give each symbol the width GR14 gives it. DeEdit walks the same widths
+    // in reverse. Nothing else in this file knows that a symbol can be wider than one character.
 
-    /// <summary>Logical → physical: the ONE rendered currency character (there is at most one — fixed insertion
-    /// renders the symbol once, floating insertion lands it once) becomes the whole string; an image with no
-    /// currency character (a floating zero, or BLANK WHEN ZERO) is padded to the physical width with leading
-    /// spaces — every position is a space either way.</summary>
-    private static string ExpandCurrency(string logical, char currency, string currencyString)
+    /// <summary>⭐ LOGICAL → PHYSICAL, the ONE place a picture symbol wider than one character position is
+    /// written out. <paramref name="placed"/> is null when no symbol is wide, and then the logical image IS the
+    /// physical one — an ordinary program pays nothing for this.
+    /// <para>The widths are ISO §13.18.40.4 GR14's own:</para>
+    /// <list type="bullet">
+    ///   <item><b>cs</b> — "The first occurrence of the currency symbol adds the number of characters in the
+    ///     currency string to the size of the item. Each subsequent occurrence of the currency symbol adds one."
+    ///     Fixed insertion renders the string once, at the symbol's position; floating insertion lands it once,
+    ///     wherever rule 6 a) put it, and the other occurrences are digit positions one character wide.</item>
+    ///   <item><b>es</b> — "If character-1 is a simple insertion symbol or a fixed insertion symbol, the size of
+    ///     literal-1 is counted in the size of the item. … For extended editing sign control symbols with fixed
+    ///     insertion, each occurrence of the character(s) specified in the associated literal are counted in the
+    ///     size of the item. For floating inserting, one occurrence of literal-2 or literal-3 is counted in the
+    ///     size of the item plus one character for each repetition of character-1." So a NON-floating
+    ///     character-1 is literal-wide at EVERY occurrence — including one the zero-suppression walk overwrote,
+    ///     which then carries that many replacement characters — and a floating one is literal-wide at exactly
+    ///     the occurrence it landed on.</item>
+    /// </list>
+    /// <para>When a floating symbol never landed — §13.18.40.5 rule 6 b)'s zero value, or a BLANK WHEN ZERO
+    /// image — "all character positions will contain the space character", so the item's own width is still
+    /// owed: the FIRST occurrence carries it, and every position is a space either way. This is the shape the
+    /// currency string had alone (kb/Work PB60), generalized so the EDITING literal of §13.18.40.3 SR9 — up to
+    /// 50 characters, and Annex D.24's own examples — renders by the same mechanism (kb/Work PB491).</para>
+    /// </summary>
+    private static string Materialize(string pattern, char[] logical, bool[]? placed, EditRule[]? edits,
+        char currency, string? currencyString, bool negative)
     {
-        int idx = logical.IndexOf(char.ToUpperInvariant(currency));
-        if (idx < 0) idx = logical.IndexOf(char.ToLowerInvariant(currency));
-        if (idx < 0) return new string(' ', currencyString.Length - 1) + logical;
-        return string.Concat(logical.AsSpan(0, idx), currencyString, logical.AsSpan(idx + 1));
+        if (placed is null) return new string(logical);
+        char currencyChar = char.ToUpperInvariant(currency);
+        bool wideCurrency = currencyString is not null && currencyString != currency.ToString();
+        // One pre-pass over the mask: each wide symbol's FIRST occurrence, and whether any occurrence of it
+        // rendered its string — the two facts the per-position decision needs, so the walk stays linear.
+        int firstCurrency = -1;
+        bool anyCurrencyPlaced = false;
+        var firstChar1 = new Dictionary<char, int>(2);
+        var char1Placed = new HashSet<char>(2);
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (wideCurrency && p == currencyChar)
+            {
+                if (firstCurrency < 0) firstCurrency = i;
+                if (placed[i]) anyCurrencyPlaced = true;
+            }
+            else if (RuleFor(pattern[i], edits) is { Width: > 1 })
+            {
+                firstChar1.TryAdd(p, i);
+                if (placed[i]) char1Placed.Add(p);
+            }
+        }
+        var sb = new System.Text.StringBuilder(logical.Length + 16);
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (wideCurrency && p == currencyChar)
+            {
+                if (placed[i]) sb.Append(currencyString);
+                else if (i == firstCurrency && !anyCurrencyPlaced) sb.Append(logical[i], currencyString!.Length);
+                else sb.Append(logical[i]);
+                continue;
+            }
+            if (RuleFor(pattern[i], edits) is { Width: > 1 } e)
+            {
+                if (placed[i]) sb.Append(negative ? e.Neg : e.Pos);
+                else if (!e.Floating || (i == firstChar1[p] && !char1Placed.Contains(p))) sb.Append(logical[i], e.Width);
+                else sb.Append(logical[i]);
+                continue;
+            }
+            sb.Append(logical[i]);
+        }
+        return sb.ToString();
     }
 
-    /// <summary>Physical → logical, for de-editing (the inverse of <see cref="ExpandCurrency"/>): a FIXED currency
-    /// symbol's string sits at the symbol's own mask position; a FLOATING string is wherever it landed — the first
-    /// occurrence of the string in the image (§12.3.7.3 r23 keeps digits, the sign characters and the separators
-    /// out of a currency string, and the mask's insertion characters cannot spell it inside its own zone); an image
-    /// holding no string (a floating zero) simply drops the extra leading spaces.</summary>
-    private static string CollapseCurrency(string image, string picture, char currency, string currencyString)
+    /// <summary>Does the image carry <paramref name="text"/> at <paramref name="at"/>? An empty literal matches
+    /// nothing, so a degenerate EDITING literal cannot swallow the walk.</summary>
+    private static bool Matches(string image, int at, string text)
+        => text.Length > 0 && at + text.Length <= image.Length
+           && string.CompareOrdinal(image, at, text, 0, text.Length) == 0;
+
+    /// <summary>Is any EDITING literal wider than the one character position the logical image gives it
+    /// (§13.18.40.4 GR14 'es')? The whole variable-width path is skipped when none is.</summary>
+    private static bool HasWideLiteral(EditRule[]? edits)
     {
-        char currencyChar = char.ToUpperInvariant(currency);
-        string pattern = picture.Replace("V", "").Replace("P", "");
-        int occurrences = 0, fixedPos = -1;
-        for (int i = 0; i < pattern.Length; i++)
-            if (char.ToUpperInvariant(pattern[i]) == currencyChar) { occurrences++; fixedPos = i; }
-        if (occurrences == 0) return image;
-        int extra = currencyString.Length - 1;
-        int idx = occurrences == 1 && fixedPos + currencyString.Length <= image.Length
-                  && string.CompareOrdinal(image, fixedPos, currencyString, 0, currencyString.Length) == 0
-            ? fixedPos
-            : image.IndexOf(currencyString, StringComparison.Ordinal);
-        if (idx < 0)
-        {
-            // No string rendered (a floating zero under r6b, or a BLANK WHEN ZERO image): drop the extra spaces.
-            int drop = Math.Min(extra, image.Length);
-            return image[drop..];
-        }
-        return string.Concat(image.AsSpan(0, idx), currencyChar.ToString(), image.AsSpan(idx + currencyString.Length));
+        if (edits is null) return false;
+        foreach (var e in edits) if (e.Width > 1) return true;
+        return false;
+    }
+
+    private static char[] Filled(char c, int n)
+    {
+        var a = new char[n];
+        Array.Fill(a, c);
+        return a;
     }
 
     /// <summary>The mask's total digit-position capacity (9/Z/* plus floating-string members, less the ONE
     /// position the floating symbol itself occupies) and its fraction scale — the §14.7.5 size-error bound.
     /// Mirrors <see cref="Format"/>'s prologue exactly. Public so the compiler can reuse the ONE canonical
     /// edited digit-position count for the HIGHEST/LOWEST-ALGEBRAIC PICTURE fold (§15.43/§15.58; singular-pattern).</summary>
-    public static (int Capacity, int FracDigits) MaskCapacity(string picture, char currency = '$', bool commaMode = false)
+    public static (int Capacity, int FracDigits) MaskCapacity(string picture, char currency = '$', bool commaMode = false,
+        EditRule[]? edits = null)
     {
         if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13)
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
@@ -520,6 +701,7 @@ public static partial class CobolEdit
         }
         bool fixedPlus = plus == 1 && minus == 0, fixedMinus = minus == 1 && plus == 0, fixedCs = cs == 1;
         int digits = 0;
+        bool floatingChar1 = false;
         foreach (char raw in pattern)
         {
             char p = char.ToUpperInvariant(raw);
@@ -527,16 +709,21 @@ public static partial class CobolEdit
             else if (p == currencyChar && !fixedCs) digits++;
             else if (p == '+' && !fixedPlus) digits++;
             else if (p == '-' && !fixedMinus) digits++;
+            // A FLOATING extended editing sign control symbol's repetitions are digit positions (§13.18.40.5
+            // rule 6) — the same footing as a floating currency symbol's, and the same footing the analyzer's
+            // own DigitPositions count gives them (kb/Work PB491).
+            else if (RuleFor(raw, edits) is { Floating: true }) { digits++; floatingChar1 = true; }
         }
-        bool hasFloating = cs > 1 || plus > 1 || minus > 1;
+        bool hasFloating = cs > 1 || plus > 1 || minus > 1 || floatingChar1;
         return (hasFloating ? digits - 1 : digits,
-                FractionDigits(picture, currencyChar, fixedCs, fixedPlus, fixedMinus));
+                FractionDigits(picture, currencyChar, fixedCs, fixedPlus, fixedMinus, edits));
     }
 
     /// <summary>The mask's fraction scale — digit positions right of the point (<c>V</c> or <c>.</c>). Public so
     /// the compiler can fold the working scale of an edited RECEIVER at emit time (a quotient/ROUNDED result must
     /// be computed and rounded AT this scale before editing, ISO §14.7.4/§14.7.7).</summary>
-    public static int MaskScale(string picture, char currency = '$', bool commaMode = false)
+    public static int MaskScale(string picture, char currency = '$', bool commaMode = false,
+        EditRule[]? edits = null)
     {
         if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13) — the comma IS the decimal position
         char currencyChar = char.ToUpperInvariant(currency);
@@ -553,8 +740,14 @@ public static partial class CobolEdit
 
     /// <summary>Digit positions to the right of the point — the <c>V</c> in the picture, or the <c>.</c> insertion
     /// character (only one of the two may appear, ISO §13.18.40.3).</summary>
-    private static int FractionDigits(string picture, char currencyChar, bool fixedCs, bool fixedPlus, bool fixedMinus)
+    private static int FractionDigits(string picture, char currencyChar, bool fixedCs, bool fixedPlus,
+        bool fixedMinus, EditRule[]? edits = null)
     {
+        // A FLOATING extended editing sign control symbol is a digit position on exactly the same footing as a
+        // floating currency symbol (§13.18.40.5 rule 6 — the same sentence lists both among the floating
+        // insertion symbols), and §13.18.40.3 SR29 allows a floating string to reach past the decimal point, so
+        // it counts in both branches below (kb/Work PB491).
+        bool FloatingChar1(char c) => RuleFor(c, edits) is { Floating: true };
         // PICTURE P scaling positions (§13.18.40.3): trailing P → a NEGATIVE mask scale (the value is a multiple
         // of 10^P — PIC ZZZPP aligns 900 to unscaled 9, NC124A PICTURE-TEST-30); leading P → every digit position
         // is fractional (scale = P-count + digit positions). P never coexists with V-fraction digits.
@@ -570,7 +763,8 @@ public static partial class CobolEdit
         {
             string up = picture.ToUpperInvariant();
             bool IsDigitPos(char c) => c is '9' or 'Z' or '*'
-                || (c == currencyChar && !fixedCs) || (c == '+' && !fixedPlus) || (c == '-' && !fixedMinus);
+                || (c == currencyChar && !fixedCs) || (c == '+' && !fixedPlus) || (c == '-' && !fixedMinus)
+                || FloatingChar1(c);
             int lastDigitPos = -1, digitPositions = 0;
             bool sawFloating = false;
             for (int i = 0; i < up.Length; i++)
@@ -595,6 +789,7 @@ public static partial class CobolEdit
             else if (p == currencyChar && !fixedCs) n++;
             else if (p == '+' && !fixedPlus) n++;
             else if (p == '-' && !fixedMinus) n++;
+            else if (FloatingChar1(picture[i])) n++;
             else if (p is 'C' or 'D') break;   // CR/DB
         }
         return n;
@@ -627,12 +822,29 @@ public static partial class CobolEdit
     /// are the very characters this method writes.</para></summary>
     public static string FormatSimpleInsertion(string source, string picture, EditRule[]? edits = null)
     {
-        var output = new char[picture.Length];
+        // The common case — every symbol one character position wide — writes straight into a char[].
+        if (!HasWideLiteral(edits))
+        {
+            var output = new char[picture.Length];
+            int n = 0;
+            for (int i = 0; i < picture.Length; i++)
+                output[i] = TrySimpleInsertion(picture[i], edits, out char ins) ? ins
+                    : n < source.Length ? source[n++] : ' ';
+            return new string(output);
+        }
+        // A multi-character literal-1: §13.18.40.4 GR14 'es' — "If character-1 is a simple insertion symbol …
+        // the size of literal-1 is counted in the size of the item" — so the position is literal-1 wide, at
+        // EVERY occurrence, and `PIC XXTXX EDITING "T" IS "::"` is a SIX-character item rendering `AB::CD`
+        // (kb/Work PB491; the size half is the lead appended to that note from the PB492 report).
+        var sb = new System.Text.StringBuilder(picture.Length + 16);
         int si = 0;
         for (int i = 0; i < picture.Length; i++)
-            output[i] = TrySimpleInsertion(picture[i], edits, out char ins) ? ins
-                : si < source.Length ? source[si++] : ' ';
-        return new string(output);
+        {
+            if (RuleFor(picture[i], edits) is { } e) { sb.Append(e.Pos); continue; }   // rule 3 is sign-independent
+            if (TrySimpleInsertion(picture[i], edits, out char ins)) { sb.Append(ins); continue; }
+            sb.Append(si < source.Length ? source[si++] : ' ');
+        }
+        return sb.ToString();
     }
 
     /// <summary>The rightmost suppressed position within a floating symbol's string — its own occurrences plus the

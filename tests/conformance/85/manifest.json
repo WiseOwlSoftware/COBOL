@@ -1,5 +1,6 @@
 {
  "enabled": [
+  "pb531_picture_repetition_factor",
   "pb536_code_set_group_sign",
   "pb413_go_to_out_of_inline_perform",
   "pb466_procedure_name_uniqueness",

@@ -26,7 +26,7 @@ public class CobolEditSimpleInsertionDriftTests
 {
     /// <summary>An IS-form PICTURE EDITING phrase (§13.18.40.3 SR12 "If literal-1 is specified") — rule 3's
     /// fifth simple insertion symbol, which is why it is enumerated beside the four fixed ones.</summary>
-    private static readonly CobolEdit.EditRule[] IsForm = [new('T', ':', ':', SimpleInsertion: true)];
+    private static readonly CobolEdit.EditRule[] IsForm = [new('T', ":", ":", SimpleInsertion: true, Floating: false)];
 
     /// <summary>Every simple insertion symbol of a picture, with the character it inserts (§13.18.40.4 GR14:
     /// 'B' the space, '0' the zero, '/' the slant, ',' the comma; rule 3: character-1 inserts literal-1) and the
@@ -118,7 +118,7 @@ public class CobolEditSimpleInsertionDriftTests
             Assert.Equal(s is not ',', CobolEdit.IsEditedCategorySymbol(s));
         foreach (char s in "9ZAXSVPEN1CD$+-*.") Assert.False(CobolEdit.IsEditedCategorySymbol(s), $"'{s}' is not");
         // A DECLARED PICTURE EDITING character-1 is a member at both GR7 and GR10 — the leg the two hand-written
-        // literal lists left out, which refused `PIC NNTNN EDITING "T" IS N":"` as an invalid PICTURE.
+        // literal lists left out, which refused `PIC NNTNN EDITING T IS N":"` as an invalid PICTURE.
         Assert.True(CobolEdit.IsEditedCategorySymbol('T', new HashSet<char> { 'T' }));
         Assert.True(CobolEdit.IsEditedCategorySymbol('t', new HashSet<char> { 'T' }));   // §8.1.3 GR3 case equivalence
         Assert.False(CobolEdit.IsEditedCategorySymbol('T'));
@@ -169,7 +169,7 @@ public class CobolEditSimpleInsertionDriftTests
         // is that form (§13.18.40.3 SR12), so it is NOT part of the 'Z' string beside it — and the distinction
         // is not readable off the rendered characters: this phrase renders ':' for either sign, exactly like the
         // IS form, and only the FORM separates them.
-        CobolEdit.EditRule[] forForm = [new('U', ':', ':', SimpleInsertion: false)];
+        CobolEdit.EditRule[] forForm = [new('U', ":", ":", SimpleInsertion: false, Floating: false)];
         Assert.Equal(" :5", CobolEdit.Format(5, 0, "ZU9", edits: forForm));
         Assert.Equal("  5", CobolEdit.Format(5, 0, "ZT9", edits: IsForm));
     }

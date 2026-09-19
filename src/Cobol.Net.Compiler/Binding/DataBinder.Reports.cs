@@ -937,7 +937,8 @@ public sealed partial class DataBinder
                 else if (clause.pictureClause()?.PIC_STRING() is { } pic)
                 {
                     picText = pic.GetText();
-                    reportEditing = BuildEditingSpecs(clause.pictureClause());
+                    reportEditing = BuildEditingSpecs(clause.pictureClause(),
+                        $"report group entry '{entryName ?? "FILLER"}'");
                     // PICTURE format 2 in a REPORT GROUP entry (§13.15.4 GR2 imports the PICTURE clause's own
                     // rules, so format 2 is LEGAL here; kb/Work PB113 — this arm used to ignore the phrase and
                     // analyze the picture as format 1: a silent wrong answer). One analyzer, three callers. ⛔ Do

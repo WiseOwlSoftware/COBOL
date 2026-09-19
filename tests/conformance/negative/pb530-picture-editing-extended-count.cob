@@ -18,8 +18,8 @@
        PROGRAM-ID. PB530PXC.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 PX01 PIC 9L9F9G EDITING "L" FOR NEGATIVE IS "("
-                          EDITING "F" FOR NEGATIVE IS ")"
-                          EDITING "G" FOR NEGATIVE IS "]".
+       01 PX01 PIC 9L9F9G EDITING L FOR NEGATIVE IS "("
+                          EDITING F FOR NEGATIVE IS ")"
+                          EDITING G FOR NEGATIVE IS "]".
        PROCEDURE DIVISION.
            STOP RUN.

@@ -22,9 +22,9 @@
       *> insertion symbol or a fixed insertion symbol, the size of literal-1 is counted in the size of
       *> the item" - one character here, so each character-1 occurrence is ONE position.
       *>
-      *>   NET   NNTNN      EDITING "T" IS N":" <- N"ABCD" => A B [:] C D       = "AB:CD"  (5)
-      *>   NETM  NTNBN      EDITING "T" IS N"-" <- N"ABC"  => A [-] B [space] C = "A-B C"  (5)
-      *>   NET2  N(2)TN(2)  EDITING "T" IS N"/" <- N"ABCD" => A B [/] C D       = "AB/CD"  (5)
+      *>   NET   NNTNN      EDITING T IS N":" <- N"ABCD" => A B [:] C D       = "AB:CD"  (5)
+      *>   NETM  NTNBN      EDITING T IS N"-" <- N"ABC"  => A [-] B [space] C = "A-B C"  (5)
+      *>   NET2  N(2)TN(2)  EDITING T IS N"/" <- N"ABCD" => A B [/] C D       = "AB/CD"  (5)
       *> NETM is the mixed leg: GR10's two ways of being national-edited stand in ONE picture, and rule
       *> 3 treats character-1 and 'B' identically - each occupies its own position and inserts its own
       *> character.
@@ -32,9 +32,9 @@
        PROGRAM-ID. PB492NED.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 NET      PIC NNTNN EDITING "T" IS N":".
-       01 NETM     PIC NTNBN EDITING "T" IS N"-".
-       01 NET2     PIC N(2)TN(2) EDITING "T" IS N"/".
+       01 NET      PIC NNTNN EDITING T IS N":".
+       01 NETM     PIC NTNBN EDITING T IS N"-".
+       01 NET2     PIC N(2)TN(2) EDITING T IS N"/".
        PROCEDURE DIVISION.
        MAIN.
            MOVE N"ABCD" TO NET

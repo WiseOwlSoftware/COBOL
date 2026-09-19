@@ -389,7 +389,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         }
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
-            int ms = RuntimeApi.MaskScale(mask, '$', ctx.Data.DecimalPointIsComma);
+            int ms = RuntimeApi.MaskScale(target.Item.Pic!, mask, '$', ctx.Data.DecimalPointIsComma);
             // The narrowing rescale: under ON SIZE ERROR / EC-SIZE, a PROHIBITED-inexact transfer to an edited
             // receiver is a size error (ISO §14.7.4.3 r7 — the receiver stays UNCHANGED). The Dec path's
             // .ToUnscaled and the numeric path's TryStore already throw/flag on that; the Int128 edited path used

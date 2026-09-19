@@ -28,9 +28,9 @@
        PROGRAM-ID. PB530POR.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 PO01 PIC F999.99L EDITING "L" FOR NEGATIVE IS "("
-                            EDITING "F" FOR NEGATIVE IS ")".
-       01 PO02 PIC 9L9F EDITING "F" FOR NEGATIVE IS "("
-                        EDITING "L" FOR NEGATIVE IS ")".
+       01 PO01 PIC F999.99L EDITING L FOR NEGATIVE IS "("
+                            EDITING F FOR NEGATIVE IS ")".
+       01 PO02 PIC 9L9F EDITING F FOR NEGATIVE IS "("
+                        EDITING L FOR NEGATIVE IS ")".
        PROCEDURE DIVISION.
            STOP RUN.

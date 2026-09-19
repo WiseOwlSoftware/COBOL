@@ -60,6 +60,17 @@ public sealed class PictureCategoryDriftTests
         return (pic, ed.Diagnostics.ToArray());
     }
 
+    /// <summary>The repeat expansion of a character-string this walk has already ACCEPTED, so ISO §13.18.40.3
+    /// SR6's factor validation (kb/Work PB531) cannot fail here — the assert is the drift guard that says
+    /// so.</summary>
+    private static string Expand(string picture)
+    {
+        var ed = new EditionContext(2023);
+        Assert.True(PictureAnalyzer.TryExpandRepeats(picture, ed, "data item 'T'", out string expanded),
+            $"PIC {picture} was accepted by Analyze but its repetition factors do not expand");
+        return expanded;
+    }
+
     /// <summary>Every accepted character-string of one, two or three symbols, plus the shapes that need more.
     /// 19^1 + 19^2 + 19^3 = 7 239 strings walked; the accepted ones are what the two properties bind.</summary>
     public static IEnumerable<string> EveryShortPicture()
@@ -136,7 +147,7 @@ public sealed class PictureCategoryDriftTests
         {
             var (pic, diags) = Analyze(picture);
             if (diags.Length > 0) continue;               // rejected, or staged — not part of the accepted set
-            string? why = CategoryAntecedent(pic, PictureAnalyzer.ExpandRepeats(picture));
+            string? why = CategoryAntecedent(pic, Expand(picture));
             if (why is not null) wrong.Add($"PIC {picture} → {Describe(pic)}: {why}");
         }
         Assert.True(wrong.Count == 0,
@@ -153,7 +164,7 @@ public sealed class PictureCategoryDriftTests
         {
             var (pic, diags) = Analyze(picture);
             if (diags.Length > 0) continue;
-            string expanded = PictureAnalyzer.ExpandRepeats(picture);
+            string expanded = Expand(picture);
             // §13.18.40.4 GR4 with GR14: every symbol represents a character position except 'P', 'V', and 'S'
             // without SIGN SEPARATE. The currency string is the default one character here, so GR14's
             // "the first occurrence adds the number of characters in the currency string" adds nothing.

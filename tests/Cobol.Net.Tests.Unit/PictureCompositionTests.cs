@@ -203,7 +203,7 @@ public sealed class PictureCompositionTests
     [InlineData("999", '\0', 0)]
     public void AFloatingStringIsAdjacency_NotACount(string expanded, char symbol, int occurrences)
         => Assert.Equal((symbol, occurrences),
-            PictureComposition.FloatingString(expanded, '$', new HashSet<char>(), '.', ','));
+            PictureComposition.FloatingString(expanded, '$', new HashSet<char>(), new HashSet<char>(), '.', ','));
     /// <summary>
     /// ⛔ THE SCALE GATE. §13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN, which
     /// <c>PIC X(30000)</c> obeys — so <c>ExpandRepeats</c> hands the composition validator a 30 000-SYMBOL

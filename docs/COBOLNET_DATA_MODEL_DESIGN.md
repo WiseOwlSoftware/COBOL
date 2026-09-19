@@ -1458,6 +1458,52 @@ shape SR12 a) names as sufficient. So character-1 constrains no neighbour in the
 SR8–SR12 / SR25 / SR26 in `PictureAnalyzer.ValidateEditing`. Golden
 `2023/pb528_picture_editing_transparency_2023` holds the determination.
 
+**character-1 IS WRITTEN BARE, and its render is VARIABLE-WIDTH (kb/Work PB568, PB491).** The Format 1 general
+format — re-rendered from the canonical PDF, printed page 441 — is `EDITING character-1 { IS literal-1 | FOR {
+NEGATIVE IS literal-2 | POSITIVE IS literal-3 } }`: character-1 carries **no quotation marks** and is named
+character-1 exactly as character-string-1 is, while literal-1/-2/-3 are named as literals. §13.18.40.3 SR8 types
+it as a basic letter, §13.18.40.4 GR14 ('es') and §13.18.40.5 rule 3 make it a PICTURE SYMBOL occurring in
+character-string-1, and SR9 — the rule that types the phrase's literals — enumerates only literal-1/-2/-3. The
+grammar used to DEMAND the quoted spelling, so every conforming EDITING phrase was a parse error and SR8/SR10/SR11
+were reachable only through a spelling the standard does not define; `editingPhrase` now reads
+`EDITING ( cobolWord | literal ) …` and the quoted spelling draws the named **COBOLNET2149** at bind
+(parse-wide/bind-narrow), never an ANTLR syntax error.
+
+Two shapes of the phrase used to be STAGED LOUD (COBOLNET0899) although Annex D.24 demonstrates both, and they
+are now rendered. A literal may be 50 characters (SR9) and §13.18.40.5 rule 6's first sentence lists "the
+extended editing sign control symbols, if specified" among the FLOATING insertion symbols — so a FOR-phrase
+character-1 repeated twice or more is a floating string, exactly as `$$$` is. Two structural consequences:
+
+* `PictureComposition.MarkFloating` takes the FOR-phrase character-1 letters as floating CANDIDATES (they arrive
+  as their own set, `char1Extended`, because only the binder saw which form declared them); the IS-form letters
+  stay transparent per the paragraph above, since rule 3 makes those simple insertion symbols and rule 6's
+  "embedded … or to the immediate right" sentence is what absorbs them.
+* `CobolEdit` splits the render in two. `Render` produces the LOGICAL image — one character per picture SYMBOL,
+  which is the image every editing rule of §13.18.40.5 is written about — and `Materialize` gives each symbol the
+  width §13.18.40.4 GR14 gives it; `DeEdit` walks the same widths in reverse with a physical cursor. That is ONE
+  variable-width mechanism for the TWO symbols GR14 widens: the currency string ('cs') and the editing literal
+  ('es'). The search-based `ExpandCurrency`/`CollapseCurrency` pair that served the currency string alone is
+  DELETED. The size half is `PictureAnalyzer.EditingPositions`, the exact shape `currencyExtra` already had.
+
+Goldens `2023/pb491_editing_variable_width` (Annex D.24's own images and sizes) and
+`negative/pb568-editing-char1-quoted`, `negative/pb491-editing-unequal-literal-widths`.
+
+**The PICTURE character-string's own shape is screened before any symbol is read (kb/Work PB531, PB532).**
+§13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN — SR6's second sentence ("the length of the
+integer, not the length of the constant-name, is counted toward the maximum number of characters in
+character-string-1") is what fixes that reading, and it is what keeps `PIC X(30000)` legal — reported as
+**COBOLNET2146**. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
+unsigned nonzero integer": a sign, a zero, an empty or non-numeric factor and an unclosed parenthesis each draw
+**COBOLNET2147**, by the literal route and by the constant-name route alike, since
+`DataBinder.Constants.ExpandPicConstants` rewrites `(constant-name)` to `(integer)` in the source string and
+hands it to the same expander. The expansion is BOUNDED as it accumulates: past COBOL.NET's
+**⚠ implementor-defined maximum of 134 217 728 (2²⁷) character positions in one elementary item** — the standard
+sets none, SR4 bounding only the written string, SR14 only a numeric item's digit positions, and Annex A.1
+carrying no maximum-item-size item — the entry draws **COBOLNET2148**. Before this, `PIC X(-3)` left the binder
+as an unhandled `ArgumentOutOfRangeException` and `PIC X(2000000000)` as an `OutOfMemoryException`: a compiler
+crash with no diagnostic and no source location. PICTURE format 2's SIZE obeys the same cap (§13.18.40.4 GR17
+makes integer-1 a character-position count), asked at the one place the limit lives.
+
 **The extended editing sign control symbols are a SET, and two rules are stated over it (kb/Work PB530).** SR24's
 and SR25's SECOND sentences are the two the matrix cannot reach for the same reason the transparency exists, and
 neither is askable while validating ONE phrase — both are properties of the whole EDITING phrase LIST, so both

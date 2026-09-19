@@ -78,8 +78,28 @@ public static class PictureAnalyzer
             return PicInfo.Recovery();
         }
 
-        // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
-        string expanded = ExpandRepeats(picture);
+        // ── ISO §13.18.40.3 SR4 ── "The maximum number of characters allowed in character-string-1 is 63."
+        // The count is over character-string-1 AS WRITTEN — SR6's second sentence ("the length of the integer,
+        // not the length of the constant-name, is counted toward the maximum number of characters in
+        // character-string-1") fixes that reading, and it is already the form that reaches here:
+        // DataBinder.Constants.ExpandPicConstants has rewritten every `(constant-name)` to `(integer)` in the
+        // SOURCE string before Analyze sees it. Measured on the WRITTEN string, not the expansion, because the
+        // expanded reading would outlaw `PIC X(30000)` — four characters long (kb/Work PB532). A space is not a
+        // picture symbol (SR2), so the spaces ExpandRepeats skips are not characters OF character-string-1.
+        int written = picture.Count(c => c != ' ');
+        if (written > MaxPictureStringLength)
+        {
+            edition.Error(DiagnosticCatalog.PictureStringTooLong, $"{where}: character-string-1 is {written} "
+                + $"characters long — the maximum is {MaxPictureStringLength} (ISO §13.18.40.3 SR4; the count is "
+                + "over character-string-1 as WRITTEN, so a repetition factor counts as its own digits, not as "
+                + "the symbols it expands to)");
+            return PicInfo.Recovery();
+        }
+
+        // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99". Every
+        // repetition factor is VALIDATED here (§13.18.40.3 SR6) and the expansion is bounded, so no unchecked
+        // count reaches StringBuilder.Append (kb/Work PB531).
+        if (!TryExpandRepeats(picture, edition, where, out string expanded)) return PicInfo.Recovery();
 
         // The picture's currency symbol — the ONE member of the unit's CURRENCY SIGN SET it uses (§13.18.40.3
         // r24 fixed / r28 floating: a picture carries one currency symbol kind), or the legacy single symbol.
@@ -114,11 +134,16 @@ public static class PictureAnalyzer
                 hasEditingPhrase: editing is { Count: > 0 });
 
         // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
-        // single-character render rules. char1Set lets the SR2 whitelist admit the declared editing characters
-        // (else char-1 letters like 'L'/'T'/'G' would trip COBOLNET0808). The introduction gate below 2023 is fired
-        // by VersionConformancePass.ParseArm.VisitPictureClause; the render-staged forms (multi-character literal,
-        // floating character-1) raise COBOLNET0899 (P14 render GAP) here at ≥2023.
-        var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, out var char1Set);
+        // render rules. char1Set lets the SR2 whitelist admit the declared editing characters (else char-1
+        // letters like 'L'/'T'/'G' would trip COBOLNET0808); char1Extended is the FOR-phrase subset, which
+        // §13.18.40.5 rule 6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
+        // VersionConformancePass.ParseArm.VisitPictureClause.
+        var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs,
+            out var char1Set, out var char1Extended);
+        // §13.18.40.4 GR14 'es' — the character-1 positions' size beyond the one position each occupies in
+        // character-string-1 (kb/Work PB491). Computed once here, beside the currency widening, and added at
+        // every category arm a character-1 can reach.
+        int editingExtra = EditingPositions(expanded, editRules);
 
         // ── The §13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
         // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§13.18.40.4 GR14;
@@ -197,7 +222,7 @@ public static class PictureAnalyzer
         // message did — AND its guard was hiding a SILENT REJECTION, because an E-bearing picture that also
         // held N or '1' (`PIC NE`, `PIC 1E`) entered that block, matched neither message and returned Recovery
         // with NO diagnostic at all: `01 W PIC NE.` compiled clean as a 2-character item.
-        if (!PictureComposition.Validate(picture, expanded, cs, char1Set, blankWhenZero, decimalPointIsComma,
+        if (!PictureComposition.Validate(picture, expanded, cs, char1Set, char1Extended, blankWhenZero, decimalPointIsComma,
                 edition, where))
             return PicInfo.Recovery(expanded.Length);
 
@@ -228,7 +253,7 @@ public static class PictureAnalyzer
                 // (Table 10), so the exclusion takes nothing away here — that agreement is the point of asking
                 // ONE function rather than writing `expanded.Length` as a second reading of the same rule.
                 return new PicInfo(PicCategory.National, Usage.National,
-                    Length: CharacterPositions(expanded), Digits: 0, Scale: 0, Signed: false)
+                    Length: CharacterPositions(expanded, editingExtra: editingExtra), Digits: 0, Scale: 0, Signed: false)
                 { EditMask = nationalEdited ? expanded : null, EditingRules = nationalEdited ? editRules : null };
             }
             // Unreachable while Table 10 and GR9/GR10 agree — the matrix admits nothing else beside an 'N'. It
@@ -285,7 +310,7 @@ public static class PictureAnalyzer
         // ADJACENCY property, never a bare occurrence count. The count this once read made `PIC +999+` and
         // `PIC $999$` look like floating strings and silently answered a question the source never asked; both
         // are now SR24 errors, and the two readings can no longer disagree because there is only one.
-        var (floatChar, floatOcc) = PictureComposition.FloatingString(expanded, cs, char1Set,
+        var (floatChar, floatOcc) = PictureComposition.FloatingString(expanded, cs, char1Set, char1Extended,
             decimalPointIsComma ? ',' : '.', decimalPointIsComma ? '.' : ',');
         int floatingExtra = floatOcc >= 2 ? floatOcc - 1 : 0;
         bool IsDigitAnchor(char c) => c is '9' or 'Z' or '*' || (floatChar != '\0' && c == floatChar);
@@ -353,7 +378,7 @@ public static class PictureAnalyzer
             return new PicInfo(PicCategory.Alphanumeric, usage,
                 // GR4 through the ONE count (kb/Work PB535): this arm used to spell GR4 as a WHITELIST of the
                 // symbols it expected, which answered every other symbol by dropping it from the size.
-                Length: CharacterPositions(expanded),
+                Length: CharacterPositions(expanded, editingExtra: editingExtra),
                 Digits: 0, Scale: 0, Signed: false)
             { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A'),
               EditingRules = editRules };
@@ -376,7 +401,7 @@ public static class PictureAnalyzer
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: CharacterPositions(expanded, currencyExtra), Digits: digits, Scale: scale, Signed: signed)
+                Length: CharacterPositions(expanded, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: signed)
             { SignKind = signKind, EditMask = CanonicalCurrencyMask(expanded, cs), EditingRules = editRules, DigitPositions = digitPos,
               CurrencyString = currencyString == "$" ? null : currencyString };
 
@@ -560,14 +585,88 @@ public static class PictureAnalyzer
     /// currency symbol adds one" — i.e. the occurrences are already counted one apiece above, and this is the
     /// first one's string length minus that one. Zero for a one-character currency string and for every category
     /// whose symbols Table 10 will not let stand beside a currency symbol.</param>
-    internal static int CharacterPositions(string expanded, int currencyExtra = 0)
-        => expanded.Count(c => c is not ('P' or 'S' or 'V')) + currencyExtra;
+    /// <param name="editingExtra">GR14's 'es' widening — <see cref="EditingPositions"/>.</param>
+    internal static int CharacterPositions(string expanded, int currencyExtra = 0, int editingExtra = 0)
+        => expanded.Count(c => c is not ('P' or 'S' or 'V')) + currencyExtra + editingExtra;
 
-    /// <summary>Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased).</summary>
-    internal static string ExpandRepeats(string picture)
+    /// <summary>⛔ ISO §13.18.40.4 GR14's 'es' entry — the PICTURE EDITING character-1's contribution to the
+    /// item's SIZE, which is the literal's width and not the one character position the symbol occupies in
+    /// character-string-1. <see cref="CharacterPositions"/> has already counted each occurrence once, so this is
+    /// the REMAINDER, exactly as <c>currencyExtra</c> is for the currency string:
+    /// <list type="bullet">
+    ///   <item>"If character-1 is a simple insertion symbol or a fixed insertion symbol, the size of literal-1 is
+    ///     counted in the size of the item" — the IS form, at EVERY occurrence;</item>
+    ///   <item>"For extended editing sign control symbols with fixed insertion, each occurrence of the
+    ///     character(s) specified in the associated literal are counted in the size of the item" — the FOR form
+    ///     with a single occurrence;</item>
+    ///   <item>"For floating inserting, one occurrence of literal-2 or literal-3 is counted in the size of the
+    ///     item plus one character for each repetition of character-1" — the FOR form with two or more, where
+    ///     exactly ONE occurrence is literal-wide and the rest are one character apiece.</item>
+    /// </list>
+    /// <para>Annex D.24 states the arithmetic for the floating case outright: <c>PIC LLLL9,88 EDITING "L" FOR
+    /// NEGATIVE IS "DEBIT "</c> "would result in an item size of 13 characters: 6 for the first 'L', 3 for the
+    /// next three, and 4 for the numbers". Before kb/Work PB491 the count was the bare occurrence count, which
+    /// is why the appended PB492 lead measured <c>PIC NNTNN EDITING "T" IS N"::"</c> at LENGTH 5 where GR14
+    /// gives 6.</para></summary>
+    private static int EditingPositions(string expanded, IReadOnlyList<CobolEdit.EditRule>? rules)
+    {
+        if (rules is null) return 0;
+        int extra = 0;
+        foreach (var r in rules)
+        {
+            if (r.Width == 1) continue;
+            char c1 = char.ToUpperInvariant(r.Char1);
+            int occ = 0;
+            foreach (char c in expanded) if (char.ToUpperInvariant(c) == c1) occ++;
+            if (occ == 0) continue;
+            extra += (r.SimpleInsertion ? occ : 1) * (r.Width - 1);
+        }
+        return extra;
+    }
+
+    /// <summary>ISO §13.18.40.3 SR4 — "The maximum number of characters allowed in character-string-1 is 63."
+    /// Measured on character-string-1 AS WRITTEN (kb/Work PB532); see <see cref="Analyze"/>'s prologue.</summary>
+    internal const int MaxPictureStringLength = 63;
+
+    /// <summary>⚠ THE IMPLEMENTOR-DEFINED MAXIMUM number of character positions in one elementary item. The
+    /// standard sets none: §13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only a numeric
+    /// or fixed-point numeric-edited item's DIGIT positions (1 through 31), and Annex A.1 carries no
+    /// maximum-item-size item, so an alphanumeric, alphabetic, national or boolean string is unbounded by the
+    /// standard. 2^27 is the largest power of two whose UTF-16 image — two bytes per character position, for
+    /// alphanumeric and national alike — stays inside .NET's single-object ceiling; past it the expansion used
+    /// to die with an OutOfMemoryException instead of naming the source line (kb/Work PB531).</summary>
+    internal const int MaxCharacterPositions = 1 << 27;
+
+    /// <summary>
+    /// Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased), VALIDATING every factor
+    /// against ISO §13.18.40.3 SR6 — "An unsigned nonzero integer that is enclosed in parentheses indicates the
+    /// number of consecutive occurrences of the symbol that immediately precedes the left parenthesis. The
+    /// integer may be specified by a constant-name, in which case the length of the integer, not the length of
+    /// the constant-name, is counted toward the maximum number of characters in character-string-1."
+    /// <para>⛔ THIS IS THE ONE PLACE A REPETITION FACTOR IS READ, and it is why it validates rather than
+    /// parses. Both spellings of the factor arrive here: the literal one, and the constant-name one that
+    /// <c>DataBinder.Constants.ExpandPicConstants</c> rewrites to <c>(integer)</c> in the SOURCE string before
+    /// calling <see cref="Analyze"/> — the two-arm shape (kb/Work PB531), where the constant arm was added
+    /// without re-deriving the factor's own syntax rule, so both arms inherited the hole. The factor used to be
+    /// read with a bare <c>int.TryParse</c> (which accepts a LEADING SIGN and zero, and whose FAILURE on an
+    /// overflowing factor silently fell through to "these are ordinary picture characters", reporting SR2's
+    /// invalid-symbol '(' instead of the rule that was broken) and fed straight to
+    /// <c>StringBuilder.Append(char, int)</c>: <c>PIC X(-3)</c> left the binder as an unhandled
+    /// <c>ArgumentOutOfRangeException</c> and <c>PIC X(2000000000)</c> as an <c>OutOfMemoryException</c> — a
+    /// compiler crash with no diagnostic and no source location, by either arm.</para>
+    /// <para>A '(' can never be anything BUT a repetition factor's left parenthesis: it is not a picture symbol
+    /// (SR2), and §12.3.7.3 SR27 c) excludes '(' and ')' from literal-8, so no CURRENCY SIGN clause can make one
+    /// a currency symbol either. That is what lets an unclosed or unparsable factor be reported as the SR6
+    /// violation it is instead of being handed on as ordinary text.</para>
+    /// </summary>
+    /// <returns><see langword="false"/> when a factor violates SR6 or the expansion would exceed
+    /// <see cref="MaxCharacterPositions"/>; the diagnostic has been reported and the caller recovers.</returns>
+    internal static bool TryExpandRepeats(string picture, EditionContext edition, string where,
+        out string expanded)
     {
         var sb = new System.Text.StringBuilder();
         string p = picture.ToUpperInvariant();
+        expanded = "";
         for (int i = 0; i < p.Length; i++)
         {
             char c = p[i];
@@ -575,33 +674,79 @@ public static class PictureAnalyzer
             if (i + 1 < p.Length && p[i + 1] == '(')
             {
                 int close = p.IndexOf(')', i + 2);
-                if (close > 0 && int.TryParse(p[(i + 2)..close], out int n))
+                string factor = close > 0 ? p[(i + 2)..close] : p[(i + 2)..];
+                if (!TryRepetitionFactor(factor, close > 0, out int n))
                 {
-                    sb.Append(c, n);
-                    i = close;
-                    continue;
+                    edition.Error(DiagnosticCatalog.PictureRepetitionFactor, $"{where}: the repetition factor "
+                        + $"'({factor}{(close > 0 ? ")" : "")}' after the symbol '{c}' in PICTURE {picture} is not "
+                        + "an unsigned nonzero integer (ISO §13.18.40.3 SR6)");
+                    return false;
                 }
+                if ((long)sb.Length + n > MaxCharacterPositions)
+                {
+                    ReportTooLarge(edition, where, picture, (long)sb.Length + n);
+                    return false;
+                }
+                sb.Append(c, n);
+                i = close;
+                continue;
             }
+            if (sb.Length + 1 > MaxCharacterPositions) { ReportTooLarge(edition, where, picture, sb.Length + 1L); return false; }
             sb.Append(c);
         }
-        return sb.ToString();
+        expanded = sb.ToString();
+        return true;
     }
 
-    /// <summary>Validate the PICTURE EDITING phrases (ISO §13.18.40.3 SR8–SR12; COBOL-2023) and build the
-    /// single-character render rules. Emits the SR diagnostics (COBOLNET1591–1596, COBOLNET1955); the
-    /// render-staged forms (a literal wider than one character, or a floating character-1 — the same character-1
-    /// appearing ≥2 times under a FOR phrase) raise the P14 render-GAP COBOLNET0899 at ≥2023 and contribute NO
-    /// render rule (the item still binds numeric-edited). <paramref name="char1Set"/> (uppercased) collects every
-    /// accepted character-1 so the SR2 whitelist admits them. Returns null when there are no phrases, an SR error,
-    /// or a staged phrase.
+    /// <summary>SR6's integer, read ONCE: the digits of the factor with no sign, no space and no other
+    /// character, denoting a value of at least one. <paramref name="closed"/> is false for a '(' the string
+    /// never closes.</summary>
+    private static bool TryRepetitionFactor(string factor, bool closed, out int n)
+    {
+        n = 0;
+        if (!closed || factor.Length == 0) return false;
+        long value = 0;
+        foreach (char d in factor)
+        {
+            if (d is < '0' or > '9') return false;                // a sign, a space or any non-digit — not "an unsigned … integer"
+            value = value * 10 + (d - '0');
+            // SATURATE rather than overflow: SR4 bounds the factor to 60-odd digits, which still overruns
+            // Int64. One past the cap is all the caller needs to report the limit, and it keeps an
+            // arbitrarily long run of digits from wrapping back INSIDE the cap (the failure shape kb/Work
+            // PB639 named on the arithmetic side).
+            if (value > MaxCharacterPositions) value = MaxCharacterPositions + 1L;
+        }
+        if (value == 0) return false;                             // "an unsigned NONZERO integer"
+        n = (int)value;
+        return true;
+    }
+
+    private static void ReportTooLarge(EditionContext edition, string where, string picture, long positions)
+        => edition.Error(DiagnosticCatalog.PictureItemTooLarge, $"{where}: PICTURE {picture} describes "
+            + $"{(positions > MaxCharacterPositions ? "more than " : "")}{Math.Min(positions, (long)MaxCharacterPositions)} "
+            + $"character positions — COBOL.NET's maximum for one elementary item is {MaxCharacterPositions} "
+            + "(⚠ implementor-defined: ISO §13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
+            + "only a numeric item's digit positions, and Annex A.1 carries no maximum-item-size item)");
+
+    /// <summary>Validate the PICTURE EDITING phrases (ISO §13.18.40.3 SR8–SR12; COBOL-2023) and build the render
+    /// rules. Emits the SR diagnostics (COBOLNET1591–1596, COBOLNET1955). Every legal shape produces a rule: a
+    /// literal of any width (SR9 allows 50 characters) and a floating character-1 (the same character-1 appearing
+    /// ≥2 times under a FOR phrase, §13.18.40.5 rule 6) are rendered by <c>CobolEdit</c>'s variable-width
+    /// materialization, not staged (kb/Work PB491). <paramref name="char1Set"/> (uppercased) collects every
+    /// accepted character-1 so the SR2 whitelist admits them; <paramref name="char1Extended"/> is the subset
+    /// declared with the FOR phrase, which SR12 makes EXTENDED editing sign control symbols and rule 6 therefore
+    /// lists among the FLOATING insertion symbols — the one fact <c>PictureComposition</c>'s floating-string
+    /// detector cannot derive from the character-string alone. Returns null when there are no phrases or an SR
+    /// error.
     /// <para><paramref name="usage"/> is the subject's usage as the entry resolved it, and it is here for SR9's
     /// first condition alone — "If USAGE IS NATIONAL is specified for the subject of the entry OR if
     /// character-string-1 contains the symbol 'N' …".</para></summary>
-    private static IReadOnlyList<CobolEdit.EditRule>? ValidateEditing(
+    private static CobolEdit.EditRule[]? ValidateEditing(
         IReadOnlyList<EditingPhraseSpec>? editing, string expanded, Usage usage, EditionContext edition,
-        string where, char cs, out HashSet<char> char1Set)
+        string where, char cs, out HashSet<char> char1Set, out HashSet<char> char1Extended)
     {
         char1Set = [];
+        char1Extended = [];
         if (editing is null || editing.Count == 0) return null;
 
         // ── ISO §13.18.40.3 SR9, first sentence — the LITERAL CLASS the phrase's literals shall be written in.
@@ -619,7 +764,7 @@ public static class PictureAnalyzer
             if ((ph0.Char1Text ?? "") is { Length: 1 } t0 && char.IsLetter(t0[0])) allChar1.Add(char.ToUpperInvariant(t0[0]));
 
         var rules = new List<CobolEdit.EditRule>();
-        bool error = false, staged = false;
+        bool error = false;
         // The EXTENDED (FOR-phrase) editing sign control symbols in PHRASE ORDER, each with the symbol position
         // its character-1 first takes in character-string-1 — the two facts SR24's and SR25's second sentences
         // are stated over. They are a property of the phrase LIST, not of any one phrase, so they are asked once
@@ -696,6 +841,7 @@ public static class PictureAnalyzer
                 // position recorded is character-1's FIRST occurrence, which is "the leftmost symbol" of a
                 // floating extended string as much as of a single one (§13.18.40.5 rule 6).
                 extended.Add((char1, firstAt));
+                char1Extended.Add(char1);
                 // SR12b: a FOR (extended sign-control) picture may contain only character-1 and 9 . cs P V Z.
                 foreach (char mc in expanded)
                 {
@@ -713,30 +859,31 @@ public static class PictureAnalyzer
                         + "phrase shall occupy the same number of character positions (ISO §13.18.40.3 SR12a)");
                     error = true; continue;
                 }
-                // SR12c: the unspecified side defaults to spaces of the specified literal's width. LANDABLE only for
-                // a single-character literal at a SINGLE character-1 occurrence (fixed sign control); a wider literal
-                // or a repeated character-1 (floating string) is the P14 render GAP.
+                // SR12c: "If only POSITIVE is specified, the default character for the unspecified phrase is the
+                // space character repeated for the number of characters in literal-2. If only NEGATIVE is
+                // specified, the default character for the unspecified phrase is the space character repeated
+                // the number of characters in literal-3." SR12a has already made the two widths agree when both
+                // are written, so the specified one's width is the item's either way.
                 int width = (ph.Neg ?? ph.Pos)?.Text.Length ?? 0;
-                if (width == 1 && occ == 1)
-                {
-                    char neg = ph.Neg is { Text.Length: 1 } n1 ? n1.Text[0] : ' ';
-                    char pos = ph.Pos is { Text.Length: 1 } p1 ? p1.Text[0] : ' ';
-                    // FOR = an EXTENDED editing sign control symbol: FIXED insertion (ISO §13.18.40.5 rule 5),
-                    // so it is NOT part of a zero-suppression or floating string (rules 6 and 7).
-                    rules.Add(new CobolEdit.EditRule(char1, neg, pos, SimpleInsertion: false));
-                }
-                else staged = true;
+                string negLit = ph.Neg?.Text ?? new string(' ', width);
+                string posLit = ph.Pos?.Text ?? new string(' ', width);
+                // FOR = an EXTENDED editing sign control symbol. ONE occurrence is FIXED insertion (§13.18.40.5
+                // rule 5, Table 8); TWO OR MORE are a FLOATING insertion string — rule 6's first sentence lists
+                // "the extended editing sign control symbols, if specified" among the floating insertion
+                // symbols and its second sentence is the ≥2 test, with Table 9 for the result. A literal wider
+                // than one character is no longer a GAP either: §13.18.40.4 GR14's 'es' entry gives the item
+                // the literal's width and CobolEdit materializes it (kb/Work PB491; Annex D.24 demonstrates
+                // both shapes, so both were legal source the compiler refused).
+                rules.Add(new CobolEdit.EditRule(char1, negLit, posLit, SimpleInsertion: false, Floating: occ >= 2));
             }
             else
             {
                 // IS (simple insertion) form — sign-independent (ISO §13.18.40.5 editing rule 3): character-1
-                // inserts literal-1 at every occurrence, immune to sign. LANDABLE for a single-character literal
-                // (any occurrence count); a wider literal is the P14 render GAP.
+                // inserts literal-1 at every occurrence, immune to sign, at literal-1's own width (GR14 'es').
                 string lit = ph.Simple?.Text ?? "";
                 // IS = SIMPLE insertion (rule 3), so this character-1 joins any zero-suppression or floating
                 // string it is embedded in or immediately right of (rules 6 and 7) — CobolEdit.TrySimpleInsertion.
-                if (lit.Length == 1) rules.Add(new CobolEdit.EditRule(char1, lit[0], lit[0], SimpleInsertion: true));
-                else staged = true;
+                rules.Add(new CobolEdit.EditRule(char1, lit, lit, SimpleInsertion: true, Floating: false));
             }
         }
 
@@ -778,15 +925,12 @@ public static class PictureAnalyzer
             error = true;
         }
 
-        if (staged && edition.DialectLevel >= 2023)
-            edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{where}: a multi-character-literal or "
-                + "floating PICTURE EDITING phrase is recognized but its variable-width render is not yet implemented "
-                + "(ISO §13.18.40.5; the P14 render GAP — single-character insertion and single-occurrence sign "
-                + "control are supported)");
-
-        // Any SR error OR a staged phrase → no landable rule set is applied (the item still binds numeric-edited;
-        // under the doomed emit character-1 renders verbatim — harmless, the compile has already failed).
-        return error || staged || rules.Count == 0 ? null : rules;
+        // An SR error → no rule set is applied (the item still binds numeric-edited; under the doomed emit
+        // character-1 renders verbatim — harmless, the compile has already failed). There is no longer a STAGED
+        // arm: the two shapes that used to raise COBOLNET0899 here — a literal wider than one character, and a
+        // floating (repeated) character-1 under a FOR phrase — are both rendered, so no legal EDITING phrase is
+        // refused (kb/Work PB491).
+        return error || rules.Count == 0 ? null : rules.ToArray();
     }
 
     /// <summary>
@@ -1011,6 +1155,16 @@ public static class PictureAnalyzer
         if (hasEditingPhrase)
             return Bad("an EDITING phrase is specified beside the LOCALE phrase; format 2 has no EDITING phrase "
                 + "(ISO §13.18.40.2 — the EDITING phrase belongs to format 1)");
+        // The SAME implementor maximum the format-1 expansion obeys, asked at the ONE place the limit lives
+        // (kb/Work PB531's sibling sweep): §13.18.40.4 GR17 — "The number of character positions in the item is
+        // specified by integer-1" — so format 2's SIZE is a character-position count exactly like format 1's
+        // expansion, and `SIZE IS 2000000000` used to bind an item whose emitted initializer allocates two
+        // billion characters at run time.
+        if (locale2.Size > MaxCharacterPositions)
+        {
+            ReportTooLarge(edition, where, picture, locale2.Size);
+            return PicInfo.Recovery(1);
+        }
         // Canonicalize the program's currency symbol to '$' (the ONE symbol kind the picture may use — the set
         // membership was classified by the caller) and uppercase is already folded by ExpandRepeats.
         string canonical = string.Concat(expanded.Select(c => char.ToUpperInvariant(c) == cs ? '$' : c));

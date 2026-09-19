@@ -2374,7 +2374,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string mask = pic.EditMask ?? "";
         return (edited ? pic.DigitPositions - mask.Count(c => c == 'P') : pic.Digits,
                 pic.LocaleEdit is not null ? pic.Scale
-                    : edited ? CobolEdit.MaskScale(mask, '$', DecimalPointIsComma) : pic.Scale);
+                    : edited ? CobolEdit.MaskScale(mask, '$', DecimalPointIsComma,
+                        pic.EditingRules as CobolEdit.EditRule[]) : pic.Scale);
     }
 
     // (The former private DecodeString twin is retired — all callers use CobolNet.Common.CobolLiteral.Decode,
@@ -3470,7 +3471,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (clause.PictureText is { } picText)
                 {
                     pictureText = picText;
-                    editingSpecs = BuildEditingSpecs(clause.Context.pictureClause());   // PICTURE EDITING (§13.18.40.2)
+                    editingSpecs = BuildEditingSpecs(clause.Context.pictureClause(),   // PICTURE EDITING (§13.18.40.2)
+                        $"data item '{cobolName ?? "FILLER"}'");
                     // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; LIVE
                     // since kb/Work PB64 T6): capture the locale (SR37 through the ONE undeclared-locale-name path,
                     // COBOLNET1664; absent ⇒ the current locale at each edit, §13.18.40.5 r11) and SIZE integer-1
@@ -4637,9 +4639,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         : "ALL" + (sym.National ? "N" : "") + "\"" + sym.Value.Replace("\"", "\"\"") + "\"";
 
     /// <summary>Build the <see cref="EditingPhraseSpec"/> list for a PICTURE clause's EDITING phrases
-    /// (ISO §13.18.40.2 Format 1) — DECODED character-1 + literal text, handed to <see cref="PictureAnalyzer"/>
-    /// for SR8–SR12 validation and render-rule construction. Null when the clause carries no EDITING phrase.</summary>
-    private static List<EditingPhraseSpec>? BuildEditingSpecs(Core.PictureClauseContext? pic)
+    /// (ISO §13.18.40.2 Format 1) — character-1 + DECODED literal text, handed to <see cref="PictureAnalyzer"/>
+    /// for SR8–SR12 validation and render-rule construction. Null when the clause carries no EDITING phrase.
+    /// <para>⛔ character-1 is the BARE word the printed general format writes (kb/Work PB568). The quoted
+    /// spelling the grammar used to REQUIRE still parses, so that it can be REFUSED BY NAME (COBOLNET2149)
+    /// instead of as an ANTLR syntax error; which spelling was written also decides where literal-1 sits in the
+    /// phrase's literal list, so the two are read in one place.</para></summary>
+    private List<EditingPhraseSpec>? BuildEditingSpecs(Core.PictureClauseContext? pic, string where)
     {
         var phrases = pic?.editingPhrase();
         if (phrases is null || phrases.Length == 0) return null;
@@ -4647,7 +4653,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var ph in phrases)
         {
             var lits = ph.literal();
-            string char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null)?.Text ?? "";
+            string char1;
+            int firstLit;   // literal-1's index in `lits` — 0 when character-1 is bare, 1 when it was quoted
+            if (ph.cobolWord() is { } word)
+            {
+                char1 = word.GetText();
+                firstLit = 0;
+            }
+            else
+            {
+                char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null)?.Text ?? "";
+                firstLit = 1;
+                Edition.Error(DiagnosticCatalog.PictureEditingChar1NotALiteral, $"{where}: the PICTURE EDITING "
+                    + $"phrase's character-1 is written as a quoted literal ({(lits.Length > 0 ? lits[0].GetText() : "\"\"")}) "
+                    + "— the general format writes it BARE, as a picture symbol: `EDITING character-1 { IS "
+                    + "literal-1 | FOR … }` (ISO §13.18.40.2 Format 1; §13.18.40.3 SR8 types character-1 as a basic "
+                    + $"letter, and SR9 types only literal-1/-2/-3 as literals). Write EDITING {char1.ToUpperInvariant()} instead");
+            }
             if (ph.editingForPhrase() is { } forp)
             {
                 // FOR (extended sign control): map the literals to NEGATIVE / POSITIVE by keyword position (either
@@ -4671,9 +4693,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
             else
             {
-                // IS (simple insertion): literal(1) is literal-1 (literal(0) is character-1).
+                // IS (simple insertion): literal-1 is the FIRST literal of the phrase — unless the
+                // (refused) quoted spelling of character-1 took that slot.
                 list.Add(new EditingPhraseSpec(char1,
-                    Simple: DecodeEditLiteral(lits.Length > 1 ? lits[1] : null), Neg: null, Pos: null, IsForForm: false));
+                    Simple: DecodeEditLiteral(lits.Length > firstLit ? lits[firstLit] : null),
+                    Neg: null, Pos: null, IsForForm: false));
             }
         }
         return list;

@@ -484,14 +484,24 @@ pictureLocalePhrase
     : {pictureLocaleAhead()}? cobolWord (IS? cobolWord)? SIZE IS? integerLiteral
     ;
 
-// EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §13.18.40.2 Format 1). character-1
-// and the literals are quoted literals (bind-validated: SR8 legal letter, SR9 class/≤50). `IS` is optional noise
-// (non-underlined in the figure). The FOR sub-group carries CHOICE INDICATORS (§5.2.6.4) — NEGATIVE and/or
-// POSITIVE, each at most once, in either order — so it is TWO ordered alternatives, not the exclusive stacked
-// braces the OCR transcription implied. Parse-wide/bind-narrow: `literal` (broad) surfaces SR violations as NAMED
-// bind diagnostics, never an ANTLR parse error.
+// EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §13.18.40.2 Format 1). `IS` is
+// optional noise (non-underlined in the figure). The FOR sub-group carries CHOICE INDICATORS (§5.2.6.4) —
+// NEGATIVE and/or POSITIVE, each at most once, in either order — so it is TWO ordered alternatives, not the
+// exclusive stacked braces the OCR transcription implied.
+//
+// ⛔ CHARACTER-1 IS WRITTEN BARE, NOT QUOTED (kb/Work PB568). The PRINTED general format — re-rendered from the
+// canonical PDF, printed page 441 — is `EDITING character-1 { IS literal-1 | FOR { … } }`: character-1 carries
+// no quotation marks and is named character-1, exactly as character-string-1 is, while literal-1/-2/-3 are named
+// as literals. SR8 types it as "any basic letter in the COBOL character set", §13.18.40.4 GR14 ("Character-1 in
+// character-string-1 represents a character position") and §13.18.40.5 rule 3 make it a PICTURE SYMBOL occurring
+// in character-string-1, and SR9 — the rule that types the phrase's literals — enumerates only literal-1,
+// literal-2 and literal-3. This rule used to demand a quoted literal there, so EVERY conforming EDITING phrase
+// was a parse error and the SR8/SR10/SR11 checks were reachable only through a spelling the standard does not
+// define. Parse-wide/bind-narrow: the quoted spelling still PARSES and draws the named COBOLNET2149 at bind
+// (never a bare ANTLR syntax error), and `literal` stays broad on the insertion literals so SR8/SR9 violations
+// surface as named bind diagnostics.
 editingPhrase
-    : EDITING literal ( IS? literal | FOR editingForPhrase )
+    : EDITING ( cobolWord | literal ) ( IS? literal | FOR editingForPhrase )
     ;
 
 editingForPhrase

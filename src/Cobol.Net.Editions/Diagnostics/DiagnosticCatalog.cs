@@ -3800,6 +3800,72 @@ public static class DiagnosticCatalog
         "A TYPE entry specifies a clause that may not share the entry: only BASED, CLASS, CONSTANT RECORD, "
         + "DEFAULT, DESTINATION, entry-name, EXTERNAL, GLOBAL, INVALID, level-number, OCCURS, PRESENT WHEN, "
         + "PROPERTY, TYPEDEF, VALIDATE-STATUS, VALUE, and VARYING may.", "ISO §13.16.3 SR14");
+    // ── COBOLNET2146 / COBOLNET2147 / COBOLNET2148 — THE PICTURE CHARACTER-STRING'S OWN SHAPE, before any
+    //    symbol is read (kb/Work PB531, PB532). All three are ONE error surface in
+    //    PictureAnalyzer.TryExpandRepeats / Analyze's prologue: the string is measured, every repetition factor
+    //    is parsed ONCE and validated, and the expansion is bounded — so neither the literal `9(n)` spelling nor
+    //    the constant-name spelling (DataBinder.Constants.ExpandPicConstants rewrites it to `(integer)` and
+    //    hands it to the same expander) can reach an unchecked `StringBuilder.Append(char, int)`. ──
+
+    /// <summary>COBOLNET2146 — character-string-1 is longer than the 63 characters ISO §13.18.40.3 SR4
+    /// allows.</summary>
+    public static readonly DiagnosticDescriptor PictureStringTooLong = new(
+        "COBOLNET2146", "picture-string-too-long", EditionSeverity.Error,
+        "ISO §13.18.40.3 syntax rule 4: \"The maximum number of characters allowed in character-string-1 is "
+        + "63.\" The count is over character-string-1 AS WRITTEN, not over the repeat-expanded symbol run — "
+        + "syntax rule 6's second sentence fixes that reading (\"The integer may be specified by a "
+        + "constant-name, in which case the length of the integer, not the length of the constant-name, is "
+        + "counted toward the maximum number of characters in character-string-1\"), and the expanded reading "
+        + "would outlaw `PIC X(30000)`, which is four characters long. So 64 written X's are rejected while "
+        + "`PIC X(30000)` stays legal, and a constant-name repetition factor is counted by the digit length of "
+        + "the integer substituted for it (kb/Work PB532).",
+        "ISO §13.18.40.3 SR4");
+
+    /// <summary>COBOLNET2147 — a parenthesized repetition factor that is not an unsigned nonzero integer (ISO
+    /// §13.18.40.3 SR6).</summary>
+    public static readonly DiagnosticDescriptor PictureRepetitionFactor = new(
+        "COBOLNET2147", "picture-repetition-factor", EditionSeverity.Error,
+        "ISO §13.18.40.3 syntax rule 6: \"An unsigned nonzero integer that is enclosed in parentheses indicates "
+        + "the number of consecutive occurrences of the symbol that immediately precedes the left parenthesis.\" "
+        + "UNSIGNED and NONZERO are both load-bearing: `PIC X(-3)` and `PIC X(+3)` carry a sign, `PIC X(0)` is "
+        + "zero, `PIC X()` and `PIC X(AB)` are no integer at all, and `PIC X(` never closes — none of them is "
+        + "the integer this rule admits. The negative spelling used to leave the binder as an unhandled "
+        + "System.ArgumentOutOfRangeException with no COBOL diagnostic and no source location, by both the "
+        + "literal route and the constant-name route (`01 N CONSTANT AS -3.` + `PIC 9(N)`), and the signed "
+        + "positive spelling was accepted silently (kb/Work PB531).",
+        "ISO §13.18.40.3 SR6");
+
+    /// <summary>COBOLNET2148 — the repeat-expanded character-string describes more character positions than
+    /// COBOL.NET's implementor-defined maximum for one elementary item.</summary>
+    public static readonly DiagnosticDescriptor PictureItemTooLarge = new(
+        "COBOLNET2148", "picture-item-too-large", EditionSeverity.Error,
+        "⚠ IMPLEMENTOR-DEFINED LIMIT. The standard bounds a picture character-string two ways and neither "
+        + "bounds its EXPANSION: §13.18.40.3 SR4 bounds the 63 characters it is WRITTEN in, and SR14 bounds a "
+        + "numeric or fixed-point numeric-edited item to 1 through 31 DIGIT positions — an alphanumeric, "
+        + "alphabetic, national or boolean character-string has no such cap, and Annex A.1 carries no "
+        + "implementor-defined item for the maximum size of a data item. COBOL.NET therefore fixes the maximum "
+        + "number of character positions in one elementary item at 134 217 728 (2^27), the largest power of two "
+        + "whose UTF-16 image (2 bytes per character position, alphanumeric and national alike) stays inside "
+        + ".NET's single-object ceiling. Past it the compiler used to die with an OutOfMemoryException out of "
+        + "`StringBuilder.Append(char, int)` rather than name the source line (kb/Work PB531).",
+        "ISO §13.18.40.3 SR4 / SR14; Annex A.1 (no maximum-item-size item)");
+
+    /// <summary>COBOLNET2149 — a PICTURE EDITING phrase whose character-1 is written as a quoted literal
+    /// (ISO §13.18.40.2 Format 1 writes it bare).</summary>
+    public static readonly DiagnosticDescriptor PictureEditingChar1NotALiteral = new(
+        "COBOLNET2149", "picture-editing-char1-not-a-literal", EditionSeverity.Error,
+        "The PICTURE clause's Format 1 general format is `EDITING character-1 { IS literal-1 | FOR { NEGATIVE IS "
+        + "literal-2 | POSITIVE IS literal-3 } }`: character-1 is written BARE, with no quotation marks, exactly "
+        + "as character-string-1 is, while literal-1, literal-2 and literal-3 are named as literals. "
+        + "§13.18.40.3 syntax rule 8 types it — \"Character-1 shall be any basic letter in the COBOL character "
+        + "set except those specified in a CURRENCY-SIGN clause or a basic letter character A, B, C, D, E, N, P, "
+        + "R, S, V, X, Z or their lowercase equivalents\" — and §13.18.40.4 general rule 14 ('es') plus "
+        + "§13.18.40.5 editing rule 3 make it a PICTURE SYMBOL occurring in character-string-1, not a literal "
+        + "operand; syntax rule 9, which types the phrase's literals, enumerates only literal-1, literal-2 and "
+        + "literal-3. Write `EDITING T IS \":\"`, not `EDITING \"T\" IS \":\"`. The quoted spelling is recognized "
+        + "only so that it can be named: the grammar used to REQUIRE it, which made every conforming EDITING "
+        + "phrase a parse error (kb/Work PB568).",
+        "ISO §13.18.40.2 Format 1 / §13.18.40.3 SR8");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

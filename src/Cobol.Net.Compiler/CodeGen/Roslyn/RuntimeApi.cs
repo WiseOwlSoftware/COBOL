@@ -280,7 +280,8 @@ internal static class RuntimeApi
         pic.LocaleEdit is not null ? pic.Scale
         // A float-edited receiver rides the mask arm too — its significand scale drives the working scale of
         // an intermediate landing (measured: returning 0 here flipped a DIVIDE quotient golden to 0.00000E+00).
-        : pic is { Category: PicCategory.NumericEdited, EditMask: { } m } ? MaskScale(m, '$', commaMode)
+        : pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
+            ? MaskScale(pic, m, '$', commaMode)
         : pic.Scale;
 
     /// <summary>A format-2 (LOCALE) sender's DE-EDIT read (§14.9.25.4 GR5/GR6 d over §14.6.13.2 r4) — the
@@ -332,16 +333,21 @@ internal static class RuntimeApi
         CobolEdit.FormatFloatMove(new CobolDec(sig, exp10), picture, blankWhenZero, commaMode);
 
     /// <summary>The trailing <c>edits:</c> named argument for a numeric-edited store carrying PICTURE EDITING
-    /// phrases (ISO §13.18.40.2 Format 1) — the resolved single-character render rules serialized as a
+    /// phrases (ISO §13.18.40.2 Format 1) — the resolved render rules serialized as a
     /// <c>CobolEdit.EditRule[]</c>. Empty for every non-editing item, so the generated code of an ordinary program
-    /// is byte-identical. Appended AFTER <c>BwzFlag</c>/<c>EditCfg</c> (all named args) at each edited store.</summary>
+    /// is byte-identical. Appended AFTER <c>BwzFlag</c>/<c>EditCfg</c> (all named args) at each edited store.
+    /// <para>literal-2 / literal-3 / literal-1 travel as STRING literals (§13.18.40.3 SR9 allows 50 characters)
+    /// and the FLOATING flag travels beside them, because §13.18.40.5 rule 6 makes an extended editing sign
+    /// control symbol a floating insertion symbol and only the binder saw the character-string that decides it
+    /// (kb/Work PB491).</para></summary>
     public static string EditsArg(IReadOnlyList<CobolEdit.EditRule>? rules)
     {
         if (rules is null || rules.Count == 0) return "";
         static string Ch(char c) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(c, quote: true);
+        static string Str(string s) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(s, quote: true);
         string items = string.Join(", ", rules.Select(r =>
-            $"new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}({Ch(r.Char1)}, {Ch(r.Neg)}, {Ch(r.Pos)}, "
-            + $"{(r.SimpleInsertion ? "true" : "false")})"));
+            $"new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}({Ch(r.Char1)}, {Str(r.Neg)}, {Str(r.Pos)}, "
+            + $"{(r.SimpleInsertion ? "true" : "false")}, {(r.Floating ? "true" : "false")})"));
         return $", edits: new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}[] {{ {items} }}";
     }
 
@@ -1413,9 +1419,12 @@ internal static class RuntimeApi
 
     /// <summary>The COMPILE-TIME mask-scale computation (a typed passthrough, not a fragment): the emitters
     /// compute a numeric-edited receiver's fraction scale from its edit mask at compile time with the SAME
-    /// runtime routine the generated code uses — one definition, anchored here.</summary>
-    public static int MaskScale(string picture, char currency, bool commaMode) =>
-        CobolEdit.MaskScale(picture, currency, commaMode);
+    /// runtime routine the generated code uses — one definition, anchored here. It takes the <see cref="PicInfo"/>
+    /// rather than the bare mask so the item's PICTURE EDITING rules always ride along: a FLOATING extended
+    /// editing sign control symbol's repetitions are digit positions (§13.18.40.5 rule 6) and the mask alone
+    /// cannot say so (kb/Work PB491).</summary>
+    public static int MaskScale(PicInfo pic, string mask, char currency, bool commaMode) =>
+        CobolEdit.MaskScale(mask, currency, commaMode, pic.EditingRules as CobolEdit.EditRule[]);
 
     /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
     /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime

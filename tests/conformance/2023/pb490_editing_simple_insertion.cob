@@ -11,15 +11,15 @@
       *> control symbol". The two phrases here render the SAME character ':' for either sign, so only
       *> the FORM tells them apart - which is why the resolved rule carries it.
       *>
-      *> NIS  ZT9 EDITING "T" IS ":" <- 5: the ':' is immediately right of the 'Z' string, so it is
+      *> NIS  ZT9 EDITING T IS ":" <- 5: the ':' is immediately right of the 'Z' string, so it is
       *>      part of it, and rule 7 a) replaces every position preceding the first character position
       *>      for which no zero suppression is specified (the '9') => "  5".
-      *> NFOR ZU9 EDITING "U" FOR NEGATIVE IS ":" POSITIVE IS ":" <- 5: FIXED insertion, not part of
+      *> NFOR ZU9 EDITING U FOR NEGATIVE IS ":" POSITIVE IS ":" <- 5: FIXED insertion, not part of
       *>      the string; the 'Z' before it suppresses and the ':' stands => " :5".
-      *> NFL  ++T++9 EDITING "T" IS ":" <- 5: embedded in the FLOATING string, so rule 6 a) lands the
+      *> NFL  ++T++9 EDITING T IS ":" <- 5: embedded in the FLOATING string, so rule 6 a) lands the
       *>      single '+' immediately preceding the first nonzero numeric character, every position
       *>      before it a space => "    +5".
-      *> AE   XXTXX EDITING "T" IS ":" <- "ABCD": 13.18.40.4 GR7 admits character-1 as an
+      *> AE   XXTXX EDITING T IS ":" <- "ABCD": 13.18.40.4 GR7 admits character-1 as an
       *>      alphanumeric-edited constituent ("at least one symbol 'A' or one symbol 'X', and at least
       *>      one instance of character-1 or one of the symbols from the set 'B', '0', '/'"), Table 7
       *>      gives the category SIMPLE INSERTION, and rule 3 puts "the insertion character occupying
@@ -30,11 +30,11 @@
        PROGRAM-ID. PB490EDT.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 NIS      PIC ZT9 EDITING "T" IS ":".
-       01 NFOR     PIC ZU9 EDITING "U" FOR NEGATIVE IS ":"
+       01 NIS      PIC ZT9 EDITING T IS ":".
+       01 NFOR     PIC ZU9 EDITING U FOR NEGATIVE IS ":"
                                           POSITIVE IS ":".
-       01 NFL      PIC ++T++9 EDITING "T" IS ":".
-       01 AE       PIC XXTXX EDITING "T" IS ":".
+       01 NFL      PIC ++T++9 EDITING T IS ":".
+       01 AE       PIC XXTXX EDITING T IS ":".
        01 AE2      PIC XX/XX.
        PROCEDURE DIVISION.
            MOVE 5 TO NIS NFOR NFL

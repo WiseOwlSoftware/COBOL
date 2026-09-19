@@ -11,7 +11,7 @@ IDENTIFICATION DIVISION.
 PROGRAM-ID. PB492L50.
 DATA DIVISION.
 WORKING-STORAGE SECTION.
-01 W-1 PIC 99T99 EDITING "T" IS ":::::::::::::::::::::::::::::::::::::::::::::::::::".
+01 W-1 PIC 99T99 EDITING T IS ":::::::::::::::::::::::::::::::::::::::::::::::::::".
 PROCEDURE DIVISION.
 MAIN.
     MOVE 1230 TO W-1
