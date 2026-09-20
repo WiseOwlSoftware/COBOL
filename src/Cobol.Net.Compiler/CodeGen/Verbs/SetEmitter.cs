@@ -268,8 +268,10 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// <summary>THE augment of a SET-style target by ±amount (shared by SET UP/DOWN BY, PERFORM VARYING and
     /// SEARCH's GR8b varied index): index-name / index data item → THE GUARDED occurrence-number augment; a
     /// numeric data item → an in-place add through its PICTURE store (legal as a VARYING induction variable,
-    /// §14.9.28 GR13; a plain SET UP/DOWN on a numeric item is invalid COBOL — the edition validator will diagnose
-    /// it, the behavior is the natural add).
+    /// §14.9.28 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
+    /// BIND (§14.9.39.2 Format 2's receiving operand is index-name-3; COBOLNET2112, kb/Work PB449) — this comment
+    /// used to say "the edition validator will diagnose it", and no validator did: the statement compiled and
+    /// ran. The numeric arm survives because PERFORM VARYING and SEARCH reach this same augment.
     /// <para>⛔ THE INDEX ARMS ARE GUARDED (kb/Work PB459). §14.9.39.4 GR4 a) and §13.18.38.4 GR2 — which names
     /// PERFORM VARYING and SEARCH beside SET as the three statements that may modify an index — make a result
     /// "outside the range of the values allowed by the implementor" the EC-RANGE-INDEX case with the receiving

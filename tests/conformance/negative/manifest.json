@@ -1183,7 +1183,18 @@
   "pb432-varying-from-nonnumeric-literal",
   "pb457-capacity-register-subscripted",
   "pb457-capacity-register-under-table",
-  "pb457-capacity-register-bad-qualifier"
+  "pb457-capacity-register-bad-qualifier",
+  "pb449-set-up-by-non-index-receiver",
+  "pb449-set-mixed-pointer-receivers",
+  "pb449-set-mixed-program-pointer-receivers",
+  "pb456-set-object-ref-literal-sender",
+  "pb458-set-capacity-literal-below-minimum",
+  "pb458-set-size-literal-over-limit",
+  "pb458-set-size-literal-over-limit-bare",
+  "pb456-set-object-sender-numeric-receiver",
+  "pb456-set-pointer-sender-numeric-receiver",
+  "pb456-set-exception-object-receiver",
+  "pb456-set-pointer-sender-not-a-pointer"
  ],
  "pending": []
 }

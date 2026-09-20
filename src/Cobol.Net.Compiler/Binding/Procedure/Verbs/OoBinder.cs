@@ -927,7 +927,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// emittable).</summary>
     public BoundStatement OoBindSetObjectRef(
         IReadOnlyList<Core.DataReferenceContext> targetRefs,
-        Core.DataReferenceContext? senderRef, bool senderNull, bool senderSelf, bool senderSuper)
+        Core.DataReferenceContext? senderRef, bool senderNull, bool senderSelf, bool senderSuper,
+        string? senderText = null)
     {
         // SET … TO object-reference (§14.9.39 Format 5) is a COBOL-2002 introduction; the edition gate moved to the
         // post-bind VersionConformancePass (PHASE-03 Step 14b) — it fires on the self-identifying BoundSetObjectRef
@@ -942,20 +943,36 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
-            if (string.Equals(t.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase))
+            if (OoIsExceptionObject(t))
             {
                 ctx.Edition.Error("COBOLNET0848",
                     "SET EXCEPTION-OBJECT: the predefined object reference shall not be a receiving "
                     + "operand (ISO §8.4.3.6 SR1)");
                 return new BoundNop();
             }
-            if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic is not { Category: PicCategory.ObjectReference })
+            // ⛔ THREE ARMS, AND THE ORDER IS THE POINT — SR8 and "the name identifies nothing" are DIFFERENT
+            // rules and each is reported once, by itself. The former single `Resolve(t) is not { } tp || …`
+            // arm reported BOTH for one operand: Resolve names the unidentified reference (COBOLNET1639) and
+            // SR8 was then stacked on top of it, so an undefined name drew a rule about a category nobody could
+            // read. Worse for an INDEX-NAME: §13.18.38.3 SR7 lists "the SET statement" among the five contexts
+            // where index-name-1 may be written, and an index-name is not a data reference, so the resolver
+            // cannot resolve one — `SET IX TO U` produced a FALSE "'IX' is not defined" about a name the
+            // program's INDEXED BY phrase declares, which is the class kb/Work PB457 ended.
+            bool indexName = host.Expr.IndexFieldOf(t) is not null;
+            var probe = indexName ? null : ctx.Refs.Probe(t);            // R30: the probe never diagnoses
+            if (!indexName && probe is null)
+            {
+                ctx.Refs.Resolve(t);                                      // ISO §8.4.2.1 — the resolver's own rule
+                return new BoundNop();
+            }
+            if (indexName || probe!.Value.Item.Pic is not { Category: PicCategory.ObjectReference })
             {
                 ctx.Edition.Error("COBOLNET0867",
                     $"SET '{t.GetText()}': the receiving operand of an object-reference SET shall be a "
                     + "USAGE OBJECT REFERENCE data item (ISO §14.9.39.3 SR8)");
                 return new BoundNop();
             }
+            if (ctx.Refs.Resolve(t) is not { } tp) return new BoundNop();   // reported by the resolver
             targets.Add(tp);
         }
 
@@ -1039,7 +1056,20 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
         else if (!senderNull)
         {
-            if (senderRef is null) return new BoundUnsupported("SET object-reference sender shape");
+            // ⛔ SR9 IS THE ANSWER FOR A SENDER THAT IS NOT A REFERENCE (kb/Work PB456). Format 5 is selected
+            // from the RECEIVING list (§14.9.39.2; SetFormatSelection), so `SET U TO 5` and `SET U TO N + 1`
+            // reach this bind with senderRef null instead of silently declining a re-route and landing an
+            // object reference in the Format-1 arithmetic store — which is what made both COMPILE CLEAN and
+            // abort at run time. Identifier-4 "shall be an object reference"; a literal is not one.
+            if (senderRef is null)
+            {
+                ctx.Edition.Error("COBOLNET0867",
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    + "identifier-4 shall be an object reference — the sending operand of an object-reference "
+                    + "SET is an object-reference data item, object-class-name-1, NULL or SELF, never a literal "
+                    + "or an arithmetic expression (ISO §14.9.39.2 Format 5, §14.9.39.3 SR9)");
+                return new BoundNop();
+            }
             // Probe — EXCEPTION-OBJECT below is a legal alternative (R30) — then RESOLVE to commit, because a
             // probe's Place is unscreened and must never enter the bound tree (kb/Work PB221).
             var sniff = ctx.Refs.Probe(senderRef);
@@ -1056,7 +1086,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                             $"SET '{tp.Item.CobolName}' TO '{sn.Item.CobolName}': {werr}");
                 src = sp;
             }
-            else if (string.Equals(senderRef.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase))
+            else if (OoIsExceptionObject(senderRef))
                 // §8.4.3.6 — the predefined register (ONE per run unit, GR2; implicitly universal SR2):
                 // a universal target copies the reference; a TYPED target gets the RUNTIME narrow check
                 // in the emitter (§9.3.8.2 :12291 — EC-OO-UNIVERSAL on failure; the SR12 closed list is
@@ -1105,13 +1135,30 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             else
             {
                 ctx.Edition.Error("COBOLNET0867",
-                    $"SET … TO '{senderRef.GetText()}': the sending operand shall be an object-reference "
+                    // NAME THE RECEIVERS (kb/Work PB388): the renderer transliterates U+2026, so this read
+                    // `SET . TO 'WX'` — a statement nobody wrote — and the receivers are in hand.
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "
+                    + $"'{senderRef.GetText()}': the sending operand shall be an object-reference "
                     + "data item, NULL, SELF, or a class-name (ISO §14.9.39.3 SR9/SR12/SR13)");
                 return new BoundNop();
             }
         }
         return new BoundSetObjectRef(targets, src, senderNull, senderSelf) { SourceFactoryCs = srcFactoryClassCs };
     }
+
+    /// <summary>⛔ THE ONE TEST FOR THE PREDEFINED OBJECT REFERENCE <c>EXCEPTION-OBJECT</c> (ISO §8.4.3.6).
+    /// <para>It is a WORD, not a token: the grammar reserves NULL, SELF and SUPER (<c>objectReference</c>) but
+    /// spells EXCEPTION-OBJECT as an ordinary <c>cobolWord</c>, so every reader of a written reference has to
+    /// ask this question of the TEXT. §8.4.3.6.3 SR2 gives the answer's content — "EXCEPTION-OBJECT is
+    /// implicitly described as class object and category object reference, as an external data item, and as a
+    /// universal object reference" — and because no data description entry declares it, a reader that does NOT
+    /// ask gets "not defined" from the ordinary resolver, which is false about a name the standard declares.
+    /// That was the shape of the false COBOLNET1639 on <c>SET EXCEPTION-OBJECT TO E</c>.</para>
+    /// <para>Written here, beside the binder that owns §8.4.3.6's rules, so the spelling is compared in ONE
+    /// place: this method's callers are the sender arm and the receiver arm of
+    /// <see cref="OoBindSetObjectRef"/> and <c>SetFormatSelection.KindOf</c>.</para></summary>
+    public static bool OoIsExceptionObject(Core.DataReferenceContext dref) =>
+        string.Equals(dref.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>True when an arithmetic expression is EXACTLY one bare data reference (the Format-5
     /// re-route's sender shape) — its single dataReference descendant spans the whole expression text.</summary>

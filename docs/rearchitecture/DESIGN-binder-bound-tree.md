@@ -550,6 +550,79 @@ third face of the rule, for §14.7.7 GR4's one initial evaluation. Three carrier
 clause it serves; `SendingValueOnceDriftTests` measures all of them together with a re-seeded `FUNCTION RANDOM`
 (§15.75.3 r3 / §15.75.4 r2) and pins the `BoundOperand` leaf set the materializer answers for.
 
+### 3.8 The SET statement's general-format selection — one table over the WHOLE receiving list
+
+ISO §14.9.39.2 prints seventeen general formats for one verb, and several of them share a token shape exactly.
+A reserved word settles most of them at the grammar (`SET LOCALE`, `SET CONTENT`, `SET … TO TRUE`, `SET SIZE OF`,
+`SET ADDRESS OF`, `SET … TO ENTRY`, `SET … TO ADDRESS OF FUNCTION`); what is left is three written shapes
+carrying nine formats:
+
+| written shape | grammar rule | formats it can be |
+| --- | --- | --- |
+| `SET receivers… TO arithmetic-expression` | `setToValueStatement` | 1 · 5 · 7 · 8 · 9 · 14 · 16 |
+| `SET receivers… TO {NULL\|SELF\|SUPER\|reference}` | `setObjectReferenceStatement` | 5 · 7 · 8 · 9 |
+| `SET receivers… {UP\|DOWN} BY arithmetic-expression` | `setIndexStatement` | 2 · 10 · 14 |
+
+**`Binding/Procedure/Verbs/SetFormatSelection.cs` is the ONE place that choice is made**, and the fact it reads
+is that EVERY receiving brace in §14.9.39.2 is written `{ … } …` — one or more operands of one kind. So the
+format is a property of the WHOLE receiving list: classify each operand once (`KindOf` — a pure R30 probe, never
+a committing resolve), then pick the single table row whose brace admits all of them. When no row does, pick the
+NEAREST row — the first, in specificity order, that admits any of them — and the selected format's own syntax
+rule refuses the operands it does not admit, by name and in its own words. Nothing at all matching is the
+RESIDUAL, `COBOLNET2112`: no printed general format admits this receiving list.
+
+The sender does not participate, with ONE exception the table carries as a column. §14.9.39.2 writes a format's
+identity into its receiving brace; the sending brace is then constrained by that format's own rules (SR9 for
+Format 5, SR17/SR20/SR21 for the carriers), which is why each carrier binder reports its own rule for a sender
+that is not a reference at all. The exception is the case where the receiving brace says nothing: Format 1's
+`identifier-1` admits any identifier, so a receiving list can select Format 1 while the SENDER is of a category
+Format 1's own sending brace cannot hold — §8.8.1.1 admits only numeric operands in `arithmetic-expression-1`
+and SR2 makes `identifier-2` "a data item of class index". A data item of class object, or of category
+data-pointer / program-pointer / function-pointer, is admissible in no Format-1 sending position and is named by
+exactly one other format's sending brace, so `SelectForTo` picks that format and its own receiving rule refuses
+the receiver by name. `SET N4 TO U` used to reach the ARITHMETIC screen and be reported as "'U' … is not a
+numeric operand" (§8.8.1.1) — true, and silent about §14.9.39.3 SR8, the rule the program broke. The column is
+`Row.SendsOnly`, so a new carrier format is still one row and nothing else, and the drift test pins that no kind
+Format 1 CAN send ever appears in it — otherwise the tie-break would take a legal Format-1 statement away from
+its own format.
+
+**What this replaced, and why a table rather than a chain.** The nine formats each peeked at `receivers[0]` — and,
+in the TO direction, at the sender — in a fixed contract order, returning `null` to let the next candidate try.
+Three defects follow structurally from a scalar standing in for a set-valued question, and all three were
+measured (kb/Work PB449, PB456): the same two operands gave a correct SR23 diagnostic in one order and a run-time
+crash in the other; a receiving list no printed format admits (`SET WS-N UP BY 4` over a `PIC 9(4)`) fell through
+to Format 1/2 and EXECUTED; and a re-route that declined — Format 5's, whose precondition was "the sender is
+exactly one bare data reference" — left nothing behind it, so `SET U TO 5` over an object reference compiled with
+zero diagnostics. `SetFormatSelectionDriftTests` pins the invariants a table can have and a chain could not: within
+one direction no kind is admitted by two rows, every classifiable kind has a row, a receiving list and its
+reverse select the same format, and no sender kind names two formats or names one Format 1 could have sent.
+
+**A predefined object reference is classified before the general lookup.** `EXCEPTION-OBJECT` is spelled as an
+ordinary word rather than a reserved token, so it arrives as a written data reference that no data description
+entry declares — and the general resolver therefore answered "'EXCEPTION-OBJECT' is not defined", false about a
+name the standard declares (§8.4.3.6.3 SR2: "implicitly described as class object and category object
+reference"). `KindOf` asks `OoBinder.OoIsExceptionObject` first, which is the ONE place that spelling is
+compared, so the receiving list selects Format 5 and §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified
+as a receiving operand" — is the rule the statement draws. Its three siblings need no arm: NULL, SELF and SUPER
+are grammar tokens (`objectReference`), so §8.4.3.7.3 SR1 and §8.4.3.8.3 SR2 are enforced by the syntax in a
+receiving position.
+
+**Format 1's row is deliberately the wide one and deliberately last.** Its brace is `{ index-name-1 |
+identifier-1 } …`, and SR1's "a data item of class index or an integer data item" is a CATEGORY screen over that
+brace, not a selection question — enforcing it here would make a missing screen look like a missing FORMAT.
+That screen is its own open item (kb/Work PB212). Format 2 has no such catch-all: its brace is `{ index-name-3 }
+…` with no identifier alternative and no syntax rule, and §14.9.39.4 GR4 is written "For each occurrence of
+index-name-3", so the UP/DOWN direction admits an index-name, a data-pointer (SR23) and a capacity register
+(SR29) and nothing else.
+
+**The literal amount is the same shape one level down.** §14.9.39.2 writes each amount-taking format as a choice
+between a literal and an arithmetic expression, with a SYNTAX rule on the literal (SR30 for Format 14's
+integer-1, SR34 for Format 16's integer-2) beside a GENERAL rule on the expression (GR29/GR30, GR37/GR38).
+`SetLiteralAmount` is the one screen: it answers "is this operand a single integer literal" through
+`SoleOperand.NumericLiteral` — THE §8.3.3.3.2 rule-2 contiguity reading, shared with DEFINE, CONSTANT and
+EVALUATE — and compares it against a `SetAmountBound` the call site declares, so each format names its own
+operand and its own rule (`COBOLNET2113`) and the next amount-taking format is a bound, not a fourth `if`.
+
 ---
 
 ## 4. Current → target module changes

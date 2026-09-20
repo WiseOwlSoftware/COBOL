@@ -12,12 +12,28 @@ namespace CobolNet.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>The SET verb binder (P7 Step 10m — a real collaborator over <see cref="BinderContext"/>): the
-/// 13-format dispatch with the CONTRACT-ORDER semantic re-routes preserved verbatim — the F10 pointer peek
-/// FIRST (<c>host.Ptr.TryBindSetUpDown</c>), the F14 CAPACITY-register peek upstream of ResolveReceiving,
-/// switches via the .AlterSwitches host edge (10n), objects via the OO host edge (10s).
-/// <see cref="SetTargetOf"/> lives HERE (the host keeps a forwarder for ControlFlowBinder until 10t).</summary>
+/// seventeen-format dispatch of ISO §14.9.39.2. A format a RESERVED WORD identifies is chosen by its own
+/// grammar alternative in <see cref="BindSet"/> (3 switch, 4 condition, 6 attribute, 11/12 locale, 13
+/// last-exception, 15 content, and the ENTRY / ADDRESS OF / SIZE OF phrases); the formats that SHARE a token
+/// shape — 1, 2, 5, 7, 8, 9, 10, 14, 16 — are selected SEMANTICALLY, and that selection is
+/// <see cref="SetFormatSelection"/>'s alone.
+/// <para>⛔ THE CHAIN OF PER-FORMAT PEEKS IS GONE (kb/Work PB449 + PB456). Each candidate format used to try in
+/// contract order — the F10 pointer peek first, then the F14 CAPACITY-register peek, then the F5 object
+/// re-route — and each read <c>receivers[0]</c> (and, for the TO direction, the sender) and returned null
+/// otherwise. Three consequences, all measured: the same operands gave different verdicts in different orders,
+/// a receiving list no printed format admits fell through to Format 1/2 arithmetic, and a re-route that
+/// declined left NOTHING behind it. Now the format is decided once, from the whole receiving list, and each
+/// format's own binder is reached having already been chosen — so what those binders screen is the RULE
+/// (SR8/SR17/SR20/SR21/SR23), uniformly over every operand.</para>
+/// <para>Switches go via the .AlterSwitches host edge (10n), objects via the OO host edge (10s).
+/// <see cref="SetTargetOf"/> lives HERE (the host keeps a forwarder for ControlFlowBinder until 10t).</para></summary>
 internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>⛔ THE ONE FORMAT SELECTOR (kb/Work PB449 + PB456). Every shape-sharing SET format is chosen
+    /// HERE, from the WHOLE receiving list, before any format's own binder runs — see
+    /// <see cref="SetFormatSelection"/> for why a per-format peek at <c>receivers[0]</c> could not work.</summary>
+    private readonly SetFormatSelection _fmt = new(ctx, host);
+
     /// <summary>Bind a SET statement, dispatching by format (ISO §14.9.39; COBOLNET_DESIGN §12.3). The COBOL-85
     /// surface — Format 1 index/value assignment, Format 2 UP/DOWN BY, Format 4 condition-name TO TRUE — binds here;
     /// the later-edition formats (switches need SPECIAL-NAMES, pointers/objects their 2002 subsystems, TO FALSE the
@@ -53,32 +69,30 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return host.Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
         {
-            // A POINTER target (§14.9.39 Format 7 — SET pointer TO NULL/pointer) is bound BEFORE the
-            // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape. A
-            // PROGRAM-POINTER target selects Format 9 the same way (SR21; P10 Step 7).
-            var sorCat = sor.dataReference().Length > 0
-                ? ctx.Refs.Probe(sor.dataReference(0))?.Item.Pic?.Category : null;   // Probe — a format sniff (R30)
-            if (sorCat is PicCategory.Pointer)
-                return BindSetPointer(sor.dataReference(),
-                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
-                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
-            if (sorCat is PicCategory.ProgramPointer)
-                return BindSetProgramPointer(sor.dataReference(),
-                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
-                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
-            // A FUNCTION-POINTER target selects Format 8 the same way (SR20; kb/Work PB452 + PB817). ⛔ WITHOUT
-            // THIS ARM a declarable function-pointer falls through into the OO Format-5 bind and, through
-            // BindSetTo, into the Format-1 arithmetic store — the silent wrong answer PB817 filed as "the other
-            // end, which a fixer will otherwise miss".
-            if (sorCat is PicCategory.FunctionPointer)
-                return BindSetFunctionPointer(sor.dataReference(),
-                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
-                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
-            return host.Oo.OoBindSetObjectRef(sor.dataReference(),
-                senderRef: sor.objectReference().dataReference(),
-                senderNull: sor.objectReference().NULL_() is not null,
-                senderSelf: sor.objectReference().SELF() is not null,
-                senderSuper: sor.objectReference().SUPER() is not null);
+            // `SET receivers… TO {NULL | SELF | SUPER | reference}` is the shape of Formats 5, 7, 8 and 9 at
+            // once, so the format is SELECTED from the whole receiving list (§14.9.39.2; kb/Work PB449) and the
+            // chosen format's own syntax rule then refuses any operand it does not admit — SR17 (Format 7),
+            // SR20 (Format 8), SR21 (Format 9), SR8 (Format 5). This used to sniff `dataReference(0)` alone,
+            // which made `SET P1 X TO NULL` and `SET X P1 TO NULL` two different verdicts.
+            // ⛔ WITHOUT THE FUNCTION-POINTER ARM a declarable function-pointer falls through into the OO
+            // Format-5 bind and, through BindSetTo, into the Format-1 arithmetic store — the silent wrong
+            // answer PB817 filed as "the other end, which a fixer will otherwise miss".
+            var sorRefs = sor.dataReference();
+            var objRef = sor.objectReference();
+            bool sorNull = objRef.NULL_() is not null;
+            bool sorSelf = objRef.SELF() is not null;
+            bool sorSuper = objRef.SUPER() is not null;
+            return SetFormatSelection.Select(_fmt.KindsOf(sorRefs), SetDirections.To, out _) switch
+            {
+                SetFormat.F7 => BindSetPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper),
+                SetFormat.F9 => BindSetProgramPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper),
+                SetFormat.F8 => BindSetFunctionPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper),
+                // Format 5, and the residual: NULL/SELF/SUPER are senders of no other format, so a receiving
+                // list that selects Format 1/14/16 here is refused by SR8 inside — the diagnostic that names
+                // what the statement was trying to be.
+                _ => host.Oo.OoBindSetObjectRef(sorRefs, senderRef: objRef.dataReference(),
+                        senderNull: sorNull, senderSelf: sorSelf, senderSuper: sorSuper),
+            };
         }
         return new BoundUnsupported($"SET form '{set.GetText()}'");
     }
@@ -388,7 +402,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// (SELF/SUPER are object-only — 0869). ADDRESS OF senders/receivers are increment 2 (staged loud).</summary>
     private BoundStatement BindSetPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
-        bool toNull, bool senderIsSelfSuper)
+        bool toNull, bool senderIsSelfSuper, string? senderText = null)
     {
         if (senderIsSelfSuper)
         {
@@ -414,7 +428,20 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         Place? source = null;
         if (!toNull)
         {
-            if (senderRef is null) return new BoundUnsupported("SET pointer — sender shape");
+            // ⛔ A SENDER THAT IS NOT A REFERENCE IS SR17's BUSINESS, NOT A FEATURE GAP (kb/Work PB456). The
+            // format is chosen by the RECEIVERS, so a literal or an expression sender now ARRIVES here with
+            // senderRef null — and identifier-6 "shall be of category data-pointer", which a literal is not.
+            // This used to return BoundUnsupported, unreachably: the caller's re-route declined for exactly
+            // this shape and dropped the statement into the Format-1 arithmetic store instead.
+            if (senderRef is null)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    + "identifier-6 shall be of category data-pointer — a data-pointer sender is the predefined "
+                    + "address NULL, another USAGE POINTER item, or ADDRESS OF an identifier, never a literal or "
+                    + "an arithmetic expression (ISO §14.9.39.2 Format 7, §14.9.39.3 SR17)");
+                return new BoundNop();
+            }
             if (SetIndexNameOperand(senderRef, "sending operand", "data-pointer", "ISO §14.9.39 Format 7, §14.9.39.3 SR17")) return new BoundNop();
             if (ctx.Refs.Resolve(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
             {
@@ -439,7 +466,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// carrier. The sender is NULL or another program-pointer; SELF/SUPER are object references (0869).</summary>
     private BoundStatement BindSetProgramPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
-        bool toNull, bool senderIsSelfSuper)
+        bool toNull, bool senderIsSelfSuper, string? senderText = null)
     {
         if (senderIsSelfSuper)
         {
@@ -465,13 +492,25 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         Place? source = null;
         if (!toNull)
         {
-            if (senderRef is null) return new BoundUnsupported("SET program-pointer — sender shape");
+            if (senderRef is null)   // SR21 over a literal / expression sender (kb/Work PB456)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    + "identifier-8 shall be of category program-pointer — a program-pointer sender is NULL, "
+                    + "another USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier, never a "
+                    + "literal or an arithmetic expression (ISO §14.9.39.2 Format 9, §14.9.39.3 SR21)");
+                return new BoundNop();
+            }
             if (SetIndexNameOperand(senderRef, "sending operand", "program-pointer", "ISO §14.9.39 Format 9, §14.9.39.3 SR21")) return new BoundNop();
             if (ctx.Refs.Resolve(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET … TO '{senderRef?.GetText()}': a program-pointer sender shall be NULL, another "
+                    // ⛔ NAME THE RECEIVERS (kb/Work PB388's sweep, finished here): the renderer transliterates
+                    // U+2026 to ASCII, so `SET … TO 'x'` reached the user as `SET . TO 'x'` — a statement
+                    // nobody wrote. The Format-7 twin was fixed; these two were the arms it missed.
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "
+                    + $"'{senderRef?.GetText()}': a program-pointer sender shall be NULL, another "
                     + "USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier "
                     + "(ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
                 return new BoundNop();
@@ -524,7 +563,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// Format-9 program-pointer twin over the FunctionPointer carrier. kb/Work PB452 + PB817.</summary>
     private BoundStatement BindSetFunctionPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
-        bool toNull, bool senderIsSelfSuper)
+        bool toNull, bool senderIsSelfSuper, string? senderText = null)
     {
         if (senderIsSelfSuper)
         {
@@ -550,13 +589,22 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         Place? source = null;
         if (!toNull)
         {
-            if (senderRef is null) return new BoundUnsupported("SET function-pointer — sender shape");
+            if (senderRef is null)   // SR20 over a literal / expression sender (kb/Work PB456)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    + "identifier-13 shall be of category function-pointer — a function-pointer sender is NULL, "
+                    + "another USAGE FUNCTION-POINTER item, or an ADDRESS OF FUNCTION function-address-identifier, "
+                    + "never a literal or an arithmetic expression (ISO §14.9.39.2 Format 8, §14.9.39.3 SR20)");
+                return new BoundNop();
+            }
             if (SetIndexNameOperand(senderRef, "sending operand", "function-pointer", "ISO §14.9.39 Format 8, §14.9.39.3 SR20")) return new BoundNop();
             if (ctx.Refs.Resolve(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET … TO '{senderRef?.GetText()}': a function-pointer sender shall be NULL, another "
+                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "   // kb/Work PB388
+                    + $"'{senderRef?.GetText()}': a function-pointer sender shall be NULL, another "
                     + "USAGE FUNCTION-POINTER item, or an ADDRESS OF FUNCTION function-address-identifier "
                     + "(ISO §14.9.39.3 SR20 / §8.4.3.12)");
                 return new BoundNop();
@@ -734,83 +782,118 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetEntry(targets, null, namePlace);
     }
 
+    /// <summary><c>SET receivers… TO value</c>. ⛔ THE FORMAT IS SELECTED ONCE, FROM EVERY RECEIVING OPERAND
+    /// (§14.9.39.2; <see cref="SetFormatSelection"/>, kb/Work PB449 + PB456). Formats 1, 5, 7, 8, 9, 14 and 16
+    /// all reach this grammar rule, and each of their receiving braces is written <c>{ … } …</c>, so the whole
+    /// list decides — never <c>receivers[0]</c>, and never the SENDER.
+    /// <para>The sender used to be half the sniff, and that is what let <c>SET U TO 5</c> escape every rule:
+    /// the Format-5 re-route's precondition was "the sender is exactly one bare data reference", a literal is
+    /// not one, so the re-route declined and an object reference landed in the Format-1 arithmetic store. Now
+    /// the receivers select Format 5 whatever the sender looks like, and SR9 refuses the literal by name.</para></summary>
     public BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
     {
-        // SET Format 14 (ISO §14.9.39; the OCCURS DYNAMIC feature, data-model D9): a CAPACITY-register target
-        // reroutes to a capacity change. It runs BEFORE the F4/F5 pointer/object reroutes — a register is numeric,
-        // so it would otherwise fall through to the Format-1 store and throw at CapacityRegisterPlace.Write.
-        if (DynTryBindSetCapacity(tv.dataReference(), tv.arithmeticExpression(), SetCapacityKind.To) is { } dcap)
-            return dcap;
-        // SET Format 16 SIZE-OF-absent bare form (ISO §14.9.39; SIZE OF is optional): `SET dyn TO n` on a
-        // dynamic-length elementary item reroutes to the length-set. A dynamic-length item is alphanumeric/national,
-        // so the Format-1 value path cannot carry it — the peek disambiguates on the resolved item type.
-        if (DynTrySetSize(tv.dataReference(), tv.arithmeticExpression()) is { } dsz) return dsz;
-        // The Format-5 SEMANTIC re-route (D-U7): `SET U TO A` parses HERE (alternative order — a
-        // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
-        // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
-        if (tv.dataReference() is { Length: > 0 } tds
-            && OoBinder.OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref)
+        var recvs = tv.dataReference();
+        var kinds = _fmt.KindsOf(recvs);
+        var amount = tv.arithmeticExpression();
+        // The sender AS A REFERENCE, when it is exactly one (§14.9.39.2's identifier-2/-4/-6/-8/-13 positions);
+        // null for a literal, an expression or a function, which each format's own syntax rule then refuses.
+        var senderDref = OoBinder.OoExtractBareReference(amount);
+        string senderText = amount.GetText();
+        // ⛔ SelectForTo, not Select: the receiving list decides, EXCEPT against Format 1's `identifier-1`
+        // catch-all brace, where a sender of class object or of category data-/program-/function-pointer is
+        // admissible in no Format-1 sending position (§8.8.1.1 / §14.9.39.3 SR2) and names exactly one other
+        // format. `SET N4 TO U` is that statement: Format 1's brace admits N4, so the sender used to reach the
+        // ARITHMETIC screen (COBOLNET0844, "'U' is not a numeric operand") while the rule the program broke was
+        // §14.9.39.3 SR8. It now selects Format 5 and SR8 refuses N4 by name.
+        switch (_fmt.SelectForTo(kinds, senderDref, out _))
         {
-            var t0 = ctx.Refs.Probe(tds[0])?.Item.Pic?.Category;        // Probe — format sniffs; the selected
-            var s0 = ctx.Refs.Probe(senderDref)?.Item.Pic?.Category;    // format's own bind demands (R30)
-            // A POINTER on either side selects Format 7, data-pointer-assignment (SET pointer TO pointer) —
-            // the Format-1 numeric path cannot carry a ManagedPointer.
-            if (t0 is PicCategory.Pointer || s0 is PicCategory.Pointer)
-                return BindSetPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
-            // A PROGRAM-POINTER on either side selects Format 9 (SET pp TO pp — SR21; P10 Step 7).
-            if (t0 is PicCategory.ProgramPointer || s0 is PicCategory.ProgramPointer)
-                return BindSetProgramPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
-            // A FUNCTION-POINTER on either side selects Format 8 (SET fp TO fp — SR20; kb/Work PB452 + PB817).
-            if (t0 is PicCategory.FunctionPointer || s0 is PicCategory.FunctionPointer)
-                return BindSetFunctionPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
-            // Either side being an object reference selects Format 5 (§14.9.39 F5; D-U7).
-            if (t0 is PicCategory.ObjectReference || s0 is PicCategory.ObjectReference)
-                return host.Oo.OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
+            case SetFormat.F14:   // OCCURS DYNAMIC capacity change (data-model D9)
+                return BindSetCapacity(recvs, amount, SetCapacityKind.To);
+            case SetFormat.F16:   // the SIZE-OF-absent bare form; the explicit form enters at BindSetSize
+                return BindSetSize(recvs, amount);
+            case SetFormat.F7:
+                return BindSetPointer(recvs, senderDref, toNull: false, senderIsSelfSuper: false, senderText);
+            case SetFormat.F9:
+                return BindSetProgramPointer(recvs, senderDref, toNull: false, senderIsSelfSuper: false, senderText);
+            case SetFormat.F8:
+                return BindSetFunctionPointer(recvs, senderDref, toNull: false, senderIsSelfSuper: false, senderText);
+            case SetFormat.F5:
+                return host.Oo.OoBindSetObjectRef(recvs, senderDref, senderNull: false, senderSelf: false,
+                    senderSuper: false, senderText);
+            case SetFormat.F1:
+                break;
+            default:
+                _fmt.ReportNoFormat(recvs, kinds, SetDirections.To, senderText);
+                return new BoundNop();
         }
         var targets = new List<BoundSetTarget>();
-        foreach (var dref in tv.dataReference())
+        foreach (var dref in recvs)
         {
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
             targets.Add(t);
         }
-        return new BoundSetTo(targets, host.Expr.BindIndexWindowExpr(tv.arithmeticExpression()));   // SET is an r7 window (kb/Work R29)
+        return new BoundSetTo(targets, host.Expr.BindIndexWindowExpr(amount));   // SET is an r7 window (kb/Work R29)
     }
 
-    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2) — with the Format-10
-    /// data-pointer re-route on the FIRST target's category (the D-U7 semantic-re-route pattern; the two
-    /// formats share one grammar shape).</summary>
+    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2), with Formats 10 and 14
+    /// sharing the same grammar shape — selected from the WHOLE receiving list (kb/Work PB449).
+    /// <para>⛔ FORMAT 2's RECEIVING BRACE IS <c>{ index-name-3 } …</c>, AND THAT IS THE WHOLE LIST: §14.9.39.2
+    /// prints no <c>identifier</c> alternative for it and §14.9.39.4 GR4 is written "For each occurrence of
+    /// index-name-3". So the three UP/DOWN formats between them admit an index-name, a data-pointer (SR23) and a
+    /// dynamic-capacity register (SR29) — and NOTHING else. <c>SET WS-N UP BY 4</c> over a <c>PIC 9(4)</c> used
+    /// to compile and answer 5; it now draws COBOLNET2112, because no printed format admits it.</para></summary>
     public BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
-        if (host.Ptr.TryBindSetUpDown(ud) is { } ptr) return ptr;   // F10 — pointer arithmetic (Phase-4b inc 2)
-        if (DynTryBindSetCapacity(ud.dataReference(), ud.arithmeticExpression(),
-                ud.DOWN() is not null ? SetCapacityKind.DownBy : SetCapacityKind.UpBy) is { } dcap)
-            return dcap;   // F14 — dynamic-capacity change (OCCURS DYNAMIC, D9)
+        var recvs = ud.dataReference();
+        var kinds = _fmt.KindsOf(recvs);
+        var amount = ud.arithmeticExpression();
+        bool down = ud.DOWN() is not null;
+        switch (SetFormatSelection.Select(kinds, SetDirections.UpDown, out bool exact))
+        {
+            case SetFormat.F10:   // data-pointer arithmetic — PtrBinder screens EVERY operand against SR23
+                return host.Ptr.BindSetUpDown(ud);
+            case SetFormat.F14:
+                return BindSetCapacity(recvs, amount, down ? SetCapacityKind.DownBy : SetCapacityKind.UpBy);
+            case SetFormat.F2 when !exact:   // an index-name mixed with something Format 2 does not admit
+                _fmt.ReportNotAdmitted(recvs, kinds, SetFormat.F2);
+                return new BoundNop();
+            case SetFormat.F2:
+                break;
+            default:
+                _fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, amount.GetText());
+                return new BoundNop();
+        }
         var targets = new List<BoundSetTarget>();
-        foreach (var dref in ud.dataReference())
+        foreach (var dref in recvs)
         {
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
             targets.Add(t);
         }
-        return new BoundSetUpDown(targets, host.Expr.BindIndexWindowExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
+        return new BoundSetUpDown(targets, host.Expr.BindIndexWindowExpr(amount), down);
     }
 
-    /// <summary>SET Format 14 (ISO §14.9.39; OCCURS DYNAMIC, data-model D9): reroute when the FIRST target resolves
-    /// to a dynamic-table CAPACITY register — <c>SET reg {TO | UP BY | DOWN BY} n</c> changes the table's current
-    /// capacity. A non-register first target returns <see langword="null"/> so the normal Format-1/2 path continues
-    /// (the non-consuming peek idiom, mirroring <c>PtrTryBindSetUpDown</c>). The register is the SOLE receiver of a
-    /// capacity SET (one capacity per statement); a second/mixed target is COBOLNET1524.</summary>
-    private BoundStatement? DynTryBindSetCapacity(
+    /// <summary>SET Format 14 (ISO §14.9.39.2; OCCURS DYNAMIC, data-model D9) — <c>SET data-name-2
+    /// {TO | UP BY | DOWN BY} {integer-1 | arithmetic-expression-4}</c> changes the table's current capacity.
+    /// Reached only when <see cref="SetFormatSelection"/> has already selected Format 14 from the whole receiving
+    /// list, so the only receiver rule left is the format's CARDINALITY: <c>SET data-name-2</c> is printed
+    /// WITHOUT an ellipsis, so the register is the sole receiver (COBOLNET1524).
+    /// <para>⛔ THE LITERAL ALTERNATIVE IS SCREENED HERE (§14.9.39.3 SR30; kb/Work PB458). Only the
+    /// arithmetic-expression alternative is left to §14.9.39.4 GR29/GR30's run-time condition and clamp; integer-1
+    /// is a SYNTAX rule and its violation is a refusal. SR30's capacity bounds are conditioned on the SET's own
+    /// TO alternative — UP BY / DOWN BY write a DELTA, which "not less than the minimum capacity" cannot be
+    /// about — so those two take the nonnegative half alone.</para></summary>
+    private BoundStatement BindSetCapacity(
         IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount, SetCapacityKind kind)
     {
         // A PURE capacity-register peek (NOT refs.Resolve, which would route an OO `prop OF obj` first target through
         // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7).
-        if (targets.Count == 0 || ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap) return null;
+        if (targets.Count == 0 || ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap)
+            return new BoundUnsupported("SET capacity-register — the register could not be addressed");
         // The target NAMES a register but breaks one of its reference rules (§13.18.38.3 SR30/SR31, §8.4.2.2.3 SR4,
-        // §8.4.3.3.3 SR1; kb/Work PB457). This is still SET Format 14 — the statement is selected by the receiver's
-        // being a CAPACITY register, and that is what it is — so the format is CONSUMED here and the reference's own
-        // rule is stated by the ONE screen that owns it (Refs.Resolve → CapacityPlaceOf). Returning null instead
-        // would let the Format-1/2 path add a COBOLNET1756 "SET receiver … not implemented" on top of it, which is
-        // false: the receiver is implemented; the reference is illegal.
+        // §8.4.3.3.3 SR1; kb/Work PB457). This is still SET Format 14 — SetFormatSelection chose the format from the
+        // receiving list, and a CAPACITY register is what this receiver IS — so the format is CONSUMED here and the
+        // reference's own rule is stated by the ONE screen that owns it (Refs.Resolve → CapacityPlaceOf). Nothing is
+        // stacked on top of that diagnostic: the receiver is implemented; the reference is illegal.
         if (cap.Place is not { } place) { ctx.Refs.Resolve(targets[0]); return new BoundNop(); }
         if (targets.Count > 1)
         {
@@ -818,6 +901,29 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 $"SET '{cap.Register.CobolName}' {SetCapacityKinds.Text(kind)}: a dynamic-table CAPACITY register "
                 + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
             return new BoundNop();
+        }
+
+        if (SetLiteralAmount.Of(amount) is { } integer1)
+        {
+            // §13.18.38.4 GR16/GR17 name the two capacities SR30 compares against: "Integer-4 is the minimum
+            // capacity of the table. If integer-4 is absent, a value of zero is assumed for it" and "Integer-5
+            // is the expected capacity".
+            var spec = cap.Table.OccursSpec;
+            bool to = kind == SetCapacityKind.To;
+            var bound = new SetAmountBound(
+                Min: to ? spec?.InitialCap ?? 0 : 0,
+                Max: to ? spec?.ExpectedMax : null,
+                MinWhat: to && spec?.InitialCap is { } min and > 0
+                    ? $"nonnegative and not less than the minimum capacity ({min}) defined in the corresponding OCCURS clause"
+                    : "nonnegative",
+                MaxWhat: $"not greater than the expected capacity ({spec?.ExpectedMax}) defined in the corresponding OCCURS clause",
+                Operand: "integer-1", Rule: "ISO §14.9.39.3 SR30");
+            if (SetLiteralAmount.Violation(integer1, bound) is { } why)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.SetLiteralAmountOutOfRange,
+                    $"SET '{cap.Register.CobolName}' {SetCapacityKinds.Text(kind)} {integer1}: {why} ({bound.Rule})");
+                return new BoundNop();
+            }
         }
         return new BoundSetCapacity(place.Table, host.Expr.BindIndexWindowExpr(amount), kind);
     }
@@ -829,10 +935,31 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// at this statement is NOT captured here: §14.9.39.4 GR37/GR38's nonfatal condition rides the ambient
     /// (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair the EcBinder already adds to every statement in a
     /// checking-on region, which is also what carries it into the §14.6.13.1.4 #3 selection (kb/Work PB367b).</summary>
-    private BoundStatement BindSetSize(Core.DataReferenceContext dref, Core.ArithmeticExpressionContext amount)
+    private BoundStatement BindSetSize(Core.DataReferenceContext dref, Core.ArithmeticExpressionContext amount) =>
+        BindSetSize([dref], amount, explicitSizeOf: true);
+
+    /// <summary>⛔ BOTH ARMS OF FORMAT 16 ARE ONE BIND (kb/Work PB458). <c>[ SIZE OF ]</c> is a bracket, so
+    /// <c>SET SIZE OF D TO n</c> and <c>SET D TO n</c> are the SAME format with the same rules — and the
+    /// SIZE-OF-absent arm used to be a separate peek that refused to resolve anything carrying a
+    /// <c>dataReferenceSuffix</c>. That test was aimed at subscripts, but a suffix ALSO carries QUALIFICATION,
+    /// so <c>SET D OF G TO 2</c> — legal source (§8.4.2.2.3 rule 2: "a name may be qualified even though it does
+    /// not need qualification"; §13.16.3 SR18 leaves an OCCURS clause impossible here, so the subscript half had
+    /// nothing legal to exclude) — fell into the Format-1 numeric store and died at run time. The ONE receiver
+    /// resolution is <see cref="ExpressionBinder.ResolveReceiving"/>, the same one the explicit arm always used;
+    /// the format is selected before either arm is entered, so no peek is needed to keep a speculative resolve
+    /// off the OO property hook.</summary>
+    private BoundStatement BindSetSize(IReadOnlyList<Core.DataReferenceContext> targets,
+                                       Core.ArithmeticExpressionContext amount, bool explicitSizeOf = false)
     {
+        // §14.9.39.2 Format 16 prints ONE data-name-3, with no ellipsis: a second receiver is no Format 16.
+        if (targets.Count != 1)
+        {
+            _fmt.ReportNotAdmittedCardinality(targets, SetFormat.F16);
+            return new BoundNop();
+        }
+        var dref = targets[0];
         if (host.Expr.ResolveReceiving(dref) is not { } p)
-            return new BoundUnsupported($"SET SIZE OF '{dref.GetText()}'");
+            return new BoundUnsupported($"SET {(explicitSizeOf ? "SIZE OF " : "")}'{dref.GetText()}'");
         if (!p.Item.IsDynamicLength)
         {
             ctx.Edition.Error("COBOLNET1568",
@@ -840,26 +967,31 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §14.9.39 Format 16 SR33)");
             return new BoundNop();
         }
+        // §14.9.39.3 SR34 over the LITERAL alternative — "Integer-2 shall be non-negative, and shall be equal to
+        // or less than the maximum size of data-name-3, as specified in 8.5.1.10" — the maximum §8.5.1.10.1
+        // defines and DataItem.DynMaxSize carries. §14.9.39.4 GR37/GR38's EC-STORAGE-NOT-AVAIL and clamp are the
+        // rules for arithmetic-expression-5 and stay exactly where they are (kb/Work PB458).
+        if (SetLiteralAmount.Of(amount) is { } integer2)
+        {
+            var bound = new SetAmountBound(0, p.Item.DynMaxSize, "non-negative",
+                $"equal to or less than the maximum size of '{p.Item.CobolName}' ({p.Item.DynMaxSize} character "
+                + "positions, ISO §8.5.1.10.1)", "integer-2", "ISO §14.9.39.3 SR34");
+            if (SetLiteralAmount.Violation(integer2, bound) is { } why)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.SetLiteralAmountOutOfRange,
+                    $"SET {(explicitSizeOf ? "SIZE OF " : "")}'{p.Item.CobolName}' TO {integer2}: {why} ({bound.Rule})");
+                return new BoundNop();
+            }
+        }
         return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynMaxSize);
     }
 
-    /// <summary>The SIZE-OF-absent bare-form peek (ISO §14.9.39 Format 16): reroute `SET dyn TO n` when the sole,
-    /// bare (unqualified/unsubscripted) target resolves to a dynamic-length elementary item; null otherwise so the
-    /// normal Format-1/5 path continues. Guarding on a bare name BEFORE resolving keeps a speculative resolve off
-    /// the OO property hook (the DynTryBindSetCapacity discipline — a dynamic-length item is never a property).</summary>
-    private BoundStatement? DynTrySetSize(
-        IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount)
-    {
-        if (targets.Count != 1 || targets[0].dataReferenceSuffix().Length != 0) return null;
-        // An index-name target belongs to Format 1 — peek it away BEFORE ResolveReceiving, whose demanding
-        // Resolve would report COBOLNET1639 on a name that is legally not a data item (R30).
-        if (host.Expr.IndexFieldOf(targets[0]) is not null) return null;
-        if (host.Expr.ResolveReceiving(targets[0]) is not { Item.IsDynamicLength: true } p) return null;
-        return new BoundSetSize(p, host.Expr.BindIndexWindowExpr(amount), p.Item.DynMaxSize);
-    }
-
-    /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
-    /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>
+    /// <summary>A Format-1 / Format-2 SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a
+    /// resolvable data item (an index data item or an integer item — the emitter dispatches on its usage).
+    /// <para>It applies NO class screen, and that is deliberate: §14.9.39.3 SR1's "a data item of class index or
+    /// an integer data item" is a CATEGORY rule over Format 1's <c>identifier-1</c> brace, open as kb/Work PB212.
+    /// What this method no longer has to carry is the FORMAT question — <see cref="SetFormatSelection"/> has
+    /// already established that every receiver here belongs to Format 1's or Format 2's brace.</para></summary>
     public BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
         host.Expr.IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
         : host.Expr.ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand

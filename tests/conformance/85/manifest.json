@@ -104,7 +104,9 @@
   "pb391_corresponding_rule2_table16_85",
   "pb399_evaluate_selection_set_shapes",
   "pb430_gr4_no_conversion",
-  "pb432_varying_brace_group"
+  "pb432_varying_brace_group",
+  "pb449_set_format_selection_receiving_list",
+  "pb462_set_condition_group_odo_length"
  ],
  "pending": []
 }

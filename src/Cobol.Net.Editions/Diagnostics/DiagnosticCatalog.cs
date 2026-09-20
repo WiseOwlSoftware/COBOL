@@ -3986,6 +3986,40 @@ public static class DiagnosticCatalog
         "The RETURNING item of an inline-invoked method is ANY LENGTH or ACTIVE-CLASS.",
         "ISO §8.4.3.4.3 SR4");
 
+    // ── COBOLNET2112 / COBOLNET2113 — THE SET STATEMENT'S FORMAT SELECTION (kb/Work PB449 + PB456 + PB458) ──
+
+    /// <summary>COBOLNET2112 — §14.9.39.2: the receiving operands of a SET statement match no printed general
+    /// format's receiving brace, or match one whose own syntax rule excludes some of them. kb/Work PB449.</summary>
+    public static readonly DiagnosticDescriptor SetNoFormatAdmitsReceiver = new(
+        "COBOLNET2112", "set-no-format-admits-receiver", EditionSeverity.Error,
+        "No general format of the SET statement admits this list of receiving operands. Every receiving brace in "
+        + "ISO §14.9.39.2 is written `{ … } …` — one or more operands of ONE kind — so the format is chosen from "
+        + "the WHOLE list: index-names (Format 1, and Format 2 for UP/DOWN BY), an item of class index or an "
+        + "integer data item (Format 1), an item of class object (Format 5), a data-pointer (Format 7, and "
+        + "Format 10 for UP/DOWN BY), a function-pointer (Format 8), a program-pointer (Format 9), a "
+        + "dynamic-capacity register (Format 14) or a dynamic-length elementary item (Format 16). Mixing kinds, "
+        + "or writing a kind the direction admits nowhere (an integer data item under UP/DOWN BY — Format 2's "
+        + "receiving operand is index-name-3), leaves the statement with no format. Write one statement per "
+        + "receiving kind. ⚠ The diagnostic does not depend on which operand is written first: that asymmetry "
+        + "was the defect it replaces.",
+        "ISO §14.9.39.2 / §14.9.39.3 SR1, SR8, SR17, SR20, SR21, SR23, SR29, SR33");
+
+    /// <summary>COBOLNET2113 — §14.9.39.3 SR30 / SR34: a SET amount written as a LITERAL (integer-1 of Format 14,
+    /// integer-2 of Format 16) is outside the bound its own syntax rule states. kb/Work PB458.</summary>
+    public static readonly DiagnosticDescriptor SetLiteralAmountOutOfRange = new(
+        "COBOLNET2113", "set-literal-amount-out-of-range", EditionSeverity.Error,
+        "A SET amount written as a literal is outside the range its general format's syntax rule allows. ISO "
+        + "§14.9.39.3 SR30: \"Integer-1 shall be nonnegative and, if TO is specified, integer-1 shall be not less "
+        + "than the minimum capacity defined in the corresponding OCCURS clause and not greater than the expected "
+        + "capacity, if specified.\" SR34: \"Integer-2 shall be non-negative, and shall be equal to or less than "
+        + "the maximum size of data-name-3, as specified in 8.5.1.10.\" These are SYNTAX rules over the literal "
+        + "alternative, so the program is refused; the corresponding GENERAL rules (§14.9.39.4 GR29/GR30 and "
+        + "GR37/GR38, with their EC-BOUND-SUBSCRIPT / EC-STORAGE-NOT-AVAIL conditions and their clamps) govern "
+        + "the arithmetic-expression alternative at run time instead. ⚠ A sign written ADJACENT to the digits is "
+        + "part of the literal (§8.3.3.3.2 rule 2), so `TO -1` is a negative integer-1/-2; `TO - 1` — separated — "
+        + "is a unary operator over an expression and takes the general rule.",
+        "ISO §14.9.39.3 SR30 / SR34 / §8.5.1.10.1 / §13.18.38.4 GR16, GR17");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

@@ -385,7 +385,8 @@ of an unsupported facility.
   a raw `ArgumentOutOfRangeException` out of generated code. The maximum size is now computed by the one producer
   `CobolDynString.MaxSizeOf` for EVERY dynamic-length item (A.1 item 62 below), which makes the clamp the one
   path for an over-large request and the narrowing exact by construction rather than by inspection. The integer-2
-  literal form is compile-time bounded by SR34, so its out-of-range
+  literal form is compile-time bounded by SR34 (`SetBinder.BindSetSize` over `SetLiteralAmount`, COBOLNET2113 —
+  kb/Work PB458; the sentence stood here for a screen nobody had written until then), so its out-of-range
   cases are compile diagnostics, not this runtime EC.
 - **EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW applied to EVERY floating-point usage (§14.6.13.2 item 3 / §14.9.25.4
   GR6 d)4.a)**: the standard scopes these to a "standard floating-point usage" (the ISO/IEC 60559 FLOAT-BINARY-32/64/128

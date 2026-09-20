@@ -273,36 +273,50 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return BoundImplicitSeries.Of(members);
     }
 
-    /// <summary>The SET UP/DOWN BY pointer arm (ISO §14.9.39 Format 10; the D-U7 category re-route pattern —
-    /// the 85 index grammar shape, re-dispatched by the FIRST target's category): all targets must be
-    /// data-pointers (SR23). GR19's non-integer-amount rule is a VALUE rule, realized EXACTLY at runtime
-    /// (<c>CobolPtr.UpByScaled</c> → EC-SIZE-ADDRESS fatal; 2.0 moves by 2). Returns null when the first
-    /// target is NOT a pointer — the caller proceeds with the index binding.</summary>
-    public BoundStatement? TryBindSetUpDown(Core.SetIndexStatementContext ud)
+    /// <summary>The SET UP/DOWN BY pointer arm (ISO §14.9.39.2 Format 10): every receiving operand shall be of
+    /// category data-pointer (§14.9.39.3 SR23). GR19's non-integer-amount rule is a VALUE rule, realized EXACTLY
+    /// at runtime (<c>CobolPtr.UpByScaled</c> → EC-SIZE-ADDRESS fatal; 2.0 moves by 2).
+    /// <para>⛔ IT NO LONGER SNIFFS A FORMAT, AND THE SR23 SCREEN NOW COVERS EVERY OPERAND INCLUDING THE FIRST
+    /// (kb/Work PB449). This used to peek <c>drefs[0]</c> and return null for a non-pointer, so the SAME two
+    /// operands gave a correct SR23 diagnostic when the pointer was written first and a run-time crash when it
+    /// was written second — the format decided by source order, which is a variable in no rule of §14.9.39. The
+    /// selection is now <see cref="SetFormatSelection"/>'s, over the whole receiving list, and this method is
+    /// entered only once Format 10 has been chosen; the screen it keeps is the RULE, run uniformly.</para>
+    /// <para>The screen resolves through <see cref="PtrResolvePointer"/> (the committing form), which is also
+    /// what kb/Work PB221 asked for: a probe's Place is unscreened and must never enter the bound tree, and
+    /// committing the FIRST operand's probe made <c>SET P(XE) Q(XE) UP BY 4</c> diagnose COBOLNET0844 for Q and
+    /// not for P — one statement, one rule, two verdicts.</para></summary>
+    public BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
         var drefs = ud.dataReference();
-        if (drefs.Length == 0) return null;
-        // Peek the FIRST target's category without consuming diagnostics: an index-name or non-pointer item
-        // belongs to the Format-2 index path.
-        if (host.Expr.IndexFieldOf(drefs[0]) is not null) return null;
-        if (ctx.Refs.Probe(drefs[0]) is not { } sniff || sniff.Item.Pic?.Category is not PicCategory.Pointer)
-            return null;
-
+        if (drefs.Length == 0) return new BoundUnsupported("SET … UP/DOWN BY — no receiving operand");
         // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to
         // VersionConformancePass (Step 14b), firing on the self-identifying BoundSetPointerUpDown node.
-        // ⛔ RESOLVE to commit — the probe above only DISCRIMINATED the format (kb/Work PB221). Committing the
-        // probe's Place made `SET P(XE) Q(XE) UP BY 4` diagnose COBOLNET0844 for Q and not for P: one statement,
-        // one rule, two verdicts, decided by which operand the format sniff happened to read.
-        if (ctx.Refs.Resolve(drefs[0]) is not { } first) return new BoundNop();
-        var targets = new List<Place> { first };
-        foreach (var dref in drefs.Skip(1))
+        var targets = new List<Place>(drefs.Length);
+        foreach (var dref in drefs)
         {
+            if (SetIndexNameOperand(dref)) return new BoundNop();
             if (PtrResolvePointer(dref, "a SET UP/DOWN BY receiver mixed with data-pointers (ISO §14.9.39 SR23)") is not { } p)
                 return new BoundNop();
             targets.Add(p);
         }
         var amount = host.Expr.BindIndexWindowExpr(ud.arithmeticExpression());   // SET (pointer form) is an r7 window (kb/Work R29)
         return new BoundSetPointerUpDown(targets, amount, ud.DOWN() is not null);
+    }
+
+    /// <summary>An INDEX-NAME among Format 10's receiving operands is a CATEGORY error, not an undefined name
+    /// (kb/Work PB388): <c>ctx.Refs.Resolve</c> answers for a DATA ITEM only and would report COBOLNET1639 on a
+    /// name an INDEXED BY phrase legally declares. §13.18.38.3 r7 closes the list of contexts that may reference
+    /// an index-name and SET Format 1/2 is one of them — so the statement is still refused, for the real
+    /// reason.</summary>
+    private bool SetIndexNameOperand(Core.DataReferenceContext dref)
+    {
+        if (host.Expr.IndexFieldOf(dref) is null) return false;
+        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+            $"SET '{dref.GetText()}': an index-name cannot be a receiving operand of a data-pointer SET — "
+            + "identifier-9 shall be of category data-pointer (ISO §14.9.39.2 Format 10, §14.9.39.3 SR23). An "
+            + "index-name operand belongs to Format 2, whose receiving operand is index-name-3");
+        return true;
     }
 
     /// <summary>Resolve a reference that must be a USAGE POINTER item (the 0869 pointer band).</summary>

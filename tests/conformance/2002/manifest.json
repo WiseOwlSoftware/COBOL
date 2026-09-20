@@ -3,6 +3,7 @@
   "enabled": [
   "pb246_sqrt_absolute_value_and_domain",
   "pb428_inline_method_invocation",
+  "pb456_set_sender_selected_formats",
   "pb852_report_source_operand_parens",
   "pb513_type_entry_composition",
   "pb461_all_literal_value_categories",
