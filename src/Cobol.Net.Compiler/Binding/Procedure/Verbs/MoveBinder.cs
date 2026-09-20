@@ -96,8 +96,14 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     {
         if (move.CORRESPONDING() is not null || move.CORR() is not null)   // Format 2 — BOTH tokens (§14.9.25.3 SR11)
             return corr.Bind(CorrVerb.Move, move.dataReference(), CobolRounding.Truncation, null);
+        // ⛔ THE MESSAGE NO LONGER NAMES "MOVE CORRESPONDING" (kb/Work PB421). It used to read "MOVE
+        // CORRESPONDING / unsupported MOVE form", and that was the arm `MOVE <sending> CORRESPONDING id-3 TO
+        // id-4` reached — a shape §14.9.25.2 prints no format for, which `moveReceivingPhrase`'s deleted second
+        // alternative admitted and this loud stage then answered AT RUN TIME. Format 2 is handled whole at the
+        // CORRESPONDING test above, so what remains here is a defensive arm over the one printed receiving
+        // shape, and it must not claim an unimplemented feature that this binder in fact implements.
         if (move.moveSendingOperand() is not { } send || move.moveReceivingPhrase()?.dataReferenceList() is not { } targets)
-            return new BoundUnsupported("MOVE CORRESPONDING / unsupported MOVE form");
+            return new BoundUnsupported($"MOVE statement form '{move.GetText()}' (ISO §14.9.25.2 Format 1)");
         BoundOperand source = send.literal() is { } lit ? host.Expr.LiteralOperand(lit)
             : send.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
             // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).

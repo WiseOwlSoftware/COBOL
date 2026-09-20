@@ -291,8 +291,29 @@ evaluateWhenItem
 // GO TO (§14.9.17)
 // ==========================================
 
+// ⛔ ONE ALTERNATIVE PER PRINTED GENERAL FORMAT — NEVER THEIR UNION (kb/Work PB412). §14.9.17.2 prints exactly
+// two formats, rendered from the canonical PDF page 660 / printed folio 630 at 190 dpi because a general-format
+// DIAGRAM is load-bearing (CLAUDE.md rule 1):
+//     Format 1 (unconditional):  GO TO procedure-name-1
+//     Format 2 (depending):      GO TO { procedure-name-1 } … DEPENDING ON identifier-1
+// Only GO and DEPENDING are underlined, so TO and ON are optional words (§5.2.3) and GO is required (§5.2.2);
+// procedure-name-1 is UNBRACKETED in Format 1 (so exactly one, §5.2.6.2) and carries the ellipsis in Format 2
+// (so one or more, §5.2.7). The rule used to be the single union
+// `GO TO? procedureName? (procedureName)* (DEPENDING ON? dataReference)?`, whose COMPLEMENT — every shape the
+// two formats do not print — was accepted and then answered downstream: `GO TO A B.` reached the Format-1 bind
+// arm, which read names[0] and DISCARDED B without a word, and `GO TO DEPENDING ON X.` compiled clean and died
+// at run time on a loud stage. §4.2.2 owes a compile-time indication for source no format admits, so the
+// narrowing belongs HERE, in the parser, not in a pair of bind-time ifs.
+// Arm order is deliberate — ANTLR takes the first matching alternative, and Format 2 is a proper superset of
+// Format 1's prefix.
 goToStatement
-    : GO TO? procedureName? (procedureName)* (DEPENDING ON? dataReference)?
+    : GO TO? procedureName+ DEPENDING ON? dataReference   // §14.9.17.2 Format 2 (depending)
+    | GO TO? procedureName                                // §14.9.17.2 Format 1 (unconditional)
+    | GO TO?                                              // ANSI X3.23-1985 target-less GO TO — no ISO 2023
+                                                          // format prints it; DELETED by ISO 2002 and gated by
+                                                          // name (BareGotoRemoved2002) rather than left to a
+                                                          // no-viable-alternative parse error, because the
+                                                          // four-compilers rule wants the EDITION named.
     ;
 
 // ==========================================

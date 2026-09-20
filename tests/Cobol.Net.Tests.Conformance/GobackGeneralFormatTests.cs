@@ -106,6 +106,69 @@ public sealed class GobackGeneralFormatTests
         Assert.True(ok, string.Join("\n", diagnostics));
     }
 
+    /// <summary>Fact 3, AT EVERY EDITION THAT HAS THE PHRASE (kb/Work PB402). The RAISING phrase arrives with
+    /// the COBOL-2002 exception model, so the terse spelling shall be ACCEPTED at 2002/2014/2023, and at 85 it
+    /// shall draw the named introduction diagnostic — COBOLNET0879, the phrase's own gate — and never a parse
+    /// error, which is what a reader gets when a compiler limitation and a syntax mistake look alike. The 2023
+    /// row alone could not tell those apart.</summary>
+    [Theory]
+    [InlineData("PBFM23", "GOBACK RAISING LAST", 2002)]
+    [InlineData("PBFM24", "GOBACK RAISING LAST", 2014)]
+    [InlineData("PBFM25", "GOBACK RAISING LAST", 2023)]
+    [InlineData("PBFM26", "EXIT PROGRAM RAISING LAST", 2002)]
+    [InlineData("PBFM27", "EXIT PROGRAM RAISING LAST", 2014)]
+    [InlineData("PBFM28", "EXIT PROGRAM RAISING LAST", 2023)]
+    public void TheTerseRaisingLast_IsAcceptedAtEveryEditionThatHasThePhrase(string pid, string body, int edition)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile(InDeclarative(pid + edition, body), edition);
+        Assert.True(ok, $"--std {edition}: {string.Join("\n", diagnostics)}");
+    }
+
+    /// <summary>…and at COBOL-85 the SAME terse spelling is refused BY NAME, not by the parser.</summary>
+    [Theory]
+    [InlineData("PBFM29", "GOBACK RAISING LAST")]
+    [InlineData("PBFM30", "EXIT PROGRAM RAISING LAST")]
+    public void TheTerseRaisingLast_DrawsThePhrasesOwnEditionGateAt85(string pid, string body)
+    {
+        var diagnostics = EditionHarness.GetDiagnostics(InDeclarative(pid, body), 85);
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0879");
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL0001");
+    }
+
+    /// <summary>⛔ FACT 3'S THIRD SITE, AND THE ARM PB407's REPAIR DID NOT REACH (kb/Work PB402). §14.9.38.2
+    /// Format 2 prints the same <c>RAISING { EXCEPTION exception-name-1 | LAST EXCEPTION }</c> brace, measured
+    /// on canonical PDF page 756 / printed folio 726 with LAST underlined and the following EXCEPTION not — a
+    /// THIRD page carrying the typesetting. <c>mcsSendStatement</c> spells that brace INLINE (it has two
+    /// alternatives where <c>raisingPhrase</c> has three: SEND's format prints no identifier-1 arm), so
+    /// relaxing the shared rule left this one requiring the word, and <c>SEND … RAISING LAST</c> was
+    /// <c>COBOL0001: missing token before '.'</c> — measured on this tree before the fix.
+    /// <para>The MCS facility is declined ACCEPT-INERT (Annex A.3 item 4), so the contract here is that the
+    /// program COMPILES and the decline rides the warning channel: a parse error would deny §4.2.6 ¶3's named
+    /// warning entirely, which is the conformance obligation the decline rests on.</para></summary>
+    [Theory]
+    [InlineData("PBFM31", "SEND TO D-NAME FROM MSG-OUT RAISING LAST")]
+    [InlineData("PBFM32", "SEND TO D-NAME FROM MSG-OUT RAISING LAST EXCEPTION")]
+    [InlineData("PBFM33", "SEND D-NAME FROM MSG-OUT RAISING LAST")]
+    public void TheWordEXCEPTIONAfterLAST_IsOptionalAtTheSendSiteToo(string pid, string body)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 D-NAME PIC X(8) VALUE "SRV".
+            01 MSG-OUT PIC X(8) VALUE "HELLO".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                {body}.
+                STOP RUN.
+
+            """;
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
+        Assert.True(ok, string.Join("\n", errors));
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1578");   // the A.3 item 4 decline, still named
+    }
+
     /// <summary>§5.2.6.4's "only once" half — the part a parser rule cannot state. Relaxing the tail to a
     /// repetition without this screen would ACCEPT a doubled phrase, which is the opposite error.</summary>
     [Theory]

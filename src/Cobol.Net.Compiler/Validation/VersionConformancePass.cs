@@ -1854,12 +1854,16 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The target-less <c>GO TO.</c> (ISO §14.9.17; the ANSI-85 alterable GO TO, REMOVED by 2002) — no
-        /// procedure-name AND no DEPENDING operand, exactly the BindGoTo→AlterBindBareGoTo condition (a
-        /// <c>GO TO DEPENDING</c> with no names is malformed, not bare, and takes a different path).</summary>
+        /// <summary>The target-less <c>GO TO.</c> (ISO §14.9.17; the ANSI-85 alterable GO TO, REMOVED by 2002) —
+        /// the grammar's third <c>goToStatement</c> alternative, asked of the ONE format classifier rather than
+        /// re-derived from optional children (kb/Work PB412). The condition used to be spelled
+        /// <c>procedureName().Length == 0 &amp;&amp; dataReference() is null</c> here AND, in its own words, at
+        /// <c>BindGoTo</c> and <c>AlterBindBareGoTo</c> — three copies of one format rule, and a
+        /// <c>GO TO DEPENDING</c> with no names slipped between them. No shape can now reach this visitor that
+        /// is not one of the two printed formats or this gated legacy arm.</summary>
         public override object? VisitGoToStatement(CobolParserCore.GoToStatementContext ctx)
         {
-            if (ctx.procedureName().Length == 0 && ctx.dataReference() is null)
+            if (GoToFormats.Of(ctx) is GoToFormat.AnsiAlterable)
                 _p.Check(Constructs.BareGotoRemoved2002, "the GO TO statement");
             return base.VisitChildren(ctx);
         }

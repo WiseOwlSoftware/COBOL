@@ -851,10 +851,23 @@ mcsReceiveStatement
 // only in the RETURNING vs RAISING tail, both optional here, which keeps one rule for one statement.
 // ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 756, in BOTH send formats:
 // SEND, FROM, RETURNING and RAISING carry underline rules; TO carries none, so it may be omitted.
+// ⛔ THE SECOND `EXCEPTION` IS AN OPTIONAL WORD HERE TOO — THE THIRD SITE OF ONE RULE (kb/Work PB402, PB407).
+// PB407 relaxed `raisingPhrase` to `LAST EXCEPTION?` on the GOBACK and EXIT Format-2 figures and this INLINE
+// copy, which is not that rule, kept the falsely-restrictive spelling: `SEND TO D FROM I RAISING LAST` was a
+// raw parse error. Measured on the printed §14.9.38.2 Format 2 figure (canonical PDF page 756 / printed folio
+// 726, rendered at 190 dpi): RAISING is underlined, the FIRST EXCEPTION is underlined, LAST is underlined, and
+// the EXCEPTION after LAST is NOT — the same typesetting as PDF 653 and PDF 661, which is now three pages
+// carrying it (§5.2.3 makes a non-underlined uppercase word an optional word).
+// ⚠ AND THIS RULE IS NOT `raisingPhrase`, DELIBERATELY: §14.9.38.2 Format 2's brace prints TWO alternatives,
+// while §14.9.18.2 / §14.9.14.2 F2 print THREE — they add `identifier-1`, the exception-OBJECT form. Sharing
+// the rule would admit `SEND … RAISING <identifier>`, a shape SEND's format does not print, which is the
+// over-acceptance defect PB412/PB421 are. The shared FACT — that the second EXCEPTION is optional wherever the
+// standard prints `LAST EXCEPTION` — is held across every spelling by
+// PrintedFormatAlternativeDriftTests.EveryPrintedLastExceptionSpelling_MakesTheSecondExceptionOptional.
 mcsSendStatement
     : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?
-      (RAISING (EXCEPTION cobolWord | LAST EXCEPTION))?
+      (RAISING (EXCEPTION cobolWord | LAST EXCEPTION?))?
       mcsExceptionPhrases?
       END_SEND?
     ;
@@ -1129,9 +1142,17 @@ moveSendingOperand
     | dataReference
     ;
 
+// ⛔ ONE ALTERNATIVE, BECAUSE THE RECEIVING PHRASE HAS ONE PRINTED SHAPE (kb/Work PB421). §14.9.25.2 prints
+// exactly two general formats — `MOVE { identifier-1 | literal-1 } TO { identifier-2 } …` and
+// `MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4` — and the SECOND is spelled WHOLE by
+// `moveStatement`'s first alternative above. This rule used to carry a second alternative
+// `(CORRESPONDING | CORR) dataReference TO dataReference`, which composed with `MOVE moveSendingOperand
+// moveReceivingPhrase` to admit `MOVE <sending-operand> CORRESPONDING id-3 TO id-4` — a shape NEITHER format
+// prints, and one the binder could not build, so `MoveBinder.Bind` fell through to a BoundUnsupported and the
+// program COMPILED CLEAN and died at run time claiming a COBOL feature was not yet implemented. §4.2.2's first
+// paragraph fixes what an implementation may accept, and a construct no general format prints is not in it.
 moveReceivingPhrase
     : TO dataReferenceList
-    | (CORRESPONDING | CORR) dataReference TO dataReference
     ;
 
 // ==========================================

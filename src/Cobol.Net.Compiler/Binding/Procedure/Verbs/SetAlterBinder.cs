@@ -3,6 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -97,10 +98,15 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// transfer when no ALTER ever names the paragraph (the legacy's NIST-proven realization of "undefined").</summary>
     public BoundStatement AlterBindBareGoTo(Core.GoToStatementContext g)
     {
-        if (g.dataReference() is not null)   // `GO TO DEPENDING ON x` with NO procedure-names is malformed, not bare
-            return new BoundUnsupported("GO TO DEPENDING without procedure-names (ISO §14.9.17 Format 2)");
+        // ⛔ NO MALFORMED-SHAPE ARM HERE ANY MORE (kb/Work PB412). This method used to open with
+        // `if (g.dataReference() is not null) return new BoundUnsupported("GO TO DEPENDING without
+        // procedure-names …")` — a shape §14.9.17.2 prints no format for, answered by EMITTING A PROGRAM that
+        // aborts at run time on the loud stage. `goToStatement` now spells one alternative per printed format,
+        // so that shape is a syntax error in the parser and this arm was unreachable code pinning the wrong
+        // stage for an illegal source construct.
         // The bare-GO-TO removal gate (BareGotoRemoved2002) fires on RECOGNITION in the VersionConformancePass
-        // parse-arm (VisitGoToStatement, no procedure-name && no DEPENDING — this exact condition); Step 14h.4a.
+        // parse-arm (VisitGoToStatement, GoToFormat.AnsiAlterable — the same classifier this method's caller
+        // dispatched on); Step 14h.4a.
         // At 85 the construct is an OBSOLETE element: accepted with no failing diagnostic (the obsolete-element
         // flag awaits the EditionContext warning channel — it must not fail the 85 compile).
         AlterEnsureScan();
@@ -154,8 +160,10 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         var sentences = ctx.Table.Paragraphs[pc].Sentences;
         if (sentences.Length != 1) return false;
         var stmts = sentences[0].statement();
+        // The format question goes to the ONE classifier (kb/Work PB412) — never re-derived from the optional
+        // children here. Format 1 and the target-less ANSI-85 arm are both alterable; Format 2 is not.
         return stmts.Length == 1 && stmts[0].goToStatement() is { } g
-            && g.dataReference() is null && g.procedureName().Length <= 1;
+            && GoToFormats.Of(g) is not GoToFormat.Depending;
     }
 
     // ── SPECIAL-NAMES external switches: SET Format 3 + the switch-status condition (ISO §12.3.7) ────────────

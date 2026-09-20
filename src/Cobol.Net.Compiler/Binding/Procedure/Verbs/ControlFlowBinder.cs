@@ -6,6 +6,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -227,31 +228,44 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         return new BoundContinueAfter(host.Expr.BindExpr(secs), checkLtz);
     }
 
+    /// <summary>Bind a GO TO statement — ONE ARM PER PRINTED GENERAL FORMAT (ISO §14.9.17.2; kb/Work PB412).
+    /// <para>⛔ The format is not reconstructed here from optional children any more: <c>goToStatement</c> carries
+    /// one grammar alternative per printed format, so <see cref="GoToFormats.Of"/> is TOTAL and the switch below
+    /// has no fall-through arm to catch the complement. It used to: the Format-2 test was
+    /// <c>dataReference() is not null &amp;&amp; names.Length >= 1</c> and the bare test <c>names.Length == 0</c>,
+    /// which left "everything else" — <c>GO TO A B.</c> among it — dropping into the Format-1 arm, where
+    /// <c>names[0]</c> was bound and the remaining procedure-names were discarded in silence.</para></summary>
     public BoundStatement BindGoTo(Core.GoToStatementContext g)
     {
         var names = g.procedureName();
-        if (g.dataReference() is { } sel && names.Length >= 1)   // GO TO p1 p2 … DEPENDING ON sel
+        switch (GoToFormats.Of(g))
         {
-            var targets = new List<int>();
-            bool resolved = true;
-            foreach (var n in names)
-            {
-                // A section target transfers to its first paragraph (ISO §14.9.17 GR1). An unresolvable
-                // procedure-name is REPORTED by the ONE operand resolution (kb/Work PB390) — GO TO states no
-                // syntax rule of its own about procedure-name-1, so §8.4.2.1 alone decides. EVERY name in the
-                // series is screened: `GO TO A B C DEPENDING` with two bad names draws two diagnostics, not the
-                // first one only (the CheckCorrespondingGroupOperand discipline — a short-circuit hides the rest).
-                if (ctx.Table.ResolveProcedureOperand(n, "GO TO DEPENDING") is { } range) targets.Add(range.Start);
-                else resolved = false;
-            }
-            return resolved
-                ? new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, ctx.SourceLine(g))
-                : new BoundNop();
+            case GoToFormat.Depending:              // GO TO p1 p2 … DEPENDING ON identifier-1
+                var targets = new List<int>();
+                bool resolved = true;
+                foreach (var n in names)
+                {
+                    // A section target transfers to its first paragraph (ISO §14.9.17 GR1). An unresolvable
+                    // procedure-name is REPORTED by the ONE operand resolution (kb/Work PB390) — GO TO states no
+                    // syntax rule of its own about procedure-name-1, so §8.4.2.1 alone decides. EVERY name in the
+                    // series is screened: `GO TO A B C DEPENDING` with two bad names draws two diagnostics, not the
+                    // first one only (the CheckCorrespondingGroupOperand discipline — a short-circuit hides the rest).
+                    if (ctx.Table.ResolveProcedureOperand(n, "GO TO DEPENDING") is { } range) targets.Add(range.Start);
+                    else resolved = false;
+                }
+                return resolved
+                    ? new BoundGoToDepending(host.Expr.FieldOperand(g.dataReference()), targets, ctx.SourceLine(g))
+                    : new BoundNop();
+
+            case GoToFormat.Unconditional:          // GO TO procedure-name-1
+                return ctx.Table.ResolveProcedureOperand(names[0], "GO TO") is not { } target
+                    ? new BoundNop()
+                    // alterable when the owning paragraph is an ALTER target, else a plain GO TO
+                    : host.Alter.AlterGoTo(g, target.Start);
+
+            default:                                // the 85-only target-less GO TO (ALTER subsystem)
+                return host.Alter.AlterBindBareGoTo(g);
         }
-        if (names.Length == 0) return host.Alter.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
-        if (ctx.Table.ResolveProcedureOperand(names[0], "GO TO") is not { } target)
-            return new BoundNop();
-        return host.Alter.AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
     /// <summary>The EXIT statement's own name for a source element kind, for the SR7 diagnostic — the standard's

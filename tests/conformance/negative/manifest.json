@@ -1211,7 +1211,11 @@
   "pb556-value-when-set-false-at-non-88",
   "pb557-value-on-object-reference",
   "pb557-value-null-on-pointer",
-  "pb558-condition-name-in-report-section"
+  "pb558-condition-name-in-report-section",
+  "pb412-go-to-names-without-depending",
+  "pb412-go-to-depending-without-names",
+  "pb421-move-sending-then-corresponding",
+  "pb421-move-literal-then-corr"
  ],
  "pending": []
 }

@@ -528,6 +528,19 @@ public static partial class DiagnosticDescriptors
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
+    // COBOLNET2172/2173: a written shape NO general format of its clause prints (kb/Work PB412, PB421) — the
+    // GO TO complement (§14.9.17.2) and a CORRESPONDING phrase after a MOVE sending operand (§14.9.25.2).
+    // Same single-sourcing as 2072/2073 above: the CODE comes from the catalogue descriptor, the message is
+    // composed at the CobolErrorStrategy site from the format's own cardinalities.
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOLNET2172 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.GoToFormatShape.Code,
+        DiagnosticSeverity.Error, "{0}");
+    public static readonly DiagnosticDescriptor COBOLNET2173 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.MoveCorrespondingPosition.Code,
+        DiagnosticSeverity.Error, "{0}");
+
+    // ══════════════════════════════════════
     // COBOL0400–0412: Bound tree builder
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL0400 = new("COBOL0400", DiagnosticSeverity.Warning,

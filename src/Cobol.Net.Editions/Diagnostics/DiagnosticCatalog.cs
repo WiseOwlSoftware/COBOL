@@ -4112,6 +4112,41 @@ public static class DiagnosticCatalog
         + "\"data items of class message-tag, class object, and class pointer are initialized to null\".",
         "ISO §13.18.63.3 / §13.18.63.4 / §8.4.3.10.1");
 
+    // ── COBOLNET2172 / COBOLNET2173 — A WRITTEN SHAPE NO GENERAL FORMAT PRINTS (kb/Work PB412, PB421) ──────
+    // Both are PARSE-layer diagnostics, and the stage is the point. Each names a shape the grammar used to
+    // admit as the UNION of a clause's general formats, and each was answered downstream instead: the GO TO
+    // complement fell into a bind arm that silently discarded operands or emitted a loud stage, and the MOVE
+    // one emitted a program that died at run time saying a COBOL feature "is not yet implemented" — about
+    // source §14.9.25.2 has no format for. The grammar rules now carry one alternative per printed format, so
+    // the violation arrives as a syntax error and CobolErrorStrategy re-codes it with the format's own words.
+    // ⛔ WHY ERRORS RATHER THAN THE §4.2.2 WARNING: the COBOLNET1970 / COBOLNET2117-2120 reading — §4.2.2's
+    // first paragraph fixes what may be ACCEPTED ("An implementation shall accept the syntax and provide the
+    // functionality for all standard language elements required by this Working Draft International Standard
+    // and the optional or processor-dependent language elements for which support is claimed"), and a
+    // construct no general format prints is neither. Refused at every edition: neither clause's formats
+    // changed shape across 1985/2002/2014/2023.
+
+    /// <summary>A GO TO statement was written in a shape §14.9.17.2 prints no format for — more than one
+    /// procedure-name with no DEPENDING phrase, or a DEPENDING phrase with no procedure-name. Format 1 prints
+    /// one UNBRACKETED procedure-name and no DEPENDING (§5.2.6.2 gives the omission licence to bracketed
+    /// portions only); Format 2 prints <c>{ procedure-name-1 } … DEPENDING ON identifier-1</c>, whose brace
+    /// group requires one alternative to be explicitly specified (§5.2.6.3) and whose DEPENDING is underlined
+    /// and therefore required (§5.2.2).</summary>
+    public static readonly DiagnosticDescriptor GoToFormatShape = new(
+        "COBOLNET2172", "go-to-format-shape", EditionSeverity.Error,
+        "A GO TO statement was written in a shape neither general format admits.",
+        "ISO §14.9.17.2 / §5.2.2 / §5.2.6.2 / §5.2.6.3");
+
+    /// <summary>A CORRESPONDING (or CORR) phrase was written after a MOVE statement's sending operand. Both
+    /// general formats of §14.9.25.2 place the whole sending specification directly after the verb — Format 1
+    /// is <c>MOVE { identifier-1 | literal-1 } TO { identifier-2 } …</c> and Format 2 is
+    /// <c>MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4</c> — so no format admits a sending
+    /// operand FOLLOWED by CORRESPONDING.</summary>
+    public static readonly DiagnosticDescriptor MoveCorrespondingPosition = new(
+        "COBOLNET2173", "move-corresponding-position", EditionSeverity.Error,
+        "A CORRESPONDING phrase follows a MOVE statement's sending operand.",
+        "ISO §14.9.25.2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

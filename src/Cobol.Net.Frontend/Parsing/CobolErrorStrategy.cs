@@ -170,6 +170,23 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     + "it (ISO §5.2.6.2, with §14.9.13.2 / §14.9.28.2 Format 3).", 0));
         }
 
+        // ⛔ 0c. A WRITTEN SHAPE NO GENERAL FORMAT OF ITS CLAUSE PRINTS (kb/Work PB412, PB421). The grammar
+        // rules for GO TO and MOVE each now carry ONE ALTERNATIVE PER PRINTED FORMAT, so their complement — the
+        // shapes the old optional-everything union rules admitted — arrives here as a syntax error instead of
+        // reaching a bind arm that discarded operands or emitted a loud stage. Both hints are read from the
+        // PARSER STATE, not from a catalogue of bad source: the GO TO one asks the ONE format classifier what
+        // the partially-built statement context actually holds, and the MOVE one is the position of a
+        // statement-selecting keyword inside the rule that cannot spell it.
+        if (GoToComplementMessage(recognizer, token, stream) is { } goToMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2172, goToMsg, 0));
+
+        if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2173,
+                "Both general formats of the MOVE statement put the whole sending specification directly after "
+                + "the verb — Format 1 is 'MOVE { identifier-1 | literal-1 } TO { identifier-2 } …' and Format 2 "
+                + "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
+                + "CORRESPONDING phrase after a sending operand (ISO §14.9.25.2).", 0));
+
         // 1. Missing space before string literal
         if (token.Text?.StartsWith('"') == true && prev != null && IsIdentifier(prev))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0301, "Missing space before string literal.", 20));
@@ -231,8 +248,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0306, $"{tokenUpper} appears without a matching {stmt} statement.", 5));
         }
 
-        // 14. Missing period at end of sentence
-        if (expectedTokens?.Contains("'.'") == true && !tokenUpper.StartsWith("END-"))
+        // 14. Missing period at end of sentence — a GUESS, and the lowest-priority one here, so it is suppressed
+        // once a STRUCTURAL diagnosis has already named what the general format requires at this position
+        // (priority 0). Otherwise `GO TO DEPENDING ON X.` read "…at least one procedure-name is required. A
+        // period may be missing at the end of the previous sentence." — the second sentence contradicting the
+        // first (kb/Work PB412).
+        if (expectedTokens?.Contains("'.'") == true && !tokenUpper.StartsWith("END-")
+            && hints.TrueForAll(h => h.Priority > 0))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
         // 15. Literal where identifier expected
@@ -262,6 +284,33 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 10));
 
         return hints;
+    }
+
+    // ── The GO TO general-format complement (kb/Work PB412) ──
+
+    /// <summary>The §14.9.17.2 message for a GO TO written in a shape NEITHER general format prints, or null.
+    /// <para>Two parser states carry the two complement shapes, and each is read structurally:</para>
+    /// <list type="bullet">
+    ///   <item>The statement context is still on the rule-invocation stack — the parser committed to the
+    ///         Format-2 alternative on seeing a LIST of procedure-names and then found no DEPENDING. The
+    ///         half-built <c>GoToStatementContext</c> already holds the children matched so far, so the counts
+    ///         handed to <see cref="GoToFormats.DiagnoseWrittenShape"/> are the ones actually written — no
+    ///         re-scan of the token stream, and no second copy of the format rule.</item>
+    ///   <item>The offending token IS <c>DEPENDING</c> immediately after <c>GO</c> or <c>GO TO</c> — the
+    ///         target-less alternative matched and the statement ended, so the context has already been popped
+    ///         and the shape has to be read off the stream. The <c>GO</c> anchor is what keeps this off an
+    ///         OCCURS … DEPENDING ON, whose DEPENDING never follows a GO.</item>
+    /// </list></summary>
+    private static string? GoToComplementMessage(Parser recognizer, IToken token, ITokenStream stream)
+    {
+        for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
+            if (c is CobolParserCore.GoToStatementContext g)
+                return GoToFormats.DiagnoseWrittenShape(g.procedureName().Length, g.DEPENDING() is not null);
+
+        if (token.Type != CobolLexer.DEPENDING) return null;
+        var prev = GetToken(stream, token.TokenIndex - 1);
+        if (prev?.Type == CobolLexer.TO) prev = GetToken(stream, token.TokenIndex - 2);
+        return prev?.Type == CobolLexer.GO ? GoToFormats.DiagnoseWrittenShape(0, hasDepending: true) : null;
     }
 
     // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──
