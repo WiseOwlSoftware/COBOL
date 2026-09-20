@@ -1,9 +1,16 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using CobolNet.Tests.Shared;
 using Xunit;
+
+// The ONE C# reader of kb/Work/ lives in tests/_shared/WorkRegister.cs. This gate used to carry its own private
+// parser, and kb/Work/PB875 is what that cost: the private parser answered a list WRAPPED across two lines with
+// NO list at all, so kb/Work/PB390 claimed four inventory rows in the register that this gate could not see,
+// while `work.py check` called the same note well-formed. The reader's Python twin is held to the same parity
+// fixture (tests/version-matrix/work-frontmatter-parity-cases.json), and the frontmatter shapes this class used
+// to assert inline are cases in that fixture.
+using InventoryRow = CobolNet.Tests.Shared.TraceabilityInventory.Row;
+using WorkNote = CobolNet.Tests.Shared.WorkRegister.Note;
 
 namespace CobolNet.Tests.Unit;
 
@@ -47,97 +54,23 @@ namespace CobolNet.Tests.Unit;
 /// </remarks>
 public sealed class DefectiveRowCoverageDriftTests
 {
-    /// <summary>A <c>kb/Work/</c> note, reduced to the three facts this gate needs.</summary>
-    private sealed record WorkNote(string File, string Id, string Status, string[] InventoryRows)
-    {
-        /// <summary>Terminal statuses — the only two that stop a note from holding its rows.</summary>
-        public bool IsLive => Status is not ("landed" or "retired");
-    }
-
-    private sealed record InventoryRow(string RuleId, string Verdict);
-
     // ── the artifacts under test ─────────────────────────────────────────────────────────────────────
+    //
+    // The inventory and the verdict vocabulary come from TraceabilityInventory (tests/_shared), so "defective"
+    // is DERIVED from the schema's `resolves` flag in one place and this gate, ClosesRowsBackLinkDriftTests and
+    // anything added next all read the same answer.
 
     /// <summary>The verdicts the schema marks as NOT resolving — the ones that leave a rule outstanding.</summary>
-    private static HashSet<string> LoadDefectiveVerdicts()
-    {
-        string path = TestRepo.VersionMatrix("inventory-schema.json");
-        Assert.True(File.Exists(path), $"inventory schema missing: {path}");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        var defective = doc.RootElement.GetProperty("verdicts").EnumerateObject()
-            .Where(p => !p.Value.GetProperty("resolves").GetBoolean())
-            .Select(p => p.Name)
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.True(defective.Count > 0,
-            "inventory-schema.json defines no non-resolving verdict — this gate would then be vacuous, so the "
-            + "schema, not the gate, is what changed.");
-        return defective;
-    }
+    private static HashSet<string> LoadDefectiveVerdicts() => TraceabilityInventory.DefectiveVerdicts();
 
-    private static List<InventoryRow> LoadInventory()
-    {
-        string path = TestRepo.VersionMatrix("traceability-inventory.json");
-        Assert.True(File.Exists(path),
-            $"inventory missing: {path} — run python scripts/spec/build_inventory.py");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        return [.. doc.RootElement.EnumerateArray().Select(e => new InventoryRow(
-            e.GetProperty("rule-id").GetString()!,
-            e.TryGetProperty("verdict", out var v) ? v.GetString() ?? "" : ""))];
-    }
-
-    /// <summary>The frontmatter block: everything between the opening <c>---</c> line and the closing one.</summary>
-    private static readonly Regex FrontMatter =
-        new(@"\A---\r?\n(?<body>.*?)\r?\n---\r?\n", RegexOptions.Singleline | RegexOptions.Compiled);
-
-    private static readonly Regex Scalar =
-        new(@"^(?<key>[a-z_]+):[ \t]*(?<value>.*?)[ \t]*$", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static List<InventoryRow> LoadInventory() => TraceabilityInventory.Rows();
 
     /// <summary>
-    /// Parse one note's frontmatter. Deliberately NOT a YAML parser: the register's frontmatter is a flat block
-    /// of <c>key: scalar</c> and <c>key: [a, b]</c> lines that <c>scripts/spec/work.py</c> reads with the same
-    /// shape, and pulling a YAML dependency in to read three fields would put the two readers on different
-    /// grammars — the drift this gate exists to prevent, reproduced in the gate.
+    /// The register, through the ONE reader (<see cref="WorkRegister"/>). A file with no frontmatter is not a
+    /// note; a note with no <c>id</c> is a malformed one and is kept, because dropping it here would hide it
+    /// from <c>work.py check</c>'s complement — this gate reads what the register SAYS, and says so.
     /// </summary>
-    private static WorkNote? ParseNote(string file, string text)
-    {
-        var fm = FrontMatter.Match(text);
-        if (!fm.Success) return null;
-
-        string id = "", status = "";
-        string[] rows = [];
-        foreach (Match m in Scalar.Matches(fm.Groups["body"].Value))
-        {
-            string value = m.Groups["value"].Value.Trim();
-            switch (m.Groups["key"].Value)
-            {
-                case "id": id = value.Trim('"'); break;
-                case "status": status = value.Trim('"'); break;
-                case "inventory_rows":
-                    rows = value.StartsWith('[') && value.EndsWith(']')
-                        ? [.. value[1..^1].Split(',', StringSplitOptions.TrimEntries
-                                                     | StringSplitOptions.RemoveEmptyEntries)
-                                          .Select(x => x.Trim('"'))]
-                        : [];
-                    break;
-            }
-        }
-
-        return id.Length == 0 ? null : new WorkNote(file, id, status, rows);
-    }
-
-    private static List<WorkNote> LoadRegister()
-    {
-        string dir = TestRepo.Kb("Work");
-        Assert.True(Directory.Exists(dir),
-            $"the work register is missing: {dir} — it is THE work register (CLAUDE.md rule 8), and a gate that "
-            + "cannot find it must fail rather than pass vacuously.");
-        var notes = new List<WorkNote>();
-        foreach (string path in Directory.EnumerateFiles(dir, "*.md"))
-        {
-            if (ParseNote(Path.GetFileName(path), File.ReadAllText(path)) is { } n) notes.Add(n);
-        }
-        return notes;
-    }
+    private static List<WorkNote> LoadRegister() => WorkRegister.Load();
 
     // ── the checks, as pure functions so the self-test can drive the SAME code ───────────────────────
 
@@ -224,8 +157,11 @@ public sealed class DefectiveRowCoverageDriftTests
     public void TheseChecks_ActuallyFail_OnAFabricatedRegister()
     {
         var defective = new HashSet<string>(StringComparer.Ordinal) { "PARTIAL", "NOT-IMPLEMENTED", "DIVERGES" };
-        InventoryRow Row(string id, string verdict) => new(id, verdict);
-        WorkNote Note(string id, string status, params string[] rows) => new($"{id}.md", id, status, rows);
+        // This gate reads the VERDICT (is the row defective?); the row's computed OK/GAP state belongs
+        // to ClosesRowsBackLinkDriftTests, so the fabricated rows here carry it only to be well-formed.
+        InventoryRow Row(string id, string verdict) => new(id, verdict, "GAP");
+        WorkNote Note(string id, string status, params string[] rows) =>
+            new($"{id}.md", id, "defect", status, rows, [], "", []);
 
         var inventory = new[]
         {
@@ -260,17 +196,12 @@ public sealed class DefectiveRowCoverageDriftTests
             [Note("PB1", "open", "GR-1.1-99"), Note("PB2", "open", "GR-1.1-3")], defective));
         Assert.Empty(ClaimsNamingNoRow(inventory, [Note("PB1", "open", "GR-1.1-1", "GR-1.1-2")]));
 
-        // The frontmatter reader, against the shapes the register actually contains: LF and CRLF, quoted and
-        // bare list members, a note with no claim at all, and a file that is not a note.
-        Assert.Equal(new[] { "GR-1.1-1", "GR-1.1-2" },
-            ParseNote("a.md", "---\nid: PB9\nstatus: open\ninventory_rows: [\"GR-1.1-1\", \"GR-1.1-2\"]\n---\nbody")!
-                .InventoryRows);
-        Assert.Equal(new[] { "GR-1.1-1" },
-            ParseNote("b.md", "---\r\nid: PB9\r\nstatus: open\r\ninventory_rows: [GR-1.1-1]\r\n---\r\nbody")!
-                .InventoryRows);
-        Assert.Empty(ParseNote("c.md", "---\nid: PB9\nstatus: open\n---\nbody")!.InventoryRows);
-        Assert.Null(ParseNote("d.md", "# not a note\n"));
-        Assert.False(ParseNote("e.md", "---\nid: PB9\nstatus: landed\n---\n")!.IsLive);
-        Assert.True(ParseNote("f.md", "---\nid: PB9\nstatus: open\n---\n")!.IsLive);
+        // ⚠ THE FRONTMATTER READER IS NO LONGER TESTED HERE, and that is the point rather than an omission: the
+        // shapes this block used to assert (LF and CRLF, quoted and bare members, no claim at all, a file that is
+        // not a note) are now cases in tests/version-matrix/work-frontmatter-parity-cases.json, where the PYTHON
+        // reader is held to the same answers. A private copy of those assertions beside a private copy of the
+        // parser is exactly how the two readers drifted apart (kb/Work/PB875).
+        Assert.False(WorkRegister.Parse("e.md", "---\nid: PB9\nstatus: landed\n---\n")!.IsLive);
+        Assert.True(WorkRegister.Parse("f.md", "---\nid: PB9\nstatus: open\n---\n")!.IsLive);
     }
 }

@@ -11,8 +11,8 @@
 ## §0 — LIVE RESUME STATE (the ONLY live-state SSOT; keep it current every session)
 
 **THE SINGLE-WRITE RULE:** live state is written ONLY here — every other section POINTS here, never duplicates.
-Two registers own their own tally and are likewise never restated here: the fix-queue's LANDED header and
-`DEVLOG.md`. If you find live state written twice, fixing that is part of the session. **§0 states WHERE WE ARE,
+Two registers own their own tally and are likewise never restated here: **`kb/Work/`** (one note per item —
+its `status` and its `closes_rows` are the tally) and `DEVLOG.md`. If you find live state written twice, fixing that is part of the session. **§0 states WHERE WE ARE,
 never how we got here — narrative belongs in `DEVLOG.md`.**
 
 **SESSION BOOTSTRAP (a new session does exactly this):** ① read `CLAUDE.md` (the non-negotiable rules) → ② this §0
@@ -1391,8 +1391,9 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    **Read `docs/rearchitecture/DESIGN-spec-conformance-review.md` before starting** — §4 is the row schema and
    §8 is the recording mechanism; the inventory enumerates every rule and drives it to zero, four editions wide.
    ⛔ **TWO SOURCES OF WORK INTERLEAVE, AND BOTH ARE LIVE.** *Adjudicate* the next clause (grows the map, opens
-   items) and *fix* what earlier batches found (shrinks it). `docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md` is
-   the defect register and its header is the tally; **read `DESIGN-spec-conformance-review.md` §9 before running
+   items) and *fix* what earlier batches found (shrinks it). ⛔ **`kb/Work/` is the defect register** — one note
+   per item, `status` and `closes_rows` its tally (`python scripts/spec/work.py next`); `CONFORMANCE-FIX-QUEUE.md`
+   was retired on 2026-08-04 and is a pointer. **Read `DESIGN-spec-conformance-review.md` §9 before running
    a batch** and **§4/§8 before recording a verdict**.
 
    **THE NEXT BATCH is `python scripts/spec/phase_b_batch.py 15.20-15.31`** — ⚠ verify against the inventory
@@ -2028,8 +2029,12 @@ result. Run the long legs ONE AT A TIME.
   a NEW register field, and the machine-readable NOTE→ROW back-link the register never had. Proved failing
   before it was believed (a blanked claim, then a typo'd one; both checks fired). ⛔ Consequence to know before
   landing anything: **when a note flips to `landed`, its rows must be re-verdicted in the same change set** or
-  the gate goes red — which is the event most worth failing on. Seven proposed CONFORMS re-adjudications were
-  REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
+  the gate goes red — which is the event most worth failing on. ⭐ **And since 2026-09-20 the landing also writes
+  `closes_rows:`** — the rows the fix CLOSED, as distinct from the rows it CLAIMED (owner decision 2026-09-19,
+  `kb/Work/PB245`): `ClosesRowsBackLinkDriftTests` fails a landed `kind: defect` note that names neither rows nor
+  a reason, and one that names a row the inventory still calls non-OK. 485 landed notes were back-filled from the
+  inventory's own commit history (1,972 row attributions over 257 commits).
+  Seven proposed CONFORMS re-adjudications were REFUSED rather than recorded on a read (`kb/Work PB258`); the two rows held defective purely for visibility
   are `PB259`; the owed A.4.2 / A.4.3 witnesses are `PB260` / `PB261`.
 - **⚖ OWNER DECISION 2026-09-01 — THE BURN-DOWN RUNS AS TWO CONCURRENT LANES (`kb/Work/PB278`).** The
   2026-08-09 "backlog to zero before adjudication" order is replaced: Phase-B adjudication (read-only, in a pinned
@@ -3124,6 +3129,17 @@ already-derivable coverage; none change the pipeline.
   `gen-diagnostics-doc.ps1`. GreenfieldOnly exclusions live in `tests/CobolSharp.Tests.Integration/
   ConformanceTests.cs` — enabling a shared-corpus golden REQUIRES the exclusion or a legacy-suite run SAME
   commit.
+- Work register: `python scripts/spec/work.py check` (frontmatter well-formed, including the `closes_rows`
+  back-link's shape) · `work.py parity` (the register's TWO frontmatter readers — Python and
+  `tests/_shared/WorkRegister.cs` — still read one file format the same way, against
+  `tests/version-matrix/work-frontmatter-parity-cases.json`). ⛔ The gates that enforce the register against the
+  inventory are in the Unit assembly and run every build: **`DefectiveRowCoverageDriftTests`** (every
+  defective-verdict row is claimed by a LIVE note's `inventory_rows`) and **`ClosesRowsBackLinkDriftTests`**
+  (every LANDED `kind: defect` note names the rows its fix CLOSED in `closes_rows`, or says why it closed none;
+  and every row so named is one the inventory still counts as OK — its computed `state`, which is what the
+  burn-down reports). `python scripts/spec/backfill_closes_rows.py`
+  re-derives the back-link from the inventory's own commit history — idempotent, and it never overwrites an
+  answer a human wrote.
 - Owner status page: `python scripts/spec/gen_ledger.py` renders the **COBOL.NET Conformance Ledger** artifact
   from the repo — inventory, `kb/Work` (through `work.py`'s own predicate), `audit_annex_a1.py --json`, `CONFORMANCE.md`
   §2/§4/§5 and §0's CURRENT battery bullet — so a refresh is one run plus one publish to the artifact's existing URL,

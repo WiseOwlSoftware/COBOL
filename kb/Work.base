@@ -23,6 +23,15 @@ properties:
     displayName: Silent
   note.blocked:
     displayName: Blocked
+  note.inventory_rows:
+    displayName: Claims rows
+  # ⭐ The back-link a landing writes (owner decision 2026-09-19, kb/Work/PB245): the inventory rows the fix
+  # CLOSED, as distinct from the rows it CLAIMS while open. Spelled with an underscore because every
+  # multiword key in this register is (`inventory_rows`, `blocked_by`, `spec_refs`, `wrong_answer`) and a
+  # property is addressed here as `note.<key>` — where a hyphen would at best need quoting and at worst
+  # read as an operator. The decision's `closes-rows` is the concept's name, not the key's.
+  note.closes_rows:
+    displayName: Closed rows
   formula.harm:
     displayName: Harm
 views:
@@ -92,9 +101,22 @@ views:
     sort:
       - property: status
         direction: ASC
+  # ⭐ WHAT EACH LANDING CLOSED — the `closes_rows` back-link, read the way a reader asks the question: which
+  # inventory rows does this finished work account for? It is a view of FINISHED work and is deliberately not a
+  # worklist (CLAUDE.md rule 8); `Fix next` remains the only view that says what to do.
+  - type: table
+    name: Landed — rows closed
+    filters:
+      and:
+        - 'kind == "defect"'
+        - 'status == "landed" or status == "retired"'
+    order: [id, area, closes_rows, closes_rows_reason]
+    sort:
+      - property: id
+        direction: ASC
   - type: table
     name: Everything
-    order: [id, kind, status, severity, area, harm]
+    order: [id, kind, status, severity, area, harm, closes_rows]
     sort:
       - property: kind
         direction: ASC

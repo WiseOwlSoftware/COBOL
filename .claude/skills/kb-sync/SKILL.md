@@ -15,7 +15,9 @@ there is nothing to reconcile it WITH.
 
 What remains:
 
-1. `python scripts/spec/work.py check` — the register is well-formed (kind/status/id, no duplicates).
+1. `python scripts/spec/work.py check` — the register is well-formed (kind/status/id, no duplicates, and the
+   `closes_rows` back-link's SHAPE). `python scripts/spec/work.py parity` checks that the register's two
+   frontmatter readers — Python and `tests/_shared/WorkRegister.cs` — still read one file format the same way.
 2. `python scripts/spec/gen_conformance_notes.py --check` — the derived burn-down still matches the inventory.
 3. `constructs.json` — still its own authority for CI and the drift tests; unchanged.
 4. Plan §0 — narrative and owner decisions ONLY. It no longer carries a worklist; `Fix next` does.
@@ -42,6 +44,17 @@ Flip its `status` in `constructs.json`, and flip the `status` of its `kb/Work/` 
 
 Flip `status: landed` in the item's `kb/Work/` note **in the commit that lands the fix**, and record what the work
 corrected — a design doc that specified the wrong thing gets fixed in the same change set (CLAUDE.md rule 2).
+
+⛔ **AND WRITE `closes_rows:` IN THAT SAME COMMIT** (owner decision 2026-09-19, `kb/Work/PB245`). The rows the
+fix re-verdicted LEAVE `inventory_rows` — the claim a note makes while it is open — and arrive in `closes_rows`,
+which is what survives the landing. A landing that closed no inventory row says so: `closes_rows: []` plus a
+`closes_rows_reason:` sentence. Nothing here is optional prose — `ClosesRowsBackLinkDriftTests`
+(`tests/Cobol.Net.Tests.Unit`) fails the build when a landed `kind: defect` note says neither, and when a row it
+names is still non-OK in `tests/version-matrix/traceability-inventory.json`. The field exists because without it
+"which rows did this fix close" could only be answered by measuring the compiler again: fourteen §15 rows held
+the GAP open on mechanisms seven landings had already shipped, and thirteen closed CONFORMS the first time
+anyone looked. `python scripts/spec/backfill_closes_rows.py` derives the answer from the inventory's own commit
+history when a note's rows are older than the field — it is idempotent and never overwrites a stated answer.
 Update plan §0 only for what §0 owns: live state, gates, owner decisions, narrative. **Never re-add a worklist
 there.**
 

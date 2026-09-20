@@ -67,5 +67,10 @@ Use the `gate` skill. Read the verdict line, then commit as a separate call.
   what changed, why, what broke, what was learned. Log the failures too.
 - Commit message: write it to a scratchpad file and use `git commit -F <file>`. Do NOT inline a PowerShell
   here-string in the Bash tool — it is POSIX sh and the markers leak into the message.
-- Update the fix-queue LANDED header, and plan §0 if the worklist moved.
+- **Update the item's `kb/Work/` note in the SAME commit** — `status: landed`, and `closes_rows:` naming the
+  traceability-inventory rows this fix re-verdicted (`closes_rows: []` plus a `closes_rows_reason:` when it
+  closed none). `ClosesRowsBackLinkDriftTests` is red on a landed `kind: defect` note that says neither, and on
+  a row named as closed that the inventory still counts as a GAP (owner decision 2026-09-19, `kb/Work/PB245`).
+  ⚠ There is no fix-queue LANDED header any more: `CONFORMANCE-FIX-QUEUE.md` was retired on 2026-08-04 and is
+  a pointer. Update plan §0 only for what §0 owns — live state, gates, owner decisions, narrative; never a worklist.
 - **Push.** Every checkpoint.

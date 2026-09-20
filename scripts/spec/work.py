@@ -23,6 +23,7 @@ a previous summary was wrong — lives in the note BODY, which is where it alrea
     python scripts/spec/work.py check      # validate frontmatter; non-zero on a bad/missing field
     python scripts/spec/work.py next       # the ranked work list (session-probe prints this)
     python scripts/spec/work.py stats      # counts by kind/status/harm
+    python scripts/spec/work.py parity     # the frontmatter reader vs. its C# twin's fixture (--json for the gate)
 
 ⭐ `inventory_rows:` — THE BACK-LINK TO THE P14 TRACEABILITY INVENTORY, and the register's newest field
 (2026-08-31). A note lists the `rule-id`s it owns; that list is the SSOT for ownership, and the note's prose
@@ -37,10 +38,29 @@ something that runs every build, and validating a rule-id against the inventory 
 the same rule in two places. What that gate asserts is that every defective-verdict row is claimed by a note
 whose status is not terminal — so **flipping a note to `landed` without re-verdicting its rows turns the
 battery red**, which is exactly the event that used to pass unnoticed.
+
+⭐ `closes_rows:` — THE OTHER DIRECTION, and the register's newest field (owner decision 2026-09-19,
+`kb/Work/PB245`). `inventory_rows` is what a note CLAIMS while it is open; `closes_rows` is what its landing
+CLOSED, and it survives the landing. Without it, "which rows did this fix close" was answerable only by
+re-measuring: fourteen §15 rows held the GAP open on mechanisms seven landings had already closed, and thirteen
+closed CONFORMS the first time anyone looked. A landing therefore writes BOTH halves in the same change set —
+the rows leave `inventory_rows` as they are re-verdicted, and they arrive in `closes_rows`. A landing that
+closed no row says so with `closes_rows: []` **and** a `closes_rows_reason:`; silence is what the field
+replaced. The spelling is `closes_rows`, not the decision's `closes-rows`: every multiword key in this
+frontmatter is snake_case, and `kb/Work.base` addresses a property as `note.<key>`, where a hyphen would
+at best need quoting and at worst read as an operator. Enforced by `ClosesRowsBackLinkDriftTests`
+(tests/Cobol.Net.Tests.Unit); the SHAPE half is :func:`closes_rows_shape` here.
+
+⛔ AND THE READER ITSELF IS A GATE. `parse_frontmatter` has a C# twin (`tests/_shared/WorkRegister.cs`), the two
+read one file format, and they disagreed for months about a list WRAPPED across two lines (`kb/Work/PB875`):
+this side truncated it, that side discarded it, and both called the note well-formed.
+`tests/version-matrix/work-frontmatter-parity-cases.json` is the fixture both evaluate, and the C# gate runs
+`work.py parity --json` so the comparison is against this engine RUN, not against an assumption about it.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import sys
@@ -196,26 +216,87 @@ def migrate() -> int:
     return 0
 
 
+#: The frontmatter block: everything between the opening `---` line and the closing one. `\r?\n` because every
+#: note in the register is CRLF in the working tree (`core.autocrlf`) and LF in the object store, and the C# twin
+#: reads the file's BYTES — a reader that hard-codes one of the two answers "this is not a note" for a whole
+#: register on the other checkout.
+FRONT = re.compile(r"\A---\r?\n(?P<body>.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
+#: A frontmatter key. Anything else on a line — a colon inside a title, a wrapped list's continuation — is not
+#: one. A VALUE is a list when it opens with `[`, whatever its key: list-ness is a property of the value, so a
+#: field added to the register tomorrow needs no edit here (and no second copy of a key vocabulary in C#).
+FM_KEY = re.compile(r"\A[a-z_]+\Z")
+
+
+def _split_list(inner: str) -> list[str]:
+    """`"A", B , ` → `['A', 'B']` — the ONE list-member grammar, quoted or bare."""
+    return [m for m in (x.strip().strip('"').strip("'").strip() for x in inner.split(",")) if m]
+
+
+def parse_frontmatter(text: str) -> dict | None:
+    """One note's frontmatter as `key -> str | bool | list[str]`, or `None` when the file is not a note.
+
+    ⛔ THIS IS ONE HALF OF A TWO-LANGUAGE READER, AND THE HALVES DISAGREED. Its C# twin is
+    `tests/_shared/WorkRegister.cs`; `tests/version-matrix/work-frontmatter-parity-cases.json` is the fixture
+    both evaluate, and `work.py parity --json` is how the C# gate runs THIS engine for real rather than assuming
+    it. `kb/Work/PB875` is the note recording what the disagreement cost: a list WRAPPED across two lines — the
+    normal YAML shape, and the shape `kb/Work/PB205` had carried for months — was read here as a truncated list
+    and in C# as NO list at all, so a note went on claiming four inventory rows in the register while the gate
+    that enforces claims saw none, and `work.py check` called the same note well-formed.
+
+    ⛔ AND IT FAILED **OPEN**. Both halves answered a malformed value with emptiness, which reads exactly like a
+    note that claims nothing — the one answer a register must never invent. An unterminated list is now an ERROR
+    CODE in `_errors` (the key is left ABSENT, never silently empty), and the codes are what the parity fixture
+    compares: two readers that reject one note for two different reasons look identical under "it was rejected".
+
+    ⛔ A RUNAWAY IS BOUNDED BY THE NEXT KEY, and that is measured, not assumed. A list left open by a missing
+    bracket used to keep eating lines until some later line happened to end in `]` — so `tags: [cobolsharp,
+    work, defect]` silently became three of `inventory_rows`' members and the malformation was never reported.
+    A line that begins a new frontmatter key ends the open list with the error instead; no continuation of a
+    real wrapped list can look like one, because its members are rule-ids, clause numbers and tag words.
+    """
+    m = FRONT.match(text)
+    if m is None:
+        return None
+    out: dict = {"_errors": []}
+    key: str | None = None        # the list key whose value is still being accumulated across lines
+    buf = ""
+    for raw in m.group("body").splitlines():
+        line = raw.strip()
+        if key is not None:
+            head, sep, _ = line.partition(":")
+            if sep and FM_KEY.match(head.strip()):
+                out["_errors"].append(f"unterminated-list:{key}")
+                key, buf = None, ""
+            else:
+                buf += " " + line
+                if buf.endswith("]"):
+                    out[key] = _split_list(buf[buf.find("[") + 1:-1])
+                    key, buf = None, ""
+                continue
+        k, sep, v = line.partition(":")
+        k, v = k.strip(), v.strip()
+        if not sep or not FM_KEY.match(k):
+            continue              # a continuation of a wrapped SCALAR, a comment, a blank line
+        if not v.startswith("["):
+            out[k] = True if v == "true" else False if v == "false" else v.strip('"')
+        elif v.endswith("]"):
+            out[k] = _split_list(v[1:-1])
+        else:
+            key, buf = k, v
+    if key is not None:
+        out["_errors"].append(f"unterminated-list:{key}")
+    # The note BODY, so check() can catch the status written a second time in the H1 heading.
+    out["_body"] = text[m.end():]
+    return out
+
+
 def load() -> list[dict]:
     items = []
     for p in sorted(WORK.glob("*.md")):
-        t = p.read_text(encoding="utf-8")
-        m = re.search(r"^---\n(.*?)\n---", t, re.S)
-        if not m:
+        d = parse_frontmatter(p.read_text(encoding="utf-8"))
+        if d is None:
             continue
-        d = {"_file": p.name}
-        for line in m.group(1).splitlines():
-            if ":" not in line:
-                continue
-            k, _, v = line.partition(":")
-            v = v.strip().strip('"')
-            if v in ("true", "false"):
-                v = v == "true"
-            elif v.startswith("["):
-                v = [x.strip() for x in v.strip("[]").split(",") if x.strip()]
-            d[k.strip()] = v
-        # The note BODY, so check() can catch the status written a second time in the H1 heading.
-        d["_body"] = t[m.end():]
+        d["_file"] = p.name
         items.append(d)
     return items
 
@@ -275,6 +356,47 @@ def check_base_agrees() -> list[str]:
     return out
 
 
+#: A traceability-inventory rule-id, by SHAPE only — `AR-15.7.3-1`, `SR-13.18.40.3-22`, `FMT-14.9.32.2`,
+#: `GR-7.2.3.4-L2.1`. Whether the id names a row that EXISTS, and whether that row's verdict resolves, is the
+#: C# gate's question and is deliberately not asked here (see :func:`closes_rows_shape`).
+RULE_ID_SHAPE = re.compile(r"\A[A-Z]{2,4}-[0-9A-Za-z.]+(?:-[0-9A-Za-z.]+)?\Z")
+
+
+def closes_rows_shape(it: dict) -> list[str]:
+    """The `closes_rows` / `closes_rows_reason` back-link, checked for SHAPE — and only for shape.
+
+    ⭐ THE FIELD (owner decision 2026-09-19, `kb/Work/PB245`). `inventory_rows` is a note's CLAIM while it is
+    open; `closes_rows` is what its landing CLOSED, and it is the back-link the register never had. Without it
+    "which rows did this fix close" was answerable only by re-measuring, and fourteen §15 rows held the GAP open
+    on mechanisms seven landings had already closed — thirteen of them closed CONFORMS on first re-measurement.
+
+    ⛔ WHAT IS CHECKED HERE, AND WHAT IS NOT — the same division `record_verdicts.py` draws, for the same reason.
+    This validates what is decidable from the NOTE alone: the value is a list, each member is SPELLED like a
+    rule-id, and a reason that is present is not empty. Whether a named row exists, whether its verdict resolves,
+    and whether a landed defect note said anything at all belong to `ClosesRowsBackLinkDriftTests`
+    (tests/Cobol.Net.Tests.Unit) — those predicates have to keep holding as the INVENTORY changes underneath a
+    note that nobody is editing, so they belong to something that runs every build, and asking them here as well
+    would be one rule in two places (`feedback_one_rule_one_place`).
+    """
+    bad: list[str] = []
+    for e in it.get("_errors", []):
+        bad.append(f'{it["_file"]}: frontmatter {e} — a wrapped list whose bracket never closes is read as '
+                   f'NOTHING by both readers of this register (kb/Work/PB875); close it, or put it on one line')
+    rows = it.get("closes_rows")
+    if rows is not None and not isinstance(rows, list):
+        bad.append(f'{it["_file"]}: closes_rows is {rows!r}, not a list — write `closes_rows: [RULE-ID, …]`')
+    elif rows:
+        for r in rows:
+            if not RULE_ID_SHAPE.match(r):
+                bad.append(f'{it["_file"]}: closes_rows names {r!r}, which is not spelled like an inventory '
+                           f'rule-id (e.g. AR-15.7.3-1) — it is a row id, never a note id')
+    reason = it.get("closes_rows_reason")
+    if reason is not None and (not isinstance(reason, str) or not reason.strip()):
+        bad.append(f'{it["_file"]}: closes_rows_reason is present but empty — a landing that closed no '
+                   f'inventory row says WHY in it, and an empty value is the silence the field replaced')
+    return bad
+
+
 def check() -> int:
     if not WORK.exists():
         print(f"⛔ {WORK.relative_to(REPO)} does not exist — run: python scripts/spec/work.py migrate")
@@ -305,6 +427,7 @@ def check() -> int:
             bad.append(f'{it["_file"]}: open defect with no harm flag set — it can never appear in '
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
+        bad += closes_rows_shape(it)
     ids = [it.get("id") for it in items]
     for i in set(ids):
         if ids.count(i) > 1:
@@ -343,10 +466,102 @@ def actionable(items: list[dict]) -> list[dict]:
     return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), i.get("id", "")))
 
 
+# ── the cross-language parity fixture ────────────────────────────────────────────────────────────────────────
+
+FIXTURE = REPO / "tests" / "version-matrix" / "work-frontmatter-parity-cases.json"
+FIXTURE_REL = "tests/version-matrix/work-frontmatter-parity-cases.json"
+
+
+def parity_view(text: str) -> dict:
+    """What a reader of this register SEES in one note — the normalized answer both engines must give.
+
+    Absent and empty are deliberately the same answer for a list (`[]`) and for a scalar (`""`): the gate asks
+    what a note SAYS, and a key that is missing says exactly as much as a key that is empty. What is NOT
+    normalized away is `errors` — a malformed value is a third outcome, and collapsing it into "empty" is the
+    fail-open that `kb/Work/PB875` is about.
+    """
+    d = parse_frontmatter(text)
+    if d is None:
+        return {"note": False, "id": "", "kind": "", "status": "", "inventory_rows": [], "closes_rows": [],
+                "closes_rows_reason": "", "errors": []}
+    scalar = lambda k: (v if isinstance(v := d.get(k, ""), str) else str(v))       # noqa: E731
+    lst = lambda k: (v if isinstance(v := d.get(k, []), list) else [])             # noqa: E731
+    return {"note": True, "id": scalar("id"), "kind": scalar("kind"), "status": scalar("status"),
+            "inventory_rows": lst("inventory_rows"), "closes_rows": lst("closes_rows"),
+            "closes_rows_reason": scalar("closes_rows_reason"), "errors": sorted(d.get("_errors", []))}
+
+
+def _wrapped_list(text: str) -> bool:
+    """True when some line opens a `[` that does not close on the same line — the PB875 shape."""
+    return any("]" not in line[line.index("["):] for line in text.splitlines() if "[" in line)
+
+
+def parity_findings(fixture: dict, answers: list[dict]) -> list[str]:
+    """Where THIS engine disagrees with the fixture's recorded expectation, field by field."""
+    bad = []
+    for case, got in zip(fixture["cases"], answers, strict=True):
+        for k, want in case["expect"].items():
+            # A fixture naming a field this view does not have is a FINDING, not a traceback: the two
+            # engines expose the same field set, so a key only one of them knows is exactly a parity bug.
+            if k not in got:
+                bad.append(f'parity case "{case["name"]}": the fixture expects a field {k!r} that this '
+                           f'reader does not report — the two engines no longer describe the same note')
+            elif got[k] != want:
+                bad.append(f'parity case "{case["name"]}": {k} is {got[k]!r}, fixture says {want!r}')
+    return bad
+
+
+def parity(as_json: bool) -> int:
+    """Evaluate `tests/version-matrix/work-frontmatter-parity-cases.json` — the fixture the C# twin evaluates too.
+
+    ⛔ THE FIXTURE IS ALSO THIS ENGINE'S SELF-TEST, AND IT ASSERTS ITS OWN POPULATION. A parity run that measured
+    no wrapped list, no malformed value and no non-note file would be green about nothing at all — which is
+    precisely the state `work.py check` was in while `kb/Work/PB390` claimed four rows the gate could not see
+    (`feedback_green_gates_arent_evidence`, `feedback_verdict_evidence_invariant`).
+    """
+    if not FIXTURE.exists():
+        print(f"⛔ parity fixture not found: {FIXTURE_REL}")
+        return 1
+    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    answers = [{"name": c["name"], **parity_view(c["text"])} for c in fixture["cases"]]
+    findings = parity_findings(fixture, answers)
+
+    # POPULATION — the shapes this register actually contains, each of which broke one reader or the other.
+    covered = {
+        "a list wrapped across lines": any(_wrapped_list(c["text"]) for c in fixture["cases"]),
+        "a malformed value reported as an error": any(a["errors"] for a in answers),
+        "a file that is not a note": any(not a["note"] for a in answers),
+        "CRLF line endings": any("\r\n" in c["text"] for c in fixture["cases"]),
+    }
+    findings += [f"the parity fixture carries no case for {what} — it cannot be measuring that shape"
+                 for what, ok in covered.items() if not ok]
+    if len(fixture["cases"]) < 8:
+        findings.append(f'{len(fixture["cases"])} parity case(s) — too few to be measuring the reader')
+
+    # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
+    corrupted = json.loads(json.dumps(fixture))
+    corrupted["cases"][0]["expect"]["id"] = corrupted["cases"][0]["expect"].get("id", "") + "-X"
+    if not parity_findings(corrupted, [{"name": c["name"], **parity_view(c["text"])}
+                                       for c in corrupted["cases"]]):
+        findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
+
+    print(f"parity cases  : {len(answers)} from {FIXTURE_REL}")
+    if as_json:
+        print("JSON " + json.dumps({"findings": findings, "parity": answers}, ensure_ascii=False))
+    if findings:
+        print(f"\n⛔ {len(findings)} finding(s):")
+        for f in findings:
+            print(f"   {f}")
+        return 1
+    print("no findings.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["migrate", "check", "next", "stats"])
+    ap.add_argument("cmd", choices=["migrate", "check", "next", "stats", "parity"])
     ap.add_argument("--top", type=int, default=3)
+    ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line (parity)")
     a = ap.parse_args()
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -356,6 +571,8 @@ def main() -> int:
         return migrate()
     if a.cmd == "check":
         return check()
+    if a.cmd == "parity":
+        return parity(a.json)
     items = load()
     if a.cmd == "next":
         nxt = actionable(items)

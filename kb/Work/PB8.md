@@ -14,6 +14,7 @@ process_only: false
 blocked: false
 blocked_by: []
 spec_refs: [15.100.3, 15.21.1, 15.23.3, 15.25.3, 8.4.3.2.3, 8.4.3.3.3, 8.4.3.3.4]
+closes_rows: ["AR-15.25.3-5", "SR-8.4.3.3.3-2", "SR-8.4.3.3.3-3"]
 tags: [cobolsharp, work, defect]
 ---
 
