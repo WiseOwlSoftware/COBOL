@@ -1327,6 +1327,9 @@ setStatement
     | setBooleanStatement
     | setFunctionAddressStatement // F8 with the §8.4.3.12 ADDRESS OF FUNCTION sender — before setAddressStatement,
                                   // whose sender arm is `TO ADDRESS OF? dataReference` and would otherwise be tried first
+    | setProgramAddressStatement  // F9 with the §8.4.3.13 ADDRESS OF PROGRAM sender — same reason, same place
+                                  // (kb/Work PB549). PROGRAM and FUNCTION are distinct reserved tokens, so the
+                                  // two address-sender rules cannot claim each other's shape in either order.
     | setAddressStatement
     | setObjectReferenceStatement
     | setIndexStatement
@@ -1354,10 +1357,17 @@ setLocaleStatement
     | {saveLocaleAhead()}? SET dataReference TO cobolWord cobolWord      // F12: identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}
     ;
 
-// SET program-pointer+ TO ENTRY {literal | identifier} (ISO §14.9.39 Format 9 with the §8.4.3.13
-// program-address-identifier as the sender): assign the address of the program the ENTRY operand names.
+// ⛔ SET program-pointer+ TO ENTRY {literal | identifier} IS A VENDOR EXTENSION, NOT AN ISO FORMAT — and this
+// comment used to say the opposite (kb/Work PB549). It called the shape "ISO §14.9.39 Format 9 with the
+// §8.4.3.13 program-address-identifier as the sender", and it is neither: Format 9 prints
+// `SET { identifier-7 } … TO identifier-8` and §8.4.3.13.2 prints `ADDRESS OF PROGRAM { … }` — the words
+// `TO ENTRY` occur nowhere in ISO/IEC 1989:2023 (a grep of specs/ISO_COBOL.md for "TO ENTRY" returns
+// nothing). It is the Micro Focus / IBM spelling, and it is kept because the SEMANTICS behind it are the
+// standard's and programs in the field are written to it. The STANDARD spelling is
+// setProgramAddressStatement below, which is what §14.9.39 Format 9 + §8.4.3.13 actually admit.
 // Listed BEFORE setToValueStatement: ENTRY is a reserved token (not in cobolWord), so no other SET form can
-// claim the `TO ENTRY` prefix. A not-locatable program → EC-PROGRAM-NOT-FOUND + NULL (§8.4.3.13 GR4).
+// claim the `TO ENTRY` prefix. A not-locatable program → EC-PROGRAM-NOT-FOUND + NULL (§8.4.3.13.4 GR4, which
+// governs the shared semantics whichever surface reaches them).
 setEntryStatement
     : SET dataReference+ TO ENTRY (nonNumericLiteral | dataReference)
     ;
@@ -1455,6 +1465,39 @@ setAddressStatement
 // operands including literal-1 and §8.4.3.12's FUNCTION figure prints only two.
 setFunctionAddressStatement
     : SET dataReference+ TO ADDRESS OF? FUNCTION dataReference
+    ;
+
+// §8.4.3.13.2 PROGRAM-ADDRESS-IDENTIFIER — its OWN rule, because it is an IDENTIFIER format (§8.4.3), not a
+// statement phrase. The printed general format (PDF p172/folio 142, RENDERED at 300 dpi) is
+//     ADDRESS OF PROGRAM { identifier-1 | literal-1 | program-prototype-name-1 }
+// with ADDRESS and PROGRAM underlined and OF NOT underlined, so §8.3.2.4.3 makes `ADDRESS PROGRAM "X"`
+// conforming source too (the kb/Work PB695 family — the same evidence the §8.4.3.11 and §8.4.3.12 twins take
+// their optional OF from). The braces are a plain required choice: exactly one operand.
+// ⚠ ONE dataReference COVERS TWO OF THE THREE BRACED ARMS, as it does in setFunctionAddressStatement:
+// program-prototype-name-1 is a user-defined word and identifier-1 is a data item reference, and the two are
+// told apart at BIND (§8.4.3.13.3 SR1 vs SR3), where the REPOSITORY program-specifier table and the item's
+// category are both facts. There IS a literal-1 arm here and the FUNCTION twin has none — that asymmetry is
+// the standard's, measured on both printed figures, not an omission.
+// ⛔ §8.4.3.13.3 SR4 ("This identifier format shall not be specified as a receiving operand") is why the rule
+// appears only in the SENDER slot below.
+programAddressIdentifier
+    : ADDRESS OF? PROGRAM (nonNumericLiteral | dataReference)
+    ;
+
+// SET { identifier-7 } … TO program-address-identifier — ISO §14.9.39.2 Format 9 (program-pointer-assignment)
+// with the §8.4.3.13 program-address-identifier as its sender. Format 9's own printed figure is just
+// `SET { identifier-7 } … TO identifier-8` with no choice indicators, so the PLAIN Format 9
+// (`SET pp1 pp2 TO pp3`, `SET pp TO NULL`) needs no rule of its own — setToValueStatement and
+// setObjectReferenceStatement parse those shapes and SetBinder re-routes on the receiver's category. What
+// needs a rule is the SENDER, and §8.4.3.13.2's phrase appeared NOWHERE in this grammar (kb/Work PB549): the
+// only route into a program-pointer was setEntryStatement's `TO ENTRY`, a Micro Focus / IBM vendor spelling
+// whose words are in no ISO general format, so the STANDARD spelling was a bare parse error at every edition
+// while the extension was the only way in.
+// Listed BEFORE setAddressStatement, whose sender arm is `TO ADDRESS OF? dataReference` and would otherwise
+// be tried first; PROGRAM is a reserved token and can never head a dataReference, so nothing else can claim
+// this shape. Gate: COBOL-2002 (the program-pointer family's edition — usage-program-pointer-2002).
+setProgramAddressStatement
+    : SET dataReference+ TO programAddressIdentifier
     ;
 
 // ALLOCATE statement (COBOL-2002 §14.9.3): obtain dynamic storage, returned as a managed data-pointer.

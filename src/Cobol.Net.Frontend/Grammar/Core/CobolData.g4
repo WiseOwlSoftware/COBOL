@@ -112,8 +112,15 @@ reportClause
 // IS GLOBAL / IS EXTERNAL on an FD (§13.18.27/§13.18.22): GLOBAL makes the file-name and
 // record visible to contained programs; EXTERNAL shares the file across the run unit.
 // Parsed here; GLOBAL visibility is handled by nested-program name resolution.
+// ⛔ THE TWO ARMS ARE NOT SYMMETRIC, and writing them as one `(GLOBAL | EXTERNAL)` hid it (kb/Work PB511):
+// the file-description Formats 1/2/3 (§13.4.5.2, rendered) print `[ IS EXTERNAL [ AS literal-1 ] ]` and
+// `[ IS GLOBAL ]` — the AS phrase rides EXTERNAL ONLY, because §13.18.22.4 GR5 makes literal-1 the name of
+// the FILE CONNECTOR that is externalized to the operating environment and the GLOBAL clause (§13.18.27)
+// has no such phrase at all. This is the FD arm of the one EXTERNAL clause; its data-description twin is
+// externalClause below, and both take the SHARED externalizedNamePhrase (PB303's one gate, one screen).
 fileGlobalExternalClause
-    : IS? (GLOBAL | EXTERNAL)
+    : IS? GLOBAL
+    | IS? EXTERNAL externalizedNamePhrase?
     ;
 
 // BLOCK CONTAINS clause (§13.18.10)
@@ -389,8 +396,19 @@ propertyClause
     : PROPERTY (WITH? NO (GET | SET))? (IS? FINAL)?   // §13.18.42.2 :21146-21148 (WITH optional per the IS?-style tolerance)
     ;
 
+// EXTERNAL clause (ISO §13.18.22.2, general format RENDERED from the printed page — PDF p430/folio 400):
+//     IS <u>EXTERNAL</u> [ <u>AS</u> literal-1 ]
+// IS is NOT underlined (an optional word, §8.3.2.4.3); EXTERNAL and AS are. The data-description Format 1
+// (§13.16.2) and the file-description Formats 1/2/3 (§13.4.5.2) print the SAME slot as
+// `[ IS EXTERNAL [ AS literal-1 ] ]`, so the phrase belongs to BOTH surfaces — see
+// fileGlobalExternalClause above, which is this clause's other arm (kb/Work PB511).
+// ⚠ `AS literal-1` is the SHARED externalizedNamePhrase, never a local `AS literal` of its own: PB303's
+// landing made that rule the ONE surface and VersionConformancePass ParseArm.VisitExternalizedNamePhrase the
+// ONE COBOL-2002 introduction gate (constructs.json externalized-name-as-2002), so a new AS site is gated by
+// writing `externalizedNamePhrase?` and NOTHING else. §13.18.22.3 SR3 narrows the literal at bind
+// (ExternalizedName.Screen → COBOLNET2156) and §13.18.22.4 GR5 makes it the record's externalized name.
 externalClause
-    : IS? EXTERNAL
+    : IS? EXTERNAL externalizedNamePhrase?
     ;
 
 // BASED clause (COBOL-2002 §13.18.5) — level 01/77 only; the item is a template with an implicit
@@ -760,10 +778,17 @@ valueClauseFalsePhrase
 
 // One Format-2 table phrase: a literal list, then FROM (subscript-1 …) [TO (subscript-2 …)]. The subscripts are
 // integer literals (SR19), one per OCCURS dimension (SR20/SR21) — validated at bind (COBOLNET1585-1590).
+// ⛔ THE SUBSCRIPTS ARE `signedIntegerLiteral`, NOT `integerLiteral` (kb/Work PB553). §13.18.63.2 Format 2
+// prints these slots as `subscript-1` / `subscript-2`, NOT as `integer-n`, so §5.5 1)'s unsigned-and-nonzero
+// default does not reach them; §13.18.63.3 SR19 — "Subscript-1 and subscript-2 shall be integer numeric
+// literals" — routes through §5.5 2) a) to §8.3.3.3.2, which admits a leading sign. `FROM (+1) TO (+3)` is
+// therefore conforming source and used to be `error COBOL0001: unexpected '+'`. A NEGATIVE or zero subscript
+// still fails, but by §8.4.2.3.4 GR2 ("The value of a subscript shall be a positive integer") through the
+// existing SR20/SR21 range screen's named COBOLNET1586/1587 — never as a parse error.
 valueClauseTablePhrase
     : valueClauseOperand (COMMA? valueClauseOperand)*
-      FROM LPAREN integerLiteral (COMMA? integerLiteral)* RPAREN
-      (TO LPAREN integerLiteral (COMMA? integerLiteral)* RPAREN)?
+      FROM LPAREN signedIntegerLiteral (COMMA? signedIntegerLiteral)* RPAREN
+      (TO LPAREN signedIntegerLiteral (COMMA? signedIntegerLiteral)* RPAREN)?
     ;
 
 valueItem

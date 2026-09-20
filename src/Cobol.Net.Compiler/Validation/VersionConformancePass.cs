@@ -264,6 +264,15 @@ internal sealed class VersionConformancePass
             // rule binds to the second node, and both take the SAME id from this one arm.
             case BoundSetFunctionPointer or BoundSetFunctionAddress:
                 Check(Constructs.SetFunctionPointer2014, "the SET … TO function-pointer statement (Format 8)"); break;
+            // SET Format 9 (program-pointer-assignment, §14.9.39.2) — a 2002 introduction (kb/Work PB549), the
+            // Format-8 arm's twin and gated for the same reason: the PLAIN form has no grammar rule of its own
+            // (`SET pp1 TO pp2` parses as setToValueStatement, `SET pp TO NULL` as setObjectReferenceStatement)
+            // and only the operands' resolved PicCategory.ProgramPointer re-routes either one here.
+            // BoundSetEntry joins the arm because it IS the bound form of the sender phrase — both the ISO
+            // §8.4.3.13 ADDRESS OF PROGRAM rule and the Micro Focus / IBM TO ENTRY extension bind to it, and
+            // the receiving operand is category program-pointer in both (§14.9.39.3 SR21).
+            case BoundSetProgramPointer or BoundSetEntry:
+                Check(Constructs.SetProgramPointer2002, "the SET … TO program-pointer statement (Format 9)"); break;
             case BoundSetSize:
                 // SET [SIZE OF] dynamic-length-item TO n (§14.9.39 Format 16) — a 2023 introduction. Semantic (the
                 // target must be dynamic-length), so it stays a bound-tree gate — one arm covers the explicit SIZE

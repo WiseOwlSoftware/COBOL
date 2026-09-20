@@ -452,6 +452,57 @@ public sealed partial class DataBinder
                 foreach (var rec in file.Records)
                     if (!CallGlobalRoots.Contains(rec))
                         _callGlobalRoots.Add(rec);
+
+        CheckExternalizedNameUniqueness();
+    }
+
+    /// <summary>ISO §13.18.22.3 syntax rule 2: <i>"In the same source element, the externalized name of the
+    /// subject of the entry that includes the EXTERNAL clause shall not be the same as the externalized name of
+    /// any other entry that includes the EXTERNAL clause."</i>
+    /// <para>⛔ THE RULE ONLY BECAME VIOLABLE WHEN THE `AS literal-1` PHRASE GAINED A GRAMMAR (kb/Work PB511):
+    /// without it every externalized name was §13.18.22.4 GR5's default — the subject's own data-name or
+    /// file-name — and two entries in one source element cannot share one of those (§8.4.2.2 already rejects
+    /// the duplicate declaration). With the phrase in, two entries CAN name one cell, and the consequence is
+    /// not a diagnostic-quality one: the run-unit <c>ExternalStore</c> keys by exactly this name, so two
+    /// differently-shaped records would silently alias one another's storage — a wrong answer, not a
+    /// rejection. That is why this is screened rather than assumed.</para>
+    /// <para>The population is the entries GR5 gives an externalized name to — file connectors and records.
+    /// A level-1 TYPE DECLARATION may also carry the EXTERNAL clause (SR1), but GR5 names only "the file
+    /// connector or record", and GR3 externalizes the records that REFERENCE such a type under their own
+    /// names, so a type declaration's literal-1 has no externalized name to collide with.</para>
+    /// <para>ORDINAL comparison: an externalized name is an operating-environment name, not a COBOL word, so
+    /// §8.3.2's case-insensitivity does not reach it — the same reading §12.3.8.3 SR1 is enforced under.</para>
+    /// </summary>
+    private void CheckExternalizedNameUniqueness()
+    {
+        // Almost every source element declares no EXTERNAL subject at all; this pass runs once per unit,
+        // so it costs nothing when there is nothing to compare.
+        if (_callExternalBackings.Count == 0 && !Files.Any(f => f.IsExternal)) return;
+        var seen = new Dictionary<string, string>(StringComparer.Ordinal);
+        void Claim(string externalized, string where, DiagnosticCursor? at)
+        {
+            if (seen.TryGetValue(externalized, out var prior))
+            {
+                using var _ = Edition.At(at ?? Edition.Cursor);
+                Edition.Error(DiagnosticCatalog.ExternalizedNameNotUnique,
+                    $"{where}: the externalized name '{externalized}' is already the externalized name of "
+                    + $"{prior} in this source element; \"In the same source element, the externalized name of "
+                    + "the subject of the entry that includes the EXTERNAL clause shall not be the same as the "
+                    + "externalized name of any other entry that includes the EXTERNAL clause\" "
+                    + "(ISO §13.18.22.3 SR2). The EXTERNAL clause's AS phrase names the run-unit cell the "
+                    + "subject shares (§13.18.22.4 GR5), so two subjects claiming one name would share one "
+                    + "storage area.");
+                return;
+            }
+            seen[externalized] = where;
+        }
+
+        foreach (var file in Files)
+            if (file is { IsExternal: true, ExternalName: { } extName })
+                Claim(extName, $"file '{file.CobolName}'", null);
+        foreach (var backing in _callExternalBackings)
+            if (!backing.ExternalName.StartsWith("FD::", StringComparison.Ordinal))
+                Claim(backing.ExternalName, $"data item '{backing.Record.CobolName}'", backing.Record.DeclaredAt);
     }
 
     /// <summary>Re-base one EXTERNAL record onto the run-unit external cell (see
@@ -473,8 +524,13 @@ public sealed partial class DataBinder
                 + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
             return;
         }
+        // ISO §13.18.22.4 GR5, THE ONE PLACE ITS TWO SENTENCES ARE APPLIED (kb/Work PB511): the cell key is
+        // literal-1 when the entry's EXTERNAL clause writes `AS literal-1`, and the record's own data-name
+        // otherwise. `externalName` overrides both — it is the FD-record case, whose key is the FILE
+        // connector's externalized name (GR4b/GR5's first alternative), already resolved at the FD entry.
         _callExternalBackings.Add(new CallExternalBacking(
-            cls.BackingCsName, cls.BackingCellCsName, externalName ?? item.CobolName!.ToUpperInvariant(),
+            cls.BackingCsName, cls.BackingCellCsName,
+            externalName ?? item.ExternalizedAs ?? item.CobolName!.ToUpperInvariant(),
             cls.Width, item));
     }
 

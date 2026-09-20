@@ -1303,13 +1303,26 @@ but the usage itself is DECLINED non-support — the data-item half of the Annex
 facility (`docs/CONFORMANCE.md` §4 item 1), refused BY NAME in `PictureAnalyzer.ParseUsage` with COBOLNET1943 at
 every edition. The member is there for the FLOAT-BINARY-128 reason: `ParseUsage` must return something and the
 entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without it the errored compile carried a null
-`PicInfo` into the emitter — which is exactly the unhandled `NullReferenceException` PB487 measured. Because no
-message-tag item can ever BIND, SR14's and SR4's message-tag arms and SR21 (MESSAGE-TAG exclusivity) remain
-unreachable rather than unimplementable, and are still deliberately NOT written as dead code;
-`UsageDeclarationPlacementDriftTests` requires a recorded verdict for every `Usage` member, and the verdict
-recorded for this one is the refusal. The pre-2023 shape of these rules is not derivable
+`PicInfo` into the emitter — which is exactly the unhandled `NullReferenceException` PB487 measured.
+
+⛔ **A DECLINED USAGE STILL HAS SYNTAX RULES OVER IT, and all three of this one's are now ENFORCED and
+WITNESSED** (kb/Work PB544). The earlier reading here — that because no message-tag item can ever BIND, SR4's
+and SR14's message-tag arms and SR21 were "unreachable rather than unimplementable" — conflated a declined
+SEMANTIC with an unwritten SYNTAX RULE, and it was wrong on the measurement as well: a syntax rule is decided
+on the written entry, ahead of and independently of whether the usage is supported. MEASURED at `--std 2023`:
+`01 CFG CONSTANT RECORD. 05 Q USAGE MESSAGE-TAG.` reports COBOLNET1726 naming **SR4**;
+`01 G USAGE MESSAGE-TAG. 05 M PIC X(3).` reports COBOLNET1724 naming **SR14**; and
+`01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` reports COBOLNET2158 naming **SR21** — each beside the
+COBOLNET1943 decline, never instead of it. SR21's screen is `DataBinder.CheckMessageTagExclusivity`, and the
+reason it could not exist before is structural rather than semantic: `BindEntry` kept a single `usageText`
+that each successive USAGE clause OVERWROTE, so `01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` bound as a
+plain DISPLAY item and compiled with NO diagnostic at all. A rule whose subject is the SET of usage clauses
+in an entry cannot be written against a scalar; the entry now keeps the clause LIST.
+`UsageDeclarationPlacementDriftTests` still requires a recorded verdict for every `Usage` member, and the
+verdict recorded for this one is the refusal. The pre-2023 shape of these rules is not derivable
 from the 2023 text (Annex E's scope is 2014→2023 only, so its silence is a missing observation) — the arms ship
-ungated below 2023, recorded as kb/Work PB296.
+ungated below 2023, recorded as kb/Work PB296, and PB544's witness pins the 2023 cell ONLY so that a golden
+cannot freeze the below-2023 routing defect it is waiting on.
 
 **The other half of §13.16.3 SR8 — its SR9 exception — is SYNTHESIZED, not excused** (kb/Work PB504/PB831/PB828;
 mechanism design `docs/rearchitecture/DESIGN-data-model.md` §2.7a). SR9 says the PICTURE clause "may be omitted

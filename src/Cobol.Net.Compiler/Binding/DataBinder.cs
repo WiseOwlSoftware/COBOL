@@ -1399,7 +1399,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     if (ge.EXTERNAL() is not null)
                     {
                         file.IsExternal = true;
-                        file.ExternalName = name.ToUpperInvariant();
+                        // GR5's two sentences, in order: literal-1 when the AS phrase is written, the FD's own
+                        // file-name otherwise (kb/Work PB511). The literal is taken verbatim — it is a
+                        // character-string, not a COBOL word — while the file-name is uppercased because
+                        // §8.3.2 makes a user-defined word case-insensitive. §13.18.22.3 SR3 screens it
+                        // through the ONE shared externalized-name screen (COBOLNET2156).
+                        file.ExternalName =
+                            (ge.externalizedNamePhrase() is { } asPhrase
+                                ? ExternalizedName.Screen(asPhrase.literal(), Edition,
+                                    DiagnosticCatalog.ExternalClauseAsLiteral,
+                                    $"file '{name}' IS EXTERNAL AS {asPhrase.literal().GetText()}", "literal-1",
+                                    "ISO §13.18.22.3 SR3", rejectZeroLength: true,
+                                    collate: Collating, natCollate: NationalCollating)
+                                : null)
+                            ?? name.ToUpperInvariant();
                     }
                     if (ge.GLOBAL() is not null) file.IsGlobal = true;
                 }
@@ -3464,6 +3477,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // their applicability depends on the RESOLVED usage, so the whole phrase adjudication runs in one block
         // after entryUsage exists. kb/Work PB174.
         Core.UsageClauseContext? usageCtx = null;
+        // §13.18.60.3 SR21's subject is the SET of usage clauses in the entry, not the last one to win an
+        // overwrite (kb/Work PB544). Split in two so the overwhelmingly common ONE-clause entry allocates
+        // nothing: BindEntry runs per data item, thousands of times per compile.
+        Core.UsageClauseContext? firstUsage = null;
+        List<Core.UsageClauseContext>? extraUsages = null;   // non-null only once a SECOND clause is written
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
@@ -3471,6 +3489,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string dynLengthLimitText = "";// integer-1 AS WRITTEN, for the COBOLNET2027 report
         string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
+        Core.ExternalizedNamePhraseContext? externalAs = null;   // the EXTERNAL clause's `AS literal-1` (§13.18.22.2; kb/Work PB511)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
@@ -3549,8 +3568,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         dynLengthLimit = Int128.TryParse(dynLengthLimitText, out Int128 lv) ? lv : Int128.MaxValue;
                     }
                 }
-                else if (clause.Context.externalClause() is not null)
+                else if (clause.Context.externalClause() is { } extc)
+                {
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
+                    // §13.18.22.2's `[ AS literal-1 ]` (kb/Work PB511). CAPTURED here, SCREENED below where
+                    // entryWhere exists — the message has to be able to name the subject.
+                    externalAs = extc.externalizedNamePhrase();
+                }
                 else if (clause.Context.globalClause() is not null)
                     { /* §13.18.27 — binds post-build in CallBindExternalAndGlobal; the §13.16.3 co-clause rules
                          read it off `written`, so no decode flag is needed here (kb/Work PB487). */ }
@@ -3624,6 +3648,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     groupUsage = gu.BIT() is not null ? GroupUsage.Bit : GroupUsage.National;
                 else if (clause.Context.usageClause() is { } usage)
                 {
+                    // ⛔ EVERY usage clause of the entry is KEPT, not just the last one (kb/Work PB544). The
+                    // §13.16.2 Format 1 general format prints `[ usage-clause ]` ONCE, so a repeated USAGE
+                    // clause is non-conforming — and the rule that says so BY NAME for one of them is
+                    // §13.18.60.3 SR21, "If MESSAGE-TAG is specified, no other usage clauses shall be
+                    // specified in the data description entry", screened below. A single overwritten
+                    // `usageText` could not express that rule at all: its subject is the SET of clauses.
+                    if (firstUsage is null) firstUsage = usage;
+                    else (extraUsages ??= []).Add(usage);
                     usageText = UsageKeyword(usage);
                     // SIGNED (default) / UNSIGNED on a fixed-width binary usage (ISO §13.18.60.4 GR12) — the
                     // binarySign sibling is a direct child of usageClause in BOTH the full (USAGE IS
@@ -3680,9 +3712,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
             }
 
+        string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
+        CheckMessageTagExclusivity(firstUsage, extraUsages, entryWhere);
+
         // Parse the usage keyword ONCE per entry — ParseUsage carries the W2 loud-guard gates (the 2002+
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
-        string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         Usage entryUsage = PictureAnalyzer.ParseUsage(usageText, Edition, entryWhere);
 
         // THE GLUED-MULTI-LITERAL REJECT (ISO §13.18.63.2): a Format-1 (data-item) VALUE takes exactly one literal;
@@ -4120,6 +4154,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + $"this entry also specifies {DataClauseKinds.Name(typeBad)}");
             typeRefName = null;
         }
+        // The EXTERNAL clause's `AS literal-1` (ISO §13.18.22.2; kb/Work PB511) — the SEVENTH restatement of the
+        // one externalized-name syntax rule, screened through the ONE shared screen (§13.18.22.3 SR3 reads
+        // word-for-word like §11.10.3 SR1 and its four siblings). A violation clears the name rather than
+        // failing the entry: §13.18.22.4 GR5's second sentence then externalizes the record under its own
+        // data-name, so the program binds under an already-failed compile instead of cascading.
+        string? externalizedAs = externalAs is null ? null
+            : ExternalizedName.Screen(externalAs.literal(), Edition, DiagnosticCatalog.ExternalClauseAsLiteral,
+                $"{entryWhere} IS EXTERNAL AS {externalAs.literal().GetText()}", "literal-1",
+                "ISO §13.18.22.3 SR3", rejectZeroLength: true,
+                collate: Collating, natCollate: NationalCollating);
         var item = new DataItem
         {
             Level = level,
@@ -4148,6 +4192,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             TypedefStrong = typedefStrong,
             IsExternalTypedef = isTypedef && hasExternal,   // §13.18.22 SR1 / §13.18.58.3 SR3 (P10 Step 16)
             HasExternalClause = hasExternal,                // backs the §13.18.22 SR5 strong-external pairing check
+            ExternalizedAs = externalizedAs,                // §13.18.22.4 GR5's literal-1 (kb/Work PB511)
             IsConstantRecord = isConstantRecord,
             TypeRefName = typeRefName,
             SameAsName = sameAsName,
@@ -4317,6 +4362,48 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 _indexFields[idxName] = "_IX_" + _indexFields.Count;
         }
         return item;
+    }
+
+    /// <summary>ISO §13.18.60.3 syntax rule 21: <i>"If MESSAGE-TAG is specified, no other usage clauses shall
+    /// be specified in the data description entry."</i>
+    /// <para>⛔ RAISED BEFORE AND INDEPENDENTLY OF THE NON-SUPPORT DECLINE, which is the whole point (kb/Work
+    /// PB544). USAGE MESSAGE-TAG is an Annex A.3 item-4 processor-dependent element this compiler declines by
+    /// name (<see cref="DiagnosticCatalog.MessageTagUsageUnsupported"/>, COBOLNET1943, raised inside
+    /// <c>PictureAnalyzer.ParseUsage</c>), and a declined usage still has SYNTAX RULES over it. Before this
+    /// screen the rule had no subject at all: <c>usageText</c> was overwritten by each successive USAGE
+    /// clause, so <c>01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).</c> bound as a plain DISPLAY item and
+    /// compiled with NO diagnostic — not even the decline — at every edition.</para>
+    /// <para>The rule is one-directional and this screen is too: it fires when MESSAGE-TAG is among the
+    /// entry's usage clauses AND there is more than one, whichever order they are written in, because SR21
+    /// forbids "any other usage clauses" in the entry rather than any particular pairing.</para>
+    /// <para>⚠ A repeated USAGE clause with NO message-tag arm (<c>USAGE DISPLAY USAGE BINARY</c>) is ALSO
+    /// non-conforming — §13.16.2 Format 1 prints <c>[ usage-clause ]</c> once — and is still accepted here,
+    /// silently, with the last clause winning. That is a WIDER rule about clause repetition in a closed
+    /// general format, not §13.18.60.3 SR21, and it is registered as its own mechanism; this list is the
+    /// structure it will be enforced from.</para>
+    /// <para>⚠ NO EDITION GATE HERE, DELIBERATELY. MESSAGE-TAG is an Annex E.2 item-25 COBOL-2023 addition and
+    /// below 2023 the word is an ordinary user-defined word, so the edition-correct diagnostic below 2023 is
+    /// the introduction gate rather than this rule. That routing is BROKEN for the whole MESSAGE-TAG surface —
+    /// COBOLNET1943 itself fires at 2002 and 2014, contradicting its own message text — and it is one
+    /// mechanism with one fix, registered separately. Gating only THIS screen would re-open the silent
+    /// acceptance below 2023 while leaving the sibling wrong, so the screen stays edition-blind until the
+    /// gate lands, and its negative golden pins only the 2023 cell (feedback green_test_can_hold_a_gap_open:
+    /// a golden that pinned 2002 would freeze the defect).</para></summary>
+    private void CheckMessageTagExclusivity(
+        Core.UsageClauseContext? firstUsage, List<Core.UsageClauseContext>? extraUsages, string entryWhere)
+    {
+        if (firstUsage is null || extraUsages is null) return;   // fewer than two clauses — nothing to exclude
+        List<Core.UsageClauseContext> usageClauses = [firstUsage, .. extraUsages];
+        var tag = usageClauses.FirstOrDefault(u => CobolWords.Is(UsageKeyword(u), "MESSAGE-TAG"));
+        if (tag is null) return;
+        string others = string.Join(", ", usageClauses.Where(u => !ReferenceEquals(u, tag))
+                                                      .Select(u => "USAGE " + UsageKeyword(u)));
+        using var _ = Edition.At(new DiagnosticCursor(tag.Start.Line, tag.Start.Column + 1));
+        Edition.Error(DiagnosticCatalog.MessageTagUsageExclusive,
+            $"{entryWhere}: the entry specifies USAGE MESSAGE-TAG and also {others} — \"If MESSAGE-TAG is "
+            + "specified, no other usage clauses shall be specified in the data description entry\" "
+            + "(ISO §13.18.60.3 SR21). §13.18.60.4 GR9 makes the class and category of a message-tag data "
+            + "item message-tag, which no other usage clause can also be true of.");
     }
 
     /// <summary>Extract a usage clause's canonical keyword text by TOKEN inspection — never string-stripping.
@@ -4760,13 +4847,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             int toIdx = ph.TO()?.Symbol.TokenIndex ?? int.MaxValue;
             var from = new List<int>();
             List<int>? to = ph.TO() is not null ? [] : null;
-            foreach (var il in ph.integerLiteral())
+            foreach (var il in ph.signedIntegerLiteral())
             {
                 // SATURATE rather than fall to 0 on an out-of-int literal: the §13.18.63.3 SR20/SR21 range
                 // diagnostics quote the subscript back at the programmer, and quoting "0" for a source that
                 // wrote 99999999999 reports a number the program does not contain. Either way the value is
                 // out of range for any real table, and the screen says so.
-                int v = long.TryParse(il.GetText(), out long n) ? (int)Math.Clamp(n, 0, int.MaxValue) : int.MaxValue;
+                // ⛔ THE SATURATION FLOOR IS int.MinValue, NOT 0 (kb/Work PB553). §13.18.63.3 SR19 admits a
+                // SIGNED integer numeric literal here (§5.5 2) a) → §8.3.3.3.2 2)), so a negative subscript is
+                // now a bindable value that §8.4.2.3.4 GR2 ("The value of a subscript shall be a positive
+                // integer") rejects downstream — clamping it to 0 would quote "0" back at a source that wrote
+                // "-1", the exact misquote the paragraph above exists to prevent.
+                int v = long.TryParse(SignedIntegerLiteral.Screen(il, Edition, $"{where}, Format 2 VALUE"),
+                                      out long n)
+                    ? (int)Math.Clamp(n, int.MinValue, int.MaxValue) : int.MaxValue;
                 if (il.Start.TokenIndex < toIdx) from.Add(v); else to!.Add(v);
             }
             list.Add(new TableValueSpec(literals, from, to, i));

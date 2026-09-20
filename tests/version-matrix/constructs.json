@@ -1159,6 +1159,18 @@
    "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. KSFPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-R PIC 9(4).\nPROCEDURE DIVISION RETURNING L-R.\nEND FUNCTION KSFPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. KSETFP.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION KSFPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP1 USAGE FUNCTION-POINTER TO KSFPROTO.\n01 FP2 USAGE FUNCTION-POINTER TO KSFPROTO.\nPROCEDURE DIVISION.\nMAIN.\n    SET FP1 TO ADDRESS OF FUNCTION KSFPROTO\n    SET FP2 TO FP1\n    STOP RUN.\nEND PROGRAM KSETFP.\n"
   },
   {
+   "id": "set-program-pointer-2002",
+   "status": "active",
+   "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOLNET1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOLNET2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
+   "display": "SET \u2026 TO program-pointer (Format 9)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO \u00a714.9.39.2 Format 9 / \u00a714.9.39.3 SR21 / SR22 / \u00a78.4.3.13",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "vcr": "ISO \u00a714.9.39.2 Format 9 (its operand is the 2002 program-pointer category, \u00a78.5.2.9); the set-function-pointer-2014 twin",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KSPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PP USAGE PROGRAM-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET PP TO ADDRESS OF PROGRAM \"KSPPSUB\"\n    STOP RUN.\nEND PROGRAM KSPP.\n"
+  },
+  {
    "id": "user-word-program-pointer-2002",
    "status": "active",
    "description": "The word PROGRAM-POINTER as a user-defined word — user-definable at 85, reserved since 2002 (§8.9; reserved-words.json row PROGRAM-POINTER r85=false r2002..r2023=true). Interval row per the user-word-constant-2002 precedent: cobolWord/_dataNameTokens/CheckedTokenTypes-admitted at P10 Step 7.",
@@ -1971,10 +1983,10 @@
   {
    "id": "externalized-name-as-2002",
    "status": "active",
-   "description": "The AS externalized-name phrase of an identification-division paragraph \u2014 `[ AS literal-1 ]` on PROGRAM-ID (\u00a711.10.2 Formats 1 and 2), FUNCTION-ID (\u00a711.5.2 Formats 1 and 2), CLASS-ID (\u00a711.3.2), INTERFACE-ID (\u00a711.6.2) and METHOD-ID (\u00a711.7.2). \u00a78.3.2.2 2) gives it its meaning: the literal is the name externalized to the operating environment. X3.23-1985's PROGRAM-ID paragraph has NO such phrase and AS is user-definable there (the user-word-as-2002 twin), so the whole phrase is a 2002 introduction. ONE grammar rule (externalizedNamePhrase) and ONE gate (VersionConformancePass ParseArm.VisitExternalizedNamePhrase) serve all five paragraphs; below 2002 the gate names the edition (COBOLNET0900) instead of the bare syntax error the phrase drew before kb/Work PB303. The \u00a712.3.8.2 program-specifier shares the grammar rule and carries its own repository-program-2002 row for the specifier itself.",
-   "display": "the AS externalized-name phrase of an identification-division paragraph",
+   "description": "The AS externalized-name phrase \u2014 `[ AS literal-1 ]` on PROGRAM-ID (\u00a711.10.2 Formats 1 and 2), FUNCTION-ID (\u00a711.5.2 Formats 1 and 2), CLASS-ID (\u00a711.3.2), INTERFACE-ID (\u00a711.6.2), METHOD-ID (\u00a711.7.2) and the EXTERNAL clause (\u00a713.18.22.2, on a data description entry and on a file description entry alike \u2014 kb/Work PB511). \u00a78.3.2.2 2) gives it its meaning: the literal is the name externalized to the operating environment. X3.23-1985 has NO such phrase anywhere and AS is user-definable there (the user-word-as-2002 twin), so the whole phrase is a 2002 introduction. ONE grammar rule (externalizedNamePhrase) and ONE gate (VersionConformancePass ParseArm.VisitExternalizedNamePhrase) serve every site; below 2002 the gate names the edition (COBOLNET0900) instead of the bare syntax error the phrase drew before kb/Work PB303. The \u00a712.3.8.2 program-specifier shares the grammar rule and carries its own repository-program-2002 row for the specifier itself.",
+   "display": "the AS externalized-name phrase",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO \u00a78.3.2.2 2); \u00a711.10.2 / \u00a711.5.2 / \u00a711.3.2 / \u00a711.6.2 / \u00a711.7.2 general formats",
+   "citation": "ISO \u00a78.3.2.2 2); \u00a711.10.2 / \u00a711.5.2 / \u00a711.3.2 / \u00a711.6.2 / \u00a711.7.2 / \u00a713.18.22.2 / \u00a713.4.5.2 general formats",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

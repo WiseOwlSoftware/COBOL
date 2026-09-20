@@ -247,6 +247,20 @@ public sealed class DataItem
         "ISO §13.18.49.4 GR1 excludes EXTERNAL by name; for a TYPE subject the carrier is §13.18.22.4 GR3 (ExternalFromType), because the effect is on the RECORD rather than a copied clause")]
     public bool HasExternalClause { get; init; }
 
+    /// <summary>The value of the EXTERNAL clause's <c>AS literal-1</c>, when the entry writes one; null when it
+    /// does not (kb/Work PB511). ISO §13.18.22.4 GR5: <i>"Literal-1, if specified, is the name of the file
+    /// connector or record that is externalized to the operating environment. If literal-1 is not specified,
+    /// the externalized name of the file connector or record is the name specified in the file description
+    /// entry or the data-name format of the entry-name clause, respectively."</i> So this field IS the rule's
+    /// first sentence and the null case IS its second — the default is applied at the ONE cell-keying site
+    /// (<c>CallBindExternalAndGlobal</c> → <c>CallMakeExternal</c>), never re-derived per caller. The literal
+    /// is NOT case-folded: a COBOL word is case-insensitive and is uppercased for the key, but a literal is
+    /// its own character-string and §8.3.2.2 2) leaves the operating-environment mapping to the implementor,
+    /// which this compiler defines as the literal verbatim.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of THIS entry's own EXTERNAL clause (ISO §13.18.22.4 GR5), exactly as HasExternalClause is")]
+    public string? ExternalizedAs { get; init; }
+
     /// <summary>True when this record became EXTERNAL by referencing an EXTERNAL type declaration
     /// (ISO §13.18.22.4 GR3 — "the record descriptions in which it is specified are also external"). Set by
     /// <c>ExpandType</c>; consumed by <c>CallBindExternalAndGlobal</c> (which cannot see it in the parse tree —

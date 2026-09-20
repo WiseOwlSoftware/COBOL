@@ -70,7 +70,8 @@ ISO §8.3.2.2 2) is the whole rule: *"For any externalized user-defined words fo
 | Reference | Rule | Resolves against |
 |---|---|---|
 | `CALL` / `CANCEL` literal-1 or identifier-1 | §14.9.4.4 GR3 b) — "the program-name of the program being called, **as described in 8.3.2.2**" | `ExternalizedName` |
-| the program-address-identifier `ENTRY` operand | §8.4.3.13 GR1/GR2 — "the outermost program identified by the **externalized** program-name" | `ExternalizedName` |
+| the program-address-identifier operand — ISO `ADDRESS OF PROGRAM { identifier-1 \| literal-1 \| program-prototype-name-1 }` (§8.4.3.13.2) and the Micro Focus / IBM `TO ENTRY` spelling alike | §8.4.3.13.4 GR1/GR2 — "the outermost program identified by the **externalized** program-name" | `ExternalizedName` |
+| the EXTERNAL clause's `AS literal-1` | §13.18.22.4 GR5 — "Literal-1, if specified, is the name of the file connector or record that is **externalized to the operating environment**" | the run-unit `ExternalStore` cell key (`DataItem.ExternalizedAs` / `FileModel.ExternalName`) |
 | §12.3.8.4 GR10 a) search of the compilation group | "the externalized name of a program definition" | `ExternalizedName` |
 | `INVOKE` literal-1 or identifier-2 | §14.9.23.4 GR2 a) — the same formula; and §14.9.23.2 gives INVOKE **no word form at all** | the method roster key = `ExternalizedName` |
 | `END PROGRAM` / `END FUNCTION` / `END CLASS` / `END METHOD` | §10.7.3 SR2 — "identical to the program-name declared in a preceding PROGRAM-ID paragraph" | `Name` |
@@ -79,7 +80,7 @@ ISO §8.3.2.2 2) is the whole rule: *"For any externalized user-defined words fo
 | an object-class-name / interface-name | §8.4.6.4 scopes the WORD | `Name` |
 | `FUNCTION MODULE-NAME` | §15.65.4 r4 is implementor-defined; CONFORMANCE.md DOC-A.1-135 chooses the program-id form | `Name` |
 
-**Where the pair lives.** `BoundUnit.Name` / `BoundUnit.ExternalizedName` for programs and functions; `OoClassSymbol` / `OoInterfaceSymbol` / `OoMethodSymbol.ExternalizedName` for the OO trio. Each defaults to the declared word, so a source unit with no AS phrase is bit-for-bit what it was. The run-unit registry carries both (`ProgramTable.Node.Name` for MODULE-NAME, `Node.CallName` for resolution) and `ProgramRegistry.Register` takes its `externalizedName` argument only when they differ, keeping every AS-less unit emitted registration line byte-identical.
+**Where the pair lives.** `BoundUnit.Name` / `BoundUnit.ExternalizedName` for programs and functions; `OoClassSymbol` / `OoInterfaceSymbol` / `OoMethodSymbol.ExternalizedName` for the OO trio; `DataItem.ExternalizedAs` and `FileModel.ExternalName` for §8.3.2.2's site 2), the EXTERNAL clause — whose default is §13.18.22.4 GR5's second sentence (the subject's own data-name or file-name) and is applied at the ONE cell-keying site, `DataBinder.CallMakeExternal` (kb/Work PB511). Each defaults to the declared word, so a source unit with no AS phrase is bit-for-bit what it was. The run-unit registry carries both (`ProgramTable.Node.Name` for MODULE-NAME, `Node.CallName` for resolution) and `ProgramRegistry.Register` takes its `externalizedName` argument only when they differ, keeping every AS-less unit emitted registration line byte-identical.
 
 **Why `CsName` is deliberately NOT derived from the externalized name.** For a class the emitted C# type name is a wire contract with `PicInfo.ClrType`, which maps a declared object-class-name to a C# type with no access to the class table; deriving it from the AS literal would break that mapping. The method side has no such constraint, which is why the METHOD roster IS keyed on the externalized name — and that key also realizes §11.7.3 SR9 (*"if method-name-1 **or literal-1** is the same as a method-name inherited or implemented"*) without a second lookup path.
 
@@ -94,6 +95,21 @@ ISO §8.3.2.2 2) is the whole rule: *"For any externalized user-defined words fo
 **Optionality is measured, not assumed.** On the printed §13.18.60.2 general format (folio 503) POINTER's and PROGRAM-POINTER's `TO` operands are BRACKETED and FUNCTION-POINTER's is NOT — so every function-pointer is restricted to a prototype, GR26's signature invariant always has one to name, and a bare `USAGE FUNCTION-POINTER.` is COBOLNET1958.
 
 **The sender.** SET Format 8's own printed figure (folio 730) is `SET { identifier-12 } … TO identifier-13` with no choice indicators — identical to Format 9 — so the PLAIN form needs no grammar rule: `SET fp1 TO fp2` parses as `setToValueStatement` and `SET fp TO NULL` as `setObjectReferenceStatement`, and `SetBinder` re-routes on the receiver's resolved category exactly as Format 9 does. What needs a rule is §8.4.3.12's **function-address-identifier**, `ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }` (`setFunctionAddressStatement`; `OF` is unstressed on the printed folio 141, so it is an optional word, and there is no literal-1 arm — §8.4.3.13's PROGRAM twin has one and this does not). Without it a function-pointer could never hold a non-NULL value.
+
+**And the PROGRAM twin, which was missing for longer** (kb/Work PB549). §8.4.3.13's
+**program-address-identifier** — `ADDRESS OF PROGRAM { identifier-1 | literal-1 | program-prototype-name-1 }`,
+RENDERED from the printed figure (PDF p172 / folio 142: ADDRESS and PROGRAM underlined, `OF` not, so it is an
+optional word on the same evidence its FUNCTION and data twins take theirs from) — is the ONLY syntax ISO gives
+for putting a program's address into a program-pointer, and it was in the grammar at NO edition. The only route
+in was `SET pp TO ENTRY {literal | identifier}`, the Micro Focus / IBM spelling whose words occur nowhere in
+ISO/IEC 1989:2023 — which two comments in the tree nevertheless described AS §14.9.39 Format 9 with the
+§8.4.3.13 sender. Both spellings now exist, `programAddressIdentifier` is its own grammar rule because
+§8.4.3.13 is an IDENTIFIER format rather than a statement phrase, and both bind through ONE body: the
+§14.9.39.3 SR21 receiver screen is shared (`BindProgramAddressTargets`) and both reach the same bound node, so
+the vendor surface cannot drift away from the standard one. The three braced arms carry §8.4.3.13.3 SR1 / SR2 /
+SR3 on COBOLNET2157, the prototype arm resolves through the EXTERNALIZED program-name §8.4.3.13.4 GR2 names, and
+GR3's restricted-pointer characteristic meets a restricted receiver through the SAME `PrototypeSignatures.Same`
+test SR22 and SR20 already share. Edition row: `set-program-pointer-2002`, beside `set-function-pointer-2014`.
 
 **Two determinations on §14.9.39.4 GR14's run-time screen.**
 1. GR14 says the address shall be *“the address of a function defined with the same signature as the function referenced in the definition of identifier-13”*, which cannot be read literally when identifier-13 is a function-address-identifier of the `identifier-1` form (§8.4.3.12.4 GR1 a) — that form names no prototype at all. The screen is therefore implemented against the RECEIVING item's declared function-prototype, which is §13.18.60.4 GR26's own standing invariant and is what GR14 enforces statement by statement; wherever the sender DOES carry a prototype, SR20 has already made the two identical at bind, so no conforming program can observe the difference.

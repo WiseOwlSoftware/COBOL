@@ -670,8 +670,29 @@ numericLiteralCore
     | INTEGERLIT                           // 123 (integer)
     ;
 
+// ⛔ TWO SLOTS, AND THE DIFFERENCE IS THE SIGN — NOT ONE RULE WITH A HOLE IN IT (kb/Work PB553).
+// `integerLiteral` is the metalanguage `integer-n` of a printed general format, and its UNSIGNED shape IS the
+// rule: ISO §5.5 1) — "When the term 'integer-n' (n = 1, 2, …) is used in a general format and associated
+// rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero unless otherwise
+// specified in the associated rules." So `01 T PIC X OCCURS +3.` is correctly rejected (§13.18.38.3 SR16
+// otherwise-specifies only the NONZERO half, never the sign), and widening THIS rule would accept it.
+// `signedIntegerLiteral` is the other slot: one whose own syntax rule constrains the operand as an INTEGER
+// NUMERIC LITERAL rather than as `integer-n` — the Format 2 (table) VALUE clause's FROM/TO subscripts. §5.5 2) a) — "if that operand is a literal, it shall be an
+// integer literal, as defined in 8.3.3.3.2, Fixed-point numeric literals" — and §8.3.3.3.2 2) admits the sign:
+// "A literal shall not contain more than one sign character. If a sign is used, it shall appear as the
+// leftmost character of the literal." §13.18.63.3 SR19, "Subscript-1 and subscript-2 shall be integer numeric
+// literals", is the one such slot in the whole grammar today; SignedIntegerSlotDriftTests pins that inventory
+// so a second one cannot be added silently, in either direction.
+// ⚠ SUPERSET-PARSE / BIND-NARROW, the standing doctrine: the sign is a SEPARATE token here (a DEFAULT-mode
+// `(` after FROM/TO opens no signed-literal lexer region), so `FROM ( + 1 )` — a space between the sign and
+// its digits, which §8.3.3.3.2 forbids because a literal is one character-string — also parses, and
+// DataBinder reports it BY NAME (COBOLNET2155) instead of leaving it to the ANTLR error reporter.
 integerLiteral
     : INTEGERLIT
+    ;
+
+signedIntegerLiteral
+    : (PLUS | MINUS)? INTEGERLIT
     ;
 
 // The literal-1 of the ALL figurative (§8.3.3.6.3 SR2): one literal of any class — plain / hexadecimal alphanumeric,

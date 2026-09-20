@@ -1194,7 +1194,17 @@
   "pb456-set-object-sender-numeric-receiver",
   "pb456-set-pointer-sender-numeric-receiver",
   "pb456-set-exception-object-receiver",
-  "pb456-set-pointer-sender-not-a-pointer"
+  "pb456-set-pointer-sender-not-a-pointer",
+  "pb553-value-subscript-sign-not-adjacent",
+  "pb511-external-as-below-2002",
+  "pb511-external-as-figurative",
+  "pb511-externalized-name-not-unique",
+  "pb549-program-address-below-2002",
+  "pb549-program-address-operand-shape",
+  "pb544-message-tag-usage-exclusive",
+  "pb544-usage-message-tag-in-constant-record",
+  "pb544-usage-message-tag-group",
+  "pb544-usage-function-pointer-elementary"
  ],
  "pending": []
 }

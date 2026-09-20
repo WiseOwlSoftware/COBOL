@@ -3985,6 +3985,65 @@ public static class DiagnosticCatalog
         "COBOLNET2140", "inline-invocation-returning-shape", EditionSeverity.Error,
         "The RETURNING item of an inline-invoked method is ANY LENGTH or ACTIVE-CLASS.",
         "ISO §8.4.3.4.3 SR4");
+    // ── COBOLNET2155–COBOLNET2158 — THE MISSING GRAMMAR SURFACES OF WAVE 39 ───────────────────────────────
+    // Four general formats the printed standard carries that the grammar had never written down, so each was
+    // a bare ANTLR syntax error on conforming source: the VALUE Format-2 signed subscript (PB553), the
+    // EXTERNAL clause's AS phrase (PB511), the §8.4.3.13 program-address-identifier (PB549) and the USAGE
+    // clause's MESSAGE-TAG exclusivity rule (PB544).
+
+    /// <summary>A <c>signedIntegerLiteral</c> slot was written with a space between the sign and its digits —
+    /// `FROM ( + 1 )`. §8.3.3.3.2 2): "A literal shall not contain more than one sign character. If a sign is
+    /// used, it shall appear as the leftmost character of the literal." A literal is ONE character-string, so
+    /// a separated sign is not part of it. The grammar admits the shape (the sign is its own token in these
+    /// slots) and this narrows it by name rather than leaving it to the ANTLR error reporter.</summary>
+    public static readonly DiagnosticDescriptor SignedLiteralSignNotAdjacent = new(
+        "COBOLNET2155", "signed-literal-sign-not-adjacent", EditionSeverity.Error,
+        "A numeric literal's sign is separated from its digits by a space.",
+        "ISO §8.3.3.3.2 2)");
+
+    /// <summary>The literal of the EXTERNAL clause's <c>AS</c> phrase violated §13.18.22.3 SR3: "Literal-1
+    /// shall be an alphanumeric or national literal and shall be neither a figurative constant nor a
+    /// zero-length literal." The SEVENTH restatement of the one externalized-name sentence, screened through
+    /// the one shared <c>ExternalizedName.Screen</c> the five identification-division paragraphs and the
+    /// REPOSITORY program-specifier already use (kb/Work PB303).</summary>
+    public static readonly DiagnosticDescriptor ExternalClauseAsLiteral = new(
+        "COBOLNET2156", "external-clause-as-literal", EditionSeverity.Error,
+        "The EXTERNAL clause's AS literal-1 is not an admissible externalized name.",
+        "ISO §13.18.22.3 SR3");
+
+    /// <summary>A §8.4.3.13 program-address-identifier — `ADDRESS OF PROGRAM { identifier-1 | literal-1 |
+    /// program-prototype-name-1 }` — has an operand its own syntax rules exclude: SR1 ("Identifier-1 shall be
+    /// of category alphanumeric or national"), SR2 ("Literal-1 shall be an alphanumeric or national literal
+    /// whose length is not zero") or SR3 ("Program-prototype-name-1 shall be a program prototype specified in
+    /// the REPOSITORY paragraph"). The receiving operand's own category is §14.9.39.3 SR21's and reports
+    /// through <see cref="PointerOperandShape"/>, as the vendor ENTRY spelling's does.</summary>
+    public static readonly DiagnosticDescriptor ProgramAddressOperand = new(
+        "COBOLNET2157", "program-address-operand", EditionSeverity.Error,
+        "The operand of ADDRESS OF PROGRAM is not an admissible program-address-identifier operand.",
+        "ISO §8.4.3.13.3 SR1/SR2/SR3");
+
+    /// <summary>A data description entry specifies USAGE MESSAGE-TAG together with another USAGE clause.
+    /// §13.18.60.3 SR21: "If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data
+    /// description entry." ⚠ THIS IS A SYNTAX RULE, NOT THE NON-SUPPORT DECLINE: it is raised at every edition
+    /// that has MESSAGE-TAG, ahead of and independently of <see cref="MessageTagUsageUnsupported"/>, so the
+    /// rule has a subject even though the usage itself is declined (Annex A.3 item 4).</summary>
+    public static readonly DiagnosticDescriptor MessageTagUsageExclusive = new(
+        "COBOLNET2158", "message-tag-usage-exclusive", EditionSeverity.Error,
+        "USAGE MESSAGE-TAG is specified with another USAGE clause in the same data description entry.",
+        "ISO §13.18.60.3 SR21");
+
+    /// <summary>Two entries of one source element externalize the same name. §13.18.22.3 SR2: "In the same
+    /// source element, the externalized name of the subject of the entry that includes the EXTERNAL clause
+    /// shall not be the same as the externalized name of any other entry that includes the EXTERNAL clause."
+    /// ⛔ THE RULE ONLY BECAME VIOLABLE WHEN THE AS PHRASE GAINED A GRAMMAR (kb/Work PB511): before it, every
+    /// externalized name was §13.18.22.4 GR5's default — the subject's own data-name or file-name — which
+    /// §8.4.2.2 already keeps unique. With literal-1 writable, two subjects can name ONE run-unit
+    /// <c>ExternalStore</c> cell, and the consequence is a silent alias of differently-shaped storage rather
+    /// than a rejection, which is why the rule is screened at the one cell-keying site.</summary>
+    public static readonly DiagnosticDescriptor ExternalizedNameNotUnique = new(
+        "COBOLNET2159", "externalized-name-not-unique", EditionSeverity.Error,
+        "Two entries in one source element externalize the same name.",
+        "ISO §13.18.22.3 SR2");
 
     // ── COBOLNET2112 / COBOLNET2113 — THE SET STATEMENT'S FORMAT SELECTION (kb/Work PB449 + PB456 + PB458) ──
 

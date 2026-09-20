@@ -65,6 +65,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
         if (set.setSwitchStatement() is { } sw) return host.Alter.SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setFunctionAddressStatement() is { } sfa) return BindSetFunctionAddress(sfa);   // F8 + §8.4.3.12 sender (kb/Work PB452)
+        if (set.setProgramAddressStatement() is { } spa) return BindSetProgramAddress(spa);     // F9 + §8.4.3.13 sender (kb/Work PB549)
         if (set.setAddressStatement() is { } sa)
             return host.Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
@@ -737,30 +738,25 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     private int ExpectedFormalsOf(string? prototypeName) =>
         FunctionSignatureOf(prototypeName) is { } s ? s.Formals.Count : -1;
 
-    /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 with the
-    /// §8.4.3.13 program-address-identifier sender; P10 Step 7): every target shall be category
-    /// program-pointer (SR21); the ENTRY operand names the program (§8.4.3.13 GR1 — a literal, or an
-    /// identifier whose VALUE names it per §8.3.2.2).</summary>
+    /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> — ⛔ THE MICRO FOCUS / IBM VENDOR
+    /// SPELLING, NOT AN ISO FORMAT. This doc comment used to call it "ISO §14.9.39 Format 9 with the §8.4.3.13
+    /// program-address-identifier sender" and it is neither (kb/Work PB549): the words <c>TO ENTRY</c> occur
+    /// nowhere in ISO/IEC 1989:2023. The ISO surface is <see cref="BindSetProgramAddress"/>
+    /// (<c>SET pp … TO ADDRESS OF PROGRAM …</c>). What IS shared is the SEMANTICS, and they are the
+    /// standard's: every target shall be category program-pointer (§14.9.39.3 SR21), and the operand names the
+    /// program (§8.4.3.13.4 GR1 — a literal, or an identifier whose VALUE names it per §8.3.2.2). So the body
+    /// is factored into <see cref="BindProgramAddressTargets"/> + <see cref="BoundSetEntry"/> and both
+    /// surfaces reach it, rather than each carrying its own copy of SR21.</summary>
     private BoundStatement BindSetEntry(Core.SetEntryStatementContext se)
     {
-        var targets = new List<Place>(se.dataReference().Length);
         // The LAST dataReference is the ENTRY identifier operand when no literal is present — the grammar
         // shape is `SET dataReference+ TO ENTRY (nonNumericLiteral | dataReference)`.
         var drefs = se.dataReference();
         bool identForm = se.nonNumericLiteral() is null;
         int targetCount = identForm ? drefs.Length - 1 : drefs.Length;
         if (targetCount < 1) return new BoundUnsupported("SET … TO ENTRY — no receiving operand");
-        for (int i = 0; i < targetCount; i++)
-        {
-            if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
-            {
-                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ENTRY shall be USAGE "
-                    + "PROGRAM-POINTER (ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
-                return new BoundNop();
-            }
-            targets.Add(tp);
-        }
+        if (BindProgramAddressTargets(drefs, targetCount, "SET … TO ENTRY") is not { } targets)
+            return new BoundNop();
         if (!identForm)
         {
             var nn = se.nonNumericLiteral();
@@ -776,10 +772,197 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.Resolve(drefs[^1]) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                $"SET … TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable (ISO §8.4.3.13 GR1a)");
+                $"SET … TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable (ISO §8.4.3.13.4 GR1a)");
             return new BoundNop();
         }
         return new BoundSetEntry(targets, null, namePlace);
+    }
+
+    /// <summary>§14.9.39.3 SR21's receiving half — "Identifier-7 shall reference a data item of category
+    /// program-pointer" — over the first <paramref name="count"/> of <paramref name="drefs"/>. ONE screen for
+    /// the two surfaces that assign a program address (the ISO <c>ADDRESS OF PROGRAM</c> form and the vendor
+    /// <c>TO ENTRY</c> form), so the rule cannot be enforced in one and forgotten in the other. Returns null
+    /// having reported.</summary>
+    private List<Place>? BindProgramAddressTargets(
+        Core.DataReferenceContext[] drefs, int count, string where)
+    {
+        var targets = new List<Place>(count);
+        for (int i = 0; i < count; i++)
+        {
+            if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                    $"SET '{drefs[i].GetText()}': the receiving operand of {where} shall be USAGE "
+                    + "PROGRAM-POINTER (ISO §14.9.39.2 Format 9 / §14.9.39.3 SR21)");
+                return null;
+            }
+            targets.Add(tp);
+        }
+        return targets;
+    }
+
+    /// <summary><c>SET { identifier-7 } … TO ADDRESS OF PROGRAM { identifier-1 | literal-1 |
+    /// program-prototype-name-1 }</c> — ISO §14.9.39.2 Format 9 with the §8.4.3.13 PROGRAM-ADDRESS-IDENTIFIER
+    /// as its sender, the ONLY standard syntax that puts a program's address into a program-pointer. It had no
+    /// grammar at any edition, so the conforming spelling was a bare parse error and the vendor
+    /// <c>TO ENTRY</c> extension was the only route in (kb/Work PB549).
+    /// <para>Three braced operand arms, three syntax rules, all on
+    /// <see cref="DiagnosticCatalog.ProgramAddressOperand"/>: §8.4.3.13.3 SR1 "Identifier-1 shall be of
+    /// category alphanumeric or national", SR2 "Literal-1 shall be an alphanumeric or national literal whose
+    /// length is not zero", SR3 "Program-prototype-name-1 shall be a program prototype specified in the
+    /// REPOSITORY paragraph". The receiving operand's own category is §14.9.39.3 SR21's and reports through
+    /// <see cref="DiagnosticCatalog.PointerOperandShape"/>, as the vendor spelling's does.</para>
+    /// <para>§8.4.3.13.4 GR2 fixes what the address IS — "For a COBOL program, the address is that of the
+    /// outermost program identified by the EXTERNALIZED program-name in its PROGRAM-ID paragraph" — so the
+    /// prototype arm resolves through the §12.3.8.2 program-specifier's externalized name (its
+    /// <c>AS literal-3</c> when one is written), never the source word; that is the same drift kb/Work PB303
+    /// fixed on the CALL and ENTRY paths. GR3 makes the prototype arm a program-pointer RESTRICTED to
+    /// program-prototype-name-1, which is what §14.9.39.3 SR22 then compares against a restricted
+    /// receiver — the same compare the pointer-to-pointer arm runs, so it is the same helper.</para></summary>
+    private BoundStatement BindSetProgramAddress(Core.SetProgramAddressStatementContext spa)
+    {
+        var drefs = spa.dataReference();
+        var pai = spa.programAddressIdentifier();
+        var operandLit = pai.nonNumericLiteral();
+        var operandRef = pai.dataReference();
+        // ⚠ `drefs` IS the receiving-operand list and nothing else. The program-address-identifier is its own
+        // grammar RULE (§8.4.3.13.2 is an identifier format, not a statement phrase), so its operand lives
+        // under `pai`, not flattened into this context's dataReference list — unlike the FUNCTION twin, whose
+        // sender phrase is written inline in setFunctionAddressStatement and therefore has to drop the last
+        // element. Getting that wrong is silent: the last receiver is simply never screened or stored.
+        if (drefs.Length < 1) return new BoundUnsupported("SET … TO ADDRESS OF PROGRAM — no receiving operand");
+        if (BindProgramAddressTargets(drefs, drefs.Length, "SET … TO ADDRESS OF PROGRAM") is not { } targets)
+            return new BoundNop();
+
+        // §14.9.39.3 SR22's condition is the RECEIVER being restricted; the restriction the SENDER carries is
+        // §8.4.3.13.4 GR3's — the prototype arm only. Captured before the arms so both can answer it.
+        string? receiverProto = targets[0].Item.Pic?.RestrictedPrototypeName;
+        foreach (var t in targets)
+            if (!PrototypeSignatures.Same(ProgramSignatureOf(receiverProto),
+                                          ProgramSignatureOf(t.Item.Pic?.RestrictedPrototypeName)))
+            {
+                // SR22 binds the receivers to ONE sender, so two receivers restricted to differently-signed
+                // prototypes cannot both conform to it — the SR20 argument on the function twin, verbatim.
+                ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+                    $"SET '{targets[0].Item.CobolName}' '{t.Item.CobolName}' TO ADDRESS OF PROGRAM: the "
+                    + $"receiving program-pointers are restricted to program-prototypes '{receiverProto}' and "
+                    + $"'{t.Item.Pic?.RestrictedPrototypeName}', which do not have the same signature, so one "
+                    + "sender cannot satisfy both (ISO §14.9.39.3 SR22)");
+                return new BoundNop();
+            }
+
+        // ── ARM 2: literal-1 (§8.4.3.13.3 SR2 / §8.4.3.13.4 GR1b) ──────────────────────────────────────────
+        if (operandLit is { } nn)
+        {
+            if (ProgramAddressLiteral(nn) is not { } value) return new BoundNop();
+            return RestrictedReceiverNeedsPrototype(receiverProto, $"literal \"{value}\"")
+                ? new BoundNop()
+                : new BoundSetEntry(targets, value, null);
+        }
+
+        string word = operandRef.GetText();
+        // ── ARM 3: program-prototype-name-1 (§8.4.3.13.3 SR3) ──────────────────────────────────────────────
+        // A REPOSITORY program-specifier (§12.3.8.2). Asked FIRST, like the function twin: the name is a
+        // user-defined word in a slot where the standard lists the prototype meaning, and §8.3.2.2 keeps the
+        // two name types apart by context.
+        if (host.ProgramPrototypes?.GetValueOrDefault(word) is { } proto)
+        {
+            // GR3: this identifier is a program-pointer RESTRICTED to `word`. SR22 then requires the
+            // receiver's prototype to have the same signature — an unrestricted receiver meets no condition.
+            if (receiverProto is not null
+                && !PrototypeSignatures.Same(ProgramSignatureOf(receiverProto), ProgramSignatureOf(word)))
+            {
+                ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+                    $"SET '{targets[0].Item.CobolName}' TO ADDRESS OF PROGRAM {word}: the receiving "
+                    + $"program-pointer is restricted to program-prototype '{receiverProto}' and the "
+                    + $"program-address-identifier has the characteristics of a program-pointer restricted to "
+                    + $"'{word}' (ISO §8.4.3.13.4 GR3), and the two do not have the same signature "
+                    + "(ISO §14.9.39.3 SR22)");
+                return new BoundNop();
+            }
+            // GR2's EXTERNALIZED program-name, never the source word (kb/Work PB303).
+            return new BoundSetEntry(targets, proto.ExternalizedName, null);
+        }
+
+        // ── ARM 1: identifier-1 (§8.4.3.13.3 SR1 / §8.4.3.13.4 GR1a) ───────────────────────────────────────
+        if (ctx.Refs.Resolve(operandRef) is not { } namePlace)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
+                $"SET … TO ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
+                + "the REPOSITORY paragraph (ISO §8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
+            return new BoundNop();
+        }
+        if (namePlace.Item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.National))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
+                $"SET … TO ADDRESS OF PROGRAM {word}: identifier-1 shall be of category alphanumeric or "
+                + $"national (ISO §8.4.3.13.3 SR1) — '{word}' is of category "
+                + $"{namePlace.Item.Pic?.Category.ToString()?.ToLowerInvariant() ?? "(none)"}");
+            return new BoundNop();
+        }
+        return RestrictedReceiverNeedsPrototype(receiverProto, $"identifier '{word}'")
+            ? new BoundNop()
+            : new BoundSetEntry(targets, null, namePlace);
+    }
+
+    /// <summary>§8.4.3.13.3 SR2 over the literal arm of a program-address-identifier: "Literal-1 shall be an
+    /// alphanumeric or national literal whose length is not zero." The figurative constants and the boolean
+    /// literal are excluded by the same sentence — none of them is an alphanumeric or national literal — and a
+    /// §8.8.3 concatenation expression folds first, because §8.8.3.3 GR3 makes it "equivalent to a literal of
+    /// the same class and value". Returns null having reported.</summary>
+    private string? ProgramAddressLiteral(Core.NonNumericLiteralContext nn)
+    {
+        string? value =
+            nn.figurativeConstant() is not null ? null
+            : nn.STRINGLIT() is { } s ? CobolLiteral.Decode(s.GetText())
+            : nn.HEXLIT() is { } x ? CobolLiteral.DecodeHex(x.GetText())
+            : nn.NATLIT() is { } nat ? CobolLiteral.Decode(nat.GetText())
+            : nn.concatenationExpression() is { } ce
+                && ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating, ctx.Data.NationalCollating) is { Category: PicCategory.Alphanumeric or PicCategory.National } f
+                    ? f.Value
+            : null;
+        if (value is null)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
+                $"SET … TO ADDRESS OF PROGRAM {nn.GetText()}: literal-1 shall be an alphanumeric or national "
+                + "literal whose length is not zero (ISO §8.4.3.13.3 SR2)");
+            return null;
+        }
+        if (value.Length == 0)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
+                "SET … TO ADDRESS OF PROGRAM \"\": literal-1 shall be an alphanumeric or national literal "
+                + "whose length is not zero (ISO §8.4.3.13.3 SR2)");
+            return null;
+        }
+        return value;
+    }
+
+    /// <summary>§14.9.39.3 SR22 against a program-address-identifier that is NOT the prototype arm. Only
+    /// §8.4.3.13.4 GR3's prototype arm gives the identifier a restriction, so an identifier-1 or literal-1
+    /// sender is an UNRESTRICTED program-pointer: SR22 requires "the program-prototypes associated with
+    /// identifier-7 and identifier-8" to have the same signature, and an unrestricted pointer is associated
+    /// with none. Distinct from a prototype with no compile-time signature, which
+    /// <c>PrototypeSignatures.Same</c> deliberately lets through — the same reading
+    /// <see cref="BindSetProgramPointer"/> enforces. Returns true having reported.
+    /// <para>⚠ WHICH ARM IS THIS, AND WHY IS ITS TWIN NOT SCREENED? The vendor <c>SET pp TO ENTRY</c> form
+    /// (<see cref="BindSetEntry"/>) is deliberately NOT subject to this, and the asymmetry is the standard's
+    /// rather than an oversight: SR22 constrains <i>identifier-8</i>, the sender of §14.9.39.2 <b>Format 9</b>,
+    /// and the ENTRY spelling is not that format — its words are in no ISO general format at all, so the rule
+    /// has no operand there to name. <c>tests/conformance/2002/pb817_restricted_program_pointer</c> is the
+    /// witness that loads a restricted program-pointer through it. §13.18.60.4 GR25's content obligation on a
+    /// restricted program-pointer is a separate question about the EXTENSION's own discipline, registered as
+    /// its own mechanism.</para></summary>
+    private bool RestrictedReceiverNeedsPrototype(string? receiverProto, string senderWhat)
+    {
+        if (receiverProto is null) return false;
+        ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+            $"SET … TO ADDRESS OF PROGRAM {senderWhat}: the receiving program-pointer is restricted to "
+            + $"program-prototype '{receiverProto}', and only the program-prototype-name-1 arm of a "
+            + "program-address-identifier is itself restricted (ISO §8.4.3.13.4 GR3); an unrestricted sender "
+            + "is associated with no program-prototype, so the two cannot have the same signature "
+            + "(ISO §14.9.39.3 SR22)");
+        return true;
     }
 
     /// <summary><c>SET receivers… TO value</c>. ⛔ THE FORMAT IS SELECTED ONCE, FROM EVERY RECEIVING OPERAND

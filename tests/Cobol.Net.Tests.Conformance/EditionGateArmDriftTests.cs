@@ -61,6 +61,14 @@ public sealed class EditionGateArmDriftTests
             + "parses as setToValueStatement and `SET fp TO NULL` as setObjectReferenceStatement, and only the "
             + "operands' RESOLVED PicCategory.FunctionPointer selects §14.9.39.2 Format 8 — the printed format "
             + "is `SET { identifier-12 } … TO identifier-13` and has no keyword a parse rule could recognize",
+        ["SetProgramPointer2002"] =
+            "the Format-9 RE-ROUTE, and the one the Format-8 entry above is modelled on: `SET pp1 TO pp2` "
+            + "parses as setToValueStatement and `SET pp TO NULL` as setObjectReferenceStatement, and only the "
+            + "operands' RESOLVED PicCategory.ProgramPointer selects §14.9.39.2 Format 9 — the printed format "
+            + "is `SET { identifier-7 } … TO identifier-8` and has no keyword a parse rule could recognize. "
+            + "The two SENDER spellings that DO carry keywords (the ISO §8.4.3.13 ADDRESS OF PROGRAM rule and "
+            + "the Micro Focus / IBM TO ENTRY extension) bind to the same node and take the SAME id from this "
+            + "one arm rather than a second, parse-arm gate — the Format-8 precedent exactly (kb/Work PB549)",
         ["PointerArithmetic2002"] =
             "SET x UP/DOWN BY n is ONE printed shape for TWO constructs — the version-invariant index form "
             + "(§14.9.39 Format 2, index-arithmetic) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "
