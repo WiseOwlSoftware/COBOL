@@ -622,6 +622,15 @@
       "dns": 366,
       "label": "Train 41: verdict batches, r",
       "battery": null
+    },
+    {
+      "sha": "b3069d92",
+      "date": "2026-09-19",
+      "gap": 2366,
+      "closed": 1982,
+      "dns": 366,
+      "label": "Wave 40: §15 reaches ZERO GA",
+      "battery": null
     }
   ]
 }
