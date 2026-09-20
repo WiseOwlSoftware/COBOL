@@ -126,7 +126,15 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// through this method, was right.</para></summary>
     public string InitializerFrom(DataItem item, string? effRaw)
     {
-        var pic = item.Pic!;
+        // ⛔ THE ONE CATEGORY/WIDTH READER (DataItem.OperandPic, D20), never raw `Pic` — which is NULL for every
+        // GROUP. An elementary item reads identically (OperandPic IS Pic there), and the two group shapes the
+        // standard admits as VALUE-clause receivers arrive described rather than crashing: a bit / national group
+        // through its §13.18.29.4 GR1b/GR2b as-if PICTURE 1(m) / N(m), an ORDINARY group through the VALUE
+        // clause's OWN rule for that subject — §13.18.63.3 SR4. §14.9.39.4 GR6 places a
+        // level-88 literal in the conditional variable "according to the rules for the VALUE clause" and names a
+        // group conditional variable explicitly, so the group arms are THIS recipe's business and not a second
+        // copy of it in the SET emitter (kb/Work PB560).
+        var pic = item.OperandPic ?? AsIfAlphanumericGroup(item);
 
         // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
         // defines the initial length (MOVE-like, §13.18.63.4 GR7; stored truncated on the right to the LIMIT, no
@@ -300,6 +308,22 @@ internal sealed class ValueInitializer(EmitContext ctx)
         if (neg) unscaled = -unscaled;
         return true;
     }
+
+    /// <summary>An ORDINARY (alphanumeric) group's as-if elementary description, taken from the VALUE clause's
+    /// OWN rule for that subject — ISO §13.18.63.3 SR4: "If the item is of category alphabetic, alphanumeric,
+    /// or alphanumeric-edited literals in the VALUE clause shall be alphanumeric literals. … Alphanumeric
+    /// literals in the VALUE clause of an alphanumeric group item shall not exceed the size of the group item."
+    /// That one sentence gives BOTH halves this needs: the literal's category is alphanumeric, and the bound is
+    /// the SIZE OF THE GROUP ITEM, which is <see cref="DataItem.ImageWidth"/>.
+    /// <para>⚠ NOT §8.8.4.2.1. That clause does say an alphanumeric group item is "treated as an elementary
+    /// alphanumeric data item", but its sentence opens "For comparison" — it is the COMPARISON rule, and a
+    /// VALUE store is not a comparison. It was inherited from the SET emitter's comment when the private
+    /// recipe there was deleted (kb/Work PB560), and re-deriving it is what caught that.</para>
+    /// <para>The bit / national group case is NOT here: those carry a real as-if PICTURE (§13.18.29.4 GR1b/GR2b)
+    /// that <see cref="DataItem.OperandPic"/> already answers, and duplicating it would be a second width
+    /// rule.</para></summary>
+    private static PicInfo AsIfAlphanumericGroup(DataItem item) =>
+        new(PicCategory.Alphanumeric, Usage.Display, item.ImageWidth, Digits: 0, Scale: 0, Signed: false);
 
     /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
     /// and width; otherwise null (ISO §8.3.3.6; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>

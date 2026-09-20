@@ -241,6 +241,38 @@ public static class UsageFamilies
         // ── the DETERMINATION above: the standard float usages SR8's list predates ──
         || IsStandardFloat(u);
 
+    /// <summary>⛔ THE ONE SET of usages whose subject admits NO VALUE-clause literal at all — the SR9 four
+    /// plus the plain data-pointer, written as a SET because §13.18.63.3 states the rule over a CLASS and the
+    /// usages are merely how that class is spelled (kb/Work PB557).
+    ///
+    /// <para>§13.18.63.3 SR9 names four of them outright: "The VALUE clause shall not be specified if a USAGE
+    /// clause with a phrase of FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER is also
+    /// specified." USAGE POINTER is NOT in that sentence, and it reaches the same answer by the clause's own
+    /// general format instead: §13.18.63.2 format 1 takes literal-1, and the only spelling a programmer reaches
+    /// for is NULL — which §8.4.3.10.1 makes "a predefined address of class pointer or a predefined content of
+    /// class message-tag", an identifier under §8.4.3 and not a literal, and which §8.3.3.6.2 does NOT list among
+    /// the figurative constants. No syntax rule types a literal for a data-pointer subject either: SR2 types one
+    /// for a numeric subject, SR4 for alphabetic / alphanumeric / alphanumeric-edited, SR5 for national, SR6/SR7
+    /// for numeric-edited and SR10 for boolean — class pointer appears in none of them.</para>
+    ///
+    /// <para>§13.18.63.4 GR4 is what makes the prohibition harmless rather than a loss of expressiveness: "When
+    /// VALUE clauses take effect, data items with a VALUE clause are initialized to the specified value and data
+    /// items of class message-tag, class object, and class pointer are initialized to null." The null initial
+    /// value is the standard's, with no clause written.</para>
+    ///
+    /// <para>MESSAGE-TAG's arm IS reached, and reports BESIDE the facility decline rather than instead of it —
+    /// MEASURED: `01 M USAGE MESSAGE-TAG VALUE "X".` draws COBOLNET1943 (this implementation does not provide
+    /// the Annex A.3 item 4 facility) and COBOLNET2168 (the standard forbids the clause on that usage at all).
+    /// The two say different things about the same line and both are true, which is why the decline does not
+    /// stand in for the rule. The FUNCTION-POINTER arm is the one that cannot be exercised today: such an entry
+    /// needs a prototype the repository work has not landed. A rule written only over its reachable arms is how
+    /// the other two went missing for the life of the tree.</para></summary>
+    public static bool AdmitsNoValueLiteral(Usage u) => u
+        // —— §13.18.63.3 SR9's four, verbatim ——
+        is Usage.FunctionPointer or Usage.MessageTag or Usage.ObjectReference or Usage.ProgramPointer
+        // —— the data-pointer sibling, by §13.18.63.2 format 1 + §8.4.3.10.1 ——
+        or Usage.Pointer;
+
     /// <summary>The §13.18.60 USAGE keyword for a usage, for the §13.18.63.3 SR14 diagnostic text — always a
     /// spelling the programmer could have WRITTEN.
     ///

@@ -1,0 +1,8 @@
+A=[ 10.00]
+A-TRUE
+B=[   ]
+B-TRUE
+C=[1,234]
+C-TRUE
+D=[  $10.00]
+D-TRUE

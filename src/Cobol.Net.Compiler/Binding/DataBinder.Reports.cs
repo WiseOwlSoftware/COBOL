@@ -699,6 +699,21 @@ public sealed partial class DataBinder
         {
             var ge = entries[i];
             int.TryParse(ge.levelNumber().GetText(), out int entryLevel);
+            // ⛔ §13.18.63.3 SR30 — "Condition-name and content-validation formats shall not be specified in
+            // the report section" — NEEDS NO SCREEN OF ITS OWN HERE, and this comment is why (kb/Work PB558).
+            // Both formats it names are level-88 formats: §13.18.63.3 SR33, "Formats 3 and 5 may be specified
+            // only when the level-number of the subject of the entry is 88." And §13.18.33.3 SR4 already bounds
+            // this section's level-numbers — "Report group description entries that are subordinate to an RD
+            // entry shall have level-numbers with the values 1 through 49" — enforced over the whole parse tree
+            // by LevelNumberPass, COBOLNET1746. The conjunction is exact: a format-3 or format-5 VALUE clause in
+            // the report section requires a level-number this section does not admit, so SR30 is a consequence
+            // of two rules each screened at the one place it belongs, not a third rule to write down here.
+            // Pinned by tests/conformance/negative/pb558-condition-name-in-report-section, all four editions.
+            //
+            // The finding this replaced WAS real when it was measured: the walk dropped an 88 entry in silence,
+            // and a later `IF condition-name` compiled and then aborted at RUN time. PB485 (f37da577b,
+            // 2026-09-05) gave the level-number a domain on both its axes and closed it — measured again here
+            // before writing this, not assumed.
             // The entry's SUBTREE: itself plus every following entry of a higher level number (§13.15 — the
             // level-number hierarchy). It is what a repeating entry replays.
             int subtreeEnd = i + 1;

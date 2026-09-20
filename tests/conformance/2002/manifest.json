@@ -298,8 +298,12 @@
     "pb420_initialize_float_value_default_2002",
     "pb399_format3_relation_legal_shapes",
     "pb391_corresponding_rule2_sr8_binary",
-    "pb511_external_as_name",
-    "pb549_program_address_identifier"
+  "pb511_external_as_name",
+  "pb549_program_address_identifier",
+  "pb560_condition_value_float_and_false_2002",
+  "pb557_pointer_class_initial_value_is_null",
+  "pb499_table_value_by_section_2002",
+  "pb499_table_value_linkage_and_file_2002"
   ],
   "pending": []
 }

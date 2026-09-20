@@ -9,13 +9,19 @@ using CobolNet.Runtime;
 
 namespace CobolNet.CodeGen;
 
-using static CobolNet.CodeGen.Emit.EmitText;
-
 /// <summary>The SET-family emitter (P7 Step 9i — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>): SET … TO / UP-DOWN BY / pointer F4 senders / OCCURS-DYNAMIC capacity /
 /// condition-names TO TRUE, plus the ONE SET-target store/augment pair PERFORM VARYING and SEARCH ride.</summary>
 internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, PtrEmitter ptr, MoveEmitter move)
 {
+    /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the SET lane reaches it for
+    /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §13.18.63 VALUE recipe §14.9.39.4 GR6
+    /// places a level-88 literal by (kb/Work PB560). Lazy and cached for the same reason the report lane's twin
+    /// is (<see cref="ReportWriterEmitter"/>): a DataEmitter builds a PhysicalModel and its four collaborators,
+    /// and a program with no <c>SET condition-name</c> must not pay for one.</summary>
+    private DataEmitter? _data;
+    private DataEmitter Data => _data ??= new DataEmitter(ctx);
+
     /// <summary><c>SET … TO value</c> (ISO §14.9.39 Format 1): the sender is evaluated ONCE through THE ONE SET
     /// amount landing (GR2 — "the value of the sending operand is determined once"), then each receiver takes it
     /// by kind: an index-name or index data item receives it unchanged (GR2a/GR2b — in the §3.5 model an index IS
@@ -326,61 +332,34 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // the figurative fill, the group-image splice and the category funnel without a second copy. The
             // binder has already refused a FALSE arm with no phrase (§14.9.39.3 SR7, COBOLNET2049).
             string low = set.ToTrue ? cond.Values[0].Low : cond.FalseValue!;
-            // ⛔ THE ONE CATEGORY READER (DataItem.OperandPic — an elementary item's own PICTURE, a bit /
-            // national GROUP's §13.18.29.4 GR1b/GR2b as-if PICTURE 1(m) / N(m)), never raw `Pic`, which is NULL
-            // for every group. §14.9.39.4 GR6 names the population by name — "when the conditional variable is an
-            // alphanumeric group item, bit group item, or national group item …" — so all three group shapes are
-            // contemplated Format-4 subjects, and reading `Pic` sent every one of them to the loud default:
-            // MEASURED, `SET` over a national / bit group emitted `FromNat(NotImplemented.Value<string>(…))`
-            // (a runtime throw) and over an ORDINARY group emitted a bare `GA = <string>` that would not even
-            // compile (CS0029). kb/Work PB728.
-            var pic = parent.Item.OperandPic;
-            // An ORDINARY (alphanumeric) group has neither a PICTURE nor an as-if one: §8.8.4.2.1 treats it as an
-            // elementary ALPHANUMERIC data item, and its character-position count is its image width.
-            bool imageGroup = pic is null && parent.Item.IsGroup;
-            PicCategory? cat = pic?.Category ?? (imageGroup ? PicCategory.Alphanumeric : null);
-            int width = pic?.Length ?? parent.Item.ImageWidth;
-            // ⛔ THE ONE §8.3.3.6.2 OPERAND CLASSIFIER (FigurativeConstants.Classify, kb/Work PB461). §14.9.39.4
-            // GR6 places the level-88 literal "according to the rules for the VALUE clause", so this store, the
-            // VALUE initializer and the condition TEST are REQUIRED to read the operand text identically — and
-            // did not: this emitter carried a Formats-1-5 word map and NO Format-6 arm at all, so
-            // `88 A-ALLSTAR VALUE ALL "*"` stored the glued parse text `ALL"` and left its own condition false
-            // (§8.8.4.5.3 GR3 — the test is true exactly when the stored value is one of the condition's values).
-            var op = FigurativeConstants.Classify(low);
-            // FORMATS 1-5 (SPACE/ZERO/QUOTE/HIGH-VALUE/LOW-VALUE, the word ALL being OPTIONAL there) fill the
-            // conditional variable to its width (§8.3.3.6.4 GR2), not the WORD stored as characters — the fill
-            // char is category-aware (national/boolean HIGH/LOW-VALUE = the D-N3 pin). '0' for boolean ZERO;
-            // a NUMERIC parent takes the §8.3.3.6.4 GR4 numeric value 0 in its own arm below.
-            string? figFill = op.Kind is { } figKind && cat is PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean
-                ? FigurativeConstants.Fill(figKind, ctx.Data.Collating, cat, ctx.Data.NationalCollating) : null;
-            // FORMAT 6 (`ALL literal-1`, ALL required): literal-1 repeated to the conditional variable's width by
-            // the SAME §8.3.3.6.4 GR2 fold the VALUE initializer and the membership test use (EmitText.RepeatToWidth
-            // → the one runtime rule). §8.3.3.6.3 SR3 keeps a multi-character literal-1 off a numeric subject.
-            string? allImage = op.AllLiteral is { } allRaw && cat is not PicCategory.Numeric
-                ? RepeatToWidth(CobolLiteral.Decode(allRaw), width) : null;
-            // The decoded sending text every string category below stores: the Format-6 image when there is one,
-            // else the literal as written (an ordinary literal decodes to itself).
-            string sendText = allImage ?? CobolLiteral.Decode(low);
-            string rhs = figFill is not null
-                ? $"new string({figFill}, {width})"
-                : cat switch
-            {
-                // National joins the character store (its 88-VALUE is the prefix-stripped N"…" text);
-                // a boolean parent stores its B"…" bits with the §14.6.8.6 zero pad.
-                PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
-                    RuntimeApi.StrStore(CsLiteral(sendText), $"{width}"),
-                PicCategory.Boolean =>
-                    RuntimeApi.StrStoreBoolean(CsLiteral(sendText), $"{width}", false),
-                // §8.3.3.6.4 GR4 — "the zero format represents the numeric value '0' … depending on context";
-                // on a numeric conditional variable that context is numeric, so ZERO (with or without ALL) is
-                // the value 0. Reaching UnscaledAtScale with the WORD emitted the bare identifier `ZEROL`, a
-                // Roslyn CS0103 that failed the whole compilation of legal COBOL.
-                PicCategory.Numeric =>
-                    ArithmeticEmitter.Narrow(RuntimeApi.NumStore(op.Kind is 'Z' ? "0L" : UnscaledAtScale(low, pic!.Scale),
-                        $"{pic!.Scale}", parent.Item.ProfileName), parent.Item),
-                _ => LoudValue("string", $"SET condition '{cond.Name}' over a '{parent.Item.CobolName}' of no category"),
-            };
+            // ⛔ THE ONE §13.18.63 VALUE RECIPE — DataEmitter.ValueImageOf → ValueInitializer.InitializerFrom,
+            // the SAME method that renders the conditional variable's OWN VALUE clause and the report section's
+            // format-4 operand (kb/Work PB506). §14.9.39.4 GR6 does not describe a store of its own: it says the
+            // literal "is placed in the conditional variable according to the rules for the VALUE clause", so
+            // there is exactly one recipe and this statement is one of its callers (kb/Work PB560).
+            // <para>What the private recipe deleted here could not answer, each MEASURED on its own probe:
+            // a NUMERIC-EDITED variable took the raw literal text (`88 E-TEN VALUE 10` over `PIC ZZ9.99` stored
+            // `10    `, not ` 10.00` — §13.18.63.3 SR6 converts it "according to the rules for the MOVE
+            // statement"); a FLOAT variable took `UnscaledAtScale(…, 0)`, dropping the fraction (`VALUE 0.5`
+            // stored 0 — §13.18.63.4 GR17/GR1's "approximation of the arithmetic value"); BLANK WHEN ZERO was
+            // ignored (`88 B-ZERO VALUE 0` over `PIC ZZ9 BLANK WHEN ZERO` stored `0  `, not spaces —
+            // §13.18.63.3 SR8 NOTE 2); a PICTURE format-2 (LOCALE) variable had no runtime compose at all
+            // (§13.18.40.5 editing rule 11 — the locale is the one current AT THE TIME of editing, so no
+            // compile-time image exists); and a WHOLE-GROUP-
+            // ALIASED numeric variable (StoreAsImage) handed a `long` to a `string` field — `SET PK-SEVEN TO
+            // TRUE` over `05 PK PIC 9(4) COMP-3` under a REDEFINES failed the whole compilation with CS1503.
+            // Every one of the five is a branch InitializerFrom already had, because the VALUE clause needs it.
+            // WHICH ARM DID I FIX? The STORE. The TEST arm (ConditionRenderer.StringMembershipExpr /
+            // FloatMembershipValue) already called this recipe's shared pieces, which is why a SET-then-IF
+            // round-trip returned FALSE; both arms now read §13.18.63's rules from the same code.</para>
+            string rhs = Data.ValueImageOf(parent.Item, low);
+            // An ORDINARY (alphanumeric) group has neither a PICTURE nor an as-if one (DataItem.OperandPic, the
+            // ONE category reader, is null for exactly that shape); it is the receiver that takes its value
+            // through the group-image store below rather than as a record-struct assignment. The VALUE clause's
+            // own rule for that subject — §13.18.63.3 SR4, "Alphanumeric literals in the VALUE clause of an
+            // alphanumeric group item shall not exceed the size of the group item" — is how InitializerFrom
+            // described it just now.
+            bool imageGroup = parent.Item.OperandPic is null && parent.Item.IsGroup;
             // ⛔ An ORDINARY group receiver takes the value through THE ONE GROUP-IMAGE STORE, not a bare
             // assignment: PlaceRenderer.Write's MemberPlace arm assigns the record struct, so handing it a string
             // is the CS0029 above. §14.9.25.4 GR4 — a group receiver is "filled without consideration for the

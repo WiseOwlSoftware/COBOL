@@ -611,7 +611,8 @@
   "pb391_corresponding_rule2_rule4_categories",
   "pb425_zero_length_sender_shapes",
   "pb437_varying_operand_windows",
-  "pb458_set_size_qualified_bare"
+  "pb458_set_size_qualified_bare",
+  "pb560_condition_value_numeric_edited_2023"
  ],
  "pending": [
   "pb485_value_only_format1"

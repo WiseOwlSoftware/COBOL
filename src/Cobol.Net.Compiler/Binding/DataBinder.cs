@@ -3680,7 +3680,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clause.Context.valueClause() is { } value)
                 {
                     string valueWhere = $"data item '{cobolName ?? "FILLER"}'";
-                    if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
+                    // ⛔ §13.18.63.3 SR33 — "Formats 3 and 5 may be specified only when the level-number of the
+                    // subject of the entry is 88." This arm binds only non-88 entries (BindEntry returns early
+                    // for 66 and 88), so a format-3/5-only phrase HERE is nonconforming source, and it must not
+                    // reach the Format-1 raw-value channel: the parse glues a `valueItem` that IS a
+                    // `valueClauseRange`, so `VALUE 1 THRU 5` arrived as the text `1THRU5` and failed the Roslyn
+                    // compilation, while `VALUE "A" THRU "C"` stored that glued text truncated to the picture
+                    // width. Reported and BOUND AS NOTHING — a syntax-rule violation is a compile-time reject,
+                    // never a backend failure and never a stored value (kb/Work PB556).
+                    if (ConditionOnlyPhraseOf(value) is { } only)
+                        Edition.Error(DiagnosticCatalog.ValueFormatRequiresLevel88, $"{valueWhere}: {only} "
+                            + "belongs to the VALUE clause's condition-name / content-validation formats, which "
+                            + $"may be specified only on a level-88 entry; this entry is level {level} "
+                            + "(ISO §13.18.63.3 SR33)");
+                    else if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
                         tableValues = BuildTableValueSpecs(tphrases, valueWhere);   // Format 2 (table) — §13.18.63.2
                     else
                     {
@@ -3777,9 +3790,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? OoBindObjectRefDescriptor(objectRefUsage, entryWhere, section)
             : ObjectRefDescriptor.Universal;
 
-        // A VALUE clause is prohibited with USAGE PROGRAM-POINTER / FUNCTION-POINTER (§13.18.63 SR9 — no literal
-        // denotes a program address). The 0881 declaration band. (Their PICTURE prohibition is the §13.16.3 SR8
-        // screen above, over the ONE picture-less set.)
+        // A VALUE clause is prohibited on EVERY usage whose subject admits no literal —
+        // UsageFamilies.AdmitsNoValueLiteral (PicInfo.cs), THE ONE SET — §13.18.63.3 SR9's four, plus the
+        // data-pointer that §13.18.63.2 format 1 and §8.4.3.10.1 reach the same way. (Their PICTURE prohibition is the §13.16.3 SR8 screen
+        // above, over the ONE picture-less set — the same shape, one file over.)
+        //
+        // ⛔ THIS WAS A FOUR-ARM RULE WITH TWO ARMS WRITTEN (kb/Work PB557), and the two that were written are
+        // exactly the two that already had a diagnostic band. Which arm did I fix? BOTH MISSING ONES, and the
+        // sibling one level out: `01 O USAGE OBJECT REFERENCE VALUE "X".` compiled, linked and RAN CLEAN with the
+        // literal silently discarded, while `VALUE NULL` on an object reference or on a plain POINTER reached the
+        // code generator and failed the whole compilation (CS0029, 'string' to CobolObject / ManagedPointer) — a
+        // compiler crash where a syntax rule asks for a diagnostic. Writing the SET rather than a longer `or`
+        // chain is what makes the next pointer-class usage screened on the day it is added.
         //
         // ⛔ THE `TO {function|program}-prototype-name-1` PHRASE IS ONE RULE OVER TWO CARRIERS (kb/Work PB817),
         // so it binds ONCE here: §13.18.60.4 GR25 ("If program-prototype-name-1 is specified, this data item is a
@@ -3793,11 +3815,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // the PRINTED general format (folio 503): FUNCTION-POINTER's TO phrase carries NO brackets while
         // PROGRAM-POINTER's does, so every function-pointer is restricted and a bare one is nonconforming.
         bool isFunctionPointer = entryUsage is Usage.FunctionPointer;
-        if (entryUsage is Usage.ProgramPointer or Usage.FunctionPointer && rawValue is not null)
+        if (UsageFamilies.AdmitsNoValueLiteral(entryUsage) && (rawValue is not null || tableValues is not null))
         {
-            Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the VALUE clause shall not be specified with a "
-                + "USAGE clause carrying the PROGRAM-POINTER or FUNCTION-POINTER phrase (ISO §13.18.63 SR9)");
+            Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"{entryWhere}: the VALUE clause shall not be "
+                + $"specified with USAGE {UsageFamilies.UsageWord(entryUsage)}"
+                + (entryUsage is Usage.Pointer
+                    // The data-pointer arm is NOT SR9's — say which rule is being applied, so the message can be
+                    // checked against the standard rather than taken on trust.
+                    ? " — §13.18.63.2 format 1 takes literal-1, and no syntax rule of §13.18.63.3 types a literal "
+                      + "for a subject of class pointer; NULL is a predefined address (ISO §8.4.3.10.1), not a "
+                      + "literal. §13.18.63.4 GR4 already initializes such an item to null with no VALUE clause"
+                    : " (ISO §13.18.63.3 SR9)"));
             rawValue = null;
+            tableValues = null;
         }
 
         // The §13.18.60.2 general format's THREE `TO` phrases — `POINTER [TO type-name-1]`,
@@ -4433,6 +4463,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // or prefixed, carries the usageKeyword node.
         return usage.GetChild(0).GetText();
     }
+
+    /// <summary>⛔ THE ONE §13.18.63.3 SR33 PHRASE SET — the VALUE-clause phrases that exist ONLY in format 3
+    /// (condition-name) or format 5 (content-validation), named for the diagnostic, or null when the clause
+    /// carries none of them. A SET, not three hand-written conditions, because SR33 names FORMATS and the
+    /// grammar admits every format through one rule (formats 3 and 5 share their literal / THROUGH list): a
+    /// phrase added to that rule tomorrow is screened by adding one line here, which is the difference between
+    /// this rule staying true and its next arm being invisible the way these three were.
+    /// <para>The phrases, and where the standard puts each: the THROUGH phrase and <c>IN alphabet-name-1</c>
+    /// appear in formats 3 and 5 and in no other (§13.18.63.2); <c>WHEN SET TO FALSE IS literal-4</c> is
+    /// format 3's alone (§13.18.63.4 GR20 is its only general rule); <c>{IS INVALID | ARE VALID}</c> is format
+    /// 5's alone.</para>
+    /// <para>⚠ The VALID / INVALID arm cannot be observed today — <c>DeclinedFacilityPass</c> refuses every
+    /// A.4.14 content-validation surface by name (COBOLNET1708) in a pass that runs BEFORE the binder, at any
+    /// level. It is listed anyway: SR33 governs formats 3 AND 5, and writing only the reachable half is how a
+    /// rule's other arm goes missing. It will be the one that answers on the day A.4.14 is claimed.</para></summary>
+    private static string? ConditionOnlyPhraseOf(Core.ValueClauseContext value) =>
+        value.valueItem().Any(vi => vi.valueClauseRange() is not null) ? "the THROUGH phrase"
+        : value.IN() is not null ? "the IN alphabet-name phrase"
+        : value.valueClauseFalsePhrase() is not null ? "the WHEN SET TO FALSE phrase"
+        : value.validateValidPhrase() is not null ? "the VALID / INVALID phrase"
+        : null;
 
     /// <summary>Extract the first VALUE operand's raw source text (literal or figurative constant). THRU ranges /
     /// 88-levels are later. The emitter (<c>FieldEmitter</c>) interprets the text — including figurative constants

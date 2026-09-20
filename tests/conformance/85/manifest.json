@@ -108,7 +108,9 @@
   "pb449_set_format_selection_receiving_list",
   "pb462_set_condition_group_odo_length",
   "pb566_blank_when_zero_stored_value",
-  "pb509_blank_when_zero_relation"
+  "pb509_blank_when_zero_relation",
+  "pb560_condition_value_is_the_value_clause_85",
+  "pb556_condition_formats_stay_legal_at_88"
  ],
  "pending": []
 }

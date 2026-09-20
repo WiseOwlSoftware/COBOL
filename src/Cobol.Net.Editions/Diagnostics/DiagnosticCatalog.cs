@@ -4079,6 +4079,39 @@ public static class DiagnosticCatalog
         + "is a unary operator over an expression and takes the general rule.",
         "ISO §14.9.39.3 SR30 / SR34 / §8.5.1.10.1 / §13.18.38.4 GR16, GR17");
 
+    /// <summary>COBOLNET2167 — a VALUE clause that carries a FORMAT-3 or FORMAT-5 phrase on an entry whose
+    /// level-number is not 88 (ISO §13.18.63.3 SR33). The grammar admits every VALUE format through one rule on
+    /// purpose — formats 3 and 5 share their literal / THROUGH list — so the format-vs-level rule is the
+    /// binder's, and nothing screened it: `01 X PIC 9 VALUE 1 THRU 5.` reached the emitter as the glued text
+    /// `1THRU5` and failed the Roslyn compilation (CS1002), while `05 X PIC XXX VALUE "A" THRU "C".` compiled
+    /// clean and stored the three characters `"A`. A syntax-rule violation is a compile-time reject, never a
+    /// backend failure and never a silently stored value (kb/Work PB556).</summary>
+    public static readonly DiagnosticDescriptor ValueFormatRequiresLevel88 = new(
+        "COBOLNET2167", "value-format-requires-level-88", EditionSeverity.Error,
+        "§13.18.63.3 SR33: \"Formats 3 and 5 may be specified only when the level-number of the subject of the "
+        + "entry is 88.\" The THROUGH phrase and the IN alphabet-name phrase belong to formats 3 and 5, the "
+        + "WHEN SET TO FALSE phrase to format 3 and the VALID / INVALID phrase to format 5; none of them "
+        + "describes a data item's initial value, so on a level-01/05/77 entry there is no rule under which "
+        + "they could take effect.",
+        "ISO §13.18.63.3 / §13.18.63.2");
+
+    /// <summary>COBOLNET2168 — a VALUE clause on an entry whose USAGE is OBJECT-REFERENCE or MESSAGE-TAG
+    /// (ISO §13.18.63.3 SR9), and the sibling shape one level out: the predefined address NULL written as the
+    /// literal of a VALUE clause on a USAGE POINTER entry. SR9's four usages were screened two at a time —
+    /// PROGRAM-POINTER and FUNCTION-POINTER had a diagnostic band already and the other two did not — so an
+    /// OBJECT REFERENCE VALUE reached the code generator and either vanished (a quoted literal) or failed the
+    /// Roslyn compilation (VALUE NULL → CS0029). kb/Work PB557.</summary>
+    public static readonly DiagnosticDescriptor ValueOnNonLiteralUsage = new(
+        "COBOLNET2168", "value-on-non-literal-usage", EditionSeverity.Error,
+        "§13.18.63.3 SR9: \"The VALUE clause shall not be specified if a USAGE clause with a phrase of "
+        + "FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER is also specified.\" For the "
+        + "plain-POINTER sibling the licence is different and the outcome the same: SR9 does not name USAGE "
+        + "POINTER, but §13.18.63.2 format 1 takes literal-1, and §8.4.3.10.1 makes NULL \"a predefined address "
+        + "of class pointer or a predefined content of class message-tag\" — an identifier under §8.4.3, not a "
+        + "literal. §13.18.63.4 GR4 settles what such an item's initial value is with no VALUE clause at all: "
+        + "\"data items of class message-tag, class object, and class pointer are initialized to null\".",
+        "ISO §13.18.63.3 / §13.18.63.4 / §8.4.3.10.1");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

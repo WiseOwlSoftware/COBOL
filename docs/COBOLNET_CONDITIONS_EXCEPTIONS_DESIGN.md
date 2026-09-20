@@ -465,6 +465,26 @@ GR3 a) — "if the selection subject is a numeric data item or a boolean data it
 
 **⛔ ONE ARM, NOT TWO** (kb/Work PB555). GR6 and GR7 are the SAME sentence with one word changed — both place their literal "*in the conditional variable according to the rules for the VALUE clause, except that when the conditional variable is an alphanumeric group item, bit group item, or national group item to which a table is subordinate, its length is determined as specified in 13.18.38 … If the length of the conditional variable is zero, the SET statement leaves it unchanged*". So `BoundSetConditions` carries a single `ToTrue` flag that selects WHICH literal, and `SetEmitter.EmitSet` has one store path: the FALSE arm inherits the figurative fill, the group-image splice and the category funnel without a second copy. The FALSE arm returned `BoundUnsupported` until `Condition88` carried literal-4 at all; `SetBinder.BindSetCondition` now only has to enforce SR7 before binding.
 
+**⛔ AND THE STORE IS NOT A RECIPE OF THE SET EMITTER'S AT ALL** (kb/Work PB560). GR6 does not describe a
+store; it says the literal "*is placed in the conditional variable according to the rules for the VALUE clause*",
+which names a recipe that already exists. `SetEmitter.EmitSet` therefore calls
+`DataEmitter.ValueImageOf` → `ValueInitializer.InitializerFrom` — the SAME method that renders the conditional
+variable's OWN VALUE clause and the report section's format-4 operand — and spells no part of the composition
+itself. It used to carry a private three-arm switch, and every arm that recipe had and the switch did not was a
+silent wrong answer: a NUMERIC-EDITED variable stored the raw literal text where §13.18.63.3 SR6 composes the
+MOVE-converted image (`PIC ZZ9.99` held `10    `, not ` 10.00`), a FLOAT variable scaled the literal at its own
+scale of zero (`VALUE 0.5` stored 0, against §13.18.63.4 GR17 → GR1), BLANK WHEN ZERO was ignored
+(§13.18.63.3 SR8 NOTE 2), a PICTURE format-2 (LOCALE) variable had no runtime compose, and a whole-group-aliased
+numeric variable handed a `long` to a `string` field — a Roslyn CS1503 that failed the compilation of legal
+COBOL. Each is observable as a ROUND TRIP, because §8.8.4.5.3 GR3 makes `SET cond TO TRUE` followed by `IF cond`
+an identity: the TEST arm already read the operand through this recipe's shared pieces, so every one of them
+returned FALSE on the line after its own SET. `InitializerFrom` reads the receiver through `DataItem.OperandPic`
+(the ONE category reader), and describes an ORDINARY group from the VALUE clause's own rule for that subject
+(§13.18.63.3 SR4 — alphanumeric literals, bounded by the size of the group item), so the three group shapes
+GR6 names explicitly are the recipe's own business. Held by
+`Cobol.Net.Tests.Unit.ConditionValueRecipeDriftTests` — the SET emitter may name no part of the VALUE recipe,
+the numeric-edited image has exactly two readers, and the recipe reads `OperandPic`.
+
 ⚠ **The code is COBOLNET2049, not the COBOLNET0705 this decision reserved.** 0705 was a placeholder that was never registered in `DiagnosticCatalog` and never reached `docs/DIAGNOSTICS.md`; diagnostic codes are now allocated centrally per fix, and this one was allocated with PB555.
 
 **Rejected alternatives.** Treat SET cond TO TRUE as setting a bool flag — wrong; it is a MOVE of a specific literal into the parent per the VALUE-clause rules.
