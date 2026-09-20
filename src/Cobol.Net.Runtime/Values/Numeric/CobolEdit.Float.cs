@@ -122,6 +122,10 @@ public static partial class CobolEdit
     private static string FormatFloatCore(BigInteger sig, int exp10, in FloatMask m, bool blankWhenZero, out FloatStoreOutcome outcome)
     {
         outcome = FloatStoreOutcome.Ok;
+        // BLANK WHEN ZERO (§13.18.8.4 GR1) tests THE VALUE BEING STORED, here and at the underflow arm below —
+        // the only two ways this form stores zero, since normalization leaves the significand's leading digit
+        // nonzero and its truncation therefore cannot produce a zero (kb/Work PB566 sweep). Otherwise rule 8's
+        // zero image: all significand and exponent digits zero, both signs positive.
         if (sig.IsZero)
             return blankWhenZero ? new string(' ', m.Length) : RenderFloat(m, negative: false, new string('0', m.SigDigits), 0);
         bool negative = sig.Sign < 0;
@@ -142,6 +146,8 @@ public static partial class CobolEdit
         if (e < -maxExp)
         {
             outcome = FloatStoreOutcome.Underflow;
+            // §14.9.25.4 GR6 d) 4 b: a value nearer to zero than the receiver permits "is treated as zero" — so
+            // the value BEING STORED is zero and §13.18.8.4 GR1 blanks.
             return blankWhenZero ? new string(' ', m.Length) : RenderFloat(m, negative: false, new string('0', m.SigDigits), 0);
         }
         return RenderFloat(m, negative, s.ToString().PadLeft(m.SigDigits, '0'), e);

@@ -207,9 +207,6 @@ public static partial class CobolEdit
         // symbol lands is decided by the suppression walk (§13.18.40.5 rule 6 a) and not by the mask.
         bool[]? placed = wideCurrency || HasWideLiteral(edits) ? new bool[pattern.Length] : null;
 
-        // BLANK WHEN ZERO (ISO §13.18.8): a zero value stores ALL spaces — before any editing.
-        if (blankWhenZero && value == 0) return (Filled(' ', pattern.Length), placed);
-
         // Pre-scan (on the full picture): fixed vs floating sign/currency — ONE occurrence is a fixed-insertion
         // character; TWO OR MORE form a floating string whose members are also digit positions (§13.18.40.4).
         // The currency symbol is the program's CURRENCY SIGN PICTURE SYMBOL (ISO §12.3.7 GR13; '$' per SR25).
@@ -261,6 +258,22 @@ public static partial class CobolEdit
         string digits = Int128.Abs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (digits.Length < effectiveDigitCount) digits = digits.PadLeft(effectiveDigitCount, '0');
         else if (digits.Length > effectiveDigitCount) digits = digits[^effectiveDigitCount..];
+
+        // ⛔ BLANK WHEN ZERO (ISO §13.18.8.4 GR1) — "the content of the data item is set to all spaces when the
+        // item is a receiving operand and THE VALUE BEING STORED is zero", which is the value the item ENDS UP
+        // HOLDING: exactly the digit string above. §14.9.25.4 GR6 d) closes "Alignment of the numeric value by
+        // decimal point, any necessary zero filling, any truncation of digits, and transfer of the algebraic data
+        // into the receiving data item, take place as defined in 14.6.8", and §14.6.8.2 r4 is "zero fill or
+        // truncation on either end as required" — so a store that truncates to zero at EITHER end (0.4 into
+        // PIC 9(3), 100 into PIC 99) stores zero and blanks. §13.18.8.1 says the same in one line: the clause
+        // "causes the blanking of an item when a value of zero is being stored in it".
+        // ⛔ THE GUARD BELONGS HERE, AFTER THE STORE RESCALE, and nowhere else: every arm reaches this one
+        // formatter, but only the arithmetic emitters hand it a value already at the resultant's scale, so a
+        // guard on the raw (value, valueScale) pair blanked for COMPUTE and not for MOVE on identical items
+        // (kb/Work PB566 — MOVE 0.4 TO PIC ZZZ9 BLANK WHEN ZERO rendered '   0'). It is the same "value being
+        // stored" that rule 7 b)'s all-suppressed test below already reads.
+        if (blankWhenZero && digits.AsSpan().IndexOfAnyExcept('0') < 0)
+            return (Filled(' ', pattern.Length), placed);
 
         // Pass 1 — right-to-left: fill digit positions, place insertion and fixed characters.
         var output = new char[pattern.Length];
@@ -458,6 +471,15 @@ public static partial class CobolEdit
 
         return (output, placed);
     }
+
+    /// <summary>⛔ ISO §13.18.8.4 GR3's CONTENT TEST — "the content of the sending data item is all spaces",
+    /// after which "the value of the sending data item is considered to be zero" wherever the item is a sending
+    /// item and the object of the operation is a numeric or numeric-edited data item. The de-editing arm needs
+    /// no separate answer: every digit position of an all-spaces image contributes zero, so <see cref="DeEdit"/>
+    /// already yields exactly that zero — this predicate exists for the operations that do NOT de-edit by
+    /// default, today the relation condition (kb/Work PB509). An EMPTY image answers true vacuously: it has no
+    /// character position that is not a space.</summary>
+    public static bool IsBlanked(string? image) => image is null || image.AsSpan().IndexOfAnyExcept(' ') < 0;
 
     /// <summary>DE-EDIT a numeric-edited item's image back to its numeric value (ISO §14.9.25.4 GR5 — a
     /// numeric-edited SENDER moved to a numeric receiver, the COBOL-85 de-editing move): every digit POSITION of

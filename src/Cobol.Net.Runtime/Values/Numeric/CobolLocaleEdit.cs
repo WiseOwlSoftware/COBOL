@@ -60,11 +60,13 @@ public static class CobolLocaleEdit
         return new Shape(plus, cs, dot, left, right, zrun);
     }
 
-    /// <summary>Edit a fixed-point value into a format-2 item — §13.18.40.5 rules 9–15, in the rules' own order:
-    /// r10 BLANK WHEN ZERO short-circuit (precedence over locale editing — no locale is consulted, so an
-    /// unavailable locale still stores blanks for zero); the §8.2.1 locale resolution (r11 named-else-current, at
-    /// THIS moment); the GR18 sign decision (no '+' ⇒ the absolute value, unsigned); r14's decimal-point alignment
-    /// (zero fill or SILENT truncation on either end — EC-LOCALE-SIZE belongs only to the final move); the
+    /// <summary>Edit a fixed-point value into a format-2 item — §13.18.40.5 rules 9–15: the GR18 sign decision
+    /// (no '+' ⇒ the absolute value, unsigned); r14's decimal-point alignment (zero fill or SILENT truncation on
+    /// either end — EC-LOCALE-SIZE belongs only to the final move), which reads the PICTURE alone and so runs
+    /// FIRST, because the two zero short-circuits below are both about the value BEING STORED and that is the
+    /// ALIGNED value (§13.18.8.4 GR1, r15 b; kb/Work PB566); the r10 BLANK WHEN ZERO short-circuit (precedence
+    /// over locale editing — still no locale consulted, so an unavailable locale still stores blanks for a stored
+    /// zero); the §8.2.1 locale resolution (r11 named-else-current, at THIS moment); r15 b's all-Z zero; the
     /// hypothetical data item at FULL width (r9/r12/r13 — grouping, separators, currency string and sign per the
     /// locale, through the ONE <see cref="MonetaryPlacement.Render(MonetaryConvention, string, string, string, out int)"/>);
     /// r15 zero suppression (the all-Z-and-zero case blanks ALL <paramref name="size"/> positions — no separator,
@@ -84,18 +86,17 @@ public static class CobolLocaleEdit
     public static string Format(Int128 unscaled, int valueScale, string picture, string? localeTag, int size,
         bool blankWhenZero = false)
     {
-        if (blankWhenZero && unscaled == 0) return new string(' ', size);   // r10 — before any locale consult
-
-        var facts = MonetaryFacts.Require(localeTag, "PICTURE format 2 locale editing", "ISO §13.18.40.5 r9/r11");
         var p = Parse(picture);
 
         bool negative = p.HasPlus && unscaled < 0;                          // GR18 '+' — absent ⇒ unsigned, |v|
         Int128 mag = unscaled < 0 ? -unscaled : unscaled;
 
-        if (p.AllZ && unscaled == 0) return new string(' ', size);          // r15 b) — "all character positions
-                                                                            //  of the ITEM" are spaces
         // r14 sentence 1 — align on the decimal point position, zero fill or SILENT truncation on either end.
-        // Done over the digit STRING so a wide rescale cannot overflow the carrier.
+        // Done over the digit STRING so a wide rescale cannot overflow the carrier. ⛔ HOISTED ABOVE r10 and
+        // r15 b), because both ask what is BEING STORED (§13.18.8.4 GR1 "the value being stored"; r15 b) "the
+        // value of the data to be stored") and after r14's truncation that is not always the SENDING value — 0.4
+        // into a format-2 item with no fraction digit positions stores zero (kb/Work PB566). The alignment reads
+        // only the PICTURE, never the locale, so r10 below still decides before any locale is consulted.
         string digits = mag.ToString();
         if (digits.Length <= valueScale) digits = new string('0', valueScale - digits.Length + 1) + digits;
         string intPart = digits[..^valueScale] is { Length: > 0 } ip ? ip : "0";
@@ -107,6 +108,15 @@ public static class CobolLocaleEdit
         string F = fracPart.Length >= p.DigitsRight
             ? fracPart[..p.DigitsRight]                                     // silent low-order truncation
             : fracPart + new string('0', p.DigitsRight - fracPart.Length);
+        // The value the item is left holding — what §13.18.8.4 GR1 and r15 b) both test (kb/Work PB566).
+        bool storesZero = I.AsSpan().IndexOfAnyExcept('0') < 0 && F.AsSpan().IndexOfAnyExcept('0') < 0;
+
+        if (blankWhenZero && storesZero) return new string(' ', size);      // r10 — before any locale consult
+
+        var facts = MonetaryFacts.Require(localeTag, "PICTURE format 2 locale editing", "ISO §13.18.40.5 r9/r11");
+
+        if (p.AllZ && storesZero) return new string(' ', size);             // r15 b) — "all character positions
+                                                                            //  of the ITEM" are spaces
 
         // The hypothetical data item at FULL width, with per-position roles for r15/r14 b).
         // roleDigit[i] = the 1-based integer-digit index at position i (0 = not an integer digit);

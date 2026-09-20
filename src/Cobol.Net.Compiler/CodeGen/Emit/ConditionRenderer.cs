@@ -239,6 +239,56 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // EVALUATE-THRU surfaces make. Reading the class off ONE operand is the kb/Work PB741 defect shape.
         PicCategory? leftCat = StringCategoryOf(r.Left), rightCat = StringCategoryOf(r.Right);
         CollatingClass cmp = CollatingSelection.ForComparison(leftCat, rightCat);
+        // ⛔ BLANK WHEN ZERO IS A COMPARISON RULE TOO (ISO §13.18.8.4 GR3): "If the subject of the entry is a
+        // sending data item, the object of an operation is a numeric or numeric-edited data item, and the content
+        // of the sending data item is all spaces, the value of the sending data item is considered to be zero."
+        // GR1, one rule earlier in the same subclause, says "receiving operand" where GR3 says "the object of an
+        // OPERATION", and §8.8.4.2.1 calls the two operands of a relation its subject and its object — so the rule
+        // reaches every operation in which the item is a SENDER, and a relation condition is the only one besides
+        // the de-editing MOVE that may take a numeric-edited sender at all (§14.9.25.4 GR6 d) 1 legislates that
+        // MOVE, and §8.8.1.1 admits only "an identifier referencing a numeric data item" into an arithmetic
+        // expression, which an edited item is not). It has to name numeric-edited objects for a reason, and the
+        // only reason available is that THE COMPARISON IS BY VALUE there: giving the blanked item "the value
+        // zero" changes nothing in a character comparison.
+        // The test is on the CONTENT, so it is a run-time one: GR3 speaks only of an all-spaces image, and a
+        // BLANK WHEN ZERO item holding digits compares by the ordinary §8.8.4.2.5/.7 rules like any other
+        // numeric-edited item. The false arm is therefore the WHOLE ordinary dispatch, not a copy of one of its
+        // arms, and the true arm is the ordinary NUMERIC comparison — whose de-edit of an all-spaces image is
+        // already GR3's zero, every digit position of it contributing zero (kb/Work PB509).
+        if (BlankWhenZeroSenderTest(r, out string bwzBlanked))
+            return $"({bwzBlanked} ? {RenderNumericRelational(r)} : {RenderRelationalCore(r, cmp, leftCat, rightCat)})";
+        return RenderRelationalCore(r, cmp, leftCat, rightCat);
+    }
+
+    /// <summary>GR3's content test for whichever operand is the subject of a BLANK WHEN ZERO entry and has a
+    /// numeric or numeric-edited DATA ITEM opposite it (a literal is neither — §13.18.8.4 GR3 says "data item",
+    /// and §8.8.4.2.5 governs the literal case unchanged). With the clause on BOTH operands each is the other's
+    /// object, so either being all spaces selects the value comparison.</summary>
+    private bool BlankWhenZeroSenderTest(BoundRelational r, out string test)
+    {
+        // ⛔ NEITHER PREDICATE MAY READ THROUGH A REFERENCE MODIFICATION. §8.4.3.3.4 GR5 makes the slice "a
+        // unique data item", and GR6 c) gives it a category of its own — "the categories numeric and
+        // numeric-edited are considered class and category national if the usage is national; otherwise they are
+        // considered class and category alphanumeric" — so `WS-BWZ(1:2)` is NOT the subject of the BLANK WHEN
+        // ZERO entry and `WS-NUM(1:2)` is NOT the numeric data item GR3's object has to be. Reading the BASE
+        // item's clause or category through the decorator is the kb/Work PB297 shape, one layer down.
+        static BoundFieldOperand? Plain(BoundOperand o) =>
+            o is BoundFieldOperand f && f.Place is not (RefModPlace or TableAllPlace) ? f : null;
+        static bool Bwz(BoundOperand o) => Plain(o) is { } f && f.Place.Item.BlankWhenZero;
+        // "a numeric or numeric-edited data item" — asked of the ONE category reader (DataItem.OperandPic), as
+        // every category question in this file is (kb/Work PB728/PB741).
+        static bool Object(BoundOperand o) =>
+            Plain(o) is { } f && f.Place.Item.OperandPic?.Category is PicCategory.Numeric or PicCategory.NumericEdited;
+        string? left = Bwz(r.Left) && Object(r.Right) ? RuntimeApi.EditIsBlanked(OperandText.AsString(r.Left, num)) : null;
+        string? right = Bwz(r.Right) && Object(r.Left) ? RuntimeApi.EditIsBlanked(OperandText.AsString(r.Right, num)) : null;
+        test = left is null ? right ?? "" : right is null ? left : $"{left} || {right}";
+        return test.Length > 0;
+    }
+
+    /// <summary>The §8.8.4.2 comparison rules for a relation whose operands are neither references, boolean
+    /// expressions nor figuratives — the collating-class dispatch and, by exhaustion, the numeric comparison.</summary>
+    private string RenderRelationalCore(BoundRelational r, CollatingClass cmp, PicCategory? leftCat, PicCategory? rightCat)
+    {
         // BOOLEAN relations (§8.8.4.2.2 Format 2 / §8.8.4.2.8): a VALUE comparison, usage-independent, the
         // shorter operand right-extended with boolean ZEROS — never the alphanumeric program collating
         // sequence (equality-only + class purity are bind-enforced, 0844).
@@ -258,6 +308,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // both-numeric arm cannot be reached under this guard.
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
+        return RenderNumericRelational(r);
+    }
+
+    /// <summary>The comparison of NUMERIC operands (ISO §8.8.4.2.4 — "a comparison is made with respect to the
+    /// algebraic value of the operands regardless of the manner in which their usage is described"), reached by
+    /// exhaustion from the collating dispatch and directly from §13.18.8.4 GR3's blanked-sender arm.</summary>
+    private string RenderNumericRelational(BoundRelational r)
+    {
         // Each side renders knowing the OTHER side's static scale (fix-queue PB60 / RV-15.68.4-1 half 2):
         // §8.8.4.2.4 compares ALGEBRAIC VALUES, so `IF FUNCTION NUMVAL-C(A) = 0.123456789` must see the
         // function's value at (at least) the literal's 9 fraction digits — the bare receiver-less context

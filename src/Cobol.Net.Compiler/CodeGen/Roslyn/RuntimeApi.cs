@@ -1441,6 +1441,9 @@ internal static class RuntimeApi
     public static int MaskScale(PicInfo pic, string mask, char currency, bool commaMode) =>
         CobolEdit.MaskScale(mask, currency, commaMode, pic.EditingRules as CobolEdit.EditRule[]);
 
+    /// <summary>ISO §13.18.8.4 GR3's content test over an operand's image — <c>CobolEdit.IsBlanked</c>.</summary>
+    public static string EditIsBlanked(string read) => $"{nameof(CobolEdit)}.{nameof(CobolEdit.IsBlanked)}({read})";
+
     /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
     /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime
     /// editor the generated code calls.</summary>

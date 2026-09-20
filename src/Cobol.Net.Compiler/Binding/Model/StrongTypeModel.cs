@@ -182,7 +182,7 @@ public static class StrongTypeModel
     /// (<see cref="PicInfo"/> IS the canonical PICTURE + USAGE + SIGN analysis).</summary>
     private static bool SameEssentialCharacteristics(DataItem x, DataItem y) =>
         x.IsAligned == y.IsAligned                                            // ALIGNED        §13.18.1
-        && x.BlankWhenZero == y.BlankWhenZero                                 // BLANK WHEN ZERO §13.18.7
+        && x.BlankWhenZero == y.BlankWhenZero                                 // BLANK WHEN ZERO §13.18.8
         && x.IsDynamicLength == y.IsDynamicLength                             // DYNAMIC LENGTH  §13.18.20
         && (!x.IsDynamicLength || x.DynMaxSize == y.DynMaxSize)               //   … and its LIMIT
         && x.Justified == y.Justified                                         // JUSTIFIED      §13.18.32
