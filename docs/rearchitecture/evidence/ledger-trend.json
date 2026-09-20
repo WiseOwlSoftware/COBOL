@@ -613,6 +613,15 @@
       "dns": 366,
       "label": "CI fix: train 39's GOBACK pa",
       "battery": null
+    },
+    {
+      "sha": "70943a54",
+      "date": "2026-09-19",
+      "gap": 2375,
+      "closed": 1973,
+      "dns": 366,
+      "label": "Train 41: verdict batches, r",
+      "battery": null
     }
   ]
 }
