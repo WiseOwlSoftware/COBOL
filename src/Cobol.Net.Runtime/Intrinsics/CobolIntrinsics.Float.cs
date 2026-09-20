@@ -89,6 +89,7 @@ public static partial class CobolIntrinsics
     /// (rate &gt; −1) — a rate at or below −1 zeroes or inverts the discount base and the sum is undefined.</summary>
     public static double PresentValue(double rate, params double[] amounts)
     {
+        RequireArguments(amounts.Length, "PRESENT-VALUE");
         if (rate <= -1) return PresentValueDomain(rate);
         double pv = 0;
         for (int i = 0; i < amounts.Length; i++) pv += amounts[i] / Math.Pow(1 + rate, i + 1);
@@ -114,7 +115,11 @@ public static partial class CobolIntrinsics
     /// bodies composed — <see cref="Sqrt"/>, not a bare <c>Math.Sqrt</c>, so §15.84.3 r2's domain guard and
     /// §15.84.4 r4's absolute value are inherited from the ONE SQRT body rather than re-decided (kb/Work
     /// PB246/PB257).</summary>
-    public static double StandardDeviation(params double[] xs) => Sqrt(Variance(xs));
+    public static double StandardDeviation(params double[] xs)
+    {
+        RequireArguments(xs.Length, "STANDARD-DEVIATION");
+        return Sqrt(Variance(xs));
+    }
 
     // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────
 

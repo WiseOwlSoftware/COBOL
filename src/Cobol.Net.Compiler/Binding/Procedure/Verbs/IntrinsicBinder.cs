@@ -1243,14 +1243,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// everything before it keeps its compile-time answer, which is strictly more than the old "all or nothing".</remarks>
     private void CheckSubstituteZeroLengthArgument2(IReadOnlyList<BoundOperand> operands)
     {
-        int slot = 0;                                   // 1 = pair 1's argument-2, 2 = pair 1's argument-3, …
+        long slot = 0;                                  // 1 = pair 1's argument-2, 2 = pair 1's argument-3, …
         for (int i = 1; i < operands.Count; i++)
         {
             long? count = operands[i] is BoundFieldOperand { Place: TableAllPlace all } ? all.StaticCount : 1;
-            if (count is not { } c) return;             // the pairing past here is a run-time fact
-            int firstArg2Slot = 0;
-            for (long e = 0; e < c; e++)
-                if ((++slot & 1) == 1 && firstArg2Slot == 0) firstArg2Slot = slot;
+            if (count is not { } c || c <= 0) return;   // the pairing past here is a run-time fact
+            // The FIRST ODD slot this operand occupies, in arithmetic rather than by walking its elements —
+            // a fixed OCCURS may be thousands wide and this runs at bind time for every SUBSTITUTE call.
+            long firstArg2Slot = (slot & 1) == 0 ? slot + 1 : (c >= 2 ? slot + 2 : 0);
+            slot += c;
             if (firstArg2Slot != 0 && KnownWidth(operands[i]) is 0)
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION SUBSTITUTE argument-2 of pair "
                     + $"{(firstArg2Slot + 1) / 2} is of zero length, which ISO §15.87.3 r3 does not admit");

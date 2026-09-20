@@ -924,6 +924,23 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // (INITIALIZE onto overlapping storage) and 37 (overlapping PERFORM ranges) resolve to exactly these
             // rule-ids, so no expected value exists to test for (kb/Work PB370).
             "GR-14.9.27.4-12", "GR-14.9.20.4-9", "GR-14.9.28.4-2",
+            // ⚙ The THIRTEENTH, added deliberately (kb/Work PB245, wave 40, 2026-09-19) — and it is the first
+            // whose vacuity is the STANDARD'S rather than this implementation's. RV-15.4.1-4 is §15.4.1 NOTE 1
+            // item 4, "The result is explicitly implementor-defined", whose normative twin is the same clause's
+            // rule 2 c). NOTE 1's own lead-in scopes item 4 to *the result of an equivalent arithmetic
+            // expression*, so the set it governs is the §15 functions that HAVE one — closed, enumerable, and
+            // enumerated MECHANICALLY rather than recalled: the fourteen clauses containing "The equivalent
+            // arithmetic expression is as follows" (ABS, ANNUITY, COMBINED-DATETIME, DATE-TO-YYYYMMDD,
+            // DAY-TO-YYYYDDD, FACTORIAL, MEAN, PRESENT-VALUE, SECONDS-FROM-FORMATTED-TIME, SIGN,
+            // STANDARD-DEVIATION, SUM, VARIANCE, YEAR-TO-YYYY). NOT ONE of those fourteen function clauses
+            // contains "implementor-defined", "implementor defines" or "defined by the implementor" anywhere in
+            // it, so the antecedent is false for every EAE the standard defines and §1(c)'s covering test is
+            // unmeetable rather than unwritten. ⚠ Unlike the medium- and device-set rows above, this one cannot
+            // be voided by a later implementation choice — only by a future edition making some EAE-bearing
+            // function's returned value explicitly implementor-defined, at which point the rule-digest changes
+            // and the row is re-adjudicated by construction. docs/CONFORMANCE.md §8 DRV-RV-15.4.1-4 carries the
+            // enumeration itself so the argument is re-checkable rather than believed.
+            "RV-15.4.1-4",
         ];
 
         var s = LoadSchema();

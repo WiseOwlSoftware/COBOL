@@ -148,16 +148,25 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§15.76 RANGE — MAX − MIN (§15.76.4 r1), exact-aligned subtraction.</summary>
-    public static CobolDec RangeDec(CobolRounding mode, params CobolDec[] xs) =>
-        CobolDec.Sub(MaxDec(xs), MinDec(xs), mode);
+    public static CobolDec RangeDec(CobolRounding mode, params CobolDec[] xs)
+    {
+        RequireArguments(xs.Length, "RANGE");
+        return CobolDec.Sub(MaxDec(xs), MinDec(xs), mode);
+    }
 
     /// <summary>§15.60 MEAN — Σ / n (§15.60.4 r1), the one division in SDIDI form.</summary>
-    public static CobolDec MeanDec(CobolRounding mode, params CobolDec[] xs) =>
-        CobolDec.Div(SumDec(mode, xs), CobolDec.From(xs.Length, 0), mode);
+    public static CobolDec MeanDec(CobolRounding mode, params CobolDec[] xs)
+    {
+        RequireArguments(xs.Length, "MEAN");
+        return CobolDec.Div(SumDec(mode, xs), CobolDec.From(xs.Length, 0), mode);
+    }
 
     /// <summary>§15.62 MIDRANGE — (MAX + MIN) / 2 (§15.62.4 r1).</summary>
-    public static CobolDec MidrangeDec(CobolRounding mode, params CobolDec[] xs) =>
-        CobolDec.Div(CobolDec.Add(MaxDec(xs), MinDec(xs), mode), CobolDec.From(2, 0), mode);
+    public static CobolDec MidrangeDec(CobolRounding mode, params CobolDec[] xs)
+    {
+        RequireArguments(xs.Length, "MIDRANGE");
+        return CobolDec.Div(CobolDec.Add(MaxDec(xs), MinDec(xs), mode), CobolDec.From(2, 0), mode);
+    }
 
     /// <summary>§15.61 MEDIAN — the middle value in sorted order, or the mean of the two middles (§15.61.4).</summary>
     public static CobolDec MedianDec(CobolRounding mode, params CobolDec[] xs)
@@ -220,8 +229,11 @@ public static partial class CobolIntrinsics
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so the two FUNCTION bodies are composed and
     /// §15.84.4 r2's own "absolute value … rounded to 34 digits" is inherited from the ONE SQRT body rather than
     /// re-decided. ⚠ The clause number was §15.85 here until kb/Work PB257: §15.85 is STANDARD-COMPARE.</summary>
-    public static CobolDec StdDevDec(CobolRounding mode, params CobolDec[] xs) =>
-        SqrtDec(mode, VarianceDec(mode, xs));   // evaluated in SDIDI form end to end (kb/Work PB116 — it
+    public static CobolDec StdDevDec(CobolRounding mode, params CobolDec[] xs)
+    {
+        RequireArguments(xs.Length, "STANDARD-DEVIATION");
+        return SqrtDec(mode, VarianceDec(mode, xs));
+    }   // evaluated in SDIDI form end to end (kb/Work PB116 — it
         // detoured through Math.Sqrt in binary64, ~16 digits).
 
     /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1/r2).
@@ -240,6 +252,7 @@ public static partial class CobolIntrinsics
     /// Domain per §15.74.3 r2 (rate &gt; −1), through the same raise site as the double carrier.</summary>
     public static CobolDec PresentValueDec(CobolRounding mode, CobolDec rate, params CobolDec[] amounts)
     {
+        RequireArguments(amounts.Length, "PRESENT-VALUE");
         if (CobolDec.Compare(rate, CobolDec.From(-1, 0)) <= 0)
             return CobolDec.From(PresentValueDomain(rate.ToDouble()), 0);
         CobolDec baseFactor = CobolDec.Add(CobolDec.From(1, 0), rate, mode);

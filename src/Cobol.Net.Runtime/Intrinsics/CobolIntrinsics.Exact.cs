@@ -143,6 +143,7 @@ public static partial class CobolIntrinsics
     /// <summary>MAX (§15.59.4): the greatest argument value, at the common scale.</summary>
     public static Int128 MaxScaled(params Int128[] xs)
     {
+        RequireArguments(xs.Length, "MAX");
         Int128 m = xs[0];
         foreach (var x in xs) if (x > m) m = x;
         return m;
@@ -151,6 +152,7 @@ public static partial class CobolIntrinsics
     /// <summary>MIN (§15.63.4): the least argument value, at the common scale.</summary>
     public static Int128 MinScaled(params Int128[] xs)
     {
+        RequireArguments(xs.Length, "MIN");
         Int128 m = xs[0];
         foreach (var x in xs) if (x < m) m = x;
         return m;
@@ -167,6 +169,7 @@ public static partial class CobolIntrinsics
     /// <see cref="SizeEscape"/> for why a wrap is never the answer (kb/Work PB252).</remarks>
     public static Int128 SumScaled(string fn, params Int128[] xs)
     {
+        RequireArguments(xs.Length, fn);
         try
         {
             Int128 s = 0;
@@ -180,7 +183,11 @@ public static partial class CobolIntrinsics
     /// the escape: both operands are argument CONTENTS that individually passed the per-argument escape, and their
     /// difference is up to twice the larger — a positive maximum less a negative minimum wrapped to a NEGATIVE
     /// range, a value §15.76.4 r1 cannot produce (kb/Work PB252).</summary>
-    public static Int128 RangeScaled(params Int128[] xs) => ExactSub(MaxScaled(xs), MinScaled(xs), "RANGE");
+    public static Int128 RangeScaled(params Int128[] xs)
+    {
+        RequireArguments(xs.Length, "RANGE");
+        return ExactSub(MaxScaled(xs), MinScaled(xs), "RANGE");
+    }
 
     /// <summary>
     /// ⛔ THE EXACT CARRIER'S ESCAPE BOUNDARY, WRITTEN ONCE (fix-queue PB32; generalized to the whole exact
@@ -263,6 +270,7 @@ public static partial class CobolIntrinsics
     /// <see cref="ExactMul"/> rather than multiplying raw (fix-queue PB32).</summary>
     public static Int128 MedianScaled(params Int128[] xs)
     {
+        RequireArguments(xs.Length, "MEDIAN");
         var sorted = (Int128[])xs.Clone();
         Array.Sort(sorted);
         int mid = sorted.Length / 2;
@@ -273,13 +281,17 @@ public static partial class CobolIntrinsics
 
     /// <summary>MIDRANGE (§15.62.4): <c>(MAX + MIN) / 2</c> — returned at scale common+1 ((max+min) × 5, exact),
     /// through <see cref="ExactMul"/> for the headroom reason documented there (fix-queue PB32).</summary>
-    public static Int128 MidrangeScaled(params Int128[] xs) =>
-        ExactMul(ExactAdd(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
+    public static Int128 MidrangeScaled(params Int128[] xs)
+    {
+        RequireArguments(xs.Length, "MIDRANGE");
+        return ExactMul(ExactAdd(MaxScaled(xs), MinScaled(xs), "MIDRANGE"), 5, "MIDRANGE");
+    }
 
     /// <summary>ORD-MAX (§15.71.4): the 1-based ordinal position of the greatest argument; ties take the FIRST
     /// occurrence (strictly-greater update — the legacy-proven rule the NIST goldens encode).</summary>
     public static long OrdMax(params Int128[] xs)
     {
+        RequireArguments(xs.Length, "ORD-MAX");
         Int128 m = xs[0];
         long idx = 1;
         for (int i = 1; i < xs.Length; i++) if (xs[i] > m) { m = xs[i]; idx = i + 1; }
@@ -289,6 +301,7 @@ public static partial class CobolIntrinsics
     /// <summary>ORD-MIN (§15.72.4): the 1-based ordinal position of the least argument; ties take the FIRST.</summary>
     public static long OrdMin(params Int128[] xs)
     {
+        RequireArguments(xs.Length, "ORD-MIN");
         Int128 m = xs[0];
         long idx = 1;
         for (int i = 1; i < xs.Length; i++) if (xs[i] < m) { m = xs[i]; idx = i + 1; }
@@ -308,6 +321,7 @@ public static partial class CobolIntrinsics
     /// ORD-MAX/ORD-MIN families and their three collation variants all share.</summary>
     private static int ExtremeIndex(string[] xs, bool max, Func<string, string, int> cmp)
     {
+        RequireArguments(xs.Length, max ? "MAX / ORD-MAX" : "MIN / ORD-MIN");
         int k = 0;
         for (int i = 1; i < xs.Length; i++) { int c = cmp(xs[i], xs[k]); if (max ? c > 0 : c < 0) k = i; }
         return k;
