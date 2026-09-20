@@ -510,6 +510,23 @@ public static class CobolDate
     /// and range. Returns 0 when fully valid, else the 1-based position of the first character at which an error can
     /// be determined (§15.92.4 — per-digit range narrowing: "20051314"/YYYYMMDD ⇒ 6, "15990316" ⇒ 2). On success
     /// fills the integer date form + seconds×10^f + fraction digit count.</summary>
+    /// <remarks><para>⚠ TWO DETERMINATIONS LIVE ON THIS METHOD and both are written down at
+    /// <c>docs/CONFORMANCE.md</c> §3 <b>D-TFD1</b> / <b>D-TFD2</b> rather than left as behaviour (kb/Work
+    /// PB255).</para>
+    /// <list type="bullet">
+    /// <item><b>argument-2 SHORTER than the format.</b> Each <c>pos >= data.Length</c> exit answers
+    /// <c>data.Length + 1</c> — one position past the last, the position AT WHICH the error was detected.
+    /// §15.92.4 r1 says "the ordinal character position at which the first error in argument-2 was detected",
+    /// not "the position of the character in error" (which is how §15.93.4 r1 b) words the other case), and
+    /// §15.93.4 r1 c) gives the standard's own answer for an argument that is valid but INCOMPLETE:
+    /// <c>(FUNCTION LENGTH (argument-1) + 1)</c>. D-TFD1 adopts it so the two TEST- functions answer the same
+    /// shape the same way.</item>
+    /// <item><b>The §15.92.4 NOTE's lowercase format.</b> The NOTE writes
+    /// <c>FUNCTION TEST-FORMATTED-DATETIME ("yyyymmdd", A-DATE)</c>, which this implementation REJECTS at bind
+    /// time: <see cref="Tokenize"/> and <c>DateTimeFormatGrammar</c> are case-sensitive because §15.3.1.2 is
+    /// normative about case ("four uppercase 'Y' characters") and a NOTE is not. D-TFD2 records that the NOTE's
+    /// own program does not compile here and that every fixture spells the format in uppercase.</item>
+    /// </list></remarks>
     /// <param name="dateRepresentable">False when the data is VALID per the format but the date it denotes has no
     /// integer date form (§15.5.2's 3,067,671 ceiling — see <see cref="MaxIntegerDate"/>). Distinct from the return
     /// value on purpose: only the caller that must PRODUCE an integer date form cares, so TEST-FORMATTED-DATETIME
@@ -550,10 +567,16 @@ public static class CobolDate
                 Fld.DayOfYear  => (1, DateTime.IsLeapYear(Math.Clamp(yy, 1601, 9999)) ? 366 : 365),
                 Fld.Week       => (1, LongIsoYear(Math.Clamp(yy, 1601, 9999)) ? 53 : 52),
                 Fld.WeekDay    => (1, 7),
-                Fld.Hour       => (0, 23),
-                Fld.Minute or Fld.OffMinute => (0, 59),
+                Fld.Hour       => (0, 23),                            // §15.3.3.3 — "a value from 00 to 23 inclusive"
+                // ⛔ TWO CLAUSES MEET ON THIS ONE ARM AND ONLY ONE WAS EVER CITED (kb/Work PB255). §15.3.3.3
+                // governs the COMMON TIME format by its own words, so it answers for Fld.Minute alone; the
+                // OFFSET subfields are §15.3.3.6.2's — "The offset-minutes subfield of the data associated with
+                // a basic or extended offset time format shall contain a value from 00 to 59 inclusive". The
+                // bounds coincide, which is exactly why a shared arm could carry an unverified justification
+                // for months; both clauses are named here so the next reader checks the right one.
+                Fld.Minute or Fld.OffMinute => (0, 59),               // §15.3.3.3 (minute) / §15.3.3.6.2 (offset-minutes)
                 Fld.Second     => (0, leapSecond ? 60 : 59),          // §15.3.3.3 — "less than 61 when the LEAP-SECOND directive with the ON phrase is in effect" (kb/Work PB65)
-                Fld.OffHour    => (0, 23),
+                Fld.OffHour    => (0, 23),                            // §15.3.3.6.2 — "offset-hours … a value from 00 to 23 inclusive"
                 _              => (0, int.MaxValue),                  // Fraction — digits only
             };
             if (offZero && s.Field is Fld.OffHour or Fld.OffMinute) hi = 0;   // §15.3.3.6.1 — zero sign ⇒ zero magnitude

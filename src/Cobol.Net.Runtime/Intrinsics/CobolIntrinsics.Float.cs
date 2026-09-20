@@ -25,7 +25,30 @@ public static partial class CobolIntrinsics
     public static double Cos(double x) => Math.Cos(x);       // §15.20
     public static double Sin(double x) => Math.Sin(x);       // §15.82
     public static double Tan(double x) => Math.Tan(x);       // §15.89
-    public static double Sqrt(double x) => Math.Sqrt(x);     // §15.84 — argument ≥ 0 (rule 1); negative → NaN → 0
+    /// <summary>SQRT (§15.84) on the NATIVE carrier. TWO rules meet in this one line and each was missing
+    /// (kb/Work PB246).</summary>
+    /// <remarks><para>⛔ §15.84.3 <b>rule 2</b> — "The value of argument-1 shall be zero or positive" — is a
+    /// VALUE constraint, so §15.3 rule 14 makes it EC-ARGUMENT-FUNCTION at run time, exactly as Log/Log10 two
+    /// lines below decide theirs AT THE BODY. This was a bare <c>Math.Sqrt</c> whose only detector was the NaN
+    /// artifact, and its comment named rule 1 (the CLASS rule) for the rule 2 obligation. The artifact is not
+    /// total: <c>NumericRenderer.Real</c> converts an SDIDI operand through <c>CobolDec.ToDouble</c>, which is
+    /// <c>(double)Sig * Math.Pow(10, Exp)</c>, so for <c>Exp ≤ −324</c> the power underflows to +0.0 and a
+    /// NEGATIVE argument arrives as −0.0 — and <c>Math.Sqrt(-0.0)</c> is −0.0, not NaN, which
+    /// <c>RealResult</c>/<c>FromDouble</c> (both screening <c>IsNaN</c> alone) then pass straight through.
+    /// The explicit guard closes the domain by construction rather than by artifact.</para>
+    /// <para>⛔ §15.84.4 <b>rule 4</b> — "When native arithmetic is in effect, the returned value is the
+    /// ABSOLUTE VALUE of the approximation of the square root of argument-1" — was not implemented at all, only
+    /// unreachable-by-argument. The phrase is not decoration: IEC 60559 mandates <c>sqrt(−0) = −0</c> precisely
+    /// so that sqrt is NOT the absolute value there, while <c>|−0.0|</c> is +0.0. −0.0 is a LEGAL argument-1
+    /// (rule 2 admits zero) that a COMP-1/COMP-2 item reaches by ordinary underflow, and the receiver-less/float
+    /// arm renders it unquantized through <c>CobolFloat.Display</c>, which is IEEE-faithful and prints the sign.
+    /// <c>Math.Abs</c> IS rule 4, and it is the only input on which it does any work.</para>
+    /// <para>The APPROXIMATION half needs nothing: <c>Math.Sqrt</c> is IEC 60559 correctly-rounded, and SQRT's
+    /// catalog row carries <c>Codomain.None</c> correctly — §15.84.4 states no bound, so the
+    /// <c>FromDoubleBounded</c> clamp must not apply.</para></remarks>
+    public static double Sqrt(double x) =>
+        x < 0 ? Exceptions.ExceptionState.ArgumentError("SQRT argument-1 shall be zero or positive (ISO §15.84.3 rule 2)")
+              : Math.Abs(Math.Sqrt(x));                  // §15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
     // §15.55.3 r2 / §15.56.3 r2: the argument domain is > 0. A ≤ 0 argument is a real ARGUMENT-rule violation → raise
     // EC-ARGUMENT-FUNCTION at the body (§15.3 default 0 when checking off — the long result widens to double), NOT the
     // saturating −∞ that FromDouble now returns for a legal EXP overflow (CA24). ArgumentError throws when checking on.
@@ -77,7 +100,7 @@ public static partial class CobolIntrinsics
     /// <summary>VARIANCE (§15.98.4): the mean of the squared deviations from the arguments' arithmetic mean.</summary>
     public static double Variance(params double[] xs)
     {
-        if (xs.Length == 0) return 0;                       // EC-ARGUMENT default — at least one argument required
+        RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
         double mean = 0;
         foreach (double x in xs) mean += x;
         mean /= xs.Length;
@@ -86,8 +109,12 @@ public static partial class CobolIntrinsics
         return sum / xs.Length;
     }
 
-    /// <summary>STANDARD-DEVIATION (§15.86.4): the square root of the VARIANCE of the same arguments.</summary>
-    public static double StandardDeviation(params double[] xs) => Math.Sqrt(Variance(xs));
+    /// <summary>STANDARD-DEVIATION (§15.86.4 r1): the equivalent arithmetic expression is literally
+    /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so it is written here as the two FUNCTION
+    /// bodies composed — <see cref="Sqrt"/>, not a bare <c>Math.Sqrt</c>, so §15.84.3 r2's domain guard and
+    /// §15.84.4 r4's absolute value are inherited from the ONE SQRT body rather than re-decided (kb/Work
+    /// PB246/PB257).</summary>
+    public static double StandardDeviation(params double[] xs) => Sqrt(Variance(xs));
 
     // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────
 

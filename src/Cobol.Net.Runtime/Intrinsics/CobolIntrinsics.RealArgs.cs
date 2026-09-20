@@ -292,27 +292,28 @@ public static partial class CobolIntrinsics
     public static double RemReal(double a, double b) => b == 0 ? RemZeroDivisor() : a % b;
 
     /// <summary>§15.59 MAX — the greatest argument value.</summary>
-    public static double MaxReal(params double[] xs) => xs.Length == 0 ? 0 : xs.Max();
+    public static double MaxReal(params double[] xs) { RequireArguments(xs.Length, "MAX"); return xs.Max(); }
 
     /// <summary>§15.63 MIN — the least argument value.</summary>
-    public static double MinReal(params double[] xs) => xs.Length == 0 ? 0 : xs.Min();
+    public static double MinReal(params double[] xs) { RequireArguments(xs.Length, "MIN"); return xs.Min(); }
 
     /// <summary>§15.88 SUM.</summary>
     public static double SumReal(params double[] xs)
     {
+        RequireArguments(xs.Length, "SUM");
         double t = 0;
         foreach (double x in xs) t += x;
         return t;
     }
 
     /// <summary>§15.76 RANGE — MAX minus MIN.</summary>
-    public static double RangeReal(params double[] xs) => xs.Length == 0 ? 0 : xs.Max() - xs.Min();
+    public static double RangeReal(params double[] xs) { RequireArguments(xs.Length, "RANGE"); return xs.Max() - xs.Min(); }
 
     /// <summary>§15.61 MEDIAN — the middle value of the sorted arguments; the mean of the two middle values when
     /// the count is even (§15.61.4).</summary>
     public static double MedianReal(params double[] xs)
     {
-        if (xs.Length == 0) return 0;
+        RequireArguments(xs.Length, "MEDIAN");
         double[] s = [.. xs];
         Array.Sort(s);
         int m = s.Length / 2;
@@ -320,13 +321,16 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§15.62 MIDRANGE — the mean of the greatest and least arguments.</summary>
-    public static double MidrangeReal(params double[] xs) =>
-        xs.Length == 0 ? 0 : (xs.Max() + xs.Min()) / 2.0;
+    public static double MidrangeReal(params double[] xs)
+    {
+        RequireArguments(xs.Length, "MIDRANGE");
+        return (xs.Max() + xs.Min()) / 2.0;
+    }
 
     /// <summary>§15.60 MEAN — the arithmetic mean of the arguments.</summary>
     public static double MeanReal(params double[] xs)
     {
-        if (xs.Length == 0) return 0;
+        RequireArguments(xs.Length, "MEAN");
         double t = 0;
         foreach (double x in xs) t += x;
         return t / xs.Length;
@@ -336,7 +340,7 @@ public static partial class CobolIntrinsics
     /// (§15.71.4 r3). Returns a position, never a value, so the count — not the arguments — bounds the result.</summary>
     public static double OrdMaxReal(params double[] xs)
     {
-        if (xs.Length == 0) return 0;
+        RequireArguments(xs.Length, "ORD-MAX");
         int at = 0;
         for (int i = 1; i < xs.Length; i++) if (xs[i] > xs[at]) at = i;
         return at + 1;
@@ -357,7 +361,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.72 ORD-MIN — the 1-based ordinal position of the least argument, leftmost on a tie.</summary>
     public static double OrdMinReal(params double[] xs)
     {
-        if (xs.Length == 0) return 0;
+        RequireArguments(xs.Length, "ORD-MIN");
         int at = 0;
         for (int i = 1; i < xs.Length; i++) if (xs[i] < xs[at]) at = i;
         return at + 1;

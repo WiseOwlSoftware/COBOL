@@ -525,6 +525,31 @@ of an unsupported facility.
   the one exponent loop in `CobolIntrinsics.Exact.cs#NvfScan`; pinned by
   `conformance:2023/pb256_test_numval_f_spaces`.
 
+- **D-TFD1 — TEST-FORMATTED-DATETIME with an argument-2 SHORTER than the format answers
+  `FUNCTION LENGTH(argument-2) + 1` (§15.92.4 r1; kb/Work PB255).** The shape is reachable — §15.92.3 places no
+  size rule on argument-2 and the compiler applies none — and §15.92.4 r1 is silent on it: it answers with "the
+  ordinal character position at which the first error in argument-2 was detected", and when the data simply runs
+  out there is no character IN ERROR to point at. **COBOL.NET returns the position one past the last character.**
+  Two grounds. (a) The rule's own words are about the position *at which the error was **detected***, not the
+  position *of the character in error* — the wording §15.93.4 r1 b) uses for the other case ("the position of
+  the first character in error"), so the drafters distinguished the two inside one family and this clause takes
+  the detection reading. (b) §15.93.4 r1 c) is the standard's OWN answer for exactly this shape in the sibling
+  TEST- function — an argument that "contains valid characters but is incomplete" returns
+  `(FUNCTION LENGTH (argument-1) + 1)` (`cite.py --check 15.93.4 "(FUNCTION LENGTH (argument-1) + 1)"` → OK,
+  rule 1) — so adopting it keeps ONE answer across the two TEST- functions instead of two conventions for one
+  situation. ⚠ §15.93.4 r1 c) is cited as a CONVENTION the standard already chose for this shape, never as the
+  governing rule for this function. Implemented at the three `pos >= data.Length` exits of the one analyzer,
+  `CobolDate.cs#Analyze`; pinned by `conformance:2014/pb255_test_formatted_datetime_bounds`.
+
+- **D-TFD2 — the date/time format literals are case-SENSITIVE, so the §15.92.4 NOTE's own program does not
+  compile (§15.3.1.2; kb/Work PB255).** §15.3.1.2 is normative about case — "four **uppercase** 'Y' characters
+  representing the year subfield; two **uppercase** 'M' characters …" (`cite.py --check 15.3.1.2 "four uppercase"`
+  → OK) — while §15.92.4's NOTE writes `FUNCTION TEST-FORMATTED-DATETIME ("yyyymmdd", A-DATE)` in lowercase. A
+  NOTE is not normative, so **COBOL.NET follows §15.3.1.2 and rejects a lowercase format**: `CobolDate.Tokenize`
+  matches uppercase only and `DateTimeFormatGrammar` holds uppercase literals, so the reference draws the
+  bind-time format-kind diagnostic. Recorded because every fixture in the corpus silently spells the NOTE's
+  examples in UPPERCASE, and an unwritten substitution reads as agreement with the NOTE.
+
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following whole facilities are **not implemented**, and every element of each is **recognized and refused or

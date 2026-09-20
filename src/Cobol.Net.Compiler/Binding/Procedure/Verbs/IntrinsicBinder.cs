@@ -1207,6 +1207,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // least one part, no dangling keyword). CheckArgumentClasses screens every operand as usual.
             if (!haveSource || operands.Count < 2 || pending != 0) return Malformed();
             CheckArgumentClasses(sig, operands);
+            CheckSubstituteZeroLengthArgument2(operands);
             return new BoundIntrinsicCall(
                 sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
                 { SubstituteModes = partFlags, SubstituteFlat = true };
@@ -1222,16 +1223,38 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // `return` above it, so no Verified row could ever screen them. Screened here, after this
         // binder's own arity check, exactly as the generic path orders it.
         CheckArgumentClasses(sig, operands);
-        // §15.87.3 r3 — "Neither argument-1 nor argument-2 shall be of zero length": argument-1 is the schema's
-        // MinWidth predicate; EVERY pair's argument-2 (odd operand positions 1, 3, 5, …) is checked here, since one
-        // variadic tail kind cannot single out the pairs' first members (kb/Work PB58). Static widths only.
-        for (int i = 1; i < operands.Count; i += 2)
-            if (KnownWidth(operands[i]) is 0)
-                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION SUBSTITUTE argument-2 of pair "
-                    + $"{(i + 1) / 2} is of zero length, which ISO §15.87.3 r3 does not admit");
+        CheckSubstituteZeroLengthArgument2(operands);
         return new BoundIntrinsicCall(
             sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
             { SubstituteModes = modes };
+    }
+
+    /// <summary>§15.87.3 r3 — "Neither argument-1 nor argument-2 shall be of zero length" — for every pair's
+    /// ARGUMENT-2. Argument-1's half is the schema's <c>MinWidth(1)</c> predicate; the pairs' first members are
+    /// the ODD operand positions, which one variadic tail kind cannot single out (kb/Work PB58), so they are
+    /// walked here. Static widths only: a genuinely run-time width is the documented fail-open, and the runtime
+    /// twin (<c>CobolIntrinsics.Substitute</c>, §15.87.4 r1) answers it.</summary>
+    /// <remarks>⛔ ONE WALK, BOTH EXITS (kb/Work PB247). This sat BELOW <c>BindSubstitute</c>'s <c>if (flat)</c>
+    /// early return, so the moment any operand was a table(ALL) enumeration the whole rule went unenforced and
+    /// <c>FUNCTION SUBSTITUTE(X3 "" "Q" T(ALL))</c> bound clean on a STATICALLY known zero-length argument-2 —
+    /// the two-arm dispatch with one arm fixed. The pair ROLE of an operand is decidable exactly as far as the
+    /// element counts are static, so the walk advances a slot counter by each operand's static element count and
+    /// STOPS at the first operand whose count is a run-time fact (an OCCURS DEPENDING or DYNAMIC ALL level);
+    /// everything before it keeps its compile-time answer, which is strictly more than the old "all or nothing".</remarks>
+    private void CheckSubstituteZeroLengthArgument2(IReadOnlyList<BoundOperand> operands)
+    {
+        int slot = 0;                                   // 1 = pair 1's argument-2, 2 = pair 1's argument-3, …
+        for (int i = 1; i < operands.Count; i++)
+        {
+            long? count = operands[i] is BoundFieldOperand { Place: TableAllPlace all } ? all.StaticCount : 1;
+            if (count is not { } c) return;             // the pairing past here is a run-time fact
+            int firstArg2Slot = 0;
+            for (long e = 0; e < c; e++)
+                if ((++slot & 1) == 1 && firstArg2Slot == 0) firstArg2Slot = slot;
+            if (firstArg2Slot != 0 && KnownWidth(operands[i]) is 0)
+                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION SUBSTITUTE argument-2 of pair "
+                    + $"{(firstArg2Slot + 1) / 2} is of zero length, which ISO §15.87.3 r3 does not admit");
+        }
     }
 
     /// <summary>CONVERT (§15.19) — data-representation conversion (2023). Argument-1 is followed BY POSITION by

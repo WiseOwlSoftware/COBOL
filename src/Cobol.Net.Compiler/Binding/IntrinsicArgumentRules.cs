@@ -868,8 +868,17 @@ internal static class IntrinsicArgumentRules
             ["VARIANCE"] = Uniform('n', "§15.98.3 r1"),
             // §15.96.3 r1 — argument-1 a data item of class alphabetic/alphanumeric/national; r2 — argument-2 "a
             // single character" of the SAME family as argument-1 (the width predicate + the cross rule).
-            ["TRIM"] = Schema("§15.96.3 r1/r2", ['s', 's'], cross: CrossArgRule.MatchArgument1, crossClause: "§15.96.3 r2")
-                .WithPredicate(1, ArgPredicate.ExactWidth(1, "§15.96.3 r2")),
+            // ⛔ ARGUMENT-2 REPEATS, so it needs a TAIL (kb/Work PB249). §15.96.2 prints `[ argument-2 ] …` and
+            // the catalog row is Variadic 1..∞, but this schema declared only TWO positions with no `tail:`, so
+            // ArgSchema.At returned null for every position past the second and MatchedPositions stopped at the
+            // declared ones: `FUNCTION TRIM(X "A" "BC")` was class-unscreened, width-unscreened AND
+            // cross-unscreened, and the runtime silently kept 'B'. r2 governs EVERY argument-2 identically —
+            // it is one sentence about "argument-2", not about the first one — so the tail carries the same
+            // kind, the same ExactWidth(1) and (through MatchedPositions' PB118 tail arm) the same cross rule.
+            ["TRIM"] = Schema("§15.96.3 r1/r2", ['s', 's'], tail: 's',
+                cross: CrossArgRule.MatchArgument1, crossClause: "§15.96.3 r2")
+                .WithPredicate(1, ArgPredicate.ExactWidth(1, "§15.96.3 r2"))
+                .WithTailPredicate(ArgPredicate.ExactWidth(1, "§15.96.3 r2")),
             // §15.87.3 r1 — argument-1 class alphabetic/alphanumeric/national or a string literal; r2 — every
             // argument-2/argument-3 pair in argument-1's family (the variadic pairs are the tail); r3 — neither
             // argument-1 nor argument-2 of zero LENGTH: argument-1's half is the MinWidth predicate here, and

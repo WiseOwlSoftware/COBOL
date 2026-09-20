@@ -542,15 +542,37 @@ public static partial class CobolIntrinsics
         // TRIM("bcab" "c" "b") is "ca" per the rule — the inner fold strips nothing ('c' guards neither edge) —
         // where the union gave "a" (kb/Work PB117, the §15 close-out's find). The NOTE's own example agrees
         // under both readings, which is why a NOTE-derived golden would have passed over the defect.
+        // ⛔ r3's ANTECEDENT IS SYNTACTIC — "When no argument-2 is specified" (§15.96.3 r3) — and an EMPTY
+        // `chars` array IS exactly that syntactic fact, which is why it may be decided here: IntrinsicRenderer's
+        // "Trim" arm emits no `chars` at all for the one-argument form, and the table(ALL) lane cannot deliver an
+        // empty list (CobolTable.AllArgs raises EC-ARGUMENT-FUNCTION on an enumeration over no occurrences).
+        // Nothing else reaches this branch. r3 a) and b) are ONE fold because the typed-native model stores a
+        // national item as UTF-16 code units, one per national character position, so the national space IS
+        // U+0020 and a separate constant would be a second mechanism (AR-15.96.3-3).
+        // (kb/Work PB249: the old body decided r3 on an `any` flag computed AFTER every zero-length argument-2
+        // had been filtered out, so r3's default was re-applied where its antecedent is FALSE —
+        // `FUNCTION TRIM(X DYN-ITEM)` over an empty ANY LENGTH / DYNAMIC LENGTH argument-2 silently trimmed
+        // SPACES, a value the source never asked for.)
+        if (chars.Length == 0) return TrimOne(s, mode, ' ');
         string r = s;
-        bool any = false;
         foreach (string c in chars)
         {
-            if (c.Length == 0) continue;
-            any = true;
+            // §15.96.3 r2 — argument-2 "shall be a single character". IntrinsicArgumentRules' ExactWidth(1)
+            // predicate decides every argument-2 whose width is STATIC and fails OPEN on the rest (an ANY
+            // LENGTH or DYNAMIC LENGTH item, a computed-length ref-mod, a table(ALL) element), so the VALUE
+            // screen is owed here: a specified argument-2 that is not one character position is an incorrect
+            // argument value, §15.3 rule 14 — "If the evaluation of an argument results in an incorrect value
+            // for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist". The
+            // substituted result is the zero-length value (docs/CONFORMANCE.md DOC-A.1-90's first class:
+            // TRIM's returned LENGTH is derived from the rejected argument, since argument-2 alone decides
+            // which character positions are removed, so no length survives the rejection).
+            if (c.Length != 1)
+                return Exceptions.ExceptionState.ArgumentErrorZeroLength(
+                    $"FUNCTION TRIM argument-2 is {c.Length} character positions, not the single character "
+                    + "ISO §15.96.3 rule 2 requires");
             r = TrimOne(r, mode, c[0]);
         }
-        return any ? r : TrimOne(r, mode, ' ');   // no argument-2: one fold over the class's space (r3 defaults)
+        return r;
 
         static string TrimOne(string t, long mode, char c) => mode switch
         {

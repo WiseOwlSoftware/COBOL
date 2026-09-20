@@ -179,6 +179,31 @@ public static partial class CobolIntrinsics
         ? Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)")
         : d;
 
+    /// <summary>THE one place a variadic intrinsic body asserts that its argument list is NOT EMPTY — the §15.3
+    /// invariant every statistical body silently depends on when it indexes <c>xs[0]</c> or divides by
+    /// <c>xs.Length</c>.</summary>
+    /// <remarks><para>⛔ ONE MECHANISM, NOT TWO ANSWERS (kb/Work PB257). The two VARIANCE carriers DISAGREED
+    /// about this case: <c>CobolIntrinsics.Variance</c> answered a silent <c>0</c> where no value is defined,
+    /// while <c>VarianceDec</c> had no guard at all and would die inside <c>SumDec</c>'s <c>xs[0]</c> with an
+    /// <c>IndexOutOfRangeException</c> — the two-arm dispatch, with neither arm right. Both now assert the
+    /// invariant here, so the pair cannot drift and no body invents a value for an empty list.</para>
+    /// <para>⚠ IT IS AN ASSERTION, NOT A ROUTINE PATH, and the reachability was measured rather than assumed.
+    /// The written lane is held by the arity gate (<c>IntrinsicBinder</c>, COBOLNET1504 at <c>MinArgs</c>); the
+    /// table(ALL) lane is held by <see cref="Values.Tables.CobolTable.AllArgs{T}"/>, which raises this same
+    /// condition on an enumeration over no occurrences. The arity gate ALONE does not hold it —
+    /// <c>TableAllPlace.StaticCount</c> is null for an OCCURS DEPENDING or DYNAMIC ALL level, so
+    /// <c>FUNCTION VARIANCE(TBL(ALL))</c> passes arity with <c>given == 1</c> whatever the run-time count is,
+    /// and <c>AllArgs</c> is the body that actually guarantees it. Duplicating the raise here costs one
+    /// comparison and removes the dependence of every statistical body on a third body's behaviour.</para></remarks>
+    internal static void RequireArguments(int n, string function)
+    {
+        if (n != 0) return;
+        string why = $"FUNCTION {function} was evaluated over an EMPTY argument list — the evaluation of an ALL "
+            + "subscript shall result in at least one argument (ISO §15.3)";
+        Exceptions.ExceptionState.ArgumentError(why);   // EC-ARGUMENT-FUNCTION when checking is on (fatal)
+        throw new Exceptions.CobolFatalException("EC-ARGUMENT-FUNCTION", why);
+    }
+
     /// <summary>The scale-37 maxima of the bounded codomains (fix-queue PB65 / RV-15.75.4-1): the largest
     /// unscaled magnitude PERMITTED inside each codomain, at 37 fraction digits — so the per-scale limit is one
     /// exact integer division, <c>max37 / 10^(37−scale)</c> (floor, for a positive dividend), never a double

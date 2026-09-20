@@ -1,5 +1,7 @@
 {
  "enabled": [
+  "pb190_reverse_argument_shapes",
+  "pb257_variance_eae_native",
   "pb882_report_sum_counter_identity",
   "pb883_report_sum_expression",
   "pb852_report_source_expression",

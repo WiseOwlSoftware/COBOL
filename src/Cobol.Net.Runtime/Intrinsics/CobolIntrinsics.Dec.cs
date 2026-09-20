@@ -101,6 +101,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.59 MAX — the leftmost argument with the greatest value (§15.59.4 r1/r2).</summary>
     public static CobolDec MaxDec(params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "MAX");
         CobolDec best = xs[0];
         for (int i = 1; i < xs.Length; i++)
             if (CobolDec.Compare(xs[i], best) > 0) best = xs[i];
@@ -110,6 +111,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.63 MIN — the leftmost argument with the least value (§15.63.4 r1/r2).</summary>
     public static CobolDec MinDec(params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "MIN");
         CobolDec best = xs[0];
         for (int i = 1; i < xs.Length; i++)
             if (CobolDec.Compare(xs[i], best) < 0) best = xs[i];
@@ -119,6 +121,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.71 ORD-MAX — the 1-based ordinal of the first greatest argument (§15.71.4 r1/r2).</summary>
     public static long OrdMaxDec(params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "ORD-MAX");
         int best = 0;
         for (int i = 1; i < xs.Length; i++)
             if (CobolDec.Compare(xs[i], xs[best]) > 0) best = i;
@@ -128,6 +131,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.72 ORD-MIN — the 1-based ordinal of the first least argument (§15.72.4 r1/r2).</summary>
     public static long OrdMinDec(params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "ORD-MIN");
         int best = 0;
         for (int i = 1; i < xs.Length; i++)
             if (CobolDec.Compare(xs[i], xs[best]) < 0) best = i;
@@ -137,6 +141,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.88 SUM — the §15.88.4 r1 addition chain, per-op intermediate rounding.</summary>
     public static CobolDec SumDec(CobolRounding mode, params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "SUM");
         CobolDec s = xs[0];
         for (int i = 1; i < xs.Length; i++) s = CobolDec.Add(s, xs[i], mode);
         return s;
@@ -157,6 +162,7 @@ public static partial class CobolIntrinsics
     /// <summary>§15.61 MEDIAN — the middle value in sorted order, or the mean of the two middles (§15.61.4).</summary>
     public static CobolDec MedianDec(CobolRounding mode, params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "MEDIAN");
         var sorted = (CobolDec[])xs.Clone();
         Array.Sort(sorted, CobolDec.Compare);
         int n = sorted.Length;
@@ -165,9 +171,12 @@ public static partial class CobolIntrinsics
             : CobolDec.Div(CobolDec.Add(sorted[n / 2 - 1], sorted[n / 2], mode), CobolDec.From(2, 0), mode);
     }
 
-    /// <summary>§15.97 VARIANCE — Σ(xᵢ − mean)² / n (§15.97.4 r1's EAE over MEAN).</summary>
+    /// <summary>§15.98 VARIANCE — Σ(xᵢ − mean)² / n (§15.98.4 r1's equivalent arithmetic expression over MEAN).
+    /// ⚠ The clause number was §15.97 here until kb/Work PB257: §15.97 is UPPER-CASE — the derivation was right
+    /// and the number was inherited without ever being re-derived, CLAUDE.md rule 1's own failure mode.</summary>
     public static CobolDec VarianceDec(CobolRounding mode, params CobolDec[] xs)
     {
+        RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
         CobolDec mean = MeanDec(mode, xs);
         CobolDec acc = CobolDec.From(0, 0);
         foreach (CobolDec x in xs)
@@ -207,12 +216,13 @@ public static partial class CobolIntrinsics
         return r;
     }
 
-    /// <summary>§15.85 STANDARD-DEVIATION — the square root of the §15.97 variance. The root itself is a
-    /// prose approximation (§15.4.1 last ¶ — no equivalent arithmetic expression), computed in binary64 and
-    /// converted in per §8.8.1.5.1, the same channel the SQRT/trig/log family's standard-mode results use.</summary>
+    /// <summary>§15.86 STANDARD-DEVIATION — §15.86.4 r1's equivalent arithmetic expression, which is literally
+    /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so the two FUNCTION bodies are composed and
+    /// §15.84.4 r2's own "absolute value … rounded to 34 digits" is inherited from the ONE SQRT body rather than
+    /// re-decided. ⚠ The clause number was §15.85 here until kb/Work PB257: §15.85 is STANDARD-COMPARE.</summary>
     public static CobolDec StdDevDec(CobolRounding mode, params CobolDec[] xs) =>
-        CobolDec.Sqrt(VarianceDec(mode, xs), mode);   // §15.86.4 r1's EAE = SQRT(VARIANCE), evaluated in
-        // SDIDI form end to end (kb/Work PB116 — it detoured through Math.Sqrt in binary64, ~16 digits).
+        SqrtDec(mode, VarianceDec(mode, xs));   // evaluated in SDIDI form end to end (kb/Work PB116 — it
+        // detoured through Math.Sqrt in binary64, ~16 digits).
 
     /// <summary>§15.9 ANNUITY — rate = 0 → 1/periods; else rate / (1 − (1 + rate)^(−periods)) (§15.9.4 r1/r2).
     /// Domain per §15.9.3 r2/r3, through the SAME raise site as the double carrier (one site per rule).</summary>
