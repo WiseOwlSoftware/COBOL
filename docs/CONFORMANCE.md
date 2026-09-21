@@ -130,6 +130,51 @@ of an unsupported facility.
   GR arms agree. Written once, in `FigurativeConstants.FillChar` — the compiler's one fill-character
   computation; witnessed by `conformance:2002/pb425_zero_length_literal_move` (`A-BOOL=[0000]`).
   *(Unrelated to the superseded D-B1 boolean-representation determination in `COBOLNET_DATA_MODEL_DESIGN.md`.)*
+- **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
+  sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).
+  GR7 is printed without a condition — *"When a dynamic-length elementary item is initialized, its length is
+  set to zero"* — and read that way it erases the sending operand GR6a and GR6b have just designated, so
+  `INITIALIZE D ALL TO VALUE` would not restore D's VALUE and `INITIALIZE D REPLACING ALPHANUMERIC DATA BY
+  "ABC"` would store nothing, for the whole dynamic-length population. **COBOL.NET applies GR7 only where GR6c
+  supplies the sender** — i.e. where the item qualified through GR5c3 (the DEFAULT phrase) or GR5c4 (neither
+  REPLACING nor VALUE specified). Four reasons, none of them a preference:
+  **(i)** the standard states the SAME action at the other occasion WITH the carve-out spelled out —
+  §14.6.2.3.2 GR7, *"The length of each dynamic-length elementary item that is specified without a VALUE clause
+  is set to zero"*; **(ii)** §8.6.4 makes a dynamic-length item's initial-state length the VALUE clause's
+  length, and §14.9.20.4 GR6a3 demands a sender that *"produces the same result as the initial value of the
+  data item as produced by the application of the VALUE clause"* — under the unconditional reading **no sender
+  can satisfy GR6a3** for this population, i.e. a general rule becomes unsatisfiable rather than merely
+  narrowed; **(iii)** §14.9.20.3 SR8 designates literal-1 / identifier-2 as *the* sending operand under
+  REPLACING, and the unconditional reading makes that designation inert for every dynamic-length receiver;
+  **(iv)** GR7 is NECESSARY only on the GR6c arm — §8.3.3.6.4 GR3b gives a bare figurative constant a length of
+  one character, so GR6c's *"Figurative constant alphanumeric SPACES"* would otherwise leave the item at
+  length 1 instead of §13.18.19.4 GR1's minimum of zero. **Rejected reading:** GR7 as an unconditional
+  post-pass, which is what COBOL.NET did before this determination. Written once, in
+  `InitializeBinder.ElementaryAction`; witnessed at both poles by
+  `conformance:2014/initialize_dynamic_length` (the GR6c arm → `LEN=00`) and
+  `conformance:2014/pb418_initialize_dynamic_length_senders` (the GR6a/GR6b arms, the figurative-VALUE
+  one-character case, and the GR5c ordering against `THEN TO DEFAULT`).
+- **D-ODO1 — how many occurrences of an occurs-depending table an INITIALIZE statement initializes, when the
+  VALUE phrase is what qualifies them** (2026-09-20; kb/Work PB577, row `GR-13.18.63.4-6`). Two rules answer and
+  they do not agree. §13.18.63.4 GR6 says *"the initialization of the associated data item behaves as if the
+  value of the data item referenced by the DEPENDING phrase … is set to the maximum number of occurrences"*, and
+  §13.18.63.4 GR4c makes the execution of an INITIALIZE statement one of the two occasions a VALUE clause takes
+  effect on — so read alone it would give the MAXIMUM. §14.9.20.4 GR8 says *"For a variable-occurrence data item,
+  the number of occurrences initialized is determined by the rules of the OCCURS clause for a receiving data
+  item"*, which reaches §13.18.38.4 GR8a — *"only that part of the table area that is specified by the value of
+  the data item referenced by data-name-1 **at the start of the operation** will be used"* — so for a DEPENDING
+  item OUTSIDE identifier-1 it gives the CURRENT value. (Inside identifier-1 the two agree: GR8b's *"If the group
+  is a receiving operand, the maximum length of the group will be used"* is the maximum.) **COBOL.NET follows
+  §14.9.20.4 GR8**: the INITIALIZE statement's own clause is the more specific rule for how many occurrences that
+  statement initializes, and §13.18.63.4 GR6's maximum-pretence governs the occasions on which no statement
+  supplies a count — the initial-state seeding and the ALLOCATE seeding, where the DEPENDING item has no
+  meaningful value yet and which is what GR6 exists to answer. **Rejected reading:** GR6's maximum-pretence
+  overriding GR8 at the INITIALIZE occasion, which would make §14.9.20.4 GR8's second sentence inert for every
+  `TO VALUE` statement. The difference is observable only by raising the DEPENDING item afterwards and reading an
+  occurrence the statement was told was outside the table. Witnessed at all three poles:
+  `conformance:85/pb577_odo_value_initial_state` (the initial-state occasion — the maximum, GR6 as written),
+  `conformance:2002/pb577_odo_value_initialize` lines L1/L2 (the INITIALIZE occasion with the DEPENDING item
+  outside — the current value) and L3 (inside — the maximum, plus GR6's last-sentence ordering).
 - **I-O status '0x' case equivalence** (E.2 item 17): the low-order status digit for a non-'00' successful
   completion is implementor-dependent; COBOL.NET reports the specific '0x' value (e.g. '04', '05', '07') rather
   than collapsing to '00'.

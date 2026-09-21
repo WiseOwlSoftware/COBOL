@@ -1,5 +1,6 @@
 {
  "enabled": [
+  "pb577_odo_value_initial_state",
   "pb190_reverse_argument_shapes",
   "pb257_variance_eae_native",
   "pb882_report_sum_counter_identity",

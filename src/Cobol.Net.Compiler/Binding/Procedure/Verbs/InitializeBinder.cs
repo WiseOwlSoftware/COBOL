@@ -548,17 +548,27 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                         + "and §14.9.39 admits no function-identifier as a SET sending operand)")
                 : new InitializeSetNull(cur.ToPlace());                                         // GR4 SET … TO the predefined NULL
         if (SenderFor(q, cat, effectiveValue, spec) is not { } source) return null;
-        // §14.9.20.4 GR7: "when a dynamic-length elementary item is initialized, its length is set to zero"
-        // (overrides the GR6c figurative SPACE fill — an empty sender flows through the same dynamic-length store
-        // to length 0; §8.3.3.6.4 GR3 would otherwise leave it at length 1). (CODE-SPEC-AUDIT CA1.)
-        // ⚠ GR7 IS WRITTEN UNCONDITIONALLY AND THE VALUE / REPLACING ARMS OF THAT READING ARE UNADJUDICATED: GR6a3
-        // requires a sender that "produces the same result as the initial value of the data item as produced by the
-        // application of the VALUE clause", and §8.6.4 makes that a NON-ZERO length for a dynamic-length item that
-        // carries a VALUE clause, so an unconditional GR7 contradicts them both. The behaviour here is unchanged
-        // from before the GR5c/GR6 split and is pinned only on the category-default branch
-        // (conformance:2014/initialize_dynamic_length); the conflict is an OPEN OWNER DETERMINATION recorded on
-        // kb/Work PB418, and the row GR-14.9.20.4-7 stays PARTIAL until it is answered.
-        if (item.IsDynamicLength) source = new BoundStringLiteral("");
+        // §14.9.20.4 GR7: "When a dynamic-length elementary item is initialized, its length is set to zero."
+        // ⚖ DETERMINATION D-DL1 (docs/CONFORMANCE.md §3; kb/Work PB418) — GR7 IS THE GR6c ARM'S RULE, NOT A
+        // POST-PASS OVER ALL THREE. GR7 is printed unconditionally, and read that way it would erase the sender
+        // GR6a and GR6b have just designated. It is read as the answer GR6c's fill table cannot give for a
+        // dynamic-length receiver, for four reasons, each mechanically cited at docs/CONFORMANCE.md §3:
+        //   (i)   §14.6.2.3.2 GR7 states THE SAME ACTION at the OTHER occasion with the carve-out spelled out —
+        //         "The length of each dynamic-length elementary item that is specified WITHOUT a VALUE clause is
+        //         set to zero" — so the standard's own parallel sentence excludes the VALUE case;
+        //   (ii)  §8.6.4 makes a dynamic-length item's initial-state LENGTH the VALUE clause's length, and
+        //         §14.9.20.4 GR6a3 demands a sender that "produces the same result as the initial value of the
+        //         data item as produced by the application of the VALUE clause" — under the unconditional
+        //         reading no sender can satisfy GR6a3 for this population, i.e. the rule becomes unsatisfiable;
+        //   (iii) §14.9.20.3 SR8 designates literal-1 / identifier-2 as THE sending operand under REPLACING —
+        //         the unconditional reading makes that designation inert for every dynamic-length receiver;
+        //   (iv)  GR7 is NECESSARY only here: §8.3.3.6.4 GR3b gives a bare figurative constant a length of one
+        //         character, so GR6c's "Figurative constant alphanumeric SPACES" would otherwise leave the item
+        //         at length 1 rather than at §13.18.19.4 GR1's minimum of zero.
+        // The empty sender flows through the same dynamic-length store, so the zeroing is the SENDER, not a
+        // second write. (CODE-SPEC-AUDIT CA1.) Pinned at both poles by conformance:2014/initialize_dynamic_length
+        // (the GR6c arm) and conformance:2014/pb418_initialize_dynamic_length_senders (the GR6a/GR6b arms).
+        if (item.IsDynamicLength && q is InitializeQualification.ViaDefault) source = new BoundStringLiteral("");
         return new InitializeStore(cur.ToPlace(), source);
     }
 
@@ -802,21 +812,33 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         : cat.OBJECT_REFERENCE() is not null ? InitializeCategory.ObjectReference
         : InitializeCategory.ProgramPointer;
 
-    /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §14.9.20 GR6a3 — "a literal that,
-    /// when moved to the receiving-operand with a MOVE statement, produces the same result as … the VALUE clause"):
+    /// <summary>The bound sending operand for a VALUE-qualified receiver (ISO §14.9.20.4 GR6a3 — "<i>The actual
+    /// sending-operand is a literal that, when moved to the receiving-operand with a MOVE statement, produces the
+    /// same result as the initial value of the data item as produced by the application of the VALUE clause</i>"):
     /// the raw VALUE text decodes to the figurative / ALL-literal / string / numeric operand the MOVE path already
-    /// renders, so TO VALUE re-produces the program-start state through MOVE semantics.</summary>
+    /// renders, so TO VALUE re-produces the program-start state through MOVE semantics.
+    /// <para>⛔ THE §8.3.3.6.2 FORM IS READ BY <c>FigurativeConstants.Classify</c> AND NOWHERE ELSE
+    /// (kb/Work PB461, PB933). GR6a3 does not merely permit that — it REQUIRES it: the sending operand is defined
+    /// as the one that reproduces "the initial value … as produced by the application of the VALUE clause", and
+    /// that initial value is composed from the SAME text by <c>ValueInitializer</c> through THAT classifier, so a
+    /// second word map here is a sender that fails to reproduce the very thing it is defined as reproducing. This
+    /// site was the SIXTH private reading, and it differed: it sent <c>NULL</c> to a pointer-class
+    /// <c>BoundFigurative('N')</c> where the shared reading sends it to <c>'L'</c>. The standard is with the
+    /// shared reading here — §8.3.3.6.2 prints SEVEN figurative-constant formats and NULL is none of them
+    /// (§8.4.3.10.1: "<i>NULL is a predefined address of class pointer or a predefined content of class
+    /// message-tag</i>"), which is why GR6c's own table spells the pointer rows "Predefined address NULL" and the
+    /// rest "Figurative constant …". A pointer-category receiver never reaches this method at all: §14.9.20.4 GR4
+    /// routes it to the SET arm, whose sender is GR6a1/GR6a2's predefined NULL.</para></summary>
     private static BoundOperand InitializeValueOperand(string raw)
     {
+        // Formats 1-5 (ALL optional) and Format 6 (ALL required, literal-1 repeated to the receiver by
+        // §8.3.3.6.4 GR2 — "the string of characters is repeated character by character"); the category rides on
+        // literal-1 (PB71). Both the glued (`ALL"*"`) and spaced spellings the parse tree can produce are the
+        // classifier's business, not this site's.
+        var form = CobolNet.CodeGen.FigurativeConstants.Classify(raw);
+        if (form.Kind is { } kind) return new BoundFigurative(kind);
+        if (form.AllLiteral is { } literal1) return BoundAllLiteral.Of(literal1);
         string t = raw.Trim();
-        if (InitializeFigurativeKind(t) is { } kind) return new BoundFigurative(kind);
-        if (t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && t.Length > 3)
-        {
-            string rest = t[3..].TrimStart();
-            // ALL "literal" / ALL 'literal' repeats to the receiver width (§8.3.3.6.4 GR2); ALL <figurative-word> ≡ the bare word.
-            if (CobolLiteral.IsStringLiteral(rest)) return BoundAllLiteral.Of(rest);   // the category rides on literal-1 (PB71)
-            if (InitializeFigurativeKind(rest) is { } k) return new BoundFigurative(k);
-        }
         // N"…"/B"…" (and the apostrophe forms) VALUE clauses re-produce their category-tagged literal (declaration-time
         // validation — 0898/0900 — already ran in DataBinder; no re-gating here). Test the prefix letter, then the codec.
         if (t.Length >= 3 && t[0] is 'N' or 'n' && CobolLiteral.IsStringLiteral(t))
@@ -826,19 +848,6 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (CobolLiteral.IsStringLiteral(t)) return new BoundStringLiteral(CobolLiteral.Decode(t));
         return new BoundNumericLiteral(t);
     }
-
-    /// <summary>A figurative-constant word's <see cref="BoundFigurative"/> kind, or null when the text is not a
-    /// figurative word (ISO §8.3.3.6.2 — the singular/plural forms are alternatives of one format).</summary>
-    private static char? InitializeFigurativeKind(string word) => word.ToUpperInvariant() switch
-    {
-        "ZERO" or "ZEROS" or "ZEROES" => 'Z',
-        "SPACE" or "SPACES" => 'S',
-        "HIGH-VALUE" or "HIGH-VALUES" => 'H',
-        "LOW-VALUE" or "LOW-VALUES" => 'L',
-        "QUOTE" or "QUOTES" => 'Q',
-        "NULL" or "NULLS" => 'N',
-        _ => null,
-    };
 
     // ── Receiver cursors: extend the RESOLVED identifier-1 place member-by-member ────────────────────────────
 

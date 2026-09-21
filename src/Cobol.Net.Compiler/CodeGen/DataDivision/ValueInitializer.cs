@@ -299,7 +299,11 @@ internal sealed class ValueInitializer(EmitContext ctx)
     {
         sig = 0; exp10 = 0;
         string t = raw.Trim().ToUpperInvariant();
-        if (t is "ZERO" or "ZEROS" or "ZEROES") return true;
+        // ⛔ THE §8.3.3.6.2 VOCABULARY IS ASKED, NEVER RESPELLED (kb/Work PB461, PB933 — this was a private copy
+        // of the Format-1 word list inside the very recipe that owns the clause). The WORD map is asked rather
+        // than Classify because §8.3.3.6.3 SR1a restricts this context to "ZERO (ZEROS, ZEROES) without the ALL
+        // phrase", which is exactly the strip Classify performs and this site must not.
+        if (FigurativeConstants.KindOf(t) is 'Z') return true;
         return CobolNet.Common.NumericLiteral.TryParseExact(t, out sig, out exp10);   // the ONE exact parser (PB99)
     }
 

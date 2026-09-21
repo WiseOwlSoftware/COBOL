@@ -109,9 +109,51 @@ public sealed class FigurativeOperandClassifierDriftTests
     {
         ["FigurativeConstants.cs"] = "THE classifier — Formats 1-5, where the ALL word is optional",
         ["CobolLiteral.cs"] = "THE Format-6 codec (AllLiteralRaw), which the classifier delegates to",
-        ["InitializeBinder.cs"] = "the INITIALIZE … REPLACING operand reader, a separate mechanism with its own "
-            + "note in the register; it is expected to fold into the classifier when that note lands",
     };
+
+    /// <summary>Files allowed to spell out the §8.3.3.6.2 WORD VOCABULARY — the singular/plural alternatives of
+    /// the Formats 1-5 constants — each with its reason. This is the OTHER half of a private reading, and the
+    /// half the ALL-strip fact above cannot see: <c>InitializeBinder.InitializeFigurativeKind</c> carried no
+    /// <c>StartsWith("ALL"…)</c> of its own beyond the sanctioned one, yet it was a SIXTH word map, and it
+    /// DISAGREED — it sent <c>NULL</c> to a pointer-class <c>'N'</c> where the shared map sends it to <c>'L'</c>
+    /// (kb/Work PB933). The two facts together are what "one reading" means.</summary>
+    private static readonly Dictionary<string, string> SanctionedWordMaps = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["FigurativeConstants.cs"] = "THE vocabulary — FigurativeConstants.KindOf, which every other reader asks",
+        ["DataBinder.Switches.cs"] = "AlphabetFigurative — §12.3.7.4 GR10's SPECIAL-NAMES mapping, a DIFFERENT "
+            + "rule with different values (HIGH-/LOW-VALUE are the NATIVE extremes there, never the sequence "
+            + "being defined); it still respells the vocabulary and is REGISTERED FOR FOLDING, not justified",
+    };
+
+    /// <summary>No SECOND §8.3.3.6.2 word map. The pattern is the singular/plural alternative every copy writes —
+    /// <c>"ZERO" or "ZEROS"</c>, <c>"HIGH-VALUE" or "HIGH-VALUES"</c> — which the REVERSE direction (a
+    /// <c>BoundFigurative</c> kind rendered back into a diagnostic's word, as <c>VersionConformancePass</c> does)
+    /// never writes, so the fact names readers of source text and only those.</summary>
+    [Fact]
+    public void NoSecondPrivateFigurativeWordMap_ExistsInTheTree()
+    {
+        const string Words = "ZERO|ZEROS|ZEROES|SPACE|SPACES|QUOTE|QUOTES"
+            + "|HIGH-VALUE|HIGH-VALUES|LOW-VALUE|LOW-VALUES|NULL|NULLS";
+        var offenders = new List<string>();
+        foreach (string project in new[] { "Cobol.Net.Compiler", "Cobol.Net.Frontend" })
+            foreach (string file in Directory.EnumerateFiles(TestRepo.Src(project), "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                    || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
+                    || file.Contains($"{Path.DirectorySeparatorChar}Generated{Path.DirectorySeparatorChar}")) continue;
+                if (SanctionedWordMaps.ContainsKey(Path.GetFileName(file))) continue;
+                string text = File.ReadAllText(file);
+                text = Regex.Replace(text, @"^[ \t]*//[^\r\n]*", "", RegexOptions.Multiline);
+                foreach (Match m in Regex.Matches(text, $"\"(?:{Words})\"[ \t]+or[ \t]+\"", RegexOptions.None))
+                    offenders.Add($"{Path.GetFileName(file)} @ {m.Index}");
+            }
+
+        Assert.True(offenders.Count == 0,
+            "A private figurative WORD map is a second reading of ISO §8.3.3.6.2 and the sixth one disagreed "
+            + "about NULL — ask FigurativeConstants.KindOf (or Classify, where the ALL word is admitted) "
+            + "instead, or add the file to SanctionedWordMaps with its reason (kb/Work PB461, PB933): "
+            + string.Join(", ", offenders));
+    }
 
     /// <summary>No SIXTH private ALL-strip. The pattern is the literal test every one of the five copies used —
     /// a <c>StartsWith("ALL"…)</c> over an operand text — anywhere under the frontend or the compiler.</summary>

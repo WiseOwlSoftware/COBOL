@@ -1,0 +1,7 @@
+G6O N4=2
+G6B 1=[AB] 3=[AB] 5=[AB]
+G6C 1=[CD4] 5=[CD4]
+G6A 1=[AB] 5=[IJ]
+G6O 1=[EF] 5=[EF]
+G91 1=[ABC] 3=[ABC]
+G92 1=[XY7] 3=[XY7]

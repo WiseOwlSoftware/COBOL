@@ -1,0 +1,7 @@
+L1 VALUE LEN=05 [hello]
+L2 REPL  LEN=03 [ABC]
+L3 DFLT  LEN=00 []
+L4 FIGVL LEN=01 [ ]
+L5 GROUP LEN=05 [world] FX=[QQ  ]
+L6 VDEF  LEN=05 [hello]
+L7 VDEFN LEN=00 []
