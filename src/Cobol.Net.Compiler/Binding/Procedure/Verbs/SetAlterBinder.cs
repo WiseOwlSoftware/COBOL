@@ -137,18 +137,18 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             // the ALTER shape rule is about a single GO TO sentence), so a RESOLVED section takes the shape arm
             // below rather than the name arm — telling the user "that is a section" beats "unknown procedure".
             if (ctx.Table.ResolveProcedureOperand(names[0], "ALTER") is not { } target) { bad = true; continue; }
-            if (!target.IsParagraph || !AlterIsSoleGoToParagraph(target.Start))
+            if (!target.Range.IsParagraph || !AlterIsSoleGoToParagraph(target.Range.Start))
             {
                 ctx.Validation.RejectStatementOperand($"ALTER '{names[0].GetChild(0).GetText()}' — the procedure "
                     + "to be altered shall be a paragraph consisting of a single sentence that is one GO TO "
                     + "statement (ANSI X3.23-1985 ALTER syntax rule)"
-                    + (target.IsParagraph ? "" : "; this name resolves to a SECTION"));
+                    + (target.Range.IsParagraph ? "" : "; this name resolves to a SECTION"));
                 bad = true;
                 continue;
             }
             if (ctx.Table.ResolveProcedureOperand(names[1], "ALTER TO PROCEED TO") is not { } dest)
             { bad = true; continue; }
-            entries.Add(new BoundAlterEntry(_alterSwFields![target.Start], dest.Start));
+            entries.Add(new BoundAlterEntry(_alterSwFields![target.Range.Start], dest.Range.Start));
         }
         return bad ? new BoundNop() : new BoundAlter(entries);
     }

@@ -27,10 +27,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Configure the EC bind context (called per bound unit — <see cref="BinderDriver"/> for program
     /// units, the OO bind half for class rosters):
-    /// the compilation group's TurnState and this unit's PROGRAM-ID name (the §15.30.3 r2 location element).</summary>
-    public void ConfigureEc(TurnState turn, string programName)
+    /// the compilation group's TurnState, its position-ruled directive sites (§7.3.25.3 SR5 and its PUSH/POP
+    /// siblings) and this unit's PROGRAM-ID name (the §15.30.3 r2 location element).</summary>
+    public void ConfigureEc(TurnState turn, IReadOnlyList<Frontend.Preprocessor.DirectiveSite> sites,
+        string programName)
     {
         ctx.EcState.Turn = turn;
+        ctx.EcState.DirectiveSites = sites;
         ctx.EcState.ProgramName = programName;
     }
 
@@ -141,13 +144,18 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // (kb/Work PB390) — never a BoundUnsupported claiming COBOL.NET has not implemented RESUME.
         if (ctx.Table.ResolveProcedureOperand(pn, "RESUME AT") is not { } target)
             return new BoundNop();
-        if (target.Start < ctx.Table.EntryPc)
+        // ⛔ THE RESOLUTION CARRIES THE SECTION, SO THE RULE ASKS THE RULE'S OWN QUESTION (kb/Work PB433).
+        // This used to read `target.Start < ctx.Table.EntryPc` — pc arithmetic re-deriving "is this procedure
+        // declarative?" from the layout choice that declarative paragraphs occupy the low pcs. §14.9.33.3 SR3
+        // is written about the PORTION a procedure is in, which is a property of its SECTION (§14.3: the
+        // declaratives portion consists of sections), and that is now what the resolution hands over.
+        if (target.IsDeclarative)
         {
             ctx.Edition.Error("COBOLNET0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
                 + "nondeclarative portion of the program (ISO §14.9.33.3 SR3)");
             return new BoundNop();
         }
-        return new BoundResume(target.Start);   // GR3 — as if GO TO procedure-name-1
+        return new BoundResume(target.Range.Start);   // GR3 — as if GO TO procedure-name-1
     }
 
     // ── SET LAST EXCEPTION TO OFF (§14.9.39 Format 13) ───────────────────────────────────────────────────────

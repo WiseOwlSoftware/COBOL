@@ -12,9 +12,18 @@ namespace CobolNet.Binding.Procedure;
 /// successive paragraphs"), and its range is <see cref="PcRange.IsEmpty"/>: there is no first statement to
 /// transfer to. That is a CARRIED bit, never <c>EndPc &lt; StartPc</c> arithmetic — a legal inverted THRU range
 /// produces the same numbers (kb/Work PB440; see <see cref="PcRange"/>).</para></summary>
-internal sealed class SectionInfo(string name, int startPc)
+/// <param name="isDeclarative">True for a section of the DECLARATIVES portion (ISO §14.3). It is a property of
+/// the section, not of its pc numbers: the declarative sections share the ONE pc space with the ordinary
+/// procedure division (they are entered by the USE dispatch, an explicit PERFORM or a GO TO), so "is this pc
+/// below <c>EntryPc</c>" is an arithmetic re-derivation of a fact the collection already knows. The rules that
+/// ask — §14.9.28.3 SR11's PERFORM range, and the analogous constraints on GO TO, ALTER and the SORT/MERGE
+/// procedure phrases — ask about the SECTION.</param>
+internal sealed class SectionInfo(string name, int startPc, bool isDeclarative = false)
 {
     public string Name { get; } = name;
+
+    /// <summary>Is this a section of the declaratives portion of the procedure division (ISO §14.3)?</summary>
+    public bool IsDeclarative { get; } = isDeclarative;
 
     /// <summary>The section's pc range — EMPTY until <see cref="CloseAt"/> records a collected paragraph, and
     /// PERMANENTLY empty for a zero-paragraph section.</summary>

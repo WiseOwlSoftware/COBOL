@@ -13,6 +13,12 @@ namespace CobolNet.Binding;
 internal sealed class BindSession
 {
     public required TurnState Turn { get; init; }
+
+    /// <summary>The group's POSITION-RULED directive sites (ISO §7.3.20.3 SR4, §7.3.22.3 SR4, §7.3.25.3 SR5):
+    /// where each &gt;&gt;TURN / &gt;&gt;PUSH / &gt;&gt;POP was written, in the final line frame. Every unit's
+    /// EC bind state receives it, so the ONE lexical-containment predicate (kb/Work PB595 / owner decision D20)
+    /// can decide all three bans. Empty when the source carries none of the three.</summary>
+    public IReadOnlyList<Frontend.Preprocessor.DirectiveSite> DirectiveSites { get; init; } = [];
     public required OoClassTable OoClasses { get; init; }
     public required EditionContext Edition { get; init; }
 

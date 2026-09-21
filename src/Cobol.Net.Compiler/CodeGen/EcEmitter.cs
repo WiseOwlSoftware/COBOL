@@ -95,6 +95,36 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-STORAGE-NOT-AVAIL", "StorageNotAvailChecking"),// §14.9.39 F16 GR37/GR38 — a dynamic-length resize
     ];
 
+    /// <summary>Open the EC region of a NESTED SOURCE statement list — an IF branch, an inline-PERFORM body, an
+    /// ON SIZE ERROR / AT END / INVALID KEY phrase, a SEARCH or EVALUATE arm, imperative-statement-1 or the
+    /// FINALLY phrase of an exception-checking PERFORM. <see cref="EcState.Info"/> is the region of the ONE
+    /// statement being emitted (§7.3.25.4 GR6 keys enablement on the statement's own source LINE), and every
+    /// member of such a list is a statement of its own that went through <c>StatementBinder.BindStatement</c>
+    /// and therefore carries its own <see cref="BoundEcChecked"/> — or carries none, because nothing is enabled
+    /// at ITS line. Leaving the enclosing statement's region ambient made "none" read as the enclosing region.
+    /// <para>⛔ kb/Work PB441 measured what that cost: §14.9.28.4 GR14 puts imperative-statement-5 inside the
+    /// implicit <c>PUSH ALL</c> + <c>TURN OFF ALL</c> window, the binder's GR14 floor duly bound the FINALLY
+    /// body with EC-ALL off — and the ADD inside it still emitted the EC-SIZE guard, because that guard is
+    /// decided at EMIT time from this ambient region and imp-5 is emitted INLINE inside the PERFORM's own. The
+    /// window was realized by two mechanisms (the bind-time floor and the run-time
+    /// <c>ExceptionState.PushAllCheckingOff</c>) and a COMPILED-IN gate was inside neither. The boundary is
+    /// here, at the ONE funnel every nested source statement list is emitted through, so every emit-time-gated
+    /// family — EC-SIZE today, the next one automatically — sees the region of the statement it guards.</para>
+    /// <para>A desugar's <c>BoundSequence</c> / <c>BoundImplicitSeries</c> steps are NOT such a list: they are
+    /// parts of ONE source statement, emitted through <c>EmitStatement</c> directly, and they must keep the
+    /// region their statement's wrapper opened.</para></summary>
+    public EcRegionScope EnterNestedStatements() => new(ecState);
+
+    /// <summary>The save/clear/restore of <see cref="EcState.Info"/> that <see cref="EnterNestedStatements"/>
+    /// hands out — a struct so the boundary costs no allocation on the statement path.</summary>
+    internal readonly struct EcRegionScope : IDisposable
+    {
+        private readonly EcState _state;
+        private readonly EcStatementInfo? _saved;
+        internal EcRegionScope(EcState state) { _state = state; _saved = state.Info; state.Info = null; }
+        public void Dispose() => _state.Info = _saved;
+    }
+
     public bool EmitChecked(BoundEcChecked ec)
     {
         var prev = ecState.Info;

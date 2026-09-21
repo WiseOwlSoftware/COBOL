@@ -18,6 +18,16 @@ internal sealed class EcBindState
     /// <summary>The compilation group's source-ordered &gt;&gt;TURN fold (§7.3.25).</summary>
     public TurnState Turn { get; set; } = TurnState.Empty;
 
+    /// <summary>The compilation group's POSITION-RULED directive sites (ISO §7.3.20.3 SR4, §7.3.22.3 SR4,
+    /// §7.3.25.3 SR5 — where each &gt;&gt;TURN / &gt;&gt;PUSH / &gt;&gt;POP was written, in the final line
+    /// frame). The ONE input to the lexical-containment predicate owner decision D20 requires (kb/Work PB595).</summary>
+    public IReadOnlyList<Frontend.Preprocessor.DirectiveSite> DirectiveSites { get; set; } = [];
+
+    /// <summary>The directive sites already reported inside an exception-checking PERFORM. NESTED Format-3
+    /// PERFORMs both contain the same directive line, and the rule is about the DIRECTIVE: it is one violation
+    /// and one warning, whichever statement's bind reaches it first.</summary>
+    public HashSet<int> ReportedDirectiveBans { get; } = [];
+
     /// <summary>This unit's PROGRAM-ID name — the §15.30.3 r2 location element.</summary>
     public string ProgramName { get; set; } = "";
 

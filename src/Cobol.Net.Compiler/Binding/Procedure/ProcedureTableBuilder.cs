@@ -187,10 +187,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <param name="verb">The statement or phrase for the message, e.g. "PERFORM", "SORT INPUT PROCEDURE".</param>
     /// <param name="rule">The caller's OWN syntax rule quoted with its citation (PERFORM §14.9.28.3 SR12/SR13);
     /// "" where the statement states none and §8.4.2.1 alone decides (GO TO, ALTER, RESUME AT).</param>
-    public PcRange? ResolveProcedureOperand(Core.ProcedureNameContext pn, string verb, string rule = "")
+    public ResolvedProcedure? ResolveProcedureOperand(Core.ProcedureNameContext pn, string verb, string rule = "")
     {
         var resolved = Resolve(pn);
-        if (resolved.Range is { } range) return range;
+        if (resolved.Procedure is { } procedure) return procedure;
         string head = pn.GetChild(0).GetText();
         // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
         // reference that uniquely identifies that resource", but they are different rules with different
@@ -275,7 +275,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             if (!q.Paras.TryResolve(head, out int qpc)) return default;
             if (q.Paras.IsDuplicated(head))
                 return Ambiguous(ProcedureAmbiguityRule.InSectionDuplicate, head, DescribeInSection(q, head), q.Name);
-            return new ProcedureResolution(PcRange.At(qpc), null);
+            return Found(PcRange.At(qpc), q);
         }
 
         // §8.4.2.2.1 rule 6 — and §8.4.2.2.3 SR7 is its other half: the excuse holds only while the containing
@@ -286,19 +286,32 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             if (cur.Paras.IsDuplicated(head))
                 return Ambiguous(ProcedureAmbiguityRule.InSectionDuplicate, head, DescribeInSection(cur, head), cur.Name);
-            return new ProcedureResolution(PcRange.At(local), null);
+            return Found(PcRange.At(local), cur);
         }
 
         int candidates = paras.CountOf(head) + sections.CountOf(head);   // §8.4.2.2.1 rule 1, over §14.4.1's
         if (candidates == 0) return default;                             // "paragraph or section"
         if (candidates > 1)
             return Ambiguous(ProcedureAmbiguityRule.Qualification, head, DescribeCandidates(paras, sections, head));
-        return new ProcedureResolution(
-            paras.TryResolve(head, out int pc) ? PcRange.At(pc)
-            : sections.TryResolve(head, out var sec) ? sec.Range
-            : null,
-            null);
+        // The owning section: for a PARAGRAPH it is the per-pc `_paraSection` entry recorded at collection —
+        // the one structure that says which section a pc belongs to, and the same one StatementBinder's per-pc
+        // pass and SetAlterBinder read; for a SECTION-name the section IS the answer.
+        if (paras.TryResolve(head, out int pc)) return Found(PcRange.At(pc), SectionOfPc(pc));
+        if (sections.TryResolve(head, out var sec)) return Found(sec.Range, sec);
+        return default;
     }
+
+    /// <summary>A resolution that SUCCEEDED, carrying the range together with the section that owns the
+    /// denoted procedure — the ONE constructor for the success case, so no path can forget the section
+    /// (kb/Work PB433).</summary>
+    private static ProcedureResolution Found(PcRange range, SectionInfo? section) =>
+        new(new ResolvedProcedure(range, section), null);
+
+    /// <summary>The section that owns <paramref name="pc"/> — <see cref="ParaSections"/>, which
+    /// <c>AddParagraph</c> and <c>AddAnonymousParagraph</c> fill in lockstep with the pc space. Out of range (a
+    /// synthetic Format-3 handler pc, which is in no name map and so never resolves here) answers null.</summary>
+    private SectionInfo? SectionOfPc(int pc) =>
+        (uint)pc < (uint)_paraSection.Count ? _paraSection[pc] : null;
 
     private static ProcedureResolution Ambiguous(
         ProcedureAmbiguityRule rule, string name, IReadOnlyList<string> candidates, string? section = null) =>
@@ -384,7 +397,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     {
         string name = sec.sectionName().GetText();
         ctx.Data.ScreenRepositoryIntrinsicName(name, "section-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
-        var info = new SectionInfo(name, _paras.Count);
+        // isDeclarative: THE fact §14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
+        // recorded where it is known rather than re-derived from pc arithmetic later.
+        var info = new SectionInfo(name, _paras.Count, isDeclarative: true);
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();

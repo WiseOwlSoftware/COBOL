@@ -68,6 +68,7 @@ internal sealed class BinderDriver
         var session = new BindSession
         {
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl,
+            DirectiveSites = directives.DirectiveSites,
             CobolWords = cobolWordsMap ?? CobolNet.Editions.CobolWordsMap.Empty,
             LeapSecond = directives.LeapSecondOn,
         };
@@ -610,7 +611,7 @@ internal sealed class BinderDriver
             ProgramPrototypes = ProgramPrototypesOf(unit, programDefinitions),
             UnitRecursive = unit.Recursive,   // §14.9.7.3 SR1 / §14.9.36.3 SR1 (kb/Work PB137)
         };
-        binder.ConfigureEc(session.Turn, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
+        binder.ConfigureEc(session.Turn, session.DirectiveSites, unit.Name);   // the EC bind context (TURN fold + directive sites + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);
         // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so StorageFormPass
         // flips their numeric-DISPLAY leaves to image storage, and the formal's FromImage/AsImage round trip

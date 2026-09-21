@@ -250,7 +250,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                     // syntax rule of its own about procedure-name-1, so §8.4.2.1 alone decides. EVERY name in the
                     // series is screened: `GO TO A B C DEPENDING` with two bad names draws two diagnostics, not the
                     // first one only (the CheckCorrespondingGroupOperand discipline — a short-circuit hides the rest).
-                    if (ctx.Table.ResolveProcedureOperand(n, "GO TO DEPENDING") is { } range) targets.Add(range.Start);
+                    if (ctx.Table.ResolveProcedureOperand(n, "GO TO DEPENDING") is { } proc) targets.Add(proc.Range.Start);
                     else resolved = false;
                 }
                 return resolved
@@ -261,7 +261,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                 return ctx.Table.ResolveProcedureOperand(names[0], "GO TO") is not { } target
                     ? new BoundNop()
                     // alterable when the owning paragraph is an ALTER target, else a plain GO TO
-                    : host.Alter.AlterGoTo(g, target.Start);
+                    : host.Alter.AlterGoTo(g, target.Range.Start);
 
             default:                                // the 85-only target-less GO TO (ALTER subsystem)
                 return host.Alter.AlterBindBareGoTo(g);
@@ -437,16 +437,26 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // the first binder, but delivered as a BoundUnsupported, i.e. compiled into the program as a run-time
         // abort blaming COBOL.NET for a gap. Each arm names its OWN rule number; fixing one and not the other is
         // the two-arm defect this project keeps finding.
-        if (ctx.Table.ResolveProcedureOperand(names[0], "PERFORM", PerformNameRule("Procedure-name-1", "SR12")) is not { } range)
+        if (ctx.Table.ResolveProcedureOperand(names[0], "PERFORM", PerformNameRule("Procedure-name-1", "SR12")) is not { } first)
             return new BoundNop();
+        var range = first.Range;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
             if (ctx.Table.ResolveProcedureOperand(names[1], "PERFORM THRU", PerformNameRule("Procedure-name-2", "SR13")) is not { } thru)
                 return new BoundNop();
+            // ⛔ SR11 — THE DECLARATIVES CONSTRAINT ON THE COMPOSED RANGE (kb/Work PB433). It is checked HERE,
+            // where BOTH ends are resolved and both still carry their owning sections, because the composition
+            // below throws the sections away and leaves a pc pair no later pass can ask the question of.
+            // ⛔ SR11 — THE DECLARATIVES CONSTRAINT ON THE COMPOSED RANGE (kb/Work PB433). It is checked HERE,
+            // where BOTH ends are resolved and both still carry their owning sections, because the composition
+            // below throws the sections away and leaves a pc pair no later pass can ask the question of.
+            if (!ctx.Validation.CheckDeclarativesRange(
+                    first, thru, names[0].GetChild(0).GetText(), names[1].GetChild(0).GetText(), "PERFORM"))
+                return new BoundNop();
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — GR6
             // "there is no necessary relationship between procedure-name-1 and procedure-name-2"; NIST NC102A
             // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
-            range = range.Through(thru);
+            range = range.Through(thru.Range);
         }
 
         // ⛔ ONE PATH, EMPTY SET INCLUDED (kb/Work PB440). The specified set MAY be empty — procedure-name-1

@@ -3456,13 +3456,13 @@
   "ordinal": 4,
   "subject": "POP directive",
   "rule-digest": "07733f4f13ba",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckDirectiveBans; src/Cobol.Net.Frontend/Preprocessor/DirectiveSiteProcessor.cs",
+  "test-ref": "unit:ExceptionCheckingPerformDirectiveBanDriftTests.APushOrPopInsideAnExceptionCheckingPerform_WarnsCitingItsOwnRule; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSameDirectivesOutsideTheStatement_DrawNothing; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSiteScannerAndTheBanTable_NameTheSameDirectives",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "kb/Work/PB595.md - LANDED with SR-7.3.25.3-5: the POP ban, decided by the same one predicate and reported with its own clause (7.3.20.3 SR4) and its own words. COBOLNET2187, a suppressible warning; the program still compiles. >>POP is a 2023 compiler-directive word (Annex E.2 item 5 / E.3.3 item 38). The 7.3.20 directive-state SEMANTICS remain unimplemented and are a separate row family; this row is the POSITION rule.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-7.3.20.4-1",
@@ -3636,13 +3636,13 @@
   "ordinal": 4,
   "subject": "PUSH directive",
   "rule-digest": "a8a1d73a51f3",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckDirectiveBans; src/Cobol.Net.Frontend/Preprocessor/DirectiveSiteProcessor.cs",
+  "test-ref": "unit:ExceptionCheckingPerformDirectiveBanDriftTests.APushOrPopInsideAnExceptionCheckingPerform_WarnsCitingItsOwnRule; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSameDirectivesOutsideTheStatement_DrawNothing; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSiteScannerAndTheBanTable_NameTheSameDirectives",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "kb/Work/PB595.md - LANDED with SR-7.3.25.3-5: the PUSH ban is decided by the SAME lexical-containment predicate D20 mandates (one predicate for TURN/PUSH/POP, never a second region-partitioned mechanism), and the diagnostic quotes THIS rule's own clause and words rather than an intersection of the three. COBOLNET2187, a suppressible warning; the program still compiles. >>PUSH is a 2023 compiler-directive word (Annex E.2 item 5 / E.3.3 item 38) and the Format-3 PERFORM the rule is about is 2023-only, so the row has no edition below 2023. The directive-state SEMANTICS of 7.3.22 (save the directive state) remain unimplemented and are a separate row family; this row is the POSITION rule.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-7.3.22.4-1",
@@ -3846,13 +3846,13 @@
   "ordinal": 5,
   "subject": "TURN directive",
   "rule-digest": "3f90ac2aa841",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckDirectiveBans; src/Cobol.Net.Frontend/Preprocessor/DirectiveSiteProcessor.cs",
+  "test-ref": "conformance:2023/pb595_turn_inside_format3_perform; unit:ExceptionCheckingPerformDirectiveBanDriftTests.ATurnInsideAnExceptionCheckingPerform_WarnsCitingSr5_AndStillCompiles; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSameDirectivesOutsideTheStatement_DrawNothing",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2023",
+  "notes": "kb/Work/PB595.md - LANDED. A >>TURN written lexically anywhere within an exception-checking (Format-3) PERFORM draws COBOLNET2187, a suppressible conformance warning quoting SR5 and naming the clause; the program still compiles and still runs, which is owner decision D20 (2026-07-19: FLAT BAN - imperative-statement-1 included - SUPPRESSIBLE WARNING, since ISO 4.2.2 requires for a syntax-rule violation only an optionally-invoked compile-time warning mechanism). A compiler directive is removed by the preprocessor and is in no parse tree, so containment is decided over POSITIONS: DirectiveSiteProcessor records each position-ruled directive's site on the FINAL text, the one frame in which a directive line and a parser token line are the same number, and the binder tests it against the PERFORM's own [Start.Line, Stop.Line] span. Editions: Format 3 is a 2023 introduction (Annex E.3.3 item 36), so the rule has no edition below it; the below-2023 gate is witnessed by conformance:negative/pb441-f3-perform-below-2023.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-7.3.25.4-1",
@@ -37746,13 +37746,13 @@
   "ordinal": 2,
   "subject": "GO TO statement",
   "rule-digest": "e4067afb4728",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending",
+  "test-ref": "conformance:2002/pb395_goto_depending_incompatible; conformance:negative/pb395-turn-data-incompatible-below-2002",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB395.md — Two of the rule's three halves are right, the third is absent. (a) Value-driven transfer: the emitter writes a 1-based switch over the target pcs, so 1 -> procedure-name-1 ... n -> procedure-name-n, and a SECTION target transfers to its first paragraph (probe p4: 1->A, 2->B; probe p8 with two sections). (c) 'anything other than the positive or unsigned integers 1..n -> no transfer, control passes to the next statement': correct for 0, for n+1 and for a negative value (probe p4 prints FELL-THROUGH for 0, 3 and -1). (b) NOT IMPLEMENTED: 'If the content of identifier-1 is not numeric, the EC-DATA-INCOMPATIBLE exception condition is set to exist. If checking for EC-DATA-INCOMPATIBLE is enabled, processing occurs as specified for that exception condition.' EC-DATA-INCOMPATIBLE (Fatal per the level-3 exception table) is enabled by EcBinder ONLY for 'node is BoundMove' (the 14.6.13.2 rule-4 de-editing case), so a GO TO ... DEPENDING never contributes it: under >>TURN EC-DATA-INCOMPATIBLE CHECKING ON a selector holding 'AB' falls silently through (probe p5b) where the standard requires the fatal condition to be processed. The enabling mechanism was proved live in the same run and at the same directive column (probe p9: a de-editing MOVE aborts with 'abnormal run-unit termination: EC-DATA-INCOMPATIBLE (fatal)'), so p5b's silence is the compiler's, not the directive's. Finding F2 (same mechanism reaches every non-MOVE statement via 14.6.13.2 rule 2 -- sibling probe p16: an ADD from the same item is equally silent and contributes 0). See also finding F3: this emitter's own comments cite 14.9.20 Format 2 / 14.9.20.3 SR2 (INITIALIZE) for this rule. Probes: scratchpad/lane3/out-b2/probe/go-to/p4-range.cob, p8-section-target.cob, p5b-ec-incompat.cob, p9-turn-sanity.cob, p16-sibling-add.cob.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrapChecked",
-  "state": "GAP"
+  "notes": "kb/Work/PB395.md - all three halves now measured by ONE golden. (a) Value-driven transfer: the emitter writes a 1-based switch over the target pcs, so 1 -> procedure-name-1 ... n -> procedure-name-n. (b) 'anything other than the positive or unsigned integers 1 through n' -> no transfer, control passes to the next statement (the golden's 0 case falls through). (c) The EC-DATA-INCOMPATIBLE sentence: the selector is read through the CHECKED sending decode (CobolNum.ParseImageSending under ExceptionState.DataIncompatibleChecking), so a REDEFINES window holding 'AB' raises the FATAL condition and the declarative's RESUME AT NEXT STATEMENT resumes after the GO TO. That half was ABSENT when this row was first adjudicated - EC-DATA-INCOMPATIBLE was armed by a statement-KIND test (`node is BoundMove`) where 14.6.13.2 rule 2 hangs it on a sending-operand REFERENCE - and was fixed by the PB230/PB589 landing (1c81864a3, 2026-09-05), which moved the arming to the ambient per-statement gate and built the raise sites at the decode chokepoints. This row was never re-verdicted after it and carried no golden for the 14.6.13.2 leg; both are repaired here.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.18.3-1",
@@ -41316,13 +41316,13 @@
   "ordinal": 11,
   "subject": "PERFORM statement",
   "rule-digest": "b3c280e37035",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesRange; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureResolution.cs#ResolvedProcedure",
+  "test-ref": "conformance:85/pb433_perform_range_one_declarative_section; conformance:negative/pb433-perform-range-straddles-declaratives; conformance:negative/pb433-perform-range-two-declarative-sections; unit:ProcedureRangeDeclarativesDriftTests.ARangeStraddlingTheDeclarativesBoundary_IsRefused; unit:ProcedureRangeDeclarativesDriftTests.ARangeSpanningTwoDeclarativeSections_IsRefused; unit:ProcedureRangeDeclarativesDriftTests.LegalRanges_AreAccepted",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB433.md — Both halves of the rule are open, and the canonical violation does not merely mis-run - it CRASHES. (a) One name inside the declaratives, one outside: `PERFORM D-P1 THRU MAIN-P2` where D-P1 is a paragraph of a declarative section and MAIN-P2 is an ordinary paragraph (probe pf-sr11-decl-split) compiles with no diagnostic and dies at run time with a stack overflow - the composed range runs from the declarative paragraph forward through MAIN-P, which contains the PERFORM itself, so the program recurses until the CLR kills it. That is precisely the outcome the rule exists to prevent, and the compiler is silent about it. (b) Both names inside the declaratives but in DIFFERENT declarative sections: `PERFORM D-P1 THRU D-P2` with D-P1 in D-SEC1 and D-P2 in D-SEC2 (pf-sr11-two-decl-sections) compiles, runs and prints 11 - it silently performs a range that spans a declarative-section boundary, which the standard forbids because the two sections have different USE dispatch. Reproduced at COBOL-85 as well (pf-sr11-85, N=11), so the hole is edition-wide. Everything the check needs is already in the procedure table: which section each resolved procedure belongs to, and whether that section is a declarative one.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs:298-316 (BindPerform - resolves procedure-name-1 and procedure-name-2 through `ctx.Table.ResolveProcedure` and composes `(first.Start, thru.End)`. It never asks whether either name is in the declaratives portion, and never compares their sections); src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs (the procedure table records sections and their pc ranges and is the one place that could answer the question - it builds the declarative sections for USE dispatch at :80 and :148 - but nothing calls it for this rule). A grep for \"declarative\" in a 14.9.28 context across src/ returns only the USE-statement machinery.",
-  "state": "GAP"
+  "notes": "kb/Work/PB433.md - LANDED. Both halves of SR11 are enforced by ONE predicate at the range composition, where both ends are still resolutions carrying their owning SectionInfo: neither end declarative -> the rule's antecedent is false; either end declarative -> the two sections shall be the SAME object. COBOLNET2186, an error at every edition (the rule is X3.23-1985's, carried unchanged). The structural repair is that ResolveProcedureOperand now returns a ResolvedProcedure (range + owning section) instead of a naked pc pair, so the question SR11 asks is answerable at every procedure-name reference rather than re-derived from pc arithmetic; RESUME AT's nondeclarative test (SR-14.9.33.3-3) was converted from `Start < EntryPc` to the same field in the same change set. Witnesses: the two negatives are the loud half (one end in the declaratives, one outside - it used to compile clean and die of a stack overflow) and the quiet half (both ends declarative in DIFFERENT sections - it used to run and print a wrong answer); the 85 positive golden pins the three shapes the rule does NOT forbid (same declarative section, a one-name PERFORM of a declarative section, a wholly nondeclarative range), so the screen cannot widen into 'any PERFORM that touches the declaratives'.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.28.3-12",
@@ -41691,13 +41691,13 @@
   "ordinal": 14,
   "subject": "PERFORM statement",
   "rule-digest": "f330a2d7a1b7",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/TurnState.cs#WithImplicitEnable; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#EcBindExceptionPerform; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitRunF3; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#PushAllCheckingOff",
-  "test-ref": "conformance:2023/f3_perform_handler_turn_off_all",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/TurnState.cs#WithImplicitEnable; src/Cobol.Net.Compiler/Binding/TurnState.cs#WithAllDisabledFrom; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#EcBindExceptionPerform; src/Cobol.Net.Compiler/CodeGen/StatementEmitter.cs#EmitStatementList; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EnterNestedStatements; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitRunF3; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#PushAllCheckingOff",
+  "test-ref": "conformance:2023/pb441_f3_gr14_window_emit_gated; conformance:2023/f3_perform_handler_turn_off_all; conformance:negative/pb441-f3-perform-below-2023; unit:NestedStatementEcRegionDriftTests.Gr14Window_LeavesNoCompiledInSizeGuard_InEitherHandlerOrFinally",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work/PB441.md — All six sentences located and checked. (1) The implicit TURN is spliced at imp-1's line ONLY when the name is not already enabled there - `if (!Enabled(ec, file, imp1Line))` (TurnState :81) - which is the rule's own precondition, so an ambient >>TURN keeps its own LOCATION setting and GR22 governs it. (2) LOCATION rides the synthetic event (`WithLocation: withLocation`) and is MEASURED: probe gr14_location_with (no ambient TURN, `PERFORM WITH LOCATION ... WHEN EC-USER-DEMO DISPLAY FUNCTION EXCEPTION-STATEMENT`) prints STMT=[RAISE...], while gr14_location_without prints spaces. (3) WHEN OTHER sees only enabled conditions because a raise site is emitted only where checking is enabled and GR14's implicit enable covers just the WHEN-named ECs. (4) A >>TURN OFF inside imp-1 wins because it sorts after the line-keyed synthetic: MEASURED (gr14_turn_off_in_imp1) the WHEN did not run and imp-1 continued (IMP1-HEAD/AFTER/DONE). (5)/(6) The PUSH ALL + TURN OFF ALL window over imp-2..5 is realized twice, at bind time (WithAllDisabledFrom splices an EC-ALL OFF floor at the first handler's line, so a handler-local >>TURN still wins) and at run time (EmitRunF3 wraps imp-2/imp-4 in PushAllCheckingOff/PopAllChecking; EmitExceptionPerform :117-120 does the same around FINALLY), with the POP ALL landing immediately before the end of the PERFORM. Edition: Annex E.3.3 item 36 - the exception-checking variant is new in 2023. || REFUTED: DIVERGES — MEASURED WRONG ANSWER on sentences 5+6. GR14: 'An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL ...' -- and GR16 puts imperative-statement-5 (FINALLY) BEFORE the END-PERFORM phrase, so imp-5 executes inside that TURN OFF ALL window; with checking off, S14.6.13.1.1 says 'if checking for an exception that occurs is not enabled, no exception condition is raised' (NOTE 3: only the OPERATION's results are undefined, the run unit is not terminated). It does not hold for the EC-SIZE family. With a pre-PERFORM '>>TURN EC-SIZE-TRUNCATION CHECKING ON', an 'ADD 9 TO N' (N PIC 9, value 5) inside FINALLY raises the fatal EC and terminates the run unit; the correct result is that the ADD stores an undefined value and execution continues. ROOT CAUSE (two-arm dispatch): the WHEN/OTHER/COMMON bodies are emitted as SEPARATE synthetic pc-range cases, so they escape the enclosing checked region and compile to a bare CobolNum.Store -- the arm the conformance golden pins -- while imp-5 is emitted INLINE inside the F3 PERFORM statement's own EcWrap region. EcBinder.EcWrap decides that region at the PERFORM statement's OWN line (before the GR14 floor) and the ambient EC-SIZE family gate (EcBinder.cs 'THE EC-SIZE FAMILY IS AMBIENT FOR EVERY OTHER STATEMENT TOO') puts EC-SIZE-TRUNCATION in ecState.Info; ArithmeticEmitter.EmitArith then reads EcEmitter.EnabledSizeNames() off that ambient Info while emitting imp-5 and renders the full guard. The runtime ExceptionState.PushAllCheckingOff() the emitter wraps FINALLY in does NOT gate that compiled-in guard, so the adjudicator's claim that sentences 5/6 are 'realized twice, at bind time and at run time' is false for imp-5. The covering golden picks the OTHER family (EC-BOUND-REF-MOD), which uses a per-reference gate and does not leak -- a green test holding the gap open. No kb/Work note covers it (grep of kb/Work for imp-5/FINALLY finds only PB3, an unrelated landed ORD defect), and docs/CONFORMANCE.md records two OTHER S14.9.28.4 determinations but not this.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/TurnState.cs#WithImplicitEnable, #WithAllDisabledFrom; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#EcBindExceptionPerform; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitRunF3; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#PushAllCheckingOff",
-  "state": "GAP"
+  "notes": "kb/Work/PB441.md - LANDED. All six sentences of GR14 now hold. Sentences 1-4 were already located and checked (the implicit TURN is spliced at imp-1's line only when the name is not already enabled there; LOCATION rides the synthetic; WHEN OTHER sees only enabled conditions; a >>TURN OFF inside imp-1 wins because it sorts after the line-keyed synthetic). Sentences 5 and 6 - the implicit PUSH ALL + TURN OFF ALL at the end of imperative-statement-1 and the POP ALL immediately preceding END-PERFORM - DIVERGED for imperative-statement-5, which GR16 places inside that window: imp-2/3/4 are emitted as separate pc-range cases and escaped the enclosing statement's EC region, but imp-5 is emitted INLINE, and the EC-SIZE guard is decided at EMIT time from EcState.Info. The bind-time floor (WithAllDisabledFrom) and the run-time PushAllCheckingOff both covered imp-5; the COMPILED-IN gate was inside neither. Fixed at the ONE funnel every nested source statement list is emitted through: StatementEmitter.EmitStatementList now opens EcEmitter.EnterNestedStatements, so an emit-time-gated family sees the region of the statement it guards rather than the enclosing statement's - 7.3.25.4 GR6 keys enablement on the statement's own position in the compilation group. The new golden pins BOTH arms side by side with a USE declarative as the two-sided control (it fires exactly once, for the ADD written after END-PERFORM, where the implicit POP ALL restored the pre-PERFORM >>TURN), and the drift tests pin the boundary itself plus a NON-F3 arm (a >>TURN OFF inside an IF branch), all three proven red with the fix reverted.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.28.4-15",
@@ -47691,13 +47691,13 @@
   "ordinal": 6,
   "subject": "SUBTRACT statement",
   "rule-digest": "2633277b8039",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs",
-  "test-ref": "conformance:85/optional_on_size_error",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs; src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs; src/Cobol.Net.Compiler/CodeGen/Emit/SendingRef.cs#AlphanumericChecked; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending",
+  "test-ref": "conformance:85/optional_on_size_error; conformance:2002/pb395_subtract_incompatible_sender",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB395.md — This is a pointer rule, so verifying it means verifying that each of the five referenced specifications actually applies ON SUBTRACT. FOUR OF FIVE MEASURED. 14.7.4 ROUNDED: per-receiver modes in format 1 (p1) and format 2 (g6), one statement mode applied to every pair in format 3 (p4), ROUNDED MODE IS gated to 2014+ (h3). 14.7.5 SIZE ERROR: g12 `SUBTRACT 9999 FROM S1 S2` left the erring S1 unchanged at 1, still stored S2 = -9979, printed \"SE\" once and suppressed the NOT branch - 14.7.5 storing rule 2 plus 14.7.7 r4b's `processing proceeds to the next resulting data item to the right`; g7 both phrases in reversed order; f5 the NOT branch on a no-op statement; n6/m2 the EC-SIZE checking route with no phrase. 14.7.6 CORRESPONDING: see the GR-14.9.44.4-5 row. 14.7.7 Arithmetic statements: the composite (SR1's row), the ONE initial evaluation (g8), the left-to-right store order (g12). THE FIFTH IS UNVERIFIED: 14.6.13.2 Incompatible data. With `>>TURN EC-DATA-INCOMPATIBLE CHECKING ON` in effect, a SUBTRACT sending operand holding content incompatible with its category did NOT raise - probe m1 (`05 NN PIC 9(4)` redefining X(4) = \"AB!!\") ran silently, as did n7 with a PIC S9(6) COMP-3 view of \"ZZZZ\". THIS IS NOT A SUBTRACT DEFECT AND I AM NOT REPORTING IT AS ONE: controls n4 (COMPUTE) and n5 (MOVE) are silent on the identical item, while n6 proves the >>TURN directive itself reaches the statement (EC-SIZE fires), so whatever is missing belongs to 14.6.13.2's own row and to the EC-DATA-INCOMPATIBLE checking machinery, across verbs. Recorded in dossier_gaps for routing. The named golden is spec-derived and exercises the 14.7.5 phrase on a SUBTRACT leg; no golden covers the 14.6.13.2 leg.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:284-327 EmitArith (14.7.5); src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:244-249 GuardedStore (14.7.7 r4b); src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf + src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:333-476 StoreArith (14.7.4); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs:91-151 (14.7.6); src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs:105-165 (14.7.7 r2)",
-  "state": "GAP"
+  "notes": "kb/Work/PB395.md - a POINTER rule, so it is verified by verifying that each of its five referenced specifications applies ON SUBTRACT. 14.7.4 ROUNDED (per-receiver modes), 14.7.5 SIZE ERROR (including the next-receiver-to-the-right rule), 14.7.6 CORRESPONDING and 14.7.7 were measured earlier and hold. 14.6.13.2 Incompatible data was the fifth and did NOT apply - the condition was armed by a statement-KIND test, so SUBTRACT read an incompatible item in silence. It now raises from the sending-operand decode chokepoint (PB230/PB589, 1c81864a3), and the new golden pins it on SUBTRACT with a valid-image CONTROL subtraction in the same program (100 - 7 = 93) so a blanket raise would fail too.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.45.3-1",

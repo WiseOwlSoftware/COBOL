@@ -107,7 +107,7 @@ internal sealed class OoDriver(BindSession session)
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§8.4.3.8; slice 3b)
         };
-        binder.ConfigureEc(session.Turn, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
+        binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
         cls.Bound = binder.BindMethodRoster(cls.Symbol, cls.Symbol.Methods);
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
@@ -118,7 +118,7 @@ internal sealed class OoDriver(BindSession session)
             OoCurrentClass = cls.Symbol,
             OoInFactory = true,
         };
-        fbinder.ConfigureEc(session.Turn, cls.Name);
+        fbinder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);
         cls.FactoryBound = fbinder.BindMethodRoster(cls.Symbol, cls.Symbol.FactoryMethods);
     }
 

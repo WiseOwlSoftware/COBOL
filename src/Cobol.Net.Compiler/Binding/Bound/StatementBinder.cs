@@ -92,7 +92,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>The binder's public EC entry point (BinderDriver / the OO bind half configure the compilation
     /// group's TurnState + this unit's PROGRAM-ID per bound unit); the state lands on <c>ctx.EcState</c>.</summary>
-    public void ConfigureEc(TurnState turn, string programName) => Ec.ConfigureEc(turn, programName);
+    public void ConfigureEc(TurnState turn, IReadOnlyList<Frontend.Preprocessor.DirectiveSite> sites,
+        string programName) => Ec.ConfigureEc(turn, sites, programName);
 
     /// <summary>The compilation group's user-function signature table (FUNCTION-ID name → RETURNING +
     /// USING descriptions), built by the run-unit emitter between the DATA and PROCEDURE bind phases.

@@ -613,7 +613,9 @@
   "pb437_varying_operand_windows",
   "pb458_set_size_qualified_bare",
   "pb560_condition_value_numeric_edited_2023",
-  "pb920_false_value_cross_class_distinct"
+  "pb920_false_value_cross_class_distinct",
+  "pb441_f3_gr14_window_emit_gated",
+  "pb595_turn_inside_format3_perform"
  ],
  "pending": [
   "pb485_value_only_format1"

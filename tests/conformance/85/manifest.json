@@ -114,7 +114,8 @@
   "pb556_condition_formats_stay_legal_at_88",
   "pb412_go_to_general_formats",
   "pb421_move_general_formats",
-  "pb450_set_outer_repetition"
+  "pb450_set_outer_repetition",
+  "pb433_perform_range_one_declarative_section"
  ],
  "pending": []
 }

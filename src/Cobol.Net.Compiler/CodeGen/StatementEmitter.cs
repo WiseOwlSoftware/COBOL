@@ -70,9 +70,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     }
 
     /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
-    /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.</summary>
+    /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.
+    /// <para>⛔ THE LIST IS A REGION BOUNDARY (kb/Work PB441). Every member is a source statement of its own and
+    /// carries its own <c>BoundEcChecked</c> — or none, because §7.3.25.4 GR6 enables nothing at ITS line — so the
+    /// enclosing statement's EC region must not stay ambient across it. See
+    /// <see cref="EcEmitter.EnterNestedStatements"/> for what leaving it ambient cost §14.9.28.4 GR14.</para></summary>
     internal bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
     {
+        using var region = _ecEmit.EnterNestedStatements();
         bool terminated = false;
         foreach (var st in stmts)
         {

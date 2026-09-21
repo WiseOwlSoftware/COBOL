@@ -4187,6 +4187,36 @@ public static class DiagnosticCatalog
         + "by Format 4 through SR34; Format 1 applies neither, which is why VALUES is not a Format-1 spelling. "
         + "§13.18.63.3 SR39 states the same pairing for Format 5, the one format that detaches the connective.",
         "ISO §13.18.63.2 / §13.18.63.3 SR17 / SR39 / §5.2.6.3");
+    /// <summary>A <c>PERFORM procedure-name-1 THRU procedure-name-2</c> range has one end in the DECLARATIVES
+    /// portion of the procedure division and the other outside it, or its two ends in two DIFFERENT declarative
+    /// sections — §14.9.28.3 SR11: "When procedure-name-1 and procedure-name-2 are both specified and either is
+    /// the name of a procedure in the declaratives portion of the procedure division, both shall be
+    /// procedure-names in the same declarative section."
+    /// <para>An ERROR, not the §4.2.2 warning, because the range HAS no conforming meaning to compile: the
+    /// specified set of statements (§14.9.28.4 GR4) runs from the first statement of procedure-name-1 to the
+    /// last of procedure-name-2, and across that boundary the intervening procedures belong to a different USE
+    /// procedure or to none. Accepted, it produced a program that recursed until the CLR killed it, with no
+    /// diagnostic at any <c>--std</c> (kb/Work PB433). Every edition: the rule is unchanged from COBOL-85.</para></summary>
+    public static readonly DiagnosticDescriptor PerformRangeDeclaratives = new(
+        "COBOLNET2186", "perform-range-declaratives", EditionSeverity.Error,
+        "A PERFORM THRU range crosses the declaratives boundary or two declarative sections.",
+        "ISO §14.9.28.3");
+
+    /// <summary>A <c>&gt;&gt;TURN</c>, <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> directive is written lexically
+    /// within an exception-checking (Format-3) PERFORM statement — §7.3.25.3 SR5, §7.3.22.3 SR4 and §7.3.20.3
+    /// SR4, three syntax rules of one shape.
+    /// <para>A SUPPRESSIBLE WARNING and not an error, by owner decision D20 (2026-07-19), which also fixed the
+    /// ban as FLAT — the whole statement, imperative-statement-1 included: §4.2.2 requires for a violation of the
+    /// syntax rules only "a warning mechanism that optionally may be invoked by the user at compile time", and
+    /// §14.9.28.4 GR14's semantics are implemented for the accepted case, so the program compiles and runs. The
+    /// warning is worth its weight because GR14 brackets the statement in an implicit PUSH ALL + TURN OFF ALL …
+    /// POP ALL: a user's <c>&gt;&gt;TURN … ON</c> inside that bracket is unwound at END-PERFORM while
+    /// §7.3.25.4 GR6 leads a reader to expect it to persist, and the surprise is otherwise delivered at run time,
+    /// in exception-checking state (kb/Work PB595).</para></summary>
+    public static readonly DiagnosticDescriptor DirectiveInExceptionCheckingPerform = new(
+        "COBOLNET2187", "directive-in-exception-checking-perform", EditionSeverity.Warning,
+        "A TURN, PUSH or POP directive is written inside an exception-checking PERFORM statement.",
+        "ISO §7.3.25.3 / §7.3.22.3 / §7.3.20.3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

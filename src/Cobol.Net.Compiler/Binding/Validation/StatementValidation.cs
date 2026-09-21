@@ -202,6 +202,60 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ ISO §14.9.28.3 SR11 — the DECLARATIVES constraint on a <c>procedure-name-1 THRU
+    /// procedure-name-2</c> range (kb/Work PB433): "When procedure-name-1 and procedure-name-2 are both
+    /// specified and either is the name of a procedure in the declaratives portion of the procedure division,
+    /// both shall be procedure-names in the same declarative section."
+    /// <para>⛔ ONE PREDICATE, BOTH HALVES. The rule has two failing shapes and a smallest-diff fix sees only
+    /// the loud one: a range with ONE end in the declaratives (which the positional dispatcher runs off the end
+    /// of the declarative section and into whatever physically follows — including the PERFORM itself, so the
+    /// run unit dies of a stack overflow with no diagnostic), and a range whose two ends are in DIFFERENT
+    /// declarative sections (which runs quietly and wrongly, since the two sections carry different USE
+    /// dispatch). Both are "the two ends are not procedures of the same declarative section", so both are this
+    /// one test — asked of the SECTION each end resolved from, never of pc arithmetic.</para>
+    /// <para>The test is section IDENTITY, not name equality: <see cref="Procedure.SectionInfo"/> is the
+    /// collected object, one per declarative section, so two sections that share a spelling (which
+    /// §8.4.2.2.1 would already have made an ambiguous reference) cannot pass by accident.</para>
+    /// <para>⛔ CHECKED WHERE BOTH ENDS ARE STILL RESOLUTIONS. After <see cref="PcRange.Through"/> composes the
+    /// range there is only a pc pair, and which section each end came from is gone — which is why the rule was
+    /// implemented nowhere and why <see cref="Procedure.ResolvedProcedure"/> carries the section.</para>
+    /// <para>Every edition: the rule is COBOL-85's PERFORM declaratives constraint carried unchanged through
+    /// 2002/2014/2023, so there is no introduction gate and the diagnostic fires at every <c>--std</c>.</para></summary>
+    /// <param name="first">The resolved procedure-name-1.</param>
+    /// <param name="thru">The resolved procedure-name-2.</param>
+    /// <param name="name1">Procedure-name-1 as written, for the message.</param>
+    /// <param name="name2">Procedure-name-2 as written, for the message.</param>
+    /// <param name="verb">The statement naming the range, for the message (PERFORM).</param>
+    /// <returns>True when the range conforms; false HAVING REPORTED.</returns>
+    public bool CheckDeclarativesRange(
+        ResolvedProcedure first, ResolvedProcedure thru, string name1, string name2, string verb)
+    {
+        // Neither end is in the declaratives portion — SR11's antecedent ("either is the name of a procedure in
+        // the declaratives portion") is false and the rule says nothing about the range.
+        if (!first.IsDeclarative && !thru.IsDeclarative) return true;
+        // Either end is: then BOTH shall be procedure-names in the SAME declarative section. One object.
+        if (ReferenceEquals(first.Section, thru.Section)) return true;
+
+        data.Edition.Error(DiagnosticCatalog.PerformRangeDeclaratives,
+            $"{verb} '{name1}' THRU '{name2}': {Portion(first, name1)} and {Portion(thru, name2)}, so the range "
+            + "straddles a boundary the standard does not admit — \"When procedure-name-1 and procedure-name-2 "
+            + "are both specified and either is the name of a procedure in the declaratives portion of the "
+            + "procedure division, both shall be procedure-names in the same declarative section\" (ISO "
+            + "§14.9.28.3 SR11). The range is a SEQUENCE of procedures (§14.9.28.4 GR4 — \"all statements "
+            + "beginning with the first statement of procedure-name-1 and ending with the last statement of "
+            + "procedure-name-2\"), and the procedures between the two ends here belong to a different USE "
+            + "procedure, or to none. Perform the declarative range and the nondeclarative range separately, "
+            + "or name two procedures of the one declarative section.");
+        return false;
+    }
+
+    /// <summary>One end of a procedure range, described the way SR11 divides them: the declarative section it
+    /// belongs to, or the nondeclarative portion (ISO §14.3).</summary>
+    private static string Portion(ResolvedProcedure end, string name) =>
+        end.Section is { IsDeclarative: true } s
+            ? $"'{name}' is a procedure of declarative section '{s.Name}'"
+            : $"'{name}' is in the nondeclarative portion of the procedure division";
+
     /// <summary>⛔ ISO §14.9.39.3 SR6 — "Condition-name-1 shall be associated with a conditional variable"
     /// (kb/Work PB390), the Format-4 <c>SET condition-name-1 … TO TRUE</c> operand rule. COBOL has TWO kinds of
     /// condition-name (§8.4.4): one associated with a CONDITIONAL VARIABLE (a level-88 entry) and one

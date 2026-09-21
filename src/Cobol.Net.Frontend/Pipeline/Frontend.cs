@@ -88,9 +88,16 @@ public sealed class Frontend
     /// (§15.3.3.3) and standard numeric time form is bounded at 86,401 (§7.3.17.4 GR4).</summary>
     public bool LeapSecondOn { get; private set; }
 
+    /// <summary>The POSITION-RULED directive sites of the LAST parsed source (ISO §7.3.20.3 SR4, §7.3.22.3 SR4,
+    /// §7.3.25.3 SR5): WHERE each <c>&gt;&gt;TURN</c> / <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> was written, in
+    /// the final line frame, for the ONE lexical-containment predicate that decides all three bans (owner
+    /// decision D20; kb/Work PB595).</summary>
+    public IReadOnlyList<DirectiveSite> DirectiveSites { get; private set; } = [];
+
     /// <summary>EVERY directive-derived fact the binder consumes, as ONE record (kb/Work PB65 — the fifth
     /// positional parameter on <c>Bind</c> was the growing-list shape). Reflects the LAST parsed source.</summary>
-    public DirectiveResults Directives => new(TurnEvents, RefModZeroLengthEvents, FlagEvents, CobolWordsMap, LeapSecondOn);
+    public DirectiveResults Directives =>
+        new(TurnEvents, RefModZeroLengthEvents, FlagEvents, CobolWordsMap, LeapSecondOn, DirectiveSites);
 
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
@@ -145,6 +152,17 @@ public sealed class Frontend
                     "NistPreprocessor changed the line count — the source-line map would misattribute every later line (kb/Work PB82)");
         }
 
+        // The POSITION-RULED directive sites (ISO §7.3.20.3 SR4 / §7.3.22.3 SR4 / §7.3.25.3 SR5) — recorded
+        // BEFORE the TURN stage blanks its lines, so all three words are still in the text and ONE scan answers
+        // "where was a TURN / PUSH / POP written" for the binder's single lexical-containment predicate (owner
+        // decision D20; kb/Work PB595). It also consumes the >>PUSH / >>POP lines, which the conditional-
+        // compilation driver now leaves for it (LeftDirectives) because that driver runs before COPY has settled
+        // the line frame and cannot name the resultant line a directive ended on. Line-count preserving.
+        (text, DirectiveSites) = DirectiveSiteProcessor.Process(text);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "DirectiveSiteProcessor changed the line count — every directive site would misanchor (hazard H3)");
+
         // >>TURN directive collection runs LAST — after COPY (so copybook TURNs are seen) and after the
         // line-count-neutral NIST substitution — on the FINAL text, so each TurnEvent.Line is directly
         // comparable to the parser tokens' Start.Line (the TurnState anchor, deep-dive D10 / hazard H3).
@@ -195,15 +213,21 @@ public sealed class Frontend
     }
 
     /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
-    /// dedicated stages above — ONE list, in the order those stages run (TURN, PROPAGATE, REF-MOD-ZERO-LENGTH,
-    /// FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive with behavior is one entry here plus its stage.
+    /// dedicated stages above — ONE list, in the order those stages run (PUSH / POP / TURN for the site scan,
+    /// then TURN, PROPAGATE, REF-MOD-ZERO-LENGTH, FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive
+    /// with behavior is one entry here plus its stage.
+    /// <para>PUSH and POP are here for their POSITION, not yet for their behavior: §7.3.22.3 SR4 and §7.3.20.3
+    /// SR4 are rules about WHERE they are written, and only the final line frame can say (kb/Work PB595). The
+    /// driver used to consume them; <see cref="Preprocessor.DirectiveSiteProcessor"/> records the site and
+    /// consumes them there instead, which is also where their §7.3.20 / §7.3.22 directive-state semantics land
+    /// when they are implemented.</para>
     /// This set answers WHICH STAGE OWNS THE LINE and nothing else: every word in it is also a
     /// <c>CompilerDirectiveCatalog</c> row, and the EDITION question was already answered by the driver before the
     /// line reached these stages (kb/Work PB725), which is why none of them takes a dialect any more.
     /// <c>CompilerDirectiveCatalogDriftTests</c> asserts the subset relation.</summary>
     public static readonly IReadOnlySet<string> LeftDirectives = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "TURN", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "COBOL-WORDS", "LEAP-SECOND",
+        "TURN", "PUSH", "POP", "PROPAGATE", "REF-MOD-ZERO-LENGTH", "FLAG-02", "FLAG-14", "COBOL-WORDS", "LEAP-SECOND",
     };
 
     private static int CountLines(string s) => s.Count(c => c == '\n');

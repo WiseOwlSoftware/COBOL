@@ -1222,7 +1222,11 @@
   "pb890-value-alphabet-without-through",
   "pb559-value-connective-crossed",
   "pb559-value-format1-values",
-  "pb450-set-false-in-second-group-below-2002"
+  "pb450-set-false-in-second-group-below-2002",
+  "pb441-f3-perform-below-2023",
+  "pb395-turn-data-incompatible-below-2002",
+  "pb433-perform-range-straddles-declaratives",
+  "pb433-perform-range-two-declarative-sections"
  ],
  "pending": []
 }

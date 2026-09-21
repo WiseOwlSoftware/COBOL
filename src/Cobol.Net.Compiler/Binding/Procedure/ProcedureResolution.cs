@@ -34,9 +34,31 @@ internal enum ProcedureAmbiguityRule
 internal readonly record struct ProcedureAmbiguity(
     ProcedureAmbiguityRule Rule, string Name, IReadOnlyList<string> Candidates, string? Section = null);
 
-/// <summary>The outcome of resolving one procedure-name reference: a pc range, or nothing plus (when the
-/// reference identified MORE than one procedure rather than none) the reason.
+/// <summary>A procedure-name reference that RESOLVED — the whole answer, not a naked pc pair: the inclusive pc
+/// <paramref name="Range"/> the reference denotes, plus the <paramref name="Section"/> that OWNS the denoted
+/// procedure (the section itself for a section-name; the containing section for a paragraph; null for a
+/// paragraph written outside every section).
+/// <para>⛔ THE SECTION TRAVELS WITH THE RESOLUTION (kb/Work PB433). A pc pair has already discarded which
+/// section the name came from, and several rules are written about exactly that — ISO §14.9.28.3 SR11 ("When
+/// procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in the
+/// declaratives portion of the procedure division, both shall be procedure-names in the same declarative
+/// section") and the analogous constraints on GO TO, ALTER and the SORT/MERGE procedure phrases. A check bolted
+/// on after the fact must re-derive the section from the numbers, and every later rule re-derives it
+/// again.</para></summary>
+internal readonly record struct ResolvedProcedure(PcRange Range, SectionInfo? Section)
+{
+    /// <summary>Is the denoted procedure in the DECLARATIVES portion (ISO §14.3)? A paragraph outside every
+    /// section cannot be: the declaratives portion consists of sections (§14.3 format).</summary>
+    public bool IsDeclarative => Section is { IsDeclarative: true };
+}
+
+/// <summary>The outcome of resolving one procedure-name reference: the resolved procedure, or nothing plus (when
+/// the reference identified MORE than one procedure rather than none) the reason.
 /// <para>⛔ Both null is "no procedure of that name" — the COBOLNET1639 case. A non-null
 /// <paramref name="Ambiguity"/> is the opposite failure, and the two must not be collapsed: telling a user that
 /// no paragraph carries a name their program declares twice sends them looking for the wrong thing.</para></summary>
-internal readonly record struct ProcedureResolution(PcRange? Range, ProcedureAmbiguity? Ambiguity);
+internal readonly record struct ProcedureResolution(ResolvedProcedure? Procedure, ProcedureAmbiguity? Ambiguity)
+{
+    /// <summary>The pc range alone — what the QUIET prescan path and the range-only operands want.</summary>
+    public PcRange? Range => Procedure?.Range;
+}

@@ -164,9 +164,16 @@ internal sealed partial class EcBinder
                 : ml.I_O() is not null ? "I-O" : ml.EXTEND() is not null ? "EXTEND" : null;
             if (mode is not null)
             {
-                // The open-mode operand form's runtime match (by the raising file's current open mode) is an
-                // additional staged sub-GAP beyond the general interception (§5.4-1) — covered by the one
-                // COBOLNET0899 raised at the top of EcBindExceptionPerform.
+                // The open-mode operand form is IMPLEMENTED, and this comment used to say otherwise (kb/Work
+                // PB595's second finding, re-probed 2026-09-21): it called the runtime match a staged sub-GAP
+                // "covered by the one COBOLNET0899 raised at the top of EcBindExceptionPerform", and no
+                // COBOLNET0899 is raised anywhere on the Format-3 path any more — the F3-in-a-method staged
+                // reject that used to raise it was lifted (see above). The match itself lives where §14.9.28.4
+                // GR17 puts it, at the raise site, through the USE tiers ("The rules for determining a match are
+                // specified in General rules 3a to 3g of the USE statement"): ControlFlowEmitter emits this form
+                // as the GR3b tier-1 arm, `IsIoName(__ec) && __f is not null && OpenModeOf(__f) == <mode>`.
+                // Measured: a READ past end-of-file inside `PERFORM … WHEN EXCEPTION INPUT` runs the handler.
+                // What this arm contributes at BIND time is the GR14 overlay enable for EC-I-O over imp-1.
                 overlay.Add(("EC-I-O", null));   // enable EC-I-O checking over imp-1 for the eventual runtime
                 return (mode, ops);
             }
@@ -317,7 +324,73 @@ internal sealed partial class EcBinder
         foreach (var _ in regionD.SelectMany(Descendants<Core.RaiseStatementContext>))
             ctx.Edition.Error("COBOLNET1611", "RAISE shall appear only in imperative-statement-1 of an "
                 + "exception-checking PERFORM (ISO §14.9.29.3 SR4)");
+
+        CheckDirectiveBans(p);   // region B, by LINE — a directive is not in the parse tree
     }
+
+    /// <summary>The three COMPILER-DIRECTIVE bans on region B (the whole PERFORM), as ONE lexical-containment
+    /// test — owner decision D20 (2026-07-19), which settled both the reading and the shape:
+    /// <list type="bullet">
+    /// <item>ISO §7.3.25.3 SR5 — "A TURN directive shall not be specified within an exception processing PERFORM
+    /// statement."</item>
+    /// <item>ISO §7.3.22.3 SR4 — "The PUSH directive shall not be specified within an exception checking PERFORM
+    /// statement."</item>
+    /// <item>ISO §7.3.20.3 SR4 — "The POP directive shall not be specified within an exception checking PERFORM
+    /// statement."</item>
+    /// </list>
+    /// <para><b>FLAT BAN, SUPPRESSIBLE WARNING</b> (D20). The ban covers the WHOLE statement —
+    /// imperative-statement-1 included, not only the handler phrases — because Annex D.16.4 uses "exception-
+    /// processing PERFORM statement" for the PUSH/POP ban that is stated normatively as "exception checking", so
+    /// the two phrasings are drafting synonyms and the narrow reading's sole tie-breaker fails. The program still
+    /// COMPILES: §4.2.2 requires only "a warning mechanism that optionally may be invoked by the user at compile
+    /// time to indicate violations of the general formats" for a syntax rule of this kind, and §14.9.28.4 GR14's
+    /// semantics are implemented for the accepted case.</para>
+    /// <para>⛔ BY LINE, AND THAT IS NOT A SHORTCUT. A compiler directive is removed by the preprocessor and is
+    /// in no parse tree, so "lexically within this statement" is a question about POSITIONS — which is why the
+    /// sites are recorded on the FINAL text (<c>DirectiveSiteProcessor</c>), the one frame where a directive line
+    /// and a token line are the same number. ONE predicate, three directive words: a fourth directive with a
+    /// position rule is one entry in <c>DirectiveSiteProcessor.PositionRuled</c> plus one row below.</para></summary>
+    private void CheckDirectiveBans(Core.PerformStatementContext p)
+    {
+        if (ctx.EcState.DirectiveSites.Count == 0) return;
+        int first = p.Start.Line, last = p.Stop.Line;
+        foreach (var site in ctx.EcState.DirectiveSites)
+        {
+            if (site.Line < first || site.Line > last) continue;
+            var ban = Array.Find(DirectiveBans,
+                b => string.Equals(b.Word, site.Word, StringComparison.OrdinalIgnoreCase));
+            if (ban.Word is null) continue;   // a position-ruled word this statement's rules do not ban
+            // Nested Format-3 PERFORMs contain the same directive line; the rule is about the DIRECTIVE, so it
+            // is one violation and one warning, reported by whichever bind reaches it first.
+            if (!ctx.EcState.ReportedDirectiveBans.Add(site.Line)) continue;
+            ctx.Edition.Warning(DiagnosticCatalog.DirectiveInExceptionCheckingPerform,
+                $"the >>{site.Word} directive on line {site.Line} is written within an exception-checking "
+                + $"(Format-3) PERFORM statement — \"{ban.Text}\" (ISO {ban.Clause} {ban.Rule}). The program "
+                + "still compiles (ISO §4.2.2 requires a compile-time warning mechanism for a violation of the "
+                + "syntax rules, not rejection). The checking state inside this statement is not the state the "
+                + "surrounding text reads as: §14.9.28.4 GR14 assumes \"an implicit PUSH ALL followed by TURN "
+                + "OFF ALL … at the end of imperative-statement-1\" and \"immediately preceding the END PERFORM "
+                + "phrase … an implicit POP ALL\", so a directive written in a WHEN or FINALLY phrase is "
+                + "discarded by that POP ALL instead of enabling checking \"for the procedure division "
+                + "statements … that follow in the compilation group\" (§7.3.25.4 GR6), and one written in "
+                + "imperative-statement-1 competes with the implicit TURN directives GR14 assumes around it. "
+                + "Write it before the PERFORM, or after END-PERFORM.");
+        }
+    }
+
+    /// <summary>⛔ ONE ROW PER BANNED DIRECTIVE — the three syntax rules as DATA, each with its own clause and
+    /// its own words, so the diagnostic quotes the rule the programmer broke rather than an intersection of the
+    /// three (the CorrespondingOperandRule discipline). D20 requires one predicate for all three; it does not
+    /// require one sentence for all three.</summary>
+    private static readonly (string Word, string Clause, string Rule, string Text)[] DirectiveBans =
+    [
+        ("TURN", "§7.3.25.3", "SR5",
+            "A TURN directive shall not be specified within an exception processing PERFORM statement"),
+        ("PUSH", "§7.3.22.3", "SR4",
+            "The PUSH directive shall not be specified within an exception checking PERFORM statement"),
+        ("POP", "§7.3.20.3", "SR4",
+            "The POP directive shall not be specified within an exception checking PERFORM statement"),
+    ];
 
     private static IEnumerable<T> Descendants<T>(IParseTree node) where T : class
     {

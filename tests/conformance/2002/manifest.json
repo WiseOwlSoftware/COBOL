@@ -307,7 +307,9 @@
   "pb557_pointer_class_initial_value_is_null",
   "pb499_table_value_by_section_2002",
   "pb499_table_value_linkage_and_file_2002",
-  "pb450_set_condition_mixed_groups"
+  "pb450_set_condition_mixed_groups",
+  "pb395_goto_depending_incompatible",
+  "pb395_subtract_incompatible_sender"
   ],
   "pending": []
 }

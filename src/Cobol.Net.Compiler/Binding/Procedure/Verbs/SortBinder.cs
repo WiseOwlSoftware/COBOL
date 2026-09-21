@@ -559,9 +559,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // into the ONE procedure-name resolution, which also ends a small lie: the caller used to report
         // procedureName(0) whichever of the two names had failed, so a bad THRU name accused the good one.
         if (ctx.Table.ResolveProcedureOperand(names[0], phrase) is not { } first) return null;
-        if (names.Length < 2) return first;
+        if (names.Length < 2) return first.Range;
         if (ctx.Table.ResolveProcedureOperand(names[1], phrase + " THRU") is not { } thru) return null;
-        return first.Through(thru);   // GR4-style composition, EMPTY-aware (kb/Work PB440)
+        return first.Range.Through(thru.Range);   // GR4-style composition, EMPTY-aware (kb/Work PB440)
     }
 
     /// <summary>The varying-record model of an SD/FD for the sort verbs (§13.18.43 GR13/GR15), with the DEPENDING
