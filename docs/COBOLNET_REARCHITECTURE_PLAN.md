@@ -2086,12 +2086,12 @@ result. Run the long legs ONE AT A TIME.
   the number INSIDE a right clause: FORMAT (no such general format) · FORMAT-RULE (the rule is printed under a
   DIFFERENT format banner than the one cited beside it) · FORMAT-NAME (the line names one format and cites
   another) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
-  `(ISO §14.9.18 SR)` names no rule at all; kb/Work PB838) — baseline **ZERO findings** over 4529
+  `(ISO §14.9.18 SR)` names no rule at all; kb/Work PB838) — baseline **ZERO findings** over 4584
   files, `--self-test` PASS. The ordinal family is LINE-based, so a citation inside a DIAGNOSTIC MESSAGE STRING is under the gate
   for the first time; two of PB388's defects lived exactly there. Two further ordinal checks — RULE (the clause
   has no such rule number) and SUBITEM (that rule has no sub-items) — plus DIAG-UNQUALIFIED (a
   message string citing a construct clause where the rules live in its `.3`/`.4` child) — are sound and
-  NOT yet gating: **330 on 2026-09-21** (160 DIAG-UNQUALIFIED · 102 RULE · 68 SUBITEM), each
+  NOT yet gating: **328 on 2026-09-21, re-measured on train 43's merged tree** (155 DIAG-UNQUALIFIED · 105 RULE · 68 SUBITEM), each
   needing its own derivation. They print their count PER FAMILY on every gate run and `--check-all`
   gates on them. ⛔ The ordinal arm's attribution carries a VETO since kb/Work PB900: a rule
   designator is written once and referred BACK to in the same sentence, so a finding is dropped when
@@ -2100,7 +2100,7 @@ result. Run the long legs ONE AT A TIME.
   before the build and `scripts/battery.sh` PHASE -1; deliberately NOT in CI, where `submodules: false`
   makes the spec absent and PHANTOM would SKIP. **Its sibling `python scripts/spec/audit_doc_citations.py
   --check` (a QUOTED fragment vs the clause it is filed under) now sits in the same three seats and at the
-  same baseline — 509 citations checked, 462 correct, ZERO MISFILED and ZERO ELIDED, `--self-test`
+  same baseline — 516 citations checked, 469 correct, ZERO MISFILED and ZERO ELIDED, `--self-test`
   PASS.** Its ELIDED arm (kb/Work PB900) gates on a quotation that is the clause's own sentence with
   words dropped. ⛔ **Both audits' `--self-test` ran in NO gate until 2026-09-21** — only `--check`
   did, which is how ELIDED could be added and driven by nothing; `CitationAuditSelfTestDriftTests`
