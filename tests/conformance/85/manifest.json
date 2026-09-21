@@ -117,7 +117,10 @@
   "pb450_set_outer_repetition",
   "pb433_perform_range_one_declarative_section",
   "pb527_picture_placement",
-  "pb501_condition_name_entry_format"
+  "pb501_condition_name_entry_format",
+  "pb922_exception_object_user_word_85",
+  "pb602_start_key_identity",
+  "pb896_zero_length_group_sender"
  ],
  "pending": []
 }

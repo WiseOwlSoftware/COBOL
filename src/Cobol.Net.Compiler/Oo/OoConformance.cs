@@ -486,7 +486,7 @@ public static class OoConformance
         // refused legal Table-16 crossings. The view's category comes from the ONE GR6 reader
         // (RefModPlace.CategoryOf); a view is elementary by definition, never a group.
         PicCategory? argCat = argPlace is RefModPlace rmp ? rmp.Category : arg.Pic?.Category;
-        bool argIsGroup = argPlace is not RefModPlace && arg.IsGroup;
+        bool argIsGroup = argPlace.DenotedItem is not null && arg.IsGroup;
 
         if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
         {

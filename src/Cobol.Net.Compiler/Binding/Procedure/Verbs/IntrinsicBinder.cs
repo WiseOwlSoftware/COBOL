@@ -1691,7 +1691,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // unreachable while no national-edited item could be declared at all.
         if (operands.Count > 0
             && (OperandCategory(operands[0]) is PicCategory.NumericEdited
-                || operands[0] is BoundFieldOperand { Place: not RefModPlace } f1
+                || operands[0] is BoundFieldOperand { Place.DenotedItem: not null } f1
                    && f1.Place.Item.Pic is { IsCharacterEdited: true }))
             ctx.Edition.Error("COBOLNET1627", $"FUNCTION {sig.Name} argument-1 is of an EDITED category; "
                 + "ISO §15.68.3 rule 1 admits category alphanumeric or national only");
@@ -1763,7 +1763,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // deliberately-unscreened function is unscreened for CLASS, not for this shape rule.
         if (sig.Name is not ("LENGTH" or "BYTE-LENGTH"))
             for (int i = 0; i < args.Count; i++)
-                if (args[i] is BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: true } g }
+                if (args[i] is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: true } g }
                     && IsVariableLengthGroup(g))
                     Report($"FUNCTION {sig.Name} argument-{i + 1} ('{g.CobolName}') is a variable-length "
                         + "group, which ISO §15.3 admits only where the function definition explicitly "
@@ -1835,7 +1835,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             var a = args[i];
             // r3 first: a numeric argument's own usage/sign/scale conditions.
-            if (a is BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } })
+            if (a is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } })
             {
                 if (np.Usage is not (Usage.Display or Usage.National))
                     report($"FUNCTION CONCAT argument-{i + 1} is a numeric item of usage {np.Usage}; ISO §15.18.3 r3 "

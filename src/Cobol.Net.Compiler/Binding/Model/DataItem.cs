@@ -752,6 +752,39 @@ public sealed class DataItem
         : HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(this))
         : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ImageWidth * (c.Occurs ?? 1));
 
+    /// <summary>⛔ <b>ISO §8.5.4's STEM, AS A STRUCTURE</b> — "A zero-length item is a data item or a literal
+    /// whose minimum length is zero and whose length at runtime is zero." This is the FIRST half, the only half
+    /// a description can answer; the second is a run-time test the emitter writes (kb/Work PB896).
+    /// <para>The clause then enumerates nine shapes, four of which are GROUPS — item 1 "a group data item
+    /// containing only an occurs-depending table in which the number of occurrences is zero", item 2 "a group
+    /// data item containing only a subordinate zero-length item", item 5 a zero-character-position
+    /// variable-length record, item 7 "a variable-length group containing only dynamic-capacity tables each of
+    /// whose current capacity is zero". They are not four cases: they are the ONE sum below reaching zero, which
+    /// is why this is written as the recurrence and not as four predicates (CLAUDE.md rule 5 — the shape that
+    /// makes the next case automatic). <c>ZeroLengthItemDriftTests</c> pins each of the enumerated shapes
+    /// against it.</para>
+    /// <para>It mirrors <see cref="ImageWidth"/> exactly — the same non-redefining children (§13.18.44: a
+    /// redefining child occupies no new storage), the same per-child occurrence multiplier — except that the
+    /// multiplier is the MINIMUM occurrence count: integer-1 of an <c>OCCURS … DEPENDING</c> (§13.18.38 SR16
+    /// allows 0) and zero for a DYNAMIC-capacity table (§8.5.1.9 — its current capacity starts at zero).</para></summary>
+    public bool MinimumLengthIsZero =>
+        // §8.5.4 items 3 and 4 — an ANY LENGTH or DYNAMIC LENGTH item has no minimum length of its own
+        // (§8.5.1.10; §13.18.2 GR1 makes an ANY LENGTH item the activating argument's length).
+        IsDynamicLength || IsAnyLength
+        || (IsElementary ? ElementaryImageWidth == 0
+            : Children.Where(c => c.RedefinesTargetName is null)
+                      .All(c => c.MinimumOccurrences == 0 || c.MinimumLengthIsZero));
+
+    /// <summary>The fewest occurrences this entry can have at run time — integer-1 of a Format-2
+    /// <c>OCCURS … DEPENDING ON</c> (ISO §13.18.38 SR16 permits zero), ZERO for a Format-4 DYNAMIC-capacity table
+    /// (§8.5.1.9 — the capacity varies and starts at none), and the fixed count otherwise. Read only by
+    /// <see cref="MinimumLengthIsZero"/>: <see cref="ImageWidth"/> deliberately uses the MAXIMUM, because
+    /// §8.5.1.8 fixes the allocated physical capacity at compile time.</summary>
+    private int MinimumOccurrences =>
+        OccursSpec is { IsDynamic: true } ? 0
+        : OccursSpec is { } os ? os.Min
+        : Occurs ?? 1;
+
     /// <summary>True when this subtree contains a <c>USAGE BIT</c> leaf — the gate that sends a group's width
     /// through the §8.5.1.6.3 bit walk (design D19, fix-queue PB43) instead of the plain character sum. It is the
     /// PROOF that the change is inert for bit-free programs, not an optimization.</summary>

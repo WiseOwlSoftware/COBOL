@@ -85,7 +85,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // elementary property, and §14.9.43.4 GR3a defines the transfer into identifier-3 "in accordance with the
         // MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group — including one holding
         // a BINARY/PACKED leaf (V59). Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.
-        if (!into.Item.IsGroup && into is not RefModPlace && !into.Item.StoreAsImage
+        if (!into.Item.IsGroup && into.DenotedItem is not null && !into.Item.StoreAsImage
             && into.Item.Pic is { } ip && ip.Usage is not (Usage.Display or Usage.National))
         {
             ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
@@ -166,7 +166,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // but returning only BoundUnsupported let the illegal program compile clean and throw when control
                 // reached the UNSTRING. Groups stay exempt — §14.9.43.4 GR3a's alphanumeric-MOVE semantics carry a
                 // group receiver, including one holding a BINARY/PACKED leaf (V59).
-                if (target is not RefModPlace && !target.Item.IsGroup && !UnstringReceiverAllowed(target.Item.Pic))
+                if (target.DenotedItem is not null && !target.Item.IsGroup && !UnstringReceiverAllowed(target.Item.Pic))
                 {
                     ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
                         $"UNSTRING INTO '{drefs[0].GetText()}' requires a usage-display alphabetic/alphanumeric/"

@@ -15,8 +15,53 @@ public abstract record Place
     /// <summary>The analyzed PICTURE of the location (<see langword="null"/> for a group item).</summary>
     public abstract PicInfo? Pic { get; }
 
-    /// <summary>The underlying bound data item this place refers to (carries category, scale, and the profile name).</summary>
+    /// <summary>The underlying bound data item this place refers to (carries category, scale, and the profile name).
+    /// <para>⛔ IT ANSWERS "WHAT ATTRIBUTES AND WHAT STORAGE", NEVER "WHICH DATA ITEM" — <see cref="DenotedItem"/>
+    /// answers the second question, and a screen that asks this one in its place gets the wrong answer for every
+    /// DECORATED reference (kb/Work PB602).</para></summary>
     public abstract DataItem Item { get; }
+
+    /// <summary>⛔ <b>THE DATA ITEM THIS REFERENCE DENOTES</b> — <see langword="null"/> when the reference denotes
+    /// a data item that NO data description entry declares (kb/Work PB602). It is the OTHER half of
+    /// <see cref="Item"/>, and the standard itself writes the two questions as two clauses of one sentence:
+    /// ISO §13.18.45.4 GR1 — "all of the data attributes of data-name-2 become the data attributes of data-name-1
+    /// <i>and the storage area occupied by data-name-2 becomes the storage area occupied by data-name-1</i>" — so
+    /// a level-66 alias has ANOTHER item's attributes and ANOTHER item's storage while being a data item of its
+    /// own. <see cref="Item"/> answers the attributes/storage half; this answers the identity half.
+    /// <para><b>Ask it for every rule of the form "shall BE the data item …".</b> §14.9.41.3 SR5 ("For relative
+    /// files, data-name-1, if specified, shall be the data item specified in the RELATIVE KEY clause in the
+    /// associated file control entry") and SR6's record-key arm are identities over DATA ITEMS. Asked of
+    /// <see cref="Item"/>, `START RLF KEY IS = WS-RK(1:2)` passed the screen and positioned the file on the
+    /// relative record number the key's first two characters spell — a silent wrong answer — and a non-THROUGH
+    /// `66 RK-ALIAS RENAMES WS-RK.` passed it too.</para>
+    /// <para><b>And for "is this a WHOLE item" too, which is the same question negated.</b> §8.4.3.3.4 GR5:
+    /// "Reference modification creates a unique data item that is a subset of the data item referenced by
+    /// identifier-1" — a unique item no entry declares, so a reference-modified place denotes nothing declarable
+    /// and answers <see langword="null"/>. That is what the hand-written <c>p is not RefModPlace</c> beside a
+    /// <c>p.Item.…</c> test was approximating at a dozen sites; each of those is one reading of this property.</para>
+    /// <para>⚠ A decoration that answers a question about the OPERAND rather than about its identity — an
+    /// occurs-depending extent, an as-if-elementary image view, a table(ALL) enumeration — FORWARDS, because the
+    /// reference still denotes the item underneath. The only kind whose decoration changes WHAT is denoted is
+    /// <see cref="RefModPlace"/>, which overrides to <see langword="null"/>; the only reference whose NAME denotes
+    /// another item is the non-THROUGH level-66 alias, which the resolver records in <see cref="DenotesAs"/>.
+    /// <c>PlaceDenotedItemDriftTests</c> holds the roster, so a new <c>Place</c> kind is a failing test rather
+    /// than a silent inherit.</para></summary>
+    public virtual DataItem? DenotedItem => DenotesAs ?? Item;
+
+    /// <summary>The data item the reference's own NAME denotes, when that is not the item whose attributes and
+    /// storage this place carries — set by the ONE resolver, and today exactly the non-THROUGH level-66 RENAMES
+    /// alias (kb/Work PB602).
+    /// <para>ISO §13.18.45.4 GR1: "When the THROUGH phrase is not specified, all of the data attributes of
+    /// data-name-2 become the data attributes of data-name-1 and the storage area occupied by data-name-2 becomes
+    /// the storage area occupied by data-name-1." The attributes and the storage are shared, so the alias resolves
+    /// to the renamed item's OWN place and every attribute, layout and codegen consumer keeps the answer it had;
+    /// the NAME is not shared, so the place must still be able to say which data item was written. Carried as an
+    /// init-only property rather than as another <c>Place</c> kind precisely because nothing about the ACCESS
+    /// changes — a new kind would have to be re-handled in every renderer arm to render identically.</para>
+    /// <para>⚠ It is not a general "rename this place" hook: a reference whose identity the DECORATION changes
+    /// (reference modification) overrides <see cref="DenotedItem"/> instead, because there is no declared item to
+    /// name.</para></summary>
+    public DataItem? DenotesAs { get; init; }
 
     /// <summary>⛔ THE PLACE WITH EVERY <see cref="PlaceDecorator"/> LAYER REMOVED — the innermost STORAGE place
     /// (kb/Work PB393). A consumer that switches on the storage FORM (member access · REDEFINES window ·
@@ -522,6 +567,37 @@ public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMemb
 }
 
 /// <summary>
+/// The predefined object reference <c>EXCEPTION-OBJECT</c> (ISO §8.4.3.6; kb/Work PB922) — the run unit's
+/// current exception object.
+/// <para><b>Why it is a place at all.</b> §8.4.3.6.3 SR2: "EXCEPTION-OBJECT is implicitly described as class
+/// object and category object reference, as an external data item, and as a universal object reference." It is a
+/// DATA REFERENCE the standard itself declares, and NO data description entry declares it — so a compiler whose
+/// resolver does not know it answers "'EXCEPTION-OBJECT' is not defined" about a name that is defined, and every
+/// legal sending use (<c>IF EXCEPTION-OBJECT = NULL</c>, an INVOKE receiver, a function argument) is refused as
+/// a typo. Resolved HERE, in the ONE resolver, every caller inherits the answer — which is why this sits beside
+/// <see cref="CapacityRegisterPlace"/> and <see cref="DebugRegisterPlace"/> rather than in a verb.</para>
+/// <para>A VIEW, never storage: §8.4.3.6.4 GR2 gives the run unit ONE instance of it, and GR1 makes its value
+/// "the current exception object … set to null" when none is associated — which is the runtime's
+/// <c>ExceptionState.ExceptionObject</c>. The C# text is produced by <c>CodeGen.PlaceRenderer</c>, never stored
+/// here (backend-neutral, the <see cref="CapacityRegisterPlace"/> precedent).</para>
+/// <para>⛔ READ-ONLY BY RULE. §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving operand"
+/// — is screened at the ONE receiving chokepoint (<c>ExpressionBinder.ResolveReceiving</c>) and at SET's own
+/// receiver list, so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop, exactly as it is
+/// for <see cref="DebugRegisterPlace"/>.</para>
+/// <see cref="RegisterItem"/> carries SR2's implicit description — a UNIVERSAL object reference
+/// (<c>ObjectRefDescriptor.Universal</c>) — so every class/category screen reads it like any other
+/// object-reference item.
+/// </summary>
+public sealed record ExceptionObjectPlace(DataItem RegisterItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => RegisterItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => RegisterItem;
+}
+
+/// <summary>
 /// One source reference-modification <c>(start : [length])</c>, reduced to its RENDERED index expressions — the
 /// ISO §8.4.3.3.2 general format read off the source, independent of WHAT is being modified. Produced by the ONE
 /// reader (<c>ReferenceResolver.ReadRefMod</c>, which accepts both source carriers: the DEFAULT-mode parsed
@@ -559,6 +635,14 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// is <see langword="false"/> for every ref-mod outside a <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> region — an
     /// init-only property (not a positional member) so existing deconstructions/constructions stay untouched.</summary>
     public bool AllowZeroLength { get; init; }
+
+    /// <summary>⛔ NOTHING A DATA DESCRIPTION ENTRY DECLARES — ISO §8.4.3.3.4 GR5: "Reference modification creates
+    /// a unique data item that is a subset of the data item referenced by identifier-1." The slice IS a data item,
+    /// and it is NOT <see cref="PlaceDecorator.Item"/> (which stays identifier-1, because GR6 takes the slice's
+    /// class/category/usage from it and the storage is identifier-1's). So every rule of the form "shall be the
+    /// data item …" — §14.9.41.3 SR5's RELATIVE KEY identity, SR6's record key, the arithmetic resultant screen —
+    /// must answer NO here, and every "is this a whole item" test is one reading of this (kb/Work PB602).</summary>
+    public override DataItem? DenotedItem => null;
 
     /// <summary>
     /// The CATEGORY of the unique data item reference modification creates — <b>ISO §8.4.3.3.4 GR6, verbatim</b>:
@@ -634,4 +718,38 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
         // rider, since PicCategory has no Alphabetic member.
         _ => inner.Category,
     };
+
+    /// <summary>⛔ <b>THE ONE READER for "the number of positions in the data item referenced by identifier-1"</b>
+    /// (ISO §8.4.3.3.4 GR5 b) and c), which bound leftmost-position and length by it) — the COUNT whose UNIT GR5 a)
+    /// fixes: "If the usage of identifier-1 is bit, positions used in evaluation are bit positions; otherwise,
+    /// positions used in evaluation are character positions." It is the maximum extent any slice of
+    /// <paramref name="inner"/> can have, and therefore the capacity §14.9.25.4 GR1's intermediate result item
+    /// needs (<c>SendingValueTemp.OfPlace</c>).
+    /// <para>⛔ NOT <see cref="DataItem.ImageWidth"/>, which is the item's OCCUPANCY in characters and answers a
+    /// different question for exactly the two shapes this reader exists for (kb/Work PB886): a <c>USAGE BIT</c>
+    /// item of <c>PIC 1(8)</c> occupies ONE character (§8.5.1.6.3 packs eight boolean positions into a byte) while
+    /// GR5 a) counts EIGHT positions, and a DYNAMIC LENGTH item occupies NONE statically (§8.5.1.10 — its current
+    /// length is a run-time value) while §8.5.1.10.4 makes a reference-modified one "a fixed-length data item whose
+    /// length is the dynamic-length elementary item's current length", bounded by the §13.18.19.4 GR2 LIMIT. Both
+    /// measured as a wrong answer: <c>MOVE BE(1:4) TO B1 B2</c> gave <c>1000</c> and <c>MOVE DL(2:5) TO D1 D2</c>
+    /// gave <c>B</c>, because a one-character capacity truncated the intermediate.</para>
+    /// <para>The BIT and NATIONAL position counts are read through <see cref="DataItem.OperandPic"/> — THE ONE
+    /// operand-category/length reader — so §13.18.29.4 GR1b/GR2b's as-if PICTURE answers for a bit group and a
+    /// national group, which §8.4.3.3.3 SR1's last sentence ("bit group items and national group items are treated
+    /// as elementary data items") requires. A variable-length group cannot be reference-modified at all (SR1's last
+    /// bullet), so no arm is owed one.</para></summary>
+    public static int PositionCount(DataItem inner) =>
+        // §8.5.1.10.4 + §13.18.19.4 GR2 — the current length is a run-time value; the LIMIT is its ceiling.
+        inner.IsDynamicLength ? Math.Max(0, inner.DynMaxSize)
+        // GR5 a) — bit positions under usage bit; a national item's character positions are its NATIONAL
+        // positions (D-N1: one UTF-16 code unit each), never the two bytes each occupies.
+        : inner.OperandPic is { Usage: Usage.Bit or Usage.National } p ? p.Length
+        // GR5 a)'s "otherwise" — character positions, which for every remaining shape (an alphanumeric or numeric
+        // elementary item under GR2's as-if alphanumeric redefinition, including its GR4 SIGN IS SEPARATE
+        // position, and an alphanumeric group) IS the item's character occupancy.
+        : inner.ImageWidth;
+
+    /// <summary>This view's <see cref="PositionCount"/> — the positions of the item reference modification indexes
+    /// (ISO §8.4.3.3.4 GR5).</summary>
+    public int InnerPositions => PositionCount(Inner.Item);
 }

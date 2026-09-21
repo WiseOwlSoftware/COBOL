@@ -431,7 +431,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 var td = tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal;
                 if (td.IsUniversal)
                 {
-                    w.Line(PlaceRenderer.Write(tp, "ExceptionState.ExceptionObject") + "   // SET universal TO EXCEPTION-OBJECT (§8.4.3.6)");
+                    w.Line(PlaceRenderer.Write(tp, RuntimeApi.ExceptionObjectRead) + "   // SET universal TO EXCEPTION-OBJECT (§8.4.3.6)");
                     continue;
                 }
                 string clr = tp.Item.Pic!.ClrType.TrimEnd('?');

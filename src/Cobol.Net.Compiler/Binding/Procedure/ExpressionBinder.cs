@@ -501,7 +501,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // index data item may be referenced in — and three of this window's sites (SET, SEARCH, a relation
         // condition) are on that list by name. Deriving SR10 from "class index is not class numeric" rejected
         // `SET IN1 TO IDN1` in eight NIST programs; the rule enumerates contexts, so the context has to answer.
-        bool indexItem = p is not RefModPlace && p.Item.Pic is { Usage: Usage.Index };
+        bool indexItem = p.DenotedItem is not null && p.Item.Pic is { Usage: Usage.Index };
         if (indexItem && rules.IndexDataItemAdmitted) return new BoundNumRef(p);
         if (rules.NumericClassScreen
             && !IntrinsicArgumentRules.IsArithmeticOperandClass(new BoundFieldOperand(p)))
@@ -679,6 +679,24 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + "only the input-output control system may change its value (ISO §13.18.34.4 GR7 b)");
             return null;
         }
+        // ⛔ THE FOURTH ARM OF THE SAME DISPATCH (kb/Work PB922). ISO §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall
+        // not be specified as a receiving operand" — is a rule about EVERY receiving operand in the language,
+        // not about SET, which is the one statement that had an arm for it. The name RESOLVES now (the resolver
+        // knows §8.4.3.6's predefined object reference), so without this screen a receiver would fall through to
+        // a place whose PlaceRenderer.Write is an internal-error backstop; before it resolved, the reference drew
+        // "'EXCEPTION-OBJECT' is not defined — Check the spelling, or declare the item" beside "'EXCEPTION-OBJECT'
+        // is a reserved word … and cannot be used as a user-defined word": two diagnostics that contradict each
+        // other, and neither of them the rule the program broke.
+        // ⛔ THE RESOLVER'S OWN PREDICATE, NOT A SECOND SPELLING TEST: it carries the §8.9/2002 edition gate, so
+        // a '85 program that legally declares `01 EXCEPTION-OBJECT PIC X(4).` keeps its ordinary receiving path.
+        if (ctx.Refs.IsExceptionObjectRegister(dref))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ExceptionObjectReceiving,
+                "EXCEPTION-OBJECT shall not be specified as a receiving operand (ISO §8.4.3.6.3 SR1) — it is "
+                + "the predefined object reference for the CURRENT exception object (§8.4.3.6.4 GR1), set by the "
+                + "run unit when an exception is raised");
+            return null;
+        }
         // A constant-name substitutes a LITERAL (ISO §13.10.3 SR2 / §13.10.4 GR1) — a literal can never be a
         // receiving operand; without this the name would fall to Refs.Resolve and fail as merely "unresolved".
         if (ctx.Data.ConstantOf(dref) is not null)
@@ -746,9 +764,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     internal Place? ScreenResultant(Place p, string refText, bool editedOk, string clause)
     {
         var pic = p.Item.Pic;
-        bool numeric = p is not RefModPlace && !p.Item.IsGroup
+        // ⛔ THE IDENTITY QUESTION, ASKED ONCE (kb/Work PB602). It used to be `p is not RefModPlace` — PB128's
+        // route AROUND the fact that a decorated place reported the item underneath — and §8.4.3.3.4 GR5's
+        // "unique data item that is a subset of the data item referenced by identifier-1" is now what
+        // Place.DenotedItem answers, for every screen that asks it, rather than once per caller.
+        bool numeric = p.DenotedItem is not null && !p.Item.IsGroup
             && pic is { Category: PicCategory.Numeric, Usage: not Usage.Index };
-        bool edited = p is not RefModPlace && !p.Item.IsGroup
+        bool edited = p.DenotedItem is not null && !p.Item.IsGroup
             && pic is { Category: PicCategory.NumericEdited };
         if (numeric || (edited && editedOk)) return p;
         string actual = p is RefModPlace ? "a reference-modified slice (category alphanumeric, §8.4.3.3.4 GR6c)"

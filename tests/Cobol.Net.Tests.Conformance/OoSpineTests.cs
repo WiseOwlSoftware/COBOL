@@ -2478,7 +2478,10 @@ public sealed class OoSpineTests
     [Theory]
     [InlineData("    RAISE NULL.", "COBOLNET0848")]
     [InlineData("    RAISE N4.", "COBOLNET0848")]
-    [InlineData("    SET EXCEPTION-OBJECT TO E.", "COBOLNET0848")]
+    // kb/Work PB922: ONE rule, ONE code. ISO §8.4.3.6.3 SR1 is a rule about EVERY receiving operand, so SET's
+    // arm now draws the SAME COBOLNET2196 the general receiving chokepoint does, and with SR1's own clause number
+    // (the message said §8.4.3.6, where cite.py --check FAILS).
+    [InlineData("    SET EXCEPTION-OBJECT TO E.", "COBOLNET2196")]
     public void RaiseObject_BindViolations(string stmt, string code)
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC13", "", stmt)), code);
 

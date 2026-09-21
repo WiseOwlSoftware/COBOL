@@ -44,6 +44,11 @@ public sealed class PlaceStorageFormSwitchDriftTests
         // catch-all is the very defect this detector exists for, and GR12 makes it a RECEIVER too.
         "ReportSumCounterPlace",
         "DebugRegisterPlace",
+        // The predefined object reference EXCEPTION-OBJECT (ISO §8.4.3.6.3 SR2; kb/Work PB922): a read-only VIEW
+        // over the run unit's one ExceptionState rather than program storage, but a LEAF exactly as the CAPACITY
+        // and DEBUG-ITEM registers are — a storage-form switch that meets it in a catch-all is this detector's
+        // subject.
+        "ExceptionObjectPlace",
     ];
 
     /// <summary>Switches that name a storage form, have a catch-all arm, and are neither

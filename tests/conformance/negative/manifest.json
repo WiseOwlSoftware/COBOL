@@ -19,6 +19,7 @@
   "pb531-picture-repetition-factor-negative",
   "pb531-picture-repetition-factor-signed",
   "pb531-picture-repetition-factor-zero",
+  "pb886-bit-refmod-below-2002",
   "pb531-picture-repetition-factor-constant",
   "pb532-picture-string-over-63",
   "pb531-picture-item-too-large",
@@ -1232,7 +1233,12 @@
   "pb527-picture-on-a-group",
   "pb501-condition-name-entry-has-no-name",
   "pb921-condition-name-numeric-edited-below-2023",
-  "pb921-report-numeric-edited-below-2023"
+  "pb921-report-numeric-edited-below-2023",
+  "pb922-exception-object-receiving",
+  "pb602-start-key-refmod-slice",
+  "pb602-start-key-renames-alias",
+  "pb896-variable-length-group-to-elementary",
+  "pb542-move-program-pointer-sender"
  ],
  "pending": []
 }

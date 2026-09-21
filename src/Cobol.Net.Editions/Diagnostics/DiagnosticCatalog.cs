@@ -4235,6 +4235,22 @@ public static class DiagnosticCatalog
         "COBOLNET2191", "picture-at-elementary-level", EditionSeverity.Error,
         "A PICTURE clause was specified on an entry that has subordinate entries.",
         "ISO §13.18.40.3 SR1 / §8.5.1.3.1");
+    /// <summary>EXCEPTION-OBJECT was written as a receiving operand. §8.4.3.6.3 SR1 states the rule for EVERY
+    /// receiving operand in the language — "EXCEPTION-OBJECT shall not be specified as a receiving operand" —
+    /// and §8.4.3.6.4 GR1 gives the reason: the predefined object reference denotes "the current exception
+    /// object", which the run unit sets when an exception is raised.
+    /// <para>⛔ IT EXISTS BECAUSE THE ARM WAS MISSING, NOT BECAUSE THE OUTCOME WAS (kb/Work PB922 — the
+    /// <c>LinageCounterReceiving</c> shape one dispatch later). Only SET asked the question; the general
+    /// receiving chokepoint did not, and neither did the resolver, so <c>MOVE U TO EXCEPTION-OBJECT</c> drew
+    /// COBOLNET1639 ("is not defined … Check the spelling, or declare the item") beside COBOLNET0901 ("is a
+    /// reserved word … cannot be used as a user-defined word") — two diagnostics that contradict each other,
+    /// and neither of them the rule that was broken.</para></summary>
+    public static readonly DiagnosticDescriptor ExceptionObjectReceiving = new(
+        "COBOLNET2196", "exception-object-receiving", EditionSeverity.Error,
+        "EXCEPTION-OBJECT is specified as a receiving operand. ISO §8.4.3.6.3 SR1: \"EXCEPTION-OBJECT shall not "
+        + "be specified as a receiving operand.\" It is the predefined object reference for the current "
+        + "exception object (§8.4.3.6.4 GR1), of which there is one instance in a run unit (GR2).",
+        "ISO §8.4.3.6.3 SR1 / §8.4.3.6.4");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -127,15 +127,30 @@ public static class MoveClassifier
     /// sender into <c>SendingValueTemp</c>'s dynamic-length carrier BEFORE constructing the move — and only when
     /// §8.5.4 lets that shape actually BE zero-length (<see cref="NeedsLengthFreeze"/>) — which GR1's own
     /// "evaluated only once" sentence requires anyway, and which is what makes reading the length here a
-    /// second time safe. The GROUP-shaped zero-length items (§8.5.4 items 2, 5 and 7) are NOT reached: they
-    /// send through §14.9.25.4 GR4's group move, whose kind GR1 would itself change, and their materialization
-    /// is <c>SendingValueTemp</c>'s recorded residue on row GR-14.9.25.4-1.</para>
+    /// second time safe.</para>
+    ///
+    /// <para>⛔ <b>AND THE GROUP-SHAPED ITEMS TOO, BECAUSE GR1 CHANGES THE MOVE'S KIND</b> (kb/Work PB896).
+    /// §8.5.4's items 1, 2, 5 and 7 make a GROUP a zero-length item, and this arm used to exclude them on the
+    /// grounds that they "send through §14.9.25.4 GR4's group move" — but that is the defect, not the reason:
+    /// GR1's substitution replaces identifier-1 with a zero-length LITERAL, and GR4's first sentence — "Any move
+    /// in which the sending operand is either a literal or an elementary item and the receiving item is an
+    /// elementary item is an elementary move" — then makes the statement an ELEMENTARY move. The KIND changes,
+    /// so the group path cannot carry the rule. Measured: <c>MOVE ZG TO R-NUM</c> with a zero-occurrence
+    /// occurs-depending group stored <c>000</c> where the identical <c>MOVE "" TO R-NUM</c> stores spaces, and
+    /// GR1 makes those two statements the same statement. The predicate is <see cref="DataItem.MinimumLengthIsZero"/>
+    /// — §8.5.4's stem read as one structure — never a copy of its four group bullets.</para>
+    /// <para>⚠ Which of the four is REACHABLE here is §14.9.25.3 SR9's business, not this rule's: a
+    /// VARIABLE-LENGTH group (items 5 and 7, and any group holding a dynamic-length member) may move only to or
+    /// from a compatible GROUP, so it never reaches an elementary receiver and COBOLNET1931 refuses it first.
+    /// Item 1 — the occurs-depending group with integer-1 zero — is the shape that gets here, and the predicate
+    /// covers the others without a second site if SR9 ever admits one.</para>
     /// </summary>
     public static Place? ZeroLengthItemRoute(BoundOperand source, Place target) =>
-        target is not RefModPlace
+        target.DenotedItem is not null
         && target.Item.OperandPic is { Category: PicCategory.Numeric or PicCategory.NumericEdited }
-        && source is BoundFieldOperand { Place: not RefModPlace } f
-        && f.Place.Item is { IsGroup: false } si && (si.IsDynamicLength || si.IsAnyLength)
+        && source is BoundFieldOperand { Place.DenotedItem: not null } f
+        && (f.Place.Item is { IsGroup: false } si ? si.IsDynamicLength || si.IsAnyLength
+                                                  : f.Place.Item.MinimumLengthIsZero)
             ? f.Place
             : null;
 
@@ -163,7 +178,7 @@ public static class MoveClassifier
     {
         if (!CanBeZeroLengthItem(source)) return false;
         foreach (var t in targets)
-            if (t is not RefModPlace
+            if (t.DenotedItem is not null
                 && t.Item.OperandPic is { Category: PicCategory.Numeric or PicCategory.NumericEdited })
                 return true;
         return false;
@@ -172,8 +187,9 @@ public static class MoveClassifier
     /// <summary>ISO §8.5.4's enumeration, asked of the two sending shapes whose length is NOT a stable field
     /// read — the only ones the freeze above exists for. The other §8.5.4 items need no intermediate: a DYNAMIC
     /// LENGTH or ANY LENGTH item (items 4 and 3) carries its own length field, which
-    /// <see cref="ZeroLengthItemRoute"/> reads directly, and the group-shaped ones (items 2, 5 and 7) send
-    /// through §14.9.25.4 GR4's group move instead.</summary>
+    /// <see cref="ZeroLengthItemRoute"/> reads directly, and the group-shaped ones (items 1, 2, 5 and 7) are a
+    /// field read too — their CURRENT EXTENT, which the same route tests in place — so none of them needs an
+    /// intermediate either (kb/Work PB896).</summary>
     private static bool CanBeZeroLengthItem(BoundOperand source) => source switch
     {
         // §8.5.4 item 9: "A reference-modified data item that has resolved to a length of zero, WHEN THAT HAS
@@ -201,7 +217,7 @@ public static class MoveClassifier
     /// zero-length sender legitimately leaves it empty). A ref-mod receiver is the elementary ALPHANUMERIC
     /// unique item of §8.4.3.3.4 GR6, never the dynamic-length item underneath it.</summary>
     private static bool IsDynamicLengthReceiver(Place target) =>
-        target is not RefModPlace && target.Item.IsDynamicLength;
+        target.DenotedItem is not null && target.Item.IsDynamicLength;
 
     /// <summary>The dispatch kind of storing <paramref name="source"/> into <paramref name="target"/> —
     /// EXACTLY the pre-P7.7 <c>EmitMove</c> dispatch order: ref-mod receiver → group receiver → group sender →

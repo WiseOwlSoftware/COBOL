@@ -943,11 +943,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
-            if (OoIsExceptionObject(t))
+            if (ctx.Refs.IsExceptionObjectRegister(t))
             {
-                ctx.Edition.Error("COBOLNET0848",
+                // ⛔ ONE RULE, ONE CODE (kb/Work PB922): the same §8.4.3.6.3 SR1 the general receiving chokepoint
+                // now screens (ExpressionBinder.ResolveReceiving). The clause number was §8.4.3.6 here and that
+                // is NOT where the rule is — `cite.py --check 8.4.3.6 "EXCEPTION-OBJECT shall not be specified as
+                // a receiving operand"` FAILS and `--check 8.4.3.6.3` passes as SR1.
+                ctx.Edition.Error(DiagnosticCatalog.ExceptionObjectReceiving,
                     "SET EXCEPTION-OBJECT: the predefined object reference shall not be a receiving "
-                    + "operand (ISO §8.4.3.6 SR1)");
+                    + "operand (ISO §8.4.3.6.3 SR1)");
                 return new BoundNop();
             }
             // ⛔ THREE ARMS, AND THE ORDER IS THE POINT — SR8 and "the name identifies nothing" are DIFFERENT
@@ -1070,8 +1074,21 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "or an arithmetic expression (ISO §14.9.39.2 Format 5, §14.9.39.3 SR9)");
                 return new BoundNop();
             }
-            // Probe — EXCEPTION-OBJECT below is a legal alternative (R30) — then RESOLVE to commit, because a
-            // probe's Place is unscreened and must never enter the bound tree (kb/Work PB221).
+            // ⛔ THE PREDEFINED REGISTER IS CLASSIFIED BEFORE THE GENERAL LOOKUP, and the ORDER is the rule
+            // (kb/Work PB922; the same order SetFormatSelection.KindOf keeps on the receiving side). It used to
+            // sit BELOW the resolved-sender arm and reach only because the resolver did not know the name — so
+            // the moment the resolver learned it (§8.4.3.6.3 SR2), the general arm claimed EXCEPTION-OBJECT and
+            // screened it against §14.9.39.3 SR12's closed list, refusing `SET <typed> TO EXCEPTION-OBJECT` at
+            // COMPILE time. That is a rejection of legal source: the register is implicitly UNIVERSAL, and a
+            // typed receiver is answered by the RUN-TIME narrow check below, not by SR12.
+            if (ctx.Refs.IsExceptionObjectRegister(senderRef))
+                // §8.4.3.6 — the predefined register (ONE per run unit, GR2; implicitly universal SR2):
+                // a universal target copies the reference; a TYPED target gets the RUNTIME narrow check
+                // in the emitter (§9.3.8.2 :12291 — EC-OO-UNIVERSAL on failure; the SR12 closed list is
+                // satisfied through the object-view-equivalent runtime conformance this register carries).
+                return new BoundSetObjectRef(targets, null, false, false) { FromExceptionObject = true };
+            // Probe, then RESOLVE to commit, because a probe's Place is unscreened and must never enter the
+            // bound tree (kb/Work PB221).
             var sniff = ctx.Refs.Probe(senderRef);
             if (sniff is { Item.Pic: { Category: PicCategory.ObjectReference } spic } sn
                 && ctx.Refs.Resolve(senderRef) is { } sp)
@@ -1086,12 +1103,6 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                             $"SET '{tp.Item.CobolName}' TO '{sn.Item.CobolName}': {werr}");
                 src = sp;
             }
-            else if (OoIsExceptionObject(senderRef))
-                // §8.4.3.6 — the predefined register (ONE per run unit, GR2; implicitly universal SR2):
-                // a universal target copies the reference; a TYPED target gets the RUNTIME narrow check
-                // in the emitter (§9.3.8.2 :12291 — EC-OO-UNIVERSAL on failure; the SR12 closed list is
-                // satisfied through the object-view-equivalent runtime conformance this register carries).
-                return new BoundSetObjectRef(targets, null, false, false) { FromExceptionObject = true };
             // SR13's class-name-1 sender is a source reference and takes the §8.4.6.4 scope (PB365).
             else if (senderRef.cobolWord()?.GetText() is { } sname
                      && Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, senderRef, sname,
@@ -1146,7 +1157,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetObjectRef(targets, src, senderNull, senderSelf) { SourceFactoryCs = srcFactoryClassCs };
     }
 
-    /// <summary>⛔ THE ONE TEST FOR THE PREDEFINED OBJECT REFERENCE <c>EXCEPTION-OBJECT</c> (ISO §8.4.3.6).
+    /// <summary>⛔ THE ONE SPELLING TEST for the predefined object reference <c>EXCEPTION-OBJECT</c>
+    /// (ISO §8.4.3.6).
     /// <para>It is a WORD, not a token: the grammar reserves NULL, SELF and SUPER (<c>objectReference</c>) but
     /// spells EXCEPTION-OBJECT as an ordinary <c>cobolWord</c>, so every reader of a written reference has to
     /// ask this question of the TEXT. §8.4.3.6.3 SR2 gives the answer's content — "EXCEPTION-OBJECT is
@@ -1154,11 +1166,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// universal object reference" — and because no data description entry declares it, a reader that does NOT
     /// ask gets "not defined" from the ordinary resolver, which is false about a name the standard declares.
     /// That was the shape of the false COBOLNET1639 on <c>SET EXCEPTION-OBJECT TO E</c>.</para>
-    /// <para>Written here, beside the binder that owns §8.4.3.6's rules, so the spelling is compared in ONE
-    /// place: this method's callers are the sender arm and the receiver arm of
-    /// <see cref="OoBindSetObjectRef"/> and <c>SetFormatSelection.KindOf</c>.</para></summary>
-    public static bool OoIsExceptionObject(Core.DataReferenceContext dref) =>
-        string.Equals(dref.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase);
+    /// <para>⛔ A WRITTEN REFERENCE IS NOT ASKED HERE — it is asked of
+    /// <c>ReferenceResolver.IsExceptionObjectRegister</c>, which adds the FORM and the EDITION to the spelling and
+    /// is what every binder calls. This overload exists for the one reader that has neither a parse context nor a
+    /// resolver: the §8.9 reserved-word funnel in <c>VersionConformancePass</c>, which sees an IDENTIFIER token.
+    /// Comparing the spelling in one place is the point — a hand-written <c>== "EXCEPTION-OBJECT"</c> is exactly
+    /// how the compiler came to hold three different opinions about what this name is (kb/Work PB922,
+    /// feedback_one_rule_one_place).</para></summary>
+    public static bool OoIsExceptionObject(string? word) =>
+        string.Equals(word, "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>True when an arithmetic expression is EXACTLY one bare data reference (the Format-5
     /// re-route's sender shape) — its single dataReference descendant spans the whole expression text.</summary>

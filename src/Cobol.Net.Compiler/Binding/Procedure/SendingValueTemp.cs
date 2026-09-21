@@ -60,11 +60,14 @@ namespace CobolNet.Binding.Procedure;
 ///     subscripted or function-identifier operand, a literal's value cannot change, and a figurative /
 ///     <c>ALL "literal"</c> operand has NO description of its own to clone: §8.3.3.6.4 GR2 sizes it from THE
 ///     RECEIVER, so materializing it at one receiver's width would corrupt the others.</item>
-///   <item>A <b>variable-length group</b> (§8.5.1.12) — the clone would carry an <c>OCCURS … DEPENDING ON</c>
-///     whose data-name still refers to the ORIGINAL program item, so the temp's extent would be re-read after
-///     the first store instead of frozen. That is the one sentence of GR1 this mechanism does not yet
-///     discharge ("The length of the data item referenced by identifier-1 is evaluated only once"), and it is
-///     recorded as UNVERIFIED on row GR-14.9.25.4-1 rather than silently claimed.</item>
+///   <item>A <b>variable-length group</b> (§8.5.1.12 — one with a dynamic-length elementary item or a
+///     dynamic-capacity table beneath it) — the clone carries neither the member's current length nor the
+///     table's capacity, so its extent would be a DIFFERENT number from the sender's rather than a frozen copy
+///     of it. That is the one shape of GR1's "The length of the data item referenced by identifier-1 is
+///     evaluated only once" this mechanism does not discharge, and it is recorded as the residual on row
+///     GR-14.9.25.4-1 rather than silently claimed. ⭐ An <c>OCCURS … DEPENDING ON</c> group IS discharged:
+///     its control value is an ordinary data item, so <see cref="FreezeOdoExtent"/> mints a second intermediate
+///     for it and points the clone's OCCURS at that (kb/Work PB394).</item>
 ///   <item>A <b>boolean expression</b> or an <b>error operand</b> — neither is a §14.9.25 sending operand this
 ///     path can reach with more than one use (a boolean-expression sender is COMPUTE Format 2's channel), and
 ///     an error operand was already diagnosed.</item>
@@ -99,6 +102,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     {
         if (Model(op) is not { } model) return null;
         var temp = ctx.Data.CreateCompilerTemp(model.Item, "__SENDVAL-", "__sendval", tag);
+        // ⛔ GR1's OTHER sentence, for a group whose extent is decided at run time: "The length of the data item
+        // referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of
+        // the receiving operands", and the paragraph after it names the mechanism — "The evaluation of the length
+        // of identifier-1 or identifier-2 may be affected by the DEPENDING ON phrase of the OCCURS clause". The
+        // clone carries the DESCRIPTION, so it has to carry the CONTROL VALUE too (kb/Work PB394).
+        if (!FreezeOdoExtent(temp, model.Item, tag)) return null;
         // The run-time-length attributes are not part of the cloned DESCRIPTION (CreateCompilerTemp copies the
         // PICTURE and the description clauses); §8.5.1.10 is a storage property, set here for the carrier shapes.
         // DynLimit 0 means "this clone is FIXED-length", not "a maximum size of zero" — the two are different
@@ -115,6 +124,51 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // states. The move itself is an identity copy by construction (the temp's description IS the sender's).
         ctx.Data.PendingPreOps.Add(new BoundMove(op, [place]));
         return place;
+    }
+
+    /// <summary>
+    /// ⛔ <b>THE EXTENT FREEZE</b> — §14.9.25.4 GR1's "The length of the data item referenced by identifier-1 is
+    /// evaluated only once, immediately before the data is moved to the first of the receiving operands", for the
+    /// one shape whose length is a run-time value the clone can hold: an <c>OCCURS … DEPENDING ON</c> table
+    /// (§13.18.38 Format 2) beneath the sending group. §13.18.38.4 GR8 a) makes the group's extent "only that part
+    /// of the table area that is specified by the value of the data item referenced by data-name-1", so the
+    /// intermediate's own extent has to be pinned to data-name-1's value AT THE HOIST, not to whatever the value
+    /// has become after the first receiver was stored.
+    ///
+    /// <para><b>What it does.</b> For every cloned node whose model carries a resolved DEPENDING item, a SECOND
+    /// compiler temp is minted from data-name-1's own description, a store of data-name-1 into it is registered as
+    /// a PRE-op <i>ahead of</i> the group store (<see cref="Materialize"/> adds the group store after this call
+    /// returns, so the order is the rule's own: freeze the length, then move the data), and the clone's
+    /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>ReferenceResolver.WrapIfOdoGroup</c>
+    /// reads to build the GR8 extent slice, so the temp's every use inherits the frozen length with no second
+    /// mechanism. The clone's <see cref="OccursSpec.DependingName"/> deliberately stays data-name-1 AS WRITTEN: it
+    /// is a description-clause fact (the temp's description IS identifier-1's, §14.9.25.4 GR1), nothing re-resolves
+    /// a name after <c>DataBinder.OdoResolve</c>, and the RESOLVED item is the only thing the extent is read from.</para>
+    ///
+    /// <para><b>Measured</b> (kb/Work PB394's own repro): a 3-of-5 <c>OCCURS 1 TO 5 DEPENDING ON N</c> group into
+    /// <c>N, Z</c> where <c>N</c> is the first receiver gave <c>Z=[1    ]</c> — the second receiver saw a
+    /// ONE-occurrence group — and gives <c>Z=[125  ]</c> once the extent is frozen.</para>
+    ///
+    /// <para>Returns <see langword="false"/> when data-name-1 cannot be resolved to a place of its own (it is
+    /// within a table, so a reference to it needs subscripts this hoist has none of) — the caller then leaves the
+    /// operand un-materialized, i.e. exactly the behaviour that stood before, rather than freezing it at a length
+    /// no rule gives.</para>
+    /// </summary>
+    private bool FreezeOdoExtent(DataItem temp, DataItem model, string tag)
+    {
+        if (model.OccursSpec is { Depending: { } dep } && temp.OccursSpec is { } clonedSpec)
+        {
+            if (ctx.Refs.ResolveItem(dep) is not { } depPlace) return false;
+            var frozen = ctx.Data.CreateCompilerTemp(dep, "__SENDODO-", "__sendodo", tag);
+            if (ctx.Refs.ResolveItem(frozen) is not { } frozenPlace) return false;
+            ctx.Data.PendingPreOps.Add(new BoundMove(new BoundFieldOperand(depPlace), [frozenPlace]));
+            clonedSpec.Depending = frozen;
+        }
+        // The clone is node-for-node the model's (DataBinder.CloneTempNode walks Children in order), so the
+        // parallel walk is exact; the bound is defensive only.
+        for (int i = 0; i < model.Children.Count && i < temp.Children.Count; i++)
+            if (!FreezeOdoExtent(temp.Children[i], model.Children[i], tag)) return false;
+        return true;
     }
 
     /// <summary>The intermediate result item's description: the cloned model plus, for a run-time-length
@@ -156,7 +210,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
                     Level = 1, CobolName = "__SENDVAL-REFMOD", CsName = "__sendvalRefMod",
                     Pic = new PicInfo(rm.Category, UsageOf(rm.Inner.Item), Length: 0, Digits: 0, Scale: 0, Signed: false),
                 },
-                DynLimit: Math.Max(1, rm.Inner.Item.ImageWidth));
+                // ⛔ THE CAPACITY IS COUNTED IN THE POSITIONS REFERENCE MODIFICATION INDEXES (§8.4.3.3.4 GR5 a),
+                // through the ONE reader — never in the item's character OCCUPANCY (kb/Work PB886). A slice of a
+                // USAGE BIT item may be up to its BOOLEAN-position count long and a slice of a DYNAMIC LENGTH item
+                // up to its §13.18.19.4 GR2 LIMIT, both of which ImageWidth answers with a smaller number (1 and 0),
+                // so the intermediate silently truncated the value it exists to preserve.
+                DynLimit: Math.Max(1, rm.InnerPositions));
         var item = place.Item;
         // A DYNAMIC-LENGTH elementary sender IS frozen exactly, by the carrier the standard defines for it:
         // §8.5.1.10.4 — "A dynamic-length elementary item that is used as a sending operand … is treated as a
@@ -165,22 +224,18 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // referenced by identifier-1 is evaluated only once" holds for it.
         if (item is { IsDynamicLength: true, IsGroup: false })
             return new TempModel(item, DynLimit: Math.Max(1, item.DynMaxSize));
-        // ⛔ A GROUP WITH A RUN-TIME EXTENT IS NOT FROZEN BY A CLONE, AND THAT IS MEASURED, NOT ASSUMED. The
-        // intermediate result item is a CLONED DESCRIPTION, and a description clone carries a length that is
-        // FIXED at compile time: an OCCURS DEPENDING member's clone would name data-name-1 with no resolved item
-        // (DataBinder.OdoResolve runs over the DATA DIVISION forest, long before any procedure-time temp exists)
-        // and so behaves as the §8.5.1.8 physical capacity, while a dynamic-length member's or dynamic-capacity
-        // table's clone carries neither the limit nor the capacity. The MAXIMUM extent is not the sender's
-        // length, and §14.9.25.4 GR1 requires the sender's: measured on this tree with a 3-of-5 occurs-depending
-        // group into a JUSTIFIED PIC X(5) receiver — the single-receiver path gives "  125" (§13.18.38.4 GR8 a)'s
-        // current extent, right-aligned by §13.18.34) and a maximum-extent intermediate gives "125  ".
-        // <para>So this shape is left UN-MATERIALIZED: its sending operand is still re-read per receiver, which
-        // is the pre-existing state of GR1's "The length of the data item referenced by identifier-1 is
-        // evaluated only once" for a variable-extent sender. Recorded as the residual on GR-14.9.25.4-1 rather
-        // than papered over with an intermediate whose length is a different number. Freezing it needs a SECOND
-        // temp holding data-name-1's value at the hoist, with the clone's OCCURS DEPENDING pointed at it — a
-        // change to the shared temp constructor, not to this switch.</para>
-        if (item.IsGroup && (VariableLengthCompatibility.IsVariableLength(item) || HasRunTimeExtent(item)))
+        // ⛔ A §8.5.1.12 VARIABLE-LENGTH GROUP IS STILL NOT FROZEN BY A CLONE, AND THAT IS MEASURED, NOT ASSUMED.
+        // The intermediate result item is a CLONED DESCRIPTION, and a clone of a dynamic-length member carries
+        // neither its limit nor its current length, while a dynamic-capacity table's clone starts at capacity zero
+        // (§8.5.1.9) and is not image-capable at all — so the clone's extent is a DIFFERENT number from the
+        // sender's, and §14.9.25.4 GR1 requires the sender's. Measured on this tree with a 3-of-5 occurs-depending
+        // group into a JUSTIFIED PIC X(5) receiver: the current-extent answer is "  125" (§13.18.38.4 GR8 a)'s
+        // extent, right-aligned by §13.18.34) and a maximum-extent intermediate gives "125  ".
+        // <para>So THIS shape is left UN-MATERIALIZED — its sending operand is still re-read per receiver, the
+        // pre-existing state — and is recorded as the residual on row GR-14.9.25.4-1 rather than papered over.
+        // The OCCURS DEPENDING shape, which used to share this arm, no longer does: its control value IS
+        // representable, and <see cref="FreezeOdoExtent"/> freezes it (kb/Work PB394).</para>
+        if (item.IsGroup && VariableLengthCompatibility.IsVariableLength(item))
             return null;
         return new TempModel(item, DynLimit: 0);
     }
@@ -227,18 +282,4 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// strongly-typed or variable-length group), where GR6 still owes the intermediate one.</para></summary>
     private static Usage UsageOf(DataItem inner) => ItemCategory.UsageOf(inner) ?? Usage.Display;
 
-    /// <summary>Does any subordinate give this group a length that is decided at RUN TIME — an OCCURS DEPENDING
-    /// or OCCURS DYNAMIC table (ISO §13.18.38 Formats 2 and 4), or a dynamic-length elementary item (§8.5.1.10)?
-    /// The last two also make it a §8.5.1.12.1 variable-length group; the FIRST does not, which is exactly why
-    /// this walk exists beside <c>VariableLengthCompatibility.IsVariableLength</c> rather than inside it — that
-    /// predicate answers §8.5.1.12's question about GR9 compatibility, and this one answers §14.9.25.4 GR1's
-    /// question about whether a cloned description can hold the sender's LENGTH.</summary>
-    private static bool HasRunTimeExtent(DataItem item)
-    {
-        foreach (var c in item.Children)
-            if (c.IsDynamicLength || c.OccursSpec is { DependingName: not null } or { IsDynamic: true }
-                || HasRunTimeExtent(c))
-                return true;
-        return false;
-    }
 }

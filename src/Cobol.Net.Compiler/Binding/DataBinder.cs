@@ -274,6 +274,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public IReadOnlyDictionary<string, (DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
     private readonly Dictionary<string, (DataItem, DebugRegisterMember)> _debugRegisters = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>The implicit description of the predefined object reference <c>EXCEPTION-OBJECT</c>
+    /// (ISO §8.4.3.6.3 SR2 — "EXCEPTION-OBJECT is implicitly described as class object and category object
+    /// reference, as an external data item, and as a universal object reference"; kb/Work PB922), synthesized on
+    /// first reference and shared thereafter: §8.4.3.6.4 GR2 gives the run unit ONE instance of it.
+    /// <para>Kept OFF <see cref="ByName"/> / <see cref="Roots"/>, exactly like <see cref="DebugRegisters"/> and
+    /// the CAPACITY register — it is not storage this program declares or emits; the resolver builds an
+    /// <see cref="ExceptionObjectPlace"/> VIEW over the runtime's one instance. It is a DESCRIPTION carrier only,
+    /// so every class/category screen (§14.9.25.3 SR1's "shall not be … object", a relation condition's operand
+    /// class, an argument's class) reads it as the object-reference item SR2 says it is.</para></summary>
+    public DataItem ExceptionObjectRegister => _exceptionObjectRegister ??= new DataItem
+    {
+        Level = 1,
+        CobolName = "EXCEPTION-OBJECT",
+        CsName = "__exceptionObject",
+        Pic = PicInfo.ObjectReferenceItem(ObjectRefDescriptor.Universal),
+        // ⚠ SR2's "as an external data item" is NOT carried as HasExternalClause: that flag drives the
+        // §13.18.22 EXTERNAL-store re-basing of a DECLARED record, and this item is never declared, laid out or
+        // emitted. What the phrase asserts — one instance shared by the whole run unit (§8.4.3.6.4 GR2) — is
+        // already realized by the runtime's single ExceptionState, which is what the place reads.
+    };
+    private DataItem? _exceptionObjectRegister;
+
     /// <summary>Register the X3.23-1985 DEBUG-ITEM special-register family (idempotent) — called by the procedure
     /// table builder when it collects a <c>USE FOR DEBUGGING</c> procedure-subject declarative under WITH DEBUGGING
     /// MODE, BEFORE statement binding resolves the DEBUG-* references inside the debugging section. Each member is a

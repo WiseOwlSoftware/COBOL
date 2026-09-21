@@ -169,6 +169,96 @@ public sealed class SendingValueOnceDriftTests
         Assert.Equal("SAME", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
+    /// <summary>⛔ THE INTERMEDIATE MUST BE ABLE TO HOLD WHAT IT IS THERE TO PRESERVE, IN EVERY ALPHABET
+    /// (kb/Work PB886). §14.9.25.4 GR1's equivalence is a RESULT equivalence — <c>MOVE a (b) TO temp / MOVE temp
+    /// TO b</c> owes what <c>MOVE a (b) TO b</c> owes — so the one-receiver form (no intermediate) and the
+    /// two-receiver form (an intermediate) must agree for EVERY usage a reference-modified sender can have. The
+    /// capacity is counted in §8.4.3.3.4 GR5 a)'s positions ("If the usage of identifier-1 is bit, positions used
+    /// in evaluation are bit positions; otherwise … character positions"), which is what
+    /// <c>RefModPlace.PositionCount</c> answers; sizing it by the item's CHARACTER OCCUPANCY instead truncated a
+    /// boolean slice to one position (<c>MOVE BE(1:4) TO B1 B2</c> gave <c>1000</c>) and a dynamic-length slice
+    /// to one character. A usage added later is a row here rather than the next silent wrong answer.</summary>
+    [Theory]
+    // usage DISPLAY, category alphanumeric — GR5 a)'s "otherwise" arm, the shape that always worked.
+    [InlineData("SVOP01", 2002, "01 W-S PIC X(6) VALUE \"ABCDEF\".", "01 W-R1 PIC X(4).", "01 W-R2 PIC X(4).",
+                "W-S(1:4)")]
+    // usage NATIONAL — GR1's "national position"; one UTF-16 code unit each, never the two bytes each occupies.
+    [InlineData("SVOP02", 2002, "01 W-S PIC N(6) USAGE NATIONAL VALUE N\"ABCDEF\".",
+                "01 W-R1 PIC N(4) USAGE NATIONAL.", "01 W-R2 PIC N(4) USAGE NATIONAL.", "W-S(1:4)")]
+    // usage BIT — GR5 a)'s BIT-position arm. Eight boolean positions occupy ONE character (§8.5.1.6.3).
+    [InlineData("SVOP03", 2002, "01 W-S PIC 1(8) USAGE BIT VALUE B\"10110011\".",
+                "01 W-R1 PIC 1(4) USAGE BIT.", "01 W-R2 PIC 1(4) USAGE BIT.", "W-S(1:4)")]
+    // DYNAMIC LENGTH (§8.5.1.10) — no static character occupancy at all; §8.5.1.10.4 makes the slice's positions
+    // the item's CURRENT length, bounded by the §13.18.19.4 GR2 LIMIT.
+    [InlineData("SVOP04", 2014, "01 W-S PIC X DYNAMIC LENGTH LIMIT 20.", "01 W-R1 PIC X(4).", "01 W-R2 PIC X(4).",
+                "W-S(1:4)")]
+    public void RefModIntermediate_HoldsEveryPositionOfTheSlice(
+        string pid, int std, string sender, string recv1, string recv2, string slice)
+    {
+        // The DYNAMIC LENGTH sender needs its value at run time; every other sender carries a VALUE clause.
+        string seed = sender.Contains("DYNAMIC LENGTH") ? "    MOVE \"ABCDEF\" TO W-S." : "";
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            {sender}
+            {recv1}
+            {recv2}
+            PROCEDURE DIVISION.
+            MAIN.
+            {seed}
+                MOVE {slice} TO W-R1.
+                MOVE {slice} TO W-R2, W-R1.
+                IF W-R1 = W-R2
+                    DISPLAY "SAME"
+                ELSE
+                    DISPLAY "DIFFERENT"
+                END-IF.
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(std).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("SAME", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
+    }
+
+    /// <summary>⛔ §14.9.25.4 GR1's OTHER "only once" — the LENGTH: "The length of the data item referenced by
+    /// identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving
+    /// operands", and "the evaluation of the length of identifier-1 or identifier-2 may be affected by the
+    /// DEPENDING ON phrase of the OCCURS clause". The DISCRIMINATING shape is the one where data-name-1 is
+    /// itself a receiving operand, because only then does the extent CHANGE between the two stores: with N = 3
+    /// the sender is §13.18.38.4 GR8 a)'s three positions "125", the first store leaves N = 1 (a group sender
+    /// makes this GR4's alphanumeric-to-alphanumeric move into a one-character receiving area), and the second
+    /// store still owes three positions. Re-reading the length gives "1" (kb/Work PB394's residue).</summary>
+    [Fact]
+    public void OdoGroupSender_LengthIsFrozen_WhenTheControlItemIsAReceiver()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SVOODO.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-N PIC 9 VALUE 5.
+            01 W-G.
+               05 W-E PIC 9 OCCURS 1 TO 5 DEPENDING ON W-N.
+            01 W-Z PIC X(5) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE 1 TO W-E(1).
+                MOVE 2 TO W-E(2).
+                MOVE 5 TO W-E(3).
+                MOVE 4 TO W-E(4).
+                MOVE 9 TO W-E(5).
+                MOVE 3 TO W-N.
+                MOVE W-G TO W-N, W-Z.
+                DISPLAY "N=" W-N " Z=[" W-Z "]".
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("N=1 Z=[125  ]", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
+    }
+
     /// <summary>⛔ THE LEAF SET <c>SendingValueTemp.Model</c> ANSWERS FOR. Its switch names every
     /// <see cref="BoundOperand"/> leaf and decides, per leaf, whether the §14.9.25.4 GR1 intermediate result item
     /// exists and what its description is — so a leaf added later must be a DECISION, not a fall-through. C#

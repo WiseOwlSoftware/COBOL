@@ -1210,7 +1210,7 @@ internal static class IntrinsicArgumentRules
             $"is FUNCTION {ic.Sig.Name}, not an integer data item or integer literal, which ISO {p.Clause} requires",
         ArgPredicateKind.DataItemOrLiteralOnly when op is BoundComputedOperand =>
             $"is an arithmetic expression, not an integer data item or integer literal, which ISO {p.Clause} requires",
-        ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place: not RefModPlace, Place.Item: { } it }
+        ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { } it }
                                              && StrongTypeModel.IsStrongGroup(it) =>
             $"is a strongly-typed group item, which ISO {p.Clause} does not admit",
         _ => null,
@@ -1306,7 +1306,7 @@ internal static class IntrinsicArgumentRules
             + "operand position even though a particular reference might yield an integer value",
         // §15.3 type 6 — "an integer data item". The item shapes that are NOT one live in the ONE primitive
         // (§5.5 2)b)2.'s two conditions: FIXED-POINT, and no digit positions right of the radix point).
-        BoundFieldOperand { Place: not RefModPlace, Place.Item: { IsGroup: false } item }
+        BoundFieldOperand { Place.DenotedItem: not null, Place.Item: { IsGroup: false } item }
             when NonIntegralItemReason(item.Pic) is { } why => why,
         // A numeric LITERAL whose VALUE is not an integer (kb/Work PB58; the floating form, kb/Work PB248):
         // neither an integer literal (§5.5 2)a) — "an integer literal, as defined in 8.3.3.3.2, Fixed-point
@@ -1337,7 +1337,7 @@ internal static class IntrinsicArgumentRules
         // item/d is always-integral iff d divides that granularity — for s > 0 never (d ≠ ±1), for
         // P-scaled/integer items iff d | 10^(−s)⁺. literal/item is sound only when NO possible divisor value
         // divides the numerator, which a picture-ranged divisor defeats (362880 / PIC 9) — fail open there.
-        if (expr is BoundBinary { Op: '/', Left: BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }, Right: BoundNumLiteral d }
+        if (expr is BoundBinary { Op: '/', Left: BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } np } }, Right: BoundNumLiteral d }
             && LiteralIntegerMagnitude(d.Text) is { } dv && dv > 1   // 1 always divides; 0 is the zero-divide diagnostic's business
             // A FLOATING-POINT numerator is finer than any fixed granularity (§14.6.8.3 — its content is the
             // algebraic value moved into it), so no divisor > 1 always divides it (kb/Work PB248). The
@@ -1389,7 +1389,7 @@ internal static class IntrinsicArgumentRules
                 CollectAdditive(b.Left, sign, net); CollectAdditive(b.Right, -sign, net); break;
             case BoundNegate n:
                 CollectAdditive(n.Operand, -sign, net); break;
-            case BoundNumRef { Place: not RefModPlace, Place.Item: { IsGroup: false, Pic: { } p } and { } it }
+            case BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { } p } and { } it }
                 when AdmitsNonIntegralValue(p):
                 net[it] = net.TryGetValue(it, out var v)
                     ? (v.Item1 + sign, p.Scale, p.IsFloat, v.Item4) : (sign, p.Scale, p.IsFloat, false);

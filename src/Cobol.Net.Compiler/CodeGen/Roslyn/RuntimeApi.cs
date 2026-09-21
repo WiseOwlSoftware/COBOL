@@ -1400,6 +1400,19 @@ internal static class RuntimeApi
     public static string EcFn(string method, string args = "") =>
         $"{nameof(Runtime.Exceptions.EcFunctions)}.{method}({args})";
 
+    /// <summary>The predefined object reference EXCEPTION-OBJECT (ISO §8.4.3.6.4 GR1/GR2 — "the current
+    /// exception object", one instance per run unit), read from the run unit's ONE exception state.
+    /// <para>⛔ FULLY QUALIFIED, AND THAT IS THE FIX RATHER THAN THE STYLE (kb/Work PB922). Every other
+    /// <c>ExceptionState</c> emission is reachable only when the EC model is active or a class exists, which is
+    /// exactly when <c>ProgramEmitter</c> writes <c>using CobolNet.Runtime.Exceptions;</c> — but a reference to
+    /// this register needs NEITHER: <c>SET U TO EXCEPTION-OBJECT</c> in a declarative-free, class-free program
+    /// emitted a bare <c>ExceptionState.ExceptionObject</c> and the backend failed with CS0103 on generated C#
+    /// the user cannot see. Qualifying the name here makes the emission independent of the conditional using,
+    /// and keeps the zero-scaffolding invariant (SSOT §18.16) intact for programs that reference nothing.</para></summary>
+    public static string ExceptionObjectRead { get; } =
+        $"CobolNet.Runtime.Exceptions.{nameof(Runtime.Exceptions.ExceptionState)}"
+        + $".{nameof(Runtime.Exceptions.ExceptionState.ExceptionObject)}";
+
     /// <summary>Push a METHOD activation frame (ISO §15.65.4 r5 — "This may be by a CALL statement, an INVOKE
     /// statement, a function reference, or an inline invocation"; fix-queue PB36). Emitted INSIDE the method body
     /// rather than at the INVOKE site, because a method is reached by several paths — a typed direct call, the

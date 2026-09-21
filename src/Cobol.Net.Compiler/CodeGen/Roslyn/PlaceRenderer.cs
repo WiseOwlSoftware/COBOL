@@ -98,6 +98,12 @@ internal static class PlaceRenderer
         ReportSumCounterPlace s => RuntimeApi.ReportSumRead(s.ReportIndex, s.CounterId),
         // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
         DebugRegisterPlace d => DebugRead(d.Member),
+        // The predefined object reference EXCEPTION-OBJECT (ISO §8.4.3.6.4 GR1 — "references the current exception
+        // object. If an exception object is not associated with the current exception, EXCEPTION-OBJECT is set to
+        // null"; GR2 — "There is one instance of EXCEPTION-OBJECT in a run unit"), which IS the run unit's one
+        // ExceptionState. The SAME expression SET … TO EXCEPTION-OBJECT already renders (OoEmitter), now reachable
+        // from every sending position because the resolver knows the name (kb/Work PB922).
+        ExceptionObjectPlace => RuntimeApi.ExceptionObjectRead,
         // A table(ALL) intrinsic argument (ISO §15.3; kb/Work PB62) is an ENUMERATION, never a single value — the
         // intrinsic argument-list renderers expand it (IntrinsicRenderer.ArgArray); reaching a read here is a
         // renderer that forgot to, and it must fail at compile time rather than emit an unbound index variable.
@@ -207,6 +213,12 @@ internal static class PlaceRenderer
         // receiver path that forgot the gate.
         DebugRegisterPlace => throw new System.InvalidOperationException(
             "the X3.23-1985 DEBUG-ITEM register is read-only (the debug facility populates it); a store must be "
+            + "rejected at bind time and never reach PlaceRenderer.Write"),
+        // Unreachable by RULE: ISO §8.4.3.6.3 SR1 — "EXCEPTION-OBJECT shall not be specified as a receiving
+        // operand" — is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving) and at SET's
+        // own receiver list (OoBinder). The backstop for a receiver path that forgot the gate (kb/Work PB922).
+        ExceptionObjectPlace => throw new System.InvalidOperationException(
+            "EXCEPTION-OBJECT shall not be specified as a receiving operand (ISO §8.4.3.6.3 SR1); a store must be "
             + "rejected at bind time and never reach PlaceRenderer.Write"),
         _ => throw Unhandled(p),
     };

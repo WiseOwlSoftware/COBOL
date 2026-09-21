@@ -210,7 +210,7 @@ public static class MoveTable16
     {
         BoundStringLiteral sl => new Table16Operand(sl.Category),
         BoundAllLiteral al => new Table16Operand(al.Category),
-        BoundFieldOperand f when f.Place is not RefModPlace && f.Place.Item.OperandPic is null =>
+        BoundFieldOperand f when f.Place.DenotedItem is not null && f.Place.Item.OperandPic is null =>
             new Table16Operand(PicCategory.Group),   // GR4 — an ALPHANUMERIC group moves without conversion (D20)
         BoundFieldOperand f => Table16Operand.Of(f.Place),
         BoundNumericLiteral nl => new Table16Operand(PicCategory.Numeric, IsNonInteger: nl.Text.Contains('.')),

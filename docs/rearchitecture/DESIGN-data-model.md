@@ -170,6 +170,22 @@ consolidation:
    leaves with no single inner, and its `Pic`/`Item` are the level-66 ALIAS's own (§13.18.45 — the alias is its own
    elementary view), so a forwarding base fits nothing it does; deriving it would have meant overriding every
    forwarded member, i.e. inheritance without reuse.)*
+   **A `Place` answers TWO questions about the item, and they are not the same question.** ISO §13.18.45.4 GR1
+   writes them as two clauses of one sentence — "all of the data attributes of data-name-2 become the data
+   attributes of data-name-1 **and the storage area occupied by data-name-2 becomes the storage area occupied by
+   data-name-1**". `Place.Item` answers the attributes-and-storage half (what a decoration forwards).
+   `Place.DenotedItem` answers WHICH DATA ITEM, and is `null` when the reference denotes one no data description
+   entry declares: `RefModPlace` overrides it by §8.4.3.3.4 GR5 ("Reference modification creates a unique data
+   item that is a subset of the data item referenced by identifier-1"), and the non-THROUGH level-66 alias — which
+   resolves to the RENAMED item's own place, because GR1 shares both attributes and storage — records itself in the
+   init-only `Place.DenotesAs`, set by the ONE resolver. It is a property rather than another `Place` kind because
+   nothing about the ACCESS changes; a new kind would have to be re-handled in every renderer arm to render
+   identically. **Every rule of the form "shall BE the data item …" asks `DenotedItem`** (§14.9.41.3 SR5's RELATIVE
+   KEY identity and SR6's record key are the measured ones), and so does every "is this a WHOLE item" test, which
+   is the same question negated — twenty callers had written that out by hand as `p is not RefModPlace` beside a
+   `p.Item` test. `PlaceDenotedItemDriftTests` holds the roster of which kinds forward and which override, with the
+   reason, and forbids a twenty-first hand-written copy.
+
 2. **`Place` is built from `StorageForm`, not re-inference.** `ReferenceResolver` selects the concrete place from the
    resolved item's `Storage`:
    - `NativeInt`/`NativeFloat`/`CharImage`(non-numeric) → `MemberPlace`

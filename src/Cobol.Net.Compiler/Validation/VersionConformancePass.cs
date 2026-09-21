@@ -2490,19 +2490,24 @@ internal sealed class VersionConformancePass
                     or CobolParserCore.ValidateValidPhraseContext
                     or CobolParserCore.ApplyCommitClauseContext)
                     return base.VisitChildren(ctx);
-            // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
-            // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation
-            // (§8.9, 2002+) is exactly what makes the reference unambiguous. Any other position (declarations,
-            // non-object operands) keeps the 0901 funnel.
-            if (word == "EXCEPTION-OBJECT")
-                for (Antlr4.Runtime.RuleContext? a = ctx.Parent, guard = null; a is not null && a != guard; a = a.Parent)
-                {
-                    // SetToValueStatement: `SET x TO EXCEPTION-OBJECT` PARSES as the Format-1 value shape
-                    // (alternative order) and re-routes to Format 5 at bind — same register reference.
-                    if (a is CobolParserCore.ObjectReferenceContext or CobolParserCore.SetToValueStatementContext)
+            // EXCEPTION-OBJECT ANYWHERE INSIDE A STATEMENT is a reference to the PREDEFINED OBJECT REFERENCE
+            // (§8.4.3.6), never a user-defined word: §8.4.3.6.3 SR2 declares the name ("implicitly described as
+            // class object and category object reference, as an external data item, and as a universal object
+            // reference") and the §8.9 reservation is exactly what makes the reference unambiguous — a program
+            // CANNOT have defined a word with this spelling, so there is no user-defined word to complain about.
+            // ⛔ THIS USED TO BE A POSITION WALK (an `objectReference` / `SetToValueStatement` ancestor), i.e. a
+            // THIRD opinion about what the name is, narrowed to the one statement that could bind it — so
+            // `MOVE U TO EXCEPTION-OBJECT` and `IF EXCEPTION-OBJECT = NULL` each drew "'EXCEPTION-OBJECT' is a
+            // reserved word and cannot be used as a user-defined word" beside "'EXCEPTION-OBJECT' is not
+            // defined", a pair of contradictory falsehoods. The RESOLVER now knows the register
+            // (ReferenceResolver → ExceptionObjectPlace) and the receiving chokepoint screens §8.4.3.6.3 SR1, so
+            // every statement position is bound by rule and the funnel has nothing to add (kb/Work PB922).
+            // A DECLARATION still keeps the funnel: the walk stops at the enclosing statement, and a data
+            // description entry has none — which is what must reject `01 EXCEPTION-OBJECT PIC X.`
+            if (Binding.Procedure.OoBinder.OoIsExceptionObject(word))
+                for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                    if (a is CobolParserCore.StatementContext)
                         return base.VisitChildren(ctx);
-                    if (a is CobolParserCore.StatementContext) break;   // far enough — not an object operand
-                }
             // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family), not a
             // user-defined word — a legal '85 reference to the now-modeled debug facility (VCR Table 7 row 7.17;
             // the switch-ABSENT case never gets here — comment treatment skips the section body). The binder

@@ -313,6 +313,21 @@ public sealed class ReferenceResolver(DataBinder data)
         // reference AS WRITTEN and belongs to this one screen, not to a fall-through (kb/Work PB457).
         if (CapacityRegisterFor(dref) is { } capReg) return CapacityPlaceOf(dref, capReg);
 
+        // The PREDEFINED OBJECT REFERENCE EXCEPTION-OBJECT (ISO §8.4.3.6; kb/Work PB922): §8.4.3.6.3 SR2 —
+        // "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external
+        // data item, and as a universal object reference" — so the STANDARD declares this name, no data
+        // description entry does, and it is resolved HERE (before ordinary name lookup, the CAPACITY / DEBUG-ITEM
+        // pattern) to a read-only VIEW over the run unit's one instance (§8.4.3.6.4 GR2).
+        // ⛔ IT IS RESOLVED IN THE ONE RESOLVER SO EVERY CALLER INHERITS IT. Before this, only SET asked the
+        // question (OoBinder's own arm), so every OTHER reference — `IF EXCEPTION-OBJECT = NULL`, an INVOKE
+        // receiver, a function argument, and even the ILLEGAL `MOVE U TO EXCEPTION-OBJECT` — drew COBOLNET1639
+        // "'EXCEPTION-OBJECT' is not defined … Check the spelling, or declare the item", advice the very next
+        // diagnostic (COBOLNET0901, "is a reserved word … cannot be used as a user-defined word") forbids taking.
+        // The RECEIVING half of SR1 is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving);
+        // this arm is what makes the SENDING half legal source rather than a typo.
+        // The predicate is <see cref="IsExceptionObjectRegister"/> — the ONE answer every caller asks for.
+        if (IsExceptionObjectRegister(dref)) return new ExceptionObjectPlace(data.ExceptionObjectRegister);
+
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
         // a DebugRegisterPlace. Registered ONLY when a procedure-subject debugging declarative is active under WITH
@@ -383,10 +398,21 @@ public sealed class ReferenceResolver(DataBinder data)
         if (item.Renames is { } ren)
         {
             if (indexExprs.Count > 0) return null;
-            // The no-THRU form is an ALIAS: the 66 has the SAME description as the renamed item (§13.18.45 GR1)
-            // — forward to its place outright (numeric stays numeric: NC252A's ADD 3500 TO RENAME-12 over a
-            // PIC 9(4); a group forwards as the group). Only the THRU form composes an alphanumeric span (GR2).
-            if (ren.Thru is null) return ren.From is { } fwd ? PlaceForItem(fwd, []) : null;
+            // The no-THRU form is an ALIAS: §13.18.45.4 GR1 — "all of the data attributes of data-name-2 become
+            // the data attributes of data-name-1 and the storage area occupied by data-name-2 becomes the storage
+            // area occupied by data-name-1". Attributes AND storage forward to the renamed item's place (numeric
+            // stays numeric: NC252A's ADD 3500 TO RENAME-12 over a PIC 9(4); a group forwards as the group), and
+            // only the THRU form composes an alphanumeric span (GR2).
+            // ⛔ BUT THE IDENTITY DOES NOT FORWARD (kb/Work PB602). GR1 shares the attributes and the storage, not
+            // the NAME: data-name-1 is a data item of its OWN, and a bare forward made a reference to the 66
+            // indistinguishable from a reference to the renamed item — so `START RLF KEY IS = RK-ALIAS` passed
+            // §14.9.41.3 SR5's "shall be the data item specified in the RELATIVE KEY clause" that its THROUGH
+            // sibling (a RenamesPlace, which keeps its own Item) was correctly refused by. `DenotesAs` records the
+            // alias on the renamed item's own place, so nothing about the ACCESS changes and only the identity
+            // question answers differently.
+            if (ren.Thru is null)
+                return ren.From is { } fwd && PlaceForItem(fwd, []) is { } fwdPlace
+                    ? fwdPlace with { DenotesAs = item } : null;
             if (ren.Span.Count == 0) return null;
             var leafPlaces = new List<Place>(ren.Span.Count);
             var widths = new List<int>(ren.Span.Count);
@@ -1344,6 +1370,28 @@ public sealed class ReferenceResolver(DataBinder data)
             ? new CapacityRef(table, reg, new CapacityRegisterPlace(path, reg), CapacityRefFault.None)
             : new CapacityRef(table, reg, null, fault);
     }
+
+    /// <summary>⛔ <b>THE ONE TEST for "this written reference IS the predefined object reference
+    /// EXCEPTION-OBJECT"</b> (ISO §8.4.3.6; kb/Work PB922) — spelling, FORM and EDITION together, so no caller can
+    /// hold a different opinion about what the name is. It sits beside <see cref="CapacityRegisterFor"/> because it
+    /// answers the same shape of question for the other implicitly-declared name, and because the RESOLVER is where
+    /// the answer belongs: §8.4.3.6.3 SR2 declares the name, no data description entry does, and a caller that does
+    /// not ask gets "not defined" about a name the standard itself declares.
+    /// <para>⛔ THE EDITION IS PART OF THE QUESTION, AND LEAVING IT OUT OF ONE ARM REJECTED LEGAL SOURCE. The
+    /// object-orientation facility — and with it §8.9's reservation of the word — arrived in COBOL-2002, so at
+    /// <c>--std 85</c> EXCEPTION-OBJECT is an ORDINARY user-defined word: <c>01 EXCEPTION-OBJECT PIC X(4).</c>
+    /// followed by <c>MOVE "ABCD" TO EXCEPTION-OBJECT</c> is conforming '85 source. When only the resolver arm
+    /// carried the gate and the receiving screen compared the spelling by itself, that program drew
+    /// COBOLNET2196 — SR1 quoted at a program that never referenced the register
+    /// (feedback_two_arm_dispatch, feedback_edition_gate_sweep). From 2002 the reservation makes the name
+    /// undeclarable, so there is nothing left for the interception to shadow.</para>
+    /// <para>Only the plain unqualified / unsubscripted / unreference-modified form is the register:
+    /// §8.4.3.6.2's general format is the bare word, so a suffixed occurrence is some other (undefined)
+    /// reference and must keep the ordinary resolution.</para></summary>
+    internal bool IsExceptionObjectRegister(Core.DataReferenceContext dref) =>
+        data.Edition.Edition.Has(2002)
+        && dref.dataReferenceSuffix().Length == 0
+        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText());
 
     /// <summary>The place a matched <see cref="CapacityRef"/> resolves to, REPORTING its fault when it has one —
     /// the single reporting site for every ill-formed reference to a named CAPACITY register (kb/Work PB457). Every

@@ -49,6 +49,17 @@
       *>                        result equivalence, so the ONE-receiver and the TWO-receiver statements must
       *>                        agree: J1 = J2 = "  125". An intermediate result item of the group's MAXIMUM
       *>                        extent would give the second one "125  ".
+      *> GR1-ODO-N / -J3        THE DISCRIMINATING CASE: data-name-1 IS a receiving operand. With N = 3 the
+      *>                        sending operand is "125" (three positions, 13.18.38.4 GR8 a). The receivers are
+      *>                        stored "in the order specified" (14.9.25.4 GR1): N first - a group sender makes
+      *>                        this GR4's "alphanumeric to alphanumeric elementary move", so the one-character
+      *>                        receiving area takes the leading character and N = 1 - and J3 second. "The
+      *>                        length of the data item referenced by identifier-1 is evaluated only once,
+      *>                        immediately before the data is moved to the first of the receiving operands",
+      *>                        and "the evaluation of the length of identifier-1 or identifier-2 may be
+      *>                        affected by the DEPENDING ON phrase of the OCCURS clause" - so the second store
+      *>                        still sends three positions, right-aligned by 13.18.34.4 GR1: J3 = "  125".
+      *>                        Re-reading the length after the first store sends ONE position, "    1".
       *> GR3-BRANCH             The same seeded sequence drives a DATA-ITEM subject and a FUNCTION subject over
       *>                        identical WHEN phrases. GR3 assigns the subject one value at the beginning of
       *>                        the statement, so both must select the same WHEN phrase: SAME.
@@ -89,6 +100,7 @@
        01 Z              PIC X(5) VALUE SPACES.
        01 J1             PIC X(5) JUSTIFIED RIGHT.
        01 J2             PIC X(5) JUSTIFIED RIGHT.
+       01 J3             PIC X(5) JUSTIFIED RIGHT.
        PROCEDURE DIVISION.
            MOVE 1 TO A(1)
            MOVE 2 TO A(2)
@@ -133,6 +145,11 @@
            MOVE ODO-G TO J2, Z
            DISPLAY "GR1-ODO-J1=[" J1 "]"
            DISPLAY "GR1-ODO-J2=[" J2 "]"
+
+           MOVE 3 TO N
+           MOVE ODO-G TO N, J3
+           DISPLAY "GR1-ODO-N=" N
+           DISPLAY "GR1-ODO-J3=[" J3 "]"
 
            MOVE FUNCTION RANDOM(1) TO F0
            MOVE FUNCTION RANDOM TO E-SUBJ

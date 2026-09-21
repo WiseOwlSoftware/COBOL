@@ -38,47 +38,70 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // read ONCE and both arms are the two stores the rule names, side by side.
             if (MoveClassifier.ZeroLengthItemRoute(source, target) is { } zlSend)
             {
-                ctx.Writer.Line($"if ({PlaceRenderer.Read(zlSend)}.Length == 0) {{ "
+                // The LENGTH to test is the sending operand's CURRENT one. For the elementary shapes (§8.5.4
+                // items 3, 4, and 6/9 after their materialization) that is the carrier's own `.Length`; for a
+                // GROUP (items 1, 2, 5, 7 — kb/Work PB896) it is the group's SENDING IMAGE, which §13.18.38.4
+                // GR8 a) already narrows to the occurs-depending current extent. Asking the plain place would
+                // read the MAXIMUM extent and the test could never fire.
+                string len = zlSend.Item.IsGroup && !zlSend.Item.IsAsIfElementary
+                    ? $"{OperandText.NonElementaryMoveSender(source, num, "zero-length-item test of")}.Length"
+                    : $"{PlaceRenderer.Read(zlSend)}.Length";
+                // ⛔ THE ELSE ARM IS THE STATEMENT'S OWN STORE, WHATEVER KIND IT IS. GR1's substitution changes
+                // the move's KIND — a group sender becomes a literal one, so GR4's first sentence makes the
+                // zero-length arm an ELEMENTARY move while the non-zero arm stays the group move — and an else
+                // arm hard-wired to ElementaryStore could only ever carry the elementary kinds (kb/Work PB896).
+                ctx.Writer.Line($"if ({len} == 0) {{ "
                     + ElementaryStore(target, MoveClassifier.ZeroLengthItemFigurative(zlSend),
                                       MoveSenderOrigin.ZeroLengthItem)
-                    + $" }} else {{ {ElementaryStore(target, source, origin)} }}");
+                    + " } else {");
+                EmitStore(target, source, kind, origin);
+                ctx.Writer.Line("}");
                 continue;
             }
-            switch (kind)
-            {
-                case MoveKind.RefModSlice:
-                    // The slice takes the source's characters (SpliceInto left-justifies, space-fills, and
-                    // truncates to the slice length), so pass the raw image, not a full-width store. EXCEPT a
-                    // figurative source, which fills EVERY position of the slice (ISO §8.3.3.6.4 GR2 — repeated
-                    // to the associated fixed-length item; §8.4.3.3 GR5/GR6 make the slice a unique fixed-length
-                    // item); the fill char is category-aware (national/boolean = the D-N3 pin, not the PCS extreme).
-                    var rmp = (RefModPlace)target;
-                    // ⛔ OperandPic, NOT raw `Pic` — THE SECOND ARM of kb/Work PB173's pad defect (its twin is
-                    // PlaceRenderer.Write's RefModPlace boolean pad). `Pic` is null for any GROUP, so a
-                    // figurative fill into a BIT-GROUP slice chose the alphanumeric SPACE instead of the boolean
-                    // zero §14.6.8.6 requires. `OperandPic` answers the as-if PICTURE 1(m) of §13.18.29.4 GR1b —
-                    // the ONE category reader, the same one RefModPlace.Category uses.
-                    ctx.Writer.Line(source is BoundFigurative fig
-                        ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.OperandPic?.Category, ctx.Data.NationalCollating))
-                        : PlaceRenderer.Write(rmp, OperandText.AsString(source, num)));
-                    break;
-                case MoveKind.Group:
-                    EmitGroupMove(target, source);
-                    break;
-                case MoveKind.GroupToElementary:
-                    EmitGroupToElementaryMove(target, source);
-                    break;
-                case MoveKind.FigurativeToNumericImage:
-                case MoveKind.Convert:
-                    // WHY this store may be a fill decides how an unstorable one is NAMED: the written
-                    // figurative is the pre-2023 residue §14.9.25.3 SR5 removed, the substituted one is
-                    // §14.9.25.4 GR2 acting on a zero-length literal the standard still permits. Blaming the
-                    // wrong rule in a loud is the misattribution kb/Work PB393 measured, one verb over — and the
-                    // provenance rides the STORE, because it is a bind-time fact and reading m.Source to recover
-                    // it is the scalar read this shape exists to remove.
-                    ctx.Writer.Line(ElementaryStore(target, source, origin));
-                    break;
-            }
+            EmitStore(target, source, kind, origin);
+        }
+    }
+
+    /// <summary>The store of ONE receiving operand, by its bound <see cref="MoveKind"/> — factored out of
+    /// <see cref="Emit"/> so §14.9.25.4 GR1's zero-length-item test can place the statement's REAL store in its
+    /// else arm (kb/Work PB896). Every arm is the one it always was; the only change is that the dispatch has a
+    /// name and two callers.</summary>
+    private void EmitStore(Place target, BoundOperand source, MoveKind kind, MoveSenderOrigin origin)
+    {
+        switch (kind)
+        {
+            case MoveKind.RefModSlice:
+                // The slice takes the source's characters (SpliceInto left-justifies, space-fills, and
+                // truncates to the slice length), so pass the raw image, not a full-width store. EXCEPT a
+                // figurative source, which fills EVERY position of the slice (ISO §8.3.3.6.4 GR2 — repeated
+                // to the associated fixed-length item; §8.4.3.3 GR5/GR6 make the slice a unique fixed-length
+                // item); the fill char is category-aware (national/boolean = the D-N3 pin, not the PCS extreme).
+                var rmp = (RefModPlace)target;
+                // ⛔ OperandPic, NOT raw `Pic` — THE SECOND ARM of kb/Work PB173's pad defect (its twin is
+                // PlaceRenderer.Write's RefModPlace boolean pad). `Pic` is null for any GROUP, so a
+                // figurative fill into a BIT-GROUP slice chose the alphanumeric SPACE instead of the boolean
+                // zero §14.6.8.6 requires. `OperandPic` answers the as-if PICTURE 1(m) of §13.18.29.4 GR1b —
+                // the ONE category reader, the same one RefModPlace.Category uses.
+                ctx.Writer.Line(source is BoundFigurative fig
+                    ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.OperandPic?.Category, ctx.Data.NationalCollating))
+                    : PlaceRenderer.Write(rmp, OperandText.AsString(source, num)));
+                break;
+            case MoveKind.Group:
+                EmitGroupMove(target, source);
+                break;
+            case MoveKind.GroupToElementary:
+                EmitGroupToElementaryMove(target, source);
+                break;
+            case MoveKind.FigurativeToNumericImage:
+            case MoveKind.Convert:
+                // WHY this store may be a fill decides how an unstorable one is NAMED: the written
+                // figurative is the pre-2023 residue §14.9.25.3 SR5 removed, the substituted one is
+                // §14.9.25.4 GR2 acting on a zero-length literal the standard still permits. Blaming the
+                // wrong rule in a loud is the misattribution kb/Work PB393 measured, one verb over — and the
+                // provenance rides the STORE, because it is a bind-time fact and reading m.Source to recover
+                // it is the scalar read this shape exists to remove.
+                ctx.Writer.Line(ElementaryStore(target, source, origin));
+                break;
         }
     }
 

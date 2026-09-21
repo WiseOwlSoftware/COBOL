@@ -528,15 +528,38 @@ reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a f
 A literal or figurative constant is NOT materialized: §8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
 description of its own.
 
-**The one shape it does not freeze** is a group whose length is decided at run time — an `OCCURS DEPENDING`
-or `OCCURS DYNAMIC` table or a dynamic-length member. A cloned DESCRIPTION has a compile-time length, so the
-intermediate would hold the group's MAXIMUM extent rather than its current one, and that is observable: measured
-with a 3-of-5 occurs-depending group into a `PIC X(5) JUSTIFIED` receiver, §13.18.38.4 GR8 a)'s current extent
-right-aligns to `"  125"` while a maximum-extent intermediate gives `"125  "`. Such a sender is therefore left
-un-materialized (its operand is still re-read per receiver, the pre-existing state of GR1's "The length of the
-data item referenced by identifier-1 is evaluated only once") rather than frozen at a different length. Freezing
-it needs a SECOND temp holding data-name-1's value at the hoist with the clone's `OCCURS DEPENDING` pointed at
-it — a change to the shared `CreateCompilerTemp`, not to the materializer's description switch.
+**A group whose length is decided at run time freezes its EXTENT as well as its value.** A cloned DESCRIPTION has
+a compile-time length, so an intermediate cloned from an `OCCURS DEPENDING` group would hold the group's MAXIMUM
+extent rather than its current one, and that is observable: with a 3-of-5 occurs-depending group into a
+`PIC X(5) JUSTIFIED` receiver, §13.18.38.4 GR8 a)'s current extent right-aligns to `"  125"` while a
+maximum-extent intermediate gives `"125  "`. `SendingValueTemp.FreezeOdoExtent` therefore creates a SECOND temp
+holding data-name-1's value, stored as a pre-op ahead of the group store, with the clone's `OccursSpec.Depending`
+pointed at it (inside `CreateCompilerTemp`, because `DataItem.OccursSpec` is init-only). That is GR1's other
+sentence — "The length of the data item referenced by identifier-1 is evaluated only once, immediately before the
+data is moved to the first of the receiving operands" — and without it `MOVE ODO-G TO N, Z` re-read the length
+AFTER storing into `N` and sent one character to the second receiver. A DYNAMIC-LENGTH elementary sender is
+frozen by §8.5.1.10.4's own carrier.
+
+**The intermediate's CAPACITY is counted in §8.4.3.3.4 GR5 positions, not in characters.** GR5 a) fixes the unit —
+"If the usage of identifier-1 is bit, positions used in evaluation are bit positions; otherwise, positions used
+in evaluation are character positions" — and `DataItem.ImageWidth` answers a different question, the item's
+OCCUPANCY: a `PIC 1(8) USAGE BIT` item occupies ONE character (§8.5.1.6.3 packs eight boolean positions into a
+byte) where GR5 counts EIGHT positions, and a DYNAMIC LENGTH item occupies none statically. `RefModPlace.PositionCount`
+is the ONE reader of that count; the bit and national arms go through `DataItem.OperandPic` so §13.18.29.4
+GR1 b)/GR2 b)'s as-if PICTURE answers for a bit group and a national group. Measured before it existed:
+`MOVE BE(1:4) TO B1 B2` kept only the leading bit.
+
+**GR1's ZERO-LENGTH-ITEM clause changes the move's KIND, so it is not a group-path concern.** "If identifier-1 is
+a zero-length item, it is as if literal-1 were specified as a zero-length literal" substitutes a LITERAL, and
+GR4's first sentence — "Any move in which the sending operand is either a literal or an elementary item and the
+receiving item is an elementary item is an elementary move" — then makes the statement elementary. Whether the
+sender IS zero-length is a run-time state, so `MoveClassifier.ZeroLengthItemRoute` decides when a test is owed
+and `MoveEmitter` emits it with the statement's OWN store (`EmitStore`) in the else arm. The predicate for a
+GROUP sender is `DataItem.MinimumLengthIsZero` — §8.5.4's stem ("a data item … whose minimum length is zero and
+whose length at runtime is zero") as ONE recurrence over the non-redefining children at their MINIMUM occurrence
+count, never a copy of the clause's four group bullets. Which of those four is reachable is §14.9.25.3 SR9's
+business: a variable-length group may move only to or from a compatible group, so items 5 and 7 are refused at
+compile time and item 1 — the occurs-depending group with integer-1 zero — is the shape that gets here.
 
 **Who calls it, and when.** `MoveBinder.BindMoveOf` materializes the sender when there is more than one
 receiving operand; `EvaluateBinder`'s per-subject `SubjectSlot` materializes a value subject when more than one

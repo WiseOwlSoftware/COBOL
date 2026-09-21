@@ -272,7 +272,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.AccessMode == FileAccessMode.Random)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the access mode shall be sequential or "
-                + "dynamic (ISO §14.9.41 SR1)");
+                + "dynamic (ISO §14.9.41.3 SR1)");
         KeyedInvalidKey? invalid =
             st.startInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
 
@@ -298,7 +298,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (op == "!=")
         {
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the relational operator shall not be "
-                + "'IS NOT EQUAL TO' (ISO §14.9.41 SR3)");
+                + "'IS NOT EQUAL TO' (ISO §14.9.41.3 SR3)");
             op = "==";
         }
         // WITH LENGTH (§14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate fires
@@ -307,7 +307,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.Expr.BindExpr(le) : null;
         if (length is not null && file.Organization != FileOrganization.Indexed)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
-                + "indexed organization (ISO §14.9.41 SR8)");
+                + "indexed organization (ISO §14.9.41.3 SR8)");
         Place? operand = kp?.dataReference() is { } dref ? ctx.Refs.Resolve(dref) : null;
         if (kp is not null && operand is null)
             return new BoundUnsupported($"START KEY operand '{kp.dataReference().GetText()}'");
@@ -339,9 +339,16 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
         if (file.Organization == FileOrganization.Relative)
         {
-            if (operand is not null && !ReferenceEquals(operand.Item, file.RelativeKeyItem))
+            // ⛔ "SHALL BE THE DATA ITEM" IS AN IDENTITY OVER DATA ITEMS, SO IT ASKS DenotedItem (kb/Work PB602).
+            // Asked of Place.Item — which answers about the ATTRIBUTES AND STORAGE a reference reads — a
+            // reference-modified slice of the relative key reported the key itself and `START RLF KEY IS =
+            // WS-RK(1:2)` compiled clean, positioning the file on the relative record number the key's first two
+            // characters spell (§12.4.5.13.4 GR1 makes 1 the first legal one). §8.4.3.3.4 GR5 makes that slice "a
+            // unique data item that is a subset of the data item referenced by identifier-1" — not it — and
+            // §13.18.45.4 GR1 makes a non-THROUGH level-66 alias another data item over the same storage.
+            if (operand is not null && !ReferenceEquals(operand.DenotedItem, file.RelativeKeyItem))
                 ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
-                    + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §14.9.41 SR5)");
+                    + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §14.9.41.3 SR5)");
             operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.ResolveItem(rk) : null;
             // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
             // GR-14.9.41.4-8). §14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
@@ -372,10 +379,17 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // generic key: leftmost-coincident within a record OF THE FILE (b1), of the same class, category and
             // usage as that key (b2), and no longer than it (b3). The two arms are separate rules with separate
             // homes in RecordLayout, so b2 could finally be written down (kb/Work PB354 part 4).
-            if ((Model.RecordLayout.KeyIndexOfKeyItem(file, operand.Item)
-                 ?? Model.RecordLayout.GenericKeyIndex(file, operand.Item)) is not { } ki)
+            // ⛔ BOTH ARMS ARE IDENTITIES OVER DATA ITEMS, so they ask DenotedItem, not Item (kb/Work PB602) —
+            // a) names "a prime or alternate record key OF THE FILE", b) "a data item … within a record of the
+            // file". A reference-modified operand denotes §8.4.3.3.4 GR5's "unique data item", which no record
+            // description declares and which therefore satisfies neither arm; asked of Item it inherited the
+            // base item's answer and `START IXF KEY IS = K(1:2)` compiled clean.
+            if (operand.DenotedItem is not { } keyItem
+                || (Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem)
+                    ?? Model.RecordLayout.GenericKeyIndex(file, keyItem)) is not { } ki)
             {
-                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{operand.Item.CobolName}' is neither a "
+                string written = kp?.dataReference()?.GetText() ?? operand.Item.CobolName ?? "data-name-1";
+                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
                     + "record key of the file nor an item that begins at the leftmost character position of one "
                     + "within a record of that file, has the same class, category and usage as that key, and is "
                     + "no longer than it (ISO §14.9.41.3 SR6)");
