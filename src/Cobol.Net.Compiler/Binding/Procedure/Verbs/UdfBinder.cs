@@ -330,7 +330,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Attach the function activations registered while <paramref name="cond"/> bound (those past
     /// <paramref name="mark"/>) to the condition itself as a per-evaluation <see cref="BoundUdfEvaluated"/>
-    /// wrapper — the §8.4.3.2.4 GR1/GR6a "value determined when the function is referenced" semantics for a
+    /// wrapper — the §8.4.3.2.4 GR1/GR6a "value is determined when the function is referenced at runtime" semantics for a
     /// window the statement evaluates conditionally or repeatedly (§8.8.4.13 r2). The drained suffix leaves
     /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
     /// the condition unchanged (zero cost for the UDF-free path).</summary>

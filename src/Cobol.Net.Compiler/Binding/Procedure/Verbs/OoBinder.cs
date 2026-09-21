@@ -181,7 +181,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error("COBOLNET0827",
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} may be specified only within a method definition "
-                    + "(ISO §8.4.3.8 — the predefined object references of the current object)");
+                    + "(ISO §8.4.3.8.3 SR1 — the predefined object references of the current object)");
                 return new BoundNop();
             }
             // In a FACTORY method, SELF|SUPER "NEW" is the ACTIVE-CLASS creation (§16.2.1.2 GR1 — the
@@ -935,9 +935,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // node this convergence point (NULL/SELF/SUPER route + the data-sender re-route) produces.
         if (senderSuper)
         {
+            // ⛔ NAME THE RECEIVERS (kb/Work PB388's elision sweep): `targetRefs` is in hand, and the message
+            // opened `SET … TO SUPER` — which the diagnostic renderer transliterates to `SET . TO SUPER`.
             ctx.Edition.Error("COBOLNET0867",
-                "SET … TO SUPER: SUPER shall not be the sending operand of an object-reference SET "
-                + "(ISO §14.9.39.3 SR9)");
+                $"SET {SetFormatSelection.Written(targetRefs)} TO SUPER: SUPER shall not be the sending operand "
+                + "of an object-reference SET (ISO §14.9.39.3 SR9)");
             return new BoundNop();
         }
         var targets = new List<Place>(targetRefs.Count);
@@ -987,7 +989,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (host.OoCurrentClass is not { } cur)
             {
                 ctx.Edition.Error("COBOLNET0867",
-                    "SET … TO SELF: SELF is defined only within a method of a class (ISO §14.9.39.3 SR12c)");
+                    // ⛔ INHERITED CITATION, RE-DERIVED (kb/Work PB388). This cited §14.9.39.3 SR12 c), which
+                    // answers a DIFFERENT question: SR12 governs a receiver described with an OBJECT-CLASS-NAME,
+                    // and its c)3./c)4. are about factory-vs-instance PLACEMENT of a method that exists. The
+                    // rule that SELF needs a method at all is the identifier's own — §8.4.3.8.3 SR1, "This
+                    // identifier format may be specified only in a method definition" — and it is the rule this
+                    // arm enforces, for EVERY receiver description including the universal one SR12 never reaches.
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO SELF: SELF is defined only within a method "
+                    + "definition (ISO §8.4.3.8.3 SR1)");
                 return new BoundNop();
             }
             // ⛔ THE RECEIVER'S §13.18.60.2 DESCRIPTION DECIDES WHICH RULE GOVERNS A SELF SENDER — one arm per
@@ -1068,7 +1077,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (senderRef is null)
             {
                 ctx.Edition.Error("COBOLNET0867",
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
                     + "identifier-4 shall be an object reference — the sending operand of an object-reference "
                     + "SET is an object-reference data item, object-class-name-1, NULL or SELF, never a literal "
                     + "or an arithmetic expression (ISO §14.9.39.2 Format 5, §14.9.39.3 SR9)");
@@ -1148,7 +1157,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error("COBOLNET0867",
                     // NAME THE RECEIVERS (kb/Work PB388): the renderer transliterates U+2026, so this read
                     // `SET . TO 'WX'` — a statement nobody wrote — and the receivers are in hand.
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{senderRef.GetText()}': the sending operand shall be an object-reference "
                     + "data item, NULL, SELF, or a class-name (ISO §14.9.39.3 SR9/SR12/SR13)");
                 return new BoundNop();

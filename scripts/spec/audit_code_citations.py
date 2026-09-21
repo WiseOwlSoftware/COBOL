@@ -51,6 +51,19 @@ THE CHECKS, each narrow on purpose:
               different ordinal. §14.9.39 was the measured case: eleven sites called the data-pointer slice
               "Format 4", which is condition-setting, and two of them were the text of COBOLNET0869.
 
+  THE DIAGNOSTIC-STRING FAMILY (kb/Work PB838) — the checks above ask whether a citation is WRONG. These two ask
+  whether it can be RESOLVED AT ALL, and they run only inside a C# string literal in `src/`, because that is
+  where a citation is read alone by a user with no derivation beside it and no way to supply a missing level.
+
+  DIAG-NO-RULE — a rule KIND with no ordinal: `(ISO §14.9.18 SR)`, `(ISO §11.8 SR)`. It names no rule, so it can
+              be neither confirmed nor refuted; `cite.py` has nothing to resolve. Five such sites shipped in
+              message text. The scope is what makes it gateable: the same shape is 2683 sites tree-wide in
+              PROSE (`§13.5.3 SR 1`, the row id `SR-14.9.28.3-2`, "the 1561-1563 SR band").
+  DIAG-UNQUALIFIED — the clause carries no rule block of that kind of its own while a CHILD does: `§14.9.39 SR17`,
+              where the syntax rules are §14.9.39.3. The ordinal checks resolve that through `_alias` — right
+              for prose, where this repository deliberately writes a block's clause both ways, and wrong for a
+              message the user is sent to look up. 160 sites, so it reports and gates under `--check-all`.
+
 ⛔ THE ORDINAL FAMILY IS LINE-BASED, LIKE PHANTOM, AND THAT IS THE POINT. The checks above read only COMMENT
 text, so a citation inside a DIAGNOSTIC MESSAGE STRING — the citation a user actually reads — was covered by
 nothing. Both of PB388's user-visible defects lived there. An ordinal check needs no comment convention, so it
@@ -360,9 +373,27 @@ ADJACENT = 12
 #: clause/quote pairings and wrong clause/ordinal pairings in the same table — one register, one opt-out.
 ORDINAL_MARKERS = (MARKER, "audit-doc-citations: names-misfilings")
 
-#: The two ordinal checks that are SOUND but arrived with a backlog larger than the change that added them.
+#: The ordinal checks that are SOUND but arrived with a backlog larger than the change that added them.
 #: They report on every run and gate under `--check-all`; see the note in `main`.
-MEASURED_BACKLOG = frozenset({"RULE", "SUBITEM"})
+MEASURED_BACKLOG = frozenset({"RULE", "SUBITEM", "DIAG-UNQUALIFIED"})
+
+#: A C# string literal — where a citation stops being a note to a reader and becomes text a USER is shown.
+#: Verbatim (`@"…"`) and raw (`"""…"""`) literals are not matched and do not need to be: a diagnostic message
+#: is an ordinary or interpolated literal in every site measured, and a missed literal costs a finding the
+#: audit would have made, never a false one.
+CS_STRING = re.compile(r'"(?:[^"\\\n]|\\.)*"')
+
+#: A rule KIND written with NO ordinal — `(ISO §14.9.18 SR)`, `(ISO §11.8 SR)`. It names no rule at all, so a
+#: reader sent to look it up has a clause and a promise. Four exclusions, each MEASURED on the first run:
+#:  · `{` — `SR{rule}` and `SR{arm.SyntaxRule}` are INTERPOLATIONS whose ordinal is computed at run time.
+#:  · `-` — `SR-14.9.28.3-2` is a traceability-inventory ROW ID, not a citation.
+#:  · a following digit or letter is `SR1`/`SRs`, which `RULE_CITE` and the prose own.
+#:  · ⛔ `(?!\s*\d)` — THE SPACE. `§14.9.23.3 SR 10` and `§13.5.3 SR 1` are ordinals written with a space, and
+#:    they were the arm's only two findings after the five real ones were repaired: both CORRECT citations,
+#:    accused because the separator was a space rather than nothing. Reading the arm's own output is what
+#:    caught it (`feedback_measure_the_selectors_complement` — and a finding is a claim about a line, so the
+#:    two shapes had to be told apart before the arm could gate).
+BARE_KIND = re.compile(r"(?<![A-Za-z0-9-])(GR|SR)(?![A-Za-z0-9{-])(?!\s*\d)")
 
 _HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)\s*(.*)$")
 _FORMAT_LINE = re.compile(r"^\s*Format\s+(\d+)\s*(?:\(([^)]*)\))?\s*:")
@@ -379,7 +410,7 @@ def _alias(d: dict):
     return d
 
 
-def catalog_rule_tops() -> dict[tuple[str, str], int]:
+def catalog_rule_tops(alias: bool = True) -> dict[tuple[str, str], int]:
     """`(clause, kind) -> the highest rule ordinal that block has`, from the COMMITTED rule catalog — so the
     RULE check runs with no submodule, like SUBJECT and HEADER.
 
@@ -396,7 +427,12 @@ def catalog_rule_tops() -> dict[tuple[str, str], int]:
             continue
         k = (r["section"], r["kind"])
         tops[k] = max(tops.get(k, 0), r["ordinal"])
-    return _alias(tops)
+    # ⛔ `alias=False` IS THE UNALIASED TRUTH, and DIAG-UNQUALIFIED is the only caller that wants it.
+    # `_alias` keys a rule block under BOTH `§14.9.39.4` and `§14.9.39` because this repository's PROSE cites
+    # it both ways — so with the alias in hand there is no way to ask "did this citation carry the subclause",
+    # which is exactly the question a message string has to answer. `_alias` MUTATES, so the caller that wants
+    # the direct map must build its own rather than share this one.
+    return _alias(tops) if alias else tops
 
 
 def spec_ordinals():
@@ -505,14 +541,56 @@ def _owning_cite(cites: list[tuple[int, int]], pos: int) -> int:
                               else min(abs(pos - cites[j][0]), abs(pos - cites[j][1])), j))
 
 
-def _clause_at(line: str, pos: int) -> str | None:
-    """The clause a rule designator at `pos` is filed under: the nearest ISO-shaped number to its left,
-    within CARRY characters."""
-    best = None
-    for m in CLAUSE_TOKEN.finditer(line, 0, pos):
-        if pos - m.end() <= CARRY:
-            best = m.group(1)
-    return best
+def _rule_citations(line: str):
+    """Every rule designator on the line, paired with the clause it is filed under. Yields `(match, clause)`
+    left to right; the attribution itself is `_clause_left_of`, which the diagnostic-string family also uses —
+    one answer to "which clause does this designator belong to" (`feedback_one_rule_one_place`)."""
+    for m in RULE_CITE.finditer(line):
+        if (clause := _clause_left_of(line, m.start())) is not None:
+            yield m, clause
+
+
+def _another_clause_admits(line: str, mine: str, kind: str, num: int, sub: str | None,
+                           tops, spans) -> bool:
+    """⛔ THE VETO THAT STOPS THIS ARM SAYING THE WRONG THING (kb/Work PB900). Does some OTHER clause named
+    on this line admit the ordinal — and the sub-item — that `mine` does not?
+
+    A rule designator binds to the nearest clause on its left, and that is a GUESS the moment a line names
+    two clauses: on
+    `§14.9.18.4 GR1 b) asks the ACTIVATOR; the >>TURN directive (§7.3.25.4) records it, and GR1 b) is …`
+    the BACK-REFERENCE at the end of the sentence — the same pairing already made at its head — was read
+    against the clause that happened to be printed between them, and the audit reported `§7.3.25.4 GR1 has
+    no sub-items` about a sentence claiming nothing of the kind. It took the non-gating arm from 203 to 204
+    on landing train 37 and the comment was re-spelled to work around it; the defect was here. Measured
+    across the whole tree: the arm reported 209 findings without this veto and reports 170 with it, so 39 of
+    them were a sentence rescued by a clause it already named.
+
+    ⚠ A VETO, NOT A RE-ATTRIBUTION, and the difference is the signal. The format-name arm's `_owning_cite`
+    re-attributes by POSITION, which is right for a NAME: spelling a format's three-part name is a claim
+    about ONE citation. A rule designator is not like that — it is written once and referred back to in the
+    same sentence, and it is chained (`GR4/GR6/GR9`, `GR12–13`) — so re-attributing by position, or refusing
+    to cross prose at all, silences real findings wholesale. MEASURED on this tree, three readings of the same
+    corpus: nearest-left with no veto = 209 findings · nearest-left + this veto = 170 · JOIN-ONLY (a rule
+    designator attributed only when nothing but punctuation or a `Format n` separates it from its clause) = 54.
+    A narrowing of the attribution can only DROP a finding, never add one, so join-only's 54 are a subset of
+    the 170 and it buys its quiet by discarding 116 accusations no second clause on the line can rescue.
+    Asking instead "is there a reading of this line under which the citation is CORRECT" keeps every
+    unambiguous site accused and drops exactly the ambiguous ones — the module's own rule that over-accepting
+    is free and accusing wrongly is not."""
+    for c in CLAUSE_TOKEN.finditer(line):
+        other = c.group(1)
+        if other == mine:
+            continue
+        for key in ((other, kind), (other.rsplit(".", 1)[0], kind)):
+            top = tops.get(key)
+            if top is None or num > top:
+                continue
+            if sub is None:
+                return True
+            body = (spans.get(key) or {}).get(num)
+            if body is None or re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body):
+                return True
+    return False
 
 
 def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, str], int] | None = None):
@@ -547,10 +625,8 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                 k = sorted(named)[0]
                 out.append(("FORMAT-NAME", site, clause,
                             f"§{clause} Format {n} is {d[n]}, but this line names Format {k} ({d[k]})"))
-        for m in RULE_CITE.finditer(line):
+        for m, clause in _rule_citations(line):
             kind, num, sub = m.group(1), int(m.group(2)), m.group(3)
-            if (clause := _clause_at(line, m.start())) is None:
-                continue
             if (top := tops.get((clause, kind))) is None:
                 continue                       # not a rule block this repository's catalog knows
             block = spans.get((clause, kind)) or {}
@@ -562,6 +638,8 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                 # the rule exists and nothing is said (over-accepting here is free; accusing wrongly is not).
                 if re.search(rf"^\s*{num}\\?[.)]\s", block.get(0, ""), re.M):
                     continue
+                if _another_clause_admits(line, clause, kind, num, None, tops, spans):
+                    continue                   # the line names a clause this ordinal fits — see the veto
                 out.append(("RULE", site, clause,
                             f"§{clause} has {top} {kind}s — there is no {kind}{num}"))
                 continue
@@ -573,7 +651,8 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
             # ⚠ `\)` — the transcription ESCAPES the closing paren of a list marker in some blocks and not in
             # others, and reading only the bare form made SUBITEM report thirteen correct citations of
             # §8.8.4.4.4 GR3's a)–n) table as naming nothing.
-            if body and sub and not re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body):
+            if (body and sub and not re.search(r"(?<![A-Za-z0-9])[a-z]\\?\)", body)
+                    and not _another_clause_admits(line, clause, kind, num, sub, tops, spans)):
                 out.append(("SUBITEM", site, clause,
                             f"§{clause} {kind}{num} has no sub-items — {kind}{num}{sub} names nothing"))
             part = (owner.get((clause, kind)) or {}).get(num, "absent")
@@ -596,6 +675,98 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
     return out
 
 
+def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str], int]):
+    """⛔ THE DIAGNOSTIC-STRING FAMILY (kb/Work PB838). A citation inside a C# string literal is read ALONE, by
+    a user, in a terminal — there is no derivation beside it and no reader who can supply the missing level.
+    PB838 states the rule: such a citation "must resolve to a clause the citation checker can address — i.e. it
+    must carry the subclause, and the rule number it names must exist in that subclause".
+
+    Two arms, and the population is what separates them:
+
+      DIAG-NO-RULE       — a rule KIND with no ordinal (`(ISO §14.9.18 SR)`). It names no rule AT ALL, so it
+                           cannot be wrong and cannot be right; `cite.py` has nothing to resolve. Five sites in
+                           message strings, against 2683 tree-wide in prose (`§13.5.3 SR 1`, `SR-14.9.28.3-2`,
+                           "the 1561-1563 SR band"), which is why the scope IS the string literal.
+      DIAG-UNQUALIFIED   — the clause carries no rule block of that kind DIRECTLY, while a child subclause does:
+                           `§14.9.39 SR17`, where the syntax rules are §14.9.39.3. The ordinal checks resolve
+                           it through `_alias` and say nothing, which is right for prose and wrong here. 126
+                           sites, so it joins the MEASURED backlog rather than the gate — one sweep, one owner.
+
+    ⚠ THE RANGE CHECK IS DELIBERATELY NOT REPEATED HERE. `RULE`/`SUBITEM` already run over every line of every
+    file, message strings included (that is what made them line-based), and they report ZERO out-of-range
+    ordinals inside diagnostic strings — measured, not assumed. A second implementation of the same question
+    would be a second place for one rule to live (`feedback_one_rule_one_place`)."""
+    out: list[tuple[str, str, str, str]] = []
+    for i, line in enumerate(lines, 1):
+        if NAMED_AS_WRONG.search(line):
+            continue
+        for sm in CS_STRING.finditer(line):
+            s = sm.group(0)
+            if "§" not in s:
+                continue
+            site = f"{rel}:{i}"
+            for m in BARE_KIND.finditer(s):
+                if (clause := _clause_left_of(s, m.start())) is None:
+                    continue
+                kinds = sorted(k for k in (clause, *_children_with(direct, clause, m.group(1)))
+                               if (k, m.group(1)) in direct)
+                where = f" — that block is §{kinds[0]}" if kinds else ""
+                out.append(("DIAG-NO-RULE", site, clause,
+                            f"§{clause} {m.group(1)} names no rule: a message a user reads carries the clause "
+                            f"and no ordinal{where}"))
+            for m in RULE_CITE.finditer(s):
+                kind = m.group(1)
+                if (clause := _clause_left_of(s, m.start())) is None:
+                    continue
+                if (clause, kind) in direct:
+                    continue                   # the citation carries the subclause its rules live in
+                kids = _children_with(direct, clause, kind)
+                if not kids:
+                    continue                   # not a block the catalog knows under this clause at all
+                out.append(("DIAG-UNQUALIFIED", site, clause,
+                            f"§{clause} has no {kind} block of its own — {kind}{m.group(2)} is in "
+                            f"§{kids[0]}, and a message string is read without the context that supplies it"))
+    return out
+
+
+def _opted_out(lines: list[str]) -> bool:
+    """A file that spells wrong ordinals ON PURPOSE declares itself in its first 40 lines. One test, both
+    scans — two copies of a SUPPRESSION is how a file ends up exempt from one arm and not its sibling."""
+    return any(mk in "\n".join(lines[:40]) for mk in ORDINAL_MARKERS)
+
+
+def _clause_left_of(text: str, pos: int) -> str | None:
+    """The ISO-shaped clause number nearest to the LEFT of `pos`, within `CARRY` — the same attribution the
+    ordinal arm makes, restricted to one string literal so it cannot cross into the code around it."""
+    best = None
+    for c in CLAUSE_TOKEN.finditer(text, 0, pos):
+        if pos - c.end() <= CARRY:
+            best = c.group(1)
+    return best
+
+
+def _children_with(direct: dict[tuple[str, str], int], clause: str, kind: str) -> list[str]:
+    """The subclauses of `clause` that DO carry a rule block of this kind, nearest level first."""
+    return sorted(c for (c, k) in direct if k == kind and c.startswith(clause + "."))
+
+
+def diagnostic_scan(direct=None):
+    """The diagnostic-string family over the compiler's own C#. Needs only the COMMITTED rule catalog, so it
+    runs with the spec submodule absent — like SUBJECT and HEADER, and unlike the ordinal family."""
+    findings: list[tuple[str, str, str, str]] = []
+    if not direct:
+        return findings
+    for path in citation_corpus.code_files():
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        if _opted_out(lines):
+            continue
+        findings += _diagnostic_findings(path.relative_to(REPO).as_posix(), lines, direct)
+    return findings
+
+
 def ordinal_scan(data, tops=None):
     """The ordinal family over EVERY line of every citation-bearing file — message strings included, which is
     the half the comment-block checks structurally cannot reach."""
@@ -607,15 +778,16 @@ def ordinal_scan(data, tops=None):
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError:
             continue
-        if any(mk in "\n".join(lines[:40]) for mk in ORDINAL_MARKERS):
+        if _opted_out(lines):
             continue
         findings += _ordinal_findings(path.relative_to(REPO).as_posix(), lines, data, tops)
     return findings
 
 
 def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | None, ordinals=None,
-          tops=None):
-    findings: list[tuple[str, str, str, str]] = phantom_scan(universe) + ordinal_scan(ordinals, tops)
+          tops=None, direct=None):
+    findings: list[tuple[str, str, str, str]] = (phantom_scan(universe) + ordinal_scan(ordinals, tops)
+                                                 + diagnostic_scan(direct))
     for path in citation_corpus.declaration_files():
         rel = path.relative_to(REPO).as_posix()
         for lineno, parts, context, window, label, head in blocks(path):
@@ -699,7 +871,60 @@ ORDINAL_SELF_TEST = [
     ("FORMAT-RULE",
      "// SET pointer TO NULL (ISO §14.9.39 Format 4, GR12 — the address is stored)",
      "// SET pointer TO NULL (ISO §14.9.39 Format 7, GR12 — the address is stored)"),
+    # ⛔ THE ORDINAL ARM'S OWN TWO-CITATION LINE (kb/Work PB900), and the reason the veto exists. The SILENT
+    # half is the shape landing train 37 measured on PB408's comment: the BACK-REFERENCE `GR1 b)` at the end
+    # of the sentence is the pairing already made at its head, and the clause printed BETWEEN them is the one
+    # the nearest-to-the-left reading blamed — `§7.3.25.4 GR1 has no sub-items`, about a sentence claiming
+    # nothing of the kind. §14.9.18.4 GR1 b) exists, so there is a reading under which the line is right and
+    # the audit says nothing. The DEFECT half is the same sub-item with NO second clause to rescue it.
+    ("SUBITEM",
+     "// the >>TURN directive (§7.3.25.4) records it, and GR1 b) is therefore the activator's",
+     "// §14.9.18.4 GR1 b) asks the ACTIVATOR; the >>TURN directive (§7.3.25.4) records it, and GR1 b) "
+     "is therefore about the activator's profile."),
 ]
+
+
+#: ⛔ THE DIAGNOSTIC-STRING LEGS, each pair (kind that must fire, the DEFECT line, its REPAIRED twin). Every
+#: defect is one measured in `src/` on 2026-09-21 (kb/Work PB838), verbatim.
+DIAG_SELF_TEST = [
+    # `§14.9.18.3` has no rule about RETURNING at all — the rule this loud stage rests on is a GENERAL one,
+    # §14.9.18.4 GR2 — so the repair changes the KIND as well as the level.
+    ("DIAG-NO-RULE",
+     'w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));',
+     'w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18.4 GR2)"));'),
+    ("DIAG-UNQUALIFIED",
+     '    edition.Error("COBOLNET0867", $"{where}: SET receiver (ISO §14.9.39 SR17)");',
+     '    edition.Error("COBOLNET0867", $"{where}: SET receiver (ISO §14.9.39.3 SR17)");'),
+    # ⛔ THE THREE SHAPES THAT MUST STAY SILENT, and each was a candidate the measurement rejected:
+    # an INTERPOLATED ordinal is computed at run time and is a citation the reader never sees unqualified;
+    # a row id is not a citation; and the same bare kind in a COMMENT is prose, where the repository's
+    # two-spellings convention holds and 2683 sites would otherwise be accused.
+    (None,
+     '    Edition.Error(code, $"{w}: (ISO §12.3.7.3 SR{rule})");   // and the row SR-12.3.7.3-4',
+     '    Edition.Error(code, $"{w}: (ISO §12.3.7.3 SR{rule})");'),
+    (None,
+     '    // the SET receiver rule (ISO §14.9.39 SR17) and its GR — see §14.9.39.4 GR',
+     '    // the SET receiver rule (ISO §14.9.39.3 SR17)'),
+    # ⛔ AND THE ORDINAL WRITTEN WITH A SPACE — `SR 10`, not `SR10`. Both of the arm's remaining findings on
+    # its first full run were this shape (`OoBinder.cs:645`, `ConstructRegistry.g.cs:119`, generated from
+    # `constructs.json`) and both citations were CORRECT. An ordinal separated by a space is an ordinal.
+    (None,
+     '    Err($"BY REFERENCE argument \'{a}\' references OBJECT data (ISO §14.9.23.3 SR 10); pass it BY CONTENT");',
+     '    Err($"BY REFERENCE argument \'{a}\' references OBJECT data (ISO §14.9.23.3 SR 10)");'),
+]
+
+
+def diagnostic_self_test(direct) -> bool:
+    ok = True
+    for want, defect, repaired in DIAG_SELF_TEST:
+        fires = {k for k, _s, _c, _m in _diagnostic_findings("probe.cs", [defect], direct)}
+        quiet = {k for k, _s, _c, _m in _diagnostic_findings("probe.cs", [repaired], direct)}
+        good = (want in fires if want else not fires) and not quiet
+        ok &= good
+        label = f"fires {want}" if want else "silent calibration"
+        print(f"  {'ok  ' if good else 'FAIL'} {label:24s} on {defect.strip()[:52]}"
+              + ("" if good else f"   (fired {sorted(fires)}, twin fired {sorted(quiet)})"))
+    return ok
 
 
 def ordinal_self_test(ordinals, tops) -> bool:
@@ -717,7 +942,7 @@ def ordinal_self_test(ordinals, tops) -> bool:
     return ok
 
 
-def self_test(subjects, own, universe, ordinals=None, tops=None) -> int:
+def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) -> int:
     """⛔ A GATE THAT HAS NEVER BEEN SEEN TO FAIL IS NOT EVIDENCE. Each check is fired on the exact defect it
     was written for, and then on its repaired twin, which must be silent."""
     import tempfile
@@ -743,6 +968,7 @@ def self_test(subjects, own, universe, ordinals=None, tops=None) -> int:
     if universe is None:
         print("  ⚠ PHANTOM could not be self-tested — specs/ISO_COBOL.md is absent")
     ok &= ordinal_self_test(ordinals, tops)
+    ok &= diagnostic_self_test(direct)
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -822,15 +1048,16 @@ def main() -> int:
     universe = spec_clauses()
     ordinals = spec_ordinals()
     tops = catalog_rule_tops()
+    direct = catalog_rule_tops(alias=False)
 
     if args.self_test:
-        return self_test(subjects, own, universe, ordinals, tops)
+        return self_test(subjects, own, universe, ordinals, tops, direct)
 
     if universe is None:
         print("⚠ PHANTOM AND THE ORDINAL CHECKS SKIPPED — specs/ISO_COBOL.md is absent (the private submodule "
               "is not checked out). SUBJECT and HEADER still run: spec-rule-catalog.json is committed.")
 
-    findings = audit(subjects, own, universe, ordinals, tops)
+    findings = audit(subjects, own, universe, ordinals, tops, direct)
     gating = [f for f in findings if f[0] not in MEASURED_BACKLOG]
     backlog = [f for f in findings if f[0] in MEASURED_BACKLOG]
     print(f"{len(citation_corpus.all_files())} files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
@@ -844,9 +1071,13 @@ def main() -> int:
         # over a known defect (feedback_green_test_can_hold_a_gap_open); failing on them would stop every
         # other lane on a backlog none of those lanes wrote. So they PRINT, every run, with their count and
         # their owner, and `--check-all` is the gate whoever burns them down runs.
-        print(f"\n⚠ {len(backlog)} MEASURED, NOT YET GATING — rule-ordinal citations naming a rule number or "
-              "sub-item its clause does not have. Each needs its own derivation from the standard; they are "
-              "owned as one sweep in kb/Work (see PB388's report). `--check-all` gates on them.")
+        tally = {k: sum(1 for f in backlog if f[0] == k) for k in sorted({f[0] for f in backlog})}
+        print(f"\n⚠ {len(backlog)} MEASURED, NOT YET GATING "
+              f"({' · '.join(f'{n} {k}' for k, n in tally.items())}) — "
+              "RULE/SUBITEM name a rule number or sub-item their clause does not have; DIAG-UNQUALIFIED is a "
+              "message string citing a construct clause where the rules live in its `.3`/`.4` child. Each "
+              "needs its own derivation from the standard; they are owned as sweeps in kb/Work (see PB388's "
+              "and PB838's reports). `--check-all` gates on them.")
         if args.check:
             # Under the per-commit gate this is a HEADLINE, not a wall: the count is the fact another lane
             # needs, and the list is one command away. Run without --check (or with --check-all) to see it.

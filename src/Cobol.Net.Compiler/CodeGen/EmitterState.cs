@@ -26,7 +26,7 @@ namespace CobolNet.CodeGen;
 /// loop-control boundary (EXIT PERFORM CYCLE) — a bare C# <c>break</c>/<c>continue</c> cannot express GR5a/GR6
 /// when a multi-level VARYING is emitted as nested loops (it would leave/cycle only the innermost). Every inline
 /// PERFORM sets its OWN <see cref="Inline"/> region with a fresh id, so a nested inline PERFORM's EXIT PERFORM
-/// targets the innermost loop (§14.9.14.4 GR5a "the most closely preceding, unterminated inline PERFORM").
+/// targets the innermost loop (§14.9.14.4 GR5a "the most closely preceding, and as yet unterminated, inline PERFORM").
 /// <see cref="None"/> is a defensive fallback the binder never reaches for a valid EXIT PERFORM (SR8 permits it
 /// only inside an inline/F3 PERFORM).</summary>
 internal enum F3Region { None, Imp1, Handler, Finally, Inline }

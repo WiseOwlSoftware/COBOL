@@ -294,6 +294,18 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         return format;
     }
 
+    /// <summary>⛔ THE RECEIVING OPERANDS OF A SET, AS THE PROGRAMMER WROTE THEM — the ONE place a SET
+    /// diagnostic spells its receiver list (kb/Work PB388, the sweep that finished the elision family).
+    /// <para>Every receiving brace in §14.9.39.2 is written <c>{ … } …</c>, so every SET diagnostic about a
+    /// receiver is about a LIST, and nine call sites had each written their own
+    /// <c>string.Join(' ', refs.Select(r =&gt; $"'{r.GetText()}'"))</c>. The duplication was not the harm: the
+    /// harm was that five OTHER messages, holding the same list, opened <c>SET … TO</c> with a U+2026 instead,
+    /// and the diagnostic renderer transliterates U+2026 to ASCII — so the user read <c>SET . TO SELF</c>, a
+    /// statement nobody wrote. With one helper the naming is what a new arm reaches for, which is what makes
+    /// the next SET diagnostic name its receivers without anyone remembering to.</para></summary>
+    public static string Written(IReadOnlyList<Core.DataReferenceContext> receivers) =>
+        string.Join(' ', receivers.Select(r => $"'{r.GetText()}'"));
+
     /// <summary>COBOLNET2112 — the residual arm §14.9.39.2 needs and did not have: NO printed general format's
     /// receiving brace admits these operands, so the statement is refused rather than executed as Format 1/2
     /// arithmetic (kb/Work PB449 — <c>SET WS-N UP BY 4</c> over <c>PIC 9(4)</c> ran, and answered 5).</summary>
@@ -302,7 +314,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     public void ReportNoFormat(IReadOnlyList<Core.DataReferenceContext> receivers,
                               IReadOnlyList<SetOperandKind> kinds, SetDirections dir, string amount)
     {
-        string written = string.Join(' ', receivers.Select(r => $"'{r.GetText()}'"));
+        string written = Written(receivers);
         string what = string.Join("; ", receivers
             .Select((r, i) => $"'{r.GetText()}' is {Describe(kinds[i])}")
             .Distinct());
@@ -337,7 +349,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     {
         var row = Formats.First(f => f.Format == format);
         ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
-            $"SET {string.Join(' ', receivers.Select(r => $"'{r.GetText()}'"))}: {row.Brace} — ONE operand, "
+            $"SET {Written(receivers)}: {row.Brace} — ONE operand, "
             + $"written with no ellipsis, and {receivers.Count} receiving operands are specified ({row.Rule})");
     }
 

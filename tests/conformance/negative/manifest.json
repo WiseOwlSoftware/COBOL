@@ -1238,7 +1238,9 @@
   "pb602-start-key-refmod-slice",
   "pb602-start-key-renames-alias",
   "pb896-variable-length-group-to-elementary",
-  "pb542-move-program-pointer-sender"
+  "pb542-move-program-pointer-sender",
+  "pb388-set-pointer-self-sender",
+  "pb388-set-object-ref-self-outside-method"
  ],
  "pending": []
 }

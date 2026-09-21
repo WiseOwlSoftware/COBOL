@@ -85,9 +85,16 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             bool sorSuper = objRef.SUPER() is not null;
             return SetFormatSelection.Select(_fmt.KindsOf(sorRefs), SetDirections.To, out _) switch
             {
-                SetFormat.F7 => BindSetPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper),
-                SetFormat.F9 => BindSetProgramPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper),
-                SetFormat.F8 => BindSetFunctionPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper),
+                // ⛔ THE SENDER'S OWN WORD TRAVELS WITH THE FLAG (kb/Work PB388). `sorSelf || sorSuper` collapses
+                // two different statements into one bool, and the three arms behind it then had nothing to name
+                // but the pair — so a program that wrote SUPER was told about "SELF/SUPER" beside a receiver
+                // list rendered as `…`. `objRef.GetText()` is the word as written; the flag still selects the arm.
+                SetFormat.F7 => BindSetPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper,
+                    objRef.GetText()),
+                SetFormat.F9 => BindSetProgramPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper,
+                    objRef.GetText()),
+                SetFormat.F8 => BindSetFunctionPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper,
+                    objRef.GetText()),
                 // Format 5, and the residual: NULL/SELF/SUPER are senders of no other format, so a receiving
                 // list that selects Format 1/14/16 here is refused by SR8 inside — the diagnostic that names
                 // what the statement was trying to be.
@@ -407,9 +414,13 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (senderIsSelfSuper)
         {
+            // ⛔ NAME THE RECEIVERS AND THE WORD THE PROGRAM WROTE (kb/Work PB388's elision sweep). This read
+            // `SET … TO SELF/SUPER`, and the diagnostic renderer transliterates U+2026 to ASCII, so the user
+            // was shown `SET . TO SELF/SUPER` — neither the receivers they wrote nor the sender they wrote.
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                "SET … TO SELF/SUPER: SELF and SUPER are object references, not data pointers "
-                + "(ISO §14.9.39 Format 7 — the sender of a data-pointer SET is NULL or another pointer; "
+                $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
+                + "are object references, not data pointers "
+                + "(ISO §14.9.39.2 Format 7 — the sender of a data-pointer SET is NULL or another pointer; "
                 + "SELF and SUPER belong to Format 5, the object-reference assignment)");
             return new BoundNop();
         }
@@ -437,7 +448,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (senderRef is null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
                     + "identifier-6 shall be of category data-pointer — a data-pointer sender is the predefined "
                     + "address NULL, another USAGE POINTER item, or ADDRESS OF an identifier, never a literal or "
                     + "an arithmetic expression (ISO §14.9.39.2 Format 7, §14.9.39.3 SR17)");
@@ -452,7 +463,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 // increment" tail went with it: `SET p TO ADDRESS OF x` has bound through PtrBinder's sender
                 // form since Phase-4b increment 2, so the message named a non-support that no longer exists.
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{senderRef?.GetText()}': a data-pointer sender shall be the predefined address NULL, "
                     + "another USAGE POINTER item, or ADDRESS OF an identifier (ISO §14.9.39 Format 7)");
                 return new BoundNop();
@@ -472,9 +483,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (senderIsSelfSuper)
         {
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                "SET … TO SELF/SUPER: SELF and SUPER are object references, not program pointers "
-                + "(ISO §14.9.39 Format 5/9 — the sender of a program-pointer SET is NULL, another "
-                + "program-pointer, or an ENTRY program-address-identifier)");
+                $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
+                + "are object references, not program pointers "
+                + "(ISO §14.9.39.2 Format 9 — the sender of a program-pointer SET is NULL, another "
+                + "program-pointer, or an ENTRY program-address-identifier; SELF and SUPER belong to Format 5, "
+                + "the object-reference assignment)");
             return new BoundNop();
         }
         var targets = new List<Place>(targetRefs.Count);
@@ -496,7 +509,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (senderRef is null)   // SR21 over a literal / expression sender (kb/Work PB456)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
                     + "identifier-8 shall be of category program-pointer — a program-pointer sender is NULL, "
                     + "another USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier, never a "
                     + "literal or an arithmetic expression (ISO §14.9.39.2 Format 9, §14.9.39.3 SR21)");
@@ -510,7 +523,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     // ⛔ NAME THE RECEIVERS (kb/Work PB388's sweep, finished here): the renderer transliterates
                     // U+2026 to ASCII, so `SET … TO 'x'` reached the user as `SET . TO 'x'` — a statement
                     // nobody wrote. The Format-7 twin was fixed; these two were the arms it missed.
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{senderRef?.GetText()}': a program-pointer sender shall be NULL, another "
                     + "USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier "
                     + "(ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
@@ -569,9 +582,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (senderIsSelfSuper)
         {
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                "SET … TO SELF/SUPER: SELF and SUPER are object references, not function pointers "
+                $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText ?? "SELF/SUPER"}: SELF and SUPER "
+                + "are object references, not function pointers "
                 + "(ISO §14.9.39.2 Format 8 — the sender of a function-pointer SET is NULL, another "
-                + "function-pointer, or an ADDRESS OF FUNCTION function-address-identifier)");
+                + "function-pointer, or an ADDRESS OF FUNCTION function-address-identifier; SELF and SUPER "
+                + "belong to Format 5, the object-reference assignment)");
             return new BoundNop();
         }
         var targets = new List<Place>(targetRefs.Count);
@@ -593,7 +608,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (senderRef is null)   // SR20 over a literal / expression sender (kb/Work PB456)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO {senderText}: "
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
                     + "identifier-13 shall be of category function-pointer — a function-pointer sender is NULL, "
                     + "another USAGE FUNCTION-POINTER item, or an ADDRESS OF FUNCTION function-address-identifier, "
                     + "never a literal or an arithmetic expression (ISO §14.9.39.2 Format 8, §14.9.39.3 SR20)");
@@ -604,7 +619,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 || sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET {string.Join(' ', targetRefs.Select(t => $"'{t.GetText()}'"))} TO "   // kb/Work PB388
+                    $"SET {SetFormatSelection.Written(targetRefs)} TO "   // kb/Work PB388
                     + $"'{senderRef?.GetText()}': a function-pointer sender shall be NULL, another "
                     + "USAGE FUNCTION-POINTER item, or an ADDRESS OF FUNCTION function-address-identifier "
                     + "(ISO §14.9.39.3 SR20 / §8.4.3.12)");
@@ -672,6 +687,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
 
         var operand = drefs[^1];
         string word = operand.GetText();
+        // The receiving operands AS WRITTEN — every echo of the statement below names them (kb/Work PB388).
+        string written = SetFormatSelection.Written(drefs[..^1]);
         // The PROTOTYPE arm (§8.4.3.12.3 SR2 + §8.4.6.6): a REPOSITORY function-specifier, or the containing
         // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves.
         bool isPrototypeName = ctx.Data.UserFunctionNames.Contains(word)
@@ -700,7 +717,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.Resolve(operand) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.FunctionAddressOperand,
-                $"SET … TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
+                $"SET {written} TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §8.4.3.12.3 SR2 / §8.4.6.6) nor a resolvable identifier "
                 + "(§8.4.3.12.3 SR1)");
             return new BoundNop();
@@ -708,7 +725,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (namePlace.Item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.National))
         {
             ctx.Edition.Error(DiagnosticCatalog.FunctionAddressOperand,
-                $"SET … TO ADDRESS OF FUNCTION {word}: identifier-1 shall be of category alphanumeric or national "
+                $"SET {written} TO ADDRESS OF FUNCTION {word}: identifier-1 shall be of category alphanumeric or national "
                 + $"(ISO §8.4.3.12.3 SR1) — '{word}' is of category {namePlace.Item.Pic?.Category.ToString()?.ToLowerInvariant() ?? "(none)"}");
             return new BoundNop();
         }
@@ -757,13 +774,16 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (targetCount < 1) return new BoundUnsupported("SET … TO ENTRY — no receiving operand");
         if (BindProgramAddressTargets(drefs, targetCount, "SET … TO ENTRY") is not { } targets)
             return new BoundNop();
+        // The receiving operands AS WRITTEN — a statement ECHO names them (kb/Work PB388); only the FORM
+        // reference passed to BindProgramAddressTargets above keeps the general format's own `…`.
+        string written = SetFormatSelection.Written(drefs[..targetCount]);
         if (!identForm)
         {
             var nn = se.nonNumericLiteral();
             if (nn?.STRINGLIT() is not { } lit)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET … TO ENTRY {nn?.GetText()}: the ENTRY literal shall be an alphanumeric literal "
+                    $"SET {written} TO ENTRY {nn?.GetText()}: the ENTRY literal shall be an alphanumeric literal "
                     + "naming a program (ISO §8.4.3.13 / §8.3.2.2)");
                 return new BoundNop();
             }
@@ -772,7 +792,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.Resolve(drefs[^1]) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                $"SET … TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable (ISO §8.4.3.13.4 GR1a)");
+                $"SET {written} TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable "
+                + "(ISO §8.4.3.13.4 GR1a)");
             return new BoundNop();
         }
         return new BoundSetEntry(targets, null, namePlace);
@@ -833,6 +854,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (drefs.Length < 1) return new BoundUnsupported("SET … TO ADDRESS OF PROGRAM — no receiving operand");
         if (BindProgramAddressTargets(drefs, drefs.Length, "SET … TO ADDRESS OF PROGRAM") is not { } targets)
             return new BoundNop();
+        // The receiving operands AS WRITTEN — every echo of the statement below names them, and the two
+        // helpers this arm delegates to take it as a parameter rather than re-eliding it (kb/Work PB388).
+        string written = SetFormatSelection.Written(drefs);
 
         // §14.9.39.3 SR22's condition is the RECEIVER being restricted; the restriction the SENDER carries is
         // §8.4.3.13.4 GR3's — the prototype arm only. Captured before the arms so both can answer it.
@@ -854,8 +878,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // ── ARM 2: literal-1 (§8.4.3.13.3 SR2 / §8.4.3.13.4 GR1b) ──────────────────────────────────────────
         if (operandLit is { } nn)
         {
-            if (ProgramAddressLiteral(nn) is not { } value) return new BoundNop();
-            return RestrictedReceiverNeedsPrototype(receiverProto, $"literal \"{value}\"")
+            if (ProgramAddressLiteral(nn, written) is not { } value) return new BoundNop();
+            return RestrictedReceiverNeedsPrototype(receiverProto, $"literal \"{value}\"", written)
                 ? new BoundNop()
                 : new BoundSetEntry(targets, value, null);
         }
@@ -888,19 +912,19 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.Resolve(operandRef) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET … TO ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
+                $"SET {written} TO ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
             return new BoundNop();
         }
         if (namePlace.Item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.National))
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET … TO ADDRESS OF PROGRAM {word}: identifier-1 shall be of category alphanumeric or "
+                $"SET {written} TO ADDRESS OF PROGRAM {word}: identifier-1 shall be of category alphanumeric or "
                 + $"national (ISO §8.4.3.13.3 SR1) — '{word}' is of category "
                 + $"{namePlace.Item.Pic?.Category.ToString()?.ToLowerInvariant() ?? "(none)"}");
             return new BoundNop();
         }
-        return RestrictedReceiverNeedsPrototype(receiverProto, $"identifier '{word}'")
+        return RestrictedReceiverNeedsPrototype(receiverProto, $"identifier '{word}'", written)
             ? new BoundNop()
             : new BoundSetEntry(targets, null, namePlace);
     }
@@ -910,7 +934,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// literal are excluded by the same sentence — none of them is an alphanumeric or national literal — and a
     /// §8.8.3 concatenation expression folds first, because §8.8.3.3 GR3 makes it "equivalent to a literal of
     /// the same class and value". Returns null having reported.</summary>
-    private string? ProgramAddressLiteral(Core.NonNumericLiteralContext nn)
+    private string? ProgramAddressLiteral(Core.NonNumericLiteralContext nn, string written)
     {
         string? value =
             nn.figurativeConstant() is not null ? null
@@ -924,14 +948,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (value is null)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET … TO ADDRESS OF PROGRAM {nn.GetText()}: literal-1 shall be an alphanumeric or national "
+                $"SET {written} TO ADDRESS OF PROGRAM {nn.GetText()}: literal-1 shall be an alphanumeric or national "
                 + "literal whose length is not zero (ISO §8.4.3.13.3 SR2)");
             return null;
         }
         if (value.Length == 0)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                "SET … TO ADDRESS OF PROGRAM \"\": literal-1 shall be an alphanumeric or national literal "
+                $"SET {written} TO ADDRESS OF PROGRAM \"\": literal-1 shall be an alphanumeric or national literal "
                 + "whose length is not zero (ISO §8.4.3.13.3 SR2)");
             return null;
         }
@@ -953,11 +977,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// witness that loads a restricted program-pointer through it. §13.18.60.4 GR25's content obligation on a
     /// restricted program-pointer is a separate question about the EXTENSION's own discipline, registered as
     /// its own mechanism.</para></summary>
-    private bool RestrictedReceiverNeedsPrototype(string? receiverProto, string senderWhat)
+    private bool RestrictedReceiverNeedsPrototype(string? receiverProto, string senderWhat, string written)
     {
         if (receiverProto is null) return false;
         ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
-            $"SET … TO ADDRESS OF PROGRAM {senderWhat}: the receiving program-pointer is restricted to "
+            $"SET {written} TO ADDRESS OF PROGRAM {senderWhat}: the receiving program-pointer is restricted to "
             + $"program-prototype '{receiverProto}', and only the program-prototype-name-1 arm of a "
             + "program-address-identifier is itself restricted (ISO §8.4.3.13.4 GR3); an unrestricted sender "
             + "is associated with no program-prototype, so the two cannot have the same signature "

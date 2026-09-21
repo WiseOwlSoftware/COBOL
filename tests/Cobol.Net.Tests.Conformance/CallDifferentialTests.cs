@@ -65,7 +65,7 @@ public sealed class CallDifferentialTests
                 EXIT PROGRAM.
             """);
 
-    /// <summary>§14.2.3 GR9: BY CONTENT — the callee receives a copy "allocated by the activating element";
+    /// <summary>§14.2.3 GR9: BY CONTENT — the callee receives a copy "allocated by the activating runtime element";
     /// its mutation is NOT visible to the caller.</summary>
     [Fact]
     public void CallByContent_CalleeMutationNotVisibleToCaller()

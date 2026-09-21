@@ -1,7 +1,8 @@
       *> reject-at: 85 2002 2014 2023
       *> kb/Work PB487 - ISO 13.16.3 syntax rule 8, last sentence: "For any other entry describing an
       *> elementary item, a PICTURE clause shall be specified except as indicated in Syntax rule 9."
-      *> M has nothing subordinate to it (8.5.1.3 makes it elementary), carries no PICTURE, no usage from SR8's
+      *> M has nothing subordinate to it (8.5.1.3.1 makes it elementary - "The most basic subdivisions of a
+      *> record, that is, those not further subdivided, are called elementary items"), carries no PICTURE, no usage from SR8's
       *> picture-less list, and no VALUE literal to imply one under SR9 - so it is nonconforming at every
       *> edition.  This rule was enforced ONLY for USAGE NATIONAL and USAGE BIT, the two usages that had a
       *> deferred-adjudication mark; every other picture-less elementary entry escaped the binder with a null

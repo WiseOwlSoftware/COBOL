@@ -145,7 +145,12 @@ public sealed partial class DataBinder
         new('b', "A level 66 entry.", "a level-66 RENAMES entry", static d => d.Level == 66),
 
         // c) An alphanumeric group containing items with a usage other than display.
-        // "Alphanumeric group" is §8.5.1.3's group that is neither a bit group nor a national group — in this
+        // ⛔ INHERITED CITATION, RE-DERIVED (kb/Work PB932). This cited §8.5.1.3, which is the LEVELS clause and
+        // says nothing about group categories. "Alphanumeric group item" is defined in §3.11 — "group item
+        // except for a bit group item, a national group item, a strongly-typed group item, or a variable-length
+        // group item" — and made one by §13.18.29.4 GR3. ⚠ THE PREDICATE BELOW IS THE TWO-EXCLUSION READING the
+        // wrong citation carried: it excludes the bit and national groups and not the STRONGLY-TYPED or
+        // VARIABLE-LENGTH ones, so it over-includes. Registered as a lead rather than changed here — in this
         // model, IsGroup with GroupUsage.None. The membership test reaches EVERY depth: the rule says
         // "containing", not "immediately containing", and a COMP item two levels down denies the group a
         // character image exactly as one level down does.

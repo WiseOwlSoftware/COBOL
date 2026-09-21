@@ -4449,7 +4449,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             else if (redefinesTargetName is not null)
             {
                 Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: BASED and REDEFINES may not be specified "
-                    + "together (ISO §13.18.5 SR)");
+                    + "together (ISO §13.16.3 SR3)");
                 isBased = false;
             }
             else if (hasExternal)

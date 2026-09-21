@@ -65,6 +65,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
+import cite as cite_mod  # noqa: E402
 
 REPO = citation_corpus.REPO
 CITE = REPO / "scripts" / "spec" / "cite.py"
@@ -94,7 +95,12 @@ POST = re.compile(QUOTED + r'\s{0,2}[(\[]?(?:ISO\s+)?§\s?(?P<cl>\d+(?:\.\d+){2,
                   r'(?:\s+(?:SR|GR|item|rule)\s?\d+[a-z]?\)?)?\s*(?:[)\],.;:/·]|$)')
 
 #: Marks that a "quote" is elided, marked up, or otherwise not verbatim — never a checkable citation.
-NOT_VERBATIM = ("…", ">", "*", "`")
+#: ⚠ BOTH SPELLINGS OF THE ELLIPSIS, and the ASCII one was missing until the ELIDED arm measured its absence.
+#: `"minimum ... logical record size in bytes"` (`FixedFileAttributes.cs:34`) and `"the first reference ... in
+#: the run unit"` (`kb/Work/PB307`'s title) are authors marking an elision HONESTLY — exactly what `…` means
+#: here — and the new arm reported both as defects because this tuple knew only U+2026. A convention that
+#: depends on which of two identical-looking characters the author typed is not a convention.
+NOT_VERBATIM = ("…", "...", ">", "*", "`")
 
 #: ⛔ AND A MISFILING THAT IS BEING REPORTED AS A MISFILING IS NOT A DEFECT. The kb/Work note for this family is
 #: a table of "this file says §X, the text is really in §Y"; every row spells a wrong pairing, on purpose, and
@@ -103,6 +109,82 @@ NOT_VERBATIM = ("…", ">", "*", "`")
 #: It is a whole-file opt-out, it is visible in the file, and it is the same mechanism (and the same 40-line
 #: window) `audit_code_citations.py` gives the note that names phantom clauses on purpose.
 MARKER = "audit-doc-citations: names-misfilings"
+
+
+#: ⛔ THE ELIDED-QUOTATION ARM (kb/Work PB900). A quotation that `--find` locates NOWHERE lands in `absent`,
+#: which is the bucket this audit deliberately does not gate on: a doc quotes LABELS and paraphrases as well
+#: as spec text and nothing distinguishes them. But ONE shape inside that bucket IS decidable — a quotation
+#: that is the clause's OWN SENTENCE WITH WORDS DROPPED. `EmitterState.cs:29` and `ControlFlowEmitter.cs:70`
+#: carried §14.9.14.4 GR5a as *"the most closely preceding, unterminated inline PERFORM"*; the standard says
+#: *"the most closely preceding, and as yet unterminated, inline PERFORM"*. Right clause, right rule,
+#: quotation marks around words the standard does not contain in that order — and BOTH audits reported zero
+#: on it for as long as it shipped. A paraphrase cannot pass this test: its words do not appear IN ORDER
+#: inside the clause. A LABEL cannot either. Only an elision can, which is what makes the arm gateable.
+#: `SLACK` is what "with words dropped" is allowed to mean: the window in the standard that carries the
+#: quote's words in order may be half again as long, plus three. Below `FLOOR` words a subsequence match is
+#: a coincidence rather than a quotation, and that floor is what keeps an ordinary phrase out.
+ELIDE_SLACK, ELIDE_FLOOR = 1.5, 5
+
+_WORDS = None
+
+
+def _clause_words() -> dict[str, list[str]]:
+    """clause -> its own region as a WORD LIST, normalized the way `cite.py` compares. Built once."""
+    global _WORDS
+    if _WORDS is None:
+        lines = (REPO / "specs" / "ISO_COBOL.md").read_text(encoding="utf-8").splitlines()
+        out: dict[str, list[str]] = {}
+        for n, _t, s, e in cite_mod.clauses(lines):
+            out.setdefault(n, []).extend(cite_mod.norm(" ".join(lines[s:e])).split())
+        _WORDS = out
+    return _WORDS
+
+
+def elided_window(clause: str, quote: str) -> int | None:
+    """The length of the TIGHTEST window of `clause`'s own words that carries `quote`'s words IN ORDER, or
+    None when the quote is not an elision of anything the clause says.
+
+    Scanning from every start keeps this exact rather than greedy: a greedy left-to-right match can consume
+    an early occurrence of a common word ("the") and then run to the end of the clause, making a genuine
+    elision look like a scatter."""
+    want = cite_mod.norm(quote).split()
+    if len(want) < ELIDE_FLOOR:
+        return None
+    hay = _clause_words().get(clause)
+    if not hay:
+        return None
+    best = None
+    for start in range(len(hay)):
+        if hay[start] != want[0]:
+            continue
+        k, j = 1, start + 1
+        while k < len(want) and j < len(hay):
+            if hay[j] == want[k]:
+                k += 1
+            j += 1
+        if k == len(want) and (best is None or j - start < best):
+            best = j - start
+    if best is None or best > len(want) * ELIDE_SLACK + 3:
+        return None
+    return best
+
+
+def verdict_of(clause: str, quote: str) -> tuple[str, str | int | None]:
+    """THE ONE RULING on a (clause, quote) pairing — `("ok"|"misfiled"|"elided"|"absent", evidence)`.
+
+    ⛔ A PURE FUNCTION SO THE SELF-TEST DRIVES THE SAME CODE THE GATE DOES. It was inlined in `scan`, and the
+    self-test re-implemented the MISFILED half beside it in four lines of its own — which is how the ELIDED arm
+    could be added to `scan` and be invisible to `--self-test`: a gate arm nothing had ever seen fire
+    (`feedback_green_gates_arent_evidence`). One ruling, two callers."""
+    if cite("--check", clause, quote)[0] == 0:
+        return "ok", None
+    code, out = cite("--find", quote)
+    head = out.splitlines()[0].strip() if out else ""
+    if code == 0 and head.startswith("§"):
+        return "misfiled", head
+    if (w := elided_window(clause, quote)) is not None:
+        return "elided", w
+    return "absent", None
 
 
 def cite(*args: str) -> tuple[int, str]:
@@ -130,15 +212,16 @@ def citations(line: str):
             yield span[0], clause, quote, form
 
 
-def scan(paths):
+def scan(paths, elided_out: list | None = None):
     """(misfiled, absent, ok) over `paths`, EVERY SITE reported and every distinct pairing checked ONCE.
+    `elided_out`, when given, collects the ELIDED subset of `absent` — see `elided_window`.
 
     ⛔ ONE VERDICT PER PAIRING, ONE REPORT PER SITE, and the two were conflated until PB379. Deduplicating the
     REPORT hid siblings: the `§15.38.1 "depends on the type of argument-1"` pairing lives in three files, and a
     reader of the one reported line had no way to know the other two existed — precisely the sweep CLAUDE.md
     rule 4 demands, defeated by the tool. The cite.py call is still made once per pairing, which is the part
     that costs anything."""
-    verdict: dict[tuple[str, str], str | None] = {}
+    verdict: dict[tuple[str, str], tuple[str, str | int | None]] = {}
     misfiled: list[tuple[str, int, str, str, str, str]] = []
     absent: list[tuple[str, int, str, str, str]] = []
     ok = 0
@@ -154,19 +237,16 @@ def scan(paths):
             for _col, clause, quote, form in citations(line):
                 key = (clause, quote)
                 if key not in verdict:
-                    if cite("--check", clause, quote)[0] == 0:
-                        verdict[key] = None
-                    else:
-                        code, out = cite("--find", quote)
-                        head = out.splitlines()[0].strip() if out else ""
-                        verdict[key] = head if (code == 0 and head.startswith("§")) else ""
-                where = verdict[key]
-                if where is None:
+                    verdict[key] = verdict_of(clause, quote)
+                kind, evidence = verdict[key]
+                if kind == "ok":
                     ok += 1
-                elif where:
-                    misfiled.append((rel, n, clause, quote, where, form))
+                elif kind == "misfiled":
+                    misfiled.append((rel, n, clause, quote, str(evidence), form))
                 else:
                     absent.append((rel, n, clause, quote, form))
+                    if elided_out is not None and kind == "elided":
+                        elided_out.append((rel, n, clause, quote, int(evidence), form))
     return misfiled, absent, ok
 
 
@@ -174,43 +254,63 @@ def scan(paths):
 #: `feedback_prove_the_watchdog_fails`). Each line below is fed through the real `citations()` + `cite.py`, and
 #: each defect is paired with its REPAIRED twin, which must be silent. The postfix legs matter most: reading a
 #: second citation ORDER is a WIDENING, and a widening that has never been seen to fire is not a widening.
+#: ⛔ AND THE ARM EACH CASE IS ABOUT IS NAMED, not merely "a finding". `--self-test` used to assert a BOOLEAN,
+#: which is how the ELIDED arm was added to `scan` and driven by nothing: every existing case still passed, the
+#: self-test still printed PASS, and the new arm had never been seen to fire. A case now says WHICH ruling it
+#: expects, so an arm that stops firing fails the case that names it rather than falling through to another.
 SELF_TEST = [
-    ("prefix, misfiled", True,
+    ("prefix, misfiled", "misfiled",
      'The COMMIT statement (ISO §8.6.6) "shall not be specified in the input or output procedure of a MERGE"'),
-    ("prefix, correct", False,
+    ("prefix, correct", None,
      'The COMMIT statement (ISO §14.9.7.3) "shall not be specified in the input or output procedure of a MERGE"'),
-    ("postfix, misfiled", True,
+    ("postfix, misfiled", "misfiled",
      'It "shall not be specified in the input or output procedure of a MERGE" (§8.6.6), it says.'),
-    ("postfix, correct", False,
+    ("postfix, correct", None,
      'It "shall not be specified in the input or output procedure of a MERGE" (§14.9.7.3), it says.'),
+    # ⛔ THE ELIDED ARM'S OWN DEFECT (kb/Work PB900 arm B), verbatim as it shipped in `EmitterState.cs:29` and
+    # `ControlFlowEmitter.cs:70`: the right clause, the right rule, and quotation marks around words the
+    # standard does not contain in that order — "and as yet" dropped out of the middle. `--check` FAILS on it,
+    # `--find` locates it nowhere, and for as long as it shipped both audits reported zero.
+    ("elided quotation", "elided",
+     'an EXIT PERFORM targets (§14.9.14.4 GR5a) "the most closely preceding, unterminated inline PERFORM"'),
+    ("elided quotation, repaired", None,
+     'an EXIT PERFORM targets (§14.9.14.4 GR5a) "the most closely preceding, and as yet unterminated, inline '
+     'PERFORM"'),
+    # ⛔ AND THE PARAPHRASE THE ARM MUST NOT CLAIM. ELIDED is gateable only because a paraphrase cannot pass it:
+    # its words are not in the clause IN ORDER. This one says what GR5a says, in other words, and lands in
+    # `absent` where it belongs — the bucket this audit deliberately does not gate on.
+    ("paraphrase, not an elision", "absent",
+     'an EXIT PERFORM targets (§14.9.14.4 GR5a) "whichever inline PERFORM is innermost at that point"'),
     # ⛔ THE FALSE POSITIVE THE ORDER RULE EXISTS TO STOP: two postfix citations in one parenthesis, where the
     # prefix reading pairs each quote with the PREVIOUS quote's clause. Both pairings here are correct.
-    ("postfix pair, both correct", False,
+    ("postfix pair, both correct", None,
      'the wordings differ ("depends on the type of argument-1" §15.39.1, "depends upon the argument types" '
      '§15.18.1) and a prose key found ten of twenty'),
     # ⛔ AND THE ASIDE, which is not a citation of the quote at all: §13.18.29 is where GROUP-USAGE is defined,
     # the quote is §8.5.2.10's. Reading it as the source accused kb/Work PB15, which is correct.
-    ("postfix aside, not a citation", False,
+    ("postfix aside, not a citation", None,
      'a group of category national as one "described with a GROUP-USAGE clause with the NATIONAL phrase" '
      '(§13.18.29 — and my first draft cited §13.18.27)'),
     # ⛔ AND THE CLAUSE NUMBER TAKEN WHOLE: without `(?!\.\d)` this reads as a citation of §12.3.7 and reports a
     # correct citation as one level short.
-    ("postfix with a rule designator", False,
+    ("postfix with a rule designator", None,
      '"specified with the LOCALE phrase" (§12.3.7.3 SR16g / SR17d) — of EITHER class'),
 ]
 
 
 def self_test() -> int:
     ok = True
-    for name, want_finding, line in SELF_TEST:
+    for name, want_arm, line in SELF_TEST:
         got = []
         for _col, clause, quote, _form in citations(line):
-            if cite("--check", clause, quote)[0] != 0 and cite("--find", quote)[0] == 0:
-                got.append(f"§{clause} \"{quote[:40]}\"")
-        good = bool(got) == want_finding
+            kind, _evidence = verdict_of(clause, quote)
+            if kind != "ok":
+                got.append((kind, f"§{clause} \"{quote[:40]}\""))
+        arms = {k for k, _ in got}
+        good = (arms == {want_arm}) if want_arm else not arms
         ok &= good
-        print(f"  {'ok  ' if good else 'FAIL'} {'fires  ' if want_finding else 'silent '} on {name}"
-              + (f"  (got {got})" if got and not want_finding else ""))
+        want = f"{want_arm:8}" if want_arm else "silent  "
+        print(f"  {'ok  ' if good else 'FAIL'} {want} on {name}" + (f"  (got {got})" if not good else ""))
     # The whole-file opt-out is a SUPPRESSION, and a suppression that suppresses nothing is not one: the same
     # defect line must fire without the marker and be silent with it.
     import tempfile
@@ -253,12 +353,20 @@ def main() -> int:
     # quotation of §8.5.1.6.3 ("aligned at the first bit position of the first available byte"; the standard
     # says "Alignment of all other bit data items within a record, when a SYNCHRONIZED clause is not specified,
     # is at the first bit position of the first available byte"). Nothing was reading those headers.
-    misfiled, absent, ok = scan(citation_corpus.all_files())
+    elided: list = []
+    misfiled, absent, ok = scan(citation_corpus.all_files(), elided)
 
     print(f"{ok + len(misfiled) + len(absent)} verbatim-shaped citations checked · {ok} correct")
     print(f"⛔ {len(misfiled)} MISFILED (the text is real, the clause is wrong) — these are defects\n")
     for rel, n, clause, quote, where, form in misfiled:
         print(f"  {rel}:{n} ({form})\n     says §{clause}  \"{quote[:70]}\"\n     really {where}\n")
+
+    print(f"⛔ {len(elided)} ELIDED (the clause is right and the quotation marks are around words the "
+          f"standard does not contain in that order) — these are defects\n")
+    for rel, n, clause, quote, window, form in elided:
+        print(f"  {rel}:{n} ({form})\n     says §{clause}  \"{quote[:70]}\"\n"
+              f"     §{clause} carries those {len(cite_mod.norm(quote).split())} words in order "
+              f"across {window} — run `cite.py --find` on a fragment and quote what it prints\n")
 
     if args.all:
         print(f"\n— {len(absent)} quote(s) not found anywhere in the spec. MOSTLY NOT DEFECTS: a doc quotes labels")
@@ -266,7 +374,7 @@ def main() -> int:
         for rel, n, clause, quote, _form in absent:
             print(f"  {rel}:{n}: §{clause} \"{quote[:70]}\"")
 
-    return 1 if (misfiled and args.check) else 0
+    return 1 if ((misfiled or elided) and args.check) else 0
 
 
 if __name__ == "__main__":

@@ -471,8 +471,7 @@ public sealed class OoClassTable
                     {
                         if (into.Contains(isym))
                             edition.Error("COBOLNET0840",
-                                $"class '{sym.Name}' ({where}): duplicate IMPLEMENTS '{iref.GetText()}' "
-                                + "(ISO §11.8 SR)");
+                                $"class '{sym.Name}' ({where}): duplicate IMPLEMENTS '{iref.GetText()}' ({citation})");
                         else
                             into.Add(isym);
                     }

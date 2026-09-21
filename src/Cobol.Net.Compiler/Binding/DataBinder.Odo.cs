@@ -176,7 +176,7 @@ public sealed partial class DataBinder
                 {
                     Edition.Error("COBOLNET0855", $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
-                        + "table (ISO §13.18.44 SR)");
+                        + "table (ISO §13.18.44.3 SR5)");
                     break;
                 }
 

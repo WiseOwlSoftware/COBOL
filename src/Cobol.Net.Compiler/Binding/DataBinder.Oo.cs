@@ -663,7 +663,7 @@ public sealed partial class DataBinder
             if (subject.Occurs is not null)
             {
                 Edition.Error("COBOLNET0842", $"{where}: property subject '{subjName}' shall not carry "
-                    + "OCCURS (ISO §13.18.42 SR — no table subjects)");
+                    + "OCCURS (ISO §13.18.42.3 SR2 — no table subjects)");
                 continue;
             }
             // Superclass property-name collision (§13.18.42.3 SR4): walk the base chain's accessor rosters.

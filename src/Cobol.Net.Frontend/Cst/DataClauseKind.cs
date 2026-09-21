@@ -46,7 +46,8 @@ public enum DataClauseKind : uint
     Synchronized = 1u << 6,
     /// <summary>JUSTIFIED / JUST (§13.18.32).</summary>
     Justified = 1u << 7,
-    /// <summary>BLANK WHEN ZERO (§13.18.9).</summary>
+    /// <summary>BLANK WHEN ZERO (§13.18.8). ⛔ This cited §13.18.9, which is the BLINK clause — the same
+    /// off-by-one-clause inheritance kb/Work PB932 measured in StrongTypeModel, found by its sweep.</summary>
     BlankWhenZero = 1u << 8,
     /// <summary>ALIGNED (§13.18.1).</summary>
     Aligned = 1u << 9,

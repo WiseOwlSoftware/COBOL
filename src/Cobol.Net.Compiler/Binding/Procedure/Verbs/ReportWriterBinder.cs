@@ -92,7 +92,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
-                return new BoundUnsupported($"INITIATE '{rn.GetText()}' — not a report description entry (ISO §14.9.21 SR1)");
+                return new BoundUnsupported($"INITIATE '{rn.GetText()}' — not a report description entry (ISO §14.9.21.3 SR1)");
             members.Add(new BoundInitiate([r]));
         }
         return BoundImplicitSeries.Of(members);

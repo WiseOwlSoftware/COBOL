@@ -67,7 +67,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     // EmitPerform(inline:true) brackets the body with a fresh F3Region.Inline(pid) + the __pcont/__pexit labels, so
     // an EXIT PERFORM here targets THIS loop and a nested inline PERFORM (setting its OWN Inline id) targets the inner
-    // loop — §14.9.14.4 GR5a "the most closely preceding, unterminated inline PERFORM". No manual region reset needed.
+    // loop — §14.9.14.4 GR5a "the most closely preceding, and as yet unterminated, inline PERFORM". No manual region reset needed.
     public void EmitInlinePerform(BoundInlinePerform p) =>
         EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 

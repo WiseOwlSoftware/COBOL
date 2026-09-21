@@ -1,1 +1,1 @@
-BASED and REDEFINES may not be specified together
+BASED and REDEFINES may not be specified together (ISO §13.16.3 SR3)

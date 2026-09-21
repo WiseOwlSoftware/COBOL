@@ -785,7 +785,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             if (callState.ReturningPlace is { } ret)
                 move.Emit(new BoundMove(new BoundFieldOperand(src), [ret]));
             else
-                w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
+                w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18.4 GR2)"));
         }
         if (g.Raising is { } r)
             // §14.9.18.4 GR3 (the P13 review C3 fix): in a program NOT under the control of a calling runtime
@@ -872,7 +872,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // activating statement.
         w.Line(r.WithLocation
             ? $"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")}, "
-              + $"{CsLiteral(r.StatementName!)}, {CsLiteral(r.Location!)});   // staged for the activator (§14.9.18 GR)"
-            : $"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")});   // staged for the activator (§14.9.18 GR)");
+              + $"{CsLiteral(r.StatementName!)}, {CsLiteral(r.Location!)});   // staged for the activator (§14.9.18.4 GR1b)"
+            : $"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")});   // staged for the activator (§14.9.18.4 GR1b)");
     }
 }

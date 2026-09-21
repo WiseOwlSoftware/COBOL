@@ -24,9 +24,13 @@ public enum CobolCategory
     National,
     /// <summary>PIC N with B/0 insertion — display-formatted national data (ISO §8.5.2.11).</summary>
     NationalEdited,
-    /// <summary>PIC 1 fields — boolean data (each position is a boolean character '0'/'1'; ISO §8.5.1.3,
-    /// COBOL-2002). Stored one byte per position holding ASCII '0'/'1' (§13.18.40.4 R14 permits an
-    /// alphanumeric-character representation of a boolean character).</summary>
+    /// <summary>PIC 1 fields — boolean data (ISO §8.5.2.5, the boolean category, whose first member is "an
+    /// elementary data item described as boolean by its PICTURE character-string"; COBOL-2002). Each position
+    /// is a boolean character: §13.18.40.4 GR14's symbol table says "Each symbol '1' represents a boolean
+    /// position that shall contain a boolean character. Each boolean character can be represented in storage as
+    /// a bit, an alphanumeric character, or a national character" — so storing one byte per position holding
+    /// ASCII '0'/'1' is the alphanumeric-character representation that rule permits. ⛔ This cited §8.5.1.3,
+    /// which is the LEVELS clause and is about nothing here (kb/Work PB932).</summary>
     Boolean,
     /// <summary>USAGE POINTER — an opaque machine-address handle (ISO §13.18.60.4, COBOL-2002). Stored as an
     /// 8-byte value; NULL is the all-zero handle. Does not participate in arithmetic or character operations.</summary>

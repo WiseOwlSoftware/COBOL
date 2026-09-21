@@ -2085,16 +2085,26 @@ result. Run the long legs ONE AT A TIME.
   (a definition-header cites a clause that is not its construct's) · and, since PB388, the ORDINAL family over
   the number INSIDE a right clause: FORMAT (no such general format) · FORMAT-RULE (the rule is printed under a
   DIFFERENT format banner than the one cited beside it) · FORMAT-NAME (the line names one format and cites
-  another) — baseline **ZERO findings** over 2633 files, `--self-test` PASS (eleven firing legs, eleven silent
-  twins). The ordinal family is LINE-based, so a citation inside a DIAGNOSTIC MESSAGE STRING is under the gate
+  another) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
+  `(ISO §14.9.18 SR)` names no rule at all; kb/Work PB838) — baseline **ZERO findings** over 4529
+  files, `--self-test` PASS. The ordinal family is LINE-based, so a citation inside a DIAGNOSTIC MESSAGE STRING is under the gate
   for the first time; two of PB388's defects lived exactly there. Two further ordinal checks — RULE (the clause
-  has no such rule number) and SUBITEM (that rule has no sub-items) — are sound and NOT yet gating: they found
-  **195 sites in 124 files** on the day they were written, and **203** on train 36's merged tree, each needing its own derivation. They print their
-  count on every gate run and `--check-all` gates on them. Wired into `scripts/build-local.{sh,ps1}`
+  has no such rule number) and SUBITEM (that rule has no sub-items) — plus DIAG-UNQUALIFIED (a
+  message string citing a construct clause where the rules live in its `.3`/`.4` child) — are sound and
+  NOT yet gating: **330 on 2026-09-21** (160 DIAG-UNQUALIFIED · 102 RULE · 68 SUBITEM), each
+  needing its own derivation. They print their count PER FAMILY on every gate run and `--check-all`
+  gates on them. ⛔ The ordinal arm's attribution carries a VETO since kb/Work PB900: a rule
+  designator is written once and referred BACK to in the same sentence, so a finding is dropped when
+  some clause the line ALREADY NAMES admits the ordinal. Measured: 209 findings without it, 170 with
+  it, 54 under a join-only reading that would have discarded 116 real accusations. Wired into `scripts/build-local.{sh,ps1}`
   before the build and `scripts/battery.sh` PHASE -1; deliberately NOT in CI, where `submodules: false`
   makes the spec absent and PHANTOM would SKIP. **Its sibling `python scripts/spec/audit_doc_citations.py
   --check` (a QUOTED fragment vs the clause it is filed under) now sits in the same three seats and at the
-  same baseline — 236 citations checked, 193 correct, ZERO MISFILED, `--self-test` PASS (nine legs).** It ran
+  same baseline — 509 citations checked, 462 correct, ZERO MISFILED and ZERO ELIDED, `--self-test`
+  PASS.** Its ELIDED arm (kb/Work PB900) gates on a quotation that is the clause's own sentence with
+  words dropped. ⛔ **Both audits' `--self-test` ran in NO gate until 2026-09-21** — only `--check`
+  did, which is how ELIDED could be added and driven by nothing; `CitationAuditSelfTestDriftTests`
+  (Unit) now shells both and asserts the CASE NAMES. It ran
   in no gate until 2026-09-03 and was reporting six misfilings nobody owned; adjudicating them (kb/Work PB379)
   found ONE inherited clause number and five sites the audit could not READ, because a citation is written in
   more than one order here and it knew only `§ … "quote"`. It now reads the POSTFIX order too (`"quote" §N`),

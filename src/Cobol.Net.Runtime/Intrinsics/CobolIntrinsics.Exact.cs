@@ -675,7 +675,7 @@ public static partial class CobolIntrinsics
             char c = text[i];
             // Format-B trailing sign / CR / DB (any case, §15.67.3 r1) — only when no leading sign was taken
             // (the two formats are ALTERNATIVES, so a second sign is an ERROR POSITION, never a toggle).
-            // §15.67.4 r2's "contains CR, DB, or the minus sign ⇒ negative" holds by construction: the one
+            // §15.67.4 r2's "contains CR, DB, or the minus sign, the returned value is negative" holds by construction: the one
             // sign the format admits decides.
             if (!leadSign && c is '+' or '-') { neg = c == '-'; i++; }
             else if (!leadSign && i + 1 < n

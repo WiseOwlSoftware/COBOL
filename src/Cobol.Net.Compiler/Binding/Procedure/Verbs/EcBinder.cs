@@ -64,7 +64,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 if (!host.InMethod)
                 {
                     ctx.Edition.Error("COBOLNET0848",
-                        "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8)");
+                        "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8.3 SR1)");
                     return new BoundNop();
                 }
                 return new BoundRaiseObject(null);

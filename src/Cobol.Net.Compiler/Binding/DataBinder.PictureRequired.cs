@@ -96,7 +96,7 @@ public sealed partial class DataBinder
     /// <para>⛔ The test cannot be <see cref="DataItem.IsElementary"/>, which is DEFINED as
     /// <c>Pic is not null</c> — asking it about a picture-less item is vacuously false and the guard would never
     /// fire (measured: the first cut of this pass was a no-op for exactly that reason). “Elementary” in
-    /// §13.16.3 SR8's sense is a property of the SOURCE — §8.5.1.3 makes an entry with nothing subordinate to it
+    /// §13.16.3 SR8's sense is a property of the SOURCE — §8.5.1.3.1 makes an entry with nothing subordinate to it
     /// elementary whether or not it has a PICTURE — so the predicate is the CHILD COUNT.</para>
     /// <para>Levels 66 (RENAMES) and 88 (condition-name) are not data description entries in Format 1's sense
     /// (§13.16.2 Formats 2–4) and never carry a PICTURE, so they are excluded by level.</para>

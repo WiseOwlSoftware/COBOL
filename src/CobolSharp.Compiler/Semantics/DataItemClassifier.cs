@@ -127,7 +127,11 @@ public static class DataItemClassifier
             diagnostics.Report(DiagnosticDescriptors.CBL0802, loc, span, data.DisplayName);
         }
 
-        // Check 4: BLANK WHEN ZERO with JUSTIFIED is not allowed (ISO §13.18.5)
+        // Check 4: BLANK WHEN ZERO with JUSTIFIED is not allowed. ⛔ This cited ISO §13.18.5, which is the
+        // BASED clause (kb/Work PB932's sweep). The exclusion is not one prohibition but the intersection of
+        // two applicability rules: §13.18.8.3 SR1 admits BLANK WHEN ZERO only on "category numeric-edited or
+        // ... numeric without the picture symbol 'S'", and §13.18.32.3 SR3 admits JUSTIFIED only on "a data
+        // item whose category is alphabetic, alphanumeric, boolean, or national" — disjoint sets.
         if (data.IsJustifiedRight)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL0804, loc, span, data.DisplayName);

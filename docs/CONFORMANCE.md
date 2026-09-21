@@ -537,7 +537,7 @@ of an unsupported facility.
   contributes no digit and an all-non-digit image is zero, a packed nibble above 9 contributes none, a binary
   window is read as its two's-complement value — never arbitrary content and never a trap. Only a numeric leaf
   whose storage is a character window (a REDEFINES view, or a leaf under a group used as a whole operand —
-  §14.9.25.4 GR4 fills such a group "without consideration for the individual elementary items") can hold such
+  §14.9.25.4 GR4 fills such a group "without consideration for the individual elementary or group items") can hold such
   content at all; a native-carrier leaf can only hold digits, so `IS NUMERIC` on one is the constant true
   (§8.8.4.4.4 GR3 n)1). The test itself is the standard's own — "would evaluate to false in a numeric class
   condition" — evaluated over the item's byte representation: n)1.a's digits-plus-declared-sign for DISPLAY,

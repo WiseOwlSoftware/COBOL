@@ -61,6 +61,20 @@ def prose_files() -> list[pathlib.Path]:
     return [p for p in out if _keep(p)]
 
 
+def code_files() -> list[pathlib.Path]:
+    """The compiler's own C#, where a citation can reach a USER rather than a reader — the population
+    `audit_code_citations.py`'s DIAGNOSTIC-STRING checks run over (kb/Work PB838).
+
+    ⛔ IT IS A NARROWER POPULATION THAN `prose_files()`, ON PURPOSE, AND THE SCOPE IS THE WHOLE CHECK. A
+    citation in a COMMENT sits beside the derivation that justifies it, and this repository deliberately writes
+    a rule block's clause both ways (`§14.9.39 GR29` and `§14.9.39.4 GR29`) — `_alias` exists for that. A
+    citation inside a MESSAGE STRING is all the user gets: it is read alone, in a terminal, by someone looking
+    the rule up. Measured 2026-09-21: "a rule kind with no ordinal" is 2683 sites tree-wide (`SR 1` with a
+    space, `SR-14.9.28.3-2` row ids, "the 1561-1563 SR band") and 5 inside message strings. The narrow
+    population is the decidable one."""
+    return [p for p in sorted(REPO.joinpath("src").rglob("*.cs")) if _keep(p)]
+
+
 def declaration_files() -> list[pathlib.Path]:
     """The files whose comments follow the DEFINITION-HEADER convention — "name the construct, then cite its
     clause": the ANTLR grammars (`// MOVE (§14.9.25)` above `moveStatement`) and the golden program headers
