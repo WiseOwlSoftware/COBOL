@@ -988,7 +988,13 @@ internal sealed class VersionConformancePass
         /// statement.</summary>
         public override object? VisitSetBooleanStatement(CobolParserCore.SetBooleanStatementContext ctx)
         {
-            if (ctx.FALSE_() is not null) _p.Check(Constructs.SetConditionFalse2002, "SET condition-name TO FALSE");
+            // ⛔ THE TOKEN IS ON THE PHRASE, AND A STATEMENT MAY CARRY SEVERAL (kb/Work PB450): §14.9.39.2
+            // Format 4's outer `…` repeats the whole `{ condition-name-1 } … TO { TRUE | FALSE }` unit, so
+            // `SET A TO TRUE B TO FALSE` writes ONE FALSE arm inside the second group. Asking the statement
+            // node for FALSE_ after the phrase rule landed would have found none and let the COBOL-2002
+            // introduction through unmeasured at --std 85.
+            if (ctx.setConditionPhrase().Any(p => p.FALSE_() is not null))
+                _p.Check(Constructs.SetConditionFalse2002, "SET condition-name TO FALSE");
             return base.VisitChildren(ctx);
         }
 

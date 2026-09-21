@@ -89,20 +89,40 @@ public sealed class ConditionValueRecipeDriftTests
             + string.Join(", ", hits));
     }
 
-    /// <summary>The numeric-edited VALUE image has exactly TWO readers — the recipe that composes it and the
-    /// membership test that compares against it (§8.8.4.5.3 GR2 compares by the relation-condition rules, so
-    /// the two must see the same image). A THIRD caller is a third copy of §13.18.63.3 SR6
-    /// (feedback_one_rule_one_place); the SET store used to be exactly that third site, spelled differently.
-    /// </summary>
+    /// <summary>The numeric-edited VALUE image has exactly THREE readers, and the list is EXHAUSTIVE — a fourth
+    /// caller is a fourth copy of §13.18.63.3 SR6 (feedback_one_rule_one_place); the SET store used to be
+    /// exactly such a site, spelled differently.
+    /// <para>The three are the recipe that composes the image (<c>ValueInitializer</c>), the membership test
+    /// that compares against it (<c>ConditionRenderer</c> — §8.8.4.5.3 GR2 compares by the relation-condition
+    /// rules, so the store and the test must see the same image), and, since kb/Work PB920, the BINDER's
+    /// §13.18.63.3 SR26 / SR27 screens (<c>DataBinder.ConditionValueOf</c>). The third was added
+    /// DELIBERATELY and is named here rather than worked around: those two syntax rules compare "<i>the value
+    /// of</i>" two VALUE-clause operands, and on a numeric-edited subject that value IS the edited image —
+    /// §8.8.4.2.1's NOTE, "<i>All comparisons involving numeric-edited data items are alphanumeric or national
+    /// comparisons, including when the associated VALUE clause is a numeric literal</i>". A screen that composed
+    /// its own image would be the very drift this test exists to catch.</para></summary>
     [Fact]
-    public void TheNumericEditedValueImage_HasExactlyTwoReaders()
+    public void TheNumericEditedValueImage_HasExactlyThreeReaders()
     {
         var callers = CompilerSources()
             .Where(s => new Regex(@"EditedImageOfNumericValue\s*\(").IsMatch(s.Text))
             .Select(s => Path.GetFileName(s.Rel))
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
-        Assert.Equal(["ConditionRenderer.cs", "ValueInitializer.cs"], callers);
+        Assert.Equal(["ConditionRenderer.cs", "DataBinder.cs", "ValueInitializer.cs"], callers);
+    }
+
+    /// <summary>⛔ AND THE COMPOSER TAKES NO EMIT CONTEXT (kb/Work PB920). SR6 is asked during BINDING as
+    /// well as during emission, so an <c>EmitContext</c> parameter would have made the binder unable to call it
+    /// — which is exactly how a second copy of the rule gets written. The signature carries the two facts the
+    /// rule needs instead.</summary>
+    [Fact]
+    public void TheNumericEditedValueImage_IsPhaseNeutral()
+    {
+        string values = CompilerSources()
+            .Single(s => s.Rel.EndsWith("ValueInitializer.cs", StringComparison.Ordinal)).Text;
+        Assert.Contains("EditedImageOfNumericValue(int dialectLevel, bool decimalPointIsComma",
+            values, StringComparison.Ordinal);
     }
 
     /// <summary>The recipe reads the receiver's description through THE ONE category reader

@@ -1080,6 +1080,8 @@ public sealed partial class DataBinder
                     // literal-position reader as Format 1 per operand, so a non-literal operand is reported here
                     // too (kb/Work PB732: an undefined word used to be written into the report as its own
                     // spelling, exit 0) and the operands are never glued (kb/Work PB506).
+                    CheckValueConnective(value, pairedConnective: true,
+                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
                     valueOpsWritten += value.valueItem().FirstOrDefault()?.valueClauseOperand().Length ?? 0;
                     if (ExtractValueOperandList(value, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'") is { } raws)
                         valueRaws.AddRange(raws);

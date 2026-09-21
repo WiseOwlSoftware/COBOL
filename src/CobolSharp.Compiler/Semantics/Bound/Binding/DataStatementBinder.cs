@@ -300,48 +300,16 @@ internal sealed class DataStatementBinder
 
     internal BoundStatement? BindSetSwitch(CobolParserCore.SetSwitchStatementContext ctx)
     {
-        // Grammar: SET (dataReference+ TO (ON | OFF))+
-        // For the common case SET SW-1 SW-2 TO OFF, all refs share one ON/OFF.
-        // For compound SET SW-1 TO ON SW-2 TO OFF, each group has its own.
-        // Strategy: walk tokens by position to match refs to their ON/OFF.
+        // Grammar: SET setSwitchPhrase+   where   setSwitchPhrase : dataReference+ TO (ON | OFF)
+        // The printed §14.9.39.2 Format-3 unit is its own rule (kb/Work PB450), so the grouping is READ off the
+        // phrase nodes. This used to walk token indices to reassemble what the parser already knew.
         var switches = new List<(string Name, bool SetToOn)>();
-        var refs = ctx.dataReference();
-        var toTokens = ctx.TO();
-        var onTokens = ctx.ON();
-        var offTokens = ctx.OFF();
-
-        int refIdx = 0;
-        int onIdx = 0;
-        int offIdx = 0;
-
-        for (int toIdx = 0; toIdx < toTokens.Length; toIdx++)
+        foreach (var phrase in ctx.setSwitchPhrase())
         {
-            int toPos = toTokens[toIdx].Symbol.TokenIndex;
-            int nextToPos = (toIdx + 1 < toTokens.Length) ? toTokens[toIdx + 1].Symbol.TokenIndex : int.MaxValue;
-
-            // Collect refs before this TO
-            var targets = new List<string>();
-            while (refIdx < refs.Length && refs[refIdx].Stop.TokenIndex < toPos)
+            bool setToOn = phrase.ON() != null;
+            foreach (var dref in phrase.dataReference())
             {
-                targets.Add(refs[refIdx].cobolWord().GetText());
-                refIdx++;
-            }
-
-            // Find the ON or OFF token between this TO and the next TO
-            bool setToOn = false;
-            if (onIdx < onTokens.Length && onTokens[onIdx].Symbol.TokenIndex > toPos && onTokens[onIdx].Symbol.TokenIndex < nextToPos)
-            {
-                setToOn = true;
-                onIdx++;
-            }
-            else if (offIdx < offTokens.Length)
-            {
-                offIdx++;
-            }
-
-            foreach (var target in targets)
-            {
-                var switchInfo = _ctx.Semantic.ResolveImplementorSwitch(target);
+                var switchInfo = _ctx.Semantic.ResolveImplementorSwitch(dref.cobolWord().GetText());
                 if (switchInfo != null)
                     switches.Add((switchInfo.ImplementorName, setToOn));
             }
@@ -354,15 +322,21 @@ internal sealed class DataStatementBinder
 
     internal BoundStatement? BindSetBoolean(CobolParserCore.SetBooleanStatementContext ctx)
     {
-        bool setToTrue = ctx.TRUE_() != null;
+        // Grammar: SET setConditionPhrase+   where   setConditionPhrase : dataReference+ TO (TRUE | FALSE)
+        // §14.9.39.2 Format 4's printed outer repetition, one phrase per group (kb/Work PB450), so TRUE/FALSE
+        // is read per GROUP and not once for the statement.
         var stmts = new List<BoundStatement>();
 
-        foreach (var idCtx in ctx.dataReference())
+        foreach (var phrase in ctx.setConditionPhrase())
         {
-            string name = idCtx.cobolWord().GetText();
-            var condSym = _ctx.Semantic.ResolveConditionName(name);
-            if (condSym != null)
-                stmts.Add(new BoundSetConditionStatement(condSym, setToTrue));
+            bool setToTrue = phrase.TRUE_() != null;
+            foreach (var idCtx in phrase.dataReference())
+            {
+                string name = idCtx.cobolWord().GetText();
+                var condSym = _ctx.Semantic.ResolveConditionName(name);
+                if (condSym != null)
+                    stmts.Add(new BoundSetConditionStatement(condSym, setToTrue));
+            }
         }
 
         if (stmts.Count == 0) return null;

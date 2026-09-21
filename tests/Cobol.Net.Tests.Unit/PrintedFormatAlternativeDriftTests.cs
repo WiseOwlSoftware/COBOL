@@ -198,4 +198,68 @@ public sealed class PrintedFormatAlternativeDriftTests
     [Fact]
     public void TheSetLastExceptionStatement_IsADistinctFigureAndIsNotSweptHere()
         => Assert.Matches(@"SET\s+LAST\s+EXCEPTION\s+TO\s+OFF", RuleBody("setLastExceptionStatement"));
+
+    /// <summary>⛔ A PRINTED OUTER REPETITION IS A NAMED PHRASE RULE, NEVER AN INLINE <c>( … )+</c> GROUP
+    /// (kb/Work PB450).
+    ///
+    /// <para>§14.9.39.2 prints an outer ellipsis on four of the SET statement's formats — 3 (switch-setting),
+    /// 4 (condition-setting), 6 (attribute) and 7 (data-pointer-assignment, where the repeated unit is the
+    /// receiving-operand brace). Formats 3 and 4 have the SAME printed skeleton, and the grammar transcribed
+    /// Format 3's outer `…` and dropped Format 4's, eighteen lines away in the same file: conforming
+    /// <c>SET CF-A TO TRUE CG-A TO FALSE</c> was a bare <c>COBOL0001</c>.</para>
+    ///
+    /// <para>⚠ THE INVARIANT IS THE SHAPE, NOT THE ONE MISSING REPEAT, because the shape is what made the
+    /// omission survivable. Format 3's inline <c>SET (dataReference+ TO (ON|OFF))+</c> flattens every phrase
+    /// into one <c>dataReference()</c> list and one <c>TO()</c> list, so BOTH binders that read it —
+    /// <c>SetAlterBinder.SwitchBindSet</c> and the legacy <c>DataStatementBinder.BindSetSwitch</c> — carried
+    /// their own hand-written re-assembly of the grouping by token index, which is a structure the parser
+    /// already knew written down twice (CLAUDE.md rule 5, feedback_one_rule_one_place). With the repeated unit
+    /// named, a phrase IS a node, the binder loops over groups, and the NEXT SET format that prints an outer
+    /// ellipsis needs no re-assembler at all.</para>
+    ///
+    /// <para>⚠ The rule is stated over EVERY <c>set…Statement</c> in the grammar rather than over the two that
+    /// broke it, and the sweep asserts what it found before it judges, so a regex that stopped matching fails
+    /// loudly (feedback_green_gates_arent_evidence).</para></summary>
+    [Fact]
+    public void EverySetStatementRule_NamesItsRepeatedUnitInsteadOfInliningIt()
+    {
+        // Shape assertion 1: the clause really does print the many-format figure set this is about.
+        Assert.True(PrintedFormats("14.9.39.2") >= 15,
+            "§14.9.39.2 printed fewer figures than the SET statement has formats — the scrape is broken");
+
+        // Shape assertion 2: and its figure notes really do describe outer repetitions, which is the fact the
+        // grammar shape below exists to carry. Derived from the transcription, not from a list kept here.
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        var section = Regex.Match(spec, @"^#+\s+14\.9\.39\.2\s+General formats?\s*$(.*?)^#+\s+14\.9\.39\.3\s",
+                                  RegexOptions.Singleline | RegexOptions.Multiline);
+        Assert.True(section.Success, "§14.9.39.2's own section was not found — the scrape is broken");
+        int outerRepeats = Regex.Matches(section.Groups[1].Value,
+            @"repeats the whole braced portion|repeats the braced receiving operand|repeats the whole outer braced group").Count;
+        Assert.True(outerRepeats >= 3,
+            $"the §14.9.39.2 figure notes described {outerRepeats} outer repetition(s) — the scrape is broken");
+
+        var swept = new List<string>();
+        var offenders = new List<string>();
+        foreach (var (file, text) in Grammars())
+            foreach (Match m in Regex.Matches(text, @"^(set[A-Za-z0-9_]*Statement)\s*\n?\s*:(.*?);\s*$",
+                                              RegexOptions.Singleline | RegexOptions.Multiline))
+            {
+                swept.Add(m.Groups[1].Value);
+                // An inline repeated GROUP is a ')' carrying the repetition operator. A rule REFERENCE that
+                // repeats (`dataReference+`, `cobolWord+`, `setSwitchPhrase+`) is exactly what this asks for.
+                if (Regex.IsMatch(m.Groups[2].Value, @"\)\s*[+*]"))
+                    offenders.Add($"{file}: {m.Groups[1].Value} writes its repeated unit as an inline group — "
+                        + "give the unit its own rule so the binder reads the grouping instead of re-deriving it");
+            }
+
+        Assert.True(swept.Count >= 10,
+            $"the set…Statement sweep found {swept.Count} rule(s) — the scrape is broken, not the grammar");
+        Assert.Contains("setSwitchStatement", swept);
+        Assert.Contains("setBooleanStatement", swept);
+        Assert.Empty(offenders);
+
+        // And the two twins really are the same shape, which is the half a "no inline group" rule cannot say.
+        foreach (string pair in new[] { "setSwitchStatement", "setBooleanStatement" })
+            Assert.Matches(@"^\s*:?\s*SET\s+set[A-Za-z]+Phrase\+\s*$", RuleBody(pair).Trim());
+    }
 }

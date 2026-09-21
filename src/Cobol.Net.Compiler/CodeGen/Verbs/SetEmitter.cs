@@ -322,7 +322,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
 
     public void EmitSet(BoundSetConditions set)
     {
-        foreach (var (parent, cond) in set.Sets)
+        foreach (var (parent, cond, toTrue) in set.Sets)
         {
             // ⛔ THE ONLY DIFFERENCE BETWEEN THE TWO ARMS (kb/Work PB555). §14.9.39.4 GR6 stores "the literal in
             // the VALUE clause … If more than one literal is specified in the VALUE clause, the conditional
@@ -331,7 +331,10 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // after this line is the ONE store both rules describe in the same words, so the FALSE arm inherits
             // the figurative fill, the group-image splice and the category funnel without a second copy. The
             // binder has already refused a FALSE arm with no phrase (§14.9.39.3 SR7, COBOLNET2049).
-            string low = set.ToTrue ? cond.Values[0].Low : cond.FalseValue!;
+            // ⛔ THE ARM IS THE GROUP'S, NOT THE STATEMENT'S (kb/Work PB450): §14.9.39.2 Format 4's outer `…`
+            // repeats the whole `{ condition-name-1 } … TO { TRUE | FALSE }` unit, so one statement may store
+            // TRUE into one group and FALSE into the next.
+            string low = toTrue ? cond.Values[0].Low : cond.FalseValue!;
             // ⛔ THE ONE §13.18.63 VALUE RECIPE — DataEmitter.ValueImageOf → ValueInitializer.InitializerFrom,
             // the SAME method that renders the conditional variable's OWN VALUE clause and the report section's
             // format-4 operand (kb/Work PB506). §14.9.39.4 GR6 does not describe a store of its own: it says the
@@ -367,7 +370,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // §13.18.38 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
             // its as-if value is boolean positions / national positions, which Write routes to FromBits / FromNat.
             ctx.Writer.Line(imageGroup
-                ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO {(set.ToTrue ? "TRUE" : "FALSE")}")
+                ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO {(toTrue ? "TRUE" : "FALSE")}")
                 : PlaceRenderer.Write(parent, rhs));
         }
     }

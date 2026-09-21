@@ -207,7 +207,9 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // A NUMERIC-EDITED item's numeric VALUE (a numeric literal, or the figurative ZERO at >= 2023) is its EDITED
         // image — the ONE compose (EditedImageOfNumericValue) the level-88 membership test shares. Below 2023 a
         // figurative ZERO falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior, VCR 35).
-        if (pic.Category is PicCategory.NumericEdited && EditedImageOfNumericValue(ctx, item, pic, raw) is { } editedImage)
+        if (pic.Category is PicCategory.NumericEdited
+            && EditedImageOfNumericValue(ctx.Data.Edition.DialectLevel, ctx.Data.DecimalPointIsComma,
+                    item, pic, raw) is { } editedImage)
             return EmitText.CsLiteral(editedImage);
 
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
@@ -254,7 +256,17 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// composes through <see cref="RuntimeApi.EditComposeFloat"/> (the floating-point literal, or a zero form), a
     /// fixed-point one through <see cref="RuntimeApi.EditCompose"/> — the SAME runtime the MOVE uses, so the baked
     /// image is what MOVE literal TO item would store (BLANK WHEN ZERO included, NOTE 2).</summary>
-    internal static string? EditedImageOfNumericValue(EmitContext ctx, DataItem item, PicInfo pic, string raw)
+    /// <param name="dialectLevel">The compilation's edition (<c>EditionContext.DialectLevel</c>).</param>
+    /// <param name="decimalPointIsComma">ISO §12.3.7 GR14a's DECIMAL-POINT IS COMMA.</param>
+    /// <remarks>⛔ THE PARAMETERS ARE THE TWO FACTS THE RULE NEEDS, NOT AN <c>EmitContext</c>, and that is
+    /// deliberate (kb/Work PB920). §13.18.63.3 SR6 is not only a code-generation rule: SR26 and SR27 compare
+    /// "<i>the value of</i>" two VALUE-clause operands, and on a numeric-edited subject that value IS this
+    /// edited image — so <c>DataBinder</c> has to ask the same question during BINDING, where no
+    /// <c>EmitContext</c> exists. An emit-context parameter would have forced a second copy of SR6 into the
+    /// binder, which is the defect this method was extracted to end
+    /// (<c>ConditionValueRecipeDriftTests</c> names every reader).</remarks>
+    internal static string? EditedImageOfNumericValue(int dialectLevel, bool decimalPointIsComma,
+        DataItem item, PicInfo pic, string raw)
     {
         // A format-2 (LOCALE) item has NO compile-time image (the locale is runtime data) — the callers carry
         // their own runtime arm (RuntimeApi.LocaleEditCompose); returning null here keeps the EditMask derefs
@@ -262,18 +274,18 @@ internal sealed class ValueInitializer(EmitContext ctx)
         if (pic.LocaleEdit is not null) return null;
         if (raw.StartsWith('"') || raw.StartsWith('\'')) return null;
         bool zeroFigurative = FigurativeKind(raw) == 'Z';
-        if (zeroFigurative && ctx.Data.Edition.DialectLevel < 2023) return null;
+        if (zeroFigurative && dialectLevel < 2023) return null;
         if (pic.IsFloatEdited)
             return zeroFigurative || TryParseFloatLiteral(raw, out _, out _)
                 ? RuntimeApi.EditComposeFloat(zeroFigurative ? Int128.Zero : ParsedSig(raw), zeroFigurative ? 0 : ParsedExp(raw),
-                    pic.EditMask!, item.BlankWhenZero, ctx.Data.DecimalPointIsComma)
+                    pic.EditMask!, item.BlankWhenZero, decimalPointIsComma)
                 : null;
         if (zeroFigurative)
             return RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,
-                pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules);
+                pic.CurrencyString, decimalPointIsComma, pic.EditingRules);
         return TryParseNumeric(raw, out var uv, out int sc)
             ? RuntimeApi.EditCompose(uv, sc, pic.EditMask!, item.BlankWhenZero, pic.CurrencyString,
-                ctx.Data.DecimalPointIsComma, pic.EditingRules)
+                decimalPointIsComma, pic.EditingRules)
             : null;
 
         static Int128 ParsedSig(string r) { TryParseFloatLiteral(r, out var s, out _); return s; }

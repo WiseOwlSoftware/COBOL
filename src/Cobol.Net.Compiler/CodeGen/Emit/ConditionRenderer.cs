@@ -742,7 +742,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // answered TRUE. ImageWidth remains the fallback for an ORDINARY group, whose positions ARE characters.
         int width = parent.OperandPic?.Length ?? parent.ImageWidth;
         if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
-            && ValueInitializer.EditedImageOfNumericValue(ctx, parent, npic, raw) is { } edited)
+            && ValueInitializer.EditedImageOfNumericValue(ctx.Data.Edition.DialectLevel,
+                    ctx.Data.DecimalPointIsComma, parent, npic, raw) is { } edited)
             return edited;
         // ⛔ THE ONE §8.3.3.6.2 OPERAND CLASSIFIER (kb/Work PB461). §14.9.39.4 GR6 stores this same operand
         // "according to the rules for the VALUE clause" and §8.8.4.5.3 GR3 makes the test true exactly when the

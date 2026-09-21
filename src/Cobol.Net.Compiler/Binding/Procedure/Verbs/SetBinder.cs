@@ -1190,35 +1190,45 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// does, the only thing left to check is §14.9.39.3 SR7 — the phrase has to be there.</para></summary>
     public BoundStatement BindSetCondition(Core.SetBooleanStatementContext b)
     {
-        bool toTrue = b.TRUE_() is not null;
-        var sets = new List<(Place, Condition88)>();
-        foreach (var dref in b.dataReference())
+        var sets = new List<(Place, Condition88, bool)>();
+        // ⛔ ONE LOOP OVER THE PRINTED GROUPS (kb/Work PB450). §14.9.39.2 Format 4 wraps the whole
+        // `{ condition-name-1 } … TO { TRUE | FALSE }` unit in an outer brace with a trailing `…`, so a
+        // statement may write several groups and they need not agree on TRUE/FALSE; the grammar's
+        // `setConditionPhrase` IS that unit, so the grouping is READ rather than re-derived from token
+        // positions. §14.9.39.4 GR8 makes the flattening exact: "If multiple condition-names are specified,
+        // the results are the same as if a separate SET statement had been written for each condition-name-1."
+        foreach (var phrase in b.setConditionPhrase())
         {
-            // ⛔ SR6 IS DECIDED HERE, SO IT IS REPORTED HERE (kb/Work PB390). "Condition-name-1 shall be
-            // associated with a conditional variable" (ISO §14.9.39.3 SR6) — and the operand that DISCRIMINATES
-            // the rule is a SPECIAL-NAMES switch-status condition-name (§8.4.4.1's second kind), which the old
-            // message denied was a condition-name at all while staging the verdict to a run-time abort.
-            if (host.Cond.ConditionOf(dref) is not { } cond)
+            bool toTrue = phrase.TRUE_() is not null;
+            foreach (var dref in phrase.dataReference())
             {
-                ctx.Validation.RejectSetConditionName(dref.GetText(), host.Alter.SwitchNameOf(dref));
-                return new BoundNop();
+                // ⛔ SR6 IS DECIDED HERE, SO IT IS REPORTED HERE (kb/Work PB390). "Condition-name-1 shall be
+                // associated with a conditional variable" (ISO §14.9.39.3 SR6) — and the operand that
+                // DISCRIMINATES the rule is a SPECIAL-NAMES switch-status condition-name (§8.4.4.1's second
+                // kind), which the old message denied was a condition-name at all while staging the verdict to
+                // a run-time abort.
+                if (host.Cond.ConditionOf(dref) is not { } cond)
+                {
+                    ctx.Validation.RejectSetConditionName(dref.GetText(), host.Alter.SwitchNameOf(dref));
+                    return new BoundNop();
+                }
+                // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
+                if (ctx.Refs.ResolveForItem(dref, cond.Parent) is not { } parent)
+                    return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
+                // §14.9.39.3 SR7 — "If the FALSE phrase is specified, the FALSE phrase shall be specified in the
+                // VALUE clause of the data description entry for condition-name-1." The TRUE arm needs no twin
+                // screen: §13.18.63.3 SR24 already makes a VALUE clause mandatory on a level-88 entry, so
+                // `cond.Values` is never empty where a condition-name exists.
+                if (!toTrue && cond.FalseValue is null)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.SetFalseWithoutFalsePhrase, $"SET '{cond.Name}' TO FALSE: "
+                        + $"the VALUE clause of condition-name '{cond.Name}' writes no WHEN SET TO FALSE phrase, "
+                        + "so there is no literal-4 to place in the conditional variable (ISO §14.9.39.3 SR7)");
+                    return new BoundNop();
+                }
+                sets.Add((parent, cond, toTrue));
             }
-            // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
-            if (ctx.Refs.ResolveForItem(dref, cond.Parent) is not { } parent)
-                return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
-            // §14.9.39.3 SR7 — "If the FALSE phrase is specified, the FALSE phrase shall be specified in the
-            // VALUE clause of the data description entry for condition-name-1." The TRUE arm needs no twin
-            // screen: §13.18.63.3 SR24 already makes a VALUE clause mandatory on a level-88 entry, so
-            // `cond.Values` is never empty where a condition-name exists.
-            if (!toTrue && cond.FalseValue is null)
-            {
-                ctx.Edition.Error(DiagnosticCatalog.SetFalseWithoutFalsePhrase, $"SET '{cond.Name}' TO FALSE: the "
-                    + $"VALUE clause of condition-name '{cond.Name}' writes no WHEN SET TO FALSE phrase, so there "
-                    + "is no literal-4 to place in the conditional variable (ISO §14.9.39.3 SR7)");
-                return new BoundNop();
-            }
-            sets.Add((parent, cond));
         }
-        return new BoundSetConditions(sets, toTrue);
+        return new BoundSetConditions(sets);
     }
 }

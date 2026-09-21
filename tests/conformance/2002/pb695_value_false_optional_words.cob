@@ -20,7 +20,17 @@
       *> tests/conformance/2002/pb555_value_false_phrase's subject (kb/Work PB555, which bound literal-4;
       *> this file predates that and used to say the phrase was accepted-inert). The three literal-4 values
       *> written below are all OUTSIDE their condition's VALUE set, so 13.18.63.3 SR27 is satisfied and this
-      *> program stays a POSITIVE case: 0 against VALUE 1, 0 against VALUES 2 THRU 3, 0 against VALUE 1.
+      *> program stays a POSITIVE case: 0 against VALUE 1, 0 against VALUES 2 THRU 3, "Z" against
+      *> "A" THRU "C".
+      *> CN-ORDER's subject is C2, NOT C1, and its operand is an ALPHANUMERIC THROUGH RANGE, because
+      *> 13.18.63.3 SR31 admits the IN phrase "only when the literals specified in the THROUGH phrase are
+      *> of class alphanumeric or national" (kb/Work PB890). This line used to read
+      *> `88 CN-ORDER VALUE 1 IN AL1 WHEN SET TO FALSE 0.` -- a numeric SINGLETON with IN, which the rule
+      *> excludes twice over -- and a guard in DataBinder.BindCondition skipped the screen to keep it
+      *> green. The BRACKET ORDER this program exists to pin is unchanged: IN alphabet-name-1 first, the
+      *> WHEN SET TO FALSE bracket second. ORDER1 is still `yes` and the expectation is DERIVED, not
+      *> measured: AL1 IS STANDARD-1, so 14.7.8 rule 2 orders "A" < "B" < "C" and C2 = "B" is inside the
+      *> range; SR26's ascending-endpoint requirement is satisfied by the same ordering.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB695VALFW.
        ENVIRONMENT DIVISION.
@@ -32,7 +42,8 @@
        01  C1              PIC 9 VALUE 1.
            88  CN-BARE     VALUE 1 FALSE 0.
            88  CN-RANGE    VALUES ARE 2 THRU 3 FALSE 0.
-           88  CN-ORDER    VALUE 1 IN AL1 WHEN SET TO FALSE 0.
+       01  C2              PIC X VALUE "B".
+           88  CN-ORDER    VALUE "A" THRU "C" IN AL1 WHEN SET TO FALSE "Z".
        PROCEDURE DIVISION.
        MAIN-P.
            IF CN-BARE DISPLAY "BARE1=yes" ELSE DISPLAY "BARE1=no" END-IF

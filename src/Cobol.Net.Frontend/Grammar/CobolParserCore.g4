@@ -1428,10 +1428,30 @@ setContentSign
     : SIGN (NEGATIVE | POSITIVE)
     ;
 
-// SET mnemonic-name+ TO {ON | OFF} (COBOL-85 §14.9.39 Format 3)
-// Supports compound form: SET sw-1 TO ON sw-2 TO OFF.
+// ⛔ THE PRINTED OUTER REPETITION IS A NAMED PHRASE RULE, IN EVERY FORMAT THAT PRINTS ONE (kb/Work PB450).
+// §14.9.39.2 gives Format 3 and Format 4 the SAME printed skeleton — an inner brace `{ name } …` and an outer
+// brace around the whole `{ name } … TO { keyword | keyword }` unit with a trailing `…` — and the RENDERED
+// figure (PDF p760 / folio 730) shows both ellipses for Format 4 exactly as it does for Format 3. The grammar
+// transcribed Format 3's outer `…` and DROPPED Format 4's, eighteen lines away in this same file, so
+// `SET CF-A TO TRUE CG-A TO FALSE` was `error COBOL0001: unexpected 'TO'` on conforming source.
+//   python scripts/spec/cite.py --check 14.9.39.2 "The outer braces enclose the single repeated unit; the trailing"
+//   OK  §14.9.39.2   (General formats)  — Format 4's figure note
+// ⛔ AND THE REPEATED UNIT IS A RULE, NOT AN INLINE `( … )+` GROUP. An inline group flattens the phrases into
+// one list of `dataReference()` plus one list of `TO()`, which forced BOTH binders (the greenfield
+// SetAlterBinder.SwitchBindSet and the legacy DataStatementBinder.BindSetSwitch) to re-derive the grouping by
+// comparing token indices — two hand-written copies of a structure the parser already knew. One phrase rule per
+// printed unit gives each group its own node, so the binder loops over groups and the NEXT format that prints an
+// outer ellipsis needs no re-assembler at all (CLAUDE.md rule 5).
+// `PrintedFormatAlternativeDriftTests.EverySetStatementRule_NamesItsRepeatedUnitInsteadOfInliningIt` holds it.
+
+// SET {{mnemonic-name-1}… TO {ON | OFF}}… (COBOL-85 §14.9.39 Format 3, switch-setting)
 setSwitchStatement
-    : SET (dataReference+ TO (ON | OFF))+
+    : SET setSwitchPhrase+
+    ;
+
+// ONE printed Format-3 unit: `{ mnemonic-name-1 } … TO { ON | OFF }`.
+setSwitchPhrase
+    : dataReference+ TO (ON | OFF)
     ;
 
 // SET dataReference+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
@@ -1449,9 +1469,18 @@ setToValueStatement
     : SET dataReference+ TO arithmeticExpression
     ;
 
-// SET dataReference+ TO TRUE/FALSE (COBOL-85; §14.9.39 Format 4, condition-setting)
+// SET {{condition-name-1}… TO {TRUE | FALSE}}… (COBOL-85; §14.9.39 Format 4, condition-setting — the FALSE
+// arm is a COBOL-2002 addition, gated recognition-first on the FALSE_ token by VersionConformancePass).
+// The outer repetition and the phrase rule are the Format-3 twin's, for the reason written above setSwitchStatement.
 setBooleanStatement
-    : SET dataReference+ TO (TRUE_ | FALSE_)
+    : SET setConditionPhrase+
+    ;
+
+// ONE printed Format-4 unit: `{ condition-name-1 } … TO { TRUE | FALSE }`. §14.9.39.4 GR8 — "If multiple
+// condition-names are specified, the results are the same as if a separate SET statement had been written for
+// each condition-name-1" — is why the binder may flatten the phrases into one ordered list of stores.
+setConditionPhrase
+    : dataReference+ TO (TRUE_ | FALSE_)
     ;
 
 // Pointer address forms (COBOL-2002 §14.9.39):

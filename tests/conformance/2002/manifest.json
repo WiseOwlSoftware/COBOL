@@ -288,7 +288,7 @@
     "pb355_start_length_national_past_operand",
     "pb565_report_repeating_entry",
     "pb522_group_usage_travels_with_the_description",
-    "pb555_value_false_phrase",
+    "pb455_set_false_group_length", "pb555_value_false_phrase",
     "pb555_typedef_condition_clone",
     "pb401_range_invalid_by_class",
     "pb403_exit_placement_context_2002",
@@ -303,7 +303,8 @@
   "pb560_condition_value_float_and_false_2002",
   "pb557_pointer_class_initial_value_is_null",
   "pb499_table_value_by_section_2002",
-  "pb499_table_value_linkage_and_file_2002"
+  "pb499_table_value_linkage_and_file_2002",
+  "pb450_set_condition_mixed_groups"
   ],
   "pending": []
 }

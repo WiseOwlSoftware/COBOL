@@ -3110,6 +3110,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var clause in clauses.dataDescriptionClause())
                 if (clause.valueClause() is { } value)
                 {
+                    // Format 3 prints `{ VALUE IS | VALUES ARE }`; Format 5 detaches the connective entirely
+                    // (its [IS/ARE] bracket sits before INVALID/VALID), and it is refused BY NAME at bind
+                    // (COBOLNET1708), so screening its head here would be a second diagnostic on one entry.
+                    if (value.validateValidPhrase() is null)
+                        CheckValueConnective(value, pairedConnective: true, $"condition-name '{name}'");
                     foreach (var vi in value.valueItem())
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).
@@ -3218,12 +3223,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // pins (tests/conformance/2002/pb695_value_false_optional_words), on a rule that says nothing
                     // about it. The class read is still the variable's, which §13.18.63.3 SR4/SR5 make the
                     // literals' own class.
-                    if (value.IN() is not null && value.IDENTIFIER()?.GetText() is { } alphaName
-                        && cond.Values.Any(v => v.High is not null)
-                        && TryResolveRangeAlphabet(alphaName,
-                            CollatingSelection.ForComparison(parent.OperandPic?.Category, parent.OperandPic?.Category),
-                            $"condition-name '{name}'"))
-                        cond.Alphabet = alphaName;
+                    if (value.IN() is not null && value.IDENTIFIER()?.GetText() is { } alphaName)
+                    {
+                        if (!cond.Values.Any(v => v.High is not null))
+                            Edition.Error(DiagnosticCatalog.ValueAlphabetWithoutThrough, $"condition-name "
+                                + $"'{name}': alphabet-name '{alphaName}' is written with no THROUGH phrase in "
+                                + "the clause, so there are no \"literals specified in the THROUGH phrase\" for "
+                                + "it to order (ISO §13.18.63.3 SR31)");
+                        else if (TryResolveRangeAlphabet(alphaName,
+                                CollatingSelection.ForComparison(parent.OperandPic?.Category, parent.OperandPic?.Category),
+                                $"condition-name '{name}'"))
+                            cond.Alphabet = alphaName;
+                    }
                     // literal-4 LAST, because the phrase is written last (§13.18.63.2 format 3 prints
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
                     // diagnostics a malformed entry produces come out in source order. It is bound AFTER the
@@ -3300,70 +3311,164 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private void CheckFalseValueDistinct(Condition88 cond, DataItem parent, string where)
     {
         if (cond.FalseValue is not { } raw || cond.Values.Count == 0) return;
-        var cat = parent.OperandPic?.Category;
-        bool national = cat is PicCategory.National;
-        // §8.8.4.2.7 (alphanumeric) and §8.8.4.2.9 (national) both extend the shorter operand on the RIGHT with
-        // spaces; §8.8.4.2.8 extends a BOOLEAN one with zeros. THROUGH cannot reach a boolean subject (SR29), but
-        // sentence 1's equality test can, so the boolean pad is named rather than assumed away.
-        char pad = cat is PicCategory.Boolean ? '0' : ' ';
-        // The two decoders. Null from either = the operand names no value the compiler can weigh.
-        decimal? v4n = NumericLiteralValue(raw);
-        string? s4 = StringValue(raw);
-        // §14.7.8 rule 2's sequence, resolved AT MOST ONCE and only when a character comparison actually needs
-        // it (building the carrier materializes a weight block, and most VALUE sets never reach it).
-        CobolNet.Runtime.CobolCollation? order = null;
-        bool resolved = false, known = true;
+        var ord = new ConditionValueOrder(this, cond, parent);
+        var v4 = ConditionValueOf(parent, raw);
 
         foreach (var (lo, hi) in cond.Values)
         {
-            // ⛔ THE SUB-RULES KEY ON LITERAL-2's CLASS, NOT ON THE SUBJECT'S CATEGORY. SR27 a) opens "when
-            // literal-2 is of a class other than alphanumeric or national" and b) "when literal-2 is of class
-            // alphanumeric or national", per occurrence — so the arm is chosen from the operand in hand. Reading
-            // the subject's category instead would have dropped the whole screen on a NUMERIC-EDITED subject,
-            // whose VALUE literals may be alphanumeric edited-image literals (SR4) or numeric (SR6): one
-            // category, two literal classes, and the screen must follow the literals.
-            if (CobolLiteral.IsStringLiteral(lo))
+            var vlo = ConditionValueOf(parent, lo);
+            // ⛔ THE SUB-RULES KEY ON LITERAL-2's VALUE, WHICH IS WHAT "the value of" MEANS ON THIS SUBJECT.
+            // SR27 a) opens "when literal-2 is of a class other than alphanumeric or national" and b) "when
+            // literal-2 is of class alphanumeric or national", per occurrence — so the arm is chosen from the
+            // operand in hand, never from the subject's category. On a NUMERIC-EDITED subject the two arms
+            // COINCIDE, because SR6/SR7 give BOTH operands a character value (see ConditionValueOf), and that
+            // cross-class pair is the hole this screen used to fall through (kb/Work PB920).
+            switch (CompareConditionValues(ord, v4, vlo))
             {
-                if (s4 is not { } s || StringValue(lo) is not { } slo) continue;
-                Resolve();
-                if (Cmp(s, slo) == 0) { Report(lo, null); continue; }     // sentence 1
-                if (hi is null) continue;
-                // b) — RANGE membership, and only where the runtime collating sequence is KNOWN (SR26's NOTE:
-                // a LOCALE sequence is not). An INVERTED range is EMPTY (§14.7.8 rule 2's last paragraph), so
-                // nothing can be inside it and the test is skipped rather than inverted.
-                if (!known || StringValue(hi) is not { } shi) continue;
-                if (Cmp(slo, shi) <= 0 && Cmp(s, slo) >= 0 && Cmp(s, shi) <= 0) Report(lo, hi);
+                case 0: Report(lo, null); continue;                       // sentence 1
+                case null: continue;                                      // no value the compiler can weigh
             }
-            else
-            {
-                if (v4n is not { } v || NumericLiteralValue(lo) is not { } vlo) continue;
-                if (vlo == v) { Report(lo, null); continue; }             // sentence 1
-                if (hi is null) continue;
-                // a) — §14.7.8 rule 1's algebraic order. An inverted range is naturally empty here.
-                if (NumericLiteralValue(hi) is { } vhi && v >= vlo && v <= vhi) Report(lo, hi);
-            }
+            if (hi is null) continue;
+            // a) / b) — RANGE membership. b) fires only where the runtime collating sequence is KNOWN (SR26's
+            // NOTE: a LOCALE sequence is not); a) is §14.7.8 rule 1's algebraic order and is always known. An
+            // INVERTED range is EMPTY (§14.7.8 rule 2's last paragraph — it raises EC-RANGE-INVALID and
+            // "execution proceeds as if the range of values were empty"), so nothing can be inside it and the
+            // test is skipped rather than inverted. ⛔ SR26 is the rule that refuses the inversion ITSELF, and
+            // it is NOT implemented (kb/Work PB552) — an owner determination is owed first, because SR26 b)'s
+            // "runtime collating sequence is known" is implementor-defined by its own NOTE 5.
+            if (vlo.Str is not null && !ord.Known) continue;
+            var vhi = ConditionValueOf(parent, hi);
+            if (CompareConditionValues(ord, vlo, vhi) <= 0
+                && CompareConditionValues(ord, v4, vlo) >= 0
+                && CompareConditionValues(ord, v4, vhi) <= 0) Report(lo, hi);
         }
-
-        void Resolve()
-        {
-            if (resolved) return;
-            resolved = true;
-            (order, known) = RangeOrdering(cond.Alphabet, national);
-        }
-
-        // Sentence 1's equality is asked THROUGH the sequence too, and deliberately: §8.8.4.5.3 GR2 tests the
-        // conditional variable against its values by the ordinary relation rules, which §8.8.4.2.7 evaluates in
-        // the collating sequence in effect — so a literal-4 that COLLATES equal to a literal-2 is a value for
-        // which the condition-name is TRUE, which is exactly what SR27 forbids. A null carrier is the native
-        // sequence, for which the padded ordinal compare IS the ordering.
-        int Cmp(string a, string b) => order is { } c
-            ? CobolNet.Runtime.CobolString.Compare(a, b, c)
-            : CobolNet.Runtime.CobolString.Compare(a, b, pad);
 
         void Report(string lo, string? hi) => Edition.Error(DiagnosticCatalog.FalseValueNotDistinct,
             $"{where}: the FALSE-phrase literal {raw} is {(hi is null ? $"equal to the VALUE literal {lo}"
                 : $"within the VALUE range {lo} THRU {hi}")}, so it is a value for which the condition-name is "
             + "TRUE — literal-4 shall name a FALSE value (ISO §13.18.63.3 SR27)");
+    }
+
+    /// <summary>⛔ THE ONE "<i>value of</i>" A FORMAT-3 VALUE-CLAUSE OPERAND, over its conditional variable
+    /// (kb/Work PB920) — an algebraic value (<c>Num</c>) or a character value (<c>Str</c>), never both, and
+    /// neither when the operand names no value this compiler can weigh. §13.18.63.3 SR27 is written in terms
+    /// of it, and so is SR26 (kb/Work PB552, not yet implemented — see the COBOLNET2176/2177 family comment
+    /// in DiagnosticCatalog), which is why it is ONE reader and not a decoder per screen.
+    /// <para>⛔ ON A NUMERIC-EDITED SUBJECT BOTH SPELLINGS DENOTE THE SAME KIND OF VALUE, and missing that was a
+    /// measured WRONG ANSWER: <c>01 X PIC ZZ9.99. 88 X-TEN VALUE " 10.00" WHEN SET TO FALSE IS 10.</c> compiled
+    /// clean and <c>SET X-TEN TO FALSE</c> left the condition TRUE, because a screen that compared only same-kind
+    /// pairs could not see that the two literals name one value. SR6 converts a numeric literal "<i>to their
+    /// numeric-edited forms according to the rules for the MOVE statement</i>"; SR7 takes an alphanumeric or
+    /// national literal as the edited form the programmer wrote. §8.8.4.2.1's NOTE states the consequence this
+    /// screen must predict — "<i>All comparisons involving numeric-edited data items are alphanumeric or
+    /// national comparisons, including when the associated VALUE clause is a numeric literal</i>" — and
+    /// §8.8.4.5.3 GR2 makes the condition-name test one of those comparisons. So the edited image IS the value,
+    /// and it is composed by the ONE SR6 composer the VALUE initializer and the membership test already share
+    /// (<c>ValueInitializer.EditedImageOfNumericValue</c>; <c>ConditionValueRecipeDriftTests</c> names its
+    /// readers). A null from it — a PICTURE format-2 (LOCALE) subject, whose image exists only at run time, or
+    /// a figurative ZERO below 2023 — falls back to the literal's own value rather than guessing.</para>
+    /// </summary>
+    private (decimal? Num, string? Str) ConditionValueOf(DataItem parent, string raw)
+    {
+        if (parent.OperandPic is { Category: PicCategory.NumericEdited } npic
+            && CobolNet.CodeGen.ValueInitializer.EditedImageOfNumericValue(
+                   Edition.DialectLevel, DecimalPointIsComma, parent, npic, raw) is { } edited)
+            return (null, edited);
+        return (NumericLiteralValue(raw), StringValue(raw));
+    }
+
+    /// <summary>Order two operand VALUES: negative / zero / positive as the first is less than, equal to or
+    /// greater than the second, and NULL when either names no value the compiler can weigh or the two are not
+    /// comparable at all. A character pair is ordered by §14.7.8 rule 2's sequence
+    /// (<see cref="ConditionValueOrder"/>), an algebraic pair by rule 1's algebraic order.
+    /// <para>A MIXED pair reaching here means the entry already violates the category funnel (§13.18.63.3
+    /// SR2/SR4/SR5/SR10, reported by <c>ValidateValueCategory</c>) on a subject whose two spellings have no common
+    /// domain — so it answers "unknown" rather than inventing a conversion. The numeric-edited subject, where
+    /// they DO have a common domain, is normalized in <see cref="ConditionValueOf"/> and never arrives mixed.
+    /// </para></summary>
+    private static int? CompareConditionValues(ConditionValueOrder ord,
+        (decimal? Num, string? Str) a, (decimal? Num, string? Str) b)
+    {
+        if (a.Str is { } sa && b.Str is { } sb) return ord.Compare(sa, sb);
+        if (a.Num is { } na && b.Num is { } nb) return na.CompareTo(nb);
+        return null;
+    }
+
+    /// <summary>§14.7.8 rule 2's collating sequence for one condition-name's VALUE set — the <c>IN
+    /// alphabet-name-1</c> phrase's alphabet, or the PROGRAM COLLATING SEQUENCE — resolved AT MOST ONCE and
+    /// only when a character comparison actually asks for it, because building the carrier materializes a weight
+    /// block and most VALUE sets never reach one. <see cref="Known"/> is SR26's NOTE ("<i>The runtime collating
+    /// sequence is unknown when the collating sequence is defined by a locale or the collating sequence is
+    /// otherwise determined at runtime</i>"), the precondition SR26 b) and SR27 b) share.</summary>
+    private sealed class ConditionValueOrder(DataBinder owner, Condition88 cond, DataItem parent)
+    {
+        private CobolNet.Runtime.CobolCollation? _order;
+        private bool _resolved, _known = true;
+
+        /// <summary>§8.8.4.2.7 (alphanumeric) and §8.8.4.2.9 (national) both extend the shorter operand on
+        /// the RIGHT with spaces; §8.8.4.2.8 extends a BOOLEAN one with zeros. THROUGH cannot reach a boolean
+        /// subject (SR29), but SR27's sentence-1 equality test can, so the boolean pad is named rather than
+        /// assumed away.</summary>
+        private char Pad { get; } = parent.OperandPic?.Category is PicCategory.Boolean ? '0' : ' ';
+
+        public bool Known { get { Resolve(); return _known; } }
+
+        /// <summary>The comparison is asked THROUGH the sequence for EQUALITY too, and deliberately:
+        /// §8.8.4.5.3 GR2 tests the conditional variable against its values by the ordinary relation rules,
+        /// which §8.8.4.2.7 evaluates in the collating sequence in effect — so a literal-4 that COLLATES
+        /// equal to a literal-2 is a value for which the condition-name is TRUE, which is exactly what SR27
+        /// forbids. A null carrier is the native sequence, for which the padded ordinal compare IS the ordering.
+        /// </summary>
+        public int Compare(string a, string b)
+        {
+            Resolve();
+            return _order is { } c
+                ? CobolNet.Runtime.CobolString.Compare(a, b, c)
+                : CobolNet.Runtime.CobolString.Compare(a, b, Pad);
+        }
+
+        private void Resolve()
+        {
+            if (_resolved) return;
+            _resolved = true;
+            (_order, _known) = owner.RangeOrdering(cond.Alphabet,
+                parent.OperandPic?.Category is PicCategory.National);
+        }
+    }
+
+    /// <summary>⛔ THE ONE SCREEN ON THE VALUE CLAUSE'S LEADING WORDS (kb/Work PB559) — §13.18.63.2 prints
+    /// them, so the rule is about the FORMAT, and the format is a fact only the CALLER has: Format 1 and Format 3
+    /// are the same token sequence and differ by the entry's level-number, Format 4 by the section. That is why
+    /// this takes <paramref name="pairedConnective"/> rather than re-deriving the format, and why the grammar
+    /// keeps the superset alternative — a parse rule cannot see a level-number.
+    /// <para>Format 1 (data-item) prints "<c>VALUE IS literal-1</c>": VALUE underlined, IS not, and NEITHER
+    /// VALUES NOR ARE appears. Formats 2, 3 and 4 print a two-line required choice, "<c>VALUE IS</c>" over
+    /// "<c>VALUES ARE</c>", and §5.2.6.3 makes a brace choice exactly one of its alternatives — so VALUE pairs
+    /// with IS and VALUES with ARE, and the cross-product spellings are printed by nothing. §13.18.63.3 SR17
+    /// ("<i>The words VALUE and VALUES are equivalent</i>") is what admits VALUES at all, and it is a FORMAT 2
+    /// rule that Format 3 reaches through SR24 and Format 4 through SR34; Format 1 applies neither.</para>
+    /// <para>§13.18.63.3 SR39 states the identical pairing for Format 5, the one format that detaches the
+    /// connective — which is the standard confirming, for the format where it had to be said in words, exactly
+    /// what the other four say with a brace.</para></summary>
+    /// <param name="pairedConnective">True for Formats 2, 3 and 4 (the <c>VALUE IS</c> / <c>VALUES ARE</c>
+    /// choice); false for Format 1, which prints only <c>VALUE</c> and only <c>IS</c>.</param>
+    private void CheckValueConnective(Core.ValueClauseContext value, bool pairedConnective, string where)
+    {
+        bool values = value.VALUES() is not null, are = value.ARE() is not null;
+        string? written = !pairedConnective && values
+                ? "VALUES" + (are ? " ARE" : value.IS() is not null ? " IS" : "")
+            : !pairedConnective && are ? "VALUE ARE"
+            : values && value.IS() is not null ? "VALUES IS"
+            : !values && are ? "VALUE ARE"
+            : null;
+        if (written is null) return;
+        Edition.Error(DiagnosticCatalog.ValueConnectiveNotPrinted, $"{where}: the VALUE clause is written "
+            + $"'{written}', which no general format of the clause prints — "
+            + (pairedConnective
+                ? "the leading braces are a required choice between 'VALUE IS' and 'VALUES ARE', so VALUE pairs "
+                  + "with IS and VALUES with ARE (ISO §13.18.63.2 formats 2/3/4, §5.2.6.3)"
+                : "format 1 (data-item) prints 'VALUE IS literal-1', and §13.18.63.3 SR17's VALUE/VALUES "
+                  + "equivalence is a format 2 rule that format 1 does not apply (ISO §13.18.63.2 format 1)"));
     }
 
     /// <summary>The compile-time CHARACTER value of a VALUE-clause operand, or null when the operand is not a
@@ -3694,9 +3799,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             + $"may be specified only on a level-88 entry; this entry is level {level} "
                             + "(ISO §13.18.63.3 SR33)");
                     else if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
+                    {
+                        CheckValueConnective(value, pairedConnective: true, valueWhere);
                         tableValues = BuildTableValueSpecs(tphrases, valueWhere);   // Format 2 (table) — §13.18.63.2
+                    }
                     else
                     {
+                        // Format 1 (data-item), the ONLY format that prints neither VALUES nor ARE. The report
+                        // section's Format-4 list has its own binder (DataBinder.Reports), so this arm is
+                        // Format 1 outright.
+                        CheckValueConnective(value, pairedConnective: false, valueWhere);
                         rawValue = ExtractValue(value, valueWhere);
                         // Format 1 takes EXACTLY ONE literal (§13.18.63.2); a bare multi-literal list (no FROM) is
                         // Format 2 or (report section) Format 4, never a Format-1 data item — ExtractValue GLUES it

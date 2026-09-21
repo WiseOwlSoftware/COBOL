@@ -1076,15 +1076,21 @@ public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement;
 /// implicit CONTINUE following the current sentence's separator period.</summary>
 public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 
-/// <summary><c>SET condition-name+ TO TRUE | FALSE</c> (ISO §14.9.39 Format 4) — each names a level-88 whose
-/// selected VALUE literal is stored into its (already-resolved) parent place.
+/// <summary><c>SET {{ condition-name-1 } … TO { TRUE | FALSE }} …</c> (ISO §14.9.39 Format 4) — each names a
+/// level-88 whose selected VALUE literal is stored into its (already-resolved) parent place.
 /// <para><paramref name="ToTrue"/> selects WHICH literal §14.9.39.4 places there, and nothing else: GR6 takes
 /// "<i>the literal in the VALUE clause</i>" (the FIRST, when the clause writes several) and GR7 "<i>the literal
 /// in the FALSE phrase of the VALUE clause</i>" (§13.18.63.4 GR20's literal-4), both "<i>according to the rules
 /// for the VALUE clause</i>" with the same group-length and zero-length provisos. One node, one store path —
-/// kb/Work PB555, which is also why the FALSE arm exists at all.</para></summary>
-public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets, bool ToTrue)
-    : BoundStatement;
+/// kb/Work PB555, which is also why the FALSE arm exists at all.</para>
+/// <para>⛔ <c>ToTrue</c> IS PER STORE, NOT PER STATEMENT (kb/Work PB450). §14.9.39.2 Format 4 prints an OUTER
+/// repetition around the whole <c>{ condition-name-1 } … TO { TRUE | FALSE }</c> unit, so one statement may
+/// carry several groups and they need not agree; §14.9.39.4 GR8 — "<i>If multiple condition-names are
+/// specified, the results are the same as if a separate SET statement had been written for each
+/// condition-name-1</i>" — is what lets the groups flatten into ONE ordered list here instead of a node per
+/// group.</para></summary>
+public sealed record BoundSetConditions(
+    IReadOnlyList<(Place Parent, Condition88 Condition, bool ToTrue)> Sets) : BoundStatement;
 
 /// <summary>SET data-pointer assignment (ISO §14.9.39 Format 7 — SET pointer TO {NULL | pointer};
 /// Phase-4b increment 1): copy the NULL singleton or the source pointer into each target in order.

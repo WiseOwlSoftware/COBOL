@@ -1,0 +1,14 @@
+XT=[ 10.00]
+XT-ON=yes
+XF=[ 11.00]
+XF-ON=no
+YT=[ 10.00]
+YF=[  0.00]
+YF-ON=no
+NT=[005]
+NF=[007]
+NF-ON=no
+AT=[ABC]
+AF=[ZZZ]
+AF-ON=no
+DONE

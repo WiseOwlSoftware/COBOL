@@ -4147,6 +4147,47 @@ public static class DiagnosticCatalog
         "A CORRESPONDING phrase follows a MOVE statement's sending operand.",
         "ISO §14.9.25.2");
 
+    // ⛔ COBOLNET2176 / COBOLNET2177 — THE VALUE CLAUSE'S FORMAT-3 SCREEN AND ITS PRINTED CONNECTIVE
+    // (kb/Work PB890, PB559). Both are the same failure shape: an operand or a word the general format
+    // constrains, accepted because nothing asked the format about it. Neither is a wrong answer on its own
+    // — one leaves a phrase that governs nothing, the other a spelling no figure prints — which is exactly
+    // why they were invisible. ⛔ §13.18.63.3 SR26 (an ASCENDING THROUGH pair, kb/Work PB552) is the third
+    // member of the family and is DELIBERATELY NOT HERE: SR26 b) is conditioned on the runtime collating
+    // sequence being KNOWN, which SR26's own NOTE 5 makes implementor-defined ("this is not a requirement
+    // of an implementor"), and this processor currently answers that question TWO ways at once — the SR27
+    // screen treats every non-LOCALE sequence as known at compile time, while §14.7.8's EC-RANGE-INVALID
+    // arm treats the native sequence as a runtime fact (tests/conformance/2023/ec_range_invalid). Settling
+    // that is an owner determination, not a screen.
+
+    /// <summary>COBOLNET2176 — §13.18.63.3 SR31's "only when": the VALUE clause writes
+    /// <c>IN alphabet-name-1</c> but no THROUGH phrase, so there are no THROUGH literals for the permission to
+    /// apply to. kb/Work PB890.</summary>
+    public static readonly DiagnosticDescriptor ValueAlphabetWithoutThrough = new(
+        "COBOLNET2176", "value-alphabet-without-through", EditionSeverity.Error,
+        "ISO §13.18.63.3 syntax rule 31: \"Alphabet-name-1 may be specified only when the literals specified in "
+        + "the THROUGH phrase are of class alphanumeric or national.\" With no THROUGH phrase in the clause there "
+        + "are no \"literals specified in the THROUGH phrase\", so the permission the words 'only when' grant is "
+        + "never satisfied and alphabet-name-1 may not be written. This is a SYNTAX rule: it constrains what may "
+        + "be written, whether or not the phrase would have an effect — a value LIST with no range is compared "
+        + "by §8.8.4.5.3 GR2's ordinary relation rules under the PROGRAM collating sequence, which the IN phrase "
+        + "does not reach. Either add the THROUGH phrase the alphabet is meant to order, or drop the IN phrase.",
+        "ISO §13.18.63.3 SR31 / §14.7.8 / §8.8.4.5.3");
+
+    /// <summary>COBOLNET2177 — §13.18.63.2: the VALUE clause's leading words are not a pairing the general
+    /// format prints — <c>VALUE ARE</c> / <c>VALUES IS</c> in any format, or <c>VALUES</c> at all in Format 1.
+    /// kb/Work PB559.</summary>
+    public static readonly DiagnosticDescriptor ValueConnectiveNotPrinted = new(
+        "COBOLNET2177", "value-connective-not-printed", EditionSeverity.Error,
+        "ISO §13.18.63.2: Format 1 (data-item) prints \"VALUE IS literal-1\" — VALUE underlined, IS not, and "
+        + "neither VALUES nor ARE appears in it; Formats 2 (table), 3 (condition-name) and 4 (report-section) "
+        + "print a two-line REQUIRED CHOICE between 'VALUE IS' and 'VALUES ARE', so VALUE pairs with IS and "
+        + "VALUES pairs with ARE. §5.2.6.3 makes a brace choice exactly one of its alternatives, so the "
+        + "cross-product spellings 'VALUE ARE' and 'VALUES IS' are printed by no format. §13.18.63.3 SR17 "
+        + "('The words VALUE and VALUES are equivalent') is a FORMAT 2 rule, reached by Format 3 through SR24 and "
+        + "by Format 4 through SR34; Format 1 applies neither, which is why VALUES is not a Format-1 spelling. "
+        + "§13.18.63.3 SR39 states the same pairing for Format 5, the one format that detaches the connective.",
+        "ISO §13.18.63.2 / §13.18.63.3 SR17 / SR39 / §5.2.6.3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

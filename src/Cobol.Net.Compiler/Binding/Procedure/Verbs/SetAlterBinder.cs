@@ -188,29 +188,25 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     public string? SwitchNameOf(Core.DataReferenceContext dref) =>
         SwitchCondOf(dref) is BoundSwitchCondition sw ? sw.ImplementorName : null;
 
-    /// <summary>Bind <c>SET {{mnemonic-name-1}… TO {ON|OFF}}…</c> (ISO §14.9.39 Format 3). The grammar is FLAT
-    /// (<c>SET (dataReference+ TO (ON|OFF))+</c>), so the groups are reassembled by token position: the references
-    /// whose stop precedes a TO belong to that TO's group, and the group's position is the ON or OFF token between
-    /// this TO and the next. Every receiver must name a settable external switch's mnemonic (SR5) — an unresolvable
-    /// name fails loud, never a silent skip.</summary>
+    /// <summary>Bind <c>SET {{mnemonic-name-1}… TO {ON|OFF}}…</c> (ISO §14.9.39 Format 3).
+    /// <para>⛔ THE GROUPS ARE READ, NOT RE-DERIVED (kb/Work PB450). The grammar used to write the printed outer
+    /// repetition as an inline <c>SET (dataReference+ TO (ON|OFF))+</c> group, which flattens every phrase into
+    /// one <c>dataReference()</c> list and one <c>TO()</c> list — so this method reassembled the grouping by
+    /// comparing token indices, and the LEGACY binder carried a second hand-written copy of the same
+    /// re-assembly. <c>setSwitchPhrase</c> is now the printed unit, so a phrase IS a node and the loop is the
+    /// rule: one group, its receivers, its ON/OFF.</para>
+    /// <para>Every receiver must name a settable external switch's mnemonic (SR5) — an unresolvable name fails
+    /// loud, never a silent skip.</para></summary>
     public BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw)
     {
-        var drefs = sw.dataReference();
-        var tos = sw.TO();
-        var ons = sw.ON();
         var switches = new List<(string Name, bool On)>();
         bool bad = false;
-        int refIdx = 0, onIdx = 0;
-        for (int t = 0; t < tos.Length; t++)
+        foreach (var phrase in sw.setSwitchPhrase())
         {
-            int toPos = tos[t].Symbol.TokenIndex;
-            int nextToPos = t + 1 < tos.Length ? tos[t + 1].Symbol.TokenIndex : int.MaxValue;
-            bool on = onIdx < ons.Length
-                && ons[onIdx].Symbol.TokenIndex > toPos && ons[onIdx].Symbol.TokenIndex < nextToPos;
-            if (on) onIdx++;
-            for (; refIdx < drefs.Length && drefs[refIdx].Stop.TokenIndex < toPos; refIdx++)
+            bool on = phrase.ON() is not null;
+            foreach (var dref in phrase.dataReference())
             {
-                string name = drefs[refIdx].cobolWord()?.GetText() ?? drefs[refIdx].GetText();
+                string name = dref.cobolWord()?.GetText() ?? dref.GetText();
                 if (!ctx.Data.SwitchMnemonics.TryGetValue(name, out var implName))
                 {
                     // SR5 is decided here, so it is REPORTED here (kb/Work PB390 — the Format-3 sibling of the

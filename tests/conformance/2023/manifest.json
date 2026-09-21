@@ -612,7 +612,8 @@
   "pb425_zero_length_sender_shapes",
   "pb437_varying_operand_windows",
   "pb458_set_size_qualified_bare",
-  "pb560_condition_value_numeric_edited_2023"
+  "pb560_condition_value_numeric_edited_2023",
+  "pb920_false_value_cross_class_distinct"
  ],
  "pending": [
   "pb485_value_only_format1"

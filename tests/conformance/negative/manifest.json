@@ -1215,7 +1215,13 @@
   "pb412-go-to-names-without-depending",
   "pb412-go-to-depending-without-names",
   "pb421-move-sending-then-corresponding",
-  "pb421-move-literal-then-corr"
+  "pb421-move-literal-then-corr",
+  "pb920-false-value-crosses-edited-image",
+  "pb920-false-value-crosses-edited-image-mirrored",
+  "pb890-value-alphabet-without-through",
+  "pb559-value-connective-crossed",
+  "pb559-value-format1-values",
+  "pb450-set-false-in-second-group-below-2002"
  ],
  "pending": []
 }

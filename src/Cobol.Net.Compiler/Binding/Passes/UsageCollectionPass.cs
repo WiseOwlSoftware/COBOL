@@ -146,7 +146,7 @@ internal static class UsageCollectionPass
             foreach (var pr in n.Pairs) { P(pr.Source); P(pr.Target); }
             return false;
         }
-        public bool Visit(BoundSetConditions n) { foreach (var (p, _) in n.Sets) P(p); return false; }
+        public bool Visit(BoundSetConditions n) { foreach (var (p, _, _) in n.Sets) P(p); return false; }
         public bool Visit(BoundCallProgram n)
         {
             Op(n.DynamicName);
