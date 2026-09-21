@@ -1214,6 +1214,18 @@ public sealed partial class DataBinder
                 if (pic.Usage is not Usage.Display)
                     Edition.Error(DiagnosticCatalog.ReportNonDisplayItem, $"RD '{model.Name}': a non-DISPLAY printable item at COLUMN "
                         + $"{col} (ISO §13.15 — printable items are DISPLAY) is not supported");
+                // ⛔ §13.18.63.3 SR6 NAMES FORMAT 4 — "literals in formats 1, 2, and 4 of the VALUE clause may be
+                // numeric" — so a report-section printable item's numeric literal rides the SAME COBOL-2023
+                // introduction (Annex E.3.3 item 43) as its format-1 and format-2 siblings. It did not: the
+                // report entry's VALUE operands never pass through the data-division literal funnel (they are
+                // collected by ExtractValueOperandList and stored as FieldValueSource), so
+                // `10 COLUMN 1 PIC ZZ9.99 VALUE 10.` compiled clean at --std 85 and PRINTED the 2023 edited image
+                // ` 10.00`, while `01 X PIC ZZ9.99 VALUE 10.` was refused there (kb/Work PB921, the third arm).
+                // The question is asked by the ONE screen, per operand, once the picture is settled — a
+                // multi-operand format-4 clause (§13.18.63.3 SR35) gates each of its literals.
+                foreach (string reportRaw in valueRaws)
+                    ScreenNumericEditedNumericLiteral(pic, reportRaw,
+                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
                 // §13.18.53.3 SR3 — "If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry
                 // shall define either a numeric data item or a numeric-edited data item." The receiving operand
                 // of GR2's implicit COMPUTE is this printable item (kb/Work PB852).

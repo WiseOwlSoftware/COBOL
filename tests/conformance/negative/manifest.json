@@ -1226,7 +1226,13 @@
   "pb441-f3-perform-below-2023",
   "pb395-turn-data-incompatible-below-2002",
   "pb433-perform-range-straddles-declaratives",
-  "pb433-perform-range-two-declarative-sections"
+  "pb433-perform-range-two-declarative-sections",
+  "pb570-group-no-sign-signed-picture",
+  "pb570-group-no-sign-below-2023",
+  "pb527-picture-on-a-group",
+  "pb501-condition-name-entry-has-no-name",
+  "pb921-condition-name-numeric-edited-below-2023",
+  "pb921-report-numeric-edited-below-2023"
  ],
  "pending": []
 }

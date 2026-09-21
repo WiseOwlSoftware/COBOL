@@ -585,11 +585,27 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
    prohibition over the ONE set `UsageFamilies.IsPictureless` and §13.18.60.3 SR2's equality check
    (`COBOLNET1927`, against the nearest enclosing WRITTEN clause, comparing resolved `Usage` members so SR6's
    COMP/COMPUTATIONAL abbreviation and this implementation's BINARY identification are already folded).
+4. **the clause's PHRASES** — `ApplyEffectiveNoSign`, the §13.18.60.2 `PACKED-DECIMAL [ WITH NO SIGN ]` phrase.
+   ⛔ **A phrase is part of the USAGE clause, not a clause of its own**, so GR1 hands it down with the word and
+   the SAME site adjudicates both spellings: §13.18.40.3 SR31's `'S'` prohibition (`COBOLNET1566`) and
+   §13.18.60.4 GR11's sign-free width (`PicInfo.PackedNoSign`). It runs AFTER `ApplyEffectiveUsage`, because its
+   subject is the representation the item really takes. The phrase reaches it on `DataItem.OwnNoSign` — a
+   `DescriptionCopyKind.Clause` field, so the TYPE / SAME AS copy carries it and the §13.18.49.4 GR3 ancestor
+   transform records it rather than applying it (one adjudication, in this pass, not two). Only the
+   GENERAL-FORMAT half stays at entry bind: which usage WORD the phrase may be written on (`COBOLNET1565`),
+   which is a fact about the written clause and needs no forest. Before kb/Work PB570 the whole phrase was a
+   BindEntry local adjudicated against the entry's own PICTURE — which a group header has not got — so
+   `01 GRP USAGE PACKED-DECIMAL WITH NO SIGN. 05 EG PIC 9(4).` kept the 3-byte SIGNED layout and a subordinate
+   `PIC S9(4)` drew no diagnostic at all, at every nesting depth.
 
 **What the shape buys.** A `Usage` member added to the enum inherits, sheds and is screened without anyone
 touching this pass. The one hand-written table left is `UsageFamilies.IsPictureless`, and because it drives BOTH
 arms a wrong entry in it is invisible to any behavioural test — so it is checked against §13.16.3 SR8's own
 sentence, re-read out of `specs/ISO_COBOL.md`, by `PicturelessUsageSetDriftTests` (Unit).
+`UsageInheritanceDriftTests` asserts the equivalence over the usage WORD × picture matrix **and over the
+clause's keyword-only PHRASES** (`UsageClausePhrases`, read off the §13.18.60.2 figure; phrases carrying an
+operand are excluded by predicate, since the two arms would not be the same program). The phrase axis is what
+PB570's defect would have had to pass: the word-only matrix was green throughout, because it never wrote one.
 
 **Boundary.** A picture-less elementary item whose effective usage REQUIRES a picture (`01 G USAGE COMP. 05 A.`,
 and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence, screened by

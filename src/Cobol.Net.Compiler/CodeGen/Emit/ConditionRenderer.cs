@@ -618,8 +618,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // never compare its raw image to an unscaled long (diagnosis B3).
         string read = isString ? OperandText.AsString(subject, num) : num.FieldNum(c.Parent).Expr;
         var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, cat, isString, v.Low, v.High,
-            c.CheckRangeInvalid, c.Condition.Alphabet));
-        return "(" + string.Join(" || ", tests) + ")";
+            c.CheckRangeInvalid, c.Condition.Alphabet)).ToList();
+        // ⛔ TOTAL OVER AN EMPTY VALUE SET (kb/Work PB501). §13.16.2 formats 3 and 4 both print the value-clause
+        // UNBRACKETED, so an entry with no values is nonconforming source and `LevelNumberPass` refuses it by
+        // name (COBOLNET1747) — this renderer is never reached for one in a compilation that gets as far as
+        // codegen. But a bind-time recovery can still leave the list empty (an operand that was not a literal
+        // position binds nothing, kb/Work PB732), and `string.Join` over an empty sequence rendered the
+        // TWO-CHARACTER C# fragment `()`, so the generated source read `if (())` and the user was shown
+        // `error CS1525: Invalid expression term ')'` against a .g.cs path instead of a COBOL diagnostic.
+        // §13.16.4 GR3 makes a condition-name "the value, values, or range of values associated with the
+        // condition-name", so a condition-name associated with NO value can only be false — that is the one
+        // total answer, and it keeps an already-failed compile from failing a SECOND time in the backend.
+        return tests.Count == 0 ? "false" : "(" + string.Join(" || ", tests) + ")";
     }
 
     /// <summary>The trailing collation argument for a THROUGH range, when its clause named one with

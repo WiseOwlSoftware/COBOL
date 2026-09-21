@@ -66,6 +66,17 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
   `PIC X(5) JUSTIFIED VALUE "AB"` printed `   AB`, `PIC ZZZ9 BLANK WHEN ZERO VALUE "0000"` printed spaces —
   each while the IDENTICAL working-storage entry was right. `ReportOperandListDriftTests` keeps the MOVE out of
   the VALUE lane.
+- ⛔ **BUT THE FORMAT-4 LITERAL IS STILL GOVERNED BY §13.18.63.3, AND ITS EDITION SCREEN IS THE DATA
+  DIVISION'S** (kb/Work PB921). SR6 — "literals in formats 1, 2, and **4** of the VALUE clause may be numeric" —
+  NAMES this format, and Annex E.3.3 item 43 dates that permission as a COBOL-2023 addition, so a numeric
+  literal on a numeric-edited printable item is refused below 2023 exactly as its working-storage twin is. It
+  was not: a report entry's VALUE operands are collected by `ExtractValueOperandList` and stored as
+  `FieldValueSource`, passing through neither `ScreenValueLiteral` nor `ValidateValueCategory`, so
+  `03 COLUMN 1 PIC ZZ9.99 VALUE 10.` compiled clean at `--std 85` and PRINTED ` 10.00` while
+  `01 X PIC ZZ9.99 VALUE 10.` was refused there. The bind now asks the ONE screen,
+  `DataBinder.ScreenNumericEditedNumericLiteral`, once per operand and once the printable item's picture is
+  settled (a multi-operand format-4 clause — SR35 — gates each of its literals). `NumericEditedValueEditionGateDriftTests`
+  carries the report spelling beside the three data-division ones, so the property is one property.
 - **Physical output** goes through the report file's ordinary connector (`CobolFile.WriteAdvancing` — the
   print-control stream). The engine tracks `_physLine` (physical position) separately from LINE-COUNTER so
   a future NEXT GROUP (which moves LINE-COUNTER, §8.4.3.15.4 GR4) cannot corrupt positioning.

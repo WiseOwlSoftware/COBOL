@@ -4217,6 +4217,24 @@ public static class DiagnosticCatalog
         "COBOLNET2187", "directive-in-exception-checking-perform", EditionSeverity.Warning,
         "A TURN, PUSH or POP directive is written inside an exception-checking PERFORM statement.",
         "ISO §7.3.25.3 / §7.3.22.3 / §7.3.20.3");
+    /// <summary>A PICTURE clause was written on a data description entry that HAS SUBORDINATE ENTRIES.
+    /// §13.18.40.3 SR1 is the whole rule — "The PICTURE clause may be specified only at the elementary level" —
+    /// and §8.5.1.3.1 says which entries those are: "The most basic subdivisions of a record, that is, those not
+    /// further subdivided, are called elementary items". An entry with subordinates is further subdivided, so
+    /// the clause is illegal on it at every edition (the rule is 85-era and unchanged in all four).
+    /// <para>This is §13.16.3 SR8's CONVERSE, and the two together are the whole picture-PLACEMENT rule:
+    /// COBOLNET0881 says "elementary ⇒ has a PICTURE", this says "has a PICTURE ⇒ elementary". Both are
+    /// screened by one pass over the finished forest (<c>DataBinder.CheckPictureRequired</c>), because neither
+    /// question can be asked at entry bind — the subordinate entries are not parsed yet.</para>
+    /// <para>It had no screen at all, and the shape it admits has NO REPRESENTATION in the bound data model:
+    /// <c>DataItem.IsElementary</c> is <c>Pic is not null</c> and <c>IsGroup</c> is <c>Pic is null &amp;&amp;
+    /// Children.Count > 0</c>, so an entry with both is NEITHER, codegen emitted the PICTURE's scalar storage
+    /// and dropped the subordinates, and the first reference to one of them handed the user a raw Roslyn
+    /// <c>CS1061</c> against a generated file (kb/Work PB527).</para></summary>
+    public static readonly DiagnosticDescriptor PictureAtElementaryLevel = new(
+        "COBOLNET2191", "picture-at-elementary-level", EditionSeverity.Error,
+        "A PICTURE clause was specified on an entry that has subordinate entries.",
+        "ISO §13.18.40.3 SR1 / §8.5.1.3.1");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

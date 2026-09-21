@@ -141,6 +141,20 @@ internal static class LevelNumberRules
             : EntryBodyForm.DataDescription;
     }
 
+    /// <summary>Does this entry's VALUE clause carry §13.18.63.2 format 5's <c>{ INVALID | VALID }</c> phrase —
+    /// the phrase that makes the entry a §13.16.2 FORMAT 4 (validation) entry rather than a format 3?
+    /// <para>It is what decides whether the condition-name may be omitted, because format 4 is the only one of
+    /// the two that brackets the name, and format 4's value-clause is format 5 (a required choice per the
+    /// printed figure). The A.4.14 validation facility itself is DECLINED and refused by name at bind
+    /// (COBOLNET1708) — that is a separate verdict about a construct this compiler does not claim, and it must
+    /// not be pre-empted by an entry-FORMAT message that would be simply wrong about it.</para></summary>
+    internal static bool HasContentValidationPhrase(CobolParserCore.DataDescriptionEntryContext entry)
+    {
+        var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
+        return clauses is not null
+            && Array.Exists(clauses, c => c.valueClause()?.validateValidPhrase() is not null);
+    }
+
     /// <summary>The entry's own name, for the diagnostic. Every arm's name is optional in the grammar (an
     /// unnamed entry is FILLER), so the caller gets a stable stand-in rather than a null.</summary>
     internal static string EntryName(RuleContext? entry) => entry switch
@@ -271,6 +285,32 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
                     + "[condition-name] value-clause .`; this entry's body is not a value clause alone, so it is "
                     + "a format-1 entry, whose level-number may be 77 or 1 through 49 "
                     + "(ISO §13.18.33.4 GR2c, §13.16.2 formats 3 and 4, §13.16.3 SR1)");
+                break;
+
+            // §13.16.2 Format 3, THE OTHER HALF OF THE ARM ABOVE (kb/Work PB501). That arm asks whether the body
+            // is a value clause and nothing else; this asks whether the entry has the NAME its format requires.
+            // RENDERED from the printed page (folio 364 / PDF p394, `scripts/render-spec-page.py 394`), because
+            // the whole verdict turns on a bracket:
+            //     Format 3 (condition-name):  88 condition-name-1 value-clause .      ← NOT bracketed: required
+            //     Format 4 (validation):      88 [ condition-name-2 ] value-clause .  ← bracketed: optional
+            // Format 4's licence to omit the name is not free-standing: its value-clause is §13.18.63.2's
+            // format 5 (content-validation-entry), whose figure ends in a REQUIRED `{ INVALID | VALID }` choice
+            // (the transcription's figure note says so in those words, and the phrase has its own grammar rule,
+            // `validateValidPhrase`). So a nameless 88 whose VALUE clause carries no VALID/INVALID phrase is
+            // neither format, and §13.16.3 SR24 — "Format 3 or 4 is used for each condition-name" — leaves no
+            // third possibility.
+            // It was accepted at every edition and the entry then EVAPORATED: DataBinder.BindCondition's first
+            // statement returns on a missing data-name, so `88 VALUE 1.` parsed (VALUE opens the value clause,
+            // not the name slot), bound nothing, produced no diagnostic and compiled to a .dll — whatever the
+            // programmer meant by it silently gone.
+            case (EntryBodyForm.ValueOnly, 88) when entry.dataName() is null
+                                                    && !LevelNumberRules.HasContentValidationPhrase(entry):
+                Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
+                    "the condition-name format of the data description entry is written `88 condition-name-1 "
+                    + "value-clause .` and names condition-name-1 unconditionally; only the validation format, "
+                    + "`88 [condition-name-2] value-clause .`, may omit it, and its value clause requires the "
+                    + "INVALID or VALID phrase, which this entry has not got — so this entry is neither format "
+                    + "(ISO §13.16.2 formats 3 and 4, §13.18.63.2 format 5, §13.16.3 SR24)");
                 break;
 
             // §13.16.3 SR2: "The data-name format of the entry-name clause shall be specified if level-number is

@@ -863,6 +863,32 @@ the negatives listed in kb/Work PB66 / PB97 / PB98. CONFORMANCE.md §3 pins the 
 saturated image; checked → the receiver unchanged) and incompatible-content (unchecked → digit-for-digit, a
 non-digit as zero) dispositions.
 
+**⛔ SR6 IS ONE RULE WITH TWO HALVES, AND BOTH ARE ASKED IN ONE PLACE** (kb/Work PB921, 2026-09-21). Beside the
+literal-FORM half above, SR6 carries an EDITION: "literals in formats 1, 2, and 4 of the VALUE clause may be
+numeric" is dated by Annex E.3.3 item 43 ("It is now permitted to allow numeric-edited data items to be assigned
+values specified as numeric literals") as a COBOL-2023 addition, so below 2023 the edited image had to be written
+as the alphanumeric or national literal §13.18.63.3 SR7 governs. That half used to sit INLINE in
+`DataBinder.ScreenValueLiteral`, which only the item VALUE reaches, while the form half sat in
+`ValidateValueCategory`, which the item VALUE, the level-88 set AND the group VALUE all funnel through — one rule
+in two places, and the two places covered different formats. Measured: at `--std 85` the format-1 spelling was
+refused and the format-3 spelling `01 X PIC ZZ9.99. 88 X-TEN VALUE 10.` was ACCEPTED and stored the 2023 edited
+image, while a format-4 report entry `03 COLUMN 1 PIC ZZ9.99 VALUE 10.` — a format SR6 NAMES — was accepted and
+printed it, because a report entry's VALUE operands pass through neither screen. Both halves now live in
+`DataBinder.ScreenNumericEditedNumericLiteral`, asked from `ValidateValueCategory` (formats 1, 2, 3 and the group
+VALUE) and from `DataBinder.Reports.cs` once the printable item's picture is settled (format 4). SR6's zero
+exemption — "the figurative constant ZERO or ZEROES and the integer and decimal forms of the literal zero" — is
+edition-free and is the screen's own complement. **DETERMINATION:** SR6's text enumerates formats 1, 2 and 4 and
+omits format 3; the omission is read as naming the DATA-ITEM formats rather than as excluding the condition-name
+one, because §13.18.63.4 GR19 gives a condition-name "the characteristics of ... its conditional variable",
+§14.9.39.4 GR6 places the literal "according to the rules for the VALUE clause" (i.e. SR6's conversion), and
+§13.18.63.3 SR36 carries SR11 — the numeric-edited EDITING rule — into format 5, whose subject is a level-88
+condition-name exactly as format 3's is. The strict reading and this one agree below 2023, which is the half the
+fix closes; at 2023 the reading that does not reject source is taken. Goldens
+`2023/pb921_numeric_edited_value_formats` (the over-rejection guard across formats 3 and 4 plus the exempt
+spellings) and the negatives `pb921-condition-name-numeric-edited-below-2023`,
+`pb921-report-numeric-edited-below-2023`; `NumericEditedValueEditionGateDriftTests` pins the PROPERTY over all
+five format spellings at 85/2002/2014 and at 2023.
+
 ### D9. OCCURS DYNAMIC (dynamic-capacity tables, §13.18.38 Format 4, COBOL-2014) — an out-of-line growable `CobolDynTable<T>`; sending/receiving direction carried by `Place`; a CORE ships whole, variable-length-group ops staged LOUD.
 
 *Load-bearing spec anchors: §8.5.1.9.1 :8189 (dynamic-capacity definition — physical=logical capacity, current

@@ -1954,16 +1954,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (SR6 — converted per the MOVE rules "such that no truncation of digits or sign is required"; kb/Work PB97).
         if (pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
             ValidateNumericValue(pic, raw, where);
-        // (§13.18.63.3 SR6's literal-FORM rule for numeric-edited subjects — both forms, both directions — is
-        // ValidateValueCategory's, above, the item-VALUE + level-88 funnel; D21/PB66, kb/Work PB97.)
-        // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
-        // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
-        // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR
-        // 35) at ALL editions, so only a non-zero numeric literal is gated. Scoped to the ITEM VALUE (not level-88).
-        // SR6 names "formats 1, 2, and 4", so the format-2 occurrence literals are gated by the same call.
-        if (pic is { Category: PicCategory.NumericEdited } && IsNonZeroNumericLiteral(raw))
-            ConstructRegistry.Check(Edition.Edition, Edition.Sink,
-                Constructs.ValueNumericLiteralNumericEdited2023, where);
+        // (⛔ ALL of §13.18.63.3 SR6 — the literal-FORM rule AND the edition on which a numeric literal became
+        // writable at all — is <see cref="ScreenNumericEditedNumericLiteral"/>'s, reached from
+        // ValidateValueCategory above, which is the funnel EVERY format's literal passes through: the item VALUE
+        // (formats 1 and 2), the level-88 set (format 3) and the group-level VALUE. It used to be split, and the
+        // split WAS the defect — see that method's remarks; D21/PB66, kb/Work PB97 + PB921.)
         // VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at >=2023 an alphanumeric edited-image literal VALUE on
         // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
         // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
@@ -1984,6 +1979,54 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + $"numeric-edited item's {editedWidth}-character edited size (ISO §13.18.63 SR4/SR5; COBOL-2023, "
                 + "Annex E.2 item 27)", where, "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"));
         return raw;
+    }
+
+    /// <summary>⛔ THE ONE §13.18.63.3 SR6 EDITION SCREEN — from which edition a NUMERIC literal may seed a
+    /// NUMERIC-EDITED subject, asked once for EVERY general format of the VALUE clause that can carry one.
+    ///
+    /// <para><b>The rule.</b> §13.18.63.3 SR6 — "If the item is of category numeric-edited, then, subject to
+    /// Syntax rules 2 and 3, literals in formats 1, 2, and 4 of the VALUE clause may be numeric when they shall
+    /// be converted to their numeric-edited forms according to the rules for the MOVE statement" — is the ONLY
+    /// rule that admits a numeric literal on a numeric-edited subject, and Annex E.3.3 item 43 DATES it: "VALUE
+    /// clause, numeric-edited items and numeric literals. It is now permitted to allow numeric-edited data items
+    /// to be assigned values specified as numeric literals." A COBOL-2023 addition, so below 2023 a numeric-edited
+    /// VALUE required an alphanumeric or national edited-image literal (§13.18.63.3 SR7). SR6 exempts "the
+    /// figurative constant ZERO or ZEROES and the integer and decimal forms of the literal zero" at ALL editions
+    /// (Annex E.2 item 28 / VCR 35), so only a NON-ZERO numeric literal is gated.</para>
+    ///
+    /// <para>⛔ <b>Why it is a method and not four call sites.</b> SR6 was written down TWICE: its literal-FORM
+    /// half (fixed-point vs floating-point) sat in <see cref="ValidateValueCategory"/>, which the item VALUE, the
+    /// level-88 set and the group-level VALUE all funnel through; its EDITION half sat inline in
+    /// <see cref="ScreenValueLiteral"/>, which only the item VALUE reaches. ONE rule, two places, and the two
+    /// places covered different formats — the [[two_arm_dispatch]] shape, measured: `01 X PIC ZZ9.99 VALUE 10.`
+    /// (format 1) was refused at --std 85 while `01 X PIC ZZ9.99. 88 X-TEN VALUE 10.` (format 3) was ACCEPTED
+    /// there and stored the 2023 edited image ` 10.00`, and a report-section printable item
+    /// `10 COLUMN 1 PIC ZZ9.99 VALUE 10.` (format 4 — a format SR6 NAMES) was accepted there too and printed it.
+    /// Asking the question in one place, from the funnel every format's literal already passes through, is what
+    /// makes the next format automatic (kb/Work PB921).</para>
+    ///
+    /// <para><b>DETERMINATION — format 3 (condition-name) rides the same gate.</b> SR6's own text enumerates
+    /// "formats 1, 2, and 4", and format 3 is not in the list; read strictly that would forbid a numeric literal
+    /// on a condition-name over a numeric-edited conditional variable at EVERY edition. The standard does not
+    /// sustain that reading on its own terms: §13.18.63.4 GR19 gives a condition-name "the characteristics of ...
+    /// its conditional variable", §14.9.39.4 GR6 places the literal "according to the rules for the VALUE clause"
+    /// — i.e. SR6's conversion — and §13.18.63.3 SR36 carries SR11, the numeric-edited EDITING rule, into format 5,
+    /// whose subject is a level-88 condition-name exactly as format 3's is. So the enumeration is read as naming
+    /// the DATA-ITEM formats rather than as excluding the condition-name one, and the edition axis is applied to
+    /// format 3 as well. That choice is edition-neutral below 2023 — both readings reject there, which is the
+    /// half this fix closes — and at 2023 it takes the reading that does not reject source. Recorded as a
+    /// determination on kb/Work PB921 so it can be revisited with an owner decision rather than rediscovered.</para></summary>
+    /// <param name="pic">The SUBJECT's picture — the screen asks the category itself rather than trusting a
+    /// caller to have asked, because "is this subject numeric-edited" is half the rule.</param>
+    /// <param name="raw">The folded literal text, as the one literal-position reader returned it. A literal that
+    /// is not numeric at all — an alphanumeric or national edited image, or a figurative — answers no here, so a
+    /// caller never has to pre-classify it.</param>
+    /// <param name="where">The diagnostic subject phrase (an item, a condition-name, or a report entry).</param>
+    private void ScreenNumericEditedNumericLiteral(PicInfo pic, string raw, string where)
+    {
+        if (pic.Category is PicCategory.NumericEdited && IsNonZeroNumericLiteral(raw))
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink,
+                Constructs.ValueNumericLiteralNumericEdited2023, where);
     }
 
     /// <summary>⛔ THE §13.18.63.3 VALUE-OPERAND SCREEN — the ONE place that decides whether a VALUE clause's
@@ -2048,6 +2091,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (it was written out a second time here, and its ALL strip a fifth time, kb/Work PB461).
         bool isZeroWord = figOp.Kind is 'Z';
         bool isNationalFigurative = figOp.Kind is not null;
+        // ⛔ SR6's EDITION half, asked HERE rather than at one caller, so it reaches every VALUE format this
+        // funnel serves — the item VALUE (formats 1 and 2), the level-88 set (format 3) and the group-level
+        // VALUE (kb/Work PB921). See ScreenNumericEditedNumericLiteral for the rule and the determination.
+        ScreenNumericEditedNumericLiteral(pic, raw, where);
         switch (pic.Category)
         {
             // ── The numeric literal's FORM vs the subject's (kb/Work PB97; the floating-point form is ISO §8.3.3.3.3):
@@ -2678,6 +2725,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             to.IsAligned |= from.IsAligned;                         // ALIGNED (§13.18.1)
         }
         to.OwnUsage ??= from.OwnUsage;
+        // The WITH NO SIGN phrase is PART OF the USAGE clause (§13.18.60.2 prints it inside the PACKED-DECIMAL
+        // alternative), so it travels wherever that clause does. Its EFFECT rides on Pic.PackedNoSign, which
+        // UsageInheritancePass has not yet applied when this copy runs (ExpandTypes is the first pass) — copying
+        // the clause fact is what makes `01 TT TYPEDEF USAGE PACKED-DECIMAL WITH NO SIGN. 05 X PIC 9(4).` give
+        // its subject the same 2-byte leaf the template describes (kb/Work PB570).
+        to.OwnNoSign |= from.OwnNoSign;
         to.OwnSign ??= from.OwnSign;
         // ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) are in neither GR-1 exclusion list either, and
         // both decide the item's LENGTH: a SAME AS of a DYNAMIC LENGTH item that dropped the clause became a
@@ -2942,6 +2995,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // third acquisition route cannot drift from the other two (before PB495 it carried its own
                     // copy of the `Binary or Packed or Comp5` hand-list and silently dropped every other usage).
                     ApplyEffectiveUsage(item, au);
+                    // The clause travels WHOLE: its WITH NO SIGN phrase (§13.18.60.2) is not a separate clause,
+                    // so GR3's "as though specified for the subject" carries it too. Recorded, not applied — the
+                    // ONE adjudication site (ApplyEffectiveNoSign, from UsageInheritancePass) runs later in the
+                    // pipeline and would otherwise report §13.18.40.3 SR31 twice on one entry (kb/Work PB570).
+                    item.OwnNoSign |= p.OwnNoSign;
                     break;
                 }
         if (item.OwnSign is null)
@@ -4154,21 +4212,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 pending = groupUsage is GroupUsage.Bit ? PicPending.BitUsage : PicPending.NationalUsage;
         }
 
-        // USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11, 2023): applies ONLY to PACKED-DECIMAL (grammatically tolerated
-        // after any usageKeyword — reject on a non-Packed usage, COBOLNET1565) and forbids an 'S' picture (SR31,
-        // COBOLNET1566). When valid it drops the sign nibble via PicInfo.PackedNoSign (StorageWidth only — the value
-        // path is identical to plain unsigned packed). The 2023 introduction gate is VersionConformancePass.
-        if (noSign)
-        {
-            if (entryUsage is not Usage.Packed)
-                Edition.Error("COBOLNET1565", $"{entryWhere}: the WITH NO SIGN phrase (ISO §13.18.60.4 GR11) applies "
-                    + $"only to USAGE PACKED-DECIMAL, not USAGE {usageText}");
-            else if (pic is { Signed: true })
-                Edition.Error("COBOLNET1566", $"{entryWhere}: a PICTURE containing 'S' shall not be specified with "
-                    + "PACKED-DECIMAL WITH NO SIGN (ISO §13.18.40.3 SR31 — an unsigned representation)");
-            else if (pic is not null)
-                pic = pic with { PackedNoSign = true };
-        }
+        // USAGE … WITH NO SIGN — the GENERAL-FORMAT half, and only that half. §13.18.60.2 prints the phrase on
+        // exactly one alternative, `PACKED-DECIMAL [ WITH NO SIGN ]` (rendered figure, kb/Work PB570), while the
+        // grammar tolerates it after ANY usageKeyword (the established binarySign / floatFormatPhrase superset
+        // posture), so the usage word it was written on is screened HERE — where the clause is, and where the word
+        // is known whether or not the entry turns out to be a group. COBOLNET1565.
+        //
+        // ⛔ THE PHRASE'S EFFECT AND ITS §13.18.40.3 SR31 SCREEN ARE NOT HERE. Both are written against the item
+        // the phrase APPLIES TO, and §13.18.60.4 GR1 makes that "each elementary item in the group" whenever the
+        // clause is written at a group level — which entry bind cannot yet see (the subordinate entries are not
+        // parsed, so `pic` is null on a group header). Adjudicated once, for BOTH spellings, in
+        // UsageInheritancePass → ApplyEffectiveNoSign; the phrase travels there on DataItem.OwnNoSign. Before
+        // PB570 the two arms below ran here on the entry's own `pic` and a group-level phrase fell through all of
+        // them in silence: `01 GRP USAGE PACKED-DECIMAL WITH NO SIGN. 05 EG PIC 9(4).` kept the 3-byte SIGNED
+        // layout, and `05 W1 PIC S9(4).` under the same header drew no diagnostic at all.
+        // The 2023 introduction gate is VersionConformancePass (recognition-based, so it sees both spellings).
+        if (noSign && entryUsage is not Usage.Packed)
+            Edition.Error("COBOLNET1565", $"{entryWhere}: the WITH NO SIGN phrase (ISO §13.18.60.2; §13.18.60.4 GR11) "
+                + $"applies only to USAGE PACKED-DECIMAL, not USAGE {usageText}");
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.3.3.2 / §13.18.40) — reject, never silently mis-store.
@@ -4320,6 +4381,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Pending = pending,
             OwnSign = ownSign,
             OwnUsage = usageText is not null ? entryUsage : null,
+            // The WITH NO SIGN phrase of that clause (§13.18.60.2) rides WITH it — §13.18.60.4 GR1 applies the
+            // clause, phrase included, to each elementary item in the group (kb/Work PB570). Kept only when the
+            // phrase was written on a usage the general format admits it on: the COBOLNET1565 arm above has
+            // already refused the others, and a rejected phrase must not go on to change a width.
+            OwnNoSign = noSign && entryUsage is Usage.Packed,
             RawValue = rawValue,
             TableValues = tableValues,
             Occurs = occurs,
@@ -5113,9 +5179,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (§13.16.3 SR8) — the profile that, by GR1, belongs to the leaves rather than to the group header that
     /// wrote the clause. <see cref="Pending"/> carries the deferred NATIONAL/BIT mark the same way, and
     /// <see cref="FromName"/> names the entry the clause was written on so §13.18.60.3 SR2's message can point
-    /// at it.</para></summary>
+    /// at it.</para>
+    /// <para><see cref="NoSign"/> is the <c>WITH NO SIGN</c> phrase of that same clause (§13.18.60.2 prints it
+    /// INSIDE the PACKED-DECIMAL alternative, so it is not a clause of its own): it hands down with the clause
+    /// it belongs to, and is adjudicated at each leaf by <see cref="ApplyEffectiveNoSign"/> — kb/Work PB570,
+    /// where it was read from the entry's own <c>usageClause</c> and therefore never reached a leaf at all.</para></summary>
     private readonly record struct InheritedUsage(
-        Usage? Effective, PicInfo? Pictureless, PicPending Pending, string? FromName);
+        Usage? Effective, PicInfo? Pictureless, PicPending Pending, string? FromName, bool NoSign);
 
     /// <summary>
     /// ⛔ THE USAGE-INHERITANCE PASS (P5.11e, DESIGN-data-model §2.7) — ISO §13.18.60.4 GR1, run ONCE over the
@@ -5192,10 +5262,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // What THIS entry hands down: its own (or implied) clause together with the representation entry bind
         // synthesized for it, else whatever it inherited, unchanged.
+        // ⛔ The NO SIGN phrase travels with the clause it is part of, never on its own: an entry that writes a
+        // USAGE clause REPLACES the inherited one whole (nearest-enclosing wins), so a PACKED-DECIMAL WITH NO SIGN
+        // group containing a plain `05 H USAGE PACKED-DECIMAL.` group hands NO SIGN no further down — H's clause
+        // is the one that applies to H's leaves (§13.18.60.4 GR1).
         var down = ownOrImplied is null && item.Pending is PicPending.None
             ? inherited
             : new InheritedUsage(ownOrImplied, item.PicIsUsageSynthesized ? item.Pic : null,
-                                 item.Pending, item.CobolName);
+                                 item.Pending, item.CobolName, item.OwnNoSign);
 
         if (item.Children.Count > 0) UsageInheritanceGroup(item, down);
         else UsageInheritanceElementary(item, inherited);
@@ -5326,25 +5400,69 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             return;
         }
 
-        if (!acquired) return;   // the entry wrote its own clause; BindEntry already bound and screened it
-
-        // ── A PICTURE-BEARING elementary item that acquired its usage from a group ────────────────────────────
-        // §13.16.3 SR8: for the picture-less usages a PICTURE is prohibited, and the item's representation comes
-        // from the usage. Identical verdict, identical recovery and identical diagnostic code to the spelling
-        // that writes the clause on this entry (BindEntry's SR8 screen) — the ONE thing GR1 forbids is that the
-        // two spellings differ.
-        if (UsageFamilies.IsPictureless(effective))
+        // ── A PICTURE-BEARING elementary item ────────────────────────────────────────────────────────────────
+        // An entry that wrote its OWN usage clause was bound and screened by BindEntry, so only the acquired
+        // half needs the representation work; the WITH NO SIGN phrase below is the ONE rule both spellings
+        // still owe, and it runs for both (§13.18.60.4 GR1's equivalence, kb/Work PB570).
+        if (acquired)
         {
-            (string sr8Code, string sr8Text) = Sr8PicturelessVerdict(effective);
-            Edition.Error(sr8Code, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
-                + $"item '{fromGroup.FromName ?? "FILLER"}' and applies to each elementary item in it "
-                + "(ISO §13.18.60.4 GR1)");
-            item.Pic = fromGroup.Pictureless ?? PicInfo.Recovery();
-            item.PicIsUsageSynthesized = fromGroup.Pictureless is not null;
-            return;
+            // §13.16.3 SR8: for the picture-less usages a PICTURE is prohibited, and the item's representation
+            // comes from the usage. Identical verdict, identical recovery and identical diagnostic code to the
+            // spelling that writes the clause on this entry (BindEntry's SR8 screen) — the ONE thing GR1 forbids
+            // is that the two spellings differ.
+            if (UsageFamilies.IsPictureless(effective))
+            {
+                (string sr8Code, string sr8Text) = Sr8PicturelessVerdict(effective);
+                Edition.Error(sr8Code, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
+                    + $"item '{fromGroup.FromName ?? "FILLER"}' and applies to each elementary item in it "
+                    + "(ISO §13.18.60.4 GR1)");
+                item.Pic = fromGroup.Pictureless ?? PicInfo.Recovery();
+                item.PicIsUsageSynthesized = fromGroup.Pictureless is not null;
+                return;
+            }
+
+            ApplyEffectiveUsage(item, effective);
         }
 
-        ApplyEffectiveUsage(item, effective);
+        // ── The USAGE clause's WITH NO SIGN phrase (ISO §13.18.60.2), for BOTH spellings ─────────────────────
+        // Its subject is "the subject of the entry" the phrase applies to (§13.18.40.3 SR31), and §13.18.60.4
+        // GR1 makes that each elementary item in the group when the clause was written at a group level. Run
+        // AFTER ApplyEffectiveUsage so the screened representation is the one the rule reads.
+        if (item.OwnNoSign) ApplyEffectiveNoSign(item, fromGroupName: null);
+        else if (acquired && fromGroup.NoSign) ApplyEffectiveNoSign(item, fromGroup.FromName ?? "FILLER");
+    }
+
+    /// <summary>Apply a USAGE clause's <c>WITH NO SIGN</c> phrase to an elementary item — ISO §13.18.40.3 SR31
+    /// ("The symbol 'S' shall not be specified in character-string-1 when the NO SIGN phrase of the USAGE Clause
+    /// is specified for the subject of the entry") and §13.18.60.4 GR11 ("If the WITH NO SIGN phrase is
+    /// specified the representation of the data item in the storage of the computer reserves no storage for
+    /// representing any sign value").
+    /// <para>⛔ ONE site for every route by which the phrase reaches an item: the item's own USAGE clause, and
+    /// §13.18.60.4 GR1 group inheritance (both from <see cref="UsageInheritanceElementary"/>), and the
+    /// §13.18.49.4 GR3 SAME-AS ancestor transform, which records the phrase on <see cref="DataItem.OwnNoSign"/>
+    /// and lets this pass adjudicate it. The phrase used to be adjudicated in <c>BindEntry</c> against the
+    /// ENTRY'S OWN picture, where a group header has none — so the group spelling lost BOTH the SR31 screen and
+    /// the GR11 width, silently, at every nesting depth (kb/Work PB570).</para>
+    /// <para>The effective usage has already been screened against the picture by
+    /// <see cref="ApplyEffectiveUsage"/>, so <c>Pic.Usage</c> is the representation the item really takes: a
+    /// phrase that survived COBOLNET1565 on the written clause but whose PACKED-DECIMAL was downgraded by
+    /// §13.18.60.3's USAGE × PICTURE screen changes nothing, exactly as the diagnosed usage requires. A RECOVERY
+    /// profile is left alone — its PICTURE was already rejected, so SR31 would report an invented second defect
+    /// on one entry.</para></summary>
+    /// <param name="fromGroupName">The group entry whose clause supplied the phrase, for the §13.18.60.4 GR1
+    /// provenance in the message, or <see langword="null"/> when this entry wrote it itself.</param>
+    private void ApplyEffectiveNoSign(DataItem item, string? fromGroupName)
+    {
+        if (item.Pic is not { } pic || pic.IsRecovery || pic.Usage is not Usage.Packed) return;
+        string gr1 = fromGroupName is null ? ""
+            : $" — the phrase is the one written for the group item '{fromGroupName}', whose USAGE clause applies "
+              + "to each elementary item in the group (ISO §13.18.60.4 GR1)";
+        if (pic.Signed)
+            Edition.Error("COBOLNET1566", $"data item '{item.CobolName ?? "FILLER"}': a PICTURE containing 'S' shall "
+                + "not be specified with PACKED-DECIMAL WITH NO SIGN (ISO §13.18.40.3 SR31 — an unsigned "
+                + $"representation){gr1}");
+        else
+            item.Pic = pic with { PackedNoSign = true };
     }
 
     /// <summary>Apply an elementary item's EFFECTIVE usage to its analyzed PICTURE — the §13.18.60.3

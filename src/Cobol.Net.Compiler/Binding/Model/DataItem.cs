@@ -126,6 +126,21 @@ public sealed class DataItem
         "USAGE (ISO §13.18.60) — in neither GR-1 exclusion list")]
     public Usage? OwnUsage { get; set; }
 
+    /// <summary>This entry's OWN USAGE clause carried the <c>WITH NO SIGN</c> phrase (ISO §13.18.60.2 —
+    /// <c>PACKED-DECIMAL [ WITH NO SIGN ]</c>), or <see langword="false"/> when it did not — captured even on a
+    /// group item, for the same reason <see cref="OwnUsage"/> is: the phrase is PART OF the USAGE clause, and
+    /// §13.18.60.4 GR1 applies that clause "only to each elementary item in the group".
+    /// <para>⛔ THE FIELD EXISTS BECAUSE THE PHRASE USED TO BE A LOCAL. Entry bind read it off the entry's own
+    /// <c>usageClause</c> and adjudicated it THERE, where a group header has no PICTURE — so all three arms
+    /// fell through and the phrase was dropped WHOLESALE: <c>01 GRP USAGE PACKED-DECIMAL WITH NO SIGN.
+    /// 05 EG PIC 9(4).</c> MEASURED 3 bytes (the SIGNED layout) against 2 for the elementary spelling, and
+    /// <c>05 W1 PIC S9(4).</c> under the same header compiled clean where §13.18.40.3 SR31 forbids the 'S'
+    /// (kb/Work PB570). Carrying the clause fact here lets the ONE §13.18.60.4 GR1 walk adjudicate BOTH
+    /// spellings through one site (<c>DataBinder.ApplyEffectiveNoSign</c>).</para></summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the WITH NO SIGN phrase of the USAGE clause (ISO §13.18.60.2) — it travels with the clause it is part of")]
+    public bool OwnNoSign { get; set; }
+
     /// <summary>This entry's <see cref="Pic"/> was SYNTHESIZED FROM ITS USAGE, not analyzed from a PICTURE
     /// character-string — the entry wrote one of the picture-less usages (<see cref="UsageFamilies.IsPictureless"/>
     /// / ISO §13.16.3 SR8), whose representation the usage alone fixes.

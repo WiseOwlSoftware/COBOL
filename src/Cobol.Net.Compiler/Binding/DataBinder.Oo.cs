@@ -622,6 +622,7 @@ public sealed partial class DataBinder
             Pic = src.Pic,
             OwnSign = src.OwnSign,
             OwnUsage = src.OwnUsage,
+            OwnNoSign = src.OwnNoSign,   // the WITH NO SIGN phrase rides on the clause it is part of (§13.18.60.2)
             Occurs = src.Occurs,
             OccursSpec = src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
             Justified = src.Justified,
