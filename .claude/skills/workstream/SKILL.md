@@ -12,8 +12,9 @@ description: Use BEFORE dispatching any fleet, lander, implementer or adjudicati
 > "Run all this work so that we don't repeat effort when hitting a limit and resuming."
 
 The orchestrator (the session model) dispatches, reconciles, gates and commits; every other job — probe, implement,
-validate, adversarial review, land — is a subagent on the model `~/.claude/settings.json` names (`claude-opus-5`),
-passed explicitly as `model: 'opus'`.
+validate, adversarial review, land — is a subagent on the latest Opus: `~/.claude/settings.json` sets
+`CLAUDE_CODE_SUBAGENT_MODEL` to the ALIAS `opus` (Opus 5.5 since 2026-09-22 — never pin a dated id), and every
+workflow passes `model: 'opus'`.
 
 ## 1. Checkpoint to disk, never to a transcript
 
