@@ -22836,13 +22836,13 @@
   "ordinal": 3,
   "subject": "Level-number",
   "rule-digest": "af84cd76cf76",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#SetRedefinition; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ClassifyRedefinesClasses",
+  "test-ref": "conformance:2002/pb836_implicit_record_redefinition; unit:ImplicitRecordRedefinitionTests.TheKind_NamesTheConstruct",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB836 LANDED. Sentence 1 - 'Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area': the FD and SD arms of the file-section binder join each later level-1 record to the first through DataItem.SetRedefinition(first, RedefinitionKind.ImplicitFileRecord), the ONE writer of RedefinesTarget and RedefinesKind; the storage layout reads the one class for both constructs (the positive golden writes 'AB12CD' through R-TEXT and reads WA=AB WN=12 through a TYPE'd record and NB+1=13 NC=CD through a third, all left-aligned over one area), while the 13.18.44.3 REDEFINES-clause screens (SR5/SR12/SR14/SR17 and their tier verdicts) now read RedefinesKind == Clause only - they used to fire on this implicit case and refuse legal source under rules about a clause the program never wrote. A record shape the shared backing cannot yet carry (a pointer, a dynamic-length item, a variable-length group, a dynamic-capacity table) is staged loud as COBOLNET0899 implicit-record-area-shape citing this rule - recognized-not-implemented storage debt reported as such, not a conformance rejection. Sentence 2 - 'Multiple level 1 entries subordinate to a report description entry do not represent implicit redefinitions of the same area': the report binder never calls SetRedefinition, so report groups never join a class (its callers are the REDEFINES-clause resolver, which writes Clause, and the FD, SD and record-area SAME arms, which write the two implicit kinds - all in DataBinder.cs). EDITIONS recorded 2002/2014/2023, the editions this row's own golden runs at (its middle record uses TYPE); the FD rule itself is COBOL-85 base language and the same binder arm serves 85, where the NIST file suites exercise multi-record FDs.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.34.3-1",
@@ -27231,13 +27231,13 @@
   "ordinal": 9,
   "subject": "SAME AS clause",
   "rule-digest": "dfc640f54703",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#SuperordinateWithRepresentationClause",
+  "test-ref": "conformance:negative/pb889-group-usage-over-same-as; conformance:2002/pb889_type_to_optional_word",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB889 LANDED. The rule names THREE clauses - 'A group item to which the subject of the entry is subordinate shall not contain a GROUP-USAGE, SIGN, or USAGE clause' - and ExpandSameAs's ancestor walk tested two (OwnUsage, OwnSign), so `01 OUTER GROUP-USAGE NATIONAL. 02 INNER SAME AS SRC2.` over SRC2 PIC N(4) compiled clean although COBOLNET1555's own text named GROUP-USAGE. Both SR walks now read ONE predicate, DataBinder.SuperordinateWithRepresentationClause (GroupUsage / OwnSign / OwnUsage), and the diagnostic names the offending superordinate. (Over a PIC X source the 13.18.60.3 SR12 rule, COBOLNET0881, rejects first and masks this answer - the negative uses PIC N(4) for that reason.) The legal side - a SAME AS entry under a group with none of the three clauses - is pinned by the 2002 positive. MEASURED at 2002 and 2014 on the worktree's own build: COBOLNET1555 '... shall not contain a GROUP-USAGE, SIGN, or USAGE clause - 'OUTER' does (ISO 13.18.49.3 SR9)'. EDITIONS 2002/2014/2023 (SAME AS is a 2002 introduction; its own 0900 gate covers 85).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.49.3-10",
@@ -28521,13 +28521,13 @@
   "ordinal": 4,
   "subject": "TYPE clause",
   "rule-digest": "81e33c444cf2",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#CheckStrongTypeDeclarations; src/Cobol.Net.Compiler/Binding/DataBinder.cs#FirstStrongItemIn",
+  "test-ref": "conformance:negative/pb836-strong-record-implicitly-redefined; unit:ImplicitRecordRedefinitionTests.StrongRecord_InAMultiRecordFd_IsSr4_NeverAClauseRule; unit:ImplicitRecordRedefinitionTests.StrongRecord_InASameRecordArea_IsSr4_CitingTheSameClause; conformance-test:TypedefStrongTests.RedefinesOverStrongItem_Rejected1532",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB836 LANDED. 'If type-name-1 is described with the STRONG phrase, the subject of the entry shall not be implicitly or explicitly redefined in whole or in part.' BOTH arms now screened, each by the construct that performs it. EXPLICIT: a written REDEFINES clause whose data-name-2 is (part of) a strong item from outside its strong subtree - COBOLNET1532, pinned by TypedefStrongTests.RedefinesOverStrongItem_Rejected1532 (unchanged; now restricted to RedefinitionKind.Clause). IMPLICIT: the only implicit redefinitions the standard defines are an FD/SD's multiple level-1 entries (13.18.33.4 GR3) and a record-area SAME clause (12.4.6.4.4 GR2 'equivalent to an implicit redefinition of the area'); a strongly-typed item anywhere in such a record is implicitly redefined by every other record sharing the area, tested on BOTH sides of each pair because the sharing is symmetric (the binder anchors on the first record; before the fix the strong-FIRST order drew 13.18.44.3 SR14 + SR4 and the strong-SECOND order drew only 13.18.44.3 SR12, a REDEFINES-clause rule for source with no REDEFINES). 'In part': 13.18.57.3 SR6 admits a STRONG reference only at level 1 or under a strong group, so the strong item in a file record is the record itself; FirstStrongItemIn walks the subtree regardless. MEASURED at 2002 and 2023: both orders -> one COBOLNET1532 citing 13.18.33.4 GR3 and 13.18.57.3 SR4, no 13.18.44 diagnostic; the SAME RECORD AREA pair -> COBOLNET1532 citing 12.4.6.4.4 GR2. EDITIONS 2002/2014/2023 (TYPEDEF STRONG is a 2002 introduction).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.57.3-5",
@@ -28536,13 +28536,13 @@
   "ordinal": 5,
   "subject": "TYPE clause",
   "rule-digest": "a7eda9e258d6",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType; src/Cobol.Net.Compiler/Binding/DataBinder.cs#SuperordinateWithRepresentationClause",
+  "test-ref": "conformance:negative/pb889-group-usage-over-type; conformance:2002/pb889_type_to_optional_word",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB889 LANDED. 'No group item to which the subject of the entry is subordinate shall contain a GROUP-USAGE, SIGN, or USAGE clause' (the SR9 twin's obligation in a DIFFERENT sentence - the source report had carried SR9's wording across, and cite.py --check FAILs it here). ExpandType's walk tested USAGE and SIGN only and its COBOLNET1538 text named only those two; it now reads the same ONE predicate as ExpandSameAs and names all three. The TYPE arm could not be measured end to end before this landing because the grammar rejected the standard's own Format 1 spelling `TYPE TO type-name-1` (13.18.57.2, rendered PDF page 524: TYPE underlined, TO not - an optional word by 5.2.3); typeClause is now `TYPE TO? IDENTIFIER` (it read `TYPE IS?`, a spelling Format 1 does not print). MEASURED at 2002 and 2023: `01 OUTER GROUP-USAGE NATIONAL. 02 INNER TYPE TO TSRC.` -> COBOLNET1538 naming OUTER; the positive compiles and runs both `TYPE TO TSRC` and `TYPE TSRC` to the same description (LEN-TO=8 LEN-NOTO=8). EDITIONS 2002/2014/2023.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.57.3-6",
@@ -33936,13 +33936,13 @@
   "ordinal": 1,
   "subject": "ACCEPT statement",
   "rule-digest": "9c701324d81c",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/Cobol.Net.Runtime/IO/AcceptSource.cs#DeviceBoolean",
-  "test-ref": "conformance-test:AcceptDifferentialTests.Device_BooleanReceiver_ConvertsToBooleanCharacters; conformance-test:AcceptDifferentialTests.Device_NumericReceiver_ConvertsAndComputes",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/Cobol.Net.Runtime/IO/AcceptSource.cs#DeviceFloat; src/Cobol.Net.Runtime/IO/AcceptSource.cs#DeviceBoolean; docs/CONFORMANCE.md#DOC-A.1-1",
+  "test-ref": "conformance-test:AcceptDifferentialTests.Device_BooleanReceiver_ConvertsToBooleanCharacters; conformance-test:AcceptDifferentialTests.Device_NumericReceiver_ConvertsAndComputes; conformance-test:AcceptDifferentialTests.Device_FloatReceiver_ReadsTheDisplayImage; conformance-test:AcceptDifferentialTests.Device_FloatReceiver_RoundTripsItsOwnDisplayImage",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "PB139 closed two of the three undefined conversions the refuter found. BOOLEAN receiver: AcceptSource.DeviceBoolean defines the conversion - each transferred character '1' converts to boolean one, every other character (a '0', a pad space, any device character) to boolean zero, so the 13.18.40.4 GR14 '0'/'1' representation invariant holds for ANY input (the old default-arm raw store put pad SPACES into boolean storage). NATIONAL receiver: the conversion is DEFINED as the identity on the UTF-16 character substrate (the emitter arm's citation says so; a national position is one char, so Device(pic.Length) is exact). REMAINING: (a) the COMP-1/COMP-2 receiver conversion stays the documented-loud deferral pinned by CheckOnlyCompileTests (kb/Work PB139 records it as pre-adjudicated); (b) the Annex A.1 item-1 user-documentation row is PB160's documentation half. PARTIAL until both close.",
-  "state": "GAP"
+  "notes": "kb/Work PB887 closes both residues PB139 left. (a) The COMP-1/COMP-2/FLOAT-* receiver was a run-time LoudStmt that aborted the run unit (rc=127, measured on the finisher's build) although 14.9.1.3 SR1 excludes only index/message-tag/object/pointer; GR1 makes the conversion the implementor's, and it is now DEFINED: exactly one 80-character record read as the inverse of the DISPLAY image (the 15.69 NUMVAL-F format, spaces ignored), correctly rounded to binary64 and narrowed to binary32, a non-conforming record converting to zero with no exception (AcceptSource.DeviceFloat). (b) The Annex A.1 item-1 documentation row now exists: docs/CONFORMANCE.md DOC-A.1-1 documents every receiver shape's conversion (character receivers as-is, fixed numeric decoded as its display image, boolean '1'/other, float as above). The StaleDeferralDriftTests pinned inventory is empty.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-2",
@@ -33951,13 +33951,13 @@
   "ordinal": 2,
   "subject": "ACCEPT statement",
   "rule-digest": "0b0ce06c66b4",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/IO/AcceptSource.cs#Device; src/Cobol.Net.Runtime/IO/AcceptSource.cs#RecordSize",
-  "test-ref": "unit:AcceptSourceTests.LongLine_SplitsIntoPaddedRecords; conformance-test:AcceptDifferentialTests.Device_LongLine_SplitsAtRecordBoundary",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/AcceptSource.cs#Device; src/Cobol.Net.Runtime/IO/AcceptSource.cs#RecordSize; docs/CONFORMANCE.md#DOC-A.1-5",
+  "test-ref": "unit:AcceptSourceTests.LongLine_SplitsIntoPaddedRecords; conformance-test:AcceptDifferentialTests.Device_LongLine_SplitsAtRecordBoundary; conformance-test:AcceptDifferentialTests.Device_FloatReceiver_ReadsTheDisplayImage",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "PB139 erased the refuter's CONTRADICTION: Device now delivers EXACTLY 80-character transfers - an input line longer than 80 characters is consecutive records, each padded to the card image (the old whole-line append delivered max(80, line.Length)). The definition (RecordSize = 80, one card-image record, per-device-consistent because CONSOLE/SYSIN both name standard input) now matches the implementation on every path. REMAINING: the Annex A.1 item-5 determination row in docs/CONFORMANCE.md is PB160's documentation half. PARTIAL until documented.",
-  "state": "GAP"
+  "notes": "The definition (one 80-character card-image record per transfer, CONSOLE and SYSIN both naming standard input) matched the implementation since PB139; the Annex A.1 item-5 documentation row is now written (docs/CONFORMANCE.md DOC-A.1-5, kb/Work PB887), including the receiving size GR3/GR4 compare against per receiver shape and the float receiver's one-record transfer.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-3",
@@ -34012,11 +34012,11 @@
   "subject": "ACCEPT statement",
   "rule-digest": "1d03f5bb312b",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptTemporal",
-  "test-ref": "conformance-test:AcceptDifferentialTests.Time_NationalReceiver_StoresDigitImage; conformance-test:AcceptDifferentialTests.Day_JustifiedReceiver_RightJustifiesAndLeftTruncates; conformance:negative/pb139-accept-alphabetic-temporal; conformance-test:AcceptDifferentialTests.Day_AlphanumericReceiver_TruncatesRight; conformance-test:AcceptDifferentialTests.Time_SmallNumericReceiver_KeepsLowOrderDigits",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptTemporal; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ConceptualItem",
+  "test-ref": "conformance-test:AcceptDifferentialTests.Time_NationalReceiver_StoresDigitImage; conformance-test:AcceptDifferentialTests.Day_JustifiedReceiver_RightJustifiesAndLeftTruncates; conformance:negative/pb139-accept-alphabetic-temporal; conformance-test:AcceptDifferentialTests.Day_AlphanumericReceiver_TruncatesRight; conformance-test:AcceptDifferentialTests.Time_SmallNumericReceiver_KeepsLowOrderDigits; conformance-test:AcceptDifferentialTests.Temporal_EveryReceiverCategory_StoresByTheMoveRules; unit:StaleDeferralDriftTests.AcceptTemporal_RoutesThroughTheOneMoveSeam",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "LANDED (kb/Work PB139): 'according to the rules for the MOVE statement' now holds both ways. LEGALITY is asked of the ONE Table 16 mechanism at bind (MoveTable16.Refusal, integer-numeric sender) - the NATIONAL receiver (a 'Yes' row) binds and stores, the ALPHABETIC receiver (a 'No' row) rejects, and both were previously hand-rolled wrong (national staged loud, alphabetic silently accepted). ALIGNMENT honours JUSTIFIED through the ONE dispatch (RuntimeApi.StrStoreAligned - the same call MOVE/STRING/INVOKE copy-back use; 14.9.25.4 GR6c via 13.18.32.4 GR2): ACCEPT WS-J FROM DAY with JUSTIFIED RIGHT stores '   26161', left-truncating to '161' in X(3). The ref-mod arm stays JUSTIFIED-exempt (8.4.3.3.4 GR6) and the device path stays left-aligned (GR4a prescribes it). The COMP-1/2 temporal receiver shares the documented-loud float deferral recorded on GR-14.9.1.4-1.",
+  "notes": "kb/Work PB887: 'according to the rules for the MOVE statement' is now literally a MOVE. The binder materializes the GR7-GR12 conceptual item (an unsigned integer of usage display, 6/8/5/7/8/1 digits) as a compiler temp, asks the whole 14.9.25.3 chain MoveTable16.Validity with it (framed COBOLNET0818 under 14.9.1.3 SR3), and binds the transfer through MoveBinder.BindMoveOf (ImplicitMovePhrase.AcceptTemporal); the emitter fills the temp from the clock and renders BoundAccept.Store with MoveEmitter. The emitter's own numeric/edited/alphanumeric/national/float/group arms - a second copy of MoveEmitter.ConvertSource, one arm short until PB420 - are deleted, and StaleDeferralDriftTests.AcceptTemporal_RoutesThroughTheOneMoveSeam keeps them deleted. Measured at 2023 with a pinned clock across numeric-edited, alphanumeric-edited, JUSTIFIED, national, COMP-1, COMP-2, group, reference-modified and SIGN SEPARATE receivers.",
   "state": "OK"
  },
  {
@@ -37012,11 +37012,11 @@
   "subject": "EVALUATE statement",
   "rule-digest": "44d3a7c80651",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#TryResolveRangeAlphabet; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#RegisterRangeCollation; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#RangeAlphabet; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetOperandClass; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetClassMismatch; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetUndeclared",
-  "test-ref": "conformance:2002/pb398_range_in_alphabet; conformance:negative/pb398-range-alphabet-numeric-operands; conformance:negative/pb398-range-alphabet-class-mismatch; conformance:negative/pb398-range-alphabet-undeclared; unit:PartialExpressionSpineDriftTests.ValueRange_CarriesTheInAlphabetPhrase",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#TryResolveRangeAlphabet; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#RegisterRangeCollation; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#RangeAlphabet; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetOperandClass; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetClassMismatch; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetUndeclared; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindRangeHigh; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#WithoutTrailingSuffix; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#IsAlphabetName",
+  "test-ref": "conformance:2002/pb398_range_in_alphabet; conformance:negative/pb398-range-alphabet-numeric-operands; conformance:negative/pb398-range-alphabet-class-mismatch; conformance:negative/pb398-range-alphabet-undeclared; unit:PartialExpressionSpineDriftTests.ValueRange_CarriesTheInAlphabetPhrase; conformance:2002/pb843_evaluate_symbol_decided_objects; conformance:negative/pb843-range-identifier-alphabet-numeric; unit:TrailingInPhraseDriftTests.EveryTrailingInPhraseAfterAnIdentifier_HasASymbolAwareConsumer",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB398 - LANDED, and kb/Work PB594 RE-VERDICTED on top of it. The phrase exists (valueRange gains `(IN cobolWord)?`, measured off the printed page PDF p649 / folio 619: the bracket follows the right-hand operand brace, IN is un-underlined and alphabet-name-1 is required inside it) and BOTH sentences of SR3 are enforced at the ONE site 14.7.8's opening sentence asks for, shared by the EVALUATE and the VALUE clause. ### PB594's re-measurement (wave 43 group D): PB594 measured `EVALUATE W-X WHEN \"A\" THRU \"F\" IN ALPHA-1` as `COBOL0001: no viable alternative at input 'IN'` plus a four-diagnostic cascade that lost the rest of the EVALUATE. RE-PROBED at 85, 2002, 2014 and 2023 on the wave-43 build: it parses and runs, so PB594 is DISCHARGED - the landing that fixed it was PB398 (2573338ec, `git log -S` on the rule body). THE NOTE'S REAL BAR WAS THE SEMANTIC HALF, NOT THE PARSE - 'otherwise the phrase parses and is silently ignored, which is the worse defect' - and it is met in both directions, measured: SR3's screen refuses a NUMERIC range under an alphabet by name (COBOLNET1998, negative/pb398-range-alphabet-numeric-operands), and the named alphabet actually DECIDES the comparison - over `ALPHABET ALPHA-2 IS \"C\" \"B\" \"A\" \"F\" \"E\" \"D\"`, `WHEN \"A\" THRU \"F\" IN ALPHA-2` answers OUT for \"B\" while the same range with no phrase answers IN, at every edition. ### EVIDENCE-UNION REPAIR (wave 43 group E): batch-03 of this group re-recorded the row with only two of its five test-refs and one of its seven code-locations, and misspelled `negative/pb398-range-alphabet-numeric-operands` as `negative/pb398-range-alphabet-numeric` - a reference to a case that does not exist. record_verdicts.py REPLACES a row's evidence fields rather than merging them and does not check that a `conformance:` ref resolves, so a batch written to ADD evidence silently subtracted it. This record restores the union; the dangling ref was the ONLY one in all 3,821 conformance refs in the inventory (swept).",
+  "notes": "kb/Work PB398 - LANDED, and kb/Work PB594 RE-VERDICTED on top of it. The phrase exists (valueRange gains `(IN cobolWord)?`, measured off the printed page PDF p649 / folio 619: the bracket follows the right-hand operand brace, IN is un-underlined and alphabet-name-1 is required inside it) and BOTH sentences of SR3 are enforced at the ONE site 14.7.8's opening sentence asks for, shared by the EVALUATE and the VALUE clause. ### PB594's re-measurement (wave 43 group D): PB594 measured `EVALUATE W-X WHEN \"A\" THRU \"F\" IN ALPHA-1` as `COBOL0001: no viable alternative at input 'IN'` plus a four-diagnostic cascade that lost the rest of the EVALUATE. RE-PROBED at 85, 2002, 2014 and 2023 on the wave-43 build: it parses and runs, so PB594 is DISCHARGED - the landing that fixed it was PB398 (2573338ec, `git log -S` on the rule body). THE NOTE'S REAL BAR WAS THE SEMANTIC HALF, NOT THE PARSE - 'otherwise the phrase parses and is silently ignored, which is the worse defect' - and it is met in both directions, measured: SR3's screen refuses a NUMERIC range under an alphabet by name (COBOLNET1998, negative/pb398-range-alphabet-numeric-operands), and the named alphabet actually DECIDES the comparison - over `ALPHABET ALPHA-2 IS \"C\" \"B\" \"A\" \"F\" \"E\" \"D\"`, `WHEN \"A\" THRU \"F\" IN ALPHA-2` answers OUT for \"B\" while the same range with no phrase answers IN, at every edition. ### EVIDENCE-UNION REPAIR (wave 43 group E): batch-03 of this group re-recorded the row with only two of its five test-refs and one of its seven code-locations, and misspelled `negative/pb398-range-alphabet-numeric-operands` as `negative/pb398-range-alphabet-numeric` - a reference to a case that does not exist. record_verdicts.py REPLACES a row's evidence fields rather than merging them and does not check that a `conformance:` ref resolves, so a batch written to ADD evidence silently subtracted it. This record restores the union; the dangling ref was the ONLY one in all 3,821 conformance refs in the inventory (swept). kb/Work PB843 (wave 45 finisher): the rule's IDENTIFIER arm ('the literals or identifiers specified in the THROUGH phrase') was unreachable - over identifier-4 the greedy qualification loop took `IN alphabet-name-1` as a qualifier and the verdict was COBOLNET1639 on 'WS-HIINAL'. EvaluateBinder.BindRangeHigh now re-reads a LAST `IN word` naming a declared alphabet as the phrase (8.3.2.2: a word is only one type of user-defined word, so an alphabet-name is never a qualifier) and binds the reference without it; SR3's class screens then run over identifiers too (negative pb843-range-identifier-alphabet-numeric -> COBOLNET1998).",
   "state": "OK"
  },
  {
@@ -37042,11 +37042,11 @@
   "subject": "EVALUATE statement",
   "rule-digest": "930f22b098ae",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialExpression; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialXorExpression; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialAndExpression; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialComparison; src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ObjectKind",
-  "test-ref": "conformance:2002/pb398_evaluate_partial_expression; unit:PartialExpressionSpineDriftTests.PartialComparison_IsComparisonExpression_MinusItsLeadingOperand; unit:PartialExpressionSpineDriftTests.EachPartialTier_HasTheSameTailAsTheConditionTierItMirrors; unit:PartialExpressionSpineDriftTests.WhenItem_PutsPartialExpression_AfterTheOtherShapes",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialExpression; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialXorExpression; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialAndExpression; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#partialComparison; src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ObjectKind; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BareClassWord; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#LeadingBareClassWord; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialClassName",
+  "test-ref": "conformance:2002/pb398_evaluate_partial_expression; unit:PartialExpressionSpineDriftTests.PartialComparison_IsComparisonExpression_MinusItsLeadingOperand; unit:PartialExpressionSpineDriftTests.EachPartialTier_HasTheSameTailAsTheConditionTierItMirrors; unit:PartialExpressionSpineDriftTests.WhenItem_PutsPartialExpression_AfterTheOtherShapes; conformance:2002/pb843_evaluate_symbol_decided_objects; conformance:negative/pb843-bare-classname-numeric-subject",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work/PB398.md - LANDED. All four shapes this rule names are recognised, and the rule is realized as a LEFT-EDGE rule exactly as it is written: partialComparison is comparisonExpression with its leading comparisonOperand removed (`IS? NOT? className` / `IS? NOT? (POSITIVE|NEGATIVE|ZERO)` / abbreviatedRelation - SR5's two sign phrasings name the ONE elided position 8.8.4.7.2 offers, so they are one alternative). The two sign forms and the class form are bound by the SAME bodies the written forms use (ConditionBinder.BindClassConditionOn / BindSignConditionOn, extracted for this), so no rule attached to either - 8.8.4.4.3 SR4/SR8's boolean-operand guard, the SR2 LOCALE refusal, 8.8.4.7.3 SR1's operand closure - has a second copy. Golden lines A/C/D/E/F cover relational, class, negated class, sign and the group's leading NOT; B covers the compound tail SR7 d) licenses. partialExpression is LAST in evaluateWhenItem because className's cobolWord alternative would otherwise claim every bare identifier-2; the BARE user-class-name spelling (`WHEN MY-CLASS`) therefore still binds as identifier-2 and is reported as its own mechanism (only the resolved symbol separates them). EDITIONS as previously recorded (2002+), an edge INFERRED from the feature history - no introduction gate is fired, so the construct also parses at 85: gating on an unproven edge would reject legal source, not gating under-rejects at worst.",
+  "notes": "kb/Work/PB398.md - LANDED. All four shapes this rule names are recognised, and the rule is realized as a LEFT-EDGE rule exactly as it is written: partialComparison is comparisonExpression with its leading comparisonOperand removed (`IS? NOT? className` / `IS? NOT? (POSITIVE|NEGATIVE|ZERO)` / abbreviatedRelation - SR5's two sign phrasings name the ONE elided position 8.8.4.7.2 offers, so they are one alternative). The two sign forms and the class form are bound by the SAME bodies the written forms use (ConditionBinder.BindClassConditionOn / BindSignConditionOn, extracted for this), so no rule attached to either - 8.8.4.4.3 SR4/SR8's boolean-operand guard, the SR2 LOCALE refusal, 8.8.4.7.3 SR1's operand closure - has a second copy. Golden lines A/C/D/E/F cover relational, class, negated class, sign and the group's leading NOT; B covers the compound tail SR7 d) licenses. partialExpression is LAST in evaluateWhenItem because className's cobolWord alternative would otherwise claim every bare identifier-2; the BARE user-class-name spelling (`WHEN MY-CLASS`) therefore still binds as identifier-2 and is reported as its own mechanism (only the resolved symbol separates them). EDITIONS as previously recorded (2002+), an edge INFERRED from the feature history - no introduction gate is fired, so the construct also parses at 85: gating on an unproven edge would reject legal source, not gating under-rejects at worst. kb/Work PB843 (wave 45 finisher): 'a class condition without the identifier' written as a BARE class-name / alphabet-name (`WHEN MY-CLASS`, the spelling the grammar cannot tell from identifier-2) bound as identifier-2 (COBOLNET1639 'not defined'), and LEADING a combined object (`WHEN MY-CLASS AND ...`) it was claimed by the `condition` alternative and compiled to a run-time NotImplemented. Both are now partial-expressions by the resolved symbol (BareOperandForm.ClassName / LeadingBareClassWord) and take SR8's rewrite.",
   "state": "OK"
  },
  {
@@ -57936,13 +57936,13 @@
   "ordinal": 0,
   "subject": "Identification division structure",
   "rule-digest": "22ccbe0d710a",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
-  "test-ref": "conformance:negative/pb829-identification-unrecognized-paragraph; conformance:2023/pb829_closed_formats_legal",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/Cobol.Net.Frontend/Preprocessor/CompilationUnitStart.cs#IsAt",
+  "test-ref": "conformance:negative/pb829-identification-unrecognized-paragraph; conformance:2023/pb829_closed_formats_legal; conformance:2002/pb829_identification_header_optional; conformance:negative/pb829-identification-header-omitted-85; conformance:negative/pb829-cobol-words-after-headerless-unit",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "CLOSED but not COMPLETE. The format was RENDERED from the printed page (PDF p293 / printed folio 263): `[ IDENTIFICATION DIVISION. ]`, then exactly one of program-id / function-id / class-id / factory / object / method-id / interface-id-paragraph, then `[ options-paragraph ]`. All seven source-unit paragraphs and OPTIONS are modelled, and the residue is now DIAGNOSED (kb/Work PB829 — the paragraph list ended in `genericIdentificationParagraph -> genericClause`, so a bare `WIBBLE. WOBBLE.` between PROGRAM-ID and the next division compiled and ran; it is now COBOLNET1971). What keeps the row open is the FIRST line of the format: the `IDENTIFICATION DIVISION.` header is printed in BRACKETS and is therefore OPTIONAL, while `identificationDivision : IDENTIFICATION DIVISION DOT identificationBody` requires it — a source unit beginning `PROGRAM-ID. X.` answers COBOL0001 'unexpected PROGRAM-ID'. MEASURED on a build of this change and on main at 1840778e: identical, so the gap predates and is unaffected by the closure; making the header optional is an edition-gated change (the header is required at COBOL-85) and is its own item.",
-  "state": "GAP"
+  "notes": "kb/Work PB829. RENDERED from the printed page (PDF p293 / printed folio 263): `[ IDENTIFICATION DIVISION. ]`, then exactly one of program-id / function-id / class-id / factory / object / method-id / interface-id-paragraph, then `[ options-paragraph ]`. All seven source-unit paragraphs and OPTIONS are modelled and the residue is DIAGNOSED (COBOLNET1971, the pb829 negative). The BRACKETED header is now optional for the program and function units too (`identificationDivision : (IDENTIFICATION DIVISION DOT)? identificationBody`, wave 47 O) - it already was for the OO units - so `PROGRAM-ID. X.` as a unit's first line, and a header-less NESTED program, compile at 2002+ (the 2002 golden); X3.23-1985 required the header, so below 2002 it is the named relaxation gate identification-header-optional-2002 (COBOLNET0900, the 85 negative). Sibling fixed: the COBOL-WORDS placement stage (§7.3.10.3 SR1) now shares the ONE unit-start test with LEAP-SECOND (CompilationUnitStart.IsAt), so a directive after a header-less PROGRAM-ID is refused (COBOLNET1623).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-11.3.2",
@@ -58207,11 +58207,11 @@
   "subject": "SOURCE-COMPUTER paragraph",
   "rule-digest": "f4e91fe1a6b6",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph",
-  "test-ref": "conformance:2023/pb78_object_computer_optional_name",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitDebuggingModeClause",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:negative/pb830-source-computer-unrecognized-clause; conformance:85/pb830_computer_paragraph_clauses_85",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB78 (2026-08-18): SOURCE-COMPUTER. [computer-name-1] . — the name is optional (the empty paragraph was legal at '85 too); the '85 WITH DEBUGGING MODE clause hangs off a name in the grammar (the attribute sink stays behind it — reachable without a name it would swallow the next paragraph header).",
+  "notes": "kb/Work PB78 (2026-08-18) + PB830 (2026-09-22). RENDERED from the printed page (PDF p314 / folio 284): SOURCE-COMPUTER. [computer-name-1] . and nothing else; SR1 (no name -> the second period may be omitted) is the PB78 witness. The format is CLOSED since PB830: what follows the name used to be the `computerAttributes` `~DOT` token SINK, kept for the deleted '85 WITH DEBUGGING MODE and never gated, so `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` compiled and ran at every edition (the previous CONFORMS witness answered a different question - the optional name). The '85 clause is now a modelled rule (`debuggingModeClause`, gated debugging-mode-removed-2002 at its node) and the residue is the `unrecognizedClause` error production, refused by name as COBOLNET1970 at every edition (the negative).",
   "state": "OK"
  },
  {
@@ -58222,11 +58222,11 @@
   "subject": "OBJECT-COMPUTER paragraph",
   "rule-digest": "c4c533d1d62d",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#characterClassificationClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification",
-  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:negative/pb78-object-computer-clause-without-name-85; conformance:negative/pb78-object-computer-duplicate-clause; conformance:negative/pb64t5-classification-twice; conformance:negative/pb64t5-classification-name-undeclared; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase; conformance:2023/pb3_ord_collating_tail",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#characterClassificationClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#SwitchBindSpecialNames; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#objectComputerClause; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
+  "test-ref": "conformance:2023/pb78_object_computer_optional_name; conformance:negative/pb78-object-computer-clause-without-name-85; conformance:negative/pb78-object-computer-duplicate-clause; conformance:negative/pb64t5-classification-twice; conformance:negative/pb64t5-classification-name-undeclared; conformance:2002/pb64t5_character_classification; conformance:2002/pb64t5_case_locale_phrase; conformance:2023/pb3_ord_collating_tail; conformance:negative/pb830-object-computer-unrecognized-clause; conformance:85/pb830_computer_paragraph_clauses_85",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB78 / PB64 T5 (2026-08-19): OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION … | PROGRAM COLLATING SEQUENCE … | ] . — computer-name-1 is optional and the two clauses may follow the period directly, in any order, each at most once (the figure notes; a duplicate is COBOLNET1652 — pb78 for the PCS, pb64t5-classification-twice for the classification). The '85 format hung the clauses off a REQUIRED name, so the name-less clause form is gated below 2002 (computer-name-optional-2002, COBOLNET0900). CHARACTER CLASSIFICATION is LIVE (T5): IS locale-phrase-1 [locale-phrase-2] or the FOR ALPHANUMERIC / FOR NATIONAL forms, each locale-phrase one of locale-name | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT (the two goldens; an undeclared locale-name is COBOLNET1664); the clause is the 2002 construct row character-classification-2002. The MEMORY SIZE / SEGMENT-LIMIT sink stays behind the name (VisitComputerAttributes).",
+  "notes": "kb/Work PB78 / PB64 T5 (2026-08-19) + PB830 (2026-09-22). RENDERED (PDF p315 / folio 285): OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION ... | PROGRAM COLLATING SEQUENCE ... | ] . - computer-name-1 is optional and the two clauses may follow the period directly, in any order, each at most once (a duplicate is COBOLNET1652). The '85 format hung the clauses off a REQUIRED name, so the name-less clause form is gated below 2002 (computer-name-optional-2002, COBOLNET0900). CHARACTER CLASSIFICATION is LIVE (T5; an undeclared locale-name is COBOLNET1664). The format is CLOSED since PB830: the clause list ends in the `unrecognizedClause` error production (COBOLNET1970 at every edition - the pb830 negative), replacing the `computerAttributes` `~DOT` sink that swallowed `OBJECT-COMPUTER. IBM-370 WIBBLE WOBBLE.` in silence. The two '85 clauses ISO 2002 deleted, MEMORY SIZE and SEGMENT-LIMIT, are modelled `objectComputerClause` alternatives gated at their nodes; modelling them also fixed a rejects-legal-'85 gap the sink hid - the '85 printed order MEMORY SIZE ... PROGRAM COLLATING SEQUENCE ... SEGMENT-LIMIT ... was COBOL0001 (the 85 golden, whose PCS must still take effect).",
   "state": "OK"
  },
  {
@@ -58551,13 +58551,13 @@
   "ordinal": 0,
   "subject": "File description entry",
   "rule-digest": "a6166443f1f2",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#fileGlobalExternalClause; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
-  "test-ref": "conformance:negative/pb829-fd-unrecognized-clause; conformance:2023/pb829_closed_formats_legal",
+  "test-ref": "conformance:negative/pb829-fd-unrecognized-clause; conformance:2023/pb829_closed_formats_legal; conformance:2002/pb511_external_as_name",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "CLOSED but not COMPLETE. The three formats were RENDERED from the printed pages (PDF p372-373 / printed folios 342-343); their union is IS EXTERNAL [AS literal-1], IS GLOBAL, FORMAT {BIT|CHARACTER|NUMERIC} DATA, BLOCK CONTAINS, record-clause, linage-clause, CODE-SET and REPORT(S). Eight of the eight clause WORDS are modelled and the residue is now DIAGNOSED (kb/Work PB829: `FD F WIBBLE WOBBLE.` used to compile and run at every edition; it is now COBOLNET1970). What is missing is a PHRASE inside one of them: `fileGlobalExternalClause` is `IS? (GLOBAL | EXTERNAL)` with no `[ AS literal-1 ]`, so `FD F IS EXTERNAL AS \"QBEXT\".` — legal source of this general format — is refused with COBOLNET0901 ('AS' is a reserved word). MEASURED on a build of this change and on main at 1840778e: identical, so the gap predates and is unaffected by the closure. The externalized-name phrase is bound for the data description entry's EXTERNAL clause but not for the file description entry's.",
-  "state": "GAP"
+  "notes": "kb/Work PB829 + PB511. The three formats were RENDERED from the printed pages (PDF p372-373 / printed folios 342-343); their union is IS EXTERNAL [AS literal-1], IS GLOBAL, FORMAT {BIT|CHARACTER|NUMERIC} DATA, BLOCK CONTAINS, record-clause, linage-clause, CODE-SET and REPORT(S). Every clause is modelled and the residue is DIAGNOSED (COBOLNET1970; `FD F WIBBLE WOBBLE.` used to compile and run). The one phrase that kept the row PARTIAL - `[ AS literal-1 ]` on the FD's EXTERNAL clause, refused as COBOLNET0901 - was closed by kb/Work PB511 (commit 86c5b6a18: `fileGlobalExternalClause` takes the shared externalizedNamePhrase); RE-MEASURED on the wave-47 O build: `FD F IS EXTERNAL AS \"QBEXT\".` compiles and runs, witnessed by conformance:2002/pb511_external_as_name.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.4.6.2",
@@ -61896,13 +61896,13 @@
   "ordinal": 1,
   "subject": "ACCEPT statement (conversion of data)",
   "rule-digest": "9b9c0eb487fe",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-1; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/Cobol.Net.Runtime/IO/AcceptSource.cs#DeviceFloat",
+  "test-ref": "conformance-test:AcceptDifferentialTests.Device_FloatReceiver_ReadsTheDisplayImage; conformance-test:AcceptDifferentialTests.Device_NumericReceiver_ConvertsAndComputes; conformance-test:AcceptDifferentialTests.Device_BooleanReceiver_ConvertsToBooleanCharacters",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "14.9.1.4 GR1's conversion, documented per receiver shape (kb/Work PB887; PB160's item-1 half). A .cob/.out golden cannot witness it: the corpus runner passes no stdin.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-2",
@@ -61956,13 +61956,13 @@
   "ordinal": 5,
   "subject": "ACCEPT statement (size of data transfer)",
   "rule-digest": "fd3cb684d9dc",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-5; src/Cobol.Net.Runtime/IO/AcceptSource.cs#Device",
+  "test-ref": "conformance-test:AcceptDifferentialTests.Device_LongLine_SplitsAtRecordBoundary; conformance-test:AcceptDifferentialTests.Device_WideReceiver_ReadsAdditionalRecords; unit:AcceptSourceTests.ZeroLengthReceiver_ConsumesItsRecord",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "14.9.1.4 GR2's transfer size - one 80-character card-image record - documented with the per-receiver receiving size GR3/GR4 compare against (kb/Work PB887; PB160's item-5 half).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-6",
