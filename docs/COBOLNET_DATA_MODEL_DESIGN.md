@@ -1346,8 +1346,9 @@ standard applies it. A SINGLE scaled operand IS the result, so it needs no detou
 ⛔ **THE CORRECTNESS TRAP — DO NOT HOIST OUT OF A REPEATEDLY-EVALUATED CONDITION.** §8.8.4.13 r2 evaluates a
 function "if and when the conditions containing them are evaluated", so a subscript inside a PERFORM UNTIL /
 SEARCH WHEN / EVALUATE object must not be lifted to a statement pre-op. `UdfBinder` already solves this
-(`UdfAttachPerEvaluation` / `BoundUdfEvaluated`) and STAGES LOUD the windows it does not reach
-(`UdfStagePerEvaluationResidue`, COBOLNET1509) — **follow that precedent exactly, including its loud residue.**
+(`UdfAttachPerEvaluation` / `BoundUdfEvaluated`) — **follow that precedent exactly.** (The loud residue stage it
+used to carry for the windows it did not reach, COBOLNET1509, is DELETED: its last two callers — an EVALUATE
+condition subject and a partial-expression object's subject splice — now bind the subject once, kb/Work PB912.)
 
 **On the "do NOT re-grammar this" guidance below:** this adds an ISOLATED
 `subscriptExpressionFragment : arithmeticExpression EOF ;` entry rule reachable ONLY from the binder re-parse and

@@ -221,14 +221,25 @@ evaluateStatement
       END_EVALUATE?
     ;
 
-// ⛔ THE SUBJECT'S CLASS TEST IS THE §8.8.4.4 CLASS CONDITION AND NAMES ITS ONE ALTERNATIVE LIST
-// (`className`, Core/CobolExpressions.g4). It used to name a private second list, `classCondition`, which
-// offered ALPHANUMERIC — not one of the general format's fourteen alternatives — and omitted BOOLEAN,
-// class-name-1 and alphabet-name-1, so `EVALUATE X IS <user-class>` did not parse while `IF X IS <user-class>`
-// did (kb/Work PB590). One list, one binder body (ConditionBinder.BindClassCondition).
+// ⛔ condition-1 IS THE ONE `condition` RULE, NOT A HAND-PICKED SUBSET OF IT (kb/Work PB842). §14.9.13.2's
+// selection-subject brace prints `condition-1` beside identifier-1 / literal-1 / arithmetic-expression-1 /
+// boolean-expression-1 / TRUE / FALSE, and §14.9.13.4 GR3 e) gives it its semantics ("Any selection subject
+// specified by condition-1 is assigned a truth value according to the rules for evaluating conditional
+// expressions"). This rule used to be `valueOperand (IS? NOT? className)?` — ONE shape of condition (the class
+// test) spelled as an operand suffix — so `EVALUATE NOT BW` (§8.8.4.3.2's `[ NOT ] boolean-expression-1`),
+// `EVALUATE WS-N > 1`, a sign condition and every combined condition were raw parse errors. The class test is
+// now simply one of the forms `condition` already spells (comparisonExpression's className arm — the ONE
+// §8.8.4.4 alternative list, kb/Work PB590), bound by the ONE condition binder.
+// ALTERNATIVE ORDER IS LOAD-BEARING: a BARE word (`EVALUATE X`, `EVALUATE COND-88`) is both a valueOperand and a
+// condition, and ANTLR resolves that ambiguity to the FIRST alternative — the value subject, whose bare-operand
+// resolution (EvaluateBinder.ClassifyPair) is what tells a level-88 / switch-status condition-name from a data
+// item, exactly as for a bare selection object. `condition` is reached only when the subject has a shape no
+// value operand spells (a relational operator, a class/sign test, NOT, AND/OR, a parenthesised condition), so
+// no subject that parsed before changes its parse.
 evaluateSubject
     : booleanLiteral                                     // EVALUATE TRUE / FALSE
-    | valueOperand (IS? NOT? className)?                 // EVALUATE X [NUMERIC / class test]
+    | valueOperand                                       // identifier-1 / literal-1 / arithmetic-expression-1
+    | condition                                          // condition-1 (§14.9.13.4 GR3 e)
     ;
     // NOTE (DEVLOG 621): an EVALUATE boolean-expression subject is STAGED RESIDUE with the condition-context
     // boolean forms (see comparisonExpression) — the boolean OPERATORS work in COMPUTE Format 2 only.

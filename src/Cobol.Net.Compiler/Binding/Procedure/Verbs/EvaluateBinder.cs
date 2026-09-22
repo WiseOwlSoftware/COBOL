@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind EVALUATE (ISO §14.9.13). Subjects: TRUE/FALSE, an identifier/literal, an arithmetic
-    /// expression, or an operand-with-class-test; objects per WHEN: ANY, [NOT] operand [THRU operand], or a
+    /// expression, or a condition (condition-1); objects per WHEN: ANY, [NOT] operand [THRU operand], or a
     /// condition (against a TRUE/FALSE subject). The subject↔object pairing is positional across ALSO (SR
     /// — the object count must equal the subject count); each pair lowers to an equality / range / condition
     /// term and the WHEN's terms AND together.</summary>
@@ -44,7 +44,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // resolves the operand and — through SubjectUsage.NeedsIntermediate, which is true for every shape but
         // "one use, in the first arm" — registers the evaluation as the statement's PRE-op, which is the
         // generated-code position of "the beginning of the execution".
-        foreach (var slot in slots) _ = slot.Value;
+        // ⛔ AND THE SAME FOR A TRUTH VALUE (kb/Work PB842 / PB912): a subject that is condition-1 by its FORM —
+        // a written condition, or a bare level-88 / switch-status condition-name — is assigned its truth value here,
+        // once, before any arm binds (GR3 e). SR6 b)'s one-boolean-character boolean subject is condition-1 only
+        // for a TRUE/FALSE pairing (a per-WHEN reclassification), so its truth value binds on first demand.
+        foreach (var slot in slots) { _ = slot.Value; if (slot.IsCondition1ByForm) _ = slot.Truth; }
         var whens = new List<BoundEvaluateWhen>();
 
         foreach (var clause in ev.evaluateWhenClause())
@@ -178,7 +182,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private bool IsDataItemOfClassBooleanOrNumeric(Core.EvaluateSubjectContext subject, in BareOperandAnalysis bare)
     {
         if (bare.IsConditionName) return false;   // a condition-name is not a data item in this position
-        if (subject.className() is not null || subject.booleanLiteral() is not null) return false;
+        if (subject.condition() is not null || subject.booleanLiteral() is not null) return false;
         if (subject.valueOperand()?.arithmeticExpression() is not { } expr) return false;
         if (ConditionBinder.SoleDataRef(expr) is not { } dref) return false;
         // Probe — a routing predicate is diagnostic-free (R30); an unresolvable subject reports through the bind.
@@ -314,12 +318,12 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         IntrinsicArgumentRules.ClassOf(o) is { } c ? IntrinsicArgumentRules.TableTwoClass(c) : null;
 
     /// <summary>The subject's Table-15 COLUMN before SR6, or null when the shape cannot be named with
-    /// certainty. The two subject-only forms are grammatical (TRUE/FALSE, and the subject's own class test —
-    /// condition-1 per §14.9.13.4 GR3 e)); everything else is the SHARED bare-operand classification.</summary>
+    /// certainty. The two subject-only forms are grammatical (TRUE/FALSE, and a written condition — condition-1
+    /// per §14.9.13.4 GR3 e)); everything else is the SHARED bare-operand classification.</summary>
     private static EvaluateSubjectOperand? SubjectKind(Core.EvaluateSubjectContext subject, in BareOperandAnalysis bare)
     {
         if (subject.booleanLiteral() is not null) return EvaluateSubjectOperand.TrueOrFalse;
-        if (subject.className() is not null) return EvaluateSubjectOperand.Condition;  // EVALUATE X NUMERIC
+        if (subject.condition() is not null) return EvaluateSubjectOperand.Condition;  // EVALUATE X > 1, NOT BW, X NUMERIC
         if (subject.valueOperand() is not { } vo) return null;
         return BareOperandKind(vo, bare) is { } row ? EvaluateOperandCombinations.AsSubjectOperand(row) : null;
     }
@@ -388,26 +392,25 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         //   (§14.9.13.4 GR3) and now IS: the slot binds it once and materializes its value into the
         //   implementor's intermediate result item, so a subject activation hoists to statement scope exactly
         //   as the rule describes (kb/Work PB394);
-        // — a CONDITION SUBJECT (§14.9.13.4 GR3 e, "assigned a truth value") still has no place to put a TRUTH
-        //   value — there is no condition→boolean-operand bridge in the bound tree — so its condition is still
-        //   re-analysed per WHEN and a user-function activation inside it stays staged loud (the narrowed
-        //   1509) rather than over-activating. THE STAGE IS NARROWED HERE, NEVER WIDENED: widening it would
-        //   turn a wrong answer into a rejection of legal source;
+        // — a CONDITION SUBJECT (§14.9.13.4 GR3 e, "assigned a truth value") is the same: the slot binds the
+        //   condition once and, where more than one arm reads it, materializes its TRUTH value into a
+        //   one-position boolean intermediate (SendingValueTemp.MaterializeTruth — the condition→boolean bridge,
+        //   kb/Work PB842 / PB912), so its activations too hoist to statement scope exactly once;
         // — an OBJECT is evaluated only when its WHEN phrase is considered, pairs left-to-right with a
         //   false pair stopping the phrase (GR4a–d) — its activations attach per-evaluation to the object
-        //   term, and the composed &&/|| chain's C# short-circuit realizes GR4c exactly.
-        int subjMark = host.Udf.PendingCount;
+        //   term, and the composed &&/|| chain's C# short-circuit realizes GR4c exactly. A partial-expression
+        //   object splices the subject's one VALUE in, so SR8's rewrite activates nothing of the subject's.
+        // No subject window stages COBOLNET1509 any more: the narrowed residue stage had exactly these two
+        // callers, and it is deleted with them.
 
         // A CONDITION subject (§14.9.13.4 GR3 e), Table 15's Condition column) pairs with TRUE/FALSE objects:
-        // the term is the subject condition (or its negation). Four spellings reach it — the subject's own class
-        // test `EVALUATE X NUMERIC`, a level-88, a switch-status condition-name, and SR6 b)'s one-boolean-
-        // character boolean subject — and the CLASSIFIER decided which, so no shape can be recognised here and
-        // missed by the screen (or the reverse, which is what refused `EVALUATE W-ON WHEN TRUE`).
-        if (pair.Subject is EvaluateSubjectOperand.Condition && SubjectAsCondition(slot, pair) is { } subjCond)
+        // the term is the subject's ONE truth value (or its negation). Four spellings reach it — a written
+        // condition (`EVALUATE X NUMERIC`, `EVALUATE WS-N > 1`, `EVALUATE NOT BW`, any combined condition), a
+        // level-88, a switch-status condition-name, and SR6 b)'s one-boolean-character boolean subject — and the
+        // CLASSIFIER decided which, so no shape can be recognised here and missed by the screen (or the reverse,
+        // which is what refused `EVALUATE W-ON WHEN TRUE`).
+        if (pair.Subject is EvaluateSubjectOperand.Condition && slot.Truth is { } subjCond)
         {
-            host.Udf.UdfStagePerEvaluationResidue(subjMark,
-                "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this "
-                + "lowering re-binds subjects per WHEN)");
             // §14.9.13.4 GR4 a) 4. — a TRUE/FALSE object: "the selection subject is condition-1 … if the truth
             // value of the selection subject and selection object match, the result of the analysis is true",
             // which for a constant object IS the subject condition or its negation.
@@ -467,28 +470,24 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // specified as condition-2, where condition-2 is the conditional expression that results from preceding
         // partial-expression-1 by the selection subject", and "the corresponding selection subject is treated as
         // though it were specified by the word TRUE" — so the pair's term IS that condition, with no comparison
-        // against the subject wrapped around it. Bound BEFORE the equality/range arms because the SUBJECT's
-        // operand belongs INSIDE the rewritten condition (the relation side binds it, §14.9.13.4 GR2's "as if the
-        // corresponding relation condition were written"), not beside it: binding `left` here as well would
-        // activate a subject user-function twice for one written reference.
-        // ⛔ AND IT IS ANSWERED BEFORE slot.Value IS EVER READ (train 32, PB398 ∩ PB394). SR8 splices the subject
-        // INTO the condition, where the relation side binds it through ComparisonOperandOf — there is no
-        // receiver here to convert the slot's one value into, so this arm still passes the subject's PARSE NODE.
-        // Touching slot.Value first would materialize the intermediate result item AND then bind the operand a
-        // second time inside the rewrite: two activations for one written reference, which is the very defect
-        // PB394 removed from the equality/range arms. GR3's once-per-statement subject therefore stays defective
-        // on THIS arm alone — the residue stage below is what says so out loud, and it is why PB394's
-        // GR-14.9.13.4-3 row is PARTIAL rather than CONFORMS.
+        // against the subject wrapped around it.
+        // ⛔ THE SUBJECT SPLICED IN IS THE SLOT'S ONE VALUE, NOT A RE-BIND OF ITS NODE (kb/Work PB912's sibling).
+        // GR3 assigns the subject its value "at the beginning of the execution of the EVALUATE statement", and SR8
+        // then forms a condition FROM that subject — nothing in SR8 re-evaluates it. This arm used to pass the
+        // subject's PARSE NODE into the rewrite, which bound it again once per partial-expression object on top of
+        // the statement's own evaluation: a user function in the subject was activated 1 + N times and the arms
+        // compared N different values (measured: WHEN OTHER selected where WHEN = 1 was the answer), while the
+        // residue stage meant to refuse the shape never fired. The class shape reads CONTENT (see
+        // PartialSubjectOperand), so an in-place data item is handed over un-materialized for it.
         if (item.partialExpression() is { } partial)
         {
-            if (slot.Node.valueOperand() is not { } subjOp)
+            if (slot.Node.valueOperand() is not { } subjOp || slot.Value is not { } subjValue)
                 return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
+            var content = slot.InPlaceValue is BoundFieldOperand inPlace ? inPlace : subjValue;
             int objMark = host.Udf.PendingCount;
-            var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindPartialExpression(partial, subjOp), objMark);
-            host.Udf.UdfStagePerEvaluationResidue(subjMark,
-                "an EVALUATE selection subject under a partial-expression object (evaluated once per statement, "
-                + "§14.9.13.4 GR3 — SR8's rewrite re-binds the subject inside the condition)");
-            return bound;
+            return host.Udf.UdfAttachPerEvaluation(
+                host.Cond.BindPartialExpression(partial, new ConditionBinder.PartialSubjectOperand(subjOp, subjValue, content)),
+                objMark);
         }
 
         // Value subject vs operand / range: equality or inclusive bounds (§14.9.13 GR5b/c).
@@ -588,26 +587,30 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private BoundCondition? ObjectAsCondition(Core.EvaluateWhenItemContext item, in EvaluatePairing pair) =>
         item.condition() is { } cond ? host.Cond.BindCondition(cond) : host.Cond.AsCondition(pair.ObjectBare);
 
-    /// <summary>The subject's own condition when <see cref="ClassifyPair"/> put it in Table 15's Condition
-    /// column (§14.9.13.4 GR3 e), selection subject <c>condition-1</c>): the subject's own class test
-    /// <c>X [IS] [NOT] NUMERIC</c>, or — through the SHARED bare-operand resolution the classifier already
-    /// made — a level-88 condition-name (§8.8.4.2.7 r2), a switch-status condition-name (§8.8.4.6), or SR6 b)'s
-    /// one-boolean-character boolean subject as a §8.8.4.3 simple boolean condition.
-    /// <para>⛔ THE NON-CLASS ARMS ARE NOT RE-DERIVED HERE (kb/Work PB400). This method used to carry its own
-    /// copy of the level-88 arm — the same <c>BoundCondition88</c> construction <c>BareOperandAsCondition</c>
-    /// makes — and that copy is exactly why the switch-status and boolean forms existed on the object side and
-    /// not on this one. One resolution, consulted twice.</para></summary>
-    private BoundCondition? SubjectAsCondition(SubjectSlot slot, in EvaluatePairing pair)
+    /// <summary>Bind (and, when more than one pair reads it, MATERIALIZE) one selection subject's assigned
+    /// TRUTH value — ISO §14.9.13.4 GR3 e), "Any selection subject specified by condition-1 is assigned a truth
+    /// value according to the rules for evaluating conditional expressions". Null when the subject has no
+    /// condition form (a value subject that is not SR6 b)'s one-boolean-character boolean).
+    /// <para>The condition is a written <c>condition</c> — bound by THE ONE condition binder, so a class test, a
+    /// relation, a sign test, <c>NOT</c> over a boolean item (§8.8.4.3.2) and every combined condition mean here
+    /// exactly what they mean in an IF — or, through the SHARED bare-operand resolution the classifier already
+    /// made, a level-88 condition-name (§8.8.4.2.7 r2), a switch-status condition-name (§8.8.4.6), or SR6 b)'s
+    /// boolean subject as a §8.8.4.3 simple boolean condition (kb/Work PB400: one resolution, consulted twice).</para>
+    /// <para>⛔ BOUND ONCE, NEVER PER WHEN (kb/Work PB842 / PB912). This used to run inside the pair binder, so the
+    /// condition was re-bound — and re-emitted — once per WHEN arm, and a user-defined function inside it was
+    /// refused (COBOLNET1509) because a per-WHEN re-bind would have over-activated it. With the truth value in an
+    /// intermediate the re-bind and the refusal are both gone. The intermediate is taken on the SAME
+    /// <see cref="SubjectUsage.NeedsIntermediate"/> test as a value subject's: a single read in the first arm is
+    /// itself the one evaluation at "the beginning of the execution of the EVALUATE statement".</para>
+    /// <para>A class test reads the ORIGINAL operand's character content here (the condition is bound over the
+    /// written operand, never over a value intermediate), so <c>IS NUMERIC</c> still sees invalid content that a
+    /// numeric intermediate would have normalized (§8.8.4.4) — only the resulting TRUTH value is stored.</para></summary>
+    private BoundCondition? BindSubjectTruth(SubjectSlot slot)
     {
-        var subject = slot.Node;
-        if (subject.valueOperand() is not { } vo) return null;
-        if (subject.className() is not { } cls) return host.Cond.AsCondition(pair.SubjectBare);
-        // ⛔ THE CLASS CONDITION IS BOUND BY ITS OWN ONE BODY (kb/Work PB590). This carried a THIRD copy of the
-        // §8.8.4.4.2 kind decode — over a private grammar rule with ALPHANUMERIC in it and no BOOLEAN,
-        // class-name-1 or alphabet-name-1 arm — so the same class test written as an EVALUATE subject and as
-        // an IF meant different things. The operand is a thunk for the same reason it is one there: the
-        // SR2 LOCALE-alphabet refusal is about the class-name and must not drag the operand's diagnostics in.
-        return host.Cond.BindClassCondition(cls, subject.NOT() is not null, () => BindValueOperand(vo));
+        var truth = slot.Node.condition() is { } cond ? host.Cond.BindCondition(cond)
+            : host.Cond.AsCondition(slot.Bare);
+        if (truth is null) return null;
+        return slot.NeedsIntermediate ? host.SendingValue.MaterializeTruth(truth, "evaluate") : truth;
     }
 
     /// <summary>The boolean value of a condition that is a SOLE <c>TRUE</c>/<c>FALSE</c> literal, else null.</summary>
@@ -643,6 +646,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         private bool _bareBound;
         private BoundOperand? _value;
         private bool _valueBound;
+        private BoundCondition? _truth;
+        private bool _truthBound;
+        private BoundOperand? _inPlace;
 
         /// <summary>The subject's parse node — the classifier and the condition path still read it.</summary>
         public Core.EvaluateSubjectContext Node => node;
@@ -670,34 +676,56 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         {
             get
             {
-                if (!_valueBound) { _value = owner.BindSubjectValue(this); _valueBound = true; }
+                if (!_valueBound) { _value = owner.BindSubjectValue(this, out _inPlace); _valueBound = true; }
                 return _value;
+            }
+        }
+
+        /// <summary>The subject's operand as BOUND, before any materialization — the one bind of the written
+        /// operand, read by a shape that must see the item's own content (a partial-expression class test).
+        /// Null when the subject has no value form.</summary>
+        public BoundOperand? InPlaceValue { get { _ = Value; return _inPlace; } }
+
+        /// <summary>True when the subject is condition-1 by its FORM, whatever it is paired with: a written
+        /// condition, or a bare level-88 / switch-status condition-name. (SR6 b)'s boolean subject is condition-1
+        /// only for a TRUE/FALSE pairing, so it is not included.)</summary>
+        public bool IsCondition1ByForm =>
+            node.condition() is not null || Bare.Form is BareOperandForm.ConditionName or BareOperandForm.SwitchStatus;
+
+        /// <summary>The subject's assigned TRUTH value (GR3 e) — bound once, materialized into a one-position
+        /// boolean intermediate when more than one pair reads it. Null when the subject has no condition form.</summary>
+        public BoundCondition? Truth
+        {
+            get
+            {
+                if (!_truthBound) { _truth = owner.BindSubjectTruth(this); _truthBound = true; }
+                return _truth;
             }
         }
     }
 
     /// <summary>The subject's bare-operand analysis (§14.9.13.3 SR6) — analyzed only when the subject really IS
-    /// a bare operand: under a class-condition subject it is the class test's operand, and resolving it as a
+    /// a bare operand: under a written condition-1 the operands belong to the condition, and resolving one as a
     /// condition-name would be a symbol lookup no rule asks for (and a diagnostic no rule licenses).</summary>
     private BareOperandAnalysis AnalyzeSubjectBare(Core.EvaluateSubjectContext subject) =>
-        subject.booleanLiteral() is null && subject.className() is null
-        && subject.valueOperand() is { } svo ? host.Cond.AnalyzeBareOperand(svo) : default;
+        subject.valueOperand() is { } svo ? host.Cond.AnalyzeBareOperand(svo) : default;
 
     /// <summary>Bind (and, when more than one pair reads it, MATERIALIZE) one selection subject's assigned value
     /// — ISO §14.9.13.4 GR3 a)–d). Null when the subject has no value form.
-    /// <para>⛔ A CLASS-CONDITION subject's operand is NOT materialized, and that is a rule, not an omission:
-    /// GR3 e) assigns the subject <b>condition-1</b> a TRUTH value, not its operand a data value, and a class
-    /// test reads the operand's CHARACTER CONTENT — copying a numeric-DISPLAY item through an intermediate
-    /// would normalize content that <c>IS NUMERIC</c> exists to find invalid (§8.8.4.4). The condition is
-    /// re-analysed per WHEN instead, under the narrowed 1509 stage.</para>
+    /// <para>⛔ A written CONDITION-1 subject's operands are NOT materialized, and that is a rule, not an
+    /// omission: GR3 e) assigns the subject <b>condition-1</b> a TRUTH value, not its operand a data value, and a
+    /// class test reads the operand's CHARACTER CONTENT — copying a numeric-DISPLAY item through an intermediate
+    /// would normalize content that <c>IS NUMERIC</c> exists to find invalid (§8.8.4.4). The TRUTH value is what
+    /// is held once (<see cref="BindSubjectTruth"/>).</para>
     /// <para>⛔ A bare CONDITION-NAME / switch-status subject has no value form at all (§8.8.4.2.7 r2 /
     /// §8.8.4.6 make it condition-1), so it returns null rather than being bound as an operand.</para></summary>
-    private BoundOperand? BindSubjectValue(SubjectSlot slot)
+    private BoundOperand? BindSubjectValue(SubjectSlot slot, out BoundOperand? inPlace)
     {
+        inPlace = null;
         var subject = slot.Node;
-        if (subject.className() is not null || subject.valueOperand() is not { } vo) return null;
+        if (subject.valueOperand() is not { } vo) return null;
         if (slot.Bare.Form is BareOperandForm.ConditionName or BareOperandForm.SwitchStatus) return null;
-        var value = BindValueOperand(vo);
+        var value = inPlace = BindValueOperand(vo);
         // ⛔ NeedsIntermediate, NOT `Uses > 1` (kb/Work PB396). The §14.9.25.4 GR1 argument this slot already
         // carried — at ONE use the single render IS the one evaluation, so nothing is observable and no
         // intermediate is created — holds only when that use is the FIRST arm's. At ZERO uses (every object

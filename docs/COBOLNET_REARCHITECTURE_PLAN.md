@@ -1062,8 +1062,9 @@ SUBSCRIPTS in those positions as well as user-function calls; and an alphanumeri
 correctly refused but at RUN TIME rather than as a bind diagnostic. **(kb/Work PB394 later removed one of those
 three windows: an EVALUATE VALUE subject binds once per statement, so the stage's premise is false for it and
 `EVALUATE W-E (FUNCTION INTEGER(1))` compiles — the negative case that pinned the rejection is retired and
-replaced by `conformance:*/pb394_evaluate_function_subscript_subject`. The stage survives narrowed to a
-CONDITION subject, VARYING BY, and an AFTER-level FROM.)**
+replaced by `conformance:*/pb394_evaluate_function_subscript_subject`. PB437 then removed VARYING BY and the
+AFTER-level FROM, and PB912 the last two — a CONDITION subject and a partial-expression object's subject splice —
+so the stage and COBOLNET1509 are deleted.)**
 ⛔ **A CORRECTNESS LESSON WORTH MORE THAN THE FIX: the §15.4 temp's own DESCRIPTION was a latent wrong answer.**
 D18 had specified `Scale: 0`; that truncates, so `W-E(FUNCTION SQRT(2))` would have silently indexed occurrence 1
 instead of setting EC-BOUND-SUBSCRIPT. Asking what that would do is what exposed PB41 — the same bug with no

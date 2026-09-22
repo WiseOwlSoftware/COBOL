@@ -540,8 +540,7 @@ public sealed partial class DataBinder
     /// materialization hook cannot register on <c>UdfBinder</c>. <c>UdfBinder.PendingCount</c> is the mark for the
     /// mark-on-entry / drain-own-suffix protocol at the <c>BindStatement</c> chokepoint, and it now covers BOTH
     /// kinds — which is why a function subscript in a per-evaluation window rides
-    /// <c>UdfAttachPerEvaluation</c> and one in an unreached operand window stages loud through
-    /// <c>UdfStagePerEvaluationResidue</c> with no extra wiring.</para></summary>
+    /// <c>UdfAttachPerEvaluation</c> with no extra wiring.</para></summary>
     internal List<Bound.BoundStatement> PendingPreOps { get; } = [];
 
     /// <summary>Synthesize the GR1/GR2/GR3 compiler temp for one property reference: a level-1 elementary

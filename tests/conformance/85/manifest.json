@@ -2,6 +2,7 @@
  "enabled": [
   "pb823_refmod_class_numeric",
   "pb880_initialize_replacing_figurative_numeric",
+  "pb842_evaluate_condition_subject",
   "pb653_nested_float_operand",
   "pb429_page_counter_receiving",
   "pb484_report_line_placement",

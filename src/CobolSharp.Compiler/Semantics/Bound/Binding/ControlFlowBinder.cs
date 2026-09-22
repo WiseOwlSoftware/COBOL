@@ -229,6 +229,16 @@ internal sealed class ControlFlowBinder
 
     // ── EVALUATE ──
 
+    /// <summary>The sole comparisonExpression a condition reduces to through single-child tiers (no AND/OR/NOT),
+    /// or null — the one condition-1 shape this oracle models as an EVALUATE subject (kb/Work PB842).</summary>
+    private static CobolParserCore.ComparisonExpressionContext? SoleComparison(CobolParserCore.ConditionContext? cond)
+    {
+        Antlr4.Runtime.Tree.IParseTree? n = cond;
+        while (n is not null and not CobolParserCore.ComparisonExpressionContext)
+            n = n.ChildCount == 1 ? n.GetChild(0) : null;
+        return n as CobolParserCore.ComparisonExpressionContext;
+    }
+
     internal BoundEvaluateStatement BindEvaluate(CobolParserCore.EvaluateStatementContext ctx)
     {
         // Bind subjects — track per-subject type (Value, True, False)
@@ -260,7 +270,11 @@ internal sealed class ControlFlowBinder
             // EXPLICITLY PARTIAL and says so: this 85-era oracle models four of the alternatives, and the
             // fallback it used to carry (`: ClassConditionKind.Numeric`) silently turned every other one into a
             // NUMERIC test. A BOOLEAN / class-name / alphabet-name subject now falls out of this arm instead.
-            if (subCtx.className() is { } classCtx && subCtx.valueOperand() is { } classVo
+            // kb/Work PB842: condition-1 is now the grammar's ONE `condition` rule, so the class test arrives as a
+            // sole comparisonExpression under it; this oracle still models only that one condition shape.
+            var subjCmp = SoleComparison(subCtx.condition());
+            if (subjCmp?.className() is { } classCtx
+                && subjCmp.comparisonOperand() is [{ } classOperand] && classOperand.valueOperand() is { } classVo
                 && (classCtx.NUMERIC() != null ? ClassConditionKind.Numeric
                     : classCtx.ALPHABETIC() != null ? ClassConditionKind.Alphabetic
                     : classCtx.ALPHABETIC_LOWER() != null ? ClassConditionKind.AlphabeticLower
@@ -274,7 +288,7 @@ internal sealed class ControlFlowBinder
                     classSubject = _ctx.Expression.BindNonNumericLiteral(classNonNum);
                 else
                     continue;
-                bool isClassNot = subCtx.NOT() != null;
+                bool isClassNot = subjCmp.NOT() != null;
                 subjectKinds.Add(EvaluateSubjectKind.True);
                 subjects.Add(null!); // placeholder
                 classConditions.Add(new BoundClassConditionExpression(classSubject, classKind, isClassNot));

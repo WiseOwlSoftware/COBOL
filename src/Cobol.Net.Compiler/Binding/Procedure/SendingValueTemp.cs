@@ -127,6 +127,44 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     }
 
     /// <summary>
+    /// ⛔ <b>THE TRUTH-VALUE ARM — the condition→boolean bridge</b> (kb/Work PB842 / PB912). ISO §14.9.13.4 GR3's
+    /// stem assigns EVERY selection subject its value "at the beginning of the execution of the EVALUATE
+    /// statement", and GR3 e) says what a condition subject is assigned: "Any selection subject specified by
+    /// condition-1 is assigned a truth value according to the rules for evaluating conditional expressions".
+    /// <see cref="Materialize"/> could hold a VALUE and nothing could hold a TRUTH value — <see cref="BoundCondition"/>
+    /// and <see cref="BoundBoolExpr"/> are separate hierarchies — so a condition subject was re-bound and
+    /// re-evaluated once per WHEN, and a user-defined function inside one was refused (COBOLNET1509) rather than
+    /// over-activated.
+    /// <para>The intermediate result item for a truth value is a ONE-POSITION BOOLEAN item: §8.8.4.3.4 GR1 —
+    /// "Boolean-expression-1 evaluates true if the result of the expression is 1" — reads exactly such an item, so
+    /// the store (<c>IF condition-1 → B"1" ELSE B"0"</c>, a statement-scoped PRE-op on the same
+    /// <c>DataBinder.PendingPreOps</c> list, so it lands at the same "beginning of the execution" position as a
+    /// value subject's store) and the read-back (<see cref="BoundBooleanCondition"/> over
+    /// <see cref="BoundBoolRef"/>) are both ordinary nodes the emitter already renders. No new bound leaf.</para>
+    /// <para>User-defined-function activations inside the condition stay on the pending list AHEAD of this
+    /// store (they registered while the condition bound), so the statement hoist runs each of them once, before
+    /// the truth value is computed from their temps — the exact §8.4.3.2.4 GR1 cardinality for a window evaluated
+    /// once per statement. A non-first AND/OR operand's activations were already attached per evaluation by
+    /// <c>ConditionBinder.BindFlatSequence</c> and travel INSIDE the stored condition (§8.8.4.13 r2).</para>
+    /// <para>An already-diagnosed <see cref="BoundConditionError"/> is returned as it stands.</para>
+    /// </summary>
+    internal BoundCondition MaterializeTruth(BoundCondition truth, string tag)
+    {
+        if (truth is BoundConditionError) return truth;
+        var model = new DataItem
+        {
+            Level = 1, CobolName = "__SENDTRUTH", CsName = "__sendtruth",
+            Pic = new PicInfo(PicCategory.Boolean, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false),
+        };
+        var temp = ctx.Data.CreateCompilerTemp(model, "__SENDTRUTH-", "__sendtruth", tag);
+        if (ctx.Refs.ResolveItem(temp) is not { } place) return truth;
+        ctx.Data.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
+        return new BoundBooleanCondition(new BoundBoolRef(place));
+
+        static BoundStatement StoreBit(Place p, string bit) => new BoundComputeBoolean(new BoundBoolLiteral(bit), [p], 1);
+    }
+
+    /// <summary>
     /// ⛔ <b>THE EXTENT FREEZE</b> — §14.9.25.4 GR1's "The length of the data item referenced by identifier-1 is
     /// evaluated only once, immediately before the data is moved to the first of the receiving operands", for the
     /// one shape whose length is a run-time value the clone can hold: an <c>OCCURS … DEPENDING ON</c> table

@@ -30,11 +30,13 @@ using Core = CobolParserCore;
 /// (<see cref="UdfAttachPerEvaluation"/> — §8.8.4.13 r2 "if and when the conditions containing them are
 /// evaluated"); every repeatedly-evaluated OPERAND window — a PERFORM VARYING BY operand and an AFTER level's
 /// FROM operand, §14.9.28.4 GR12's "each time … is used in a setting or augmenting operation" — drains its
-/// suffix into the expression twin <see cref="BoundUdfEvaluatedExpr"/> (kb/Work PB437), and only the
-/// per-WHEN-re-analysed EVALUATE <b>condition</b> subject still stages LOUD (the narrowed COBOLNET1509,
-/// <see cref="UdfStagePerEvaluationResidue"/>) rather than silently over/under-evaluating. An EVALUATE
-/// <b>value</b> subject is no longer among them (kb/Work PB394): it binds once for the statement and its
-/// value is materialized into §14.9.25.4 GR1's intermediate result item, so the statement hoist is EXACT.
+/// suffix into the expression twin <see cref="BoundUdfEvaluatedExpr"/> (kb/Work PB437). No window stages
+/// loud any more: an EVALUATE selection subject binds once for the statement — a <b>value</b> subject's value
+/// materialized into §14.9.25.4 GR1's intermediate result item (kb/Work PB394), a <b>condition</b> subject's
+/// TRUTH value into a one-position boolean intermediate (§14.9.13.4 GR3 e, kb/Work PB842 / PB912), and a
+/// partial-expression object splices that one value in rather than re-binding the subject — so the statement
+/// hoist is EXACT for every subject, and the narrowed COBOLNET1509 residue stage was deleted with its last
+/// two callers.
 /// Emission is
 /// 100% existing surface:
 /// <c>CallEmitCall</c> → <c>ProgramRegistry.CallProgram</c>; FUNCTION-ID units already emit as callable
@@ -320,8 +322,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// classification and no post-ops. Runs INSIDE the property-op wrap at the BindStatement chokepoint, so
     /// a property-reference argument's GET (a pre-op of the OUTER wrap) still precedes the activation that
     /// consumes its temp. The hoist is EXACT here: every conditionally- or repeatedly-evaluated window
-    /// already drained its own suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper (or the
-    /// narrowed <see cref="UdfStagePerEvaluationResidue"/> 1509 stage) BEFORE the statement completed
+    /// already drained its own suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper BEFORE the
+    /// statement completed
     /// binding, so what remains pending is evaluated exactly once per statement execution (a plain operand,
     /// a sole IF condition, a TIMES count — §14.9.28 GR7, a first-level VARYING FROM — GR13a init, an
     /// EVALUATE subject occurrence).</summary>
@@ -345,39 +347,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// hoist never double-activates it; no pending growth returns the expression unchanged, so the UDF-free
     /// path costs nothing and the generated source is byte-identical.
     /// <para>⛔ IT REPLACED A REFUSAL, NOT A SILENCE (kb/Work PB437). These two operand positions used to call
-    /// <see cref="UdfStagePerEvaluationResidue"/> and REJECT the program (COBOLNET1509) while the adjacent
+    /// the (since deleted) narrowed residue stage and REJECT the program (COBOLNET1509) while the adjacent
     /// first-level FROM and the UNTIL condition accepted the same construct — a capability limit shipped as a
     /// diagnostic, pinned green by two tests. The carrier the condition already used is what the augment and
     /// re-initialization sites needed too.</para></summary>
     internal BoundExpr UdfAttachPerEvaluation(BoundExpr e, int mark) =>
         DrainPending(mark) is { } taken ? new BoundUdfEvaluatedExpr(taken, e) : e;
-
-    /// <summary>The NARROWED evaluation-cardinality stage (§1.4 — loud, never silently wrong) for the ONE
-    /// window per-evaluation activation does not yet reach: an EVALUATE selection subject that is a CONDITION
-    /// (§14.9.13.4 GR3 e) assigns condition-1 a TRUTH value once per statement, and the bound tree has no
-    /// condition→boolean-operand bridge to hold one, so that subject is still re-analysed per WHEN and a hoist
-    /// would over-activate). Conditions elsewhere are NOT staged — they ride
-    /// <see cref="UdfAttachPerEvaluation(BoundCondition,int)"/>.
-    /// <para>⛔ AN EVALUATE <b>VALUE</b> SUBJECT NO LONGER REACHES HERE (kb/Work PB394): it is bound ONCE for
-    /// the statement and its value materialized into §14.9.25.4 GR1's intermediate result item
-    /// (<c>EvaluateBinder</c>'s <c>SubjectSlot</c> over <c>Binding.Procedure.SendingValueTemp</c>), so the
-    /// statement-scoped hoist is EXACT for it — the stage's premise, "this lowering re-binds subject
-    /// expressions per WHEN", stopped being true for that arm.</para>
-    /// <para>⛔ NEITHER DO THE TWO PERFORM VARYING OPERAND WINDOWS (kb/Work PB437). A BY operand (evaluated per
-    /// augment, §14.9.28.4 GR12) and an AFTER level's FROM operand (re-evaluated per outer augment, GR13 e) 2 a.)
-    /// used to be staged here, which meant the compiler REJECTED conforming source — in a slot it accepted one
-    /// operand position over — with a diagnostic whose own text said the refusal was a capability limit, not a
-    /// rule. They now ride <see cref="UdfAttachPerEvaluation(BoundExpr,int)"/>, the expression twin of the
-    /// carrier the conditions already used. ⛔ The stage is only ever NARROWED, never widened: widening it turns
-    /// a wrong answer into a rejection of legal source, which is the worse of the two.</para></summary>
-    internal void UdfStagePerEvaluationResidue(int mark, string where)
-    {
-        if (Pending.Count <= mark) return;
-        ctx.Edition.Error("COBOLNET1509",
-            $"a function reference in {where} requires an activation cardinality this "
-            + "implementation does not yet realize for that operand position (ISO §8.4.3.2.4 GR1/GR6a; "
-            + "§14.9.28 GR12/GR13 / §14.9.13) — move the reference to a preceding COMPUTE");
-    }
 
     /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
     /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges

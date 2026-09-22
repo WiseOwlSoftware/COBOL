@@ -362,7 +362,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         /// served by <see cref="Subject"/>. Deliberately NOT cleared by <see cref="Reset"/>, which models the
         /// abbreviation terminating mid-sequence — a thing that cannot have happened before the leading
         /// portion is bound.</summary>
-        public Core.ValueOperandContext? PartialSubject;
+        public PartialSubjectOperand? PartialSubject;
         public void Reset() { Subject = null; Op = null; }
     }
 
@@ -383,12 +383,27 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// exactly the field a later abbreviated relation reads — which is why <c>WHEN &gt; 5 AND &lt; 10</c> works
     /// with no code of its own: SR7 d) licenses it and §8.8.4.12.4 GR1 already knew how.</para></summary>
     /// <param name="pe">The partial-expression parse node.</param>
-    /// <param name="subject">The corresponding selection subject's operand node (§14.9.13.3 SR7 — "the selection
-    /// subject having the same ordinal position"). Bound HERE rather than by the caller, through the relation
-    /// side's <see cref="ComparisonOperandOf"/>, because SR8 forms a CONDITION: §14.9.13.4 GR2's "as if the
-    /// corresponding relation condition were written" is the same reading the rest of this binder gives.</param>
-    public BoundCondition BindPartialExpression(Core.PartialExpressionContext pe, Core.ValueOperandContext? subject) =>
+    /// <param name="subject">The corresponding selection subject (§14.9.13.3 SR7 — "the selection subject having
+    /// the same ordinal position"), ALREADY BOUND by the caller — see <see cref="PartialSubjectOperand"/>.</param>
+    public BoundCondition BindPartialExpression(Core.PartialExpressionContext pe, PartialSubjectOperand subject) =>
         BindCondition(pe, new AbbrevCarry { PartialSubject = subject });
+
+    /// <summary>The selection subject SR8 splices into a partial-expression, as the ONE value §14.9.13.4 GR3
+    /// assigned it "at the beginning of the execution of the EVALUATE statement" — never re-bound from its parse
+    /// node (kb/Work PB912's sibling). The rewrite used to take the NODE and bind it again inside every
+    /// partial-expression object, so a subject was evaluated once more PER WHEN on top of the statement's own
+    /// evaluation: measured, <c>EVALUATE FUNCTION CNT(1) WHEN &gt; 5 … WHEN = 1 …</c> over a user function
+    /// returning its activation count activated it FIVE times and selected WHEN OTHER, a branch no single subject
+    /// value selects — and the residue stage meant to refuse that shape never fired, because each object's own
+    /// per-evaluation attachment had already drained the activations it counted.
+    /// <para><paramref name="Value"/> is the subject's assigned value (its intermediate result item when the
+    /// statement reads it more than once) and serves the relation and sign shapes. <paramref name="Content"/>
+    /// serves the CLASS shape, which tests CHARACTER CONTENT (§8.8.4.4): a data item is read in place, because
+    /// its numeric intermediate would normalize the very content <c>IS NUMERIC</c> exists to find invalid; a
+    /// computed subject is read from its one materialization. <paramref name="Node"/> remains only for the
+    /// syntactic facts a bound operand no longer carries (§8.8.4.7.3 Format 2's "bare standard floating-point
+    /// data-name") and for the SR1 diagnostic path of a sign test on a non-numeric subject.</para></summary>
+    public readonly record struct PartialSubjectOperand(Core.ValueOperandContext Node, BoundOperand Value, BoundOperand Content);
 
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
     {
@@ -422,14 +437,22 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var subject = carry.PartialSubject;
         carry.PartialSubject = null;   // SR5 elides the LEFTMOST portion only
         bool not = pc.NOT() is not null;
-        if (pc.className() is { } cls) return BindClassConditionOn(cls, not, () => ComparisonOperandOf(subject), carry);
+        if (subject is not { } subj) return new BoundConditionError("partial-expression with no selection subject");
+        if (pc.className() is { } cls) return BindClassConditionOn(cls, not, () => subj.Content, carry);
         if (pc.POSITIVE() is not null || pc.NEGATIVE() is not null || pc.ZERO() is not null)
-            return BindSignConditionOn(pc.POSITIVE() is not null ? 'P' : pc.NEGATIVE() is not null ? 'N' : 'Z',
-                not, subject, carry);
+        {
+            char kind = pc.POSITIVE() is not null ? 'P' : pc.NEGATIVE() is not null ? 'N' : 'Z';
+            // A numeric subject value is the sign test's operand as it stands; anything else is refused by the
+            // ONE sign body's §8.8.4.7.3 SR1 diagnostic, over the written node (a failing compile — no second
+            // activation can run).
+            if (SignOperandOf(subj.Value) is not { } signExpr) return BindSignConditionOn(kind, not, subj.Node, carry);
+            carry.Reset();
+            return new BoundSignCondition(signExpr, kind, not, IsFormat2FloatSign(subj.Node));
+        }
         // The relational shape. SR8's splice and §8.8.4.12.4 GR1's subject insertion are the SAME operation, so
         // the subject is seeded as the carried subject and the ordinary abbreviated-relation arm does the rest —
         // which is also what carries it on to a following `AND < 10`.
-        carry.Subject = ComparisonOperandOf(subject);
+        carry.Subject = subj.Value;
         return BindAbbreviatedRelation(pc.abbreviatedRelation(), carry);
     }
 
@@ -853,6 +876,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// A parenthesized float (SR1 makes <c>(FL) IS POSITIVE</c> Format 1), a non-float item, or any compound /
     /// unary-signed expression stays Format 1 (the algebraic test). The paren distinction is invisible in the
     /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
+    /// <summary>The numeric expression an already-bound selection-subject VALUE supplies as a sign-condition
+    /// operand (§8.8.4.7.3 SR1 — "any single numeric data item … or any form of arithmetic expression"), or null
+    /// when the value is not numeric (the caller then takes the SR1 diagnostic path).</summary>
+    private static BoundExpr? SignOperandOf(BoundOperand value) => value switch
+    {
+        BoundFieldOperand { Place: var p } when p.Item.OperandPic?.Category is PicCategory.Numeric => new BoundNumRef(p),
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric } } => null,
+        BoundComputedOperand c => c.Expr,
+        _ => null,
+    };
+
     private bool IsFormat2FloatSign(Core.ValueOperandContext? operand) =>
         SoleDataReference(operand?.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is { Item.Pic.IsFloat: true };   // Probe — a routing predicate is diagnostic-free (R30)
