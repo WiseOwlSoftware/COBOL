@@ -59,18 +59,18 @@ public sealed class ExceptionCheckingFlagsDriftTests
             Assert.False((bool)p.GetValue(engine)!,
                 $"{p.Name} survived PUSH ALL / TURN OFF ALL — GR14 requires every flag off inside a handler body");
 
-        engine.PopAllChecking(saved);
+        engine.RestoreChecking(saved);
         foreach (var p in props)
             Assert.True((bool)p.GetValue(engine)!,
                 $"{p.Name} was not restored by POP ALL — GR14 restores the state taken at the end of imp-1");
     }
 
     [Fact]   // A flag set to false before PUSH ALL stays false after POP ALL — POP restores, it does not enable.
-    public void PopAllChecking_RestoresFalseFlagsAsFalse()
+    public void RestoreChecking_RestoresFalseFlagsAsFalse()
     {
         var engine = new ExceptionEngine { BoundRefModChecking = true, ArgumentFunctionChecking = false };
         var saved = engine.PushAllCheckingOff();
-        engine.PopAllChecking(saved);
+        engine.RestoreChecking(saved);
         Assert.True(engine.BoundRefModChecking);
         Assert.False(engine.ArgumentFunctionChecking);
     }

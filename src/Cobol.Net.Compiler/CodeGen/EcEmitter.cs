@@ -80,7 +80,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     // ── The BoundEcChecked wrapper (the statement EC context + the EC-ARGUMENT-FUNCTION ambient gate) ────────
 
     /// <summary>The NONFATAL ambient per-statement EC gates — each rides a run-unit-scoped
-    /// <c>ExceptionState.XxxChecking</c> flag its runtime raise site consults, set/reset around the statement (no
+    /// <c>ExceptionState.XxxChecking</c> flag its runtime raise site consults, set inside the statement's checking scope (no
     /// catch, no throw — nonfatal ⇒ the raise only records the last exception status). Fixed order for
     /// byte-stability of the generated wrapper (a statement enabling one emits exactly the pre-generalization
     /// output). The fatal twins (EC-ARGUMENT-FUNCTION) stay in <see cref="EmitArgOrPlain"/> — they need a catch.</summary>
@@ -113,16 +113,96 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <para>A desugar's <c>BoundSequence</c> / <c>BoundImplicitSeries</c> steps are NOT such a list: they are
     /// parts of ONE source statement, emitted through <c>EmitStatement</c> directly, and they must keep the
     /// region their statement's wrapper opened.</para></summary>
-    public EcRegionScope EnterNestedStatements() => new(ecState);
+    /// <para>⛔ The same boundary holds for the RUN-TIME flags (kb/Work PB891): the list opens a
+    /// <see cref="EnterCheckingBaseline"/> scope, so a nested statement that enables nothing does not inherit the
+    /// enclosing statement's standing flags (§7.3.25.4 GR5 — a TURN inside a statement "applies to any succeeding
+    /// statement … whether or not that succeeding statement is within the scope of the statement in which the
+    /// TURN directive is specified").</para></summary>
+    public EcRegionScope EnterNestedStatements() => new(ecState, EnterCheckingBaseline());
 
     /// <summary>The save/clear/restore of <see cref="EcState.Info"/> that <see cref="EnterNestedStatements"/>
-    /// hands out — a struct so the boundary costs no allocation on the statement path.</summary>
+    /// hands out, plus the run-time checking baseline it opened — a struct so the boundary costs no allocation on
+    /// the statement path.</summary>
     internal readonly struct EcRegionScope : IDisposable
     {
         private readonly EcState _state;
         private readonly EcStatementInfo? _saved;
-        internal EcRegionScope(EcState state) { _state = state; _saved = state.Info; state.Info = null; }
-        public void Dispose() => _state.Info = _saved;
+        private readonly CheckingScope _checking;
+        internal EcRegionScope(EcState state, CheckingScope checking)
+        {
+            _checking = checking;
+            _state = state; _saved = state.Info; state.Info = null;
+        }
+        public void Dispose() { _state.Info = _saved; _checking.Dispose(); }
+    }
+
+    // ── The ambient checking flags: ONE save/restore discipline (kb/Work PB891 / PB841) ─────────────────────
+    //
+    // Enablement belongs to the SOURCE TEXT of the executing statement (§7.3.25.4 GR6), and the run-time
+    // `ExceptionState.<Flag>` bits are how a raise site deep in the runtime learns it. So every change to them is a
+    // SCOPE with a saved value, never a set/reset pair: a statement guard SAVES, sets its own flags, and RESTORES
+    // (OpenGateFlags); and wherever control reaches OTHER source statements while a guard's flags stand, those
+    // statements start from ALL-OFF (EnterCheckingBaseline) — a nested statement list, a procedure range run by a
+    // PERFORM / SORT / MERGE (StatementEmitter.EmitProcedureRange), a USE procedure or F3 handler (__RunUse), a
+    // method body (OoEmitter), and a CALL / function activation (the runtime's ProgramTable.CallProgram). The
+    // emitter tracks statically whether any guard's flags are standing (EcState.FlagsStanding), so a statement list
+    // that no flag guard encloses — every paragraph, every EC-free program — emits nothing at all.
+
+    /// <summary>Open the flag scope of ONE statement guard: save the ambient checking state, set the flags this
+    /// statement's own line enables, and (on dispose) emit the <c>finally</c> that restores the saved state. The
+    /// caller emits the <c>try</c> block and any <c>catch</c> clauses between the two. An empty flag list is a no-op
+    /// scope (the null-flag gates — EC-OO-NULL, the EC-SIZE family — set nothing). kb/Work PB891: the former
+    /// <c>finally { &lt;Flag&gt; = false; }</c> assumed the flag had been off; a guarded statement executed while an
+    /// ENCLOSING statement's guard stood cleared that statement's enable, and a later raise site of the enclosing
+    /// statement read "not enabled" (§14.6.13.1.1: "if checking for an exception condition is not enabled, the
+    /// exception condition will not be raised" — the converse holds for an enabled one).</summary>
+    internal CheckingScope OpenGateFlags(IReadOnlyList<string> flags)
+    {
+        if (flags.Count == 0) return default;
+        var w = ctx.Writer;
+        string local = $"__ck{ctx.Names.NextEc()}";
+        w.Line($"var {local} = ExceptionState.SaveChecking();   // this statement's checking scope (§7.3.25.4 GR6)");
+        foreach (var f in flags) w.Line($"ExceptionState.{f} = true;");
+        bool saved = ecState.FlagsStanding;
+        ecState.FlagsStanding = true;
+        return new CheckingScope(w, ecState, local, saved, block: false);
+    }
+
+    /// <summary>Open a checking scope at the BASELINE (every flag off) around code that runs OTHER source
+    /// statements — but only when a statement guard's flags are statically standing here; otherwise the run-time
+    /// state already IS the baseline and nothing is emitted. The scope emits its own <c>try { … } finally</c>.
+    /// §7.3.25.4 GR5/GR6 make each statement's enablement its own; §14.9.28.4 GR14's implicit PUSH ALL + TURN OFF
+    /// ALL around imp-2..imp-5 is one instance of this scope, not a separate mechanism.</summary>
+    internal CheckingScope EnterCheckingBaseline()
+    {
+        if (!ecState.FlagsStanding) return default;
+        var w = ctx.Writer;
+        string local = $"__ck{ctx.Names.NextEc()}";
+        w.Line($"var {local} = ExceptionState.PushAllCheckingOff();   // other source statements: checking baseline (§7.3.25.4 GR5/GR6)");
+        w.Line("try");
+        w.Line("{");
+        w.Indent();
+        ecState.FlagsStanding = false;
+        return new CheckingScope(w, ecState, local, saved: true, block: true);
+    }
+
+    /// <summary>The emitted-text scope <see cref="OpenGateFlags"/> / <see cref="EnterCheckingBaseline"/> hand out;
+    /// <c>default</c> is the no-op scope. Disposing it closes the block (baseline form) and emits the ONE restore.</summary>
+    internal readonly struct CheckingScope : IDisposable
+    {
+        private readonly CodeWriter? _w;
+        private readonly EcState? _state;
+        private readonly string? _local;
+        private readonly bool _savedStanding, _block;
+        internal CheckingScope(CodeWriter w, EcState state, string local, bool saved, bool block)
+        { _w = w; _state = state; _local = local; _savedStanding = saved; _block = block; }
+        public void Dispose()
+        {
+            if (_w is null) return;
+            if (_block) _w.CloseBrace();
+            _w.Line($"finally {{ ExceptionState.RestoreChecking({_local}); }}");
+            _state!.FlagsStanding = _savedStanding;
+        }
     }
 
     public bool EmitChecked(BoundEcChecked ec)
@@ -160,7 +240,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         return terminated;
     }
 
-    /// <summary>The nonfatal ambient gates enabled at this statement ride a set/reset wrapper around whichever
+    /// <summary>The nonfatal ambient gates enabled at this statement ride a save/set/restore scope around whichever
     /// inner dispatch (the fatal-gated or the plain) the statement needs — plus the RESUME landing for the
     /// selection those gates' raise sites now run.
     /// <para>A nonfatal condition raised INSIDE the runtime selects its declarative there (§14.6.13.1.4 #3,
@@ -177,19 +257,20 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         {
             var w = ctx.Writer;
             int id = ctx.Names.NextEc();
-            foreach (var g in gates) w.Line($"ExceptionState.{g.Flag} = true;");
-            using (w.Block("try"))
-                EmitArgOrPlain(ec);
-            // Only a unit with F3 selection machinery can produce a RESUME here at all — with none,
-            // NonfatalDispatch answers "no qualifying declarative" and nothing is thrown, so the catch would be
-            // dead text in every such program (the zero-scaffolding invariant applies to what CAN happen).
-            if (UnitHasDispatchFunnel)
-                // A `goto` out of a catch CLAUSE is legal C# (only a finally BLOCK may not be left that way), so the
-                // resume landing uses the same dispatcher-transfer idiom as every other raise site (kb/Work PB405).
-                w.Line($"catch (RaiseResumeSignal __nr{id}) {{ {dispatch.ResumeTransfer($"__nr{id}.TargetPc", "")} }}"
-                    + "   // RESUME out of a runtime-site nonfatal raise: AT procedure-name transfers (§14.9.33.4 GR3), "
-                    + "AT NEXT STATEMENT abandons the interrupted statement (GR2)");
-            w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
+            using (OpenGateFlags([.. gates.Select(g => g.Flag)]))   // save / set / RESTORE — never reset (PB891)
+            {
+                using (w.Block("try"))
+                    EmitArgOrPlain(ec);
+                // Only a unit with F3 selection machinery can produce a RESUME here at all — with none,
+                // NonfatalDispatch answers "no qualifying declarative" and nothing is thrown, so the catch would be
+                // dead text in every such program (the zero-scaffolding invariant applies to what CAN happen).
+                if (UnitHasDispatchFunnel)
+                    // A `goto` out of a catch CLAUSE is legal C# (only a finally BLOCK may not be left that way), so
+                    // the resume landing uses the same dispatcher-transfer idiom as every other raise site (PB405).
+                    w.Line($"catch (RaiseResumeSignal __nr{id}) {{ {dispatch.ResumeTransfer($"__nr{id}.TargetPc", "")} }}"
+                        + "   // RESUME out of a runtime-site nonfatal raise: AT procedure-name transfers (§14.9.33.4 GR3), "
+                        + "AT NEXT STATEMENT abandons the interrupted statement (GR2)");
+            }
             return false;   // conservative: the inner dispatch may itself resume past a transfer
         }
         return EmitArgOrPlain(ec);
@@ -198,7 +279,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <summary>The FATAL ambient per-statement EC gates — each rides an <c>ExceptionState.XxxChecking</c> flag its
     /// runtime raise site consults; a raise throws <see cref="Runtime.Exceptions.CobolFatalException"/> which the
     /// statement guard catches for USE F3 dispatch (RESUME) else re-throws to terminate. Fixed order for
-    /// byte-stability. (Nonfatal twins live in <see cref="EmitGatesOrInner"/>'s set/reset wrapper — they need no
+    /// byte-stability. (Nonfatal twins live in <see cref="EmitGatesOrInner"/>'s save/set/restore scope — they need no
     /// catch.) <c>ExceptionRaiseHelperDriftTests</c> reads BOTH tables: the flag named here for an exception-name
     /// is asserted to be the flag the runtime helper that raises that name actually reads (kb/Work PB676).</summary>
     internal static readonly (string Ec, string? Flag)[] FatalAmbientGates =
@@ -287,26 +368,27 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // ⇒ the actual __af.EcName drives the status/dispatch.
         string ecExpr = gates.Count == 1 ? CsLiteral(gates[0].Ec) : $"__af{id}.EcName";
         string nameTest = string.Join(" || ", gates.Select(g => $"__af{id}.EcName == {CsLiteral(g.Ec)}"));
-        foreach (var g in gates.Where(g => g.Flag is not null)) w.Line($"ExceptionState.{g.Flag} = true;");
-        using (w.Block("try"))
-            Statements.EmitStatement(ec.Inner);
-        // `!Dispatched`: a condition an INNER statement's guard already processed passes through to the boundary
-        // (§14.6.13.1.3 #7) — one dispatch per raise, not one per nesting level (kb/Work PB75).
-        using (w.Block($"catch (CobolFatalException __af{id}) when (!__af{id}.Dispatched && ({nameTest}))"))
+        // save / set / RESTORE — never reset (kb/Work PB891); the null-flag gates set nothing, so they open no scope.
+        using (OpenGateFlags([.. gates.Where(g => g.Flag is not null).Select(g => g.Flag!)]))
         {
-            // §14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
-            // is set … the last exception status is set to indicate that exception condition." The guard only
-            // exists where checking IS enabled, so the status is set here unconditionally. The §15.32.3 r2 /
-            // §15.30.3 r2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
-            // it with exactly the WITH-LOCATION names, so an uncovered name answers r1's spaces): one channel
-            // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
-            w.Line($"ExceptionState.Set({ecExpr}, true);");
-            w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
-            w.Line(dispatch.ResumeTransfer($"__r{id}"));
-            w.Line($"if (__r{id} != -2) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
+            using (w.Block("try"))
+                Statements.EmitStatement(ec.Inner);
+            // `!Dispatched`: a condition an INNER statement's guard already processed passes through to the boundary
+            // (§14.6.13.1.3 #7) — one dispatch per raise, not one per nesting level (kb/Work PB75).
+            using (w.Block($"catch (CobolFatalException __af{id}) when (!__af{id}.Dispatched && ({nameTest}))"))
+            {
+                // §14.6.13.1.1: "If checking for an exception condition is enabled and an exception status indicator
+                // is set … the last exception status is set to indicate that exception condition." The guard only
+                // exists where checking IS enabled, so the status is set here unconditionally. The §15.32.3 r2 /
+                // §15.30.3 r2 operands come from the AMBIENT statement context (kb/Work R14 — EmitChecked entered
+                // it with exactly the WITH-LOCATION names, so an uncovered name answers r1's spaces): one channel
+                // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
+                w.Line($"ExceptionState.Set({ecExpr}, true);");
+                w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
+                w.Line(dispatch.ResumeTransfer($"__r{id}"));
+                w.Line($"if (__r{id} != -2) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
+            }
         }
-        var reset = gates.Where(g => g.Flag is not null).Select(g => $"ExceptionState.{g.Flag} = false;").ToList();
-        if (reset.Count > 0) w.Line("finally { " + string.Join(" ", reset) + " }");
         return false;   // conservative: the catch can resume past an inner transfer
     }
 
@@ -675,17 +757,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
             // imperative-statement-1" — so imp-2/3/4 run with NO exception checking enabled (§14.6.13.1.1: "if
             // checking for an exception that occurs is not enabled, no exception condition is raised"). It has to
-            // be done HERE, at runtime, and not only by binding the handler bodies under a disabled TurnState:
-            // the ambient gates are set by the guard around the RAISING statement, and this composer is called
-            // from inside that guard, before its finally clears them.
-            w.Line("var __ck = ExceptionState.PushAllCheckingOff();   // GR14 implicit PUSH ALL + TURN OFF ALL");
-            using (w.Block("try"))
-            {
-                w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
-                w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
-                w.Line("return __a;");
-            }
-            w.Line("finally { ExceptionState.PopAllChecking(__ck); }   // GR14 implicit POP ALL");
+            // be done at runtime, and not only by binding the handler bodies under a disabled TurnState: the ambient
+            // gates are set by the guard around the RAISING statement, and this composer is called from inside that
+            // guard. It is done by __RunUse, which opens the all-off checking scope for EVERY procedure it runs
+            // (kb/Work PB891) — a second push here would be a second realization of the same window.
+            w.Line("int __a = __RunUse(__u, __pc, __pc);   // imp-2 / imp-3 (a single-pc synthetic handler range)");
+            w.Line("if (__a == -1 && __cpc >= 0) __a = __RunUse(__cu, __cpc, __cpc);   // WHEN COMMON (imp-4, GR19); -2 short-circuits");
+            w.Line("return __a;");
         }
         w.Line();
     }

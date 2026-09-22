@@ -395,26 +395,37 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitClose(BoundClose c)
     {
         var w = ctx.Writer;
+        // §14.9.6.4 GR10: a multi-file CLOSE is a series of IMPLICIT CLOSE statements, one per file-name-1, and a
+        // RESUME NEXT STATEMENT out of one "resumes at the next implicit CLOSE statement, if any" — so each
+        // iteration below is one whole statement, and anything it raises is raised at its END (kb/Work PB893).
         foreach (var (file, kind) in c.Files)
         {
             // §14.9.6.4 GR5: closing a report file while any associated report is ACTIVE (INITIATEd, not
-            // TERMINATEd) still completes the CLOSE — and sets EC-REPORT-NOT-TERMINATED to exist (nonfatal;
-            // the EC was catalogued and raised NOWHERE, kb/Work PB141). Read the active state BEFORE the
-            // close; the checking state is the statement's >>TURN (bind-time, BoundClose).
+            // TERMINATEd): "the CLOSE statement for that file is completed and the EC-REPORT-NOT-TERMINATED
+            // exception condition is set to exist" (nonfatal; kb/Work PB141). COMPLETED FIRST: the active state
+            // is read before the close, the close and its GR4 status update run, and only then is the condition
+            // raised — so a RESUME AT procedure-name (§14.9.33.4 GR3) leaves the file closed, a declarative sees
+            // the updated status, and a RESUME NEXT STATEMENT falls straight to the next implicit CLOSE. Raising
+            // it before the close (the pre-PB893 shape) let a RESUME AT transfer out with the file still open.
+            // The checking state is the statement's >>TURN (bind-time, BoundClose).
+            string? active = null;
             if (c.ReportNotTerminatedCheck
                 && ctx.Data.Reports.Where(r => ReferenceEquals(r.File, file)).ToList() is { Count: > 0 } reports)
             {
-                using (w.Block($"if ({string.Join(" || ", reports.Select(r => $"__RPT_{r.CsIndex}.IsActive"))})"))
-                {
-                    w.Line("ExceptionState.Set(\"EC-REPORT-NOT-TERMINATED\", fatal: false);   // §14.9.6.4 GR5");
-                    int id = ctx.Names.NextEc();
-                    w.Line($"int __r{id} = {ec.EcDispatchExpr("\"EC-REPORT-NOT-TERMINATED\"", "\"\"")};");
-                    w.Line(dispatch.ResumeTransfer($"__r{id}", ""));
-                }
+                active = $"__rptAct{ctx.Names.NextEc()}";
+                w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"__RPT_{r.CsIndex}.IsActive"))};   // read BEFORE the close (§14.9.6.4 GR5)");
             }
             w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
             EmitStoreFileStatus(file);
             EmitUseHook(file);
+            if (active is not null)
+                using (w.Block($"if ({active})"))
+                {
+                    w.Line("ExceptionState.Set(\"EC-REPORT-NOT-TERMINATED\", fatal: false);   // §14.9.6.4 GR5 — after the CLOSE completed");
+                    int id = ctx.Names.NextEc();
+                    w.Line($"int __r{id} = {ec.EcDispatchExpr("\"EC-REPORT-NOT-TERMINATED\"", "\"\"")};");
+                    w.Line(dispatch.ResumeTransfer($"__r{id}", ""));   // -1/-2/-3: the next implicit CLOSE (GR10)
+                }
         }
     }
 

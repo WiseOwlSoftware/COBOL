@@ -4,7 +4,7 @@ namespace CobolNet.Runtime.Exceptions;
 
 /// <summary>
 /// The AMBIENT exception-checking state as ONE copyable value — every <c>…Checking</c> flag the generated
-/// statement guards set and reset (ISO §14.6.13.1.1: "if checking for an exception that occurs is not enabled,
+/// statement guards set inside a saved-and-restored scope (kb/Work PB891; ISO §14.6.13.1.1: "if checking for an exception that occurs is not enabled,
 /// no exception condition is raised").
 ///
 /// <para><b>Why a struct and not loose fields.</b> §14.9.28.4 GR14 requires an exception-checking PERFORM to

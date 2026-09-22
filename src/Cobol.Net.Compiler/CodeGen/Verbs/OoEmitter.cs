@@ -644,6 +644,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 else
                     U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.Binding!.EntryPc, m.Binding!.EndPc);
                 dispatch.DispatchName = saved;
+                // The ACTIVATION boundary's checking scope (kb/Work PB841 — the INVOKE twin of ProgramTable.CallProgram):
+                // the method's statements are its own source text (§7.3.25.4 GR6), so they start from all-off whatever
+                // guard the INVOKE ran under, and the activator's flags come back on return. Taken HERE, after
+                // __CobolInvoke's §14.9.23.4 GR7c check has read the activator's EC-OO-UNIVERSAL half.
+                string restore = "ExceptionState.RestoreChecking(__ckM);";
+                w.Line("var __ckM = ExceptionState.PushAllCheckingOff();   // the method's checking baseline (§7.3.25.4 GR6)");
                 if (methodF3)
                 {
                     // The F3-method entry FLOOR (§9.10.1-C2): a method is a separate source element — its own unmatched
@@ -651,12 +657,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // exit restore it and defensively balance the stack (matching the CALL boundary, ProgramTable).
                     w.Line("int __f3fl = ExceptionState.RaisePerformFloor(); int __f3pd = ExceptionState.PerformDepth;   // §9.10.1-C2 — isolate from the activator's frames");
                     w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }} "
-                        + "finally {{ ExceptionState.RestorePerformFloor(__f3fl); ExceptionState.TrimPerformTo(__f3pd); }}   "
+                        + $"finally {{ ExceptionState.RestorePerformFloor(__f3fl); ExceptionState.TrimPerformTo(__f3pd); {restore} }}   "
                         + "// GOBACK returns HERE (§14.9.18.4 GR4)");
                 }
                 else
-                    w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }}   "
-                        + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
+                    w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }} "
+                        + $"finally {{ {restore} }}   // GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
             }
             ecState.UnitHasF3Perform = savedUnitF3P;
             dispatch.DeclCount = savedDeclCount;

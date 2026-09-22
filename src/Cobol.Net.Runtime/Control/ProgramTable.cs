@@ -282,6 +282,13 @@ public sealed class ProgramTable
         // declarative" when it has none — displaces the activator's for the duration of the activation.
         var savedNonfatalDispatcher = exc.NonfatalDispatcher;
         exc.NonfatalDispatcher = inst;
+        // The AMBIENT checking flags are per SOURCE TEXT, not per run unit (kb/Work PB841): §7.3.25.4 GR6 enables
+        // checking "for the procedure division statements and procedure division headers that follow in the
+        // compilation group", so the activated element's statements start from all-off and each sets only what
+        // its OWN line enables. The activator's flags — standing because this CALL (or function activation, which
+        // comes through here too) runs inside its statement guard — are saved and handed back on return. Taken
+        // BEFORE GR3e: its EC-EXTERNAL checks read the latched masks above, never these flags.
+        var savedChecking = exc.PushAllCheckingOff();
         // §14.9.4.4 GR3e→GR3g — the ACTIVATION BOUNDARY, and the one place that knows which side of it a
         // failure came from. GR3e's external-conformance check is an activation-attempt step ("the program
         // call is not successful"), so it runs HERE, before the transfer, and its raise stays attributable to
@@ -303,6 +310,7 @@ public sealed class ProgramTable
             exc.ActivatorExternalMask = savedActivator; exc.ExternalCheckMask = 0;
             exc.TrimPerformTo(savedPerformDepth);
             exc.NonfatalDispatcher = savedNonfatalDispatcher;
+            exc.RestoreChecking(savedChecking);
             if (freshInstance) n.Instance = displacedInstance;   // kb/Work PB133 — see above
         }
 

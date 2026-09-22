@@ -149,10 +149,26 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   one-line helper. Nothing else, and the drift tests fail if any of the five is missing.
 - **The EC-ARGUMENT-FUNCTION ambient statement gate.** Intrinsics render inline inside arbitrary expressions;
   threading a checked-mask through every runtime signature would fork each intrinsic into twins. Instead the guard
-  wraps the STATEMENT (`ExceptionState.ArgumentFunctionChecking` set/reset + try/catch for the F3 dispatch), and
+  wraps the STATEMENT (`ExceptionState.ArgumentFunctionChecking` in the statement's checking scope + try/catch for the F3 dispatch), and
   EVERY §15.3 default-result site in the intrinsic runtime routes through `ExceptionState.ArgumentError` (raise
   when enabled, the documented default — 0 / one space — when off): `FromDouble` NaN/∞, FACTORIAL, MOD/REM zero
   divisor, NUMVAL/NUMVAL-C malformed, the CobolDate range checks, CHAR/ORD out-of-domain.
+- **THE AMBIENT FLAGS ARE A SCOPE, NEVER A SET/RESET PAIR (kb/Work PB891 + PB841).** Enablement belongs to the
+  SOURCE TEXT of the executing statement (§7.3.25.4 GR6; GR5 — a TURN inside a statement "applies to any
+  succeeding statement … whether or not that succeeding statement is within the scope of the statement in which the
+  TURN directive is specified"); the `ExceptionState.<Flag>` bits are only how a raise site deep in the runtime
+  learns it. So there is ONE discipline, realized at every boundary: a statement guard SAVES the state
+  (`ExceptionState.SaveChecking`), sets its own flags, and RESTORES it in its `finally`
+  (`EcEmitter.OpenGateFlags` → `RestoreChecking`) — never `= false`, which cleared an ENCLOSING guard's enable (an
+  inline-PERFORM's UNTIL stopped raising and the loop ran off the table). And wherever control reaches OTHER source
+  statements while a guard's flags stand, those statements start from ALL-OFF (`PushAllCheckingOff` … `RestoreChecking`):
+  a nested statement list (`EcEmitter.EnterNestedStatements` → `EnterCheckingBaseline`), a procedure range run by a
+  PERFORM / SORT / MERGE (`StatementEmitter.EmitProcedureRange`, the ONE caller of `DispatchCall`), every USE
+  procedure and F3 handler (`__RunUse`), a method body (`OoEmitter`), and a CALL or function activation
+  (`ProgramTable.CallProgram`). The emitter tracks statically whether a guard's flags are standing
+  (`EcState.FlagsStanding`), so a list no flag guard encloses — every paragraph, every unchecked program — emits no
+  scope at all. §14.9.28.4 GR14's implicit PUSH ALL + TURN OFF ALL for imp-2..imp-5 is one instance of the baseline
+  scope, not a separate mechanism. `CheckingScopeDriftTests` pins every boundary and the absence of any reset.
 - **The §14.6.13.2 EXEMPTION TABLE IS A STRUCTURE, not a per-rule flag (`CodeGen/Emit/SendingRef.cs`).** The
   clause states five sibling conditions over ONE subject — the content of a sending operand that is not valid —
   and each carries its own list of contexts in which the reference is exempt. `SendingRef` names the context ONCE
@@ -223,7 +239,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   MOVE), `85/pb230_class_numeric_image` (the shared predicate over zoned / signed / packed / binary windows).
 - **The float EC-DATA ambient statement gates (EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW).** A float item's value is
   read inline in expressions, so — exactly like EC-ARGUMENT-FUNCTION / EC-BOUND-REF-MOD — the guard wraps the
-  STATEMENT (`FloatNotFiniteChecking` / `FloatOverflowChecking` set/reset via `FatalAmbientGates` + the try/catch F3
+  STATEMENT (`FloatNotFiniteChecking` / `FloatOverflowChecking` in the statement's checking scope via `FatalAmbientGates` + the try/catch F3
   dispatch) and the runtime raise sites consult the flag. Both are **always-emitted** (the singular pattern —
   `CobolString.RefMod`, not an emit-time fork) so a directive-free build is byte-identical (the flag defaults OFF ⇒
   the wrap is a pass-through). **EC-DATA-NOT-FINITE (§14.6.13.2 item 3)** is wrapped at the TWO float sending-read

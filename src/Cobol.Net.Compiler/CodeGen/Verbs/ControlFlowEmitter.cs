@@ -116,13 +116,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         {
             var s = dispatch.SetF3Region(F3Region.Finally, n);
             // §14.9.28.4 GR14 covers imp-5 too: the implicit POP ALL sits "immediately preceding the END PERFORM
-            // phrase", so FINALLY runs inside the TURN OFF ALL window just as the WHEN bodies do (__RunF3 does the
-            // same for imp-2/3/4). A `goto` out of this try to __f3end is legal C#, so EXIT PERFORM in imp-5
-            // (§14.9.28.4 GR16) still reaches the implicit CONTINUE following END-PERFORM.
-            w.Line($"var __ckfin{n} = ExceptionState.PushAllCheckingOff();   // GR14 implicit PUSH ALL + TURN OFF ALL");
-            using (w.Block("try"))
-                Statements.EmitStatementList(fb);   // imp-5 inline; skipped on the fatal-throw path
-            w.Line($"finally {{ ExceptionState.PopAllChecking(__ckfin{n}); }}   // GR14 implicit POP ALL");
+            // phrase", so FINALLY runs inside the TURN OFF ALL window just as the WHEN bodies do. The binder bound
+            // imp-5 under that window, and the run-time half is the nested-list checking scope every statement list
+            // opens (EcEmitter.EnterNestedStatements — kb/Work PB891): its statements set only their own flags, and
+            // a standing guard's flags are re-based to all-off around them. A `goto` out of that scope to __f3end is
+            // legal C#, so EXIT PERFORM in imp-5 (§14.9.28.4 GR16) still reaches the implicit CONTINUE.
+            Statements.EmitStatementList(fb);   // imp-5 inline; skipped on the fatal-throw path
             dispatch.RestoreF3Region(s);
         }
         w.Line($"__f3end{n}: ;   // end of PERFORM");
@@ -236,11 +235,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             EmitPerform(p.Control, () =>
             {
                 w.Line($"__dbgCause = __dbgFirst{fid} ? DebugCause.Transfer : DebugCause.PerformLoop; __dbgFirst{fid} = false; __dbgLine = {p.SourceLine};");
-                w.Line(dispatch.DispatchCall(p.Range));
+                Statements.EmitProcedureRange(p.Range);
             }, inline: false);
         }
         else
-            EmitPerform(p.Control, () => w.Line(dispatch.DispatchCall(p.Range)), inline: false);
+            EmitPerform(p.Control, () => Statements.EmitProcedureRange(p.Range), inline: false);
     }
 
 

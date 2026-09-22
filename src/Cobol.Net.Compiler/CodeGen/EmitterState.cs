@@ -268,6 +268,13 @@ internal sealed class EcState
     /// around each <c>BoundEcChecked</c> body.</summary>
     public EcStatementInfo? Info { get; set; }
 
+    /// <summary>True while the code being emitted runs with some statement guard's run-time checking flags
+    /// STANDING — inside an <c>EcEmitter.OpenGateFlags</c> scope and not yet re-based by an
+    /// <c>EcEmitter.EnterCheckingBaseline</c> one (kb/Work PB891). Read only by <c>EnterCheckingBaseline</c>, so
+    /// the all-off scope around other source statements is emitted exactly where a guard's flags could leak into
+    /// them, and a statement list no flag guard encloses emits nothing.</summary>
+    public bool FlagsStanding { get; set; }
+
     /// <summary>True while the statement being emitted has any EC-SIZE-* condition enabled (kb/Work PB91): the
     /// receiver-less numeric renders inside it — a relation operand, a function argument, a subscript, a SET
     /// amount — take the CHECKED kernels (MulChecked / AddChecked / SubChecked / DivideOrThrow, the checked NUMVAL

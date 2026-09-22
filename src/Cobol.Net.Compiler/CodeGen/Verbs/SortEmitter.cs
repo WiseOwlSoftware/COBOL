@@ -20,7 +20,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// IS the GR11/GR14 compiler-inserted return mechanism. Format 2 sorts the typed element array in place with a
 /// typed comparer (COBOLNET_DESIGN §8.2).
 /// </summary>
-internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
+internal sealed class SortEmitter(EmitContext ctx,
     SequentialIoEmitter seqIo, MoveEmitter move, ArithmeticEmitter arith)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the RETURN AT END /
@@ -46,7 +46,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             foreach (var input in so.Using)
                 terminable |= EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null, end);
         else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
-            w.Line(dispatch.DispatchCall(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)"));
+            Statements.EmitProcedureRange(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
 
         // Phase b — sequence (GR9b).
         w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
@@ -56,7 +56,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             foreach (var output in so.Giving)
                 terminable |= EmitGivingFile(output, sd, end);
         else if (so.OutputProcedure is { IsEmpty: false } op)
-            w.Line(dispatch.DispatchCall(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)"));
+            Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
 
         // §14.9.40.4 GR17's landing point: "the SORT statement is terminated" skips the REMAINING implicit
         // transfers and the phases after them, but still releases the sort store — terminating the statement is
@@ -94,7 +94,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
             foreach (var output in mg.Giving)
                 terminable |= EmitGivingFile(output, sd, end);   // GR12 — each file-name-4 receives the WHOLE merged result
         else if (mg.OutputProcedure is { IsEmpty: false } op)
-            w.Line(dispatch.DispatchCall(op, "   // OUTPUT PROCEDURE (GR9)"));
+            Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR9)");
         // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
         // rule is the same one: §14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised inside
         // an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole statement here

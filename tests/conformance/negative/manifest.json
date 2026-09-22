@@ -1277,7 +1277,8 @@
   "pb664-string-numeric-literal",
   "pb664-string-sender-pointer",
   "pb664-unstring-sender-pointer",
-  "pb664-string-national-mix"
+  "pb664-string-national-mix",
+  "pb891-checking-scope-below-2002"
  ],
  "pending": []
 }

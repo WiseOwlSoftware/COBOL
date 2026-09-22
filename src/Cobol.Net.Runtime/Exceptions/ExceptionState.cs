@@ -270,23 +270,33 @@ public sealed class ExceptionEngine
         return false;
     }
 
-    // ── The ambient checking flags, and GR14's PUSH ALL / TURN OFF ALL / POP ALL ──────────────────────────────
+    // ── The ambient checking flags: ONE save/restore discipline (kb/Work PB891 / PB841) ──────────────────────
 
     /// <summary>Every ambient <c>…Checking</c> flag as ONE value — see <see cref="CheckingFlags"/> for why this
     /// is a struct and not loose fields. The public properties below delegate to it, so generated code and every
     /// runtime raise site are unaffected by the storage shape.</summary>
     private CheckingFlags _checking;
 
-    /// <summary>The §14.9.28.4 GR14 <b>implicit PUSH ALL followed by TURN OFF ALL</b>: return the current ambient
-    /// checking state and disable ALL of it. Pair with <see cref="PopAllChecking"/> in a <c>finally</c>.
+    /// <summary>Open a checking SCOPE that keeps the current state: return it so the scope's <c>finally</c> can
+    /// hand it back to <see cref="RestoreChecking"/>. A statement guard takes this before it sets the flags its
+    /// own statement enables, so leaving the statement RESTORES what was in force — it never assumes "off"
+    /// (kb/Work PB891: the former <c>= false</c> reset cleared an ENCLOSING statement's enable, and the raise
+    /// site it guarded later in the same statement read "not enabled").</summary>
+    public CheckingFlags SaveChecking() => _checking;
+
+    /// <summary>Open a checking scope at the <b>BASELINE</b> — return the current state and disable ALL of it.
+    /// Pair with <see cref="RestoreChecking"/> in a <c>finally</c>.
     ///
-    /// <para>An exception-checking PERFORM takes this at the END of imperative-statement-1 and restores it
-    /// "immediately preceding the END PERFORM phrase", so imp-2/3/4 (WHEN / OTHER / COMMON) and imp-5 (FINALLY)
-    /// all run with NO checking enabled — §14.6.13.1.1: "if checking for an exception that occurs is not enabled,
-    /// no exception condition is raised". This has to happen at RUNTIME, not only in the binder: the ambient
-    /// gates are set by the guard around the RAISING statement, and a handler is dispatched from inside that
-    /// guard, before its <c>finally</c> clears them — so binding a handler body under a disabled TurnState
-    /// removes the handler's OWN guard but leaves the raiser's flags standing.</para></summary>
+    /// <para>Enablement is a property of the SOURCE TEXT at the executing statement (§7.3.25.4 GR6: checking "is
+    /// enabled for the procedure division statements and procedure division headers that follow in the
+    /// compilation group"; GR5: a TURN inside a statement "applies to any succeeding statement … whether or not
+    /// that succeeding statement is within the scope of the statement in which the TURN directive is
+    /// specified"). So wherever control reaches OTHER source statements while a statement guard's flags are
+    /// standing, those statements start from all-off and set only what their own lines enable: a nested
+    /// statement list inside a guarded statement, a procedure range run by a guarded PERFORM / SORT / MERGE, a
+    /// USE procedure or exception-checking PERFORM handler (<c>__RunUse</c>), and an ACTIVATION — a CALL or
+    /// function activation (<c>ProgramTable.CallProgram</c>) or a method body. §14.9.28.4 GR14's "implicit PUSH
+    /// ALL followed by TURN OFF ALL" for imp-2..imp-5 is one instance of this, not a separate mechanism.</para></summary>
     public CheckingFlags PushAllCheckingOff()
     {
         var saved = _checking;
@@ -294,9 +304,9 @@ public sealed class ExceptionEngine
         return saved;
     }
 
-    /// <summary>The GR14 <b>implicit POP ALL</b>: restore the ambient checking state taken by
-    /// <see cref="PushAllCheckingOff"/>.</summary>
-    public void PopAllChecking(CheckingFlags saved) => _checking = saved;
+    /// <summary>Close a checking scope opened by <see cref="SaveChecking"/> or <see cref="PushAllCheckingOff"/>:
+    /// restore the ambient state it returned (GR14's <b>implicit POP ALL</b> is this).</summary>
+    public void RestoreChecking(CheckingFlags saved) => _checking = saved;
 
     // ── §14.6.13.1.1's RAISE RULE, WRITTEN ONCE ───────────────────────────────────────────────────────────────
     //
@@ -1504,11 +1514,14 @@ public static class ExceptionState
     /// <inheritdoc cref="ExceptionEngine.LocaleSizeError"/>
     public static void LocaleSizeError(string detail) => E.LocaleSizeError(detail);
 
+    /// <inheritdoc cref="ExceptionEngine.SaveChecking"/>
+    public static CheckingFlags SaveChecking() => E.SaveChecking();
+
     /// <inheritdoc cref="ExceptionEngine.PushAllCheckingOff"/>
     public static CheckingFlags PushAllCheckingOff() => E.PushAllCheckingOff();
 
-    /// <inheritdoc cref="ExceptionEngine.PopAllChecking"/>
-    public static void PopAllChecking(CheckingFlags saved) => E.PopAllChecking(saved);
+    /// <inheritdoc cref="ExceptionEngine.RestoreChecking"/>
+    public static void RestoreChecking(CheckingFlags saved) => E.RestoreChecking(saved);
 
     /// <inheritdoc cref="ExceptionEngine.ArgumentFunctionChecking"/>
     public static bool ArgumentFunctionChecking

@@ -332,9 +332,14 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         w.Line("__useActive[__id] = true;");
         if (ecModel)
         {
+            // The procedure's statements are OTHER source text than the statement whose raise selected it, and
+            // that statement's guard flags are still standing here — so the procedure starts from all-off and each
+            // of its statements sets only what its own line enables (§7.3.25.4 GR6; kb/Work PB891). This is also
+            // §14.9.28.4 GR14's implicit PUSH ALL + TURN OFF ALL for the F3 handlers imp-2/3/4, which run here.
+            w.Line("var __ckU = ExceptionState.PushAllCheckingOff();   // the procedure's checking baseline (§7.3.25.4 GR6)");
             w.Line($"try {{ {dispatchState.DispatchName}(__startPc, __endPc); }}");
             w.Line("catch (ResumeSignal __rs) { return __rs.TargetPc; }   // RESUME (§14.9.33) — the resume action");
-            w.Line("finally { __useActive[__id] = false; }");
+            w.Line("finally { __useActive[__id] = false; ExceptionState.RestoreChecking(__ckU); }");
             w.Line("return -1;   // normal completion (§14.6.13.1.2)");
         }
         else

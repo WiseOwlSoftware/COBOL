@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Runtime;
 using CobolNet.CodeGen.Emit;
 
@@ -75,6 +76,18 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     /// carries its own <c>BoundEcChecked</c> — or none, because §7.3.25.4 GR6 enables nothing at ITS line — so the
     /// enclosing statement's EC region must not stay ambient across it. See
     /// <see cref="EcEmitter.EnterNestedStatements"/> for what leaving it ambient cost §14.9.28.4 GR14.</para></summary>
+    /// <summary>Emit the bounded dispatch that runs ONE procedure range from inside a statement — an out-of-line
+    /// PERFORM, a SORT/MERGE INPUT or OUTPUT PROCEDURE. The ONE caller of <see cref="DispatchState.DispatchCall"/>
+    /// (<c>ProcedureRangeCheckingDriftTests</c> pins that): the range's paragraphs are OTHER source statements, so
+    /// when the enclosing statement's guard has run-time checking flags standing they run inside an all-off
+    /// <see cref="EcEmitter.EnterCheckingBaseline"/> scope and set only what their own lines enable (§7.3.25.4
+    /// GR6; kb/Work PB891). Nothing is emitted around the call when no flag guard encloses it.</summary>
+    internal void EmitProcedureRange(PcRange range, string comment = "")
+    {
+        using (_ecEmit.EnterCheckingBaseline())
+            _ctx.Writer.Line(_dispatchState.DispatchCall(range, comment));
+    }
+
     internal bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
     {
         using var region = _ecEmit.EnterNestedStatements();
