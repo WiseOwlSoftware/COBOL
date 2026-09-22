@@ -2751,9 +2751,9 @@
       "r85": true,
       "r2002": true,
       "r2014": true,
-      "r2023": false,
+      "r2023": true,
       "confidence": "high",
-      "provenance": "1985-reserved, removed post-85 (GnuCOBOL per-standard lists; absent from ISO 2023 §8.9)"
+      "provenance": "continuous since 1985 (GnuCOBOL 85/2002/2014 lists; ISO 2023 §8.9)"
     },
     {
       "word": "PAGE-COUNTER",
@@ -3181,11 +3181,11 @@
     {
       "word": "REPORTS",
       "r85": true,
-      "r2002": false,
-      "r2014": false,
+      "r2002": true,
+      "r2014": true,
       "r2023": true,
-      "confidence": "medium",
-      "provenance": "in ISO 2023 §8.9 but not the 2014 source list and not an Annex-E addition — needs review (inert)"
+      "confidence": "high",
+      "provenance": "continuous since 1985; the 2002 AND 2014 flags INTERPOLATED (85+2023 reserved and ISO E.2 25) does not list it as a 2023 addition — E.3.1 documents every incompatible addition there ⇒ the GnuCOBOL 2002/2014 lists have a gap)"
     },
     {
       "word": "REPOSITORY",

@@ -225,8 +225,14 @@ for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
     # hyphenated gated word (END-RECEIVE, END-SEND, B-AND, GROUP-USAGE, …) with a gate that silently never fired:
     # Find("END_RECEIVE") is null, the word reads as unreserved at every edition, and the operand list absorbs it
     # on BOTH severity axes. To-Word is the same mapping the rwMap lookup above uses.
-    if ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {userWordHere(`"$(To-Word $tok)`")}? $tok") }
-    else { [void]$sb.AppendLine("    $sep $tok") }
+    # kb/Work PB805 + PB655: EVERY keyword-token alternative also carries {!keywordContinuesHere()}? — hoisted
+    # into each greedy operand list's loop decision, it ends the list wherever the enclosing construct can read
+    # the word as its next KEYWORD (the follow set is computed from the ATN; CobolParserCoreBase). IDENTIFIER is
+    # never a keyword, so it stays bare. One predicate for every word and every list: the hand-written per-word
+    # guards (PROPERTY, DEFAULT, DELETE FILE's phrase words) it replaced were the per-site list rule 5 forbids.
+    if ($tok -eq 'IDENTIFIER') { [void]$sb.AppendLine("    $sep $tok") }
+    elseif ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {userWordHere(`"$(To-Word $tok)`") && !keywordContinuesHere()}? $tok") }
+    else { [void]$sb.AppendLine("    $sep {!keywordContinuesHere()}? $tok") }
 }
 [void]$sb.AppendLine('    ;')
 # ---- 5b. Emit reservedGatedWord — the SAME derived gate set, predicate INVERTED (kb/Work PB300/PB693) ----

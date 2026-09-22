@@ -247,7 +247,9 @@ public sealed class CobolWordsDriftTests
         // userWordHere() looks its argument up in reserved-words.json, which is keyed by SPELLING, so emitting the
         // token name there left every hyphenated gated word — END-RECEIVE, END-SEND, B-AND, GROUP-USAGE and ten
         // more — with a gate that silently never fired at any edition or either severity axis (kb/Work PB792).
-        var pattern = new Regex(@"^[:|]\s*\{(!?)userWordHere\(""([A-Z][A-Z0-9-]*)""\)\}\?\s*([A-Z][A-Z0-9_]*)\s*$");
+        // cobolWord's gated alternatives also carry `&& !keywordContinuesHere()` (kb/Work PB805); the
+        // declaration twin does not — both spellings are read here, the gate itself is the userWordHere call.
+        var pattern = new Regex(@"^[:|]\s*\{(!?)userWordHere\(""([A-Z][A-Z0-9-]*)""\)(?: && !keywordContinuesHere\(\))?\}\?\s*([A-Z][A-Z0-9_]*)\s*$");
         var alts = new HashSet<string>(StringComparer.Ordinal);
         bool inRule = false;
         foreach (var raw in File.ReadAllLines(path))

@@ -251,7 +251,10 @@ levelNumber
     ;
 
 dataName
-    : cobolWord
+    // The trailing action records the declared name for keywordContinuesHere() (kb/Work PB805/PB655): a word
+    // §8.9 leaves free at this edition that the program DECLARES is a user word in every operand list; one it
+    // does not declare keeps its keyword reading. Actions never run during prediction.
+    : ( cobolWord
     | FILLER
     | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
     // kb/Work PB137: the reservation-gated words leave cobolWord exactly where §8.9 reserves them (so operand
@@ -266,6 +269,7 @@ dataName
     // alternative on purpose — it is reserved at EVERY edition and NC205A must keep compiling, so it must NOT
     // reach the funnel.
     | reservedGatedWord
+      ) { declareName(TokenStream.LT(-1)); }
     ;
 
 dataDescriptionBody
@@ -737,9 +741,12 @@ renamesClause
 // For level-88 condition entries, valueItem supports THRU ranges.
 // Format 3 (§13.18.63): WHEN SET TO FALSE IS literal for condition-names;
 //                        IN alphabet-name for character comparisons.
-// The valueItem loop guard: at 2002+ PROPERTY is reserved (ISO 8.9) so it can NEVER be a constant-name
-// operand — without the predicate the greedy loop consumes it as a cobolWord and the propertyClause
-// (13.18.42) that follows VALUE never matches. At 85 PROPERTY stays a legal user word (the XOR recipe).
+// ⛔ NO PER-WORD LOOP GUARD (kb/Work PB805). Whether the next word is one more operand or the keyword of what
+// follows is decided in ONE place: every keyword-token alternative of `cobolWord` carries the generated
+// `{!keywordContinuesHere()}?`, which ANTLR hoists into this loop's decision and which ends the list wherever
+// the entry can read the word as its next clause keyword (CobolParserCoreBase; the follow set comes from the
+// ATN). The hand-written PROPERTY guard that stood here covered one of five clause-initial words the
+// migration mode restores — GROUP-USAGE was swallowed under --permissive — and is gone.
 valueClause
     // Format 2 (table, ISO §13.18.63.2, COBOL-2002) — literals keyed to occurrence subscripts by a MANDATORY FROM
     // phrase. This arm is FIRST: the mandatory FROM terminates the operand loop, so ALL(*) selects it whenever FROM
@@ -747,7 +754,7 @@ valueClause
     // not subscript-trigger words, so `FROM (1)` lexes as DEFAULT LPAREN/RPAREN. The 2002 introduction gate is
     // recognition-fired by VersionConformancePass ParseArm.VisitValueClause on a valueClauseTablePhrase.
     : (VALUE | VALUES) (IS | ARE)? valueClauseTablePhrase+
-    | (VALUE | VALUES) (IS | ARE)? valueItem ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? COMMA? valueItem)*
+    | (VALUE | VALUES) (IS | ARE)? valueItem (COMMA? valueItem)*
       // ⛔ WHEN, SET AND TO ARE OPTIONAL WORDS (kb/Work PB695 family 2 — the sibling sweep the audit cannot see,
       // because a word REQUIRED INSIDE an optional group never reaches its candidate list). Measured off the
       // printed §13.18.63.2 format 3 (PDF p546 / folio 516): the bracket reads `[ WHEN SET TO FALSE IS
@@ -810,7 +817,7 @@ valueClauseTablePhrase
 
 valueItem
     : valueClauseRange
-    | valueClauseOperand ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? valueClauseOperand)*
+    | valueClauseOperand valueClauseOperand*
     ;
 
 // SIGN Clause
@@ -848,24 +855,15 @@ initializeStatement
       initializeDefaultPhrase?
     ;
 
-// `{ identifier-1 } …` (§14.9.20.2) — `dataReferenceList` plus ONE guard, and the guard is the same one
-// `valueClause` carries for PROPERTY: a word §8.9 RESERVES at the compile edition can never be a
-// user-defined word (§8.3.2.1), so the greedy operand loop must not absorb it.
-// ⛔ WHY IT IS NEEDED HERE AND ONLY HERE. Relaxing THEN and TO to the optional words the printed format
-// makes them leaves `INITIALIZE X DEFAULT` as the shortest legal spelling of `INITIALIZE X THEN TO DEFAULT`
-// — and DEFAULT rides `cobolWord` (tests/version-matrix/cobol-words.json, `nameSlot: true`), so without the
-// predicate ANTLR's greedy list loop takes it as a second identifier-1 and the statement dies on
-// COBOLNET1639 "'DEFAULT' is not defined". The narrow rule, rather than a guard inside the shared
-// `dataReferenceList`, is deliberate: MOVE/SORT/MERGE/OCCURS INDEXED share that rule and their
-// over-acceptance of a DEFAULT-named item is a separate question from this statement's ambiguity.
-// At COBOL-85 `reservedHere("DEFAULT")` is FALSE (reserved-words.json r85=false) AND the TO DEFAULT phrase
-// does not exist below 2002, so the loop keeps absorbing the word there — the correct '85 reading — and the
-// >>COBOL-WORDS overlay is honoured for free (`reservedHere` resolves through it, kb/Work PB250).
+// `{ identifier-1 } …` (§14.9.20.2). Relaxing THEN and TO to the optional words the printed format makes them
+// leaves `INITIALIZE X DEFAULT` as the shortest legal spelling of `INITIALIZE X THEN TO DEFAULT`, and DEFAULT
+// rides `cobolWord`. ⛔ The list ends at DEFAULT through the ONE generated `{!keywordContinuesHere()}?` on
+// cobolWord's keyword alternatives (kb/Work PB805) — the follow set of this loop contains the DEFAULT phrase —
+// never through a per-word guard here (the `reservedHere("DEFAULT")` predicate that stood here was one of
+// three hand-written families). The keyword reading wins at every edition: the union grammar parses the
+// DEFAULT phrase at 85 too and refuses it BY NAME there.
 initializeOperandList
-    : dataReference
-      ({!(reservedHere("DEFAULT")
-          && (TokenStream.LA(1) == DEFAULT || (TokenStream.LA(1) == COMMA && TokenStream.LA(2) == DEFAULT)))}?
-       COMMA? dataReference)*
+    : dataReference (COMMA? dataReference)*
     ;
 
 // [ALL | category-name] TO VALUE (§14.9.20)

@@ -132,7 +132,11 @@ for ($i = $start + 1; $i -lt $end; $i++) {
             $t = $t + $cont; $i = $j; break
         }
     }
-    if ($t -match '^[A-Z][A-Z0-9-]*[A-Z0-9]$' -and $t -notmatch '^(PAGE|NOTE)$') { [void]$iso2023.Add($t) }
+    # ⛔ PAGE IS A §8.9 WORD (kb/Work PB655). This line used to drop PAGE with NOTE — an OCR-era guard against a
+    # running page header, from before the list was a real Markdown list — and so un-reserved PAGE at 2023:
+    # `- PAGE` sits between PACKED-DECIMAL and PAGE-COUNTER (`cite.py --check 8.9 "PAGE-COUNTER"`), and the
+    # 2023 WRITE ADVANCING PAGE / RD PAGE LIMIT formats still spell it. Only the NOTE paragraph marker is excluded.
+    if ($t -match '^[A-Z][A-Z0-9-]*[A-Z0-9]$' -and $t -ne 'NOTE') { [void]$iso2023.Add($t) }
 }
 [void]$iso2023.Add('METHOD')                        # OCR omission (DEVLOG 578)
 
@@ -177,11 +181,18 @@ $rows = foreach ($w in $all) {
         $prov = if ($f85) { '1985-reserved, unreserved 2002/2014, re-reserved 2023 (ISO Annex E.2 item 25 — overrides the GnuCOBOL 2002/2014 lists, which keep the communication trio)' }
                 else      { 'added 2023 (ISO Annex E.2 item 25 = VCR row 32)' }
     }
-    elseif ($f23 -and -not $f14 -and $f85 -and $f02) {
-        # Reserved in 85 AND 2002 AND 2023, with Annex E recording NO 2023 (re-)addition — reservation does
-        # not flicker, so the 2014-source absence is a curation gap: interpolate r2014 (the REPORTS case).
-        $f14 = $true
-        $prov = 'continuous since 1985; the 2014 flag INTERPOLATED (85+2002+2023 reserved, Annex E silent ⇒ the 2014 source list has a gap)'
+    elseif ($f23 -and -not $f14 -and $f85) {
+        # Reserved in 85 AND 2023, with Annex E recording NO 2023 (re-)addition. ISO E.3.1: "Such incompatible
+        # additions are documented in E.2", and E.2 25) lists every word 2023 reserved that was user-defined
+        # before (the $added2023 branch above, which already caught the three 1985 RE-reservations). A word
+        # absent from that list was therefore NOT user-defined at 2014 — reservation did not flicker, so the
+        # 2014-source absence (and, when the 2002 list is silent too, the 2002 one) is a curation gap:
+        # interpolate both. kb/Work PB655: this is the REPORTS row, which sat 'medium' + "(inert)" while the
+        # lexer token made it anything but inert — reserved-at-85/2023 but refused as a raw parse error at
+        # 2002/2014 by a token no cobolWord admitted.
+        $prov = if ($f02) { 'continuous since 1985; the 2014 flag INTERPOLATED (85+2002+2023 reserved, Annex E silent ⇒ the 2014 source list has a gap)' }
+                else      { 'continuous since 1985; the 2002 AND 2014 flags INTERPOLATED (85+2023 reserved and ISO E.2 25) does not list it as a 2023 addition — E.3.1 documents every incompatible addition there ⇒ the GnuCOBOL 2002/2014 lists have a gap)' }
+        $f02 = $true; $f14 = $true
     }
     elseif ($f23 -and -not $f14) {
         # In the ISO 2023 list, unknown to the 2014 source, NOT an Annex-E addition: source disagreement.

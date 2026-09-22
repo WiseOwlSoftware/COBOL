@@ -9,124 +9,124 @@ options { tokenVocab = CobolLexer; }
 
 cobolWord
     : IDENTIFIER
-    | {userWordHere("ACTIVE-CLASS")}? ACTIVE_CLASS
-    | {userWordHere("ALIGNED")}? ALIGNED
-    | APPLY
-    | ARITHMETIC
-    | {userWordHere("AS")}? AS
-    | AUTO
-    | AUTOMATIC
-    | BACKGROUND_COLOR
-    | BELL
-    | BINARY_ENCODING
-    | BIT
-    | BLINK
-    | {userWordHere("BOOLEAN")}? BOOLEAN
-    | BYTES
-    | {userWordHere("B-AND")}? B_AND
-    | {userWordHere("B-NOT")}? B_NOT
-    | {userWordHere("B-OR")}? B_OR
-    | {userWordHere("B-XOR")}? B_XOR
-    | {userWordHere("CLOCK-UNITS")}? CLOCK_UNITS
-    | {userWordHere("COL")}? COL
-    | {userWordHere("COLS")}? COLS
-    | {userWordHere("COLUMN")}? COLUMN
-    | {userWordHere("COLUMNS")}? COLUMNS
-    | {userWordHere("COMMIT")}? COMMIT
-    | {userWordHere("CONDITION")}? CONDITION
-    | {userWordHere("CONSTANT")}? CONSTANT
-    | {userWordHere("CRT")}? CRT
-    | {userWordHere("CURSOR")}? CURSOR
-    | {userWordHere("DATA-POINTER")}? DATA_POINTER
-    | {userWordHere("DEBUGGING")}? DEBUGGING
-    | DECIMAL_ENCODING
-    | {userWordHere("DEFAULT")}? DEFAULT
-    | {userWordHere("DESTINATION")}? DESTINATION
-    | {userWordHere("EC")}? EC
-    | {userWordHere("EDITING")}? EDITING
-    | {userWordHere("END-RECEIVE")}? END_RECEIVE
-    | {userWordHere("END-SEND")}? END_SEND
-    | {userWordHere("ENTER")}? ENTER
-    | ENTRY_CONVENTION
-    | {userWordHere("EO")}? EO
-    | EOL
-    | EOS
-    | ERASE
-    | {userWordHere("EVERY")}? EVERY
-    | {userWordHere("EXCLUSIVE-OR")}? EXCLUSIVE_OR
-    | {userWordHere("FACTORY")}? FACTORY
-    | {userWordHere("FARTHEST-FROM-ZERO")}? FARTHEST_FROM_ZERO
-    | FLOAT_BINARY
-    | FLOAT_DECIMAL
-    | {userWordHere("FLOAT-INFINITY")}? FLOAT_INFINITY
-    | {userWordHere("FLOAT-NOT-A-NUMBER")}? FLOAT_NOT_A_NUMBER
-    | {userWordHere("FLOAT-NOT-A-NUMBER-QUIET")}? FLOAT_NOT_A_NUMBER_QUIET
-    | {userWordHere("FLOAT-NOT-A-NUMBER-SIGNALING")}? FLOAT_NOT_A_NUMBER_SIGNALING
-    | FOREGROUND_COLOR
-    | FOREVER
-    | {userWordHere("FORMAT")}? FORMAT
-    | FULL_
-    | {userWordHere("FUNCTION-POINTER")}? FUNCTION_POINTER
-    | {userWordHere("GET")}? GET
-    | {userWordHere("GROUP-USAGE")}? GROUP_USAGE
-    | HIGHLIGHT
-    | HIGH_ORDER_LEFT
-    | HIGH_ORDER_RIGHT
-    | IGNORING
-    | IMPLEMENTS
-    | {userWordHere("INTERFACE")}? INTERFACE
-    | INTERMEDIATE
-    | {userWordHere("IN-ARITHMETIC-RANGE")}? IN_ARITHMETIC_RANGE
-    | LENGTH
-    | {userWordHere("LOCATION")}? LOCATION
-    | LOWLIGHT
-    | MANUAL
-    | {userWordHere("MESSAGE")}? MESSAGE
-    | {userWordHere("MESSAGE-TAG")}? MESSAGE_TAG
-    | NATIONAL
-    | {userWordHere("NATIONAL-EDITED")}? NATIONAL_EDITED
-    | {userWordHere("NEAREST-TO-ZERO")}? NEAREST_TO_ZERO
-    | NORMAL
-    | NUMBERS
-    | {userWordHere("OBJECT-REFERENCE")}? OBJECT_REFERENCE
-    | ONLY
-    | {userWordHere("ORDER")}? ORDER
-    | {userWordHere("OVERRIDE")}? OVERRIDE
-    | {userWordHere("PADDING")}? PADDING
-    | PARSE
-    | {userWordHere("PRESENT")}? PRESENT
-    | {userWordHere("PROCEDURES")}? PROCEDURES
-    | PROCESSING
-    | {userWordHere("PROGRAM-POINTER")}? PROGRAM_POINTER
-    | {userWordHere("PROPERTY")}? PROPERTY
-    | {userWordHere("PROTOTYPE")}? PROTOTYPE
-    | {userWordHere("RAISE")}? RAISE
-    | {userWordHere("RAISING")}? RAISING
-    | {userWordHere("RECEIVE")}? RECEIVE
-    | {userWordHere("REFERENCES")}? REFERENCES
-    | REQUIRED
-    | {userWordHere("RERUN")}? RERUN
-    | {userWordHere("RESUME")}? RESUME
-    | {userWordHere("RETRY")}? RETRY
-    | REVERSE_VIDEO
-    | {userWordHere("ROLLBACK")}? ROLLBACK
-    | ROUNDING
-    | {userWordHere("SCREEN")}? SCREEN
-    | SECONDS
-    | SECURE
-    | {userWordHere("SEND")}? SEND
-    | {userWordHere("SHARING")}? SHARING
-    | {userWordHere("SOURCES")}? SOURCES
-    | STANDARD_BINARY
-    | STANDARD_DECIMAL
-    | STATEMENT
-    | UNDERLINE_
-    | {userWordHere("UNLOCK")}? UNLOCK
-    | {userWordHere("VALID")}? VALID
-    | {userWordHere("VALIDATE")}? VALIDATE
-    | {userWordHere("VALIDATE-STATUS")}? VALIDATE_STATUS
-    | {userWordHere("VAL-STATUS")}? VAL_STATUS
-    | {userWordHere("XOR")}? XOR
+    | {userWordHere("ACTIVE-CLASS") && !keywordContinuesHere()}? ACTIVE_CLASS
+    | {userWordHere("ALIGNED") && !keywordContinuesHere()}? ALIGNED
+    | {!keywordContinuesHere()}? APPLY
+    | {!keywordContinuesHere()}? ARITHMETIC
+    | {userWordHere("AS") && !keywordContinuesHere()}? AS
+    | {!keywordContinuesHere()}? AUTO
+    | {!keywordContinuesHere()}? AUTOMATIC
+    | {!keywordContinuesHere()}? BACKGROUND_COLOR
+    | {!keywordContinuesHere()}? BELL
+    | {!keywordContinuesHere()}? BINARY_ENCODING
+    | {!keywordContinuesHere()}? BIT
+    | {!keywordContinuesHere()}? BLINK
+    | {userWordHere("BOOLEAN") && !keywordContinuesHere()}? BOOLEAN
+    | {!keywordContinuesHere()}? BYTES
+    | {userWordHere("B-AND") && !keywordContinuesHere()}? B_AND
+    | {userWordHere("B-NOT") && !keywordContinuesHere()}? B_NOT
+    | {userWordHere("B-OR") && !keywordContinuesHere()}? B_OR
+    | {userWordHere("B-XOR") && !keywordContinuesHere()}? B_XOR
+    | {userWordHere("CLOCK-UNITS") && !keywordContinuesHere()}? CLOCK_UNITS
+    | {userWordHere("COL") && !keywordContinuesHere()}? COL
+    | {userWordHere("COLS") && !keywordContinuesHere()}? COLS
+    | {userWordHere("COLUMN") && !keywordContinuesHere()}? COLUMN
+    | {userWordHere("COLUMNS") && !keywordContinuesHere()}? COLUMNS
+    | {userWordHere("COMMIT") && !keywordContinuesHere()}? COMMIT
+    | {userWordHere("CONDITION") && !keywordContinuesHere()}? CONDITION
+    | {userWordHere("CONSTANT") && !keywordContinuesHere()}? CONSTANT
+    | {userWordHere("CRT") && !keywordContinuesHere()}? CRT
+    | {userWordHere("CURSOR") && !keywordContinuesHere()}? CURSOR
+    | {userWordHere("DATA-POINTER") && !keywordContinuesHere()}? DATA_POINTER
+    | {userWordHere("DEBUGGING") && !keywordContinuesHere()}? DEBUGGING
+    | {!keywordContinuesHere()}? DECIMAL_ENCODING
+    | {userWordHere("DEFAULT") && !keywordContinuesHere()}? DEFAULT
+    | {userWordHere("DESTINATION") && !keywordContinuesHere()}? DESTINATION
+    | {userWordHere("EC") && !keywordContinuesHere()}? EC
+    | {userWordHere("EDITING") && !keywordContinuesHere()}? EDITING
+    | {userWordHere("END-RECEIVE") && !keywordContinuesHere()}? END_RECEIVE
+    | {userWordHere("END-SEND") && !keywordContinuesHere()}? END_SEND
+    | {userWordHere("ENTER") && !keywordContinuesHere()}? ENTER
+    | {!keywordContinuesHere()}? ENTRY_CONVENTION
+    | {userWordHere("EO") && !keywordContinuesHere()}? EO
+    | {!keywordContinuesHere()}? EOL
+    | {!keywordContinuesHere()}? EOS
+    | {!keywordContinuesHere()}? ERASE
+    | {userWordHere("EVERY") && !keywordContinuesHere()}? EVERY
+    | {userWordHere("EXCLUSIVE-OR") && !keywordContinuesHere()}? EXCLUSIVE_OR
+    | {userWordHere("FACTORY") && !keywordContinuesHere()}? FACTORY
+    | {userWordHere("FARTHEST-FROM-ZERO") && !keywordContinuesHere()}? FARTHEST_FROM_ZERO
+    | {!keywordContinuesHere()}? FLOAT_BINARY
+    | {!keywordContinuesHere()}? FLOAT_DECIMAL
+    | {userWordHere("FLOAT-INFINITY") && !keywordContinuesHere()}? FLOAT_INFINITY
+    | {userWordHere("FLOAT-NOT-A-NUMBER") && !keywordContinuesHere()}? FLOAT_NOT_A_NUMBER
+    | {userWordHere("FLOAT-NOT-A-NUMBER-QUIET") && !keywordContinuesHere()}? FLOAT_NOT_A_NUMBER_QUIET
+    | {userWordHere("FLOAT-NOT-A-NUMBER-SIGNALING") && !keywordContinuesHere()}? FLOAT_NOT_A_NUMBER_SIGNALING
+    | {!keywordContinuesHere()}? FOREGROUND_COLOR
+    | {!keywordContinuesHere()}? FOREVER
+    | {userWordHere("FORMAT") && !keywordContinuesHere()}? FORMAT
+    | {!keywordContinuesHere()}? FULL_
+    | {userWordHere("FUNCTION-POINTER") && !keywordContinuesHere()}? FUNCTION_POINTER
+    | {userWordHere("GET") && !keywordContinuesHere()}? GET
+    | {userWordHere("GROUP-USAGE") && !keywordContinuesHere()}? GROUP_USAGE
+    | {!keywordContinuesHere()}? HIGHLIGHT
+    | {!keywordContinuesHere()}? HIGH_ORDER_LEFT
+    | {!keywordContinuesHere()}? HIGH_ORDER_RIGHT
+    | {!keywordContinuesHere()}? IGNORING
+    | {!keywordContinuesHere()}? IMPLEMENTS
+    | {userWordHere("INTERFACE") && !keywordContinuesHere()}? INTERFACE
+    | {!keywordContinuesHere()}? INTERMEDIATE
+    | {userWordHere("IN-ARITHMETIC-RANGE") && !keywordContinuesHere()}? IN_ARITHMETIC_RANGE
+    | {!keywordContinuesHere()}? LENGTH
+    | {userWordHere("LOCATION") && !keywordContinuesHere()}? LOCATION
+    | {!keywordContinuesHere()}? LOWLIGHT
+    | {!keywordContinuesHere()}? MANUAL
+    | {userWordHere("MESSAGE") && !keywordContinuesHere()}? MESSAGE
+    | {userWordHere("MESSAGE-TAG") && !keywordContinuesHere()}? MESSAGE_TAG
+    | {!keywordContinuesHere()}? NATIONAL
+    | {userWordHere("NATIONAL-EDITED") && !keywordContinuesHere()}? NATIONAL_EDITED
+    | {userWordHere("NEAREST-TO-ZERO") && !keywordContinuesHere()}? NEAREST_TO_ZERO
+    | {!keywordContinuesHere()}? NORMAL
+    | {!keywordContinuesHere()}? NUMBERS
+    | {userWordHere("OBJECT-REFERENCE") && !keywordContinuesHere()}? OBJECT_REFERENCE
+    | {!keywordContinuesHere()}? ONLY
+    | {userWordHere("ORDER") && !keywordContinuesHere()}? ORDER
+    | {userWordHere("OVERRIDE") && !keywordContinuesHere()}? OVERRIDE
+    | {userWordHere("PADDING") && !keywordContinuesHere()}? PADDING
+    | {!keywordContinuesHere()}? PARSE
+    | {userWordHere("PRESENT") && !keywordContinuesHere()}? PRESENT
+    | {userWordHere("PROCEDURES") && !keywordContinuesHere()}? PROCEDURES
+    | {!keywordContinuesHere()}? PROCESSING
+    | {userWordHere("PROGRAM-POINTER") && !keywordContinuesHere()}? PROGRAM_POINTER
+    | {userWordHere("PROPERTY") && !keywordContinuesHere()}? PROPERTY
+    | {userWordHere("PROTOTYPE") && !keywordContinuesHere()}? PROTOTYPE
+    | {userWordHere("RAISE") && !keywordContinuesHere()}? RAISE
+    | {userWordHere("RAISING") && !keywordContinuesHere()}? RAISING
+    | {userWordHere("RECEIVE") && !keywordContinuesHere()}? RECEIVE
+    | {userWordHere("REFERENCES") && !keywordContinuesHere()}? REFERENCES
+    | {!keywordContinuesHere()}? REQUIRED
+    | {userWordHere("RERUN") && !keywordContinuesHere()}? RERUN
+    | {userWordHere("RESUME") && !keywordContinuesHere()}? RESUME
+    | {userWordHere("RETRY") && !keywordContinuesHere()}? RETRY
+    | {!keywordContinuesHere()}? REVERSE_VIDEO
+    | {userWordHere("ROLLBACK") && !keywordContinuesHere()}? ROLLBACK
+    | {!keywordContinuesHere()}? ROUNDING
+    | {userWordHere("SCREEN") && !keywordContinuesHere()}? SCREEN
+    | {!keywordContinuesHere()}? SECONDS
+    | {!keywordContinuesHere()}? SECURE
+    | {userWordHere("SEND") && !keywordContinuesHere()}? SEND
+    | {userWordHere("SHARING") && !keywordContinuesHere()}? SHARING
+    | {userWordHere("SOURCES") && !keywordContinuesHere()}? SOURCES
+    | {!keywordContinuesHere()}? STANDARD_BINARY
+    | {!keywordContinuesHere()}? STANDARD_DECIMAL
+    | {!keywordContinuesHere()}? STATEMENT
+    | {!keywordContinuesHere()}? UNDERLINE_
+    | {userWordHere("UNLOCK") && !keywordContinuesHere()}? UNLOCK
+    | {userWordHere("VALID") && !keywordContinuesHere()}? VALID
+    | {userWordHere("VALIDATE") && !keywordContinuesHere()}? VALIDATE
+    | {userWordHere("VALIDATE-STATUS") && !keywordContinuesHere()}? VALIDATE_STATUS
+    | {userWordHere("VAL-STATUS") && !keywordContinuesHere()}? VAL_STATUS
+    | {userWordHere("XOR") && !keywordContinuesHere()}? XOR
     ;
 
 // The DECLARATION-position twin of the gated cobolWord alternatives (kb/Work PB300/PB137/PB693): the

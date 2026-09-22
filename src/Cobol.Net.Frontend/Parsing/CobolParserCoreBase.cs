@@ -333,6 +333,124 @@ public abstract class CobolParserCoreBase : Parser
         // exactly as reservedHere does, so composing the overlay twice would double-count it.
         => Canonical(keyword) is not { } w || ReservedWordSet.Default.AdmitsAsUserWord(w, Edition);
 
+    /// <summary>⛔ WHICH READING WINS WHEN A WORD COULD BE EITHER (kb/Work PB805 + PB655) — true when the lookahead
+    /// word, standing where a greedy operand list could take one more <c>cobolWord</c>, can instead be read as a
+    /// KEYWORD of whatever follows the list in this construct. Every non-IDENTIFIER <c>cobolWord</c> alternative
+    /// carries <c>{!keywordContinuesHere()}?</c> (generated, <c>scripts/gen-cobol-words.ps1</c>), so the list ENDS
+    /// there and the keyword reading wins.
+    /// <para>THE RULE. §8.3.2.1 3): "Context-sensitive words may be used as user-defined words and system-names in
+    /// contexts other than the language construct in which they are defined" — inside that construct the word IS
+    /// its keyword (§5.2.2/§5.2.3), and a word §8.9 reserves is never a user-defined word at all (§8.3.2.1 1)).
+    /// So a word that takes its keyword reading here (<see cref="IsKeywordReadingHere"/>) and that the enclosing
+    /// construct can read as its next keyword is not an operand of the list before it.</para>
+    /// <para>WHY DERIVED, NOT LISTED. The question used to be answered per word and per site — PROPERTY (two
+    /// VALUE-list predicates), DEFAULT (INITIALIZE), five phrase words (DELETE FILE) — and for every other word by
+    /// ALL(*) lookahead luck: <c>01 G VALUE N"AB" GROUP-USAGE NATIONAL.</c> compiled clean strict and drew three
+    /// errors under <c>--permissive</c>, because the migration mode admits GROUP-USAGE and <c>NATIONAL</c> kept the
+    /// swallowed reading viable to the period. Here the "what follows" set is COMPUTED from the ATN at the loop's
+    /// exit, through the live rule-invocation stack, so every list, every construct and every future keyword is
+    /// covered by construction.</para>
+    /// <para>MECHANICS. The <c>cobolWord</c> predicates sit at the left edge of every loop body that begins with a
+    /// name, so ANTLR hoists them into the LOOP DECISION: during that prediction <see cref="Recognizer{S,A}.State"/>
+    /// is the loop's decision state and <see cref="Parser.Context"/> its rule context. Anywhere else (the
+    /// alternative decision inside <c>cobolWord</c> itself, a declaration slot, an optional-phrase decision) this
+    /// returns false and the ordinary admission stands. The follow walk treats <c>cobolWord</c> and
+    /// <c>reservedGatedWord</c> as NAME positions, not keyword positions — otherwise the next operand of an
+    /// enclosing list would count as "a keyword that follows".</para></summary>
+    protected bool keywordContinuesHere()
+    {
+        var atn = Interpreter.atn;
+        if (State < 0 || State >= atn.states.Count || atn.states[State] is not Antlr4.Runtime.Atn.DecisionState d)
+            return false;
+        Antlr4.Runtime.Atn.ATNState? exit = null;
+        for (int i = 0; i < d.NumberOfTransitions && exit is null; i++)
+            if (d.Transition(i).target is Antlr4.Runtime.Atn.LoopEndState le) exit = le;
+        if (exit is null) return false;
+        int la = TokenStream.LA(1);
+        return IsKeywordReadingHere(la) && KeywordFollows(atn, exit, Context, la);
+    }
+
+    /// <summary>Whether the lookahead word takes its KEYWORD reading in an operand list (kb/Work PB805/PB655).
+    /// True when §8.9 reserves the word at this edition (it is never a user-defined word, §8.3.2.1 1) — it reaches
+    /// <c>cobolWord</c> only through the migration mode), or when it has no §8.9 row at all (a §8.10 context-
+    /// sensitive word: a keyword inside its construct, §8.3.2.1 3)). A word §8.9 leaves FREE at this edition —
+    /// GOBACK or END-DISPLAY at COBOL-85, ALTER at 2002 — is a user-defined word exactly when the program
+    /// DECLARES it (<see cref="declareName"/>): then ISO gives the source one reading and it is one more operand.
+    /// Undeclared, the user-word reading could only be an unresolvable reference, so the keyword reading wins and
+    /// the union grammar's named edition gate ("END-DISPLAY requires COBOL-2002") answers instead.
+    /// ⚠ DETERMINATION: GnuCOBOL (the survey model) drops such a word from its per-standard reserved list and so
+    /// always takes the user-word reading; this keeps its acceptance of every declared use and differs only in
+    /// the diagnostic for an undeclared one. Through the &gt;&gt;COBOL-WORDS overlay (<see cref="Canonical"/>).</summary>
+    private bool IsKeywordReadingHere(int tokenType)
+    {
+        string? literal = Vocabulary.GetLiteralName(tokenType);
+        if (literal is null || literal.Length < 3) return false;
+        if (Canonical(literal[1..^1].ToUpperInvariant()) is not { } w) return false;
+        var row = ReservedWords.Find(w);
+        return row is null || row.IsReservedAt(Edition.Year) || !(_declaredNames?.Contains(w) ?? false);
+    }
+
+    private HashSet<string>? _declaredNames;
+
+    /// <summary>Records a user-defined word the program DECLARES (a data-name, a file-name) — called by grammar
+    /// actions, which never run during prediction. Read by <see cref="IsKeywordReadingHere"/>.</summary>
+    protected void declareName(IToken? name)
+    {
+        if (name?.Text is { Length: > 0 } t) (_declaredNames ??= new(StringComparer.Ordinal)).Add(t.ToUpperInvariant());
+    }
+
+    /// <summary>The LL(1) follow walk behind <see cref="keywordContinuesHere"/>: can <paramref name="tokenType"/>
+    /// be matched as a TOKEN (not as a name) starting at <paramref name="start"/>, following rule returns through
+    /// <paramref name="outer"/> once the local invocation stack empties.</summary>
+    private static bool KeywordFollows(Antlr4.Runtime.Atn.ATN atn, Antlr4.Runtime.Atn.ATNState start,
+                                       RuleContext? outer, int tokenType)
+    {
+        var visited = new HashSet<(int, ReturnFrame?, RuleContext?)>();
+        var work = new Stack<(Antlr4.Runtime.Atn.ATNState S, ReturnFrame? Local, RuleContext? Outer)>();
+        work.Push((start, null, outer));
+        while (work.Count > 0)
+        {
+            var (s, local, ctx) = work.Pop();
+            if (!visited.Add((s.stateNumber, local, ctx))) continue;
+            if (s is Antlr4.Runtime.Atn.RuleStopState)
+            {
+                if (local is not null) work.Push((local.Follow, local.Next, ctx));
+                else if (ctx is { invokingState: >= 0 } && atn.states[ctx.invokingState].Transition(0)
+                             is Antlr4.Runtime.Atn.RuleTransition back)
+                    work.Push((back.followState, null, ctx.Parent));
+                continue;
+            }
+            for (int i = 0; i < s.NumberOfTransitions; i++)
+            {
+                var t = s.Transition(i);
+                switch (t)
+                {
+                    case Antlr4.Runtime.Atn.RuleTransition rt:
+                        if (rt.target.ruleIndex is CobolParserCore.RULE_cobolWord or CobolParserCore.RULE_reservedGatedWord)
+                            continue;   // a NAME position — never the keyword reading
+                        // ANTLR's own LL1Analyzer guard: a rule already on the local stack is not re-entered
+                        // at the same lookahead (an epsilon cycle through a rule would never terminate).
+                        bool onStack = false;
+                        for (var f = local; f is not null && !onStack; f = f.Next) onStack = f.RuleIndex == rt.target.ruleIndex;
+                        if (!onStack) work.Push((rt.target, new ReturnFrame(rt.followState, rt.target.ruleIndex, local), ctx));
+                        break;
+                    case Antlr4.Runtime.Atn.WildcardTransition or Antlr4.Runtime.Atn.NotSetTransition:
+                        break;         // matches "anything": no keyword is named there
+                    default:
+                        if (t.IsEpsilon) work.Push((t.target, local, ctx));
+                        else if (t.Matches(tokenType, TokenConstants.MinUserTokenType, atn.maxTokenType)) return true;
+                        break;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>One frame of the follow walk's LOCAL rule-invocation stack (the rules it descended into itself,
+    /// above the parser's live <see cref="RuleContext"/> chain). A reference type so the visited set keys on
+    /// frame identity.</summary>
+    private sealed record ReturnFrame(Antlr4.Runtime.Atn.ATNState Follow, int RuleIndex, ReturnFrame? Next);
+
     /// <summary>The §8.9 message for a syntax error whose offending token is a RESERVATION-GATED word, or null
     /// when the error is about something else (kb/Work PB693).
     /// <para>The gate removes such a word from <c>cobolWord</c> at the editions §8.9 reserves it, which is right —

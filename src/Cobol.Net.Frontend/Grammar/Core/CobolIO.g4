@@ -35,7 +35,7 @@ fileControlParagraph
 // — OPEN/CLOSE take file-name LISTS, and re-admitting the word there would let a list absorb the next
 // statement's leading keyword again (the PB693 defect). DataBinder reads `grp.fileName()` null-safely.
 fileControlClauseGroup
-    : SELECT OPTIONAL? (fileName | reservedGatedWord)
+    : SELECT OPTIONAL? (fileName | reservedGatedWord) { declareName(TokenStream.LT(-1)); }   // keywordContinuesHere (kb/Work PB805)
       fileControlClauses*
       DOT
     ;
@@ -736,11 +736,10 @@ deleteInvalidKeyPhrase
 deleteFileStatement
     : DELETE FILE OVERRIDE? fileName
       // §14.9.10.2 Format 2's {file-name-1}… repetition (kb/Work PB134; GR12 — as-if one statement per
-      // name). The loop continuation is PREDICATED on the lookahead not being a phrase keyword: RETRY /
-      // ON / NOT / EXCEPTION / END-DELETE all lex as word tokens the edition-shared cobolWord can match
-      // (reservation is a per-edition BIND screen), so a greedy fileName+ swallowed `RETRY …` as a
-      // second file-name — the gate's delete_file_sharing red. Left-edge predicate per the standing rule.
-      ({TokenStream.LA(1) != RETRY && TokenStream.LA(1) != ON && TokenStream.LA(1) != NOT && TokenStream.LA(1) != EXCEPTION && TokenStream.LA(1) != END_DELETE}? fileName)*
+      // name). A phrase keyword (RETRY …) ends the list through the ONE generated `{!keywordContinuesHere()}?`
+      // on cobolWord's keyword alternatives (kb/Work PB805) — this loop's follow set holds the RETRY / ON
+      // EXCEPTION / END-DELETE phrases — never through the five-word hand predicate that stood here.
+      fileName*
       (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       deleteFileOnException?
       END_DELETE?

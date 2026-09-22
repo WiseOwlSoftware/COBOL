@@ -492,6 +492,25 @@ tokens, so the funnel reads the subrule's own text and needs no list either. `PR
 `dataName` alternative ON PURPOSE — it is reserved at *every* edition and NC205A legally names a data item with
 it, so it must never reach the funnel.
 
+⛔ **WHICH READING WINS WHEN A WORD COULD BE AN OPERAND OR THE NEXT KEYWORD — ONE derived predicate (kb/Work
+PB805).** A greedy operand list whose items bottom out at `cobolWord` absorbs any keyword token `cobolWord`
+admits, and the construct that keyword begins vanishes. The answer used to be per word and per list — PROPERTY
+in two VALUE loops, DEFAULT in INITIALIZE, five phrase words in DELETE FILE — and ALL(*) lookahead luck
+everywhere else, so under `--permissive` (which restores GROUP-USAGE as a user word) `01 G VALUE N"AB"
+GROUP-USAGE NATIONAL.` lost its §13.18.29 clause. Now every keyword-token `cobolWord` alternative carries the
+generated `{!keywordContinuesHere()}?` (`CobolParserCoreBase`). ANTLR hoists it into the loop decision of every
+list whose body opens with a name; there it walks the ATN from the loop's EXIT through the live rule-invocation
+stack and ends the list when the lookahead can be matched as a KEYWORD of what follows (`cobolWord` and
+`reservedGatedWord` count as name positions, not keyword positions). The rule it implements: §8.3.2.1 1)
+(a reserved word is never a user-defined word) and 3) (a context-sensitive word is a keyword inside its
+construct). A word §8.9 leaves FREE at the compile edition takes its keyword reading only when the program does
+not DECLARE it (`declareName`, a grammar action on `dataName` and the SELECT file-name): declared, ISO gives one
+reading and it stays an operand (`DISPLAY "A=" ALTER` at 2002); undeclared, the user-word reading could only be
+an unresolved reference, so the union grammar's named edition gate answers (`DISPLAY X END-DISPLAY` at 85). ⚠
+That last clause is a DETERMINATION — GnuCOBOL takes the user-word reading unconditionally; this compiler differs
+only in the diagnostic an undeclared use draws. `OperandListKeywordDriftTests` bans hand-written `TokenStream.LA(`
+guards in the parser grammar and proves the GROUP-USAGE family over its derived population.
+
 `CobolWordsDriftTests` asserts the generated grammar fragments match the JSON (parallel to the existing
 `ReservedWordsDriftTests`), and `CobolWordsG4_ReservationGate_Is_Derived_From_Section89` RECOMPUTES the step-4b
 derivation independently — from `reserved-words.json` and the `functionName` rule, never from the grammar it is
