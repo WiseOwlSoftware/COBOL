@@ -265,6 +265,9 @@ public sealed record ReportOccursSpec(
     /// VERTICALLY; every other repeating entry repeats horizontally. Writing it down once is what keeps a
     /// vertical entry's integer-3 out of the horizontal displacement and vice versa.</summary>
     public ReportRepetitionAxis Axis { get; init; } = ReportRepetitionAxis.Horizontal;
+
+    /// <summary>Where data-name-1 was written — its post-build resolution reports there.</summary>
+    public Editions.DiagnosticCursor DependingAt { get; init; }
 }
 
 /// <summary>The axis a report-group repeating entry repeats on (ISO §13.18.38.4 GR10/GR12; see
@@ -708,6 +711,7 @@ public sealed partial class DataBinder
     {
         var entries = rd.reportGroupEntry();
         ScreenReportLineNesting(entries, model);
+        ScreenReportEntryClausePresence(entries, model);
         BindReportEntries(entries, 0, entries.Length, model, new ReportGroupBuild());
     }
 
@@ -732,6 +736,80 @@ public sealed partial class DataBinder
                     + "§13.18.35.3 SR4)");
                 break;
             }
+        }
+    }
+
+    /// <summary>⛔ THE §13.15.3 CLAUSE-PRESENCE RULES, screened ONCE per WRITTEN entry over the flat entry array
+    /// (kb/Work PB853) — the <see cref="ScreenReportLineNesting"/> shape, and for the same reason: they are
+    /// properties of the entry as written, and the §13.18.38 Format 3 subtree replay binds OCCURRENCES of it, so a
+    /// screen inside <c>BindReportEntry</c> would report once per repetition (kb/Work PB884).
+    /// <list type="bullet">
+    /// <item>SR10 — "Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM
+    /// clause." It had NO site, and the binder FABRICATED the missing operand: a figurative SPACE sender stood in
+    /// for the clause the programmer never wrote, so <c>03 COLUMN 1 PIC 999.</c> printed <c>000</c> (and at one
+    /// point aborted the run unit), while the PICTURE-less <c>03 COLUMN 1.</c> was refused only by accident, under
+    /// the SR12 PICTURE rule. The fabrication is deleted; this screen is what makes that sound.</item>
+    /// <item>SR11 — "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE clauses may be written only in
+    /// an elementary entry." A group entry's PICTURE and VALUE were silently discarded.</item>
+    /// <item>SR13 — "A COLUMN clause shall be specified in each elementary entry that has a VALUE clause." A
+    /// column-less VALUE entry printed nothing, in silence.</item>
+    /// <item>SR15 — "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified."</item>
+    /// </list>
+    /// SR8 is <see cref="ScreenReportLineNesting"/> (its §13.18.35.3 SR4 twin), SR9 is the binder's
+    /// <c>ReportColumnWithoutLine</c> arm, and SR12/SR14 are the PICTURE arm, which needs the analysed picture.
+    /// An entry is ELEMENTARY when the entry after it is not subordinate to it (§13.15.4 GR1: "The report group is
+    /// defined by this entry and all its subordinate entries").</summary>
+    private void ScreenReportEntryClausePresence(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    {
+        for (int i = 0; i < entries.Length; i++)
+        {
+            var ge = entries[i];
+            int.TryParse(ge.levelNumber().GetText(), out int level);
+            bool elementary = i + 1 >= entries.Length
+                || !int.TryParse(entries[i + 1].levelNumber().GetText(), out int next) || next <= level;
+            bool column = false, source = false, value = false, sum = false, picture = false, groupIndicate = false,
+                justifiedOrBwz = false;
+            foreach (var c in ge.reportGroupClause())
+            {
+                column |= c.reportColumnClause() is not null;
+                source |= c.reportSourceClause() is not null;
+                value |= c.valueClause() is not null;
+                sum |= c.reportSumClause() is not null;
+                picture |= c.pictureClause() is not null;
+                groupIndicate |= c.reportGroupIndicateClause() is not null;
+                justifiedOrBwz |= c.justifiedClause() is not null || c.blankWhenZeroClause() is not null;
+            }
+            string where = $"RD '{model.Name}' entry '{ge.reportGroupName()?.GetText() ?? "FILLER"}'";
+            using var _ = Edition.At(ge);
+            if (!elementary)
+            {
+                var written = new List<string>();
+                if (picture) written.Add("PICTURE");
+                if (column) written.Add("COLUMN");
+                if (source) written.Add("SOURCE");
+                if (value) written.Add("VALUE");
+                if (sum) written.Add("SUM");
+                if (groupIndicate) written.Add("GROUP INDICATE");
+                if (written.Count > 0)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a group entry and writes "
+                        + $"{string.Join(", ", written)}; the PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE "
+                        + "clauses may be written only in an elementary entry (ISO §13.15.3 SR11)");
+            }
+            else
+            {
+                if (column && !source && !value && !sum)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a COLUMN clause but no "
+                        + "SOURCE, VALUE or SUM clause; every elementary entry with a COLUMN clause shall also "
+                        + "contain either a SOURCE, VALUE or SUM clause (ISO §13.15.3 SR10)");
+                if (value && !column)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a VALUE clause but no "
+                        + "COLUMN clause; a COLUMN clause shall be specified in each elementary entry that has a "
+                        + "VALUE clause (ISO §13.15.3 SR13)");
+            }
+            if (justifiedOrBwz && !column)
+                Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} specifies BLANK WHEN ZERO or "
+                    + "JUSTIFIED without a COLUMN clause; if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN "
+                    + "clause shall also be specified (ISO §13.15.3 SR15)");
         }
     }
 
@@ -1093,8 +1171,21 @@ public sealed partial class DataBinder
                     + unit + " (ISO §13.18.38.3 SR26)");
         }
 
-        var (dn, dq) = depending is not null ? KeyReference(depending) : (null, (IReadOnlyList<string>)[]);
-        return new ReportOccursSpec(min, max, dn, dq, step) { Axis = axis };
+        // ⛔ data-name-1 IS A QUALIFIED-DATA-NAME, SCREENED (kb/Work PB885). ISO §13.18.38.3 SR2 (all formats):
+        // "Data-name-1 and data-name-2 shall not be subscripted." The grammar's shared dataReference admits a
+        // subscript, and the bare KeyReference capture used here DROPPED it in silence — `DEPENDING ON WS-TE (2)`
+        // bound to the unsubscripted name and printed the wrong number of repetitions. ClauseDataName is the ONE
+        // data-name-n capture the data-division OCCURS clause, the FD clauses and the file-control keys share.
+        string? dn = null;
+        IReadOnlyList<string> dq = [];
+        Editions.DiagnosticCursor dAt = default;
+        if (depending is not null)
+        {
+            (dn, dq) = ClauseDataName(depending, $"{where}: OCCURS … DEPENDING ON");
+            using var _d = Edition.At(depending);
+            dAt = Edition.Cursor;
+        }
+        return new ReportOccursSpec(min, max, dn, dq, step) { Axis = axis, DependingAt = dAt };
     }
 
     /// <summary>Resolve one repeating entry's <c>DEPENDING ON data-name-1</c> (ISO §13.18.38 Format 3) and apply
@@ -1102,13 +1193,10 @@ public sealed partial class DataBinder
     private void ResolveReportOccursDepending(ReportOccursSpec spec, ReportModel model, HashSet<ReportOccursSpec> seen)
     {
         if (spec.DependingName is null || !seen.Add(spec)) return;
-        spec.DependingItem = LookupQualified(spec.DependingName, spec.DependingQualifiers);
-        if (spec.DependingItem is null)
-        {
-            Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"RD '{model.Name}': OCCURS … DEPENDING ON "
-                + $"'{spec.DependingName}' does not resolve to a data item (ISO §8.4.2.1)");
-            return;
-        }
+        // The ONE clause-operand resolver (§8.4.2.2 uniqueness; silent for an operand the capture refused).
+        spec.DependingItem = ResolveClauseOperand(spec.DependingName, spec.DependingQualifiers,
+            $"RD '{model.Name}': OCCURS … DEPENDING ON", spec.DependingAt);
+        if (spec.DependingItem is null) return;
         // SR17 read exactly as the data-division OCCURS reads it (an index item is NOT an integer data item).
         if (spec.DependingItem.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Scale: 0 })
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"RD '{model.Name}': OCCURS … DEPENDING ON "
@@ -1439,6 +1527,16 @@ public sealed partial class DataBinder
                     chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), usageText ?? inheritedUsage));
                     return;
                 }
+                // ⛔ NO OPERAND, NO PRINTABLE ITEM (kb/Work PB853). An entry with a COLUMN clause and no SOURCE,
+                // VALUE or SUM operand is either an ISO §13.15.3 SR10 violation ScreenReportEntryClausePresence
+                // already refused, or one whose written operands were each refused at their own clause. A
+                // figurative SPACE sender used to be FABRICATED here in place of the missing operand — the
+                // compiler inventing source the programmer did not write — which printed `000` under PIC 999.
+                if (sumClauses.Count == 0 && sourceOps.Count == 0 && valueRaws.Count == 0)
+                {
+                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), usageText ?? inheritedUsage));
+                    return;
+                }
                 // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
                 // MOVE conversion path renders the §13.18.53.4 GR1 implicit MOVE. A printable item is a
                 // USAGE-DISPLAY elementary item; its numeric face stores its character IMAGE (StoreAsImage).
@@ -1525,12 +1623,12 @@ public sealed partial class DataBinder
                     MarkImageForced(item);      // the collected image fact — compose wants the printable CHARACTER image
                 // THE OPERAND LIST (§13.18.63.2 format 4 / §13.18.53.2 — both clauses write `{ operand } …`).
                 // SUM wins the entry (§13.18.54.4 GR4 — the sum counter acts as the source item); then the
-                // SOURCE operands; then the VALUE operands; then §13.15's empty printable item.
+                // SOURCE operands; then the VALUE operands. There is no fourth arm: §13.15.3 SR10 forbids the
+                // operand-less entry, and the guard above returns before one reaches here (kb/Work PB853).
                 List<ReportFieldSource> srcs =
                     sum is not null ? [new FieldSumSource(sum.Id)]
                     : sourceOps.Count > 0 ? sourceOps
-                    : valueRaws.Count > 0 ? [.. valueRaws.Select(r => (ReportFieldSource)new FieldValueSource(r))]
-                    : [new FieldValueSource("SPACE")];   // no VALUE/SOURCE/SUM ⇒ spaces (ISO §13.15 — empty item)
+                    : [.. valueRaws.Select(r => (ReportFieldSource)new FieldValueSource(r))];
                 // SOURCE naming the entry's own VARYING counter (§13.18.64.4 GR4 NOTE — a counter is a source
                 // item). Per OPERAND: a multi-operand SOURCE may name a counter in any of its positions.
                 for (int si = 0; si < srcs.Count; si++)

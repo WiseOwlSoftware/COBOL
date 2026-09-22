@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
@@ -34,8 +35,15 @@ public sealed partial class DataBinder
         foreach (var kc in occ.occursKeyClause())
         {
             bool descending = kc.DESCENDING() is not null;
+            // SCREENED first (kb/Work PB885): §13.18.38.3 SR2 "Data-name-1 and data-name-2 shall not be
+            // subscripted" and SR5 "Data-name-2 shall be specified without the subscripting normally required" —
+            // a written subscript used to be dropped here in silence. A refused key is not recorded: the
+            // refusal is the verdict, and a key named by its written spelling would only draw a second one.
             foreach (var k in kc.dataReference())
-                keys.Add(new OccursKey(k.cobolWord()?.GetText() ?? k.GetText(), descending));
+            {
+                var (keyName, _) = ClauseDataName(k, $"{where}: OCCURS … KEY IS");
+                if (!_refusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, descending));
+            }
         }
 
         // Format 4 — a DYNAMIC-capacity table (§13.18.38 Format 4, D9): capture CAPACITY IN / FROM / TO / INITIALIZED
@@ -49,7 +57,8 @@ public sealed partial class DataBinder
             string? capName = null; int? fromCap = null; int? toCap = null; bool initialized = false;
             foreach (var ph in occ.occursDynamicPhrase())
             {
-                if (ph.CAPACITY() is not null) capName = ph.dataReference()?.GetText();
+                if (ph.CAPACITY() is not null && ph.dataReference() is { } capRef)
+                    capName = CapacityRegisterName(capRef, where);
                 else if (ph.INITIALIZED() is not null) initialized = true;
                 else if (ph.FROM() is not null && int.TryParse(ph.integerLiteral()?.GetText(), out int fv)) fromCap = fv;
                 else if (ph.TO() is not null && int.TryParse(ph.integerLiteral()?.GetText(), out int tv)) toCap = tv;
@@ -75,14 +84,42 @@ public sealed partial class DataBinder
         int min = !depending ? max
             : bounds.Length > 1 ? OccursBoundValue(bounds[0], where) ?? 1
             : 1;
+        // data-name-1 — a QUALIFIED-DATA-NAME through the ONE data-name-n capture (kb/Work PB885). The whole
+        // reference's GetText() stood here: `DEPENDING ON CNT OF G1` became the undefined name `CNTOFG1` (legal
+        // source rejected), and `DEPENDING ON WS-TE (2)` drew "not defined" instead of §13.18.38.3 SR2.
+        string? depName = null;
+        IReadOnlyList<string> depQuals = [];
+        if (depending && occ.dataReference() is { } depRef)
+            (depName, depQuals) = ClauseDataName(depRef, $"{where}: OCCURS … DEPENDING ON");
         var spec = new OccursSpec
         {
             Min = min,
             Max = max,
-            DependingName = depending ? occ.dataReference()?.GetText() : null,
+            DependingName = depName,
+            DependingQualifiers = depQuals,
         };
         spec.Keys.AddRange(keys);
         return spec;
+    }
+
+    /// <summary>The name a <c>CAPACITY IN data-name-3</c> phrase DEFINES (ISO §13.18.38.3 SR30 — "Data-name-3 shall
+    /// not be defined elsewhere in the source element", i.e. the phrase is its definition), or null when the
+    /// written operand is not a data-name. SR31 — "Data-name-3 shall not be subscripted" — and the §8.4.2.2.2
+    /// qualified-data-name shape are the <see cref="ClauseDataName"/> screen; a QUALIFIER is refused here too,
+    /// because a defining occurrence names the register and SR30 itself supplies its qualification ("it shall be
+    /// treated as though implicitly defined at the same level as the entry containing the OCCURS clause"). The
+    /// capture was the whole reference's <c>GetText()</c>, so <c>CAPACITY IN CAP3 (1)</c> silently defined a
+    /// register spelled <c>CAP3(1)</c> (kb/Work PB885's sibling sweep).</summary>
+    private string? CapacityRegisterName(Core.DataReferenceContext capRef, string where)
+    {
+        var (name, quals) = ClauseDataName(capRef, $"{where}: OCCURS DYNAMIC CAPACITY IN");
+        if (_refusedClauseOperands.Contains(name)) return null;
+        if (quals.Count == 0) return name;
+        using var _ = Edition.At(capRef);
+        Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName, $"{where}: OCCURS DYNAMIC CAPACITY IN "
+            + $"'{WrittenText(capRef)}' is qualified; data-name-3 is DEFINED by the phrase (ISO §13.18.38.3 SR30), "
+            + "and a defining occurrence is a bare data-name whose qualification SR30 itself supplies");
+        return null;
     }
 
     /// <summary>
@@ -129,7 +166,31 @@ public sealed partial class DataBinder
             // place — + §13.18.38 SR20, data-name-1 lies within the same record). Otherwise fall back to the
             // scope-aware lookup (M2-OO-1h): a method table's data-name-1 resolves in the owning method's scope first
             // (§11.7.4 GR5), then a visible object/program item.
-            DataItem? dep = FindInSubtree(RootOf(item), depName);
+            // A data-name-1 the capture REFUSED (§13.18.38.3 SR2 — subscripted, or not a data-name at all) was
+            // reported there; one fault, one verdict (kb/Work PB885).
+            if (_refusedClauseOperands.Contains(depName)) continue;
+            // A QUALIFIED data-name-1 (§8.4.2.2.2 Format 1) resolves through the ONE qualifier matcher, which
+            // counts survivors (§8.4.2.2.1 — "uniqueness shall be established through qualification").
+            DataItem? qualified = null;
+            if (spec.DependingQualifiers.Count > 0)
+            {
+                var survivors = QualifiedCandidates(depName, spec.DependingQualifiers, ScopeOf(RootOf(item)));
+                // A TYPEDEF clone's own record first (the unqualified arm's rule below, review DEVLOG 664 fix #4).
+                var own = survivors.Where(s => ReferenceEquals(RootOf(s), RootOf(item))).ToList();
+                if (own.Count == 1) survivors = own;
+                if (survivors.Count != 1)
+                {
+                    string written = depName + " OF " + string.Join(" OF ", spec.DependingQualifiers);
+                    Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{written}' on '{subject}': data-name-1 "
+                        + (survivors.Count == 0
+                            ? "is not defined under the given qualifiers"
+                            : $"does not uniquely identify a data item — {survivors.Count} declarations match")
+                        + " (ISO §8.4.2.2.1: uniqueness shall be established through qualification)");
+                    continue;
+                }
+                qualified = survivors[0];
+            }
+            DataItem? dep = qualified ?? FindInSubtree(RootOf(item), depName);
             if (dep is null)
             {
                 if (!Symbols.TryResolve(depName, ScopeOf(RootOf(item)), out var cands))

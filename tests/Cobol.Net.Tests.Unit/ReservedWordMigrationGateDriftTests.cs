@@ -82,7 +82,10 @@ public sealed class ReservedWordMigrationGateDriftTests
     /// which is the user-defined-word slot §8.3.2.1 rule 1 governs. When the gate admits an always-reserved word
     /// the loop swallows it and the clause it begins vanishes; when the gate holds, the word has no reading here
     /// and the entry is refused — identically on both severity axes, because the migration mode has nothing to
-    /// restore for such a word.</summary>
+    /// restore for such a word.
+    /// <para>The entry writes COLUMN because §13.15.3 SR13 requires it of every elementary report entry with a VALUE
+    /// clause — the control used to omit it, and became non-conforming source the day kb/Work PB853 enforced SR13
+    /// (COBOLNET2247).</para></summary>
     private const string ProbeTemplate = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. PB792D{0}.
@@ -96,7 +99,7 @@ public sealed class ReservedWordMigrationGateDriftTests
         REPORT SECTION.
         RD R-DRIFT PAGE LIMIT 20 LINES.
         01 DET TYPE DE LINE PLUS 1.
-           03 VALUE "AB"{1} PIC X(2).
+           03 COLUMN 1 VALUE "AB"{1} PIC X(2).
         PROCEDURE DIVISION.
         MAIN.
             OPEN OUTPUT PRT.

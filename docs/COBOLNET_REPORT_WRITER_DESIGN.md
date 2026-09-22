@@ -326,6 +326,25 @@ off-by-one through every later counter check.
   LINE / multiple COLUMN — all three LIVE vehicles;
   SR2 — the counter shall not be defined elsewhere (`ByName` probe); SR3 — the counter shall not appear in its
   own FROM. `SOURCE IS counter` (same entry, unqualified) rebinds to `FieldVaryingSource` (§13.18.64.4 GR4 NOTE).
+- **The §13.15.3 CLAUSE-PRESENCE family = COBOLNET2247** (`report-entry-clause-presence`, one bundled code;
+  kb/Work PB853), screened by `ScreenReportEntryClausePresence` ONCE per written entry over the flat RD entry
+  array, before the walk — the `ScreenReportLineNesting` shape, so a §13.18.38 format 3 replay cannot
+  multiply it. An entry is ELEMENTARY when the entry after it is not subordinate to it (§13.15.4 GR1). SR10 —
+  an elementary entry with a COLUMN clause also contains a SOURCE, VALUE or SUM clause; SR11 — PICTURE,
+  COLUMN, SOURCE, VALUE, SUM and GROUP INDICATE only in an elementary entry; SR13 — an elementary VALUE entry
+  has a COLUMN clause; SR15 — BLANK WHEN ZERO / JUSTIFIED need a COLUMN clause. SR8 is `ScreenReportLineNesting`
+  (§13.18.35.3 SR4), SR9 the binder's `ReportColumnWithoutLine` arm, SR12/SR14 the PICTURE arm (it needs the
+  analysed picture). ⛔ **The binder never invents an operand**: a printable entry with no SOURCE/VALUE/SUM
+  operand left (SR10 refused it, or each written operand was refused at its own clause) produces NO field —
+  the figurative-SPACE sender that once stood in for it is gone, pinned by
+  `OccursOperandCaptureDriftTests.TheReportBinder_NeverFabricatesAnOperand`.
+- **Every `data-name-n` operand of the OCCURS clause goes through the ONE capture `ClauseDataName`**
+  (kb/Work PB885) — format 3's `DEPENDING ON data-name-1` here and the data-division format 2/4 operands
+  (`DEPENDING`, `KEY`, `CAPACITY IN`) alike: §13.18.38.3 SR2/SR5/SR31 forbid a subscript, and §8.4.2.2.2
+  Format 1 admits IN/OF qualifiers, so a subscripted operand draws COBOLNET2024 and a qualified one keeps its
+  qualifiers. data-name-1 then resolves through `ResolveClauseOperand` (survivor-counting, silent for an
+  operand the capture refused). `OccursOperandCaptureDriftTests` pins the callers of the dropping
+  `KeyReference` capture to the named report operands whose own rules permit or screen what it drops.
 
 ## 4. Emission (`CodeGen/Verbs/ReportWriterEmitter.cs`)
 

@@ -2854,7 +2854,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         var c = new OccursSpec
         {
-            Min = s.Min, Max = s.Max, DependingName = s.DependingName, IsDynamic = s.IsDynamic,
+            Min = s.Min, Max = s.Max, DependingName = s.DependingName, DependingQualifiers = s.DependingQualifiers,
+            IsDynamic = s.IsDynamic,
             CapacityName = s.CapacityName, InitialCap = s.InitialCap, ExpectedMax = s.ExpectedMax,
             Initialized = s.Initialized,
         };

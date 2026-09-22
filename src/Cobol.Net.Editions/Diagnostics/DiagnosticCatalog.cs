@@ -723,6 +723,24 @@ public static class DiagnosticCatalog
         + "the same entry\". SR4 forbids a LINE clause in an entry subordinate to one that also contains a LINE "
         + "clause.", "ISO §13.18.35.3 SR4/SR10");
 
+    // ── COBOLNET2247 — the §13.15.3 CLAUSE-PRESENCE family of a report group description entry, one code for
+    //    the family (the COBOLNET2021 / COBOLNET2199 bundling precedent); kb/Work PB853. ──
+    /// <summary>COBOLNET2247 — a report group description entry carries, or lacks, a clause in violation of
+    /// §13.15.3's clause-presence rules. SR10 had NO site: an elementary entry with a COLUMN clause and no
+    /// SOURCE, VALUE or SUM clause compiled clean and the binder FABRICATED a figurative SPACE operand for it,
+    /// which printed a made-up image (<c>000</c> under <c>PIC 999</c>) or aborted the run unit; SR11, SR13 and
+    /// SR15 had no site either, so a group entry's PICTURE/VALUE and a column-less VALUE, JUSTIFIED or BLANK WHEN
+    /// ZERO entry were dropped in silence. Screened ONCE per written entry, over the flat entry array, so a
+    /// §13.18.38 Format 3 subtree replay cannot multiply it.</summary>
+    public static readonly DiagnosticDescriptor ReportEntryClausePresence = new(
+        "COBOLNET2247", "report-entry-clause-presence", EditionSeverity.Error,
+        "A report group description entry violates a clause-presence syntax rule: every elementary entry with a "
+        + "COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause (§13.15.3 SR10); the PICTURE, "
+        + "COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE clauses may be written only in an elementary entry "
+        + "(SR11); a COLUMN clause shall be specified in each elementary entry that has a VALUE clause (SR13); "
+        + "and if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified (SR15).",
+        "ISO §13.15.3 SR10/SR11/SR13/SR15");
+
     public static readonly DiagnosticDescriptor ExternalTypeRule = new(
         "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
         "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
@@ -915,7 +933,7 @@ public static class DiagnosticCatalog
         "A COLUMN clause has no LINE clause in effect.", "ISO §13.18.14");
     public static readonly DiagnosticDescriptor ReportItemMissingPicture = new(
         NotImplemented, "report-item-missing-picture", EditionSeverity.Error,
-        "A printable report item has no PICTURE clause.", "ISO §13.16");
+        "A printable report item has no PICTURE clause and SR14 implies none.", "ISO §13.15.3 SR12/SR14");
     public static readonly DiagnosticDescriptor ReportPageTypeRequiresPage = new(
         NotImplemented, "report-page-type-requires-page", EditionSeverity.Error,
         "A PAGE HEADING/FOOTING group requires a PAGE clause defining the page limit.", "ISO §13.18.57.3 SR12");
@@ -3460,8 +3478,9 @@ public static class DiagnosticCatalog
     /// silently dropped (kb/Work PB205).</para></summary>
     public static readonly DiagnosticDescriptor ClauseOperandNotADataName = new(
         "COBOLNET2024", "clause-operand-not-a-data-name", EditionSeverity.Error,
-        "A file description or file control clause operand written where the clause's general format prints "
-        + "data-name-n is not a qualified-data-name (ISO §8.4.2.2.2 Format 1): it is a special register "
+        "A clause operand (a file description or file control clause, or an OCCURS clause's DEPENDING, KEY or "
+        + "CAPACITY phrase in the data or report section — §13.18.38.3 SR2/SR5/SR31) written where the clause's "
+        + "general format prints data-name-n is not a qualified-data-name (ISO §8.4.2.2.2 Format 1): it is a special register "
         + "(LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER — §8.4.3.1 Format 10 / Format 11 identifiers, confined "
         + "to the procedure division by §8.4.3.14.3 SR1 and §8.4.3.15.3 SR1), or it carries a subscript "
         + "(§8.4.2.3 — an identifier form; the operand shall not be subject to any OCCURS clauses), or it is "

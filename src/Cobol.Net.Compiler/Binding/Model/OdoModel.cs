@@ -31,6 +31,11 @@ public sealed class OccursSpec
     /// (Format 1) table.</summary>
     public string? DependingName { get; init; }
 
+    /// <summary>data-name-1's IN/OF qualifier words as written, innermost first (ISO §8.4.2.2.2 Format 1 — a
+    /// qualified-data-name). Before kb/Work PB885 the capture was the whole reference's <c>GetText()</c>, which
+    /// glued <c>CNT OF G1</c> into the undefined name <c>CNTOFG1</c> and rejected legal source.</summary>
+    public IReadOnlyList<string> DependingQualifiers { get; init; } = [];
+
     /// <summary>The resolved data-name-1 item — set by the post-build <c>DataBinder.OdoResolve</c> pass
     /// (data-name-1 may legally be declared anywhere outside the span the table starts, §13.18.38 SR20, so
     /// resolution must wait for the complete forest).</summary>
