@@ -192,7 +192,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             .Select(a =>
             {
                 var (protoRet, protoSig) = OoSignatureOf(a.Proto);
-                string args = string.Join(", ", a.Proto.Binding!.Formals.Select(f => $"ref {f.ParamName}"));
+                string args = string.Join(", ", a.Proto.Binding!.Formals.Select(f => OoArgPair(f.ParamName, f.OmittedFlag)));
                 return $"{protoRet} {a.Iface.CsName}.{a.Proto.CsName}({protoSig}) => this.{a.Impl.CsName}({args});   // covariant-return adapter (§9.3.8.2.3 5c2)";
             })
             .ToList();
@@ -236,6 +236,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         program.BeginUnit(w, data, refs);
         callState.SelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
+        callState.Formals = [];               // a class has no program-ABI formals — clear the last program's (GR1c recognition)
         ecState.UnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
         ecState.UnitHasF3Perform = false;     // an F3 PERFORM inside a method is loud-rejected (§9.1-B) — never emitted here
         dispatch.UseDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
@@ -327,18 +328,31 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             {
                 using (w.Block($"case {Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true)}:"))
                 {
-                    w.Line(OoUnivStop(m, $"__a.Length != {m.Binding!.Formals.Count}",
-                        $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {m.Binding!.Formals.Count} formal(s) "
-                        + "(ISO §14.9.23.4 GR7c/§14.8.2 — runtime conformance through a universal receiver)\""));
-                    for (int i = 0; i < m.Binding!.Formals.Count; i++)
+                    // §14.8.2.1 and §9.3.6 match rule 1: fewer arguments than formals is an EQUAL number when every formal to the
+                    // right of the last argument is OPTIONAL — so the least admissible count is one past the
+                    // last NON-optional formal (kb/Work PB757).
+                    int formals = m.Binding!.Formals.Count;
+                    int minArgs = m.Binding!.Formals.FindLastIndex(f => !f.Optional) + 1;
+                    w.Line(OoUnivStop(m, minArgs == formals ? $"__a.Length != {formals}" : $"__a.Length < {minArgs} || __a.Length > {formals}",
+                        $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {formals} formal(s) "
+                        + "(ISO §14.9.23.4 GR7c/§14.8.2.1 — runtime conformance through a universal receiver)\""));
+                    for (int i = 0; i < formals; i++)
                     {
                         var f = m.Binding!.Formals[i];
                         string want = OoConformance.ConformanceDescriptor(f.Item);
                         string wantLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(want, quote: true);
-                        w.Line(OoUnivStop(m, $"__a[{i}].Descriptor != {wantLit}",
+                        // A position past the supplied arguments is a trailing omission (§14.9.23.4 GR9); the
+                        // arity stop above has already proved every such formal OPTIONAL.
+                        string present = i < minArgs ? "" : $"__a.Length > {i} && ";
+                        // §9.3.6 match rule 3 b): a spelled OMITTED argument needs an OPTIONAL formal and is otherwise
+                        // "considered to match exactly" — so it is exempt from the descriptor check, and against
+                        // a non-OPTIONAL formal its descriptor fails that check, which is the violation.
+                        string exempt = f.Optional ? $"__a[{i}].Descriptor != {RuntimeApi.ObjOmittedDescriptor} && " : "";
+                        w.Line(OoUnivStop(m, $"{present}{exempt}__a[{i}].Descriptor != {wantLit}",
                             $"$\"INVOKE '{cobolName}' '{m.Name}': argument {i + 1} does not conform to the formal "
                             + $"(caller {{__a[{i}].Descriptor}}, formal {want.Replace('"', '\'')}) (ISO §14.9.23.4 GR7c/§14.8.2)\""));
-                        w.Line($"var __p{i} = {OoUnivUnbox(f.Item, $"__a[{i}].Value")};");
+                        w.Line($"bool __o{i} = {(i < minArgs ? "" : $"__a.Length <= {i} || ")}__a[{i}].Omitted;   // §14.9.23.4 GR9");
+                        w.Line($"var __p{i} = __o{i} ? default! : {OoUnivUnbox(f.Item, $"__a[{i}].Value")};");
                     }
                     if (m.Binding!.Returning is null)
                         w.Line(OoUnivStop(m, "__ret is not null",
@@ -352,12 +366,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                             $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
                             + "(ISO §14.8.3/GR7c)\""));
                     }
-                    string argList = string.Join(", ", Enumerable.Range(0, m.Binding!.Formals.Count).Select(i => $"ref __p{i}"));
+                    string argList = string.Join(", ", Enumerable.Range(0, m.Binding!.Formals.Count).Select(i => OoArgPair($"__p{i}", $"__o{i}")));
                     w.Line(m.Binding!.Returning is null
                         ? $"this.{m.CsName}({argList});"
                         : $"var __rv = this.{m.CsName}({argList});");
                     for (int i = 0; i < m.Binding!.Formals.Count; i++)
-                        w.Line($"__a[{i}].Value = {OoUnivRebox(m.Binding!.Formals[i].Item, $"__p{i}")};   // SR6 BY REFERENCE write-back");
+                        w.Line($"if (!__o{i}) __a[{i}].Value = {OoUnivRebox(m.Binding!.Formals[i].Item, $"__p{i}")};   // SR6 BY REFERENCE write-back");
                     if (m.Binding!.Returning is not null)
                         w.Line($"__ret!.Value = {OoUnivRebox(m.Binding!.Returning, "__rv")};");
                     w.Line("return;");
@@ -398,8 +412,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     {
         var w = Ctx.Writer;
         int id = Ctx.Names.NextStoreTmp();
-        string boxes = string.Join(", ", u.Args.Select(a =>
-            $"new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(a.Descriptor, quote: true)}, {OoUnivCallerRead(a.Source)})"));
+        // A spelled OMITTED argument boxes as the omitted sentinel; a forwarded formal (§8.8.4.8.4 GR1c) boxes its
+        // presence and is read only when present (§14.9.23.4 GR10's "except as an argument") — kb/Work PB757.
+        string?[] fwd = u.Args.Select(a => a.Source is { } s && callState.WholeFormalProbe(s) is { } pr
+            ? CallEmitter.OmittedTest(pr) : null).ToArray();
+        string boxes = string.Join(", ", u.Args.Select((a, i) => a.Source is not { } src
+            ? RuntimeApi.ObjOmittedArgument
+            : fwd[i] is { } t
+                ? $"new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(a.Descriptor, quote: true)}, {t} ? null : {OoUnivCallerRead(src)}, {t})"
+                : $"new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(a.Descriptor, quote: true)}, {OoUnivCallerRead(src)})"));
         w.Line($"var __ua{id} = new CobolInvokeArg[] {{ {boxes} }};");
         w.Line(u.Returning is not null
             ? $"var __ur{id} = new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(u.ReturningDescriptor!, quote: true)});"
@@ -409,7 +430,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : RuntimeApi.ObjNormalizeMethodName(PlaceRenderer.Read(u.MethodSource!));
         w.Line($"{RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(u.Receiver))}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
         for (int i = 0; i < u.Args.Count; i++)
-            w.Line(OoUnivCallerWrite(u.Args[i].Source, $"__ua{id}[{i}].Value") + "   // BY REFERENCE copy-out (SR6)");
+        {
+            if (u.Args[i].Source is not { } src) continue;   // OMITTED — nothing to copy out
+            string copyOut = OoUnivCallerWrite(src, $"__ua{id}[{i}].Value");
+            w.Line((fwd[i] is { } t ? $"if (!{t}) {{ {copyOut} }}" : copyOut) + "   // BY REFERENCE copy-out (SR6)");
+        }
         if (u.Returning is { } ret)
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value") + "   // RETURNING delivery (§14.9.23.4 GR8)");
         EmitInvokePickup(u);   // §14.6.13.1.5 / §14.9.18.4 GR1b — the universal path propagates identically (D-EO6)
@@ -494,7 +519,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (m.Accessor == 'G')
                 w.Line($"public {pmods}{retType} {m.CsName}() => {subject.CsName};   // PROPERTY {m.PropertyName} GET (§13.18.42 GR1)");
             else
-                w.Line($"public {pmods}void {m.CsName}(ref {OoCrossingType(subject)} __V) {{ {subject.CsName} = __V; }}   // PROPERTY {m.PropertyName} SET (GR2)");
+                // The setter's one formal (§11.7.3 SR7) crosses through the SAME signature builder as every
+                // method, so a PROPERTY SET that overrides or implements a written SET method cannot drift from it.
+                w.Line($"public {pmods}void {m.CsName}({sig}) {{ {subject.CsName} = {m.Binding!.Formals[0].ParamName}; }}   // PROPERTY {m.PropertyName} SET (GR2)");
             w.Line();
             return;
         }
@@ -509,6 +536,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : "virtual";
         using (w.Block($"public {(modifier.Length == 0 ? "" : modifier + " ")}{retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
         {
+            // This body's formals, for the §8.8.4.8.4 GR1c forwarding recognition (CallUnitState.WholeFormalProbe)
+            // that every CALL and INVOKE argument inside the body consults (kb/Work PB757). Cleared below.
+            callState.MethodFormals = m.Binding!.Formals;
             // ⛔ THE METHOD IS A RUNTIME ELEMENT AND MUST APPEAR ON THE MODULE-NAME STACK (fix-queue PB36).
             // §15.65.4 r5 names the four activation mechanisms outright — "This may be by a CALL statement, an
             // INVOKE statement, a function reference, or an inline invocation" — and INVOKE was the one missing,
@@ -533,7 +563,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line(ObjectComputerEmit.ClassificationLocal(cls));
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
             // the BY REFERENCE write-through at the method boundary); the RETURNING item and unattached
-            // entries start at their initial state (§14.2.3 GR6 — callee-allocated).
+            // entries start at their initial state (§14.2.3 GR6 — callee-allocated). An OMITTED formal
+            // (its presence flag true — §14.9.23.4 GR9) has no argument to copy in: its local starts at its
+            // initial state instead, and §14.9.23.4 GR10 makes any content a reference observes undefined.
             foreach (var root in m.Binding!.LinkageRoots)
             {
                 // A Tier-A (alias) view root forwards to its canonical's field — no local (symmetry with
@@ -545,7 +577,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)
                 {
                     var formalB = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
-                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : RuntimeApi.StrStore(formalB.ParamName, $"{root.Class!.Width}"))};   "
+                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : $"{formalB.OmittedFlag} ? {bkl.Init} : {RuntimeApi.StrStore(formalB.ParamName, $"{root.Class!.Width}")}")};   "
                         + $"// LINKAGE Tier-B REDEFINES backing for {root.CobolName}");
                     continue;
                 }
@@ -572,16 +604,17 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // `!formal.IsImageCapable` arm runs only when an INVOKE or an override/implements PAIR
                     // exists, so a merely-DECLARED method must not emit uncompilable C#.
                     w.Line($"{type} {root.CsName} = {init};   // LINKAGE formal {root.CobolName} (group — image crossing)");
-                    w.Line(OoVarGroupCarried(root)
+                    w.Line($"if (!{formal.OmittedFlag}) {{ " + (OoVarGroupCarried(root)
                         // §8.5.1.12's component carrier (kb/Work PB204) — the variable-length twin of the
                         // image distribution, through the SAME ONE channel.
                         ? PlaceRenderer.WriteVarGroupImage(MethodRootPlace(root), formal.ParamName,
                             "OO method LINKAGE formal copy-in of")
                         : PlaceRenderer.WriteFullGroupImage(MethodRootPlace(root), formal.ParamName,
-                            "OO method LINKAGE formal copy-in"));
+                            "OO method LINKAGE formal copy-in")) + " }");
                 }
                 else
-                    w.Line($"{type} {root.CsName} = {formal.ParamName};   // LINKAGE formal {root.CobolName} (BY REFERENCE copy-in)");
+                    w.Line($"{type} {root.CsName} = {formal.OmittedFlag} ? {init} : {formal.ParamName};   "
+                        + $"// LINKAGE formal {root.CobolName} (BY REFERENCE copy-in; omitted → initial state)");
             }
             foreach (var root in m.Binding!.LocalRoots)
             {
@@ -678,7 +711,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? PlaceRenderer.VarGroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out of")
                     : f.Item.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out")
                     : f.Item.CsName;
-                w.Line($"{f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
+                // No copy-out for an omitted formal: there is no argument, and the caller's slot is a placeholder.
+                w.Line($"if (!{f.OmittedFlag}) {f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
             }
             if (m.Binding!.Returning is { } r)
             {
@@ -694,6 +728,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // frame and every later MODULE-NAME reads one element too deep.
             w.Line("}");
             w.Line("finally { __ms.Pop(); }   // §15.65.4 — the activation ends with the method");
+            callState.MethodFormals = [];
         }
         w.Line();
     }
@@ -704,9 +739,18 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private static (string RetType, string Sig) OoSignatureOf(OoMethodSymbol m)
     {
         string retType = m.Binding!.Returning is { } ret ? OoCrossingType(ret) : "void";
-        string sig = string.Join(", ", m.Binding!.Formals.Select(f => $"ref {OoCrossingType(f.Item)} {f.ParamName}"));
+        string sig = string.Join(", ", m.Binding!.Formals.Select(f =>
+            $"ref {OoCrossingType(f.Item)} {f.ParamName}, bool {f.OmittedFlag}"));
         return (retType, sig);
     }
+
+    /// <summary>⛔ THE METHOD ABI'S ARGUMENT PAIR — one formal crosses as its typed <c>ref</c> value AND its
+    /// omitted-presence flag (kb/Work PB757; COBOLNET_OO_DESIGN D6). ISO §14.9.23.4 GR9: "If an OMITTED phrase is
+    /// specified or a trailing argument is omitted, the omitted-argument condition for that parameter shall be
+    /// true in the invoked method" — a C# <c>ref T</c> has no omitted state, so the pair IS the state. Every
+    /// caller renders its pair here (the typed INVOKE, the covariant adapter, the universal switch), so the
+    /// signature <see cref="OoSignatureOf"/> builds and the argument lists cannot drift apart.</summary>
+    private static string OoArgPair(string refExpr, string omittedExpr) => $"ref {refExpr}, {omittedExpr}";
 
     /// <summary>Emit one INTERFACE-ID as a C# interface (§11.6; D-I1): members are the prototypes' signatures
     /// (the SAME builder class methods use); the prototypes' numeric profiles and group struct types emit as
@@ -808,19 +852,46 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             string qualProfile = a.Formal.Pic is { Category: PicCategory.Numeric, IsFloat: false }
                 ? $"{inv.OwnerCsName}{(inv.Form is InvokeForm.Factory ? NamingConvention.FactorySuffix : "")}.{a.Formal.ProfileName}" : "";
 
+            // ⛔ THE OMITTED ARGUMENT (kb/Work PB757) — spelled, or trailing-omitted: its slot is a placeholder of the
+            // formal's crossing type, never read by the callee, paired with TRUE (§14.9.23.4 GR9).
+            if (a.Omitted)
+            {
+                string om = $"__iv{id}_{i}";
+                w.Line($"{OoCrossingType(a.Formal)} {om} = default!;   // OMITTED argument placeholder (§14.9.23.4 GR9)");
+                argExprs.Add(OoArgPair(om, "true"));
+                continue;
+            }
+            // ⛔ A FORWARDED FORMAL (§8.8.4.8.4 GR1c): an argument that is itself a whole formal parameter of this
+            // source element carries its presence on, and — because §14.9.23.4 GR10 / §14.9.4.4 GR12 exempt a
+            // reference "as an argument" — its copy-in and copy-out run only when it is present. The recognition
+            // is the ONE CallUnitState.WholeFormalProbe the CALL arm uses.
+            string? fwdTest = a.Source is { } fsrc && callState.WholeFormalProbe(fsrc) is { } fprobe
+                ? CallEmitter.OmittedTest(fprobe) : null;
+            void Post(string line) => post.Add(fwdTest is null ? line : $"if (!{fwdTest}) {{ {line} }}");
+
             // The direct-ref fast path: a MemberPlace whose STORAGE form matches the parameter type exactly
-            // (BY REFERENCE identifiers only — CONTENT always copies).
-            if (a.Source is MemberPlace mp && a.WriteBack
+            // (BY REFERENCE identifiers only — CONTENT always copies). A forwarded formal takes the guarded
+            // copy path instead: its read must not happen when it is omitted.
+            if (fwdTest is null && a.Source is MemberPlace mp && a.WriteBack
                 && (stringCarried
                     ? !mp.Item.IsGroup && OoStringCarried(mp.Item)
                     : !OoStringCarried(mp.Item))
                 && !a.Formal.IsGroup && !mp.Item.IsGroup)
             {
-                argExprs.Add($"ref {PlaceRenderer.Read(mp)}");
+                argExprs.Add(OoArgPair(PlaceRenderer.Read(mp), "false"));
                 continue;
             }
 
-            string tmp = $"__iv{id}_{i}";
+            string slot = $"__iv{id}_{i}";
+            string tmp = slot;
+            if (fwdTest is not null)
+            {
+                // The guarded copy-in: the arms below declare the INNER value, assigned to the slot only when the
+                // forwarded formal is present.
+                tmp = slot + "_in";
+                w.Line($"{OoCrossingType(a.Formal)} {slot} = default!;");
+                w.Line($"if (!{fwdTest}) {{");
+            }
             // BY CONTENT boolean-expression-1 / boolean literal-2 (§14.9.23.2; fix-queue PB46) — its OWN value
             // channel (D-B1: a '0'/'1' bit string), so it is rendered by the BOOLEAN renderer and stored by the
             // string store, never through NumStore. FIRST in the chain because a boolean and an alphanumeric
@@ -934,30 +1005,36 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})"
                     + $"{NumericRenderer.StoreExpr(lit, a.Formal.Pic!.Scale, qualProfile, raiseOnSizeError: ecState.SizeTruncationChecking)};");
             }
-            argExprs.Add($"ref {tmp}");
+            if (fwdTest is not null)
+            {
+                w.Line($"{slot} = {tmp};");
+                w.Line("}");
+                tmp = slot;
+            }
+            argExprs.Add(OoArgPair(slot, fwdTest ?? "false"));
 
             if (!a.WriteBack || a.Source is not { } src) continue;
             // Copy-out to the CALLER's storage (BY REFERENCE — §14.2.3 GR8 at statement granularity).
             if (OoVarGroupCarried(a.Formal))
                 // No prefix splice: a variable-length crossing carries whole components, so the write-back is
                 // the exact inverse of the read (kb/Work PB204).
-                post.Add(PlaceRenderer.WriteVarGroupImage(src, tmp, "INVOKE copy-out into"));
+                Post(PlaceRenderer.WriteVarGroupImage(src, tmp, "INVOKE copy-out into"));
             else if (a.Formal.IsGroup || src.Item.IsGroup)
             {
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
                 // The §14.8.2.2 rule-1 prefix: splice the formal's characters back over the argument's
                 // LEADING positions, preserving the tail beyond the formal's width.
-                post.Add(CallEmitter.CallStringWrite(src,
+                Post(CallEmitter.CallStringWrite(src,
                     // to-the-end read from fw+1 — the OMITTED-length sentinel (NOT −1, which now denotes a specified
                     // negative length that raises EC-BOUND-REF-MOD; review C14).
                     $"{tmp} + {RuntimeApi.StrRefMod(CallEmitter.CallStringRead(src), $"{fw + 1}", RuntimeApi.OmittedRefModLength)}"));
             }
             else if (src is RefModPlace)
-                post.Add(PlaceRenderer.Write(src, tmp));   // RefModPlace.Write splices the window (§8.4.3.3.4 GR6)
+                Post(PlaceRenderer.Write(src, tmp));   // RefModPlace.Write splices the window (§8.4.3.3.4 GR6)
             else if (stringCarried)
-                post.Add(OoStringCarried(src.Item) ? PlaceRenderer.Write(src, tmp) : PlaceRenderer.Write(new NumericImagePlace(src), tmp));
+                Post(OoStringCarried(src.Item) ? PlaceRenderer.Write(src, tmp) : PlaceRenderer.Write(new NumericImagePlace(src), tmp));
             else
-                post.Add(src.Item.StoreAsImage
+                Post(src.Item.StoreAsImage
                     ? PlaceRenderer.Write(src, RuntimeApi.NumFormatDisplay(tmp, src.Item.ProfileName))
                     : PlaceRenderer.Write(src, tmp));
         }

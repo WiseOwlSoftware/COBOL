@@ -3095,7 +3095,7 @@ already-derivable coverage; none change the pipeline.
 ## §8 CONSOLIDATED FORWARD-RESIDUE LEDGER (absorbed from the retired phase docs; every named residue lives HERE now)
 
 - **P10 residues (by name):** per-shape 1510 UDF RETURNING (float/boolean/pointer-class + group shapes) ·
-  OPTIONAL formals (0899 `optional-formal`) · the two recursive-WS stages (0899 `recursive-contained-working-
+  ~~OPTIONAL formals (0899 `optional-formal`)~~ (DISCHARGED 2026-09-22, kb/Work PB757 — the method arm carries OPTIONAL through the `(ref T, bool)` ABI pair; the descriptor is deleted) · the two recursive-WS stages (0899 `recursive-contained-working-
   storage`, `recursive-working-storage-pointer-backed`) · OO class-unit BASED (`OoBasedInClass`) ·
   INITIALIZE-over-pointer-categories · line-seq 06/09/71 + REWRITE + the LINE SEQUENTIAL gate · keyed GR10a FPI
   + keyed ADVANCING emission · cross-run-unit sharing · ~~SORT national-key carry~~ (DISCHARGED 2026-09-05, kb/Work PB678 — the GR5 sequence pair is resolved and carried, and each key takes the sequence its CLASS names) · multiple-LINE repetition (+

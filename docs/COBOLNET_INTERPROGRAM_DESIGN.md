@@ -431,6 +431,17 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
   loses its omitted state (a group formal's copy-in field always answers `IsNull` false). A SUBITEM, a
   subscripted reference and a reference-modified view are deliberately excluded: GR1c speaks of an argument
   that *is* a formal parameter, and referencing inside an omitted one is exactly the error GR12 states.
+  ⛔ **The recognition and the presence test span EVERY activation ABI (kb/Work PB757).** The presence fact is
+  `Binding/Model/OmittedProbe` — `Carrier` (a program/function formal's null carrier) or `MethodFlag` (a method
+  formal's `bool` presence parameter, COBOLNET_OO_DESIGN D6) — and `CallUnitState.WholeFormalProbe` recognizes a
+  whole formal of EITHER kind (`Formals` for a program, `MethodFormals` inside a method body). `CallEmitter.OmittedTest`
+  is the one rendering; the §8.8.4.8 condition, `Forwarded` (CALL and user-defined-function arguments) and the INVOKE
+  argument lowering all call it, so a CALL inside a method forwards an omitted method formal as the null carrier and
+  an INVOKE inside a program forwards an omitted program formal as `true`.
+- **User-defined-function arguments ride the same model (§8.4.3.2.3 SR9, §8.4.3.2.4 GR7; kb/Work PB757).** `UdfBinder`
+  binds `FUNCTION f(… OMITTED …)` to an `Omitted` `BoundCallArg` (the null carrier above) when the formal is OPTIONAL —
+  `COBOLNET2238` otherwise — and admits fewer arguments than formals when every trailing formal is OPTIONAL
+  (§14.8.2.1), the callee's adapters answering a missing slot as omitted exactly as for CALL.
 - Argument/parameter count mismatch → EC-PROGRAM-ARG-MISMATCH (when checking enabled) or diagnostic; a missing parameter behaves as omitted.
 - **Argument DESCRIPTION conformance is ONE rule set, written once, for CALL and INVOKE alike (§14.9.4.3 SR25
   → §14.8.2; kb/Work PB133 → PB204 → PB165).** Wherever the callee's PD header is known at BIND — the AS NESTED

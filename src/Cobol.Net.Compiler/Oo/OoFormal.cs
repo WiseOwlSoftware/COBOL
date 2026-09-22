@@ -7,5 +7,18 @@ using CobolNet.Frontend.Generated;
 namespace CobolNet.Compiler.Oo;
 
 /// <summary>One resolved USING formal: the LINKAGE item (its <see cref="DataItem.CsName"/> is the capturable
-/// LOCAL the body addresses), the 0-based positional slot, and the emitted C# parameter name.</summary>
-public sealed record OoFormal(DataItem Item, int Position, string ParamName);
+/// LOCAL the body addresses), the 0-based positional slot, the emitted C# parameter name, and whether the
+/// procedure division header specifies the OPTIONAL phrase for it (ISO §14.2.1 general format; §14.2.3 GR3 — what §14.9.23.3 SR18 and
+/// §14.8.2.1 read, and what §9.3.8.2.3 rule 8 compares between a method and its prototype).</summary>
+public sealed record OoFormal(DataItem Item, int Position, string ParamName, bool Optional = false)
+{
+    /// <summary>The C# name of the formal's omitted-presence parameter — the METHOD arm of the one presence fact
+    /// (<see cref="OmittedProbe.MethodFlag"/>; kb/Work PB757). EVERY formal carries one, not only an OPTIONAL
+    /// one: §8.8.4.8.4 GR1c makes omission transitive through a forwarded formal whatever the receiving
+    /// formal's own phrase, exactly as the program arm's null carrier is. The name is LOWER-case and positional:
+    /// every <c>ParamName</c> is upper-cased (<c>DataBinder.OoParamName</c>), so no formal can collide with it.</summary>
+    public string OmittedFlag => $"__omitted{Position}";
+
+    /// <summary>The presence fact every consumer reads (§8.8.4.8.4 GR1).</summary>
+    public OmittedProbe Probe => new OmittedProbe.MethodFlag(OmittedFlag);
+}

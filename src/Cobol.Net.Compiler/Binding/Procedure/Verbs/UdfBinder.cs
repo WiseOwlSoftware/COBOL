@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
 
@@ -155,52 +156,61 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // Arguments: one typed operand per argument parse tree, through the SAME BindArgOperand the intrinsic
         // path uses (the ONE argument pipeline). NO table(ALL) expansion here — §9.4 (:12529): "arguments and
         // returned values for user-defined functions may not use the word ALL as a subscript" (an ALL subscript
-        // fails resolution and stays a loud named operand). OMITTED arguments (§14.8.2 OPTIONAL formals) are
-        // not modeled for functions — a staged loud stop, never a silent skip (§1.4).
-        var operands = new List<BoundOperand>();
+        // fails resolution and stays a loud named operand). An OMITTED argument (kb/Work PB757 — the third arm of
+        // the omitted-argument model, beside CALL's and INVOKE's) is a null operand here, checked against
+        // §8.4.3.2.3 SR9 below where the formal is known.
+        var operands = new List<BoundOperand?>();
         foreach (var a in argCtxs)
-        {
-            if (a.OMITTED() is not null)
-            {
-                ctx.Edition.Error("COBOLNET1506",
-                    $"FUNCTION {name.ToUpperInvariant()}: an OMITTED argument requires an OPTIONAL formal "
-                    + "parameter (ISO §14.8.2) — OPTIONAL/OMITTED formals are not modeled for user-defined "
-                    + "function activation (M2-UDF follow-up)");
-                return new BoundExprError($"FUNCTION {name} OMITTED argument");
-            }
-            operands.Add(host.Intrinsic.BindArgOperand(a));
-        }
+            operands.Add(a.OMITTED() is not null ? null : host.Intrinsic.BindArgOperand(a));
 
-        // Positional correspondence (§14.8.2): one argument per USING formal. OPTIONAL/OMITTED formals are
-        // not modeled for functions — an exact-count mismatch is the honest loud stop.
-        if (operands.Count != fn.Formals.Count)
+        // Positional correspondence (§14.8.2.1): one argument per USING formal, "with the exception of trailing
+        // formal parameters that are specified with an OPTIONAL phrase in the procedure division header of the
+        // activated element and omitted from the list of arguments" — the callee's program-ABI adapters answer a
+        // missing trailing slot as the omitted carrier (§8.4.3.2.4 GR7), exactly as they do for CALL.
+        if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
         {
             ctx.Edition.Error("COBOLNET1506",
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
                 + "given — arguments correspond positionally to the function's PROCEDURE DIVISION USING "
-                + "formals (ISO §14.8.2)");
+                + "formals, and only trailing OPTIONAL formals may be omitted (ISO §14.8.2.1)");
             return new BoundExprError($"FUNCTION {name} arity");
         }
 
         var callArgs = new List<BoundCallArg>(operands.Count);
         for (int i = 0; i < operands.Count; i++)
         {
+            if (operands[i] is not { } operand)
+            {
+                // §8.4.3.2.3 SR9: "If the word OMITTED is specified, the OPTIONAL phrase shall be specified for the
+                // corresponding formal parameter." The argument then crosses as the null carrier (§14.9.4.4 GR11's
+                // shape, which CallEmitter renders for every Omitted BoundCallArg) and GR7 holds in the function.
+                if (!fn.Formals[i].Optional)
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.FunctionOmittedNeedsOptional,
+                        $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: OMITTED corresponds to formal "
+                        + $"parameter '{fn.Formals[i].Item.CobolName}', which the function's procedure division "
+                        + "header does not describe with the OPTIONAL phrase (ISO §8.4.3.2.3 SR9)");
+                    return new BoundExprError($"FUNCTION {name} argument {i + 1} OMITTED");
+                }
+                callArgs.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true) { Formal = fn.Formals[i].Item });
+                continue;
+            }
             // §8.4.3.2.3 SR10 (:6942): when the formal corresponding to argument-1 is specified with a BY
             // VALUE phrase, argument-1 shall be of class numeric, object, or pointer. Checked HERE (the one
             // place the formal↔argument pairing exists); the header side's SR2 already restricted the FORMAL.
-            if (fn.Formals[i].ByValue && !UdfArgIsValueClass(operands[i]))
+            if (fn.Formals[i].ByValue && !UdfArgIsValueClass(operand))
             {
                 ctx.Edition.Error("COBOLNET1554",
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: an argument passed to a BY VALUE "
                     + "formal parameter shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
                 return new BoundExprError($"FUNCTION {name} argument {i + 1} BY VALUE class");
             }
-            if (UdfArg(operands[i], fn.Formals[i]) is not { } arg)
+            if (UdfArg(operand, fn.Formals[i]) is not { } arg)
             {
                 // Name the ACTUAL unsupported shape when the segment parser already classified it (a
                 // reference-modified argument, a figurative, an unresolvable name) — never a message
                 // claiming a legal form is illegal.
-                string what = operands[i] is BoundOperandError err
+                string what = operand is BoundOperandError err
                     ? err.Feature
                     : "this argument form (an identifier, a literal, or an arithmetic expression is "
                       + "supported — ISO §8.4.3.2.4 SR8/GR5)";

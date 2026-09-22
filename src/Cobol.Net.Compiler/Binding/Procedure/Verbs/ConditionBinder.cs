@@ -709,14 +709,22 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (cmp.OMITTED() is not null)
         {
             carry.Reset();
-            // §8.8.4.8 (kb/Work PB133 wave C): "data-name-1 IS [NOT] OMITTED" — SR1: data-name-1 shall be a
-            // formal parameter defined in the source element in which this condition is specified. The test
-            // renders as the formal carrier's IsNull — the ONE presence law (GR11's spelled/trailing omission
-            // and GR1c's transitive omission all arrive as a null carrier).
+            // §8.8.4.8 (kb/Work PB133 wave C; the method arm kb/Work PB757): "data-name-1 IS [NOT] OMITTED" —
+            // SR1: data-name-1 shall be a formal parameter defined in the source element in which this condition
+            // is specified. Inside a METHOD that element is the method (§14.9.23.4 GR9 — the condition "shall
+            // be true in the invoked method"), so its own formals are the ones searched, never the containing
+            // unit's; elsewhere the program/function formals are. Either way the test renders the formal's ONE
+            // presence fact (OmittedProbe): spelled, trailing and GR1c-transitive omission all arrive there.
             string fname = operands.Length >= 1 ? operands[0].GetText().Trim() : "";
-            LinkageFormal? formal = null;
-            foreach (var f in ctx.Data.LinkageFormals)
-                if (string.Equals(f.Item.CobolName, fname, StringComparison.OrdinalIgnoreCase)) { formal = f; break; }
+            OmittedProbe? formal = null;
+            if (ctx.CurrentMethodScope is { } ms)
+            {
+                foreach (var f in ms.Formals)
+                    if (string.Equals(f.Item.CobolName, fname, StringComparison.OrdinalIgnoreCase)) { formal = f.Probe; break; }
+            }
+            else
+                foreach (var f in ctx.Data.LinkageFormals)
+                    if (string.Equals(f.Item.CobolName, fname, StringComparison.OrdinalIgnoreCase)) { formal = f.Probe; break; }
             if (formal is null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.OmittedConditionOperand,
@@ -724,7 +732,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     + "defined in the source element in which this condition is specified (ISO §8.8.4.8 SR1)");
                 return new BoundConditionError($"omitted-argument condition '{fname}'");
             }
-            return new BoundOmittedCondition(formal.CarrierField, not);
+            return new BoundOmittedCondition(formal, not);
         }
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)

@@ -29,7 +29,11 @@ using Core = CobolParserCore;
 /// cell conformed to the formal's description (§14.2.3 GR10: the argument is the sending operand of a COMPUTE
 /// without ROUNDED into the allocated record); the callee's stores never reach the caller's storage.</param>
 public sealed record LinkageFormal(DataItem Item, int Position, string CarrierField, bool CarrierResident,
-    bool ByValue = false, bool Optional = false);
+    bool ByValue = false, bool Optional = false)
+{
+    /// <summary>The presence fact every consumer reads (§8.8.4.8.4 GR1) — the program arm's null carrier.</summary>
+    public OmittedProbe Probe => new OmittedProbe.Carrier(CarrierField);
+}
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
 /// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, «seed»).Ref;</c>

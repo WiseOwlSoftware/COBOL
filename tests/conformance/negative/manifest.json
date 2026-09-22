@@ -10,6 +10,8 @@
   "pb878-invoke-content-binary-long-to-alnum",
   "pb815-raising-factory-presence-mismatch",
   "pb814-raising-interface-not-conforming",
+  "pb757-invoke-omitted-not-optional",
+  "pb757-function-omitted-not-optional",
   "pb653-nested-float-rounded-mode-below-2014",
   "pb660-class-and-program-one-name",
   "pb660-program-and-function-one-name",

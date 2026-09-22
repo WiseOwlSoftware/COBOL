@@ -20,4 +20,8 @@ internal sealed class OoMethodScope
     /// the runtime element as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function,
     /// method, or program containing the statement"; kb/Work PB63 — EcLocation read the CLASS-ID before).</summary>
     public string? MethodName;
+    /// <summary>The method's PROCEDURE DIVISION USING formals — what §8.8.4.8.3 SR1 ("a formal parameter defined
+    /// in the source element in which this condition is specified") resolves against inside a method body
+    /// (kb/Work PB757). Empty for a method with no USING phrase.</summary>
+    public IReadOnlyList<CobolNet.Compiler.Oo.OoFormal> Formals = [];
 }

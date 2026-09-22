@@ -43,9 +43,15 @@ public static class OoConformance
                     continue;
                 }
                 for (int i = 0; i < m.Binding!.Formals.Count; i++)
+                {
                     if (DescriptionMismatch(baseM.Binding!.Formals[i].Item, m.Binding!.Formals[i].Item) is { } err)
                         edition.Error("COBOLNET0829", $"{where}: formal parameter #{i + 1} "
                             + $"('{m.Binding!.Formals[i].Item.CobolName}'): {err} (ISO §9.3.8.2)");
+                    // §11.7.3 SR9 holds an inherited method's parameter declarations to §9.3.8.2.3 — rule 8 included.
+                    if (OptionalMismatch(m.Binding!.Formals[i], baseM.Binding!.Formals[i]) is { } oerr)
+                        edition.Error("COBOLNET0829", $"{where}: formal parameter #{i + 1} "
+                            + $"('{m.Binding!.Formals[i].Item.CobolName}'): {oerr} (ISO §11.7.3 SR9; §9.3.8.2.3 rule 8)");
+                }
                 if ((m.Binding!.Returning is null) != (baseM.Binding!.Returning is null))
                     edition.Error("COBOLNET0829", $"{where}: RETURNING presence differs from the overridden "
                         + "method (ISO §9.3.8.2)");
@@ -121,6 +127,14 @@ public static class OoConformance
         }
     }
 
+    /// <summary>§9.3.8.2.3 rule 8: "The presence or absence of the OPTIONAL phrase is the same for corresponding
+    /// parameters." (kb/Work PB757 — the phrase is carried on <see cref="OoFormal.Optional"/> since the method arm of
+    /// the OPTIONAL formal landed.) Null when the pair agrees.</summary>
+    internal static string? OptionalMismatch(OoFormal f1, OoFormal f2) =>
+        f1.Optional == f2.Optional ? null
+        : $"the OPTIONAL phrase is {(f1.Optional ? "specified" : "absent")} here but "
+            + $"{(f2.Optional ? "specified" : "absent")} on the corresponding parameter";
+
     /// <summary>
     /// ⛔ ISO §9.3.8.2.3 FOR ONE METHOD PAIR — the ONE place the per-method conformance rules are written: does
     /// method <paramref name="m1"/> (of interface-1, the CONFORMING side — a class's implementation, or another
@@ -129,7 +143,7 @@ public static class OoConformance
     /// conforms. Rules carried: 1) the parameter count; 2)/3) identical formal descriptions
     /// (<see cref="DescriptionMismatch"/>); 4) RETURNING presence; 5) the object-reference RETURNING (covariant —
     /// <see cref="ObjectRefAssignmentMismatch(OoClassTable, ObjectRefDescriptor, ObjectRefDescriptor, bool)"/>
-    /// with rule 5's closed ACTIVE-CLASS list); 6) identical non-object RETURNING descriptions.
+    /// with rule 5's closed ACTIVE-CLASS list); 6) identical non-object RETURNING descriptions; 8) the OPTIONAL phrase (<see cref="OptionalMismatch"/>).
     /// <para>Extracted from <see cref="ValidateImplements"/> (kb/Work PB814) so that §9.3.11 IMPLEMENTS
     /// conformance and the interface-to-interface conformance GOBACK §14.9.18.3 SR4 b) asks
     /// (<see cref="InterfaceConformsTo"/>) run the SAME comparisons — two copies of one rule set is the shape
@@ -145,9 +159,13 @@ public static class OoConformance
             yield break;
         }
         for (int i = 0; i < m1.Binding!.Formals.Count; i++)
+        {
             if (DescriptionMismatch(m2.Binding!.Formals[i].Item, m1.Binding!.Formals[i].Item) is { } err)
                 yield return $"formal #{i + 1}: {err} (ISO §9.3.8.2.3 rules 2/3 vs interface '{iface2}' — "
                     + "identical descriptions; the C# projection cannot check this)";
+            if (OptionalMismatch(m1.Binding!.Formals[i], m2.Binding!.Formals[i]) is { } oerr)
+                yield return $"formal #{i + 1}: {oerr} vs interface '{iface2}' (ISO §9.3.8.2.3 rule 8)";
+        }
         if ((m1.Binding!.Returning is null) != (m2.Binding!.Returning is null))
             yield return $"RETURNING presence differs from the '{iface2}' prototype (ISO §9.3.8.2.3 rule 4)";
         else if (m1.Binding!.Returning is { } r && m2.Binding!.Returning is { } pr)

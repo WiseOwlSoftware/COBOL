@@ -328,6 +328,26 @@ internal sealed class CallUnitState
     /// Set per unit alongside <see cref="ReturningPlace"/>.</summary>
     public IReadOnlyList<LinkageFormal> Formals { get; set; } = [];
 
+    /// <summary>The formals of the METHOD whose body is being emitted (empty outside a method body) — the method
+    /// arm of the same recognition (kb/Work PB757): a method formal forwarded as a CALL or INVOKE argument carries
+    /// its omitted-presence flag on, per §8.8.4.8.4 GR1c. Set and cleared by <c>OoEmitter.EmitMethod</c>.</summary>
+    public IReadOnlyList<CobolNet.Compiler.Oo.OoFormal> MethodFormals { get; set; } = [];
+
+    /// <summary>⛔ THE ONE "IS THIS ARGUMENT A WHOLE FORMAL PARAMETER?" RECOGNITION, over BOTH activation ABIs
+    /// (§8.8.4.8.4 GR1c; kb/Work PB165 program arm, PB757 method arm): the presence fact to carry on, or null
+    /// when the place is not a whole formal. A REFERENCE-MODIFIED view is never the formal itself (GR1c speaks
+    /// of an argument that "is itself a formal parameter"); identity against the level-01/77 item is the
+    /// whole-item test, since a subitem resolves to its own item and a level-01 entry carries no OCCURS.</summary>
+    public OmittedProbe? WholeFormalProbe(Place p)
+    {
+        if (p is RefModPlace) return null;
+        foreach (var f in Formals)
+            if (ReferenceEquals(f.Item, p.Item)) return f.Probe;
+        foreach (var f in MethodFormals)
+            if (ReferenceEquals(f.Item, p.Item)) return f.Probe;
+        return null;
+    }
+
     /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.30), the place of the OWNER's FILE
     /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where
     /// a file-name is global and data-name-1 is not, data-name-1 is updated by references to file-name in

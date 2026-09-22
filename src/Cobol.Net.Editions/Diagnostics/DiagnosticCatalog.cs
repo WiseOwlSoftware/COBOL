@@ -406,6 +406,19 @@ public static class DiagnosticCatalog
         "ISO §14.9.4.3 syntax rule 24: \"If the OMITTED phrase is specified, the OPTIONAL phrase shall be "
         + "specified for the corresponding formal parameter in the procedure division header.\"",
         "ISO §14.9.4.3 SR24");
+    public static readonly DiagnosticDescriptor InvokeOmittedNeedsOptional = new(
+        "COBOLNET2237", "invoke-omitted-needs-optional", EditionSeverity.Error,
+        "ISO §14.9.23.3 syntax rule 18: \"If an OMITTED phrase is specified, an OPTIONAL phrase shall be "
+        + "specified for the corresponding formal parameter in the procedure division header.\" The INVOKE twin "
+        + "of COBOLNET1685 (CALL, §14.9.4.3 SR24); checked at compile time for a typed receiver, and at runtime "
+        + "through a universal one (§14.9.23.4 GR7c, EC-OO-UNIVERSAL).",
+        "ISO §14.9.23.3 SR18");
+    public static readonly DiagnosticDescriptor FunctionOmittedNeedsOptional = new(
+        "COBOLNET2238", "function-omitted-needs-optional", EditionSeverity.Error,
+        "ISO §8.4.3.2.3 syntax rule 9: \"If the word OMITTED is specified, the OPTIONAL phrase shall be specified "
+        + "for the corresponding formal parameter.\" The user-defined-function twin of COBOLNET1685 (CALL) and "
+        + "COBOLNET2237 (INVOKE).",
+        "ISO §8.4.3.2.3 SR9");
     public static readonly DiagnosticDescriptor OmittedConditionOperand = new(
         "COBOLNET1686", "omitted-condition-operand", EditionSeverity.Error,
         "ISO §8.8.4.8 syntax rule 1: \"Data-name-1 shall be a formal parameter defined in the source element "
@@ -1334,11 +1347,6 @@ public static class DiagnosticCatalog
         + "program formals ARE carried — the §14.2.3 GR10 detached-cell copy, whose filling GR10 names as "
         + "a COMPUTE without ROUNDED and a SET respectively (kb/Work PB663).",
         "ISO §14.2.2 SR2 / §14.2.3 GR10", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor OptionalFormal = new(
-        NotImplemented, "optional-formal", EditionSeverity.Error,
-        "An OPTIONAL formal parameter in the procedure division header is recognized (§14.2.2 using-phrase) "
-        + "but the OPTIONAL/OMITTED formal model is not yet implemented (the omitted-argument condition, "
-        + "§8.8.4.8).", "ISO §14.2.2 / §14.2.3 GR3", RecognizedNotImplemented);
 
     // ── COBOLNET0899 — miscellaneous deferrals ───────────────────────────────────────────────────────
     public static readonly DiagnosticDescriptor ExternalRecordNotCellBacked = new(

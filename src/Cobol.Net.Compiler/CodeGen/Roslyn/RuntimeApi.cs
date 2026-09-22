@@ -1395,6 +1395,14 @@ internal static class RuntimeApi
     /// the conversion cannot fail at run time.</summary>
     public static string AsExceptionObject(string objectRefExpr) => $"({nameof(CobolObject)}?)({objectRefExpr})";
 
+    /// <summary>A spelled OMITTED argument through a universal receiver (ISO §14.9.23.2; kb/Work PB757) —
+    /// <c>CobolInvokeArg.OmittedArgument()</c>.</summary>
+    public static string ObjOmittedArgument => $"{nameof(CobolInvokeArg)}.{nameof(CobolInvokeArg.OmittedArgument)}()";
+
+    /// <summary>The descriptor a spelled OMITTED universal argument carries — <c>CobolInvokeArg.OmittedDescriptor</c>
+    /// (the callee switch exempts it from the descriptor check against an OPTIONAL formal, §9.3.6 match rule 3 b)).</summary>
+    public static string ObjOmittedDescriptor => $"{nameof(CobolInvokeArg)}.{nameof(CobolInvokeArg.OmittedDescriptor)}";
+
     /// <summary>Normalize a runtime method-name value for universal dispatch (D-U6) —
     /// <c>CobolObject.NormalizeMethodName</c>.</summary>
     public static string ObjNormalizeMethodName(string nameExpr) =>

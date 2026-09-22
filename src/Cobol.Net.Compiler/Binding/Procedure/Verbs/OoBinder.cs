@@ -423,23 +423,34 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     {
         // ── USING marshaling (slice 2 — D6; §14.9.23.4 GR3: positional correspondence) ──
         var argCtxs = site.Args;
-        if (argCtxs.Count != m.Binding!.Formals.Count)
+        var formals = m.Binding!.Formals;
+        // §14.8.2.1: "The number of arguments in the activating element shall be equal to the number of formal
+        // parameters in the activated element, with the exception of trailing formal parameters that are specified
+        // with an OPTIONAL phrase in the procedure division header of the activated element and omitted from the
+        // list of arguments" (§9.3.6 match rule 1 states the same equality for method resolution). The trap-#3
+        // rule still holds for everything else: an arity mismatch is LOUD — a silently dropped/extra argument
+        // would shift every following slot (the legacy DEVLOG-449 blocker: the first USING bound to RETURNING).
+        if (argCtxs.Count > formals.Count
+            || formals.Skip(argCtxs.Count).FirstOrDefault(f => !f.Optional) is { } required)
         {
-            // The trap-#3 rule: an arity mismatch is LOUD — a silently dropped/extra argument would shift
-            // every following slot (the legacy DEVLOG-449 blocker: the first USING bound to the RETURNING).
+            string why = argCtxs.Count > formals.Count ? ""
+                : $" — only trailing OPTIONAL formal parameters may be omitted, and '{formals.Skip(argCtxs.Count).First(f => !f.Optional).Item.CobolName}' is not OPTIONAL";
             ctx.Edition.Error("COBOLNET0828",
-                $"{site.Verb} \"{m.Name}\": {argCtxs.Count} USING argument(s) for {m.Binding!.Formals.Count} formal "
-                + $"parameter(s) of the method (ISO §14.9.23.4 GR3 — correspondence is positional; "
-                + "trailing-OMITTED support is a later slice)");
+                $"{site.Verb} \"{m.Name}\": {argCtxs.Count} USING argument(s) for {formals.Count} formal "
+                + $"parameter(s) of the method (ISO §14.8.2.1; §14.9.23.4 GR3 — correspondence is positional){why}");
             return new BoundNop();
         }
-        var args = new List<BoundInvokeArg>(argCtxs.Count);
+        var args = new List<BoundInvokeArg>(formals.Count);
         for (int i = 0; i < argCtxs.Count; i++)
         {
-            if (OoBindInvocationArg(argCtxs[i], m.Binding!.Formals[i].Item, m.Name, site.Verb) is not { } a)
+            if (OoBindInvocationArg(argCtxs[i], formals[i], m.Name, site.Verb) is not { } a)
                 return new BoundNop();
             args.Add(a);
         }
+        // The trailing omitted arguments (§14.9.23.4 GR9 — "or a trailing argument is omitted"): each takes its
+        // positional slot explicitly, so the emitter renders one argument pair per formal and never infers arity.
+        for (int i = argCtxs.Count; i < formals.Count; i++)
+            args.Add(OmittedArg(formals[i].Item));
 
         // ── RETURNING pairing + conformance (GR8; §14.8.3; the deep-dive signature-check edge case:
         // BOTH mismatch directions are compile-time diagnostics) ──
@@ -528,6 +539,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Binding!.Returning, m.Owner?.CsName);
     }
 
+    /// <summary>An omitted argument's slot (kb/Work PB757) — spelled OMITTED or trailing-omitted; no source, no
+    /// write-back (§14.9.23.4 GR9: the omitted-argument condition is true in the invoked method).</summary>
+    private static BoundInvokeArg OmittedArg(DataItem formal) =>
+        new(formal, null, null, null, WriteBack: false) { Omitted = true };
+
     /// <summary>Bind ONE INVOKE argument against its positional formal — the conformance RULE is selected
     /// by the EFFECTIVE passing mode (§14.9.23.4 GR6): BY REFERENCE takes §14.8.2.3.2 strict identity (with
     /// the §14.8.2.2 rule-1 group-prefix allowance); BY CONTENT — explicit, the §14.9.23.3 SR 10 object-data
@@ -535,19 +551,27 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// argument), SET rules for an object-reference formal (widening), MOVE rules otherwise. A
     /// reference-modified argument conforms by its EFFECTIVE description (a unique elementary alphanumeric
     /// item of the window length, §8.4.3.3.4 GR6). Null on a diagnostic.</summary>
-    private BoundInvokeArg? OoBindInvocationArg(InvocationArg arg, DataItem formal, string methodName,
+    private BoundInvokeArg? OoBindInvocationArg(InvocationArg arg, OoFormal oof, string methodName,
                                                 string verb)
     {
+        var formal = oof.Item;
         void Err(string msg) => ctx.Edition.Error("COBOLNET0828", $"{verb} \"{methodName}\": {msg}");
 
         if (arg.Omitted)
         {
-            // §8.4.3.4.2's argument brace admits OMITTED, and §14.9.23.2's BY REFERENCE branch does too;
-            // an OMITTED argument requires an OPTIONAL formal (§14.8.2), which the procedure-division header
-            // grammar does not yet carry. Loud, never a silently dropped positional slot.
-            Err($"an OMITTED argument for formal '{formal.CobolName}' requires an OPTIONAL formal parameter "
-                + "(ISO §14.8.2); OPTIONAL/OMITTED formals are not modeled for method activation");
-            return null;
+            // §14.9.23.2's `[BY REFERENCE] { identifier-3 | OMITTED }` and §8.4.3.4.2's argument brace (kb/Work
+            // PB757). §14.9.23.3 SR18: "If an OMITTED phrase is specified, an OPTIONAL phrase shall be specified for
+            // the corresponding formal parameter in the procedure division header." Past that there is nothing to
+            // conform — §9.3.6 match rule 3 b): "No further checking is performed on this parameter".
+            if (!oof.Optional)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.InvokeOmittedNeedsOptional,
+                    $"{verb} \"{methodName}\": the OMITTED argument corresponds to formal parameter "
+                    + $"'{formal.CobolName}', which the method's procedure division header does not describe with "
+                    + "the OPTIONAL phrase (ISO §14.9.23.3 SR18)");
+                return null;
+            }
+            return OmittedArg(formal);
         }
         if (arg.ByValueWritten)
         {
@@ -849,6 +873,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         var args = new List<BoundUniversalArg>(argCtxs.Count);
         foreach (var a in argCtxs)
         {
+            // §14.9.23.2's OMITTED operand (kb/Work PB757) is the BY REFERENCE branch's, so SR6 admits it; with no
+            // formal known until runtime, §14.9.23.3 SR18's OPTIONAL requirement is the callee switch's GR7c check.
+            if (a.Omitted)
+            {
+                args.Add(new BoundUniversalArg(null, CobolNet.Runtime.CobolInvokeArg.OmittedDescriptor));
+                continue;
+            }
             if (a.ByValueWritten || a.ByContentWritten)
             {
                 ctx.Edition.Error("COBOLNET0866",

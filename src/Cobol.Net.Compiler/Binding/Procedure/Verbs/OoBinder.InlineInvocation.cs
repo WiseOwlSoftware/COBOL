@@ -38,7 +38,7 @@ internal readonly record struct InvocationArg(
 {
     /// <summary>The INVOKE statement's <c>invokeArgument</c> reading (§14.9.23.2).</summary>
     public static InvocationArg OfInvokeArgument(Core.InvokeArgumentContext a) => new(
-        a.VALUE() is not null, a.REFERENCE() is not null, a.CONTENT() is not null, Omitted: false,
+        a.VALUE() is not null, a.REFERENCE() is not null, a.CONTENT() is not null, Omitted: a.OMITTED() is not null,
         Expression: false, a.booleanExpression(), a.arithmeticExpression(), a.literal(), a.dataReference());
 
     /// <summary>The inline form's <c>argument</c> reading (§8.4.3.4.2). No passing phrase exists in that

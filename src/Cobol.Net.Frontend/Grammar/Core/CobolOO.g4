@@ -190,10 +190,17 @@ invokeUsing
 // ⚠ NOTHING DOWNSTREAM KEYS ON `BY`: OoBinder.OoBindInvokeArg selects the passing mode from `arg.VALUE()`,
 // `arg.REFERENCE()` and `arg.CONTENT()` — the UNDERLINED words — and VersionConformancePass
 // .VisitInvokeArgument gates the boolean OPERATORS, not the phrase word. Verified by grep, not assumed.
+// ⛔ OMITTED IS A BRACE ALTERNATIVE OUTSIDE THE [BY REFERENCE] BRACKET (kb/Work PB757). §14.9.23.2 prints
+// `[ BY REFERENCE ] { identifier-3 | OMITTED }` — measured on printed folio 651: OMITTED underlined (95.0%), and
+// the brace sits outside the bracket, so BOTH `USING BY REFERENCE OMITTED` and bare `USING OMITTED` are printed
+// spellings (§5.2.6.2 brackets / §5.2.6.3 braces). §14.9.23.3 SR18 legislates the phrase by name. CALL's
+// callByReference / callArgument have carried the same pair since PB130; this was the one consumer without it.
+// OMITTED is a reserved word (§8.9), so neither arm shadows a data-name.
 invokeArgument
     : BY? VALUE arithmeticExpression   // BY optional (kb/Work PB130 — only VALUE is underlined)
-    | BY? REFERENCE dataReference
+    | BY? REFERENCE (dataReference | OMITTED)
     | BY? CONTENT ({boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
+    | OMITTED
     | dataReference
     | literal
     ;

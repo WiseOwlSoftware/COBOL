@@ -121,7 +121,25 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 **Rejected alternatives.** Route ALL invokes through a single `__CobolInvoke` string-switch (uniform but slow, unidiomatic, defeats Roslyn overload/type checks) — rejected; reserve __CobolInvoke only for the genuinely-dynamic cases. The legacy uniform `callvirt CobolProgramEntry.Invoke(ManagedPointer[])` ABI — rejected: not idiomatic C#, hides types from Roslyn.
 
-### D6. Parameter passing: BY REFERENCE → C# `ref` of the typed field (value-class items) or the reference itself (object/string); BY CONTENT → pass a copy; BY VALUE → value parameter; RETURNING → C# return value; OMITTED → nullable param + omitted-arg condition.
+### D6. Parameter passing: BY REFERENCE → C# `ref` of the typed field (value-class items) or the reference itself (object/string); BY CONTENT → pass a copy; BY VALUE → value parameter; RETURNING → C# return value; OMITTED → a `bool` presence parameter beside every formal + the omitted-arg condition.
+
+**⛔ The method ABI is a PAIR per formal: `ref T value, bool omitted` (kb/Work PB757).** §14.9.23.4 GR9: "If an
+OMITTED phrase is specified or a trailing argument is omitted, the omitted-argument condition for that parameter
+shall be true in the invoked method" — and a C# `ref T` has no omitted state, so the ABI carries one. It is
+EVERY formal's, not only an OPTIONAL one's: §8.8.4.8.4 GR1c makes omission transitive through a forwarded formal
+whatever the receiving formal's own phrase, exactly as the program ABI's null carrier is (the rejected
+alternative, a flag on OPTIONAL formals only, cannot carry that case). The flag is `OoFormal.OmittedFlag`
+(`__omittedN`, lower-case so no upper-cased `ParamName` can collide); `OoSignatureOf` declares the pair and
+`OoArgPair` renders it at every caller — the typed INVOKE, the covariant adapter, the universal switch and the
+PROPERTY setter — so signature and argument lists cannot drift. In the body an omitted formal's local starts at
+its initial state (no copy-in) and is not copied out. The universal switch admits `__a.Length` down to one past
+the last non-OPTIONAL formal (§14.8.2.1; §9.3.6 match rule 1), reads `CobolInvokeArg.Omitted`, and exempts a
+spelled OMITTED (descriptor `CobolInvokeArg.OmittedDescriptor`) from the descriptor check against an OPTIONAL
+formal only (§9.3.6 match rule 3 b) — "no further checking is performed"). Binder side: `OoBindResolvedInvoke`
+appends an explicit omitted `BoundInvokeArg` for each trailing OPTIONAL formal, and §14.9.23.3 SR18 is
+`COBOLNET2237`. Conformance: §9.3.8.2.3 rule 8 (OPTIONAL presence) is `OoConformance.OptionalMismatch`, read by
+`MethodConformanceMismatches` (IMPLEMENTS / interface conformance) and `ValidateOverrideSignatures` (§11.7.3 SR9).
+The presence fact itself is shared with the program ABI — see COBOLNET_INTERPROGRAM_DESIGN, `OmittedProbe`.
 
 **A GROUP formal or RETURNING item crosses as its CHARACTER IMAGE, through THE ONE CHANNEL.** §14.2.3 GR8 makes
 a BY REFERENCE formal "occupy the same storage area as the argument" and §14.9.23.4 GR8 delivers the RETURNING
@@ -153,7 +171,7 @@ test forbidding a self-spelled `.AsImage()`/`.FromImage(` outside the generator)
 3. **Call-site lowering**: a plain field of matching storage passes `ref` DIRECTLY (subscripts evaluate once — GR7a for free); everything else is copy-in temp → `ref` temp → copy-out (BY REFERENCE identifiers only), groups crossing as character images, storage-form bridges via caller-side `FormatDisplay`/`ParseDisplay`/`NumericImagePlace`; float formals read the float value directly (never the scaled-integer path). **Emission order per GR8**: the call → the BY REFERENCE copy-outs → the RETURNING store into identifier-4 LAST.
 4. **Crossing-form harmonization** (`HarmonizeStorageCrossings`, in `StorageFormPass`): once the storage form is computed, override chains UNION the image-stored form across corresponding formal/RETURNING pairs to a fixed point, so base and override always emit the same C# signature (otherwise a base/override storage-form desync is CS0115 on the emitted C#).
 5. **Emitted-name safety**: a METHOD-ID named like its CLASS-ID renames the SYMBOL (`_M` suffix — §8.3.2.2's implementor-defined externalized mapping); overrides adopt the base slot's CsName verbatim; the one unrepresentable corner (a derived class named like an inherited slot) is a 0820 restriction diagnostic. Numeric profiles emit `internal` so CONTENT conversions qualify them cross-class.
-BY VALUE args stage 0828 pending the unparsed header BY-phrases; OMITTED, cross-float CONTENT conversion, and dynamic-length refmod BY REFERENCE args are documented later refinements (loud today).
+BY VALUE args stage 0828 pending the unparsed header BY-phrases; cross-float CONTENT conversion and dynamic-length refmod BY REFERENCE args are documented later refinements (loud today). OMITTED and OPTIONAL are carried (the pair above).
 
 ### D7. Method attributes: instance methods are `virtual` by default; OVERRIDE→`override`; FINAL→`sealed override` (FINAL root → non-virtual); FACTORY methods → `virtual`/`override` members of the per-class FACTORY SINGLETON class, NEVER C# `static` (factory invocation dispatches on the runtime factory class, §9.3.6, and SELF-in-factory is polymorphic, §8.4.3.8.4 GR2 — statics cannot express either). Never emit C# `new`/method-hiding.
 

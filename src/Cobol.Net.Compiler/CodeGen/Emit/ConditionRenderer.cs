@@ -59,8 +59,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// condition; the CA10-checked GR12 raise lives in the carrier's accessors, never here (testing presence
     /// is one of the rule's two sanctioned reference forms).</summary>
     public string Visit(BoundOmittedCondition n) => n.Negated
-        ? $"(!{n.CarrierField}.IsNull)"
-        : $"({n.CarrierField}.IsNull)";
+        ? $"(!{CallEmitter.OmittedTest(n.Probe)})"
+        : $"({CallEmitter.OmittedTest(n.Probe)})";
     // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
     public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr, num)})";
     public string Visit(BoundClassCondition n) => RenderClass(n);

@@ -2187,6 +2187,9 @@ internal sealed class VersionConformancePass
         public override object? VisitInvokeArgument(CobolParserCore.InvokeArgumentContext ctx)
         {
             GateBooleanOperators(ctx.booleanExpression());
+            // §14.9.23.2's OMITTED operand (kb/Work PB757) rides the same construct row as CALL's twin.
+            if (ctx.OMITTED() is not null)
+                _p.Check(Constructs.OmittedArguments2002, "the OMITTED argument");
             return base.VisitChildren(ctx);
         }
 

@@ -336,39 +336,28 @@ public sealed partial class DataBinder
             _callSuppressedRootFields.Add(root.CsName);
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
-        // The BY VALUE / OPTIONAL phrases parse (the §14.2.2 using-phrase grammar, P10 Step 10) but the
-        // METHOD-side value-copy/omitted-argument models are not modeled on the INVOKE channel — staged
-        // loud here, never a silent by-ref downgrade (§1.4).
+        // The BY VALUE phrase parses (the §14.2.1 using-phrase general format, P10 Step 10) but the METHOD-side
+        // value-copy model is not carried on the INVOKE channel — staged loud here, never a silent by-ref
+        // downgrade (§1.4). The OPTIONAL phrase CARRIES (kb/Work PB757): the formal records it, and the method
+        // ABI pairs every formal with its omitted-presence parameter (OoFormal.OmittedFlag) — the method arm of
+        // the one presence fact the program arm's null carrier realizes (kb/Work PB133 wave C).
         var pd = m.Ctx.procedureDivision();
         int pos = 0;
         foreach (var prm in pd?.usingClause()?.usingParameter() ?? [])
         {
             using var _ = Edition.At(prm);
             Core.DataReferenceContext dref;
+            bool optional = false;
             if (prm.usingByValue() is { } vb)
             {
                 dref = vb.dataReference();
                 Edition.Error(DiagnosticCatalog.ByValueFormalCarrier,
                     $"{where}: the BY VALUE phrase on method formal parameter '{dref.GetText()}' is recognized "
-                    + "(ISO §14.2.2) but a method's value-copy formal is not yet implemented on the INVOKE "
+                    + "(ISO §14.2.2 SR2) but a method's value-copy formal is not yet implemented on the INVOKE "
                     + "channel");
             }
-            else if (prm.usingByReference() is { } rb)
-            {
-                dref = rb.dataReference();
-                if (rb.OPTIONAL() is not null)
-                    Edition.Error(DiagnosticCatalog.OptionalFormal,
-                        $"{where}: OPTIONAL formal parameter '{dref.GetText()}' is recognized (ISO §14.2.2) "
-                        + "but OPTIONAL formals are not yet implemented");
-            }
-            else
-            {
-                dref = prm.dataReference();
-                if (prm.OPTIONAL() is not null)
-                    Edition.Error(DiagnosticCatalog.OptionalFormal,
-                        $"{where}: OPTIONAL formal parameter '{dref.GetText()}' is recognized (ISO §14.2.2) "
-                        + "but OPTIONAL formals are not yet implemented");
-            }
+            else if (prm.usingByReference() is { } rb) { dref = rb.dataReference(); optional = rb.OPTIONAL() is not null; }
+            else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
             string pname = dref.GetText();
             var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 string.Equals(r.CobolName, pname, StringComparison.OrdinalIgnoreCase));
@@ -376,7 +365,7 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else
-                m.Binding!.Formals.Add(new OoFormal(item, pos, OoParamName(m, item, pos)));
+                m.Binding!.Formals.Add(new OoFormal(item, pos, OoParamName(m, item, pos), optional));
             pos++;
         }
         if (pd?.returningClause()?.dataReference() is { } rref)

@@ -484,6 +484,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // either. `WholeFormal` recognizes the case STRUCTURALLY, so a SUBITEM or subscripted reference
             // keeps the ordinary build below and still raises inside an omitted formal, as GR12 requires.
             var fwd = WholeFormal(p);
+            var probe = callState.WholeFormalProbe(p);
             if (a.Mode == CobolPassMode.Reference)
             {
                 // A CARRIER-RESIDENT formal's carrier IS the caller's storage (§14.2.3 GR8), so passing it
@@ -498,7 +499,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // next callee as PRESENT (measured: `CALL "S8" AS NESTED USING OMITTED` → the inner
                 // `LH IS OMITTED` test answered false).
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, "
-                    + $"{Forwarded(fwd, RefCarrier(p))}, {digits}, {scale})";
+                    + $"{Forwarded(probe, RefCarrier(p))}, {digits}, {scale})";
             }
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9) — and BY VALUE with
             // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
@@ -517,7 +518,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // pointer. A SET between two items of the same category IS this copy (kb/Work PB663).
                 _ => $"ManagedPointer<{CallCellCarrier(p)}>.Cell({PlaceRenderer.Read(p)})",
             };
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(fwd, snapshot)}, {digits}, {scale})";
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {digits}, {scale})";
         }
         switch (a.Value)
         {
@@ -590,6 +591,17 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private LinkageFormal? WholeFormal(Place p) =>
         p is RefModPlace ? null : callState.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, p.Item));
 
+    /// <summary>⛔ THE ONE RENDERING OF THE PRESENCE FACT (§8.8.4.8.4 GR1; kb/Work PB757): a C# boolean that is
+    /// true when the formal's argument was omitted. The program arm tests its null carrier; the method arm reads
+    /// its presence parameter. The §8.8.4.8 condition, the CALL forward and the INVOKE forward all render it
+    /// here, so no consumer spells either arm itself.</summary>
+    public static string OmittedTest(OmittedProbe probe) => probe switch
+    {
+        OmittedProbe.Carrier c => $"{c.CarrierField}.IsNull",
+        OmittedProbe.MethodFlag m => m.FlagParam,
+        _ => throw new InvalidOperationException($"unmodeled omitted-argument probe {probe}"),
+    };
+
     /// <summary>Guard a freshly built argument carrier with the FORWARDED formal's presence (ISO §8.8.4.8.4
     /// GR1c — omission is transitive; §14.9.4.4 GR12 — a reference "as an argument" is exempt, so the built
     /// carrier's read must not happen at all when the formal is omitted). <paramref name="built"/> is returned
@@ -597,8 +609,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <para>The guard is a C# conditional, not a runtime helper taking a factory: the omitted case allocates
     /// nothing and the present case allocates exactly what it allocated before — a <c>Func&lt;T&gt;</c> closure
     /// per argument per CALL would be a new allocation on the hot path for a rule that needs none.</para></summary>
-    private static string Forwarded(LinkageFormal? formal, string built) =>
-        formal is null ? built : $"({formal.CarrierField}.IsNull ? ManagedPointer.Null : {built})";
+    private static string Forwarded(OmittedProbe? formal, string built) =>
+        formal is null ? built : $"({OmittedTest(formal)} ? ManagedPointer.Null : {built})";
 
     // The COMPILE-TIME numeric-literal text of an argument expression is `Gr8ArgumentLiteral.NumericText`
     // (Binding/Bound/BoundCall.cs). ⛔ It used to be a PRIVATE COPY here, and the binder's §14.8.2.3.3

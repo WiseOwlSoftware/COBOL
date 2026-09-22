@@ -95,6 +95,12 @@ public sealed record BoundInvokeArg(
     /// the value takes the receiving formal's width directly). The same width §14.9.8.4 GR3 states for a
     /// boolean COMPUTE, computed by the same <c>ConditionBinder.Gr3Width</c>.</summary>
     public int ContentBoolWidth { get; init; }
+
+    /// <summary>The argument is OMITTED (kb/Work PB757): the OMITTED phrase was written (ISO §14.9.23.2) or the
+    /// argument is a trailing one omitted from the statement (§14.8.2.1; §9.3.6 match rule 1). It has no source and no literal;
+    /// the omitted-argument condition for <see cref="Formal"/> shall be true in the invoked method (§14.9.23.4
+    /// GR9), and the binder has proved the formal OPTIONAL (§14.9.23.3 SR18).</summary>
+    public bool Omitted { get; init; }
 }
 
 /// <summary>A bound UNIVERSAL-receiver INVOKE (deep-dive D10/D-U5): there is NO formal roster at compile
@@ -118,7 +124,13 @@ public sealed record BoundInvokeUniversal(
 }
 
 /// <summary>One universal-dispatch argument: the storage and its conformance descriptor (D-U3).</summary>
-public sealed record BoundUniversalArg(Place Source, string Descriptor);
+public sealed record BoundUniversalArg(Place? Source, string Descriptor)
+{
+    /// <summary>A spelled OMITTED argument (ISO §14.9.23.2; kb/Work PB757) — no source; its descriptor is
+    /// <c>CobolInvokeArg.OmittedDescriptor</c>, and the callee's switch admits it only against an OPTIONAL formal
+    /// (§9.3.6 match rule 3 b), checked at runtime through a universal receiver (§14.9.23.4 GR7c).</summary>
+    public bool Omitted => Source is null;
+}
 
 /// <summary>SET Format 5 — object-reference assignment (ISO §14.9.39 :31162; D-U7): copy ONE sender
 /// reference into each target in order (GR9/GR10). The sender is a Place, the NULL figurative, SELF
