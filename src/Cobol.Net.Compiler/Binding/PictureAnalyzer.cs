@@ -186,7 +186,7 @@ public static class PictureAnalyzer
         //    IsFloatEdited flag drives every store / read dispatch. The COBOL-2002 introduction gate keys on that flag
         //    in VersionConformancePass.UsageConstructId (no SkeletonGate: the category is no longer recovered). ──
         if (hasE && invalid is null && !hasN && !has1)
-            return AnalyzeFloatEdited(picture, expanded, usage, explicitUsage, edition, where, char1Set.Count > 0);
+            return AnalyzeFloatEdited(picture, expanded, usage, explicitUsage, edition, where, editRules, char1Extended, editingExtra);
         if (invalid is { } bad)
         {
             // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
@@ -1065,22 +1065,42 @@ public static class PictureAnalyzer
     /// separately): the exponent is exactly <c>+9</c>…<c>+9999</c>; the significand an optional leading fixed
     /// sign (SR23 + NOTE 3 sanction the significand's <c>−</c> beside the exponent's <c>+</c>) and then only the
     /// symbols Table 10 row E admits before E — <c>9 B 0 / , .</c> (no floating insertion, no zero suppression with
-    /// replacement, no S/V/P/CR/DB/currency; an EDITING character is barred by SR12 a) — with one point at most (SR12 b)
+    /// replacement, no S/V/P/CR/DB/currency; an IS-form EDITING character-1 is simple insertion and admitted, a FOR-form
+    /// one is barred by SR12's FOR-phrase rules, kb/Work PB866) — with one point at most (SR12 b)
     /// and 1..36 digit positions (SR15 — SR14's 31 does not apply). Every symbol of both parts is a character position
     /// (GR14: E, the point, the insertion symbols and the signs are all counted). Returns a numeric-edited PicInfo
     /// with <see cref="PicInfo.IsFloatEdited"/>; Scale and DigitPositions are 0 (a floating-point item's scale is a
     /// runtime property of its value); the recovery shape on a violation (the compile has failed).</summary>
     private static PicInfo AnalyzeFloatEdited(string picture, string expanded, Usage usage, bool explicitUsage,
-        EditionContext edition, string where, bool hasEditingPhrase)
+        EditionContext edition, string where, IReadOnlyList<CobolEdit.EditRule>? editRules, HashSet<char> char1Extended,
+        int editingExtra)
     {
         void Bad(string why) => edition.Error(DiagnosticCatalog.PictureFloatEdited,
             $"invalid floating-point numeric-edited PICTURE {picture} — {where}: {why}");
         int eCount = expanded.Count(c => c == 'E');
         if (eCount > 1) { Bad("the symbol E may appear only once (ISO §13.18.40.3 SR12 b)"); return PicInfo.Recovery(expanded.Length); }
-        if (hasEditingPhrase) { Bad("an EDITING character-1 may not be specified for a floating-point edited item (ISO §13.18.40.3 SR12 a)"); return PicInfo.Recovery(expanded.Length); }
+        // ⛔ §13.18.40.3 SR12 bars only the FOR form here: "Extended editing sign control symbols shall not be
+        // specified for a floating-point edited item" is a rule of SR12's FOR-phrase list (printed as that list's
+        // SECOND 'a)', after 'c)' — the standard's own lettering, p.442; kb/Work PB866). An IS-form character-1 is
+        // a SIMPLE INSERTION symbol (§13.18.40.5 rule 3), and Table 7 gives this category "Simple insertion, special
+        // insertion, and fixed insertion for the significand part" — so it is admitted in the significand below.
+        if (char1Extended.Count > 0)
+        {
+            Bad($"EDITING {char1Extended.First()} FOR … makes character-1 an extended editing sign control symbol, and "
+                + "extended editing sign control symbols shall not be specified for a floating-point edited item (ISO "
+                + "§13.18.40.3 SR12, the FOR-phrase rules; an IS-form EDITING phrase is permitted)");
+            return PicInfo.Recovery(expanded.Length);
+        }
+        bool IsChar1(char c) => editRules is not null && editRules.Any(r => r.SimpleInsertion && char.ToUpperInvariant(r.Char1) == c);
         int e = expanded.IndexOf('E');
         string sig = expanded[..e], exp = expanded[(e + 1)..];
         // the exponent: '+' then 1..4 '9's, nothing else (§13.18.40.4 GR13 b)
+        if (exp.Any(IsChar1))
+        {
+            Bad("a PICTURE EDITING character-1 may not appear in the exponent — Table 7 gives the exponent part no "
+                + "editing (ISO §13.18.40.5 Table 7: \"None for the exponent part\")");
+            return PicInfo.Recovery(expanded.Length);
+        }
         if (exp.Length < 2 || exp[0] != '+' || exp[1..].Any(c => c != '9') || exp.Length - 1 > 4)
         {
             Bad("the exponent shall be +9, +99, +999 or +9999 (ISO §13.18.40.4 GR13 b)");
@@ -1098,6 +1118,7 @@ public static class PictureAnalyzer
                 case '9': digits++; break;
                 case '.': points++; break;
                 case 'B': case '0': case '/': case ',': break;
+                case var c1 when IsChar1(c1): break;   // an IS-form character-1: simple insertion (§13.18.40.5 rule 3)
                 case '+': case '-':
                     Bad("a second sign symbol in the significand — the significand admits one leading + or − (ISO §13.18.40.6 Table 10 row E; SR25 applies per string)");
                     return PicInfo.Recovery(expanded.Length);
@@ -1124,8 +1145,10 @@ public static class PictureAnalyzer
         // GR4 through the ONE count (kb/Work PB535). The loop above has already refused 'S', 'V' and 'P' in the
         // significand and the exponent is '+' and '9's, so nothing is excluded here — asking the one function is
         // what keeps that agreement from becoming a fourth reading of GR4 that nobody re-derives.
-        return new PicInfo(PicCategory.NumericEdited, usage, Length: CharacterPositions(expanded), Digits: digits, Scale: 0, Signed: signed)
-        { EditMask = expanded, DigitPositions = 0, IsFloatEdited = true };
+        // GR14 'es': an IS-form character-1 counts literal-1's size at every occurrence (EditingPositions).
+        return new PicInfo(PicCategory.NumericEdited, usage, Length: CharacterPositions(expanded, editingExtra: editingExtra),
+            Digits: digits, Scale: 0, Signed: signed)
+        { EditMask = expanded, EditingRules = editRules, DigitPositions = 0, IsFloatEdited = true };
     }
 
     /// <summary>The format-2 (LOCALE) PICTURE analysis (ISO §13.18.40.3 SR33–SR36 + §13.18.40.6 Table 11;

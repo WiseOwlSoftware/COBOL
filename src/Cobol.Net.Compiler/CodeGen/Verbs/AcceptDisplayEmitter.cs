@@ -131,7 +131,12 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 // editing; an edited PICTURE's Length counts every mask position). For a NATIONAL receiver the
                 // GR1 conversion is DEFINED as the identity on the UTF-16 character substrate — one device
                 // character per national position, so Device(pic.Length) is exact (kb/Work PB139).
-                w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({pic.Length})"));
+                // A DYNAMIC-LENGTH receiver's size is its MAXIMUM size (D-DL2), and the transferred characters
+                // become its content through the ONE receiving store (§8.5.1.10.4; kb/Work PB871) — the PICTURE's
+                // single symbol (§13.18.19.3 SR1) used to make every ACCEPT store one character.
+                w.Line(PlaceRenderer.Write(target, item.IsDynamicLength
+                    ? ReceivingStore.Characters(item, $"AcceptSource.Device({ReceivingStore.DynamicReceivingSize(item)})", "")
+                    : $"AcceptSource.Device({pic.Length})"));
                 return;
         }
     }
@@ -198,7 +203,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
             case { Category: PicCategory.NumericEdited } npic:
                 // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5) — the form
                 // dispatch (fixed / floating-point) is RuntimeApi.EditFormatFor's (D21/PB66).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(call, 0), call, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(call, 0), call, "0", ctx.EditCfg(target.Item.Pic))));
                 return;
             case { IsCharacterEdited: true } aePic:
                 // The EDITED CHARACTER categories — alphanumeric-edited AND national-edited — through the ONE
@@ -212,7 +217,9 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                 // right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c). A NATIONAL receiver
                 // stores exactly like alphanumeric on the character substrate (§14.6.8.5; the digit image rides
                 // the D-N repertoire identity) — the same two stores MoveEmitter's national arm uses.
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStoreAligned(sendImage, $"{snPic.Length}", item.Justified)));
+                // The ONE elementary character receiving store — a dynamic-length receiver takes the whole image
+                // (§14.9.1.4 GR6 -> §14.9.25.4 GR8 -> §8.5.1.10.4; kb/Work PB871).
+                w.Line(PlaceRenderer.Write(target, ReceivingStore.Characters(item, sendImage, $"{snPic.Length}")));
                 return;
             default:
                 // §14.9.1.3 SR3 bind-rejects class alphabetic / boolean / index / object / pointer receivers,

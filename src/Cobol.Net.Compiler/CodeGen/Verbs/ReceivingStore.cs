@@ -1,0 +1,45 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Model;
+using CobolNet.Runtime;
+namespace CobolNet.CodeGen;
+
+/// <summary>
+/// ⛔ THE ELEMENTARY CHARACTER RECEIVING STORE — the ONE place the MOVE rules' store of a character string into an
+/// elementary alphanumeric or national receiving operand is decided, for every verb that transfers "according to
+/// the rules for the MOVE statement" (kb/Work PB871).
+/// <para>Two arms, and the second is why this class exists. A fixed-length receiver takes the string
+/// left-justified, space-filled or truncated on the right to its width (a JUSTIFIED one right-justified —
+/// §14.9.25.4 GR6c). A DYNAMIC-LENGTH receiver takes it WHOLE: §14.9.25.4 GR8 routes every MOVE into one through
+/// §8.5.1.10.4 — "If a dynamic-length elementary item is a receiving operand and is not reference-modified, the
+/// new value becomes the content of the item. The new length of the dynamic-length elementary item is determined
+/// by the length of new content" and "If the maximum length is reached, the value is truncated on the right as
+/// necessary." A dynamic-length item's PICTURE is ONE symbol (§13.18.19.3 SR1), so a store that fits the string to
+/// the PICTURE's width writes exactly one character — which is what UNSTRING and ACCEPT did, because each carried
+/// its own private copy of the fixed-length arm and only <see cref="MoveEmitter"/> knew the dynamic one.</para>
+/// <para>A REFERENCE-MODIFIED dynamic-length item is §8.5.1.10.4's other case — "treated as a fixed-length data
+/// item whose length is the dynamic-length elementary item's current length" — and never reaches here: every
+/// caller routes a <c>RefModPlace</c> through <c>PlaceRenderer.Write</c>'s splice first.</para>
+/// <para><c>ReceivingStoreDriftTests</c> fails if an emitter under <c>CodeGen/Verbs</c> builds either store
+/// itself, so the next MOVE-rules verb inherits the dynamic arm instead of re-deriving the fixed one.</para>
+/// </summary>
+internal static class ReceivingStore
+{
+    /// <summary>The store expression for <paramref name="sendingChars"/> (a C# string expression holding the
+    /// sending operand's characters) into the elementary alphanumeric / national <paramref name="target"/>.
+    /// <paramref name="width"/> is the fixed-length receiver's width expression (its PICTURE length, or an
+    /// ANY LENGTH receiver's runtime length); a dynamic-length receiver has no width and ignores it.</summary>
+    public static string Characters(DataItem target, string sendingChars, string width) =>
+        target.IsDynamicLength
+            ? RuntimeApi.DynStore(sendingChars, target.DynMaxSize.ToString())
+            : RuntimeApi.StrStoreAligned(sendingChars, width, target.Justified);
+
+    /// <summary>⚖ DETERMINATION D-DL2 (docs/CONFORMANCE.md §3; kb/Work PB871) — the SIZE of a dynamic-length
+    /// RECEIVING operand, wherever a statement's rules are written over "the number of character positions in"
+    /// the receiver rather than over a MOVE (STRING §14.9.43.4 GR6/GR8, UNSTRING §14.9.48.4 GR11b, ACCEPT format 1
+    /// §14.9.1.4 GR3/GR4), is its MAXIMUM size (§8.5.1.10.1). §8.5.1.10.4 fixes a dynamic-length item's size only
+    /// as a SENDING operand or a reference-modified one (its current length); as a receiver §8.5.1.10.1 says the
+    /// number of character positions "may vary during program execution", and the current length would make an
+    /// empty item unwritable by STRING — every character an overflow (measured before this fix).</summary>
+    public static int DynamicReceivingSize(DataItem target) => target.DynMaxSize;
+}

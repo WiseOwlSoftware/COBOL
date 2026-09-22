@@ -109,7 +109,14 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// SEVERAL currency signs edits each item with ITS string — kb/Work PB60 / AR-15.68.3-3) and DECIMAL-POINT IS
     /// COMMA when set (GR14). Empty under the default config, so the generated code of an ordinary program is
     /// unchanged. The ONE producer of these arguments — used by the orchestrator's MOVE/arithmetic edited stores,
-    /// ACCEPT/STRING's edited receivers and the renderer's DeEdit.</summary>
+    /// ACCEPT/STRING's edited receivers and the renderer's DeEdit, over BOTH numeric-edited forms (fixed-point
+    /// <c>Format</c>/<c>TryFormat</c>/<c>DeEdit</c> and floating-point <c>FormatFloatMove</c>/<c>TryFormatFloat</c>/
+    /// <c>DeEditFloat</c>).
+    /// <para>⛔ It also carries the item's PICTURE EDITING rules (<see cref="RuntimeApi.EditsArg"/>). They were a
+    /// SEPARATE suffix every caller had to remember to append, and the two floating-point arms were exactly the
+    /// callers that did not — harmless only while COBOLNET1658 refused every EDITING phrase on that form; once the
+    /// IS form is admitted (§13.18.40.3 SR12 bars only the FOR form's extended symbols; kb/Work PB866) a dropped
+    /// suffix renders the mask LETTER. One producer, so the next edited-store site cannot drop it.</para></summary>
     public string EditCfg(PicInfo? pic) =>
         // A format-2 (LOCALE) item takes NEITHER argument: the currency string is the LOCALE's (§13.18.40.5 r9)
         // and DECIMAL-POINT IS COMMA has no effect on locale editing (§12.3.7.4 GR14) — and CobolLocaleEdit's
@@ -117,7 +124,8 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
         pic?.LocaleEdit is not null ? ""
         : (pic?.CurrencyString is { } cur
             ? $", currencyString: {SymbolDisplay.FormatLiteral(cur, quote: true)}" : "")
-        + (Data.DecimalPointIsComma ? ", commaMode: true" : "");
+        + (Data.DecimalPointIsComma ? ", commaMode: true" : "")
+        + RuntimeApi.EditsArg(pic?.EditingRules);
 
     // FigFill lives in FigurativeConstants since P7 Step 4 (the ONE figurative service).
 }

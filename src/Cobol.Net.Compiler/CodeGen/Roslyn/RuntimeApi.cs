@@ -350,13 +350,15 @@ internal static class RuntimeApi
 
     /// <summary>The compile-time floating-point edited image of a VALUE literal (<c>CobolEdit.FormatFloatMove</c> at
     /// compile time — the same runtime, so the baked initial content is what a MOVE of the literal would store).</summary>
-    public static string EditComposeFloat(Int128 sig, int exp10, string picture, bool blankWhenZero, bool commaMode) =>
-        CobolEdit.FormatFloatMove(new CobolDec(sig, exp10), picture, blankWhenZero, commaMode);
+    public static string EditComposeFloat(Int128 sig, int exp10, string picture, bool blankWhenZero, bool commaMode,
+        IReadOnlyList<CobolEdit.EditRule>? edits = null) =>
+        CobolEdit.FormatFloatMove(new CobolDec(sig, exp10), picture, blankWhenZero, commaMode, edits?.ToArray());
 
     /// <summary>The trailing <c>edits:</c> named argument for a numeric-edited store carrying PICTURE EDITING
     /// phrases (ISO §13.18.40.2 Format 1) — the resolved render rules serialized as a
     /// <c>CobolEdit.EditRule[]</c>. Empty for every non-editing item, so the generated code of an ordinary program
-    /// is byte-identical. Appended AFTER <c>BwzFlag</c>/<c>EditCfg</c> (all named args) at each edited store.
+    /// is byte-identical. ⛔ Edited stores do NOT append it themselves: <see cref="Emit.EmitContext.EditCfg"/>
+    /// carries it, so every fixed- AND floating-point edited call site gets it from the one producer (kb/Work PB866).
     /// <para>literal-2 / literal-3 / literal-1 travel as STRING literals (§13.18.40.3 SR9 allows 50 characters)
     /// and the FLOATING flag travels beside them, because §13.18.40.5 rule 6 makes an extended editing sign
     /// control symbol a floating insertion symbol and only the binder saw the character-string that decides it

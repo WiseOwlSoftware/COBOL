@@ -200,8 +200,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // §8.5.1.10.4's own first sentence a FIXED-length item of the current length.</para>
         if (item.IsDynamicLength)
         {
-            ctx.Writer.Line(PlaceRenderer.Write(target,
-                RuntimeApi.DynStore(OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), item.DynMaxSize.ToString())));
+            ctx.Writer.Line(PlaceRenderer.Write(target, ReceivingStore.Characters(item,
+                OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), "")));
             return;
         }
         if (!item.IsImageCapable)
@@ -213,7 +213,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
         // An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the carrier's current length).
         string gw = item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{item.ImageWidth}";
-        string image = RuntimeApi.StrStoreAligned(OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw, item.Justified);
+        string image = ReceivingStore.Characters(item, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw);
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
@@ -503,8 +503,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // AsString already renders every source correctly (a figurative as new string(fill,1)), so the general
         // DynStore path is exhaustive. A PIC X/N dynamic-length item carries no edit mask, so this precedes the
         // fixed-width figurative/ALL and numeric-edited paths below.
-        if (target.IsDynamicLength)
-            return RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: true), target.DynMaxSize.ToString());
+        if (target.IsDynamicLength)   // the ONE elementary character receiving store owns §8.5.1.10.4 (kb/Work PB871)
+            return ReceivingStore.Characters(target, OperandText.AsString(source, num, deSign: true), "");
         string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
         // ⛔ A WHOLE-WIDTH FILL GOES THROUGH THE EDITOR, NEVER AROUND IT, when the receiver edits. §8.3.3.6.4 GR2
         // and §14.9.25.4 GR6 are two different steps and both apply: the figurative / ALL-literal source is first
@@ -584,7 +584,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 int editScale = e.Real || e.Dec ? ems : e.Scale;
                 // The form dispatch (mask vs LOCALE) is EditFormatFor's — never a call-site EditMask deref.
                 return RuntimeApi.EditFormatFor(pic, e, editVal, $"{editScale}",
-                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
+                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
@@ -593,19 +593,19 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             {
                 string unsignedInt = RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true), sending: true);
                 return RuntimeApi.EditFormatFor(pic, new NumX(unsignedInt, 0), unsignedInt, "0",
-                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic) + RuntimeApi.EditsArg(pic.EditingRules));
+                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
             }
             case PicCategory.Alphanumeric:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
                 // wN: an ANY LENGTH receiver stores at its runtime length (§13.18.2 GR1), else Pic.Length.
-                return RuntimeApi.StrStoreAligned(OperandText.AsString(source, num, deSign: true), wN, target.Justified);
+                return ReceivingStore.Characters(target, OperandText.AsString(source, num, deSign: true), wN);
             // A NATIONAL receiver stores exactly like alphanumeric on the character substrate (§14.6.8.5 —
             // left-justify, national-space pad, right truncation; JUSTIFIED per §13.18.32): A→N widening,
             // N→N, 9→N digit imaging, and boolean→N all ride AsString under the D-N4 Latin-1 identity
             // correspondence (§14.9.25.4 GR6/GR6a).
             case PicCategory.National:
-                return RuntimeApi.StrStoreAligned(OperandText.AsString(source, num, deSign: true), wN, target.Justified);
+                return ReceivingStore.Characters(target, OperandText.AsString(source, num, deSign: true), wN);
             // A BOOLEAN receiver pads/left-fills with boolean ZEROS (§14.6.8.6; JUSTIFIED §13.18.32 GR2).
             // Figurative ZERO already early-returned above as a '0' fill; the SR7-illegal figurative shapes
             // never reach emit (bind-rejected, MoveCategoryLegality).

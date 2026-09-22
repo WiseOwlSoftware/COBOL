@@ -64,6 +64,7 @@
   "dyn_search",
   "dynamic_length_figurative",
   "dynamic_length_item",
+  "pb871_dynamic_length_receivers",
   "dynamic_length_limit",
   "ec_bound_overflow",
   "float_binary",

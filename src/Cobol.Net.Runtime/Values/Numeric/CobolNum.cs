@@ -470,7 +470,12 @@ public static partial class CobolNum
 
     /// <summary>The DISPLAY image of an unsigned wide item's value — the unsigned-wide sibling of
     /// <see cref="FormatDisplay(Int128, in NumProfile)"/> (a 16-byte unsigned COMP-5 item is always unsigned, so
-    /// the image is the bare magnitude run at the picture's digit count). ⛔ DISTINCTLY NAMED, not an overload:
+    /// the image is the bare magnitude run at the picture's digit count). ⚠ The digit count is the PICTURE's even
+    /// for a BinaryCapacity item holding a beyond-PICTURE value — a DETERMINATION, not an oversight: ISO §14.9.11.4
+    /// GR1 leaves "any conversion of data required between … identifier-1 and the device" to the implementor, the
+    /// vendors split (IBM prints the container value, GnuCOBOL the PICTURE-digit image), and the owner chose
+    /// GnuCOBOL (kb/Work R13; docs/CONFORMANCE.md DOC-A.1-56; golden <c>comp5_display_beyond_picture</c>).
+    /// kb/Work PB825 re-filed it as a defect and was retired against that decision. ⛔ DISTINCTLY NAMED, not an overload:
     /// an <c>int</c> constant converts implicitly to BOTH <see cref="Int128"/> and <see cref="UInt128"/>
     /// (the constant-expression conversion chains through <c>uint</c>), so a same-name overload pair makes
     /// every emitted <c>Store(0, …)</c>-shaped call a CS0121 ambiguity — 119 corpus programs failed exactly

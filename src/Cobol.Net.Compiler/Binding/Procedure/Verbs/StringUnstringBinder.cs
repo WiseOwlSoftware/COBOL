@@ -458,6 +458,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     private static int StrUnstrReceiveSize(Place p) =>
         p is RefModPlace ? -1
         : p.Item.IsGroup ? p.Item.AsIfPic?.Length ?? p.Item.ImageWidth   // a bit / national group: its as-if positions (D20/PB79)
+        // A DYNAMIC-LENGTH receiver's size is its MAXIMUM size (DETERMINATION D-DL2, docs/CONFORMANCE.md §3 — the
+        // same reading CodeGen's ReceivingStore.DynamicReceivingSize gives STRING and ACCEPT; kb/Work PB871): its
+        // PICTURE is one symbol (§13.18.19.3 SR1), which made GR11b examine a single character.
+        : p.Item.IsDynamicLength ? p.Item.DynMaxSize
         : p.Item.Pic is { Category: PicCategory.Numeric } pic ? pic.Digits
         : p.Item.Pic?.Length ?? 0;
 }

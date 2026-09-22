@@ -37,7 +37,26 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             ? $"long {ptr} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0)});"   // GR4 — the user's initial value (by VALUE — kb/Work PB86)
             : $"long {ptr} = 1;");                                                    // GR5 — implicit pointer of 1
         w.Line($"bool {ovf} = false;");
-        w.Line($"string {acc} = {ReadImage(s.Into)};");
+        // ⚖ A DYNAMIC-LENGTH identifier-3 (kb/Work PB871; DETERMINATION D-DL2, docs/CONFORMANCE.md §3): GR6 and
+        // GR8 are written over "the number of character positions in the data item referenced by identifier-3",
+        // which for a dynamic-length receiver is its MAXIMUM size (ReceivingStore.DynamicReceivingSize) — the
+        // current length made an empty item unwritable (every character an overflow). The working image is the
+        // current content widened to that size with spaces — the characters §14.9.39.4 GR39 gives any position a
+        // dynamic-length item grows by — so GR7's "all other portions ... will contain data that was present
+        // before" holds for every position the content already had. The new length is §8.5.1.10.4's "length of
+        // new content": the old content's, extended through the last position this execution wrote.
+        // Place.DenotedItem is the ONE "whole item" question (§8.4.3.3.4 GR5; kb/Work PB602): a reference-modified
+        // identifier-3 denotes no item, and §8.5.1.10.4 makes it a fixed-length item of the current length.
+        bool dynInto = s.Into.DenotedItem is { IsDynamicLength: true };
+        string old = $"__strOld{id}", ptr0 = $"__strPtr0{id}";
+        if (dynInto)
+        {
+            w.Line($"string {old} = {ReadImage(s.Into)};");
+            w.Line($"string {acc} = {old}.PadRight({ReceivingStore.DynamicReceivingSize(s.Into.Item)});");
+            w.Line($"long {ptr0} = {ptr};");
+        }
+        else
+            w.Line($"string {acc} = {ReadImage(s.Into)};");
         foreach (var snd in s.Sendings)
         {
             // GR3a: the sender's CONTENT transfers per the alphanumeric-to-alphanumeric move mechanics — its raw
@@ -46,7 +65,13 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             string delim = snd.BySize || snd.Delimiter is null ? "null" : OperandText.AsString(snd.Delimiter, num);
             w.Line($"{acc} = {RuntimeApi.StrTransfer(acc, src, delim, ptr, ovf)};");
         }
-        WriteImage(s.Into, acc);
+        if (dynInto)
+            // GR6 advances the pointer once per character moved, so a moved character's position is below the
+            // final pointer: the content reaches position ptr-1 exactly when anything moved (ptr != its start).
+            w.Line(PlaceRenderer.Write(s.Into, ReceivingStore.Characters(s.Into.Item,
+                $"{acc}.Substring(0, {ptr} != {ptr0} ? System.Math.Max({old}.Length, (int)({ptr} - 1)) : {old}.Length)", "")));
+        else
+            WriteImage(s.Into, acc);
         if (s.Pointer is { } p) arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
         EmitOverflow(ovf, "EC-OVERFLOW-STRING", s.OnOverflow, s.NotOnOverflow);   // GR8b
     }
@@ -213,7 +238,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 // §14.9.25.4 GR6 d) 3 31-character size rule AND GR6 d) 1's EC-DATA-INCOMPATIBLE (kb/Work
                 // PB426/PB844 — UNSTRING is a MOVE-rules channel, not a second private conversion).
                 string unsignedInt = RuntimeApi.NumFromAlphanumeric(valueExpr, sending: true);   // the form dispatch is EditFormatFor's (D21/PB66)
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(unsignedInt, 0), unsignedInt, "0", ctx.EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(unsignedInt, 0), unsignedInt, "0", ctx.EditCfg(target.Item.Pic))));
                 return;
             }
             case { IsCharacterEdited: true } aePic:
@@ -224,12 +249,16 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 // so the two arms cannot drift apart if SR4's screen ever moves.
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatSimpleInsertion(valueExpr, aePic)));
                 return;
-            case { Category: PicCategory.Alphanumeric, Length: var len }:
+            case { Category: PicCategory.Alphanumeric or PicCategory.National, Length: var len }:
                 // A JUSTIFIED receiver right-justifies — left space-fill / left truncation (§14.9.25.4 GR6c).
                 // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — n is fixed
-                // by the activation's argument), never its one-symbol Pic.Length.
+                // by the activation's argument), never its one-symbol Pic.Length. A DYNAMIC-LENGTH receiver takes
+                // the examined characters whole (§14.9.25.4 GR8 -> §8.5.1.10.4) — through the ONE receiving store
+                // (kb/Work PB871). A NATIONAL receiver (SR4 admits it, and GR11c moves a national sender "as an
+                // elementary national data item") stores exactly like alphanumeric on the character substrate
+                // (§14.6.8.5) — the same arm MoveEmitter and the ACCEPT emitter use.
                 string wS = target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{len}";
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStoreAligned(valueExpr, wS, target.Item.Justified)));
+                w.Line(PlaceRenderer.Write(target, ReceivingStore.Characters(target.Item, valueExpr, wS)));
                 return;
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
                 // The MOVE-rules channel again (§14.9.48.4 GR11 c) → §14.9.25.4 GR6 d) 3 / d) 1): both arms of

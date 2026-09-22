@@ -919,7 +919,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"string {tmp} = " + (a.Formal.IsAnyLength ? bv
                     : a.Formal.Pic!.Category is PicCategory.Boolean
                         ? RuntimeApi.StrStoreBoolean(bv, $"{bw}", a.Formal.Justified)
-                    : RuntimeApi.StrStoreAligned(bv, $"{bw}", a.Formal.Justified)) + ";");
+                    : ReceivingStore.Characters(a.Formal, bv, $"{bw}")) + ";");   // the ONE elementary character store (kb/Work PB871)
             }
             else if (OoVarGroupCarried(a.Formal))
             {

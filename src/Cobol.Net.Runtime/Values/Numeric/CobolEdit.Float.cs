@@ -26,20 +26,42 @@ public static partial class CobolEdit
     /// <param name="SigScale">The '9' positions right of the significand's '.' (0 when there is none).</param>
     /// <param name="SigSign">The significand's fixed-insertion sign symbol ('+', '-') or '\0' when unsigned.</param>
     /// <param name="ExpDigits">The '9' positions of the exponent (§13.18.40.4 GR13 b: 1..4).</param>
-    public readonly record struct FloatMask(string SigPattern, int SigDigits, int SigScale, char SigSign, int ExpDigits)
+    /// <param name="Edits">The item's PICTURE EDITING rules — only the IS form can reach this form (§13.18.40.3
+    /// SR12 bars the FOR form's extended editing sign control symbols from a floating-point edited item), and an
+    /// IS-form character-1 is a SIMPLE INSERTION symbol (§13.18.40.5 rule 3), which Table 7 admits in the
+    /// significand. In comma mode the literals are held PRE-SWAPPED, so the whole-image separator swap on the way
+    /// out restores them (§13.18.40.2 SR13 exchanges the SYMBOLS' roles, never a literal's characters; kb/Work
+    /// PB866). Null when the clause has no EDITING phrase.</param>
+    public readonly record struct FloatMask(string SigPattern, int SigDigits, int SigScale, char SigSign, int ExpDigits,
+        EditRule[]? Edits = null)
     {
         /// <summary>The largest exponent magnitude the mask can hold (10^ExpDigits − 1).</summary>
         public int MaxExp => Pow10Int(ExpDigits) - 1;
 
-        /// <summary>The whole item's character length: the significand's positions + 'E' + the exponent's sign + digits.</summary>
-        public int Length => SigPattern.Length + 1 + 1 + ExpDigits;
+        /// <summary>The whole item's character length: the significand's positions (each IS-form character-1
+        /// counted at its literal-1's width — §13.18.40.4 GR14 'es', "the size of literal-1 is counted in the size
+        /// of the item") + 'E' + the exponent's sign + digits.</summary>
+        public int Length
+        {
+            get
+            {
+                int n = 0;
+                foreach (char c in SigPattern) n += RuleFor(c, Edits) is { } r ? r.Width : 1;
+                return n + 1 + 1 + ExpDigits;
+            }
+        }
 
         /// <summary>Parse an EXPANDED floating-point numeric-edited picture (repeats unrolled, uppercased — the
         /// analyzer's <c>EditMask</c>). The analyzer has already validated the form (§13.18.40.4 GR13 b, Table 10 row
         /// E); this reads the structure it guaranteed.</summary>
-        public static FloatMask Parse(string picture, bool commaMode = false)
+        public static FloatMask Parse(string picture, bool commaMode = false, EditRule[]? edits = null)
         {
-            if (commaMode) picture = SwapSeparators(picture);
+            if (commaMode)
+            {
+                picture = SwapSeparators(picture);
+                if (edits is not null)
+                    edits = Array.ConvertAll(edits, r => r with { Neg = SwapSeparators(r.Neg), Pos = SwapSeparators(r.Pos) });
+            }
             int e = picture.IndexOf('E');
             if (e < 0) throw new ArgumentException($"not a floating-point numeric-edited picture: {picture}", nameof(picture));
             string sig = picture[..e];
@@ -52,7 +74,7 @@ public static partial class CobolEdit
                 else if (c == '.') afterPoint = true;
             }
             int expDigits = exp.Count(c => c == '9');
-            return new FloatMask(sig, digits, scale, sign, expDigits);
+            return new FloatMask(sig, digits, scale, sign, expDigits, edits is { Length: > 0 } ? edits : null);
         }
     }
 
@@ -65,21 +87,21 @@ public static partial class CobolEdit
     /// PINNED saturated image (all-nines significand at the maximum exponent, the value's sign; docs/CONFORMANCE.md);
     /// a value nearer to zero than the smallest nonzero the mask can hold "is treated as zero" — the rule-8 zero image,
     /// no exception. <paramref name="value"/> × 10^−<paramref name="valueScale"/> is the sending value.</summary>
-    public static string FormatFloatMove(Int128 value, int valueScale, string picture, bool blankWhenZero = false, bool commaMode = false)
-        => FormatFloatMoveCore((BigInteger)value, -valueScale, picture, blankWhenZero, commaMode);
+    public static string FormatFloatMove(Int128 value, int valueScale, string picture, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
+        => FormatFloatMoveCore((BigInteger)value, -valueScale, picture, blankWhenZero, commaMode, edits);
 
     /// <summary>The MOVE store of a <see cref="CobolDec"/>-carried sender (a standard-decimal intermediate or another
     /// floating-point edited item's de-edited value).</summary>
-    public static string FormatFloatMove(CobolDec value, string picture, bool blankWhenZero = false, bool commaMode = false)
-        => FormatFloatMoveCore((BigInteger)value.Sig, value.Exp, picture, blankWhenZero, commaMode);
+    public static string FormatFloatMove(CobolDec value, string picture, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
+        => FormatFloatMoveCore((BigInteger)value.Sig, value.Exp, picture, blankWhenZero, commaMode, edits);
 
     /// <summary>The MOVE store of a binary64 sender — through the shortest round-trip decimal (<see cref="CobolDec.FromDouble"/>).</summary>
-    public static string FormatFloatMove(double value, string picture, bool blankWhenZero = false, bool commaMode = false)
-        => FormatFloatMove(CobolDec.FromDouble(value), picture, blankWhenZero, commaMode);
+    public static string FormatFloatMove(double value, string picture, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
+        => FormatFloatMove(CobolDec.FromDouble(value), picture, blankWhenZero, commaMode, edits);
 
-    private static string FormatFloatMoveCore(BigInteger sig, int exp10, string picture, bool blankWhenZero, bool commaMode)
+    private static string FormatFloatMoveCore(BigInteger sig, int exp10, string picture, bool blankWhenZero, bool commaMode, EditRule[]? edits)
     {
-        var m = FloatMask.Parse(picture, commaMode);
+        var m = FloatMask.Parse(picture, commaMode, edits);
         string image = FormatFloatCore(sig, exp10, m, blankWhenZero, out var outcome);
         if (outcome == FloatStoreOutcome.Overflow)
             ExceptionState.FloatOverflowError($"the value {sig}E{exp10} is farther from zero than the picture {picture} permits");
@@ -89,20 +111,20 @@ public static partial class CobolEdit
     /// <summary>The ARITHMETIC store (ISO §14.7.5 cases 3 and 4 — both the size error condition, receiver unchanged):
     /// false when the value is farther from zero OR nearer to zero than the mask permits (the caller raises the size
     /// error and leaves the receiver alone), else the edited image in <paramref name="image"/>.</summary>
-    public static bool TryFormatFloat(Int128 value, int valueScale, string picture, out string image, bool blankWhenZero = false, bool commaMode = false)
-        => TryFormatFloatCore((BigInteger)value, -valueScale, picture, out image, blankWhenZero, commaMode);
+    public static bool TryFormatFloat(Int128 value, int valueScale, string picture, out string image, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
+        => TryFormatFloatCore((BigInteger)value, -valueScale, picture, out image, blankWhenZero, commaMode, edits);
 
     /// <inheritdoc cref="TryFormatFloat(Int128, int, string, out string, bool, bool)"/>
-    public static bool TryFormatFloat(CobolDec value, string picture, out string image, bool blankWhenZero = false, bool commaMode = false)
-        => TryFormatFloatCore((BigInteger)value.Sig, value.Exp, picture, out image, blankWhenZero, commaMode);
+    public static bool TryFormatFloat(CobolDec value, string picture, out string image, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
+        => TryFormatFloatCore((BigInteger)value.Sig, value.Exp, picture, out image, blankWhenZero, commaMode, edits);
 
     /// <inheritdoc cref="TryFormatFloat(Int128, int, string, out string, bool, bool)"/>
-    public static bool TryFormatFloat(double value, string picture, out string image, bool blankWhenZero = false, bool commaMode = false)
-        => TryFormatFloat(CobolDec.FromDouble(value), picture, out image, blankWhenZero, commaMode);
+    public static bool TryFormatFloat(double value, string picture, out string image, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
+        => TryFormatFloat(CobolDec.FromDouble(value), picture, out image, blankWhenZero, commaMode, edits);
 
-    private static bool TryFormatFloatCore(BigInteger sig, int exp10, string picture, out string image, bool blankWhenZero, bool commaMode)
+    private static bool TryFormatFloatCore(BigInteger sig, int exp10, string picture, out string image, bool blankWhenZero, bool commaMode, EditRule[]? edits)
     {
-        var m = FloatMask.Parse(picture, commaMode);
+        var m = FloatMask.Parse(picture, commaMode, edits);
         string img = FormatFloatCore(sig, exp10, m, blankWhenZero, out var outcome);
         image = commaMode ? SwapSeparators(img) : img;
         return outcome == FloatStoreOutcome.Ok;
@@ -110,9 +132,9 @@ public static partial class CobolEdit
 
     /// <summary>The image of the mask's positive extreme (all-nines significand at the maximum exponent) — the value
     /// FUNCTION HIGHEST-ALGEBRAIC names (§15.43.4 r2) and the pinned overflow content.</summary>
-    public static string FloatExtremeImage(string picture, bool negative, bool commaMode = false)
+    public static string FloatExtremeImage(string picture, bool negative, bool commaMode = false, EditRule[]? edits = null)
     {
-        var m = FloatMask.Parse(picture, commaMode);
+        var m = FloatMask.Parse(picture, commaMode, edits);
         string img = RenderFloat(m, negative, new string('9', m.SigDigits), m.MaxExp);
         return commaMode ? SwapSeparators(img) : img;
     }
@@ -166,12 +188,15 @@ public static partial class CobolEdit
                 case '+': sb.Append(negative ? '-' : '+'); break;   // Table 8 fixed insertion
                 case '-': sb.Append(negative ? '-' : ' '); break;
                 // SIMPLE INSERTION from the ONE set (§13.18.40.5 rule 3, Table 7's "Simple insertion … for the
-                // significand part") — 'B' inserts a space, '0' '/' ',' insert themselves. `edits` is null by
-                // rule: §13.18.40.3 SR12 keeps an EDITING character-1 off this form entirely
-                // (PictureAnalyzer.AnalyzeFloatEdited, COBOLNET1658). '.' is SPECIAL insertion (rule 4) and
-                // falls to the default, which copies every remaining mask character verbatim.
+                // significand part") — 'B' inserts a space, '0' '/' ',' insert themselves, and an IS-form PICTURE
+                // EDITING character-1 inserts its WHOLE literal-1 (rule 3: "if literal-1 is specified, character-1"
+                // is a simple insertion symbol; GR14 'es' counts literal-1's size — kb/Work PB866). The FOR form
+                // never reaches here: §13.18.40.3 SR12 bars extended editing sign control symbols from this form
+                // (PictureAnalyzer.AnalyzeFloatEdited, COBOLNET1658). '.' is SPECIAL insertion (rule 4) and falls to
+                // the default, which copies every remaining mask character verbatim.
                 default:
-                    sb.Append(TrySimpleInsertion(c, null, out char ins) ? ins : c);
+                    if (RuleFor(c, m.Edits) is { SimpleInsertion: true } r) sb.Append(r.Pos);
+                    else sb.Append(TrySimpleInsertion(c, null, out char ins) ? ins : c);
                     break;
             }
         }
@@ -186,9 +211,9 @@ public static partial class CobolEdit
     /// that is not a possible result of any editing operation on the item (§14.6.13.2 rule 4) raises
     /// EC-DATA-INCOMPATIBLE — fatal when the statement has it enabled — and otherwise contributes zero for a
     /// non-digit (the tolerant direction the zoned/packed decoders take).</summary>
-    public static CobolDec DeEditFloat(string image, string picture, bool commaMode = false)
+    public static CobolDec DeEditFloat(string image, string picture, bool commaMode = false, EditRule[]? edits = null)
     {
-        var m = FloatMask.Parse(picture, commaMode);
+        var m = FloatMask.Parse(picture, commaMode, edits);
         if (commaMode) image = SwapSeparators(image);
         bool incompatible = false, negative = false;
         BigInteger s = BigInteger.Zero;
@@ -196,6 +221,13 @@ public static partial class CobolEdit
         char At() => i < image.Length ? image[i] : '\0';
         foreach (char c in m.SigPattern)
         {
+            // An IS-form character-1 stands for its whole literal-1 (GR14 'es'): the image must carry it verbatim.
+            if (RuleFor(c, m.Edits) is { SimpleInsertion: true } r)
+            {
+                if (!Matches(image, i, r.Pos)) incompatible = true;
+                i += r.Width;
+                continue;
+            }
             char ch = At(); i++;
             switch (c)
             {

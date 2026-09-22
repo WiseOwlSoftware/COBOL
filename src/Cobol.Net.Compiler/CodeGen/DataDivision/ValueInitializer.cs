@@ -283,7 +283,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         if (pic.IsFloatEdited)
             return zeroFigurative || TryParseFloatLiteral(raw, out _, out _)
                 ? RuntimeApi.EditComposeFloat(zeroFigurative ? Int128.Zero : ParsedSig(raw), zeroFigurative ? 0 : ParsedExp(raw),
-                    pic.EditMask!, item.BlankWhenZero, decimalPointIsComma)
+                    pic.EditMask!, item.BlankWhenZero, decimalPointIsComma, pic.EditingRules)
                 : null;
         if (zeroFigurative)
             return RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,

@@ -332,7 +332,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             // A FLOATING-POINT numeric-edited sender de-edits to its EXACT value — a CobolDec on the Dec lane (D21/PB66:
             // a significand with its own power of ten; never a double); EC-DATA-INCOMPATIBLE for impossible content.
             && p.Item.Pic is { Category: PicCategory.NumericEdited, IsFloatEdited: true, EditMask: { } fem }
-        ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{(ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "")})", 0, Dec: true)
+        ? new NumX($"CobolEdit.DeEditFloat({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(fem)}{ctx.EditCfg(p.Item.Pic)})", 0, Dec: true)
         : p.DenotedItem is not null && !p.Item.StoreAsImage
             // A format-2 (LOCALE) sender DE-EDITS through CobolLocaleEdit under the locale current NOW
             // (§13.18.40.5 r11; §14.6.13.2 r4 — impossible content is EC-DATA-INCOMPATIBLE); the scale is the
@@ -343,7 +343,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
-        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{RuntimeApi.EditsArg(p.Item.Pic!.EditingRules)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})",
+        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfg(p.Item.Pic)}{(p.Item.BlankWhenZero ? ", blankWhenZero: true" : "")})",
             RuntimeApi.MaskScale(p.Item.Pic!, dem, '$', ctx.Data.DecimalPointIsComma))
         : FieldNumCore(p, _sending);
 
