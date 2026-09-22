@@ -6006,13 +6006,13 @@
   "ordinal": 4,
   "subject": "Function-identifier",
   "rule-digest": "cff6bfeb65dc",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FunctionPointerNamed",
+  "test-ref": "conformance:2014/pb847_function_pointer_call",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "kb/Work PB847: function-pointer-name-1 is recognized exactly when the name resolves to ONE data item of category function-pointer (IntrinsicBinder.FunctionPointerNamed, asked by the FUNCTION-keyword and keyword-omitted forms alike); any other name takes the prototype / intrinsic paths and their diagnostics.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.2.3-5",
@@ -6021,13 +6021,13 @@
   "ordinal": 5,
   "subject": "Function-identifier",
   "rule-digest": "c44c930c15fc",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+  "test-ref": "conformance:negative/pb847-function-pointer-no-parentheses; conformance:2014/pb847_function_pointer_call",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "kb/Work PB847: `FUNCTION fp` with no argument-list parentheses is COBOLNET2234, decided from the parse before any bind; the keyword-omitted bare `fp` is the reference to the pointer itself. (Residual, filed as a lead: the keyword-omitted EMPTY list `fp ()` is a parse error - subscriptPart requires a token - so a zero-argument pointer call must be written `FUNCTION fp ()`.)",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.2.3-6",
@@ -6081,13 +6081,13 @@
   "ordinal": 9,
   "subject": "Function-identifier",
   "rule-digest": "703835812038",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall",
+  "test-ref": "conformance:negative/pb757-function-omitted-not-optional; conformance:2002/pb757_invoke_omitted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. FUNCTION f(... OMITTED ...) against a formal without the OPTIONAL phrase is COBOLNET2238 (negative); against an OPTIONAL formal it binds to the omitted CALL-ABI argument (golden PB757F). Before PB757 every OMITTED user-function argument was a staged COBOLNET1506.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.2.3-10",
@@ -6216,13 +6216,13 @@
   "ordinal": 4,
   "subject": "Function-identifier",
   "rule-digest": "a794c9167df5",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindPointerCall",
+  "test-ref": "conformance:2014/pb847_function_pointer_call; conformance-test:ExceptionConditionConformanceTests.FunctionPointerNull_Enabled_NoHandler_FatalTerminates",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "kb/Work PB847: the prototype named by the pointer's USAGE TO phrase supplies the activated element's characteristics - the call binds through UdfActivate, the SAME prototype activation a function-prototype reference takes - and the activation targets the function the pointer HOLDS (GR6c; ProgramRegistry.CallFunctionPointer), NULL raising EC-FUNCTION-PTR-NULL. The golden re-points the pointer to a same-signature function and observes that one run.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.2.4-5",
@@ -6261,13 +6261,13 @@
   "ordinal": 7,
   "subject": "Function-identifier",
   "rule-digest": "03c93c6f96bc",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText",
+  "test-ref": "conformance:2002/pb757_invoke_omitted; conformance-test:MethodOmittedArgumentTests.Function_TrailingOmissionOfNonOptional_1506",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. A spelled OMITTED crosses as the null carrier and a trailing omission (14.8.2.1, every trailing formal OPTIONAL) leaves the slot absent, which the callee's program-ABI adapters answer as omitted; the condition is true in the function (golden: F(OMITTED W4)=OP, F(W4 OMITTED)=PO, F(W4)=PO, F(W4 W4)=PP). Trailing omission of a non-OPTIONAL formal stays COBOLNET1506 (test).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.2.4-8",
@@ -10221,13 +10221,13 @@
   "ordinal": 1,
   "subject": "Simple omitted argument condition",
   "rule-digest": "5d1317b12203",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison",
+  "test-ref": "conformance:negative/pb133-omitted-cond-not-formal; conformance-test:MethodOmittedArgumentTests.OmittedCondition_OnMethodNonFormal_1686; conformance:2002/pb757_invoke_omitted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. data-name-1 resolves against the formals of the source element containing the condition: the method's own USING formals inside a method body (OoMethodScope.Formals), else the program/function's LinkageFormals. A non-formal is COBOLNET1686 on both arms (negative pb133 for a program, test for a method).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.8.4.8.4-1",
@@ -10236,13 +10236,13 @@
   "ordinal": 1,
   "subject": "Simple omitted argument condition",
   "rule-digest": "c9cf9c42e7fd",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/OmittedProbe.cs#OmittedProbe; src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs#OmittedTest; src/Cobol.Net.Compiler/CodeGen/EmitterState.cs#WholeFormalProbe",
+  "test-ref": "conformance:2002/pb757_invoke_omitted; conformance-test:MethodOmittedArgumentTests.UniversalForward_OmittedFormal_StaysOmitted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. One presence fact (OmittedProbe: a program/function formal's null carrier, a method formal's bool presence parameter), rendered by CallEmitter.OmittedTest for the condition and for every forward. a) OMITTED specified - golden TAKE / SUB / PB757F; b) trailing argument omitted - golden TWO and F(W4); c) the argument is itself an omitted formal - golden FWD (method formal forwarded by INVOKE SELF and by CALL), SUB2 (program formal forwarded by INVOKE), and a universal forward (test). All three activation kinds: program, function, method.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.8.4.8.4-2",
@@ -10251,13 +10251,13 @@
   "ordinal": 2,
   "subject": "Simple omitted argument condition",
   "rule-digest": "d88d89b4e862",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+  "test-ref": "conformance:2002/pb757_invoke_omitted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. NOT and OMITTED form ONE condition: BoundOmittedCondition carries Negated and renders !(test) over the presence fact - golden method TWO's `IF B IS NOT OMITTED` takes both branches (B=WXYZ / B OMITTED).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.8.4.12.1-1",
@@ -11811,13 +11811,13 @@
   "ordinal": 8,
   "subject": "Conformance for object orientation",
   "rule-digest": "961fa9803995",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoConformance.cs#OptionalMismatch; src/Cobol.Net.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches; src/Cobol.Net.Compiler/Oo/OoConformance.cs#ValidateOverrideSignatures",
+  "test-ref": "conformance-test:MethodOmittedArgumentTests.Implements_OptionalPresenceDiffers_0841; conformance-test:MethodOmittedArgumentTests.Override_OptionalPresenceDiffers_0829",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. The OPTIONAL phrase is carried on OoFormal.Optional; OptionalMismatch is the one comparison, read by MethodConformanceMismatches (IMPLEMENTS conformance and the interface-to-interface relation GOBACK/EXIT RAISING asks) and by ValidateOverrideSignatures (11.7.3 SR9 holds an inherited method's parameter declarations to 9.3.8.2.3). A presence difference in either direction is COBOLNET0841 / COBOLNET0829.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.3.8.2.3-9",
@@ -12186,13 +12186,13 @@
   "ordinal": 8,
   "subject": "CLASS-ID paragraph",
   "rule-digest": "e180fb74a81e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+  "test-ref": "conformance-test:ParameterizedClassTests.ClassParameterNotInRepository_2239; conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. Each CLASS-ID USING parameter-name is looked up among the class-/interface-specifiers of the definition's OWN REPOSITORY paragraph; absent -> COBOLNET2239 (reported on the skeleton whether or not it is expanded). The golden declares every formal (CLASS ELEM / CLASS B).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.3.3-9",
@@ -12201,13 +12201,13 @@
   "ordinal": 9,
   "subject": "CLASS-ID paragraph",
   "rule-digest": "adf3844a60df",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+  "test-ref": "conformance-test:ParameterizedClassTests.RepeatedParameterName_2239",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. A parameter-name repeated in one USING clause -> COBOLNET2239 (the shared AddSkeleton arm serves CLASS-ID SR9 and INTERFACE-ID SR7).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.3.4-1",
@@ -12276,13 +12276,13 @@
   "ordinal": 5,
   "subject": "CLASS-ID paragraph",
   "rule-digest": "fb5823973c5d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Expand",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance-test:ParameterizedClassTests.UnexpandedSkeletons_Compile",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. USING makes the class parameterized: the definition is a skeleton that binds and emits nothing (kept out of OoClassTable, recorded by IsParameterized); each EXPANDS creates an ordinary class from it per 9.3.12 (COBOLNET_OO_DESIGN D12). Golden: PB759HOLD expanded twice, each with its own factory object.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.3.4-6",
@@ -12291,13 +12291,13 @@
   "ordinal": 6,
   "subject": "CLASS-ID paragraph",
   "rule-digest": "acfe1a044c39",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance-test:ParameterizedClassTests.ParameterNameAsADataName_2239",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The formal is honoured in object-class-name positions (USAGE OBJECT REFERENCE, INVOKE receiver, INHERITS - golden PB759LOUD INHERITS B USING B) by GR5 token substitution; a formal written in a DECLARATION slot (data/condition/paragraph/section/method/file/report/screen/property-name) -> COBOLNET2239, since substitution would silently rename it; a data REFERENCE fails downstream as an undefined name.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.4.3-1",
@@ -12456,13 +12456,13 @@
   "ordinal": 4,
   "subject": "INTERFACE-ID paragraph",
   "rule-digest": "ef6fc0987c41",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+  "test-ref": "conformance:negative/pb759-parameter-not-in-repository",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. INTERFACE-ID USING parameter-name not declared by a specifier of the interface's own REPOSITORY -> COBOLNET2239.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.6.3-5",
@@ -12501,13 +12501,13 @@
   "ordinal": 7,
   "subject": "INTERFACE-ID paragraph",
   "rule-digest": "adf3844a60df",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+  "test-ref": "conformance-test:ParameterizedClassTests.RepeatedParameterName_2239",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. INTERFACE-ID USING T T -> COBOLNET2239 (the test is the interface arm).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.6.4-1",
@@ -12546,13 +12546,13 @@
   "ordinal": 3,
   "subject": "INTERFACE-ID paragraph",
   "rule-digest": "b24bffd42679",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Expand",
+  "test-ref": "conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. Parameterized interface PB759IPUT is a skeleton; INTERFACE PB759IPUT-BOX EXPANDS PB759IPUT USING PB759BOX creates an ordinary interface, implemented by PB759PUTTER and used as P's type.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.6.4-4",
@@ -12561,13 +12561,13 @@
   "ordinal": 4,
   "subject": "INTERFACE-ID paragraph",
   "rule-digest": "a0ba764b5c6f",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance-test:ParameterizedClassTests.ParameterNameAsADataName_2239",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The formal T is substituted in the prototype's USAGE OBJECT REFERENCE T (golden); declaration-slot use is COBOLNET2239 through the same AddSkeleton arm as 11.3.4 GR6.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.7.3-1",
@@ -13986,13 +13986,13 @@
   "ordinal": 5,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "36ad3e848bf7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+  "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance:85/pb862_implementor_names",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR5 - mnemonic-name-1 (a switch's) only in SET: the switch registry holds ONLY switch mnemonics, DISPLAY/ACCEPT refuse a switch's mnemonic (COBOLNET0817) and WRITE ADVANCING refuses it (COBOLNET2243). kb/Work PB862 - a device's mnemonic used to be SET-able as a switch.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-6",
@@ -14001,13 +14001,13 @@
   "ordinal": 6,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "c04414eae691",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+  "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR6 - mnemonic-name-2 (a feature's) only in WRITE: the mnemonic registry carries the name's KIND, DISPLAY/ACCEPT refuse a feature's mnemonic (COBOLNET0817), SET cannot resolve one (COBOLNET1757). kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-7",
@@ -14016,13 +14016,13 @@
   "ordinal": 7,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "fc8b1dca4ad5",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet",
+  "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance:negative/pb862-write-advancing-device-mnemonic; conformance:negative/l1-display-upon-input-only-device",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR7 - mnemonic-name-3 (a device's) only in ACCEPT and DISPLAY, plus the implementor's additional restrictions (input-only / output-only devices, DOC-A.1-189): SET refuses a device mnemonic (COBOLNET1757), WRITE ADVANCING refuses it (COBOLNET2243). kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-8",
@@ -14031,13 +14031,13 @@
   "ordinal": 8,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "b19987de9228",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNameEntry; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry",
+  "test-ref": "conformance:negative/pb862-unavailable-device-name; conformance:85/pb862_implementor_names; unit:ImplementorNamesDriftTests.EntryShapeAndName_Refused; unit:ImplementorNamesDriftTests.EveryTableName_IsAccepted_InTheArmItsKindAllows",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR8 - the implementor shall specify the names available for switch-name-1, feature-name-1 and device-name-1. Specified as ONE table (ImplementorNames; docs/CONFORMANCE.md DOC-A.1-189/190/191); a name outside it, or ON/OFF STATUS on a non-switch name, is COBOLNET2241 at every edition. `SPECIAL-NAMES. WIBBLE WOBBLE.` used to compile and register a mnemonic naming nothing (kb/Work PB862).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-9",
@@ -14751,13 +14751,13 @@
   "ordinal": 2,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "a59a27a4fa5b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs",
+  "test-ref": "conformance:85/pb862_implementor_names; conformance-test:AlterSwitchesDifferentialTests.Switch_DefaultOff_ThenSetToOn_FlipsBothStatusConditions",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GR2 - a switch-name identifies an external switch whose on/off status may each carry a condition-name interrogated as a switch-status condition: the golden writes the status phrases OFF-first (choice indicators, 5.2.6.4) and on a mnemonic-less entry, and reads both. kb/Work PB862 / PB716.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-3",
@@ -14766,13 +14766,13 @@
   "ordinal": 3,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "5883f1354dd9",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/Cobol.Net.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs; docs/CONFORMANCE.md#DOC-A.1-191",
+  "test-ref": "conformance:85/pb862_implementor_names; conformance-test:AlterSwitchesDifferentialTests.Switch_MultiReceiverAndCompoundSet_EachGroupTakesItsOwnPosition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GR3 - SET mnemonic-name alters the switch; the implementor defines which switches SET may reference: every available switch-name (DOC-A.1-191). kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-4",
@@ -14781,13 +14781,13 @@
   "ordinal": 4,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "4bbdad26fcb2",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/SwitchStore.cs#SwitchStore; docs/CONFORMANCE.md#DOC-A.1-191",
+  "test-ref": "conformance-test:AlterSwitchesDifferentialTests.Switch_EnvironmentVariableSuppliesInitialState",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "GR4 - the implementor defines each switch's scope and the external facility: run-unit scope; the COBOL_<SWITCH-NAME> environment variable supplies the initial status (DOC-A.1-191). kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.7.4-5",
@@ -15141,13 +15141,13 @@
   "ordinal": 3,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "a54b5d04432d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+  "test-ref": "conformance-test:ParameterizedClassTests.ExpandsInsideParameterizedDefinition_2239",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. An EXPANDS phrase in the REPOSITORY of a definition with a USING clause -> COBOLNET2239; the entry is inert (creates nothing).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.8.3-4",
@@ -15156,13 +15156,13 @@
   "ordinal": 4,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "b9cbab162778",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Validate",
+  "test-ref": "conformance-test:ParameterizedClassTests.ActualNotDeclaredInSameParagraph_2240; conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. object-class-name-2 and every actual must be declared by a class-/interface-specifier (with or without EXPANDS) of the SAME repositoryParagraph -> else COBOLNET2240. The golden's PB759HOLD-LOUD uses an actual (PB759LOUD-BOX) that is itself an EXPANDS specifier of the same paragraph.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.8.3-5",
@@ -15201,13 +15201,13 @@
   "ordinal": 7,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "fe6bdb1c913a",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Validate",
+  "test-ref": "conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The interface-specifier twin of SR4, same Validate arm: PB759IPUT and PB759BOX are declared in the same paragraph as PB759IPUT-BOX in both PB759PUTTER and PB759M.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.8.3-8",
@@ -15351,13 +15351,13 @@
   "ordinal": 1,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "05db9ac3ced1",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoNameResolution.cs#Resolve; src/Cobol.Net.Compiler/Oo/OoClassTable.cs#IsParameterized",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance-test:ParameterizedClassTests.SkeletonNameOutsideRepository_NamesGr1",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. object-class-name-1 (incl. an expansion name) is usable throughout the scope via the 8.4.6.4 funnel (golden: PB759HOLD-BOX etc. as types and INVOKE receivers). A parameterized class name used outside a REPOSITORY is refused through the referring construct's own code with the GR1 reason.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.8.4-2",
@@ -15381,13 +15381,13 @@
   "ordinal": 3,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "d37d854bcbe7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Validate; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+  "test-ref": "conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The USING operands of a class-specifier EXPANDS are the actual parameters substituted for the formals, in order.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.8.4-4",
@@ -15396,13 +15396,13 @@
   "ordinal": 4,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "e2c51d2684bd",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Validate; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+  "test-ref": "conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The interface-specifier twin: PB759BOX replaces T in PB759IPUT-BOX.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.8.4-5",
@@ -15411,13 +15411,13 @@
   "ordinal": 5,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "3d79b9c6b851",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Validate; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance:negative/pb759-expands-parameter-count; conformance-test:ParameterizedClassTests.ParameterCountMismatch_2240; conformance-test:ParameterizedClassTests.ExpandsANonParameterizedClass_2240; conformance-test:ParameterizedClassTests.ActualOfTheWrongKind_2240; conformance-test:ParameterizedClassTests.OneNameTwoExpansions_2240; conformance-test:ParameterizedClassTests.OneNameOneExpansion_InTwoSourceElements_Compiles",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The class is created by re-parsing the skeleton's tokens with each formal replaced by its actual (FragmentParse.ParseTokens) and enters OoClassTable as an ordinary class. Count mismatch, non-parameterized operand, wrong-kind actual, and one name for two different expansions -> COBOLNET2240; one name/definition/actuals triple in two source elements is ONE class (9.3.12 identity).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.8.4-6",
@@ -15441,13 +15441,13 @@
   "ordinal": 7,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "8db5d279147d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoNameResolution.cs#Resolve; src/Cobol.Net.Compiler/Oo/OoClassTable.cs#IsParameterized",
+  "test-ref": "conformance:2002/pb759_parameterized_class",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. interface-name-2 (PB759IPUT-BOX) is usable throughout the scope (USAGE OBJECT REFERENCE, IMPLEMENTS); a parameterized interface name outside a REPOSITORY takes the same GR1/GR7 refusal in Resolve.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.8.4-8",
@@ -15456,13 +15456,13 @@
   "ordinal": 8,
   "subject": "REPOSITORY paragraph",
   "rule-digest": "fca444389c2e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoExpansion.cs#Validate; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance-test:ParameterizedClassTests.InterfaceSpecifierExpandsAClass_2240",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. The interface expansion is the re-parsed skeleton with formals replaced; count/kind checks as GR5; an interface-specifier naming a parameterized CLASS -> COBOLNET2240.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.3.8.4-9",
@@ -18666,13 +18666,13 @@
   "ordinal": 10,
   "subject": "Report group description entry",
   "rule-digest": "9c68018d516b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+  "test-ref": "conformance:negative/pb853-report-column-no-operand; conformance:negative/pb853-report-column-no-operand-no-picture",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB853. 'Every elementary entry with a COLUMN clause shall also contain either a SOURCE, VALUE or SUM clause' is screened ONCE per written entry over the flat RD entry array (before the walk, so a Format 3 replay cannot multiply it) under COBOLNET2247; the binder's fabricated figurative-SPACE operand is deleted. BOTH shapes witnessed: the PICTURE-bearing entry (which printed 000) and the PICTURE-less one (previously refused only by accident under the SR12 PICTURE arm).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.15.3-11",
@@ -18681,13 +18681,13 @@
   "ordinal": 11,
   "subject": "Report group description entry",
   "rule-digest": "a3961a741d10",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+  "test-ref": "conformance:negative/pb853-report-group-entry-picture",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB853 sibling sweep. PICTURE/COLUMN/SOURCE/VALUE/SUM/GROUP INDICATE on a group entry (one with a subordinate entry, §13.15.4 GR1) draws COBOLNET2247; a group entry's PICTURE and VALUE used to be discarded in silence.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.15.3-12",
@@ -18711,13 +18711,13 @@
   "ordinal": 13,
   "subject": "Report group description entry",
   "rule-digest": "a9debe95846a",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+  "test-ref": "conformance:negative/pb853-report-value-without-column",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB853 sibling sweep. An elementary entry with a VALUE clause and no COLUMN clause draws COBOLNET2247; it used to print nothing, in silence.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.15.3-14",
@@ -18741,13 +18741,13 @@
   "ordinal": 15,
   "subject": "Report group description entry",
   "rule-digest": "d4a9753242f3",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenReportEntryClausePresence",
+  "test-ref": "conformance:negative/pb853-report-justified-without-column",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB853 sibling sweep. BLANK WHEN ZERO or JUSTIFIED without a COLUMN clause draws COBOLNET2247.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.15.3-16",
@@ -23736,13 +23736,13 @@
   "ordinal": 2,
   "subject": "OCCURS clause",
   "rule-digest": "49fef9b0e657",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenClauseOperandShape",
+  "test-ref": "conformance:negative/pb885-odo-depending-subscripted; conformance:negative/pb885-report-depending-subscripted; conformance:negative/pb885-occurs-key-subscripted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB885. 'Data-name-1 and data-name-2 shall not be subscripted': every OCCURS data-name operand (DEPENDING in formats 2 and 3, KEY) is captured through the ONE data-name-n screen ClauseDataName and a written subscript draws COBOLNET2024. The report arm used to DROP the subscript in silence (wrong repetition count); the data-division arm glued it into an undefined name. The report-writer witness runs at 2002+ (format 3 is COBOL-2002).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.38.3-3",
@@ -23781,13 +23781,13 @@
   "ordinal": 5,
   "subject": "OCCURS clause",
   "rule-digest": "b66bc6c1be3d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec",
+  "test-ref": "conformance:negative/pb885-occurs-key-subscripted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB885 sibling sweep. 'Data-name-2 shall be specified without the subscripting normally required': the KEY capture kept the base word and dropped a written subscript in silence; it now goes through ClauseDataName and draws COBOLNET2024.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.38.3-6",
@@ -24171,13 +24171,13 @@
   "ordinal": 31,
   "subject": "OCCURS clause",
   "rule-digest": "8a23ca044c6b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Odo.cs#CapacityRegisterName",
+  "test-ref": "conformance:negative/pb885-capacity-subscripted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "kb/Work PB885 sibling sweep. 'Data-name-3 shall not be subscripted': the capture was GetText(), so CAPACITY IN CAP3 (1) silently defined a register spelled CAP3(1); it now goes through ClauseDataName and draws COBOLNET2024. OCCURS DYNAMIC is COBOL-2014.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.38.3-32",
@@ -31371,13 +31371,13 @@
   "ordinal": 7,
   "subject": "Procedure division structure",
   "rule-digest": "568dbaa2bd8f",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RaisingPhrase.cs#Partition",
+  "test-ref": "conformance-test:OoSpineTests.MethodHeaderRaising_NonEcUser_0858; conformance-test:RaisingPhraseTupleTests.MethodRaising_EachMethodChecksItsOwnHeader",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB815.md landed w46. A catalog exception-name in the header is accepted only at level 3 under EC-USER (COBOLNET0858 otherwise), with the 15.33 width advisory (EcNameResolution.Advise); the accepted names feed the GOBACK/EXIT SR2/SR3 EC-USER check per source element.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.2.2-8",
@@ -31386,13 +31386,13 @@
   "ordinal": 8,
   "subject": "Procedure division structure",
   "rule-digest": "7bbb6f4e40c9",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RaisingPhrase.cs#Partition; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#raisingTarget",
+  "test-ref": "conformance-test:RaisingPhraseTupleTests.MethodHeaderRaising_FactoryOfUndeclaredClass_0858; conformance-test:RaisingPhraseTupleTests.HeaderRaising_FactoryOfInterface_0858; conformance:2002/pb815_raising_factory_interface",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB815.md landed w46. object-class-name-1, with or without [FACTORY OF] (OF an optional word), is accepted only when it resolves to a class in this element's REPOSITORY scope (8.4.6.4); a FACTORY OF operand that is not such a class, or that names an interface (the FACTORY phrase is printed on the class alternative only), is COBOLNET0858.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.2.2-9",
@@ -31401,13 +31401,13 @@
   "ordinal": 9,
   "subject": "Procedure division structure",
   "rule-digest": "456f49faec0b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/RaisingPhrase.cs#Partition; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#raisingTarget",
+  "test-ref": "conformance-test:RaisingPhraseTupleTests.HeaderRaising_InterfaceNotInRepository_0858; conformance:2002/pb815_raising_factory_interface",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB814.md landed w46. The interface-name-1 alternative is partitioned by the ONE header partition (program and METHOD-ID arms alike) through OoNameResolution.Lookup's scoped set: an interface declared in this element's REPOSITORY (or a containing one, 12.3.4 GR1) is accepted (golden: program PB815S and method WORK-I); an interface defined in the group but not declared in scope is COBOLNET0858.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.2.2-10",
@@ -31626,13 +31626,13 @@
   "ordinal": 11,
   "subject": "Procedure division structure",
   "rule-digest": "c2b59b54a140",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/CallAbi.cs#Num; src/Cobol.Net.Runtime/Control/CallAbi.cs#Text; src/Cobol.Net.Runtime/Control/CallAbi.cs#TextValue; src/Cobol.Net.Runtime/Control/CallAbi.cs#LandForFormal; src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs#FormalAdopt",
+  "test-ref": "conformance:85/pb873_signed_argument_image_carried_formal; conformance:2002/pb873_by_value_image_carried_formal; conformance:2023/pb288_call_argument_scale_landing; unit:CallAbiNumericCarrierDriftTests.ASignedArgument_KeepsItsSign_OnBothImageArms; unit:CallAbiNumericCarrierDriftTests.TheCarriedDescription_DecidesTheImageShape; unit:CallAbiNumericCarrierDriftTests.TheGr8ViewAndTheGr10Copy_LandIdentically",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB873. Every reference to a formal resolves through its LINKAGE description on every carrier arm: a native numeric formal lands the argument through the formal's profile (CobolArgAdapt.Num / NumValue, the shared Land - PB288); an IMAGE-carried (redefined) numeric formal reads the argument's storage image under the argument's carried NumProfile (GR8 / GR9 first branch) or, after GR9/GR10's COMPUTE, under the formal's own (LandForFormal sets Num = formal; TextValue renders GR10's record in the formal's profile) - so the operational sign, SIGN SEPARATE position and byte form are the description's, where CobolArg's former (Digits, Scale) pair built an UNSIGNED zoned image and -12.34 arrived as +12.34 (00123D for 00123M) on both the BY REFERENCE and BY CONTENT arm.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.2.3-12",
@@ -37266,13 +37266,13 @@
   "ordinal": 5,
   "subject": "EXIT statement",
   "rule-digest": "5297b2433db9",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#raisingClause",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#RaisingObjectMismatch; src/Cobol.Net.Compiler/Oo/OoConformance.cs#InterfaceConformsTo",
+  "test-ref": "conformance-test:RaisingPhraseTupleTests.ExitProgramRaising_FactoryOnBothEnds_Compiles; conformance-test:RaisingPhraseTupleTests.ExitProgramRaising_FactoryPresenceDiffers_0849; conformance:negative/pb814-raising-interface-not-conforming",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work/PB389.md — The head of SR5 and constraints a) (class leg) and d) are enforced; b), c) and the FACTORY-sameness half of a) and c) are not. ENFORCED: 'identifier-1 shall be an object reference' - PROBE out-b2/probe/sr5-nonobject-identifier/p.cob (EXIT PROGRAM RAISING WS-N, PIC 9(4)) draws COBOLNET0849; a) the declared class or one of its superclasses shall be in the containing element's PD-header RAISING phrase - the walk `for (var c = OoClasses.Find(declared); c is not null; c = c.Base)` against EcState.PdRaisingClasses, with the POSITIVE CONTROL out-b2/probe/sr5-positive-typed-ref/p.cob accepted and running end-to-end; d) not a universal object reference - a reference with no recorded class draws the SR4d rejection. NOT IMPLEMENTED: b) interface-name - PROBE out-b2/probe/sr5-interface-ref/p.cob (01 W-E USAGE OBJECT REFERENCE IERR8 with PROCEDURE DIVISION RAISING IERR8, both legal per 13.18.60.2 and the 14.2.1 procedure-division-header diagram) is rejected twice, 'COBOLNET0858: PROCEDURE DIVISION RAISING IERR8: not an exception-name or a class of the compilation group ... interface names are a later refinement of the EC-OO wave' and then a spurious COBOLNET0849 SR4a complaint about a 'declared class IERR8'. c) ACTIVE-CLASS - the phrase has NO token and NO grammar alternative (objectReferenceUsage offers only OBJECT REFERENCE, OBJECT REFERENCE className, OBJECT REFERENCE FACTORY OF className, while 13.18.60.2 also prints `[ FACTORY OF ] ACTIVE-CLASS`); note that for the EXIT verb specifically c) may be vacuous anyway, since SR7 confines EXIT PROGRAM to a program procedure division while 13.18.60.3 SR16 confines an ACTIVE-CLASS description to a factory definition, an instance definition, or a method's linkage/local-storage section. The FACTORY-presence agreement required by a) and c) is unreachable from BOTH ends: the identifier end is a loud stage (PROBE out-b2/probe/sr5-factory-usage-only/p.cob draws 'COBOLNET0899: USAGE OBJECT REFERENCE FACTORY OF ... recognized but not yet implemented'), and the header end is a PARSE ERROR - raisingClause is `RAISING cobolWord+`, with no `[ FACTORY OF ]`, so PROBE out-b2/probe/sr5-factory-of/p.cob dies at 'COBOL0307: unexpected OF' before any rule can be applied. LATENT MESSAGE DEFECT (already visible): the d) test is `opic.ObjectClassName is not { } declared`, i.e. 'no class name recorded', so the factory probe is reported as 'identifier-1 shall not be a UNIVERSAL object reference' when it is nothing of the kind - and the moment the interface-name or ACTIVE-CLASS declaration forms land, legal operands will be rejected under that same message. Same mechanism as the GOBACK lane's SR-14.9.18.3-4 (one shared EcBindRaising).  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#raisingClause",
-  "state": "GAP"
+  "notes": "kb/Work/PB815.md landed w46. EXIT PROGRAM RAISING identifier-1 binds through the SAME EcBindRaising / RaisingObjectMismatch as GOBACK (EcRaiseSite.Exit carries the 14.9.14.3 ordinals, so the message cites SR5a/b/c/d): a) class + FACTORY sameness (RaisingPhraseTupleTests.ExitProgramRaising_*); b) interface conformance (the shared check; GOBACK negative); d) universal. DETERMINATION c) ACTIVE-CLASS: no reachable subject for EXIT PROGRAM - SR7 confines EXIT PROGRAM to a program procedure division and 13.18.60.3 SR16 confines ACTIVE-CLASS to a factory/instance definition or a method's linkage/local-storage, so no EXIT-PROGRAM-specific screen is written; the shared walk answers c) for GOBACK and EXIT METHOD.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.14.3-6",
@@ -37806,13 +37806,13 @@
   "ordinal": 4,
   "subject": "GOBACK statement",
   "rule-digest": "f520c2fd8a3b",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage",
-  "test-ref": "conformance-test:OoSpineTests.GobackRaising_BindViolations_0849",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#RaisingObjectMismatch; src/Cobol.Net.Compiler/Oo/OoConformance.cs#InterfaceConformsTo; src/Cobol.Net.Compiler/Binding/RaisingPhrase.cs#Partition",
+  "test-ref": "conformance-test:OoSpineTests.GobackRaising_BindViolations_0849; conformance:2002/pb815_raising_factory_interface; conformance:negative/pb815-raising-factory-presence-mismatch; conformance:negative/pb814-raising-interface-not-conforming",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work/PB389.md — SR4 head (identifier-1 shall be an object reference) and constraints a) and d) are enforced: a non-OBJECT-REFERENCE operand and a class not in (or not a subclass of one in) the containing element's PD-header RAISING list each draw COBOLNET0849, and a reference with no declared class draws the SR4d universal rejection. Constraints b) (interface-name) and c) (ACTIVE-CLASS) have NO implementation and are presently unreachable: objectReferenceUsage offers only `OBJECT REFERENCE`, `OBJECT REFERENCE className` and `OBJECT REFERENCE FACTORY OF className`, while 13.18.60.2's printed format also carries `interface-name-1`, `[FACTORY OF] ACTIVE-CLASS` and the `ONLY` phrase. The FACTORY-presence agreement demanded by a) and c) is likewise unchecked (the FACTORY OF declaration form is itself staged loud). Latent message defect: the SR4d test is `opic.ObjectClassName is not { } declared`, i.e. 'no class name recorded' - the moment an interface-name or ACTIVE-CLASS declaration form lands, a legal identifier-1 will be reported as 'a UNIVERSAL object reference'.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising (COBOLNET0849); src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage",
-  "state": "GAP"
+  "notes": "kb/Work/PB815.md + PB814.md landed w46. The head (identifier-1 shall be an object reference) and all four sub-items are enforced by RaisingObjectMismatch over the identifier's ObjectRefDescriptor and the header's RaisingTarget tuples: a) the declared class or a superclass listed, with the SAME FACTORY presence (golden WORK-F/WORK-G; negative pb815-raising-factory-presence-mismatch); b) the identifier's interface CONFORMS (9.3.8.2.3, InterfaceConformsTo, sharing MethodConformanceMismatches with the IMPLEMENTS pass) to a listed interface (golden WORK-I + program PB815S; negative pb814-raising-interface-not-conforming); c) ACTIVE-CLASS - the containing class or a superclass, same FACTORY presence (golden WORK-A); d) never universal (OoSpineTests.GobackRaising_BindViolations_0849). Each method is checked against ITS OWN header (the per-method RAISING state is loaded in the per-pc bind pass; it used to be the last method's).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.18.3-5",
@@ -39426,13 +39426,13 @@
   "ordinal": 18,
   "subject": "INVOKE statement",
   "rule-digest": "6a80c96ab70d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvoke",
+  "test-ref": "conformance:negative/pb757-invoke-omitted-not-optional; conformance-test:MethodOmittedArgumentTests.Universal_OmittedIntoNonOptionalFormal_StopsAtRuntime; conformance:2002/pb757_invoke_omitted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. An OMITTED argument (both 14.9.23.2 spellings, and the 8.4.3.4.2 inline form) against a formal whose header lacks the OPTIONAL phrase is COBOLNET2237 at bind for a typed receiver (negative); through a universal receiver the formal is known only at runtime, so the callee's __CobolInvoke switch admits the OMITTED descriptor only against an OPTIONAL formal (9.3.6 match rule 3 b) and otherwise stops before the method runs (14.9.23.4 GR7c). Against an OPTIONAL formal both spellings compile and run (golden).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.23.3-19",
@@ -39651,13 +39651,13 @@
   "ordinal": 9,
   "subject": "INVOKE statement",
   "rule-digest": "f733d4900cb8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#OoSignatureOf; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvoke; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke",
+  "test-ref": "conformance:2002/pb757_invoke_omitted; conformance-test:MethodOmittedArgumentTests.InlineInvocation_Omitted_ConditionTrueInMethod; conformance-test:MethodOmittedArgumentTests.UniversalForward_OmittedFormal_StaysOmitted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB757.md landed w46i2. Every method formal crosses as the pair (ref T, bool omitted) (COBOLNET_OO_DESIGN D6). A spelled OMITTED passes true; a trailing omission (14.8.2.1: every formal past the last argument OPTIONAL) is bound to an explicit omitted slot; a universal receiver carries CobolInvokeArg.Omitted and admits fewer arguments down to the last non-OPTIONAL formal. The omitted-argument condition in the method reads the flag: golden TAKE (both spellings), TWO (trailing), GRP (a group formal), a universal receiver; the inline form at 2023 (test).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.23.4-10",
@@ -46221,13 +46221,13 @@
   "ordinal": 15,
   "subject": "SORT statement",
   "rule-digest": "148f9d3b4922",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+  "test-ref": "conformance:negative/pb846-sort-table-no-key-anywhere; conformance:2002/pb846_sort_table_occurs_keys",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB846: the grammar's key-phrase list is zero-or-more (CobolIO.g4 sortStatement), and SR15 is screened on the RESOLVED table in SortBinder - omission with a table KEY phrase binds (GR21), omission without one is a named SR15 rejection, not a parse error. Format 1's braced at-least-one is screened beside it (negative/pb846-sort-file-no-key).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-1",
@@ -46536,13 +46536,13 @@
   "ordinal": 21,
   "subject": "SORT statement",
   "rule-digest": "d511448fe6c1",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+  "test-ref": "conformance:2002/pb846_sort_table_occurs_keys",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB846: with the KEY phrase omitted the keys are the table's OCCURS KEY phrase read through the ONE ordered model SEARCH ALL reads (OccursSpec.Keys / OdoModel.KeyItems) - significance order and per-key direction as written (13.18.38.4 GR3); the golden sorts a DESCENDING-major / ASCENDING-minor table.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-22",
@@ -49341,13 +49341,13 @@
   "ordinal": 16,
   "subject": "WRITE statement",
   "rule-digest": "ec691222c6cd",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames",
+  "test-ref": "conformance:negative/pb862-write-advancing-device-mnemonic; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "SR16 - WRITE's mnemonic-name-1 is associated with a feature-name specified by the implementor (C01, CSP - DOC-A.1-190); any other mnemonic is COBOLNET2243. It used to bind every SPECIAL-NAMES mnemonic as a zero-line advance (kb/Work PB862).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.51.3-17",
@@ -57951,13 +57951,13 @@
   "ordinal": 0,
   "subject": "CLASS-ID paragraph",
   "rule-digest": "41d5db7cd3d9",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance:negative/pb303_as_class_id_literal; conformance:negative/oo-multi-base-inherits",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. Every phrase of the printed format parses: AS literal-1 (PB303), IS FINAL, INHERITS [FROM] {name}... (PB695; repetition semantics are the documented 0849), and now USING {parameter-name-1}... (PB759).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-11.4.2",
@@ -57996,13 +57996,13 @@
   "ordinal": 0,
   "subject": "INTERFACE-ID paragraph",
   "rule-digest": "fc29d6c22d92",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition",
+  "test-ref": "conformance:2002/pb759_parameterized_class; conformance:negative/pb303_as_interface_id_literal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work/PB759.md landed w46i3. Every phrase of the printed format parses: AS literal-1 (PB303), INHERITS [FROM] {interface-name-2}..., and USING {parameter-name-1}... (PB759).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-11.7.2",
@@ -58237,11 +58237,11 @@
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "26d0221edf82",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNameEntry; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
-  "test-ref": "conformance:negative/pb829-special-names-unrecognized-clause; conformance:2023/pb829_closed_formats_legal",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNameEntry; src/Cobol.Net.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry",
+  "test-ref": "conformance:negative/pb829-special-names-unrecognized-clause; conformance:2023/pb829_closed_formats_legal; conformance:negative/pb716-special-names-bare-word; conformance:negative/pb790-alphabet-through-with-also; conformance:2002/pb716_class_for_position",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "CLOSED but not COMPLETE. The format was RENDERED from the printed page (PDF p320 / printed folio 290) and lists alphabet-name-clause, CLASS, CRT STATUS, CURRENCY SIGN, CURSOR, DECIMAL-POINT, dynamic-length-structure-clause, LOCALE, the switch-name/feature-name/device-name entry, symbolic-characters-clause and ORDER TABLE. The residue is now DIAGNOSED (kb/Work PB829 — the entry list ended in `genericClause DOT?`, so `SPECIAL-NAMES.` + `WIBBLE \"WOBBLE\".` compiled and ran; it is now COBOLNET1970). TWO things keep the row open. (1) The `dynamic-length-structure-clause` — `DYNAMIC LENGTH STRUCTURE dynamic-length-structure-name-1 IS {[SIGNED][SHORT] PREFIXED | DELIMITED | physical-structure-name-1}` — is NOT MODELLED AT ALL: `DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers COBOL0001 'unexpected DYNAMIC', measured identically on main at 1840778e (DYNAMIC is a reserved token no alternative admits, so the catch-all never saw it). (2) `SPECIAL-NAMES. WIBBLE WOBBLE.` is still accepted, and correctly so as far as THIS row goes: `implementorSwitchEntry` is `cobolWord (IS? cobolWord)?` and IS is un-underlined in the printed format, so a two-word entry is shape-legal as `device-name-1 [IS] mnemonic-name-3`. What refuses it is §12.3.7.3 SR8 — 'The implementor shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1' — an unenforced SEMANTIC rule over an implementor-defined name set, belonging to SR-12.3.7.3-8 and not to this format row.",
+  "notes": "CLOSED but not COMPLETE. The format was RENDERED from the printed page (PDF p320-p321 / printed folios 290-291) and lists alphabet-name-clause, CLASS, CRT STATUS, CURRENCY SIGN, CURSOR, DECIMAL-POINT, dynamic-length-structure-clause, LOCALE, the switch-name/feature-name/device-name entry, symbolic-characters-clause and ORDER TABLE; the residue is DIAGNOSED (kb/Work PB829, COBOLNET1970). kb/Work PB716 closed the entry's own shape: every implementor-name arm has a REQUIRED continuation (a bare word now reaches COBOLNET1970 instead of becoming a silent entry), the switch arm's ON/OFF status phrases are the choice indicators they are printed as (either order, each once), and the CLASS clause's FOR phrase sits where folio 290 prints it (between class-name-1 and IS; the unprinted postfix spelling is gone). kb/Work PB790: one ALPHABET literal-phrase entry carries THROUGH or ALSO, never both (COBOLNET2242). kb/Work PB862 enforces SR8 over the entry's first word (COBOLNET2241, SR-12.3.7.3-8). ONE thing keeps the row open: the dynamic-length-structure-clause is NOT MODELLED AT ALL (`DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers COBOL0001 'unexpected DYNAMIC').",
   "state": "GAP"
  },
  {
@@ -59618,10 +59618,10 @@
   "rule-digest": "90a31b8fa541",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#usageClause",
-  "test-ref": "conformance:2023/pb95_bare_usage_keywords",
+  "test-ref": "conformance:2023/pb95_bare_usage_keywords; conformance:2014/pb848_pointer_usage_to_optional; conformance-test:OptionalWordSubsetDriftTests.EveryOptionalWordSubset_CompilesAndRunsIdentically; unit:PointerUsageOperandDriftTests.AClauseLeadingKeyword_IsNeverTheToLessOperand",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (kb/Work PB95, found landing PB79). `[USAGE IS] usage-keyword` is ONE alternative over ONE usageKeyword rule — the USAGE keyword is optional for EVERY usage (the former hand-listed bare alternatives omitted POINTER, OBJECT REFERENCE, NATIONAL, BIT, PROGRAM-POINTER, FUNCTION-POINTER). The 2002 words that are user words at 85 need no predicate: `05 BIT.` reads as an '85 entry NAMED BIT (the name alternative is tried first), `05 X BIT.` as the usage, edition-named by the binder / conformance pass.",
+  "notes": "LANDED 2026-08-18 (kb/Work PB95, found landing PB79): `[USAGE IS] usage-keyword` is ONE alternative over ONE usageKeyword rule - the USAGE keyword is optional for EVERY usage. RE-VERDICTED by kb/Work PB848 (this verdict had stood while the format was violated): on the RENDERED folio 503 TO is not underlined in `POINTER [ TO type-name-1 ]`, `FUNCTION-POINTER TO function-prototype-name-1` or `PROGRAM-POINTER [ TO program-prototype-name-1 ]`, and OF is not underlined in OBJECT REFERENCE's `[ FACTORY OF ]` - all four were REQUIRED by the grammar. Now `KEYWORD (TO cobolWord | {pointerOperandHere()}? cobolWord)?` and `(FACTORY OF?)?`; the TO-less operand's clause-swallow guard is the ATN FIRST set of dataDescriptionClause. The binder reads the operand's presence, never TO's.",
   "state": "OK"
  },
  {
@@ -61912,11 +61912,11 @@
   "subject": "ACCEPT statement (device used when FROM is unspecified)",
   "rule-digest": "97909ab91462",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-2; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#AcceptInputDevices; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-2; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice",
   "test-ref": "conformance-test:AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled",
   "derivation": "",
   "editions": "",
-  "notes": "§14.9.1.4 GR5 - the FROM-omitted device is the process standard input (docs/CONFORMANCE.md DOC-A.1-2); the test pipes \"ABC\" to stdin, ACCEPTs with NO FROM phrase and asserts the GR4a left-aligned store, which only standard input can produce. A .cob/.out golden cannot witness it: the corpus runner passes no stdin and AcceptSource.Device returns spaces at EOF.",
+  "notes": "§14.9.1.4 GR5 - the FROM-omitted device is the process standard input (docs/CONFORMANCE.md DOC-A.1-2); the test pipes \"ABC\" to stdin, ACCEPTs with NO FROM phrase and asserts the GR4a left-aligned store, which only standard input can produce. A .cob/.out golden cannot witness it: the corpus runner passes no stdin and AcceptSource.Device returns spaces at EOF. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#AcceptInputDevices (kb/Work PB862 deleted the private AcceptInputDevices set; the device capability is now a column of the one implementor-name table (ImplementorNames) read through AcceptDisplayBinder.MnemonicDevice, both already witnesses of this row)",
   "state": "OK"
  },
  {
@@ -62767,11 +62767,11 @@
   "subject": "DISPLAY statement (standard display device)",
   "rule-digest": "40f46ae42d79",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-59; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#DisplayOutputDevices; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplayUpon; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-59; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplayUpon; src/Cobol.Net.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice",
   "test-ref": "conformance:2023/l1_display_standard_device; conformance:negative/l1-display-upon-input-only-device",
   "derivation": "",
   "editions": "",
-  "notes": "§14.9.11.4 GR8's standard display device = standard output, with CONSOLE/SYSOUT on it and SYSERR demonstrably off it (its line is absent from the golden), and §14.9.11.3 SR2's input-only complement rejected at all four editions.",
+  "notes": "§14.9.11.4 GR8's standard display device = standard output, with CONSOLE/SYSOUT on it and SYSERR demonstrably off it (its line is absent from the golden), and §14.9.11.3 SR2's input-only complement rejected at all four editions. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#DisplayOutputDevices (kb/Work PB862 deleted the private DisplayOutputDevices set; the device capability is now a column of the one implementor-name table (ImplementorNames) read through AcceptDisplayBinder.MnemonicDevice, both already witnesses of this row)",
   "state": "OK"
  },
  {
@@ -64716,13 +64716,13 @@
   "ordinal": 189,
   "subject": "SPECIAL-NAMES paragraph, device-name (names available, restrictions on use)",
   "rule-digest": "044e744c34a3",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-189; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice",
+  "test-ref": "conformance:85/pb862_implementor_names; conformance:negative/pb862-unavailable-device-name; unit:ImplementorNamesDriftTests.EveryTableName_IsDocumented_AndNamedByTheDiagnostic",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 189 (device-name: names available, restrictions on use), optional and documented-if-provided: PROVIDED - CONSOLE, SYSIN, SYSOUT, SYSERR with their input/output capabilities, as ONE table (ImplementorNames) that the SPECIAL-NAMES binder refuses every other name against (COBOLNET2241) and ACCEPT/DISPLAY read the capability from (COBOLNET0817). kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-190",
@@ -64731,13 +64731,13 @@
   "ordinal": 190,
   "subject": "SPECIAL-NAMES paragraph, feature-name (names available, any positioning rules, any restrictions on use)",
   "rule-digest": "c064b2bb8e0d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-190; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+  "test-ref": "conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance; conformance-test:FileIoDifferentialTests.WriteAdvancingMnemonic_ZeroLineAdvance_RecordAlwaysReleased; conformance:negative/pb862-write-advancing-device-mnemonic",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 190 (feature-name: names, positioning rules, restrictions), optional: PROVIDED - C01 (the ADVANCING PAGE advance) and CSP (a zero-line advance), surveyed across IBM / Micro Focus / GnuCOBOL; C02-C12 not provided (no forms-control tape model). The NIST SQ207M placeholder XXXXX073 is supplied as CSP. kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-191",
@@ -64746,13 +64746,13 @@
   "ordinal": 191,
   "subject": "SPECIAL-NAMES paragraph, switch-name (names available, which switches may be referenced by the SET statement, scope of, ",
   "rule-digest": "493331dad4d4",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-191; src/Cobol.Net.Compiler/Binding/ImplementorNames.cs#ImplementorNames; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry; src/Cobol.Net.Runtime/Control/SwitchStore.cs#SwitchStore",
+  "test-ref": "conformance:85/pb862_implementor_names; conformance-test:AlterSwitchesDifferentialTests.Switch_EnvironmentVariableSuppliesInitialState; unit:ImplementorNamesDriftTests.EveryTableName_IsAccepted_InTheArmItsKindAllows",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 191 (switch-name: names, SET-able switches, scope, external facility), optional: PROVIDED - SWITCH-0..SWITCH-36 and UPSI-0..UPSI-7, every one SET-able, run-unit scope, initial status from the COBOL_<SWITCH-NAME> environment variable. Before kb/Work PB862 any word was a switch-name, which cannot stand beside a device-name set (8.3.2.3.1).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-192",
@@ -65196,13 +65196,13 @@
   "ordinal": 221,
   "subject": "WRITE statement (mnemonic-name-1)",
   "rule-digest": "9b49a182cfcd",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-221; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+  "test-ref": "conformance:negative/pb862-write-advancing-device-mnemonic; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 221 (WRITE mnemonic-name-1), optional: PROVIDED over the item-190 feature-names; a switch or device mnemonic is COBOLNET2243 (14.9.51.3 SR16). kb/Work PB862.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-222",
@@ -65211,12 +65211,12 @@
   "ordinal": 222,
   "subject": "WRITE statement (page advance when mnemonic-name-1 specified)",
   "rule-digest": "4aeaa8200cbf",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-222; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing",
+  "test-ref": "conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance; conformance-test:FileIoDifferentialTests.WriteAdvancingMnemonic_ZeroLineAdvance_RecordAlwaysReleased",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "A.1 item 222 (page advance for mnemonic-name-1), conditionally required and LIVE because item 221 is provided: C01 advances exactly as ADVANCING PAGE, CSP zero lines. kb/Work PB862.",
+  "state": "OK"
  }
 ]
