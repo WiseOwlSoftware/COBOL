@@ -656,12 +656,19 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // name's own TURN carried WITH LOCATION (__locMask shares __mask's bit positions — kb/Work R06).
             w.Line("bool __wl = __ec is not null && (__locMask & ExceptionCatalog.IoBit(__ec)) != 0;");
             w.Line("if (__en) ExceptionState.SetIo(__ec!, ExceptionCatalog.IsFatalIoStatus(__st), __f, __st, __wl ? __stmt : null, __wl ? __loc : null);");
-            using (w.Block("if (__st.Length == 0 || __st[0] == '0')"))
+            using (w.Block($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")})"))
             {
                 // A successful completion: '00' raises nothing; '0x' (x≠0) is EC-I-O-WARNING — F3 may select it
                 // (no F1: those fire on unsuccessful execution only, §14.9.49.4 GR6). Nonfatal — never terminates.
                 // With an exception-checking PERFORM active, a matching WHEN preempts (and ignores) the USE (GR17).
                 w.Line("if (!__en) return -1;");
+                // §14.9.51.4 GR27 — an end-of-page condition rides a SUCCESSFUL WRITE, and the statement's own
+                // END-OF-PAGE phrase takes it: b) transfers to the phrase, and c)/d) (the exception-checking
+                // PERFORM's WHEN, the USE declarative) apply only "If the END-OF-PAGE phrase is not specified".
+                // The condition is still SET above (a)), so EXCEPTION-STATUS names it inside the phrase. __atEnd
+                // carries the statement's own condition phrase — AT END on a READ, END-OF-PAGE on a WRITE; no
+                // statement has both (kb/Work PB854).
+                w.Line("if (__atEnd && ExceptionCatalog.IsEndOfPage(__ec)) return -1;   // GR27 b) — the END-OF-PAGE phrase takes it");
                 if (ecState.UnitHasF3Perform)
                 {
                     w.Line("int __w = __EcPerform(__ec!, __f);   // GR17 — a matching WHEN preempts USE; warning is nonfatal");
@@ -679,8 +686,8 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // only the declarative dispatch and the fatal default are suppressed, exactly like the AT END /
             // INVALID KEY suppressions below.
             w.Line("if (__onExc) return -1;");
-            w.Line("if (__atEnd && __st[0] == '1') return -1;    // the statement's AT END phrase covers the family (§9.1.13.1)");
-            w.Line("if (__invKey && __st[0] == '2') return -1;   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
+            w.Line($"if (__atEnd && {IoStatusClass.AtEnd("__st")}) return -1;    // the statement's AT END phrase covers the family (§9.1.13.1)");
+            w.Line($"if (__invKey && {IoStatusClass.InvalidKey("__st")}) return -1;   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
             w.Line("int __sel = -3;");
             // The F1 file/open-mode + F3 USE declarative tiers (§14.9.49.4 GR3a–g/GR4b) — byte-identical to a pre-F3
             // build. With an exception-checking PERFORM active they run ONLY when no WHEN matched (GR17: a matching

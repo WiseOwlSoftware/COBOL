@@ -241,8 +241,11 @@ public sealed class FileIoDifferentialTests
                 STOP RUN.
             """);
         Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        // The third (empty) line is the print stream's CLOSE-supplied final newline (the pending-advance model).
-        Assert.Equal("L=AAAABBBB\nL=CCCCDDDD\nL=", cout);
+        // Two lines and no third: the last WRITE is BEFORE ADVANCING 1 LINE, whose own advance terminates the line,
+        // and nothing in §14.9.51.4 adds a terminator at CLOSE. This expectation used to carry a third, empty record
+        // ("\nL=") - the spurious CLOSE-time line terminator kb/Work PB864 removed (its sibling
+        // LinageConformanceTests.Bytes_OverflowWithBeforePhrase_PresentsThenRepositions pinned the same defect).
+        Assert.Equal("L=AAAABBBB\nL=CCCCDDDD", cout);
     }
 
     /// <summary>READ on a file connector that is NOT open: I-O status '47' (§9.1.13.7 item 7 / §14.9.30 GR2),

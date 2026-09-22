@@ -257,6 +257,57 @@ public static class HostFile
         catch (UnauthorizedAccessException) { return false; }   // §9.1.13.6 item 6 a) — '37'
     }
 
+    /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A REFUSAL AS A SHARING CONFLICT (kb/Work PB860): did the operating
+    /// environment refuse this operation because another handle holds the physical file in a manner that
+    /// excludes it? That is §9.1.13.9's condition — <i>"that physical file is already open by another file
+    /// connector in a manner that conflicts with this request"</i> — and the host SAYS so, so it must never be
+    /// answered with §9.1.13.6 item 1's '30', whose whole definition is that <i>"no further information is
+    /// available"</i>.
+    /// <para>The host's own words, and nothing else: Windows reports <c>ERROR_SHARING_VIOLATION</c> (32) for a
+    /// share-mode refusal and <c>ERROR_LOCK_VIOLATION</c> (33) for a byte-range one, both surfaced by .NET as
+    /// the HRESULT <c>0x8007xxxx</c>; .NET on Unix implements <see cref="FileShare"/> with <c>flock(LOCK_NB)</c>
+    /// and surfaces its refusal, <c>EWOULDBLOCK</c>, as the raw errno — 11 on Linux, 35 on the BSD family
+    /// (macOS). The errno is a per-host fact, so the platform question is asked HERE, once, and never at a call
+    /// site (kb/Work PB795).</para>
+    /// <para>The caller decides what the refusal MEANS for its statement — '61' for an OPEN (§9.1.13.9 1)),
+    /// '62' for a DELETE FILE (§9.1.13.9 2)) — because the standard gives the two statements different values
+    /// for the one host fact.</para></summary>
+    public static bool IsSharingRefusal(IOException refusal) => refusal.HResult switch
+    {
+        unchecked((int)0x80070020) or unchecked((int)0x80070021) => true,   // ERROR_SHARING/LOCK_VIOLATION
+        int errno when !OperatingSystem.IsWindows() => errno == UnixWouldBlock,
+        _ => false,
+    };
+
+    /// <summary>Is the PRESENT physical file at <paramref name="hostPath"/> held open by a handle this call does
+    /// not own — §9.1.13.9 2)'s <i>"that physical file is currently open by another file connector"</i>, asked of
+    /// the host for a connector that is not this run unit's (kb/Work PB860)?
+    /// <para>⛔ ASKED BY REQUESTING EXCLUSIVE ACCESS, because the delete itself cannot answer it on every host.
+    /// Windows refuses to delete a file any handle holds without <c>FILE_SHARE_DELETE</c>, but a Unix unlink
+    /// never consults open handles, so a DELETE FILE there would destroy a file another run unit is reading and
+    /// report success. A <see cref="FileShare.None"/> request is refused by every outstanding handle on both
+    /// (Windows' share modes; .NET's <c>flock(LOCK_EX)</c> against the <c>LOCK_SH</c>/<c>LOCK_EX</c> every
+    /// connector's own handle takes), and the refusal is classified by <see cref="IsSharingRefusal"/>. The
+    /// request opens for READ with <see cref="FileMode.Open"/>, so it cannot create, truncate or change the file;
+    /// a file this process may not READ is not refused here — insufficient authority is the delete's own
+    /// question (§14.9.10.4 GR16), answered by the delete.</para></summary>
+    public static bool IsHeldByAnother(string hostPath)
+    {
+        try
+        {
+            using var _ = new FileStream(hostPath, FileMode.Open, FileAccess.Read, FileShare.None);
+            return false;
+        }
+        catch (IOException e) when (IsSharingRefusal(e)) { return true; }
+        // Not a sharing question: an absent file is GR14's, a refused one GR16's, any other failure the delete's
+        // own — each answered by the caller's presence probe or by the delete, never guessed here.
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+    }
+
+    /// <summary><c>EWOULDBLOCK</c> (= <c>EAGAIN</c>) on this Unix host — 11 on Linux, 35 on the BSD family.</summary>
+    private static readonly int UnixWouldBlock = OperatingSystem.IsLinux() || OperatingSystem.IsAndroid() ? 11 : 35;
+
     // ── The third question: what may OTHER handles do while this one is open? ───────────────────────────────
 
     /// <summary>A file connector's OWN long-lived READ or READ-WRITE stream on its physical file.

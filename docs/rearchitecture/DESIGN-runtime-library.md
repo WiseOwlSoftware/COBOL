@@ -195,8 +195,14 @@ The probe is a real write open (`FileMode.Open` + `FileAccess.Write` + `FileShar
 because a read-only attribute, a Unix mode bit and a deny-write ACE are three mechanisms with one consequence
 and only the host can rank them; opening without writing leaves content and last-write time untouched, which is
 what GR25 (*"the file is not affected"*) requires of the open that is about to fail. Only
-`UnauthorizedAccessException` is an answer — every other `IOException` propagates to the same single '30'
-mapping as `Probe`'s. INPUT is excluded and the exclusion is load-bearing: a read-only file supports everything
+`UnauthorizedAccessException` is an answer — every other `IOException` propagates to `FileConnector.Open`'s
+ONE catch, which asks the host ONE question first: `HostFile.IsSharingRefusal` (Windows
+`ERROR_SHARING_VIOLATION`/`ERROR_LOCK_VIOLATION`, Unix `EWOULDBLOCK` from .NET's `flock`). A sharing refusal is
+§9.1.13.9 1)'s '61' — another run unit's connector holds the file, and the host said so — and only the residue
+is §9.1.13.6 1)'s '30', *"no further information is available"* (kb/Work PB860: every organization answered
+'30'). DELETE FILE asks the same question of the host before it deletes (`HostFile.IsHeldByAnother`, an
+exclusive read request, inside the RETRY loop) and answers §9.1.13.9 2)'s '62', because a Unix unlink never
+consults open handles and would otherwise destroy a file another run unit holds open. INPUT is excluded and the exclusion is load-bearing: a read-only file supports everything
 Table 20 permits in the input mode, and item 6 a) 3.'s read-capability question is already answered eagerly by
 the sequential reader and the keyed `Attach()`. `HostFileProbeDriftTests` bans `PermitsWrite` outside
 `FileConnector` and pins the call count at one. (kb/Work PB328 — the sequential arm asked the question by

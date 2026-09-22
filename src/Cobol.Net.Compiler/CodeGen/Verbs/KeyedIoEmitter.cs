@@ -154,7 +154,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img)};");
                 break;
         }
-        using (w.Block($"if ({st}[0] == '0')"))
+        using (w.Block($"if ({IoStatusClass.Successful(st)})"))
         {
             if (area is not null) SeqIo.EmitImageInto(area, img);
             SeqIo.EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
@@ -171,15 +171,17 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // whose status family cannot arise for this kind — e.g. INVALID KEY on a sequential read — is simply
         // dead, the leniency-tolerant rendering of a CCVS-misplaced phrase): '2x' → INVALID KEY imperative;
         // '0x' (success) → INTO move + NOT AT END / NOT INVALID KEY; '1x' (10/14, the at-end family,
-        // §9.1.13.4) → AT END imperative; any other unsuccessful status takes NO branch (exception
-        // processing, §9.1.14 final rule item 1).
+        // §9.1.13.4) → AT END imperative; any other unsuccessful status takes NO branch — §14.9.30.4 GR13
+        // ignores both phrases when neither condition occurs and GR13 b) routes it through §9.1.12's
+        // exception processing. That includes GR21's '46', a LOGIC ERROR (§9.1.13.7 6)), not the at end
+        // condition GR24 is conditioned on; the determination is on IoStatusClass (kb/Work PB810).
         bool into = rd.IntoMove is not null && area is not null;
         bool hasInv = rd.InvalidKey?.Invalid is not null;
         if (hasInv)
-            using (w.Block($"if ({st}[0] == '2')"))
+            using (w.Block($"if ({IoStatusClass.InvalidKey(st)})"))
                 Statements.EmitStatementList(rd.InvalidKey!.Invalid!);
         if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null)
-            using (w.Block($"{(hasInv ? "else " : "")}if ({st}[0] == '0')"))
+            using (w.Block($"{(hasInv ? "else " : "")}if ({IoStatusClass.Successful(st)})"))
             {
                 // GR4 b) — READ INTO is READ then MOVE THE CURRENT RECORD (the §13.18.43.4 GR16 slice of the
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
@@ -189,7 +191,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 if (rd.InvalidKey?.NotInvalid is { } nik) Statements.EmitStatementList(nik);    // §9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
-            using (w.Block($"if ({st}[0] == '1')"))
+            using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
                 Statements.EmitStatementList(at);                                                // §14.9.30 GR24c
     }
 
@@ -229,7 +231,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
             && file.RelativeKeyItem is { } rk && refs.ResolveItem(rk) is { } rkPlace)
-            using (w.Block($"if ({st}[0] == '0')"))
+            using (w.Block($"if ({IoStatusClass.Successful(st)})"))
                 arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
@@ -340,12 +342,12 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // completion (GR14) and takes the NOT ON EXCEPTION path.
         if (df.OnException is { } on)
         {
-            using (w.Block($"if ({st}[0] != '0')")) Statements.EmitStatementList(on);
+            using (w.Block($"if ({IoStatusClass.Unsuccessful(st)})")) Statements.EmitStatementList(on);
             if (df.NotOnException is { } not)
                 using (w.Block("else")) Statements.EmitStatementList(not);
         }
         else if (df.NotOnException is { } not)
-            using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
+            using (w.Block($"if ({IoStatusClass.Successful(st)})")) Statements.EmitStatementList(not);
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────

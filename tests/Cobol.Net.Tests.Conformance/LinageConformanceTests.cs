@@ -205,14 +205,10 @@ public sealed class LinageConformanceTests
     // W2: BBBB is presented on page-1 body line 2 = physical 5, and only THEN does its advance overflow
     //    (GR26 a)) across the bottom margin and the next top margin.
     // W3: CCCC on page-2 body line 1 = physical 11.
-    // ⚠ THE FINAL CR LF PAIR IS NOT DERIVED FROM THE STANDARD, and this green test is not an endorsement of it:
-    // CCCC's own BEFORE advance already terminated physical line 11, and <c>SequentialConnector.CloseCore</c>
-    // then writes the print stream's closing newline unconditionally on any connector that has seen a
-    // print-control WRITE (`_afterAdvancing`), so a file whose LAST write carried a BEFORE phrase ends with one
-    // blank line the program never travelled. It is invisible to every other gate (both the NIST and the corpus
-    // comparison bases end with TrimEnd('\n')) and it is a DIFFERENT mechanism from this one — the flag answers
-    // two questions at once, "is this a print file" and "is the current line unterminated" — so it is recorded
-    // as its own finding rather than changed here, and the byte string below states what the compiler does.
+    // The file ENDS at CCCC's own advance: GR25 e) presents the line and then advances, so that travel already
+    // terminated physical line 11 and CLOSE adds nothing (kb/Work PB864 — CLOSE used to write one more line
+    // terminator on any connector that had seen a print-control WRITE, a blank line the program never wrote;
+    // this expectation carried it, with a warning that it was not derived from the standard).
     public void Bytes_OverflowWithBeforePhrase_PresentsThenRepositions()
         => AssertBytes(BytesProgram("LNGBY6", "lngby6.prt", "", "LINAGE IS 2 LINES LINES AT TOP 3 LINES AT BOTTOM 2", """
                 MOVE "AAAA" TO P-REC.
@@ -222,7 +218,34 @@ public sealed class LinageConformanceTests
                 MOVE "CCCC" TO P-REC.
                 WRITE P-REC BEFORE ADVANCING 1 LINE.
             """), "lngby6.prt",
-            "\r\n\r\n\r\nAAAA\r\nBBBB\r\n\r\n\r\n\r\n\r\n\r\nCCCC\r\n\r\n");
+            "\r\n\r\n\r\nAAAA\r\nBBBB\r\n\r\n\r\n\r\n\r\n\r\nCCCC\r\n");
+
+    [Fact]
+    // kb/Work PB864, on a print file with NO LINAGE clause — the plain print stream, where the one-flag defect
+    // was not tied to a logical page at all. §14.9.51.4 GR25 e): "If the BEFORE phrase is used, the line is
+    // presented before the representation of the printed page is advanced", so each record is followed by its
+    // own advance and the last advance ends the file. No trailing blank line.
+    public void Bytes_BeforeAdvancing_LastLineEndedByItsOwnAdvance_CloseAddsNothing()
+        => AssertBytes(BytesProgram("LNGBY7", "lngby7.prt", "", "RECORD CONTAINS 4 CHARACTERS", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING 1 LINE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING 2 LINES.
+            """), "lngby7.prt",
+            "AAAA\r\nBBBB\r\n\r\n");
+
+    [Fact]
+    // The other half of the split (kb/Work PB864): the LAST write is AFTER-placed (GR25 f) — advance, then
+    // present), so its line is still open at CLOSE and CLOSE terminates exactly that one line. A BEFORE write
+    // earlier in the file does not change the answer: the question CLOSE asks is about the CURRENT line.
+    public void Bytes_AfterAdvancingLast_CloseTerminatesTheOpenLineOnce()
+        => AssertBytes(BytesProgram("LNGBY8", "lngby8.prt", "", "RECORD CONTAINS 4 CHARACTERS", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC BEFORE ADVANCING 1 LINE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+            """), "lngby8.prt",
+            "AAAA\r\n\r\nBBBB\r\n");
 
     [Fact]
     // ⛔ THE SECOND ARM OF THE WRITE DISPATCH — a LINE SEQUENTIAL LINAGE file gets the SAME logical page. This is

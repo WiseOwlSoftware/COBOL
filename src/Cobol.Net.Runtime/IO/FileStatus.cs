@@ -57,7 +57,12 @@ public static class FileStatusCode
     /// item 35 lists '37' (never '30' from a medium refusal) among the statuses DELETE FILE sets. Public so
     /// the mapping is directly unit-testable (kb/Work PB140).</summary>
     public static string ForDeleteFileFailure(IOException ex) =>
-        ex.HResult is unchecked((int)0x80070013) or 30 ? PermissionDenied : PermanentError;
+        ex.HResult is unchecked((int)0x80070013) or 30 ? PermissionDenied
+        // §9.1.13.9 2) — "a DELETE FILE statement is attempted on a physical file and that physical file is
+        // currently open by another file connector": the host's sharing refusal, when the other connector is
+        // not this run unit's (kb/Work PB860).
+        : HostFile.IsSharingRefusal(ex) ? DeleteFileSharing
+        : PermanentError;
 
     /// <summary>38 — OPEN of a file previously CLOSEd WITH LOCK (the ≤2014 CLOSE … WITH LOCK leg; NOT part of the
     /// 2002 5x/6x file-sharing family — that construct is COBOLNET0902-rejected at 2023 via the

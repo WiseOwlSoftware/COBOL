@@ -20,7 +20,19 @@ public sealed class SequentialConnector : FileConnector
 
     private StreamReader? _reader;
     private StreamWriter? _writer;
-    private bool _afterAdvancing;        // a WRITE … ADVANCING happened → a trailing newline is written at CLOSE
+    // ⛔ TWO QUESTIONS, TWO FIELDS (kb/Work PB864). One flag, `_afterAdvancing`, used to answer both, so a file
+    // whose last WRITE carried a BEFORE phrase — whose own advance had already ended the line — got one more
+    // line terminator at CLOSE, a blank line the program never wrote.
+    /// <summary>Has this connector seen a print-control WRITE (an ADVANCING phrase) since the OPEN? Then an
+    /// omitted ADVANCING phrase still line-advances (<see cref="Write"/>). Asked by the ROUTING, never by
+    /// CLOSE.</summary>
+    private bool _printControl;
+    /// <summary>Is the device standing on a line that a presentation has written and no travel has ended yet —
+    /// an AFTER write's record, which §14.9.51.4 GR25 f) presents AFTER its advance? Set by
+    /// <see cref="Present"/>, cleared by every travel (<see cref="AdvanceLines"/> with a positive count, a
+    /// form feed, a line sequential record's own delimiter). Asked by CLOSE, which terminates exactly such a
+    /// line and nothing else.</summary>
+    private bool _lineOpen;
 
     // The byte offset of the most recently read record's fixed-width block (for the in-place record-sequential
     // REWRITE) and the LOGICAL read offset it derives from. The logical offset counts characters CONSUMED from
@@ -439,7 +451,24 @@ public sealed class SequentialConnector : FileConnector
 
     /// <summary>The end-of-page condition of the most recent WRITE (ISO §14.9.51 GR26): page overflow (GR26a) or
     /// printing/spacing within the footing area (GR26b). Reset at the start of every counter-advancing write.</summary>
-    public bool EndOfPage { get; private set; }
+    public bool EndOfPage => _endOfPage is not null;
+
+    /// <summary>⛔ WHICH end-of-page condition, as the exception-name §14.9.51.4 GR27 a) sets to exist for it —
+    /// <i>"If the end-of-page condition was caused by the action in General rule 26a, the EC-I-O-EOP-OVERFLOW
+    /// exception condition is set to exist. If the end-of-page condition was caused by the action in General rule
+    /// 26b, the EC-I-O-EOP exception condition is set to exist."</i> The two arms are told apart HERE, where
+    /// <see cref="PositionOnLogicalPage"/> decides them, so the name cannot be re-derived from a counter later and
+    /// disagree; <see cref="WriteSucceeded"/> reports it beside the SUCCESSFUL status GR27 prescribes ("the WRITE
+    /// statement is successful"), exactly as §13.18.34.4 GR6 b) 2's EC-I-O-LINAGE rides its status (kb/Work
+    /// PB854 — both names were catalogued with no mask bit and no raise site, so neither ever existed).</summary>
+    private string? _endOfPage;
+
+    /// <summary>A WRITE's successful completion: '00', carrying GR27 a)'s exception-name when the write caused an
+    /// end-of-page condition. EVERY successful return of a WRITE arm that can travel a logical page goes through
+    /// here.</summary>
+    private string WriteSucceeded() => _endOfPage is { } ec
+        ? SetIoCondition(FileStatusCode.Success, ec)
+        : Status = FileStatusCode.Success;
 
     /// <summary>⛔ THE §13.18.34.4 GR6 b) 2 LATCH — <i>"the LINAGE-COUNTER is set to 0 and remains at that value
     /// until the file is closed; and all subsequent WRITE statements referencing the file cause the
@@ -470,7 +499,7 @@ public sealed class SequentialConnector : FileConnector
         _linagePageBroken = false;   // a fresh OPEN OUTPUT re-determines the values (GR6 b) 1)
         LinageCounter = 1;      // GR7d — the counter is set to one at OPEN OUTPUT
         _topMarginPending = true;   // …and the device is at body line 1, i.e. past this page's top margin (GR4)
-        EndOfPage = false;
+        _endOfPage = null;
         return EvaluateLinage(page) ? null : LinageViolationStatus();
     }
 
@@ -541,7 +570,7 @@ public sealed class SequentialConnector : FileConnector
     /// unsuccessful one has none by construction.</para></summary>
     private string LinageViolationStatus()
     {
-        EndOfPage = false;
+        _endOfPage = null;
         return SetIoCondition(FileStatusCode.LinageValueViolation, Exceptions.ExceptionCatalog.IoLinage);
     }
 
@@ -585,7 +614,7 @@ public sealed class SequentialConnector : FileConnector
     /// </summary>
     private bool PositionOnLogicalPage(int lines, LinagePage page)
     {
-        EndOfPage = false;   // reset at the start of every counter-advancing write (the legacy entry reset)
+        _endOfPage = null;   // reset at the start of every counter-advancing write (the legacy entry reset)
         // The device is on the page body only once this page's top margin is behind it (GR4); every travel and
         // every presentation materializes it first, so the two call sites agree by construction.
         EmitTopMarginIfPending();
@@ -607,7 +636,7 @@ public sealed class SequentialConnector : FileConnector
             // the LAST body line onto the next page and make that line unwritable forever, against §13.18.34
             // GR2. The doc comment above carries the full derivation and the survey.
             if (!BeginNextLogicalPage(page)) return false;   // GR6 b) 3's re-evaluation broke the page
-            EndOfPage = true;
+            _endOfPage = Exceptions.ExceptionCatalog.IoEopOverflow;   // §14.9.51.4 GR27 a) — caused by GR26 a)
             return true;
         }
         AdvanceLines(lines);
@@ -625,7 +654,7 @@ public sealed class SequentialConnector : FileConnector
             // ⛔ The test is on the PHRASE'S PRESENCE, not on a positive value (kb/Work PB525): a specified
             // footing start is in (0, page size] by GR6 b) 2, which EvaluateLinage has already enforced, so a
             // `_footing > 0` guard here would be re-deciding presence from a value — the sentinel collision.
-            EndOfPage = true;
+            _endOfPage = Exceptions.ExceptionCatalog.IoEop;   // §14.9.51.4 GR27 a) — caused by GR26 b)
         }
         return true;
     }
@@ -698,6 +727,7 @@ public sealed class SequentialConnector : FileConnector
     {
         if (page is not null && HasLogicalPage) EmitTopMarginIfPending();
         EmitRecord(text);
+        _lineOpen = true;   // presented, not yet travelled past
     }
 
     /// <summary>True between a successful OPEN and the matching CLOSE (an absent-OPTIONAL INPUT open counts —
@@ -763,7 +793,8 @@ public sealed class SequentialConnector : FileConnector
     /// <see cref="FileConnector.Open"/>.</summary>
     protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
-        _afterAdvancing = false;
+        _printControl = false;
+        _lineOpen = false;
         _lastReadBlockStart = -1;
         _readOffset = 0;
         _lineRemainder = null;
@@ -915,14 +946,18 @@ public sealed class SequentialConnector : FileConnector
         catch (UnauthorizedAccessException) { }
     }
 
-    /// <summary>The sequential CLOSE body (ISO §14.9.7). A WRITE … ADVANCING stream is terminated with a
-    /// trailing newline (matching the legacy print-control behavior) — the not-open guard lives on
-    /// <see cref="FileConnector.Close"/>.</summary>
+    /// <summary>The sequential CLOSE body (ISO §14.9.7). A print stream whose last line is still unterminated —
+    /// an AFTER write's record, presented after its advance (§14.9.51.4 GR25 f)) — is ended with one line
+    /// terminator; a stream whose last travel already ended the line (a BEFORE write, GR25 e)) gets none
+    /// (<see cref="_lineOpen"/>, kb/Work PB864). The report writer's lines are AFTER-placed and reach this same
+    /// CLOSE. The not-open guard lives on <see cref="FileConnector.Close"/>.</summary>
     protected override string CloseCore()
     {
         try
         {
-            if (_afterAdvancing) { _writer?.Write("\r\n"); _afterAdvancing = false; }
+            // An unterminated line — an AFTER write's record — is ended here; a line some travel already ended
+            // gets nothing (kb/Work PB864).
+            if (_lineOpen) { _writer?.Write("\r\n"); _lineOpen = false; }
             _reader?.Dispose();
             _writer?.Dispose();   // a flush failure here maps to '30' on FileConnector.Close (§9.1.13.6 item 1)
         }
@@ -963,6 +998,7 @@ public sealed class SequentialConnector : FileConnector
     /// (else 48).</summary>
     public string Write(string image, int length, LinagePage? page)
     {
+        _endOfPage = null;   // an end-of-page condition is the CURRENT write's or none (§14.9.51.4 GR27)
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         // §13.18.34.4 GR6 b) 2 — "all subsequent WRITE statements referencing the file cause the EC-I-O-LINAGE
@@ -977,7 +1013,7 @@ public sealed class SequentialConnector : FileConnector
         // ADVANCING phrase still line-advances (a raw fixed-width block would weld onto the previous line). In
         // the pending-advance stream model (each AFTER-write leads with its newline; CLOSE supplies the final
         // one), the write-then-advance shape reproduces the print stream the golden corpus encodes.
-        if ((_afterAdvancing || page is not null) && !_lineSequential) return WriteAdvancing(image, 1, before: true, page);
+        if ((_printControl || page is not null) && !_lineSequential) return WriteAdvancing(image, 1, before: true, page);
         // §14.9.51.4 GR23: "For a line sequential file, if the record area contains one or more characters that
         // are not in the implementor-defined character set defined for a line sequential file, the execution of
         // the WRITE statement is unsuccessful and the I-O status in the write file connector is set to '71'."
@@ -996,8 +1032,7 @@ public sealed class SequentialConnector : FileConnector
         else if (_lineSequential) { if (!EmitLineSequentialRecord(TrimRecordEnd(image), page)) return LinageViolationStatus(); }
         else EmitRecord(Fit(image));
         ReleaseRecord();   // §14.9.51.4 GR12 — released to the operating environment, and numbered there
-        _afterAdvancing = false;
-        return Status = FileStatusCode.Success;
+        return WriteSucceeded();   // a LINE SEQUENTIAL LINAGE write travels the page too (EmitLineSequentialRecord)
     }
 
     /// <summary>A line sequential record and its delimiter (ISO §9.1.13.2 — a line sequential record is
@@ -1029,6 +1064,7 @@ public sealed class SequentialConnector : FileConnector
     /// stream; the LOGICAL-page geometry lives in <see cref="Position"/> and <see cref="Present"/>.</summary>
     public string WriteAdvancing(string image, int lines, bool before, LinagePage? page)
     {
+        _endOfPage = null;   // an end-of-page condition is the CURRENT write's or none (§14.9.51.4 GR27)
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (_linagePageBroken) return LinageViolationStatus();   // §13.18.34.4 GR6 b) 2's latch — see Write()
@@ -1036,7 +1072,7 @@ public sealed class SequentialConnector : FileConnector
         // point a WRITE statement can reach on a line sequential connector, not just the plain-record one; it is
         // tested on the raw record area, ahead of PrintSafe's print-stream mapping.
         if (RecordAreaOutsideLineCharacterSet(image)) return Status = FileStatusCode.LineRecordInvalidChar;
-        _afterAdvancing = true;
+        _printControl = true;
         string text = PrintSafe(TrimRecordEnd(image));
         // §14.9.51.4 GR25 e)/f) — the ONE advance, placed before or after the presentation by the statement's
         // own word. On a LINAGE file both halves travel the LOGICAL page (GR25 g), GR26 a)); on any other print
@@ -1060,7 +1096,7 @@ public sealed class SequentialConnector : FileConnector
         // The LINAGE counter advanced with the device, inside Position() above — one decision, not two — so an
         // AT END-OF-PAGE branch reads the POST-advance counter of the triggering write whichever side of the
         // presentation the advance fell on (§13.18.34 GR7c; SQ201M's footing lines print line 45).
-        return Status = FileStatusCode.Success;
+        return WriteSucceeded();   // §14.9.51.4 GR27 — "the WRITE statement is successful", with GR27 a)'s name
     }
 
     /// <summary>The PRINT-stream character mapping: a character above the 7-bit range writes as <c>?</c> — the
@@ -1092,7 +1128,11 @@ public sealed class SequentialConnector : FileConnector
     private void EmitRecord(string data) => _writer!.Write(ToMedium(data));
 
     /// <summary>— and the line sequential twin: the record's data converted, its delimiter native.</summary>
-    private void EmitRecordLine(string data) => _writer!.WriteLine(ToMedium(data));
+    private void EmitRecordLine(string data)
+    {
+        _writer!.WriteLine(ToMedium(data));
+        _lineOpen = false;   // the record's own delimiter ended the line
+    }
 
     /// <summary>The print stream's own advance: <paramref name="lines"/> lines, or a form feed for ADVANCING
     /// PAGE. ⛔ The form feed is §14.9.51.4 GR25 h) — <i>"If PAGE is specified and the LINAGE clause is NOT
@@ -1100,7 +1140,7 @@ public sealed class SequentialConnector : FileConnector
     /// PAGE is GR25 g) and goes through <see cref="BeginNextLogicalPage"/>.</summary>
     private void Advance(int lines)
     {
-        if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
+        if (lines < 0) { _writer!.Write('\f'); _lineOpen = false; return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
         AdvanceLines(lines);
     }
 
@@ -1109,6 +1149,7 @@ public sealed class SequentialConnector : FileConnector
     private void AdvanceLines(int lines)
     {
         for (int i = 0; i < lines; i++) _writer!.Write("\r\n");
+        if (lines > 0) _lineOpen = false;   // the travel ended the line the device stood on
     }
 
     // ── READ ─────────────────────────────────────────────────────────────────────────────────────────────────

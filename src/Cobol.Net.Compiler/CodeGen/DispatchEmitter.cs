@@ -266,9 +266,9 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         using (w.Block($"private {(ecInt ? "int" : "void")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
-            w.Line($"if (__st.Length == 0 || __st[0] == '0') {none}   // successful — no declarative (ISO §14.9.49.4 GR6)");
-            w.Line($"if (__atEnd && __st[0] == '1') {none}    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
-            w.Line($"if (__invKey && __st[0] == '2') {none}   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
+            w.Line($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")}) {none}   // successful — no declarative (ISO §14.9.49.4 GR6)");
+            w.Line($"if (__atEnd && {IoStatusClass.AtEnd("__st")}) {none}    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
+            w.Line($"if (__invKey && {IoStatusClass.InvalidKey("__st")}) {none}   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
             string run(int i) => ecInt
                 ? $"return {dispatchState.RunUseCall(i, decls[i].Range)};"
                 : $"{dispatchState.RunUseCall(i, decls[i].Range)}; return;";

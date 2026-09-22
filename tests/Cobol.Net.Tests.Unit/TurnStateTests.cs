@@ -169,4 +169,18 @@ public sealed class ExceptionCatalogTests
             Assert.True(seen.Add(bit), $"duplicate bit for {name}");
         }
     }
+
+    /// <summary>⛔ THE DIRECTION THAT WAS MISSING (kb/Work PB854): every level-3 EC-I-O name Table 13 catalogues
+    /// is a condition a file connector can set to exist, so every one needs a mask bit — without one,
+    /// <c>&gt;&gt;TURN … CHECKING ON</c> enables nothing and a declarative for it silently never runs.
+    /// EC-I-O-EOP and EC-I-O-EOP-OVERFLOW were catalogued with none; a name added to the catalog later fails
+    /// here until it is given its bit (and, by the same token, a raise site).</summary>
+    [Fact]
+    public void EveryCataloguedEcIoName_HasAMaskBit()
+    {
+        var missing = ExceptionCatalog.Level3Rows
+            .Where(r => ExceptionCatalog.IsIoName(r.Name) && ExceptionCatalog.IoBit(r.Name) == 0)
+            .Select(r => r.Name).ToList();
+        Assert.True(missing.Count == 0, "catalogued EC-I-O names with no mask bit: " + string.Join(", ", missing));
+    }
 }

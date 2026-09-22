@@ -147,13 +147,16 @@ public sealed class FileStatusDisciplineTests
     }
 
     // §14.9.10.4 GR17 vs §9.1.13.6 item 1: a medium that refuses deletion (Windows ERROR_WRITE_PROTECT,
-    // Unix EROFS) is '37'; any other IOException stays the generic '30'.
+    // Unix EROFS) is '37'; the host's SHARING refusal is §9.1.13.9 2)'s '62' (kb/Work PB860 — this assertion
+    // used to pin ERROR_SHARING_VIOLATION as the "other" case and so held the '30' defect green); any other
+    // IOException stays the generic '30'.
     [Fact]
     public void DeleteFileFailure_MediumRefusalIs37_OtherIs30()
     {
         Assert.Equal(FileStatusCode.PermissionDenied, FileStatusCode.ForDeleteFileFailure(new IOException("wp", unchecked((int)0x80070013))));
         Assert.Equal(FileStatusCode.PermissionDenied, FileStatusCode.ForDeleteFileFailure(new IOException("erofs", 30)));
-        Assert.Equal(FileStatusCode.PermanentError, FileStatusCode.ForDeleteFileFailure(new IOException("other", unchecked((int)0x80070020))));
+        Assert.Equal(FileStatusCode.DeleteFileSharing, FileStatusCode.ForDeleteFileFailure(new IOException("sharing", unchecked((int)0x80070020))));
+        Assert.Equal(FileStatusCode.PermanentError, FileStatusCode.ForDeleteFileFailure(new IOException("disk full", unchecked((int)0x80070070))));
     }
 
     // §14.9.10.4 GR14: DELETE FILE of a genuinely absent physical file is the SUCCESSFUL '05'.

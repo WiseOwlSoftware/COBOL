@@ -520,7 +520,8 @@ public sealed class FileRegistry
     /// <paramref name="name"/>, or null when it set none. Two sources, ONE answer:
     /// <list type="number">
     /// <item>a name the operation's own rule NAMED (<see cref="FileConnector.IoConditionName"/>) — today
-    ///   §13.18.34.4 GR6 b) 2's EC-I-O-LINAGE, the one EC-I-O condition with no I-O status of its own;</item>
+    ///   §13.18.34.4 GR6 b) 2's EC-I-O-LINAGE and §14.9.51.4 GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW, the
+    ///   EC-I-O conditions with no I-O status of their own;</item>
     /// <item>otherwise §9.1.13.1's status→EC correspondence over the connector's I-O status.</item>
     /// </list>
     /// A generated hook asks HERE and never calls <c>ExceptionCatalog.IoEcOfStatus</c> itself: the correspondence
@@ -685,7 +686,10 @@ public sealed class FileRegistry
         // ordering: an unassociated connector cannot be open, because Open associates before it opens.
         if (c.HostPath.Length == 0) { c.SetStatus(FileStatusCode.OptionalFileNotFound); return FileStatusCode.OptionalFileNotFound; }
         string status;
-        string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath)
+        // §9.1.13.9 2) asks about EVERY other file connector: this run unit's are the registry's to see, and
+        // another run unit's only the host's (kb/Work PB860 — asked before the delete, because a Unix unlink
+        // succeeds over an open file). Inside the retry loop, because another run unit CAN close mid-loop.
+        string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath) || HostFile.IsHeldByAnother(c.HostPath)
             ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount);
         if (c.IsOpen) status = FileStatusCode.FileAlreadyOpen;             // '41' GR13
         else if (ValidateFixedFileAttributes(c, overridden) is { } conflict)

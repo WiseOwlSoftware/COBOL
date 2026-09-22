@@ -148,8 +148,10 @@ public abstract class FileConnector
     /// separately.</para></summary>
     public string? IoConditionName { get; private set; }
 
-    /// <summary>Report an unsuccessful operation whose exception condition a rule NAMES rather than leaving to
-    /// §9.1.13.1's status→EC correspondence: the status and the name are set together and returned, so the two
+    /// <summary>Report an operation whose exception condition a rule NAMES rather than leaving to §9.1.13.1's
+    /// status→EC correspondence — an unsuccessful one (§13.18.34.4 GR6 b) 2's EC-I-O-LINAGE) or a SUCCESSFUL one
+    /// (§14.9.51.4 GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW, which the correspondence cannot reach because a
+    /// clean '00' corresponds to no condition at all): the status and the name are set together and returned, so the two
     /// cannot be assigned out of order (the <see cref="Status"/> setter clears the name).</summary>
     protected string SetIoCondition(string status, string ecName)
     {
@@ -593,6 +595,12 @@ public abstract class FileConnector
             s = OpenCore(mode, presence);
         }
         catch (UnauthorizedAccessException) { s = FileStatusCode.PermissionDenied; }
+        // §9.1.13.9 1) — "A file sharing conflict condition exists because an OPEN statement is attempted on a
+        // physical file and that physical file is already open by another file connector in a manner that
+        // conflicts with this request". A connector of THIS run unit is refused by the Table 19 arbiter before
+        // the body runs (FileRegistry's '61'); a connector of ANOTHER run unit is visible only as the host's own
+        // refusal, and the host says which refusal it is (kb/Work PB860 — every organization answered '30').
+        catch (IOException e) when (HostFile.IsSharingRefusal(e)) { s = FileStatusCode.FileSharingConflict; }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
         // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can

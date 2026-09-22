@@ -47,6 +47,25 @@ public static class ExceptionCatalog
     /// (<see cref="IoMaskNames"/>) must agree on it exactly.</summary>
     public const string IoLinage = "EC-I-O-LINAGE";
 
+    /// <summary>ISO §14.9.51.4 GR27 a)'s two exception-names — <i>"If the end-of-page condition was caused by the
+    /// action in General rule 26a, the EC-I-O-EOP-OVERFLOW exception condition is set to exist. If the end-of-page
+    /// condition was caused by the action in General rule 26b, the EC-I-O-EOP exception condition is set to
+    /// exist."</i> (Table 13: both Nonfatal.) Named outright by the rule, like <see cref="IoLinage"/>, and riding a
+    /// SUCCESSFUL status ("the WRITE statement is successful"), so §9.1.13.1's correspondence could never reach
+    /// them; spelled once here for the raise site (<c>SequentialConnector.PositionOnLogicalPage</c>), the mask
+    /// (<see cref="IoMaskNames"/>) and the hook's END-OF-PAGE suppression (<see cref="IsEndOfPage"/>) — kb/Work
+    /// PB854.</summary>
+    public const string IoEop = "EC-I-O-EOP";
+
+    /// <summary>See <see cref="IoEop"/>.</summary>
+    public const string IoEopOverflow = "EC-I-O-EOP-OVERFLOW";
+
+    /// <summary>Is <paramref name="ecName"/> one of GR27 a)'s end-of-page conditions — the conditions a WRITE's
+    /// own END-OF-PAGE phrase takes precedence over (§14.9.51.4 GR27 b)-d))?</summary>
+    public static bool IsEndOfPage(string? ecName) =>
+        string.Equals(ecName, IoEop, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(ecName, IoEopOverflow, StringComparison.OrdinalIgnoreCase);
+
     // ── The level-2 family names (§14.6.13.1.1, 23 names + EC-CONTINUE) ───────────────────────────────────────
     // NOTE: the §14.6.13.1.1 prose lists 23 level-2 names and omits EC-CONTINUE, yet Table 13 carries the
     // EC-CONTINUE family (EC-CONTINUE-IMP / EC-CONTINUE-LESS-THAN-ZERO, the 2023 CONTINUE AFTER addition —
@@ -118,8 +137,8 @@ public static class ExceptionCatalog
         L3("EC-FUNCTION-PTR-INVALID", EcFatality.Fatal);
         L3("EC-FUNCTION-PTR-NULL", EcFatality.Fatal);
         L3("EC-I-O-AT-END", EcFatality.Nonfatal);
-        L3("EC-I-O-EOP", EcFatality.Nonfatal);
-        L3("EC-I-O-EOP-OVERFLOW", EcFatality.Nonfatal);
+        L3(IoEop, EcFatality.Nonfatal);
+        L3(IoEopOverflow, EcFatality.Nonfatal);
         L3("EC-I-O-FILE-SHARING", EcFatality.Nonfatal);
         L3("EC-I-O-IMP", EcFatality.Imp);
         L3("EC-I-O-INVALID-KEY", EcFatality.Nonfatal);
@@ -332,12 +351,15 @@ public static class ExceptionCatalog
     /// <para>The first nine are §9.1.13.1's status-derived names (first digit → name). <c>EC-I-O-LINAGE</c> is
     /// NOT one of them — no I-O status value corresponds to it; §13.18.34.4 GR6 b) 2 names it directly — and it
     /// is in the mask for the same reason the others are: a program enables checking for it by name, per file,
-    /// through <c>&gt;&gt;TURN</c>.</para></summary>
+    /// through <c>&gt;&gt;TURN</c>. <c>EC-I-O-EOP</c> and <c>EC-I-O-EOP-OVERFLOW</c> (§14.9.51.4 GR27 a)) are the
+    /// same shape and were ABSENT until kb/Work PB854 — catalogued and never raisable, so a program enabling them
+    /// got a zero mask bit and its declarative never ran. <c>TurnStateTests</c> now asserts that EVERY level-3
+    /// EC-I-O row of the catalog has a bit here, so a name cannot be catalogued without one again.</para></summary>
     public static readonly string[] IoMaskNames =
     [
         "EC-I-O-AT-END", "EC-I-O-INVALID-KEY", "EC-I-O-PERMANENT-ERROR", "EC-I-O-LOGIC-ERROR",
         "EC-I-O-RECORD-OPERATION", "EC-I-O-FILE-SHARING", "EC-I-O-RECORD-CONTENT", "EC-I-O-IMP", "EC-I-O-WARNING",
-        IoLinage,
+        IoLinage, IoEop, IoEopOverflow,
     ];
 
     /// <summary>The mask bit of a connector-raisable EC-I-O name (0 for a name outside the mask set).</summary>

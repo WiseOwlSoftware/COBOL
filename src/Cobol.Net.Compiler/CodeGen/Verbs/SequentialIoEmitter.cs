@@ -453,12 +453,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         var w = ctx.Writer;
         if (ik.Invalid is { } inv)
         {
-            using (w.Block($"if ({st}[0] == '2')")) Statements.EmitStatementList(inv);
+            using (w.Block($"if ({IoStatusClass.InvalidKey(st)})")) Statements.EmitStatementList(inv);
             if (ik.NotInvalid is { } not)
-                using (w.Block($"else if ({st}[0] == '0')")) Statements.EmitStatementList(not);
+                using (w.Block($"else if ({IoStatusClass.Successful(st)})")) Statements.EmitStatementList(not);
         }
         else if (ik.NotInvalid is { } not)
-            using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
+            using (w.Block($"if ({IoStatusClass.Successful(st)})")) Statements.EmitStatementList(not);
     }
 
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.51): a FROM operand first MOVEs into the record area,
@@ -510,20 +510,25 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // processing only "if the invalid key condition exists", and on a sequential organization it never can
         // (§9.1.13.5 items 1–4 all name a relative or indexed file), so every unsuccessful status here is a
         // §9.1.14 final-rule item 1 completion that the declarative must still see.
-        EmitUseHook(wr.File);
+        // The END-OF-PAGE phrase travels as the hook's condition-phrase flag: §14.9.51.4 GR27 c)/d) run the
+        // exception-checking PERFORM's WHEN or the USE declarative for GR27 a)'s EC-I-O-EOP / -OVERFLOW only
+        // "If the END-OF-PAGE phrase is not specified" (kb/Work PB854). NOT END-OF-PAGE alone does not count —
+        // it is GR28's arm for the ABSENCE of the condition.
+        EmitUseHook(wr.File, atEndHandled: wr.AtEop is not null);
         // END-OF-PAGE branches (ISO §14.9.51 GR27b/GR28): an end-of-page WRITE is SUCCESSFUL — the branch runs
-        // after the status store (a successful status, so no USE declarative competes). The flag is read in the
+        // after the status store and the hook (which sets GR27 a)'s condition and, with the phrase present,
+        // dispatches nothing). The flag is read in the
         // `if` HEADER before either body runs: a branch body may WRITE the same file again (SQ208M's footing loop
         // inside the AT phrase), which clobbers the connector's per-write flag. The `__wst[0] == '0'` guard is
         // GR27/GR28's "successful" — see the snapshot above.
         if (wr.AtEop is not null || wr.NotAtEop is not null)
         {
-            using (w.Block($"if ({wst}[0] == '0' && {RuntimeApi.FileEndOfPage(name)})"))
+            using (w.Block($"if ({IoStatusClass.Successful(wst!)} && {RuntimeApi.FileEndOfPage(name)})"))
             {
                 if (wr.AtEop is { } at) Statements.EmitStatementList(at);
             }
             if (wr.NotAtEop is { } not)
-                using (w.Block($"else if ({wst}[0] == '0')"))
+                using (w.Block($"else if ({IoStatusClass.Successful(wst!)})"))
                     Statements.EmitStatementList(not);
         }
         // The forbidden-but-tolerated INVALID KEY pair, through THE ONE §9.1.14 renderer the keyed arm uses.
@@ -631,10 +636,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         {
             EmitStoreFileStatus(rd.File);
             EmitUseHook(rd.File, atEndHandled: rd.AtEnd is not null);
-            // The AT END imperative runs ONLY for the at-end status family (ISO 14.9.30 GR24c/d + 9.1.13.1 -
-            // a 3x/4x failure is NOT an at-end condition; it reaches a USE declarative instead).
+            // The AT END imperative runs ONLY for the at end status class (§14.9.30.4 GR24 c) — "If, during the
+            // execution of the READ statement, the at end condition exists"); every other unsuccessful status,
+            // GR21's '46' included (a LOGIC ERROR, §9.1.13.7 6)), is GR13's "neither an at end nor an invalid
+            // key condition" and reaches a USE declarative through §9.1.12 instead. The determination is on
+            // IoStatusClass (kb/Work PB810).
             if (rd.AtEnd is { } at)
-                using (w.Block($"if ({RuntimeApi.FileStatus(name)}[0] == '1')"))
+                using (w.Block($"if ({IoStatusClass.AtEnd(RuntimeApi.FileStatus(name))})"))
                     Statements.EmitStatementList(at);
         }
     }

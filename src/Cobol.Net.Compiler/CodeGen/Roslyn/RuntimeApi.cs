@@ -951,10 +951,10 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.ReadShared)}({name}, {previous}, {lockRef}, {advancingOnLock}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar})";
 
     /// <summary>The governed Format-1 READ as a BOOL — "a record was made available" is the I-O status's first
-    /// character being '0' (§9.1.13.4), the same contract as the plain <c>FileRead</c>.</summary>
+    /// character being '0' (§9.1.13.2, through <see cref="IoStatusClass"/>), the same contract as the plain <c>FileRead</c>.</summary>
     public static string FileReadSharedOk(string name, string previous, string lockRef, string advancingOnLock,
         string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
-        $"{FileReadShared(name, previous, lockRef, advancingOnLock, ignoringLock, retryKind, retryAmount, imgVar)}[0] == '0'";
+        $"{IoStatusClass.Successful(FileReadShared(name, previous, lockRef, advancingOnLock, ignoringLock, retryKind, retryAmount, imgVar))}";
 
     /// <summary>⛔ THE ONE WRITE, any organization and any print-control shape (§14.9.51 GR10/GR11) —
     /// <c>CobolFile.WriteShared</c>. <paramref name="pageArg"/> is the executing element's LINAGE page
