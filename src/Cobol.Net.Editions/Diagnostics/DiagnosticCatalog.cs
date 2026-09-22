@@ -169,6 +169,21 @@ public static class DiagnosticCatalog
         + "REDEFINES, and no ANY LENGTH / BASED / BLANK WHEN ZERO / SYNCHRONIZED / TYPEDEF on the record or any "
         + "subordinate (§13.16.3 SR3/SR6/SR13).", "ISO §13.18.15.3 / §13.16.3");
 
+    // ── COBOLNET0899 — a file's IMPLICITLY shared record area of a shape the storage model cannot share (kb/Work PB836)
+    /// <summary>An FD/SD's level-1 records (ISO §13.18.33.4 GR3) or a record-area SAME clause's files' records
+    /// (§12.4.6.4.4 GR2) share ONE area, and one of them is a dynamic-length item, a variable-length group, a
+    /// dynamic-capacity table or a pointer — a shape the typed-native storage model gives its own native carrier
+    /// or managed slot, so the shared area would silently be two. No syntax rule forbids the source; this is
+    /// recognized-not-implemented debt, NOT the §13.18.44.3 REDEFINES-clause rejection the binder used to borrow
+    /// for it (the source contains no REDEFINES clause).</summary>
+    public static readonly DiagnosticDescriptor ImplicitRecordAreaShape = new(
+        NotImplemented, "implicit-record-area-shape", EditionSeverity.Error,
+        "The records of one file description (ISO §13.18.33.4 GR3), or of the files of one record-area SAME "
+        + "clause (§12.4.6.4.4 GR2), share one storage area, and one of them is a dynamic-length item, a "
+        + "variable-length group, a dynamic-capacity table or a pointer: a shared record area of that shape is "
+        + "recognized but not yet implemented.", "ISO §13.18.33.4 GR3 / §12.4.6.4.4 GR2",
+        RecognizedNotImplemented);
+
     // ── COBOLNET0899 — the staged-loud constant-entry legs (recognized, not yet implemented) ─────────────
     public static readonly DiagnosticDescriptor ConstantFromCompilationVariable = new(
         NotImplemented, "constant-from-compilation-variable", EditionSeverity.Error,

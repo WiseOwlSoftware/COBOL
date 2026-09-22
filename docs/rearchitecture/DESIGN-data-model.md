@@ -514,31 +514,39 @@ ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were
 
 **The shape now.**
 
-1. **One copy.** `DataBinder.CopyEntryDescription(from, to, copyAlignment)` is the only place a clause travels;
-   `CloneItem` funnels through it and its initializer carries nothing but identity, the renumbered level and the
-   `MemberOnly` fields. `copyAlignment` is named for the rule it implements — §13.18.57.4 GR1 is the ONLY GR-1
-   that excludes "alignment" (its GR2d re-aligns the subject "as though it were a level 1 item"), and that word
-   names both alignment clauses, SYNCHRONIZED *and* ALIGNED. Only the TYPE-subject arm passes `false`.
+1. **One copy.** `DataBinder.CopyEntryDescription(from, to, scope)` is the only place a clause travels, for
+   all five carriers: the TYPE subject, the SAME AS subject, `CloneItem`'s reproduced subordinate, and the
+   compiler temporary's root and subtree (`CreateCompilerTemp` / `CloneTempNode`, kb/Work PB888). Each copier's
+   initializer carries nothing but identity, the level and the `MemberOnly` fields. `scope` is a
+   `DescriptionCopyScope` — `TypeSubject` · `Entry` · `CompilerTemp` — the one axis on which the rules make the
+   copies differ: §13.18.57.4 GR1 is the ONLY GR-1 that excludes "alignment" (its GR2d re-aligns the subject "as
+   though it were a level 1 item"), and that word names both alignment clauses, SYNCHRONIZED *and* ALIGNED, so
+   only `TypeSubject` leaves them behind; a compiler temporary (§8.4.3.2.4 GR1 "the description, class, and
+   category", §8.4.3.4.4 GR1, §14.9.25.4 GR1's intermediate) takes the whole description except the
+   `EntryOnly` clauses.
 2. **The classification lives on the field.** Every stored `DataItem` property carries
    `[DescriptionCopy(DescriptionCopyKind.…, "<the §/GR, or the pass that owns the fact>")]` —
-   `Clause` (travels) · `Alignment` (travels except onto a TYPE subject) · `MemberOnly` (a reproduced subordinate
+   `Clause` (travels) · `Alignment` (travels except onto a TYPE subject) · `EntryOnly` (travels with every entry
+   copy but not onto a compiler temporary — VALUE, which a temp stored by its pre-op before any read cannot
+   observe and whose Format-2 FROM subscripts would address an OCCURS a temp's root never reproduces, and ANY
+   LENGTH, §13.18.2.3 SR2's linkage-section parameter shape) · `MemberOnly` (a reproduced subordinate
    only — the name, OCCURS, REDEFINES, a nested TYPE/SAME AS reference, the declaration cursor) · `CopyWritten`
    (the copy derives it: `ValueIsCopied`, `ExternalFromType`) · `None` (excluded by a named rule, or owned by a
    post-build pass). Adding a field to `DataItem` is therefore a CHOICE made where the field is declared.
 3. **The classification is behaviourally true.** `DescriptionCopyCompletenessDriftTests` (Unit) fails when a
    stored property has no classification, when a `Clause`/`Alignment` field is not transferred by the copy, when
-   a `None`/`MemberOnly` field is, and when `CloneItem` re-spells any clause of its own. It asserts it could give
-   every property a distinct value first (so the audit is evidence about all of them), and drives its own failure
-   branch over a copy that re-introduces the PB522 omission.
+   a `None`/`MemberOnly` field is — once per `DescriptionCopyScope` — when any of `CloneItem`,
+   `CreateCompilerTemp` or `CloneTempNode` re-spells a clause of its own, and when ANY site in the compiler
+   outside the one copy hand-copies two or more clause fields from one source (`X = src.X`). It asserts it could
+   give every property a distinct value first (so the audit is evidence about all of them), and drives its own
+   failure branches over a copy that re-introduces the PB522 omission and over the pre-PB888 temp initializer.
 
 `conformance:2002/pb522_group_usage_travels_with_the_description` measures the clauses that exist today, each
 against a byte-identical inline control; the drift test is what makes the NEXT one automatic.
 
-**Residue — a copier this funnel does not yet own.** `CreateCompilerTemp` / `CloneTempNode`
-(`DataBinder.Oo.cs`) wear a model's description onto a synthesized temp under a DIFFERENT rule (§8.4.3.2.4 GR1 /
-§11.7.4) with its own pre-gating residue check, and still hand-list their fields; a user-defined function
-returning a national group therefore still yields an alphanumeric-group temp. Folding them in needs that rule's
-own exclusion story settled first.
+`conformance:2002/pb888_compiler_temp_takes_the_whole_description` pins the temporary's arm: a user-defined
+function returning a `GROUP-USAGE NATIONAL` group measures what its working-storage twin measures, and a
+two-receiver MOVE of a national-group table element gives each receiver what the one-receiver MOVE gives.
 
 ### 2.6 `RecordLayout` — one physical-width authority
 

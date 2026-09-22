@@ -120,7 +120,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // rules (the SR5 edition gates, the Table-16 legality, SR2's strong-typing check, SR9's §8.5.1.12
         // compatibility screen) are about the operands the PROGRAMMER wrote and have already been applied to
         // them; re-running them against the implementor's intermediate would report the same source twice and —
-        // for a strongly-typed sender, whose clone is a DIFFERENT type-name — report a violation that no rule
+        // for a strongly-typed sender, whose clone is a DIFFERENT strongly-typed item (it carries the type-name,
+        // kb/Work PB888, but is not the sender's declaration) — report a violation that no rule
         // states. The move itself is an identity copy by construction (the temp's description IS the sender's).
         ctx.Data.PendingPreOps.Add(new BoundMove(op, [place]));
         return place;

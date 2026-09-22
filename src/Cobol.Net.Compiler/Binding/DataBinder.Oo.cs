@@ -544,7 +544,14 @@ public sealed partial class DataBinder
     /// in the CALLER's scope would collide/ambiguate legal caller names. The pair is recorded for the
     /// post-bind <c>StoreAsImage</c> re-sync (see <see cref="CompilerTempClones"/>); a group temp's
     /// numeric-DISPLAY leaves are promoted by the <c>UsageCollectionPass</c> whole-group collection instead
-    /// (the temp is a <c>BoundCallProgram.Returning</c> whole-group operand).</summary>
+    /// (the temp is a <c>BoundCallProgram.Returning</c> whole-group operand).
+    /// <para>⛔ THE DESCRIPTION IS NOT LISTED HERE (kb/Work PB888). §8.4.3.2.4 GR1 gives the temporary "the
+    /// description, class, and category" of the RETURNING item — the whole entry, not a chosen subset — and
+    /// this constructor used to spell five clauses of it (PICTURE, SIGN, JUSTIFIED, BLANK WHEN ZERO, plus USAGE
+    /// on a subordinate), so GROUP-USAGE was lost and a <c>GROUP-USAGE NATIONAL</c> result measured 8 where
+    /// the byte-identical working-storage item measures 4. Every clause now goes through
+    /// <see cref="CopyEntryDescription"/> in its <see cref="DescriptionCopyScope.CompilerTemp"/> scope, and
+    /// <c>DescriptionCopyCompletenessDriftTests</c> fails if a hand copy reappears.</para></summary>
     internal DataItem CreateCompilerTemp(DataItem model, string cobolPrefix, string csPrefix, string tag)
     {
         var t = new DataItem
@@ -552,14 +559,11 @@ public sealed partial class DataBinder
             Level = 1,
             CobolName = cobolPrefix + _uidCounter,
             CsName = csPrefix + _uidCounter + "_" + DataItem.Sanitize(tag).ToUpperInvariant(),
-            Pic = model.Pic,
-            OwnSign = model.OwnSign,
-            Justified = model.Justified,
-            BlankWhenZero = model.BlankWhenZero,
             IsCompilerTemp = true,   // kb/Work R26 — the positive is-a-declared-item discrimination
             // (P5.7: the clone-time StoreAsImage seed is gone — StorageFormPass's promoted-set re-sync derives
             //  the temp's storage from its model's PRE-whole-group facts, the fused pipeline's re-sync ordering.)
         };
+        CopyEntryDescription(model, t, DescriptionCopyScope.CompilerTemp);
         t.Uid = _uidCounter++;
         if (model.IsGroup)
             foreach (var child in model.Children)
@@ -571,11 +575,13 @@ public sealed partial class DataBinder
 
     /// <summary>Deep-clone one description node under a compiler temp (see <see cref="CreateCompilerTemp"/>):
     /// fresh <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it), the immutable
-    /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.CsName"/>
-    /// uniquified among siblings — and, unlike the TYPEDEF <c>CloneItem</c>, NOT registered (no by-name
-    /// entry, no 88s, no index-names: a temp's subordinates are unreachable by reference). The admissible
-    /// shapes are pre-gated by the caller (UdfBinder's residue check: no REDEFINES, no variable-length
-    /// OCCURS, character-form leaves only), so the copied fields are the complete surviving description.</summary>
+    /// <see cref="DataItem.Pic"/> shared, the <see cref="DataItem.CsName"/> uniquified among siblings — and,
+    /// unlike the TYPEDEF <c>CloneItem</c>, NOT registered (no by-name entry, no 88s, no index-names: a temp's
+    /// subordinates are unreachable by reference). The initializer carries only identity and the
+    /// <see cref="DescriptionCopyKind.MemberOnly"/> fields a subordinate reproduces (level, name, OCCURS); every
+    /// data description CLAUSE goes through <see cref="CopyEntryDescription"/>, the same ONE copy the TYPE /
+    /// SAME AS clone uses, so the temp's subtree cannot lose a clause the model's has (kb/Work PB888 — it had
+    /// lost GROUP-USAGE, SYNCHRONIZED and ALIGNED, the last two of which decide a group's slack bytes).</summary>
     private DataItem CloneTempNode(DataItem src, DataItem newParent)
     {
         var clone = new DataItem
@@ -584,15 +590,10 @@ public sealed partial class DataBinder
             DeclaredAt = src.DeclaredAt,
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
-            Pic = src.Pic,
-            OwnSign = src.OwnSign,
-            OwnUsage = src.OwnUsage,
-            OwnNoSign = src.OwnNoSign,   // the WITH NO SIGN phrase rides on the clause it is part of (§13.18.60.2)
             Occurs = src.Occurs,
             OccursSpec = src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
-            Justified = src.Justified,
-            BlankWhenZero = src.BlankWhenZero,
         };
+        CopyEntryDescription(src, clone, DescriptionCopyScope.CompilerTemp);
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
         foreach (var child in src.Children)

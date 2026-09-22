@@ -462,8 +462,13 @@ globalClause
 // PROVABLY wrong (ISO-validation, DEVLOG 582: TYPEDEF has ~33 hits in the 2023 spec body yet ZERO Annex E
 // 2014→2023 change rows ⇒ it predates 2023). The 2002-vs-2014 refinement is blocked on the older standards
 // (roadmap decision 1 provisional policy; tests/version-matrix/constructs.json row type-clause-2002).
+// ⛔ THE OPTIONAL WORD IS `TO`, NOT `IS` (kb/Work PB889). §13.18.57.2 Format 1 prints `TYPE TO type-name-1` with TYPE
+// underlined and TO not (rendered PDF page 524, printed folio 494) — §5.2.3 makes an un-underlined uppercase word an
+// OPTIONAL word. The rule used to read `TYPE IS? IDENTIFIER`, so the standard's own spelling `TYPE TO T` was rejected
+// (COBOL0001 "unexpected 'TO'") while a spelling no format prints was accepted. `TYPE IS` is Format 2's (the report
+// group TYPE clause, CobolReportWriter.g4), not this one's.
 typeClause
-    : TYPE IS? IDENTIFIER   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypeClause (rearch 14g.2)
+    : TYPE TO? IDENTIFIER   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypeClause (rearch 14g.2)
     ;
 
 // TYPEDEF clause (ISO §13.18.58, COBOL-2002; data-model D17) — marks this data description entry as a TYPE

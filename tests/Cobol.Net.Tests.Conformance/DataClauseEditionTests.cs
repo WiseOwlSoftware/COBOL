@@ -124,7 +124,7 @@ public sealed class DataClauseEditionTests
     {
         string src = Prog("""
             01 W88 PIC X.
-               88 C88 TYPE IS FOO.
+               88 C88 TYPE TO FOO.
             """);
         Assert.Equal(0, Count0900(src, 85, "the TYPE clause"));
     }

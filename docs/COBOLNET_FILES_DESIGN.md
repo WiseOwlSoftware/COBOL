@@ -47,6 +47,19 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 > pair) the class is Tier B: one string backing IS the record area (§12.4.6.4.4 GR2 — "an implicit redefinition of
 > the area, with records aligned on the leftmost byte position"), each record/leaf a window accessor, binary leaves
 > image-stored with the overpunch profile rewrite (REDEFINES deep-dive D10).
+>
+> **One storage fact, two constructs (kb/Work PB836).** The class is shared, the RULES are not. Every member
+> records WHICH construct joined it — `DataItem.RedefinesKind`: `Clause` (a written REDEFINES, §13.18.44),
+> `ImplicitFileRecord` (§13.18.33.4 GR3) or `SameRecordArea` (§12.4.6.4.4 GR2), written only together with
+> `RedefinesTarget` through `DataItem.SetRedefinition`. The §13.18.44.3 REDEFINES-clause syntax rules (SR5, SR8,
+> SR12, SR14, SR16, SR17) screen `Clause` members only — an implicit redefinition has no clause and no
+> data-name-2. What DOES reach the implicit case is §13.18.57.3 SR4 ("shall not be implicitly or explicitly
+> redefined"): a strongly-typed item anywhere in a record that shares its area is COBOLNET1532, tested on BOTH
+> sides of the pair because the sharing is symmetric. A record whose shape the shared backing cannot carry — a
+> dynamic-length item, a variable-length group, a dynamic-capacity table, a pointer — is legal source the storage
+> model does not yet share, staged loud as COBOLNET0899 (`implicit-record-area-shape`), never borrowed from a
+> REDEFINES rule. A report description's level-1 entries are NOT implicit redefinitions (§13.18.33.4 GR3's second
+> sentence) and never join a class.
 
 ### D6. SORT and MERGE: the SD record is a typed struct; the sort store holds serialized images ordered by the same CobolKey policy; SORT key offsets are computed into the deterministic serialized image at compile time. Format-2 in-place table SORT operates on the typed array directly.
 

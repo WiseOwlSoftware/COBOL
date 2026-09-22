@@ -1041,8 +1041,8 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The TYPE IS type-name clause (the TYPEDEF family, ISO §13.18.58; D17) — a COBOL-2002 introduction.
-        /// Fires once per written <c>TYPE IS</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
+        /// <summary>The TYPE [TO] type-name clause (ISO §13.18.57 Format 1; the TYPEDEF family, §13.18.58; D17) — a
+        /// COBOL-2002 introduction. Fires once per written <c>TYPE</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
         /// nodes, so a TYPEDEF referenced N times yields exactly N typeClause nodes (matching the former per-entry
         /// binder Check). The §13.18.57.3 placement SRs stay bind-time.</summary>
         public override object? VisitTypeClause(CobolParserCore.TypeClauseContext ctx)

@@ -169,16 +169,16 @@ public sealed class DataItem
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.
     /// Settable for the <c>ExpandTypes</c> description copy (a subject's OWN VALUE wins, §13.18.57.4 GR3;
     /// otherwise the copied description's VALUE applies, §13.18.49 GR1 — VALUE is not in the exclusion list).</summary>
-    [DescriptionCopy(DescriptionCopyKind.Clause,
-        "VALUE format 1 (ISO §13.18.63) — in neither GR-1 exclusion list; §13.18.57.4 GR3 gives the SUBJECT's own VALUE precedence, hence the ??=")]
+    [DescriptionCopy(DescriptionCopyKind.EntryOnly,
+        "VALUE format 1 (ISO §13.18.63) — in neither GR-1 exclusion list; §13.18.57.4 GR3 gives the SUBJECT's own VALUE precedence, hence the ??=; a compiler temporary is stored before it is read, so it takes none (kb/Work PB888)")]
     public string? RawValue { get; set; }
 
     /// <summary>The Format 2 (table) VALUE phrases (ISO §13.18.63.2, COBOL-2002): each keys a literal list to an
     /// occurrence range via FROM (subscript-1 …) [TO (subscript-2 …)]. Mutually exclusive with <see cref="RawValue"/>
     /// (the grammar's two arms cannot both match). Null unless the entry carries a table VALUE. Resolved to the
     /// per-occurrence emitter map after the forest is built (dimensions / dynamic expected capacity are known then).</summary>
-    [DescriptionCopy(DescriptionCopyKind.Clause,
-        "VALUE format 2 (ISO §13.18.63.2) — the same clause in its other spelling (kb/Work PB505)")]
+    [DescriptionCopy(DescriptionCopyKind.EntryOnly,
+        "VALUE format 2 (ISO §13.18.63.2) — the same clause in its other spelling (kb/Work PB505); its FROM subscripts address an OCCURS a compiler temporary's root never reproduces (kb/Work PB888)")]
     public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
     /// <summary>The RESOLVED Format 2 (table) VALUE — the §13.18.63.4 GR12–GR15 subscript-tuple → literal map plus
@@ -483,7 +483,29 @@ public sealed class DataItem
     /// redefiner — SR11). Set by the post-build pass; null for a non-redefining entry.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "resolved post-build by the REDEFINES pass, in the clone's OWN scope")]
-    public DataItem? RedefinesTarget { get; set; }
+    public DataItem? RedefinesTarget { get; private set; }
+
+    /// <summary>Which construct makes this item share <see cref="RedefinesTarget"/>'s storage — a written REDEFINES
+    /// clause or one of the two implicit redefinitions of the file section (kb/Work PB836). A rule about the
+    /// REDEFINES CLAUSE screens only <see cref="RedefinitionKind.Clause"/>; the storage layout reads the target
+    /// whatever the kind. Written ONLY through <see cref="SetRedefinition"/>, together with the target, so the two
+    /// facts cannot disagree.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "set with RedefinesTarget by the REDEFINES pass / the file-section binder, in the item's OWN scope")]
+    public RedefinitionKind RedefinesKind { get; private set; }
+
+    /// <summary>Record that this item shares <paramref name="target"/>'s storage area because of
+    /// <paramref name="kind"/> — the ONE writer of <see cref="RedefinesTarget"/> and <see cref="RedefinesKind"/>.
+    /// A null target clears both (an unresolved REDEFINES clause, kb/Work PB93).</summary>
+    public void SetRedefinition(DataItem? target, RedefinitionKind kind)
+    {
+        RedefinesTarget = target;
+        RedefinesKind = target is null ? RedefinitionKind.None : kind;
+    }
+
+    /// <summary>True when the item shares its storage area by one of the file section's IMPLICIT redefinitions
+    /// (§13.18.33.4 GR3 / §12.4.6.4.4 GR2) rather than by a written REDEFINES clause.</summary>
+    public bool RedefinesImplicitly => RedefinesKind is RedefinitionKind.ImplicitFileRecord or RedefinitionKind.SameRecordArea;
 
     /// <summary>The level-66 RENAMES descriptor (ISO §13.18.45), or null unless this is a level-66 entry.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
@@ -528,8 +550,8 @@ public sealed class DataItem
     /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoBindMethodData</c>) on an SR2/SR3/SR4
     /// violation so the item binds as ordinary storage under an already-failed compile (the IsBased pattern).
     /// Emit-side: every width-sensitive render of the item uses the CARRIER's runtime length, never Pic.Length.</summary>
-    [DescriptionCopy(DescriptionCopyKind.Clause,
-        "ANY LENGTH (ISO §13.18.2) — in neither GR-1 exclusion list; §13.18.2.3 SR2/SR3/SR4 are re-screened at the copy's own site by the placement sweeps, which CLEAR it on a violation")]
+    [DescriptionCopy(DescriptionCopyKind.EntryOnly,
+        "ANY LENGTH (ISO §13.18.2) — in neither GR-1 exclusion list; §13.18.2.3 SR2/SR3/SR4 are re-screened at the copy's own site by the placement sweeps, which CLEAR it on a violation; a compiler temporary is working storage, never the §13.18.2.3 SR2 linkage parameter (kb/Work PB888)")]
     public bool IsAnyLength { get; set; }
 
     /// <summary>DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19; COBOL-2014) — a variable-length, minimum-length-zero

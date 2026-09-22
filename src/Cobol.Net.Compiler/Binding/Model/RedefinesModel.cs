@@ -51,6 +51,35 @@ public sealed class RenamesInfo
 }
 
 /// <summary>
+/// WHICH CONSTRUCT makes an item share its storage area with <see cref="DataItem.RedefinesTarget"/> (kb/Work PB836).
+/// Three different constructs produce ONE storage fact — the redefines class that the layout, the tiering and the
+/// emitter all read — and the rules that screen them are NOT the same rules:
+/// <list type="bullet">
+///   <item><see cref="Clause"/> — a written REDEFINES clause (ISO §13.18.44). Its syntax rules (§13.18.44.3 SR5,
+///     SR8, SR12, SR14, SR16, SR17) are rules about THE CLAUSE: its subject and its data-name-2 operand.</item>
+///   <item><see cref="ImplicitFileRecord"/> — the second and later level-1 entries of one FD or SD, which
+///     "represent implicit redefinitions of the same area" (§13.18.33.4 GR3). No clause was written, so no
+///     REDEFINES-clause rule applies; §13.18.57.3 SR4 ("shall not be implicitly or explicitly redefined") does.</item>
+///   <item><see cref="SameRecordArea"/> — the first record of a later file in a record-area SAME clause, which "is
+///     equivalent to an implicit redefinition of the area with records aligned on the leftmost byte position"
+///     (§12.4.6.4.4 GR2). Screened exactly as <see cref="ImplicitFileRecord"/>.</item>
+/// </list>
+/// The binder used to write the storage fact alone, so the file section's implicit redefinitions reached every
+/// REDEFINES-clause screen and were refused under rules about source the program never wrote.
+/// </summary>
+public enum RedefinitionKind
+{
+    /// <summary>The item redefines nothing.</summary>
+    None,
+    /// <summary>A written REDEFINES clause (§13.18.44).</summary>
+    Clause,
+    /// <summary>A later level-1 record of one FD/SD (§13.18.33.4 GR3).</summary>
+    ImplicitFileRecord,
+    /// <summary>The record of a later file of one record-area SAME clause (§12.4.6.4.4 GR2).</summary>
+    SameRecordArea,
+}
+
+/// <summary>
 /// The overlay tier of a redefines class (COBOLNET_DESIGN §4.2; priority cascade D &gt; C &gt; B &gt; A, lattice
 /// A ⊑ B ⊑ C ⊑ D, join = max tier). Every member of a class shares one stored canonical backing; the tier decides
 /// what that backing is and how each view reads/writes it.

@@ -1,0 +1,5 @@
+LEN-CTL=4
+LEN-FN=4
+FN=[WXYZ  ]
+ONE=[XYZ   ]
+TWO=[XYZ   ][XYZ   ]

@@ -96,10 +96,10 @@ public sealed class DescriptionCopyCompletenessDriftTests
     /// <summary>Drive <paramref name="copy"/> over a source carrying a DISTINCT value in every stored field and a
     /// wholly default receiver, and report every property whose outcome contradicts its classification. Returns
     /// one line per disagreement; empty means the copy and the classification say the same thing.</summary>
-    private static IReadOnlyList<string> Audit(Action<DataItem, DataItem, bool> copy)
+    private static IReadOnlyList<string> Audit(Action<DataItem, DataItem, DescriptionCopyScope> copy)
     {
         var findings = new List<string>();
-        foreach (bool copyAlignment in new[] { true, false })
+        foreach (var scope in Enum.GetValues<DescriptionCopyScope>())
         {
             var reference = NewItem();
             var from = NewItem();
@@ -117,7 +117,7 @@ public sealed class DescriptionCopyCompletenessDriftTests
                 + "measures NOTHING about them: " + string.Join(", ", unvaried)
                 + ". Teach DescriptionCopyCompletenessDriftTests.Distinct their type.");
 
-            copy(from, to, copyAlignment);
+            copy(from, to, scope);
 
             foreach (var p in StoredProperties())
             {
@@ -125,11 +125,12 @@ public sealed class DescriptionCopyCompletenessDriftTests
                 if (kind is DescriptionCopyKind.CopyWritten) continue;   // derived provenance — no verbatim expectation
 
                 bool shouldTravel = kind is DescriptionCopyKind.Clause
-                    || (kind is DescriptionCopyKind.Alignment && copyAlignment);
+                    || (kind is DescriptionCopyKind.Alignment && scope is not DescriptionCopyScope.TypeSubject)
+                    || (kind is DescriptionCopyKind.EntryOnly && scope is not DescriptionCopyScope.CompilerTemp);
                 object? got = p.GetValue(to), want = p.GetValue(shouldTravel ? from : reference);
                 if (SameValue(got, want)) continue;
 
-                findings.Add($"{p.Name} [{kind}, copyAlignment:{copyAlignment}] — expected "
+                findings.Add($"{p.Name} [{kind}, scope:{scope}] — expected "
                     + (shouldTravel ? "the SOURCE's value" : "the receiver's own (default) value")
                     + $"; got {Render(got)} where {Render(want)} was required. Reason on the field: "
                     + (Classification(p)?.Reason ?? "(none)"));
@@ -159,9 +160,9 @@ public sealed class DescriptionCopyCompletenessDriftTests
     [Fact]
     public void TheAudit_ActuallyFails_WhenAClassifiedClauseIsNotCopied()
     {
-        var findings = Audit((from, to, copyAlignment) =>
+        var findings = Audit((from, to, scope) =>
         {
-            RealCopy(from, to, copyAlignment);
+            RealCopy(from, to, scope);
             to.GroupUsage = GroupUsage.None;   // re-introduce PB522: the clause that makes it a bit / national group
         });
         Assert.Contains(findings, f => f.StartsWith(nameof(DataItem.GroupUsage), StringComparison.Ordinal));
@@ -169,39 +170,115 @@ public sealed class DescriptionCopyCompletenessDriftTests
 
     // ── 3. One copy, not two ─────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>⛔ <c>DataBinder.CloneItem</c> spells NO data description clause of its own. The defect was not
-    /// that one list was wrong — it was that there were TWO lists, so a clause could be present in one and absent
-    /// from the other with nothing to contradict it. The clone's own initializer may carry identity, the
-    /// renumbered level and the <see cref="DescriptionCopyKind.MemberOnly"/> fields; every actual clause goes
-    /// through <c>CopyEntryDescription</c>.</summary>
-    [Fact]
-    public void CloneItem_SpellsNoDescriptionClauseOfItsOwn()
-    {
-        var clauses = StoredProperties()
-            .Where(p => Classification(p)?.Kind is DescriptionCopyKind.Clause or DescriptionCopyKind.Alignment)
+    /// <summary>The names of every description CLAUSE field — everything the ONE copy carries in some scope.</summary>
+    private static HashSet<string> ClauseFieldNames() =>
+        StoredProperties()
+            .Where(p => Classification(p)?.Kind is DescriptionCopyKind.Clause or DescriptionCopyKind.Alignment
+                or DescriptionCopyKind.EntryOnly)
             .Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
 
-        string body = MethodBody(File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", "DataBinder.cs")),
-            "private DataItem CloneItem(");
-        var assign = new Regex(@"^\s*(?:clone\.)?(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*=(?!=)", RegexOptions.Multiline);
+    /// <summary>⛔ No COPIER spells a data description clause of its own. The defect was not that one list was
+    /// wrong — it was that there were several, so a clause could be present in one and absent from another with
+    /// nothing to contradict it: <c>CloneItem</c> lost GROUP-USAGE, SYNCHRONIZED and ALIGNED (kb/Work PB522), and
+    /// the compiler-temp pair <c>CreateCompilerTemp</c> / <c>CloneTempNode</c> — the third and fourth hand lists —
+    /// lost them again (kb/Work PB888: ISO §8.4.3.2.4 GR1 gives a function result's temporary "the description,
+    /// class, and category" of the RETURNING item, and a GROUP-USAGE NATIONAL result measured 8 national-less
+    /// positions where the working-storage twin measured 4). Each copier's own initializer may carry identity, the
+    /// level and the <see cref="DescriptionCopyKind.MemberOnly"/> fields; every actual clause goes through
+    /// <c>CopyEntryDescription</c>. The anchor is a member each method is known to assign, so a signature change
+    /// or a brace-matching slip that silently extracted nothing cannot read as a clean pass
+    /// (feedback_measure_the_selectors_complement).</summary>
+    [Theory]
+    [InlineData("DataBinder.cs", "private DataItem CloneItem(", nameof(DataItem.RedefinesTargetName))]
+    [InlineData("DataBinder.Oo.cs", "internal DataItem CreateCompilerTemp(", nameof(DataItem.IsCompilerTemp))]
+    [InlineData("DataBinder.Oo.cs", "private DataItem CloneTempNode(", nameof(DataItem.OccursSpec))]
+    public void TheCopiers_SpellNoDescriptionClauseOfTheirOwn(string file, string signature, string anchor)
+    {
+        var clauses = ClauseFieldNames();
+        string body = MethodBody(File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", file)), signature);
+        var assign = new Regex(@"^\s*(?:[a-z][A-Za-z0-9_]*\.)?(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*(?:\?\?|\|)?=(?!=)",
+            RegexOptions.Multiline);
 
         var assigned = assign.Matches(body)
             .Where(m => !IsCommentLine(LineOf(body, m.Index)))
             .Select(m => m.Groups["name"].Value).Distinct().ToList();
-
-        // ⛔ An empty finding list is only evidence if the scan SAW the method's assignments
-        // (feedback_measure_the_selectors_complement): a signature change or a brace-matching slip that silently
-        // extracted nothing would otherwise read as a clean pass.
-        Assert.Contains(nameof(DataItem.RedefinesTargetName), assigned);
+        Assert.Contains(anchor, assigned);
 
         var respelled = assigned.Where(clauses.Contains).ToList();
-
         Assert.True(respelled.Count == 0,
-            "DataBinder.CloneItem assigns description CLAUSES directly: " + string.Join(", ", respelled)
+            $"DataBinder.{signature.Split(' ')[^1].TrimEnd('(')} assigns description CLAUSES directly: "
+            + string.Join(", ", respelled)
             + ".\nA second copy of the rule is how GROUP-USAGE, SYNCHRONIZED and ALIGNED came to be present in one "
-            + "copier and absent from the other (kb/Work PB522). Route them through CopyEntryDescription — the "
-            + "clone's own initializer carries only identity and the MemberOnly fields "
-            + "(ISO §13.18.58.4 GR1 reproduces a subordinate's entry whole).");
+            + "copier and absent from another (kb/Work PB522, PB888). Route them through CopyEntryDescription with "
+            + "the DescriptionCopyScope that names this copy — the initializer carries only identity and the "
+            + "MemberOnly fields.");
+    }
+
+    /// <summary>⛔ THE NEXT COPIER IS CAUGHT TOO, not only the three named above. A hand copy has one textual
+    /// shape — <c>X = src.X</c> (or <c>??=</c> / <c>|=</c>) for a description clause field — and a site that does
+    /// it for TWO OR MORE clause fields from the same source expression is a copier, whatever its name. Outside
+    /// <c>DataBinder.CopyEntryDescription</c> there must be none. A single borrowed clause is a different rule and
+    /// is not flagged: §13.16.4 GR1/GR2's implied GROUP-USAGE of a subordinate group, the §13.18.60.2 WITH NO SIGN
+    /// inheritance, and §13.18.45 GR1's RENAMES alias taking data-name-2's PICTURE each read ONE clause.</summary>
+    [Fact]
+    public void NoCodeOutsideTheOneCopy_HandCopiesTwoDescriptionClauses()
+    {
+        var root = TestRepo.Src("Cobol.Net.Compiler");
+        var files = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)
+                     && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar))
+            .ToList();
+        Assert.True(files.Count > 50, $"the scan found only {files.Count} source files under {root} — it measured nothing");
+
+        var findings = new List<string>();
+        foreach (var f in files)
+        {
+            string text = File.ReadAllText(f);
+            if (f.EndsWith("DataBinder.cs", StringComparison.Ordinal))
+                text = text.Replace(MethodBody(text, "private static void CopyEntryDescription("), "{}");
+            findings.AddRange(HandCopies(text).Select(h => $"{Path.GetFileName(f)}: {h}"));
+        }
+        Assert.True(findings.Count == 0,
+            "hand-written description copies outside DataBinder.CopyEntryDescription:\n  " + string.Join("\n  ", findings)
+            + "\nEvery copy of a data description goes through the ONE copy with the DescriptionCopyScope that names "
+            + "it (kb/Work PB522, PB888); a hand list is the defect, however complete it looks today.");
+    }
+
+    /// <summary>Prove the scan's failure branch (feedback_green_gates_arent_evidence): the exact pre-PB888
+    /// <c>CreateCompilerTemp</c> initializer must be reported.</summary>
+    [Fact]
+    public void TheHandCopyScan_ActuallyFails_OnThePb888Initializer()
+    {
+        const string pre = """
+            var t = new DataItem
+            {
+                Level = 1,
+                Pic = model.Pic,
+                OwnSign = model.OwnSign,
+                Justified = model.Justified,
+                BlankWhenZero = model.BlankWhenZero,
+                IsCompilerTemp = true,
+            };
+            """;
+        Assert.Contains(HandCopies(pre), h => h.StartsWith("model:", StringComparison.Ordinal));
+    }
+
+    /// <summary>Every source expression from which TWO OR MORE distinct description-clause fields are copied
+    /// field-for-field (<c>Name = expr.Name</c>, <c>??=</c>, <c>|=</c>), comment lines excluded.</summary>
+    private static IEnumerable<string> HandCopies(string text)
+    {
+        var clauses = ClauseFieldNames();
+        var copy = new Regex(@"(?:\b(?<dst>[A-Za-z_][A-Za-z0-9_]*)\.)?\b(?<name>[A-Z][A-Za-z0-9_]*)\s*(?:\?\?|\|)?=\s*(?<src>[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.\k<name>\b");
+        // A self-assignment (`item.Pic = item.Pic with { … }`) copies nothing; a copier moves clauses from ONE
+        // source onto ONE receiver, so the grouping is by that pair.
+        return copy.Matches(text)
+            .Where(m => clauses.Contains(m.Groups["name"].Value) && !IsCommentLine(LineOf(text, m.Index))
+                     && m.Groups["dst"].Value != m.Groups["src"].Value)
+            .GroupBy(m => m.Groups["src"].Value + (m.Groups["dst"].Success ? " -> " + m.Groups["dst"].Value : ""),
+                StringComparer.Ordinal)
+            .Select(g => (Src: g.Key, Names: g.Select(m => m.Groups["name"].Value).Distinct().ToList()))
+            .Where(g => g.Names.Count >= 2)
+            .Select(g => $"{g.Src}: {string.Join(", ", g.Names)}");
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -211,8 +288,8 @@ public sealed class DescriptionCopyCompletenessDriftTests
         ?? throw new InvalidOperationException("DataBinder.CopyEntryDescription not found — the ONE description "
             + "copy was renamed or removed; this gate and its callers must move with it.");
 
-    private static void RealCopy(DataItem from, DataItem to, bool copyAlignment) =>
-        CopyEntryDescription.Invoke(null, [from, to, copyAlignment]);
+    private static void RealCopy(DataItem from, DataItem to, DescriptionCopyScope scope) =>
+        CopyEntryDescription.Invoke(null, [from, to, scope]);
 
     private static DataItem NewItem() => new() { Level = 1, CsName = "SUBJECT" };
 

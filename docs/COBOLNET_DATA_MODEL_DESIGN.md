@@ -1208,7 +1208,7 @@ orderings are image-equivalent and live).
 grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 0900; the
 `typedef-def-2002` matrix/registry row) + the weak-TYPE spine (`DataItem` `IsTypedef`/`TypedefStrong`/`TypeRefName`;
 `BindEntries` routes a TYPEDEF root to `TypeDecls`, off `Roots`/`ByName`; `RegisterTypeDecl` → **1529**; a post-build
-`ExpandTypes` at the top of `BindResolve` clones each `TYPE IS type-name` via `CloneItem` — fresh `Uid`/re-uniquified
+`ExpandTypes` at the top of `BindResolve` clones each `TYPE [TO] type-name` (§13.18.57 Format 1 — TO is the optional word) via `CloneItem` — fresh `Uid`/re-uniquified
 `CsName`/registered — elementary→copy PIC, group→clone children, forward refs OK; unresolved/recursive → **1530**).
 `TypeName`/`StrongType` are populated here (the STRONG checks are increment (2)). — **the ONLY grammar/legacy-guard slice** → goldens
 `typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing (all BINDER-ONLY): the

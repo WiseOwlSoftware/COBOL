@@ -46,11 +46,43 @@ public enum DescriptionCopyKind
     /// (<see cref="DataItem.ValueIsCopied"/>, <see cref="DataItem.ExternalFromType"/>). The drift test
     /// therefore neither requires it to equal the source's value nor requires it to stay default.</summary>
     CopyWritten = 8,
+
+    /// <summary>A data description clause carried by every ENTRY copy (TYPE subject, SAME AS subject, reproduced
+    /// subordinate — it is in neither GR-1 exclusion list) but NOT onto a COMPILER TEMPORARY
+    /// (<see cref="DescriptionCopyScope.CompilerTemp"/>): the VALUE clause in both its spellings, and ANY LENGTH.
+    /// A temporary is the ISO §8.4.3.2.4 GR1 / §8.4.3.4.4 GR1 / §14.9.25.4 GR1 item whose content is always
+    /// STORED by the pre-op that creates it before anything reads it, so an initial value is unobservable — and a
+    /// Format-2 VALUE's FROM subscripts would address an OCCURS a temp's root never reproduces; ANY LENGTH is a
+    /// parameter shape §13.18.2.3 SR2 admits "only in an elementary level 1 entry in the linkage section", and a
+    /// temporary is a level-1 item of the CALLER's working storage.</summary>
+    EntryOnly = 16,
+}
+
+/// <summary>WHICH description copy <c>DataBinder.CopyEntryDescription</c> is performing — the one axis on which
+/// the ISO rules make the copies differ. Every data description copy in the compiler names one of these; none
+/// spells its own field list (<c>DescriptionCopyCompletenessDriftTests</c>).</summary>
+public enum DescriptionCopyScope
+{
+    /// <summary>The subject of a TYPE clause (ISO §13.18.57.4 GR1): every clause but alignment.</summary>
+    TypeSubject,
+
+    /// <summary>The subject of a SAME AS clause (§13.18.49.4 GR1, which has no alignment exclusion) or a
+    /// reproduced subordinate of a TYPE / SAME AS description (§13.18.58.4 GR1, §13.18.49.4 GR2a): every
+    /// clause.</summary>
+    Entry,
+
+    /// <summary>A compiler TEMPORARY cloned from a model item's description — a user-function result
+    /// (§8.4.3.2.4 GR1: "the description, class, and category of the temporary data item is that specified by
+    /// the description in the linkage section of the item specified in the RETURNING phrase"), an inline method
+    /// invocation's result (§8.4.3.4.4 GR1), a property reference's temp, and §14.9.25.4 GR1's intermediate
+    /// result item. The whole description travels — including alignment, which decides a group temp's slack
+    /// bytes — except the <see cref="DescriptionCopyKind.EntryOnly"/> clauses.</summary>
+    CompilerTemp,
 }
 
 /// <summary>⛔ REQUIRED ON EVERY STORED <see cref="DataItem"/> PROPERTY. Declares what the field is to the
-/// ONE description copy (<c>DataBinder.CopyEntryDescription</c> and the <c>DataBinder.CloneItem</c> that
-/// funnels through it) and WHY, so the classification is made where the field is declared rather than
+/// ONE description copy (<c>DataBinder.CopyEntryDescription</c>, and the <c>DataBinder.CloneItem</c>,
+/// <c>DataBinder.CreateCompilerTemp</c> and <c>DataBinder.CloneTempNode</c> that funnel through it) and WHY, so the classification is made where the field is declared rather than
 /// inferred from a list somewhere else.
 /// <para><c>DescriptionCopyCompletenessDriftTests</c> (Unit) fails when a stored property has no attribute,
 /// when a <see cref="DescriptionCopyKind.Clause"/> / <see cref="DescriptionCopyKind.Alignment"/> field is not
