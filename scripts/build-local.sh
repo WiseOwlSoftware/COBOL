@@ -37,6 +37,9 @@ RC=0
 python scripts/spec/audit_code_citations.py --check || { echo "=== CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_doc_citations.py --check || { echo "=== DOC CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_evidence_supersession.py --check || { echo "=== EVIDENCE SUPERSESSION: RED (see above) ==="; RC=1; }
+# ⛔ The inventory's WITNESS COUNT (kb/Work PB959) — the axis the resolution drift test deliberately does not
+# measure: RED on any code-location/test-ref lost since the merge-base with main without a retirement mark.
+python scripts/spec/audit_witness_loss.py --check || { echo "=== WITNESS LOSS: RED (see above) ==="; RC=1; }
 # The GPL GnuCOBOL corpus is git-ignored and PER WORKTREE (scripts/fetch-gnucobol-tests.ps1): a fresh worktree has
 # none, and ExternalCorpusPopulationDriftTests in the UNFILTERED unit leg is RED BY DESIGN when it is absent
 # (kb/Work PB209). Fetch it here so every worktree's gate measures the population.

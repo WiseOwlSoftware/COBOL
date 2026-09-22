@@ -310,7 +310,7 @@ python scripts/spec/record_verdicts.py batch.json [more.json]   # merge
 dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
 ```
 
-A record sets only the five adjudicated fields and is keyed by `rule-id`:
+A record sets only the adjudicated fields (plus the two retirement control fields below) and is keyed by `rule-id`:
 
 ```json
 {"rule-id": "AR-15.7-1", "verdict": "CONFORMS",
@@ -319,13 +319,37 @@ A record sets only the five adjudicated fields and is keyed by `rule-id`:
  "editions": "85,2002,2014,2023", "notes": ""}
 ```
 
+**Witnesses MERGE; statements are restated (kb/Work PB959).** `code-location` and `test-ref` are sets of
+witnesses (`inventory_schema.WITNESS_FIELDS`): the writer UNIONS a record's values with the row's, so a record that
+names one new test adds it and a record that omits the field keeps what the row had. `verdict`, `editions`,
+`notes` and `derivation` are single statements the record restates. Three refinements, each measured:
+
+- **A witness leaves a row only by a named, reasoned retirement** — `"retire-witnesses": "<ref>; <ref>"` plus
+  `"retire-reason"`. Each ref must be on the row; the writer drops it and appends `retired-witness: <ref>
+  (<reason>)` to the row's `notes`, which is the durable mark the gate below reads. Any other loss is refused.
+- **A re-adjudication re-sites `code-location`.** A record that CHANGES the verdict and names a code-location
+  replaces that field (`inventory_schema.resites`): a PARTIAL row's code-location names the defect site, and a
+  union would present it as implementation evidence for the CONFORMS record that closes it. The inventory's own
+  history showed this is the dominant legitimate removal (1,105 of 1,714). `test-ref` is never re-sited.
+- **A witness-only record** — `{"rule-id": …, "test-ref": …}`, no verdict and no statement field — adds
+  witnesses to an adjudicated row and restates nothing, so it is safe to re-apply on a merged tree after another
+  batch re-adjudicated the same row.
+
+**The count is gated, not only the resolution.** `SpecTraceabilityInventoryDriftTests` checks that each surviving
+reference RESOLVES and deliberately not how many there are, so until PB959 a batch that subtracted valid evidence
+left every gate green. `scripts/spec/audit_witness_loss.py --check` (run by `build-local.{sh,ps1}` and
+`battery.sh`) compares the inventory with the merge-base with main and is RED on any witness lost without a
+retirement mark or a re-site; `--history` replays the file's git history under the merge rule and
+`--restore-batch` emits the witness-only batch owing back what the old overwrite silently removed.
+
 **The five parts, and why each is where it is.**
 
 | part | file | owns |
 |---|---|---|
 | the rules, as DATA | `tests/version-matrix/inventory-schema.json` | the verdict vocabulary, each verdict's `resolves` flag and required evidence, the legal editions, the `code-location` pattern, the `test-ref` forms, and **`kinds`** — the PER-KIND evidence rules (§4) |
 | the Python loader | `scripts/spec/inventory_schema.py` | parsing that schema, deriving `state`, and the ATOMIC inventory write |
-| the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing |
+| the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing — witnesses by union (PB959) |
+| the witness-count gate | `scripts/spec/audit_witness_loss.py` | that no row LOSES a witness without a retirement or a re-site (PB959) |
 | the battery gate | `tests/Cobol.Net.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
 | the register audit | `scripts/spec/audit_annex_a1.py`, run by `AnnexA1RegisterDriftTests` | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
 

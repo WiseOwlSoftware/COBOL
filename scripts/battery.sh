@@ -75,6 +75,15 @@ EVSUP=$?
 note "$(printf '%-16s %s' 'evidence:' "$(grep -E '^⛔ [0-9]+ UNMARKED' "$OUT/citations.log" | tail -1)")"
 [ "$EVSUP" -eq 0 ] || { note "evidence:        ⛔ unmarked refuted claims — see $OUT/citations.log"; RC=1; }
 
+# ⛔ AND THE INVENTORY'S WITNESS COUNT (kb/Work PB959). SpecTraceabilityInventoryDriftTests checks that every
+# surviving reference RESOLVES — deliberately not how many there are — so a verdict batch that SUBTRACTED valid
+# evidence left the battery green. This compares the inventory against the merge-base with main and is RED on
+# any witness lost without a `retired-witness:` mark or a verdict change that re-sites it.
+python3 scripts/spec/audit_witness_loss.py --check >> "$OUT/citations.log" 2>&1
+WLOSS=$?
+note "$(printf '%-16s %s' 'witnesses:' "$(grep -E '^=== WITNESS LOSS' "$OUT/citations.log" | tail -1)")"
+[ "$WLOSS" -eq 0 ] || { note "witnesses:       ⛔ inventory evidence lost — see $OUT/citations.log"; RC=1; }
+
 el "=== PHASE 0: build the solution (once) ==="
 if ! dotnet build CobolSharp.sln -v quiet > "$OUT/build.log" 2>&1; then
     note "BUILD: FAILED — see $OUT/build.log"; tail -20 "$OUT/build.log"; exit 1

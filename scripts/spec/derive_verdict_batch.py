@@ -218,10 +218,12 @@ def main() -> int:
             records.append({
                 "rule-id": rid,
                 "verdict": sel.verdict,
-                # ⛔ EVERY OTHER FIELD IS CARRIED FORWARD, NEVER SYNTHESISED. A batch record REPLACES all five
-                # adjudicated fields (record_verdicts.py writes `row[field] = rec.get(field, "")`), so a
-                # generator that filled only `verdict` and `notes` would silently blank the code-location of
-                # every row it touched. Two of these are worth stating outright:
+                # ⛔ EVERY OTHER FIELD IS CARRIED FORWARD, NEVER SYNTHESISED. A batch record REPLACES every
+                # STATEMENT field (`editions`, `notes`, `derivation`), so a generator that filled only `verdict`
+                # would silently blank them. The two WITNESS fields MERGE since kb/Work PB959 (record_verdicts.
+                # `merged`), so carrying them forward is a no-op union — kept so the record reads whole, and
+                # because a selector that CHANGED a verdict would re-site `code-location` to exactly what it
+                # names here. Two of these are worth stating outright:
                 #  · `notes` — the eleven rows already at this verdict carry per-ROW forensic prose written by
                 #    hand ("the DISPLAY Format-2 omitted-COLUMN default …"). The selector's `decision` string is
                 #    strictly weaker than that, so an existing note WINS and the decision only fills a blank.

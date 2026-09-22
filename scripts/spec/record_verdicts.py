@@ -22,6 +22,24 @@ A batch file is a JSON list of records, or an object with a "records" list (and 
         "editions": "85,2002,2014,2023",
         "notes": ""}]}
 
+WITNESSES MERGE; STATEMENTS ARE RESTATED (kb/Work PB959). `code-location` and `test-ref` are SETS of witnesses
+(`inventory_schema.WITNESS_FIELDS`): a record's values are UNIONED with the row's, in the row's order, so a batch
+that names one new witness adds it and a batch that omits the field keeps what the row had. Every other field —
+`verdict`, `editions`, `notes`, `derivation` — is one statement, and the record restates it. Until PB959 both
+witness fields were overwritten too, and a batch that re-typed two of five witnesses deleted the other three with
+nothing anywhere able to see it. A witness now leaves a row only by an explicit RETIREMENT:
+
+       {"rule-id": "...", ..., "retire-witnesses": "<ref>; <ref>", "retire-reason": "<why each no longer witnesses>"}
+
+Each retired ref must be on the row today and must not be re-named by the same record; the writer drops it and
+appends `retired-witness: <ref> (<reason>)` to the row's `notes`, which is what lets
+`audit_witness_loss.py --check` tell a deliberate retirement from a silent loss after the batch file is gone. A
+retirement is printed apart from `rows changed`, and a write that would lose a witness any OTHER way is refused.
+
+A WITNESS-ONLY record — `{"rule-id": "...", "test-ref": "..."}`, with no verdict and no statement field — adds
+witnesses to a row that is already adjudicated and restates nothing, so it is safe to re-apply on a merged tree
+after another batch has re-adjudicated the same row (a full record there would silently revert it).
+
 ALL-OR-NOTHING. Every record in every named batch is validated before ANY of them is merged, and the merge itself
 writes through a temp file and an atomic replace. A batch that is half-right leaves the inventory untouched rather
 than half-adjudicated — a partially applied batch is the worst outcome available here, because the rows that DID
@@ -48,7 +66,12 @@ import pathlib
 import sys
 from collections import Counter
 
-from inventory_schema import (ADJUDICATED, load_catalog, load_inventory, load_schema, write_inventory)
+from inventory_schema import (ADJUDICATED, RETIRED_WITNESS_MARK, WITNESS_FIELDS, load_catalog, load_inventory,
+                              load_schema, resites, witness_losses, witness_shape_error, write_inventory)
+
+#: The record-level CONTROL fields: they steer the write and are never stored on the row as themselves.
+RETIRE, RETIRE_REASON = "retire-witnesses", "retire-reason"
+CONTROL = (RETIRE, RETIRE_REASON)
 
 # ⛔ THE PRINTED GATE CARRIES ITS OWN POPULATION GUARD (kb/Work PB751). This constant is never executed here —
 # it is an instruction handed to a HUMAN — but the hazard travels with the text: vstest answers a filter that
@@ -72,7 +95,52 @@ def read_batch(path: pathlib.Path) -> list[dict]:
     return raw
 
 
-def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str]) -> list[str]:
+def _sep(field: str, schema) -> str:
+    return schema.code_location_sep if field == "code-location" else schema.test_ref_sep
+
+
+def is_witness_only(rec: dict) -> bool:
+    """A record that ADDS (or retires) witnesses on an already-adjudicated row and restates no statement.
+
+    The shape a golden round and a history restore both need: "this test also witnesses that rule" is not a
+    re-adjudication, and forcing it to restate the verdict, editions and notes is how a batch applied after
+    another train's re-adjudication would silently REVERT it (the lander re-applies batches on a merged tree).
+    """
+    return not any(f in rec for f in ADJUDICATED if f not in WITNESS_FIELDS)
+
+
+def merged(row: dict, rec: dict, schema) -> dict[str, str]:
+    """The adjudicated fields `row` carries after `rec` is applied — THE write rule, read by `validate` too.
+
+    Witness fields: the row's witnesses minus the record's retirements, then the record's new ones, deduplicated in
+    first-seen order — except that a record which CHANGES the verdict and SUPPLIES a code-location re-sites that
+    field (`inventory_schema.resites`: the defect site a PARTIAL row names is not implementation evidence for the
+    CONFORMS record that closes it). A record that omits a witness field keeps what the row had. Statement fields:
+    the record's value (absent = empty, as before PB959). A retirement is appended to `notes` as
+    `retired-witness: <ref> (<reason>)` — the durable mark `audit_witness_loss.py` reads.
+
+    A WITNESS-ONLY record (`is_witness_only`: no verdict and no statement field) restates nothing: every statement
+    field keeps the row's value, so the record can be applied on any tree, in any order, any number of times.
+    """
+    retire = set(schema.split(rec.get(RETIRE, ""), schema.test_ref_sep))
+    source = row if is_witness_only(rec) else rec
+    out = {f: source.get(f, "") or "" for f in ADJUDICATED if f not in WITNESS_FIELDS}
+    for field in WITNESS_FIELDS:
+        sep = _sep(field, schema)
+        given = schema.split(rec.get(field, ""), sep)
+        kept = [] if given and resites(field, row.get("verdict", "") or "", out["verdict"]) else \
+            schema.split(row.get(field, "") or "", sep)
+        refs = [r for r in kept if r not in retire] + given
+        out[field] = sep.join(dict.fromkeys(refs))
+    if retire:
+        reason = rec.get(RETIRE_REASON, "").strip()
+        marks = " ".join(f"{RETIRED_WITNESS_MARK} {r} ({reason})" for r in sorted(retire))
+        out["notes"] = f"{out['notes']} {marks}".strip()
+    return out
+
+
+def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str],
+             by_id: dict[str, dict]) -> list[str]:
     """Every shape violation across the whole set — reported together, never one at a time.
 
     Stopping at the first bad record would make a reviewer re-run this once per mistake, and a batch produced by a
@@ -99,60 +167,82 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
             bad.append(f"{where}: rule-id '{rid}' recorded twice in this run (also {seen[rid]})")
         seen.setdefault(rid, where)
 
-        if unknown := set(rec) - {"rule-id", *ADJUDICATED}:
-            bad.append(f"{where}: unknown field(s) {sorted(unknown)} — a record may set only {list(ADJUDICATED)}")
+        if unknown := set(rec) - {"rule-id", *ADJUDICATED, *CONTROL}:
+            bad.append(f"{where}: unknown field(s) {sorted(unknown)} — a record may set only {list(ADJUDICATED)}"
+                       f" (plus the control fields {list(CONTROL)})")
 
         # ⛔ TYPE-CHECK BEFORE TOUCHING A FIELD. A batch file is UNTRUSTED input — it is written by an agent, or
         # by hand — and the first real batch to get this wrong supplied `editions` as a JSON LIST, which made the
         # validator itself throw an AttributeError. A validator that crashes on malformed input tells the author
         # nothing about what to fix and reports no other violation in the file; it must FAIL THE RECORD, not the
         # run. Checked here so every field access below is safe.
-        if mistyped := sorted(f for f in ADJUDICATED if f in rec and not isinstance(rec[f], str)):
+        if mistyped := sorted(f for f in (*ADJUDICATED, *CONTROL) if f in rec and not isinstance(rec[f], str)):
             for f in mistyped:
                 bad.append(f"{where}: '{f}' is {type(rec[f]).__name__}, not a string"
                            + (f" — write it as \"{','.join(map(str, rec[f]))}\"" if isinstance(rec[f], list) else ""))
             continue
 
+        row = by_id.get(rid, {})
         verdict = rec.get("verdict", "")
-        if not verdict:
+        if is_witness_only(rec):
+            if not (rec.get("code-location") or rec.get("test-ref") or rec.get(RETIRE)):
+                bad.append(f"{where}: no verdict and no witness — the record says nothing")
+                continue
+            verdict = row.get("verdict") or ""
+            if not verdict:
+                bad.append(f"{where}: a witness-only record (no verdict, no statement field) needs a row that "
+                           f"is already adjudicated — '{rid}' has no verdict")
+                continue
+        elif not verdict:
             bad.append(f"{where}: no verdict")
             continue
         if verdict not in schema.verdicts:
             bad.append(f"{where}: verdict '{verdict}' is not in the vocabulary {sorted(schema.verdicts)}")
             continue
 
+        # ⚖ The EVIDENCE rules below are asked of the row AS IT WILL BE WRITTEN (`merged`), not of the record: a
+        # record that names only a new test-ref still leaves the row's code-locations in place (kb/Work PB959),
+        # so requiring the record to restate them would be requiring the very re-typing that used to lose them.
+        # The per-reference SYNTAX checks further down stay on the record's own values — those are its claims.
+        after = merged(row, rec, schema)
+        retire = schema.split(rec.get(RETIRE, ""), schema.test_ref_sep)
+        if retire and not rec.get(RETIRE_REASON, "").strip():
+            bad.append(f"{where}: '{RETIRE}' needs a '{RETIRE_REASON}' — a retired witness is evidence removed, "
+                       f"and the row's notes must say why")
+        if rec.get(RETIRE_REASON) and not retire:
+            bad.append(f"{where}: '{RETIRE_REASON}' without '{RETIRE}' retires nothing")
+        carried = {f: schema.split(row.get(f, "") or "", _sep(f, schema)) for f in WITNESS_FIELDS}
+        for ref in retire:
+            if not any(ref in refs for refs in carried.values()):
+                bad.append(f"{where}: retire-witnesses '{ref}' is not on the row — a retirement of nothing is a "
+                           f"typo that would read as work done")
+            if any(ref in schema.split(rec.get(f, ""), _sep(f, schema)) for f in WITNESS_FIELDS):
+                bad.append(f"{where}: '{ref}' is both retired and named as a witness by the same record")
+
         for field in schema.requires(verdict):
-            if not rec.get(field):
+            if not after.get(field):
                 bad.append(f"{where}: verdict {verdict} requires a non-empty '{field}'")
 
         if ed := rec.get("editions", ""):
             if illegal := [e for e in schema.split(ed, ",") if e not in schema.editions]:
                 bad.append(f"{where}: editions {illegal} not in {schema.editions}")
 
-        locations = schema.split(rec.get("code-location", ""), schema.code_location_sep)
-        for loc in locations:
-            if not schema.code_location_re.match(loc):
-                bad.append(f"{where}: code-location '{loc}' is not '<repo-relative-path>[#Symbol]'")
-                continue
-            # ⛔ A LISTED FILE'S FRAGMENT IS AN ANCHOR OR IT IS A FAILURE — and a BARE citation of one is the
-            # weakest form of the same defect, resolving on File.Exists alone. Five live rows carried
-            # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7
-            # anywhere in a 790-line document, and three more cited the bare path.
-            file, _, fragment = loc.partition("#")
-            if (rx := schema.anchored_files.get(file)) is not None and not rx.match(fragment):
-                bad.append(
-                    f"{where}: code-location '{loc}' — '{file}' is an anchored file, so its fragment must match "
-                    f"{rx.pattern} ({'no fragment at all' if not fragment else f'got {fragment!r}'})")
+        # Each reference the record NAMES is shape-checked by the one predicate the history replay also asks
+        # (`witness_shape_error`); the row's already-carried references are the battery gate's to re-check.
+        for field in WITNESS_FIELDS:
+            for ref in schema.split(rec.get(field, ""), _sep(field, schema)):
+                if err := witness_shape_error(field, ref, schema):
+                    bad.append(f"{where}: {err}")
 
         # The row's KIND may oblige a COMPUTED register anchor (`kinds` in the schema). It is derived from the
         # rule-id rather than typed, so a mis-filed determination cannot be spelled — kb/Work A11's failure mode.
         # ⚠ Only a verdict that CLAIMS a determination owes it: `anchor_obliged` exempts the verdicts the kind
         # names in `anchor-exempt-verdicts` (a declined facility withdraws the A.1 item, so there is no §7 row).
-        probe = {"rule-id": rid, "kind": catalog.get(rid, ""), "verdict": rec.get("verdict", ""),
-                 "code-location": rec.get("code-location", ""), "test-ref": rec.get("test-ref", ""),
-                 "derivation": rec.get("derivation", "")}
+        probe = {"rule-id": rid, "kind": catalog.get(rid, ""), "verdict": verdict,
+                 "code-location": after["code-location"], "test-ref": after["test-ref"],
+                 "derivation": after["derivation"]}
         anchor = schema.anchor_for(probe)
-        if schema.anchor_obliged(probe) and anchor not in locations:
+        if schema.anchor_obliged(probe) and anchor not in schema.locations(probe):
             bad.append(f"{where}: kind {catalog[rid]} requires the register anchor '{anchor}' among its "
                        f"code-location(s) — it is computed from the rule-id, never chosen")
 
@@ -165,14 +255,6 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         if schema.derivation is not None:
             for refusal in schema.derivation.refusals(probe, schema):
                 bad.append(f"{where}: [{refusal.code}] {refusal.message}")
-
-        for ref in schema.split(rec.get("test-ref", ""), schema.test_ref_sep):
-            scheme = ref.split(":", 1)[0]
-            if scheme not in schema.test_ref_forms:
-                bad.append(f"{where}: test-ref '{ref}' — unknown form '{scheme}', "
-                           f"expected one of {sorted(schema.test_ref_forms)}")
-            elif ":" not in ref or not ref.split(":", 1)[1].strip():
-                bad.append(f"{where}: test-ref '{ref}' has an empty body after '{scheme}:'")
 
     return bad
 
@@ -202,7 +284,7 @@ def main() -> int:
         print("no records in the named batch file(s) — nothing to do")
         return 0
 
-    if bad := validate(records, schema, catalog):
+    if bad := validate(records, schema, catalog, by_id):
         print(f"⛔ {len(bad)} shape violation(s) — NOTHING was written:\n")
         for b in bad:
             print(f"   {b}")
@@ -214,29 +296,52 @@ def main() -> int:
     closed: Counter[str] = Counter()
     untested: list[str] = []
     derived_closures: list[str] = []
+    added: Counter[str] = Counter()
+    retired, resited, lost = [], [], []
     for _, _, rec in records:
         row = by_id[rec["rule-id"]]
         had = row.get("verdict") or ""
-        if had and had != rec["verdict"]:
-            rewritten.append(f"{rec['rule-id']}: {had} → {rec['verdict']}")
-        before = {k: row.get(k, "") for k in ADJUDICATED}
-        for field in ADJUDICATED:
-            row[field] = rec.get(field, "")
+        before = dict(row)
+        row.update(merged(row, rec, schema))
         row["state"] = schema.state_for(row)
-        if any(row[k] != before[k] for k in ADJUDICATED):
+        verdict = row["verdict"]   # a witness-only record carries none of its own
+        if had and had != verdict:
+            rewritten.append(f"{rec['rule-id']}: {had} → {verdict}")
+        if any(row.get(k, "") != before.get(k, "") for k in ADJUDICATED):
             changed += 1
-        verdicts[rec["verdict"]] += 1
+        # ⛔ THE WITNESS COUNT IS WATCHED, NOT ONLY THE FIELDS (kb/Work PB959): a narrowing and a widening both
+        # increment `changed`, so it cannot be the number anyone reads to learn that evidence left a row.
+        for loss in witness_losses(before, row, schema):
+            (retired if loss.retired else resited if loss.resited else lost).append(loss)
+        for f in WITNESS_FIELDS:
+            added[f] += len(set(schema.split(row.get(f, ""), _sep(f, schema)))
+                            - set(schema.split(before.get(f, "") or "", _sep(f, schema))))
+        verdicts[verdict] += 1
         if row["state"] == "OK":
-            closed[rec["verdict"]] += 1
-            if rec.get("derivation"):
+            closed[verdict] += 1
+            if row.get("derivation"):
                 derived_closures.append(rec["rule-id"])
-        elif rec["verdict"] in schema.resolving:
+        elif verdict in schema.resolving:
             untested.append(rec["rule-id"])
 
     gap_after = sum(1 for r in rows if r["state"] == "GAP")
 
+    # The merge rule makes an unexcused loss impossible by construction; this is the check that it stays so. A
+    # write that would lose evidence any other way is refused whole, like a shape violation.
+    if lost:
+        print(f"⛔ {len(lost)} witness(es) would be LOST without a retirement — NOTHING was written:\n")
+        for l in lost:
+            print(f"   ⚠ NARROWED {l.rule_id} {l.field}: {l.ref}")
+        return 1
+
     print(f"records        : {len(records)} across {len(args.batches)} batch file(s)")
     print(f"rows changed   : {changed}")
+    print(f"witnesses      : +{added['test-ref']} test-ref, +{added['code-location']} code-location added; "
+          f"{len(retired)} retired, {len(resited)} re-sited")
+    for l in retired:
+        print(f"    ⚠ RETIRED  {l.rule_id} {l.field}: {l.ref}")
+    for l in resited:
+        print(f"    ⓘ RE-SITED {l.rule_id} {l.field}: {l.ref}  (verdict changed; the record restates the site)")
     for v, n in sorted(verdicts.items(), key=lambda kv: -kv[1]):
         # Report what ACTUALLY closed, per verdict — not what the verdict is nominally capable of closing. A
         # resolving verdict still needs a SPEC-DERIVED covering test, so "CONFORMS n" and "n rows closed" are

@@ -51,6 +51,90 @@ REGISTER_HEADER_CELL = "A.1 item"
 #: `Derivation` below.
 ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions", "notes")
 
+#: The adjudicated fields that are SETS OF WITNESSES rather than one statement (kb/Work PB959). A verdict record
+#: MERGES into these — the union of what the row carried and what the record names — because a witness is
+#: evidence about the rule, and a batch that re-types three of five witnesses has not refuted the other two.
+#: A witness leaves a row only by an explicit, reasoned RETIREMENT, which is written into the row's `notes` as
+#: `RETIRED_WITNESS_MARK <ref>` so the loss is visible to `audit_witness_loss.py --check` long after the batch
+#: file that asked for it is gone. Every other adjudicated field is a single statement the record restates.
+#:
+#: ⚖ ONE ASYMMETRY, MEASURED FROM THE INVENTORY'S OWN HISTORY: a RE-ADJUDICATION (the record changes the row's
+#: verdict) RE-SITES `code-location` instead of merging it. A PARTIAL or NOT-IMPLEMENTED row's code-location names
+#: where the DEFECT is; the CONFORMS record that closes it names where the rule is now IMPLEMENTED, and a union
+#: would present the defect site as implementation evidence. 1,052 of the 1,224 still-resolving code-locations the
+#: history walk found removed were exactly that shape. A `test-ref` is never re-sited: a test that exists and
+#: exercises the rule is an observation of it whatever the verdict says (`CODE_LOCATION_RESITES_ON_READJUDICATION`).
+WITNESS_FIELDS = ("code-location", "test-ref")
+CODE_LOCATION_RESITES_ON_READJUDICATION = True
+RETIRED_WITNESS_MARK = "retired-witness:"
+_RETIRED_RE = re.compile(re.escape(RETIRED_WITNESS_MARK) + r"\s*(\S+)")
+
+
+def retired_witnesses(notes: str) -> set[str]:
+    """The witnesses a row's `notes` records as deliberately RETIRED — see `WITNESS_FIELDS`."""
+    return {m.rstrip(".,;)") for m in _RETIRED_RE.findall(notes or "")}
+
+
+def resites(field: str, before_verdict: str, after_verdict: str) -> bool:
+    """Does a write REPLACE this witness field rather than merge it? Only a re-adjudication's code-location."""
+    return (CODE_LOCATION_RESITES_ON_READJUDICATION and field == "code-location"
+            and bool(before_verdict) and before_verdict != after_verdict)
+
+
+class WitnessLoss(NamedTuple):
+    """One witness present on a row BEFORE a write and absent AFTER it."""
+    rule_id: str
+    field: str
+    ref: str
+    retired: bool   # the AFTER row's notes record it as a deliberate retirement
+    resited: bool   # a re-adjudication's code-location, which the write rule REPLACES (see `resites`)
+
+    @property
+    def excused(self) -> bool:
+        return self.retired or self.resited
+
+
+def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:
+    """Why one witness reference is malformed under the schema's SHAPE rules, or None — asked by the writer
+    (`record_verdicts.validate`) of every reference a record names, and by the history replay
+    (`audit_witness_loss.owed_back`) of every reference it would owe back, so a witness removed BECAUSE it broke a
+    shape rule (a bare `docs/CONFORMANCE.md`, the `#7` that PB-era batches carried) is never restored."""
+    if field == "code-location":
+        if not schema.code_location_re.match(ref):
+            return f"code-location '{ref}' is not '<repo-relative-path>[#Symbol]'"
+        # ⛔ A LISTED FILE'S FRAGMENT IS AN ANCHOR OR IT IS A FAILURE — and a BARE citation of one is the
+        # weakest form of the same defect, resolving on File.Exists alone. Five live rows carried
+        # `docs/CONFORMANCE.md#7`, which the battery gate's word search satisfies against the digit 7
+        # anywhere in a 790-line document, and three more cited the bare path.
+        file, _, fragment = ref.partition("#")
+        if (rx := schema.anchored_files.get(file)) is not None and not rx.match(fragment):
+            return (f"code-location '{ref}' — '{file}' is an anchored file, so its fragment must match "
+                    f"{rx.pattern} ({'no fragment at all' if not fragment else f'got {fragment!r}'})")
+        return None
+    scheme = ref.split(":", 1)[0]
+    if scheme not in schema.test_ref_forms:
+        return f"test-ref '{ref}' — unknown form '{scheme}', expected one of {sorted(schema.test_ref_forms)}"
+    if ":" not in ref or not ref.split(":", 1)[1].strip():
+        return f"test-ref '{ref}' has an empty body after '{scheme}:'"
+    return None
+
+
+def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema") -> list[WitnessLoss]:
+    """Every witness `before` carried that `after` does not — THE one definition of a narrowing (kb/Work PB959).
+
+    Read by the writer (`record_verdicts.py`, at record time) and by the auditor (`audit_witness_loss.py`, over a
+    diff or the whole git history), so the two cannot come to disagree about what counts as losing evidence.
+    """
+    retired = retired_witnesses(after.get("notes", ""))
+    out: list[WitnessLoss] = []
+    for field in WITNESS_FIELDS:
+        sep = schema.code_location_sep if field == "code-location" else schema.test_ref_sep
+        kept = set(schema.split(after.get(field, "") or "", sep))
+        resited = resites(field, before.get("verdict", ""), after.get("verdict", ""))
+        out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited)
+                for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
+    return out
+
 #: A parenthesised or semicolon-introduced clause citation inside a rule's own text — the form Annex A.1 uses to
 #: point an implementor-defined documentation obligation at the clause that creates it:
 #: "(13.18.40, PICTURE clause, General rule 15; 13.18.60, USAGE clause, General rule 3)".
