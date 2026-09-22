@@ -748,7 +748,11 @@ elementary item. The five:
   group's STORAGE unit, so `88 GB-ALL1 VALUE ALL B"1"` on a 3-bit group repeated to ONE position; §8.3.3.6.4 GR2
   wants the as-if PICTURE's character-position count.
 - `ConditionRenderer.IsNationalOperand` — a private two-case copy of the class rule, feeding the `EVALUATE … THRU`
-  range membership and the `__CLASSIFY` argument. It is now `StringCategoryOf(op) is PicCategory.National`.
+  range membership and the `__CLASSIFY` argument. ⚠ Its identical twin `IntrinsicRenderer.IsNationalArg` (the
+  UPPER-CASE / LOWER-CASE `__CLASSIFY` argument) survived this sweep because the drift rule was scoped to one
+  FILE; [[PB760]] deleted both and routed §12.3.6.4 GR7's two consumers through ONE selector,
+  `ObjectComputerEmit.ClassificationArg`, and widened the semgrep rule
+  `cobolnet-condition-category-from-raw-picture` to every file that renders a `__CLASSIFY` argument.
 - `DataBinder.BindCondition` — all four Format-3 guards (the §13.18.63.3 SR29 boolean THROUGH ban, the national
   THROUGH stage, and both category funnels). [[PB575]]: the group leg slipped every one of them.
 - `SetEmitter.EmitSet` — the WRITE side, §14.9.39.4 6), which names the population outright: "when the conditional

@@ -314,6 +314,12 @@
    "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
   },
   {
+   "token": "FLOAT_NOT_A_NUMBER_QUIET",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "8.8.4.4.2 class-condition alternative (2014+; kb/Work PB225) - its ONLY surface, since 14.9.39.2 format 15 does not offer it. A user word at 85/2002 (a SPECIAL-NAMES class-name there), funnel-0901'd >=2014 - the FLOAT_NOT_A_NUMBER twin"
+  },
+  {
    "token": "FLOAT_NOT_A_NUMBER_SIGNALING",
    "nameSlot": true,
    "subscriptTrigger": true,

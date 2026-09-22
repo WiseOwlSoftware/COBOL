@@ -286,14 +286,15 @@ FLOAT_DECIMAL_34  : 'FLOAT-DECIMAL-34' ;
 // cobolWord alternative under the derived reservation gate and mirrored in _dataNameTokens
 // (tests/version-matrix/cobol-words.json) — `01 FLOAT-INFINITY PIC X.` stays legal at --std 85/2002 and draws
 // COBOLNET0901 by name at 2014+.
-// ⚠ FLOAT-NOT-A-NUMBER-QUIET is reserved too but has NO token here: its only surface is the §8.8.4.4 class
-// condition (kb/Work PB225), Format 15 does not offer it, and a token nothing reads is a lookup nothing has
-// ever contradicted. It lexes as one IDENTIFIER today, which is what the 85/2002 user-word case needs anyway.
+// All seven are also §8.8.4.4.2 class-condition alternatives (kb/Work PB225, the `className` rule).
+// FLOAT-NOT-A-NUMBER-QUIET's ONLY surface is that class condition — Format 15 does not offer it — so its token
+// landed with the class condition that reads it; maximal munch orders it against FLOAT-NOT-A-NUMBER.
 FARTHEST_FROM_ZERO           : 'FARTHEST-FROM-ZERO' ;
 NEAREST_TO_ZERO              : 'NEAREST-TO-ZERO' ;
 IN_ARITHMETIC_RANGE          : 'IN-ARITHMETIC-RANGE' ;
 FLOAT_INFINITY               : 'FLOAT-INFINITY' ;
 FLOAT_NOT_A_NUMBER_SIGNALING : 'FLOAT-NOT-A-NUMBER-SIGNALING' ;
+FLOAT_NOT_A_NUMBER_QUIET     : 'FLOAT-NOT-A-NUMBER-QUIET' ;
 FLOAT_NOT_A_NUMBER           : 'FLOAT-NOT-A-NUMBER' ;
 HIGH_ORDER_LEFT   : 'HIGH-ORDER-LEFT' ;
 HIGH_ORDER_RIGHT  : 'HIGH-ORDER-RIGHT' ;

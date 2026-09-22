@@ -138,10 +138,15 @@ rules:
       `StringCategoryOf`, THE ONE category reader. Measured before this rule existed: a GROUP-USAGE NATIONAL 88
       answered the OPPOSITE of its elementary twin, and a GROUP-USAGE BIT 88 lost 8.8.4.2.8's boolean-zero
       right-extension. The behavioural twin of this rule is
-      Cobol.Net.Tests.Unit.ConditionNameSubjectClassDriftTests.
+      Cobol.Net.Tests.Unit.ConditionNameSubjectClassDriftTests. The rule is scoped to the PROPERTY, not to the file
+      it was found in (kb/Work PB760): the identical national test survived in IntrinsicRenderer.cs, feeding the
+      12.3.6.4 GR7 a) UPPER-CASE / LOWER-CASE classification, because this rule once covered ConditionRenderer.cs
+      alone. Both GR7 consumers now ask ObjectComputerEmit.ClassificationArg.
     paths:
       include:
         - "src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs"
+        - "src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs"
+        - "src/Cobol.Net.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs"
     # `Pic` reached as a member, in any of the three C# spellings (`x.Pic?.`, `x.Pic.`, `x.Pic is { ... }`). The
     # negative lookbehind is what keeps `OperandPic` - the CORRECT reader - from matching its own suffix.
     pattern-regex: '(?<![A-Za-z0-9_])Pic(\?\.|\.|\s+is\s+\{)'

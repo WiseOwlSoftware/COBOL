@@ -12,10 +12,11 @@ namespace CobolNet.Tests.Unit;
 /// it, and this file is what makes the documented value and the emitted value the same thing. The suite DECODES
 /// the constants (is it a NaN? which side of §6.2.1's quiet bit? whose sign?) rather than string-matching them,
 /// so a re-spelling that changed the VALUE would fail while a re-spelling that did not would pass.</para>
-/// <para>⚠ The COBOL-observable witness is `conformance:2014/pb452_set_content_float`, which can see that a
-/// value is infinite, which sign it carries, and that a NaN is unequal to itself — but NOT the quiet/signaling
-/// distinction, because the class condition that would expose it (§8.8.4.4's FLOAT-NOT-A-NUMBER-QUIET /
-/// -SIGNALING, kb/Work PB225) is not implemented. That gap is exactly why the distinction is pinned HERE.</para>
+/// <para>The COBOL-observable witnesses are `conformance:2014/pb452_set_content_float` (infinite, which sign, a
+/// NaN unequal to itself) and `conformance:2014/pb225_float_class_conditions`, whose §8.8.4.4.4 GR3 j)/k)
+/// FLOAT-NOT-A-NUMBER-QUIET / -SIGNALING class conditions (kb/Work PB225) observe the quiet/signaling
+/// distinction; <c>CobolFloatClassTests</c> pins that every value this table writes classifies as what it was
+/// written as.</para>
 /// </summary>
 public sealed class IeeeSpecialsTests
 {

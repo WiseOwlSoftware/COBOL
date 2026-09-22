@@ -162,6 +162,18 @@ internal static class RuntimeApi
     public static string ClassIsBoolean(string value) =>
         $"{nameof(CobolClass)}.{nameof(CobolClass.IsBoolean)}({value})";
 
+    /// <summary>⛔ THE FLOATING-POINT CLASS CONDITIONS — <c>CobolFloatClass.Is</c> over a float carrier read (ISO
+    /// §8.8.4.4.4 GR3 g)–m) and n) 1. b.; kb/Work PB225). <paramref name="carrier"/> is the item's OWN
+    /// <c>float</c>/<c>double</c> field, never a widened value: a binary32 → binary64 widening quiets a signaling
+    /// NaN.</summary>
+    public static string FloatClass(string carrier, FloatClassTest test) =>
+        $"{nameof(CobolFloatClass)}.{nameof(CobolFloatClass.Is)}({carrier}, {nameof(FloatClassTest)}.{test})";
+
+    /// <summary>The <see cref="FloatClass"/> twin for a float item stored as its IEEE window image —
+    /// <c>CobolFloatClass.IsImage</c>, which reads the image's raw bits.</summary>
+    public static string FloatClassImage(string image, string profile, FloatClassTest test) =>
+        $"{nameof(CobolFloatClass)}.{nameof(CobolFloatClass.IsImage)}({image}, {profile}, {nameof(FloatClassTest)}.{test})";
+
     /// <summary>The rule-2 checked sending read on the STRING channel — <c>CobolNum.SendingImage</c>: a ZONED
     /// window is handed on VERBATIM (its stored image is its text), having first been tested against the numeric
     /// class condition under checking. <paramref name="sending"/> false is the raw read, for an exempt context

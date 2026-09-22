@@ -110,7 +110,11 @@ public sealed class ClassConditionTableDriftTests
         Assert.True(switchAt >= 0, "RenderClass's ClassKind switch was not found — the scan is broken");
         string body = renderer[switchAt..renderer.IndexOf("};", switchAt, StringComparison.Ordinal)];
 
-        var unrendered = rendered.Where(k => !body.Contains($"'{k.Ch}' =>", StringComparison.Ordinal)).ToList();
+        // An arm names its kind either as the character literal or as the model's own constant (the seven
+        // COBOL-2014 arms do the latter, some of them two kinds to one arm with `or` — kb/Work PB225).
+        var unrendered = rendered.Where(k => !body.Contains($"'{k.Ch}' =>", StringComparison.Ordinal)
+            && !Regex.IsMatch(body, $@"ClassConditionModel\.{k.Name}\b(\s+or\s+ClassConditionModel\.\w+)*\s*=>")
+            && !Regex.IsMatch(body, $@"ClassConditionModel\.\w+\s+or\s+ClassConditionModel\.{k.Name}\s*=>")).ToList();
         Assert.True(unrendered.Count == 0,
             $"ClassConditionModel declares kind(s) RenderClass has no arm for: "
             + $"{string.Join(", ", unrendered.Select(k => $"{k.Name} '{k.Ch}'"))}."

@@ -526,17 +526,23 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return;
         }
         if (ClassConditionModel.For(kind) is not { } alt) return;
-        PicInfo? pic = op switch
+        // The operand's CATEGORY through THE ONE operand-category reader, and its USAGE off its item's OperandPic.
+        // Both are the OPERAND's, never a raw Pic: a GROUP-USAGE BIT operand IS category boolean with as-if usage
+        // bit (§13.18.29.4 GR1a/b — raw Pic let `IF BIT-GROUP IS NUMERIC/ALPHABETIC` compile while the elementary
+        // twin was rejected, kb/Work PB157's sweep), and a reference-modified slice has its ITEM's usage but the
+        // category §8.4.3.3.4 GR6 c) gives it — alphanumeric (national when the usage is national) — so
+        // `IF NUM (1:2) IS ALPHABETIC` is not an SR4 violation and `IF NUM (1:2) IS NEAREST-TO-ZERO` IS an SR6
+        // one (kb/Work PB823, whose renderer half reads the same reader). Only a DATA-ITEM reference is
+        // classified; any other operand shape fails open (ClassConditionModel.Violates).
+        PicCategory? category = op is BoundFieldOperand ? IntrinsicResultType.OperandCategory(op) : null;
+        Usage? usage = op switch
         {
-            // OperandPic (kb/Work PB157's sweep): a GROUP-USAGE BIT operand IS category boolean with as-if
-            // usage bit (§13.18.29.4 GR1a/b) — raw Pic let `IF BIT-GROUP IS NUMERIC/ALPHABETIC` compile while
-            // the elementary twin was rejected (§8.8.4.4.3 SR4/SR8).
-            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.OperandPic,
-            BoundFieldOperand f => f.Place.Item.OperandPic,
+            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.OperandPic?.Usage,
+            BoundFieldOperand f => f.Place.Item.OperandPic?.Usage,
             _ => null,
         };
         foreach (var rule in alt.Rules)
-            if (ClassConditionModel.Violates(rule, pic))
+            if (ClassConditionModel.Violates(rule, category, usage))
             {
                 var (code, clause, text) = ClassConditionModel.Wording(rule);
                 ctx.Edition.Error(code, $"the {alt.Spelling} class condition over '{OperandName(op)}': {text} ({clause})");
@@ -577,6 +583,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             : cls.ALPHABETIC_UPPER() is not null ? ClassConditionModel.AlphabeticUpper
             : cls.ALPHABETIC_LOWER() is not null ? ClassConditionModel.AlphabeticLower
             : cls.BOOLEAN() is not null ? ClassConditionModel.Boolean
+            // The seven COBOL-2014 numeric-content alternatives (§8.8.4.4.4 GR3 g)–m); kb/Work PB225). Reachable
+            // as keywords at 2014+ only — below that the reservation gate hands the same spelling to cobolWord,
+            // where it is a SPECIAL-NAMES class-name (the BOOLEAN precedent in CobolExpressions.g4).
+            : cls.FARTHEST_FROM_ZERO() is not null ? ClassConditionModel.FarthestFromZero
+            : cls.FLOAT_INFINITY() is not null ? ClassConditionModel.FloatInfinity
+            : cls.FLOAT_NOT_A_NUMBER() is not null ? ClassConditionModel.FloatNotANumber
+            : cls.FLOAT_NOT_A_NUMBER_QUIET() is not null ? ClassConditionModel.FloatNotANumberQuiet
+            : cls.FLOAT_NOT_A_NUMBER_SIGNALING() is not null ? ClassConditionModel.FloatNotANumberSignaling
+            : cls.IN_ARITHMETIC_RANGE() is not null ? ClassConditionModel.InArithmeticRange
+            : cls.NEAREST_TO_ZERO() is not null ? ClassConditionModel.NearestToZero
             : null;
         if (kind is { } k)
         {

@@ -117,21 +117,6 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         return $"({loCmp} >= 0 && {hiCmp} <= 0)";
     }
 
-    /// <summary>⛔ THE CLASS-CONDITION classification test, and NOTHING ELSE — its one caller is
-    /// <see cref="RenderClass"/>, choosing the national or alphanumeric LC_CTYPE table for a CHARACTER
-    /// CLASSIFICATION (§8.8.4.4.4 GR3 b1/c1/d1). ⛔ It is NOT the comparison-class rule: every relation surface
-    /// asks <c>CollatingSelection.ForComparison</c> over BOTH operands' <c>OperandPic</c> categories
-    /// (<see cref="StringCategoryOf"/>). Folding a one-operand test onto a two-operand question is kb/Work PB741.
-    /// <para>It asks <see cref="StringCategoryOf"/> — THE ONE category reader — and never a raw <c>Pic</c>. The
-    /// private two-case copy this replaced read the raw PICTURE category of <c>Place.Item</c>, which is NULL for
-    /// every group, so a GROUP-USAGE NATIONAL operand answered "not national" and took the ALPHANUMERIC
-    /// classification phrase where its elementary twin took the national one (kb/Work PB728 arm 15; PB741
-    /// reported the same hole here and left it for this mechanism). ISO §8.8.4.2.1: "A national group item or a
-    /// bit group item shall be treated as an elementary national data item or an elementary bit data item,
-    /// respectively", and §13.18.29.4 GR2b puts that as-if PICTURE on <c>OperandPic</c>. Reading the ONE reader
-    /// also picks up the ref-modified (§8.4.3.3.4 GR6) and function-result operands the two-case copy could not
-    /// see.</para></summary>
-    private static bool IsNationalOperand(BoundOperand op) => StringCategoryOf(op) is PicCategory.National;
     // A user-defined class (§8.8.4.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
         ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num, sending: SendingRef.ClassCondition)}, {EmitText.CsLiteral(n.Members)})"
@@ -572,42 +557,52 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// undecoded bytes can answer either. The ZONED case is unchanged in behaviour: there the window IS its text,
     /// and the predicate delegates straight back to the same two <c>CobolClass</c> helpers this arm used to
     /// spell inline — so the sign-aware answer NC174A pins is the same code it always was.</para>
-    /// <para>A REF-MOD operand is excluded: its result is an elementary ALPHANUMERIC item whatever the underlying
-    /// item's category (§8.4.3.3.4 GR6), so GR3 n)2's plain all-digits test governs it, not n)1.</para></summary>
+    /// <para>⛔ WHICH of GR3 n)'s two tests applies is decided by the OPERAND's category, read through THE ONE
+    /// operand-category reader (<see cref="StringCategoryOf"/>), never by the ITEM's picture and never by a
+    /// place-kind exclusion (kb/Work PB823). §8.4.3.3.4 GR6 c) makes a reference-modified numeric item "class and
+    /// category alphanumeric" (national when its usage is national) and <c>RefModPlace.Category</c> is where that
+    /// rewrite lives, so <c>S (1:4)</c> over <c>PIC S9(4)</c> reaches n) 2.'s all-digits test and the over-punched
+    /// image "123M" is NOT numeric. The previous chain excluded the ref-mod shape from the WINDOWED arm only and
+    /// then asked the ITEM's picture, so the slice fell into the typed-field fold (<c>true</c>) or, over a
+    /// StoreAsImage base, a sign-admitting n) 1. test — both answers about the item, not the operand.</para></summary>
     private string RenderClass(BoundClassCondition c)
     {
         var fld = c.Operand as BoundFieldOperand;
-        // The ONE category reader (see IsObj above), and the two readers agree here by construction: no GROUP is
-        // ever category NUMERIC — a bit / national group's as-if PICTURE is 1(m) / N(m) (§13.18.29.4 GR1b/GR2b)
-        // and an alphanumeric group has none — so this reads identically to the raw PICTURE it replaced (stated,
-        // not assumed) and keeps the drift rule's "no raw PICTURE read in this file" absolute.
-        bool numericCategory = fld?.Place.Item.OperandPic?.Category is PicCategory.Numeric;
-        bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
-        // The complement, minus the ref-mod shape: a numeric leaf whose storage IS a character window.
-        bool windowedNumeric = numericCategory && fld!.Place is not (RefModPlace or TableAllPlace)
-            && (fld.Place is RedefViewPlace || fld.Place.Item.StoreAsImage);
+        // §8.8.4.4.4 GR3 n) 1. versus n) 2. is a question about the OPERAND's category (kb/Work PB823): a
+        // reference-modified slice answers alphanumeric / national here (§8.4.3.3.4 GR6 c), whatever its base
+        // item is, and a bit / national group answers its as-if category (§13.18.29.4 GR1 b)/GR2 b), never numeric.
+        bool numericCategory = fld is not null && StringCategoryOf(fld) is PicCategory.Numeric;
+        // A numeric OPERAND is a whole numeric data item. Its storage is either the native long/Int128, which can
+        // only hold a valid value (the fold to true below), or a CHARACTER WINDOW (a REDEFINES view, a whole-
+        // group-aliased StoreAsImage leaf), which is tested at run time by the ONE n) 1. predicate over the raw
+        // window — its NumProfile carries the item's sign presentation and the compilation's --sign-encoding, so
+        // no sign convention is re-spelled here.
+        bool windowedNumeric = numericCategory && (fld!.Place is RedefViewPlace || fld.Place.Item.StoreAsImage);
         // §14.6.13.2 dash-1 of rules 1, 2 AND 3: a sending item referenced in a CLASS condition is EXEMPT from
         // every one of them — the class test inspects the content precisely in order to CATEGORIZE it, so raising
         // on the very content it was asked to report would leave it unable to answer.
         string arg = OperandText.AsString(c.Operand, num, sending: SendingRef.ClassCondition);
-        string numericTest = windowedNumeric
-            ? RuntimeApi.NumIsNumericImage(PlaceRenderer.Read(fld!.Place), fld.Place.Item.ProfileName)
-            : numericCategory && fld!.Place.Item.OperandPic is { Signed: true } sp
-            // The valid-sign set is the COMPILATION's over-punch convention (kb/Work PB803; §8.8.4.4.4 GR3 n)1.a
-            // closes "Valid operational signs are defined in 13.18.52, SIGN clause", and §13.18.52.4 GR5 b) makes
-            // that set the implementor's — here, the CLI's --sign-encoding). Stated at the call, so the emitted
-            // class condition and the emitted NumProfile of the same item can never name different conventions.
-            ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")}, SignEncoding.{ctx.SignEncoding})"
-            // §8.8.4.4.4 GR3 n)2 — a NON-numeric-category operand (alphanumeric / edited / national) is numeric iff
-            // its content "consists entirely of the characters 0, 1, 2, …, 9", with no operational sign admitted.
+        string numericTest = numericCategory
+            // §8.8.4.4.4 GR3 n) 1. b. — "If the usage … is any standard floating-point usage, the condition is true
+            // only if the content … represents a finite numeric value" (kb/Work PB225): a FLOAT-BINARY-64 holding
+            // an infinity or a NaN is NOT numeric, so the typed-field fold below would answer it wrongly.
+            ? IsStandardFloat(fld!) ? FloatTest(fld!, CobolNet.Runtime.FloatClassTest.Finite)
+            : windowedNumeric
+                ? RuntimeApi.NumIsNumericImage(PlaceRenderer.Read(fld!.Place), fld.Place.Item.ProfileName)
+                : "true"
+            // §8.8.4.4.4 GR3 n) 2. — a NON-numeric-category operand (alphanumeric / edited / national, a ref-mod
+            // slice included) is numeric iff its content "consists entirely of the characters 0, 1, 2, 3, …, 9",
+            // with no operational sign admitted.
             : $"CobolClass.IsNumeric({arg})";
         // ALPHABETIC / -UPPER / -LOWER under a CHARACTER CLASSIFICATION (ISO §8.8.4.4.4 GR3 b1/c1/d1 — the classification
         // locale's LC_CTYPE, resolved at the module's activation into __CLASSIFY; kb/Work PB64 T5); without one the
         // coded-character-set rule (b2/c2/d2 — the closed Latin set) stands, exactly as before.
-        string classify = ctx.Data.Classification is not null ? $", __CLASSIFY.For({(IsNationalOperand(c.Operand) ? "true" : "false")})" : "";
+        // WHICH of the two classifications (§12.3.6.4 GR5 a)–e) alphanumeric, f)–j) national) is asked of the
+        // ONE selector GR7 a)'s consumer, UPPER-CASE / LOWER-CASE, also calls (kb/Work PB760) — never a local test.
+        string classify = ctx.Data.Classification is not null ? ObjectComputerEmit.ClassificationArg(c.Operand) : "";
         string test = c.ClassKind switch
         {
-            'N' => numericField ? "true" : numericTest,
+            'N' => numericTest,
             'A' => $"CobolClass.IsAlphabetic({arg}{classify})",
             'U' => $"CobolClass.IsAlphabeticUpper({arg}{classify})",
             'L' => $"CobolClass.IsAlphabeticLower({arg}{classify})",
@@ -619,9 +614,99 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // it — the same predicate §14.6.13.2 rule 1 reads through HasNonBooleanPosition, which is why the
             // two do not share an answer at zero length (kb/Work PB590).
             'B' => RuntimeApi.ClassIsBoolean(arg),
+            // §8.8.4.4.4 GR3 h)–k) — the four IEEE special-value tests, over a standard floating-point operand
+            // (SR7 has screened every other usage out at bind). Decided on the carrier's raw bits (CobolFloatClass).
+            ClassConditionModel.FloatInfinity => FloatTest(fld!, CobolNet.Runtime.FloatClassTest.Infinity),
+            ClassConditionModel.FloatNotANumber => FloatTest(fld!, CobolNet.Runtime.FloatClassTest.NotANumber),
+            ClassConditionModel.FloatNotANumberQuiet => FloatTest(fld!, CobolNet.Runtime.FloatClassTest.QuietNaN),
+            ClassConditionModel.FloatNotANumberSignaling =>
+                FloatTest(fld!, CobolNet.Runtime.FloatClassTest.SignalingNaN),
+            // §8.8.4.4.4 GR3 g) / m) / l) — the three numeric-content tests over a numeric-category operand (SR6).
+            ClassConditionModel.FarthestFromZero or ClassConditionModel.NearestToZero =>
+                RenderExtremeClass(fld!, c.ClassKind is ClassConditionModel.FarthestFromZero, numericTest),
+            ClassConditionModel.InArithmeticRange => RenderInArithmeticRange(fld!, numericTest),
             _ => EmitText.LoudValue("bool", "class condition"),
         };
         return c.Negated ? $"!({test})" : $"({test})";
+    }
+
+    /// <summary>Is the operand described with a STANDARD floating-point usage (§3.166 / §3.167 — the
+    /// FLOAT-BINARY and FLOAT-DECIMAL families, read from the ONE place they are written down).</summary>
+    private static bool IsStandardFloat(BoundFieldOperand f) => f.Place.Item.OperandPic is { IsFloat: true } p
+        && (UsageFamilies.IsStandardBinaryFloat(p.Usage) || UsageFamilies.IsStandardDecimalFloat(p.Usage));
+
+    /// <summary>One floating-point class question over the operand's OWN carrier: its typed <c>float</c>/<c>double</c>
+    /// field, or — for a float stored as its IEEE window (a REDEFINES view, a whole-group-aliased leaf) — the
+    /// window's raw bits. Never a decoded or widened value (see <c>CobolFloatClass</c>).</summary>
+    private static string FloatTest(BoundFieldOperand f, CobolNet.Runtime.FloatClassTest test) =>
+        f.Place is RedefViewPlace || f.Place.Item.StoreAsImage
+            ? RuntimeApi.FloatClassImage(PlaceRenderer.Read(f.Place), f.Place.Item.ProfileName, test)
+            : RuntimeApi.FloatClass(PlaceRenderer.Read(f.Place), test);
+
+    /// <summary>ISO §8.8.4.4.4 GR3 g) FARTHEST-FROM-ZERO — "the numeric value farthest from zero that may be
+    /// contained in that data item, whether that value is positive or negative" — and m) NEAREST-TO-ZERO, "the
+    /// nonzero numeric value nearest to zero that may be contained in that data item, whether that value is positive
+    /// or negative" (kb/Work PB225).
+    /// <para>⛔ THE EXTREMES ARE <see cref="AlgebraicRanges"/>'s, NOT A THIRD COPY. The same quantity already has
+    /// two surfaces — the §15.43/§15.83 HIGHEST-/SMALLEST-ALGEBRAIC intrinsics and SET Format 15's
+    /// FARTHEST-FROM-ZERO / NEAREST-TO-ZERO (§14.9.39.4 GR32 a)/GR36 a), which Annex D.32 equates) — and the class
+    /// condition is the third question about the one value, so a SET CONTENT OF X TO FARTHEST-FROM-ZERO followed by
+    /// IF X IS FARTHEST-FROM-ZERO is TRUE by construction. A float carrier is asked on its own bits instead
+    /// (<see cref="CobolNet.Runtime.CobolFloatClass"/>), which are the same extremes AlgebraicRanges states for it.</para>
+    /// <para>⚠ DETERMINATION: "whether that value is positive or negative" is read as EITHER direction's extreme
+    /// — the positive one and, when the item can hold a sign, the negative one — not only the single value of
+    /// greatest magnitude. The readings differ only for a two's-complement container (§13.18.60.4 GR12: PIC S9(4)
+    /// COMP-5 spans −32768..32767), and the either-direction reading is the one that keeps SET CONTENT … TO
+    /// FARTHEST-FROM-ZERO SIGN POSITIVE (GR32 a)'s value "in the direction the SIGN phrase selects") answering TRUE
+    /// here.</para>
+    /// <para>Each extreme is compared through the ONE relation-condition renderer — an algebraic comparison
+    /// (§8.8.4.2.4), so a scaled, P-scaled or binary-capacity item needs no arithmetic of its own here — and it
+    /// is guarded by the operand's own NUMERIC test, because a windowed item holding non-numeric bytes has no numeric
+    /// content to be an extreme.</para></summary>
+    private string RenderExtremeClass(BoundFieldOperand f, bool farthest, string numericTest)
+    {
+        var pic = f.Place.Item.OperandPic!;
+        if (pic.IsFloat)
+            return FloatTest(f, farthest ? CobolNet.Runtime.FloatClassTest.FarthestFromZero
+                                              : CobolNet.Runtime.FloatClassTest.NearestToZero);
+        if (AlgebraicRanges.Of(pic, ctx.Data.DecimalPointIsComma) is not { } range)
+            return EmitText.LoudValue("bool", $"{(farthest ? "FARTHEST-FROM-ZERO" : "NEAREST-TO-ZERO")} over a description with no numeric capacity");
+        // The negative extreme exists only where the description can hold a sign (AlgebraicRange.FarthestNegative
+        // null otherwise) — and it is NOT always the mirror of the positive one (a two's-complement container).
+        string?[] values = farthest
+            ? [range.Farthest, range.FarthestNegative]
+            : [range.Nearest, range.FarthestNegative is null ? null : "-" + range.Nearest];
+        string equal = string.Join(" || ", values.OfType<string>().Select(v =>
+            RenderRelational(new BoundRelational(f, "==", new BoundNumericLiteral(v)))));
+        return numericTest == "true" ? $"({equal})" : $"({numericTest} && ({equal}))";
+    }
+
+    /// <summary>ISO §8.8.4.4.4 GR3 l) IN-ARITHMETIC-RANGE — "the numeric content of the data item referenced by
+    /// identifier-1 is neither farther from zero nor closer to zero than is permitted for the form of an intermediate
+    /// data item appropriate to the mode of arithmetic in effect" (kb/Work PB225).
+    /// <para>The mode's intermediate extremes are <see cref="ArithmeticModes.IntermediateExtremes"/> — the table
+    /// SET Format 15's IN-ARITHMETIC-RANGE phrase (§14.9.39.4 GR32 b)/GR36 b)) already clamps against — and the
+    /// item's own are <see cref="AlgebraicRanges"/>'s. Where the item's whole range lies inside the intermediate's
+    /// (compared EXACTLY, as scaled decimal text), every numeric value the item can hold is in range, and the rule
+    /// reduces to "the content IS a numeric value": finite for a float carrier (zero is permitted — the
+    /// intermediate holds zero exactly, so "closer to zero than is permitted" cannot be zero itself), the operand's
+    /// own NUMERIC test for a fixed-point one. That containment holds for every description this compiler can
+    /// declare under every mode it accepts — binary64 is the widest carrier and its extremes ARE the native
+    /// intermediate's — which is the same measurement SetBinder.ClampToArithmeticRange records. A description
+    /// that ever escapes it is rendered LOUD here rather than guessed at, so the day a wider carrier lands this arm
+    /// says so instead of answering.</para></summary>
+    private string RenderInArithmeticRange(BoundFieldOperand f, string numericTest)
+    {
+        var pic = f.Place.Item.OperandPic!;
+        if (AlgebraicRanges.Of(pic, ctx.Data.DecimalPointIsComma) is not { } range)
+            return EmitText.LoudValue("bool", "IN-ARITHMETIC-RANGE over a description with no numeric capacity");
+        var (modeFarthest, modeNearest) = ArithmeticModes.IntermediateExtremes(ctx.Data.Options.Arithmetic);
+        bool contained = AlgebraicRanges.CompareMagnitude(range.Farthest, modeFarthest) <= 0
+            && (range.FarthestNegative is null || AlgebraicRanges.CompareMagnitude(range.FarthestNegative, modeFarthest) <= 0)
+            && (range.Nearest is null || AlgebraicRanges.CompareMagnitude(range.Nearest, modeNearest) >= 0);
+        if (!contained)
+            return EmitText.LoudValue("bool", "IN-ARITHMETIC-RANGE over a description wider than the intermediate data item");
+        return pic.IsFloat ? FloatTest(f, CobolNet.Runtime.FloatClassTest.Finite) : numericTest;
     }
 
     private string RenderCondition88(BoundCondition88 c)

@@ -34,6 +34,19 @@ internal enum ClassOperandRule
     /// whose usage is display or national or whose category is numeric." SR3's rule with the category escape,
     /// which is why NUMERIC is absent from SR3's list and present here.</summary>
     NumericUsageOrCategory,
+
+    /// <summary>§8.8.4.4.3 SR6 — "If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified,
+    /// identifier-1 shall reference a data item whose category is numeric." A POSITIVE requirement, unlike SR3–SR5
+    /// and SR8: an alphanumeric group and a reference-modified slice (category alphanumeric, §8.4.3.3.4 GR6 c)
+    /// BREAK it — the operand's CATEGORY is asked, never its base item's.</summary>
+    NumericCategory,
+
+    /// <summary>§8.8.4.4.3 SR7 — "If the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or
+    /// FLOAT-NOT-A-NUMBER-SIGNALING phrase is specified, identifier-1 shall reference a data item described with a
+    /// standard floating-point usage." STANDARD — §3.166's FLOAT-BINARY-32/-64/-128 and §3.167's
+    /// FLOAT-DECIMAL-16/-34, read from <see cref="UsageFamilies"/> — so FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED /
+    /// COMP-1 / COMP-2 break it, exactly as they break the SET Format 15 twin, §14.9.39.3 SR32.</summary>
+    StandardFloatUsage,
 }
 
 /// <summary>One alternative of the ISO §8.8.4.4.2 class-condition general format: the tag the bound node and
@@ -60,11 +73,10 @@ internal readonly record struct ClassAlternative(char Kind, string Spelling, Cla
 /// class index, message-tag, object, or pointer" — was never asked, and <c>IF IX IS NUMERIC</c> over a USAGE
 /// INDEX item compiled clean and printed TRUE, answering a class question about a class-INDEX item as though
 /// its class were numeric (§13.18.60.4 GR10: "The class and category of an index data item are index").</para>
-/// <para>⚠ NOT YET OFFERED, and each is one row when it lands: FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE and
-/// NEAREST-TO-ZERO (SR6 — "identifier-1 shall reference a data item whose category is numeric") and the four
-/// FLOAT-INFINITY / FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING] phrases (SR7 — "a data item described with a
-/// standard floating-point usage"). Their rules are deliberately NOT declared here: a lookup nothing reads
-/// has never been contradicted (<c>feedback_a_dead_lookup_is_also_unverified</c>).</para>
+/// <para>ALL FOURTEEN ARE OFFERED. The seven COBOL-2014 numeric-content alternatives — FARTHEST-FROM-ZERO,
+/// FLOAT-INFINITY, FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING], IN-ARITHMETIC-RANGE and NEAREST-TO-ZERO — landed
+/// together as seven rows over two new rules (SR6, SR7), which is what makes them one mechanism and not seven
+/// (kb/Work PB225).</para>
 /// </remarks>
 internal static class ClassConditionModel
 {
@@ -83,6 +95,20 @@ internal static class ClassConditionModel
     /// <summary>alphabet-name-1, the coded character set an alphabet identifies (GR3 a). ⚠ A DISTINCT kind from
     /// <see cref="ClassName"/> because SR4 names class-name-1 and NOT alphabet-name-1.</summary>
     public const char AlphabetName = 'S';
+    /// <summary>FARTHEST-FROM-ZERO (GR3 g) — COBOL-2014.</summary>
+    public const char FarthestFromZero = 'F';
+    /// <summary>FLOAT-INFINITY (GR3 h) — COBOL-2014.</summary>
+    public const char FloatInfinity = 'I';
+    /// <summary>FLOAT-NOT-A-NUMBER (GR3 i) — COBOL-2014.</summary>
+    public const char FloatNotANumber = 'X';
+    /// <summary>FLOAT-NOT-A-NUMBER-QUIET (GR3 j) — COBOL-2014.</summary>
+    public const char FloatNotANumberQuiet = 'Q';
+    /// <summary>FLOAT-NOT-A-NUMBER-SIGNALING (GR3 k) — COBOL-2014.</summary>
+    public const char FloatNotANumberSignaling = 'G';
+    /// <summary>IN-ARITHMETIC-RANGE (GR3 l) — COBOL-2014.</summary>
+    public const char InArithmeticRange = 'R';
+    /// <summary>NEAREST-TO-ZERO (GR3 m) — COBOL-2014.</summary>
+    public const char NearestToZero = 'Z';
 
     /// <summary>The offered alternatives, each with the §8.8.4.4.3 rules that name it.</summary>
     public static readonly ClassAlternative[] Alternatives =
@@ -99,6 +125,13 @@ internal static class ClassConditionModel
         new(ClassName, "class-name-1",
             [ClassOperandRule.NotBooleanNumericOrNumericEdited, ClassOperandRule.UsageDisplayOrNational]),
         new(AlphabetName, "alphabet-name-1", [ClassOperandRule.UsageDisplayOrNational]),
+        new(FarthestFromZero, "FARTHEST-FROM-ZERO", [ClassOperandRule.NumericCategory]),
+        new(FloatInfinity, "FLOAT-INFINITY", [ClassOperandRule.StandardFloatUsage]),
+        new(FloatNotANumber, "FLOAT-NOT-A-NUMBER", [ClassOperandRule.StandardFloatUsage]),
+        new(FloatNotANumberQuiet, "FLOAT-NOT-A-NUMBER-QUIET", [ClassOperandRule.StandardFloatUsage]),
+        new(FloatNotANumberSignaling, "FLOAT-NOT-A-NUMBER-SIGNALING", [ClassOperandRule.StandardFloatUsage]),
+        new(InArithmeticRange, "IN-ARITHMETIC-RANGE", [ClassOperandRule.NumericCategory]),
+        new(NearestToZero, "NEAREST-TO-ZERO", [ClassOperandRule.NumericCategory]),
     ];
 
     /// <summary>The row for <paramref name="kind"/>, or null when the kind is one this table does not offer
@@ -137,18 +170,31 @@ internal static class ClassConditionModel
             : null;
     }
 
-    /// <summary>Whether <paramref name="rule"/> is BROKEN by an operand whose OPERAND picture is
-    /// <paramref name="pic"/> (null = an ordinary alphanumeric group or a picture-less leaf, which fails OPEN:
-    /// the screen exists to reject what the standard names, never what this compiler cannot classify).</summary>
-    public static bool Violates(ClassOperandRule rule, PicInfo? pic) => pic is not null && rule switch
+    /// <summary>Whether <paramref name="rule"/> is BROKEN by a DATA-ITEM operand whose operand CATEGORY is
+    /// <paramref name="category"/> and whose USAGE is <paramref name="usage"/>.
+    /// <para>⛔ THE CATEGORY IS THE OPERAND'S, NOT ITS BASE ITEM'S (kb/Work PB823's screen twin): the caller
+    /// reads it through THE ONE operand-category reader, so a reference-modified slice is category alphanumeric
+    /// (national when its usage is national) per §8.4.3.3.4 GR6 c) while keeping its item's usage per GR6's
+    /// opening sentence ("the same class, category, and usage as that defined for identifier-1, except that…").
+    /// The screen used to read the BASE item's picture, so <c>IF NUM (1:2) IS ALPHABETIC</c> was refused under SR4
+    /// as though the slice were category numeric.</para>
+    /// <para>A null argument is a shape the rule cannot classify (an operand that is not a data-item reference,
+    /// an ordinary group's usage) and fails OPEN for the NEGATIVE rules — SR3/SR4/SR5/SR8 exist to reject what
+    /// they name, never what this compiler cannot classify. The two POSITIVE rules (SR6, SR7) name what the
+    /// operand SHALL be, so a data item whose category is known and is not that fails them: an alphanumeric
+    /// group is category alphanumeric (§8.5.2.1) and has no standard floating-point usage.</para></summary>
+    public static bool Violates(ClassOperandRule rule, PicCategory? category, Usage? usage) => rule switch
     {
         ClassOperandRule.NotBooleanNumericOrNumericEdited =>
-            pic.Category is PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited,
+            category is PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited,
         ClassOperandRule.NotNumericOrNumericEdited =>
-            pic.Category is PicCategory.Numeric or PicCategory.NumericEdited,
-        ClassOperandRule.UsageDisplayOrNational => !DisplayOrNational(pic.Usage),
+            category is PicCategory.Numeric or PicCategory.NumericEdited,
+        ClassOperandRule.UsageDisplayOrNational => usage is { } u && !DisplayOrNational(u),
         ClassOperandRule.NumericUsageOrCategory =>
-            !DisplayOrNational(pic.Usage) && pic.Category is not PicCategory.Numeric,
+            usage is { } u2 && !DisplayOrNational(u2) && category is not PicCategory.Numeric,
+        ClassOperandRule.NumericCategory => category is { } c && c is not PicCategory.Numeric,
+        ClassOperandRule.StandardFloatUsage => category is not null
+            && !(usage is { } u3 && (UsageFamilies.IsStandardBinaryFloat(u3) || UsageFamilies.IsStandardDecimalFloat(u3))),
         _ => false,
     };
 
@@ -173,6 +219,16 @@ internal static class ClassConditionModel
             (DiagnosticCatalog.ClassConditionOperandUsage.Code, "ISO §8.8.4.4.3 SR3",
             "if the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, or class-name-1 "
             + "phrase is specified, identifier-1 shall reference a data-item whose usage is display or national"),
+        ClassOperandRule.NumericCategory =>
+            (DiagnosticCatalog.ClassConditionNotNumericCategory.Code, "ISO §8.8.4.4.3 SR6",
+            "if FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or NEAREST-TO-ZERO is specified, identifier-1 shall "
+            + "reference a data item whose category is numeric"),
+        ClassOperandRule.StandardFloatUsage =>
+            (DiagnosticCatalog.ClassConditionNotStandardFloat.Code, "ISO §8.8.4.4.3 SR7",
+            "if the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or FLOAT-NOT-A-NUMBER-SIGNALING "
+            + "phrase is specified, identifier-1 shall reference a data item described with a standard "
+            + "floating-point usage (FLOAT-BINARY-32/-64/-128, FLOAT-DECIMAL-16/-34 — not FLOAT-SHORT, "
+            + "FLOAT-LONG, FLOAT-EXTENDED, COMP-1 or COMP-2)"),
         _ => ("COBOLNET0844", "ISO §8.8.4.4.3 SR8",
             "if the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is "
             + "display or national or whose category is numeric"),

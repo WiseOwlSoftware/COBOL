@@ -4408,6 +4408,28 @@ public static class DiagnosticCatalog
         + "shall be unique within that outermost program.\"",
         "ISO §8.4.6.3");
 
+    /// <summary>COBOLNET2215 — a FLOAT-INFINITY / FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING] class condition over an
+    /// operand that is not described with a STANDARD floating-point usage (ISO §8.8.4.4.3 SR7; kb/Work PB225). The
+    /// SET Format 15 twin of the same restriction is COBOLNET1940 (§14.9.39.3 SR32).</summary>
+    public static readonly DiagnosticDescriptor ClassConditionNotStandardFloat = new(
+        "COBOLNET2215", "class-condition-not-standard-float", EditionSeverity.Error,
+        "A FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET or FLOAT-NOT-A-NUMBER-SIGNALING class "
+        + "condition references an operand that is not described with a standard floating-point usage. ISO "
+        + "§8.8.4.4.3 SR7: \"If the FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, FLOAT-NOT-A-NUMBER-QUIET, or "
+        + "FLOAT-NOT-A-NUMBER-SIGNALING phrase is specified, identifier-1 shall reference a data item described "
+        + "with a standard floating-point usage.\"",
+        "ISO §8.8.4.4.3 SR7");
+
+    /// <summary>COBOLNET2216 — a FARTHEST-FROM-ZERO / IN-ARITHMETIC-RANGE / NEAREST-TO-ZERO class condition over
+    /// an operand whose category is not numeric (ISO §8.8.4.4.3 SR6; kb/Work PB225) — a reference-modified slice
+    /// included, whose category §8.4.3.3.4 GR6 c) makes alphanumeric or national.</summary>
+    public static readonly DiagnosticDescriptor ClassConditionNotNumericCategory = new(
+        "COBOLNET2216", "class-condition-not-numeric-category", EditionSeverity.Error,
+        "A FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE or NEAREST-TO-ZERO class condition references an operand whose "
+        + "category is not numeric. ISO §8.8.4.4.3 SR6: \"If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or "
+        + "NEAREST-TO-ZERO is specified, identifier-1 shall reference a data item whose category is numeric.\"",
+        "ISO §8.8.4.4.3 SR6");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

@@ -260,17 +260,20 @@ comparisonExpression
 // general format does not print at all, and no BOOLEAN, class-name-1 or alphabet-name-1 — so the same class
 // test meant different things depending on whether it was written in an IF or as an EVALUATE subject. That
 // rule is DELETED and evaluateSubject now names this one.
-//   NOT YET OFFERED, each a one-line alternative here plus a ClassConditionModel row and a renderer arm when
-// it lands: FARTHEST-FROM-ZERO, FLOAT-INFINITY, FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING], IN-ARITHMETIC-RANGE
-// and NEAREST-TO-ZERO (their reserved words already exist — the SET statement's formats use them).
-//   ⛔ BOOLEAN COMES AFTER cobolWord AND THAT ORDER IS THE EDITION GATE. BOOLEAN is a COBOL-2002 reserved
+//   ALL FOURTEEN ARE OFFERED. Each keyword alternative is one line here plus one ClassConditionModel row plus
+// one ConditionRenderer.RenderClass arm, and ClassConditionTableDriftTests fails if any of the three is missed
+// (the seven COBOL-2014 numeric-content alternatives landed together — kb/Work PB225).
+//   ⛔ BOOLEAN AND THE SEVEN 2014 WORDS COME AFTER cobolWord AND THAT ORDER IS THE EDITION GATE. BOOLEAN is a COBOL-2002 reserved
 // word (ReservedWords.Table: not reserved at 85, reserved at 2002/2014/2023), so `cobolWord`'s own
 // `{userWordHere("BOOLEAN")}? BOOLEAN` alternative matches it at COBOL-85 ONLY — where `CLASS BOOLEAN IS "01"`
 // in SPECIAL-NAMES is conforming source and `IF X IS BOOLEAN` names that user class. At 2002+ the predicate is
 // false, that alternative is not viable, and prediction reaches the keyword alternative below. Put the keyword
 // FIRST and ANTLR (first matching alternative) would steal the COBOL-85 user-class reading — rejecting legal
 // source. So the class condition needs NO binder-side introduction gate: the word is unreachable as a keyword
-// below 2002, which is the XOR/boolean-operator precedent this file's condition binder already records.
+// below 2002, which is the XOR/boolean-operator precedent this file's condition binder already records. The
+// seven numeric-content words are the same shape one edition later: reserved from 2014 (ReservedWords.Table),
+// so below 2014 `IF X IS FLOAT-INFINITY` names a SPECIAL-NAMES class and at 2014+ it is the §8.8.4.4.4 GR3
+// alternative.
 className
     : NUMERIC
     | ALPHABETIC
@@ -278,6 +281,13 @@ className
     | ALPHABETIC_UPPER
     | cobolWord                     // alphabet-name-1, or a user-defined CLASS from SPECIAL-NAMES
     | BOOLEAN                       // §8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
+    | FARTHEST_FROM_ZERO            // GR3 g) — this and the six below reserved (reachable here) at 2014+ only
+    | FLOAT_INFINITY                // GR3 h)
+    | FLOAT_NOT_A_NUMBER            // GR3 i)
+    | FLOAT_NOT_A_NUMBER_QUIET      // GR3 j)
+    | FLOAT_NOT_A_NUMBER_SIGNALING  // GR3 k)
+    | IN_ARITHMETIC_RANGE           // GR3 l)
+    | NEAREST_TO_ZERO               // GR3 m)
     ;
 
 comparisonOperator

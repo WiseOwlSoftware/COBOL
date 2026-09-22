@@ -65,6 +65,20 @@ internal static class ObjectComputerEmit
     public static string ClassificationLocal(ClassificationSpec cls)
         => $"var __CLASSIFY = {ClassificationResolve(cls)};   // CHARACTER CLASSIFICATION of the class (ISO §12.3.6.4 GR5; §14.6.6 r2 — per method activation)";
 
+    /// <summary>⛔ THE ONE SELECTOR of which character classification governs an operand (kb/Work PB760) — the
+    /// argument text <c>, __CLASSIFY.For(national)</c> that BOTH consumers ISO §12.3.6.4 GR7 names append: a) "the
+    /// uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions" and
+    /// b) "the classification of characters for class tests ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER".
+    /// GR5 a)–e) establish the initial ALPHANUMERIC classification and f)–j) the initial NATIONAL one, so the
+    /// operand's class chooses between them — asked of THE ONE operand-category reader
+    /// (<see cref="IntrinsicResultType.OperandCategory"/>), never a raw <c>Pic</c>: a national GROUP is category
+    /// national (§13.18.29.4 GR2 b), a ref-modified national item keeps class national (§8.4.3.3.4 GR6), and a
+    /// national function result carries its own category. The two private two-case copies this replaced read
+    /// <c>Place.Item.Pic</c>, null for every group, so <c>FUNCTION UPPER-CASE(NG)</c> over a GROUP-USAGE NATIONAL
+    /// group mapped case through the ALPHANUMERIC locale where its elementary twin used the national one.</summary>
+    public static string ClassificationArg(CobolNet.Binding.Bound.BoundOperand op)
+        => $", __CLASSIFY.For({(IntrinsicResultType.OperandCategory(op) is PicCategory.National ? "true" : "false")})";
+
     private static string Kind(LocalePhrase? p) => p is null ? "LocalePhraseKind.None" : $"LocalePhraseKind.{p.Kind}";
     private static string Tag(LocalePhrase? p) => p?.Tag is { } t ? EmitText.CsLiteral(t) : "null";
 }

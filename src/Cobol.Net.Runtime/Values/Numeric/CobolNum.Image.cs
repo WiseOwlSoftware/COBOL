@@ -119,6 +119,18 @@ public static partial class CobolNum
     /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
     public static double ParseImageFloat(string image, in NumProfile item)
     {
+        ulong bits = ImageFloatBits(image, item);
+        return item.ByteForm is NumericByteForm.Ieee32
+            ? BitConverter.UInt32BitsToSingle((uint)bits) : BitConverter.UInt64BitsToDouble(bits);
+    }
+
+    /// <summary>The RAW interchange-format bits of a float carrier's image (binary32 in the low 32 bits for
+    /// <see cref="NumericByteForm.Ieee32"/>) — the decode <see cref="ParseImageFloat"/> performs, stopped BEFORE
+    /// any numeric conversion. It exists because a binary32 → binary64 widening QUIETS a signaling NaN, so a
+    /// question about WHICH NaN an image holds (ISO §8.8.4.4.4 GR3 j)/k), kb/Work PB225) must be asked of these
+    /// bits and never of the decoded <c>double</c>.</summary>
+    public static ulong ImageFloatBits(string image, in NumProfile item)
+    {
         int n = item.ByteForm is NumericByteForm.Ieee32 ? 4 : 8;
         ulong bits = 0;
         int take = image is null ? 0 : Math.Min(n, image.Length);
@@ -127,7 +139,7 @@ public static partial class CobolNum
             for (int i = take - 1; i >= 0; i--) bits = (bits << 8) | (byte)image![i];
         else
             for (int i = 0; i < take; i++) bits = (bits << 8) | (byte)image![i];
-        return n == 4 ? BitConverter.UInt32BitsToSingle((uint)bits) : BitConverter.UInt64BitsToDouble(bits);
+        return bits;
     }
 
     /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
