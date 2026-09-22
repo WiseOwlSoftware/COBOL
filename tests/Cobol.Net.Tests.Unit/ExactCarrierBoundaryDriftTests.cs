@@ -10,7 +10,7 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB252 — the two invariants of the exact Int128 carrier, held STRUCTURALLY rather than by memory.
+/// kb/Work PB252 — the invariants of the exact Int128 carrier, held STRUCTURALLY rather than by memory.
 /// </summary>
 /// <remarks>
 /// <para><b>1. Never wrap.</b> D1 evaluates the exact intrinsic family as unscaled <see cref="Int128"/> values, and
@@ -29,6 +29,13 @@ namespace CobolNet.Tests.Unit;
 /// digits), so exactly the arms that CROSS-ALIGN must route to their <c>…Dec</c> bodies under a standard mode.
 /// That routing was also built one arm at a time — PB62 moved the summing family, PB252 found MOD and REM still
 /// on the Int128 lane — so the set is now checked against the switch that defines it.</para>
+/// <para><b>3. An arm that can be HANDED an SDIDI operand has a Dec body at all.</b> Invariant 2 asks which arms
+/// MUST leave the carrier under a standard mode; kb/Work PB620 is the prior question, and the one nothing asked:
+/// an arm with no <c>RenderDec</c> label falls through to the exact switch whatever the argument's carrier, where
+/// <c>Arg</c> lands an SDIDI operand at max(receiver scale, 6). COMBINED-DATETIME was that arm — the one §15.4.1
+/// r1 function PB56's sweep left on the landing intake — and its own clause could not see the defect, because the
+/// rule it breaks (§15.4.1 r1's "the returned value shall equal the value of the equivalent arithmetic
+/// expression") is broken in the SHARED intake and not in §15.17.</para>
 /// </remarks>
 public sealed class ExactCarrierBoundaryDriftTests
 {
@@ -143,52 +150,64 @@ public sealed class ExactCarrierBoundaryDriftTests
     private static string RendererSource() =>
         File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
 
-    /// <summary>The case labels of every native-switch arm that cross-aligns its arguments to ONE common scale,
-    /// read from the switch itself. Comments are stripped first: the reasoning around these arms names the
-    /// alignment helpers constantly, and a guard that matched prose would be measuring nothing.</summary>
-    private static HashSet<string> CrossAligningArmsInTheSwitch()
+    /// <summary>The native switch's BODY — comments stripped, bounded at its own <c>default:</c> label.</summary>
+    /// <remarks>Strip EVERY <c>//</c> comment, trailing ones included: the switch's arms carry long trailing
+    /// citations, and a whole-line-only strip left <c>case "ModScaled":   // §15.64 …</c> looking like an arm
+    /// with a body, which dropped MOD from the scan. (No string literal in this switch contains <c>//</c>.)
+    /// <para>⛔ AND BOUND THE SCAN TO THE SWITCH BLOCK. Without the <c>default:</c> anchor the LAST arm's "body"
+    /// runs to end-of-file and picks up every helper call in the methods below it — the scan then reports an arm
+    /// that does not align and the guard measures the file, not the switch. It failed exactly that way on first
+    /// run.</para></remarks>
+    private static string ExactSwitchBody()
     {
         string src = RendererSource();
         int from = src.IndexOf("switch (sig.RuntimeMethod)", StringComparison.Ordinal);
         Assert.True(from > 0, "IntrinsicRenderer no longer switches on sig.RuntimeMethod — this guard is blind");
-        // Strip EVERY `//` comment, trailing ones included — the switch's arms carry long trailing citations, and
-        // a whole-line-only strip left `case "ModScaled":   // §15.64 …` looking like an arm with a body, which
-        // dropped MOD from the scan. (No string literal in this switch contains `//`.)
         string body = Regex.Replace(src[from..], @"//[^\n]*", "");
-        // ⛔ BOUND THE SCAN TO THE SWITCH BLOCK. Without this the LAST arm's "body" runs to end-of-file and picks
-        // up every AlignedArgs call in the methods below it — the scan then reports an arm that does not align
-        // and the guard measures the file, not the switch. It failed exactly that way on first run.
         int end = body.IndexOf("\n            default:", StringComparison.Ordinal);
         Assert.True(end > 0, "the native switch has no `default:` label — the arm scan has no end anchor");
-        body = body[..end];
+        return body[..end];
+    }
 
+    /// <summary>The switch's arms, each as its LABELS and the code that follows them — the ONE reader of this
+    /// switch's shape, so the two guards below cannot disagree about what an arm is (kb/Work PB620).</summary>
+    /// <remarks>⛔ <c>case "ModScaled":</c> sits ALONE above <c>case "RemScaled":</c> and their shared body — a
+    /// chunk with no body of its own. Reading each chunk independently silently dropped MOD, which is the very
+    /// arm invariant 2 exists to catch; the ≥ floors below are what surfaced it. Stacked labels are carried
+    /// forward onto the arm that does have a body.</remarks>
+    private static List<(List<string> Labels, string Body)> ArmsOf(string switchBody)
+    {
         // Split on the switch's own case indent so each chunk is exactly one label list plus whatever follows it.
-        string[] arms = Regex.Split(body, @"(?m)^            (?=case\s+"")");
-        var found = new HashSet<string>(StringComparer.Ordinal);
+        string[] chunks = Regex.Split(switchBody, @"(?m)^            (?=case\s+"")");
+        var arms = new List<(List<string>, string)>();
         var pending = new List<string>();                       // labels STACKED above a shared body (MOD/REM)
-        foreach (string arm in arms.Where(a => a.StartsWith("case ", StringComparison.Ordinal)))
+        foreach (string arm in chunks.Where(a => a.StartsWith("case ", StringComparison.Ordinal)))
         {
             var labels = Regex.Match(arm, @"^case\s+(?<lbl>""[A-Za-z0-9]+""(?:\s+or\s+""[A-Za-z0-9]+"")*)\s*(?::|when\b)");
             Assert.True(labels.Success, $"could not read the case labels of an arm: {arm[..Math.Min(90, arm.Length)]}");
             var here = Regex.Matches(labels.Groups["lbl"].Value, @"""(?<n>[A-Za-z0-9]+)""")
                             .Select(x => x.Groups["n"].Value).ToList();
-            // ⛔ `case "ModScaled":` sits ALONE above `case "RemScaled":` and their shared body — a chunk with no
-            // body of its own. Reading each chunk independently silently dropped MOD, which is the very arm this
-            // guard exists to catch; the ≥ floor below is what surfaced it. Carry stacked labels forward.
             string rest = arm[labels.Length..];
             if (rest.Trim().Length == 0) { pending.AddRange(here); continue; }
             here.AddRange(pending);
             pending.Clear();
-            // AlignedArgs/AlignedArgsEx take the LIST to one common scale; NumericRenderer.Align(x, s) is the
-            // pairwise form MOD/REM use. RawArgPairs is deliberately NOT here — it rescales each argument to its
-            // OWN scale (an identity), which is why MAX/MIN/ORD-MAX/ORD-MIN are pure selection (PB65).
-            if (!Regex.IsMatch(rest, @"\bAlignedArgs(Ex)?\(") && !rest.Contains("NumericRenderer.Align(", StringComparison.Ordinal))
-                continue;
-            foreach (string n in here) found.Add(n);
+            arms.Add((here, rest));
         }
         Assert.Empty(pending);
-        return found;
+        return arms;
     }
+
+    /// <summary>The case labels of every native-switch arm that cross-aligns its arguments to ONE common scale,
+    /// read from the switch itself.</summary>
+    /// <remarks>AlignedArgs/AlignedArgsEx take the LIST to one common scale; <c>NumericRenderer.Align(x, s)</c>
+    /// is the pairwise form MOD/REM use. <c>RawArgPairs</c> is deliberately NOT here — it rescales each argument
+    /// to its OWN scale (an identity), which is why MAX/MIN/ORD-MAX/ORD-MIN are pure selection (PB65).</remarks>
+    private static HashSet<string> CrossAligningArmsInTheSwitch() =>
+        new(ArmsOf(ExactSwitchBody())
+                .Where(a => Regex.IsMatch(a.Body, @"\bAlignedArgs(Ex)?\(")
+                         || a.Body.Contains("NumericRenderer.Align(", StringComparison.Ordinal))
+                .SelectMany(a => a.Labels),
+            StringComparer.Ordinal);
 
     /// <summary>⛔ THE PB62/PB252 GUARD. Every arm that cross-aligns is in <c>CrossAlignedNativeArms</c>, and every
     /// name in that set is still such an arm. Adding an aligning arm without routing it fails here rather than
@@ -225,5 +244,102 @@ public sealed class ExactCarrierBoundaryDriftTests
             Assert.False(IntrinsicRenderer.CrossAlignedNativeArms.Contains(sel),
                 $"{sel} is pure selection (RawArgPairs rescales each argument to its OWN scale) — it forms no "
                 + "common scale and has no boundary to escape (kb/Work PB65)");
+    }
+
+    // ── 3. An arm that can be handed a Dec argument has a Dec body ─────────────────────────────────────────
+    //
+    // ⛔ THE THIRD INVARIANT, AND THE ONE PB620 COST. Invariant 2 asks WHICH arms must leave the Int128 carrier
+    // under a standard mode; this asks the prior question — which arms can be handed an SDIDI operand at all.
+    // The answer is structural: every arm that consumes a FRACTION-BEARING numeric intake can, because an
+    // argument reaches the renderer on three carriers (§8.8.1.5.2's SDIDI under a standard mode, the native
+    // integer power / float-literal Dec producers, and the exact Int128 lane), and only `RenderDec` has a body
+    // for the first two. An arm with no RenderDec label falls through to the exact switch, where `Arg` LANDS the
+    // operand at max(receiver scale, 6) and truncates past it. COMBINED-DATETIME was that arm and nothing could
+    // see it: it is the ONE §15.4.1 r1 function PB56's sweep left behind, and the §15 clause sweep could not see
+    // it from inside §15.17 because the defect is in the shared intake, not in the function's own rules. An arm
+    // whose only numeric intake is IntArg/ArgInt is NOT in scope — §15.3's integer positions are scale-0 by
+    // definition, so there is no fraction for a landing to eat.
+
+    /// <summary>A FRACTION-BEARING numeric intake: the operand arrives with a scale, so an SDIDI operand can
+    /// reach this arm. <c>IntArg</c>/<c>ArgInt</c> deliberately do not match (<c>\b</c> stops <c>Arg(</c> from
+    /// matching inside <c>IntArg(</c>), and neither does the string channel's <c>Str(</c>.</summary>
+    private static readonly Regex FractionBearingIntake =
+        new(@"\b(?:Arg|RawArg)\(ic,\s*\d+\)|\bAlignedArgs(?:Ex)?\(|\bRawArgPairs\(", RegexOptions.Compiled);
+
+    /// <summary>The arm labels of <c>RenderDec</c>'s expression switch — <c>"Name" =&gt;</c> and
+    /// <c>"Name" when … =&gt;</c> — read from the switch itself, bounded by its own <c>_ =&gt; null,</c>.</summary>
+    private static HashSet<string> DecArmLabels()
+    {
+        string src = RendererSource();
+        int from = src.IndexOf("return m switch", StringComparison.Ordinal);
+        Assert.True(from > 0, "IntrinsicRenderer.RenderDec no longer switches on m — this guard is blind");
+        int end = src.IndexOf("_ => null,", from, StringComparison.Ordinal);
+        Assert.True(end > from, "RenderDec's switch has no `_ => null,` arm — the scan has no end anchor");
+        string body = Regex.Replace(src[from..end], @"//[^\n]*", "");
+        return new HashSet<string>(
+            Regex.Matches(body, @"""(?<n>[A-Za-z0-9]+)""\s*(?:when\b[^\n]*?)?=>").Select(m => m.Groups["n"].Value),
+            StringComparer.Ordinal);
+    }
+
+    /// <summary>The detector, shared by the guard and its self-test — a self-test against a re-typed copy of the
+    /// pattern would prove nothing about the pattern actually shipped.</summary>
+    private static List<string> ArmsWithNoDecBody(string exactSwitchBody, ISet<string> decArms) =>
+        [.. ArmsOf(exactSwitchBody)
+             .Where(a => FractionBearingIntake.IsMatch(a.Body))
+             .SelectMany(a => a.Labels)
+             .Where(n => !decArms.Contains(n))
+             .Distinct(StringComparer.Ordinal)];
+
+    /// <summary>⛔ THE GUARD MUST FAIL ON THE DEFECT IT EXISTS FOR (feedback_green_gates_arent_evidence). Input
+    /// one is COMBINED-DATETIME's arm exactly as PB620 found it; input two is the landed pairing; input three is
+    /// FACTORIAL, whose only intake is the scale-0 <c>IntArg</c> and which therefore must NOT be demanded of
+    /// RenderDec — the false positive that would have forced a Dec body for an integer argument; input four is
+    /// the string channel, and input five is a stacked label pair, where a chunk with no body of its own must
+    /// still be judged by the body it shares.</summary>
+    [Fact]
+    public void TheDecBodyDetector_CatchesTheDefectAndNothingElse()
+    {
+        var none = new HashSet<string>(StringComparer.Ordinal);
+        Assert.Equal(["CombinedDatetime"], ArmsWithNoDecBody(
+            "            case \"CombinedDatetime\":\n{ NumX t = Arg(ic, 1); return X(t.Expr, t.Scale); }", none));
+        Assert.Empty(ArmsWithNoDecBody(
+            "            case \"CombinedDatetime\":\n{ NumX t = RawArg(ic, 1); return X(t.Expr, t.Scale); }",
+            new HashSet<string>(new[] { "CombinedDatetime" }, StringComparer.Ordinal)));
+        Assert.Empty(ArmsWithNoDecBody(
+            "            case \"Factorial\":\nreturn new NumX(Intrinsic(m, IntArg(ic, 0)), 0);", none));
+        Assert.Empty(ArmsWithNoDecBody(
+            "            case \"Ord\":\nreturn new NumX(Intrinsic(m, Str(ic.Args[0])), 0);", none));
+        Assert.Equal(["ModScaled", "RemScaled"], ArmsWithNoDecBody(
+            "            case \"RemScaled\":\n            case \"ModScaled\":\n{ var a = Arg(ic, 0); }", none)
+            .Order().ToList());
+    }
+
+    /// <summary>The guard proper, over the shipped renderer: every exact-switch arm that can be handed an SDIDI
+    /// operand has a <c>RenderDec</c> arm to claim it first.</summary>
+    [Fact]
+    public void EveryArmThatCanTakeADecArgument_HasADecBody()
+    {
+        string exact = ExactSwitchBody();
+        var decArms = DecArmLabels();
+        // Both populations are asserted: a scan that has stopped seeing either switch would pass with nothing
+        // in it, and this guard's whole value is the arm nobody listed (feedback_green_gates_arent_evidence).
+        var scanned = ArmsOf(exact).Where(a => FractionBearingIntake.IsMatch(a.Body)).SelectMany(a => a.Labels)
+                                   .Distinct(StringComparer.Ordinal).ToList();
+        Assert.True(scanned.Count >= 15,
+            $"only {scanned.Count} fraction-bearing arms found ({string.Join(", ", scanned.Order())}) — the scan "
+            + "has stopped seeing the exact switch and would pass with the Dec set empty");
+        Assert.True(decArms.Count >= 20,
+            $"only {decArms.Count} RenderDec arms found — the Dec-switch scan has stopped seeing the switch");
+        Assert.Contains("CombinedDatetime", scanned);            // the arm this invariant was bought with
+
+        var offenders = ArmsWithNoDecBody(exact, decArms);
+        Assert.True(offenders.Count == 0,
+            "these exact-switch arms consume a FRACTION-BEARING argument intake but have no arm in RenderDec, so "
+            + "an SDIDI-carried argument falls through to the exact Int128 lane and is LANDED at "
+            + "max(receiver scale, 6) — the returned value then depends on the shape of whatever consumes it, "
+            + "and under a standard mode §15.4.1 r1 requires it to EQUAL the function's equivalent arithmetic "
+            + "expression (kb/Work PB620: COMBINED-DATETIME(1, WS-S + 0) lost two digits where "
+            + "COMBINED-DATETIME(1, WS-S) did not). Give the function a RenderDec arm over a `…Dec` body. "
+            + "Offenders: " + string.Join(", ", offenders));
     }
 }

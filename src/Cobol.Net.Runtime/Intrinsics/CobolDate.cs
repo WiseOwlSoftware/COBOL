@@ -439,20 +439,31 @@ public static class CobolDate
     /// it is cited here rather than written as a bare 86400.
     /// <para>Unenforced before this: a seconds argument of, say, 100000 produced <c>hh = 27</c> — a fabricated
     /// time with no exception condition, the same failure mode as the offset bound below.</para>
-    /// <para>The comparison is exact and stays in <see cref="Int128"/>: the argument arrives as an unscaled
-    /// value plus its scale, so scaling the BOUND up is exact where scaling the value down would truncate and
+    /// <para>⛔ The comparison is exact and is asked on the DECIMAL carrier (kb/Work PB620):
+    /// <c>CobolDec.Compare</c> aligns at either operand's own exponent, so neither side is rescaled. It used to
+    /// scale the BOUND up — <c>86 400 × 10^secScale</c> — which is exact only while that product fits
+    /// <see cref="Int128"/> and WRAPPED past secScale 33; scaling the VALUE down instead would truncate and
     /// silently admit a fractional overshoot.</para></summary>
     /// <summary>The same screen for another function's argument-1 (LOCALE-TIME-FROM-SECONDS, §15.54.3 r1 — "a numeric
     /// value in standard numeric time form"): ONE rule, one place.</summary>
     internal static bool SecondsOutOfStandardFormFor(string fn, Int128 secUnscaled, int secScale, bool leapSecond)
         => SecondsOutOfStandardForm(fn, "argument-1", secUnscaled, secScale, leapSecond);
 
+    /// <summary>The (unscaled, scale) form of the screen — the exact carrier's spelling of the SAME value, lifted
+    /// through <see cref="CobolDec.From"/> (exact for every fixed-point operand, §8.8.1.5.2 r1) so that both
+    /// carriers ask ONE comparison and cannot drift in their answer or their message (kb/Work PB620; the PB32
+    /// lesson, where one rule written into two bodies was corrected in only one).</summary>
     private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale, bool leapSecond)
+        => SecondsOutOfStandardForm(fn, argName, CobolDec.From(secUnscaled, secScale), leapSecond);
+
+    private static bool SecondsOutOfStandardForm(string fn, string argName, CobolDec sec, bool leapSecond)
     {
         // §7.3.17.4 GR5 (OFF): [0, 86 400); GR4 (ON): [0, 86 401) — the leap second at the end of the day (kb/Work PB65).
         int bound = leapSecond ? 86401 : 86400;
-        Int128 limit = (Int128)bound * Pow10.AsWide(secScale);
-        if (secUnscaled >= 0 && secUnscaled < limit) return false;
+        // CobolDec.Compare aligns exactly at either operand's exponent, so no bound is scaled UP into the
+        // carrier's headroom (the former `bound * 10^secScale` wrapped past secScale 33) and no value is scaled
+        // DOWN, which would have truncated a fractional overshoot into range.
+        if (sec.Sig >= 0 && CobolDec.Compare(sec, CobolDec.From(bound, 0)) < 0) return false;
         Exceptions.ExceptionState.ArgumentError(
             $"{fn} {argName} is not in standard numeric time form: the value shall be >= 0 and < {bound:N0} "
             + $"(ISO §7.3.17.4 {(leapSecond ? "GR4, LEAP-SECOND ON" : "GR5, LEAP-SECOND OFF")})");
@@ -687,15 +698,86 @@ public static class CobolDate
     public static long TestFormattedDatetime(string format, string data, bool leapSecond = false)
         => Analyze(format, data, out _, out _, out _, out _, leapSecond);
 
-    /// <summary>COMBINED-DATETIME (§15.17.4): a1 + a2/100000 as an exact scaled value at scale (a2.scale + 5).
-    /// ⛔ THE GUARD PROLOGUE MIRRORS FormattedDatetime's (fix-queue PB65 — the one-of-two-callers shape):
-    /// §15.17.3 r1 bounds argument-1 to the §15.5.2 integer-date range, r2 requires argument-2 in standard
-    /// numeric time form — both are VALUE rules, EC-ARGUMENT-FUNCTION on violation, documented default 0.</summary>
+    /// <summary>COMBINED-DATETIME (§15.17.4 r1) on the EXACT carrier: <c>a1 + a2/100000</c> as an exact scaled
+    /// value at scale (a2.scale + 5) — the arm an all-fixed-point argument list takes, where the EAE's division
+    /// by 10⁵ IS the scale shift and nothing is rounded. A Dec- or float-carried argument-2 takes
+    /// <see cref="CombinedDatetimeDec"/> instead (kb/Work PB620). The §15.17.3 argument screen is shared by both
+    /// carriers — see <see cref="CombinedDatetimeOutOfRange"/>.</summary>
     public static Int128 CombinedDatetime(long integerDate, Int128 secUnscaled, int secScale, bool leapSecond = false)
+        => CombinedDatetimeOutOfRange(integerDate, CobolDec.From(secUnscaled, secScale), leapSecond)
+            ? 0
+            : (Int128)integerDate * Pow10.AsWide(secScale + 5) + secUnscaled;
+
+    /// <summary>
+    /// COMBINED-DATETIME on the SDIDI carrier — §15.17.4 r1's equivalent arithmetic expression written out,
+    /// <c>argument-1 + (argument-2 / 100000)</c>, where §15.4.1 r1 requires the returned value to EQUAL it.
+    /// </summary>
+    /// <remarks>
+    /// <para>⛔ THE ARGUMENT IS NOT BOUNDED IN ITS FRACTION DIGITS, so no compile-time working scale may stand in
+    /// front of it (kb/Work PB620). §15.17.3 r2 requires only that argument-2 "shall be in standard numeric time
+    /// form", and §15.5.5 defines that form by MAGNITUDE alone — "a numeric value representing seconds past
+    /// midnight", greater than or equal to zero and less than 86,400 (86,401 under &gt;&gt;LEAP-SECOND ON). With
+    /// no Dec body this function fell through to the exact Int128 arm, whose LANDED intake truncated an SDIDI
+    /// argument at max(receiver scale, 6): measured under <c>ARITHMETIC IS STANDARD-DECIMAL</c> with
+    /// <c>WS-S PIC 9(5)V9(8) VALUE 3661.12345678</c>, <c>COMBINED-DATETIME(1, WS-S)</c> displayed
+    /// 1.0366112345678 while <c>COMBINED-DATETIME(1, WS-S + 0)</c> — the same value through a §15.3 type-10
+    /// arithmetic expression — displayed 1.03661123456, and §15.4.1 NOTE 2's relation condition
+    /// <c>function-identifier = equivalent-arithmetic-expression</c>, which "will evaluate to true", evaluated
+    /// FALSE.</para>
+    /// <para>The division is by a power of ten, so it is exact on a decimal carrier at every argument scale; it
+    /// is written as the EAE's own <c>/ 100000</c> rather than as an exponent shift so the body reads as the rule
+    /// it implements. Both carriers share ONE argument screen, so the §15.17.3 guards cannot drift apart.</para>
+    /// </remarks>
+    public static CobolDec CombinedDatetimeDec(CobolRounding mode, long integerDate, CobolDec seconds, bool leapSecond = false)
+        => CombinedDatetimeOutOfRange(integerDate, seconds, leapSecond)
+            ? CobolDec.From(0, 0)
+            : CobolDec.Add(CobolDec.From(integerDate, 0),
+                           CobolDec.Div(seconds, CobolDec.From(100000, 0), mode), mode);
+
+    /// <summary>
+    /// The SAME §15.17.3 screen on the BINARY64 carrier — the THIRD arm of a two-arm question (kb/Work PB620).
+    /// </summary>
+    /// <remarks>
+    /// <para>It had none at all. Measured under native arithmetic with <c>F USAGE COMP-2 VALUE 86400</c>:
+    /// <c>FUNCTION COMBINED-DATETIME(1, F)</c> computed 1.8639999999999 and set NO exception condition, while
+    /// the identical VALUE in a <c>PIC 9(5)V9(8)</c> item terminated the run unit with EC-ARGUMENT-FUNCTION in
+    /// the same program under the same armed directive. §15.17.3 r2 is a rule about the argument's VALUE — "in
+    /// standard numeric time form", which §15.5.5 defines by magnitude — so the USAGE of the item holding it
+    /// cannot decide whether §15.3's "incorrect value for that argument" applies. A float argument is legal
+    /// (§15.17.3 r2 constrains the value, not the class, and a COMP-2 item is class numeric), so the arm stays;
+    /// what it lacked was the rule.</para>
+    /// <para>A non-finite operand is screened here rather than passed on: neither §15.5.2's integer date form
+    /// nor §15.5.5's standard numeric time form is a range that contains an infinity or a NaN, and screening
+    /// first also keeps the two conversions below total.</para>
+    /// </remarks>
+    internal static bool CombinedDatetimeOutOfRangeReal(double integerDate, double seconds, bool leapSecond = false)
+    {
+        if (!double.IsFinite(integerDate) || !double.IsFinite(seconds))
+        {
+            Exceptions.ExceptionState.ArgumentError(
+                "COMBINED-DATETIME has a non-finite argument, which is in neither integer date form "
+                + "(§15.17.3 r1 / §15.5.2) nor standard numeric time form (§15.17.3 r2 / §15.5.5)");
+            return true;
+        }
+        long date = integerDate <= long.MinValue ? long.MinValue
+                  : integerDate >= long.MaxValue ? long.MaxValue
+                  : (long)integerDate;
+        return CombinedDatetimeOutOfRange(date, CobolDec.FromDouble(seconds), leapSecond);
+    }
+
+    /// <summary>The §15.17.3 argument screen, asked ONCE for ALL THREE carriers (the exact Int128 lane, the SDIDI,
+    /// and binary64 via CombinedDatetimeOutOfRangeReal): r1 bounds argument-1 to the §15.5.2 integer date
+    /// form and r2 requires argument-2 in standard numeric time form. Both are VALUE rules, so a
+    /// violation is EC-ARGUMENT-FUNCTION with the §15.3 documented default 0 — and the guard prologue mirrors
+    /// FormattedDatetime's (fix-queue PB65, the one-of-two-callers shape).</summary>
+    private static bool CombinedDatetimeOutOfRange(long integerDate, CobolDec seconds, bool leapSecond)
     {
         if (integerDate is < 1 or > 3067671)
-        { Exceptions.ExceptionState.ArgumentError($"COMBINED-DATETIME argument-1 {integerDate} outside 1..3,067,671 (§15.17.3 r1 / §15.5.2)"); return 0; }
-        if (SecondsOutOfStandardForm("COMBINED-DATETIME", "argument-2", secUnscaled, secScale, leapSecond)) return 0;
-        return (Int128)integerDate * Pow10.AsWide(secScale + 5) + secUnscaled;
+        {
+            Exceptions.ExceptionState.ArgumentError(
+                $"COMBINED-DATETIME argument-1 {integerDate} outside 1..3,067,671 (§15.17.3 r1 / §15.5.2)");
+            return true;
+        }
+        return SecondsOutOfStandardForm("COMBINED-DATETIME", "argument-2", seconds, leapSecond);
     }
 }

@@ -354,9 +354,18 @@ public static partial class CobolIntrinsics
     /// legitimately be a floating-point item — which is why this body is needed even though argument-1 is an
     /// integer date. The exact twin in <c>CobolDate</c> expresses the same expression as a scale shift
     /// (<c>date × 10^(scale+5) + secUnscaled</c> read at scale+5), and the two agree by construction.
+    /// <para>⛔ AND IT ASKS THE ONE §15.17.3 SCREEN, like its two exact-carrier twins (kb/Work PB620). This body
+    /// had no argument rule at all, so a COMP-2 argument-2 of 86400 computed a fabricated 1.8639999999999 in
+    /// silence where the identical VALUE in a fixed-point item terminated the run unit with
+    /// EC-ARGUMENT-FUNCTION — a rule about a VALUE answering differently for each CARRIER, which is the PB32
+    /// shape. The substituted result is §15.3's documented default 0, the one both other carriers return, and
+    /// the LEAP-SECOND state reaches here for the same reason it reaches them: §7.3.17.4 GR4/GR5 is what sets
+    /// the bound.</para>
     /// </remarks>
-    public static double CombinedDatetimeReal(double integerDate, double seconds) =>
-        integerDate + (seconds / 100000.0);
+    public static double CombinedDatetimeReal(double integerDate, double seconds, bool leapSecond = false) =>
+        CobolDate.CombinedDatetimeOutOfRangeReal(integerDate, seconds, leapSecond)
+            ? 0
+            : integerDate + (seconds / 100000.0);
 
     /// <summary>§15.72 ORD-MIN — the 1-based ordinal position of the least argument, leftmost on a tie.</summary>
     public static double OrdMinReal(params double[] xs)

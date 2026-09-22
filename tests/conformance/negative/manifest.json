@@ -5,6 +5,7 @@
   "pb541-report-usage-comp",
   "pb429-counter-outside-source-clause",
   "pb429-line-counter-receiving",
+  "pb620-combined-datetime-below-2014",
   "pb418-initialize-dynamic-length-2002",
   "pb249-trim-arg2-width",
   "pb249-trim-arg2-class",

@@ -357,7 +357,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // ── The COBOL-2014 date/time + number family (§15.17/48/79/92; §15.69/95) ───────────────────────────
             case "CombinedDatetime":                                            // §15.17 — a1 + a2/100000
             {
-                NumX t = Arg(ic, 1);
+                // ⛔ ARGUMENT-2 IS TAKEN EXACTLY, NEVER LANDED (kb/Work PB620). §15.17.3 r2 requires only
+                // "standard numeric time form", which §15.5.5 defines by MAGNITUDE — no fraction-digit limit —
+                // so a receiver-derived working scale has nothing to round to and §15.4.1 r1 makes the returned
+                // value EQUAL the §15.17.4 r1 expression. A Dec/float argument-2 never reaches here at all: it
+                // is claimed by RenderDec's own arm under either arithmetic mode, which is what lets this arm
+                // consume the operand at its OWN scale.
+                NumX t = RawArg(ic, 1);
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, $"{IntArg(ic, 0)}, {t.Expr}, {t.Scale}{LeapSecondFlag}"), t.Scale + 5);
             }
             case "IntegerOfFormattedDate":                                       // §15.48 — analyze a2 per format a1 → integer date
@@ -460,8 +466,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string FloatBody(BoundIntrinsicCall ic, string method) => method switch
     {
         // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
+        // ⛔ THE SEED TAKES THE WIDE INTAKE, because the argument is TOTAL (kb/Work PB636 — see IntArgWide):
+        // §15.75.3 r2 constrains the SIGN alone and §15.75.4 r3 makes the distinct-sequence subset a FLOOR
+        // ("from 0 through at least 32767"), not a domain, so §15.3 has no incorrect value to raise on.
         "Random" when ic.Args.Count == 0 => RuntimeApi.Intrinsic(method, ""),
-        "Random" => RuntimeApi.Intrinsic(method, IntArg(ic, 0)),
+        "Random" => RuntimeApi.Intrinsic(method, IntArgWide(ic, 0)),
+        // COMBINED-DATETIME's binary64 carrier takes the compilation group's LEAP-SECOND state, exactly as its
+        // two exact-carrier twins do (kb/Work PB620): §15.17.3 r2's bound is §7.3.17.4 GR4/GR5's, so a screen
+        // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
+        "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
         // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
         "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf),
         // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
@@ -915,6 +928,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // the native Int128 lane's 33 cap returned the §15.3 default 0 on a conforming argument.
             "Factorial" when num.StandardDecimal =>
                 Dec(RuntimeApi.Intrinsic("FactorialDec", $"{mode}, {IntArg(ic, 0)}")),
+            // COMBINED-DATETIME (§15.17.4 r1's EAE `argument-1 + (argument-2 / 100000)`; kb/Work PB620): the one
+            // §15.4.1 r1 function PB56 left on the landing intake. Argument-2 carries no fraction-digit limit
+            // (§15.17.3 r2 → §15.5.5's magnitude-only "standard numeric time form"), so a landing at
+            // max(receiver scale, 6) truncated it and the function stopped equalling its own EAE; argument-1
+            // keeps the NARROW intake because §15.5.2 genuinely bounds the integer date form.
+            "CombinedDatetime" => Dec(RuntimeApi.DateFn("CombinedDatetimeDec",
+                $"{mode}, {IntArg(ic, 0)}, {DecArg(ic, 1)}{LeapSecondFlag}")),
             "SignOf" => new NumX(RuntimeApi.Intrinsic("SignDec", DecArg(ic, 0)), 0),
             "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
             "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),
@@ -1365,6 +1385,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// an integer" and r1a is a CATCH-ALL (kb/Work PB254 / RV-15.90.4-1 / RV-15.91.4-1).</item>
     /// <item>FIND-STRING argument-3 — §15.37.3 r3 places no value constraint; §15.37.4 r2/r3 answer for every
     /// integer (kb/Work PB254).</item>
+    /// <item>RANDOM argument-1 — §15.75.3 r2 constrains the SIGN only ("it shall be zero or a positive
+    /// integer") and §15.75.4 r3 makes the distinct-sequence subset a FLOOR ("shall include the values from 0
+    /// through at least 32767"), not a domain, so a wider seed is legal and its sequence is defined
+    /// (kb/Work PB636 — the narrow intake aborted the run unit on a 19-digit seed).</item>
     /// </list>
     /// <para>⚠ THE SET IS NOT MAINTAINED HERE. The runtime body's declared parameter carrier IS the totality
     /// claim — <c>Int128</c> for a total argument, <c>long</c> for one the argument rules bound — and

@@ -86,6 +86,56 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     }
 
     /// <summary>
+    /// §15.17.3's two VALUE rules hold from ALL THREE carriers COMBINED-DATETIME has (kb/Work PB620): the exact
+    /// <see cref="Int128"/> lane, the SDIDI, and binary64. The third had NO argument rule at all — measured,
+    /// <c>FUNCTION COMBINED-DATETIME(1, F)</c> with a COMP-2 F holding 86400 computed 1.8639999999999 and set no
+    /// exception condition, while the identical value in a <c>PIC 9(5)V9(8)</c> item terminated the run unit in
+    /// the same program. §15.17.3 r2 constrains the argument's VALUE ("in standard numeric time form", which
+    /// §15.5.5 defines by magnitude), so the USAGE of the item holding it cannot decide whether §15.3's
+    /// "incorrect value for that argument" applies. One rule ⇒ one raise site ⇒ one message, asserted.
+    /// </summary>
+    [Fact]
+    public void CombinedDatetime_ScreensItsArguments_FromEveryCarrier()
+    {
+        UnderChecking(() =>
+        {
+            // §15.17.3 r2 — 86 400 seconds is outside standard numeric time form (§7.3.17.4 GR5, the implied OFF).
+            var exact = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetime(1, 86400, 0));
+            var dec = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetimeDec(
+                CobolRounding.NearestAwayFromZero, 1, CobolDec.From(86400, 0)));
+            var real = Assert.Throws<CobolFatalException>(() => CobolIntrinsics.CombinedDatetimeReal(1, 86400));
+            foreach (var e in new[] { exact, dec, real })
+            {
+                Assert.Equal("EC-ARGUMENT-FUNCTION", e.EcName);
+                Assert.Equal(exact.Message, e.Message);
+            }
+            // §15.17.3 r1 — and the §15.5.2 integer date form's ceiling, from each carrier, with its own message.
+            var d1 = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetime(3067672, 0, 0));
+            var d2 = Assert.Throws<CobolFatalException>(() => CobolDate.CombinedDatetimeDec(
+                CobolRounding.NearestAwayFromZero, 3067672, CobolDec.From(0, 0)));
+            var d3 = Assert.Throws<CobolFatalException>(() => CobolIntrinsics.CombinedDatetimeReal(3067672, 0));
+            Assert.Equal(d1.Message, d2.Message);
+            Assert.Equal(d1.Message, d3.Message);
+            Assert.Contains("15.5.2", d1.Message);
+        });
+        // ⛔ AND THE FAILURE BRANCH MUST BE REACHABLE ONLY AT THE BOUND. One step inside it every carrier answers
+        // §15.17.4 r1's expression — a guard that raised early would be as wrong as one that never raised.
+        // Each expected value is §15.17.4 r1's expression evaluated by hand at the argument's OWN scale,
+        // never a measurement: argument-1 + (argument-2 / 100000).
+        //   exact   86 399.999 99       / 100000 = 0.863 999 999 9       + 1 = 1.863 999 999 9
+        //                                             read at scale 5+5 = 10 -> the unscaled 18 639 999 999
+        //   SDIDI   86 399.999 999 99   / 100000 = 0.863 999 999 999 9   + 1 = 1.863 999 999 999 9
+        //   binary64 86 399.999 9       / 100000 = 0.863 999 999         + 1 = 1.863 999 999
+        Assert.Equal((Int128)18639999999, CobolDate.CombinedDatetime(1, 8639999999, 5));
+        // ↳ compared as a VALUE, not as a (Sig, Exp) pair: §15.4.1 r1 says the returned value shall EQUAL the
+        //   expression's, and a carrier is free to keep trailing zeros that record equality would reject.
+        Assert.Equal(0, CobolDec.Compare(
+            CobolDec.From(18639999999999, 13),
+            CobolDate.CombinedDatetimeDec(CobolRounding.NearestAwayFromZero, 1, new CobolDec(8639999999999, -8))));
+        Assert.Equal(1.863999999, CobolIntrinsics.CombinedDatetimeReal(1, 86399.9999), 9);
+    }
+
+    /// <summary>
     /// ⛔ THE GENERAL GUARD: no <c>…Real</c> body may answer a domain guard with a bare literal.
     /// </summary>
     /// <remarks>
@@ -261,6 +311,9 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         Assert.True(wide.GetValueOrDefault("TestDateYyyymmdd"), "TestDateYyyymmdd is not paired as a wide body");
         Assert.True(wide.GetValueOrDefault("TestDayYyyyddd"), "TestDayYyyyddd is not paired as a wide body");
         Assert.True(wide.GetValueOrDefault("FindString"), "FindString is not paired as a wide body");
+        // kb/Work PB636 — RANDOM's seed joined the set: §15.75.3 r2 constrains the sign alone and §15.75.4 r3
+        // makes the distinct-sequence subset a floor, so the body declares Int128 and the arm must go wide.
+        Assert.True(wide.GetValueOrDefault("Random"), "Random is not paired as a wide body");
         Assert.False(wide.GetValueOrDefault("Factorial", true), "Factorial is not paired as a narrow body");
 
         var offenders = IntakeWidthOffenders(

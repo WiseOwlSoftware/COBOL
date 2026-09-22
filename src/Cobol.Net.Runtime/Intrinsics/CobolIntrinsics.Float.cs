@@ -144,9 +144,27 @@ public static partial class CobolIntrinsics
     /// what NIST IF131A exercises; hazard H7). Seeds 0..32767 must yield distinct sequences (rule 3) — the .NET
     /// generator satisfies this for the whole int range. ⛔ A NEGATIVE seed violates r2 ("zero or a positive
     /// integer") and raises EC-ARGUMENT-FUNCTION (fix-queue PB65 — the old mask folded it onto a positive seed
-    /// and RANDOM(-5) silently aliased RANDOM(0x7FFFFFFB & …)); the mask remains only as the documented
+    /// and RANDOM(-5) silently aliased RANDOM(0x7FFFFFFB &amp; …)); the mask remains only as the documented
     /// wide-seed mapping for legal values beyond the generator's int range.</summary>
-    public static double Random(long seed)
+    /// <remarks>
+    /// ⛔ THE SEED IS A <b>TOTAL</b> §15 INTEGER ARGUMENT, AND THE <c>Int128</c> CARRIER IS THAT CLAIM
+    /// (kb/Work PB636 — see <c>IntrinsicRenderer.AsIntWide</c>, whose pairing guard reads this signature).
+    /// §15.75.3 r2 constrains the SIGN and nothing else — "If argument-1 is specified, it shall be zero or a
+    /// positive integer" — and §15.75.4 r3 makes the distinct-sequence subset a FLOOR, not a domain: "This
+    /// subset shall include the values from 0 through at least 32767", so a seed outside that subset is still a
+    /// legal argument whose sequence r1/r2 define. §15.3's closing paragraph raises EC-ARGUMENT-FUNCTION only on
+    /// "an incorrect value for that argument … according to the rules specified in the function definition", and
+    /// no rule here makes a large seed incorrect. The parameter was <c>long</c>, so the renderer's narrowing
+    /// intake screened the argument first: <c>FUNCTION RANDOM(S)</c> with <c>S PIC 9(19)</c> holding
+    /// 9,999,999,999,999,999,999 terminated the run unit under <c>&gt;&gt;TURN EC-ARGUMENT-FUNCTION CHECKING
+    /// ON</c> and, with checking off, substituted the ARGUMENT 0 and ran the seed-0 sequence without a word.
+    /// <para>The reduction to the generator's state is unchanged and stays the documented one
+    /// (<c>docs/CONFORMANCE.md</c> row DOC-A.1-145 under §15.75.4 r3): the low 31 bits,
+    /// <c>seed AND 0x7FFFFFFF</c>. It is the identity on 0..2³¹−1 — so the required 0..32 767 floor is injective
+    /// with a wide margin — and folds every wider seed onto that window, which r3 permits: the subset yielding
+    /// DISTINCT sequences need only include the floor, not exhaust the domain.</para>
+    /// </remarks>
+    public static double Random(Int128 seed)
     {
         if (seed < 0)
         {
