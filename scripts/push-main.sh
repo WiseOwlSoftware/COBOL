@@ -24,7 +24,9 @@
 # straight to the main push, and a run already in flight for that sha is re-attached to, never duplicated. Run it
 # in the background (the Bash tool's `run_in_background`) or re-run it; do not hand-roll the wait.
 #
-# Usage:  bash scripts/push-main.sh [--branch-prefix ci] [--no-delete]
+# Usage:  bash scripts/push-main.sh [--branch-prefix ci] [--no-delete] [--audit]
+#         --audit  — land nothing: report stale landing branches and exit 1 if any survives whose tip is
+#                    already an ancestor of origin/main (the drift check kb/Work/PB950 asks for).
 #         PUSH_MAIN_TIMEOUT_MIN=45  — how long to wait for the landing run (default 45)
 # Exit:   0 = the commit is on main and its CI was green · 1 = CI red or the push refused · 2 = usage/state error
 
@@ -32,11 +34,13 @@ set -uo pipefail
 
 PREFIX=ci
 DELETE_BRANCH=1
+AUDIT=0
 TIMEOUT_MIN="${PUSH_MAIN_TIMEOUT_MIN:-45}"
 while [ $# -gt 0 ]; do
   case "$1" in
     --branch-prefix) PREFIX="${2:?--branch-prefix needs a value}"; shift 2 ;;
     --no-delete)     DELETE_BRANCH=0; shift ;;
+    --audit)         AUDIT=1; shift ;;
     -h|--help)       sed -n '2,30p' "$0"; exit 0 ;;
     *) echo "push-main.sh: unknown argument '$1'" >&2; exit 2 ;;
   esac
@@ -54,6 +58,109 @@ REPO="$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)"
 SHA="$(git rev-parse HEAD)"      || die "no HEAD"
 SHORT="$(git rev-parse --short=12 HEAD)"
 BRANCH="$PREFIX/$SHORT"
+
+# ── Landing-branch hygiene (kb/Work/PB950) ───────────────────────────────────────────────────────────────────
+# ⛔ TWO MECHANISMS LEFT NINE BRANCHES BEHIND, AND THE OBVIOUS ONE WAS NOT THE COMMON ONE.
+#   A. $BRANCH is computed from HEAD AT INVOCATION. A caller that rebases between attempts lands sha2, deletes
+#      only ci/<sha2>, and orphans ci/<sha1> FOREVER — no later invocation ever computes that name again.
+#      Measured 2026-09-21: battery #82 pushed ci/410280c17f6e, rebased onto a main registrar #8 had moved,
+#      landed e3902c8f3, and left the first branch behind. SIX of the nine survivors were this shape.
+#   B. the delete was `git push … --delete "$BRANCH" 2>/dev/null && say deleted`, so a FAILED delete printed
+#      nothing, set no exit code anyone read, and the landing printed its success marker anyway. Two were this.
+# The fix is a LEDGER for A and a SWEEP for B — plus an unsilenced delete, without which B cannot be diagnosed
+# at all. The sweep is what makes the NEXT orphan disappear automatically instead of accumulating.
+ATTEMPTS="$(git rev-parse --git-common-dir)/push-main-attempts"   # shared by every linked worktree
+TOPLEVEL="$(git rev-parse --show-toplevel)"
+TAB="$(printf '\t')"
+
+delete_remote_branch() {   # $1 = branch name. Loud on failure — never `2>/dev/null && say`.
+  local out rc
+  out="$(git push --quiet origin --delete "$1" 2>&1)"; rc=$?
+  if [ "$rc" -eq 0 ]; then
+    say "push-main: deleted the landing branch $1 (the run and its check runs live on the commit)."
+    return 0
+  fi
+  case "$out" in
+    *"remote ref does not exist"*) return 0 ;;   # already gone — not a failure, and not worth a line
+  esac
+  say "⚠ push-main: COULD NOT DELETE the landing branch $1 (git exit $rc):"
+  printf '%s\n' "$out" | sed 's/^/      /'
+  say '      it is left on the remote; bash scripts/push-main.sh --audit will keep reporting it.'
+  return 1
+}
+
+record_attempt() {         # remember this branch so a LATER attempt from the same worktree deletes it — PB950 A
+  [ "$DELETE_BRANCH" = 1 ] || return 0
+  printf '%s%s%s\n' "$TOPLEVEL" "$TAB" "$1" >> "$ATTEMPTS" 2>/dev/null || true
+}
+
+fetch_landing_refs() {
+  git fetch --quiet --prune origin \
+    "+refs/heads/$PREFIX/*:refs/remotes/origin/$PREFIX/*" 2>/dev/null || true
+}
+
+sweep_landing_branches() {
+  [ "$DELETE_BRANCH" = 1 ] || return 0
+  fetch_landing_refs
+
+  # A — every branch THIS worktree pushed for an earlier attempt. Keyed by worktree path, so a concurrent
+  #     lander's in-flight attempt is never touched; its own landing sweeps its own rows.
+  if [ -f "$ATTEMPTS" ]; then
+    local wt br kept
+    kept="$(mktemp 2>/dev/null || echo "$ATTEMPTS.keep")"
+    : > "$kept"
+    while IFS="$TAB" read -r wt br; do
+      [ -n "$br" ] || continue
+      if [ "$wt" = "$TOPLEVEL" ]; then
+        [ "$br" = "$BRANCH" ] || delete_remote_branch "$br" || true
+      else
+        printf '%s%s%s\n' "$wt" "$TAB" "$br" >> "$kept"
+      fi
+    done < "$ATTEMPTS"
+    mv -f "$kept" "$ATTEMPTS" 2>/dev/null || rm -f "$kept" 2>/dev/null
+  fi
+
+  # B — a landing branch whose tip is ALREADY an ancestor of origin/main has by definition landed; if one
+  #     survives, a delete failed silently. Deleting it here is the self-heal; --audit is the check.
+  local ref br
+  for ref in $(git for-each-ref --format='%(refname)' "refs/remotes/origin/$PREFIX/" 2>/dev/null); do
+    br="${ref#refs/remotes/origin/}"
+    if git merge-base --is-ancestor "$ref" refs/remotes/origin/main 2>/dev/null; then
+      delete_remote_branch "$br" || true
+    fi
+  done
+}
+
+audit_landing_branches() { # report, change nothing, FAIL on the provable-recurrence state
+  fetch_landing_refs
+  local ref br landed=0 orphan=0
+  for ref in $(git for-each-ref --format='%(refname)' "refs/remotes/origin/$PREFIX/" 2>/dev/null); do
+    br="${ref#refs/remotes/origin/}"
+    if git merge-base --is-ancestor "$ref" refs/remotes/origin/main 2>/dev/null; then
+      say "⛔ LANDED BUT NOT DELETED: $br — $(git log -1 --format=%s "$ref" | cut -c1-66)"
+      landed=$((landed + 1))
+    else
+      say "⚠ orphan, never reached main: $br — $(git log -1 --format=%s "$ref" | cut -c1-66)"
+      orphan=$((orphan + 1))
+    fi
+  done
+  if [ "$landed" -eq 0 ] && [ "$orphan" -eq 0 ]; then
+    say "push-main --audit: no $PREFIX/* landing branches on the remote — clean."
+    return 0
+  fi
+  say ""
+  say "push-main --audit: $landed landed-but-undeleted, $orphan orphaned (kb/Work/PB950)."
+  [ "$landed" -eq 0 ]        # a LANDED survivor proves a delete failed silently; an orphan is reported, not fatal
+}
+
+# ⛔ THE AUDIT DISPATCH IS DELIBERATELY HERE, ABOVE EVERY LANDING PRECONDITION. Placed after them it was dead
+# code in the one state you most want to run it in — a clean checkout sitting at origin/main, where the
+# "nothing to land" early-exit fires first. Measured 2026-09-21 by running it.
+if [ "$AUDIT" = 1 ]; then
+  git fetch --quiet origin '+refs/heads/main:refs/remotes/origin/main' || die "git fetch origin main failed"
+  audit_landing_branches
+  exit $?
+fi
 
 # ── The tree is not what lands; HEAD is. Say so loudly rather than silently leaving work behind. ──────────────
 DIRTY="$(git status --porcelain -- . ':!.claude/settings.local.json' | grep -v ' STATUS.md$')"
@@ -108,6 +215,7 @@ if green_ci_gate "$SHA"; then
 else
   say "push-main: pushing $SHORT to $BRANCH for verification …"
   git push --quiet origin "$SHA:refs/heads/$BRANCH" || die "could not push $BRANCH"
+  record_attempt "$BRANCH"    # so a later attempt from this worktree deletes this one — PB950 mechanism A
 
   say "push-main: waiting for the run on $SHA (timeout ${TIMEOUT_MIN} min) …"
   for _ in $(seq 1 30); do                       # the run takes ~10–40 s to appear
@@ -168,8 +276,10 @@ say "push-main: ✅ $SHORT is on main."
 if [ "$DELETE_BRANCH" = 1 ]; then
   # Unconditional: a re-run that skipped verification still has last time's branch to clean up. The run and its
   # check runs are attached to the COMMIT, which is now reachable from main, so nothing is lost with the branch.
-  git push --quiet origin --delete "$BRANCH" 2>/dev/null \
-    && say "push-main: deleted the landing branch $BRANCH (the run and its check runs live on the commit)."
+  delete_remote_branch "$BRANCH" || true
+  # …and every branch this worktree pushed for an EARLIER attempt, plus any landing branch that already landed.
+  # Without this a rebase between attempts orphans the first branch permanently (PB950 mechanism A).
+  sweep_landing_branches
 fi
 
 # ── 3. Read the verdict of the run THIS push just started — the whole point of PB796. It is the
