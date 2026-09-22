@@ -13,6 +13,15 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1638 — 2026-09-22 11:58 PDT — The implementation-option precedence is written into CLAUDE.md rule 1, where every agent reads it
+
+The owner restated the rule while confirming that wave 46's retirement of PB825 was licensed by `kb/Work/R13`:
+**where there are several implementation options — the ISO spec if it controls; otherwise GnuCOBOL; if GnuCOBOL
+has nothing, IBM Enterprise COBOL or Micro Focus.** It was decided 2026-08-08 (R13, COMP-5 DISPLAY beyond the
+PICTURE) but lived only in the orchestrator's memory, so no implementer could see it — PB825's implementer found
+R13 on its own. CLAUDE.md is injected into every subagent, so rule 1 now carries it, with the existing limit: it
+settles implementor LATITUDE only, never GnuCOBOL's non-ISO extensions.
+
 ## Entry 1637 — 2026-09-22 11:47 PDT — Two orchestration rules from wave 45: a workflow agent never ends its turn on a background job, and every dispatch carries a graceful STOP
 
 **Measured, not guessed.** Wave 45 (the first Opus 5.5 wave, seven groups) came back with FIVE implementers and the

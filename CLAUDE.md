@@ -6,7 +6,11 @@ Owner-emphasized, each earned by a correction. These eight are the SSOT; `PROMPT
 
 1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case.** Read it and cite
    the exact §/GR for any semantics, syntax, or output question. The legacy oracle, the NIST goldens and the
-   GnuCOBOL differential are regression NETS with known holes — never authority. When a general-format DIAGRAM is
+   GnuCOBOL differential are regression NETS with known holes — never authority. **Where there are several
+   implementation options, the precedence is: the ISO spec if it controls → otherwise GnuCOBOL → if GnuCOBOL has
+   nothing, IBM Enterprise COBOL or Micro Focus** (owner, 2026-08-08 via `kb/Work/R13`, restated 2026-09-22). This
+   settles implementor LATITUDE only — never GnuCOBOL's non-ISO extensions — and the choice is documented in
+   `docs/CONFORMANCE.md`. When a general-format DIAGRAM is
    load-bearing, render the PDF page (`scripts/render-spec-page.py <page>`): the OCR'd diagrams were systematically
    lossy toward falsely-restrictive syntax.
    **⛔ VALIDATE EVERY CITATION MECHANICALLY — `python scripts/spec/cite.py --check <clause> "<text>"`.** The
