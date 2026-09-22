@@ -25,6 +25,20 @@ workflow passes `model: 'opus'`.
 | lander | a commit in ITS worktree after each numbered step + `STATUS.md` | one step |
 | orchestrator | reports are FILES under the scratchpad (`reports/<cluster>-report.md`), briefs are FILES referenced by path; the conversation carries only pointers | — |
 
+⭐ **GRACEFUL STOP — the quota-suspend signal (owner 2026-09-22: "attempt to not lose work due to a quota kill").**
+Workflow agents cannot be messaged, so every dispatch prompt carries this line: *"Before starting each new step,
+check for the file `{SCRATCH}\STOP`; if it exists, checkpoint-commit, write STATUS.md NEXT, and return your
+structured result with status SPLIT."* At ~80–85 % of the SESSION or ~90 % of the WEEKLY meter the orchestrator
+creates `STOP`, waits for the returns, and only then `TaskStop`s stragglers and WIP-commits their worktrees — so a
+quota kill never lands mid-step. Delete `STOP` before resuming.
+
+⛔ **A WORKFLOW AGENT NEVER ENDS ITS TURN WHILE A BACKGROUND JOB RUNS.** Measured 2026-09-22 (wave 45): an agent told
+"run the gate in the background and wait for the notification" ENDS its turn, is RETURNED by the harness, and its
+background gate is KILLED — five implementers and the train-46 lander all came back "gate PENDING" with logs that stop
+mid-leg. Every dispatch prompt says: start the job in the background to a log, then BLOCK in the foreground on
+`timeout 580 bash -c 'tail -n +1 -f <log> | grep -m1 "<verdict pattern>"'`, re-issued until the verdict prints (for
+push-main, append `echo "PUSH-MAIN-EXIT=$?"` to its log and block on that).
+
 **A killed agent is replaced by a FRESH agent that reads the checkpoint** (`STATUS.md` + `git log`, or the `.jsonl`).
 Resume via `SendMessage` only when the agent is within a step of finishing. A workflow resumes with `resumeFromRunId`,
 but design its stages to read inputs from disk (`out-<slug>.json`) so a rewritten script never re-runs completed work.
