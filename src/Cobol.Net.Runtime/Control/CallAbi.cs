@@ -472,6 +472,40 @@ public static class CobolArgAdapt
             : Omitted<CobolVarGroup>(i);
     }
 
+    /// <summary>Adapt argument <paramref name="i"/> to a MANAGED-SLOT formal — a formal of class pointer or
+    /// class object-reference, whose value is a managed reference and has no byte image at all (kb/Work PB663;
+    /// the <c>SlotWindow.CarriedBySlot</c> population, which is where the compiler decides the same thing about
+    /// storage). It is the FOURTH crossing form beside the native cell, the character image and the
+    /// variable-length carrier, and the one that had no arm: a pointer formal took <see cref="Text"/> and
+    /// arrived as a <c>ManagedPointer&lt;string&gt;</c> space image, which is not merely the wrong value — the
+    /// generated C# does not compile (CS1503 on the first reference).
+    /// <para>The adaptation is pure ALIASING and admits exactly the same carrier type, because §14.8.2.3.2
+    /// leaves no crossing to invent here: <i>"If either the argument or the formal parameter is of class
+    /// pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding
+    /// items shall be of the same category"</i>, and its object-reference rules 1–3 likewise force the same
+    /// universal/interface-name/object-class-name on both sides. Same category plus same class means the same
+    /// <c>PicInfo.ClrType</c>, so a conforming pairing IS a same-<c>T</c> carrier (§14.2.3 GR8's "same storage
+    /// area", realized with zero indirection). A carrier of any other shape means the two sides disagreed about
+    /// the crossing — it degrades to the loud omitted carrier rather than reinterpreting storage, the same way
+    /// <see cref="VarGroup"/> does.</para></summary>
+    public static ManagedPointer<T> Slot<T>(CobolArg[] args, int i)
+    {
+        if (!Present(args, i)) return Omitted<T>(i);
+        return args[i].Carrier is ManagedPointer<T> mp ? mp : Omitted<T>(i);
+    }
+
+    /// <summary>The BY VALUE / BY CONTENT twin of <see cref="Slot{T}"/> (ISO §14.2.3 GR10 — a record "allocated
+    /// by the activating runtime element", the argument its sending operand in <i>"a SET statement"</i> when the
+    /// formal is of class object or pointer): a DETACHED cell holding the argument's reference value, so the
+    /// callee's stores never reach the caller's storage. That SET of one pointer (or object reference) from
+    /// another of the same category IS the reference copy this cell performs — there is no conversion for it
+    /// to apply, which is why the numeric lane's landing machinery has no counterpart here.</summary>
+    public static ManagedPointer<T> SlotValue<T>(CobolArg[] args, int i)
+    {
+        if (!Present(args, i)) return Omitted<T>(i);
+        return args[i].Carrier is ManagedPointer<T> mp ? ManagedPointer<T>.Cell(mp.Value) : Omitted<T>(i);
+    }
+
     /// <summary>Deliver a RETURNING value to the caller's RETURNING carrier (ISO §14.2.3 GR7 — at termination the
     /// returning item's value transfers to the activating element's RETURNING identifier). Null-tolerant: a CALL
     /// without RETURNING discards the value (deep-dive edge case). The overload set spans the four native
@@ -597,6 +631,14 @@ public static class CobolArgAdapt
             // turn a documented GR12 leniency into an NRE (kb/Work PB204 added the var-group carrier).
             if (typeof(T) == typeof(string)) return (T)(object)"";
             if (typeof(T) == typeof(CobolVarGroup)) return (T)(object)CobolVarGroup.Empty;
+            // The DATA-POINTER carrier's benign empty value is the predefined NULL data pointer, not a CLR
+            // null (ISO §8.4.3.10.4 GR1 — "the predefined address NULL references a data item of category
+            // data-pointer that contains the null address"; kb/Work PB663). `default` would hand back null
+            // and make the documented GR12 leniency an NRE the first time the callee referenced the formal —
+            // the same trap the string and var-group arms exist for. ProgramPointer / FunctionPointer need no
+            // arm: each is a readonly struct whose `default` IS its own null address (GR3 / GR2), and an
+            // object reference's CLR null IS its initial state (§13.18.63).
+            if (typeof(T) == typeof(ManagedPointer)) return (T)(object)ManagedPointer.Null;
             return default!;
         },
         _ => RunUnit.Current.Exceptions.ProgramArgOmittedError(

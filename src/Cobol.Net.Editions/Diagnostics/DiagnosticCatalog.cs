@@ -1328,9 +1328,11 @@ public static class DiagnosticCatalog
     // ── COBOLNET0899 — inter-program header-formal deferrals (P10 Step 10) ──────────────────────────
     public static readonly DiagnosticDescriptor ByValueFormalCarrier = new(
         NotImplemented, "by-value-formal-carrier", EditionSeverity.Error,
-        "A BY VALUE formal parameter of class object, pointer, or of floating-point usage is legal "
-        + "(§14.2.2 SR2) but its value-copy carrier is not yet implemented — only a fixed-point numeric "
-        + "BY VALUE formal is carried (the §14.2.3 GR10 detached-cell copy).",
+        "A BY VALUE formal parameter of FLOATING-POINT usage is legal (§14.2.2 SR2) but its value-copy "
+        + "carrier is not yet implemented; so is a BY VALUE formal on a METHOD, whose value-copy model the "
+        + "INVOKE channel does not carry. The fixed-point numeric and the class object / class pointer "
+        + "program formals ARE carried — the §14.2.3 GR10 detached-cell copy, whose filling GR10 names as "
+        + "a COMPUTE without ROUNDED and a SET respectively (kb/Work PB663).",
         "ISO §14.2.2 SR2 / §14.2.3 GR10", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor OptionalFormal = new(
         NotImplemented, "optional-formal", EditionSeverity.Error,
@@ -4367,6 +4369,44 @@ public static class DiagnosticCatalog
         + "docs/CONFORMANCE.md §4 item 1.",
         "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.39.2 Format 17 / §14.9.39.3 SR35",
         RecognizedNotImplemented, Annex: DeclinedAnnex.A3);
+
+    /// <summary>Two definitions in one compilation group externalize the SAME name to the operating
+    /// environment (kb/Work PB660). ISO §8.3.2.2 states the rule as two sentences over one list, so this is one
+    /// diagnostic and not two: <i>"Within a run unit, all instances of a given name that is externalized to the
+    /// operating environment shall identify the same kind of entity or item"</i> refuses the CROSS-KIND pair (an
+    /// outermost program and a function under one name), and <i>"Except for method-names and property-names,
+    /// when two or more source elements identify something with the same externalized name, they refer to the
+    /// same instance"</i> refuses the SAME-KIND pair — two distinct definitions cannot be one instance.
+    /// <para>⛔ THE CONTAINED HALF IS A DIFFERENT CLAUSE AND A DIFFERENT CODE (COBOLNET2214, §8.4.6.3): a
+    /// contained program's name is not externalized at all (§8.3.2.2's list item 1 says "program-names of
+    /// OUTERMOST programs"), so its uniqueness is scoped to its outermost program, not to the group.</para>
+    /// <para>The comparison is CASE-INSENSITIVE, matching <c>ProgramTable.NameEquals</c> — the resolver this
+    /// check exists to keep honest. §8.3.2.2 leaves that to the implementor ("The implementor defines the
+    /// formation and mapping rules of these names"), and a check that compared more strictly than the resolver
+    /// would pass source the run unit then resolves to the wrong definition.</para>
+    /// <para>PROTOTYPE units are excluded by construction, not by omission: §10.6.2 SR2 and SR3 each describe
+    /// a compilation group containing "both a {program|function} definition and a {program|function} prototype
+    /// definition with the same externalized name", so that pair is the INTENDED shape.</para></summary>
+    public static readonly DiagnosticDescriptor DuplicateExternalizedDefinition = new(
+        "COBOLNET2213", "duplicate-externalized-definition", EditionSeverity.Error,
+        "Two definitions in one compilation group externalize the same name to the operating environment. "
+        + "ISO §8.3.2.2: \"Within a run unit, all instances of a given name that is externalized to the operating "
+        + "environment shall identify the same kind of entity or item. Except for method-names and "
+        + "property-names, when two or more source elements identify something with the same externalized name, "
+        + "they refer to the same instance.\"",
+        "ISO §8.3.2.2");
+    /// <summary>Two programs contained directly or indirectly within one outermost program share a
+    /// program-name (kb/Work PB660). ISO §8.4.6.3: <i>"The names assigned to programs that are contained
+    /// directly or indirectly within the same outermost program shall be unique within that outermost
+    /// program."</i> The scope is the OUTERMOST PROGRAM, not the compilation group — two different outermost
+    /// programs may each contain a program of the same name, and §8.4.6.3 rules 1 and 2 are what keep the two
+    /// apart at every reference.</summary>
+    public static readonly DiagnosticDescriptor DuplicateContainedProgramName = new(
+        "COBOLNET2214", "duplicate-contained-program-name", EditionSeverity.Error,
+        "Two programs contained within one outermost program share a program-name. ISO §8.4.6.3: \"The names "
+        + "assigned to programs that are contained directly or indirectly within the same outermost program "
+        + "shall be unique within that outermost program.\"",
+        "ISO §8.4.6.3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -260,14 +260,47 @@ public sealed class UdfInvocationTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
     }
 
-    /// <summary>Two FUNCTION-ID definitions with one name — COBOLNET1508 (first-wins signature kept).</summary>
+    /// <summary>Two FUNCTION-ID definitions with one name. ⛔ The DIAGNOSTIC CHANGED with kb/Work PB660 and the
+    /// old one was citing the wrong clause: COBOLNET1508 keyed on the declared WORD and cited §8.4.6.6, the
+    /// scope of function-prototype-NAMES, which says nothing about uniqueness. What makes THIS pair illegal is
+    /// that both definitions externalize one name — §8.3.2.2: "Except for method-names and property-names,
+    /// when two or more source elements identify something with the same externalized name, they refer to the
+    /// same instance" — the same sentence two outermost PROGRAM definitions collide under, so one check
+    /// (COBOLNET2213) reports both. <see cref="DuplicateFunctionWord_UnderDifferentAsLiterals_1508"/> is what
+    /// keeps 1508 exercised on the clash §8.4.6.7 genuinely owns.</summary>
     [Fact]
-    public void DuplicateFunctionId_1508()
+    public void DuplicateFunctionId_2213()
     {
         string src = Group("UDFT11", "    COMPUTE WS-R = FUNCTION UDFDBL(WS-A).") + """
 
             IDENTIFICATION DIVISION.
             FUNCTION-ID. UDFDBL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-R PIC 9(4).
+            PROCEDURE DIVISION RETURNING L-R.
+            P.
+                GOBACK.
+            END FUNCTION UDFDBL.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2213");
+    }
+
+    /// <summary>The clash §8.4.6.7 owns and §8.3.2.2 does not see: two function DEFINITIONS sharing the
+    /// declared WORD while externalizing DIFFERENT names. "A user-function-name may be referenced in the
+    /// REPOSITORY paragraph of any source element that follows that function definition within the compilation
+    /// group" — so the word itself has to resolve, and two definitions under it cannot (kb/Work PB660). This is
+    /// the complement of <see cref="DuplicateFunctionId_2213"/>: neither check subsumes the other, and a
+    /// landing that folded 1508 away entirely would have dropped this case in silence.</summary>
+    [Fact]
+    public void DuplicateFunctionWord_UnderDifferentAsLiterals_1508()
+    {
+        string src = Group("UDFT11B", "    COMPUTE WS-R = FUNCTION UDFDBL(WS-A).") + """
+
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UDFDBL AS "UDFX2".
             DATA DIVISION.
             LINKAGE SECTION.
             01 L-R PIC 9(4).

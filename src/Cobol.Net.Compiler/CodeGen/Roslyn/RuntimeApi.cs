@@ -1289,6 +1289,21 @@ internal static class RuntimeApi
     public static string ArgAdaptVarGroupValue(string args, int position) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroupValue)}({args}, {position})";
 
+    // ── The MANAGED-SLOT boundary carrier (class pointer / class object-reference; kb/Work PB663). The FOURTH
+    //    crossing form: its value is a managed reference with no byte image, so neither the native numeric cell
+    //    nor the character image can carry it — see CobolArgAdapt.Slot.
+
+    /// <summary>A LINKAGE formal of class pointer or object-reference adopting the caller's carrier —
+    /// <c>CobolArgAdapt.Slot&lt;T&gt;</c> over the formal's OWN <c>PicInfo.ClrType</c> (ISO §14.2.3 GR8's
+    /// "same storage area"; §14.8.2.3.2 forces the same category/class on both sides, so T matches).</summary>
+    public static string ArgAdaptSlot(string args, int position, string carrier) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Slot)}<{carrier}>({args}, {position})";
+
+    /// <summary>The BY VALUE / BY CONTENT twin — <c>CobolArgAdapt.SlotValue&lt;T&gt;</c> (ISO §14.2.3 GR10's
+    /// detached record, filled by "a SET statement" when the formal is of class object or pointer).</summary>
+    public static string ArgAdaptSlotValue(string args, int position, string carrier) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.SlotValue)}<{carrier}>({args}, {position})";
+
     /// <summary>A BY VALUE numeric formal's DETACHED value-copy cell (ISO §14.2.3 GR10 — stores never reach
     /// the caller) — <c>CobolArgAdapt.NumValue&lt;T&gt;</c> over the formal's carrier (see
     /// <see cref="ArgAdaptNum"/>).</summary>

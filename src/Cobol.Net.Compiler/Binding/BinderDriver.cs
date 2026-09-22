@@ -572,6 +572,10 @@ internal sealed class BinderDriver
     /// bind every unit's PROCEDURE DIVISION.</summary>
     internal static void BindProcedures(GroupBindContext ctx)
     {
+        // BEFORE either table is built (kb/Work PB660): a compilation group that DEFINES one name twice
+        // is nonconforming source, and both tables below silently keep the first definition and drop the
+        // second — the shape §8.3.2.2 exists to forbid.
+        CheckDefinitionNameUniqueness(ctx.Units, ctx.Session.OoClasses, ctx.Session.Edition);
         var userFunctions = BuildUserFunctionTable(ctx.Units, ctx.Session.Edition);
         // kb/Work PB237 — the compilation group's program definitions by EXTERNALIZED name, the search space
         // §12.3.8.4 GR10 a) names. Built once for the whole group, exactly like the user-function table beside it.
@@ -675,6 +679,155 @@ internal sealed class BinderDriver
     /// implementation's external repository is the run unit's program registry, which the later definition is in.
     /// Enforcing the order would therefore reject nothing illegal and would only DOWNGRADE a later definition's
     /// signature from a compile-time §14.8.2 check to a run-time EC-PROGRAM-ARG-MISMATCH.</para></summary>
+    /// <summary>The comparison EVERY definition-name question in this file asks — the same one
+    /// <c>ProgramTable.NameEquals</c> and both group tables here use (<c>OrdinalIgnoreCase</c>). §8.3.2.2
+    /// leaves the mapping of an externalized name to the implementor ("The implementor defines the formation
+    /// and mapping rules of these names"); what is NOT optional is that the bind-time check and the run-unit
+    /// resolver ask it the same way, or a group this check passes still resolves to the wrong definition.
+    /// <para>⚠ DETERMINATION, recorded because kb/Work PB660 carried the opposite as an INHERITED claim
+    /// ("externalized: ordinal, per PB303's determination" — PB303 records no such determination).</para></summary>
+    private static bool NameEq(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>⛔ THE ONE UNIQUENESS CHECK OVER A COMPILATION GROUP'S DEFINITION NAMES (kb/Work PB660), in
+    /// the two scopes the standard gives them.
+    /// <list type="number">
+    /// <item><b>The EXTERNALIZED scope — the whole group</b> (§8.3.2.2, COBOLNET2213). Its list item 1
+    /// externalizes "program-names of OUTERMOST programs … and user-function-names", and the clause then states
+    /// the rule twice over that one population: a CROSS-KIND pair is refused by <i>"all instances of a given
+    /// name that is externalized to the operating environment shall identify the same kind of entity or
+    /// item"</i>, and a SAME-KIND pair by <i>"when two or more source elements identify something with the same
+    /// externalized name, they refer to the same instance"</i> — two distinct definitions cannot be ONE
+    /// instance. Programs and functions are therefore ONE namespace here, not two, which is why this replaced
+    /// the function-only duplicate report that used to live in <see cref="BuildUserFunctionTable"/>.</item>
+    /// <item><b>The CONTAINED scope — one outermost program</b> (§8.4.6.3, COBOLNET2214): <i>"The names
+    /// assigned to programs that are contained directly or indirectly within the same outermost program shall
+    /// be unique within that outermost program."</i> A containee's name is not externalized at all, so its
+    /// scope is its outermost program and two different outermost programs may each contain an <c>X</c>.</item>
+    /// </list>
+    /// <para>MEASURED BEFORE WRITING, because the note claimed the contained half was already enforced:
+    /// NEITHER half was. Two outermost <c>PROGRAM-ID. P3DND.</c> definitions compiled and ran the SECOND; the
+    /// same pair under one <c>AS "P3DUPX"</c> ran the FIRST; two same-named CONTAINED programs ran the first;
+    /// and a program and a function sharing one name both registered and both ran. The registrar emitted
+    /// <c>ProgramRegistry.Register("P3DND", …)</c> twice under one path — order-dependent, and silent.</para>
+    /// <para>PROTOTYPES ARE EXCLUDED BY THE RULE, NOT FOR CONVENIENCE. §10.6.2 says so twice, once per kind:
+    /// SR2 — <i>"If a compilation group contains both a program definition and a program prototype definition
+    /// with the same externalized name, the signatures of these two compilation units shall be the same"</i> —
+    /// and SR3, the function twin. A prototype sharing a definition's externalized name is the shape the
+    /// standard legislates FOR, and §12.3.8.4 GR10 a) is what consumes it.</para></summary>
+    private static void CheckDefinitionNameUniqueness(IReadOnlyList<BoundUnit> units, OoClassTable oo,
+                                                      EditionContext edition)
+    {
+        // (1) The group-wide EXTERNALIZED namespace. Its population is §8.3.2.2's OWN list item 1 as far as
+        //     this compiler models it: outermost program definitions, function definitions, object-class
+        //     definitions and interface definitions. A FUNCTION-ID unit is never contained, so one containment
+        //     test covers both unit kinds; a class/interface definition is never a unit at all, which is why it
+        //     arrives from the OO table (and is why a CLASS-ID sharing a PROGRAM-ID's externalized name used to
+        //     compile clean — each namespace policed only ITSELF).
+        var externalized =
+            new Dictionary<string, (string Kind, string Spelling, string Word)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (kind, spelling, word, name, at) in ExternalizedDefinitions(units, oo))
+        {
+            if (externalized.TryGetValue(name, out var first))
+            {
+                // §8.4.6.4 states its OWN compilation-group uniqueness for object-class-names and
+                // interface-names, and the OO class table enforces it on the declared WORD (COBOLNET0820 /
+                // COBOLNET0840). A pair already reported THERE is skipped here rather than doubled — but only
+                // that pair: two class definitions whose words DIFFER and whose AS literals coincide are
+                // §8.3.2.2's business alone, and nothing else in the compiler looks at them.
+                if (IsOo(kind) && IsOo(first.Kind) && NameEq(word, first.Word)) continue;
+                using var _ = edition.At(at);
+                string why = first.Kind == kind
+                    ? $"two {kind} definitions cannot be one instance (§8.3.2.2: \"when two or more source "
+                      + "elements identify something with the same externalized name, they refer to the same "
+                      + "instance\")"
+                    : $"a {kind} definition and a {first.Kind} definition are not the same kind of entity "
+                      + "(§8.3.2.2: \"all instances of a given name that is externalized to the operating "
+                      + "environment shall identify the same kind of entity or item\")";
+                edition.Error(DiagnosticCatalog.DuplicateExternalizedDefinition,
+                    $"{spelling} and {first.Spelling} both externalize the name "
+                    + $"'{name}' in this compilation group — {why}");
+                continue;   // the FIRST stays the survivor, so one duplicated name reports exactly once
+            }
+            externalized[name] = (kind, spelling, word);
+        }
+
+        // (2) The per-OUTERMOST-PROGRAM contained namespace (§8.4.6.3). "Directly or indirectly", so the
+        //     walk is each outermost program's whole containment subtree, flattened onto ONE set per root.
+        foreach (var root in units)
+        {
+            if (root.Parent is not null || root.IsFunction) continue;
+            var contained = new Dictionary<string, BoundUnit>(StringComparer.OrdinalIgnoreCase);
+            foreach (var c in Containees(root))
+                if (!contained.TryAdd(c.Name, c))
+                {
+                    using var _ = edition.At(NameCtx(c));
+                    edition.Error(DiagnosticCatalog.DuplicateContainedProgramName,
+                        $"program '{c.Name}' contained in '{root.Name}' repeats the name of another program "
+                        + $"contained in '{root.Name}' — the names assigned to programs that are contained "
+                        + "directly or indirectly within the same outermost program shall be unique within that "
+                        + "outermost program (ISO §8.4.6.3)");
+                }
+        }
+
+        // The unit's own program-name token, for the diagnostic position. A CONTAINED unit's `Ctx` is the
+        // SYNTHETIC programUnit context Reparent builds (`new ProgramUnitContext(null!, -1)`), whose Start
+        // is null — so positioning on it silently produced a diagnostic with NO source location at all,
+        // while the outermost arm of the same message carried one. One accessor, both arms.
+        static ParserRuleContext? NameCtx(BoundUnit u)
+        {
+            var body = u.Ctx.identificationDivision()?.identificationBody();
+            return (ParserRuleContext?)(body?.programIdParagraph()?.programName()
+                ?? body?.functionIdParagraph()?.programName()) ?? u.Ctx;
+        }
+
+        // Every program contained directly or indirectly in `root` — §8.4.6.3's own scope words.
+        static IEnumerable<BoundUnit> Containees(BoundUnit root)
+        {
+            foreach (var child in root.Children)
+            {
+                yield return child;
+                foreach (var g in Containees(child)) yield return g;
+            }
+        }
+
+        // §8.3.2.2's list item 1, as this compiler models it — ONE sequence, so a definition kind cannot be
+        // policed by its own namespace and by nothing else. Each element carries the KIND (for the two
+        // messages), the SPELLING shown to the user, the EXTERNALIZED name that is the key, and where to
+        // report. The list's remaining members are not definitions in a compilation group: method-names and
+        // property-names are the two §8.3.2.2 EXEMPTS from the same-instance sentence by name, and a
+        // function-prototype-name / program-prototype-name names a definition elsewhere (§12.3.8.4 GR10).
+        static IEnumerable<(string Kind, string Spelling, string Word, string Name, ParserRuleContext? At)>
+            ExternalizedDefinitions(IReadOnlyList<BoundUnit> units, OoClassTable oo)
+        {
+            foreach (var u in units)
+            {
+                if (u.IsPrototype || u.Parent is not null) continue;
+                string kind = u.IsFunction ? "FUNCTION-ID" : "PROGRAM-ID";
+                yield return (kind, Spell(kind, u.Name, u.ExternalizedName), u.Name, u.ExternalizedName,
+                              NameCtx(u));
+            }
+            foreach (var c in oo.Classes)
+                yield return ("CLASS-ID", Spell("CLASS-ID", c.Name, c.ExternalizedName), c.Name,
+                              c.ExternalizedName, c.Ctx);
+            foreach (var i in oo.Interfaces)
+                yield return ("INTERFACE-ID", Spell("INTERFACE-ID", i.Name, i.ExternalizedName), i.Name,
+                              i.ExternalizedName, i.Ctx);
+        }
+
+        // The two kinds §8.4.6.4 gives their own compilation-group uniqueness sentence, and whose check
+        // therefore already exists elsewhere (OoClassTable).
+        static bool IsOo(string kind) => kind is "CLASS-ID" or "INTERFACE-ID";
+
+        // How a definition is named back to the user: the DECLARED word, plus the AS literal whenever one gave
+        // the externalized name a different spelling (§11.10.4 GR1 / §11.5.4 GR1 / §11.3.4 GR1 /
+        // §11.6.4 GR1) — without it a clash between two different words reads as a message about one word
+        // written twice.
+        static string Spell(string kind, string name, string externalized) =>
+            string.Equals(name, externalized, StringComparison.Ordinal)
+                ? $"{kind} '{name}'"
+                : $"{kind} '{name}' AS \"{externalized}\"";
+    }
+
     private static Dictionary<string, CalleeSignature> BuildProgramDefinitionTable(IReadOnlyList<BoundUnit> units)
     {
         var map = new Dictionary<string, CalleeSignature>(StringComparer.OrdinalIgnoreCase);
@@ -754,10 +907,27 @@ internal sealed class BinderDriver
                 edition.Error("COBOLNET1507",
                     $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "
                     + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");
-            if (!(u.IsPrototype ? protos : defs).TryAdd(u.Name, u))
-                edition.Error("COBOLNET1508",
-                    $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function {(u.IsPrototype ? "prototypes" : "definitions")} with "
-                    + "one name cannot both register in the run unit's activation namespace (ISO §8.4.6.6)");
+            // The duplicate report moved (kb/Work PB660). It used to key on the WORD and cite §8.4.6.6,
+            // which is the scope of function-prototype-NAMES and says nothing about uniqueness — a real
+            // clause answering a different question. Two function DEFINITIONS collide because they
+            // externalize one name (§8.3.2.2), the same sentence two outermost PROGRAM definitions
+            // collide under, so ONE check reports both: CheckDefinitionNameUniqueness, run before this.
+            // COBOLNET1508 survives for the clash §8.4.6.7 does own — a REPOSITORY `FUNCTION word` entry
+            // names the user-function-NAME, so two definitions sharing a word are ambiguous even when
+            // their AS literals differ — and for PROTOTYPE units, which the externalized check excludes
+            // (§10.6.2 SR3 pairs a function prototype with a same-name definition on purpose).
+            var bucket = u.IsPrototype ? protos : defs;
+            if (bucket.TryGetValue(u.Name, out var firstSameWord))
+            {
+                if (u.IsPrototype || !NameEq(u.ExternalizedName, firstSameWord.ExternalizedName))
+                    edition.Error("COBOLNET1508",
+                        $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function "
+                        + $"{(u.IsPrototype ? "prototypes" : "definitions")} share one user-function-name, which "
+                        + "a REPOSITORY paragraph entry can no longer name unambiguously (ISO §8.4.6.7: \"A "
+                        + "user-function-name may be referenced in the REPOSITORY paragraph of any source element "
+                        + "that follows that function definition within the compilation group\")");
+            }
+            else bucket[u.Name] = u;
         }
 
         // §12.3.8 GR11(a) — an in-group DEFINITION is authoritative over a same-name PROTOTYPE (:14871); a lone

@@ -80,6 +80,43 @@ ISO §8.3.2.2 2) is the whole rule: *"For any externalized user-defined words fo
 | an object-class-name / interface-name | §8.4.6.4 scopes the WORD | `Name` |
 | `FUNCTION MODULE-NAME` | §15.65.4 r4 is implementor-defined; CONFORMANCE.md DOC-A.1-135 chooses the program-id form | `Name` |
 
+**AND THE SAME CLAUSE MAKES EACH OF THOSE NAMES NAME ONE THING (kb/Work PB660).** §8.3.2.2 does not only say
+WHICH name a reference resolves; it says a name resolves to ONE definition: *“Within a run unit, all instances
+of a given name that is externalized to the operating environment shall identify the same kind of entity or
+item. Except for method-names and property-names, when two or more source elements identify something with the
+same externalized name, they refer to the same instance.”* Two distinct definitions cannot be one instance, so a
+compilation group that defines one externalized name twice is nonconforming and the compiler — which sees both
+— reports it. `BinderDriver.CheckDefinitionNameUniqueness` is the ONE place that rule lives, in the two scopes
+the standard gives it:
+
+| scope | population | rule | code |
+|---|---|---|---|
+| the whole compilation group | §8.3.2.2's OWN list item 1, as far as this compiler models it — OUTERMOST program definitions, FUNCTION definitions, CLASS definitions and INTERFACE definitions, by `ExternalizedName` | §8.3.2.2 — SAME-kind pairs by its “refer to the same instance” sentence, CROSS-kind pairs by its “same kind of entity or item” sentence | COBOLNET2213 |
+| ONE outermost program | its containment subtree, by declared `Name` | §8.4.6.3 — *“The names assigned to programs that are contained directly or indirectly within the same outermost program shall be unique within that outermost program”* | COBOLNET2214 |
+| the compilation group | object-class / interface definitions, by `Name` | §8.4.6.4 — its own explicit uniqueness sentences | COBOLNET0820 / COBOLNET0840 |
+| the compilation group | FUNCTION definitions, by declared WORD | §8.4.6.7 — a REPOSITORY `FUNCTION word` entry names the user-function-NAME, so two definitions sharing a word are ambiguous even under different `AS` literals | COBOLNET1508 |
+
+All four definition kinds are ONE namespace in the first row, not four, because §8.3.2.2's list item 1
+externalizes all of them — which is why the function-only duplicate check that used to sit in
+`BuildUserFunctionTable` (and cited §8.4.6.6, the scope of function-prototype-NAMES, a real clause answering
+a different question) is gone, and why a CLASS-ID sharing a PROGRAM-ID's externalized name used to compile
+clean: **every namespace policed only itself, so nothing ever compared a definition of one kind against a
+definition of another.** The two rows below keep exactly what their own clauses own — §8.4.6.7's WORD
+ambiguity for functions, and §8.4.6.4's class/interface word uniqueness, which row 1 deliberately does not
+restate (a class/class or class/interface pair sharing a WORD is skipped there, so one fault draws one
+diagnostic; a pair whose words differ and whose `AS` literals coincide is §8.3.2.2's alone and row 1 has
+it).
+
+⚠ **DETERMINATION — the comparison is CASE-INSENSITIVE**, the same one `ProgramTable.NameEquals` resolves a CALL
+with. §8.3.2.2 leaves the mapping to the implementor (*“The implementor defines the formation and mapping rules
+of these names”*); what is not optional is that the bind-time check and the run-unit resolver agree, or source
+this check passes still resolves to the wrong definition. PROTOTYPE units contribute nothing here: §10.6.2
+SR2 legislates FOR the pair — *“If a compilation group contains both a program definition and a program prototype
+definition with the same externalized name, the signatures of these two compilation units shall be the same”* —
+and SR3 is its function twin. The complement is pinned as hard as the
+refusals (`DefinitionNameUniquenessTests`): two different containers may EACH contain a program of one name,
+and two outermost programs may share the declared word under different `AS` literals.
+
 **Where the pair lives.** `BoundUnit.Name` / `BoundUnit.ExternalizedName` for programs and functions; `OoClassSymbol` / `OoInterfaceSymbol` / `OoMethodSymbol.ExternalizedName` for the OO trio; `DataItem.ExternalizedAs` and `FileModel.ExternalName` for §8.3.2.2's site 2), the EXTERNAL clause — whose default is §13.18.22.4 GR5's second sentence (the subject's own data-name or file-name) and is applied at the ONE cell-keying site, `DataBinder.CallMakeExternal` (kb/Work PB511). Each defaults to the declared word, so a source unit with no AS phrase is bit-for-bit what it was. The run-unit registry carries both (`ProgramTable.Node.Name` for MODULE-NAME, `Node.CallName` for resolution) and `ProgramRegistry.Register` takes its `externalizedName` argument only when they differ, keeping every AS-less unit emitted registration line byte-identical.
 
 **Why `CsName` is deliberately NOT derived from the externalized name.** For a class the emitted C# type name is a wire contract with `PicInfo.ClrType`, which maps a declared object-class-name to a C# type with no access to the class table; deriving it from the AS literal would break that mapping. The method side has no such constraint, which is why the METHOD roster IS keyed on the externalized name — and that key also realizes §11.7.3 SR9 (*"if method-name-1 **or literal-1** is the same as a method-name inherited or implemented"*) without a second lookup path.
@@ -140,7 +177,9 @@ CALLEE side — LINKAGE + PROCEDURE DIVISION USING:
       // GR10 "COMPUTE without ROUNDED" value copy; stores hit only the cell (NO copy-out — never the caller). Modes thread
       // per §14.2.3 GR4 (transitive; BY REFERENCE assumed first); LinkageFormal.ByValue carries the resolution. §14.2.2 SR2
       // restricts BY VALUE formals to class numeric/message-tag/object/pointer (COBOLNET1553); the carried leg is fixed-point
-      // numeric — object/pointer/float stage loud (0899 by-value-formal-carrier). A UDF activation's arguments take BY VALUE
+      // numeric AND the managed classes — GR10 names both fillings, "a COMPUTE statement without the ROUNDED phrase"
+      // for a numeric formal and "a SET statement" for one of class object or pointer (CobolArgAdapt.SlotValue; kb/Work PB663).
+      // Only FLOATING-POINT usage, and a METHOD's BY VALUE formal, still stage loud (0899 by-value-formal-carrier). A UDF activation's arguments take BY VALUE
       // whenever the formal says so (§8.4.3.2.4 GR5c; argument class per §8.4.3.2.3 SR10 = COBOLNET1554) — ONE ABI, both paths.
 UNIFORM ABI (dynamic / cross-assembly):
   CALL identifier WS-PGM USING A.  ->
@@ -187,7 +226,29 @@ boundary carries three forms, not two:
 | a native FLOATING-POINT leaf | `ManagedPointer<double>` / `<float>` — the field's own carrier (kb/Work PB238) | `PlaceRenderer.Read`/`Write` |
 | any fixed-window character storage, a group included | `ManagedPointer<string>` — the record image | `CallEmitter.CallStringRead`/`CallStringWrite` |
 | a VARIABLE-LENGTH group | `ManagedPointer<CobolVarGroup>` | `PlaceRenderer.VarGroupImage`/`WriteVarGroupImage` |
+| a MANAGED SLOT — class pointer (data / program / function) or class object-reference | `ManagedPointer<ManagedPointer\|ProgramPointer\|FunctionPointer\|«class»?>` — the item's own `PicInfo.ClrType` (kb/Work PB663) | `PlaceRenderer.Read`/`Write` |
 | a boolean-expression-1 VALUE (§14.9.4.2 Format 2 BY CONTENT) | `ManagedPointer<string>` — the §8.8.2 bit-string value, resized to the rule-10 width | `BooleanRenderer.Render` (no place; `BoundCallArg.ContentBool`) |
+
+**THE MANAGED SLOT — THE FOURTH FORM, AND ONE CLASSIFICATION FOR BOTH SIDES (kb/Work PB663).** A class-pointer
+or class-object-reference item's value IS a managed reference; it has no byte image at all (the same fact
+`SlotWindow.CarriedBySlot` states for storage — PB231). Its carrier is therefore its own `PicInfo.ClrType`,
+exactly as a numeric leaf's is, and §14.8.2.3.2 removes any need to convert at the boundary: *“If either the
+argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall be of
+class pointer and the corresponding items shall be of the same category”*, and its object-reference rules 1–3
+force the same universal/interface-name/object-class-name on both ends. `CobolArgAdapt.Slot<T>` therefore
+aliases a same-`T` carrier and degrades to the loud omitted carrier for anything else, and `SlotValue<T>` is
+§14.2.3 GR10's detached record — which GR10 fills with *“a SET statement”* for this class, i.e. the reference
+copy itself.
+
+⛔ **The ACTIVATING and the ACTIVATED sides now read ONE classification**, `CallCrossing` +
+`CallEmitter.CrossingOf` / `ProgramEmitter.FormalCrossing`. They were two formulations of one rule — a caller
+chain of three place predicates and a callee `bool isNum` — and the callee's had only two arms, so a
+`USAGE POINTER` formal was declared `ManagedPointer<string>` over a space image and its first reference was a
+Roslyn CS1503 on conforming source. §14.9.4.3 SR10 bars a FORMAT 1 CALL from passing such an item BY REFERENCE,
+so the callee arm is reachable only through a Format-2 activation (`AS NESTED`, a prototype) or a separately
+compiled activator — which is why the hole survived the whole pointer increment. `LinkageCarrierDriftTests`
+walks `PicCategory` itself and pins the invariant that makes the next class automatic: **a formal crosses as a
+character image only when its own storage IS a C# string.**
 
 **THE FLOAT LANE (kb/Work PB238).** `CobolArg`'s `(Digits, Scale)` meta describes a FIXED-POINT picture, and the
 four integer carriers of kb/Work R12 were the whole numeric vocabulary — a float leaf was routed onto the

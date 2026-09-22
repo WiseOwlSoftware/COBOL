@@ -138,6 +138,71 @@ internal sealed class ProgramEmitter
             ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}")
             : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}");
 
+    /// <summary>⛔ THE ONE ADOPTION EXPRESSION for a formal's carrier at the activation boundary — one arm per
+    /// <see cref="CallCrossing"/>, each with its BY REFERENCE (§14.2.3 GR8 aliasing) and BY VALUE (GR10
+    /// detached copy) form. The RESIDENT and the ROUND-TRIP loops call THIS rather than each spelling the
+    /// dispatch out: they had two copies of it and both were missing the managed arm (kb/Work PB663), which is
+    /// this repo's two-arm-dispatch shape with the arms one method apart.
+    /// <paramref name="textWidth"/> is the character arm's window — the formal's PICTURE length for a resident
+    /// formal, its whole record image for a round-tripped one.</summary>
+    private static string FormalAdopt(LinkageFormal f, CallCrossing crossing, string carrier, int textWidth) =>
+        crossing switch
+        {
+            CallCrossing.Native => f.ByValue
+                ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
+                : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier),
+            // The managed slot aliases (or, BY VALUE, copies) the caller's REFERENCE — §14.2.3 GR10 makes that
+            // copy "a SET statement" for a formal of class object or pointer, which is the reference copy
+            // itself; §14.8.2.3.2 forces both sides to the same category and class, so the carrier type is the
+            // same T on both ends and the adoption needs no conversion machinery at all.
+            CallCrossing.Managed => f.ByValue
+                ? RuntimeApi.ArgAdaptSlotValue("__args", f.Position, carrier)
+                : RuntimeApi.ArgAdaptSlot("__args", f.Position, carrier),
+            // §8.5.1.12's component carrier, adopted whole — there is no width window to apply, because the
+            // receiving group's own FromVarImage is what re-fits both halves (kb/Work PB204).
+            CallCrossing.VarGroup => f.ByValue
+                ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position)
+                : RuntimeApi.ArgAdaptVarGroup("__args", f.Position),
+            _ => FormalTextCarrier(f, textWidth),
+        };
+
+    /// <summary>⛔ THE ONE PLACE A LINKAGE FORMAL'S CROSSING FORM IS DECIDED (kb/Work PB663) — the ACTIVATED
+    /// half of <see cref="CallEmitter.CrossingOf(Place)"/>, which is the ACTIVATING half. Before this there was
+    /// a <c>bool isNum</c> here and a three-predicate chain there: two formulations of one rule, and this one
+    /// had only TWO arms where the model has four, so every formal of class pointer or object-reference fell
+    /// into the CHARACTER arm and was declared as a space-filled <c>ManagedPointer&lt;string&gt;</c> — not a
+    /// wrong value but uncompilable C# (Roslyn CS1503 on the formal's first reference, on conforming source).
+    /// <para>A CARRIER-RESIDENT formal has no <see cref="Place"/> to classify — its storage IS the carrier's
+    /// <c>Value</c> — so it is classified from its own <c>DataItem</c>, by the same three tests in the same
+    /// order: the managed-slot population (<c>SlotWindow.CarriedBySlot</c>), then a native fixed-point leaf,
+    /// then the character image. It can never be VarGroup: residency demands a childless elementary item.</para>
+    /// <para>A non-resident formal whose item resolves to NO place keeps the character arm, whose copy-in
+    /// stages the existing loud — an unresolvable formal must not acquire a silently-typed cell.</para></summary>
+    internal static CallCrossing FormalCrossing(LinkageFormal f, Place? place) =>
+        f.CarrierResident
+            ? SlotWindow.CarriedBySlot(f.Item) ? CallCrossing.Managed
+            : f.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } && !f.Item.StoreAsImage
+                ? CallCrossing.Native
+                : CallCrossing.Text
+        : place is null ? CallCrossing.Text
+        : CallEmitter.CrossingOf(place);
+
+    /// <summary>The <c>T</c> of the formal's <c>ManagedPointer&lt;T&gt;</c> field, one per crossing form.
+    /// Native AND Managed carry the formal's OWN cell type (kb/Work R12 + PB663): a wide or unsigned numeric
+    /// formal used to get a <c>ManagedPointer&lt;long&gt;</c> cell its carrier-typed reads could not compile
+    /// against, and a pointer/object-reference formal got a <c>ManagedPointer&lt;string&gt;</c> SPACE IMAGE
+    /// that every reference to it was a Roslyn CS1503 against. A VARIABLE-LENGTH group formal takes the
+    /// §8.5.1.12 component carrier (kb/Work PB204): its storage has no fixed record window.
+    /// <para>⛔ THE INVARIANT <c>LinkageCarrierDriftTests</c> pins: a formal crosses as a CHARACTER IMAGE only
+    /// when its own storage IS a C# string. Any class the data model gives a non-string carrier and this
+    /// dispatch does not name is therefore a RED TEST, not a silently space-filled cell.</para></summary>
+    internal static string FormalCarrierType(LinkageFormal f, CallCrossing crossing) => crossing switch
+    {
+        CallCrossing.Native or CallCrossing.Managed => f.Item.ElementType,
+        CallCrossing.VarGroup => RuntimeApi.VarGroupType,
+        _ => "string",
+    };
+
     /// <summary>Emit one program's instantiable class (design D3 — a static class cannot recurse or hold the
     /// per-activation copies INITIAL/RECURSIVE need; the registry's cached singleton realizes last-used state,
     /// §14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
@@ -177,17 +242,8 @@ internal sealed class ProgramEmitter
             .Select(f =>
             {
                 Place? place = f.CarrierResident ? null : refs.ResolveItem(f.Item);
-                bool isNum = f.CarrierResident
-                    ? f.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } && !f.Item.StoreAsImage
-                    : place is not null && !CallEmitter.CallPlaceIsString(place);
-                // The numeric cell's type is the formal's OWN carrier (kb/Work R12): a wide or unsigned formal
-                // used to get a ManagedPointer<long> cell its carrier-typed reads could not compile against.
-                // A VARIABLE-LENGTH group formal takes the third form (kb/Work PB204): its storage has no fixed
-                // record window, so the carrier is the §8.5.1.12 component carrier, not a character image.
-                string carrier = isNum ? f.Item.ElementType
-                    : place is not null && CallEmitter.CallPlaceIsVarGroup(place) ? RuntimeApi.VarGroupType
-                    : "string";
-                return (Formal: f, Place: place, IsNum: isNum, Carrier: carrier);
+                var crossing = FormalCrossing(f, place);
+                return (Formal: f, Place: place, Crossing: crossing, Carrier: FormalCarrierType(f, crossing));
             })
             .ToList();
 
@@ -251,16 +307,22 @@ internal sealed class ProgramEmitter
 
             new DataEmitter(Current.Ctx).Emit();
 
-            foreach (var (f, fPlace, isNum, carrier) in formals)
+            foreach (var (f, _, crossing, carrier) in formals)
             {
-                // A numeric cell defaults through the carrier's own zero (PicInfo.DefaultInitializer — 0L /
-                // 0UL / (Int128)0 / (UInt128)0), so the cell type and the seed cannot drift (kb/Work R12).
-                // A variable-length carrier seeds EMPTY — a space image of its collapsed width would be a
-                // wrong-shaped value, not a benign one (kb/Work PB204).
-                string init = isNum ? $"ManagedPointer<{carrier}>.Cell({f.Item.Pic!.DefaultInitializer})"
-                    : fPlace is not null && CallEmitter.CallPlaceIsVarGroup(fPlace)
-                        ? $"ManagedPointer<{carrier}>.Cell({RuntimeApi.VarGroupEmpty})"
-                    : $"ManagedPointer<string>.Cell(new string(' ', {Math.Max(1, f.Item.ImageWidth)}))";
+                // The UNBOUND seed (ISO §13.7.4 GR3 — a linkage item referenced outside an activation that
+                // supplied it). Native AND Managed default through the item's OWN PicInfo.DefaultInitializer
+                // (0L / 0UL / (Int128)0 / (UInt128)0 / ManagedPointer.Null / ProgramPointer.Null /
+                // FunctionPointer.Null / null), so the cell type and the seed cannot drift (kb/Work R12 +
+                // PB663 — the managed seed IS §13.18.63's initial state for its class). A variable-length
+                // carrier seeds EMPTY — a space image of its collapsed width would be a wrong-shaped value,
+                // not a benign one (kb/Work PB204).
+                string init = crossing switch
+                {
+                    CallCrossing.Native or CallCrossing.Managed
+                        => $"ManagedPointer<{carrier}>.Cell({f.Item.Pic!.DefaultInitializer})",
+                    CallCrossing.VarGroup => $"ManagedPointer<{carrier}>.Cell({RuntimeApi.VarGroupEmpty})",
+                    _ => $"ManagedPointer<string>.Cell(new string(' ', {Math.Max(1, f.Item.ImageWidth)}))",
+                };
                 w.Line($"private ManagedPointer<{carrier}> {f.CarrierField} = {init};   "
                     + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §13.7.1; design D1)");
             }
@@ -393,7 +455,8 @@ internal sealed class ProgramEmitter
     /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
     /// activation, boundary copy-out for image formals, and RETURNING delivery (GR7).</summary>
     private void EmitCallMethod(
-        BoundUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum, string Carrier)> formals, CodeWriter w)
+        BoundUnit unit, List<(LinkageFormal Formal, Place? Place, CallCrossing Crossing, string Carrier)> formals,
+        CodeWriter w)
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
@@ -428,7 +491,7 @@ internal sealed class ProgramEmitter
                             w.Line($"{cell} = 1;   // INDEX-NAME {idx} (LOCAL-STORAGE table cell)");
                 }
             }
-            foreach (var (f, place, isNum, carrier) in formals)
+            foreach (var (f, place, crossing, carrier) in formals)
             {
                 if (f.CarrierResident)
                 {
@@ -437,57 +500,47 @@ internal sealed class ProgramEmitter
                     // (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
                     // A BY VALUE formal adopts the DETACHED value-copy cell instead (§14.2.3 GR10 — the
-                    // activated element's stores reach only the copy, never the caller; SR2 restricts the
-                    // carried shape to fixed-point numeric, so the text leg has no BY VALUE arm).
-                    w.Line(isNum
-                        ? $"{f.CarrierField} = {(f.ByValue
-                            ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
-                            : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier))};"
-                        : $"{f.CarrierField} = {FormalTextCarrier(f, Math.Max(1, f.Item.Pic!.Length))};");
+                    // activated element's stores reach only the copy, never the caller; §14.2.2 SR2 restricts
+                    // the carried shape to class numeric, object or pointer, so the text leg has no BY VALUE
+                    // arm while the managed one does).
+                    w.Line($"{f.CarrierField} = {FormalAdopt(f, crossing, carrier, Math.Max(1, f.Item.Pic!.Length))};");
                     continue;
                 }
                 // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.
                 // A REDEFINED fixed-point BY VALUE formal (still class numeric — SR2-legal) rides the image
                 // round trip over a DETACHED cell (§14.2.3 GR10): copy-in below, and NO copy-out at return.
-                bool varGroup = place is not null && CallEmitter.CallPlaceIsVarGroup(place);
-                w.Line(isNum
-                    ? $"{f.CarrierField} = {(f.ByValue
-                        ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier)
-                        : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}", carrier))};"
-                    : varGroup
-                    // §8.5.1.12's component carrier, adopted whole — there is no width window to apply, because
-                    // the receiving group's own FromVarImage is what re-fits both halves (kb/Work PB204).
-                    ? $"{f.CarrierField} = {(f.ByValue
-                        ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position)
-                        : RuntimeApi.ArgAdaptVarGroup("__args", f.Position))};"
-                    : $"{f.CarrierField} = {FormalTextCarrier(f, Math.Max(1, f.Item.ImageWidth))};");
+                w.Line($"{f.CarrierField} = {FormalAdopt(f, crossing, carrier, Math.Max(1, f.Item.ImageWidth))};");
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                 {
                     if (place is null)
                         w.Line(LoudStmt($"LINKAGE formal '{f.Item.CobolName}' is not resolvable to storage"));
-                    else if (varGroup)
+                    else if (crossing is CallCrossing.VarGroup)
                         w.Line(PlaceRenderer.WriteVarGroupImage(place, $"{f.CarrierField}.Value",
                             "LINKAGE formal copy-in of"));
-                    else if (!isNum)
+                    else if (crossing is CallCrossing.Text)
                         w.Line(CallEmitter.CallStringWrite(place, $"{f.CarrierField}.Value"));
                     else
+                        // Native AND Managed write the storage's own value — for a managed slot that is the
+                        // reference itself (kb/Work PB663), never an image of it.
                         w.Line(PlaceRenderer.Write(place, $"{f.CarrierField}.Value"));
                 }
             }
             w.Line("__asCalled = true;");
             w.Line("try { __Activate(); } finally { __asCalled = false; }");
-            foreach (var (f, place, isNum, _) in formals)
+            foreach (var (f, place, crossing, _) in formals)
             {
                 if (f.CarrierResident || place is null || f.ByValue) continue;
                 // Copy the (possibly mutated) formal back to the caller's storage — the BY REFERENCE result
                 // becomes visible at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell absorbs it invisibly;
                 // a BY VALUE formal is SKIPPED above — its stores must never reach the caller, §14.2.3 GR10).
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
-                    w.Line(isNum
-                        ? $"{f.CarrierField}.Value = {PlaceRenderer.Read(place)};"
-                        : CallEmitter.CallPlaceIsVarGroup(place)
-                        ? $"{f.CarrierField}.Value = {PlaceRenderer.VarGroupImage(place, "LINKAGE formal copy-out of")};"
-                        : $"{f.CarrierField}.Value = {CallEmitter.CallStringRead(place)};");
+                    w.Line(crossing switch
+                    {
+                        CallCrossing.VarGroup =>
+                            $"{f.CarrierField}.Value = {PlaceRenderer.VarGroupImage(place, "LINKAGE formal copy-out of")};",
+                        CallCrossing.Text => $"{f.CarrierField}.Value = {CallEmitter.CallStringRead(place)};",
+                        _ => $"{f.CarrierField}.Value = {PlaceRenderer.Read(place)};",
+                    });
             }
             if (_callState.ReturningPlace is { } ret)
                 // §14.8.3.2's variable-length sentence is the RETURNING half of the same admission §14.8.2.2

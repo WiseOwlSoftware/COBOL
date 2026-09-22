@@ -11,6 +11,38 @@ namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
 
+/// <summary>⛔ THE FOUR CROSSING FORMS of one operand's storage at an activation boundary (kb/Work PB663), and
+/// the ONE vocabulary both sides of it speak: the ACTIVATING element builds its argument carrier in this shape
+/// (<see cref="CallEmitter.RefCarrier"/>) and the ACTIVATED element declares and adopts its formal's carrier in
+/// the same one (<c>ProgramEmitter</c>'s formal loop). They used to be two independent formulations of one
+/// rule — a caller chain of three predicates and a callee <c>bool isNum</c> — and the callee's had no arm for a
+/// managed-reference item at all, so a <c>USAGE POINTER</c> formal was declared as a space-filled
+/// <c>ManagedPointer&lt;string&gt;</c> and the generated C# did not compile.
+/// <para>The four are exhaustive over what storage a COBOL item can BE in this model: a native scalar field, a
+/// fixed-width character image, the §8.5.1.12 variable-length component carrier, and a managed slot holding a
+/// reference that has no byte image (<c>SlotWindow.CarriedBySlot</c>). <c>LinkageCarrierDriftTests</c> derives
+/// its population from <see cref="PicCategory"/> itself, so a category added to the model is a RED TEST rather
+/// than a silent fall into the character arm.</para></summary>
+internal enum CallCrossing
+{
+    /// <summary>The item's own native carrier cell — a fixed-point or floating-point numeric leaf
+    /// (<c>ManagedPointer&lt;long|ulong|Int128|UInt128|double|float&gt;</c>; kb/Work R12 + PB238).</summary>
+    Native,
+
+    /// <summary>The fixed-width CHARACTER IMAGE (<c>ManagedPointer&lt;string&gt;</c>) — alphanumeric, national,
+    /// boolean, numeric-edited, a zoned-image numeric leaf, a Tier-B window, and any fixed-length group.</summary>
+    Text,
+
+    /// <summary>The §8.5.1.12 variable-length group carrier (<c>ManagedPointer&lt;CobolVarGroup&gt;</c>;
+    /// kb/Work PB204).</summary>
+    VarGroup,
+
+    /// <summary>A MANAGED SLOT — class pointer (data / program / function) or class object-reference, whose
+    /// value is a managed reference with no byte image (<c>ManagedPointer&lt;ManagedPointer|ProgramPointer|
+    /// FunctionPointer|«class»?&gt;</c>; kb/Work PB663 + PB231).</summary>
+    Managed,
+}
+
 /// <summary>The CALL / CANCEL / GOBACK / EXIT PROGRAM verb emitter (P7 Step 9m, BATCH-3a — a real collaborator
 /// over the per-unit <see cref="EmitContext"/>; ISO §14.9.4 / §14.9.5 / §14.9.14 / §14.9.18): the activation
 /// call with its BY REFERENCE/CONTENT/VALUE carriers, the EC-PROGRAM catch + RAISING propagation pickup, and
@@ -465,14 +497,17 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // ⛔ The snapshot READS the operand, so when the operand is a forwarded formal the read has to be
             // guarded: an omitted formal's accessor raises EC-PROGRAM-ARG-OMITTED, and GR12 says this
             // reference form does not. The guard also carries the omission on, per GR1c.
-            return CallPlaceIsVarGroup(p)
-                ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
-                  + $"{Forwarded(fwd, RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupImage(p, "CALL argument")))}, {digits}, {scale})"
-                : CallPlaceIsString(p)
-                ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
-                  + $"{Forwarded(fwd, $"ManagedPointer<string>.Cell({CallStringRead(p)})")}, {digits}, {scale})"
-                : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, "
-                  + $"{Forwarded(fwd, $"ManagedPointer<{CallNumCarrier(p)}>.Cell({PlaceRenderer.Read(p)})")}, {digits}, {scale})";
+            string snapshot = CrossingOf(p) switch
+            {
+                CallCrossing.VarGroup => RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupImage(p, "CALL argument")),
+                CallCrossing.Text => $"ManagedPointer<string>.Cell({CallStringRead(p)})",
+                // Native and Managed both snapshot the storage's own value into a detached cell of its own
+                // carrier — §14.2.3 GR9/GR10's allocated record, whose filling is "a COMPUTE statement without
+                // the ROUNDED phrase" for a numeric formal and "a SET statement" for one of class object or
+                // pointer. A SET between two items of the same category IS this copy (kb/Work PB663).
+                _ => $"ManagedPointer<{CallCellCarrier(p)}>.Cell({PlaceRenderer.Read(p)})",
+            };
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(fwd, snapshot)}, {digits}, {scale})";
         }
         switch (a.Value)
         {
@@ -599,17 +634,23 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>An accessor carrier over a caller place — the BY REFERENCE / RETURNING aliasing form (design D1:
     /// <c>OverField</c> over the native field; a whole group crosses as its character image, distributed back
-    /// through <c>FromImage</c> — the deep-dive group round-trip).</summary>
-    public string RefCarrier(Place p) =>
+    /// through <c>FromImage</c> — the deep-dive group round-trip). One arm per <see cref="CallCrossing"/>, so
+    /// the ACTIVATING element's carrier and the ACTIVATED element's formal are built from the ONE
+    /// classification and cannot drift apart (kb/Work PB663).</summary>
+    public string RefCarrier(Place p) => CrossingOf(p) switch
+    {
         // §14.8.2.2's variable-length sentence, realized (kb/Work PB204): the carrier is the group's
         // current-extent components, aliased through the SAME OverField shape every other form uses.
-        CallPlaceIsVarGroup(p)
-            ? RuntimeApi.VarGroupOverField(
-                PlaceRenderer.VarGroupImage(p, "CALL argument"),
-                PlaceRenderer.WriteVarGroupImage(p, "__v", "CALL boundary copy into"))
-        : CallPlaceIsString(p)
-        ? $"ManagedPointer<string>.OverField(() => {CallStringRead(p)}, __v => {{ {CallStringWrite(p, "__v")} }})"
-        : $"ManagedPointer<{CallNumCarrier(p)}>.OverField(() => {PlaceRenderer.Read(p)}, __v => {{ {PlaceRenderer.Write(p, "__v")} }})";
+        CallCrossing.VarGroup => RuntimeApi.VarGroupOverField(
+            PlaceRenderer.VarGroupImage(p, "CALL argument"),
+            PlaceRenderer.WriteVarGroupImage(p, "__v", "CALL boundary copy into")),
+        CallCrossing.Text =>
+            $"ManagedPointer<string>.OverField(() => {CallStringRead(p)}, __v => {{ {CallStringWrite(p, "__v")} }})",
+        // Native AND Managed share one rendering — the item's own carrier over its own field — because both
+        // ARE their storage rather than an image of it (§14.2.3 GR8's "same storage area"). They are two arms
+        // rather than one so the callee's matching arms have something to be matched against.
+        _ => $"ManagedPointer<{CallCellCarrier(p)}>.OverField(() => {PlaceRenderer.Read(p)}, __v => {{ {PlaceRenderer.Write(p, "__v")} }})",
+    };
 
     /// <summary>True when a place's storage crosses the CALL boundary as a character image (string carrier):
     /// groups, Tier-B windows, zoned-image leaves, alphanumeric / numeric-edited items. EVERY native
@@ -623,7 +664,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// carriers and left <c>p.Item.Pic is { IsFloat: true }</c> on the character route, where a binary64 value
     /// decoded through the RECEIVER's zoned profile (<c>CobolArgAdapt.NumValue</c>'s string arm calls
     /// <c>CobolNum.ParseDisplay</c>) — a numeric item read as digit characters it was never written as. The
-    /// float lane's own carrier is <c>double</c>/<c>float</c>, <c>CallNumCarrier</c> already answers with it
+    /// float lane's own carrier is <c>double</c>/<c>float</c>, <c>CallCellCarrier</c> already answers with it
     /// (<c>DataItem.ElementType</c>), and <c>CobolArgAdapt.ReadRealCell</c> is the callee half — so the same
     /// R12 sentence now covers all six carriers rather than four. A float reaching a CHARACTER formal has no
     /// arm on either side and takes the OMITTED (loud) carrier: §14.8.2.3.2 requires the same category and
@@ -654,10 +695,39 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // are left out rather than restated: a redundant conjunct is a claim that can rot.
         p is not RedefViewPlace and not RefModPlace && p.Item.CurrentExtentImageCapable;
 
-    /// <summary>The C# carrier type of a native fixed-point leaf at the CALL boundary — the item's OWN
+    /// <summary>True when a place crosses the activation boundary as a MANAGED SLOT — the FOURTH crossing form
+    /// (kb/Work PB663). It is exactly <c>SlotWindow.CarriedBySlot</c>, the ONE test the data model already uses
+    /// for "does this item's value ride the area's managed slots rather than its bytes?" (kb/Work PB231), so
+    /// the boundary and the storage cannot disagree about the population: class pointer (data / program /
+    /// function) and class object-reference.
+    /// <para>A <see cref="RedefViewPlace"/> or a <see cref="RefModPlace"/> is excluded by construction and the
+    /// exclusion is stated rather than relied on: §13.18.44.3 SR12 ("The REDEFINES clause shall not be
+    /// specified for a data item of class object, message-tag, or pointer …") and SR14 (the same list for
+    /// data-name-2) bar both ends of a redefinition, and §8.4.3.3.3 SR1's list admits reference modification
+    /// only for character-class and display/national numeric operands — so neither place shape can stand over
+    /// such an item on conforming source, and a nonconforming one keeps the character arm's existing loud
+    /// rather than acquiring a slot it has no storage for.</para></summary>
+    internal static bool CallPlaceIsManaged(Place p) =>
+        p is not RedefViewPlace and not RefModPlace && SlotWindow.CarriedBySlot(p.Item);
+
+    /// <summary>⛔ THE ONE classification of a place's crossing form, in priority order, for BOTH sides of the
+    /// boundary (kb/Work PB663). Managed first — a pointer item is neither a group nor a character shape, so
+    /// the order only makes the intent legible; VarGroup before Text because <see cref="CallPlaceIsString"/>
+    /// deliberately still answers true for a variable-length group (see its own remark).</summary>
+    internal static CallCrossing CrossingOf(Place p) =>
+        CallPlaceIsManaged(p) ? CallCrossing.Managed
+        : CallPlaceIsVarGroup(p) ? CallCrossing.VarGroup
+        : CallPlaceIsString(p) ? CallCrossing.Text
+        : CallCrossing.Native;
+
+    /// <summary>The C# carrier type of a place that crosses in its OWN storage type rather than as an image —
+    /// <see cref="CallCrossing.Native"/> and <see cref="CallCrossing.Managed"/> alike. It is the item's own
     /// <c>ElementType</c> (kb/Work R12: the cell type IS the field type, so the aliasing lambdas and the
-    /// callee's carrier-typed reads compile and carry the full container range by construction).</summary>
-    internal static string CallNumCarrier(Place p) => p.Item.ElementType;
+    /// callee's carrier-typed reads compile and carry the full container range by construction), which for a
+    /// managed item is its <c>PicInfo.ClrType</c> — <c>ManagedPointer</c>, <c>ProgramPointer</c>,
+    /// <c>FunctionPointer</c> or the object reference's own class type. §14.8.2.3.2 forces the two sides to the
+    /// same category and the same object class, so the same <c>T</c> arrives on both ends by construction.</summary>
+    internal static string CallCellCarrier(Place p) => p.Item.ElementType;
 
     /// <summary>The string image a place contributes ACROSS THE CALL BOUNDARY. An occurs-depending group reads
     /// its FULL maximum-allocation image here, never the ODO window: BY REFERENCE "operates as if the [formal]
