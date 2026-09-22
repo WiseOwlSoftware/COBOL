@@ -182,6 +182,13 @@ public abstract class CobolParserCoreBase : Parser
     /// with the explanatory introduction diagnostic instead of a raw ANTLR error at SIZE.</para></summary>
     protected bool pictureLocaleAhead() => Word(TokenStream.LT(1), "LOCALE");
 
+    /// <summary>The §12.3.8.2 class-specifier / interface-specifier EXPANDS phrase is ahead (kb/Work PB759).
+    /// EXPANDS is a §8.10 context-sensitive word ("class-specifier and interface-specifier of the REPOSITORY
+    /// paragraph"), never reserved, so it is read as TEXT — the LOCALE / STEP discipline. Not edition-gated: the
+    /// phrase can only follow a CLASS / INTERFACE specifier, whose own introduction gate answers below 2002, and
+    /// no other repository entry begins with a user-defined word, so there is no '85 reading to protect.</summary>
+    protected bool expandsAhead() => Word(TokenStream.LT(1), "EXPANDS");
+
     /// <summary>OCCURS … STEP integer-3 — the word in the STEP position spells STEP and an integer follows (ISO
     /// §13.18.38.2 Format 3, the report-writer OCCURS: <c>OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON
     /// data-name-1 ] [ STEP integer-3 ]</c>; kb/Work PB565).

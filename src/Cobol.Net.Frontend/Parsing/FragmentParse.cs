@@ -69,6 +69,29 @@ public static class FragmentParse
         return flag.HasError ? null : tree;
     }
 
+    /// <summary>Re-parse an already-LEXED token run through <paramref name="rule"/>, or null on any syntax error —
+    /// the entry for a fragment whose SOURCE is a parse-tree slice rather than text: the §12.3.8.4 GR5/GR8
+    /// EXPANSION of a parameterized class or interface (kb/Work PB759), which is the definition's own tokens with
+    /// each formal parameter-name replaced by its actual. The tokens were lexed, zero-rewritten and
+    /// <c>&gt;&gt;COBOL-WORDS</c>-retyped by the frontend's one pass, so none of those steps repeats here; the
+    /// parser still takes <paramref name="words"/> because its TEXT predicates (<c>Word</c>) consult the map.
+    /// Each token keeps its original line/column, so a diagnostic raised while binding the result points at the
+    /// definition's own source line.</summary>
+    public static T? ParseTokens<T>(IList<IToken> tokens, EditionInfo edition, CobolWordsMap words,
+        System.Func<CobolParserCore, T> rule) where T : class
+    {
+        var flag = new SyntaxErrorFlag();
+        var parser = new CobolParserCore(new CommonTokenStream(new ListTokenSource(tokens)))
+        {
+            Edition = edition,
+            CobolWords = words,
+        };
+        parser.RemoveErrorListeners();
+        parser.AddErrorListener(flag);
+        var tree = rule(parser);
+        return flag.HasError ? null : tree;
+    }
+
     /// <summary>Error-presence flag for BOTH recognizers — the parser's token errors and the lexer's character
     /// errors. It was copied verbatim into all three fragment parsers; this is the one copy.</summary>
     private sealed class SyntaxErrorFlag : BaseErrorListener, IAntlrErrorListener<int>

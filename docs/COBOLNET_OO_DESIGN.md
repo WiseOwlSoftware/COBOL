@@ -75,7 +75,7 @@ scoping fixed (`DataBinder.EnvDivisions`, outermost-first — a half's own env n
 1. **Method WORKING-STORAGE is ILLEGAL in 2023.** §13.5.3 Syntax rule 1 (specs/ISO_COBOL.md:16461): within a class definition the working-storage section may be specified only in a factory definition or an instance definition, "but not in a method definition"; nor in an interface definition. Corroborated by INVOKE SR 10 (:28443 — object WS exists but cannot be an INVOKE argument). Method definitions still take a full data division (§10.6 :12818) — LOCAL-STORAGE + LINKAGE are the 2023-legal method storage; method-vs-object name shadowing per §11.7.4 GR 5 (:13281). The live grammar still parses a full dataDivision inside methodDefinition (`Core/CobolOO.g4:43-49`), so the G7 EditionValidator must reject method WS at `--std 2023` with a versioned diagnostic; the D3 static-field mapping applies only in editions whose standard permits method WS (pin the exact edition boundary in `docs/VERSION_CHANGE_REFERENCE.md` during G7).
 2. **EXIT METHOD was REMOVED in 2023.** §14.9.14.2 has exactly four EXIT formats — simple EXIT / EXIT PROGRAM [RAISING] (archaic) / EXIT PERFORM [CYCLE] / EXIT PARAGRAPH|SECTION — no METHOD or FUNCTION alternative (specs/ISO_COBOL.md:27346-27381); Annex E.2 explicitly lists "EXIT METHOD statement" (:49034) and "EXIT FUNCTION statement" (:49036) among removals since the previous standard. In 2023 methods terminate via GOBACK or by falling out of the procedure division. The shared grammar still accepts `EXIT METHOD [RAISING]` (`Core/CobolControlFlow.g4:213`) — edition-gate it: a method-return synonym at 2002/2014, a removed-feature diagnostic at 2023.
 3. **INVOKE has NO ON EXCEPTION phrase (in ANY spec surface designed here).** The §14.9.23.2 general format is exactly `INVOKE {class|identifier} {method} [USING …] [RETURNING identifier-4]` — no ON EXCEPTION / NOT ON EXCEPTION and no handler inside END-INVOKE (specs/ISO_COBOL.md:28376-28390). Failures surface as EC exception conditions instead: null receiver → EC-OO-NULL (GR 5, :28506); method not found / insufficient resources → EC-OO-METHOD (:28528) — routed through the EXISTING §14.6.13 EC machinery (declaratives, >>TURN, EXCEPTION-* functions), never a handler phrase. This differs from CALL. The live grammar is already correct (invokeStatement has no exception alternative); the dead sketch `CobolParserOO.g4`'s `invokeOnException` must NOT be revived.
-4. **ABSTRACT is NOT ISO.** A grep over the entire spec returns zero matches — ABSTRACT is not a reserved word, clause, or concept anywhere in ISO 1989:2023. CLASS-ID's only modifiers are `[AS literal-1] [IS FINAL] [INHERITS FROM …] [USING …]` (specs/ISO_COBOL.md:12742-12744), and a method definition's only attributes are `[OVERRIDE] [IS FINAL]` (plus the GET/SET PROPERTY selector form, :12798-12821). Any "ABSTRACT class" notion is a vendor extension (Micro Focus/IBM) and must not appear as ISO surface in this design.
+4. **ABSTRACT is NOT ISO.** A grep over the entire spec returns zero matches — ABSTRACT is not a reserved word, clause, or concept anywhere in ISO 1989:2023. CLASS-ID's only modifiers are `[AS literal-1] [IS FINAL] [INHERITS FROM …] [USING …]` (specs/ISO_COBOL.md:12742-12744) — all four PARSE (`classIdParagraph`; USING since kb/Work PB759, D12), and a method definition's only attributes are `[OVERRIDE] [IS FINAL]` (plus the GET/SET PROPERTY selector form, :12798-12821). Any "ABSTRACT class" notion is a vendor extension (Micro Focus/IBM) and must not appear as ISO surface in this design.
 
 ## Version gating (G1 — four compilers in one)
 
@@ -285,6 +285,56 @@ the narrowing tool is an OBJECT VIEW, deferred to the EC-OO/object-view wave). O
 NULL never width-materializes). Descriptor-vs-DescriptionMismatch drift protection is BEHAVIORAL (the
 EC-OO-UNIVERSAL / conforming-crossing test pair over the 9(4)/9(8) hazard), since DataItem construction
 outside the binder is not a supported seam for a direct unit matrix.
+
+### D12. Parameterized classes and interfaces (§9.3.12 / §9.3.13) are EXPANDED, one ordinary class per expansion — never C# generics; the parameterized definition itself is a skeleton that binds and emits nothing.
+
+**Rationale.** §12.3.8.4 GR5 states the semantics as a construction: "The class object-class-name-1 is created
+from the parameterized class object-class-name-2 by replacing each specification of the formal parameter by the
+corresponding actual parameter" (GR8 the interface twin), and §9.3.12 then requires the result to be "treated in
+all respects the same as if it were a class that is not a parameterized class", with "its own factory object".
+The binder resolves method names, §9.3.8.2 conformance, typed `USAGE OBJECT REFERENCE` descriptions and INVOKE
+rosters STATICALLY on a class NAME, and a formal parameter is unconstrained — so none of those can be answered
+inside the definition, only inside an expansion. `Oo/OoExpansion.cs` therefore realizes GR5 literally: the
+definition's own on-channel tokens are copied, each user-defined-word occurrence of a formal is replaced by its
+actual, the header and end-marker names become the expansion's name, the USING clause and the header's
+`AS literal-1` are dropped, and the run is RE-PARSED (`FragmentParse.ParseTokens`, tokens keep their line/column
+so diagnostics point at the definition's own lines). The result enters `OoClassTable.Build` beside the written
+definitions, and from there on NOTHING distinguishes an expansion from a written class — every later OO rule
+(IMPLEMENTS conformance, override marking, factory singletons, EC-OO, USE Format 4) applies with no new code.
+Token substitution is exact, not approximate, because §11.3.4 GR6 / §11.6.4 GR4 confine a parameter-name to
+object-class-name / interface-name positions: every occurrence IS a specification of the formal. A formal written
+in a DECLARATION slot (data-, condition-, paragraph-, section-, method-, file-, report-, screen-, property-name)
+would be renamed silently, so it is COBOLNET2239; one written in a data REFERENCE fails downstream as an
+undefined name once substituted.
+
+**Determinations.** (1) IDENTITY is the expansion NAME (§9.3.12 / §9.3.13 "same externalized name … same actual
+parameters … are the same class instance"): specifiers repeating one (name, definition, actuals) triple in any
+number of source elements create ONE class; a name reused with a different definition or different actuals is
+COBOLNET2240. (2) The skeleton's `AS literal-1` externalizes the SKELETON and is not carried into an expansion —
+§9.3.12 forbids two expansions with different actuals to share an externalized name, so carrying it would make
+every program with two expansions non-conforming by construction; an expansion's externalized name is its
+specifier's object-class-name-1 (GR5: "a class object-class-name-1 is created"). (3) Only the header and end
+marker are renamed: a METHOD-ID spelled like its class is legal (method-names and class-names are different
+categories of user-defined word), so the definition's own name is not a
+formal and is not substituted in the body; a body reference to it names the skeleton, which §12.3.8.4 GR1 confines
+to the REPOSITORY paragraph. (4) An actual whose kind differs from its formal's REPOSITORY specifier (a class for
+an `INTERFACE T` formal, or the reverse) is COBOLNET2240: the GR5 substitution would write a specifier naming the
+wrong kind. (5) A defect in a skeleton line that no formal touches is found once per expansion and reported ONCE
+(`EditionContext` records each distinct diagnostic line once — one fact, one report).
+
+**Diagnostics.** COBOLNET2239 — the definition's own rules (§11.3.3 SR8/SR9, §11.6.3 SR4/SR7, §11.3.4 GR6 /
+§11.6.4 GR4, §12.3.8.3 SR3), reported on the skeleton whether or not anything expands it. COBOLNET2240 — the
+EXPANDS phrase (§12.3.8.3 SR4/SR7, §12.3.8.4 GR5/GR8, kind, identity). A reference to the skeleton anywhere but
+a REPOSITORY paragraph is refused by `OoNameResolution.Resolve` through the REFERRING construct's own code with
+the §12.3.8.4 GR1/GR7 reason (`OoClassTable.IsParameterized`). The whole surface rides the CLASS-ID /
+INTERFACE-ID and REPOSITORY-specifier 2002 introduction gates (COBOLNET0900 below 2002).
+
+**Rejected alternatives.** A C# generic `class C<T> where T : CobolObject` — rejected: an unconstrained T cannot
+bind `INVOKE ITEM "SHOW"` statically, conformance per expansion (§9.3.8.2.4 "as if the actual parameter classes
+or interfaces were substituted") would have to be re-derived at every use, and the binder's name-keyed model
+would need a second, type-argument-keyed path everywhere. A deep CLONE of the parse tree with rewritten
+terminals — rejected: the generated contexts carry labelled child fields and Start/Stop tokens that a generic
+clone must re-point, where the re-parse builds them correctly by construction through the one grammar.
 
 ## C# mapping
 
@@ -547,7 +597,8 @@ The per-unit emitter machinery this builds on emits one `internal sealed class _
 
 ## ISO citations
 
-- ISO/IEC 1989:2023 §11.3 CLASS-ID paragraph (§11.3.2 general format: `INHERITS FROM {object-class-name-2}…` — multiple inheritance; AS literal; IS FINAL; USING parameterized class)
+- ISO/IEC 1989:2023 §11.3 CLASS-ID paragraph (§11.3.2 general format: `INHERITS FROM {object-class-name-2}…` — multiple inheritance; AS literal; IS FINAL; USING parameterized class — D12)
+- §9.3.12 / §9.3.13 parameterized classes / interfaces; §12.3.8.2 EXPANDS; §12.3.8.3 SR3/SR4/SR7; §12.3.8.4 GR1/GR5/GR7/GR8 — D12 (`Oo/OoExpansion.cs`)
 - §11.4 FACTORY paragraph + §8.6.4 (one copy of each static/factory item per class) — FACTORY → `virtual`/`override` members of the per-class factory singleton (NOT C# statics: §9.3.6 runtime-class dispatch + SELF-in-factory polymorphism, §8.4.3.8.4 GR2)
 - §11.7 METHOD-ID paragraph (SR3 OVERRIDE needs matching non-FINAL base signature; SR4a redefining base signature w/o OVERRIDE is an error → no C# hiding; GR5 method-local shadows object data; SR6/7 GET/SET PROPERTY shape; SR2/8 OVERRIDE/FINAL not in prototypes)
 - §11.8 OBJECT paragraph (instance object definition; IMPLEMENTS interface-name list)

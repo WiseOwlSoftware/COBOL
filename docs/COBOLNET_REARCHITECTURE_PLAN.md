@@ -3374,7 +3374,9 @@ rule and its mis-dated `inline-method-invocation-2023` registry row are DELETED,
 (2) **object-view** §8.4.3.5 (`identifier AS [FACTORY OF] class [ONLY] | interface | UNIVERSAL`) +
 the EC-OO-CONFORMANCE raise site; (3) **USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS + the ONLY phrase**
 §13.18.60.2 (today ACTIVE-CLASS mis-diagnoses as unknown-class); (4) **parameterized classes/interfaces**
-(CLASS-ID/INTERFACE-ID USING, REPOSITORY EXPANDS/AS — mandatory 2023 surface). Grammar changes ride the
+(CLASS-ID/INTERFACE-ID USING, REPOSITORY EXPANDS/AS — mandatory 2023 surface) — USING + EXPANDS ✅ **LANDED**
+(kb/Work PB759; `COBOLNET_OO_DESIGN.md` D12 — one ordinary class per expansion, by re-parse); the
+class-/interface-specifier `AS literal` is not yet parsed. Grammar changes ride the
 shared-`.g4` guardrail (ONE full legacy guard for the wave). Sized 4–8 sessions; CONFORMANCE-BLOCKING (D15).
 
 #### THE P14 PARALLEL-LANE MAP (compress wall-clock; the §3 discipline per lane)

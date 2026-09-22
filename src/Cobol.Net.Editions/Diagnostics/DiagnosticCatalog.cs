@@ -4447,6 +4447,34 @@ public static class DiagnosticCatalog
         "A function-identifier that names a function-pointer shall write its argument-list parentheses. ISO "
         + "§8.4.3.2.3 SR5: \"If function-pointer-name-1 is specified, the parentheses shall be specified.\"",
         "ISO §8.4.3.2.3");
+    /// <summary>A PARAMETERIZED class or interface definition breaks one of the rules on its own USING clause
+    /// (kb/Work PB759): a parameter-name that no class-specifier or interface-specifier of the definition's own
+    /// REPOSITORY paragraph declares (ISO §11.3.3 SR8 / §11.6.3 SR4), a parameter-name written twice (§11.3.3
+    /// SR9 / §11.6.3 SR7), or an EXPANDS phrase in that REPOSITORY paragraph (§12.3.8.3 SR3). The definition is
+    /// a skeleton (§9.3.12 / §9.3.13) — every expansion inherits these defects — so they are diagnosed once, on
+    /// the definition itself, whether or not anything expands it.</summary>
+    public static readonly DiagnosticDescriptor ParameterizedDefinitionUsing = new(
+        "COBOLNET2239", "parameterized-definition-using", EditionSeverity.Error,
+        "A parameterized class or interface definition's USING clause names a parameter that its own REPOSITORY "
+        + "paragraph does not declare with a class-specifier or interface-specifier, names a parameter twice, or "
+        + "the definition's REPOSITORY paragraph specifies an EXPANDS phrase.",
+        "ISO §11.3.3 SR8/SR9 / §11.6.3 SR4/SR7 / §12.3.8.3 SR3");
+    /// <summary>A REPOSITORY class-specifier or interface-specifier EXPANDS phrase cannot create the class or
+    /// interface it names (kb/Work PB759): the parameterized name or an actual parameter is not declared in the
+    /// same REPOSITORY paragraph (ISO §12.3.8.3 SR4 / SR7); the EXPANDS operand is not a parameterized class
+    /// (resp. interface) of the compilation group; the actual-parameter count differs from the definition's
+    /// USING clause (§12.3.8.4 GR5 / GR8); an actual is not a class or interface of the kind its formal was
+    /// declared as, so the §12.3.8.4 GR5 substitution would write a specifier naming the wrong kind; or two
+    /// specifiers give one externalized name to expansions of different definitions or with different actual
+    /// parameters (§9.3.12: they "shall not have the same externalized object-class-name"; §9.3.13 is the
+    /// interface twin).</summary>
+    public static readonly DiagnosticDescriptor ExpandsPhraseInvalid = new(
+        "COBOLNET2240", "expands-phrase-invalid", EditionSeverity.Error,
+        "A REPOSITORY EXPANDS phrase does not name a parameterized class or interface declared in the same "
+        + "REPOSITORY paragraph, supplies a different number of actual parameters than the definition's USING "
+        + "clause, supplies an actual parameter of the wrong kind or one that is not declared in the same "
+        + "paragraph, or reuses an expansion's name for a different expansion.",
+        "ISO §12.3.8.3 SR4/SR7 / §12.3.8.4 GR5/GR8 / §9.3.12 / §9.3.13");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

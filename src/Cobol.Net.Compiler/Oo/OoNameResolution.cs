@@ -65,6 +65,19 @@ public static class OoNameResolution
         var found = Lookup(table, site, name, want);
         if (found.Ok) return found;
 
+        // A PARAMETERIZED definition is a skeleton, not a class or interface, so it is never in the table and a
+        // reference to it can never resolve (kb/Work PB759). Say which rule, rather than "not defined": the
+        // definition IS in the source. ISO §12.3.8.4 GR1 (class) and GR7 (interface) confine the name to the
+        // REPOSITORY paragraph, where its only use is as an EXPANDS operand.
+        if (table?.IsParameterized(name) == true)
+        {
+            edition.Error(code, $"{where} '{name}': '{name}' is a parameterized class or interface (its "
+                + "CLASS-ID / INTERFACE-ID paragraph has a USING clause), which may be specified only in the "
+                + "REPOSITORY paragraph — reference an expansion of it, declared with the EXPANDS phrase "
+                + $"({ruleCitation}; ISO §12.3.8.4 GR1/GR7)");
+            return default;
+        }
+
         // Defined in the group but out of scope vs. not defined at all — name the actual condition (the old
         // 0859 named neither: it said "does not name a class of the compilation group", which was BOTH the
         // wrong set and, for an interface operand, the wrong rule).
@@ -160,12 +173,20 @@ public sealed class OoRepositoryScope
     private static void Collect(Core.EnvironmentDivisionContext env, HashSet<string> classes,
         HashSet<string> interfaces)
     {
-        foreach (var re in env.configurationSection()?.configurationParagraph()
-                     .Select(p => p.repositoryParagraph()).Where(r => r is not null)
-                     .SelectMany(r => r!.repositoryEntry()) ?? [])
+        foreach (var re in SpecifierEntries(env))
         {
-            if (re.CLASS() is not null && re.className() is { } cn) classes.Add(cn.GetText());
-            else if (re.INTERFACE() is not null && re.interfaceName() is { } inm) interfaces.Add(inm.GetText());
+            if (re.className() is { } cn) classes.Add(cn.GetText());
+            else if (re.interfaceName() is { } inm) interfaces.Add(inm.GetText());
         }
     }
+
+    /// <summary>The class-specifiers and interface-specifiers (§12.3.8.2) of the REPOSITORY paragraph directly
+    /// in <paramref name="env"/> — with or without an EXPANDS phrase, whose object-class-name-1 / interface-name-2
+    /// is DECLARED exactly as a plain specifier's is (kb/Work PB759). The one walk this scope and
+    /// <see cref="OoExpansion"/> (a parameterized definition's own formals, §11.3.3 SR8 / §11.6.3 SR4) share.</summary>
+    internal static IEnumerable<Core.RepositoryEntryContext> SpecifierEntries(Core.EnvironmentDivisionContext? env)
+        => env?.configurationSection()?.configurationParagraph()
+               .Select(p => p.repositoryParagraph()).Where(r => r is not null)
+               .SelectMany(r => r!.repositoryEntry())
+               .Where(r => r.CLASS() is not null || r.INTERFACE() is not null) ?? [];
 }

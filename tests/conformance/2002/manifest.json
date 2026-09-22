@@ -167,6 +167,7 @@
     "pb365_use_eo_interface_two_pass",
     "pb815_raising_factory_interface",
     "pb757_invoke_omitted",
+    "pb759_parameterized_class",
     "oo_external_file_shared",
     "oo_factory",
     "oo_factory_file",

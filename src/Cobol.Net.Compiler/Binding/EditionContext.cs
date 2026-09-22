@@ -117,7 +117,19 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         Cursor.IsSet ? OriginOf(Cursor.Line).ToLocation(Cursor.Column) + ": " : "";
 
     /// <summary>Record an edition-gating error (fails the compile).</summary>
-    public void Error(string code, string message) => Diagnostics.Add($"{Prefix()}error {code}: {message}");
+    public void Error(string code, string message) => AddOnce(Diagnostics, $"{Prefix()}error {code}: {message}");
+
+    /// <summary>A diagnostic is a FACT about a source position, and the same fact reported twice is one fact.
+    /// The case that makes this reachable by construction is a PARAMETERIZED class or interface (kb/Work PB759):
+    /// each EXPANSION re-binds the definition's own source lines (§12.3.8.4 GR5 — the expansion IS the definition
+    /// with its formals replaced), so a defect in a line no formal touches is found once per expansion, at the
+    /// same position with the same words. A diagnostic that DOES depend on the actual parameters differs in its
+    /// text and is kept for each expansion — which is exactly the per-expansion report a user needs.</summary>
+    private void AddOnce(List<string> into, string line)
+    {
+        if (_reported.Add(line)) into.Add(line);
+    }
+    private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
 
     /// <summary>Record a diagnostic keyed by a catalogue <see cref="DiagnosticDescriptor"/> (P2.10 — the
     /// first-class registry replacing bare <c>COBOLNETnnnn</c> string literals). Emits the descriptor's
@@ -129,7 +141,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
-    public void Warning(string code, string message) => Warnings.Add($"{Prefix()}warning {code}: {message}");
+    public void Warning(string code, string message) => AddOnce(Warnings, $"{Prefix()}warning {code}: {message}");
 
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor

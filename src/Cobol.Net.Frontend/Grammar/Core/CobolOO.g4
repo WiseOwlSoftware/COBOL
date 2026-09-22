@@ -46,12 +46,25 @@ factoryParagraph
 // `CLASS-ID. C INHERITS B.` is conforming source (§8.3.2.4.3) that this rule refused with COBOL0001. FROM is
 // §8.9-reserved at every edition, so it can never be a className and `FROM?` cannot mis-bind one.
 classIdParagraph
-    : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM? className+)? DOT
+    : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM? className+)?
+      (USING ooParameterName+)?   // §11.3.2 — a PARAMETERIZED class (kb/Work PB759; see ooParameterName)
+      DOT
     ;   // [AS literal-1] sits between object-class-name-1 and [IS FINAL] per the §11.3.2 format (kb/Work PB303); [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839).
         // INHERITS repetition PARSES per the §11.3.2 format (superset parse — P3 doctrine); v1 REJECTS 2+ bases
         // LOUDLY at pass-1 (COBOLNET0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
 
 className
+    : cobolWord
+    ;
+
+// §11.3.2 / §11.6.2 `[ USING { parameter-name-1 } … ]` — the FORMAL parameters of a PARAMETERIZED class or
+// interface (§9.3.12 / §9.3.13; kb/Work PB759). USING is underlined on BOTH printed pages (folios 264 and 268,
+// each measured on its own). Its OWN rule, never `className`/`interfaceName`: those rules' positional accessors
+// (`className(0)` = the class, `className().Skip(1)` = the INHERITS bases; `interfaceName()` = name, INHERITS,
+// END INTERFACE) are read by OoClassTable and OoRepositoryScope, and a parameter-name is neither. A
+// parameterized definition is a SKELETON: it binds and emits nothing of its own; each REPOSITORY `EXPANDS`
+// phrase creates a class or interface from it (Oo/OoExpansion.cs, §12.3.8.4 GR5/GR8).
+ooParameterName
     : cobolWord
     ;
 
@@ -87,7 +100,9 @@ interfaceDefinition
       // FROM is an optional word here too — measured on printed page 298 / folio 268, where INHERITS carries a
       // rule at 95.0% cover and FROM's box 139.98–168.06 carries none (§8.3.2.4.3; the same sweep that fixed
       // classIdParagraph above — one rule, two sites, both measured rather than assumed from the other).
-      (INHERITS FROM? interfaceName+)? DOT
+      (INHERITS FROM? interfaceName+)?
+      (USING ooParameterName+)?   // §11.6.2 — a PARAMETERIZED interface (kb/Work PB759; see ooParameterName)
+      DOT
       optionsParagraph?    // §10.6.1 (kb/Work PB135; prototypes bind no bodies — the parse is the obligation)
       environmentDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?

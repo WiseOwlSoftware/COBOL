@@ -1272,8 +1272,9 @@ deferred like the CLASS entry's).
   description mismatch; duplicate accessor (explicit + implicit, or two explicit) for one property-name.
 - **COBOLNET0839** — object-property reference: unknown property / not REPOSITORY-declared (SR1); universal
   or NULL receiver (SR2); no GET when sending (SR3) / no SET when receiving (SR4, incl. WITH NO SET/GET).
-- 0900/0902 via the registry rows at `--std 85`; 0899 staged-loud residue: parameterized interfaces
-  (INTERFACE-ID USING / EXPANDS, §12.3.8 SR3 — same deferred status as parameterized classes),
+- 0900/0902 via the registry rows at `--std 85`. Parameterized interfaces and classes (INTERFACE-ID /
+  CLASS-ID USING, REPOSITORY EXPANDS) are no longer residue — LANDED by kb/Work PB759 as expansion-by-re-parse
+  (`COBOLNET_OO_DESIGN.md` D12; COBOLNET2239/2240). 0899 staged-loud residue:
   `FACTORY OF`/`ONLY`/`ACTIVE-CLASS` usage tails, interface-typed RAISING conformance (EC-OO slice),
   CONSTANT RECORD properties, factory-interface-typed references.
 

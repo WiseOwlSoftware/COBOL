@@ -415,10 +415,31 @@ repositoryParagraph
 repositoryEntry
     : FUNCTION ALL INTRINSIC
     | FUNCTION functionName INTRINSIC?
-    | CLASS className   // OO (2002): CLASS class-name [AS literal] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
-    | INTERFACE interfaceName   // OO (2002): the interface specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
+    | CLASS className expandsPhrase?   // OO (2002): CLASS class-name [AS literal] [EXPANDS …] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
+    | INTERFACE interfaceName expandsPhrase?   // OO (2002): the interface specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
     | PROGRAM programPrototypeName externalizedNamePhrase?   // §12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
     | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
+    ;
+
+// §12.3.8.2 class-specifier / interface-specifier `[ EXPANDS object-class-name-2 USING { object-class-name-3 |
+// interface-name-1 } … ]` (the interface twin: interface-name-3 USING { object-class-name-4 | interface-name-4 } …)
+// — the EXPANSION of a parameterized class or interface (§12.3.8.4 GR5/GR8, §9.3.12/§9.3.13; kb/Work PB759).
+// EXPANDS is a §8.10 CONTEXT-SENSITIVE word ("class-specifier and interface-specifier of the REPOSITORY
+// paragraph"), never reserved, so it is read by TEXT at the left edge (expandsAhead) rather than tokenized — the
+// LOCALE / STEP discipline. The phrase is its own rule so `repositoryEntry.className()` stays the ONE declared
+// name OoRepositoryScope collects: the parameterized name and the actuals are REFERENCES, each of which §12.3.8.3
+// SR4/SR7 requires to be declared by its own specifier in the same paragraph. The specifier itself is already
+// introduction-gated (RepositoryClass2002 / RepositoryInterface2002), so the phrase needs no gate of its own.
+expandsPhrase
+    : {expandsAhead()}? cobolWord expandsTarget USING expandsActual+
+    ;
+
+expandsTarget
+    : cobolWord
+    ;
+
+expandsActual
+    : cobolWord
     ;
 
 // §12.3.8.2 program-specifier: `PROGRAM program-prototype-name-1 [ AS literal-3 ]` (PDF page 334 rendered — PROGRAM

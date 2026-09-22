@@ -39,6 +39,16 @@ public sealed class OoClassTable
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
     public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
 
+    /// <summary>True when <paramref name="name"/> names a PARAMETERIZED class or interface definition of the group
+    /// (kb/Work PB759). Such a definition is a skeleton (§9.3.12 / §9.3.13) and is deliberately NOT in this table
+    /// — <see cref="OoExpansion"/> puts its EXPANSIONS here instead — so a lookup of its name misses; this is what
+    /// lets <see cref="OoNameResolution.Resolve"/> say WHY (ISO §12.3.8.4 GR1: "If object-class-name-1 is a class
+    /// described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
+    /// paragraph").</summary>
+    public bool IsParameterized(string name) => _parameterized.Contains(name);
+    private IReadOnlySet<string> _parameterized = EmptyNames;
+    private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>();
+
     /// <summary>The §8.4.6.4 name scope visible at <paramref name="site"/> — memoized per SOURCE ELEMENT so the
     /// ancestor walk runs once per program / class / interface / method definition rather than once per
     /// reference. ⛔ This table is the GROUP's set and is deliberately NOT the answer to "may this source
@@ -120,9 +130,10 @@ public sealed class OoClassTable
     /// point the rows it covers were being witnessed.</para>
     /// </summary>
     public static OoClassTable Build(IReadOnlyList<Core.ClassDefinitionContext> classes, EditionContext edition,
-        IReadOnlyList<Core.InterfaceDefinitionContext>? interfaces = null)
+        IReadOnlyList<Core.InterfaceDefinitionContext>? interfaces = null,
+        IReadOnlySet<string>? parameterizedNames = null)
     {
-        var table = new OoClassTable();
+        var table = new OoClassTable { _parameterized = parameterizedNames ?? EmptyNames };
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
 
         // §11.3.3 SR1 / §11.6.3 SR1 / §11.7.3 SR1 — the AS phrase's literal, screened by the ONE screen

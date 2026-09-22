@@ -64,7 +64,8 @@ internal sealed class BinderDriver
         // allowance fold every ReferenceResolver queries when building a ref-mod Place (§8.4.3.3.4 item 5c).
         var refModZl = RefModZeroLengthState.Build(refModZlEvents);
 
-        var (units, classes, table) = CollectUnits(tree, edition);
+        var (units, classes, table) = CollectUnits(tree, edition,
+            cobolWordsMap ?? CobolNet.Editions.CobolWordsMap.Empty);
         var session = new BindSession
         {
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl,
@@ -295,7 +296,7 @@ internal sealed class BinderDriver
     /// into a synthetic <c>programUnit</c> context (identical child shape) so the per-unit binders consume one
     /// context type.</summary>
     private static (List<BoundUnit> Programs, List<OoClassUnit> Classes, OoClassTable Table) CollectUnits(
-        Core.CompilationUnitContext tree, EditionContext edition)
+        Core.CompilationUnitContext tree, EditionContext edition, CobolNet.Editions.CobolWordsMap words)
     {
         var all = new List<BoundUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
@@ -309,7 +310,10 @@ internal sealed class BinderDriver
             foreach (var pu in group.programUnit())
                 Collect(pu, null);
         }
-        var table = OoClassTable.Build(classDefs, edition, ifaceDefs);
+        // §9.3.12 / §9.3.13 (kb/Work PB759): a parameterized definition is a SKELETON, never a class; each
+        // REPOSITORY EXPANDS phrase creates one, and from here on an expansion is an ordinary definition.
+        var expanded = OoExpansion.Expand(tree, classDefs, ifaceDefs, edition, words);
+        var table = OoClassTable.Build(expanded.Classes, edition, expanded.Interfaces, expanded.ParameterizedNames);
         var classes = table.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
         return (all, classes, table);
 
