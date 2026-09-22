@@ -233,7 +233,7 @@ public static class StrongTypeModel
     // day strong TYPEDEF landed — the whole strong-type use-restriction network was built out across MOVE / CALL /
     // ACCEPT / STRING / REDEFINES / RENAMES / intrinsics and the POINTER subsystem was never wired in (kb/Work
     // PB153). Both sources are reduced HERE to one thing — a TYPE IDENTITY — so the consumption screens
-    // (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19/SR20, §14.8.2.3.2) all ask the same question of the same model.
+    // (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19, §14.8.2.3.2) all ask the same question of the same model.
 
     /// <summary>The identity of the TYPE a value is restricted to: the type-NAME the restriction is spelled with
     /// (§13.18.60.4 GR23 states it as <c>type-name-1</c>) together with the type DECLARATION that name resolves
@@ -275,7 +275,7 @@ public static class StrongTypeModel
     public static TypeRestriction AddressOfRestriction(DataItem operand) =>
         StrongGroupType(operand) is { IsRestricted: true } r ? r : PointerRestriction(operand);
 
-    /// <summary>"Restricted to the same type" (§14.9.39.3 SR19/SR20, §14.8.2.3.2, §14.9.3.3 SR4/SR5) — the same
+    /// <summary>"Restricted to the same type" (§14.9.39.3 SR19, §14.8.2.3.2, §14.9.3.3 SR4/SR5) — the same
     /// §8.5.3.1 relation every other same-type rule spends, asked of the identity a restriction carries: the
     /// type-name always, and full declaration equivalence whenever BOTH sides resolved to a declaration. A
     /// restriction is to a TYPE, not to a member position, so this is declaration equivalence and NOT

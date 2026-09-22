@@ -239,7 +239,6 @@ internal static class UsageCollectionPass
         public bool Visit(BoundSetFunctionPointer n) => false;   // function-pointer carriers likewise (kb/Work PB452)
         public bool Visit(BoundSetFunctionAddress n) => false;
         public bool Visit(BoundSetEntry n) => false;
-        public bool Visit(BoundSetAddressOfBased n) => false;
         public bool Visit(BoundSetPointerUpDown n) => false;
         public bool Visit(BoundSetCapacity n) => false;
         public bool Visit(BoundSetSize n) => false;

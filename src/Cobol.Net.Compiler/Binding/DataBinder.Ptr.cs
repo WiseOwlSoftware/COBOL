@@ -113,19 +113,24 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>Collect the data-names taken by <c>SET pointer TO ADDRESS OF x</c> (alternative 2 of
-    /// setAddressStatement — the ONLY ADDRESS OF surface in the grammar; alternative 1's operand is the BASED
-    /// receiver, never storage-forced). The head name + its OF/IN qualifiers are yielded for EVERY operand
-    /// shape (a subscripted operand forces the same containing record — the occurrence displacement is a
-    /// bind-time offset over the ONE cell, never separate storage).</summary>
+    /// <summary>Collect the data-names taken by a Format-7 <c>ADDRESS OF x</c> SENDER — the ONLY
+    /// data-address-identifier surface in the grammar (§8.4.3.11). The head name + its OF/IN qualifiers are
+    /// yielded for EVERY operand shape (a subscripted operand forces the same containing record — the
+    /// occurrence displacement is a bind-time offset over the ONE cell, never separate storage).
+    /// <para>⛔ IT IS THE SENDER'S ARM, ASKED OF THE SENDER'S OWN RULE (kb/Work PB450). This used to test
+    /// <c>GetChild(1)</c> against the ADDRESS token and read <c>dataReference(1)</c> — a token-position
+    /// re-derivation of which of two fixed productions had matched. §14.9.39.2 Format 7 is now ONE production
+    /// whose receiving operands are a LIST, so a positional index names nothing: an `ADDRESS OF` in a RECEIVING
+    /// operand is data-name-1, a BASED item that is never storage-forced, and only
+    /// <c>setAddressSender</c>'s own ADDRESS phrase is a data-address-identifier.</para></summary>
     private static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
     {
         if (program.procedureDivision() is not { } pd) yield break;
         foreach (var ctx in PtrDescendants(pd))
             if (ctx is Core.SetAddressStatementContext sa
-                && sa.GetChild(1) is not ITerminalNode { Symbol.Type: Core.ADDRESS })   // alt 2: SET dr TO ADDRESS OF dr
+                && sa.setAddressSender() is { } send && send.ADDRESS() is not null
+                && send.dataReference() is { } target)
             {
-                var target = sa.dataReference(1);
                 if (target.cobolWord() is not { } head) continue;
                 var quals = new List<string>();
                 foreach (var suffix in target.dataReferenceSuffix())

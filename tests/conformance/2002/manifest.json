@@ -316,7 +316,8 @@
   "pb395_subtract_incompatible_sender",
   "pb922_exception_object_reference",
   "pb590_boolean_class_condition",
-  "pb649_national_figurative_collation"
+  "pb649_national_figurative_collation",
+  "pb450_set_format7_receiving_list"
   ],
   "pending": []
 }

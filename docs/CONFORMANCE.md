@@ -639,6 +639,15 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    would have to bind as some OTHER class and every reference to it would answer wrong. Until kb/Work PB487 the
    bare spelling was not refused at all — the §13.16.2 vendor catch-all swallowed the word and the entry bound
    with no usage and no PICTURE, crashing the compiler with an unhandled `NullReferenceException`.
+   The **SET statement over a message-tag operand** — §14.9.39.2 **Format 17** (message-tag), whose SR35 makes
+   both operands message-tag data items — is refused by name with **COBOLNET2205**, an Error for the same
+   reason the usage is: a statement over items that may not exist has no inert reading either. Until kb/Work
+   PB453 it had no refusal at all and fell through to ANOTHER format's syntax rule — `SET MT TO NULL` drew the
+   §14.9.39.3 SR8 screen (COBOLNET0867, *"the receiving operand of an object-reference SET shall be a USAGE
+   OBJECT REFERENCE data item"* — the diagnostic's wording; SR8 itself reads "Identifier-3 shall be any item of
+   class object that is permitted as a receiving item") and `SET MT TO MT2` drew the §8.8.1.1 screen
+   (COBOLNET0844, *"item 'MT2' of category alphanumeric is not a numeric operand"*), neither of them true of the
+   program. Pinned by `conformance:negative/pb453-set-message-tag-format17`.
    ⚠ The EC-MCS-\* exception-names are still ACCEPTED against a facility with no setting sites — the same shape
    items 2 and 3 close below; owed with this module's own witnesses.
 2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7 / **Annex A.4.3**), in full — the facility's surface is

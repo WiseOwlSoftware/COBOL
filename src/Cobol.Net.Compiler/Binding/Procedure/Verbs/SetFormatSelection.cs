@@ -44,13 +44,24 @@ internal enum SetOperandKind
     FunctionPointer,
     /// <summary>Class object — identifier-3 (Format 5, SR8).</summary>
     ObjectReference,
+    /// <summary>A message-tag data item — data-name-4 / data-name-5 (Format 17, §14.9.39.3 SR35 "Data-name-4
+    /// and data-name-5 shall be message-tag data items"). §13.18.60.4 GR9 makes the class and category of such
+    /// an item message-tag, which no other printed receiving brace names — so it selects Format 17 and nothing
+    /// else, and Format 17 is a DECLINED facility that is refused by name (kb/Work PB453).</summary>
+    MessageTag,
 }
 
 /// <summary>The ISO §14.9.39.2 general format a SET statement selects. Only the formats whose GRAMMAR shape is
 /// shared — and so must be told apart semantically — appear here; the formats a reserved word already
 /// discriminates (3 switch, 4 condition, 6 attribute, 11/12 locale, 13 last-exception, 15 content) are chosen in
-/// <c>SetBinder.BindSet</c> by their own alternative. Format 17 (message-tag) cannot be reached: USAGE
-/// MESSAGE-TAG is refused by name at the data description entry (COBOLNET1943).</summary>
+/// <c>SetBinder.BindSet</c> by their own alternative.
+/// <para>⛔ FORMAT 17 IS ONE OF THEM, AND THIS COMMENT USED TO SAY IT "CANNOT BE REACHED" (kb/Work PB453).
+/// The MESSAGE-TAG entry is refused by name at the data description entry (COBOLNET1943) — but a refused entry
+/// still produces a symbol, the statement still binds, and <c>SET MT-A TO MT-B</c> / <c>SET MT-A TO NULL</c>
+/// therefore DID reach this selection and fell through to §14.9.39.3 SR8's object-reference screen and
+/// §8.8.1.1's arithmetic screen. The user was told their message-tag item "shall be a USAGE OBJECT REFERENCE
+/// data item" — a rule about a format their program is not, naming a fix that would not be one. The format is
+/// a row in the table now, and it names the declined FACILITY.</para></summary>
 internal enum SetFormat
 {
     /// <summary>Format 1 — index-assignment.</summary>
@@ -71,6 +82,10 @@ internal enum SetFormat
     F14,
     /// <summary>Format 16 — dynamic-length-elementary-data-item.</summary>
     F16,
+    /// <summary>Format 17 — message-tag. The DATA half of the Annex A.3 item-4 asynchronous messaging facility,
+    /// which this implementation declines (docs/CONFORMANCE.md §4 item 1); selected so §4.2.6's mandatory
+    /// warning mechanism names the facility, exactly as COBOLNET1578 already does for its SEND/RECEIVE half.</summary>
+    F17,
 }
 
 /// <summary>Which written shape the receiving operands stand in — the two grammar rules that carry more than one
@@ -168,6 +183,12 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         new(SetFormat.F5,  SetDirections.To,     [SetOperandKind.ObjectReference],
             [SetOperandKind.ObjectReference],                                           "ISO §14.9.39.3 SR8",
             "Format 5's receiving operand is identifier-3, an item of class object permitted as a receiving item"),
+        // Format 17 (message-tag) — a DECLINED facility with a row, not a hole. §14.9.39.3 SR35 makes BOTH its
+        // operands message-tag data items, so the kind names this row from either side and `SET N TO MT` is
+        // Format 17 just as `SET MT TO N` is; SetBinder answers it with the §4.2.6 facility refusal.
+        new(SetFormat.F17, SetDirections.To,     [SetOperandKind.MessageTag],
+            [SetOperandKind.MessageTag],                                                "ISO §14.9.39.3 SR35",
+            "Format 17's receiving operand is data-name-4, a message-tag data item"),
         new(SetFormat.F10, SetDirections.UpDown, [SetOperandKind.DataPointer],      [], "ISO §14.9.39.3 SR23",
             "Format 10's receiving operand is identifier-9, of category data-pointer"),
         new(SetFormat.F2,  SetDirections.UpDown, [SetOperandKind.IndexName],        [], "ISO §14.9.39.2 Format 2 / §14.9.39.4 GR4",
@@ -216,6 +237,12 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         if (ctx.Refs.Probe(dref) is not { } sniff) return SetOperandKind.Unclassified;
         if (sniff.Item.IsDynamicLength) return SetOperandKind.DynamicLength;                          // SR33
         if (sniff.Item.Pic is { Usage: Usage.Index }) return SetOperandKind.IndexDataItem;            // §8.5.2.1 Table 2
+        // ⛔ ASKED THROUGH THE USAGE, NOT THE CATEGORY (kb/Work PB453). MESSAGE-TAG is a DECLINED usage, so its
+        // entry carries a recovery PicInfo whose CATEGORY is a placeholder — reading `OperandCategory` here
+        // answers "alphanumeric" and the operand falls through to Format 1 / Format 5 and draws a rule that is
+        // false about the program. ItemCategory.IsMessageTag reads the written clause AND the resolved usage,
+        // which is the pair §13.18.60.3 SR14's own screen reads.
+        if (ItemCategory.IsMessageTag(sniff.Item)) return SetOperandKind.MessageTag;                  // SR35
         return sniff.OperandCategory switch
         {
             PicCategory.Pointer => SetOperandKind.DataPointer,                 // SR17 / SR23
@@ -365,6 +392,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         SetOperandKind.ProgramPointer => "of category program-pointer",
         SetOperandKind.FunctionPointer => "of category function-pointer",
         SetOperandKind.ObjectReference => "of class object",
+        SetOperandKind.MessageTag => "a message-tag data item",
         SetOperandKind.OtherDataItem => "neither an index-name nor an integer data item",
         _ => "not resolvable here",
     };

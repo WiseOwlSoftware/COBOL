@@ -2547,7 +2547,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para>The restriction's carried identity used to be the NAME alone, which decides correctly WITHIN a
     /// source element (§13.18.58 makes a type-name unique there) and wrongly ACROSS them: two elements may each
     /// declare a non-equivalent type under one name, and §8.5.3.1 makes equivalence — not the spelling — the
-    /// test §14.9.39.3 SR19/SR20, §14.9.3.3 SR4/SR5 and §14.8.2.3.2 spend (kb/Work PB427). No diagnostic is
+    /// test §14.9.39.3 SR19, §14.9.3.3 SR4/SR5 and §14.8.2.3.2 spend (kb/Work PB427). No diagnostic is
     /// raised for an unresolved name: §13.18.60.3 SR18 already requires such an entry to be a TYPEDEF, and a
     /// restriction whose declaration is not in hand falls back to the name comparison rather than rejecting.</para></summary>
     private void ResolveRestrictedTypes()
@@ -4187,7 +4187,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // the FLOAT-BINARY-128 / FLOAT-DECIMAL forms below have one: §13.16.3 SR8 exempts message-tag from
             // needing a PICTURE, so without it the errored compile would carry a null Pic into the emitter —
             // the unhandled NullReferenceException kb/Work PB487 measured. Never a bind: the compile has failed.
-            : entryUsage is Usage.MessageTag ? PicInfo.Recovery()
+            // ⛔ IT CARRIES THE WRITTEN USAGE (kb/Work PB453): a bare Recovery() said Usage.Display / category
+            // alphanumeric, so every later screen answered about a category the item does not have — a SET on
+            // such an item drew §14.9.39.3 SR8's object-reference diagnostic and §8.8.1.1's "not a numeric
+            // operand", neither of which is true of the program. The usage is a FACT the source states; the
+            // category still is not an analysis, which is what IsRecovery goes on saying.
+            : entryUsage is Usage.MessageTag ? PicInfo.MessageTagRecovery()
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectRefDesc)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)

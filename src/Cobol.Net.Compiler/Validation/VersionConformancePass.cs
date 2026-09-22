@@ -1508,9 +1508,10 @@ internal sealed class VersionConformancePass
         { _p.Check(Constructs.DeleteFile2023, "the DELETE FILE statement"); return base.VisitChildren(ctx); }
 
         /// <summary>SET ADDRESS OF (ISO §14.9.39 Format 7) — a COBOL-2002 introduction. The ONE
-        /// <c>setAddressStatement</c> rule carries BOTH forms (receiver <c>SET ADDRESS OF x TO p</c> + sender
-        /// <c>SET p TO ADDRESS OF x</c>), which the bound-arm identified as two node shapes; one parse override
-        /// unifies them (one Check per statement).</summary>
+        /// <c>setAddressStatement</c> rule carries the WHOLE printed format — a receiving LIST whose operands
+        /// are independently <c>ADDRESS OF data-name-1</c> or <c>identifier-5</c>, over one identifier-6 sender
+        /// that may itself be a §8.4.3.11 data-address-identifier — so one parse override is one Check per
+        /// statement however the operands are spelled (kb/Work PB450).</summary>
         public override object? VisitSetAddressStatement(CobolParserCore.SetAddressStatementContext ctx)
         { _p.Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)"); return base.VisitChildren(ctx); }
 

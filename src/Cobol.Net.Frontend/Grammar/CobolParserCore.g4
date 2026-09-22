@@ -1351,8 +1351,17 @@ setStatement
     | setProgramAddressStatement  // F9 with the §8.4.3.13 ADDRESS OF PROGRAM sender — same reason, same place
                                   // (kb/Work PB549). PROGRAM and FUNCTION are distinct reserved tokens, so the
                                   // two address-sender rules cannot claim each other's shape in either order.
-    | setAddressStatement
+    // ⛔ BEFORE setAddressStatement, AND THAT ORDER IS LOAD-BEARING (kb/Work PB450 half 2). Format 7's printed
+    // sender identifier-6 may be the predefined address NULL (§14.9.39.3 SR19), and Format 5's may be the
+    // predefined object reference NULL (SR9) — `SET X TO NULL` is token-identical in both, and only the
+    // RECEIVER's category tells them apart, which is SetFormatSelection's question and not the parser's. With
+    // setAddressStatement's receiving list widened to the printed `{ ADDRESS OF data-name-1 | identifier-5 } …`
+    // it can now match that shape too, so listing it first would take every `SET obj-ref TO NULL` away from the
+    // format-selection path. Listed here, the ordinary shapes route exactly as they did and only the ones
+    // carrying an ADDRESS phrase — which setObjectReferenceStatement can never match, ADDRESS being a reserved
+    // token — reach Format 7's own rule.
     | setObjectReferenceStatement
+    | setAddressStatement
     | setIndexStatement
     ;
 
@@ -1483,18 +1492,44 @@ setConditionPhrase
     : dataReference+ TO (TRUE_ | FALSE_)
     ;
 
-// Pointer address forms (COBOL-2002 §14.9.39):
-//   SET ADDRESS OF based-item TO pointer   — rebase a BASED/LINKAGE item
-//   SET pointer TO ADDRESS OF identifier   — take a pointer to an item (ADDRESS OF as sender)
-// ⛔ OF IS AN OPTIONAL WORD IN BOTH ARMS (kb/Work PB695). Folio 730's Format 7 prints `ADDRESS OF data-name-1`
-// with a rule under ADDRESS only, and the sender arm takes its phrase from the §8.4.3.11.2 data-address-
-// identifier on folio 140, whose whole underline roster is {ADDRESS}. ADDRESS is a reserved token and can
-// never head a dataReference, so `SET ADDRESS P TO Q` stays unambiguous against setToValueStatement.
-// ⚠ PtrBinder.BindSetAddress tells the arms apart by `GetChild(1)` being the ADDRESS token — a position OF
-// does not occupy in either arm, so the relaxation leaves that discrimination intact.
+// ⛔ ONE PRODUCTION FOR THE WHOLE PRINTED FORMAT 7, AND THE REPEATED RECEIVING OPERAND IS A NAMED RULE
+// (kb/Work PB450 half 2 — half 1 landed the same discipline on Formats 3 and 4). RENDERED, never inherited
+// (specs-private PDF p760 / folio 730 at 300 dpi):
+//     SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6
+// The brace is a PLAIN required choice — exactly one of the two spellings — and the `…` is OUTSIDE it, so a
+// Format-7 statement carries ONE OR MORE receiving operands, each independently either spelling, mixed in any
+// order, while the sender identifier-6 is a SINGLE operand outside the repetition.
+//   python scripts/spec/cite.py --check 14.9.39.2 "repeats the braced receiving operand"
+//   OK  §14.9.39.2   (General formats)  — Format 7's figure note
+// ⛔ BEFORE THIS THE RULE WAS TWO FIXED PRODUCTIONS SPLIT ON THE SENDER'S SPELLING, each hard-coding arity one,
+// so four cells of the printed cross-product died as a bare COBOL0001 and no syntax rule ever screened them:
+// `SET ADDRESS OF B1 ADDRESS OF B2 TO P1`, `SET P1 P2 TO ADDRESS OF R1`, `SET ADDRESS OF B1 P1 TO P2` and
+// `SET ADDRESS OF B1 TO ADDRESS OF R1`. §14.9.39.4 GR12 and GR13 are each written over "EACH … in the order
+// specified" — rules ABOUT the list — so a receiver LIST is what lets them be one loop instead of two arities.
+// ⛔ OF IS AN OPTIONAL WORD IN BOTH POSITIONS (kb/Work PB695): the rendered figure rules ADDRESS and TO and
+// leaves OF bare, and the sender's phrase is the §8.4.3.11.2 data-address-identifier on folio 140, whose whole
+// underline roster is {ADDRESS}. ADDRESS is a reserved token and can never head a dataReference, so
+// `SET ADDRESS P TO Q` stays unambiguous against setToValueStatement.
 setAddressStatement
-    : SET ADDRESS OF? dataReference TO (dataReference | NULL_)   // SR19 — identifier-6 is a data-pointer or the predefined address NULL (kb/Work PB89)
-    | SET dataReference TO ADDRESS OF? dataReference
+    : SET setAddressReceiver+ TO setAddressSender
+    ;
+
+// ONE printed Format-7 receiving operand — the brace `{ ADDRESS OF data-name-1 | identifier-5 }`. The operand
+// CARRIES ITS OWN KIND: `ADDRESS()` present is data-name-1, the BASED receiver §14.9.39.3 SR18 screens and
+// §14.9.39.4 GR13 assigns to; absent is identifier-5, the data-pointer receiver SR17 screens and GR12 stores
+// into. A hand-written re-derivation from token positions is what the Format-3/4 half of this note deleted.
+setAddressReceiver
+    : (ADDRESS OF?)? dataReference
+    ;
+
+// identifier-6, the single sending operand. It may be an ordinary data-pointer item, a §8.4.3.11
+// data-address-identifier (`ADDRESS OF x` — §8.4.3.11.4 GR1 "creates a unique data item of class pointer and
+// category data-pointer", exactly what SR17's second sentence demands of identifier-6), or the predefined
+// address NULL (§14.9.39.3 SR19). ⚠ The NULL arm is why setObjectReferenceStatement is listed BEFORE this rule
+// in setStatement: `SET obj-ref TO NULL` is token-identical and belongs to Format 5.
+setAddressSender
+    : (ADDRESS OF?)? dataReference
+    | NULL_
     ;
 
 // SET { identifier-12 } … TO ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }

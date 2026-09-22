@@ -84,19 +84,26 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     private string LandAmount(BoundExpr amount, SetAmountRule rule, string detail, out string valueVar, string prefix) =>
         LandAmount(num.Render(amount, ReceiverContext.None), rule, detail, out valueVar, prefix);
 
-    /// <summary><c>SET pointer… TO {NULL | pointer}</c> (ISO §14.9.39 Format 7; Phase-4b increment 1): copy
-    /// the NULL singleton or the source pointer's carrier into each target in order (GR — a straight handle
-    /// copy; a data pointer carries no PICTURE store).</summary>
+    /// <summary><c>SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6</c> (ISO §14.9.39 Format 7):
+    /// ONE loop over the printed receiving list, each operand taking its own general rule.
+    /// <para>⛔ GR12 AND GR13 ARE ONE LOOP, BECAUSE THE STANDARD WRITES THEM AS ONE (kb/Work PB450). GR12 — "the
+    /// address identified by identifier-6 is stored in EACH data item referenced by identifier-5 IN THE ORDER
+    /// SPECIFIED" — and GR13 — the same sentence for the based data-name-1 spelling — differ only in what a
+    /// receiver IS, which is why <see cref="BoundPointerReceiver"/> carries the kind per operand and the two
+    /// spellings may be mixed in one statement. A separate node and a separate emitter used to hold the GR13
+    /// half at arity one, and a mixed statement could not be expressed at all.</para></summary>
     public void EmitSetPointer(BoundSetPointer s)
     {
-        // §14.9.39.4 GR12/GR16 — "the address identified by identifier-6/-8 is stored in each data item
-        // referenced by identifier-5/-7 in the order specified": ONE evaluation of the sender (kb/Work PB394),
-        // then a store per receiver. A TO NULL sender is the constant and needs no local.
+        // The sender is ONE operand OUTSIDE the printed repetition, so it is evaluated ONCE (kb/Work PB394) —
+        // which also makes `SET P1 P2 TO ADDRESS OF R` and a receiver that names the sender's own item agree
+        // with the rule. A TO NULL sender is the constant and needs no local.
         string src = s.ToNull ? "ManagedPointer.Null"
-            : ctx.SendOnce(s.Address is { } a ? ptr.AddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
-                                              : PlaceRenderer.Read(s.Source!), s.Targets.Count, "setPtr");
-        foreach (var t in s.Targets)
-            ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 7)");
+            : ctx.SendOnce(s.Address is { } a ? ptr.AddressOfText(a)   // §8.4.3.11 data-address-identifier sender
+                                              : PlaceRenderer.Read(s.Source!), s.Receivers.Count, "setPtr");
+        foreach (var r in s.Receivers)
+            if (r.Based is { } based) ptr.EmitSetAddressOfBased(based, src);       // GR13 — data-name-1
+            else ctx.Writer.Line(PlaceRenderer.Write(r.Pointer!, src)              // GR12 — identifier-5
+                                 + "   // SET pointer (ISO §14.9.39 Format 7 GR12)");
     }
 
     /// <summary><c>SET LOCALE … TO …</c> (ISO §14.9.39 Format 11; kb/Work PB64 T1): one call on the run unit's ONE

@@ -256,10 +256,45 @@ public sealed class PrintedFormatAlternativeDriftTests
             $"the set…Statement sweep found {swept.Count} rule(s) — the scrape is broken, not the grammar");
         Assert.Contains("setSwitchStatement", swept);
         Assert.Contains("setBooleanStatement", swept);
+        Assert.Contains("setAddressStatement", swept);
         Assert.Empty(offenders);
 
         // And the two twins really are the same shape, which is the half a "no inline group" rule cannot say.
         foreach (string pair in new[] { "setSwitchStatement", "setBooleanStatement" })
             Assert.Matches(@"^\s*:?\s*SET\s+set[A-Za-z]+Phrase\+\s*$", RuleBody(pair).Trim());
+
+        // Format 7's outer `…` is on the RECEIVING OPERAND rather than on a whole TO-group, so its repeated
+        // unit is a receiver rule rather than a phrase rule — but it is a NAMED rule all the same, and the
+        // statement holds ONE alternative because the printed figure is one figure (kb/Work PB450 half 2;
+        // before it, two fixed productions split on the SENDER's spelling each hard-coded arity one).
+        Assert.Matches(@"^\s*:?\s*SET\s+setAddressReceiver\+\s+TO\s+setAddressSender\s*$",
+                       RuleBody("setAddressStatement").Trim());
+    }
+
+    /// <summary>⛔ <c>setObjectReferenceStatement</c> IS LISTED BEFORE <c>setAddressStatement</c>, AND THE
+    /// ORDER IS THE ROUTING (kb/Work PB450 half 2; feedback_grammar_precedence — ANTLR takes the first
+    /// matching alternative).
+    /// <para>§14.9.39.3 SR19 lets Format 7's identifier-6 be "the predefined address NULL", and SR9 lets
+    /// Format 5's identifier-4 be the predefined object reference NULL, so <c>SET X TO NULL</c> is
+    /// token-identical in both and only the RECEIVER's category tells them apart — which is
+    /// <c>SetFormatSelection</c>'s question, asked at BIND, and not the parser's. Once Format 7's receiving
+    /// list became the printed <c>{ ADDRESS OF data-name-1 | identifier-5 } …</c>, <c>setAddressStatement</c>
+    /// began to match that shape too; listed first it would take every <c>SET obj-ref TO NULL</c> away from
+    /// the format-selection path and bind it as a data-pointer SET.</para>
+    /// <para>The invariant is stated over the <c>setStatement</c> alternative LIST rather than over a
+    /// remembered pair of line numbers, and it asserts it found both alternatives before it compares them, so
+    /// a renamed rule fails loudly instead of passing vacuously (feedback_green_gates_arent_evidence).</para></summary>
+    [Fact]
+    public void SetObjectReferenceStatement_IsOfferedBeforeSetAddressStatement()
+    {
+        string body = RuleBody("setStatement");
+        int objRef = body.IndexOf("setObjectReferenceStatement", StringComparison.Ordinal);
+        int address = body.IndexOf("setAddressStatement", StringComparison.Ordinal);
+        Assert.True(objRef >= 0, "setStatement no longer offers setObjectReferenceStatement — the scrape is broken");
+        Assert.True(address >= 0, "setStatement no longer offers setAddressStatement — the scrape is broken");
+        Assert.True(objRef < address,
+            "setStatement offers setAddressStatement before setObjectReferenceStatement: ANTLR takes the first "
+            + "matching alternative, and Format 7's receiving list now matches `SET dataReference+ TO NULL` — "
+            + "the shape §14.9.39.2 Format 5 owns. `SET obj-ref TO NULL` would bind as a data-pointer SET.");
     }
 }

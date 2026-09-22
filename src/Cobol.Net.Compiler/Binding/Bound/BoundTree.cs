@@ -1095,13 +1095,29 @@ public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 public sealed record BoundSetConditions(
     IReadOnlyList<(Place Parent, Condition88 Condition, bool ToTrue)> Sets) : BoundStatement;
 
-/// <summary>SET data-pointer assignment (ISO §14.9.39 Format 7 — SET pointer TO {NULL | pointer};
-/// Phase-4b increment 1): copy the NULL singleton or the source pointer into each target in order.
-/// <paramref name="ToNull"/> ⇔ the sender is the NULL figurative (renders <c>ManagedPointer.Null</c>);
-/// <paramref name="Address"/> ⇔ the sender is <c>ADDRESS OF identifier</c> (increment 2 — ONE node per job,
-/// never a parallel SET-pointer node).</summary>
+/// <summary>ONE receiving operand of SET Format 7, as §14.9.39.2's printed brace writes it —
+/// <c>{ ADDRESS OF data-name-1 | identifier-5 }</c> — carrying its OWN kind (kb/Work PB450).
+/// <para>Exactly one member is non-null. <paramref name="Pointer"/> is identifier-5, the data-pointer item
+/// §14.9.39.3 SR17 screens and §14.9.39.4 GR12 stores the address INTO; <paramref name="Based"/> is
+/// data-name-1, the based item SR18 screens and GR13 assigns the address TO (its implicit data-address
+/// pointer, §8.6.5). The two spellings are independent per operand and may be mixed in one statement, because
+/// the printed `…` sits OUTSIDE the brace — so the KIND belongs to the operand and never to the
+/// statement.</para></summary>
+public sealed record BoundPointerReceiver(Place? Pointer, DataItem? Based);
+
+/// <summary>SET data-pointer assignment (ISO §14.9.39 Format 7): the address identified by identifier-6 is
+/// stored in / assigned to EACH receiving operand IN THE ORDER SPECIFIED (§14.9.39.4 GR12 and GR13 — one loop
+/// over <paramref name="Receivers"/>, which is why the receivers are one list and not two node shapes).
+/// <para><paramref name="ToNull"/> ⇔ the sender is the predefined address NULL (SR19; renders
+/// <c>ManagedPointer.Null</c>); <paramref name="Address"/> ⇔ the sender is a §8.4.3.11 data-address-identifier
+/// <c>ADDRESS OF identifier</c>; otherwise <paramref name="Source"/> is the data-pointer sender. The sender is
+/// ONE operand outside the printed repetition and is therefore evaluated ONCE.</para>
+/// <para>⛔ ONE NODE FOR ONE PRINTED FORMAT. A separate <c>BoundSetAddressOfBased</c> used to carry the
+/// data-name-1 half with arity one, and a Format-7 statement that mixed the two spellings could not be
+/// expressed at all — the shape kb/Work PB450 measured as four COBOL0001 cascades.</para></summary>
 public sealed record BoundSetPointer(
-    IReadOnlyList<Place> Targets, Place? Source, bool ToNull, BoundAddressOf? Address = null) : BoundStatement;
+    IReadOnlyList<BoundPointerReceiver> Receivers, Place? Source, bool ToNull,
+    BoundAddressOf? Address = null) : BoundStatement;
 
 /// <summary><c>ADDRESS OF identifier</c> as a pointer VALUE (ISO §8.4.3.11 GR1; Phase-4b increment 2): for a
 /// BASED item the value IS its implicit data-address pointer (§8.6.5 :8791); for a cell-backed record the
@@ -1112,10 +1128,6 @@ public sealed record BoundSetPointer(
 /// unsubscripted operand. It is the D10 transitional rendered-index carrier (see
 /// <c>AccessPath</c>/<c>FixedTableSegment</c>) — a <c>BoundExpr</c> when PHASE 15 removes SUBSCRIPT mode.</summary>
 public sealed record BoundAddressOf(DataItem Item, string? OccursDisplacement = null);
-
-/// <summary><c>SET ADDRESS OF based-item TO pointer</c> (ISO §14.9.39 Format 7; SR18 — the receiver shall be
-/// BASED; GR13 — the address VALUE is assigned to the based item, a snapshot): <c>__addr_B = pointer</c>.</summary>
-public sealed record BoundSetAddressOfBased(DataItem Based, Place? Source) : BoundStatement;   // Source null ⇒ TO NULL (SR19; kb/Work PB89)
 
 /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; SR21 — both sides
 /// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-7 twin.</summary>

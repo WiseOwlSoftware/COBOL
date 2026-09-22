@@ -27,77 +27,138 @@ using Core = CobolParserCore;
 /// based-item verdict was wrong in both directions (kb/Work PB467).</para></summary>
 internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>Bind SET Format 7 — both grammar alternatives of <c>setAddressStatement</c>:
-    /// <c>SET ADDRESS OF based TO pointer</c> (receiver form; SR18 :31399 — the receiver SHALL be BASED, the
-    /// IBM non-BASED-LINKAGE idiom is a rejected non-ISO extension) and <c>SET pointer TO ADDRESS OF x</c>
-    /// (sender form — routes into the ONE pointer-SET node with the ADDRESS OF source leg).</summary>
+    /// <summary>⛔ THE ONE BINDER FOR THE WHOLE PRINTED SET FORMAT 7 (ISO §14.9.39.2; kb/Work PB450).
+    /// <para>The rendered figure (PDF p760 / folio 730) is
+    /// <c>SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6</c>: the brace is a plain required
+    /// choice, the <c>…</c> is OUTSIDE it, so the statement carries a LIST of receiving operands, each
+    /// independently either spelling and mixable in one statement, over ONE sender. §14.9.39.4 GR12 ("the
+    /// address identified by identifier-6 is stored in each data item referenced by identifier-5 IN THE ORDER
+    /// SPECIFIED") and GR13 (the same sentence for data-name-1) are then ONE loop over that list, each operand
+    /// taking its own rule — which is exactly how the standard writes them.</para>
+    /// <para>Before this the grammar held two fixed productions split on the SENDER's spelling, each with arity
+    /// one, and this method branched on <c>GetChild(1)</c>. Four cells of the printed cross-product could not be
+    /// written at all, so SR17 and SR18 were unreachable on every one of them.</para>
+    /// <para>The sender is bound ONCE, before any receiver is resolved, which is GR12/GR13's "the address
+    /// identified by identifier-6" read once — a receiver may name the sender's own item.</para></summary>
     public BoundStatement BindSetAddress(Core.SetAddressStatementContext sa)
     {
-        // SET ADDRESS OF (§14.9.39 Format 7) is a COBOL-2002 introduction; the edition gate moved to the post-bind
-        // VersionConformancePass (PHASE-03 Step 14b) — it fires on BoundSetAddressOfBased (receiver form) and
-        // BoundSetPointer{Address} (sender form).
-        bool receiverForm = sa.GetChild(1) is Antlr4.Runtime.Tree.ITerminalNode { Symbol.Type: Core.ADDRESS };
-
-        if (receiverForm)
+        // SET ADDRESS OF (§14.9.39 Format 7) is a COBOL-2002 introduction; the edition gate lives in the
+        // post-bind VersionConformancePass (PHASE-03 Step 14b) as a parse-tree override on this rule.
+        var send = sa.setAddressSender();
+        Place? source = null;
+        BoundAddressOf? address = null;
+        bool toNull = send.NULL_() is not null;
+        if (!toNull && send.ADDRESS() is not null)
         {
-            // SET ADDRESS OF based-item TO pointer (GR13, the data-name-1 arm — the address VALUE is
-            // assigned to each based item; a snapshot. GR12 is the identifier-5 arm, a pointer RECEIVER).
-            var basedRef = sa.dataReference(0);
-            if (PtrResolveBased(basedRef) is not { } based) return new BoundNop();   // 0869 reported
-            // SR19 — identifier-6 "shall be the predefined address NULL or shall reference a data-pointer": TO NULL
-            // disassociates the based item (its implicit pointer becomes NULL — §13.18.5 GR2's initial state; kb/Work
-            // PB89 — the form was a parse error).
-            if (sa.NULL_() is not null) return new BoundSetAddressOfBased(based, null);
-            var senderRef = sa.dataReference(1);
-            if (PtrResolvePointer(senderRef, "the sender of SET ADDRESS OF (ISO §14.9.39 SR17)") is not { } src)
-                return new BoundNop();
-            // §14.9.39.3 SR19, second sentence — the RECEIVER arm: "If data-name-1 is a strongly-typed group item
-            // or a restricted pointer, identifier-6 shall reference a data-pointer restricted to the type of
-            // data-name-1." Here data-name-1 is the BASED receiver and identifier-6 the pointer sender.
-            var needed = StrongTypeModel.StrongGroupType(based) is { IsRestricted: true } sg
-                ? sg : StrongTypeModel.PointerRestriction(based);
-            if (needed.IsRestricted
-                && !StrongTypeModel.SameRestriction(needed, StrongTypeModel.PointerRestriction(src.Item)))
-            {
-                RejectRestriction(senderRef.GetText(),
-                    $"the receiver of SET ADDRESS OF is restricted to type '{needed}', so the sender shall "
-                    + "reference a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
-                return new BoundNop();
-            }
-            return new BoundSetAddressOfBased(based, src);
+            // identifier-6 as a §8.4.3.11 data-address-identifier — §8.4.3.11.4 GR1: "Data-address-identifier
+            // creates a unique data item of class pointer and category data-pointer", which is precisely what
+            // SR17's second sentence ("Identifier-6 shall be of category data-pointer") demands of it.
+            if (PtrBindAddressOf(send.dataReference()) is not { } addr) return new BoundNop();
+            address = addr;
         }
-
-        // SET pointer TO ADDRESS OF identifier (§8.4.3.11 — the sender form).
-        var targetRef = sa.dataReference(0);
-        var addrRef = sa.dataReference(1);
-        if (PtrResolvePointer(targetRef, "the receiver of SET … TO ADDRESS OF (ISO §14.9.39 Format 7)") is not { } tp)
-            return new BoundNop();
-        if (PtrBindAddressOf(addrRef) is not { } addr) return new BoundNop();
-        // ⛔ THE SECOND ARM, AND IT IS A SEPARATE CODE PATH — the two-arm question asked and answered. §14.9.39.3
-        // SR19's first sentence governs the RECEIVING pointer: "If identifier-5 references a restricted
-        // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
-        // restricted to the same type." SR20 is its converse: "If identifier-6 references a restricted
-        // data-pointer, either identifier-5 shall reference a data-pointer restricted to the same type or
-        // data-name-1 shall be a typed item of the type to which identifier-6 is restricted." Here identifier-5 is
-        // the pointer receiver and the ADDRESS OF operand supplies identifier-6's restriction (§8.4.3.11.4 GR2).
-        var receiverRestriction = StrongTypeModel.PointerRestriction(tp.Item);
-        var sourceRestriction = StrongTypeModel.AddressOfRestriction(addr.Item);
-        if (receiverRestriction.IsRestricted && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
+        else if (!toNull)
         {
-            RejectRestriction(addrRef.GetText(),
+            // SR19 first sentence's "shall reference a data-pointer" — identifier-6 as a plain pointer item.
+            if (PtrResolvePointer(send.dataReference(), "identifier-6, the sending operand of SET Format 7 "
+                                                     + "(ISO §14.9.39.2; §14.9.39.3 SR17)") is not { } src)
+                return new BoundNop();
+            source = src;
+        }
+        // ⛔ IDENTIFIER-6'S RESTRICTION, DERIVED ONCE. §14.9.39.3 SR19's three sentences all compare a RECEIVER's
+        // restriction against identifier-6's, and identifier-6 has one whichever spelling it takes: a pointer
+        // item's own declared `TO type-name-1` (§13.18.60.4 GR23), or, for a data-address-identifier, the one
+        // §8.4.3.11.4 GR2 gives it ("If identifier-1 is a strongly-typed group item or a restricted
+        // data-pointer, the data-address-identifier is a restricted data-pointer that is restricted to the type
+        // of identifier-1"). It is a property of the SENDER, which is ONE operand outside the printed
+        // repetition, so deriving it per receiver would be the same rule written twice. ⚠ `default` for TO
+        // NULL, which SR19's own words admit ("shall be the predefined address NULL or …") and neither
+        // direction screens.
+        var senderRestriction = address is { } addrSend ? StrongTypeModel.AddressOfRestriction(addrSend.Item)
+                              : source is { } ptrSend ? StrongTypeModel.PointerRestriction(ptrSend.Item)
+                              : default;
+        string senderText = toNull ? "NULL" : send.dataReference().GetText();
+
+        var receivers = new List<BoundPointerReceiver>(sa.setAddressReceiver().Length);
+        foreach (var r in sa.setAddressReceiver())
+        {
+            var dref = r.dataReference();
+            if (r.ADDRESS() is not null)
+            {
+                // data-name-1 — §14.9.39.3 SR18 "Data-name-1 shall be a based data item" (the IBM
+                // non-BASED-LINKAGE idiom is a rejected non-ISO extension); GR13 assigns the address to it.
+                if (PtrResolveBased(dref) is not { } based) return new BoundNop();   // 0869 reported
+                // §14.9.39.3 SR19, second sentence: "If data-name-1 is a strongly-typed group item or a
+                // restricted pointer, identifier-6 shall reference a data-pointer restricted to the type of
+                // data-name-1." Asked PER RECEIVER, because the restriction is data-name-1's, not the
+                // statement's — a mixed list may hold a restricted receiver beside an unrestricted one.
+                // ⛔ AND AGAINST IDENTIFIER-6 IN EITHER SPELLING. The predecessor arm compared only against a
+                // PLAIN pointer sender, because `SET ADDRESS OF based TO ADDRESS OF x` was a parse error and
+                // the case could not arise; it can now, and §8.4.3.11.4 GR2 gives that sender a restriction of
+                // its own, so leaving it out would under-reject exactly the shape this landing opened.
+                var needed = StrongTypeModel.StrongGroupType(based) is { IsRestricted: true } sg
+                    ? sg : StrongTypeModel.PointerRestriction(based);
+                if (!toNull && needed.IsRestricted
+                    && !StrongTypeModel.SameRestriction(needed, senderRestriction))
+                {
+                    RejectRestriction(senderText,
+                        $"the receiver of SET ADDRESS OF is restricted to type '{needed}', so the sender shall "
+                        + "reference a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
+                    return new BoundNop();
+                }
+                receivers.Add(new BoundPointerReceiver(null, based));
+                continue;
+            }
+            // identifier-5 — SR17 "Identifier-5 shall reference a data item of category data-pointer";
+            // GR12 stores the address into it.
+            // ⛔ THE RULE'S OWN WORDS, AND NO U+2026 (kb/Work PB388 — the diagnostic renderer transliterates
+            // an ellipsis to ASCII, so a message spelling the statement with one reads as `SET . TO …`). The
+            // former text named the SENDER's spelling ("the receiver of SET … TO ADDRESS OF"), which is false
+            // for every Format-7 sender that is a plain pointer or NULL — and those now reach this screen,
+            // because the receiving LIST may mix the two spellings.
+            if (PtrResolvePointer(dref, "identifier-5, a receiving operand of SET Format 7 "
+                                      + "(ISO §14.9.39.2; §14.9.39.3 SR17)") is not { } tp) return new BoundNop();
+            // §14.9.39.3 SR19's first sentence over identifier-5 ("If identifier-5 references a restricted
+            // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
+            // restricted to the same type") and SR20's converse, which the ADDRESS OF sender supplies through
+            // §8.4.3.11.4 GR2. ⛔ TO NULL is admitted by SR19's own words and is screened by neither.
+            if (!toNull && !ScreenPointerReceiverRestriction(tp, dref.GetText(), senderRestriction, senderText,
+                                                            addressSender: address is not null))
+                return new BoundNop();
+            receivers.Add(new BoundPointerReceiver(tp, null));
+        }
+        return new BoundSetPointer(receivers, source, toNull, address);
+    }
+
+    /// <summary>§14.9.39.3 SR19's first and THIRD sentences over ONE identifier-5 receiver of a Format-7
+    /// statement whose sender is a pointer item or a data-address-identifier. Both directions are asked here
+    /// because they are one rule about one (receiver, sender) pair, and a Format-7 statement may now hold
+    /// several receivers — a per-statement screen would have answered for operand zero only.</summary>
+    private bool ScreenPointerReceiverRestriction(
+        Place receiver, string receiverText, StrongTypeModel.TypeRestriction sourceRestriction,
+        string senderText, bool addressSender)
+    {
+        var receiverRestriction = StrongTypeModel.PointerRestriction(receiver.Item);
+        if (receiverRestriction.IsRestricted
+            && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
+        {
+            RejectRestriction(senderText,
                 $"the receiving data-pointer is restricted to type '{receiverRestriction}', so the sender shall "
                 + "be NULL or a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
-            return new BoundNop();
+            return false;
         }
         if (sourceRestriction.IsRestricted && !receiverRestriction.IsRestricted)
         {
-            RejectRestriction(targetRef.GetText(),
-                $"ADDRESS OF '{addrRef.GetText()}' is a RESTRICTED data-pointer of type '{sourceRestriction}' "
-                + "(ISO §8.4.3.11.4 GR2 — the operand is a strongly-typed group item or a restricted pointer), so "
-                + "the receiver shall be a data-pointer restricted to the same type (ISO §14.9.39.3 SR20)");
-            return new BoundNop();
+            RejectRestriction(receiverText,
+                $"{(addressSender ? $"ADDRESS OF '{senderText}'" : $"'{senderText}'")} is a RESTRICTED "
+                + $"data-pointer of type '{sourceRestriction}' "
+                + (addressSender
+                   ? "(ISO §8.4.3.11.4 GR2 — the operand is a strongly-typed group item or a restricted pointer), "
+                   : "(ISO §13.18.60.4 GR23 — its USAGE POINTER clause specifies a type-name-1), ")
+                + "so the receiver shall be a data-pointer restricted to the same type "
+                + "(ISO §14.9.39.3 SR19, third sentence)");
+            return false;
         }
-        return new BoundSetPointer([tp], null, ToNull: false, Address: addr);
+        return true;
     }
 
     /// <summary>Report a restricted-data-pointer type-safety violation. The 0869 pointer band, where PtrBinder

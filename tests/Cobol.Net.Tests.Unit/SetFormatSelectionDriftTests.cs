@@ -123,6 +123,11 @@ public sealed class SetFormatSelectionDriftTests : CobolNetTestBase
     [InlineData((int)SetOperandKind.ProgramPointer, (int)SetOperandKind.IntegerItem)]
     [InlineData((int)SetOperandKind.FunctionPointer, (int)SetOperandKind.IntegerItem)]
     [InlineData((int)SetOperandKind.ObjectReference, (int)SetOperandKind.IntegerItem)]
+    // Format 17 (message-tag) — the DECLINED facility that had no row at all and was therefore selected by
+    // nothing, so a Format-17 statement fell to the NEAREST row and drew another format's syntax rule
+    // (kb/Work PB453). Its kind is pinned here for the same reason the carriers are: the whole point of the
+    // table is that a mixed list answers the same however it is written.
+    [InlineData((int)SetOperandKind.MessageTag, (int)SetOperandKind.IntegerItem)]
     [InlineData((int)SetOperandKind.CapacityRegister, (int)SetOperandKind.IntegerItem)]
     [InlineData((int)SetOperandKind.DynamicLength, (int)SetOperandKind.IntegerItem)]
     [InlineData((int)SetOperandKind.IndexName, (int)SetOperandKind.DataPointer)]

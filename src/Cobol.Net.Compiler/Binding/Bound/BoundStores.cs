@@ -252,7 +252,6 @@ public static class BoundStores
         public StoreKind? Visit(BoundFree n) => null;
         public StoreKind? Visit(BoundInvokeUniversal n) => null;
         public StoreKind? Visit(BoundRaiseObject n) => null;
-        public StoreKind? Visit(BoundSetAddressOfBased n) => null;
         public StoreKind? Visit(BoundSetCapacity n) => null;
         public StoreKind? Visit(BoundSetObjectRef n) => null;
         public StoreKind? Visit(BoundSetPointer n) => null;

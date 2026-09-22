@@ -209,6 +209,18 @@ public static class ItemCategory
     public static bool IsIndexMessageTagObjectOrPointer(DataItem item) =>
         Sr4PhraseOf(item.OwnUsage) is not null || Sr4PhraseOf(item.Pic?.Usage) is not null;
 
+    /// <summary>Is this a MESSAGE-TAG data item? ISO §13.18.60.4 GR9 — <i>"The class and category of a
+    /// message-tag data item are message-tag"</i> (<c>cite.py --check 13.18.60.4</c> OK).
+    /// <para>⛔ BOTH ARMS, for the reason <see cref="IsIndexMessageTagObjectOrPointer"/> states: the WRITTEN
+    /// clause is visible only in <see cref="DataItem.OwnUsage"/>, and a usage acquired by a TYPE clone or a
+    /// SAME AS copy only in the resolved <see cref="DataItem.Pic"/>. The usage is DECLINED non-support (Annex
+    /// A.3 item 4, refused by name with COBOLNET1943 at the entry), so the resolved profile is
+    /// <c>PicInfo.MessageTagRecovery()</c> — a recovery placeholder that nonetheless carries the written usage,
+    /// precisely so a later screen can ask this question instead of reading the placeholder's CATEGORY as if it
+    /// were an analysis (kb/Work PB453).</para></summary>
+    public static bool IsMessageTag(DataItem item) =>
+        item.OwnUsage is Usage.MessageTag || item.Pic?.Usage is Usage.MessageTag;
+
     /// <summary>Which of ISO §13.18.60.3 SR14's phrases a <see cref="DataItem.OwnUsage"/> names, or null.
     /// FUNCTION-POINTER is included: <c>PictureAnalyzer.ParseUsage</c> stages it loud (the P13 prototype band)
     /// so its <c>Pic</c> stays null and a resolved-usage arm never sees it, but the written clause is still

@@ -52,19 +52,23 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 
-    /// <summary><c>SET ADDRESS OF based TO pointer</c> (ISO §14.9.39 F7 GR12–13): assign the address VALUE —
-    /// a snapshot, never live tracking.</summary>
-    public void EmitSetAddressOfBased(BoundSetAddressOfBased s)
+    /// <summary>ONE <c>ADDRESS OF data-name-1</c> receiver of a SET Format 7 (ISO §14.9.39.4 GR13 — "the
+    /// address identified by identifier-6 is assigned to each based item referenced by data-name-1 in the order
+    /// specified"): the based item's implicit data-address pointer (§8.6.5) takes the address VALUE — a
+    /// snapshot, never live tracking.
+    /// <para><paramref name="src"/> is the already-landed sender expression, rendered ONCE by
+    /// <c>SetEmitter.EmitSetPointer</c> for the whole receiving list, because identifier-6 sits OUTSIDE the
+    /// printed repetition. A <c>ManagedPointer.Null</c> sender is SR19's TO NULL, which disassociates the item
+    /// (§13.18.5 GR2's initial state; kb/Work PB89).</para></summary>
+    public void EmitSetAddressOfBased(DataItem based, string src)
     {
-        if (s.Based.Class?.BasedPointerField is not { } addr)
+        if (based.Class?.BasedPointerField is not { } addr)
         {
-            ctx.Writer.Line(LoudStmt($"SET ADDRESS OF '{s.Based.CobolName}' — the based item has no pointer bridge "
-                + $"({s.Based.Class?.RejectReason ?? "unclassified"})"));
+            ctx.Writer.Line(LoudStmt($"SET ADDRESS OF '{based.CobolName}' — the based item has no pointer bridge "
+                + $"({based.Class?.RejectReason ?? "unclassified"})"));
             return;
         }
-        ctx.Writer.Line(s.Source is { } src
-            ? $"{addr} = {PlaceRenderer.Read(src)};   // SET ADDRESS OF (ISO §14.9.39 F7 GR12-13 — a snapshot)"
-            : $"{addr} = ManagedPointer.Null;   // SET ADDRESS OF … TO NULL (ISO §14.9.39 F7 SR19 — disassociated; kb/Work PB89)");
+        ctx.Writer.Line($"{addr} = {src};   // SET ADDRESS OF (ISO §14.9.39 F7 GR13 — a snapshot)");
     }
 
     /// <summary><c>SET pointer… {UP|DOWN} BY n</c> (ISO §14.9.39 Format 10): the amount evaluates ONCE, then

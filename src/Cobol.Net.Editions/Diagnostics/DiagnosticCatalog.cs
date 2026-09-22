@@ -4320,6 +4320,34 @@ public static class DiagnosticCatalog
         + "\"If the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, or class-name-1 "
         + "phrase is specified, identifier-1 shall reference a data-item whose usage is display or national.\"",
         "ISO §8.8.4.4.3 SR3");
+    /// <summary>COBOLNET2205 — a SET statement selected ISO §14.9.39.2 Format 17 (message-tag), the STATEMENT
+    /// half of the Annex A.3 item-4 asynchronous messaging facility this implementation declines
+    /// (docs/CONFORMANCE.md §4 item 1). §4.2.6 ¶3 makes a compile-time warning mechanism naming the unsupported
+    /// processor-dependent element MANDATORY, and this is Format 17's.
+    /// <para>⛔ IT IS AN ERROR WHERE ITS SEND/RECEIVE SIBLING (COBOLNET1578) IS A WARNING, and the asymmetry is
+    /// the operands': SEND and RECEIVE are accepted INERT because a statement that performs no message I-O is a
+    /// coherent no-op, while Format 17's operands are message-tag DATA ITEMS whose own entries are already
+    /// refused by name (COBOLNET1943) for want of any inert reading — §13.18.60.4 GR9 makes their class and
+    /// category message-tag. A statement over items that do not exist cannot be accepted.</para>
+    /// <para>⛔ IT EXISTS BECAUSE THE FORMAT HAD NO ROW, NOT BECAUSE THE VERDICT WAS MISSING (kb/Work PB453).
+    /// <c>SetFormatSelection</c>'s own comment asserted Format 17 "cannot be reached"; it was, and the statement
+    /// fell through to the NEAREST row — so <c>SET MT-A TO NULL</c> drew the §14.9.39.3 SR8 screen (COBOLNET0867,
+    /// which SAYS "the receiving operand of an object-reference SET shall be a USAGE OBJECT REFERENCE data
+    /// item") and <c>SET MT-A TO MT-B</c> drew the §8.8.1.1 screen (COBOLNET0844, "of category alphanumeric is
+    /// not a numeric operand"). ⛔ BOTH QUOTATIONS ARE THE DIAGNOSTICS' WORDS, NOT THE STANDARD'S —
+    /// SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item". Both are true of a statement the
+    /// program did not write, and both name a repair that is not one.</para></summary>
+    public static readonly DiagnosticDescriptor McsMessageTagSetUnsupported = new(
+        "COBOLNET2205", "mcs-message-tag-set-unsupported", EditionSeverity.Error,
+        "a SET statement whose operand is a message-tag data item is ISO §14.9.39.2 Format 17 (message-tag), "
+        + "the statement half of the asynchronous messaging facility — a processor-dependent element (§4.2.6; "
+        + "Annex A.3 item 4) that is not supported. §14.9.39.3 SR35 makes both of Format 17's operands "
+        + "message-tag data items, and the MESSAGE-TAG usage itself is refused by name (COBOLNET1943), so the "
+        + "statement is refused rather than accepted inert — unlike SEND/RECEIVE, whose COBOLNET1578 accepts "
+        + "them inert because a statement that performs no message I-O is still a coherent no-op. See "
+        + "docs/CONFORMANCE.md §4 item 1.",
+        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.39.2 Format 17 / §14.9.39.3 SR35",
+        RecognizedNotImplemented, Annex: DeclinedAnnex.A3);
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -1,5 +1,10 @@
       *> reject-at: 2002 2014 2023
-      *> ISO 14.9.39.3 SR20 - THE SENDER ARM: "If identifier-6
+      *> ISO 14.9.39.3 SR19, THIRD SENTENCE - THE SENDER ARM.
+      *> (It is an UNNUMBERED continuation paragraph of rule 19),
+      *> NOT SR20: rendered folio 736 / PDF p766, 20) is FORMAT 8's
+      *> function-pointer rule. This comment said SR20 - kb/Work
+      *> PB450 corrected it.)
+      *> "If identifier-6
       *> references a restricted data-pointer, either identifier-5
       *> shall reference a data-pointer restricted to the same type or
       *> data-name-1 shall be a typed item of the type to which

@@ -221,32 +221,41 @@ internal sealed class DataStatementBinder
     /// <item><c>SET p TO ADDRESS OF x</c> — build a <c>ManagedPointer</c> over x's storage (FromAddressOf; x becomes
     /// byte-backed via classifier trigger 6).</item>
     /// </list>
-    /// The alternatives are distinguished by token order: in alt 1 the <c>ADDRESS</c> keyword precedes the first
-    /// data reference; in alt 2 the first data reference precedes <c>ADDRESS</c>.
+    /// ⛔ THE SHARED GRAMMAR RULE NOW CARRIES THE WHOLE PRINTED FORMAT (kb/Work PB450): §14.9.39.2 Format 7 is
+    /// <c>SET { ADDRESS OF data-name-1 | identifier-5 } … TO identifier-6</c>, a receiving LIST whose operands
+    /// each carry their own spelling, so the alternatives are no longer told apart by token ORDER — each
+    /// <c>setAddressReceiver</c> states its own kind and <c>setAddressSender</c> states the sender's. This
+    /// legacy binder is the differential ORACLE until the P15 cut-over and binds only the two arity-one shapes
+    /// it always did; a multi-receiver or mixed statement returns null and falls through to the unsupported
+    /// path, exactly as any other post-oracle construct does. The greenfield <c>PtrBinder.BindSetAddress</c>
+    /// implements the format.
     /// </summary>
     internal BoundStatement? BindSetAddress(CobolParserCore.SetAddressStatementContext ctx)
     {
-        var drs = ctx.dataReference();
-        if (drs.Length < 2 || ctx.ADDRESS() == null) return null;
-        bool addressOfTarget = ctx.ADDRESS().Symbol.TokenIndex < drs[0].Start.TokenIndex;
+        var recvs = ctx.setAddressReceiver();
+        var send = ctx.setAddressSender();
+        if (recvs.Length != 1 || send?.dataReference() == null) return null;
+        var recv = recvs[0];
 
-        if (addressOfTarget)
+        if (recv.ADDRESS() != null)
         {
             // SET ADDRESS OF based TO ptr : the target is the based/linkage item (no expression location — it is
             // addressed through its own pointer); the source is another pointer whose value is copied in.
-            var basedSym = _ctx.Semantic.ResolveData(drs[0].cobolWord().GetText());
+            if (send.ADDRESS() != null) return null;   // ADDRESS OF sender into a based receiver — greenfield only
+            var basedSym = _ctx.Semantic.ResolveData(recv.dataReference().cobolWord().GetText());
             if (basedSym == null) return null;
-            if (_ctx.Expression.BindDataReferenceWithSubscripts(drs[1]) is not BoundIdentifierExpression srcPtr
+            if (_ctx.Expression.BindDataReferenceWithSubscripts(send.dataReference()) is not BoundIdentifierExpression srcPtr
                 || srcPtr.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
                 return null;
             return new BoundSetPointerStatement(basedSym, PointerSetSourceKind.FromPointer, srcPtr.Symbol);
         }
 
         // SET ptr TO ADDRESS OF item : build a ManagedPointer over the addressed item's storage.
-        if (_ctx.Expression.BindDataReferenceWithSubscripts(drs[0]) is not BoundIdentifierExpression ptr
+        if (send.ADDRESS() == null) return null;
+        if (_ctx.Expression.BindDataReferenceWithSubscripts(recv.dataReference()) is not BoundIdentifierExpression ptr
             || ptr.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
             return null;
-        var addrItem = _ctx.Expression.BindDataReferenceWithSubscripts(drs[1]);
+        var addrItem = _ctx.Expression.BindDataReferenceWithSubscripts(send.dataReference());
         if (addrItem is not BoundIdentifierExpression) return null;
         return new BoundSetPointerStatement(ptr.Symbol, PointerSetSourceKind.FromAddressOf, addressOfItem: addrItem);
     }

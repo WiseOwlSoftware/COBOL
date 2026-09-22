@@ -349,7 +349,7 @@ public sealed record PicInfo(
     /// (ISO §13.18.60.2 general format; §13.18.60.4 GR23). Null for an ordinary data-pointer and for every
     /// non-pointer item. It is the guarantee Annex D.9.2.2 describes: "a restricted data-pointer … shall contain
     /// only the predefined address NULL or the address of a data item of the specified type", enforced by the
-    /// ALLOCATE / SET ADDRESS OF / CALL screens (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19/SR20, §14.8.2.3.2).
+    /// ALLOCATE / SET ADDRESS OF / CALL screens (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19, §14.8.2.3.2).
     /// <para>The OTHER source of a restriction carries no PicInfo at all: Annex D.9.2.2 item 2 and its normative
     /// §8.4.3.11.4 GR2 make <c>ADDRESS OF identifier-1</c> a restricted data-pointer whenever identifier-1 is a
     /// strongly-typed group item or another restricted data-pointer — see
@@ -925,6 +925,26 @@ public sealed record PicInfo(
     /// explicit <c>DataItem.Pending</c> adjudication mark (P5.11c).</summary>
     public static PicInfo Recovery(int length = 1) =>
         new(PicCategory.Alphanumeric, Usage.Display, Length: Math.Max(1, length), Digits: 0, Scale: 0, Signed: false)
+        { IsRecovery = true };
+
+    /// <summary><see cref="Recovery"/> for a <c>USAGE MESSAGE-TAG</c> entry — a DECLINED usage, refused by name
+    /// at the data description entry (<c>PictureAnalyzer.ParseUsage</c>, COBOLNET1943; Annex A.3 item 4).
+    /// <para>⛔ IT CARRIES THE WRITTEN USAGE, AND THAT IS THE WHOLE POINT (kb/Work PB453). The profile is still a
+    /// recovery placeholder — <see cref="IsRecovery"/> is set and its category is NOT an analysis of anything,
+    /// because §13.18.60.4 GR9 makes the category of a message-tag item message-tag and this implementation
+    /// declines to model it — but the USAGE is a FACT the source states, and hiding it made every later screen
+    /// answer about a category the item does not have. A Format-17 SET on such an item reached the
+    /// object-reference screen KEYED TO §14.9.39.3 SR8 — COBOLNET0867, whose MESSAGE says the receiving operand
+    /// "shall be a USAGE OBJECT REFERENCE data item"; ⛔ those are the DIAGNOSTIC's words, not the rule's, and
+    /// SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item" — and the
+    /// §8.8.1.1 arithmetic screen (COBOLNET0844, "of category alphanumeric is not a numeric operand", the
+    /// diagnostic's words again). Both are false about the program. With the usage visible,
+    /// <c>SetFormatSelection</c> selects Format 17 and the statement names the declined FACILITY instead.</para>
+    /// <para>⚠ Both arms of <c>ItemCategory.IsMessageTag</c> need it: <c>DataItem.OwnUsage</c> sees an entry
+    /// that WROTE the clause, and only the resolved <see cref="PicInfo"/> sees one that acquired the usage by a
+    /// TYPE clone or SAME AS copy.</para></summary>
+    public static PicInfo MessageTagRecovery() =>
+        new(PicCategory.Alphanumeric, Usage.MessageTag, Length: 1, Digits: 0, Scale: 0, Signed: false)
         { IsRecovery = true };
 
     /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §13.18.60): an

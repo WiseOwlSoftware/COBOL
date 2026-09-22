@@ -95,6 +95,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     objRef.GetText()),
                 SetFormat.F8 => BindSetFunctionPointer(sorRefs, objRef.dataReference(), sorNull, sorSelf || sorSuper,
                     objRef.GetText()),
+                // ⛔ THE SECOND ARM OF THE SAME DISPATCH (kb/Work PB453; feedback_two_arm_dispatch). `SET MT TO
+                // NULL` arrives HERE rather than through BindSetTo — NULL is not an arithmeticExpression — and
+                // it was this arm that produced the §14.9.39.3 SR8 object-reference diagnostic the note measured.
+                SetFormat.F17 => BindMessageTagSet(sorRefs, objRef.GetText()),
                 // Format 5, and the residual: NULL/SELF/SUPER are senders of no other format, so a receiving
                 // list that selects Format 1/14/16 here is refused by SR8 inside — the diagnostic that names
                 // what the statement was trying to be.
@@ -470,7 +474,33 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             }
             source = sp;
         }
-        return new BoundSetPointer(targets, source, toNull);
+        // Every receiver on THIS route is identifier-5 (§14.9.39.3 SR17) — the `ADDRESS OF data-name-1`
+        // spelling of the printed brace reaches Format 7 through setAddressStatement / PtrBinder instead, and
+        // both routes build the SAME receiver list so GR12 and GR13 stay one loop in the emitter.
+        return new BoundSetPointer([.. targets.Select(t => new BoundPointerReceiver(t, null))], source, toNull);
+    }
+
+    /// <summary>ISO §14.9.39.2 Format 17 (message-tag) — refused BY NAME, which is §4.2.6 ¶3's mandatory
+    /// compile-time warning mechanism for a processor-dependent element this implementation does not support
+    /// (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1). kb/Work PB453.
+    /// <para>⛔ THE POINT IS THE NAME. The statement already failed — its operands' own MESSAGE-TAG entries are
+    /// refused with COBOLNET1943 — but before this it went on to draw a rule from ANOTHER format: the screen
+    /// keyed to §14.9.39.3 SR8 for a TO NULL sender (COBOLNET0867, "shall be a USAGE OBJECT REFERENCE data
+    /// item" — the DIAGNOSTIC's words; SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item"),
+    /// and the §8.8.1.1 screen for a message-tag sender (COBOLNET0844, "of category
+    /// alphanumeric is not a numeric operand", the diagnostic's words again). Both describe a statement the
+    /// programmer did not write, and both point at a repair that is not one. The SAME facility's SEND/RECEIVE
+    /// half has named itself since COBOLNET1578; this is its data half's statement arm.</para>
+    /// <para>⚠ Format 17's SEMANTICS are deliberately NOT implemented, and that is an owner decision still
+    /// owed rather than an omission: the printed format is <c>SET data-name-4 TO { data-name-5 | NULL }</c>,
+    /// making data-name-4 the receiver, while §14.9.39.4 GR40 moves the content of data-name-4 INTO data-name-5
+    /// and GR41 sets the content of data-name-5 — the two readings disagree about which operand is written, and
+    /// SR35 constrains only the class. kb/Work PB453 §2 records the contradiction.</para></summary>
+    private BoundStatement BindMessageTagSet(IReadOnlyList<Core.DataReferenceContext> receivers, string senderText)
+    {
+        ctx.Edition.Declined(DiagnosticCatalog.McsMessageTagSetUnsupported,
+            $"SET {SetFormatSelection.Written(receivers)} TO {senderText}");
+        return new BoundNop();
     }
 
     /// <summary>SET program-pointer assignment (ISO §14.9.39 Format 9; SR21 — every target AND the sender
@@ -1027,6 +1057,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             case SetFormat.F5:
                 return host.Oo.OoBindSetObjectRef(recvs, senderDref, senderNull: false, senderSelf: false,
                     senderSuper: false, senderText);
+            case SetFormat.F17:
+                return BindMessageTagSet(recvs, senderText);
             case SetFormat.F1:
                 break;
             default:
