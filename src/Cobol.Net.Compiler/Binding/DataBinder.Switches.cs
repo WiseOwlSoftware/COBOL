@@ -57,6 +57,17 @@ public sealed partial class DataBinder
     /// builds - one §12.3.7.4 GR7 k model for both classes).</summary>
     public Dictionary<string, NationalAlphabetDef> NationalAlphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Is <paramref name="name"/> an alphabet-name of EITHER class (ISO §12.3.7 ALPHABET clause)? The
+    /// question a trailing <c>IN word</c> after a THROUGH range's identifier asks (kb/Work PB843): §8.3.2.2 makes an
+    /// alphabet-name a different type of user-defined word from every name a qualifier can be, so a declared
+    /// alphabet-name there is §14.9.13.2's <c>IN alphabet-name-1</c> phrase and never a qualifier.</summary>
+    public bool IsAlphabetName(string name) => Alphabets.ContainsKey(name) || NationalAlphabets.ContainsKey(name);
+
+    /// <summary>Is <paramref name="name"/> one of the class condition's user-defined-word alternatives — a
+    /// class-name-1 or an alphabet-name-1 (ISO §8.8.4.4.2)? The symbol test that separates a bare EVALUATE object
+    /// naming a class from identifier-2 (kb/Work PB843).</summary>
+    public bool IsClassConditionWord(string name) => UserClasses.ContainsKey(name) || IsAlphabetName(name);
+
     /// <summary>⛔ THE per-TYPE runtime carriers a THROUGH range's <c>IN alphabet-name-1</c> phrase needs (ISO
     /// §14.7.8 rule 2 — "the collating sequence used for range evaluation is the collating sequence defined by that
     /// alphabet"), keyed by alphabet-name as written. One carrier per NAMED alphabet per runtime module, declared

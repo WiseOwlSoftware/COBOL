@@ -37,6 +37,7 @@
     "pb256_test_numval_mode_flags",
     "pb398_evaluate_partial_expression",
     "pb398_range_in_alphabet",
+    "pb843_evaluate_symbol_decided_objects",
     "pb492_national_edited",
     "pb646_national_form_numeric",
     "pb817_restricted_program_pointer",

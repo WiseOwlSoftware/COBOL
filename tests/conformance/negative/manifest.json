@@ -151,6 +151,8 @@
   "pb398-range-alphabet-numeric-operands",
   "pb398-range-alphabet-undeclared",
   "pb398-range-alphabet-class-mismatch",
+  "pb843-bare-classname-numeric-subject",
+  "pb843-range-identifier-alphabet-numeric",
   "pb492-picture-editing-literal-over-50",
   "pb492-national-edited-value-literal-class",
   "pb492-move-national-edited-to-alphanumeric",

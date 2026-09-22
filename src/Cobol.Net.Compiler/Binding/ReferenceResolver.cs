@@ -160,6 +160,32 @@ public sealed class ReferenceResolver(DataBinder data)
         return temp;
     }
 
+    /// <summary>A SYNTHETIC copy of <paramref name="dref"/> without its LAST <c>dataReferenceSuffix</c> — for a
+    /// caller whose resolved SYMBOL has shown that the trailing word the parser attached as a qualifier belongs to
+    /// the enclosing construct instead (kb/Work PB843: a THROUGH range's <c>IN alphabet-name-1</c>). The copy ADOPTS
+    /// the original children (the <c>BinderDriver.Reparent</c> technique) and never mutates the parse tree, so every
+    /// resolver walk — each reads <c>dataReferenceSuffix()</c> off the node it is handed — sees the reference the
+    /// symbol decided, with no second resolution path to keep in step.</summary>
+    internal static Core.DataReferenceContext WithoutTrailingSuffix(Core.DataReferenceContext dref)
+    {
+        var cut = new Core.DataReferenceContext(dref.Parent as ParserRuleContext, dref.invokingState);
+        int keep = dref.ChildCount - 1;
+        for (int i = 0; i < keep; i++)
+            switch (dref.GetChild(i))
+            {
+                case ParserRuleContext rc: cut.AddChild(rc); break;
+                case ITerminalNode t: cut.AddChild(t); break;
+            }
+        cut.Start = dref.Start;
+        cut.Stop = dref.GetChild(keep - 1) switch
+        {
+            ParserRuleContext rc => rc.Stop,
+            ITerminalNode t => t.Symbol,
+            _ => dref.Start,
+        };
+        return cut;
+    }
+
     /// <summary>True when <paramref name="dref"/> is an OBJECT-PROPERTY reference (ISO §8.4.3.9.2 —
     /// <c>property-name OF {class-name | identifier}</c>, textually a qualified data reference) rather than an
     /// ordinary data reference. The ONE such test, over the SAME <see cref="OoTryBindPropertyReference"/>

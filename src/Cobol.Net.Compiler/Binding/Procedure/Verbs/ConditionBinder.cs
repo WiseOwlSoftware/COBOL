@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
@@ -385,7 +386,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <param name="pe">The partial-expression parse node.</param>
     /// <param name="subject">The corresponding selection subject (§14.9.13.3 SR7 — "the selection subject having
     /// the same ordinal position"), ALREADY BOUND by the caller — see <see cref="PartialSubjectOperand"/>.</param>
-    public BoundCondition BindPartialExpression(Core.PartialExpressionContext pe, PartialSubjectOperand subject) =>
+    /// <remarks><paramref name="pe"/> is a <c>partialExpression</c>, or a <c>condition</c> whose leftmost leaf is a
+    /// bare class-name (<see cref="LeadingBareClassWord"/>) — the same rewrite over the other parse of SR5's
+    /// class shape (kb/Work PB843).</remarks>
+    public BoundCondition BindPartialExpression(ParserRuleContext pe, PartialSubjectOperand subject) =>
         BindCondition(pe, new AbbrevCarry { PartialSubject = subject });
 
     /// <summary>The selection subject SR8 splices into a partial-expression, as the ONE value §14.9.13.4 GR3
@@ -623,19 +627,38 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             CheckClassConditionOperand(opnd, k);
             return new BoundClassCondition(opnd, k, not);
         }
+        // Every other alternative is a user-defined word — the class condition's alphabet-name-1 / class-name-1.
+        return BindUserWordClassCondition(cls.cobolWord()?.GetText() ?? cls.GetText(), not, operand);
+    }
+
+    /// <summary>§14.9.13.3 SR5's "class condition without the identifier" written as a BARE user-defined word
+    /// (<c>EVALUATE WS-X WHEN MY-CLASS</c>) — the spelling the grammar cannot tell from identifier-2, because
+    /// <c>evaluateWhenItem</c>'s <c>valueOperand</c> and <c>partialComparison</c>'s <c>className</c> both match
+    /// one word. <see cref="AnalyzeBareOperand"/> has already resolved the word to a class-name or alphabet-name
+    /// (<see cref="BareOperandForm.ClassName"/>); SR8 then splices the selection subject in, exactly as for the
+    /// <c>IS</c>-led spelling, and the ONE user-word class body binds it (kb/Work PB843).</summary>
+    public BoundCondition BindPartialClassName(string word, PartialSubjectOperand subject) =>
+        BindUserWordClassCondition(word, not: false, () => subject.Content);
+
+    /// <summary>The §8.8.4.4.2 alternatives that are USER-DEFINED WORDS — alphabet-name-1 and class-name-1 — over
+    /// an operand the caller names. One body for the written <c>className</c> spelling and the bare EVALUATE
+    /// object (kb/Work PB843), so the LOCALE refusal, the operand screens and the undeclared-name diagnostic
+    /// cannot drift between them.</summary>
+    private BoundCondition BindUserWordClassCondition(string word, bool not, System.Func<BoundOperand> operand)
+    {
         // §8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
         // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
         // class condition could test membership of (kb/Work PB64 T5; the same rule family as §12.3.7.3 SR16g/SR17d
         // — DataBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
-        if (cls.cobolWord() is { } lcls && ctx.Data.IsLocaleAlphabet(lcls.GetText()))
+        if (ctx.Data.IsLocaleAlphabet(word))
         {
-            ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{lcls.GetText()}': "
+            ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{word}': "
                 + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
                 + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§12.3.7.4 GR7 Table 6)");
-            return new BoundConditionError($"class condition '{cls.GetText()}'");
+            return new BoundConditionError($"class condition '{word}'");
         }
         // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
-        if (cls.cobolWord() is { } ucls && ctx.Data.UserClasses.TryGetValue(ucls.GetText(), out string? members))
+        if (ctx.Data.UserClasses.TryGetValue(word, out string? members))
         {
             var opnd = operand();
             CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
@@ -644,9 +667,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
         // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the
         // loud staged BoundConditionError.
-        if (cls.cobolWord() is { } acls
-            && (ctx.Data.Alphabets.TryGetValue(acls.GetText(), out var aDef) && aDef.CodedSet is { } aSet
-                ? aSet : ctx.Data.NationalAlphabets.TryGetValue(acls.GetText(), out var nDef) ? nDef.CodedSet : null) is { } set)
+        if ((ctx.Data.Alphabets.TryGetValue(word, out var aDef) && aDef.CodedSet is { } aSet
+                ? aSet : ctx.Data.NationalAlphabets.TryGetValue(word, out var nDef) ? nDef.CodedSet : null) is { } set)
         {
             var opnd = operand();
             // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
@@ -672,11 +694,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // NotImplementedCobolFeatureException "class condition 'NOSUCHCLASS'". Measured on this worktree
         // before the change, at 2023 and (for the COBOL-85 spelling of BOOLEAN, which is an ordinary user word
         // below 2002) at 85.
-        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{cls.GetText()}': the word names "
+        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{word}': the word names "
             + "neither an alphabet-name nor a class-name declared in the SPECIAL-NAMES paragraph — the class "
             + "condition's only user-defined-word alternatives (ISO §8.8.4.4.2; §8.4.2.1 — \"In order to use a "
             + "resource, a statement shall contain a reference that uniquely identifies that resource\")");
-        return new BoundConditionError($"class condition '{cls.GetText()}'");
+        return new BoundConditionError($"class condition '{word}'");
     }
 
     /// <summary>⛔ THE ONE sign-condition body (ISO §8.8.4.7), over an operand node the CALLER names — the written
@@ -777,6 +799,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// takes precedence. Shared by the generic path and the boolean-alt unwrap (a B-op-free bare operand).</summary>
     private BoundCondition BindSoleOperandCondition(Core.ValueOperandContext? vo, System.Func<BoundOperand> bindOperand, AbbrevCarry carry)
     {
+        // §14.9.13.3 SR5/SR8 — under a partial-expression rewrite the LEFTMOST leaf may be the bare class-name /
+        // alphabet-name of "a class condition without the identifier" (LeadingBareClassWord); the selection
+        // subject is spliced in as its identifier, exactly as partialComparison's `IS? NOT? className` does.
+        if (carry.PartialSubject is { } ps && BareClassWord(vo) is { } classWord)
+        {
+            carry.PartialSubject = null;
+            carry.Reset();
+            return BindUserWordClassCondition(classWord, not: false, () => ps.Content);
+        }
         if (BareOperandAsCondition(vo) is { } sole)
         {
             carry.Reset();
@@ -810,6 +841,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // wins), BEFORE the abbreviated-carry fallback.
         if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
             return BareOperandAnalysis.OfCondition(BareOperandForm.SwitchStatus, swCond);
+        // A class-name-1 / alphabet-name-1 (§8.8.4.4.2) written bare — a word, never qualified, subscripted or
+        // reference-modified (neither name is a data-name, so neither takes a qualifier or a subscript). §8.3.2.2
+        // makes the name classes disjoint ("a given user-defined word may be used as only one type of user-defined
+        // word"), so the resolved SYMBOL decides it; the Probe keeps a word that ALSO resolves as a data item (an
+        // already non-conforming program) on the value reading it always had (kb/Work PB843).
+        if (BareClassWord(vo) is { } classWord) return BareOperandAnalysis.OfClassName(classWord);
         // A BOOLEAN operand (§8.8.2). Whether it is a §8.8.4.3 simple boolean CONDITION is the CALLER's
         // question in EVALUATE (SR6) and settled here everywhere else, so the expression is carried bound but
         // unwrapped, with its §8.8.2 rules 9/10 result length.
@@ -819,6 +856,47 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return new BareOperandAnalysis(BareOperandForm.Boolean, null, b, BoolResultLength(b));
         }
         return default;   // BareOperandForm.Value
+    }
+
+    /// <summary>The class-name-1 / alphabet-name-1 (ISO §8.8.4.4.2) a bare operand names, or null — the ONE symbol
+    /// test behind <see cref="BareOperandForm.ClassName"/>. A word only: neither name is a data-name, so neither
+    /// takes a qualifier, a subscript or a reference modifier. PURE (dictionary lookups and a diagnostic-free
+    /// <see cref="ReferenceResolver.Probe"/>), so a classifier may ask it before anything is bound.</summary>
+    public string? BareClassWord(Core.ValueOperandContext? vo) =>
+        vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && dref.dataReferenceSuffix().Length == 0
+            && dref.cobolWord() is { } word && ctx.Data.IsClassConditionWord(word.GetText()) && ctx.Refs.Probe(dref) is null
+            ? word.GetText() : null;
+
+    /// <summary>§14.9.13.3 SR5 over a selection object the grammar parsed as a whole <c>condition</c>: the
+    /// class-name / alphabet-name its LEFTMOST simple condition is written as, bare, or null. <c>WHEN MY-CLASS AND
+    /// WS-F = "Y"</c> is a partial-expression — its leftmost portion is "a class condition without the
+    /// identifier" — but the bare word is also a complete comparison operand, so the grammar's <c>condition</c>
+    /// alternative claims the object before <c>partialExpression</c> is tried. The descent follows exactly the
+    /// leftmost path SR5 names: through the logical tiers and a leading <c>NOT</c> (§8.8.4.4.2's own
+    /// <c>[ NOT ]</c>), never into a parenthesis (a parenthesised leftmost portion is not a class condition).</summary>
+    public string? LeadingBareClassWord(Core.ConditionContext cond)
+    {
+        IParseTree n = cond;
+        while (true)
+        {
+            switch (n)
+            {
+                case Core.ConditionContext or Core.LogicalOrExpressionContext or Core.LogicalXorExpressionContext
+                    or Core.LogicalAndExpressionContext:
+                    n = n.GetChild(0);
+                    continue;
+                case Core.UnaryLogicalExpressionContext u:
+                    n = u.primaryCondition();
+                    continue;
+                case Core.PrimaryConditionContext p when p.comparisonExpression() is { } cmp:
+                    n = cmp;
+                    continue;
+                case Core.ComparisonExpressionContext cmp when cmp.ChildCount == 1:
+                    return BareClassWord(cmp.comparisonOperand(0).valueOperand());
+                default:
+                    return null;
+            }
+        }
     }
 
     /// <summary>The three shapes in which a BARE operand IS itself a complete condition — a level-88

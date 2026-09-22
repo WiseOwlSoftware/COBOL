@@ -331,7 +331,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The object's Table-15 ROW before SR6, or null when the shape cannot be named with certainty.
     /// The object-only forms are grammatical (ANY, a THRU range, an explicit condition — including the
     /// TRUE/FALSE spelling of one); everything else is the SHARED bare-operand classification.</summary>
-    private static EvaluateObjectOperand? ObjectKind(Core.EvaluateWhenItemContext item, in BareOperandAnalysis bare)
+    private EvaluateObjectOperand? ObjectKind(Core.EvaluateWhenItemContext item, in BareOperandAnalysis bare)
     {
         if (item.ANY() is not null) return EvaluateObjectOperand.Any;
         if (item.valueRange() is not null) return EvaluateObjectOperand.RangeExpression;
@@ -341,8 +341,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // Table 15's Partial-expression row stops being a lookup no operand can reach (kb/Work PB398).
         if (item.partialExpression() is not null) return EvaluateObjectOperand.PartialExpression;
         if (item.condition() is { } c)
-            return SoleBooleanLiteral(c) is not null
-                ? EvaluateObjectOperand.TrueOrFalse : EvaluateObjectOperand.Condition;
+            return SoleBooleanLiteral(c) is not null ? EvaluateObjectOperand.TrueOrFalse
+                // SR5 again, where the grammar's `condition` claimed the object: its leftmost simple condition is a
+                // BARE class-name / alphabet-name, i.e. "a class condition without the identifier" (kb/Work PB843).
+                : host.Cond.LeadingBareClassWord(c) is not null ? EvaluateObjectOperand.PartialExpression
+                : EvaluateObjectOperand.Condition;
         return item.valueOperand() is { } vo ? BareOperandKind(vo, bare) : null;
     }
 
@@ -356,6 +359,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         {
             BareOperandForm.ConditionName or BareOperandForm.SwitchStatus => EvaluateObjectOperand.Condition,
             BareOperandForm.Boolean => EvaluateObjectOperand.BooleanExpression,
+            // §14.9.13.3 SR5 — "a class condition without the identifier": a bare class-name / alphabet-name is a
+            // partial-expression by its resolved SYMBOL, the spelling the grammar hands to valueOperand (PB843).
+            BareOperandForm.ClassName => EvaluateObjectOperand.PartialExpression,
             _ => OperandKindOf(vo),
         };
 
@@ -438,7 +444,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return new BoundConditionError($"EVALUATE condition-subject paired with non-boolean WHEN '{item.GetText()}'");
         }
 
-        if (item.condition() is { } cond)
+        // A `condition` the classifier re-read as SR5's partial-expression (a bare class-name leftmost — PB843) is
+        // NOT condition-2: it falls through to the partial arm below, which splices the subject in.
+        if (pair.Object is not EvaluateObjectOperand.PartialExpression && item.condition() is { } cond)
         {
             int objMark = host.Udf.PendingCount;
             var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), objMark);
@@ -479,15 +487,25 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // compared N different values (measured: WHEN OTHER selected where WHEN = 1 was the answer), while the
         // residue stage meant to refuse the shape never fired. The class shape reads CONTENT (see
         // PartialSubjectOperand), so an in-place data item is handed over un-materialized for it.
-        if (item.partialExpression() is { } partial)
+        // ⛔ THREE PARSES, ONE ARM (kb/Work PB843): the grammar's partialExpression; a BARE class-name /
+        // alphabet-name object — SR5's "class condition without the identifier" in the one spelling the grammar
+        // cannot tell from identifier-2; and a `condition` whose LEFTMOST leaf is that bare word (`WHEN MY-CLASS
+        // AND …`). The classifier named all three PartialExpression, the last two by their resolved symbol.
+        if (pair.Object is EvaluateObjectOperand.PartialExpression)
         {
             if (slot.Node.valueOperand() is not { } subjOp || slot.Value is not { } subjValue)
                 return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
             var content = slot.InPlaceValue is BoundFieldOperand inPlace ? inPlace : subjValue;
+            var spliced = new ConditionBinder.PartialSubjectOperand(subjOp, subjValue, content);
             int objMark = host.Udf.PendingCount;
-            return host.Udf.UdfAttachPerEvaluation(
-                host.Cond.BindPartialExpression(partial, new ConditionBinder.PartialSubjectOperand(subjOp, subjValue, content)),
-                objMark);
+            var partialCond = item.partialExpression() is { } partial
+                ? host.Cond.BindPartialExpression(partial, spliced)
+                : item.condition() is { } leadingClass
+                    ? host.Cond.BindPartialExpression(leadingClass, spliced)
+                : pair.ObjectBare.ClassWord is { } classWord
+                    ? host.Cond.BindPartialClassName(classWord, spliced)
+                    : new BoundConditionError($"EVALUATE partial-expression '{item.GetText()}'");
+            return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
         }
 
         // Value subject vs operand / range: equality or inclusive bounds (§14.9.13 GR5b/c).
@@ -504,7 +522,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         {
             int objMark = host.Udf.PendingCount;
             var lo = BindValueOperand(range.valueOperand(0));
-            var hi = BindValueOperand(range.valueOperand(1));
+            var (hi, alphabetWord) = BindRangeHigh(range);
             // ⛔ SR4 + SR9 BEFORE THE CLASS IS ASKED (kb/Work PB399). CollatingSelection.ForComparison's own
             // remark says the message-tag / object / pointer categories "never reach here" — and they DID, by
             // this route, because nothing screened the range's operands: a pointer pair answered ALPHANUMERIC,
@@ -531,7 +549,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // the carrier registration are the ONE resolver §14.7.8's opening sentence asks for ("This specification
             // applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement"), so the VALUE
             // clause's identical phrase reaches the same code (kb/Work PB398).
-            string? alphabet = RangeAlphabet(range, rangeClass);
+            string? alphabet = RangeAlphabet(alphabetWord, rangeClass);
             // §14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
             // then "execution proceeds as if the range of values were empty". The EC is a property of the RANGE's
             // CLASS, exactly as the collating sequence one sentence above it is — never of the written FORM of its
@@ -572,11 +590,31 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// of the same class — so the pair has one class to have. It is COMPUTED BY THE CALLER and passed in, because
     /// the EC gate one line below keys on the SAME antecedent and the two must not be able to disagree
     /// (kb/Work PB401).</para></summary>
-    private string? RangeAlphabet(Core.ValueRangeContext range, CollatingClass rangeClass)
+    private string? RangeAlphabet(string? name, CollatingClass rangeClass) =>
+        name is not null && ctx.Data.TryResolveRangeAlphabet(name, rangeClass, "an EVALUATE WHEN THROUGH range")
+            ? name : null;
+
+    /// <summary>The range's right-hand operand and its <c>IN alphabet-name-1</c> word, with the one ambiguity the
+    /// grammar cannot settle settled by SYMBOL (kb/Work PB843). §14.9.13.3 SR3 admits the phrase over identifiers
+    /// ("the literals or identifiers specified in the THROUGH phrase"), but <c>IN</c> is also the qualification
+    /// connective, so over an identifier-4 the parser's greedy <c>dataReferenceSuffix*</c> loop takes
+    /// <c>WS-HI IN AL</c> as a qualified reference and the phrase is never seen.
+    /// <para>The symbol decides it: §8.3.2.2 — "a given user-defined word may be used as only one type of
+    /// user-defined word" — makes an alphabet-name a different type from every name a qualifier can be
+    /// (§8.4.2.2.1: qualifiers are "superordinate names from the hierarchy to which a user-defined name belongs"),
+    /// so a trailing <c>IN word</c> that names a declared alphabet IS the phrase, and the reference is bound without
+    /// it. Only the LAST suffix, only the <c>IN</c> spelling (the phrase prints no <c>OF</c>) and only a bare word
+    /// (the phrase takes no subscript) can be it; any other qualifier keeps its qualification reading.</para></summary>
+    private (BoundOperand Hi, string? AlphabetWord) BindRangeHigh(Core.ValueRangeContext range)
     {
-        if (range.cobolWord() is not { } word) return null;
-        string name = word.GetText();
-        return ctx.Data.TryResolveRangeAlphabet(name, rangeClass, "an EVALUATE WHEN THROUGH range") ? name : null;
+        var hiNode = range.valueOperand(1);
+        if (range.cobolWord() is { } written) return (BindValueOperand(hiNode), written.GetText());
+        if (hiNode.arithmeticExpression() is { } expr && ConditionBinder.SoleDataRef(expr) is { } dref
+            && dref.dataReferenceSuffix() is { Length: > 0 } suffixes
+            && suffixes[^1].qualification() is { } q && q.IN() is not null && q.ChildCount == 2
+            && ctx.Data.IsAlphabetName(q.cobolWord().GetText()))
+            return (host.Expr.FieldOperand(ReferenceResolver.WithoutTrailingSuffix(dref)), q.cobolWord().GetText());
+        return (BindValueOperand(hiNode), null);
     }
 
     /// <summary>The selection OBJECT's condition when <see cref="ClassifyPair"/> put it in Table 15's Condition

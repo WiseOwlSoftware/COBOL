@@ -25,6 +25,12 @@ public enum BareOperandForm
     /// CONDITION is the consuming clause's question: everywhere but EVALUATE it always is, while §14.9.13.3 SR6
     /// decides it from the other side of the selection pair.</summary>
     Boolean = 3,
+
+    /// <summary>A class-name-1 or alphabet-name-1 declared in SPECIAL-NAMES — the user-defined-word alternatives of
+    /// the class condition (ISO §8.8.4.4.2). Not a condition by itself (the class condition's identifier is
+    /// missing), and not a value either (§8.3.2.2: the word is not a data-name); only EVALUATE gives the shape a
+    /// meaning, as §14.9.13.3 SR5's "class condition without the identifier" (kb/Work PB843).</summary>
+    ClassName = 4,
 }
 
 /// <summary>⛔ ONE resolution of a bare operand, carried so a caller that must CLASSIFY before it BINDS does not
@@ -39,12 +45,20 @@ public enum BareOperandForm
 /// <param name="BooleanLength">The §8.8.2 rules 9/10 RESULT length in boolean positions, or null when the
 /// operand is positionless (figurative ZERO / <c>ALL B"…"</c>) or its length is a run-time value. This is the
 /// length §14.9.13.3 SR6's "results in one boolean character" turns on.</param>
+/// <param name="ClassWord">The class-name / alphabet-name as written, for <see cref="BareOperandForm.ClassName"/>;
+/// null otherwise.</param>
 public readonly record struct BareOperandAnalysis(
     BareOperandForm Form,
     BoundCondition? Condition,
     BoundBoolExpr? Boolean,
-    int? BooleanLength)
+    int? BooleanLength,
+    string? ClassWord = null)
 {
+    /// <summary>An operand that is a class-name / alphabet-name (<see cref="BareOperandForm.ClassName"/>), carrying
+    /// the word as written.</summary>
+    public static BareOperandAnalysis OfClassName(string word) =>
+        new(BareOperandForm.ClassName, null, null, null, word);
+
     /// <summary>An operand that IS a condition outright (a level-88 or switch-status condition-name).</summary>
     public static BareOperandAnalysis OfCondition(BareOperandForm form, BoundCondition cond) =>
         new(form, cond, null, null);

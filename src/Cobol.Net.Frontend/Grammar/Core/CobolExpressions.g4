@@ -67,14 +67,14 @@ valueClauseOperand
 // is a constraint ON it — had no code site (kb/Work PB398).
 // ⚠ `IN` IS ALSO THE QUALIFICATION CONNECTIVE (`qualification : (OF | IN) cobolWord`), so over an identifier-4 the
 // two readings — `identifier-4 IN group` and `identifier-4` + the alphabet phrase — are BOTH complete parses and
-// ANTLR's greedy `dataReferenceSuffix*` loop takes the qualifier. That is an ambiguity the STANDARD carries (§8.4.1
-// puts alphabet-names and data-names in disjoint name spaces, so only the resolved SYMBOL separates them), and it is
-// NOT settled here: flipping the grammar's preference would make the opposite legal reading — a genuinely qualified
-// identifier-4 — unreachable instead. MEASURED, unchanged by this rule: `WHEN WS-LO THRU WS-HI IN AL` reports
-// COBOLNET1639 on `WS-HI IN AL`, exactly as it did before the phrase existed. The LITERAL-operand spelling the
-// printed figure shows is unaffected, since a literal takes no qualifier. Reported as its own mechanism (a
-// ReferenceResolver that can re-resolve without a trailing qualifier) in the PB398 report; the phrase itself is
-// implemented whole here.
+// ANTLR's greedy `dataReferenceSuffix*` loop takes the qualifier. That is an ambiguity only the resolved SYMBOL can
+// settle (§8.3.2.2: "a given user-defined word may be used as only one type of user-defined word", so an
+// alphabet-name is never a data-name, record-name or file-name qualifier), and it is NOT settled here: flipping the
+// grammar's preference would make the opposite legal reading — a genuinely qualified identifier-4 — unreachable
+// instead. EvaluateBinder.BindRangeHigh settles it by symbol (kb/Work PB843): a LAST `IN word` suffix that names a
+// declared alphabet is the phrase, and the reference is bound without it (ReferenceResolver.WithoutTrailingSuffix).
+// The LITERAL-operand spelling the printed figure shows never meets the ambiguity, since a literal takes no
+// qualifier.
 valueRange
     : valueOperand (THRU | THROUGH) valueOperand (IN cobolWord)?
     ;
@@ -160,7 +160,10 @@ abbreviatedRelation
 // A user-defined class-name / alphabet-name written BARE (`WHEN MY-CLASS`) is indistinguishable from identifier-2
 // here — `className`'s cobolWord alternative and `valueOperand` both match one word — so evaluateWhenItem keeps
 // valueOperand FIRST and EvaluateBinder resolves that spelling by SYMBOL (the same doctrine that makes a bare
-// level-88 object condition-2). The `IS`-led spelling reaches this rule unambiguously.
+// level-88 object condition-2): ConditionBinder.BareClassWord names it, the classifier makes it Table 15's
+// partial-expression row, and the SR8 rewrite binds it. The same word LEADING a longer object (`WHEN MY-CLASS AND
+// WS-F = "Y"`) is claimed by evaluateWhenItem's `condition` alternative and is re-read the same way
+// (ConditionBinder.LeadingBareClassWord; kb/Work PB843). The `IS`-led spelling reaches this rule unambiguously.
 partialExpression
     : partialXorExpression ( OR ( logicalXorExpression | abbreviatedAndChain ) )*
     ;
