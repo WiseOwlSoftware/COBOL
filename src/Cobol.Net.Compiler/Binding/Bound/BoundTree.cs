@@ -603,7 +603,10 @@ public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated,
 public sealed record BoundOmittedCondition(string CarrierField, bool Negated) : BoundCondition;
 
 /// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
-/// ALPHABETIC-LOWER} (ISO §8.8.4.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
+/// ALPHABETIC-LOWER, BOOLEAN} (ISO §8.8.4.4). <paramref name="ClassKind"/> is one of
+/// <see cref="CobolNet.Binding.ClassConditionModel"/>'s kind constants — N, A, U, L, B — which is also the tag
+/// its §8.8.4.4.3 operand rules are keyed on. The class-name and alphabet-name alternatives have their own
+/// bound nodes (<see cref="BoundUserClassCondition"/>, <see cref="BoundCodedSetClassCondition"/>).</summary>
 public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, bool Negated) : BoundCondition;
 
 /// <summary>A USER-DEFINED class condition (ISO §8.8.4.4 with a SPECIAL-NAMES class-name, §12.3.7): true when

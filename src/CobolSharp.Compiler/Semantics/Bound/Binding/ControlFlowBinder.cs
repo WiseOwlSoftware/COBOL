@@ -255,7 +255,17 @@ internal sealed class ControlFlowBinder
             }
             // Check for class condition: EVALUATE X NUMERIC → treat as EVALUATE TRUE
             // where the implicit condition is "X IS [NOT] NUMERIC/ALPHABETIC"
-            if (subCtx.classCondition() is { } classCtx && subCtx.valueOperand() is { } classVo)
+            // The EVALUATE subject's class test now names the ONE §8.8.4.4.2 alternative list (`className`);
+            // the private `classCondition` rule this read was deleted with kb/Work PB590. The kind decode is
+            // EXPLICITLY PARTIAL and says so: this 85-era oracle models four of the alternatives, and the
+            // fallback it used to carry (`: ClassConditionKind.Numeric`) silently turned every other one into a
+            // NUMERIC test. A BOOLEAN / class-name / alphabet-name subject now falls out of this arm instead.
+            if (subCtx.className() is { } classCtx && subCtx.valueOperand() is { } classVo
+                && (classCtx.NUMERIC() != null ? ClassConditionKind.Numeric
+                    : classCtx.ALPHABETIC() != null ? ClassConditionKind.Alphabetic
+                    : classCtx.ALPHABETIC_LOWER() != null ? ClassConditionKind.AlphabeticLower
+                    : classCtx.ALPHABETIC_UPPER() != null ? ClassConditionKind.AlphabeticUpper
+                    : (ClassConditionKind?)null) is { } classKind)
             {
                 BoundExpression classSubject;
                 if (classVo.arithmeticExpression() is { } classArith)
@@ -265,11 +275,6 @@ internal sealed class ControlFlowBinder
                 else
                     continue;
                 bool isClassNot = subCtx.NOT() != null;
-                var classKind = classCtx.NUMERIC() != null ? ClassConditionKind.Numeric
-                    : classCtx.ALPHABETIC() != null ? ClassConditionKind.Alphabetic
-                    : classCtx.ALPHABETIC_LOWER() != null ? ClassConditionKind.AlphabeticLower
-                    : classCtx.ALPHABETIC_UPPER() != null ? ClassConditionKind.AlphabeticUpper
-                    : ClassConditionKind.Numeric;
                 subjectKinds.Add(EvaluateSubjectKind.True);
                 subjects.Add(null!); // placeholder
                 classConditions.Add(new BoundClassConditionExpression(classSubject, classKind, isClassNot));

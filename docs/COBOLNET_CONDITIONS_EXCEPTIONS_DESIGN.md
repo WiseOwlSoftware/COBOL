@@ -182,9 +182,10 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   call invalid (the clause's closing paragraph), and zero-length boolean operands are ordinary (§8.8.2 NOTE 2) —
   so the SCAN is shared (`HasNonBooleanPosition`) and each caller puts its own zero-length answer on it. Golden
   `2002/pb230_incompatible_boolean_sending` (both channels, B-NOT, and the zero-length non-raise).
-  ⚠ The BOOLEAN **class condition** itself is not implemented (the parser rejects `IS BOOLEAN` and
-  `ConditionRenderer.RenderClass` has no `'B'` arm), so rule 1's class-condition exemption has no site to reach
-  yet; `SendingRef.ClassCondition` is threaded to where that arm will be.
+  The BOOLEAN **class condition** is implemented (kb/Work PB590): `className` carries the alternative,
+  `ClassConditionModel` its §8.8.4.4.3 operand rules, and `ConditionRenderer.RenderClass`'s `'B'` arm renders
+  `CobolClass.IsBoolean` over the operand read with `SendingRef.ClassCondition` — so rule 1's class-condition
+  exemption now has its site and the class test never raises on the content it was asked to report.
 - **The fixed-point half of the same gate (§14.6.13.2 rule 2).** Rule 2 makes the condition
   exist whenever "the content of a numeric sending item that is not described with a standard floating-point usage
   is referenced during the execution of a statement and the content of that sending operand would evaluate to false
@@ -494,6 +495,22 @@ the numeric-edited image has exactly two readers, and the recipe reads `OperandP
 **Rationale.** In the typed model the value IS the field; class tests operate on the char image. A native numeric item cannot hold non-digits, so NUMERIC is constant-true (the meaningful test is on a PIC X holding digits). ALPHABETIC is the closed Latin set {A-Z,a-z,space} (ISO §8.8.4.4) — NOT char.IsLetter (must reject Unicode/accented letters; legacy comment).
 
 **Rejected alternatives.** Reuse the legacy byte-buffer PicRuntime predicates — rejected byte substrate. Use char.IsLetter/char.IsDigit — wrongly accepts Unicode letters/digits; ISO defines closed character sets.
+
+### D8a. ⛔ The §8.8.4.4.2 ALTERNATIVES and their §8.8.4.4.3 OPERAND RULES are ONE TABLE — `ClassConditionModel` — and one grammar rule, `className`.
+
+**The scope correction (CLAUDE.md rule 5).** kb/Work PB571 and PB590 were filed as "the class-condition arm leaks SR1" and "one of the fourteen alternatives is missing". Implementation found the alternatives written down in FOUR places: the `className` grammar rule; a SECOND grammar rule `classCondition` serving `evaluateSubject`, which offered ALPHANUMERIC (not one of the general format's fourteen) and omitted BOOLEAN, class-name-1 and alphabet-name-1; the kind decode in `ConditionBinder.BindClassConditionOn`; and a third decode in `EvaluateBinder.SubjectAsCondition`. The OPERAND screen was a fifth partial — it returned early unless the operand's category was boolean, so SR1 was asked of nothing, SR3 and SR5 had no arm, and SR4 tested one of the three categories it names.
+
+**As built.** The general format was read off the PRINTED page (PDF 224 / printed 194): fourteen alternatives in one brace group, no choice indicator, `IS` not underlined, every keyword underlined, alphabet-name-1 and class-name-1 not.
+- **Grammar.** `className` (Core/CobolExpressions.g4) is the one alternative list; `classCondition` is deleted and `evaluateSubject` names `className`. BOOLEAN sits AFTER `cobolWord` and that order IS its COBOL-2002 edition gate: `cobolWord`'s `{userWordHere("BOOLEAN")}?` alternative matches only below 2002, where `CLASS BOOLEAN IS "0" THROUGH "1"` is conforming source — so no binder-side introduction gate exists or is needed (the boolean-operator/XOR precedent).
+- **Model.** `ClassConditionModel` (Binding/ClassConditionModel.cs) holds one row per OFFERED alternative — kind tag, the phrase a diagnostic names it by, and the §8.8.4.4.3 rules that name it, in APPLICATION order (category rules before the usage rule). SR1 is asked of every alternative before the row, through `ItemCategory.IsIndexMessageTagObjectOrPointer` (§13.18.60.3 SR4's phrase reader, which answers for the usages that never gain a `PicInfo`) and `IntrinsicArgumentRules.ClassOf` (the §8.5.2.1 Table-2 classifier, which answers for the operand shapes that are not a data-item reference) — no third class list. class-name-1 and alphabet-name-1 are DISTINCT kinds because SR4 names the first and not the second.
+- **Diagnostics.** COBOLNET2200 = SR1's class/variable-length-group arms (its strongly-typed-group arm keeps COBOLNET1533, the strong-typing family being split by rule); COBOLNET2201 = SR5; COBOLNET2202 = SR3; COBOLNET0844 keeps SR4 and SR8, which it already reported. A user-defined word that names neither an alphabet-name nor a class-name is COBOLNET1639 (§8.4.2.1) at BIND — it used to compile clean and abort at run time.
+- **Not yet offered**, each one row plus one grammar alternative plus one renderer arm: FARTHEST-FROM-ZERO / IN-ARITHMETIC-RANGE / NEAREST-TO-ZERO (SR6) and the four FLOAT-… phrases (SR7). Their rules are deliberately not pre-declared — a lookup nothing reads has never been contradicted.
+
+**Pinned by** `ClassConditionTableDriftTests` (every `className` keyword alternative has a model row and a renderer arm), goldens `85/pb571_class_condition_one_table` and `2002/pb590_boolean_class_condition`, and negatives `pb571-class-condition-index-operand`, `pb590-boolean-class-condition-below-2002`, `pb590-boolean-class-numeric-operand`, `pb590-boolean-class-usage-bit`.
+
+### D8b. ⛔ A relation's COMPARISON CLASS is decided ONCE, from BOTH operands, by `ConditionRenderer.RelationCategories` → `CollatingSelection.ForComparison`.
+
+**Why it is a decision and not an implementation detail.** kb/Work PB649: the figurative branch of the relation renderer derived the pair's category from the non-figurative anchor alone and then handed that answer back to itself as the figurative's own category, so the two-operand rule was asked a two-operand question with one operand's answer twice. Under `ALPHABET AL IS "ZYX…A"` as the program collating sequence, `IF ALL N"AB" < XA` answered 0 while `IF NB < XA` over the identical values answered 1 — the same comparison by §8.8.4.2.6, opposite answers. `RelationCategories` gives a CATEGORY-LESS figurative WORD its context's category (§8.3.3.6.4 GR1) and never overrides an `ALL literal-1`, which carries its literal's own class (§8.3.3.6.3 SR2); both relation legs then read the one answer, and `EmitCore.CollateArgFor` asks `ForComparison` over the same pair, so the collating sequence and the comparison class cannot disagree. The level-88 membership site passes its variable's category twice ON PURPOSE and says so: §13.18.63.3 SR2/SR4/SR5/SR10 make a level-88 VALUE literal the variable's own category, so there the pair genuinely is one category twice.
 
 ### D9. EC checking is OFF by default; conditional phrases (ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION) are ALWAYS active when written and do NOT require >>TURN.
 

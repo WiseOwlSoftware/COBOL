@@ -103,13 +103,17 @@ validationClause
 //                              alphabet-name-1 | class-name-1 }
 // RENDERED (PDF p412 / folio 382): CLASS and the five class-name keywords are underlined; IS is not (§5.2.3
 // optional word); the braces are a plain required choice with NO choice indicators — exactly one alternative.
-// ⚠ BOOLEAN HAS NO LEXER TOKEN (see CobolData.g4 initializeCategory: "BOOLEAN, DATA-POINTER, … require lexer
-// tokens not yet defined"), so it arrives as IDENTIFIER and is admitted by the class-name-1 arm. That is the
-// declared posture of this file — permissive INSIDE the declined construct, exact at its edges (§4.2.7 /
-// A.4.1, see the header) — and
-// it costs nothing: the clause is refused as a whole whichever arm matched, so no operand distinction is
-// observable. Adding a BOOLEAN token to serve a construct we decline would edition-gate a word across USAGE
-// and the class condition for no behavioural gain.
+// ⚠ BOOLEAN IS NOT GIVEN AN ARM HERE, and the reason is no longer the one this comment used to give. It said
+// "BOOLEAN HAS NO LEXER TOKEN"; it does — CobolLexer.g4 declares it, and ReservedWords.Table makes it reserved
+// at 2002+ — so at those editions it does NOT arrive as an IDENTIFIER and cobolWord's own
+// {userWordHere("BOOLEAN")}? arm does not match it. The posture is unchanged and still costs nothing, because
+// the clause is refused AS A WHOLE whichever arm matched (permissive INSIDE the declined construct, exact at
+// its edges — §4.2.7 / A.4.1, see the header): at 2002+ `CLASS IS BOOLEAN` is a plain syntax error inside a
+// construct this compiler declines, and below 2002 the word is a user word the class-name-1 arm takes. If the
+// VALIDATE clause is ever implemented, this rule gains the BOOLEAN arm with it.
+// ⚠ THIS IS NOT THE CLASS CONDITION'S LIST. §13.18.11.2's brace group and §8.8.4.4.2's are different formats
+// of different constructs that happen to share four keywords — `className` (Core/CobolExpressions.g4) is the
+// condition's ONE list, and ClassConditionTableDriftTests exempts this rule BY NAME with that reason.
 validateClassClause
     : CLASS IS? validateClassOperand
     ;

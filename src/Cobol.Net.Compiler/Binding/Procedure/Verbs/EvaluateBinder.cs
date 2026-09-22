@@ -178,7 +178,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private bool IsDataItemOfClassBooleanOrNumeric(Core.EvaluateSubjectContext subject, in BareOperandAnalysis bare)
     {
         if (bare.IsConditionName) return false;   // a condition-name is not a data item in this position
-        if (subject.classCondition() is not null || subject.booleanLiteral() is not null) return false;
+        if (subject.className() is not null || subject.booleanLiteral() is not null) return false;
         if (subject.valueOperand()?.arithmeticExpression() is not { } expr) return false;
         if (ConditionBinder.SoleDataRef(expr) is not { } dref) return false;
         // Probe — a routing predicate is diagnostic-free (R30); an unresolvable subject reports through the bind.
@@ -319,7 +319,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private static EvaluateSubjectOperand? SubjectKind(Core.EvaluateSubjectContext subject, in BareOperandAnalysis bare)
     {
         if (subject.booleanLiteral() is not null) return EvaluateSubjectOperand.TrueOrFalse;
-        if (subject.classCondition() is not null) return EvaluateSubjectOperand.Condition;  // EVALUATE X NUMERIC
+        if (subject.className() is not null) return EvaluateSubjectOperand.Condition;  // EVALUATE X NUMERIC
         if (subject.valueOperand() is not { } vo) return null;
         return BareOperandKind(vo, bare) is { } row ? EvaluateOperandCombinations.AsSubjectOperand(row) : null;
     }
@@ -601,16 +601,13 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     {
         var subject = slot.Node;
         if (subject.valueOperand() is not { } vo) return null;
-        if (subject.classCondition() is not { } cls) return host.Cond.AsCondition(pair.SubjectBare);
-        char? kind = cls.NUMERIC() is not null ? 'N'
-            : cls.ALPHABETIC() is not null ? 'A'
-            : cls.ALPHABETIC_UPPER() is not null ? 'U'
-            : cls.ALPHABETIC_LOWER() is not null ? 'L'
-            : null;
-        if (kind is not { } k) return new BoundConditionError($"class condition '{cls.GetText()}'");
-        var opnd = BindValueOperand(vo);
-        host.Cond.CheckClassConditionOperand(opnd, k);   // §8.8.4.4.3 SR8/SR4 — boolean-operand guard
-        return new BoundClassCondition(opnd, k, Negated: subject.NOT() is not null);
+        if (subject.className() is not { } cls) return host.Cond.AsCondition(pair.SubjectBare);
+        // ⛔ THE CLASS CONDITION IS BOUND BY ITS OWN ONE BODY (kb/Work PB590). This carried a THIRD copy of the
+        // §8.8.4.4.2 kind decode — over a private grammar rule with ALPHANUMERIC in it and no BOOLEAN,
+        // class-name-1 or alphabet-name-1 arm — so the same class test written as an EVALUATE subject and as
+        // an IF meant different things. The operand is a thunk for the same reason it is one there: the
+        // SR2 LOCALE-alphabet refusal is about the class-name and must not drag the operand's diagnostics in.
+        return host.Cond.BindClassCondition(cls, subject.NOT() is not null, () => BindValueOperand(vo));
     }
 
     /// <summary>The boolean value of a condition that is a SOLE <c>TRUE</c>/<c>FALSE</c> literal, else null.</summary>
@@ -683,7 +680,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// a bare operand: under a class-condition subject it is the class test's operand, and resolving it as a
     /// condition-name would be a symbol lookup no rule asks for (and a diagnostic no rule licenses).</summary>
     private BareOperandAnalysis AnalyzeSubjectBare(Core.EvaluateSubjectContext subject) =>
-        subject.booleanLiteral() is null && subject.classCondition() is null
+        subject.booleanLiteral() is null && subject.className() is null
         && subject.valueOperand() is { } svo ? host.Cond.AnalyzeBareOperand(svo) : default;
 
     /// <summary>Bind (and, when more than one pair reads it, MATERIALIZE) one selection subject's assigned value
@@ -698,7 +695,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private BoundOperand? BindSubjectValue(SubjectSlot slot)
     {
         var subject = slot.Node;
-        if (subject.classCondition() is not null || subject.valueOperand() is not { } vo) return null;
+        if (subject.className() is not null || subject.valueOperand() is not { } vo) return null;
         if (slot.Bare.Form is BareOperandForm.ConditionName or BareOperandForm.SwitchStatus) return null;
         var value = BindValueOperand(vo);
         // ⛔ NeedsIntermediate, NOT `Uses > 1` (kb/Work PB396). The §14.9.25.4 GR1 argument this slot already

@@ -9906,13 +9906,13 @@
   "ordinal": 1,
   "subject": "Simple class condition",
   "rule-digest": "fd7629753c17",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Sr1Refusal; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+  "test-ref": "conformance:negative/pb571-class-condition-index-operand; conformance:negative/pb148-display-index-item",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB571. All three arms of SR1 are screened at the ONE class-condition operand screen, which every spelling of the condition reaches (the IF form, 14.9.13.3 SR5's identifier-less form, and the EVALUATE selection subject's own class test, which used to be bound by a separate copy). The class list is asked through ItemCategory.IsIndexMessageTagObjectOrPointer for a data-item reference - the population that also answers for MESSAGE-TAG and FUNCTION-POINTER, whose entries never gain a PicInfo - and through IntrinsicArgumentRules.ClassOf for the operand shapes that are not one (an index-NAME, an intrinsic of 15.2 item 6's index class, the NULL predefined address). The variable-length group arm delegates to ReferenceResolver.HasVariableLengthSubordinate, which IS 8.5.1.12.1's definition. The strongly-typed-group arm keeps the COBOLNET1533 strong-typing family's own code (that family is split by rule) and the other two are COBOLNET2200; the split is stated in the code so it is not re-argued.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.8.4.4.3-2",
@@ -9936,13 +9936,13 @@
   "ordinal": 3,
   "subject": "Simple class condition",
   "rule-digest": "a3c51ed97ca2",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Violates; src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+  "test-ref": "conformance:negative/pb590-boolean-class-usage-bit; conformance:2002/pb590_boolean_class_condition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB590. SR3's list - alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, class-name-1 - is the set of ClassConditionModel rows carrying ClassOperandRule.UsageDisplayOrNational, and NUMERIC is deliberately absent from it because SR8 states the same rule with a category escape. The predicate reads the operand's OPERAND picture (DataItem.OperandPic), so a bit or national GROUP answers as the elementary item 13.18.29.4 GR1b/GR2b makes it; a null picture is an ordinary alphanumeric group or a picture-less leaf and fails OPEN, which is the direction a screen must fail. Measured: `01 BT PIC 1(4) USAGE BIT. IF BT IS BOOLEAN` draws COBOLNET2202 where it previously compiled. The rule has no edition axis - the class condition and every alternative in its list except BOOLEAN exist at COBOL-85, and BOOLEAN is unreachable as a keyword below 2002 because it is not a reserved word there.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.8.4.4.3-4",
@@ -9951,13 +9951,13 @@
   "ordinal": 4,
   "subject": "Simple class condition",
   "rule-digest": "520a81fdb703",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Violates; src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+  "test-ref": "conformance:negative/pb571-class-alphabetic-on-numeric; conformance:negative/class-alphabetic-on-boolean; conformance:85/pb571_class_condition_one_table",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB571. SR4 names THREE categories and only the BOOLEAN one was screened, so `IF <numeric item> IS ALPHABETIC` compiled and ran. All three are now one predicate. SR4 names class-name-1 and NOT alphabet-name-1, which is why the two user-defined-word alternatives carry DISTINCT kind tags: sharing one tag would have made this rule reject `IF <numeric item> IS <alphabet-name>`, which the standard admits and the 85 golden's F line pins.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.8.4.4.3-5",
@@ -9966,13 +9966,13 @@
   "ordinal": 5,
   "subject": "Simple class condition",
   "rule-digest": "cf0b66506a1c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Violates; src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+  "test-ref": "conformance:negative/pb590-boolean-class-numeric-operand; conformance:2002/pb590_boolean_class_condition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB590. The rule had no site at all before the BOOLEAN alternative existed. It is one category short of SR4's list on purpose - a BOOLEAN class test over a category-boolean item is the ordinary case, and the 2002 golden's A line pins it - so the two rules are separate table entries with separate codes (COBOLNET2201 here, COBOLNET0844 for SR4). Editions are 2002+ because BOOLEAN is not a reserved word at COBOL-85, where the same spelling is governed by the user-defined-word alternative (conformance:negative/pb590-boolean-class-condition-below-2002).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.8.4.4.3-6",
@@ -10011,13 +10011,13 @@
   "ordinal": 8,
   "subject": "Simple class condition",
   "rule-digest": "067799e7a341",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Violates; src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+  "test-ref": "conformance:negative/class-numeric-on-bit; conformance:85/pb571_class_condition_one_table",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB571. SR8 is SR3's rule with the category escape - 'usage is display or national OR whose category is numeric' - and it is now stated that way in one predicate instead of as a hand-written USAGE BIT special case. Its diagnostic stays COBOLNET0844, which has reported it since the data increment, and conformance:negative/class-numeric-on-bit pins it unchanged; the 85 golden's A line pins the admission side (a category-numeric DISPLAY operand). An operand that also breaks SR1 is reported against SR1, which runs first.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.8.4.4.4-1",
@@ -29466,13 +29466,13 @@
   "ordinal": 10,
   "subject": "USAGE clause",
   "rule-digest": "9067f9ac28f8",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.IndexItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems; docs/CONFORMANCE.md#DOC-A.1-211",
-  "test-ref": "conformance:2023/pb164_index_group_image; conformance:negative/pb148-display-index-item",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.IndexItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems; src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs#Sr1Refusal; docs/CONFORMANCE.md#DOC-A.1-211",
+  "test-ref": "conformance:2023/pb164_index_group_image; conformance:negative/pb148-display-index-item; conformance:negative/pb571-class-condition-index-operand",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB571 — All four claims held. \"a data item is an index data item\" - PicInfo.IndexItem is the synthesized PICTURE-less profile, and ResolveIndexItems adjudicates a picture-less USAGE INDEX entry into a group header (usage sheds, GR1) or an elementary index item once the forest is complete. \"contains a value that shall correspond to an occurrence number of a table element\" - the carrier holds the occurrence number itself, not a byte offset: probe p5 SET I1 TO 3, SET IX TO I1, `IF IX = 3` is true, and `SET I1 TO IX` then `TE(I1)` subscripts correctly; conformance:2023/pb164_index_group_image pins the same fact through a group image round trip with expectations computed from the standard. \"The class and category of an index data item are index\" - enforced, not merely modelled: probe p6's `MOVE 3 TO IX` draws COBOLNET0809 (\"a MOVE operand shall not be of class index\"), and conformance:negative/pb148-display-index-item pins the DISPLAY exclusion. \"Each implementor specifies the precise effect … upon the alignment and representation … including the actual value assigned for any given occurrence number\" - the determination is owner decision R40 (2026-08-30) and docs/CONFORMANCE.md §7 item 211: an 8-byte BIG-ENDIAN two's-complement occurrence number; probe p51 reads the bytes back through a group image (ORD 1 … 4 for occurrence 3) and probe p5 reports FUNCTION BYTE-LENGTH 8. ⚠ Adjacent but NOT this rule: §13.18.60.3 SR10's closed reference list, where kb/Work PB213 (an index data item admitted as an arithmetic operand and a subscript) and PB215 (one OperandContext member serving sites SR10 separates) are both OPEN - referenced, not re-reported. || REFUTED: PARTIAL — The rule's second sentence - 'The class and category of an index data item are index' - is NOT carried through to every class-sensitive site, and the adjudicator measured only the two arms that pass (MOVE -> COBOLNET0809, DISPLAY -> pb148). The class-condition arm leaks and produces a WRONG ANSWER. PicCategory has no Index member at all (PicInfo.cs:10-48); PicInfo.IndexItem is built as `new(PicCategory.Numeric, Usage.Index, ...)` (PicInfo.cs:621), i.e. the model records class/category NUMERIC and the index-ness lives only in Usage. ConditionBinder.CheckClassConditionOperand implements exactly one half of the sibling syntax rule it must honour (SS8.8.4.4.3 SR1, verified with cite.py): it rejects a strongly-typed group and then `if (pic is not { Category: PicCategory.Boolean }) return;` - so class index / pointer / object operands are never screened. Measured with the pinned cobol.exe: `01 IX USAGE INDEX. ... SET IX TO 3  IF IX IS NUMERIC` compiles clean at --std 2023 and PRINTS 'IX IS NUMERIC' (exit 0), where SS8.8.4.4.3 SR1 requires a diagnostic because IX is class index. So the compiler answers a class question about an index data item as though its class were numeric - the precise contradiction of this rule's sentence 2. (The arithmetic-operand arm the adjudicator flagged as PB213 is in fact CLOSED in this pinned tree - COBOLNET0844 fires on both COMPUTE and ADD - which makes the class-condition hole the live one, not a duplicate of PB213.) Sentences 1, 3 and 4 (occurrence-number carrier, implementor determination = 8-byte big-endian, documented at CONFORMANCE.md item 211) do hold. Two halves, one verified => PARTIAL by the standing rule; the leaking half is not merely untested but measurably wrong. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.IndexItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.ByteForm; src/Cobol.Net.Compiler/Binding/DataBinder.cs#DataBinder.ResolveIndexItems; docs/CONFORMANCE.md#DOC-A.1-211",
-  "state": "GAP"
+  "notes": "kb/Work PB571 LANDED. The refuter's one leaking half is closed. Sentence 2 - 'The class and category of an index data item are index' - is now carried through the CLASS-CONDITION site as well as the MOVE (COBOLNET0809) and DISPLAY (pb148) ones: ConditionBinder.CheckClassConditionOperand asks ISO 8.8.4.4.3 SR1 of EVERY alternative before the alternative's own rules, through ClassConditionModel.Sr1Refusal, which delegates to ItemCategory.IsIndexMessageTagObjectOrPointer (13.18.60.3 SR4's phrase reader) and IntrinsicArgumentRules.ClassOf (the 8.5.2.1 Table-2 classifier) rather than writing a third class list. Measured on the fixed build: `01 IX USAGE INDEX. SET IX TO 3  IF IX IS NUMERIC` now draws COBOLNET2200 at every edition where it previously compiled clean and PRINTED 'IX IS NUMERIC'; the same refusal now reaches the EVALUATE selection subject's class test, a USAGE POINTER operand and an index-NAME operand (all three measured). Sentences 1, 3 and 4 were already held by the adjudication and are unchanged. The storage profile still carries category NUMERIC on purpose - the occurrence number IS a number - which is exactly why the CLASS question is answered by the Table-2 classifier and never from the storage category.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-11",

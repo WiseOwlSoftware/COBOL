@@ -496,21 +496,36 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return CheckedRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
     }
 
-    /// <summary>The §8.8.4.4.3 class-condition operand rules for the boolean category (the one class the
-    /// data increment newly introduces): SR8 — NUMERIC requires an operand whose usage is display or national
-    /// or whose category is numeric, so a USAGE BIT boolean is rejected (a DISPLAY-form boolean is admitted);
-    /// SR4 — ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name (<paramref name="kind"/> 'A'/'U'/
-    /// 'L'/'C') shall not be specified for a boolean operand at all. Both → COBOLNET0844.</summary>
+    /// <summary>⛔ THE ONE ISO §8.8.4.4.3 OPERAND SCREEN for a class condition — SR1, which names EVERY
+    /// alternative, and then the rules that name THIS alternative, read off
+    /// <see cref="ClassConditionModel"/>'s table in its own order (category rules before usage rules, so an
+    /// operand breaking both is reported against the rule that speaks about its category). The FIRST broken
+    /// rule is reported and the screen stops: one condition, one diagnostic.
+    /// <para>⛔ IT USED TO BE THE BOOLEAN-CATEGORY SCREEN ONLY (kb/Work PB571). After the strong-group arm it
+    /// read <c>if (pic is not { Category: PicCategory.Boolean }) return;</c> — so SR1's class list was never
+    /// asked of ANY operand, and <c>IF IX IS NUMERIC</c> over a USAGE INDEX item compiled clean and printed
+    /// TRUE. An index data item's storage profile carries category NUMERIC (the occurrence number is a number),
+    /// which is exactly why the class question may not be answered from the storage category:
+    /// §13.18.60.4 GR10, "The class and category of an index data item are index". SR3 and SR5 had no arm at
+    /// all, and SR4's arm tested one of the three categories the rule names.</para></summary>
     public void CheckClassConditionOperand(BoundOperand op, char kind)
     {
         // §8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
         // its own unique class and category (the type-name), not one of the general classes a class condition tests.
+        // This arm keeps the COBOLNET1533 strong-typing family's own code; SR1's other two arms are COBOLNET2200.
         if (op is BoundFieldOperand fg && StrongTypeModel.IsStrongGroup(fg.Place.Item))
         {
             ctx.Edition.Error(DiagnosticCatalog.StrongClassCondition, "a strongly-typed group item may not appear in a class condition — "
                 + "it has its own unique class and category (ISO §8.8.4.4.3 SR1)");
             return;
         }
+        if (ClassConditionModel.Sr1Refusal(op) is { } why)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ClassConditionOperandClass,
+                $"a class condition's identifier-1 shall not reference {why} (ISO §8.8.4.4.3 SR1)");
+            return;
+        }
+        if (ClassConditionModel.For(kind) is not { } alt) return;
         PicInfo? pic = op switch
         {
             // OperandPic (kb/Work PB157's sweep): a GROUP-USAGE BIT operand IS category boolean with as-if
@@ -520,34 +535,48 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             BoundFieldOperand f => f.Place.Item.OperandPic,
             _ => null,
         };
-        if (pic is not { Category: PicCategory.Boolean }) return;
-        if (kind is 'N' && pic.Usage is Usage.Bit)
-            ctx.Edition.Error("COBOLNET0844", "the NUMERIC class condition requires an operand whose usage is "
-                + "display or national or whose category is numeric — a USAGE BIT boolean item is none of these "
-                + "(ISO §8.8.4.4.3 SR8)");
-        else if (kind is 'A' or 'U' or 'L' or 'C')
-            ctx.Edition.Error("COBOLNET0844", "ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / a class-name "
-                + "shall not be specified for a boolean operand (ISO §8.8.4.4.3 SR4)");
+        foreach (var rule in alt.Rules)
+            if (ClassConditionModel.Violates(rule, pic))
+            {
+                var (code, clause, text) = ClassConditionModel.Wording(rule);
+                ctx.Edition.Error(code, $"the {alt.Spelling} class condition over '{OperandName(op)}': {text} ({clause})");
+                return;
+            }
     }
 
-    /// <summary>⛔ THE ONE class-condition body (ISO §8.8.4.4), over an operand the CALLER names. Two callers ask
-    /// the same question about different spellings of the same condition: <see cref="BindComparison"/> for the
-    /// written form <c>identifier-1 IS [NOT] class</c>, and <see cref="BindPartialComparison"/> for
-    /// §14.9.13.3 SR5's "class condition without the identifier", whose operand is the EVALUATE selection subject.
-    /// Extracted rather than copied because FOUR rules live in it — the §8.8.4.4.3 SR4/SR8 boolean-operand guard,
-    /// the SR2 LOCALE-alphabet refusal, the §12.3.7 user-class membership and the §8.8.4.4.4 GR3 a) coded-set
-    /// class — and a second copy would be four chances for the two spellings to diverge.
+    /// <summary>The operand's COBOL spelling for a class-condition diagnostic, or a neutral phrase for an
+    /// operand that is not a data-item reference (a function result — §8.8.4.4.3 SR3's second sentence).</summary>
+    private static string OperandName(BoundOperand op) =>
+        op is BoundFieldOperand f ? f.Place.Item.CobolName ?? "identifier-1" : "identifier-1";
+
+    /// <summary>⛔ THE ONE class-condition body (ISO §8.8.4.4), over an operand the CALLER names. THREE callers
+    /// ask the same question about different spellings of the same condition: <see cref="BindComparison"/> for
+    /// the written form <c>identifier-1 IS [NOT] class</c>, <see cref="BindPartialComparison"/> for
+    /// §14.9.13.3 SR5's "class condition without the identifier", and <see cref="BindClassCondition"/> for the
+    /// EVALUATE selection subject's own class test. Extracted rather than copied because FIVE rules live in
+    /// it — the §8.8.4.4.3 operand screen, the SR2 LOCALE-alphabet refusal, the §12.3.7 user-class membership
+    /// and the §8.8.4.4.4 GR3 a) coded-set class — and a second copy is five chances for the spellings to
+    /// diverge. It WAS copied: <c>EvaluateBinder.SubjectAsCondition</c> carried its own kind decode over its
+    /// own grammar rule, so the EVALUATE subject had no BOOLEAN, no class-name and no alphabet-name arm and
+    /// offered an ALPHANUMERIC one the general format does not print (kb/Work PB590).
     /// <para><paramref name="operand"/> is a thunk so the operand is bound only on the arms that reach it: the
     /// LOCALE refusal reports a rule about the CLASS-NAME and must not also drag the operand's own diagnostics
     /// into the same statement.</para></summary>
+    public BoundCondition BindClassCondition(Core.ClassNameContext cls, bool not, System.Func<BoundOperand> operand) =>
+        BindClassConditionOn(cls, not, operand, new AbbrevCarry());
+
     private BoundCondition BindClassConditionOn(Core.ClassNameContext cls, bool not,
         System.Func<BoundOperand> operand, AbbrevCarry carry)
     {
         carry.Reset();   // a class condition is a complete simple condition — terminates the abbreviation
-        char? kind = cls.NUMERIC() is not null ? 'N'
-            : cls.ALPHABETIC() is not null ? 'A'
-            : cls.ALPHABETIC_UPPER() is not null ? 'U'
-            : cls.ALPHABETIC_LOWER() is not null ? 'L'
+        // The §8.8.4.4.2 alternatives this compiler offers, tagged by ClassConditionModel's own kind constants —
+        // the table that also carries each alternative's §8.8.4.4.3 operand rules, so a new alternative cannot
+        // arrive here without arriving there.
+        char? kind = cls.NUMERIC() is not null ? ClassConditionModel.Numeric
+            : cls.ALPHABETIC() is not null ? ClassConditionModel.Alphabetic
+            : cls.ALPHABETIC_UPPER() is not null ? ClassConditionModel.AlphabeticUpper
+            : cls.ALPHABETIC_LOWER() is not null ? ClassConditionModel.AlphabeticLower
+            : cls.BOOLEAN() is not null ? ClassConditionModel.Boolean
             : null;
         if (kind is { } k)
         {
@@ -570,7 +599,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (cls.cobolWord() is { } ucls && ctx.Data.UserClasses.TryGetValue(ucls.GetText(), out string? members))
         {
             var opnd = operand();
-            CheckClassConditionOperand(opnd, 'C');   // SR4 also forbids a class-name for a boolean operand
+            CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
             return new BoundUserClassCondition(opnd, members, not);
         }
         // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
@@ -581,7 +610,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 ? aSet : ctx.Data.NationalAlphabets.TryGetValue(acls.GetText(), out var nDef) ? nDef.CodedSet : null) is { } set)
         {
             var opnd = operand();
-            CheckClassConditionOperand(opnd, 'C');   // SR3's usage rule covers alphabet-name-1 exactly as a class-name
+            // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
+            // "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the
+            // category … is boolean, numeric, or numeric-edited" — does NOT, so sharing the class-name kind
+            // would reject `IF NUM-ITEM IS SOME-ALPHABET`, which the standard admits.
+            CheckClassConditionOperand(opnd, ClassConditionModel.AlphabetName);
             string setKind = set.Phrase switch
             {
                 "STANDARD-1" or "STANDARD-2" => "Ascii",
@@ -590,6 +623,20 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             };
             return new BoundCodedSetClassCondition(opnd, setKind, not);
         }
+        // ⛔ A NAME THAT DECLARES NOTHING IS A BIND ERROR, NOT A RUN-TIME ONE. §8.8.4.4.2 offers exactly two
+        // user-defined words here — alphabet-name-1 and class-name-1 — and both arms above have refused this
+        // spelling, so it identifies no resource: ISO §8.4.2.1, "In order to use a resource, a statement shall
+        // contain a reference that uniquely identifies that resource". That is COBOLNET1639's OWN rule, and
+        // this is one more site of it rather than a new code.
+        // ⛔ IT USED TO FALL TO BoundConditionError, which is the SILENT-COMPILE / LOUD-RUNTIME staging:
+        // `IF X IS NOSUCHCLASS` compiled with zero diagnostics and aborted with
+        // NotImplementedCobolFeatureException "class condition 'NOSUCHCLASS'". Measured on this worktree
+        // before the change, at 2023 and (for the COBOL-85 spelling of BOOLEAN, which is an ordinary user word
+        // below 2002) at 85.
+        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{cls.GetText()}': the word names "
+            + "neither an alphabet-name nor a class-name declared in the SPECIAL-NAMES paragraph — the class "
+            + "condition's only user-defined-word alternatives (ISO §8.8.4.4.2; §8.4.2.1 — \"In order to use a "
+            + "resource, a statement shall contain a reference that uniquely identifies that resource\")");
         return new BoundConditionError($"class condition '{cls.GetText()}'");
     }
 

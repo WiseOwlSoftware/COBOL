@@ -227,4 +227,76 @@ public sealed class CollatingComparisonClassDriftTests : CobolNetTestBase
         Assert.True(ok, detail);
         Assert.Equal("GRP=N\r\nELM=N", stdout);
     }
+
+    /// <summary>⛔ THE PB649 ASSERTION — one comparison-class decision per relation, made from BOTH operands and
+    /// consumed by BOTH legs. §8.8.4.2.6 makes ONE class-national operand enough: "The alphanumeric operand is
+    /// treated as though it were converted and moved in accordance with the rules of the MOVE statement from an
+    /// alphanumeric elementary data item to a temporary elementary data item of class national", after which
+    /// §8.8.4.2.9's national sequence governs and the alphanumeric program collating sequence does not apply.
+    /// §8.3.3.6.3 SR2 gives <c>ALL literal-1</c> its literal's class, so the FIG and ITEM lines below are the
+    /// same comparison written two ways and MUST agree.
+    /// <para>They did not: the figurative branch derived the class from the non-figurative anchor alone and fed
+    /// that answer back as the figurative's own category, so the pair rule saw one operand twice and
+    /// <c>ALL N"AB" &lt; XA</c> took the ALPHANUMERIC program collating sequence — measured 0 against the
+    /// national item's 1. AN is the CONTROL: an alphanumeric pair still reads the PCS, where "AB" collates AFTER
+    /// "AC" because AL lists Z first (§12.3.7.4 GR7 k) 2., successive ascending positions in the order
+    /// written).</para></summary>
+    [Fact]
+    public void ANationalFigurativeAgainstAnAlphanumericOperand_TakesTheNationalRules_LikeItsItemTwin()
+    {
+        const string src = """
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB649FIGNAT.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               OBJECT-COMPUTER. XX PROGRAM COLLATING SEQUENCE AL.
+               SPECIAL-NAMES. ALPHABET AL IS "ZYXWVUTSRQPONMLKJIHGFEDCBA".
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 XA PIC X(2) VALUE "AC".
+               01 XB PIC X(2) VALUE "AB".
+               01 NB PIC N(2) VALUE N"AB".
+               PROCEDURE DIVISION.
+               MAIN.
+                   IF ALL N"AB" < XA DISPLAY "FIG=Y" ELSE DISPLAY "FIG=N" END-IF
+                   IF NB        < XA DISPLAY "ITM=Y" ELSE DISPLAY "ITM=N" END-IF
+                   IF XB        < XA DISPLAY "AN=Y"  ELSE DISPLAY "AN=N"  END-IF
+                   STOP RUN.
+            """;
+        var (ok, stdout, detail) = CompileAndRun(src, dialectLevel: 2002);
+        Assert.True(ok, detail);
+        Assert.Equal("FIG=Y\r\nITM=Y\r\nAN=N", stdout);
+    }
+
+    /// <summary>The collating argument of EVERY relation leg comes from the ONE pair reader. A leg that called
+    /// <c>ctx.CollateArgFor</c> on a category it derived itself is exactly PB649's shape, and a behavioural probe
+    /// cannot see it — the wrong answer only shows up for the operand pairing that happens to differ. So the
+    /// SOURCE is read: in <c>ConditionRenderer</c>, every <c>CollateArgFor</c> call site is either the pair
+    /// <c>ConditionRenderer.RelationCategories</c> produced or the THROUGH-range / level-88 reader, whose two
+    /// arguments are the conditional variable's category twice — legitimately, because §13.18.63.3
+    /// SR2/SR4/SR5/SR10 make its VALUE literals its own category.</summary>
+    [Fact]
+    public void EveryCollatingArgumentInTheRelationRenderer_ComesFromTheOnePairReader()
+    {
+        string src = string.Join('\n', File.ReadAllLines(Path.Combine(TestRepo.Root,
+                "src", "Cobol.Net.Compiler", "CodeGen", "Emit", "ConditionRenderer.cs"))
+            .Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)));
+        var calls = System.Text.RegularExpressions.Regex
+            .Matches(src, @"CollateArgFor\((?<args>[^)]*)\)")
+            .Select(m => m.Groups["args"].Value.Trim())
+            .ToList();
+        Assert.True(calls.Count >= 3,
+            $"the scan found only {calls.Count} CollateArgFor call(s) in the relation renderer — it is broken");
+
+        // The admissible argument pairs, each with the rule that makes it one: the relation pair, and the
+        // level-88 / THROUGH-range pair (the conditional variable's category twice).
+        var allowed = new[] { "leftCat, rightCat", "cat, cat", "left, right" };
+        var strays = calls.Where(a => !allowed.Contains(a, StringComparer.Ordinal)).ToList();
+        Assert.True(strays.Count == 0,
+            $"a relation leg derives its own collating category instead of reading the pair: "
+            + $"CollateArgFor({string.Join("), CollateArgFor(", strays)}).{Environment.NewLine}"
+            + $"§8.8.4.2's comparison class is a property of the PAIR (kb/Work PB649/PB741). Take the categories "
+            + $"from RelationCategories and pass them both, or state here why this site's pair is one category "
+            + $"twice as the level-88 site does.");
+    }
 }

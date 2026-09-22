@@ -2018,7 +2018,10 @@ public static class DiagnosticCatalog
         + "INPUT and OUTPUT PROCEDURE phrases — ONE reporting step, "
         + "ProcedureTableBuilder.ResolveProcedureOperand, since §8.4.6.1 makes paragraph-names and "
         + "section-names referenceable only in the source element that declares them; and the SET Format-4 "
-        + "operand that names no condition-name at all (§14.9.39.3 SR6).",
+        + "operand that names no condition-name at all (§14.9.39.3 SR6). It also carries the CLASS CONDITION's "
+        + "user-defined-word position (kb/Work PB590): §8.8.4.4.2 offers exactly two there — alphabet-name-1 "
+        + "and class-name-1 — so a word that declares neither identifies no resource. That arm used to fall to "
+        + "a loud RUN-TIME stage, so `IF X IS NOSUCHCLASS` compiled with no diagnostic at all.",
         "ISO §8.4.2.1 / §8.4.2.2");
     // ⛔ THE TWO PROCEDURE-NAME UNIQUENESS RULES (kb/Work PB466). COBOLNET1639 above is "identifies NO
     // resource"; these two are "identifies MORE THAN ONE", and they are separate codes because the two rules
@@ -4274,6 +4277,49 @@ public static class DiagnosticCatalog
         + "be specified as a receiving operand.\" It is the predefined object reference for the current "
         + "exception object (§8.4.3.6.4 GR1), of which there is one instance in a run unit (GR2).",
         "ISO §8.4.3.6.3 SR1 / §8.4.3.6.4");
+
+    // ── The class condition's §8.8.4.4.3 OPERAND rules (kb/Work PB571 + PB590). The screen used to return
+    // early unless the operand's category was boolean, so SR1 was never asked of anything and SR3/SR5 had no
+    // arm at all. SR4 and SR8 keep COBOLNET0844, which already reported them; these are the rules that had
+    // none. ⛔ SR1 is ONE rule reported through TWO codes — its strongly-typed-group arm stays in the
+    // COBOLNET1533 strong-typing family (StrongClassCondition), which is split by rule on purpose.
+    /// <summary>A class condition's identifier-1 references a data item of class index, message-tag, object or
+    /// pointer, or a variable-length group. ISO §8.8.4.4.3 SR1 closes the operand: "Identifier-1 shall not
+    /// reference a data item of class index, message-tag, object, or pointer, nor a strongly-typed group, nor a
+    /// variable-length group."
+    /// <para>⛔ IT IS A WRONG ANSWER THAT WAS BEING GIVEN, NOT A MISSING REFUSAL (kb/Work PB571). An index data
+    /// item's storage profile carries category NUMERIC (the occurrence number IS a number), so
+    /// <c>IF IX IS NUMERIC</c> over a USAGE INDEX item compiled clean and printed TRUE — the exact contradiction
+    /// of §13.18.60.4 GR10, "The class and category of an index data item are index". The class question about a
+    /// class-INDEX item was answered as though its class were numeric.</para></summary>
+    public static readonly DiagnosticDescriptor ClassConditionOperandClass = new(
+        "COBOLNET2200", "class-condition-operand-class", EditionSeverity.Error,
+        "A class condition's identifier-1 references a data item of class index, message-tag, object, or "
+        + "pointer, or a variable-length group. ISO §8.8.4.4.3 SR1: \"Identifier-1 shall not reference a data "
+        + "item of class index, message-tag, object, or pointer, nor a strongly-typed group, nor a "
+        + "variable-length group.\"",
+        "ISO §8.8.4.4.3 SR1 / §13.18.60.4");
+    /// <summary>BOOLEAN was specified in a class condition over a numeric or numeric-edited operand. ISO
+    /// §8.8.4.4.3 SR5: "BOOLEAN shall not be specified if the category of the data item referenced by
+    /// identifier-1 is numeric or numeric-edited." One category short of SR4's list (which also names boolean),
+    /// because a BOOLEAN class test over a category-boolean item is the ordinary case.</summary>
+    public static readonly DiagnosticDescriptor ClassConditionBooleanCategory = new(
+        "COBOLNET2201", "class-condition-boolean-category", EditionSeverity.Error,
+        "BOOLEAN is specified in a class condition whose identifier-1 is of category numeric or numeric-edited. "
+        + "ISO §8.8.4.4.3 SR5: \"BOOLEAN shall not be specified if the category of the data item referenced by "
+        + "identifier-1 is numeric or numeric-edited.\"",
+        "ISO §8.8.4.4.3 SR5");
+    /// <summary>A class condition naming alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER,
+    /// BOOLEAN or class-name-1 was written over an operand whose usage is neither display nor national. ISO
+    /// §8.8.4.4.3 SR3 states exactly that list, and NUMERIC is absent from it because §8.8.4.4.3 SR8 gives the
+    /// NUMERIC phrase the same rule with a category escape ("or whose category is numeric").</summary>
+    public static readonly DiagnosticDescriptor ClassConditionOperandUsage = new(
+        "COBOLNET2202", "class-condition-operand-usage", EditionSeverity.Error,
+        "A class condition naming alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN or "
+        + "class-name-1 references an operand whose usage is neither display nor national. ISO §8.8.4.4.3 SR3: "
+        + "\"If the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, or class-name-1 "
+        + "phrase is specified, identifier-1 shall reference a data-item whose usage is display or national.\"",
+        "ISO §8.8.4.4.3 SR3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

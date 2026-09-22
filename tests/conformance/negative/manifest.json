@@ -1248,7 +1248,13 @@
   "pb896-variable-length-group-to-elementary",
   "pb542-move-program-pointer-sender",
   "pb388-set-pointer-self-sender",
-  "pb388-set-object-ref-self-outside-method"
+  "pb388-set-object-ref-self-outside-method",
+  "pb571-class-condition-index-operand",
+  "pb571-class-alphabetic-on-numeric",
+  "pb590-boolean-class-condition-below-2002",
+  "pb590-boolean-class-numeric-operand",
+  "pb590-boolean-class-usage-bit",
+  "pb649-national-figurative-below-2002"
  ],
  "pending": []
 }

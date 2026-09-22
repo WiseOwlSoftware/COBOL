@@ -313,7 +313,9 @@
   "pb450_set_condition_mixed_groups",
   "pb395_goto_depending_incompatible",
   "pb395_subtract_incompatible_sender",
-  "pb922_exception_object_reference"
+  "pb922_exception_object_reference",
+  "pb590_boolean_class_condition",
+  "pb649_national_figurative_collation"
   ],
   "pending": []
 }

@@ -153,6 +153,15 @@ internal static class RuntimeApi
     public static string NumIsNumericImage(string image, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.IsNumericImage)}({image}, {profile})";
 
+    /// <summary>⛔ THE BOOLEAN CLASS CONDITION — <c>CobolClass.IsBoolean</c> (ISO §8.8.4.4.4 GR3 e): "the
+    /// condition is true if the content of the data item referenced by identifier-1 consists entirely of the
+    /// boolean values '0' and '1'", with GR1's zero-length FALSE already on it. Anchored here rather than
+    /// emitted bare because it is the class condition's NEWEST alternative (kb/Work PB590) and the ratchet in
+    /// <c>RuntimeApiGuardTests</c> is what keeps the renderer's remaining bare accesses shrinking; its three
+    /// ALPHABETIC siblings route at P9 with the rest of <c>ConditionRenderer</c>.</summary>
+    public static string ClassIsBoolean(string value) =>
+        $"{nameof(CobolClass)}.{nameof(CobolClass.IsBoolean)}({value})";
+
     /// <summary>The rule-2 checked sending read on the STRING channel — <c>CobolNum.SendingImage</c>: a ZONED
     /// window is handed on VERBATIM (its stored image is its text), having first been tested against the numeric
     /// class condition under checking. <paramref name="sending"/> false is the raw read, for an exempt context

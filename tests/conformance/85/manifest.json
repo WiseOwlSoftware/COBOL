@@ -2,6 +2,7 @@
  "enabled": [
   "pb429_page_counter_receiving",
   "pb484_report_line_placement",
+  "pb571_class_condition_one_table",
   "pb577_odo_value_initial_state",
   "pb190_reverse_argument_shapes",
   "pb257_variance_eae_native",

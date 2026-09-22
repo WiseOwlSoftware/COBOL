@@ -221,9 +221,14 @@ evaluateStatement
       END_EVALUATE?
     ;
 
+// ⛔ THE SUBJECT'S CLASS TEST IS THE §8.8.4.4 CLASS CONDITION AND NAMES ITS ONE ALTERNATIVE LIST
+// (`className`, Core/CobolExpressions.g4). It used to name a private second list, `classCondition`, which
+// offered ALPHANUMERIC — not one of the general format's fourteen alternatives — and omitted BOOLEAN,
+// class-name-1 and alphabet-name-1, so `EVALUATE X IS <user-class>` did not parse while `IF X IS <user-class>`
+// did (kb/Work PB590). One list, one binder body (ConditionBinder.BindClassCondition).
 evaluateSubject
     : booleanLiteral                                     // EVALUATE TRUE / FALSE
-    | valueOperand (IS? NOT? classCondition)?            // EVALUATE X [NUMERIC / class test]
+    | valueOperand (IS? NOT? className)?                 // EVALUATE X [NUMERIC / class test]
     ;
     // NOTE (DEVLOG 621): an EVALUATE boolean-expression subject is STAGED RESIDUE with the condition-context
     // boolean forms (see comparisonExpression) — the boolean OPERATORS work in COMPUTE Format 2 only.

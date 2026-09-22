@@ -237,7 +237,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // ⛔ WHICH §8.8.4.2 comparison rule this relation selects is asked ONCE, from BOTH operands' categories,
         // through the ONE comparison-class rule — the same call the figurative-relation, level-88-membership and
         // EVALUATE-THRU surfaces make. Reading the class off ONE operand is the kb/Work PB741 defect shape.
-        PicCategory? leftCat = StringCategoryOf(r.Left), rightCat = StringCategoryOf(r.Right);
+        var (leftCat, rightCat) = RelationCategories(r.Left, r.Right);
         CollatingClass cmp = CollatingSelection.ForComparison(leftCat, rightCat);
         // ⛔ BLANK WHEN ZERO IS A COMPARISON RULE TOO (ISO §13.18.8.4 GR3): "If the subject of the entry is a
         // sending data item, the object of an operation is a numeric or numeric-edited data item, and the content
@@ -377,48 +377,38 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         BoundOperand anchor = IsFig(r.Left) ? r.Right : r.Left;
         if (IsFig(anchor) || OperandText.IsString(anchor) || NonNumericFig(r.Left) || NonNumericFig(r.Right))
         {
-            // The category that decides BOTH the figurative's fill and the collating sequence is the CONTEXT's,
-            // not the anchor slot's: §8.3.3.6.4 GR1 — "When a figurative constant is used in a context requiring
-            // national characters, the figurative constant represents a national character value" — and GR6/GR7
-            // — "If the context of the figurative constant requires national characters, the national program
-            // collating sequence is used". With figuratives on BOTH sides the anchor slot holds a figurative,
-            // which has no category of its own, so the context can only come from the other side: §8.3.3.6.3 SR2
-            // gives ALL literal-1 its literal's class ("Literal-1 shall be an alphanumeric, boolean, or national
-            // literal"). Reading only the anchor made `IF ALL N"Z" = LOW-VALUE` take the ALPHANUMERIC program
-            // collating sequence and answer the OPPOSITE of the same test written over a national ITEM.
-            var anchorCat = StringCategoryOf(anchor) ?? (IsFig(anchor) ? StringCategoryOf(r.Left) : null);
-            // The figurative's OWN category — the second operand of this comparison. §8.3.3.6.4 GR1: "When a
-            // figurative constant is used in a context requiring national characters, the figurative constant
-            // represents a national character value … Otherwise, when a figurative constant represents a
-            // character value, the figurative constant represents an alphanumeric character value." So the
-            // figurative is NATIONAL in a national context, boolean in a boolean one (only ZERO reaches — the
-            // class mix is bind-rejected 0844), and ALPHANUMERIC everywhere else — including opposite a NUMERIC
-            // anchor, which is precisely §8.8.4.2.5's case: the numeric integer operand is treated as though
-            // moved to an item "of the same class and usage as the alphanumeric … operand", after which
-            // §8.8.4.2.7 collates the pair under the ALPHANUMERIC program collating sequence.
-            // ⛔ kb/Work PB741: asking the ANCHOR alone for the class answered "numeric ⇒ no sequence" (the
-            // SORT-KEY rule, §14.9.40.4 GR5) and silently dropped the program collating sequence from every
-            // `numeric-item < SPACE` relation — NIST NC215A SEQ-TEST-GF-6/-7 went PASS → FAIL*. The comparison
-            // class is a property of the PAIR, so both categories go to the one rule.
-            PicCategory figCat = anchorCat is PicCategory.National or PicCategory.Boolean
-                ? anchorCat.Value : PicCategory.Alphanumeric;
+            // ⛔ ONE COMPARISON-CLASS DECISION, MADE FROM BOTH OPERANDS, SHARED WITH THE NON-FIGURATIVE LEG
+            // (see RenderRelationalCore's caller — the same call). This branch used to derive the pair's class
+            // from the ANCHOR alone and then hand the same answer back to itself as the figurative's category,
+            // so CollatingSelection.ForComparison was asked a two-operand question with one operand's answer
+            // twice (kb/Work PB649). With an ALPHANUMERIC anchor opposite a NATIONAL figurative that chose the
+            // ALPHANUMERIC program collating sequence: under `ALPHABET AL IS "ZYX…A"` as the PCS,
+            // `IF ALL N"AB" < XA` answered 0 while `IF NB < XA` over the identical values answered 1 — the
+            // same comparison, opposite answers, because §8.8.4.2.6 ("the alphanumeric operand is treated as
+            // though it were converted and moved … to a temporary elementary data item of class national")
+            // makes ONE national operand enough to make the whole comparison national.
+            var (leftCat, rightCat) = RelationCategories(r.Left, r.Right);
+            CollatingClass cmp = CollatingSelection.ForComparison(leftCat, rightCat);
             // A boolean/national comparison exempts the ALPHANUMERIC program collating sequence: boolean
             // comparisons are value comparisons (§8.8.4.2.8) and national comparisons order under the NATIONAL
             // sequence (§8.8.4.2.9 — the D-N3 ordinal identity, or __COLLATE_NAT under a non-native
             // ALPHABET … FOR NATIONAL; the alphanumeric 256-entry weight table would alias national chars
-            // through `& 0xFF`).
-            string collate = ctx.CollateArgFor(anchorCat, figCat);
-            // A boolean anchor right-extends the shorter operand with boolean ZEROS (§8.8.4.2.8) — the same
-            // pad the direct-relation and level-88 legs thread; pad and collate never coexist (a boolean
-            // anchor forces collate empty). The figurative materializes category-aware (national/boolean
+            // through `& 0xFF`). CollateArgFor asks ForComparison over the SAME pair, so the collation and the
+            // class can no longer disagree.
+            string collate = ctx.CollateArgFor(leftCat, rightCat);
+            // A boolean comparison right-extends the shorter operand with boolean ZEROS (§8.8.4.2.8) — the same
+            // pad the direct-relation and level-88 legs thread; pad and collate never coexist (the boolean arm
+            // of CollateArgFor is empty). The figurative materializes category-aware (national/boolean
             // HIGH/LOW-VALUE = the category's own sequence — the explicit national PCS extremes when one is
             // declared, else the D-N3 pin — never the alphanumeric PCS extreme).
-            string pad = anchorCat is PicCategory.Boolean ? ", pad: '0'" : "";
+            string pad = cmp is CollatingClass.Boolean ? ", pad: '0'" : "";
             // BOTH sides figurative — there is no associated data item, so §8.3.3.6.4 GR2 does not apply and
             // GR3 gives each operand its OWN length: one character for a plain figurative word (GR3 b) and
             // literal-1's length for ALL literal-1 (GR3 c). That is exactly each side's SEED, unrepeated.
+            // Each side is seeded in ITS OWN category: §8.3.3.6.3 SR2 gives ALL literal-1 its literal's class,
+            // and a plain figurative word takes its context's, which RelationCategories resolved.
             if (IsFig(r.Left) && IsFig(r.Right))
-                return $"{RuntimeApi.StrCompare(FigSeed(r.Left, anchorCat), FigSeed(r.Right, anchorCat), pad + collate)} {r.Op} 0";
+                return $"{RuntimeApi.StrCompare(FigSeed(r.Left, leftCat), FigSeed(r.Right, rightCat), pad + collate)} {r.Op} 0";
             // Exactly one side figurative — GR2 repeats its seed to the ASSOCIATED operand's own character-position
             // count, which the runtime reads off that operand's rendered value (§8.4.3.3.4 GR5: a ref-modified
             // operand's positions are the slice's, and with computed bounds they exist only at runtime).
@@ -433,7 +423,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // PIC S9 compares "9", never an overpunched or sign-carrying image. A no-op for every non-signed-
             // numeric anchor (alphanumeric, numeric-edited — whose EDITED sign is part of its image and stays,
             // §8.8.4.2.1 NOTE — national, boolean), which is why it is unconditional here as it is above.
-            string fig = FigSeed(figLeft ? r.Left : r.Right, anchorCat),
+            string fig = FigSeed(figLeft ? r.Left : r.Right, figLeft ? leftCat : rightCat),
                    other = OperandText.AsString(anchor, num, deSign: true);
             return $"{RuntimeApi.StrCompareFig(figLeft ? fig : other, figLeft ? other : fig, figLeft, pad + collate)} {r.Op} 0";
         }
@@ -451,6 +441,42 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// the shape kb/Work PB728/PB741 already paid for once. This alias stays so the renderer's many call sites
     /// keep reading as the renderer's own question.</summary>
     private static PicCategory? StringCategoryOf(BoundOperand o) => CollatingSelection.OperandCategory(o);
+
+    /// <summary>⛔ THE PAIR OF CATEGORIES A RELATION'S COMPARISON CLASS IS CHOSEN FROM — written down ONCE and
+    /// consumed by BOTH relation legs (<see cref="RenderRelationalCore"/>'s caller and
+    /// <see cref="RenderFigurativeRelational"/>), so neither can decide half of §8.8.4.2 from one operand.
+    /// <para>The only operand shape with no category of its own is a plain figurative WORD, and ISO §8.3.3.6.4
+    /// GR1 gives it exactly THREE readings, not its neighbour's category: "When a figurative constant is used
+    /// in a context requiring national characters, the figurative constant represents a national character
+    /// value … Otherwise, when a figurative constant represents a character value, the figurative constant
+    /// represents an alphanumeric character value" — plus GR4's boolean reading of ZERO, the one figurative
+    /// with a boolean form. So <see cref="FigurativeCategory"/> maps the context to National, Boolean or
+    /// ALPHANUMERIC, and a NUMERIC neighbour yields alphanumeric, which is precisely §8.8.4.2.5's case: the
+    /// numeric integer operand is moved to an item "of the same class and usage as the alphanumeric … operand"
+    /// and §8.8.4.2.7 then collates the pair under the alphanumeric program collating sequence.
+    /// ⛔ Inheriting the raw category instead would make <c>IF N9 &lt; SPACE</c> a NUMERIC comparison and drop
+    /// the program collating sequence from it — kb/Work PB741's regression, NIST NC215A SEQ-TEST-GF-6/-7, which
+    /// this file's own drift test caught within one gate of the attempt.</para>
+    /// <para>⚠ <c>ALL literal-1</c> does NOT take its context: §8.3.3.6.3 SR2 — "Literal-1 shall be an
+    /// alphanumeric, boolean, or national literal" — gives it its literal's own class, which
+    /// <see cref="StringCategoryOf"/> already reports, and treating it as context-less is exactly how
+    /// <c>ALL N"AB"</c> came to be compared under the ALPHANUMERIC program collating sequence (kb/Work
+    /// PB649).</para>
+    /// <para>⚠ A NON-figurative operand with no category — an error node, a picture-less leaf — is left null
+    /// and NOT given its neighbour's: <c>CollatingSelection.ForComparison</c> reads null as the alphanumeric
+    /// branch, which is the documented fail-open direction.</para></summary>
+    private static (PicCategory? Left, PicCategory? Right) RelationCategories(BoundOperand left, BoundOperand right)
+    {
+        PicCategory? l = StringCategoryOf(left), r = StringCategoryOf(right);
+        return (l ?? (left is BoundFigurative ? FigurativeCategory(r) : null),
+                r ?? (right is BoundFigurative ? FigurativeCategory(l) : null));
+    }
+
+    /// <summary>ISO §8.8.4.2's category of a figurative constant WORD standing opposite an operand of
+    /// <paramref name="context"/> — §8.3.3.6.4 GR1's national-or-alphanumeric split, with GR4's boolean reading
+    /// of ZERO (the class mix is bind-rejected COBOLNET0844, so only ZERO reaches a boolean context).</summary>
+    private static PicCategory FigurativeCategory(PicCategory? context) =>
+        context is PicCategory.National or PicCategory.Boolean ? context.Value : PicCategory.Alphanumeric;
 
     /// <summary>Read a relation operand as a '0'/'1' boolean string (for a boolean-expression relation): a
     /// boolean expression via <see cref="BooleanRenderer"/>, a boolean field via its <c>Place.Read()</c>, a
@@ -585,6 +611,14 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             'A' => $"CobolClass.IsAlphabetic({arg}{classify})",
             'U' => $"CobolClass.IsAlphabeticUpper({arg}{classify})",
             'L' => $"CobolClass.IsAlphabeticLower({arg}{classify})",
+            // §8.8.4.4.4 GR3 e) — "If BOOLEAN is specified, the condition is true if the content of the data
+            // item referenced by identifier-1 consists entirely of the boolean values '0' and '1'." No
+            // classification argument: LC_CTYPE governs the three ALPHABETIC forms (GR3 b1/c1/d1) and names no
+            // boolean category, and the boolean values are the two characters of the D-B1 substrate, not a
+            // locale's letters. CobolClass.IsBoolean is that scan, with §8.8.4.4.4 GR1's zero-length FALSE on
+            // it — the same predicate §14.6.13.2 rule 1 reads through HasNonBooleanPosition, which is why the
+            // two do not share an answer at zero length (kb/Work PB590).
+            'B' => RuntimeApi.ClassIsBoolean(arg),
             _ => EmitText.LoudValue("bool", "class condition"),
         };
         return c.Negated ? $"!({test})" : $"({test})";

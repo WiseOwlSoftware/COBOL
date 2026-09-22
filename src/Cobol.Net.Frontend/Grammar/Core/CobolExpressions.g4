@@ -250,20 +250,34 @@ comparisonExpression
     // The boolean OPERATORS work in COMPUTE Format 2 (its own dedicated computeStatement alt, isolated from
     // conditions). `IF (a B-AND b)` etc. are NOT yet supported.
 
+// ⛔ THE ONE CLASS-CONDITION ALTERNATIVE LIST (ISO §8.8.4.4.2), read off the PRINTED general format (PDF
+// page 224 / printed 194, rendered): identifier-1 IS [NOT] followed by a brace group of FOURTEEN alternatives
+// with no choice indicator — exactly one is selected. `IS` is NOT underlined there, so it is optional (IS?);
+// every keyword alternative IS underlined, and alphabet-name-1 / class-name-1 are the two user-defined names,
+// both served by the cobolWord alternative and told apart at bind (ConditionBinder.BindClassConditionOn).
+//   It was written down TWICE (kb/Work PB590): a second rule `classCondition` served `evaluateSubject` with
+// NUMERIC / ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / ALPHANUMERIC — an ALPHANUMERIC alternative the
+// general format does not print at all, and no BOOLEAN, class-name-1 or alphabet-name-1 — so the same class
+// test meant different things depending on whether it was written in an IF or as an EVALUATE subject. That
+// rule is DELETED and evaluateSubject now names this one.
+//   NOT YET OFFERED, each a one-line alternative here plus a ClassConditionModel row and a renderer arm when
+// it lands: FARTHEST-FROM-ZERO, FLOAT-INFINITY, FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING], IN-ARITHMETIC-RANGE
+// and NEAREST-TO-ZERO (their reserved words already exist — the SET statement's formats use them).
+//   ⛔ BOOLEAN COMES AFTER cobolWord AND THAT ORDER IS THE EDITION GATE. BOOLEAN is a COBOL-2002 reserved
+// word (ReservedWords.Table: not reserved at 85, reserved at 2002/2014/2023), so `cobolWord`'s own
+// `{userWordHere("BOOLEAN")}? BOOLEAN` alternative matches it at COBOL-85 ONLY — where `CLASS BOOLEAN IS "01"`
+// in SPECIAL-NAMES is conforming source and `IF X IS BOOLEAN` names that user class. At 2002+ the predicate is
+// false, that alternative is not viable, and prediction reaches the keyword alternative below. Put the keyword
+// FIRST and ANTLR (first matching alternative) would steal the COBOL-85 user-class reading — rejecting legal
+// source. So the class condition needs NO binder-side introduction gate: the word is unreachable as a keyword
+// below 2002, which is the XOR/boolean-operator precedent this file's condition binder already records.
 className
     : NUMERIC
     | ALPHABETIC
     | ALPHABETIC_LOWER
     | ALPHABETIC_UPPER
-    | cobolWord                     // user-defined CLASS from SPECIAL-NAMES
-    ;
-
-classCondition
-    : NUMERIC
-    | ALPHABETIC
-    | ALPHABETIC_LOWER
-    | ALPHABETIC_UPPER
-    | ALPHANUMERIC
+    | cobolWord                     // alphabet-name-1, or a user-defined CLASS from SPECIAL-NAMES
+    | BOOLEAN                       // §8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
     ;
 
 comparisonOperator
