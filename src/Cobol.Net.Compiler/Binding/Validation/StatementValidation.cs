@@ -770,10 +770,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// activation-boundary crossing, kb/Work PB204), so §8.5.1.12 is still written down exactly once.</para>
     /// <para>⛔ A NON-GROUP sender is a violation, not a fall-through — §8.5.1.12.1 states the prohibition in
     /// terms of the OTHER OPERAND, so <c>MOVE SPACES TO a-variable-length-group</c>, a literal, a function
-    /// result, a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item) and a
-    /// level-66 RENAMES alias (§13.18.45 composes ONE elementary item) are each refused. That is the reader's
-    /// null-operand arm; what is decided HERE is which of those shapes becomes a null, because it is the MOVE
-    /// statement's own operand vocabulary. INITIALIZE is the statement that fills such a group (§14.9.20.4
+    /// result and a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item) are
+    /// each refused. That is the reader's null-operand arm; what is decided HERE is which of those shapes
+    /// becomes a null, because it is the MOVE statement's own operand vocabulary. A level-66 THROUGH alias is
+    /// NOT one of them: §13.18.45.4 GR2 makes it an alphanumeric GROUP item, so it reaches §8.5.1.12's
+    /// compatibility walk over its own span like any fixed-length group (kb/Work PB907). INITIALIZE is the statement that fills such a group (§14.9.20.4
     /// GR7/GR10).</para>
     /// <para>No edition gate is needed and none is written: a variable-length group can only be DECLARED from
     /// COBOL-2014 (the DYNAMIC LENGTH clause §13.18.19 and OCCURS Format 4 §13.18.38), so the screen is
@@ -781,23 +782,24 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckVariableLengthMove(BoundOperand source, IReadOnlyList<Place> receivers,
                                         ImplicitMovePhrase? implicitOf = null)
     {
-        // The sending DATA ITEM, when the sender is one at all. A ref-modified or RENAMES place is deliberately
-        // NOT unwrapped to its underlying item. For a ref-mod that is the RULE: §8.4.3.3.4 GR6 makes its unique
-        // data item elementary alphanumeric whatever identifier-1 is. ⚠ A level-66 THROUGH alias is NOT
-        // elementary — §13.18.45.4 GR2 makes it an alphanumeric GROUP item, and MoveClassifier.IsGroupPlace is
-        // the one reader of that designation — but it is never a VARIABLE-LENGTH group (its span is a fixed
-        // sequence of leaf widths), so it can only ever be the compatible side of §14.9.25.3 SR9's screen and
-        // unwrapping it would test the RECORD behind it instead. Recorded, not assumed (kb/Work PB430).
+        // The sending DATA ITEM, when the sender is one at all. A ref-modified place is deliberately NOT
+        // unwrapped to its underlying item — that is the RULE: §8.4.3.3.4 GR6 makes its unique data item
+        // elementary alphanumeric whatever identifier-1 is. ⛔ A level-66 THROUGH alias IS a data item, and a
+        // GROUP one — §13.18.45.4 GR2 — so its place's Item is the ALIAS itself (never the record behind it) and
+        // §8.5.1.12 walks the alias's own span (VariableLengthCompatibility.AliasAtoms). Treating it as a null
+        // operand told the user "the sending operand is not a group item" about a group item (kb/Work PB907).
         DataItem? sender = source switch
         {
-            BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } sf => sf.Place.Item,
-            BoundCurrentRecord { Area: not (RefModPlace or RenamesPlace) } cr => cr.Area.Item,
+            // The identity question is Place.DenotedItem's (kb/Work PB602): null for a reference-modified view;
+            // the ATTRIBUTES are the place's Item (a non-THROUGH alias forwards to the renamed item, GR1).
+            BoundFieldOperand { Place.DenotedItem: not null } sf => sf.Place.Item,
+            BoundCurrentRecord { Area.DenotedItem: not null } cr => cr.Area.Item,
             _ => null,
         };
         bool ok = true;
         foreach (var r in receivers)
         {
-            var recv = r is RefModPlace or RenamesPlace ? null : r.Item;
+            var recv = r.DenotedItem is null ? null : r.Item;
             if (MoveTable16.VariableLengthRefusal(sender, recv) is not { } why) continue;
             ok = false;
             string vl = recv is not null && VariableLengthCompatibility.IsVariableLength(recv)
@@ -910,7 +912,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// not the elementary one — so asking the underlying entry's category would reject a legal
     /// <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. Both places are admitted, by two
     /// different clauses; the alias is a group item, NOT a composed elementary view (kb/Work PB430). The same
-    /// reading <see cref="CheckVariableLengthMove"/> takes of the same two place kinds.</summary>
+    /// reading <see cref="CheckVariableLengthMove"/> takes of the alias (kb/Work PB907).</summary>
     private static bool AdmitsIntoOperand(Place p) =>
         p is RefModPlace or RenamesPlace || AdmitsIntoRecord(p.Item);
 
@@ -1368,7 +1370,12 @@ internal sealed class StatementValidation(DataBinder data)
         bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
         if (lb || rb)
         {
-            static bool BoolCompatible(BoundOperand o) => o is BoundFigurative { Kind: 'Z' } || IsBoolOperand(o);
+            // A null category is the classifier's "not statically decidable" (a recovery profile for a rejected
+            // declaration, an operand whose binding already failed — kb/Work PB960), and it fails OPEN here as it
+            // does in every screen over the same classifier: the rule rejects what it NAMES, never what the
+            // compiler could not classify.
+            static bool BoolCompatible(BoundOperand o) => o is BoundFigurative { Kind: 'Z' }
+                || IntrinsicResultType.OperandCategory(o) is PicCategory.Boolean or null;
             if (!(BoolCompatible(left) && BoolCompatible(right)))
                 data.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
                     + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.1 F1 "

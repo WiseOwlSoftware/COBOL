@@ -327,7 +327,8 @@
   "pb891_checking_scope",
   "pb841_checking_across_call",
   "pb893_close_report_completes",
-  "pb854_write_eop_exception_conditions"
+  "pb854_write_eop_exception_conditions",
+  "pb572_national_redefines_receiver"
   ],
   "pending": []
 }

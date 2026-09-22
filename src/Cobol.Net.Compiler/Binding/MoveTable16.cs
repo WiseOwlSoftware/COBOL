@@ -315,8 +315,9 @@ public static class MoveTable16
     /// relation itself is the ONE <see cref="VariableLengthCompatibility"/> module; this is the MOVE statement's
     /// application of it, and SR10 defers to it exactly as it defers to SR8.
     /// <para>A <see langword="null"/> operand means <i>"not a plain data item"</i> — a literal, a function
-    /// result, a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item) or a
-    /// level-66 RENAMES alias (§13.18.45 composes ONE elementary item). §8.5.1.12.1 states the prohibition in
+    /// result, or a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item). A
+    /// level-66 THROUGH alias is NOT null here: §13.18.45.4 GR2 makes it an alphanumeric GROUP item, and it is
+    /// passed as itself (kb/Work PB907). §8.5.1.12.1 states the prohibition in
     /// terms of the OTHER OPERAND — <i>"a variable-length group … may not undergo a comparison or a move
     /// operation, in either direction, explicitly or otherwise, unless the other operand is a compatible
     /// group"</i> — so such an operand is a violation, not a fall-through.</para>

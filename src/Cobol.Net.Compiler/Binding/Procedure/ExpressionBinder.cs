@@ -771,10 +771,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // route AROUND the fact that a decorated place reported the item underneath — and §8.4.3.3.4 GR5's
         // "unique data item that is a subset of the data item referenced by identifier-1" is now what
         // Place.DenotedItem answers, for every screen that asks it, rather than once per caller.
-        bool numeric = p.DenotedItem is not null && !p.Item.IsGroup
-            && pic is { Category: PicCategory.Numeric, Usage: not Usage.Index };
-        bool edited = p.DenotedItem is not null && !p.Item.IsGroup
-            && pic is { Category: PicCategory.NumericEdited };
+        // ⛔ THE ANALYZED CATEGORY (kb/Work PB960). A recovery profile — an entry whose PICTURE was already
+        // rejected at its declaration — has no category to screen, so the resultant is admitted rather than
+        // re-diagnosed as "of category Alphanumeric": the declaration's own diagnostic is the true one.
+        bool elementary = p.DenotedItem is not null && !p.Item.IsGroup;
+        if (elementary && pic is { AnalyzedCategory: null }) return p;
+        bool numeric = elementary
+            && pic is { AnalyzedCategory: PicCategory.Numeric, Usage: not Usage.Index };
+        bool edited = elementary
+            && pic is { AnalyzedCategory: PicCategory.NumericEdited };
         if (numeric || (edited && editedOk)) return p;
         string actual = p is RefModPlace ? "a reference-modified slice (category alphanumeric, §8.4.3.3.4 GR6c)"
             : p.Item.IsGroup ? "a group item"

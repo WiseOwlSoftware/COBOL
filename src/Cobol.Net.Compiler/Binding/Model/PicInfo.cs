@@ -20,8 +20,11 @@ public enum PicCategory
     /// <summary>National (<c>PIC N</c> / <c>USAGE NATIONAL</c>, ISO §8.5.2.10 / §13.18.40.4 GR9/GR14) — LIVE
     /// (Phase 4a track (a)): one .NET UTF-16 <see cref="char"/> per national position over the string substrate
     /// (the documented D-N1 implementor choice; §13.18.60.4 GR8 + §8.1.2 NOTE 2 leave the size implementor-
-    /// specified). Width machinery is CHARACTER-position based throughout; byte-addressed surfaces (REDEFINES /
-    /// cells / file records) REFUSE national leaves loud (D-N2) until the 2-byte layout residue lands.</summary>
+    /// specified). Width machinery is CHARACTER-position based throughout. A REDEFINES class no longer refuses a
+    /// national leaf: the D-N2 refusal went when kb/Work PB231 collapsed the byte-window carriage gate into ONE
+    /// predicate, and a national leaf on either side of a REDEFINES
+    /// class is a MOVE receiver like its DISPLAY twin (§13.18.60.4 GR2 — kb/Work PB572, pinned by
+    /// <c>conformance:2002/pb572_national_redefines_receiver</c>).</summary>
     National,
     /// <summary>Boolean (<c>PIC 1</c>, optionally <c>USAGE BIT</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — LIVE
     /// (Phase 4a track (a)): one alphanumeric character '0'/'1' per boolean position (the §13.18.40.4 GR14 R14
@@ -344,6 +347,18 @@ public sealed record PicInfo(
     /// that screen either (<c>PictureAnalyzer.Analyze</c> returns Recovery before it) and the two arms of one
     /// rule must agree. kb/Work PB495.</summary>
     public bool IsRecovery { get; init; }
+
+    /// <summary>⛔ THE CATEGORY AS AN ANALYSIS OF THE WRITTEN SOURCE — <see langword="null"/> for a
+    /// <see cref="IsRecovery"/> profile, whose <see cref="Category"/> is a STORAGE placeholder that only keeps the
+    /// doomed emit crash-free (kb/Work PB960). <see cref="Category"/> answers "what shape does the carrier have";
+    /// this answers "what category did the program declare", and for an entry whose declaration was already
+    /// rejected the honest answer is <i>none known</i>. Every §8.5.2.1 class/category READER that a syntax-rule
+    /// screen consults (<c>IntrinsicArgumentRules.ClassOfItem</c>, <c>IntrinsicResultType.OperandCategory</c>,
+    /// <c>ExpressionBinder.ScreenResultant</c>) reads THIS, so the nullable type forces it to handle the recovery
+    /// case, and each handles it by their existing contract — "not statically decidable" fails OPEN. Reading
+    /// <see cref="Category"/> there turned <c>PIC 9V9V9</c> into "item 'W-BAD' of category alphanumeric is not
+    /// a numeric operand" beside the real COBOLNET1934, at every operand position the item appeared in.</summary>
+    public PicCategory? AnalyzedCategory => IsRecovery ? null : Category;
 
     /// <summary>The <c>type-name-1</c> of a RESTRICTED data-pointer — <c>USAGE POINTER TO type-name-1</c>
     /// (ISO §13.18.60.2 general format; §13.18.60.4 GR23). Null for an ordinary data-pointer and for every

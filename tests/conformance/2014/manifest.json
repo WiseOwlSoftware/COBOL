@@ -109,7 +109,8 @@
   "pb886_refmod_dynamic_length_positions",
   "pb394_evaluate_function_subscript_subject",
   "pb391_corresponding_rule2_sr9_varlen",
-  "pb457_capacity_register_qualified"
+  "pb457_capacity_register_qualified",
+  "pb907_through_alias_vlg_move"
  ],
  "pending": []
 }

@@ -103,10 +103,38 @@ internal static class VariableLengthCompatibility
         }
     }
 
+    /// <summary>The atoms of a level-66 THROUGH alias (kb/Work PB907). §13.18.45.4 GR2 makes the alias "an
+    /// alphanumeric group item that includes all elementary items starting with data-name-2 … and concluding
+    /// with data-name-3", so its layout is the record's storage window the resolver already tiled into
+    /// <see cref="RenamesInfo.Span"/> — read HERE, never re-walked, so the alias's atoms and its carrier cannot
+    /// disagree about where a byte lies. A WHOLE table leaf in the window is a <see cref="AtomKind.Table"/> atom
+    /// (a fixed OCCURS table — §13.18.45.3 SR8 bars "a variable-length data item, or an occurs-depending table"
+    /// from the range, so no dynamic atom can arise and the alias is always a FIXED-length group); every other
+    /// part, including a single occurrence or a partial slice of one, is plain bytes, because a table only part
+    /// of which lies in the window is not a table of the alias.</summary>
+    private static void AliasAtoms(RenamesInfo ren, List<Atom> into)
+    {
+        foreach (var part in ren.Span)
+        {
+            var leaf = part.Leaf;
+            if (part.IsWhole && leaf.Occurs is { } n)
+            {
+                into.Add(new Atom(AtomKind.Table, leaf, leaf.ByteWidth * n, DynamicCapacity: false, leaf.ByteWidth,
+                    leaf.ImageWidth * n));
+                continue;
+            }
+            // part.Length is in CHARACTER positions; the relation is stated in bytes (a national leaf's
+            // character is two of them), so the part's bytes are its share of the leaf's byte width.
+            int bytes = leaf.ImageWidth > 0 ? part.Length * leaf.ByteWidth / leaf.ImageWidth : part.Length;
+            into.Add(new Atom(AtomKind.Fixed, leaf, bytes, DynamicCapacity: false, bytes, part.Length));
+        }
+    }
+
     private static List<Atom> AtomsOf(DataItem g)
     {
         var list = new List<Atom>();
-        Atoms(g, list);
+        if (g.Renames is { IsAlias: false } ren) AliasAtoms(ren, list);
+        else Atoms(g, list);
         return list;
     }
 
@@ -161,7 +189,7 @@ internal static class VariableLengthCompatibility
     /// is not the last atom (which SR22 forbids, so the guard is a proof, not a case).</para></summary>
     public static IReadOnlyList<(int At, int Width)>? FlatTableSpans(DataItem g)
     {
-        if (!g.IsGroup || IsVariableLength(g) || g.HasBitDescendant) return null;
+        if (!ItemCategory.IsGroupItem(g) || IsVariableLength(g) || g.HasBitDescendant) return null;
         var spans = new List<(int At, int Width)>();
         int at = 0;
         var atoms = AtomsOf(g);
@@ -190,8 +218,11 @@ internal static class VariableLengthCompatibility
         // §8.5.1.12.1: compatibility is a relation between GROUPS ("unless the other operand is a compatible
         // group"). An elementary counterpart — which §14.8.2.2 rule 1 would otherwise admit for a fixed-length
         // group — has no atom sequence to correspond with.
-        if (!one.IsGroup || !other.IsGroup)
-            return $"'{(one.IsGroup ? other : one).CobolName}' is not a group: a variable-length group is "
+        // ⛔ The CATEGORY question, never the structural IsGroup: a level-66 THROUGH alias is a group item with
+        // no subordinates (§13.18.45.4 GR2 — kb/Work PB907), and its atoms are its span (AliasAtoms).
+        bool oneGroup = ItemCategory.IsGroupItem(one), otherGroup = ItemCategory.IsGroupItem(other);
+        if (!oneGroup || !otherGroup)
+            return $"'{(oneGroup ? other : one).CobolName}' is not a group: a variable-length group is "
                 + "compatible only with a group (ISO §8.5.1.12.1)";
         return Walk(AtomsOf(one), AtomsOf(other), one, other);
     }

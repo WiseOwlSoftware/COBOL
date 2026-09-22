@@ -467,7 +467,10 @@ internal static class IntrinsicArgumentRules
         // into PicCategory.Alphanumeric, so the category cannot answer — IsAlphabetic can, exactly as the
         // Usage.Index arm above un-folds the index item's storage category.
         if (item.Pic is { IsAlphabetic: true }) return CobolClass.Alphabetic;
-        return item.Pic is { } pic ? ClassOfCategory(pic.Category) : null;
+        // ⛔ THE ANALYZED category, never the storage one (kb/Work PB960): a recovery profile — the placeholder
+        // for an entry whose PICTURE was already rejected — has NO class, so it reads "not statically decidable"
+        // and every screen over this table fails OPEN instead of re-diagnosing the item as alphanumeric.
+        return item.Pic?.AnalyzedCategory is { } category ? ClassOfCategory(category) : null;
     }
 
     /// <summary>ISO §8.5.2.1 Table 2, read as written.</summary>

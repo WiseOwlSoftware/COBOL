@@ -73,6 +73,14 @@ public static class ItemCategory
     /// </summary>
     public static bool IsAlphanumericGroup(DataItem item) => GroupKindsOf(item).HasFlag(GroupKinds.Alphanumeric);
 
+    /// <summary>⛔ THE CATEGORY QUESTION "IS THIS A GROUP ITEM?" — any of the five kinds — as a rule worded
+    /// <i>"group item"</i> asks it. It differs from the STRUCTURAL <see cref="DataItem.IsGroup"/> ("no PICTURE and
+    /// has subordinates") in exactly one shape: the level-66 THROUGH alias, which §13.18.45.4 GR2 makes an
+    /// alphanumeric group item although it has no subordinate entries (kb/Work PB907 — §14.9.25.4 GR9's
+    /// antecedent "both the sending operand and the receiving data item are group items" was asked as
+    /// <c>IsGroup</c> and told the user their alias was "not a group item").</summary>
+    public static bool IsGroupItem(DataItem item) => GroupKindsOf(item) != GroupKinds.None;
+
     /// <summary>
     /// ⭐ <b>THE ONE ANSWER TO "WHICH KIND OF GROUP ITEM IS THIS?"</b> — the axis every rule worded as a LIST of
     /// group kinds asks about, and <see cref="GroupKinds.None"/> for anything that is not a group item.
@@ -100,6 +108,15 @@ public static class ItemCategory
     /// </summary>
     public static GroupKinds GroupKindsOf(DataItem item)
     {
+        // ⛔ A level-66 THROUGH alias IS A GROUP ITEM, and it is the one group item with no subordinates
+        // (kb/Work PB907). §13.18.45.4 GR2: "When the THROUGH phrase is specified, data-name-1 defines an
+        // alphanumeric group item that includes all elementary items starting with data-name-2 …" — so the
+        // answer is a CATEGORY fact, not the STRUCTURAL `IsGroup` below (the entry rides Renames66 and carries
+        // a composed alphanumeric PICTURE for its carrier). It is ALWAYS the alphanumeric kind: §13.18.45.3
+        // SR8 bars "a strongly-typed group item … a variable-length data item, or an occurs-depending table"
+        // from the range, and a level-66 entry writes no GROUP-USAGE clause. The no-THROUGH alias (GR1) takes
+        // data-name-2's own attributes and is never asked here — ReferenceResolver forwards it to that item.
+        if (item.Renames is { IsAlias: false }) return GroupKinds.Alphanumeric;
         // The structural half no classifier carries. §8.5.1.3.1 — "The most basic subdivisions of a record,
         // that is, those not further subdivided, are called elementary items" — so an entry with NO subordinates
         // is not a group item whatever else it is, and here it is an error-recovery artifact (a refused

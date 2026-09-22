@@ -353,6 +353,10 @@ internal static class PlaceRenderer
     public static string GroupImage(Place group, string context = "whole-group image of") => group switch
     {
         RedefViewPlace => Read(group),
+        // The READ twin of WriteGroupImage's RenamesPlace arm (kb/Work PB907): a level-66 THROUGH alias is an
+        // alphanumeric GROUP item (ISO §13.18.45.4 GR2) whose image IS the composed span string Read renders —
+        // it has no record struct, so `.AsImage()` on it would not compile.
+        RenamesPlace => Read(group),
         // ⛔ UNWRAP BEFORE THE GUARD (the PB176 skeptic round): an OdoGroupPlace may wrap a Tier-B
         // RedefViewPlace whose valid image IS the string window — a wrapper-first guard turned that
         // working read into a loud throw (CallStringRead hands the WRAPPER in, unlike the other callers).

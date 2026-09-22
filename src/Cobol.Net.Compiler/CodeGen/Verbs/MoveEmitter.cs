@@ -339,17 +339,21 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     {
         // GR9's antecedent: BOTH operands are group items AND one or both is a VARIABLE-LENGTH group. A
         // reference-modified operand is an ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6), never a group.
-        // ⚠ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2 — MoveClassifier.IsGroupPlace says so) but
-        // never a VARIABLE-LENGTH one: its span is a fixed sequence of leaf widths, so GR9's second conjunct can
-        // only be met by the OTHER operand, and the alias side cannot supply the §8.5.1.12 component carrier
-        // this walk needs. It is excluded here for that reason — recorded, not assumed (kb/Work PB430).
+        // ⛔ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2), so it meets GR9's first conjunct and is
+        // asked as ItemCategory.IsGroupItem — the CATEGORY question — never the structural IsGroup, which it
+        // fails for want of subordinate entries (kb/Work PB907; the bind-side twin is
+        // StatementValidation.CheckVariableLengthMove, and the two must ask the same predicate). It is never
+        // VARIABLE-LENGTH (§13.18.45.3 SR8), so it takes the FIXED-group arm of VarCarrierRead / VarCarrierWrite:
+        // FlatTableSpans reads its span, and its image is the composed RenamesPlace string (PlaceRenderer).
         Place? send = source switch
         {
-            BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f => f.Place,
-            BoundCurrentRecord { Area: not (RefModPlace or RenamesPlace) } cr => cr.Area,
+            // The identity question is Place.DenotedItem's (kb/Work PB602): null for a reference-modified view.
+            BoundFieldOperand { Place.DenotedItem: not null } f => f.Place,
+            BoundCurrentRecord { Area.DenotedItem: not null } cr => cr.Area,
             _ => null,
         };
-        if (send is null || !send.Item.IsGroup || !target.Item.IsGroup) return false;
+        if (send is null || target.DenotedItem is null
+            || !ItemCategory.IsGroupItem(send.Item) || !ItemCategory.IsGroupItem(target.Item)) return false;
         if (!VariableLengthCompatibility.IsVariableLength(send.Item)
             && !VariableLengthCompatibility.IsVariableLength(target.Item)) return false;
         ctx.Writer.Line(VarCarrierRead(send) is not { } carrier

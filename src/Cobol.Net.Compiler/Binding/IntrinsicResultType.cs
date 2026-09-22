@@ -303,8 +303,10 @@ internal static class IntrinsicResultType
         // OperandPic's is the alphanumeric-group fallback, which is §8.5.2.1's own answer for the item whose
         // OperandPic is null BECAUSE it is an ordinary group (an elementary PICTURE-less usage — INDEX — keeps
         // its honest null).
-        BoundFieldOperand f => f.Place.Item.OperandPic?.Category
-            ?? (f.Place.Item.IsGroup ? PicCategory.Alphanumeric : null),
+        // The ANALYZED category (kb/Work PB960): a recovery profile answers null — "not statically decidable" —
+        // never its storage placeholder's Alphanumeric.
+        BoundFieldOperand f => f.Place.Item.OperandPic is { } opPic ? opPic.AnalyzedCategory
+            : f.Place.Item.IsGroup ? PicCategory.Alphanumeric : null,
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
         BoundComputedOperand => PicCategory.Numeric,
         BoundAllLiteral al => al.Category,
