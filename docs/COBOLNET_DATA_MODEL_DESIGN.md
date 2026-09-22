@@ -603,6 +603,43 @@ stays Tier-D (§13.18.60.3 SR14 / PB183 — no byte image for §14.9.3.4 GR9's n
 the only shape of §13.18.44.4 GR1 this model does not carry. The NATIONAL leaf joined the model on 2026-09-05
 (kb/Work PB231 — RESIDUE-11; see D-N2).
 
+#### The RUN is the unit of composition, and it has ONE computation (kb/Work PB584, 2026-09-22)
+
+Rule 1 above — the only byte-sharing case — makes a maximal stretch of consecutive SAME-LEVEL bit members
+one **run**, and a run occupies one image slice rather than one per member. Every composer of a group's
+character image therefore has to know where the runs are, and `BitLayout.RunsOf` is the ONE place that decides:
+it returns a `BitRunMap` answering which member LEADS a run and which members are in one, and a composer emits
+the whole run's slice at the leader and nothing at a continuation.
+
+It is stated here because there are TWO composers and they were not the same code. `PhysicalModel` builds the
+physical field list the record-struct lane and the generated `AsImage()` walk, and it owned a private run scan;
+the COMPILE-TIME image seed (`GroupImageCodec.ImageInitOf` — the string a Tier-B REDEFINES backing, an
+EXTERNAL run-unit cell, a BASED cell or an OO backing starts from) walked `item.Children` and had NO run scan
+at all. A MIXED bit/character group is where that difference is observable: `01 CTL. 05 H1 PIC 1(4) USAGE BIT
+VALUE B"0100". 05 H2 PIC 1(4) USAGE BIT VALUE B"0001". 05 H3 PIC X(1) VALUE "B". 01 CV REDEFINES CTL PIC X(2).`
+seeded 0x40 0x10 where rule 1 gives 0x41 ('A') and §13.18.44.4 GR1 then puts "B" in `CV(2:1)` — and the
+identical group WITHOUT the alias was right, because only the alias forces the seed lane.
+
+⚠ The seed lane cannot simply walk `PhysicalModel.PhysicalChildrenOf` instead: `DataBinder.AssignClassOffsets`
+marks every DESCENDANT of a redefines class `IsCanonical = false`, so that walk answers EMPTY for the children
+of a Tier-B canonical — the exact group the seed exists for. What the two composers share is the LAW, not the
+field list, which is why the extraction is a run MAP and not a common walk.
+
+#### A boolean item's VALUE has ONE carrier answer, and the USAGE decision is separate (kb/Work PB584)
+
+`ValueInitializer.BooleanCarrierOf` is the ONE reader of a boolean item's VALUE clause — its declared boolean
+POSITIONS — in the three arms the standard writes: a figurative filling them (§8.3.3.6.4 GR4 makes the zero
+format "one or more of the boolean character '0'"), a Format-6 `ALL literal-1` repeated to them (GR2), and a
+plain boolean literal zero-padded on the right (§13.18.63.3 SR10 / §14.6.8.6). Whether those positions are then
+PACKED is `GroupImageCodec.BooleanImageOf` alone.
+
+THREE lanes used to answer the VALUE question and each was missing a different arm: the record-struct lane had
+all three, the §8.5.1.6.3 bit-run carrier had no ALL-literal arm (`VALUE ALL B"1"` read back all zeros through
+a REDEFINES alias and all ones without one), and the image seed reached its GENERIC figurative arm before its
+own boolean arm, so `PIC 1(4) USAGE BIT VALUE ZERO` seeded four carrier characters where the packed image is
+one byte (0x30, not 0x00). Separating "what are the positions" from "how are they stored" is what makes a
+fourth lane impossible to get half-right.
+
 ### D20. GROUP-USAGE (§13.18.29): a bit group / national group is STRUCTURALLY a group and SEMANTICALLY an elementary boolean / national item — ONE as-if PICTURE on the DataItem, consulted by every category reader; the layout stays the group's. (kb/Work PB79.)
 
 *Load-bearing spec anchors: §13.18.29.2 general format (`GROUP-USAGE IS {BIT | NATIONAL}`); §13.18.29.3 SR1 (only a

@@ -447,7 +447,20 @@ internal static class OperandText
             // which is the de-edit's own site, not this text read).
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National } => PlaceRenderer.Read(p),
-            _ => $"{PlaceRenderer.Read(p)}.ToString()",
+            // ⛔ NO FALL-THROUGH, AND ITS ABSENCE IS THE POINT (kb/Work PB664). The categories that reach here
+            // are the four the model gives a MANAGED carrier — data-pointer, program-pointer, function-pointer
+            // and object reference — and none of them has a character image: §8.5.2.1 Table 2 puts them in class
+            // pointer and class object, and every statement that asks for one is refused at BIND (MOVE
+            // §14.9.25.3 SR1 → COBOLNET0809; DISPLAY §14.9.11.3 SR1 → COBOLNET1694; INSPECT §14.9.22.3 SR1 and
+            // UNSTRING §14.9.48.3 SR2 → COBOLNET1626/1651; STRING §14.9.43.3 SR1 → COBOLNET1626; a relation
+            // §8.8.4.2.3 SR5 → COBOLNET0869). This arm used to be `Read(p).ToString()`, which turned that
+            // missing screen into TEXT: `MOVE P TO A66` stored the first characters of the CLR carrier's type
+            // name, and so did `STRING P …` for a year after the MOVE arm was fixed. A wrong answer is worse
+            // than a crash, so the renderer now states the invariant instead of inventing a value.
+            _ => throw new InvalidOperationException(
+                $"no character image for category {p.Item.Pic?.Category.ToString() ?? "(none)"} on '"
+                + $"{p.Item.CobolName ?? "FILLER"}' — a class pointer/object operand must be refused at bind "
+                + "(ISO §8.5.2.1 Table 2); reaching the sending-image renderer is a missing syntax-rule screen"),
         };
     }
 

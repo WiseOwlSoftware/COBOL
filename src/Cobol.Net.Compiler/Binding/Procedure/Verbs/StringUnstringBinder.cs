@@ -41,6 +41,14 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             values[i] = StrUnstrOperand(phrases[i].strUnstrOperand(), "STRING sending operand");
             if (values[i] is BoundAllLiteral { BeginsWithAll: true })   // SR2 — literal-1 shall not be a figurative beginning with the word ALL (a bare symbolic character is not — PB110)
                 values[i] = new BoundOperandError("STRING sending ALL literal (ISO §14.9.43.3 SR2)");
+            // ⛔ SR1 IS ONE SENTENCE ABOUT EVERY OPERAND OF THE STATEMENT, and it was enforced at ONE of its
+            // three identifier positions (kb/Work PB664 — the sweep the MOVE screen's landing asked for).
+            // `STRING P DELIMITED BY SIZE INTO A` over a USAGE POINTER sender compiled clean and stored
+            // "CobolNet.Runtime.CellPointer" — OperandText's `_ => Read(p).ToString()` arm, reached because
+            // nothing upstream refused the operand — and `STRING <COMP> …` / `STRING <INDEX> …` / a NUMERIC
+            // literal-1 were accepted the same way. The receiver arm had the screen; the sending arm did not.
+            if (Sr1Offence(values[i]) is { } sendOffence)
+                return Sr1Reject($"STRING sending operand '{phrases[i].strUnstrOperand().GetText()}'", sendOffence);
             if (phrases[i].delimitedByPhrase() is not { } dp) continue;
             hasPhrase[i] = true;
             if (dp.SIZE() is not null) { bySize[i] = true; continue; }
@@ -48,6 +56,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             // SR2 — literal-2 shall not be an ALL figurative; the grammar's (ALL)? token is not in the ISO format.
             if (dp.ALL() is not null || d is BoundAllLiteral { BeginsWithAll: true })
                 d = new BoundOperandError("STRING DELIMITED BY ALL literal (ISO §14.9.43.3 SR2)");
+            if (Sr1Offence(d) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
+                return Sr1Reject($"STRING DELIMITED BY '{dp.strUnstrOperand().GetText()}'", delimOffence);
             delims[i] = d;
         }
         // Back-propagate each DELIMITED phrase over its preceding phraseless run (the general format attaches the
@@ -88,21 +98,21 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (into.Item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(into.Item))
             return Reject($"STRING INTO '{intoText}': identifier-3 shall not specify a variable-length group (ISO §14.9.43.3 SR11; §8.5.1.12)");
         // ⛔ DA7 — SR1 at BIND time. This check previously existed ONLY in StringEmitter as a run-time loud stage,
-        // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. SR1: "all identifiers,
-        // except identifier-4, shall be described implicitly or explicitly as usage display or national" —
-        // identifier-4 is the POINTER, so the INTO receiver is covered. A GROUP receiver is EXEMPT: usage is an
-        // elementary property, and §14.9.43.4 GR3a defines the transfer into identifier-3 "in accordance with the
-        // MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group — including one holding
-        // a BINARY/PACKED leaf (V59). Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.
-        if (!into.Item.IsGroup && into.DenotedItem is not null && !into.Item.StoreAsImage
-            && into.Item.Pic is { } ip && ip.Usage is not (Usage.Display or Usage.National))
-        {
-            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
-                $"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}' is an elementary item of USAGE "
-                + $"{ip.Usage}, which has no character image; SR1 requires every identifier except the POINTER to be "
-                + "usage display or national (ISO §14.9.43.3 SR1)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
-        }
+        // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. It now asks the SAME
+        // reader the two SENDING positions ask (kb/Work PB664): one sentence, one predicate, three positions.
+        var intoOperand = new BoundFieldOperand(into);
+        if (Sr1Offence(intoOperand) is { } intoOffence)
+            return Sr1Reject($"STRING INTO '{intoText}'", intoOffence);
+        // ⛔ SR1's SECOND SENTENCE, and it is the same rule (kb/Work PB664): "If any one of literal-1,
+        // literal-2, identifier-1, identifier-2, or identifier-3 is of class national, then all shall be of
+        // class national." It names FIVE operands and was enforced at none of them — `01 NN PIC N(2). 01 XX
+        // PIC X(8). STRING NN DELIMITED BY SIZE INTO XX` compiled clean and transcoded silently. A rule
+        // implemented at half of its positions is how this one came to be implemented at one of three.
+        if (Sr1MixesNational(values, delims, intoOperand))
+            return Sr1Reject($"STRING INTO '{intoText}'",
+                "mixes class NATIONAL with a non-national operand; SR1 requires that if any one of literal-1, "
+                + "literal-2, identifier-1, identifier-2 or identifier-3 is of class national, ALL shall be of "
+                + "class national");
 
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
@@ -197,7 +207,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                         return new BoundNop();   // identifier-5 is a receiver — the chokepoint reported it (kb/Work PB429)
                     // identifier-5 is SR2's fourth name (kb/Work PB155) — the delimiter RECEIVER shares the
                     // category rule, not SR4's receiver list.
-                    if (Sr2OffendingCategory(d5.Item.Pic) is { } badD5)
+                    if (Sr2OffendingCategory(d5.Item) is { } badD5)
                         return Reject($"UNSTRING DELIMITER IN '{drefs[next].GetText()}' is category {badD5} "
                             + "(identifier-5 shall reference a data item of category alphanumeric or national, "
                             + "ISO §14.9.48.3 SR2)");
@@ -291,6 +301,74 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             : op;
     }
 
+    /// <summary>⛔ ISO §14.9.43.3 SR1 AS ONE PREDICATE — the OFFENCE phrase for a STRING operand, or
+    /// <see langword="null"/> when the operand is admitted. The rule is ONE sentence with two halves and it
+    /// reaches every operand position of the statement but identifier-4:
+    /// <list type="bullet">
+    /// <item>"All literals shall be described as alphanumeric, boolean, or national literals" — so a NUMERIC
+    /// literal is not a STRING operand, in the sending position or the DELIMITED BY position.</item>
+    /// <item>"all identifiers, except identifier-4, shall be described implicitly or explicitly as usage display
+    /// or national" — identifier-4 is the POINTER, so identifier-1, identifier-2 AND identifier-3 are covered.
+    /// A reference-modified operand answers with identifier-1's own usage, which is what §8.4.3.3.4 GR6 gives
+    /// the unique data item ("the same class, category, and usage as that defined for identifier-1").</item>
+    /// </list>
+    /// <para>A GROUP is EXEMPT: usage is an elementary property, and §14.9.43.4 GR3a defines the transfer "in
+    /// accordance with the MOVE statement rules for alphanumeric-to-alphanumeric moves", which admit a group —
+    /// including one holding a BINARY/PACKED leaf (V59).</para>
+    /// <para>A FUNCTION-IDENTIFIER is not screened here and that is deliberate: SR1's antecedent is a
+    /// DESCRIPTION ("shall be described … as usage display or national"), and a function result has no data
+    /// description entry to read a usage from (§8.4.3.2.1 — "the unique data item that results from the
+    /// evaluation of a function"). The screen rejects what the standard names, never what it cannot
+    /// classify.</para>
+    /// <para>Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.</para></summary>
+    private static string? Sr1Offence(BoundOperand op) => op switch
+    {
+        BoundNumericLiteral => "is a numeric literal; SR1 admits only alphanumeric, boolean and national literals",
+        BoundFieldOperand { Place: { } p } when !p.Item.IsGroup && p.DenotedItem is not null
+            && !p.Item.StoreAsImage && p.Item.Pic is { } pic
+            && pic.Usage is not (Usage.Display or Usage.National) =>
+            $"is an elementary item of USAGE {pic.Usage}, which has no character image; SR1 requires every "
+            + "identifier except the POINTER to be usage display or national",
+        _ => null,
+    };
+
+    /// <summary>ISO §14.9.43.3 SR1's SECOND sentence — "If any one of literal-1, literal-2, identifier-1,
+    /// identifier-2, or identifier-3 is of class national, then all shall be of class national." True when the
+    /// statement mixes them.
+    /// <para>The class comes from <c>IntrinsicArgumentRules.ClassOf</c>, THE §8.5.2.1 Table-2 reader, so this
+    /// rule and the MOVE/INITIALIZE class screens cannot disagree about what an operand's class is. An operand
+    /// the table cannot decide statically contributes NO opinion — and a FIGURATIVE constant is exactly such an
+    /// operand BY THE STANDARD'S OWN WORDING, not by this compiler's limits: §8.3.3.6.4 GR1 says "when a
+    /// figurative constant is used in a context requiring national characters, the figurative constant
+    /// represents a national character value. Otherwise … an alphanumeric character value", so SPACE beside a
+    /// national operand IS national and can never be the mismatch.</para></summary>
+    private static bool Sr1MixesNational(BoundOperand[] values, BoundOperand?[] delims, BoundOperand into)
+    {
+        bool anyNational = false, anyOther = false;
+        Tally(into);
+        foreach (var v in values) Tally(v);
+        foreach (var d in delims) if (d is not null) Tally(d);
+        return anyNational && anyOther;
+
+        void Tally(BoundOperand op)
+        {
+            switch (IntrinsicArgumentRules.ClassOf(op))
+            {
+                case CobolClass.National: anyNational = true; break;
+                case null: break;                       // not statically decidable — no opinion
+                default: anyOther = true; break;
+            }
+        }
+    }
+
+    /// <summary>The ONE report site for an ISO §14.9.43.3 SR1 violation — so the three identifier positions and
+    /// the two literal positions cannot drift onto different diagnostics for one sentence.</summary>
+    private BoundStatement Sr1Reject(string where, string offence)
+    {
+        ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"{where} {offence} (ISO §14.9.43.3 SR1)");
+        return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+    }
+
     /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender (as its printable name), or
     /// <see langword="null"/> when it is a permitted one. Reads the category off whichever operand shape the
     /// sender is: a FIELD's PICTURE (a group has none and is an alphanumeric-image sender, so it passes), or a
@@ -302,22 +380,45 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// them).</summary>
     private static string? UnstringSenderCategory(BoundOperand source) => source switch
     {
-        BoundFieldOperand f => Sr2OffendingCategory(f.Place.Item.Pic),
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } when ic.ResultCategory is
-            PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean => ic.ResultCategory.ToString(),
+        BoundFieldOperand f => Sr2OffendingCategory(f.Place.Item),
+        // ⛔ THE SAME WHITELIST, ON THE OTHER ARM (kb/Work PB664). This arm listed the categories it REFUSES
+        // while its FIELD twin was being turned into the rule's own admit-list — two arms of one sentence, one
+        // of them fixed, which is this repository's most reproducible defect shape. It is behaviour-identical
+        // TODAY by construction (IntrinsicCatalog.CategoryOf is total over exactly National / Alphanumeric /
+        // Boolean / Numeric, so the two spellings partition the same four values) and it stays right if that
+        // mapping ever gains a fifth.
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } when ic.ResultCategory is not
+            (PicCategory.Alphanumeric or PicCategory.National) => ic.ResultCategory.ToString(),
         _ => null,
     };
 
     /// <summary>ISO §14.9.48.3 SR2's category test as ONE predicate — the rule names identifier-1, -2, -3 AND
     /// -5 in a single sentence, so the sender, both delimiter operands and the DELIMITER IN receiver all ask
-    /// this (kb/Work PB155). A missing PICTURE (a group — an alphanumeric-image item) passes.</summary>
-    private static string? Sr2OffendingCategory(PicInfo? pic) => pic switch
+    /// this (kb/Work PB155).
+    /// <para>⛔ IT IS A WHITELIST, AND THAT IS THE RULE'S OWN SHAPE (kb/Work PB664,
+    /// <c>feedback_model_the_rule_shape_not_one_case</c>): SR2 says the operand "shall reference data items of
+    /// category alphanumeric or national", so everything else offends BY CONSTRUCTION. It used to name the
+    /// categories it REFUSED — numeric, numeric-edited, boolean and the two edited forms — and the four
+    /// PICTURE categories the model gained later (data-pointer, program-pointer, function-pointer and object
+    /// reference) therefore passed as if they were admitted. MEASURED at 2f6b38c61: `UNSTRING P DELIMITED BY
+    /// " " INTO B` over a USAGE POINTER sender stored "Cobo" — the first four characters of the CLR carrier's
+    /// type name — and `UNSTRING A DELIMITED BY P` compared every character against that type name and never
+    /// found a delimiter. A blacklist is a list that a new category joins silently.</para>
+    /// <para>A GROUP has no PICTURE and answers by its GROUP-USAGE: an ordinary group is "an alphanumeric group
+    /// item" (§13.18.29.4 GR3) and a national group is category national (GR2), both admitted; a BIT group is
+    /// class and category BOOLEAN (GR1a) and is not.</para>
+    /// <para>⚠ Category ALPHABETIC is admitted here, and the reason is a MODEL fold, not an adjudication: the
+    /// storage model carries PIC A as <see cref="PicCategory.Alphanumeric"/> (one string carrier), so this
+    /// predicate cannot tell them apart. SR2 is category-worded and would separate them — the un-folding lives
+    /// in <c>IntrinsicArgumentRules.ClassOfPlace</c>'s <c>PicInfo.IsAlphabetic</c> and reaching it from here is
+    /// a change of verdict for existing source, so it is recorded rather than made silently.</para></summary>
+    private static string? Sr2OffendingCategory(DataItem item) => item.Pic switch
     {
-        { Category: PicCategory.Numeric or PicCategory.NumericEdited or PicCategory.Boolean } p =>
-            p.Category.ToString(),
-        { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: not null } p =>
+        null => item.GroupUsage is GroupUsage.Bit ? "boolean (a bit group, §13.18.29.4 GR1 a)" : null,
+        { Category: PicCategory.Alphanumeric or PicCategory.National, EditMask: null } => null,
+        { Category: PicCategory.Alphanumeric or PicCategory.National } p =>
             $"{p.Category.ToString().ToLowerInvariant()}-edited",
-        _ => null,
+        { Category: var cat } => cat.ToString(),
     };
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /

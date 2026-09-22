@@ -212,6 +212,12 @@ internal sealed class ValueInitializer(EmitContext ctx)
                     item, pic, raw) is { } editedImage)
             return EmitText.CsLiteral(editedImage);
 
+        // ⛔ A BOOLEAN ITEM'S VALUE IS ONE QUESTION WITH ONE ANSWER (kb/Work PB584): its declared boolean
+        // POSITIONS. Three lanes used to answer it — this one, the bit-run carrier
+        // (<c>GroupImageCodec.OneBitCarrierOf</c>) and the character-image seed — and they disagreed, each in
+        // its own direction. It is asked here so the arms below cannot be extended for one lane only.
+        if (pic.Category is PicCategory.Boolean) return BooleanCarrierOf(raw, pic);
+
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
 
@@ -226,11 +232,10 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // A numeric-edited item's NUMERIC VALUE was composed above (EditedImageOfNumericValue); an alphanumeric
             // literal stores verbatim (§13.18.63.3 SR7 / NOTE 3: the programmer supplies the edited form).
             // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
-            // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
+            // already prefix-stripped by DecodeCobolString). The BOOLEAN arm returned above, through
+            // <see cref="BooleanCarrierOf"/>.
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
                 RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}"),
-            PicCategory.Boolean =>
-                RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false),
             PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
             PicCategory.Numeric => CarrierInit(EmitText.UnscaledAtScale(raw, pic.Scale), pic),
             _ => pic.DefaultInitializer,
@@ -343,6 +348,28 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
     /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
     /// and width; otherwise null (ISO §8.3.3.6; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
+    /// <summary>⛔ THE ONE INITIAL BOOLEAN CARRIER of an elementary boolean item with a VALUE clause — its
+    /// <c>pic.Length</c> boolean positions, in the SAME three arms the standard writes them in, for every lane
+    /// that needs them (the record-struct field, the §8.5.1.6.3 bit-run carrier, and the character-image seed —
+    /// kb/Work PB584).
+    /// <list type="bullet">
+    /// <item>A FIGURATIVE constant fills the positions: ISO §8.3.3.6.4 GR4 makes the zero format "one or more of
+    /// the boolean character '0'", and GR2 repeats the string "until the size of the resultant string is greater
+    /// than or equal to the number of character positions in the associated data item".</item>
+    /// <item>A Format-6 <c>ALL literal-1</c> (§8.3.3.6.2, where ALL is REQUIRED) is the literal repeated to the
+    /// item's positions by that same GR2 — THE arm the bit-carrier lane did not have, so
+    /// <c>VALUE ALL B"1"</c> came back all zeros through a REDEFINES alias and all ones without one.</item>
+    /// <item>A plain boolean literal zero-pads on the right (§13.18.63.3 SR10; §14.6.8.6).</item>
+    /// </list>
+    /// The USAGE is NOT this method's business: whether those positions are then PACKED is
+    /// <c>GroupImageCodec.BooleanImageOf</c>'s single decision.</summary>
+    public string BooleanCarrierOf(string raw, PicInfo pic) =>
+        FigurativeInitializer(raw, pic)
+        ?? (FigurativeConstants.Classify(raw).AllLiteral is { } allLit
+            ? EmitText.CsLiteral(EmitText.RepeatToWidth(CobolLiteral.Decode(allLit), pic.Length))
+            : RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
+                                         justifiedRight: false));
+
     public string? FigurativeInitializer(string raw, PicInfo pic)
     {
         if (FigurativeKind(raw) is not { } k) return null;

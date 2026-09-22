@@ -81,6 +81,26 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         return NationalWindow.PositionsOf(item) is not null ? RuntimeApi.NatBytes(image) : image;
     }
 
+    /// <summary>One MEMBER's contribution to its group's compile-time image seed — the COMPILE-TIME twin of
+    /// <see cref="AsImageOf"/>, arm for arm, so the seed a Tier-B backing starts at and the image
+    /// <c>AsImage()</c> composes at run time are the same bytes (kb/Work PB584).
+    /// <para>A §8.5.1.6.3 bit RUN images as its PACKED bits: the run's LEADER packs every member's INITIAL
+    /// carrier concatenated (the compile-time twin of <c>BitCarrierOf</c>) and a CONTINUATION contributes
+    /// nothing — which is what makes a MIXED bit/character group's seed exactly as wide as the group instead of
+    /// one byte per bit member. Everything else recurses through <see cref="ImageInitOf"/>, so the national
+    /// coding and the pointer-slot reservation ride <see cref="ImageInitOfOne"/> as they do for every caller.</para>
+    /// <para>⚠ The walk is over <c>item.Children</c> rather than <c>PhysicalModel.PhysicalChildrenOf</c>, and the
+    /// reason is measured: <c>DataBinder.AssignClassOffsets</c> marks every DESCENDANT of a redefines class
+    /// <c>IsCanonical = false</c>, so the physical walk answers EMPTY for the children of a Tier-B canonical —
+    /// the exact group this seed exists for. What the two composers must share is the RUN LAW, and they now do
+    /// (<see cref="BitLayout.RunsOf"/>).</para></summary>
+    private string InitImageOfMember(DataItem c, BitRunMap runs, bool useValues, Subscripts subs) =>
+        runs.RunLedBy(c) is { } run
+            ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(m => InitialBitCarrierOf(m, useValues, subs))),
+                                  $"{run.Sum(BitLayout.RunBits)}")
+        : runs.IsInRun(c) ? "\"\""
+        : ImageInitOf(c, useValues, subs);
+
     /// <summary>The item's initial image in its VALUE CARRIER's own units — see <see cref="ImageInitOfOne"/>,
     /// which applies the storage coding on top (kb/Work PB231).</summary>
     private string CarrierInitOfOne(DataItem item, bool useValues, Subscripts subs = default)
@@ -131,9 +151,29 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 return RuntimeApi.BitsPack(BitAreaOf(item, m => InitialBitCarrierOf(m, useValues, subs)),
                                            $"{BitLayout.ExtentBits(item)}");
 
-            // Redefining children overlay storage already composed by their targets — never part of the image.
+            // ⛔ THE SEED COMPOSES OVER THE PHYSICAL FIELD LIST, NOT OVER item.Children (kb/Work PB584). A MIXED
+            // bit/character group is the case that proves it: §8.5.1.6.3 puts "an elementary bit data item
+            // immediately following an elementary bit data item or bit group item of the same level" at the next
+            // BIT position, so consecutive same-level bit members SHARE a byte, and only PhysicalModel computes
+            // those runs. Walking the children instead gave each bit member its OWN ceil(n/8) characters, so the
+            // composition was WIDER than the group and every member after the first run shifted. MEASURED at
+            // 2f6b38c61 on `01 CTL. 05 H1 PIC 1(4) USAGE BIT VALUE B"0100". 05 H2 PIC 1(4) USAGE BIT VALUE
+            // B"0001". 05 H3 PIC X(1) VALUE "B". 01 CV REDEFINES CTL PIC X(2).`: the members read back
+            // [0100][0000][DLE] and CV's bytes were 0x40 0x10, where §8.5.1.6.3's one run gives 0x41 ('A') and
+            // §13.18.44.4 GR1's storage association then puts "B" in CV(2:1). The identical group WITHOUT the
+            // alias — the record-struct lane, which already walks PhysicalChildrenOf — gave [0100][0001][B].
+            // Two composers for one image; both now ask the ONE run law, so a run cannot be resolved two ways.
+            // ⚠ What they share is the LAW and not the field list: `PhysicalModel.PhysicalChildrenOf` answers
+            // EMPTY for the children of a Tier-B canonical — `DataBinder.AssignClassOffsets` marks every
+            // DESCENDANT of a redefines class `IsCanonical = false` — and a Tier-B group is the one this seed
+            // exists for. So the walk stays over `item.Children`, and a REDEFINING child contributes nothing
+            // because its target already composed that storage (the filter below, as before).
+            // The run map is computed over ALL the children, redefining ones included, exactly as
+            // `PhysicalModel` computes it — `BitLayout.RunsOf` excludes them itself, so the two agree by
+            // construction rather than by both remembering to filter first.
+            var runs = BitLayout.RunsOf(item.Children);
             var parts = item.Children.Where(c => (c.IsGroup || c.IsElementary) && c.RedefinesTargetName is null)
-                .Select(c => ImageInitOf(c, useValues, subs));
+                .Select(c => InitImageOfMember(c, runs, useValues, subs));
             return item.Children.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : "\"\"";
         }
         var pic = item.Pic!;
@@ -142,6 +182,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         string? effRaw = item.ValueAt(subs);
         if (useValues && effRaw is { } raw)
         {
+            // ⛔ THE BOOLEAN ARM IS FIRST, AND THE ORDER IS THE FIX (kb/Work PB584). It used to sit BELOW the
+            // generic figurative arm, so `PIC 1(4) USAGE BIT VALUE ZERO` seeded FOUR carrier characters where
+            // the packed image is ONE — the figurative return knows the item's boolean POSITIONS and nothing
+            // about its storage. MEASURED at 2f6b38c61 on `01 B PIC 1(4) USAGE BIT VALUE ZERO. 01 BV REDEFINES
+            // B PIC X(1).`: the byte came back 0x30 (the character '0') where §13.18.60.4 GR5's packed image of
+            // four zero bits is 0x00, and B itself then read [0011]. One arm, one reader: the CARRIER is
+            // ValueInitializer.BooleanCarrierOf's answer for every lane, and the USAGE decides only whether
+            // those positions are packed.
+            if (pic.Category is PicCategory.Boolean) return BooleanImageOf(vals.BooleanCarrierOf(raw, pic), pic);
             if (vals.FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
             // A NUMERIC member contributes the BYTES of its VALUE through its own pinned byte form — zoned
             // digits for DISPLAY, radix-2 / BCD for BINARY / PACKED (V59). ⛔ ONE ENCODER, so the width is the
@@ -167,17 +216,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     item.BlankWhenZero, pic.CurrencyString, ctx.Data.DecimalPointIsComma, pic.EditingRules));
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
-            // Boolean members of a Tier-B class contribute their zero-padded VALUE image.
-            // ⛔ A USAGE BIT member contributes its PACKED image, not its carrier (D19/PB43): the backing is sized
-            // from ImageWidth, which is now ceil(n/8), so seeding it with n carrier characters would silently
-            // truncate against the backing width. Found by sweeping the OTHER image path after the AsImage/
-            // FromImage pair was packed — the two compose the same bytes and must agree (rule 4).
-            if (pic.Category is PicCategory.Boolean)
-                return pic.Usage is Usage.Bit
-                    ? RuntimeApi.BitsPack(
-                        RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
-                                                   justifiedRight: false), $"{pic.Length}")
-                    : RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false);
             if (pic.Category is PicCategory.National)
                 return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
         }
@@ -208,6 +246,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     : $"new string('0', {pic.Length})"
                 : $"new string(' ', {pic.Length})";
     }
+
+    /// <summary>A boolean item's IMAGE from its boolean CARRIER — the one place the USAGE decides how the
+    /// positions are stored (ISO §13.18.60.4 GR5: a usage-bit item's positions are PACKED, high-order first,
+    /// into <c>ceil(n/8)</c> characters through <c>CobolBits.Pack</c>, D19/PB43; a usage-display boolean item's
+    /// positions ARE its characters). Separating it from the carrier is what keeps the VALUE rules
+    /// (<see cref="ValueInitializer.BooleanCarrierOf"/>) out of the storage question — the two were entangled,
+    /// and a figurative VALUE therefore reached the image as carrier characters (kb/Work PB584).</summary>
+    private static string BooleanImageOf(string carrier, PicInfo pic) =>
+        pic.Usage is Usage.Bit ? RuntimeApi.BitsPack(carrier, $"{pic.Length}") : carrier;
 
     /// <summary>Emit a variable-length group's <c>CurrentImage()</c> — the §14.9.11.4 GR7 implementor-defined
     /// DISPLAY format, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the members' images in
@@ -543,12 +590,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // it is displaced; WidthBits is asked ONLY here, because for a group it is a whole ExtentBits walk.
         if (m.Pic is not { } pic) return EmitText.CsLiteral(new string('0', BitLayout.WidthBits(m)));
         if (!useValues || m.ValueAt(subs) is not { } raw) return EmitText.CsLiteral(new string('0', pic.Length));
-        // A FIGURATIVE operand is its one character repeated to the item's boolean positions
-        // (§8.3.3.6.4 GR2; GR4 makes the ZERO format "one or more of the boolean character '0'"). Asked of
-        // the ONE figurative service so the bit lane cannot disagree with every other VALUE lane about it.
-        return vals.FigurativeInitializer(raw, pic)
-            ?? RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}",
-                                          justifiedRight: false);
+        // ⛔ THE VALUE RULES ARE ASKED OF THE ONE READER, NOT RESTATED HERE (kb/Work PB584). This arm used to be
+        // `FigurativeInitializer(raw, pic) ?? StrStoreBoolean(Decode(raw), …)` — the FIGURATIVE arm and the
+        // PLAIN-LITERAL arm, with §8.3.3.6.4 GR2's Format-6 `ALL literal-1` arm missing, which the record-struct
+        // lane (ValueInitializer.InitializerFor) has always had. MEASURED at 2f6b38c61 on
+        // `01 BG GROUP-USAGE BIT. 05 K1 PIC 1(4) VALUE ALL B"1". 05 K2 PIC 1(4) VALUE ZERO. 01 BV REDEFINES BG
+        // PIC X(1).`: K1 read back [0000] through the alias and [1111] without it — the two-arm shape, one arm
+        // short, in the lane nothing but an alias reaches.
+        return vals.BooleanCarrierOf(raw, pic);
     }
 
     /// <summary>Distribute one run member's slice of an unpacked bit carrier — THE one distributor, ridden by

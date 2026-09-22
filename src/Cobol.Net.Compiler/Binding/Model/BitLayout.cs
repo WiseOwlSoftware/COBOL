@@ -60,6 +60,50 @@ internal static class BitLayout
         && IsBitItem(c) && prev is not null && IsBitItem(prev)   // §8.5.1.6.3 rules 1 and 2 — both sides bit items…
         && prev.Level == c.Level;                                // …"of the same level"
 
+    /// <summary>⛔ THE ONE ANSWER TO "which of these siblings SHARE bytes" (ISO §8.5.1.6.3): a RUN is a maximal
+    /// stretch of consecutive same-level bit members — "an elementary bit data item immediately following an
+    /// elementary bit data item or bit group item of the same level" — and it is what makes a run's members
+    /// occupy ONE image slice instead of one each.
+    /// <para>⛔ IT LIVES HERE BECAUSE IT HAS TWO READERS, and it had two SPELLINGS: <c>PhysicalModel</c>'s
+    /// physical-field walk (the record-struct / <c>AsImage()</c> lane) computed it, and the compile-time image
+    /// SEED — the only composer a Tier-B REDEFINES group ever reaches — did not, so a MIXED bit/character group's
+    /// seed padded each bit member to its own byte and every following member shifted (kb/Work PB584). One law,
+    /// one computation, two composers.</para>
+    /// <para>A REDEFINING sibling is never a run member: it overlays storage its target already placed.</para></summary>
+    public static BitRunMap RunsOf(IEnumerable<DataItem> siblings)
+    {
+        var list = siblings as IList<DataItem> ?? siblings.ToList();
+        // ⛔ THE NO-BIT-MEMBER FAST PATH, and it is the same discipline the class header states for the whole
+        // walk: without a USAGE BIT member there are no sub-byte runs, so the map is empty BY CONSTRUCTION and
+        // the composers behave exactly as they did before runs existed. Both callers run over EVERY sibling list
+        // of EVERY program (the physical-field walk and the image seed), and the overwhelming majority of them
+        // hold no bit item at all — allocating a dictionary and a set to say so is a cost with nothing to show.
+        int first = -1;
+        for (int i = 0; i < list.Count; i++)
+            if (RunMember(list[i]) && list[i].RedefinesTargetName is null) { first = i; break; }
+        if (first < 0) return BitRunMap.Empty;
+        var start = new Dictionary<DataItem, IReadOnlyList<DataItem>>(ReferenceEqualityComparer.Instance);
+        var inRun = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        for (int i = first; i < list.Count; i++)
+        {
+            if (!RunMember(list[i]) || list[i].RedefinesTargetName is not null || inRun.Contains(list[i])) continue;
+            var run = new List<DataItem> { list[i] };
+            for (int j = i + 1; j < list.Count && RunMember(list[j])
+                                && list[j].RedefinesTargetName is null
+                                && list[j].Level == list[i].Level; j++)
+                run.Add(list[j]);
+            foreach (var m in run) inRun.Add(m);
+            start[list[i]] = run;
+        }
+        return new BitRunMap(start, inRun);
+    }
+
+    /// <summary>A §8.5.1.6.3 RUN member — "an elementary bit data item or bit group item of the same level"
+    /// (D20/PB79): a bit LEAF, or a GROUP-USAGE BIT group, which contributes its <c>AsBits()</c> carrier and its
+    /// exact extent. Only siblings WITHIN a group form runs — level-01 records never share a byte.</summary>
+    private static bool RunMember(DataItem x) =>
+        IsBitLeaf(x) || (x.GroupUsage is GroupUsage.Bit && x.Parent is not null);
+
     /// <summary>The bit positions a §8.5.1.6.3 run MEMBER contributes — a bit leaf's declared boolean positions, a
     /// bit group's exact extent (its as-if PICTURE 1(m) length), times its OCCURS (D20/PB79).
     /// <para>⛔ Expressed through <see cref="WidthBits"/> rather than re-reading <c>Pic</c>/<c>AsIfPic</c>: for a
@@ -212,4 +256,22 @@ internal static class BitLayout
     /// value is rounded to the next larger integer value"). With rule 4 above the extent is already integral for a
     /// group; the ceiling is what makes an ELEMENTARY bit item's character occupancy right.</summary>
     public static int Characters(int bits) => (bits + BitsPerCharacter - 1) / BitsPerCharacter;
+}
+
+/// <summary>The §8.5.1.6.3 bit RUNS of one sibling list — see <see cref="BitLayout.RunsOf"/>. A run is keyed by
+/// the member that LEADS it; every member of a run (leader included) answers true to
+/// <see cref="IsInRun"/>, so a composer emits the run's whole slice at the leader and nothing at the
+/// continuations, exactly as <c>PhysicalModel.Physical.BitRun</c> / <c>Width 0</c> express it.</summary>
+internal sealed class BitRunMap(IReadOnlyDictionary<DataItem, IReadOnlyList<DataItem>> start, IReadOnlySet<DataItem> inRun)
+{
+    /// <summary>The map of a sibling list with no <c>USAGE BIT</c> member — shared, because that is nearly every
+    /// sibling list in nearly every program and the answer carries no state.</summary>
+    public static readonly BitRunMap Empty =
+        new(new Dictionary<DataItem, IReadOnlyList<DataItem>>(), new HashSet<DataItem>());
+
+    /// <summary>The run this item LEADS, or null when it leads none (a continuation, or not a bit member).</summary>
+    public IReadOnlyList<DataItem>? RunLedBy(DataItem item) => start.TryGetValue(item, out var r) ? r : null;
+
+    /// <summary>True when this item belongs to a run — as its leader or as a continuation.</summary>
+    public bool IsInRun(DataItem item) => inRun.Contains(item);
 }

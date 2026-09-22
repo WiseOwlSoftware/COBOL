@@ -89,28 +89,11 @@ internal sealed class PhysicalModel(EmitContext ctx)
     {
         // D19/PB43 — the §8.5.1.6.3 bit RUNS in this sibling list, keyed by the leaf that starts each one. A run is
         // a maximal stretch of consecutive USAGE BIT leaves at the SAME level: exactly the items the standard puts
-        // at successive bit positions, i.e. the ones that share bytes. Computed once here so the emit loop below
-        // can stay a straight per-child walk.
+        // at successive bit positions, i.e. the ones that share bytes. Computed once so the emit loop below can
+        // stay a straight per-child walk — and computed by BitLayout, because the compile-time image SEED needs
+        // the same answer and used to have none (kb/Work PB584).
         var siblings = items as IList<DataItem> ?? items.ToList();
-        var runStart = new Dictionary<DataItem, List<DataItem>>(ReferenceEqualityComparer.Instance);
-        var inRun = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        for (int i = 0; i < siblings.Count; i++)
-        {
-            // A run member is a bit LEAF or a bit GROUP (§8.5.1.6.3 rule 1 names "an elementary bit data item or bit
-            // group item of the same level" — D20/PB79); a bit group contributes its AsBits() carrier and its exact
-            // extent. Only siblings WITHIN a group form runs — level-01 records never share a byte.
-            static bool RunMember(DataItem x) =>
-                BitLayout.IsBitLeaf(x) || (x.GroupUsage is GroupUsage.Bit && x.Parent is not null);
-            if (!RunMember(siblings[i]) || siblings[i].RedefinesTargetName is not null
-                || inRun.Contains(siblings[i])) continue;
-            var run = new List<DataItem> { siblings[i] };
-            for (int j = i + 1; j < siblings.Count && RunMember(siblings[j])
-                                && siblings[j].RedefinesTargetName is null
-                                && siblings[j].Level == siblings[i].Level; j++)
-                run.Add(siblings[j]);
-            foreach (var m in run) inRun.Add(m);
-            runStart[siblings[i]] = run;
-        }
+        var runs = BitLayout.RunsOf(siblings);
 
         foreach (var c in siblings)
         {
@@ -162,9 +145,9 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // D19/PB43 — a USAGE BIT leaf's image is the PACKED run it belongs to, not its own carrier. The run's
             // leader carries the whole run's byte width; a continuation carries 0, so the group's image width is
             // still a plain sum of Width and every downstream caller is unchanged.
-            if (runStart.ContainsKey(c) || inRun.Contains(c))
+            if (runs.IsInRun(c))
             {
-                var run = runStart.TryGetValue(c, out var r) ? r : null;
+                var run = runs.RunLedBy(c);
                 int runBits = run?.Sum(m => BitLayout.RunBits(m)) ?? 0;
                 // A bit GROUP member keeps its record-struct type (IsGroupStruct) — its own AsImage/FromImage still exist
                 // for the standalone (record) case — but inside the run its slice is the run's (D20/PB79).
