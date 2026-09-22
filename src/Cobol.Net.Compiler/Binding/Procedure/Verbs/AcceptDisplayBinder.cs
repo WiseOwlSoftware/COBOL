@@ -18,24 +18,6 @@ using Core = CobolParserCore;
 /// (Exec Step E folds it).</summary>
 internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>The implementor device-names an ACCEPT may take input from (ISO §12.3.7.3 items 7–8 — the
-    /// implementor specifies the available device-names; COBOLNET_DESIGN §12.3): both name the process standard
-    /// input. SYSOUT / SYSERR are the DISPLAY-side (output-only) names — a mnemonic bound to one fails SR2.</summary>
-    private static readonly HashSet<string> AcceptInputDevices = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "CONSOLE", "SYSIN",
-    };
-
-    /// <summary>The implementor device-names a DISPLAY may transfer output TO (ISO §14.9.11.3 SR2 — a device
-    /// "capable of receiving data from the program"; §12.3.7.3 rule 7/8 delegates the available names to the
-    /// implementor, COBOLNET_DESIGN §12.3). SYSIN is the ACCEPT-side (input-only) name — a mnemonic bound to it fails
-    /// SR2. SYSERR routes to standard error; CONSOLE / SYSOUT and the no-UPON default use the standard display device
-    /// (standard output).</summary>
-    private static readonly HashSet<string> DisplayOutputDevices = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "CONSOLE", "SYSOUT", "SYSERR",
-    };
-
         /// <summary>Bind ACCEPT (ISO §14.9.1). Format 1: no FROM (the implementor default device, GR5) or FROM a
     /// SPECIAL-NAMES mnemonic-name (SR2). Format 2: FROM a temporal source; the <c>YYYYMMDD</c>/<c>YYYYDDD</c>
     /// four-digit-year phrases are COBOL-2002+ and rejected below that edition (the version-gating rule).
@@ -153,19 +135,8 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     private BoundStatement BindAcceptFromMnemonic(Place target, Core.DataReferenceContext mnemonic)
     {
         string name = mnemonic.cobolWord()?.GetText() ?? mnemonic.GetText();
-        if (!ctx.Mnemonics.Of(mnemonic).TryGetValue(name, out string? device))
-        {
-            ctx.Edition.Error("COBOLNET0817", $"ACCEPT FROM '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
-                + "(ISO §14.9.1.3 SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
-                + "§12.3.7 Format 4 'device-name-1 IS mnemonic-name-3')");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
-        }
-        if (!AcceptInputDevices.Contains(device))
-        {
-            ctx.Edition.Error("COBOLNET0817", $"ACCEPT FROM '{name}': device '{device}' is not capable of input "
-                + "(ISO §14.9.1.3 SR2; the input-capable implementor device-names are CONSOLE and SYSIN, §12.3.7.3)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
-        }
+        if (MnemonicDevice(mnemonic, name, "ACCEPT FROM", "14.9.1.3", DeviceCapability.Input, "capable of input") is null)
+            return new BoundNop();   // reported — not a deferral (kb/Work PB236)
         return new BoundAccept(target, AcceptKind.Device);
     }
 
@@ -272,20 +243,42 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     private bool BindDisplayUpon(Core.DisplayUponContext upon)
     {
         string name = upon.cobolWord().GetText();
-        if (!ctx.Mnemonics.Of(upon).TryGetValue(name, out string? device))
+        return MnemonicDevice(upon, name, "DISPLAY UPON", "14.9.11.3", DeviceCapability.Output,
+                   "capable of receiving data") is { } device
+               && device.Device.HasFlag(DeviceCapability.StandardError);
+    }
+
+    /// <summary>The ONE screen for an ACCEPT FROM / DISPLAY UPON mnemonic-name (§14.9.1.3 SR2 / §14.9.11.3 SR2 —
+    /// the mnemonic "shall be associated with" a device capable of the transfer): the mnemonic shall be declared in
+    /// SPECIAL-NAMES, its name shall be a DEVICE-name (§12.3.7.3 SR7 — "Mnemonic-name-3 may be specified only in
+    /// the ACCEPT and DISPLAY statements", and only mnemonic-name-3 is a device's), and the device shall have
+    /// <paramref name="need"/> (SR7's "additional restrictions", read off the ONE table, <see cref="ImplementorNames"/>).
+    /// Returns the device row, or null after reporting COBOLNET0817.</summary>
+    private ImplementorName? MnemonicDevice(IParseTree at, string name, string verb, string sr2, DeviceCapability need,
+        string capable)
+    {
+        if (!ctx.Mnemonics.Of(at).TryGetValue(name, out var row))
         {
-            ctx.Edition.Error("COBOLNET0817", $"DISPLAY UPON '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
-                + "(ISO §14.9.11.3 SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
-                + "§12.3.7 Format 4 'device-name-1 IS mnemonic-name-3')");
-            return false;
+            ctx.Edition.Error("COBOLNET0817", $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
+                + $"(ISO §{sr2} SR2 — mnemonic-name-1 shall be associated with an implementor device-name, "
+                + "§12.3.7.2 'device-name-1 IS mnemonic-name-3')");
+            return null;
         }
-        if (!DisplayOutputDevices.Contains(device))
+        if (row.Kind != SystemNameKind.Device)
         {
-            ctx.Edition.Error("COBOLNET0817", $"DISPLAY UPON '{name}': device '{device}' is not capable of receiving "
-                + "data (ISO §14.9.11.3 SR2; the output-capable implementor device-names are CONSOLE, SYSOUT, and "
-                + "SYSERR, §12.3.7.3)");
-            return false;
+            ctx.Edition.Error("COBOLNET0817", $"{verb} '{name}': '{name}' is the mnemonic-name of the "
+                + $"{ImplementorNames.KindWord(row.Kind)} '{row.Name}', not of a device-name — only a device-name's "
+                + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO §12.3.7.3 SR7; "
+                + $"§{sr2} SR2)");
+            return null;
         }
-        return device.Equals("SYSERR", StringComparison.OrdinalIgnoreCase);
+        if (!row.Device.HasFlag(need))
+        {
+            ctx.Edition.Error("COBOLNET0817", $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO §{sr2} "
+                + "SR2; the available device-names and their capabilities are this implementation's §12.3.7.3 SR7/SR8 "
+                + $"specification: {ImplementorNames.DescribeDevices()})");
+            return null;
+        }
+        return row;
     }
 }

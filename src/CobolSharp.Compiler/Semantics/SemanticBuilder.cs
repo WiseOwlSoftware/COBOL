@@ -409,8 +409,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     // mnemonic (ids.Length == 1) — the ON/OFF condition-names are referenced directly. Both
                     // forms must register so the condition-names bind and are whitelisted (DEVLOG 310).
                     string mnemonicName = ids.Length >= 2 ? ids[1].GetText() : implName;
-                    string? onName = swClause.switchOnClause()?.cobolWord()?.GetText();
-                    string? offName = swClause.switchOffClause()?.cobolWord()?.GetText();
+                    string? onName = swClause.switchStatusPhrases()?.switchOnClause()?.cobolWord()?.GetText();
+                    string? offName = swClause.switchStatusPhrases()?.switchOffClause()?.cobolWord()?.GetText();
 
                     // Register only a genuine switch: a mnemonic (Option 1) or a status condition (Option 2).
                     if (ids.Length >= 2 || onName != null || offName != null)

@@ -364,9 +364,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>Bind the ONE <c>[BEFORE] [AFTER] ADVANCING …</c> phrase of a WRITE (ISO §14.9.51.2 Format 1), or
     /// null for a plain WRITE. An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS
-    /// MNEMONIC-NAME</c>, SQ207M) positions per the IMPLEMENTOR's rules for the associated feature (§14.9.51.4
-    /// GR25 d)); this implementation's rule, inherited from the legacy oracle and encoded by the NIST goldens, is
-    /// a ZERO-line advance (the write lands on the current line).
+    /// MNEMONIC-NAME</c>, SQ207M — the NIST preprocessor supplies the feature-name CSP) positions per the
+    /// IMPLEMENTOR's rules for the associated feature (§14.9.51.4 GR25 d)), which are the feature-name's row in
+    /// <see cref="ImplementorNames"/> — see <see cref="FeatureAdvancing"/>.
     /// <para>⛔ THE PHRASE IS ONE ADVANCE, NOT ONE PER WORD, AND THE TWO WORDS ONLY PLACE IT (kb/Work PB712).
     /// §14.9.51.4 GR25 a)–d) fix the AMOUNT from the single printed operand — a) says the page "is advanced the
     /// number of lines equal to that value", once. GR25 e)–h) then say WHERE that one advance goes relative to
@@ -384,13 +384,33 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         if (wba is null) return null;
         bool before = wba.BEFORE() is not null;   // §14.9.51.4 GR25 e)/f): BEFORE, alone or with AFTER, presents first
         if (wba.PAGE() is not null) return new BoundAdvancing(before, true, null);
+        if (wba.dataReference() is { } m && ctx.Mnemonics.Of(wba).TryGetValue(m.GetText(), out var system))
+            return FeatureAdvancing(before, m.GetText(), system);
         BoundOperand lines =
             wba.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
-            : wba.dataReference() is { } d ? ctx.Mnemonics.Of(wba).ContainsKey(d.GetText())
-                ? new BoundNumericLiteral("0") : host.Expr.FieldOperand(d)
+            : wba.dataReference() is { } d ? host.Expr.FieldOperand(d)
             : wba.literal() is { } lit ? host.Expr.LiteralOperand(lit)
             : new BoundNumericLiteral("1");
         return new BoundAdvancing(before, false, lines);
+    }
+
+    /// <summary>The ADVANCING operand is a SPECIAL-NAMES mnemonic-name. §14.9.51.3 SR16: "<i>When mnemonic-name-1
+    /// is specified, the name is associated with a feature-name specified by the implementor.</i>" — so a switch's
+    /// or a device's mnemonic is COBOLNET2243 (kb/Work PB862; it used to bind as a zero-line advance, whatever it
+    /// named). A feature-name advances per its row in the ONE table (§14.9.51.4 GR25 d — "according to the rules
+    /// specified by the implementor", Annex A.1 item 222): <see cref="FeatureAdvance.TopOfPage"/> (C01) is the
+    /// <c>ADVANCING PAGE</c> advance, <see cref="FeatureAdvance.SuppressSpacing"/> (CSP) a zero-line advance.</summary>
+    private BoundAdvancing FeatureAdvancing(bool before, string mnemonic, ImplementorName system)
+    {
+        if (system.Kind != SystemNameKind.Feature)
+            ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingMnemonicNotFeature, $"WRITE … ADVANCING '{mnemonic}': "
+                + $"'{mnemonic}' is the mnemonic-name of the {ImplementorNames.KindWord(system.Kind)} '{system.Name}' — "
+                + "\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the "
+                + "implementor\" (ISO §14.9.51.3 SR16), and a mnemonic-name that is not a feature-name's may not be "
+                + "specified in WRITE (§12.3.7.3 SR5, SR7)");
+        return system.Advance == FeatureAdvance.TopOfPage
+            ? new BoundAdvancing(before, true, null)
+            : new BoundAdvancing(before, false, new BoundNumericLiteral("0"));
     }
 
     private static BoundOpenMode MapOpenMode(Core.OpenModeContext m) =>

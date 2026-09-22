@@ -44,7 +44,7 @@
            CURRENCY "@"
            SYMBOLIC SC-ORD66 66
            ALPHABET AL-NATV NATIVE
-           SW-ONE MNEM-ONE.
+           SWITCH-1 MNEM-ONE.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 N   PIC 9(3)V99 VALUE 123,45.

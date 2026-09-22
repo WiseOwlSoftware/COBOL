@@ -17,12 +17,16 @@
        PROGRAM-ID. PB301WORDS85.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
-      *> 8.3.2.1 rules 1 and 3 both say "user-defined words OR SYSTEM-NAMES", so the rule is exercised in
-      *> a system-name slot too. CRT here is an ordinary COBOL-85 implementor-name: the SPECIAL-NAMES CRT
-      *> STATUS clause of the declined module is gated on the word being RESERVED, so below 2002 it does
-      *> not compete for this text and the entry is read as 12.3.7 implementor-name entry.
+      *> CRT here is an ordinary COBOL-85 user-defined word in the SPECIAL-NAMES paragraph: the CRT STATUS
+      *> clause of the declined module is gated on the word being RESERVED, so below 2002 it does not compete
+      *> for this text. It is the MNEMONIC-NAME of the entry. It used to be the entry's SYSTEM-NAME
+      *> (`CRT IS SCR-MNEM`), which compiled only while any word was accepted as one; 12.3.7.3 SR8 makes the
+      *> available system-names the implementor's to specify (kb/Work PB862, docs/CONFORMANCE.md section 7,
+      *> A.1 items 189-191), and no screen word is among them - 8.3.2.1 rule 3 PERMITS a context-sensitive
+      *> word as a system-name, it does not CREATE one. That the '85 text still reaches the implementor-name
+      *> arm rather than the screen refusal is pinned by ImplementorNamesDriftTests.
        SPECIAL-NAMES.
-           CRT IS SCR-MNEM.
+           CONSOLE IS CRT.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
       *> ISO 8.10 - context-sensitive, "screen description entry" (and, for six of them, the SET attribute

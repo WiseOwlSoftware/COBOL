@@ -180,7 +180,7 @@ public sealed class OptionalWordSubsetDriftTests
                CURRENCY {1} {2} "@"
                SYMBOLIC {3} SC-ORD66 {4} 66
                ALPHABET AL-NATV {5} NATIVE
-               SW-ONE {6} MNEM-ONE.
+               SWITCH-1 {6} MNEM-ONE.
            DATA DIVISION.
            WORKING-STORAGE SECTION.
            01 N   PIC 9(3)V99 VALUE 123,45.
@@ -206,7 +206,7 @@ public sealed class OptionalWordSubsetDriftTests
            ENVIRONMENT DIVISION.
            CONFIGURATION SECTION.
            SPECIAL-NAMES.
-               CLASS HEXDIG IS "0" THRU "9" {0} ALPHANUMERIC
+               CLASS HEXDIG {0} ALPHANUMERIC IS "0" THRU "9"
                SYMBOLIC CHARACTERS {1} ALPHANUMERIC SC-ORD66 IS 66
                ALPHABET AL-ALNUM {2} ALPHANUMERIC IS NATIVE
                CURRENCY SIGN IS "@" {3} PICTURE SYMBOL "#".
@@ -237,7 +237,7 @@ public sealed class OptionalWordSubsetDriftTests
            ENVIRONMENT DIVISION.
            CONFIGURATION SECTION.
            SPECIAL-NAMES.
-               SW-TWO {0} MNEM-TWO ON {1} {2} SW-IS-ON OFF {3} {4} SW-IS-OFF.
+               SWITCH-2 {0} MNEM-TWO ON {1} {2} SW-IS-ON OFF {3} {4} SW-IS-OFF.
            PROCEDURE DIVISION.
            MAIN.
                DISPLAY "PARSED"

@@ -191,8 +191,9 @@ public sealed class FileIoDifferentialTests
             goldenName: "write_after_advancing_line_sequential_read_back");
 
     /// <summary>§14.9.46 — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
-    /// for the associated feature; this implementation's rule (inherited from the legacy oracle and encoded by
-    /// the SQ207M golden) is a ZERO-line advance — a BEFORE-mnemonic write welds the NEXT write onto its line.
+    /// for the associated feature; the feature-name CSP's rule (docs/CONFORMANCE.md §7 item 190, kb/Work PB862 —
+    /// the rule the SQ207M golden encodes) is a ZERO-line advance — a BEFORE-mnemonic write welds the NEXT write
+    /// onto its line. (The entry used to name PRT-CHAN, which was never a feature-name: any word was accepted.)
     /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.46 GR1 — the WRITE
     /// transfers the record regardless of positioning): the legacy DROPS an AFTER-mnemonic write entirely, a
     /// non-conformance its goldens fossilize (SQ207M is swept-only pending re-baseline). The last WRITE also
@@ -208,7 +209,7 @@ public sealed class FileIoDifferentialTests
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             SPECIAL-NAMES.
-                PRT-CHAN IS MN-ADV.
+                CSP IS MN-ADV.
             INPUT-OUTPUT SECTION.
             FILE-CONTROL.
                 SELECT P-OUT ASSIGN TO "FIOMNADV1F".
@@ -246,6 +247,78 @@ public sealed class FileIoDifferentialTests
         // ("\nL=") - the spurious CLOSE-time line terminator kb/Work PB864 removed (its sibling
         // LinageConformanceTests.Bytes_OverflowWithBeforePhrase_PresentsThenRepositions pinned the same defect).
         Assert.Equal("L=AAAABBBB\nL=CCCCDDDD", cout);
+    }
+
+    /// <summary>The feature-name <c>C01</c> (docs/CONFORMANCE.md §7, Annex A.1 items 190 and 222 — kb/Work PB862):
+    /// "skip to channel 1", the top of the next page — COBOL.NET's §14.9.51.4 GR25 d rule for it is EXACTLY the
+    /// <c>ADVANCING PAGE</c> advance in the same position. So the same records written once through a C01 mnemonic
+    /// and once through PAGE must read back identically, BEFORE and AFTER alike. Spec-derived from the determination,
+    /// not measured: the assertion is the equality, never a captured byte stream.</summary>
+    [Fact]
+    public void WriteAdvancingC01_IsThePageAdvance()
+    {
+        var (cok, cout, cdetail) = CobolNet2023.CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOC01PG.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                C01 IS TOP-PAGE.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT M-OUT ASSIGN TO "FIOC01PGM".
+                SELECT P-OUT ASSIGN TO "FIOC01PGP".
+                SELECT M-IN ASSIGN TO "FIOC01PGM" ORGANIZATION IS LINE SEQUENTIAL.
+                SELECT P-IN ASSIGN TO "FIOC01PGP" ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD M-OUT.
+            01 M-REC PIC X(4).
+            FD P-OUT.
+            01 P-REC PIC X(4).
+            FD M-IN.
+            01 MI-REC PIC X(20).
+            FD P-IN.
+            01 PI-REC PIC X(20).
+            WORKING-STORAGE SECTION.
+            01 WS-EOF PIC X.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN OUTPUT M-OUT P-OUT.
+                MOVE "AAAA" TO M-REC P-REC.
+                WRITE M-REC AFTER ADVANCING TOP-PAGE.
+                WRITE P-REC AFTER ADVANCING PAGE.
+                MOVE "BBBB" TO M-REC P-REC.
+                WRITE M-REC BEFORE ADVANCING TOP-PAGE.
+                WRITE P-REC BEFORE ADVANCING PAGE.
+                MOVE "CCCC" TO M-REC P-REC.
+                WRITE M-REC.
+                WRITE P-REC.
+                CLOSE M-OUT P-OUT.
+                MOVE "N" TO WS-EOF.
+                OPEN INPUT M-IN.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ M-IN AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "M=" MI-REC
+                    END-READ
+                END-PERFORM.
+                CLOSE M-IN.
+                MOVE "N" TO WS-EOF.
+                OPEN INPUT P-IN.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ P-IN AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "P=" PI-REC
+                    END-READ
+                END-PERFORM.
+                CLOSE P-IN.
+                STOP RUN.
+            """);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        var lines = cout.Split('\n');
+        var viaC01 = lines.Where(l => l.StartsWith("M=", StringComparison.Ordinal)).Select(l => l[2..]).ToList();
+        var viaPage = lines.Where(l => l.StartsWith("P=", StringComparison.Ordinal)).Select(l => l[2..]).ToList();
+        Assert.NotEmpty(viaPage);
+        Assert.Equal(viaPage, viaC01);
     }
 
     /// <summary>READ on a file connector that is NOT open: I-O status '47' (§9.1.13.7 item 7 / §14.9.30 GR2),

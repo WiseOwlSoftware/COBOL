@@ -609,7 +609,7 @@ public sealed class LinageConformanceTests
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             SPECIAL-NAMES.
-                VDEVICE IS FEED-MN.
+                CSP IS FEED-MN.
             INPUT-OUTPUT SECTION.
             FILE-CONTROL.
                 SELECT LPF ASSIGN TO "LNG-OUT".

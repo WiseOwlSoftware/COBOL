@@ -47,11 +47,12 @@ specialNameEntry
     // folio 290): alphabet-name-clause · CLASS · CRT STATUS · CURRENCY SIGN · CURSOR · DECIMAL-POINT ·
     // dynamic-length-structure-clause · LOCALE · the switch-name/feature-name/device-name entry ·
     // symbolic-characters-clause · ORDER TABLE, and nothing else.
-    // ⚠ REACH: `implementorSwitchEntry` above is `cobolWord (IS? cobolWord)?`, and IS is un-underlined in the
-    // printed format, so a TWO-word entry (`WIBBLE WOBBLE`) is shape-legal as `device-name-1 [IS]
+    // ⚠ REACH: `implementorSwitchEntry` above takes a word plus a REQUIRED continuation, and IS is un-underlined
+    // in the printed format, so a TWO-word entry (`WIBBLE WOBBLE`) is shape-legal as `device-name-1 [IS]
     // mnemonic-name-3` and never reaches here — what the standard refuses there is §12.3.7.3 SR8 (the name is
-    // not one the implementor specifies), a SEMANTIC rule, not this general format. This alternative catches
-    // what NO arm of the format admits: a run carrying a literal, or three or more words.
+    // not one the implementor specifies), a SEMANTIC rule refused by name at bind (COBOLNET2241, kb/Work PB862).
+    // This alternative catches what NO arm of the format admits: a lone word (kb/Work PB716), a run carrying a
+    // literal, or three or more words.
     | unrecognizedClause DOT?   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
     ;
 
@@ -94,8 +95,27 @@ orderTableClause
 // every one of the three lines, so `SW1 MN1`, `ON STATUS C1`, `ON C1` and `OFF C2` are all conforming spellings
 // of the same entry. The IS of `[IS mnemonic-name-1]` was demanded here and the ON arm's STATUS/IS were split
 // across two alternatives that between them still could not spell `ON STATUS condition-name-1`.
+// ⛔ A CONTINUATION IS REQUIRED (kb/Work PB716; RENDERED — PDF p320 / folio 290). The switch arm's continuation
+// is in BRACES — `IS mnemonic-name-1 [ |ON …|OFF …| ]` or `{ |ON …|OFF …| }` — and the feature-name and
+// device-name arms require `IS mnemonic-name`, so NO arm is a bare word. The old `cobolWord (IS? cobolWord)?
+// switchOnClause? switchOffClause?` had a one-word minimum spelling, and inside the unbounded `specialNameEntry*`
+// loop every word left over after a clause became a complete, silent entry (`CLASS DIGITS IS "0" ZOTZOT.` ran).
+// Which system-name the first word IS — and so which arm it may be written in — is §12.3.7.3 SR8's implementor
+// table (Binding/ImplementorNames.cs, COBOLNET2241), a semantic rule the grammar cannot decide: the three arms
+// share one shape here and the NAME picks the arm.
 implementorSwitchEntry
-    : cobolWord (IS? cobolWord)? switchOnClause? switchOffClause?
+    : cobolWord ( IS? cobolWord switchStatusPhrases?
+                | switchStatusPhrases
+                )
+    ;
+
+// The CHOICE INDICATORS of both switch-arm status groups (§5.2.6.4 — "any single alternative shall be specified
+// only once", in any order): ON then optional OFF, or OFF then optional ON. Spelled as the two orders rather than
+// `(switchOnClause | switchOffClause)*` so "each at most once" is the SHAPE and needs no bind-time count; the old
+// `switchOnClause? switchOffClause?` refused the legal `OFF STATUS IS C2 ON STATUS IS C1` with COBOL0001.
+switchStatusPhrases
+    : switchOnClause switchOffClause?
+    | switchOffClause switchOnClause?
     ;
 
 // ONE alternative, not two: STATUS is an optional word, so `ON STATUS? IS? …` IS the printed format. The old
@@ -124,12 +144,16 @@ decimalPointClause
     : DECIMAL_POINT IS? IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
     ;
 
-// CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [FOR {ALPHANUMERIC|NATIONAL}] [IN alphabet-name]
-// ⛔ FOR IS AN OPTIONAL WORD (kb/Work PB695): folio 290 rules ALPHANUMERIC and NATIONAL, never the FOR that
-// introduces them, so `CLASS X IS "0" NATIONAL` is conforming. The phrase is the SHARED specialNamesForPhrase,
+// CLASS class-name-1 [FOR {ALPHANUMERIC|NATIONAL}] IS {literal-5 [THROUGH literal-6]}... [IN alphabet-name-4]
+// ⛔ THE FOR PHRASE FOLLOWS class-name-1 AND PRECEDES IS (kb/Work PB716; RENDERED — PDF p320 / folio 290: the
+// bracketed FOR group is on the CLASS line, the IS line holds the literals and the IN phrase). It used to be
+// spelled AFTER the literals, so the printed `CLASS X FOR NATIONAL IS "0"` was REFUSED (COBOL0305 at FOR) and the
+// unprinted `CLASS X IS "0" NATIONAL` was accepted — the exact inverse. No dialect owns the postfix spelling, so it
+// is gone rather than kept as a superset. FOR is an optional word (kb/Work PB695: folio 290 rules ALPHANUMERIC and
+// NATIONAL, never FOR), so `CLASS X NATIONAL IS "0"` is conforming. The phrase is the SHARED specialNamesForPhrase,
 // so its 2002 gate keys on the SUBRULE and not on a word the standard lets the user omit.
 classDefinitionClause
-    : CLASS cobolWord IS? classValueSet specialNamesForPhrase? (IN cobolWord)?
+    : CLASS cobolWord specialNamesForPhrase? IS? classValueSet (IN cobolWord)?
     ;
 
 // { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §12.3.7.2
@@ -200,6 +224,10 @@ alphabetDefinition
     | alphabetEntry (COMMA? alphabetEntry)*
     ;
 
+// literal-1 [ {THROUGH|THRU} literal-2 | {ALSO literal-3}… ] — ⚠ A DELIBERATE SUPERSET (kb/Work PB790). The printed
+// figure (RENDERED — PDF p321 / folio 291) stacks the two phrases in ONE bracket with no choice indicators, so an
+// entry carries at most one of them (§5.2.6.2). The rule still admits both so the binder can refuse the pair BY NAME
+// (COBOLNET2242, DataBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
 alphabetEntry
     : (cobolWord | literal) ((THRU | THROUGH) (cobolWord | literal))?
       (ALSO (cobolWord | literal))*

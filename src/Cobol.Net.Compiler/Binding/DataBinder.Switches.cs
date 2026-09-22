@@ -21,9 +21,10 @@ using Core = CobolParserCore;
 public sealed partial class DataBinder
 {
     /// <summary>SPECIAL-NAMES switch mnemonic-names (case-insensitive) → the implementor switch-name they set
-    /// (ISO §12.3.7 Option 1; SR5 — a mnemonic-name may be specified only in a SET statement). An Option 2 entry
-    /// (no mnemonic) registers the switch-name itself, accepting <c>SET switch-name</c> — legacy-parity leniency
-    /// (the conforming program cannot SET an Option 2 switch at all, so no conforming program changes meaning).</summary>
+    /// (ISO §12.3.7.2 switch arm; §12.3.7.3 SR5 — mnemonic-name-1 may be specified only in a SET statement). ONLY a
+    /// switch-name's mnemonic is here (kb/Work PB862): a device-name's mnemonic used to land here too, so
+    /// <c>CONSOLE IS CON</c> + <c>SET CON TO ON</c> compiled and "set" the console. An entry with no mnemonic
+    /// registers nothing — the switch-name itself is not a mnemonic-name, and SET's operand is one (§14.9.39.3 SR5).</summary>
     public Dictionary<string, string> SwitchMnemonics { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Switch-status condition-names (case-insensitive) → (implementor switch-name, posited-ON) (ISO
@@ -600,8 +601,8 @@ public sealed partial class DataBinder
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §12.3.7
     /// general format: <c>switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1]
     /// [OFF [STATUS] [IS] condition-name-2]</c>; the NIST-85 surface also writes <c>ON IS cond</c> with no STATUS —
-    /// both shapes are one grammar rule). Any switch-name is accepted (SR8 — the available names are
-    /// implementor-specified; see <c>ExternalSwitches</c> for the documented item-191 contract).</summary>
+    /// both shapes are one grammar rule). Only the switch-names <see cref="ImplementorNames"/> makes available are
+    /// accepted (§12.3.7.3 SR8, Annex A.1 item 191 — kb/Work PB862).</summary>
     private void SwitchBindSpecialNames(Core.ProgramUnitContext program)
     {
         Core.ProgramCollatingSequenceClauseContext? pcsClause = null;
@@ -666,19 +667,7 @@ public sealed partial class DataBinder
                 // (COBOLNET1560), the same posture as the SCREEN SECTION they belong to.
                 if (entry.cursorClause() is { } curs) { ScreenFacility.ReportCursorClause(Edition, curs); continue; }
                 if (entry.crtStatusClause() is { } crt) { ScreenFacility.ReportCrtStatusClause(Edition, crt); continue; }
-                if (entry.implementorSwitchEntry() is not { } sw) continue;
-                var ids = sw.cobolWord();   // [0] = switch-name; [1] = mnemonic-name when Option 1
-                if (ids.Length == 0) continue;
-                string? onName = sw.switchOnClause()?.cobolWord()?.GetText();
-                string? offName = sw.switchOffClause()?.cobolWord()?.GetText();
-                // Only a genuine switch clause registers: a mnemonic (Option 1) or ≥1 status condition (Option 2)
-                // — the §12.3.7 format requires at least one of the three phrases.
-                if (ids.Length < 2 && onName is null && offName is null) continue;
-
-                string implName = ids[0].GetText();
-                SwitchMnemonics.TryAdd(ids.Length >= 2 ? ids[1].GetText() : implName, implName);
-                if (onName is not null) SwitchConditions.TryAdd(onName, (implName, true));
-                if (offName is not null) SwitchConditions.TryAdd(offName, (implName, false));
+                if (entry.implementorSwitchEntry() is { } sw) BindImplementorNameEntry(sw);
             }
         }
         // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §12.3.6 GR9); only
@@ -689,6 +678,28 @@ public sealed partial class DataBinder
         foreach (var cd in classClauses) SwitchBindClass(cd);           // after the alphabets exist (PB110)
         foreach (var sc in symbolicClauses) SwitchBindSymbolic(sc);
         FinalizeCurrencySigns();   // §12.3.7.3 r25 — the implied '$' clause, once every explicit clause is in
+    }
+
+    /// <summary>One switch-name / feature-name / device-name entry (ISO §12.3.7.2). §12.3.7.3 SR8 — "<i>The implementor
+    /// shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1.</i>" — is
+    /// decided HERE, once, from the ONE table (<see cref="ImplementorNames"/>): a name that is not a row, or a
+    /// non-switch name written with ON/OFF STATUS, is COBOLNET2241 (kb/Work PB862) and registers nothing. A switch
+    /// row registers its mnemonic (SET, §12.3.7.3 SR5) and its condition-names (§12.3.7.4 GR2); a device or
+    /// feature row's mnemonic is read by the procedure binders through <c>BinderContext.Mnemonics</c>, which
+    /// classifies it by the same <see cref="ImplementorNameEntry"/>.</summary>
+    private void BindImplementorNameEntry(Core.ImplementorSwitchEntryContext sw)
+    {
+        var e = ImplementorNameEntry.Read(sw);
+        if (e.Unavailable is { } why)
+        {
+            Edition.Error(DiagnosticCatalog.UnavailableImplementorName, why);
+            return;
+        }
+        if (e.Row!.Kind != SystemNameKind.Switch) return;
+        string switchName = e.Row.Name;
+        if (e.Mnemonic is { } m) SwitchMnemonics.TryAdd(m, switchName);
+        if (e.OnCondition is { } on) SwitchConditions.TryAdd(on, (switchName, true));
+        if (e.OffCondition is { } off) SwitchConditions.TryAdd(off, (switchName, false));
     }
 
     /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §12.3.6): the IS form's alphabet-name-1
@@ -1146,9 +1157,23 @@ public sealed partial class DataBinder
 
         foreach (var entry in def.alphabetEntry())
         {
+            bool thru = entry.THRU() is not null || entry.THROUGH() is not null;
+            if (thru && entry.ALSO().Length > 0)
+            {
+                // ⛔ ONE ENTRY, ONE PHRASE (kb/Work PB790; RENDERED — PDF p321 / folio 291). The literal-phrase
+                // figure stacks `{THROUGH|THRU} literal-2` and `{ALSO literal-3}…` inside ONE pair of square brackets
+                // with no choice indicators, so §5.2.6.2 admits "one of the alternatives contained within the
+                // brackets" — never both. The grammar parses the union (superset-parse / bind-narrow) so the refusal
+                // can name its rule; it used to reach the k5 branch below, which `continue`d past the ALSO operands
+                // and left them at the GR7 k3 unspecified positions with no diagnostic. There is no merged reading
+                // to recover to — k5 and k6 place operands by incompatible rules — so the entry contributes nothing.
+                Edition.Error(DiagnosticCatalog.AlphabetThroughWithAlso, $"{what}: the entry for {entry.GetChild(0).GetText()} "
+                    + "specifies both a THROUGH phrase and an ALSO phrase — the literal-phrase general format offers "
+                    + "them as alternatives within one pair of brackets (ISO §12.3.7.2; §5.2.6.2)");
+                continue;
+            }
             var operands = AlphabetOperands(name, entry, national);
             if (operands.Count == 0) continue;
-            bool thru = entry.THRU() is not null || entry.THROUGH() is not null;
             if (thru || entry.ALSO().Length > 0)
             {
                 // SR14 b3/c3: "Each … literal, when a THROUGH or ALSO phrase is specified, shall be one character

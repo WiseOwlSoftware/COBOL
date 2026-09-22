@@ -111,6 +111,18 @@ public sealed class AlphabetLiteralPhraseTests
     public void DuplicateCharacter_IsSR14a_OnBothArms(string pid, string clause, string expected) =>
         Rejects(pid, clause, expected + " is specified more than once");
 
+    /// <summary>kb/Work PB790 — ONE literal-phrase entry carries a THROUGH range OR ALSO operands, never both: the
+    /// printed figure (§12.3.7.2, RENDERED — PDF p321 / folio 291) stacks the two in ONE bracket with no choice
+    /// indicators (§5.2.6.2). The pair used to compile on both arms and drop the ALSO operands; it is refused by name
+    /// on BOTH arms, because the ONE builder answers for both (<c>feedback_two_arm_dispatch</c>). The entry order is
+    /// flipped on the national arm so neither position of the pair is the only one pinned.</summary>
+    [Theory]
+    [InlineData("PB790TAA", "ALPHABET ALF IS \"A\" THRU \"C\" ALSO \"D\".", "ALPHABET ALF: the entry for \"A\"")]
+    [InlineData("PB790TAN", "ALPHABET ALF FOR NATIONAL IS N\"Z\", N\"A\" THROUGH N\"C\" ALSO N\"D\" ALSO N\"E\".",
+        "ALPHABET ALF FOR NATIONAL: the entry for N\"A\"")]
+    public void ThroughWithAlso_IsOneBracketsTwoAlternatives_OnBothArms(string pid, string clause, string expected) =>
+        Rejects(pid, clause, "COBOLNET2242: " + expected + " specifies both a THROUGH phrase and an ALSO phrase");
+
     /// <summary>The POSITIVE CONTROL for every fact above: a phrase whose characters are all distinct, in both
     /// classes, compiles. Without it a regression that rejected EVERY literal phrase would read as green
     /// (<c>feedback_green_gates_arent_evidence</c>).</summary>

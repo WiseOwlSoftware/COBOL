@@ -7,7 +7,7 @@
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.
-           HIGHLIGHT IS SCR-MNEM.
+           CONSOLE IS SCR-MNEM.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 AUTO             PIC X(3) VALUE "W01".
@@ -26,8 +26,11 @@
        01 SECURE           PIC X(3) VALUE "W14".
        01 W-TAB.
            05 UNDERLINE    PIC X(3) OCCURS 3 TIMES.
-      *> 8.3.2.1 rule 3 says "user-defined words AND SYSTEM-NAMES", so HIGHLIGHT is also exercised where the
-      *> format calls for a system-name: the SPECIAL-NAMES implementor-name entry above (12.3.7).
+      *> 8.3.2.1 rule 3 says "user-defined words AND SYSTEM-NAMES", but it PERMITS a context-sensitive word
+      *> as a system-name - it does not create one. HIGHLIGHT used to be exercised as the SPECIAL-NAMES entry's
+      *> system-name, which compiled only while any word was accepted as one; 12.3.7.3 SR8 makes the available
+      *> system-names the implementor's to specify (kb/Work PB862, docs/CONFORMANCE.md section 7, A.1 items
+      *> 189-191) and no screen word is among them, so the entry above names the device CONSOLE.
        PROCEDURE DIVISION.
        MAIN.
            MOVE "W15" TO UNDERLINE (2).

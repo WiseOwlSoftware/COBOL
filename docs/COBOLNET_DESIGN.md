@@ -1124,6 +1124,17 @@ result does not feed it — decision 20.
   used here.
 - **ACCEPT/DISPLAY system sources** = a `CobolSystem` runtime with an INJECTABLE clock (DATE/DAY/TIME/DAY-OF-WEEK/
   YYYYMMDD/YYYYDDD; DAY-OF-WEEK remap `((int)DayOfWeek + 6) % 7 + 1` = 1=Mon..7=Sun) + console UPON SYSOUT/SYSERR.
+- **SPECIAL-NAMES implementor system-names** (§12.3.7.3 SR8; A.1 items 189/190/191) = ONE table,
+  `Binding/ImplementorNames.cs` (kb/Work PB862): each row is a name, its ONE type (§8.3.2.3.1 — device / feature /
+  switch), a device's input/output capability and a feature's WRITE ADVANCING rule. Both walkers of the
+  switch-name/feature-name/device-name entry — `DataBinder.BindImplementorNameEntry` (switch mnemonics + status
+  condition-names) and `Procedure.MnemonicRegistry` (the per-unit mnemonic map, OO scopes included) — classify
+  through ONE reader, `ImplementorNameEntry`; an unavailable name is COBOLNET2241 at the declaration. The mnemonic
+  map's value is the ROW, so every use is decided by the name's KIND: ACCEPT/DISPLAY (`MnemonicDevice`, SR7 +
+  capability, COBOLNET0817), SET (switch only, §14.9.39.3 SR5), WRITE ADVANCING (feature only, §14.9.51.3 SR16,
+  COBOLNET2243 — C01 = the PAGE advance, CSP = zero lines). A new name is a ROW; `ImplementorNamesDriftTests`
+  keeps docs/CONFORMANCE.md §7 and the diagnostic text in step with the table. The entry's SHAPE (a required
+  continuation; ON/OFF in either order, each once) is the grammar's (kb/Work PB716).
 - **ALPHABET/CLASS/CURRENCY/DECIMAL-POINT IS COMMA** = a SPECIAL-NAMES config object threaded into emit (mostly
   compile-time); CURRENCY SIGN is a SET (symbol → string, r25's implied '$' included) whose per-picture string
   travels on `PicInfo.CurrencyString` — `COBOLNET_NUMERIC_DESIGN.md` D4's edge-case list carries the model.

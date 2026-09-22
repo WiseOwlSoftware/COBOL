@@ -1298,7 +1298,11 @@
   "pb846-sort-table-key-omitted-below-2002",
   "pb848-function-pointer-to-less-below-2014",
   "pb847-function-pointer-no-parentheses",
-  "pb847-function-pointer-call-below-2014"
+  "pb847-function-pointer-call-below-2014",
+  "pb716-special-names-bare-word",
+  "pb862-unavailable-device-name",
+  "pb862-write-advancing-device-mnemonic",
+  "pb790-alphabet-through-with-also"
  ],
  "pending": []
 }

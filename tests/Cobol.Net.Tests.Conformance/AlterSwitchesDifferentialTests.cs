@@ -9,7 +9,8 @@ namespace CobolNet.Tests.Conformance;
 /// has only Formats 1–2) and the SPECIAL-NAMES external-switch family (ISO §12.3.7; SET F3 §14.9.39; switch-status
 /// condition §8.8.4.6). Differential against the legacy oracle (NIST-85 green: NC174A/254A/302M/303M); the
 /// edition-gating fact uses the per-edition harness. Switch facts avoid the guard's COBOL_SWITCH_1 env contract by
-/// using SWTEST-* switch names (absent from any environment ⇒ deterministic default OFF in both engines).
+/// using SWITCH-31…SWITCH-34 (available switch-names, docs/CONFORMANCE.md §7 item 191, that no environment sets ⇒
+/// deterministic default OFF in both engines; they were SWTEST-* until kb/Work PB862 closed the name set).
 /// </summary>
 public sealed class AlterSwitchesDifferentialTests
 {
@@ -23,10 +24,10 @@ public sealed class AlterSwitchesDifferentialTests
         ENVIRONMENT DIVISION.
         CONFIGURATION SECTION.
         SPECIAL-NAMES.
-            SWTEST-A IS SWM-A
+            SWITCH-31 IS SWM-A
                 ON STATUS IS A-IS-ON
                 OFF STATUS IS A-IS-OFF
-            SWTEST-B IS SWM-B
+            SWITCH-32 IS SWM-B
                 ON IS B-IS-ON
                 OFF IS B-IS-OFF.
         DATA DIVISION.
@@ -68,7 +69,7 @@ public sealed class AlterSwitchesDifferentialTests
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             SPECIAL-NAMES.
-                SWTEST-C ON STATUS IS C-IS-ON OFF STATUS IS C-IS-OFF.
+                SWITCH-33 ON STATUS IS C-IS-ON OFF STATUS IS C-IS-OFF.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 IF C-IS-OFF DISPLAY "C-OFF".
@@ -99,7 +100,7 @@ public sealed class AlterSwitchesDifferentialTests
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             SPECIAL-NAMES.
-                SWTEST-A IS SWM-A ON STATUS IS DUAL-NAME.
+                SWITCH-31 IS SWM-A ON STATUS IS DUAL-NAME.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 WS-FLAG PIC 9 VALUE 0.
@@ -118,7 +119,7 @@ public sealed class AlterSwitchesDifferentialTests
              // the contract (the NIST guard exports COBOL_SWITCH_1=ON on the same basis).
     public void Switch_EnvironmentVariableSuppliesInitialState()
     {
-        Environment.SetEnvironmentVariable("COBOL_SWTEST_ENVPROBE", "ON");
+        Environment.SetEnvironmentVariable("COBOL_SWITCH_34", "ON");
         try
         {
             AssertSameAsLegacy("""
@@ -127,7 +128,7 @@ public sealed class AlterSwitchesDifferentialTests
                 ENVIRONMENT DIVISION.
                 CONFIGURATION SECTION.
                 SPECIAL-NAMES.
-                    SWTEST-ENVPROBE IS SWM-E
+                    SWITCH-34 IS SWM-E
                         ON STATUS IS E-IS-ON
                         OFF STATUS IS E-IS-OFF.
                 PROCEDURE DIVISION.
@@ -139,7 +140,7 @@ public sealed class AlterSwitchesDifferentialTests
                     STOP RUN.
                 """);
         }
-        finally { Environment.SetEnvironmentVariable("COBOL_SWTEST_ENVPROBE", null); }
+        finally { Environment.SetEnvironmentVariable("COBOL_SWITCH_34", null); }
     }
 
     [Fact]   // ANSI X3.23-1985 ALTER GR: until an ALTER executes, the WRITTEN GO TO target governs (the D4 field's

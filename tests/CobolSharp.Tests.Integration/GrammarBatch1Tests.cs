@@ -368,6 +368,8 @@ public class GrammarBatch1Tests : EndToEndTestBase
     // ==========================================
     // CLASS FOR ALPHANUMERIC/NATIONAL (M410)
     // ==========================================
+    // The FOR phrase sits between class-name-1 and IS — ISO §12.3.7.2, the rendered folio 290 (kb/Work PB716).
+    // The postfix spelling this test used to write is not the printed format and is refused.
 
     [Fact]
     public void Class_ForAlphanumeric_ParsesSuccessfully()
@@ -378,8 +380,8 @@ public class GrammarBatch1Tests : EndToEndTestBase
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             SPECIAL-NAMES.
-                CLASS MY-DIGITS IS "0" THRU "9"
-                    FOR ALPHANUMERIC.
+                CLASS MY-DIGITS FOR ALPHANUMERIC
+                    IS "0" THRU "9".
             PROCEDURE DIVISION.
             MAIN-PARA.
                 DISPLAY "CLASS FOR PARSED".

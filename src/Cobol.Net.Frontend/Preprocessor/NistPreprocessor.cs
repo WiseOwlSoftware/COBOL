@@ -15,6 +15,7 @@ namespace CobolNet.Frontend.Preprocessor;
 ///   XXXXX055     — System printer file name (ASSIGN TO target for PRINT-FILE)
 ///   XXXXX056     — SPECIAL-NAMES display output device implementor-name
 ///   XXXXX057     — SPECIAL-NAMES accept input device implementor-name
+///   XXXXX073     — SPECIAL-NAMES WRITE ADVANCING feature-name (→ CSP)
 ///   XXXXX058     — Control card file ASSIGN target
 ///   XXXXX068     — OBJECT-COMPUTER MEMORY SIZE value (obsolete clause)
 ///   XXXXX069     — Implementor's own ADDITIONAL FILE DESCRIPTION clause — DELETED (kb/Work PB829)
@@ -183,6 +184,12 @@ public static class NistPreprocessor
 
         // XXXXX057: accept input device implementor-name
         source = source.Replace("XXXXX057", "CONSOLE");
+
+        // XXXXX073: the feature-name of a WRITE ... ADVANCING mnemonic-name (SQ207M). CSP — "suppress spacing", a
+        // zero-line advance — is the feature-name whose rule the SQ207M golden encodes (the record lands on the
+        // current line). Substituted since kb/Work PB862: the unsubstituted placeholder used to bind as a "device"
+        // only because the SPECIAL-NAMES binder accepted any word as a system-name (§12.3.7.3 SR8 now refuses it).
+        source = source.Replace("XXXXX073", "CSP");
 
         // ── CONFIGURATION ──
 

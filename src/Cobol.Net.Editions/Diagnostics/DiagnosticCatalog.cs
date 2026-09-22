@@ -4475,6 +4475,49 @@ public static class DiagnosticCatalog
         + "clause, supplies an actual parameter of the wrong kind or one that is not declared in the same "
         + "paragraph, or reuses an expansion's name for a different expansion.",
         "ISO §12.3.8.3 SR4/SR7 / §12.3.8.4 GR5/GR8 / §9.3.12 / §9.3.13");
+    // ── COBOLNET2241–2243 — what a SPECIAL-NAMES entry may consist of (kb/Work PB716 + PB790 + PB862). ──
+
+    /// <summary>A SPECIAL-NAMES switch-name / feature-name / device-name entry names a system-name this
+    /// implementation does not make available, or writes ON/OFF STATUS on a name that is not a switch-name
+    /// (kb/Work PB862). The available names are ONE table, <c>Binding/ImplementorNames.cs</c>, documented as
+    /// Annex A.1 items 189/190/191 in docs/CONFORMANCE.md §7. <c>SPECIAL-NAMES. WIBBLE WOBBLE.</c> used to
+    /// compile and register a mnemonic that named nothing.</summary>
+    public static readonly DiagnosticDescriptor UnavailableImplementorName = new(
+        "COBOLNET2241", "unavailable-implementor-name", EditionSeverity.Error,
+        "A SPECIAL-NAMES entry of the switch-name / feature-name / device-name form names a system-name this "
+        + "implementation does not make available. ISO §12.3.7.3 SR8: \"The implementor shall specify the names "
+        + "that are available for switch-name-1, feature-name-1, and device-name-1.\" COBOL.NET's names are the "
+        + "device-names CONSOLE, SYSIN, SYSOUT and SYSERR, the feature-names C01 and CSP, and the switch-names "
+        + "SWITCH-0 through SWITCH-36 and UPSI-0 through UPSI-7 (Annex A.1 items 189, 190, 191). A system-name "
+        + "belongs to exactly one of the three types (§8.3.2.3.1), so ON STATUS / OFF STATUS — printed only in "
+        + "the switch-name-1 arm of §12.3.7.2 — may follow a switch-name only.",
+        "ISO §12.3.7.3 SR8");
+
+    /// <summary>One ALPHABET literal-phrase entry writes BOTH a THROUGH range and ALSO operands (kb/Work PB790).
+    /// The printed literal-phrase figure (§12.3.7.2, folio 291, RENDERED) stacks the two inside ONE pair of square
+    /// brackets with no choice indicators, and §5.2.6.2 makes stacked bracket alternatives mutually exclusive.
+    /// <c>"A" THRU "C" ALSO "D"</c> used to compile clean and silently drop the ALSO operands.</summary>
+    public static readonly DiagnosticDescriptor AlphabetThroughWithAlso = new(
+        "COBOLNET2242", "alphabet-through-with-also", EditionSeverity.Error,
+        "An ALPHABET clause literal-phrase entry specifies both a THROUGH (THRU) phrase and an ALSO phrase. ISO "
+        + "§12.3.7.2 prints the two inside one pair of brackets as alternatives — literal-1 [ {THROUGH|THRU} "
+        + "literal-2 | {ALSO literal-3}… ] — and §5.2.6.2: \"Brackets, [ ], enclosing a portion of a general format "
+        + "indicate that the syntax element contained within the brackets or one of the alternatives contained "
+        + "within the brackets may be explicitly specified\". §12.3.7.4 GR7 places a THROUGH run on ascending "
+        + "positions and an ALSO group on ONE shared position, so a merged entry has no meaning: write the range "
+        + "and the equivalences as separate entries.",
+        "ISO §12.3.7.2; §5.2.6.2");
+
+    /// <summary>The ADVANCING operand of a WRITE is a mnemonic-name that is not a feature-name's (kb/Work PB862):
+    /// a switch's or a device's mnemonic used to bind as a zero-line advance.</summary>
+    public static readonly DiagnosticDescriptor WriteAdvancingMnemonicNotFeature = new(
+        "COBOLNET2243", "write-advancing-mnemonic-not-feature", EditionSeverity.Error,
+        "The ADVANCING phrase of a WRITE statement names a mnemonic-name that is associated with a switch-name or "
+        + "a device-name. ISO §14.9.51.3 SR16: \"When mnemonic-name-1 is specified, the name is associated with a "
+        + "feature-name specified by the implementor.\" §12.3.7.3 SR5 and SR7 confine a switch's mnemonic to SET and "
+        + "a device's to ACCEPT and DISPLAY. COBOL.NET's feature-names are C01 (top of the next page) and CSP "
+        + "(suppress spacing).",
+        "ISO §14.9.51.3 SR16");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

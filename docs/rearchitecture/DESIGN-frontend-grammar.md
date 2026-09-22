@@ -782,10 +782,12 @@ newly-closed format as the standing witness that the rendering was right.
   SINK, not a `genericClause` site, so `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` is still absorbed — kb/Work
   PB830.
 - **`SPECIAL-NAMES. WIBBLE WOBBLE.`** is NOT a §12.3.7.2 general-format violation and is not closed here.
-  `implementorSwitchEntry` is `cobolWord (IS? cobolWord)?` and IS is un-underlined in the printed format, so a
-  bare two-word entry is shape-legal as `device-name-1 [IS] mnemonic-name-3`. What refuses it is §12.3.7.3 SR8
-  ("The implementor shall specify the names that are available for switch-name-1, feature-name-1, and
-  device-name-1") — a semantic rule over an implementor-defined name set, a different mechanism.
+  `implementorSwitchEntry` is `cobolWord ( IS? cobolWord switchStatusPhrases? | switchStatusPhrases )` — a
+  continuation is REQUIRED (kb/Work PB716: a lone word reaches `unrecognizedClause`, COBOLNET1970) — and IS is
+  un-underlined in the printed format, so a two-word entry is shape-legal as `device-name-1 [IS]
+  mnemonic-name-3`. What refuses it is §12.3.7.3 SR8 ("The implementor shall specify the names that are available
+  for switch-name-1, feature-name-1, and device-name-1") — a semantic rule over the implementor's name table,
+  `Binding/ImplementorNames.cs`, refused at bind as COBOLNET2241 (kb/Work PB862).
 - **The §12.3.7.2 `dynamic-length-structure-clause` is not modelled at all**, so
   `DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers `COBOL0001: unexpected 'DYNAMIC'`. That is a
   rejects-legal-source gap that predates and is unaffected by this change (DYNAMIC is a reserved token no
