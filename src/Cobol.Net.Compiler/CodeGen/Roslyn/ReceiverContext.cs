@@ -137,51 +137,106 @@ internal readonly record struct ReceiverContext(
     }
 
     /// <summary>
-    /// ⛔ THE ONE PLACE a float→fixed quantization's SCALE **and** its ROUNDING MODE are decided together
-    /// (kb/Work PB647) — the §15.4.1 float-intrinsic family (<c>IntrinsicRenderer.RenderFloatNative</c>) and
-    /// native <c>**</c> (<c>NumericRenderer.Power</c>) are its two consumers, and they must agree because one
-    /// returned value must not land two ways.
+    /// ⛔ THE ONE PLACE a NATIVE-arithmetic float value's LANDING is decided — WHETHER it is quantized into the
+    /// fixed-point <c>Int128</c> lane at all, and when it is, at which SCALE and with which ROUNDING MODE
+    /// (kb/Work PB647, then PB653). The §15.4.1 float-intrinsic family
+    /// (<c>IntrinsicRenderer.RenderFloatNative</c>) and native <c>**</c> (<c>NumericRenderer.Power</c>) are its
+    /// two consumers, and they must agree because one returned value must not land two ways.
     /// <para>
     /// <paramref name="finalTransfer"/> is the caller's <c>NumericRenderer.Outermost</c> — TRUE exactly when the
-    /// quantized value IS the value transferred to a single resultant identifier, which is the same question
-    /// <c>NumericRenderer.Divide</c> already asks and answers the same way:
+    /// value IS the value transferred to a single resultant identifier. There are exactly THREE answers:
     /// <list type="bullet">
-    ///   <item><b>The final transfer</b> lands AT the resultant identifier's scale with the statement's own
-    ///     ROUNDED mode. §14.7.4.1: "If, after decimal point alignment, the number of places in the fractional
-    ///     part of the result of an arithmetic operation is greater than the number of places provided for the
-    ///     fraction of the resultant identifier, truncation is relative to the size provided for the resultant
-    ///     identifier" (cite.py-verified) — the decision is made ONCE, at the receiver's scale. The store's
-    ///     rescale is then the identity, so no second rounding can contradict it.</item>
-    ///   <item><b>A nested intermediate</b> lands at the float working scale with TRUNCATION, never the
-    ///     receiver's mode: the rounding belongs to the transfer into the resultant identifier
-    ///     (§14.7.4.3 rules 3–10 each speak of "the resultant identifier"), and the single receiver store
-    ///     performs it. This is the rule <c>NumericRenderer.Align</c> and <c>Divide</c>'s nested arm already
-    ///     state for every OTHER float→fixed intermediate.</item>
+    ///   <item><b>The final transfer into a fixed-point resultant</b> quantizes AT that identifier's scale with
+    ///     the statement's own ROUNDED mode. §14.7.4.1: "If, after decimal point alignment, the number of places
+    ///     in the fractional part of the result of an arithmetic operation is greater than the number of places
+    ///     provided for the fraction of the resultant identifier, truncation is relative to the size provided for
+    ///     the resultant identifier" (cite.py-verified) — the decision is made ONCE, at the receiver's scale, so
+    ///     the store's rescale is the identity and no second rounding can contradict it.</item>
+    ///   <item><b>A FLOATING-POINT numeric-edited resultant</b> (<see cref="FloatEdited"/>) is never a final
+    ///     transfer for this purpose: it has no fixed fraction scale to round at — the result normalizes into the
+    ///     mask and its significand is truncated to the mask's digits — so it quantizes at the capped working
+    ///     scale with TRUNCATION and the mask's own normalization does the rest (data-model D21 / kb/Work PB66).</item>
+    ///   <item><b>EVERYTHING ELSE KEEPS THE BINARY64 AND QUANTIZES NOT AT ALL</b> — a NESTED intermediate, a
+    ///     float receiver, a receiver-less render. There is no transfer here, so there is no scale to quantize
+    ///     TO; the ONE quantization happens at the receiver store, on the whole expression's value.</item>
     /// </list>
     /// </para>
     /// <para>
-    /// ⛔ WHY THIS EXISTS AT ALL (the defect it closes). The quantizer hard-coded
-    /// <see cref="CobolRounding.NearestAwayFromZero"/> at the working scale in BOTH positions, so with
-    /// <c>S PIC 9V9(9)</c>, <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807 (§14.6.8.2 rule 4 —
-    /// "the data is aligned by decimal point and is transferred to the receiving digits with zero fill or
-    /// truncation on either end") while <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808, and
-    /// <c>SQRT(0.9999999999)</c> into <c>PIC 9V9</c> split across a whole tenth (0.9 against 1.0). ONE returned
-    /// value, two landings — which §15.4.1 forbids outright ("the returned value is the same for all instances
-    /// of a given function within a single execution of the runtime element so long as the value and order of
-    /// the arguments, the collating sequence, and the locale are unchanged"). The same hard-coding made the
-    /// ROUNDED phrase a NO-OP on this family: <c>COMPUTE S ROUNDED</c> and the no-phrase <c>COMPUTE S</c> both
-    /// answered 1.732050808, where §14.7.4.3 rule 2 says "If the ROUNDED phrase is not specified, execution is
-    /// as if ROUNDED MODE IS TRUNCATION had been specified". §8.8.1.3's native latitude ("Native arithmetic is
-    /// an implementor-defined method of evaluating an arithmetic expression, an arithmetic statement, the SUM
-    /// clause, and all integer and numeric functions") covers the INTERMEDIATE's precision, not the rounding of
-    /// the transfer into the resultant identifier, which §14.7.4.1/§14.7.4.3 fix.
+    /// ⛔ WHY THE NESTED ARM QUANTIZES NOTHING, AND WHY A GUARD-DIGIT WORKING SCALE IS NOT THE ANSWER
+    /// (kb/Work PB653 — the defect this arm closes). PB647 landed a nested intermediate at the ≥ 9 float working
+    /// scale with TRUNCATION, which truncates the returned value one digit too early and lets every operation
+    /// above it propagate the loss: with <c>R PIC 9V9(9)</c>, <c>COMPUTE R = FUNCTION SQRT(3) * 2</c> gave
+    /// 3.464101614 where a <c>COMP-2</c> item holding the IDENTICAL binary64 gave the correct 3.464101615, and
+    /// <c>COMPUTE R = FUNCTION SQRT(10) ** 2</c> gave 9.999999998 against the COMP-2 arm's 10.000000000.
+    /// §15.4.1 forbids the split outright — "the returned value is the same for all instances of a given function
+    /// within a single execution of the runtime element so long as the value and order of the arguments, the
+    /// collating sequence, and the locale are unchanged" — and the RELATION channel, which never quantized,
+    /// already AGREED with the COMP-2 item, so the arithmetic channel was the one arm out of step
+    /// (feedback_two_arm_dispatch).
     /// </para>
-    /// <para>A FLOATING-POINT numeric-edited resultant (<see cref="FloatEdited"/>) is never a final transfer for
-    /// this purpose: it has no fixed fraction scale to round at, so it keeps the working scale + truncation and
-    /// the mask's own normalization does the rest.</para>
+    /// <para>
+    /// The obvious repair — give the nested arm guard digits the way <c>NumericRenderer.Divide</c>'s nested arm
+    /// does — is WRONG, and measurably so: a landing does not know how many multiplications sit above it, so a
+    /// guarded scale ACCUMULATES. At <c>DivGuardDigits</c>'s 14 a nested float operand would land at scale 23,
+    /// and <c>FUNCTION SQRT(10) * FUNCTION SQRT(10)</c> would multiply two scale-23 operands into a scale-46
+    /// product — past the <see cref="IntermediateDigits"/> carrier, where the unchecked no-phrase store WRAPS.
+    /// <c>Divide</c> can afford a guard because it clamps against ITS OWN radix alignment, which it knows; a
+    /// landing has no such bound. Keeping the binary64 removes the question instead of tuning it: the value IS
+    /// then the same object a <c>COMP-2</c> item holds, <c>CombineCore</c>'s <c>Real</c> lane evaluates the whole
+    /// expression in IEEE binary64 (numeric design D16, on §8.8.1.3's "implementor-defined method of evaluating
+    /// an arithmetic expression, an arithmetic statement, the SUM clause, and all integer and numeric
+    /// functions"), and §15.4.1's identity holds BY CONSTRUCTION across the arithmetic, relation, text and MOVE
+    /// channels rather than by arithmetic luck.
+    /// </para>
+    /// <para>
+    /// ⚠ A CODOMAIN CLAMP BELONGS TO A LANDING, NOT TO AN EXPRESSION (kb/Work PB65's scope, re-derived here).
+    /// <c>FromDoubleBounded</c>'s clamp exists because ROUNDING a quantized value can push it out of the
+    /// function's §15.x.4 codomain; a nested operand is not rounded here at all, and the codomain of
+    /// <c>FUNCTION RANDOM * 5</c> is not RANDOM's, so the clamp correctly does not travel with the operand. The
+    /// receiver-less and float-receiver arms have always worked this way.
+    /// </para>
+    /// <para>
+    /// ⛔ WHAT PB647 ORIGINALLY CLOSED, KEPT BECAUSE IT IS WHY THE FINAL-TRANSFER ARM READS AS IT DOES. The
+    /// quantizer hard-coded <see cref="CobolRounding.NearestAwayFromZero"/> at the working scale in BOTH
+    /// positions, so with <c>S PIC 9V9(9)</c>, <c>MOVE FUNCTION SQRT(3) TO S</c> gave 1.732050807
+    /// (§14.6.8.2 rule 4 — "the data is aligned by decimal point and is transferred to the receiving digits with
+    /// zero fill or truncation on either end") while <c>COMPUTE S = FUNCTION SQRT(3)</c> gave 1.732050808, and
+    /// <c>SQRT(0.9999999999)</c> into <c>PIC 9V9</c> split across a whole tenth (0.9 against 1.0). The same
+    /// hard-coding made the ROUNDED phrase a NO-OP on this family, where §14.7.4.3 rule 2 says "If the ROUNDED
+    /// phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION had been specified".
+    /// </para>
+    /// <para>
+    /// ⚠ <c>NUMVAL-F</c> DELIBERATELY DOES NOT CONSULT THIS DECISION, AND THAT IS NOT DRIFT.
+    /// <c>IntrinsicRenderer</c>'s <c>NumvalF</c> arm lands an EXACT decimal parse at
+    /// <see cref="FloatWorkingScale"/> for a fixed receiver (§15.69.4 r2's approximation licence + kb/Work PB60):
+    /// its source carries MORE precision than a binary64, not less, so "keep the binary64" would LOSE digits
+    /// there rather than save them. Its nested arm has PB653's shape and PB653's cure does not fit it, so the
+    /// lead is filed on its own.
+    /// </para>
     /// </summary>
-    public (int Scale, CobolRounding Mode) FloatLanding(bool finalTransfer) =>
-        finalTransfer && !FloatEdited
-            ? (Scale, Rounding)
-            : (FloatWorkingScale, CobolRounding.Truncation);
+    public FloatLandingDecision FloatLanding(bool finalTransfer) =>
+        !finalTransfer || Real || Receiverless ? FloatLandingDecision.Binary64
+        : FloatEdited ? FloatLandingDecision.At(FloatWorkingScale, CobolRounding.Truncation)
+        : FloatLandingDecision.At(Scale, Rounding);
+}
+
+/// <summary>
+/// The answer <see cref="ReceiverContext.FloatLanding"/> gives: either the value STAYS a binary64
+/// (<see cref="Binary64"/> — a nested intermediate, a float receiver, a receiver-less render) or it is
+/// QUANTIZED into the fixed-point <c>Int128</c> lane at <see cref="Scale"/> with <see cref="Mode"/>.
+/// <para>⛔ IT IS A THREE-ANSWER DECISION AND NOT A SCALE, DELIBERATELY (kb/Work PB653). While the method
+/// returned a bare <c>(scale, mode)</c> pair, "do not quantize at all" had nowhere to live, so BOTH consumers
+/// wrote the receiver-shape half of the rule out again for themselves —
+/// <c>if (Receiver.Real || Receiver.Receiverless)</c> in <c>IntrinsicRenderer.RenderFloatNative</c> and
+/// <c>if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)</c> in <c>NumericRenderer.Power</c> — and neither
+/// of those two copies learned about the nested case. <c>Quantize</c> is what makes the NEXT consumer inherit
+/// the whole rule instead of half of it; <c>FloatLandingModeDriftTests</c> holds that true.</para>
+/// </summary>
+internal readonly record struct FloatLandingDecision(bool Quantize, int Scale, CobolRounding Mode)
+{
+    /// <summary>Keep the value in IEEE binary64 — there is no transfer here, so there is no scale to quantize to.</summary>
+    public static readonly FloatLandingDecision Binary64 = new(false, 0, CobolRounding.Truncation);
+
+    /// <summary>Quantize into the <c>Int128</c> lane at <paramref name="scale"/> with <paramref name="mode"/>.</summary>
+    public static FloatLandingDecision At(int scale, CobolRounding mode) => new(true, scale, mode);
 }

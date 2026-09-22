@@ -854,17 +854,23 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ BOTH ARMS NOW SCREEN §8.8.1.2 RULE 6 (PB28) — `PowNativeReal`, not a bare `System.Math.Pow`. The rule
         // is a GENERAL rule of arithmetic-expression evaluation and binds native `**` exactly as it binds the
         // SDIDI one, which `CobolDec.Pow` above has always honoured while every native arm ignored it.
-        if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)
-            return new NumX(RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}"), 0, Real: true);
         // ⛔ THE SAME QUANTIZER, SO THE SAME LANDING DECISION (PB13's sibling — feedback_scan_all_similar). A flat
         // max(Scale, 9) here silently saturated `COMPUTE R = 10 ** 30` into a PIC 9(31) exactly as it did for the
         // float-intrinsic family, and the hard-coded NEAREST-AWAY-FROM-ZERO mode made `COMPUTE A = 3 ** 0.5` round
         // where §14.7.4.3 rule 2 makes a no-phrase store TRUNCATE, exactly as it did there (kb/Work PB647).
-        // ReceiverContext.FloatLanding is the one rule both consume: the resultant identifier's scale + the
-        // statement's mode for the final transfer, the capped working scale + truncation for a nested intermediate.
-        var (ws, qmode) = _rcv.FloatLanding(_outermost);
+        // ReceiverContext.FloatLanding is the one rule both consume, and it answers the WHETHER as well as the
+        // scale and the mode: the resultant identifier's scale + the statement's mode for a final transfer into a
+        // fixed-point resultant, NO QUANTIZATION AT ALL for a nested intermediate / a float receiver / a
+        // receiver-less render. ⛔ THE RECEIVER-SHAPE HALF USED TO BE SPELLED HERE TOO (kb/Work PB653): this
+        // method wrote `_rcv.Real || _rcv.Receiverless` out for itself, IntrinsicRenderer.RenderFloatNative wrote
+        // the same pair out for itself, and NEITHER copy learned that a nested operand must keep its binary64 —
+        // so `COMPUTE R = FUNCTION SQRT(10) ** 2` landed 9.999999998 where a COMP-2 base gave 10.000000000.
+        // The decision now carries `Quantize` and this arm reads it (feedback_two_arm_dispatch, sixth sighting).
+        var landing = _rcv.FloatLanding(_outermost);
+        if (b.Real || e.Real || !landing.Quantize)
+            return new NumX(RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}"), 0, Real: true);
         return new NumX(RuntimeApi.Intrinsic("FromDouble",
-            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {ws}, {RuntimeApi.RoundingText(qmode)}{CheckedFlag}"), ws);
+            $"{RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}")}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 
     private static NumX Negate(NumX x) =>

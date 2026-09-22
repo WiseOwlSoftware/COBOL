@@ -1,5 +1,6 @@
 {
  "enabled": [
+  "pb653_nested_float_operand",
   "pb429_page_counter_receiving",
   "pb484_report_line_placement",
   "pb571_class_condition_one_table",

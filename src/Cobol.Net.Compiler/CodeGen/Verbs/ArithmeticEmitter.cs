@@ -338,6 +338,52 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     public void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         var w = ctx.Writer;
+        // ⛔ ONE INITIAL EVALUATION, AND ONE §14.7.4.3 r7 GATE OVER IT, FOR EVERY FIXED-SCALE RECEIVER CATEGORY
+        // (kb/Work PB654). Both halves used to live inside the plain-numeric arm alone, and both were wrong there.
+        //
+        // THE EVALUATION. §14.7.7 rule 4 a): "The initial evaluation of the statement is done and the result of
+        // this operation is placed in an intermediate data item"; rule 4 b): "the intermediate data item is stored
+        // in or combined with and then stored in each single resulting data item". The r7 test below and the store
+        // that follows are TWO READS OF THAT ONE INTERMEDIATE, so the emitter must write the expression ONCE. It
+        // wrote it twice, and for a function reference whose successive references are not the same value —
+        // FUNCTION RANDOM with no argument, §15.75.3 rule 5: "In each case, subsequent references without
+        // specifying argument-1 return the next number in the current sequence" — the test examined one returned
+        // value and the store landed the NEXT one (measured on seed 7: the statement consumed elements 2 AND 3).
+        // Snapshot is the same materialization EmitCompute's multi-receiver arm already performs for rule 4, and
+        // carries PB85's carrier total.
+        //
+        // THE GATE. §14.7.4.3 rule 7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be
+        // represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to
+        // exist, the size error condition exists" — and the receiver is left unchanged. CobolFloat.ToScaled lands
+        // a PROHIBITED transfer TRUNCATED by design (its own doc says the emitter gates the store), so the test
+        // has to precede the store or the discarded fraction is already gone. The plain-numeric arm had the gate;
+        // the numeric-EDITED and LOCALE-edited arms did not, and both silently stored the truncated value:
+        // `COMPUTE E ROUNDED MODE IS PROHIBITED = C2 * 1` with C2 = SQRT(3) into `PIC ZZ9.999` stored 1.732 and
+        // raised nothing (feedback_two_arm_dispatch — one dispatch, three arms, one of them gated). Writing the
+        // gate ONCE here, keyed on the ONE receiver-scale rule (RuntimeApi.ReceiverScaleOf through ScaleOf), is
+        // what makes the next receiver category inherit it.
+        //
+        // A FLOATING-POINT numeric-edited receiver is deliberately OUT: it has no fixed fraction scale to test
+        // against (the significand truncates into the mask, D21/PB66), so r7's "cannot be represented exactly in
+        // the resultant identifier" is a different predicate there and is not this gate's to answer.
+        string? r7Inexact = null;
+        if (ecState.SizeErrVar is not null && value.Real && mode == CobolRounding.Prohibited
+            && target.Item.Pic is { IsFloat: false, IsFloatEdited: false } gpic
+            && (gpic.LocaleEdit is not null || gpic.EditMask is not null || gpic.Category == PicCategory.Numeric))
+        {
+            value = Snapshot(value);
+            r7Inexact = RuntimeApi.FloatInexactAtScale(value.Expr, $"{ScaleOf(target)}");
+        }
+
+        // The keyword an arm's own first test opens with: `if`, or `else if` once the r7 gate has written the
+        // leading `if`. Idempotent — the gate is emitted at most once per store, whichever arm asks first.
+        string Gate(string onFail)
+        {
+            if (r7Inexact is not { } test) return "if";
+            r7Inexact = null;
+            w.Line($"if ({test}) {onFail}");
+            return "else if";
+        }
         // A numeric-edited receiver stores the EDITED image of the result (ISO §14.7.7 — arithmetic results store
         // per the MOVE editing rules). ROUNDED applies BEFORE editing: the value is rescaled to the mask's
         // fraction scale with the receiver's mode (§14.7.4), then formatted.
@@ -380,7 +426,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             {
                 string limg = $"__sv{ctx.Names.NextStoreTmp()}";
                 string lOnFail = ecState.SizeErrEcVar is { } lecn ? $"{{ {lflag} = true; {lecn} = \"EC-SIZE-TRUNCATION\"; }}" : $"{lflag} = true;";
-                w.Line($"if (!{RuntimeApi.EditTryFormatLocale(lpic, lAligned(true), $"{ls}", limg, lcfg)}) {lOnFail}");
+                w.Line($"{Gate(lOnFail)} (!{RuntimeApi.EditTryFormatLocale(lpic, lAligned(true), $"{ls}", limg, lcfg)}) {lOnFail}");
                 w.Line($"else {PlaceRenderer.Write(target, limg)}");
                 return;
             }
@@ -417,7 +463,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = ecState.SizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
-                w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))}) {onFail}");
+                w.Line($"{Gate(onFail)} (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg(target.Item.Pic) + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))}) {onFail}");
                 w.Line($"else {PlaceRenderer.Write(target, img)}");
                 return;
             }
@@ -464,16 +510,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             string onFail = ecState.SizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
             // A float (Real) source under ROUNDED MODE PROHIBITED: an inexact transfer is a size error and leaves the
             // receiver UNCHANGED (§14.7.4.3 item 7 — NOT §14.7.5, which this cited until kb/Work PB623 re-derived it;
-            // §14.7.5 is the SIZE ERROR phrase, §14.7.4.3 is the ROUNDED phrase's per-mode general rules). ToScaled
-            // already truncated the fraction, so the store's own PROHIBITED check cannot see it — gate on
-            // InexactAtScale first (D16 review finding).
-            if (value.Real && mode == CobolRounding.Prohibited)
-            {
-                w.Line($"if ({RuntimeApi.FloatInexactAtScale(value.Expr, $"{recvScale}")}) {onFail}");
-                w.Line($"else if (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
-            }
-            else
-                w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
+            // §14.7.5 is the SIZE ERROR phrase, §14.7.4.3 is the ROUNDED phrase's per-mode general rules). The gate
+            // is written ONCE, at the top of this method, for all three fixed-scale receiver categories (PB654);
+            // Gate hands back the keyword this test opens with.
+            w.Line($"{Gate(onFail)} (!{RuntimeApi.NumTryStore(args, mode, tmp, value.U)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
             w.Line($"else {PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatImage(tmp, profile) : Narrow(tmp, target.Item))}");
             return;

@@ -370,7 +370,9 @@ property of the working-scale-then-rescale SHAPE and not of which function produ
 copy is exactly how PB5 fixed the float clamp while leaving `Numval`/`NumvalF` clamping at `long.MaxValue`.
 (b) When NOTHING governs the render — `ReceiverContext.None`: a relation operand, a sign condition, a
 DISPLAY/STRING text operand, a MOVE source — a float-family value stays binary64 (`NumX.Real`) and is never
-quantized.
+quantized. ⛔ (b) IS NOT THE ONLY UNQUANTIZED SHAPE ANY MORE: a NESTED float operand inside a larger expression
+keeps its binary64 too (D20, kb/Work PB653), and both answers now come from the single
+`ReceiverContext.FloatLanding` decision rather than from a receiver-shape test each consumer writes for itself.
 
 **Corollaries that fall out of (a) and (b), both landed with it.** `CobolIntrinsics.Numval`/`NumvalC`/`NumvalF`
 return `Int128` and saturate there through one shared `Rescaled` helper (which also BOUNDS the decimal shift
@@ -454,7 +456,7 @@ at either quantize site — a mistake no runtime test can see, since it is corre
 Goldens: `pb13_float_quantize_headroom` (the two cases the queue carried) and `pb13_float_quantize_siblings` (the
 four the sibling sweep found, `**` included — it reaches the same quantizer and carried the identical defect).
 
-### D20. A float returned value entering fixed-point arithmetic takes the STATEMENT's rounding decision, ONCE, at the scale where it is made (`ReceiverContext.FloatLanding(finalTransfer)`).
+### D20. A float returned value is quantized ONLY where it is transferred to a fixed-point resultant, and there it takes the STATEMENT's rounding decision, ONCE, at that identifier's scale (`ReceiverContext.FloatLanding(finalTransfer)`).
 
 **Decision.** The float→fixed quantizer's SCALE and its ROUNDING MODE are one decision, taken in one place:
 
@@ -466,15 +468,43 @@ four the sibling sweep found, `**` included — it reaches the same quantizer an
   identifier." §14.7.4.3 rule 2: "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS
   TRUNCATION had been specified." Landing AT that scale also makes the store's rescale the identity, so no second
   rounding can contradict the first.
-- **A nested intermediate** lands at the capped working scale (D18) with **TRUNCATION, never the receiver's
-  mode** — the rule `Align` and `Divide`'s nested arm already state, because §14.7.4.3's per-mode rules each bind
-  to "the resultant identifier" and the single receiver store performs that rounding.
+- **A nested intermediate is NOT QUANTIZED AT ALL** — it keeps its binary64 and the expression continues in
+  IEEE binary64 (D16's `CombineCore` `Real` lane). There is no transfer here, so there is no scale to quantize
+  TO; §14.7.4.3's per-mode rules each bind to "the resultant identifier" and the single receiver store performs
+  the one rounding.
+- A **float receiver** and a **receiver-less** render keep the binary64 for the same reason (D18 b), and
+  `FloatLanding` now answers that too — see "The receiver-shape half is folded in" below.
 - A **floating-point numeric-edited** resultant (`FloatEdited`, data-model design D21 / kb/Work PB66) is never a final transfer for this
   purpose: it has no fixed fraction scale to round at, so it keeps the working scale and truncates.
 
 Two consumers, one rule: `IntrinsicRenderer.RenderFloatNative` (the §15.4.1 float family) and
 `NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble`/`FromDoubleBounded` take the mode as a
 REQUIRED parameter — no default — so a new call site must decide rather than inherit.
+
+**A nested operand keeps its binary64 (kb/Work PB653).** PB647's first cut landed a nested intermediate at the
+≥9 capped working scale with truncation, which truncates the returned value one digit too early and lets every
+operation above it propagate the loss. ONE binary64 then gave TWO answers depending only on how it reached the
+expression: `COMPUTE R = FUNCTION SQRT(3) * 2` into `PIC 9V9(9)` gave 3.464101614 where `C2 * 2` with
+`C2 = FUNCTION SQRT(3)` gave the correct 3.464101615; `FUNCTION SQRT(10) ** 2` gave 9.999999998 against
+10.000000000; a chain of three lost three digits. §15.4.1 forbids the split outright, and the RELATION channel,
+which never quantized, already agreed with the COMP-2 item — the arithmetic channel was the one arm out of step.
+
+**Guard digits were REJECTED, and the reason is structural.** The obvious repair is `Divide`'s: a nested quotient
+carries D2's `DivGuardDigits`. It does not transfer, because `Divide` clamps its guard against ITS OWN radix
+alignment, which it knows, while a LANDING cannot know how many multiplications sit above it. At guard 14 a
+nested float operand lands at scale 23 and `FUNCTION SQRT(10) * FUNCTION SQRT(10)` multiplies two scale-23
+operands into a scale-46 product — past the 38-digit Int128 carrier, where the unchecked no-phrase store WRAPS.
+Keeping the binary64 removes the question instead of tuning it, and makes §15.4.1's identity hold BY
+CONSTRUCTION across the arithmetic, relation, text and MOVE channels.
+
+**The receiver-shape half is folded in.** `FloatLanding` returns a `FloatLandingDecision` — `Binary64`, or
+`At(scale, mode)` — rather than a bare `(scale, mode)` pair, because while "do not quantize" had nowhere to live
+BOTH consumers wrote the receiver-shape test out for themselves (`Receiver.Real || Receiver.Receiverless` in
+`RenderFloatNative`, `b.Real || e.Real || _rcv.Real || _rcv.Receiverless` in `Power`), and neither private copy
+learned about the nested case when PB647 added it. That is this codebase's recurring two-arm shape, sixth
+sighting. `NUMVAL-F` deliberately does NOT consult the decision — its fixed-receiver landing is an EXACT decimal
+parse (§15.69.4 r2 / kb/Work PB60) carrying MORE precision than a binary64, so "keep the binary64" would lose
+digits there; its nested arm has PB653's shape and is filed on its own.
 
 **Rationale (kb/Work PB647).** The quantizer hard-coded `NearestAwayFromZero` at a working scale in BOTH
 positions while the MOVE channel (`CobolFloat.ToScaledUnchecked`) had always taken the receiver's mode at the
@@ -506,22 +536,42 @@ PROHIBITED test can no longer see the discarded fraction. Before the move,
 while the same statement into `PIC 9V9` raised — the condition depending on the receiver's scale rather than on
 the transfer's exactness.
 
+**And rule 7's gate is ONE gate, over ONE initial evaluation (kb/Work PB654).** A value that reaches the STORE
+as a binary64 — a COMP-2 operand, a nested float operand after PB653, `**` over a float base — does not pass
+through `FromDouble`, so `ArithmeticEmitter.StoreArith` owns rule 7 for it. Two things were wrong there. (a) The
+emitter wrote the right-hand side's expression TWICE, once into the representability test and once into the
+store, where §14.7.7 rule 4 a) places the initial evaluation "in an intermediate data item" and rule 4 b) stores
+THAT item: for a function whose successive references are not the same value (§15.75.3 rule 5 — `FUNCTION RANDOM`
+with no argument) the test examined one returned value and the store landed the next, and the statement consumed
+two elements of the sequence. `StoreArith` now materialises the value once, through the same `Snapshot` helper
+`EmitCompute`'s multi-receiver arm already used for the same rule. (b) The gate itself existed only in the
+plain-numeric arm; the numeric-EDITED and LOCALE-edited arms stored the truncated value and raised nothing
+(`COMPUTE E ROUNDED MODE IS PROHIBITED = C2 * 1` with `C2 = SQRT(3)` into `PIC ZZ9.999` stored 1.732). The gate
+is now written ONCE at the top of `StoreArith`, keyed on the ONE receiver-scale rule
+(`RuntimeApi.ReceiverScaleOf`), and each fixed-scale arm asks it for the keyword its own first test opens with.
+A FLOATING-POINT numeric-edited receiver is deliberately out: it has no fixed fraction scale, so rule 7's
+"cannot be represented exactly in the resultant identifier" is a different predicate there.
+
 **Blast radius, measured.** The whole Conformance corpus moved exactly ONE golden,
 `2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
 0.999999999), both re-derived from the exact binary64 expansions. That golden gained six ROUNDED legs, because
 truncation can never leave a codomain the double is already inside — so PB65's clamp is now reachable only under
 an explicit rounding mode, and would have gone unexercised by a green test.
 
-**Guard.** `FloatLandingModeDriftTests` proves all four invariants over every legal (integer-digits, scale) pair
-crossed with every one of the eight modes, and asserts the runtime quantizer names no rounding mode of its own;
-`CarrierLandingFormTests.FromDouble_IsTheSameLandingAsTheMove` sweeps every mode instead of the one both channels
-used to hard-code. Goldens: `pb647_float_landing_mode` at 2002/2014/2023.
-
-**Known residue, outside this decision.** A nested float operand still quantizes at `max(receiverScale, 9)` with
-no guard digits, so at a receiver scale ≥ 9 an expression built on one is a digit adrift of the same expression
-built on a COMP-2 holding the identical value: `COMPUTE R = FUNCTION SQRT(3) * 2` into `PIC 9V9(9)` gives
-3.464101614 where `C2 * 2` gives the correct 3.464101615. That is a working-SCALE (guard-digit) question, not a
-mode one — D2's `DIV_GUARD_DIGITS` is the shape it wants — and it is filed separately.
+**Guard.** `FloatLandingModeDriftTests` proves every invariant over every legal (integer-digits, scale) pair
+crossed with every one of the eight modes — the final transfer's scale and mode, the store's rescale being the
+identity, a nested intermediate being `Binary64`, a float / receiver-less receiver being `Binary64` even on a
+final transfer, the float-edited resultant keeping the working scale — asserts the runtime quantizer names no
+rounding mode of its own, and asserts that NEITHER consumer re-derives the receiver-shape half in its own
+landing body; `CarrierLandingFormTests.FromDouble_IsTheSameLandingAsTheMove` sweeps every mode instead of the one
+both channels used to hard-code. `ArithmeticOneInitialEvaluationDriftTests` reads the EMITTED C# and asserts each
+right-hand side is spelled once per source reference, that the r7 gate's operand is the materialized `__ie`
+intermediate, and that the gate is emitted for the numeric AND the numeric-edited receiver.
+Goldens: `pb647_float_landing_mode` at 2002/2014/2023; `85/pb653_nested_float_operand` (the four channels agree
+on one binary64); `2014/pb653_nested_float_rounded_mode` (the eight modes over a nested-float expression, the
+exact-half tie, and PROHIBITED seeing the whole value); `2014/pb654_prohibited_gate_one_evaluation` (one
+initial evaluation, measured through RANDOM's sequence position; the gate over an edited resultant);
+`negative/pb653-nested-float-rounded-mode-below-2014` (COBOLNET0803).
 
 ## C# mapping
 

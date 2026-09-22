@@ -539,18 +539,32 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX RenderFloatNative(BoundIntrinsicCall ic, string call)
     {
         var sig = ic.Sig;
-        // ⛔ THE LANDING'S SCALE AND ITS ROUNDING MODE ARE ONE DECISION, TAKEN ONCE, ON ReceiverContext
-        // (kb/Work PB647 — ReceiverContext.FloatLanding carries the derivation): the FINAL TRANSFER lands at the
-        // resultant identifier's scale with the statement's ROUNDED mode (§14.7.4.1 — "truncation is relative to
-        // the size provided for the resultant identifier"; §14.7.4.3 rule 2 — no ROUNDED phrase IS
-        // ROUNDED MODE IS TRUNCATION), which is exactly the landing `MOVE FUNCTION SQRT(3) TO S` performs
-        // (§14.6.8.2 rule 4), so §15.4.1's one-returned-value identity holds across the two channels; a NESTED
-        // intermediate lands at the ≥9 float floor CAPPED at the receiver's Int128 headroom (PB13) with
-        // TRUNCATION, never the receiver's mode — the rule Align and Divide's nested arm already state.
-        var (ws, mode) = num.Receiver.FloatLanding(num.Outermost);
+        // ⛔ WHETHER THIS VALUE LANDS AT ALL, AND AT WHAT SCALE AND MODE, IS ONE DECISION TAKEN ONCE ON
+        // ReceiverContext (kb/Work PB647, then PB653 — ReceiverContext.FloatLanding carries the derivation):
+        // the FINAL TRANSFER into a fixed-point resultant lands at THAT identifier's scale with the statement's
+        // ROUNDED mode (§14.7.4.1 — "truncation is relative to the size provided for the resultant identifier";
+        // §14.7.4.3 rule 2 — no ROUNDED phrase IS ROUNDED MODE IS TRUNCATION), which is exactly the landing
+        // `MOVE FUNCTION SQRT(3) TO S` performs (§14.6.8.2 rule 4), so §15.4.1's one-returned-value identity
+        // holds across the two channels. EVERY OTHER SHAPE — a nested intermediate, a float receiver, a
+        // receiver-less render — keeps the binary64, because there is no transfer here to quantize FOR.
+        var landing = num.Receiver.FloatLanding(num.Outermost);
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
         // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
         // at the landing chosen just above. (D16 review finding.)
+        //
+        // ⛔ AND SO DOES A NESTED OPERAND — THE THIRD SHAPE, AND THE ONE THAT WAS MISSING (kb/Work PB653).
+        // A returned value feeding a larger expression is not transferred anywhere yet, so quantizing it at a
+        // ≥9 working scale merely truncates it one digit too early and every operation above it propagates the
+        // loss: `COMPUTE R = FUNCTION SQRT(3) * 2` into PIC 9V9(9) gave 3.464101614 where a COMP-2 item holding
+        // the IDENTICAL binary64 gave 3.464101615, and `FUNCTION SQRT(10) ** 2` gave 9.999999998 against that
+        // arm's 10.000000000. §15.4.1 forbids the split — "the returned value is the same for all instances of a
+        // given function within a single execution of the runtime element so long as the value and order of the
+        // arguments, the collating sequence, and the locale are unchanged" — and the receiver-less RELATION
+        // channel, which has always kept the binary64, already agreed with the COMP-2 item. Keeping it here makes
+        // the four channels one value by CONSTRUCTION, and lets CombineCore's Real lane evaluate the expression
+        // entirely in IEEE binary64 as numeric design D16 says it does. (Guard digits are NOT the alternative:
+        // a landing cannot know how many multiplications sit above it, and two guarded scale-23 operands
+        // multiply into a scale-46 product the Int128 carrier wraps — ReceiverContext.FloatLanding derives it.)
         //
         // ⛔ AND SO DOES A RECEIVER-LESS CONTEXT, UNDER NATIVE ARITHMETIC (fix-queue PB13, the half no
         // working-scale choice can reach — the standard-mode arm above now owns the other modes, which is the
@@ -575,7 +589,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // and compared FALSE. RealResult restores the screen without re-quantizing — a function's returned value
         // must not depend on the SHAPE of its receiver (§15.4), and under EC-ARGUMENT-FUNCTION checking
         // §14.6.13.1 requires the condition be raised at all. (Found by the Phase-B §15.55 refuter.)
-        if (num.Receiver.Real || num.Receiver.Receiverless)
+        if (!landing.Quantize)
             return new NumX(RuntimeApi.Intrinsic("RealResult", call), 0, Real: true);
         // ⛔ A BOUNDED CODOMAIN CLAMPS THE QUANTIZED VALUE (fix-queue PB65 / RV-15.75.4-1): the catalog row
         // carries the §15.x.4 bound and the quantizer refuses to round out of it — RANDOM's [0,1) reached
@@ -589,8 +603,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // construction; a ROUNDED one still needs the clamp, which is the case PB65 measured.
         if (sig.Codomain != IntrinsicCodomain.None)
             return new NumX(RuntimeApi.Intrinsic("FromDoubleBounded",
-                $"{call}, {ws}, {RuntimeApi.RoundingText(mode)}, {RuntimeApi.CodomainConst(sig.Codomain)}{CheckedFlag}"), ws);
-        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {ws}, {RuntimeApi.RoundingText(mode)}{CheckedFlag}"), ws);
+                $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}, {RuntimeApi.CodomainConst(sig.Codomain)}{CheckedFlag}"), landing.Scale);
+        return new NumX(RuntimeApi.Intrinsic("FromDouble", $"{call}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 
     // ── Argument rendering (the ONE NumericRenderer for every numeric-kind argument) ────────────────────────

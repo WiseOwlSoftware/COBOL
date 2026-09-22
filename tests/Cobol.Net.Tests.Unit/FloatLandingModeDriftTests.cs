@@ -56,7 +56,7 @@ public sealed class FloatLandingModeDriftTests
     public void FinalTransfer_LandsAtTheReceiversOwnScaleAndMode(int intDigits, int scale, CobolRounding mode)
     {
         var rcv = Rcv(intDigits, scale, mode);
-        Assert.Equal((scale, mode), rcv.FloatLanding(finalTransfer: true));
+        Assert.Equal(FloatLandingDecision.At(scale, mode), rcv.FloatLanding(finalTransfer: true));
     }
 
     /// <summary>
@@ -73,19 +73,43 @@ public sealed class FloatLandingModeDriftTests
         Assert.Equal(scale, Rcv(intDigits, scale, mode).FloatLanding(finalTransfer: true).Scale);
 
     /// <summary>
-    /// INVARIANT 3 — A NESTED INTERMEDIATE NEVER INHERITS THE RECEIVER'S MODE. The ROUNDED phrase binds to the
-    /// transfer into the resultant identifier (§14.7.4.3 rules 3–10 each say "the resultant identifier"), and the
-    /// single receiver store performs it; an operand feeding a larger expression must therefore land TRUNCATED,
-    /// which is the rule <c>NumericRenderer.Align</c> and <c>Divide</c>'s nested arm already state for every
-    /// other float→fixed intermediate. Without it, <c>COMPUTE R ROUNDED = FUNCTION SQRT(3) * 1</c> would round
-    /// at the intermediate AND at the receiver.
+    /// INVARIANT 3 — A NESTED INTERMEDIATE IS NOT QUANTIZED AT ALL; IT KEEPS ITS BINARY64 (kb/Work PB653).
+    /// It never inherits the receiver's MODE, because the ROUNDED phrase binds to the transfer into the resultant
+    /// identifier (§14.7.4.3 rules 3–10 each say "the resultant identifier") and the single receiver store
+    /// performs it — but it must not inherit a receiver-derived SCALE either. A ≥9 working scale truncates the
+    /// returned value one digit too early and every operation above it propagates the loss:
+    /// <c>COMPUTE R = FUNCTION SQRT(3) * 2</c> into <c>PIC 9V9(9)</c> gave 3.464101614 where a <c>COMP-2</c> item
+    /// holding the IDENTICAL binary64 gave 3.464101615, which §15.4.1 forbids ("the returned value is the same
+    /// for all instances of a given function within a single execution of the runtime element so long as the
+    /// value and order of the arguments, the collating sequence, and the locale are unchanged").
+    /// <para>The alternative — guard digits, the way <c>Divide</c>'s nested arm carries them — is what this
+    /// invariant exists to REFUSE: a landing has no bound on how many multiplications sit above it, so a guarded
+    /// scale accumulates until the Int128 carrier wraps (two scale-23 operands multiply to scale 46). Keeping the
+    /// binary64 is the shape that has no tuning constant in it at all.</para>
     /// </summary>
     [Theory]
     [MemberData(nameof(LegalShapesAndModes))]
-    public void NestedIntermediate_NeverInheritsTheReceiversMode(int intDigits, int scale, CobolRounding mode)
+    public void NestedIntermediate_KeepsItsBinary64AndQuantizesNothing(int intDigits, int scale, CobolRounding mode) =>
+        Assert.Equal(FloatLandingDecision.Binary64, Rcv(intDigits, scale, mode).FloatLanding(finalTransfer: false));
+
+    /// <summary>
+    /// INVARIANT 3b — AND SO DOES A FLOAT RECEIVER AND A RECEIVER-LESS RENDER, THROUGH THIS SAME DECISION.
+    /// Both consumers used to spell the receiver-shape test out for themselves —
+    /// <c>if (Receiver.Real || Receiver.Receiverless)</c> in <c>IntrinsicRenderer.RenderFloatNative</c>,
+    /// <c>if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)</c> in <c>NumericRenderer.Power</c> — which is
+    /// precisely why neither of them learned about the nested case when PB647 added it (kb/Work PB653,
+    /// feedback_two_arm_dispatch). Folding the shape test INTO the decision is what makes the next consumer
+    /// inherit the whole rule; this invariant is what keeps it folded in.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(LegalShapesAndModes))]
+    public void AFloatOrReceiverlessReceiver_QuantizesNothing_EvenOnTheFinalTransfer(int intDigits, int scale, CobolRounding mode)
     {
-        var rcv = Rcv(intDigits, scale, mode);
-        Assert.Equal((rcv.FloatWorkingScale, CobolRounding.Truncation), rcv.FloatLanding(finalTransfer: false));
+        Assert.Equal(FloatLandingDecision.Binary64,
+            (Rcv(intDigits, scale, mode) with { Real = true }).FloatLanding(finalTransfer: true));
+        Assert.Equal(FloatLandingDecision.Binary64,
+            (Rcv(intDigits, scale, mode) with { Receiverless = true }).FloatLanding(finalTransfer: true));
+        Assert.Equal(FloatLandingDecision.Binary64, ReceiverContext.None.FloatLanding(finalTransfer: true));
     }
 
     /// <summary>
@@ -100,7 +124,8 @@ public sealed class FloatLandingModeDriftTests
     public void AFloatEditedResultant_KeepsTheWorkingScaleAndTruncates(int intDigits, int scale, CobolRounding mode)
     {
         var rcv = Rcv(intDigits, scale, mode) with { FloatEdited = true };
-        Assert.Equal((rcv.FloatWorkingScale, CobolRounding.Truncation), rcv.FloatLanding(finalTransfer: true));
+        Assert.Equal(FloatLandingDecision.At(rcv.FloatWorkingScale, CobolRounding.Truncation),
+            rcv.FloatLanding(finalTransfer: true));
     }
 
     /// <summary>
@@ -119,5 +144,33 @@ public sealed class FloatLandingModeDriftTests
         string code = string.Join('\n', src.Split('\n').Where(l => !l.TrimStart().StartsWith("//")));
         var named = Regex.Matches(code, @"CobolRounding\.(\w+)").Select(m => m.Groups[1].Value).Distinct().ToList();
         Assert.Equal(["Prohibited"], named);
+    }
+
+    /// <summary>
+    /// INVARIANT 6 — AND NEITHER CONSUMER RE-DERIVES THE DECISION'S RECEIVER-SHAPE HALF (kb/Work PB653).
+    /// This is the drift that produced the defect in the first place: <c>FloatLanding</c> returned a bare
+    /// <c>(scale, mode)</c> pair, so "do not quantize at all" had nowhere to live and each consumer tested
+    /// <c>Receiver.Real</c> / <c>Receiver.Receiverless</c> for itself — two private copies of half a rule, and
+    /// when PB647 added the nested case to <c>FloatLanding</c>, neither copy inherited it. A consumer that names
+    /// those receiver flags again in its float-landing body has started a THIRD copy, and the next rule added to
+    /// the decision will miss it exactly the same way. The flags are legitimate elsewhere in both files (argument
+    /// intake, NUMVAL-F's own §15.69.4 r2 determination), so the scan is anchored to the landing bodies.
+    /// </summary>
+    [Theory]
+    [InlineData("IntrinsicRenderer.cs", "private NumX RenderFloatNative(")]
+    [InlineData("NumericRenderer.cs", "private NumX Power(")]
+    public void NeitherLandingConsumer_RederivesTheReceiverShapeTest(string file, string member)
+    {
+        string src = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", file));
+        int at = src.IndexOf(member, StringComparison.Ordinal);
+        Assert.True(at >= 0, $"{file} no longer declares {member} — re-anchor this drift test");
+        int stop = src.IndexOf("\n    }", at, StringComparison.Ordinal);
+        Assert.True(stop > at, $"{file}: could not find the end of {member}");
+        // CODE only: the doc comments and the forensic prose name the retired copies deliberately.
+        string body = string.Join('\n', src[at..stop].Split('\n').Where(l => !l.TrimStart().StartsWith("//")));
+        Assert.DoesNotContain("Receiverless", body);
+        Assert.DoesNotContain("Receiver.Real", body);
+        Assert.DoesNotContain("_rcv.Real", body);
+        Assert.Contains("FloatLanding(", body);
     }
 }
