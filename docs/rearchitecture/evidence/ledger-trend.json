@@ -667,6 +667,15 @@
       "dns": 369,
       "label": "REGISTRAR #9 step 3: DEVLOG",
       "battery": null
+    },
+    {
+      "sha": "ef38a292",
+      "date": "2026-09-22",
+      "gap": 2266,
+      "closed": 2082,
+      "dns": 369,
+      "label": "Battery #84 at ec095d120 (tr",
+      "battery": null
     }
   ]
 }
