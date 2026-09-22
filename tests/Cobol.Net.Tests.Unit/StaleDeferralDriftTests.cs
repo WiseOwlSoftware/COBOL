@@ -23,12 +23,12 @@ namespace CobolNet.Tests.Unit;
 /// §14.9.1.4 GR6 is even more explicit ("according to the rules for the MOVE statement").
 /// </para>
 /// <para>
-/// ⛔ A SURVIVING ENTRY IS NOT AUTOMATICALLY A BUG. The Format-1 device arm below refuses a float receiver
-/// because §14.9.1.4 GR1 leaves the device conversion to the implementor and COBOL.NET has not yet DEFINED one
-/// for a float: <c>DataItem.DisplayTextWidth</c> is <c>pic.Digits</c> for a numeric receiver, and a float
-/// PICTURE has no digit positions, so there is no device window to read. That needs a determination
-/// (§4.2.16 documentation obligation), not a code move. This test does not prejudge it; it makes the inventory
-/// EXPLICIT so no entry can rot unnoticed again, and forces a deliberate decision when one is added or removed.
+/// ⛔ A SURVIVING ENTRY IS NOT AUTOMATICALLY A BUG — but the last one was not a survivor either. The Format-1
+/// device arm refused a float receiver on the premise that §14.9.1.4 GR1's implementor-defined conversion had no
+/// definition for an item with no digit positions. That was a missing DETERMINATION, not a missing path, and it
+/// aborted legal source (§14.9.1.3 SR1 does not exclude a float receiver). kb/Work PB887 made it: one record, read
+/// as the inverse of the DISPLAY image (CONFORMANCE.md §7 DOC-A.1-1). The inventory is now EMPTY, and the test
+/// keeps it explicit so the next entry is a deliberate decision with its clause written beside it.
 /// </para>
 /// </summary>
 public sealed class StaleDeferralDriftTests
@@ -73,13 +73,7 @@ public sealed class StaleDeferralDriftTests
     /// <summary>The pinned inventory: "&lt;file&gt;: &lt;a distinguishing fragment of the message&gt;". One entry
     /// per emitted refusal whose message calls a backend path deferred. Adding one is a DECISION — write down
     /// why the path cannot be reached through the rule's own seam — and removing one is the fix.</summary>
-    private static readonly string[] PinnedDeferrals =
-    [
-        // ISO §14.9.1.4 GR1 — Format 1's device conversion is implementor-defined, and COBOL.NET has not defined
-        // one for a receiver with no digit positions (there is no device window width to read). Not a stale
-        // premise: a genuinely undefined determination.
-        "AcceptDisplayEmitter.cs: ACCEPT into floating-point receiver",
-    ];
+    private static readonly string[] PinnedDeferrals = [];
 
     [Fact]
     public void DeferredLoudArms_AreExactlyThePinnedInventory()
@@ -128,5 +122,32 @@ public sealed class StaleDeferralDriftTests
         string[] loud = [.. LoudMessages(code)];
         Assert.Single(loud);
         Assert.Equal("e.Feature", loud[0].Trim());
+    }
+
+    /// <summary>ACCEPT FORMAT 2 HAS EXACTLY ONE STORE PATH, AND IT IS THE MOVE EMITTER (kb/Work PB887). ISO
+    /// §14.9.1.4 GR6 transfers the temporal value "to the data item specified by identifier-2 according to the rules
+    /// for the MOVE statement", so the binder binds that transfer as an implicit MOVE from the GR7–GR12 conceptual
+    /// item (<c>BoundAccept.Store</c>) and <c>AcceptDisplayEmitter</c> renders it through <c>MoveEmitter</c>. The
+    /// emitter used to carry its own numeric / edited / alphanumeric / national / float / group arms — a second copy
+    /// of <c>MoveEmitter.ConvertSource</c> — and that copy's missing float arm is how the PB420 fix had to be made
+    /// twice. The primitives named below are the receiver-category MOVE stores of that copy; none may reappear in
+    /// the ACCEPT emitter (the Format-1 device arm is explicitly NOT a MOVE, GR1–GR4, and needs none of them).</summary>
+    [Fact]
+    public void AcceptTemporal_RoutesThroughTheOneMoveSeam()
+    {
+        string code = CodeOnly(File.ReadAllText(Path.Combine(CodeGenDir, "Verbs", "AcceptDisplayEmitter.cs")));
+
+        Assert.Single(Regex.Matches(code, @"\bmove\.Emit\("));
+        foreach (string primitive in new[]
+                 {
+                     "EditFormatFor", "EditFormatSimpleInsertion", "StrStoreAligned", "StrStore(",
+                     "FloatStoreSingleChecked", "FloatStoreDecChecked",
+                 })
+            Assert.False(code.Contains(primitive, StringComparison.Ordinal),
+                $"AcceptDisplayEmitter calls RuntimeApi.{primitive.TrimEnd('(')} — a MOVE receiver-category store. "
+                + "ACCEPT's temporal transfer IS a MOVE (ISO §14.9.1.4 GR6) and is rendered by MoveEmitter from "
+                + "BoundAccept.Store; a second copy of the MOVE rules here is how the float arm went missing "
+                + "(kb/Work PB420, PB887).");
+        Assert.Empty(LoudMessages(code));
     }
 }

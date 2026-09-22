@@ -68,7 +68,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // SR1 — "neither a strongly-typed group item nor a data item of class index, message-tag, object, or
         // pointer"; SR3 repeats the same class rows for the temporal receiver (message-tag has no declarable
         // shape in this data model). SR3's class-alphabetic/boolean exclusions are NOT listed here — they fall
-        // out of the Table 16 ask below. A strongly-typed group temporal receiver fails GR6's MOVE-rules store
+        // out of the MOVE-validity ask below (MoveTable16.Validity, asked with the GR7–GR12 conceptual item). A strongly-typed group temporal receiver fails GR6's MOVE-rules store
         // identically (§14.9.25.3 SR2 — the sender must be a group of the SAME type, and the conceptual
         // temporal sender is an untyped integer), so both formats screen it.
         var rItem = target.Item;
@@ -84,18 +84,6 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
                 + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
                             : "the device format excludes (ISO §14.9.1.3 SR1)"));
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
-        }
-
-        // §14.9.1.4 GR6: the temporal value stores "according to the rules for the MOVE statement" — the
-        // legality question is asked of the ONE Table 16 mechanism (PB53's MoveTable16; the conceptual sender
-        // is an unsigned INTEGER of usage display, GR7–GR12). That makes SR3's class-alphabetic and
-        // class-boolean exclusions AUTOMATIC (both are Table-16 'No' rows for an integer sender), along with
-        // every other refused receiver category — no hand-rolled copy of the table to drift.
-        if (temporal && MoveTable16.Refusal(new Table16Operand(PicCategory.Numeric), Table16Operand.Of(target)) is { } refusal)
-        {
-            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
-                + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal}");
             return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
@@ -126,7 +114,51 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             : src.DAY_OF_WEEK() is not null ? AcceptKind.DayOfWeek
             : src.DAY() is not null ? (src.YYYYDDD() is not null ? AcceptKind.DayYYYYDDD : AcceptKind.Day)
             : AcceptKind.Device;   // unreachable by grammar; Device keeps the bind total
-        return new BoundAccept(target, kind) { HasEndTerminator = endTerm };
+        if (kind is AcceptKind.Device) return new BoundAccept(target, kind) { HasEndTerminator = endTerm };
+
+        // ⛔ §14.9.1.4 GR6 — "transferred to the data item specified by identifier-2 ACCORDING TO THE RULES FOR THE
+        // MOVE STATEMENT" — IS A MOVE, SO IT IS BOUND AS ONE (kb/Work PB887). GR7–GR12 name the sender: a conceptual
+        // "unsigned elementary integer data item of usage display" of 6/8/5/7/8/1 digits. It is materialized as
+        // exactly that item (a compiler temp the emitter fills from the clock, once) and the transfer is
+        // MoveBinder.BindMoveOf's implicit MOVE, which the emitter renders with MoveEmitter like every other move.
+        // The emitter used to write its OWN numeric / edited / alphanumeric / national / float / group arms — a
+        // second copy of MoveEmitter.ConvertSource, which is why its float arm could be missing while MOVE's was
+        // live (PB420 had to fix it twice); a receiver category added to the MOVE rules now reaches ACCEPT with
+        // no edit here.
+        if (ConceptualItem(kind, ac.Start.Line) is not { } conceptual) return new BoundNop();
+        var sender = new BoundFieldOperand(conceptual);
+
+        // §14.9.1.3 SR3 excludes class alphabetic and boolean receivers, and they are exactly the receivers
+        // §14.9.25.3 refuses an integer sender, so the question is asked of the ONE validity chain
+        // (MoveTable16.Validity — SR2, SR6–SR9, Table 16) with the ACTUAL conceptual item as sender, and framed
+        // here under ACCEPT's own rule. ImplicitMovePhrase.AcceptTemporal tells BindMoveOf not to ask it twice.
+        if (MoveTable16.Validity(sender, target) is { } refusal)
+        {
+            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
+                + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+        }
+        return new BoundAccept(target, kind)
+        {
+            HasEndTerminator = endTerm,
+            Conceptual = conceptual,
+            Store = host.Move.BindMoveOf(sender, [target], ImplicitMovePhrase.AcceptTemporal),
+        };
+    }
+
+    /// <summary>The §14.9.1.4 GR7–GR12 conceptual data item of a temporal source: "an unsigned elementary integer
+    /// data item of usage display" whose length GR7–GR12 fix per source (<see cref="AcceptKinds.ConceptualDigits"/>).
+    /// A compiler temp, because the MOVE the statement performs needs a real sending item to classify.</summary>
+    private Place? ConceptualItem(AcceptKind kind, int line)
+    {
+        int digits = kind.ConceptualDigits();
+        var model = new DataItem
+        {
+            Level = 1, CobolName = "__ACCEPT-" + kind, CsName = "__accept" + kind,
+            Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: 0, Signed: false),
+        };
+        var temp = ctx.Data.CreateCompilerTemp(model, "__ACCEPT-", "__accept", $"{kind}L{line}");
+        return ctx.Refs.ResolveItem(temp);
     }
 
     /// <summary><c>ACCEPT … FROM mnemonic-name-1</c> (ISO §14.9.1 Format 1, SR2): the mnemonic shall be declared in

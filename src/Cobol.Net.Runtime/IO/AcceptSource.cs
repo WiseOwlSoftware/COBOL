@@ -109,6 +109,24 @@ public static class AcceptSource
         return sb.Length >= width ? sb.ToString(0, width) : sb.ToString().PadRight(width);
     }
 
+    /// <summary>The Format 1 device transfer into a FLOATING-POINT receiver (COMP-1 / COMP-2 / FLOAT-*) — the
+    /// ISO §14.9.1.4 GR1 conversion ("Any conversion of data required between the device and the data item
+    /// referenced by identifier-1 is defined by the implementor"), documented as CONFORMANCE.md §7 DOC-A.1-1
+    /// (kb/Work PB887). A float item has no character positions to size a window by (§13.16.3 SR8 — the PICTURE clause
+    /// shall not be specified for a float-short / float-long / float-extended item), so the transfer is EXACTLY ONE record (GR2 — DOC-A.1-5, <see cref="RecordSize"/>), and its
+    /// characters are read as the INVERSE of the DISPLAY conversion (DOC-A.1-56 — the invariant-culture
+    /// shortest-round-trip image), which is the §15.69 NUMVAL-F argument format: optional sign, digits with an
+    /// optional period decimal point, an optional <c>E</c>±exponent, leading/trailing spaces ignored. A record
+    /// that does not conform (TEST-NUMVAL-F non-zero — an all-space record included) converts to ZERO and sets
+    /// no exception condition, the float twin of the fixed-point arm's "a non-digit contributes no digit". The
+    /// value is the correctly rounded binary64 <see cref="CobolIntrinsics.NumvalFDouble"/> returns; the emitter
+    /// narrows it to a binary32 receiver.</summary>
+    public static double DeviceFloat()
+    {
+        string record = Device(RecordSize);
+        return CobolIntrinsics.TestNumvalF(record) == 0 ? CobolIntrinsics.NumvalFDouble(record) : 0d;
+    }
+
     /// <summary>The Format 1 device transfer into a BOOLEAN receiver (ISO §14.9.1.4 GR1 — conversion between
     /// the device and the data item is implementor-defined): each transferred character <c>'1'</c> converts to
     /// boolean one and EVERY other character (a <c>'0'</c>, a pad space, any other device character) to

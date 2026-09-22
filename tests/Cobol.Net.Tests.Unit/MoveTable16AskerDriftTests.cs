@@ -53,9 +53,23 @@ public sealed class MoveTable16AskerDriftTests
             + "the lenient reading is defined against Table 16's cells alone",
         ["OoConformance.cs"] = "a NONNUMERIC LITERAL argument (§14.8.2.3.3 rule 2d), asked once per sender category "
             + "the bound literal could be — a literal has no data item for SR2/SR8/SR9",
-        ["AcceptDisplayBinder.cs"] = "the §14.9.1.4 GR7–GR12 conceptual temporal item, a numeric sender that is not "
-            + "a data item",
+        // ⛔ AcceptDisplayBinder is NOT here any more (kb/Work PB887): the §14.9.1.4 GR7–GR12 conceptual temporal
+        // item used to be a bare Table16Operand "that is not a data item", so ACCEPT asked Table 16 alone. It is
+        // now materialized as the data item GR7–GR12 describe, and ACCEPT asks Validity with it — see
+        // TheAcceptTemporalTransfer_AsksTheWholeChain below.
     };
+
+    /// <summary>ACCEPT format 2 asks the WHOLE §14.9.25.3 chain, with the materialized conceptual item as its
+    /// sender, and then binds the transfer through <c>BindMoveOf</c> (kb/Work PB887) — never Table 16 alone again.</summary>
+    [Fact]
+    public void TheAcceptTemporalTransfer_AsksTheWholeChain()
+    {
+        string src = StripComments(File.ReadAllText(
+            Path.Combine(TestRepo.Src("Cobol.Net.Compiler"), "Binding", "Procedure", "Verbs", "AcceptDisplayBinder.cs")));
+        Assert.Matches(@"\bMoveTable16\s*\.\s*Validity\s*\(", src);
+        Assert.Matches(@"\bBindMoveOf\s*\([^;]*ImplicitMovePhrase\s*\.\s*AcceptTemporal", src);
+        Assert.DoesNotMatch(@"\bMoveTable16\s*\.\s*Refusal\s*\(", src);
+    }
 
     [Fact]
     public void Table16Alone_IsAskedOnlyByTheKnownNonItemSenders()

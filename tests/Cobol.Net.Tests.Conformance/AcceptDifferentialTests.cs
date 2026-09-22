@@ -226,6 +226,96 @@ public sealed class AcceptDifferentialTests
             expected: "ABCDE]XY]",
             stdin: "ABCDE" + new string('Z', 85) + "\nXY\n");
 
+    // §14.9.1.4 GR1 + GR2 for a FLOATING-POINT receiver (kb/Work PB887 — this aborted the run unit with a
+    // NotImplementedCobolFeatureException, although §14.9.1.3 SR1 excludes only index / message-tag / object /
+    // pointer). The determination, CONFORMANCE.md §7 DOC-A.1-1 / DOC-A.1-5: ONE 80-character record, read as the
+    // inverse of the DISPLAY image (the §15.69 NUMVAL-F argument format, spaces ignored); a record that does not
+    // conform converts to zero with no exception. Expected values are that rule applied, then DISPLAYed by
+    // DOC-A.1-56 (the invariant shortest-round-trip image): "-1.5E+03" is -1500; " +3.25 " into a binary32
+    // FLOAT-SHORT is 3.25 exactly; "12ABC" and an empty record do not conform, so both are 0. Each ACCEPT
+    // consumes one whole record, so the four lines land one per statement.
+    [Fact]
+    public void Device_FloatReceiver_ReadsTheDisplayImage()
+        => AssertOutputs(
+            Program("ACCFLT1", """
+                01 F2 USAGE COMP-2.
+                01 F1 USAGE FLOAT-SHORT.
+                01 FX USAGE FLOAT-LONG.
+                01 FZ USAGE COMP-2 VALUE 9.
+                """, """
+                ACCEPT F2.
+                ACCEPT F1.
+                ACCEPT FX.
+                ACCEPT FZ.
+                DISPLAY F2 "]" F1 "]" FX "]" FZ "]".
+            """),
+            expected: "-1500]3.25]0]0]",
+            stdin: "-1.5E+03\n +3.25 \n12ABC\n\n",
+            dialect: 2023);
+
+    // The ROUND TRIP the determination is chosen for: what DISPLAY writes for a float, ACCEPT reads back as the
+    // same value (DOC-A.1-1 is defined as DOC-A.1-56's inverse). 1.0E-5 displays "1E-05"; fed back, it compares
+    // equal to the original.
+    [Fact]
+    public void Device_FloatReceiver_RoundTripsItsOwnDisplayImage()
+        => AssertOutputs(
+            Program("ACCFLT2", """
+                01 F2 USAGE COMP-2.
+                01 G2 USAGE COMP-2.
+                """, """
+                COMPUTE G2 = 1.0E-5.
+                ACCEPT F2.
+                IF F2 = G2 DISPLAY "EQUAL " F2 ELSE DISPLAY "DIFFERENT " F2 " " G2.
+            """),
+            expected: "EQUAL 1E-05",
+            stdin: "1E-05\n",
+            dialect: 2023);
+
+    // §14.9.1.4 GR6 — the temporal transfer is "according to the rules for the MOVE statement", so EVERY receiver
+    // category behaves as the MOVE from the GR7–GR12 conceptual unsigned integer would (kb/Work PB887: the transfer
+    // is now that bound MOVE, rendered by the MOVE emitter, where the emitter used to carry its own copy of the
+    // rules). Clock 2026-06-10 14:30:45.67 (a Wednesday, day 161). Each value is §14.9.25.4 applied:
+    // numeric-edited 9999/99/99 inserts (GR6 edited) → 2026/06/10; ZZZ,ZZ9.99 takes DAY YYYYDDD 2026161 with
+    // HIGH-order truncation to six integer digits → " 26,161.00"; alphanumeric-edited XX/XX/XX takes DATE
+    // "260610" by simple insertion → 26/06/10; a JUSTIFIED RIGHT alphanumeric right-aligns DAY → "     26161";
+    // a national receiver takes the TIME digit image left-justified → "14304567  "; COMP-2 takes the algebraic
+    // value 20260610 and COMP-1 DAY-OF-WEEK 3; a group receiver is an alphanumeric move (GR4) → G1 "202"; a
+    // reference-modified slice is alphanumeric (§8.4.3.3.4 GR6) → "2606" into R(2:4); SIGN LEADING SEPARATE
+    // numeric takes TIME at scale 0 → "+014304567".
+    [Fact]
+    public void Temporal_EveryReceiverCategory_StoresByTheMoveRules()
+        => AssertOutputs(
+            Program("ACCTMV1", """
+                01 NE   PIC 9999/99/99.
+                01 ZE   PIC ZZZ,ZZ9.99.
+                01 AE   PIC XX/XX/XX.
+                01 AJ   PIC X(10) JUSTIFIED RIGHT.
+                01 N10  PIC N(10).
+                01 F2   USAGE COMP-2.
+                01 F1   USAGE COMP-1.
+                01 G.
+                   05 G1 PIC X(3).
+                   05 G2 PIC X(5).
+                01 R    PIC X(10) VALUE ALL "*".
+                01 S9   PIC S9(9) SIGN LEADING SEPARATE.
+                """, """
+                ACCEPT NE FROM DATE YYYYMMDD.
+                ACCEPT ZE FROM DAY YYYYDDD.
+                ACCEPT AE FROM DATE.
+                ACCEPT AJ FROM DAY.
+                ACCEPT N10 FROM TIME.
+                ACCEPT F2 FROM DATE YYYYMMDD.
+                ACCEPT F1 FROM DAY-OF-WEEK.
+                ACCEPT G FROM DATE YYYYMMDD.
+                ACCEPT R(2:4) FROM DATE.
+                ACCEPT S9 FROM TIME.
+                DISPLAY NE "]" ZE "]" AE "]" AJ "]".
+                DISPLAY N10 "]" F2 "]" F1 "]" G1 "]" R "]" S9 "]".
+            """),
+            expected: "2026/06/10] 26,161.00]26/06/10]     26161]\n14304567  ]20260610]3]202]*2606*****]+014304567]",
+            clock: "2026-06-10T14:30:45.67",
+            dialect: 2023);
+
     // §14.9.1.3 SR1's COMPLEMENT: the DEVICE format permits a class-alphabetic receiver — only SR3 (the
     // temporal format) excludes class alphabetic. The screen must not over-reject Format 1.
     [Fact]

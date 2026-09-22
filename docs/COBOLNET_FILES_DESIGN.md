@@ -1356,6 +1356,17 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   per-receiver screens stay silent while (2)–(4) still run. Its edition half, §14.9.25.3 SR5, is asked by
   `VersionConformancePass.GateInitialize` over `BoundInitialize.Replacing` through the same `GateSr5` rows
   `GateMove` asks (kb/Work PB879).
+- **A statement whose rule says "according to the rules for the MOVE statement" binds a MOVE, even when its
+  sender is conceptual (kb/Work PB887).** ACCEPT format 2 (§14.9.1.4 GR6) transfers a clock reading that GR7–GR12
+  describe as "an unsigned elementary integer data item of usage display" of 6/8/5/7/8/1 digits
+  (`AcceptKinds.ConceptualDigits`). `AcceptDisplayBinder` materializes exactly that item as a compiler temp
+  (`BoundAccept.Conceptual`), asks `MoveTable16.Validity` with it (framed COBOLNET0818 under §14.9.1.3 SR3, so the
+  phrase `ImplicitMovePhrase.AcceptTemporal` carries `ValidityAskedByStatement`), and binds the transfer with
+  `BindMoveOf` onto `BoundAccept.Store`; the emitter fills the temp from the clock and renders the store with
+  `MoveEmitter`. The emitter's former per-category arms were a second copy of `MoveEmitter.ConvertSource` whose
+  float arm went missing; `StaleDeferralDriftTests.AcceptTemporal_RoutesThroughTheOneMoveSeam` forbids the
+  MOVE-store primitives there. ACCEPT format 1 (§14.9.1.4 GR1–GR4) is explicitly NOT a MOVE and keeps its own
+  device conversion, documented in `CONFORMANCE.md` §7 DOC-A.1-1 / DOC-A.1-5.
 - **The drift test is on the SHAPE.** `ImplicitMoveConstructionDriftTests` asserts no `new BoundMove` survives in
   the three phrase emitters, and that NO construction survives anywhere in `CodeGen` (it used to enumerate the
   three non-phrase moves as "known", which held the hole open rather than closing it). Adding a statement whose

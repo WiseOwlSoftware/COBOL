@@ -21,6 +21,34 @@ public sealed record BoundAccept(Place Target, AcceptKind Kind) : BoundStatement
     /// post-bind <see cref="Validation.VersionConformancePass"/> (rearch PHASE-03 Step 14e); the terminator has no
     /// semantic effect, so only its presence is recorded.</summary>
     public bool HasEndTerminator { get; init; }
+
+    /// <summary>Format 2 only: the §14.9.1.4 GR7–GR12 conceptual data item — "an unsigned elementary integer data
+    /// item of usage display" of <see cref="AcceptKinds.ConceptualDigits"/> digits — which the clock reading fills
+    /// once. Null for format 1.</summary>
+    public Place? Conceptual { get; init; }
+
+    /// <summary>Format 2 only: GR6's transfer "according to the rules for the MOVE statement", BOUND by
+    /// <c>MoveBinder.BindMoveOf</c> (<see cref="ImplicitMovePhrase.AcceptTemporal"/>) from <see cref="Conceptual"/>
+    /// to <see cref="Target"/> and rendered by the MOVE emitter — never by an ACCEPT-local copy of the MOVE
+    /// rules (kb/Work PB887). Null for format 1, whose GR1–GR4 transfer is explicitly not a MOVE.</summary>
+    public BoundMove? Store { get; init; }
+}
+
+/// <summary>The §14.9.1.4 GR7–GR12 facts about each temporal source, written once.</summary>
+public static class AcceptKinds
+{
+    /// <summary>The conceptual item's length in digits: DATE 6 (GR7), DATE YYYYMMDD 8 (GR8), DAY 5 (GR9),
+    /// DAY YYYYDDD 7 (GR10), TIME 8 (GR11), DAY-OF-WEEK 1 (GR12). The device source has no conceptual item.</summary>
+    public static int ConceptualDigits(this AcceptKind kind) => kind switch
+    {
+        AcceptKind.Date => 6,
+        AcceptKind.DateYYYYMMDD => 8,
+        AcceptKind.Day => 5,
+        AcceptKind.DayYYYYDDD => 7,
+        AcceptKind.Time => 8,
+        AcceptKind.DayOfWeek => 1,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "the device source has no conceptual item"),
+    };
 }
 
 /// <summary>The data source of an ACCEPT (ISO §14.9.1): the Format 1 device, or one of the Format 2 temporal

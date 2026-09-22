@@ -12,7 +12,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// <summary>The ACCEPT / DISPLAY verb emitter (P7 Step 9c — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>; the DISPLAY half moved in from the orchestrator partial, making the Step-5
 /// filename honest). Every runtime-member fragment routes through <see cref="RuntimeApi"/>.</summary>
-internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
+internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num, MoveEmitter move)
 {
     /// <summary>DISPLAY (ISO §14.9.11): shows the sign-aware image (deSign defaults false — the operational sign is
     /// part of the displayed zoned representation, unlike a move to an alphanumeric receiver). The UPON device routing
@@ -47,14 +47,13 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
     /// from standard input (<c>AcceptSource.Device</c>), stored ALIGNED LEFT by SIZE — explicitly NOT the MOVE
     /// rules (JUSTIFIED is irrelevant; GR4a left-aligned fill / GR4b leftmost truncation). Format 2 (temporal) is
     /// the GR6 transfer: the clock value as a conceptual UNSIGNED INTEGER USAGE DISPLAY item of fixed width
-    /// (GR7–GR12) stored BY THE MOVE RULES — a numeric receiver decimal-aligns (keeps LOW-order digits on
-    /// truncation), an edited receiver edits, an alphanumeric/group receiver takes the digit-string image. (The
-    /// legacy stored temporal text left-justified-raw for every receiver — a §14.9.1.4 GR6 deviation its
-    /// exact-width NIST receivers never exposed; pinned to the spec here, all editions.)</summary>
+    /// (GR7–GR12) stored BY THE MOVE RULES — the bound implicit MOVE <see cref="BoundAccept.Store"/>, which the
+    /// MOVE emitter renders (kb/Work PB887). (The legacy stored temporal text left-justified-raw for every
+    /// receiver — a §14.9.1.4 GR6 deviation its exact-width NIST receivers never exposed.)</summary>
     public void EmitAccept(BoundAccept a)
     {
         if (a.Kind == AcceptKind.Device) EmitAcceptDevice(a.Target);
-        else EmitAcceptTemporal(a.Target, a.Kind);
+        else EmitAcceptTemporal(a);
     }
 
     /// <summary>Format 1 — the device transfer (ISO §14.9.1.4 GR1–GR5). <c>AcceptSource.Device(n)</c> returns
@@ -115,8 +114,18 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
                     ? PlaceRenderer.Write(target, RuntimeApi.NumFormatImage(value, item.ProfileName))
                     : PlaceRenderer.Write(target, value));
                 return;
-            case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
-                w.Line(LoudStmt($"ACCEPT into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2 device conversion, deferred)"));
+            case { Category: PicCategory.Numeric } fpic:   // COMP-1/COMP-2/FLOAT-* — a float receiver
+                // §14.9.1.4 GR1 leaves the device conversion to the implementor, and §14.9.1.3 SR1 does not
+                // exclude a float receiver, so this is legal source with a DOCUMENTED conversion (CONFORMANCE.md §7
+                // DOC-A.1-1; kb/Work PB887 — this arm was a run-time LoudStmt that aborted the run unit): ONE
+                // record read as the inverse of the DISPLAY image (AcceptSource.DeviceFloat — the NUMVAL-F format;
+                // a non-conforming record is zero). The binary64 value lands in the receiver's carrier by a plain
+                // narrowing cast — this is the device conversion, NOT a MOVE (GR1–GR4 are explicitly not the MOVE
+                // rules), so no EC-DATA-OVERFLOW; a WINDOWED receiver re-encodes its IEEE window bytes.
+                string fvalue = $"({fpic.ClrType})AcceptSource.DeviceFloat()";
+                w.Line(PlaceRenderer.Write(target, item.StoreAsImage
+                    ? RuntimeApi.NumFormatImageFloat(fvalue, item.ProfileName)
+                    : fvalue));
                 return;
             case { Category: PicCategory.Boolean } bpic:
                 // A BOOLEAN device receiver (SR1 does not exclude it): GR1's implementor-defined conversion is
@@ -141,91 +150,32 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         }
     }
 
-    /// <summary>Format 2 — the temporal transfer (ISO §14.9.1.4 GR6–GR12): the runtime returns the clock reading
-    /// as the conceptual item's unsigned integer VALUE; the store follows the MOVE rules (§14.9.25.4) per the
-    /// receiver's category, with the conceptual item's width fixed by GR7–GR12.</summary>
-    private void EmitAcceptTemporal(Place target, AcceptKind kind)
+    /// <summary>Format 2 — the temporal transfer (ISO §14.9.1.4 GR6–GR12). Two steps, and only the FIRST is
+    /// ACCEPT's: the clock reading fills the GR7–GR12 conceptual item (an unsigned integer of usage display, the
+    /// binder's compiler temp <see cref="BoundAccept.Conceptual"/>), then GR6's transfer "according to the rules for
+    /// the MOVE statement" is the BOUND implicit MOVE <see cref="BoundAccept.Store"/>, rendered by the MOVE emitter.
+    /// ⛔ This method carries no receiver-category arm (kb/Work PB887): it used to write its own numeric / edited /
+    /// alphanumeric / national / float / group stores — a second copy of <c>MoveEmitter.ConvertSource</c> — and
+    /// <c>ImplicitMoveConstructionDriftTests.TheAcceptTemporalTransfer_IsTheMoveEmitters</c> keeps it that way.</summary>
+    private void EmitAcceptTemporal(BoundAccept a)
     {
-        var w = ctx.Writer;
-        var item = target.Item;
-        (string call, int digits) = kind switch
+        var conceptual = a.Conceptual!;
+        var item = conceptual.Item;
+        string call = a.Kind switch
         {
-            AcceptKind.Date => ("AcceptSource.Date()", 6),                  // GR7 — YYMMDD
-            AcceptKind.DateYYYYMMDD => ("AcceptSource.DateYYYYMMDD()", 8),  // GR8 — YYYYMMDD (2002+)
-            AcceptKind.Day => ("AcceptSource.Day()", 5),                    // GR9 — YYDDD
-            AcceptKind.DayYYYYDDD => ("AcceptSource.DayYYYYDDD()", 7),      // GR10 — YYYYDDD (2002+)
-            AcceptKind.Time => ("AcceptSource.Time()", 8),                  // GR11 — HHMMSScc
-            _ => ("AcceptSource.DayOfWeek()", 1),                           // GR12 — 1=Monday … 7=Sunday
+            AcceptKind.Date => "AcceptSource.Date()",                   // GR7 — YYMMDD
+            AcceptKind.DateYYYYMMDD => "AcceptSource.DateYYYYMMDD()",   // GR8 — YYYYMMDD (2002+)
+            AcceptKind.Day => "AcceptSource.Day()",                     // GR9 — YYDDD
+            AcceptKind.DayYYYYDDD => "AcceptSource.DayYYYYDDD()",       // GR10 — YYYYDDD (2002+)
+            AcceptKind.Time => "AcceptSource.Time()",                   // GR11 — HHMMSScc
+            _ => "AcceptSource.DayOfWeek()",                            // GR12 — 1=Monday … 7=Sunday
         };
-        // The conceptual sending item's DISPLAY image: its digits zero-padded to the GR-defined width.
-        string sendImage = RuntimeApi.NumFormatUnsignedDisplay(call, digits);
-
-        // A ref-modified receiver slice takes the sending characters (left-justified, space-filled, truncated to
-        // the slice — §14.9.25.4 alphanumeric move into the §8.4.3.3.4 GR6 slice).
-        if (target is RefModPlace)
-        {
-            w.Line(PlaceRenderer.Write(target, sendImage));
-            return;
-        }
-
-        if (item.IsGroup)
-        {
-            // A group receiver is an alphanumeric-category move (§14.9.25.4 GR4 — filled without conversion): the
-            // ONE group-image store.
-            w.Line(PlaceRenderer.WriteGroupImage(target, RuntimeApi.StrStore(sendImage, $"{item.DisplayTextWidth}"), "ACCEPT temporal into group"));
-            return;
-        }
-
-        switch (item.Pic!)
-        {
-            case { Category: PicCategory.Numeric, IsFloat: false }:
-                // Numeric MOVE: decimal-point alignment with high-order truncation / zero fill (§14.9.25.4 GR6 —
-                // the integer sender is at scale 0; the receiver keeps its LOW-order digits when smaller).
-                string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
-                w.Line(PlaceRenderer.Write(target, item.StoreAsImage
-                    ? RuntimeApi.NumFormatImage(stored, item.ProfileName)
-                    : stored));
-                return;
-            case { Category: PicCategory.Numeric } fpic:   // COMP-1/COMP-2/FLOAT-* — a float receiver
-                // §14.9.1.4 GR6 is explicit — the transfer is "to the data item specified by identifier-2
-                // ACCORDING TO THE RULES FOR THE MOVE STATEMENT" — so a float receiver takes the SAME store
-                // MoveEmitter.ConvertSource's float arm builds for the same (integer sender, float receiver)
-                // pair: the single-precision store is the EC-DATA-OVERFLOW-checked one (§14.9.25.4 GR6 d)4.a),
-                // the wider usages a plain cast, and a WINDOWED (image-stored) receiver re-encodes its IEEE
-                // window bytes. ⛔ This arm used to be a LoudStmt on the premise that the float MOVE path was
-                // "deferred", the same stale premise kb/Work PB420 removed from InitializeEmitter: the sending
-                // value is a conceptual unsigned integer (GR7–GR12), which every float usage can hold.
-                string fstored = fpic.IsSingle ? RuntimeApi.FloatStoreSingleChecked(call) : $"({fpic.ClrType})({call})";
-                w.Line(PlaceRenderer.Write(target, item.StoreAsImage
-                    ? RuntimeApi.NumFormatImageFloat(fstored, item.ProfileName)
-                    : fstored));
-                return;
-            case { Category: PicCategory.NumericEdited } npic:
-                // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5) — the form
-                // dispatch (fixed / floating-point) is RuntimeApi.EditFormatFor's (D21/PB66).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(call, 0), call, "0", ctx.EditCfg(target.Item.Pic))));
-                return;
-            case { IsCharacterEdited: true } aePic:
-                // The EDITED CHARACTER categories — alphanumeric-edited AND national-edited — through the ONE
-                // predicate: §13.18.40.5 Table 7 gives them the same single type of editing, "Simple insertion",
-                // and rule 3 places the sending characters into the mask's data positions. The mask and the
-                // item's EDITING rules render together from the one PicInfo (kb/Work PB490; PB492).
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatSimpleInsertion(sendImage, aePic)));
-                return;
-            case { Category: PicCategory.Alphanumeric or PicCategory.National } snPic:
-                // Alphanumeric MOVE: left-justified, right space-fill / right truncation; a JUSTIFIED receiver
-                // right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c). A NATIONAL receiver
-                // stores exactly like alphanumeric on the character substrate (§14.6.8.5; the digit image rides
-                // the D-N repertoire identity) — the same two stores MoveEmitter's national arm uses.
-                // The ONE elementary character receiving store — a dynamic-length receiver takes the whole image
-                // (§14.9.1.4 GR6 -> §14.9.25.4 GR8 -> §8.5.1.10.4; kb/Work PB871).
-                w.Line(PlaceRenderer.Write(target, ReceivingStore.Characters(item, sendImage, $"{snPic.Length}")));
-                return;
-            default:
-                // §14.9.1.3 SR3 bind-rejects class alphabetic / boolean / index / object / pointer receivers,
-                // so this arm is the safety net for a category the screen does not yet know.
-                w.Line(LoudStmt($"ACCEPT temporal into receiver '{item.CobolName}' of unsupported category"));
-                return;
-        }
+        // The clock value is an unsigned integer that fits the conceptual item by construction (each AcceptSource
+        // reading is at most GR7–GR12's digit count), so the fill is the plain scale-0 numeric store.
+        string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
+        ctx.Writer.Line(PlaceRenderer.Write(conceptual, item.StoreAsImage
+            ? RuntimeApi.NumFormatImage(stored, item.ProfileName)
+            : stored));
+        move.Emit(a.Store!);
     }
 }

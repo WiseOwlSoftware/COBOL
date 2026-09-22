@@ -717,9 +717,10 @@ public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoA
 public sealed record ImplicitMovePhrase(string Statement, string Cite)
 {
     /// <summary>True when the owning statement's OWN rule asks the §14.9.25.3 validity question for this move, in
-    /// its own framing, so <c>MoveBinder.BindMoveOf</c> must not ask it again per receiver. INITIALIZE alone:
-    /// §14.9.20.3 SR4 asks it once per REPLACING category (a hypothetical MOVE into "an item of the specified
-    /// category"), and the §14.9.20.4 GR6a/GR6c senders are valid by construction. The move is still BOUND —
+    /// its own framing, so <c>MoveBinder.BindMoveOf</c> must not ask it again per receiver. Two statements:
+    /// INITIALIZE — §14.9.20.3 SR4 asks it once per REPLACING category (a hypothetical MOVE into "an item of the
+    /// specified category"), and the §14.9.20.4 GR6a/GR6c senders are valid by construction — and ACCEPT format 2,
+    /// whose §14.9.1.3 SR3 names the refused receiver classes itself (kb/Work PB887). The move is still BOUND —
     /// frozen, classified and storage-marked — which is what building it in the emitter skipped (kb/Work PB880).</summary>
     public bool ValidityAskedByStatement { get; init; }
 
@@ -739,6 +740,14 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// result of the program activation", and the extension fills it by the MOVE rules.</summary>
     public static readonly ImplicitMovePhrase GobackReturning =
         new("GOBACK … RETURNING", "ISO §14.9.18.4 GR2 (implementor extension)");
+
+    /// <summary>ACCEPT format 2's transfer — ISO §14.9.1.4 GR6, "The ACCEPT statement causes the information
+    /// requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE
+    /// statement", the sender being the GR7–GR12 conceptual unsigned integer item of usage display. The statement
+    /// asks the validity question ITSELF (<c>AcceptDisplayBinder</c>, framed under §14.9.1.3 SR3 as COBOLNET0818),
+    /// because SR3 is ACCEPT's own rule over the same receiver classes Table 16 refuses (kb/Work PB887).</summary>
+    public static readonly ImplicitMovePhrase AcceptTemporal =
+        new("ACCEPT … FROM DATE/DAY/DAY-OF-WEEK/TIME", "ISO §14.9.1.4 GR6") { ValidityAskedByStatement = true };
 
     /// <summary>How ONE receiver of this move names itself in a diagnostic. The name is nullable because a
     /// receiver may be FILLER or an unnamed record area.</summary>
