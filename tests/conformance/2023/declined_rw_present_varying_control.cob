@@ -6,6 +6,12 @@
       *> clauses in a REPORT GROUP at the default edition and asserts they still compile AND still produce
       *> their values; conformance:negative/declined-validate-present-when and -varying are its complement.
       *> (tests/conformance/2002/rw_present_when.cob is the same shape at 2002 and stays the 2002 leg.)
+      *> PLACEMENT (kb/Work PB484). The report's FIRST printed line is the first line of the file:
+      *> a line number IS a page line number (ISO 13.18.35.4 GR6 - "the report's LINE-COUNTER is set
+      *> equal to that line number and the line is now printed on the page at that vertical location"),
+      *> and GR7's "Any unoccupied lines on the page result in a blank line" fixes the blanks above it.
+      *> Here the only group is a body group and it is the first on the page, so GR5 b) 3 gives it the
+      *> FIRST DETAIL integer, 2: line 1 is unoccupied and blank, ROW-1 prints on line 2, ROW-2 on line 3.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DCLRWCTL.
        ENVIRONMENT DIVISION.

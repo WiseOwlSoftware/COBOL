@@ -52,6 +52,14 @@ internal sealed class ReportWriterEmitter(
                 if (sum.Register.Pic is { } rpic)
                     w.Line($"private static readonly NumProfile {sum.Register.ProfileName} = {rpic.ProfileInitializer(ctx.SignEncoding)};"
                         + $"   // {r.Name} sum counter {sum.Id}{(sum.Name is null ? "" : $" '{sum.Name}'")} (ISO §13.18.54.4 GR1)");
+        // The NumProfile of each report's PAGE-COUNTER register (ISO §8.4.3.15.4 GR1 — a temporary unsigned
+        // integer data item maintained per report). Same reason as the sum counter above: the register lives
+        // outside the storage forest and §8.4.3.15.3 SR1 makes it a RECEIVER, so its store needs a profile
+        // (kb/Work PB429).
+        foreach (var r in reports)
+            if (r.PageCounterRegister.Pic is { } ppic)
+                w.Line($"private static readonly NumProfile {r.PageCounterRegister.ProfileName} = {ppic.ProfileInitializer(ctx.SignEncoding)};"
+                    + $"   // {r.Name} PAGE-COUNTER (ISO §8.4.3.15.4 GR1)");
         foreach (var r in reports)
             foreach (var (group, gi) in r.Groups.Select((g, i) => (g, i)))
                 foreach (var (line, li) in group.Lines.Select((l, i) => (l, i)))
@@ -178,6 +186,20 @@ internal sealed class ReportWriterEmitter(
         return $"{g.Ordinal} < ({v} >= {g.Spec.Min} && {v} <= {g.Spec.Max - 1} ? {v} : {g.Spec.Max})";
     }
 
+    /// <summary>ONE presence delegate per report line, carrying BOTH suppressors §13.18.63.4 GR22 names that
+    /// can absent a whole line: the §13.18.41 PRESENT WHEN chain and the §13.18.38.4 GR13 count of every
+    /// enclosing repeating entry with a DEPENDING phrase. Composing them here rather than in two delegates is
+    /// what keeps §13.18.35.4 GR4c's "these clauses are taken into account in computing the trial sum" true of
+    /// both at once — the engine reads presence once per presentation and the page-fit test reads the same
+    /// answer. Null when the line is unconditional (the characterization-pinned three-argument construction).</summary>
+    private string? LinePresent(ReportLineModel l)
+    {
+        if (l.PresentWhen.Count == 0 && l.RepetitionGuards.Count == 0) return null;
+        List<string> terms = [.. l.PresentWhen.Count > 0 ? [PresentExpr(l.PresentWhen)] : (string[])[],
+                              .. l.RepetitionGuards.Select(RepetitionTest)];
+        return string.Join(" && ", terms);
+    }
+
     /// <summary>The compose-local name of a VARYING counter (§13.18.64) — keyed by the synthetic print item's
     /// uid + the counter's index within the entry's VARYING clause.</summary>
     private static string VaryName(ReportFieldModel f, int k) => $"__rv{f.PrintItem.Uid}_{k}";
@@ -296,12 +318,15 @@ internal sealed class ReportWriterEmitter(
             {
                 // A conditioned line carries its PRESENT WHEN chain as a delegate the engine evaluates once per
                 // presentation, BEFORE any LINE processing (§13.18.41.4 GR2); unconditional lines keep the
-                // three-argument construction (the characterization-pinned text).
+                // three-argument construction (the characterization-pinned text). A line that seeds or steps
+                // from a §13.18.38.4 GR12c/GR12d step anchor adds the anchor triple, which then forces the
+                // PRESENT argument to be written out even when it is null.
                 string lines = group.Lines.Count == 0
                     ? "System.Array.Empty<ReportGroupLine>()"
                     : "new[] { " + string.Join(", ", group.Lines.Select((l, li) =>
                         $"new ReportGroupLine(ReportLineKind.{l.Kind}, {l.Value}, __RPT_C_{r.CsIndex}_{gi}_{li}"
-                        + (l.PresentWhen.Count > 0 ? $", () => {PresentExpr(l.PresentWhen)}" : "") + ")")) + " }";
+                        + (LinePresent(l) is { } lp ? $", () => {lp}" : l.Anchor > 0 ? ", null" : "")
+                        + (l.Anchor > 0 ? $", {l.Anchor}, {l.RelativeBase}, {l.TrialInterval}" : "") + ")")) + " }";
                 w.Line($"var __rg{r.CsIndex}_{gi} = new ReportGroup(ReportGroupKind.{group.Kind}, "
                     + $"{CsLiteral(group.Name ?? "")}, {group.ControlLevel}, {lines});");
                 w.Line($"__RPT_{r.CsIndex}.AddGroup(__rg{r.CsIndex}_{gi});");

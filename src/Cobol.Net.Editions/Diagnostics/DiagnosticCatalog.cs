@@ -679,6 +679,18 @@ public static class DiagnosticCatalog
         + "by entries subordinate to it (SR27); and an OCCURS may nest inside another only without DEPENDING "
         + "(SR10).", "ISO §13.18.38.3 SR1/SR10/SR16/SR17/SR24–SR27");
 
+    // ── COBOLNET2199 — the LINE clause (§13.18.35 Format 1) syntax-rule family, one code for the family (the
+    //    COBOLNET2021 bundling precedent); kb/Work PB565. ──
+    public static readonly DiagnosticDescriptor ReportLineClauseRule = new(
+        "COBOLNET2199", "report-line-clause-rule", EditionSeverity.Error,
+        "A LINE clause in a report group description violates one of its syntax rules. ISO §13.18.35.3 SR10 "
+        + "governs the MULTIPLE LINE clause — more than one integer-1 or integer-2 operand: a) \"The NEXT PAGE "
+        + "phrase, if specified, shall appear only with the first operand\"; b) \"All absolute operands, if "
+        + "present, shall precede all relative operands, if present\"; c) \"The occurrences of integer-1, if "
+        + "present, shall be in ascending numerical order\"; d) \"An OCCURS clause shall not also be present in "
+        + "the same entry\". SR4 forbids a LINE clause in an entry subordinate to one that also contains a LINE "
+        + "clause.", "ISO §13.18.35.3 SR4/SR10");
+
     public static readonly DiagnosticDescriptor ExternalTypeRule = new(
         "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
         "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
@@ -739,16 +751,14 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportNextGroupClause = new(
         NotImplemented, "report-next-group-clause", EditionSeverity.Error,
         "The NEXT GROUP clause is not yet implemented.", "ISO §13.18.37", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ReportOccursInGroup = new(
-        NotImplemented, "report-occurs-in-group", EditionSeverity.Error,
-        "VERTICAL repetition of a report group description entry — an OCCURS clause (§13.18.38 format 3) on an "
-        + "entry that contains, or has subordinate to it, a LINE clause (§13.18.38.4 GR10c/GR10d, GR12c/GR12d) "
-        + "— is not yet implemented; it stages with its sibling the multiple LINE clause. HORIZONTAL (COLUMN) "
-        + "repetition is live (kb/Work PB565).", "ISO §13.18.38.4 GR10c/GR10d", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ReportMultipleLine = new(
-        NotImplemented, "report-multiple-line", EditionSeverity.Error,
-        "A multiple LINE clause (vertical repetition — the §13.18.35.4 GR9 OCCURS equivalence) is not yet "
-        + "implemented; the report-group OCCURS family stages with it.", "ISO §13.18.35.3 SR10", RecognizedNotImplemented);
+    // ⛔ `ReportOccursInGroup` (`report-occurs-in-group`) AND `ReportMultipleLine` (`report-multiple-line`) LIVED
+    // HERE AND ARE GONE (kb/Work PB565), and this comment stands where they did so neither is re-added. They
+    // staged the VERTICAL repetition of a report group description entry — an OCCURS clause on an entry that
+    // contains or has subordinate to it a LINE clause (§13.18.38.4 GR10c/GR10d, GR12c/GR12d), and its
+    // §13.18.35.4 GR9 twin the multiple LINE clause. Both axes are now LIVE: the subtree replay binds either
+    // one, GR12's integer-3 displaces on the entry's own axis, and the syntax rules each report through the
+    // family code that owns them (COBOLNET2021 for the OCCURS clause, COBOLNET2199 for the LINE clause). The
+    // ids are retired, never reallocated.
     public static readonly DiagnosticDescriptor ReportVaryingCounterInExpression = new(
         NotImplemented, "report-varying-counter-in-expression", EditionSeverity.Error,
         "A report VARYING counter referenced inside a FROM/BY expression of a VARYING clause is not yet "
@@ -761,9 +771,17 @@ public static class DiagnosticCatalog
         NotImplemented, "report-indicate-relative-column", EditionSeverity.Error,
         "GROUP INDICATE on an entry with a relative (PLUS) COLUMN operand is not yet implemented.",
         "ISO §13.18.29 / §13.18.14", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ReportNonDisplayItem = new(
-        NotImplemented, "report-non-display-item", EditionSeverity.Error,
-        "A non-DISPLAY printable report item is not supported.", "ISO §13.15", RecognizedNotImplemented);
+    // ⛔ `ReportNonDisplayItem` LIVED HERE AND IS GONE (kb/Work PB541). It staged a "not supported" refusal of
+    // every non-DISPLAY printable item under a §13.15 citation that says no such thing, which refused the
+    // NATIONAL half of §13.18.60.3 SR7 along with the usages the rule really excludes. The rule now has its own
+    // code and its own descriptor, ReportUsageNotDisplayOrNational; the id is retired, never reallocated.
+    public static readonly DiagnosticDescriptor ReportUsageNotDisplayOrNational = new(
+        "COBOLNET2198", "report-usage-not-display-or-national", EditionSeverity.Error,
+        "A USAGE clause associated with a report group item specifies neither DISPLAY nor NATIONAL. ISO "
+        + "§13.18.60.3 SR7: \"Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause "
+        + "associated with a report group item.\" The same code carries SR2's group/subordinate agreement "
+        + "(\"the same usage shall be specified in both entries\"), which is what makes §13.18.60.4 GR1's "
+        + "inheritance of a group entry's usage unambiguous.", "ISO §13.18.60.3 SR7 / SR2");
     // SUPPRESS PRINTING (§14.9.45) syntax-rule violation: the statement may appear ONLY in a USE BEFORE
     // REPORTING procedure (§14.9.45.3 SR1), which fixes the affected report group (§14.9.45.4 GR1). Written
     // anywhere else there is no group to inhibit — a genuine user error, not a non-support.
@@ -851,9 +869,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportMultipleOnFile = new(
         NotImplemented, "report-multiple-on-file", EditionSeverity.Error,
         "Multiple reports on one file (REPORTS ARE …) are not yet implemented.", "ISO §13.18.46", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ReportPageCounterReceiving = new(
-        NotImplemented, "report-page-counter-receiving", EditionSeverity.Error,
-        "PAGE-COUNTER as a receiving operand (legal) is not yet implemented.", "ISO §8.4.3.15", RecognizedNotImplemented);
+    // ⛔ `ReportPageCounterReceiving` LIVED HERE AND IS GONE (kb/Work PB429). PAGE-COUNTER as a receiving
+    // operand is ISO §8.4.3.15.3 SR1's plain reading — the descriptor's own text said "legal" — and it is now
+    // implemented as a receiving-capable place (`Model.ReportPageCounterPlace`), so there is nothing left to
+    // stage. The id is retired, never reallocated.
 
     // ── COBOLNET0899 — Report Writer, semantic validation (genuine errors on the shared code) ─────────
     public static readonly DiagnosticDescriptor ReportGroupBefore01 = new(
@@ -1212,8 +1231,12 @@ public static class DiagnosticCatalog
         NotImplemented, "report-reset-not-control-operand", EditionSeverity.Error,
         "A RESET ON operand is not an operand of the CONTROL clause, or its reference modification is not "
         + "written with integer literals.", "ISO §13.18.54.3 SR8");
+    // ⛔ ITS OWN CODE, NOT THE 0899 BAND (kb/Work PB429). §8.4.3.15.3 SR3 is a RULE the program broke, and a
+    // rule-rejection wearing the "recognized but not implemented" code tells the reader their legal program is
+    // unsupported by this compiler when in fact their program is illegal by the standard — indistinguishable,
+    // to a reader and to a selector, from the PAGE-COUNTER defect this note actually fixed.
     public static readonly DiagnosticDescriptor ReportLineCounterReceiving = new(
-        NotImplemented, "report-line-counter-receiving", EditionSeverity.Error,
+        "COBOLNET2197", "report-line-counter-receiving", EditionSeverity.Error,
         "LINE-COUNTER shall not be referenced as a receiving operand.", "ISO §8.4.3.15.3 SR3");
     public static readonly DiagnosticDescriptor ReportCounterQualifierNotReport = new(
         NotImplemented, "report-counter-qualifier-not-report", EditionSeverity.Error,

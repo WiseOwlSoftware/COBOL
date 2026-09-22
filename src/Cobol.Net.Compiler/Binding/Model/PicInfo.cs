@@ -631,6 +631,17 @@ public sealed record PicInfo(
             { SignKind = SignKindFor(usage, signed, sign: null) };
     }
 
+    /// <summary>The synthesized profile of a REPORT COUNTER — PAGE-COUNTER or LINE-COUNTER (ISO §8.4.3.15.4
+    /// GR1): "PAGE-COUNTER and LINE-COUNTER reference temporary unsigned integer data items of class and
+    /// category numeric, which are maintained for each report." UNSIGNED and scale 0, exactly as GR1 words it,
+    /// so every receiving screen and conversion the compiler already owns treats an assignment to PAGE-COUNTER
+    /// (§8.4.3.15.3 SR1) like an assignment to any other unsigned integer item. USAGE BINARY over the engine's
+    /// native <c>long</c> carrier, capped at the 18 digits that carrier holds — the standard fixes no digit
+    /// count for a counter, and the engine's own range is this implementation's answer (kb/Work PB429).</summary>
+    public static PicInfo ReportCounterItem() =>
+        new(PicCategory.Numeric, Usage.Binary, Length: 18, Digits: 18, Scale: 0, Signed: false)
+        { SignKind = SignKindFor(Usage.Binary, signed: false, sign: null) };
+
     /// <summary>The synthesized profile of a REPORT SECTION <b>sum counter</b> (ISO §13.18.54.4 GR1): "The sum
     /// counter is a conceptual data item that behaves as a data item of the category numeric. The number of
     /// decimal digits in the sum counter, both integral and fractional, is derived from the corresponding number

@@ -247,6 +247,25 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 actions.Add(new InitializeStore(place, src));
             return;
         }
+        // ⛔ AN IMPLICITLY-DEFINED ELEMENTARY REGISTER IS ONE RECEIVER, NOT A STORAGE FORM TO WALK (kb/Work
+        // PB429). A report's PAGE-COUNTER (ISO §8.4.3.15.4 GR1) and a REPORT SECTION sum counter (§13.18.54.4
+        // GR1) are elementary data items the source may name — §14.9.20.3 SR1 admits class numeric and SR7 makes
+        // identifier-1 the receiving operand — but no data description entry declares them and they occupy no
+        // storage, so the cursor switch below (whose arms are the three STORAGE forms) has nothing to give them
+        // and the default arm staged a run-time abort on legal source. §14.9.20.4 GR4 covers this shape in its
+        // first words — "Whether identifier-1 references an elementary item or a group item, the effect of the
+        // execution of the INITIALIZE statement is as though a series of implicit MOVE or SET statements, each of
+        // which has an elementary data item as its receiving operand, were executed" — with GR6 supplying the
+        // sending operand, exactly as for the reference-modified receiver above; no VALUE clause can attach to a
+        // register, so the effective value is null.
+        if (!place.Item.IsGroup && place.Undecorated is not (MemberPlace or RedefViewPlace or DynTablePlace)
+            && InitializeItemCategory(place.Item) is { } regCat)
+        {
+            var regQ = Qualify(regCat, effectiveValue: null, spec);
+            if (SenderFor(regQ, regCat, effectiveValue: null, spec) is { } regSrc)
+                actions.Add(new InitializeStore(place, regSrc));
+            return;
+        }
         // ⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS THE UNDECORATED PLACE (kb/Work PB393). identifier-1
         // is a RECEIVING operand (§14.9.20.3 SR7), and none of the decorations change where its members live:
         // an OdoGroupPlace answers §13.18.38.4 GR8 about the group's EXTENT — which GR8b already fixes at the

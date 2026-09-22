@@ -80,6 +80,12 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 - **Physical output** goes through the report file's ordinary connector (`CobolFile.WriteAdvancing` — the
   print-control stream). The engine tracks `_physLine` (physical position) separately from LINE-COUNTER so
   a future NEXT GROUP (which moves LINE-COUNTER, §8.4.3.15.4 GR4) cannot corrupt positioning.
+  ⛔ **A LINE NUMBER IS A PAGE LINE NUMBER, AND LINE 1 IS WHERE THE STREAM ALREADY RESTS** (kb/Work PB484):
+  §13.18.35.4 GR6 prints the line "on the page at that vertical location" and GR7 makes every unoccupied
+  line above it blank, so the travel to line `target` is `target − 1` while the page is still empty
+  (`_physLine == 0`, at INITIATE and after the §14.9.16.4 GR6b form feed) and `target − _physLine` once a
+  line has been printed on it. Reading `_physLine == 0` as a line to advance OFF put every line of every
+  report one line too low; the GR3 overlap clamp applies only once a line exists to overlap.
 
 ## 2. The engine (`CobolReport`) — spec-keyed behavior table
 
@@ -101,7 +107,7 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | PRESENT WHEN | §13.18.41 Format 1 — `EvaluatePresent` evaluates every line's condition chain ONCE per presentation, BEFORE any LINE processing (GR2) and AFTER the `BeforeReporting` hook. ⛔ **That order is a DETERMINATION, not a reading** (kb/Work PB367b): §14.9.49.4 GR9 d) performs the declarative "Before the processing of any LINE clauses defined for the report group" and GR2 evaluates condition-1 "before the processing of any LINE clauses for the report group" — the SAME boundary, with no rule ordering them, and both precede the page fit test (GR9 c); §13.18.41.4 GR3 d). It is settled this way because the reverse makes a declarative's execution depend on data the declarative exists to set: condition-1 is any condition (§13.18.41.2), typically over the very items §14.9.49.4 GR8 lets the procedure prepare ("just before the named report group is produced"), and a level-01 PRESENT WHEN would otherwise silently suppress the procedure that would have made the group present. Witnessed by `ReportWriterConformanceTests.UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated`; an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); ALL lines absent ⇒ return-before-flags, as though the whole description were omitted (GR2b — no counters, no fit, no sum reset); an absent SUM entry is neither printed (the compose guard) nor reset (`EndOfGroupSumReset` consults `SumEntry.Present` — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
 | VARYING | §13.18.64 — per-repetition counters over the multiple-COLUMN repetition vehicle (SR1): compose-local `long`s, first occurrence ← FROM (default 1, GR3a — re-evaluated per presentation), += BY per repetition (default 1, GR3b); each value persists through its occurrence (GR4 — `SOURCE IS counter` renders it, GR4 NOTE); a noninteger FROM/BY truncates via `Rescale` (the GR5 EC-REPORT-VARYING seam, checking default-off §18.16) |
 | multiple/relative COLUMN | §13.18.14 F1 — a multiple COLUMN clause defines one printable item per operand (GR12); relative (PLUS) operands place at `horizontal counter + integer-2` (GR8) with the counter starting at 0 (GR7) and set to each placed item's rightmost column (GR9) |
-| the VALUE / SOURCE OPERAND LIST | ⛔ **ONE list, ONE cycling reader, ONE syntax screen** (kb/Work PB506). ISO writes the same two rules twice, once per clause: §13.18.63.3 SR35 = §13.18.53.3 SR6 (a multi-operand clause requires a repeating entry — §13.15.4 GR3 — and an operand count equal to its repetitions, or that number multiplied by the repetitions of successive higher repeating entries) and §13.18.63.4 GR23 = §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable items, horizontally and then vertically … If no further operands remain, assignment begins again from the first operand"). So `ReportFieldModel.Sources` is a LIST (a single-operand clause is a one-element list), `ReportFieldModel.SourceAt(rep)` is the only per-repetition reader — indexed by the repetition ORDINAL, which is what makes GR23's last sentence true by construction ("If any of the printable items are suppressed as a result of a PRESENT WHEN clause … operands are nevertheless assigned to them"), and `DataBinder.Reports.ScreenRepeatingOperandCount` is the ONE screen, fed by both clauses with its own diagnostic each (**COBOLNET2012** VALUE / **COBOLNET2013** SOURCE) and the repetition chain read off the entry scope stack. Before PB506 `FieldValueSource` held ONE glued string (`ExtractValue`'s `GetText()` over the whole list, so `VALUE "XX" "YY"` reached the emitter as `"XX""YY"` and printed `XX"YY`) and the SOURCE clause had no multi-operand grammar surface at all. GR23's wrap-around sentence has no reachable COBOL source while the higher-level repetition vehicles stage loud, so `ReportOperandListDriftTests` asserts it on the model |
+| the VALUE / SOURCE OPERAND LIST | ⛔ **ONE list, ONE cycling reader, ONE syntax screen** (kb/Work PB506). ISO writes the same two rules twice, once per clause: §13.18.63.3 SR35 = §13.18.53.3 SR6 (a multi-operand clause requires a repeating entry — §13.15.4 GR3 — and an operand count equal to its repetitions, or that number multiplied by the repetitions of successive higher repeating entries) and §13.18.63.4 GR23 = §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable items, horizontally and then vertically … If no further operands remain, assignment begins again from the first operand"). So `ReportFieldModel.Sources` is a LIST (a single-operand clause is a one-element list), `ReportFieldModel.SourceAt(rep)` is the only per-repetition reader — indexed by the repetition ORDINAL, which is what makes GR23's last sentence true by construction ("If any of the printable items are suppressed as a result of a PRESENT WHEN clause … operands are nevertheless assigned to them"), and `DataBinder.Reports.ScreenRepeatingOperandCount` is the ONE screen, fed by both clauses with its own diagnostic each (**COBOLNET2012** VALUE / **COBOLNET2013** SOURCE) and the repetition chain read off the entry scope stack. Before PB506 `FieldValueSource` held ONE glued string (`ExtractValue`'s `GetText()` over the whole list, so `VALUE "XX" "YY"` reached the emitter as `"XX""YY"` and printed `XX"YY`) and the SOURCE clause had no multi-operand grammar surface at all. GR23's wrap-around sentence became REACHABLE when both repetition axes did (kb/Work PB565) — a repeating entry subordinate to another one has more placements than a conforming operand count, `conformance:2002/pb565_report_vertical_repetition` lines 30–31 — and `ReportOperandListDriftTests` still asserts it on the model |
 
 **The four statement-precondition conditions, and what `>>TURN` does and does not gate.** EC-FLOW-REPORT
 (§14.9.49.4 GR10), EC-REPORT-ACTIVE (§14.9.21.4 GR2), EC-REPORT-FILE-MODE (§14.9.21.4 GR3) and
@@ -154,16 +160,45 @@ off-by-one through every later counter check.
   they would on a single data item without the OCCURS clause" is satisfied by running the whole clause binder
   again, not by teaching each clause about repetition; §13.18.63.4 GR21's import of GR9 (a VALUE reaches
   every occurrence, both the *contains* and the *subordinate to* leg) rides it unchanged.
-  - **Placement** (§13.18.38.4 GR12) is `ReportColumnKindModel`: the displacement Σ ordinal × integer-3 is
-    ADDITIVE over the enclosing repeating entries, so an `Absolute` operand simply moves by it. A relative
+  - **THE AXIS is fixed once** (§13.18.38.4 GR10/GR12), on `ReportOccursSpec.Axis`: GR10a/GR10b and
+    GR12a/GR12b are the COLUMN arms, GR10c/GR10d and GR12c/GR12d the LINE arms, so the same integer-3 is a
+    horizontal interval on one entry and a vertical one on another. An entry that contains, or has subordinate
+    to it, a LINE clause repeats VERTICALLY; every other repeating entry repeats horizontally. Every reader
+    asks `ReportGroupBuild.Shift(axis)` / `Undisplaced(axis)`, never `Spec.Step` directly, so integer-3 can
+    never displace on the axis it does not belong to (`ReportRepeatingEntryDriftTests`).
+  - **THE MULTIPLE LINE CLAUSE IS THAT SAME REPLAY**, because §13.18.35.4 GR9 says so: "A multiple LINE clause
+    is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS clause
+    whose integer is equal to the number of operands of the LINE clause, except that the multiple LINE clause
+    allows the report lines to be defined at unequal vertical intervals." `DataBinder.ReportRepetitionOf`
+    builds exactly that — a simple, STEP-less, vertical `ReportOccursSpec` — and the repetition ORDINAL then
+    selects the LINE operand. §13.18.35.3 SR10 a/b/c/d and SR4 are screened on **COBOLNET2199**; SR10d (no
+    OCCURS in the same entry) is what keeps §13.15.4 GR3's repetition count single-valued.
+  - **Placement** (§13.18.38.4 GR12) is `ReportColumnKindModel` horizontally and `ReportLineKindModel`
+    vertically, built by the twin helpers `RepeatedPlacements` and `RepeatedLine`: the displacement
+    Σ ordinal × integer-3 is ADDITIVE over the enclosing repeating entries OF THAT AXIS, so an `Absolute`
+    operand simply moves by it. A relative
     operand has no compile-time column, so its first repetition is an `AnchorSeed` — it places as GR8 says
     and remembers the column in a compose-local `__raN` — and the later ones are `AnchorStep`, placing at
     anchor + displacement. The anchor and not the horizontal counter is the datum because GR12 measures from
     the preceding occurrence's LEFTMOST while §13.18.14.4 GR9's counter holds its RIGHTMOST. With no STEP
     phrase nothing is displaced — GR12's closing sentence gives the interval to the relative COLUMN numbers,
     which the replayed operand reproduces against the counter.
-  - **DEPENDING** (GR13) is a presence test composed into the SAME guard as the PRESENT WHEN chain, so the
-    two suppressors §13.18.63.4 GR22 names cannot drift: repetition *n* appears iff
+  - **Vertically the same shape, one storage level up**: an absolute LINE clause displaces to
+    integer-1 + Σ ordinal × integer-3 and stays a compile-time constant (§13.18.38.3 SR25a/SR25b REQUIRE the
+    STEP phrase there, so the constant always exists); a relative LINE clause has no compile-time page line,
+    so its first occurrence seeds an engine-held anchor (`ReportGroupLine.Anchor`, cleared per presentation)
+    with the line it lands on and later occurrences are `ReportLineKind.Step`, placing at anchor +
+    displacement. The anchor and not LINE-COUNTER is the datum because GR12d measures from "the line they
+    occupy in the preceding occurrence" while §13.18.35.4 GR1's LINE-COUNTER holds the last line PRINTED, and
+    the lines between them belong to the intervening occurrences. `ReportGroupLine.TrialInterval` carries the
+    line's §13.18.35.4 GR4c page-fit contribution — its expected offset minus the running one — so Σ over the
+    group is exactly "the expected position of the last line of the report group" however the repetitions
+    interleave. The engine's four group presentations share ONE subsequent-line rule, `SubsequentTarget`
+    (GR7 + GR12c/GR12d); before the vertical axis they were four copies of `LINE-COUNTER + integer-2`.
+  - **DEPENDING** (GR13) is a presence test composed into the SAME guard as the PRESENT WHEN chain — per
+    PLACEMENT horizontally (`EmitFieldPlacements`) and per report LINE vertically (`LinePresent`), because a
+    repetition the count excludes does not EXIST and on the vertical axis that is a whole absent line, not a
+    blank one — so the two suppressors §13.18.63.4 GR22 names cannot drift: repetition *n* appears iff
     `n < (data-name-1 ∈ [integer-1, integer-2−1] ? data-name-1 : integer-2)`. Every repetition is BOUND
     either way, which is GR23's "VALUE operands are nevertheless assigned to them, even though they are not
     printed".
@@ -172,10 +207,17 @@ off-by-one through every later counter check.
     replayed entry becomes one field per repetition and a field-local accumulator could not span them. The
     forms are equal, not approximate: GR3 adds arithmetic-expression-2 itself and both operands truncate to
     scale 0 once.
-  - **RESIDUE, named**: VERTICAL repetition — an OCCURS on an entry that contains, or has subordinate to it,
-    a LINE clause (GR10c/GR10d, GR12c/GR12d) — still stages LOUD on `COBOLNET0899 report-occurs-in-group`,
-    beside its sibling the multiple LINE clause. `ReportRepeatingEntryDriftTests` holds that diagnostic to
-    naming the AXIS, so it can never be re-broadened over the live horizontal one.
+  - **SR25, LEG BY LEG** — "The STEP phrase shall be specified if the entry: a) contains an absolute LINE
+    clause, or b) has an entry with an absolute LINE clause subordinate to it, or c) contains an absolute
+    COLUMN clause, or d) is subordinate to an entry with a LINE clause and has an entry with an absolute
+    COLUMN clause subordinate to it." a) ∪ b) is one subtree scan; c) and d) are NOT — c) asks about the
+    entry's own clause and d) adds GR12b's "being itself subordinate to an entry with a LINE clause". Reading
+    c/d as a single subtree scan refused `03 LINE PLUS 1 OCCURS 3 TIMES.` over a subordinate `05 COLUMN 1`,
+    which is GR10c and conforming source. SR26 is measured on the entry's OWN axis: the repeated item's
+    printed width horizontally, the lines one occurrence occupies vertically (`ReportEntryLineSpan`).
+  - **No residue on either axis.** `COBOLNET0899 report-occurs-in-group` and `report-multiple-line` are
+    RETIRED, never to be reallocated, and `ReportRepeatingEntryDriftTests.NeitherRepetitionAxis_StagesLoud`
+    fails if either descriptor is re-declared.
 - **A CONTROL-clause OPERAND is a written reference, and there is ONE of it** (`ReportControlRef` — name +
   IN/OF qualifiers + the reference modification, captured by the one helper `ControlOperandRef`). THREE clauses
   write such an operand and all three permit the ref-mod with the same integer-literal restriction: the CONTROL
@@ -281,7 +323,7 @@ off-by-one through every later counter check.
   condition-1 shall not reference LINE-/PAGE-COUNTER or a report-section data item (token scan in
   `ResolveReports` over report-section-EXCLUSIVE names; a name also in ordinary storage resolves there and is
   exempt); SR17 — GROUP INDICATE ⊥ PRESENT WHEN in one entry; VARYING SR1 — the entry needs OCCURS / multiple
-  LINE / multiple COLUMN (OCCURS and multiple COLUMN are LIVE vehicles; multiple LINE is still 0899-staged);
+  LINE / multiple COLUMN — all three LIVE vehicles;
   SR2 — the counter shall not be defined elsewhere (`ByName` probe); SR3 — the counter shall not appear in its
   own FROM. `SOURCE IS counter` (same entry, unqualified) rebinds to `FieldVaryingSource` (§13.18.64.4 GR4 NOTE).
 
@@ -337,17 +379,17 @@ NOT the sum accumulation or end-of-group reset; SR1/GR1 bind-resolve the enclosi
 COBOLNET1581 on a misplaced SUPPRESS); PD counter references incl. qualified; USE BEFORE REPORTING (Format 2
 declaratives); unpaged reports;
 **PRESENT WHEN Format 1** (§13.18.41 — any entry level, chain semantics per GR2b, the GR3a–g LINE/COLUMN/SUM
-interactions, edition-gated 2002); **VARYING** (§13.18.64 — over the multiple-COLUMN repetition vehicle,
+interactions, edition-gated 2002); **VARYING** (§13.18.64 — over any repetition vehicle,
 counter-as-SOURCE, per-presentation FROM); **multiple + relative (PLUS) COLUMN** (§13.18.14 F1 incl. the
-COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter).
+COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter); **REPETITION ON BOTH AXES**
+(kb/Work PB565) — the §13.18.38 format 3 OCCURS clause horizontally (GR10a/GR10b, GR12a/GR12b) AND vertically
+(GR10c/GR10d, GR12c/GR12d) with its SR10/SR16/SR24–SR27 syntax rules, and the **multiple LINE clause**
+(§13.18.35.3 SR10, bound as §13.18.35.4 GR9's simple OCCURS, SR4 and SR10 a/b/c/d screened on COBOLNET2199) —
+all three §13.15.4 GR3 vehicles live, edition-gated 2002.
 
 **Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):** NEXT GROUP
 (§13.18.37, incl. the WITH RESET PAGE-COUNTER form); CODE (§13.18.12); LINE … NEXT PAGE / ON NEXT PAGE;
-**VERTICAL** repetition of a report group entry (§13.18.38.4 GR10c/GR10d — an OCCURS over a LINE clause;
-HORIZONTAL repetition is LIVE, see §3; the multi-operand VALUE and SOURCE clauses themselves RIDE over the
-multiple-COLUMN vehicle, kb/Work PB506); **multiple LINE
-(§13.18.35.3 SR10 — GR9-equivalent to LINE + a simple OCCURS, staged with the OCCURS repetition family;
-`report-multiple-line`)**; **a VARYING counter inside a FROM/BY expression (the §13.18.64.3 SR3-legal BY
+**a VARYING counter inside a FROM/BY expression (the §13.18.64.3 SR3-legal BY
 self-reference; `report-varying-counter-in-expression`)**; **FUNCTION inside a PRESENT WHEN condition
 (`report-condition-function` — the UDF activation-hoist is statement-context machinery)**; **GROUP INDICATE on
 an entry with a relative COLUMN operand (`report-indicate-relative-column` — the engine's blank spans need
@@ -358,8 +400,21 @@ report-section addend); cross-report SUM (a SUM addend qualified by a report-nam
 (`SUM (A * B)` — the lexer's §8.4.3.2.3 SR2 keyword-omitted-intrinsic trigger on the SUM token pushes
 SUBSCRIPT mode at that `(`, against §13.18.54.3 SR9's "Otherwise, SUM refers to the report writer SUM
 clause"; every OTHER spelling of the expression addend is LIVE, and §13.18.54.3 states no parenthesization
-rule that would force the refused one);
-non-DISPLAY printable items; PAGE-COUNTER as a receiving operand. PAGE
+rule that would force the refused one).
+
+**A report group item's USAGE is DISPLAY or NATIONAL, and a group entry's clause is inherited**
+(kb/Work PB541). §13.18.60.3 SR7 — "Only the DISPLAY or NATIONAL phrase may be specified in any USAGE
+clause associated with a report group item" — is ONE screen, `DataBinder.Reports.ScreenReportUsage`, asked
+at the two points a usage becomes known: of the USAGE CLAUSE as it is captured (the rule's own subject, and
+the only place a GROUP entry's clause is visible) and of the usage a printable item settles on when no
+clause stated one (§13.18.60.4 GR7/GR8's implied usage). The entry scope stack carries the effective usage,
+which is GR1's "applies only to each elementary item in the group"; SR2's "the same usage shall be
+specified in both entries" rides the same code (COBOLNET2198). **PAGE-COUNTER is a receiving operand**
+wherever §8.4.3.15.3 SR1 admits an integer data item — `Model.ReportPageCounterPlace` resolved at the one
+receiving chokepoint, never a per-verb arm (kb/Work PB429) — and SR3's LINE-COUNTER prohibition is
+COBOLNET2197 beside it.
+
+PAGE
 `COLS`/width, LAST CONTROL HEADING (the GR3c default applies), and **the COLUMN LEFT/CENTER/RIGHT alignment
 phrase (§13.18.14 F1 — the SR9 LEFT default is what the grammar parses)** have no grammar surface. The §13.18.14.3 SR4/SR5 IS/ARE-spelling pairings and the
 SR7/SR8/SR10b operand-order-vs-PRESENT-WHEN arrangement rules are not enforced (over-acceptance; the runtime

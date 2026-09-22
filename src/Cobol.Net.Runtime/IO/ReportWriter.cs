@@ -47,23 +47,62 @@ public sealed class ReportFlowState
 /// to them; the heading/footing groups are presented by the RWCS at fixed logical points.</summary>
 public enum ReportGroupKind { ReportHeading, PageHeading, ControlHeading, Detail, ControlFooting, PageFooting, ReportFooting }
 
-/// <summary>A report line's LINE clause form (ISO §13.18.35): absolute (<c>LINE n</c>) or relative
-/// (<c>LINE PLUS n</c>). The <c>NEXT PAGE</c> phrases are rejected loud at bind time (legal, staged —
-/// COBOLNET_REPORT_WRITER_DESIGN §6), so the engine never sees them.</summary>
-public enum ReportLineKind { Absolute, Relative }
+/// <summary>A report line's LINE clause form (ISO §13.18.35): absolute (<c>LINE n</c>), relative
+/// (<c>LINE PLUS n</c>), or — for a repetition of a VERTICALLY repeating entry whose line is relative — the
+/// STEP placement of §13.18.38.4 GR12c/GR12d. The <c>NEXT PAGE</c> phrases are rejected loud at bind time
+/// (legal, staged — COBOLNET_REPORT_WRITER_DESIGN §6), so the engine never sees them.</summary>
+public enum ReportLineKind
+{
+    /// <summary>LINE NUMBER integer-1 — the line stands at that page line number (ISO §13.18.35.4 GR5a/GR7a).</summary>
+    Absolute,
+    /// <summary>LINE PLUS integer-2 — integer-2 lines below LINE-COUNTER (GR5b/GR5c/GR7b).</summary>
+    Relative,
+    /// <summary>A later occurrence of a STEP'd vertically repeating entry: "report lines in successive
+    /// occurrences are positioned integer-3 lines vertically beneath the line they occupy in the preceding
+    /// occurrence" (ISO §13.18.38.4 GR12d, and GR12c for the one-line form). The datum is the line's ANCHOR —
+    /// the page line the FIRST occurrence of this same line landed on — not LINE-COUNTER, because the lines
+    /// between them belong to the intervening occurrences. An ABSOLUTE line needs no kind of its own: its
+    /// displaced position is integer-1 + Σ ordinal × integer-3, a compile-time constant.</summary>
+    Step,
+}
 
 /// <summary>One report line of a report group: its LINE clause and the generated COMPOSE method that renders the
 /// line's printable items against the program's live state. Composition runs AT PRESENTATION TIME — after
 /// LINE-COUNTER is set to the line's number (ISO §13.18.35.4 GR6) — which is what makes <c>SOURCE IS
 /// LINE-COUNTER</c> print the line's OWN number and every SOURCE an implicit MOVE executed "when the line is
 /// printed" (§13.18.53.4 GR1/GR3).</summary>
-public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string> compose, Func<bool>? present = null)
+public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string> compose, Func<bool>? present = null,
+    int anchor = 0, int relativeBase = 0, int trialInterval = 0)
 {
-    /// <summary>Absolute or relative (ISO §13.18.35).</summary>
+    /// <summary>Absolute, relative, or a repeating entry's STEP placement (ISO §13.18.35 / §13.18.38.4 GR12).</summary>
     public ReportLineKind Kind { get; } = kind;
 
-    /// <summary>integer-1 (absolute) or integer-2 (relative) of the LINE clause.</summary>
+    /// <summary>integer-1 (absolute) or integer-2 (relative) of the LINE clause — or, for
+    /// <see cref="ReportLineKind.Step"/>, the vertical displacement Σ ordinal × integer-3 from the ANCHOR.</summary>
     public int Value { get; } = value;
+
+    /// <summary>The line's step-anchor slot, 0 for a line that neither seeds nor steps from one (ISO
+    /// §13.18.38.4 GR12c/GR12d). A non-Step line with an anchor SEEDS it with the page line it lands on; a
+    /// <see cref="ReportLineKind.Step"/> line READS it. One slot per (report line × undisplaced enclosing
+    /// ordinals), so nested repeating entries cannot share a datum.</summary>
+    public int Anchor { get; } = anchor;
+
+    /// <summary>A Step line's own written integer-2 — used ONLY when its anchor was never seeded because the
+    /// first occurrence of this line was absent under a PRESENT WHEN clause (§13.18.41.4 GR2b). There is then no
+    /// "preceding occurrence" to measure from, so the first PRESENT occurrence places relatively and becomes the
+    /// anchor instead.</summary>
+    public int RelativeBase { get; } = relativeBase;
+
+    /// <summary>What this line adds to the §13.18.35.4 GR4c page-fit trial sum. A relative line contributes its
+    /// own integer-2 ("the trial sum is incremented by integer-2 for each subsequent LINE clause"); an absolute
+    /// line contributes nothing (GR4b governs that test instead); a <see cref="ReportLineKind.Step"/> line
+    /// contributes the amount the BINDER computed — its expected offset from the group's start minus the
+    /// preceding line's — so that the sum over a group is exactly GR4c's "expected position of the last line of
+    /// the report group" however the repetitions interleave. That is GR4c's next sentence discharged in the same
+    /// arithmetic: "Wherever there is an OCCURS clause at the level of the LINE clause or above, the vertical
+    /// interval between successive occurrences is added into the trial sum once for each occurrence beyond the
+    /// first" — with STEP the interval is integer-3, and the offsets add it exactly once per occurrence.</summary>
+    public int TrialInterval { get; } = kind == ReportLineKind.Relative ? value : trialInterval;
 
     /// <summary>The generated compose method — the §13.18.53.4 GR1 implicit MOVEs into one line image.</summary>
     public Func<string> Compose { get; } = compose;
@@ -132,8 +171,17 @@ public sealed class CobolReport(
     /// each line's number as it is printed (§13.18.35.4 GR6), reset to 0 at every page advance (GR3).</summary>
     public long LineCounter { get; private set; }
 
-    /// <summary>The report's PAGE-COUNTER (ISO §8.4.3.15): 1 after INITIATE (GR2), +1 at each page advance.</summary>
+    /// <summary>The report's PAGE-COUNTER (ISO §8.4.3.15): 1 after INITIATE (GR2), +1 at each page advance.
+    /// ⛔ SET BY THE PROCEDURE DIVISION TOO — see <see cref="SetPageCounter"/>.</summary>
     public long PageCounter { get; private set; }
+
+    /// <summary>Assign PAGE-COUNTER from the procedure division (ISO §8.4.3.15.3 SR1 — "In the procedure
+    /// division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may
+    /// appear", and SR3 subtracts only LINE-COUNTER from the receiving side; §13.18.37.4 GR6's parenthetical
+    /// "(unless procedurally altered)" is the standard saying a program assigning page numbers is the intended
+    /// use). §8.4.3.15.4 GR1 makes the counter an UNSIGNED integer, so the binder's receiving place carries an
+    /// unsigned profile and the value reaching here is already the stored one (kb/Work PB429).</summary>
+    public void SetPageCounter(long value) => PageCounter = value;
 
     private bool _active;                  // INITIATE…TERMINATE state (§14.9.21.4 GR4)
 
@@ -508,7 +556,7 @@ public sealed class CobolReport(
         // clauses for the report group. An absent line is processed as though its entry were omitted (GR2b);
         // when EVERY line is absent the effect is as though the entire description were omitted — no fit test,
         // no printing, no counter movement, no sum reset (the dummy-group shape above).
-        var (present, first) = EvaluatePresent(lines);
+        var (present, first) = BeginPresentation(lines);
         if (first < 0) return;
 
         // §14.9.45.4 GR3 a–d: a SUPPRESSed group inhibits only the PRINTING half — no page-fit/advance, no line
@@ -537,8 +585,8 @@ public sealed class CobolReport(
             {
                 long trial = LineCounter;
                 for (int i = 0; i < lines.Length; i++)
-                    if ((present is null || present[i]) && lines[i].Kind == ReportLineKind.Relative)
-                        trial += lines[i].Value;
+                    if (present is null || present[i])
+                        trial += lines[i].TrialInterval;
                 fit = trial <= LowerLimit(group);
             }
             if (!fit) AdvancePage();   // §13.18.35.4 GR4 tail → the §14.9.16.4 GR6 sequence
@@ -556,12 +604,11 @@ public sealed class CobolReport(
                 // GR5c (unpaged, relative): LINE-COUNTER + integer-2. "First" = the first PRESENT line (GR5).
                 target = lines[i].Kind == ReportLineKind.Absolute ? lines[i].Value
                     : _paged && _firstBodyOnPage ? _firstDetail
-                    : LineCounter + lines[i].Value;
+                    : LineCounter + RelativeValue(lines[i]);
                 isFirst = false;
             }
             else
-                // GR7: a subsequent absolute line → integer-1; relative → LINE-COUNTER + integer-2.
-                target = lines[i].Kind == ReportLineKind.Absolute ? lines[i].Value : LineCounter + lines[i].Value;
+                target = SubsequentTarget(lines[i]);
             PresentLine(target, lines[i], group);
         }
         _firstBodySinceInitiate = false;
@@ -570,9 +617,49 @@ public sealed class CobolReport(
         EndOfGroupSumReset(group);
     }
 
-    /// <summary>Evaluate the lines' PRESENT WHEN conditions (ISO §13.18.41.4 GR2 — once per presentation,
-    /// before any LINE processing). Returns a null flag array when every line is unconditional (the untouched
-    /// fast path) and the index of the first present line (−1 = all absent).</summary>
+    /// <summary>⛔ THE ONE PLACEMENT RULE FOR A SUBSEQUENT LINE OF A REPORT GROUP (ISO §13.18.35.4 GR7 with
+    /// §13.18.38.4 GR12c/GR12d). All four group presentations (body, page heading, page footing, report
+    /// heading/footing) reach it, so the STEP arm cannot be live in one of them and missing in the others —
+    /// the two-arm dispatch this repo keeps paying for was here as FOUR copies of
+    /// <c>LineCounter + l.Value</c>.</summary>
+    private long SubsequentTarget(ReportGroupLine l) => l.Kind switch
+    {
+        ReportLineKind.Absolute => l.Value,                                 // GR7a
+        // GR12c/GR12d — integer-3 lines beneath the line this one occupies in the preceding occurrence. An
+        // unseeded anchor means that occurrence was absent (GR2b), and RelativeValue then re-anchors here.
+        ReportLineKind.Step when Anchor(l.Anchor) > 0 => Anchor(l.Anchor) + l.Value,
+        _ => LineCounter + RelativeValue(l),                                // GR7b
+    };
+
+    /// <summary>The relative operand a line places by when it is measured from LINE-COUNTER: its own integer-2,
+    /// or — for a <see cref="ReportLineKind.Step"/> line whose anchor was never seeded — the integer-2 written
+    /// on the entry (see <see cref="ReportGroupLine.RelativeBase"/>).</summary>
+    private static int RelativeValue(ReportGroupLine l) =>
+        l.Kind == ReportLineKind.Step ? l.RelativeBase : l.Value;
+
+    /// <summary>The step anchors of the presentation in progress (ISO §13.18.38.4 GR12), indexed by
+    /// <see cref="ReportGroupLine.Anchor"/>; 0 = not yet seeded (a page line number is always ≥ 1). Cleared at
+    /// the start of every group presentation, because each presentation re-places every line.</summary>
+    private long[] _lineAnchors = [];
+
+    private long Anchor(int id) => (uint)id < (uint)_lineAnchors.Length ? _lineAnchors[id] : 0;
+
+    private void SeedAnchor(int id, long value)
+    {
+        if (id >= _lineAnchors.Length) Array.Resize(ref _lineAnchors, id + 1);
+        _lineAnchors[id] = value;
+    }
+
+    /// <summary>Begin ONE group presentation: clear the per-presentation step anchors, then evaluate the lines'
+    /// PRESENT WHEN conditions (ISO §13.18.41.4 GR2 — once per presentation, before any LINE processing).
+    /// Returns a null flag array when every line is unconditional (the untouched fast path) and the index of the
+    /// first present line (−1 = all absent).</summary>
+    private (bool[]? Present, int First) BeginPresentation(ReportGroupLine[] lines)
+    {
+        Array.Clear(_lineAnchors);
+        return EvaluatePresent(lines);
+    }
+
     private static (bool[]? Present, int First) EvaluatePresent(ReportGroupLine[] lines)
     {
         bool[]? present = null;
@@ -625,17 +712,17 @@ public sealed class CobolReport(
     {
         var ph = _pageHeading!;
         if (RunBeforeReporting(ph)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in a PH)
-        var (present, first) = EvaluatePresent(ph.Lines);
+        var (present, first) = BeginPresentation(ph.Lines);
         if (first < 0) return;
         bool isFirst = true;
         for (int i = 0; i < ph.Lines.Length; i++)
         {
             if (present is not null && !present[i]) continue;               // §13.18.41.4 GR2b
             var l = ph.Lines[i];
-            long target = l.Kind == ReportLineKind.Absolute ? l.Value
-                : !isFirst ? LineCounter + l.Value                           // GR7
-                : _rhOnThisPage ? LineCounter + l.Value                      // GR5b2 second form
-                : _heading + l.Value - 1;                                    // GR5b2 first form
+            long target = !isFirst ? SubsequentTarget(l)                      // GR7
+                : l.Kind == ReportLineKind.Absolute ? l.Value
+                : _rhOnThisPage ? LineCounter + RelativeValue(l)              // GR5b2 second form
+                : _heading + RelativeValue(l) - 1;                            // GR5b2 first form
             isFirst = false;
             PresentLine(target, l, ph);
         }
@@ -648,16 +735,16 @@ public sealed class CobolReport(
     {
         var pf = _pageFooting!;
         if (RunBeforeReporting(pf)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in a PF)
-        var (present, first) = EvaluatePresent(pf.Lines);
+        var (present, first) = BeginPresentation(pf.Lines);
         if (first < 0) return;
         bool isFirst = true;
         for (int i = 0; i < pf.Lines.Length; i++)
         {
             if (present is not null && !present[i]) continue;               // §13.18.41.4 GR2b
             var l = pf.Lines[i];
-            long target = l.Kind == ReportLineKind.Absolute ? l.Value
-                : !isFirst ? LineCounter + l.Value                           // GR7
-                : _footing + l.Value;                                        // GR5b4
+            long target = !isFirst ? SubsequentTarget(l)                      // GR7
+                : l.Kind == ReportLineKind.Absolute ? l.Value
+                : _footing + RelativeValue(l);                                // GR5b4
             isFirst = false;
             PresentLine(target, l, pf);
         }
@@ -671,18 +758,18 @@ public sealed class CobolReport(
     private void PresentHeadingFooting(ReportGroup group)
     {
         if (RunBeforeReporting(group)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in an RH/RF)
-        var (present, first) = EvaluatePresent(group.Lines);
+        var (present, first) = BeginPresentation(group.Lines);
         if (first < 0) return;
         bool isFirst = true;
         for (int i = 0; i < group.Lines.Length; i++)
         {
             if (present is not null && !present[i]) continue;               // §13.18.41.4 GR2b
             var l = group.Lines[i];
-            long target = l.Kind == ReportLineKind.Absolute ? l.Value
-                : !isFirst ? LineCounter + l.Value                           // GR7
-                : group.Kind == ReportGroupKind.ReportHeading ? _heading + l.Value - 1            // GR5b1
-                : _pfOnThisPage ? LineCounter + l.Value                                            // GR5b5
-                : _footing + l.Value;                                                              // GR5b5
+            long target = !isFirst ? SubsequentTarget(l)                                           // GR7
+                : l.Kind == ReportLineKind.Absolute ? l.Value
+                : group.Kind == ReportGroupKind.ReportHeading ? _heading + RelativeValue(l) - 1    // GR5b1
+                : _pfOnThisPage ? LineCounter + RelativeValue(l)                                   // GR5b5
+                : _footing + RelativeValue(l);                                                     // GR5b5
             isFirst = false;
             PresentLine(target, l, group);
         }
@@ -693,11 +780,19 @@ public sealed class CobolReport(
     /// GR6 — load-bearing: a <c>SOURCE IS LINE-COUNTER</c> item prints THIS line's number), then the line is
     /// composed (§13.18.53.4 GR3 — the implicit MOVEs execute when the line is printed) and physically written
     /// at the line's vertical position. The single method ordering makes the GR6-before-compose sequence
-    /// impossible to reorder per group. A target at/above the current physical line advances one line — the
-    /// §13.18.35.4 GR3 overlap rule's EC-REPORT-LINE-OVERLAP seam (checking default-off, §18.16).</summary>
+    /// impossible to reorder per group. On a page that has already printed a line, a target at/above the current
+    /// physical line advances one line — the §13.18.35.4 GR3 overlap rule's EC-REPORT-LINE-OVERLAP seam (checking
+    /// default-off, §18.16); on an empty page there is no printed line to overlap and line 1 is where the stream
+    /// already is (see the travel computation below).</summary>
     private void PresentLine(long target, ReportGroupLine line, ReportGroup group)
     {
         if (target < 1) target = 1;
+        // ISO §13.18.38.4 GR12c/GR12d: the datum a later occurrence of this same line steps from is the page
+        // line THIS one landed on. A Step line re-anchors only when its own anchor was never seeded (the first
+        // occurrence was absent, §13.18.41.4 GR2b) — otherwise its Value is the displacement FROM the seed, and
+        // moving the seed would compound it.
+        if (line.Anchor != 0 && (line.Kind != ReportLineKind.Step || Anchor(line.Anchor) == 0))
+            SeedAnchor(line.Anchor, target - (line.Kind == ReportLineKind.Step ? line.Value : 0));
         LineCounter = target;                     // §13.18.35.4 GR6 — BEFORE the compose
         string image = line.Compose();            // §13.18.53.4 GR1/GR3 — evaluated at presentation time
         if (group.Kind == ReportGroupKind.Detail && !_indicateFresh && group.IndicateFields.Count > 0)
@@ -709,8 +804,17 @@ public sealed class CobolReport(
                     chars[col - 1 + i] = ' ';
             image = new string(chars);
         }
-        int advance = (int)(target - _physLine);
-        if (advance < 1) advance = 1;             // EC-REPORT-LINE-OVERLAP seam (§13.18.35.4 GR3)
+        // ⛔ A PAGE'S LINE 1 IS WHERE THE PRINT STREAM ALREADY RESTS, NOT ONE ADVANCE BELOW IT (kb/Work PB484).
+        // §13.18.35.4 GR6: "the report's LINE-COUNTER is set equal to that line number and the line is now
+        // printed on the page at that vertical location" — line number n IS page line n, and GR7's "Any
+        // unoccupied lines on the page result in a blank line" fixes the count of blanks above it. The stream
+        // starts each page (INITIATE §14.9.21.4 GR1b, and the §14.9.16.4 GR6b form feed) positioned AT line 1
+        // with nothing written there, so a record emitted with NO advance occupies line 1 and the travel to
+        // line `target` is target − 1 while the page is still empty — target − _physLine only once a line has
+        // been printed. `_physLine == 0` IS that empty page, not a line zero to advance off; reading it as one
+        // put every report line of every report one line too low.
+        int advance = (int)(target - (_physLine == 0 ? 1 : _physLine));
+        if (advance < 1 && _physLine != 0) advance = 1;   // EC-REPORT-LINE-OVERLAP seam (§13.18.35.4 GR3)
         CobolFile.WriteAdvancing(_fileName, image, advance, before: false, page: null);   // no LINAGE on a report FD (§13.4.5.2 Format 3)
         _physLine = (int)target;
     }

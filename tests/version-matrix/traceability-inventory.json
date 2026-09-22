@@ -7596,13 +7596,13 @@
   "ordinal": 1,
   "subject": "Report counters",
   "rule-digest": "7bbcb92a1718",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn",
+  "test-ref": "conformance:85/pb429_page_counter_receiving; conformance:negative/pb429-counter-outside-source-clause",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "'In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause. In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may appear.' TWO halves, and each has its own evidence. PROCEDURE DIVISION: the rule names no statement, so the counter is a receiving-capable PLACE resolved at the ONE receiving chokepoint rather than a permission granted per verb — ReportPageCounterPlace, reached from ExpressionBinder.ResolveReceiving, which every receiver funnels through; the positive golden exercises ten integer-data-item contexts (MOVE, ADD TO, SUBTRACT FROM, MULTIPLY BY, DIVIDE INTO, COMPUTE, ADD GIVING, INITIALIZE, INSPECT TALLYING, UNSTRING WITH POINTER) plus the sending direction in COMPUTE. Before kb/Work PB429 the receiving direction was refused wholesale (COBOLNET0899, 'legal ... not yet implemented'), and four verbs (INSPECT TALLYING, ACCEPT, UNSTRING's POINTER/TALLYING, STRING's INTO/POINTER) resolved their receivers through the SENDING resolver, so the chokepoint could not have reached them either; they now ask ResolveReceiving. REPORT SECTION: ReportSectionNameIn admits a counter only in a SOURCE clause and refuses it elsewhere - the negative golden writes one into a SUM addend, which SR6 of 13.18.54.3 refuses in its own words ('any identifiers it contains may reference entries in any section of the data division other than the report section') while the same program keeps a legal SOURCE IS PAGE-COUNTER in view.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.15.3-2",
@@ -7626,13 +7626,13 @@
   "ordinal": 3,
   "subject": "Report counters",
   "rule-digest": "0b7e4905d436",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+  "test-ref": "conformance:negative/pb429-line-counter-receiving",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "'LINE-COUNTER shall not be referenced as a receiving operand.' Screened at the ONE receiving chokepoint, one line above the PAGE-COUNTER place SR1 admits, so the rule's two halves - which counter is admitted and which is not - are written down side by side and cannot drift. Measured across every verb the chokepoint serves: MOVE, ADD TO, COMPUTE, INSPECT TALLYING, ACCEPT, INITIALIZE and UNSTRING TALLYING IN all refuse LINE-COUNTER while the same statements accept PAGE-COUNTER. The refusal also LEFT the COBOLNET0899 'recognized but not implemented' band for its own code, COBOLNET2197 (kb/Work PB429): a rule-rejection wearing an unimplemented-feature code tells the reader their legal program is unsupported when their program is illegal.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.15.4-1",
@@ -18816,13 +18816,13 @@
   "ordinal": 3,
   "subject": "Report group description entry",
   "rule-digest": "56c62b78f18b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#EntryRepetitions; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenRepeatingOperandCount",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition; conformance:2002/pb565_report_repeating_entry",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB565 (vertical axis). ALL THREE of GR3's repetition vehicles are live: 'An entry that contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said to be a repeating entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of operands of the LINE or COLUMN clause, whichever is applicable.' EntryRepetitions computes the count from the entry's own clauses (the OCCURS integer-2 times a multiple COLUMN operand count; a multiple LINE clause cannot join either, 13.18.35.3 SR10d), RepetitionChain reads 'an entry that is subordinate to a repeating entry' off the entry scope stack, and the count is what 13.18.63.3 SR35 / 13.18.53.3 SR6 screen against. 'The number of repetitions of an entry that is not a repeating entry is defined to be 1' is the default both helpers take. Golden lines 30-31 exercise a repeating entry subordinate to a repeating entry on the other axis.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-1",
@@ -23136,13 +23136,13 @@
   "ordinal": 4,
   "subject": "LINE clause",
   "rule-digest": "b0ca031ba53d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineNesting",
+  "test-ref": "conformance:negative/pb565-report-line-in-line",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB565 (vertical axis). 'Within a given report group description entry, an entry that contains a LINE clause shall not have a subordinate entry that also contains a LINE clause' is screened over the FLAT report-group entry array once per RD, before the walk, so a subtree REPLAY (13.18.38.4 GR10) cannot report one violation once per repetition. Diagnostic COBOLNET2199, the LINE clause syntax-rule family. The rule is what makes GR10's vertical pair exhaustive rather than overlapping - GR10c is 'the entry also contains a relative LINE clause', GR10d 'the entry is a group entry having subordinate entries with relative LINE clauses' - so the axis decision has exactly one answer per entry. A single-operand LINE clause is COBOL-85 syntax, so the rule and its rejection apply at all four editions.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.35.3-5",
@@ -23226,13 +23226,13 @@
   "ordinal": 10,
   "subject": "LINE clause",
   "rule-digest": "143efdffeb94",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#MultipleLineOperands",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition; conformance:negative/pb565-multiple-line-with-occurs; conformance:negative/pb565-report-multiple-line-at-85",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB565 (vertical axis). All four sub-rules of the multiple LINE clause are enforced on COBOLNET2199: a) the NEXT PAGE phrase only with the first operand, b) all absolute operands before all relative ones, c) the occurrences of integer-1 ascending, d) no OCCURS clause in the same entry (the negative golden). The clause itself is LIVE - 13.18.35.4 GR9's equivalence is how the binder builds it - and the positive golden prints its three operands at page lines 2, 4 and 7 and, on a second entry, drives a VARYING counter over them. The form is a COBOL-2002 introduction (report-multi-line-2002, COBOLNET0900 below it), witnessed by pb565-report-multiple-line-at-85.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.35.3-11",
@@ -23361,13 +23361,13 @@
   "ordinal": 6,
   "subject": "LINE clause",
   "rule-digest": "b9b54a2483a7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentLine",
+  "test-ref": "conformance:85/pb484_report_line_placement",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "'When the first line number of the report group has been calculated, the report's LINE-COUNTER is set equal to that line number and the line is now printed on the page at that vertical location.' BOTH halves in ONE method: PresentLine assigns LINE-COUNTER before composing the line (so a SOURCE IS LINE-COUNTER item prints THIS line's number) and then travels the print stream to that page line. The second half was WRONG until kb/Work PB484: the travel was computed as `target - _physLine` from a page whose stream already rests ON line 1, so line number n printed on page line n+1 and every report opened one line low. The travel is now target-1 while the page is still empty and target - _physLine after a line has been printed on it. The golden numbers every physical line, blanks included, and reads LINE-COUNTER back through 8.4.3.15.3 SR1: FIRST on line 1, SECOND on line 3, MORE on line 4, THIRD on line 7, LINE-COUNTER 7.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.35.4-7",
@@ -23406,13 +23406,13 @@
   "ordinal": 9,
   "subject": "LINE clause",
   "rule-digest": "e9f2690c8252",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportRepetitionOf",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB565 (vertical axis). 'A multiple LINE clause is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS clause whose integer is equal to the number of operands of the LINE clause, except that the multiple LINE clause allows the report lines to be defined at unequal vertical intervals' is IMPLEMENTED AS THAT EQUIVALENCE, not beside it: ReportRepetitionOf returns a simple, STEP-less, VERTICAL ReportOccursSpec whose Max is the operand count, and the repetition ORDINAL then selects the LINE operand - so the multiple LINE clause drives the SAME subtree replay as 13.18.38 format 3 and every clause of the repeated subtree rides it unchanged. The 'unequal vertical intervals' exception is exactly what the per-ordinal operand gives: golden lines 2, 4, 7 from one clause.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.35.4-10",
@@ -24081,13 +24081,13 @@
   "ordinal": 25,
   "subject": "OCCURS clause",
   "rule-digest": "94295967908d",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
-  "test-ref": "conformance:negative/pb565-report-occurs-step-required; conformance:2002/pb565_report_repeating_entry",
+  "test-ref": "conformance:negative/pb565-report-occurs-step-required; conformance:negative/pb565-report-line-step-required; conformance:2002/pb565_report_vertical_repetition; conformance:2002/pb565_report_repeating_entry",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). Legs c) and d) - the entry contains, or has subordinate to it, an ABSOLUTE COLUMN clause - are enforced: ReportOccursOf scans the repeating entry's subtree for a COLUMN operand without PLUS and, with no STEP phrase, rejects with COBOLNET2021 (pb565-report-occurs-step-required, which is the shape the PB565 defect note's own repro carried - it was not conforming source). RESIDUE: legs a) and b), the absolute LINE clause, are UNREACHABLE because VERTICAL repetition (an OCCURS on an entry that contains or is over a LINE clause, 13.18.38.4 GR10c/GR10d) still stages loud on COBOLNET0899 report-occurs-in-group, beside its sibling the multiple LINE clause (report-multi-line-2002, status pending). The vertical axis owns that residue.",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). All four legs are now enforced, and LEG BY LEG rather than as one subtree scan. a) and b) - an absolute LINE clause on the entry or subordinate to it - are one scan (AbsoluteLineClauseIn) because the entry either carries the clause or has them below it (13.18.35.3 SR4), witnessed by pb565-report-line-step-required. c) and d) do NOT collapse: c) asks about the entry's OWN COLUMN clause and d) adds 13.18.38.4 GR12b's qualifier 'being itself subordinate to an entry with a LINE clause' (SubordinateToLineClause). The previous landing read c/d as a single subtree scan and so REFUSED '03 LINE PLUS 1 OCCURS 3 TIMES.' over a subordinate '05 COLUMN 1' - conforming source under GR10c, whose repetitions are spread by the LINE clause and whose column is the same in each. That shape is golden lines 27-29.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.38.3-26",
@@ -24096,13 +24096,13 @@
   "ordinal": 26,
   "subject": "OCCURS clause",
   "rule-digest": "adef351a29aa",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#DisplayTextWidthOf",
-  "test-ref": "conformance:2002/pb565_report_repeating_entry",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportEntryLineSpan; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#DisplayTextWidthOf",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition; conformance:2002/pb565_report_repeating_entry; conformance:negative/pb565-multiple-line-with-occurs",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). HORIZONTAL half enforced: the overlap the rule forbids is measurable from the repeated item's own PICTURE, so ReportOccursOf sums the subtree's character-position widths through the ONE width rule (DataItem.DisplayTextWidthOf, extracted from DisplayTextWidth so the report side asks it rather than restating it) and rejects integer-3 below that span with COBOLNET2021. The positive golden's STEP values are each at or above the span (STEP 4 over PIC X(3), STEP 10 over a two-item group spanning 7). RESIDUE: the VERTICAL half ('the overlapping of any line ... in the case of vertical repetition') has no population - vertical repetition stages loud (COBOLNET0899).",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). The rule names BOTH axes - 'the overlapping of any line (in the case of vertical repetition) or column (in the case of horizontal repetition)' - and integer-3 is now measured on the axis the entry actually repeats on. Horizontally the span is the repeated item's printed width through the ONE width rule; vertically it is the number of lines one occurrence occupies (ReportEntryLineSpan: all-relative lines span 1 + the sum of integer-2 over every line but the first, all-absolute lines max - min + 1, a mixed entry is not measurable at bind and 13.18.35.3 SR6e already confines that shape to lines under different PRESENT WHEN clauses). The golden's vertical STEPs are each at or above the span (STEP 2 over a one-line occurrence, STEP 4 over a two-line one).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.38.3-27",
@@ -24351,13 +24351,13 @@
   "ordinal": 10,
   "subject": "OCCURS clause",
   "rule-digest": "c6663d822505",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportEntries",
-  "test-ref": "conformance:2002/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.TheSubtreeReplay_IsTheOnlyRepetitionSite",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportEntries; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ReportOccursOf",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition; conformance:2002/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.TheSubtreeReplay_IsTheOnlyRepetitionSite",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). 'It causes the entry to define integer-2 distinct report items' is implemented as a SUBTREE REPLAY: BindReportEntries binds the repeating entry and every entry subordinate to it once per repetition, which is the one shape that gives GR11 ('the same effect on each repetition as ... without the OCCURS clause') for free instead of teaching each clause about repetition. Leg a) (the entry contains a relative COLUMN clause) and leg b) (a group entry with subordinate relative COLUMN clauses under a LINE entry) are both MEASURED by the golden - lines 2 and 3 of it. RESIDUE: legs c) and d), the relative LINE clause forms, are the VERTICAL axis and stage loud (COBOLNET0899 report-occurs-in-group, narrowed by this landing to name that axis).",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). 'It causes the entry to define integer-2 distinct report items' is a SUBTREE REPLAY, and all four legs of 'the effect of the OCCURS clause on each repetition depends on the position of the entry containing the clause' are now measured. a) and b) - the relative COLUMN forms - are the horizontal golden's lines 2 and 3. c) 'If the entry also contains a relative LINE clause, each repetition behaves as though it had the same relative LINE clause' is the vertical golden's lines 27-29 (LINE PLUS 1 OCCURS 3 TIMES with no STEP). d) 'If the entry is a group entry having subordinate entries with relative LINE clauses, each repetition behaves as though it had the same subordinate entries with the same relative LINE clauses' is its lines 21-22 and 25-26. Which pair applies is ReportOccursSpec.Axis, fixed once per entry by whether a LINE clause appears on it or in its subtree.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.38.4-11",
@@ -24366,13 +24366,13 @@
   "ordinal": 11,
   "subject": "OCCURS clause",
   "rule-digest": "c84f04551f49",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportEntries; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
-  "test-ref": "conformance:2002/pb565_report_repeating_entry",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition; conformance:2002/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.TheSubtreeReplay_IsTheOnlyRepetitionSite",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). 'Any PICTURE, USAGE, SIGN, VALUE, JUSTIFIED, BLANK WHEN ZERO, or GROUP INDICATE clauses have the same effect on each repetition as they would on a single data item without the OCCURS clause. This applies also to any SOURCE, SUM, or PRESENT WHEN clauses if no VARYING clause is present. If a VARYING clause is present, the action of these clauses may vary from one repetition to another.' The replay satisfies the whole sentence by construction - each repetition runs the ENTIRE clause binder over the same entry - and the VARYING sentence is satisfied because the counter is emitted as the closed form FROM + n x BY over the repetition ordinal (ReportFieldModel.RepetitionOrdinal), which an accumulator local to one field could not span. MEASURED: golden lines 1/3 (VALUE on every repetition) and 4 (a VARYING SOURCE differing per repetition: 2, 5, 8). RESIDUE: the vertical axis, as for GR10.",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). 'Any PICTURE, USAGE, SIGN, VALUE, JUSTIFIED, BLANK WHEN ZERO, or GROUP INDICATE clauses have the same effect on each repetition as they would on a single data item without the OCCURS clause. This applies also to any SOURCE, SUM, or PRESENT WHEN clauses if no VARYING clause is present' holds BY CONSTRUCTION on both axes now, because the replay runs the whole clause binder again per repetition rather than teaching any clause about repetition - so a vertical repetition inherits exactly what a horizontal one does. The vertical golden measures VALUE (lines 2/4/7, 16/18/20, 21-26, 27-29), SOURCE with a VARYING counter (lines 9/11/14 - the rule's own exception) and PICTURE on every one.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.38.4-12",
@@ -24381,13 +24381,13 @@
   "ordinal": 12,
   "subject": "OCCURS clause",
   "rule-digest": "600de8c3eaa1",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#RepeatedPlacements; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
-  "test-ref": "conformance:2002/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.EveryColumnPlacementKind_IsReadByBothPlacementReaders",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#RepeatedPlacements; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#RepeatedLine; src/Cobol.Net.Runtime/IO/ReportWriter.cs#SubsequentTarget",
+  "test-ref": "conformance:2002/pb565_report_vertical_repetition; conformance:2002/pb565_report_repeating_entry; unit:ReportRepeatingEntryDriftTests.TheStepDisplacement_IsReadThroughTheAxis; unit:ReportRepeatingEntryDriftTests.EveryLinePlacementKind_IsDeclaredByBothTheModelAndTheEngine",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). Legs a) and b) - the horizontal interval - are implemented and measured. The displacement is additive over the enclosing repeating entries, so an ABSOLUTE operand simply moves by the sum of ordinal x integer-3 (golden line 1: columns 1, 5, 9 at STEP 4; line 3: a two-item group at STEP 10 landing DDD at 1/11 and EEE at 5/15). A RELATIVE operand has no compile-time column, so its first repetition SEEDS a compose-local step anchor with the column it lands on and later repetitions place at anchor + displacement: GR12 measures from the preceding occurrence's LEFTMOST while 13.18.14.4 GR9's horizontal counter holds its RIGHTMOST, which is exactly why the anchor exists and not the counter. GR12's closing sentence (no STEP => the relative COLUMN numbers define the interval) is golden line 2. RESIDUE: legs c) and d), the vertical interval, stage loud.",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). All four STEP legs are implemented by twin builders, one per axis. a) and b) are RepeatedPlacements against the 13.18.14.4 GR7 horizontal counter. c) 'If the entry contains a LINE clause, each successive occurrence is positioned integer-3 lines vertically beneath the preceding occurrence' is RepeatedLine: an absolute line displaces to integer-1 + the sum of ordinal x integer-3 and stays a compile-time constant (golden lines 16, 18, 20). d) 'report lines in successive occurrences are positioned integer-3 lines vertically beneath the line they occupy in the preceding occurrence' needs a datum a relative line has no compile-time value for, so the first occurrence SEEDS an engine-held anchor with the page line it lands on and later occurrences read anchor + displacement (golden lines 21, 22, 25, 26 - NOT LINE-COUNTER + 4, because 13.18.35.4 GR1's LINE-COUNTER holds the last line PRINTED while GR12d measures from the preceding OCCURRENCE). GR12's closing sentence - no STEP, the interval is the relative LINE or COLUMN numbers - is golden lines 27-29. The engine's four group presentations share ONE subsequent-line rule, so the STEP arm cannot be live in one and missing in the others.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.38.4-13",
@@ -24396,13 +24396,13 @@
   "ordinal": 13,
   "subject": "OCCURS clause",
   "rule-digest": "ef0a2d29f05d",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ResolveReportOccursDepending",
-  "test-ref": "conformance:2002/pb565_report_repeating_entry",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#LinePresent; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ResolveReportOccursDepending",
+  "test-ref": "conformance:2002/pb565_report_repeating_entry; conformance:2002/pb565_report_vertical_repetition",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). The rule's arithmetic is implemented literally: repetition n appears iff n < (data-name-1 in integer-1 .. integer-2 - 1 ? data-name-1 : integer-2), emitted as a presence test beside the 13.18.41.4 GR2b PRESENT WHEN chain, so a suppressed repetition places nothing and does not advance the horizontal counter (GR3f). MEASURED: golden line 5, WS-N = 2 within 1 .. 3, two of four repetitions printed. The out-of-range arm is the rule's own 'as though the OCCURS clause had been written without the TO and DEPENDING phrases' (all integer-2 appear). RESIDUE: GR13 also fixes WHEN data-name-1 is read - 'just before the processing for the first LINE clause of the report group' - and the emitted test reads it at each placement instead. The two agree for every program that does not modify data-name-1 from a USE BEFORE REPORTING declarative DURING the group's presentation; that seam, and the vertical axis, are what keep this row short of CONFORMS.",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). GR13's count - repetition n appears iff n < (data-name-1 in [integer-1, integer-2-1] ? data-name-1 : integer-2) - is ONE presence test, and it now reaches both axes: horizontally it guards the printable item's placement, vertically it guards the whole report LINE, because 'the OCCURS clause has the same effect as an OCCURS clause with no TO or DEPENDING phrases and with an integer-2 equal to the current value of data-name-1' means the surplus repetitions do not EXIST rather than print blank. Both ride the SAME delegate as the PRESENT WHEN chain (ReportWriterEmitter.LinePresent), which is what makes GR13's last sentence - 'This same principle is used in the computing of the trial sum used in performing the page fit test' - and 13.18.35.4 GR4c's twin sentence about it true for the two suppressors at once, since the engine evaluates presence once per presentation and the page-fit trial sum reads that same answer.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.38.4-14",
@@ -29106,13 +29106,13 @@
   "ordinal": 7,
   "subject": "USAGE clause",
   "rule-digest": "101e1c040055",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ScreenReportUsage",
+  "test-ref": "conformance:2002/pb541_report_national_item; conformance:negative/pb541-report-usage-comp; conformance:negative/pb541-report-national-at-85",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB541 — THE RULE ADMITS TWO USAGES AND THE COMPILER ADMITS ONE -- IT REJECTS LEGAL SOURCE. SR7: \"Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.\" MEASURED: `03 COLUMN 1 PIC N(4) USAGE NATIONAL SOURCE W.` inside `01 DET-1 TYPE DE` is COBOLNET0899 \"a non-DISPLAY printable item at COLUMN 1 (ISO 13.15 -- printable items are DISPLAY) is not supported\" at --std 2002, 2014 AND 2023 (probes u_sr7_national, e85_sr7n_2002/_2014/_2023), while the DISPLAY spelling of the same entry runs (u_sr7_display). The diagnostic's cited authority does not exist: 13.15 nowhere says printable items are DISPLAY, and SR7 -- the rule that actually governs the pairing -- names NATIONAL explicitly. THE PROHIBITIVE HALF IS ONLY ACCIDENTALLY RIGHT: COMP / BINARY / PACKED-DECIMAL are refused by that same non-DISPLAY staging gate rather than by an SR7 screen (u_sr7_comp, u_sr7_binary, u_sr7_packed), and INDEX / POINTER are refused for a different reason again -- \"printable item at COLUMN 1 has no PICTURE clause\" (u_sr7_index, u_sr7_ptr). AND THE GROUP ENTRY IS UNSCREENED: `03 USAGE COMP. 05 COLUMN 1 PIC 9(4) SOURCE W.` COMPILES AND RUNS (u_sr7_group) -- the report binder reads usageClause per entry and only ever hands it to the printable LEAF, so a USAGE clause written on a report GROUP item is silently discarded, which is precisely what SR7 forbids. Harm is REJECTS-LEGAL-SOURCE (the NATIONAL half, loudly) plus UNDER-REJECTS (the group half, silently). See finding usage-p1/F4. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs:524-526 (`if (pic.Usage is not Usage.Display) Edition.Error(DiagnosticCatalog.ReportNonDisplayItem, ...)` -- the ONLY usage test in the report-group binder); DataBinder.Reports.cs:425-426 (the per-entry USAGE capture, applied to the printable LEAF only) || editions, verbatim from the adjudication: 85,2002,2014,2023 (the NATIONAL alternative is COBOL-2002 and later)",
-  "state": "GAP"
+  "notes": "'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.' ONE screen, ScreenReportUsage, asked at the two points a usage becomes known and nowhere else: of the USAGE CLAUSE as it is captured - which is the rule's own subject, and the only place a GROUP entry's clause is visible - and of the usage a printable item SETTLES on when no clause stated one, which is 13.18.60.4 GR7/GR8's implied usage. The gate this replaced tested `Usage is not Display`, one alternative narrower than the rule, so every NATIONAL report item was refused at 2002/2014/2023 under a 13.15 citation that says nothing of the kind; and a USAGE clause on a report GROUP entry was captured and then DISCARDED, so `03 USAGE COMP.` over a printable item compiled and ran. Both are now answered by the rule itself (COBOLNET2198), and the entry scope stack carries the effective usage down, which is 13.18.60.4 GR1's 'applies only to each elementary item in the group'; 13.18.60.3 SR2's 'the same usage shall be specified in both entries' rides the same code so the inheritance cannot be ambiguous. Positive: an own-clause NATIONAL item beside a DISPLAY item, a group-inherited NATIONAL item, and a picture-implied NATIONAL item, read back byte for byte. Negatives: USAGE COMP on a group entry at every edition, and the NATIONAL item below its introducing edition (national data is a COBOL-2002 introduction, 8.5.2), which is the edition-gate sweep the widened screen owes.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.60.3-8",
@@ -31026,13 +31026,13 @@
   "ordinal": 22,
   "subject": "VALUE clause",
   "rule-digest": "4c7b688e0b96",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest",
-  "test-ref": "conformance:2002/pb565_report_repeating_entry",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#LinePresent; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RepetitionTest",
+  "test-ref": "conformance:2002/pb565_report_repeating_entry; conformance:2002/pb565_report_vertical_repetition",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB565 (2026-09-13). The rule names THREE clauses that may suppress a printable item's appearance, and the third had no population at all before this landing: GROUP INDICATE (13.18.29) and PRESENT WHEN (13.18.41) were live, while 'an OCCURS clause with the DEPENDING phrase' could not be written - the clause was refused by name. It is now a presence test composed into the same guard as the PRESENT WHEN chain, so the two suppressors cannot drift apart (golden line 5). RESIDUE: the suppressor is reachable only on the HORIZONTAL repetition axis; a DEPENDING repetition over a LINE clause still stages loud (COBOLNET0899). That is why this row is PARTIAL and not CONFORMS.",
-  "state": "GAP"
+  "notes": "kb/Work PB565 (vertical axis). 'The value of literal-1 is used for the content of the printable item whenever it is printed, except that a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item' - all three suppressors are implemented and, since this landing, on BOTH axes: GROUP INDICATE blanks the item's spans on a repeated presentation, and the PRESENT WHEN chain and the OCCURS DEPENDING count are composed into the SAME guard, per placement horizontally and per report line vertically, so they cannot drift apart. 13.18.63.4 GR23's last sentence is honoured beside it by construction - every repetition is BOUND either way, only its placement is guarded - which is why a suppressed repetition still consumes its VALUE operand.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.63.4-23",
@@ -40161,13 +40161,13 @@
   "ordinal": 4,
   "subject": "MOVE statement",
   "rule-digest": "f9711d053cd0",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundMove; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#dataReferenceList",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveTargets; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundMove",
+  "test-ref": "conformance:85/pb429_page_counter_receiving; conformance:negative/pb429-line-counter-receiving",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB429.md — The receiving-operand designation is ExpressionBinder.ResolveTargets over moveReceivingPhrase's dataReferenceList, and every receiver-side rule reads that list: the SR1 receiver class screen, the SR5 per-target figurative gate and its image marking, MoveReceiverCategory for Table 16, the SR7 boolean screen, the SR8 receiver-category test, CheckStrongMove and MarkRefModStoreImage all iterate `targets`. The receiving position admits ONLY a data reference, which is what a receiving operand may be: measured, a literal receiver is rejected (COBOL0308 - 'A data-name is expected here, not a literal') and a function-identifier receiver is a parse error, which is 8.4.3.2.3 SR1 ('a function-identifier shall not be specified as a receiving operand') holding structurally rather than by a check. CONFORMS-but-untested for the designation itself, as for SR3. || REFUTED: PARTIAL — SR4 designates identifier-2 as a receiving operand, and the compiler itself says in a diagnostic that it does not implement one of the legal ones. §8.4.3.15.3 SR1: 'In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may appear', and SR3 of the same clause prohibits only LINE-COUNTER as a receiving operand - so PAGE-COUNTER (identifier Format 11) IS a legal identifier-2, which §13.18.37's 'unless procedurally altered' confirms is the intended use. MOVE 7 TO PAGE-COUNTER OF RPT1 is refused: 'error COBOLNET0899: PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 - legal; the program assigns page numbers) is not yet implemented'. The compiler is conceding the point in its own text - a legal receiving operand, staged loud. This is not owned by a declined module: CONFORMANCE.md rates A.4.11 Report Writer 'Partial', and names this very band - 'Staged LOUD (COBOLNET0899 band): ... several counter/SOURCE/SUM legs'. The adjudicator's CONFORMS note argued only the negative direction ('the receiving position admits ONLY a data reference'), which is the half that is easy; the positive direction - that every legal identifier-2 is accepted - was asserted, never probed, and is false. The rest of the designation does hold (the loop over dataReferenceList reaches every receiver, ref-mod and subscripted receivers work, LINE-COUNTER is correctly refused by §8.4.3.15.3 SR3, a literal receiver is COBOL0308), so PARTIAL rather than a lower verdict.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#BoundMove; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#dataReferenceList",
-  "state": "GAP"
+  "notes": "SR4 designates identifier-2 as MOVE's receiving operand. The NEGATIVE direction was already measured (the position admits only a data reference: a literal receiver is COBOL0308, a function-identifier receiver a parse error, which is 8.4.3.2.3 SR1 holding structurally; ref-mod and subscripted receivers work; LINE-COUNTER is refused by 8.4.3.15.3 SR3). The POSITIVE direction - that EVERY legal identifier-2 is accepted - was the half that was asserted and never probed, and it was false: PAGE-COUNTER, which 8.4.3.15.3 SR1 admits wherever an integer data item may appear, was refused COBOLNET0899. It is now a receiving-capable place resolved at the one chokepoint ResolveTargets calls, so `MOVE 7 TO PAGE-COUNTER OF RPT1` is the golden's first line and stores 7.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.25.3-5",

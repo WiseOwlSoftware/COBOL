@@ -71,8 +71,13 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
-        if (ctx.Refs.Resolve(ac.dataReference()) is not { } target)
-            return new BoundUnsupported($"ACCEPT receiver '{ac.dataReference().GetText()}'");
+        // ⛔ THE RECEIVING CHOKEPOINT, NOT THE SENDING RESOLVER (kb/Work PB429). ACCEPT's operand is the
+        // statement's RECEIVER (§14.9.1.4 GR6 — the transfer is "in accordance with the rules of the MOVE
+        // statement"), so it asks ExpressionBinder.ResolveReceiving, where the receiver-side rules are written
+        // down once: §8.4.3.15.3 SR1 admits PAGE-COUNTER and SR3 refuses LINE-COUNTER, §13.10.4 GR1 refuses a
+        // constant-name, §8.4.3.6.3 SR1 refuses EXCEPTION-OBJECT.
+        if (host.Expr.ResolveReceiving(ac.dataReference()) is not { } target)
+            return new BoundNop();   // the chokepoint reported it — not a deferral (kb/Work PB236)
 
         // Format 2 is FROM a temporal source; FROM omitted / FROM mnemonic is the Format 1 device transfer.
         bool temporal = ac.acceptSource() is { } tsrc && tsrc.dataReference() is null;

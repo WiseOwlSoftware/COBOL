@@ -17,6 +17,13 @@
       *> the control footing prints TOTAL=060 (= 10 + 20 + 30), not 040.
       *> GR2 (current instance only) is exercised too: SUPPRESS is executed
       *> conditionally per GENERATE, so the surrounding shown rows print.
+      *> PLACEMENT (kb/Work PB484). The report's FIRST printed line is the first line of the file:
+      *> a line number IS a page line number (ISO 13.18.35.4 GR6 - "the report's LINE-COUNTER is set
+      *> equal to that line number and the line is now printed on the page at that vertical location"),
+      *> and GR7's "Any unoccupied lines on the page result in a blank line" fixes the blanks above it.
+      *> Here the first body group is a control heading, the chronologically first body group on the
+      *> page, so GR5 b) 3 gives it the FIRST DETAIL integer, 3: lines 1 and 2 are unoccupied and blank,
+      *> GROUP-1 prints on line 3, and every later relative line follows at LINE-COUNTER + 1 (GR7 b)).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. RWSUPPBARE.
        ENVIRONMENT DIVISION.

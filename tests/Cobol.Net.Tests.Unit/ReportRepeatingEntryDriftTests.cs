@@ -26,8 +26,9 @@ namespace CobolNet.Tests.Unit;
 /// <item>every <c>ReportColumnKindModel</c> is handled at BOTH placement readers (the emitter's compose switch
 /// and the binder's line-width walk) — a new placement kind that reaches only one of them is this repo's
 /// most reproducible defect, the two-arm dispatch with one arm fixed;</item>
-/// <item>the residue is NAMED: the axis that still stages loud is the VERTICAL one, and its diagnostic says so,
-/// so "OCCURS is not implemented" can never be re-broadened into a blanket refusal of the live axis.</item>
+/// <item>BOTH AXES ride the one replay, and the axis is decided in ONE place: §13.18.38.4 GR10/GR12 split
+/// a/b (COLUMN) from c/d (LINE), so an entry's integer-3 is a horizontal interval or a vertical one but never
+/// both, and a second axis test would be a second copy of that split.</item>
 /// </list>
 /// </summary>
 public sealed class ReportRepeatingEntryDriftTests
@@ -78,24 +79,70 @@ public sealed class ReportRepeatingEntryDriftTests
         Assert.Contains("__ra{spec.AnchorId}", emitter, StringComparison.Ordinal);     // the compose method's
     }
 
-    /// <summary>The loud residue names the AXIS, not the clause. A diagnostic reading "OCCURS … is not yet
-    /// implemented" would claim the live horizontal axis too — the shape this note's defect had.</summary>
+    /// <summary>NEITHER AXIS STAGES ANY MORE, and the retired ids stay retired. The two COBOLNET0899
+    /// descriptors that refused vertical repetition — <c>report-occurs-in-group</c> and
+    /// <c>report-multiple-line</c> — are gone, and nothing may re-declare them: a re-added stage would refuse
+    /// §13.18.38.4 GR10c/GR10d and §13.18.35.4 GR9, both of which are conforming source this compiler now
+    /// prints correctly.</summary>
     [Fact]
-    public void TheStagedResidue_NamesTheVerticalAxisOnly()
+    public void NeitherRepetitionAxis_StagesLoud()
     {
         string catalog = File.ReadAllText(Path.Combine(
             TestRepo.Src("Cobol.Net.Editions"), "Diagnostics", "DiagnosticCatalog.cs"));
-        int at = catalog.IndexOf("ReportOccursInGroup = new(", StringComparison.Ordinal);
-        Assert.True(at > 0, "ReportOccursInGroup is gone or renamed — re-point this guard.");
-        string body = catalog[at..catalog.IndexOf(");", at, StringComparison.Ordinal)];
-        Assert.Contains("VERTICAL", body, StringComparison.Ordinal);
-        Assert.Contains("GR10c", body, StringComparison.Ordinal);
-
-        // And the binder raises it ONLY on the vertical axis — i.e. guarded by a LINE-clause test.
+        // Population: the retirement comment is where the descriptors were, so this scan reads the right file.
+        Assert.Contains("`report-occurs-in-group`", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReportOccursInGroup = new(", catalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReportMultipleLine = new(", catalog, StringComparison.Ordinal);
         string binder = BinderText();
-        int site = binder.IndexOf("DiagnosticCatalog.ReportOccursInGroup", StringComparison.Ordinal);
-        Assert.True(site > 0, "the staged arm is gone — if the vertical axis landed, delete this guard with it.");
-        Assert.Contains("reportLineClause()", binder[Math.Max(0, site - 400)..site], StringComparison.Ordinal);
+        Assert.DoesNotContain("DiagnosticCatalog.ReportOccursInGroup", binder, StringComparison.Ordinal);
+        Assert.DoesNotContain("DiagnosticCatalog.ReportMultipleLine", binder, StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ THE AXIS IS DECIDED ONCE (ISO §13.18.38.4 GR10/GR12). Every reader of a repeating entry's
+    /// STEP asks <c>Shift(axis)</c> or <c>Undisplaced(axis)</c> — never <c>Spec.Step</c> directly — because
+    /// integer-3 is an interval on the entry's OWN axis and a second reading of it is the two-arm dispatch
+    /// this file exists to prevent.</summary>
+    [Fact]
+    public void TheStepDisplacement_IsReadThroughTheAxis()
+    {
+        string binder = BinderText();
+        // Population: both placement builders exist and this scan can see them.
+        Assert.Contains("private static IReadOnlyList<ReportColumnSpec> RepeatedPlacements(", binder, StringComparison.Ordinal);
+        Assert.Contains("private static ReportLineModel RepeatedLine(", binder, StringComparison.Ordinal);
+        Assert.Contains("st.Shift(ReportRepetitionAxis.Horizontal)", binder, StringComparison.Ordinal);
+        Assert.Contains("st.Shift(ReportRepetitionAxis.Vertical)", binder, StringComparison.Ordinal);
+        // The ONE place a frame's integer-3 is turned into a displacement.
+        var reads = Regex.Matches(binder, @"\.Spec\.Step \?\? 0").Select(m => m.Value).ToList();
+        Assert.Single(reads);
+    }
+
+    /// <summary>Every LINE placement kind is handled at BOTH readers — the binder that builds it and the
+    /// runtime that places it. The enum is declared twice by design (model and runtime), so the guard is that
+    /// the two declarations agree member for member.</summary>
+    [Fact]
+    public void EveryLinePlacementKind_IsDeclaredByBothTheModelAndTheEngine()
+    {
+        string binder = BinderText();
+        string runtime = File.ReadAllText(Path.Combine(TestRepo.Src("Cobol.Net.Runtime"), "IO", "ReportWriter.cs"));
+        // The members are read OFF the declaration — a new kind fails here until both declarations name it,
+        // rather than being compared against a list this test would have to be taught about.
+        var model = Regex.Matches(
+                binder[binder.IndexOf("public enum ReportLineKindModel", StringComparison.Ordinal)..].Split('}')[0],
+                @"\w+")
+            .Select(m => m.Value)
+            .Where(w => w is not ("public" or "enum" or "ReportLineKindModel"))
+            .ToList();
+        // Population: the enum really has the three placement kinds this guard was written for.
+        Assert.Equal(new[] { "Absolute", "Relative", "Step" }, model);
+        foreach (string kind in model)
+        {
+            Assert.Contains($"ReportLineKindModel.{kind}", binder, StringComparison.Ordinal);
+            Assert.Contains($"ReportLineKind.{kind}", runtime, StringComparison.Ordinal);
+        }
+        // The engine reads a Step line's anchor, and it is the ONE subsequent-line rule all four group
+        // presentations share (it was four copies of `LineCounter + l.Value` before PB565's vertical axis).
+        Assert.Contains("private long SubsequentTarget(ReportGroupLine l)", runtime, StringComparison.Ordinal);
+        Assert.Equal(4, Regex.Matches(runtime, @"SubsequentTarget\((?:l|lines\[i\])\)").Count);
     }
 
     /// <summary>A repetition's VARYING counter is the CLOSED form over the repetition ordinal, never an

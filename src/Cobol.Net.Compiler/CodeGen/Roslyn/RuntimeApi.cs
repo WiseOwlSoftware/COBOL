@@ -1173,6 +1173,19 @@ internal static class RuntimeApi
     /// cannot drift apart.</summary>
     public static string ReportEngine(int reportIndex) => $"__RPT_{reportIndex}";
 
+    /// <summary>Read a report counter (ISO §8.4.3.15.4 GR1 — "PAGE-COUNTER and LINE-COUNTER reference temporary
+    /// unsigned integer data items of class and category numeric, which are maintained for each report"): the
+    /// engine's <c>PageCounter</c> / <c>LineCounter</c>. THE ONE SPELLING — the numeric renderer's sending
+    /// <c>BoundReportCounterRef</c> and the place renderer's receiving <c>ReportPageCounterPlace</c> both read
+    /// through here, so the two directions cannot name different members (kb/Work PB429).</summary>
+    public static string ReportCounterRead(int reportIndex, bool isPage) =>
+        $"{ReportEngine(reportIndex)}.{(isPage ? nameof(CobolReport.PageCounter) : nameof(CobolReport.LineCounter))}";
+
+    /// <summary>Assign PAGE-COUNTER from the procedure division (ISO §8.4.3.15.3 SR1; SR3 bars LINE-COUNTER and
+    /// ONLY LINE-COUNTER from the receiving side) — <c>CobolReport.SetPageCounter</c>.</summary>
+    public static string ReportPageCounterWrite(int reportIndex, string valueExpr) =>
+        $"{ReportEngine(reportIndex)}.{nameof(CobolReport.SetPageCounter)}((long)({valueExpr}));";
+
     /// <summary>Read a SUM counter's content, unscaled at the counter's own scale (ISO §13.18.54.4 GR1/GR4) —
     /// <c>CobolReport.SumValue</c>. <paramref name="counterId"/> is the ENTRY's ordinal, GR1's identity.</summary>
     public static string ReportSumRead(int reportIndex, int counterId) =>

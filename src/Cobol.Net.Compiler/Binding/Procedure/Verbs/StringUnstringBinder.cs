@@ -58,8 +58,17 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         for (int i = 0; i < n; i++)
             sendings.Add(new BoundStringSending(values[i], delims[i], bySize[i] || delims[i] is null));
 
-        if (ctx.Refs.Resolve(st.stringIntoPhrase().dataReference()) is not { } into)
-            return new BoundUnsupported($"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}'");
+        // ⛔ EVERY RECEIVING OPERAND OF THIS STATEMENT RESOLVES AT THE RECEIVING CHOKEPOINT (kb/Work PB429).
+        // identifier-3 (INTO), identifier-4 (WITH POINTER), and UNSTRING's identifier-4/-5/-6/-7/-8 below are all
+        // receivers — §14.9.43.4 GR6 moves the characters into identifier-3 and has identifier-4 "increased by
+        // one prior to the move of the next character"; §14.9.48.4 GR13 increments identifier-7 "for each character
+        // examined" and GR14 identifier-8 by "the number of identifier-4 receiving data items accessed" — so each
+        // asks ExpressionBinder.ResolveReceiving, where the
+        // receiver-side rules live ONCE: §8.4.3.15.3 SR1 admits PAGE-COUNTER (an integer-data-item context) and SR3
+        // refuses LINE-COUNTER, §13.10.4 GR1 refuses a constant-name, §8.4.3.6.3 SR1 refuses EXCEPTION-OBJECT. The
+        // sending resolver these sites used knew none of them.
+        if (host.Expr.ResolveReceiving(st.stringIntoPhrase().dataReference()) is not { } into)
+            return new BoundNop();   // the chokepoint reported it — not a deferral (kb/Work PB236)
         string intoText = st.stringIntoPhrase().dataReference().GetText();
         // §14.9.43.3 SR4–SR6, SR11 — bind-time rejections (kb/Work PB88: each was a run-time loud stage on ILLEGAL
         // source, the wrong-stage family; the statement compiled clean and died when control reached it).
@@ -98,8 +107,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
         {
-            if (ctx.Refs.Resolve(pd) is not { } pp)
-                return new BoundUnsupported($"STRING WITH POINTER '{pd.GetText()}'");   // undefined — the resolver reported it
+            if (host.Expr.ResolveReceiving(pd) is not { } pp)
+                return new BoundNop();   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(pp))
                 return Reject($"STRING WITH POINTER '{pd.GetText()}': identifier-4 shall be an elementary numeric integer "
                     + "data item without the symbol P (ISO §14.9.43.3 SR7)");
@@ -156,8 +165,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             foreach (var t in ip.unstringIntoTarget())
             {
                 var drefs = t.dataReference();
-                if (ctx.Refs.Resolve(drefs[0]) is not { } target)
-                    return new BoundUnsupported($"UNSTRING INTO '{drefs[0].GetText()}'");
+                if (host.Expr.ResolveReceiving(drefs[0]) is not { } target)
+                    return new BoundNop();   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
                 // SR4 — identifier-4 shall be (usage display + category alphabetic/alphanumeric/numeric) or (usage
                 // national + category national/numeric). A fixed-length group (SR10) and a reference-modified slice
                 // are alphanumeric-image receivers and are exempt; edited, COMP/packed/COMP-5, index, and float
@@ -184,8 +193,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 Place? delimIn = null, countIn = null;
                 if (hasDelim)
                 {
-                    if (ctx.Refs.Resolve(drefs[next]) is not { } d5)
-                        return new BoundUnsupported($"UNSTRING DELIMITER IN '{drefs[next].GetText()}'");
+                    if (host.Expr.ResolveReceiving(drefs[next]) is not { } d5)
+                        return new BoundNop();   // identifier-5 is a receiver — the chokepoint reported it (kb/Work PB429)
                     // identifier-5 is SR2's fourth name (kb/Work PB155) — the delimiter RECEIVER shares the
                     // category rule, not SR4's receiver list.
                     if (Sr2OffendingCategory(d5.Item.Pic) is { } badD5)
@@ -197,8 +206,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 }
                 if (hasCount)
                 {
-                    if (ctx.Refs.Resolve(drefs[next]) is not { } c6)
-                        return new BoundUnsupported($"UNSTRING COUNT IN '{drefs[next].GetText()}'");   // undefined — reported by the resolver
+                    if (host.Expr.ResolveReceiving(drefs[next]) is not { } c6)
+                        return new BoundNop();   // identifier-6 is a receiver — the chokepoint reported it (kb/Work PB429)
                     if (!StrUnstrIsInteger(c6))
                         return Reject($"UNSTRING COUNT IN '{drefs[next].GetText()}': identifier-6 shall reference an integer "
                             + "data item without the symbol P (ISO §14.9.48.3 SR5)");
@@ -213,8 +222,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         Place? pointer = null;
         if (un.unstringWithPointer()?.dataReference() is { } pd)
         {
-            if (ctx.Refs.Resolve(pd) is not { } pp)
-                return new BoundUnsupported($"UNSTRING WITH POINTER '{pd.GetText()}'");   // undefined — reported by the resolver
+            if (host.Expr.ResolveReceiving(pd) is not { } pp)
+                return new BoundNop();   // identifier-7 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(pp))
                 return Reject($"UNSTRING WITH POINTER '{pd.GetText()}': identifier-7 shall be an elementary numeric integer "
                     + "data item without the symbol P (ISO §14.9.48.3 SR6)");
@@ -223,8 +232,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         Place? tallying = null;
         if (un.unstringTallying()?.dataReference() is { } td)
         {
-            if (ctx.Refs.Resolve(td) is not { } tp)
-                return new BoundUnsupported($"UNSTRING TALLYING IN '{td.GetText()}'");   // undefined — reported by the resolver
+            if (host.Expr.ResolveReceiving(td) is not { } tp)
+                return new BoundNop();   // identifier-8 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(tp))
                 return Reject($"UNSTRING TALLYING IN '{td.GetText()}': identifier-8 shall reference an integer data item "
                     + "without the symbol P (ISO §14.9.48.3 SR5)");

@@ -539,6 +539,33 @@ public sealed record ReportSumCounterPlace(int ReportIndex, int CounterId, DataI
     public override DataItem Item => RegisterItem;
 }
 
+/// <summary>
+/// A report's <b>PAGE-COUNTER</b> (ISO/IEC 1989:2023 §8.4.3.15; kb/Work PB429) — the temporary unsigned integer
+/// data item §8.4.3.15.4 GR1 maintains for each report, as a receiving-capable place.
+/// <para><b>Why a place and not a MOVE arm.</b> §8.4.3.15.3 SR1 does not name a statement: "In the procedure
+/// division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may
+/// appear", and SR3 then subtracts LINE-COUNTER — and only LINE-COUNTER — from the receiving side. A verb-shaped
+/// permission would have to be re-granted in MOVE, every arithmetic resultant, INITIALIZE, INSPECT TALLYING and
+/// every context added later; a PLACE reaches all of them through the one receiving chokepoint
+/// (<c>ExpressionBinder.ResolveReceiving</c>), which is also where SR3's prohibition is screened, so the two
+/// halves of the one rule sit side by side. §13.18.37.4 GR6's "(unless procedurally altered)" is the standard
+/// confirming that a program assigning page numbers is the intended use.</para>
+/// <para>A VIEW over the RWCS engine's counter, never program storage — the <see cref="CapacityRegisterPlace"/>
+/// and <see cref="ReportSumCounterPlace"/> pattern: reading renders <c>__RPT_{n}.PageCounter</c> and writing
+/// <c>__RPT_{n}.SetPageCounter(…)</c>, produced by <c>CodeGen.PlaceRenderer</c> so no C# text lives here.
+/// <paramref name="RegisterItem"/> carries GR1's profile (<see cref="PicInfo.ReportCounterItem"/> — unsigned,
+/// scale 0), which is what makes an out-of-range or negative sender behave as it would for any other unsigned
+/// integer receiver.</para>
+/// </summary>
+public sealed record ReportPageCounterPlace(int ReportIndex, DataItem RegisterItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => RegisterItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => RegisterItem;
+}
+
 /// <summary>The member of the X3.23-1985 <c>DEBUG-ITEM</c> register a <see cref="DebugRegisterPlace"/> refers to
 /// (the whole group, or one elementary member). A STRUCTURAL selector — the backend
 /// (<c>CodeGen.PlaceRenderer</c>) maps it to the C# read expression, so no C# text lives in the bound tree

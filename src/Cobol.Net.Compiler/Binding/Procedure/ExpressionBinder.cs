@@ -705,12 +705,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + "not be specified as a receiving operand — it substitutes a literal (ISO §13.10.4 GR1)");
             return null;
         }
-        if (dref.PAGE_COUNTER() is not null)
-        {
-            ctx.Edition.Error(DiagnosticCatalog.ReportPageCounterReceiving, "PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 — legal; the "
-                + "program assigns page numbers) is not yet implemented");
-            return null;
-        }
+        // ⛔ PAGE-COUNTER IS A RECEIVING-CAPABLE PLACE, NOT A PER-VERB PERMISSION (kb/Work PB429). §8.4.3.15.3
+        // SR1 — "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where
+        // an integer data item may appear" — names no statement, and SR3 above subtracts LINE-COUNTER and ONLY
+        // LINE-COUNTER from the receiving side, so every integer-receiver context admits PAGE-COUNTER. Resolving
+        // it HERE, at the one chokepoint, is what makes MOVE, every arithmetic resultant, INITIALIZE, INSPECT
+        // TALLYING and every context added later work without an arm apiece — which is why the refusal this
+        // replaced (COBOLNET0899 "not yet implemented", the compiler conceding the construct was legal) could
+        // not be repaired verb by verb. The report is resolved by the SAME method the sending side uses.
+        if (dref.PAGE_COUNTER() is not null) return host.Rw.CounterPlace(dref);
         var place = ctx.Refs.Resolve(dref);
         // ⛔ THE ONE RECEIVING CHOKEPOINT NEVER DROPS A RECEIVER SILENTLY (kb/Work PB70): `MOVE "Z" TO OK1 TB(2:1) OK2`
         // used to move into OK1 and OK2 and skip TB without a word — the resolver's unsupported-shape null fell

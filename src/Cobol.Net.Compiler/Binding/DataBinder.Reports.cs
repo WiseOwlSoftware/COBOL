@@ -60,6 +60,14 @@ public sealed class ReportModel
     /// <summary>This report's index within its program unit — backs the emitted engine field name
     /// (<c>__RPT_{CsIndex}</c>).</summary>
     public int CsIndex { get; set; }
+
+    /// <summary>This report's PAGE-COUNTER AS A DATA ITEM (ISO §8.4.3.15.4 GR1 — "temporary unsigned integer
+    /// data items of class and category numeric, which are maintained for each report"): the implicitly-defined
+    /// register a procedure division RECEIVING reference resolves to (§8.4.3.15.3 SR1, kb/Work PB429). Off
+    /// ByName/Roots like the SUM counter's register and the OCCURS DYNAMIC CAPACITY register — its value IS the
+    /// engine's, so it allocates no storage. LINE-COUNTER has no such register: SR3 bars it from the receiving
+    /// side, and the sending side of both counters is <c>BoundReportCounterRef</c>.</summary>
+    public required DataItem PageCounterRegister { get; init; }
 }
 
 /// <summary>One CONTROL clause operand (ISO §13.18.16): FINAL or a (possibly qualified) data-name resolved
@@ -149,8 +157,10 @@ public sealed class ReportGroupModel
     public List<ReportLineModel> Lines { get; } = [];
 }
 
-/// <summary>The LINE clause form of one report line (ISO §13.18.35; the NEXT PAGE phrases are staged loud).</summary>
-public enum ReportLineKindModel { Absolute, Relative }
+/// <summary>The LINE clause form of one report line (ISO §13.18.35; the NEXT PAGE phrases are staged loud) —
+/// plus the STEP placement a later occurrence of a VERTICALLY repeating entry takes (§13.18.38.4 GR12c/GR12d).
+/// The names and the meanings are the runtime <c>ReportLineKind</c>'s; the model is what the emitter copies.</summary>
+public enum ReportLineKindModel { Absolute, Relative, Step }
 
 /// <summary>One report line: its LINE clause, its printable fields in declaration order, and its effective
 /// PRESENT WHEN chain (ISO §13.18.41 Format 1) — every condition on the entry that opened the line AND on its
@@ -163,10 +173,35 @@ public sealed class ReportLineModel(ReportLineKindModel kind, int value)
     public int Value { get; } = value;
     public List<ReportFieldModel> Fields { get; } = [];
 
+    /// <summary>This line's step-anchor slot (ISO §13.18.38.4 GR12c/GR12d), 0 when the line neither seeds one
+    /// nor steps from one. A non-Step line with an anchor SEEDS it with the page line it lands on; a
+    /// <see cref="ReportLineKindModel.Step"/> line places at anchor + <see cref="Value"/>.</summary>
+    public int Anchor { get; init; }
+
+    /// <summary>A Step line's own written integer-2 — the fallback when the first occurrence of this line was
+    /// absent under a PRESENT WHEN clause, so its anchor was never seeded (§13.18.41.4 GR2b).</summary>
+    public int RelativeBase { get; init; }
+
+    /// <summary>A Step line's §13.18.35.4 GR4c page-fit contribution: integer-3 when this line OPENS an
+    /// occurrence, 0 otherwise — "the vertical interval between successive occurrences is added into the trial
+    /// sum once for each occurrence beyond the first". Absolute and relative lines compute their own.</summary>
+    public int TrialInterval { get; init; }
+
     /// <summary>The PRESENT WHEN condition chain (01 → line entry) as captured parse contexts (§13.18.41).</summary>
     public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
     /// <summary>The bound chain (AND-composed by the emitter); parallel to <see cref="PresentWhenCtxs"/>.</summary>
     public List<BoundCondition> PresentWhen { get; } = [];
+
+    /// <summary>The OCCURS … DEPENDING presence tests this LINE inherits (ISO §13.18.38.4 GR13), outermost
+    /// repeating entry first — empty unless the line lies inside a VERTICALLY repeating entry with the
+    /// DEPENDING phrase. GR13 makes such an OCCURS "have the same effect as an OCCURS clause with no TO or
+    /// DEPENDING phrases and with an integer-2 equal to the current value of data-name-1", so a repetition past
+    /// that count does not EXIST — on the vertical axis that means its whole report line is absent, not blank.
+    /// The emitter composes it into the same delegate the PRESENT WHEN chain feeds, which is what makes
+    /// §13.18.35.4 GR4c ("If any of the LINE clauses used in computing the trial sum are subject to a PRESENT
+    /// WHEN clause or to an OCCURS clause with the DEPENDING phrase, these clauses are taken into account")
+    /// true for both suppressors at once.</summary>
+    public List<ReportRepetitionGuard> RepetitionGuards { get; } = [];
 }
 
 /// <summary>How ONE placement of a printable item fixes its leftmost column.</summary>
@@ -223,7 +258,18 @@ public sealed record ReportOccursSpec(
 {
     /// <summary>data-name-1, resolved post-build (the SOURCE-operand pattern) — the §13.18.38.4 GR13 count.</summary>
     public DataItem? DependingItem { get; set; }
+
+    /// <summary>⛔ THE AXIS DECIDES WHICH HALF OF GR10 AND GR12 APPLIES, AND A STEP DISPLACES ON THAT AXIS ONLY.
+    /// §13.18.38.4 GR10a/GR10b and GR12a/GR12b are the COLUMN (horizontal) arms; GR10c/GR10d and GR12c/GR12d are
+    /// the LINE (vertical) arms. An entry that contains, or has subordinate to it, a LINE clause repeats
+    /// VERTICALLY; every other repeating entry repeats horizontally. Writing it down once is what keeps a
+    /// vertical entry's integer-3 out of the horizontal displacement and vice versa.</summary>
+    public ReportRepetitionAxis Axis { get; init; } = ReportRepetitionAxis.Horizontal;
 }
+
+/// <summary>The axis a report-group repeating entry repeats on (ISO §13.18.38.4 GR10/GR12; see
+/// <see cref="ReportOccursSpec.Axis"/>).</summary>
+public enum ReportRepetitionAxis { Horizontal, Vertical }
 
 /// <summary>
 /// ONE repetition's presence test for a repeating entry with the DEPENDING phrase (ISO §13.18.38.4 GR13 with
@@ -537,11 +583,45 @@ public sealed partial class DataBinder
         {
             using var _ = Edition.At(rd);
             if (rd.reportName()?.GetText() is not { } name) continue;
-            var model = new ReportModel { Name = name, CsIndex = Reports.Count };
+            var model = new ReportModel
+            {
+                Name = name,
+                CsIndex = Reports.Count,
+                // §8.4.3.15.4 GR1 — the counter exists per REPORT, so its register is built here, once, with the
+                // RD (kb/Work PB429). The SUM counter's Register is built the same way a few hundred lines below.
+                PageCounterRegister = new DataItem
+                {
+                    Level = 49,
+                    DeclaredAt = Edition.Cursor,
+                    CobolName = "PAGE-COUNTER",
+                    CsName = $"__pagectr_{Reports.Count}",
+                    Pic = PicInfo.ReportCounterItem(),
+                    Uid = _uidCounter++,
+                },
+            };
             BindReportDescriptionClauses(rd, model);
             BindReportGroups(rd, model);
             _reports.Add(model);
         }
+    }
+
+    /// <summary>⛔ THE ONE SCREEN OF ISO §13.18.60.3 SR7 — "Only the DISPLAY or NATIONAL phrase may be
+    /// specified in any USAGE clause associated with a report group item" (kb/Work PB541). It is asked at the
+    /// two points a usage becomes known and nowhere else: of the USAGE CLAUSE as it is captured (which is the
+    /// rule's own subject, and the only place a GROUP entry's clause is visible), and of the usage a printable
+    /// item SETTLES on, which may have been implied by its picture character-string (§13.18.60.4 GR7/GR8) and so
+    /// never passed a clause. One rule, one message, two positions — never two spellings of the rule.
+    /// <para>The gate this replaced tested <c>Usage is not Display</c>, one alternative narrower than the rule,
+    /// and refused every legal NATIONAL report item at every edition under a §13.15 citation that says nothing
+    /// of the kind; the nearest real text, §13.18.14.4 GR3, is about the column/character correspondence.</para>
+    /// </summary>
+    private void ScreenReportUsage(Usage usage, ReportModel model, string? entryName, string? written)
+    {
+        if (usage is Usage.Display or Usage.National) return;
+        Edition.Error(DiagnosticCatalog.ReportUsageNotDisplayOrNational, $"RD '{model.Name}' entry "
+            + $"'{entryName ?? "FILLER"}'{(written is null ? "" : $" ({written})")}: usage {usage} is not "
+            + "admitted here — only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause "
+            + "associated with a report group item (ISO §13.18.60.3 SR7)");
     }
 
     /// <summary>Bind one RD entry's description clauses: PAGE geometry (§13.18.39) with the GR3 defaults,
@@ -627,7 +707,32 @@ public sealed partial class DataBinder
     private void BindReportGroups(Core.ReportDescriptionEntryContext rd, ReportModel model)
     {
         var entries = rd.reportGroupEntry();
+        ScreenReportLineNesting(entries, model);
         BindReportEntries(entries, 0, entries.Length, model, new ReportGroupBuild());
+    }
+
+    /// <summary>ISO §13.18.35.3 SR4 — "Within a given report group description entry, an entry that contains a
+    /// LINE clause shall not have a subordinate entry that also contains a LINE clause." Screened over the FLAT
+    /// entry array once per RD, before the walk, so a subtree REPLAY (§13.18.38.4 GR10) cannot report the same
+    /// violation once per repetition. The rule is what makes the §13.18.38.4 GR10c/GR10d split exhaustive: a
+    /// vertically repeating entry either carries the LINE clause itself or has them below it, never both.</summary>
+    private void ScreenReportLineNesting(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    {
+        for (int i = 0; i < entries.Length; i++)
+        {
+            if (!entries[i].reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
+            if (!int.TryParse(entries[i].levelNumber().GetText(), out int level)) continue;
+            for (int k = i + 1; k < entries.Length; k++)
+            {
+                if (!int.TryParse(entries[k].levelNumber().GetText(), out int sub) || sub <= level) break;
+                if (!entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
+                using var _ = Edition.At(entries[k]);
+                Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': an entry that contains a LINE "
+                    + "clause shall not have a subordinate entry that also contains a LINE clause (ISO "
+                    + "§13.18.35.3 SR4)");
+                break;
+            }
+        }
     }
 
     /// <summary>
@@ -643,7 +748,11 @@ public sealed partial class DataBinder
         /// §13.18.63.3 SR35 / §13.18.53.3 SR6 can read "the repeating entry, and any number of successive
         /// repeating entries at higher levels" off the stack instead of a hand-maintained special case
         /// (kb/Work PB506).</summary>
-        public readonly List<(int Level, Core.ConditionContext? Cond, int Reps)> Chain = [];
+        /// <para>The frame also carries the entry's EFFECTIVE usage (ISO §13.18.60.4 GR1 — "If the USAGE
+        /// clause is specified or implied at a group level, it applies only to each elementary item in the
+        /// group"), so a printable item inherits the usage written on a group entry above it instead of the
+        /// clause being discarded (kb/Work PB541).</para>
+        public readonly List<(int Level, Core.ConditionContext? Cond, int Reps, string? Usage)> Chain = [];
         /// <summary>Stack frames whose conditions the CURRENT line already carries.</summary>
         public int LineChainDepth;
         /// <summary>The repeating entries enclosing the entry being bound, outermost first (§13.18.38 Format 3).</summary>
@@ -651,21 +760,46 @@ public sealed partial class DataBinder
         /// <summary>The step-anchor register ids, keyed by (entry, COLUMN-operand index) — one per PRINTABLE
         /// PLACEMENT of a repeating entry whose base column is relative (see <see cref="ReportColumnKindModel"/>).</summary>
         public readonly Dictionary<(Core.ReportGroupEntryContext Entry, int Operand, string Undisplaced), int> Anchors = [];
+        /// <summary>The VERTICAL twin, keyed the same way over LINE operands — one slot per report LINE of a
+        /// STEP'd vertically repeating entry whose line is relative (§13.18.38.4 GR12c/GR12d). Separate from
+        /// <see cref="Anchors"/> because the two live in different storage: a column anchor is compose-local to
+        /// ONE line, a line anchor spans the whole group presentation and belongs to the engine.</summary>
+        public readonly Dictionary<(Core.ReportGroupEntryContext Entry, int Operand, string Undisplaced), int> LineAnchors = [];
         /// <summary>Placements of each entry bound so far — <see cref="ReportFieldModel.RepetitionOrdinal"/>.</summary>
         public readonly Dictionary<Core.ReportGroupEntryContext, int> Placements = [];
+        /// <summary>The bind-time EXPECTED vertical offset of the last relative line placed in the group under
+        /// construction, measured from the group's own start. It is the §13.18.35.4 GR4c trial sum read
+        /// forwards: each line's <see cref="ReportLineModel.TrialInterval"/> is its expected offset minus this
+        /// cursor, so Σ intervals is exactly "the expected position of the last line of the report group" for an
+        /// all-relative group, whatever mixture of plain repetition and STEP displacement produced it.</summary>
+        public int VerticalCursor;
+        /// <summary>Each line anchor's expected offset at the moment it was seeded — the datum a Step line's
+        /// interval is computed from.</summary>
+        public readonly Dictionary<int, int> AnchorOffset = [];
 
-        /// <summary>Σ ordinalⱼ × integer-3ⱼ over the enclosing repeating entries — the displacement §13.18.38.4
-        /// GR12 gives this repetition ("integer-3 columns to the right of the column they occupy in the preceding
-        /// occurrence"), which is additive across nested repeating entries.</summary>
-        public int ColumnShift
+        /// <summary>Σ ordinalⱼ × integer-3ⱼ over the enclosing repeating entries THAT REPEAT ON
+        /// <paramref name="axis"/> — the displacement §13.18.38.4 GR12 gives this repetition ("integer-3 columns
+        /// to the right of the column they occupy in the preceding occurrence" horizontally, GR12a/GR12b;
+        /// "integer-3 lines vertically beneath the line they occupy in the preceding occurrence" vertically,
+        /// GR12c/GR12d), which is additive across nested repeating entries of the same axis. A frame on the OTHER
+        /// axis contributes nothing: its integer-3 is an interval in the other dimension entirely.</summary>
+        public int Shift(ReportRepetitionAxis axis)
         {
-            get
-            {
-                int shift = 0;
-                foreach (var rep in Repetitions) shift += rep.Ordinal * (rep.Spec.Step ?? 0);
-                return shift;
-            }
+            int shift = 0;
+            foreach (var rep in Repetitions) shift += rep.Ordinal * StepOn(rep, axis);
+            return shift;
         }
+
+        /// <summary>The ordinals of the enclosing repeating entries that do NOT displace on
+        /// <paramref name="axis"/> — the rest of a step anchor's key, so genuinely distinct items (produced by a
+        /// repetition that steps on the other axis, or not at all) never share one datum.</summary>
+        public string Undisplaced(ReportRepetitionAxis axis) =>
+            string.Join(".", Repetitions.Where(r => StepOn(r, axis) == 0).Select(r => r.Ordinal));
+
+        /// <summary>One frame's integer-3 as it acts on <paramref name="axis"/>: its STEP when the entry repeats
+        /// on that axis, else 0 (ISO §13.18.38.4 GR12).</summary>
+        private static int StepOn(ReportRepetitionFrame f, ReportRepetitionAxis axis) =>
+            f.Spec.Axis == axis ? f.Spec.Step ?? 0 : 0;
 
         /// <summary>The §13.18.38.4 GR13 presence tests this placement inherits (one per enclosing repeating
         /// entry with a DEPENDING phrase), outermost first.</summary>
@@ -720,14 +854,14 @@ public sealed partial class DataBinder
             while (subtreeEnd < end && int.TryParse(entries[subtreeEnd].levelNumber().GetText(), out int lv)
                    && lv > entryLevel) subtreeEnd++;
 
-            if (ReportOccursOf(ge, entries, i, subtreeEnd, model, st) is { } occurs)
+            if (ReportRepetitionOf(ge, entries, i, subtreeEnd, model, st) is { } occurs)
             {
                 var frame = new ReportRepetitionFrame(occurs);
                 st.Repetitions.Add(frame);
                 for (int rep = 0; rep < occurs.Max; rep++)
                 {
                     frame.Ordinal = rep;
-                    BindReportEntry(ge, entries[i], model, st, occurs);
+                    BindReportEntry(ge, entries[i], model, st, occurs, rep);
                     BindReportEntries(entries, i + 1, subtreeEnd, model, st);
                 }
                 st.Repetitions.RemoveAt(st.Repetitions.Count - 1);
@@ -739,10 +873,81 @@ public sealed partial class DataBinder
     }
 
     /// <summary>
+    /// ⛔ THE ONE REPETITION VEHICLE OF A REPORT GROUP DESCRIPTION ENTRY. ISO §13.15.4 GR3 names three — "An
+    /// entry that contains either an OCCURS clause or a LINE or COLUMN clause with more than one operand is said
+    /// to be a repeating entry" — and two of them drive the SUBTREE REPLAY: the OCCURS clause (§13.18.38 Format
+    /// 3) and the multiple LINE clause. §13.18.35.4 GR9 is what makes the second one the first: "A multiple LINE
+    /// clause is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS
+    /// clause whose integer is equal to the number of operands of the LINE clause, except that the multiple LINE
+    /// clause allows the report lines to be defined at unequal vertical intervals" — so it IS a simple,
+    /// STEP-less, vertical OCCURS whose per-repetition operand the LINE clause supplies, and modelling it as one
+    /// is the standard's own reduction rather than a second copy of repetition.
+    /// <para>The third vehicle, the multiple COLUMN clause, is an operand LIST on ONE printable item rather than
+    /// a replay (§13.18.14.3 SR10), and <see cref="ReportFieldModel.Columns"/> carries it.</para>
+    /// </summary>
+    private ReportOccursSpec? ReportRepetitionOf(
+        Core.ReportGroupEntryContext ge, Core.ReportGroupEntryContext[] entries, int self, int subtreeEnd,
+        ReportModel model, ReportGroupBuild st)
+    {
+        var occurs = ReportOccursOf(ge, entries, self, subtreeEnd, model, st);
+        using var _ = Edition.At(ge);   // every rule below is the ENTRY's, so it is reported at the entry
+        var multi = MultipleLineOperands(ge, model);
+        if (multi is not { } ops) return occurs;
+        // SR10 d) "An OCCURS clause shall not also be present in the same entry."
+        if (ge.reportGroupClause().Any(c => c.occursClause() is not null))
+        {
+            Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': a multiple LINE clause and an "
+                + "OCCURS clause may not both be present in the same report group description entry (ISO "
+                + "§13.18.35.3 SR10d)");
+            return occurs;
+        }
+        // §13.18.35.4 GR9's equivalence, written as the spec writes it: a simple OCCURS of `ops` repetitions on
+        // the VERTICAL axis. No STEP — GR9's "unequal vertical intervals" ARE the several LINE operands.
+        return new ReportOccursSpec(0, ops, null, [], null) { Axis = ReportRepetitionAxis.Vertical };
+    }
+
+    /// <summary>The operand count of this entry's MULTIPLE LINE clause (ISO §13.18.35.3 SR10) with SR10 a/b/c
+    /// enforced, or null when the entry has no LINE clause or a single-operand one.</summary>
+    private int? MultipleLineOperands(Core.ReportGroupEntryContext ge, ReportModel model)
+    {
+        Core.ReportLineClauseContext? lc = null;
+        foreach (var clause in ge.reportGroupClause())
+            if (clause.reportLineClause() is { } found) lc = found;
+        if (lc is null) return null;
+        var ops = lc.reportLineOperand();
+        if (ops.Length <= 1) return null;
+        int lastAbsolute = int.MinValue;
+        bool relativeSeen = false;
+        for (int k = 0; k < ops.Length; k++)
+        {
+            // a) "The NEXT PAGE phrase, if specified, shall appear only with the first operand."
+            if (k > 0 && ops[k].NEXT() is not null)
+                Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
+                    + "NEXT PAGE phrase shall appear only with the first operand (ISO §13.18.35.3 SR10a)");
+            if (ops[k].integerLiteral() is not { } lit) continue;   // a bare `ON NEXT PAGE` operand
+            if (ops[k].PLUSWORD() is not null) { relativeSeen = true; continue; }
+            // b) "All absolute operands, if present, shall precede all relative operands, if present."
+            if (relativeSeen)
+            {
+                Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause all "
+                    + "absolute operands shall precede all relative operands (ISO §13.18.35.3 SR10b)");
+                continue;
+            }
+            // c) "The occurrences of integer-1, if present, shall be in ascending numerical order."
+            int v = int.Parse(lit.GetText());
+            if (lastAbsolute > int.MinValue && v <= lastAbsolute)
+                Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
+                    + $"occurrences of integer-1 shall be in ascending numerical order — {v} follows "
+                    + $"{lastAbsolute} (ISO §13.18.35.3 SR10c)");
+            lastAbsolute = v;
+        }
+        return ops.Length;
+    }
+
+    /// <summary>
     /// The OCCURS clause of one report group description entry, as ISO §13.18.38 FORMAT 3 — the report-writer
     /// format, <c>OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]</c> —
-    /// with its syntax rules enforced; null when the entry is not a repeating entry, when a rule rejected it, or
-    /// when the repetition is on the axis that is still staged.
+    /// with its syntax rules enforced; null when the entry is not a repeating entry or a syntax rule rejected it.
     /// </summary>
     private ReportOccursSpec? ReportOccursOf(
         Core.ReportGroupEntryContext ge, Core.ReportGroupEntryContext[] entries, int self, int subtreeEnd,
@@ -823,48 +1028,73 @@ public sealed partial class DataBinder
             return null;
         }
 
-        // The repetition AXIS (§13.18.38.4 GR10): a LINE clause on the entry or in its subtree repeats the entry
-        // VERTICALLY (GR10c/GR10d, GR12c/GR12d), which stages with its sibling the multiple LINE clause.
+        // ⛔ THE REPETITION AXIS (§13.18.38.4 GR10/GR12). GR10c/GR10d and GR12c/GR12d are the LINE arms and
+        // GR10a/GR10b and GR12a/GR12b the COLUMN arms, so the SAME integer-3 is a vertical interval on one
+        // entry and a horizontal one on another — which arm applies is fixed HERE, once, by the clause the
+        // entry (or its subtree) carries: "If the entry contains a LINE clause, each successive occurrence is
+        // positioned integer-3 lines vertically beneath the preceding occurrence" (GR12c) and "If the entry is
+        // a group entry having subordinate entries with LINE clauses, report lines in successive occurrences
+        // are positioned integer-3 lines vertically beneath the line they occupy in the preceding occurrence"
+        // (GR12d). Anything else repeats horizontally.
+        var axis = ReportRepetitionAxis.Horizontal;
         for (int k = self; k < subtreeEnd; k++)
             if (entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null))
             {
-                Edition.Error(DiagnosticCatalog.ReportOccursInGroup, $"{where}: VERTICAL repetition of a report group entry — an "
-                    + "OCCURS clause on an entry that contains or contains subordinate LINE clauses (ISO "
-                    + "§13.18.38.4 GR10c/GR10d) — is not yet implemented; horizontal (COLUMN) repetition is");
+                axis = ReportRepetitionAxis.Vertical;
+                break;
+            }
+        // ⛔ SR25's FOUR LEGS ARE THE FOUR GR12 LEGS, AND TWO OF THEM ARE ABOUT THE ENTRY ITSELF — NOT ITS
+        // SUBTREE. "The STEP phrase shall be specified if the entry: a) contains an absolute LINE clause, or
+        // b) has an entry with an absolute LINE clause subordinate to it, or c) contains an absolute COLUMN
+        // clause, or d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN
+        // clause subordinate to it." a) ∪ b) IS "an absolute LINE clause anywhere in the subtree", so those two
+        // collapse; c) and d) do NOT — c) asks about the entry's OWN clause and d) adds the GR12b qualifier
+        // "being itself subordinate to an entry with a LINE clause". Reading c/d as one subtree scan REFUSED
+        // `03 LINE PLUS 1 OCCURS 3 TIMES.` over a subordinate `05 COLUMN 1` — a vertically repeating entry
+        // whose repetitions are spread by the LINE clause and whose column is the same in each, which is
+        // exactly GR10c, and conforming source (kb/Work PB565).
+        if (step is null)
+        {
+            if (AbsoluteLineClauseIn(entries, self, subtreeEnd))
+            {
+                Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
+                    + "repeating entry contains, or has subordinate to it, an absolute LINE clause "
+                    + "(ISO §13.18.38.3 SR25a/SR25b) — without it every repetition would print on the "
+                    + "same line");
                 return null;
             }
-        // SR25 — the STEP phrase "shall be specified if the entry: a) contains an absolute LINE clause, or b) has
-        // an entry with an absolute LINE clause subordinate to it, or c) contains an absolute COLUMN clause, or
-        // d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause
-        // subordinate to it." (a) and (b) cannot arrive here — a LINE clause in the subtree staged above.
-        if (step is null)
-            for (int k = self; k < subtreeEnd; k++)
-                foreach (var clause in entries[k].reportGroupClause())
-                    if (clause.reportColumnClause() is { } cc && cc.reportColumnOperand().Any(o => o.PLUSWORD() is null))
-                    {
-                        Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
-                            + "repeating entry contains, or has subordinate to it, an absolute COLUMN clause "
-                            + "(ISO §13.18.38.3 SR25c/SR25d) — without it every repetition would print in the "
-                            + "same column");
-                        return null;
-                    }
+            if (AbsoluteColumnClauseIn(entries, self, self + 1)
+                || (SubordinateToLineClause(entries, self) && AbsoluteColumnClauseIn(entries, self, subtreeEnd)))
+            {
+                Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
+                    + "repeating entry contains an absolute COLUMN clause, or is subordinate to an entry with a "
+                    + "LINE clause and has one subordinate to it (ISO §13.18.38.3 SR25c/SR25d) — without it "
+                    + "every repetition would print in the same column");
+                return null;
+            }
+        }
         // SR26 — "The value of integer-3 shall be sufficient to prevent the overlapping of any line (in the case
         // of vertical repetition) or column (in the case of horizontal repetition) of any two consecutive
-        // repetitions of the associated report item." Horizontally that is: integer-3 shall be at least the
-        // repeated item's width, which the entry's own PICTURE fixes.
+        // repetitions of the associated report item." The rule names BOTH axes, so it is measured on the axis
+        // this entry repeats on: horizontally the repeated item's printed width, vertically the number of lines
+        // one occurrence occupies.
         if (step is { } sv)
         {
             int span = 0;
-            for (int k = self; k < subtreeEnd; k++)
-                if (ReportEntryPictureWidth(entries[k], model) is { } w) span += w;
+            string unit = axis == ReportRepetitionAxis.Vertical ? "lines" : "columns";
+            if (axis == ReportRepetitionAxis.Vertical)
+                span = ReportEntryLineSpan(entries, self, subtreeEnd);
+            else
+                for (int k = self; k < subtreeEnd; k++)
+                    if (ReportEntryPictureWidth(entries[k], model) is { } w) span += w;
             if (span > 0 && sv < span)
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: STEP {sv} is not sufficient to prevent the "
                     + $"overlapping of two consecutive repetitions — the repeated report item occupies {span} "
-                    + "columns (ISO §13.18.38.3 SR26)");
+                    + unit + " (ISO §13.18.38.3 SR26)");
         }
 
         var (dn, dq) = depending is not null ? KeyReference(depending) : (null, (IReadOnlyList<string>)[]);
-        return new ReportOccursSpec(min, max, dn, dq, step);
+        return new ReportOccursSpec(min, max, dn, dq, step) { Axis = axis };
     }
 
     /// <summary>Resolve one repeating entry's <c>DEPENDING ON data-name-1</c> (ISO §13.18.38 Format 3) and apply
@@ -903,12 +1133,15 @@ public sealed partial class DataBinder
     /// <param name="ge">The entry.</param>
     /// <param name="anchorKey">The entry whose identity keys this placement's step anchors — the same context,
     /// except that a repeating entry's own replayed copies must share one anchor per placement.</param>
-    /// <param name="ownOccurs">This entry's OWN report-writer OCCURS clause when it is a live repeating entry
-    /// (§13.18.38 Format 3) — its §13.15.4 GR3 repetition count, and the evidence that the vehicle was not
-    /// refused, which is what the §13.18.63.3 SR35 / §13.18.53.3 SR6 operand-count screen needs.</param>
+    /// <param name="ownOccurs">This entry's OWN §13.15.4 GR3 repetition vehicle when it is a live repeating
+    /// entry — the report-writer OCCURS clause (§13.18.38 Format 3) or the multiple LINE clause's §13.18.35.4
+    /// GR9 equivalent — carrying its repetition count and the evidence that the vehicle was not refused, which
+    /// is what the §13.18.63.3 SR35 / §13.18.53.3 SR6 operand-count screen needs.</param>
+    /// <param name="ordinal">This repetition's zero-based ordinal within <paramref name="ownOccurs"/> — what
+    /// selects the LINE operand of a multiple LINE clause (§13.18.35.4 GR9).</param>
     private void BindReportEntry(
         Core.ReportGroupEntryContext ge, Core.ReportGroupEntryContext anchorKey, ReportModel model,
-        ReportGroupBuild st, ReportOccursSpec? ownOccurs = null)
+        ReportGroupBuild st, ReportOccursSpec? ownOccurs = null, int ordinal = 0)
     {
         {
             using var _ = Edition.At(ge);
@@ -919,6 +1152,7 @@ public sealed partial class DataBinder
                 st.Group = new ReportGroupModel { Name = entryName };
                 model.Groups.Add(st.Group);
                 st.Line = null;
+                st.VerticalCursor = 0;   // the §13.18.35.4 GR4c trial sum is measured per report group
             }
             var group = st.Group;
             if (group is null)
@@ -928,6 +1162,10 @@ public sealed partial class DataBinder
             }
             var chain = st.Chain;
             while (chain.Count > 0 && chain[^1].Level >= level) chain.RemoveAt(chain.Count - 1);
+            // ISO §13.18.60.4 GR1 — the usage written on an enclosing report group entry "applies only to each
+            // elementary item in the group", so the innermost surviving frame carries the usage this entry
+            // inherits when it writes no USAGE clause of its own (kb/Work PB541).
+            string? inheritedUsage = chain.Count > 0 ? chain[^1].Usage : null;
 
             // Clause capture for THIS entry (clauses may appear in any order within the entry — RW104A).
             string? picText = null, usageText = null;
@@ -939,9 +1177,9 @@ public sealed partial class DataBinder
             LocaleEditSpec? reportLocale = null;             // PICTURE format 2 — the LOCALE phrase (PB113 / PB64 T6)
             SignSpec? ownSign = null;
             bool justified = false, blankWhenZero = false, groupIndicate = false, repeatingEntry = false;
-            // A repetition VEHICLE that was REFUSED (the multiple LINE clause, a vertical or ill-formed
-            // OCCURS): the entry's §13.15.4 GR3 repetition count is then not knowable, so the operand-count
-            // screen below stands down rather than emitting a second diagnostic about it (kb/Work PB506).
+            // A repetition VEHICLE that was REFUSED (an OCCURS clause a §13.18.38.3 syntax rule rejected):
+            // the entry's §13.15.4 GR3 repetition count is then not knowable, so the operand-count screen
+            // below stands down rather than emitting a second diagnostic about it (kb/Work PB506).
             bool staysLoud = false;
             var columns = new List<ReportColumnSpec>();
             // The SOURCE clause's operand list (§13.18.53.2 — one entry per written identifier-1); empty when
@@ -951,6 +1189,11 @@ public sealed partial class DataBinder
             // §13.18.53.3 SR3 — set when the clause writes an arithmetic-expression operand or a ROUNDED phrase.
             bool sourceNeedsNumericEntry = false;
             ReportLineModel? opened = null;
+            // The LINE clause operand this repetition places by, and its index within the clause (§13.18.35.3
+            // SR10 / §13.18.35.4 GR9) — resolved after the clause loop, where the enclosing repetitions' STEP
+            // displacement is known.
+            Core.ReportLineOperandContext? lineOperand = null;
+            int lineOperandIndex = 0;
             // ⛔ A LIST, NOT A SLOT (kb/Work PB482): ISO §13.18.54.3 SR1 — "The whole clause is referred to as a
             // SUM clause even though the SUM keyword may appear more than once", and §13.18.54.4 GR1 gives the
             // ENTRY one counter. A single slot silently DISCARDED every group but the last:
@@ -965,24 +1208,16 @@ public sealed partial class DataBinder
                     BindGroupType(t, group, model);
                 else if (clause.reportLineClause() is { } lc)
                 {
+                    // The multiple LINE clause (§13.18.35.3 SR10) is a §13.15.4 GR3 repetition VEHICLE, read by
+                    // ReportRepetitionOf before this entry is bound: §13.18.35.4 GR9 makes it "functionally
+                    // equivalent to a LINE clause with a single operand, together with a simple OCCURS clause
+                    // whose integer is equal to the number of operands", so this replay takes the operand its
+                    // own ORDINAL names and the entry opens one report line per repetition. The modulo is the
+                    // SR10d recovery path only (an entry carrying BOTH vehicles is diagnosed, not guessed at).
                     var ops = lc.reportLineOperand();
-                    if (ops.Length > 1)
-                    {
-                        // The multiple LINE clause (§13.18.35.3 SR10) is GR9-equivalent to LINE + a simple OCCURS —
-                        // it stages LOUD with the report-group OCCURS repetition family.
-                        Edition.Error(DiagnosticCatalog.ReportMultipleLine, $"RD '{model.Name}': a multiple LINE clause "
-                            + "(ISO §13.18.35.3 SR10 — vertical repetition) is not yet implemented");
-                        repeatingEntry = true;
-                        staysLoud = true;
-                    }
-                    var op = ops[0];
-                    if (op.NEXT() is not null)
-                        Edition.Error(DiagnosticCatalog.ReportLineNextPage, $"RD '{model.Name}': LINE … NEXT PAGE (ISO §13.18.35) is "
-                            + "not yet implemented");
-                    else if (op.PLUSWORD() is not null)
-                        opened = new ReportLineModel(ReportLineKindModel.Relative, int.Parse(op.integerLiteral().GetText()));
-                    else
-                        opened = new ReportLineModel(ReportLineKindModel.Absolute, int.Parse(op.integerLiteral().GetText()));
+                    if (ops.Length > 1) repeatingEntry = true;
+                    lineOperand = ops.Length > 1 ? ops[ordinal % ops.Length] : ops[0];
+                    lineOperandIndex = ops.Length > 1 ? ordinal % ops.Length : 0;
                 }
                 else if (clause.reportNextGroupClause() is not null)
                     Edition.Error(DiagnosticCatalog.ReportNextGroupClause, $"RD '{model.Name}': the NEXT GROUP clause (ISO §13.18.37) is "
@@ -1057,7 +1292,18 @@ public sealed partial class DataBinder
                     }
                 }
                 else if (clause.usageClause() is { } usage)
+                {
                     usageText = UsageKeyword(usage);
+                    // ⛔ §13.18.60.3 SR7 IS ABOUT THE CLAUSE, NOT ABOUT THE PRINTABLE LEAF (kb/Work PB541):
+                    // "Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with
+                    // a report group item." A USAGE clause on a GROUP entry is associated with the report group
+                    // items under it (GR1), so it is screened HERE, where every entry's clause passes — before
+                    // this, a group entry's `USAGE COMP` was captured and then silently discarded, and the only
+                    // usage screen in the compiler was a staged-loud on the leaf's analyzed picture.
+                    ScreenReportUsage(PictureAnalyzer.ParseUsage(usageText, Edition,
+                            $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'"),
+                        model, entryName, usageText);
+                }
                 else if (clause.signClause() is { } sign)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
                 else if (clause.justifiedClause() is not null)
@@ -1139,13 +1385,36 @@ public sealed partial class DataBinder
                     "SOURCE", DiagnosticCatalog.ReportSourceOperandCount, "ISO §13.18.53.3 SR6");
             }
 
+            // ISO §13.18.60.3 SR2 — "If the USAGE clause is written in the data description entry for a group
+            // item, it may also be written in the data description entry for any subordinate elementary item or
+            // group item, but the same usage shall be specified in both entries." §13.15.4 GR2 imports the data
+            // description entry's clause rules into the report group description entry, so the pair is a rule
+            // here too, and it is the only thing that makes GR1's inheritance unambiguous (kb/Work PB541).
+            if (usageText is not null && inheritedUsage is not null
+                && !usageText.Equals(inheritedUsage, StringComparison.OrdinalIgnoreCase))
+                Edition.Error(DiagnosticCatalog.ReportUsageNotDisplayOrNational, $"RD '{model.Name}' entry "
+                    + $"'{entryName ?? "FILLER"}': USAGE {usageText} contradicts the USAGE {inheritedUsage} "
+                    + "written on the group entry above it — when a USAGE clause is written on a group item and "
+                    + "on an entry subordinate to it, the same usage shall be specified in both (ISO "
+                    + "§13.18.60.3 SR2, imported into the report group description entry by §13.15.4 GR2)");
+
+            if (lineOperand is { } lop)
+            {
+                if (lop.NEXT() is not null)
+                    Edition.Error(DiagnosticCatalog.ReportLineNextPage, $"RD '{model.Name}': LINE … NEXT PAGE (ISO §13.18.35) is "
+                        + "not yet implemented");
+                else
+                    opened = RepeatedLine(lop, lineOperandIndex, anchorKey, st);
+            }
             if (opened is not null)
             {
                 st.Line = opened;
                 group.Lines.Add(opened);
                 // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41 GR2b).
-                foreach (var (_, c, _) in chain) if (c is not null) opened.PresentWhenCtxs.Add(c);
+                foreach (var (_, c, _, _) in chain) if (c is not null) opened.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) opened.PresentWhenCtxs.Add(ownCond);
+                // §13.18.38.4 GR13 on the VERTICAL axis: a repetition the DEPENDING count excludes has no line.
+                opened.RepetitionGuards.AddRange(st.GuardsHere());
                 st.LineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
             }
             var line = st.Line;
@@ -1156,7 +1425,7 @@ public sealed partial class DataBinder
             if (sumClauses.Count > 0)
             {
                 sum = BindSumClause(sumClauses, entryName, picText, group, model, columns.Count > 0);
-                foreach (var (_, c, _) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
+                foreach (var (_, c, _, _) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
             }
 
@@ -1167,14 +1436,14 @@ public sealed partial class DataBinder
                 {
                     Edition.Error(DiagnosticCatalog.ReportColumnWithoutLine, $"RD '{model.Name}': a COLUMN clause with no LINE clause in "
                         + "effect (ISO §13.18.14 — a printable item belongs to a report line)");
-                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
+                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), usageText ?? inheritedUsage));
                     return;
                 }
                 // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
                 // MOVE conversion path renders the §13.18.53.4 GR1 implicit MOVE. A printable item is a
                 // USAGE-DISPLAY elementary item; its numeric face stores its character IMAGE (StoreAsImage).
                 string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
-                Usage itemUsage = PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere);
+                Usage itemUsage = PictureAnalyzer.ParseUsage(usageText ?? inheritedUsage, Edition, itemWhere);
                 var pic = picText is not null
                     ? PictureAnalyzer.Analyze(picText, itemUsage, Edition,
                         itemWhere, ownSign, currencies: CurrencySigns, blankWhenZero: blankWhenZero, editing: reportEditing,
@@ -1208,12 +1477,18 @@ public sealed partial class DataBinder
                         + "PICTURE clause — one shall be specified in every elementary entry that has a SOURCE or "
                         + "SUM clause (ISO §13.15.3 SR12), and SR14 implies one only from a VALUE clause supplying "
                         + "an alphanumeric, boolean or national literal that is not a zero-length literal");
-                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
+                    chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), usageText ?? inheritedUsage));
                     return;
                 }
-                if (pic.Usage is not Usage.Display)
-                    Edition.Error(DiagnosticCatalog.ReportNonDisplayItem, $"RD '{model.Name}': a non-DISPLAY printable item at COLUMN "
-                        + $"{col} (ISO §13.15 — printable items are DISPLAY) is not supported");
+                // §13.18.60.3 SR7 over a usage NO clause ever stated — one IMPLIED by the picture
+                // character-string (§13.18.60.4 GR7/GR8: "The implicit or explicit USAGE DISPLAY clause…", "The
+                // implicit or explicit USAGE NATIONAL clause…"). A usage this entry or an enclosing group entry
+                // WROTE was already screened at its clause, which is the rule's own subject, so re-asking here
+                // would report one violation twice. Same rule, same message, one text: ScreenReportUsage. The
+                // gate this replaced admitted DISPLAY alone and refused the NATIONAL half of the rule under a
+                // §13.15 citation that does not say it (kb/Work PB541).
+                if (usageText is null && inheritedUsage is null)
+                    ScreenReportUsage(pic.Usage, model, entryName, picText is null ? null : $"PICTURE {picText}");
                 // ⛔ §13.18.63.3 SR6 NAMES FORMAT 4 — "literals in formats 1, 2, and 4 of the VALUE clause may be
                 // numeric" — so a report-section printable item's numeric literal rides the SAME COBOL-2023
                 // introduction (Annex E.3.3 item 43) as its format-1 and format-2 siblings. It did not: the
@@ -1280,7 +1555,7 @@ public sealed partial class DataBinder
                 line.Fields.Add(field);
             }
 
-            chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs)));
+            chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), usageText ?? inheritedUsage));
         }
     }
 
@@ -1301,12 +1576,16 @@ public sealed partial class DataBinder
     private static IReadOnlyList<ReportColumnSpec> RepeatedPlacements(
         List<ReportColumnSpec> columns, Core.ReportGroupEntryContext anchorKey, ReportGroupBuild st)
     {
-        if (st.Repetitions.TrueForAll(r => r.Spec.Step is null)) return columns;   // nothing to displace
-        int shift = st.ColumnShift;
+        int shift = st.Shift(ReportRepetitionAxis.Horizontal);
+        // Nothing displaces horizontally — neither a STEP-less repetition (GR12's closing sentence) nor a
+        // repetition whose integer-3 is a VERTICAL interval (GR12c/GR12d).
+        if (shift == 0 && st.Repetitions.TrueForAll(
+                r => r.Spec.Axis != ReportRepetitionAxis.Horizontal || r.Spec.Step is null))
+            return columns;
         // A step anchor identifies ONE printable placement across the repetitions that displace it, so its key
         // holds the operand AND the ordinals of the enclosing repeating entries that do NOT displace (those
         // produce genuinely distinct items whose base columns the horizontal counter fixes independently).
-        string undisplaced = string.Join(".", st.Repetitions.Where(r => r.Spec.Step is null).Select(r => r.Ordinal));
+        string undisplaced = st.Undisplaced(ReportRepetitionAxis.Horizontal);
         var placed = new List<ReportColumnSpec>(columns.Count);
         for (int op = 0; op < columns.Count; op++)
         {
@@ -1319,6 +1598,135 @@ public sealed partial class DataBinder
                 : new ReportColumnSpec(ReportColumnKindModel.AnchorStep, shift, anchor));
         }
         return placed;
+    }
+
+    /// <summary>
+    /// ⛔ THE VERTICAL TWIN OF <see cref="RepeatedPlacements"/> — this repetition's placement for one LINE
+    /// clause operand (ISO §13.18.38.4 GR12c/GR12d: "If the entry contains a LINE clause, each successive
+    /// occurrence is positioned integer-3 lines vertically beneath the preceding occurrence" / "If the entry is
+    /// a group entry having subordinate entries with LINE clauses, report lines in successive occurrences are
+    /// positioned integer-3 lines vertically beneath the line they occupy in the preceding occurrence").
+    /// <para>The displacement Σ ordinal × integer-3 is additive over the enclosing VERTICALLY repeating entries,
+    /// so an ABSOLUTE line simply moves by it and stays a compile-time constant. A RELATIVE line has no
+    /// compile-time page line at all, so its FIRST occurrence seeds an engine-held anchor with the line it lands
+    /// on and every later occurrence places at anchor + displacement — the anchor is that line's base position,
+    /// never mutated, because GR12d measures from the PRECEDING OCCURRENCE'S line while LINE-COUNTER holds the
+    /// last line PRINTED (§13.18.35.4 GR1), and the lines between them belong to other occurrences.</para>
+    /// <para>With NO step phrase there is nothing to displace: GR12's closing sentence — "If no STEP phrase is
+    /// specified, the vertical or horizontal interval between successive occurrences is defined by the relative
+    /// LINE or COLUMN numbers … specified in the corresponding report section entries" — and the replayed
+    /// relative line reproduces exactly that against LINE-COUNTER. That is also the whole of a multiple LINE
+    /// clause's §13.18.35.4 GR9 equivalence, whose "unequal vertical intervals" are its several operands.</para>
+    /// </summary>
+    private static ReportLineModel RepeatedLine(
+        Core.ReportLineOperandContext op, int operand, Core.ReportGroupEntryContext anchorKey, ReportGroupBuild st)
+    {
+        bool relative = op.PLUSWORD() is not null;
+        int value = int.Parse(op.integerLiteral().GetText());
+        int shift = st.Shift(ReportRepetitionAxis.Vertical);
+        bool anchored = st.Repetitions.Exists(
+            r => r.Spec.Axis == ReportRepetitionAxis.Vertical && r.Spec.Step is not null);
+        if (!relative)
+            return new ReportLineModel(ReportLineKindModel.Absolute, value + shift);
+        if (!anchored)
+        {
+            st.VerticalCursor += value;      // GR4c: "incremented by integer-2 for each subsequent LINE clause"
+            return new ReportLineModel(ReportLineKindModel.Relative, value);
+        }
+        var key = (anchorKey, operand, st.Undisplaced(ReportRepetitionAxis.Vertical));
+        if (!st.LineAnchors.TryGetValue(key, out int anchor)) st.LineAnchors[key] = anchor = st.LineAnchors.Count + 1;
+        if (shift == 0)
+        {
+            st.AnchorOffset[anchor] = st.VerticalCursor += value;
+            return new ReportLineModel(ReportLineKindModel.Relative, value) { Anchor = anchor };
+        }
+        // The GR4c contribution is this line's expected offset minus the cursor, so Σ over the group is exactly
+        // "the expected position of the last line of the report group" however the repetitions interleave.
+        int expected = st.AnchorOffset.GetValueOrDefault(anchor) + shift;
+        int interval = Math.Max(0, expected - st.VerticalCursor);
+        st.VerticalCursor = Math.Max(st.VerticalCursor, expected);
+        return new ReportLineModel(ReportLineKindModel.Step, shift)
+        {
+            Anchor = anchor,
+            RelativeBase = value,
+            TrialInterval = interval,
+        };
+    }
+
+    /// <summary>True when any entry in <c>[start, end)</c> carries a LINE clause with an ABSOLUTE operand
+    /// (ISO §13.18.38.3 SR25a/SR25b).</summary>
+    private static bool AbsoluteLineClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
+    {
+        for (int k = start; k < end; k++)
+            foreach (var clause in entries[k].reportGroupClause())
+                if (clause.reportLineClause() is { } lc
+                    && lc.reportLineOperand().Any(o => o.PLUSWORD() is null && o.integerLiteral() is not null))
+                    return true;
+        return false;
+    }
+
+    /// <summary>True when any entry in <c>[start, end)</c> carries a COLUMN clause with an ABSOLUTE operand
+    /// (ISO §13.18.38.3 SR25c/SR25d).</summary>
+    private static bool AbsoluteColumnClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
+    {
+        for (int k = start; k < end; k++)
+            foreach (var clause in entries[k].reportGroupClause())
+                if (clause.reportColumnClause() is { } cc && cc.reportColumnOperand().Any(o => o.PLUSWORD() is null))
+                    return true;
+        return false;
+    }
+
+    /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause" — the
+    /// qualifier ISO §13.18.38.3 SR25d and §13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
+    /// preceding entry with a strictly lower level-number, taken innermost-first (the §13.15 level hierarchy).</summary>
+    private static bool SubordinateToLineClause(Core.ReportGroupEntryContext[] entries, int self)
+    {
+        if (!int.TryParse(entries[self].levelNumber().GetText(), out int level)) return false;
+        for (int k = self - 1; k >= 0; k--)
+        {
+            if (!int.TryParse(entries[k].levelNumber().GetText(), out int lv) || lv >= level) continue;
+            level = lv;
+            if (entries[k].reportGroupClause().Any(c => c.reportLineClause() is not null)) return true;
+            if (lv == 1) break;
+        }
+        return false;
+    }
+
+    /// <summary>The number of report LINES one occurrence of a vertically repeating entry occupies — the span
+    /// ISO §13.18.38.3 SR26 measures ("sufficient to prevent the overlapping of any line (in the case of
+    /// vertical repetition) … of any two consecutive repetitions"). All-relative lines span
+    /// 1 + Σ integer-2 over every line but the first; all-absolute lines span max − min + 1. A MIXED entry
+    /// returns 0 (not measurable at bind): §13.18.35.3 SR6e already confines that shape to lines under
+    /// different PRESENT WHEN clauses, whose overlap the standard leaves to GR3's EC-REPORT-LINE-OVERLAP.</summary>
+    private static int ReportEntryLineSpan(Core.ReportGroupEntryContext[] entries, int self, int subtreeEnd)
+    {
+        int relativeSpan = 1, absoluteLow = int.MaxValue, absoluteHigh = int.MinValue, lines = 0;
+        bool anyRelative = false, anyAbsolute = false;
+        for (int k = self; k < subtreeEnd; k++)
+            foreach (var clause in entries[k].reportGroupClause())
+            {
+                if (clause.reportLineClause() is not { } lc) continue;
+                foreach (var op in lc.reportLineOperand())
+                {
+                    if (op.integerLiteral() is not { } lit) continue;
+                    int v = int.Parse(lit.GetText());
+                    if (op.PLUSWORD() is not null)
+                    {
+                        anyRelative = true;
+                        if (lines > 0) relativeSpan += v;
+                    }
+                    else
+                    {
+                        anyAbsolute = true;
+                        absoluteLow = Math.Min(absoluteLow, v);
+                        absoluteHigh = Math.Max(absoluteHigh, v);
+                    }
+                    lines++;
+                }
+            }
+        if (anyRelative && anyAbsolute) return 0;
+        if (anyAbsolute) return absoluteHigh - absoluteLow + 1;
+        return anyRelative ? relativeSpan : 0;
     }
 
     /// <summary>True when <paramref name="tree"/> contains a terminal of <paramref name="tokenType"/>.</summary>
@@ -1380,12 +1788,13 @@ public sealed partial class DataBinder
     /// entry, and the number of repetitions is defined to be integer-2 of the OCCURS clause or the number of
     /// operands of the LINE or COLUMN clause, whichever is applicable. The number of repetitions of an entry that
     /// is not a repeating entry is defined to be 1."
-    /// <para>TWO of GR3's three vehicles are LIVE: the multiple COLUMN clause, and — since kb/Work PB565 — the
-    /// report-writer OCCURS clause on the HORIZONTAL axis (§13.18.38 Format 3, the subtree replay). The multiple
-    /// LINE clause and the vertical OCCURS still stage loud (COBOLNET0899 <c>report-multiple-line</c> /
-    /// <c>report-occurs-in-group</c>), and an entry whose vehicle was refused never reaches the operand-count
-    /// screen. An entry carrying BOTH live vehicles defines integer-2 × operands distinct report items — the
-    /// replay produces exactly that — so GR3's "whichever is applicable" is their product here.</para></summary>
+    /// <para>ALL THREE of GR3's vehicles are LIVE (kb/Work PB565): the multiple COLUMN clause as an operand
+    /// list on one printable item, and the report-writer OCCURS clause (§13.18.38 Format 3) and the multiple
+    /// LINE clause (§13.18.35.4 GR9's "simple OCCURS clause") as the subtree replay, on either axis. An entry
+    /// whose vehicle a syntax rule REFUSED never reaches the operand-count screen. An entry carrying both an
+    /// OCCURS and a multiple COLUMN clause defines integer-2 × operands distinct report items — the replay
+    /// produces exactly that — so GR3's "whichever is applicable" is their product here; an OCCURS and a
+    /// multiple LINE clause cannot share an entry (§13.18.35.3 SR10d).</para></summary>
     private static int EntryRepetitions(List<ReportColumnSpec> columns, ReportOccursSpec? occurs = null)
         => (columns.Count > 1 ? columns.Count : 1) * (occurs?.Max ?? 1);
 
@@ -1394,7 +1803,7 @@ public sealed partial class DataBinder
     /// the number of repetitions of any number of successive repeating entries at higher levels" straight off
     /// the scope stack.</summary>
     private static List<int> RepetitionChain(List<ReportColumnSpec> columns, ReportOccursSpec? occurs,
-        List<(int Level, Core.ConditionContext? Cond, int Reps)> chain)
+        List<(int Level, Core.ConditionContext? Cond, int Reps, string? Usage)> chain)
     {
         var reps = new List<int>(chain.Count + 1) { EntryRepetitions(columns, occurs) };
         for (int i = chain.Count - 1; i >= 0; i--) reps.Add(chain[i].Reps);

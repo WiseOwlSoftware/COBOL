@@ -43,6 +43,9 @@ public sealed class PlaceDenotedItemDriftTests
             + "but a data item the source names, and RegisterItem is it.",
         ["ReportSumCounterPlace"] = "A REPORT SECTION sum counter (§13.18.54.4 GR1) — the same: implicitly "
             + "defined, named by the source, carried as RegisterItem.",
+        ["ReportPageCounterPlace"] = "A report's PAGE-COUNTER (§8.4.3.15.4 GR1 — \"temporary unsigned integer "
+            + "data items of class and category numeric, which are maintained for each report\") — implicitly "
+            + "defined, named by the source, carried as RegisterItem, exactly like the sum counter beside it.",
         ["DebugRegisterPlace"] = "The X3.23-1985 DEBUG-ITEM register family — implicitly defined and named.",
         ["ExceptionObjectPlace"] = "EXCEPTION-OBJECT — §8.4.3.6.3 SR2 implicitly DESCRIBES the name, so the "
             + "reference denotes that one predefined object reference (§8.4.3.6.4 GR2).",

@@ -49,6 +49,11 @@ public sealed class PlaceStorageFormSwitchDriftTests
         // and DEBUG-ITEM registers are — a storage-form switch that meets it in a catch-all is this detector's
         // subject.
         "ExceptionObjectPlace",
+        // A report's PAGE-COUNTER (ISO §8.4.3.15; kb/Work PB429): engine state like the sum counter beside it,
+        // and §8.4.3.15.3 SR1 admits it "may be referenced in any context where an integer data item may
+        // appear" — so it is a RECEIVER as well as a source, and a storage-form switch that meets it in a
+        // catch-all is exactly the defect this detector exists for.
+        "ReportPageCounterPlace",
     ];
 
     /// <summary>Switches that name a storage form, have a catch-all arm, and are neither

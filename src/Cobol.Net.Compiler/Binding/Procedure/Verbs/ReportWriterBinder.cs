@@ -178,18 +178,43 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         bool isPage = dref.PAGE_COUNTER() is not null;
         if (!isPage && dref.LINE_COUNTER() is null) return null;
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
+        return CounterReportOf(dref, reg) is { } report
+            ? new BoundReportCounterRef(report, isPage)
+            : new BoundExprError($"{reg} reference '{dref.GetText()}'");
+    }
+
+    /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §8.4.3.15.3
+    /// SR1 — "In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an
+    /// integer data item may appear"; SR3 removes LINE-COUNTER, and only LINE-COUNTER, from the receiving side,
+    /// which <c>ExpressionBinder.ResolveReceiving</c> screens before it reaches here). Null when the reference
+    /// does not resolve to a report — the qualification diagnostic has then already been raised, exactly as on
+    /// the sending side, because BOTH directions ask <see cref="CounterReportOf"/> (kb/Work PB429).</summary>
+    public Place? CounterPlace(Core.DataReferenceContext dref) =>
+        CounterReportOf(dref, "PAGE-COUNTER") is { } report
+            ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister)
+            : null;
+
+    /// <summary>⛔ THE ONE RESOLUTION OF A COUNTER REFERENCE TO ITS REPORT, read by the SENDING
+    /// (<see cref="CounterExpr"/>) and RECEIVING (<see cref="CounterPlace"/>) directions alike: the OF/IN
+    /// <c>cobolWord</c> is the report-name qualifier (ISO §8.4.3.15 SR2 / §8.4.2.2), and an unqualified counter
+    /// resolves only when the program has exactly one report. Null — with the diagnostic already raised — when
+    /// the qualifier names no report, when no report description entry exists, or when an unqualified reference
+    /// is ambiguous. Written once so a program cannot be told the qualification rule on one side of a statement
+    /// and a different one on the other (kb/Work PB429).</summary>
+    private ReportModel? CounterReportOf(Core.DataReferenceContext dref, string reg)
+    {
         if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
         {
-            if (RwFindReport(q.GetText()) is { } named) return new BoundReportCounterRef(named, isPage);
+            if (RwFindReport(q.GetText()) is { } named) return named;
             ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualifierNotReport, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + "description entry (ISO §8.4.3.15 SR2 / §8.4.2.2)");
-            return new BoundExprError($"{reg} reference '{dref.GetText()}'");
+            return null;
         }
-        if (ctx.Data.Reports.Count == 1) return new BoundReportCounterRef(ctx.Data.Reports[0], isPage);
+        if (ctx.Data.Reports.Count == 1) return ctx.Data.Reports[0];
         ctx.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, ctx.Data.Reports.Count == 0
             ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "
               + "counters are generated per report)"
             : $"unqualified {reg} with more than one report: qualify by report-name (ISO §8.4.3.15 SR2 / §8.4.2.2)");
-        return new BoundExprError($"{reg} reference");
+        return null;
     }
 }

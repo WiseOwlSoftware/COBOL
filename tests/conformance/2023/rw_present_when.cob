@@ -12,6 +12,12 @@
       *> (GR3b), and is the SOURCE item (GR4 NOTE). Placement:
       *> §13.18.35.4 GR5b3 (first body line on the page → FIRST
       *> DETAIL) / GR7 (subsequent relative lines → LINE-COUNTER + n).
+      *> PLACEMENT (kb/Work PB484). The report's FIRST printed line is the first line of the file:
+      *> a line number IS a page line number (ISO 13.18.35.4 GR6 - "the report's LINE-COUNTER is set
+      *> equal to that line number and the line is now printed on the page at that vertical location"),
+      *> and GR7's "Any unoccupied lines on the page result in a blank line" fixes the blanks above it.
+      *> Here the page heading's LINE 1 is absolute, so GR5 a) prints PRESENT-WHEN on line 1 - the first
+      *> line of the file, with nothing above it - and the first body group takes FIRST DETAIL 2 (GR5 b) 3).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. RWPWP10RP.
        ENVIRONMENT DIVISION.

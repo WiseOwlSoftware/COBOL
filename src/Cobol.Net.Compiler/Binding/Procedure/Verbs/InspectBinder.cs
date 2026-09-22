@@ -124,8 +124,17 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (ins.inspectTallyingPhrase() is { } tallyPhrase)
             foreach (var item in tallyPhrase.inspectTallyingItem())
             {
-                if (ctx.Refs.Resolve(item.dataReference()) is not { } counter)
-                    return new BoundUnsupported($"INSPECT TALLYING counter '{item.dataReference().GetText()}'");
+                // ⛔ THE TALLYING COUNTER IS A RECEIVING OPERAND, SO IT RESOLVES AT THE RECEIVING CHOKEPOINT
+                // (kb/Work PB429). §14.9.22.4 GR12 a): "the content of the data item referenced by identifier-2
+                // is incremented by one for each occurrence of literal-1 matched" — which makes identifier-2 a
+                // receiver, and ExpressionBinder.ResolveReceiving is where every receiver-side
+                // rule is written down ONCE: §8.4.3.15.3 SR1 admits PAGE-COUNTER here ("any context where an
+                // integer data item may appear") and SR3 refuses LINE-COUNTER, a constant-name is refused by
+                // §13.10.4 GR1, EXCEPTION-OBJECT by §8.4.3.6.3 SR1. The sending resolver used here before knew
+                // none of them, so a legal PAGE-COUNTER counter fell out as an unresolved name and became a
+                // COBOLNET1756 run-time abort — the chokepoint's other arm, unfixed.
+                if (host.Expr.ResolveReceiving(item.dataReference()) is not { } counter)
+                    return new BoundNop();   // the chokepoint reported it — not a deferral (kb/Work PB236)
                 ctx.Validation.CheckInspectTallyCounter(counter);   // SR5 — pure check; binding continues
                 foreach (var fc in item.inspectForClause())
                 {

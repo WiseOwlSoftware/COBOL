@@ -167,11 +167,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
     // runtime-sourced (only the I-O control system modifies it, §13.18.34 GR7b), scale 0.
     public NumX Visit(BoundLinageCounterRef n) => new($"CobolFile.LinageCounter({EmitText.FileKeyExpr(n.File)})", 0);
-    // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15 GR1): unsigned integers read from the report's engine instance —
-    // runtime-sourced (only the RWCS maintains them), scale 0. This ONE case serves both the relation-condition and
-    // MOVE-source paths (both route through the renderer).
+    // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15.4 GR1): unsigned integers read from the report's engine instance,
+    // scale 0. This ONE case serves both the relation-condition and MOVE-source paths (both route through the
+    // renderer). The member name comes from RuntimeApi, which the RECEIVING side (ReportPageCounterPlace, §8.4.3.15.3
+    // SR1) also reads — one spelling for the two directions (kb/Work PB429).
     public NumX Visit(BoundReportCounterRef n) =>
-        new($"__RPT_{n.Report.CsIndex}.{(n.IsPage ? "PageCounter" : "LineCounter")}", 0);
+        new(RuntimeApi.ReportCounterRead(n.Report.CsIndex, n.IsPage), 0);
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
