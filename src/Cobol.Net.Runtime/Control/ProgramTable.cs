@@ -303,7 +303,14 @@ public sealed class ProgramTable
             transferred = true;         // GR3g — control is transferred to the called program
             inst.Call(args, returning);
         }
-        catch (CobolCallException cx) when (transferred) { cx.ControlTransferred = true; throw; }   // GR3i
+        catch (CobolCallException cx) when (transferred)
+        {
+            // GR3d (kb/Work PB615): a formal the activated element could not adopt is THIS attempt's failure —
+            // consume the mark so the next boundary out sees an ordinary propagated condition. Otherwise GR3i.
+            if (cx.RaisedAtAdoption) cx.RaisedAtAdoption = false;
+            else cx.ControlTransferred = true;
+            throw;
+        }
         finally
         {
             n.Active--; _owner.Modules.Pop();

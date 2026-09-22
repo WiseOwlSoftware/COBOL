@@ -40,7 +40,7 @@ internal sealed class _PRG_CHAR_CALL : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    ProgramRegistry.CallProgram("CHAR-SUB", "CHAR-CALL", new CobolArg[] { new CobolArg(CobolPassMode.Reference, ManagedPointer<long>.OverField(() => WS_ARG, __v => { WS_ARG = __v; }), 4, 0) }, null);
+                    ProgramRegistry.CallProgram("CHAR-SUB", "CHAR-CALL", new CobolArg[] { new CobolArg(CobolPassMode.Reference, ManagedPointer<long>.OverField(() => WS_ARG, __v => { WS_ARG = __v; }), new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 }) }, null);
                     System.Console.WriteLine(CobolNum.FormatDisplay(WS_ARG, _P_0));
                     throw new StopRun();
                 }

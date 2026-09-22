@@ -14,15 +14,36 @@ public enum CobolPassMode
 }
 
 /// <summary>
-/// One CALL argument crossing the opaque ABI (design D2): the pass mode, the carrier, and the caller-side
-/// numeric meta (digit count + scale) the callee-side adapters need to reinterpret a native-<c>long</c> carrier
-/// through a differently-scaled or character-shaped formal (the D5-sanctioned category boundary).
+/// One CALL argument crossing the opaque ABI (design D2): the pass mode, the carrier, and the DESCRIPTION of
+/// the storage that carrier holds — the one fact the callee-side adapters need to reinterpret a native numeric
+/// cell through a differently-scaled or character-shaped formal (the D5-sanctioned category boundary).
+/// <para>⛔ THE DESCRIPTION IS A WHOLE <see cref="NumProfile"/>, NOT A (digits, scale) PAIR (kb/Work PB873). A
+/// native cell holds a VALUE; the storage it stands for has a REPRESENTATION — the operational sign and where it
+/// sits (§13.18.52), the usage's byte form (§13.18.60.4) — and a formal that sees the argument as characters
+/// sees that representation: §14.2.3 GR8 "operates as if the formal parameter occupies the same storage area as
+/// the argument", and GR9's first branch moves the argument into its record "without conversion". The pair this
+/// replaced could spell only the digit run, so an image built from it was always UNSIGNED ZONED: <c>-12.34</c>
+/// in a <c>PIC S9(4)V99</c> argument reached an image-carried formal as <c>00123D</c> (+12.34) where the storage
+/// holds <c>00123M</c>, and a <c>COMP-5</c> argument reached a <c>PIC X(2)</c> formal as a zoned digit run
+/// instead of its two binary bytes. Carrying the profile makes every attribute the image needs travel with it —
+/// the next one (a national form, a new usage) is automatic.</para>
+/// <para>When the activating element has performed GR9/GR10's COMPUTE into a record of the FORMAL's
+/// description (<see cref="CobolArgAdapt.LandForFormal{T}"/>), the description it carries from then on IS the
+/// formal's — GR11 resolves every reference to data-name-1 "in accordance with their description in the linkage
+/// section" — so the one field answers both of GR9's branches.</para>
 /// </summary>
 /// <param name="Mode">The pass mode (ISO §14.9.4.4 GR5 transitivity resolved at bind time).</param>
 /// <param name="Carrier">The storage carrier (<see cref="ManagedPointer.Null"/> for OMITTED, GR11).</param>
-/// <param name="Digits">Caller PICTURE digit count for a numeric argument; 0 for character storage.</param>
-/// <param name="Scale">Caller PICTURE scale for a numeric argument; 0 for character storage.</param>
-public readonly record struct CobolArg(CobolPassMode Mode, ManagedPointer Carrier, int Digits, int Scale);
+/// <param name="Num">The numeric description of the carried storage; null for character, group, pointer,
+/// object-reference and index storage, whose carrier needs no numeric reinterpretation.</param>
+public readonly record struct CobolArg(CobolPassMode Mode, ManagedPointer Carrier, NumProfile? Num)
+{
+    /// <summary>The carried storage's digit count; 0 when <see cref="Num"/> is null.</summary>
+    public int Digits => Num?.Digits ?? 0;
+
+    /// <summary>The carried storage's net scale (§13.18.40 — may be negative); 0 when <see cref="Num"/> is null.</summary>
+    public int Scale => Num?.FractionScale ?? 0;
+}
 
 /// <summary>
 /// The uniform program ABI every compiled program class implements (design D2 — the typed analog of the
@@ -75,8 +96,14 @@ public interface ICobolProgram
 /// carrier shape. Same-shape carriers pass through untouched (fully typed aliasing); a category mismatch (e.g. a
 /// caller <c>PIC X(4)</c> viewed by the callee as <c>PIC 9(4)</c>) builds a CONVERTING view over the caller's
 /// storage — the one sanctioned transient-character boundary (design D5; legal COBOL exercised by NIST), never a
-/// persisted byte image. A missing / OMITTED argument yields a carrier that fails loud on first reference
-/// (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED when the EC subsystem lands).
+/// persisted byte image.
+/// <para>TWO DIFFERENT FAILURES, TWO DIFFERENT ANSWERS (kb/Work PB615). A missing / OMITTED argument yields the
+/// omitted carrier (<see cref="Omitted{T}"/>): §14.9.4.4 GR11 makes the omitted-argument condition true, and a
+/// reference raises EC-PROGRAM-ARG-OMITTED under checking (GR12) and reads the type's benign empty value
+/// without it. A SUPPLIED argument whose carrier the formal's adapter cannot read is NOT omitted — it is a
+/// violation of the §14.8.2 conformance rules, and §14.9.4.4 GR3 d) answers it with "the program call is not successful"
+/// (EC-PROGRAM-ARG-MISMATCH): <see cref="Unreadable{T}"/> fails the activation LOUD, never a silent zero
+/// indistinguishable from an omitted argument.</para>
 /// </summary>
 public static class CobolArgAdapt
 {
@@ -199,13 +226,56 @@ public static class CobolArgAdapt
                 checking ? LandChecked(rv, formalScale, formal) : Land(rv, formalScale, formal),
             { } np when ReadNumericCell(np) is { } nv =>
                 checking ? LandChecked(nv, a.Scale, formal) : Land(nv, a.Scale, formalScale, formal),
-            // A character-carried argument decodes through the formal's profile; the rescale is then the
-            // identity and only the capacity conformance remains.
+            // An IMAGE-carried FIXED-POINT argument (a redefined item, a Tier-B window) is the COMPUTE's
+            // sending operand, so its VALUE is its carrier text read through ITS OWN description (kb/Work PB873)
+            // — decoding it through the formal's profile read the argument's sign and scale as if they were the
+            // formal's. The carrier text is the item's operand text (`CallEmitter.CallStringRead` →
+            // `OperandText.FieldImage`), which is what ParseDisplay reads.
+            ManagedPointer<string> sp when a.Num is { ByteForm: not (NumericByteForm.None or NumericByteForm.Ieee32 or NumericByteForm.Ieee64) } d =>
+                checking ? LandChecked(CobolNum.ParseDisplay(sp.Value, d), d.FractionScale, formal)
+                         : Land(CobolNum.ParseDisplay(sp.Value, d), d.FractionScale, formalScale, formal),
+            // A CHARACTER argument has no numeric description of its own: it decodes through the formal's
+            // profile; the rescale is then the identity and only the capacity conformance remains.
             ManagedPointer<string> sp =>
                 checking ? LandChecked(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formal)
                          : Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal),
             _ => null,
         };
+
+    /// <summary>The CHARACTER IMAGE of a native numeric cell under the description <paramref name="d"/> it
+    /// carries — the bytes the storage holds (§14.2.3 GR8: the formal "occupies the same storage area as the
+    /// argument"), through THE record-image codec, so the operational sign, its position and the usage's byte
+    /// form all appear exactly as they do in storage (kb/Work PB873). Null when the cell is not of the lane
+    /// <paramref name="d"/> describes.</summary>
+    private static string? CellImage(ManagedPointer cell, in NumProfile d) => d.ByteForm switch
+    {
+        NumericByteForm.Ieee32 or NumericByteForm.Ieee64 =>
+            ReadRealCell(cell) is { } r ? CobolNum.FormatImageFloat(r, d) : null,
+        NumericByteForm.None => null,
+        _ => ReadNumericCell(cell) is { } n ? CobolNum.FormatImage(n, d) : null,
+    };
+
+    /// <summary>The write half of <see cref="CellImage"/>: decode <paramref name="image"/> through the SAME
+    /// description and store the value into the cell.</summary>
+    private static void WriteCellImage(ManagedPointer cell, string image, in NumProfile d)
+    {
+        if (d.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64)
+            WriteRealCell(cell, CobolNum.ParseImageFloat(image, d));
+        else
+            WriteNumericCell(cell, CobolNum.ParseImage(image, d));
+    }
+
+    /// <summary>The argument's value as binary64 — the sending operand of GR10's COMPUTE when the receiving
+    /// description is a FLOATING-POINT one (§14.6.8.3 GR1: the IEEE receiver takes the algebraic value, so
+    /// there is no scale to quantize to). Null when the carrier is outside the numeric vocabulary.</summary>
+    private static double? ArgDouble(in CobolArg a) => a.Carrier switch
+    {
+        { } rp when ReadRealCell(rp) is { } rv => rv,
+        { } np when ReadNumericCell(np) is { } nv => CobolFloat.ScaledToDouble(nv, a.Scale),
+        ManagedPointer<string> sp when a.Num is { ByteForm: not (NumericByteForm.None or NumericByteForm.Ieee32 or NumericByteForm.Ieee64) } d =>
+            CobolFloat.ScaledToDouble(CobolNum.ParseDisplay(sp.Value, d), d.FractionScale),
+        _ => null,
+    };
 
     /// <summary>⛔ THE ACTIVATING ELEMENT'S §14.2.3 GR9/GR10 CROSSING (kb/Work PB640) — the caller-side half of
     /// this ABI's numeric landing, emitted by <c>CallEmitter.ArgText</c> around the argument carrier it just
@@ -249,9 +319,11 @@ public static class CobolArgAdapt
         // activating element has ALREADY allocated (the BY CONTENT / BY VALUE snapshot this CALL site built),
         // because the COMPUTE is the identity over it and a second cell would be pure garbage on the call path.
         // CobolArg is a readonly record struct, so the meta update itself allocates nothing either way.
+        // The formal's WHOLE description, sign and byte form included (kb/Work PB873): an image-carried formal
+        // reads the landed record through it, and the pair this replaced carried only (Digits, Scale).
         if (arg.Carrier is ManagedPointer<T> same && arg.Scale == formalScale && same.Value == landed)
-            return arg with { Digits = formal.Digits };
-        return arg with { Carrier = ManagedPointer<T>.Cell(landed), Digits = formal.Digits, Scale = formalScale };
+            return arg with { Num = formal };
+        return arg with { Carrier = ManagedPointer<T>.Cell(landed), Num = formal };
     }
 
     /// <summary>The write half of <see cref="ReadNumericCell"/>; false when the cell is not a native numeric.</summary>
@@ -319,7 +391,7 @@ public static class CobolArgAdapt
                     v => WriteNumericCell(np, CobolNum.RescaleStoreCap(Int128.CreateTruncating(v), formalScale, callerScale, CobolRounding.Truncation)));
             }
             default:
-                return Omitted<T>(i);
+                return Unreadable<T>(args, i, "a numeric formal");
         }
     }
 
@@ -345,26 +417,44 @@ public static class CobolArgAdapt
                 return ManagedPointer<string>.OverField(
                     () => CobolString.Store(sp.Value, width),
                     v => sp.Value = CobolString.SpliceInto(sp.Value, 1, Math.Min(width, sp.Value?.Length ?? width), v));
-            case { } np when ReadNumericCell(np) is not null:
-                // ANY LENGTH (width -1): the view width is the caller's digit-image width — n follows the
-                // ARGUMENT's description (§13.18.2 GR1), never the formal's one-symbol picture. Generalized over
-                // the four native carriers (kb/Work R12) — the same digit-image view, read/written through the
-                // numeric-cell pair.
-                int digits = args[i].Digits > 0 ? args[i].Digits : Math.Max(1, width);
+            case { } np when args[i].Num is { } d && CellImage(np, d) is { } image:
+            {
+                // ⛔ THE STORAGE'S OWN IMAGE (kb/Work PB873; §14.2.3 GR8 — "operates as if the formal parameter
+                // occupies the same storage area as the argument"; GR9's first branch moves it "without
+                // conversion"). The image is the carried description's record image — sign, sign position and
+                // byte form included — so a signed argument keeps its operational sign, a SIGN SEPARATE one its
+                // extra position, and a binary/packed one its bytes. After GR9/GR10's COMPUTE the carried
+                // description IS the formal's (LandForFormal), so the same arm serves both branches.
+                // ANY LENGTH (width -1): the view width is the argument's own image width — n follows the
+                // ARGUMENT's description (§13.18.2 GR1), never the formal's one-symbol picture.
+                int viewWidth = width < 0 ? image.Length : width;
+                return ManagedPointer<string>.OverField(
+                    () => CobolString.Store(CellImage(np, d), viewWidth),
+                    // A store touches only the formal's character positions (GR8) — splice into the CURRENT
+                    // image, exactly as the character arm above splices into the caller's string.
+                    v =>
+                    {
+                        string current = CellImage(np, d)!;
+                        WriteCellImage(np, CobolString.SpliceInto(current, 1, Math.Min(viewWidth, current.Length), v), d);
+                    });
+            }
+            case { } np when args[i].Num is null && ReadNumericCell(np) is not null:
+            {
+                // A native cell that carries NO numeric description — a USAGE INDEX item, whose storage
+                // description has no digit positions for a profile to state: its image stays the unsigned digit
+                // run of the view width, the representation this ABI has always given it.
+                int w = Math.Max(1, width);
                 var prof = new NumProfile
                 {
-                    Digits = digits,
-                    FractionDigits = Math.Max(0, args[i].Scale),
-                    Signed = false,
-                    Truncation = NumericTruncation.DigitCount,
-                    ByteForm = NumericByteForm.Zoned,   // the CHARACTER view of the argument: one byte per digit
+                    Digits = w, FractionDigits = 0, Signed = false,
+                    Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned,
                 };
-                int viewWidth = width < 0 ? digits : width;   // ANY LENGTH: the argument's own image width (§13.18.2 GR1)
                 return ManagedPointer<string>.OverField(
-                    () => CobolString.Store(CobolNum.FormatDisplay(ReadNumericCell(np)!.Value, prof), viewWidth),
+                    () => CobolNum.FormatDisplay(ReadNumericCell(np)!.Value, prof),
                     v => WriteNumericCell(np, CobolNum.ParseDisplay(v, prof)));
+            }
             default:
-                return Omitted<string>(i);
+                return Unreadable<string>(args, i, $"a character formal of {width} position(s)");
         }
     }
 
@@ -385,34 +475,40 @@ public static class CobolArgAdapt
     public static ManagedPointer<T> NumValue<T>(CobolArg[] args, int i, NumProfile formal, int formalScale)
         where T : struct, System.Numerics.INumberBase<T> =>
         // Land's 16-byte-unsigned result is container BITS (R10); CreateTruncating reinterprets them exactly.
-        Present(args, i) && LandScalar(args[i], formal, formalScale, checking: false) is { } v
+        !Present(args, i) ? Omitted<T>(i)
+        : LandScalar(args[i], formal, formalScale, checking: false) is { } v
             ? ManagedPointer<T>.Cell(T.CreateTruncating(v))
-            : Omitted<T>(i);
+            : Unreadable<T>(args, i, "a BY VALUE numeric formal");
 
     /// <summary>Adapt argument <paramref name="i"/> to a BY VALUE formal whose callee-side storage is a CHARACTER
-    /// image of <paramref name="width"/> positions (a REDEFINED fixed-point numeric formal — still class numeric,
-    /// §14.2.2 SR2-legal, but image-carried): the same §14.2.3 GR10 detached copy as <see cref="NumValue"/>, in
-    /// image form. Writes reach only the cell (contrast <see cref="Text"/>, the GR8 splice-through view).</summary>
-    public static ManagedPointer<string> TextValue(CobolArg[] args, int i, int width)
+    /// image of <paramref name="width"/> positions (a REDEFINED numeric formal — still class numeric, §14.2.2
+    /// SR2-legal, but image-carried): the same §14.2.3 GR10 detached copy as <see cref="NumValue"/>, in image
+    /// form. Writes reach only the cell (contrast <see cref="Text"/>, the GR8 splice-through view).
+    /// <para>⛔ THE RECORD IS OF THE FORMAL'S DESCRIPTION (kb/Work PB873). GR10's record is "allocated by the
+    /// activating runtime element" and filled by "a COMPUTE statement without the ROUNDED phrase" whose receiving
+    /// operand is that record — so its image is the LANDED value in the formal's own representation
+    /// (<paramref name="formal"/>), never the argument's digit run under a hard-coded unsigned profile, which
+    /// is what dropped the sign of <c>-12.34</c>. <paramref name="formal"/> is null only for a formal with no
+    /// numeric description, which takes the argument's own image.</para></summary>
+    public static ManagedPointer<string> TextValue(CobolArg[] args, int i, int width, NumProfile? formal, int formalScale)
     {
         if (!Present(args, i)) return Omitted<string>(i);
-        switch (args[i].Carrier)
+        if (formal is { } f)
         {
-            case ManagedPointer<string> sp:
-                return ManagedPointer<string>.Cell(CobolString.Store(sp.Value, width));
-            case { } np when ReadNumericCell(np) is { } nv:
-                var prof = new NumProfile
-                {
-                    Digits = args[i].Digits > 0 ? args[i].Digits : Math.Max(1, width),
-                    FractionDigits = Math.Max(0, args[i].Scale),
-                    Signed = false,
-                    Truncation = NumericTruncation.DigitCount,
-                    ByteForm = NumericByteForm.Zoned,   // the CHARACTER image of the argument: one byte per digit
-                };
-                return ManagedPointer<string>.Cell(CobolString.Store(CobolNum.FormatDisplay(nv, prof), width));
-            default:
-                return Omitted<string>(i);
+            string? image = f.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64
+                ? ArgDouble(args[i]) is { } dv ? CobolNum.FormatImageFloat(dv, f) : null
+                : LandScalar(args[i], f, formalScale, checking: false) is { } v ? CobolNum.FormatImage(v, f) : null;
+            return image is null
+                ? Unreadable<string>(args, i, "a BY VALUE numeric formal")
+                : ManagedPointer<string>.Cell(CobolString.Store(image, width));
         }
+        return args[i].Carrier switch
+        {
+            ManagedPointer<string> sp => ManagedPointer<string>.Cell(CobolString.Store(sp.Value, width)),
+            { } np when args[i].Num is { } d && CellImage(np, d) is { } img =>
+                ManagedPointer<string>.Cell(CobolString.Store(img, width)),
+            _ => Unreadable<string>(args, i, $"a BY VALUE character formal of {width} position(s)"),
+        };
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a VARIABLE-LENGTH GROUP formal (ISO §14.8.2.2's
@@ -426,7 +522,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<CobolVarGroup> VarGroup(CobolArg[] args, int i)
     {
         if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
-        return args[i].Carrier is ManagedPointer<CobolVarGroup> vp ? vp : Omitted<CobolVarGroup>(i);
+        return args[i].Carrier is ManagedPointer<CobolVarGroup> vp ? vp : Unreadable<CobolVarGroup>(args, i, "a variable-length group formal");
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a DYNAMIC LENGTH formal (ISO §13.18.19; kb/Work PB165).
@@ -457,7 +553,7 @@ public static class CobolArgAdapt
             // rule 2 requires the same DYNAMIC LENGTH and PICTURE clauses BY REFERENCE, and §14.8.2.3.3's MOVE
             // rules give a numeric sender an alphanumeric receiver only through its digit image — which is a
             // FIXED width and so contradicts the receiver's varying one. It takes the loud omitted carrier.
-            _ => Omitted<string>(i),
+            _ => Unreadable<string>(args, i, "a dynamic-length formal"),
         };
     }
 
@@ -469,7 +565,7 @@ public static class CobolArgAdapt
         if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
         return args[i].Carrier is ManagedPointer<CobolVarGroup> vp
             ? ManagedPointer<CobolVarGroup>.Cell(vp.Value ?? CobolVarGroup.Empty)
-            : Omitted<CobolVarGroup>(i);
+            : Unreadable<CobolVarGroup>(args, i, "a BY VALUE variable-length group formal");
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a MANAGED-SLOT formal — a formal of class pointer or
@@ -491,7 +587,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<T> Slot<T>(CobolArg[] args, int i)
     {
         if (!Present(args, i)) return Omitted<T>(i);
-        return args[i].Carrier is ManagedPointer<T> mp ? mp : Omitted<T>(i);
+        return args[i].Carrier is ManagedPointer<T> mp ? mp : Unreadable<T>(args, i, "a pointer or object-reference formal");
     }
 
     /// <summary>The BY VALUE / BY CONTENT twin of <see cref="Slot{T}"/> (ISO §14.2.3 GR10 — a record "allocated
@@ -503,7 +599,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<T> SlotValue<T>(CobolArg[] args, int i)
     {
         if (!Present(args, i)) return Omitted<T>(i);
-        return args[i].Carrier is ManagedPointer<T> mp ? ManagedPointer<T>.Cell(mp.Value) : Omitted<T>(i);
+        return args[i].Carrier is ManagedPointer<T> mp ? ManagedPointer<T>.Cell(mp.Value) : Unreadable<T>(args, i, "a BY VALUE pointer or object-reference formal");
     }
 
     /// <summary>Deliver a RETURNING value to the caller's RETURNING carrier (ISO §14.2.3 GR7 — at termination the
@@ -622,6 +718,27 @@ public static class CobolArgAdapt
     /// implementor choice). The old carrier threw CobolCallException unconditionally, which the CALL SITE's
     /// catch arm treated as an ACTIVATION failure — an in-execution raise unwound into the CALLER's
     /// ON EXCEPTION phrase, which GR3i forbids.</summary>
+    /// <summary>⛔ A SUPPLIED ARGUMENT THE FORMAL CANNOT READ (kb/Work PB615) — never the omitted carrier. Every
+    /// adapter's type switch ends here once its readable arms are exhausted: the argument's carrier is outside the
+    /// shapes the formal's crossing form can take, which only a pairing that violates §14.8.2's conformance rules
+    /// (or a compiler defect) produces. §14.9.4.4 GR3d: "If a violation of these rules is detected, the
+    /// EC-PROGRAM-ARG-MISMATCH exception condition is set to exist if checking for it is enabled in both the
+    /// activated program and activating runtime element, the program call is not successful" — so this is an
+    /// ACTIVATION failure, raised while the activated element adopts its formals and before any of its
+    /// statements runs. It rides the same <see cref="CobolCallException"/> the GR3d argument-count check and
+    /// the RETURNING delivery (<see cref="Undeliverable"/>) use — one EC-PROGRAM-ARG-MISMATCH mechanism — marked
+    /// <see cref="CobolCallException.RaisedAtAdoption"/> so the activation boundary keeps it attributable to THIS
+    /// CALL's GR3h rather than marking it as a condition propagated from the called program (GR3i).
+    /// <para>Before PB615 each switch fell to <see cref="Omitted{T}"/>, whose read raises only under
+    /// EC-PROGRAM-ARG-OMITTED checking and otherwise answers <c>default</c> — a supplied argument read as zero,
+    /// silently, and a wrong exception-name when checking was on.</para></summary>
+    private static ManagedPointer<T> Unreadable<T>(CobolArg[] args, int position, string formal) =>
+        throw new CobolCallException(
+            $"CALL argument #{position + 1}: its carrier ({args[position].Carrier.GetType().Name}) cannot be read "
+            + $"through {formal} — the argument and the formal parameter do not conform (ISO §14.8.2 via "
+            + "§14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH)",
+            "EC-PROGRAM-ARG-MISMATCH") { RaisedAtAdoption = true };
+
     private static ManagedPointer<T> Omitted<T>(int position) => ManagedPointer<T>.OmittedArgument(
         () =>
         {

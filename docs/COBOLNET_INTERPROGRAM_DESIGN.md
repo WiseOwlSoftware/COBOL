@@ -163,8 +163,8 @@ test SR22 and SR20 already share. Edition row: `set-program-pointer-2002`, besid
 PASSING MODES — caller side:
   BY REFERENCE: CALL "INC" USING CTR.  (01 CTR PIC 9(4))  ->  _INC.Run(ManagedRef<long>.OverField(()=>CTR, v=>CTR=v));   // callee mutation visible
   BY CONTENT:   CALL "P" USING BY CONTENT CTR.            ->  _P.Run(ManagedRef<long>.Cell(CTR));                       // copy; not visible
-  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell(N), N.Digits, N.Scale);   // §14.9.4.4 GR8: a lone N is identifier-4, so it crosses on ITS OWN carrier and its own PICTURE meta (kb/Work PB238)
-  BY VALUE expr: CALL "P" USING BY VALUE N * 2 - 3.       ->  new CobolArg(CobolPassMode.Value, ManagedPointer<Int128>.Cell((Int128)(…)), 38, scale);   // arithmetic-expression-1 — the exact lane's own carrier; a FLOAT-lane expression takes ManagedPointer<double> instead
+  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell(N), <N's NumProfile>);   // §14.9.4.4 GR8: a lone N is identifier-4, so it crosses on ITS OWN carrier and its own description (kb/Work PB238; the whole profile since PB873)
+  BY VALUE expr: CALL "P" USING BY VALUE N * 2 - 3.       ->  new CobolArg(CobolPassMode.Value, ManagedPointer<Int128>.Cell((Int128)(…)), <signed DISPLAY 38-digit profile at scale>);   // arithmetic-expression-1 — the exact lane's own carrier; a FLOAT-lane expression takes ManagedPointer<double> instead
                                                               // both are "a value copy allocated at call initiation and conformed to the formal" (§14.2.3 GR10) — the conformance runs in the CALLEE, at the formal's scale
   subscripted:  CALL "P" USING TBL(I).   -> int _i=(int)I-1; _P.Run(ManagedRef<long>.OverField(()=>TBL[_i], v=>TBL[_i]=v));  // index captured once (GR3a)
   literal/expr: CALL "P" USING 5.        -> _P.Run(ManagedRef<long>.Cell(5L));                                          // inherently BY CONTENT
@@ -238,7 +238,8 @@ exactly as a numeric leaf's is, and §14.8.2.3.2 removes any need to convert at 
 argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall be of
 class pointer and the corresponding items shall be of the same category”*, and its object-reference rules 1–3
 force the same universal/interface-name/object-class-name on both ends. `CobolArgAdapt.Slot<T>` therefore
-aliases a same-`T` carrier and degrades to the loud omitted carrier for anything else, and `SlotValue<T>` is
+aliases a same-`T` carrier and fails the activation with EC-PROGRAM-ARG-MISMATCH for anything else (kb/Work
+PB615 — see "A supplied argument the formal cannot read" below), and `SlotValue<T>` is
 §14.2.3 GR10's detached record — which GR10 fills with *“a SET statement”* for this class, i.e. the reference
 copy itself.
 
@@ -252,7 +253,7 @@ compiled activator — which is why the hole survived the whole pointer incremen
 walks `PicCategory` itself and pins the invariant that makes the next class automatic: **a formal crosses as a
 character image only when its own storage IS a C# string.**
 
-**THE FLOAT LANE (kb/Work PB238).** `CobolArg`'s `(Digits, Scale)` meta describes a FIXED-POINT picture, and the
+**THE FLOAT LANE (kb/Work PB238).** `CobolArg`'s numeric meta was then a `(Digits, Scale)` pair describing a FIXED-POINT picture, and the
 four integer carriers of kb/Work R12 were the whole numeric vocabulary — a float leaf was routed onto the
 character image and a computed float BY VALUE argument was narrowed to `(Int128)` **at the caller**. Both lose
 the fraction: §14.2.3 GR10 makes a BY VALUE crossing "a COMPUTE statement without the ROUNDED phrase" *into the
@@ -260,10 +261,11 @@ formal's description*, so the quantization belongs at the RECEIVER, at the forma
 cast performs it at scale 0 (`01 F FLOAT-LONG VALUE 1.5` reached a `PIC S9(3)V99` formal as `001.00`). The
 carrier is therefore the lane's own: `CobolArgAdapt.ReadRealCell`/`WriteRealCell` are the callee half, and
 `Num`/`NumValue` quantize through `CobolFloat.ToScaledUnchecked(v, formalScale, Truncation)` — the un-ROUNDED
-COMPUTE, once, where the scale is known. A float reaching a CHARACTER formal has NO arm on either side and takes
-the omitted (loud) carrier by design: §14.8.2.3.2 requires the same category and usage for a BY REFERENCE
-pairing and §14.8.2.3.3's MOVE rules give a float sender no alphanumeric receiver, so that pairing is a
-conformance violation to report, never a crossing to invent.
+COMPUTE, once, where the scale is known. A float reaching a CHARACTER formal through GR9's first branch (no
+program-specifier, no NESTED phrase — §14.8.2.3.2 / §14.8.2.3.3 rule 1 ask only for the same length there) sees
+its STORAGE — its IEEE interchange bytes, through the carried description (kb/Work PB873, below); through
+rule 2's branch §14.8.2.3.3's MOVE rules give a float sender no alphanumeric receiver, so that
+branch excludes the pairing.
 
 **WHICH SIDE PERFORMS THE LANDING — THE ACTIVATING ONE, WHENEVER IT CAN (kb/Work PB640).** §14.2.3 GR9's
 second branch and GR10 both say the linkage record is *"allocated by the activating runtime element during the
@@ -281,8 +283,9 @@ So `CallEmitter.ArgText` wraps every BY CONTENT / BY VALUE argument whose corres
 numeric item in `CobolArgAdapt.LandForFormal<T>` — one wrapper around every carrier shape, `T` being the
 formal's `PicInfo.ClrType` (**not** `DataItem.ElementType`, which answers `"string"` for an image-stored formal
 and cannot satisfy the landing's `struct, INumberBase<T>` constraint). The landed `CobolArg` carries the
-**formal's** `(Digits, Scale)`, because GR9's last sentence makes the allocated record *the* argument from that
-point on — which is exactly what makes the callee-side landing the identity.
+**formal's** whole description (`Num = formal`), because GR9's last sentence makes the allocated record *the*
+argument from that point on — which is exactly what makes the callee-side landing the identity, and what makes an
+image-carried formal see the record's own sign (kb/Work PB873).
 
 **When the caller cannot, and why that is the standard's own line.** GR9's FIRST branch — a program with no
 program-specifier in the activating element's REPOSITORY paragraph and no NESTED phrase — allocates a record
@@ -338,7 +341,40 @@ the shared helper exists to make unrepeatable, pinned by
 `2023/pb288_call_argument_scale_landing`, whose rows assert that the two arms and the equivalent inline
 MOVE/COMPUTE all print the same characters. The write-back half of the GR8 view takes the same store-semantics
 widening; its receiving *capacity* stays the caller's own carrier discipline (`WriteNumericCell`), because
-`CobolArg` carries `(Digits, Scale)` and not the caller's truncation form.
+the write-back lands in the caller's cell, whose own type is the capacity that applies there.
+
+**THE CARRIED DESCRIPTION IS A WHOLE `NumProfile` (kb/Work PB873).** `CobolArg` is `(Mode, Carrier, NumProfile?
+Num)`; `Digits` and `Scale` are derived from `Num`. A native cell holds a VALUE, but the storage it stands for has
+a REPRESENTATION — the operational sign and its position (§13.18.52), the usage's byte form (§13.18.60.4) — and a
+formal that sees the argument as characters sees that representation: §14.2.3 GR8 "operates as if the formal
+parameter occupies the same storage area as the argument", and GR9's first branch moves the argument "without
+conversion". The `(Digits, Scale)` pair it replaced could spell only a digit run, so `CobolArgAdapt.Text` and
+`TextValue` each built the image from a hard-coded `Signed = false` profile: `-12.34` in a `PIC S9(4)V99`
+argument reached a REDEFINED (image-carried) `PIC S9(4)V99` formal as `00123D` (+12.34) where the storage holds
+`00123M`, on both arms. Now:
+
+- the ACTIVATING side emits the argument's own `PicInfo.ProfileInitializer` for every elementary numeric place
+  (a reference-modified view and a USAGE INDEX item carry `null`), and a signed DISPLAY profile of the value's own
+  digits and scale for a literal or a computed expression (signed exactly when the value can be negative);
+- `Text` renders the cell through THE record-image codec under that description (`CobolNum.FormatImage` /
+  `FormatImageFloat`) and writes back through its inverse, splicing only the formal's positions (GR8);
+- `TextValue` is GR10's record, "a data item of the same description as the formal parameter": it lands the
+  argument through the shared `LandScalar` into the FORMAL's profile (emitted beside it) and renders that;
+- an image-carried numeric ARGUMENT's carrier text is decoded through ITS OWN description, not the formal's
+  (the operand text `OperandText.FieldImage` produces), before GR9/GR10's COMPUTE.
+
+**A supplied argument the formal cannot read (kb/Work PB615).** Every adapter's type switch used to end in the
+§14.9.4.4 GR12 OMITTED carrier, whose read raises EC-PROGRAM-ARG-OMITTED only under checking and otherwise answers
+`default` — a supplied argument read as ZERO, silently, indistinguishable from an omitted one. It is not omitted:
+a carrier outside the formal's crossing form is a §14.8.2 conformance violation, and §14.9.4.4 GR3 d) answers it
+"the program call is not successful" with EC-PROGRAM-ARG-MISMATCH. `CobolArgAdapt.Unreadable<T>` raises exactly
+that through the same `CobolCallException` the GR3d count check and `StoreReturn`'s `Undeliverable` use, marked
+`RaisedAtAdoption`: adoption runs inside `ICobolProgram.Call` but before any of the element's statements, so the
+activation boundary (`ProgramTable.CallProgram`) CONSUMES the mark instead of setting `ControlTransferred` — the
+failure is this CALL's GR3h (its ON EXCEPTION phrase runs), and a boundary further out, for which control had
+been transferred, marks it in the ordinary GR3i way. `Omitted<T>` is now reached only for a genuinely omitted
+argument. Golden `2002/pb615_unreadable_argument_carrier`; unit
+`CallAbiNumericCarrierDriftTests.ACarrierOutsideTheSix_FailsTheActivationWithArgMismatch`.
 
 `CobolVarGroup` is `(string Fixed, string[] Dynamic)` and is the §8.5.1.12 model itself, not an encoding:
 `Fixed` is the group's image with every variable-length component collapsed to nothing — the exact accounting

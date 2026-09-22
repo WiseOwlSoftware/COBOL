@@ -335,7 +335,9 @@
   "pb893_close_report_completes",
   "pb854_write_eop_exception_conditions",
   "pb572_national_redefines_receiver",
-  "pb846_sort_table_occurs_keys"
+  "pb846_sort_table_occurs_keys",
+  "pb873_by_value_image_carried_formal",
+  "pb615_unreadable_argument_carrier"
   ],
   "pending": []
 }

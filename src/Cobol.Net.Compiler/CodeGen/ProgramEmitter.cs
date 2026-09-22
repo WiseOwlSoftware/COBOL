@@ -135,7 +135,11 @@ internal sealed class ProgramEmitter
         f.Item.IsDynamicLength
             ? RuntimeApi.ArgAdaptDynText("__args", f.Position, $"{f.Item.DynMaxSize}")
         : f.ByValue
-            ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}")
+            // GR10's record is of the FORMAL's description (kb/Work PB873), so its profile rides along — the
+            // profile field RecordStructEmitter declares for every elementary numeric item.
+            ? f.Item.IsElementary && f.Item.Pic is { Category: PicCategory.Numeric } fp && fp.Usage is not Usage.Index
+                ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", f.Item.ProfileName, $"{fp.Scale}")
+                : RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", "null", "0")
             : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}");
 
     /// <summary>⛔ THE ONE ADOPTION EXPRESSION for a formal's carrier at the activation boundary — one arm per

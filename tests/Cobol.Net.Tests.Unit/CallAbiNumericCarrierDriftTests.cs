@@ -15,20 +15,19 @@ namespace CobolNet.Tests.Unit;
 /// character route (<c>CallPlaceIsString</c>) declines, and <c>CallNumCarrier</c> is <c>DataItem.ElementType</c>
 /// — the item's own field type. The callee side is <c>CobolArgAdapt</c>'s private <c>ReadNumericCell</c> /
 /// <c>ReadRealCell</c> type switches. A carrier the caller can name and the callee cannot read does not fail to
-/// compile and does not throw at the boundary: the adapter falls to <c>Omitted&lt;T&gt;</c>, the §14.9.4.4 GR12
-/// carrier, whose read RAISES EC-PROGRAM-ARG-OMITTED and — when checking for it is not enabled, which is the
-/// default — returns the benign <c>default</c>, i.e. ZERO. So an unreadable carrier is a SILENT zero, not a
-/// crash (MEASURED: the last assertion below was first written as <c>ThrowsAny</c> and was red). That is the
-/// hole PB238 found — <c>double</c> was on neither side, so a float leaf was routed onto the CHARACTER image
-/// and decoded with <c>CobolNum.ParseDisplay</c> through the receiver's zoned profile instead.
+/// compile. Until kb/Work PB615 it did not fail at the boundary either: the adapter fell to the §14.9.4.4 GR12
+/// OMITTED carrier, whose read raised EC-PROGRAM-ARG-OMITTED only under checking and otherwise returned ZERO — a
+/// SILENT zero (MEASURED: the boundary assertion below was first written as <c>ThrowsAny</c> and was red). It
+/// now fails the activation with EC-PROGRAM-ARG-MISMATCH (GR3d), which is what that assertion pins. The hole
+/// PB238 found was the same shape — <c>double</c> was on neither side, so a float leaf was routed onto the
+/// CHARACTER image and decoded with <c>CobolNum.ParseDisplay</c> through the receiver's zoned profile instead.
 /// </para>
 /// <para>
 /// ⚠ This is the drift guard the fix is paired with, not a restatement of it. The SIX carriers below are the
 /// whole numeric vocabulary of the boundary: kb/Work R12's four integer tiers (<c>long</c>, <c>ulong</c>,
 /// <c>Int128</c>, <c>UInt128</c> — the >18-digit and unsigned-binary containers) plus PB238's float lane
 /// (<c>double</c>, <c>float</c>). Adding a seventh to <c>DataItem.ElementType</c> without an arm in
-/// <c>CobolArgAdapt</c> is silent today and is what the last assertion pins as a BOUNDARY rather than an
-/// oversight.
+/// <c>CobolArgAdapt</c> is what the boundary assertion pins: it fails LOUD rather than reading zero.
 /// </para>
 /// <para>
 /// PROVEN TO FAIL before being trusted: deleting the <c>ManagedPointer&lt;float&gt;</c> arm of
@@ -38,6 +37,17 @@ namespace CobolNet.Tests.Unit;
 /// </remarks>
 public sealed class CallAbiNumericCarrierDriftTests
 {
+    /// <summary>The carried description of an UNSIGNED DISPLAY argument of <paramref name="digits"/> digits at
+    /// <paramref name="scale"/> — the shape the (digits, scale) pair this ABI used to carry described.</summary>
+    private static NumProfile Meta(int digits, int scale) => new()
+    {
+        Digits = digits,
+        FractionDigits = scale,
+        Signed = false,
+        Truncation = NumericTruncation.DigitCount,
+        ByteForm = NumericByteForm.Zoned,
+    };
+
     /// <summary>The callee's profile for a <c>PIC S9(5)V99</c> BY VALUE formal — 7 digits, scale 2.</summary>
     private static NumProfile Formal => new()
     {
@@ -73,21 +83,26 @@ public sealed class CallAbiNumericCarrierDriftTests
             "float" => (ManagedPointer<float>.Cell(1.5f), 0),
             _ => throw new ArgumentOutOfRangeException(nameof(carrier)),
         };
-        var args = new[] { new CobolArg(CobolPassMode.Value, arg.Carrier, 7, arg.Scale) };
+        var args = new[] { new CobolArg(CobolPassMode.Value, arg.Carrier, Meta(7, arg.Scale)) };
         Assert.Equal(150L, CobolArgAdapt.NumValue<long>(args, 0, Formal, 2).Value);
     }
 
-    /// <summary>A carrier OUTSIDE the six degrades to the §14.9.4.4 GR12 OMITTED carrier — value ZERO, with
-    /// EC-PROGRAM-ARG-OMITTED raised but not fatal unless checking is enabled. The value is asserted so the
-    /// test FAILS the day a seventh carrier is added to <c>DataItem.ElementType</c> without an arm in
-    /// <c>CobolArgAdapt</c>: the argument would start reading as its real value and this expectation would go
-    /// red, which is the whole point. Asserting the silence rather than a throw is what the measurement said —
-    /// see the remarks; the softness of that fallback is itself worth knowing at this boundary.</summary>
+    /// <summary>A carrier OUTSIDE the six is a SUPPLIED argument the formal cannot read — never the §14.9.4.4
+    /// GR12 omitted carrier (kb/Work PB615). §14.9.4.4 GR3d makes a §14.8.2 conformance violation "the program
+    /// call is not successful" with EC-PROGRAM-ARG-MISMATCH, so the adoption throws that condition, marked as
+    /// raised at adoption so the activation boundary attributes it to THIS call's GR3h. The test FAILS the day a
+    /// seventh carrier is added to <c>DataItem.ElementType</c> without an arm in <c>CobolArgAdapt</c> only if
+    /// that carrier also stops throwing — and it went red when this adapter still fell to the omitted carrier
+    /// (it read ZERO, silently: the defect PB615 closed).</summary>
     [Fact]
-    public void ACarrierOutsideTheSix_DegradesToTheOmittedCarrier()
+    public void ACarrierOutsideTheSix_FailsTheActivationWithArgMismatch()
     {
-        var args = new[] { new CobolArg(CobolPassMode.Value, ManagedPointer<decimal>.Cell(1.5m), 7, 2) };
-        Assert.Equal(0L, CobolArgAdapt.NumValue<long>(args, 0, Formal, 2).Value);
+        var args = new[] { new CobolArg(CobolPassMode.Value, ManagedPointer<decimal>.Cell(1.5m), Meta(7, 2)) };
+        var ex = Assert.Throws<CobolCallException>(() => CobolArgAdapt.NumValue<long>(args, 0, Formal, 2));
+        Assert.Equal("EC-PROGRAM-ARG-MISMATCH", ex.EcName);
+        Assert.True(ex.RaisedAtAdoption);
+        // The OMITTED argument is the other case and keeps its GR11/GR12 carrier — no throw at adoption.
+        Assert.True(CobolArgAdapt.NumValue<long>([new CobolArg(CobolPassMode.Value, ManagedPointer.Null, null)], 0, Formal, 2).IsNull);
     }
 
     /// <summary>The callee's profile for a <c>PIC S9(9)V9(9)</c> formal — 18 digits, scale 9 (kb/Work PB288).</summary>
@@ -134,8 +149,8 @@ public sealed class CallAbiNumericCarrierDriftTests
             "Int128-inrange" => (ManagedPointer<Int128>.Cell((Int128)123456), 3),
             _ => throw new ArgumentOutOfRangeException(nameof(shape)),
         };
-        var byRef = new[] { new CobolArg(CobolPassMode.Content, arg.Carrier, 38, arg.Scale) };
-        var byValue = new[] { new CobolArg(CobolPassMode.Value, arg.Carrier, 38, arg.Scale) };
+        var byRef = new[] { new CobolArg(CobolPassMode.Content, arg.Carrier, Meta(38, arg.Scale)) };
+        var byValue = new[] { new CobolArg(CobolPassMode.Value, arg.Carrier, Meta(38, arg.Scale)) };
         long view = CobolArgAdapt.Num<long>(byRef, 0, Wide, 9).Value;
         long copy = CobolArgAdapt.NumValue<long>(byValue, 0, Wide, 9).Value;
         Assert.Equal(expected, view);
@@ -177,7 +192,7 @@ public sealed class CallAbiNumericCarrierDriftTests
             "Int128-inrange" => (ManagedPointer<Int128>.Cell((Int128)123456), 3),
             _ => throw new ArgumentOutOfRangeException(nameof(shape)),
         };
-        var a = new CobolArg(CobolPassMode.Value, arg.Carrier, 38, arg.Scale);
+        var a = new CobolArg(CobolPassMode.Value, arg.Carrier, Meta(38, arg.Scale));
         if (raises)
         {
             var ex = Assert.Throws<CobolSizeError>(() => CobolArgAdapt.LandForFormal<long>(a, Wide, 9, checking: true));
@@ -196,17 +211,72 @@ public sealed class CallAbiNumericCarrierDriftTests
     [Fact]
     public void AnOmittedArgument_IsNotLanded()
     {
-        var omitted = new CobolArg(CobolPassMode.Content, ManagedPointer.Null, 0, 0);
+        var omitted = new CobolArg(CobolPassMode.Content, ManagedPointer.Null, null);
         Assert.Equal(omitted, CobolArgAdapt.LandForFormal<long>(omitted, Wide, 9, checking: true));
     }
 
-    /// <summary>A carrier outside the six (see <see cref="ACarrierOutsideTheSix_DegradesToTheOmittedCarrier"/>)
+    /// <summary>A carrier outside the six (see <see cref="ACarrierOutsideTheSix_FailsTheActivationWithArgMismatch"/>)
     /// crosses the activating side UNCHANGED rather than being reinterpreted here -- the degrade stays the one
     /// the callee-side adapter owns, written in one place.</summary>
     [Fact]
     public void ACarrierOutsideTheSix_CrossesTheActivatingSideUntouched()
     {
-        var a = new CobolArg(CobolPassMode.Value, ManagedPointer<decimal>.Cell(1.5m), 7, 2);
+        var a = new CobolArg(CobolPassMode.Value, ManagedPointer<decimal>.Cell(1.5m), Meta(7, 2));
         Assert.Equal(a, CobolArgAdapt.LandForFormal<long>(a, Wide, 9, checking: true));
+    }
+
+    /// <summary>The <c>PIC S9(4)V99</c> DISPLAY description, trailing over-punch (the IBM default) — the argument
+    /// AND the image-carried formal of the kb/Work PB873 probe.</summary>
+    private static NumProfile SignedDisplay => new()
+    {
+        Digits = 6,
+        FractionDigits = 2,
+        Signed = true,
+        SignKind = NumericSign.TrailingOverpunch,
+        Truncation = NumericTruncation.DigitCount,
+        ByteForm = NumericByteForm.Zoned,
+    };
+
+    /// <summary>⛔ BOTH IMAGE ARMS KEEP THE OPERATIONAL SIGN (kb/Work PB873 — ISO §14.2.3 GR8 / GR9's first
+    /// branch for <see cref="CobolArgAdapt.Text"/>, GR10's record "of the same description as the formal
+    /// parameter" for <see cref="CobolArgAdapt.TextValue"/>). Each arm used to build its image from a hard-coded
+    /// <c>Signed = false</c> profile, so <c>-12.34</c> arrived as <c>00123D</c> (+12.34) on both; the image is
+    /// now the carried description's own. PROVEN TO FAIL: restoring either arm's unsigned profile makes its case
+    /// red. The write-back through the GR8 view lands the sign in the caller's cell too.</summary>
+    [Fact]
+    public void ASignedArgument_KeepsItsSign_OnBothImageArms()
+    {
+        var cell = ManagedPointer<long>.Cell(-1234L);
+        var byRef = new[] { new CobolArg(CobolPassMode.Reference, cell, SignedDisplay) };
+        var view = CobolArgAdapt.Text(byRef, 0, 6);
+        Assert.Equal("00123M", view.Value);
+        view.Value = "00133M";                       // the callee's SUBTRACT 1, stored through the GR8 view
+        Assert.Equal(-1334L, cell.Value);
+
+        var byValue = new[] { new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell(-1234L), SignedDisplay) };
+        Assert.Equal("00123M", CobolArgAdapt.TextValue(byValue, 0, 6, SignedDisplay, 2).Value);
+    }
+
+    /// <summary>The carried description decides the image's SHAPE, not only its sign: a <c>SIGN LEADING
+    /// SEPARATE</c> argument is one position longer and a <c>COMP-5</c> argument is its binary bytes (§14.2.3 GR8
+    /// — the formal sees the storage). Both were an unsigned zoned digit run before kb/Work PB873.</summary>
+    [Fact]
+    public void TheCarriedDescription_DecidesTheImageShape()
+    {
+        var leadingSeparate = new NumProfile
+        {
+            Digits = 3, FractionDigits = 0, Signed = true, SignKind = NumericSign.LeadingSeparate,
+            Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned,
+        };
+        var ls = new[] { new CobolArg(CobolPassMode.Reference, ManagedPointer<long>.Cell(-123L), leadingSeparate) };
+        Assert.Equal("-123", CobolArgAdapt.Text(ls, 0, -1).Value);
+
+        var comp5 = new NumProfile
+        {
+            Digits = 4, FractionDigits = 0, Signed = true, SignKind = NumericSign.BinaryMinus,
+            Truncation = NumericTruncation.BinaryCapacity, ByteForm = NumericByteForm.Binary, StorageLength = 2,
+        };
+        var c5 = new[] { new CobolArg(CobolPassMode.Reference, ManagedPointer<long>.Cell(258L), comp5) };
+        Assert.Equal("\u0001\u0002", CobolArgAdapt.Text(c5, 0, 2).Value);
     }
 }

@@ -437,7 +437,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // CobolArgAdapt.Present answers false, the formal's adapters hand out the GR12 checked-raise carrier,
         // and a forwarded omitted formal stays omitted (GR1c) because IsNull rides the carrier itself.
         if (a.Omitted)
-            return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, ManagedPointer.Null, 0, 0)";
+            return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, ManagedPointer.Null, null)";
         // §14.9.4.2 Format 2's boolean-expression-1 (kb/Work PB238) — FIRST, because a boolean value is
         // string-CARRIED like an alphanumeric one and the Place/Value arms below read a place or an operand
         // this argument does not have. §8.8.2 rule 10 fixes the value's length at the largest boolean ITEM
@@ -448,12 +448,18 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             string bv = BooleanRenderer.Render(cb, num);
             if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({bv}), 0, 0)";
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({bv}), null)";
         }
         if (a.Place is { } p)
         {
-            string digits = (p.Pic?.Digits ?? 0).ToString();
-            string scale = (p.Pic?.Scale ?? 0).ToString();
+            // THE CARRIED DESCRIPTION (kb/Work PB873): the argument's WHOLE numeric profile — sign, sign
+            // position and byte form, not just (digits, scale) — because a formal that sees this storage as
+            // characters sees its representation (§14.2.3 GR8 / GR9's first branch). Only an elementary NUMERIC
+            // item has one (Place.DenotedItem — a reference-modified view denotes no item and is character storage), and a USAGE INDEX item's storage
+            // description has no digit positions for a profile to state.
+            string meta = p.DenotedItem is { Pic: { Category: PicCategory.Numeric } pp } && pp.Usage is not Usage.Index
+                ? pp.ProfileInitializer(ctx.SignEncoding)
+                : "null";
             // ⛔ V59 RESIDUE FIX: the predicate is IsImageCapable, not the pre-V59 IsCharacterImage. A group whose
             // only non-character leaf is BINARY/PACKED now HAS a whole-group image — V59 gave those leaves their
             // pinned bytes — and `RecordStructEmitter` emits AsImage()/FromImage() for exactly IsImageCapable
@@ -474,7 +480,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             if (p.Item.IsGroup && !p.Item.BoundaryImageCapable && p is not RedefViewPlace)
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))
-                    + "), 0, 0)";
+                    + "), null)";
             // ⛔ FORWARDING A FORMAL PARAMETER AS AN ARGUMENT — ISO §8.8.4.8.4 GR1c and §14.9.4.4 GR12, for
             // EVERY passing mode and EVERY residency (kb/Work PB165; PB133 wave C landed only the
             // BY REFERENCE + carrier-resident corner). GR1c: the omitted-argument condition is true "if the
@@ -491,7 +497,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // through is both the presence fact and the aliasing.
                 if (fwd is { CarrierResident: true } rf)
                     return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, "
-                        + $"{rf.CarrierField}, {digits}, {scale})";
+                        + $"{rf.CarrierField}, {meta})";
                 // A NON-resident formal (a group, or a REDEFINED elementary one) keeps a callee-local field
                 // that round-trips the caller's image at the activation boundary — so the carrier to pass on IS
                 // a fresh view over that field, and only the PRESENCE has to be taken from the incoming
@@ -499,7 +505,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // next callee as PRESENT (measured: `CALL "S8" AS NESTED USING OMITTED` → the inner
                 // `LH IS OMITTED` test answered false).
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, "
-                    + $"{Forwarded(probe, RefCarrier(p))}, {digits}, {scale})";
+                    + $"{Forwarded(probe, RefCarrier(p))}, {meta})";
             }
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9) — and BY VALUE with
             // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
@@ -518,12 +524,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // pointer. A SET between two items of the same category IS this copy (kb/Work PB663).
                 _ => $"ManagedPointer<{CallCellCarrier(p)}>.Cell({PlaceRenderer.Read(p)})",
             };
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {digits}, {scale})";
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {meta})";
         }
         switch (a.Value)
         {
             case BoundStringLiteral s:
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), null)";
             // ⛔ ONE NUMERIC-ARGUMENT FUNNEL for both non-place arms (kb/Work PB263 + PB264). A numeric literal
             // reaches this switch in EITHER bound shape — BY CONTENT and a bare Format-2 argument bind it as
             // BoundNumericLiteral, while BY VALUE binds it as a BoundComputedOperand wrapping a BoundNumLiteral
@@ -531,9 +537,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // carrier and a scale EACH. They disagreed, so ONE rule ("a numeric literal argument crosses with
             // its exact value") produced three different wrong answers depending on how it was spelled.
             case BoundNumericLiteral n:
-                return NumericArgText(a.Mode, n.Text);
+                return NumericArgText(a.Mode, n.Text, ctx.SignEncoding);
             case BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } ct:
-                return NumericArgText(a.Mode, ct);
+                return NumericArgText(a.Mode, ct, ctx.SignEncoding);
             case BoundComputedOperand expr:
             {
                 // A GENUINE runtime expression snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY
@@ -556,7 +562,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // Digits/Scale meta rides with it: a binary floating-point item has neither, and
                 // CobolArgAdapt's float arm reads the value itself.
                 if (x.Real)
-                    return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<double>.Cell((double)({x.Expr})), 0, 0)";
+                    return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<double>.Cell((double)({x.Expr})), null)";
                 // ⛔ THE CELL IS Int128, NOT long, AND THE CONVERSION IS WIDENING (kb/Work PB264). This used to
                 // be `ManagedPointer<long>.Cell((long)(x.Expr))` — an UNCHECKED narrowing of a value that the
                 // DeU/Landed funnel above delivers on the Int128 lane, so an argument beyond 18 digits crossed
@@ -564,15 +570,15 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // detect. Widening to the lane's own carrier removes the narrowing rather than checking it —
                 // there is no value on the Int128 lane that an Int128 cell cannot hold — and every carrier the
                 // ABI accepts is read back through CobolArgAdapt's ReadNumericCell (kb/Work R12).
-                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<Int128>.Cell((Int128)({x.Expr})), 38, {x.Scale})";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<Int128>.Cell((Int128)({x.Expr})), {ValueMeta(ctx.SignEncoding, 38, x.Scale, signed: true)})";
             }
             case BoundAllLiteral all:
-                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), null)";
             case BoundFigurative fig:
-                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell(new string({FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating)}, 1)), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell(new string({FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating)}, 1)), null)";
             default:
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell("
-                    + LoudValue("string", "CALL USING argument form") + "), 0, 0)";
+                    + LoudValue("string", "CALL USING argument form") + "), null)";
         }
     }
 
@@ -636,7 +642,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <c>BY CONTENT 1.5E+3</c> asked for a <c>long</c> cell and got a <c>double</c> expression, a raw Roslyn
     /// CS1503 on conforming source with no COBOL diagnostic at all (PB263). <c>IntLiteralCore</c> now decides
     /// the rendering and its carrier together, so they cannot disagree.</para></summary>
-    private static string NumericArgText(CobolPassMode mode, string literalText)
+    private static string NumericArgText(CobolPassMode mode, string literalText, SignEncoding signEncoding)
     {
         // ONE decomposition, then ONE carrier decision over it. ⛔ Deliberately NOT `UnscaledLit` here: that
         // would decompose the literal a SECOND time and take only half of the result, leaving the rendered
@@ -647,12 +653,24 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks otherwise). Stage loud rather than
             // emit a cell whose type cannot be derived; never a silent value.
             return $"new CobolArg({RuntimeApi.PassModeText(mode)}, ManagedPointer<string>.Cell("
-                + LoudValue("string", $"CALL USING numeric literal '{literalText}'") + "), 0, 0)";
+                + LoudValue("string", $"CALL USING numeric literal '{literalText}'") + "), null)";
         var (cell, _, carrier) = IntLiteralCore(unscaled);
         int digits = unscaled.Count(char.IsAsciiDigit);
         return $"new CobolArg({RuntimeApi.PassModeText(mode)}, "
-            + $"ManagedPointer<{carrier}>.Cell({cell}), {digits}, {scale})";
+            + $"ManagedPointer<{carrier}>.Cell({cell}), {ValueMeta(signEncoding, digits, scale, signed: unscaled.Contains('-'))})";
     }
+
+    /// <summary>The carried description of a numeric argument with NO data item behind it — a literal or a
+    /// computed expression (kb/Work PB873): a DISPLAY item of the value's own digit count and scale, signed when
+    /// the value can be negative. §14.2.3 GR9's first branch allocates such an argument's record "of the same
+    /// length as the argument" and moves it "without conversion", so its image is that DISPLAY form; the pair
+    /// this replaced (digits, scale) spelled only the unsigned digit run and so could not carry a negative
+    /// literal's sign to a formal that reads the argument as characters.</summary>
+    private static string ValueMeta(SignEncoding signEncoding, int digits, int scale, bool signed) =>
+        $"new NumProfile {{ Digits = {digits}, FractionDigits = {scale}, Signed = {(signed ? "true" : "false")}, "
+        + "SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, "
+        + "ByteForm = NumericByteForm.Zoned"
+        + $"{(signEncoding is SignEncoding.Ibm ? "" : $", SignEncoding = SignEncoding.{signEncoding}")} }}";
 
     /// <summary>An accessor carrier over a caller place — the BY REFERENCE / RETURNING aliasing form (design D1:
     /// <c>OverField</c> over the native field; a whole group crosses as its character image, distributed back

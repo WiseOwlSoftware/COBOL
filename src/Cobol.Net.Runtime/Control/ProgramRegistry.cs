@@ -52,6 +52,15 @@ public sealed class CobolCallException(string message, string ecName = "EC-PROGR
     /// swallowed by — every enclosing CALL's ON EXCEPTION phrase (kb/Work PB233).</summary>
     public bool ControlTransferred { get; set; }
 
+    /// <summary>ISO §14.9.4.4 GR3d — a §14.8.2 conformance violation detected while the ACTIVATED element adopts
+    /// its formal parameters (<c>CobolArgAdapt.Unreadable</c>; kb/Work PB615). Adoption runs inside
+    /// <c>ICobolProgram.Call</c> but before any of the element's statements, and GR3d makes such a violation "the
+    /// program call is not successful" — an activation-attempt failure, GR3h's, not a condition propagated from
+    /// the called program. The activation boundary CONSUMES this mark (clears it instead of setting
+    /// <see cref="ControlTransferred"/>), so a boundary further out — for which control HAD been transferred —
+    /// marks it in the ordinary way.</summary>
+    public bool RaisedAtAdoption { get; set; }
+
     /// <summary>ISO §14.9.4.4 GR3h item 1's family partition — "if the exception condition is any of the
     /// EC-PROGRAM or EC-EXTERNAL exception conditions". THE one place that partition is written down: the CALL
     /// emitter's enabled-name split and the emitted phrase arm's runtime filter both ask this. Every other

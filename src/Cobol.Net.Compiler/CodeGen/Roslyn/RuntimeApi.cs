@@ -1323,9 +1323,11 @@ internal static class RuntimeApi
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.NumValue)}<{carrier}>({args}, {position}, {profile}, {scale})";
 
     /// <summary>A BY VALUE image-carried formal's DETACHED value-copy cell (§14.2.3 GR10, image form) —
-    /// <c>CobolArgAdapt.TextValue</c>.</summary>
-    public static string ArgAdaptTextValue(string args, int position, string width) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.TextValue)}({args}, {position}, {width})";
+    /// <c>CobolArgAdapt.TextValue</c>. <paramref name="profile"/> / <paramref name="scale"/> are the FORMAL's
+    /// description (the record GR10's COMPUTE fills — kb/Work PB873), <c>"null"</c> / <c>"0"</c> for a formal
+    /// with no numeric description.</summary>
+    public static string ArgAdaptTextValue(string args, int position, string width, string profile, string scale) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.TextValue)}({args}, {position}, {width}, {profile}, {scale})";
 
     /// <summary>The ACTIVATING element's §14.2.3 GR9/GR10 argument crossing — <c>CobolArgAdapt.LandForFormal</c>
     /// wrapped around a built <c>CobolArg</c> (kb/Work PB640). <paramref name="carrier"/> is the FORMAL's
