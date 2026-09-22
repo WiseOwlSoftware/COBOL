@@ -228,15 +228,16 @@ public sealed class FileRegistry
     /// — <see cref="OpenCore"/> arbitrates it against the physical-file registry exactly like the phrase-bearing
     /// <see cref="OpenShared"/>, one polymorphic dispatch for all three organizations.</summary>
     public void Open(string name, FileOpenMode mode, string assign, bool assignDynamic, LinagePage? page)
-        => OpenCore(name, mode, null, FileRetryKind.None, 0, false, assign, assignDynamic, page);
+        => OpenCore(name, mode, null, FileRetryKind.None, 0, OpenTapePhrase.None, assign, assignDynamic, page);
 
     /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the same arbitrated <see cref="OpenCore"/> with the
     /// phrase's flag set, so the '07' overlay is the ONE effect site whichever entry point the emitter picks.
     /// The OPEN twin of <see cref="CloseNoRewind"/>: the same phrase, the same medium model, the same '07'
     /// (§9.1.13.2 item 6). Before kb/Work PB317 the phrase was parsed and dropped, so an OPEN … WITH NO REWIND
     /// reported '00' while its CLOSE spelling reported '07'.</summary>
-    public void OpenNoRewind(string name, FileOpenMode mode, string assign, bool assignDynamic, LinagePage? page)
-        => OpenCore(name, mode, null, FileRetryKind.None, 0, true, assign, assignDynamic, page);
+    public void OpenTape(string name, FileOpenMode mode, OpenTapePhrase tape, string assign, bool assignDynamic,
+        LinagePage? page)
+        => OpenCore(name, mode, null, FileRetryKind.None, 0, tape, assign, assignDynamic, page);
 
     /// <summary>⛔ THE ONE SITE for the OPEN statement's NO REWIND phrase — §14.9.27.4 GR11 and GR12, keyed on
     /// the SAME medium model the CLOSE arm's Table 14 is keyed on (<see cref="PhysicalFileCategory"/>), so the
@@ -276,6 +277,37 @@ public sealed class FileRegistry
                 + "unimplemented because no supported medium permits rewinding (docs/CONFORMANCE.md §7, A.1 "
                 + "item 24); a new medium must implement it here (kb/Work PB317)");
         if (c.Status[0] == '0') c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
+    }
+
+    /// <summary>⛔ THE ONE SITE for the OPEN statement's COBOL-85 REVERSED phrase — <i>the file is positioned at
+    /// its END, and every subsequent READ makes the PRECEDING record available, the at end condition arising at
+    /// the file's first record</i>. The phrase was deleted by ISO 2002 (VERSION_CHANGE_REFERENCE row 7.12,
+    /// gate <c>open-reversed-removed-2002</c>/COBOLNET0902), so this runs only under <c>--std 85</c>; the
+    /// repository holds no 1985 text, so the semantics are the VCR row's plus the surveyed implementations
+    /// (GnuCOBOL implements REVERSED for sequential files), per the standing latitude decision.
+    ///
+    /// <para>⛔ IT IS A POSITIONING, NOT A SECOND READ PATH. §14.9.30.4 GR21 c) already defines retrieval in the
+    /// decreasing direction — <i>"the first existing record in the physical file whose relative key number is
+    /// … less than the file position indicator if PREVIOUS is specified"</i> — and
+    /// <see cref="SequentialConnector"/> has implemented it since kb/Work PB334 for
+    /// <c>READ … PREVIOUS</c>. REVERSED therefore sets the connector's retrieval DIRECTION and its file position
+    /// indicator and adds no retrieval code at all: a second backward walk would be the same rule written twice,
+    /// and the two would drift on the very edge cases (RECORD VARYING framing, the at-end boundary) the existing
+    /// one has goldens for.</para>
+    ///
+    /// <para>The connector is a <see cref="SequentialConnector"/> by construction — the binder admits REVERSED
+    /// for RECORD sequential organization only (COBOLNET2210), because the backward walk §14.9.30.3 SR7 denies
+    /// to LINE SEQUENTIAL is exactly the walk this phrase establishes — so anything else here is a COMPILER
+    /// defect and LOUD, the same posture <see cref="NoRewindPhraseEffect"/> takes for an unexpected medium.
+    /// §14.9.27.4 GR25 a) owns an unsuccessful open's status and its "the file is not affected", so an
+    /// unsuccessful OPEN is left alone rather than repositioned.</para></summary>
+    private void ReversedPhraseEffect(string name)
+    {
+        var c = Require(name);
+        if (c.Status[0] != '0') return;   // §14.9.27.4 GR25 a) — the file is not affected
+        if (c is not SequentialConnector f)
+            throw MisroutedVerb("OPEN … REVERSED", name, c);
+        f.PositionReversed();
     }
 
     /// <summary>A keyed verb reached a connector of the wrong organization — the binder screens
@@ -758,6 +790,35 @@ public sealed class FileRegistry
     /// silently answered it (kb/Work PB321).</para></summary>
     public static readonly FileSharing? ImplementorDefaultSharing = null;
 
+    /// <summary>⛔ THE §12.4.5.9.4 GR1 b) 2. IMPLEMENTOR DEFAULT — the record-locking posture of a file
+    /// connector whose file control entry writes NEITHER a LOCK MODE clause NOR a SHARING clause and whose OPEN
+    /// carried no SHARING phrase. The standard hands the choice to the implementor in as many words —
+    /// <i>"the type of record locking for that opening of a shared file associated with that file connector is
+    /// defined by the implementor … or specify that the default is no record locking"</i> — and this
+    /// compiler's determination is the third option it names: <see cref="FileLockMode.None"/>, so such a
+    /// connector SETS no record lock even when an I-O statement writes an explicit LOCK phrase.
+    /// <para>⛔ IT SAYS NOTHING ABOUT WHETHER THE CONNECTOR *SEES* OTHER CONNECTORS' LOCKS, and that asymmetry
+    /// is the standard's own (kb/Work PB669). §9.1.16 states the visibility rule with no qualification at all:
+    /// <i>"While locked by a given file connector, a record is not accessible to another file connector in the
+    /// same or a different run unit, except by the execution of a READ statement with the IGNORING LOCK
+    /// phrase."</i> §12.4.5.9.4 GR1 a) and b) 1. are careful to say only that no record locks are <b>set</b>,
+    /// and GR2 — <i>"If the processor does not support record locking, record locks have no effect for the
+    /// associated file connector"</i> — is the clause that would disable the CHECK, which does not apply here.
+    /// So this default is the value of <see cref="ConnectorShare"/> a clause-less connector is governed under,
+    /// NOT a licence to skip the governance: it is why every governed verb below reads
+    /// <see cref="ShareOf"/> instead of returning early on a miss.</para></summary>
+    private static readonly ConnectorShare ImplementorDefaultShare =
+        new(ImplementorDefaultSharing, FileLockMode.None, Multiple: false);
+
+    /// <summary>⛔ THE ONE READER of the opt-in posture map, and therefore the ONE place a connector that never
+    /// opted in is given the §12.4.5.9.4 GR1 b) 2. default rather than a different code path. Every governed
+    /// record verb starts here. It used to be a <c>TryGetValue</c> whose MISS returned the ungoverned body, and
+    /// the effect was that a connector with no LOCK MODE clause could read, rewrite and DELETE a record another
+    /// connector held locked, answering '00' where §9.1.16 makes the record inaccessible — the same
+    /// opt-in-overlay shape kb/Work PB321 removed from OPEN, one layer down (kb/Work PB669).</summary>
+    private ConnectorShare ShareOf(string name) =>
+        _connectorShares.TryGetValue(name, out var meta) ? meta : ImplementorDefaultShare;
+
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (emitted right after registration, only
     /// for a file that carries either clause). <paramref name="sharing"/> is null for a file with a LOCK MODE
     /// clause and no SHARING clause — see <see cref="ImplementorDefaultSharing"/>. This is the RECORD-LOCKING
@@ -797,14 +858,15 @@ public sealed class FileRegistry
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount, bool noRewind, string assign, bool assignDynamic, LinagePage? page)
+        FileRetryKind retryKind, int retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
+        LinagePage? page)
     {
         // A sharing/retry phrase on the OPEN makes the connector a record-locking participant even without a
         // SELECT clause. Its SHARING MODE is still whatever §9.1.15 gives it: the phrase's mode when a SHARING
         // phrase is written, otherwise the undetermined implementor default — never a hard-coded ALL OTHER.
         if (!_connectorShares.ContainsKey(name))
             RegisterSharing(name, ImplementorDefaultSharing, FileLockMode.None, false);
-        OpenCore(name, mode, hasSharingOverride ? sharingOverride : null, retryKind, retryAmount, noRewind,
+        OpenCore(name, mode, hasSharingOverride ? sharingOverride : null, retryKind, retryAmount, tape,
             assign, assignDynamic, page);
     }
 
@@ -827,7 +889,8 @@ public sealed class FileRegistry
     /// (kb/Work PB317). The overlay is self-guarding: §14.9.27.4 GR25 a) owns an unsuccessful open's status, so
     /// <see cref="NoRewindPhraseEffect"/> writes '07' only over a status whose first digit is '0'.</para></summary>
     private void OpenCore(string name, FileOpenMode mode, FileSharing? sharingOverride,
-        FileRetryKind retryKind, int retryAmount, bool noRewind, string assign, bool assignDynamic, LinagePage? page)
+        FileRetryKind retryKind, int retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
+        LinagePage? page)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
         // §14.9.27.4 GR26 → §12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
@@ -842,8 +905,16 @@ public sealed class FileRegistry
         // nothing left to override afterwards — the former `if (status == Deadlock) SetStatusOf(…)` line existed
         // only to re-assert the '52' RetryLoop used to manufacture (kb/Work PB142).
         _ = RetryLoop(() => SharedOpenAttempt(name, mode, sharingOverride, page), retryKind, retryAmount);
-        // The WITH NO REWIND phrase's own effect — the ONE effect site, never a second copy (kb/Work PB317).
-        if (noRewind) NoRewindPhraseEffect(name);
+        // ⛔ THE ONE TAPE-PHRASE EFFECT SITE, one arm per §14.9.27.2 alternative and never a second copy
+        // (kb/Work PB317 for NO REWIND, kb/Work PB668 for REVERSED). Both arms run AFTER the arbitrated open
+        // because both describe what the OPEN leaves behind — a status overlay and a file position — and both
+        // are self-guarding on an unsuccessful open, whose status and whose "file is not affected" §14.9.27.4
+        // GR25 a) owns.
+        switch (tape)
+        {
+            case OpenTapePhrase.NoRewind: NoRewindPhraseEffect(name); break;
+            case OpenTapePhrase.Reversed: ReversedPhraseEffect(name); break;
+        }
     }
 
     /// <summary>The arbitrated OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61
@@ -1042,6 +1113,7 @@ public sealed class FileRegistry
         string? except = null)
     {
         if (meta.Multiple) return;                                              // §12.4.5.9.4 GR7
+        if (st.RecordLocks.Count == 0) return;   // nothing to release — and no LINQ walk on the hot path
         if (except is { Length: > 0 } keep) PhysicalFileTable.ReleaseAllExcept(st, name, keep);
         else PhysicalFileTable.ReleaseAllForConnector(st, name);
     }
@@ -1058,6 +1130,20 @@ public sealed class FileRegistry
     /// governed it — GR18 does, and the caller applies GR18 by invalidating the position the retrieval
     /// advanced.</para></summary>
     private static bool NoRecordIsLocked(PhysicalFileTable.State st) => st.RecordLocks.Count == 0;
+
+    /// <summary>⛔ THE HOT-PATH GATE of §9.1.16 governance: is there ANY record-lock question for this
+    /// statement to answer? Only two things can make one — some connector holds a lock on this physical file
+    /// (so a conflict, a GR21 e)-style release or a self re-access is possible), or THIS connector may acquire
+    /// one (<see cref="LocksEffective"/>). When neither holds, every governed action below is provably a no-op:
+    /// the conflict check finds an empty table, the releases release nothing, and the acquisition arms are shut
+    /// by <see cref="LocksEffective"/>.
+    /// <para>It exists because governance became UNCONDITIONAL (kb/Work PB669): every connector now consults
+    /// the physical file's lock table, so the overwhelmingly common case — a program whose files nobody shares
+    /// — has to cost a <c>Count</c> test and nothing more. In particular it keeps
+    /// <c>FileConnector.MutationTargetRecordId</c> and <c>LastReadRecordId</c> off the plain REWRITE / DELETE /
+    /// READ paths, which on the keyed organizations allocate a key or an ordinal string per statement.</para></summary>
+    private static bool RecordLocksGovern(ConnectorShare meta, PhysicalFileTable.State st, string name) =>
+        st.RecordLocks.Count > 0 || LocksEffective(meta, st, name);
 
     /// <summary>⛔ THE ONE RECORD-OPERATION-CONFLICT CHECK, for every verb that states it and every
     /// organization: is the record identified by the statement locked by ANOTHER file connector? The three
@@ -1152,8 +1238,22 @@ public sealed class FileRegistry
     /// <summary>Whether this connector SETS record locks: §12.4.5.9 GR1a/b1 — with no LOCK MODE clause a
     /// SHARING clause/phrase means NO record locks are set (and the implementor default here is likewise none);
     /// GR3 — a connector open in the sharing-with-no-other mode has exclusive access, so its LOCK MODE has no
-    /// effect. (Conflict CHECKS against locks OTHER connectors hold are never disabled — §9.1.16: a locked
-    /// record is inaccessible to another file connector regardless of that connector's own lock mode.)</summary>
+    /// effect. With no clause at all the posture is <see cref="ImplementorDefaultShare"/>, whose
+    /// <see cref="FileLockMode.None"/> takes the GR1a/b1 arm for the same reason.
+    /// <para>⛔ IT GOVERNS ACQUISITION ONLY. Conflict CHECKS against locks OTHER connectors hold are never
+    /// disabled — §9.1.16 makes a locked record inaccessible to another file connector with no qualification
+    /// on that connector's own lock mode, and §12.4.5.9.4 GR1 a)/b) 1. are worded to say only that no locks are
+    /// <b>set</b>. This comment said exactly that while the code two levels up contradicted it: the governed
+    /// verbs returned to the ungoverned body whenever the connector was not in the posture map, so the check it
+    /// promised was never reached (kb/Work PB669).</para>
+    /// <para>⚠ DETERMINATION. §14.9.30.4 GR9, §14.9.35.4 GR11 and §14.9.10.4 GR6 each open <i>"If record
+    /// locking is enabled for the … file connector"</i>, and §14.9.30.4 GR7 sends that question to §12.4.5.9.
+    /// READ AS A PROPERTY OF THE ENVIRONMENT — the processor supports record locking (§12.4.5.9.4 GR2) and the
+    /// physical file is not open in the sharing-with-no-other mode (GR3) — not as "this connector's own clause
+    /// causes it to acquire locks". The rejected reading makes §9.1.16's unqualified sentence false for any
+    /// program that simply omits LOCK MODE, i.e. record locking would be unenforceable against exactly the
+    /// programs it exists to constrain, and it would give GR1 a)'s narrow "no record locks are set" a scope its
+    /// words do not have.</para></summary>
     private static bool LocksEffective(ConnectorShare meta, PhysicalFileTable.State st, string name)
     {
         if (meta.LockMode == FileLockMode.None) return false;                                   // GR1a/b1
@@ -1189,8 +1289,7 @@ public sealed class FileRegistry
     {
         image = "";
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta))
-            return ReadFormat1Step(name, c, previous, out image);   // not sharing-active — the phrases are inert (§12.4.5.9 GR1)
+        var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — released by the EXECUTION of the statement, so before anything
         // can make it unsuccessful, exactly as the three mutating verbs do it.
@@ -1216,6 +1315,7 @@ public sealed class FileRegistry
             }
             string status = ReadFormat1Step(name, c, previous, out image);
             if (status.Length == 0 || status[0] != '0') return status;   // at end (GR24) or a mode/position failure
+            if (!RecordLocksGovern(meta, st, name)) return status;   // no lock on the file and none to set
             string recId = c.LastReadRecordId;
             if (recId.Length == 0) return status;                        // no record identity to govern
             // ⛔ §14.9.30.4 GR22 — THE ONE ADVANCING ON LOCK SKIP-SCAN, reached by all three organizations. The
@@ -1271,8 +1371,7 @@ public sealed class FileRegistry
     {
         image = "";
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta))
-            return ReadKeyed(name, keyIndex, keyedRecordImage, out image);   // not sharing-active (§12.4.5.9 GR1)
+        var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — on EXECUTION
         string peek = NoRecordIsLocked(st) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage);
@@ -1288,6 +1387,7 @@ public sealed class FileRegistry
         }
         string status = ReadKeyed(name, keyIndex, keyedRecordImage, out image);
         if (status.Length == 0 || status[0] != '0') return status;   // invalid key (§9.1.14) or a mode failure
+        if (!RecordLocksGovern(meta, st, name)) return status;   // no lock on the file and none to set
         string recId = c.LastReadRecordId;
         if (recId.Length > 0) ApplyPostReadLockActions(meta, st, name, recId, phrase);   // GR11 b)/c)/d)
         return status;
@@ -1303,7 +1403,7 @@ public sealed class FileRegistry
     {
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length, page, advance);
+        var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.51.4 GR10 / §12.4.5.9.4 GR6
         bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name);   // GR11
@@ -1326,9 +1426,12 @@ public sealed class FileRegistry
         FileRetryKind retryKind, int retryAmount)
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta)) return RewriteAnyOrg(c, image, length);
+        var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
-        string target = c.MutationTargetRecordId(image);
+        // The record identity costs an allocation on the keyed organizations, so it is taken only when some
+        // §9.1.16 question can have a non-trivial answer; with no lock on the file and none to set, every arm
+        // below is a no-op whatever the target is (kb/Work PB669).
+        string target = RecordLocksGovern(meta, st, name) ? c.MutationTargetRecordId(image) : "";
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.35.4 GR12 a) 2. — released at the beginning
         if (target.Length > 0)
         {
@@ -1369,9 +1472,10 @@ public sealed class FileRegistry
     public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
-        if (!_connectorShares.TryGetValue(name, out var meta)) return DeleteRecord(name, keyedRecordImage);
+        var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
-        string target = c.MutationTargetRecordId(keyedRecordImage);
+        // The record identity is taken only when a §9.1.16 question can have a non-trivial answer (kb/Work PB669).
+        string target = RecordLocksGovern(meta, st, name) ? c.MutationTargetRecordId(keyedRecordImage) : "";
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.10.4 GR7 a) 2. — released at the beginning
         if (target.Length > 0
             // §14.9.10.4 GR6 — the ONE conflict check; GR6 b)/c) then leave the record present and the record

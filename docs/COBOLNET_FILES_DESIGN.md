@@ -389,15 +389,16 @@ REWIND phrase will be ignored if it does not apply to the storage medium on whic
 REWIND phrase is ignored, the OPEN statement is successful and the I-O status associated with file-name-1 is
 set to '07'.”* — and **GR12**, its complement *“If the storage medium for the file permits rewinding …”*,
 partition the media between them, so choosing category (a) chooses GR11 and makes GR12 vacuous. The phrase
-rides `BoundOpenFile.NoRewind` (per FILE-NAME, as §14.9.27.4 GR20 requires — the mode, SHARING and RETRY are
-the GROUP's, the REWIND phrase is the file-name's own), both emitter arms carry it (the plain `FileOpen` and
+rides `BoundOpenFile.Tape` (per FILE-NAME, as §14.9.27.4 GR20 requires — the mode, SHARING and RETRY are
+the GROUP's, the tape phrase is the file-name's own), both emitter arms carry it (the plain `FileOpen` and
 the sharing-aware `FileOpenShared`, since the phrases are independent), and `FileRegistry.NoRewindPhraseEffect`
 is the ONE place the rule is written: it refuses any category but (a) LOUDLY, and overlays '07' on a status
 whose first digit is '0' — GR25 a) reserves an unsuccessful open's own diagnosis. §14.9.27.3 SR5 and SR6 —
 the phrase is for sequential files, under INPUT or OUTPUT only — are screened at bind (COBOLNET1802/1803),
 which is what keeps categories (b), (c) and (d) off the runtime path in the first place; SR5 is the exact twin
 of the CLOSE rule §14.9.6.3 SR1, and until kb/Work PB317 only the CLOSE spelling had a screen while the OPEN
-phrase parsed and was silently dropped.
+phrase parsed and was silently dropped. Both screens are now rows of the ONE tape-phrase rule set — **D26**,
+which is also where REVERSED, the other alternative of the same printed bracket, is answered.
 
 **What it buys.** Categories (b) and (c) are unreachable today, so symbols a, b, d and f — previous units,
 no rewind of the current reel, unit removal, rewind — and symbol e's two unit-media branches are vacuous
@@ -420,6 +421,57 @@ ahead of the connector's own `Close()` on every path. **Symbol e does not releas
 non-unit branch is “the file remains in the open mode … and no other action takes place”, and GR9's release
 rides symbol c (“Close file”), so `CLOSE … UNIT` keeps the file lock and every record lock — pinned by
 `conformance:2002/pb235_close_unit_locks`.
+
+### D26. The per-file-name TAPE PHRASE is ONE enum end to end, with a ROW per phrase — never a bool per phrase.
+
+**The rule.** §14.9.27.2 prints ONE optional bracket beside each file-name. In COBOL-2023 it holds a single
+alternative, `[ WITH NO REWIND ]`; at COBOL-85 it held two, `[ REVERSED | WITH NO REWIND ]`, and
+`VERSION_CHANGE_REFERENCE` row 7.12 records REVERSED's deletion by ISO 2002. The superset grammar still parses
+both — `openFileSpec : dataReference (REVERSED | WITH? NO REWIND)?` — so the two are **mutually exclusive by
+construction** and a COBOL-85 compiler shall implement the phrase it admits (`feedback_four_editions_one_compiler`).
+REVERSED positions the file at its END and makes every subsequent READ retrieve the preceding record; the
+repository holds no 1985 text, so the semantics are row 7.12's plus the surveyed implementations (GnuCOBOL
+implements REVERSED for sequential files), under the standing implementor-latitude decision.
+
+**What went wrong.** kb/Work PB317 gave NO REWIND a `bool NoRewind` of its own on `BoundOpenFile`, a `noRewind`
+parameter on two emitter renderers, two runtime entry points and `OpenCore` — and REVERSED, the alternative
+beside it in the SAME grammar production, was read by NOBODY. `VersionConformancePass` gated it out at 2002+
+(COBOLNET0902, correct) and at `--std 85` it parsed, bound to nothing and ran FORWARD with no diagnostic:
+`OPEN INPUT F REVERSED. READ F.` answered the FIRST record where COBOL-85 requires the last (kb/Work PB668).
+A phrase's own boolean is a phrase's own opportunity to be forgotten — the two-arm dispatch one layer up.
+
+**The shape.** ONE enum, three members, four hops: `BoundOpenTapePhrase` on `BoundOpenFile.Tape` →
+`RuntimeApi.OpenTapePhraseExpr` (the ONE seam between the backend-neutral bound tree and the runtime enum) →
+`OpenTapePhrase` on `CobolFile.OpenTape` / `CobolFile.OpenShared` → `FileRegistry.OpenCore`'s ONE effect
+switch, one arm per phrase (`NoRewindPhraseEffect`, `ReversedPhraseEffect`). The syntax rules are DATA:
+`OpenTapePhraseRule` carries a NAMED row per phrase — its organization predicate and its admitted open modes,
+each with the clause and the diagnostic that state it — and `OpenTapePhraseRule.For` is a switch over the enum
+that `CheckOpenTapePhrase` is a lookup into and nothing else. ⛔ NAMED rows behind a switch, not an array
+indexed by the enum's ordinal: an inserted member cannot silently mis-key, and a member with no row throws at
+the first OPEN that writes the phrase. That is the drift guard the structure CARRIES, instead of a test
+asserting an array's order. **A third tape phrase is a member on each enum, an arm in the effect switch and a
+named row with an arm in `For`.**
+
+**REVERSED adds NO retrieval code.** §14.9.30.4 GR21 c) already defines retrieval in the decreasing direction
+and `SequentialConnector` has implemented it since kb/Work PB334 for `READ … PREVIOUS`. `PositionReversed` sets
+the file position indicator to one past the last record — `ExistingRecordCount`, the same ONE measurement the
+§14.9.51.4 GR19 EXTEND ordinal base uses — and raises a standing `Reversed` flag; `MovesBackward(previous)` is
+`previous ^ Reversed`, the ONE conversion from a statement's direction phrase to the connector's direction of
+travel, which `Read` and the §14.9.30.4 GR9 pre-read peek both ask. A second backward walk would be the same
+rule written twice and would drift on the RECORD VARYING framing and at-end boundaries the existing one has
+goldens for. The flag is cleared by every `OpenCore`, so the phrase cannot outlive the OPEN that wrote it —
+the 85 golden's final plain re-open is that witness. Rejected: a `ReversedSequentialConnector` subclass (a
+second retrieval path for a direction bit); reading REVERSED as a status overlay like NO REWIND's '07' (GR11
+is about a medium the phrase does not APPLY to, and REVERSED applies — it is a positioning).
+
+**The syntax rules are NARROWER than NO REWIND's on both axes**, which is precisely why the rules are a row per
+phrase rather than a shared predicate: REVERSED admits RECORD sequential organization only (COBOLNET2210 —
+§14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL, and a relative or indexed file has no record
+*number* for GR21 c) to compare) and the INPUT group only (COBOLNET2211 — the phrase's whole effect is a
+retrieval direction), where §14.9.27.3 SR5/SR6 give NO REWIND both sequential kinds (§9.1.7.2) and both INPUT
+and OUTPUT. ⚠ The LINE SEQUENTIAL cell is unreachable from conforming source at EVERY edition — LINE
+SEQUENTIAL arrived in 2023 and REVERSED left in 2002 — so it is defence in depth under `--permissive`; the
+negative golden witnesses the reachable half of the same rule with a RELATIVE file.
 
 ### D12. The OPEN statement's REPEATED GROUP is the bound tree's shape: one `BoundOpenFile` per file-name, carrying its OWN group's mode and phrases. The statement node holds no phrase state.
 
@@ -1054,12 +1106,46 @@ predicate could see the RETRY phrase and could not see the OPEN (kb/Work PB683).
 
 **The shape.** There is no compile-time governance predicate and there is no ungoverned renderer. `RuntimeApi`
 exposes exactly one renderer per record verb — `FileReadShared`/`FileReadSharedOk`, `FileWriteShared`,
-`FileRewriteShared`, `FileDeleteShared`, plus `FileReadKeyed` + `FileReadLockGovern` as the two halves of the one
-Format-2 read — and every emitter renders it unconditionally. Governance is then decided ONE layer down, in
-`FileRegistry`, where the OPEN's own phrase has already been recorded: each governed body opens with a
-`_connectorShares` probe and falls through to the identical plain body on a miss. The cost of the change is one
+`FileRewriteShared`, `FileDeleteShared`, and `FileReadKeyedShared` for the Format-2 random read (kb/Work PB338
+collapsed its two halves — an ungoverned `FileReadKeyed` plus a post-read `FileReadLockGovern` patch — into that
+ONE governed entry, because §14.9.30.4 GR10 a)/d) require the file position indicator and the key of reference to
+be UNCHANGED on a conflict, which a post-read adjustment cannot deliver) — and every emitter renders it
+unconditionally. Governance is then decided ONE layer down, in
+`FileRegistry`, where the OPEN's own phrase has already been recorded. The cost of the change is one
 dictionary probe per record verb on the non-sharing path, replacing a compile-time branch that produced the same
 answer only when the SELECT happened to mention sharing.
+
+**⛔ AND ONE LAYER DOWN AGAIN, THE SAME SHAPE WAS STILL THERE** (kb/Work PB669). Each governed body used to
+open with a `_connectorShares` probe and **fall through to the identical plain body on a miss**, so a connector
+that never opted in never consulted the physical file's lock table at all. `SELECT F-B …` with neither a
+SHARING clause nor a LOCK MODE clause could READ, REWRITE and **DELETE** a record another connector held locked,
+answering `'00'` every time — and the DELETE removed it. §9.1.16 states the rule over the RECORD and the OTHER
+connector, with no qualification on the reading one: *"While locked by a given file connector, a record is not
+accessible to another file connector in the same or a different run unit, except by the execution of a READ
+statement with the IGNORING LOCK phrase."* §12.4.5.9.4 GR1 a) and b) 1. are worded narrowly and deliberately —
+*"no record locks are **set** by the execution of I-O statements through the associated file connector"* — and
+GR2 is the clause that disables the CHECK, for a processor that does not support record locking at all.
+
+**The shape.** `FileRegistry.ShareOf` is the ONE reader of the opt-in map: a miss yields
+`ImplementorDefaultShare`, the §12.4.5.9.4 GR1 b) 2. posture (`FileLockMode.None` — the *"specify that the
+default is no record locking"* option the rule itself offers), and the governed body runs unchanged. Setting is
+still gated on `LocksEffective`, so a clause-less connector acquires nothing even from an explicit LOCK phrase;
+checking is gated on nothing. **Two questions, two gates, one body** — where before one gate answered both.
+
+**⚠ DETERMINATION, recorded here and in `LocksEffective`'s doc comment.** §14.9.30.4 GR9, §14.9.35.4 GR11 and
+§14.9.10.4 GR6 each open *"If record locking is enabled for the … file connector"*, and §14.9.30.4 GR7 sends
+that to §12.4.5.9. **Read as a property of the ENVIRONMENT** — the processor supports record locking
+(§12.4.5.9.4 GR2) and the physical file is not open in the sharing-with-no-other mode (GR3). *Rejected:* "this
+connector's own clause causes it to acquire locks", which would make §9.1.16's unqualified sentence false for
+any program that omits LOCK MODE — record locking unenforceable against exactly the programs it constrains —
+and would give GR1 a)'s "no record locks are set" a scope its words do not have.
+
+**The hot path pays a `Count` test.** `RecordLocksGovern(meta, st, name)` — *some connector holds a lock on this
+physical file, or this one may acquire one* — is asked before any record IDENTITY is computed, so the plain
+REWRITE/DELETE path no longer allocates a key or RRN string per statement and the plain READ tail no longer
+reads `LastReadRecordId`; `ReleasePriorRecordLocks` returns on an empty table before its LINQ walk. When the
+gate is false every governed action below it is provably a no-op, which is what makes skipping them a
+refactoring rather than a second posture.
 
 **A verb's SHAPE rides as DATA, for the same reason.** WRITE had three renderers — plain, `WriteAdvancing` and
 a COBOL-2023 `WriteBeforeAndAfter` — and only the plain one was governed. §14.9.51.4 GR10 and GR11 are **ALL

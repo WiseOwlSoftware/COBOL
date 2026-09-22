@@ -26,6 +26,61 @@ using Core = CobolParserCore;
 /// <param name="Admitted">The group kinds the rule's own text admits.</param>
 /// <param name="ExcludesLevel66">True when the rule's text names level-number 66 (the arithmetic spellings), so
 /// the diagnostic may quote it. MOVE's SR12 does not, and quoting it there was a miscitation.</param>
+/// <summary>⭐ ONE ROW PER OPEN TAPE PHRASE — the two alternatives of ISO §14.9.27.2's per-file-name
+/// <c>[ REVERSED | WITH NO REWIND ]</c> bracket, each stating its own ORGANIZATION rule and its own OPEN MODE
+/// rule AS DATA, so <see cref="StatementValidation.CheckOpenTapePhrase"/> is a lookup rather than a chain of
+/// per-phrase methods. The two phrases' rules differ on BOTH axes — NO REWIND admits either sequential kind
+/// (§9.1.7.2) and INPUT or OUTPUT (§14.9.27.3 SR5/SR6), REVERSED admits record sequential only and INPUT only
+/// — which is exactly why a shared screen has to carry the difference as a row. A third tape phrase is a row
+/// here and no edit anywhere else (kb/Work PB668).</summary>
+/// <param name="Phrase">The phrase AS WRITTEN, for the message.</param>
+/// <param name="AdmitsOrganization">The rule's own organization predicate over the file control entry.</param>
+/// <param name="OrganizationFace">How the admitted organization is named in the message.</param>
+/// <param name="OrganizationClause">The clause that states the organization rule.</param>
+/// <param name="Modes">The open modes the phrase's group may specify.</param>
+/// <param name="OpenModeClause">The clause that states the open-mode rule.</param>
+/// <param name="OrganizationCode">The diagnostic for the organization rule.</param>
+/// <param name="OpenModeCode">The diagnostic for the open-mode rule.</param>
+internal readonly record struct OpenTapePhraseRule(
+    string Phrase, Func<FileModel, bool> AdmitsOrganization, string OrganizationFace, string OrganizationClause,
+    BoundOpenMode[] Modes, string OpenModeClause, string OrganizationCode, string OpenModeCode)
+{
+    /// <summary>§14.9.27.3 SR5 + SR6 — NO REWIND is for sequential files (§9.1.7.2 admits BOTH sequential
+    /// kinds, the same <see cref="FileModel.IsSequential"/> predicate the CLOSE twin §14.9.6.3 SR1 tests) under
+    /// INPUT or OUTPUT.</summary>
+    private static readonly OpenTapePhraseRule NoRewind = new(
+        "WITH NO REWIND", f => f.IsSequential, "sequential", "ISO §14.9.27.3 SR5",
+        [BoundOpenMode.Input, BoundOpenMode.Output], "ISO §14.9.27.3 SR6",
+        DiagnosticCatalog.OpenNoRewindOrganization.Code, DiagnosticCatalog.OpenNoRewindOpenMode.Code);
+
+    /// <summary>COBOL-85's REVERSED — NARROWER than its sibling on BOTH axes (VERSION_CHANGE_REFERENCE row
+    /// 7.12): RECORD sequential organization only, because the phrase's whole effect is the backward retrieval
+    /// §14.9.30.4 GR21 c) defines over a record number and §14.9.30.3 SR7 denies to LINE SEQUENTIAL; and the
+    /// INPUT group only, because the other three modes have no READ for a retrieval direction to govern.</summary>
+    private static readonly OpenTapePhraseRule Reversed = new(
+        "REVERSED", f => f.Organization is FileOrganization.Sequential, "record sequential",
+        "ISO §14.9.30.4 GR21 c) — REVERSED establishes the backward retrieval only a record sequential "
+        + "file's record number supports (§14.9.30.3 SR7 denies it to LINE SEQUENTIAL); "
+        + "VERSION_CHANGE_REFERENCE row 7.12",
+        [BoundOpenMode.Input], "VERSION_CHANGE_REFERENCE row 7.12 — COBOL-85's OPEN general format writes "
+        + "REVERSED in the INPUT group only",
+        DiagnosticCatalog.OpenReversedOrganization.Code, DiagnosticCatalog.OpenReversedOpenMode.Code);
+
+    /// <summary>⛔ THE ONE LOOKUP, and the reason the rows are named rather than indexed: a switch over the
+    /// enum cannot silently mis-key when a member is inserted, and a member with NO row is LOUD at the first
+    /// OPEN that writes the phrase instead of reading whichever row happened to sit at its ordinal. That is the
+    /// drift guard this structure carries INSTEAD of a test asserting an array's order (CLAUDE.md rule 5 — the
+    /// shape that makes the next case automatic).</summary>
+    public static OpenTapePhraseRule For(BoundOpenTapePhrase phrase) => phrase switch
+    {
+        BoundOpenTapePhrase.NoRewind => NoRewind,
+        BoundOpenTapePhrase.Reversed => Reversed,
+        _ => throw new InvalidOperationException(
+            $"no syntax-rule row for the OPEN tape phrase {phrase} — a new alternative of §14.9.27.2's "
+            + "per-file-name bracket needs its organization rule and its open-mode rule here (kb/Work PB668)"),
+    };
+}
+
 internal readonly record struct CorrespondingOperandRule(
     string Verb, string Clause, GroupKinds Admitted, bool ExcludesLevel66)
 {
@@ -1175,38 +1230,60 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>§14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for sequential files."</i>
-    /// The EXACT twin of the CLOSE rule §14.9.6.3 SR1 that <c>SequentialIoBinder.BindClose</c> already enforces
-    /// (COBOLNET1693), which is why the phrase's OPEN half went unchecked for so long: one rule written in the
-    /// standard twice, once per statement, and only the CLOSE spelling had a screen (kb/Work PB317/PB318).
-    /// <para>The predicate is ORGANIZATION, not access mode — §9.1.7.2 puts record sequential and line
-    /// sequential both under sequential organization, and <see cref="FileModel.IsSequential"/> is the same
-    /// predicate the CLOSE arm tests, so the two arms cannot drift apart.</para>
-    /// <para>It is also what makes §14.9.27.4 GR11 answerable: GR11 keys on the storage medium, the medium is
-    /// <c>PhysicalFileCategory</c>, and a relative or indexed file is category (d) Non-sequential — a category
-    /// for which neither GR11 nor GR12 defines a NO REWIND effect. Rejecting the source is the standard's own
-    /// answer, not a deferral.</para></summary>
-    public bool CheckOpenNoRewindOrganization(FileModel file)
+    /// <summary>⛔ THE ONE SCREEN for the OPEN statement's per-file-name TAPE PHRASE — both alternatives of
+    /// §14.9.27.2's <c>[ REVERSED | WITH NO REWIND ]</c> bracket, over ONE table
+    /// (<see cref="OpenTapePhraseRule"/>, one NAMED row per phrase behind
+    /// <see cref="OpenTapePhraseRule.For"/>). Each phrase constrains the same two axes — the file's ORGANIZATION
+    /// and its group's OPEN MODE — so the table has a column per axis and the next tape phrase is a ROW, not a
+    /// third pair of methods. Returns true when the phrase stands; false when it was REPORTED and the caller
+    /// shall drop it (both rules are screens, not branches: §14.9.27.3's violations are reported and the
+    /// statement still binds, so the run-time phrase effects only ever see combinations their general rules
+    /// define — kb/Work PB317/PB318, and kb/Work PB668 for REVERSED).
+    /// <para>NO REWIND's two rules are §14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for
+    /// sequential files"</i>, the EXACT twin of the CLOSE rule §14.9.6.3 SR1 that <c>BindClose</c> enforces as
+    /// COBOLNET1693, which is why the OPEN half went unchecked for so long — and SR6, <i>"The NO REWIND phrase
+    /// may be specified only when the INPUT or OUTPUT phrase is specified"</i>, which §14.9.27.4 GR12 a)
+    /// corroborates by naming only EXTEND as the mode that suppresses the positioning the phrase talks about.
+    /// SR5's predicate is ORGANIZATION, not access mode — §9.1.7.2 puts record sequential and line sequential
+    /// both under sequential organization — and it is what makes §14.9.27.4 GR11 answerable: GR11 keys on the
+    /// storage medium and a relative or indexed file is category (d) Non-sequential under §14.9.6.4 GR2 — a
+    /// category for which §14.9.27.4 defines no NO REWIND effect in either GR11 or GR12.</para>
+    /// <para>REVERSED's two rules come from the COBOL-85 general format this repository does not hold
+    /// (VERSION_CHANGE_REFERENCE row 7.12): the INPUT group only, and — one step NARROWER than its sibling —
+    /// record sequential organization only, because the phrase's whole effect is the backward retrieval
+    /// §14.9.30.4 GR21 c) defines and §14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL
+    /// organization.</para></summary>
+    public bool CheckOpenTapePhrase(FileModel file, BoundOpenMode mode, BoundOpenTapePhrase phrase)
     {
-        if (file.IsSequential) return true;
-        data.Edition.Error(DiagnosticCatalog.OpenNoRewindOrganization,
-            $"OPEN '{file.CobolName}' WITH NO REWIND — the phrase may be specified only for sequential files "
-            + "(ISO §14.9.27.3 SR5)");
-        return false;
+        if (phrase is BoundOpenTapePhrase.None) return true;
+        var rule = OpenTapePhraseRule.For(phrase);
+        if (!rule.AdmitsOrganization(file))
+        {
+            data.Edition.Error(rule.OrganizationCode,
+                $"OPEN '{file.CobolName}' {rule.Phrase} — the phrase may be specified only for "
+                + $"{rule.OrganizationFace} files ({rule.OrganizationClause})");
+            return false;
+        }
+        if (!rule.Modes.Contains(mode))
+        {
+            data.Edition.Error(rule.OpenModeCode,
+                $"OPEN {OpenModeFace(mode)} '{file.CobolName}' {rule.Phrase} — the phrase may be specified only "
+                + $"when the {string.Join(" or ", rule.Modes.Select(OpenModeFace))} phrase is specified "
+                + $"({rule.OpenModeClause})");
+            return false;
+        }
+        return true;
     }
 
-    /// <summary>§14.9.27.3 SR6 — <i>"The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase
-    /// is specified."</i> The rule pairs the phrase with the open mode of its own group, and §14.9.27.4 GR12 a)
-    /// corroborates it by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the
-    /// phrase talks about: I-O and EXTEND have no rewind semantics to decline (kb/Work PB317/PB318).</summary>
-    public bool CheckOpenNoRewindOpenMode(FileModel file, BoundOpenMode mode)
+    /// <summary>The written form of an open mode, for a diagnostic (§14.9.27.2's four phrase words).</summary>
+    private static string OpenModeFace(BoundOpenMode mode) => mode switch
     {
-        if (mode is BoundOpenMode.Input or BoundOpenMode.Output) return true;
-        data.Edition.Error(DiagnosticCatalog.OpenNoRewindOpenMode,
-            $"OPEN {(mode is BoundOpenMode.IO ? "I-O" : "EXTEND")} '{file.CobolName}' WITH NO REWIND — the "
-            + "phrase may be specified only when the INPUT or OUTPUT phrase is specified (ISO §14.9.27.3 SR6)");
-        return false;
-    }
+        BoundOpenMode.Output => "OUTPUT",
+        BoundOpenMode.Extend => "EXTEND",
+        BoundOpenMode.IO => "I-O",
+        _ => "INPUT",
+    };
+
 
     /// <summary>§14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
     /// a LINAGE clause in the file's file description entry.</summary>

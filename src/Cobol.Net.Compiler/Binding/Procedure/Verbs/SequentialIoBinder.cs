@@ -53,21 +53,33 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 // ⛔ THIS IS SR8's ONLY SITE (kb/Work PB319): the rule speaks about the OPEN statement's
                 // operand, so a file control entry cannot host it. The full antecedent lives in the callee.
                 ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // SR8 — pure check
-                // The per-file-name tape phrase (§14.9.27.2 `{ file-name-1 [ WITH NO REWIND ] } …`). The
-                // grammar's other alternative, REVERSED, is the obsolete '85 phrase the VersionConformancePass
-                // gates out post-85 (`open-reversed-removed-2002`); NO REWIND survives into 2023 and is bound
-                // here. Reading `spec.REWIND()` — not `spec.NO()` — keeps this keyed on the phrase's own
-                // required word rather than on a word the grammar shares with other phrases.
-                bool noRewind = spec.REWIND() is not null;
-                // §14.9.27.3 SR5 + SR6, the two syntax rules that constrain the phrase. Both are screens, not
-                // branches: a violation is REPORTED and the statement still binds with the phrase DROPPED, so
-                // the run-time NoRewindPhraseEffect only ever sees the medium/mode combinations §14.9.27.4
-                // GR11 defines (kb/Work PB317; the rows are PB318's SR-14.9.27.3-5/-6). Screening here is what
-                // makes GR11's "does not apply to the storage medium" answerable — the CLOSE twin of SR5
-                // (§14.9.6.3 SR1) plays exactly this role for Table 14's N/A cells.
-                if (noRewind && !ctx.Validation.CheckOpenNoRewindOrganization(file)) noRewind = false;
-                if (noRewind && !ctx.Validation.CheckOpenNoRewindOpenMode(file, mode)) noRewind = false;
-                opens.Add(new BoundOpenFile(file, mode, sharing, retry, noRewind, UnsupportedOrg(file, "OPEN")));
+                // ⛔ THE ONE READ of the per-file-name TAPE PHRASE — `openFileSpec`'s
+                // `(REVERSED | WITH? NO REWIND)?` alternation, which §14.9.27.2 prints as one bracket beside
+                // each file-name. BOTH alternatives land in ONE enum slot on the bound entry, because the
+                // grammar makes them mutually exclusive and a bool per phrase is a second place for the next
+                // one to be dropped — which is exactly what happened: kb/Work PB317 gave NO REWIND a field and
+                // left REVERSED reading nothing, so `OPEN INPUT F REVERSED` compiled at --std 85 and delivered
+                // the records FORWARD with no diagnostic (kb/Work PB668). Reading `spec.REWIND()` — not
+                // `spec.NO()` — keeps the NO REWIND arm keyed on the phrase's own required word rather than on
+                // a word the grammar shares with other phrases.
+                // The 2002 EDITION gate for REVERSED stays where every removal gate lives, the post-bind
+                // VersionConformancePass (`open-reversed-removed-2002`, COBOLNET0902); NO REWIND survives into
+                // 2023 ungated. This binder is edition-agnostic and binds the phrase the source wrote.
+                BoundOpenTapePhrase tape =
+                    spec.REWIND() is not null ? BoundOpenTapePhrase.NoRewind
+                    : spec.REVERSED() is not null ? BoundOpenTapePhrase.Reversed
+                    : BoundOpenTapePhrase.None;
+                // The phrase's own syntax rules — ONE table-driven screen for both alternatives (§14.9.27.3
+                // SR5 + SR6 for NO REWIND; the COBOL-85 general format's INPUT/record-sequential restrictions
+                // for REVERSED). A screen, not a branch: a violation is REPORTED and the statement still binds
+                // with the phrase DROPPED, so the run-time phrase effects only ever see the medium/mode
+                // combinations their general rules define (kb/Work PB317; the rows are PB318's
+                // SR-14.9.27.3-5/-6). Screening here is what makes §14.9.27.4 GR11's "does not apply to the
+                // storage medium" answerable — the CLOSE twin of SR5 (§14.9.6.3 SR1) plays exactly this role
+                // for Table 14's N/A cells — and what keeps REVERSED off the LINE SEQUENTIAL medium that has
+                // no backward walk (§14.9.30.3 SR7).
+                if (!ctx.Validation.CheckOpenTapePhrase(file, mode, tape)) tape = BoundOpenTapePhrase.None;
+                opens.Add(new BoundOpenFile(file, mode, sharing, retry, tape, UnsupportedOrg(file, "OPEN")));
             }
         }
         // ISO §14.9.27.4 GR20 — one implicit OPEN statement per file-name, in source order, each carrying its own

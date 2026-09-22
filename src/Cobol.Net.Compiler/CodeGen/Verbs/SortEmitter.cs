@@ -219,12 +219,12 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch,
         {
             var (retryKind, retryAmount) = seqIo.RenderRetry(null);
             w.Line($"{RuntimeApi.FileOpenShared(f, $"{RuntimeApi.FileOpenModeExpr(mode)}, true, "
-                + $"{SequentialIoEmitter.RuntimeSharing(sm)}, {retryKind}, {retryAmount}, false, {elementArgs}")};"
+                + $"{SequentialIoEmitter.RuntimeSharing(sm)}, {retryKind}, {retryAmount}, OpenTapePhrase.None, {elementArgs}")};"
                 + $"   // {ruleComment}");
         }
         else
         {
-            w.Line($"{RuntimeApi.FileOpen(f, mode, noRewind: false, elementArgs)};   // {ruleComment}");
+            w.Line($"{RuntimeApi.FileOpen(f, mode, Binding.Bound.BoundOpenTapePhrase.None, elementArgs)};   // {ruleComment}");
         }
         seqIo.EmitStoreFileStatus(file);   // §9.1.13.1 / §12.4.5.8.4 GR1 — before the declarative, not after it
         // A failed implicit OPEN reaches a USE declarative (GR12a / GR15a); one that does not complete normally

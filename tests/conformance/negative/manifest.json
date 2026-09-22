@@ -1013,6 +1013,8 @@
   "pb303_as_method_id_literal",
   "pb317-open-norewind-relative",
   "pb317-open-norewind-extend",
+  "pb668-open-reversed-organization",
+  "pb668-open-reversed-output",
   "pb325-start-random-access",
   "pb331-read-key-before-lock",
   "pb331-read-two-from-one-lock-bracket",

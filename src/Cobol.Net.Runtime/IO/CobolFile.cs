@@ -77,13 +77,16 @@ public static class CobolFile
     public static void OpenIO(string name, string assign, bool assignDynamic, LinagePage? page)
         => _reg.Open(name, FileOpenMode.IO, assign, assignDynamic, page);
 
-    /// <summary>OPEN … WITH NO REWIND (ISO §14.9.27) — the OPEN twin of <see cref="CloseNoRewind"/>. It takes
-    /// the mode rather than splitting into four mode-specific entries because §14.9.27.3 SR6 admits only INPUT
-    /// and OUTPUT and the phrase's effect (§14.9.27.4 GR11) does not depend on which of them was written; the
-    /// medium determination itself belongs to <see cref="PhysicalFileCategory"/>, not to this facade
-    /// (kb/Work PB317).</summary>
-    public static void OpenNoRewind(string name, FileOpenMode mode, string assign, bool assignDynamic, LinagePage? page)
-        => _reg.OpenNoRewind(name, mode, assign, assignDynamic, page);
+    /// <summary>⛔ THE ONE WRITTEN-FORM OPEN ENTRY for a file-name carrying a §14.9.27.2 TAPE PHRASE — WITH NO
+    /// REWIND (the OPEN twin of <see cref="CloseNoRewind"/>) and COBOL-85's REVERSED. It takes the mode rather
+    /// than splitting into mode-specific entries because neither phrase's effect depends on WHICH admitted mode
+    /// was written, and it takes the phrase as ONE enum rather than a bool per phrase for the reason
+    /// <see cref="OpenTapePhrase"/> states: a per-phrase parameter is what let REVERSED stay unread for a year
+    /// after NO REWIND got one (kb/Work PB317, kb/Work PB668). The medium determination itself belongs to
+    /// <see cref="PhysicalFileCategory"/>, not to this facade.</summary>
+    public static void OpenTape(string name, FileOpenMode mode, OpenTapePhrase tape, string assign,
+        bool assignDynamic, LinagePage? page)
+        => _reg.OpenTape(name, mode, tape, assign, assignDynamic, page);
 
     /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
     public static void Close(string name) => _reg.Close(name);
@@ -125,8 +128,9 @@ public static class CobolFile
     // ⛔ No ungoverned READ / REWRITE / BEFORE-AND-AFTER-WRITE entry exists on this facade any more, and none may
     // come back (kb/Work PB683): the emitted code reaches those verbs ONLY through ReadShared / RewriteShared /
     // WriteShared, which decide record-lock governance where the OPEN statement's own SHARING phrase is visible
-    // (§9.1.15) and fall through to the identical plain body when the connector is not sharing-active. The
-    // physical bodies live on the connectors, reached from those governed entries. `Write` and `WriteAdvancing`
+    // (§9.1.15) and govern EVERY connector — a miss on the posture map is §12.4.5.9.4 GR1 b) 2.'s implementor
+    // default, not an ungoverned path (kb/Work PB669). The physical bodies live on the connectors, reached from
+    // those governed entries. `Write` and `WriteAdvancing`
     // survive as the physical layer the runtime's own report writer and the unit tests drive directly.
 
     /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
@@ -221,11 +225,12 @@ public static class CobolFile
     public static void RegisterSharing(string name, FileSharing? sharing, FileLockMode lockMode, bool multiple)
         => _reg.RegisterSharing(name, sharing, lockMode, multiple);
 
-    /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27). <paramref name="noRewind"/>
-    /// carries the independent WITH NO REWIND phrase, which a sharing-phrase OPEN may also write.</summary>
+    /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27). <paramref name="tape"/>
+    /// carries the independent per-file-name TAPE PHRASE, which a sharing-phrase OPEN may also write
+    /// (§14.9.27.2 prints both in one general format).</summary>
     public static void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount, bool noRewind, string assign, bool assignDynamic, LinagePage? page)
-        => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, noRewind,
+        FileRetryKind retryKind, int retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic, LinagePage? page)
+        => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, tape,
             assign, assignDynamic, page);
 
     /// <summary>The ONE governed FORMAT-2 (random) keyed READ — relative and indexed (§9.1.16 /

@@ -15,6 +15,27 @@ public enum FileOpenMode
     IO,
 }
 
+/// <summary>⛔ THE PER-FILE-NAME TAPE PHRASE of one OPEN group — the alternation ISO §14.9.27.2 prints beside
+/// each file-name, <c>[ WITH NO REWIND ]</c> in 2023 and <c>[ REVERSED | WITH NO REWIND ]</c> at COBOL-85
+/// (VERSION_CHANGE_REFERENCE row 7.12 records REVERSED's deletion by ISO 2002).
+/// <para>ONE enum, never one bool per phrase: the grammar makes the alternatives mutually exclusive, and the
+/// run-time effect of each is then an ARM of one switch in <c>FileRegistry.OpenCore</c> rather than an
+/// independent parameter each entry point has to remember to thread. That is not a style preference — the
+/// second phrase was DROPPED for exactly as long as the first one had a parameter of its own (kb/Work PB668
+/// after kb/Work PB317).</para></summary>
+public enum OpenTapePhrase
+{
+    /// <summary>No tape phrase was written for this file-name.</summary>
+    None,
+    /// <summary>WITH NO REWIND — §14.9.27.4 GR11/GR12; on this compiler's only medium category (a) Non-unit it
+    /// is ignored and the successful OPEN reports '07' (§9.1.13.2 item 6).</summary>
+    NoRewind,
+    /// <summary>REVERSED — the COBOL-85 phrase: the file is positioned at its END and every subsequent READ
+    /// retrieves the PRECEDING record, the at end condition arising at the file's first record. Legal source
+    /// only at <c>--std 85</c>; the edition gate is <c>open-reversed-removed-2002</c> (COBOLNET0902).</summary>
+    Reversed,
+}
+
 /// <summary>The file-sharing mode of a connector (ISO/IEC 1989:2023 §9.1.15; the SHARING clause §12.4.5.15 / the
 /// OPEN SHARING phrase §14.9.27). Governs whether OTHER connectors may open the same physical file (§14.9.27.4
 /// <see cref="Table19"/> → status '61'). These three members are the whole of what §9.1.15 specifies — <i>"The

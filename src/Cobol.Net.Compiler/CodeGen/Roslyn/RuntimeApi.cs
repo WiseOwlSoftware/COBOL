@@ -907,9 +907,14 @@ internal static class RuntimeApi
     // establishing the sharing mode". No property of the file control entry or of the statement can see it, so
     // an emitter that CHOOSES between a governed and an ungoverned entry is guessing. It guessed wrong for every
     // connector opened `SHARING WITH READ ONLY` / `NO OTHER` by the OPEN's own phrase, which then read a record
-    // another connector had locked with '00' where §14.9.30.4 GR9/GR10 b) require '51'. The governed entries all
-    // fall through to the identical plain body on a `_connectorShares` miss, so there is nothing to choose:
-    // render the governed one and let the runtime, one layer down, decide where the OPEN is visible.
+    // another connector had locked with '00' where §14.9.30.4 GR9/GR10 b) require '51'. So there is nothing to
+    // choose: render the governed one and let the runtime, one layer down, decide where the OPEN is visible.
+    // ⛔ AND THE RUNTIME NO LONGER "FALLS THROUGH TO THE PLAIN BODY" ON A `_connectorShares` MISS — that
+    // sentence stood here while it was the SAME defect one layer down (kb/Work PB669): a connector with no
+    // SHARING and no LOCK MODE clause never consulted the physical file's lock table, so it read, rewrote and
+    // DELETED records another connector held locked. `FileRegistry.ShareOf` now gives a miss the
+    // §12.4.5.9.4 GR1 b) 2. implementor default and the governed body runs for EVERY connector; only lock
+    // ACQUISITION is still gated, by `LocksEffective`.
     // ⛔ The same rule holds for a verb's SHAPE: the ADVANCING phrase rides INSIDE FileWriteShared as a
     // `WriteAdvance` argument. FileWriteAdvancing/FileWriteBeforeAndAfter existed as separate renderers, and
     // because neither entry has a lock or RETRY parameter, `WRITE R AFTER ADVANCING 1 LINE WITH LOCK` — one
@@ -1033,14 +1038,16 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenShared)}({name}, {argsFragment})";
 
     /// <summary>The mode-specific plain OPEN — anchored over <c>CobolFile.Open{Input,Output,Extend,IO}</c>.
-    /// <para><paramref name="noRewind"/> = the file-name carried the <c>WITH NO REWIND</c> phrase, which routes
-    /// to the ONE written-form entry <c>CobolFile.OpenNoRewind</c> instead (§14.9.27.4 GR11 — the runtime owns
-    /// the medium test, exactly as it owns Table 14's for CLOSE). §14.9.27.3 SR6 confines the phrase to INPUT
-    /// and OUTPUT, so the mode still travels and the runtime never has to re-derive it (kb/Work PB317).</para></summary>
-    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode, bool noRewind, string elementArgs)
+    /// <para><paramref name="tape"/> = the file-name's §14.9.27.2 tape phrase, which routes to the ONE
+    /// written-form entry <c>CobolFile.OpenTape</c> instead (§14.9.27.4 GR11 for NO REWIND, the COBOL-85
+    /// backward retrieval for REVERSED — the runtime owns the medium test and the positioning, exactly as it
+    /// owns Table 14's for CLOSE). The mode still travels, so the runtime never has to re-derive it
+    /// (kb/Work PB317, kb/Work PB668).</para></summary>
+    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode,
+        Binding.Bound.BoundOpenTapePhrase tape, string elementArgs)
     {
-        if (noRewind)
-            return $"{nameof(CobolFile)}.{nameof(CobolFile.OpenNoRewind)}({name}, {FileOpenModeExpr(mode)}, {elementArgs})";
+        if (tape is not Binding.Bound.BoundOpenTapePhrase.None)
+            return $"{nameof(CobolFile)}.{nameof(CobolFile.OpenTape)}({name}, {FileOpenModeExpr(mode)}, {OpenTapePhraseExpr(tape)}, {elementArgs})";
         return $"{nameof(CobolFile)}.{mode switch
         {
             Binding.Bound.BoundOpenMode.Output => nameof(CobolFile.OpenOutput),
@@ -1050,8 +1057,21 @@ internal static class RuntimeApi
         }}({name}, {elementArgs})";
     }
 
+    /// <summary>⛔ THE ONE rendering of a bound tape phrase as the runtime <c>OpenTapePhrase</c> member — the
+    /// plain entry and the sharing entry share it, because §14.9.27.2 puts the SHARING/RETRY phrases and the
+    /// per-file-name tape phrase in one general format and a statement may write both (kb/Work PB317/PB668).
+    /// The two enums are deliberately separate types — the bound tree is backend-neutral — and this is the ONE
+    /// seam between them, so a new tape phrase is a member on each side and one arm here.</summary>
+    public static string OpenTapePhraseExpr(Binding.Bound.BoundOpenTapePhrase tape) =>
+        $"{nameof(OpenTapePhrase)}.{tape switch
+        {
+            Binding.Bound.BoundOpenTapePhrase.NoRewind => nameof(OpenTapePhrase.NoRewind),
+            Binding.Bound.BoundOpenTapePhrase.Reversed => nameof(OpenTapePhrase.Reversed),
+            _ => nameof(OpenTapePhrase.None),
+        }}";
+
     /// <summary>⛔ THE ONE rendering of a bound open mode as the runtime <c>FileOpenMode</c> member — the
-    /// sharing entry, the NO REWIND entry and any future one share it, so a new mode cannot reach one caller
+    /// sharing entry, the tape-phrase entry and any future one share it, so a new mode cannot reach one caller
     /// and miss another (the emitter used to carry its own copy of this switch inline).</summary>
     public static string FileOpenModeExpr(Binding.Bound.BoundOpenMode mode) =>
         $"{nameof(FileOpenMode)}.{mode switch

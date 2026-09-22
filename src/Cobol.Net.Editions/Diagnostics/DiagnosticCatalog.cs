@@ -495,6 +495,25 @@ public static class DiagnosticCatalog
         + "rule by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the phrase "
         + "talks about. The phrase used to be parsed and dropped, so every mode accepted it silently.",
         "ISO §14.9.27.3");
+    public static readonly DiagnosticDescriptor OpenReversedOrganization = new(
+        "COBOLNET2210", "open-reversed-organization", EditionSeverity.Error,
+        "An OPEN statement's REVERSED phrase on a file whose organization is not RECORD sequential. REVERSED "
+        + "is the COBOL-85 tape phrase ISO 2002 deleted (VERSION_CHANGE_REFERENCE row 7.12), so it is legal "
+        + "source only at --std 85, where its general format writes it beside WITH NO REWIND in the repeated "
+        + "file-name group of the OPEN statement. The phrase positions the file at its end and makes every "
+        + "subsequent READ retrieve the PREVIOUS record, which is the backward walk ISO §14.9.30.4 GR21 c) "
+        + "defines and §14.9.30.3 SR7 denies to LINE SEQUENTIAL organization — so the phrase is admitted for "
+        + "record sequential organization alone, one narrower step than its sibling WITH NO REWIND "
+        + "(open-norewind-organization, §14.9.27.3 SR5, which §9.1.7.2 lets reach both sequential kinds).",
+        "ISO §14.9.30.3");
+    public static readonly DiagnosticDescriptor OpenReversedOpenMode = new(
+        "COBOLNET2211", "open-reversed-open-mode", EditionSeverity.Error,
+        "An OPEN statement's REVERSED phrase in an OUTPUT, I-O or EXTEND group. REVERSED is the COBOL-85 tape "
+        + "phrase ISO 2002 deleted (VERSION_CHANGE_REFERENCE row 7.12); COBOL-85's OPEN general format writes "
+        + "it in the INPUT group only, and the phrase's whole effect is a retrieval direction, which the three "
+        + "other modes have no READ to apply it to. The sibling rule for WITH NO REWIND is "
+        + "open-norewind-open-mode (ISO §14.9.27.3 SR6, INPUT or OUTPUT).",
+        "VCR Table 7 row 7.12 (X3.23-1985 OPEN … REVERSED)");
     public static readonly DiagnosticDescriptor ReadIgnoringWithLock = new(
         "COBOLNET1818", "read-ignoring-with-lock", EditionSeverity.Error,
         "A READ statement specifies both the IGNORING LOCK phrase and the LOCK phrase: \"The LOCK phrase shall "

@@ -288,7 +288,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitOpen(BoundOpen o)
     {
         var w = ctx.Writer;
-        foreach (var (file, mode, sharing, retry, noRewind, unsupported) in o.Files)
+        foreach (var (file, mode, sharing, retry, tape, unsupported) in o.Files)
         {
             if (unsupported is { } u) { w.Line(LoudStmt(u)); continue; }
             // ⛔ PER FILE, NOT PER STATEMENT. §14.9.27.4 GR20 makes a multi-group OPEN equal to one separate
@@ -308,16 +308,16 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 var (retryKind, retryAmount) = RenderRetry(retry);
                 string shHas = sharing is not null ? "true" : "false";
                 string shVal = sharing is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
-                // ⛔ THE NO REWIND PHRASE TRAVELS ON BOTH ARMS. SHARING/RETRY and NO REWIND are independent
-                // phrases of one general format (§14.9.27.2), so an OPEN may carry both; a phrase honoured on
-                // only the plain arm would report '07' for `OPEN INPUT F WITH NO REWIND` and '00' for the same
-                // statement once a SHARING phrase was added — the two-arm dispatch this whole item is an
-                // instance of (kb/Work PB317).
-                w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}, {(noRewind ? "true" : "false")}, {ExecutingElementArgs(file)}")};");
+                // ⛔ THE TAPE PHRASE TRAVELS ON BOTH ARMS. SHARING/RETRY and the per-file-name tape phrase are
+                // independent phrases of one general format (§14.9.27.2), so an OPEN may carry both; a phrase
+                // honoured on only the plain arm would report '07' for `OPEN INPUT F WITH NO REWIND` and '00'
+                // for the same statement once a SHARING phrase was added — the two-arm dispatch this whole
+                // item is an instance of (kb/Work PB317), and the same hole swallowed REVERSED (kb/Work PB668).
+                w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}, {RuntimeApi.OpenTapePhraseExpr(tape)}, {ExecutingElementArgs(file)}")};");
             }
             else
             {
-                w.Line($"{RuntimeApi.FileOpen(FileKeyExpr(file), mode, noRewind, ExecutingElementArgs(file))};");
+                w.Line($"{RuntimeApi.FileOpen(FileKeyExpr(file), mode, tape, ExecutingElementArgs(file))};");
             }
             EmitStoreFileStatus(file);
             EmitUseHook(file);   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)
@@ -466,9 +466,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // print-control arms rendered `WriteAdvancing`/`WriteBeforeAndAfter`, which have no lock or RETRY
         // parameter, so `WRITE R AFTER ADVANCING 1 LINE WITH LOCK RETRY 5 TIMES` — one legal statement of
         // §14.9.51.2's Format 1, which prints the ADVANCING phrase, the retry-phrase and the WITH LOCK bracket
-        // together — silently dropped both phrases. UNCONDITIONAL: the runtime falls through to the same plain
-        // body for a connector that is not sharing-active, which is the decision made where the OPEN's own
-        // SHARING phrase is visible (§9.1.15). Status lands on the connector either way.
+        // together — silently dropped both phrases. UNCONDITIONAL: the decision is made where the OPEN's own
+        // SHARING phrase is visible (§9.1.15), and the runtime body governs every connector (kb/Work PB669).
+        // Status lands on the connector either way.
         var (retryKind, retryAmount) = RenderRetry(wr.Retry);
         string lenArg = VaryingLengthArg(wr.File) ?? "-1";
         w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr))};");
@@ -591,8 +591,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // §9.1.16 record locking on the sequential organization (P10 Step 8): EVERY READ routes through the
         // governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9, FPI unchanged on a
         // 51 per GR10a), the GR11 lock discipline, and the GR22 ADVANCING ON LOCK skip-scan. Unconditional
-        // (kb/Work PB683): the runtime falls through to the plain retrieval for a connector that is not
-        // sharing-active, and only the runtime can see an OPEN statement's own SHARING phrase (§9.1.15).
+        // (kb/Work PB683): only the runtime can see an OPEN statement's own SHARING phrase (§9.1.15), and it
+        // governs the retrieval for EVERY connector — §9.1.16 makes a locked record inaccessible to another file
+        // connector whatever that connector's own LOCK MODE clause says (kb/Work PB669).
         // §14.9.30.4 GR19's read kind rides INSIDE that one call as the direction of the retrieval; GR21's
         // sequential-file rules b)/c) then select the record NUMBER from it (kb/Work PB334). With one call shape
         // there is no longer a second place to drop it — which is how `READ … PREVIOUS` became a forward read.
@@ -635,8 +636,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string image = OperandText.RecordAreaImage(rw.Record);   // THE ONE record-area channel (kb/Work PB327)
         // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
         // entry — the pre-operation conflict check on the last-read record (51 leaves the record unrewritten)
-        // and the GR12 lock discipline. Unconditional (kb/Work PB683): the runtime falls through to the plain
-        // body for a connector that is not sharing-active. The status lands on the connector either way.
+        // and the GR12 lock discipline. Unconditional (kb/Work PB683), and the runtime body governs every
+        // connector, opted in or not (kb/Work PB669). The status lands on the connector either way.
         var (retryKind, retryAmount) = RenderRetry(rw.Retry);
         string rwLenArg = VaryingLengthArg(rw.File) ?? "-1";
         w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");

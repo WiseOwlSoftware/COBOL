@@ -523,7 +523,7 @@ public sealed class CobolFileLockTests
         // SUBJECT — the rendering GR15 a) names, argument for argument as SortEmitter emits it.
         TwoSharers();
         CobolFile.OpenShared("GA", FileOpenMode.Output, hasSharingOverride: true, FileSharing.NoOther,
-            FileRetryKind.None, 0, noRewind: false, host, assignDynamic: false, page: null);
+            FileRetryKind.None, 0, tape: OpenTapePhrase.None, host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.Success, CobolFile.Status("GA"));
         // Table 19's "sharing with no other / extend I-O input output" column is Unsuccessful open in EVERY row,
         // so no second connector gets in, in any mode — §9.1.13.9 item 1 → '61'.
@@ -568,8 +568,90 @@ public sealed class CobolFileLockTests
         // open; §9.1.15 2) says it in words: read only "will be unsuccessful if the physical file is associated
         // with another file connector whose open mode is other than input".
         CobolFile.OpenShared("UA", FileOpenMode.Input, hasSharingOverride: true, FileSharing.ReadOnly,
-            FileRetryKind.None, 0, noRewind: false, host, assignDynamic: false, page: null);
+            FileRetryKind.None, 0, tape: OpenTapePhrase.None, host, assignDynamic: false, page: null);
         Assert.Equal(FileStatusCode.FileSharingConflict, CobolFile.Status("UA"));
         CobolFile.Close("UB");
+    }
+
+    /// <summary>
+    /// ⛔ THE CROSS-CONNECTOR MATRIX (kb/Work PB669): a locked record is inaccessible to a file connector
+    /// that declared NO SHARING clause and NO LOCK MODE clause, because ISO §9.1.16 states the rule over the
+    /// RECORD and the OTHER connector with no qualification on the reading connector at all — <i>"While locked
+    /// by a given file connector, a record is not accessible to another file connector in the same or a
+    /// different run unit, except by the execution of a READ statement with the IGNORING LOCK phrase."</i>
+    /// §12.4.5.9.4 GR1 a) and b) 1. restrict a clause-less connector only from SETTING locks, and GR1 b) 2.
+    /// leaves its lock mode to the implementor, whose determination here is <c>FileLockMode.None</c>.
+    /// <para>Every governed verb that states the record operation conflict is driven, because the defect was
+    /// ONE early return copied into each of them: §14.9.30.4 GR9 (both READ formats), §14.9.35.4 GR11
+    /// (REWRITE) and §14.9.10.4 GR6 (DELETE). The pre-fix answer was '00' for every one of them, and the
+    /// DELETE actually REMOVED the locked record.</para>
+    /// <para>THREE CONTROLS, so the assertions cannot pass for a runtime that simply refuses everything:
+    /// §14.9.30.4 GR12's IGNORING LOCK still reads the record; an UNLOCKED record of the SAME physical file is
+    /// still available through the plain connector (GR9 names the record IDENTIFIED for access); and the
+    /// REVERSE direction holds — the plain connector SETS no lock, so the MANUAL connector reads the record
+    /// the plain one just read with no conflict, which is GR1 b) 2.'s determination being honoured rather than
+    /// the check being applied symmetrically by accident.</para>
+    /// </summary>
+    [Fact]
+    public void PlainConnector_SeesAnothersRecordLock_ButSetsNone_9_1_16()
+    {
+        CobolFile.Init();
+        const string host = "pb669-visibility.dat";
+        CobolFile.RegisterRelative("VA", host, 5, false, Random, 4);
+        CobolFile.RegisterRelative("VB", host, 5, false, Random, 4);
+        // VA declares the posture; VB declares NOTHING — no RegisterSharing call at all, which is exactly what
+        // the emitter omits for a SELECT with neither clause.
+        CobolFile.RegisterSharing("VA", FileSharing.AllOther, FileLockMode.Manual, false);
+        CobolFile.OpenOutput("VB", host, assignDynamic: false, page: null);
+        CobolFile.SetRelativeKey("VB", 1);
+        Assert.Equal(FileStatusCode.Success, CobolFile.WriteKeyed("VB", "ALPHA"));
+        CobolFile.SetRelativeKey("VB", 2);
+        Assert.Equal(FileStatusCode.Success, CobolFile.WriteKeyed("VB", "BRAVO"));
+        CobolFile.Close("VB");
+        CobolFile.OpenIO("VA", host, assignDynamic: false, page: null);
+        CobolFile.OpenIO("VB", host, assignDynamic: false, page: null);
+
+        // VA locks record 1 (§14.9.30.4 GR11 d) — manual locking, the LOCK phrase written).
+        CobolFile.SetRelativeKey("VA", 1);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("VA", -1, "", FileRecordLock.WithLock, false, FileRetryKind.None, 0, out _));
+
+        // SUBJECT — the three conflict rules, through the clause-less connector.
+        CobolFile.SetRelativeKey("VB", 1);
+        Assert.Equal(FileStatusCode.RecordLocked,              // §14.9.30.4 GR9
+            CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out _));
+        CobolFile.SetRelativeKey("VB", 1);
+        Assert.Equal(FileStatusCode.RecordLocked,              // §14.9.35.4 GR11
+            CobolFile.RewriteShared("VB", "ZULU ", -1, FileRecordLock.None, FileRetryKind.None, 0));
+        CobolFile.SetRelativeKey("VB", 1);
+        Assert.Equal(FileStatusCode.RecordLocked,              // §14.9.10.4 GR6
+            CobolFile.DeleteShared("VB", "", FileRetryKind.None, 0));
+
+        // CONTROL 1 — §14.9.30.4 GR12: IGNORING LOCK still makes the record available.
+        CobolFile.SetRelativeKey("VB", 1);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, true, FileRetryKind.None, 0, out string ign));
+        Assert.Equal("ALPHA", ign);
+
+        // CONTROL 2 — an UNLOCKED record of the same physical file is unaffected.
+        CobolFile.SetRelativeKey("VB", 2);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out string two));
+        Assert.Equal("BRAVO", two);
+
+        // CONTROL 3 — the REVERSE direction: §12.4.5.9.4 GR1 b) 2.'s implementor default is NO record locking,
+        // so VB's read of record 2 left no lock and VA reads it freely.
+        CobolFile.SetRelativeKey("VA", 2);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("VA", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out _));
+
+        // And the record VA holds is released by UNLOCK (§14.9.47 GR1), after which VB reads it.
+        CobolFile.Unlock("VA", false);
+        CobolFile.SetRelativeKey("VB", 1);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("VB", -1, "", FileRecordLock.None, false, FileRetryKind.None, 0, out string after));
+        Assert.Equal("ALPHA", after);
+        CobolFile.Close("VA");
+        CobolFile.Close("VB");
     }
 }

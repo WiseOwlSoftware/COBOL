@@ -85,7 +85,48 @@ public sealed class SequentialConnector : FileConnector
     /// method: a START-established indicator is INCLUSIVE, so rule b would then have to select the started-at
     /// record itself in either direction rather than ordinal 1.</para></summary>
     internal long TargetReadOrdinal(bool previous) =>
-        !previous || _readOrdinal == 0 ? _readOrdinal + 1 : _readOrdinal - 1;
+        !MovesBackward(previous) || _readOrdinal == 0 ? _readOrdinal + 1 : _readOrdinal - 1;
+
+    /// <summary>⛔ THE ONE CONVERSION of a READ statement's direction phrase into this connector's physical
+    /// direction of travel — §14.9.30.4 GR19's read kind XOR the COBOL-85 REVERSED phrase's standing reversal
+    /// (<see cref="Reversed"/>). Every direction-sensitive member asks THIS and nothing else, so the phrase
+    /// cannot be honoured by the retrieval and missed by the §14.9.30.4 GR9 pre-read peek.
+    /// <para>XOR rather than a special case because REVERSED presents the file in reverse: PREVIOUS on a
+    /// REVERSED file means back toward the reversed file's beginning, which is the physical end. The two can
+    /// never actually co-occur in conforming source — REVERSED is COBOL-85 only and PREVIOUS is a COBOL-2002
+    /// introduction — so the generalization costs nothing and leaves no undefined combination for
+    /// <c>--permissive</c> to fall into (kb/Work PB668).</para></summary>
+    private bool MovesBackward(bool previous) => previous ^ Reversed;
+
+    /// <summary>The COBOL-85 <c>OPEN INPUT … REVERSED</c> standing reversal: while set, every READ of this
+    /// connector travels in the opposite direction to the one its statement names. Established by
+    /// <see cref="PositionReversed"/> after a successful OPEN and cleared by every OPEN, so it can never
+    /// outlive the opening that wrote the phrase.</summary>
+    internal bool Reversed { get; private set; }
+
+    /// <summary>Apply <c>OPEN INPUT … REVERSED</c> (COBOL-85; VERSION_CHANGE_REFERENCE row 7.12) to a connector
+    /// whose OPEN has just succeeded: the file is positioned at its END and retrieval runs backward, so the
+    /// first READ makes the LAST record available and the at end condition arises at the first record.
+    /// <para>The position is expressed in the SAME file position indicator §14.9.30.4 GR21 is written over —
+    /// one past the last record — so GR21 rule c)'s decreasing arm selects the last record and rule e)'s
+    /// "no record is found" is the at-end at ordinal 0. A file with no records leaves the indicator at 0, GR21
+    /// rule b)'s own value, and the first READ then takes the ordinary empty-file at-end path.</para>
+    /// <para>The count is <see cref="ExistingRecordCount"/> — the ONE measurement of how many records the
+    /// physical file holds, shared with the §14.9.51.4 GR19 EXTEND ordinal base, never a second walk. A medium
+    /// that cannot be positioned (LINE SEQUENTIAL, a non-seekable stream) leaves the indicator at 0 and the
+    /// first backward READ reports the permanent error <see cref="SeekToOrdinal"/> already answers with — the
+    /// same posture <c>READ … PREVIOUS</c> takes, and unreachable from conforming source because COBOLNET2210
+    /// screens the organization at bind time.</para></summary>
+    internal void PositionReversed()
+    {
+        Reversed = true;
+        // ⛔ THE ONE PRESENCE ANSWER PER OPEN (kb/Work PB323): OptionalAbsent is what the OPEN's own probe
+        // concluded, so this never runs a second File.Exists — which would also answer FALSE for a file that
+        // is present but refused. A non-optional absent file never reaches here at all: its OPEN INPUT is
+        // '35' and §14.9.27.4 GR25 a) sends ReversedPhraseEffect home before it calls this.
+        long n = OptionalAbsent ? 0 : ExistingRecordCount();
+        _readOrdinal = n > 0 ? n + 1 : 0;
+    }
 
     /// <inheritdoc/>
     /// <remarks>The record sequential organization's §14.9.30.4 GR9 pre-read conflict target: the ordinal
@@ -731,6 +772,10 @@ public sealed class SequentialConnector : FileConnector
         _lastLineBytes = 0;
         _lastReadLinePartial = false;
         _readOrdinal = 0;
+        // ⛔ CLEARED BY EVERY OPEN, so a COBOL-85 REVERSED opening cannot outlive itself: the phrase belongs to
+        // the OPEN statement that wrote it, and ReversedPhraseEffect re-establishes it AFTER this body runs
+        // (kb/Work PB668). Without this, `OPEN INPUT F REVERSED. CLOSE F. OPEN INPUT F.` read backward.
+        Reversed = false;
         _varyingStarts = null;   // rebuilt on demand against THIS open's physical file
         // §9.1.16 record-lock identity: this connector has released nothing yet. The MINT lives on the shared
         // physical-file state (kb/Work PB739), and only the OUTPUT and EXTEND arms below touch it — INPUT and
@@ -1085,9 +1130,11 @@ public sealed class SequentialConnector : FileConnector
         // backward read is a REPOSITION to that ordinal followed by the ordinary physical read. Rule e) — "If no
         // record is found that satisfies the above rules, the at end condition exists" — is the target-below-1
         // arm; §14.9.30.4 GR24 then sets '10' and the AT END imperative runs, exactly as it does at EOF.
-        if (previous)
+        // The direction is the statement's phrase through MovesBackward, so COBOL-85's OPEN … REVERSED reaches
+        // the SAME reposition rather than a second backward walk of its own (kb/Work PB668).
+        if (MovesBackward(previous))
         {
-            long target = TargetReadOrdinal(true);
+            long target = TargetReadOrdinal(previous);   // the STATEMENT's phrase — MovesBackward owns the XOR
             if (target < 1) { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }   // GR21 e
             // §14.9.30.4 GR20 — "If the PREVIOUS phrase is specified, the physical file associated with the file
             // connector referenced by file-name-1 shall be a single reel/unit mass storage file." A stream that

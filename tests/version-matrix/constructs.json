@@ -1405,10 +1405,10 @@
   },
   {
    "id": "open-reversed-removed-2002",
-   "description": "OPEN … REVERSED — obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives into 2023 §14.9.26); P2.6 gate.",
+   "description": "OPEN … REVERSED — obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives into 2023 §14.9.27); P2.6 gate.",
    "display": "the OPEN REVERSED phrase",
    "diagnosticCode": "COBOLNET0902",
-   "citation": "obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives, §14.9.26); VCR Table 7",
+   "citation": "obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives, §14.9.27); VCR Table 7",
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOLNET0902",

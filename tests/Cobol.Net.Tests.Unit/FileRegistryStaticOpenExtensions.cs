@@ -24,7 +24,12 @@ internal static class FileRegistryStaticOpenExtensions
     public static void OpenStatic(this FileRegistry reg, string name, FileOpenMode mode) =>
         reg.Open(name, mode, reg.HostPathOf(name), assignDynamic: false, page: null);
 
+    /// <summary>OPEN with a §14.9.27.2 tape phrase, the connector's own static association and no LINAGE
+    /// page.</summary>
+    public static void OpenTapeStatic(this FileRegistry reg, string name, FileOpenMode mode, OpenTapePhrase tape) =>
+        reg.OpenTape(name, mode, tape, reg.HostPathOf(name), assignDynamic: false, page: null);
+
     /// <summary>OPEN … WITH NO REWIND with the connector's own static association and no LINAGE page.</summary>
     public static void OpenNoRewindStatic(this FileRegistry reg, string name, FileOpenMode mode) =>
-        reg.OpenNoRewind(name, mode, reg.HostPathOf(name), assignDynamic: false, page: null);
+        reg.OpenTapeStatic(name, mode, OpenTapePhrase.NoRewind);
 }

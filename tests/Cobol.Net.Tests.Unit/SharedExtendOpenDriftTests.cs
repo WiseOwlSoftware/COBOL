@@ -81,7 +81,7 @@ public sealed class SharedExtendOpenDriftTests
                 // No SELECT clause: the phrase on the OPEN is what makes it a participant. READ ONLY, not ALL
                 // — §14.9.27.3 SR8, see the enum member.
                 reg.OpenShared(name, mode, hasSharingOverride: true, FileSharing.ReadOnly,
-                    FileRetryKind.None, 0, noRewind: false, reg.HostPathOf(name), assignDynamic: false, page: null);
+                    FileRetryKind.None, 0, tape: OpenTapePhrase.None, reg.HostPathOf(name), assignDynamic: false, page: null);
                 return reg.Status(name);
         }
         reg.OpenStatic(name, mode);

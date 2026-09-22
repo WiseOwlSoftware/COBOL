@@ -1354,17 +1354,34 @@ public sealed record BoundUnlock(FileModel File, bool Records) : BoundStatement;
 /// arm — "If there is no SHARING phrase on the OPEN statement, then file sharing is completely specified in the
 /// file control entry" — so a null here shall reach the runtime as the file-control clause, NOT as a sibling
 /// group's phrase. <see cref="Retry"/> is this group's RETRY phrase (§14.7.9) or null.</para>
-/// <para><see cref="NoRewind"/> = the <c>WITH NO REWIND</c> phrase was written for THIS file-name. The tuple
-/// this record replaced could not carry the phrase at all, which is why it parsed and was then dropped:
-/// <see cref="BoundClose"/>'s per-file <see cref="BoundCloseKind"/> had the CLOSE half of the very same phrase
-/// and the OPEN half had no field to land in (kb/Work PB317 — the two-arm dispatch with one arm fixed).</para>
+/// <para><see cref="Tape"/> = the ONE per-file-name TAPE PHRASE written for THIS file-name — §14.9.27.2's
+/// <c>{ file-name-1 [ WITH NO REWIND ] } …</c> group, which at COBOL-85 printed <c>[ REVERSED | WITH NO REWIND ]</c>
+/// (VERSION_CHANGE_REFERENCE row 7.12 records REVERSED's deletion at 2002) and which the superset grammar still
+/// parses as one alternation, <c>openFileSpec : dataReference (REVERSED | WITH? NO REWIND)?</c>. It is an ENUM and
+/// not one bool per phrase because the grammar makes the two MUTUALLY EXCLUSIVE, and a second bool is a second
+/// place for the next tape phrase to be forgotten: the tuple this record replaced could not carry a phrase at all,
+/// which is why NO REWIND parsed and was then dropped (kb/Work PB317), and REVERSED was still being dropped after
+/// PB317 gave NO REWIND a field of its own (kb/Work PB668 — the two-arm dispatch with one arm fixed, one layer up).
+/// <see cref="BoundClose"/>'s per-file <see cref="BoundCloseKind"/> is the same shape for the CLOSE half.</para>
 /// <para>An unsupported organization carries a loud <see cref="Unsupported"/> reason so the file opens to a
 /// runtime not-implemented guard.</para>
 /// <para>A <c>readonly record struct</c>, not a class: it is the per-file-name PAYLOAD of one statement node,
 /// never a polymorphic bound node, and it replaced a <c>ValueTuple</c> in the same list — so the value shape
 /// keeps the binder's allocation profile at one list rather than one object per opened file-name.</para></summary>
 public readonly record struct BoundOpenFile(FileModel File, BoundOpenMode Mode, SharingMode? Sharing,
-    RetrySpec? Retry, bool NoRewind, string? Unsupported);
+    RetrySpec? Retry, BoundOpenTapePhrase Tape, string? Unsupported);
+
+/// <summary>The per-file-name TAPE PHRASE of one OPEN group — the alternation
+/// <c>[ REVERSED | WITH NO REWIND ]</c> that COBOL-85's OPEN general format printed beside each file-name and
+/// that the superset grammar still parses as <c>openFileSpec : dataReference (REVERSED | WITH? NO REWIND)?</c>.
+/// ⛔ ONE enum, never one bool per phrase: the grammar makes the alternatives mutually exclusive, and the
+/// per-phrase syntax screens and the per-phrase run-time effect are then a TABLE over these members rather than
+/// a chain of independent tests each of which can be forgotten (kb/Work PB668).
+/// <para><see cref="NoRewind"/> survives into COBOL-2023 (§14.9.27.2, §14.9.27.4 GR11/GR12);
+/// <see cref="Reversed"/> was deleted by ISO 2002 and is legal source only at <c>--std 85</c>, where
+/// <c>VersionConformancePass</c>'s <c>open-reversed-removed-2002</c> gate admits it
+/// (VERSION_CHANGE_REFERENCE row 7.12).</para></summary>
+public enum BoundOpenTapePhrase { None, NoRewind, Reversed }
 
 /// <summary><c>OPEN {INPUT|OUTPUT|I-O|EXTEND} [sharing] [retry] {file [WITH NO REWIND]} … …</c> (ISO §14.9.27) —
 /// the statement's repeated groups flattened to §14.9.27.4 GR20's per-file-name normal form. The statement

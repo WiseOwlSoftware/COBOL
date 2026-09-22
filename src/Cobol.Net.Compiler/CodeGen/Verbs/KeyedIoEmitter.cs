@@ -123,8 +123,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // BEFORE the success block so a 51 denial leaves the record area untouched (not made available).
         // ⛔ UNCONDITIONALLY (kb/Work PB683). Governance is a RUN-TIME fact — §9.1.15 lets an OPEN statement's
         // own SHARING phrase override the file control entry — so no property of the SELECT or of this
-        // statement can decide it. The runtime's `_connectorShares` probe falls through to the plain body for a
-        // connector that is not sharing-active, which is the same answer, taken where the OPEN is visible.
+        // statement can decide it. And the runtime GOVERNS EVERY CONNECTOR, not only the ones that opted in:
+        // a connector absent from the posture map is given §12.4.5.9.4 GR1 b) 2.'s implementor default and the
+        // same governed body runs — it used to fall through to the ungoverned one, which is how a clause-less
+        // connector read, rewrote and DELETED records another connector held locked (kb/Work PB669).
         // ⛔ THE GOVERNED SHAPE IS PER FORMAT, NOT PER ORGANIZATION (kb/Work PB340). A Format-1 NEXT/PREVIOUS
         // walk routes through the ONE governed Format-1 read the sequential emitter also renders, because
         // §14.9.30.4 GR22's ADVANCING ON LOCK skip-scan RE-EXECUTES the read and so has to own the read itself;
@@ -145,7 +147,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 // ⛔ ONE CALL, NOT A READ FOLLOWED BY A GOVERNANCE PATCH (kb/Work PB338): §14.9.30.4 GR10 a)/d)
                 // require the file position indicator and the key of reference to be UNCHANGED when the record
                 // operation conflict condition arises, so the governed entry has to own the retrieval and decide
-                // BEFORE it. It falls through to the plain read when the file is not sharing-active.
+                // BEFORE it, for EVERY connector — §9.1.16's inaccessibility is not conditioned on the
+                // reading connector's own LOCK MODE clause (kb/Work PB669).
                 string keyImage = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
                 var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
                 w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img)};");
@@ -214,8 +217,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         string wimg = OperandText.RecordAreaImage(wr.Record);   // THE ONE record-area channel (kb/Work PB327)
         // §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): EVERY keyed WRITE routes through the governed entry — single
         // locking releases the connector's prior lock, WITH LOCK locks the record written. Unconditional
-        // (kb/Work PB683): only the runtime can see an OPEN's own SHARING phrase (§9.1.15), and it falls through
-        // to the plain body for a connector that is not sharing-active. §13.18.43 GR13a rides in `lenArg`.
+        // (kb/Work PB683): only the runtime can see an OPEN's own SHARING phrase (§9.1.15), and it governs
+        // every connector (kb/Work PB669). §13.18.43 GR13a rides in `lenArg`.
         var (retryKind, retryAmount) = SeqIo.RenderRetry(wr.Retry);
         string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
         // The LINAGE page rides the governed entry through the SAME helper the sequential surface uses; for a
@@ -257,7 +260,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): EVERY keyed REWRITE routes through the governed entry —
         // another connector's lock on the target blocks it (RETRY re-checks, else 51; the record is unrewritten).
         // Unconditional (kb/Work PB683): the OPEN's own SHARING phrase (§9.1.15) is invisible here, and the
-        // runtime falls through to the plain body (§13.18.43 GR13a / §14.9.35 GR20) when it is not sharing-active.
+        // runtime body (§13.18.43 GR13a / §14.9.35 GR20) governs every connector, opted in or not (kb/Work PB669).
         var (retryKind, retryAmount) = SeqIo.RenderRetry(rw.Retry);
         string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
         w.Line($"var {st} = {RuntimeApi.FileRewriteShared(name, rimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
@@ -294,7 +297,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         string st = $"__kst{id}";
         // §9.1.16/§14.9.10 GR6-GR7 (P10 Step 8): EVERY DELETE routes through the governed entry — a record
         // locked by another connector shall not be deleted (RETRY re-checks, else 51). Unconditional (kb/Work
-        // PB683): the runtime falls through to the plain removal for a connector that is not sharing-active.
+        // PB683): the runtime governs the removal for EVERY connector, opted in or not (kb/Work PB669) — which
+        // is what stops a clause-less connector DELETING a record another one holds locked.
         var (retryKind, retryAmount) = SeqIo.RenderRetry(del.Retry);
         w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount)};");
         SeqIo.EmitStoreFileStatus(file);
