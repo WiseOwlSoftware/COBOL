@@ -10,7 +10,7 @@
       *> because the PB207 staging screened on DataItem.HasBitDescendant and sat in FRONT of the SR14 arm.  The
       *> program is not a compiler gap; it is non-conforming source, and telling a programmer otherwise sends
       *> them to wait for a feature instead of to their own declaration.  The CONFORMING half of that same
-      *> screen - a GROUP-USAGE BIT group, whose members ARE usage bit by 13.18.29.3 SR2 and which SR14's
+      *> screen - a GROUP-USAGE BIT group, whose members ARE usage bit by 13.18.29.3 SR2 and which 13.18.63.3 SR14's
       *> alphanumeric scoping therefore does not reach - is implemented and pinned by the positive golden
       *> tests/conformance/2023/pb207_bit_group_value.cob.
       *> MEASURED AT ALL FOUR EDITIONS: COBOLNET1702 is reported at every one.  At --std 85 the boolean-data

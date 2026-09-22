@@ -1049,7 +1049,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (file.LockMode is { Multiple: true }
                 && (file.AccessMode is FileAccessMode.Sequential || file.IsSequential))
                 Edition.Error("COBOLNET1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
-                    + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9 SR2)");
+                    + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9.3 SR2)");
             // ⛔ §14.9.27.3 SR8 IS **NOT** CHECKED HERE, AND MUST NEVER BE RE-ADDED. It is a syntax rule of the
             // OPEN STATEMENT about file-name-1, which §14.9.27.2's general format defines as the OPEN
             // statement's operand: BOTH disjuncts of its antecedent presuppose an OPEN ("if the sharing phrase
@@ -1913,7 +1913,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>VALUE-clause literal/category conformance for national and boolean receivers (ISO §13.18.63,
     /// the COBOLNET0898 band). SR5: a category-national item takes a national literal or a figurative constant
-    /// (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE / ZERO, §8.3.3.6 GR1/GR6/GR7). SR10: a category-boolean item
+    /// (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE / ZERO, §8.3.3.6.4 GR1/GR6/GR7). §13.18.63.3 SR10: a category-boolean item
     /// takes a boolean literal or figurative ZERO (no boolean SPACE/QUOTE/HIGH/LOW exists — the §14.9.25.3 SR7
     /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
     /// content shall not exceed the item's positions (SR5/SR10; alphanumeric receivers keep their historical
@@ -2003,8 +2003,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Edition.Sink.Report(new EditionDiagnostic("COBOLNET1570",
                 EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
                 $"{where}: the VALUE literal ({CobolLiteral.Decode(raw).Length} characters) exceeds the "
-                + $"numeric-edited item's {editedWidth}-character edited size (ISO §13.18.63 SR4/SR5; COBOL-2023, "
-                + "Annex E.2 item 27)", where, "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"));
+                + $"numeric-edited item's {editedWidth}-character edited size (ISO §13.18.63.3 SR4/SR5; COBOL-2023, "
+                + "Annex E.2 item 27)", where, "ISO §13.18.63.3 SR4/SR5; Annex E.2 item 27"));
         return raw;
     }
 
@@ -2163,7 +2163,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             case PicCategory.National when isPlainString || isBoolLit || isNumeric || isAllQuoted
                     || !(isNatLit || isNationalFigurative):
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a national data item shall be a national "
-                    + "literal (N\"…\") or a figurative constant (ISO §13.18.63 SR5)");
+                    + "literal (N\"…\") or a figurative constant (ISO §13.18.63.3 SR5)");
                 break;
             // SR5 sentences 2 and 3 — ONE sentence pair, ONE arm: "National literals in the VALUE clause of an
             // elementary item shall not exceed the size indicated by an explicit PICTURE clause. National
@@ -2180,7 +2180,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // exists (§14.9.25.3 SR7 posture).
             case PicCategory.Boolean when !isBoolLit && !isZeroWord:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
-                    + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63 SR10)");
+                    + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63.3 SR10)");
                 break;
             // SR10 sentences 2 and 3 — the same sentence pair as SR5's, over boolean positions: an elementary
             // item's explicit PICTURE, or "the size of the group item" for a bit group item (whose positions are
@@ -2202,7 +2202,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             case not (PicCategory.National or PicCategory.Boolean)
                     when isBoolLit || isNatLit && pic.Category is not PicCategory.NumericEdited:
                 Edition.Error("COBOLNET0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
-                    + "literal may seed only a data item of its own category (ISO §13.18.63 SR5/SR10)");
+                    + "literal may seed only a data item of its own category (ISO §13.18.63.3 SR5/SR10)");
                 break;
             // ── kb/Work PB94 — §13.18.63.3 SR2: a NUMERIC subject takes numeric literals (and figurative ZERO) only.
             //    A digits-only alphanumeric literal (or a digits-only ALL "literal" repeated to the digit width) is
@@ -2288,7 +2288,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// national. The national-usage half was unreachable while §13.18.60.3 SR12's national-form numeric-edited
     /// item was staged loud (COBOLNET0899).</para>
     /// <para>A NUMERIC literal is SR2/SR6's business, not this rule's, and a figurative constant takes the
-    /// receiver's class (§8.3.3.6), so neither reaches the test. ⚠ SR7's third clause — "if the class is
+    /// receiver's class (§8.3.3.6), so neither reaches the test. ⚠ §13.18.63.3 SR7's third clause — "if the class is
     /// otherwise undefined, then the class of the data item shall be that of the literal" — has NO SITE in this
     /// model and cannot acquire one: §13.18.60.3 SR13 implies a usage for every item given none (NATIONAL for an
     /// 'N'-bearing picture character-string, else DISPLAY), so a numeric-edited item's usage — and with it its
@@ -2615,7 +2615,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (item.Level != 1)
                 Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}' references EXTERNAL type "
                     + $"'{typeName}': a data description containing an external type declaration shall be at "
-                    + "level-number 1 (ISO §13.18.22 GR2)");
+                    + "level-number 1 (ISO §13.18.22.4 GR2)");
             else
                 item.ExternalFromType = true;   // §13.18.22 GR3
         }
@@ -2624,7 +2624,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (item.HasExternalClause && template.TypedefStrong && !template.IsExternalTypedef)
             Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}': an EXTERNAL record described with "
                 + $"STRONG type '{typeName}' requires that type declaration to be external too "
-                + "(ISO §13.18.22 SR5)");
+                + "(ISO §13.18.22.3 SR5)");
         // VCR 16, the STRENGTH half (§13.16.3 SR13 ¶2; Annex E.2 item 10; the P13 review finding C9): "If the
         // CONSTANT RECORD clause is specified with the EXTERNAL clause, there shall also be a TYPE clause that
         // specifies a STRONGLY typed definition." The declaration-site check (BindEntry) can verify only TYPE
@@ -3083,7 +3083,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (item.Level != 1)
                 Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}': a data description containing "
-                    + "an external type declaration shall be at level-number 1 (ISO §13.18.22 GR2)");
+                    + "an external type declaration shall be at level-number 1 (ISO §13.18.22.4 GR2)");
             else
                 item.ExternalFromType = true;
         }
@@ -3286,7 +3286,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             // has no as-if PICTURE either, so it keeps exactly the behaviour it had.
                             if (parent.OperandPic is { Category: PicCategory.Boolean })
                                 Edition.Error("COBOLNET0898", $"condition-name '{name}': THROUGH may not be "
-                                    + "specified when the conditional variable is boolean (ISO §13.18.63 SR29)");
+                                    + "specified when the conditional variable is boolean (ISO §13.18.63.3 SR29)");
                             // Fold ONCE per operand (a §8.8.3 concat folds here; RawValueOperandText) so the
                             // category check and the stored value see the same text without double diagnostics.
                             // NULL = the operand is not a literal position at all and has been reported
@@ -3774,7 +3774,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     }
                 }
                 else if (clause.Context.basedClause() is not null)
-                    // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The
+                    // BASED (§13.18.5) validated below (§13.16.3 SR16 placement; the 0881 declaration band). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
                     // recognition-based — IsBased is cleared for a LINKAGE item, so a bound-arm gate would drop it).
                     isBased = true;
@@ -4500,7 +4500,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (level is not (1 or 77))
             {
                 Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: the BASED clause may be specified only in a "
-                    + "level-01 or level-77 entry (ISO §13.16 SR16 / §13.18.5)");
+                    + "level-01 or level-77 entry (ISO §13.16.3 SR16 / §13.18.5)");
                 isBased = false;
             }
             else if (redefinesTargetName is not null)

@@ -207,7 +207,7 @@ internal static class PlaceRenderer
         // Unreachable: SET Format 14 routes to BoundSetCapacity, and any other store into the CAPACITY register is
         // rejected COBOLNET1523 at bind time (§13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
         CapacityRegisterPlace => throw new System.InvalidOperationException(
-            "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
+            "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38.3 SR30-32); a direct store must be "
             + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
         // A REPORT SECTION sum counter as a RECEIVER — ISO §13.18.54.4 GR12: "It is permissible for procedure
         // division statements to alter the content of sum counters." The store goes to the RWCS engine, at the

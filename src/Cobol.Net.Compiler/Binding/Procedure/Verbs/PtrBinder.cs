@@ -231,7 +231,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         Place? returning = null;
         if (al.RETURNING() is not null)
         {
-            if (PtrResolvePointer(drefs[^1], "ALLOCATE RETURNING (ISO §14.9.3 SR3 — category data-pointer)") is not { } rp)
+            if (PtrResolvePointer(drefs[^1], "ALLOCATE RETURNING (ISO §14.9.3.3 SR3 — category data-pointer)") is not { } rp)
                 return new BoundNop();
             returning = rp;
         }
@@ -242,7 +242,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             if (returning is null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    "ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3 SR2 — without a based "
+                    "ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3.3 SR2 — without a based "
                     + "item there is no other way to address the storage)");
                 return new BoundNop();
             }
@@ -327,7 +327,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         var members = new List<BoundStatement>();
         foreach (var dref in fr.dataReference())
         {
-            if (PtrResolvePointer(dref, "a FREE operand (ISO §14.9.15 SR1 — data-pointers only)") is not { } p)
+            if (PtrResolvePointer(dref, "a FREE operand (ISO §14.9.15.3 SR1 — data-pointers only)") is not { } p)
                 return new BoundNop();
             members.Add(new BoundFree([p]));
         }
@@ -357,7 +357,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in drefs)
         {
             if (SetIndexNameOperand(dref)) return new BoundNop();
-            if (PtrResolvePointer(dref, "a SET UP/DOWN BY receiver mixed with data-pointers (ISO §14.9.39 SR23)") is not { } p)
+            if (PtrResolvePointer(dref, "a SET UP/DOWN BY receiver mixed with data-pointers (ISO §14.9.39.3 SR23)") is not { } p)
                 return new BoundNop();
             targets.Add(p);
         }
@@ -411,8 +411,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // send the reader hunting a BASED clause for a name that is not declared at all (the PB457 shape).
         if (item is null && ctx.Refs.WasDiagnosed(dref)) return null;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"'{dref.GetText()}': the operand shall be a BASED level-01/77 item (ISO §14.9.39 SR18 / "
-            + "§14.9.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
+            $"'{dref.GetText()}': the operand shall be a BASED level-01/77 item (ISO §14.9.39.3 SR18 / "
+            + "§14.9.3.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
         return null;
     }
 }

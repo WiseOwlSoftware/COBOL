@@ -134,7 +134,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExprError Sr6ArgumentListError(string display)
     {
         ctx.Edition.Error("COBOLNET1543", $"'{display} (…)' — the '(' after the name of a function that "
-            + "takes arguments is ALWAYS its argument list (ISO §8.4.3.2 SR6), so this is an argument list "
+            + "takes arguments is ALWAYS its argument list (ISO §8.4.3.2.3 SR6), so this is an argument list "
             + "and 'start:length' is not a valid argument (SR8). Reference-modify the RESULT by writing the "
             + $"argument list first: {display}(<arguments>) (start:length).");
         return new BoundExprError($"{display} arguments");
@@ -474,7 +474,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (Frontend.Parsing.FunctionArgFragment.Parse(text, ctx.Edition.Edition) is { } frag)
             return ArgsOf(frag.functionArgList());
         ctx.Edition.Error("COBOLNET1543", $"malformed function-argument list '({text})' — an argument is an "
-            + "identifier, a literal, a boolean expression, or an arithmetic expression (ISO §8.4.3.2 SR8)");
+            + "identifier, a literal, a boolean expression, or an arithmetic expression (ISO §8.4.3.2.3 SR8)");
         return null;
     }
 
@@ -2623,7 +2623,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (a.OMITTED() is not null)
         {
             ctx.Edition.Error("COBOLNET1544", "OMITTED shall not be specified as an intrinsic-function argument "
-                + "(ISO §8.4.3.2 SR7 — OMITTED applies to user-defined function parameters declared OPTIONAL)");
+                + "(ISO §8.4.3.2.3 SR7 — OMITTED applies to user-defined function parameters declared OPTIONAL)");
             return new BoundOperandError("OMITTED intrinsic argument");
         }
         if (a.fnArgPhraseWord() is { } kw)

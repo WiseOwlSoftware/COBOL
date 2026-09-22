@@ -4,7 +4,7 @@
       *> 13.18.40.6 Table 10 (row E) admits only B 0 / , . a leading + or - and 9 before the E: V, P, S, Z, *, CR,
       *> DB and the currency symbol are illegal in the significand; the exponent is exactly +9{1..4} (a sign is
       *> required, at most four digits, no other symbol); one E only; the EDITING phrase applies to a fixed-point
-      *> result (SR8); a SIGN clause needs an S (13.18.52.3 SR1); the significand holds 1..36 digits (SR15) and
+      *> result (SR8); a SIGN clause needs an S (13.18.52.3 SR1); the significand holds 1..36 digits (13.18.40.3 SR15) and
       *> at least one. Every entry below is COBOLNET1658 (kb/Work PB66).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB66NSYM.

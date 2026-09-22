@@ -106,7 +106,7 @@ BoundSetConditions --[ store 88 first VALUE into parent ]-----------------------
 
 **Spec mapping.** The statement nodes are the ISO arithmetic verbs: ADD §14.9.2, SUBTRACT §14.9.44, MULTIPLY §14.9.26, DIVIDE §14.9.12 (its REMAINDER Formats 4–5 → `BoundDivideRemainder`), and COMPUTE §14.9.8, each split into TO/FROM/BY/INTO vs GIVING forms so the binder distinguishes composite operands from resultants (§14.7.7). `BoundBinary`, `BoundNegate`, `BoundPower` are the arithmetic-expression tree of §8.8.1 (COMPUTE's RHS and any operand). `Receiver` carries the ROUNDED mode (§14.7.4); `SizeErrorPhrase` is ON/NOT ON SIZE ERROR (§14.7.5). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** Invariant binder checks (`ArithmeticBinder`): operands numeric, resultants numeric receivers, and the intermediate-result composite computed *excluding* GIVING resultants (§14.7.7 rule 2, guarding COBOLNET0805); DIVIDE…REMAINDER requires exactly one GIVING receiver (§14.9.12 SR6). These are version-invariant. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
+**Semantic rules.** Invariant binder checks (`ArithmeticBinder`): operands numeric, resultants numeric receivers, and the intermediate-result composite computed *excluding* GIVING resultants (§14.7.7 rule 2, guarding COBOLNET0805); DIVIDE…REMAINDER requires exactly one GIVING receiver (§14.9.12.2 Formats 4–5: identifier-3 carries no ellipsis). These are version-invariant. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
 **Runtime behavior.** Each resultant store funnels through `CobolNum.TryStore` (Int128-monomorphic), applying the resultant scale under one of eight `CobolRounding` modes; `false` = size error. Zero divisor / PROHIBITED-inexact / overflow raise `CobolSizeError` (`ecName` EC-SIZE-ZERO-DIVIDE / -EXPONENTIATION / -OVERFLOW), caught by the emitted SIZE ERROR wrapper. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
@@ -382,7 +382,7 @@ BoundSuppress         --[ §14.9.45 SR1 USE BEFORE REPORTING]-->  CobolReport.Su
 BoundReportCounterRef --[ §8.4.3.15 GR1-4  ]-->  CobolReport.LineCounter / .PageCounter
 BoundReportSumRef     --[ §13.18.54.4 GR4  ]-->  report engine sum counter
 BoundReportVaryingRef --[ §13.18.64 GR3/GR4]-->  compose-local counter var
-BoundLinageCounterRef --[ §8.4.3.14 GR7b   ]-->  connector LINAGE-COUNTER
+BoundLinageCounterRef --[ §13.18.34.4 GR7b ]-->  connector LINAGE-COUNTER
 ```
 
 ## Operands, literals, boolean & error nodes

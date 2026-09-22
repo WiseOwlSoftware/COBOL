@@ -8,7 +8,7 @@
       *>     to exist" -> OK §14.9.25.4 6) 1.
       *>   cite.py --check 8.8.4.4.4 "If the category of the data item referenced by identifier-1 is not
       *>     numeric, the condition is true if the content of the data item referenced by identifier-1
-      *>     consists entirely of the characters" -> OK §8.8.4.4.4 3) n) 2 — the class condition GR6 d) 1
+      *>     consists entirely of the characters" -> OK §8.8.4.4.4 3) n) 2 — the class condition 14.9.25.4 GR6 d) 1
       *>     defers to, and therefore the exact reason every sender in this program is all digits.
       *>
       *> WHY EACH LEG CAN FAIL.  EC-DATA-INCOMPATIBLE CHECKING is ON for the whole program and every

@@ -958,7 +958,7 @@ pointing those sites at the capped entry changed no answer on any shape probed (
 leading zero in every reachable case). The split is therefore not a second bug fix; it is what stops the next
 change to the alphanumeric sending rule from silently becoming a change to five callers that never asked for it.
 
-**Why the EXCEPTION is a separate method, and why the emit side decides.** §14.6.13.2 cannot state GR6 d) 1's
+**Why the EXCEPTION is a separate method, and why the emit side decides.** §14.6.13.2 cannot state §14.9.25.4 GR6 d) 1's
 rule, because content like `"Q"` in a `PIC X` item is perfectly valid for the SENDER's own data description — it
 is the MOVE into a numeric receiver that asks a numeric question of it. So the checked read is the exact twin of
 `ParseImageSending` (§14.6.13.2 rule 2, D-PB230): raw decode + a checking-gated wrapper, with the predicate

@@ -162,7 +162,7 @@ public sealed partial class DataBinder
             // clause is specified or implied, that is not strongly typed and is not a variable-length group
             // (§13.18.29.4 GR3; the last two are unreachable here, SR1 rejected them above, and the predicate
             // states the rule rather than the residue). A national group's / bit group's subordinates take
-            // usage NATIONAL / BIT by their OWN rules (§13.18.29.3), which is why SR14 names only the
+            // usage NATIONAL / BIT by their OWN rules (§13.18.29.3), which is why §13.18.63.3 SR14 names only the
             // alphanumeric one. THE predicate is ItemCategory's — this file used to keep a private second copy
             // of GR3 (kb/Work PB337); the one in ItemCategory was the incomplete half, which is the drift a
             // rule written down twice always produces.

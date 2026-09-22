@@ -27,7 +27,7 @@ public enum LocalePhraseKind
 /// "On activation of a runtime element, if the CHARACTER CLASSIFICATION clause is specified … category LC_CTYPE in
 /// the specified locale is used"), so the word LOCALE binds the locale current WHEN THE PROGRAM IS ENTERED, not at
 /// each use. Read by UPPER-CASE / LOWER-CASE without a LOCALE phrase (§15.57.4 r3 / §15.97.4 r3) and by the class
-/// tests ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§8.8.4.4.4 GR3 b/c/d) — GR7 a/b.
+/// tests ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER (§8.8.4.4.4 GR3 b/c/d) — §12.3.6.4 GR7 a/b.
 /// </summary>
 public sealed class CharacterClassification
 {

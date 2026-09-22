@@ -339,7 +339,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     {
         // GR9's antecedent: BOTH operands are group items AND one or both is a VARIABLE-LENGTH group. A
         // reference-modified operand is an ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6), never a group.
-        // ⛔ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2), so it meets GR9's first conjunct and is
+        // ⛔ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2), so it meets MOVE §14.9.25.4 GR9's first conjunct and is
         // asked as ItemCategory.IsGroupItem — the CATEGORY question — never the structural IsGroup, which it
         // fails for want of subordinate entries (kb/Work PB907; the bind-side twin is
         // StatementValidation.CheckVariableLengthMove, and the two must ask the same predicate). It is never
@@ -363,7 +363,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         return true;
     }
 
-    /// <summary>The §8.5.1.12 component carrier of a GR9 SENDING operand — the variable-length group's own
+    /// <summary>The §8.5.1.12 component carrier of a §14.9.25.4 GR9 SENDING operand — the variable-length group's own
     /// composer, or a fixed group's record image decomposed at its table spans. Null when this implementation
     /// cannot compose the group's current extent (the caller emits the named loud).</summary>
     private static string? VarCarrierRead(Place g) =>

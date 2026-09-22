@@ -374,7 +374,7 @@ a DEVLOG entry per commit; commit AND push every checkpoint.
   `pic-external-float-2002` → active; codes 1658–1660 claimed.
   **✅ Battery #18 (PB66 + PB97 + PB98 batch, tree `684ec6f3`):** Conformance **4788/4788** · Unit 4238/4239 — the
   one red was `ConstructRegistryDriftTests` catching that `ConstructRegistry.g.cs` still carried the row's OLD
-  citation after the post-generation `§13.18.40.3 SR13 b)` → `§13.18.40.4 GR13 b)` correction (regenerated, green;
+  citation after the post-generation correction of its SR13 b) to `§13.18.40.4 GR13 b)` (regenerated, green;
   the drift test did its job) · Characterization 33/33 · NIST 353/0 audit-clean · differential 1323 cases,
   **1 flip, attributed**: `run_fundamental:72` (GnuCOBOL's "DISPLAY literals, DECIMAL-POINT is COMMA" — `DISPLAY
   1,23E0`) WE_REJECT_THEY_ACCEPT → AGREE_ACCEPT, the PB98 comma-decimal floating literal — baselined. GREEN.
@@ -2087,12 +2087,14 @@ result. Run the long legs ONE AT A TIME.
   the number INSIDE a right clause: FORMAT (no such general format) · FORMAT-RULE (the rule is printed under a
   DIFFERENT format banner than the one cited beside it) · FORMAT-NAME (the line names one format and cites
   another) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
-  `(ISO §14.9.18 SR)` names no rule at all; kb/Work PB838) — baseline **ZERO findings** over 4584
+  `(ISO §14.9.18 SR)` names no rule at all; kb/Work PB838) · DIAG-UNQUALIFIED (a message string citing a construct
+  clause where the rules live in its `.3`/`.4` child — GATING since PB388's wave-47 sweep qualified all 154
+  sites) — baseline **ZERO findings** over 4666
   files, `--self-test` PASS. The ordinal family is LINE-based, so a citation inside a DIAGNOSTIC MESSAGE STRING is under the gate
   for the first time; two of PB388's defects lived exactly there. Two further ordinal checks — RULE (the clause
-  has no such rule number) and SUBITEM (that rule has no sub-items) — plus DIAG-UNQUALIFIED (a
-  message string citing a construct clause where the rules live in its `.3`/`.4` child) — are sound and
-  NOT yet gating: **328 on 2026-09-21, re-measured on train 43's merged tree** (155 DIAG-UNQUALIFIED · 105 RULE · 68 SUBITEM), each
+  has no such rule number) and SUBITEM (that rule has no sub-items) — are sound, GATE under `src/`, `tests/`
+  and `scripts/` since PB388's wave-47 sweep derived every site there, and are NOT yet gating in the PROSE
+  scopes: **41 on 2026-09-22** (32 RULE · 9 SUBITEM, all in `docs/` and `kb/`), each
   needing its own derivation. They print their count PER FAMILY on every gate run and `--check-all`
   gates on them. ⛔ The ordinal arm's attribution carries a VETO since kb/Work PB900: a rule
   designator is written once and referred BACK to in the same sentence, so a finding is dropped when

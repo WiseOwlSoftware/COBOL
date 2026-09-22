@@ -12,14 +12,14 @@ public sealed class StorageCell
     /// <summary>The storage's character image (its full width; every view windows it).</summary>
     public string Ref = "";
 
-    /// <summary>True for a cell obtained by ALLOCATE (ISO §14.9.3) — the only cells FREE releases (GR1a).</summary>
+    /// <summary>True for a cell obtained by ALLOCATE (ISO §14.9.3) — the only cells FREE releases (§14.9.15.4 GR1a).</summary>
     public bool Allocated;
 
     /// <summary>True once FREE released the cell (§14.9.15.4 GR1a — "the contents of any data items located
     /// within the released storage area become undefined"; this implementation makes any later dereference
     /// loud, EC-BOUND-PTR). ⚠ The clause and the quotation were re-derived here: this comment and its twin
-    /// below carried "§14.9.15 GR1a — the contents become undefined", a PARAPHRASE at a clause number one
-    /// level short of the rule (CLAUDE.md rule 1's inherited-citation failure mode).</summary>
+    /// below carried a PARAPHRASE of GR1a ("the contents become undefined") at the construct clause, one
+    /// level short of the rule's own subclause (CLAUDE.md rule 1's inherited-citation failure mode).</summary>
     public bool Freed;
 
     /// <summary>⛔ THE MANAGED SLOTS OF THE SAME STORAGE AREA, keyed by the slot's BYTE OFFSET within it

@@ -106,7 +106,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 else if (ctx.Refs.Resolve(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
                 {
                     ctx.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
-                        + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30 SR11)");
+                        + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
                     return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                 }
                 else keyIndex = ki;
@@ -194,7 +194,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (file.IsSequential)
         {
             ctx.Edition.Error("COBOLNET0865", $"DELETE RECORD shall not be specified for sequential-organization "
-                + $"file '{name}' (ISO §14.9.10 SR1)");
+                + $"file '{name}' (ISO §14.9.10.3 SR1)");
             return new BoundNop();   // reported above — not a deferral (PB236)
         }
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD

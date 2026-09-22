@@ -490,7 +490,7 @@ public sealed class ProgramTable
     {
         if (n.Active > 0)
             throw new CobolCallException(
-                $"CANCEL '{n.Name}': program is active (ISO §14.9.5 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)",
+                $"CANCEL '{n.Name}': program is active (ISO §14.9.5.4 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)",
                 "EC-PROGRAM-CANCEL-ACTIVE");
         // GR7 — "has not been called in this run unit or has been called and is at present canceled": NO
         // ACTION, the whole body. The predicate is modeled, never derived from Instance nullness (a returned

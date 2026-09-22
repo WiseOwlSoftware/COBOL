@@ -107,7 +107,7 @@ public static class RuntimeConfig
 
         // ── external switches (Control/SwitchStore.cs — the ONE computed family) ──
         new(SwitchStore.Prefix + "<SWITCH-NAME>", "switches",
-            "the initial status of an implementor-defined external switch named in SPECIAL-NAMES (ISO/IEC 1989:2023 §12.3.7 GR4, implementor-defined item 191): SWITCH-1 reads COBOL_SWITCH_1 (hyphens become underscores, upper-cased; SwitchStore.VariableNameFor)",
+            "the initial status of an implementor-defined external switch named in SPECIAL-NAMES (ISO/IEC 1989:2023 §12.3.7.4 GR4, implementor-defined item 191): SWITCH-1 reads COBOL_SWITCH_1 (hyphens become underscores, upper-cased; SwitchStore.VariableNameFor)",
             "ON | 1 | TRUE (case-insensitive) = on; anything else or unset = off; probed once per run unit, then SET governs",
             typeof(SwitchStore), "Control/SwitchStore.cs", IsPattern: true),
     ];

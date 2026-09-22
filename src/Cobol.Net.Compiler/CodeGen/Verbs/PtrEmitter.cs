@@ -68,7 +68,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 + $"({based.Class?.RejectReason ?? "unclassified"})"));
             return;
         }
-        ctx.Writer.Line($"{addr} = {src};   // SET ADDRESS OF (ISO §14.9.39 F7 GR13 — a snapshot)");
+        ctx.Writer.Line($"{addr} = {src};   // SET ADDRESS OF (ISO §14.9.39.4 F7 GR13 — a snapshot)");
     }
 
     /// <summary><c>SET pointer… {UP|DOWN} BY n</c> (ISO §14.9.39 Format 10): the amount evaluates ONCE, then
@@ -147,7 +147,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             ? RuntimeApi.PtrAllocateReal($"({x.Expr})", fill, na)
             : RuntimeApi.PtrAllocate($"(System.Int128)({NumericRenderer.AlignRoundedUp(x)})", fill, na);
         w.Line(PlaceRenderer.Write(s.Returning!, alloc)
-            + "   // ALLOCATE n CHARACTERS (ISO §14.9.3 GR1/GR2/GR5" + (s.Initialized ? "/GR6" : "/GR8") + ")");
+            + "   // ALLOCATE n CHARACTERS (ISO §14.9.3.4 GR1/GR2/GR5" + (s.Initialized ? "/GR6" : "/GR8") + ")");
         EmitStorageNotAvail(w, na);
     }
 
@@ -159,7 +159,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     {
         if (ecState.Info?.Enabled.Any(e => e.Ec == "EC-STORAGE-NOT-AVAIL") != true)
         {
-            w.Line($"_ = {na};   // EC-STORAGE-NOT-AVAIL checking not enabled (§14.6.13.1.4 — not raised; the pointers hold NULL per GR5a/b)");
+            w.Line($"_ = {na};   // EC-STORAGE-NOT-AVAIL checking not enabled (§14.6.13.1.4 — not raised; the pointers hold NULL per §14.9.3.4 GR5a/b)");
             return;
         }
         using (w.Block($"if ({na})"))
@@ -200,7 +200,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         int id = ctx.Names.NextPtr();
         string nf = $"__ppNf{id}";
         w.Line($"bool {nf};");
-        w.Line($"var __ppE{id} = ProgramRegistry.EntryOf({nameExpr}, out {nf});   // SET … TO ENTRY (ISO §8.4.3.13 GR1/GR4)");
+        w.Line($"var __ppE{id} = ProgramRegistry.EntryOf({nameExpr}, out {nf});   // SET … TO ENTRY (ISO §8.4.3.13.4 GR1/GR4)");
         foreach (var t in s.Targets)
             w.Line(PlaceRenderer.Write(t, $"__ppE{id}") + "   // SET program-pointer (ISO §14.9.39 Format 9)");
         bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
@@ -209,7 +209,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             using (w.Block($"if ({nf})"))
             {
                 // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
-                w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true);   // §8.4.3.13 GR4 — set to exist");
+                w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true);   // §8.4.3.13.4 GR4 — set to exist");
                 int did = ctx.Names.NextPtr();
                 w.Line($"int __pe{did} = {ec.EcDispatchExpr("\"EC-PROGRAM-NOT-FOUND\"", "\"\"")};");
                 w.Line(dispatch.ResumeTransfer($"__pe{did}"));
@@ -304,7 +304,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         {
             string na = $"__notAlloc{ctx.Names.NextPtr()}";
             w.Line($"bool {na};");
-            w.Line(PlaceRenderer.Write(op, RuntimeApi.PtrFree(PlaceRenderer.Read(op), na)) + "   // FREE (ISO §14.9.15 GR1)");
+            w.Line(PlaceRenderer.Write(op, RuntimeApi.PtrFree(PlaceRenderer.Read(op), na)) + "   // FREE (ISO §14.9.15.4 GR1)");
             if (checkNotAlloc)
             {
                 using (w.Block($"if ({na})"))

@@ -149,7 +149,7 @@ internal sealed partial class EcBinder
 
     /// <summary>Resolve ONE WHEN phrase's operands. The mode form (WHEN EXCEPTION INPUT|OUTPUT|I-O|EXTEND) is a
     /// STAGED runtime match (COBOLNET0899, §5.4-1). The name/file forms resolve each exception-name against the
-    /// §14.6.13.1 catalog at ANY level (the USE GR3a-3g tiers select by level — NOT the RAISE level-3-only rule),
+    /// §14.6.13.1 catalog at ANY level (the USE §14.9.49.4 GR3a-3g tiers select by level — NOT the RAISE level-3-only rule),
     /// enforce SR16 (a FILE-paired name shall begin EC-I-O), and the per-name edition window. Contributes GR14
     /// overlay enables and the SR14/SR15 census.</summary>
     private (string? Mode, List<BoundWhenOperand> Ops) ResolveWhenOperands(

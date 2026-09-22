@@ -104,7 +104,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // whole pc space) — byte-identical (the wall, design §9.5.3). Only this top-level call is walled; every
             // bounded __RunUse / out-of-line PERFORM passes its own exit pc.
             int topExit = bound.F3HandlerBasePc is int hb ? hb - 1 : -1;
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking

@@ -158,7 +158,7 @@ public sealed partial class DataBinder
             // SR16: 0 ≤ integer-1 < integer-2.
             if (spec.Min < 0 || spec.Min >= spec.Max)
                 Edition.Error("COBOLNET0850", $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
-                    + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38 SR16)");
+                    + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38.3 SR16)");
 
             // data-name-1 resolution. PREFER a counter in the item's OWN record (same subtree) — critical for a
             // TYPEDEF clone, whose internal DEPENDING must bind to the clone's OWN sibling, not a globally-first
@@ -206,14 +206,14 @@ public sealed partial class DataBinder
             // SR17: data-name-1 shall describe an integer (an index item is NOT an integer data item).
             if (dep.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Scale: 0 })
                 Edition.Error("COBOLNET0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                    + "shall describe an integer (ISO §13.18.38 SR17)");
+                    + "shall describe an integer (ISO §13.18.38.3 SR17)");
 
             // SR2: data-name-1 shall not be subscripted (it cannot lie within any table).
             for (DataItem? a = dep.Parent; a is not null; a = a.Parent)
                 if (a.Occurs is not null)
                 {
                     Edition.Error("COBOLNET0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
-                        + "data-name-1 shall not be subscripted (ISO §13.18.38 SR2)");
+                        + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)");
                     break;
                 }
 
@@ -224,7 +224,7 @@ public sealed partial class DataBinder
                 {
                     Edition.Error("COBOLNET0854", $"occurs-depending table '{subject}' is subordinate to the "
                         + $"OCCURS item '{a.CobolName}': tables may be nested only when the DEPENDING phrase is "
-                        + "absent (ISO §13.18.38 SR1(b)/SR10)");
+                        + "absent (ISO §13.18.38.3 SR1(b)/SR10)");
                     break;
                 }
 
@@ -252,7 +252,7 @@ public sealed partial class DataBinder
                     Edition.Error("COBOLNET0856", $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
-                        + "(ISO §13.18.38 SR22)");
+                        + "(ISO §13.18.38.3 SR22)");
                     break;
                 }
             }
@@ -269,7 +269,7 @@ public sealed partial class DataBinder
                     Edition.Error("COBOLNET0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                         + "data-name-1 shall not occupy a character position within the range from the table's "
                         + "first character position to the last character position of the record "
-                        + "(ISO §13.18.38 SR20)");
+                        + "(ISO §13.18.38.3 SR20)");
             }
         }
     }
@@ -311,7 +311,7 @@ public sealed partial class DataBinder
             if (spec.InitialCap is { } from && spec.ExpectedMax is { } to && to <= from)
                 Edition.Error("COBOLNET1522", $"OCCURS DYNAMIC FROM {from} TO {to} on '{subject}': the expected "
                     + $"capacity (TO integer-5) shall be greater than the minimum capacity (FROM integer-4) "
-                    + "(ISO §13.18.38 SR28)");
+                    + "(ISO §13.18.38.3 SR28)");
 
             // ⛔ NO GUARD BELONGS HERE FOR A **FORMAT 1** VALUE ON OR UNDER A DYNAMIC ENTRY, AND THE RULE THAT
             //    LOOKS LIKE ONE DOES NOT REACH IT (kb/Work PB500 — this is the SECOND arm of the same two-arm
@@ -376,7 +376,7 @@ public sealed partial class DataBinder
             // entry containing the OCCURS clause" — so its Parent is the OCCURS entry's Parent, making it a SIBLING
             // of the table. That one assignment is what lets the ONE §8.4.2.2 qualifier matcher
             // (DataBinder.QualifierChainMatches) answer `WS-CAP OF WS-TABLE`, and what makes the register of a table
-            // NESTED under another table answer SubscriptArity > 0 — the §8.4.2.3.3 SR3/SR5-vs-SR31 conflict that
+            // NESTED under another table answer SubscriptArity > 0 — the §8.4.2.3.3 SR3/SR5-vs-§13.18.38.3 SR31 conflict that
             // ReferenceResolver.CapacityRegisterFor reports, instead of the flat name-dictionary's false "not
             // defined". It is NOT added to Parent.Children: the register has no storage and takes no record slot.
             var reg = new DataItem
@@ -398,7 +398,7 @@ public sealed partial class DataBinder
             {
                 Edition.Error("COBOLNET1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or CAPACITY "
-                    + "register (ISO §13.18.38 SR30)");
+                    + "register (ISO §13.18.38.3 SR30)");
                 continue;
             }
             _capacityRegisters[capName] = item;

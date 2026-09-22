@@ -184,7 +184,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <para>⚠ ONE OF THREE LENGTH QUESTIONS OVER THIS NODE SHAPE, AND THEY ARE THREE DIFFERENT RULES — do not
     /// fold them. THIS is §14.9.8 GR3's COMPUTE store width, which counts ITEMS only. <see cref="BoolResultLength"/>
     /// is §8.8.2 rules 9/10's RESULT length, which counts a literal's own positions (§14.9.13.3 SR6's "results
-    /// in one boolean character" turns on it). <see cref="BoolExprAllLengthOne"/> is §8.8.4.3 SR1's "shall
+    /// in one boolean character" turns on it). <see cref="BoolExprAllLengthOne"/> is §8.8.4.3.3 SR1's "shall
     /// reference only boolean items of length 1", a property of EVERY referenced item rather than of the
     /// result.</para></summary>
     internal static int Gr3Width(BoundBoolExpr e) => e switch
@@ -201,7 +201,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The static width of a boolean-result function reference — BOOLEAN-OF-INTEGER's argument-2 (§15.13.4
     /// r1 "a boolean item of length argument-2") when it is a numeric literal; null when the length is a runtime
-    /// value (the §8.8.4.3 SR1 length-1 test and the GR3 store width then fail OPEN — no false rejection).</summary>
+    /// value (the §8.8.4.3 SR1 length-1 test and the §14.9.8.4 GR3 store width then fail OPEN — no false rejection).</summary>
     private static int? StaticBoolCallWidth(BoundBoolCall c) =>
         c.Call.Sig.Name == "BOOLEAN-OF-INTEGER" && c.Call.Args.Count == 2
         && c.Call.Args[1] is BoundNumericLiteral { Text: { } t } && int.TryParse(t, out int w) ? w : null;
@@ -227,7 +227,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         if (!BoolExprAllLengthOne(expr))
             ctx.Edition.Error("COBOLNET1511", "a simple boolean condition shall reference only boolean items "
-                + "and literals of length 1 (ISO §8.8.4.3 SR1)");
+                + "and literals of length 1 (ISO §8.8.4.3.3 SR1)");
         return new BoundBooleanCondition(expr);
     }
 
@@ -729,7 +729,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.OmittedConditionOperand,
                     $"omitted-argument condition '{fname} IS OMITTED': data-name-1 shall be a formal parameter "
-                    + "defined in the source element in which this condition is specified (ISO §8.8.4.8 SR1)");
+                    + "defined in the source element in which this condition is specified (ISO §8.8.4.8.3 SR1)");
                 return new BoundConditionError($"omitted-argument condition '{fname}'");
             }
             return new BoundOmittedCondition(formal, not);

@@ -166,8 +166,8 @@ Derivation: char-1 `L` = 6-char literal `DEBIT ` ⇒ width 6+3+1+2 = 12; NEGATIV
 - **§14.9.28.3 Syntax rules FORMAT 3** (L29523–29529): SR14 (file-name uniqueness across WHENs), SR15 (exception-name uniqueness), SR16 (`file-name-2` ⇒ `exception-name-2` must begin `EC-I-O`).
 - **§14.9.28.4 General rules FORMAT 3** (L29684–29713): GR14 (implicit TURN/PUSH/POP), GR15 (control transfer + range), GR16 (FINALLY = end of PERFORM; no transfer-out; EXIT PERFORM → implicit CONTINUE after END-PERFORM), GR17 (WHEN match → imperative-2; USE match rules = USE GR3a–3g; **matching USE declarative is IGNORED**), GR18 (WHEN OTHER → imperative-3), GR19 (WHEN COMMON → imperative-4), GR20 (fatal/nonfatal resumption), GR21 (ECs inside imperative-2/3/4/5 are NOT re-caught — behave as Format 2), GR22 (checking-enabled state after the PERFORM).
 - **§14.9.29.3 SR4** (L29752): `RAISE` inside an exception-checking PERFORM is legal **only** in imperative-statement-1.
-- **§14.9.49.4 GR3a–3g** (USE statement, referenced by GR17): the WHEN-match ordering algorithm.
-- **§14.6.13.1.3 Fatal exception conditions** (referenced by GR20): fatal resumption path.
+- **§14.9.49.4 GR3a–3g** (USE statement, referenced by §14.9.28.4 GR17): the WHEN-match ordering algorithm.
+- **§14.6.13.1.3 Fatal exception conditions** (referenced by §14.9.28.4 GR20): fatal resumption path.
 - Cross-refs confirming the WHEN phrase is a first-class EC handler equal to a declarative: L11365 (WHEN phrase = "statements in a WHEN phrase of an active PERFORM"), L24485/L24507 (a WHEN phrase enables checking exactly like a TURN directive; `EXCEPTION-STATUS` inside a WHEN returns the identifying info), L4783/L4873/L4995 (POP/PUSH/TURN directives **shall not** appear inside an exception-checking PERFORM), L5006 (`EC-I-O-WARNING` may be turned on only explicitly or by presence in a WHEN phrase).
 - **Introduction proof: Annex E "New features", item 36** (L50316): *"**PERFORM Statement.** An exception checking variant of this statement has been added."* Plus the §"new features" list L1217 ("Inline exception handling using the exception-checking format of the PERFORM statement").
 

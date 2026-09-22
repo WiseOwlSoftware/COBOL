@@ -24,8 +24,9 @@
       *>
       *> THE DETERMINATION (kb/Work PB810). GR24's actions are
       *> conditioned on the at end condition, and '46' is not it: it is
-      *> a LOGIC ERROR (§9.1.13.7 6)). So GR13 governs -- the AT END and
-      *> NOT AT END phrases are ignored, and GR13 b) transfers control
+      *> a LOGIC ERROR (§9.1.13.7 6)). So §14.9.30.4 GR13 governs --
+      *> the AT END and NOT AT END phrases are ignored, and GR13 b)
+      *> transfers control
       *> through §9.1.12 to the applicable USE declarative, then to the
       *> end of the READ.
       *>

@@ -4,7 +4,7 @@
       *> entry occupies NO storage. AS forms covered: a literal (GR1/GR2
       *> — incl. the §13.10.3 SR1 reclassification, so AS 0.25 keeps its
       *> non-integer value, and a §8.8.3 concatenation, which folds
-      *> first per §8.8.3.3 GR3); an arithmetic expression (GR4 —
+      *> first per §8.8.3.3 GR3); an arithmetic expression (§13.10.4 GR4 —
       *> §7.3.6 compile-time arithmetic, result truncated to an
       *> integer), including a PRIOR constant as an operand (§13.10.3
       *> SR2/SR7); and LENGTH OF (GR6 — the §15.50 LENGTH value).

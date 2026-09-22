@@ -22,7 +22,7 @@
       *>          key P3.  §14.9.30.4 GR30/GR31 would establish the
       *>          prime key as B's key of reference "for this retrieval"
       *>          — but the record is locked by another file connector,
-      *>          so GR9 + §9.1.13.8 item 1 make it '51' and GR10 d)
+      *>          so GR9 + §9.1.13.8 item 1 make it '51' and 14.9.30.4 GR10 d)
       *>          leaves the key of reference UNCHANGED: still the
       *>          alternate.  GR10 a) likewise leaves the file position
       *>          indicator at Z1.

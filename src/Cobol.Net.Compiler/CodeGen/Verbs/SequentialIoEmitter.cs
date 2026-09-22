@@ -282,7 +282,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             return nx.Scale == 0 ? $"(int)({nx.Expr})"
                 : $"(int){RuntimeApi.NumRescale(nx.Expr, $"{nx.Scale}", "0", CobolRounding.Truncation)}";
         }
-        return LoudValue("int", $"LINAGE operand '{op.DataName}' is not resolvable to storage (ISO §13.18.34 SR2)");
+        return LoudValue("int", $"LINAGE operand '{op.DataName}' is not resolvable to storage (ISO §13.18.34.3 SR2)");
     }
 
     public void EmitOpen(BoundOpen o)
@@ -638,7 +638,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             EmitUseHook(rd.File, atEndHandled: rd.AtEnd is not null);
             // The AT END imperative runs ONLY for the at end status class (§14.9.30.4 GR24 c) — "If, during the
             // execution of the READ statement, the at end condition exists"); every other unsuccessful status,
-            // GR21's '46' included (a LOGIC ERROR, §9.1.13.7 6)), is GR13's "neither an at end nor an invalid
+            // GR21's '46' included (a LOGIC ERROR, §9.1.13.7 6)), is §14.9.30.4 GR13's "neither an at end nor an invalid
             // key condition" and reaches a USE declarative through §9.1.12 instead. The determination is on
             // IoStatusClass (kb/Work PB810).
             if (rd.AtEnd is { } at)

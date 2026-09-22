@@ -120,7 +120,7 @@ public sealed class LinageConformanceTests
     //   GR2  page body = 2 writable lines: page-1 physical 4-5 (body lines 1-2), page-2 physical 11-12.
     //   GR5  bottom margin = 2 lines: page-1 physical 6-7.
     //   GR7d counter := 1 at OPEN OUTPUT (device at body line 1).
-    // W1 AFTER ADVANCING 1 (§14.9.51.4 GR25 f) advance then present, GR7 c) 2 counter += 1): counter 1→2, so
+    // W1 AFTER ADVANCING 1 (§14.9.51.4 GR25 f) advance then present, §13.18.34.4 GR7 c) 2 counter += 1): counter 1→2, so
     //    AAAA is on page-1 body line 2 = physical line 5.
     // W2: counter would be 3, past the page size — §14.9.51.4 GR26 a) page overflow, AFTER phrase, so "the
     //    device is repositioned to the first line that may be written on the next logical page and the logical

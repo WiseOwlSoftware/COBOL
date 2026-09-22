@@ -38,7 +38,7 @@ internal sealed class SortEmitter(EmitContext ctx,
         string sd = FileKeyExpr(so.File);
         string end = TerminationLabel();
         bool terminable = false;
-        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
 
         // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
         // EC-SORT-MERGE-FILE-OPEN; EC checking OFF by default, COBOLNET_DESIGN §18.16 — seam in CobolSort).
@@ -83,7 +83,7 @@ internal sealed class SortEmitter(EmitContext ctx,
         string sd = FileKeyExpr(mg.File);
         string end = TerminationLabel();
         bool terminable = false;
-        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
         foreach (var input in mg.Using)
         {
             w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
@@ -121,13 +121,13 @@ internal sealed class SortEmitter(EmitContext ctx,
         // decided HERE and never re-derived in the runtime (kb/Work PB714).
         bool terminable = EmitImplicitOpen(input, BoundOpenMode.Input,
             input.Sharing == SharingMode.AllOther ? SharingMode.ReadOnly : null,
-            "implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)", endLabel);
+            "implicit OPEN INPUT (ISO §14.9.40.4 GR12a / §14.9.24.4 GR7a)", endLabel);
         // §14.9.40 GR12 b) / §14.9.24 GR7 b): "Each record is obtained as if a READ statement with the NEXT
         // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
         // GOVERNED read (§14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
         // Format-1 entry with `ignoringLock: true` — never an ungoverned one, which would answer '51' against
         // another connector's lock and truncate the transfer, and which could not see the sharing mode the
-        // implicit OPEN established anyway (§9.1.15; kb/Work PB683). GR11 c) still sets the AUTOMATIC lock
+        // implicit OPEN established anyway (§9.1.15; kb/Work PB683). §14.9.30.4 GR11 c) still sets the AUTOMATIC lock
         // through it. The "false" is §14.9.30.4 GR19's NEXT: this retrieval is the forward walk of §14.9.43.4
         // ("the records … are transferred … in the order in which they are made available"), never a
         // statement-written direction — this loop renders no READ statement of the program's (kb/Work PB334).
@@ -167,7 +167,7 @@ internal sealed class SortEmitter(EmitContext ctx,
         // §9.1.15 1) is what that buys: "The sharing with no other mode specifies exclusive access to a physical
         // file" (kb/Work PB714).
         bool terminable = EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
-            "implicit OPEN OUTPUT (ISO §14.9.40 GR15a / §14.9.24 GR12a)", endLabel);
+            "implicit OPEN OUTPUT (ISO §14.9.40.4 GR15a / §14.9.24.4 GR12a)", endLabel);
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
             // "Each record is written as if a WRITE statement without any optional phrases had been executed"
             // (GR15 b) / MERGE GR13 b) — through the ONE governed WRITE entry, like every other emitted WRITE
@@ -295,7 +295,7 @@ internal sealed class SortEmitter(EmitContext ctx,
     /// (<c>Enumerable.OrderBy</c>) typed-comparer sort over the element array, copied back into the table (GR24).
     /// Stability preserves the pre-sort relative order of equal keys (GR3c DUPLICATES IN ORDER; without the phrase
     /// the order is undefined, GR4 — stable is conformant). Numeric keys compare by value (GR19 → the relation-
-    /// condition rules, §8.8.4.2 — never collated); character keys compare under the GR5-resolved sequence.</summary>
+    /// condition rules, §8.8.4.2 — never collated); character keys compare under the §14.9.40.4 GR5-resolved sequence.</summary>
     public void EmitTableSort(BoundTableSort ts)
     {
         var w = ctx.Writer;
@@ -311,7 +311,7 @@ internal sealed class SortEmitter(EmitContext ctx,
         var weightsArg = ts.Keys
             .Select(k => TableWeightsArg(ts.Collating, CollatingSelection.Of(k.Key.OperandPic), id, declared))
             .ToList();
-        w.Line($"var __ta{id} = {ts.ArrayPath};   // SORT table (ISO §14.9.40 Format 2 — in place, GR18/GR24)");
+        w.Line($"var __ta{id} = {ts.ArrayPath};   // SORT table (ISO §14.9.40.4 Format 2 — in place, GR18/GR24)");
         w.Line($"System.Comparison<{elem}> __tc{id} = (__a, __b) =>");
         w.Line("{");
         w.Indent();

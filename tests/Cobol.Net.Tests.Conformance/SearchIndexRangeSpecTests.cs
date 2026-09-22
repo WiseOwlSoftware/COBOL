@@ -235,7 +235,7 @@ public sealed class SearchIndexRangeSpecTests
     }
 
     [Fact]   // The D9 shape of the same bound: an OCCURS DYNAMIC table's last element is its CURRENT capacity
-             // (§8.5.1.9.1), so GR9 bounds the SEARCH ALL index by that and not by the declared maximum. OCCURS
+             // (§8.5.1.9.1), so §14.9.37.4 GR9 bounds the SEARCH ALL index by that and not by the declared maximum. OCCURS
              // DYNAMIC is a COBOL-2023 construct, so this arm has one edition.
     public void SearchAll_UnsuccessfulOnADynamicTable_IsBoundedByTheCurrentCapacity()
     {

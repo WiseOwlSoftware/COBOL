@@ -239,7 +239,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         string value = CobolLiteral.Decode(raw);
         if (value.Length > 8191)
             ctx.Edition.Error("COBOLNET0814", $"national literal of {value.Length} positions exceeds the "
-                + "8,191-position maximum (ISO §8.3.3.5 SR1)");
+                + "8,191-position maximum (ISO §8.3.3.5.3 SR1)");
         return new BoundStringLiteral(value) { Category = PicCategory.National };
     }
 
@@ -252,7 +252,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         string value = CobolLiteral.Decode(raw);
         if (value.Length > 8191)
             ctx.Edition.Error("COBOLNET0814", $"boolean literal of {value.Length} positions exceeds the "
-                + "8,191-position maximum (ISO §8.3.3.4 SR1)");
+                + "8,191-position maximum (ISO §8.3.3.4.3 SR1)");
         return new BoundStringLiteral(value) { Category = PicCategory.Boolean };
     }
 
@@ -608,7 +608,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Data.FilesByName.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
             ctx.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
-                + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34 GR7a)");
+                + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34.4 GR7a)");
             return null;
         }
         // The VISIBLE set, not the program's own FD list (kb/Work PB123's sweep): FilesByName carries the
@@ -735,7 +735,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (place is CapacityRegisterPlace cap)
         {
             ctx.Edition.Error("COBOLNET1523", $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
-                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38 SR30–32)");
+                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38.3 SR30–32)");
             return null;
         }
         // A CONSTANT RECORD's content cannot be modified — neither the record nor any subordinate may be a

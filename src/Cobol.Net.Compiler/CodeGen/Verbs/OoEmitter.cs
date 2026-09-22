@@ -73,7 +73,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // are two halves of ONE StorageCell, so naming the cell once and defining the backing as `ref
             // {cell}.Ref` makes that an identity rather than two expressions that happen to agree.
             w.Line($"private StorageCell {ext.CellCsName} => ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                + $"{init});   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+                + $"{init});   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5.4 GR8)");
             w.Line($"private ref string {ext.BackingCsName} => ref {ext.CellCsName}.Ref;");
         }
     }
@@ -111,7 +111,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(ext.ExternalName)}, "
                     + $"new ExternalDescriptor(\"record\", ByteCount: {ext.Width}, ValueImage: {valueSpec}, "
                     + $"StrongTypeKey: {strongKey}, ConstantRecord: {(ext.Record.IsConstantRecord ? "true" : "false")}), "
-                    + $"{data.ExternalCheckMask});   // §14.8.4.3 / §13.18.22 GR6");
+                    + $"{data.ExternalCheckMask});   // §14.8.4.3 / §13.18.22.4 GR6");
             }
             foreach (var f in data.Files.Where(f => f.IsExternal))
             {
@@ -357,14 +357,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     if (m.Binding!.Returning is null)
                         w.Line(OoUnivStop(m, "__ret is not null",
                             $"\"INVOKE '{cobolName}' '{m.Name}': RETURNING specified but the method declares none "
-                            + "(ISO §14.8.3/GR7c)\""));
+                            + "(ISO §14.9.23.4 GR7c/§14.8.3)\""));
                     else
                     {
                         string rl = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
                             OoConformance.ConformanceDescriptor(m.Binding!.Returning), quote: true);
                         w.Line(OoUnivStop(m, $"__ret is null || __ret.Descriptor != {rl}",
                             $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
-                            + "(ISO §14.8.3/GR7c)\""));
+                            + "(ISO §14.9.23.4 GR7c/§14.8.3)\""));
                     }
                     string argList = string.Join(", ", Enumerable.Range(0, m.Binding!.Formals.Count).Select(i => OoArgPair($"__p{i}", $"__o{i}")));
                     w.Line(m.Binding!.Returning is null
@@ -477,7 +477,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : s.SourceFactoryCs is { } fac ? $"{fac}.__Instance"
             : Ctx.SendOnce(PlaceRenderer.Read(s.Source!), s.Targets.Count, "setOr");
         foreach (var tp in s.Targets)
-            w.Line(PlaceRenderer.Write(tp, $"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39 GR9 — reference copy)");
+            w.Line(PlaceRenderer.Write(tp, $"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39.4 GR9 — reference copy)");
     }
 
     private static string OoUnivCallerRead(Place p) =>
@@ -517,7 +517,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 : (m.IsFinal || m.Owner.IsFinal) ? "" : "virtual";
             string pmods = pmod.Length == 0 ? "" : pmod + " ";
             if (m.Accessor == 'G')
-                w.Line($"public {pmods}{retType} {m.CsName}() => {subject.CsName};   // PROPERTY {m.PropertyName} GET (§13.18.42 GR1)");
+                w.Line($"public {pmods}{retType} {m.CsName}() => {subject.CsName};   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)");
             else
                 // The setter's one formal (§11.7.3 SR7) crosses through the SAME signature builder as every
                 // method, so a PROPERTY SET that overrides or implements a written SET method cannot drift from it.
@@ -1057,7 +1057,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // argument must see the argument's write-back first).
             string tmp = $"__ivr{id}";
             bool retString = OoStringCarried(rs);
-            w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, GR5)");
+            w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23.4; null receiver → EC-OO-NULL, GR5)");
             foreach (var pLine in post) w.Line(pLine);
             if (OoVarGroupCarried(rs))
                 w.Line(PlaceRenderer.WriteVarGroupImage(inv.Returning, tmp, "INVOKE RETURNING delivery into"));

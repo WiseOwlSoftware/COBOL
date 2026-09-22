@@ -214,11 +214,11 @@ public sealed class CompileTimeExpressionEvaluator
         {
             case NumericSeparatorIssue.DecimalPointUnderCommaMode:
                 _diag.Report(CtDiagCode.NumericSeparator, $"numeric literal '{text}': under DECIMAL-POINT IS COMMA "
-                    + "the decimal separator is the comma (ISO §12.3.7 GR14a); '.' is not valid in a numeric literal");
+                    + "the decimal separator is the comma (ISO §12.3.7.4 GR14a); '.' is not valid in a numeric literal");
                 break;
             case NumericSeparatorIssue.CommaWithoutCommaMode:
                 _diag.Report(CtDiagCode.NumericSeparator, $"numeric literal '{text}': a comma decimal separator "
-                    + "requires DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
+                    + "requires DECIMAL-POINT IS COMMA (ISO §12.3.7.4 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
                 break;
         }
     }
@@ -442,7 +442,7 @@ public sealed class CompileTimeExpressionEvaluator
     {
         if (bits is null) return null;
         if (bits.Length != 1)
-        { ReportDirective(where, "a simple boolean condition shall reference a boolean value of length 1 (ISO §8.8.4.3 SR1)"); return null; }
+        { ReportDirective(where, "a simple boolean condition shall reference a boolean value of length 1 (ISO §8.8.4.3.3 SR1)"); return null; }
         return bits.IsTrue;
     }
 

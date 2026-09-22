@@ -408,7 +408,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
             ctx.Edition.Error("COBOLNET0897", $"declarative section '{name}': the first sentence shall consist "
-                + "of a single USE statement (ISO §14.3 / §14.9.49 SR1)");
+                + "of a single USE statement (ISO §14.3 / §14.9.49.3 SR1)");
         else if (use.DEBUGGING() is not null)
         {
             // X3.23-1985 USE FOR DEBUGGING (the '85 debug facility, deleted by ISO 2002 — 0902-gated ≥2002 by
@@ -636,7 +636,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             if (match == ReportGroupResolution.Match.None || group is null)
             {
                 ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
-                    + $"'{head}' does not name a report group (ISO §14.9.49 SR9)");
+                    + $"'{head}' does not name a report group (ISO §14.9.49.3 SR9)");
                 return null;
             }
             // SR9: the same identifier-1 shall not appear in more than one USE BEFORE REPORTING
@@ -707,7 +707,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Bind a Format-3 USE statement's scope (ISO §14.9.49.2 — <c>USE AFTER {EXCEPTION CONDITION | EC}
     /// {exception-name-1 | exception-name-2 {FILE file-name-2}…}…</c>): validate every exception-name against
-    /// the §14.6.13.1 catalog (level 1/2/3 all legal — the GR3c–g tiers select by level), SR13 (a file-scoped
+    /// the §14.6.13.1 catalog (level 1/2/3 all legal — the §14.9.49.4 GR3c–g tiers select by level), SR13 (a file-scoped
     /// name shall begin EC-I-O), SR14 (the same (exception-name-2, file-name-2) PAIR in more than one USE
     /// statement of this procedure division — a bare exception-name-1 is outside that rule and is bound as
     /// written), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>

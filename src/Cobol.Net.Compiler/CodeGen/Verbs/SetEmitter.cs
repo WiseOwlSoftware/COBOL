@@ -103,7 +103,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         foreach (var r in s.Receivers)
             if (r.Based is { } based) ptr.EmitSetAddressOfBased(based, src);       // GR13 — data-name-1
             else ctx.Writer.Line(PlaceRenderer.Write(r.Pointer!, src)              // GR12 — identifier-5
-                                 + "   // SET pointer (ISO §14.9.39 Format 7 GR12)");
+                                 + "   // SET pointer (ISO §14.9.39.4 Format 7 GR12)");
     }
 
     /// <summary><c>SET LOCALE … TO …</c> (ISO §14.9.39 Format 11; kb/Work PB64 T1): one call on the run unit's ONE

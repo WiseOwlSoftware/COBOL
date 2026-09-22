@@ -909,7 +909,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // guard on __asCalled, the same activation flag EmitExitProgram uses.
         if (g.Status is { } st)
             w.Line($"if (!__asCalled) {RuntimeApi.SetExitStatus(num.ExitStatus(st))};   // §14.9.18.4 GR3/GR10 — a main program passes the status");
-        w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §14.9.18 GR2/GR3)");
+        w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §14.9.18.4 GR2/GR3)");
         return true;
     }
 
@@ -922,13 +922,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var w = ctx.Writer;
         if (ep.Raising is null)
         {
-            w.Line("if (__asCalled) throw new ProgramReturn();   // ISO §14.9.14 GR2: CONTINUE in a non-called program; GR3: return in a called one");
+            w.Line("if (__asCalled) throw new ProgramReturn();   // ISO §14.9.14.4 GR2: CONTINUE in a non-called program; GR3: return in a called one");
             return;
         }
         using (w.Block("if (__asCalled)   // GR2 — a non-called program raises nothing, even with RAISING"))
         {
             EmitRaisingStage(ep.Raising, "EXIT PROGRAM");
-            w.Line("throw new ProgramReturn();   // return to the activator (ISO §14.9.14 GR3)");
+            w.Line("throw new ProgramReturn();   // return to the activator (ISO §14.9.14.4 GR3)");
         }
     }
 

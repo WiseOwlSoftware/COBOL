@@ -157,7 +157,7 @@ public sealed class ThroughRangeExceptionTests
     [InlineData("PBR14", "", LowValData, "LOW-VALUE THRU \"AA\"", "IN\nEC[                               ]")]
     // The same sizing decides an INVERSION: "MM" THRU SPACE is "MM" THRU "  ", which is inverted.
     [InlineData("PBR15", "", Wide2Data, "\"MM\" THRU SPACE", "OUT\nEC[EC-RANGE-INVALID               ]")]
-    // ALL literal-1 ends (§8.3.3.6.3 SR2 / §8.3.3.6.4 GR2 c): "AA" THRU "ZZ" contains "CC".
+    // ALL literal-1 ends (§8.3.3.6.3 SR2 / §8.3.3.6.4 GR2): "AA" THRU "ZZ" contains "CC".
     [InlineData("PBR16", "", Wide2Data, "ALL \"A\" THRU ALL \"Z\"", "IN\nEC[                               ]")]
     public void ThroughRange_RaisesRangeInvalidByClassNotByOperandForm(
         string pid, string env, string data, string range, string expected)

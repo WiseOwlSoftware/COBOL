@@ -445,7 +445,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     /// <summary>ISO §3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length
     /// (§8.3.3.6.4 GR3 b) — "when a figurative constant is other than ALL literal-1, the length of the string is
     /// one character" — and the ALL form's literal-1 cannot be zero-length either, §8.3.3.6.3 SR2), a
-    /// concatenation expression is zero-length exactly when every operand is (§8.8.3.3 GR2 c) 2.), and each plain
+    /// concatenation expression is zero-length exactly when every operand is (§8.8.3.3 GR2), and each plain
     /// format answers <see cref="CobolLiteral.IsZeroLength"/>.</summary>
     private static bool IsZeroLengthLiteral(Core.NonNumericLiteralContext nn)
     {

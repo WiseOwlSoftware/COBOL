@@ -7,14 +7,14 @@
       *>
       *> EXPECTED VALUES, DERIVED BEFORE THE RUN:
       *> T1  REPLACING ALPHABETIC ALPHANUMERIC DATA BY "ZZ" — ONE category-name naming TWO categories
-      *>     (§5.2.6.4). GR5c2 qualifies AB (§8.5.2.2 alphabetic) and AN (§8.5.2.3 alphanumeric); GR6b's
+      *>     (§5.2.6.4). GR5c2 qualifies AB (§8.5.2.2 alphabetic) and AN (§8.5.2.3 alphanumeric); §14.9.20.4 GR6b's
       *>     sender is literal-1 "ZZ"; GR4's implicit MOVE left-justifies and space-fills to 3 → "ZZ ".
       *>     NU/NA/BO name no category in the phrase, so GR5c leaves them unchanged (GR5c4's premise is
       *>     false — the REPLACING phrase IS specified). → ZZ / ZZ / 123 / pqr / 0000
       *> T2  REPLACING NATIONAL DATA BY N"ab" — one of the eight words PB415 landed. Only NA is category
       *>     national (§8.5.2.10); the implicit MOVE pads with the national space → "ab ". → ZZ/ZZ/123/ab /0000
       *> T3  REPLACING NATIONAL-EDITED DATA BY N"zz" — conforming source that matches NO receiving operand:
-      *>     national-edited (§8.5.2.11) is a DIFFERENT category from national (§8.5.2.10), so GR5c2 selects
+      *>     national-edited (§8.5.2.11) is a DIFFERENT category from national (§8.5.2.10), so §14.9.20.4 GR5c2 selects
       *>     nothing and every item is left unchanged. Nothing changes.
       *> T4  REPLACING BOOLEAN DATA BY B"11" — only BO is category boolean (§8.5.2.5); the boolean MOVE
       *>     left-justifies and zero-fills right (§14.9.25.3) → "1100".

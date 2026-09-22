@@ -341,7 +341,7 @@ public sealed class ReportFieldModel
     /// <summary>The first column operand's value — the single-absolute fast path and diagnostics anchor.</summary>
     public int Column => Columns[0].Value;
 
-    /// <summary>PRESENT WHEN conditions strictly below the line entry, down to this entry (§13.18.41 GR2b).</summary>
+    /// <summary>PRESENT WHEN conditions strictly below the line entry, down to this entry (§13.18.41.4 GR2b).</summary>
     public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
     public List<BoundCondition> PresentWhen { get; } = [];
 
@@ -822,7 +822,7 @@ public sealed partial class DataBinder
         public ReportGroupModel? Group;
         public ReportLineModel? Line;
         /// <summary>The entry scope stack: one frame per entry on the current level path. It carries the
-        /// PRESENT WHEN condition (§13.18.41 GR2b) AND the frame entry's REPETITION COUNT (§13.15.4 GR3), so
+        /// PRESENT WHEN condition (§13.18.41.4 GR2b) AND the frame entry's REPETITION COUNT (§13.15.4 GR3), so
         /// §13.18.63.3 SR35 / §13.18.53.3 SR6 can read "the repeating entry, and any number of successive
         /// repeating entries at higher levels" off the stack instead of a hand-maintained special case
         /// (kb/Work PB506).</summary>
@@ -1363,7 +1363,7 @@ public sealed partial class DataBinder
                     // PICTURE format 2 in a REPORT GROUP entry (§13.15.4 GR2 imports the PICTURE clause's own
                     // rules, so format 2 is LEGAL here; kb/Work PB113 — this arm used to ignore the phrase and
                     // analyze the picture as format 1: a silent wrong answer). One analyzer, three callers. ⛔ Do
-                    // NOT pair it with a SIGN check: §13.15.3 carries no SR19 twin — the pair is legal here.
+                    // NOT pair it with a SIGN check: §13.15.3 carries no twin of §13.16.3 SR19 — the pair is legal here.
                     if (clause.pictureClause()!.pictureLocalePhrase() is { } rlp)
                     {
                         var lw = rlp.cobolWord();
@@ -1498,7 +1498,7 @@ public sealed partial class DataBinder
             {
                 st.Line = opened;
                 group.Lines.Add(opened);
-                // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41 GR2b).
+                // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41.4 GR2b).
                 foreach (var (_, c, _, _) in chain) if (c is not null) opened.PresentWhenCtxs.Add(c);
                 if (ownCond is not null) opened.PresentWhenCtxs.Add(ownCond);
                 // §13.18.38.4 GR13 on the VERTICAL axis: a repetition the DEPENDING count excludes has no line.
@@ -2021,7 +2021,7 @@ public sealed partial class DataBinder
             // A report-name qualifier naming a DIFFERENT report's counter is legal (§8.4.3.15 SR2) — staged.
             if (dref.cobolWord() is { } q && !q.GetText().Equals(model.Name, StringComparison.OrdinalIgnoreCase))
                 Edition.Error(DiagnosticCatalog.ReportSourceOtherReportCounter, $"RD '{model.Name}': SOURCE {dref.GetText()} — a counter of "
-                    + "another report (ISO §8.4.3.15 SR2) is not yet implemented");
+                    + "another report (ISO §8.4.3.15.3 SR2) is not yet implemented");
             return new FieldCounterSource(dref.PAGE_COUNTER() is not null);
         }
         foreach (var sfx in dref.dataReferenceSuffix())
@@ -2625,8 +2625,8 @@ public sealed partial class DataBinder
     /// (<c>KeyReference</c> drops <c>refModPart</c>; TYPE and RESET kept the bare <c>cobolWord</c>) and compared
     /// by NAME, so <c>CX(1:3)</c> and <c>CX(4:3)</c> were one operand.
     /// <para>The rule the three clauses SHARE is screened here, once — "If [data-name-1] is reference-modified,
-    /// leftmost-position and length shall be integer literals" (§13.18.16.3 SR4, and word-for-word in SR8 and
-    /// SR10) — with the CALLING clause's own <paramref name="code"/> and <paramref name="rule"/> in the message,
+    /// leftmost-position and length shall be integer literals" (§13.18.16.3 SR4, and word-for-word in §13.18.54.3 SR8
+    /// and §13.18.57.3 SR10) — with the CALLING clause's own <paramref name="code"/> and <paramref name="rule"/> in the message,
     /// so each site keeps its own citation. Two ref-mods are §8.4.3.3.3 SR3 (the existing COBOLNET1630). A
     /// SUBSCRIPT is rejected outright: §13.18.16.3 SR3 bars an operand subject to an OCCURS clause and
     /// §8.4.2.3.3 SR2 bars a subscript on an item that has none, so no legal subscripted spelling exists — and it

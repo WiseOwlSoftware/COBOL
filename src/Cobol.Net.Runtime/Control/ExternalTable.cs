@@ -84,8 +84,8 @@ public sealed class ExternalTable
     /// mask &amp; activated element's before-Environment-division mask (§14.8.4.1's both-elements rule) — so a
     /// zero gate stores without checking (checking not enabled ⇒ the condition is not raised, §14.6.13.1.1).
     /// A detected violation whose bit is in the gate throws <see cref="CobolCallException"/> carrying the Table 13
-    /// level-3 name: the activation unwinds to the CALL site ("the program call is not successful", GR3e), where
-    /// the ON EXCEPTION phrase or the §14.6.13.1.3 sequence takes it (GR3h).</summary>
+    /// level-3 name: the activation unwinds to the CALL site ("the program call is not successful", §14.9.4.4 GR3e), where
+    /// the ON EXCEPTION phrase or the §14.6.13.1.3 sequence takes it (§14.9.4.4 GR3h).</summary>
     public void Describe(string describer, string name, ExternalDescriptor desc, ExternalChecks gate)
     {
         // An external FILE CONNECTOR and an external RECORD are different external object classes that may share
@@ -104,7 +104,7 @@ public sealed class ExternalTable
                     throw new CobolCallException(
                         $"external record '{name}': the descriptions in '{other}' and '{describer}' do not conform "
                         + $"— byte count {prior.ByteCount} vs {desc.ByteCount}, VALUE/strong-type/CONSTANT-RECORD identity "
-                        + "(ISO §14.8.4.3 / §13.18.22 GR6 — EC-EXTERNAL-FORMAT-CONFLICT)",
+                        + "(ISO §14.8.4.3 / §13.18.22.4 GR6 — EC-EXTERNAL-FORMAT-CONFLICT)",
                         "EC-EXTERNAL-FORMAT-CONFLICT");
                 if ((gate & ExternalChecks.DataMismatch) != 0 && desc.Kind == "file"
                     && (AnyNonExternalRef(prior) || AnyNonExternalRef(desc)                      // §14.8.4.2 conjunct 1: SHALL BE external

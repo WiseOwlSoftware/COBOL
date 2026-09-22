@@ -23,7 +23,7 @@
       *> name a class of the compilation group" — SR16's diagnostic answering SR17's question — and pass b)
       *> had no code at all.
       *>
-      *> DERIVATION OF THE EXPECTED OUTPUT.  RAISE OY: §14.9.29.4 GR1 makes OY the exception object; GR3 makes
+      *> DERIVATION OF THE EXPECTED OUTPUT.  RAISE OY: §14.9.29.4 GR1 makes OY the exception object; §14.9.49.4 GR3 makes
       *> Format 4 selection replace the F1/F3 tiers; GR14 a) finds CL-SEC (OY is an instance object of CY) and
       *> "no other declaratives are executed" -> CLASS-CY.  A RAISE is not by itself fatal (§14.9.29.4 GR2), so
       *> control returns after it -> AFTER-1.  RAISE OX: GR14 a) finds no qualifying class entry (CX is neither

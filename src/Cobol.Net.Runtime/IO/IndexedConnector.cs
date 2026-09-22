@@ -21,7 +21,7 @@ namespace CobolNet.Runtime.IO;
 /// current record (§14.9.10.4 GR9).</para>
 /// Key comparisons are ordinal over the Latin-1 character image: record keys are category alphanumeric/national
 /// (§12.4.5.12 SR2), for which ordinal IS the native collating sequence — correct for COBOL-85 NIST; the file-level
-/// COLLATING SEQUENCE clause (§12.4.5.7, WRITE GR35/GR42) is the SPECIAL-NAMES/alphabet subsystem's seam.
+/// COLLATING SEQUENCE clause (§12.4.5.7, WRITE §14.9.51.4 GR35/GR42) is the SPECIAL-NAMES/alphabet subsystem's seam.
 /// </summary>
 public sealed class IndexedConnector : KeyedConnector
 {
@@ -592,7 +592,7 @@ public sealed class IndexedConnector : KeyedConnector
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
 
         // The ONE definition of "this REWRITE changed alternate key i" that GR24 a)/b), GR24's SUPPRESS WHEN
-        // sub-rules and §9.1.13.2 2 c) all key off. GR24's closing sentence — "The comparison used for
+        // sub-rules and §9.1.13.2 2 c) all key off. §14.9.35.4 GR24's closing sentence — "The comparison used for
         // determining changes to the key is based on the collating sequence for the file according to the rules
         // for a relation condition" — makes it KeyEq, not an ordinal string compare; entering OR leaving
         // suppression is a change of its own (GR24's two SUPPRESS WHEN sub-rules both reposition).

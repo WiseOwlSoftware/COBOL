@@ -19,7 +19,7 @@
       *>    all four. The two blocks below are byte-identical but for the tag and the file.
       *>  . Status 42 is a "4x" value, which Table 13 classifies EC-I-O-LOGIC-ERROR / Fatal, so what
       *>    happens after the USE procedure falls to 14.9.49.4 GR7 c): "the implementor determines
-      *>    what action is taken as described in 9.1.13". This compiler takes the GR7 b) action -
+      *>    what action is taken as described in 9.1.13". This compiler takes the 14.9.49.4 GR7 b) action -
       *>    control returns to an implicit CONTINUE after the offending statement, which is the
       *>    surveyed behaviour - so the AFTER- lines show the same 42 the handler saw. That choice is
       *>    NOT what this golden is about: its subject is 8.3.2.4.3, and TERSE and FULL are asserted

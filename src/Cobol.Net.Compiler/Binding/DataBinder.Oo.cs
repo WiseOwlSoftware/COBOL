@@ -511,7 +511,7 @@ public sealed partial class DataBinder
 
     /// <summary>Synthesize the GR1/GR2/GR3 compiler temp for one property reference: a level-1 elementary
     /// item CLONED from the accessor's crossing description (<paramref name="model"/> = the GET RETURNING
-    /// item or the SET formal — identical by the §13.18.42 clone rule / the 0842 SR7 description-equality
+    /// item or the SET formal — identical by the §13.18.42 clone rule / the 0842 §11.7.3 SR7 single-USING accessor
     /// check). One temp per REFERENCE (GR1 temp-1 / GR2 temp-2; GR3 reuses one — the caller decides).</summary>
     internal DataItem OoCreatePropertyTemp(DataItem model, string prop) =>
         CreateCompilerTemp(model, "__PROP-TEMP-", "__prop", prop);
@@ -662,7 +662,7 @@ public sealed partial class DataBinder
                 if (!added)
                     Edition.Error("COBOLNET0842", $"{where}: duplicate accessor for property '{subjName}' — "
                         + "a data-name with the PROPERTY clause shall not also have an explicit GET/SET "
-                        + "PROPERTY method (ISO §11.7 SR5), and only one PROPERTY clause per name");
+                        + "PROPERTY method (ISO §11.7.3 SR5), and only one PROPERTY clause per name");
             }
         }
 

@@ -5,7 +5,7 @@
       *> writes TYPEDEF / TYPE and pb207_bit_group_value writes GROUP-USAGE, both COBOL-2002 introductions.
       *> This file is the 85 witness, in constructs COBOL-85 already had.
       *> EXPECTED VALUES, COMPUTED FROM THE SPEC BEFORE THE CONFIRMING RUN.  GA is an alphanumeric group item
-      *> (13.18.29.4 GR3), so GR7 sends the literal through 14.6.8.5 - "aligned at the leftmost character
+      *> (13.18.29.4 GR3), so 13.18.63.4 GR7 sends the literal through 14.6.8.5 - "aligned at the leftmost character
       *> position in the data item with space fill or truncation to the right":
       *>   GA  area "ABCD" (exactly 4)     -> P1=AB  P2=CD
       *>   GB  figurative ZEROS            -> 8.3.3.6.4 GR2 repeats the one character to the area width and

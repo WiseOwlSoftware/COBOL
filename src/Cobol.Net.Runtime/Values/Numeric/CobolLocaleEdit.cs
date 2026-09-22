@@ -60,7 +60,7 @@ public static class CobolLocaleEdit
         return new Shape(plus, cs, dot, left, right, zrun);
     }
 
-    /// <summary>Edit a fixed-point value into a format-2 item — §13.18.40.5 rules 9–15: the GR18 sign decision
+    /// <summary>Edit a fixed-point value into a format-2 item — §13.18.40.5 rules 9–15: the §13.18.40.4 GR18 sign decision
     /// (no '+' ⇒ the absolute value, unsigned); r14's decimal-point alignment (zero fill or SILENT truncation on
     /// either end — EC-LOCALE-SIZE belongs only to the final move), which reads the PICTURE alone and so runs
     /// FIRST, because the two zero short-circuits below are both about the value BEING STORED and that is the

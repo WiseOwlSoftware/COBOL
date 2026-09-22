@@ -456,7 +456,7 @@ internal sealed class BinderDriver
                 $"program '{unit.Name}': a RECURSIVE program that directly contains programs and declares "
                 + "WORKING-STORAGE or a FILE SECTION is recognized but not yet implemented — the "
                 + "shared-static storage model (ISO §13.5.4 GR1 / §8.6.4 / §14.6.2.3.3) does not yet "
-                + "compose with contained-program GLOBAL bridges (§13.18.27 GR2)");
+                + "compose with contained-program GLOBAL bridges (§13.18.27.4 GR2)");
         var data = new DataBinder(edition)
         {
             OoClasses = session.OoClasses,

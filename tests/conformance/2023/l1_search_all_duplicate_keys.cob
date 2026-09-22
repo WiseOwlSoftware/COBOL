@@ -6,7 +6,7 @@
       *> undefined which one."
       *> GR5 a) holds: the contents of WS-K are 01, 03, 03, 03, 09,
       *> which is the ascending order the ASCENDING phrase declares
-      *> (§13.18.38.4 GR3). Duplicates have to be compatible with GR5a,
+      *> (§13.18.38.4 GR3). Duplicates have to be compatible with §14.9.37.4 GR5a,
       *> because GR7's own premise — more than one satisfying setting
       *> WHILE GR5 is satisfied — can arise no other way. GR5 b) holds
       *> vacuously: WS-KE is not subordinate to any OCCURS clause.

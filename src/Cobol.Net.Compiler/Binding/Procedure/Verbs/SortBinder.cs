@@ -526,7 +526,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                     + "ISO §14.9.40.3 SR2)");
             else if (!def.HasCollatingSequence)
                 ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{natName}': a {def.Phrase} "
-                    + "alphabet references a coded character set but NOT a collating sequence (ISO §12.3.7 GR7 "
+                    + "alphabet references a coded character set but NOT a collating sequence (ISO §12.3.7.4 GR7 "
                     + "Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets may collate "
                     + "(ISO §14.9.40.3 SR2)");
             else

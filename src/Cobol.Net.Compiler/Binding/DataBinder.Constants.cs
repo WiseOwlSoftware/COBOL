@@ -192,7 +192,7 @@ public sealed partial class DataBinder
     /// <summary>The arithmetic-expression AS form. §13.10.3 SR1 first: an operand that is a SINGLE numeric
     /// literal is a LITERAL, not an arithmetic expression — <c>AS 0.25</c> keeps class/category numeric with
     /// its non-integer value (GR1/GR2), where the expression form would have truncated to an integer (GR4).
-    /// Otherwise the expression evaluates per §7.3.6 and the result is an integer (GR4 + §7.3.6.3 GR3). The
+    /// Otherwise the expression evaluates per §7.3.6 and the result is an integer (§13.10.4 GR4 + §7.3.6.3 GR3). The
     /// <c>BYTE-LENGTH OF x</c> form parses through this leg as a qualified dataReference (no dedicated token)
     /// and is recognized and STAGED LOUD here (GR5; the §15.14 intrinsic is itself Deferred).</summary>
     private ConstantDef? BindConstantArithmetic(

@@ -15,7 +15,7 @@
       *> Expected values, COMPUTED FROM THE STANDARD (not measured):
       *>   X (PIC ZZ9.99): 14.9.39.4 GR6 places literal-2 " 10.00" as written (SR7 takes an alphanumeric
       *>     literal on a numeric-edited item as the edited form the programmer wrote) -> X = " 10.00" and
-      *>     8.8.4.5.3 GR2 makes X-TEN TRUE.  GR7 then places literal-4 = 11 "according to the rules for
+      *>     8.8.4.5.3 GR2 makes X-TEN TRUE.  14.9.39.4 GR7 then places literal-4 = 11 "according to the rules for
       *>     the VALUE clause", i.e. through SR6: 11 over ZZ9.99 edits to " 11.00" -> X = " 11.00", and
       *>     the relation " 11.00" = " 10.00" is false, so X-TEN is FALSE.  The two images differ, which
       *>     is exactly why SR27 does not reach this entry.

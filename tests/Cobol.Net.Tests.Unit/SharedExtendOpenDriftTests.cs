@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// ⛔ AN <c>OPEN</c> HAS ONLY I-O STATUSES AS OUTCOMES — never an escaping exception (kb/Work PB713).
 /// ISO §14.9.27.4 GR1 makes every OPEN <i>"cause the value of the I-O status associated with file-name-1 to be
-/// updated to one of the values in 9.1.13"</i>, GR25 makes an unsuccessful one leave <i>"the file … not
+/// updated to one of the values in 9.1.13"</i>, §14.9.27.4 GR25 makes an unsuccessful one leave <i>"the file … not
 /// affected"</i>, and §9.1.13.6 item 1 gives the residual host failure its value ('30'). §9.1.15 says which
 /// opens are ALLOWED — <i>"the sharing with all other mode allows concurrent access to a physical file through
 /// other file connectors specifying input, I-O, or extend mode"</i> — and it puts the gate on the FILE

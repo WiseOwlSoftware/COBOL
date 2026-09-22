@@ -11,7 +11,7 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// The arithmetic-verb binder (P7 Step 10p): ADD (ISO §14.9.2) / SUBTRACT (§14.9.44) / MULTIPLY (§14.9.26) /
-/// DIVIDE (§14.9.12, all five formats incl. REMAINDER SR6) / COMPUTE (§14.9.8 Format 1 + the Format-2 boolean
+/// DIVIDE (§14.9.12, all five formats incl. REMAINDER's single GIVING receiver, §14.9.12.2 Formats 4–5) / COMPUTE (§14.9.8 Format 1 + the Format-2 boolean
 /// compute with the F1→F2 sole-boolean re-route — the "ANTLR alternative-order reality" precedent). The CORR
 /// formats (ADD/SUBTRACT Format 3) retarget <see cref="CorrespondingBinder"/> via the host accessor. The shared
 /// receiving machinery — BindSizeError/BuildSizeError, Receivers, RoundingOf, ResolveReceiving — and the
@@ -137,7 +137,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
         var sizeErr = host.BindSizeError(div.arithmeticOnSizeError());
 
-        // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (SR6).
+        // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (§14.9.12.2 — identifier-3 carries no ellipsis in either format).
         if (div.divideRemainderPhrase() is { } rem)
         {
             if (div.divideGivingPhrase() is not { } g)
@@ -335,7 +335,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // Format 6's literal-1).
         if (rhs is BoundBoolAll { IsAllLiteral: true })
             ctx.Edition.Error("COBOLNET1511", "a boolean COMPUTE expression shall not consist solely of an ALL "
-                + "literal (ISO §14.9.8 Format 2 SR3)");
+                + "literal (ISO §14.9.8.3 Format 2 SR3)");
         return BuildComputeBoolean(compute, rhs);
     }
 
@@ -373,7 +373,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
                 ctx.Edition.Error("COBOLNET1511", $"the receiver '{store.dataReference().GetText()}' of a boolean "
-                    + "COMPUTE shall be an elementary boolean item (ISO §14.9.8 Format 2 SR2)");
+                    + "COMPUTE shall be an elementary boolean item (ISO §14.9.8.3 Format 2 SR2)");
             targets.Add(p);
         }
         return new BoundComputeBoolean(rhs, targets, ConditionBinder.Gr3Width(rhs));

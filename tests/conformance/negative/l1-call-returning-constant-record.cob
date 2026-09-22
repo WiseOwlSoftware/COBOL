@@ -9,7 +9,7 @@
       *> edition where CALL … RETURNING exists (2002+).
       *>
       *> WHY THIS FIXTURE AND NOT THE BY REFERENCE ONE. `conformance:negative/pb128-call-constant-by-
-      *> reference` pins the SAME §13.18.15.3 SR2 screen in the identifier-2 slot (SR5), and the two slots
+      *> reference` pins the SAME §13.18.15.3 SR2 screen in the identifier-2 slot (§14.9.4.3 SR5), and the two slots
       *> are separate arms of one dispatch: identifier-2 rode ExpressionBinder.ResolveReceiving while
       *> identifier-3 was resolved with the plain sending resolver, so the RETURNING position bound a
       *> writable carrier over a structured constant and the callee's returned value overwrote it with no

@@ -91,7 +91,7 @@
            PERFORM COUNT-DST.
            DISPLAY "L1-COUNT=" N.
       *> LEG 2 — nothing else is open, so the same SORT runs: OPEN OUTPUT
-      *> truncates the GIVING file (14.9.27.4 GR14 c) and the sorted records
+      *> truncates the GIVING file (14.9.27.4 GR18) and the sorted records
       *> replace it (GR15 b, "The sorted logical records are returned and
       *> written onto the file").
        LEG-2.

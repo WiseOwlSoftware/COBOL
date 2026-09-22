@@ -240,7 +240,7 @@ public static class OoConformance
             PicCategory.Alphanumeric =>
                 // An ANY LENGTH item's length is runtime-varying (ISO §13.18.2 GR1) — encoded '*' so the pair
                 // semantics track DescriptionMismatch (ANY LENGTH must MATCH between the sides; when both carry
-                // it the length compare is void). Through UNIVERSAL dispatch §14.9.23.3 SR7c (:28530) bans an
+                // it the length compare is void). Through UNIVERSAL dispatch §14.9.23.4 GR7c bans an
                 // ANY LENGTH formal outright: a concrete argument descriptor never equals 'S:*', so the crossing
                 // raises EC-OO-UNIVERSAL (loud) — the one permissive corner (an ANY LENGTH argument meeting an
                 // ANY LENGTH formal matches instead of raising) is a documented strictness delta, same family

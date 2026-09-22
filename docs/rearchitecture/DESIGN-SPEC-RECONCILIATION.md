@@ -1,5 +1,8 @@
 # Design-Doc ↔ ISO-Spec Reconciliation Ledger
 
+<!-- audit-doc-citations: names-misfilings - this ledger records each design doc's WRONG citation beside
+     the correct one (the "Cites" column is the defect as found), so its ordinals are wrong on purpose. -->
+
 > **SSOT for the design-doc audit (owner concern 2026-07-22): supposedly-validated designs carried spec conflicts).**
 > Every conflict below MUST be corrected by **rewriting the design doc to read as always-correct** (no addenda, no was-X-now-Y — that lives only in DEVLOG; owner directive). A finding tagged **CODE-BUG?** means the design is spec-wrong AND the code implements it — VERIFY the code, and if wrong it becomes a §24 fix (code + doc), never a doc-rewrite that blesses wrong code.
 > Source: audit workflow `wf_480d50f5-cd1` (15 agents, one per behavior-bearing design doc).

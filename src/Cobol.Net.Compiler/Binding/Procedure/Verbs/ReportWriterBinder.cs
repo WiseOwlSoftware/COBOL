@@ -135,7 +135,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
-                return new BoundUnsupported($"TERMINATE '{rn.GetText()}' — not a report description entry (ISO §14.9.46 SR1)");
+                return new BoundUnsupported($"TERMINATE '{rn.GetText()}' — not a report description entry (ISO §14.9.46.3 SR1)");
             members.Add(new BoundTerminate([r]));
         }
         return BoundImplicitSeries.Of(members);
@@ -207,14 +207,14 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (RwFindReport(q.GetText()) is { } named) return named;
             ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualifierNotReport, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
-                + "description entry (ISO §8.4.3.15 SR2 / §8.4.2.2)");
+                + "description entry (ISO §8.4.3.15.3 SR2 / §8.4.2.2)");
             return null;
         }
         if (ctx.Data.Reports.Count == 1) return ctx.Data.Reports[0];
         ctx.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, ctx.Data.Reports.Count == 0
             ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "
               + "counters are generated per report)"
-            : $"unqualified {reg} with more than one report: qualify by report-name (ISO §8.4.3.15 SR2 / §8.4.2.2)");
+            : $"unqualified {reg} with more than one report: qualify by report-name (ISO §8.4.3.15.3 SR2 / §8.4.2.2)");
         return null;
     }
 }

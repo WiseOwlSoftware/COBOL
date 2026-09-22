@@ -1530,7 +1530,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 > lock phrase — §14.9.41 + §12.4.5.9 GR6 excepts START), and DELETE FILE produces **62** when the physical file
 > is open by another connector (§9.1.13.9 item 2 / §14.9.10 GR15). **(4)** `RetryLoop` never sleeps: §14.7.9.3 GR2
 > clamps the SECONDS period to the A.1 item 166 maximum meaningful value of ZERO, so an exhausted retry
-> lands the CONFLICT'S OWN §9.1.13 status under every form except GR3's FOREVER on a RECORD
+> lands the CONFLICT'S OWN §9.1.13 status under every form except §14.7.9.3 GR3's FOREVER on a RECORD
 > conflict, which is the §9.1.13.8 item 2 deadlock '52'. **Evidence:** goldens `file_sharing`
 > (`OPEN-A=00/OPEN-B=00/READA=00/READB=51/RETRYB=51/IGN=ALPHA/AFTER=00/EXCL=61`), `file_sharing_seq` (sequential
 > ordinals: 51/RETRY/IGNORING/43-after-conflict/GR11a auto-release/REWRITE-WITH-LOCK 51/EXTEND WRITE-WITH-LOCK

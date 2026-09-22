@@ -9,7 +9,7 @@ using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade
 
 internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
 {
-    private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14 GR2)
+    private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14.4 GR2)
     private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)
     private string OUT_REC = new string(' ', 10);   // OUT-REC
     private string WS_EOF = CobolString.Store("N", 1);   // WS-EOF
@@ -35,7 +35,7 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
             __filesRegistered = true;
             CobolFile.Register("CHAR-SEQ-FILE::OUT-FILE", "char-seq.dat", 10, false, false, selectName: "OUT-FILE", edition: 85);
         }
-        try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)
+        try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
     }
 
     private int __Dispatch(int __startPc, int __exitPc)

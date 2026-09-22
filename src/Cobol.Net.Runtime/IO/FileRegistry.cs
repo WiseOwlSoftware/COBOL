@@ -273,7 +273,7 @@ public sealed class FileRegistry
         if (c.Category is not PhysicalFileCategory.NonUnit)
             throw new InvalidOperationException(
                 $"OPEN … WITH NO REWIND reached a {c.Category} connector '{name}' — §14.9.27.4 GR11 answers only "
-                + "for a non-reel/unit medium (§9.1.13.2 item 6) and GR12 b)'s suppress-the-repositioning arm is "
+                + "for a non-reel/unit medium (§9.1.13.2 item 6) and §14.9.27.4 GR12 b)'s suppress-the-repositioning arm is "
                 + "unimplemented because no supported medium permits rewinding (docs/CONFORMANCE.md §7, A.1 "
                 + "item 24); a new medium must implement it here (kb/Work PB317)");
         if (c.Status[0] == '0') c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
@@ -1365,7 +1365,7 @@ public sealed class FileRegistry
     /// (§9.1.16; §14.9.30.4 GR7–GR12 are ALL-FORMATS rules). Returns the I-O status.
     /// <para>It owns the physical retrieval for the same reason its Format-1 sibling does (kb/Work PB338): the
     /// record identified for access is knowable before the read — GR29's relative record number, GR32's key of
-    /// reference — so the GR9 conflict check and the §12.4.5.9.4 GR7 ceiling run first and GR10 a)/d) hold. It
+    /// reference — so the GR9 conflict check and the §12.4.5.9.4 GR7 ceiling run first and §14.9.30.4 GR10 a)/d) hold. It
     /// replaced a POST-read <c>ReadLockGovern</c> patch applied to a status the connector had already committed a
     /// position for; on an indexed '51' that also left <c>_refKey</c> assigned, against GR10 d).</para>
     /// <para>ADVANCING ON LOCK is not in the Format-2 general format at all (§14.9.30.2) and §14.9.30.3 SR6 bars

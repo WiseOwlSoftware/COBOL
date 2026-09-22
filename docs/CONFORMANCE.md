@@ -148,7 +148,7 @@ of an unsupported facility.
   REPLACING, and the unconditional reading makes that designation inert for every dynamic-length receiver;
   **(iv)** GR7 is NECESSARY only on the GR6c arm — §8.3.3.6.4 GR3b gives a bare figurative constant a length of
   one character, so GR6c's *"Figurative constant alphanumeric SPACES"* would otherwise leave the item at
-  length 1 instead of §13.18.19.4 GR1's minimum of zero. **Rejected reading:** GR7 as an unconditional
+  length 1 instead of §13.18.19.4 GR1's minimum of zero. **Rejected reading:** §14.9.20.4 GR7 as an unconditional
   post-pass, which is what COBOL.NET did before this determination. Written once, in
   `InitializeBinder.ElementaryAction`; witnessed at both poles by
   `conformance:2014/initialize_dynamic_length` (the GR6c arm → `LEN=00`) and

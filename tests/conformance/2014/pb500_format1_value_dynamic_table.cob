@@ -42,7 +42,7 @@
       *>
       *> LINE 1  THE ELEMENTARY ARM.  E-TAB is an elementary dynamic entry carrying its own Format 1
       *>         VALUE.  Capacity is the OCCURS minimum 3 - NOT the expected capacity 9, which is only the
-      *>         8.5.1.9.6 EC-BOUND-OVERFLOW ceiling - and GR9 gives all three occurrences the value 7,
+      *>         8.5.1.9.6 EC-BOUND-OVERFLOW ceiling - and 13.18.63.4 GR9 gives all three occurrences the value 7,
       *>         displayed through PIC 9(3) as 007.                     -> 1[0000000003][007|007]
       *> LINE 2  THE GROUP ARM, WITH AN OCCURS TO.  The VALUEs are on entries SUBORDINATE to the dynamic
       *>         entry, the half of GR9 that says "or in an entry that is subordinate to an OCCURS

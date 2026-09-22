@@ -35,7 +35,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
         if (!ctx.Validation.ResolveFile(name, "UNLOCK", out var file)) return new BoundNop();
         if (file.IsSortMerge)
             ctx.Edition.Error("COBOLNET1512", $"UNLOCK may not name the sort/merge file '{name}' "
-                + "(ISO §14.9.47 SR1)");
+                + "(ISO §14.9.47.3 SR1)");
         return new BoundUnlock(file, ul.RECORDS() is not null || ul.RECORD() is not null);
     }
 
@@ -92,7 +92,7 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
         if (file.LockMode is { Kind: LockKind.Automatic })
             ctx.Edition.Error("COBOLNET1512", $"{verb} on file '{file.CobolName}': the {phrase} phrase may not "
                 + "be specified when the file's LOCK MODE is AUTOMATIC — the lock is implicit "
-                + "(ISO §14.9.30 SR4 / §14.9.51 SR22 / §14.9.35 SR4)");
+                + "(ISO §14.9.30.3 SR4 / §14.9.51.3 SR22 / §14.9.35.3 SR4)");
     }
 
     /// <summary>Bind a RETRY phrase on a verb (READ/WRITE/REWRITE/DELETE) — the same shape as OPEN's, and the

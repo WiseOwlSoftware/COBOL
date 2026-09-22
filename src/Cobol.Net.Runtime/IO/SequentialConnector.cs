@@ -485,7 +485,7 @@ public sealed class SequentialConnector : FileConnector
     /// <summary>ISO §13.18.34 GR6 b) 1 — establish the logical page model <i>"at the completion of an OPEN
     /// statement with the OUTPUT phrase"</i>, plus GR7 d)'s counter reset. Called by the registry after a
     /// SUCCESSFUL OPEN OUTPUT, with the page the EXECUTING element's own LINAGE clause evaluates to. Returns the
-    /// §9.1.13.11 LINAGE value-rule status when GR6 b)'s value rules are violated at the completion of the open,
+    /// §9.1.13.11 LINAGE value-rule status when §13.18.34.4 GR6 b)'s value rules are violated at the completion of the open,
     /// and <see langword="null"/> when they hold — <b>null, not '00'</b>, because the OPEN's own successful
     /// status is not always '00' ('05' for an absent OPTIONAL file, '07' for a phrase on a non-reel medium) and
     /// this evaluation has nothing to say about it.

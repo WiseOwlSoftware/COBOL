@@ -95,7 +95,7 @@ public static class CobolDynString
             n = 0;                                                       // GR37 — not nonnegative → length 0
             raised = true;
             ExceptionState.StorageNotAvailError(
-                $"SET SIZE: the evaluated length {newLen} is not a nonnegative number (ISO §14.9.39 Format 16 GR37)");
+                $"SET SIZE: the evaluated length {newLen} is not a nonnegative number (ISO §14.9.39.4 Format 16 GR37)");
         }
         else if (newLen > maxSize)
         {
@@ -103,7 +103,7 @@ public static class CobolDynString
             raised = true;
             ExceptionState.StorageNotAvailError(
                 $"SET SIZE: the evaluated length {newLen} exceeds the item's maximum size {maxSize} "
-                + "(ISO §14.9.39 Format 16 GR38 / §8.5.1.10.1)");
+                + "(ISO §14.9.39.4 Format 16 GR38 / §8.5.1.10.1)");
         }
         else
         {
@@ -124,7 +124,7 @@ public static class CobolDynString
             if (!raised)
                 ExceptionState.StorageNotAvailError(
                     $"SET SIZE: the storage required to expand the item to {n} characters is not available "
-                    + "(ISO §14.9.39 Format 16 GR38)");
+                    + "(ISO §14.9.39.4 Format 16 GR38)");
             return current;
         }
     }

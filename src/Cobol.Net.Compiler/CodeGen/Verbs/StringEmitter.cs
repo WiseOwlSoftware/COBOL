@@ -224,7 +224,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // positionally over its bytes. A pointer/object-leafed or variable-length group is still
             // imageless and stays loud (kb/Work PB164 + R40 — an INDEX-leaf group images now) — the
             // wording matches the predicate actually tested.
-            // The ONE group-image store (MOVE rules — §14.9.48.4 GR11c: a GR8a current-extent splice for an
+            // The ONE group-image store (MOVE rules — §14.9.48.4 GR11c: a §13.18.38.4 GR8a current-extent splice for an
             // occurs-depending receiver, the Tier-B window, the Tier-C loud island; kb/Work PB80).
             w.Line(PlaceRenderer.WriteGroupImage(target, RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}"), "UNSTRING INTO group"));
             return;

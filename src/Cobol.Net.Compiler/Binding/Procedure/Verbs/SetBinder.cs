@@ -528,7 +528,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{t.GetText()}': the receiving operand of a program-pointer SET shall be USAGE "
-                    + "PROGRAM-POINTER (ISO §14.9.39 Format 9 SR21)");
+                    + "PROGRAM-POINTER (ISO §14.9.39.3 Format 9 SR21)");
                 return new BoundNop();
             }
             targets.Add(tp);
@@ -556,7 +556,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{senderRef?.GetText()}': a program-pointer sender shall be NULL, another "
                     + "USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier "
-                    + "(ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
+                    + "(ISO §14.9.39.3 Format 9 SR21 / §8.4.3.13)");
                 return new BoundNop();
             }
             source = sp;
@@ -1203,7 +1203,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1568",
                 $"SET SIZE OF '{p.Item.CobolName}': data-name-3 shall be a dynamic-length elementary item "
-                + "(ISO §14.9.39 Format 16 SR33)");
+                + "(ISO §14.9.39.3 Format 16 SR33)");
             return new BoundNop();
         }
         // §14.9.39.3 SR34 over the LITERAL alternative — "Integer-2 shall be non-negative, and shall be equal to

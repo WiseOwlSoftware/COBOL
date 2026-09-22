@@ -14,7 +14,7 @@
       *>
       *> EXPECTED VALUES, COMPUTED FROM THE RULES (never measured):
       *>   ALNUM - 14.9.44.4 GR5 makes the statement SUBTRACT P OF A1 FROM P OF A2, i.e. 3 - 10 = -7; the
-      *>           receiver is unsigned PIC 9(3), so 14.6.10 GR3 stores the absolute value 007.
+      *>           receiver is unsigned PIC 9(3), so the unsigned-receiver rule of 14.9.25.4 GR6 stores the absolute value 007.
       *>   NATL  - the same rule over the national group's namesake Q: 2 - 7 = -5, stored as 005.
       *>   BIT   - 14.9.25.4 GR11 moves B1 OF BS to B1 OF BT, so BT's B1 holds BS's 1010.
        IDENTIFICATION DIVISION.

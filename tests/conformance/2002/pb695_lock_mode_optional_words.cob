@@ -11,7 +11,7 @@
       *> other mode, the LOCK MODE clause has no effect." This program is the sole opener of the file
       *> and specifies no SHARING clause, so the clause changes nothing observable and the record
       *> written must be read back byte-for-byte: 14.9.51.4 (WRITE releases the record from the record
-      *> area to the file) then 14.9.32.4 GR9 (READ makes the record available in the record area).
+      *> area to the file) then 14.9.30.4 GR13 (READ makes the record available in the record area).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB695LOCKOW.
        ENVIRONMENT DIVISION.

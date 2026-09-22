@@ -154,9 +154,10 @@ public static class DiagnosticCatalog
     //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 are unallocated mid-band holes (the PHASE-12 earmark expired unused); 1560 = the Annex A.4.2 screen-handling refusal (below). ──
     public static readonly DiagnosticDescriptor ConstantEntryRule = new(
         "COBOLNET1547", "constant-entry-rule", EditionSeverity.Error,
-        "A constant entry violates a §13.10 syntax rule (figurative operand SR6; non-literal / exponentiation / "
-        + "division-by-zero in the compile-time expression §7.3.6; duplicate constant-name SR9; ANY-LENGTH / "
-        + "dynamic-length LENGTH operand SR10/SR12; non-integer constant where an integer is required SR2).",
+        "A constant entry violates a §13.10.3 syntax rule (figurative operand SR6; duplicate constant-name SR9; "
+        + "ANY-LENGTH / dynamic-length LENGTH operand SR10/SR12; non-integer constant where an integer is "
+        + "required SR2; non-literal / exponentiation / division-by-zero in the compile-time expression SR7, "
+        + "per §7.3.6.2).",
         "ISO §13.10.3 / §7.3.6.2");
     public static readonly DiagnosticDescriptor ConstantAsReceiver = new(
         "COBOLNET1548", "constant-as-receiver", EditionSeverity.Error,
@@ -439,7 +440,7 @@ public static class DiagnosticCatalog
         "ISO §8.8.4.8 syntax rule 1: \"Data-name-1 shall be a formal parameter defined in the source element "
         + "in which this condition is specified.\" The omitted-argument condition asks whether an argument was "
         + "provided to THIS program, function, or method — an ordinary data item has no such property.",
-        "ISO §8.8.4.8 SR1");
+        "ISO §8.8.4.8.3 SR1");
     public static readonly DiagnosticDescriptor CallArgumentMode = new(
         "COBOLNET1687", "call-argument-mode", EditionSeverity.Error,
         "The argument's passing mode does not match its corresponding formal parameter's. ISO §14.9.4.3 "
@@ -680,13 +681,13 @@ public static class DiagnosticCatalog
         "COBOLNET1555", "same-as-entry-rule", EditionSeverity.Error,
         "A SAME AS entry violates a subject-entry rule: no clause other than CONSTANT RECORD, entry-name, "
         + "EXTERNAL, GLOBAL, level-number, and OCCURS may share the entry (§13.16.3 SR12); the entry shall not "
-        + "be immediately followed by a subordinate or level-88 entry (§13.18.49 SR2); a level-77 subject "
+        + "be immediately followed by a subordinate or level-88 entry (§13.18.49.3 SR2); a level-77 subject "
         + "requires an elementary data-name-1 (SR8); no group containing the subject may carry a GROUP-USAGE, "
         + "SIGN, or USAGE clause (SR9).", "ISO §13.18.49.3 / §13.16.3 SR12");
     public static readonly DiagnosticDescriptor SameAsReferencedEntry = new(
         "COBOLNET1556", "same-as-referenced-entry", EditionSeverity.Error,
         "A SAME AS reference violates a data-name-1 rule: the target shall resolve to exactly one elementary "
-        + "item or level-1 group item of the file/working-storage/local-storage/linkage section (§13.18.49 SR7); "
+        + "item or level-1 group item of the file/working-storage/local-storage/linkage section (§13.18.49.3 SR7); "
         + "it shall not be subject to any OCCURS clause (SR1) nor itself carry one (SR5); it shall not carry a "
         + "CONSTANT RECORD clause (SR10); in the file section its description shall not contain a USAGE OBJECT "
         + "REFERENCE item (SR6).", "ISO §13.18.49.3");
@@ -759,8 +760,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ExternalTypeRule = new(
         "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
         "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
-        + "level-number 1 (§13.18.22 GR2), and an external record whose type declaration is strongly typed "
-        + "requires that type declaration to be external too (§13.18.22 SR5).", "ISO §13.18.22 SR5 / GR2/GR3");
+        + "level-number 1 (§13.18.22.4 GR2), and an external record whose type declaration is strongly typed "
+        + "requires that type declaration to be external too (§13.18.22.3 SR5).", "ISO §13.18.22.3 SR5 / §13.18.22.4 GR2/GR3");
 
     // ── COBOLNET0899 — a file record whose leaf has no byte image ────────────────────────
     // ⛔ NOT A NATIONAL STAGE ANY MORE, AND THE NAME IS THE LAST TRACE OF ONE (kb/Work PB646). Every national
@@ -915,7 +916,7 @@ public static class DiagnosticCatalog
         "ISO §7.3.10.2 / §7.3.10.3");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
-        "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);
+        "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15.3 SR2", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportSourceSubscripted = new(
         NotImplemented, "report-source-subscripted", EditionSeverity.Error,
         "A subscripted or reference-modified SOURCE operand is not yet implemented.", "ISO §13.18.53", RecognizedNotImplemented);
@@ -1305,7 +1306,7 @@ public static class DiagnosticCatalog
         "LINE-COUNTER shall not be referenced as a receiving operand.", "ISO §8.4.3.15.3 SR3");
     public static readonly DiagnosticDescriptor ReportCounterQualifierNotReport = new(
         NotImplemented, "report-counter-qualifier-not-report", EditionSeverity.Error,
-        "A LINE/PAGE-COUNTER qualifier shall name a report description entry.", "ISO §8.4.3.15 SR2 / §8.4.2.2");
+        "A LINE/PAGE-COUNTER qualifier shall name a report description entry.", "ISO §8.4.3.15.3 SR2 / §8.4.2.2");
     public static readonly DiagnosticDescriptor ReportCounterNoReport = new(
         NotImplemented, "report-counter-no-report", EditionSeverity.Error,
         "A LINE/PAGE-COUNTER reference has no report, or is ambiguous across reports.", "ISO §8.4.3.15");
@@ -1396,7 +1397,7 @@ public static class DiagnosticCatalog
         + "is recognized but not yet implemented — the shared-static storage model (one last-used copy "
         + "across activations, §8.6.4 covering both sections; kb/Work PB168) does not yet compose with "
         + "contained-program GLOBAL/__outer bridges.",
-        "ISO §13.5.4 GR1 / §8.6.4 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
+        "ISO §13.5.4 GR1 / §8.6.4 / §14.6.2.3.3 / §13.18.27.4 GR2", RecognizedNotImplemented);
     // (RefModBitGroupSlice was DELETED by kb/Work PB173, which implemented the model it deferred: a bit group's
     // reference modification is a BitImagePlace over the UNPACKED boolean string, so the boolean channel's
     // BOOLEAN positions and the substrate's positions are the same positions — §8.4.3.3.4 GR5a. It carried the
@@ -1430,10 +1431,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ValueNumericEditedOversize = new(
         "COBOLNET1570", "value-numeric-edited-oversize", EditionSeverity.Error,
         "At COBOL-2023 an alphanumeric edited-image literal in the VALUE clause of a numeric-edited item is checked "
-        + "against the PICTURE size (ISO §13.18.63 SR4/SR5) — a literal longer than the edited width is rejected "
+        + "against the PICTURE size (ISO §13.18.63.3 SR4/SR5) — a literal longer than the edited width is rejected "
         + "(before 2023 it was stored truncated). Under --permissive the check is a warning (a removed-capability "
         + "posture); the national/alphanumeric class mismatch is the separate COBOLNET0898 check.",
-        "ISO §13.18.63 SR4/SR5 / Annex E.2 item 27 (VCR row 34)");
+        "ISO §13.18.63.3 SR4/SR5 / Annex E.2 item 27 (VCR row 34)");
     public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
         "COBOLNET1571", "debug-sub-facility-staged", EditionSeverity.Error,
         "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM special "
@@ -2647,7 +2648,7 @@ public static class DiagnosticCatalog
         + "non-indexed file, or a RELATIVE KEY clause on a non-relative one (§12.4.5.2 SR8 / SR9, first "
         + "sentence) — or name an operand that is not of category alphanumeric or national (§12.4.5.12.3 SR2 / "
         + "§12.4.5.6.3 SR2, the other half of the same sentence). The LINAGE-COUNTER qualifier "
-        + "(§8.4.3.14 / §13.18.34 GR7 a) names a file description entry the same way and lands here too. "
+        + "(§8.4.3.14 / §13.18.34.4 GR7 a) names a file description entry the same way and lands here too. "
         + "The site names the rule it caught.",
         "ISO §12.4.5.1 / §12.4.5.2 / §12.4.5.12.3 / §12.4.5.6.3 / §12.4.5.13.3 / §8.4.3.14 / §13.18.34");
 
@@ -3263,7 +3264,7 @@ public static class DiagnosticCatalog
         "ISO §14.9.13.3 syntax rule 3: \"If literal-3 or identifier-3 is of class national, alphabet-name-1 shall "
         + "reference an alphabet that defines a national collating sequence; otherwise, alphabet-name-1 shall "
         + "reference an alphabet that defines an alphanumeric collating sequence.\" The two classes are disjoint "
-        + "reference domains (§12.3.6 SR1/SR2): an ALPHABET … FOR NATIONAL clause declares the national one, a plain "
+        + "reference domains (§12.3.6.3 SR1/SR2): an ALPHABET … FOR NATIONAL clause declares the national one, a plain "
         + "ALPHABET clause the alphanumeric one. An alphabet that names a coded character set ONLY — UTF-8 and "
         + "UTF-16, whose collating-sequence column in §12.3.7.4 Table 6 is empty — defines no sequence of either "
         + "class and is refused here for the same reason.",

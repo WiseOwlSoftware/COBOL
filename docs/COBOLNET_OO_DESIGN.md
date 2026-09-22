@@ -16,7 +16,7 @@
 > 0813/0820–0827 diagnostic band; method LINKAGE → typed `ref` C# parameters over capturable locals,
 > LOCAL-STORAGE → C# locals (re-init per activation), method WS → STATIC fields under the §13.5.3 SR 1
 > edition window, per-method DATA scopes (§11.7 GR5 shadowing), the LOCAL-FUNCTION dispatcher, INVOKE
-> USING/RETURNING marshaling under §14.8.2 (D6 — type-preserving crossings, SR 10 object-data
+> USING/RETURNING marshaling under §14.8.2 (D6 — type-preserving crossings, §14.9.23.3 SR 10 object-data
 > auto-CONTENT), and implicit-RECURSIVE reentrancy (:12032); INHERITS (`: BASE`, override marking +
 > §9.3.8.2 signature checks via the shared DescriptionMismatch rule) and SELF/SUPER (D5: `this.M(…)`
 > virtual GR2 / `base.M(…)` non-virtual GR3).
@@ -194,7 +194,7 @@ NEVER CheckedTokenTypes. The VALUE clause needed a loop guard (both the valueIte
 multi-operand `valueClauseOperand+` item): at 2002+ PROPERTY terminates a VALUE clause — reserved, never a
 constant-name operand — else `VALUE 100 PROPERTY.` swallows the clause. PASS-1: interfaces build FIRST
 (OoInterfaceSymbol; prototypes via TryAddPrototype; the 0840 structural family — one class/interface
-namespace §8.3.2.2, END INTERFACE §10.7, SR2/SR8 no prototype attributes, §10.6.2 SR4 header-only +
+namespace §8.3.2.2, END INTERFACE §10.7, §11.7.3 SR2/SR8 no prototype attributes, §10.6.2 SR4 header-only +
 LINKAGE-only data division); prototype LINKAGE binds through the SAME OoBindMethodData machinery
 (`OoBindInterfaceData`), so ValidateImplements compares RESOLVED descriptions. CONFORMANCE: the
 §9.3.11-via-§9.3.8.2.3 pass over the §11.8.4 GR2 closure (`ImplementsClosure`: direct + interface-INHERITed

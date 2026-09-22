@@ -555,7 +555,7 @@ public override void __CobolInvoke(string name, CobolInvokeArg[] a, CobolInvokeA
         {
             if (a.Length != 1) throw new CobolFatalException("EC-OO-UNIVERSAL", "...arity... (ISO §14.9.23.4 GR7c/§14.8.2)");
             if (a[0].Descriptor != "N:Display:4:0:U") throw new CobolFatalException("EC-OO-UNIVERSAL", "...argument 1 does not conform... (GR7c)");
-            if (ret is null || ret.Descriptor != "N:Display:4:0:U") throw new CobolFatalException("EC-OO-UNIVERSAL", "...returning item... (§14.8.3/GR7c)");
+            if (ret is null || ret.Descriptor != "N:Display:4:0:U") throw new CobolFatalException("EC-OO-UNIVERSAL", "...returning item... (§14.9.23.4 GR7c/§14.8.3)");
             long __p0 = (long)a[0].Value!;
             ret.Value = this.ADDTO(ref __p0);   // virtual ⇒ an override wins even when this case sits in the base's switch
             a[0].Value = __p0;                  // SR6: BY REFERENCE write-back through the box
@@ -683,7 +683,7 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
   of the containing source element (FACTORY parity); SR4b interface / SR4c ACTIVE-CLASS (both later slices);
   **SR4d — identifier-1 shall not be a universal object reference** (:27699). SR5 (:27701): LAST only in a
   declarative / PERFORM WHEN. GR1b2 (:27720): the object becomes the current exception object in the ACTIVATING
-  element. GR1b3a (:27724): RAISING LAST with an object → 14.6.13.1.5 rules. GR1b ordering: the exception is
+  element. GR1b3a (:27724): RAISING LAST with an object → 14.6.13.1.5 rules. §14.9.18.4 GR1b ordering: the exception is
   raised in the activator "**after the result, if any, of the activated element is returned**" (:27716).
   EXIT PROGRAM RAISING mirrors (§14.9.14, :27370, SR at :27403-27413); EXIT METHOD RAISING exists only pre-2023
   (`exit-method-window` registry row already handles the 0902).

@@ -84,7 +84,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1505",
                 $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
                 + "group contains neither a FUNCTION-ID definition nor a FUNCTION-ID … IS PROTOTYPE for it — "
-                + "declare a function prototype (ISO §11.5 / §12.3.8 SR10) so its signature is available for a "
+                + "declare a function prototype (ISO §11.5 / §12.3.8.3 SR10) so its signature is available for a "
                 + "separately-compiled target, or provide the definition in this group (function references from "
                 + "class units remain a separate follow-up)");
             return new BoundExprError($"FUNCTION {name}");
@@ -292,7 +292,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     return $"a group RETURNING item with a pointer- or object-class leaf ('{d.CobolName ?? "FILLER"}') "
                         + "is not yet carried — a data-pointer, program-pointer, function-pointer or "
                         + "object-reference leaf has no character image to cross the activation boundary "
-                        + "(ISO §8.5.2.6 / §13.18.60 GR23 reference restrictions; a named residue)";
+                        + "(ISO §8.5.2.6 / §13.18.60.4 GR23 reference restrictions; a named residue)";
                 foreach (var c in d.Children) stack.Push(c);
             }
             return null;   // a character-form group — the implemented group leg
@@ -319,7 +319,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 + "the MOVE/relation legs would half-wire the category (a named residue)",
             { Category: PicCategory.Pointer } =>
                 "a data-pointer RETURNING item is not yet carried across the function-activation boundary "
-                + "(ISO §8.5.2.6 / §13.18.60 GR23 reference restrictions; a named residue)",
+                + "(ISO §8.5.2.6 / §13.18.60.4 GR23 reference restrictions; a named residue)",
             { Category: PicCategory.ObjectReference } =>
                 "an object-reference RETURNING item for a FUNCTION-ID is not yet carried (the §14.8.3.3 "
                 + "object-reference conformance legs; a named residue)",

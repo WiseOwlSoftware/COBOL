@@ -37,7 +37,7 @@ public sealed record CtValue
     /// <summary>The numeric value (meaningful only for <see cref="CtCategory.Numeric"/>).</summary>
     public decimal Number { get; }
     /// <summary>The character value (meaningful for <see cref="CtCategory.Alphanumeric"/>/<see cref="CtCategory.National"/>;
-    /// for Numeric it is the canonical value text — the §7.3.6/GR5 substitution form).</summary>
+    /// for Numeric it is the canonical value text — the §7.3.11.4 GR5 single-literal form).</summary>
     public string Text { get; }
     /// <summary>The bit value (meaningful only for <see cref="CtCategory.Boolean"/>).</summary>
     public BitString? Bits { get; }

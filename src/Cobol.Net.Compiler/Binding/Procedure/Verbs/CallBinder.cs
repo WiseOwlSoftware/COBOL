@@ -81,7 +81,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         }
         // ⛔ ONE Format-2 callee signature, TWO producers (kb/Work PB237). Everything downstream — GR9's
         // formal-decides mode derivation, SR19/SR21's explicit-phrase agreement, SR24's OPTIONAL correspondence,
-        // §14.8.2's argument conformance and SR25→§14.8.3's returning conformance — reads `calleeFormals` /
+        // §14.8.2's argument conformance and §14.9.4.3 SR25→§14.8.3's returning conformance — reads `calleeFormals` /
         // `callee`, never "was this AS NESTED". Wiring the prototype producer therefore delivered the whole
         // §14.8.2/§14.8.3 regime to prototype calls in one assignment rather than by copying seven checks.
         CalleeSignature? callee = null;
@@ -194,7 +194,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 if (byRef.OMITTED() is not null)
                 {
                     // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument occupies its position with
-                    // the NULL carrier — the callee's Present test, the §8.8.4.8 condition, and GR12's checked
+                    // the NULL carrier — the callee's Present test, the §8.8.4.8 condition, and §14.9.4.4 GR12's checked
                     // raise all read that one fact. SR24's OPTIONAL correspondence is checked after the loop.
                     args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
                     continue;

@@ -192,7 +192,7 @@ public sealed class OoClassTable
                 if (m.OVERRIDE() is not null || m.FINAL() is not null)
                     edition.Error("COBOLNET0840",
                         $"interface '{iname}', method '{pname}': OVERRIDE/FINAL may not appear in a method "
-                        + "PROTOTYPE (ISO §11.7 SR2/SR8)");
+                        + "PROTOTYPE (ISO §11.7.3 SR2/SR8)");
                 if (pd?.procedureUnit().Length > 0 || pd?.declarativePart().Length > 0)
                     edition.Error("COBOLNET0840",
                         $"interface '{iname}', method '{pname}': a method prototype has no procedure body "
@@ -237,7 +237,7 @@ public sealed class OoClassTable
                 {
                     if (isym.Inherits.Contains(b))
                         edition.Error("COBOLNET0840",
-                            $"interface '{isym.Name}': duplicate INHERITS FROM '{inh}' (ISO §11.6 SR6)");
+                            $"interface '{isym.Name}': duplicate INHERITS FROM '{inh}' (ISO §11.6.3 SR6)");
                     else
                         isym.Inherits.Add(b);
                 }
@@ -254,7 +254,7 @@ public sealed class OoClassTable
                     if (ReferenceEquals(b, isym))
                     {
                         edition.Error("COBOLNET0840",
-                            $"interface '{isym.Name}': the INHERITS graph is cyclic (ISO §11.6 SR3)");
+                            $"interface '{isym.Name}': the INHERITS graph is cyclic (ISO §11.6.3 SR3)");
                         stack.Clear();
                         break;
                     }
@@ -334,17 +334,17 @@ public sealed class OoClassTable
                   // method's name is implementor-defined (§11.7.4 GR1 a), so `sel` never has one.
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
                       "METHOD-ID", "ISO §11.7.3 SR1") };
-                // §11.7 SR6/SR7 — the accessor SHAPES: GET = no USING + exactly one RETURNING; SET = exactly
+                // §11.7.3 SR6/SR7 — the accessor SHAPES: GET = no USING + exactly one RETURNING; SET = exactly
                 // one USING + no RETURNING (checked here on header presence; formal counts re-checked at
                 // data-bind when they resolve).
                 if (method.Accessor == 'G' && (method.HasUsing || !method.HasReturning))
                     edition.Error("COBOLNET0842",
                         $"class '{name}': METHOD-ID GET PROPERTY {method.PropertyName} shall have no USING "
-                        + "and exactly one RETURNING (ISO §11.7 SR6)");
+                        + "and exactly one RETURNING (ISO §11.7.3 SR6)");
                 if (method.Accessor == 'S' && (!method.HasUsing || method.HasReturning))
                     edition.Error("COBOLNET0842",
                         $"class '{name}': METHOD-ID SET PROPERTY {method.PropertyName} shall have exactly "
-                        + "one USING and no RETURNING (ISO §11.7 SR7)");
+                        + "one USING and no RETURNING (ISO §11.7.3 SR7)");
                 if (!sym.TryAddMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
@@ -421,7 +421,7 @@ public sealed class OoClassTable
                 if (baseSym.IsFinal)
                     edition.Error("COBOLNET0839",
                         $"class '{sym.Name}': INHERITS FROM '{baseName}', which is declared FINAL — a FINAL "
-                        + "class shall not be a superclass (ISO §11.3 SR5/GR3)");
+                        + "class shall not be a superclass (ISO §11.3.3 SR5 / §11.3.4 GR3)");
             }
         }
 
@@ -504,20 +504,20 @@ public sealed class OoClassTable
                             $"class '{sym.Name}': {kind}method '{m.Name}' specifies OVERRIDE but no "
                             + "superclass defines a method with that name"
                             + (sym.Base is null ? " (the class has no INHERITS clause)" : "")
-                            + " (ISO §11.7 SR3)");
+                            + " (ISO §11.7.3 SR3)");
                     continue;
                 }
                 if (!m.HasOverride)
                     edition.Removed("COBOLNET0837",
                         $"class '{sym.Name}': {kind}method '{m.Name}' redefines a method inherited from "
-                        + $"'{baseM.Owner.Name}' without the OVERRIDE attribute (ISO §11.7 SR4a — an "
+                        + $"'{baseM.Owner.Name}' without the OVERRIDE attribute (ISO §11.7.3 SR4a — an "
                         + "inherited method may be redefined only with OVERRIDE; add OVERRIDE to the "
                         + "METHOD-ID paragraph)");
                 if (baseM.IsFinal)
                     edition.Error("COBOLNET0839",
                         $"class '{sym.Name}': {kind}method '{m.Name}' overrides '{baseM.Owner.Name}'."
                         + $"'{baseM.Name}', which is declared FINAL — a FINAL method shall not be "
-                        + "overridden (ISO §11.7 SR3/GR3)");
+                        + "overridden (ISO §11.7.3 SR3 / §11.7.4 GR3)");
                 m.OverrideOf = baseM;
                 m.CsName = baseM.CsName;
                 if (m.CsName == sym.CsName)

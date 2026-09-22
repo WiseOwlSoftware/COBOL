@@ -341,11 +341,11 @@ public sealed partial class DataBinder
         {
             case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
                 Edition.Error("COBOLNET0895", $"numeric literal '{text}': under DECIMAL-POINT IS COMMA the "
-                    + "decimal separator is the comma (ISO §12.3.7 GR14a); '.' is not valid in a numeric literal");
+                    + "decimal separator is the comma (ISO §12.3.7.4 GR14a); '.' is not valid in a numeric literal");
                 break;
             case Common.NumericSeparatorIssue.CommaWithoutCommaMode:
                 Edition.Error("COBOLNET0895", $"numeric literal '{text}': a comma decimal separator requires "
-                    + "DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
+                    + "DECIMAL-POINT IS COMMA (ISO §12.3.7.4 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
                 break;
         }
         // §8.3.3.3.3 SR2/SR3/SR4 (kb/Work PB99) — the floating-point literal's FORM, checked HERE because both the
@@ -555,7 +555,7 @@ public sealed partial class DataBinder
             || c is ' ' or '+' or '-' or ',' or '.' or '*' or '/' or ';' or '(' or ')' or '"' or '=';
         if (forbidden)
             Edition.Error("COBOLNET0891", $"{what} '{c}': not a valid currency symbol — digits, the picture "
-                + "letters A B C D E N P R S V X Z, space, and + - , . * / ; ( ) \" = are excluded (ISO §12.3.7 SR22/SR27)");
+                + "letters A B C D E N P R S V X Z, space, and + - , . * / ; ( ) \" = are excluded (ISO §12.3.7.3 SR22/SR27)");
     }
 
     // ── The §12.3.8.2 program-specifier (kb/Work PB237) ──────────────────────────────────────────────────────
@@ -740,7 +740,7 @@ public sealed partial class DataBinder
             else if (NationalAlphabets.ContainsKey(alnumName))
                 Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE '{alnumName}': alphabet-name-1 "
                     + "shall reference an alphabet that defines an ALPHANUMERIC collating sequence — this "
-                    + "alphabet is defined FOR NATIONAL (ISO §12.3.6 SR1)");
+                    + "alphabet is defined FOR NATIONAL (ISO §12.3.6.3 SR1)");
             // else: an undeclared name-1 stays inert (the historical 85-surface leniency).
         }
         if (natName is not null)
@@ -749,12 +749,12 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE FOR NATIONAL '{natName}': "
                     + "alphabet-name-2 shall reference an alphabet that defines a NATIONAL collating sequence "
                     + $"({(Alphabets.ContainsKey(natName) ? "this alphabet is alphanumeric — write ALPHABET … FOR NATIONAL" : "no such national alphabet is declared in SPECIAL-NAMES")}; "
-                    + "ISO §12.3.6 SR2)");
+                    + "ISO §12.3.6.3 SR2)");
             else if (!def.HasCollatingSequence)
                 Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE FOR NATIONAL '{natName}': a "
                     + $"{def.Phrase} alphabet references a coded character set but NOT a collating sequence "
-                    + "(ISO §12.3.7 GR7 Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets "
-                    + "may collate (ISO §12.3.6 SR2)");
+                    + "(ISO §12.3.7.4 GR7 Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets "
+                    + "may collate (ISO §12.3.6.3 SR2)");
             else
                 NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
@@ -1411,7 +1411,7 @@ public sealed partial class DataBinder
     };
 
     /// <summary>Is <paramref name="lit"/> an ALPHANUMERIC literal (ISO §8.3.3.1 — both quotation forms — or the
-    /// §8.3.3.2 hexadecimal format X"hh…"), as SR14 b2 requires? A national literal (N"…" / NX"…") is not.</summary>
+    /// §8.3.3.2 hexadecimal format X"hh…"), as §12.3.7.3 SR14 b2 requires? A national literal (N"…" / NX"…") is not.</summary>
     private static bool IsAlphanumericLiteral(Core.LiteralContext lit)
     {
         string text = lit.GetText();

@@ -1209,7 +1209,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Linage is not null) return true;
         data.Edition.Error("COBOLNET0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
-            + "description entry has no LINAGE clause (ISO §14.9.51 SR19)");
+            + "description entry has no LINAGE clause (ISO §14.9.51.3 SR19)");
         return false;
     }
 
@@ -1218,7 +1218,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!advancingPage) return true;
         data.Edition.Error("COBOLNET0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
-            + "shall not both be specified in a single WRITE statement (ISO §14.9.51 SR18)");
+            + "shall not both be specified in a single WRITE statement (ISO §14.9.51.3 SR18)");
         return false;
     }
 
@@ -1243,7 +1243,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
         data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
-            + "file description entry contains a LINAGE clause (ISO §14.9.51 SR13)");
+            + "file description entry contains a LINAGE clause (ISO §14.9.51.3 SR13)");
         return false;
     }
 

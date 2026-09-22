@@ -83,7 +83,7 @@ internal sealed class ProgramEmitter
             // The EC model, OR any class (D10): every class's generated __CobolInvoke switch raises
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
-            w.Line("using CobolNet.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 GR7c raises");
+            w.Line("using CobolNet.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 universal-INVOKE raises (§14.9.23.4 GR7c)");
         if (UnitsOf(comp).Any(u => u.Data.Classification is not null)
             || classes.Any(c => c.Data.Classification is not null || c.FactoryData.Classification is not null))
             // A CHARACTER CLASSIFICATION clause anywhere in the compilation group — a program, or a CLASS-ID whose methods
@@ -258,7 +258,7 @@ internal sealed class ProgramEmitter
                 w.Line($"private readonly {parent.ClassName} __outer;   // the containing program's instance (GLOBAL storage lives there, ISO §13.18.27)");
                 using (w.Block($"public {unit.ClassName}({parent.ClassName} __o)")) w.Line("__outer = __o;");
             }
-            w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14 GR2)");
+            w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14.4 GR2)");
             if (data.Files.Count > 0)
                 // The guard's storage duration IS the connector's scope (kb/Work PB168): §14.6.2.3.2
                 // action 3 puts internal connectors in no open mode only when data enters the INITIAL
@@ -286,7 +286,7 @@ internal sealed class ProgramEmitter
                     "backing" => "string",
                     _ => b.Item!.Occurs is not null ? b.Item.ElementType + "[]" : b.Item.ElementType,
                 };
-                w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27 GR2 — container storage, contained visibility)");
+                w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
             }
             _oo.EmitExternalBackings(data, w);
             foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
@@ -301,7 +301,7 @@ internal sealed class ProgramEmitter
                 // A RECURSIVE unit's static-WS based root emits its bridge STATIC (§13.5.4 GR1 — one copy on
                 // the class), reset to NULL by __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
                 string mod = data.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
-                w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5 GR2 — initially NULL)");
+                w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5.4 GR2 — initially NULL)");
                 // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
                 // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
                 // the cell, so both halves see the same null/bounds verdict.

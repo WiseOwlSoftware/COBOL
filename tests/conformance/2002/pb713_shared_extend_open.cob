@@ -16,7 +16,7 @@
       *>
       *> THE RULES. 14.9.27.4 GR1: "The execution of the OPEN statement
       *> causes the value of the I-O status associated with file-name-1 to
-      *> be updated to one of the values in 9.1.13, I-O status"; GR25: "If
+      *> be updated to one of the values in 9.1.13, I-O status"; 14.9.27.4 GR25: "If
       *> the execution of the OPEN statement is unsuccessful, the file is
       *> not affected". A status is the only outcome the standard offers —
       *> the runtime used to measure the EXTEND write-ordinal base from a

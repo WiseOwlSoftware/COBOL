@@ -62,7 +62,8 @@ THE CHECKS, each narrow on purpose:
   DIAG-UNQUALIFIED — the clause carries no rule block of that kind of its own while a CHILD does: `§14.9.39 SR17`,
               where the syntax rules are §14.9.39.3. The ordinal checks resolve that through `_alias` — right
               for prose, where this repository deliberately writes a block's clause both ways, and wrong for a
-              message the user is sent to look up. 160 sites, so it reports and gates under `--check-all`.
+              message the user is sent to look up. It arrived with 160 sites and joined the measured backlog;
+              kb/Work PB388's sweep qualified every one of them (wave 47), so it GATES under `--check` now.
 
 ⛔ THE ORDINAL FAMILY IS LINE-BASED, LIKE PHANTOM, AND THAT IS THE POINT. The checks above read only COMMENT
 text, so a citation inside a DIAGNOSTIC MESSAGE STRING — the citation a user actually reads — was covered by
@@ -353,12 +354,31 @@ def phantom_scan(universe: set[str] | None):
 FORMAT_CITE = re.compile(r"(\d+(?:\.\d+){1,4})\s+Formats?\s+(\d+)", re.I)
 
 #: A rule designator and, optionally, the sub-item letter written against it: `GR4`, `SR16g`, `GR3 c) 2`,
-#: `GR7 k)6`, `GR6c's`. The `(?![a-z])` keeps a word (`GRs`, `SRc`… ) out of the sub-item slot.
-RULE_CITE = re.compile(r"\b(GR|SR)\s?(\d+)(?:\s?\(?([a-z])\)?(?![a-z]))?")
+#: `GR7 k)6`, `GR6c's`, `SR1(b)`, `GR7 a/b`. The `(?![a-z])` keeps a word (`GRs`, `SRc`… ) out of the sub-item
+#: slot. ⛔ A LETTER AFTER A SPACE IS A SUB-ITEM ONLY WHEN THE SUB-ITEM PUNCTUATION SAYS SO — a closing `)`, or
+#: the `a/b` list. The first shape accepted any `\s?\(?[a-z]\)?`, so the English ARTICLE was read as sub-item
+#: (a): `§13.5.4 GR1 (a non-initial program's WS is STATIC data)`, `§8.8.3.3 GR3 a concatenation expression`,
+#: `§13.18.1.3 SR1 (a bit group item …)` were six of the first twenty SUBITEM findings PB388's sweep derived,
+#: every one a CORRECT citation (kb/Work PB388, wave 47). Read the sub-item with `_sub(m)`, never a group number.
+#: ⛔ AN ORDINAL HAS AT MOST THREE DIGITS — no clause prints a thousand rules, and `(.3 SR 18556, .4 GR 18567)`
+#: in a scout table is a pair of LINE NUMBERS that the unbounded `\d+` accused as rules 18556 and 18567.
+RULE_CITE = re.compile(r"\b(GR|SR)\s?(\d{1,3})(?!\d)(?:([a-z])(?![a-z])|\s?\(([a-z])\)|\s?([a-z])\)|\s([a-z])(?=/[a-z]\b))?")
+
+
+def _sub(m: re.Match) -> str | None:
+    """The sub-item letter of a `RULE_CITE` match, whichever of its four spellings carried it."""
+    return m.group(3) or m.group(4) or m.group(5) or m.group(6)
 
 #: An ISO-shaped clause number, with or without the `§` — `(ISO 14.9.39 Format 10 GR18)` is how half the
 #: goldens write it. Three segments minimum, so a doc's own `§4.2` is not read as a citation.
 CLAUSE_TOKEN = re.compile(r"(?<![\d.])(\d+(?:\.\d+){2,4})(?![\d.])")
+
+#: ⛔ INSIDE A MESSAGE STRING A TWO-SEGMENT CLAUSE IS A CITATION WHEN IT CARRIES THE `§` — `(ISO §11.7 SR6)`,
+#: `(ISO §13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own `§4.2`), and it made the
+#: diagnostic family blind to exactly the unqualified citations it exists to catch: fourteen shipped in
+#: `OoClassTable`/`DataBinder` messages while DIAG-UNQUALIFIED read zero (kb/Work PB388, wave 47). The `§` is
+#: the evidence; a bare `11.7` in a message is still not read.
+DIAG_CLAUSE_TOKEN = re.compile(r"(?<![\d.])(?:§\s?(\d+\.\d+)|(\d+(?:\.\d+){2,4}))(?![\d.])")
 
 #: How far to the LEFT a rule designator may look for the clause it belongs to. A line cites one clause and
 #: then several of its rules (`§14.9.37.4 GR4/GR6/GR9`, `§14.9.39 Format 9 SR21 / §8.4.3.13`), so the carry is
@@ -375,7 +395,22 @@ ORDINAL_MARKERS = (MARKER, "audit-doc-citations: names-misfilings")
 
 #: The ordinal checks that are SOUND but arrived with a backlog larger than the change that added them.
 #: They report on every run and gate under `--check-all`; see the note in `main`.
-MEASURED_BACKLOG = frozenset({"RULE", "SUBITEM", "DIAG-UNQUALIFIED"})
+#: ⛔ A CHECK LEAVES THIS SET THE DAY ITS BACKLOG REACHES ZERO, IN THE SAME CHANGE — that is what keeps a
+#: burned-down arm from regrowing while the others are still being swept. DIAG-UNQUALIFIED left it when PB388's
+#: sweep qualified its last message string (wave 47); RULE and SUBITEM remain.
+MEASURED_BACKLOG = frozenset({"RULE", "SUBITEM"})
+
+#: ⛔ …AND A BACKLOG ARM GATES IN EVERY SCOPE IT HAS BURNED TO ZERO. PB388's wave-47 sweep derived every RULE
+#: and SUBITEM site in the compiler, its tests and its goldens, so under these prefixes the two arms GATE now —
+#: a new wrong ordinal in code a user runs, or in a golden that pins it, fails `--check` on the commit that
+#: writes it. The PROSE backlog (`docs/`, `kb/`) still reports without gating until its own sweep closes; when
+#: it does, RULE and SUBITEM leave `MEASURED_BACKLOG` and this tuple goes with them.
+GATED_BACKLOG_SCOPES = ("src/", "tests/", "scripts/")
+
+
+def _gates(finding) -> bool:
+    kind, site = finding[0], finding[1]
+    return kind not in MEASURED_BACKLOG or site.startswith(GATED_BACKLOG_SCOPES)
 
 #: A C# string literal — where a citation stops being a note to a reader and becomes text a USER is shown.
 #: Verbatim (`@"…"`) and raw (`"""…"""`) literals are not matched and do not need to be: a diagnostic message
@@ -403,9 +438,25 @@ _RULE_LINE = re.compile(r"^\s*(\d+)\\\)\s")
 _BANNER = re.compile(r"^\s*(ALL FORMATS|FORMATS?(?:\s+\d+)(?:\s*(?:,|AND)\s*\d+)*)\s*$")
 
 
+#: The subclause each rule KIND lives in, by the standard's own uniform layout (`.1` General · `.2` General
+#: formats · `.3` Syntax rules · `.4` General rules).
+_RULE_HOME = {"SR": ".3", "GR": ".4"}
+
+
 def _alias(d: dict):
-    """A rule block is cited BOTH ways — `§14.9.39.4 GR29` and `§14.9.39 GR29` — so key it both ways."""
-    for (cl, k), v in list(d.items()):
+    """A rule block is cited BOTH ways — `§14.9.39.4 GR29` and `§14.9.39 GR29` — so key it both ways.
+
+    ⛔ WHEN TWO CHILDREN CARRY THE SAME KIND, THE ALIAS GOES TO THE KIND'S OWN SUBCLAUSE, never to whichever
+    the catalog listed first. The catalog files the numbered paragraphs of a construct's `.1 General` subclause
+    as kind GR, and it lists `.1` before `.4` — so under first-wins `§13.18.41 GR2` resolved to PRESENT WHEN's
+    two-paragraph GENERAL text, and SUBITEM reported `GR2 has no sub-items — GR2b names nothing` about a rule
+    whose b) is printed (`cite.py --check 13.18.41.4 "If condition-1 is false"` → `OK §13.18.41.4 2) b)`), while
+    RULE reported `§13.18.41 has 2 GRs` of a clause with six (kb/Work PB388, wave 47). The `.3`/`.4` child
+    wins; a `.1` block is the alias only when nothing else carries the kind."""
+    def rank(item) -> int:
+        (cl, k), _v = item
+        return 0 if cl.endswith(_RULE_HOME.get(k, "\0")) else 2 if cl.endswith(".1") else 1
+    for (cl, k), v in sorted(d.items(), key=rank):
         d.setdefault((cl.rsplit(".", 1)[0], k), v)
     return d
 
@@ -626,7 +677,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
                 out.append(("FORMAT-NAME", site, clause,
                             f"§{clause} Format {n} is {d[n]}, but this line names Format {k} ({d[k]})"))
         for m, clause in _rule_citations(line):
-            kind, num, sub = m.group(1), int(m.group(2)), m.group(3)
+            kind, num, sub = m.group(1), int(m.group(2)), _sub(m)
             if (top := tops.get((clause, kind))) is None:
                 continue                       # not a rule block this repository's catalog knows
             block = spans.get((clause, kind)) or {}
@@ -689,8 +740,9 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                            "the 1561-1563 SR band"), which is why the scope IS the string literal.
       DIAG-UNQUALIFIED   — the clause carries no rule block of that kind DIRECTLY, while a child subclause does:
                            `§14.9.39 SR17`, where the syntax rules are §14.9.39.3. The ordinal checks resolve
-                           it through `_alias` and say nothing, which is right for prose and wrong here. 126
-                           sites, so it joins the MEASURED backlog rather than the gate — one sweep, one owner.
+                           it through `_alias` and say nothing, which is right for prose and wrong here. It
+                           arrived with 126 sites and sat in the MEASURED backlog until PB388's sweep qualified
+                           the last of them; it gates now.
 
     ⚠ THE RANGE CHECK IS DELIBERATELY NOT REPEATED HERE. `RULE`/`SUBITEM` already run over every line of every
     file, message strings included (that is what made them line-based), and they report ZERO out-of-range
@@ -706,7 +758,7 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                 continue
             site = f"{rel}:{i}"
             for m in BARE_KIND.finditer(s):
-                if (clause := _clause_left_of(s, m.start())) is None:
+                if (clause := _clause_left_of(s, m.start(), DIAG_CLAUSE_TOKEN)) is None:
                     continue
                 kinds = sorted(k for k in (clause, *_children_with(direct, clause, m.group(1)))
                                if (k, m.group(1)) in direct)
@@ -716,7 +768,7 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                             f"and no ordinal{where}"))
             for m in RULE_CITE.finditer(s):
                 kind = m.group(1)
-                if (clause := _clause_left_of(s, m.start())) is None:
+                if (clause := _clause_left_of(s, m.start(), DIAG_CLAUSE_TOKEN)) is None:
                     continue
                 if (clause, kind) in direct:
                     continue                   # the citation carries the subclause its rules live in
@@ -735,13 +787,14 @@ def _opted_out(lines: list[str]) -> bool:
     return any(mk in "\n".join(lines[:40]) for mk in ORDINAL_MARKERS)
 
 
-def _clause_left_of(text: str, pos: int) -> str | None:
+def _clause_left_of(text: str, pos: int, token: re.Pattern = CLAUSE_TOKEN) -> str | None:
     """The ISO-shaped clause number nearest to the LEFT of `pos`, within `CARRY` — the same attribution the
-    ordinal arm makes, restricted to one string literal so it cannot cross into the code around it."""
+    ordinal arm makes, restricted to one string literal so it cannot cross into the code around it. The
+    diagnostic family passes `DIAG_CLAUSE_TOKEN`, which also reads a `§`-marked two-segment clause."""
     best = None
-    for c in CLAUSE_TOKEN.finditer(text, 0, pos):
+    for c in token.finditer(text, 0, pos):
         if pos - c.end() <= CARRY:
-            best = c.group(1)
+            best = next(g for g in c.groups() if g)
     return best
 
 
@@ -855,6 +908,11 @@ ORDINAL_SELF_TEST = [
     ("SUBITEM",
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §14.9.37.4 GR8b) falls through",
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §14.9.37.4 GR3 c) 2) falls through"),
+    # ⛔ THE ARTICLE IS NOT A SUB-ITEM (kb/Work PB388, wave 47). The silent twin is the prose shape the first
+    # regex accused six times in twenty; the defect is the same rule with a sub-item it does not have.
+    ("SUBITEM",
+     "/// ISO basis — §13.5.4 GR1a (a non-initial program's WS is STATIC data)",
+     "/// ISO basis — §13.5.4 GR1 (a non-initial program's WS is STATIC data)"),
     ("FORMAT-NAME",
      "/// <summary>SET data-pointer assignment (§14.9.39 Format 4; Phase-4b increment 1)",
      "/// <summary>SET data-pointer assignment (§14.9.39 Format 7; Phase-4b increment 1)"),
@@ -895,6 +953,11 @@ DIAG_SELF_TEST = [
     ("DIAG-UNQUALIFIED",
      '    edition.Error("COBOLNET0867", $"{where}: SET receiver (ISO §14.9.39 SR17)");',
      '    edition.Error("COBOLNET0867", $"{where}: SET receiver (ISO §14.9.39.3 SR17)");'),
+    # ⛔ AND THE TWO-SEGMENT CLAUSE (kb/Work PB388, wave 47): `§11.7` is below the prose floor of three
+    # segments, and fourteen OO messages hid there while this arm read zero.
+    ("DIAG-UNQUALIFIED",
+     '    + "one USING and no RETURNING (ISO §11.7 SR7)");',
+     '    + "one USING and no RETURNING (ISO §11.7.3 SR7)");'),
     # ⛔ THE THREE SHAPES THAT MUST STAY SILENT, and each was a candidate the measurement rejected:
     # an INTERPOLATED ordinal is computed at run time and is a citation the reader never sees unqualified;
     # a row id is not a citation; and the same bare kind in a COMMENT is prose, where the repository's
@@ -1058,8 +1121,8 @@ def main() -> int:
               "is not checked out). SUBJECT and HEADER still run: spec-rule-catalog.json is committed.")
 
     findings = audit(subjects, own, universe, ordinals, tops, direct)
-    gating = [f for f in findings if f[0] not in MEASURED_BACKLOG]
-    backlog = [f for f in findings if f[0] in MEASURED_BACKLOG]
+    gating = [f for f in findings if _gates(f)]
+    backlog = [f for f in findings if not _gates(f)]
     print(f"{len(citation_corpus.all_files())} files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
     print(f"⛔ {len(gating)} finding(s)\n")
     for kind, site, cited, msg in gating:
@@ -1074,10 +1137,9 @@ def main() -> int:
         tally = {k: sum(1 for f in backlog if f[0] == k) for k in sorted({f[0] for f in backlog})}
         print(f"\n⚠ {len(backlog)} MEASURED, NOT YET GATING "
               f"({' · '.join(f'{n} {k}' for k, n in tally.items())}) — "
-              "RULE/SUBITEM name a rule number or sub-item their clause does not have; DIAG-UNQUALIFIED is a "
-              "message string citing a construct clause where the rules live in its `.3`/`.4` child. Each "
-              "needs its own derivation from the standard; they are owned as sweeps in kb/Work (see PB388's "
-              "and PB838's reports). `--check-all` gates on them.")
+              "RULE/SUBITEM name a rule number or sub-item their clause does not have — in the PROSE "
+              f"scopes only; under {'/'.join(GATED_BACKLOG_SCOPES)} they gate. Each needs its own derivation "
+              "from the standard; the prose sweep is owned in kb/Work (PB388). `--check-all` gates on them.")
         if args.check:
             # Under the per-commit gate this is a HEADLINE, not a wall: the count is the fact another lane
             # needs, and the list is one command away. Run without --check (or with --check-all) to see it.

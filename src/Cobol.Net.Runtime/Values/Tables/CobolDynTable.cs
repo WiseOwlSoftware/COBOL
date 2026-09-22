@@ -47,7 +47,7 @@ public sealed class CobolDynTable<T>
         int open = Math.Max(_min, initialCapacity < 0 ? 0 : initialCapacity);
         _store = new T[Math.Max(open, 4)];
         _count = 0;
-        GrowTo(open);   // initial current capacity = FROM (§8.5.1.9.1) raised to the VALUE's GR16 capacity
+        GrowTo(open);   // initial current capacity = FROM (§8.5.1.9.1) raised to the VALUE's §13.18.63.4 GR16 capacity
     }
 
     /// <summary>The current capacity — the number of occurrences allocated now (§8.5.1.9.1). The source-level

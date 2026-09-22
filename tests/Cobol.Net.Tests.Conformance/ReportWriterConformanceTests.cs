@@ -229,7 +229,7 @@ public sealed class ReportWriterConformanceTests
 
     [Fact]   // §14.9.16.4 GR6a + §13.18.35.4 GR5b4: the page footing prints at the page advance (before the
              // physical advance), placed at FOOTING + integer-2 (relative) — and again on the LAST page at
-             // TERMINATE (§13.18.57.4 GR6f), immediately followed by the report footing (GR3c).
+             // TERMINATE (§13.18.57.4 GR6f), immediately followed by the report footing (§14.9.46.4 GR3c).
     public void PageAdvance_Gr6a_PfThenNewPage_TerminatePfRf()
         => AssertSpec(Program("""
             RD R-1 PAGE LIMIT IS 8 LINES HEADING 1 FIRST DETAIL 2 LAST DETAIL 4 FOOTING 6.
