@@ -43,7 +43,11 @@ public sealed class OoNameResolutionDriftTests
             (4, "re-lookup of a receiver's/target's declared ObjectClassName (scope-checked at its data "
                 + "description entry, COBOLNET0813)"),
         [Path.Combine("Binding", "Procedure", "Verbs", "EcBinder.cs")] =
-            (1, "the §14.9.18.3 SR4a superclass walk from an operand's declared class"),
+            (3, "the GOBACK §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 identifier check (RaisingObjectMismatch, kb/Work "
+                + "PB815/PB814): a) / c) the superclass walk from the operand's declared (or containing) class, "
+                + "b) the operand's interface and each header-listed interface — all names already scope-checked "
+                + "where they were WRITTEN (the data description entry, and RaisingPhrase.Partition's funnel "
+                + "lookup)"),
         [Path.Combine("Binding", "ReferenceResolver.cs")] =
             (1, "the property-reference INSTANCE form's re-lookup of the receiving item's declared class"),
     };
@@ -98,14 +102,14 @@ public sealed class OoNameResolutionDriftTests
                  {
                      Path.Combine("Oo", "OoClassTable.cs"),                          // INHERITS, IMPLEMENTS
                      Path.Combine("Binding", "Procedure", "ProcedureTableBuilder.cs"),// USE Format 4
-                     // USAGE OBJECT REFERENCE *and* METHOD-ID RAISING both live in the DataBinder's Oo
+                     // USAGE OBJECT REFERENCE lives in the DataBinder's Oo
                      // partial: kb/Work PB389 moved the §13.18.60.2 adjudication into
                      // OoBindObjectRefDescriptor, and the written name is resolved there. DataBinder.cs
                      // itself no longer references a class-name or interface-name — and if one ever
                      // reappears there, EveryClassOrInterfaceNameLookup_IsTheFunnel_OrAdjudicated is the
                      // arm that fails, so dropping it from this list opens no hole.
                      Path.Combine("Binding", "DataBinder.Oo.cs"),
-                     Path.Combine("Binding", "Procedure", "Verbs", "EcBinder.cs"),    // PD-header RAISING
+                     Path.Combine("Binding", "RaisingPhrase.cs"),                     // PD-header + METHOD-ID RAISING (PB815)
                      Path.Combine("Binding", "Procedure", "Verbs", "OoBinder.cs"),    // INVOKE / SET class-name
                      Path.Combine("Binding", "ReferenceResolver.cs"),                 // property-ref qualifier
                  })

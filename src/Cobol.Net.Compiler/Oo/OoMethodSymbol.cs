@@ -72,16 +72,15 @@ public sealed record OoMethodSymbol(
     public char Accessor { get; init; }
     public string? PropertyName { get; init; }
 
-    /// <summary>The method PD-header RAISING partition (§14.2.2; the EC-OO wave D-EO8): level-3 EC-USER
-    /// names + classes of the group — loaded into the statement binder's per-source-element sets before
-    /// this method's body binds (a method IS a source element, §14.9.18.3 SR2/SR4a).</summary>
     /// <summary>The method's own OPTIONS paragraph folded over the class channel's model (§10.6.1 method
     /// skeleton / §11.9.4 GR1; kb/Work PB135) — null when the method writes none. BindMethodRoster swaps it
     /// in around THIS method's body bind.</summary>
     public OptionsModel? MethodOptions { get; set; }
 
-    public List<string> RaisingEcNames { get; } = [];
-    public List<string> RaisingClasses { get; } = [];
+    /// <summary>The method's PD-header RAISING phrase (§14.2.1), partitioned by <c>RaisingPhrase.Partition</c>
+    /// into the §14.2.1 tuples — loaded into the statement binder's per-source-element state before this
+    /// method's body binds (a method IS a source element, §14.9.18.3 SR2/SR4).</summary>
+    public List<RaisingTarget> Raising { get; } = [];
 
     /// <summary>For a PROPERTY-clause-synthesized accessor: the SUBJECT data item (the emitter renders a
     /// direct field read/write — observably identical to the spec's implicit MOVE method, §13.18.42 GR1/GR2

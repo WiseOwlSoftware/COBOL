@@ -1385,6 +1385,16 @@ internal static class RuntimeApi
     public static string ObjRequireNonNull(string receiver) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.RequireNonNull)}({receiver})";
 
+    /// <summary>An object-reference value AS AN EXCEPTION OBJECT — the <c>CobolObject?</c> the runtime's
+    /// exception-object slots take (<c>ExceptionState.SetObject</c> for RAISE identifier-1, §14.9.29.4;
+    /// <c>SetPropagatingObject</c> for GOBACK/EXIT RAISING identifier-1, §14.9.18.4 GR1 b) 2.). An
+    /// interface-described reference (§13.18.60.4 GR22 c)) is emitted as its C# INTERFACE type, which has no
+    /// implicit conversion to the class root, so the explicit reference conversion is written here once for every
+    /// raise site (kb/Work PB814: `GOBACK RAISING` and `RAISE` of an interface-typed identifier were both a
+    /// Roslyn CS1503 on conforming source). Every object a COBOL reference can hold is a <c>CobolObject</c>, so
+    /// the conversion cannot fail at run time.</summary>
+    public static string AsExceptionObject(string objectRefExpr) => $"({nameof(CobolObject)}?)({objectRefExpr})";
+
     /// <summary>Normalize a runtime method-name value for universal dispatch (D-U6) —
     /// <c>CobolObject.NormalizeMethodName</c>.</summary>
     public static string ObjNormalizeMethodName(string nameExpr) =>

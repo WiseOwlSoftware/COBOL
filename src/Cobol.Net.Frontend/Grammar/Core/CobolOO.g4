@@ -224,6 +224,8 @@ invokeReturning
 // (both are one cobolWord), so the `[FACTORY OF] className [ONLY]` alternative is the SUPERSET parse (P3
 // doctrine) and the binder makes the general-format rejection once the name resolves — COBOLNET1925.
 // ACTIVE-CLASS is its own alternative because it IS its own token.
+// `FACTORY OF?` is the same printed `[ FACTORY OF ]` bracket the PROCEDURE DIVISION header's `raisingTarget`
+// carries — PB848's and PB815's sibling sweeps each found it independently.
 objectReferenceUsage
     : OBJECT REFERENCE (FACTORY OF?)? ACTIVE_CLASS         // GR22 e) — the active class; SR16 placement checked in the binder
     | OBJECT REFERENCE (FACTORY OF?)? className ONLY?      // GR22 c)/d) — interface-name-1 or object-class-name-1

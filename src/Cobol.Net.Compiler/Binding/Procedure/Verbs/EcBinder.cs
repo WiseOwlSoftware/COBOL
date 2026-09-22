@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Compiler.Oo;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime.Exceptions;
 
@@ -231,18 +232,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     + $"reference ({site.Cite(site.ObjectRule, "d")})");
                 return null;
             }
-            // The a) sub-item walks the SUPERCLASS chain of the reference's declared class. An interface-described
-            // reference has no such chain — its class is not known until run time — and an ACTIVE-CLASS one
-            // is bounded by its containing class, which IS the chain to walk.
-            string declared = od.Name!;
-            bool listed = false;
-            for (var c = host.OoClasses?.Find(declared); c is not null; c = c.Base)
-                if (ctx.EcState.PdRaisingClasses.Contains(c.Name)) { listed = true; break; }
-            if (!listed)
-                ctx.Edition.Error("COBOLNET0849",
-                    $"{site.Context} '{op.Item.CobolName}': its declared class '{declared}' (or a "
-                    + "superclass) shall be specified in the RAISING phrase of the procedure division "
-                    + $"header of the containing source element ({site.Cite(site.ObjectRule, "a")})");
+            // a) / b) / c) — each asks the identifier's description (the ObjectRefDescriptor tuple) against the
+            // PD-header RAISING phrase (the RaisingTarget tuples), FACTORY flag to FACTORY flag.
+            if (RaisingObjectMismatch(host.OoClasses, od, ctx.EcState.PdRaisingObjects) is { } bad)
+                ctx.Edition.Error("COBOLNET0849", $"{site.Context} '{op.Item.CobolName}': {bad.Message} "
+                    + $"({site.Cite(site.ObjectRule, bad.Sub)})");
             return new BoundRaising(null, IsLast: false, Fatal: false, ObjectSource: op);
         }
 
@@ -268,60 +262,81 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             StatementName: site.Verb.Split(' ')[0], Location: EcLocation(line));
     }
 
-    /// <summary>Capture the PROCEDURE DIVISION header RAISING list (§14.2.1; consumed by the SR2 check above;
-    /// classes/interfaces in the list resolve at the OO wave — names are recorded uninterpreted).</summary>
+    /// <summary>Capture the PROCEDURE DIVISION header RAISING phrase of a program / function unit (§14.2.1) through
+    /// the ONE partition (<see cref="RaisingPhrase.Partition"/>) — consumed by the SR2 exception-name check and
+    /// the SR4/SR5 identifier check above.</summary>
     public void EcCollectPdRaising(Core.ProcedureDivisionContext pd)
-    {
-        if (pd.raisingClause() is not { } rc) return;
-        foreach (var w in rc.cobolWord()) EcAddPdRaisingWord(w);
-    }
+        => EcLoadPdRaising(RaisingPhrase.Partition(pd.raisingClause(), host.OoClasses, ctx.Edition,
+            "PROCEDURE DIVISION RAISING"));
 
-    /// <summary>Load a METHOD's pre-partitioned header RAISING lists as the current source element's
-    /// sets (per-method reset — methods of one class bind through ONE binder).</summary>
-    public void EcLoadPdRaising(IReadOnlyList<string> ecNames, IReadOnlyList<string> classes)
+    /// <summary>Load one source element's partitioned header RAISING phrase as the current per-element state —
+    /// a program's (above) or a METHOD's (per-method reset: methods of one class bind through ONE binder).</summary>
+    public void EcLoadPdRaising(IReadOnlyList<RaisingTarget> targets)
     {
         ctx.EcState.PdRaising.Clear();
-        ctx.EcState.PdRaisingClasses.Clear();
-        foreach (var n in ecNames) ctx.EcState.PdRaising.Add(n);
-        foreach (var c in classes) ctx.EcState.PdRaisingClasses.Add(c);
+        ctx.EcState.PdRaisingObjects.Clear();
+        foreach (var t in targets)
+            if (t.Kind is RaisingTargetKind.ExceptionName) ctx.EcState.PdRaising.Add(t.Name);
+            else ctx.EcState.PdRaisingObjects.Add(t);
     }
 
-    /// <summary>Partition ONE PD-header RAISING operand (§14.2.2 — the EC-OO wave, D-EO8): a catalog EC
-    /// name must be level-3 EC-USER (SR7 → 0858 otherwise); a class of the group joins the SR4a class list;
-    /// anything else is 0858 (SR8/SR9 — interface names are the interface-RAISING refinement).</summary>
-    public void EcAddPdRaisingWord(Core.CobolWordContext word)
+    /// <summary>
+    /// GOBACK §14.9.18.3 SR4 a)–c) / EXIT §14.9.14.3 SR5 a)–c) — ONE rule, printed twice with the same three
+    /// sub-items, asked of the identifier's description <paramref name="od"/> (never universal here: d) is
+    /// screened first) against the containing element's header RAISING phrase <paramref name="raising"/>.
+    /// Returns null when the operand conforms, else the violated sub-item and why (kb/Work PB815/PB814).
+    /// <list type="bullet">
+    ///   <item>a) object-class-name — "the class identified by that object-class-name or one of the
+    ///     superclasses of that class shall be specified in the RAISING phrase … and the presence or absence of
+    ///     the FACTORY phrase is the same in the data description entry of identifier-1 as in the RAISING
+    ///     phrase".</item>
+    ///   <item>b) interface-name — "the interface referenced by that interface-name shall conform to an
+    ///     interface specified in the RAISING phrase" (§9.3.8.2.3 — <see cref="OoConformance.InterfaceConformsTo"/>);
+    ///     neither side of this alternative carries a FACTORY phrase, so the FACTORY half is satisfied by
+    ///     construction.</item>
+    ///   <item>c) ACTIVE-CLASS — "the class of the object containing the … statement, or one of the super classes
+    ///     of that object, and the presence or absence of the FACTORY phrase shall be the same as that specified
+    ///     in the RAISING phrase". The descriptor's name IS the containing class (§13.18.60.3 SR16), so a) and c)
+    ///     are the same superclass walk. ⚠ For EXIT PROGRAM this leg has no reachable subject: SR7 confines EXIT
+    ///     PROGRAM to a program procedure division and §13.18.60.3 SR16 confines ACTIVE-CLASS to a class — the
+    ///     shared walk answers it for GOBACK and the EXIT METHOD form, and no EXIT-specific screen exists.</item>
+    /// </list>
+    /// </summary>
+    private static (string Sub, string Message)? RaisingObjectMismatch(OoClassTable? table,
+        ObjectRefDescriptor od, IReadOnlyList<RaisingTarget> raising)
     {
-        string up = word.GetText().ToUpperInvariant();
-        if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var info))
+        if (od.Kind is ObjectRefKind.Interface)
         {
-            // Direct TryGet, not the funnel: an unresolved word here may legally be a CLASS name (SR8/SR9),
-            // so the funnel's unknown-name error does not apply — but the accepted names still get the
-            // §15.33 width advisory (kb/Work R05).
-            if (info.Level is 3 && info.Level2Parent is "EC-USER")
+            var mine = table?.FindInterface(od.Name!);
+            foreach (var t in raising)
+                if (t.Kind is RaisingTargetKind.Interface && mine is not null
+                    && table?.FindInterface(t.Name) is { } listed
+                    && OoConformance.InterfaceConformsTo(table!, mine, listed))
+                    return null;
+            return ("b", $"its interface '{od.Name}' shall conform to an interface specified in the RAISING phrase "
+                + "of the procedure division header of the containing source element — interface conformance per "
+                + "ISO §9.3.8.2.3, and");
+        }
+
+        // a) object-class-name / c) ACTIVE-CLASS: the class or a superclass, with the same FACTORY presence.
+        string sub = od.Kind is ObjectRefKind.ActiveClass ? "c" : "a";
+        string what = od.Kind is ObjectRefKind.ActiveClass
+            ? $"the class containing it ('{od.Name}', ACTIVE-CLASS)" : $"its declared class '{od.Name}'";
+        RaisingTarget? factoryMismatch = null;
+        for (var c = table?.Find(od.Name!); c is not null; c = c.Base)
+            foreach (var t in raising)
             {
-                EcNameResolution.Advise(ctx.Edition, info);
-                ctx.EcState.PdRaising.Add(up);
+                if (t.Kind is not RaisingTargetKind.ObjectClass
+                    || !string.Equals(t.Name, c.Name, StringComparison.OrdinalIgnoreCase)) continue;
+                if (t.Factory == od.Factory) return null;
+                factoryMismatch ??= t;
             }
-            else
-                ctx.Edition.Error("COBOLNET0858",
-                    $"PROCEDURE DIVISION RAISING {up}: an exception-name here shall be a level-3 EC-USER "
-                    + "name (ISO §14.2.2 SR7)");
-            return;
-        }
-        // §14.2.2 SR8: "Object-class-name-1 shall be the name of a class specified in the REPOSITORY
-        // paragraph" — so the partition uses the SOURCE ELEMENT's scope (§8.4.6.4), through the ONE funnel's
-        // non-diagnosing half; a class the element may not reference is not a class-name in this position
-        // (kb/Work PB365). SR9's interface alternative is still unimplemented here.
-        if (Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, word, up,
-                Compiler.Oo.OoNameResolution.Want.Class).Ok)
-        {
-            ctx.EcState.PdRaisingClasses.Add(up);
-            return;
-        }
-        ctx.Edition.Error("COBOLNET0858",
-            $"PROCEDURE DIVISION RAISING {up}: not an exception-name, and not a class this source element "
-            + "may reference (ISO §14.2.2 SR7–SR9 / §8.4.6.4; interface names are a later refinement of the "
-            + "EC-OO wave)");
+        if (factoryMismatch is { } fm)
+            return (sub, $"the RAISING phrase of the procedure division header specifies '{fm.Spelled}', and the "
+                + $"FACTORY phrase is {(od.Factory ? "" : "not ")}specified in the description of identifier-1 — its "
+                + "presence or absence shall be the same in both");
+        return (sub, $"{what} (or a superclass) shall be specified in the RAISING phrase of the procedure division "
+            + "header of the containing source element");
     }
 
     // ── The per-statement TurnState fold (deep-dive D10) ─────────────────────────────────────────────────────

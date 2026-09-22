@@ -104,44 +104,88 @@ public static class OoConformance
                             + "inherited ones)");
                         continue;
                     }
-                    if (impl.Binding!.Formals.Count != proto.Binding!.Formals.Count)
+                    bool conforms = true;
+                    foreach (var err in MethodConformanceMismatches(table, impl, proto, iface.Name))
                     {
-                        edition.Error("COBOLNET0841",
-                            $"class '{cls.Name}', method '{impl.Name}': {impl.Binding!.Formals.Count} formal(s) vs "
-                            + $"the '{iface.Name}' prototype's {proto.Binding!.Formals.Count} (ISO §9.3.8.2.3 rule 1)");
-                        continue;
+                        conforms = false;
+                        edition.Error("COBOLNET0841", $"class '{cls.Name}', method '{impl.Name}': {err}");
                     }
-                    for (int i = 0; i < impl.Binding!.Formals.Count; i++)
-                        if (DescriptionMismatch(proto.Binding!.Formals[i].Item, impl.Binding!.Formals[i].Item) is { } err)
-                            edition.Error("COBOLNET0841",
-                                $"class '{cls.Name}', method '{impl.Name}', formal #{i + 1}: {err} "
-                                + $"(ISO §9.3.8.2.3 rules 2/3 vs interface '{iface.Name}' — identical "
-                                + "descriptions; the C# projection cannot check this)");
-                    if ((impl.Binding!.Returning is null) != (proto.Binding!.Returning is null))
-                        edition.Error("COBOLNET0841",
-                            $"class '{cls.Name}', method '{impl.Name}': RETURNING presence differs from the "
-                            + $"'{iface.Name}' prototype (ISO §9.3.8.2.3 rule 4)");
-                    else if (impl.Binding!.Returning is { } r && proto.Binding!.Returning is { } pr)
-                    {
-                        if (r.Pic is { Category: PicCategory.ObjectReference } rp
-                            && pr.Pic is { Category: PicCategory.ObjectReference } prp)
-                        {
-                            if (ObjectRefAssignmentMismatch(table, rp, prp, activeClassSenderAdmitted: false) is { } werr)
-                                edition.Error("COBOLNET0841",
-                                    $"class '{cls.Name}', method '{impl.Name}': RETURNING: {werr} "
-                                    + "(ISO §9.3.8.2.3 rules 5a/5c2)");
-                            else if (!(rp.ObjectRef ?? ObjectRefDescriptor.Universal)
-                                         .SameDescriptionAs(prp.ObjectRef ?? ObjectRefDescriptor.Universal))
-                                // Conformant-but-covariant: C# needs the explicit-implementation adapter.
-                                adapters.Add(new AdapterPair(iface, proto, impl, factory));
-                        }
-                        else if (DescriptionMismatch(pr, r) is { } rerr)
-                            edition.Error("COBOLNET0841",
-                                $"class '{cls.Name}', method '{impl.Name}': RETURNING: {rerr} "
-                                + "(ISO §9.3.8.2.3 rule 6)");
-                    }
+                    // Conformant-but-covariant RETURNING: C# needs the explicit-implementation adapter.
+                    if (conforms
+                        && impl.Binding!.Returning?.Pic is { Category: PicCategory.ObjectReference } rp
+                        && proto.Binding!.Returning?.Pic is { Category: PicCategory.ObjectReference } prp
+                        && !(rp.ObjectRef ?? ObjectRefDescriptor.Universal)
+                                .SameDescriptionAs(prp.ObjectRef ?? ObjectRefDescriptor.Universal))
+                        adapters.Add(new AdapterPair(iface, proto, impl, factory));
                 }
         }
+    }
+
+    /// <summary>
+    /// ⛔ ISO §9.3.8.2.3 FOR ONE METHOD PAIR — the ONE place the per-method conformance rules are written: does
+    /// method <paramref name="m1"/> (of interface-1, the CONFORMING side — a class's implementation, or another
+    /// interface's prototype) satisfy the conditions for method <paramref name="m2"/> of interface-2 (named
+    /// <paramref name="iface2"/> in the messages)? Yields one rule-cited message per violation; empty ⇔ the pair
+    /// conforms. Rules carried: 1) the parameter count; 2)/3) identical formal descriptions
+    /// (<see cref="DescriptionMismatch"/>); 4) RETURNING presence; 5) the object-reference RETURNING (covariant —
+    /// <see cref="ObjectRefAssignmentMismatch(OoClassTable, ObjectRefDescriptor, ObjectRefDescriptor, bool)"/>
+    /// with rule 5's closed ACTIVE-CLASS list); 6) identical non-object RETURNING descriptions.
+    /// <para>Extracted from <see cref="ValidateImplements"/> (kb/Work PB814) so that §9.3.11 IMPLEMENTS
+    /// conformance and the interface-to-interface conformance GOBACK §14.9.18.3 SR4 b) asks
+    /// (<see cref="InterfaceConformsTo"/>) run the SAME comparisons — two copies of one rule set is the shape
+    /// under which one arm silently drifts.</para>
+    /// </summary>
+    internal static IEnumerable<string> MethodConformanceMismatches(OoClassTable table, OoMethodSymbol m1,
+        OoMethodSymbol m2, string iface2)
+    {
+        if (m1.Binding!.Formals.Count != m2.Binding!.Formals.Count)
+        {
+            yield return $"{m1.Binding!.Formals.Count} formal(s) vs the '{iface2}' prototype's "
+                + $"{m2.Binding!.Formals.Count} (ISO §9.3.8.2.3 rule 1)";
+            yield break;
+        }
+        for (int i = 0; i < m1.Binding!.Formals.Count; i++)
+            if (DescriptionMismatch(m2.Binding!.Formals[i].Item, m1.Binding!.Formals[i].Item) is { } err)
+                yield return $"formal #{i + 1}: {err} (ISO §9.3.8.2.3 rules 2/3 vs interface '{iface2}' — "
+                    + "identical descriptions; the C# projection cannot check this)";
+        if ((m1.Binding!.Returning is null) != (m2.Binding!.Returning is null))
+            yield return $"RETURNING presence differs from the '{iface2}' prototype (ISO §9.3.8.2.3 rule 4)";
+        else if (m1.Binding!.Returning is { } r && m2.Binding!.Returning is { } pr)
+        {
+            if (r.Pic is { Category: PicCategory.ObjectReference } rp
+                && pr.Pic is { Category: PicCategory.ObjectReference } prp)
+            {
+                if (ObjectRefAssignmentMismatch(table, rp, prp, activeClassSenderAdmitted: false) is { } werr)
+                    yield return $"RETURNING: {werr} (ISO §9.3.8.2.3 rules 5a/5c2)";
+            }
+            else if (DescriptionMismatch(pr, r) is { } rerr)
+                yield return $"RETURNING: {rerr} (ISO §9.3.8.2.3 rule 6)";
+        }
+    }
+
+    /// <summary>
+    /// ISO §9.3.8.2.3, the interface relation itself: "If two interfaces are of the same interface, they conform
+    /// to each other. If interface-1 and interface-2 are different interfaces, interface-1 conforms to interface-2
+    /// if and only if the entry conventions for interface-1 and interface-2 are the same and for every method in
+    /// interface-2 there is a method in interface-1 with the same name that satisfies the following
+    /// conditions" — the conditions being <see cref="MethodConformanceMismatches"/>. "Every method in" an
+    /// interface includes the inherited ones (§9.3.10: "The inheriting interface has all the method
+    /// specifications defined for the inherited interface definition or definitions"), hence
+    /// <see cref="OoInterfaceSymbol.AllPrototypes"/> on both sides. One implementation, one entry convention
+    /// (every method of the group is emitted to the same .NET calling convention), so that clause holds. Asked by
+    /// GOBACK §14.9.18.3 SR4 b) / EXIT §14.9.14.3 SR5 b) (kb/Work PB814); runs after every interface's prototype
+    /// formals have bound (<c>BinderDriver</c> binds interface data before any procedure body).
+    /// </summary>
+    public static bool InterfaceConformsTo(OoClassTable table, OoInterfaceSymbol interface1, OoInterfaceSymbol interface2)
+    {
+        if (ReferenceEquals(interface1, interface2)) return true;
+        var mine = new Dictionary<string, OoMethodSymbol>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in interface1.AllPrototypes()) mine.TryAdd(p.ExternalizedName, p);   // first declaration wins
+        foreach (var m2 in interface2.AllPrototypes())
+            if (!mine.TryGetValue(m2.ExternalizedName, out var m1)
+                || MethodConformanceMismatches(table, m1, m2, interface2.Name).Any())
+                return false;
+        return true;
     }
 
     /// <summary>The RUNTIME projection of the strict-conformance rule (D-U3 — the universal-dispatch

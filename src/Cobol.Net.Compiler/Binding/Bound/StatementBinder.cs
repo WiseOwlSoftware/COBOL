@@ -248,9 +248,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
                 continue;
             }
-            // A method IS a source element (§14.9.18.3 SR2/SR4a): its OWN PD-header RAISING partition
-            // (D-EO8) becomes the binder's per-element sets while its body binds.
-            Ec.EcLoadPdRaising(m.RaisingEcNames, m.RaisingClasses);
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
@@ -290,6 +287,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         Ctx.CurrentMethodScope = null;
 
         var bound = new List<BoundParagraph>(table.Paragraphs.Count);
+        OoMethodSymbol? raisingLoadedFor = null;
         for (int i = 0; i < table.Paragraphs.Count; i++)
         {
             // The ordered quadruple (section → method scope → §11.7 GR5 data shadowing → cursor) is ONE
@@ -299,9 +297,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // for this pc's sentences (the binder reads ctx.Options per statement; statements bind HERE, in
             // the per-pc pass, not in the roster registration loop above) and restored after.
             var savedOptions = data.Options;
-            if (table.ParaMethods[i] is { } mScope && scopeToMethod.TryGetValue(mScope, out var mSym)
-                && mSym.MethodOptions is { } mOpt)
-                data.Options = mOpt;
+            if (table.ParaMethods[i] is { } mScope && scopeToMethod.TryGetValue(mScope, out var mSym))
+            {
+                if (mSym.MethodOptions is { } mOpt) data.Options = mOpt;
+                // A method IS a source element (§14.9.18.3 SR2/SR4, §14.9.14.3 SR3/SR5 — "the procedure division
+                // header of the source element containing this … statement"): ITS OWN header RAISING phrase is
+                // the per-element state while ITS statements bind. ⛔ It is loaded HERE, in the per-pc pass where
+                // statements bind — it used to be loaded in the roster-registration loop above, which binds no
+                // statement, so every method's GOBACK/EXIT RAISING was checked against the LAST method's header
+                // (kb/Work PB815 — measured: a class whose last method raised CS815 refused the first method's
+                // `GOBACK RAISING` of a FACTORY OF CE815 its own header listed).
+                if (!ReferenceEquals(raisingLoadedFor, mSym))
+                {
+                    Ec.EcLoadPdRaising(mSym.Raising);
+                    raisingLoadedFor = mSym;
+                }
+            }
             try
             {
                 var sentences = new List<IReadOnlyList<BoundStatement>>();

@@ -70,12 +70,21 @@ OO mechanism (feedback_one_mechanism_per_job):
   and every UNIVERSAL dispatch (`OoEmitter.EmitInvokePickup`); NEW needs none (the ctor runs no user statements).
   GR1b's result-before-exception ordering falls out of stage-then-`throw MethodReturn` + the entry catch
   delivering RETURNING/copy-outs before the site's pickup.
-- **Headers**: PD-header RAISING partitions into level-3 EC-USER names (SR7; else 0858) + classes of the
-  group (the SR4a list); methods carry their own partition (`OoMethodSymbol.RaisingEcNames/RaisingClasses`,
-  loaded per-method — a method IS a source element).
+- **Headers**: the PD-header RAISING phrase (§14.2.1 — `exception-name-1 | [FACTORY OF] object-class-name-1 |
+  interface-name-1`) is partitioned by ONE function, `RaisingPhrase.Partition`, for program, function and
+  METHOD-ID headers alike, into `RaisingTarget` tuples (kind × name × FACTORY — kb/Work PB815/PB814): level-3
+  EC-USER names (SR7), classes (SR8) and interfaces (SR9) of the element's REPOSITORY scope, else 0858. Methods
+  carry theirs on `OoMethodSymbol.Raising`, loaded per-method (a method IS a source element). The GOBACK
+  §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 identifier check (`EcBinder.RaisingObjectMismatch`) compares the
+  operand's `ObjectRefDescriptor` against those tuples: a)/c) the class (ACTIVE-CLASS: the containing class)
+  or a superclass with the SAME FACTORY presence; b) an interface that CONFORMS (§9.3.8.2.3,
+  `OoConformance.InterfaceConformsTo`, which shares `MethodConformanceMismatches` with the IMPLEMENTS pass)
+  to a listed interface; d) never universal.
 - **PROPAGATE ON** (:24606) is an un-implemented directive — the pickup's rule-3 hole is documented in the
-  generated comment (residue). Method declaratives, interface/FACTORY-OF/ACTIVE-CLASS legs, and object
-  VIEWS (EC-OO-CONFORMANCE) stay 0899-named.
+  generated comment (residue). Method declaratives and object VIEWS (EC-OO-CONFORMANCE) stay 0899-named; the
+  interface / FACTORY-OF / ACTIVE-CLASS legs of the RAISING phrase are implemented (above — kb/Work PB389 on the
+  operand end, PB815/PB814 on the header end). Every exception-object raise site renders its operand through
+  `RuntimeApi.AsExceptionObject`, the one explicit conversion an interface-typed reference needs.
 
 
 ## Summary

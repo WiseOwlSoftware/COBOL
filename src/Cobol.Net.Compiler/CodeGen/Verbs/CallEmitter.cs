@@ -923,7 +923,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             // The exception-OBJECT leg (§14.9.18.4 GR1b2; the EC-OO wave): objects are not TURN-gated
             // (§7.3.25 takes names only); the activator's §14.6.13.1.5 rules decide.
-            w.Line($"ExceptionState.SetPropagatingObject({PlaceRenderer.Read(os)});   // {verb} RAISING identifier-1 — staged for the activator");
+            w.Line($"ExceptionState.SetPropagatingObject({RuntimeApi.AsExceptionObject(PlaceRenderer.Read(os))});   // {verb} RAISING identifier-1 — staged for the activator");
             return;
         }
         if (r.IsLast)

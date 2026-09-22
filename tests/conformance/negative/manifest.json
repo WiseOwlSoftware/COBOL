@@ -8,6 +8,8 @@
   "pb879-initialize-replacing-space-numeric-2023",
   "pb878-initialize-replacing-vlgroup",
   "pb878-invoke-content-binary-long-to-alnum",
+  "pb815-raising-factory-presence-mismatch",
+  "pb814-raising-interface-not-conforming",
   "pb653-nested-float-rounded-mode-below-2014",
   "pb660-class-and-program-one-name",
   "pb660-program-and-function-one-name",

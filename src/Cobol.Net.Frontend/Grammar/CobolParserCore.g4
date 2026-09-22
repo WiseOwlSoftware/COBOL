@@ -1736,10 +1736,28 @@ raisingPhrase
     : RAISING (EXCEPTION cobolWord | LAST EXCEPTION? | dataReference)
     ;
 
-// The PROCEDURE DIVISION header RAISING clause (ISO §14.2.1: RAISING {exception-name | class-name |
-// interface-name}… — all cobolWords; classes/interfaces resolve at the OO wave).
+// The PROCEDURE DIVISION header RAISING phrase (ISO §14.2.1), measured off the printed diagram (PDF page 557,
+// printed folio 527):
+//
+//     RAISING { exception-name-1                    } …
+//             { [ FACTORY OF ] object-class-name-1  }
+//             { interface-name-1                    }
+//
+// ⛔ EACH ELEMENT IS A TUPLE, NOT A WORD (kb/Work PB815). This rule used to read `RAISING cobolWord+` — ONE
+// axis — so `RAISING FACTORY OF C` died on FACTORY's §8.9 reservation (COBOLNET0901) and the binder had only a
+// name, never the FACTORY phrase that §14.9.18.3 SR4 a)/c) and §14.9.14.3 SR5 a)/c) compare against the
+// identifier's description. FACTORY is underlined (required when its bracket is taken); OF is NOT, so it is an
+// optional word (§5.2.3). The three alternatives are all one cobolWord in the grammar — an exception-name, a
+// class-name and an interface-name cannot be told apart without the EC catalog and the REPOSITORY scope — so
+// the partition is the binder's (RaisingPhrase.Partition, the ONE partition every header arm calls); FACTORY is
+// the only axis the grammar CAN see, and it is kept.
 raisingClause
-    : RAISING cobolWord+
+    : RAISING raisingTarget+
+    ;
+
+raisingTarget
+    : FACTORY OF? cobolWord          // object-class-name-1 with its optional phrase; SR8 of §14.2.2 is the binder's
+    | cobolWord                      // exception-name-1 | object-class-name-1 | interface-name-1 — §14.2.2 SR7/SR8/SR9
     ;
 
 // ==========================================

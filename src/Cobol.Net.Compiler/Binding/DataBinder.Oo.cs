@@ -390,33 +390,10 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0888", $"{where}: '{rref.GetText()}' may not be both a USING parameter "
                     + "and the RETURNING item (ISO §14.2.2 SR4)");
         }
-        if (pd?.raisingClause() is { } mrc)
-            foreach (var w in mrc.cobolWord())
-            {
-                // The same §14.2.2 partition as program headers (D-EO8): EC-USER level-3 names and classes.
-                string up = w.GetText().ToUpperInvariant();
-                if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var einfo))
-                {
-                    // Direct TryGet, not the funnel: an unresolved word here may legally be a CLASS name
-                    // (SR8/SR9) — but accepted names still get the §15.33 width advisory (kb/Work R05).
-                    if (einfo.Level is 3 && einfo.Level2Parent is "EC-USER")
-                    {
-                        EcNameResolution.Advise(Edition, einfo);
-                        m.RaisingEcNames.Add(up);
-                    }
-                    else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: an exception-name "
-                        + "here shall be a level-3 EC-USER name (ISO §14.2.2 SR7)");
-                }
-                // §14.2.2 SR8 scopes the class alternative to the REPOSITORY paragraph (§8.4.6.4), so the
-                // partition asks the ONE funnel's non-diagnosing half — the PD-header twin of this arm asks
-                // the same question the same way (kb/Work PB365). SR9's interface arm is still unimplemented.
-                else if (Compiler.Oo.OoNameResolution.Lookup(OoClasses, w, up,
-                             Compiler.Oo.OoNameResolution.Want.Class).Ok)
-                    m.RaisingClasses.Add(up);
-                else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: not an exception-name, "
-                    + "and not a class this source element may reference (ISO §14.2.2 SR7–SR9 / §8.4.6.4; "
-                    + "interfaces are a later refinement)");
-            }
+        // The method's PD-header RAISING phrase (§14.2.1): the ONE partition every header arm calls
+        // (RaisingPhrase — kb/Work PB815/PB814; D-EO8), so the method arm and the program arm cannot disagree.
+        m.Raising.AddRange(RaisingPhrase.Partition(pd?.raisingClause(), OoClasses, Edition,
+            $"{where}: METHOD-ID RAISING"));
         // A GROUP formal/RETURNING item crosses the boundary as its character image (§14.2.3 GR8) and so must be
         // whole-group-referenced (its numeric-DISPLAY leaves image-stored, untouched caller bytes round-tripping) —
         // registered post-bind by UsageCollectionPass (PHASE-05 Step 5), which receives these formals from the emitter.

@@ -13,10 +13,10 @@ namespace CobolNet.Binding;
 /// shape under which R05's §15.33 width advisory would have been added to one arm of six
 /// (feedback_two_arm_dispatch; feedback_one_rule_one_place: the extraction IS the fix).
 ///
-/// <para>The RAISING-phrase sites (PROCEDURE DIVISION header §14.2.2 SR7, METHOD-ID — EcAddPdRaisingWord and
-/// DataBinder.Oo) resolve through <see cref="ExceptionCatalog.TryGet"/> themselves because an unresolved word
-/// may legally be a CLASS name there (SR8/SR9) — they call <see cref="Advise"/> directly on the names they
-/// accept. <c>EcNameResolutionDriftTests</c> derives the caller list from the source, so a seventh resolution
+/// <para>The procedure-division-header RAISING phrase (§14.2.2 SR7 — program, function and METHOD-ID headers
+/// alike, through the ONE partition <c>RaisingPhrase.Partition</c>, kb/Work PB815) resolves through
+/// <see cref="ExceptionCatalog.TryGet"/> itself because an unresolved word may legally be a class-name or an
+/// interface-name there (SR8/SR9) — it calls <see cref="Advise"/> directly on the names it accepts. <c>EcNameResolutionDriftTests</c> derives the caller list from the source, so a seventh resolution
 /// site cannot appear un-funneled and un-advised.</para>
 /// </summary>
 internal static class EcNameResolution
@@ -154,8 +154,8 @@ internal static class EcNameResolution
         // module's Annex item names all six: the RAISING phrases of EXIT and GOBACK, the RAISING phrase of
         // the procedure division header, the USE statement, the WHEN phrase of PERFORM, RAISE, and the TURN
         // directive). Putting it in the resolution
-        // funnel is what makes it cover all of them at once — and the two RAISING sites that call Advise
-        // DIRECTLY (EcAddPdRaisingWord, DataBinder.Oo) are exactly the arms a per-site check would have missed
+        // funnel is what makes it cover all of them at once — and the header RAISING partition that calls Advise
+        // DIRECTLY (RaisingPhrase.Partition — once two arms, kb/Work PB815) is exactly the arm a per-site check would have missed
         // (feedback_two_arm_dispatch). This is the shape the EC-LOCALE family had while A.4.9 was declined
         // (kb/Work PB100), removed when PB64 T1 claimed that module and gave its names real raise sites.
         if (DeclinedModuleOf(info.Name) is { } declined)

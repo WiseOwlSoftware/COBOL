@@ -34,10 +34,11 @@ public sealed class EcNameResolutionDriftTests
             (1, "the funnel itself", false),
         [Path.Combine("Binding", "TurnState.cs")] =
             (1, "NameMatches — level-2 coverage of names that ALREADY passed TryResolve in Create", false),
-        [Path.Combine("Binding", "Procedure", "Verbs", "EcBinder.cs")] =
-            (1, "EcAddPdRaisingWord — PD-header RAISING partition; an unresolved word may be a class name", true),
-        [Path.Combine("Binding", "DataBinder.Oo.cs")] =
-            (1, "METHOD-ID RAISING partition; an unresolved word may be a class name", true),
+        // kb/Work PB815/PB814: the PD-header arm (EcBinder) and the METHOD-ID arm (DataBinder.Oo) were two
+        // verbatim copies of this partition; both now call RaisingPhrase.Partition, so ONE adjudicated site.
+        [Path.Combine("Binding", "RaisingPhrase.cs")] =
+            (1, "the ONE procedure-division-header RAISING partition (§14.2.2 SR7–SR9); an unresolved word may "
+                + "be a class-name or an interface-name", true),
         [Path.Combine("CodeGen", "EcEmitter.cs")] =
             (2, "emit-side level tests on names already bound and validated", false),
         [Path.Combine("CodeGen", "Verbs", "ControlFlowEmitter.cs")] =

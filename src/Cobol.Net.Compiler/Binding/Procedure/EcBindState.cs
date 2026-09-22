@@ -9,7 +9,7 @@ namespace CobolNet.Binding.Procedure;
 /// The EC exception-condition bind state (P7 Step 10r — the plan's "EcBindState on ctx"): the per-unit
 /// mutable state the <c>EcBinder</c> members and the Declaratives half share, hoisted off the god class.
 /// <see cref="Turn"/>/<see cref="ProgramName"/> are configured per bound unit (ConfigureEc);
-/// <see cref="PdRaising"/>/<see cref="PdRaisingClasses"/> hold the PROCEDURE DIVISION header RAISING lists
+/// <see cref="PdRaising"/>/<see cref="PdRaisingObjects"/> hold the PROCEDURE DIVISION header RAISING lists
 /// (§14.2.1/§14.2.2 — per-method reset via EcLoadPdRaising); the seven bits accumulate the emitter's
 /// <see cref="EcFeatures"/> gating summary in ctor order.
 /// </summary>
@@ -34,8 +34,10 @@ internal sealed class EcBindState
     /// <summary>PD-header RAISING exception-names (§14.2.1; the GOBACK/EXIT SR2 check).</summary>
     public HashSet<string> PdRaising { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>PD-header RAISING class names (§14.2.2 SR8; the SR4a check).</summary>
-    public HashSet<string> PdRaisingClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>PD-header RAISING object alternatives — `[FACTORY OF] object-class-name-1` and
+    /// `interface-name-1` (§14.2.1 / §14.2.2 SR8–SR9), as the <see cref="Model.RaisingTarget"/> tuples the
+    /// GOBACK §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 identifier check compares against (kb/Work PB815/PB814).</summary>
+    public List<Model.RaisingTarget> PdRaisingObjects { get; } = [];
 
     // ⛔ `InF3When` LIVED HERE and is gone (kb/Work PB403). "Am I binding inside a WHEN phrase of an
     //    exception-checking PERFORM?" is one question that FOUR syntax rules ask — §14.9.33.3 SR1 (RESUME),
