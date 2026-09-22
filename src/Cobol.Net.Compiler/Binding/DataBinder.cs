@@ -4035,18 +4035,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var dpu = usageKeywordCtx?.dataPointerUsage();
         var ppu = usageKeywordCtx?.programPointerUsage();
         var fpu = usageKeywordCtx?.functionPointerUsage();
-        string? restrictedTypeName = dpu?.TO() is not null ? dpu.cobolWord()?.GetText() : null;
+        // The OPERAND's presence decides, never the TO token's: TO is an optional word in all three phrases (not
+        // underlined on folio 503, §5.2.3 — kb/Work PB848), so `USAGE POINTER T` restricts exactly as
+        // `USAGE POINTER TO T` does.
+        string? restrictedTypeName = dpu?.cobolWord()?.GetText();
         // ONE field for BOTH prototype carriers (kb/Work PB817: §14.9.39.3 SR20 and SR22 are one same-signature
         // rule over two carriers; the CATEGORY says which namespace resolves the name).
         string? restrictedPrototypeName =
-            fpu?.TO() is not null ? fpu.cobolWord()?.GetText()
-            : ppu?.TO() is not null ? ppu.cobolWord()?.GetText()
-            : null;
+            fpu?.cobolWord()?.GetText() ?? ppu?.cobolWord()?.GetText();
 
         // (1) FUNCTION-POINTER's TO phrase is REQUIRED — the general format prints it unbracketed.
         if (isFunctionPointer && restrictedPrototypeName is null)
             Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE FUNCTION-POINTER "
-                + "shall be followed by TO function-prototype-name — the phrase is not bracketed in the general "
+                + "shall be followed by [TO] function-prototype-name — the operand is not bracketed in the general "
                 + "format (ISO §13.18.60.2), and §13.18.60.4 GR26 takes every function-pointer's signature "
                 + "restriction from it");
 

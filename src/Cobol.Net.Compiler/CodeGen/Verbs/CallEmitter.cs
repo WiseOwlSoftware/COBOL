@@ -73,28 +73,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // another BY REFERENCE argument could re-aim them mid-call; each variable index is hoisted into a
         // statement-local evaluated here, once.
         c = HoistOnceOnlyIdentification(c, w);
-        string args = ArgsArrayText(c);
-        string ret = c.Returning is { } rp ? RefCarrier(rp) : "null";
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
         // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
-        string invocation;
-        if (c.IsPointerTarget && c.DynamicName is BoundFieldOperand ppf)
-            // CALL through a PROGRAM-POINTER (§14.9.4.3 SR1 / GR :26177; P10 Step 7): activate the HELD
-            // program — the pointer's carrier goes straight to the registry, never a name-string read.
-            invocation = $"ProgramRegistry.CallPointer({PlaceRenderer.Read(ppf.Place)}, {CsLiteral(callState.SelfPath)}, {args}, {ret}"
-                + $"{(ecState.Active ? ", siteHandlesPropagation: true" : "")});";
-        else
-        {
-            string nameExpr = c.LiteralName is { } literal
-                ? CsLiteral(literal)
-                : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
-            // §14.9.4.4 GR3d's ACTIVATING half (kb/Work PB133 wave C2b): this statement's TURN state.
-            bool argChk = EnabledProgramNames().Contains("EC-PROGRAM-ARG-MISMATCH");
-            invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(callState.SelfPath)}, {args}, {ret}"
-                + $"{(ecState.Active ? ", siteHandlesPropagation: true" : "")}"
-                + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"
-                + $"{(argChk ? ", siteArgMismatchChecking: true" : "")});";
-        }
+        // §14.9.4.4 GR3d's ACTIVATING half (kb/Work PB133 wave C2b): this statement's TURN state.
+        string invocation = InvocationText(c, siteHandlesPropagation: ecState.Active,
+            argMismatchChecking: EnabledProgramNames().Contains("EC-PROGRAM-ARG-MISMATCH"));
 
         var ecProg = EnabledProgramNames();
         // The ACTIVATING half of §14.8.4.1's both-elements rule: this CALL statement's enabled EC-EXTERNAL-*
@@ -247,9 +230,36 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// condition takes the registry's activation-boundary default (fatal → loud termination, nonfatal → stands in
     /// the last-exception status; ISO §14.6.13.1.3 #8 / §14.6.13.1.4 — the same posture as an EC-free caller).</summary>
     internal string FunctionActivationText(BoundCallProgram c) =>
-        $"ProgramRegistry.CallProgram({CsLiteral(c.LiteralName!)}, {CsLiteral(callState.SelfPath)}, "
-        + $"{ArgsArrayText(c)}, {(c.Returning is { } rp ? RefCarrier(rp) : "null")}, "
-        + "notFoundEc: \"EC-FUNCTION-NOT-FOUND\");";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
+        InvocationText(c, siteHandlesPropagation: false, argMismatchChecking: false);
+
+    /// <summary>⛔ THE ONE ACTIVATION-INVOCATION RENDERER — the statement-position <see cref="EmitCall"/> and the
+    /// expression-position <see cref="FunctionActivationText"/> both render through it, so the three activation
+    /// targets cannot be taught to one site and not the other (the two-arm dispatch, kb/Work PB847: the
+    /// per-evaluation site read <c>c.LiteralName!</c> and had no pointer arm at all).
+    /// <list type="bullet">
+    ///   <item>a PROGRAM-POINTER CALL target (§14.9.4.3 SR1; P10 Step 7) — <c>ProgramRegistry.CallPointer</c>;</item>
+    ///   <item>a FUNCTION-POINTER function-identifier (§8.4.3.2.4 GR4/GR6c) — <c>ProgramRegistry.CallFunctionPointer</c>,
+    ///         whose NULL raise is EC-FUNCTION-PTR-NULL and whose locate miss is GR6b's EC-FUNCTION-NOT-FOUND;</item>
+    ///   <item>a name — a literal, an identifier's value at CALL time (GR3b, read once per GR3a), or a
+    ///         function-prototype's externalized name — <c>ProgramRegistry.CallProgram</c>.</item>
+    /// </list>
+    /// A pointer's carrier goes straight to the registry, never a name-string read.</summary>
+    private string InvocationText(BoundCallProgram c, bool siteHandlesPropagation, bool argMismatchChecking)
+    {
+        string head = $"{CsLiteral(callState.SelfPath)}, {ArgsArrayText(c)}, "
+            + $"{(c.Returning is { } rp ? RefCarrier(rp) : "null")}";
+        string site = siteHandlesPropagation ? ", siteHandlesPropagation: true" : "";
+        if (c.IsPointerTarget && c.DynamicName is BoundFieldOperand pf)
+            return c.IsFunction
+                ? $"ProgramRegistry.CallFunctionPointer({PlaceRenderer.Read(pf.Place)}, {head}{site});"
+                : $"ProgramRegistry.CallPointer({PlaceRenderer.Read(pf.Place)}, {head}{site});";
+        string nameExpr = c.LiteralName is { } literal
+            ? CsLiteral(literal)
+            : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
+        return $"ProgramRegistry.CallProgram({nameExpr}, {head}{site}"
+            + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"   // §8.4.3.2.4 GR6b
+            + $"{(argMismatchChecking ? ", siteArgMismatchChecking: true" : "")});";
+    }
 
     /// <summary>The current statement's enabled level-3 names that a <see cref="CobolCallException"/> can
     /// actually carry (empty when none / no wrapper). ONE filter, asked once and split two ways below: an

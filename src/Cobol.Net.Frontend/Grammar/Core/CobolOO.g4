@@ -212,7 +212,10 @@ invokeReturning
 //
 // ONE bracket pair enclosing THREE stacked alternatives — so at most one is written, and the bare
 // `OBJECT REFERENCE` is GR22 b)'s universal object reference. FACTORY, ACTIVE-CLASS and ONLY are UNDERLINED
-// (required words of their alternatives); OF is not. Four INDEPENDENT axes: kind × FACTORY × ONLY × name.
+// (required words of their alternatives); OF is not, so it is an OPTIONAL word (§5.2.3) and
+// `OBJECT REFERENCE FACTORY ACTIVE-CLASS` is conforming — the rule required OF until kb/Work PB848's sibling sweep
+// (the same REQUIRED-INSIDE-AN-OPTIONAL-GROUP shape as the pointer usages' TO). Four INDEPENDENT axes: kind ×
+// FACTORY × ONLY × name.
 //
 // Until PB389 this rule had three alternatives carrying ONE axis (`FACTORY OF className` / `className` / bare),
 // so ACTIVE-CLASS lexed as a user word and drew COBOLNET0813+0901, and a trailing ONLY was a raw COBOL0307.
@@ -222,8 +225,8 @@ invokeReturning
 // doctrine) and the binder makes the general-format rejection once the name resolves — COBOLNET1925.
 // ACTIVE-CLASS is its own alternative because it IS its own token.
 objectReferenceUsage
-    : OBJECT REFERENCE (FACTORY OF)? ACTIVE_CLASS          // GR22 e) — the active class; SR16 placement checked in the binder
-    | OBJECT REFERENCE (FACTORY OF)? className ONLY?       // GR22 c)/d) — interface-name-1 or object-class-name-1
+    : OBJECT REFERENCE (FACTORY OF?)? ACTIVE_CLASS         // GR22 e) — the active class; SR16 placement checked in the binder
+    | OBJECT REFERENCE (FACTORY OF?)? className ONLY?      // GR22 c)/d) — interface-name-1 or object-class-name-1
     | OBJECT REFERENCE                                     // GR22 b) — the UNIVERSAL object reference
     ;
 

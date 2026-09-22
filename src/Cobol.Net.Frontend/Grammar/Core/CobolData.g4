@@ -617,36 +617,53 @@ usageKeyword
                             // NO usage at all (kb/Work PB487).
     | NATIONAL
     | BIT
-    | dataPointerUsage       // USAGE POINTER [TO type-name] (§13.18.60.2; the TO form is a RESTRICTED data-pointer, GR23)
-    | programPointerUsage    // USAGE PROGRAM-POINTER [TO prototype] (§13.18.60 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
-    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO prototype] (§13.18.60, 2002) — superset parse; semantics STAGED LOUD (function prototypes = P13)
+    | dataPointerUsage       // USAGE POINTER [[TO] type-name] (§13.18.60.2; the operand makes a RESTRICTED data-pointer, GR23; TO is optional, kb/Work PB848)
+    | programPointerUsage    // USAGE PROGRAM-POINTER [[TO] prototype] (§13.18.60 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
+    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO] prototype (§13.18.60 GR26, 2014) — the operand is MANDATORY, screened in DataBinder (COBOLNET1958)
     | objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — introduction-gated at BIND time (PicInfo.ParseUsage → ConstructRegistry.Check), like NATIONAL/BIT/POINTER above
     ;
 
-// USAGE POINTER [TO type-name-1] (ISO §13.18.60.2 general format, verified against the PRINTED page — PDF p.533
-// = printed 503 prints `POINTER [ TO type-name-1 ]`). The TO form declares a RESTRICTED data-pointer: §13.18.60.4
-// GR23 — "If type-name-1 is specified, this data item is a restricted data-pointer. A restricted data-pointer
-// shall contain only the predefined address NULL or the address of a data item of the specified type." Written to
-// MIRROR its programPointerUsage / functionPointerUsage neighbours below, which is why it is a RULE and not a
-// bare terminal with a tail: DataBinder.UsageKeyword derives the canonical keyword from this node, so the operand
-// must not be glued into it ("POINTERT" — the OBJECT REFERENCE / PROGRAM-POINTER precedent). §13.18.60.3 SR18
-// additionally requires the SUBJECT of a `TO type-name` entry to carry TYPEDEF, screened in the binder.
+// ── THE THREE POINTER USAGES — `POINTER [ TO type-name-1 ]`, `FUNCTION-POINTER TO function-prototype-name-1`,
+// `PROGRAM-POINTER [ TO program-prototype-name-1 ]` (ISO §13.18.60.2, RENDERED from the printed page — PDF p.533
+// = printed folio 503). ⛔ TO IS AN OPTIONAL WORD IN ALL THREE (kb/Work PB848): the underline rule sits under
+// POINTER / FUNCTION-POINTER / PROGRAM-POINTER only, never under TO, and §5.2.3 makes a non-underlined word an
+// optional word "that may be written to add clarity", so `USAGE POINTER T`, `USAGE FUNCTION-POINTER P` and
+// `USAGE PROGRAM-POINTER P` are conforming spellings. UNDERLINING decides required-vs-optional, never bracketing:
+// the operand's BRACKETS (POINTER's and PROGRAM-POINTER's, not FUNCTION-POINTER's) are a different question,
+// answered in DataBinder (FUNCTION-POINTER's mandatory operand, COBOLNET1958) — so every rule below is the same
+// superset `(TO? operand)?` and the binder reads the OPERAND's presence, never the TO token's.
+//
+// ⛔ THE TO-LESS OPERAND MAY NOT SWALLOW THE NEXT CLAUSE. The slot is a bare `cobolWord` at the END of a clause,
+// and ANTLR takes the first viable alternative, so any keyword that both BEGINS a §13.16.2 data-description
+// clause and reaches `cobolWord` would be bound as the type-name. The reservation gate inside `cobolWord`
+// (kb/Work PB693) stops most of them only where they are RESERVED — and not at all for the §15 function names it
+// deliberately exempts: BIT and NATIONAL are bare USAGE keywords AND `cobolWord` alternatives, so without a guard
+// `01 P USAGE POINTER BIT.` bound BIT as a type-name (MEASURED — PointerUsageOperandDriftTests caught it), as would
+// PROPERTY under --permissive or at an edition before its reservation. So the TO-less arm is guarded by
+// `pointerOperandHere()` (CobolParserCoreBase), which refuses a token in FOLLOW(usageKeyword) — the USAGE tail
+// phrases (HIGH-ORDER-RIGHT was measured swallowed too) and the next clause —
+// COMPUTED from the generated ATN — never a hand list — so a clause added to the closed format is excluded
+// automatically. With TO written, the word IS the operand; the predicate guards only the TO-less arm.
+//
+// Each is a RULE, not a bare terminal with a tail: DataBinder.UsageKeyword derives the canonical keyword from the
+// node, so the operand must not be glued into it ("POINTERT" — the OBJECT REFERENCE precedent).
+//
+// POINTER: the operand declares a RESTRICTED data-pointer, §13.18.60.4 GR23 ("If type-name-1 is specified, this
+// data item is a restricted data-pointer"); §13.18.60.3 SR18 requires the SUBJECT to carry TYPEDEF (binder).
 dataPointerUsage
-    : POINTER (TO cobolWord)?
+    : POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
     ;
 
-// USAGE PROGRAM-POINTER [TO program-prototype-name-1] (ISO §13.18.60 :22686): a program-pointer data item —
-// may contain the address of a program (GR24; for a COBOL program, the address of an OUTERMOST program). The
-// TO form declares a RESTRICTED program-pointer (GR25 — only NULL or a same-signature program's address);
-// restriction semantics are STAGED LOUD until the prototype registry lands (P13).
+// PROGRAM-POINTER: a program-pointer data item (GR24); the operand declares a RESTRICTED program-pointer (GR25 —
+// only NULL or a same-signature program's address); §13.18.60.3 SR19 requires TYPEDEF on the subject (binder).
 programPointerUsage
-    : PROGRAM_POINTER (TO cobolWord)?
+    : PROGRAM_POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
     ;
 
-// USAGE FUNCTION-POINTER [TO function-prototype-name-1] (ISO §13.18.60): superset parse at every edition;
-// the semantics stage LOUD (function prototypes are the P13 repository work).
+// FUNCTION-POINTER: the operand is MANDATORY (unbracketed on folio 503; GR26 takes every function-pointer's
+// signature restriction from it) — the superset `?` parses its omission so the binder can name the rule.
 functionPointerUsage
-    : FUNCTION_POINTER (TO cobolWord)?
+    : FUNCTION_POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
     ;
 
 // SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).

@@ -86,6 +86,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // list the user never wrote, and the SR6 arm inside the ref-mod applier would then never see the call.
         if (fc.FNARG_LPAREN() is null && fc.refModPart().Length != 0 && DefinitionPermitsArguments(name))
             return Sr6ArgumentListError(display);
+        // §8.4.3.2.3 SR5 — "If function-pointer-name-1 is specified, the parentheses shall be specified" — decided
+        // from the parse like SR6 above, before any bind: `FUNCTION FP` and `FUNCTION FP (1:4)` write no argument
+        // list (kb/Work PB847).
+        if (fc.FNARG_LPAREN() is null && FunctionPointerNamed(name) is not null)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.FunctionPointerParenthesesRequired,
+                $"{display}: '{name}' is a function-pointer, so the function-identifier shall write its argument "
+                + "list in parentheses — '(' ')' for none (ISO §8.4.3.2.3 SR5)");
+            return new BoundExprError(display);
+        }
         return FinishIntrinsic(fc, BindIntrinsicCore(name, ArgsOf(fc.functionArgList())), display);
     }
 
@@ -214,6 +224,24 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         _ => new BoundComputedOperand(e),
     };
 
+    /// <summary>The FUNCTION-POINTER data item <paramref name="name"/> resolves to in the active scope, as a Place,
+    /// or null — the ONE §8.4.3.2.3 SR4 test ("Function-pointer-name-1 shall be defined as a function-pointer data
+    /// item") both function-identifier forms ask (with and without the word FUNCTION; kb/Work PB847). A name that
+    /// resolves to anything else, or to more than one function-pointer, is not function-pointer-name-1 and takes
+    /// the ordinary paths — whose diagnostics already name those cases.</summary>
+    private Place? FunctionPointerNamed(string name)
+    {
+        if (!ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var candidates)) return null;
+        DataItem? only = null;
+        foreach (var c in candidates)
+        {
+            if (c.Pic?.Category is not PicCategory.FunctionPointer) continue;
+            if (only is not null) return null;   // ambiguous — qualification is not part of the name form
+            only = c;
+        }
+        return only is not null && only.SubscriptLevels().Count == 0 ? ctx.Refs.ResolveItem(only) : null;
+    }
+
     /// <summary>The §8.4.3.2 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
     /// is a REPOSITORY-declared user-function / function-prototype-name (or the containing function's own name),
     /// or — when <c>FUNCTION ALL INTRINSIC</c> / <c>FUNCTION name INTRINSIC</c> is in effect — an
@@ -277,6 +305,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return null;
         }
         string name = cw.GetText();
+        // §8.4.3.2.3 SR2 — "if function-prototype-name-1 or function-pointer-name-1 is specified, the word FUNCTION
+        // may be omitted" — and SR5 — "If function-pointer-name-1 is specified, the parentheses shall be
+        // specified". So `FP (args)` over a FUNCTION-POINTER item is a function-identifier (kb/Work PB847), and a
+        // bare `FP` (no parentheses) stays the data reference to the pointer itself, which is what SET and a
+        // pointer comparison read. A function-pointer is not a table, so the '(' can be no subscript here: the
+        // routing takes nothing from the data path. An argument list followed by a reference-modifier of the
+        // RESULT is the same two-suffix shape the prototype form wears.
+        if (sp is not null && FunctionPointerNamed(name) is { } fp)
+        {
+            var viaPointer = ReparseArgs(sp) is { } fpArgs
+                ? host.Udf.UdfBindPointerCall(fp, fpArgs)
+                : new BoundExprError($"FUNCTION {name} arguments");
+            return tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.ReadRefMod(tailRefMod), name);
+        }
         bool catalogued = IntrinsicCatalog.TryGet(name, out var sig);
         bool declaredFn = ctx.Data.UserFunctionNames.Contains(name)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase)
@@ -460,6 +502,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Data.UserFunctionNames.Contains(name)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase))
             return host.Udf.UdfBindCall(name, argCtxs);
+
+        // §8.4.3.2.2 — the function-identifier's THIRD name form, function-pointer-name-1 (SR4: "shall be defined
+        // as a function-pointer data item"). It used to have no arm, so `FUNCTION FP (3)` reached the catalog and
+        // was refused as "not an intrinsic function" while SET Format 8 happily filled FP (kb/Work PB847).
+        if (FunctionPointerNamed(name) is { } fpItem)
+            return host.Udf.UdfBindPointerCall(fpItem, argCtxs);
 
         if (cobolWordsRemoved || !IntrinsicCatalog.TryGet(name, out var sig))
         {

@@ -55,7 +55,8 @@ public sealed class CobolCallException(string message, string ecName = "EC-PROGR
     /// <summary>ISO §14.9.4.4 GR3h item 1's family partition — "if the exception condition is any of the
     /// EC-PROGRAM or EC-EXTERNAL exception conditions". THE one place that partition is written down: the CALL
     /// emitter's enabled-name split and the emitted phrase arm's runtime filter both ask this. Every other
-    /// condition a <see cref="CobolCallException"/> can carry (today EC-FUNCTION-NOT-FOUND, §8.4.3.2.4 GR6b)
+    /// condition a <see cref="CobolCallException"/> can carry (today EC-FUNCTION-NOT-FOUND and
+    /// EC-FUNCTION-PTR-NULL, §8.4.3.2.4 GR6b/GR6c)
     /// takes GR3h item 2's second disjunct instead — the applicable exception processing statements, never
     /// imperative-statement-1.</summary>
     public static bool IsProgramOrExternal(string ec) =>
@@ -76,6 +77,7 @@ public sealed class CobolCallException(string message, string ecName = "EC-PROGR
         "EC-EXTERNAL-FILE-MISMATCH",      // §14.8.4.4 via §14.9.4.4 GR3e
         "EC-EXTERNAL-FORMAT-CONFLICT",    // §14.8.4.3 via §14.9.4.4 GR3e
         "EC-FUNCTION-NOT-FOUND",          // §8.4.3.2.4 GR6b — a user-defined-function locate miss
+        "EC-FUNCTION-PTR-NULL",           // §8.4.3.2.4 GR6c — a function-identifier through a NULL function-pointer
         "EC-PROGRAM-ARG-MISMATCH",        // §14.8.2.1 via §14.9.4.4 GR3d
         "EC-PROGRAM-CANCEL-ACTIVE",       // §14.9.5 GR5
         "EC-PROGRAM-IMP",                 // the ctor default (see above)
@@ -142,4 +144,9 @@ public static class ProgramRegistry
     public static void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args,
         ManagedPointer? returning, bool siteHandlesPropagation = false)
         => RunUnit.Current.Programs.CallPointer(target, callerPath, args, returning, siteHandlesPropagation);
+
+    /// <inheritdoc cref="ProgramTable.CallFunctionPointer"/>
+    public static void CallFunctionPointer(FunctionPointer target, string callerPath, CobolArg[] args,
+        ManagedPointer? returning, bool siteHandlesPropagation = false)
+        => RunUnit.Current.Programs.CallFunctionPointer(target, callerPath, args, returning, siteHandlesPropagation);
 }

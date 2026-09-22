@@ -423,10 +423,40 @@ public sealed class ProgramTable
         // could never select. (GR3g's "invalid program address … undefined" governs a NON-null bad address, not
         // NULL — which is why the old message's appeal to it was misplaced.) Table 13: Fatal.
         if (target.IsNull)
+        {
+            // The EC-EXTERNAL handshake's half 1 applies to EVERY activation attempt, failed ones included
+            // (CallProgram's own rule): a NULL throw that skipped it would leak this site's pending mask into the
+            // NEXT statement's activator latch.
+            _owner.Exceptions.ExternalCheckMask = 0;
             throw new CobolCallException(
                 "CALL through a NULL program-pointer: the pointer contains the predefined address NULL "
                 + "(ISO §14.9.4.4 GR3b — EC-PROGRAM-PTR-NULL)", "EC-PROGRAM-PTR-NULL");
+        }
         CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation);
+    }
+
+    /// <summary>Activate the function a FUNCTION-POINTER holds — a function-identifier written with
+    /// function-pointer-name-1 (ISO §8.4.3.2; kb/Work PB847), the consumer SET Format 8 was missing. §8.4.3.2.4
+    /// GR6c: "If function-pointer-name-1 is specified, the runtime system attempts to execute the function at the
+    /// address pointed to by function-pointer-name-1. If function-pointer-name-1 is NULL, the EC-FUNCTION-PTR-NULL
+    /// exception condition is set to exist, no function is activated" (Table 13: Fatal). A non-NULL pointer holds
+    /// the function's externalized name (<see cref="FunctionPointer"/>), so the activation is the SAME function
+    /// resolution a function-prototype reference takes — <see cref="CallProgram"/> with GR6b's
+    /// EC-FUNCTION-NOT-FOUND as the locate-miss name — never a second lookup path. The program-pointer twin is
+    /// <see cref="CallPointer"/>.</summary>
+    public void CallFunctionPointer(FunctionPointer target, string callerPath, CobolArg[] args,
+        ManagedPointer? returning, bool siteHandlesPropagation = false)
+    {
+        if (target.IsNull)
+        {
+            _owner.Exceptions.ExternalCheckMask = 0;   // half 1 of the EC-EXTERNAL handshake — see CallPointer
+            throw new CobolCallException(
+                "function-identifier through a NULL function-pointer: the pointer contains the predefined address "
+                + "NULL, so no function is activated (ISO §8.4.3.2.4 GR6c — EC-FUNCTION-PTR-NULL)",
+                "EC-FUNCTION-PTR-NULL");
+        }
+        CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation,
+            notFoundEc: "EC-FUNCTION-NOT-FOUND");
     }
 
     /// <summary>

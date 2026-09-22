@@ -719,6 +719,86 @@ public sealed class OptionalWordSubsetDriftTests
         SortDuplicates.Replace("OPWT", "OPWU", StringComparison.Ordinal)
                       .Replace("opwt.tmp", "opwu.tmp", StringComparison.Ordinal);
 
+    // ── USAGE §13.18.60.2, the three pointer usages: POINTER [ TO type-name-1 ], FUNCTION-POINTER TO
+    // function-prototype-name-1, PROGRAM-POINTER [ TO program-prototype-name-1 ] (kb/Work PB848). RENDERED — PDF
+    // p533 / folio 503: the underline rule sits under POINTER / FUNCTION-POINTER / PROGRAM-POINTER, never under TO.
+    // ⛔ TO IS REQUIRED-INSIDE-AN-OPTIONAL-GROUP in the grammar's old `(TO cobolWord)?`, the shape
+    // audit_grammar_optional_words.py cannot see (kb/Work PB715), so this row is the mechanical guard. Each TO slot
+    // sits on the TO-FULL twin of a TO-less entry, and §14.9.39.3 SR19/SR20/SR22 admit the copy between the twins
+    // only because both name the same type / prototype — a TO-less operand that bound as nothing would fail to
+    // compile rather than print something else.
+    private const string PointerUsageTo = """
+           IDENTIFICATION DIVISION.
+           FUNCTION-ID. OPWVF.
+           DATA DIVISION.
+           LINKAGE SECTION.
+           01 L-ARG PIC S9(4).
+           01 L-RES PIC S9(9).
+           PROCEDURE DIVISION USING L-ARG RETURNING L-RES.
+               COMPUTE L-RES = L-ARG * 2
+               GOBACK.
+           END FUNCTION OPWVF.
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWV.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           REPOSITORY.
+               FUNCTION OPWVF
+               PROGRAM OPWVP.
+           DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 REC-T IS TYPEDEF STRONG.
+              05 A PIC X(2).
+           01 DPT1 IS TYPEDEF USAGE POINTER REC-T.
+           01 DPT2 IS TYPEDEF USAGE POINTER {0} REC-T.
+           01 PPT1 IS TYPEDEF USAGE PROGRAM-POINTER OPWVP.
+           01 PPT2 IS TYPEDEF USAGE PROGRAM-POINTER {1} OPWVP.
+           01 DP1 TYPE DPT1.
+           01 DP2 TYPE DPT2.
+           01 FP1 USAGE FUNCTION-POINTER OPWVF.
+           01 FP2 USAGE FUNCTION-POINTER {2} OPWVF.
+           01 PP1 TYPE PPT1.
+           01 PP2 TYPE PPT2.
+           01 W TYPE REC-T.
+           01 WS-N PIC 9(4) VALUE 0042.
+           PROCEDURE DIVISION.
+           MAIN.
+               SET DP1 TO ADDRESS OF W
+               SET DP2 TO DP1
+               IF DP2 = DP1 DISPLAY "DP-SAME" END-IF
+               SET FP1 TO ADDRESS OF FUNCTION OPWVF
+               SET FP2 TO FP1
+               IF FP2 = FP1 DISPLAY "FP-SAME" END-IF
+               SET PP1 TO ENTRY "OPWVP"
+               SET PP2 TO PP1
+               IF PP2 = PP1 DISPLAY "PP-SAME" END-IF
+               CALL PP2 USING WS-N
+               DISPLAY "DONE"
+               STOP RUN.
+           END PROGRAM OPWV.
+           IDENTIFICATION DIVISION.
+           PROGRAM-ID. OPWVP.
+           DATA DIVISION.
+           LINKAGE SECTION.
+           01 L-X PIC 9(4).
+           PROCEDURE DIVISION USING L-X.
+               DISPLAY "CALLED " L-X
+               GOBACK.
+           END PROGRAM OPWVP.
+    """;
+
+    // ── USAGE OBJECT REFERENCE §13.18.60.2: [ FACTORY OF ] ACTIVE-CLASS / [ FACTORY OF ] object-class-name-1 —
+    // FACTORY is underlined on folio 503 and OF is not (kb/Work PB848's sibling sweep; the grammar required OF).
+    // DERIVED from the PB389 golden, which writes BOTH forms (a factory-of-class item in the program, a
+    // factory-of-ACTIVE-CLASS item in a factory method) and prints what each one invokes — so the template can
+    // never drift from a program whose output is already pinned.
+    private static readonly string ObjectReferenceFactoryOf =
+        File.ReadAllText(Path.Combine(ConformanceCorpus.Root, "2002", "pb389_object_reference_descriptor.cob"))
+            .Replace("FACTORY OF PB389B", "FACTORY {0} PB389B", StringComparison.Ordinal)
+            .Replace("FACTORY OF ACTIVE-CLASS", "FACTORY {1} ACTIVE-CLASS", StringComparison.Ordinal)
+            .Replace("PROGRAM-ID. PB389M.", "PROGRAM-ID. OPWX.", StringComparison.Ordinal)
+            .Replace("END PROGRAM PB389M.", "END PROGRAM OPWX.", StringComparison.Ordinal);
+
     private static readonly FormatCase[] Formats =
     [
         new("use-format-1", "14.9.49.2 Format 1", 85, ["AFTER", "STANDARD", "PROCEDURE", "ON"], "OPWA", UseFormat1),
@@ -758,6 +838,10 @@ public sealed class OptionalWordSubsetDriftTests
             SortDuplicates),
         new("sort-duplicates-2023", "14.9.40.2 (DUPLICATES phrase, ORDER reserved)", 2023,
             ["WITH", "IN", "ORDER"], "OPWU", SortDuplicates2023),
+        // kb/Work PB848 — TO in the three pointer usages, and OF in OBJECT REFERENCE's FACTORY phrase.
+        new("pointer-usage-to", "13.18.60.2 (pointer usages)", 2014, ["TO", "TO", "TO"], "OPWV", PointerUsageTo),
+        new("object-reference-factory-of", "13.18.60.2 (OBJECT REFERENCE FACTORY OF)", 2002, ["OF", "OF"], "OPWX",
+            ObjectReferenceFactoryOf),
     ];
 
     public static IEnumerable<object[]> Cases() => Formats.Select(f => new object[] { f.Name });

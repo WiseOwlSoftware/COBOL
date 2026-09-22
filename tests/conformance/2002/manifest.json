@@ -330,7 +330,8 @@
   "pb841_checking_across_call",
   "pb893_close_report_completes",
   "pb854_write_eop_exception_conditions",
-  "pb572_national_redefines_receiver"
+  "pb572_national_redefines_receiver",
+  "pb846_sort_table_occurs_keys"
   ],
   "pending": []
 }

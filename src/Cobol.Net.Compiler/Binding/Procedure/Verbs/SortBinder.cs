@@ -63,6 +63,17 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return new BoundUnsupported(TierCIsland.Reason(file.Records[0], "SORT SD record of"));
         int width = Model.RecordLayout.AreaWidth(record);
 
+        // Format 1 prints the KEY phrase in BRACES with an ellipsis (§14.9.40.2) — at least one is required, and
+        // its data-name-1 is required too (braces, not the Format-2 brackets). The grammar's `sortKeyPhrase*` is
+        // shared with Format 2, whose phrase MAY be omitted (§14.9.40.3 SR15, kb/Work PB846), so the Format-1
+        // arity is screened here, where the operand's format is known.
+        if (s.sortKeyPhrase().Length == 0)
+        {
+            ctx.Validation.RejectStatementOperand($"SORT of file '{file.CobolName}' requires at least one "
+                + "ASCENDING/DESCENDING KEY phrase (ISO §14.9.40.2 Format 1 general format — the KEY phrase is "
+                + "braced with an ellipsis; only the Format-2 table sort may omit it, §14.9.40.3 SR15)");
+            return new BoundNop();
+        }
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in s.sortKeyPhrase())
             if (SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys) is { } err)
@@ -145,6 +156,36 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return new BoundUnsupported($"SORT of table '{name}' nested under another OCCURS (deferred)");
 
         var keys = new List<BoundTableSortKey>();
+        if (s.sortKeyPhrase().Length == 0)
+        {
+            // §14.9.40.4 GR21 — "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in
+            // the data description entry of the table referenced by data-name-2", admitted ONLY under §14.9.40.3
+            // SR15 — "The KEY phrase may be omitted only if the description of the table referenced by
+            // data-name-2 contains a KEY phrase" (kb/Work PB846). The grammar's key-phrase list is `*` for exactly
+            // this reason: the omission is a Format-2 syntax rule that needs the RESOLVED table, so the screen
+            // lives here and names SR15 instead of surfacing as a parse error. The table's KEY phrase is read
+            // through the ONE ordered model SEARCH ALL also reads (OccursSpec.Keys / OdoModel.KeyItems, kb/Work
+            // PB445) — significance order and per-key direction are the phrase's own (§13.18.38.4 GR3), which is
+            // GR21's "determined by" read literally.
+            var specKeys = table.OccursSpec?.Keys ?? [];
+            if (specKeys.Count == 0)
+            {
+                ctx.Validation.RejectStatementOperand($"SORT of table '{name}' omits the KEY phrase, but the OCCURS "
+                    + "clause of the table has no KEY phrase either (ISO §14.9.40.3 SR15 — the KEY phrase may be "
+                    + "omitted only if the description of the table referenced by data-name-2 contains a KEY phrase)");
+                return new BoundNop();
+            }
+            var keyItems = OdoModel.KeyItems(table);
+            for (int i = 0; i < specKeys.Count; i++)
+            {
+                // An unresolvable OCCURS KEY data-name is the data description's own error (§13.18.38.3 SR3),
+                // reported where the OCCURS clause is bound; nothing further to say here.
+                if (keyItems[i] is not { } tk) return new BoundNop();
+                if (TableSortKey(table, specKeys[i].Descending, tk) is not { } k)
+                    return TableSortKeyUnsupported(specKeys[i].Name);
+                keys.Add(k);
+            }
+        }
         foreach (var phrase in s.sortKeyPhrase())
         {
             bool desc = phrase.DESCENDING() is not null;
@@ -170,10 +211,6 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                         + "subordinate to it (ISO §14.9.40.3 SR14a)");   // PB236
                     return new BoundNop();
                 }
-                if (SortMemberPath(table, key) is not { } path)
-                    return new BoundUnsupported($"SORT table key '{kn}' — keys shall not be described with / "
-                        + "subordinate to an inner OCCURS (ISO §14.9.40.3 SR14e), and a REDEFINES-view key in the "
-                        + "typed-array path is deferred");
                 // A key of class national orders under the NATIONAL collating sequence — the GR5 lead-in
                 // ("the national collating sequence that applies to the comparison of key data items of class
                 // national"), resolved by GR5a/GR5b like its alphanumeric twin. It used to stage LOUD here, with
@@ -181,18 +218,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 // claiming the file sort was "separately blocked by the D-N2 FD/SD record gate" — a gate PB327
                 // removed. The comparator now selects on the key's class (kb/Work PB678), so both formats sort a
                 // national key under the national sequence and nothing is staged.
-                keys.Add(new BoundTableSortKey(desc, path, key));
+                if (TableSortKey(table, desc, key) is not { } k) return TableSortKeyUnsupported(kn);
+                keys.Add(k);
             }
         }
-        // §14.9.40.4 GR21 — "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in
-        // the data description entry of the table referenced by data-name-2" (admitted by §14.9.40.3 SR15, "The
-        // KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY
-        // phrase"). ⚠ THE DATA MODEL DOES CAPTURE THAT PHRASE, AND HAS ALL ALONG — the claim that it did not
-        // stood in this comment while OdoBindOccursSpec was filling OccursSpec's key list, which nothing then
-        // read; since kb/Work PB445 it is ONE list in significance order (OccursSpec.Keys), resolvable through
-        // OdoModel.KeyItems, so this form's model half is present. The surviving obstacle is the GRAMMAR's
-        // `sortKeyPhrase+` arity (CobolIO.g4), which makes `SORT table-name` with the KEY phrase omitted a parse
-        // error — a rejects-legal-source gap on §14.9.40 whose cause is the parse rule, not the model.
 
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase());
         if (collErr is { } ce) return ce;
@@ -581,6 +610,17 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         while (root.Parent is { } p) root = p;
         return root;
     }
+
+    /// <summary>One Format-2 key over <paramref name="key"/> — the ONE construction both key sources share (the
+    /// statement's KEY phrase, §14.9.40.4 GR2, and the table's own OCCURS KEY phrase, GR21), so the member-path
+    /// rule cannot drift between them. <see langword="null"/> when the key sits under an inner OCCURS or behind a
+    /// REDEFINES view (see <see cref="TableSortKeyUnsupported"/>).</summary>
+    private static BoundTableSortKey? TableSortKey(DataItem table, bool descending, DataItem key) =>
+        SortMemberPath(table, key) is { } path ? new BoundTableSortKey(descending, path, key) : null;
+
+    private static BoundUnsupported TableSortKeyUnsupported(string keyName) =>
+        new($"SORT table key '{keyName}' — keys shall not be described with / subordinate to an inner OCCURS "
+            + "(ISO §14.9.40.3 SR14e), and a REDEFINES-view key in the typed-array path is deferred");
 
     /// <summary>The C# access path of a table's ARRAY field (no subscripting — the whole-array operand the
     /// Format-2 sort consumes), or null when the table is itself inside another OCCURS (deferred).</summary>

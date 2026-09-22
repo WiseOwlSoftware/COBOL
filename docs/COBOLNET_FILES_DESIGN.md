@@ -1959,7 +1959,12 @@ failure branches were fired once before it was trusted.
   only the CONTAINS forms; at 85 the VARYING phrase is rejected and `RECORD CONTAINS m TO n` drives
   `IsVaryingRecord`.
 - **Format-2 in-place table SORT (D6) is a 2002 introduction** (derive from the 2002 standard): rejected at 85
-  (file-format SORT is 85). Note also row 27: MERGE newly prohibited in another MERGE's output procedure / a
+  (file-format SORT is 85). Its KEY phrase is BRACKETED (Format 1 braces it — rendered, folio 746), so
+  `SORT table-name` alone is conforming when the table's OCCURS clause has a KEY phrase (§14.9.40.3 SR15) and
+  sorts on that phrase's keys in their written significance order and direction (§14.9.40.4 GR21), read from
+  the ONE `OccursSpec.Keys` model SEARCH ALL also reads. The grammar's key list is zero-or-more; SR15 and
+  Format 1's at-least-one are screened in `SortBinder` on the resolved operand (kb/Work PB846). MERGE has no
+  table format, so its key list stays one-or-more in the grammar. Note also row 27: MERGE newly prohibited in another MERGE's output procedure / a
   file-format SORT input-output procedure at 2023.
 - **OPTIONAL reach differs by edition** (85 restricts which organizations/open modes admit OPTIONAL; 2002 widens
   it) — the edge-case table above states the 2023 behavior; derive and gate the 85 subset from the 1985 standard.

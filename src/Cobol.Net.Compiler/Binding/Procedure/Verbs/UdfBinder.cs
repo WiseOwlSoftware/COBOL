@@ -88,6 +88,49 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 + "class units remain a separate follow-up)");
             return new BoundExprError($"FUNCTION {name}");
         }
+        return UdfActivate(name, fn, argCtxs, pointer: null);
+    }
+
+    /// <summary>Bind one function-identifier written with FUNCTION-POINTER-NAME-1 (ISO §8.4.3.2; kb/Work PB847 —
+    /// the consumer SET Format 8 landed without). §8.4.3.2.4 GR4: "the function prototype specified in the TO
+    /// phrase of the USAGE clause in the definition of function-pointer-name-1 is used to determine the
+    /// characteristics of the activated element and the function to be activated", and GR1 takes the result's
+    /// description from that prototype's RETURNING item — so this is the prototype activation of
+    /// <see cref="UdfBindCall"/> with ONE difference: the activated function is whichever one the pointer holds
+    /// at run time (GR6c), NULL raising EC-FUNCTION-PTR-NULL. <paramref name="pointer"/> is the resolved
+    /// function-pointer item; the §8.4.3.2.3 SR4 category test was made by the caller.</summary>
+    internal BoundExpr UdfBindPointerCall(Place pointer, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        string name = pointer.Item.CobolName ?? "function-pointer";
+        // The same RECOGNITION gate as the prototype form (the FUNCTION-POINTER usage is itself 2014-gated at its
+        // declaration, so below 2002 this reference is already one edition violation deep).
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition, Constructs.UserFunctionInvocation2002,
+            $"FUNCTION {name.ToUpperInvariant()}");
+        // The mandatory `[TO] function-prototype-name-1` operand (§13.18.60.2, unbracketed) is screened at the
+        // declaration (COBOLNET1958); an item missing it has already been reported, so there is no prototype to
+        // take GR4's characteristics from and nothing further to say here.
+        if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
+            return new BoundExprError($"FUNCTION {name}");
+        if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
+        {
+            ctx.Edition.Error("COBOLNET1505",
+                $"FUNCTION {name.ToUpperInvariant()}: function-pointer '{name}' is restricted to function-prototype "
+                + $"'{proto.ToUpperInvariant()}', but the compilation group contains neither a FUNCTION-ID "
+                + "definition nor a FUNCTION-ID … IS PROTOTYPE for it — the prototype supplies the characteristics "
+                + "of the activated function (ISO §8.4.3.2.4 GR4) and the result's description (GR1)");
+            return new BoundExprError($"FUNCTION {name}");
+        }
+        return UdfActivate(name, fn, argCtxs, new BoundFieldOperand(pointer));
+    }
+
+    /// <summary>⛔ THE ONE PROTOTYPE ACTIVATION — both function-identifier forms that name a prototype
+    /// (function-prototype-name-1 and, through its USAGE TO phrase, function-pointer-name-1) bind their
+    /// arguments, result temporary and hoisted activation HERE, so the §14.8.2 / §14.8.3 conformance and the
+    /// GR5 argument manner cannot drift between them. <paramref name="pointer"/> null activates the prototype's
+    /// own externalized function (GR3); non-null activates the function the pointer holds (GR6c).</summary>
+    private BoundExpr UdfActivate(string name, UserFunctionSignature fn,
+        IReadOnlyList<Core.FunctionArgumentContext> argCtxs, BoundFieldOperand? pointer)
+    {
         if (fn.Returning is null)
             // Ill-formed function definition — COBOLNET1507 already reported once at the unit.
             return new BoundExprError($"FUNCTION {name} RETURNING");
@@ -180,7 +223,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
         // The activation names the callee by its EXTERNALIZED name — the key ProgramRegistry holds it under
         // (§8.3.2.2 2); ordinarily identical to fn.Name, and the AS literal when FUNCTION-ID wrote one, PB303).
-        Pending.Add(new BoundCallProgram(fn.Externalized, null, callArgs, tempPlace, null, null) { IsFunction = true });
+        // Through a function-pointer the callee is whatever the pointer HOLDS when the activation runs (GR6c):
+        // the pointer operand rides DynamicName and the emitter's pointer arm reads its carrier.
+        Pending.Add(pointer is null
+            ? new BoundCallProgram(fn.Externalized, null, callArgs, tempPlace, null, null) { IsFunction = true }
+            : new BoundCallProgram(null, pointer, callArgs, tempPlace, null, null)
+                { IsFunction = true, IsPointerTarget = true });
         // The reading expression: a BoundNumRef over the temp's Place. Every general-operand chokepoint
         // (MOVE source, DISPLAY, relation operands, function arguments — IntrinsicBinder.OperandOf) maps it
         // to a BoundFieldOperand, whose Place.Item carries the cloned category into Table-16 legality, the

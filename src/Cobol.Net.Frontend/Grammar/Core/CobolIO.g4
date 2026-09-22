@@ -824,9 +824,13 @@ startInvalidKeyPhrase
 // SORT Format 1 (file sort): requires USING/GIVING or INPUT/OUTPUT PROCEDURE
 // SORT Format 2 (table sort, §14.9.40): no USING/GIVING — in-place sort
 // Disambiguation deferred to semantic layer (file vs table target).
+// The key-phrase list is `*`, not `+` (kb/Work PB846): the printed Format 2 BRACKETS the KEY phrase, and
+// §14.9.40.3 SR15 — "The KEY phrase may be omitted only if the description of the table referenced by data-name-2
+// contains a KEY phrase" — is a rule about the RESOLVED table, so it is screened in SortBinder (with Format 1's
+// braced at-least-one), never by the parser. MERGE has no table format, so mergeKeyPhrase+ is correct as it is.
 sortStatement
     : SORT sortFileName
-      sortKeyPhrase+
+      sortKeyPhrase*
       sortDuplicatesPhrase?
       sortCollatingPhrase?
       ( ( sortUsingPhrase | sortInputProcedurePhrase )

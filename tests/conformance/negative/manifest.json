@@ -1285,7 +1285,13 @@
   "pb891-checking-scope-below-2002",
   "pb854-eop-use-name-below-2002",
   "pb907-through-alias-vlg-incompatible",
-  "pb960-invalid-picture-no-cascade"
+  "pb960-invalid-picture-no-cascade",
+  "pb846-sort-table-no-key-anywhere",
+  "pb846-sort-file-no-key",
+  "pb846-sort-table-key-omitted-below-2002",
+  "pb848-function-pointer-to-less-below-2014",
+  "pb847-function-pointer-no-parentheses",
+  "pb847-function-pointer-call-below-2014"
  ],
  "pending": []
 }

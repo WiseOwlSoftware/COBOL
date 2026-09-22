@@ -395,6 +395,61 @@ public abstract class CobolParserCoreBase : Parser
     /// </summary>
     protected bool IsBareInspectOperand() => TokenStream.LA(2) != CobolLexer.FOR;
 
+    /// <summary>Predicate for the TO-less operand of the three §13.18.60.2 pointer usages (kb/Work PB848): TO is
+    /// an optional word there (§5.2.3 — not underlined on the printed folio 503), so the word after
+    /// POINTER / FUNCTION-POINTER / PROGRAM-POINTER is the type-name or prototype-name — UNLESS it is a word that
+    /// may legitimately FOLLOW the usage without any operand: a USAGE-clause tail phrase (HIGH-ORDER-RIGHT, the
+    /// SIGN phrases — the ones a following semantic check rejects by name) or the next data-description clause.
+    /// <c>cobolWord</c>'s reservation gate does not settle that on its own: it exempts the §15 function names
+    /// (BIT and NATIONAL are also bare USAGE keywords) and admits a keyword wherever it is not reserved (an older
+    /// edition, <c>--permissive</c>). Both failures were MEASURED — <c>USAGE POINTER BIT</c> and
+    /// <c>USAGE POINTER HIGH-ORDER-RIGHT</c> each bound the word as a type-name. A plain IDENTIFIER is always
+    /// the operand (the only thing it could otherwise begin is the unrecognizedClause error production).</summary>
+    protected bool pointerOperandHere()
+    {
+        int t = TokenStream.LA(1);
+        return t == CobolLexer.IDENTIFIER || !UsageFollowSet(Atn).Contains(t);
+    }
+
+    private static Antlr4.Runtime.Misc.IntervalSet? s_usageFollow;
+
+    /// <summary>FOLLOW(<c>usageKeyword</c>) — every token that can come next after a usage keyword in ANY context
+    /// that invokes it — read off the GENERATED ATN rather than listed by hand: the union, over every call site of
+    /// the rule, of what the ATN can match after it, climbing to the caller's own call sites wherever the caller
+    /// can end there (context-free FOLLOW). A clause added to the closed §13.16.2 format, or a phrase added to the
+    /// USAGE clause, is excluded from the TO-less pointer operand the moment the grammar gains it
+    /// (<see cref="pointerOperandHere"/>; pinned by PointerUsageOperandDriftTests). Computed once per process.</summary>
+    public static Antlr4.Runtime.Misc.IntervalSet UsageFollowSet(Antlr4.Runtime.Atn.ATN atn)
+        => s_usageFollow ??= Follow(atn, CobolParserCore.RULE_usageKeyword);
+
+    /// <summary>The context-free FOLLOW set of <paramref name="rule"/> over <paramref name="atn"/>.</summary>
+    internal static Antlr4.Runtime.Misc.IntervalSet Follow(Antlr4.Runtime.Atn.ATN atn, int rule)
+    {
+        var result = new Antlr4.Runtime.Misc.IntervalSet();
+        var seen = new HashSet<int>();
+        var work = new Stack<int>([rule]);
+        while (work.Count > 0)
+        {
+            int r = work.Pop();
+            if (!seen.Add(r)) continue;
+            var start = atn.ruleToStartState[r];
+            foreach (var state in atn.states)
+            {
+                if (state is null) continue;
+                for (int i = 0; i < state.NumberOfTransitions; i++)
+                {
+                    if (state.Transition(i) is not Antlr4.Runtime.Atn.RuleTransition rt || rt.target != start) continue;
+                    var next = atn.NextTokens(rt.followState);
+                    if (next.Contains(Antlr4.Runtime.TokenConstants.EPSILON))
+                        work.Push(state.ruleIndex);   // the caller can end here — its own followers follow too
+                    result.AddAll(next);
+                }
+            }
+        }
+        result.Remove(Antlr4.Runtime.TokenConstants.EPSILON);
+        return result;
+    }
+
     /// <summary>
     /// COBOL-2002 boolean-condition discriminator (ISO §8.8.4.2.2 / §8.8.4.3): true when a boolean OPERATOR
     /// (B-AND / B-OR / B-XOR / B-NOT) appears in the CURRENT condition ahead of the parse position, before any

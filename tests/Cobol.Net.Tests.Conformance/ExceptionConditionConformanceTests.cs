@@ -599,6 +599,44 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, "EC-PROGRAM-PTR-NULL", "BEFORE");
 
+    [Fact]   // The FUNCTION-POINTER twin (kb/Work PB847). §8.4.3.2.4 GR6c: "If function-pointer-name-1 is NULL, the
+             // EC-FUNCTION-PTR-NULL exception condition is set to exist, no function is activated" — Fatal per
+             // Table 13, so with checking on and no declarative the run unit terminates and the statement carrying
+             // the function-identifier never completes. The declarative arm is the corpus golden
+             // 2014/pb847_function_pointer_call.
+    public void FunctionPointerNull_Enabled_NoHandler_FatalTerminates()
+        => AssertFatal("""
+            >>TURN EC-FUNCTION-PTR-NULL CHECKING ON
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. ECT847F.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-ARG PIC S9(4).
+            01 L-RES PIC S9(9).
+            PROCEDURE DIVISION USING L-ARG RETURNING L-RES.
+                COMPUTE L-RES = L-ARG * 2
+                GOBACK.
+            END FUNCTION ECT847F.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT847.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION ECT847F.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FP USAGE FUNCTION-POINTER TO ECT847F.
+            01 R PIC 9(9).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "BEFORE".
+                SET FP TO NULL.
+                COMPUTE R = FP(5).
+                DISPLAY "NEVER".
+                STOP RUN.
+            END PROGRAM ECT847.
+            """, "EC-FUNCTION-PTR-NULL", "BEFORE");
+
     // ── §14.9.4.4 GR3h's three-way partition and GR3i's "the phrase is ignored" (kb/Work PB233) ──────────────
     // GR3h routes a FAILED ACTIVATION three ways, and each arm below pins one of them. The three facts the arms
     // turn on are exactly the three the emitted catch used to conflate: WHICH phrase is written (only ON

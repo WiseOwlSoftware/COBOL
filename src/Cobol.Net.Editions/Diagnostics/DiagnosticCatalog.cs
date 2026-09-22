@@ -4429,6 +4429,16 @@ public static class DiagnosticCatalog
         + "category is not numeric. ISO §8.8.4.4.3 SR6: \"If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or "
         + "NEAREST-TO-ZERO is specified, identifier-1 shall reference a data item whose category is numeric.\"",
         "ISO §8.8.4.4.3 SR6");
+    /// <summary>A function-identifier names a function-pointer but writes no argument-list parentheses (kb/Work
+    /// PB847). ISO §8.4.3.2.3 SR5: <i>"If function-pointer-name-1 is specified, the parentheses shall be
+    /// specified."</i> A prototype or intrinsic reference may omit an empty list; a function-pointer reference may
+    /// not, because the bare name is the reference to the POINTER itself (what SET and a pointer comparison
+    /// read).</summary>
+    public static readonly DiagnosticDescriptor FunctionPointerParenthesesRequired = new(
+        "COBOLNET2234", "function-pointer-parentheses-required", EditionSeverity.Error,
+        "A function-identifier that names a function-pointer shall write its argument-list parentheses. ISO "
+        + "§8.4.3.2.3 SR5: \"If function-pointer-name-1 is specified, the parentheses shall be specified.\"",
+        "ISO §8.4.3.2.3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -457,6 +457,28 @@ occurrence of the word: ANTLR raises TWO syntax errors on one offending token (t
 `CobolErrorStrategy`'s recovery message), which read as two different sentences before the re-code and as the
 same sentence twice after it — and §8.3.2.1 rule 1 is broken once by one occurrence.
 
+⛔ **AN OPERAND WHOSE INTRODUCING WORD IS OPTIONAL MAY NOT SWALLOW THE NEXT CLAUSE (kb/Work PB848).** §13.18.60.2
+prints `POINTER [ TO type-name-1 ]`, `FUNCTION-POINTER TO function-prototype-name-1` and
+`PROGRAM-POINTER [ TO program-prototype-name-1 ]` with TO NOT underlined (rendered, folio 503), so by §5.2.3 the
+operand may follow the usage keyword directly. With TO omitted the operand slot is a bare `cobolWord` at the END
+of a clause, so it would swallow any keyword that both BEGINS a §13.16.2 data-description clause and reaches
+`cobolWord`. **The reservation gate above does not settle that on its own**: it admits a clause keyword wherever
+the keyword is not reserved (an older edition, `--permissive`), and it deliberately EXEMPTS the §15 function names
+— and BIT and NATIONAL are also bare USAGE keywords, so `01 P USAGE POINTER BIT.` bound BIT as a type-name. That
+was MEASURED, not reasoned: a first cut dropped the guard after PROPERTY (gated) proved safe without it, and the
+drift test then failed on BIT; a second cut that excluded only clause-LEADING words then let
+`USAGE POINTER HIGH-ORDER-RIGHT` bind the endianness phrase (UsageFloatFormatPhraseDriftTests caught it). So the
+TO-less arm is `{pointerOperandHere()}? cobolWord`, a LEFT-EDGE predicate (`CobolParserCoreBase`) refusing any
+token in FOLLOW(`usageKeyword`) — the USAGE tail phrases and whatever may follow the clause — **computed off the
+generated ATN** (`UsageFollowSet`, a context-free FOLLOW over every call site) — never a hand list, so a clause or
+USAGE phrase added to the grammar is excluded automatically. `PointerUsageOperandDriftTests` (Unit) derives
+FOLLOW(usageKeyword) ∩ FIRST(cobolWord) from the ATN and, for every such word at every edition, parses
+`USAGE {POINTER|PROGRAM-POINTER|FUNCTION-POINTER} W.` and demands an empty operand. The binders read the OPERAND's presence, never the TO token's (`DataBinder`:
+the §13.18.60.3 SR18/SR19 screen and FUNCTION-POINTER's mandatory operand). The same
+REQUIRED-INSIDE-AN-OPTIONAL-GROUP shape was OBJECT REFERENCE's `(FACTORY OF)?`, whose OF is also unstressed on
+folio 503; it is `(FACTORY OF?)?` now. Both are pinned by `OptionalWordSubsetDriftTests` rows, because
+`audit_grammar_optional_words.py` cannot see a word required inside an optional group (kb/Work PB715).
+
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
 `ctx.COMMIT() ?? ctx.ROLLBACK()` extraction in the funnel — three places naming the same set. It had already

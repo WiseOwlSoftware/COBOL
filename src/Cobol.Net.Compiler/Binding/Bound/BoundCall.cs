@@ -113,10 +113,13 @@ public sealed record BoundCallProgram(
     /// bound handlers are otherwise identical to the ON EXCEPTION form.</summary>
     public bool UsedOverflowSpelling { get; init; }
 
-    /// <summary>True when <see cref="DynamicName"/> is a PROGRAM-POINTER operand (ISO §14.9.4 SR1 :26082 —
-    /// identifier-1 may reference a program-pointer data item; GR :26177 — the item "contains the location of
-    /// the program being called"): the emitter activates through <c>ProgramRegistry.CallPointer</c> (the held
-    /// ProgramPointer) instead of the name-string read (P10 Step 7).</summary>
+    /// <summary>True when <see cref="DynamicName"/> is a POINTER operand that holds the activated element's
+    /// address, never a name string: a PROGRAM-POINTER CALL target (ISO §14.9.4.3 SR1 — identifier-1 may
+    /// reference a program-pointer data item; P10 Step 7) activates through <c>ProgramRegistry.CallPointer</c>,
+    /// and — with <see cref="IsFunction"/> — a function-identifier written with function-pointer-name-1
+    /// (§8.4.3.2.4 GR4/GR6c; kb/Work PB847) activates through <c>ProgramRegistry.CallFunctionPointer</c>. The
+    /// category of the operand and <see cref="IsFunction"/> always agree; the emitter's ONE invocation renderer
+    /// reads the flag pair.</summary>
     public bool IsPointerTarget { get; init; }
 }
 

@@ -383,9 +383,11 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// in General rule 6f", and GR6f runs "any declarative … associated with that exception condition".
     /// Queried only for a <c>BoundCallProgram</c> with <c>IsFunction</c> — the hoisted activation of a
     /// function-identifier — because that is the only node whose emitted invocation passes
-    /// <c>notFoundEc: "EC-FUNCTION-NOT-FOUND"</c>. (EC-FUNCTION-PTR-NULL / EC-FUNCTION-ARG-OMITTED, GR6c/GR8,
-    /// have no raise site yet and so are not named here: an unraisable name in this list would make every
-    /// activation report as checkable and emit a dead catch arm.)</summary>
+    /// <c>notFoundEc: "EC-FUNCTION-NOT-FOUND"</c>. EC-FUNCTION-PTR-NULL (GR6c) is raised only by an activation
+    /// THROUGH a function-pointer (<c>ProgramTable.CallFunctionPointer</c>, kb/Work PB847), so it is queried
+    /// precisely for that node below rather than listed here; EC-FUNCTION-ARG-OMITTED (GR8) has no raise site
+    /// yet and is not named: an unraisable name in this list would make every activation report as checkable and
+    /// emit a dead catch arm.</summary>
     private static readonly string[] FunctionActivationNames = ["EC-FUNCTION-NOT-FOUND"];
 
     /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
@@ -551,6 +553,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     // the statement's enabled set, so >>TURN EC-FUNCTION-NOT-FOUND CHECKING ON wrapped nothing
                     // and the condition could reach no declarative at all (kb/Work PB233).
                     if (call.IsFunction) Query(FunctionActivationNames);
+                    // PRECISE, like BoundSetFunctionAddress: only an activation THROUGH a function-pointer can find
+                    // the pointer NULL (§8.4.3.2.4 GR6c; kb/Work PB847 added the raise site and this query together).
+                    if (call.IsFunction && call.IsPointerTarget) Query(["EC-FUNCTION-PTR-NULL"]);
                     break;
                 case BoundCancel:
                     Query(ProgramNames);    // CANCEL raises no EC-EXTERNAL — external state persists (§14.9.5 GR8)
