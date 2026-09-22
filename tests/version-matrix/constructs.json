@@ -1333,10 +1333,10 @@
   },
   {
    "id": "memory-size-removed-2002",
-   "description": "MEMORY SIZE clause (OBJECT-COMPUTER) — obsolete '85 element deleted by ISO 2002; gated by token-scan of the computerAttributes wildcard sink (P2.6).",
+   "description": "MEMORY SIZE clause (OBJECT-COMPUTER) — obsolete '85 element deleted by ISO 2002; gated at the modelled memorySizeClause (P2.6; kb/Work PB830).",
    "display": "the MEMORY SIZE clause (OBJECT-COMPUTER)",
    "diagnosticCode": "COBOLNET0902",
-   "citation": "obsolete '85 element deleted by ISO 2002; token-scan of the computerAttributes sink; VCR Table 7",
+   "citation": "obsolete '85 element deleted by ISO 2002; VCR Table 7",
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOLNET0902",
@@ -1345,10 +1345,10 @@
   },
   {
    "id": "segment-limit-removed-2002",
-   "description": "SEGMENT-LIMIT clause (OBJECT-COMPUTER) — segmentation deleted by ISO 2002; token-scan gated (P2.6).",
+   "description": "SEGMENT-LIMIT clause (OBJECT-COMPUTER) — segmentation deleted by ISO 2002; gated at the modelled segmentLimitClause (P2.6; kb/Work PB830).",
    "display": "the SEGMENT-LIMIT clause (OBJECT-COMPUTER)",
    "diagnosticCode": "COBOLNET0902",
-   "citation": "segmentation deleted by ISO 2002; token-scan of the computerAttributes sink; VCR Table 7",
+   "citation": "segmentation deleted by ISO 2002; VCR Table 7",
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOLNET0902",
@@ -1357,10 +1357,10 @@
   },
   {
    "id": "debugging-mode-removed-2002",
-   "description": "WITH DEBUGGING MODE clause (SOURCE-COMPUTER) — the '85 debug facility deleted by ISO 2002; token-scan gated (P2.6).",
+   "description": "WITH DEBUGGING MODE clause (SOURCE-COMPUTER) — the '85 debug facility deleted by ISO 2002; gated at the modelled debuggingModeClause (P2.6; kb/Work PB830).",
    "display": "the WITH DEBUGGING MODE clause (SOURCE-COMPUTER)",
    "diagnosticCode": "COBOLNET0902",
-   "citation": "the '85 debug facility deleted by ISO 2002; token-scan of the computerAttributes sink; VCR Table 7",
+   "citation": "the '85 debug facility deleted by ISO 2002; VCR Table 7",
    "introducedIn": 85,
    "removedIn": 2002,
    "expectDiagnostic": "COBOLNET0902",
@@ -3094,6 +3094,19 @@
    "expectDiagnostic": "COBOLNET0900",
    "vcr": "2002 introduction (derive from the 2002 standard); the word-character-set half of §8.3.2.1, whose other half (the 63-character length ceiling) is the 2023 RELAXATION checked inline as COBOLNET1567 rather than as a construct row",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWUS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MY_NAME PIC X(5) VALUE \"hello\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY MY_NAME.\n    STOP RUN.\n"
+  },
+  {
+   "id": "identification-header-optional-2002",
+   "status": "active",
+   "description": "A program or function source unit WITHOUT the IDENTIFICATION DIVISION header — ISO §11.2.1 prints `[ IDENTIFICATION DIVISION. ]` in brackets (rendered, PDF p293 / folio 263), so the unit may open directly on its PROGRAM-ID or FUNCTION-ID paragraph. X3.23-1985 required the header, so the header-less form is a 2002 relaxation. Parsed at every edition (superset-parse) so the below-2002 rejection is this named gate rather than `unexpected 'PROGRAM-ID'`. kb/Work PB829.",
+   "display": "a source unit without the IDENTIFICATION DIVISION header",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §11.2.1 (Identification division structure: `[ IDENTIFICATION DIVISION. ]`) — 2002 relaxation of the '85 required header; parse-arm gate (VisitIdentificationDivision)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2002 relaxation: the IDENTIFICATION DIVISION header is optional (§11.2.1; the '85 format required it)",
+   "source": "PROGRAM-ID. IDHOPT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X VALUE \"a\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY A.\n    STOP RUN.\n"
   },
   {
    "id": "computer-name-optional-2002",

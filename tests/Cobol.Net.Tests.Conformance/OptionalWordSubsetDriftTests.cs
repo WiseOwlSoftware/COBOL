@@ -274,9 +274,9 @@ public sealed class OptionalWordSubsetDriftTests
     // where that arm is the whole format.
     // ⛔ THE COMPUTER-NAME IS WRITTEN DELIBERATELY, and it is what makes this row bite. Omitting it is a
     // SEPARATE 2002 relaxation (`computer-name-optional-2002`, COBOLNET0900), so a name-less spelling at 85 is
-    // correctly rejected and would only measure that gate. With the name present, every subset also drives the
-    // `computerAttributes` token sink past its stop condition: the sink follows the name and must give the
-    // clause back whether it opens on PROGRAM, on COLLATING or on SEQUENCE.
+    // correctly rejected and would only measure that gate. With the name present, every subset also proves the
+    // clause is read as a CLAUSE after the name and not as the closed format's residue (kb/Work PB830's
+    // `unrecognizedClause`), whether it opens on PROGRAM, on COLLATING or on SEQUENCE.
     private const string ObjectComputerHead = """
            IDENTIFICATION DIVISION.
            PROGRAM-ID. OPWI.

@@ -42,10 +42,11 @@ public static class CobolWordsDirectiveProcessor
         for (int i = 0; i < lines.Length; i++)
         {
             string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            // SR1 boundary: the FIRST IDENTIFICATION DIVISION ends the region where COBOL-WORDS is legal.
+            // SR1 boundary: the FIRST IDENTIFICATION DIVISION ends the region where COBOL-WORDS is legal — and its
+            // header is optional (§11.2.1), so the boundary is the ONE unit-start test (kb/Work PB829).
             if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
             {
-                if (!sawFirstIdDivision && IsIdentificationDivision(trimmed)) sawFirstIdDivision = true;
+                if (!sawFirstIdDivision && CompilationUnitStart.IsAt(trimmed)) sawFirstIdDivision = true;
                 continue;
             }
             // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
@@ -203,14 +204,6 @@ public static class CobolWordsDirectiveProcessor
 
     private static void Invalid(DiagnosticBag diag, SourceLocation loc, string message) =>
         diag.ReportError(DiagnosticCatalog.CobolWordsDirectiveInvalid.Code, message, loc, default);
-
-    /// <summary>Is <paramref name="trimmed"/> the start of an IDENTIFICATION (or ID) DIVISION line?</summary>
-    private static bool IsIdentificationDivision(string trimmed)
-    {
-        string u = trimmed.ToUpperInvariant();
-        return u.StartsWith("IDENTIFICATION DIVISION", StringComparison.Ordinal)
-            || u.StartsWith("ID DIVISION", StringComparison.Ordinal);
-    }
 
     // ── operand tokenizer ────────────────────────────────────────────────────────────────────────────────────
     private readonly record struct Tok(string Text, bool IsLiteral, string Prefix)

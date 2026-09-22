@@ -661,30 +661,29 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>The SOURCE-/OBJECT-COMPUTER attribute SINK (the grammar swallows the obsolete '85 clauses as
-        /// raw tokens — <c>~(DOT|PROGRAM)+</c>), so the deleted elements hiding in it are gated by TOKEN-TEXT scan
-        /// (P2.6): MEMORY SIZE, SEGMENT-LIMIT, WITH DEBUGGING MODE — each its own registry row/VCR item.</summary>
-        public override object? VisitComputerAttributes(CobolParserCore.ComputerAttributesContext ctx)
+        /// <summary>The three X3.23-1985 SOURCE-/OBJECT-COMPUTER clauses ISO 2002 deleted — MEMORY SIZE, SEGMENT-LIMIT and
+        /// WITH DEBUGGING MODE, each its own registry row / VCR item (7.7, 7.8, 7.9). ⛔ They are MODELLED clauses now
+        /// (kb/Work PB830): the gate reads the parsed NODE. They used to be a token-TEXT scan over the
+        /// <c>computerAttributes</c> sink, which ran to the period and so also admitted any other words at every
+        /// edition in silence.</summary>
+        public override object? VisitMemorySizeClause(CobolParserCore.MemorySizeClauseContext ctx)
         {
-            for (int i = 0; i < ctx.ChildCount; i++)
-            {
-                switch (ctx.GetChild(i).GetText().ToUpperInvariant())
-                {
-                    case "MEMORY":
-                        _p.Check(Constructs.MemorySizeRemoved2002, "the OBJECT-COMPUTER MEMORY SIZE clause");
-                        break;
-                    case "SEGMENT-LIMIT":
-                        _p.Check(Constructs.SegmentLimitRemoved2002, "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
-                        break;
-                    case "DEBUGGING":
-                        _p.Check(Constructs.DebuggingModeRemoved2002, "the SOURCE-COMPUTER WITH DEBUGGING MODE clause");
-                        // The switch also drives the USE FOR DEBUGGING posture (row 7.17): the configuration
-                        // section precedes the procedure division in the walk, so the flag is set before any
-                        // declarative section is visited.
-                        _debuggingModeDeclared = true;
-                        break;
-                }
-            }
+            _p.Check(Constructs.MemorySizeRemoved2002, "the OBJECT-COMPUTER MEMORY SIZE clause");
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitSegmentLimitClause(CobolParserCore.SegmentLimitClauseContext ctx)
+        {
+            _p.Check(Constructs.SegmentLimitRemoved2002, "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitDebuggingModeClause(CobolParserCore.DebuggingModeClauseContext ctx)
+        {
+            _p.Check(Constructs.DebuggingModeRemoved2002, "the SOURCE-COMPUTER WITH DEBUGGING MODE clause");
+            // The switch also drives the USE FOR DEBUGGING posture (row 7.17): the configuration section precedes
+            // the procedure division in the walk, so the flag is set before any declarative section is visited.
+            _debuggingModeDeclared = true;
             return base.VisitChildren(ctx);
         }
 
@@ -1412,6 +1411,17 @@ internal sealed class VersionConformancePass
             if (ctx.collatingForPhrase().Length > 0 || ctx.cobolWord().Length > 1)
                 _p.Check(Constructs.ProgramCollatingNational2002,
                     "the PROGRAM COLLATING SEQUENCE alphabet-name-2 / FOR ALPHANUMERIC/NATIONAL forms");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>A program or function source unit WITHOUT the IDENTIFICATION DIVISION header (ISO §11.2.1 prints
+        /// `[ IDENTIFICATION DIVISION. ]` in brackets): a 2002 relaxation — X3.23-1985 required the header (kb/Work
+        /// PB829). The class, factory, object, interface and method units reach the same optional header through
+        /// their own rules (Core/CobolOO.g4), whose units are themselves 2002 introductions gated elsewhere.</summary>
+        public override object? VisitIdentificationDivision(CobolParserCore.IdentificationDivisionContext ctx)
+        {
+            if (ctx.IDENTIFICATION() is null)
+                _p.Check(Constructs.IdentificationHeaderOptional2002, "a source unit without the IDENTIFICATION DIVISION header");
             return base.VisitChildren(ctx);
         }
 

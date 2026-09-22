@@ -53,8 +53,8 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         => new ClosedFormatPass(edition).VisitPositioned(group.Tree);
 
     /// <summary>Do not descend into a PROCEDURE DIVISION: <c>unrecognizedClause</c> is reachable only from the
-    /// identification division, the environment division and the data division (the eight rows of
-    /// <see cref="ClosedFormats.ByContext"/> are all in those three), so the largest part of a real compilation
+    /// identification division, the environment division and the data division (every row of
+    /// <see cref="ClosedFormats.ByContext"/> is in one of those three), so the largest part of a real compilation
     /// unit carries none. ⚠ The same verification <see cref="DeclinedFacilityPass"/> records applies and is what
     /// makes the skip safe rather than a silent hole: a nested program's divisions are SIBLINGS of
     /// <c>procedureDivision</c> in <c>programUnit</c>, a method's <c>dataDivision?</c> is a sibling of its
@@ -88,9 +88,9 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     }
 
     /// <summary>The name of the entry the offending word run sits in, for a message that points at the user's own
-    /// declaration rather than at a line number alone. Four of the eight formats have such a name (the data
+    /// declaration rather than at a line number alone. Four of the formats have such a name (the data
     /// description entry's data-name, the FD's and SD's file-name, the file control entry's SELECT file-name);
-    /// the other four — I-O-CONTROL, SPECIAL-NAMES, the configuration section and the identification division —
+    /// the rest — I-O-CONTROL, SPECIAL-NAMES, SOURCE-/OBJECT-COMPUTER, the configuration section and the identification division —
     /// are unnamed paragraphs and correctly yield null, because no ancestor of theirs matches an arm below.
     /// <para>⚠ NEAREST ancestor wins, which is the point: a <c>dataDescriptionEntry</c> nested under an
     /// <c>fileDescriptionEntry</c> must report ITS data-name, not the file's.</para></summary>

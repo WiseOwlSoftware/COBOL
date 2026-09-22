@@ -246,6 +246,7 @@ public static class Constructs
     public const string ReportMultiLine2002 = "report-multi-line-2002";
     public const string ReportOccurs2002 = "report-occurs-2002";
     public const string UserWordUnderscore2002 = "user-word-underscore-2002";
+    public const string IdentificationHeaderOptional2002 = "identification-header-optional-2002";
     public const string ComputerNameOptional2002 = "computer-name-optional-2002";
     public const string SetNumericContent2014 = "set-numeric-content-2014";
 }

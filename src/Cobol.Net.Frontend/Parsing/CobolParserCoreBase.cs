@@ -98,20 +98,35 @@ public abstract class CobolParserCoreBase : Parser
         return TokenStream.LT(i + 1) is { } next && next.Type is not (CobolParserCore.DOT or Antlr4.Runtime.TokenConstants.EOF);
     }
 
-    /// <summary>One of the OBJECT-COMPUTER paragraph's own clauses starts here (ISO §12.3.6.2) — the PROGRAM
-    /// COLLATING SEQUENCE clause, whose optional words leave it able to open on PROGRAM, COLLATING or SEQUENCE,
-    /// or the CHARACTER CLASSIFICATION clause via <see cref="classificationAhead"/>.
-    /// <para>⛔ THE ONE PLACE THAT ANSWERS "IS THIS A CLAUSE OR A COMPUTER-NAME?" (kb/Work PB695). Two decisions
-    /// need it — whether to enter the optional <c>computer-name-1</c> slot, and whether the
-    /// <c>computerAttributes</c> token sink may swallow one more token — and while PROGRAM and CHARACTER were
-    /// mandatory both were expressible as a `~(DOT | PROGRAM | CHARACTER)` token set. They no longer are: a
-    /// clause may now open on the bare WORD CLASSIFICATION, which has no token type to exclude. Two copies of
-    /// this answer would drift the way the FOR-phrase copies did, so both decisions read this one predicate.</para>
+    /// <summary>One of the OBJECT-COMPUTER paragraph's own clauses starts here — the PROGRAM COLLATING SEQUENCE
+    /// clause, whose optional words leave it able to open on PROGRAM, COLLATING or SEQUENCE, the CHARACTER
+    /// CLASSIFICATION clause via <see cref="classificationAhead"/> (both ISO §12.3.6.2), or one of the two
+    /// X3.23-1985 clauses ISO 2002 deleted, MEMORY SIZE and SEGMENT-LIMIT (kb/Work PB830).
+    /// <para>⛔ THE ONE PLACE THAT ANSWERS "IS THIS A CLAUSE OR A COMPUTER-NAME?" (kb/Work PB695). It steers
+    /// whether to enter the optional <c>computer-name-1</c> slot: a clause may open on the bare WORD
+    /// CLASSIFICATION, MEMORY or SEGMENT-LIMIT, none of which has a token type a `~(…)` set could exclude. The
+    /// '85 clauses belong here too so that a name-less <c>OBJECT-COMPUTER. MEMORY SIZE 8 WORDS.</c> parses as the
+    /// clause and draws its named edition gates, instead of binding MEMORY as the computer name and failing at
+    /// SIZE.</para>
     /// </summary>
     protected bool objectComputerClauseAhead()
         => TokenStream.LT(1) is { } t
            && (t.Type is CobolParserCore.PROGRAM or CobolParserCore.COLLATING or CobolParserCore.SEQUENCE
-               || classificationAhead());
+               || classificationAhead() || memorySizeAhead() || segmentLimitAhead());
+
+    /// <summary>X3.23-1985 <c>MEMORY SIZE integer {WORDS | CHARACTERS | MODULES}</c> — the word MEMORY followed by
+    /// the SIZE token (kb/Work PB830). A left-edge predicate; the SIZE check keeps a computer named MEMORY a
+    /// computer-name.</summary>
+    protected bool memorySizeAhead()
+        => Word(TokenStream.LT(1), "MEMORY") && TokenStream.LT(2)?.Type == CobolParserCore.SIZE;
+
+    /// <summary>The MEMORY SIZE clause's unit word — WORDS or MODULES (CHARACTERS is a lexer token and is
+    /// matched by the grammar directly).</summary>
+    protected bool memoryUnitAhead()
+        => Word(TokenStream.LT(1), "WORDS") || Word(TokenStream.LT(1), "MODULES");
+
+    /// <summary>X3.23-1985 <c>SEGMENT-LIMIT IS segment-number</c> — the word SEGMENT-LIMIT (kb/Work PB830).</summary>
+    protected bool segmentLimitAhead() => Word(TokenStream.LT(1), "SEGMENT-LIMIT");
 
     private static readonly string[] LocaleCategories =
         ["LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME", "USER-DEFAULT"];

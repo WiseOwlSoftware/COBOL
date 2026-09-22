@@ -410,12 +410,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
         // clause itself is 0902-gated ≥2002 by the version-conformance pass): its presence decides whether a USE FOR
         // DEBUGGING declarative section is COMPILED (switch present — the object-time switch is permanently off
-        // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). Token-text
-        // scan of the computerAttributes sink, the VisitComputerAttributes pattern (VCR Table 7 rows 7.9/7.17).
+        // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). It
+        // reads the MODELLED clause (kb/Work PB830 — it used to be a token-text scan of the computerAttributes sink; VCR
+        // Table 7 rows 7.9/7.17).
         DebuggingModeDeclared = EnvDivisions(program).Any(env => env.configurationSection()?.configurationParagraph()
-            .Select(p => p.sourceComputerParagraph()?.computerAttributes())
-            .Any(attrs => attrs is not null && Enumerable.Range(0, attrs.ChildCount)
-                .Any(i => attrs.GetChild(i).GetText().Equals("DEBUGGING", StringComparison.OrdinalIgnoreCase)))
+            .Any(p => p.sourceComputerParagraph()?.debuggingModeClause() is not null)
             ?? false);
 
         // REPOSITORY PROPERTY specifiers (§12.3.8 :14727-14729) — §8.4.3.9.3 SR1 makes a property-specifier

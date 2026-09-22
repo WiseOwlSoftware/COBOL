@@ -139,8 +139,8 @@ semantics).
 ## 3. Wave-1 coverage (live gates)
 
 85→2002 removals (0902): LABEL RECORDS · VALUE OF · DATA RECORDS (FD+SD, pinned 0873) · MULTIPLE FILE [TAPE]
-· MEMORY SIZE · SEGMENT-LIMIT · WITH DEBUGGING MODE (token-scans of the
-`computerAttributes` sink) · the five identification comment paragraphs · REMARKS (≥2002 only — CCVS carve-out)
+· MEMORY SIZE · SEGMENT-LIMIT · WITH DEBUGGING MODE (modelled clauses gated at
+their nodes — kb/Work PB830) · the five identification comment paragraphs · REMARKS (≥2002 only — CCVS carve-out)
 · STOP literal (85 semantics implemented: `BoundStopLiteral` → operator channel/stderr + continue) · OPEN
 REVERSED · **the notInGrammar 85-acceptance gates (VCR Table 7 rows 7.15–7.18): RERUN (parsed-and-ignored)
 · ENTER (BoundNop; system-name operands outside the funnel) · USE FOR DEBUGGING (the '85 debug module, VCR

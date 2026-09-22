@@ -39,7 +39,7 @@ public static class LeapSecondDirectiveProcessor
         for (int i = 0; i < lines.Length; i++)
         {
             string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            if (!insideUnit && StartsUnit(trimmed)) insideUnit = true;
+            if (!insideUnit && CompilationUnitStart.IsAt(trimmed)) insideUnit = true;
             // The ONE compiler-directive line parse (kb/Work PB794) — it removes the §7.3.3 SR3/SR4 inline
             // comment this stage's own slicing did not know about, so `>>LEAP-SECOND ON *> on` folds ON instead
             // of drawing a malformed-operand error.
@@ -64,17 +64,4 @@ public static class LeapSecondDirectiveProcessor
         return (string.Join('\n', lines), on);
     }
 
-    /// <summary>The first line of a compilation unit — an IDENTIFICATION DIVISION header, or the header-less
-    /// unit forms (§8.1.1: PROGRAM-ID / CLASS-ID / FUNCTION-ID / INTERFACE-ID may open a unit without the division
-    /// header at 2002+).</summary>
-    private static bool StartsUnit(string trimmed)
-    {
-        string t = trimmed.ToUpperInvariant();
-        return t.StartsWith("IDENTIFICATION DIVISION", StringComparison.Ordinal)
-            || t.StartsWith("ID DIVISION", StringComparison.Ordinal)
-            || t.StartsWith("PROGRAM-ID", StringComparison.Ordinal)
-            || t.StartsWith("CLASS-ID", StringComparison.Ordinal)
-            || t.StartsWith("FUNCTION-ID", StringComparison.Ordinal)
-            || t.StartsWith("INTERFACE-ID", StringComparison.Ordinal);
-    }
 }

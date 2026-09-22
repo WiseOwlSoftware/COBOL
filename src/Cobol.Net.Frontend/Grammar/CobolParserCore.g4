@@ -85,8 +85,16 @@ endProgramHeader
 // IDENTIFICATION DIVISION
 // ==========================================
 
+// ISO §11.2.1 prints the division header in BRACKETS — `[ IDENTIFICATION DIVISION. ]` (RENDERED, PDF p293 /
+// folio 263) — so a program or function source unit may open directly on its PROGRAM-ID / FUNCTION-ID paragraph,
+// exactly as the class, factory, object, interface and method units (Core/CobolOO.g4) already do. X3.23-1985
+// REQUIRED the header, so the header-less form is a 2002 relaxation, gated on recognition
+// (VersionConformancePass ParseArm.VisitIdentificationDivision, identification-header-optional-2002; kb/Work
+// PB829 — `PROGRAM-ID. X.` as a unit's first line was `COBOL0001: unexpected 'PROGRAM-ID'` at every edition).
+// Position-safe: PROGRAM-ID and FUNCTION-ID are reserved tokens that open no other construct, so the optional
+// header cannot let a unit boundary be mistaken for anything inside the preceding unit.
 identificationDivision
-    : IDENTIFICATION DIVISION DOT identificationBody
+    : (IDENTIFICATION DIVISION DOT)? identificationBody
     ;
 
 identificationBody
@@ -451,13 +459,24 @@ programPrototypeName
     : cobolWord
     ;
 
-// SOURCE-COMPUTER. [computer-name-1] . (ISO §12.3.5.2 — computer-name-1 is OPTIONAL; SR1: without it the second
-// period may be omitted). The empty paragraph was legal in X3.23-1985 too; the '85 WITH DEBUGGING MODE clause hung
-// off a name, and so does the attribute SINK here (a name-less `SOURCE-COMPUTER. WITH DEBUGGING MODE.` is illegal at
-// every edition — '85 required the name, 2002 deleted the clause). ⚠ The sink must stay BEHIND the name: it is
-// `~(DOT | …)+`, and reachable without a name it would swallow the next paragraph header (kb/Work PB78).
+// SOURCE-COMPUTER. [computer-name-1] . (ISO §12.3.5.2 — computer-name-1 is OPTIONAL; §12.3.5.3 SR1: without it the
+// second period may be omitted). ⛔ THE FORMAT IS CLOSED (kb/Work PB830; RENDERED from the printed page — PDF p314 /
+// folio 284): after the optional name there is NOTHING but the period. The empty paragraph was legal in X3.23-1985
+// too; the '85 WITH DEBUGGING MODE clause hung off a REQUIRED name, and is modelled here as its own clause so the
+// deleted-2002 gate reads a NODE (VersionConformancePass ParseArm.VisitDebuggingModeClause) — a name-less
+// `SOURCE-COMPUTER. WITH DEBUGGING MODE.` stays illegal at every edition ('85 required the name, 2002 deleted the
+// clause). Everything else after the name is the error production, refused BY NAME by ClosedFormatPass
+// (COBOLNET1970). It used to be `computerAttributes : ~DOT+`, an UNGATED token sink that accepted
+// `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition in silence.
 sourceComputerParagraph
-    : SOURCE_COMPUTER DOT ((computerName computerAttributes?)? DOT)?
+    : SOURCE_COMPUTER DOT ((computerName debuggingModeClause? unrecognizedClause?)? DOT)?
+    ;
+
+// X3.23-1985 `WITH DEBUGGING MODE` (the '85 debug facility's compile-time switch; WITH is not underlined). Deleted
+// by ISO 2002 — VCR row 7.9, `debugging-mode-removed-2002`. Its presence also decides the USE FOR DEBUGGING posture
+// (DataBinder.DebuggingModeDeclared, VCR row 7.17).
+debuggingModeClause
+    : WITH? DEBUGGING MODE
     ;
 
 // OBJECT-COMPUTER. [computer-name-1] [ | CHARACTER CLASSIFICATION … | PROGRAM COLLATING SEQUENCE … | ]… . (ISO
@@ -466,22 +485,43 @@ sourceComputerParagraph
 // PROGRAM COLLATING SEQUENCE / SEGMENT-LIMIT off a REQUIRED name — the clauses WITHOUT a name are the 2002
 // relaxation, gated on recognition (VersionConformancePass ParseArm.VisitObjectComputerParagraph,
 // computer-name-optional-2002 — kb/Work PB78: `OBJECT-COMPUTER. PROGRAM COLLATING SEQUENCE IS REV.` was `unexpected
-// 'PROGRAM'`). computerAttributes stays the token SINK for the deleted '85 clauses (MEMORY SIZE, SEGMENT-LIMIT —
-// VisitComputerAttributes' token scan), reachable only behind a name; it stops at PROGRAM and CHARACTER so the two
-// standard clauses are recognized, never swallowed.
+// 'PROGRAM'`).
+// ⛔ THE FORMAT IS CLOSED (kb/Work PB830; RENDERED — PDF p315 / folio 285): the clause list is the two standard
+// clauses, plus the two X3.23-1985 clauses ISO 2002 deleted — MEMORY SIZE and SEGMENT-LIMIT, MODELLED as clauses
+// so their deleted-2002 gates read a NODE — and then the error production, refused BY NAME by ClosedFormatPass
+// (COBOLNET1970). The '85 clauses used to be a `~DOT` token SINK behind the name (`computerAttributes`), which
+// swallowed `OBJECT-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition AND, because the sink ran to the period,
+// REJECTED the '85 format's own printed order `MEMORY SIZE … PROGRAM COLLATING SEQUENCE … SEGMENT-LIMIT …` —
+// the sink ate PROGRAM COLLATING SEQUENCE's position and SEGMENT-LIMIT after it had nowhere to go.
 // ⛔ THE OPTIONAL computer-name-1 IS GUARDED BY THE CLAUSE LOOKAHEAD (kb/Work PB695). Once CHARACTER and PROGRAM
 // became optional words, both clauses can OPEN with an ordinary word (`CLASSIFICATION …`) or with a token the
 // name slot would otherwise have to be told apart from, and `(computerName …)?` is greedy: without the guard
-// `OBJECT-COMPUTER. CLASSIFICATION IS SYSTEM-DEFAULT.` binds CLASSIFICATION as the computer name and the sink
-// eats the rest — accepted, silently, as nothing. The predicate is LEFT-EDGE (it steers the enter/skip decision
-// of the optional group); mid-alternative it would let the group be entered and then throw.
+// `OBJECT-COMPUTER. CLASSIFICATION IS SYSTEM-DEFAULT.` binds CLASSIFICATION as the computer name and the rest
+// is mis-read. The predicate is LEFT-EDGE (it steers the enter/skip decision of the optional group);
+// mid-alternative it would let the group be entered and then throw.
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT (({!objectComputerClauseAhead()}? computerName computerAttributes?)? objectComputerClause* DOT)?
+    : OBJECT_COMPUTER DOT (({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT)?
     ;
 
 objectComputerClause
     : programCollatingSequenceClause
     | characterClassificationClause
+    | memorySizeClause         // X3.23-1985 only — deleted 2002 (VCR row 7.7)
+    | segmentLimitClause       // X3.23-1985 only — deleted 2002 (VCR row 7.8)
+    | unrecognizedClause       // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    ;
+
+// X3.23-1985 `MEMORY SIZE integer {WORDS | CHARACTERS | MODULES}`. MEMORY, WORDS and MODULES are not lexer tokens
+// (none is reserved at 2002+), so the clause is recognized by the TEXT of its words through the parser base's one
+// word funnel — the left-edge predicate reads MEMORY followed by the SIZE token, the unit predicate the unit word.
+memorySizeClause
+    : {memorySizeAhead()}? IDENTIFIER SIZE integerLiteral (CHARACTERS | {memoryUnitAhead()}? IDENTIFIER)
+    ;
+
+// X3.23-1985 `SEGMENT-LIMIT IS segment-number` (the Segmentation module; IS is not underlined). Recognized by
+// TEXT for the same reason — SEGMENT-LIMIT is no lexer token.
+segmentLimitClause
+    : {segmentLimitAhead()}? IDENTIFIER IS? integerLiteral
     ;
 
 // CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC IS locale-phrase-1 | FOR
@@ -524,17 +564,6 @@ programCollatingSequenceClause
 
 computerName
     : cobolWord
-    ;
-
-// The token SINK for the '85 clauses ISO 2002 deleted (MEMORY SIZE, SEGMENT-LIMIT — VisitComputerAttributes'
-// token scan). ⛔ IT STOPS ON THE SAME LOOKAHEAD THE NAME SLOT USES, and that is now ONE predicate rather than
-// a token set: with PROGRAM and CHARACTER optional the two standard clauses can open on COLLATING, on SEQUENCE
-// or on the bare word CLASSIFICATION, and a bare WORD cannot be excluded by a `~(…)` token set at all. Written
-// as a set, the sink would resume swallowing the very clauses this change made spellable (kb/Work PB78's defect,
-// re-opened by kb/Work PB695's relaxation). The predicate is at the LEFT EDGE of the loop body, so it steers
-// each continue-or-exit decision.
-computerAttributes
-    : ({!objectComputerClauseAhead()}? ~DOT)+
     ;
 
 // ==========================================
@@ -708,7 +737,7 @@ declarativePart
 // ≥50 = independent segment) — an obsolete '85 element DELETED by ISO 2002. Parsed at every edition
 // (accepted-inert at 85: all segments resident, a conforming posture); the EditionValidator flags it
 // COBOLNET0902 ≥2002 (`segment-numbers-removed-2002`, VCR Table 7 row 7.18). The companion
-// SEGMENT-LIMIT clause is row 7.8 (already gated via the computerAttributes sink).
+// SEGMENT-LIMIT clause is row 7.8 (gated at segmentLimitClause — kb/Work PB830).
 declarativeSection
     : sectionName SECTION integerLiteral? DOT sentence* declarativeParagraph*
     ;

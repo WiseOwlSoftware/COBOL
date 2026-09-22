@@ -445,8 +445,9 @@ NESTED, COBOL, ATTRIBUTE, RELATION, UCS-4/UTF-8/UTF-16, NONE, RECEIVED; the unre
 computes `RejectsAt` false), and each reserved one is held off the funnel by a NAMED exemption in
 `VisitCobolWord` — a hand list, and therefore the next PB704. LOCALE's is load-bearing for a stated reason
 (`IntrinsicBinder.KeywordWordOf` needs `LOWER-CASE(x LOCALE …)` to arrive as bare words), so retiring the list is
-a design change, not a sweep. `computerAttributes`, the other word sink, is a raw `~(DOT | PROGRAM | CHARACTER)+`
-token loop and never enters `cobolWord` at all.
+a design change, not a sweep. The computer paragraphs' old word sink (`computerAttributes`) is gone (kb/Work
+PB830, §3.10): their residue is the `unrecognizedClause` error production, and their deleted '85 clauses are
+modelled rules.
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
 `CobolErrorListener` asks the parser whether the offending token is reservation-gated (the generated
@@ -573,19 +574,20 @@ zero-length check (COBOLNET1648) and the §8.8.3.2 SR1 same-class check (COBOLNE
 bare literals.
 
 **3.3e The computer paragraphs (kb/Work PB78, 2026-08-18).** `objectComputerParagraph : OBJECT_COMPUTER DOT
-((computerName computerAttributes?)? objectComputerClause* DOT)?` — ISO §12.3.6.2's `[computer-name-1]` is optional
-and the two clauses (`programCollatingSequenceClause | characterClassificationClause`) may follow the period in any
-order (each at most once, §5.2.6.4 — a duplicate is COBOLNET1652 in the binder). Two load-bearing decisions: (1) the
-'85 attribute SINK `computerAttributes : ~(DOT | PROGRAM | CHARACTER)+` (MEMORY SIZE / SEGMENT-LIMIT / WITH
-DEBUGGING MODE — deleted 2002, gated by `VisitComputerAttributes`' token scan) stays BEHIND the name — a
-`~(…)+` sink reachable without one would swallow the next paragraph header — and now stops at CHARACTER as well as
-PROGRAM, so both standard clauses are recognized rather than eaten. (2) `characterClassificationClause : CHARACTER
+(({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT)?` — ISO §12.3.6.2's `[computer-name-1]`
+is optional and the two clauses (`programCollatingSequenceClause | characterClassificationClause`) may follow the
+period in any order (each at most once, §5.2.6.4 — a duplicate is COBOLNET1652 in the binder). Two load-bearing
+decisions: (1) the X3.23-1985 clauses ISO 2002 deleted are MODELLED — `memorySizeClause` and `segmentLimitClause`
+are `objectComputerClause` alternatives, `debuggingModeClause` hangs off SOURCE-COMPUTER's name — and each is
+gated at its own node (`VisitMemorySizeClause` / `VisitSegmentLimitClause` / `VisitDebuggingModeClause`); both
+paragraphs end in the `unrecognizedClause` error production (§3.10; kb/Work PB830 replaced the `~DOT` sink that
+was there). (2) `characterClassificationClause : CHARACTER
 {classificationAhead()}? cobolWord (…)` — CLASSIFICATION is not a token (a plain word at '85), so the arm is
 predicated on the word after CHARACTER; the clause BINDS since kb/Work PB64 T5 (A.4.9 item 7 claimed; it was
 parse-to-diagnose COBOLNET1518 until then — the LOCALE clause's shape), and its words are exempt from the §8.9
 funnel exactly as the LOCALE clause's are. The name-less clause form is the 2002 relaxation of the '85 required-name
-format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` keeps the same
-shape (`((computerName computerAttributes?)? DOT)?`). The legacy oracle reads the clause list too.
+format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` is
+`((computerName debuggingModeClause? unrecognizedClause?)? DOT)?`. The legacy oracle reads the clause list too.
 
 ### 3.4 Delete dead grammars; quarantine JSON/XML (D5)
 
@@ -756,7 +758,9 @@ is what makes the next clause automatic rather than remembered.
 catch-all; it was one RULE reached from SIX sites spanning EIGHT closed general formats, and PB487's sibling
 sweep — which read the grammar by rule NAME — counted four of the remaining five and missed the I-O-CONTROL
 paragraph's INLINE alternative, which is not a named `xxxClause : genericClause` wrapper. All eight are now
-closed the same way, and the way is structural rather than repeated:
+closed the same way, and the way is structural rather than repeated — and the two computer paragraphs, whose
+residue was a DIFFERENT sink (`computerAttributes : ({!objectComputerClauseAhead()}? ~DOT)+`, kb/Work PB830),
+joined the table the same way, which is the table doing its job: a tenth format was a table row, not a mechanism.
 
 | § | format | grammar site (alternative list) | code |
 |---|---|---|---|
@@ -766,6 +770,8 @@ closed the same way, and the way is structural rather than repeated:
 | §12.4.5.1 | file control entry (SELECT) | `fileControlClauses` | COBOLNET1970 |
 | §12.4.6.2 | I-O-CONTROL paragraph | `ioControlClause` | COBOLNET1970 |
 | §12.3.7.2 | SPECIAL-NAMES paragraph | `specialNameEntry` | COBOLNET1970 |
+| §12.3.5.2 | SOURCE-COMPUTER paragraph | `sourceComputerParagraph` (after the name) | COBOLNET1970 |
+| §12.3.6.2 | OBJECT-COMPUTER paragraph | `objectComputerClause` | COBOLNET1970 |
 | §12.3.2 | configuration section | `configurationParagraph` | COBOLNET1971 |
 | §11.2.1 | identification division | `identificationParagraph` | COBOLNET1971 |
 
@@ -797,9 +803,12 @@ newly-closed format as the standing witness that the rendering was right.
   `remarksContent` are also unbounded token runs, and a comment-entry is arbitrary text by definition — which is
   why ISO/IEC 1989:2023 defines no syntax for one anywhere.
   A sink over a COMMENT-ENTRY is right; a sink over a CLAUSE or PARAGRAPH LIST is the defect.
-- **`computerAttributes`** (`CobolParserCore.g4`, `({!objectComputerClauseAhead()}? ~DOT)+`) is a `~DOT` token
-  SINK, not a `genericClause` site, so `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` is still absorbed — kb/Work
-  PB830.
+- **A `~DOT` sink is the same defect as a `genericClause` site** when it sits over a clause list. The computer
+  paragraphs' `computerAttributes` was one — kept for the deleted '85 clauses (MEMORY SIZE, SEGMENT-LIMIT, WITH
+  DEBUGGING MODE) and never gated, so `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` compiled at every edition. It also
+  REJECTED legal '85 source: running to the period, it left the '85 printed order `MEMORY SIZE … PROGRAM COLLATING
+  SEQUENCE … SEGMENT-LIMIT …` nowhere to put SEGMENT-LIMIT. kb/Work PB830 deleted it: the three '85 clauses are
+  modelled rules gated at their nodes, and the residue is the error production.
 - **`SPECIAL-NAMES. WIBBLE WOBBLE.`** is NOT a §12.3.7.2 general-format violation and is not closed here.
   `implementorSwitchEntry` is `cobolWord ( IS? cobolWord switchStatusPhrases? | switchStatusPhrases )` — a
   continuation is REQUIRED (kb/Work PB716: a lone word reaches `unrecognizedClause`, COBOLNET1970) — and IS is
@@ -807,6 +816,12 @@ newly-closed format as the standing witness that the rendering was right.
   mnemonic-name-3`. What refuses it is §12.3.7.3 SR8 ("The implementor shall specify the names that are available
   for switch-name-1, feature-name-1, and device-name-1") — a semantic rule over the implementor's name table,
   `Binding/ImplementorNames.cs`, refused at bind as COBOLNET2241 (kb/Work PB862).
+- **The §11.2.1 header is BRACKETED, and the grammar now says so for every unit kind.** The OO units always had
+  `(IDENTIFICATION DIVISION DOT)?`; the program and function units required the header, so `PROGRAM-ID. X.` as a
+  unit's first line was COBOL0001 at every edition. `identificationDivision` now takes the header optionally,
+  gated below 2002 as `identification-header-optional-2002` (X3.23-1985 required it). The text-level directive
+  stages that must know where the first unit begins (COBOL-WORDS §7.3.10.3 SR1, LEAP-SECOND §7.3.17.3 SR1) read
+  ONE test, `Preprocessor/CompilationUnitStart.IsAt` — the COBOL-WORDS copy had known only the header line.
 - **The §12.3.7.2 `dynamic-length-structure-clause` is not modelled at all**, so
   `DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers `COBOL0001: unexpected 'DYNAMIC'`. That is a
   rejects-legal-source gap that predates and is unaffected by this change (DYNAMIC is a reserved token no

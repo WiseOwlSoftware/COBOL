@@ -78,6 +78,18 @@ public static class ClosedFormats
             [typeof(Core.SpecialNameEntryContext)] =
                 new("12.3.7.2", "", "SPECIAL-NAMES paragraph", "clause", "COBOLNET1970"),
 
+            // §12.3.5.2 — the SOURCE-COMPUTER paragraph. PDF p314 / folio 284: `SOURCE-COMPUTER. [computer-name-1] .`
+            // and nothing else (the X3.23-1985 WITH DEBUGGING MODE clause is modelled so its deleted-2002 gate can
+            // name it). Closed by kb/Work PB830 — the residue was a `~DOT` token sink, not `genericClause`.
+            [typeof(Core.SourceComputerParagraphContext)] =
+                new("12.3.5.2", "", "SOURCE-COMPUTER paragraph", "clause", "COBOLNET1970"),
+
+            // §12.3.6.2 — the OBJECT-COMPUTER paragraph. PDF p315 / folio 285: the CHARACTER CLASSIFICATION and
+            // PROGRAM COLLATING SEQUENCE clauses (plus the modelled '85 MEMORY SIZE and SEGMENT-LIMIT, deleted
+            // 2002). Closed by kb/Work PB830, the SOURCE-COMPUTER row's twin.
+            [typeof(Core.ObjectComputerClauseContext)] =
+                new("12.3.6.2", "", "OBJECT-COMPUTER paragraph", "clause", "COBOLNET1970"),
+
             // §12.3.2 — the configuration section. PDF p313 / folio 283. A PARAGRAPH list, not a clause list:
             // four bracketed paragraph names and nothing else.
             [typeof(Core.ConfigurationParagraphContext)] =
