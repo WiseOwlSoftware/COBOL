@@ -24,7 +24,15 @@ public sealed record CorrespondingHoist(string Local, Place? RefGroup, string? L
 
 /// <summary>One corresponding pair (§14.7.6): the resolved sending and receiving <see cref="Place"/>s of an
 /// implied per-pair statement. Both are anchored on the statement's hoisted group locals where applicable.</summary>
-public sealed record CorrespondingPair(Place Source, Place Target);
+public sealed record CorrespondingPair(Place Source, Place Target)
+{
+    /// <summary>MOVE CORRESPONDING only: the pair's implied MOVE (§14.9.25.4 GR11 — "the same as if the user had
+    /// referred to each pair of corresponding identifiers in separate MOVE statements"), BOUND through
+    /// <c>MoveBinder.BindMoveOf</c> so it carries the storage facts and classification the written MOVE of the same
+    /// two items does (kb/Work PB880 — it used to be built by the emitter). Null for ADD / SUBTRACT, whose implied
+    /// statements are arithmetic. A child statement, so the generated <c>StatementChildren</c> walk reaches it.</summary>
+    public BoundMove? Move { get; init; }
+}
 
 /// <summary>A MOVE/ADD/SUBTRACT CORRESPONDING statement, expanded at BIND time into its corresponding pairs in D1
 /// declaration order (§14.7.6 — "the order in which the elements in the group data item immediately following

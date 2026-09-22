@@ -288,6 +288,9 @@ internal sealed class VersionConformancePass
             // get/set re-write and of NEW / SELF-NEW (OoBinder), none of which is "the INVOKE statement".)
             case BoundMove mv:
                 GateMove(mv); break;
+            // INITIALIZE REPLACING's hypothetical MOVE (§14.9.20.3 SR4 → §14.9.25.3 SR5) — kb/Work PB879.
+            case BoundInitialize ini:
+                GateInitialize(ini); break;
             // (READ PREVIOUS / READ ADVANCING ON LOCK / START FIRST-LAST / START WITH LENGTH — four PHRASE gates
             // this arm used to own on the shape of BoundKeyedRead / BoundRead / BoundKeyedStart. They are
             // recognition gates, migrated to the ParseArm in Step 14h.5: kb/Work PB353 measured that each is
@@ -310,17 +313,7 @@ internal sealed class VersionConformancePass
     // wrong answer traded for a false one (kb/Work PB425).
     private void GateMove(BoundMove m)
     {
-        var all = m.Source as BoundAllLiteral;
-        string figText = m.Source switch
-        {
-            BoundFigurative { Kind: 'S' } => "SPACE",
-            BoundFigurative { Kind: 'Q' } => "QUOTE",
-            BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
-            BoundFigurative { Kind: 'L' } => "LOW-VALUE",
-            BoundAllLiteral a => $"ALL \"{a.Literal}\"",
-            _ => string.Empty,
-        };
-        if (figText.Length == 0) return;   // not an alphanumeric-figurative / ALL source — SR5 does not reach it
+        if (Sr5FigurativeText(m.Source) is not { } figText) return;   // not on SR5's list — SR5 does not reach it
         foreach (var t in m.Targets)
         {
             // Exemptions (§14.9.25.3 SR5): a ref-mod receiver (unique elementary alphanumeric), a group receiver
@@ -335,16 +328,67 @@ internal sealed class VersionConformancePass
             string where = m.ImplicitOf is { } phrase
                 ? $"MOVE {figText} TO {t.Item.CobolName}, {phrase.Where(t.Item.CobolName)}"
                 : $"MOVE {figText} TO {t.Item.CobolName}";
-            bool integerReceiver = pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 };
-            if (all is { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
-                // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).
-                Check(Constructs.MoveAllDigitIntegerObsolete2023, where);
-            else if (m.Source is BoundFigurative { Kind: 'Q' })
-                // QUOTE→numeric — obsolete 2014 (Annex E.2 item 21) then removed 2023 (dual-window row).
-                Check(Constructs.MoveQuoteNumericObsolete2014, where);
-            else
-                // Every other shape — REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
-                Check(Constructs.MoveAlphanumericFigurativeRemoved2023, where);
+            GateSr5(m.Source, integerReceiver: pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 },
+                    where);
+        }
+    }
+
+    /// <summary>The source spelling §14.9.25.3 SR5's closed list names — "SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
+    /// "literal", or ALL symbolic-character" — or null when the operand is not on it.</summary>
+    private static string? Sr5FigurativeText(BoundOperand source) => source switch
+    {
+        BoundFigurative { Kind: 'S' } => "SPACE",
+        BoundFigurative { Kind: 'Q' } => "QUOTE",
+        BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
+        BoundFigurative { Kind: 'L' } => "LOW-VALUE",
+        BoundAllLiteral a => $"ALL \"{a.Literal}\"",
+        _ => null,
+    };
+
+    /// <summary>⭐ §14.9.25.3 SR5's THREE EDITION ROWS, in ONE place, for one (SR5-listed sender, numeric or
+    /// numeric-edited receiver) pair — asked by the written MOVE (<see cref="GateMove"/>, per receiving item) and by
+    /// INITIALIZE REPLACING's hypothetical MOVE (<see cref="GateInitialize"/>, per category). Before kb/Work PB879
+    /// the rows lived inline in <see cref="GateMove"/>, which only a bound <c>BoundMove</c> node reaches.</summary>
+    private void GateSr5(BoundOperand source, bool integerReceiver, string where)
+    {
+        if (source is BoundAllLiteral { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
+            // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).
+            Check(Constructs.MoveAllDigitIntegerObsolete2023, where);
+        else if (source is BoundFigurative { Kind: 'Q' })
+            // QUOTE→numeric — obsolete 2014 (Annex E.2 item 21) then removed 2023 (dual-window row).
+            Check(Constructs.MoveQuoteNumericObsolete2014, where);
+        else
+            // Every other shape — REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
+            Check(Constructs.MoveAlphanumericFigurativeRemoved2023, where);
+    }
+
+    /// <summary>
+    /// ISO §14.9.20.3 SR4 — "For each of the other categories specified in the REPLACING phrase, a MOVE statement
+    /// with identifier-2 or literal-1 as the sending item and an item of the specified category as the receiving
+    /// operand shall be valid" — for the one MOVE rule SR4 reaches that is EDITION-dependent: §14.9.25.3 SR5
+    /// (kb/Work PB879). <c>INITIALIZE G REPLACING NUMERIC DATA BY SPACE</c> is valid exactly when
+    /// <c>MOVE SPACE TO &lt;a numeric item&gt;</c> is, so it takes the same three rows at the same edition — before
+    /// this arm it compiled clean at 2023 while the byte-identical explicit MOVE was COBOLNET0902.
+    /// <para>⛔ ASKED OF THE PHRASE, PER CATEGORY, NOT PER RECEIVER: SR4's receiving operand is "an item of the
+    /// specified category", so the pair is valid or invalid before any receiver is walked (the INITIALIZE binder
+    /// asks the edition-blind rules the same way). The implicit moves themselves are marked
+    /// <see cref="ImplicitMovePhrase.ValidityAskedByStatement"/> and are not re-gated.</para>
+    /// <para>⚠ DETERMINATION — the digit-only-ALL exception ("an ALL "literal" figurative constant (containing only
+    /// digits) … to an integer numeric item") is applied to the NUMERIC category as if its item were an integer:
+    /// the category names integer and non-integer items alike, and the reading that never rejects a program
+    /// whose actual receivers are all integers is chosen over one that would. NUMERIC-EDITED is never an integer
+    /// numeric item, so it takes the removal row.</para>
+    /// </summary>
+    private void GateInitialize(BoundInitialize ini)
+    {
+        foreach (var item in ini.Replacing)
+        {
+            if (Sr5FigurativeText(item.Sender) is not { } figText) continue;
+            foreach (var cat in (ReadOnlySpan<InitializeCategory>)[InitializeCategory.Numeric, InitializeCategory.NumericEdited])
+                if (item.Categories.Contains(cat))
+                    GateSr5(item.Sender, integerReceiver: cat is InitializeCategory.Numeric,
+                        $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {figText} (the MOVE "
+                        + "ISO §14.9.20.3 SR4 requires to be valid)");
         }
     }
 

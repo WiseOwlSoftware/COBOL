@@ -154,11 +154,14 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // BoundImplicitSeries IS the per-implicit-statement boundary, and it collapses to the bare node for the
         // one-operand case the rule's "more than one" premise excludes.
         var members = new List<BoundStatement>();
+        // The written REPLACING phrase rides every implicit statement GR3 creates — §14.9.20.3 SR4's edition half
+        // (§14.9.25.3 SR5) is asked of it by VersionConformancePass (kb/Work PB879).
+        var replacingItems = replacements.Select(r => new InitializeReplacingItem(r.Cats, r.Value)).ToList();
         foreach (var dref in ini.initializeOperandList().dataReference())
         {
             var actions = new List<InitializeAction>();
             BindInitializeTarget(dref, spec, actions);   // GR3 — per identifier-1, in source order
-            members.Add(new BoundInitialize(actions));
+            members.Add(new BoundInitialize(actions) { Replacing = replacingItems });
         }
         return BoundImplicitSeries.Of(members);
     }
@@ -244,7 +247,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // GR5c1b and GR5c1c are both false and GR5c1a does not name alphanumeric.
             var rq = Qualify(InitializeCategory.Alphanumeric, effectiveValue: null, spec);
             if (SenderFor(rq, InitializeCategory.Alphanumeric, effectiveValue: null, spec) is { } src)
-                actions.Add(new InitializeStore(place, src));
+                actions.Add(Store(place, src));
             return;
         }
         // ⛔ AN IMPLICITLY-DEFINED ELEMENTARY REGISTER IS ONE RECEIVER, NOT A STORAGE FORM TO WALK (kb/Work
@@ -263,7 +266,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             var regQ = Qualify(regCat, effectiveValue: null, spec);
             if (SenderFor(regQ, regCat, effectiveValue: null, spec) is { } regSrc)
-                actions.Add(new InitializeStore(place, regSrc));
+                actions.Add(Store(place, regSrc));
             return;
         }
         // ⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS THE UNDECORATED PLACE (kb/Work PB393). identifier-1
@@ -540,7 +543,17 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <summary>ONE elementary receiver's action under ISO §14.9.20.4 GR4/GR5c/GR6 at ONE occurrence, or null when
     /// GR5c leaves it unchanged. <paramref name="effectiveValue"/> is the VALUE-clause literal applying to that
     /// occurrence (<see cref="DataItem.ValueAt"/>).</summary>
-    private static InitializeAction? ElementaryAction(InitializeCursor cur, DataItem item, InitializeCategory cat,
+    /// <summary>⛔ THE ONE CONSTRUCTOR OF AN INITIALIZE STORE — §14.9.20.4 GR4's implicit <c>MOVE sending-operand
+    /// TO receiving-operand</c>, BOUND through <c>MoveBinder.BindMoveOf</c> like every other implicit move (kb/Work
+    /// PB880): the §14.9.25.4 GR1 freeze, the per-target classification and the storage facts
+    /// (<c>MarkFillImageStorage</c> / <c>MarkRefModStoreImage</c>) are collected HERE, at bind time, where
+    /// <c>StorageFormPass</c> can see them. The phrase's <see cref="ImplicitMovePhrase.ValidityAskedByStatement"/>
+    /// keeps the per-receiver syntax screens silent: §14.9.20.3 SR4 has asked the same question per REPLACING
+    /// category (<see cref="CheckReplacingMoveValidity"/>), and the GR6a/GR6c senders are valid by construction.</summary>
+    private InitializeStore Store(Place target, BoundOperand source) =>
+        new(host.Move.BindMoveOf(source, [target], ImplicitMovePhrase.Initialize));
+
+    private InitializeAction? ElementaryAction(InitializeCursor cur, DataItem item, InitializeCategory cat,
         in InitializeSpec spec, string? effectiveValue)
     {
         var q = Qualify(cat, effectiveValue, spec);
@@ -588,7 +601,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // second write. (CODE-SPEC-AUDIT CA1.) Pinned at both poles by conformance:2014/initialize_dynamic_length
         // (the GR6c arm) and conformance:2014/pb418_initialize_dynamic_length_senders (the GR6a/GR6b arms).
         if (item.IsDynamicLength && q is InitializeQualification.ViaDefault) source = new BoundStringLiteral("");
-        return new InitializeStore(cur.ToPlace(), source);
+        return Store(cur.ToPlace(), source);
     }
 
     /// <summary>⛔ THE Format-2 (table) VALUE ARM OF GR5c/GR6, WHICH IS THE ONLY PER-OCCURRENCE ONE (ISO §14.9.20.4
@@ -610,7 +623,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// nothing can answer — a storage form that carries no access path — and it is staged LOUD rather than
     /// resolved to an arbitrary literal, because §14.9.20.4 GR6a3 names ONE literal per occurrence and a lane
     /// that cannot identify the occurrence has no honest answer.</para></summary>
-    private static void ExpandTableValue(InitializeCursor cur, DataItem item, InitializeCategory cat,
+    private void ExpandTableValue(InitializeCursor cur, DataItem item, InitializeCategory cat,
         in InitializeSpec spec, List<InitializeAction> actions, IReadOnlyList<OccurrenceDim> key, TableValuePlan plan)
     {
         // The plan is keyed by the subject's FULL OCCURS chain in §13.18.63.3 SR20's order, so the key the walk
@@ -742,12 +755,12 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <para>ONE message per REPLACING item, naming the first offending category — the same posture
     /// §14.9.20.3 SR3's check takes, since one item's category-name may be a SET (§5.2.6.4) and a reader fixing
     /// the phrase fixes it once.</para>
-    /// <para>⚠ SR4 IS ASKED OF EVERY RULE THAT CAN BE ANSWERED FROM (sender, receiver CATEGORY), AND ONE MOVE
-    /// RULE CANNOT BE: §14.9.25.3 SR5's figurative→numeric prohibition, whose three EDITION rows live in
-    /// <c>VersionConformancePass.GateMove</c> and are re-derived from a bound MOVE node this statement never
-    /// builds. <c>INITIALIZE g REPLACING NUMERIC DATA BY SPACE</c> is therefore still un-gated at 2023 where the
-    /// explicit MOVE is COBOLNET0902 — recorded on kb/Work PB416's report as the version lane's own row, not
-    /// papered over here with a second, edition-blind copy of the rule.</para></summary>
+    /// <para>⚠ SR4's ONE EDITION-DEPENDENT MOVE RULE IS NOT ASKED HERE: §14.9.25.3 SR5's figurative→numeric
+    /// prohibition has three EDITION rows, which are the post-bind <c>VersionConformancePass</c>'s. The written
+    /// REPLACING phrase rides <see cref="BoundInitialize.Replacing"/> and <c>VersionConformancePass.GateInitialize</c>
+    /// asks the same rows <c>GateMove</c> asks, per category (kb/Work PB879) — so <c>INITIALIZE g REPLACING NUMERIC
+    /// DATA BY SPACE</c> is COBOLNET0902 at 2023 exactly as the explicit MOVE is, without a second, edition-blind
+    /// copy of the rule here.</para></summary>
     private void CheckReplacingMoveValidity(InitializeCategorySet cats, BoundOperand value, string senderText)
     {
         // ⛔ SR4'S SECOND PARAGRAPH IS WHAT THIS METHOD IMPLEMENTS, AND IT SAYS "the OTHER categories"
@@ -771,12 +784,15 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 + $"valid, and {classRefusal}");
             return;
         }
-        var senderPos = MoveTable16.SenderPosition(value);
         foreach (var cat in InitializeCategories.All)
         {
             if (!cats.Contains(cat) || InitializeCategories.Table16Receiver(cat) is not { } recvPos) continue;
-            string? refusal = MoveTable16.ShapeRefusal(value, recvPos) ?? MoveTable16.Refusal(senderPos, recvPos);
-            if (refusal is null) continue;
+            // ⛔ THE WHOLE CHAIN, NOT A HAND-PICKED SUBSET (kb/Work PB878). This asked SR8 and SR10 and never
+            // SR9, so `INITIALIZE G REPLACING ALPHANUMERIC DATA BY VG` over a variable-length group VG compiled
+            // clean and aborted the run unit. The receiving operand of SR4's MOVE is "an item of the specified
+            // category" — an ELEMENTARY item with a Table-16 position and no data item, which SR9's reader
+            // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
+            if (MoveTable16.Validity(value, recvPos, receiverItem: null)?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
                 $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {senderText}: ISO §14.9.20.3 SR4 "
                 + $"requires that `MOVE {senderText} TO <an item of category "

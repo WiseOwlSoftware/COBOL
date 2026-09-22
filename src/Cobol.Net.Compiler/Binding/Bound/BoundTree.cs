@@ -716,6 +716,30 @@ public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoA
 /// carried, not re-derived, because the diagnostic has to name the rule that made the phrase a MOVE.</para></summary>
 public sealed record ImplicitMovePhrase(string Statement, string Cite)
 {
+    /// <summary>True when the owning statement's OWN rule asks the §14.9.25.3 validity question for this move, in
+    /// its own framing, so <c>MoveBinder.BindMoveOf</c> must not ask it again per receiver. INITIALIZE alone:
+    /// §14.9.20.3 SR4 asks it once per REPLACING category (a hypothetical MOVE into "an item of the specified
+    /// category"), and the §14.9.20.4 GR6a/GR6c senders are valid by construction. The move is still BOUND —
+    /// frozen, classified and storage-marked — which is what building it in the emitter skipped (kb/Work PB880).</summary>
+    public bool ValidityAskedByStatement { get; init; }
+
+    /// <summary>INITIALIZE's implicit elementary MOVE — ISO §14.9.20.4 GR4, "Otherwise, the implicit statement is:
+    /// MOVE sending-operand TO receiving-operand."</summary>
+    public static readonly ImplicitMovePhrase Initialize =
+        new("INITIALIZE", "ISO §14.9.20.4 GR4") { ValidityAskedByStatement = true };
+
+    /// <summary>MOVE CORRESPONDING's per-pair move — ISO §14.9.25.4 GR11, "The results are the same as if the user
+    /// had referred to each pair of corresponding identifiers in separate MOVE statements." The pair was selected
+    /// by §14.7.6 rule 2's own MOVE-validity filter, so the screens pass by construction and are asked anyway.</summary>
+    public static readonly ImplicitMovePhrase MoveCorresponding =
+        new("MOVE CORRESPONDING", "ISO §14.9.25.4 GR11");
+
+    /// <summary>GOBACK RETURNING's move into the procedure-division RETURNING item — an implementor extension to
+    /// §14.9.18 (the ISO general format has no RETURNING phrase); ISO §14.9.18.4 GR2 makes that item's value "the
+    /// result of the program activation", and the extension fills it by the MOVE rules.</summary>
+    public static readonly ImplicitMovePhrase GobackReturning =
+        new("GOBACK … RETURNING", "ISO §14.9.18.4 GR2 (implementor extension)");
+
     /// <summary>How ONE receiver of this move names itself in a diagnostic. The name is nullable because a
     /// receiver may be FILLER or an unnamed record area.</summary>
     public string Where(string? receiver) =>

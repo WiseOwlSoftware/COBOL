@@ -836,14 +836,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 return new BoundUnsupported($"GOBACK RETURNING '{dref.GetText()}'");
             source = rp;
         }
+        // ⛔ The RETURNING move is BOUND here (kb/Work PB880) — into the program's procedure-division RETURNING
+        // item, the same item ProgramEmitter hands the activation result from. It used to be built by
+        // CallEmitter.EmitGoback, after every bind-time MOVE screen and storage fact had already run.
+        BoundMove? returningMove = source is not null && ctx.Data.LinkageReturning is { } retItem
+                                   && ctx.Refs.ResolveItem(retItem) is { } retPlace
+            ? host.Move.BindMoveOf(new BoundFieldOperand(source), [retPlace], ImplicitMovePhrase.GobackReturning)
+            : null;
         if (p.Raising is { } raising)
             return host.Ec.EcBindRaising(raising, g.Start.Line, EcRaiseSite.Goback) is { } r
-                ? new BoundGoback(source, r)
+                ? new BoundGoback(source, r) { ReturningMove = returningMove }
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
         // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually
         // exclusive with RAISING by the grammar). The emit passes the decoded status to the OS only in a MAIN
         // program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
-        return new BoundGoback(source, null, p.Status);
+        return new BoundGoback(source, null, p.Status) { ReturningMove = returningMove };
     }
 
     /// <summary>⛔ <b>THE ONE DECODE of every phrase §14.9.18.2's general format gives GOBACK</b>, run BEFORE the

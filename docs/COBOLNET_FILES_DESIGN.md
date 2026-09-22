@@ -1327,11 +1327,34 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   `SequentialIoBinder.WriteSource` — a three-way operand hand-off shared by WRITE, REWRITE and RELEASE that
   INSPECTED NOTHING, so each verb's own phrase rules were applied by no one. The sort verbs and the sequential
   I-O verbs are independent collaborators again.
+- **The non-phrase implicit moves are bound too (kb/Work PB880).** INITIALIZE's §14.9.20.4 GR4 stores
+  (`InitializeStore.Move`), MOVE CORRESPONDING's §14.9.25.4 GR11 per-pair moves (`CorrespondingPair.Move`) and
+  GOBACK RETURNING's move into the procedure-division RETURNING item (`BoundGoback.ReturningMove`) are built by
+  `BindMoveOf` with a static `ImplicitMovePhrase` (`Initialize` · `MoveCorresponding` · `GobackReturning`). What
+  an emitter-built `new BoundMove(...)` skipped, and why each mattered: **(1)** the §14.9.25.3 syntax screens
+  (SR1 class, SR2/SR6–SR10 through `MoveTable16.Validity`); **(2)** the §14.9.25.4 GR1 sender freeze
+  (`SendingValueTemp.Materialize`); **(3)** `MarkFillImageStorage` — the `StoreAsImage` fact `StorageFormPass`
+  consumes for a figurative / GR2-substituted fill into a numeric-DISPLAY receiver (INITIALIZE REPLACING NUMERIC BY
+  SPACE, a zero-length dynamic-length CORRESPONDING sender and the same GOBACK RETURNING sender each aborted the run
+  unit without it); **(4)** `MarkRefModStoreImage`; **(5)** visibility to the post-bind passes that walk
+  `StatementChildren` (the CORRESPONDING and GOBACK moves are child statements). INITIALIZE's phrase carries
+  `ValidityAskedByStatement`: §14.9.20.3 SR4 asks the validity question once per REPLACING CATEGORY
+  (`InitializeBinder.CheckReplacingMoveValidity`) and the GR6a/GR6c senders are valid by construction, so the
+  per-receiver screens stay silent while (2)–(4) still run. Its edition half, §14.9.25.3 SR5, is asked by
+  `VersionConformancePass.GateInitialize` over `BoundInitialize.Replacing` through the same `GateSr5` rows
+  `GateMove` asks (kb/Work PB879).
 - **The drift test is on the SHAPE.** `ImplicitMoveConstructionDriftTests` asserts no `new BoundMove` survives in
-  the three phrase emitters, and that every remaining construction in `CodeGen` is one of the three NAMED
-  non-phrase implicit moves (MOVE CORRESPONDING's per-pair moves §14.9.25.4, INITIALIZE's §14.9.20.4 GR4 stores,
-  GOBACK RETURNING's §14.9.18.4 GR2 move). Adding an I-O verb with a FROM or INTO phrase and synthesizing its
-  move at emission fails there rather than silently in a program nobody has written yet.
+  the three phrase emitters, and that NO construction survives anywhere in `CodeGen` (it used to enumerate the
+  three non-phrase moves as "known", which held the hole open rather than closing it). Adding a statement whose
+  implicit move is synthesized at emission fails there rather than silently in a program nobody has written yet.
+- **The validity question has ONE entry (kb/Work PB878).** `MoveTable16.Validity` (a bound operand against a
+  place, or against a Table-16 position for §14.9.20.3 SR4's "item of the specified category") and
+  `MoveTable16.DataItemRefusal` (§14.7.6 rule 2's two data items) run one chain in SR order — SR2, SR6/SR7/SR8,
+  SR9, SR10 — and return the refusing RULE with its reason; the per-rule readers are private.
+  `MoveBinder` frames each rule under its own code (COBOLNET1533 · COBOLNET1931 · COBOLNET0819 with SR10's
+  `--permissive` re-reading); INITIALIZE (COBOLNET2031), INVOKE/CALL BY CONTENT (§14.8.2.3.3 rule 2d,
+  COBOLNET0828) and CORRESPONDING (a silent non-pairing) take the reason. `MoveTable16AskerDriftTests` pins the
+  private readers and the three Table-16-alone askers whose sender has no data item.
 
 **Rejected alternatives.** *Fix the RELEASE call site* — the smallest diff and the wrong shape: eight call sites
 carry the same rule, and the next FROM phrase would re-derive it a ninth time. *Re-run the MOVE screens over the

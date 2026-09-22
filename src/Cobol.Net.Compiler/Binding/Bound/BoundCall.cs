@@ -141,4 +141,12 @@ public sealed record BoundExitProgram(BoundRaising? Raising = null) : BoundState
 /// status to the OS — but ONLY in a main program (GR3/GR10; a called-program status phrase is inert, GR2), so the
 /// emit guards it with <c>!__asCalled</c>. COBOL-2002+ (the STATUS phrase 2023+).</summary>
 public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising = null,
-    TerminationStatus? Status = null) : BoundStatement;
+    TerminationStatus? Status = null) : BoundStatement
+{
+    /// <summary>The move of <see cref="ReturningSource"/> into the program's procedure-division RETURNING item,
+    /// BOUND through <c>MoveBinder.BindMoveOf</c> (<see cref="ImplicitMovePhrase.GobackReturning"/>) so the
+    /// written GOBACK RETURNING gets the syntax screens and storage facts an explicit MOVE of the same pair does
+    /// (kb/Work PB880 — the emitter used to build it). Null when there is no RETURNING phrase, or when the
+    /// program has no RETURNING item (the emitter's loud arm reports that case at run time).</summary>
+    public BoundMove? ReturningMove { get; init; }
+}

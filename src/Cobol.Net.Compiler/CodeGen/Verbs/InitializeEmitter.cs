@@ -40,7 +40,8 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 // backend-wide", a premise that stopped being true (PB271 hardened that very path) with nothing
                 // to notice — one float leaf then made the WHOLE statement throw at run time.
                 // <c>StaleDeferralDriftTests</c> keeps it that way.
-                move.Emit(new BoundMove(s.Source, [s.Target]));
+                // ⛔ The move was BOUND (kb/Work PB880) — built here it missed every storage fact the bind collects.
+                move.Emit(s.Move);
                 break;
             case InitializeSetNull s:
                 // §14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,

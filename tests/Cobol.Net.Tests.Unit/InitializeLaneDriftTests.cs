@@ -300,8 +300,9 @@ public sealed class InitializeLaneDriftTests
     public void InitializeBinder_AsksTheOneMoveValidityScreen()
     {
         string code = CodeOf(BinderPath);
-        foreach (string member in new[] { "MoveTable16.SenderPosition", "MoveTable16.Refusal",
-                                          "MoveTable16.ShapeRefusal", "MoveTable16.SenderClassRefusal" })
+        // kb/Work PB878: the WHOLE chain (SR2, SR6-SR8, SR9, SR10) through the one composite entry — never a
+        // hand composition of the per-rule readers, which is how SR9 went unasked here.
+        foreach (string member in new[] { "MoveTable16.Validity", "MoveTable16.SenderClassRefusal" })
             Assert.True(code.Contains(member, StringComparison.Ordinal),
                 $"InitializeBinder no longer calls {member}. ISO §14.9.20.3 SR4 makes the validity of the "
                 + "implicit MOVE a condition on the REPLACING phrase, and MoveTable16 is the ONE place that "

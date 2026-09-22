@@ -850,10 +850,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line($"if ({inGlobalRange}) ExceptionState.FlowGlobalGobackError(\"a GOBACK statement executed "
                 + "within the range of a USE ... GLOBAL declarative procedure of the same program "
                 + "(ISO 14.9.18.4 GR6)\");");
-        if (g.ReturningSource is { } src)
+        if (g.ReturningSource is not null)
         {
-            if (callState.ReturningPlace is { } ret)
-                move.Emit(new BoundMove(new BoundFieldOperand(src), [ret]));
+            // The move was BOUND by CallBinder.BindGoback (kb/Work PB880) into the same RETURNING item.
+            if (g.ReturningMove is { } rm)
+                move.Emit(rm);
             else
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18.4 GR2)"));
         }

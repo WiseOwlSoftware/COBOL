@@ -728,90 +728,6 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    // ── MOVE (ISO §14.9.25.3) — lifted at 10e ────────────────────────────────────────────────────────────────
-
-    /// <summary>ISO §14.9.25.3 SR2 (data-model D17): if a receiving operand is a strongly-typed group, the sending
-    /// operand shall be a group item of the SAME type (§8.5.3.3 — a strong record accepts only a same-type whole-record
-    /// source; its individual fields are still set by ordinary field MOVEs, and a strong-type SENDER to a non-strong
-    /// receiver is permitted per Table 16). A mismatch → COBOLNET1533.</summary>
-    /// <param name="implicitOf">The PHRASE whose implicit move is being screened — the <c>… FROM</c> of
-    /// RELEASE/WRITE/REWRITE, the <c>… INTO</c> of READ/RETURN (kb/Work PB348) — or null for the explicit
-    /// MOVE statement. It is reported because the other three MOVE screens report it: a <c>RETURN … INTO</c>
-    /// into a strong group used to say only "MOVE to strongly-typed group", sending the programmer looking for
-    /// a MOVE statement that is not in their source.</param>
-    public bool CheckStrongMove(BoundOperand source, IReadOnlyList<Place> receivers,
-                                ImplicitMovePhrase? implicitOf = null)
-    {
-        bool ok = true;
-        DataItem? sender = source is BoundFieldOperand sf ? sf.Place.Item : null;
-        foreach (var r in receivers)
-        {
-            if (!StrongTypeModel.IsStrongGroup(r.Item)) continue;
-            if (sender is null || !StrongTypeModel.SameType(sender, r.Item))
-            {
-                ok = false;
-                data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
-                    + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
-                    + $"type (ISO §14.9.25.3 SR2 / §8.5.3.3){ImplicitMovePhrase.Via(implicitOf)}");
-            }
-        }
-        return ok;
-    }
-
-    /// <summary>ISO §14.9.25.3 SR9's MOVE-STATEMENT FRAMING (kb/Work PB393): "If identifier-1 or identifier-2
-    /// references a variable-length group then these groups shall be compatible groups as specified in 8.5.1.12,
-    /// Variable-length groups."
-    /// <para>⛔ THE RULE ITSELF IS <see cref="MoveTable16.VariableLengthRefusal"/>, NOT WRITTEN HERE (kb/Work
-    /// PB391). A second statement asks the same rule — §14.7.6 rule 2 makes a CORRESPONDING pair's validity the
-    /// MOVE statement's validity, over two DATA ITEMS and with no diagnostic at all — so the reader moved beside
-    /// the other MOVE syntax rules and this method keeps only what is the MOVE STATEMENT's: which operand shapes
-    /// it unwraps to a data item, which name it puts in the message, and COBOLNET1931 itself. That reader in turn
-    /// asks the ONE <see cref="VariableLengthCompatibility"/> module (built for the §14.8.2.2 / §14.8.3.2
-    /// activation-boundary crossing, kb/Work PB204), so §8.5.1.12 is still written down exactly once.</para>
-    /// <para>⛔ A NON-GROUP sender is a violation, not a fall-through — §8.5.1.12.1 states the prohibition in
-    /// terms of the OTHER OPERAND, so <c>MOVE SPACES TO a-variable-length-group</c>, a literal, a function
-    /// result and a reference-modified operand (§8.4.3.3.4 GR6 makes it an ELEMENTARY alphanumeric item) are
-    /// each refused. That is the reader's null-operand arm; what is decided HERE is which of those shapes
-    /// becomes a null, because it is the MOVE statement's own operand vocabulary. A level-66 THROUGH alias is
-    /// NOT one of them: §13.18.45.4 GR2 makes it an alphanumeric GROUP item, so it reaches §8.5.1.12's
-    /// compatibility walk over its own span like any fixed-length group (kb/Work PB907). INITIALIZE is the statement that fills such a group (§14.9.20.4
-    /// GR7/GR10).</para>
-    /// <para>No edition gate is needed and none is written: a variable-length group can only be DECLARED from
-    /// COBOL-2014 (the DYNAMIC LENGTH clause §13.18.19 and OCCURS Format 4 §13.18.38), so the screen is
-    /// unreachable below 2014 by construction rather than by a predicate that could drift.</para></summary>
-    public bool CheckVariableLengthMove(BoundOperand source, IReadOnlyList<Place> receivers,
-                                        ImplicitMovePhrase? implicitOf = null)
-    {
-        // The sending DATA ITEM, when the sender is one at all. A ref-modified place is deliberately NOT
-        // unwrapped to its underlying item — that is the RULE: §8.4.3.3.4 GR6 makes its unique data item
-        // elementary alphanumeric whatever identifier-1 is. ⛔ A level-66 THROUGH alias IS a data item, and a
-        // GROUP one — §13.18.45.4 GR2 — so its place's Item is the ALIAS itself (never the record behind it) and
-        // §8.5.1.12 walks the alias's own span (VariableLengthCompatibility.AliasAtoms). Treating it as a null
-        // operand told the user "the sending operand is not a group item" about a group item (kb/Work PB907).
-        DataItem? sender = source switch
-        {
-            // The identity question is Place.DenotedItem's (kb/Work PB602): null for a reference-modified view;
-            // the ATTRIBUTES are the place's Item (a non-THROUGH alias forwards to the renamed item, GR1).
-            BoundFieldOperand { Place.DenotedItem: not null } sf => sf.Place.Item,
-            BoundCurrentRecord { Area.DenotedItem: not null } cr => cr.Area.Item,
-            _ => null,
-        };
-        bool ok = true;
-        foreach (var r in receivers)
-        {
-            var recv = r.DenotedItem is null ? null : r.Item;
-            if (MoveTable16.VariableLengthRefusal(sender, recv) is not { } why) continue;
-            ok = false;
-            string vl = recv is not null && VariableLengthCompatibility.IsVariableLength(recv)
-                ? recv.CobolName ?? recv.CsName : sender!.CobolName ?? sender.CsName;
-            data.Edition.Error(DiagnosticCatalog.MoveVariableLengthIncompatible,
-                $"MOVE involving the variable-length group '{vl}': {why} — ISO §14.9.25.3 SR9 requires the two "
-                + $"groups to be compatible as specified in §8.5.1.12{ImplicitMovePhrase.Via(implicitOf)}");
-        }
-        return ok;
-    }
-
-
     // ── The … INTO phrase's OWN syntax rules (READ §14.9.30.3 · RETURN §14.9.34.3) ───────────────────────────
 
     /// <summary>
@@ -834,7 +750,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para><b>What this screen deliberately does NOT check.</b> The second sentence of §14.9.30.3 SR2 /
     /// §14.9.34.3 SR3 (<i>"shall be a strongly-typed group item of the same type as identifier-1"</i>) is the same
     /// predicate over the same pair that §14.9.25.3 SR2 already applies to this move's SENDER — which IS the
-    /// record area — and <see cref="CheckStrongMove"/> reports it as COBOLNET1533, naming the phrase. A second
+    /// record area — and <c>MoveTable16.Validity</c> refuses it under SR2 and <c>MoveBinder</c> reports it as COBOLNET1533, naming the phrase. A second
     /// copy here is one rule in two places, this repository's most reproducible defect. The COUNT obligation is
     /// checked here because nothing else can express it: with several record areas the MOVE screen inspects only
     /// <c>FileModel.AreaRecord</c>, so a file whose LARGEST record happens to be the right type passed
@@ -912,7 +828,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// not the elementary one — so asking the underlying entry's category would reject a legal
     /// <c>READ F INTO WS-NUM(1:4)</c> on a rule that does not reach it. Both places are admitted, by two
     /// different clauses; the alias is a group item, NOT a composed elementary view (kb/Work PB430). The same
-    /// reading <see cref="CheckVariableLengthMove"/> takes of the alias (kb/Work PB907).</summary>
+    /// reading <c>MoveTable16.OperandItem</c> takes of the alias for SR9 (kb/Work PB907).</summary>
     private static bool AdmitsIntoOperand(Place p) =>
         p is RefModPlace or RenamesPlace || AdmitsIntoRecord(p.Item);
 

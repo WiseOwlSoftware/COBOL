@@ -14,14 +14,42 @@ namespace CobolNet.Binding.Bound;
 /// over a table dimension (GR5b2 — every occurrence of a table element is a possible receiving operand). Multiple
 /// identifier-1 expand in source order as separate statements (GR3); elementary receivers within a group appear in
 /// definition order (GR8).</summary>
-public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : BoundStatement;
+public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : BoundStatement
+{
+    /// <summary>The REPLACING phrase as WRITTEN — each category-name (a §5.2.6.4 SET) with its identifier-2 /
+    /// literal-1 — for the rule that is asked of the PHRASE rather than of any receiver: §14.9.20.3 SR4, "a MOVE
+    /// statement with identifier-2 or literal-1 as the sending item and an item of the specified category as the
+    /// receiving operand shall be valid". Its edition-gated half, §14.9.25.3 SR5's figurative→numeric rows, is
+    /// the post-bind <c>VersionConformancePass</c>'s (kb/Work PB879), which is why the phrase rides the node.
+    /// Every implicit INITIALIZE statement of §14.9.20.4 GR3 carries the one phrase it was written with. Empty
+    /// when no REPLACING phrase is specified.</summary>
+    public IReadOnlyList<InitializeReplacingItem> Replacing { get; init; } = [];
+}
+
+/// <summary>One REPLACING item: the category-name set and its sending operand (§14.9.20.2).</summary>
+public sealed record InitializeReplacingItem(InitializeCategorySet Categories, BoundOperand Sender);
 
 /// <summary>One step of an expanded INITIALIZE.</summary>
 public abstract record InitializeAction;
 
-/// <summary>One implicit elementary MOVE (ISO §14.9.20 GR4): <paramref name="Source"/> stores into
-/// <paramref name="Target"/> under the MOVE rules (§14.9.25 — conversion, editing, JUSTIFIED/padding, truncation).</summary>
-public sealed record InitializeStore(Place Target, BoundOperand Source) : InitializeAction;
+/// <summary>One implicit elementary MOVE (ISO §14.9.20.4 GR4 — "Otherwise, the implicit statement is: MOVE
+/// sending-operand TO receiving-operand"): the <see cref="BoundMove"/> itself, stored under the MOVE rules (§14.9.25
+/// — conversion, editing, JUSTIFIED/padding, truncation).
+/// <para>⛔ THE MOVE IS BOUND, NOT A PAIR THE EMITTER TURNS INTO ONE (kb/Work PB880). This record used to carry
+/// (Target, Source) and <c>InitializeEmitter</c> built <c>new BoundMove(s.Source, [s.Target])</c> at EMIT time —
+/// downstream of <c>MoveBinder.MarkFillImageStorage</c>, whose <c>StoreAsImage</c> fact <c>StorageFormPass</c>
+/// consumes — so <c>INITIALIZE G REPLACING NUMERIC DATA BY SPACE</c> over an ordinary <c>PIC 9(3)</c> aborted the
+/// run unit ("without image-backed storage") at every edition where the explicit <c>MOVE SPACE TO N</c> stores
+/// three spaces. The move is now built by <c>MoveBinder.BindMoveOf</c> with <see cref="ImplicitMovePhrase.Initialize"/>,
+/// exactly as every FROM / INTO phrase's is.</para></summary>
+public sealed record InitializeStore(BoundMove Move) : InitializeAction
+{
+    /// <summary>The one receiving operand (GR4: "each of which has an elementary data item as its receiving operand").</summary>
+    public Place Target => Move.Targets[0];
+
+    /// <summary>The sending operand (§14.9.20.4 GR6) — after any §14.9.25.4 GR1 freeze the bind applied.</summary>
+    public BoundOperand Source => Move.Source;
+}
 
 /// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §14.9.20.4 GR5b2 — "if the elementary data
 /// item is a table element, each occurrence of the elementary data item is a possible receiving-operand"): the body

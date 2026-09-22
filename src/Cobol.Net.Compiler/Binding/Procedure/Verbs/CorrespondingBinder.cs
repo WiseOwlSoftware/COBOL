@@ -187,7 +187,14 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             // corresponding operands for each separate pair".
             if (verb is not CorrVerb.Move)
                 ctx.Validation.CheckComposite(verbName, [new BoundNumRef(sp)], [new Receiver(dp, rounding)]);
-            pairs.Add(new CorrespondingPair(sp, dp));
+            // MOVE CORRESPONDING's implied MOVE is BOUND here, with the pair (kb/Work PB880) — §14.9.25.4 GR11
+            // makes it "the same as if the user had referred to each pair … in separate MOVE statements".
+            pairs.Add(new CorrespondingPair(sp, dp)
+            {
+                Move = verb is CorrVerb.Move
+                    ? host.Move.BindMoveOf(new BoundFieldOperand(sp), [dp], ImplicitMovePhrase.MoveCorresponding)
+                    : null,
+            });
         }
         return null;
     }

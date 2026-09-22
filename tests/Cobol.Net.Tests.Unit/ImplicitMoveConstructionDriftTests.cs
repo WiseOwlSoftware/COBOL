@@ -32,10 +32,13 @@ namespace CobolNet.Tests.Unit;
 ///
 /// <para><b>What this can and cannot see.</b> It reads comment-stripped source, so a construction NAMED in
 /// prose (this subject is discussed in several of these files) is not mistaken for one performed in code. It
-/// cannot see a bound node built by a helper the emitter calls in another assembly, and it says nothing about
-/// the three NON-phrase implicit moves that remain emitter-built — MOVE CORRESPONDING's per-pair moves,
-/// INITIALIZE's §14.9.20 GR4 stores and GOBACK RETURNING's §14.9.18.4 GR2 move — which are a different rule
-/// each and are named below so that their number can only go down.</para>
+/// cannot see a bound node built by a helper the emitter calls in another assembly.</para>
+///
+/// <para><b>And the non-phrase implicit moves (kb/Work PB880).</b> Three more were emitter-built after PB348 —
+/// MOVE CORRESPONDING's per-pair moves, INITIALIZE's §14.9.20.4 GR4 stores and GOBACK RETURNING's move — and this
+/// class used to NAME them in a dictionary so their count could only go down. A green test that enumerates known
+/// holes is a decision, not a gate: <c>INITIALIZE G REPLACING NUMERIC DATA BY SPACE</c> aborted the run unit
+/// behind it. All three are bound now, and the gate below says the number is ZERO.</para>
 /// </summary>
 public sealed class ImplicitMoveConstructionDriftTests
 {
@@ -63,23 +66,14 @@ public sealed class ImplicitMoveConstructionDriftTests
             + "which is how RELEASE … FROM QUOTE came to abort the run unit (kb/Work PB348).");
     }
 
-    /// <summary>The implicit moves that are still emitter-built, each keyed to the rule that defines it. They
-    /// are NOT FROM/INTO phrases and are outside PB348's mechanism; they are enumerated so that a NEW
-    /// emitter-built move anywhere in CodeGen fails this test rather than joining them unremarked. An entry
-    /// leaves this table when its move moves to bind time; nothing may be added without a note that says why.
-    /// </summary>
-    private static readonly Dictionary<string, string> EmitterBuiltMoves = new(StringComparer.Ordinal)
-    {
-        ["CorrespondingEmitter.cs"] = "MOVE CORRESPONDING — the per-pair moves of ISO §14.9.25.4, whose pairs "
-            + "§14.6.3 selects; the pair list is bound, the moves over it are not",
-        ["InitializeEmitter.cs"] = "INITIALIZE — the implicit MOVE of ISO §14.9.20.4 GR4 for each initialized "
-            + "item, built from the bound InitializeStore actions",
-        ["CallEmitter.cs"] = "GOBACK RETURNING — the move of ISO §14.9.18.4 GR2 into the activation's RETURNING "
-            + "item, whose place is emitter state (the header item of the program being emitted)",
-    };
-
+    /// <summary>⛔ NO BoundMove IS CONSTRUCTED ANYWHERE IN CodeGen (kb/Work PB880). Every implicit move — each
+    /// FROM / INTO phrase (PB348), INITIALIZE's §14.9.20.4 GR4 stores, MOVE CORRESPONDING's §14.9.25.4 GR11
+    /// per-pair moves and GOBACK RETURNING's move — is built by <c>MoveBinder.BindMoveOf</c> and carried on the
+    /// bound node the emitter walks. A move built after binding is checked by no bind pass and carries none of the
+    /// storage facts codegen consumes; the three this test used to enumerate as "known" each aborted the run unit
+    /// on legal source for exactly that reason.</summary>
     [Fact]
-    public void EveryEmitterBuiltBoundMove_IsOneOfTheKnownNonPhraseMoves()
+    public void NoEmitterConstructsABoundMove()
     {
         var found = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (string file in Directory.EnumerateFiles(
@@ -91,13 +85,11 @@ public sealed class ImplicitMoveConstructionDriftTests
             if (n > 0) found[Path.GetFileName(file)] = n;
         }
 
-        var unexpected = found.Keys.Where(f => !EmitterBuiltMoves.ContainsKey(f)).ToList();
-        Assert.True(unexpected.Count == 0,
-            $"CodeGen constructs a {Node} in {string.Join(", ", unexpected)}, which is not one of the known "
-            + "non-phrase implicit moves. A move built after binding is checked by no bind pass and carries none "
-            + "of the storage facts codegen consumes (kb/Work PB348). Bind it — MoveBinder.BindMoveOf is the one "
-            + "entry — or, if it genuinely cannot be bound, add it to EmitterBuiltMoves with the rule it "
-            + "implements and open a kb/Work note for it.");
+        Assert.True(found.Count == 0,
+            $"CodeGen constructs a {Node} in {string.Join(", ", found.Select(kv => $"{kv.Key}×{kv.Value}"))}. A move "
+            + "built after binding is checked by no bind pass and carries none of the storage facts codegen consumes "
+            + "(kb/Work PB348, PB880). Bind it — MoveBinder.BindMoveOf is the one entry, with an ImplicitMovePhrase "
+            + "naming the statement — and carry the BoundMove on the bound node.");
     }
 
     // ── kb/Work PB337: the INTO phrase's OWN syntax rules ride the same one funnel ────────────────────────────

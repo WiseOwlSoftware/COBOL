@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 
 namespace CobolNet.Compiler.Oo;
@@ -504,15 +505,11 @@ public static class OoConformance
                 // own, unchanged.
                 return VariableLengthCompatibility.Mismatch(formal, arg)
                     ?? (arg.BoundaryImageCapable ? null : TierCIsland.Reason(arg, "argument group"));
-            return argCat switch
-            {
-                PicCategory.Alphanumeric or PicCategory.NumericEdited => null,
-                // Table 16: boolean→alphanumeric is a conforming MOVE; national→alphanumeric is NOT
-                // (§14.9.25.3 — DISPLAY-OF is the sanctioned narrowing), so National keeps the mismatch arm.
-                PicCategory.Boolean => null,
-                PicCategory.Numeric when arg.Pic is { IsFloat: false, Scale: 0 } => null,   // MOVE integer→alnum
-                _ => "no conforming MOVE rule applies (ISO §14.8.2.2 rule 2 / §14.9.25)",
-            };
+            // ⛔ §14.8.2.3.3 rule 2d IS THE WHOLE MOVE QUESTION, ASKED OF THE ONE CHAIN (kb/Work PB878). This
+            // arm was a hand list of sender categories — a fourth private copy of Table 16's alphanumeric column
+            // that could not see the ALPHABETIC column (numeric-edited → PIC A is "No"), SR8 (a BINARY-LONG
+            // argument at a PIC X formal) or a group formal's §14.9.25.4 GR4 conversion-free copy.
+            return MoveContentMismatch(formal, argPlace);
         }
         var f = formal.Pic!;
         return f.Category switch
@@ -547,9 +544,19 @@ public static class OoConformance
             // ⚠ ANY LENGTH keeps its own answer FIRST: §14.8.2.3.3 rule 2c makes such a formal's length
             // "considered to match", which is a statement about LENGTH and leaves the category pair to 2d.
             _ => formal.IsAnyLength && !arg.IsAnyLength ? null
-                : MoveTable16.Refusal(Table16Operand.Of(argPlace), Table16Operand.Of(formal)),
+                : MoveContentMismatch(formal, argPlace),
         };
     }
+
+    /// <summary>ISO §14.8.2.3.3 rule 2d — "Otherwise, the conformance rules are the same as for a MOVE statement
+    /// with the argument as the sending operand and the corresponding formal parameter as the receiving operand"
+    /// — asked as the WHOLE §14.9.25.3 question (<see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem)"/>:
+    /// SR2, SR8, SR9 and Table 16), never as Table 16 alone (kb/Work PB878: a BINARY-LONG argument at a
+    /// non-numeric formal (SR8) and a variable-length-group argument at an incompatible formal (SR9) were
+    /// admitted where the written MOVE of the same pair is refused). ONE call for both the alphanumeric-formal and
+    /// the other-category arms of <see cref="ContentMismatch"/>. Null when conformant.</summary>
+    private static string? MoveContentMismatch(DataItem formal, Place argPlace) =>
+        MoveTable16.Validity(new BoundFieldOperand(argPlace), Table16Operand.Of(formal), formal)?.Reason;
 
     /// <summary>ISO §14.8.2.3.3 rule 2a for an ARITHMETIC-EXPRESSION argument: "the conformance rules are the
     /// same as for a COMPUTE statement", whose receiving operand is category numeric — so a non-numeric formal

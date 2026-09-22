@@ -146,19 +146,24 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     public BoundMove BindMoveOf(BoundOperand source, IReadOnlyList<Place> targets,
                                 ImplicitMovePhrase? implicitOf = null)
     {
-        // The §14.9.25.3 SR1 operand-class check (the SR5 edition gates are VersionConformancePass Step 14f).
-        MoveOperandClassChecks(source, targets, implicitOf);
-        // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
-        MoveCategoryLegality(source, targets, implicitOf);
+        // ⛔ THE SYNTAX SCREENS RUN UNLESS THE STATEMENT HAS ALREADY ASKED THE SAME QUESTION ITS OWN WAY
+        // (kb/Work PB880). INITIALIZE is the one such statement: §14.9.20.3 SR4 asks the MOVE validity question
+        // once per REPLACING CATEGORY (InitializeBinder.CheckReplacingMoveValidity, through the same chain), and
+        // the §14.9.20.4 GR6a/GR6c senders are valid by construction — so asking it again per receiver would
+        // report one error twice. Everything below the screens (the freeze, the storage facts) runs for every
+        // move, because that is what an implicit move built anywhere else used to miss.
+        if (implicitOf is not { ValidityAskedByStatement: true })
+        {
+            // The §14.9.25.3 SR1 operand-class check (the SR5 edition gates are VersionConformancePass Step 14f).
+            MoveOperandClassChecks(source, targets, implicitOf);
+            // §14.9.25.3 SR2 / SR6–SR8 / SR9 / SR10 — the whole validity chain, MoveTable16.Validity, framed per
+            // rule. SR9 rides it (kb/Work PB393's screen; every FROM / INTO phrase's "shall be valid … in a MOVE
+            // statement" rule inherits it here), and so does SR2 (data-model D17).
+            MoveCategoryLegality(source, targets, implicitOf);
+        }
         // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.3.3.4 GR6;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(targets);
-        ctx.Validation.CheckStrongMove(source, targets, implicitOf);   // §14.9.25.3 SR2 — pure check (D17 inc 2)
-        // §14.9.25.3 SR9 — the §8.5.1.12 compatibility screen for a variable-length group operand (kb/Work
-        // PB393). It sits HERE, beside SR2, because this is the ONE application of the MOVE statement's own
-        // rules: every implicit move a phrase defines (READ/RETURN … INTO, WRITE/REWRITE/RELEASE … FROM)
-        // inherits it, which is what each phrase's "shall be valid … in a MOVE statement" rule requires.
-        ctx.Validation.CheckVariableLengthMove(source, targets, implicitOf);
         // ⛔ §14.9.25.4 GR1 — "If identifier-1 is reference-modified, subscripted, or is a function-identifier,
         // the reference modifier, subscript, or function-identifier is evaluated only once, immediately before
         // data is moved to the first of the receiving operands", and the rule's own equivalence writes the
@@ -365,82 +370,74 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
     }
 
-    /// <summary>The receiver-view data category of a MOVE target for the §14.9.25.3 Table 16 legality check.
-    /// A reference-modified receiver is the unique data item of ISO §8.4.3.3.4 GR6, whose category is computed by
-    /// the ONE rule on <see cref="RefModPlace.CategoryOf"/> (PB20). Groups return null (a group move is a
-    /// conversion-free character copy, GR4 — Table 16 does not reach it; bit/national GROUP-USAGE groups are
-    /// grammar residue).
-    /// <para>⛔ THIS CARRIED ITS OWN PARTIAL COPY of GR6 and got two of the three lettered exceptions wrong:
-    /// national and boolean were preserved correctly, but national-EDITED flattened to alphanumeric (GR6b makes
-    /// it national) and so did a numeric item of usage NATIONAL (GR6c makes it national). Three copies of one
-    /// rule, none complete — the copies are gone.</para></summary>
-    private static PicCategory? MoveReceiverCategory(Place t) => t switch
-    {
-        // The view FIRST: a ref-mod over a GROUP is the elementary ALPHANUMERIC unique item of GR6 (kb/Work PB70) —
-        // Table 16 applies to it, where the whole group would be a conversion-free GR4 copy.
-        RefModPlace rm => rm.Category,
-        // D20/PB79: a bit / national group receiver IS a category — its as-if picture's (§13.18.29.4 GR1b/GR2b);
-        // only an alphanumeric group is the GR4 conversion-free copy Table 16 does not reach.
-        _ when t.Item.OperandPic is null => null,
-        _ => t.Item.OperandPic!.Category,
-    };
-
-    /// <summary>
-    /// The §14.9.25.3 Table 16 category-legality arms for the 2002 categories (boolean / national), plus SR7
-    /// (a figurative whose characters are not boolean shall not move to a boolean item) — all COBOLNET0819,
-    /// version-invariant at ≥2002 (below 2002 the operands themselves are already 0900-introduction-gated).
-    /// Only the arms Table 16 marks "No" around the NEW categories are checked here — the classic
-    /// alphanumeric/numeric rows keep their existing paths (VCR rows 1/92/128 above). A GROUP sender or
-    /// receiver is exempt (GR4 group moves copy characters without conversion).
-    /// </summary>
+    /// <summary>ISO §14.9.25.3 SR2, SR6–SR10 for one MOVE, per receiver — asked of <see cref="MoveTable16.Validity(BoundOperand, Place)"/>
+    /// and framed here under each rule's own diagnostic (COBOLNET1533 · COBOLNET1931 · COBOLNET0819). Version-
+    /// invariant: SR5's edition rows are <c>VersionConformancePass</c>'s.</summary>
     private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets,
                                       ImplicitMovePhrase? implicitOf)
     {
-        // The SENDER's Table-16 position — the ONE reader (fix-queue PB72; MoveTable16.SenderPosition).
-        Table16Operand senderPos = MoveTable16.SenderPosition(source);
-
         foreach (var t in targets)
         {
-            if (MoveReceiverCategory(t) is null) continue;   // group receiver — GR4 exempt
+            // ⛔ THE WHOLE §14.9.25.3 VALIDITY QUESTION, ASKED OF THE ONE CHAIN (kb/Work PB878). This method used
+            // to compose ShapeRefusal + Refusal by hand and skip GROUP receivers outright, while SR2 and SR9 were
+            // asked by two more screens (StatementValidation.CheckStrongMove / .CheckVariableLengthMove) — four
+            // calls to answer one question, which is the shape that let INITIALIZE and INVOKE ask a subset. The
+            // RULES now live in MoveTable16.Validity, in SR order; what stays here is the explicit statement's
+            // FRAMING — each rule's own diagnostic code, and SR10's --permissive re-reading.
+            // ⚠ A GROUP RECEIVER IS ASKED TOO. Table 16 exempts it itself (§14.9.25.4 GR4) and SR2/SR9 are
+            // group rules; the one rule the old `continue` hid is SR8, whose letter — "identifier-2 shall
+            // reference a numeric or numeric-edited item" — a group item does not satisfy. MOVE CORRESPONDING's
+            // pairing filter already read it that way (kb/Work PB391); the written MOVE now agrees with it.
+            if (MoveTable16.Validity(source, t) is not { } refusal) continue;
             string where = ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName);
-            // The RECEIVER position builds through Table16Operand.Of(Place) (PB72): a ref-mod receiver is
-            // plain alphanumeric (GR2/GR6), never the inner item's alphabetic/edited row — except for the
-            // alphabetic rider Of(Place) keeps deliberately (PB73).
-            Table16Operand recvPos = Table16Operand.Of(t);
-
-            // §14.9.25.3 SR8 / SR7 / SR6 — the SOURCE-SHAPE rules, which key on the bound operand's shape
-            // against the receiver's POSITION rather than on a Table-16 cell. ⛔ THEY LIVE IN MoveTable16 NOW
-            // (kb/Work PB416): §14.9.20.3 SR4 makes an INITIALIZE REPLACING pair legal only when "a MOVE
-            // statement … shall be valid", which is the whole validity question, and a second copy of these
-            // three arms in InitializeBinder is exactly how one answer becomes two. SR8 short-circuits because
-            // SR10 applies only "for all other cases not described in Syntax rules 8 and 9".
-            if (MoveTable16.ShapeRefusal(source, recvPos) is { } shape)
-                ctx.Edition.Error("COBOLNET0819", $"{where}: {shape}");
-            // ⭐ AND THE CATEGORY-PAIR RULE ITSELF IS ASKED OF THE ONE TABLE (fix-queue PB53). It used to be
-            // four inline arms here and a §14.8.2.3.2 STRICT-IDENTITY fallback in the INVOKE argument screen —
-            // two answers to one question, and §14.8.2.3.3 rule 2d says the INVOKE crossing asks THIS one.
-            else if (MoveTable16.Refusal(senderPos, recvPos) is { } refusal)
+            switch (refusal.Rule)
             {
-                // The two leniencies (kb/Work PB73): a NUMERIC-typed function into a character receiver (Table 16's
-                // Noninteger row; every earlier release admitted it as the CONFORMANCE.md item-92 text form) and a
-                // reference-modified ALPHABETIC view read as plain alphanumeric (GnuCOBOL's reading; PB72's
-                // 2026-08-09 erasure) — accepted under --permissive with a warning when the lenient reading admits
-                // the move; every other refusal is an error on both axes.
-                bool senderIsFunction = source is BoundComputedOperand { Expr: BoundIntrinsicCall };
-                bool senderIsView = source is BoundFieldOperand { Place: RefModPlace };
-                if (ctx.Edition.Permissive
-                    && MoveTable16.Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView),
-                                           Table16Operand.Lenient(Table16Operand.Of(t), false, t is RefModPlace)) is null)
-                    ctx.Edition.Warning("COBOLNET0819", $"{where}: {refusal}; accepted under --permissive "
-                        + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
-                                            : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
-                else
-                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}"
-                        + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
-                            ? " (a NUMERIC-typed function is the Noninteger sender, §15.2 item 4 / §8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
-                            : ""));
+                case MoveRule.StrongGroup:
+                    ctx.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
+                        + $"'{t.Item.CobolName ?? t.Item.CsName}': {refusal.Reason}{ImplicitMovePhrase.Via(implicitOf)}");
+                    break;
+                case MoveRule.VariableLength:
+                    // Name the operand that IS the variable-length group — the receiver when it is one.
+                    var recv = MoveTable16.OperandItem(t);
+                    var vl = recv is not null && VariableLengthCompatibility.IsVariableLength(recv)
+                        ? recv : MoveTable16.OperandItem(source)!;
+                    ctx.Edition.Error(DiagnosticCatalog.MoveVariableLengthIncompatible,
+                        $"MOVE involving the variable-length group '{vl.CobolName ?? vl.CsName}': {refusal.Reason} — "
+                        + "ISO §14.9.25.3 SR9 requires the two groups to be compatible as specified in §8.5.1.12"
+                        + ImplicitMovePhrase.Via(implicitOf));
+                    break;
+                case MoveRule.SourceShape:
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: {refusal.Reason}");
+                    break;
+                default:
+                    Table16Framing(source, t, where, refusal.Reason);
+                    break;
             }
         }
+    }
+
+    /// <summary>SR10's framing: the two leniencies (kb/Work PB73) — a NUMERIC-typed function into a character
+    /// receiver (Table 16's Noninteger row; every earlier release admitted it as the CONFORMANCE.md item-92 text
+    /// form) and a reference-modified ALPHABETIC view read as plain alphanumeric (GnuCOBOL's reading; PB72's
+    /// 2026-08-09 erasure) — accepted under --permissive with a warning when the lenient reading admits the move;
+    /// every other refusal is an error on both axes. It re-asks TABLE 16 ALONE, and that is the rule: the lenient
+    /// reading is defined against Table 16's cells, and the chain has already cleared SR2/SR8/SR9 to get here.</summary>
+    private void Table16Framing(BoundOperand source, Place t, string where, string refusal)
+    {
+        Table16Operand senderPos = MoveTable16.SenderPosition(source);
+        bool senderIsFunction = source is BoundComputedOperand { Expr: BoundIntrinsicCall };
+        bool senderIsView = source is BoundFieldOperand { Place: RefModPlace };
+        if (ctx.Edition.Permissive
+            && MoveTable16.Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView),
+                                   Table16Operand.Lenient(Table16Operand.Of(t), false, t is RefModPlace)) is null)
+            ctx.Edition.Warning("COBOLNET0819", $"{where}: {refusal}; accepted under --permissive "
+                + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §15.2 item 4)"
+                                    : "reading the reference-modified view as plain alphanumeric (ISO §8.4.3.3.4 GR6 keeps it alphabetic)"));
+        else
+            ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE is invalid — {refusal}"
+                + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
+                    ? " (a NUMERIC-typed function is the Noninteger sender, §15.2 item 4 / §8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
+                    : ""));
     }
 
 

@@ -144,12 +144,13 @@ public sealed class CorrespondingRule2DriftTests
         }
     }
 
-    /// <summary>⛔ THE TWO-ARM PIN on <see cref="MoveTable16.ShapeRefusal(DataItem, Table16Operand)"/>. SR8 is
-    /// asked from two entries — the bound-operand one the written MOVE and INITIALIZE reach, and the item-keyed
-    /// one §14.7.6 rule 2 reaches, since a CORRESPONDING pair has no bound operand until after the pairing
-    /// decision. Fixing one and not the other is exactly the defect kb/Work PB391 landed against, so for every
-    /// modeled sender × receiver the two entries must return the SAME string. They can only do that by being one
-    /// body: add a new item-keyed rule to the bound-operand entry instead of the overload and this fails.</summary>
+    /// <summary>⛔ THE TWO-ARM PIN on the two composite entries. The §14.9.25.3 chain is asked from two entries —
+    /// <c>MoveTable16.Validity</c>, over a BOUND operand, which the written MOVE, INITIALIZE and the INVOKE screen
+    /// reach, and <c>MoveTable16.DataItemRefusal</c>, over two data items, which §14.7.6 rule 2 reaches (a
+    /// CORRESPONDING pair has no bound operand until after the pairing decision). Fixing one and not the other is
+    /// exactly the defect kb/Work PB391 landed against, so for every modeled sender x receiver the two entries
+    /// must return the SAME reason. They can only do that by running one chain (kb/Work PB878 made the per-rule
+    /// readers private, so no caller can compose a different one).</summary>
     [Theory]
     [MemberData(nameof(Positions))]
     public void TheBoundAndItemKeyedShapeEntriesAnswerTogether(string sender)
@@ -158,8 +159,9 @@ public sealed class CorrespondingRule2DriftTests
         var bound = new BoundFieldOperand(new MemberPlace(new AccessPath([]), s));
         foreach (string receiver in AllPositions)
         {
-            Table16Operand recv = Table16Operand.Of(At(receiver));
-            Assert.Equal(MoveTable16.ShapeRefusal(s, recv), MoveTable16.ShapeRefusal(bound, recv));
+            DataItem d = At(receiver);
+            Assert.Equal(MoveTable16.DataItemRefusal(s, d),
+                         MoveTable16.Validity(bound, new MemberPlace(new AccessPath([]), d))?.Reason);
         }
     }
 

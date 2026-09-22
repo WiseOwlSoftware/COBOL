@@ -26,7 +26,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
             Deferred(() =>
             {
                 foreach (var p in c.Pairs)
-                    move.Emit(new BoundMove(new BoundFieldOperand(p.Source), [p.Target]));
+                    move.Emit(p.Move!);   // BOUND with the pair (kb/Work PB880); never null for CorrVerb.Move
             });
             return;
         }

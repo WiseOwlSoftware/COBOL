@@ -57,6 +57,24 @@ public readonly record struct Table16Operand(
         };
 }
 
+/// <summary>WHICH §14.9.25.3 syntax rule refused a sender/receiver pair — the part of a refusal a caller frames
+/// (its diagnostic code); the rule text itself is <see cref="MoveRefusal.Reason"/>.</summary>
+public enum MoveRule
+{
+    /// <summary>SR2 — a strongly-typed group receiver takes only a same-type group.</summary>
+    StrongGroup,
+    /// <summary>SR6 / SR7 / SR8 — the source-shape rules (ZERO to alphabetic, non-boolean figurative to boolean,
+    /// the fixed-width binary family to a non-numeric receiver).</summary>
+    SourceShape,
+    /// <summary>SR9 — a variable-length group moves only to or from a compatible group (§8.5.1.12).</summary>
+    VariableLength,
+    /// <summary>SR10 — Table 16 itself, "for all other cases not described in Syntax rules 8 and 9".</summary>
+    Table16,
+}
+
+/// <summary>One refusal of the §14.9.25.3 validity question: the rule and its reason text.</summary>
+public readonly record struct MoveRefusal(MoveRule Rule, string Reason);
+
 /// <summary>
 /// ⭐ ISO §14.9.25.3 <b>Table 16 — Validity of types of MOVE statements</b>, in ONE place.
 /// </summary>
@@ -98,14 +116,23 @@ public readonly record struct Table16Operand(
 /// namesake paired with an elementary one and reached the run time.
 /// </para>
 /// <para>
-/// ⚠ WHAT STILL STAYS WITH THE CALLER: §14.9.25.3 SR5's figurative→numeric prohibition, whose three edition rows
-/// (permitted through 2014, removed at 2023, and the surviving digit-only-ALL-to-integer exception) live in
-/// <c>VersionConformancePass.GateMove</c> and are re-derived from a BOUND MOVE — an edition-gated policy, not a
-/// flat refusal, so it is not expressible as a <see langword="string"/>? here.
+/// ⚠ WHAT STAYS OUTSIDE: §14.9.25.3 SR5's figurative→numeric prohibition, whose three edition rows (permitted
+/// through 2014, removed at 2023, and the surviving digit-only-ALL-to-integer exception) live in ONE place,
+/// <c>VersionConformancePass.GateSr5</c> — an edition-gated policy, not a flat refusal, so it is not expressible as
+/// a <see langword="string"/>? here. It has two askers there: <c>GateMove</c> (every bound MOVE, per receiver) and
+/// <c>GateInitialize</c> (INITIALIZE REPLACING's hypothetical MOVE, per category — kb/Work PB879).
 /// </para>
 /// </remarks>
 public static class MoveTable16
 {
+    // ⛔ THE PARTIAL READERS ARE PRIVATE (kb/Work PB878). ShapeRefusal, VariableLengthRefusal and
+    // StrongGroupRefusal answer ONE rule each, and every asker outside this class used to compose them by hand —
+    // which is how INITIALIZE came to ask SR8 and SR10 but never SR9, and the INVOKE BY CONTENT screen Table 16
+    // alone. An asker now reaches them only through Validity / DataItemRefusal, so the next MOVE rule added to
+    // the chain reaches every asker without an edit, and a hand composition is a COMPILE error rather than a
+    // review finding. `Refusal` (Table 16 itself) stays public for the askers whose sender has no data item and
+    // no shape — MoveTable16AskerDriftTests names them.
+
     /// <summary>Why Table 16 refuses this sending→receiving pair, or <see langword="null"/> when it admits it.
     /// A GROUP on either side is exempt — §14.9.25.4 GR4 makes such a move an alphanumeric character copy with
     /// no conversion, which the table does not describe.</summary>
@@ -249,7 +276,7 @@ public static class MoveTable16
     /// two entries are ONE body: the item-keyed rules live in the overload, this one adds only the arms a data
     /// item can never satisfy (a figurative constant is not a data item), and the NEXT item-keyed rule reaches
     /// both askers without an edit.</para></summary>
-    public static string? ShapeRefusal(BoundOperand sender, Table16Operand receiver)
+    private static string? ShapeRefusal(BoundOperand sender, Table16Operand receiver)
     {
         // SR8 and every other rule keyed on the sending DATA ITEM — asked through the one item-keyed entry.
         if (sender is BoundFieldOperand f && ShapeRefusal(f.Place.Item, receiver) is { } itemKeyed)
@@ -302,7 +329,7 @@ public static class MoveTable16
     /// reference "a numeric or numeric-edited item", and a group item is neither. The §14.9.25.4 GR4 group
     /// exemption is Table 16's, not SR8's — SR10 is the rule that routes to the table, and SR10 does not reach
     /// a case SR8 describes.</para></summary>
-    public static string? ShapeRefusal(DataItem sender, Table16Operand receiver) =>
+    private static string? ShapeRefusal(DataItem sender, Table16Operand receiver) =>
         sender.Pic is { Usage: Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble }
         && receiver.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)
             ? "a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending operand shall reference only a numeric or "
@@ -331,7 +358,7 @@ public static class MoveTable16
     /// <para>No edition gate is needed and none is written: a variable-length group can only be DECLARED from
     /// COBOL-2014 (the DYNAMIC LENGTH clause §13.18.19 and OCCURS Format 4 §13.18.38), so the rule is
     /// unreachable below 2014 by construction rather than by a predicate that could drift.</para></summary>
-    public static string? VariableLengthRefusal(DataItem? sender, DataItem? receiver)
+    private static string? VariableLengthRefusal(DataItem? sender, DataItem? receiver)
     {
         bool engaged = (receiver is not null && VariableLengthCompatibility.IsVariableLength(receiver))
                     || (sender is not null && VariableLengthCompatibility.IsVariableLength(sender));
@@ -355,16 +382,78 @@ public static class MoveTable16
     /// pair is formed (<c>CorrespondingBinder.CorrEligible</c>), where SR1 as written reaches only the sender.
     /// Adding it here would put two mechanisms on one question, which is what this class exists to prevent.</para>
     /// <para>⚠ AND NEITHER IS SR5's figurative→numeric prohibition, for the reason the class header gives: its
-    /// three edition rows live in <c>VersionConformancePass.GateMove</c>, and a figurative constant is not a data
+    /// three edition rows live in <c>VersionConformancePass.GateSr5</c>, and a figurative constant is not a data
     /// item, so no operand this entry can be given could reach it.</para>
     /// </summary>
-    public static string? DataItemRefusal(DataItem sender, DataItem receiver)
+    public static string? DataItemRefusal(DataItem sender, DataItem receiver) =>
+        Chain(sender, ShapeRefusal(sender, Table16Operand.Of(receiver)), Table16Operand.Of(sender),
+              Table16Operand.Of(receiver), receiver)?.Reason;
+
+    /// <summary>
+    /// ⭐ <b>THE WHOLE OF ISO §14.9.25.3's OPERAND-PAIR VALIDITY QUESTION FOR ONE RECEIVING PLACE</b> — SR2, SR6/SR7/SR8,
+    /// SR9 and SR10 in SR order, for a BOUND sending operand. It is the form every asker holding an operand uses:
+    /// the written MOVE (and every implicit move <c>MoveBinder.BindMoveOf</c> binds), and §14.8.2.3.3 rule 2d's
+    /// BY CONTENT / BY VALUE argument, whose conformance rules "are the same as for a MOVE statement with the
+    /// argument as the sending operand and the corresponding formal parameter as the receiving operand" — the
+    /// WHOLE question, never Table 16 alone (kb/Work PB878).
+    /// <para>The answer carries WHICH rule refused, because the explicit MOVE frames each rule under its own
+    /// diagnostic (COBOLNET1533 for SR2, COBOLNET1931 for SR9, COBOLNET0819 for the others, with SR10's
+    /// <c>--permissive</c> re-reading) while every other asker only needs "valid or not, and why". The RULES are
+    /// written once, here; only the framing is the caller's.</para>
+    /// </summary>
+    public static MoveRefusal? Validity(BoundOperand sender, Place receiver) =>
+        Validity(sender, Table16Operand.Of(receiver), OperandItem(receiver));
+
+    /// <summary>The same question against a receiving POSITION rather than a place — the form §14.9.20.3 SR4 asks,
+    /// whose receiving operand is "an item of the specified category": a hypothetical elementary item that has a
+    /// Table-16 position and no data item (<paramref name="receiverItem"/> null, which SR9's reader reads as
+    /// "not a group" — exactly what such an item is).</summary>
+    public static MoveRefusal? Validity(BoundOperand sender, Table16Operand receiver, DataItem? receiverItem) =>
+        Chain(OperandItem(sender), ShapeRefusal(sender, receiver), SenderPosition(sender), receiver, receiverItem);
+
+    /// <summary>The ONE chain every composite entry runs, in SR order. SR2 first (it is a whole-group identity
+    /// rule and pre-empts every per-category reading); SR8 (with SR6/SR7 for a bound operand) and SR9 next,
+    /// because §14.9.25.3 SR10 — Table 16 — applies only "for all other cases not described in Syntax rules 8
+    /// and 9"; the table last.</summary>
+    private static MoveRefusal? Chain(DataItem? senderItem, string? shape, Table16Operand senderPos,
+                                      Table16Operand receiverPos, DataItem? receiverItem) =>
+        StrongGroupRefusal(senderItem, receiverItem) is { } sr2 ? new MoveRefusal(MoveRule.StrongGroup, sr2)
+        : shape is { } sr8 ? new MoveRefusal(MoveRule.SourceShape, sr8)
+        : VariableLengthRefusal(senderItem, receiverItem) is { } sr9 ? new MoveRefusal(MoveRule.VariableLength, sr9)
+        : Refusal(senderPos, receiverPos) is { } sr10 ? new MoveRefusal(MoveRule.Table16, sr10)
+        : null;
+
+    /// <summary>ISO §14.9.25.3 SR2 — <i>"If identifier-2 references a strongly-typed group item, identifier-1 shall
+    /// be specified and be described as a group item of the same type"</i> — as the REASON, or null. The rule is
+    /// keyed on the RECEIVING side, as the former <c>StatementValidation.CheckStrongMove</c> read it (§8.5.3.3 — a
+    /// strong record accepts only a same-type whole-record source; a strong-type SENDER to a non-strong receiver
+    /// is admitted by Table 16), and it is now asked by every asker of the chain: a CORRESPONDING
+    /// pair whose receiver is a strongly-typed group (§14.7.6 rule 2 needs only ONE side elementary) was admitted
+    /// because the pairing filter never asked SR2 (kb/Work PB878's sibling sweep).</summary>
+    private static string? StrongGroupRefusal(DataItem? sender, DataItem? receiver) =>
+        receiver is not null && StrongTypeModel.IsStrongGroup(receiver)
+        && (sender is null || !StrongTypeModel.SameType(sender, receiver))
+            ? "the sending operand shall be a group item of the same type (ISO §14.9.25.3 SR2 / §8.5.3.3)"
+            : null;
+
+    /// <summary>The DATA ITEM an operand or place references for the item-keyed rules (SR2, SR9), or null when it
+    /// is not a plain data item. A reference-modified place is deliberately NOT unwrapped — §8.4.3.3.4 GR6 makes
+    /// its unique data item elementary alphanumeric whatever the inner item is — so the identity question is
+    /// <see cref="Place.DenotedItem"/>'s (kb/Work PB602), null for that view. ⛔ A level-66 THROUGH alias IS a data
+    /// item, and a GROUP one (§13.18.45.4 GR2): its place's Item is the ALIAS itself, never the record behind it,
+    /// and §8.5.1.12 walks the alias's own span (<c>VariableLengthCompatibility.AliasAtoms</c>) — treating it as a
+    /// null operand told the user "the sending operand is not a group item" about a group item (kb/Work PB907).
+    /// A non-THROUGH alias forwards its attributes to the renamed item (GR1). ONE reader, moved here from
+    /// <c>StatementValidation.CheckVariableLengthMove</c> so the rules and their operand vocabulary live together.</summary>
+    public static DataItem? OperandItem(BoundOperand operand) => operand switch
     {
-        Table16Operand recv = Table16Operand.Of(receiver);
-        return ShapeRefusal(sender, recv)                                  // SR8 — SR10 defers to it
-            ?? VariableLengthRefusal(sender, receiver)                     // SR9 — SR10 defers to it
-            ?? Refusal(Table16Operand.Of(sender), recv);                   // SR10 — "all other cases": Table 16
-    }
+        BoundFieldOperand { Place: var p } => OperandItem(p),
+        BoundCurrentRecord { Area: var a } => OperandItem(a),
+        _ => null,
+    };
+
+    /// <inheritdoc cref="OperandItem(BoundOperand)"/>
+    public static DataItem? OperandItem(Place place) => place.DenotedItem is null ? null : place.Item;
 
     /// <summary>ISO §14.9.25.3 SR1's SENDING half — "The class of identifier-1 or identifier-2 shall not be
     /// index, message-tag, object, or pointer" — as the refusal text, or null when the sender's class is
