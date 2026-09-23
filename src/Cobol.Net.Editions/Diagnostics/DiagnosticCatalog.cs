@@ -531,6 +531,24 @@ public static class DiagnosticCatalog
         + "rule by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the phrase "
         + "talks about. The phrase used to be parsed and dropped, so every mode accepted it silently.",
         "ISO §14.9.27.3");
+    public static readonly DiagnosticDescriptor OpenReportFileMode = new(
+        "COBOLNET2371", "open-report-file-mode", EditionSeverity.Error,
+        "An OPEN statement opens a REPORT FILE (an FD carrying a REPORT clause) in the INPUT or I-O mode: \"The "
+        + "OPEN statement for a report file shall not contain the INPUT phrase or the I-O phrase.\" (ISO "
+        + "§14.9.27.3 SR1). §13.18.46.3 SR3 states the same boundary from the file's side — the subject of such "
+        + "an FD may be referenced in the procedure division only by USE, the WHEN phrase of a PERFORM, CLOSE, "
+        + "or \"the OPEN statement with the OUTPUT or EXTEND phrase\". A report file is written only by the "
+        + "report writer's own implicit output, so neither mode has anything to read.",
+        "ISO §14.9.27.3");
+    public static readonly DiagnosticDescriptor OpenExtendAccessLinage = new(
+        "COBOLNET2372", "open-extend-access-linage", EditionSeverity.Error,
+        "An OPEN statement's EXTEND phrase names a file whose access mode is not sequential, or whose file "
+        + "description entry carries a LINAGE clause: \"The EXTEND phrase shall be specified only if the access "
+        + "mode of the file connector referenced by file-name-1 is sequential and the LINAGE clause is not "
+        + "specified in the file description entry for file-name-1.\" (ISO §14.9.27.3 SR2). The predicate is the "
+        + "ACCESS MODE, not the organization: EXTEND stays legal on a relative or indexed file whose ACCESS MODE "
+        + "IS SEQUENTIAL. The site names which of the two conjuncts the statement violated.",
+        "ISO §14.9.27.3");
     public static readonly DiagnosticDescriptor OpenReversedOrganization = new(
         "COBOLNET2210", "open-reversed-organization", EditionSeverity.Error,
         "An OPEN statement's REVERSED phrase on a file whose organization is not RECORD sequential. REVERSED "

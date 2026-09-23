@@ -1896,6 +1896,17 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   `conformance:2002/pb355_start_length_national_past_operand`; structure `unit:StartTemporaryKeyAreaDriftTests`.
   Below COBOL-2002 there is no LENGTH phrase, so the temporary area can never be longer than data-name-1 and the
   two readings coincide — the 85 regression net is `conformance:85/pb358_start_no_key_phrase`.
+- **The GR17 b) LENGTH travels to the connector UNNARROWED** (kb/Work PB357). 14.9.41.4 GR14 is a predicate on
+  arithmetic-expression-1 itself — *"If arithmetic-expression-1 does not evaluate to a positive nonzero integer that
+  is less than or equal to the length of the associated key, the I-O status value … is set to '23'"* — and 14.9.41.3
+  has no rule confining the expression to an integer, so `WITH LENGTH 2.5` is legal source whose result is '23'.
+  `KeyedIoEmitter.EmitStart` therefore renders a `StartKeyLength` (runtime `IO/StartKeyLength.cs`) from the exact
+  lane `SetEmitter.LandAmount` uses — the scaled `Int128` with its scale, or the native `double` — and
+  `IndexedConnector.Start` asks `TryCompareLength(keyLength, …)` exactly once: integrality through THE ONE
+  carrier-neutral landing `SetAmount.Land`, then 1 ≤ count ≤ key length, then the GR13 national-position scaling on
+  the bounded integer. The former int narrowing of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1,
+  so the connector's bound test ran on a value already forced into range. Golden
+  `conformance:2002/pb357_start_length_not_integer`; structure + failure proof `unit:StartKeyLengthTests`.
 - **The record area is resolved in ONE place** — `ReferenceResolver.RecordArea(FileModel)`, the
   `FileModel.AreaRecord` lookup plus the `ResolveItem` step that five consumers each used to write out (the two
   keyed emitter sites, the sequential READ emitter, the two READ/RETURN `INTO` binders). 13.18.33.4 GR3 makes the

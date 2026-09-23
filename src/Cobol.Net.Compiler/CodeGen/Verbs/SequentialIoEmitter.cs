@@ -131,7 +131,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             //     the front end has already diagnosed — there is nothing to register.
             if (file.Records.Count == 0)
             {
-                if (file.ReportNames.Count > 0)
+                if (file.IsReportFile)
                 {
                     int width = Math.Max(1, ctx.Data.Reports
                         .Where(r => ReferenceEquals(r.File, file))

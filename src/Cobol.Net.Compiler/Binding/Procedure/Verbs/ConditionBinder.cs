@@ -1233,6 +1233,25 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     // ── Operator mapping + helpers (ported from the former emitter) ──────────────────────────────────────────
 
+    /// <summary>True when <paramref name="oc"/> is one of the alternatives §8.8.4.2.2 Format 1 (General-relation)
+    /// prints: <c>IS [NOT] GREATER THAN</c> · <c>IS [NOT] &gt;</c> · <c>IS [NOT] LESS THAN</c> · <c>IS [NOT] &lt;</c> ·
+    /// <c>IS [NOT] EQUAL TO</c> · <c>IS [NOT] =</c> · <c>IS &lt;&gt;</c> · <c>IS GREATER THAN OR EQUAL TO</c> ·
+    /// <c>IS &gt;=</c> · <c>IS LESS THAN OR EQUAL TO</c> · <c>IS &lt;=</c>. The optional NOT is bracketed on the
+    /// first six alternatives ONLY, so NOT with an OR-EQUAL operator is outside the format, and EQUAL's optional
+    /// word is TO, never THAN.
+    /// <para>⛔ <c>comparisonOperator</c> is a SUPERSET of this set (it is shared by every condition in the
+    /// language), so a construct whose rule names "the general-relation format of 8.8.4.2" as its operator set —
+    /// §14.9.41.3 SR3, the START KEY phrase — asks HERE rather than re-listing the alternatives (kb/Work PB333).
+    /// A second copy of the membership list is how its positive half went unimplemented while its excluded half
+    /// (the not-equal spellings) was.</para></summary>
+    public static bool InGeneralRelationFormat(Core.ComparisonOperatorContext oc)
+    {
+        bool orEqual = oc.GTEQUAL() is not null || oc.LTEQUAL() is not null || oc.OR() is not null;
+        if (oc.NOT() is not null && orEqual) return false;           // [NOT] is not printed on the OR-EQUAL four
+        if (oc.EQUAL() is not null && oc.THAN() is not null && !orEqual) return false;   // EQUAL TO, never EQUAL THAN
+        return true;
+    }
+
     public static string MapOperator(string raw)
     {
         string t = raw.ToUpperInvariant().Replace("IS", "").Replace("THAN", "").Replace("TO", "");

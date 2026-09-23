@@ -655,12 +655,15 @@ public sealed class IndexedConnector : KeyedConnector
     /// random READ (§14.9.30.4 GR32) and DELETE (§14.9.10.4 GR3) make from the same image; taking data-name-1's
     /// own bytes and PADDING them to the count instead made a LENGTH that reaches past the operand search for
     /// invented spaces where the record area holds the rest of the key.</param>
-    public string Start(int keyIndex, string op, string keyedRecordImage, int compareLength)
+    /// <param name="length">The GR17 b) length EXACTLY as arithmetic-expression-1 produced it (kb/Work PB357) —
+    /// GR14's positive-nonzero-integer-within-the-key predicate is asked of it HERE, once, and never of a value an
+    /// emit-time narrowing has already forced into range.</param>
+    public string Start(int keyIndex, string op, string keyedRecordImage, StartKeyLength length)
     {
         if (StartOpenModeGuard() is { } notOpen) return Status = notOpen;   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent) return StartFail();                           // '23' GR5
         int keyLength = keyIndex < 0 ? _primeLen : _alts[keyIndex].Len;
-        if (compareLength < 1 || compareLength > keyLength) return StartFail();   // '23' GR14
+        if (!length.TryCompareLength(keyLength, out int compareLength)) return StartFail();   // '23' GR14
         // GR17 a)/b) — the first temporary area. KeyOf pads the area to the key's own span, so the slice is
         // always in range once GR14 above has bounded compareLength by that span.
         string value = AreaKey(keyedRecordImage, keyIndex)[..compareLength];

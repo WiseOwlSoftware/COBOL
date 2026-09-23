@@ -8,12 +8,14 @@
       *> connector implicitly — holds by construction.  Table 13 makes EC-REPORT-FILE-MODE Fatal, so under
       *> >>TURN … CHECKING ON the declarative runs and RESUME AT NEXT STATEMENT (§14.9.33) keeps the run alive.
       *>
-      *> THREE ARMS, because the rule turns on the pair (is open, in which mode) and not on either alone:
+      *> TWO ARMS, because the rule turns on the pair (is open, in which mode) and not on either alone:
       *>   1. NOT OPEN AT ALL          -> EC-REPORT-FILE-MODE.  "No action is taken on the report", so §14.9.21.4
       *>      GR4 never places it in the active state, and the TERMINATE that follows is therefore itself
       *>      unsuccessful with EC-REPORT-INACTIVE (§14.9.46.4 GR1) — the witness that GR3's "no action" held.
-      *>   2. OPEN, BUT IN THE INPUT MODE -> EC-REPORT-FILE-MODE.  An open-ness test alone would pass this.
       *>   3. OPEN OUTPUT, then OPEN EXTEND -> both legal; GR3 names the two modes and this pins BOTH.
+      *> (The former ARM 2 opened this report file INPUT, which §14.9.27.3 SR1 forbids — "The OPEN statement
+      *> for a report file shall not contain the INPUT phrase or the I-O phrase" — and which now draws
+      *> COBOLNET2371 at compile time (kb/Work PB318). It was never conforming source, so it is gone.)
       *> Before kb/Work PB326 the condition was a catalogue row with no raise site anywhere in src: every arm
       *> here INITIATEd silently and each GENERATE wrote into a connector that was not open.
       >>TURN EC-REPORT-FILE-MODE EC-REPORT-INACTIVE CHECKING ON
@@ -57,13 +59,6 @@
        ARM-1.
            INITIATE R-FM.
            TERMINATE R-FM.
-      *> ARM 2 — the connector IS open, in a mode GR3 does not permit.
-       ARM-2.
-           OPEN OUTPUT RPT.
-           CLOSE RPT.
-           OPEN INPUT RPT.
-           INITIATE R-FM.
-           CLOSE RPT.
       *> ARM 3 — the two modes GR3 does permit.
        ARM-3.
            OPEN OUTPUT RPT.

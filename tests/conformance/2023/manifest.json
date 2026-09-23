@@ -3,6 +3,7 @@
  "enabled": [
   "pb1004_gr14_implicit_push_pop_all",
   "pb964_ls_plain_write_after_after",
+  "pb330_open_single_file_imp1",
   "pb854_eop_perform_when",
   "pb941_push_pop_directive_state",
   "pb706_organization_record_sequential",

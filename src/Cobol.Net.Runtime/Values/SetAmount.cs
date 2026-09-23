@@ -38,6 +38,11 @@ public enum SetAmountLanding
 /// <para><b>It raises nothing.</b> A raise needs the format's exception-condition name, and naming one here
 /// would put the format's rule back inside the shared test — the very shape PB465 is about. Both entry points
 /// are pure functions of their argument.</para>
+///
+/// <para><b>Outside SET.</b> §14.9.41.4 GR14 asks the same integrality question of a START statement's WITH LENGTH
+/// arithmetic-expression-1 ("does not evaluate to a positive nonzero integer …"), so <c>IO.StartKeyLength</c> lands
+/// through here too and maps <see cref="SetAmountLanding.NotAnInteger"/> onto START's own '23' leg (kb/Work PB357).
+/// </para>
 /// </summary>
 public static class SetAmount
 {

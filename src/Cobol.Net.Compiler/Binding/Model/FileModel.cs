@@ -293,6 +293,10 @@ public sealed class FileModel
     /// names resolve to <see cref="ReportModel"/>s post-build (<c>DataBinder.ResolveReports</c>).</summary>
     public List<string> ReportNames { get; } = [];
 
+    /// <summary>True for a REPORT FILE — an FD whose REPORT clause names at least one report (§9.1.22,
+    /// §13.18.46). THE ONE spelling of that test.</summary>
+    public bool IsReportFile => ReportNames.Count > 0;
+
     /// <summary>The fixed <c>RECORD CONTAINS n</c> character count (ISO §13.18.43 Format 1), or null when absent
     /// or variable-length. A report file's line width prefers it over the computed field extent
     /// (COBOLNET_REPORT_WRITER_DESIGN §4).</summary>

@@ -413,9 +413,15 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             // order over the BMP repertoire §8.5.1.4 admits (CONFORMANCE.md items 33/188).
             int natBytes = NationalWindow.PositionsOf(sta.Operand!.Item) is not null
                 ? RuntimeApi.BytesPerNational : 1;
+            // ⛔ §14.9.41.4 GR14 IS ASKED OF arithmetic-expression-1 ITSELF, SO THE VALUE TRAVELS UNNARROWED
+            // (kb/Work PB357): "If arithmetic-expression-1 does not evaluate to a positive nonzero integer that is
+            // less than or equal to the length of the associated key, the I-O status value … is set to '23'". The
+            // former int cast of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1 before the connector's
+            // bound test ran, so both positioned with '00'. The lanes are LandAmount's (SetEmitter): the exact
+            // scaled Int128 with its scale, or the native double — the fraction and the magnitude both survive.
             string len = sta.Length is { } le
-                ? $"{natBytes} * (int)({NumericRenderer.Align(num.Render(le, ReceiverContext.None), 0)})"
-                : sta.Operand!.Item.ByteWidth.ToString();
+                ? StartLength(num.Landed(NumericRenderer.DeU(num.Render(le, ReceiverContext.None)), ReceiverContext.None), natBytes)
+                : RuntimeApi.StartKeyLengthWidth(sta.Operand!.Item.ByteWidth);
             string areaImage = refs.RecordArea(file) is { } ar
                 ? OperandText.RecordAreaImage(ar) : "\"\"";   // THE ONE record-area channel (kb/Work PB327)
             w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len)};");
@@ -424,6 +430,12 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, sta.InvalidKey);   // §14.9.41 GR6 — transfer per §9.1.14
     }
+
+    /// <summary>The <c>StartKeyLength</c> expression for a WITH LENGTH count already funnelled to its exact lane
+    /// (<c>Landed</c>/<c>DeU</c>): the native double, or the scaled <c>Int128</c> with its scale (kb/Work PB357).</summary>
+    private static string StartLength(NumX x, int unitWidth) =>
+        x.Real ? RuntimeApi.StartKeyLengthReal(x.Expr, unitWidth)
+        : RuntimeApi.StartKeyLengthScaled(x.Expr, $"{x.Scale}", unitWidth);
 
     // ── Shared keyed emission helpers ──────────────────────────────────────────────────────────────────────────
 

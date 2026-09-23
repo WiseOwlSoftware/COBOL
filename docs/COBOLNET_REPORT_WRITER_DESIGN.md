@@ -505,8 +505,9 @@ deep-dive table points here.
   edition that has no `>>TURN` at all — the nested GENERATE produces nothing); `2023/pb326_ec_flow_report` (its
   checked twin — the F3 declarative sees EC-FLOW-REPORT and RESUMEs); `2023/pb326_flow_report_cross_report` (the
   range is the RUN UNIT's — a GENERATE of a SECOND report from inside report R-A's declarative is refused, and
-  the same GENERATE succeeds once MAIN has left the range); `2023/pb326_ec_report_file_mode` (three arms — not
-  open, open INPUT, and the two modes §14.9.21.4 GR3 permits — with the follow-on EC-REPORT-INACTIVE proving that
+  the same GENERATE succeeds once MAIN has left the range); `2023/pb326_ec_report_file_mode` (two arms — not
+  open, and the two modes §14.9.21.4 GR3 permits; an INPUT or I-O open of a report file is not writable source,
+  §14.9.27.3 SR1 → COBOLNET2371, kb/Work PB318 — with the follow-on EC-REPORT-INACTIVE proving that
   GR3's "no action is taken" left the report inactive); `2023/pb326_ec_report_active_inactive` (GR2's "no other
   effect" witnessed by a SUM counter that keeps its total across a refused second INITIATE).
 - Corpus golden `tests/conformance/2023/rw_present_when.cob` (+`.out`, byte-exact, verified by RUNNING): the

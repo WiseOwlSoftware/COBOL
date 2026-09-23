@@ -301,7 +301,17 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // reported NEITHER.
         var kp = st.startKeyPhrase();
         string op = kp?.comparisonOperator() is { } oc ? ConditionBinder.MapOperator(oc.GetText()) : "==";   // GR8/GR15 — EQUAL
-        if (op == "!=")
+        // §14.9.41.3 SR3 has TWO halves: relational-operator "is a relational operator specified in the
+        // general-relation format of 8.8.4.2, Simple relation conditions, with the exception of the relational
+        // operators 'IS NOT EQUAL TO' or 'IS NOT='". The MEMBERSHIP half is asked of the written operator, before
+        // MapOperator folds `NOT >=` into `<` and erases the spelling (kb/Work PB333); the EXCLUSION half below.
+        if (kp?.comparisonOperator() is { } woc && !ConditionBinder.InGeneralRelationFormat(woc))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{string.Join(' ', woc.children.Select(t => t.GetText()))}' is not a relational "
+                + "operator of the general-relation format of 8.8.4.2 (ISO §14.9.41.3 SR3)");
+            op = "==";
+        }
+        else if (op == "!=")
         {
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the relational operator shall not be "
                 + "'IS NOT EQUAL TO' (ISO §14.9.41.3 SR3)");

@@ -53,6 +53,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 // ⛔ THIS IS SR8's ONLY SITE (kb/Work PB319): the rule speaks about the OPEN statement's
                 // operand, so a file control entry cannot host it. The full antecedent lives in the callee.
                 ctx.Validation.CheckOpenSharingAllOther(file, sharing ?? file.Sharing);   // SR8 — pure check
+                ctx.Validation.CheckOpenModeForFile(file, mode);                          // SR1 + SR2 — pure check (kb/Work PB318)
                 // ⛔ THE ONE READ of the per-file-name TAPE PHRASE — `openFileSpec`'s
                 // `(REVERSED | WITH? NO REWIND)?` alternation, which §14.9.27.2 prints as one bracket beside
                 // each file-name. BOTH alternatives land in ONE enum slot on the bound entry, because the

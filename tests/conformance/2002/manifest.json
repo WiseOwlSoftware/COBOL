@@ -107,6 +107,8 @@
     "pb695_initialize_optional_words",
     "pb695_value_false_optional_words",
     "pb332_start_length_optional_with",
+    "pb357_start_length_not_integer",
+    "pb318_open_extend_sequential_access",
     "pb673_oo_factory_linage",
     "pb321_table19_open_arbitration",
     "pb623_float_landing_exact",

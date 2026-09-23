@@ -1229,6 +1229,50 @@ internal sealed class StatementValidation(DataBinder data)
         return true;
     }
 
+    /// <summary>⛔ THE ONE SCREEN for the OPEN statement's syntax rules that pair a group's OPEN MODE with a
+    /// property of the FILE (kb/Work PB318) — the two rules that had no site at all:
+    /// <list type="bullet">
+    /// <item>§14.9.27.3 SR1 — <i>"The OPEN statement for a report file shall not contain the INPUT phrase or the
+    /// I-O phrase."</i> §13.18.46.3 SR3 states the same boundary from the file's side ("the OPEN statement with the
+    /// OUTPUT or EXTEND phrase").</item>
+    /// <item>§14.9.27.3 SR2 — <i>"The EXTEND phrase shall be specified only if the access mode of the file
+    /// connector referenced by file-name-1 is sequential and the LINAGE clause is not specified in the file
+    /// description entry for file-name-1."</i> ONE sentence, TWO conjuncts, and it keys on the ACCESS MODE, not the
+    /// organization, so EXTEND stays legal on a relative or indexed file with ACCESS MODE IS SEQUENTIAL. Both
+    /// conjuncts are reported when both fail — every rule a statement violates is reported (kb/Work PB352).</item>
+    /// </list>
+    /// The rules that pair the TAPE PHRASE with the mode (SR5/SR6) are <see cref="CheckOpenTapePhrase"/>'s; SR8 is
+    /// <see cref="CheckOpenSharingAllOther"/>'s; SR9 (I-O with a FORMAT clause) is discharged by the FORMAT
+    /// clause's documented non-support (Annex A.4.8). Pure: false when a rule was violated and reported; the
+    /// statement still binds (a screen, not a branch — the compile has already failed).</summary>
+    public bool CheckOpenModeForFile(FileModel file, BoundOpenMode mode)
+    {
+        bool ok = true;
+        if (file.IsReportFile && mode is BoundOpenMode.Input or BoundOpenMode.IO)
+        {
+            data.Edition.Error(DiagnosticCatalog.OpenReportFileMode,
+                $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — a report file shall not be opened INPUT or I-O "
+                + "(ISO §14.9.27.3 SR1; §13.18.46.3 SR3)");
+            ok = false;
+        }
+        if (mode is BoundOpenMode.Extend && file.AccessMode is not FileAccessMode.Sequential)
+        {
+            data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
+                $"OPEN EXTEND '{file.CobolName}' — the file's access mode is "
+                + $"{file.AccessMode.ToString().ToUpperInvariant()}; EXTEND requires sequential access "
+                + "(ISO §14.9.27.3 SR2)");
+            ok = false;
+        }
+        if (mode is BoundOpenMode.Extend && file.Linage is not null)
+        {
+            data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
+                $"OPEN EXTEND '{file.CobolName}' — the file description entry specifies a LINAGE clause, which "
+                + "EXTEND does not admit (ISO §14.9.27.3 SR2)");
+            ok = false;
+        }
+        return ok;
+    }
+
     /// <summary>The written form of an open mode, for a diagnostic (§14.9.27.2's four phrase words).</summary>
     private static string OpenModeFace(BoundOpenMode mode) => mode switch
     {

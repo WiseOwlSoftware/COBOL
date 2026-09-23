@@ -1594,7 +1594,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §13.4.5.3 SR8: "No record description entries or constant entries shall be associated with the file
         // description entry for a report file." — a report file's area is the report engine's line, and
         // §13.18.43.3 SR1 excludes it from the RECORD-clause requirement by name. Nothing to synthesize.
-        if (file.ReportNames.Count > 0) return;
+        if (file.IsReportFile) return;
         // §13.4.5.3 SR7 withdraws SR3's permission for an INDEXED file. Rejecting is the whole repair: a prime
         // RECORD KEY has to be locatable in a record image (§12.4.5.12.3 SR2), which is why the emitter's
         // fallback for an unlocatable key was a run-time abort — the compiler announcing the SOURCE's error.

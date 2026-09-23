@@ -1042,8 +1042,25 @@ internal static class RuntimeApi
     /// moving the relevant parts of the record area into a temporary data area", so the connector slices the key
     /// of reference out of the area exactly as the random READ and DELETE do (kb/Work PB355). NOT data-name-1's
     /// own rendering: that agreed with the rule only until <paramref name="len"/> reached past it.</param>
+    /// <param name="len">A <see cref="StartKeyLength"/> expression (<see cref="StartKeyLengthScaled"/> /
+    /// <see cref="StartKeyLengthReal"/> / <see cref="StartKeyLengthWidth"/>) — never a pre-narrowed <c>int</c>
+    /// (kb/Work PB357).</param>
     public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string recordAreaImage, string len) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {recordAreaImage}, {len})";
+
+    /// <summary>START WITH LENGTH arithmetic-expression-1 on the exact fixed-point lane (§14.9.41.4 GR14 —
+    /// <c>StartKeyLength.OfScaled</c>): the scaled <c>Int128</c> and its scale travel intact, so the connector's
+    /// integrality and range test sees the value the source computed.</summary>
+    public static string StartKeyLengthScaled(string scaled, string scale, int unitWidth) =>
+        $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfScaled)}((System.Int128)({scaled}), {scale}, {unitWidth})";
+
+    /// <summary>The native-float lane of <see cref="StartKeyLengthScaled"/> — <c>StartKeyLength.OfReal</c>.</summary>
+    public static string StartKeyLengthReal(string value, int unitWidth) =>
+        $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfReal)}((double)({value}), {unitWidth})";
+
+    /// <summary>No WITH LENGTH phrase — GR17 b)'s "or else the length of data-name-1" (<c>StartKeyLength.OfWidth</c>).</summary>
+    public static string StartKeyLengthWidth(int storageWidth) =>
+        $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfWidth)}({storageWidth})";
 
     // ⛔ NO MODE-SPECIFIC "IMPLICIT OPEN" RENDERER LIVES HERE. `FileOpenInput` / `FileOpenOutput` used to, for
     // the SORT/MERGE USING and GIVING transfers alone, and their whole defect was the parameter they did NOT

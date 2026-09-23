@@ -72,7 +72,8 @@ public sealed class StartTemporaryKeyAreaDriftTests
     /// rendering — the name is the contract the three key-valued verbs share (<c>ReadKeyed</c> and the keyed
     /// <c>Delete</c> spell it the same way).</summary>
     internal static bool StartTakesTheRecordAreaImage(string source) =>
-        source.Contains("public string Start(int keyIndex, string op, string keyedRecordImage, int compareLength)",
+        // Matched up to the comparand only: the LENGTH parameter's type is PB357's (StartKeyLength), not this file's.
+        source.Contains("public string Start(int keyIndex, string op, string keyedRecordImage, ",
             StringComparison.Ordinal);
 
     /// <summary>True when the emitter hands <c>FileStartIndexed</c> the RECORD AREA (through

@@ -293,24 +293,31 @@ internal sealed partial class EcBinder
         foreach (var cl in regionA.SelectMany(Descendants<Core.CloseStatementContext>).Where(s => s.closeFilePhrase().Length > 1))
             ctx.Edition.Error("COBOLNET1612", "a multi-file CLOSE shall not appear in imperative-statement-1 of an "
                 + "exception-checking PERFORM (ISO §14.9.6.3 SR3)");
-        foreach (var ini in regionA.SelectMany(Descendants<Core.InitializeStatementContext>))
-        {
-            var names = ini.initializeOperandList().dataReference().Select(d => d.GetText().ToUpperInvariant()).ToList();
-            foreach (var dup in names.GroupBy(n => n).Where(g => g.Count() > 1))
-                ctx.Edition.Error("COBOLNET1614", $"identifier '{dup.Key}' is specified more than once in an "
-                    + "INITIALIZE in imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.20.3 SR2)");
-        }
+        // ⛔ §14.9.20.3 SR2 AND §14.9.27.3 SR3 COUNT THE METAVARIABLE'S OCCURRENCES, NOT REPEATED VALUES
+        // (kb/Work PB330, PB417). "Identifier-1 shall be specified only once" and "An OPEN statement that
+        // specifies file-name-1 more than once" speak of the FORMAT TERM, which the general format repeats with
+        // its ellipsis — the statement's own general rules use the same words for the multi-operand form:
+        // §14.9.20.4 GR3 "If more than one identifier-1 is specified in an INITIALIZE statement" and §14.9.27.4
+        // GR20 "If more than one file-name is specified in an OPEN statement", each expanding into separate
+        // implicit statements. That is the family's shape — CLOSE (§14.9.6.3 SR3), DELETE FILE (§14.9.10.3 SR4),
+        // INITIATE, TERMINATE and VALIDATE all ban the MULTI-OPERAND statement — and its purpose: an unsuccessful
+        // implicit statement transfers control to the WHEN phrase and abandons the rest. Both checks used to
+        // group the operands' parse TEXT for duplicates, so `INITIALIZE N M` and `OPEN OUTPUT F1 F2` compiled,
+        // and one item spelled two ways (`N OF G` / `N IN G`) slipped past even the duplicate reading. A
+        // duplicate is still rejected: it is one case of "more than once".
+        foreach (var ini in regionA.SelectMany(Descendants<Core.InitializeStatementContext>)
+                     .Where(s => s.initializeOperandList().dataReference().Length > 1))
+            ctx.Edition.Error("COBOLNET1614", "an INITIALIZE naming more than one identifier-1 shall not appear in "
+                + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.20.3 SR2)");
         foreach (var _ in regionA.SelectMany(Descendants<Core.MergeStatementContext>))
             ctx.Edition.Error("COBOLNET1615", "MERGE shall not appear in imperative-statement-1 of an "
                 + "exception-checking PERFORM (ISO §14.9.24.3 SR1)");
-        foreach (var op in regionA.SelectMany(Descendants<Core.OpenStatementContext>))
-        {
-            var names = op.openClause().SelectMany(oc => oc.openFileSpec())
-                .Select(fs => fs.dataReference().GetText().ToUpperInvariant()).ToList();
-            foreach (var dup in names.GroupBy(n => n).Where(g => g.Count() > 1))
-                ctx.Edition.Error("COBOLNET1616", $"file-name '{dup.Key}' is specified more than once in an OPEN in "
-                    + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.27.3 SR3)");
-        }
+        // Counted over EVERY open-mode group: the outer ellipsis repeats the whole group, so file-name-1 is
+        // specified more than once whenever the statement names two file-names in any groups (see above).
+        foreach (var _ in regionA.SelectMany(Descendants<Core.OpenStatementContext>)
+                     .Where(s => s.openClause().Sum(oc => oc.openFileSpec().Length) > 1))
+            ctx.Edition.Error("COBOLNET1616", "an OPEN naming more than one file-name shall not appear in "
+                + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.27.3 SR3)");
         foreach (var _ in regionA.SelectMany(Descendants<Core.SortStatementContext>))
             ctx.Edition.Error("COBOLNET1617", "SORT shall not appear in imperative-statement-1 of an "
                 + "exception-checking PERFORM (ISO §14.9.40.3 SR3)");

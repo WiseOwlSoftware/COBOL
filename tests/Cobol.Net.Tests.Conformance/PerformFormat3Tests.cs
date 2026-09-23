@@ -63,6 +63,30 @@ public sealed class PerformFormat3Tests
     public void OpenDupInImp1_Rejected1616() =>
         AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 F1\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1616");
 
+    // kb/Work PB330 / PB417 — §14.9.27.3 SR3 and §14.9.20.3 SR2 ban the MULTI-OPERAND statement (their own
+    // §14.9.27.4 GR20 / §14.9.20.4 GR3 say "more than one file-name / identifier-1 is specified"), so two
+    // DIFFERENT operands are rejected too, across open-mode groups as well as inside one.
+    [Fact]
+    public void MultiFileOpenInImp1_Rejected1616() =>
+        AssertRejects(ProgFiles("    PERFORM\n        OPEN OUTPUT F1 F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1616");
+
+    [Fact]
+    public void MultiGroupOpenInImp1_Rejected1616() =>
+        AssertRejects(ProgFiles("    PERFORM\n        OPEN INPUT F1 OUTPUT F2\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1616");
+
+    [Fact]
+    public void MultiIdentifierInitializeInImp1_Rejected1614() =>
+        AssertRejects(Prog("    PERFORM\n        INITIALIZE N M\n    WHEN EC-SIZE DISPLAY \"x\"\n    END-PERFORM.\n    STOP RUN."), "COBOLNET1614");
+
+    [Fact] // the ban is region A only: one operand in imp-1, several in a WHEN body, compile clean
+    public void SingleOperandInImp1_MultiInWhenBody_Accepted()
+    {
+        var (ok, diag) = EditionHarness.Compile(ProgFiles(
+            "    PERFORM\n        OPEN OUTPUT F1\n        INITIALIZE N\n    WHEN EC-SIZE OPEN OUTPUT F1 F2\n"
+            + "    END-PERFORM.\n    STOP RUN."), 2023);
+        Assert.True(ok, "a single-operand OPEN / INITIALIZE in imperative-statement-1 is conforming: " + string.Join(" | ", diag));
+    }
+
     [Fact] // XS-SORT (region A) — any SORT in imperative-statement-1
     public void SortInImp1_Rejected1617()
     {
