@@ -111,7 +111,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     : item.functionCall() is { } ifc ? host.Intrinsic.IntrinsicOperand(ifc)
                     : lit is not null ? host.Expr.LiteralOperand(lit)
                     : item.dataReference() is { } sref ? host.Expr.FieldOperand(sref)
-                    : new BoundOperandError("INITIALIZE REPLACING sending operand");
+                    : BoundOperandError.Refused(ctx.Edition, "INITIALIZE REPLACING sending operand");
                 // ISO §14.9.20.3 SR3 — "for each DATA-POINTER, FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE,
                 // or PROGRAM-POINTER phrase specified as the category-name in the REPLACING phrase, identifier-2
                 // shall be specified". literal-1 is what the rule excludes, and it excludes it because GR4 makes

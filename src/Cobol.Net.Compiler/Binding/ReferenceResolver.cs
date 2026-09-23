@@ -272,7 +272,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>The COBOLNET1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
     /// ambiguity defeat resolution (§8.4.2.2 — qualification shall establish uniqueness).</summary>
-    private void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
+    internal void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
         if (!_diagnosed.Add(dref)) return;
         // kb/Work R32 — a name DECLARED in the SCREEN SECTION is not undefined. Since kb/Work PB260 the

@@ -101,8 +101,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (fig.allLiteral() is { } al && al.allLiteralOperand().All(o => o.BOOLLIT() is not null))   // ALL B"…" (a concatenated literal-1 folds — kb/Work PB71)
                 return new BoundBoolAll(string.Concat(al.allLiteralOperand().Select(o => CobolLiteral.Decode(o.GetText()))),
                     IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)
-            return new BoundBoolError($"figurative constant '{fig.GetText()}' in a boolean expression "
-                + "(ISO §8.8.2 — only ZERO and ALL B\"…\" are boolean figuratives)");
+            // kb/Work PB1029 — this refusal carried no diagnostic (`COMPUTE B = B B-AND SPACE` compiled clean and
+            // aborted the run unit); it is the §8.8.2 operand list's figurative half, reported as its siblings are.
+            ctx.Edition.Error("COBOLNET1511", $"'{fig.GetText()}' is not a valid boolean operand — the only figurative "
+                + "constants a boolean expression admits are ZERO (ZEROS, ZEROES) and ALL literal where the literal is a "
+                + "boolean literal (ISO §8.8.2)");
+            return BoundBoolError.Refused(ctx.Edition, $"figurative constant '{fig.GetText()}' in a boolean expression "
+                + "(ISO §8.8.2)");
         }
         // A sole data reference to a category-boolean item.
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && host.Expr.ResolveSending(dref) is { } p)
@@ -113,7 +118,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
             ctx.Edition.Error("COBOLNET1511", $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is not a "
                 + "boolean data item (ISO §8.8.2 — boolean operands only)");
-            return new BoundBoolError($"non-boolean operand '{DataBinder.WrittenText(dref)}'");
+            return BoundBoolError.Refused(ctx.Edition, $"non-boolean operand '{DataBinder.WrittenText(dref)}'");
         }
         // A sole FUNCTION reference whose result is class boolean — §8.8.2's "an identifier referencing a boolean
         // data item": a function-identifier IS an identifier (§8.4.3.1.2) referencing a temporary data item
@@ -123,15 +128,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             var bound = host.Intrinsic.BindIntrinsic(fc);
             if (bound is BoundIntrinsicCall { ResultCategory: PicCategory.Boolean } bic) return new BoundBoolCall(bic);
-            if (bound is BoundExprError err) return new BoundBoolError(err.Feature);   // already loud
+            if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
             ctx.Edition.Error("COBOLNET1511", $"operand '{fc.GetText()}' in a boolean expression is not a "
                 + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
-            return new BoundBoolError($"non-boolean function operand '{fc.GetText()}'");
+            return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{fc.GetText()}'");
         }
         ctx.Edition.Error("COBOLNET1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §8.8.2)");
-        return new BoundBoolError($"boolean operand '{vo.GetText()}'");
+        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{vo.GetText()}'");
     }
 
     /// <summary>True when a <c>comparisonOperand</c> / <c>valueOperand</c> is a BOOLEAN-valued operand — a
@@ -279,7 +284,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // Defensive: a B-op-free bare operand (the predicate should have excluded it) unwraps to the normal
         // sole-operand resolution.
         var vo = UnwrapBareBool(be[0]);
-        return BindSoleOperandCondition(vo, () => vo is not null ? ComparisonOperandOf(vo) : new BoundOperandError("operand"), carry);
+        return BindSoleOperandCondition(vo, () => vo is not null ? ComparisonOperandOf(vo) : BoundOperandError.Refused(ctx.Edition, "operand"), carry);
     }
 
     /// <summary>Bind a boolean-expression RELATION operand: a real boolean expression (contains a B-op) →
@@ -900,10 +905,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// holds every other <c>Refused(</c> out of the compiler.</summary>
     internal BoundConditionError Refused(string feature)
     {
-        if (!ctx.Edition.HasErrors)
-            ctx.Edition.Error(DiagnosticCatalog.UnreportedConditionRefusal,
-                $"the condition form {feature} was refused without a diagnostic naming the rule it breaks; "
-                + "this is a COBOL.NET internal error — please report it with the source that produced it");
+        ctx.Edition.NoteRefusal(DiagnosticCatalog.UnreportedConditionRefusal, $"the condition form {feature}");
         return new BoundConditionError(feature);
     }
 
@@ -1100,7 +1102,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand) =>
         operand.addressIdentifier() is { } ai
             ? host.Ptr.BindAddressIdentifier(ai, "a relation condition") as BoundOperand
-              ?? new BoundOperandError($"address-identifier '{DataBinder.WrittenText(ai)}'")
+              ?? BoundOperandError.Refused(ctx.Edition, $"address-identifier '{DataBinder.WrittenText(ai)}'")
             : ComparisonOperandOf(operand.valueOperand());
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand (the shared body of <see cref="ComparisonOperand"/>
@@ -1139,7 +1141,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 // computed wrapper would compare an alphanumeric/national result NUMERICALLY. Numeric
                 // renderings are identical either way (AsNum unwraps both to the same FieldNum read).
                 : IntrinsicBinder.OperandOf(host.Expr.BindIndexWindowExpr(expr));   // a relation operand — an r7 window (kb/Work R29)
-        return new BoundOperandError("comparison operand");
+        return BoundOperandError.Refused(ctx.Edition, "comparison operand");
     }
 
     /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §8.4.2.2 Format 2: a

@@ -165,9 +165,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // group AND contains the cursor".
         if (ctx.Enclosing.Declarative?.ReportGroup is not { } group)
         {
-            ctx.Edition.Error(DiagnosticCatalog.ReportSuppressContext,
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReportSuppressContext,
                 "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         var report = ctx.Data.Reports.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report);
@@ -188,7 +187,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
         return CounterReportOf(dref, reg) is { } report
             ? new BoundReportCounterRef(report, isPage)
-            : new BoundExprError($"{reg} reference '{DataBinder.WrittenText(dref)}'");
+            : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
 
     /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §8.4.3.15.3

@@ -54,35 +54,32 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             var oref = r.objectReference();
             if (oref.NULL_() is not null || oref.SUPER() is not null)
             {
-                ctx.Edition.Error("COBOLNET0848",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
                     $"RAISE {(oref.NULL_() is not null ? "NULL" : "SUPER")}: NULL and SUPER shall not be "
                     + "specified as the raised object (ISO §14.9.29.3 SR2)");
-                return new BoundNop();
             }
             ctx.EcState.Raise = true;   // the machinery gate — the object channel is live once used
             if (oref.SELF() is not null)
             {
                 if (!host.InMethod)
                 {
-                    ctx.Edition.Error("COBOLNET0848",
+                    return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
                         "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8.3 SR1)");
-                    return new BoundNop();
                 }
                 return new BoundRaiseObject(null);
             }
             if (host.Expr.ResolveSending(oref.dataReference()!) is not { } op
                 || op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
-                ctx.Edition.Error("COBOLNET0848",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
                     $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §14.9.29.3 SR2)");
-                return new BoundNop();
             }
             return new BoundRaiseObject(op);
         }
 
         if (EcResolveLevel3(ecWord.GetText(), EcRaiseSite.Raise) is not { } info)
-            return new BoundNop();   // diagnosed — fail the compile, bind a placeholder
+            return BoundRejected.Reported(ctx.Edition);   // diagnosed — fail the compile, bind a placeholder
         ctx.EcState.Raise = true;
         int line = r.Start.Line;
         bool enabled = ctx.EcState.Turn.Enabled(info.Name, null, line);
@@ -116,25 +113,22 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.EcState.Resume = true;
             if (r.NEXT() is not null) return new BoundResume(ResumeSignal.NextStatement);
-            ctx.Edition.Error("COBOLNET1610", "RESUME in a WHEN phrase of an exception-checking PERFORM shall "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET1610", "RESUME in a WHEN phrase of an exception-checking PERFORM shall "
                 + "specify NEXT STATEMENT (ISO §14.9.33.3 SR1)");
-            return new BoundNop();
         }
         if (where.Declarative is not { } decl)
         {
             // XS-RESUME-PLACEMENT (§14.9.28.3): a RESUME in imperative-statement-1 or FINALLY of an F3 PERFORM
             // (neither a declarative nor a WHEN phrase) lands here too — the same "declarative or WHEN only" rule.
-            ctx.Edition.Error("COBOLNET0712", "RESUME may be specified only in a declarative or a WHEN phrase of "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0712", "RESUME may be specified only in a declarative or a WHEN phrase of "
                 + "an exception-checking PERFORM (ISO §14.9.33.3 SR1)");
-            return new BoundNop();
         }
         // SR2 — not in a GLOBAL-phrase declarative (a RESUME executed within a global declarative's DYNAMIC
         // scope is CONTINUE, GR1 — realized by __RunGlobalUse swallowing the signal; the STATIC case rejects).
         if (decl.Global)
         {
-            ctx.Edition.Error("COBOLNET0713", "RESUME shall not be specified in a declarative procedure whose "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0713", "RESUME shall not be specified in a declarative procedure whose "
                 + "USE statement carries the GLOBAL phrase (ISO §14.9.33.3 SR2)");
-            return new BoundNop();
         }
         ctx.EcState.Resume = true;
         if (r.NEXT() is not null) return new BoundResume(ResumeSignal.NextStatement);
@@ -144,7 +138,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // An unresolvable procedure-name is the ONE operand resolution's verdict, reported at COMPILE time
         // (kb/Work PB390) — never a BoundUnsupported claiming COBOL.NET has not implemented RESUME.
         if (ctx.Table.ResolveProcedureOperand(pn, "RESUME AT") is not { } target)
-            return new BoundNop();
+            return BoundRejected.Reported(ctx.Edition);
         // ⛔ THE RESOLUTION CARRIES THE SECTION, SO THE RULE ASKS THE RULE'S OWN QUESTION (kb/Work PB433).
         // This used to read `target.Start < ctx.Table.EntryPc` — pc arithmetic re-deriving "is this procedure
         // declarative?" from the layout choice that declarative paragraphs occupy the low pcs. §14.9.33.3 SR3
@@ -152,9 +146,8 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // declaratives portion consists of sections), and that is now what the resolution hands over.
         if (target.IsDeclarative)
         {
-            ctx.Edition.Error("COBOLNET0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
                 + "nondeclarative portion of the program (ISO §14.9.33.3 SR3)");
-            return new BoundNop();
         }
         return new BoundResume(target.Range.Start);   // GR3 — as if GO TO procedure-name-1
     }

@@ -30,13 +30,17 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// is exactly the job PB236 left the carrier.</para></summary>
     /// <param name="dref">identifier-1 as written.</param>
     /// <param name="verb">"SEARCH" or "SEARCH ALL".</param>
-    /// <param name="bail">What to bind INSTEAD when this returns null: a <c>BoundNop</c> after a reported syntax
+    /// <param name="bail">What to bind INSTEAD when this returns null: a <c>BoundRejected</c> after a reported syntax
     /// rule (the compile has already failed — ISO §4.2.2 ¶2), or the nested-dynamic deferral.</param>
     /// <returns>The table identifier-1 names, or null.</returns>
     private DataItem? Identifier1(Core.DataReferenceContext dref, string verb, out BoundStatement bail)
     {
-        bail = new BoundNop();
-        if (ctx.Validation.ResolveSearchTable(dref, verb, ctx.Refs) is not { } table) return null;   // fixed OR dynamic (D9)
+        bail = null!;   // assigned on each null return below — a refusal is put on the ledger only when it is one (PB1029)
+        if (ctx.Validation.ResolveSearchTable(dref, verb, ctx.Refs) is not { } table)   // fixed OR dynamic (D9)
+        {
+            bail = BoundRejected.Reported(ctx.Edition);
+            return null;
+        }
         // A dynamic table NESTED under another table has no whole-table path (TablePath null), so the AT-END bound
         // (§8.5.1.9.1 current capacity) and the EnterSearch/ExitSearch bracket cannot be addressed by name — a
         // subscripted capacity path over the enclosing indices is a later increment. Reject rather than let
@@ -101,10 +105,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                         + "§14.9.37.3 SR5 prohibits");
                     admitted = false;
                 }
-                if (!admitted) return new BoundNop();
+                if (!admitted) return BoundRejected.Reported(ctx.Edition);
                 also = new SetPlaceTarget(p);
             }
-            else return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
+            else return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         }
 
         List<BoundStatement>? atEnd = null;

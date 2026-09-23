@@ -153,23 +153,20 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (target.dataReference() is not { } uref || host.Expr.ResolveSending(uref) is not { } urecv
                 || urecv.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectRef.IsUniversal: true })
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     "INVOKE: identifier-2 (a method name held in a data item) is permitted only when "
                     + "identifier-1 is a UNIVERSAL object reference (ISO §14.9.23.3 SR7)");
-                return new BoundNop();
             }
             if (host.Expr.ResolveSending(mref) is not { } msrc)
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE: the method-name identifier '{mref.GetText()}' is not resolvable to storage");
-                return new BoundNop();
             }
             if (msrc.Item.Pic?.Category is not PicCategory.Alphanumeric && !msrc.Item.IsGroup)
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE: identifier-2 ('{mref.GetText()}') shall be of class alphanumeric "
                     + "(ISO §14.9.23.3 SR8; national identifier-2 is a later refinement)");
-                return new BoundNop();
             }
             return OoBindUniversalInvoke(site, urecv, methodLiteral: null, methodSource: msrc);
         }
@@ -182,16 +179,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             : OoDecodeMethodNameLiteral(mnLit);
         if (methodName is null)
         {
-            ctx.Edition.Error("COBOLNET0823",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0823",
                 "INVOKE: literal-1 (the method name) shall be of class alphanumeric or national "
                 + "(ISO §14.9.23.3 SR2)");
-            return new BoundNop();
         }
         if (methodName.Length == 0)
         {
-            ctx.Edition.Error("COBOLNET0823",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0823",
                 "INVOKE: literal-1 shall not be a zero-length literal (ISO §14.9.23.3 SR2)");
-            return new BoundNop();
         }
 
         // ⛔ THE RECEIVER DISPATCH IS SHARED WITH THE INLINE FORM (kb/Work PB428): §8.4.3.4.4 GR1 says an
@@ -215,10 +210,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             bool isSuper = target.SUPER() is not null;
             if (!host.InMethod || host.OoCurrentClass is not { } cur)
             {
-                ctx.Edition.Error("COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} may be specified only within a method definition "
                     + "(ISO §8.4.3.8.3 SR1 — the predefined object references of the current object)");
-                return new BoundNop();
             }
             // In a FACTORY method, SELF|SUPER "NEW" is the ACTIVE-CLASS creation (§16.2.1.2 GR1 — the
             // BaseFactoryInterface's New): bind InvokeForm.NewSelf → `this.__New()` (covariant per class;
@@ -228,26 +222,23 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 if (site.ArgsWritten)
                 {
-                    ctx.Edition.Error("COBOLNET0826",
+                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                         "INVOKE SELF/SUPER \"NEW\": the predefined NEW method takes no USING arguments "
                         + "(ISO §16.2.1)");
-                    return new BoundNop();
                 }
                 if (site.ReturningRef is not { } nrRef)
                 {
-                    ctx.Edition.Error("COBOLNET0826",
+                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                         "INVOKE SELF/SUPER \"NEW\" without RETURNING — the created object would be lost "
                         + "(ISO §16.2.1/§14.9.23.4 GR8)");
-                    return new BoundNop();
                 }
                 if (host.Expr.ResolveReceiving(nrRef) is not { } nret)
-                    return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
+                    return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
                 if (nret.Item.Pic is not { Category: PicCategory.ObjectReference } nrp)
                 {
-                    ctx.Edition.Error("COBOLNET0826",
+                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                         $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': the receiving item shall "
                         + "be a USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8)");
-                    return new BoundNop();
                 }
                 // §16.2.1.2 GR1: New "returns a reference to the created object", and through SELF|SUPER the
                 // creating factory object is polymorphic (§14.9.23.3 SR4f), so the created object is of the
@@ -258,9 +249,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses,
                         PicInfo.ObjectReferenceItem(ObjectRefDescriptor.ActiveClass(cur.Name)), nrp) is { } nwerr)
                 {
-                    ctx.Edition.Error("COBOLNET0826",
+                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                         $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': {nwerr} (ISO §14.8)");
-                    return new BoundNop();
                 }
                 return new BoundInvoke(InvokeForm.NewSelf, cur.CsName, null, null, nret);
             }
@@ -273,31 +263,28 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 // Trap #7 — SUPER in a root class is a clean compile diagnostic, never an internal error
                 // (applies identically to the FACTORY flavor).
-                ctx.Edition.Error("COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                     $"INVOKE SUPER in class '{cur.Name}', which INHERITS from no class (ISO §8.4.3.8 — SUPER "
                     + "references the inherited class's methods)");
-                return new BoundNop();
             }
             // Roster selection by CONTEXT (§14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
             // over the FACTORY interface; an instance method's over the instance interface.
             var sm = host.OoInFactory ? searchRoot.FindFactoryMethod(methodName) : searchRoot.FindMethod(methodName);
             if (sm is null)
             {
-                ctx.Edition.Error("COBOLNET0825",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} \"{methodName}\": class '{searchRoot.Name}' (and "
                     + $"its inheritance chain) does not define a{(host.OoInFactory ? " factory" : "n instance")} "
                     + "method named '" + methodName + "' "
                     + "(ISO §14.9.23.3 SR4f–SR4i — the SELF/SUPER method-name placement rules)");
-                return new BoundNop();
             }
             return OoBindResolvedInvoke(site, sm, isSuper ? InvokeForm.Super : InvokeForm.Self, null);
         }
         if (target.dataReference() is not { } dref)
         {
-            ctx.Edition.Error("COBOLNET0823",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0823",
                 "INVOKE NULL: the receiver shall be an object-reference identifier or a class-name "
                 + "(ISO §14.9.23.3 — the predefined NULL object reference cannot be a receiver)");
-            return new BoundNop();
         }
 
         // identifier-1 vs class-name-1 (§14.9.23.2): resolve as a data item first (a data-name shadows);
@@ -312,10 +299,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(),
                 Compiler.Oo.OoNameResolution.Want.Class).Class is { } cls)
             return OoBindClassInvoke(site, cls, methodName);
-        ctx.Edition.Error("COBOLNET0823",
+        return BoundRejected.Report(ctx.Edition, "COBOLNET0823",
             $"INVOKE: '{DataBinder.WrittenText(dref)}' is neither a resolvable data item nor a class this source element "
             + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
-        return new BoundNop();
     }
 
     /// <summary><c>INVOKE class-name-1 …</c>: the predefined NEW (§16.2.1) → the generated ctor; any other
@@ -332,18 +318,16 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 var bound = OoBindResolvedInvoke(site, fm, InvokeForm.Factory, null);
                 return bound is BoundInvoke bi ? bi with { ClassCsName = cls.CsName } : bound;
             }
-            ctx.Edition.Error("COBOLNET0825",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
                 $"INVOKE {cls.Name} \"{method}\": class '{cls.Name}' (and its inheritance chain) does not "
                 + "define a FACTORY method named '" + method + "' (ISO §14.9.23.3 SR3 — literal-1 shall name "
                 + "a method of the factory interface; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
-            return new BoundNop();
         }
         if (site.ArgsWritten)
         {
-            ctx.Edition.Error("COBOLNET0826",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\": the predefined NEW method takes no USING arguments "
                 + "(ISO §16.2.1 — its only result is the new object reference)");
-            return new BoundNop();
         }
         if (site.ReturningRef is not { } retRef)
         {
@@ -352,19 +336,17 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // referenced"), so NEW delivers into the §8.4.3.4.4 GR1 c) temporary instead.
             if (site.ReturningImplicit)
                 return OoBindImplicitNew(site, cls);
-            ctx.Edition.Error("COBOLNET0826",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\" without RETURNING — the created object would be lost; NEW's "
                 + "result is delivered only through the RETURNING identifier (ISO §16.2.1/§14.9.23.4 GR8)");
-            return new BoundNop();
         }
         if (host.Expr.ResolveReceiving(retRef) is not { } ret)
-            return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
+            return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (ret.Item.Pic is not { Category: PicCategory.ObjectReference } retPic)
         {
-            ctx.Edition.Error("COBOLNET0826",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': the receiving item shall be a "
                 + "USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8 / §14.8 conformance)");
-            return new BoundNop();
         }
         // Receiver conformance (§14.8.3.3 rule 1 — the RETURNING delivery follows the SET rules): the ONE
         // OoConformance.ObjectRefAssignmentMismatch table. §16.2.1.2 GR1 makes the created object an instance
@@ -374,9 +356,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 PicInfo.ObjectReferenceItem(ObjectRefDescriptor.ObjectClass(cls.Name, factory: false, only: true)),
                 retPic) is { } werr)
         {
-            ctx.Edition.Error("COBOLNET0826",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': {werr} (ISO §14.8)");
-            return new BoundNop();
         }
         return new BoundInvoke(InvokeForm.New, cls.CsName, null, null, ret);
     }
@@ -388,10 +369,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     {
         if (receiver.Item.Pic is not { Category: PicCategory.ObjectReference } pic)
         {
-            ctx.Edition.Error("COBOLNET0824",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0824",
                 $"INVOKE '{receiver.Item.CobolName}': identifier-1 shall be a USAGE OBJECT REFERENCE data "
                 + "item (ISO §14.9.23.3 SR3)");
-            return new BoundNop();
         }
         // The receiver's §13.18.60.2 DESCRIPTION picks the roster (kb/Work PB389): universal → the dynamic
         // path; interface-name → the interface's prototype closure; object-class-name or ACTIVE-CLASS → the
@@ -410,11 +390,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 .FirstOrDefault(pm => string.Equals(pm.Name, method, StringComparison.OrdinalIgnoreCase));
             if (proto is null)
             {
-                ctx.Edition.Error("COBOLNET0825",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
                     $"INVOKE '{receiver.Item.CobolName}' \"{method}\": interface '{recvIface.Name}' (and "
                     + "its INHERITS closure) does not declare a method named '" + method + "' "
                     + "(ISO §14.9.23.3 SR4e)");
-                return new BoundNop();
             }
             var ibound = OoBindResolvedInvoke(site, proto, InvokeForm.Instance, receiver);
             return ibound is BoundInvoke ibi ? ibi with { OwnerCsName = recvIface.CsName } : ibound;
@@ -422,10 +401,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (host.OoClasses?.Find(className) is not { } cls)
         {
             // Unreachable when DataBinder validated the declared class (COBOLNET0813) — defensive, loud.
-            ctx.Edition.Error("COBOLNET0813",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0813",
                 $"INVOKE '{receiver.Item.CobolName}': its declared class '{className}' is not a class of the "
                 + "compilation group (ISO §13.18.60.4)");
-            return new BoundNop();
         }
         // §9.3.6: a class has TWO separate method interfaces, and which one a receiver selects is the FACTORY
         // axis of its own description — a FACTORY-OF reference holds the factory object (§13.18.60.4 GR22 d)1.a.)
@@ -439,12 +417,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                   + "§9.3.6, and this receiver's description selects the "
                   + (rdesc.Factory ? "factory" : "instance") + " one)"
                 : "";
-            ctx.Edition.Error("COBOLNET0825",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
                 $"INVOKE '{receiver.Item.CobolName}' \"{method}\": class '{cls.Name}' (and its inheritance "
                 + $"chain) does not define {(rdesc.Factory ? "a factory" : "an instance")} method named '"
                 + method + "' (ISO §14.9.23.3 SR4d — compile-time "
                 + $"for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b){hint}");
-            return new BoundNop();
         }
         var bound = OoBindResolvedInvoke(site, m, InvokeForm.Instance, receiver);
         // A factory-object receiver's argument PROFILES live in the FACTORY singleton type, not the instance
@@ -471,16 +448,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             string why = argCtxs.Count > formals.Count ? ""
                 : $" — only trailing OPTIONAL formal parameters may be omitted, and '{formals.Skip(argCtxs.Count).First(f => !f.Optional).Item.CobolName}' is not OPTIONAL";
-            ctx.Edition.Error("COBOLNET0828",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0828",
                 $"{site.Verb} \"{m.Name}\": {argCtxs.Count} USING argument(s) for {formals.Count} formal "
                 + $"parameter(s) of the method (ISO §14.8.2.1; §14.9.23.4 GR3 — correspondence is positional){why}");
-            return new BoundNop();
         }
         var args = new List<BoundInvokeArg>(formals.Count);
         for (int i = 0; i < argCtxs.Count; i++)
         {
             if (OoBindInvocationArg(argCtxs[i], formals[i], m.Name, site.Verb) is not { } a)
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             args.Add(a);
         }
         // The trailing omitted arguments (§14.9.23.4 GR9 — "or a trailing argument is omitted"): each takes its
@@ -502,27 +478,24 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (m.Binding!.Returning is not { } retModel)
             {
-                ctx.Edition.Error(DiagnosticCatalog.InlineInvocationNoReturning,
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationNoReturning,
                     $"the inline method invocation of \"{m.Name}\": the method's procedure division header "
                     + "declares no RETURNING item, so there is no temporary data item for the invocation to "
                     + "reference (ISO §8.4.3.4.1; §8.4.3.4.4 GR1 b))");
-                return new BoundNop();
             }
             if (retModel.IsAnyLength)
             {
-                ctx.Edition.Error(DiagnosticCatalog.InlineInvocationReturningShape,
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                     $"the inline method invocation of \"{m.Name}\": the data item referenced in the "
                     + "RETURNING phrase of the invoked method's procedure division header shall not be "
                     + "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase "
                     + "(ISO §8.4.3.4.3 SR4)");
-                return new BoundNop();
             }
             if (retModel.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: ObjectRefKind.ActiveClass } })
             {
-                ctx.Edition.Error(DiagnosticCatalog.InlineInvocationReturningShape,
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                     $"the inline method invocation of \"{m.Name}\": the invoked method's RETURNING item is "
                     + "described with the ACTIVE-CLASS phrase (ISO §8.4.3.4.3 SR4)");
-                return new BoundNop();
             }
             var temp = ctx.Data.OoCreateInvocationTemp(retModel, m.Name);
             if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
@@ -533,27 +506,24 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
         if (retRef is not null && m.Binding!.Returning is null)
         {
-            ctx.Edition.Error("COBOLNET0828",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0828",
                 $"{site.Verb} \"{m.Name}\" RETURNING: the method declares no RETURNING item (ISO §14.9.23.4 GR8 / "
                 + "§14.8.3 — nothing to deliver)");
-            return new BoundNop();
         }
         if (retRef is null && m.Binding!.Returning is not null)
         {
-            ctx.Edition.Error("COBOLNET0828",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0828",
                 $"INVOKE \"{m.Name}\": the method declares a RETURNING item ('{m.Binding!.Returning.CobolName}') — "
                 + "the INVOKE must specify RETURNING to receive it (the binder's signature check, deep-dive "
                 + "D1; ISO §14.9.23.4 GR8)");
-            return new BoundNop();
         }
         if (retRef is not null)
         {
             if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
-                ctx.Edition.Error("COBOLNET0828",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0828",
                     $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': the receiving identifier is not "
                     + "resolvable to storage");
-                return new BoundNop();
             }
             // §14.8.3.3 rule 1: the RETURNING delivery conforms "as if a SET statement were performed" —
             // for object references that is the WIDENING direction (universal receiver accepts anything; a
@@ -565,10 +535,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 : OoConformanceError(m.Binding!.Returning!, rp.Item);
             if (rerr is not null)
             {
-                ctx.Edition.Error("COBOLNET0828",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0828",
                     $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': {rerr} (ISO §14.8.3.3 "
                     + "returning-item conformance)");
-                return new BoundNop();
             }
             retPlace = rp;
         }
@@ -985,40 +954,35 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             if (a.ByValueWritten || a.ByContentWritten)
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     "INVOKE through a universal object reference: neither BY CONTENT nor BY VALUE may be "
                     + "specified — BY REFERENCE is assumed implicitly (ISO §14.9.23.3 SR6)");
-                return new BoundNop();
             }
             if (a.Ref is not { } dref)
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     "INVOKE through a universal object reference: a literal or arithmetic-expression "
                     + "argument cannot cross BY REFERENCE (ISO §14.9.23.3 SR6 — every universal argument "
                     + "is implicitly BY REFERENCE)");
-                return new BoundNop();
             }
             if (host.Expr.ResolveReceiving(dref) is not { } p)
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE: the argument '{DataBinder.WrittenText(dref)}' is not resolvable to storage");
-                return new BoundNop();
             }
             if (ctx.Data.OoIsObjectData(p.Item))
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE through a universal object reference: '{p.Item.CobolName}' is OBJECT "
                     + "(factory/instance) data — it may not cross BY REFERENCE (ISO §14.9.23.3 SR10), and "
                     + "the universal path has no BY CONTENT fallback (SR6)");
-                return new BoundNop();
             }
             string d = OoConformance.ConformanceDescriptor(p.Item);
             if (d == "T:!")
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE: the argument '{p.Item.CobolName}' has no crossing form (a Tier-C group or a "
                     + "not-yet-carried category — mirrors the typed path's rejection)");
-                return new BoundNop();
             }
             args.Add(new BoundUniversalArg(p, d));
         }
@@ -1029,17 +993,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE RETURNING '{retRef.GetText()}': the receiving identifier is not resolvable "
                     + "to storage");
-                return new BoundNop();
             }
             retDesc = OoConformance.ConformanceDescriptor(rp.Item);
             if (retDesc == "T:!")
             {
-                ctx.Edition.Error("COBOLNET0866",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE RETURNING '{rp.Item.CobolName}': no crossing form (Tier-C / not-carried)");
-                return new BoundNop();
             }
             retPlace = rp;
         }
@@ -1071,10 +1033,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             // ⛔ NAME THE RECEIVERS (kb/Work PB388's elision sweep): `targetRefs` is in hand, and the message
             // opened `SET … TO SUPER` — which the diagnostic renderer transliterates to `SET . TO SUPER`.
-            ctx.Edition.Error("COBOLNET0867",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0867",
                 $"SET {SetFormatSelection.Written(targetRefs)} TO SUPER: SUPER shall not be the sending operand "
                 + "of an object-reference SET (ISO §14.9.39.3 SR9)");
-            return new BoundNop();
         }
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
@@ -1085,10 +1046,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // now screens (ExpressionBinder.ResolveReceiving). The clause number was §8.4.3.6 here and that
                 // is NOT where the rule is — `cite.py --check 8.4.3.6 "EXCEPTION-OBJECT shall not be specified as
                 // a receiving operand"` FAILS and `--check 8.4.3.6.3` passes as SR1.
-                ctx.Edition.Error(DiagnosticCatalog.ExceptionObjectReceiving,
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExceptionObjectReceiving,
                     "SET EXCEPTION-OBJECT: the predefined object reference shall not be a receiving "
                     + "operand (ISO §8.4.3.6.3 SR1)");
-                return new BoundNop();
             }
             // ⛔ THREE ARMS, AND THE ORDER IS THE POINT — SR8 and "the name identifies nothing" are DIFFERENT
             // rules and each is reported once, by itself. The former single `Resolve(t) is not { } tp || …`
@@ -1103,16 +1063,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (!indexName && probe is null)
             {
                 host.Expr.ResolveReceiving(t);                                      // ISO §8.4.2.1 — the resolver's own rule
-                return new BoundNop();
+                return new BoundUnsupported("SET object-reference receiving operand");
             }
             if (indexName || probe!.Value.Item.Pic is not { Category: PicCategory.ObjectReference })
             {
-                ctx.Edition.Error("COBOLNET0867",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0867",
                     $"SET '{t.GetText()}': the receiving operand of an object-reference SET shall be a "
                     + "USAGE OBJECT REFERENCE data item (ISO §14.9.39.3 SR8)");
-                return new BoundNop();
             }
-            if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundNop();   // reported by the resolver
+            if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundUnsupported("SET object-reference receiving operand");   // reported by the resolver
             targets.Add(tp);
         }
 
@@ -1122,7 +1081,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (host.OoCurrentClass is not { } cur)
             {
-                ctx.Edition.Error("COBOLNET0867",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0867",
                     // ⛔ INHERITED CITATION, RE-DERIVED (kb/Work PB388). This cited §14.9.39.3 SR12 c), which
                     // answers a DIFFERENT question: SR12 governs a receiver described with an OBJECT-CLASS-NAME,
                     // and its c)3./c)4. are about factory-vs-instance PLACEMENT of a method that exists. The
@@ -1131,7 +1090,6 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     // arm enforces, for EVERY receiver description including the universal one SR12 never reaches.
                     $"SET {SetFormatSelection.Written(targetRefs)} TO SELF: SELF is defined only within a method "
                     + "definition (ISO §8.4.3.8.3 SR1)");
-                return new BoundNop();
             }
             // ⛔ THE RECEIVER'S §13.18.60.2 DESCRIPTION DECIDES WHICH RULE GOVERNS A SELF SENDER — one arm per
             // general-format alternative, and all four are present (kb/Work PB389; before it the descriptor
@@ -1210,12 +1168,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // abort at run time. Identifier-4 "shall be an object reference"; a literal is not one.
             if (senderRef is null)
             {
-                ctx.Edition.Error("COBOLNET0867",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0867",
                     $"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: "
                     + "identifier-4 shall be an object reference — the sending operand of an object-reference "
                     + "SET is an object-reference data item, object-class-name-1, NULL or SELF, never a literal "
                     + "or an arithmetic expression (ISO §14.9.39.2 Format 5, §14.9.39.3 SR9)");
-                return new BoundNop();
             }
             // ⛔ THE PREDEFINED REGISTER IS CLASSIFIED BEFORE THE GENERAL LOOKUP, and the ORDER is the rule
             // (kb/Work PB922; the same order SetFormatSelection.KindOf keeps on the receiving side). It used to
@@ -1276,25 +1233,23 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     var rdesc = tp.Item.Pic!.ObjectRef ?? ObjectRefDescriptor.Universal;
                     if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses!, senderDesc, rdesc) is { } ferr)
                     {
-                        ctx.Edition.Error("COBOLNET0867",
+                        return BoundRejected.Report(ctx.Edition, "COBOLNET0867",
                             $"SET '{tp.Item.CobolName}' TO {sname}: object-class-name-1 sends the FACTORY "
                             + $"OBJECT of class '{scls.Name}' (ISO §14.9.39.4 GR10) and the receiver's "
                             + $"description puts the statement under {OoConformance.ClassNameSenderRule(rdesc.Kind)} "
                             + $"— {ferr}");
-                        return new BoundNop();
                     }
                 }
                 srcFactoryClassCs = scls.FactoryCsName;
             }
             else
             {
-                ctx.Edition.Error("COBOLNET0867",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0867",
                     // NAME THE RECEIVERS (kb/Work PB388): the renderer transliterates U+2026, so this read
                     // `SET . TO 'WX'` — a statement nobody wrote — and the receivers are in hand.
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "
                     + $"'{senderRef.GetText()}': the sending operand shall be an object-reference "
                     + "data item, NULL, SELF, or a class-name (ISO §14.9.39.3 SR9/SR12/SR13)");
-                return new BoundNop();
             }
         }
         return new BoundSetObjectRef(targets, src, senderNull, senderSelf) { SourceFactoryCs = srcFactoryClassCs };
@@ -1425,10 +1380,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // formats ask (kb/Work PB403) — §14.2.2 SR10's source-element kind.
         if (ctx.Enclosing.SourceElement is not SourceElementKind.MethodDefinition)
         {
-            ctx.Edition.Error("COBOLNET0827",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                 "EXIT METHOD may be specified only in a method definition (ISO §14.9.14 — the method form "
                 + "of the EXIT statement; this is not a method procedure division)");
-            return new BoundNop();
         }
         return new BoundMethodReturn(OoBindMethodRaising(e.raisingPhrase(), EcRaiseSite.Exit("EXIT METHOD")));
     }

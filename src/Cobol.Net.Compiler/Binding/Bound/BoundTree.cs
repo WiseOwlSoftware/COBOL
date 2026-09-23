@@ -235,8 +235,48 @@ public sealed record BoundOdoExtent(Place Depending, int MinOccurs, int MaxOccur
     public string? BasedAddress { get; init; }
 }
 
-/// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
-public sealed record BoundExprError(string Feature) : BoundExpr;
+/// <summary>An operand the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
+/// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
+/// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
+/// fails the compile with COBOLNET2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
+/// (COBOL.NET's gap, announced by that funnel as COBOLNET1756). Either way it can never compile SILENTLY into a
+/// run-time abort, which is what a STRING sending ALL literal (§14.9.43.3 SR2) did before.</summary>
+public sealed record BoundExprError : BoundExpr
+{
+    /// <summary>What could not be bound — the text of the run-time guard.</summary>
+    public string Feature { get; }
+
+    /// <summary>True for a shape COBOL.NET has not built; false for a refusal of the source.</summary>
+    public bool IsUnbuilt { get; }
+
+    private BoundExprError(string feature, bool unbuilt) { Feature = feature; IsUnbuilt = unbuilt; }
+
+    /// <summary>The source is wrong and the caller has reported the rule it breaks.</summary>
+    public static BoundExprError Refused(EditionContext edition, string feature)
+    {
+        edition.NoteRefusal(Editions.Diagnostics.DiagnosticCatalog.UnreportedRefusal, feature);
+        return new(feature, unbuilt: false);
+    }
+
+    /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal — the operand
+    /// twin of <see cref="BoundRejected.Report(EditionContext, Editions.Diagnostics.DiagnosticDescriptor, string)"/>.</summary>
+    public static BoundExprError Report(EditionContext edition, Editions.Diagnostics.DiagnosticDescriptor rule,
+        string message, string feature)
+    {
+        edition.Error(rule, message);
+        return Refused(edition, feature);
+    }
+
+    /// <summary>A legal shape COBOL.NET has not built — announced by the statement funnel (COBOLNET1756).</summary>
+    public static BoundExprError Unbuilt(EditionContext edition, string feature)
+    {
+        edition.NoteUnbuilt(feature);
+        return new(feature, unbuilt: true);
+    }
+
+    /// <summary>The SAME failure carried into another value channel — already on the ledger, so not re-noted.</summary>
+    public static BoundExprError Carry(string feature, bool unbuilt) => new(feature, unbuilt);
+}
 
 /// <summary>The EXPRESSION twin of <see cref="BoundUdfEvaluated"/>: an operand carrying the function
 /// <paramref name="Activations"/> its <paramref name="Inner"/> expression consumes, for an operand window the
@@ -487,8 +527,48 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
         };
 }
 
-/// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
-public sealed record BoundOperandError(string Feature) : BoundOperand;
+/// <summary>An operand the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
+/// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
+/// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
+/// fails the compile with COBOLNET2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
+/// (COBOL.NET's gap, announced by that funnel as COBOLNET1756). Either way it can never compile SILENTLY into a
+/// run-time abort, which is what a STRING sending ALL literal (§14.9.43.3 SR2) did before.</summary>
+public sealed record BoundOperandError : BoundOperand
+{
+    /// <summary>What could not be bound — the text of the run-time guard.</summary>
+    public string Feature { get; }
+
+    /// <summary>True for a shape COBOL.NET has not built; false for a refusal of the source.</summary>
+    public bool IsUnbuilt { get; }
+
+    private BoundOperandError(string feature, bool unbuilt) { Feature = feature; IsUnbuilt = unbuilt; }
+
+    /// <summary>The source is wrong and the caller has reported the rule it breaks.</summary>
+    public static BoundOperandError Refused(EditionContext edition, string feature)
+    {
+        edition.NoteRefusal(Editions.Diagnostics.DiagnosticCatalog.UnreportedRefusal, feature);
+        return new(feature, unbuilt: false);
+    }
+
+    /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal — the operand
+    /// twin of <see cref="BoundRejected.Report(EditionContext, Editions.Diagnostics.DiagnosticDescriptor, string)"/>.</summary>
+    public static BoundOperandError Report(EditionContext edition, Editions.Diagnostics.DiagnosticDescriptor rule,
+        string message, string feature)
+    {
+        edition.Error(rule, message);
+        return Refused(edition, feature);
+    }
+
+    /// <summary>A legal shape COBOL.NET has not built — announced by the statement funnel (COBOLNET1756).</summary>
+    public static BoundOperandError Unbuilt(EditionContext edition, string feature)
+    {
+        edition.NoteUnbuilt(feature);
+        return new(feature, unbuilt: true);
+    }
+
+    /// <summary>The SAME failure carried into another value channel — already on the ledger, so not re-noted.</summary>
+    public static BoundOperandError Carry(string feature, bool unbuilt) => new(feature, unbuilt);
+}
 
 // ── Boolean expressions (ISO §8.8.2; Phase-4 track (a) increment 2) — a SEPARATE value channel from the numeric
 //    BoundExpr and the DISPLAY/MOVE BoundOperand: a boolean value IS a '0'/'1' string (D-B1), combined by the
@@ -540,8 +620,48 @@ public enum BoolShiftKind { Left, Right, LeftCircular, RightCircular }
 /// case, which the Annex A Table A.2 oracle exercises).</summary>
 public sealed record BoundBoolShift(BoundBoolExpr Operand, BoolShiftKind Kind, BoundExpr Count) : BoundBoolExpr;
 
-/// <summary>A boolean expression the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
-public sealed record BoundBoolError(string Feature) : BoundBoolExpr;
+/// <summary>A boolean expression the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
+/// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
+/// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
+/// fails the compile with COBOLNET2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
+/// (COBOL.NET's gap, announced by that funnel as COBOLNET1756). Either way it can never compile SILENTLY into a
+/// run-time abort, which is what a STRING sending ALL literal (§14.9.43.3 SR2) did before.</summary>
+public sealed record BoundBoolError : BoundBoolExpr
+{
+    /// <summary>What could not be bound — the text of the run-time guard.</summary>
+    public string Feature { get; }
+
+    /// <summary>True for a shape COBOL.NET has not built; false for a refusal of the source.</summary>
+    public bool IsUnbuilt { get; }
+
+    private BoundBoolError(string feature, bool unbuilt) { Feature = feature; IsUnbuilt = unbuilt; }
+
+    /// <summary>The source is wrong and the caller has reported the rule it breaks.</summary>
+    public static BoundBoolError Refused(EditionContext edition, string feature)
+    {
+        edition.NoteRefusal(Editions.Diagnostics.DiagnosticCatalog.UnreportedRefusal, feature);
+        return new(feature, unbuilt: false);
+    }
+
+    /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal — the operand
+    /// twin of <see cref="BoundRejected.Report(EditionContext, Editions.Diagnostics.DiagnosticDescriptor, string)"/>.</summary>
+    public static BoundBoolError Report(EditionContext edition, Editions.Diagnostics.DiagnosticDescriptor rule,
+        string message, string feature)
+    {
+        edition.Error(rule, message);
+        return Refused(edition, feature);
+    }
+
+    /// <summary>A legal shape COBOL.NET has not built — announced by the statement funnel (COBOLNET1756).</summary>
+    public static BoundBoolError Unbuilt(EditionContext edition, string feature)
+    {
+        edition.NoteUnbuilt(feature);
+        return new(feature, unbuilt: true);
+    }
+
+    /// <summary>The SAME failure carried into another value channel — already on the ledger, so not re-noted.</summary>
+    public static BoundBoolError Carry(string feature, bool unbuilt) => new(feature, unbuilt);
+}
 
 /// <summary>A boolean expression used as a RELATION operand (ISO §8.8.4.2.2) — the ONE carrier that lets a
 /// boolean expression sit in a <see cref="BoundRelational"/> beside another boolean operand (item↔item compares
@@ -660,7 +780,7 @@ public abstract record BoundStatement;
 /// a claim that THE COMPILER is incomplete when in fact THE SOURCE was wrong — at run time, and on an
 /// unexecuted path not at all. A statement whose operand or position the standard forbids reports its own
 /// diagnostic (<see cref="Editions.Diagnostics.DiagnosticCatalog.StatementOperandRule"/> or the rule's own
-/// descriptor, per ISO §4.2.2 ¶2's compile-time mechanism) and binds to <see cref="BoundNop"/>; it does NOT
+/// descriptor, per ISO §4.2.2 ¶2's compile-time mechanism) and binds to <see cref="BoundRejected"/>; it does NOT
 /// come here. If you are about to construct one of these while holding a §/SR citation for why the SOURCE is
 /// wrong, that citation is telling you this is the wrong node — build a <see cref="BoundRejected"/> instead.
 /// <c>BoundDeferralDriftTests</c> scans every construction site's message for the vocabulary of a violated rule
@@ -683,10 +803,23 @@ public sealed record BoundUnsupported(string Feature) : BoundStatement;
 /// compiled into a program either (<c>StatementEmitter</c> throws if one ever arrives).</para></summary>
 public sealed record BoundRejected : BoundStatement
 {
-    /// <summary>The descriptor the refusal was reported under — always an <see cref="Editions.EditionSeverity.Error"/>.</summary>
-    public Editions.Diagnostics.DiagnosticDescriptor Rule { get; }
+    /// <summary>The COBOLNET code the refusal was reported under — always an error; null when a CALLEE reported it
+    /// (<see cref="Reported"/>).</summary>
+    public string? Code { get; }
 
-    private BoundRejected(Editions.Diagnostics.DiagnosticDescriptor rule) => Rule = rule;
+    private BoundRejected(string? code) => Code = code;
+
+    /// <summary>A refusal whose diagnostic a CALLEE already reported — a file-name or procedure-name resolution, an
+    /// operand screen, a placement rule (kb/Work PB1029: ~100 sites wrote <c>return new BoundNop();</c> after such a
+    /// call, where nothing checked that the callee had in fact reported). The refusal is put on the ledger, and the
+    /// one statement funnel fails the compile with COBOLNET2362 if the statement drew no error.
+    /// <para>⛔ NOT for a null from the reference resolver: that null is either reported or a shape COBOL.NET has not
+    /// built, and only the funnel can tell which — bind a <see cref="BoundUnsupported"/> there.</para></summary>
+    public static BoundRejected Reported(EditionContext edition)
+    {
+        edition.NoteRefusal(Editions.Diagnostics.DiagnosticCatalog.UnreportedRefusal, "a statement");
+        return new BoundRejected((string?)null);
+    }
 
     /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal node. A
     /// warning-severity descriptor is a programming error: a refusal that does not fail the compile would reach
@@ -698,7 +831,18 @@ public sealed record BoundRejected : BoundStatement
             throw new InvalidOperationException(
                 $"BoundRejected needs an error-severity descriptor; {rule.Code} is {rule.Severity} (kb/Work PB909).");
         edition.Error(rule, message);
-        return new BoundRejected(rule);
+        return new BoundRejected(rule.Code);
+    }
+
+    /// <summary>The same refusal for a code the site still writes as a bare <c>COBOLNETnnnn</c> literal (kb/Work
+    /// PB1029 — the report-then-<see cref="BoundNop"/> sites migrated here keep their codes verbatim). A code the
+    /// catalogue DOES carry is held to its descriptor's severity, exactly as the descriptor overload is.</summary>
+    public static BoundRejected Report(EditionContext edition, string code, string message)
+    {
+        if (Editions.Diagnostics.DiagnosticCatalog.All.FirstOrDefault(d => d.Code == code) is { } rule)
+            return Report(edition, rule, message);
+        edition.Error(code, message);
+        return new BoundRejected(code);
     }
 }
 

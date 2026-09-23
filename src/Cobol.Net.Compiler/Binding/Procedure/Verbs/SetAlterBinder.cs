@@ -152,7 +152,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             { bad = true; continue; }
             entries.Add(new BoundAlterEntry(_alterSwFields![target.Range.Start], dest.Range.Start));
         }
-        return bad ? new BoundNop() : new BoundAlter(entries);
+        return bad ? BoundRejected.Reported(ctx.Edition) : new BoundAlter(entries);
     }
 
     /// <summary>True when paragraph <paramref name="pc"/> consists of a SINGLE sentence whose only statement is a
@@ -223,6 +223,6 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                 switches.Add((implName, on));
             }
         }
-        return bad ? new BoundNop() : new BoundSetSwitches(switches);
+        return bad ? BoundRejected.Reported(ctx.Edition) : new BoundSetSwitches(switches);
     }
 }

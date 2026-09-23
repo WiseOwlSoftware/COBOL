@@ -143,11 +143,23 @@ other, not just against the legacy oracle.
 (1) An unbound/unsupported construct emits a **tracked deferral diagnostic** + a runtime guard
 (`throw new NotImplementedCobolFeature(...)`), never a silent `// TODO` no-op. ⛔ The deferral is for LEGAL
 source only. A statement the SOURCE got wrong — a shape no general format prints, an operand its syntax rules
-exclude — binds to `BoundRejected`, whose one factory (`BoundRejected.Report`) records the error before it
-returns, so a refusal can be neither silent nor compiled (`StatementEmitter` throws if one arrives). The deferral
-(`BoundUnsupported`, announced as the COBOLNET1756 warning from the `StatementBinder.BindStatement` funnel) is
-never announced for a statement whose bind already drew an error, and `BoundDeferralDriftTests` fails on a
-deferral whose message states a violated rule (kb/Work PB909). (2) **Bind success ⇒ emit MUST
+exclude — binds to `BoundRejected`, whose factories record the error before they return (`BoundRejected.Report`)
+or put the refusal on the ledger for a callee that reported it (`BoundRejected.Reported`), so a refusal can be
+neither silent nor compiled (`StatementEmitter` throws if one arrives). ⛔ **THE REFUSAL LEDGER (kb/Work PB1029).**
+Every node that stands for something the binder could not give a meaning to is obtainable only through a factory
+that records itself on `EditionContext`: `BoundRejected`, and the operand-level `BoundExprError` /
+`BoundOperandError` / `BoundBoolError`, each as `Refused` (the source is wrong; the site reported the rule —
+`Report(edition, rule, message, feature)` does both), `Unbuilt` (a legal shape COBOL.NET has not built) or `Carry`
+(the same failure moved to another value channel); `BoundConditionError` has its one site in
+`ConditionBinder.Refused`. The ONE funnel every statement passes, `StatementBinder.BindStatement`, reads the ledger:
+a statement that bound a refusal and drew no error fails the compile with the internal COBOLNET2362 (a refused
+condition keeps COBOLNET2319), and a statement that drew no error announces its `BoundUnsupported` or its first
+unbuilt operand as the COBOLNET1756 warning. A null from the reference resolver is the one case a SITE cannot
+classify (reported, or an unbuilt shape), so it binds to `BoundUnsupported` / `Unbuilt` and the funnel's error
+count decides — kb/Work PB1030 replaces that with a typed resolver result. `BoundDeferralDriftTests` fails on a
+deferral whose message states a violated rule (kb/Work PB909); `RefusalNodeDriftTests` keeps the refusal
+constructors private and keeps report-then-`BoundNop` and failure-guarded `BoundNop` out of the binder (a genuine
+no-op on a guarded arm is marked `// no-op:`). (2) **Bind success ⇒ emit MUST
 produce compilable C#** — any Roslyn error on generated code is an ICE (surfaced with the `.g.cs` path), never a user
 error. This is the structural enforcement of the project's "fail LOUD" culture.
 

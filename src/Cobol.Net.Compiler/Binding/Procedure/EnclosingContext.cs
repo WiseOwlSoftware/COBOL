@@ -169,7 +169,8 @@ internal readonly struct EnclosingContext
 /// one call, and <c>ExitPlacementContextDriftTests</c> is where its row goes.</para>
 ///
 /// <para>Each returns TRUE when the statement is REFUSED (the diagnostic has been raised), so a caller reads
-/// <c>if (PlacementRules.X(...)) return new BoundNop();</c>.</para>
+/// <c>if (PlacementRules.X(...)) return BoundRejected.Reported(ctx.Edition);</c> — the refusal the statement funnel
+/// verifies drew its error (kb/Work PB1029).</para>
 /// </summary>
 internal static class PlacementRules
 {

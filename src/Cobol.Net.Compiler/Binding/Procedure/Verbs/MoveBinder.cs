@@ -113,13 +113,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // sending operand, and §8.4.3.1.2 Format 4 is one of the eleven identifiers that designation
             // reaches (kb/Work PB428). §8.4.3.4.3 SR1 keeps it off the RECEIVING side structurally.
             : send.inlineMethodInvocation() is { } simi ? host.Oo.OoInlineInvocationOperand(simi)
-            : new BoundOperandError("MOVE source");
+            : BoundOperandError.Refused(ctx.Edition, "MOVE source");
         // An INDEX-NAME sending operand (kb/Work R16): MOVE is not among §13.18.38.3 r7's five index-name
         // contexts — the same judgment the SR1 arm below applies to class-index DATA ITEMS (COBOLNET0809).
         // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
         if (send.dataReference() is { } sdref
             && host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
-            source = new BoundOperandError($"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §13.18.38.3 r7)");
+            source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §13.18.38.3 r7)");
         var resolved = host.Expr.ResolveTargets(targets.dataReference());
         return BindMoveOf(source, resolved);
     }

@@ -848,6 +848,6 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 // arm used to build — would compare an alphanumeric/national result NUMERICALLY. For every other
                 // shape OperandOf returns the identical BoundComputedOperand, so the emit floor is unchanged.
                 : IntrinsicBinder.OperandOf(host.Expr.BindIndexWindowExpr(expr));   // EVALUATE compares — a relation window (kb/Work R29)
-        return new BoundOperandError("EVALUATE operand");
+        return BoundOperandError.Refused(ctx.Edition, "EVALUATE operand");
     }
 }

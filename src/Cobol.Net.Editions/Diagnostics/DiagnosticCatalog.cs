@@ -4877,6 +4877,19 @@ public static class DiagnosticCatalog
         + "holds more than one item of that name.",
         "ISO §13.18.38.3 SR3");
 
+    /// <summary>The internal-error net under EVERY refusal node (kb/Work PB1029) — the statement-level
+    /// <c>BoundRejected</c> and the operand-level <c>BoundExprError</c> / <c>BoundOperandError</c> /
+    /// <c>BoundBoolError</c> refusals — raised by the one statement funnel when a statement bound a refusal and
+    /// drew no error, and by the refusal factory itself when no error has been recorded anywhere. Either way the
+    /// refused node would otherwise compile clean and abort the run unit when reached. (A refused CONDITION keeps
+    /// its own COBOLNET2319.)</summary>
+    public static readonly DiagnosticDescriptor UnreportedRefusal = new(
+        "COBOLNET2362", "unreported-refusal", EditionSeverity.Error,
+        "COBOL.NET internal error: the binder refused a statement or an operand without reporting the rule it "
+        + "breaks. The compile is failed rather than let the refused node reach the generated program, where it "
+        + "would abort the run unit when executed. Please report the source that produced it.",
+        "COBOL.NET internal (no ISO rule)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

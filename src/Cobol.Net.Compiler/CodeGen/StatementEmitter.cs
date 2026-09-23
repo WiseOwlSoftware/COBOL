@@ -272,7 +272,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     /// recorded an error, and an error fails the compile before code generation. Arriving here means that
     /// invariant broke, and emitting anything — a no-op, a loud stage — would ship a statement the source got wrong.</summary>
     public bool Visit(BoundRejected n) => throw new InvalidOperationException(
-        $"a statement refused under {n.Rule.Code} reached code generation (kb/Work PB909)");
+        $"a statement refused under {n.Code ?? "a callee's diagnostic"} reached code generation (kb/Work PB909)");
 
     // ── DISPLAY / MOVE / arithmetic ──────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundDisplay n) { _acceptDisplay.EmitDisplay(n); return false; }

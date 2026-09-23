@@ -366,7 +366,12 @@ visitor is a COMPILE error. `EmitStatement`, `BoundStoreAnalysis` (renamed from 
 `NumericRenderer`, `ConditionRenderer`, `OperandText`, `AlterCollectFields` all convert from a `switch`+`_ =>`
 into `IBoundStatementVisitor<T>` implementations. The loud runtime defaults are DELETED. The five error families
 (`BoundUnsupported`/`BoundOperandError`/`BoundExprError`/`BoundConditionError`/`BoundBoolError`) get one
-`IBoundError` marker so a visitor handles "any error node" once. (If the owner declines a source generator, the
+`IBoundError` marker so a visitor handles "any error node" once. ⛔ **As built (kb/Work PB1029), the error families are CLOSED
+types:** `BoundRejected`, `BoundExprError`, `BoundOperandError` and `BoundBoolError` have private constructors and are
+obtained only through factories (`Report` / `Reported`; `Refused` / `Unbuilt` / `Carry` / `Report`) that put them on
+the `EditionContext` refusal ledger, which `StatementBinder.BindStatement` checks per statement (COBOLNET2362 for a
+refusal that drew no error; COBOLNET1756 for an unbuilt operand) — `COBOLNET_DESIGN.md` §1.4 is the contract and
+`RefusalNodeDriftTests` the drift test. (If the owner declines a source generator, the
 fallback is a hand-written `abstract` visitor base with no default method — the compiler then forces every
 visitor to implement every node; slightly more boilerplate, same exhaustiveness guarantee. See OPEN QUESTION 1.)
 

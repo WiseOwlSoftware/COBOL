@@ -117,7 +117,65 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         Cursor.IsSet ? OriginOf(Cursor.Line).ToLocation(Cursor.Column) + ": " : "";
 
     /// <summary>Record an edition-gating error (fails the compile).</summary>
-    public void Error(string code, string message) => AddOnce(Diagnostics, $"{Prefix()}error {code}: {message}");
+    public void Error(string code, string message)
+    {
+        ErrorsRecorded++;
+        AddOnce(Diagnostics, $"{Prefix()}error {code}: {message}");
+    }
+
+    // ── ⛔ THE REFUSAL LEDGER (kb/Work PB1029) ─────────────────────────────────────────────────────────────────
+    // A bound node that stands for something the binder could NOT give a meaning to — a refused statement
+    // (BoundRejected), a refused or unbuilt operand (BoundExprError / BoundOperandError / BoundBoolError), a
+    // refused condition (BoundConditionError) — is lowered by the emitter to a run-time abort. Such a node is
+    // harmless only when the compile FAILS (a refusal: its error was reported) or when the gap is ANNOUNCED (an
+    // unbuilt shape: COBOLNET1756). Before this ledger nothing tied the node to either: ~140 sites reported and
+    // then returned an ordinary no-op, and an operand error could be built with no report at all (a STRING
+    // sending ALL literal, §14.9.43.3 SR2, compiled clean and aborted the run unit). Every such node is now
+    // obtainable only through a factory that records itself here, and StatementBinder.BindStatement — the ONE
+    // funnel every statement passes — reads the ledger: a refusal with no error during the statement fails the
+    // compile (COBOLNET2362), an unbuilt operand in a statement that drew no error is announced (COBOLNET1756).
+
+    /// <summary>Every <see cref="Error(string, string)"/> call, a de-duplicated repeat INCLUDED — so a
+    /// parameterized expansion that re-binds a line and re-finds its error (kb/Work PB759, where the text is
+    /// dropped as the same fact) still counts as "this statement drew an error".</summary>
+    public int ErrorsRecorded { get; private set; }
+
+    /// <summary>Refusal nodes bound so far (kb/Work PB1029) — see <see cref="NoteRefusal"/>.</summary>
+    public int RefusalsBound { get; private set; }
+
+    private readonly List<string> _unbuilt = [];
+
+    /// <summary>Record that a REFUSAL node was bound — the source is wrong and the site says it reported why.
+    /// The per-statement check is the funnel's; this one is the backstop for a node built outside any statement:
+    /// with no error recorded at all, the compile is failed under <paramref name="unreported"/> (an internal-error
+    /// descriptor) rather than let the node reach the generated program.</summary>
+    internal void NoteRefusal(DiagnosticDescriptor unreported, string feature)
+    {
+        RefusalsBound++;
+        if (ErrorsRecorded == 0) Error(unreported, UnreportedRefusalMessage(feature));
+    }
+
+    /// <summary>The ONE wording of the internal-error net, shared by <see cref="NoteRefusal"/> and the funnel.</summary>
+    internal static string UnreportedRefusalMessage(string feature) =>
+        $"{feature} was refused without a diagnostic naming the rule it breaks; this is a COBOL.NET internal error — "
+        + "please report it with the source that produced it";
+
+    /// <summary>Record an operand shape COBOL.NET has not BUILT (not a source error) — announced once per
+    /// statement by the funnel as COBOLNET1756, exactly as a statement-level <c>BoundUnsupported</c> is.</summary>
+    internal void NoteUnbuilt(string feature) => _unbuilt.Add(feature);
+
+    /// <summary>The unbuilt-operand ledger's high-water mark, taken by the funnel before a statement binds.</summary>
+    internal int UnbuiltMark => _unbuilt.Count;
+
+    /// <summary>The first unbuilt operand recorded since <paramref name="mark"/> (or null), and the ledger cut back
+    /// to <paramref name="mark"/> — a statement answers for its own operands exactly once.</summary>
+    internal string? TakeUnbuiltSince(int mark)
+    {
+        if (_unbuilt.Count <= mark) return null;
+        string first = _unbuilt[mark];
+        _unbuilt.RemoveRange(mark, _unbuilt.Count - mark);
+        return first;
+    }
 
     /// <summary>A diagnostic is a FACT about a source position, and the same fact reported twice is one fact.
     /// The case that makes this reachable by construction is a PARAMETERIZED class or interface (kb/Work PB759):

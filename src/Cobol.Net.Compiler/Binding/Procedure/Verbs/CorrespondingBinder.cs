@@ -75,7 +75,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         if (host.Expr.ResolveSending(groups[0]) is not { } src)
             return new BoundUnsupported($"{verbName} CORRESPONDING source group '{groups[0].GetText()}'");
         if (host.Expr.ResolveReceiving(groups[1]) is not { } dst)
-            return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
+            return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         // ⛔ BOTH OPERANDS SHALL BE GROUP ITEMS, AND THAT IS A SYNTAX RULE, SO IT IS DECIDED AT BIND TIME
         // (kb/Work PB236, row SR-14.9.2.3-6). MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall
         // specify group data items and shall not be reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT
@@ -104,7 +104,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // diagnostics, not the first one only (a short-circuit here would hide the second).
         bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src, groups[0].GetText(), rule);
         bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, groups[1].GetText(), rule);
-        if (!srcOk || !dstOk) return new BoundNop();
+        if (!srcOk || !dstOk) return BoundRejected.Reported(ctx.Edition);
 
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();

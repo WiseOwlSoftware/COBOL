@@ -53,7 +53,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // §14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a program-specifier in the
                 // REPOSITORY paragraph." ONE lookup answers it, because ProgramPrototypesOf also registers
                 // §8.4.6.8's no-specifier spelling (a containing program definition's program-name).
-                if (ResolvePrototype(asWord, "CALL … AS") is not { } proto) return new BoundNop();
+                if (ResolvePrototype(asWord, "CALL … AS") is not { } proto) return BoundRejected.Reported(ctx.Edition);
                 prototype = proto;
             }
             else
@@ -72,19 +72,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         SourceElementKind.FunctionPrototype => "function prototype definition",
                         _ => "function definition",
                     };
-                    ctx.Edition.Error(DiagnosticCatalog.CallAsNestedContext,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedContext,
                         $"CALL … AS NESTED inside a {noun}: the NESTED phrase may be specified only in a program "
                         + "definition (ISO §14.9.4.3 SR13)");
-                    return new BoundNop();
                 }
                 // §14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program
                 // directly contained in the calling program.
                 if (call.callTarget()?.literal() is null)
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedScope,
                         "CALL … AS NESTED: literal-1 shall be specified — the NESTED phrase names a contained or "
                         + "COMMON program by its PROGRAM-ID literal, not through an identifier (ISO §14.9.4.3 SR15)");
-                    return new BoundNop();
                 }
             }
         }
@@ -104,10 +102,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 callee = sig;
             else
             {
-                ctx.Edition.Error(DiagnosticCatalog.CallAsNestedScope,
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallAsNestedScope,
                     $"CALL … AS NESTED \"{nestedName}\": the name shall be a program contained directly within "
                     + "the calling program, or a visible common program (ISO §14.9.4.3 SR15)");
-                return new BoundNop();
             }
         }
 
@@ -121,7 +118,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // kb/Work PB130: through the ONE program-name-literal reader — SR2 admits alphanumeric AND
             // national literals (a hexadecimal literal IS §8.3.3.2 Format 2 of an alphanumeric one), and the
             // old STRINGLIT-only read sent N"P" / X".." to a run-time loud on legal source.
-            if (ProgramNameLiteral(lit, "CALL", "§14.9.4.3 SR2") is not { } pn) return new BoundNop();
+            if (ProgramNameLiteral(lit, "CALL", "§14.9.4.3 SR2") is not { } pn) return BoundRejected.Reported(ctx.Edition);
             literalName = pn;
         }
         else if (target?.dataReference() is { } dref)
@@ -153,10 +150,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 else if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place))
                          is { } tCls and not (CobolClass.Alphanumeric or CobolClass.National))
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.CallTargetCategory,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
                         $"CALL target '{DataBinder.WrittenText(dref)}' is of class {tCls.ToString().ToLowerInvariant()}; ISO "
                         + "§14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
-                    return new BoundNop();
                 }
             }
         }
@@ -213,7 +209,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 {
                     // §14.9.4.3 SR3/SR4 — an address-identifier BY REFERENCE is still a SENDING operand, so it
                     // never meets the receiving chokepoint below (kb/Work PB239).
-                    if (AddressArg(refAddr, CobolPassMode.Reference) is not { } ra) return new BoundNop();
+                    if (AddressArg(refAddr, CobolPassMode.Reference) is not { } ra) return BoundRejected.Reported(ctx.Edition);
                     args.Add(ra);
                     continue;
                 }
@@ -236,7 +232,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // Format 1's `{ identifier-2 } …` includes the address-identifier SR3 names (kb/Work PB239).
                 if (byContent.addressIdentifier() is { } contentAddr)
                 {
-                    if (AddressArg(contentAddr, CobolPassMode.Content) is not { } ca) return new BoundNop();
+                    if (AddressArg(contentAddr, CobolPassMode.Content) is not { } ca) return BoundRejected.Reported(ctx.Edition);
                     args.Add(ca);
                     continue;
                 }
@@ -253,11 +249,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // phrase would admit illegal source, the exact trade this item refused to make in the grammar.
                 if (!formatTwo && (cBool is not null || cLit is not null || (cArith is not null && cDref is null)))
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallContentOperandFormat,
                         $"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand belongs to the "
                         + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects. "
                         + "Format 1's BY CONTENT admits `{ identifier-2 } …` only.");
-                    return new BoundNop();
                 }
                 // Probe to DISCRIMINATE (the cArith arm below is the legal alternative and its bind demands —
                 // R30), then RESOLVE to commit: a probe is unscreened, so its Place must never enter the bound
@@ -290,10 +285,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // SR21–SR23 sit under Format 2. Accepting it here passed a GR5-impossible mode.
                 if (!formatTwo)
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallContentOperandFormat,
                         "CALL … USING BY VALUE belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), "
                         + "which the AS phrase selects — Format 1’s USING admits BY REFERENCE and BY CONTENT only");
-                    return new BoundNop();
                 }
                 // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
@@ -303,7 +297,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // (kb/Work PB239).
                 if (byValue.addressIdentifier() is { } valueAddr)
                 {
-                    if (AddressArg(valueAddr, CobolPassMode.Value) is not { } va) return new BoundNop();
+                    if (AddressArg(valueAddr, CobolPassMode.Value) is not { } va) return BoundRejected.Reported(ctx.Edition);
                     args.Add(va);
                     continue;
                 }
@@ -350,10 +344,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // is still literal-2, and §14.9.4.3 SR23 still governs it. (`callByValue` has no boolean
                     // alternative, so this arm is reachable only through a shared reduction — which is the
                     // argument for having one.)
-                    ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallByValueLiteralKind,
                         $"CALL … USING {vBareLit.GetText()} with BY VALUE: literal-2 shall be a NUMERIC "
                         + "literal (ISO §14.9.4.3 SR23)");
-                    return new BoundNop();
                 }
                 else if (vArith is { } vax)
                 {
@@ -379,7 +372,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 if (formatTwo && calleeFormals is not null)
                     addrMode = args.Count < calleeFormals.Count && calleeFormals[args.Count].ByValue
                         ? CobolPassMode.Value : CobolPassMode.Reference;
-                if (AddressArg(bareAddr, addrMode) is not { } ba) return new BoundNop();
+                if (AddressArg(bareAddr, addrMode) is not { } ba) return BoundRejected.Reported(ctx.Edition);
                 args.Add(ba);
             }
             else if (a.dataReference() is { } bare)
@@ -450,7 +443,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
             else if (a.literal() is { } bLit)
             {
-                if (!formatTwo) { BareNeedsFormat2(bLit.GetText()); return new BoundNop(); }
+                if (!formatTwo) { BareNeedsFormat2(bLit.GetText()); return BoundRejected.Reported(ctx.Edition); }
                 // §14.9.4.4 GR9 b) — BY VALUE is assumed when the corresponding formal is BY VALUE, and the
                 // MODE is the mechanism, not a side effect of the copy-out (kb/Work PB238: this arm hard-coded
                 // Content and the VALUE outcome happened only because a Content literal has no storage to copy
@@ -463,7 +456,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (a.booleanExpression() is { } bBool)
             {
-                if (!formatTwo) { BareNeedsFormat2(bBool.GetText()); return new BoundNop(); }
+                if (!formatTwo) { BareNeedsFormat2(bBool.GetText()); return BoundRejected.Reported(ctx.Edition); }
                 // §14.9.4.4 GR8's reduction applies to the bare spelling too: an operator-free
                 // booleanExpression is its bare valueOperand, and the identifier/literal it holds is
                 // identifier-4 / literal-2 — the BY CONTENT arm's own discipline, from the same helper.
@@ -498,7 +491,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     ScreenCallOperand(sp, mode, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(mode, sp, null));
                 }
-                else if (!formatTwo) { BareNeedsFormat2(bArith.GetText()); return new BoundNop(); }
+                else if (!formatTwo) { BareNeedsFormat2(bArith.GetText()); return BoundRejected.Reported(ctx.Edition); }
                 else
                     args.Add(new BoundCallArg(CobolPassMode.Content, null,
                         IntrinsicBinder.OperandOf(host.Expr.BindExpr(bArith))));
@@ -903,7 +896,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // the ONE asker that also serves EXIT's §14.9.14.3 SR2 (kb/Work PB409). The run-time twin, §14.9.18.4
         // GR6's "executed within the RANGE of" a global declarative, is LEGAL source and is raised by
         // CallEmitter.EmitGoback as EC-FLOW-GLOBAL-GOBACK; this screen must not try to approximate it.
-        if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Goback)) return new BoundNop();
+        if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Goback)) return BoundRejected.Reported(ctx.Edition);
         var p = DecodeGobackPhrases(g);
         if (host.InMethod) return host.Oo.OoBindMethodGoback(p);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
         // goback-bare-2002 / goback-returning-2002: the VersionConformancePass owns both edition gates
@@ -1104,11 +1097,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         string text = dref.GetText();
         if (ctx.Data.ScreenNames.Contains(text))
         {
-            ctx.Edition.Error(DiagnosticCatalog.CallOperandSection,
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,
                 $"CALL {role} '{text}' names a SCREEN SECTION entry; ISO §14.9.4.3 "
                 + (role.StartsWith("RETURNING") ? "SR7" : "SR3")
                 + " requires a data item defined in the file, working-storage, local-storage, or linkage section");
-            return new BoundNop();
         }
         return new BoundUnsupported($"CALL {role} '{text}'");
     }

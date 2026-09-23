@@ -63,7 +63,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + $"it. ISO §8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY — "
                     + $"write 'FUNCTION {fn}', or add 'REPOSITORY. FUNCTION {fn} INTRINSIC.' (or FUNCTION ALL "
                     + "INTRINSIC).");
-                return new BoundExprError($"FUNCTION {fn}");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn}");
             }
             // The captured group is the ARGUMENT LIST unless it holds a depth-0 colon, in which case it is a
             // reference modification of a zero-argument result — the same two shapes, decided the same way, as
@@ -76,7 +76,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     : ResultRefMod(BindIntrinsicCore(fn, []), ctx.Refs.ReadRefMod(grp), fn);
             var args = sp is null ? [] : ReparseArgs(sp);
             return args is null
-                ? new BoundExprError($"FUNCTION {fn} arguments")
+                ? BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn} arguments")
                 : FinishIntrinsic(fc, BindIntrinsicCore(fn, args), fn);
         }
         string name = fc.functionName().GetText();
@@ -96,7 +96,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.FunctionPointerParenthesesRequired,
                 $"{display}: '{name}' is a function-pointer, so the function-identifier shall write its argument "
                 + "list in parentheses — '(' ')' for none (ISO §8.4.3.2.3 SR5)");
-            return new BoundExprError(display);
+            return BoundExprError.Refused(ctx.Edition, display);
         }
         return FinishIntrinsic(fc, BindIntrinsicCore(name, ArgsOf(fc.functionArgList())), display);
     }
@@ -139,7 +139,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             + "takes arguments is ALWAYS its argument list (ISO §8.4.3.2.3 SR6), so this is an argument list "
             + "and 'start:length' is not a valid argument (SR8). Reference-modify the RESULT by writing the "
             + $"argument list first: {display}(<arguments>) (start:length).");
-        return new BoundExprError($"{display} arguments");
+        return BoundExprError.Refused(ctx.Edition, $"{display} arguments");
     }
 
     /// <summary>The tail both <c>functionCall</c> alternatives share: the §8.4.3.3.3 ref-mod on the RESULT
@@ -157,7 +157,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{display}' carries {refMods.Length} reference modifications; the result of a function cannot "
                 + "be reference-modified twice (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier.");
-            return new BoundExprError($"reference modification of {display}");
+            return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         // §8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
         // only ref-mod that reaches here is one that FOLLOWS the argument list (or a zero-argument function).
@@ -198,15 +198,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.RefModFunctionResultClass,
                 $"'{display}' is not an alphanumeric, boolean, or national function, so its result cannot be "
                 + "reference-modified (ISO §8.4.3.3.3 SR2).");
-            return new BoundExprError($"reference modification of {display}");
+            return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
-        if (spec is not { } rm) return new BoundExprError($"reference modification of {display}");
+        if (spec is not { } rm) return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         return call switch
         {
             BoundIntrinsicCall c => c with { RefMod = rm },
             BoundNumRef r => new BoundNumRef(new RefModPlace(r.Place, rm.Start, rm.Length)
                 { AllowZeroLength = rm.AllowZeroLength }),
-            _ => new BoundExprError($"reference modification of {display}"),
+            _ => BoundExprError.Refused(ctx.Edition, $"reference modification of {display}"),
         };
     }
 
@@ -222,7 +222,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         BoundNumLiteral l => new BoundNumericLiteral(l.Text),       // a folded LENGTH
         BoundNumRef r => new BoundFieldOperand(r.Place),            // a user-function result temp (M2-UDF-1)
-        BoundExprError err => new BoundOperandError(err.Feature),
+        BoundExprError err => BoundOperandError.Carry(err.Feature, err.IsUnbuilt),
         _ => new BoundComputedOperand(e),
     };
 
@@ -318,7 +318,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             var viaPointer = ReparseArgs(sp) is { } fpArgs
                 ? host.Udf.UdfBindPointerCall(fp, fpArgs)
-                : new BoundExprError($"FUNCTION {name} arguments");
+                : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
             return tailRefMod is null ? viaPointer : ResultRefMod(viaPointer, ctx.Refs.ReadRefMod(tailRefMod), name);
         }
         bool catalogued = IntrinsicCatalog.TryGet(name, out var sig);
@@ -352,7 +352,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"it. ISO §8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY — "
                 + $"write 'FUNCTION {name}', or add 'REPOSITORY. FUNCTION {name} INTRINSIC.' (or FUNCTION ALL "
                 + "INTRINSIC).");
-            return new BoundExprError($"FUNCTION {name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
         if (sp is null)
         {
@@ -396,7 +396,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         var call = ReparseArgs(sp) is { } args
             ? BindIntrinsicCore(name, args)
-            : new BoundExprError($"FUNCTION {name} arguments");
+            : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
         return tailRefMod is null
             ? call
             : ResultRefMod(call, ctx.Refs.ReadRefMod(tailRefMod), name);
@@ -521,7 +521,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                       + $"FUNCTION {name.ToUpperInvariant()} in this unit's REPOSITORY paragraph to reference "
                       + "it as a user-defined function (ISO §12.3.8.2 GR12)"
                     : ""));
-            return new BoundExprError($"FUNCTION {name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
 
         // D8 edition window: a function is rejected, BY NAME AND EDITION, outside [IntroducedIn, RemovedIn).
@@ -631,7 +631,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes "
                 + (sig.MinArgs == sig.MaxArgs ? $"{sig.MinArgs}" : sig.MaxArgs == int.MaxValue ? $"at least {sig.MinArgs}" : $"{sig.MinArgs}..{sig.MaxArgs}")
                 + $" argument(s); {given} given (ISO §15.3)");
-            return new BoundExprError($"FUNCTION {sig.Name} arity");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
 
         // ISO §15.3 ARGUMENT-CLASS screen (fix-queue PB1). THE catalog-driven enforcement of every catalogued
@@ -834,14 +834,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + $"is not the name of a file connector specified in an FD statement (ISO {clause})");
-            return new BoundExprError($"FUNCTION {sig.Name} argument");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
         }
         if (file.IsSortMerge || !file.HasFd)
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + (file.IsSortMerge ? "names a sort-merge file (an SD entry)" : "names a SELECTed file that has no FD entry")
                 + $" — argument-1 shall be the name of a file connector specified in an FD statement (ISO {clause})");
-            return new BoundExprError($"FUNCTION {sig.Name} argument");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
         }
         host.Ec.EcNoteFunction();
         return new BoundIntrinsicCall(sig, [], sig.ResultCategory) { FileArg = file };
@@ -872,14 +872,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundExpr Malformed(string why)
         {
             ctx.Edition.Error(DiagnosticCatalog.StandardCompareArgument, $"FUNCTION STANDARD-COMPARE {why}");
-            return new BoundExprError("FUNCTION STANDARD-COMPARE");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION STANDARD-COMPARE");
         }
 
         if (argCtxs.Count is < 2 or > 4)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION STANDARD-COMPARE takes 2..4 argument(s); "
                 + $"{argCtxs.Count} given (ISO §15.85.2)");
-            return new BoundExprError("FUNCTION STANDARD-COMPARE arity");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION STANDARD-COMPARE arity");
         }
 
         string? orderingTable = null;
@@ -945,7 +945,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes {operandCount}..{operandCount + 1} argument(s); "
                 + $"{argCtxs.Count} given (ISO §{LocaleFunctionClause(sig.Name)}.2)");
-            return new BoundExprError($"FUNCTION {sig.Name} arity");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         var operands = new List<BoundOperand>(operandCount);
         for (int at = 0; at < operandCount; at++) operands.Add(BindArgOperand(argCtxs[at]));
@@ -964,14 +964,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (KeywordWordOf(a) is { } word)
             {
                 var sym = ctx.Data.ResolveLocaleName(word, site, rule);
-                if (sym is null) return new BoundExprError($"FUNCTION {sig.Name}");
+                if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                 locale = new LocaleRef(sym);
             }
             else
             {
                 ctx.Edition.Error("COBOLNET1664", $"{site}: the position after the operand(s) admits only a locale-name declared by a "
                     + $"SPECIAL-NAMES LOCALE clause ({rule}; the general format is §{LocaleFunctionClause(sig.Name)}.2)");
-                return new BoundExprError($"FUNCTION {sig.Name}");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             }
         }
         // The §15.3 screen — this binder returns before the generic path reaches CheckArgumentClasses, so it
@@ -997,7 +997,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 optionally followed by LOCALE locale-name-1 "
                 + $"({rule}); {argCtxs.Count} argument(s) given");
-            return new BoundExprError($"FUNCTION {sig.Name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
         // The phrase is a 2002 introduction (the function is 1985): the construct gate, like EXCEPTION-FILE's argument.
         ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.CaseFunctionLocalePhrase2002,
@@ -1007,14 +1007,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (KeywordWordOf(argCtxs[2]) is { } word)
         {
             var sym = ctx.Data.ResolveLocaleName(word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
-            if (sym is null) return new BoundExprError($"FUNCTION {sig.Name}");
+            if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             locale = new LocaleRef(sym);
         }
         else
         {
             ctx.Edition.Error("COBOLNET1664", $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
                 + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{argCtxs[2].GetText().Trim()}'");
-            return new BoundExprError($"FUNCTION {sig.Name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
         var operands = new List<BoundOperand> { operand };
         CheckArgumentClasses(sig, operands);
@@ -1044,7 +1044,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION TRIM takes argument-1 [LEADING|TRAILING] "
                 + $"[argument-2]…, in that order (ISO §15.96.2) — {why}");
-            return new BoundExprError("FUNCTION TRIM");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION TRIM");
         }
         foreach (var a in argCtxs)
         {
@@ -1070,7 +1070,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (operands.Count == 0)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION TRIM takes at least a string argument-1 (ISO §15.96.2/.3)");
-            return new BoundExprError("FUNCTION TRIM");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION TRIM");
         }
         // The argument-2 form (delete characters OTHER than space) is a 2023 enhancement — TRIM removed only
         // spaces through 2014 (Annex E.3.3 item 31; VERSION_CHANGE_REFERENCE row 74). Its introduction is gated
@@ -1110,7 +1110,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION FIND-STRING takes argument-1 argument-2 [LAST] "
                 + $"[[START AFTER] argument-3] [ANYCASE], in that order (ISO §15.37.2) — {why}");
-            return new BoundExprError("FUNCTION FIND-STRING");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION FIND-STRING");
         }
         // ⛔ A POSITIONAL WALK OVER THE §15.37.2 FORMAT, not an order-free switch (kb/Work R20 — ledger F28).
         // The old walk accepted the phrase words ANYWHERE, REPEATED, and — the dangerous case — a dangling
@@ -1154,7 +1154,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION FIND-STRING takes argument-1 argument-2 "
                 + $"[[START AFTER] argument-3] (ISO §15.37.2); {operands.Count} operand argument(s) given");
-            return new BoundExprError("FUNCTION FIND-STRING");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION FIND-STRING");
         }
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
         // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
@@ -1191,13 +1191,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         bool flat = false;
         var partFlags = new List<int>();
         BoundExpr Malformed() { ctx.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE takes argument-1 and one "
-            + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §15.87.2)"); return new BoundExprError("FUNCTION SUBSTITUTE"); }
+            + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §15.87.2)"); return BoundExprError.Refused(ctx.Edition, "FUNCTION SUBSTITUTE"); }
 
         BoundExpr MalformedOrder(string why)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE's phrase keywords precede their pair in the "
                 + $"format's order — [ANYCASE] [FIRST|LAST] argument-2 argument-3 (ISO §15.87.2) — {why}");
-            return new BoundExprError("FUNCTION SUBSTITUTE");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION SUBSTITUTE");
         }
         foreach (var a in argCtxs)
         {
@@ -1341,7 +1341,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         + $"declaration '{td.CobolName}' — Table 21 lists a type-name here, but §15.19 "
                         + "defines no semantics for one (recorded as a standard-text inconsistency, "
                         + "CONFORMANCE.md); write a data item described with the type instead");
-                    return new BoundExprError("FUNCTION CONVERT type argument");
+                    return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT type argument");
                 }
                 operands.Add(BindArgOperand(a));
                 continue;
@@ -1349,13 +1349,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (KeywordWordOf(a) is { } w && IsConvertFormatWord(w)) { kws.Add(w); continue; }
             ctx.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: the arguments after argument-1 shall be the "
                 + "source-format and destination-format keywords, in that order (ISO §15.19.2)");
-            return new BoundExprError("FUNCTION CONVERT format");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT format");
         }
         if (operands.Count != 1 || kws.Count is < 2 or > 3)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION CONVERT takes ( argument-1 source-format "
                 + $"destination-format ) (ISO §15.19.2); {operands.Count} operand + {kws.Count} format keyword(s) given");
-            return new BoundExprError("FUNCTION CONVERT arity");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT arity");
         }
 
         int src = kws[0] switch { "ANY" => 0, "ALPHANUMERIC" or "ANUM" => 1, "HEX" => 2, "NATIONAL" or "NAT" => 3, _ => -1 };
@@ -1368,7 +1368,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1514", $"FUNCTION CONVERT: '{string.Join(' ', kws)}' is not a valid "
                 + "source-format destination-format pair (ISO §15.19.2 — ANY|ANUM|HEX|NAT then ANUM|NAT [HEX] | BYTE)");
-            return new BoundExprError("FUNCTION CONVERT");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION CONVERT");
         }
         // The §15.3 screen — see the PB12 note on the FIND-STRING arm: this binder returns before the
         // generic path reaches CheckArgumentClasses, so it screens its own operand list.
@@ -1602,7 +1602,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error("COBOLNET1504", "FUNCTION MODULE-NAME takes exactly one keyword argument "
                     + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2), not '{a.GetText()}'");
-                return new BoundExprError("FUNCTION MODULE-NAME");
+                return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
             }
             kind = k;
         }
@@ -1610,7 +1610,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504", "FUNCTION MODULE-NAME requires one keyword argument "
                 + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2)");
-            return new BoundExprError("FUNCTION MODULE-NAME");
+            return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
         }
         // §15.65.3 argument rule 1 — NESTED only within a nested (contained) program.
         if (kind == 2 && !host.InNestedProgram)
@@ -1678,7 +1678,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 {
                     ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: the ANYCASE keyword is repeated "
                         + $"(ISO §{fmt} — argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE])");
-                    return new BoundExprError($"FUNCTION {sig.Name} format");
+                    return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
                 }
                 anycase = true;
                 continue;
@@ -1687,7 +1687,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: an argument follows ANYCASE, which "
                     + $"the format places last (ISO §{fmt})");
-                return new BoundExprError($"FUNCTION {sig.Name} format");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
             }
             // The LOCALE keyword (§15.68.3 r5a; kb/Work PB64 T6): optionally followed by a locale-name declared
             // in SPECIAL-NAMES (SR37's family rule → the ONE COBOLNET1664); absent, LC_MONETARY of the locale
@@ -1701,7 +1701,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 {
                     var sym = ctx.Data.ResolveLocaleName(lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
                         "ISO §15.68.3 r5a — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
-                    if (sym is null) return new BoundExprError($"FUNCTION {sig.Name}");
+                    if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                     locale = new LocaleRef(sym);
                     at++;
                 }
@@ -1715,13 +1715,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // most one of a bracketed stack may be written).
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name}: argument-2 and the LOCALE keyword are "
                 + $"alternatives — at most one may be written (ISO §{fmt}; §5.2.6.2)");
-            return new BoundExprError($"FUNCTION {sig.Name} format");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} format");
         }
         if (operands.Count is < 1 or > 2)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 [argument-2 | LOCALE "
                 + $"[locale-name-1]] [ANYCASE] (ISO §{fmt}); {operands.Count} operand argument(s) given");
-            return new BoundExprError($"FUNCTION {sig.Name} arity");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         // ⛔ THE §15.3 SCREEN IS CALLED HERE BECAUSE THIS BINDER RETURNS BEFORE THE GENERIC ONE REACHES IT
         // (fix-queue PB12). CheckArgumentClasses sits after arity on the generic path and its comment
@@ -2042,7 +2042,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundAllLiteral a => new BoundNumLiteral(a.Literal.Length.ToString()),           // §8.3.3.6.4 GR3c
         // An argument that already failed to bind (a nested call the binder rejected) is already loud — no
         // second, misattributed report ("is a numeric literal") on top of it (kb/Work PB63).
-        BoundOperandError e => new BoundExprError(e.Feature),
+        BoundOperandError e => BoundExprError.Carry(e.Feature, e.IsUnbuilt),
         // A NUMERIC literal is still not a valid LENGTH argument — §15.50.3 r1 admits only "an alphanumeric,
         // national, or boolean literal" (a numeric *data item* is allowed as "a data item of any class or
         // category", handled by the BoundFieldOperand arm above). That half of the old arm was always correct.
@@ -2145,7 +2145,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1504",
                 $"FUNCTION {sig.Name} takes argument-1 [PHYSICAL] (ISO {(isByte ? "§15.14.2" : "§15.50.2")}); {operands.Count} operand argument(s) given");
-            return new BoundExprError($"FUNCTION {sig.Name} arity");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
         if (typeArg is not null)
         {
@@ -2156,7 +2156,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name}: the type "
                     + $"declaration '{typeArg.CobolName}' describes a variable-length group, which ISO §15.3 "
                     + "does not admit as a type-declaration argument");
-                return new BoundExprError($"FUNCTION {sig.Name} type argument");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} type argument");
             }
             return new BoundNumLiteral((isByte ? typeArg.ByteWidth : LengthPositions(typeArg)).ToString());
         }
@@ -2236,7 +2236,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         Place inner = op.Place.Undecorated;
         DataItem group = inner.Item;
         AccessPath? basePath = inner switch { MemberPlace m => m.Path, DynTablePlace d => d.Path, _ => null };
-        BoundExprError Stage(string what) => new($"FUNCTION {sig.Name} of '{group.CobolName ?? group.CsName}': {what} (ISO {rules})");
+        BoundExprError Stage(string what) => BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {sig.Name} of '{group.CobolName ?? group.CsName}': {what} (ISO {rules})");
 
         if (group.HasBitDescendant)
             return Stage("a group holding USAGE BIT items and a runtime-length subordinate — its fixed extent is a "
@@ -2333,7 +2333,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
             $"FUNCTION {sig.Name} argument-1 {why} (ISO {clause})");
-        return new BoundExprError($"FUNCTION {sig.Name} argument ({why}, ISO {clause})");
+        return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument ({why}, ISO {clause})");
     }
 
     private BoundExpr BindByteLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
@@ -2363,7 +2363,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand { Place.Item.IsAnyLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand { Place.Item.IsDynamicLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand f => new BoundNumLiteral(f.Place.Item.ByteWidth.ToString()),
-        BoundOperandError e => new BoundExprError(e.Feature),   // already loud (kb/Work PB63)
+        BoundOperandError e => BoundExprError.Carry(e.Feature, e.IsUnbuilt),   // already loud (kb/Work PB63)
         // ⛔ THE FIGURATIVE HALF OF THE ARM BELOW WAS FALSE, AND IT IS PB25's OWN DEFECT IN THE ADJACENT METHOD
         // (fix-queue PB48 sweep). PB25 gave BindLengthFold its §8.3.3.6.4 GR3 arms and cited the reasoning in
         // full; BYTE-LENGTH — the neighbouring fold, with the same rule shape — kept a default arm that named
@@ -2429,7 +2429,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: argument-1 is a FUNCTION RESULT, and "
                 + $"ISO §{fsec} rule 1 admits a data item and \"shall not be an integer function or numeric "
                 + "function\" — name the data item whose description defines the range instead");
-            return new BoundExprError($"FUNCTION {sig.Name} function argument");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} function argument");
         }
         // §15.83.3 r1: SMALLEST admits ONLY category numeric; HIGHEST/LOWEST also admit numeric-edited.
         bool edited = pic.Category is PicCategory.NumericEdited;
@@ -2462,14 +2462,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-DECIMAL arithmetic "
                     + "argument-1 shall not specify a standard binary floating-point usage "
                     + $"(ISO §{fsec3} rule 2)");
-                return new BoundExprError($"FUNCTION {sig.Name} float argument");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
             if (ctx.Data.Options.Arithmetic == ArithmeticMode.StandardBinary && stdDecimalUsage)
             {
                 ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name}: under STANDARD-BINARY arithmetic "
                     + "argument-1 shall not specify a standard decimal floating-point usage "
                     + $"(ISO §{fsec3} rule 3)");
-                return new BoundExprError($"FUNCTION {sig.Name} float argument");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
             }
             // §15.83.4 r1 (kb/Work PB122; the float-ITEM twin of the float-EDITED screen below): the entry
             // shall be such that every value it permits passes an IN-ARITHMETIC-RANGE test — the carrier's
@@ -2497,7 +2497,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         + $"as 1E{closestExp}, outside the {ArithmeticModes.IntermediateName(ctx.Data.Options.Arithmetic)} "
                         + "intermediate's range — the entry shall be such that its values pass an "
                         + $"IN-ARITHMETIC-RANGE test (ISO §{fsec3[..^2]}.4 rule 1; §8.8.4.4.4 GR3 l)");
-                    return new BoundExprError($"FUNCTION {sig.Name} float argument");
+                    return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} float argument");
                 }
             }
             // SMALLEST — §15.83.1/§15.83.4 r2: the smallest algebraic difference between two values the item
@@ -2534,7 +2534,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + $"{pic.EditMask} describes values as far from zero as 1E+{farthestExp} and as near as 1E{closestExp}, "
                     + $"outside the {ArithmeticModes.IntermediateName(ctx.Data.Options.Arithmetic)} intermediate's range — the entry "
                     + "shall be such that its extreme passes an IN-ARITHMETIC-RANGE test (ISO §15.43.4 r1 / §15.58.4 r1; §8.8.4.4.4 GR3 l)");
-                return new BoundExprError($"FUNCTION {sig.Name} floating-point edited argument");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} floating-point edited argument");
             }
         }
         return FoldFrom(sig, pic, AlgebraicRanges.Of(pic, ctx.Data.DecimalPointIsComma));
@@ -2595,7 +2595,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name} argument-1 shall be a {cat} DATA ITEM — not a "
             + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
             + $"function (ISO §{sec} rule 1)");
-        return new BoundExprError($"FUNCTION {sig.Name} argument");
+        return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
     }
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
@@ -2626,7 +2626,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error("COBOLNET1544", "OMITTED shall not be specified as an intrinsic-function argument "
                 + "(ISO §8.4.3.2.3 SR7 — OMITTED applies to user-defined function parameters declared OPTIONAL)");
-            return new BoundOperandError("OMITTED intrinsic argument");
+            return BoundOperandError.Refused(ctx.Edition, "OMITTED intrinsic argument");
         }
         if (a.fnArgPhraseWord() is { } kw)
         {
@@ -2637,7 +2637,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 $"the reserved phrase word '{kw.GetText()}' is written as an intrinsic-function argument, but "
                 + "this function's §15.x.2 general format takes no phrase — a phrase word is not an identifier, "
                 + "literal, or expression (ISO §15.3)");
-            return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");
+            return BoundOperandError.Refused(ctx.Edition, $"intrinsic argument '{kw.GetText()}'");
         }
         if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
         // §8.4.3.2.3 SR8 — "a boolean expression" as an argument (kb/Work PB65, FMT-15.45.2): bound through the ONE
@@ -2678,7 +2678,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // The F18 sibling one shape over (kb/Work R19): the null fallback was a silent runtime stage too.
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
             $"the literal '{nn.GetText()}' is not a form this intrinsic-argument position admits (ISO §15.3)");
-        return new BoundOperandError($"literal argument '{nn.GetText()}'");
+        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{nn.GetText()}'");
     }
 
     /// <summary>The bare-word view of an argument for the §15 phrase-keyword functions: a reserved phrase word
@@ -2768,12 +2768,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "function's definition permits an argument to be repeated a variable number of times (ISO §15.3), and "
                 + $"FUNCTION {sig.Name}'s general format repeats none — write the occurrence you mean, or use a function "
                 + "whose format is `{ argument } …` (MAX, MIN, SUM, MEAN, …).");
-            args.Add(new BoundOperandError($"FUNCTION {sig.Name} table(ALL) argument"));
+            args.Add(BoundOperandError.Refused(ctx.Edition, $"FUNCTION {sig.Name} table(ALL) argument"));
             return true;
         }
         if (ctx.Refs.FindItem(name, quals) is not { } item)
         {
-            args.Add(new BoundOperandError($"table(ALL) reference '{name}'"));
+            // The resolver's ONE §8.4.2.1 / §8.4.2.2 report (kb/Work PB1029 — this arm refused silently).
+            ctx.Refs.ReportUnidentified(dref, name, quals);
+            args.Add(BoundOperandError.Refused(ctx.Edition, $"table(ALL) reference '{name}'"));
             return true;
         }
         // The table levels on the item's ancestor chain, outermost first — the AccessPath subscript order, from
@@ -2782,7 +2784,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         var levels = item.SubscriptLevels();
         if (levels.Count != innerSegs.Count)
         {
-            args.Add(new BoundOperandError($"table(ALL) subscript count for '{name}'"));
+            // The resolver's ONE §8.4.2.3.3 SR2/SR3 report (kb/Work PB1029 — this arm refused silently).
+            ctx.Refs.ScreenSubscriptArity(dref, item, innerSegs.Count);
+            args.Add(BoundOperandError.Refused(ctx.Edition, $"table(ALL) subscript count for '{name}'"));
             return true;
         }
 
@@ -2800,7 +2804,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 {
                     if (ctx.Refs.ResolveItem(dep) is not { } depPlace)
                     {
-                        args.Add(new BoundOperandError($"table(ALL) over OCCURS DEPENDING table '{name}': data-name-1 '{dep.CobolName}' could not be addressed"));
+                        args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) over OCCURS DEPENDING table '{name}': data-name-1 '{dep.CobolName}' could not be addressed"));
                         return true;
                     }
                     counts.Add(new AllCount.Odo(depPlace, odoSpec.Min, level.Occurs ?? 1));
@@ -2810,7 +2814,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     if (level.OccursSpec?.CapacityRegister is not { } reg
                         || ReferenceResolver.BuildTablePath(level, outerExprs) is not { } tablePath)
                     {
-                        args.Add(new BoundOperandError($"table(ALL) over dynamic-capacity table '{name}': the table could not be addressed"));
+                        args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) over dynamic-capacity table '{name}': the table could not be addressed"));
                         return true;
                     }
                     counts.Add(new AllCount.Capacity(new CapacityRegisterPlace(tablePath, reg)));
@@ -2821,14 +2825,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 exprs[i] = rendered;
             else
             {
-                args.Add(new BoundOperandError($"table(ALL) subscript of '{name}'"));
+                args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) subscript of '{name}'"));
                 return true;
             }
             outerExprs.Add(exprs[i]);
         }
         if (ctx.Refs.ResolveByName(name, quals, exprs) is not { } element)
         {
-            args.Add(new BoundOperandError($"table(ALL) occurrence of '{name}'"));
+            args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
             return true;
         }
         args.Add(new BoundFieldOperand(new TableAllPlace(element, indexVar, counts)));

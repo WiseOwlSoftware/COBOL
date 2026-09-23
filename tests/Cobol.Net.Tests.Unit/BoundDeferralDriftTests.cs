@@ -67,7 +67,8 @@ public sealed class BoundDeferralDriftTests
     }
 
     /// <summary>The refusal cannot be constructed around its diagnostic: no public or internal constructor, and
-    /// <see cref="BoundRejected.Report"/> is the one factory.</summary>
+    /// <see cref="BoundRejected.Report"/> (a descriptor or a bare code) and <see cref="BoundRejected.Reported"/> (a callee
+    /// reported; the statement funnel verifies it — kb/Work PB1029) are the only factories.</summary>
     [Fact]
     public void BoundRejected_IsObtainableOnlyThroughReport()
     {
@@ -75,7 +76,7 @@ public sealed class BoundDeferralDriftTests
         Assert.All(ctors, c => Assert.True(c.IsPrivate, $"{c} is not private"));
         var factories = typeof(BoundRejected).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Where(m => m.ReturnType == typeof(BoundRejected)).Select(m => m.Name).ToList();
-        Assert.Equal(["Report"], factories);
+        Assert.Equal(["Report", "Report", "Reported"], factories.Order(StringComparer.Ordinal));
     }
 
     private const string Head = """

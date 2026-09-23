@@ -105,9 +105,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                         + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
                 else if (host.Expr.ResolveSending(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
                 {
-                    ctx.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
+                    return BoundRejected.Report(ctx.Edition, "COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
-                    return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                 }
                 else keyIndex = ki;
             }
@@ -192,16 +191,15 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         string name = del.fileName().GetText();
         // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
-        if (!ctx.Validation.ResolveFile(name, "DELETE", out var file)) return new BoundNop();
+        if (!ctx.Validation.ResolveFile(name, "DELETE", out var file)) return BoundRejected.Reported(ctx.Edition);
         // §13.4.6.3 SR3: an SD file (its SELECT may even carry ORGANIZATION RELATIVE/INDEXED) previously bound
         // and ran against an unregistered connector — the fail-open status read '00' (kb/Work PB140).
         if (ctx.Validation.ScreenSortMergeFile(file, "DELETE") is not null)
-            return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
+            return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
-            ctx.Edition.Error("COBOLNET0865", $"DELETE RECORD shall not be specified for sequential-organization "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0865", $"DELETE RECORD shall not be specified for sequential-organization "
                 + $"file '{name}' (ISO §14.9.10.3 SR1)");
-            return new BoundNop();   // reported above — not a deferral (PB236)
         }
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
         // that references a file in SEQUENTIAL ACCESS MODE. Gated through the ONE severity seam (kb/Work PB144):
@@ -268,14 +266,14 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         string name = st.fileName().GetText();
         // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
-        if (!ctx.Validation.ResolveFile(name, "START", out var file)) return new BoundNop();
+        if (!ctx.Validation.ResolveFile(name, "START", out var file)) return BoundRejected.Reported(ctx.Edition);
         // §9.1.19 / §13.4.6.3 SR3: "The only statements that may reference a sort file are the RELEASE, RETURN,
         // and SORT statements." START was the ONE keyed verb that skipped this screen (BindDelete,
         // BindDeleteFile, BindClose and SequentialIoBinder.UnsupportedOrg all call it — the PB140 consolidation),
         // so an SD whose SELECT carried ORGANIZATION INDEXED accepted a START and ran against an unregistered
         // connector (kb/Work PB352).
         if (ctx.Validation.ScreenSortMergeFile(file, "START") is not null)
-            return new BoundNop();   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
+            return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.AccessMode == FileAccessMode.Random)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the access mode shall be sequential or "
                 + "dynamic (ISO §14.9.41.3 SR1)");
@@ -335,13 +333,12 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // ill-formed statement, never a refusal of the organization: the FIRST/LAST arm above accepts it.
         if (file.IsSequential)
         {
-            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on sequential-organization file '{name}': either the "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on sequential-organization file '{name}': either the "
                 + "FIRST or the LAST phrase shall be specified (ISO §14.9.41.3 SR2)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         // The SR4 violation is reported; the key screens below cannot run on an operand with no single fixed
         // position, so the statement stops here rather than reporting a second, wrong reason.
-        if (operandUnderOccurs) return new BoundNop();
+        if (operandUnderOccurs) return BoundRejected.Reported(ctx.Edition);
 
         if (file.Organization == FileOrganization.Relative)
         {
@@ -369,11 +366,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // no longer as a silent compile followed by a run-time abort.
             if (operand is null)
             {
-                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the KEY phrase is omitted, so ISO "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the KEY phrase is omitted, so ISO "
                     + "§14.9.41.4 GR8 substitutes KEY IS EQUAL TO the RELATIVE KEY item — but this file control "
                     + "entry has no RELATIVE KEY clause, so there is no key to compare. Add a RELATIVE KEY "
                     + "clause to the SELECT, or write an explicit KEY phrase.");
-                return new BoundNop();
             }
             return new BoundKeyedStart(file, KeyedStartMode.Key, op, -1, operand, null, invalid);
         }
@@ -395,11 +391,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     ?? Model.RecordLayout.GenericKeyIndex(file, keyItem)) is not { } ki)
             {
                 string written = kp?.dataReference()?.GetText() ?? operand.Item.CobolName ?? "data-name-1";
-                ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{written}' is neither a "
                     + "record key of the file nor an item that begins at the leftmost character position of one "
                     + "within a record of that file, has the same class, category and usage as that key, and is "
                     + "no longer than it (ISO §14.9.41.3 SR6)");
-                return new BoundNop();   // reported above — not a deferral (PB236)
             }
             keyIndex = ki;
         }

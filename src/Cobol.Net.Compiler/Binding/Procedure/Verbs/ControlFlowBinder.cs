@@ -101,7 +101,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // index-name (a subscript, PERFORM/SEARCH VARYING, SET, a relation condition). The R16 screen for
             // exactly this already existed and simply was not applied at this site.
             if (host.Expr.ScreenIndexNameOperand(op, d.GetText(), "the STOP RUN / GOBACK status operand"))
-                return new BoundOperandError($"index-name '{d.GetText()}' in a termination-status phrase");
+                return BoundOperandError.Refused(ctx.Edition, $"index-name '{d.GetText()}' in a termination-status phrase");
             return ScreenStatusOperand(op, d.GetText());
         }
         return null;   // WITH ERROR / NORMAL, no STATUS value — GR2/GR3's implementor indication
@@ -151,7 +151,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                     "NULL is a predefined address / object reference, not a literal or an identifier, and ISO "
                     + "§8.4.3.10.3 SR1 admits it only as an INITIALIZE/SET sending operand, a prototype argument, "
                     + "or in a pointer-or-object-reference relation condition — not in a termination-status phrase");
-                return new BoundOperandError("NULL in a termination-status phrase");
+                return BoundOperandError.Refused(ctx.Edition, "NULL in a termination-status phrase");
             // SR2/SR6 — an integer data item, OR a data item with usage display or usage national.
             case BoundFieldOperand { Place: var place } when !AdmittedStatusItem(place):
                 StatusError($"the status operand '{text}' shall reference an integer data item or a data "
@@ -223,7 +223,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// node carries no parse line), so the runtime raises the nonfatal exception (GR1b) only under CHECKING ON.</summary>
     public BoundStatement BindContinue(Core.ContinueStatementContext cont)
     {
-        if (cont.arithmeticExpression() is not { } secs) return new BoundNop();   // plain CONTINUE — a §14.9.9 no-op
+        if (cont.arithmeticExpression() is not { } secs) return new BoundNop();   // no-op: plain CONTINUE (§14.9.9)
         bool checkLtz = ctx.EcState.Turn.Enabled("EC-CONTINUE-LESS-THAN-ZERO", null, cont.Start.Line);
         return new BoundContinueAfter(host.Expr.BindExpr(secs), checkLtz);
     }
@@ -261,11 +261,11 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                     selector, g.dataReference().GetText());
                 return resolved && admitted
                     ? new BoundGoToDepending(selector, targets, ctx.SourceLine(g))
-                    : new BoundNop();
+                    : BoundRejected.Reported(ctx.Edition);
 
             case GoToFormat.Unconditional:          // GO TO procedure-name-1
                 return ctx.Table.ResolveProcedureOperand(names[0], "GO TO") is not { } target
-                    ? new BoundNop()
+                    ? BoundRejected.Reported(ctx.Edition)
                     // alterable when the owning paragraph is an ALTER target, else a plain GO TO
                     : host.Alter.AlterGoTo(g, target.Range.Start);
 
@@ -328,10 +328,9 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // PERFORM there is no such END-PERFORM, so the statement has no meaning to carry.
             if (!where.InPerform)
             {
-                ctx.Edition.Error("COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                     "EXIT PERFORM may be specified only in an inline or exception-checking PERFORM statement "
                     + "(ISO §14.9.14.3 SR8)");
-                return new BoundNop();
             }
             // §14.9.14.3 SR8 sentence 2 — an exception-checking PERFORM is not a loop, so there is no cycle to
             // take. Measured against the NEAREST enclosing PERFORM, NOT against "does any ancestor check
@@ -344,9 +343,8 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // and is legal — which is also what the emitter's innermost-wins F3Region tracking already does.
             if (e.CYCLE() is not null && where.InExceptionCheckingPerform)
             {
-                ctx.Edition.Error("COBOLNET1604", "EXIT PERFORM CYCLE shall not appear within an exception-checking "
+                return BoundRejected.Report(ctx.Edition, "COBOLNET1604", "EXIT PERFORM CYCLE shall not appear within an exception-checking "
                     + "PERFORM (ISO §14.9.14.3 SR8)");
-                return new BoundNop();
             }
             return new BoundExitPerform(e.CYCLE() is not null);
         }
@@ -355,18 +353,17 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             var element = ctx.Enclosing.SourceElement;
             if (!ctx.Enclosing.InProgramProcedureDivision)   // §14.9.14.3 SR7
             {
-                ctx.Edition.Error("COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                     $"EXIT PROGRAM may be specified only in a program procedure division, not in "
                     + $"{ElementNoun(element)} (ISO §14.9.14.3 SR7; the five source elements that may "
                     + "carry this procedure division are §14.2.2 SR10's — a function, function prototype or "
                     + "method definition returns via GOBACK)");
-                return new BoundNop();
             }
             // §14.9.14.3 SR2, through the ONE asker that also serves GOBACK's §14.9.18.3 SR1 (kb/Work PB404).
             // The rule is stated under FORMAT 2, so it is EXIT PROGRAM's; and it is a FLAT prohibition — RESUME's
             // §14.9.33.4 GR1 dynamic-scope CONTINUE arm has no counterpart in §14.9.14.4.
             if (PlacementRules.RefusedInGlobalDeclarative(ctx, EcRaiseSite.Exit("EXIT PROGRAM")))
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
                 return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT PROGRAM")) is { } r
                     ? new BoundExitProgram(r)
@@ -377,9 +374,8 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         {
             if (ctx.CurrentSection is not { } sec)   // §14.9.14.3 SR9 — EXIT SECTION may be specified only in a section
             {
-                ctx.Edition.Error("COBOLNET0827",
+                return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                     "EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)");
-                return new BoundNop();
             }
             return new BoundExitSection(sec.EndPc, ctx.SourceLine(e));
         }
@@ -444,12 +440,12 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // abort blaming COBOL.NET for a gap. Each arm names its OWN rule number; fixing one and not the other is
         // the two-arm defect this project keeps finding.
         if (ctx.Table.ResolveProcedureOperand(names[0], "PERFORM", PerformNameRule("Procedure-name-1", "SR12")) is not { } first)
-            return new BoundNop();
+            return BoundRejected.Reported(ctx.Edition);
         var range = first.Range;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
             if (ctx.Table.ResolveProcedureOperand(names[1], "PERFORM THRU", PerformNameRule("Procedure-name-2", "SR13")) is not { } thru)
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             // ⛔ SR11 — THE DECLARATIVES CONSTRAINT ON THE COMPOSED RANGE (kb/Work PB433). It is checked HERE,
             // where BOTH ends are resolved and both still carry their owning sections, because the composition
             // below throws the sections away and leaves a pc pair no later pass can ask the question of.
@@ -458,7 +454,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // below throws the sections away and leaves a pc pair no later pass can ask the question of.
             if (!ctx.Validation.CheckDeclarativesRange(
                     first, thru, names[0].GetChild(0).GetText(), names[1].GetChild(0).GetText(), "PERFORM"))
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — GR6
             // "there is no necessary relationship between procedure-name-1 and procedure-name-2"; NIST NC102A
             // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
@@ -531,7 +527,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         return new PerformOnce();
     }
 
-    private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));
+    private BoundPerformControl Unsupported(string feature) => new PerformTimes(BoundOperandError.Unbuilt(ctx.Edition, feature));
 
     /// <summary>The TIMES count (§14.9.28.2 Format 2 — <c>{identifier-1 | integer-1}</c>): an integer literal, a
     /// function-identifier (§8.4.3.2.4 GR1 — the FUNCTION spelling, or the keyword-omitted form under FUNCTION ALL
@@ -548,7 +544,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // §14.9.28.2 Format 2's `{identifier-1 | integer-1} TIMES`; kb/Work PB428.
             : t.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)
             : t.dataReference() is { } d ? host.Expr.FieldOperand(d)
-            : new BoundOperandError("PERFORM … TIMES count shape (ISO §14.9.28.2 Format 2)");
+            : BoundOperandError.Refused(ctx.Edition, "PERFORM … TIMES count shape (ISO §14.9.28.2 Format 2)");
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
                 $"PERFORM ... TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "

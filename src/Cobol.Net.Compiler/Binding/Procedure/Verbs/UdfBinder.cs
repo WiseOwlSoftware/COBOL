@@ -96,7 +96,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 + "declare a function prototype (ISO §11.5 / §12.3.8.3 SR10) so its signature is available for a "
                 + "separately-compiled target, or provide the definition in this group (function references from "
                 + "class units remain a separate follow-up)");
-            return new BoundExprError($"FUNCTION {name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
         return UdfActivate(name, fn, argCtxs, pointer: null);
     }
@@ -120,7 +120,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // declaration (COBOLNET1958); an item missing it has already been reported, so there is no prototype to
         // take GR4's characteristics from and nothing further to say here.
         if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
-            return new BoundExprError($"FUNCTION {name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
         {
             ctx.Edition.Error("COBOLNET1505",
@@ -128,7 +128,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 + $"'{proto.ToUpperInvariant()}', but the compilation group contains neither a FUNCTION-ID "
                 + "definition nor a FUNCTION-ID … IS PROTOTYPE for it — the prototype supplies the characteristics "
                 + "of the activated function (ISO §8.4.3.2.4 GR4) and the result's description (GR1)");
-            return new BoundExprError($"FUNCTION {name}");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
         return UdfActivate(name, fn, argCtxs, new BoundFieldOperand(pointer));
     }
@@ -143,7 +143,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     {
         if (fn.Returning is null)
             // Ill-formed function definition — COBOLNET1507 already reported once at the unit.
-            return new BoundExprError($"FUNCTION {name} RETURNING");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} RETURNING");
 
         // The category-carrying result channel (§8.4.3.2.4 GR1 — the temp's "description, class, and
         // category" ARE the RETURNING item's; §14.2.2 SR5 places NO category restriction on a function's
@@ -159,7 +159,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1510",
                 $"FUNCTION {name.ToUpperInvariant()}: {residue} (the result temporary's category channel, "
                 + "ISO §8.4.3.2.4 GR1 / §14.8.3)");
-            return new BoundExprError($"FUNCTION {name} RETURNING category");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} RETURNING category");
         }
 
         // Arguments: one typed operand per argument parse tree, through the SAME BindArgOperand the intrinsic
@@ -182,7 +182,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
                 + "given — arguments correspond positionally to the function's PROCEDURE DIVISION USING "
                 + "formals, and only trailing OPTIONAL formals may be omitted (ISO §14.8.2.1)");
-            return new BoundExprError($"FUNCTION {name} arity");
+            return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arity");
         }
 
         var callArgs = new List<BoundCallArg>(operands.Count);
@@ -199,7 +199,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                         $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: OMITTED corresponds to formal "
                         + $"parameter '{fn.Formals[i].Item.CobolName}', which the function's procedure division "
                         + "header does not describe with the OPTIONAL phrase (ISO §8.4.3.2.3 SR9)");
-                    return new BoundExprError($"FUNCTION {name} argument {i + 1} OMITTED");
+                    return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1} OMITTED");
                 }
                 callArgs.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true) { Formal = fn.Formals[i].Item });
                 continue;
@@ -212,7 +212,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error("COBOLNET1554",
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: an argument passed to a BY VALUE "
                     + "formal parameter shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
-                return new BoundExprError($"FUNCTION {name} argument {i + 1} BY VALUE class");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1} BY VALUE class");
             }
             if (UdfArg(operand, fn.Formals[i]) is not { } arg)
             {
@@ -226,7 +226,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error("COBOLNET1506",
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
                     + "user-defined function activation");
-                return new BoundExprError($"FUNCTION {name} argument {i + 1}");
+                return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");
             }
             callArgs.Add(arg);
         }
@@ -238,7 +238,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // struct with its AsImage/FromImage codec — the CALL boundary's group crossing form.
         var temp = ctx.Data.CreateCompilerTemp(fn.Returning, "__FNRES-", "__fnres", name);
         if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
-            return new BoundExprError($"FUNCTION {name} result temporary");
+            return BoundExprError.Unbuilt(ctx.Edition, $"FUNCTION {name} result temporary");
 
         // The activation names the callee by its EXTERNALIZED name — the key ProgramRegistry holds it under
         // (§8.3.2.2 2); ordinarily identical to fn.Name, and the AS literal when FUNCTION-ID wrote one, PB303).
@@ -466,10 +466,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // means "return from this function", and the prototype's procedure division is one.
         if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
         {
-            ctx.Edition.Error("COBOLNET0827",
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
                 "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "
                 + "function form of the EXIT statement; this is not a function procedure division)");
-            return new BoundNop();
         }
         if (e.raisingPhrase() is { } raising)
             return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT FUNCTION")) is { } r

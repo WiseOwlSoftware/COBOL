@@ -34,7 +34,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (ScreenFormatOf(ac.screenTail(), ac.dataReference() is { } recv ? [recv] : []) is { } why)
         {
             ScreenFacility.ReportAcceptScreen(ctx.Edition, why);
-            return new BoundNop();
+            return BoundRejected.Reported(ctx.Edition);
         }
 
         // END-ACCEPT: the explicit scope terminator is a COBOL-2002 introduction (ISO §14.9.1 general formats; the
@@ -47,10 +47,9 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // diagnostic (COBOLNET1637), not the §8.4.2.1 UNDEFINED report the demanding resolve would produce.
         if (ac.dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
-            ctx.Edition.Error("COBOLNET1637", $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext, $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
                 + "index-name is not an identifier (ISO §8.4.3.1.2) and ACCEPT is not among the contexts that "
                 + "may reference one (§13.18.38.3 r7); SET a data item to it first (§14.9.39)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         // ⛔ THE RECEIVING CHOKEPOINT, NOT THE SENDING RESOLVER (kb/Work PB429). ACCEPT's operand is the
@@ -59,7 +58,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // down once: §8.4.3.15.3 SR1 admits PAGE-COUNTER and SR3 refuses LINE-COUNTER, §13.10.4 GR1 refuses a
         // constant-name, §8.4.3.6.3 SR1 refuses EXCEPTION-OBJECT.
         if (host.Expr.ResolveReceiving(ac.dataReference()) is not { } target)
-            return new BoundNop();   // the chokepoint reported it — not a deferral (kb/Work PB236)
+            return new BoundUnsupported("ACCEPT receiving operand");   // the chokepoint reported it — not a deferral (kb/Work PB236)
 
         // Format 2 is FROM a temporal source; FROM omitted / FROM mnemonic is the Format 1 device transfer.
         bool temporal = ac.acceptSource() is { } tsrc && tsrc.dataReference() is null;
@@ -81,20 +80,18 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             : null;
         if (excluded is not null)
         {
-            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
                 + (temporal ? "the temporal format excludes (ISO §14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §14.9.25.3 SR2 via §14.9.1.4 GR6" : "") + ")"
                             : "the device format excludes (ISO §14.9.1.3 SR1)"));
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§8.5.1.12 —
         // a group with a DYNAMIC LENGTH elementary item or dynamic-capacity table subordinate at any depth).
         if (rItem.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(rItem))
         {
-            ctx.Edition.Error(DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptVariableLengthGroup, $"ACCEPT receiver '{rItem.CobolName}' references a "
                 + "variable-length group (a DYNAMIC LENGTH item or dynamic-capacity table is subordinate to "
                 + "it) — ISO §14.9.1.3 SR6");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         if (ac.acceptSource() is not { } src)
@@ -125,7 +122,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // second copy of MoveEmitter.ConvertSource, which is why its float arm could be missing while MOVE's was
         // live (PB420 had to fix it twice); a receiver category added to the MOVE rules now reaches ACCEPT with
         // no edit here.
-        if (ConceptualItem(kind, ac.Start.Line) is not { } conceptual) return new BoundNop();
+        if (ConceptualItem(kind, ac.Start.Line) is not { } conceptual) return new BoundUnsupported("ACCEPT date/time temporary");
         var sender = new BoundFieldOperand(conceptual);
 
         // §14.9.1.3 SR3 excludes class alphabetic and boolean receivers, and they are exactly the receivers
@@ -134,9 +131,8 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // here under ACCEPT's own rule. ImplicitMovePhrase.AcceptTemporal tells BindMoveOf not to ask it twice.
         if (MoveTable16.Validity(sender, target) is { } refusal)
         {
-            ctx.Edition.Error("COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
+            return BoundRejected.Report(ctx.Edition, "COBOLNET0818", $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
                 + $"stores by the MOVE rules (ISO §14.9.1.4 GR6 / §14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
         return new BoundAccept(target, kind)
         {
@@ -168,7 +164,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     {
         string name = mnemonic.cobolWord()?.GetText() ?? mnemonic.GetText();
         if (MnemonicDevice(mnemonic, name, "ACCEPT FROM", "14.9.1.3", DeviceCapability.Input, "capable of input") is null)
-            return new BoundNop();   // reported — not a deferral (kb/Work PB236)
+            return BoundRejected.Reported(ctx.Edition);   // reported — not a deferral (kb/Work PB236)
         return new BoundAccept(target, AcceptKind.Device);
     }
 
@@ -229,7 +225,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (ScreenFormatOf(display.screenTail(), display.dataReference()) is { } why)
         {
             ScreenFacility.ReportDisplayScreen(ctx.Edition, why);
-            return new BoundNop();
+            return BoundRejected.Reported(ctx.Edition);
         }
 
         var ops = new List<BoundOperand>();
@@ -251,14 +247,14 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             // clean and aborted at run time before).
             if (child is Core.DataReferenceContext && host.Expr.ScreenIndexNameOperand(op, text, "DISPLAY"))
             {
-                ops.Add(new BoundOperandError($"DISPLAY of the index-name '{text}' (ISO §13.18.38.3 r7)"));
+                ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY of the index-name '{text}' (ISO §13.18.38.3 r7)"));
                 continue;
             }
             // The operand-class gate (kb/Work PB148) — every operand shape, literals and intrinsic results
             // included (FUNCTION MAX(IX1 IX2) is class index per §15.2 item 6).
             if (host.Expr.ScreenOperandClass(op, DisplayExcludedClasses, text, "DISPLAY", DisplayClassCite))
             {
-                ops.Add(new BoundOperandError($"DISPLAY operand '{text}' of an excluded class"));
+                ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY operand '{text}' of an excluded class"));
                 continue;
             }
             ops.Add(op);

@@ -293,7 +293,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"ALL {symWord.GetText()}: "
                 + "symbolic-character-1 shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES "
                 + "paragraph (ISO §8.3.3.6.3 SR4)");
-            return new BoundOperandError($"ALL {symWord.GetText()}");
+            return BoundOperandError.Refused(ctx.Edition, $"ALL {symWord.GetText()}");
         }
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
         if (fig.SPACE() is not null) return new BoundFigurative('S');
@@ -301,7 +301,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (fig.LOW_VALUE() is not null) return new BoundFigurative('L');
         if (fig.QUOTE_() is not null) return new BoundFigurative('Q');
         if (fig.NULL_() is not null) return new BoundFigurative('N');
-        return new BoundOperandError($"figurative constant '{fig.GetText()}'");
+        return BoundOperandError.Refused(ctx.Edition, $"figurative constant '{fig.GetText()}'");
     }
 
     /// <summary>The bound operand of a symbolic character (§12.3.7.4 GR11; kb/Work PB110): the ALL literal of its
@@ -316,14 +316,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
-                : new BoundOperandError($"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
+                : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15) — RWCS registers, intercepted ahead of name resolution
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
         : host.Rw.CounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : ConstantOperand(dref) is { } konst ? konst   // a constant-name substitutes its literal (§13.10.3 SR2)
         : ctx.Data.SymbolicOf(dref) is { } sym ? SymbolicOperand(sym)   // a symbolic character is a figurative constant (§12.3.7.4 GR11; PB110)
-        : ctx.Refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError(RefFailure(dref));
+        : ctx.Refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : BoundOperandError.Unbuilt(ctx.Edition, RefFailure(dref));
 
     /// <summary>The §13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an
     /// index-name (a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand) — kb/Work
@@ -419,7 +419,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? kof   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
-                : new BoundExprError($"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
+                : BoundExprError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15): in the PROCEDURE DIVISION the registers may appear
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
         : host.Rw.CounterExpr(dref) is { } rcx ? rcx
@@ -430,7 +430,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             ? k.Category is PicCategory.Numeric ? new BoundNumLiteral(CheckLiteral(k.Text))
                 : NonNumericConstantExpr(dref.GetText(), k.Category)
         : ctx.Refs.Resolve(dref) is { } p ? OperandRef(dref, p, context)
-        : new BoundExprError(RefFailure(dref));
+        : BoundExprError.Unbuilt(ctx.Edition, RefFailure(dref));
 
     /// <summary>The §13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
@@ -470,7 +470,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     + "VARYING, SET, or a relation condition). SET a data item to the index first "
                     + $"(SET data-item TO {DataBinder.WrittenText(dref)}) — or --permissive accepts it as the occurrence "
                     + "number");
-                return new BoundExprError($"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");
+                return BoundExprError.Refused(ctx.Edition, $"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");
             }
         }
         return new BoundIndexRef(ix);
@@ -524,7 +524,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error("COBOLNET0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
                     + "identifier referencing a NUMERIC data item, a numeric literal, or the figurative constant "
                     + "ZERO in an arithmetic expression. --permissive accepts it as a digit-decoding extension");
-                return new BoundExprError($"{what} in an arithmetic expression (ISO §8.8.1.1)");
+                return BoundExprError.Refused(ctx.Edition, $"{what} in an arithmetic expression (ISO §8.8.1.1)");
             }
         }
         return new BoundNumRef(p);
@@ -603,7 +603,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         ctx.Edition.Error("COBOLNET0844", $"constant-name '{name}' substitutes a literal of category "
             + $"{category} and is not a numeric operand (ISO §8.8.1.1 / §13.10.3 SR2)");
-        return new BoundExprError($"constant-name '{name}' in a numeric context");
+        return BoundExprError.Refused(ctx.Edition, $"constant-name '{name}' in a numeric context");
     }
 
     /// <summary>Resolve a LINAGE-COUNTER reference to its file (ISO §8.4.3.14): in the grammar alternative
@@ -938,7 +938,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET0844", "a concatenation expression is not a numeric operand "
                 + "(ISO §8.8.3.2 SR1 — class alphanumeric/boolean/national; §8.8.1.1 — arithmetic operands "
                 + "shall be numeric)" + where);
-            return new BoundExprError($"concatenation expression '{text}' in a numeric context");
+            return BoundExprError.Refused(ctx.Edition, $"concatenation expression '{text}' in a numeric context");
         }
         if (nn.figurativeConstant() is { } fig)
         {
@@ -961,13 +961,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + "operand (ISO §8.8.1.1 — the only figurative constant an arithmetic expression admits is ZERO "
                 + "(ZEROS, ZEROES); §8.3.3.6.3 SR1a — where the literal is restricted to a numeric literal, ZERO "
                 + "is permitted WITHOUT the ALL phrase)" + where);
-            return new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context");
+            return BoundExprError.Refused(ctx.Edition, $"figurative constant '{fig.GetText()}' in a numeric context");
         }
         if ((nn.NATLIT() ?? nn.BOOLLIT()) is not null)
         {
             ctx.Edition.Error("COBOLNET0844", $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
                 + "literal is not a numeric operand (ISO §8.8.1.1 — arithmetic operands shall be numeric)" + where);
-            return new BoundExprError($"literal '{text}' in a numeric context");
+            return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
         }
         if ((nn.STRINGLIT() ?? nn.HEXLIT()) is not null)
         {
@@ -978,14 +978,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET0844", "an alphanumeric literal is not a numeric operand "
                 + "(ISO §8.8.1.1 — arithmetic operands shall be numeric; §8.3.3.2.1 — both formats of the "
                 + "alphanumeric literal are of class and category alphanumeric)" + where);
-            return new BoundExprError($"literal {text} in a numeric context");
+            return BoundExprError.Refused(ctx.Edition, $"literal {text} in a numeric context");
         }
         // ⛔ NO SILENT FALL-THROUGH. Every `nonNumericLiteral` alternative the grammar lists is covered above, so
         // reaching here means the RULE grew an alternative this screen has not read — which is exactly the
         // condition that must fail loud rather than be admitted as a number (COBOLNET_DESIGN §1.4).
         ctx.Edition.Error("COBOLNET0844", $"the literal '{text}' is not a numeric operand "
             + "(ISO §8.8.1.1 — arithmetic operands shall be numeric)" + where);
-        return new BoundExprError($"literal '{text}' in a numeric context");
+        return BoundExprError.Refused(ctx.Edition, $"literal '{text}' in a numeric context");
     }
 
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a — the comma form
@@ -1104,12 +1104,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.Error("COBOLNET0844", $"{what} is not a numeric operand: ISO §8.8.1.1 admits only an "
                         + "identifier referencing a NUMERIC data item, a numeric literal, or the figurative constant "
                         + "ZERO in an arithmetic expression. --permissive accepts it as a digit-decoding extension");
-                    return new BoundExprError($"{what} in an arithmetic expression (ISO §8.8.1.1)");
+                    return BoundExprError.Refused(ctx.Edition, $"{what} in an arithmetic expression (ISO §8.8.1.1)");
                 }
             }
             return call;
         }
-        return new BoundExprError("primary-expression operand");
+        return BoundExprError.Refused(ctx.Edition, "primary-expression operand");
     }
 
     /// <summary>Descend an operand-wrapper node to its inner arithmetic expression, or its leaf literal / data
@@ -1190,6 +1190,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // instead of computing zero; an ALREADY-errored parse reaching here costs nothing, because the compile
         // has already failed. `OperandWalkCoverageTests` enumerates the served rules from the .g4 so the arm is
         // added at BUILD time, not after the wrong answer ships.
-        return new BoundExprError($"operand wrapper '{node.GetText()}' with no bindable content");
+        return BoundExprError.Refused(ctx.Edition, $"operand wrapper '{node.GetText()}' with no bindable content");
     }
 }

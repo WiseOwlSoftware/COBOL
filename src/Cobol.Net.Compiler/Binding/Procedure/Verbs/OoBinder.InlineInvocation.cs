@@ -181,7 +181,7 @@ internal sealed partial class OoBinder
             ctx.Edition.Error(DiagnosticCatalog.InlineInvocationReceiver,
                 "an inline method invocation's identifier-1 shall be of class object; the predefined object "
                 + "reference NULL shall not be specified (ISO §8.4.3.4.3 SR2)");
-            return new BoundExprError("inline method invocation through NULL");
+            return BoundExprError.Refused(ctx.Edition, "inline method invocation through NULL");
         }
         if (target.dataReference() is { } dr0 && ctx.Refs.Probe(dr0) is not null
             && host.Expr.ResolveSending(dr0) is { } r0
@@ -192,7 +192,7 @@ internal sealed partial class OoBinder
                 $"the inline method invocation through '{dr0.GetText()}': a UNIVERSAL object reference shall "
                 + "not be specified as identifier-1 (ISO §8.4.3.4.3 SR2) — use an INVOKE statement, whose "
                 + "§14.9.23.4 GR7c dynamic path carries the runtime conformance check");
-            return new BoundExprError("inline method invocation through a universal object reference");
+            return BoundExprError.Refused(ctx.Edition, "inline method invocation through a universal object reference");
         }
 
         // §8.4.3.1.3 SR1 recursion: each segment invokes on the temporary the previous one produced.
@@ -205,7 +205,7 @@ internal sealed partial class OoBinder
                     $"the inline method invocation '{seg.GetText()}': literal-1 (the method name) shall be a "
                     + "non-zero-length literal of class alphanumeric or national (ISO §8.4.3.4.2; "
                     + "§8.4.3.4.3 SR3 → §14.9.23.3 SR2)");
-                return new BoundExprError("inline method invocation method name");
+                return BoundExprError.Refused(ctx.Edition, "inline method invocation method name");
             }
             var site = InvocationSite.OfInlineSegment(seg);
             var activation = chained is { } prev
@@ -214,11 +214,11 @@ internal sealed partial class OoBinder
             if (site.ImplicitReturningPlace is not { } result)
                 // Every failure path already reported (the receiver, roster, arity and conformance
                 // diagnostics are the INVOKE binder's own, re-worded by InvocationSite.Verb).
-                return new BoundExprError($"inline method invocation of \"{methodName}\"");
+                return BoundExprError.Refused(ctx.Edition, $"inline method invocation of \"{methodName}\"");
             ctx.Data.PendingPreOps.Add(activation);
             chained = result;
         }
-        if (chained is not { } place) return new BoundExprError("inline method invocation");
+        if (chained is not { } place) return BoundExprError.Refused(ctx.Edition, "inline method invocation");
 
         // §8.4.3.1.4 GR1 g): a reference modifier applies to the identifier on the left — and the identifier
         // on the left of the tail IS the invocation, whose value is the temporary. The ONE ref-mod reading
@@ -227,7 +227,7 @@ internal sealed partial class OoBinder
         foreach (var rm in imi.refModPart())
         {
             if (ctx.Refs.RefModOf(place, rm, imi.GetText()) is not { } modified)
-                return new BoundExprError("reference-modified inline method invocation");
+                return BoundExprError.Refused(ctx.Edition, "reference-modified inline method invocation");
             place = modified;
         }
         return new BoundNumRef(place);

@@ -54,7 +54,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // identifier-6 as a §8.4.3.11 data-address-identifier — §8.4.3.11.4 GR1: "Data-address-identifier
             // creates a unique data item of class pointer and category data-pointer", which is precisely what
             // SR17's second sentence ("Identifier-6 shall be of category data-pointer") demands of it.
-            if (BindDataAddress(dai) is not { } addr) return new BoundNop();
+            if (BindDataAddress(dai) is not { } addr) return BoundRejected.Reported(ctx.Edition);
             address = addr;
         }
         else if (!toNull)
@@ -62,7 +62,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // SR19 first sentence's "shall reference a data-pointer" — identifier-6 as a plain pointer item.
             if (PtrResolvePointer(send.dataReference(), "identifier-6, the sending operand of SET Format 7 "
                                                      + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: false) is not { } src)
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             source = src;
         }
         // ⛔ IDENTIFIER-6'S RESTRICTION, DERIVED ONCE. §14.9.39.3 SR19's three sentences all compare a RECEIVER's
@@ -88,7 +88,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             {
                 // data-name-1 — §14.9.39.3 SR18 "Data-name-1 shall be a based data item" (the IBM
                 // non-BASED-LINKAGE idiom is a rejected non-ISO extension); GR13 assigns the address to it.
-                if (PtrResolveBased(dref) is not { } based) return new BoundNop();   // 0869 reported
+                if (PtrResolveBased(dref) is not { } based) return BoundRejected.Reported(ctx.Edition);   // 0869 reported
                 // §14.9.39.3 SR19, second sentence: "If data-name-1 is a strongly-typed group item or a
                 // restricted pointer, identifier-6 shall reference a data-pointer restricted to the type of
                 // data-name-1." Asked PER RECEIVER, because the restriction is data-name-1's, not the
@@ -105,7 +105,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                     RejectRestriction(senderText,
                         $"the receiver of SET ADDRESS OF is restricted to type '{needed}', so the sender shall "
                         + "reference a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
-                    return new BoundNop();
+                    return BoundRejected.Reported(ctx.Edition);
                 }
                 receivers.Add(new BoundPointerReceiver(null, based));
                 continue;
@@ -118,14 +118,14 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // for every Format-7 sender that is a plain pointer or NULL — and those now reach this screen,
             // because the receiving LIST may mix the two spellings.
             if (PtrResolvePointer(dref, "identifier-5, a receiving operand of SET Format 7 "
-                                      + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: true) is not { } tp) return new BoundNop();
+                                      + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: true) is not { } tp) return BoundRejected.Reported(ctx.Edition);
             // §14.9.39.3 SR19's first sentence over identifier-5 ("If identifier-5 references a restricted
             // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
             // restricted to the same type") and SR20's converse, which the ADDRESS OF sender supplies through
             // §8.4.3.11.4 GR2. ⛔ TO NULL is admitted by SR19's own words and is screened by neither.
             if (!toNull && !ScreenPointerReceiverRestriction(tp, dref.GetText(), senderRestriction, senderText,
                                                             addressSender: address is not null))
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             receivers.Add(new BoundPointerReceiver(tp, null));
         }
         return new BoundSetPointer(receivers, source, toNull, address);
@@ -307,7 +307,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         if (al.RETURNING() is not null)
         {
             if (PtrResolvePointer(drefs[^1], "ALLOCATE RETURNING (ISO §14.9.3.3 SR3 — category data-pointer)", receiving: true) is not { } rp)
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             returning = rp;
         }
 
@@ -316,10 +316,9 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // Form 1: ALLOCATE arithmetic-expression CHARACTERS [INITIALIZED] RETURNING pointer.
             if (returning is null)
             {
-                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     "ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3.3 SR2 — without a based "
                     + "item there is no other way to address the storage)");
-                return new BoundNop();
             }
             // §14.9.3.3 SR4, the CHARACTERS arm: "If data-name-2 references a restricted data-pointer,
             // data-name-1 shall be specified …" — and in Format 1 there IS no data-name-1, so a restricted
@@ -331,14 +330,14 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                     $"the RETURNING data item is a data-pointer restricted to type '{charsRestriction}', which "
                     + "ALLOCATE … CHARACTERS cannot satisfy — it specifies no data-name-1 to supply that type "
                     + "(ISO §14.9.3.3 SR4)");
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             }
             return new BoundAllocate(null, host.Expr.BindExpr(al.arithmeticExpression()), al.INITIALIZED() is not null, returning);
         }
 
         // Form 2: ALLOCATE based-item [INITIALIZED] [RETURNING pointer].
         var basedRef = drefs[0];
-        if (PtrResolveBased(basedRef) is not { } based) return new BoundNop();
+        if (PtrResolveBased(basedRef) is not { } based) return BoundRejected.Reported(ctx.Edition);
         // ⛔ §14.9.3.3 SR4 AND SR5 — the restricted-data-pointer type-safety pair, BOTH directions, and neither
         // existed before kb/Work PB153. Measured on this tree beforehand: `01 T TYPEDEF STRONG. 02 F PIC 9(4).
         // 01 V TYPE T BASED. 01 P USAGE POINTER. ALLOCATE V RETURNING P.` bound clean, silently defeating the
@@ -365,7 +364,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 RejectRestriction(drefs[^1].GetText(),
                     $"'{basedRef.GetText()}' is a strongly-typed group item of type '{strongType}', so the "
                     + "RETURNING data item shall be a data-pointer restricted to that type (ISO §14.9.3.3 SR5)");
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             }
             if (returningRestriction.IsRestricted
                 && !StrongTypeModel.SameRestriction(returningRestriction, basedType))
@@ -374,7 +373,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                     $"the RETURNING data item is a data-pointer restricted to type '{returningRestriction}', so "
                     + $"'{basedRef.GetText()}' shall reference a typed data item of that type — it is "
                     + $"{(basedType.IsRestricted ? $"of type '{basedType}'" : "untyped")} (ISO §14.9.3.3 SR4)");
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             }
         }
         var alloc = new BoundAllocate(based, null, al.INITIALIZED() is not null, returning);
@@ -403,7 +402,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in fr.dataReference())
         {
             if (PtrResolvePointer(dref, "a FREE operand (ISO §14.9.15.3 SR1 — data-pointers only)", receiving: true) is not { } p)
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             members.Add(new BoundFree([p]));
         }
         return BoundImplicitSeries.Of(members);
@@ -432,9 +431,9 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(drefs.Length);
         foreach (var dref in drefs)
         {
-            if (SetIndexNameOperand(dref)) return new BoundNop();
+            if (SetIndexNameOperand(dref)) return BoundRejected.Reported(ctx.Edition);
             if (PtrResolvePointer(dref, "a SET UP/DOWN BY receiver mixed with data-pointers (ISO §14.9.39.3 SR23)", receiving: true) is not { } p)
-                return new BoundNop();
+                return BoundRejected.Reported(ctx.Edition);
             targets.Add(p);
         }
         var amount = host.Expr.BindIndexWindowExpr(ud.arithmeticExpression());   // SET (pointer form) is an r7 window (kb/Work R29)

@@ -40,7 +40,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         {
             values[i] = StrUnstrOperand(phrases[i].strUnstrOperand(), "STRING sending operand");
             if (values[i] is BoundAllLiteral { BeginsWithAll: true })   // SR2 — literal-1 shall not be a figurative beginning with the word ALL (a bare symbolic character is not — PB110)
-                values[i] = new BoundOperandError("STRING sending ALL literal (ISO §14.9.43.3 SR2)");
+                values[i] = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
+                    $"STRING sending operand '{phrases[i].strUnstrOperand().GetText()}' is a figurative constant that "
+                    + "begins with the word ALL, which literal-1 shall not be (ISO §14.9.43.3 SR2)",
+                    "STRING sending ALL literal (ISO §14.9.43.3 SR2)");
             // ⛔ SR1 IS ONE SENTENCE ABOUT EVERY OPERAND OF THE STATEMENT, and it was enforced at ONE of its
             // three identifier positions (kb/Work PB664 — the sweep the MOVE screen's landing asked for).
             // `STRING P DELIMITED BY SIZE INTO A` over a USAGE POINTER sender compiled clean and stored
@@ -55,7 +58,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             var d = StrUnstrOperand(dp.strUnstrOperand(), "STRING delimiter");
             // SR2 — literal-2 shall not be an ALL figurative; the grammar's (ALL)? token is not in the ISO format.
             if (dp.ALL() is not null || d is BoundAllLiteral { BeginsWithAll: true })
-                d = new BoundOperandError("STRING DELIMITED BY ALL literal (ISO §14.9.43.3 SR2)");
+                d = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
+                    $"STRING DELIMITED BY '{(dp.ALL() is not null ? "ALL " : "")}{dp.strUnstrOperand().GetText()}': the delimiter is a figurative constant that begins with "
+                    + "the word ALL, which literal-2 shall not be (ISO §14.9.43.3 SR2)",
+                    "STRING DELIMITED BY ALL literal (ISO §14.9.43.3 SR2)");
             if (Sr1Offence(d) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
                 return Sr1Reject($"STRING DELIMITED BY '{dp.strUnstrOperand().GetText()}'", delimOffence);
             delims[i] = d;
@@ -78,7 +84,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // refuses LINE-COUNTER, §13.10.4 GR1 refuses a constant-name, §8.4.3.6.3 SR1 refuses EXCEPTION-OBJECT. The
         // sending resolver these sites used knew none of them.
         if (host.Expr.ResolveReceiving(st.stringIntoPhrase().dataReference()) is not { } into)
-            return new BoundNop();   // the chokepoint reported it — not a deferral (kb/Work PB236)
+            return new BoundUnsupported("STRING INTO operand");   // the chokepoint reported it — not a deferral (kb/Work PB236)
         string intoText = st.stringIntoPhrase().dataReference().GetText();
         // §14.9.43.3 SR4–SR6, SR11 — bind-time rejections (kb/Work PB88: each was a run-time loud stage on ILLEGAL
         // source, the wrong-stage family; the statement compiled clean and died when control reached it).
@@ -114,16 +120,15 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
              .. delims.Select(d => d is null ? null : IntrinsicArgumentRules.ClassOf(d))];
         if (AllOrNothingClass.Violated(CobolClass.National, stringClasses))
         {
-            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandClassMix, $"STRING INTO '{intoText}' "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandClassMix, $"STRING INTO '{intoText}' "
                 + AllOrNothingClass.Offence(CobolClass.National, "ISO §14.9.43.3 SR1") + " (ISO §14.9.43.3 SR1)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
         {
             if (host.Expr.ResolveReceiving(pd) is not { } pp)
-                return new BoundNop();   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
+                return new BoundUnsupported("STRING POINTER operand");   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(pp))
                 return Reject($"STRING WITH POINTER '{pd.GetText()}': identifier-4 shall be an elementary numeric integer "
                     + "data item without the symbol P (ISO §14.9.43.3 SR7)");
@@ -181,7 +186,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             {
                 var drefs = t.dataReference();
                 if (host.Expr.ResolveReceiving(drefs[0]) is not { } target)
-                    return new BoundNop();   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
+                    return new BoundUnsupported("UNSTRING INTO operand");   // identifier-4 is a receiver — the chokepoint reported it (kb/Work PB429)
                 // SR4 — identifier-4 shall be (usage display + category alphabetic/alphanumeric/numeric) or (usage
                 // national + category national/numeric). A fixed-length group (SR10) and a reference-modified slice
                 // are alphanumeric-image receivers and are exempt; edited, COMP/packed/COMP-5, index, and float
@@ -192,11 +197,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 // group receiver, including one holding a BINARY/PACKED leaf (V59).
                 if (target.DenotedItem is not null && !target.Item.IsGroup && !UnstringReceiverAllowed(target.Item.Pic))
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage,
                         $"UNSTRING INTO '{drefs[0].GetText()}' requires a usage-display alphabetic/alphanumeric/"
                         + "numeric or usage-national national/numeric receiver; edited, COMP, packed, index and "
                         + "float receivers have no character image (ISO §14.9.48.3 SR4)");
-                    return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                 }
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
@@ -209,7 +213,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 if (hasDelim)
                 {
                     if (host.Expr.ResolveReceiving(drefs[next]) is not { } d5)
-                        return new BoundNop();   // identifier-5 is a receiver — the chokepoint reported it (kb/Work PB429)
+                        return new BoundUnsupported("UNSTRING DELIMITER IN operand");   // identifier-5 is a receiver — the chokepoint reported it (kb/Work PB429)
                     // identifier-5 is SR2's fourth name (kb/Work PB155) — the delimiter RECEIVER shares the
                     // category rule, not SR4's receiver list.
                     if (Sr2OffendingCategory(d5.Item) is { } badD5)
@@ -222,7 +226,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 if (hasCount)
                 {
                     if (host.Expr.ResolveReceiving(drefs[next]) is not { } c6)
-                        return new BoundNop();   // identifier-6 is a receiver — the chokepoint reported it (kb/Work PB429)
+                        return new BoundUnsupported("UNSTRING COUNT IN operand");   // identifier-6 is a receiver — the chokepoint reported it (kb/Work PB429)
                     if (!StrUnstrIsInteger(c6))
                         return Reject($"UNSTRING COUNT IN '{drefs[next].GetText()}': identifier-6 shall reference an integer "
                             + "data item without the symbol P (ISO §14.9.48.3 SR5)");
@@ -252,16 +256,15 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         ];
         if (AllOrNothingClass.Violated(CobolClass.National, sr3Classes))
         {
-            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandClassMix, $"UNSTRING '{senderText}' "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandClassMix, $"UNSTRING '{senderText}' "
                 + AllOrNothingClass.Offence(CobolClass.National, "ISO §14.9.48.3 SR3") + " (ISO §14.9.48.3 SR3)");
-            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
         Place? pointer = null;
         if (un.unstringWithPointer()?.dataReference() is { } pd)
         {
             if (host.Expr.ResolveReceiving(pd) is not { } pp)
-                return new BoundNop();   // identifier-7 is a receiver — the chokepoint reported it (kb/Work PB429)
+                return new BoundUnsupported("UNSTRING POINTER operand");   // identifier-7 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(pp))
                 return Reject($"UNSTRING WITH POINTER '{pd.GetText()}': identifier-7 shall be an elementary numeric integer "
                     + "data item without the symbol P (ISO §14.9.48.3 SR6)");
@@ -271,7 +274,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (un.unstringTallying()?.dataReference() is { } td)
         {
             if (host.Expr.ResolveReceiving(td) is not { } tp)
-                return new BoundNop();   // identifier-8 is a receiver — the chokepoint reported it (kb/Work PB429)
+                return new BoundUnsupported("UNSTRING TALLYING operand");   // identifier-8 is a receiver — the chokepoint reported it (kb/Work PB429)
             if (!StrUnstrIsInteger(tp))
                 return Reject($"UNSTRING TALLYING IN '{td.GetText()}': identifier-8 shall reference an integer data item "
                     + "without the symbol P (ISO §14.9.48.3 SR5)");
@@ -333,11 +336,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// mutually-exclusive nullable ones that a caller could transpose.</para>
     /// </summary>
     private BoundOperand StrUnstrOperand(Core.StrUnstrOperandContext? op, string role)
-        => op is null ? new BoundOperandError(role)
+        => op is null ? BoundOperandError.Refused(ctx.Edition, role)
         : op.strUnstrSender() is { } snd ? StrUnstrSender(snd, role)
         : op.literal() is { } lit ? host.Expr.LiteralOperand(lit)
         : op.figurativeConstant() is { } fig ? host.Expr.FigurativeOperand(fig)
-        : new BoundOperandError(role);
+        : BoundOperandError.Refused(ctx.Edition, role);
 
     /// <summary>Bind the narrower SENDER shape — an identifier only (a function-identifier or a data reference),
     /// no literal. This is what §14.9.48.2's `UNSTRING identifier-1` admits, and
@@ -346,7 +349,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         => snd?.inlineMethodInvocation() is { } imi ? host.Oo.OoInlineInvocationOperand(imi)   // §8.4.3.1.2 Format 4; kb/Work PB428
         : snd?.functionCall() is { } fn ? IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fn))
         : snd?.dataReference() is { } dref ? ScreenedField(dref, role)
-        : new BoundOperandError(role);
+        : BoundOperandError.Refused(ctx.Edition, role);
 
     /// <summary>A sending data reference, screened for an INDEX-NAME (kb/Work R16): STRING/UNSTRING are none
     /// of §13.18.38.3 r7's five index-name contexts, and this funnel serves all four sending positions — the
@@ -356,7 +359,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     {
         var op = host.Expr.FieldOperand(dref);
         return host.Expr.ScreenIndexNameOperand(op, dref.GetText(), role)
-            ? new BoundOperandError($"{role}: the index-name '{DataBinder.WrittenText(dref)}' (ISO §13.18.38.3 r7)")
+            ? BoundOperandError.Refused(ctx.Edition, $"{role}: the index-name '{DataBinder.WrittenText(dref)}' (ISO §13.18.38.3 r7)")
             : op;
     }
 
@@ -397,8 +400,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// share, and reports through <see cref="AllOrNothingClass"/> as COBOLNET2306 (kb/Work PB980).</summary>
     private BoundStatement Sr1Reject(string where, string offence)
     {
-        ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"{where} {offence} (ISO §14.9.43.3 SR1)");
-        return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage, $"{where} {offence} (ISO §14.9.43.3 SR1)");
     }
 
     /// <summary>ISO §14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender (as its printable name), or
@@ -461,8 +463,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// clean and die at run time). ONE helper, so no rule site can forget the diagnostic half again.</summary>
     private BoundStatement Reject(string message)
     {
-        ctx.Edition.Error(DiagnosticCatalog.StringUnstringOperandRule, message);
-        return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StringUnstringOperandRule, message);
     }
 
     private static bool StrUnstrIsInteger(Place p) =>
