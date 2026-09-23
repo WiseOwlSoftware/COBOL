@@ -157,8 +157,12 @@ internal static class IntrinsicResultType
     /// </summary>
     public static IntrinsicType Resolve(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args) => sig.Result switch
     {
+        // The §15.x.1 "Argument type National → National" row, read through the ONE class-or-usage reader: for the
+        // string functions (LOWER-CASE, TRIM, …) argument-1's class rules exclude every usage-national item that is
+        // not also class national, so only BASECONVERT's §15.12.3 r1 "usage display or national data item" — which
+        // admits a `PIC 9 USAGE NATIONAL` unsigned integer — can tell the two readers apart (kb/Work PB306).
         IntrinsicResultRule.FollowsArgument1 =>
-            CategoryOf(args, 0) is PicCategory.National ? IntrinsicType.National : IntrinsicType.Alphanumeric,
+            IsNationalArgument(args, 0) ? IntrinsicType.National : IntrinsicType.Alphanumeric,
 
         // Integer only when it is KNOWN to be an integer — an undecidable argument keeps the declared Numeric.
         IntrinsicResultRule.IntegerFollowsArgument1 =>
@@ -172,16 +176,14 @@ internal static class IntrinsicResultType
         IntrinsicResultRule.FollowsUniformArguments => UniformArgumentType(sig, args),
 
         // §15.18.4 r2 — "If argument-1 is of class OR USAGE national, the function will return a national value";
-        // §15.18.3 r2 makes the argument list uniform in usage, so argument-1 decides for the whole call.
-        // ⚠ THE TWO "usage National" ROWS OF THE §15.18.1 TABLE (Boolean usage National, Numeric usage National)
-        // ARE NOT REACHABLE IN THIS COMPILER, and that is a PRE-EXISTING staging, not a hole opened here:
-        // `PIC 9 USAGE NATIONAL` / `PIC 1 USAGE NATIONAL` are the §13.18.40.4 SR12 national-form legs, recognized
-        // but staged LOUD at the DATA DIVISION (COBOLNET0899, see Usage.National), so no such item can reach a
-        // CONCAT call to be classified. Writing an arm for them would be dead code reading as coverage — the
-        // failure mode `a_dead_lookup_is_also_unverified` names. When SR12 lands, this arm gains a usage test and
-        // the drift test's population is unchanged.
+        // §15.18.3 r2 makes the argument list uniform in usage, so argument-1 decides for the whole call. The two
+        // "usage National" rows of the §15.18.1 table (Numeric usage National, Boolean usage National) are the
+        // USAGE limb: `PIC 9(4) USAGE NATIONAL` answers category Numeric and `PIC 1(4) USAGE NATIONAL` Boolean, so a
+        // category-only test labelled their CONCAT alphanumeric and the Table-16 MOVE guard (§14.9.25.3 SR10) let
+        // the national result into an alphanumeric receiver without a word (kb/Work PB306 — the PB15 shape on the
+        // usage limb; this arm read the category alone while this comment quoted "class or usage").
         IntrinsicResultRule.FollowsConcatArguments =>
-            CategoryOf(args, 0) is PicCategory.National ? IntrinsicType.National : IntrinsicType.Alphanumeric,
+            IsNationalArgument(args, 0) ? IntrinsicType.National : IntrinsicType.Alphanumeric,
 
         // CONVERT's destination format is NOT an operand — it is a keyword phrase, so there is nothing here for a
         // generic reader to inspect. `BindConvert` resolves §15.19.1 itself (`dst == 3 ? National : Alphanumeric`)
@@ -235,6 +237,17 @@ internal static class IntrinsicResultType
     /// PICTURE-less <c>PicInfo.IndexItem</c> whose category reads Numeric.</summary>
     private static bool IsIndexOperand(BoundOperand op) =>
         op is BoundFieldOperand { Place.Item.Pic.Usage: Usage.Index };
+
+    /// <summary>"Argument-<paramref name="i"/> is of class OR USAGE national" (§15.18.4 r2's wording; the §15.x.1
+    /// "Argument type National" row) — THE one reader, so the result type and the §15.18.3 r2 argument screen
+    /// (<c>IntrinsicBinder.CheckConcatArgs</c>, over the same <see cref="IntrinsicArgumentRules.StaticUsageOf"/>)
+    /// cannot disagree about which arguments are national. The category limb covers a national literal, item,
+    /// group and nested national function result; the usage limb a numeric or boolean item of usage national,
+    /// whose category is Numeric / Boolean (kb/Work PB306).</summary>
+    private static bool IsNationalArgument(IReadOnlyList<BoundOperand> args, int i) =>
+        i < args.Count
+        && (OperandCategory(args[i]) is PicCategory.National
+            || IntrinsicArgumentRules.StaticUsageOf(args[i]) is Usage.National);
 
     /// <summary>The statically knowable data category of argument <paramref name="i"/>, or null when it has no
     /// fixed static category (a group, a figurative, an ALL literal, an error operand).</summary>

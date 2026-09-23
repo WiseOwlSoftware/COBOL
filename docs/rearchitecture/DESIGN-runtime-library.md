@@ -104,6 +104,7 @@ public sealed class RunUnit
     public ModuleStack    Modules    { get; }   // was [ThreadStatic] CobolModule
     public FileRegistry   Files      { get; }   // was static CobolFile registries
     public IClock         Clock      { get; set; } = SystemClock.Instance;   // was AcceptSource.Now
+    public RandomSequence Random     { get; }   // was static CobolIntrinsics._random (kb/Work PB307, §15.75.3 r4)
 
     /// Establish an ambient run unit for the duration of `body` (the generated Main wrapper calls this once).
     public static void Run(Action<RunUnit> body)
@@ -115,6 +116,13 @@ public sealed class RunUnit
     }
 }
 ```
+**No run-unit state in a static — enforced.** `RunUnit.ResetCurrent` (the emitted driver's
+`ProgramRegistry.Reset()`) resets the program table, EXTERNAL store, MODULE-NAME stack and the FUNCTION RANDOM
+sequence; `RunUnitStateDriftTests.NoWritableStatic_OutsideTheDocumentedProcessStores` enumerates every writable
+static field in `Cobol.Net.Runtime` and fails on one not documented there as PROCESS-lifetime (console encoding,
+collation-subsystem configuration, the overwritten-before-use subscript scratch cell). The RANDOM sequence was the
+sixth process-global store the consolidation missed (kb/Work PB307).
+
 Rationale: `AsyncLocal` (not `ThreadStatic`) because the correct scope is the *logical* run-unit activation, and it
 subsumes `CobolModule`'s existing thread-locality while also being correct across `await`/thread-pool hops. Hot
 facades cache `RunUnit.Current` in a local at entry to avoid repeated `AsyncLocal` reads.

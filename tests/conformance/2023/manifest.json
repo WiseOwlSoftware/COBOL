@@ -453,6 +453,7 @@
   "l1_log_domain_ec",
   "l1_lowest_algebraic_value_rule",
   "l1_mod_rem_zero_divisor",
+  "pb306_concat_usage_national",
   "l1_national_of_argument_classes",
   "l1_numval_family_cap_discriminators",
   "l1_pi_format_native",

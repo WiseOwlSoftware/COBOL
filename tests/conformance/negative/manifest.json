@@ -628,6 +628,7 @@
   "pb12-exp-alphanumeric-argument",
   "pb12-find-string-integer-position",
   "pb15-concat-national-result-to-an",
+  "pb306-concat-usage-national-to-an",
   "pb15-formatted-date-national-result-to-an",
   "pb15-substitute-national-result-to-an",
   "pb15-trim-national-result-to-an",

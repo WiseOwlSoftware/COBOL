@@ -42,13 +42,16 @@ public sealed class IntrinsicCarrierAgreementDriftTests
     }
 
     /// <summary>
-    /// §15.64.3 r2 / §15.77.3 r2: a zero divisor sets EC-ARGUMENT-FUNCTION — from EITHER carrier.
-    /// This is the assertion that was missing; <c>ModReal(1, 0)</c> returned 0.0 and raised nothing.
+    /// §15.64.3 r2 / §15.77.3 r2: a zero divisor sets EC-ARGUMENT-FUNCTION — from EVERY carrier: the exact
+    /// <see cref="Int128"/> lane, binary64, and the SDIDI decimal carrier (§15.3 argument type 6 — an
+    /// arithmetic-expression argument under ARITHMETIC IS STANDARD-DECIMAL). This is the assertion that was
+    /// missing; <c>ModReal(1, 0)</c> returned 0.0 and raised nothing. The test was named "BothCarriers" while three
+    /// bodies existed, and the third — <c>RemDec</c> — raised under MOD's name and MOD's clause (kb/Work PB304).
     /// </summary>
     [Theory]
     [InlineData("MOD")]
     [InlineData("REM")]
-    public void ZeroDivisor_RaisesFromBothCarriers(string fn)
+    public void ZeroDivisor_RaisesFromEveryCarrier(string fn)
     {
         UnderChecking(() =>
         {
@@ -59,10 +62,18 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             var real = Assert.Throws<CobolFatalException>(() =>
                 fn == "MOD" ? CobolIntrinsics.ModReal(11d, 0d) : CobolIntrinsics.RemReal(11d, 0d));
 
-            Assert.Equal("EC-ARGUMENT-FUNCTION", exact.EcName);
-            Assert.Equal("EC-ARGUMENT-FUNCTION", real.EcName);
-            // One raise site per RULE means one message per rule: the citation cannot drift between carriers.
-            Assert.Equal(exact.Message, real.Message);
+            // The SDIDI (CobolDec) carrier — this arm named the WRONG function's rule (kb/Work PB304).
+            var dec = Assert.Throws<CobolFatalException>(() => fn == "MOD"
+                ? CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0))
+                : CobolIntrinsics.RemDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0)));
+
+            foreach (var e in new[] { exact, real, dec })
+            {
+                Assert.Equal("EC-ARGUMENT-FUNCTION", e.EcName);
+                // One raise site per RULE means one message per rule: the citation cannot drift between carriers.
+                Assert.Equal(exact.Message, e.Message);
+                Assert.Contains(fn + " with a zero divisor", e.Message);   // the raise site names its OWN function
+            }
             Assert.Contains(fn == "MOD" ? "15.64.3" : "15.77.3", exact.Message);
         });
     }
@@ -180,6 +191,47 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         Assert.Empty(DomainGuardOffenders(
             "public static double MaxReal(params double[] xs) => xs.Length == 0 ? 0 : xs.Max();"));
         Assert.Empty(DomainGuardOffenders("/// this body used to answer <c>b == 0 ? 0 : …</c>"));
+    }
+
+    /// <summary>
+    /// ⛔ EACH ZERO-DIVISOR RAISE SITE NAMES ITS OWN FUNCTION'S RULE, IN EVERY CARRIER FILE (kb/Work PB304).
+    /// §15.64.3 r2 and §15.77.3 r2 are word-for-word identical ("The value of argument-2 shall not be zero.") and
+    /// belong to different functions, so a copy-pasted body that calls the other function's raise site reads as
+    /// correct. This scans every <c>CobolIntrinsics*.cs</c> for a <c>Mod…</c>/<c>Rem…</c> body and fails when one
+    /// calls the other's <c>…ZeroDivisor()</c> — a rule over ALL carriers, so a fourth carrier cannot repeat it
+    /// without this test seeing it (a hand-added parametrisation above would not).
+    /// </summary>
+    [Fact]
+    public void EveryModRemBody_RaisesItsOwnFunctionsZeroDivisorRule()
+    {
+        string dir = TestRepo.Src("Cobol.Net.Runtime", "Intrinsics");
+        var header = new Regex(@"^\s*(?:public|internal|private)\s+static\s+[\w<>\[\]?]+\s+(Mod|Rem)\w*\s*\(",
+            RegexOptions.Multiline);
+        var nextMember = new Regex(@"^\s*(?:public|internal|private)\s+(?:static\s+)?[\w<>\[\]?]+\s+\w+\s*[\(=]",
+            RegexOptions.Multiline);
+        var raise = new Regex(@"\b(Mod|Rem)ZeroDivisor\(\)");
+        var offenders = new List<string>();
+        int bodies = 0;
+        foreach (string file in Directory.GetFiles(dir, "CobolIntrinsics*.cs"))
+        {
+            string text = File.ReadAllText(file);
+            foreach (Match h in header.Matches(text))
+            {
+                int start = h.Index + h.Length;
+                Match next = nextMember.Match(text, start);
+                string body = text[start..(next.Success ? next.Index : text.Length)];
+                string fn = h.Groups[1].Value;
+                foreach (Match r in raise.Matches(body))
+                {
+                    bodies++;
+                    if (r.Groups[1].Value != fn)
+                        offenders.Add($"{Path.GetFileName(file)}: a {fn} body calls {r.Value}");
+                }
+            }
+        }
+        Assert.True(bodies >= 6, $"the scan found only {bodies} zero-divisor raise calls — it no longer sees the carriers");
+        Assert.True(offenders.Count == 0, "a MOD/REM body raises the OTHER function's §15 zero-divisor rule: "
+            + string.Join("; ", offenders));
     }
 
     [Fact]

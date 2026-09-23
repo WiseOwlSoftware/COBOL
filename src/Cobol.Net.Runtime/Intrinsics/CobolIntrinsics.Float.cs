@@ -207,21 +207,14 @@ public static partial class CobolIntrinsics
 
     // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>ONE current pseudo-random sequence per run unit (§15.75.3): the first argument-less reference uses
-    /// an implementor-defined seed (rule 4 — <c>docs/CONFORMANCE.md#DOC-A.1-144</c> is that determination and it is
-    /// PER-PROCESS OS ENTROPY: the parameterless <see cref="System.Random"/> is .NET's shared xoshiro256** seeded
-    /// from OS entropy, so there is no fixed seed and a sequence is reproducible only from an explicit
-    /// <c>FUNCTION RANDOM(seed)</c>. This comment said "the .NET time-derived default" until 2026-09-03 — a
-    /// pre-.NET-6 description of a different mechanism, and the register is the one that is right); a seeded
-    /// reference REPLACES the
-    /// sequence (rule 3). NOTE: the legacy oracle instead news a throwaway generator per seeded call — both satisfy
-    /// the 0 ≤ r &lt; 1 NIST range checks, but the spec form (one current sequence that seeded calls restart and
-    /// argument-less calls continue) is implemented here per the scout brief §4.1.</summary>
-    private static Random _random = new();
-
     /// <summary>RANDOM with no argument (§15.75.3 rule 5): the next number of the CURRENT sequence; 0 ≤ r &lt; 1
-    /// (§15.75.4 rule 1).</summary>
-    public static double Random() => _random.NextDouble();
+    /// (§15.75.4 rule 1). The sequence is RUN-UNIT state (§15.75.3 rule 4 scopes the implementor seed to "the first
+    /// reference to this function in the run unit") and lives on <see cref="RunUnit.Random"/> — a process-global
+    /// static here let a second run unit in one process continue the first's seeded sequence (kb/Work PB307).
+    /// NOTE: the legacy oracle instead news a throwaway generator per seeded call — both satisfy the 0 ≤ r &lt; 1
+    /// NIST range checks, but the spec form (one current sequence that seeded calls restart and argument-less calls
+    /// continue) is implemented here per the scout brief §4.1.</summary>
+    public static double Random() => RunUnit.Current.Random.Next();
 
     /// <summary>RANDOM (seed) (§15.75.3 rules 2/3): starts a NEW sequence from the seed and returns its first
     /// value. Same seed ⇒ same sequence on a given implementation (§15.75.4 rule 2 — per-process determinism is
@@ -255,7 +248,6 @@ public static partial class CobolIntrinsics
             Exceptions.ExceptionState.ArgumentError($"RANDOM argument-1 {seed} is not zero or a positive integer (§15.75.3 r2)");
             return 0;
         }
-        _random = new Random((int)(seed & 0x7FFFFFFF));
-        return _random.NextDouble();
+        return RunUnit.Current.Random.Restart((int)(seed & 0x7FFFFFFF));
     }
 }

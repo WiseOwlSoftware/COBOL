@@ -25,8 +25,10 @@ namespace CobolNet.Runtime;
 /// <para>Tie and selection rules are the exact family's: MAX/MIN return the LEFTMOST extreme argument
 /// (§15.59.4 r2 / §15.63.4 r2), ORD-MAX/ORD-MIN the first extreme ordinal (§15.71.4 r2 / §15.72.4 r2),
 /// via strict <see cref="CobolDec.Compare"/> — value comparison needs no scale alignment on this carrier.
-/// MOD's zero divisor funnels through the ONE §15.64.3 r2 raise site (<see cref="ModZeroDivisor"/>), the
-/// PB32 one-raise-site-per-rule discipline.</para>
+/// MOD's zero divisor funnels through the ONE §15.64.3 r2 raise site (<see cref="ModZeroDivisor"/>) and REM's
+/// through the ONE §15.77.3 r2 site (<see cref="RemZeroDivisor"/>), the PB32 one-raise-site-per-rule discipline —
+/// the two rules are worded identically, so each body must name its OWN (kb/Work PB304;
+/// <c>IntrinsicCarrierAgreementDriftTests.EveryModRemBody_RaisesItsOwnFunctionsZeroDivisorRule</c>).</para>
 /// </remarks>
 public static partial class CobolIntrinsics
 {
@@ -65,10 +67,12 @@ public static partial class CobolIntrinsics
         return CobolDec.Sub(a, CobolDec.Mul(b, FloorDec(CobolDec.Div(a, b, mode)), mode), mode);
     }
 
-    /// <summary>§15.77 REM — argument-1 − argument-2 × INTEGER-PART(argument-1 / argument-2).</summary>
+    /// <summary>§15.77 REM — argument-1 − argument-2 × INTEGER-PART(argument-1 / argument-2).
+    /// A zero divisor violates §15.77.3 r2 — REM's OWN rule, identically worded to MOD's §15.64.3 r2 — → the one
+    /// REM raise site shared with the exact and binary64 carriers (this body called MOD's, kb/Work PB304).</summary>
     public static CobolDec RemDec(CobolRounding mode, CobolDec a, CobolDec b)
     {
-        if (b.Sig == 0) return CobolDec.From(ModZeroDivisor(), 0);
+        if (b.Sig == 0) return CobolDec.From(RemZeroDivisor(), 0);
         if (ExactIntegers(a, b, out Int128 ia, out Int128 ib)) return CobolDec.From(RemScaled(ia, ib), 0);   // kb/Work PB69
         return CobolDec.Sub(a, CobolDec.Mul(b, TruncDec(CobolDec.Div(a, b, mode)), mode), mode);
     }

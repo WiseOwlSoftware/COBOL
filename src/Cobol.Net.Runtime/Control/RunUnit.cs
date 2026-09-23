@@ -8,7 +8,8 @@ namespace CobolNet.Runtime;
 /// <summary>
 /// The single owner of all run-unit-lifetime state (ISO §14.6.1 run unit; DESIGN-runtime-library §2.1).
 /// Replaces the five independent process-global static stores: one instance per run unit owning the program
-/// table, the EC engine, the EXTERNAL store, the MODULE-NAME stack, the file registry, and the clock. The
+/// table, the EC engine, the EXTERNAL store, the MODULE-NAME stack, the file registry, the clock, and the FUNCTION RANDOM
+/// sequence (kb/Work PB307 — the sixth store, which the consolidation first missed). The
 /// ambient current run unit is an <see cref="AsyncLocal{T}"/> so a host that thread-hops or runs run units
 /// concurrently each see their own (uniform threading model — the former <c>[ThreadStatic]</c>-vs-plain-static
 /// split is gone). The pre-existing static facades (<see cref="ProgramRegistry"/>, <see cref="ExceptionState"/>,
@@ -55,6 +56,10 @@ public sealed class RunUnit
 
     /// <summary>The run-unit file-connector registry (§9.1; owns the physical-file sharing table).</summary>
     public FileRegistry Files { get; } = new();
+
+    /// <summary>The run unit's ONE current FUNCTION RANDOM sequence (ISO §15.75.3 r4 — the implementor seed belongs
+    /// to "the first reference to this function in the run unit"; kb/Work PB307).</summary>
+    public RandomSequence Random { get; } = new();
 
     /// <summary>The run unit's Report Writer control-flow state: the USE BEFORE REPORTING range
     /// (ISO §14.9.49.4 GR10 — <see cref="ReportFlowState"/> records why the range is the RUN UNIT's).</summary>
@@ -119,8 +124,14 @@ public sealed class RunUnit
     }
 
     /// <summary>Reset the AMBIENT run unit's program/external/module state — the exact semantics of the
-    /// pre-P8 <c>ProgramRegistry.Reset()</c> (clear registrations + EXTERNAL store + MODULE-NAME stack; files
+    /// pre-P8 <c>ProgramRegistry.Reset()</c> (clear registrations + EXTERNAL store + MODULE-NAME stack), plus the
+    /// FUNCTION RANDOM sequence (§15.75.3 r4); files
     /// and the last-exception status reset through their own emitted entry points, exactly as before). Called
     /// by the <see cref="ProgramRegistry"/> shim from the emitted run-unit driver.</summary>
-    public static void ResetCurrent() => Current.Programs.Reset();
+    public static void ResetCurrent()
+    {
+        RunUnit ru = Current;
+        ru.Programs.Reset();
+        ru.Random.Reset();   // §15.75.3 r4: the next RANDOM is again the run unit's FIRST reference (kb/Work PB307)
+    }
 }
