@@ -1212,7 +1212,7 @@ STRONG/EXTERNAL presence and their elementary items' positions, lengths and clau
 
 **Diagnostics (15xx).** **1529** malformed TYPEDEF (SR15 level-1/named; SR1 STRONG-on-elementary; TYPEDEF ×
 REDEFINES/BASED/CONSTANT RECORD/PROPERTY); **1530** TYPE unresolved/recursive; **1531** illegal TYPE-reference
-context (immediate subordinate/88; disallowed sibling clause; 77-of-group; type-with-INDEXED-BY used ≥2×);
+context (immediate subordinate/88; disallowed sibling clause; 77-of-group) — its former type-with-INDEXED-BY-used-≥2× arm is retired (kb/Work PB919: every clone declares its own index cells);
 **1532** STRONG declaration violation; **1533** STRONG use incompatibility (MOVE/compare non-same-type; strong group
 in a class condition — split by descriptor: `strong-move-mismatch`/`strong-compare-mismatch`/`strong-class-condition`);
 **1535** two descriptors on one code: `strong-compare-ordering` (§8.8.4.2.3 SR4 — a boolean/object/pointer-bearing
@@ -1253,8 +1253,9 @@ reference (registered globally — clones ARE referenceable). Golden `typedef_88
 RENAMES-in-TYPEDEF staged (the in-template level-66 guard in `BindEntries`, descriptor `typedef-renames-staged`) +
 the NAMED §8.8.4.2.3 SR4 equality-only rule for a strong group with boolean/object/pointer elements (descriptor
 `strong-compare-ordering`, in the relation checkpoint), **0899** `strong-group-ordering-signed-leaf` (the
-§8.8.4.2.12 signed-leaf element ordering, staged), **1531** an INDEXED-BY type referenced ≥2× (the
-`_typedIndexNames` collision set in `CloneItem`). Goldens `typedef_indexed` (a single INDEXED-type reference works),
+§8.8.4.2.12 signed-leaf element ordering, staged). An INDEXED-BY type referenced ≥2× is LEGAL and works: each clone's
+INDEXED BY names are re-declared with their own cells (`DataBinder.RegisterIndexes`, kb/Work PB919), referenced
+as `IX OF A` / `IX OF B` (§8.4.2.2.3 SR6). Goldens `typedef_indexed` (a single INDEXED-type reference works),
 `typedef_same_as` (elementary+VALUE / group+qualified / nested renumbered / OCCURS composition / strong-copy
 relations), `typedef_external` (two programs, one ExternalStore cell) + `TypedefResidueTests`/`SameAsTests`.
 **Matrix note:** the STRONG phrase rides the SAME `typedefClause` gate as `typedef-def-2002` (introduction gating
@@ -1278,7 +1279,7 @@ immediately by a subordinate or level-88 entry, else a silent member-merge / CS1
 on a group superordinate to a TYPE subject). The 15xx TYPEDEF band spans **1529–1538**.
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
-resolved items); `INDEXED BY` in a TYPEDEF used ≥2× = a global index-name collision (staged loud 1531); method/OO-scope
+resolved items); `INDEXED BY` in a TYPEDEF used ≥2× — RESOLVED (kb/Work PB919: per-declaration index cells); method/OO-scope
 typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up); STRONG group
 alignment (GR2d/§8.5.1.6.5) is D6/SYNC domain, out of scope.
 

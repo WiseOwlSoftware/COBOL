@@ -414,6 +414,13 @@ public sealed class DataItem
         "the INDEXED BY phrase of that OCCURS clause (ISO §13.18.38), riding it")]
     public List<string> IndexNames { get; } = [];
 
+    /// <summary>The index-name DECLARATIONS this item's INDEXED BY phrase makes — one per <see cref="IndexNames"/>
+    /// entry, each with its own cell (kb/Work PB919), minted when the item is registered in its scope
+    /// (<c>DataBinder.RegisterIndexes</c>). Empty for an unregistered TYPEDEF template.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "identity: each copy's INDEXED BY names are re-declared with their OWN cells when the copy is registered")]
+    public List<IndexDeclaration> Indexes { get; } = [];
+
     /// <summary>
     /// True when this numeric fixed-point elementary item is stored as its CHARACTER IMAGE (a C# <see cref="string"/>
     /// of zoned digits) rather than a native <see cref="long"/> — a numeric-DISPLAY leaf under a group used as a

@@ -11,7 +11,7 @@ using Core = CobolParserCore;
 
 /// <summary>The SEARCH / SEARCH ALL verb binder (P7 Step 10m — a real collaborator over
 /// <see cref="BinderContext"/>, on the shared <c>BoundSearch</c> machinery; the scope-aware index-cell
-/// resolution rides <c>ctx.Symbols.IndexCellOf</c>, the dynamic-table bound <c>OdoModel.SearchBound</c>).</summary>
+/// is the table's own declaration (<c>DataItem.Indexes</c>, kb/Work PB919), the dynamic-table bound <c>OdoModel.SearchBound</c>).</summary>
 internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>⛔ IDENTIFIER-1, FOR BOTH FORMATS, RESOLVED AND SCREENED IN ONE PLACE (kb/Work PB443). Format 1
@@ -77,14 +77,14 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         var drefs = s.dataReference();
         if (Identifier1(drefs[0], "SEARCH", out var bail) is not { } table) return bail;
 
-        string searchIx = ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope);   // scope-aware (method cell first, M2-OO-1h step 4)
+        string searchIx = table.Indexes[0].Cell;   // the table's OWN first declaration (kb/Work PB919)
         BoundSetTarget? also = null;
         if (drefs.Length > 1)   // the VARYING phrase
         {
             var v = drefs[1];
             if (host.Expr.IndexFieldOf(v) is { } vix)
             {
-                if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR3 c) 1.)
+                if (table.Indexes.Any(d => d.Cell == vix)) searchIx = vix;   // same table (GR3 c) 1.)
                 else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2.)
             }
             else if (host.Expr.ResolveReceiving(v) is { } p)                                       // data item (GR3 b)
@@ -97,7 +97,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 // stops at a refusal (§4.2.2 — the compile has failed).
                 string text = DataBinder.WrittenText(v);
                 bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.SearchVaryingIdentifier, p, text);
-                if (ctx.Refs.SubscriptNamesIndex(v, table.IndexNames[0]))
+                if (table.Indexes.Count > 0 && ctx.Refs.SubscriptNamesIndex(v, table.Indexes[0]))
                 {
                     ctx.Edition.Error(DiagnosticCatalog.SearchVaryingOperand,
                         $"SEARCH VARYING identifier-2 '{text}' is subscripted by '{table.IndexNames[0]}', the first "
@@ -187,7 +187,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 return new BoundSearchWhen(cond, host.BindBlocks([wc.statementBlock()]));
             })
             .ToList();
-        return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,
+        return new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
             DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;

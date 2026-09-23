@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit;
 /// the phase doc enumerates, mirroring the OoSpineTests method-local-shadowing conformance cases (which remain the
 /// authoritative BEHAVIOR net — these pin the resolver's precedence rules in isolation): (a) program-scope
 /// resolution; (b) a method-local data-name shadowing an object-level name (§8.4.6.2.1 rule 3a); (c) a
-/// method-local data-name shadowing an object-level INDEX-name (TryResolveIndex → false); (d) a method-local
+/// method-local data-name shadowing an object-level INDEX-name (IndexCandidates → null); (d) a method-local
 /// index-name with its OWN cell shadowing an object index-name (§11.7.4 GR5); (e) an unshadowed object name
 /// visible from a method (the LookupDataInScopeOf global fallback).
 /// <para>Real items come from binding a small program (the RedefinesClassificationTests harness pattern); the
@@ -24,7 +24,7 @@ namespace CobolNet.Tests.Unit;
 public sealed class SymbolTableTests
 {
     /// <summary>Bind a tiny program so the binder's global maps carry real items:
-    /// WS-A (01), TAB with INDEXED BY IX (so IndexFields["IX"] exists), and WS-SHARED.</summary>
+    /// WS-A (01), TAB with INDEXED BY IX (so the unit declares IX), and WS-SHARED.</summary>
     private static DataBinder BindFixture()
     {
         const string src = """
@@ -86,17 +86,17 @@ public sealed class SymbolTableTests
     }
 
     // (c) §8.4.6.2.3: a method-local DATA-name shadows an object-level INDEX-name of the same spelling —
-    // TryResolveIndex must return FALSE (the data-name wins; binding it to the object's cell would be a torn
+    // IndexCandidates must return NULL (the data-name wins; binding it to the object's cell would be a torn
     // read/write of the wrong storage).
     [Fact]
     public void MethodScope_DataName_ShadowsIndexName()
     {
         var data = BindFixture();
-        Assert.True(data.Symbols.TryResolveIndex("IX", Scope.Program, out var globalCell));   // sanity: IX exists globally
+        var global = data.Symbols.IndexCandidates("IX", [], Scope.Program)?.Single;   // sanity: IX exists globally
+        Assert.NotNull(global);
         var scope = new OoMethodDataScope();
         scope.ByName["IX"] = [data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null!];
-        Assert.False(data.Symbols.TryResolveIndex("IX", new Scope(scope), out _));
-        Assert.NotEmpty(globalCell);
+        Assert.Null(data.Symbols.IndexCandidates("IX", [], new Scope(scope)));
     }
 
     // (d) §11.7.4 GR5 index privacy: a method-local index-name has its OWN cell, never the shared global one.
@@ -105,12 +105,12 @@ public sealed class SymbolTableTests
     {
         var data = BindFixture();
         var scope = new OoMethodDataScope();
-        scope.IndexFields["IX"] = "_MIX_42";
-        Assert.True(data.Symbols.TryResolveIndex("IX", new Scope(scope), out var cell));
-        Assert.Equal("_MIX_42", cell);                            // the method's cell, not the global _IX_*
-        Assert.Equal("_MIX_42", data.Symbols.IndexCellOf("IX", new Scope(scope)));
-        Assert.True(data.Symbols.TryResolveIndex("IX", Scope.Program, out var globalCell));
-        Assert.NotEqual("_MIX_42", globalCell);
+        var tab = data.Symbols.TryResolve("TAB", Scope.Program, out var t) ? t[0] : null!;
+        scope.IndexNames.Declare(new IndexDeclaration("IX", tab, "_IX_42"));
+        Assert.Equal("_IX_42", data.Symbols.IndexCandidates("IX", [], new Scope(scope))?.Single?.Cell);   // the method's cell
+        var global = data.Symbols.IndexCandidates("IX", [], Scope.Program)?.Single;
+        Assert.NotNull(global);
+        Assert.NotEqual("_IX_42", global!.Cell);
     }
 
     // (e) The LookupDataInScopeOf global fallback: an UNSHADOWED object/program name is visible from a method.
@@ -121,8 +121,9 @@ public sealed class SymbolTableTests
         var scope = new OoMethodDataScope();                      // empty overlay — nothing shadowed
         Assert.True(data.Symbols.TryResolve("WS-A", new Scope(scope), out var items));
         Assert.Equal("WS-A", items[0].CobolName);
-        // And the resolved-cell accessor falls through to the global cell too.
-        Assert.True(data.Symbols.TryResolveIndex("IX", new Scope(scope), out var cell));
-        Assert.Equal(data.Symbols.IndexCellOf("IX", Scope.Program), cell);
+        // And the index-name resolution falls through to the global declaration too.
+        var viaMethod = data.Symbols.IndexCandidates("IX", [], new Scope(scope))?.Single;
+        Assert.NotNull(viaMethod);
+        Assert.Same(data.Symbols.IndexCandidates("IX", [], Scope.Program)?.Single, viaMethod);
     }
 }

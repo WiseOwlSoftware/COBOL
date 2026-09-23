@@ -159,7 +159,8 @@
   "pb859_integer_n_zero_permitted",
   "pb992_character_channel_numeric",
   "pb369_global_report_use_selection",
-  "pb369_global_file_use_selection"
+  "pb369_global_file_use_selection",
+  "pb919_index_name_qualified"
  ],
  "pending": []
 }

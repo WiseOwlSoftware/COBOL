@@ -12,10 +12,10 @@ namespace CobolNet.Tests.Conformance;
 /// §13.18.58.4 GR1, staged) and a strong group with a boolean/object/pointer element compared with an ordering
 /// operator (§8.8.4.2.3 SR4 — the complete spec rule: equality/inequality only); COBOLNET0899
 /// <c>strong-group-ordering-signed-leaf</c> — an ordering over same-type strong groups with a SIGNED numeric
-/// leaf (the §8.8.4.2.12 element-by-element algebraic ordering, staged); COBOLNET1531 — a type whose OCCURS has
-/// an INDEXED BY phrase referenced ≥2× (the global index-name would collide, §13.18.38). The positive companions
-/// (a single INDEXED-type reference — also the <c>typedef_indexed</c> golden — and a strong boolean-group
-/// EQUALITY compare) must NOT trip a guard.
+/// leaf (the §8.8.4.2.12 element-by-element algebraic ordering, staged). A type whose OCCURS has an INDEXED BY
+/// phrase referenced ≥2× is LEGAL and works — each clone declares its own index cells (kb/Work PB919; the former
+/// COBOLNET1531 stage is retired). The positive companions (INDEXED-type references — also the
+/// <c>typedef_indexed</c> golden — and a strong boolean-group EQUALITY compare) must NOT trip a guard.
 /// </summary>
 public sealed class TypedefResidueTests
 {
@@ -146,11 +146,35 @@ public sealed class TypedefResidueTests
             + string.Join("; ", diagEq));
     }
 
-    /// <summary>§13.18.38 — a type whose OCCURS carries an INDEXED BY phrase, referenced twice, clones the same global
-    /// index-name onto two tables; staged loud (COBOLNET1531).</summary>
+    /// <summary>kb/Work PB919 — a type whose OCCURS carries an INDEXED BY phrase, referenced twice, yields two tables
+    /// whose indexes are both named IX (§13.18.58.4 GR1 — the subordinate entries are part of the type); each owns
+    /// its cell and is referenced through its table (§8.4.2.2.3 SR6), while a bare IX is §8.4.2.2.3 SR1's
+    /// ambiguity. This was the COBOLNET1531 stage while the two shared one spelling-keyed cell.</summary>
     [Fact]
-    public void IndexedTypeReferencedTwice_Rejected1531()
+    public void IndexedTypeReferencedTwice_EachCloneOwnsItsIndex()
     {
+        var (okRun, stdout, detail) = EditionHarness.CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TR31R.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL-T TYPEDEF.
+               05 ROW OCCURS 3 INDEXED BY IX PIC X.
+            01 A TYPE TBL-T.
+            01 B TYPE TBL-T.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE ALL "." TO A B.
+                SET IX OF A TO 1.
+                SET IX OF B TO 3.
+                MOVE "P" TO ROW OF A (IX OF A).
+                MOVE "Q" TO ROW OF B (IX OF B).
+                DISPLAY A "|" B.
+                STOP RUN.
+            """, 2002);
+        Assert.True(okRun, detail);
+        Assert.Equal("P..|..Q", stdout.Trim());
+
         var (ok, diag) = EditionHarness.Compile("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. TR31.
@@ -162,15 +186,16 @@ public sealed class TypedefResidueTests
             01 B TYPE TBL-T.
             PROCEDURE DIVISION.
             MAIN-PARA.
-                DISPLAY "X".
+                SET IX TO 1.
                 STOP RUN.
             """, 2002);
-        Assert.False(ok, "an INDEXED-BY type referenced twice must be staged loud (ISO §13.18.38)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1531");
+        Assert.False(ok, "a bare IX over two TYPE clones' indexes is §8.4.2.2.3 SR1's ambiguity");
+        EditionHarness.AssertHasDiagnostic(diag, "does not uniquely identify an index-name");
+        EditionHarness.AssertNoDiagnostic(diag, "COBOLNET1531");
     }
 
-    /// <summary>The positive companions must NOT trip a guard: a SINGLE INDEXED-type reference (the guard is ≥2×, not
-    /// ≥1× — also the <c>typedef_indexed</c> golden) and a strong boolean-group EQUALITY compare (SR4 bans only the
+    /// <summary>The positive companions must NOT trip a guard: a SINGLE INDEXED-type reference (also the
+    /// <c>typedef_indexed</c> golden) and a strong boolean-group EQUALITY compare (SR4 bans only the
     /// ordering relation).</summary>
     [Fact]
     public void SingleIndexedTypeAndBooleanEquality_CompileClean()

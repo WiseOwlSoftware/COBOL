@@ -135,22 +135,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </summary>
     public Dictionary<string, List<DataItem>> ByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>INDEXED BY index-names (case-insensitive) → the C# <c>long</c> field that holds the 1-based
-    /// occurrence number (COBOLNET_DESIGN §3.5). A subscript may name an index, so the resolver consults this.
-    /// (READ-ONLY view — P6 Step 5; the GLOBAL-inheritance preseed writes through
-    /// <see cref="SeedInheritedGlobalIndex"/>.)</summary>
-    public IReadOnlyDictionary<string, string> IndexFields => _indexFields;
-    private readonly Dictionary<string, string> _indexFields = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own
+    /// data division (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence
+    /// numbers, COBOLNET_DESIGN §3.5), plus the GLOBAL tables' declarations of every containing program
+    /// (§8.4.6.2.3), registered beside their tables' data-names by the GLOBAL-root inheritance. A reference resolves
+    /// through <see cref="Model.SymbolTable.IndexCandidates"/> — counted, never keyed by spelling alone.</summary>
+    public IndexNameRegistry IndexNames { get; } = new();
 
-    /// <summary>Pre-seed one inherited GLOBAL-table index name BEFORE <see cref="Bind"/> (ISO §13.18.27 GR2 —
-    /// a global index-name is SHARED storage reached through the ref-bridge, never re-declared locally): registers
-    /// the CONTAINER's cell under the name and suppresses the field from this unit's emission. False when the
-    /// name is already taken (a nearer declaration shadows). The ONE write channel BinderDriver uses (P6 Step 5).</summary>
-    internal bool SeedInheritedGlobalIndex(string idxName, string field)
+    /// <summary>Declare the index-names of <paramref name="item"/>'s INDEXED BY phrase in the scope being bound —
+    /// the method overlay while a METHOD's data binds (§11.7.4 GR5 privacy), else this unit — each with its OWN
+    /// cell, named off the table's session-unique <see cref="DataItem.Uid"/> so it can never collide with a
+    /// container's bridged cell or with a sibling declaration of the same spelling (kb/Work PB919). Called from
+    /// <see cref="RegisterName"/>, the one funnel every referenceable item (a TYPE clone included) passes through,
+    /// so a copied table can never share its original's cell.</summary>
+    private void RegisterIndexes(DataItem item)
     {
-        if (!_indexFields.TryAdd(idxName, field)) return false;
-        _callSuppressedRootFields.Add(field);
-        return true;
+        for (int k = 0; k < item.IndexNames.Count; k++)
+        {
+            var decl = new IndexDeclaration(item.IndexNames[k], item, $"_IX_{item.Uid}" + (k == 0 ? "" : $"_{k}"));
+            item.Indexes.Add(decl);
+            if (_bindingMethodScope is { } ms) ms.IndexNames.Declare(decl);
+            else IndexNames.Declare(decl);
+        }
     }
 
     /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names
@@ -531,12 +537,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// trap-#6 guard at the NAME level).</summary>
     private readonly HashSet<string> _rootNames = new(StringComparer.Ordinal);
 
-    /// <summary>Index-names contributed by TYPE-expanded clones (data-model D17 inc 4): a TYPEDEF whose OCCURS carries
-    /// an INDEXED BY phrase can be referenced at most ONCE — a second reference clones the same global index-name and
-    /// the two tables' indexes would collide on one C# field. A repeat here → COBOLNET1531 (staged loud). Cleared at
-    /// the top of <see cref="ExpandTypes"/> (per program unit).</summary>
-    private readonly HashSet<string> _typedIndexNames = new(StringComparer.OrdinalIgnoreCase);
-
     /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest, driven by
     /// the DECLARED <see cref="BindPipeline"/> (rearchitecture PHASE 05 Step 3 / PHASE 06 Step 3; DESIGN-data-model
     /// §2.5). The order is IDENTICAL to the former comment-ordered call sequence — now EXPLICIT and asserted at
@@ -691,11 +691,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (root.Class?.BasedPointerField is { } bp && !PtrAddressableCellOf.ContainsKey(root.Class))
                 _staticBasedBridgeAddrs.Add(bp);
             // An INDEXED BY cell under a BASED table is an ordinary emitted field (allocated in
-            // _indexFields regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
+            // RegisterIndexes regardless of BASED-ness) and §13.5.4 GR1 makes it static like the rest of
             // the unit's WS — the bridge routes the ADDRESS, the index cells still route themselves.
-            foreach (var idx in IndexNamesUnder(root))
-                if (_indexFields.TryGetValue(idx, out var basedCell))
-                    _staticIndexCells.Add(basedCell);
+            foreach (var idx in IndexDeclarationsUnder(root))
+                _staticIndexCells.Add(idx.Cell);
             return;
         }
         if (root.Class is { } ac && PtrAddressableCellOf.TryGetValue(ac, out var addrCell))
@@ -707,9 +706,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // source this used to refuse (COBOLNET0899): a static item's address is simply the one copy's.
             // Every root of the class (the canonical and each REDEFINES view) names the ONE cell.
             _staticAddressableCells.Add(addrCell);
-            foreach (var idx in IndexNamesUnder(root))
-                if (_indexFields.TryGetValue(idx, out var addrIdxCell))
-                    _staticIndexCells.Add(addrIdxCell);
+            foreach (var idx in IndexDeclarationsUnder(root))
+                _staticIndexCells.Add(idx.Cell);
             return;
         }
         if (root.Class is { } c && c.BasedPointerField is not null)
@@ -719,17 +717,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // ALLOCATED cell reached through the ONE bridge the BASED root above already routed static, so it
             // has no storage of its own to route; only its index cells do (kb/Work PB234 — this arm used to
             // refuse the source with the same COBOLNET0899 as the ADDRESS OF arm).
-            foreach (var idx in IndexNamesUnder(root))
-                if (_indexFields.TryGetValue(idx, out var viewIdxCell))
-                    _staticIndexCells.Add(viewIdxCell);
+            foreach (var idx in IndexDeclarationsUnder(root))
+                _staticIndexCells.Add(idx.Cell);
             return;
         }
         if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
             _staticRootFields.Add(c2.BackingCsName);   // Tier-B: the ONE string backing IS the storage
         _staticRootFields.Add(root.CsName);
-        foreach (var idx in IndexNamesUnder(root))
-            if (_indexFields.TryGetValue(idx, out var cell))
-                _staticIndexCells.Add(cell);
+        foreach (var idx in IndexDeclarationsUnder(root))
+            _staticIndexCells.Add(idx.Cell);
     }
 
     /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the
@@ -2602,6 +2598,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// only by qualification).</summary>
     private void RegisterName(DataItem item)
     {
+        RegisterIndexes(item);   // before the name test: a FILLER table's index-names are referenceable (PB919)
         if (item.CobolName is not { } name) return;
         ScreenRepositoryIntrinsicName(name, "data-name");
         if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
@@ -2640,7 +2637,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// BEFORE the resolution passes (so the clone is a normal part of the forest they walk).</summary>
     internal void ExpandTypes()
     {
-        _typedIndexNames.Clear();   // per-program: the ≥2×-INDEXED-type collision guard (D17 inc 4)
         foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
             ExpandType(item, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         // SAME AS (ISO §13.18.49; P10 Step 16) — expanded AFTER every TYPE reference, so a data-name-1 that
@@ -2952,16 +2948,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
         clone.SameAsQualifiers.AddRange(src.SameAsQualifiers);
-        foreach (var idx in src.IndexNames)
-        {
-            clone.IndexNames.Add(idx);
-            // §13.18.38 (D17 inc 4, staged loud): a TYPE with an INDEXED BY table referenced ≥2× clones the same
-            // global index-name onto two tables — they would share one C# index field and silently cross-drive.
-            if (!_typedIndexNames.Add(idx))
-                Edition.Error("COBOLNET1531", $"INDEXED BY '{idx}' comes from a type declaration referenced more "
-                    + "than once — a type whose OCCURS has an INDEXED BY phrase may be referenced at most once, else "
-                    + "the global index-name collides (ISO §13.18.38; data-model D17 residue)");
-        }
+        // The member's INDEXED BY names are part of the type (§13.18.58.4 GR1). RegisterName re-declares them on
+        // THIS clone with its own cells, so a type referenced twice yields two tables whose indexes are both named
+        // IX — referenced as IX OF A / IX OF B (§8.4.2.2.3 SR6). The former COBOLNET1531 stage refused the second
+        // reference only because the two shared one spelling-keyed cell; it is retired (kb/Work PB919).
+        clone.IndexNames.AddRange(src.IndexNames);
         RegisterName(clone);
         foreach (var c88 in src.Own88s) CloneConditionOnto(clone, c88);   // §13.18.58.4 GR1 — the 88s are part of the type (D17 inc 3)
         foreach (var child in src.Children)
@@ -4808,18 +4799,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             item.DynStructure = dynStructure;
         }
 
-        // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
-        // A method's index-names (M2-OO-1h step 4) register into the METHOD's own scope with a FRESH cell — two
-        // methods' IX, or a method IX shadowing an object IX, get distinct cells (§11.7.4 GR5); the program/object
-        // path keeps the de-dup dict.
+        // The INDEXED BY index-names ride the entry; each is DECLARED — with its own cell, in the scope being
+        // bound — when the item is registered (RegisterIndexes, kb/Work PB919), never here: a TYPEDEF template's
+        // entries are never registered, and each of its clones declares its own.
         foreach (var idxName in indexNames)
         {
             ScreenRepositoryIntrinsicName(idxName, "index-name");   // §8.3.2.1 rule 5 (kb/Work PB65)
             item.IndexNames.Add(idxName);
-            if (_bindingMethodScope is { } ms)
-                ms.IndexFields[idxName] = "_MIX_" + _ixSeq++;
-            else if (!IndexFields.ContainsKey(idxName))
-                _indexFields[idxName] = "_IX_" + _indexFields.Count;
         }
         return item;
     }
@@ -6774,14 +6760,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// did both — one rule written down twice, with the procedure division reading the complete one and the data
     /// division the partial one (feedback_one_rule_one_place). <see cref="ReferenceResolver"/> now calls this.
     /// </para></summary>
-    internal DataNameCandidates QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
+    internal NameCandidates<DataItem> QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
     {
         List<DataItem> survivors = [];
         if (Symbols.TryResolve(name, scope, out var candidates))
             foreach (var cand in candidates)
                 if (QualifierChainMatches(cand, quals) && !survivors.Contains(cand))
                     survivors.Add(cand);
-        return new DataNameCandidates(survivors);
+        return new NameCandidates<DataItem>(survivors);
     }
 
     /// <summary>The §8.4.2.2 candidate set of <paramref name="name"/> WITHIN one record — every entry of
@@ -6790,7 +6776,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// data-name-2 / data-name-3 (§13.18.45.3 SR4 — "in the same record") and a TYPEDEF clone's own OCCURS
     /// DEPENDING ON counter. The tree walk, not the name index, because a TYPEDEF template's members are off the
     /// name index (§13.18.58.4 GR1). Counted like every other candidate set (kb/Work PB978).</summary>
-    internal DataNameCandidates SubtreeCandidates(DataItem root, string name, IReadOnlyList<string> quals)
+    internal NameCandidates<DataItem> SubtreeCandidates(DataItem root, string name, IReadOnlyList<string> quals)
     {
         List<DataItem> hits = [];
         void Walk(DataItem n)
@@ -6800,7 +6786,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var c in n.Children) Walk(c);
         }
         Walk(root);
-        return new DataNameCandidates(hits);
+        return new NameCandidates<DataItem>(hits);
     }
 
     /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
@@ -6814,7 +6800,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// ambiguous — and the scope-wide set only when no group of the subject's holds one. This is also the rule
     /// behind a TYPEDEF clone's own DEPENDING ON counter (a tree walk, so a clone's members off the name index are
     /// found). Counted like every candidate set (kb/Work PB978).</summary>
-    internal DataNameCandidates EntryClauseCandidates(DataItem subject, string name, IReadOnlyList<string> quals,
+    internal NameCandidates<DataItem> EntryClauseCandidates(DataItem subject, string name, IReadOnlyList<string> quals,
                                                       Model.Scope scope)
     {
         for (DataItem? group = subject.Parent; group is not null; group = group.Parent)
@@ -6830,13 +6816,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// first-declared survivor (ReferenceResolver.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
     /// report: an operand that names nothing breaks the CLAUSE's own rule, which the caller states
     /// (<paramref name="ambiguityReported"/> says which of the two a null is).</summary>
-    internal DataItem? UniqueOrReportAmbiguous(DataNameCandidates candidates, string clauseFace, string written,
-                                               out bool ambiguityReported)
+    internal T? UniqueOrReportAmbiguous<T>(NameCandidates<T> candidates, string clauseFace, string written,
+                                           out bool ambiguityReported) where T : class
     {
         ambiguityReported = false;
         if (candidates.Count <= 1) return candidates.Single;
         ambiguityReported = true;
-        string msg = $"{clauseFace} '{written}' does not uniquely identify a data item — {candidates.Count} "
+        // One verdict for every name class §8.4.2.2.3 SR1 covers (kb/Work PB919): only the noun differs.
+        string what = typeof(T) == typeof(IndexDeclaration) ? "an index-name" : "a data item";
+        string msg = $"{clauseFace} '{written}' does not uniquely identify {what} — {candidates.Count} "
             + "declarations match the written reference (ISO §8.4.2.2.3 SR1: \"For each non unique user-defined "
             + "name that is explicitly referenced, uniqueness shall be established through a sequence of qualifiers "
             + "that precludes any ambiguity of reference\")";
@@ -6858,9 +6846,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// of successively more inclusive levels in the hierarchy"); when the data ancestors are exhausted, the
     /// OUTERMOST remaining qualifier may instead name the file whose FD/SD owns the candidate's record
     /// (§8.4.2.2.2 Format 1's <i>file-report-qualifier</i>).</summary>
-    internal bool QualifierChainMatches(DataItem cand, IReadOnlyList<string> qualifiers)
+    internal bool QualifierChainMatches(DataItem cand, IReadOnlyList<string> qualifiers) =>
+        QualifierChainMatchesFrom(cand.Parent, cand, qualifiers);
+
+    /// <summary>The §8.4.2.2.2 Format 3 (qualified-index-name) twin of <see cref="QualifierChainMatches"/>:
+    /// <c>index-name-1 [ data-qualifier ] … [ file-report-qualifier ]</c>, whose hierarchy §8.4.2.2.3 SR6 gives —
+    /// "The qualification of an index-name may include the name of the table with which the index-name is
+    /// associated, as well as any name by which that table may be qualified." So the chain starts AT the table,
+    /// not above it; the matching itself is the same one walk (kb/Work PB919).</summary>
+    internal bool IndexQualifierChainMatches(IndexDeclaration decl, IReadOnlyList<string> qualifiers) =>
+        QualifierChainMatchesFrom(decl.Table, decl.Table, qualifiers);
+
+    /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
+    /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>
+    private bool QualifierChainMatchesFrom(DataItem? firstQualifiable, DataItem member, IReadOnlyList<string> qualifiers)
     {
-        DataItem? anc = cand.Parent;
+        DataItem cand = member;
+        DataItem? anc = firstQualifiable;
         for (int qi = 0; qi < qualifiers.Count; qi++)
         {
             string q = qualifiers[qi];

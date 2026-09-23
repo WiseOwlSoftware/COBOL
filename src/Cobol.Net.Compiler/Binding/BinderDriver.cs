@@ -507,17 +507,6 @@ internal sealed class BinderDriver
         };
         data.CallSeedUids(session.TakeUidBand());
 
-        // Pre-seed inherited GLOBAL-table index names BEFORE Bind: the child's own INDEXED BY registrations then
-        // allocate from a later ordinal and can never collide with a bridged container index field. The seeded
-        // fields are SUPPRESSED from this unit's field emission — a global index-name is SHARED storage
-        // (ISO §13.18.27 GR2), reached through the ref-bridge, never re-declared locally. (Writes through the
-        // ONE domain mutator — the collections are read-only views since P6 Step 5.)
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.CallGlobalRoots)
-                foreach (string idxName in IndexNamesUnder(g))
-                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
-                        data.SeedInheritedGlobalIndex(idxName, field);
-
         // Configuration-section + OPTIONS inheritance (ISO §12.3.4 GR1 / §11.9.4 GR1; §12.3.3 SR1 — a contained
         // program cannot have its own configuration section): the WHOLE configuration-derived state of the
         // container — SPECIAL-NAMES (DECIMAL-POINT, CURRENCY, classes, alphabets, switches), the PROGRAM
@@ -597,7 +586,7 @@ internal sealed class BinderDriver
             {
                 if (g.CobolName is null) continue;
                 if (data.ByName.ContainsKey(g.CobolName)) continue;   // local (or nearer-container) name shadows (§13.18.27 GR2)
-                RegisterSubtree(data, g);
+                RegisterSubtree(data, g, depth);
                 foreach (var (condName, conds) in anc.Data.Conditions)
                     foreach (var cond in conds)
                         if (IsUnder(cond.Parent, g))
@@ -1096,22 +1085,21 @@ internal sealed class BinderDriver
                 : cls.CsName + NamingConvention.FactoryFileBand + f.CobolName;
     }
 
-    private static void RegisterSubtree(DataBinder data, DataItem item)
+    /// <summary>Register one inherited GLOBAL subtree in a contained unit's namespaces: its data-names, and — by
+    /// ISO §8.4.6.2.3, "the scope of an index-name is identical to that of the data-name that names the table" —
+    /// its tables' index-name declarations, tagged with the container's nesting <paramref name="depth"/> so a
+    /// nearer declaration of the same spelling wins by §8.4.6.2.1 3) (kb/Work PB919). The cells stay the
+    /// container's: this unit reaches them through the GLOBAL bridge (<c>GlobalBridgesOf</c>) and never emits them.</summary>
+    private static void RegisterSubtree(DataBinder data, DataItem item, int depth)
     {
         if (item.CobolName is { } name)
         {
             if (!data.ByName.TryGetValue(name, out var list)) data.ByName[name] = list = [];
             list.Add(item);
         }
-        foreach (var child in item.Children) RegisterSubtree(data, child);
-        foreach (var ren in item.Renames66) RegisterSubtree(data, ren);
-    }
-
-    private static IEnumerable<string> IndexNamesUnder(DataItem root)
-    {
-        foreach (string n in root.IndexNames) yield return n;
-        foreach (var child in root.Children)
-            foreach (string n in IndexNamesUnder(child)) yield return n;
+        foreach (var idx in item.Indexes) data.IndexNames.Inherit(idx, depth);
+        foreach (var child in item.Children) RegisterSubtree(data, child, depth);
+        foreach (var ren in item.Renames66) RegisterSubtree(data, ren, depth);
     }
 
     private static bool IsUnder(DataItem item, DataItem ancestor)

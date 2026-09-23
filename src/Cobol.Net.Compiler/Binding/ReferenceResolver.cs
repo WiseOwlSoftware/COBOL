@@ -1035,7 +1035,7 @@ public sealed class ReferenceResolver(DataBinder data)
                 ? RefResolution.Refused(DataBinder.WrittenText(dref)) : null;
         if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
-        List<IToken> ixNames = [];
+        List<IndexUse> ixNames = [];
         // A subscript group never carries a depth-0 colon (WrittenReference), so the ref-mod arm is not reachable.
         var (e, _) = InterpretSubscripts(subCtx, ixNames);
         if (e is null) return SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
@@ -1242,13 +1242,32 @@ public sealed class ReferenceResolver(DataBinder data)
     /// Asked of the source text for the reason <see cref="SubscriptSegments"/> gives: the rendered subscript has
     /// already erased which name was written. Index-names are user-defined words, compared case-insensitively
     /// (§8.1.3.2 GR3 a)).</summary>
-    internal bool SubscriptNamesIndex(Core.DataReferenceContext dref, string index)
+    /// <para>⛔ BY DECLARATION, NOT SPELLING (kb/Work PB919): with two tables each <c>INDEXED BY IX</c>, a
+    /// subscript <c>IX OF OTHER</c> names the other table's index and is legal here, so each written occurrence of
+    /// the spelling is resolved — with the OF/IN qualifiers that follow it — and compared by identity.</para>
+    internal bool SubscriptNamesIndex(Core.DataReferenceContext dref, IndexDeclaration index)
     {
         if (SubscriptSegments(dref) is not { } segs) return false;
         foreach (var seg in segs)
-            foreach (var t in seg)
-                if (t.Type == Core.SUB_IDENTIFIER
-                    && string.Equals(t.Text, index, StringComparison.OrdinalIgnoreCase)) return true;
+            for (int i = 0; i < seg.Count; i++)
+            {
+                var t = seg[i];
+                if (t.Type != Core.SUB_IDENTIFIER
+                    || !string.Equals(t.Text, index.Name, StringComparison.OrdinalIgnoreCase)) continue;
+                List<string> quals = [];
+                for (int j = i + 1; ; )
+                {
+                    while (j < seg.Count && seg[j].Type == Core.SUB_WS) j++;
+                    if (j >= seg.Count || seg[j].Type is not (Core.SUB_OF or Core.SUB_IN or Core.OF or Core.IN)) break;
+                    int k = j + 1;
+                    while (k < seg.Count && seg[k].Type == Core.SUB_WS) k++;
+                    if (k >= seg.Count || seg[k].Type is not (Core.SUB_IDENTIFIER or Core.IDENTIFIER)) break;
+                    quals.Add(seg[k].Text);
+                    j = k + 1;
+                }
+                if (ResolveIndexName(t.Text, quals, t) is { Outcome: IndexRefOutcome.Resolved } ix
+                    && ReferenceEquals(ix.Decl, index)) return true;
+            }
         return false;
     }
 
@@ -1837,7 +1856,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <param name="indexNames">§8.4.2.3.3 SR4's collector — the index-names used as subscripts, for
     /// <see cref="ScreenIndexNameAssociation"/> at the caller, which knows the table being referenced.</param>
     private (List<string>? Exprs, bool IsRefMod) InterpretSubscripts(
-        Core.SubscriptOrRefModContext ctx, List<IToken>? indexNames = null)
+        Core.SubscriptOrRefModContext ctx, List<IndexUse>? indexNames = null)
     {
         var tokens = new List<IToken>();
         CollectLeafTokens(ctx, tokens);
@@ -2009,8 +2028,8 @@ public sealed class ReferenceResolver(DataBinder data)
     /// returns a rendered segment. Every D18 reroute discards the queue, which makes the deduplication a
     /// property of the control flow rather than of a set, and makes the NEXT late exit automatic.</para></summary>
     /// <param name="indexNames">§8.4.2.3.3 SR4's collector — see
-    /// <see cref="ResolveSubscriptName(string,List{string},SegmentPosition,ref List{PendingScreen},out bool,ValueTuple{IToken,List{IToken}})"/>.</param>
-    private string? RenderSegment(List<IToken> tokens, SegmentPosition position, List<IToken>? indexNames = null)
+    /// <see cref="ResolveSubscriptName(string,List{string},SegmentPosition,ref List{PendingScreen},out bool,ValueTuple{IToken,List{IndexUse}})"/>.</param>
+    private string? RenderSegment(List<IToken> tokens, SegmentPosition position, List<IndexUse>? indexNames = null)
     {
         var sb = new System.Text.StringBuilder();
         List<PendingScreen>? pending = null;
@@ -2140,28 +2159,91 @@ public sealed class ReferenceResolver(DataBinder data)
     /// admits.</para>
     /// <para>A REDEFINES / RENAMES view resolves to its own entry, and an index-name declared on the redefining
     /// entry is found through that entry's own hierarchy — no special case.</para></summary>
-    private void ScreenIndexNameAssociation(DataItem item, List<IToken> indexNames)
+    private void ScreenIndexNameAssociation(DataItem item, List<IndexUse> indexNames)
     {
         if (indexNames.Count == 0 || _probing) return;   // R30 purity: a probe never diagnoses (kb/Work PB157)
-        foreach (var t in indexNames)
+        foreach (var (t, decl) in indexNames)
         {
-            if (IndexNameInHierarchy(item, t.Text)) continue;
+            if (DeclaredInHierarchy(item, decl)) continue;
             data.Edition.Error(DiagnosticCatalog.IndexNameNotInTable,
                 $"'{item.CobolName}' subscripted by the index-name '{t.Text}', which is not in the INDEXED BY "
                 + "phrase of any OCCURS clause in this item's hierarchy (ISO §8.4.2.3.3 SR4)");
         }
     }
 
-    /// <summary>True when <paramref name="name"/> is an index-name of some entry in <paramref name="item"/>'s own
-    /// hierarchy — the item itself or any containing entry (§8.4.2.3.3 SR4's "hierarchy of the table being
-    /// referenced"). Index-names are user-defined words, and §8.1.3.2 GR3 a) makes "COBOL basic letters appearing
-    /// elsewhere within the compilation group … treated in a case-insensitive manner", so the comparison is too.</summary>
-    private static bool IndexNameInHierarchy(DataItem item, string name)
+    /// <summary>True when the RESOLVED declaration <paramref name="decl"/> belongs to an entry of
+    /// <paramref name="item"/>'s own hierarchy — the item itself or any containing entry (§8.4.2.3.3 SR4's
+    /// "hierarchy of the table being referenced"). ⛔ BY DECLARATION IDENTITY, NOT SPELLING (kb/Work PB919): with
+    /// two tables each <c>INDEXED BY IX</c>, <c>EB(IX OF EA)</c> names the index of the OTHER table, and a
+    /// spelling test would pass it because EB's hierarchy also declares an IX.</summary>
+    private static bool DeclaredInHierarchy(DataItem item, IndexDeclaration decl)
     {
         for (DataItem? e = item; e is not null; e = e.Parent)
-            foreach (string ix in e.IndexNames)
-                if (string.Equals(ix, name, StringComparison.OrdinalIgnoreCase)) return true;
+            if (ReferenceEquals(e, decl.Table)) return true;
         return false;
+    }
+
+    /// <summary>One index-name written as a subscript and the declaration it resolved to — §8.4.2.3.3 SR4's
+    /// collector entry (<see cref="ScreenIndexNameAssociation"/>).</summary>
+    internal readonly record struct IndexUse(IToken Token, IndexDeclaration Decl);
+
+    /// <summary>What a written name resolved to as an INDEX-NAME (kb/Work PB919).</summary>
+    internal enum IndexRefOutcome
+    {
+        /// <summary>The spelling names no index-name visible here — resolve it as a data-name.</summary>
+        NotAnIndexName,
+        /// <summary>Exactly one declaration survives the qualification — <see cref="IndexRef.Decl"/>.</summary>
+        Resolved,
+        /// <summary>An index-name reference that identifies no single declaration: already REPORTED (or, in a
+        /// probe, deliberately not). The caller must not re-resolve it as a data-name, which would report a
+        /// second, false "not defined".</summary>
+        Failed,
+    }
+
+    /// <summary>The outcome of <see cref="ResolveIndexName"/>.</summary>
+    internal readonly record struct IndexRef(IndexRefOutcome Outcome, IndexDeclaration? Decl)
+    {
+        /// <summary>The C# read of the reference: the declaration's cell, or — for a failed reference whose error
+        /// already fails the compile — an inert occurrence number, so the bind continues without a cascade.</summary>
+        public string Cell => Decl?.Cell ?? "1";
+    }
+
+    /// <summary>Written index-name references already reported, keyed by the written node (a
+    /// <see cref="Core.DataReferenceContext"/> or the subscript's name <see cref="IToken"/>): several binders ask
+    /// about the same reference (SET classifies its operand, then binds it).</summary>
+    private readonly HashSet<object> _indexRefsReported = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>⛔ THE ONE RESOLUTION OF A WRITTEN INDEX-NAME REFERENCE — <c>index-name-1 [OF|IN qualifier] …</c>
+    /// (ISO §8.4.2.2.2 Format 3) — for EVERY position that admits one: a subscript (the token renderer) and the
+    /// identifier positions of SET, PERFORM / SEARCH VARYING and the relation condition (through
+    /// <c>ExpressionBinder.IndexFieldOf</c>). kb/Work PB919: both used to look the bare spelling up in a
+    /// <c>name → cell</c> map, so a qualified reference was "not defined" and a duplicated one silently read the
+    /// cell the two tables shared.
+    /// <para>The candidate set is <see cref="Model.SymbolTable.IndexCandidates"/>'s; the count is §8.4.2.2.3 SR1's
+    /// ("For each non unique user-defined name that is explicitly referenced, uniqueness shall be established
+    /// through a sequence of qualifiers that precludes any ambiguity of reference"), judged by the ONE verdict
+    /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/> — the data-name's own diagnostic (COBOLNET1639) and
+    /// its <c>--permissive</c> disposition. A spelling that IS an index-name but whose qualifiers name no table
+    /// declaring it is the same diagnostic's "not defined" arm, citing SR6.</para></summary>
+    internal IndexRef ResolveIndexName(string name, IReadOnlyList<string> qualifiers, object writtenAt)
+    {
+        if (data.Symbols.IndexCandidates(name, qualifiers, data.ActiveScope) is not { } cands)
+            return new IndexRef(IndexRefOutcome.NotAnIndexName, null);
+        if (cands.Single is { } one) return new IndexRef(IndexRefOutcome.Resolved, one);
+        // R30 purity (kb/Work PB157): a probe never diagnoses, and the committing resolution reports once.
+        if (_probing || !_indexRefsReported.Add(writtenAt)) return new IndexRef(IndexRefOutcome.Failed, null);
+        string written = DataBinder.WrittenQualified(name, qualifiers);
+        if (cands.Count == 0)
+        {
+            data.Edition.Error(DiagnosticCatalog.UndefinedReference, $"'{written}' is not defined — '{name}' is an "
+                + "index-name, but no table that declares it is named by the written qualifiers (ISO §8.4.2.2.3 SR6: "
+                + "\"The qualification of an index-name may include the name of the table with which the index-name is "
+                + "associated, as well as any name by which that table may be qualified.\")");
+            return new IndexRef(IndexRefOutcome.Failed, null);
+        }
+        return data.UniqueOrReportAmbiguous(cands, "the index-name reference", written, out _) is { } first
+            ? new IndexRef(IndexRefOutcome.Resolved, first)   // --permissive: warned, first declaration
+            : new IndexRef(IndexRefOutcome.Failed, null);
     }
 
     /// <summary>True when this segment contains a FUNCTION-IDENTIFIER (ISO §8.4.3.1.2 Format 1) and therefore
@@ -2235,7 +2317,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// than kept on the resolver because the D18 materializer can re-enter this resolver for a nested
     /// reference (kb/Work PB459).</param>
     private string? ResolveSubscriptName(string name, List<string> qualifiers, SegmentPosition position,
-        ref List<PendingScreen>? pending, out bool scaled, (IToken Token, List<IToken>? Into) nameToken)
+        ref List<PendingScreen>? pending, out bool scaled, (IToken Token, List<IndexUse>? Into) nameToken)
     {
         scaled = false;
         // An index-name is an occurrence number by construction (§13.18.38) and a constant-name substitutes an
@@ -2244,15 +2326,18 @@ public sealed class ReferenceResolver(DataBinder data)
         // subscript" and do NOT include a reference-modification position, and this line returned the index
         // field regardless of `position` — so `W(IX:2)` compiled clean. The R16 screen for exactly this rule
         // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
-        if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field))
+        // The name may be QUALIFIED (§8.4.2.2.2 Format 3 / §8.4.2.2.3 SR6 — `E(IX OF T)`), and a duplicated one
+        // must be (SR1): the ONE resolution decides both (kb/Work PB919).
+        if (ResolveIndexName(name, qualifiers, nameToken.Token) is { Outcome: not IndexRefOutcome.NotAnIndexName } ix)
         {
             if (position == SegmentPosition.Subscript)
             {
-                nameToken.Into?.Add(nameToken.Token);   // §8.4.2.3.3 SR4 — screened by the caller, which has the table
-                return field;
+                // §8.4.2.3.3 SR4 — screened by the caller, which has the table
+                if (ix.Decl is { } decl) nameToken.Into?.Add(new IndexUse(nameToken.Token, decl));
+                return ix.Cell;
             }
             (pending ??= []).Add(new PendingScreen(null, name));
-            return field;   // keep rendering: a null here would re-route to D18 and screen the operand twice
+            return ix.Cell;   // keep rendering: a null here would re-route to D18 and screen the operand twice
         }
         // An INTEGER constant-name in a subscript position substitutes its integer literal (ISO §13.10.3 SR2 /
         // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — the literal text IS the C# read.

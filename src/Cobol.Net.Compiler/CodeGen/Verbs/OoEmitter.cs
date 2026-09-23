@@ -800,9 +800,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§8.6.4; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
             foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
-                foreach (var idx in DataBinder.IndexNamesUnder(root))
-                    if (m.DataScope.IndexFields.TryGetValue(idx, out var cell))
-                        w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §8.6.4)");
+                foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+                    w.Line($"long {idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL/LINKAGE table cell, §8.6.4)");
             // ⛔ THE METHOD IS ITS OWN SELECTION SCOPE (kb/Work PB1010; design SSOT §9.10). §14.9.49.4 GR3 selects
             // over "the USE statements in the source element" and GR4 a) makes that the element containing the
             // raising statement — this method. So the per-unit selection state is set to THIS method's for the

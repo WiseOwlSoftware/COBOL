@@ -30,17 +30,19 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // (ISO §13.5.4 GR1) — ONE copy in last-used state across all activations (§14.6.2.3.3) — while its
         // fresh-per-activation instance carries the automatic data (LOCAL-STORAGE, §13.6.4 GR1) and formals.
         // The suppression filter skips members another mechanism provides: a carrier-resident LINKAGE formal
-        // (its field is `__lnk{Uid}.Value` — caller storage, ISO §13.7.1) and an inherited GLOBAL table's index
-        // field (a ref-bridge to the container, §13.18.27 GR2).
-        foreach (var (name, field) in ctx.Data.IndexFields)
-            if (!ctx.Data.CallSuppressedRootFields.Contains(field))
+        // (its field is `__lnk{Uid}.Value` — caller storage, ISO §13.7.1). An inherited GLOBAL table's index cell
+        // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
+        // (§13.18.27 GR2; kb/Work PB919).
+        foreach (var idx in ctx.Data.IndexNames.Own)
+            if (!ctx.Data.CallSuppressedRootFields.Contains(idx.Cell))
                 // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
                 // a last-used table with per-activation indexes would silently lose SET positions).
-                w.Line($"private {(ctx.Data.StaticIndexCells.Contains(field) ? "static " : "")}long {field} = 1;   // INDEX-NAME {name}");
+                w.Line($"private {(ctx.Data.StaticIndexCells.Contains(idx.Cell) ? "static " : "")}long {idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
         // A method WORKING-STORAGE table's index cell is a class STATIC (persistent across activations, §11.7;
         // M2-OO-1h step 4). LOCAL/LINKAGE table cells are per-activation method locals, emitted in OoEmitMethod.
-        // (A method cell never appears in IndexFields — the loop above — so only the method channel emits here.)
-        var unitCells = new HashSet<string>(ctx.Data.IndexFields.Values, StringComparer.Ordinal);
+        // (A method cell is never one of the unit's own declarations — the loop above — so only the method channel
+        // emits here.)
+        var unitCells = new HashSet<string>(ctx.Data.IndexNames.Own.Select(d => d.Cell), StringComparer.Ordinal);
         foreach (var cell in ctx.Data.StaticIndexCells)
             if (!unitCells.Contains(cell))
                 w.Line($"private static long {cell} = 1;   // method-WS INDEX-NAME cell (M2-OO-1h)");
@@ -95,9 +97,9 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
                 && ctx.Data.StaticRootFields.Contains(root.CsName))
                 stmts.Add($"{root.CsName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
-            foreach (var idx in DataBinder.IndexNamesUnder(root))
-                if (ctx.Data.IndexFields.TryGetValue(idx, out var cell) && ctx.Data.StaticIndexCells.Contains(cell))
-                    stmts.Add($"{cell} = 1;   // INDEX-NAME {idx}");
+            foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+                if (ctx.Data.StaticIndexCells.Contains(idx.Cell))
+                    stmts.Add($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name}");
         }
         // The unit-scoped file-registration guard returns to false on the initial-state cases so the next
         // activation re-registers — §14.6.2.3.2 action 3's "not ... in any open mode" realized as fresh

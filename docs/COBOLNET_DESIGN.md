@@ -288,6 +288,16 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   `DOC-A.1-128`), so every value that reaches an index goes through `CobolIndex` — the ONE place §14.9.39.4's
   integrality, sign and range guards are written (D3 deep dive). *(Rejected: the legacy byte-displacement index —
   leaks table-element width into a program-visible value.)*
+  **Each INDEXED BY DECLARATION owns its cell** — an `IndexDeclaration(name, table, cell)` minted when the table is
+  registered (`DataBinder.RegisterIndexes`; cell `_IX_<table uid>[_k]`), held by the scope's `IndexNameRegistry`
+  (the unit, a method's §11.7.4 GR5 overlay, and — by §8.4.6.2.3 — a containing program's GLOBAL tables, tagged
+  with their nesting depth for §8.4.6.2.1 3)). A WRITTEN index-name, bare or qualified through its table
+  (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
+  (`ReferenceResolver.ResolveIndexName` over `SymbolTable.IndexCandidates`) whose candidate count meets the same
+  §8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
+  COBOLNET1639). A table's OWN index (SEARCH's first index-name) is read off `DataItem.Indexes` — a declaration,
+  not a reference. *(Rejected: a `name → cell` map de-duplicated on insert — two tables' `INDEXED BY IX` silently
+  shared one cell and the qualified form was "not defined", kb/Work PB919.)*
 - **Level-88 → C# `bool` properties** over the parent Place (`Ok => St == 1`); SET cond TO TRUE moves the 88's first
   VALUE (low bound of a THRU range) into the parent (ISO §14.9.34/§14.9.39). The binder must **stop skipping 88s**
   (currently dropped) and capture the full multi-literal + THRU value list. *(Rejected: stored bools kept in sync on

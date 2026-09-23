@@ -521,9 +521,9 @@ internal sealed class ProgramEmitter
                         continue;   // a non-canonical Tier-B member — a window over the backing, no field
                     else
                         w.Line($"{root.CsName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
-                    foreach (var idx in DataBinder.IndexNamesUnder(root))
-                        if (unit.Data.IndexFields.TryGetValue(idx, out var cell) && !unit.Data.CallSuppressedRootFields.Contains(cell))
-                            w.Line($"{cell} = 1;   // INDEX-NAME {idx} (LOCAL-STORAGE table cell)");
+                    foreach (var idx in DataBinder.IndexDeclarationsUnder(root))
+                        if (!unit.Data.CallSuppressedRootFields.Contains(idx.Cell))
+                            w.Line($"{idx.Cell} = 1;   // INDEX-NAME {idx.Name} (LOCAL-STORAGE table cell)");
                 }
             }
             foreach (var (f, place, crossing, carrier) in formals)

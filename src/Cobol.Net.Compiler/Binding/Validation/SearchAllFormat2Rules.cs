@@ -361,7 +361,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + $"OCCURS clause associated with '{table.CobolName}'; {role} \"shall be neither referenced in "
                 + "the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first "
                 + "index-name associated with identifier-1\" (ISO §14.9.37.3 SR10)");
-        if (refs.SubscriptNamesIndex(dref, firstIndex))
+        if (table.Indexes.Count > 0 && refs.SubscriptNamesIndex(dref, table.Indexes[0]))
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is subscripted by '{firstIndex}', the "
                 + $"first index-name associated with '{table.CobolName}'; {role} \"shall be neither referenced "
                 + "in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the "
@@ -416,12 +416,27 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
                 + "subscripted by the first index-name associated with identifier-1 along with any subscripts "
                 + $"required to uniquely identify the data item\" (ISO §14.9.37.3 {rule})");
+        // The index-name may be written QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6), and must be when another
+        // table declares the same spelling (SR1) — so the qualifiers are consumed here and the reference is judged
+        // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
+        int next = 1;
+        List<string> quals = [];
+        while (next + 1 < toks.Count && toks[next].Type is Core.SUB_OF or Core.SUB_IN or Core.OF or Core.IN
+               && toks[next + 1].Type is Core.SUB_IDENTIFIER or Core.IDENTIFIER)
+        {
+            quals.Add(toks[next + 1].Text);
+            next += 2;
+        }
         if (toks[0].Type != Core.SUB_IDENTIFIER
-            || !string.Equals(toks[0].Text, firstIndex, StringComparison.OrdinalIgnoreCase))
+            || !string.Equals(toks[0].Text, firstIndex, StringComparison.OrdinalIgnoreCase)
+            || (table.Indexes.Count > 0
+                && refs.ResolveIndexName(toks[0].Text, quals, toks[0]) is { Outcome: ReferenceResolver.IndexRefOutcome.Resolved } ix
+                && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
                 + $"(ISO §14.9.37.3 {rule})");
-        if (toks.Count == 1) return true;
+        if (toks.Count == next) return true;
+        toks = [toks[0], .. toks.Skip(next)];
         return toks[1].Type is Core.SUB_PLUS or Core.SUB_MINUS
                              or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
             ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "

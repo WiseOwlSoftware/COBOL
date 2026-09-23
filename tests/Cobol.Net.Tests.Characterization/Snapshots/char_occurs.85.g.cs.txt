@@ -24,7 +24,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
     }
     internal static readonly NumProfile _P_1 = new NumProfile { Digits = 2, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     internal static readonly NumProfile _P_2 = new NumProfile { Digits = 2, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
-    private long _IX_0 = 1;   // INDEX-NAME IX
+    private long _IX_1 = 1;   // INDEX-NAME IX
     private _T_0 WS_TBL = new _T_0 { WS_ELEM = new long[] { 0L, 0L, 0L, 0L, 0L } };   // WS-TBL
     private long J = 0L;   // J
 
@@ -67,21 +67,21 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     Int128 __amt0 = (Int128)(3L);
                     if (CobolIndex.TryAmount(__amt0, 0, SetAmountRule.IndexTo, "SET … TO", out long __set0))
                     {
-                        _IX_0 = (long)(__set0);
+                        _IX_1 = (long)(__set0);
                     }
-                    System.Console.WriteLine(CobolNum.FormatDisplay(CobolTable.At(WS_TBL.WS_ELEM, _IX_0), _P_1));
-                    if (_IX_0 < 1 || _IX_0 > 5L)
+                    System.Console.WriteLine(CobolNum.FormatDisplay(CobolTable.At(WS_TBL.WS_ELEM, _IX_1), _P_1));
+                    if (_IX_1 < 1 || _IX_1 > 5L)
                     {
                         goto __searchAtEnd0;
                     }
                     __search0:
-                    if (CobolTable.At(WS_TBL.WS_ELEM, _IX_0) == 4L)
+                    if (CobolTable.At(WS_TBL.WS_ELEM, _IX_1) == 4L)
                     {
                         System.Console.WriteLine("FOUND4");
                         goto __searchEnd0;
                     }
-                    _IX_0 += 1;
-                    if (_IX_0 > 5L)
+                    _IX_1 += 1;
+                    if (_IX_1 > 5L)
                     {
                         goto __searchAtEnd0;
                     }

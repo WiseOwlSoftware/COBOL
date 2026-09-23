@@ -1,6 +1,6 @@
       *> A TYPEDEF whose OCCURS carries an INDEXED BY phrase, referenced ONCE (data-model D17). The clone drives the
-      *> table through the (single) index-name; SET / subscripted store+read all work. Two references would collide
-      *> the global index-name and are staged loud COBOLNET1531 (see TypedefResidueTests).
+      *> table through the (single) index-name; SET / subscripted store+read all work. Two references are legal too:
+      *> each clone declares its own IX, referenced as IX OF A / IX OF B (kb/Work PB919; TypedefResidueTests).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TYPEDEF-INDEXED.
        DATA DIVISION.

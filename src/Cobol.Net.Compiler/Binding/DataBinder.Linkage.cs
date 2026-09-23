@@ -191,9 +191,8 @@ public sealed partial class DataBinder
         // container's presence member under the same Uid-keyed name (kb/Work PB971).
         if (g.OmittedGuard is { } og)
             yield return new CallBridge(og.Presence, outer + og.Presence, CallBridgeKind.Presence, g);
-        foreach (string idxName in IndexNamesUnder(g))
-            if (IndexFields.TryGetValue(idxName, out string? field))
-                yield return new CallBridge(field, outer + field, CallBridgeKind.Index, null);
+        foreach (var idx in IndexDeclarationsUnder(g))
+                yield return new CallBridge(idx.Cell, outer + idx.Cell, CallBridgeKind.Index, null);
     }
 
     /// <summary>The EXTERNAL records' synthesized run-unit backings (ISO §13.18.22; emitted as

@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// report binder's CONTROL / SOURCE / SUM lookup, the OCCURS DEPENDING ON fallback, the file-control key and ASSIGN
 /// USING operands and the RENAMES operands each read <c>[0]</c> (or <c>FirstOrDefault()</c>) off a candidate list, so
 /// source ISO §8.4.2.2.3 SR1 refuses compiled clean and ran on whichever item was declared first. The fix is a TYPE:
-/// <see cref="DataNameCandidates"/> can be counted, narrowed and read only when it holds exactly one item, and the
+/// <see cref="NameCandidates{T}"/> can be counted, narrowed and read only when it holds exactly one item, and the
 /// first-declared member is granted by the ONE ambiguity verdict alone, under <c>--permissive</c>. These tests keep
 /// both halves true.</summary>
 public sealed class DataNameResolutionDriftTests
@@ -21,8 +21,8 @@ public sealed class DataNameResolutionDriftTests
     [Fact]
     public void TheCandidateSet_CannotBeIndexedOrEnumerated()
     {
-        var t = typeof(DataNameCandidates);
-        Assert.False(typeof(IEnumerable).IsAssignableFrom(t), "DataNameCandidates must not be enumerable (FirstOrDefault would return)");
+        var t = typeof(NameCandidates<DataItem>);
+        Assert.False(typeof(IEnumerable).IsAssignableFrom(t), "NameCandidates must not be enumerable (FirstOrDefault would return)");
         Assert.DoesNotContain(t.GetProperties(BindingFlags.Public | BindingFlags.Instance), p => p.GetIndexParameters().Length > 0);
         Assert.DoesNotContain(t.GetProperties(BindingFlags.Public | BindingFlags.Instance),
             p => typeof(IEnumerable).IsAssignableFrom(p.PropertyType) && p.PropertyType != typeof(string));

@@ -162,12 +162,27 @@ internal static class OperandContextRules
 /// </summary>
 internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name
-    /// (ISO §13.18.38 — index-names are a separate name class living in <see cref="DataBinder.IndexFields"/>,
-    /// not the data-item tree), else <see langword="null"/>.</summary>
-    public string? IndexFieldOf(Core.DataReferenceContext dref) =>
-        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } w
-        && ctx.Symbols.TryResolveIndex(w, ctx.ActiveScope, out var f) ? f : null;
+    /// <summary>The C# <c>long</c> index cell when <paramref name="dref"/> is an INDEXED BY index-name reference
+    /// — bare or QUALIFIED (§8.4.2.2.2 Format 3; §8.4.2.2.3 SR6 — <c>SET IX OF T TO 1</c>) — else
+    /// <see langword="null"/>. Index-names are a separate name class (<see cref="DataBinder.IndexNames"/>), not the
+    /// data-item tree; the ONE resolution <see cref="ReferenceResolver.ResolveIndexName"/> counts the candidates, so
+    /// a duplicated spelling written without the qualifiers that settle it is §8.4.2.2.3 SR1's error — reported
+    /// there, and still answered with an (inert) cell so the caller keeps the index-name shape instead of
+    /// re-resolving the word as a data-name (kb/Work PB919).</summary>
+    public string? IndexFieldOf(Core.DataReferenceContext dref)
+    {
+        if (dref.cobolWord()?.GetText() is not { } w) return null;
+        List<string>? quals = null;
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            // Only qualification: an index-name is never subscripted or reference-modified (§8.4.2.2.2 Format 3
+            // has neither), so such a reference is not an index-name reference.
+            if (suffix.qualification() is not { } q || q.ChildCount != 2) return null;
+            (quals ??= []).Add(q.cobolWord().GetText());
+        }
+        var ix = ctx.Refs.ResolveIndexName(w, (IReadOnlyList<string>?)quals ?? [], dref);
+        return ix.Outcome is ReferenceResolver.IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
+    }
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 

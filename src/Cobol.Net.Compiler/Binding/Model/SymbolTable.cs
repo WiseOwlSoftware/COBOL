@@ -28,7 +28,7 @@ public readonly record struct Scope(OoMethodDataScope? Method)
 /// is inaccessible to this method." The rule is real, it is this clause, and it says exactly what this table
 /// implements.</item>
 /// <item>§8.4.6.2.3 — a method-local DATA-name shadows an object-level INDEX-name of the same spelling
-/// (<see cref="TryResolveIndex"/> returns false; without this every IndexFields-first consumer would silently
+/// (<see cref="IndexCandidates"/> returns null; without this every index-first consumer would silently
 /// bind the subscript/SET target to the OBJECT's index cell — a torn read/write of the wrong storage).</item>
 /// <item>§11.7.4 GR5 index privacy — a method-local index-name has its OWN cell, never the shared global one.</item>
 /// </list>
@@ -83,25 +83,29 @@ public sealed class SymbolTable
         return false;
     }
 
-    /// <summary>VISIBILITY-checked INDEX-name resolution (← <c>TryGetVisibleIndexField</c>): false when a
-    /// method-local DATA-name shadows the spelling (§8.4.6.2.1 rule 3a — the data-name wins and the caller must
-    /// not treat the reference as an index); else the method's own cell (§11.7.4 GR5 privacy), else the unit's
-    /// global cell.</summary>
-    public bool TryResolveIndex(string name, Scope scope, out string field)
+    /// <summary>⛔ THE ONE INDEX-NAME RESOLUTION (kb/Work PB919) — the §8.4.2.2 candidate set of a WRITTEN
+    /// index-name reference <c>name [OF|IN q] …</c> (§8.4.2.2.2 Format 3), or <see langword="null"/> when the
+    /// spelling names no index-name visible in <paramref name="scope"/> (the reference is then a data-name one).
+    /// Visibility is the data-name's (§8.4.6.2.3): a method-local DATA-name of the spelling shadows every
+    /// index-name (§11.7.4 GR5 — the caller must not treat the reference as an index); else the method's own
+    /// declarations (§11.7.4 GR5 privacy); else the unit's, where a nearer source element's declaration wins
+    /// (§8.4.6.2.1 3), <see cref="IndexNameRegistry.Candidates"/>). The qualifiers are matched from the TABLE
+    /// upward (§8.4.2.2.3 SR6). The COUNT is the caller's verdict — <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>
+    /// — so two tables' <c>INDEXED BY IX</c> referenced as a bare <c>IX</c> is §8.4.2.2.3 SR1's ambiguity, never a
+    /// silently shared cell.
+    /// <para>A table's OWN declared index (SEARCH's first index-name, the SET/PERFORM of a known table) is read off
+    /// <see cref="DataItem.Indexes"/> directly — it is a declaration, not a reference, so it needs no
+    /// resolution.</para></summary>
+    public NameCandidates<IndexDeclaration>? IndexCandidates(string name, IReadOnlyList<string> qualifiers, Scope scope)
     {
-        field = "";
-        if (scope.Method is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
-            return false;   // the method-local data-name wins (§8.4.6.2.1 rule 3a)
-        if (scope.Method is { } ms && ms.IndexFields.TryGetValue(name, out field!)) return true;
-        return _data.IndexFields.TryGetValue(name, out field!);
+        if (scope.Method is { } m)
+        {
+            if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
+            if (m.IndexNames.Declares(name))
+                return m.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers));
+        }
+        return _data.IndexNames.Declares(name)
+            ? _data.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers))
+            : null;
     }
-
-    /// <summary>The resolved-cell accessor for a KNOWN index-name (← <c>IndexFieldFor</c>): the method's own cell
-    /// first (§11.7.4 GR5), else the global cell — throwing on a miss, exactly like the dictionary indexer it
-    /// replaces. DELIBERATELY without the data-name-shadow check: callers pass a TABLE'S DECLARED index-name
-    /// (never a user-written reference), where shadowing does not apply — folding this shape into
-    /// <see cref="TryResolveIndex"/> would CHANGE behavior when a method data-name happens to share an object
-    /// table's index spelling (the reason the quadruple had two index members; recorded in PHASE-06 §STATUS).</summary>
-    public string IndexCellOf(string name, Scope scope) =>
-        scope.Method is { } m && m.IndexFields.TryGetValue(name, out var cell) ? cell : _data.IndexFields[name];
 }
