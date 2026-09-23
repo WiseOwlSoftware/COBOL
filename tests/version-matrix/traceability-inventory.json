@@ -16071,13 +16071,13 @@
   "ordinal": 5,
   "subject": "ALTERNATE RECORD KEY clause",
   "rule-digest": "fe888dabfa10",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf",
+  "test-ref": "conformance:negative/pb1025-alternate-key-beyond-minimum; conformance:2014/pb1025_key_after_dynamic_member",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB1025. cite.py --check 12.4.5.6.3 \"each data-name-1 and data-name-2 shall be contained within the first x bytes of the record\" -> OK SR5. The ALTERNATE RECORD KEY twin of SR-12.4.5.12.3-4: the same FileControlKeyRules reach reader (COBOLNET0863), the same KeyWindowOf. The 2014 golden's alternate key follows a dynamic-length item and is read, STARTed and walked by the per-record window.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.6.3-6",
@@ -16896,13 +16896,13 @@
   "ordinal": 4,
   "subject": "RECORD KEY clause",
   "rule-digest": "40c5767b8f14",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf",
+  "test-ref": "conformance:negative/pb1025-indexed-key-beyond-minimum; conformance:2014/pb1025_key_after_dynamic_member",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB1025. cite.py --check 12.4.5.12.3 \"data-name-1 and each data-name-2 shall be contained within the first n bytes of the record\" -> OK SR4. Unenforced before PB1025. A FileControlKeyRules row (COBOLNET0863) measures the RECORD KEY's furthest reach through RecordLayout.KeyWindowOf - its offset, or for a key a dynamic-length member precedes its fixed-run offset plus every preceding member at its maximum (13.18.43.4 GR8 b) - against FileModel.VaryMin (13.18.43.4 GR9 when integer-2 is unstated; D-FRA (iv) for an implied Format 2). A legal key after a dynamic member is located per record by CobolContiguousLayout.Position (CONFORMANCE.md section 3 D-KWV). data-name-2 is the SOURCE form (Annex A.3 item 40, declined COBOLNET1954) and has no operand to measure.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.12.3-5",
@@ -31416,13 +31416,13 @@
   "ordinal": 10,
   "subject": "Procedure division structure",
   "rule-digest": "27e6c6d39e5a",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindMethodRoster; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectMethodDeclaratives; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+  "test-ref": "conformance:2002/pb1010_method_declaratives; conformance:negative/pb1010-declaratives-outside-method",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1010 (2026-09-22): both directions of 'if and only if'. IF: the declaratives format (Format 1) is accepted and runs in a program definition (every declarative golden), a function definition (probe: a FUNCTION-ID's USE AFTER EC EC-SIZE runs), and now a METHOD definition. Before this change a method was refused COBOLNET0899. A method's declarative sections bind at the head of its pc slice through the same DeclCollectSection a program's take, and its selection machinery is emitted method-local, so a condition raised in a method selects the method's own USE statements (14.9.49.4 GR3/GR4 a)). ONLY IF: an instance, factory or interface definition's own procedure division is the object-oriented format, which holds method definitions only (SR12/SR13); DECLARATIVES written there are a syntax error (COBOL0001). Program and function prototypes are governed by SR11 (a procedure division header only), which is a separate row.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.2.2-11",
@@ -46446,12 +46446,12 @@
   "ordinal": 15,
   "subject": "SORT statement",
   "rule-digest": "0e1bf34f38f1",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "PARTIAL",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition",
+  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_sort_giving_open_status; conformance:2023/pb837_sort_implicit_io_status",
   "derivation": "",
-  "editions": "",
-  "notes": "",
+  "editions": "85,2002,2014,2023",
+  "notes": "PARTIAL (kb/Work PB993, w55c). SORT GIVING: a) as-if OPEN OUTPUT SHARING WITH NO OTHER after the input procedure (PB714); 'If a fatal exception condition exists for file-name-3 as a result of the implicit OPEN during file initiation, the SORT is terminated' and the nonfatal half continues with or without a USE procedure (SortEmitter.RuleFor, witnessed by pb993 legs 1, 2, 9 and pb714_sort_giving_open_status); b) each record written by the governed as-if WRITE, its failure offered to the USE procedure (PB837), the boundary condition ('24'/'34') closing the file as in c), any other fatal WRITE terminating the SORT by 9.1.13.1's transfer to the end of the statement; c) the as-if CLOSE. RESIDUAL: a RELATIVE or INDEXED GIVING file is refused (COBOLNET1757), so b)'s relative-key sequence 1..n is unimplemented - kb/Work PB994.",
   "state": "GAP"
  },
  {
@@ -60637,11 +60637,11 @@
   "subject": "COMBINED-DATETIME function",
   "rule-digest": "4c3bc66ae4fc",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RefFailure",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#FieldOperand",
   "test-ref": "conformance:2023/l1_datetime_general_formats; conformance:2014/formatted_datetime; conformance:negative/l1-combined-datetime-no-function-word; conformance:negative/l1-combined-datetime-one-argument",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "The printed format accepted as printed (CDT=014395145296 = §15.17.4 r1's EAE 143951 + 45296/100000), plus both prohibitions the underlining and the unbracketed pair state: the word FUNCTION required absent a REPOSITORY declaration (§8.4.3.2.3 SR2, COBOLNET1543) and exactly two arguments (COBOLNET1504). 2014 arm: formatted_datetime CDT= line.",
+  "notes": "The printed format accepted as printed (CDT=014395145296 = §15.17.4 r1's EAE 143951 + 45296/100000), plus both prohibitions the underlining and the unbracketed pair state: the word FUNCTION required absent a REPOSITORY declaration (§8.4.3.2.3 SR2, COBOLNET1543) and exactly two arguments (COBOLNET1504). 2014 arm: formatted_datetime CDT= line. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#RefFailure (kb/Work PB1030 deleted RefFailure: a data reference the resolver builds no place for is now answered by the resolver's closed RefResolution, read at FieldOperand/RefExpr)",
   "state": "OK"
  },
  {
