@@ -5127,6 +5127,29 @@ public static class DiagnosticCatalog
         + "written in any order (§13.14.3 SR2, §13.18.39.3 SR4) does not let any of them be written twice. Delete "
         + "the repeated clause or phrase.",
         "ISO §5.2.6.2 · §5.2.7");
+    /// <summary>A general format that prints ONE figurative spelling as a KEYWORD was written with a sibling
+    /// spelling — <c>BLANK WHEN ZEROS</c>, <c>IF X IS ZEROES</c>, <c>INITIALIZE ALL TO BINARY ZERO</c>. ZERO,
+    /// ZEROS and ZEROES (and each singular/plural figurative pair) are distinct §8.9 reserved words,
+    /// interchangeable only where the §8.3.3.6.2 figurative constant itself is written; a keyword underlined in a
+    /// general format is required as printed (§5.2.2). Emitted from the parse layer (<c>CobolErrorStrategy</c>),
+    /// the families read from the grammar's ATN (kb/Work PB510).</summary>
+    public static readonly DiagnosticDescriptor FigurativeSpellingNotTheKeyword = new(
+        "COBOLNET2418", "figurative-spelling-not-the-keyword", EditionSeverity.Error,
+        "A figurative-constant spelling was written where the general format names a different spelling as its "
+        + "keyword.",
+        "ISO §5.2.2 · §8.3.3.6.2 · §8.9 · §13.18.8.2 · §8.8.4.7.2 · §11.9.10.2");
+
+    /// <summary>A PICTURE character-string whose LAST symbol is ',' or '.' is not followed immediately by the
+    /// separator period — §13.18.40.3 SR7: "If the symbol ',' or the symbol '.' is the last symbol of
+    /// character-string-1, the PICTURE clause shall be the last clause of the data description entry and shall
+    /// be followed immediately (without an intervening separator space) by the separator period." Reached when a
+    /// separator comma or semicolon (§8.3.5 rule 2) follows such a string — <c>PIC 999,, USAGE DISPLAY.</c>,
+    /// <c>PIC 999., VALUE ZERO.</c> — the one shape the PICMODE lexer cannot fold into the separator period
+    /// (kb/Work PB569).</summary>
+    public static readonly DiagnosticDescriptor PictureTrailingSymbolNotLast = new(
+        "COBOLNET2419", "picture-trailing-symbol-not-last", EditionSeverity.Error,
+        "A PICTURE character-string ending in ',' or '.' is not followed immediately by the separator period.",
+        "ISO §13.18.40.3 SR7 · §8.3.5 rules 2–3");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

@@ -1028,6 +1028,35 @@ shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4. That combinat
 question rather than the cardinality slip §3.11 fixes, and refusing it would newly reject source this compiler
 has always compiled; recorded here and in the `.g4` rather than inherited silently from the quantifier.
 
+### 3.12 The lexer keeps every distinction the standard draws (kb/Work PB510, PB569)
+
+**One token per reserved word.** ZERO, ZEROS and ZEROES — and SPACE/SPACES, HIGH-VALUE/HIGH-VALUES,
+LOW-VALUE/LOW-VALUES, QUOTE/QUOTES — are distinct §8.9 reserved words. They are interchangeable ONLY where the
+§8.3.3.6.2 figurative constant is written, and that interchangeability is written ONCE, as the parser rules
+`zeroWord` / `spaceWord` / `highValueWord` / `lowValueWord` / `quoteWord` (`CobolExpressions.g4`) that
+`figurativeConstant` references. A general format that prints ONE spelling as a keyword (§5.2.2) writes that token
+and so admits no other: `BLANK WHEN? ZERO` (§13.18.8.2), the sign condition's `ZERO` (§8.8.4.7.2), OPTIONS
+INITIALIZE's `BINARY ZEROES | HIGH_VALUES | LOW_VALUES | SPACES` (§11.9.10.2). The lexer used to fold each family
+into one token, which made the distinction unrecoverable and let every such format accept every spelling. The ONE
+multi-spelling keyword rule left is `PIC : 'PIC' | 'PICTURE'` — §13.18.40.3 SR5 makes PIC an abbreviation of
+PICTURE everywhere — and `KeywordSpellingDriftTests.NoTwoReservedWords_ShareATokenType_ExceptPicAndPicture` derives
+that from the spec tables and the lexer itself, so a re-fold fails the build naming the words. A misspelled keyword
+is refused at the parse layer as COBOLNET2418 by `CobolErrorStrategy` arm 0d, which reads the families from the ATN
+(the FIRST sets of the five rules): the expected set holds a sibling spelling but not the written one. The sign
+condition is the one position where ANTLR's fallback (the alternative that finished the decision rule — the bare
+operand) reports the failure at the preceding IS / NOT, or at the word with no ZERO in the decision-state
+expected set; arm 0d recognizes that shape explicitly (procedure division only).
+
+**§13.18.40.3 SR7 is decided from the characters PICMODE delimited.** `PIC_STRING` trims ONE trailing
+separator at its right edge (a '.' + space is the separator period, a ','/';' + space a separator — §8.3.5 rules 2
+and 3). After the trims the token ends in ',' or '.' in exactly two situations: the separator period follows it
+(legal — NIST NC125A's `PIC 9,9,…,9,.`), or a separator comma/semicolon does (`PIC 999,, USAGE …`,
+`PIC 999., VALUE …`) — the violation, for BOTH symbols. `PictureSeparatorPeriodRule` checks every `PIC_STRING`
+token once, after the post-lex rewrites in `Frontend.LexAndParse`, and reports COBOLNET2419 through the
+syntax-error listener; a separator period necessarily ends the entry, so "last clause" needs no second test. It
+covers every PICTURE parent (data, report group and screen description entries) because it never looks at the
+parent.
+
 ---
 
 ## 4. Current → target module changes

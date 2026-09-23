@@ -61,8 +61,9 @@ substitution and faithfully realizes all four options **without** per-group gram
 The rewriter operates on **token TYPE** (keyword→identifier) and **token TEXT** (identifier→keyword), which are
 disjoint sets, so within a directive order is irrelevant; across directives SR5 forbids overlap. The
 keyword→identifier direction matches on the token's TEXT as well as its type, because one token type can carry
-several COBOL words (`ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'`, `PIC : 'PICTURE' | 'PIC'`) while SR3 names exactly
-one.
+several COBOL words (`PIC : 'PICTURE' | 'PIC'` — the one multi-spelling keyword rule; the figurative spellings
+ZERO/ZEROS/ZEROES etc. are one token per word since kb/Work PB510, pinned by `KeywordSpellingDriftTests`) while SR3
+names exactly one.
 
 ### §2.1 The rewriter is HALF the mechanism — the name-level resolution is the other half
 

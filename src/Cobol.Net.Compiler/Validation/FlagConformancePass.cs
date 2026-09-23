@@ -330,7 +330,7 @@ internal sealed class FlagConformancePass : CursorFollowingVisitor   // the curs
                 {
                     // g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — the figurative constant ZERO (ZERO/ZEROS/ZEROES, with
                     // or without ALL). One condition, two independently-toggled options.
-                    if (fig.ZERO() is not null)
+                    if (fig.zeroWord() is not null)
                     {
                         Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
                         Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");

@@ -334,10 +334,12 @@ optionsInitializeSection
     ;
 
 optionsInitializeFill
-    : BINARY ZERO          // ZERO already covers ZEROES / ZEROS
-    | HIGH_VALUE           // already covers HIGH-VALUES
-    | LOW_VALUE            // already covers LOW-VALUES
-    | SPACE                // already covers SPACES
+    // §11.9.10.2 prints each fill word in ONE spelling — the plural — as a keyword, not as a figurative
+    // constant, so no other spelling is admitted (kb/Work PB510; §5.2.2).
+    : BINARY ZEROES
+    | HIGH_VALUES
+    | LOW_VALUES
+    | SPACES
     | literal              // literal-1 (one-byte hex-alphanumeric, §11.9.10.3 — checked in the binder)
     ;
 

@@ -15,9 +15,9 @@ namespace CobolNet.Frontend.Parsing;
 /// from <see cref="Antlr4.Runtime.IVocabulary.GetLiteralName"/> alone. Measured against ISO §8.9 ∪ §8.10 (552
 /// words), that walk reached 447: <b>17 words are lexed as a keyword token yet have no literal NAME</b>, because
 /// ANTLR publishes a literal name only for a token defined by exactly ONE literal — a multi-spelling rule
-/// (<c>ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'</c>, <c>PIC : 'PICTURE' | 'PIC'</c>, the figurative plurals,
-/// <c>IS</c>/<c>IN</c>/<c>OF</c>/<c>ALL</c>) publishes none, so <c>&gt;&gt;COBOL-WORDS UNDEFINE "ZERO"</c> was
-/// silently inert. A further <b>88 words are no lexer token at all</b> (ANYCASE, LOCALE, HEX, NAT, ANUM, BYTE,
+/// (<c>PIC : 'PICTURE' | 'PIC'</c>; until kb/Work PB510 also <c>ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'</c> and the
+/// figurative plurals, now one token per word) or a word several lexer MODES spell (<c>IS</c>/<c>IN</c>/<c>OF</c>/
+/// <c>ALL</c>) publishes none, so <c>&gt;&gt;COBOL-WORDS UNDEFINE "ZERO"</c> was silently inert. A further <b>88 words are no lexer token at all</b> (ANYCASE, LOCALE, HEX, NAT, ANUM, BYTE,
 /// CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL, the LC_ categories, UCS-4/UTF-8/UTF-16, …): those are
 /// unreachable BY CONSTRUCTION here — no token type exists to retype — and are reached instead at the by-name
 /// classification points through <see cref="CobolNet.Editions.CobolWordsMap.Resolve"/>. The two mechanisms
@@ -86,7 +86,7 @@ public static class CobolKeywordTokens
     /// <summary>
     /// Ask the LEXER what it makes of <paramref name="word"/> standing alone: the type of the single token it
     /// produces, or 0 when the word is not a keyword token. This is what reaches a keyword whose lexer rule
-    /// carries several spellings (<c>ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'</c>) and therefore publishes no literal
+    /// carries several spellings (<c>PIC : 'PICTURE' | 'PIC'</c>) and therefore publishes no literal
     /// name for the vocabulary walk to find — the alternative was a hand-maintained list of such rules, which is
     /// exactly the shape that rots (kb/Work PB250).
     /// <para>Conditions for an answer to count, all checked: the lexer consumed the WHOLE word as ONE

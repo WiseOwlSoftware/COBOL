@@ -541,6 +541,17 @@ public static partial class DiagnosticDescriptors
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
+    // COBOLNET2418/2419: the parse-layer twins of the figurative-spelling keyword refusal (kb/Work PB510) and the
+    // §13.18.40.3 SR7 PICTURE separator-period rule (kb/Work PB569). Same single-sourcing as 2072/2073.
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOLNET2418 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.FigurativeSpellingNotTheKeyword.Code,
+        DiagnosticSeverity.Error, "{0}");
+    public static readonly DiagnosticDescriptor COBOLNET2419 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.PictureTrailingSymbolNotLast.Code,
+        DiagnosticSeverity.Error, "{0}");
+
+    // ══════════════════════════════════════
     // COBOL0400–0412: Bound tree builder
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL0400 = new("COBOL0400", DiagnosticSeverity.Warning,

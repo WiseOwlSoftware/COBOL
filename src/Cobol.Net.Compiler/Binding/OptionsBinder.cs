@@ -194,7 +194,13 @@ internal static class OptionsBinder
                 edition?.Error(DiagnosticCatalog.OptionsInitializeFillLiteral, $"the INITIALIZE clause's fill "
                     + $"literal {raw} is not a one-byte hexadecimal-alphanumeric literal — literal-1 shall be "
                     + "written in the format-2 alphanumeric form X\"nn\" (or X'nn'), exactly two hexadecimal "
-                    + "digits (ISO §11.9.10.3 SR1; §8.3.3.2.2 format 2; §8.3.3.2.3 SR5)");
+                    + "digits (ISO §11.9.10.3 SR1; §8.3.3.2.2 format 2; §8.3.3.2.3 SR5)"
+                    // A figurative constant reaches literal-1 only when it is NOT one of the clause's four fill
+                    // keywords as printed — the singular spellings (kb/Work PB510): name the keyword it missed.
+                    + (lit.nonNumericLiteral()?.figurativeConstant() is not null
+                        ? "; the clause's figurative fills are the keywords BINARY ZEROES, HIGH-VALUES, LOW-VALUES "
+                          + "and SPACES, each in that one spelling (ISO §11.9.10.2)"
+                        : ""));
             // Recovery leaves the byte UNRESOLVED (null), never a guessed one off the rejected literal:
             // InitialStateBackground then falls back to the §11.9.10.4 GR6 no-clause background, so a rejected
             // clause behaves as though it were absent instead of laying down a character the program did not
@@ -203,8 +209,8 @@ internal static class OptionsBinder
         }
         OptionsFill kind =
             fill.BINARY() is not null ? OptionsFill.BinaryZeroes
-            : fill.HIGH_VALUE() is not null ? OptionsFill.HighValues
-            : fill.LOW_VALUE() is not null ? OptionsFill.LowValues
+            : fill.HIGH_VALUES() is not null ? OptionsFill.HighValues
+            : fill.LOW_VALUES() is not null ? OptionsFill.LowValues
             : OptionsFill.Spaces;
         // ⛔ No figurative character is resolved here — see OptionsInitialize.LiteralFillChar. GR5 b/d depend on
         // the PROGRAM COLLATING SEQUENCE (§8.3.3.6.4 GR6), which this compiler defines in exactly one place.

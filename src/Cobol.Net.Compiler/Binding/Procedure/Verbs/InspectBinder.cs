@@ -380,11 +380,11 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// one-character item; HIGH/LOW-VALUE are U+00FF/U+0000 per COBOLNET_DESIGN §14.9, matching the emitter's
     /// figurative fills).</summary>
     private static char InspectFigurativeChar(Core.FigurativeConstantContext fig) =>
-        fig.ZERO() is not null ? '0'
-        : fig.SPACE() is not null ? ' '
-        : fig.HIGH_VALUE() is not null ? '\u00ff'
-        : fig.LOW_VALUE() is not null || fig.NULL_() is not null ? '\u0000'
-        : fig.QUOTE_() is not null ? '"'
+        fig.zeroWord() is not null ? '0'
+        : fig.spaceWord() is not null ? ' '
+        : fig.highValueWord() is not null ? '\u00ff'
+        : fig.lowValueWord() is not null || fig.NULL_() is not null ? '\u0000'
+        : fig.quoteWord() is not null ? '"'
         : ' ';
 
     /// <summary>The compile-time-known character width of an INSPECT operand's run-time image, or null. A literal

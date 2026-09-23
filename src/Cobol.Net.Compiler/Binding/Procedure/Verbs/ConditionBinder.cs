@@ -97,7 +97,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return new BoundBoolLiteral(CobolLiteral.Decode(bl.GetText()));
         if (nn?.figurativeConstant() is { } fig)
         {
-            if (fig.ZERO() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§8.3.3.6.4 GR4)
+            if (fig.zeroWord() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§8.3.3.6.4 GR4)
             if (fig.allLiteral() is { } al && al.allLiteralOperand().All(o => o.BOOLLIT() is not null))   // ALL B"…" (a concatenated literal-1 folds — kb/Work PB71)
                 return new BoundBoolAll(string.Concat(al.allLiteralOperand().Select(o => CobolLiteral.Decode(o.GetText()))),
                     IsAllLiteral: true);   // the ONE Format-6 construction site (kb/Work PB157)

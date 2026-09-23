@@ -295,7 +295,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (shift.booleanShiftSuffix().Length != 0) return null;
         if (shift.booleanFactor() is not { } factor) return null;
         var fig = factor.valueOperand()?.nonNumericLiteral()?.figurativeConstant();
-        return fig is not null && fig.ZERO() is not null ? fig : null;   // [ALL] ZERO — ALL is optional (PB157)
+        return fig is not null && fig.zeroWord() is not null ? fig : null;   // [ALL] ZERO — ALL is optional (PB157)
     }
 
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)

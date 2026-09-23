@@ -796,7 +796,8 @@ public abstract class CobolParserCoreBase : Parser
     /// figurative ZERO, a unary B-NOT, or the FUNCTION keyword opening a nested call. Deliberately NOT
     /// LPAREN — a paren straight after a term is that term's subscript/ref-mod, the parser's own reading.</summary>
     private static bool IsTermStartToken(int t) => t is
-        CobolLexer.IDENTIFIER or CobolLexer.B_NOT or CobolLexer.ZERO or CobolLexer.FUNCTION
+        CobolLexer.IDENTIFIER or CobolLexer.B_NOT or CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES
+        or CobolLexer.FUNCTION
         or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT or CobolLexer.COMMA_FLOATLIT
         or CobolLexer.STRINGLIT or CobolLexer.NATLIT or CobolLexer.HEXLIT or CobolLexer.BOOLLIT
         or CobolLexer.SIGNED_INTEGERLIT or CobolLexer.SIGNED_DECIMALLIT;
@@ -808,7 +809,7 @@ public abstract class CobolParserCoreBase : Parser
     /// function operand starts with the FUNCTION keyword or its name, never with the argument-list '('.</remarks>
     private static bool IsBoolOperandStart(int t) => t is
         CobolLexer.IDENTIFIER or CobolLexer.LPAREN or CobolLexer.B_NOT
-        or CobolLexer.BOOLLIT or CobolLexer.ZERO;
+        or CobolLexer.BOOLLIT or CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES;
 
     /// <summary>
     /// COBOL-2002 RETRY-phrase forward detector (ISO §14.7.9) for the OPEN clause, where the phrase sits inside the

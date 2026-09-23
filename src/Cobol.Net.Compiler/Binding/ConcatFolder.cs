@@ -170,13 +170,13 @@ internal static class ConcatFolder
     internal static char? FigurativeChar(Core.FigurativeConstantContext fig, PicCategory cat,
         AlphabetDef? collate, NationalAlphabetDef? natCollate)
     {
-        if (fig.ZERO() is not null) return '0';
+        if (fig.zeroWord() is not null) return '0';
         if (cat is PicCategory.Boolean) return null;
-        if (fig.SPACE() is not null) return ' ';
-        if (fig.QUOTE_() is not null) return '"';
-        if (fig.HIGH_VALUE() is not null)
+        if (fig.spaceWord() is not null) return ' ';
+        if (fig.quoteWord() is not null) return '"';
+        if (fig.highValueWord() is not null)
             return cat is PicCategory.National ? natCollate?.HighValue ?? '\u00ff' : collate?.HighValue ?? '\u00ff';
-        if (fig.LOW_VALUE() is not null)
+        if (fig.lowValueWord() is not null)
             return cat is PicCategory.National ? natCollate?.LowValue ?? '\u0000' : collate?.LowValue ?? '\u0000';
         return null;
     }

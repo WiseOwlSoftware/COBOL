@@ -264,6 +264,14 @@ public sealed class Frontend
         // the source has no directive (byte-identical).
         retypes.Rewrite(tokens);
 
+        // ISO §13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
+        // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
+        // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
+        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap);
+        foreach (var pic in PictureSeparatorPeriodRule.Violations(tokens.GetTokens()))
+            sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
+                $"[{Diagnostics.DiagnosticDescriptors.COBOLNET2419.Code}] {PictureSeparatorPeriodRule.Message(pic)}", null!);
+
         // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
         // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §8.9/§8.10 words the lexer deliberately does
         // not tokenize, so only CobolWordsMap.Resolve can reach them — kb/Work PB250.

@@ -22,8 +22,8 @@ namespace CobolNet.Tests.Unit;
 /// </list>
 /// <para>The class summary of <c>CobolKeywordTokens</c> used to ASSERT the first half's completeness — "Every
 /// reserved word and context-sensitive word is a literal lexer token" — with nothing measuring it, and the claim
-/// was false for 17 words whose lexer rule carries several spellings (<c>ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'</c>
-/// publishes no ANTLR literal NAME) and for 88 more that are no token at all. These tests are that measurement.
+/// was false for 17 words whose lexer rule carries several spellings (<c>PIC : 'PICTURE' | 'PIC'</c> publishes no
+/// ANTLR literal NAME; the figurative spellings were split one token per word by kb/Work PB510) and for 88 more that are no token at all. These tests are that measurement.
 /// Content-filter rule: report counts and at most a few offending words, never a list.</para>
 /// </summary>
 public sealed class CobolWordsReachDriftTests
@@ -58,10 +58,12 @@ public sealed class CobolWordsReachDriftTests
 
     /// <summary>⛔ THE LEX PROBE IS LOAD-BEARING, NOT BELT-AND-BRACES — this is the assertion that fails if it is
     /// removed. ANTLR publishes a literal NAME only for a token defined by exactly ONE literal, so the words of a
-    /// multi-spelling rule (<c>ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'</c>, <c>PIC : 'PICTURE' | 'PIC'</c>) are absent
+    /// multi-spelling rule (<c>PIC : 'PICTURE' | 'PIC'</c>) are absent
     /// from the vocabulary walk and reachable only by asking the lexer itself. Before that fallback existed the
     /// test above failed with 17 such words and <c>&gt;&gt;COBOL-WORDS UNDEFINE "ZERO"</c> was silently inert
-    /// (kb/Work PB250).</summary>
+    /// (kb/Work PB250). Since kb/Work PB510 the figurative spellings are ONE TOKEN EACH (they are distinct §8.9
+    /// reserved words, and a general format may name one of them as its keyword), so PICTURE is the surviving
+    /// witness of the multi-spelling shape and the figurative words now carry literal names of their own.</summary>
     [Fact]
     public void MultiSpellingKeywords_AreReachedOnlyByTheLexProbe()
     {
@@ -71,7 +73,7 @@ public sealed class CobolWordsReachDriftTests
             if (vocab.GetLiteralName(t) is ['\'', .., '\''] and { Length: >= 3 } lit)
                 literalNamed.Add(lit[1..^1]);
 
-        foreach (string w in new[] { "ZEROS", "ZEROES", "PICTURE", "HIGH-VALUES", "LOW-VALUES", "SPACES", "QUOTES" })
+        foreach (string w in new[] { "PICTURE" })
         {
             Assert.False(literalNamed.Contains(w),
                 $"{w} now HAS a vocabulary literal name — its lexer rule was split; the claim below needs a new witness");
@@ -81,10 +83,17 @@ public sealed class CobolWordsReachDriftTests
         }
 
         // The spellings of ONE rule share a token type — which is exactly why CobolWordsRewriter's de-reserve arm
-        // must match the token TEXT as well: UNDEFINE "ZERO" may not de-reserve ZEROS and ZEROES with it.
+        // must match the token TEXT as well: UNDEFINE "PIC" may not de-reserve PICTURE with it.
+        Assert.True(CobolKeywordTokens.TryTokenType("PIC", out int pic));
+        Assert.True(CobolKeywordTokens.TryTokenType("PICTURE", out int picture));
+        Assert.Equal(pic, picture);
+
+        // kb/Work PB510: ZERO, ZEROS and ZEROES are three tokens, each reached by the vocabulary walk itself.
+        foreach (string w in new[] { "ZERO", "ZEROS", "ZEROES", "SPACES", "HIGH-VALUES", "LOW-VALUES", "QUOTES" })
+            Assert.True(literalNamed.Contains(w), $"{w} has no vocabulary literal name — its lexer rule re-merged spellings");
         Assert.True(CobolKeywordTokens.TryTokenType("ZERO", out int zero));
         Assert.True(CobolKeywordTokens.TryTokenType("ZEROES", out int zeroes));
-        Assert.Equal(zero, zeroes);
+        Assert.NotEqual(zero, zeroes);
     }
 
     /// <summary>The lex probe and the vocabulary walk are two answers to ONE question, so where both answer they
@@ -221,7 +230,7 @@ public sealed class CobolWordsReachDriftTests
     }
 
     /// <summary>The §8.9 ∪ §8.10 population, from the two generated tables.</summary>
-    private static HashSet<string> SpecWords()
+    internal static HashSet<string> SpecWords()
     {
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("reserved-words.json")));

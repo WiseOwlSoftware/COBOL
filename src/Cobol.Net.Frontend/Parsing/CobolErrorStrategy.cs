@@ -180,6 +180,19 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (GoToComplementMessage(recognizer, token, stream) is { } goToMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2172, goToMsg, 0));
 
+        // ⛔ 0d. A FIGURATIVE SPELLING WHERE A GENERAL FORMAT NAMES ONE KEYWORD (kb/Work PB510). ZERO / ZEROS /
+        // ZEROES (and each singular/plural figurative pair) are distinct §8.9 reserved words, one lexer token
+        // each, interchangeable only as the §8.3.3.6 figurative constant. A format that prints ONE of them as a
+        // keyword (§5.2.2) — BLANK WHEN ZERO, the sign condition's ZERO, OPTIONS INITIALIZE's BINARY ZEROES /
+        // HIGH-VALUES / LOW-VALUES / SPACES — therefore fails the parse on a sibling spelling, and it arrives here
+        // in ONE shape: the expected set holds a sibling of the offending token's family but not the token. The
+        // families are read FROM THE ATN (the FIRST sets of the figurative-word rules), so a format added tomorrow
+        // that names one spelling inherits this diagnostic without editing this method.
+        if (FigurativeSpellingMessage(recognizer, token) is { } spellingMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2418, spellingMsg, -1));   // outranks 0a: the sign-
+            // condition shape fails at an IS / NOT the enclosing statement cannot continue with, which 0a reads as an
+            // empty imperative-statement — the misspelled keyword is the cause, the empty block its symptom.
+
         if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2173,
                 "Both general formats of the MOVE statement put the whole sending specification directly after "
@@ -334,6 +347,94 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static IntervalSet StatementBlockStart(Parser recognizer)
         => _statementBlockStart ??= recognizer.Atn.NextTokens(
                recognizer.Atn.ruleToStartState[CobolParserCore.RULE_statementBlock]);
+
+    private static IntervalSet[]? _figurativeFamilies;
+
+    /// <summary>The §8.3.3.6.2 figurative-word families — ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE/HIGH-VALUES,
+    /// LOW-VALUE/LOW-VALUES, QUOTE/QUOTES — each the FIRST set of the grammar rule that writes the family's
+    /// interchangeability once (kb/Work PB510). Derived from the ATN, never spelled here.</summary>
+    public static IntervalSet[] FigurativeFamilies(Parser recognizer)
+        => _figurativeFamilies ??= [.. new[]
+            {
+                CobolParserCore.RULE_zeroWord, CobolParserCore.RULE_spaceWord, CobolParserCore.RULE_highValueWord,
+                CobolParserCore.RULE_lowValueWord, CobolParserCore.RULE_quoteWord,
+            }.Select(r => recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[r]))];
+
+    /// <summary>The COBOLNET2418 message when the parser failed ON one spelling of a figurative family at a
+    /// position whose general format names a DIFFERENT spelling of that family as its keyword; null otherwise.
+    /// A position that admits the figurative constant admits every spelling, so the test cannot fire there.</summary>
+    private static string? FigurativeSpellingMessage(Parser recognizer, IToken token)
+    {
+        if (SignConditionSpellingMessage(recognizer, token) is { } signMsg) return signMsg;
+        var family = FigurativeFamilies(recognizer).FirstOrDefault(f => f.Contains(token.Type));
+        if (family is null) return null;
+        var expected = recognizer.GetExpectedTokens();
+        if (expected is null || expected.Contains(token.Type)) return null;
+        var wanted = family.ToIntegerList().Where(expected.Contains).ToList();
+        if (wanted.Count == 0) return null;
+        string Spell(int t) => recognizer.Vocabulary.GetLiteralName(t)?.Trim('\'') ?? recognizer.Vocabulary.GetDisplayName(t);
+        string required = string.Join(" or ", wanted.Select(Spell));
+        return $"The general format requires the keyword {required} here, and {token.Text?.ToUpperInvariant()} is a "
+            + "different reserved word (ISO §8.9): the spellings of a figurative constant are interchangeable only "
+            + "where the figurative constant itself is written (ISO §8.3.3.6.2), and a keyword underlined in a "
+            + "general format is required as printed (ISO §5.2.2).";
+    }
+
+    /// <summary>The one keyword position the expected-set test above cannot see: the SIGN CONDITION
+    /// (§8.8.4.7.2, <c>operand IS [NOT] { POSITIVE | NEGATIVE | ZERO }</c>). When no comparisonExpression
+    /// alternative survives <c>W IS ZEROS</c>, ANTLR's prediction falls back to the alternative that FINISHED the
+    /// decision rule — the bare operand — so the failure is reported one token EARLY, at the IS / NOT that the
+    /// enclosing statement cannot continue with (<c>W IS ZEROS</c>), or as a no-viable-alternative AT the word
+    /// with a decision-state expected set that names no ZERO (<c>W IS NOT ZEROES</c>). Both are recognized here:
+    /// a run of IS / NOT that the offending token starts, or ends just before it, meets a ZERO-family spelling
+    /// that is not the one the sign condition's format prints (the family read from the ATN).</summary>
+    private static string? SignConditionSpellingMessage(Parser recognizer, IToken token)
+    {
+        // A condition is written only in the procedure division (and its declaratives); an IS / NOT before a
+        // figurative spelling elsewhere (VALUE IS ZEROS) is a figurative position, never a sign condition.
+        if (!recognizer.GetRuleInvocationStack().Contains("procedureDivision")) return null;
+        var stream = (ITokenStream)recognizer.InputStream;
+        var zeroFamily = FigurativeFamilies(recognizer)[0];
+        IToken? next = token;
+        if (token.Type is CobolLexer.IS or CobolLexer.NOT)
+        {
+            int i = token.TokenIndex;
+            do next = NextDefault(stream, ref i);
+            while (next is not null && next.Type is CobolLexer.IS or CobolLexer.NOT);
+        }
+        else
+        {
+            int j = token.TokenIndex;
+            if (PreviousDefault(stream, ref j) is not { Type: CobolLexer.IS or CobolLexer.NOT }) return null;
+        }
+        if (next is null || next.Type == CobolLexer.ZERO || !zeroFamily.Contains(next.Type)) return null;
+        return $"The sign condition's general format requires the keyword ZERO here, and "
+            + $"{next.Text?.ToUpperInvariant()} is a different reserved word (ISO §8.9): its format is "
+            + "'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §8.8.4.7.2), and the spellings of a figurative "
+            + "constant are interchangeable only where the figurative constant itself is written (ISO §8.3.3.6.2). "
+            + "To compare against the figurative constant, write a relation condition: '= ZEROS'.";
+    }
+
+    private static IToken? PreviousDefault(ITokenStream stream, ref int index)
+    {
+        while (--index >= 0)
+        {
+            var t = stream.Get(index);
+            if (t.Channel == Lexer.DefaultTokenChannel) return t;
+        }
+        return null;
+    }
+
+    private static IToken? NextDefault(ITokenStream stream, ref int index)
+    {
+        while (++index < stream.Size)
+        {
+            var t = stream.Get(index);
+            if (t.Type == TokenConstants.EOF) return null;
+            if (t.Channel == Lexer.DefaultTokenChannel) return t;
+        }
+        return null;
+    }
 
     /// <summary>True when the parser failed AT a position where a statement block was required and had matched
     /// nothing: the expected set admits every token that can start one, and the offending token starts none.

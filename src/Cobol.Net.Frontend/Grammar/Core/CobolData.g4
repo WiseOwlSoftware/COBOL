@@ -854,7 +854,8 @@ syncClause
     : (SYNCHRONIZED | SYNC) (LEFT | RIGHT)?
     ;
 
-// BLANK [WHEN] ZERO — WHEN is optional per COBOL-85
+// BLANK [WHEN] ZERO (§13.18.8.2) — WHEN is optional; ZERO is the keyword and the ONLY spelling admitted: ZEROS and
+// ZEROES are distinct reserved words, interchangeable with ZERO only as the figurative constant (kb/Work PB510).
 blankWhenZeroClause
     : BLANK WHEN? ZERO
     ;

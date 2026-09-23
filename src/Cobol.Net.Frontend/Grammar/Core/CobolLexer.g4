@@ -814,11 +814,27 @@ VALUES      : 'VALUES' ;
 VARYING     : 'VARYING' ;
 WHEN        : 'WHEN' ;
 WITH        : 'WITH' ;
-ZERO        : 'ZERO' | 'ZEROS' | 'ZEROES' ;
-SPACE       : 'SPACE' | 'SPACES' ;
-HIGH_VALUE  : 'HIGH-VALUE' | 'HIGH-VALUES' ;
-LOW_VALUE   : 'LOW-VALUE' | 'LOW-VALUES' ;
-QUOTE_      : 'QUOTE' | 'QUOTES' ;
+// ⛔ ONE TOKEN PER RESERVED WORD — the figurative spellings are DISTINCT §8.9 reserved words (kb/Work PB510).
+// ZERO, ZEROS and ZEROES (and each singular/plural pair below) are interchangeable ONLY where the §8.3.3.6.2
+// figurative-constant format lists them as alternatives — the parser rules zeroWord / spaceWord /
+// highValueWord / lowValueWord / quoteWord in CobolExpressions.g4 are that interchangeability, written once.
+// Everywhere else a general format names ONE of them as a keyword (§5.2.2: "They are required in order to
+// select the functionality associated with that keyword") and admits no other: BLANK WHEN ZERO (§13.18.8.2),
+// the sign condition's ZERO (§8.8.4.7.2), the OPTIONS INITIALIZE clause's BINARY ZEROES / HIGH-VALUES /
+// LOW-VALUES / SPACES (§11.9.10.2). Folding the spellings into one token made that distinction unrecoverable
+// and every one of those formats accepted every spelling. The only multi-spelling keyword rule left is PIC
+// (§13.18.40.3 SR5 "PIC is an abbreviation for PICTURE") — KeywordSpellingDriftTests pins that.
+ZERO        : 'ZERO' ;
+ZEROS       : 'ZEROS' ;
+ZEROES      : 'ZEROES' ;
+SPACE       : 'SPACE' ;
+SPACES      : 'SPACES' ;
+HIGH_VALUE  : 'HIGH-VALUE' ;
+HIGH_VALUES : 'HIGH-VALUES' ;
+LOW_VALUE   : 'LOW-VALUE' ;
+LOW_VALUES  : 'LOW-VALUES' ;
+QUOTE_      : 'QUOTE' ;
+QUOTES      : 'QUOTES' ;
 
 // ── Numeric literals (must come BEFORE IDENTIFIER) ──
 // DECIMALLIT handles DOT-based decimals in the lexer (maximal munch resolves

@@ -177,11 +177,11 @@ internal sealed class StringStatementBinder
         }
         if (ctx.figurativeConstant() != null)
         {
-            if (ctx.figurativeConstant().SPACE() != null) return InspectPatternValue.FromLiteral(" ");
-            if (ctx.figurativeConstant().ZERO() != null) return InspectPatternValue.FromLiteral("0");
-            if (ctx.figurativeConstant().HIGH_VALUE() != null) return InspectPatternValue.FromLiteral("\xFF");
-            if (ctx.figurativeConstant().LOW_VALUE() != null) return InspectPatternValue.FromLiteral("\x00");
-            if (ctx.figurativeConstant().QUOTE_() != null) return InspectPatternValue.FromLiteral("\"");
+            if (ctx.figurativeConstant().spaceWord() != null) return InspectPatternValue.FromLiteral(" ");
+            if (ctx.figurativeConstant().zeroWord() != null) return InspectPatternValue.FromLiteral("0");
+            if (ctx.figurativeConstant().highValueWord() != null) return InspectPatternValue.FromLiteral("\xFF");
+            if (ctx.figurativeConstant().lowValueWord() != null) return InspectPatternValue.FromLiteral("\x00");
+            if (ctx.figurativeConstant().quoteWord() != null) return InspectPatternValue.FromLiteral("\"");
             return InspectPatternValue.FromLiteral(ctx.figurativeConstant().GetText());
         }
         return null;
@@ -265,11 +265,11 @@ internal sealed class StringStatementBinder
             var fig = nonNum.figurativeConstant();
             if (fig != null)
             {
-                if (fig.SPACE() != null) return " ";
-                if (fig.ZERO() != null) return "0";
-                if (fig.HIGH_VALUE() != null) return "\xFF";
-                if (fig.LOW_VALUE() != null) return "\x00";
-                if (fig.QUOTE_() != null) return "\"";
+                if (fig.spaceWord() != null) return " ";
+                if (fig.zeroWord() != null) return "0";
+                if (fig.highValueWord() != null) return "\xFF";
+                if (fig.lowValueWord() != null) return "\x00";
+                if (fig.quoteWord() != null) return "\"";
                 // ALL "literal" — extract the literal string
                 if (fig.allLiteral()?.allLiteralOperand().FirstOrDefault()?.STRINGLIT() is { } allSl)
                 {

@@ -1486,7 +1486,12 @@
   "pb481-record-key-refmod",
   "pb481-sort-key-refmod",
   "pb481-table-sort-key-refmod",
-  "pb481-read-key-refmod"
+  "pb481-read-key-refmod",
+  "pb510-blank-when-zeros",
+  "pb510-sign-condition-zeroes",
+  "pb510-options-initialize-binary-zero",
+  "pb569-picture-comma-not-last",
+  "pb569-picture-period-not-last"
  ],
  "pending": []
 }

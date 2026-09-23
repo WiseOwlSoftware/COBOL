@@ -522,11 +522,11 @@ internal sealed class ExpressionBinder
             // ALL ZERO / ALL SPACE / ALL HIGH-VALUE / ALL LOW-VALUE / ALL QUOTE
             // Per COBOL-85 §4.3.3, ALL applied to a figurative constant is
             // semantically identical to the figurative constant alone.
-            if (figCtx.ZERO() != null) return new BoundFigurativeExpression(FigurativeKind.Zero);
-            if (figCtx.SPACE() != null) return new BoundFigurativeExpression(FigurativeKind.Space);
-            if (figCtx.HIGH_VALUE() != null) return new BoundFigurativeExpression(FigurativeKind.HighValue);
-            if (figCtx.LOW_VALUE() != null) return new BoundFigurativeExpression(FigurativeKind.LowValue);
-            if (figCtx.QUOTE_() != null) return new BoundFigurativeExpression(FigurativeKind.Quote);
+            if (figCtx.zeroWord() != null) return new BoundFigurativeExpression(FigurativeKind.Zero);
+            if (figCtx.spaceWord() != null) return new BoundFigurativeExpression(FigurativeKind.Space);
+            if (figCtx.highValueWord() != null) return new BoundFigurativeExpression(FigurativeKind.HighValue);
+            if (figCtx.lowValueWord() != null) return new BoundFigurativeExpression(FigurativeKind.LowValue);
+            if (figCtx.quoteWord() != null) return new BoundFigurativeExpression(FigurativeKind.Quote);
 
             // Fallback: should not reach here with valid grammar
             return new BoundFigurativeExpression(FigurativeKind.None, "");

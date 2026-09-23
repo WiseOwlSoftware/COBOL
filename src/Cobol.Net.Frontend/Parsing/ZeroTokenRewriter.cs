@@ -104,7 +104,9 @@ public static class ZeroTokenRewriter
         for (int i = 0; i < tokens.Count; i++)
         {
             var token = tokens[i];
-            if (token.Type != CobolLexer.ZERO)
+            // All three §8.9 spellings of the figurative zero (§8.3.3.6.2 format 1) — they are distinct tokens since
+            // kb/Work PB510, and interchangeable exactly here, where the word IS the figurative constant.
+            if (token.Type is not (CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES))
                 continue;
 
             // Look at the next non-hidden token to the right

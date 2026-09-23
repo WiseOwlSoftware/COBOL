@@ -109,10 +109,10 @@ public static class CobolWordsRewriter
             {
                 // A de-reserved keyword becomes a user word — keep the source spelling (it is now the data-name).
                 // ⛔ THE TEXT TEST IS LOAD-BEARING, NOT BELT-AND-BRACES (kb/Work PB250). One token type can carry
-                // SEVERAL COBOL words (`ZERO : 'ZERO' | 'ZEROS' | 'ZEROES'`, `PIC : 'PICTURE' | 'PIC'`), while
-                // GR3/GR4 de-reserve exactly the ONE word literal-3/literal-4 names — so retyping by TYPE alone
-                // would strip ZEROS and ZEROES of their reservation on an `UNDEFINE "ZERO"`, and PICTURE on an
-                // `UNDEFINE "PIC"`. Invisible until CobolKeywordTokens learned to resolve multi-spelling rules.
+                // SEVERAL COBOL words (`PIC : 'PICTURE' | 'PIC'` — the one multi-spelling keyword rule left since
+                // kb/Work PB510 split the figurative spellings, KeywordSpellingDriftTests), while GR3/GR4 de-reserve
+                // exactly the ONE word literal-3/literal-4 names — so retyping by TYPE alone would strip PICTURE of
+                // its reservation on an `UNDEFINE "PIC"`. Invisible until CobolKeywordTokens learned to resolve multi-spelling rules.
                 Retype(tokens, i, idType, tok.Text);
             }
         }

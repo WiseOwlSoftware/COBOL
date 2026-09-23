@@ -1079,7 +1079,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // SR1a) — and it never reaches here under an explicit BY VALUE, where ZERO_ARITH takes the earlier
         // `arithmeticExpression` alternative; the keyword-less arm can still spell it, so admit it by rule.
         if (lit.numericLiteral() is not null
-            || lit.nonNumericLiteral()?.figurativeConstant()?.ZERO() is not null)
+            || lit.nonNumericLiteral()?.figurativeConstant()?.zeroWord() is not null)
             return;
         ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
             $"CALL … USING {lit.GetText()} with {subject}: literal-2 shall be a NUMERIC literal "

@@ -310,11 +310,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + "paragraph (ISO §8.3.3.6.3 SR4)");
             return BoundOperandError.Refused(ctx.Edition, $"ALL {symWord.GetText()}");
         }
-        if (fig.ZERO() is not null) return new BoundFigurative('Z');
-        if (fig.SPACE() is not null) return new BoundFigurative('S');
-        if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');
-        if (fig.LOW_VALUE() is not null) return new BoundFigurative('L');
-        if (fig.QUOTE_() is not null) return new BoundFigurative('Q');
+        if (fig.zeroWord() is not null) return new BoundFigurative('Z');
+        if (fig.spaceWord() is not null) return new BoundFigurative('S');
+        if (fig.highValueWord() is not null) return new BoundFigurative('H');
+        if (fig.lowValueWord() is not null) return new BoundFigurative('L');
+        if (fig.quoteWord() is not null) return new BoundFigurative('Q');
         if (fig.NULL_() is not null) return new BoundFigurative('N');
         return BoundOperandError.Refused(ctx.Edition, $"figurative constant '{fig.GetText()}'");
     }
@@ -946,10 +946,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // ⚠ THE TEST IS `ALL() is null`, AND THE PREVIOUS COMMENT'S MECHANISM WAS FALSE. It claimed "the
             // grammar routes the bare word to ZERO() and every ALL form to allLiteral()"; `figurativeConstant`
             // has a DISTINCT `ALL ZERO` alternative (CobolExpressions.g4), so for `ALL ZEROS` both `ALL()` and
-            // `ZERO()` are non-null and the old `fig.ZERO() is not null` arm admitted it. Measured before the
+            // `ZERO()` are non-null and the old `fig.zeroWord() is not null` arm admitted it. Measured before the
             // fix: `IF ALL ZEROS IS POSITIVE` compiled clean and evaluated `0 > 0`, under a comment quoting the
             // very rule that bars it — a citation enforcing nothing is worse than no citation.
-            if (fig.ZERO() is not null && fig.ALL() is null) return new BoundNumLiteral("0");
+            if (fig.zeroWord() is not null && fig.ALL() is null) return new BoundNumLiteral("0");
             // The bare BoundExprError here carried no diagnostic and rendered as a RUNTIME NotImplemented —
             // the wrong stage for a syntax-rule violation (kb/Work PB155).
             ctx.Edition.Error("COBOLNET0844", $"figurative constant '{fig.GetText()}' is not a numeric "

@@ -189,7 +189,7 @@ partialAndExpression
 // §8.8.4.7.2's two operand forms occupy the same position).
 partialComparison
     : IS? NOT? className                                       // class condition without the identifier
-    | IS? NOT? (POSITIVE | NEGATIVE | ZERO)                    // sign condition without its operand
+    | IS? NOT? (POSITIVE | NEGATIVE | ZERO)                    // sign condition without its operand (ZERO the keyword, §8.8.4.7.2 — not ZEROS/ZEROES, PB510)
     | abbreviatedRelation                                      // leftmost portion is a relational operator
     ;
 
@@ -262,7 +262,7 @@ booleanFactor     : B_NOT booleanFactor
 comparisonExpression
     : comparisonOperand IS? NOT? OMITTED                           // omitted-argument condition (§8.8.4.8; 2002+ - kb/Work PB133)
     | comparisonOperand IS? NOT? className                         // class condition
-    | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition)
+    | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition); §8.8.4.7.2 prints the keyword ZERO only — PB510
     | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;
     // NOTE (Phase-4a increment 2, DEVLOG 621): the boolean RELATION (§8.8.4.2.2) and the simple boolean
@@ -757,20 +757,30 @@ allLiteralOperand
     | BOOLLIT
     ;
 
+// §8.3.3.6.2 formats 1–5: the figurative spellings a format's braces make INTERCHANGEABLE — and only here
+// (kb/Work PB510). Each spelling is its own lexer token (one token per §8.9 reserved word), so a general format
+// that names ONE of them as a keyword (BLANK WHEN ZERO, the sign condition's ZERO, OPTIONS INITIALIZE's BINARY
+// ZEROES / HIGH-VALUES / LOW-VALUES / SPACES) writes that token and admits no other spelling.
+zeroWord      : ZERO | ZEROS | ZEROES ;
+spaceWord     : SPACE | SPACES ;
+highValueWord : HIGH_VALUE | HIGH_VALUES ;
+lowValueWord  : LOW_VALUE | LOW_VALUES ;
+quoteWord     : QUOTE_ | QUOTES ;
+
 figurativeConstant
-    : ZERO
-    | SPACE
-    | HIGH_VALUE
-    | LOW_VALUE
-    | QUOTE_
+    : zeroWord
+    | spaceWord
+    | highValueWord
+    | lowValueWord
+    | quoteWord
     | NULL_
     | ALL allLiteral    // Format 6 — ALL literal-1 (§8.3.3.6.3 SR2: an alphanumeric, boolean or national literal, which
                         // may be a concatenation expression; kb/Work PB71 — ONE arm for the four literal kinds)
-    | ALL ZERO
-    | ALL SPACE
-    | ALL HIGH_VALUE
-    | ALL LOW_VALUE
-    | ALL QUOTE_
+    | ALL zeroWord
+    | ALL spaceWord
+    | ALL highValueWord
+    | ALL lowValueWord
+    | ALL quoteWord
     | ALL cobolWord   // Format 7 — ALL symbolic-character-1 (§8.3.3.6.2; SR4: a SYMBOLIC CHARACTERS name — kb/Work PB110);
                       // LAST so the keyword forms and ALL literal-1 win; the bare form is a word reference (the
                       // constant-name substitution seams)
