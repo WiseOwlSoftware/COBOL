@@ -872,6 +872,23 @@ sentences. `DataClauseKindDriftTests` reflects over the GENERATED parser and fai
 `dataDescriptionClause` alternative has no `DataClauseKind` or a mapped context type is no longer produced. That
 is what makes the next clause automatic rather than remembered.
 
+**The placement half (kb/Work PB507 / PB512 / PB518 / PB519).** The same vocabulary carries the rules about WHERE
+a clause may be written. `ClausePlacementRules.Rules` (`Binding/DataBinder.ClausePlacement.cs`) holds one row per
+rule sentence, of four shapes — `ElementaryOnly` (§13.18.40.3 SR1, §13.16.3 SR11), `Residence` (level 1 in named
+sections: §13.16.3 SR6 / §13.18.27.3 SR1 b) for GLOBAL, §13.18.22.3 SR1 for EXTERNAL), `DataNameRequired`
+(§13.16.3 SR7, both halves) and `NotWith` (§13.16.3 SR5) — and TWO sites read it: `BindEntry` applies the
+entry-local rows through `ScreenClausePlacement` (level, entry-name, section and the written set are all known
+there) and `CheckElementaryOnlyClauses` applies the `ElementaryOnly` rows over the finished forest. A refused
+EXTERNAL / GLOBAL clause never reaches `DataItem.HasExternalClause` / `HasGlobalClause`, and those two facts are the
+ONLY inputs of `CallBindExternalAndGlobal`'s run-unit re-basing and global-name registration — the post-bind scan no
+longer re-derives either rule from the parse tree (it used `continue` filters, which annulled a misplaced clause
+without a word, and never read the FILE SECTION). The subject rules of the same two clauses — what the elementary
+item may BE (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3; SR4 is §13.16.3 SR18's COBOLNET1563) — are the `CheckClauseSubjects` pass, after usage
+inheritance. `ClausePlacementRules.PlacementAnsweredElsewhere` names, for every clause kind with no row, the site
+that owns its placement, and `DataClausePlacementDriftTests` requires every `DataClauseKind` to be answered exactly
+once and every `ElementaryOnly` subject to be refused on a group — so a clause added to the grammar is asked where
+it may be written.
+
 **The generalization — ONE production, ONE pass, ONE table (kb/Work PB829).** `genericClause` was not one
 catch-all; it was one RULE reached from SIX sites spanning EIGHT closed general formats, and PB487's sibling
 sweep — which read the grammar by rule NAME — counted four of the remaining five and missed the I-O-CONTROL

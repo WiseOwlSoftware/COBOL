@@ -1526,6 +1526,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     }
                     if (ge.GLOBAL() is not null) file.IsGlobal = true;
                 }
+            // §13.16.3 SR7's FD half — every WRITTEN record of an EXTERNAL / GLOBAL FD has a data-name
+            // (DataBinder.ClausePlacement.cs; kb/Work PB518). Before the implied record, which is not written.
+            ScreenFileRecordEntryNames(file);
             // ⛔ LAST, because it reads the RECORD, REPORT(S) and (via the SELECT) ORGANIZATION clauses: a file
             // description entry with NO record description entries still has a record area, and it is created
             // HERE rather than worked around at each of its consumers (kb/Work PB345).
@@ -4120,6 +4123,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         CheckMessageTagExclusivity(firstUsage, extraUsages, entryWhere);
 
+        // ⛔ THE CLAUSE-PLACEMENT SCREEN'S ENTRY-LOCAL ROWS (DataBinder.ClausePlacement.cs; kb/Work PB518/PB519):
+        // EXTERNAL / GLOBAL residence (§13.16.3 SR6, §13.18.22.3 SR1, §13.18.27.3 SR1 b)), the data-name format
+        // (§13.16.3 SR7) and EXTERNAL×REDEFINES/BASED (§13.16.3 SR5). A refused clause is DROPPED here, so it never
+        // reaches HasExternalClause / HasGlobalClause — the only inputs of CallBindExternalAndGlobal's re-basing
+        // and global-name registration.
+        DataClauseKind placementRefused = ScreenClausePlacement(written, level, isFiller, section, entryWhere);
+        if ((placementRefused & DataClauseKind.External) != 0) { hasExternal = false; externalAs = null; }
+        bool hasGlobal = (written & ~placementRefused & DataClauseKind.Global) != 0;
+
         // Parse the usage keyword ONCE per entry — ParseUsage carries the W2 loud-guard gates (the 2002+
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
         Usage entryUsage = PictureAnalyzer.ParseUsage(usageText, Edition, entryWhere);
@@ -4627,7 +4639,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             IsTypedef = isTypedef,
             TypedefStrong = typedefStrong,
             IsExternalTypedef = isTypedef && hasExternal,   // §13.18.22 SR1 / §13.18.58.3 SR3 (P10 Step 16)
-            HasExternalClause = hasExternal,                // backs the §13.18.22 SR5 strong-external pairing check
+            HasExternalClause = hasExternal,                // the ADMITTED clause — re-basing input + §13.18.22 SR5 pairing check
+            HasGlobalClause = hasGlobal,                    // the ADMITTED clause — global-name registration input (PB518)
             ExternalizedAs = externalizedAs,                // §13.18.22.4 GR5's literal-1 (kb/Work PB511)
             IsConstantRecord = isConstantRecord,
             TypeRefName = typeRefName,
@@ -4658,15 +4671,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "together (ISO §13.16.3 SR3)");
                 isBased = false;
             }
-            else if (hasExternal)
-            {
-                // §13.16.3 SR5: "The EXTERNAL clause shall not be specified in the same data description
-                // entry as the REDEFINES or BASED clause" — without this, BOTH mechanisms would emit a
-                // bridge under the ONE BackingCsName (a CS0102 duplicate member, the review finding).
-                Edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{entryWhere}: BASED and EXTERNAL may not be specified "
-                    + "together (ISO §13.16.3 SR5)");
-                isBased = false;
-            }
+            // BASED × EXTERNAL (§13.16.3 SR5) is the clause-placement table's NotWith row, screened above with
+            // its REDEFINES sibling (kb/Work PB519); the refusal drops EXTERNAL, so `hasExternal` is false here
+            // and the two bridge mechanisms can never both claim the one BackingCsName (the former CS0102).
             // A VALUE clause on a BASED entry is LEGAL (its data seeds ALLOCATE … INITIALIZED per §14.9.3
             // GR7's TO-VALUE leg); without INITIALIZED the allocated content is undefined (GR8), so the
             // space-filled cell is conformant — the clause simply has no stored field to seed here.

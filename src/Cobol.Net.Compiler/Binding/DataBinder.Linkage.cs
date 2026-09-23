@@ -150,7 +150,8 @@ public sealed partial class DataBinder
     public IReadOnlySet<string> CallSuppressedRootFields => _callSuppressedRootFields;
     private readonly HashSet<string> _callSuppressedRootFields = new(StringComparer.Ordinal);
 
-    /// <summary>WORKING-STORAGE level-01/77 roots carrying the GLOBAL clause (ISO §13.18.27) — visible to every
+    /// <summary>Level-1 roots carrying an ADMITTED GLOBAL clause (ISO §13.18.27.3 SR1 b) — file, working-storage,
+    /// local-storage or linkage section), plus the records of a GLOBAL FD (§13.18.30) — visible to every
     /// directly/indirectly contained program (GR1–2); the emitter injects them into contained units' binders and
     /// bridges their fields into the nested classes. (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<DataItem> CallGlobalRoots => _callGlobalRoots;
@@ -448,8 +449,10 @@ public sealed partial class DataBinder
         LinkageRoots.FirstOrDefault(r => string.Equals(r.CobolName, name, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Collect the EXTERNAL and GLOBAL level-01/77 WORKING-STORAGE roots (ISO §13.18.22 SR1 / §13.18.27 SR1) and
-    /// re-base each EXTERNAL record onto a run-unit <c>ExternalStore</c> cell. Runs at the END of <c>Bind</c>
+    /// Collect the roots whose EXTERNAL / GLOBAL clause the clause-placement screen ADMITTED
+    /// (<see cref="DataItem.HasExternalClause"/> / <see cref="DataItem.HasGlobalClause"/> — ISO §13.18.22.3 SR1,
+    /// §13.18.27.3 SR1 b), §13.16.3 SR5–SR7) and re-base each EXTERNAL record onto a run-unit <c>ExternalStore</c>
+    /// cell. Runs at the END of <c>Bind</c>
     /// (after REDEFINES classification) so an EXTERNAL record that is also a redefines anchor folds its whole
     /// class onto the shared backing. The mechanism is the existing Tier-B string-canonical machinery: the
     /// backing becomes a <c>ref</c>-property over the external cell, every member an (offset,width) window —
@@ -462,38 +465,28 @@ public sealed partial class DataBinder
     /// </summary>
     internal void CallBindExternalAndGlobal(Core.ProgramUnitContext program)
     {
-        // §13.18.27.3 SR1b (kb/Work PB163): GLOBAL is legal on a level-1 entry in the FILE, WORKING-STORAGE,
-        // LOCAL-STORAGE, or LINKAGE section — the old scan read WS only, so a GLOBAL LOCAL-STORAGE item was
-        // simply UNDEFINED in every containee (COBOLNET1639 on conforming source). EXTERNAL stays WS-only
-        // (§13.18.22.3 SR1: "level 1 data description entries in the working-storage section"). The 01/77
-        // admission is deliberately loose for both clauses (both SRs say level 1; the clause-site screen is
-        // PB163's named residue).
-        var dd = program.dataDivision();
-        var sectionEntries = new (IEnumerable<Core.DataDescriptionEntryContext> entries, bool externalLegal)[]
+        // ⛔ READ FROM THE BOUND ITEMS, NEVER FROM THE PARSE TREE (kb/Work PB518 / PB519). The clause-placement
+        // screen (DataBinder.ClausePlacement.cs) has already ADMITTED or REFUSED every EXTERNAL / GLOBAL clause at
+        // its entry — level 1 (§13.16.3 SR6, §13.18.22.3 SR1, §13.18.27.3 SR1 b)), the data-name format (SR7), the
+        // section (EXTERNAL: working-storage only), and EXTERNAL×REDEFINES/BASED (SR5) — and only an admitted
+        // clause sets HasExternalClause / HasGlobalClause. The parse-tree scan this replaces re-derived the rule
+        // as `continue` filters, so a misplaced clause was accepted and silently annulled; it never read the FILE
+        // SECTION, so a GLOBAL record there (legal per SR1 b)) was UNDEFINED in every containee; and it re-based
+        // an EXTERNAL REDEFINES entry, folding the redefines ANCHOR onto the external cell and discarding its VALUE.
+        // The population is every residence SR1 b) admits: working-storage, local-storage, linkage and file.
+        foreach (var item in WorkingStorageRoots.Concat(LocalStorageRoots).Concat(LinkageRoots)
+                     .Concat(Files.SelectMany(f => f.Records)))
         {
-            (dd?.workingStorageSection()?.dataDescriptionEntry() ?? [], true),
-            (dd?.localStorageSection()?.dataDescriptionEntry() ?? [], false),
-            (dd?.linkageSection()?.linkageEntry()
-                .Select(e => e.dataDescriptionEntry()).Where(e => e is not null).Select(e => e!)
-             ?? [], false),
-        };
-        foreach (var (entries, externalLegal) in sectionEntries)
-            foreach (var entry in entries)
-            {
-                var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
-                if (clauses is null) continue;
-                bool external = externalLegal && clauses.Any(cl => cl.externalClause() is not null);
-                bool global = clauses.Any(cl => cl.globalClause() is not null);
-                if (!external && !global) continue;
-                if (!int.TryParse(entry.levelNumber().GetText(), out int lvl) || lvl is not (1 or 77))
-                    continue;   // §13.18.22 SR1 / §13.18.27 SR1b — record-description level-01/77 entries only
-                if (entry.dataName()?.GetText() is not { } name) continue;
-                var item = Roots.FirstOrDefault(r =>
-                    r.Level == lvl && string.Equals(r.CobolName, name, StringComparison.OrdinalIgnoreCase));
-                if (item is null) continue;
-                if (global) _callGlobalRoots.Add(item);
-                if (external) CallMakeExternal(item);
-            }
+            if (item.HasGlobalClause && !_callGlobalRoots.Contains(item)) _callGlobalRoots.Add(item);
+            if (!item.HasExternalClause) continue;
+            // §13.16.3 SR5 makes this unreachable (the screen refuses EXTERNAL beside REDEFINES), and it must STAY
+            // unreachable: re-basing a redefinER re-homes its whole class — the anchor included — onto the cell.
+            if (item.RedefinesTargetName is not null)
+                throw new InvalidOperationException(
+                    $"EXTERNAL record '{item.CobolName}' also redefines '{item.RedefinesTargetName}' — the §13.16.3 SR5 "
+                    + "clause-placement screen should have refused its EXTERNAL clause (DataBinder.ClausePlacement.cs)");
+            CallMakeExternal(item);
+        }
 
         // Records EXTERNAL BY TYPE (ISO §13.18.22 GR3; P10 Step 16): a record whose TYPE clause names an
         // EXTERNAL type declaration is itself external "subject to the same rules" — ExpandType marked it

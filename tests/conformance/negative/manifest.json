@@ -1462,7 +1462,12 @@
   "pb369-contained-generate-non-global-report",
   "pb369-contained-report-file-not-global",
   "pb919-index-name-ambiguous",
-  "pb1026-external-dynamic-record-at-2002"
+  "pb1026-external-dynamic-record-at-2002",
+  "pb512-justified-on-a-group",
+  "pb507-blank-when-zero-binary",
+  "pb518-global-below-level-1",
+  "pb518-external-fd-filler-record",
+  "pb519-external-redefines"
  ],
  "pending": []
 }

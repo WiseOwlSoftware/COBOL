@@ -254,13 +254,25 @@ public sealed class DataItem
         "a fact of the type DECLARATION's own entry; its effect on a referencing subject is ExternalFromType (ISO §13.18.22.4 GR3)")]
     public bool IsExternalTypedef { get; init; }
 
-    /// <summary>True when THIS entry carries an explicit EXTERNAL clause (ISO §13.18.22). The external re-basing
-    /// itself is parse-tree-driven (<c>CallBindExternalAndGlobal</c>); this stored fact backs the §13.18.22 SR5
-    /// conformance check (an external record whose TYPE is STRONG requires the type declaration to be external
-    /// too) and the double-registration guard for <see cref="ExternalFromType"/>.</summary>
+    /// <summary>True when THIS entry carries an EXTERNAL clause (ISO §13.18.22) that the clause-placement screen
+    /// ADMITTED (<c>DataBinder.ScreenClausePlacement</c> — §13.16.3 SR5/SR7, §13.18.22.3 SR1). ⛔ It is the ONE
+    /// input of the run-unit re-basing (<c>CallBindExternalAndGlobal</c> reads it, never the parse tree — kb/Work
+    /// PB519: the parse-tree scan re-based an EXTERNAL REDEFINES entry's anchor onto the external cell), and it
+    /// also backs the §13.18.22 SR5 strong-external pairing check and the double-registration guard for
+    /// <see cref="ExternalFromType"/>. A refused clause leaves it false, so an already-reported entry binds as
+    /// ordinary storage.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §13.18.49.4 GR1 excludes EXTERNAL by name; for a TYPE subject the carrier is §13.18.22.4 GR3 (ExternalFromType), because the effect is on the RECORD rather than a copied clause")]
     public bool HasExternalClause { get; init; }
+
+    /// <summary>True when THIS entry carries a GLOBAL clause (ISO §13.18.27) that the clause-placement screen
+    /// ADMITTED (§13.16.3 SR6/SR7, §13.18.27.3 SR1 b) — level 1, data-name format, in the file, working-storage,
+    /// local-storage or linkage section). The ONE input of the global-name registration
+    /// (<c>CallBindExternalAndGlobal</c> → <c>CallGlobalRoots</c>) — kb/Work PB518: the parse-tree scan it
+    /// replaces skipped a misplaced clause with a <c>continue</c> and never read the FILE SECTION at all.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "ISO §13.18.49.4 GR1 and §13.18.57.4 GR1 both exclude GLOBAL by name — a SAME AS / TYPE subject never inherits it")]
+    public bool HasGlobalClause { get; init; }
 
     /// <summary>The value of the EXTERNAL clause's <c>AS literal-1</c>, when the entry writes one; null when it
     /// does not (kb/Work PB511). ISO §13.18.22.4 GR5: <i>"Literal-1, if specified, is the name of the file

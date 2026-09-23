@@ -73,6 +73,11 @@ internal static class BindPipeline
         // reads a Pic. Without it `01 M.` — plain COBOL, no exotic clause — reached MoveEmitter with a null Pic
         // and crashed the compiler with an unhandled NullReferenceException and no diagnostic at all.
         new BindPass("CheckPictureRequired", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckPictureRequired()),
+        // The BLANK WHEN ZERO / JUSTIFIED SUBJECT screen (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3; kb/Work PB507).
+        // After CheckPictureRequired, whose ElementaryOnly rows have already cleared both clauses from every GROUP,
+        // and after UsageInheritancePass because SR2's usage may be INHERITED (§13.18.60.4 GR1). Before
+        // everything that reads the flags (the edit/store emitters), so a refused clause is never applied.
+        new BindPass("CheckClauseSubjects", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckClauseSubjects()),
         new BindPass("InheritSignClauses", PassPhase.UsageResolved, PassPhase.SignResolved, d => d.InheritSignClauses()),
         // The §13.18.13.3 SR3 a)/b) CODE-SET record screen — §13.18.52.3 SR3's twin (kb/Work PB536). Placed
         // HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record

@@ -26,7 +26,7 @@ namespace CobolNet.Tests.Unit;
 ///   <c>DataBinder.CheckPictureRequired</c> reports it and gives the entry a recovery profile (kb/Work PB487).</item>
 ///   <item>BOTH — an entry with a PICTURE clause AND subordinates. ISO §13.18.40.3 SR1 forbids it ("The PICTURE
 ///   clause may be specified only at the elementary level", read with §8.5.1.3.1's "those not further
-///   subdivided, are called elementary items"); <c>DataBinder.CheckPictureAtElementaryLevel</c> reports it and
+///   subdivided, are called elementary items"); <c>DataBinder.CheckElementaryOnlyClauses</c> (the table's PICTURE row) reports it and
 ///   clears the PICTURE so the entry becomes the group its hierarchy declares (kb/Work PB527).</item>
 /// </list>
 ///

@@ -5025,6 +5025,49 @@ public static class DiagnosticCatalog
         + "clause\"; §14.9.16.3 SR3 says the same of a detail group's report and file. Add IS GLOBAL to the FD.",
         "ISO §14.9.16.3 SR3/SR4 · §14.9.21.3 SR2 · §14.9.46.3 SR2");
 
+    // ── The data-description CLAUSE-PLACEMENT screen (kb/Work PB507 / PB512 / PB518 / PB519). One table —
+    //    DataClausePlacement.Rules in the binder — reports through these three codes plus COBOLNET2191 (the
+    //    PICTURE row, which predates the table). ──
+
+    /// <summary>§13.16.3 SR11 — "The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an
+    /// elementary data item." The JUSTIFIED and BLANK WHEN ZERO halves (the PICTURE half is COBOLNET2191,
+    /// §13.18.40.3 SR1). Both clauses were recorded on a GROUP entry and silently ignored: the group's MOVE was
+    /// neither right-justified nor blanked, and nothing told the programmer the clause was illegal (kb/Work
+    /// PB512). Unchanged in all four editions.</summary>
+    public static readonly DiagnosticDescriptor ClauseElementaryOnly = new(
+        "COBOLNET2403", "clause-elementary-only", EditionSeverity.Error,
+        "A JUSTIFIED or BLANK WHEN ZERO clause was specified on an entry that has subordinate entries. ISO §13.16.3 "
+        + "SR11: \"The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data "
+        + "item.\"",
+        "ISO §13.16.3 SR11 / §13.18.32.3 SR1");
+
+    /// <summary>The EXTERNAL / GLOBAL clause's RESIDENCE rules: the level-number (§13.16.3 SR6, §13.18.22.3 SR1,
+    /// §13.18.27.3 SR1 b)), the section (§13.18.22.3 SR1 — EXTERNAL only in WORKING-STORAGE), the data-name format
+    /// of the entry-name clause (§13.16.3 SR7, both the entry's own half and the FD-record half), and the
+    /// same-entry exclusion (§13.16.3 SR5 — EXTERNAL with REDEFINES or BASED).
+    /// <para>They had no clause-site screen: the post-bind registration scan wrote the level and name tests as
+    /// <c>continue</c> filters, so a misplaced clause was accepted and then silently annulled (kb/Work PB518), and
+    /// EXTERNAL on a REDEFINES entry was accepted and then re-based the redefines ANCHOR onto the run-unit cell,
+    /// discarding the anchor's VALUE (kb/Work PB519).</para></summary>
+    public static readonly DiagnosticDescriptor DataClausePlacement = new(
+        "COBOLNET2404", "data-clause-placement", EditionSeverity.Error,
+        "An EXTERNAL or GLOBAL clause was specified where its syntax rules do not admit it: below level 1, "
+        + "outside the sections that admit it, on an entry without a data-name, or (EXTERNAL) in the same entry "
+        + "as REDEFINES or BASED.",
+        "ISO §13.16.3 SR5/SR6/SR7 · §13.18.22.3 SR1 · §13.18.27.3 SR1 b)");
+
+    /// <summary>The SUBJECT rules of the BLANK WHEN ZERO and JUSTIFIED clauses — what the elementary item they are
+    /// written on may be. §13.18.8.3 SR1 (category numeric-edited, or numeric without 'S') and SR2 (usage display
+    /// or national, written or inherited); §13.18.32.3 SR3 (category alphabetic, alphanumeric, boolean or
+    /// national — SR4's dynamic-length exclusion is §13.16.3 SR18's COBOLNET1563). The BLANK WHEN ZERO rules were written down once, in the
+    /// legacy engine, and never ported: the typed-native binder only USED the flag, so the clause was silently
+    /// ignored on every usage but display/national and on every non-numeric picture (kb/Work PB507).</summary>
+    public static readonly DiagnosticDescriptor ClauseSubjectCategory = new(
+        "COBOLNET2405", "clause-subject-category", EditionSeverity.Error,
+        "A BLANK WHEN ZERO or JUSTIFIED clause was specified for an item whose category or usage the clause does "
+        + "not admit.",
+        "ISO §13.18.8.3 SR1/SR2 · §13.18.32.3 SR3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

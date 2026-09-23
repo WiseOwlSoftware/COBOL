@@ -58,7 +58,7 @@ public sealed partial class DataBinder
     /// declaration defect, not a pending adjudication.</para></summary>
     internal void CheckPictureRequired()
     {
-        CheckPictureAtElementaryLevel();
+        CheckElementaryOnlyClauses();   // §13.18.40.3 SR1 + §13.16.3 SR11 — the table's ElementaryOnly rows
         foreach (var item in ConformanceForest())
         {
             if (!IsPictureLessLeaf(item)) continue;
@@ -115,53 +115,7 @@ public sealed partial class DataBinder
     /// it: "The most basic subdivisions of a record, that is, those not further subdivided, are called
     /// elementary items." An entry is elementary IN THE SOURCE'S SENSE exactly when nothing is subordinate to
     /// it — a property of the written hierarchy, never of <see cref="DataItem.IsElementary"/>, which is DEFINED
-    /// as <c>Pic is not null</c> and would make both guards below circular.</summary>
+    /// as <c>Pic is not null</c> and would make both guards circular (the SR1 direction is
+    /// <c>CheckElementaryOnlyClauses</c>, DataBinder.ClausePlacement.cs, which JUSTIFIED and BLANK WHEN ZERO share).</summary>
     private static bool HasNoSubordinates(DataItem item) => item.Children.Count == 0;
-
-    /// <summary>ISO §13.18.40.3 SR1 — "The PICTURE clause may be specified only at the elementary level."
-    ///
-    /// <para><b>The shape this refuses has no representation in the bound model</b> (kb/Work PB527), which is
-    /// why it must be refused rather than modelled: <see cref="DataItem.IsElementary"/> is
-    /// <c>Pic is not null</c> and <see cref="DataItem.IsGroup"/> is <c>Pic is null &amp;&amp; Children.Count >
-    /// 0</c>, so an entry carrying BOTH is neither, and every consumer that branches on the pair silently picks
-    /// the elementary arm. Measured before this guard, at all four editions: <c>01 G PIC X(3). 05 A PIC X.</c>
-    /// compiled clean and dropped A from the emitted record struct; adding <c>DISPLAY A</c> crashed the BACKEND
-    /// with <c>error CS1061: 'string' does not contain a definition for 'A'</c> and a path to a generated file
-    /// — an internal failure where the standard requires a named COBOL diagnostic.</para>
-    ///
-    /// <para><b>The recovery clears the PICTURE, not the children.</b> The entry is one the model CAN hold once
-    /// one of the two is gone, and dropping the subordinates would silently delete data-names the procedure
-    /// division may reference — turning one reported defect into a cascade of invented ones. Clearing
-    /// <see cref="DataItem.Pic"/> makes the entry the group its hierarchy says it is, so the forest stays
-    /// consistent for the passes that follow under an already-failed compile.
-    /// <see cref="DataItem.PictureText"/> is kept: it is the written spelling later messages name.</para>
-    ///
-    /// <para>Level 66 and 88 entries never carry a PICTURE clause and are not Format-1 entries
-    /// (§13.16.2 formats 2–4), and an unexpanded TYPE / SAME AS reference describes nothing of its own
-    /// (§13.18.57.4 GR1, §13.18.49.4 GR1/GR2) — both exclusions are <see cref="IsPictureLessLeaf"/>'s, for the
-    /// same reasons, and neither population can reach this guard anyway (a PICTURE beside TYPE or SAME AS is
-    /// already refused by §13.16.3 SR12/SR14).</para>
-    ///
-    /// <para>Reported over <see cref="ConformanceForest"/> and recovered over <see cref="CompositionForest"/>,
-    /// the same two-forest discipline as the SR8 guard: a defective TYPEDEF template is named ONCE, at the
-    /// entry the programmer must change, while every clone <c>ExpandTypes</c> already made is repaired.</para></summary>
-    private void CheckPictureAtElementaryLevel()
-    {
-        foreach (var item in ConformanceForest())
-        {
-            if (item.Pic is null || HasNoSubordinates(item)) continue;
-            using var _ = Edition.At(item);
-            Edition.Error(DiagnosticCatalog.PictureAtElementaryLevel,
-                $"data item '{item.CobolName ?? "FILLER"}': the PICTURE clause may be specified only at the "
-                + "elementary level (ISO §13.18.40.3 SR1) — this entry has "
-                + $"{item.Children.Count} subordinate {(item.Children.Count == 1 ? "entry" : "entries")}, so it is "
-                + "not an elementary item (§8.5.1.3.1: the elementary items are the subdivisions \"not further "
-                + $"subdivided\"). Remove PICTURE {item.PictureText ?? "…"} from this entry, or remove the "
-                + "subordinate entries");
-        }
-
-        foreach (var item in CompositionForest())
-            if (item.Pic is not null && !HasNoSubordinates(item))
-                item.Pic = null;   // the entry becomes the group its hierarchy declares (see the summary)
-    }
 }
