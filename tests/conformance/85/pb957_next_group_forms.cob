@@ -41,7 +41,7 @@
       *>  GENERATE DE-B: GR4 a) — the page advance: PF line 17 "PF 1"; form feed; PC 2; PH line 1 "PH 2".
       *>   DE-B has only relative lines, so GR4 a) 3.: its first line is 6 + 1 = 7 (NOT FIRST DETAIL 5):
       *>   "B07". GR4 b): LC 9.
-      *>  TERMINATE (§14.9.46.4 GR3; no CONTROL clause): PF line 17 "PF 2"; GR5 b) LC 18; RF, a page
+      *>  TERMINATE (§14.9.46.4 GR3; no CONTROL clause): PF line 17 "PF 2"; §13.18.37.4 GR5 b) LC 18; RF, a page
       *>   footing printed on this page -> LC + 1 = 19 "RF" (without the PF's NEXT GROUP, line 18).
       *>
       *> THE READ-BACK numbers every physical line of each page (the PB484 byte reader) and shows each form
