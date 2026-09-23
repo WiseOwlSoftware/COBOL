@@ -202,6 +202,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             foreach (var dref in drefs)
             {
                 string kn = DataBinder.WrittenText(dref);
+                // §14.9.40.3 SR14 b) — "Key data names shall not be subscripted" — and §8.4.3.3.3's NOTE (no
+                // reference-modifier where the format prints data-name-n): the one data-name-n screen, ahead of
+                // KeyReference, which keeps the qualifiers and DROPS every other suffix — `SORT E ON ASCENDING
+                // KEY K(4:3)` used to sort on all of K (kb/Work PB481, measured).
+                if (!DataBinder.ScreenDataNameShape(dref, "SORT table key", ctx.Edition))
+                    return BoundRejected.Reported(ctx.Edition);
                 // §14.9.40.3 SR14 a)'s own walk — "The data item identified by a key data-name shall be the same
                 // as, or subordinate to, the data item referenced by data-name-2" — over data-name-2's subtree,
                 // narrowed by the WRITTEN qualifiers and counted (kb/Work PB1018): the same §8.4.2.2 subtree
@@ -450,6 +456,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §14.9.40.2 Format 1 / §14.9.24.2)");
         foreach (var dref in drefs)
         {
+            // §14.9.40.2 Format 1 / §14.9.24.2 print `KEY { data-name-1 } …` — a qualified-data-name, never an
+            // identifier: §8.4.3.3.3's NOTE forbids the reference-modifier and §14.9.40.3 SR6 b) the subscript. The one
+            // data-name-n screen refuses both BEFORE the resolver, which would otherwise hand back the base item
+            // with the modifier dropped and key the file on the whole field (kb/Work PB481).
+            if (!DataBinder.ScreenDataNameShape(dref, "SORT/MERGE key", ctx.Edition)) return false;
             // Qualification supported (e.g. ST139A's `KEY-1 OF DATA-NAME-1`) via the one reference resolver.
             // A key that did not resolve carries the resolver's diagnostic, never a second "unresolvable" one
             // (kb/Work PB1030).

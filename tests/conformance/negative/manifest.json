@@ -1475,7 +1475,13 @@
   "pb550-value-in-redefining-entry",
   "pb551-condition-name-under-constant-record",
   "pb586-level88-literal-out-of-range",
-  "pb586-report-literal-out-of-range"
+  "pb586-report-literal-out-of-range",
+  "pb524-linage-operand-not-unsigned-integer",
+  "pb524-linage-footing-beyond-page",
+  "pb481-record-key-refmod",
+  "pb481-sort-key-refmod",
+  "pb481-table-sort-key-refmod",
+  "pb481-read-key-refmod"
  ],
  "pending": []
 }

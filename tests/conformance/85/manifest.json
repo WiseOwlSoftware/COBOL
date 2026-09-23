@@ -166,7 +166,8 @@
   "pb518_clause_placement_legal",
   "pb515_index_item_without_value",
   "pb550_redefines_value_placement",
-  "pb586_level88_range_boundaries"
+  "pb586_level88_range_boundaries",
+  "pb524_linage_operand_shapes"
  ],
  "pending": []
 }

@@ -437,10 +437,12 @@ internal static class FileControlKeyRules
     /// <c>DataBinder.ResolveFiles</c>, so a file is reported once however many statements name it — the
     /// one-report-per-file property the old per-verb memo (<c>_keyedCheckedFiles</c>) existed to provide, now a
     /// consequence of WHERE the screen runs rather than a set the screen has to carry.</summary>
-    /// <param name="ambiguousOperands">Key operand names the resolution already refused as §8.4.2.2.3 SR1
-    /// ambiguities (kb/Work PB978): such an operand has no item, and SR2's "references nothing described" would be
-    /// a false second verdict about it — two items ARE described — so no rule speaks about it again.</param>
-    public static void Screen(FileModel file, EditionContext edition, IReadOnlySet<string>? ambiguousOperands = null)
+    /// <param name="refusedOperands">Key operand names already REFUSED and reported, for which no rule here may
+    /// speak again: a §8.4.2.2.3 SR1 ambiguity (kb/Work PB978 — two items ARE described), and an operand the
+    /// capture refused for its written SHAPE (a subscript or reference-modifier, COBOLNET2024 — kb/Work PB481),
+    /// recorded as written and so naming no item. Either has no item, and SR2's "references nothing described"
+    /// would be a false second verdict about it.</param>
+    public static void Screen(FileModel file, EditionContext edition, IReadOnlySet<string>? refusedOperands = null)
     {
         // ⛔ A SORT-MERGE FILE IS SCREENED, and the rules that speak about it say so in their own ScreenedOn set.
         // This method used to open with `if (file.IsSortMerge) return;` and a comment observing that an SD whose
@@ -455,7 +457,7 @@ internal static class FileControlKeyRules
             if (!HasApplicableRule(file, kind, role)) continue;   // a relative entry never enumerates a RECORD KEY
             foreach (var op in Operands(file, role))
             {
-                if (op is { Item: null, Name: { } refused } && ambiguousOperands?.Contains(refused) == true) continue;
+                if (op is { Item: null, Name: { } refused } && refusedOperands?.Contains(refused) == true) continue;
                 foreach (var rule in Rules)
                 {
                     if (rule.Role != role || (rule.ScreenedOn & kind) == 0

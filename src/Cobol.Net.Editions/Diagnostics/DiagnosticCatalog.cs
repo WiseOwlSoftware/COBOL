@@ -3586,7 +3586,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ClauseOperandNotADataName = new(
         "COBOLNET2024", "clause-operand-not-a-data-name", EditionSeverity.Error,
         "A clause operand (a file description or file control clause, or an OCCURS clause's DEPENDING, KEY or "
-        + "CAPACITY phrase in the data or report section — §13.18.38.3 SR2/SR5/SR31) written where the clause's "
+        + "CAPACITY phrase in the data or report section — §13.18.38.3 SR2/SR5/SR31), or a SORT or MERGE KEY "
+        + "phrase operand (§14.9.40.2, §14.9.24.2; §14.9.40.3 SR14 b), written where the clause's "
         + "general format prints data-name-n is not a qualified-data-name (ISO §8.4.2.2.2 Format 1): it is a special register "
         + "(LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER — §8.4.3.1 Format 10 / Format 11 identifiers, confined "
         + "to the procedure division by §8.4.3.14.3 SR1 and §8.4.3.15.3 SR1), or it carries a subscript "
@@ -3599,15 +3600,16 @@ public static class DiagnosticCatalog
     /// data-name-3, and data-name-4 shall not be subject to any OCCURS clauses" — had no site at all: a LINAGE
     /// operand naming a table element compiled clean and killed the process at OPEN OUTPUT with a runtime
     /// "not resolvable to storage" throw, where §4.2.2 requires a compile-time indication.
-    /// <para>SR2 (elementary unsigned numeric integer) and SR3 (integer-2 not greater than integer-1) are one
-    /// more test each in the same screen and belong to kb/Work PB524; they report under this code when they
-    /// land, because the subject is the same — this clause's operand breaking one of its own syntax rules — and
-    /// the message names the rule it caught.</para></summary>
+    /// <para>SR2 (elementary unsigned numeric integer) and SR3 (integer-2 not greater than integer-1) are the
+    /// other two tests of the same screen (kb/Work PB524) and report under this code, because the subject is the
+    /// same — this clause's operand breaking one of its own syntax rules — and the message names the rule it
+    /// caught.</para></summary>
     public static readonly DiagnosticDescriptor LinageClauseOperandRule = new(
         "COBOLNET2025", "linage-clause-operand-rule", EditionSeverity.Error,
         "A LINAGE clause operand breaks one of the clause's syntax rules (ISO §13.18.34.3): SR1 — \"Data-name-1, "
-        + "data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS clauses\". The site "
-        + "names the rule it caught.",
+        + "data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS clauses\"; SR2 — they "
+        + "\"shall reference elementary unsigned numeric integer data items\"; SR3 — \"Integer-2 shall not be "
+        + "greater than integer-1\". The site names the rule it caught.",
         "ISO §13.18.34.3");
 
     /// <summary>COBOLNET2026 — LINAGE-COUNTER as a RECEIVING operand (kb/Work PB489). §8.4.3.14.3 SR2: "The

@@ -105,7 +105,13 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                         + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
                 else if (host.Expr.ResolveSending(keyRef).PlaceOrReported(ctx.Edition) is not { } keyPlace)
                     return BoundRejected.Reported(ctx.Edition);   // the resolver's diagnostic, never SR11's (kb/Work PB1030)
-                else if (Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
+                // ⛔ SR11 IS AN IDENTITY OVER DATA ITEMS, SO IT ASKS DenotedItem — START's SR5/SR6 twin (kb/Work
+                // PB602), fixed there and not here until kb/Work PB481's key sweep. A reference-modified operand
+                // denotes §8.4.3.3.4 GR5's "unique data item that is a subset of the data item referenced by
+                // identifier-1", which no RECORD KEY clause names; asked of Item it inherited the key's answer and
+                // `READ IXF KEY IS IX-KEY(1:3)` compiled clean and read on the whole key.
+                else if (keyPlace.DenotedItem is not { } keyItem
+                    || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem) is not { } ki)
                 {
                     return BoundRejected.Report(ctx.Edition, "COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");

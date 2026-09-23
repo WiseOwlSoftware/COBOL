@@ -1397,16 +1397,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <c>LINAGE IS T-LINES (2) LINES</c> dropped the subscript and crashed the same way (kb/Work PB489). The
     /// key clauses' own silent drop of a subscript or ref-mod (kb/Work PB205) is the same sentence and ends
     /// here too.</para></summary>
-    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace)
+    private bool ScreenClauseOperandShape(Core.DataReferenceContext dref, string clauseFace) =>
+        ScreenDataNameShape(dref, clauseFace, Edition);
+
+    /// <summary>The body of <see cref="ScreenClauseOperandShape"/>, static over the <see cref="EditionContext"/>
+    /// so a PROCEDURE-DIVISION operand written where a general format prints <i>data-name-n</i> is refused by
+    /// the SAME screen: the SORT (§14.9.40.2, both formats) and MERGE (§14.9.24.2) KEY phrases print
+    /// <c>KEY { data-name-1 } …</c>, and §8.4.3.3.3's NOTE and §14.9.40.3 SR14 b) (<i>"Key data names shall not
+    /// be subscripted"</i>) are the same obligation this screen discharges for the file clauses. Those keys used
+    /// to reach the one reference resolver (Format 1) or <see cref="KeyReference"/> (Format 2), and BOTH kept
+    /// the base item and dropped a reference-modifier — <c>SORT E ON ASCENDING KEY K(4:3)</c> sorted on all six
+    /// characters of K (kb/Work PB481, measured).</summary>
+    internal static bool ScreenDataNameShape(Core.DataReferenceContext dref, string clauseFace, EditionContext edition)
     {
-        using var _ = Edition.At(dref);
+        using var _ = edition.At(dref);
         string? register =
             dref.LINAGE_COUNTER() is not null ? "LINAGE-COUNTER"
             : dref.LINE_COUNTER() is not null ? "LINE-COUNTER"
             : dref.PAGE_COUNTER() is not null ? "PAGE-COUNTER" : null;
         if (register is not null)
         {
-            Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
+            edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n, which is a "
                 + "qualified-data-name (ISO §8.4.2.2.2 Format 1); "
                 + $"{register} is a special register — an identifier of §8.4.3.1 "
@@ -1420,23 +1431,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // A subscript or a reference-modifier may be written on the base word OR on a qualifier (`qualification`
         // carries both suffix kinds too), and it is the same violation in either place: every name in
         // §8.4.2.2.2 Format 1 — data-name-1 and each data-name-2 — is a bare data-name.
-        bool subscripted = false, refModified = false;
-        foreach (var s in dref.dataReferenceSuffix())
-        {
-            subscripted |= s.subscriptPart() is not null;
-            refModified |= s.refModPart() is not null;
-            if (s.qualification() is not { } q) continue;
-            subscripted |= q.subscriptPart().Length > 0;
-            refModified |= q.refModPart().Length > 0;
-        }
+        // ⛔ THE SUFFIXES ARE READ BY THE ONE LEXICAL READER, ReferenceResolver.ReadOperandSuffixes (kb/Work
+        // PB481). A reference-modifier reaches the binder through TWO carriers frozen at lex time — the parsed
+        // `refModPart` and the SUBSCRIPT-mode captured group with a depth-0 colon — and this screen used to walk
+        // the parse tree itself and count EVERY `subscriptPart` as a subscript, so `RECORD KEY IS IX-KEY(1:3)`
+        // (the captured carrier, the usual one) was refused as "written with a subscript". The refusal was right
+        // and the sentence was false; the reader that knows both carriers is the only one that can say which.
+        var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
+        bool subscripted = sfx.Subscripts > 0, refModified = sfx.RefMods > 0;
         if (subscripted)
-            Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
+            edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints "
                 + "data-name-n, which is a qualified-data-name (ISO §8.4.2.2.2 Format 1) and carries no subscript "
                 + "— subscripting is §8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and the "
                 + "operand shall not be subject to any OCCURS clauses");
         else if (refModified)
-            Edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
+            edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}' is reference-modified; \"where data-name-n is used in a general "
                 + "format or syntax rule, then reference-modification is not permitted\" (ISO §8.4.3.3.3 NOTE)");
         return !subscripted && !refModified;
@@ -1723,7 +1733,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         LinageOperand Operand(Core.DataReferenceContext? d, Core.IntegerLiteralContext? i)
         {
-            if (i is not null) return new LinageOperand(int.Parse(i.GetText()), null);
+            if (i is not null)
+            {
+                // A literal operand keeps its cursor too: §13.18.34.3 SR3 reports AT integer-2 (ResolveLinage).
+                using var lit = Edition.At(i);
+                return new LinageOperand(int.Parse(i.GetText()), null) { At = Edition.Cursor };
+            }
             var (name, quals) = ClauseDataName(d!, "LINAGE clause operand");
             using var _ = Edition.At(d!);
             return new LinageOperand(null, name) { Qualifiers = quals, At = Edition.Cursor };
@@ -1840,15 +1855,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // ⛔ AND THE SELECTION IS COUNTED (kb/Work PB978): SR2 narrows the set to this file's records when any
             // survivor lies there, and what remains must be ONE — two same-named keys in this file's records, or
             // two outside them with none inside, are §8.4.2.2.3 SR1's ambiguity, never the first declared.
-            HashSet<string> ambiguousKeys = new(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> refusedKeys = new(StringComparer.OrdinalIgnoreCase);
             DataItem? InRecords(string keyName, IReadOnlyList<string> quals, string face, Editions.DiagnosticCursor at)
             {
+                // ⛔ ALREADY REFUSED AT CAPTURE — one fault, one verdict (kb/Work PB481). ClauseDataName records a
+                // refused operand AS WRITTEN (`IX-KEY(1:3)`), which no data item is named, so the key screen's SR2
+                // row then added "references nothing described in this program" under COBOLNET0863 — a false
+                // second verdict about an operand whose only fault is its shape. The RELATIVE KEY arm below never
+                // had the cascade because ResolveClauseOperand already asks this set; the two record-key arms
+                // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
+                if (_refusedClauseOperands.Contains(keyName)) { refusedKeys.Add(keyName); return null; }
                 var cands = QualifiedCandidates(keyName, quals, Model.Scope.Program);
                 var inFile = cands.Where(i => RecordLayout.IsInRecordOfFile(file, i));
                 using var __ = Edition.At(at);
                 var hit = UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face,
                     WrittenQualified(keyName, quals), out bool ambiguous);
-                if (ambiguous && hit is null) ambiguousKeys.Add(keyName);
+                if (ambiguous && hit is null) refusedKeys.Add(keyName);
                 return hit;
             }
             if (file.RecordKeyName is { } rk)
@@ -1864,7 +1886,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // whatever the procedure division does with it. They used to run from KeyedIoBinder on the first keyed
             // VERB that named the file, so a program that only OPENed and CLOSEd a file whose keys break them
             // compiled clean (kb/Work PB699). One table, one screen: FileControlKeyRules.
-            FileControlKeyRules.Screen(file, Edition, ambiguousKeys);
+            FileControlKeyRules.Screen(file, Edition, refusedKeys);
             // ⛔ The RECORD clause's own size syntax rules (ISO §13.18.43.3 SR3/SR4/SR5/SR9), screened HERE for
             // the same reason and by the same shape: they are rules of the file description ENTRY, and SR3/SR4
             // compare the clause's integers against §13.18.43.4 GR8's byte counts of the record descriptions,
@@ -1923,10 +1945,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// process kill where the standard requires a compile-time rejection (kb/Work PB489/PB524, measured). The
     /// WRITTEN subscript form — <c>LINAGE IS T-LINES (2) LINES</c> — is refused earlier, at the capture, because
     /// §13.18.34.2 prints data-name-1 and a subscript is not part of a qualified-data-name.</para>
-    /// <para>⛔ SR2 (elementary unsigned numeric integer) and SR3 (integer-2 not greater than integer-1) belong
-    /// to kb/Work PB524 and are ONE MORE TEST EACH in this method — SR2 over <see cref="LinageOperand.Item"/>'s
-    /// PICTURE, SR3 over the two literals <see cref="BindLinageClause"/> already has in hand. They are named here
-    /// rather than left implicit so the next fixer adds a test beside these, not a screen somewhere else.</para>
+    /// <para>SR2, <i>"Data-name-1, data-name-2, data-name-3, and data-name-4 shall reference elementary unsigned
+    /// numeric integer data items"</i>, and SR3, <i>"Integer-2 shall not be greater than integer-1"</i>, are the
+    /// other two tests of the SAME screen (kb/Work PB524). Neither had a site: the emitter ASSUMED SR2
+    /// (<c>SequentialIoEmitter</c>'s "scale 0 by SR2's elementary-unsigned-integer rule, with a defensive
+    /// rescale"), so an alphanumeric "007" was read as page size 7, a PIC 9V9 5.5 was truncated to 5, and a signed
+    /// or SR3-breaking page reached run time and threw a CLR exception out of the page evaluation. SR2's
+    /// "integer" is <see cref="PicInfo.IsIntegerDescription"/> — §5.5's fixed-point, no-fraction reading, the one
+    /// predicate every integer-data-item rule reads, which also refuses a floating-point item and an index item
+    /// (class index, never numeric). SR3 compares the two LITERALS only: with a data-name on either side the
+    /// relation is a value at run time and §13.18.34.4 GR3 is its rule.</para>
+    /// <para>SR4 (integer-3 / integer-4 may be zero) is a permission, honoured by the §5.5 1) integer-n screen
+    /// (<c>IntegerOperandPass</c>), which is where a ZERO integer-1 or integer-2 is refused.</para>
     /// </summary>
     private void ResolveLinage(FileModel file)
     {
@@ -1935,16 +1965,41 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (op.DataName is not { } name) continue;   // GR6 a) — a literal operand has no data item
             op.Item = ResolveClauseOperand(name, op.Qualifiers, "LINAGE clause operand", op.At);
-            if (op.Item is { } item && RecordLayout.IsSubjectToOccurs(item))
-            {
-                using var _ = Edition.At(op.At);
+            if (op.Item is not { } item) continue;   // unresolved — reported by the resolution, one verdict
+            using var _ = Edition.At(op.At);
+            if (RecordLayout.IsSubjectToOccurs(item))
                 Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
                     $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
                     + "data-name-3, and data-name-4 shall not be subject to any OCCURS clauses "
                     + "(ISO §13.18.34.3 SR1)");
-            }
+            else if (LinageOperandShapeFault(item) is { } fault)
+                Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
+                    $"LINAGE clause operand '{name}' is {fault}; data-name-1, data-name-2, data-name-3, and "
+                    + "data-name-4 shall reference elementary unsigned numeric integer data items "
+                    + "(ISO §13.18.34.3 SR2)");
+        }
+        // SR3 — both operands are literals, so the relation is known now and is a syntax rule.
+        if (lin.Body.Literal is int page && lin.Footing is { Literal: int footing } foot && footing > page)
+        {
+            using var _ = Edition.At(foot.At);
+            Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
+                $"LINAGE clause: FOOTING AT {footing} is greater than the page size {page}; integer-2 shall not be "
+                + "greater than integer-1 (ISO §13.18.34.3 SR3)");
         }
     }
+
+    /// <summary>Which conjunct of §13.18.34.3 SR2 — "elementary unsigned numeric integer" — the item breaks, as
+    /// the phrase the diagnostic prints; null when it satisfies all four. Asked in the rule's own word order so
+    /// the FIRST failing word is the one named.</summary>
+    private static string? LinageOperandShapeFault(DataItem item) =>
+        item.IsGroup ? "a group item, not an elementary item"
+        : item.Pic is not { Category: PicCategory.Numeric } pic ? $"{ItemCategory.Face(item)}, not a numeric data item"
+        : pic.Usage is Usage.Index ? "an index data item (class index), not a numeric data item"
+        : !pic.IsIntegerDescription
+            ? (pic.IsFloat ? "a floating-point numeric data item, not an integer data item"
+                : "a numeric data item with digits to the right of the decimal point, not an integer data item")
+        : pic.Signed ? "a signed numeric data item, not an unsigned one"
+        : null;
 
     /// <summary>
     /// Resolve the ASSIGN … USING data-name-1 (ISO §12.4.5.3 GR3 b — dynamic file assignment, §9.1.21) and enforce

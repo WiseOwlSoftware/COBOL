@@ -72,6 +72,48 @@ public sealed class ClauseOperandCaptureDriftTests
         Assert.Contains(hits[0].Value, capture, StringComparison.Ordinal);
     }
 
+    /// <summary>⛔ THE DATA-NAME-N SCREEN READS SUFFIXES THROUGH THE ONE LEXICAL READER (kb/Work PB481). A
+    /// reference-modifier reaches the binder through two carriers frozen at lex time — the parsed <c>refModPart</c>
+    /// and the SUBSCRIPT-mode captured group with a depth-0 colon — and a screen that walked the parse tree itself
+    /// counted every <c>subscriptPart</c> as a subscript, refusing <c>RECORD KEY IS IX-KEY(1:3)</c> as "written
+    /// with a subscript". Only <c>ReferenceResolver.ReadOperandSuffixes</c> knows both carriers.</summary>
+    [Fact]
+    public void TheDataNameScreen_ReadsSuffixesThroughTheOneReader()
+    {
+        string body = MethodBody(DataBinderSource(), "internal static bool ScreenDataNameShape(");
+        Assert.Contains("ReferenceResolver.ReadOperandSuffixes(", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(".subscriptPart()", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(".refModPart()", body, StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ EVERY <c>KeyReference</c> CAPTURE OUTSIDE THE REPORT SECTION IS SCREENED (kb/Work PB481).
+    /// <c>KeyReference</c> keeps the qualifiers and DROPS a subscript or reference-modifier, so a data-name-n
+    /// operand that reaches it unscreened binds as if unmodified — the SORT table key did, and sorted on the whole
+    /// item. The report-section callers (<c>DataBinder.Reports.cs</c>) are the principled exceptions: §13.18.16.3
+    /// SR4 and its twins PERMIT a reference-modifier there and read it through <c>ReadOperandSuffixes</c>. Any
+    /// other file that calls <c>KeyReference</c> must also call the screen, so a new key-naming caller cannot
+    /// re-open the drop by repeating the idiom.</summary>
+    [Fact]
+    public void EveryKeyReferenceCapture_OutsideTheReportSection_IsScreened()
+    {
+        int callers = 0;
+        foreach (string path in Directory.EnumerateFiles(
+                     TestRepo.Src("Cobol.Net.Compiler"), "*.cs", SearchOption.AllDirectories))
+        {
+            if (path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                || path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                || Path.GetFileName(path) == "DataBinder.Reports.cs")
+                continue;
+            string src = File.ReadAllText(path);
+            if (!Regex.IsMatch(src, @"KeyReference\((?!Core\.)")) continue;   // a call, not the definition
+            callers++;
+            Assert.True(src.Contains("ScreenDataNameShape(", StringComparison.Ordinal)
+                        || src.Contains("ScreenClauseOperandShape(", StringComparison.Ordinal),
+                $"{Path.GetFileName(path)} calls KeyReference without the data-name-n shape screen (kb/Work PB481)");
+        }
+        Assert.True(callers >= 2, "the scan found fewer KeyReference callers than DataBinder + SortBinder — re-derive it");
+    }
+
     /// <summary>The post-build file-clause resolution holds NO first-match name lookup. §8.4.2.2.1 makes the
     /// NUMBER of candidates the answer — "uniqueness shall be established through qualification" — so a site that
     /// takes <c>[0]</c> has substituted declaration order for the standard's rule, silently.</summary>

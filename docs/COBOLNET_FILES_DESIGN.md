@@ -1727,7 +1727,17 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   SR1 confine them to the procedure division), a SUBSCRIPT (§8.4.2.3's *with-subscripts* form is an identifier,
   and each of these clauses independently bans an operand subject to an OCCURS clause), and a
   REFERENCE-MODIFIER (§8.4.3.3.3's NOTE). A refused operand is recorded AS WRITTEN and its later resolution stays
-  silent — one fault, one verdict.
+  silent — one fault, one verdict, including the RECORD KEY / ALTERNATE RECORD KEY selection and the
+  `FileControlKeyRules` SR2 row, which take the refused names with the ambiguous ones (kb/Work PB481). The screen
+  reads the operand's suffixes through `ReferenceResolver.ReadOperandSuffixes`, the one reader that knows both
+  lex-time carriers of a reference-modifier (the parsed `refModPart` and the SUBSCRIPT-mode group with a depth-0
+  colon); counting every `subscriptPart` as a subscript called `IX-KEY(1:3)` "a subscript".
+- **`ScreenDataNameShape(dref, face, edition)`** — the same screen, static, for a PROCEDURE-DIVISION operand
+  where a general format prints `data-name-n`: the SORT KEY phrase of both formats (§14.9.40.2; §14.9.40.3
+  SR14 b) *"Key data names shall not be subscripted"*) and the MERGE KEY phrase (§14.9.24.2). Those keys used to
+  keep the base item and drop a reference-modifier, so a table SORT on `K(4:3)` sorted on all of K (kb/Work
+  PB481). READ's KEY operand (§14.9.30.3 SR11) and START's (§14.9.41.3 SR5/SR6) are identity rules and ask
+  `Place.DenotedItem`, which a reference-modified slice never is (kb/Work PB602, PB481).
 - **`ResolveClauseOperand(name, quals, face, at)`** — the resolution, reporting a zero- or many-survivor outcome
   under **COBOLNET1639**, the same descriptor the procedure division's own unidentified reference uses: the rule
   broken is §8.4.2.1/§8.4.2.2, not a rule of the clause.
@@ -1741,9 +1751,15 @@ the key inside a record description of the file), but take the candidates from t
 **The LINAGE clause's own syntax rules** live in `DataBinder.ResolveLinage`, the FD-clause twin of
 `ResolveFileCollating` and D19's `ResolveFiles` arm: §13.18.34.3 **SR1** (*"Data-name-1, data-name-2,
 data-name-3, and data-name-4 shall not be subject to any OCCURS clauses"*) → **COBOLNET2025**. It had no site at
-all — a LINAGE operand naming a table element compiled clean and killed the process at OPEN OUTPUT. SR2
-(elementary unsigned numeric integer) and SR3 (integer-2 ≤ integer-1) are one more test each in the same method
-and belong to kb/Work PB524. §8.4.3.14.3 **SR2**, *"The LINAGE-COUNTER identifier shall not be referenced as a
+all — a LINAGE operand naming a table element compiled clean and killed the process at OPEN OUTPUT. **SR2**
+(*"shall reference elementary unsigned numeric integer data items"*) and **SR3** (*"Integer-2 shall not be greater
+than integer-1"*) are the other two tests of the same method, under the same code (kb/Work PB524). SR2 names the
+first conjunct the item breaks — group, not numeric (an index item is class index), not an integer
+(`PicInfo.IsIntegerDescription`: fixed-point, no fraction — a floating-point item is refused), signed; SR3 compares
+the two LITERALS only, because with a data-name on either side the relation is a run-time value and §13.18.34.4 GR3
+governs it. Before, the emitter ASSUMED SR2 and its "defensive rescale" laundered an illegal operand: an
+alphanumeric "007" became page size 7 and a PIC 9V9 5.5 was truncated to 5. A zero integer-1 / integer-2 is §5.5
+1)'s, refused by `IntegerOperandPass` (SR4's permission covers only integer-3 / integer-4). §8.4.3.14.3 **SR2**, *"The LINAGE-COUNTER identifier shall not be referenced as a
 receiving operand"*, is the third arm of `ExpressionBinder.ResolveReceiving`'s register dispatch →
 **COBOLNET2026**; LINE-COUNTER and PAGE-COUNTER had arms and LINAGE-COUNTER did not, so permanently illegal
 source was refused as a not-yet-implemented receiver shape.
