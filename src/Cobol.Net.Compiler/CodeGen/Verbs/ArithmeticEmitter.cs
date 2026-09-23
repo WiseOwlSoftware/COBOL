@@ -159,15 +159,15 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
 
     /// <summary>COMPUTE: the RHS is rendered per receiver (so a quotient is computed at that receiver's scale + mode)
     /// then stored, rounded by the receiver's ROUNDED mode, under the ON SIZE ERROR phrase if any.</summary>
-    /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE, resize to the
-    /// GR3 width (the max static boolean-ITEM positions in the expression; 0 = all-literal, no intermediate
-    /// resize — the per-receiver store fits it), then store into each elementary boolean receiver with the
-    /// §14.6.8.6 left-align / zero-fill / truncate discipline (the string store, pad '0'; JUSTIFIED honored).
-    /// A multi-receiver COMPUTE materializes the value once (the §14.7.7-shaped once-evaluation).</summary>
+    /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE at the §14.9.8.4
+    /// GR3 width (the largest boolean ITEM referenced, carried at run time — <see cref="BooleanRenderer.RenderAtItemWidth"/>;
+    /// an all-literal expression keeps its own length and the per-receiver store fits it), then store into each
+    /// elementary boolean receiver with the §14.6.8.6 left-align / zero-fill / truncate discipline (the string
+    /// store, pad '0'; JUSTIFIED honored). A multi-receiver COMPUTE materializes the value once (the
+    /// §14.7.7-shaped once-evaluation).</summary>
     public void EmitComputeBoolean(BoundComputeBoolean cb)
     {
-        string value = BooleanRenderer.Render(cb.Rhs, num);
-        if (cb.Gr3Width > 0) value = RuntimeApi.BoolResize(value, $"{cb.Gr3Width}");
+        string value = BooleanRenderer.RenderAtItemWidth(cb.Rhs, num);
         // One evaluation for multiple receivers (a boolean expr can read an item a prior receiver aliases).
         if (cb.Targets.Count > 1)
         {

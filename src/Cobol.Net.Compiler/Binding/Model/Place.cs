@@ -790,6 +790,17 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
     /// init-only property (not a positional member) so existing deconstructions/constructions stay untouched.</summary>
     public bool AllowZeroLength { get; init; }
 
+    /// <summary>The slice's length when it is known at COMPILE time, in identifier-1's own positions
+    /// (§8.4.3.3.4 GR5a — bit positions for usage bit, character positions otherwise); <see langword="null"/>
+    /// when it is a RUN-TIME quantity. Known exactly when the length is an integer literal, or when it is omitted
+    /// ("to the end", §8.4.3.3.4 GR5c) with an integer-literal leftmost position over an identifier-1 of static
+    /// <paramref name="innerLength"/>. ⛔ A null is never "the whole item": a static reader that substitutes the
+    /// inner item's full length for an unknown slice over-states it (kb/Work PB589).</summary>
+    /// <param name="innerLength">identifier-1's length in the same positions, or null when it is not static.</param>
+    public int? StaticLength(int? innerLength) =>
+        Length is { } len ? (int.TryParse(len, out int n) ? n : null)
+        : innerLength is { } size && int.TryParse(Start, out int left) ? size - left + 1 : null;
+
     /// <summary>⛔ NOTHING A DATA DESCRIPTION ENTRY DECLARES — ISO §8.4.3.3.4 GR5: "Reference modification creates
     /// a unique data item that is a subset of the data item referenced by identifier-1." The slice IS a data item,
     /// and it is NOT <see cref="PlaceDecorator.Item"/> (which stays identifier-1, because GR6 takes the slice's

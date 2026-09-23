@@ -19,13 +19,32 @@ internal static class BooleanRenderer
     /// (<see cref="SendingRef"/>). Rule 1's checked boolean read is emitted unless the context is one of that
     /// rule's TWO exemptions — a class condition or VALIDATE.</param>
     public static string Render(BoundBoolExpr e, NumericRenderer num, SendingRef sending = SendingRef.Normal) =>
-        e.Accept(new RenderVisitor(num, sending));
+        e.Accept(new RenderVisitor(num, sending, sized: false));
+
+    /// <summary>Render a boolean expression whose value is taken at ISO §14.9.8.4 GR3's width — "the number of
+    /// boolean positions in the largest boolean item referenced in the expression" — for every site that states
+    /// it: COMPUTE Format 2, and the BY CONTENT boolean-expression argument of CALL and INVOKE (§8.8.2 rule 10's
+    /// same width). ⛔ THE WIDTH IS A RUN-TIME QUANTITY, so it is carried at run time (kb/Work PB589): each ITEM
+    /// leaf is wrapped <c>CobolBool.Item</c> (its own positions), each literal <c>CobolBool.Literal</c> (none),
+    /// the operators' <c>CobolBoolSized</c> overloads keep the max, and <c>CobolBool.ToItemWidth</c> applies it
+    /// once at the root. The bind-time width it replaces read a ref-mod length only when it was an integer
+    /// literal and otherwise counted the WHOLE inner item — <c>B(1:N)</c> and <c>B(K:)</c> over-stated the width
+    /// — and counted a BOOLEAN-OF-INTEGER whose length argument is a run-time value as NO item at all. Every
+    /// operand's width is now the length of the value it actually produced, so no operand kind can be mis-sized
+    /// by a width table that forgot it.</summary>
+    public static string RenderAtItemWidth(BoundBoolExpr e, NumericRenderer num, SendingRef sending = SendingRef.Normal) =>
+        RuntimeApi.BoolToItemWidth(e.Accept(new RenderVisitor(num, sending, sized: true)));
 
     // Dispatch through the generated exhaustive IBoundBoolExprVisitor (PHASE-07 Step 6): a new BoundBoolExpr leaf
     // is a COMPILE error here (the loud `_ =>` is gone). The visitor carries the NumericRenderer for shift counts.
-    private sealed class RenderVisitor(NumericRenderer num, SendingRef sending) : IBoundBoolExprVisitor<string>
+    // `sized` selects the §14.9.8.4 GR3 item-width-carrying form (RenderAtItemWidth): only the LEAVES differ —
+    // the operators resolve to CobolBool's CobolBoolSized overloads by the operand type.
+    private sealed class RenderVisitor(NumericRenderer num, SendingRef sending, bool sized) : IBoundBoolExprVisitor<string>
     {
-        public string Visit(BoundBoolLiteral n) => EmitText.CsLiteral(n.Bits);
+        private string Item(string v) => sized ? RuntimeApi.BoolItem(v) : v;
+        private string Lit(string v) => sized ? RuntimeApi.BoolLiteral(v) : v;
+
+        public string Visit(BoundBoolLiteral n) => Lit(EmitText.CsLiteral(n.Bits));
         // ⛔ THE BOOLEAN SENDING-READ CHOKEPOINT — the third of §14.6.13.2's three, beside the fixed-point one in
         // NumericRenderer.FieldNumCore and the float one beside it (kb/Work PB230). A category-boolean item IS a
         // '0'/'1' string (D-B1 — USAGE BIT takes the same character storage, §13.18.40.4 GR14's representation
@@ -35,22 +54,24 @@ internal static class BooleanRenderer
         // treating a foreign position as boolean zero, which is what "the result of the reference is undefined"
         // licenses. BOTH arms are wrapped — the bit-GROUP arm derives its string from bits and so can only ever
         // pass the test, but arm-specific cleverness here is exactly the shape that left rule 2 unwired.
-        public string Visit(BoundBoolRef n) => sending.FixedPointChecked()
+        public string Visit(BoundBoolRef n) => Item(sending.FixedPointChecked()
             ? RuntimeApi.BoolSending(n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place))
-            : n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place);
+            : n.Place.Item.IsAsIfElementary ? OperandText.FieldImage(n.Place) : PlaceRenderer.Read(n.Place));
         // A boolean FUNCTION's returned value lives in a fresh temporary (§15.4), not a stored item a window could
         // have corrupted, so it carries no rule-1 wrap — the same reasoning OperandText applies to a numeric
         // intrinsic's text.
-        public string Visit(BoundBoolCall n) => OperandText.AsString(new BoundComputedOperand(n.Call), num, sending: sending);   // the boolean function's '0'/'1' image (kb/Work PB68)
-        public string Visit(BoundBoolAll n) => EmitText.CsLiteral(n.Bits);     // materialized at the combine site (…All forms)
+        // It is an ITEM for GR3: a function-identifier "references a temporary data item" (§8.4.3.2.4 GR1), and
+        // BOOLEAN-OF-INTEGER "returns a boolean item" argument-2 positions long (§15.13).
+        public string Visit(BoundBoolCall n) => Item(OperandText.AsString(new BoundComputedOperand(n.Call), num, sending: sending));   // the boolean function's '0'/'1' image (kb/Work PB68)
+        public string Visit(BoundBoolAll n) => Lit(EmitText.CsLiteral(n.Bits));     // materialized at the combine site (…All forms)
         public string Visit(BoundBoolNot n) => RenderNot(n.Operand);
         public string Visit(BoundBoolBinary n) => RenderBinary(n);
         public string Visit(BoundBoolShift n) => RenderShift(n);
-        public string Visit(BoundBoolError n) => EmitText.LoudValue("string", n.Feature);
+        public string Visit(BoundBoolError n) => Lit(EmitText.LoudValue("string", n.Feature));
 
         private string RenderNot(BoundBoolExpr op) =>
             // A B-NOT ALL … already constant-folded at bind (BoundBoolAll); any other operand flips at runtime.
-            op is BoundBoolAll a ? EmitText.CsLiteral(a.Bits) : RuntimeApi.BoolNot(op.Accept(this));
+            op is BoundBoolAll a ? Lit(EmitText.CsLiteral(a.Bits)) : RuntimeApi.BoolNot(op.Accept(this));
 
         private string RenderBinary(BoundBoolBinary b)
         {

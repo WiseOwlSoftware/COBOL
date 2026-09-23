@@ -595,9 +595,16 @@ internal static class RuntimeApi
     public static string EditTryFormat(string value, string scale, string maskLiteral, string imgVar, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.TryFormat)}({value}, {scale}, {maskLiteral}, out var {imgVar}{cfgArgs})";
 
-    /// <summary>Resize a boolean value to the receiver's GR3 width — <c>CobolBool.Resize</c>.</summary>
-    public static string BoolResize(string value, string width) =>
-        $"{nameof(CobolBool)}.{nameof(CobolBool.Resize)}({value}, {width})";
+    /// <summary>A boolean ITEM operand of an item-width-carrying expression (ISO §14.9.8.4 GR3; kb/Work PB589) —
+    /// <c>CobolBool.Item(v)</c>: it contributes its own run-time positions to the width.</summary>
+    public static string BoolItem(string value) => $"{nameof(CobolBool)}.{nameof(CobolBool.Item)}({value})";
+
+    /// <summary>A boolean LITERAL / figurative operand of an item-width-carrying expression — <c>CobolBool.Literal(v)</c>:
+    /// positions in the value, none in the GR3 width.</summary>
+    public static string BoolLiteral(string value) => $"{nameof(CobolBool)}.{nameof(CobolBool.Literal)}({value})";
+
+    /// <summary>The §14.9.8.4 GR3 value of an item-width-carrying expression — <c>CobolBool.ToItemWidth(v)</c>.</summary>
+    public static string BoolToItemWidth(string sized) => $"{nameof(CobolBool)}.{nameof(CobolBool.ToItemWidth)}({sized})";
 
     /// <summary>Alphanumeric/national THROUGH-range membership under the effective collating sequence —
     /// <c>CobolString.ThruMember(read, lo, hi{collate})</c>: sets the nonfatal EC-RANGE-INVALID and returns false when

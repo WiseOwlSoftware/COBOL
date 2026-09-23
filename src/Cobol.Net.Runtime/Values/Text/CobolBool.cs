@@ -154,6 +154,41 @@ public static class CobolBool
     public static bool EqualAll(string? concrete, string bits) =>
         Equal(concrete, Fill(bits, (concrete ?? "").Length));
 
+    // ── The ITEM-WIDTH-carrying value (ISO §14.9.8.4 GR3; kb/Work PB589) ─────────────────────────────────────
+    // "The number of boolean positions in the value resulting from the evaluation of boolean-expression-1 is the
+    // number of boolean positions in the largest boolean item referenced in the expression." The largest ITEM is
+    // a RUN-TIME quantity whenever an item's length is: a reference-modified operand B(1:N) or B(K:) is the
+    // §8.4.3.3.4 GR5 unique data item of the slice's positions, and a function-identifier references a temporary
+    // data item (§8.4.3.2.4 GR1) — BOOLEAN-OF-INTEGER's is argument-2 positions long, whatever argument-2 is.
+    // So the width is carried BESIDE the bits through the same operators, and every operand's width is the
+    // length of the value it actually produced: one evaluation per operand, no static guess, and a new kind of
+    // run-time-length operand is counted without anyone having to teach a width table about it.
+
+    /// <summary>A boolean ITEM operand (a data item, a reference-modified slice, or a function's temporary item):
+    /// it contributes its own positions to the GR3 width.</summary>
+    public static CobolBoolSized Item(string? v) { v ??= ""; return new CobolBoolSized(v, v.Length); }
+
+    /// <summary>A boolean LITERAL (or a positionless figurative) operand: its positions take part in the value
+    /// (§8.8.2 rule 10) but it is not an ITEM, so it contributes nothing to the GR3 width.</summary>
+    public static CobolBoolSized Literal(string? v) => new(v ?? "", 0);
+
+    public static CobolBoolSized And(CobolBoolSized a, CobolBoolSized b) => new(And(a.Bits, b.Bits), System.Math.Max(a.ItemWidth, b.ItemWidth));
+    public static CobolBoolSized Or(CobolBoolSized a, CobolBoolSized b) => new(Or(a.Bits, b.Bits), System.Math.Max(a.ItemWidth, b.ItemWidth));
+    public static CobolBoolSized Xor(CobolBoolSized a, CobolBoolSized b) => new(Xor(a.Bits, b.Bits), System.Math.Max(a.ItemWidth, b.ItemWidth));
+    public static CobolBoolSized AndAll(CobolBoolSized concrete, string bits) => new(AndAll(concrete.Bits, bits), concrete.ItemWidth);
+    public static CobolBoolSized OrAll(CobolBoolSized concrete, string bits) => new(OrAll(concrete.Bits, bits), concrete.ItemWidth);
+    public static CobolBoolSized XorAll(CobolBoolSized concrete, string bits) => new(XorAll(concrete.Bits, bits), concrete.ItemWidth);
+    public static CobolBoolSized Not(CobolBoolSized a) => new(Not(a.Bits), a.ItemWidth);
+    public static CobolBoolSized ShiftLeft(CobolBoolSized v, long k) => new(ShiftLeft(v.Bits, k), v.ItemWidth);
+    public static CobolBoolSized ShiftRight(CobolBoolSized v, long k) => new(ShiftRight(v.Bits, k), v.ItemWidth);
+    public static CobolBoolSized ShiftLeftCircular(CobolBoolSized v, long k) => new(ShiftLeftCircular(v.Bits, k), v.ItemWidth);
+    public static CobolBoolSized ShiftRightCircular(CobolBoolSized v, long k) => new(ShiftRightCircular(v.Bits, k), v.ItemWidth);
+
+    /// <summary>The §14.9.8.4 GR3 value: the bits resized (<see cref="Resize"/>) to the largest ITEM referenced.
+    /// An expression that references no item (literals / figuratives only) has no item width and keeps its own
+    /// length — the receiver's store then fits it.</summary>
+    public static string ToItemWidth(CobolBoolSized v) => v.ItemWidth > 0 ? Resize(v.Bits, v.ItemWidth) : v.Bits;
+
     private static string Combine(string? a, string? b, System.Func<char, char, bool> op)
     {
         a ??= ""; b ??= "";
@@ -181,3 +216,11 @@ public static class CobolBool
         return sb.ToString()[..width];
     }
 }
+
+/// <summary>A boolean value paired with the positions of the largest boolean ITEM its expression referenced — the
+/// carrier of ISO §14.9.8.4 GR3's result width through the <see cref="CobolBool"/> operators (kb/Work PB589). The
+/// width rides BESIDE the bits because it is a run-time quantity whenever an operand's length is (a
+/// reference-modified slice, a boolean function's temporary item); <see cref="CobolBool.ToItemWidth"/> applies it.</summary>
+/// <param name="Bits">The '0'/'1' value (D-B1), with §8.8.2 rules 9/10's lengths.</param>
+/// <param name="ItemWidth">The largest ITEM's positions; 0 when only literals / figuratives were referenced.</param>
+public readonly record struct CobolBoolSized(string Bits, int ItemWidth);

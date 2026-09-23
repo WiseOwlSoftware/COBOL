@@ -229,7 +229,7 @@ boundary carries three forms, not two:
 | any fixed-window character storage, a group included | `ManagedPointer<string>` — the record image | `CallEmitter.CallStringRead`/`CallStringWrite` |
 | a VARIABLE-LENGTH group | `ManagedPointer<CobolVarGroup>` | `PlaceRenderer.VarGroupImage`/`WriteVarGroupImage` |
 | a MANAGED SLOT — class pointer (data / program / function) or class object-reference | `ManagedPointer<ManagedPointer\|ProgramPointer\|FunctionPointer\|«class»?>` — the item's own `PicInfo.ClrType` (kb/Work PB663) | `PlaceRenderer.Read`/`Write` |
-| a boolean-expression-1 VALUE (§14.9.4.2 Format 2 BY CONTENT) | `ManagedPointer<string>` — the §8.8.2 bit-string value, resized to the rule-10 width | `BooleanRenderer.Render` (no place; `BoundCallArg.ContentBool`) |
+| a boolean-expression-1 VALUE (§14.9.4.2 Format 2 BY CONTENT) | `ManagedPointer<string>` — the §8.8.2 bit-string value, taken at the largest boolean ITEM referenced (carried at run time — a slice or a function result can have a run-time length, kb/Work PB589) | `BooleanRenderer.RenderAtItemWidth` (no place; `BoundCallArg.ContentBool`) |
 | an ADDRESS-IDENTIFIER argument (§8.4.3.1.2 Format 9; §14.9.4.3 SR3/SR4 — kb/Work PB239), in EVERY mode | `ManagedPointer<ManagedPointer>` (data arm, §8.4.3.11) / `ManagedPointer<ProgramPointer>` (program arm, §8.4.3.13) — a detached CELL holding the pointer value, never an accessor | `PtrEmitter.AddressOfText` / `ProgramRegistry.EntryOfArgument` (no place; `BoundCallArg.DataAddress` / `ProgramAddress`) |
 
 **THE ADDRESS-IDENTIFIER ARGUMENT (kb/Work PB239).** §14.9.4.3 SR3 admits "an address-identifier" as identifier-2

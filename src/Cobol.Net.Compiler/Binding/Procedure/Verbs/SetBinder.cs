@@ -1333,7 +1333,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 // a run-time abort.
                 if (host.Cond.ConditionOf(dref) is not { } cond)
                 {
-                    ctx.Validation.RejectSetConditionName(dref.GetText(), host.Alter.SwitchNameOf(dref));
+                    // A DECLARED level-88 the qualifiers do not reach is misqualified, not "not a condition-name"
+                    // (kb/Work PB567 — §13.16.3 SR23's negative side, one wording for every site).
+                    if (!host.Cond.ReportMisqualifiedCondition(dref))
+                        ctx.Validation.RejectSetConditionName(DataBinder.WrittenText(dref), host.Alter.SwitchNameOf(dref));
                     return BoundRejected.Reported(ctx.Edition);
                 }
                 // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).

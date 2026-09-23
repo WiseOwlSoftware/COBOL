@@ -300,7 +300,14 @@ public sealed class ReferenceResolver(DataBinder data)
             return;
         }
         string msg;
-        if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
+        // ⛔ A DECLARED CONDITION-NAME IS NOT UNDEFINED (kb/Work PB567). The data symbol table holds no level-88,
+        // so a condition-name qualified by a data-name it is NOT subordinate to (`IS-A OF H1`, H1 an unrelated
+        // record; `IS-A OF G1 OF S`, real ancestors in reversed order) used to land in the "not defined" arm below
+        // and tell the user that no declaration gives the name — while the 88 was right there.
+        if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates)
+            && data.Symbols.TryResolveCondition(name, data.ActiveScope, out _))
+            msg = MisqualifiedConditionText(text, name, qualifiers);
+        else if (candidates.Count == 0)
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
                 + "the statement's reference identifies no resource (ISO §8.4.2.1: \"a statement shall contain a "
                 + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
@@ -322,6 +329,25 @@ public sealed class ReferenceResolver(DataBinder data)
         }
         data.Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
     }
+
+    /// <summary>⛔ THE ONE WORDING of a reference whose word is a DECLARED level-88 condition-name that the written
+    /// qualifiers do not reach (kb/Work PB567) — every site that finds no condition-name under the qualifiers says
+    /// this, and never "not defined". ISO §13.16.3 SR23: "Each condition-name is subordinate to the data-name with
+    /// which it is associated", and §8.4.2.2.3 SR5: "The qualification of a condition-name may include the
+    /// conditional variable with which the condition-name is associated, as well as by any name by which that
+    /// conditional variable may be qualified" — in SR4's order of successively more inclusive levels. So a
+    /// qualifier the conditional variable is not subordinate to, or ancestors written in reversed order, identify
+    /// NO condition-name. Unqualified, the word is a condition-name written where a data item is required.</summary>
+    internal static string MisqualifiedConditionText(string text, string name, IReadOnlyList<string> qualifiers) =>
+        qualifiers.Count == 0
+            ? $"'{text}' is a condition-name (a level-88 entry), which identifies no data item, and this "
+              + "reference requires one (ISO §8.4.2.1: \"a statement shall contain a reference that uniquely "
+              + "identifies that resource\")."
+            : $"'{text}' does not identify a condition-name — '{name}' is declared as a condition-name, but none "
+              + $"is subordinate to the given qualifier{(qualifiers.Count > 1 ? "s" : "")} "
+              + $"({string.Join(" OF ", qualifiers)}): a condition-name is qualified only by its conditional "
+              + "variable and that variable's containing groups, innermost first (ISO §13.16.3 SR23; "
+              + "§8.4.2.2.3 SR4, SR5).";
 
     /// <summary>True while the CURRENT resolution is a <see cref="Probe"/> — the R30 purity flag (kb/Work
     /// PB157). A probe is a TYPE-DISCRIMINATING sniff whose Place is discarded after reading its Item, so in

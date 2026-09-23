@@ -383,6 +383,6 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                     + "COMPUTE shall be an elementary boolean item (ISO §14.9.8.3 Format 2 SR2)");
             targets.Add(p);
         }
-        return new BoundComputeBoolean(rhs, targets, ConditionBinder.Gr3Width(rhs));
+        return new BoundComputeBoolean(rhs, targets);
     }
 }

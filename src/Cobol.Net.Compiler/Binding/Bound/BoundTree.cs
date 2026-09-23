@@ -1123,10 +1123,12 @@ public sealed record BoundDivideRemainder(
 public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement, IArithmeticStatement;
 
 /// <summary><c>COMPUTE boolean-targets = boolean-expression</c> (ISO §14.9.8 Format 2). Each receiver is an
-/// elementary boolean item; the stored value is resized to <paramref name="Gr3Width"/> = the number of boolean
-/// positions in the LARGEST boolean ITEM referenced in the expression (GR3 — literal-only larger sides don't
-/// count), left-aligned / right-zero-filled / right-truncated (§14.6.8.6). No ROUNDED, no SIZE ERROR (F2).</summary>
-public sealed record BoundComputeBoolean(BoundBoolExpr Rhs, IReadOnlyList<Place> Targets, int Gr3Width) : BoundStatement;
+/// elementary boolean item; the stored value is taken at the number of boolean positions in the LARGEST boolean
+/// ITEM referenced in the expression (§14.9.8.4 GR3 — literal-only larger sides don't count), left-aligned /
+/// right-zero-filled / right-truncated (§14.6.8.6). No ROUNDED, no SIZE ERROR (F2). The width is NOT a member:
+/// an operand's length can be a run-time quantity (a reference-modified slice, a boolean function's temporary
+/// item), so the emitter carries it at run time (<c>BooleanRenderer.RenderAtItemWidth</c>; kb/Work PB589).</summary>
+public sealed record BoundComputeBoolean(BoundBoolExpr Rhs, IReadOnlyList<Place> Targets) : BoundStatement;
 
 /// <summary><c>IF cond THEN then-stmts [ELSE else-stmts]</c>.</summary>
 public sealed record BoundIf(

@@ -281,9 +281,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // and not K2" (it referenced neither — it referenced K2), while with `ASCENDING KEY IS K1 K2` the SR11
         // violation in `WHEN CN OF K2 (IX)` went unreported. One reference, one resolution.
         if (conditions.ConditionOf(dref) is not { } cond)
-            return Key(table, $"'{DataBinder.WrittenText(dref)}' does not uniquely identify a condition-name — '{name}' is "
-                + "declared, but not under the written qualifiers (ISO §8.4.2.2 Format 2 — a condition-name "
-                + "qualifies by its conditional variable and/or that variable's containing groups)");
+            return Key(table, ReferenceResolver.MisqualifiedConditionText(DataBinder.WrittenText(dref), name,
+                ConditionBinder.QualifiersOf(dref)));
         bool ok = true;
 
         // SR9 first clause — "All referenced condition-names shall be defined as having only a single value."

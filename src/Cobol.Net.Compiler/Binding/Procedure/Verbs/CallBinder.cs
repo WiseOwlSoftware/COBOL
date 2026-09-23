@@ -512,11 +512,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         BoundCallArg BooleanContentArg(Core.BooleanExpressionContext bx)
         {
             var bound = host.Cond.BindBoolExpr(bx);
-            return new BoundCallArg(CobolPassMode.Content, null, null)
-            {
-                ContentBool = bound,
-                ContentBoolWidth = ConditionBinder.Gr3Width(bound),
-            };
+            return new BoundCallArg(CobolPassMode.Content, null, null) { ContentBool = bound };
         }
 
         // §14.9.4.4 GR9 for a keyword-less LITERAL-2 (or a constant-name, which substitutes one): a literal is

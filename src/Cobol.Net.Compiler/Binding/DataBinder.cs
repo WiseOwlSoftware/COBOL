@@ -6959,6 +6959,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     internal bool IndexQualifierChainMatches(IndexDeclaration decl, IReadOnlyList<string> qualifiers) =>
         QualifierChainMatchesFrom(decl.Table, decl.Table, qualifiers);
 
+    /// <summary>The §8.4.2.2.2 Format 2 (qualified-condition-name) twin of <see cref="QualifierChainMatches"/>:
+    /// §8.4.2.2.3 SR4 — "For purposes of item qualification, the hierarchy of an item declared at level 88
+    /// includes the conditional variable with which it is associated" — and SR5, "The qualification of a
+    /// condition-name may include the conditional variable ... as well as by any name by which that conditional
+    /// variable may be qualified". So the chain starts AT the conditional variable. ⛔ It used to be a PRIVATE
+    /// fourth copy of this walk in <c>ConditionBinder</c> (kb/Work PB567), without the file-name arm, so a
+    /// condition-name qualified through its record's FILE could never resolve.</summary>
+    internal bool ConditionQualifierChainMatches(Condition88 cond, IReadOnlyList<string> qualifiers) =>
+        QualifierChainMatchesFrom(cond.Parent, cond.Parent, qualifiers);
+
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>
     private bool QualifierChainMatchesFrom(DataItem? firstQualifiable, DataItem member, IReadOnlyList<string> qualifiers)

@@ -170,7 +170,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         ctx.Data.PendingPreOps.Add(new BoundIf(truth, [StoreBit(place, "1")], [StoreBit(place, "0")]));
         return new BoundBooleanCondition(new BoundBoolRef(place));
 
-        static BoundStatement StoreBit(Place p, string bit) => new BoundComputeBoolean(new BoundBoolLiteral(bit), [p], 1);
+        static BoundStatement StoreBit(Place p, string bit) => new BoundComputeBoolean(new BoundBoolLiteral(bit), [p]);
     }
 
     /// <summary>

@@ -1461,7 +1461,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundStringLiteral sl => sl.Value.Length,
         // §8.4.3.3 — a ref-mod view with a LITERAL length has that static width; a computed or
         // omitted-length form is genuinely runtime.
-        BoundFieldOperand { Place: RefModPlace rm } => int.TryParse(rm.Length, out int n) ? n : null,
+        BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(innerLength: null),
         BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
         // A group's width is static exactly when nothing beneath it varies at run time — the §15.50.4 r7
         // dynamic guards plus an ODO subordinate's varying current length (§8.5.1.8 GR7/GR8).

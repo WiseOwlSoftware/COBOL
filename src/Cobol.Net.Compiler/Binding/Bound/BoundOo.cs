@@ -96,12 +96,6 @@ public sealed record BoundInvokeArg(
     /// </remarks>
     public BoundBoolExpr? ContentBool { get; init; }
 
-    /// <summary>The §8.8.2 rule-10 length of <see cref="ContentBool"/>'s value — "the number of boolean
-    /// positions of the larger item referenced in that operation", applied recursively (0 = no ITEM operand, so
-    /// the value takes the receiving formal's width directly). The same width §14.9.8.4 GR3 states for a
-    /// boolean COMPUTE, computed by the same <c>ConditionBinder.Gr3Width</c>.</summary>
-    public int ContentBoolWidth { get; init; }
-
     /// <summary>The argument is OMITTED (kb/Work PB757): the OMITTED phrase was written (ISO §14.9.23.2) or the
     /// argument is a trailing one omitted from the statement (§14.8.2.1; §9.3.6 match rule 1). It has no source and no literal;
     /// the omitted-argument condition for <see cref="Formal"/> shall be true in the invoked method (§14.9.23.4

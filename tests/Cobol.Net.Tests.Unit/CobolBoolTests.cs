@@ -131,4 +131,27 @@ public sealed class CobolBoolTests
         Assert.False(CobolBool.IsTrue(null));
         Assert.True(CobolBool.Equal(null, ""));
     }
+
+    // ── §14.9.8.4 GR3 — the largest ITEM referenced, carried at run time (kb/Work PB589) ───────────────────
+
+    /// <summary>A literal wider than every item widens the COMBINED value (rule 10) but not the GR3 width: the
+    /// 3-position item fixes it, so the 7-position literal's extra ones are dropped.</summary>
+    [Fact]
+    public void ItemWidth_LiteralNeverWidens() =>
+        Assert.Equal("111", CobolBool.ToItemWidth(CobolBool.Or(CobolBool.Item("000"), CobolBool.Literal("1111111"))));
+
+    /// <summary>The width is the MAX over items, through every operator shape (binary, NOT, shift, ALL).</summary>
+    [Fact]
+    public void ItemWidth_MaxOverItemsThroughEveryOperator()
+    {
+        var v = CobolBool.Xor(CobolBool.Not(CobolBool.Item("1")), CobolBool.ShiftLeft(CobolBool.Item("01"), 1));
+        Assert.Equal(2, v.ItemWidth);
+        Assert.Equal("10", CobolBool.ToItemWidth(v));
+        Assert.Equal(3, CobolBool.AndAll(CobolBool.Item("110"), "1").ItemWidth);
+    }
+
+    /// <summary>No item referenced — the value keeps its own length (the receiver's store fits it).</summary>
+    [Fact]
+    public void ItemWidth_LiteralOnlyKeepsItsLength() =>
+        Assert.Equal("0101", CobolBool.ToItemWidth(CobolBool.And(CobolBool.Literal("1111"), CobolBool.Literal("0101"))));
 }

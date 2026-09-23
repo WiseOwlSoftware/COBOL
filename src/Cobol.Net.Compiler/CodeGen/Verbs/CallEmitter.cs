@@ -506,8 +506,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // OoEmitter's INVOKE twin apply it. Digits/Scale are 0: this is character storage, not numeric meta.
         if (a.ContentBool is { } cb)
         {
-            string bv = BooleanRenderer.Render(cb, num);
-            if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
+            string bv = BooleanRenderer.RenderAtItemWidth(cb, num);
             return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({bv}), null)";
         }
         // ⛔ AN ADDRESS-IDENTIFIER CROSSES AS A DETACHED POINTER VALUE IN EVERY MODE (kb/Work PB239). §14.9.4.3

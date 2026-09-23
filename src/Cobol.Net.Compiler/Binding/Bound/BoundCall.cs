@@ -60,11 +60,6 @@ public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand
     /// <para>BY CONTENT by construction — an expression has no storage to write back to.</para></summary>
     public BoundBoolExpr? ContentBool { get; init; }
 
-    /// <summary>The §8.8.2 rule 10 value length of <see cref="ContentBool"/> — the largest boolean ITEM
-    /// referenced in the expression (0 when only literals are, which carry no item width, so the receiver's
-    /// own store fits the value). The same width §14.9.8.4 GR3 states for a boolean COMPUTE.</summary>
-    public int ContentBoolWidth { get; init; }
-
     /// <summary>An ADDRESS-IDENTIFIER argument (ISO §14.9.4.3 SR3; kb/Work PB239) — §8.4.3.1.2 identifier
     /// Format 9, in its DATA arm (§8.4.3.11, <c>ADDRESS OF identifier-1</c>). Its OWN value channel beside
     /// <see cref="Place"/> and <see cref="Value"/>, because it is neither: §8.4.3.11.4 GR1 makes it "a unique data

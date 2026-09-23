@@ -1077,11 +1077,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // argument does not have.
             if (a.ContentBool is { } cb)
             {
-                string bv = BooleanRenderer.Render(cb, Num);
-                // §8.8.2 rule 10 — the value's length is the largest boolean ITEM referenced (0 = literals only,
-                // which carry no item width, so the receiver's store fits it). The same width §14.9.8.4 GR3
-                // states for a boolean COMPUTE, and EmitComputeBoolean applies it identically.
-                if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
+                // §8.8.2 rule 10 — the value's length is the largest boolean ITEM referenced (literals only carry
+                // no item width, so the receiver's store fits them). The same width §14.9.8.4 GR3 states for a
+                // boolean COMPUTE, carried at run time by the ONE renderer EmitComputeBoolean uses (kb/Work PB589).
+                string bv = BooleanRenderer.RenderAtItemWidth(cb, Num);
                 int bw = Math.Max(1, a.Formal.Pic!.Length);
                 // ⛔ ANY LENGTH IS TESTED FIRST, AND THE ORDER IS THE WHOLE POINT. §13.18.2.3 SR1 admits the
                 // picture symbol '1' as well as 'N' and 'X', so a category-BOOLEAN formal can carry ANY LENGTH

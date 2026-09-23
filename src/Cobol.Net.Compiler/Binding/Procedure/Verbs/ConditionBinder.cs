@@ -188,39 +188,29 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     public static Core.FunctionCallContext? SoleFunctionCall(Core.ArithmeticExpressionContext expr) =>
         SolePrimary(expr)?.functionCall();
 
-    /// <summary>The set of category-boolean ITEMS referenced in a bound boolean expression, for the §14.9.8 GR3
-    /// COMPUTE-store width (the max static boolean positions; literal/ALL operands do not count — GR3).
-    /// <para>⚠ ONE OF THREE LENGTH QUESTIONS OVER THIS NODE SHAPE, AND THEY ARE THREE DIFFERENT RULES — do not
-    /// fold them. THIS is §14.9.8 GR3's COMPUTE store width, which counts ITEMS only. <see cref="BoolResultLength"/>
-    /// is §8.8.2 rules 9/10's RESULT length, which counts a literal's own positions (§14.9.13.3 SR6's "results
-    /// in one boolean character" turns on it). <see cref="BoolExprAllLengthOne"/> is §8.8.4.3.3 SR1's "shall
-    /// reference only boolean items of length 1", a property of EVERY referenced item rather than of the
-    /// result.</para></summary>
-    internal static int Gr3Width(BoundBoolExpr e) => e switch
-    {
-        // OperandPic (kb/Work PB157): a bit GROUP is an elementary PICTURE 1(m) for GR3 (§13.18.29.4 GR1b) —
-        // raw Pic counted it as 0, so CobolBool.Resize truncated a 6-bit group's value to a sibling's width.
-        BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.OperandPic?.Length ?? 0,
-        BoundBoolBinary b => System.Math.Max(Gr3Width(b.Left), Gr3Width(b.Right)),
-        BoundBoolNot n => Gr3Width(n.Operand),
-        BoundBoolShift s => Gr3Width(s.Operand),   // rule 9 — result length = the FIRST operand (the count adds none)
-        BoundBoolCall c => StaticBoolCallWidth(c) ?? 0,   // a boolean function's static width when its length argument is a literal (kb/Work PB68)
-        _ => 0,   // literals / ALL / error contribute no ITEM width
-    };
+    // ⚠ THREE LENGTH QUESTIONS RIDE THIS NODE SHAPE, AND THEY ARE THREE DIFFERENT RULES — do not fold them.
+    // §14.9.8.4 GR3's COMPUTE store width counts ITEMS only and is a RUN-TIME quantity, so it is not answered
+    // here at all: BooleanRenderer.RenderAtItemWidth carries it beside the value (kb/Work PB589 deleted the
+    // bind-time Gr3Width, which counted a run-time-length slice at its inner item's FULL length).
+    // BoolResultLength is §8.8.2 rules 9/10's RESULT length, which counts a literal's own positions (§14.9.13.3
+    // SR6's "results in one boolean character" turns on it). BoolExprAllLengthOne is §8.8.4.3.3 SR1's "shall
+    // reference only boolean items of length 1", a property of EVERY referenced item rather than of the result.
+    // The two static ones read an operand's length through ONE reader, StaticBoolRefLength.
 
     /// <summary>The static width of a boolean-result function reference — BOOLEAN-OF-INTEGER's argument-2 (§15.13.4
     /// r1 "a boolean item of length argument-2") when it is a numeric literal; null when the length is a runtime
-    /// value (the §8.8.4.3 SR1 length-1 test and the §14.9.8.4 GR3 store width then fail OPEN — no false rejection).</summary>
+    /// value (the §8.8.4.3 SR1 length-1 test and the §14.9.13.3 SR6 test then fail OPEN — no false rejection).</summary>
     private static int? StaticBoolCallWidth(BoundBoolCall c) =>
         c.Call.Sig.Name == "BOOLEAN-OF-INTEGER" && c.Call.Args.Count == 2
         && c.Call.Args[1] is BoundNumericLiteral { Text: { } t } && int.TryParse(t, out int w) ? w : null;
 
-    /// <summary>The static length of a ref-mod boolean operand (its own §8.4.3.3 unique data item at the
-    /// ref-mod length); a dynamic/computed length is not statically known — GR3 stages that leg (returns the
-    /// inner item's full length as a conservative width; the dynamic case is named residue).</summary>
-    private static int RefModLen(Place p) =>
-        p is RefModPlace { Length: { } lit } && int.TryParse(lit, out int n) ? n
-        : p.Item.OperandPic?.Length ?? 0;   // OperandPic — a bit group's as-if 1(m) (kb/Work PB157)
+    /// <summary>The COMPILE-TIME length of a boolean item operand, or null when it is a run-time quantity. A
+    /// reference-modified operand is the §8.4.3.3.4 GR5 unique data item of the SLICE's positions
+    /// (<see cref="RefModPlace.StaticLength"/>) — never its inner item's full length, which is what the deleted
+    /// <c>RefModLen</c> substituted for an unknown slice (kb/Work PB589: `IF B(1:N)` over a PIC 1(8) item was
+    /// rejected by SR1 as an 8-position operand). OperandPic — a bit group's as-if 1(m) (kb/Work PB157).</summary>
+    private static int? StaticBoolRefLength(BoundBoolRef r) =>
+        r.Place is RefModPlace rm ? rm.StaticLength(rm.Inner.Item.OperandPic?.Length) : r.Place.Item.OperandPic?.Length;
 
     private static string FlipBits(string bits)
     {
@@ -245,7 +235,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private static bool BoolExprAllLengthOne(BoundBoolExpr e) => e switch
     {
         BoundBoolLiteral l => l.Bits.Length == 1,
-        BoundBoolRef r => (r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.OperandPic?.Length ?? 0) == 1,   // OperandPic (kb/Work PB157)
+        // A run-time-length slice fails OPEN, exactly as a run-time-length function result does below: SR1 is a
+        // syntax rule and its length is unknowable at compile time (kb/Work PB589).
+        BoundBoolRef r => StaticBoolRefLength(r) is { } len ? len == 1 : r.Place is RefModPlace,
         BoundBoolBinary b => BoolExprAllLengthOne(b.Left) && BoolExprAllLengthOne(b.Right),
         BoundBoolNot n => BoolExprAllLengthOne(n.Operand),
         BoundBoolShift s => BoolExprAllLengthOne(s.Operand),   // shift preserves length (rule 9)
@@ -961,6 +953,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // wins), BEFORE the abbreviated-carry fallback.
         if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
             return BareOperandAnalysis.OfCondition(BareOperandForm.SwitchStatus, swCond);
+        // ⛔ §13.16.3 SR23's NEGATIVE side (kb/Work PB567): a declared level-88 written under qualifiers its
+        // conditional variable is not subordinate to — and that no DATA-name under those qualifiers answers
+        // either — is a condition-name reference that identifies nothing. It is classified as the CONDITION-NAME
+        // it was written as (so EVALUATE's Table-15 screen does not re-read it as an identifier and report a
+        // pairing error about the wrong thing) and reported ONCE, through the one wording.
+        if (vo?.arithmeticExpression() is { } mqx && SoleDataRef(mqx) is { } mqr && ctx.Refs.Probe(mqr) is null
+            && ReportMisqualifiedCondition(mqr))
+            return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
+                Refused($"condition-name '{DataBinder.WrittenText(mqr)}'"));
         // A class-name-1 / alphabet-name-1 (§8.8.4.4.2) written bare — a word, never qualified, subscripted or
         // reference-modified (neither name is a data-name, so neither takes a qualifier or a subscript). §8.3.2.2
         // makes the name classes disjoint ("a given user-defined word may be used as only one type of user-defined
@@ -1049,7 +1050,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     internal static int? BoolResultLength(BoundBoolExpr e) => e switch
     {
         BoundBoolLiteral l => l.Bits.Length,
-        BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.OperandPic?.Length,
+        BoundBoolRef r => StaticBoolRefLength(r),              // null for a run-time-length slice (kb/Work PB589)
         BoundBoolNot n => BoolResultLength(n.Operand),
         BoundBoolShift s => BoolResultLength(s.Operand),      // r9 — the FIRST item's positions
         BoundBoolBinary b => LargerOf(BoolResultLength(b.Left), BoolResultLength(b.Right)),   // r10
@@ -1184,9 +1185,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
         // scope-aware SymbolTable (P7 Step 10a, the DEVLOG-773 pickup), no longer duplicated inline here.
         if (!ctx.Symbols.TryResolveCondition(name, ctx.ActiveScope, out var list)) return null;
-        var qualifiers = dref.dataReferenceSuffix()
-            .Select(sfx => sfx.qualification()?.cobolWord().GetText())
-            .OfType<string>().ToList();
+        var qualifiers = QualifiersOf(dref);
         // §8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
         // reference must identify EXACTLY ONE level-88. TryResolveCondition returns one namespace tier, so a
         // plural SURVIVOR set — unqualified with duplicate 88 names, or qualifiers matching more than one —
@@ -1195,7 +1194,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // --permissive: the traditional first match, warned.
         var matches = qualifiers.Count == 0
             ? list
-            : list.Where(c => MatchesQualifiers(c.Parent, qualifiers)).ToList();
+            : list.Where(c => ctx.Data.ConditionQualifierChainMatches(c, qualifiers)).ToList();
+        // The NEGATIVE side of §13.16.3 SR23 (kb/Work PB567): no condition-name of this spelling is subordinate to
+        // the written qualifiers, so this reference names no condition-name. It is not reported HERE because the
+        // same word may still be a DATA-name those qualifiers do reach; the caller falls through to the data
+        // resolution, whose one unidentified-reference report (ReferenceResolver.ReportUnidentified) words the
+        // declared-but-misqualified condition-name case — or a caller that admits only a condition-name asks
+        // ReportMisqualifiedCondition.
         if (matches.Count == 0) return null;
         // ONE report per SOURCE reference (the ReferenceResolver._diagnosed discipline, kb/Work PB70/PB443): a
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
@@ -1217,19 +1222,24 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         return matches[0];
     }
 
-    /// <summary>True when each qualifier (innermost→outermost) names the conditional variable itself or one of
-    /// its containing groups, in nesting order.</summary>
-    private static bool MatchesQualifiers(DataItem parent, List<string> qualifiers)
+    /// <summary>For a position that admits ONLY a condition-name (SET Format 4's condition-name-1): when
+    /// <paramref name="dref"/>'s word IS a declared level-88 condition-name but <see cref="ConditionOf"/> found
+    /// none under the written qualifiers, report that through the ONE wording
+    /// (<see cref="ReferenceResolver.MisqualifiedConditionText"/>) and answer true; otherwise report nothing and
+    /// answer false, leaving the caller's own not-a-condition-name verdict (kb/Work PB567).</summary>
+    public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
-        DataItem? n = parent;
-        foreach (string q in qualifiers)
-        {
-            while (n is not null && !string.Equals(n.CobolName, q, StringComparison.OrdinalIgnoreCase)) n = n.Parent;
-            if (n is null) return false;
-            n = n.Parent;
-        }
+        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        if (!ctx.Symbols.TryResolveCondition(name, ctx.ActiveScope, out _)) return false;
+        if (_condDiagnosed.Add(dref))
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                ReferenceResolver.MisqualifiedConditionText(DataBinder.WrittenText(dref), name, QualifiersOf(dref)));
         return true;
     }
+
+    /// <summary>The written qualifier words of <paramref name="dref"/>, innermost first.</summary>
+    internal static List<string> QualifiersOf(Core.DataReferenceContext dref) =>
+        dref.dataReferenceSuffix().Select(sfx => sfx.qualification()?.cobolWord().GetText()).OfType<string>().ToList();
 
     // ── Operator mapping + helpers (ported from the former emitter) ──────────────────────────────────────────
 

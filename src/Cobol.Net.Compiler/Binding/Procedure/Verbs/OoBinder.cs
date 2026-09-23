@@ -856,7 +856,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             var bound = host.Cond.BindBoolExpr(bx);
             return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
-                { ContentBool = bound, ContentBoolWidth = ConditionBinder.Gr3Width(bound) };
+                { ContentBool = bound };
         }
 
         if (arithCtx is { } ax && (explicitContent || impliedContent))   // a SOLE reference / numeric literal / inline invocation was taken above
@@ -912,9 +912,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return null;
             }
             // A LITERAL contributes no item width to §8.8.2 rule 10, so the value crosses at the formal's
-            // width — width 0, exactly as ConditionBinder.Gr3Width scores a literal-only expression.
+            // width — BooleanRenderer.RenderAtItemWidth leaves a literal-only expression at its own length.
             return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true)
-                { ContentBool = new BoundBoolLiteral(boolTxt), ContentBoolWidth = 0 };
+                { ContentBool = new BoundBoolLiteral(boolTxt) };
         }
         if (numLitRaw is { } raw)
         {
