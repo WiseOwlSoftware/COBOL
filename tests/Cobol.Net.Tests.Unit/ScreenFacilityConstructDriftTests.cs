@@ -480,9 +480,10 @@ public sealed class ScreenFacilityConstructDriftTests
                05 TE PIC X OCCURS 5 TIMES INDEXED BY IDX.
             PROCEDURE DIVISION.
             MAIN.
-                SET ATTRIBUTE TO 7.
+                SET IDX TO 7.
+                SET ATTRIBUTE TO IDX.
                 SET IDX TO ATTRIBUTE.
-                SET N TO 4.
+                SET N TO IDX.
                 DISPLAY ATTRIBUTE " " N.
                 STOP RUN.
             """, 2023);

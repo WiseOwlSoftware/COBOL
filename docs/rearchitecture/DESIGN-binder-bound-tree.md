@@ -486,6 +486,25 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 | ref-mod SUBJECT identifier-1 | §8.4.3.3.3 SR1 — **exempt** | `ReferenceResolver.RefModExclusion` | n/a |
 | STOP RUN / GOBACK … STATUS | §14.9.42.3 SR2/SR3/SR4 · §14.9.18.3 SR6/SR7/SR8 (SR6 over **identifier-2**) — **exempt**; the format is `{identifier-1 \| literal-1}`, so the screen is keyed on the BOUND SHAPE and reaches both parse arms — a constant-name substitutes literal-1 under §13.10.4 GR1 (PB216). The USAGE alternative asks `ItemCategory.UsageOf`, the ONE §8.5.2.1 usage reader, so an alphanumeric group (*"treated as though it had a usage of display"*) is admitted and a strongly-typed / variable-length one is not (PB411) | `ControlFlowBinder.ScreenStatusOperand` + COBOLNET1704 (PB169/PB216/PB217/PB411) | identifier slot: reject in BOTH lanes |
 | arithmetic RESULTANTS | each verb's resultant SR — **exempt**; NOT a fourth copy of the §8.8.1.1 sending question — a resultant turns on an axis §8.8.1.1 does not have (numeric-edited is admitted at GIVING/REMAINDER/COMPUTE and barred at the in-place receivers) | `ExpressionBinder.ScreenResultant` | n/a |
+| GO TO … DEPENDING ON identifier-1 | §14.9.17.3 SR1 — **exempt**; "a numeric elementary data item that is an integer" | `OperandPositions.GoToDependingSelector` → `OperandClassScreen` + COBOLNET2324 (PB210) | identifier slot: reject in BOTH lanes |
+| SEARCH … VARYING identifier-2 | §14.9.37.3 SR5 — **exempt**; "a data item whose usage is index or a data item that is an integer", and not subscripted by identifier-1's first index-name (`ReferenceResolver.SubscriptNamesIndex`, shared with SR10) | `OperandPositions.SearchVaryingIdentifier` → `OperandClassScreen` + COBOLNET2325 (PB211) | identifier slot: reject in BOTH lanes |
+| SET Format-1 receiving identifier-1 | §14.9.39.3 SR1 — **exempt**; "a data item of class index or an integer data item". SR2–SR4 are the sender relation, asked once per statement in `SetBinder.ScreenIndexAssignmentReceiver` | `OperandPositions.SetIndexAssignmentReceiver` → `OperandClassScreen` + COBOLNET2326 (PB212) | SR1/SR2: reject in BOTH lanes · SR3/SR4: `Removed` seam (strict rejects, `--permissive` warns and stores) |
+| PERFORM VARYING / AFTER varied identifier | §14.9.28.3 SR2 ("a numeric elementary item") and SR5 a) ("an integer data item" when the FROM phrase holds an index-name) | `OperandPositions.PerformVaryingIdentifier` / `OperandPositions.PerformVaryingIdentifierFromIndex` → `OperandClassScreen` + COBOLNET2120 | identifier slot: reject in BOTH lanes |
+
+**⛔ A CLASS-CLOSED IDENTIFIER POSITION IS A ROW OF `OperandPositions`, NEVER A HAND CHECK AT ITS BINDER**
+(`Binding/Procedure/OperandClassScreen.cs`; kb/Work PB210 · PB211 · PB212). Where a statement's syntax rule reads
+"identifier-n shall reference a data item of class …", the position is declared once — statement, operand, rule,
+the rule's own words, the admitted `OperandClasses` set and the diagnostic — and the binder makes one call.
+`OperandClassScreen.ClassesOf` answers the classes an operand is in from the ONE §8.5.2.1 Table-2 classifier
+(`IntrinsicArgumentRules.ClassOfItem`) and the ONE §5.5 integer primitive (`PicInfo.IsIntegerDescription`); a
+reference-modified operand is none of them (§8.4.3.3.4 GR6 c)), and an undecidable (recovery) class fails OPEN.
+GO TO DEPENDING, SEARCH VARYING and the SET receiver were the SAME absence found three times — a bare
+`FieldOperand` / `Refs.Resolve` and nothing asked — and the sibling sweep found the PERFORM VARYING induction
+variable a fourth. `OperandClassScreenDriftTests` holds every row against every class shape END TO END with the
+shapes' classes written from the standard, independently of the classifier, and fails a row that no binder asks,
+that has no template, or that this table does not name. Positions whose rule also admits a LITERAL or a function
+(PERFORM … TIMES, the STOP/GOBACK status) keep their bound-shape screens above; an arithmetic-expression position
+is §8.8.1.1's.
 
 **⛔ The SOLE-vs-COMPOUND boundary is a RULE, not a statement property.** `IF FUNCTION LOWER-CASE(X) = Y` is
 legal and `IF FUNCTION LOWER-CASE(X) + 1 = Y` is illegal **in the same statement kind**, because the second
@@ -663,7 +682,12 @@ receiving position.
 **Format 1's row is deliberately the wide one and deliberately last.** Its brace is `{ index-name-1 |
 identifier-1 } …`, and SR1's "a data item of class index or an integer data item" is a CATEGORY screen over that
 brace, not a selection question — enforcing it here would make a missing screen look like a missing FORMAT.
-That screen is its own open item (kb/Work PB212). Format 2 has no such catch-all: its brace is `{ index-name-3 }
+That screen is the `OperandPositions.SetIndexAssignmentReceiver` row, asked by `BindSetTo` once Format 1 is
+selected (kb/Work PB212), and SR2–SR4 are ONE receiver-class × sender-alternative table beside it
+(`ScreenIndexAssignmentReceiver`): the sender is classified once as arithmetic-expression-1, index-name-2 or an
+index-data-item identifier-2 — a bare numeric identifier IS arithmetic-expression-1 (the rendered figure prints
+three alternatives, so SR2 governs the identifier-2 alternative and refuses only a bare identifier that is neither
+of class index nor numeric) — and §14.9.39.4 GR2's two defined pairings are the only ones admitted. Format 2 has no such catch-all: its brace is `{ index-name-3 }
 …` with no identifier alternative and no syntax rule, and §14.9.39.4 GR4 is written "For each occurrence of
 index-name-3", so the UP/DOWN direction admits an index-name, a data-pointer (SR23) and a capacity register
 (SR29) and nothing else.

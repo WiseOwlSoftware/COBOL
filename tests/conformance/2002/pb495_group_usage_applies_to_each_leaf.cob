@@ -54,12 +54,17 @@
       *> GR1 makes the two spellings the same item, so every width below matches its inherited twin.
        01 C-GROUP.
            05 C-SHORT USAGE BINARY-SHORT.
+       01 T-IX.
+           05 T-E OCCURS 5 INDEXED BY T-X PIC X.
        PROCEDURE DIVISION.
        MAIN.
            MOVE 12 TO A-SHORT
            MOVE -1 TO A-LONG
            MOVE 12 TO C-SHORT
-           SET A-INDEX TO 3
+      *> The index data item is set FROM AN INDEX-NAME: ISO 14.9.39.3 SR3 forbids
+      *> arithmetic-expression-1 when identifier-1 is of class index (kb/Work PB212).
+           SET T-X TO 3
+           SET A-INDEX TO T-X
            DISPLAY "W=" FUNCTION BYTE-LENGTH(A-CHAR)
                " " FUNCTION BYTE-LENGTH(A-SHORT)
                " " FUNCTION BYTE-LENGTH(A-LONG)

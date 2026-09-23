@@ -1136,6 +1136,23 @@ public sealed class ReferenceResolver(DataBinder data)
     internal List<List<IToken>>? SubscriptSegments(Core.DataReferenceContext dref) =>
         SubscriptSegmentsOf(ReadWritten(dref).SubscriptGroup);
 
+    /// <summary>True when any subscript of <paramref name="dref"/>, AS WRITTEN, names the index-name
+    /// <paramref name="index"/> — the ONE reader for the two SEARCH rules that prohibit it: §14.9.37.3 SR5's second
+    /// sentence over the Format-1 VARYING identifier-2 ("shall not be subscripted by the first or only index-name
+    /// specified in the INDEXED phrase … for identifier-1", kb/Work PB211) and SR10's over a Format-2 WHEN operand.
+    /// Asked of the source text for the reason <see cref="SubscriptSegments"/> gives: the rendered subscript has
+    /// already erased which name was written. Index-names are user-defined words, compared case-insensitively
+    /// (§8.1.3.2 GR3 a)).</summary>
+    internal bool SubscriptNamesIndex(Core.DataReferenceContext dref, string index)
+    {
+        if (SubscriptSegments(dref) is not { } segs) return false;
+        foreach (var seg in segs)
+            foreach (var t in seg)
+                if (t.Type == Core.SUB_IDENTIFIER
+                    && string.Equals(t.Text, index, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+
     /// <summary>The <see cref="SubscriptSegments"/> split over an ALREADY-READ subscript group (the caller has
     /// the <see cref="WrittenReference"/> in hand and need not walk the suffix tail a second time).</summary>
     private List<List<IToken>>? SubscriptSegmentsOf(Core.SubscriptOrRefModContext? group)

@@ -361,7 +361,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + $"OCCURS clause associated with '{table.CobolName}'; {role} \"shall be neither referenced in "
                 + "the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first "
                 + "index-name associated with identifier-1\" (ISO §14.9.37.3 SR10)");
-        if (UsesIndex(dref, firstIndex))
+        if (refs.SubscriptNamesIndex(dref, firstIndex))
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is subscripted by '{firstIndex}', the "
                 + $"first index-name associated with '{table.CobolName}'; {role} \"shall be neither referenced "
                 + "in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the "
@@ -428,18 +428,6 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + $"followed by a '+' or a '–'\" (ISO §14.9.37.3 {rule})")
             : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
                 + $"first index-name '{firstIndex}' alone is required (ISO §14.9.37.3 {rule})");
-    }
-
-    /// <summary>True when any subscript of <paramref name="dref"/> names <paramref name="index"/> — SR10's second
-    /// prohibition, asked of the subscript AS WRITTEN for the same reason SR8's is.</summary>
-    private bool UsesIndex(Core.DataReferenceContext dref, string index)
-    {
-        if (refs.SubscriptSegments(dref) is not { } segs) return false;
-        foreach (var seg in segs)
-            foreach (var t in seg)
-                if (t.Type == Core.SUB_IDENTIFIER
-                    && string.Equals(t.Text, index, StringComparison.OrdinalIgnoreCase)) return true;
-        return false;
     }
 
     /// <summary>ISO §3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length

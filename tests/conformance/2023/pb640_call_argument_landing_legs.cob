@@ -40,11 +40,16 @@
        01 A7 PIC X(7) VALUE "ABCDEFG".
        01 A3 PIC XXX VALUE "XYZ".
        01 IX USAGE INDEX.
+       01 MT.
+          05 ME OCCURS 5 INDEXED BY MX PIC X.
        01 DL PIC X DYNAMIC LENGTH.
        PROCEDURE DIVISION.
        MAIN.
            CALL "PB640LF23" USING BY CONTENT N4
-           SET IX TO 3
+      *> The index data item is set FROM AN INDEX-NAME: ISO 14.9.39.3 SR3 forbids
+      *> arithmetic-expression-1 when identifier-1 is of class index (kb/Work PB212).
+           SET MX TO 3
+           SET IX TO MX
            CALL "PB640LI23" AS NESTED USING BY CONTENT IX
            CALL "PB640LN23" AS NESTED USING BY CONTENT A7
            CALL "PB640LN23" AS NESTED USING BY CONTENT A3

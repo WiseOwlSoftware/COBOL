@@ -1068,13 +1068,87 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 _fmt.ReportNoFormat(recvs, kinds, SetDirections.To, senderText);
                 return new BoundNop();
         }
+        // §14.9.39.3 SR2 — the sending alternative, classified ONCE for every receiver (kb/Work PB212).
+        if (IndexAssignmentSenderOf(recvs, senderDref, senderText) is not { } sender) return new BoundNop();
         var targets = new List<BoundSetTarget>();
+        bool admitted = true;
         foreach (var dref in recvs)
         {
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{DataBinder.WrittenText(dref)}'");
+            admitted &= ScreenIndexAssignmentReceiver(t, DataBinder.WrittenText(dref), sender, senderText);
             targets.Add(t);
         }
+        if (!admitted) return new BoundNop();
         return new BoundSetTo(targets, host.Expr.BindIndexWindowExpr(amount));   // SET is an r7 window (kb/Work R29)
+    }
+
+    /// <summary>Format 1's sending brace, <c>{ arithmetic-expression-1 | index-name-2 | identifier-2 }</c> (ISO
+    /// §14.9.39.2, the rendered figure: three alternatives, one required).</summary>
+    private enum IndexAssignmentSender { ArithmeticExpression, IndexName, IndexDataItem }
+
+    /// <summary>Which of Format 1's three sending alternatives the sender IS — or null, after reporting, when it is
+    /// none of them.
+    /// <para>⚠ DETERMINATION (kb/Work PB212 / PB388's SR2 question, settled from the rendered §14.9.39.2 Format-1
+    /// figure): SR2 — "Identifier-2 shall reference a data item of class index" — governs the identifier-2
+    /// ALTERNATIVE, not every bare identifier. A single numeric identifier is an arithmetic expression (§8.8.1.1:
+    /// "An arithmetic expression may be an identifier referencing a numeric data item"), so <c>SET IX TO N</c> over an
+    /// integer <c>N</c> is arithmetic-expression-1 and legal against an index-name receiver. The strict reading —
+    /// that an integer sender is refused because it is not of class index — is rejected: it would make
+    /// arithmetic-expression-1 unable to be a single data item. What SR2 DOES refuse is a bare identifier that
+    /// is neither of class index nor numeric: it is no alternative of the brace. That refusal is written HERE, in
+    /// SR2's own words, rather than left to the §8.8.1.1 arithmetic screen to reach incidentally.</para></summary>
+    private IndexAssignmentSender? IndexAssignmentSenderOf(
+        IReadOnlyList<Core.DataReferenceContext> recvs, Core.DataReferenceContext? senderDref, string senderText)
+    {
+        if (senderDref is null) return IndexAssignmentSender.ArithmeticExpression;   // a literal or an expression
+        switch (_fmt.KindOf(senderDref))
+        {
+            case SetOperandKind.IndexName: return IndexAssignmentSender.IndexName;
+            case SetOperandKind.IndexDataItem: return IndexAssignmentSender.IndexDataItem;
+            case SetOperandKind.OtherDataItem
+                when ctx.Refs.Probe(senderDref) is { } sp && !IntrinsicArgumentRules.IsArithmeticOperandClass(sp.Item):
+                ctx.Edition.Error(DiagnosticCatalog.SetIndexAssignmentOperand,
+                    $"SET {SetFormatSelection.Written(recvs)} TO '{senderText}': the sender is neither identifier-2 — ISO §14.9.39.3 SR2: \"Identifier-2 "
+                    + "shall reference a data item of class index\" — nor a numeric operand of "
+                    + "arithmetic-expression-1 (ISO §8.8.1.1)");
+                return null;
+            default: return IndexAssignmentSender.ArithmeticExpression;
+        }
+    }
+
+    /// <summary>§14.9.39.3 SR1, SR3 and SR4 over ONE receiving operand of Format 1, as the receiver-class ×
+    /// sender-alternative table §14.9.39.4 GR2 implies: it defines the statement for an index-name receiver from
+    /// any of the three alternatives (GR2 a)), and for a data-item receiver only from the alternatives its class
+    /// admits — so every other pairing is a syntax-rule violation, never a statement the emitter should store.
+    /// <list type="bullet">
+    ///   <item>SR1 is the RECEIVER's class — the <see cref="OperandPositions.SetIndexAssignmentReceiver"/> row of
+    ///         the ONE operand-class screen. Refused in both lanes: every refused class either threw at run time
+    ///         or stored a value (PIC 9(4)V99 received 5 as 000500) GR2 defines for no such receiver.</item>
+    ///   <item>SR3 — a class-index receiver: arithmetic-expression-1 "shall not be specified".</item>
+    ///   <item>SR4 — a numeric receiver: "index-name-2 shall be specified" — so neither arithmetic-expression-1
+    ///         nor an index-data-item identifier-2.</item>
+    /// </list>
+    /// SR3 and SR4 go through the <see cref="EditionContext.Removed"/> seam: an error under strict, and under
+    /// <c>--permissive</c> a warning with the value stored as before — the documented leniency for source that
+    /// assigns a number to an integer or index data item with SET.</summary>
+    private bool ScreenIndexAssignmentReceiver(BoundSetTarget t, string text, IndexAssignmentSender sender, string senderText)
+    {
+        if (t is not SetPlaceTarget { Place: var p }) return true;   // index-name-1 — GR2 a) admits every sender
+        if (!OperandClassScreen.Screen(ctx.Edition, OperandPositions.SetIndexAssignmentReceiver, p, text)) return false;
+        bool indexReceiver = (OperandClassScreen.ClassesOf(p) & OperandClasses.IndexDataItem) != 0;
+        string? rule = (indexReceiver, sender) switch
+        {
+            (true, IndexAssignmentSender.ArithmeticExpression) =>
+                "SR3: \"If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be "
+                + "specified\"",
+            (false, IndexAssignmentSender.ArithmeticExpression or IndexAssignmentSender.IndexDataItem) =>
+                "SR4: \"If identifier-1 references a numeric data item, index-name-2 shall be specified\"",
+            _ => null,
+        };
+        if (rule is null) return true;
+        ctx.Edition.Removed(DiagnosticCatalog.SetIndexAssignmentOperand.Code,
+            $"SET '{text}' TO '{senderText}' violates ISO §14.9.39.3 {rule}");
+        return ctx.Edition.Permissive;
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2), with Formats 10 and 14
@@ -1233,10 +1307,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>A Format-1 / Format-2 SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a
     /// resolvable data item (an index data item or an integer item — the emitter dispatches on its usage).
-    /// <para>It applies NO class screen, and that is deliberate: §14.9.39.3 SR1's "a data item of class index or
-    /// an integer data item" is a CATEGORY rule over Format 1's <c>identifier-1</c> brace, open as kb/Work PB212.
-    /// What this method no longer has to carry is the FORMAT question — <see cref="SetFormatSelection"/> has
-    /// already established that every receiver here belongs to Format 1's or Format 2's brace.</para></summary>
+    /// <para>It applies NO class screen, and that is deliberate: it is shared with PERFORM VARYING's induction
+    /// variable, whose class rule is a different one (§14.9.28.3 SR2). Each caller asks the ONE operand-class
+    /// screen for its OWN position — <see cref="BindSetTo"/> for §14.9.39.3 SR1 (kb/Work PB212), the varying
+    /// phrase for §14.9.28.3 SR2 / SR5 a). The FORMAT question is not carried here either —
+    /// <see cref="SetFormatSelection"/> has already established that every receiver belongs to Format 1's or
+    /// Format 2's brace.</para></summary>
     public BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
         host.Expr.IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
         : host.Expr.ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand

@@ -614,9 +614,12 @@ public sealed class FlagDirectiveTests
     [Fact]
     public void Compile_RangeExceptionForIndex_NotFlagged_OnPlainNumericReceiver()
     {
-        // SET of a plain numeric item is not an index-assignment into an index — no flag.
+        // SET of a plain numeric item is not an index-assignment into an index — no flag. The sender is
+        // index-name-2, the ONLY sender ISO §14.9.39.3 SR4 admits for a numeric receiver ("If identifier-1
+        // references a numeric data item, index-name-2 shall be specified"); this fixture used to write
+        // `SET N TO 3.`, source SR4 forbids and COBOLNET2326 now refuses (kb/Work PB212).
         var warnings = CompileWarnings(SetIndexProgram("       01 N PIC 9(4).\n",
-            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET N TO 3."));
+            "       >>TURN EC-RANGE-INDEX CHECKING ON\n       >>FLAG-02 RANGE-EXCEPTION-FOR-INDEX ON\n", "SET N TO IDX."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
     }
 

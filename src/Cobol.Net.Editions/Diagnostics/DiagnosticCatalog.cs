@@ -4781,6 +4781,43 @@ public static class DiagnosticCatalog
         + "abort the run unit when evaluated. Please report the source that produced it.",
         "COBOL.NET internal (no ISO rule)");
 
+    /// <summary>GO TO … DEPENDING ON identifier-1 is not a numeric elementary integer data item (kb/Work PB210) —
+    /// screened by the ONE operand-class screen (<c>OperandClassScreen</c>, the <c>OperandPositions</c> row).</summary>
+    public static readonly DiagnosticDescriptor GoToDependingSelectorClass = new(
+        "COBOLNET2324", "go-to-depending-selector-class", EditionSeverity.Error,
+        "The DEPENDING ON operand of a GO TO statement is not a numeric elementary data item that is an integer. "
+        + "ISO §14.9.17.3 SR1: \"Identifier-1 shall reference a numeric elementary data item that is an integer.\" "
+        + "An alphanumeric, numeric-edited, group, index, floating-point or scaled item is refused: the "
+        + "statement's transfer is defined only for an integer value (§14.9.17.4 GR2), and before this screen a "
+        + "PIC 9V9 selector holding 2.7 was truncated to 2 and silently selected the second procedure-name. "
+        + "Refused in both dialect lanes.",
+        "ISO §14.9.17.3 SR1");
+
+    /// <summary>SEARCH … VARYING identifier-2 is neither an index data item nor an integer data item, or is
+    /// subscripted by identifier-1's first index-name (kb/Work PB211).</summary>
+    public static readonly DiagnosticDescriptor SearchVaryingOperand = new(
+        "COBOLNET2325", "search-varying-operand", EditionSeverity.Error,
+        "The VARYING operand of a serial SEARCH violates ISO §14.9.37.3 SR5: \"Identifier-2 shall reference a "
+        + "data item whose usage is index or a data item that is an integer. Identifier-2 shall not be "
+        + "subscripted by the first or only index-name specified in the INDEXED phrase in the OCCURS clause "
+        + "specified in the data description entry for identifier-1.\" A non-integer, floating-point, "
+        + "alphanumeric or group item is refused (§14.9.37.4 GR3 b) increments it in step with the search "
+        + "index), and so is an item subscripted by the search index itself, whose occurrence would move with "
+        + "every step of the scan. Refused in both dialect lanes.",
+        "ISO §14.9.37.3 SR5");
+
+    /// <summary>A SET Format-1 (index-assignment) operand violates §14.9.39.3 SR1–SR4 (kb/Work PB212).</summary>
+    public static readonly DiagnosticDescriptor SetIndexAssignmentOperand = new(
+        "COBOLNET2326", "set-index-assignment-operand", EditionSeverity.Error,
+        "A SET … TO statement of Format 1 (index-assignment, ISO §14.9.39.2) pairs operands its syntax rules do "
+        + "not admit. SR1: identifier-1 shall reference a data item of class index or an integer data item. SR2: "
+        + "identifier-2 shall reference a data item of class index. SR3: a class-index receiver shall not be "
+        + "sent arithmetic-expression-1. SR4: a numeric receiver shall be sent index-name-2. §14.9.39.4 GR2 "
+        + "defines the statement for exactly the admitted pairings. SR1 and SR2 are refused in both dialect "
+        + "lanes; under --permissive, SR3 and SR4 (an arithmetic value or index data item sent to an integer "
+        + "item, an arithmetic value sent to an index data item) are warnings and the value is stored.",
+        "ISO §14.9.39.3 SR1-SR4");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

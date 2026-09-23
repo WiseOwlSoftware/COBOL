@@ -3,6 +3,7 @@
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -83,7 +84,27 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR3 c) 1.)
                 else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2.)
             }
-            else if (host.Expr.ResolveReceiving(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR3 b)
+            else if (host.Expr.ResolveReceiving(v) is { } p)                                       // data item (GR3 b)
+            {
+                // §14.9.37.3 SR5, BOTH sentences (kb/Work PB211): identifier-2 is a class-closed position — "a
+                // data item whose usage is index or a data item that is an integer" — screened by the ONE
+                // operand-class screen; and it "shall not be subscripted by the first or only index-name" of
+                // identifier-1, whose occurrence would otherwise move with every step of the scan (measured: the
+                // illegal spelling printed NONE where the legal one printed HIT). Both are reported; the bind
+                // stops at a refusal (§4.2.2 — the compile has failed).
+                string text = DataBinder.WrittenText(v);
+                bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.SearchVaryingIdentifier, p, text);
+                if (ctx.Refs.SubscriptNamesIndex(v, table.IndexNames[0]))
+                {
+                    ctx.Edition.Error(DiagnosticCatalog.SearchVaryingOperand,
+                        $"SEARCH VARYING identifier-2 '{text}' is subscripted by '{table.IndexNames[0]}', the first "
+                        + $"index-name in the INDEXED phrase of '{table.CobolName}'s OCCURS clause, which ISO "
+                        + "§14.9.37.3 SR5 prohibits");
+                    admitted = false;
+                }
+                if (!admitted) return new BoundNop();
+                also = new SetPlaceTarget(p);
+            }
             else return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         }
 

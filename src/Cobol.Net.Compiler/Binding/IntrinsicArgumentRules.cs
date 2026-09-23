@@ -1561,7 +1561,7 @@ internal static class IntrinsicArgumentRules
     private static CobolClass CrossBlock(CobolClass c) =>
         TableTwoClass(c) is var cls && cls == CobolClass.Alphabetic ? CobolClass.Alphanumeric : cls;
 
-    private static string Name(CobolClass c) => c switch
+    internal static string Name(CobolClass c) => c switch
     {
         CobolClass.Alphabetic => "alphabetic",
         CobolClass.Alphanumeric => "alphanumeric",

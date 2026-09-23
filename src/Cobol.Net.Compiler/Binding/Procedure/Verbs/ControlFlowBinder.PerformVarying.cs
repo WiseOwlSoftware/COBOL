@@ -150,6 +150,11 @@ internal sealed partial class ControlFlowBinder
         bool firstLevel)
     {
         if (host.Set.SetTargetOf(dref) is not { } var) return null;
+        // §14.9.28.3 SR2 — "Each identifier shall reference a numeric elementary item described in the data
+        // division": the varied identifier is a class-closed position of the ONE operand-class screen. A PIC X
+        // induction variable used to compile and throw at run time.
+        if (var is SetPlaceTarget { Place: var vp })
+            OperandClassScreen.Screen(ctx.Edition, OperandPositions.PerformVaryingIdentifier, vp, dref.GetText());
         var from = BindVaryingOperand(ops[0], firstLevel ? VaryingSlot.FirstFrom : VaryingSlot.AfterFrom);
         var by = ops.Length > 1 ? BindVaryingOperand(ops[1], VaryingSlot.By) : OmittedBy;
         CheckVaryingOperandRules(dref, var, from, by);
@@ -243,9 +248,11 @@ internal sealed partial class ControlFlowBinder
         if (fromIsIndexName)
         {
             // a) "The identifier in the associated VARYING or AFTER phrase shall reference an integer data item."
-            if (var is SetPlaceTarget { Place.Item: { IsGroup: false } item } && item.Pic is not { IsIntegerDescription: true })
-                Sr(dref.GetText(), "VARYING/AFTER", "SR5 a)",
-                    "The identifier in the associated VARYING or AFTER phrase shall reference an integer data item");
+            // Asked of the SAME screen as SR2 — and only once SR2 has admitted the operand, so a PIC X variable
+            // draws SR2 alone rather than both rules.
+            if (var is SetPlaceTarget { Place: var p }
+                && OperandClassScreen.Admits(OperandPositions.PerformVaryingIdentifier, p))
+                OperandClassScreen.Screen(ctx.Edition, OperandPositions.PerformVaryingIdentifierFromIndex, p, dref.GetText());
             // b) "The identifier in the associated BY phrase shall reference an integer data item."
             if (by.Present && by.Kind is VaryingOperandKind.Identifier && !by.IsInteger) Sr(by.Text, "BY", "SR5 b)",
                 "The identifier in the associated BY phrase shall reference an integer data item");

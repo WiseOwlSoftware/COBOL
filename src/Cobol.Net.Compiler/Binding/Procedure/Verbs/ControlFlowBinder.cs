@@ -253,8 +253,14 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                     if (ctx.Table.ResolveProcedureOperand(n, "GO TO DEPENDING") is { } proc) targets.Add(proc.Range.Start);
                     else resolved = false;
                 }
-                return resolved
-                    ? new BoundGoToDepending(host.Expr.FieldOperand(g.dataReference()), targets, ctx.SourceLine(g))
+                // §14.9.17.3 SR1 — identifier-1 is a class-closed position (kb/Work PB210): screened through the
+                // ONE operand-class screen, BOTH halves of the rule at once (numeric elementary AND integer). A
+                // PIC 9V9 selector used to be truncated by the emitter and silently select procedure-name-2.
+                var selector = host.Expr.FieldOperand(g.dataReference());
+                bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.GoToDependingSelector,
+                    selector, g.dataReference().GetText());
+                return resolved && admitted
+                    ? new BoundGoToDepending(selector, targets, ctx.SourceLine(g))
                     : new BoundNop();
 
             case GoToFormat.Unconditional:          // GO TO procedure-name-1
