@@ -78,6 +78,70 @@ public sealed class MonetaryFacts
     /// groups are NOT grouped further.</summary>
     public bool GroupStops { get; }
 
+    /// <summary>The size of the digit group at right-to-left index <paramref name="g"/> (0 = the group nearest the
+    /// decimal delimiter) under POSIX <c>mon_grouping</c> (§8.2.2 "size of each group of digits"): the listed size,
+    /// the LAST listed size repeated past the list, or 0 = "no such group" (the list terminated —
+    /// <see cref="GroupStops"/> — or there is no grouping at all), in which case every digit further left is
+    /// ungrouped. ⛔ THE one reading of the size list: format-2 editing's separator placement
+    /// (<c>CobolLocaleEdit</c>, §13.18.40.5 r12), its de-edit (§14.6.13.2 r4) and the NUMVAL-C LOCALE scan
+    /// (§15.68.3 r5b.6) all walk it through here (kb/Work PB835).</summary>
+    public int GroupSize(int g)
+    {
+        if (ThousandsSep.Length == 0 || GroupSizes.Length == 0) return 0;
+        if (g < GroupSizes.Length) return Math.Max(GroupSizes[g], 0);
+        return GroupStops ? 0 : Math.Max(GroupSizes[^1], 0);
+    }
+
+    /// <summary>Is <paramref name="groups"/> — the digit counts of an integer part's runs, LEFT to right, split at
+    /// its <c>mon_thousands_sep</c> occurrences (so <c>groups.Length - 1</c> separators) — grouped "in accordance
+    /// with locale fields mon_thousands_sep and mon_grouping" (§15.68.3 r5b.6)? With
+    /// <paramref name="complete"/> the runs are the whole integer part and must be EXACTLY the mon_grouping
+    /// grouping of its digits: every run but the leftmost is its group's size and the leftmost is 1..its size
+    /// (any length once the list has terminated). Without it the runs are a PREFIX still being scanned — the last
+    /// run may be short and further groups may follow — and the answer is whether SOME completion is grouped.
+    /// No separator at all (one run) is always admitted: r5b.6 "may contain". ⚖ DETERMINATION (kb/Work PB835):
+    /// once a separator appears, EVERY mon_grouping position carries one — a partially grouped run ("1234 567"
+    /// under fr-FR) is not in accordance with the size list; the reading "each separator at SOME legal boundary"
+    /// is rejected.</summary>
+    public bool GroupingAdmits(ReadOnlySpan<int> groups, bool complete)
+    {
+        int k = groups.Length - 1;                                          // separators
+        if (k <= 0) return true;
+        if (complete) return GroupingFits(groups, k, complete: true);
+        for (int top = k; top <= k + GroupSizes.Length + 1; top++)          // past the list every size repeats
+            if (GroupingFits(groups, top, complete: false)) return true;
+        return false;
+    }
+
+    /// <summary>Are <paramref name="groups"/> (as for <see cref="GroupingAdmits"/>, the whole integer part) EXACTLY
+    /// what format-2 editing writes — every mon_grouping position carries a separator, so a run of more digits
+    /// than the first group's size with NO separator is not a possible result either (the §14.6.13.2 r4 de-edit;
+    /// §13.18.40.5 r12 always inserts them).</summary>
+    public bool GroupingIsExact(ReadOnlySpan<int> groups)
+    {
+        int k = groups.Length - 1;
+        if (k > 0) return GroupingFits(groups, k, complete: true);
+        int first = GroupSize(0);
+        return first == 0 || groups[0] <= first;
+    }
+
+    /// <summary>Do <paramref name="groups"/> fit a grouped number whose leftmost group has right-to-left index
+    /// <paramref name="top"/>?</summary>
+    private bool GroupingFits(ReadOnlySpan<int> groups, int top, bool complete)
+    {
+        int k = groups.Length - 1;
+        int lead = GroupSize(top);
+        if (groups[0] < 1 || (lead > 0 && groups[0] > lead)) return false;  // leftmost: 1..size, or unbounded
+        for (int j = 1; j < k; j++)
+        {
+            int sz = GroupSize(top - j);
+            if (sz <= 0 || groups[j] != sz) return false;
+        }
+        int last = GroupSize(top - k);
+        if (last <= 0) return false;
+        return complete ? top == k && groups[k] == last : groups[k] <= last;
+    }
+
     /// <summary>POSIX <c>frac_digits</c> / <c>int_frac_digits</c> (one .NET carrier for both — documented limit).
     /// ⛔ A RECOGNITION input only (§15.68.3 r5b.5): NO format-2 editing rule reads it — §13.18.40.5 r12 takes
     /// only the separators and group sizes from LC_MONETARY, and the fraction WIDTH is the picture's.</summary>

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Runtime.InteropServices;
 using CobolNet.Runtime.Globalization;
 
 namespace CobolNet.Runtime;
@@ -18,10 +19,11 @@ namespace CobolNet.Runtime;
 /// contain"), the sign present or absent (r5b.4 "may contain" — absent ⇒ nonnegative, §15.68.4 r3), spaces
 /// admitted at every token adjacency (a superset of the three <c>sep_by_space</c> values — the field ISO 1989
 /// never names; §8.2.1's ISO 9945 import) plus leading/trailing (r5b.7). The only OBLIGATION is one digit
-/// (r5b.7). ⚖ Documented determinations: grouping separators are validated by IDENTITY and flanking (between
-/// digits, never right of <c>mon_decimal_point</c> — §8.2.2 / §15.68.4 r2), never by GROUP SIZE, and the
+/// (r5b.7). Grouping separators stand between digits, never right of <c>mon_decimal_point</c> (§8.2.2 /
+/// §15.68.4 r2), and where <c>mon_grouping</c> puts them (r5b.6 names the field — kb/Work PB835): none at all, or
+/// every one (⚖ DETERMINATION, <see cref="MonetaryFacts.GroupingAdmits"/>). ⚖ Documented determinations: the
 /// fraction-digit count is not constrained by <c>frac_digits</c> — §15.68.1 names "the grouping separator and
-/// the decimal separator permitted", r5b.5/6 are permissions, and the strict readings reject legal source;
+/// the decimal separator permitted" and r5b.5 is a permission;
 /// separator and currency matching uses the L12 spacing equivalence (a typed U+00A0 matches the normalized
 /// space); the negative convention is tried before the positive one (an empty positive sign matches only by
 /// absence); when both currency candidates match, the longer wins.</para>
@@ -182,10 +184,16 @@ public static partial class CobolIntrinsics
                     break;
                 case LocTok.Num:
                 {
-                    // NUM ::= digits [sep digits]… [dec [digits]] | dec digits — separators by IDENTITY and
-                    // flanking only (never group sizes); ⛔ no commaMode, no CR/DB (§15.68.3 r4 is not inherited).
+                    // NUM ::= digits [sep digits]… [dec [digits]] | dec digits — a separator is digit-flanked, left
+                    // of the decimal (§15.68.4 r2), AND stands where mon_grouping puts one (r5b.6 "in accordance
+                    // with locale fields mon_thousands_sep and mon_grouping" — kb/Work PB835): the integer runs
+                    // are checked as a PREFIX at every character, so the first character no grouped completion
+                    // admits is the §15.94.4 r1 b) position, and as a WHOLE where the integer part ends (a valid
+                    // but incomplete grouping ends at the next character, or at LENGTH + 1 — r1 c).
+                    // ⛔ no commaMode, no CR/DB (§15.68.3 r4 is not inherited).
                     int start = i;
                     bool sawDec = false;
+                    List<int>? groups = null;                              // integer runs, once a separator appears
                     while (i < n)
                     {
                         char c = text[i];
@@ -194,6 +202,12 @@ public static partial class CobolIntrinsics
                             anyDigit = true;
                             if (++digits > digitCap)
                                 return new(false, i, true, i + 1, 0, 0);   // the (cap+1)-th digit's ordinal
+                            if (groups is not null && !sawDec)
+                            {
+                                groups[^1]++;
+                                if (!f.GroupingAdmits(CollectionsMarshal.AsSpan(groups), complete: false))
+                                    return Fail();                         // this digit overfills its group
+                            }
                             unscaled = unscaled * 10 + (c - '0');
                             if (sawDec) frac++;
                             i++;
@@ -203,11 +217,15 @@ public static partial class CobolIntrinsics
                             && MatchAt(text, i, f.ThousandsSep, fold: null)
                             && i + f.ThousandsSep.Length < n && char.IsAsciiDigit(text[i + f.ThousandsSep.Length]))
                         {
-                            i += f.ThousandsSep.Length;                    // digit-flanked, left of the decimal
+                            (groups ??= [digits]).Add(0);                  // digits so far = the leftmost run
+                            if (!f.GroupingAdmits(CollectionsMarshal.AsSpan(groups), complete: false))
+                                return Fail();                             // no group boundary can fall here
+                            i += f.ThousandsSep.Length;
                             continue;
                         }
                         if (!sawDec && f.DecimalPoint.Length > 0 && MatchAt(text, i, f.DecimalPoint, fold: null))
                         {
+                            if (!GroupedWhole()) return Fail();            // the integer part ends short
                             sawDec = true;
                             frac = 0;
                             i += f.DecimalPoint.Length;
@@ -216,7 +234,11 @@ public static partial class CobolIntrinsics
                         break;
                     }
                     if (i == start) return Fail();                         // the slot consumed nothing
+                    if (!sawDec && !GroupedWhole()) return Fail();
                     break;
+
+                    bool GroupedWhole() =>
+                        groups is null || f.GroupingAdmits(CollectionsMarshal.AsSpan(groups), complete: true);
                 }
             }
             Sp();

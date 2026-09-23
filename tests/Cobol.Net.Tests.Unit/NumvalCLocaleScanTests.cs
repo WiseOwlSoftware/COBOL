@@ -31,7 +31,7 @@ public sealed class NumvalCLocaleScanTests
     [InlineData("( ¤1,234.56 )", 0)]           // spaces at every token adjacency
     [InlineData(".56", 0)]                     // the leading-separator form (parity with r4a's `. digit`)
     [InlineData("+¤1,234.56", 0)]              // the positive convention: positive_sign at the determined posn 1
-    [InlineData("1,23,4.5", 0)]                // ⚖ group SIZES are not validated (permissive determination)
+    [InlineData("1234567.5", 0)]               // no separator at all — §15.68.3 r5b.6 "may contain"
     [InlineData("¤1.5", 0)]                    // ⚖ fraction width not constrained by frac_digits (2)
     public void Conforming_ReturnsZero(string text, long expected)
     {
@@ -46,6 +46,10 @@ public sealed class NumvalCLocaleScanTests
     [InlineData("0 1", 3)]                     // §15.94.4 r1 b.1's own worked example — position of the '1'
     [InlineData("1,234.5,6", 8)]               // a grouping separator right of the decimal separator (§8.2.2)
     [InlineData("1..5", 3)]                    // a second decimal separator
+    [InlineData("1,23,4.5", 5)]                // r5b.6 mon_grouping {3}: a 2-digit group ends at this ',' (kb/Work PB835)
+    [InlineData("1,2,3,4.5", 4)]               // the second separator follows a 1-digit group
+    [InlineData("12,34.5", 6)]                 // "12,34" still completes to "12,345"; the '.' ends it short
+    [InlineData("1,23", 5)]                    // valid characters, incomplete grouping — r1 c LENGTH+1
     [InlineData("(¤1,234.56", 11)]             // unclosed parenthesis — every char admissible ⇒ r1 c LENGTH+1
     [InlineData("", 1)]                        // zero-length ⇒ 0+1 (r1 c NOTE)
     [InlineData("   ", 4)]                     // all spaces ⇒ n+1 (r1 c NOTE)
@@ -75,7 +79,7 @@ public sealed class NumvalCLocaleScanTests
         // Negative zero evaluates to zero — COBOL numeric has no signed zero.
         Assert.Equal((Int128)0, Scaled2("(¤0.00)"));
         // §15.68.4 r2 — grouping separators preceding the decimal separator are ignored in the value.
-        Assert.Equal((Int128)123450, Scaled2("1,2,3,4.5"));
+        Assert.Equal((Int128)123450, Scaled2("1,234.5"));
     }
 
     [Fact]

@@ -132,6 +132,65 @@ public sealed class MonetaryFactsTests
         if (hi.GroupSizes.Length >= 2) Assert.Equal(3, hi.GroupSizes[0]);
     }
 
+    [Fact]
+    public void GroupingAdmits_PinnedShapes_ThreeThenTwoAndThrees()
+    {
+        // kb/Work PB835 — ISO §15.68.3 r5b.6 "in accordance with locale fields mon_thousands_sep and mon_grouping".
+        var us = MonetaryFacts.Of(LocaleFacts.For("en-US"));                // {3} repeating
+        Assert.True(us.GroupingAdmits([1, 3, 3], complete: true));          // 1,234,567
+        Assert.True(us.GroupingAdmits([7], complete: true));                // no separator — r5b.6 "may"
+        Assert.False(us.GroupingAdmits([2, 2], complete: true));            // 12,34 — short last group
+        Assert.True(us.GroupingAdmits([2, 2], complete: false));            // … but "12,345" completes it
+        Assert.False(us.GroupingAdmits([4, 0], complete: false));           // 1234, — no completion exists
+        Assert.False(us.GroupingAdmits([1, 4], complete: false));           // 1,2345 — overfull group
+        Assert.False(us.GroupingIsExact([7]));                              // an edit always writes them
+        Assert.True(us.GroupingIsExact([3]));
+        var inv = MonetaryFacts.Of(LocaleFacts.For(""));
+        Assert.Equal(3, inv.GroupSize(0));
+        Assert.Equal(3, inv.GroupSize(9));                                  // the last size repeats
+    }
+
+    [Fact]
+    public void EveryHostCulture_GroupingWalk_AgreesWithDotNetsOwnGroupSizeRendering()
+    {
+        // The drift oracle for the ONE mon_grouping reading (kb/Work PB835): .NET's "N0" formatter applied with the
+        // culture's CurrencyGroupSizes is an INDEPENDENT implementation of the same size-list semantics (repeat
+        // the last size; a trailing 0 stops). For every culture and every integer width 1..16, the runs it
+        // writes must be exactly grouped (the de-edit's test), admitted whole and at every prefix (the NUMVAL-C
+        // LOCALE scan's tests), and one separator moved one digit right must be refused.
+        int examined = 0;
+        foreach (var culture in CultureInfo.GetCultures(CultureTypes.SpecificCultures))
+        {
+            var f = MonetaryFacts.Of(LocaleFacts.For(culture.Name));
+            if (f.ThousandsSep.Length == 0) continue;
+            var nfi = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
+            nfi.NumberGroupSizes = culture.NumberFormat.CurrencyGroupSizes;
+            nfi.NumberGroupSeparator = "|";
+            for (int width = 1; width <= 16; width++)
+            {
+                long v = long.Parse("1234567890123456"[..width], CultureInfo.InvariantCulture);
+                string text = v.ToString("N0", nfi);
+                int[] groups = Array.ConvertAll(text.Split('|'), static s => s.Length);
+                Assert.True(f.GroupingIsExact(groups), $"{culture.Name}: {text} not exact");
+                Assert.True(f.GroupingAdmits(groups, complete: true), $"{culture.Name}: {text} not admitted");
+                for (int len = 1; len <= groups[^1]; len++)
+                {
+                    int[] prefix = [.. groups];
+                    prefix[^1] = len;
+                    Assert.True(f.GroupingAdmits(prefix, complete: false), $"{culture.Name}: prefix of {text}");
+                }
+                if (groups.Length >= 2 && groups[^1] > 1)
+                {
+                    int[] shifted = [.. groups];
+                    shifted[^2]++; shifted[^1]--;
+                    Assert.False(f.GroupingAdmits(shifted, complete: true), $"{culture.Name}: shifted {text}");
+                }
+            }
+            examined++;
+        }
+        Assert.True(examined > 100, $"only {examined} cultures examined — the host lost its culture data");
+    }
+
     // ── The drift oracle (T-C 3) — every host culture vs ToString("C") ─────────────────────────────────────────
 
     [Fact]

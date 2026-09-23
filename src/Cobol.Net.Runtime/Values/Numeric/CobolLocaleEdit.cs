@@ -206,21 +206,19 @@ public static class CobolLocaleEdit
 
     /// <summary>The integer-digit indexes (1-based, LEFT-to-right over <paramref name="digitsLeft"/> digits) after
     /// which a grouping separator sits — mon_grouping applied RIGHT-to-left from the decimal delimiter
-    /// (§13.18.40.5 r12; POSIX: the last size repeats unless the list terminates).</summary>
+    /// (§13.18.40.5 r12; the size list is read only through <see cref="MonetaryFacts.GroupSize"/> — the last size
+    /// repeats unless the list terminates).</summary>
     private static int[] GroupBoundaries(MonetaryFacts f, int digitsLeft)
     {
-        if (f.ThousandsSep.Length == 0 || f.GroupSizes.Length == 0) return [];
         var cuts = new List<int>();
-        int fromRight = 0, g = 0;
-        while (true)
+        int fromRight = 0;
+        for (int g = 0; ; g++)
         {
-            int sz = f.GroupSizes[Math.Min(g, f.GroupSizes.Length - 1)];
-            if (sz <= 0) break;
+            int sz = f.GroupSize(g);
+            if (sz <= 0) break;                                             // no further grouping
             fromRight += sz;
             if (fromRight >= digitsLeft) break;
             cuts.Add(digitsLeft - fromRight);                               // separator after this left-index digit
-            if (g == f.GroupSizes.Length - 1 && f.GroupStops) break;        // terminated list: no further grouping
-            g++;
         }
         cuts.Sort();
         return [.. cuts];
@@ -292,11 +290,17 @@ public static class CobolLocaleEdit
     /// are skipped left of the decimal separator, the decimal separator appears once when the picture has a '.',
     /// and the fraction width must be exactly the picture's. An interior space AFTER the first digit is not a
     /// possible editing result (suppression is a leading run). The integer part may be SHORTER than digitsLeft —
-    /// r14 b) may have left-truncated it.</summary>
+    /// r14 b) may have left-truncated it. The separators among the VISIBLE integer digits must stand exactly where
+    /// Format's <see cref="GroupBoundaries"/> put them — every mon_grouping position, measured from the decimal
+    /// delimiter, carries one (a separator elsewhere, or a missing one, is not a possible editing result — kb/Work
+    /// PB835); a separator LEFT of the first visible digit is the r14 b) truncation's remainder and is skipped.</summary>
     private static Int128 DeEditNum(string num, in Shape p, MonetaryFacts facts, bool negative, string original)
     {
         Int128 value = 0;
         int fracSeen = -1, intDigits = 0;
+        // The visible integer runs, left to right (at most one more than the separators, so num.Length + 1 bounds it).
+        Span<int> groups = num.Length < 64 ? stackalloc int[num.Length + 1] : new int[num.Length + 1];
+        int ng = 1;
         for (int i = 0; i < num.Length;)
         {
             char c = num[i];
@@ -304,14 +308,18 @@ public static class CobolLocaleEdit
             {
                 value = value * 10 + (c - '0');
                 if (fracSeen >= 0) fracSeen++;
-                else intDigits++;
+                else { intDigits++; groups[ng - 1]++; }
                 i++;
                 continue;
             }
             if (c == ' ' && intDigits == 0 && fracSeen < 0) { i++; continue; }   // a suppressed leading position
             if (fracSeen < 0 && facts.ThousandsSep.Length > 0
                 && string.CompareOrdinal(num, i, facts.ThousandsSep, 0, facts.ThousandsSep.Length) == 0)
-            { i += facts.ThousandsSep.Length; continue; }
+            {
+                if (intDigits > 0) groups[ng++] = 0;
+                i += facts.ThousandsSep.Length;
+                continue;
+            }
             if (fracSeen < 0 && p.HasDot
                 && string.CompareOrdinal(num, i, facts.DecimalPoint, 0, facts.DecimalPoint.Length) == 0)
             { fracSeen = 0; i += facts.DecimalPoint.Length; continue; }
@@ -321,6 +329,7 @@ public static class CobolLocaleEdit
         if (p.HasDot && fracSeen != p.DigitsRight) { Incompatible(original); return 0; }
         if (!p.HasDot && fracSeen >= 0) { Incompatible(original); return 0; }
         if (intDigits > p.DigitsLeft) { Incompatible(original); return 0; }
+        if (!facts.GroupingIsExact(groups[..ng])) { Incompatible(original); return 0; }
         return negative ? -value : value;
     }
 

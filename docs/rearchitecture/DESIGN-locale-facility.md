@@ -769,7 +769,14 @@ representation of locale fields is used for purposes of matching argument-1*"; �
 rule set, `--check` OK) are the **inverse** of the same table: recognize a currency string matching
 `currency_symbol` or the first three characters of `int_curr_symbol` per `p_cs_precedes`/`n_cs_precedes`;
 recognize signs per `positive_sign`/`negative_sign` and `p_sign_posn`/`n_sign_posn`; separators per
-`mon_decimal_point`/`mon_thousands_sep`/`mon_grouping`. §15.68.4 r3 (`--check` OK) fixes the sign of the
+`mon_decimal_point`/`mon_thousands_sep`/`mon_grouping` — the group SIZES are enforced (r5b.6, `--check` OK:
+"*in accordance with locale fields mon_thousands_sep and mon_grouping*"; kb/Work PB835): no separator, or one at
+EVERY `mon_grouping` position, checked as a PREFIX at each character so TEST-NUMVAL-C's position is the first
+character no grouped completion admits. The size list has ONE reader, `MonetaryFacts.GroupSize` (the POSIX
+last-size repetition and trailing-0 stop), with `GroupingAdmits` (the scan: prefix or whole) and `GroupingIsExact`
+(the format-2 de-edit: every position, exactly what the edit writes) over it; the edit's own separator placement
+walks the same `GroupSize`, and `MonetaryFactsTests` pins all three against .NET's independent `N0` group-size
+rendering for every host culture. §15.68.4 r3 (`--check` OK) fixes the sign of the
 result under the LOCALE keyword. `ANYCASE` under LOCALE folds through the **LC_CTYPE** correspondence of the
 same locale (§15.68.3 r5b.3's second paragraph), which is why §4.5's case mapping must be reachable from here
 — one mechanism, two callers.

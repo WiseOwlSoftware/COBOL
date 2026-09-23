@@ -888,9 +888,15 @@ reallocated).
    > runtime's accepted maximum by `MonetaryFactsTests`); seven POSIX placement renderings are unreachable from
    > .NET's patterns — a documented limit under §8.2.1's own licence ("The format and implementation of locales
    > may differ from those specifications provided that logically-equivalent functionality is supported");
-   > grouping separators are validated by IDENTITY and digit-flanking, never by GROUP SIZE, and the fraction-digit
-   > count of argument-1 is not constrained by `frac_digits` (§15.68.1 names "the grouping separator and the
-   > decimal separator permitted"; r5b.5/6 are permissions — the strict readings reject legal source); spaces are
+   > grouping separators are validated by IDENTITY, digit-flanking AND the `mon_grouping` group SIZES (§15.68.3
+   > r5b.6 names both fields — kb/Work PB835): a digit string with no separator is admitted (r5b.6 "may
+   > contain"), and once one appears EVERY `mon_grouping` position carries one — **⚖ DETERMINATION**, the
+   > reading "each separator at SOME legal boundary" is rejected; TEST-NUMVAL-C reports the first character no
+   > grouped completion admits (a valid-but-short grouping at the character that ends it, or LENGTH+1 — §15.94.4
+   > r1 b/c); the §14.6.13.2 r4 de-edit of a format-2 item holds its content to the SAME walk exactly (every
+   > position, as §13.18.40.5 r12 writes them); the fraction-digit count of argument-1 is not constrained by
+   > `frac_digits` (§15.68.1 names "the grouping separator and the decimal separator permitted"; r5b.5 is a
+   > permission — the strict reading rejects legal source); spaces are
    > admitted at every token adjacency (a superset of the three `sep_by_space` values); `frac_digits` is NEVER an
    > editing input — §13.18.40.5 r12 hands the locale only the separators and group sizes, the fraction width is
    > the picture's; §13.18.40.4 GR19's format-validation leg fires only inside a VALIDATE statement and rides the
