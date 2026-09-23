@@ -178,6 +178,88 @@ internal static class RecordLayout
         }
     }
 
+    // ── A key's window in a VARIABLE-LENGTH record (kb/Work PB1025; docs/CONFORMANCE.md §3 D-KWV) ────────────────
+
+    /// <summary>A key's byte window in its record (<see cref="KeyWindowOf"/>): <paramref name="Offset"/> — the
+    /// record offset, or for a key a variable-length member precedes (<paramref name="FollowsVariable"/>) its
+    /// FIXED-run offset; <paramref name="Bytes"/> — its byte extent; <paramref name="MaxEnd"/> — the furthest byte
+    /// past its end in any record of the type, the quantity the minimum-record-size rules bound.</summary>
+    public readonly record struct KeyWindow(int Offset, int Bytes, bool FollowsVariable, long MaxEnd);
+
+    /// <summary>⛔ THE ONE ANSWER TO "WHERE IS THIS KEY IN THE RECORD, AND HOW FAR CAN IT REACH?" — for a SORT/MERGE
+    /// key (§14.9.40.3 SR6 g) / §14.9.24.3 SR4 g)) and an indexed RECORD KEY / ALTERNATE RECORD KEY (§12.4.5.12.3
+    /// SR4 / §12.4.5.6.3 SR5), whose rules are the same sentence: in a file of variable-length records every key
+    /// "shall be contained within the first n bytes of the record, where n equals the minimum record size".
+    /// <para>A variable-length record is sent and held as its CONTIGUOUS image (§8.5.1.11.2 — "behaves in all
+    /// respects as though it were in fact contiguous with its neighbors"; determination D-FRA), so a key that a
+    /// dynamic-length item or a dynamic-capacity table PRECEDES has no one position: it starts at its offset in the
+    /// record's FIXED run plus whatever those members hold in THIS record. Such a key is
+    /// <see cref="KeyWindow.FollowsVariable"/>, its <see cref="KeyWindow.Offset"/> is the FIXED-run offset the
+    /// record type's runtime layout (<c>CobolContiguousLayout.Position</c>) starts from, and its
+    /// <see cref="KeyWindow.MaxEnd"/> charges every preceding member its MAXIMUM extent (§13.18.43.4 GR8 b)) — the
+    /// furthest byte the key can occupy in any record, which is what "contained within the first n bytes" has to
+    /// hold for. Every other key keeps <see cref="OffsetInRecord"/>'s fixed window, unchanged.</para>
+    /// <para>Null when the key does not lie in <paramref name="root"/>'s area, or is subject to OCCURS.</para></summary>
+    public static KeyWindow? KeyWindowOf(DataItem root, DataItem key, int bytes)
+    {
+        if (OffsetInRecord(root, key) is not { } off) return null;
+        if (FileModel.IsVariableLengthRecord(root) && ContiguousPlaceOf(root, key) is { Preceding: > 0 } p)
+            return new KeyWindow(p.FixedOffset, bytes, true, p.FixedOffset + p.PrecedingMaxBytes + bytes);
+        return new KeyWindow(off, bytes, false, off + bytes);
+    }
+
+    /// <summary>The walk behind <see cref="KeyWindowOf"/>: <paramref name="key"/>'s offset in
+    /// <paramref name="root"/>'s FIXED run (every variable-length member contributing ZERO — the §8.5.1.12.3
+    /// accounting the emitted layout's <c>FixedAt</c> uses, flattened through nested variable-length groups the
+    /// same way), how many variable-length members precede it, and their summed MAXIMUM byte extents. The fixed
+    /// members advance exactly as <see cref="OffsetOf"/> advances (the codec basis), so the offset is the one the
+    /// layout's take step starts from.</summary>
+    private static (int FixedOffset, int Preceding, long PrecedingMaxBytes)? ContiguousPlaceOf(DataItem root, DataItem key)
+    {
+        int preceding = 0;
+        long maxBytes = 0;
+        int? found = null;
+        var offsets = new Dictionary<DataItem, int>(ReferenceEqualityComparer.Instance);
+        Walk(root, 0);
+        return found is { } f ? (f, preceding, maxBytes) : null;
+
+        // Returns the FIXED-run offset just past node.
+        int Walk(DataItem node, int start)
+        {
+            offsets[node] = start;
+            if (ReferenceEquals(node, key)) { found = start; return start; }
+            int running = start;
+            foreach (var c in node.Children)
+            {
+                if (found is not null) return running;
+                int cStart = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out int tOff) ? tOff : running;
+                if (c.IsDynamicLength || c.IsDynamicTable)
+                {
+                    if (ReferenceEquals(c, key)) { found = cStart; return running; }
+                    if (c.RedefinesTargetName is null) { preceding++; maxBytes += FileModel.MaxDynamicExtent(c); }
+                    continue;   // §8.5.1.12.3 — contributes nothing to the fixed run
+                }
+                if (c.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(c) && c.RedefinesTargetName is null)
+                {
+                    running = Walk(c, cStart);   // a nested variable-length group flattens in place
+                    continue;
+                }
+                Walk(c, cStart);
+                if (found is not null) return running;
+                if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
+                {
+                    if (c.IsCanonical) running += cls.Width;
+                    continue;
+                }
+                if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
+                    continue;
+                if (c.RedefinesTargetName is not null) continue;
+                running += PhysicalOccurrenceWidth(c) * (c.Occurs ?? 1);
+            }
+            return running;
+        }
+    }
+
     // ── Key-of-reference operand screens (ISO §14.9.41.3 SR6 · §14.9.30.3 SR11 · §12.4.5.12.4 GR4) ─────────────
     //
     // ⛔ TWO RULES, TWO ENTRY POINTS (kb/Work PB354). One method used to answer both, with the SR6 b) test —

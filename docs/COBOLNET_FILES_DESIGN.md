@@ -101,9 +101,18 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   dynamic table at its maximum capacity (GR8 b); `FileModel.RecordMax` reaches the connector as `RecordMax`, the
   §14.9.30.4 GR14/GR15 truncation bound, separately from the area width the image is padded to — an unlimited
   dynamic-length record must not size every READ's area buffer.
-- **SD records.** `SortBinder.SortRecordOf` admits a variable-length record whose extent composes; a SORT/MERGE
-  key at or past the record's first variable-length member has no fixed position in the contiguous image the
-  store compares, and is refused by name (not yet implemented) rather than sliced wrong.
+- **SD records.** `SortBinder.SortRecordOf` admits a variable-length record whose extent composes.
+- **A key that FOLLOWS a variable-length member** (kb/Work PB1025; CONFORMANCE.md §3 D-KWV) — a SORT/MERGE key or an
+  indexed RECORD KEY / ALTERNATE RECORD KEY — has no fixed position in the contiguous image, so it is located PER
+  RECORD. `RecordLayout.KeyWindowOf` is the ONE bind-time answer: the key's FIXED-run offset and its furthest reach
+  (every preceding member at its maximum), read by `SortBinder.SortAddFileKeys` (§14.9.40.3 SR6 g) /
+  §14.9.24.3 SR4 g), COBOLNET0874), the `FileControlKeyRules` rows for §12.4.5.12.3 SR4 and §12.4.5.6.3 SR5
+  (COBOLNET0863) and `KeyedIoEmitter.KeyWindow`. At run time the record type's ONE `CobolContiguousLayout`
+  (emitted beside `FromContiguousImage` as the static `__contiguous`, exposed through `__Contiguous`) serves both
+  the decomposition and `Position` — the same take step (`CobolVarGroup.ContiguousTake`) — so `CobolSort.Key` and
+  `IndexedConnector.KeyOf` find a key exactly where a READ / RETURN puts it. An indexed connector with such a key
+  (`_layoutKeys`) takes every key from the record AS WRITTEN (`AreaKey`; the WRITE / REWRITE frame), never from an
+  image fitted to the area width, because truncation would move the key.
 - **EXTERNAL.** An EXTERNAL file whose area has an out-of-line record is staged loud (COBOLNET0899): its run-unit
   cell would carry only the character half.
 

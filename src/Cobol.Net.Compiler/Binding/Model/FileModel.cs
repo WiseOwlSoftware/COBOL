@@ -410,7 +410,7 @@ public sealed class FileModel
     /// each when national, D-N1) and a dynamic-capacity table its maximum capacity, the same "maximum number of
     /// table elements" GR8 b) names for every table. Every other member is <see cref="DataItem.ImageWidth"/>'s
     /// own sum, so this is that sum with the variable-length members filled in, never a second layout.</summary>
-    private static long MaxDynamicExtent(DataItem item) =>
+    internal static long MaxDynamicExtent(DataItem item) =>
         item.IsDynamicLength ? (long)item.DynMaxSize * (item.Pic?.Category is PicCategory.National ? 2 : 1)
         : item.IsDynamicTable ? (long)(item.OccursSpec?.Max ?? 0) * PerOccurrenceMax(item)
         : item.IsElementary || !CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(item) ? (long)item.ImageWidth * (item.Occurs ?? 1)

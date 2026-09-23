@@ -272,14 +272,26 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
             fixedRun.Append(Slice(record, pos, lead));
             pos += lead;
             fpos = fixedAt[k];
-            long units = unit[k] <= 0 ? 0 : Math.Min(excess / unit[k], maxUnits[k]);
-            int take = (int)(units * unit[k]);
+            int take = ContiguousTake(ref excess, unit[k], maxUnits[k]);
             dyn[k] = Slice(record, pos, take);
             pos += take;
-            excess -= take;
         }
         fixedRun.Append(Slice(record, pos, fixedTotal - fpos));
         return new CobolVarGroup(fixedRun.ToString(), dyn);
+    }
+
+    /// <summary>⛔ THE ONE TAKE STEP of a contiguous record image (kb/Work PB981, PB1025): how many characters the
+    /// next variable-length component takes — whole units of <paramref name="unit"/> characters, as many as the
+    /// remaining <paramref name="excess"/> (the record's length beyond its FIXED run, less what earlier components
+    /// took) holds, up to <paramref name="maxUnits"/> — charged to <paramref name="excess"/>.
+    /// <see cref="FromContiguous"/> and <see cref="CobolContiguousLayout.Position"/> both walk with it, so a key
+    /// located after a dynamic member lands exactly where the decomposition puts that member's end.</summary>
+    internal static int ContiguousTake(ref long excess, int unit, long maxUnits)
+    {
+        long units = unit <= 0 ? 0 : Math.Min(excess / unit, maxUnits);
+        int take = (int)(units * unit);
+        excess -= take;
+        return take;
     }
 
     private static string Slice(string s, int at, int length) =>

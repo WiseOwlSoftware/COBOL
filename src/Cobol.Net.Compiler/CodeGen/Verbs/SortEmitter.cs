@@ -442,7 +442,9 @@ internal sealed class SortEmitter(EmitContext ctx,
     private static string KeysExpr(IReadOnlyList<BoundSortMergeKey> keys) =>
         RuntimeApi.SortKeyArray(keys.Select(k =>
             $"new({k.Offset}, {k.Length}, {(k.Descending ? "true" : "false")}, {RuntimeApi.SortKeyClass(k.Class)}, "
-            + $"{(k.Item is { } ki ? ki.ProfileName : "default")})"));
+            + $"{(k.Item is { } ki ? ki.ProfileName : "default")}"
+            + (k.LayoutRecord is { } lr ? $", {RuntimeApi.ContiguousLayoutOf(PlaceRenderer.Read(lr))}" : "")
+            + ")"));
 
     /// <summary>The ALPHANUMERIC collation argument for a statement's GR5-resolved sequence: <c>null</c> for the
     /// native order, the compiled <c>__COLLATE</c> carrier when the resolved sequence IS the program collating

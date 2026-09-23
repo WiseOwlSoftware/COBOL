@@ -223,6 +223,17 @@ internal static class FileControlKeyRules
             (_, op) => $"{op.ClauseFace} '{op.Name}' is subject to an OCCURS clause; data-name-1 shall not be "
                 + "(ISO §12.4.5.12.3 SR1)"),
 
+        // ⛔ THE MINIMUM-RECORD-SIZE RULE (kb/Work PB1025). Unenforced until 2026-09-22: a RECORD KEY that a
+        // dynamic-length item preceded compiled clean, was sliced at its FIXED-run offset, and a READ … KEY
+        // returned a different record. The reach is RecordLayout.KeyWindowOf's — the ONE answer SORT/MERGE's
+        // §14.9.40.3 SR6 g) reads too — so a key after a variable-length member is measured at its furthest byte.
+        new("SR-12.4.5.12.3-4", "12.4.5.12.3", "ISO §12.4.5.12.3 SR4",
+            "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            f => f.RecordSizeVaries,
+            (f, op) => BeyondMinimum(f, op.Item) is not null,
+            (f, op) => BeyondMinimumMessage(f, op, "n", "ISO §12.4.5.12.3 SR4")),
+
         // §12.4.5.2 SR8 sentence 1, over the PRIME key clause. Screened on every organization EXCEPT indexed —
         // this is the row the scalar Organization column could not hold. `AnyOrganization & ~Indexed` includes
         // the OMITTED clause, which §12.4.5.10.3 GR6 makes record sequential and which is the shape that hits
@@ -263,6 +274,14 @@ internal static class FileControlKeyRules
             (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
             (_, op) => $"{op.ClauseFace} '{op.Name}' is subject to an OCCURS clause; data-name-1 shall not "
                 + "be (ISO §12.4.5.6.3 SR1)"),
+
+        // SR5 — the ALTERNATE RECORD KEY twin of §12.4.5.12.3 SR4 above, one reach reader for both (kb/Work PB1025).
+        new("SR-12.4.5.6.3-5", "12.4.5.6.3", "ISO §12.4.5.6.3 SR5",
+            "each data-name-1 and data-name-2 shall be contained within the first x bytes of the record",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            f => f.RecordSizeVaries,
+            (f, op) => BeyondMinimum(f, op.Item) is not null,
+            (f, op) => BeyondMinimumMessage(f, op, "x", "ISO §12.4.5.6.3 SR5")),
 
         // SR8 sentence 1 over each ALTERNATE RECORD KEY clause. Every written clause violates it (the operand
         // list holds the clauses AS WRITTEN, so there is no absent case to exclude).
@@ -383,6 +402,31 @@ internal static class FileControlKeyRules
         : null;
 
     private static bool SpecifiesIndexedFormat(FileModel f) => IndexedFormatMarker(f) is not null;
+
+    /// <summary>The key's window when it reaches past the file's minimum record size (§12.4.5.12.3 SR4 /
+    /// §12.4.5.6.3 SR5 — "contained within the first n bytes of the record, where n equals the minimum record size
+    /// specified for the file"; §13.18.43.4 GR9 supplies the minimum a RECORD clause leaves unstated), else null.
+    /// A key outside this file's records is SR2's to report, and is not measured here.</summary>
+    private static RecordLayout.KeyWindow? BeyondMinimum(FileModel f, DataItem? key)
+    {
+        if (key is null || !RecordLayout.IsInRecordOfFile(f, key)) return null;
+        var root = key;
+        while (root.Parent is { } p) root = p;
+        return RecordLayout.KeyWindowOf(root, key, key.ByteWidth) is { } w && w.MaxEnd > f.VaryMin ? w : null;
+    }
+
+    private static string BeyondMinimumMessage(FileModel f, FileKeyOperand op, string n, string citation)
+    {
+        string where = BeyondMinimum(f, op.Item) switch
+        {
+            { FollowsVariable: true } w => $"follows a variable-length member of its record and can reach byte {w.MaxEnd}",
+            { } w => $"occupies bytes {w.Offset + 1}..{w.MaxEnd} of the record",
+            null => "is not contained within the minimum record size",
+        };
+        return $"{op.ClauseFace} '{op.Name}' {where}, but indexed file '{f.CobolName}' contains variable-length "
+            + $"records with minimum size {f.VaryMin}; the key shall be contained within the first {n} bytes of the "
+            + $"record, where {n} equals the minimum record size ({citation})";
+    }
 
     private static bool SpecifiesRelativeFormat(FileModel f) => RelativeFormatMarker(f) is not null;
 

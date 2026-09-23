@@ -395,9 +395,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // nested variable-length group's components are located exactly where FromVarImage's Slice expects them.
         var layout = new List<(int FixedAt, int Unit, long MaxUnits)>();
         ContiguousLayout(group, 0, layout);
-        w.Line("public void FromContiguousImage(string __r) => FromVarImage("
-            + RuntimeApi.VarGroupFromContiguous("__r", totalFixed, layout.Select(l => l.FixedAt),
-                layout.Select(l => l.Unit), layout.Select(l => l.MaxUnits)) + ");");
+        // ⛔ ONE LAYOUT OBJECT PER RECORD TYPE (kb/Work PB1025): the same layout locates a key a variable-length
+        // member precedes (CobolContiguousLayout.Position, read through __Contiguous by the SORT/MERGE key and the
+        // indexed key registrations), so the decomposition and the key window cannot disagree.
+        w.Line($"private static readonly CobolContiguousLayout {RuntimeApi.ContiguousLayoutField} = "
+            + RuntimeApi.ContiguousLayoutNew(totalFixed, layout.Select(l => l.FixedAt),
+                layout.Select(l => l.Unit), layout.Select(l => l.MaxUnits)) + ";");
+        w.Line($"public readonly CobolContiguousLayout {RuntimeApi.ContiguousLayoutProperty} => "
+            + $"{RuntimeApi.ContiguousLayoutField};");
+        w.Line($"public void FromContiguousImage(string __r) => FromVarImage({RuntimeApi.ContiguousLayoutField}.Decompose(__r));");
         using (w.Block("public void FromVarImage(CobolVarGroup __v)"))
         {
             w.Line($"string __s = {RuntimeApi.StrStore("__v.Fixed", $"{totalFixed}")};");

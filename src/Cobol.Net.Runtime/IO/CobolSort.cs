@@ -43,8 +43,18 @@ public static class CobolSort
     /// <summary>One compile-time key descriptor (ISO §14.9.40.3 SR6a/SR6e — keys are fixed BYTE windows of
     /// the SD record; the same positions are the key in EVERY record): the window (<paramref name="Offset"/>,
     /// <paramref name="Length"/>, both in bytes — a national position is two of them), the direction (GR8a/b),
-    /// and the <see cref="KeyClass"/> that selects the comparator.</summary>
-    public readonly record struct Key(int Offset, int Length, bool Descending, KeyClass Class, NumProfile Profile);
+    /// and the <see cref="KeyClass"/> that selects the comparator.
+    /// <para>⛔ A KEY THAT FOLLOWS A VARIABLE-LENGTH MEMBER (kb/Work PB1025; docs/CONFORMANCE.md §3 D-KWV) carries
+    /// its record type's <paramref name="Layout"/>, and <paramref name="Offset"/> is then its offset in the record's
+    /// FIXED run: the record image the store holds is contiguous (§8.5.1.11.2), so the key's byte positions in THIS
+    /// record are found by the same take step that decomposes it (<see cref="CobolContiguousLayout.Position"/>).
+    /// Null for every key no variable-length member precedes — its window is the same in every record.</para></summary>
+    public readonly record struct Key(int Offset, int Length, bool Descending, KeyClass Class, NumProfile Profile,
+        CobolContiguousLayout? Layout = null)
+    {
+        /// <summary>The key's first byte position in <paramref name="image"/>.</summary>
+        public int At(string image) => Layout is { } l ? l.Position(image, Offset) : Offset;
+    }
 
     /// <summary>The per-SD store: released images (in release order — the stability anchor GR3 requires), the
     /// USING stream boundaries for MERGE, and the return cursor.</summary>
@@ -348,7 +358,7 @@ public static class CobolSort
     /// a national key silently compared EQUAL across whole records before kb/Work PB678.</summary>
     private static string Operand(string image, in Key k) =>
         k.Class is KeyClass.National
-            ? CobolBits.NatReadWindow(image ?? "", k.Offset, k.Length / CobolBits.BytesPerNational)
+            ? CobolBits.NatReadWindow(image ?? "", k.At(image ?? ""), k.Length / CobolBits.BytesPerNational)
             : Slice(image, k);
 
     /// <summary>The key's character window of a record image. A record shorter than the window (a varying record
@@ -357,9 +367,10 @@ public static class CobolSort
     private static string Slice(string image, in Key k)
     {
         image ??= "";
-        int needed = k.Offset + k.Length;
+        int at = k.At(image);
+        int needed = at + k.Length;
         if (image.Length < needed) image = image.PadRight(needed);
-        return image.Substring(k.Offset, k.Length);
+        return image.Substring(at, k.Length);
     }
 
     /// <summary>Decode a numeric key window to its algebraic value through the KEY ITEM'S OWN profile — the ONE

@@ -56,12 +56,14 @@ public sealed class StartTemporaryKeyAreaDriftTests
     /// of reference from the passed RECORD-AREA image, and invents no character of its own. <c>PadRight</c> /
     /// <c>PadLeft</c> anywhere in the body is the defect's signature: GR17 a) moves what the area HOLDS, and the
     /// only padding the model admits is <see cref="string"/>-level fill of the AREA itself, which
-    /// <c>Fit</c>/<c>KeyOf</c> already own.</summary>
+    /// <c>Fit</c>/<c>KeyOf</c> already own — reached through <c>AreaKey</c>, the ONE record-area key reader the
+    /// random READ and DELETE share (it fits the area, except where a key's position varies with the record —
+    /// kb/Work PB1025).</summary>
     internal static bool StartCutsTheTemporaryAreaOutOfTheRecordArea(string source)
     {
         string body = StartKeyPhraseBody(source);
         return body.Length > 0
-            && body.Contains("KeyOf(Fit(keyedRecordImage), keyIndex)[..compareLength]", StringComparison.Ordinal)
+            && body.Contains("AreaKey(keyedRecordImage, keyIndex)[..compareLength]", StringComparison.Ordinal)
             && !body.Contains("PadRight", StringComparison.Ordinal)
             && !body.Contains("PadLeft", StringComparison.Ordinal);
     }
@@ -101,7 +103,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
     public void IndexedStart_BuildsTheTemporaryArea_FromTheRecordArea()
     {
         Assert.True(StartCutsTheTemporaryAreaOutOfTheRecordArea(IndexedConnectorSource()),
-            "IndexedConnector.Start must build its search key as KeyOf(Fit(keyedRecordImage), keyIndex) "
+            "IndexedConnector.Start must build its search key as AreaKey(keyedRecordImage, keyIndex) "
             + "truncated to compareLength, and must pad nothing. ISO §14.9.41.4 GR17 a) — \"The specified key is "
             + "set up by moving the relevant parts of the record area into a temporary data area\" — sources it "
             + "from the RECORD AREA at GR16's key of reference; padding data-name-1's own content to the GR17 b) "

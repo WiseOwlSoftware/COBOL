@@ -27,7 +27,14 @@ public sealed class IndexedConnector : KeyedConnector
 {
     private readonly int _primeOff, _primeLen;
     private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence (the CobolCollation carrier); null = native ordinal
-    private readonly List<(int Off, int Len, bool Dups, CobolCollation? Collation, string? Suppress)> _alts = [];
+    private readonly List<(int Off, int Len, bool Dups, CobolCollation? Collation, string? Suppress, CobolContiguousLayout? Layout)> _alts = [];
+    /// <summary>The prime key's record-type layout when a variable-length member precedes it (kb/Work PB1025) —
+    /// <see cref="_primeOff"/> is then its offset in the record's FIXED run; null otherwise.</summary>
+    private readonly CobolContiguousLayout? _primeLayout;
+    /// <summary>True when ANY key's position varies with the record (<see cref="KeyOf"/>): such a key is located
+    /// in the record AS WRITTEN — its length is what places it — so no key is ever sliced from a record image
+    /// padded or truncated to the area width (<see cref="AreaKey"/>, and the WRITE / REWRITE key image).</summary>
+    private bool _layoutKeys;
     /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees
     /// ONE record list and ONE release-ordinal mint. A placeholder until OPEN attaches (and after CLOSE
     /// detaches).</summary>
@@ -68,7 +75,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// §14.9.10.4 GR3 — the ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
     public override string MutationTargetRecordId(string recordImage) => Access == KeyedAccess.Sequential
         ? LastReadRecordId
-        : KeyOf(Fit(recordImage), PrimeKey);
+        : AreaKey(recordImage, PrimeKey);
 
     /// <inheritdoc/>
     public override string LastWrittenRecordId => _lastWrittenPrimeId ?? "";
@@ -78,19 +85,26 @@ public sealed class IndexedConnector : KeyedConnector
     // (GR15). Out-of-bounds WRITE/REWRITE is the GR14/§14.9.35 GR20 '44'.
 
     public IndexedConnector(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength,
-        int varyMin = -1, int varyMax = -1, CobolCollation? primeCollation = null)
+        int varyMin = -1, int varyMax = -1, CobolCollation? primeCollation = null, CobolContiguousLayout? primeLayout = null)
         : base(hostPath, recordWidth, access, varyMin, varyMax)
     {
         _primeOff = primeOffset;
         _primeLen = primeLength;
         _primeCollation = primeCollation;
+        _primeLayout = primeLayout;
+        _layoutKeys = primeLayout is not null;
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY's (offset, length, WITH DUPLICATES) geometry (§12.4.5.6), with
     /// its optional §12.4.5.7 collating-weight table (null = native ordinal) and §12.4.5.6.4 GR6 SUPPRESS WHEN
-    /// value (null = no suppression).</summary>
-    public void AddAlternateKey(int offset, int length, bool duplicates, CobolCollation? collation = null, string? suppress = null) =>
-        _alts.Add((offset, length, duplicates, collation, suppress));
+    /// value (null = no suppression), and — for a key a variable-length member precedes — its record type's
+    /// <paramref name="layout"/> (kb/Work PB1025).</summary>
+    public void AddAlternateKey(int offset, int length, bool duplicates, CobolCollation? collation = null, string? suppress = null,
+        CobolContiguousLayout? layout = null)
+    {
+        _alts.Add((offset, length, duplicates, collation, suppress, layout));
+        _layoutKeys |= layout is not null;
+    }
 
     /// <inheritdoc/>
     protected override string DeclaredOrganization => FixedFileAttributes.Indexed;
@@ -129,7 +143,7 @@ public sealed class IndexedConnector : KeyedConnector
             {
                 new(_primeOff, _primeLen, false, null, FixedFileAttributes.Fingerprint(_primeCollation)),
             };
-            foreach (var (off, len, dups, collation, suppress) in _alts)
+            foreach (var (off, len, dups, collation, suppress, _) in _alts)
                 keys.Add(new(off, len, dups, suppress, FixedFileAttributes.Fingerprint(collation)));
             return keys;
         }
@@ -406,7 +420,7 @@ public sealed class IndexedConnector : KeyedConnector
     public override string PeekRandomReadRecordId(int keyIndex, string recordImage)
     {
         if (ReadOpenModeGuard() is not null || OptionalAbsent) return "";
-        return FindRandom(keyIndex, KeyOf(Fit(recordImage), keyIndex)) is { } found ? KeyOf(found.Image, PrimeKey) : "";
+        return FindRandom(keyIndex, AreaKey(recordImage, keyIndex)) is { } found ? KeyOf(found.Image, PrimeKey) : "";
     }
 
     /// <summary>ISO §14.9.30.4 GR32's record identification for a random READ — the first record whose key of
@@ -468,7 +482,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (ReadOpenModeGuard() is { } notOpen) return Status = notOpen;                  // '47' §14.9.30.4 GR2
         _refKey = keyIndex;                                                // GR30/GR31
         if (RandomReadAbsentOptionalGuard() is { } absent) return Status = absent;        // '23' §9.1.13.5 3 b)
-        string value = KeyOf(Fit(keyedRecordImage), keyIndex);
+        string value = AreaKey(keyedRecordImage, keyIndex);
         if (FindRandom(keyIndex, value) is not { } found)   // §14.9.30.4 GR32 + §12.4.5.6.4 GR6 — the ONE copy
         {
             LastReadUnsuccessful = true;
@@ -494,7 +508,7 @@ public sealed class IndexedConnector : KeyedConnector
     {
         if (Stored(image, length) is not { } stored)
             return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
-        image = Fit(image);   // key slices come from the record-area image (KeyOf pads on demand)
+        image = _layoutKeys ? stored : Fit(image);   // key slices come from the record-area image (KeyOf pads on demand)
         // §14.9.51.4 GR38 "If the access mode of the write file connector is sequential, records shall be
         // released … in ascending order of prime record key values" vs. GR39 "If the access mode … is random
         // or dynamic, WRITE statements may release records … in any order": the ACCESS MODE alone selects the
@@ -548,7 +562,7 @@ public sealed class IndexedConnector : KeyedConnector
         // §14.9.35 GR18 — an indexed record's size MAY differ from the replaced record's; GR20 still bounds it.
         if (Stored(image, length) is not { } stored)
             return Status = FileStatusCode.RecordSizeViolation;                                 // '44' GR20
-        image = Fit(image);
+        image = _layoutKeys ? stored : Fit(image);   // the WRITE's key image rule (kb/Work PB1025)
         string prime = KeyOf(image, PrimeKey);
         if (Access == KeyedAccess.Sequential)   // §14.9.35.4 GR22 vs. GR23 — the ACCESS MODE alone
         {
@@ -617,7 +631,7 @@ public sealed class IndexedConnector : KeyedConnector
             prime = _lastReadPrime ?? "";
         }
         else
-            prime = KeyOf(Fit(keyedRecordImage), PrimeKey);
+            prime = AreaKey(keyedRecordImage, PrimeKey);
         KeyedRec? target = _recs.FirstOrDefault(r => KeyEq(KeyOf(r.Image, PrimeKey), prime, PrimeKey));
         if (target is null) return Status = FileStatusCode.RecordNotFound;
         _recs.Remove(target);
@@ -649,7 +663,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (compareLength < 1 || compareLength > keyLength) return StartFail();   // '23' GR14
         // GR17 a)/b) — the first temporary area. KeyOf pads the area to the key's own span, so the slice is
         // always in range once GR14 above has bounded compareLength by that span.
-        string value = KeyOf(Fit(keyedRecordImage), keyIndex)[..compareLength];
+        string value = AreaKey(keyedRecordImage, keyIndex)[..compareLength];
         var seq = Ordered(keyIndex);
         KeyedRec? found = null;
         bool forward = op is "==" or ">" or ">=";
@@ -834,14 +848,26 @@ public sealed class IndexedConnector : KeyedConnector
         return order;
     }
 
-    /// <summary>The key value at <paramref name="keyIndex"/> (−1 = prime) — a fixed (offset, length) slice of the
-    /// record's character image (§12.4.5.12 GR2 — the key IS its position range in the record).</summary>
+    /// <summary>The key value at <paramref name="keyIndex"/> (−1 = prime) — an (offset, length) slice of the
+    /// record's character image (§12.4.5.12 GR2 — the key IS its position range in the record). A key that
+    /// follows a variable-length member is found in THIS record through its record type's layout (kb/Work PB1025;
+    /// docs/CONFORMANCE.md §3 D-KWV): the image is contiguous (§8.5.1.11.2), so its position moves with the
+    /// preceding members' current lengths.</summary>
     private string KeyOf(string image, int keyIndex)
     {
-        var (off, len) = keyIndex < 0 ? (_primeOff, _primeLen) : (_alts[keyIndex].Off, _alts[keyIndex].Len);
+        var (off, len, layout) = keyIndex < 0 ? (_primeOff, _primeLen, _primeLayout)
+            : (_alts[keyIndex].Off, _alts[keyIndex].Len, _alts[keyIndex].Layout);
+        if (layout is not null) off = layout.Position(image, off);
         if (image.Length < off + len) image = image.PadRight(off + len, ' ');
         return image.Substring(off, len);
     }
+
+    /// <summary>The key value in the RECORD AREA image a statement supplies (§14.9.30.4 GR32, §14.9.10.4 GR3,
+    /// §14.9.41.4 GR17 a)): fitted to the area width, as the record area is — except on a connector whose key
+    /// positions vary with the record, where the image is taken as composed, because truncating it would move
+    /// the key (<see cref="_layoutKeys"/>).</summary>
+    private string AreaKey(string areaImage, int keyIndex) =>
+        KeyOf(_layoutKeys ? areaImage : Fit(areaImage), keyIndex);
 
     private void Load(IndexedStore into)
     {

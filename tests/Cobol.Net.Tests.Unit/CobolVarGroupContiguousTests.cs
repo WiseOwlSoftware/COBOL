@@ -63,4 +63,41 @@ public sealed class CobolVarGroupContiguousTests
         Assert.Equal("AAABBB", v.Dyn(0));
         Assert.Equal("KC", v.Fixed);   // the partial element is not taken; the fixed run reads on from there
     }
+
+    // ── CobolContiguousLayout.Position — a key a variable-length member precedes (kb/Work PB1025, D-KWV) ─────
+
+    // Record layout NM dynamic (max 10) · KY X(2) · FL X(20): fixed run 22, NM at fixed offset 0, KY at 0.
+    private static readonly CobolContiguousLayout KeyAfterDynamic = new(22, [0], [1], [10L]);
+
+    [Theory]
+    [InlineData("", "20")]
+    [InlineData("A", "30")]
+    [InlineData("CCCCCCCCCC", "10")]
+    public void AKeyAfterADynamicMember_IsFoundWhereTheDecompositionPutsIt(string nm, string ky)
+    {
+        string record = nm + ky + new string('.', 20);
+        int at = KeyAfterDynamic.Position(record, 0);
+        Assert.Equal(nm.Length, at);
+        Assert.Equal(ky, record.Substring(at, 2));
+        // the SAME take step: the decomposition's fixed run starts with the key the position located
+        Assert.StartsWith(ky, KeyAfterDynamic.Decompose(record).Fixed);
+    }
+
+    [Fact]
+    public void AKeyBeforeEveryDynamicMember_KeepsItsFixedOffset()
+    {
+        // KY X(2) · NM dynamic (max 10) · FL X(3): fixed run 5, NM at fixed offset 2 — it FOLLOWS the key.
+        var layout = new CobolContiguousLayout(5, [2], [1], [10L]);
+        Assert.Equal(0, layout.Position("KY" + "HELLO" + "FFF", 0));
+    }
+
+    [Fact]
+    public void EveryPrecedingMember_IsCharged_WhenSeveralPrecedeTheKey()
+    {
+        // A dynamic (max 4) · B X(1) · C dynamic (max 3) · KY X(2): fixed run 3, A at 0, C at 1, KY at 1.
+        var layout = new CobolContiguousLayout(3, [0, 1], [1, 1], [4L, 3L]);
+        string record = "AAAA" + "1" + "CCC" + "20";
+        Assert.Equal(8, layout.Position(record, 1));
+        Assert.Equal("20", record.Substring(layout.Position(record, 1), 2));
+    }
 }

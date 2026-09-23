@@ -237,12 +237,35 @@ of an unsupported facility.
   previous staged-loud posture; no rule forbids it); treating the file's character bytes as the dynamic item's
   storage (the item's content would be bounded by the area and padded by it, contradicting §8.5.1.10.4's "the new
   value becomes the content of the item"); a length-prefixed record image (that is the DYNAMIC LENGTH STRUCTURE
-  clause's representation, §8.5.1.10.2, not claimed — COBOLNET1562). **Residue, stated:** a SORT/MERGE key that
-  follows a variable-length member of its record, and an EXTERNAL file whose area has an out-of-line record, are
-  refused by name as not yet implemented. Implemented once — `FileModel.IsOutOfLineRecord`,
+  clause's representation, §8.5.1.10.2, not claimed — COBOLNET1562). **Residue, stated:** an EXTERNAL file whose
+  area has an out-of-line record is refused by name as not yet implemented (a SORT/MERGE or indexed key that
+  follows a variable-length member is D-KWV below). Implemented once — `FileModel.IsOutOfLineRecord`,
   `DataBinder.LinkImplicitRecordArea`, `SequentialIoEmitter.EmitRecordAreaStore`, `OperandText.RecordAreaImage`,
   `CobolVarGroup.FromContiguous` (COBOLNET_FILES_DESIGN D27); witnessed by
   `conformance:2014/pb981_fd_variable_length_records` and `conformance:2002/pb981_fd_pointer_record`.
+- **D-KWV — the byte positions of a key that follows a variable-length member of its record** (2026-09-22; kb/Work
+  PB1025). A SORT/MERGE key (§14.9.40.3 SR6 / §14.9.24.3 SR4) and an indexed RECORD KEY / ALTERNATE RECORD KEY
+  (§12.4.5.12 / §12.4.5.6) are byte positions of the record, and a record with a dynamic-length member is sent and
+  held as its contiguous image (§8.5.1.11.2; D-FRA (iii)), so a key that such a member PRECEDES sits at a different
+  position in each record. The standard bounds it — *"all the data items identified by key data-names shall be
+  contained within the first x bytes of the record, where x equals the minimum record size"* (§14.9.40.3 SR6 g);
+  the same sentence is §14.9.24.3 SR4 g), §12.4.5.12.3 SR4 and §12.4.5.6.3 SR5) — and says nothing more.
+  **COBOL.NET's determination:** (i) the rule holds for ANY record, so a key is measured at its furthest reach —
+  its offset with every preceding variable-length member at its maximum size (§13.18.43.4 GR8 b)) plus its length —
+  against the file's minimum record size (§13.18.43.4 GR9 when no integer-2 is written, which D-FRA (iv) makes every
+  dynamic item at zero length); a key that can reach past it is rejected (COBOLNET0874 for SORT/MERGE, COBOLNET0863
+  for an indexed key — both rules enforced on every variable-length file, a fixed-position key included); (ii) a
+  legal such key — trailing fixed material keeps it within the minimum — is located in each record by D-FRA's own
+  split: its position is its offset in the record's fixed run plus what each preceding member takes from that
+  record, the same take step the decomposition uses, so a key compares, and an indexed file indexes, exactly the
+  bytes a READ / RETURN of that record puts in the key. That is exact whenever no variable-length member follows
+  the key; with members on both sides it inherits D-FRA's stated reading (the earlier member takes the excess).
+  **Rejected readings:** refusing the key by name (the previous posture — it rejected legal source); slicing it at
+  its fixed-run offset (the previous indexed behaviour — a READ … KEY returned a different record); a length-
+  prefixed image (rejected under D-FRA). Implemented once — `RecordLayout.KeyWindowOf`, `CobolContiguousLayout`
+  (COBOLNET_FILES_DESIGN D27); witnessed by `conformance:2014/pb1025_key_after_dynamic_member`,
+  `conformance:negative/pb1025-indexed-key-beyond-minimum` and
+  `conformance:negative/pb1025-sort-key-after-dynamic-beyond-minimum`.
 - **D-ODO1 — how many occurrences of an occurs-depending table an INITIALIZE statement initializes, when the
   VALUE phrase is what qualifies them** (2026-09-20; kb/Work PB577, row `GR-13.18.63.4-6`). Two rules answer and
   they do not agree. §13.18.63.4 GR6 says *"the initialization of the associated data item behaves as if the

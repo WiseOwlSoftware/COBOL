@@ -439,28 +439,6 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             || file.Records[0].CurrentExtentImageCapable)
             ? file.Records[0] : null;
 
-    /// <summary>The FIXED-run offset of the first variable-length member of <paramref name="record"/> (a
-    /// dynamic-length item or a dynamic-capacity table), or null for a fixed-length record. A key at or past it
-    /// does not sit at a fixed position of the contiguous image the store compares (§8.5.1.11.2), so its window
-    /// cannot be sliced from that image (kb/Work PB981).</summary>
-    private static int? FirstVariableOffset(DataItem record)
-    {
-        int? first = null;
-        foreach (var d in Descendants(record))
-            if ((d.IsDynamicLength || d.IsDynamicTable) && Model.RecordLayout.OffsetInRecord(record, d) is { } o)
-                first = first is { } f ? Math.Min(f, o) : o;
-        return first;
-
-        static IEnumerable<DataItem> Descendants(DataItem n)
-        {
-            foreach (var c in n.Children.Where(c => c.RedefinesTargetName is null))
-            {
-                yield return c;
-                if (c.IsGroup && !c.IsDynamicTable) foreach (var g in Descendants(c)) yield return g;
-            }
-        }
-    }
-
     /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §14.9.40 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>
     /// begins with its own ASCENDING|DESCENDING, so per-phrase application IS GR1 — and GR2: significance is
@@ -481,7 +459,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (!file.Records.Contains(root))
                 return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' is not described in a record of '{file.CobolName}' "
                     + "(ISO §14.9.40.3 SR6a)";
-            if (Model.RecordLayout.OffsetInRecord(root, item) is not { } off)
+            if (Model.RecordLayout.OffsetInRecord(root, item) is null)
                 return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
                     + "clause (ISO §14.9.40.3 SR6b/SR6f)";
             // ⛔ THE CLASS IS THE OPERAND'S, AND IT IS ASKED ONCE (kb/Work PB678). §14.9.40.4 GR5 / §14.9.24.4 GR5
@@ -498,16 +476,29 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // compared EQUAL, which is a stable sort returning the release order.
             int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ByteWidth;
             if (len <= 0) return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' has no character image";
-            if (FirstVariableOffset(root) is { } dynAt && off >= dynAt)
-                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' follows a variable-length member of record "
-                    + $"'{root.CobolName}', so its position in the record's contiguous image (ISO §8.5.1.11.2) varies "
-                    + "from record to record and the sort store cannot slice it (kb/Work PB981)";
-            // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
-            if (file.Varying is { Min: { } min } && off + len > min)
-                ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' occupies character positions "
-                    + $"{off + 1}..{off + len} of the record, but '{file.CobolName}' describes variable-length records "
-                    + $"with minimum size {min} — all key data items shall be contained within the first {min} bytes "
-                    + "(ISO §14.9.40.3 SR6g)");
+            // ⛔ THE KEY'S WINDOW IN ITS RECORD, AND HOW FAR IT CAN REACH (kb/Work PB1025): RecordLayout.KeyWindowOf
+            // is the ONE answer the indexed key rules read too. A key a dynamic-length item or a dynamic-capacity
+            // table precedes has no fixed position in the contiguous image the store holds (§8.5.1.11.2), so it
+            // carries its record's layout and is located per record at run time (D-KWV); it used to be refused by
+            // name here (kb/Work PB981), which rejected legal source whenever trailing fixed material kept it
+            // within the minimum record size.
+            if (Model.RecordLayout.KeyWindowOf(root, item, len) is not { } win)
+                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
+                    + "clause (ISO §14.9.40.3 SR6b/SR6f)";
+            // §14.9.40.3 SR6 g) / §14.9.24.3 SR4 g): with variable-length records every key lies within the first
+            // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
+            // measured at its furthest reach (every preceding member at its maximum). ⛔ The minimum is the file's
+            // (§13.18.43.4 GR9 when the RECORD clause states none — FileModel.VaryMin), and the rule applies to
+            // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
+            // it used to fire only when a RECORD clause wrote integer-2.
+            if (file.RecordSizeVaries && file.VaryMin is var min && win.MaxEnd > min)
+                ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
+                    + (win.FollowsVariable
+                        ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"
+                        : $"occupies character positions {win.Offset + 1}..{win.MaxEnd}")
+                    + $" of the record, but '{file.CobolName}' describes variable-length records with minimum size "
+                    + $"{min} — all key data items shall be contained within the first {min} bytes "
+                    + "(ISO §14.9.40.3 SR6 g); §14.9.24.3 SR4 g) for MERGE)");
             // A numeric key carries the LEAF ITSELF, so the runtime decodes its window with the leaf's own
             // profile — the one description of its bytes (zoned digits for DISPLAY, radix-2 / BCD for
             // BINARY / PACKED, the IEEE interchange forms for the float family — kb/Work PB164 wave 2; V59).
@@ -515,8 +506,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // usage is described, so the decode must match the representation exactly — CobolSort's column
             // builder dispatches on the profile's ByteForm (a float key's raw big-endian IEEE bytes would
             // order every negative after every positive, so it takes the algebraic double lane).
-            keys.Add(new BoundSortMergeKey(descending, off, len, cls,
-                cls is CollatingClass.Numeric ? item : null));
+            keys.Add(new BoundSortMergeKey(descending, win.Offset, len, cls,
+                cls is CollatingClass.Numeric ? item : null,
+                win.FollowsVariable ? ctx.Refs.ResolveItem(root) : null));
         }
         return null;
     }

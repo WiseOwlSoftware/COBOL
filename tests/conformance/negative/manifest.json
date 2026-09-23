@@ -1436,7 +1436,10 @@
   "pb981-fd-dynamic-length-record-at-2002",
   "pb1019-address-of-formal-at-85",
   "pb1018-occurs-key-not-within-table",
-  "pb1010-declaratives-outside-method"
+  "pb1010-declaratives-outside-method",
+  "pb1025-indexed-key-beyond-minimum",
+  "pb1025-sort-key-after-dynamic-beyond-minimum",
+  "pb1025-alternate-key-beyond-minimum"
  ],
  "pending": []
 }

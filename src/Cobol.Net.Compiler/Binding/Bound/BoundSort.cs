@@ -16,9 +16,13 @@ namespace CobolNet.Binding.Bound;
 /// (GR8 → §8.8.4.2.4 — never through a collating sequence, and <paramref name="Item"/> carries the leaf whose
 /// profile decodes the window), a NATIONAL key decodes its byte pairs and compares under the GR5 national sequence
 /// (§8.8.4.2.9), a BOOLEAN key compares by boolean value with no sequence (§8.8.4.2.8), and an alphanumeric or
-/// ordinary group key compares as characters under the GR5 alphanumeric sequence (§8.8.4.2.7).</summary>
+/// ordinary group key compares as characters under the GR5 alphanumeric sequence (§8.8.4.2.7).
+/// <para><paramref name="LayoutRecord"/> is the place of the key's record when a variable-length member precedes
+/// the key (kb/Work PB1025; docs/CONFORMANCE.md §3 D-KWV): <paramref name="Offset"/> is then the key's offset in
+/// that record's FIXED run, and the runtime locates it in each record through the record type's layout. Null for
+/// every key whose window is the same in every record.</para></summary>
 public sealed record BoundSortMergeKey(
-    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item);
+    bool Descending, int Offset, int Length, CollatingClass Class, DataItem? Item, Place? LayoutRecord = null);
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's

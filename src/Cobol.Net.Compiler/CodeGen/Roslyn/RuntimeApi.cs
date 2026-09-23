@@ -941,14 +941,14 @@ internal static class RuntimeApi
     /// plus the optional §12.4.5.7 prime-key collating sequence — a CobolCollation expression; <paramref name="weights"/>
     /// is "null" for native, emitted as a named argument so a no-clause file's registration is byte-identical to the
     /// pre-clause engine).</summary>
-    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, int edition, string weights = "null", string? selectName = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)}{EditionArg(edition)})";
+    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, int edition, string weights = "null", string? selectName = null, string layout = "null") =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)}{EditionArg(edition)}{(layout == "null" ? "" : $", primeLayout: {layout}")})";
 
     /// <summary>Register one ALTERNATE RECORD KEY window (§12.4.5.6) — <c>CobolFile.AddAlternateKey</c>, with its
     /// optional §12.4.5.7 collating weights and §12.4.5.6.4 GR6 SUPPRESS WHEN value ("null" = absent, each emitted
     /// as a named argument so a plain alternate key's registration is unchanged).</summary>
-    public static string FileAddAlternateKey(string name, string offset, int width, string dups, string weights = "null", string suppress = "null") =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {offset}, {width}, {dups}{(weights == "null" ? "" : $", collation: {weights}")}{(suppress == "null" ? "" : $", suppress: {suppress}")})";
+    public static string FileAddAlternateKey(string name, string offset, int width, string dups, string weights = "null", string suppress = "null", string layout = "null") =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {offset}, {width}, {dups}{(weights == "null" ? "" : $", collation: {weights}")}{(suppress == "null" ? "" : $", suppress: {suppress}")}{(layout == "null" ? "" : $", layout: {layout}")})";
 
     /// <summary>Position a relative connector to the RELATIVE KEY item's RRN — <c>CobolFile.SetRelativeKey</c>.</summary>
     public static string FileSetRelativeKey(string name, string rrn) =>
@@ -1324,13 +1324,27 @@ internal static class RuntimeApi
     /// <summary>The C# type of the variable-length-group boundary carrier.</summary>
     public static string VarGroupType => nameof(CobolVarGroup);
 
-    /// <summary>A file record's contiguous image decomposed into a variable-length group's carrier —
-    /// <c>CobolVarGroup.FromContiguous</c> (determination D-FRA; kb/Work PB981).</summary>
-    public static string VarGroupFromContiguous(string record, int fixedTotal, IEnumerable<int> fixedAt,
+    /// <summary>A variable-length record type's contiguous-image layout — <c>new CobolContiguousLayout(…)</c>, the
+    /// ONE object that both decomposes a record read back (determination D-FRA; kb/Work PB981) and locates a key
+    /// a variable-length member precedes (D-KWV; kb/Work PB1025). Emitted once per record type as the static
+    /// field <see cref="ContiguousLayoutField"/>.</summary>
+    public static string ContiguousLayoutNew(int fixedTotal, IEnumerable<int> fixedAt,
         IEnumerable<int> unit, IEnumerable<long> maxUnits) =>
-        $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.FromContiguous)}({record}, {fixedTotal}, "
+        $"new {nameof(CobolContiguousLayout)}({fixedTotal}, "
         + $"new int[] {{ {string.Join(", ", fixedAt)} }}, new int[] {{ {string.Join(", ", unit)} }}, "
         + $"new long[] {{ {string.Join(", ", maxUnits.Select(m => $"{m}L"))} }})";
+
+    /// <summary>The static field of a variable-length group's record struct that holds its
+    /// <see cref="ContiguousLayoutNew"/> layout.</summary>
+    public const string ContiguousLayoutField = "__contiguous";
+
+    /// <summary>The instance property that exposes <see cref="ContiguousLayoutField"/> through a record VALUE, so a
+    /// key registration can name it from the record's place without knowing the struct's type name.</summary>
+    public const string ContiguousLayoutProperty = "__Contiguous";
+
+    /// <summary><paramref name="record"/>'s layout, read through its place — a SORT/MERGE key or an indexed key a
+    /// variable-length member precedes (kb/Work PB1025).</summary>
+    public static string ContiguousLayoutOf(string record) => $"{record}.{ContiguousLayoutProperty}";
 
     /// <summary>The empty carrier value (an unbound formal's seed).</summary>
     public static string VarGroupEmpty => $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.Empty)}";

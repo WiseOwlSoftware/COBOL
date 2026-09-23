@@ -60,7 +60,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
             return;
         }
-        if (file.RecordKeyItem is not { } pk || Binding.Model.RecordLayout.OffsetOf(pk) is not { } pkOff)
+        if (file.RecordKeyItem is not { } pk || KeyWindow(pk) is not var (pkOff, pkLayout))
         {
             w.Line(LoudStmt($"indexed file '{file.CobolName}': RECORD KEY missing or not locatable in the record "
                 + "image (ISO §12.4.5.12)"));
@@ -69,11 +69,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // ⛔ THE KEY WINDOW IS IN BYTES (kb/Work PB327): §12.4.5.12.4 GR4 states key correspondence over "the
         // identical BYTE POSITIONS", and RecordLayout.OffsetOf above is already a byte offset — so the WIDTH must
         // be the key's byte extent too, which for a national key (PIC N(n)) is 2n, not n (§13.18.60.4 GR8; D-N1).
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ByteWidth, vary, ctx.Data.Edition.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ByteWidth, vary, ctx.Data.Edition.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName), pkLayout)};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];
-            if (Binding.Model.RecordLayout.OffsetOf(alt) is not { } aOff)
+            if (KeyWindow(alt) is not var (aOff, aLayout))
             {
                 w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.CobolName}' not "
                     + "locatable in the record image (ISO §12.4.5.6)"));
@@ -81,9 +81,25 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
             string sup = suppress is null ? "null" : CsLiteral(suppress);
-            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ByteWidth, dups ? "true" : "false", CollationLit(altCollation), sup)};");   // bytes — see the prime key above (kb/Work PB327)
+            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ByteWidth, dups ? "true" : "false", CollationLit(altCollation), sup, aLayout)};");   // bytes — see the prime key above (kb/Work PB327)
         }
         SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
+    }
+
+    /// <summary>A record key's registration window (§12.4.5.12 / §12.4.5.6): its byte offset and, when a
+    /// variable-length member of its record precedes it, the record type's layout expression — the offset is then
+    /// the key's FIXED-run offset and the connector locates the key per record (kb/Work PB1025; docs/CONFORMANCE.md
+    /// §3 D-KWV). ONE reader, <see cref="Binding.Model.RecordLayout.KeyWindowOf"/>, the same one the SORT/MERGE
+    /// key and the §12.4.5.12.3 SR4 / §12.4.5.6.3 SR5 screens read. Null when the key has no locatable window.</summary>
+    private (int Offset, string Layout)? KeyWindow(Binding.Model.DataItem key)
+    {
+        var root = key;
+        while (root.Parent is { } p) root = p;
+        if (Binding.Model.RecordLayout.KeyWindowOf(root, key, key.ByteWidth) is { FollowsVariable: true } win
+            && refs.ResolveItem(root) is { } place)
+            return (win.Offset, RuntimeApi.ContiguousLayoutOf(PlaceRenderer.Read(place)));
+        // Every other key keeps the area offset it has always registered (§12.4.5.12.4 GR4's byte positions).
+        return Binding.Model.RecordLayout.OffsetOf(key) is { } off ? (off, "null") : null;
     }
 
     /// <summary>The §12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's

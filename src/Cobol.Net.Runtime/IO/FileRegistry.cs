@@ -201,13 +201,13 @@ public sealed class FileRegistry
     /// <summary>Register a SELECTed INDEXED file with its PRIME key's (offset, length) range (§12.4.5.12).</summary>
     public void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
         int accessMode, int primeOffset, int primeLength, int varyMin, int varyMax, CobolCollation? primeCollation = null,
-        string? selectName = null, int edition = 2023)
+        string? selectName = null, int edition = 2023, CobolContiguousLayout? primeLayout = null)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // §13.18.22.4 GR4a
         CloseDisplaced(cobolName);
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation)
+            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax, primeCollation, primeLayout)
         {
             IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), SharedStores = _stores,
             KeyCheck = KeyCheck, Edition = edition,
@@ -216,10 +216,11 @@ public sealed class FileRegistry
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order, with its optional
     /// §12.4.5.7 collating-weight table (null = native ordinal) and §12.4.5.6.4 GR6 SUPPRESS WHEN value.</summary>
-    public void AddAlternateKey(string name, int offset, int length, bool duplicates, CobolCollation? collation = null, string? suppress = null)
+    public void AddAlternateKey(string name, int offset, int length, bool duplicates, CobolCollation? collation = null,
+        string? suppress = null, CobolContiguousLayout? layout = null)
     {
         if (_files.TryGetValue(name, out var c) && c is IndexedConnector ix)
-            ix.AddAlternateKey(offset, length, duplicates, collation, suppress);
+            ix.AddAlternateKey(offset, length, duplicates, collation, suppress, layout);
     }
 
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
