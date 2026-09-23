@@ -525,15 +525,27 @@ pictureLocalePhrase
 // literal-2 and literal-3. This rule used to demand a quoted literal there, so EVERY conforming EDITING phrase
 // was a parse error and the SR8/SR10/SR11 checks were reachable only through a spelling the standard does not
 // define. Parse-wide/bind-narrow: the quoted spelling still PARSES and draws the named COBOLNET2149 at bind
-// (never a bare ANTLR syntax error), and `literal` stays broad on the insertion literals so SR8/SR9 violations
-// surface as named bind diagnostics.
+// (never a bare ANTLR syntax error), and the insertion literals stay broad so SR8/SR9 violations surface as
+// named bind diagnostics.
+//
+// ⛔ LITERAL-1/-2/-3 ARE LITERAL POSITIONS, NOT THE NARROW `literal` RULE (kb/Work PB778). §13.10.3 SR2 puts a
+// constant-name "anywhere that a format specifies a literal", §8.3.3.6.3 SR1 a figurative constant, and a
+// symbolic-character is a figurative (§8.3.3.6.2 Format 7) — so the three operands are `editingLiteral`, the
+// VALUE clause's literal-position superset, screened and substituted at bind by the ONE literal-position
+// chokepoint (DataBinder.RawValueOperandText). Character-1 is a DIFFERENT operand kind (a picture symbol, not a
+// literal) and keeps its own spelling above: the two kinds are separate rules so they can never again be
+// widened or narrowed together by accident.
 editingPhrase
-    : EDITING ( cobolWord | literal ) ( IS? literal | FOR editingForPhrase )
+    : EDITING ( cobolWord | literal ) ( IS? editingLiteral | FOR editingForPhrase )
     ;
 
 editingForPhrase
-    : NEGATIVE IS? literal ( POSITIVE IS? literal )?
-    | POSITIVE IS? literal ( NEGATIVE IS? literal )?
+    : NEGATIVE IS? editingLiteral ( POSITIVE IS? editingLiteral )?
+    | POSITIVE IS? editingLiteral ( NEGATIVE IS? editingLiteral )?
+    ;
+
+editingLiteral
+    : valueClauseOperand
     ;
 
 // USAGE Clause (ISO §13.18.60.2): `[USAGE IS] usage-keyword` — the USAGE keyword is OPTIONAL for EVERY usage, so

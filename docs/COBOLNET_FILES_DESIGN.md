@@ -2053,9 +2053,12 @@ failure branches were fired once before it was trusted.
   `tests/conformance/2023/`, and **a report file COBOL.NET writes cannot be read back at all below 2023** —
   the report writer frames a report file as CRLF-delimited text whatever its ORGANIZATION, and only a
   line-sequential READ recovers those lines, so the 85/2002 report goldens that observed their report by
-  re-reading it are 2023 programs. **`RECORD SEQUENTIAL` — the other half of the 2023 inner choice — is NOT
-  yet accepted by the grammar** (`organizationType` has `LINE SEQUENTIAL | SEQUENTIAL | RELATIVE | INDEXED`);
-  when it lands it gates from the SAME arm.
+  re-reading it are 2023 programs. **`RECORD SEQUENTIAL` — the other half of the 2023 inner choice — gates from
+  the SAME arm** (kb/Work PB706; `file-organization-record-sequential-2023`). The rendered §12.4.5.10.2 page
+  (PDF p357) underlines LINE but NOT RECORD, so RECORD is an optional word (§5.2.3) and the grammar writes the
+  arm `RECORD? SEQUENTIAL`: bare `SEQUENTIAL` is the same alternative and stays legal at every edition, and only
+  the written-out RECORD token is the 2023 spelling. It binds to the one record-sequential value
+  (`FileOrganization.Sequential`), never a fourth organization.
 - **RECORD IS VARYING (13.18.43) is a 2002 introduction** (derive from the 2002 standard) — the 85 RECORD clause has
   only the CONTAINS forms; at 85 the VARYING phrase is rejected and `RECORD CONTAINS m TO n` drives
   `IsVaryingRecord`.

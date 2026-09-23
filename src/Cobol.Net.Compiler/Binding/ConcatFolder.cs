@@ -142,26 +142,11 @@ internal static class ConcatFolder
                         + "(ISO §8.8.3.2 SR1)");
                     continue;
                 }
-                // One character per §8.3.3.6.4 GR3a; the character per §8.3.3.6.3 (F4/F5 collating extremes).
-                if (cat is PicCategory.Boolean)
-                {
-                    // Only ZERO has a boolean character value ('0', §8.3.3.6.4 GR4); a boolean character is
-                    // 0 or 1 (§8.3.3.4), so SPACE/QUOTE/HIGH/LOW/NULL cannot join a boolean concatenation.
-                    if (fig.ZERO() is not null) sb.Append('0');
-                    else ClassError(edition, cat, $"figurative constant '{fig.GetText()}' (no boolean character value)");
-                }
-                else if (fig.ZERO() is not null) sb.Append('0');
-                else if (fig.SPACE() is not null) sb.Append(' ');
-                else if (fig.QUOTE_() is not null) sb.Append('"');
-                // HIGH-/LOW-VALUE: the PCS extremes when a PROGRAM COLLATING SEQUENCE is active (§8.3.3.6.3
-                // F4/F5 + §12.3.7 GR8/GR9), else the native U+00FF/U+0000 pins (COBOLNET_DESIGN §14.9); class
-                // national never takes the alphanumeric PCS (D-N3 — the FigurativeConstants.Fill posture).
-                else if (fig.HIGH_VALUE() is not null)
-                    sb.Append(cat is PicCategory.National ? natCollate?.HighValue ?? '\u00ff' : collate?.HighValue ?? '\u00ff');
-                else if (fig.LOW_VALUE() is not null)
-                    sb.Append(cat is PicCategory.National ? natCollate?.LowValue ?? '\u0000' : collate?.LowValue ?? '\u0000');
-                else   // NULL — the pointer figurative (§8.3.3.6.3 Format 8): no character value to concatenate.
-                    ClassError(edition, cat, $"figurative constant '{fig.GetText()}' (no character value)");
+                // One character per §8.3.3.6.4 GR3a; the character per FigurativeChar.
+                if (FigurativeChar(fig, cat, collate, natCollate) is { } c) sb.Append(c);
+                else ClassError(edition, cat, cat is PicCategory.Boolean
+                    ? $"figurative constant '{fig.GetText()}' (no boolean character value)"
+                    : $"figurative constant '{fig.GetText()}' (no character value)");
             }
         }
         string value = sb.ToString();
@@ -170,6 +155,30 @@ internal static class ConcatFolder
             edition.Error(DiagnosticCatalog.ConcatResultTooLong, $"the concatenated {Name(cat)} value is "
                 + $"{value.Length} character positions — the maximum is 8,191 (ISO §8.8.3.2 SR2–SR4)");
         return new Folded(cat, value);
+    }
+
+    /// <summary>THE ONE CHARACTER a KEYWORD figurative constant (ZERO · SPACE · QUOTE · HIGH-VALUE · LOW-VALUE ·
+    /// NULL, with or without ALL) stands for in class <paramref name="cat"/> wherever its string is one character
+    /// long (§8.3.3.6.4 GR3a — in a concatenation expression; GR3b — any figurative other than ALL literal-1
+    /// whose context specifies no length, e.g. a PICTURE EDITING literal), or null when it has no character value
+    /// in that class. ZERO is '0' (GR4); SPACE ' ' (GR5); QUOTE '"' (GR1); HIGH-/LOW-VALUE are the program
+    /// collating sequence's extremes when one is active (§8.3.3.6.4 GR6/GR7 + §12.3.7 GR8/GR9), else the native
+    /// U+00FF/U+0000 pins (COBOLNET_DESIGN §14.9) — class national never takes the alphanumeric PCS (D-N3 — the
+    /// <c>FigurativeConstants.Fill</c> posture). In class boolean only ZERO has a value (a boolean character is 0
+    /// or 1, §8.3.3.4); NULL — the pointer figurative, Format 8 — has none in any class. The ALL literal-1 and
+    /// ALL symbolic-character-1 forms are not keyword figuratives and answer null.</summary>
+    internal static char? FigurativeChar(Core.FigurativeConstantContext fig, PicCategory cat,
+        AlphabetDef? collate, NationalAlphabetDef? natCollate)
+    {
+        if (fig.ZERO() is not null) return '0';
+        if (cat is PicCategory.Boolean) return null;
+        if (fig.SPACE() is not null) return ' ';
+        if (fig.QUOTE_() is not null) return '"';
+        if (fig.HIGH_VALUE() is not null)
+            return cat is PicCategory.National ? natCollate?.HighValue ?? '\u00ff' : collate?.HighValue ?? '\u00ff';
+        if (fig.LOW_VALUE() is not null)
+            return cat is PicCategory.National ? natCollate?.LowValue ?? '\u0000' : collate?.LowValue ?? '\u0000';
+        return null;
     }
 
     private static void ClassError(EditionContext edition, PicCategory cat, string operand) =>

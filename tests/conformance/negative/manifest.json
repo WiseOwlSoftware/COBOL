@@ -29,6 +29,8 @@
   "pb881-read-into-constant-record",
   "pb881-move-corresponding-constant-record",
   "pb881-search-varying-constant-record",
+  "pb706-record-sequential-below-2023",
+  "pb778-editing-literal-not-alphanumeric",
   "pb225-float-class-not-standard-float",
   "pb225-numeric-content-class-not-numeric",
   "pb225-float-class-below-2014",

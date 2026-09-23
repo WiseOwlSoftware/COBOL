@@ -187,6 +187,13 @@ lexer mode driven by `PreviousTokenCouldBeDataName()`. The binder then re-parses
 token run (`ReferenceResolver` `SplitSubscriptTokens`). Two vocabularies + a binder-side mini-parser for
 one concept.
 
+The trigger has ONE region exception, and it is a spec rule, not a heuristic (kb/Work PB924): ISO §13.18.54.3
+SR9 makes a SUM not preceded by FUNCTION inside a report description entry the report-writer SUM CLAUSE, whose
+addend may open with '(' — so the lexer tracks the REPORT SECTION (`TrackReportSection`: opened by its header,
+closed by the next section or division header) and a SUM there does not push SUBSCRIPT
+(`IsReportSumClauseKeyword`). SUM is the only §8.9 ∩ §8.11 word that begins a report or data description clause
+whose operand can open with '('; `CobolLexerModeDriftTests` pins both regions for all four words.
+
 ---
 
 ## 2. Target architecture — overview

@@ -13,10 +13,40 @@ namespace CobolNet.Binding;
 /// literal-1, literal-2, and literal-3 shall be national literals. Otherwise, literal1, literal-2, and literal-3
 /// shall be alphanumeric literals." Only the decoded TEXT used to reach the analyzer, so neither half of that
 /// sentence could be asked and both were unenforced — `PIC NNTNN EDITING "T" IS ":"` and
-/// `PIC XXTXX EDITING "T" IS N":"` both bound silently (kb/Work PB492).</para></summary>
-/// <param name="Text">The literal's decoded content (quotes stripped, doubled quotes folded, hex decoded).</param>
-/// <param name="National">The source wrote it as a national literal (<c>N"…"</c> / <c>NX"…"</c>).</param>
-public readonly record struct EditLiteral(string Text, bool National);
+/// `PIC XXTXX EDITING "T" IS N":"` both bound silently (kb/Work PB492).</para>
+/// <para>A literal position admits more than a written literal (kb/Work PB778): a constant-name (§13.10.3 SR2)
+/// and a symbolic-character arrive here AS the literal they stand for, and a keyword figurative constant
+/// (§8.3.3.6.3 SR1) arrives as <see cref="EditLiteralClass.Figurative"/> — ONE character (§8.3.3.6.4 GR3b)
+/// whose class is the context's (GR1), carried in both representations because only the analyzer knows
+/// whether the subject is national.</para></summary>
+/// <param name="Text">The literal's decoded content (quotes stripped, doubled quotes folded, hex decoded); for
+/// a figurative, its ALPHANUMERIC character; for <see cref="EditLiteralClass.NotAlphanumericOrNational"/>, the
+/// operand as written.</param>
+/// <param name="Class">The literal class the operand was written in.</param>
+/// <param name="NationalText">A figurative's NATIONAL character (HIGH-/LOW-VALUE read the national collating
+/// sequence); null for every other class.</param>
+public readonly record struct EditLiteral(string Text, EditLiteralClass Class, string? NationalText = null)
+{
+    /// <summary>The literal as the subject uses it: a figurative takes the subject's class (§8.3.3.6.4 GR1).</summary>
+    public EditLiteral InContext(bool nationalSubject) =>
+        Class is EditLiteralClass.Figurative
+            ? new EditLiteral(nationalSubject ? NationalText ?? Text : Text,
+                nationalSubject ? EditLiteralClass.National : EditLiteralClass.Alphanumeric)
+            : this;
+}
+
+/// <summary>The class of a PICTURE EDITING literal operand, as §13.18.40.3 SR9 asks it.</summary>
+public enum EditLiteralClass
+{
+    /// <summary>An alphanumeric literal (incl. the X"…" hexadecimal format, §8.3.3.2).</summary>
+    Alphanumeric,
+    /// <summary>A national literal (N"…" / NX"…").</summary>
+    National,
+    /// <summary>A keyword figurative constant — class from context (§8.3.3.6.4 GR1).</summary>
+    Figurative,
+    /// <summary>Any other literal — numeric, boolean, or the NULL figurative: never a literal SR9 admits.</summary>
+    NotAlphanumericOrNational,
+}
 
 /// <summary>A parsed PICTURE EDITING phrase (ISO §13.18.40.2 Format 1, COBOL-2023) handed to
 /// <see cref="PictureAnalyzer.Analyze"/>: the DECODED editing character-1 text and its DECODED literal(s).
@@ -814,19 +844,33 @@ public static class PictureAnalyzer
             // halves were unenforced while national-edited could not be defined at all (kb/Work PB492): the
             // decoded literal reached here as a bare string with its class discarded, so `PIC NNTNN EDITING "T"
             // IS ":"` and `PIC XXTXX EDITING "T" IS N":"` each bound silently.
-            foreach (var (lit, name) in new (EditLiteral?, string)[] { (ph.Simple, "literal-1"), (ph.Neg, "literal-2"), (ph.Pos, "literal-3") })
+            // A figurative operand takes the subject's class here (§8.3.3.6.4 GR1), before either sentence is asked.
+            EditLiteral? simpleLit = ph.Simple?.InContext(nationalSubject);
+            EditLiteral? negLitSpec = ph.Neg?.InContext(nationalSubject);
+            EditLiteral? posLitSpec = ph.Pos?.InContext(nationalSubject);
+            foreach (var (lit, name) in new (EditLiteral?, string)[] { (simpleLit, "literal-1"), (negLitSpec, "literal-2"), (posLitSpec, "literal-3") })
             {
                 if (lit is not { } l) continue;
+                if (l.Class is EditLiteralClass.NotAlphanumericOrNational)
+                {
+                    edition.Error(DiagnosticCatalog.PictureEditingLiteralClass, $"{where}: the PICTURE EDITING "
+                        + $"{name} '{l.Text}' is not an alphanumeric or a national literal — "
+                        + $"{(nationalSubject ? "USAGE IS NATIONAL is specified or character-string-1 contains the symbol 'N', so literal-1, literal-2 and literal-3 shall be national literals" : "literal-1, literal-2 and literal-3 shall be alphanumeric literals")} "
+                        + "(ISO §13.18.40.3 SR9)");
+                    error = true;
+                    continue;
+                }
                 if (l.Text.Length > 50)
                 {
                     edition.Error("COBOLNET1594", $"{where}: a PICTURE EDITING literal exceeds 50 characters "
                         + "(ISO §13.18.40.3 SR9)");
                     error = true;
                 }
-                if (l.National != nationalSubject)
+                bool national = l.Class is EditLiteralClass.National;
+                if (national != nationalSubject)
                 {
                     edition.Error(DiagnosticCatalog.PictureEditingLiteralClass, $"{where}: the PICTURE EDITING "
-                        + $"{name} is {(l.National ? "a national literal (N\"…\")" : "an alphanumeric literal")} but the "
+                        + $"{name} is {(national ? "a national literal (N\"…\")" : "an alphanumeric literal")} but the "
                         + $"subject of the entry is {(nationalSubject ? "national" : "not national")} — "
                         + $"{(nationalSubject ? "USAGE IS NATIONAL is specified or character-string-1 contains the symbol 'N', so literal-1, literal-2 and literal-3 shall be national literals" : "literal-1, literal-2 and literal-3 shall be alphanumeric literals")} "
                         + "(ISO §13.18.40.3 SR9)");
@@ -853,7 +897,7 @@ public static class PictureAnalyzer
                     error = true; break;
                 }
                 // SR12a: the NEGATIVE and POSITIVE literals (when both present) occupy the same number of positions.
-                if (ph.Neg is { } n2 && ph.Pos is { } p3 && n2.Text.Length != p3.Text.Length)
+                if (negLitSpec is { } n2 && posLitSpec is { } p3 && n2.Text.Length != p3.Text.Length)
                 {
                     edition.Error("COBOLNET1595", $"{where}: the NEGATIVE and POSITIVE literals of a FOR EDITING "
                         + "phrase shall occupy the same number of character positions (ISO §13.18.40.3 SR12a)");
@@ -864,9 +908,9 @@ public static class PictureAnalyzer
                 // specified, the default character for the unspecified phrase is the space character repeated
                 // the number of characters in literal-3." SR12a has already made the two widths agree when both
                 // are written, so the specified one's width is the item's either way.
-                int width = (ph.Neg ?? ph.Pos)?.Text.Length ?? 0;
-                string negLit = ph.Neg?.Text ?? new string(' ', width);
-                string posLit = ph.Pos?.Text ?? new string(' ', width);
+                int width = (negLitSpec ?? posLitSpec)?.Text.Length ?? 0;
+                string negLit = negLitSpec?.Text ?? new string(' ', width);
+                string posLit = posLitSpec?.Text ?? new string(' ', width);
                 // FOR = an EXTENDED editing sign control symbol. ONE occurrence is FIXED insertion (§13.18.40.5
                 // rule 5, Table 8); TWO OR MORE are a FLOATING insertion string — rule 6's first sentence lists
                 // "the extended editing sign control symbols, if specified" among the floating insertion
@@ -880,7 +924,7 @@ public static class PictureAnalyzer
             {
                 // IS (simple insertion) form — sign-independent (ISO §13.18.40.5 editing rule 3): character-1
                 // inserts literal-1 at every occurrence, immune to sign, at literal-1's own width (GR14 'es').
-                string lit = ph.Simple?.Text ?? "";
+                string lit = simpleLit?.Text ?? "";
                 // IS = SIMPLE insertion (rule 3), so this character-1 joins any zero-suppression or floating
                 // string it is embedded in or immediately right of (rules 6 and 7) — CobolEdit.TrySimpleInsertion.
                 rules.Add(new CobolEdit.EditRule(char1, lit, lit, SimpleInsertion: true, Floating: false));

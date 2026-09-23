@@ -1596,6 +1596,18 @@ were reachable only through a spelling the standard does not define; `editingPhr
 `EDITING ( cobolWord | literal ) …` and the quoted spelling draws the named **COBOLNET2149** at bind
 (parse-wide/bind-narrow), never an ANTLR syntax error.
 
+**literal-1/-2/-3 are LITERAL POSITIONS, a different operand kind from character-1** (kb/Work PB778). They are the
+`editingLiteral` rule — the VALUE clause's literal-position superset `valueClauseOperand` — and bind through the ONE
+literal-position chokepoint `DataBinder.RawValueOperandText` (parameterised by a `LiteralPosition` that names the
+operand and the format in its diagnostics), so a constant-name (§13.10.3 SR2 / §13.10.4 GR1), a symbolic-character,
+`ALL literal-1` and a concatenation expression (§8.8.3.3 GR3) all arrive as the literal they stand for, and a data
+name or undefined word is refused by name (COBOLNET1639/1902). A keyword figurative constant is ONE character here
+(§8.3.3.6.4 GR3b — the EDITING rules specify no length) whose class is the subject's (GR1): `EditLiteral` carries it
+as `EditLiteralClass.Figurative` in both representations (its character from `ConcatFolder.FigurativeChar`, the one
+figurative-character table) and `PictureAnalyzer` resolves it against the subject before SR9 is asked. A numeric or
+boolean literal — or NULL — is `NotAlphanumericOrNational` and SR9 refuses it (COBOLNET1955). Before PB778 a
+constant-name was a parse error and `EDITING T IS SPACE` / `IS "-" & "/"` inserted their SOURCE TEXT.
+
 Two shapes of the phrase used to be STAGED LOUD (COBOLNET0899) although Annex D.24 demonstrates both, and they
 are now rendered. A literal may be 50 characters (SR9) and §13.18.40.5 rule 6's first sentence lists "the
 extended editing sign control symbols, if specified" among the FLOATING insertion symbols — so a FOR-phrase

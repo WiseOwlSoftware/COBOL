@@ -183,9 +183,13 @@ organizationClause
     : (ORGANIZATION IS?)? organizationType
     ;
 
+// ISO §12.4.5.10.2 prints `{ {LINE|RECORD} SEQUENTIAL | RELATIVE | INDEXED }`; RENDERED (PDF p.357 / folio 327):
+// LINE is underlined, RECORD is NOT — an optional word (§5.2.3), so the RECORD arm is written `RECORD? SEQUENTIAL`
+// and bare SEQUENTIAL is the same alternative (§12.4.5.10.3 GR6). The written-out RECORD word is the 2023 inner
+// choice and is edition-gated by VersionConformancePass.ParseArm.VisitOrganizationClause (kb/Work PB706).
 organizationType
     : LINE SEQUENTIAL
-    | SEQUENTIAL
+    | RECORD? SEQUENTIAL
     | RELATIVE
     | INDEXED
     ;

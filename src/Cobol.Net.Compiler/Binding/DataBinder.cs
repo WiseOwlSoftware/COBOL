@@ -1967,6 +1967,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (t.LINE() is not null) return FileOrganization.LineSequential;
         if (t.RELATIVE() is not null) return FileOrganization.Relative;
         if (t.INDEXED() is not null) return FileOrganization.Indexed;
+        // `RECORD? SEQUENTIAL` — with or without the optional word RECORD (§12.4.5.10.3 GR3), record sequential.
         return FileOrganization.Sequential;
     }
 
@@ -5022,6 +5023,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             file.CodeSetRecordClass = natName is not null;
     }
 
+    /// <summary>WHICH general format a literal-position operand belongs to — the operand's name and the format's
+    /// citation, which is all that differs between the positions sharing the one literal-position chokepoint
+    /// (<see cref="RawValueOperandText"/>): the VALUE clause's literal-n and, since kb/Work PB778, the PICTURE
+    /// EDITING phrase's literal-1/-2/-3. The screen, the substitutions and the diagnostic codes are one.</summary>
+    private sealed record LiteralPosition(string Operand, string Format)
+    {
+        public static readonly LiteralPosition Value = new("the VALUE operand",
+            "every format of the VALUE clause writes literal-n (ISO §13.18.63.2)");
+        public static readonly LiteralPosition Editing = new("the PICTURE EDITING operand",
+            "the EDITING phrase writes literal-1, literal-2 and literal-3 (ISO §13.18.40.2 Format 1)");
+    }
+
     /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
     /// time): a §8.8.3 concatenation expression folds to its equivalent literal's raw text (§8.8.3.3 GR3); a
     /// constant-name substitutes its literal's raw text (§13.10.3 SR2 / §13.10.4 GR1 — a VALUE operand is a
@@ -5033,11 +5046,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// unconditional <c>op.GetText()</c>, which promoted an UNDEFINED WORD to an alphanumeric literal of its
     /// own spelling (a silent wrong answer on an alphanumeric subject) or handed the C# backend an identifier
     /// that does not exist (CS0103, exit 70, on a numeric one).</para></summary>
-    private string? RawValueOperandText(Core.ValueClauseOperandContext op, string where)
+    private string? RawValueOperandText(Core.ValueClauseOperandContext op, string where,
+        LiteralPosition? position = null)
     {
         // THE literal-position screen (§13.18.63.2 — every format writes literal-n), asked BEFORE any folding so
         // a rejected operand draws exactly one diagnostic and the ConcatFolder is never entered for it.
-        if (!IsLiteralValueOperand(op)) { ReportNonLiteralValueOperand(op, where); return null; }
+        if (!IsLiteralValueOperand(op)) { ReportNonLiteralValueOperand(op, where, position); return null; }
         return op.nonNumericLiteral()?.concatenationExpression() is { } ce
             ? ConcatFolder.Fold(ce, Edition, Collating, NationalCollating).RawText
             // ALL over a concatenated literal-1 (§8.3.3.6.3 SR2 — kb/Work PB71): `ALL` + the folded literal re-quoted,
@@ -5141,13 +5155,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </list>
     /// §4.2.2 is the obligation to indicate both ("An implementation shall provide a warning mechanism …
     /// to indicate violations of the general formats and the explicit syntax rules of standard COBOL").</summary>
-    private void ReportNonLiteralValueOperand(Core.ValueClauseOperandContext op, string where)
+    private void ReportNonLiteralValueOperand(Core.ValueClauseOperandContext op, string where,
+        LiteralPosition? position = null)
     {
         if (!_valueOperandDiagnosed.Add(op)) return;
+        position ??= LiteralPosition.Value;
         using var _ = Edition.At(op);
         if (op.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is { } symWord)
         {
-            Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: the VALUE operand "
+            Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: {position.Operand} "
                 + $"'ALL {symWord.GetText()}' names no symbolic character — symbolic-character-1 shall be "
                 + "specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph (ISO §8.3.3.6.3 "
                 + "SR4), and no other word is a figurative constant, so the operand identifies no resource "
@@ -5165,17 +5181,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // depends on it (feedback_verdict_evidence_invariant).
             string hint = ByName.ContainsKey(word)
                 ? $" ('{word}' is declared as a data item; a data item is not a literal.)" : "";
-            Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: the VALUE operand '{word}' is not a "
-                + "literal — every format of the VALUE clause writes literal-n (ISO §13.18.63.2), and the only "
+            Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: {position.Operand} '{word}' is not a "
+                + $"literal — {position.Format}, and the only "
                 + "words a literal position admits are a constant-name (ISO §13.10.3 SR2) and a "
                 + "symbolic-character (ISO §8.3.3.6.2 Format 7). '" + word + "' is neither, so the operand "
                 + "identifies no resource (ISO §8.4.2.1: \"a statement shall contain a reference that uniquely "
                 + $"identifies that resource\"). Check the spelling, or define the constant.{hint}");
             return;
         }
-        Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: the VALUE operand "
-            + $"'{AsWritten(op)}' is not a literal — every format of the VALUE clause writes literal-n (ISO "
-            + "§13.18.63.2). A figurative constant (ISO §8.3.3.6.3 SR1), a constant-name (ISO §13.10.3 SR2) "
+        Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: {position.Operand} "
+            + $"'{AsWritten(op)}' is not a literal — {position.Format}. A figurative constant (ISO §8.3.3.6.3 SR1), a constant-name (ISO §13.10.3 SR2) "
             + "and a symbolic-character (ISO §8.3.3.6.2 Format 7) stand where a literal stands, each written "
             + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
             + "reference-modified reference do not.");
@@ -5206,20 +5221,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var list = new List<EditingPhraseSpec>(phrases.Length);
         foreach (var ph in phrases)
         {
-            var lits = ph.literal();
             string char1;
-            int firstLit;   // literal-1's index in `lits` — 0 when character-1 is bare, 1 when it was quoted
             if (ph.cobolWord() is { } word)
-            {
                 char1 = word.GetText();
-                firstLit = 0;
-            }
             else
             {
-                char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null)?.Text ?? "";
-                firstLit = 1;
+                var quoted = ph.literal();
+                char1 = quoted is null ? "" : CobolLiteral.Decode(quoted.GetText());
                 Edition.Error(DiagnosticCatalog.PictureEditingChar1NotALiteral, $"{where}: the PICTURE EDITING "
-                    + $"phrase's character-1 is written as a quoted literal ({(lits.Length > 0 ? lits[0].GetText() : "\"\"")}) "
+                    + $"phrase's character-1 is written as a quoted literal ({quoted?.GetText() ?? "\"\""}) "
                     + "— the general format writes it BARE, as a picture symbol: `EDITING character-1 { IS "
                     + "literal-1 | FOR … }` (ISO §13.18.40.2 Format 1; §13.18.40.3 SR8 types character-1 as a basic "
                     + $"letter, and SR9 types only literal-1/-2/-3 as literals). Write EDITING {char1.ToUpperInvariant()} instead");
@@ -5228,49 +5238,65 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 // FOR (extended sign control): map the literals to NEGATIVE / POSITIVE by keyword position (either
                 // order is legal — §13.18.40.2 choice indicators). The keyword that appears first owns literal[0].
-                var flits = forp.literal();
+                var flits = forp.editingLiteral();
                 var neg = forp.NEGATIVE();
                 var pos = forp.POSITIVE();
                 bool negFirst = neg is not null && (pos is null || neg.Symbol.TokenIndex < pos.Symbol.TokenIndex);
                 EditLiteral? negLit, posLit;
                 if (negFirst)
                 {
-                    negLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
-                    posLit = pos is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1]) : null;
+                    negLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null, where);
+                    posLit = pos is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1], where) : null;
                 }
                 else
                 {
-                    posLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
-                    negLit = neg is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1]) : null;
+                    posLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null, where);
+                    negLit = neg is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1], where) : null;
                 }
                 list.Add(new EditingPhraseSpec(char1, Simple: null, Neg: negLit, Pos: posLit, IsForForm: true));
             }
             else
             {
-                // IS (simple insertion): literal-1 is the FIRST literal of the phrase — unless the
-                // (refused) quoted spelling of character-1 took that slot.
-                list.Add(new EditingPhraseSpec(char1,
-                    Simple: DecodeEditLiteral(lits.Length > firstLit ? lits[firstLit] : null),
+                // IS (simple insertion): literal-1 is the phrase's editingLiteral — a node of its own, never
+                // counted out of a shared literal list alongside a (refused) quoted character-1.
+                list.Add(new EditingPhraseSpec(char1, Simple: DecodeEditLiteral(ph.editingLiteral(), where),
                     Neg: null, Pos: null, IsForForm: false));
             }
         }
         return list;
     }
 
-    /// <summary>Decode a PICTURE EDITING literal (character-1 or an insertion literal) — its content AND the
-    /// literal CLASS the source wrote it in, which ISO §13.18.40.3 SR9's first sentence is a rule about
-    /// ("… shall be national literals. Otherwise … shall be alphanumeric literals"; kb/Work PB492). A quoted
-    /// alphanumeric / national / hex literal decodes to its content; any other shape (numeric, figurative,
-    /// concatenation) is returned raw so <see cref="PictureAnalyzer"/>'s SR8/SR9 checks reject it with a named
-    /// diagnostic.</summary>
-    private static EditLiteral? DecodeEditLiteral(Core.LiteralContext? lit)
+    /// <summary>Decode a PICTURE EDITING literal operand — literal-1, literal-2 or literal-3 of ISO §13.18.40.2
+    /// Format 1 — to its content AND the literal CLASS it was written in, which §13.18.40.3 SR9's first sentence
+    /// is a rule about ("… shall be national literals. Otherwise … shall be alphanumeric literals"; kb/Work
+    /// PB492). Null when the operand is absent or is no literal at all (already reported).
+    /// <para>⛔ THE OPERAND IS A LITERAL POSITION (kb/Work PB778), so it goes through THE literal-position
+    /// chokepoint the VALUE clause uses — <see cref="RawValueOperandText"/> — never a second copy of its screen or
+    /// its substitutions: a constant-name (§13.10.3 SR2 admits it, §13.10.4 GR1 substitutes its literal), a
+    /// symbolic-character and ALL literal-1 arrive as the literal they stand for, a concatenation expression as
+    /// its folded literal (§8.8.3.3 GR3), and anything else is refused by name there. A KEYWORD figurative constant
+    /// (§8.3.3.6.3 SR1) is ONE character in this context (§8.3.3.6.4 GR3b — the EDITING rules specify no length)
+    /// whose class is the subject's (GR1), so it travels in both representations and the analyzer picks one. A
+    /// numeric or boolean literal — or NULL, which has no character value — is carried as
+    /// <see cref="EditLiteralClass.NotAlphanumericOrNational"/> for SR9 to refuse. Before PB778 the narrow
+    /// <c>literal</c> rule refused a constant-name at PARSE time, and the figuratives and concatenations it did
+    /// admit reached the edited item as their SOURCE TEXT (<c>EDITING T IS SPACE</c> inserted "SPACE").</para></summary>
+    private EditLiteral? DecodeEditLiteral(Core.EditingLiteralContext? lit, string where)
     {
-        if (lit is null) return null;
-        var nn = lit.nonNumericLiteral();
-        bool national = nn?.NATLIT() is not null;
-        return national || nn?.STRINGLIT() is not null || nn?.HEXLIT() is not null
-            ? new EditLiteral(CobolLiteral.Decode(lit.GetText()), national)
-            : new EditLiteral(lit.GetText(), National: false);
+        if (lit?.valueClauseOperand() is not { } op) return null;
+        if (op.nonNumericLiteral()?.figurativeConstant() is { } fig && fig.allLiteral() is null && fig.cobolWord() is null)
+            return ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, Collating, NationalCollating) is { } alnum
+                ? new EditLiteral(alnum.ToString(), EditLiteralClass.Figurative,
+                    ConcatFolder.FigurativeChar(fig, PicCategory.National, Collating, NationalCollating)?.ToString())
+                : new EditLiteral(fig.GetText(), EditLiteralClass.NotAlphanumericOrNational);
+        if (RawValueOperandText(op, where, LiteralPosition.Editing) is not { } raw) return null;
+        string written = CobolLiteral.AllLiteralRaw(raw) ?? raw;   // ALL literal-1 / symbolic-character: literal-1 (GR3c)
+        return CobolLiteral.ClassOf(written) switch
+        {
+            LiteralClass.Alphanumeric => new EditLiteral(CobolLiteral.Decode(written), EditLiteralClass.Alphanumeric),
+            LiteralClass.National => new EditLiteral(CobolLiteral.Decode(written), EditLiteralClass.National),
+            _ => new EditLiteral(raw, EditLiteralClass.NotAlphanumericOrNational),
+        };
     }
 
     /// <summary>Build the <see cref="TableValueSpec"/> list for a Format 2 (table) VALUE clause (ISO §13.18.63.2):

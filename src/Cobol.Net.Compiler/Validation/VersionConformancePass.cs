@@ -1316,14 +1316,20 @@ internal sealed class VersionConformancePass
         /// The clause parses at every edition (the grammar is the 2023 superset); this arm names the edition below
         /// 2023. Recognition-fire on the clause's presence, so a SELECT that ALSO fails to bind still names its
         /// edition instead of dropping the 0900 with the discarded FileModel (DEVLOG 724).</para>
-        /// <para>⚠ `RECORD SEQUENTIAL` — the other half of that 2023 inner choice — has no grammar alternative yet,
-        /// so it cannot reach this arm; when it lands it gates from HERE (one more <c>ctx.organizationType()</c>
-        /// token test), never from a second site.</para></summary>
+        /// <para>The OTHER half of that 2023 inner choice gates HERE too, from the same token test (kb/Work PB706):
+        /// the written-out `RECORD` of `RECORD SEQUENTIAL`. RECORD is an OPTIONAL word (rendered §12.4.5.10.2 —
+        /// not underlined; §5.2.3), so the grammar writes the arm `RECORD? SEQUENTIAL` and only the RECORD token's
+        /// presence is the 2023 spelling; bare `SEQUENTIAL` is the same alternative and stays legal at every edition
+        /// (§12.4.5.10.3 GR6 — the absent clause implies it).</para></summary>
         public override object? VisitOrganizationClause(CobolParserCore.OrganizationClauseContext ctx)
         {
-            if (ctx.organizationType()?.LINE() is not null)
+            var type = ctx.organizationType();
+            if (type?.LINE() is not null)
                 _p.Check(Constructs.FileOrganizationLineSequential2023,
                     "the LINE SEQUENTIAL phrase of the ORGANIZATION clause");
+            else if (type?.RECORD() is not null)
+                _p.Check(Constructs.FileOrganizationRecordSequential2023,
+                    "the RECORD SEQUENTIAL phrase of the ORGANIZATION clause");
             return base.VisitChildren(ctx);
         }
 

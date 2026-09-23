@@ -197,6 +197,7 @@ public static class Constructs
     public const string LockModeClause2002 = "lock-mode-clause-2002";
     public const string FileCollatingClause2002 = "file-collating-clause-2002";
     public const string FileOrganizationLineSequential2023 = "file-organization-line-sequential-2023";
+    public const string FileOrganizationRecordSequential2023 = "file-organization-record-sequential-2023";
     public const string AlternateKeySuppressWhen2023 = "alternate-key-suppress-when-2023";
     public const string RetryPhrase2002 = "retry-phrase-2002";
     public const string UnlockStatement2002 = "unlock-statement-2002";

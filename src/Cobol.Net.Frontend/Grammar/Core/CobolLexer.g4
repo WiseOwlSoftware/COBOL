@@ -37,6 +37,31 @@ tokens { FNARG_LPAREN, FNARG_RPAREN }
     private bool PreviousTokenCouldBeDataName()
         => _dataNameTokens.Contains(_lastNonWsTokenType) || IsCobolWordsDataName(_lastNonWsTokenType);
 
+    // ⛔ THE REPORT-WRITER SUM CLAUSE IS NOT THE SUM FUNCTION (kb/Work PB924). SUM carries subscriptTrigger for
+    // §8.4.3.2.3 SR2's keyword-omitted intrinsic call `SUM(1 2 3)`, and a reserved word can never be a data-name,
+    // so that trigger exists ONLY for the function. ISO §13.18.54.3 SR9: "Within a report description entry, if
+    // the keyword SUM is preceded by the keyword FUNCTION, SUM is a reference to the SUM intrinsic function.
+    // Otherwise, SUM refers to the report writer SUM clause" — so inside the REPORT SECTION a bare SUM's '(' can
+    // only open a parenthesised addend (arithmetic-expression-1), and capturing it in SUBSCRIPT mode made
+    // `SUM (WS-K * WS-M)` unparseable while `SUM WS-K * WS-M` compiled. SR9's discriminator is the REGION, which
+    // is why the trigger is made contextual here rather than recovered after the fact: the SUBSCRIPT decision
+    // is frozen at lex time. The FUNCTION-keyword form is unaffected (PreviousIsFunctionName keys on FUNCTION
+    // before the name, and SUM then stays the argument-list FNARG_LPAREN), and outside the REPORT SECTION the
+    // keyword-omitted SUM(…) still captures exactly as before. SUM is the only §8.9 ∩ §8.11 word (LENGTH,
+    // RANDOM, SIGN, SUM) that begins a report or data description clause whose operand can open with '(' — the
+    // SIGN clause (§13.18.52) takes none — so it is the only word the region changes (CobolLexerModeDriftTests).
+    private bool _inReportSection;
+    private bool IsReportSumClauseKeyword() => _inReportSection && _lastNonWsTokenType == SUM;
+
+    // The REPORT SECTION region: opened by the `REPORT SECTION` header, closed by the next section or division
+    // header — the data division's fixed section order puts only the SCREEN SECTION or the PROCEDURE DIVISION after
+    // it, and a nested program's REPORT SECTION follows its own header again.
+    private void TrackReportSection(int type)
+    {
+        if (type == SECTION) _inReportSection = _lastNonWsTokenType == REPORT;
+        else if (type == DIVISION) _inReportSection = false;
+    }
+
     // >>COBOL-WORDS (ISO §7.3.10.4 GR3/GR4): the per-compilation-group set of KEYWORD token types the directive
     // de-reserves (UNDEFINE/SUBSTITUTE) — a following '(' must open a SUBSCRIPT even though the word is still lexed
     // as its keyword token here (the post-lex CobolWordsRewriter retypes it to IDENTIFIER afterwards, but the
@@ -102,7 +127,8 @@ tokens { FNARG_LPAREN, FNARG_RPAREN }
     {
         // A directive-expression region never subscripts: every '(' groups (DESIGN §4.1). Checked first so a '('
         // after a boolean-operator data-name (e.g. `A B-AND (…)`, B-AND legal as a name below 2023) stays a group.
-        if (!_primeDirectiveExpr && PreviousTokenCouldBeDataName() && !PreviousIsFunctionName())
+        if (!_primeDirectiveExpr && PreviousTokenCouldBeDataName() && !PreviousIsFunctionName()
+            && !IsReportSumClauseKeyword())
         {
             PushMode(SUBSCRIPT);   // subscript / ref-mod capture — the matching ')' is SUB_RPAREN (popMode)
             return;
@@ -145,6 +171,7 @@ tokens { FNARG_LPAREN, FNARG_RPAREN }
         var token = base.NextToken();
         if (token.Type != WS && token.Type != SUB_WS && token.Type != Antlr4.Runtime.TokenConstants.EOF)
         {
+            TrackReportSection(token.Type);   // before the shift: it asks what PRECEDED this token
             _prevNonWsTokenType = _lastNonWsTokenType;
             _lastNonWsTokenType = token.Type;
         }

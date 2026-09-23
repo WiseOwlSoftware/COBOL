@@ -80,6 +80,43 @@ public sealed class CobolLexerModeDriftTests
         Assert.Contains(names, n => n.StartsWith("SUB_", StringComparison.Ordinal));
     }
 
+    // ── The REPORT SECTION region: a bare SUM is the SUM CLAUSE, never the function (kb/Work PB924) ─────────────
+
+    private const string ReportSectionHead = "DATA DIVISION. REPORT SECTION. RD R1. 01 TYPE DETAIL. 05 COLUMN 1 PIC 9999 ";
+
+    /// <summary>ISO §13.18.54.3 SR9: within a report description entry a SUM not preceded by FUNCTION is the SUM
+    /// CLAUSE, whose addend (arithmetic-expression-1) may open with '(' — so that '(' is an arithmetic LPAREN
+    /// in DEFAULT mode and its content reaches the expression grammar, never a SUBSCRIPT capture.</summary>
+    [Theory]
+    [InlineData("SUM (WS-K * WS-M).")]
+    [InlineData("SUM OF (WS-K * WS-M).")]
+    [InlineData("SUM (WS-K) WS-M.")]
+    public void ReportSumClause_ParenthesisedAddend_LexesInDefaultMode(string entry)
+    {
+        string[] names = TokenNames(ReportSectionHead + entry);
+        Assert.Contains("LPAREN", names);
+        Assert.DoesNotContain(names, n => n.StartsWith("SUB_", StringComparison.Ordinal));
+    }
+
+    /// <summary>The OTHER arm of SR9 and of the region, which a region-blind "turn the trigger off" fix breaks:
+    /// FUNCTION SUM( inside a report description entry is still the function's argument list (FNARG_LPAREN),
+    /// and every §8.9 ∩ §8.11 word (LENGTH, RANDOM, SIGN, SUM) written keyword-omitted in the PROCEDURE DIVISION
+    /// — after the REPORT SECTION has closed — still captures its arguments in SUBSCRIPT mode.</summary>
+    [Theory]
+    [InlineData(ReportSectionHead + "SOURCE FUNCTION SUM(1 2 3).", "FNARG_LPAREN", null)]
+    [InlineData(ReportSectionHead + "SUM WS-K. PROCEDURE DIVISION. COMPUTE N = SUM(1 2 3).", "LPAREN", "SUB_INTEGERLIT")]
+    [InlineData(ReportSectionHead + "SUM WS-K. PROCEDURE DIVISION. COMPUTE N = SIGN(V).", "LPAREN", "SUB_")]
+    [InlineData(ReportSectionHead + "SUM WS-K. PROCEDURE DIVISION. COMPUTE N = LENGTH(A).", "LPAREN", "SUB_")]
+    [InlineData(ReportSectionHead + "SUM WS-K. PROCEDURE DIVISION. COMPUTE N = RANDOM(1).", "LPAREN", "SUB_")]
+    [InlineData(ReportSectionHead + "SUM WS-K. SCREEN SECTION. PROCEDURE DIVISION. COMPUTE N = SUM(1 2).", "LPAREN", "SUB_")]
+    public void ReportSumRegion_LeavesTheFunctionArmsIntact(string src, string paren, string? subPrefix)
+    {
+        string[] names = TokenNames(src);
+        Assert.Contains(paren, names);
+        if (subPrefix is null) Assert.DoesNotContain(names, n => n.StartsWith("SUB_", StringComparison.Ordinal));
+        else Assert.Contains(names, n => n.StartsWith(subPrefix, StringComparison.Ordinal));
+    }
+
     // ── The FUNCTION argument-list parenthesis, and the figurative ZERO it used to destroy (PB48) ────────────
 
     /// <summary>Token names AFTER <see cref="ZeroTokenRewriter"/> — the stream the PARSER actually sees. The

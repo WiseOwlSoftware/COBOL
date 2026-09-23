@@ -828,6 +828,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 // LINE SEQUENTIAL is two tokens; GetText() gives "LINESEQUENTIAL"
                 if (orgType.LINE() != null)
                     fileSym.Organization = "LINE SEQUENTIAL";
+                else if (orgType.RECORD() != null)      // `RECORD SEQUENTIAL` is record sequential (kb/Work PB706)
+                    fileSym.Organization = "SEQUENTIAL";
                 else
                     fileSym.Organization = orgType.GetText().ToUpperInvariant();
             }

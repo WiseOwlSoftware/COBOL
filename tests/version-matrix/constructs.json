@@ -2476,6 +2476,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLS.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmls\" ORGANIZATION IS LINE SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"A\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
   },
   {
+   "id": "file-organization-record-sequential-2023",
+   "description": "ORGANIZATION IS RECORD SEQUENTIAL (ISO §12.4.5.10.3 GR3) — the written-out RECORD word of the §12.4.5.10.2 {LINE|RECORD} SEQUENTIAL inner choice, introduced 2023 with line sequential; the bare SEQUENTIAL spelling (RECORD is an optional word, §5.2.3) stays legal at every edition",
+   "display": "ORGANIZATION RECORD SEQUENTIAL",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §12.4.5.10.2 (RECORD not underlined — rendered PDF p.357); §12.4.5.10.3 GR3; §9.1.7.2 splits sequential files into record- and line-delimited types",
+   "introducedIn": 2023,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2023 introduction — the {LINE|RECORD} inner brace exists only because the Foreword's \"Line Sequential file organization\" split sequential files in two (§9.1.7.2); before 2023 the format printed a lone SEQUENTIAL; no VCR row",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRS.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrs\" ORGANIZATION IS RECORD SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"A\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+  },
+  {
    "id": "alternate-key-suppress-when-2023",
    "description": "The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO 12.4.5.6.2) - alternate-key suppression: a record's alternate access path is withheld when the key value equals literal-1 (12.4.5.6.4 GR6), and the record is not considered to exist for READ/START. A COBOL-2023 addition; 0900 below 2023. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
    "display": "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause",

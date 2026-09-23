@@ -178,7 +178,7 @@ public sealed class PictureCompositionTests
     {
         var ed = new EditionContext(2023);
         var phrases = phraseOrder
-            .Select(c => new EditingPhraseSpec(c.ToString(), null, new EditLiteral("(", false), null, IsForForm: true))
+            .Select(c => new EditingPhraseSpec(c.ToString(), null, new EditLiteral("(", EditLiteralClass.Alphanumeric), null, IsForForm: true))
             .ToList();
         PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'", editing: phrases);
         return ed.Diagnostics.ToArray();
