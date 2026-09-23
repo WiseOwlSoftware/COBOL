@@ -64,7 +64,7 @@ public sealed class StagedPropagationIdentityTests
         Assert.False(e.TakeRaisedPropagation(AllOn, out _, out _));
     }
 
-    [Fact]   // The OBJECT slot answers the same question (§14.6.13.1.5 — the same §14.9.18.4 GR1 b) staging).
+    [Fact]   // The OBJECT slot answers the same question (§14.6.13.1.5 exception objects — the same §14.9.18.4 GR1 b) staging).
     public void TheObjectSlot_ObeysTheSameIdentity()
     {
         var (s, e) = NewRunUnitParts();

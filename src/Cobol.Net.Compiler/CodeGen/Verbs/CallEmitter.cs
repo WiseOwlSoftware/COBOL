@@ -839,7 +839,26 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         p is RefModPlace ? OperandText.FieldImage(p)
         : p.Item.IsGroup
             ? PlaceRenderer.GroupImage(p)   // the FULL image (GR8 is a sending-operand rule, not a boundary one) — window or struct (kb/Work PB80)
+        // ⛔ AN IMAGE-CARRIED NUMERIC LEAF CROSSES AS ITS STORAGE BYTES (kb/Work PB970), for the same reason the
+        // group arm above does: §14.2.3 GR8 — "the activated runtime element operates as if the formal parameter
+        // occupies the same storage area as the argument" — and GR9's first branch moves the argument "without
+        // conversion". The window already HOLDS those bytes (zoned digits, radix-2, BCD, IEEE), so the read is the
+        // window itself. It used to be `OperandText.FieldImage` — the OPERAND (DISPLAY) text — while the other
+        // half of the same channel, `CobolArgAdapt.Text`'s native-cell arm, delivers the STORAGE image (kb/Work
+        // PB873): one carrier, two alphabets, so `PIC S9(5) COMP-3` −42 reached a redefined COMP-3 formal as
+        // bytes 00 00 0C and came home as garbage. The predicate is exactly the one the write half keys on.
+        : IsImageCarriedNumeric(p)
+            ? PlaceRenderer.Read(p)
             : OperandText.FieldImage(p);
+
+    /// <summary>True when an ELEMENTARY numeric place's storage is a character window holding its record image
+    /// (an image-stored leaf, or a Tier-B REDEFINES view) — the numeric population of the <see cref="CallCrossing.Text"/>
+    /// form, whose boundary image is its STORAGE (kb/Work PB970). ONE predicate for the read and the write half.
+    /// The identity question — is this reference the item itself, not a reference-modified view — is
+    /// <see cref="Place.DenotedItem"/>'s (kb/Work PB602).</summary>
+    private static bool IsImageCarriedNumeric(Place p) =>
+        p.DenotedItem is { IsGroup: false, Pic.Category: PicCategory.Numeric } item
+        && (item.StoreAsImage || p is RedefViewPlace);
 
     /// <summary>⛔ THE BY CONTENT READ of a character-image argument — <see cref="CallStringRead"/>, except that an
     /// OCCURS DEPENDING group sends only its current extent. ISO §14.8.2.2 states the two lengths apart: "For an
@@ -876,25 +895,17 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         p is RefModPlace ? PlaceRenderer.Write(p, value)
         : p.Item.IsGroup && p is not RedefViewPlace
             ? PlaceRenderer.WriteFullGroupImage(p, value, "CALL boundary copy")   // the FULL image — an ODO wrapper is unwrapped (kb/Work PB80)
-        // kb/Work PB181 (measured — 1234 crossed BY REFERENCE, ADD 1, came home as 2594): the elementary
-        // boundary convention carries the DISPLAY image, and a byte-form windowed / image-stored NUMERIC
-        // receiver must DECODE it and re-encode through the ONE byte-form recipe (the same MOVE/ACCEPT
-        // store shape) — the raw splice put the returned CHARACTERS into a StorageWidth window.
-        // ⛔ …EXCEPT A ZONED ONE, whose DISPLAY image IS its storage (kb/Work PB962). For it the decode/re-encode
-        // is not a representation change but a VALUE conversion, and a value conversion loses exactly the
-        // content that is not a valid numeric representation: a callee's RETURNING item holding spaces came
-        // home as 000. §14.6.5 delivers "the content of the data item" and §14.2.3 GR8 makes a BY REFERENCE
-        // formal "occupy the same storage area as the argument" — content in, content out — so the boundary
-        // text is stored as it stands, fitted to the item's character positions. (A BINARY/PACKED item's
-        // boundary text is still its operand text, not its storage bytes — the separate channel question.)
-        : (p.Item.StoreAsImage || p is RedefViewPlace)
-            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, ByteForm: NumericByteForm.Zoned }
+        // ⛔ AN IMAGE-CARRIED NUMERIC LEAF: the boundary text IS its storage image, of EVERY byte form (kb/Work
+        // PB970 — the mirror of CallStringRead's arm). §14.6.5 delivers "the content of the data item" and
+        // §14.2.3 GR8 makes a BY REFERENCE formal "occupy the same storage area as the argument" — content in,
+        // content out — so the text is stored as it stands, fitted to the item's character positions: no decode,
+        // and so no value conversion to lose content that is not a valid representation (a RETURNING item
+        // holding spaces came home as 000 — kb/Work PB962). This used to be TWO arms: the zoned one stored the
+        // text, and a BINARY/PACKED one decoded it as DISPLAY digits and re-encoded it (kb/Work PB181) — right
+        // only while the channel carried operand text, and wrong for every native argument, whose adapter has
+        // delivered the storage image since kb/Work PB873. A float leaf fell to the raw write below with no arm.
+        : IsImageCarriedNumeric(p)
             ? PlaceRenderer.Write(p, RuntimeApi.StrStore(value, $"{p.Item.ImageWidth}"))
-        : (p.Item.StoreAsImage || p is RedefViewPlace)
-            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
-            ? PlaceRenderer.Write(p, RuntimeApi.NumFormatImage(
-                ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(value, p.Item.ProfileName), p.Item),
-                p.Item.ProfileName))
             : PlaceRenderer.Write(p, value);
 
     /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2). Under enabled

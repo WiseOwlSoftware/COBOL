@@ -365,7 +365,8 @@
   "pb971_function_arg_omitted",
   "pb979_unstring_any_length_national",
   "pb981_fd_pointer_record",
-  "pb943_group_sender_conversions"
+  "pb943_group_sender_conversions",
+  "pb970_image_carried_packed_returning_invoke"
   ],
   "pending": []
 }

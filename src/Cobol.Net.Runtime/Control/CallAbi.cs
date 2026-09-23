@@ -238,19 +238,24 @@ public static class CobolArgAdapt
                 checking ? LandChecked(rv, formalScale, formal) : Land(rv, formalScale, formal),
             { } np when ReadNumericCell(np) is { } nv =>
                 checking ? LandChecked(nv, a.Scale, formal) : Land(nv, a.Scale, formalScale, formal),
-            // An IMAGE-carried FIXED-POINT argument (a redefined item, a Tier-B window) is the COMPUTE's
-            // sending operand, so its VALUE is its carrier text read through ITS OWN description (kb/Work PB873)
-            // — decoding it through the formal's profile read the argument's sign and scale as if they were the
-            // formal's. The carrier text is the item's operand text (`CallEmitter.CallStringRead` →
-            // `OperandText.FieldImage`), which is what ParseDisplay reads.
-            ManagedPointer<string> sp when a.Num is { ByteForm: not (NumericByteForm.None or NumericByteForm.Ieee32 or NumericByteForm.Ieee64) } d =>
-                checking ? LandChecked(CobolNum.ParseDisplay(sp.Value, d), d.FractionScale, formal)
-                         : Land(CobolNum.ParseDisplay(sp.Value, d), d.FractionScale, formalScale, formal),
-            // A CHARACTER argument has no numeric description of its own: it decodes through the formal's
-            // profile; the rescale is then the identity and only the capacity conformance remains.
+            // An IMAGE-carried NUMERIC argument (a redefined item, a Tier-B window) is the COMPUTE's sending
+            // operand, so its VALUE is its carrier read through ITS OWN description (kb/Work PB873) — decoding it
+            // through the formal's profile read the argument's sign and scale as if they were the formal's. The
+            // carrier is the item's STORAGE image (`CallEmitter.CallStringRead`; kb/Work PB970), so the decode is
+            // THE record-image codec's, of every byte form — a float one on its own lane.
+            ManagedPointer<string> sp when a.Num is { ByteForm: NumericByteForm.Ieee32 or NumericByteForm.Ieee64 } fd =>
+                checking ? LandChecked(CobolNum.ParseImageFloat(sp.Value, fd), formalScale, formal)
+                         : Land(CobolNum.ParseImageFloat(sp.Value, fd), formalScale, formal),
+            ManagedPointer<string> sp when a.Num is { ByteForm: not NumericByteForm.None } d =>
+                checking ? LandChecked(CobolNum.ParseImage(sp.Value, d), d.FractionScale, formal)
+                         : Land(CobolNum.ParseImage(sp.Value, d), d.FractionScale, formalScale, formal),
+            // A CHARACTER argument has no numeric description of its own: its storage decodes through the
+            // formal's (the record-image codec — for a zoned formal the DISPLAY decode; kb/Work PB970, the same
+            // reading Num's GR8 view takes); the rescale is then the identity and only the capacity conformance
+            // remains.
             ManagedPointer<string> sp =>
-                checking ? LandChecked(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formal)
-                         : Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal),
+                checking ? LandChecked(CobolNum.ParseImage(sp.Value, formal), formalScale, formal)
+                         : Land(CobolNum.ParseImage(sp.Value, formal), formalScale, formalScale, formal),
             _ => null,
         };
 
@@ -284,8 +289,12 @@ public static class CobolArgAdapt
     {
         { } rp when ReadRealCell(rp) is { } rv => rv,
         { } np when ReadNumericCell(np) is { } nv => CobolFloat.ScaledToDouble(nv, a.Scale),
-        ManagedPointer<string> sp when a.Num is { ByteForm: not (NumericByteForm.None or NumericByteForm.Ieee32 or NumericByteForm.Ieee64) } d =>
-            CobolFloat.ScaledToDouble(CobolNum.ParseDisplay(sp.Value, d), d.FractionScale),
+        // An image-carried argument's carrier is its STORAGE image (kb/Work PB970) — the float lane's IEEE bytes
+        // or a fixed-point record image, each through THE record-image codec under its own description.
+        ManagedPointer<string> sp when a.Num is { ByteForm: NumericByteForm.Ieee32 or NumericByteForm.Ieee64 } fd =>
+            CobolNum.ParseImageFloat(sp.Value, fd),
+        ManagedPointer<string> sp when a.Num is { ByteForm: not NumericByteForm.None } d =>
+            CobolFloat.ScaledToDouble(CobolNum.ParseImage(sp.Value, d), d.FractionScale),
         _ => null,
     };
 
@@ -369,15 +378,27 @@ public static class CobolArgAdapt
         {
             case ManagedPointer<T> tp when args[i].Scale == formalScale:
                 return tp;   // same carrier, same scale — pure typed aliasing (the common conforming case)
+            case ManagedPointer<string> sp when formal.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64:
+                // A FLOATING-POINT formal over the caller's storage image (kb/Work PB970): the same GR8 view on
+                // the float lane of THE record-image codec — the IEEE bytes the formal occupies, read and
+                // written as the formal's own usage. The fixed-point decode below throws on this profile (and
+                // before PB970 read the bytes as DISPLAY digits).
+                return ManagedPointer<T>.OverField(
+                    () => T.CreateTruncating(CobolNum.ParseImageFloat(sp.Value, formal)),
+                    v => sp.Value = CobolNum.FormatImageFloat(double.CreateTruncating(v), formal));
             case ManagedPointer<string> sp:
-                // The D5 boundary: the caller's CHARACTER storage viewed as the callee's zoned numeric — decode
-                // and re-encode through the callee's profile on each access (same storage area, §14.2.3 GR8).
+                // The D5 boundary: the caller's CHARACTER storage viewed as the callee's numeric — decode and
+                // re-encode through the callee's profile on each access (same storage area, §14.2.3 GR8). The
+                // carrier is STORAGE (kb/Work PB970: an image-carried numeric argument crosses as its record image,
+                // a character one as its characters), so the codec is THE record-image codec under the FORMAL's
+                // description — the bytes the formal "occupies" read as the formal reads them. For a zoned formal
+                // it is the DISPLAY decode it always was (ParseImage's zoned arm IS ParseDisplay).
                 return ManagedPointer<T>.OverField(
                     // Through the shared Land, like every other arm: the decode is already at the formal's
                     // scale so the rescale is the identity, but the capacity conformance must not be the one
                     // arm that skips it (§14.2.3 GR11 — every reference resolves through the SAME description).
-                    () => T.CreateTruncating(Land(CobolNum.ParseDisplay(sp.Value, formal), formalScale, formalScale, formal)),
-                    v => sp.Value = CobolNum.FormatDisplay(Int128.CreateTruncating(v), formal));
+                    () => T.CreateTruncating(Land(CobolNum.ParseImage(sp.Value, formal), formalScale, formalScale, formal)),
+                    v => sp.Value = CobolNum.FormatImage(Int128.CreateTruncating(v), formal));
             case { } rp when ReadRealCell(rp) is not null:
                 // A native FLOAT cell viewed through a fixed-point formal (kb/Work PB238): the same §14.2.3 GR8
                 // converting view, on the float lane, because no Int128 holds the fractional value. The scale
@@ -411,7 +432,7 @@ public static class CobolArgAdapt
     /// A character carrier gets a width-window view: reads are the first <paramref name="width"/> positions
     /// (space-padded when the caller's storage is shorter); writes SPLICE into the caller's storage, preserving
     /// the caller's own width invariant (§14.2.3 GR8 — the callee touches only its formal's character positions).
-    /// A native-<c>long</c> carrier gets a digit-image view via the caller's digit meta (D5 boundary).
+    /// A native numeric cell gets a view of its STORAGE image under the description it carries (kb/Work PB873/PB970).
     /// <para><paramref name="width"/> = <c>-1</c> is the ANY LENGTH mode (ISO §13.18.2 GR1): the formal's length
     /// IS the caller's argument length, so the callee sees the caller's FULL string (a zero-length argument
     /// yields the zero-length item, GR1a) and every write re-fits to the argument's CURRENT length (GR1b — the
@@ -694,8 +715,8 @@ public static class CobolArgAdapt
     /// native cell, and into an image-carried receiver the value's character representation under the
     /// description, never the value's C# text (<c>Int128.ToString</c> dropped the sign's representation and the
     /// digit count — a <c>-12.5</c> in <c>PIC S9(3)V9</c> arrived in an image-carried receiver as <c>+12.5</c>).
-    /// An image-carried receiver's string carrier speaks the item's operand text (its write half decodes with
-    /// <c>ParseDisplay</c> under the receiver's profile), which is <see cref="CobolNum.FormatDisplay(Int128, in NumProfile)"/>.</summary>
+    /// An image-carried receiver's string carrier speaks the item's STORAGE image (its write half stores it as
+    /// it stands — kb/Work PB970), which is <see cref="CobolNum.FormatImage(Int128, in NumProfile)"/>.</summary>
     public static void StoreReturn(CobolArg? ret, Int128 value, NumProfile sent) => StoreReturnNum(ret, value, sent);
 
     /// <inheritdoc cref="StoreReturn(CobolArg?, Int128, NumProfile)"/>
@@ -703,7 +724,7 @@ public static class CobolArgAdapt
     {
         // A 16-byte unsigned container beyond Int128's range only arises from a COMP-5 capacity value; its
         // character representation is its own digits (the bits lane would read negative).
-        if (ret?.Carrier is ManagedPointer<string> sp && value > (UInt128)Int128.MaxValue) { sp.Value = value.ToString(); return; }
+        if (ret?.Carrier is ManagedPointer<string> sp && value > (UInt128)Int128.MaxValue) { sp.Value = CobolNum.FormatImage(value, sent); return; }
         StoreReturnNum(ret, unchecked((Int128)value), sent);
     }
 
@@ -726,35 +747,39 @@ public static class CobolArgAdapt
         if (WriteRealCell(c, sent is { } rs ? CobolFloat.ScaledToDouble(value, rs.FractionScale) : (double)value)) return;
         if (c is ManagedPointer<string> sp)
         {
-            sp.Value = sent is { } s ? CobolNum.FormatDisplay(value, s) : value.ToString();
+            // An image-carried receiver's carrier is its STORAGE image (kb/Work PB970), so the content arrives
+            // in the sender's record representation — §14.8.3.3's conforming receiver has the same description.
+            sp.Value = sent is { } s ? CobolNum.FormatImage(value, s) : value.ToString();
             return;
         }
         Undeliverable(c, $"the numeric result {value}");
     }
 
     /// <summary>⛔ A FIXED-POINT RETURNING ITEM HELD AS A CHARACTER IMAGE (a redefined or otherwise image-carried
-    /// item — kb/Work PB962). <paramref name="text"/> is the item's operand text and <paramref name="sent"/> its
+    /// item — kb/Work PB962). <paramref name="text"/> is the item's STORAGE image (kb/Work PB970) and <paramref name="sent"/> its
     /// description. This is a CONTENT transfer, not a value conversion: §14.6.5 places "the content of the data
     /// item" into the receiver, and §14.8.3.3 gives a conforming receiver the same PICTURE and USAGE. So an
     /// image-carried receiver takes the text as it stands, and a native cell takes it decoded under the ONE
-    /// description both items share — the decode every character view of a native cell uses
-    /// (<see cref="CobolNum.ParseDisplay"/>), which answers for ANY content. Before PB962 this pair rode the
+    /// description both items share — THE record-image codec (<see cref="CobolNum.ParseImage"/>, whose zoned arm
+    /// is <see cref="CobolNum.ParseDisplay"/> and answers for ANY content). Before PB962 this pair rode the
     /// description-free leg below, which re-parsed the text as a C# number and ABORTED the run unit with
     /// EC-PROGRAM-ARG-MISMATCH whenever the content was not a digit run (spaces after a zero-length MOVE) —
     /// citing §14.8.3.3 against a pair §14.8.3.3 admits.
     /// <para>⚠ A NATIVE cell holds a VALUE, not characters, so content that is not a valid numeric
-    /// representation arrives as the value <c>ParseDisplay</c> reads from it — the same residue every character
+    /// representation arrives as the value <c>ParseImage</c> reads from it — the same residue every character
     /// view of a native numeric cell has (a BY REFERENCE character formal's store, a group MOVE into it).</para></summary>
     public static void StoreReturn(CobolArg? ret, string text, NumProfile sent)
     {
         if (ret is not { Carrier: var c }) return;
         if (c is ManagedPointer<string> sp) { sp.Value = text; return; }
+        // The text is the returning item's STORAGE image (kb/Work PB970), decoded by THE record-image codec
+        // under its own description — the float lane on its own decode.
         if (sent.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64)
         {
-            StoreReturn(ret, text);
+            StoreReturn(ret, CobolNum.ParseImageFloat(text, sent));
             return;
         }
-        Int128 v = CobolNum.ParseDisplay(text, sent);
+        Int128 v = CobolNum.ParseImage(text, sent);
         if (WriteNumericCell(c, v)) return;
         if (WriteRealCell(c, CobolFloat.ScaledToDouble(v, sent.FractionScale))) return;
         Undeliverable(c, $"the numeric result \"{text}\"");

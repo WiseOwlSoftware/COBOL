@@ -360,8 +360,23 @@ argument reached a REDEFINED (image-carried) `PIC S9(4)V99` formal as `00123D` (
   `FormatImageFloat`) and writes back through its inverse, splicing only the formal's positions (GR8);
 - `TextValue` is GR10's record, "a data item of the same description as the formal parameter": it lands the
   argument through the shared `LandScalar` into the FORMAL's profile (emitted beside it) and renders that;
-- an image-carried numeric ARGUMENT's carrier text is decoded through ITS OWN description, not the formal's
-  (the operand text `OperandText.FieldImage` produces), before GR9/GR10's COMPUTE.
+- an image-carried numeric ARGUMENT's carrier text is decoded through ITS OWN description, not the formal's,
+  before GR9/GR10's COMPUTE.
+
+**⛔ EVERY NUMERIC STRING CARRIER IS STORAGE (kb/Work PB970).** The `ManagedPointer<string>` carrier of a numeric
+item holds its RECORD IMAGE under the description beside it — zoned digits, radix-2, BCD or IEEE bytes — on both
+sides, in both directions, for every pass mode and for RETURNING. The activating element reads an image-carried
+numeric place (an image-stored leaf or a REDEFINES view — `CallEmitter.IsImageCarriedNumeric`, the ONE predicate
+the read and write halves share) as its window, which already holds those bytes, and stores a returned text into it
+as it stands; the ABI's numeric legs over a string carrier (`LandScalar`, `ArgDouble`, `Num`'s GR8 view,
+`StoreReturn`) decode and encode with THE record-image codec (`CobolNum.ParseImage`/`FormatImage`, the float lane on
+`ParseImageFloat`/`FormatImageFloat`), never the DISPLAY codec — whose zoned arm is the same code, so a zoned item
+is unchanged. Before PB970 the image-carried side spoke the OPERAND text (`OperandText.FieldImage`) while the
+native side's `Text` adapter had spoken storage since PB873: `PIC S9(5) COMP-3` −42 passed BY REFERENCE to a
+REDEFINED formal arrived as bytes `00 00 0C` and came home as `02303`. The INVOKE boundary follows the same
+convention (`OoEmitter.ValueImage`/`ImageValue` for the native↔image copy-out and RETURNING arms; a BY CONTENT
+argument into an image-carried fixed-point formal is the §14.8.2.3.3 rule-2a COMPUTE into the formal's
+description, encoded under the OWNER-qualified profile).
 
 **A supplied argument the formal cannot read (kb/Work PB615).** Every adapter's type switch used to end in the
 §14.9.4.4 GR12 OMITTED carrier, whose read answered `default` — a supplied argument read as ZERO, silently, indistinguishable from an omitted one. It is not omitted:
@@ -578,16 +593,16 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
   transfer** — §14.6.5: the result "is the content of the data item referenced by that RETURNING phrase" — under
   the one description a conforming pair shares (§14.8.3.3 requires the same PICTURE and USAGE): a fixed-point
   item's native value lands in a native cell and, in an image-carried receiver, as its representation under the
-  description (`CobolNum.FormatDisplay` — the value's C# text dropped the sign's over-punch); an image-carried
-  item's text lands as it stands in an image-carried receiver and decoded under the description
-  (`CobolNum.ParseDisplay`, which answers for any content) in a native cell. Before PB962 the text leg re-parsed
+  description (`CobolNum.FormatImage` — the value's C# text dropped the sign's over-punch); an image-carried
+  item's STORAGE image lands as it stands in an image-carried receiver and decoded under the description
+  (`CobolNum.ParseImage`, whose zoned arm answers for any content) in a native cell. Before PB962 the text leg re-parsed
   the content as a C# number and ABORTED the run unit whenever it was not a digit run (spaces). ⚠ A NATIVE cell
-  holds a value, so content that is not a valid numeric representation reads as the value `ParseDisplay` gives
+  holds a value, so content that is not a valid numeric representation reads as the value `ParseImage` gives
   it — the same residue every character view of a native numeric cell has. The character legs of a
   description-free sender (an alphanumeric item into a numeric receiver — a pair §14.8.3.3 does not admit) still
-  read the result's digit image, loud when there is none. A ZONED image-carried item's boundary text IS its
-  storage, so `CallEmitter.CallStringWrite` stores it as it stands (fitted) rather than decoding and re-encoding
-  it, which lost exactly the non-digit content; a BINARY/PACKED item's boundary text is still its operand text.
+  read the result's digit image, loud when there is none. An image-carried item's boundary text IS its storage,
+  of every byte form (kb/Work PB970), so `CallEmitter.CallStringWrite` stores it as it stands (fitted) rather than
+  decoding and re-encoding it, which lost exactly the non-digit content (kb/Work PB962).
 - CALL to a NULL program-pointer → EC-PROGRAM-PTR-NULL; unresolvable name → EC-PROGRAM-NOT-FOUND; both are activation failures and take the GR3h partition below.
 - **The GR3h/GR3i partition of a failed activation, and the ACTIVATION BOUNDARY that makes it decidable.** §14.9.4.4 GR3h routes a failure on THREE independent facts, and the emitted CALL expresses each one separately (`CallEmitter.EmitCall`; kb/Work PB233):
   1. **Which phrase is written.** Only ON EXCEPTION diverts — GR3h item 1 names it, and §14.6.13.1.3 #1 admits only "a conditional phrase without the NOT phrase". A CALL carrying only NOT ON EXCEPTION is governed by item 2 or item 3 exactly as a phrase-free CALL is. (It formerly emitted the catch on *either* phrase and silently discarded the failure.)

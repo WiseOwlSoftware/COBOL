@@ -10,8 +10,8 @@
       *> does not violate, pointing the reader at the method signature. A silent
       *> mis-parse is worse than a rejection.
       *>
-      *> 14.8.2.3.3 rule 2a governs the crossing: an expression is transferred
-      *> "according to the rules of the COMPUTE statement", so the formal must be
+      *> 14.8.2.3.3 2) a) governs the crossing: "the conformance rules are
+      *> the same as for a COMPUTE statement", so the formal must be
       *> category numeric. The non-conforming pairing is the negative fixture
       *> pb46-invoke-by-content-expression-alphanumeric-formal.
       *>

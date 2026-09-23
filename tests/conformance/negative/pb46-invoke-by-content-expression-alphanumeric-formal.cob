@@ -1,6 +1,6 @@
       *> reject-at: 2002 2014 2023
-      *> ISO 14.8.2.3.3 rule 2a: a BY CONTENT argument that is an expression is
-      *> transferred "according to the rules of the COMPUTE statement", which
+      *> ISO 14.8.2.3.3 2) a): for a BY CONTENT expression argument "the
+      *> conformance rules are the same as for a COMPUTE statement", which
       *> requires a category-numeric formal parameter. An arithmetic expression
       *> against an alphanumeric formal has no conforming rule: 14.9.25.3
       *> Table 16 admits a numeric sender to an alphanumeric receiver only for an

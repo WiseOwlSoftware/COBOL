@@ -976,13 +976,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             }
             else if (stringCarried)
                 w.Line(a.Source is { } sp
-                    ? $"string {tmp} = {OoStringReadOf(sp, a)};"
+                    ? $"string {tmp} = {OoStringReadOf(sp, a, qualProfile)};"
                     : a.StringLiteral is { } slit
                     // An ANY LENGTH formal sees the literal AT ITS OWN length (§13.18.2 GR1) — no width-fit.
                     ? $"string {tmp} = {(a.Formal.IsAnyLength ? CsLiteral(slit) : RuntimeApi.StrStore(CsLiteral(slit), $"{Math.Max(1, a.Formal.Pic!.Length)}"))};"
-                    // A numeric literal into an image-stored numeric formal: compose the zoned image through
-                    // the OWNER's internal profile (the review's cross-class rule — qualified, never bare).
-                    : $"string {tmp} = {RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale), qualProfile)};");
+                    // A numeric literal into an image-stored numeric formal: compose the formal's STORAGE image
+                    // (kb/Work PB970 — of its own byte form, not a zoned digit run) through the OWNER's internal
+                    // profile (the review's cross-class rule — qualified, never bare).
+                    : $"string {tmp} = {RuntimeApi.NumFormatImage(EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale), qualProfile)};");
             // The PICTURE-less carriers (object reference, data pointer, program pointer) cross VERBATIM: they
             // have no picture, no scale and no character image, so the crossing is a reference/handle copy and
             // never a numeric store. Pointer/ProgramPointer joined this arm with the §14.8.2.3.2 class-pointer
@@ -997,8 +998,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // (NumericRenderer.FloatCarrierRead): a same-usage transfer is §14.9.25.4 GR6 c)'s "without
                 // change", which a windowed binary32 decoded through binary64 is not (kb/Work PB961).
                 w.Line($"{a.Formal.ElementType} {tmp} = {NumericRenderer.FloatCarrierRead(a.Source!, SendingRef.SameUsageMove)};");
-            // BY CONTENT arithmetic-expression-1 (§14.9.23.2; fix-queue PB46) — §14.8.2.3.3 rule 2a transfers it
-            // "according to the rules of the COMPUTE statement", i.e. rescale + truncate into the formal's
+            // BY CONTENT arithmetic-expression-1 (§14.9.23.2; fix-queue PB46) — §14.8.2.3.3 2) a): "the
+            // conformance rules are the same as for a COMPUTE statement with the argument as the sending operand",
+            // and §14.2.3 GR9 fills the formal's record by "a COMPUTE statement without the ROUNDED phrase" — i.e.
+            // rescale + truncate into the formal's
             // description through the OWNER's internal profile, exactly as the identifier CONTENT arm below
             // does. The binder proved the formal is fixed-point category numeric, so this is the one shape.
             // …through the ONE store (NumericRenderer.StoreExpr — kb/Work PB84): an SDIDI intermediate (a
@@ -1083,7 +1086,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 Post(OoStringCarried(src.Item) ? PlaceRenderer.Write(src, tmp) : PlaceRenderer.Write(new NumericImagePlace(src), tmp));
             else
                 Post(src.Item.StoreAsImage
-                    ? PlaceRenderer.Write(src, RuntimeApi.NumFormatDisplay(tmp, src.Item.ProfileName))
+                    ? PlaceRenderer.Write(src, ValueImage(tmp, src.Item))
                     : PlaceRenderer.Write(src, tmp));
         }
 
@@ -1137,9 +1140,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? RuntimeApi.StrStore(tmp, $"{Math.Max(1, rvp.Length)}")
                     : tmp));
             else if (retString)   // string-carried result into native-numeric storage
-                w.Line(PlaceRenderer.Write(recv, $"({recv.Item.ElementType}){RuntimeApi.NumParseDisplay(tmp, recv.Item.ProfileName)}"));
+                w.Line(PlaceRenderer.Write(recv, $"({recv.Item.ElementType}){ImageValue(tmp, recv.Item)}"));
             else                  // native result into image-stored numeric storage
-                w.Line(PlaceRenderer.Write(recv, RuntimeApi.NumFormatDisplay(tmp, recv.Item.ProfileName)));
+                w.Line(PlaceRenderer.Write(recv, ValueImage(tmp, recv.Item)));
         }
         else
         {
@@ -1159,7 +1162,22 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// user statements, D4). Gated on <c>EcState.Active</c>, which spans class units.</summary>
     private void EmitInvokePickup(IActivatingStatement site) => U.Call.EmitPropagationPickup(site);
 
-    private string OoStringReadOf(Place sp, BoundInvokeArg a)
+    /// <summary>The STORAGE image of a numeric VALUE under an image-stored item's own description — THE record-image
+    /// codec, the float lane on its own encoder (kb/Work PB970). The INVOKE boundary's string carrier of a numeric
+    /// item is its storage image, as the CALL boundary's is, so a native value entering an image-stored item's
+    /// window is encoded, never rendered as its DISPLAY digits.</summary>
+    private static string ValueImage(string value, DataItem item) =>
+        item.Pic is { IsFloat: true }
+            ? RuntimeApi.NumFormatImageFloat(value, item.ProfileName)
+            : RuntimeApi.NumFormatImage(value, item.ProfileName);
+
+    /// <summary>The inverse of <see cref="ValueImage"/>: a storage image decoded to the item's value.</summary>
+    private static string ImageValue(string image, DataItem item) =>
+        item.Pic is { IsFloat: true }
+            ? RuntimeApi.NumParseImageFloat(image, item.ProfileName)
+            : RuntimeApi.NumParseImage(image, item.ProfileName, sending: false);
+
+    private string OoStringReadOf(Place sp, BoundInvokeArg a, string qualProfile)
     {
         string read = sp is RefModPlace ? PlaceRenderer.Read(sp)
             : OoStringCarried(sp.Item) ? PlaceRenderer.Read(sp)
@@ -1168,6 +1186,18 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // n = the length of the corresponding argument), so the CONTENT copy must NOT width-normalize to the
         // formal's Pic.Length (1); the raw read IS the width-correct crossing.
         if (!a.ByContent || a.Formal.IsAnyLength || a.Formal.Pic is not { } fp) return read;
+        // ⛔ A FIXED-POINT NUMERIC formal carried as its image (a redefined formal — kb/Work PB970): §14.2.3 GR9
+        // fills the formal's record by "a COMPUTE statement without the ROUNDED phrase" (§14.8.2.3.3 2) a) states
+        // the matching conformance rule), so the argument's VALUE is stored into the formal's description and the carrier is that record's STORAGE image — through the
+        // OWNER's profile, qualified, exactly as the native CONTENT arm does. The MOVE store below rendered the
+        // formal's profile BARE in the activating class, a Roslyn CS0103 on conforming source.
+        if (fp is { Category: PicCategory.Numeric, IsFloat: false }
+            && sp.DenotedItem is { Pic: { Category: PicCategory.Numeric, IsFloat: false } })
+        {
+            return RuntimeApi.NumFormatImage(NumericRenderer.StoreExpr(
+                Num.AsNum(new BoundFieldOperand(sp), ReceiverContext.None), fp.Scale, qualProfile,
+                raiseOnSizeError: ecState.SizeTruncationChecking), qualProfile);
+        }
         // ⭐ THE CROSSING TAKES THE RECEIVING CATEGORY'S MOVE STORE, REACHED RATHER THAN RE-DERIVED
         // (fix-queue PB53). §14.8.2.3.3 rule 2d makes a BY CONTENT crossing conform "as for a MOVE statement",
         // and the store discipline that rule implies already exists, written once, in
