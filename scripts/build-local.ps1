@@ -11,8 +11,19 @@
 # naming no test anywhere is DEAD and the gate does not run; one whose tests live only in an assembly this
 # gate runs UNFILTERED is INERT — it selected nothing, so it is named and the verdict line says so.
 # Usage:  pwsh scripts/build-local.ps1 -Filter "~Collation|~Locale"
-param([Parameter(Mandatory = $true)][string]$Filter)
+#         pwsh scripts/build-local.ps1 -Filter "~X" -Priority BelowNormal     (every IMPLEMENTER gate)
+# ⛔ -Priority (owner decision 2026-09-22): the LANDER's gate is the serial bottleneck of the whole campaign and it
+# shares one 32-core host with up to seventeen implementer gates — its whole-Conformance leg measured 9.6 min quiet,
+# 18.5 min at battery #84 and 30.6 min in train 48. Windows passes BelowNormal/Idle DOWN to child processes (and
+# only those two classes), so an implementer that sets it here runs its build, dotnet test, every testhost and every
+# compiled COBOL program below the lander's Normal-priority gate. The lander and the battery leave it at Normal.
+param([Parameter(Mandatory = $true)][string]$Filter,
+      [ValidateSet('Normal', 'BelowNormal', 'Idle')][string]$Priority = 'Normal')
 $ErrorActionPreference = 'Continue'
+if ($Priority -ne 'Normal') {
+    [System.Diagnostics.Process]::GetCurrentProcess().PriorityClass = [System.Diagnostics.ProcessPriorityClass]::$Priority
+    Write-Host "build-local: running at $Priority priority (inherited by build, test hosts and compiled programs)"
+}
 Set-Location (Split-Path -Parent $PSScriptRoot)
 $Filter = [regex]::Replace($Filter, '(^|[|&(])(!=|=|~)', '$1FullyQualifiedName$2')
 $rc = 0
