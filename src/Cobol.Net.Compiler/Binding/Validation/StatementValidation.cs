@@ -729,12 +729,30 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>SR2 — an INSPECT identifier operand shall be an elementary usage-display item.</summary>
+    /// <summary>⛔ THE ONE ELEMENTARY ARM OF INSPECT'S USAGE RULES (kb/Work PB856). ISO §14.9.22.3 SR1 and SR2 end in
+    /// the same words — "an elementary item described implicitly or explicitly as usage display or national" — and
+    /// SR2 used to be read as its DISPLAY half only, so a national identifier operand was refused while the
+    /// diagnostic quoted the rule that admits it. Both rules read this predicate; usage through the ONE §8.5.2.1
+    /// reader (<see cref="ItemCategory.UsageOf"/>), so an item inside a GROUP-USAGE NATIONAL group answers its
+    /// implicit usage.</summary>
+    internal static bool IsInspectElementaryCharacterItem(DataItem item) =>
+        !ItemCategory.IsGroupItem(item) && ItemCategory.UsageOf(item) is Usage.Display or Usage.National;
+
+    /// <summary>ISO §14.9.22.3 SR1 — identifier-1 "shall reference either an alphanumeric or national group item or
+    /// an elementary item described implicitly or explicitly as usage display or national": the group kinds by
+    /// the ONE group classifier (a bit, strongly-typed or variable-length group is none of the two named), the
+    /// elementary arm shared with SR2.</summary>
+    internal static bool IsInspectIdentifier1(DataItem item) =>
+        (ItemCategory.GroupKindsOf(item) & (GroupKinds.Alphanumeric | GroupKinds.National)) != 0
+        || IsInspectElementaryCharacterItem(item);
+
+    /// <summary>SR2 — identifier-3 … identifier-n (every TALLYING / REPLACING / BEFORE / AFTER / CONVERTING
+    /// identifier) shall reference an elementary item of usage display or national.</summary>
     public bool CheckInspectOperandUsage(Place p, string refText)
     {
-        if (!(p.Item.IsGroup || p.Item.Pic is { Usage: not Usage.Display })) return true;
-        data.Edition.Error("COBOLNET0847", $"INSPECT operand '{refText}' shall be an elementary "
-            + "usage-display item (ISO §14.9.22.3 SR2)");
+        if (IsInspectElementaryCharacterItem(p.Item)) return true;
+        data.Edition.Error("COBOLNET0847", $"INSPECT operand '{refText}' shall reference an elementary item "
+            + "described implicitly or explicitly as usage display or national (ISO §14.9.22.3 SR2)");
         return false;
     }
 

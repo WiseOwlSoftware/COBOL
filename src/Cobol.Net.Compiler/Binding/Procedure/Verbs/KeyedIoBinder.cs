@@ -45,7 +45,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // READ ... INTO is an IMPLICIT MOVE and is bound as one (ISO §14.9.30.4 GR4 b); kb/Work PB348) - the
         // SAME call the sequential arm makes, so the two organizations cannot disagree about which rules the
         // phrase carries (feedback_two_arm_dispatch).
-        BoundMove? into = r.readInto()?.dataReference() is { } d && ctx.Refs.Resolve(d) is { } recv
+        BoundMove? into = r.readInto()?.dataReference() is { } d && host.Expr.ResolveReceiving(d) is { } recv
             && ctx.Refs.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
@@ -103,7 +103,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 if (kind != ReadKind.Random)
                     ctx.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
                         + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
-                else if (ctx.Refs.Resolve(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
+                else if (host.Expr.ResolveSending(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
                 {
                     ctx.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
@@ -314,7 +314,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (length is not null && file.Organization != FileOrganization.Indexed)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
                 + "indexed organization (ISO §14.9.41.3 SR8)");
-        Place? operand = kp?.dataReference() is { } dref ? ctx.Refs.Resolve(dref) : null;
+        Place? operand = kp?.dataReference() is { } dref ? host.Expr.ResolveSending(dref) : null;
         if (kp is not null && operand is null)
             return new BoundUnsupported($"START KEY operand '{kp.dataReference().GetText()}'");
 

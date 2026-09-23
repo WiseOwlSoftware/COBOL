@@ -72,10 +72,10 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         if (groups.Length < 2)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"{verbName} CORRESPONDING: its general format prints exactly two group "
                 + "operands, the sending group and the receiving group");
-        if (ctx.Refs.Resolve(groups[0]) is not { } src)
+        if (host.Expr.ResolveSending(groups[0]) is not { } src)
             return new BoundUnsupported($"{verbName} CORRESPONDING source group '{groups[0].GetText()}'");
-        if (ctx.Refs.Resolve(groups[1]) is not { } dst)
-            return new BoundUnsupported($"{verbName} CORRESPONDING receiving group '{groups[1].GetText()}'");
+        if (host.Expr.ResolveReceiving(groups[1]) is not { } dst)
+            return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         // ⛔ BOTH OPERANDS SHALL BE GROUP ITEMS, AND THAT IS A SYNTAX RULE, SO IT IS DECIDED AT BIND TIME
         // (kb/Work PB236, row SR-14.9.2.3-6). MOVE §14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall
         // specify group data items and shall not be reference-modified" — and ADD §14.9.2.3 SR6 / SUBTRACT

@@ -19,8 +19,8 @@ using Core = CobolParserCore;
 /// <c>Binding/Bound/BoundInspect.cs</c> — the Tally/Replace enum ordinals are runtime ABI.</summary>
 internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
 {
-    /// <summary>Bind INSPECT (ISO §14.9.22): resolve identifier-1 (SR1 — an alphanumeric group or an elementary
-    /// usage-DISPLAY item), flatten the TALLYING/REPLACING operands across all counters in SOURCE order (the GR8a
+    /// <summary>Bind INSPECT (ISO §14.9.22): resolve identifier-1 (SR1 — an alphanumeric or national group or an elementary
+    /// usage display or national item), flatten the TALLYING/REPLACING operands across all counters in SOURCE order (the GR8a
     /// shared-cycle order), and bind CONVERTING to its from/to maps (GR20). BACKWARD is 2023-only
     /// (VERSION_CHANGE_REFERENCE row 77 / E.3.3 item 34); TRAILING and tallying FIRST are not in any ISO format —
     /// both fail loud rather than silently aliasing to ALL.</summary>
@@ -85,8 +85,16 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 + "PERFORM/SEARCH VARYING, in SET, or in a relation condition");
             return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
-        if (ctx.Refs.Resolve(ins.dataReference()) is not { } target)
-            return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
+        // ⛔ IDENTIFIER-1 IS A RECEIVING OPERAND EXACTLY WHEN THE STATEMENT MODIFIES IT (kb/Work PB881). §14.9.22.3
+        // SR8 makes it "a sending operand" in Format 1 (TALLYING only); REPLACING and CONVERTING store into it, so
+        // it is then a receiving data item and every receiving-operand prohibition applies — §13.18.15.3 SR2 above
+        // all: `INSPECT CA REPLACING ALL "a" BY "b"` over a CONSTANT RECORD rewrote the constant, where the
+        // identical MOVE is refused. The SAME `modifies` fact BindFunctionTarget partitions on selects the entry,
+        // so the function-identifier arm and the data-reference arm cannot disagree (feedback_two_arm_dispatch).
+        if ((modifies ? host.Expr.ResolveReceiving(ins.dataReference())
+                      : host.Expr.ResolveSending(ins.dataReference())) is not { } target)
+            return modifies ? new BoundNop()   // the receiving chokepoint reported it — not a deferral (kb/Work PB236)
+                : new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a
         // binary/packed/float/index elementary item has no character image to inspect. USAGE NATIONAL joined
         // the admitted set at Phase 4a (M2-DATA-3): a national item is a plain string under D-N1, so the
@@ -100,12 +108,17 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // ELEMENTARY operand: `target.Item.Pic is { }` is false for a GROUP, so an alphanumeric group — including
         // one holding a BINARY/PACKED leaf, which SR1 admits outright as "an alphanumeric or national group item" —
         // never reaches this check.
-        if (target.Item.Pic is { } tp && tp.Usage is not (Usage.Display or Usage.National))
+        // kb/Work PB856: SR1's elementary arm is SR2's, read from the ONE predicate both rules share, and its group
+        // arm names exactly two kinds — so a bit, strongly-typed or variable-length group is refused too.
+        if (!Validation.StatementValidation.IsInspectIdentifier1(target.Item))
         {
             ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage,
-                $"INSPECT identifier-1 '{target.Item.CobolName}' is an elementary item of USAGE {tp.Usage}, which "
-                + "has no character image; SR1 admits an alphanumeric/national GROUP item or an ELEMENTARY item of "
-                + "usage display or national (ISO §14.9.22.3 SR1)");
+                $"INSPECT identifier-1 '{target.Item.CobolName}' is "
+                + (ItemCategory.IsGroupItem(target.Item)
+                    ? $"one of the {ItemCategory.Spell(ItemCategory.GroupKindsOf(target.Item))}"
+                    : $"an elementary item of USAGE {ItemCategory.UsageOf(target.Item)?.ToString() ?? "(none)"}")
+                + "; SR1 admits an alphanumeric or national GROUP item or an ELEMENTARY item described implicitly "
+                + "or explicitly as usage display or national (ISO §14.9.22.3 SR1)");
             return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
         }
 
@@ -349,7 +362,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             // with the SR6 / GR14 figurative expansion the literal figuratives get.
             if (ctx.Data.SymbolicOf(dref) is { } sym)
                 return (new BoundStringLiteral(sym.Value) { Category = sym.National ? PicCategory.National : PicCategory.Alphanumeric }, true);
-            if (ctx.Refs.Resolve(dref) is not { } p)
+            if (host.Expr.ResolveSending(dref) is not { } p)
                 return (new BoundOperandError($"INSPECT operand '{DataBinder.WrittenText(dref)}'"), false);
             ctx.Validation.CheckInspectOperandUsage(p, dref.GetText());   // SR2 — pure check
             return (new BoundFieldOperand(p), false);

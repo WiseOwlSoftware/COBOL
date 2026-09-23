@@ -16,8 +16,8 @@ namespace CobolNet.Tests.Conformance;
 /// pointer/object categories are not; <c>DisplayPointerGroup_FailsLoud</c>/<c>MovePointerGroup_FailsLoud</c>
 /// pin that arm). DISPLAY of a COMPOSABLE variable-length group is NOT here: it renders the documented A.1 item-57
 /// format (<c>2023/pb164_vlg_display</c>); the DISPLAY loud lives on the UNCOMPOSABLE shape
-/// (<c>DisplayOdoGroupWithDynamicMember_FailsLoudNotCs1061</c>). ACCEPT/STRING receivers are BIND-screened
-/// by their own syntax rules (§14.9.1.3 SR6 / §14.9.43.3 SR11) and pinned as such.
+/// (<c>DisplayOdoGroupWithDynamicMember_FailsLoudNotCs1061</c>). ACCEPT/STRING receivers and INSPECT's identifier-1
+/// are BIND-screened by their own syntax rules (§14.9.1.3 SR6 / §14.9.43.3 SR11 / §14.9.22.3 SR1) and pinned as such.
 /// </summary>
 public sealed class TierCRejectionTests
 {
@@ -37,15 +37,6 @@ public sealed class TierCRejectionTests
         {proc}
             STOP RUN.
         """;
-
-    /// <summary>A variable-length-group shape must compile (the emit guard is a runtime LoudStmt/LoudValue, not
-    /// a bind error) and fail LOUD at run time through the ONE Tier-C reason, never a silent wrong value.</summary>
-    private static void AssertLoudTierC(string proc)
-    {
-        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(Program(proc));
-        Assert.False(ok, "a variable-length group without a whole-group image shall fail loud (§1.4)");
-        Assert.Contains("Tier-C", detail);
-    }
 
     /// <summary>An operand its own SYNTAX RULE bars (§14.9.1.3 SR6 ACCEPT / §14.9.43.3 SR11 STRING /
     /// §14.9.25.3 SR9 MOVE) fails at BIND with the rule's diagnostic — earlier and more precise than the
@@ -73,7 +64,12 @@ public sealed class TierCRejectionTests
     /// <inheritdoc cref="MoveIntoGroup_BindRejected"/>
     [Fact] public void MoveGroupToElementary_BindRejected() => AssertBindRejected("    MOVE WS-G TO WS-DEST.");
 
-    [Fact] public void InspectGroup_FailsLoud() => AssertLoudTierC("    INSPECT WS-G REPLACING ALL \"A\" BY \"B\".");
+    /// <summary>INSPECT joins the MOVE legs for the same reason (kb/Work PB856): ISO §14.9.22.3 SR1 admits as
+    /// identifier-1 only "an alphanumeric or national group item or an elementary item described implicitly or
+    /// explicitly as usage display or national", and a variable-length group is neither of the two group kinds
+    /// it names (§3.11 excludes it from "alphanumeric group item" by name). A SYNTAX rule, so a bind rejection
+    /// (COBOLNET1626) — the runtime Tier-C loud this used to assert was the binder admitting ANY group.</summary>
+    [Fact] public void InspectGroup_BindRejected() => AssertBindRejected("    INSPECT WS-G REPLACING ALL \"A\" BY \"B\".");
     [Fact] public void StringIntoGroup_BindRejected() => AssertBindRejected("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
     [Fact] public void AcceptIntoGroup_BindRejected() => AssertBindRejected("    ACCEPT WS-G.");
 

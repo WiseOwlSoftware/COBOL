@@ -139,7 +139,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // program-prototype-name-1 determines the externalized program-name of the program being
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
-            else if (ctx.Refs.Resolve(dref) is not { } place)
+            else if (host.Expr.ResolveSending(dref) is not { } place)
                 return new BoundUnsupported($"CALL target '{DataBinder.WrittenText(dref)}'");
             else
             {
@@ -250,7 +250,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // `XE PIC X(4)` compiled clean while the BY REFERENCE operand of the same statement drew
                 // COBOLNET0844, and a function-bearing subscript bound occurrence 1).
                 if (cDref is not null && ctx.Refs.Probe(cDref) is not null
-                    && ctx.Refs.Resolve(cDref) is { } cp)
+                    && host.Expr.ResolveSending(cDref) is { } cp)
                 {
                     ScreenCallOperand(cp, CobolPassMode.Content, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
@@ -306,7 +306,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, host.Expr.LiteralOperand(vlit)));
                 }
                 else if (vDref is { } vdref && ctx.Refs.Probe(vdref) is not null
-                         && ctx.Refs.Resolve(vdref) is { } vp)
+                         && host.Expr.ResolveSending(vdref) is { } vp)
                 {
                     // identifier-4 — a SENDING operand (SR17), crossing on ITS OWN carrier and its own
                     // Digits/Scale through the Place arm of CallEmitter.ArgText, exactly as the BY CONTENT
@@ -394,7 +394,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // (§13.18.15.3 SR2, the CAPACITY register, LINE-COUNTER) are receiving-operand rules and would
                 // be false rejections here.
                 if ((byContentAssumed || bareMode is CobolPassMode.Value
-                        ? ctx.Refs.Resolve(bare) : host.Expr.ResolveReceiving(bare)) is not { } bp)
+                        ? host.Expr.ResolveSending(bare) : host.Expr.ResolveReceiving(bare)) is not { } bp)
                     return OperandUnresolved(bare, "USING argument");
                 ScreenCallOperand(bp, bareMode, formatTwo, isReturning: false);
                 // §14.9.4.3 SR22's OTHER arm (kb/Work PB132): "identifier-4 OR ITS CORRESPONDING FORMAL
@@ -441,7 +441,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(nlit)));
                 else if (nBareLit is { } nbl && host.Expr.NonNumericLiteralOperand(nbl) is { } nblOp)
                     args.Add(new BoundCallArg(Gr9BareLiteralMode(calleeFormals, args.Count), null, nblOp));
-                else if (nDref is { } ndref && ctx.Refs.Resolve(ndref) is { } np)
+                else if (nDref is { } ndref && host.Expr.ResolveSending(ndref) is { } np)
                 {
                     ScreenCallOperand(np, CobolPassMode.Content, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(CobolPassMode.Content, np, null));
@@ -798,7 +798,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         + "identifier-1, literal-1 or program-prototype-name-1");
                     continue;
                 }
-                if (ctx.Refs.Resolve(dref) is { } p)
+                if (host.Expr.ResolveSending(dref) is { } p)
                 {
                     // §14.9.5.3 SR1 (kb/Work PB154): "Identifier-1 shall be defined as an alphanumeric or
                     // national data item" — the CALL twin's class screen (PB132) that this arm never got:
@@ -843,7 +843,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§14.9.18 GR2
             // — the activation result; the grammar already 2002-gates the phrase).
-            if (ctx.Refs.Resolve(dref) is not { } rp)
+            if (host.Expr.ResolveSending(dref) is not { } rp)
                 return new BoundUnsupported($"GOBACK RETURNING '{DataBinder.WrittenText(dref)}'");
             source = rp;
         }

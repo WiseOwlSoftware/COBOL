@@ -168,7 +168,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // warning — the compiler announcing ITS gap for what is the program's mistake.
         // The call sits BEFORE the `file.IsSequential` reroute below, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
-        if (w.recordName()?.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
+        if (w.recordName()?.dataReference() is not { } rn || host.Expr.ResolveSending(rn) is not { } record)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
         if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
@@ -248,7 +248,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // record's view (ReferenceResolver.RecordArea, §13.18.33.4 GR3) exactly as the emitter's splice is.
         // A file with no usable record area leaves the move null and the phrase inert — the same reach the emitter's own
         // `area is not null` guard had, now decided once, at bind time.
-        BoundMove? intoMove = r.readInto()?.dataReference() is { } d && ctx.Refs.Resolve(d) is { } recv
+        BoundMove? intoMove = r.readInto()?.dataReference() is { } d && host.Expr.ResolveReceiving(d) is { } recv
             && ctx.Refs.RecordArea(file) is { } readArea
             ? host.Move.BindIntoPhrase(file, readArea, recv, IntoPhraseRules.Read)
             : null;
@@ -321,7 +321,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // sentence, not one rule, so each site quotes its OWN clause and the shared MECHANISM is the helper, not
         // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
         // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
-        if (rw.recordName()?.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
+        if (rw.recordName()?.dataReference() is not { } rn || host.Expr.ResolveSending(rn) is not { } record)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
         if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "

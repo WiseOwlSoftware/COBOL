@@ -105,7 +105,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §8.8.2 — only ZERO and ALL B\"…\" are boolean figuratives)");
         }
         // A sole data reference to a category-boolean item.
-        if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && ctx.Refs.Resolve(dref) is { } p)
+        if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && host.Expr.ResolveSending(dref) is { } p)
         {
             // THE ONE category reader (D20/PB79): a ref-mod view's category (GR6), else the item's own picture or a
             // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§13.18.29.4 GR1a).
@@ -851,7 +851,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         else if (dref is { } undefined)
         {
             // A word that names nothing is the resolver's own diagnostic (COBOLNET1639), not a second one here.
-            ctx.Refs.Resolve(undefined);
+            host.Expr.ResolveSending(undefined);
             return Refused($"condition '{text}'");
         }
         ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,

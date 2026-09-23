@@ -121,7 +121,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // (§14.9.23.3 SR7) — the D10 dynamic path, live as of the universal wave.
         if (inv.invokeMethodName().dataReference() is { } mref)
         {
-            if (target.dataReference() is not { } uref || ctx.Refs.Resolve(uref) is not { } urecv
+            if (target.dataReference() is not { } uref || host.Expr.ResolveSending(uref) is not { } urecv
                 || urecv.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectRef.IsUniversal: true })
             {
                 ctx.Edition.Error("COBOLNET0866",
@@ -129,7 +129,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "identifier-1 is a UNIVERSAL object reference (ISO §14.9.23.3 SR7)");
                 return new BoundNop();
             }
-            if (ctx.Refs.Resolve(mref) is not { } msrc)
+            if (host.Expr.ResolveSending(mref) is not { } msrc)
             {
                 ctx.Edition.Error("COBOLNET0866",
                     $"INVOKE: the method-name identifier '{mref.GetText()}' is not resolvable to storage");
@@ -211,8 +211,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         + "(ISO §16.2.1/§14.9.23.4 GR8)");
                     return new BoundNop();
                 }
-                if (ctx.Refs.Resolve(nrRef) is not { } nret)
-                    return new BoundUnsupported($"INVOKE … RETURNING '{nrRef.GetText()}' (unresolvable receiver)");
+                if (host.Expr.ResolveReceiving(nrRef) is not { } nret)
+                    return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
                 if (nret.Item.Pic is not { Category: PicCategory.ObjectReference } nrp)
                 {
                     ctx.Edition.Error("COBOLNET0826",
@@ -276,7 +276,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // so this is a Probe; the else-tail below reports when NEITHER reading holds (R30).
         // ⛔ Probe to DISCRIMINATE, RESOLVE to commit (kb/Work PB221): a probe is unscreened, so its Place must
         // never enter the bound tree — the receiver's subscripts would bypass every position screen.
-        if (ctx.Refs.Probe(dref) is not null && ctx.Refs.Resolve(dref) is { } receiver)
+        if (ctx.Refs.Probe(dref) is not null && host.Expr.ResolveSending(dref) is { } receiver)
             return OoBindInstanceInvoke(site, receiver, methodName);
         // The class-name-1 alternative is scoped by §8.4.6.4 to the names this SOURCE ELEMENT may reference,
         // so the partition asks the ONE funnel (kb/Work PB365 — `OoClasses.Find` asked the whole group).
@@ -328,8 +328,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 + "result is delivered only through the RETURNING identifier (ISO §16.2.1/§14.9.23.4 GR8)");
             return new BoundNop();
         }
-        if (ctx.Refs.Resolve(retRef) is not { } ret)
-            return new BoundUnsupported($"INVOKE … RETURNING '{retRef.GetText()}' (unresolvable receiver)");
+        if (host.Expr.ResolveReceiving(retRef) is not { } ret)
+            return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (ret.Item.Pic is not { Category: PicCategory.ObjectReference } retPic)
         {
             ctx.Edition.Error("COBOLNET0826",
@@ -519,7 +519,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
         if (retRef is not null)
         {
-            if (ctx.Refs.Resolve(retRef) is not { } rp)
+            if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
                 ctx.Edition.Error("COBOLNET0828",
                     $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': the receiving identifier is not "
@@ -658,10 +658,54 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (OoBindInlineInvocation(soleInline) is not BoundNumRef inlineRef) return null;   // reported there
             inlinePlace = inlineRef.Place;
         }
+        // ⛔ A FUNCTION-IDENTIFIER IS AN IDENTIFIER TOO — the third shape of the same recovery (kb/Work PB923).
+        // §8.4.3.1.2 Format 1 makes `FUNCTION f(…)` an identifier, and §15.2 lets a function "be used anywhere a
+        // sending data item of that class and category may be specified", so a sole function-identifier argument
+        // is §14.9.23.2's identifier-5, not arithmetic-expression-1. Left to parse alone it took the expression
+        // arm below, whose rule is §14.8.2.3.3 rule 2 a) — so `BY CONTENT FUNCTION TRIM(X)` into a PIC X formal
+        // was REFUSED (COBOLNET0828, "requires a category-numeric formal") as legal source.
+        // The lane is chosen the way §14.8.2.3.3 rule 2 chooses it, by the FORMAL: a numeric formal is rule 2 a)'s
+        // COMPUTE lane, which the expression arm already IS for a sole function (a COMPUTE with the function as
+        // its only operand), so only a non-numeric formal is re-routed — to rule 2 d)'s MOVE lane, over the §15.4
+        // "temporary elementary data item" the ONE sending-value materializer provides (SendingValueTemp, the same
+        // intermediate MOVE and EVALUATE use), whose store runs as a statement pre-op ahead of the activation.
+        // BY CONTENT, like the inline temporary above: the §15.4 item is not "a data item defined in the file,
+        // working-storage, local-storage, or linkage section", so §14.9.23.3 SR9 is not met and GR6 a)2 assumes it.
+        string? foldedAlnum = null;
+        if (dref is null && inlinePlace is null && formal.Pic?.Category is not PicCategory.Numeric
+            && arithCtx is not null && ConditionBinder.SoleFunctionCall(arithCtx) is { } soleFn)
+        {
+            var fnOperand = host.Intrinsic.IntrinsicOperand(soleFn);
+            if (fnOperand is BoundOperandError) return null;                                        // reported there
+            // A function the binder FOLDED to its value (FUNCTION LENGTH of a fixed-length item, …) has no
+            // temporary to materialize — its value is a compile-time constant, so it crosses through the literal
+            // arms below, whose conformance screen is rule 2 d)'s MOVE question, never the expression arm.
+            if (fnOperand is BoundNumericLiteral foldedNum) { numLitRaw = foldedNum.Text; arithCtx = null; }
+            else if (fnOperand is BoundStringLiteral { Category: PicCategory.Alphanumeric } foldedText)
+            { foldedAlnum = foldedText.Value; arithCtx = null; }
+            // ⚠ A NUMERIC-typed function stays on the expression arm (which refuses it for this non-numeric formal,
+            // as before): the §15.4 temporary's numeric description (SendingValueTemp.FunctionValuePic, 30 digits,
+            // scale 9) is an implementor representation MOVE never moves FROM, so crossing it into a character
+            // formal would spell the value differently than `MOVE FUNCTION f TO x` does — a named residue
+            // (the wave-49 PB923 report), not a silent divergence.
+            else if (fnOperand is not BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric } }) { }
+            else if (host.SendingValue.Materialize(fnOperand, "invokearg") is { } fnTemp) inlinePlace = fnTemp;
+            else
+            {
+                Err($"BY CONTENT function-identifier argument '{soleFn.GetText()}' for formal "
+                    + $"'{formal.CobolName}': its returned value has no intermediate item to cross by");
+                return null;
+            }
+        }
         if (dref is not null || inlinePlace is not null)
         {
             string argText = dref?.GetText() ?? arithCtx!.GetText();
-            if ((inlinePlace ?? (dref is not null ? ctx.Refs.Resolve(dref) : null)) is not { } place)
+            // The role follows the passing mode (kb/Work PB881): §14.9.23.3 SR21 makes identifier-5 — an explicit
+            // BY CONTENT argument — "a sending operand", and SR20 makes identifier-3, the BY REFERENCE argument
+            // every other identifier is assumed to be (GR6 a), "a receiving operand", so it passes every receiving
+            // prohibition (§13.18.15.3 SR2 — a CONSTANT RECORD shall not be one).
+            if ((inlinePlace ?? (dref is null ? null
+                    : explicitContent ? host.Expr.ResolveSending(dref) : host.Expr.ResolveReceiving(dref))) is not { } place)
             {
                 Err($"USING argument '{argText}' is not resolvable to storage (or uses a reference "
                     + "form not yet carried across INVOKE)");
@@ -805,7 +849,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // fold it and ride the STRINGLIT leg's conformance shape (a non-alphanumeric concat falls through
         // to the trailing unsupported-argument diagnostic like any other non-alphanumeric literal).
         string? alnumTxt =
-            nonNumCtx?.STRINGLIT() is { } sl ? CobolLiteral.Decode(sl.GetText())
+            foldedAlnum is not null ? foldedAlnum
+            : nonNumCtx?.STRINGLIT() is { } sl ? CobolLiteral.Decode(sl.GetText())
             : nonNumCtx?.concatenationExpression() is { } ice
               && ConcatFolder.ClassOf(ice) is PicCategory.Alphanumeric
                 ? ConcatFolder.Fold(ice, ctx.Edition, ctx.Data.Collating).Value
@@ -902,7 +947,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "is implicitly BY REFERENCE)");
                 return new BoundNop();
             }
-            if (ctx.Refs.Resolve(dref) is not { } p)
+            if (host.Expr.ResolveReceiving(dref) is not { } p)
             {
                 ctx.Edition.Error("COBOLNET0866",
                     $"INVOKE: the argument '{DataBinder.WrittenText(dref)}' is not resolvable to storage");
@@ -931,7 +976,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         string? retDesc = null;
         if (site.ReturningRef is { } retRef)
         {
-            if (ctx.Refs.Resolve(retRef) is not { } rp)
+            if (host.Expr.ResolveReceiving(retRef) is not { } rp)
             {
                 ctx.Edition.Error("COBOLNET0866",
                     $"INVOKE RETURNING '{retRef.GetText()}': the receiving identifier is not resolvable "
@@ -1006,7 +1051,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var probe = indexName ? null : ctx.Refs.Probe(t);            // R30: the probe never diagnoses
             if (!indexName && probe is null)
             {
-                ctx.Refs.Resolve(t);                                      // ISO §8.4.2.1 — the resolver's own rule
+                host.Expr.ResolveReceiving(t);                                      // ISO §8.4.2.1 — the resolver's own rule
                 return new BoundNop();
             }
             if (indexName || probe!.Value.Item.Pic is not { Category: PicCategory.ObjectReference })
@@ -1016,7 +1061,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     + "USAGE OBJECT REFERENCE data item (ISO §14.9.39.3 SR8)");
                 return new BoundNop();
             }
-            if (ctx.Refs.Resolve(t) is not { } tp) return new BoundNop();   // reported by the resolver
+            if (host.Expr.ResolveReceiving(t) is not { } tp) return new BoundNop();   // reported by the resolver
             targets.Add(tp);
         }
 
@@ -1138,7 +1183,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // bound tree (kb/Work PB221).
             var sniff = ctx.Refs.Probe(senderRef);
             if (sniff is { Item.Pic: { Category: PicCategory.ObjectReference } spic } sn
-                && ctx.Refs.Resolve(senderRef) is { } sp)
+                && host.Expr.ResolveSending(senderRef) is { } sp)
             {
                 // The receiver's description selects SR10 / SR12 / SR14 and the sender's answers it — ONE
                 // table, OoConformance.ObjectRefAssignmentMismatch. The former `ObjectClassName is not null`

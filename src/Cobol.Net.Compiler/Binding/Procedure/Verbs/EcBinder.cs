@@ -70,7 +70,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 }
                 return new BoundRaiseObject(null);
             }
-            if (ctx.Refs.Resolve(oref.dataReference()!) is not { } op
+            if (host.Expr.ResolveSending(oref.dataReference()!) is not { } op
                 || op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
                 ctx.Edition.Error("COBOLNET0848",
@@ -212,7 +212,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // STATICALLY true in v1 (D-EO5: a typed reference only ever holds a conforming object, no
             // universal identifier-1 exists, and factory objects cannot enter a typed reference).
             if (raising.dataReference() is not { } dref) return null;
-            if (ctx.Refs.Resolve(dref) is not { } op
+            if (host.Expr.ResolveSending(dref) is not { } op
                 || op.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
             {
                 ctx.Edition.Error("COBOLNET0849",

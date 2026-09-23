@@ -20,7 +20,8 @@ using Core = CobolParserCore;
 /// <see cref="TryBindSetUpDown"/> contract (null = fall through to the index path · BoundNop = error
 /// consumed · node = bound) and the non-consuming first-target peek move VERBATIM.
 /// <para>⛔ NO NAME LOOKUP LIVES HERE. Every operand resolves through <see cref="ReferenceResolver"/> — a place
-/// via <c>Resolve</c>, a declaration via <c>DeclarationOf</c> — so the scoping rules are the resolver's in ONE
+/// via <c>ExpressionBinder.ResolveSending</c>/<c>ResolveReceiving</c> by its role (kb/Work PB881), a declaration
+/// via <c>DeclarationOf</c> — so the scoping rules are the resolver's in ONE
 /// place. The raw <c>ctx.Data.ByName</c> lookup <c>PtrResolveBased</c> used to carry (the documented SymbolTable
 /// bypass, moved verbatim by P7 Step 10g and flagged as a behavior-sensitive follow-up) is GONE: it answered a
 /// scoped question from the unit-wide map, so inside a method definition the §14.9.39.3 SR18 / §14.9.3.3 SR1
@@ -60,7 +61,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         {
             // SR19 first sentence's "shall reference a data-pointer" — identifier-6 as a plain pointer item.
             if (PtrResolvePointer(send.dataReference(), "identifier-6, the sending operand of SET Format 7 "
-                                                     + "(ISO §14.9.39.2; §14.9.39.3 SR17)") is not { } src)
+                                                     + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: false) is not { } src)
                 return new BoundNop();
             source = src;
         }
@@ -116,7 +117,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // for every Format-7 sender that is a plain pointer or NULL — and those now reach this screen,
             // because the receiving LIST may mix the two spellings.
             if (PtrResolvePointer(dref, "identifier-5, a receiving operand of SET Format 7 "
-                                      + "(ISO §14.9.39.2; §14.9.39.3 SR17)") is not { } tp) return new BoundNop();
+                                      + "(ISO §14.9.39.2; §14.9.39.3 SR17)", receiving: true) is not { } tp) return new BoundNop();
             // §14.9.39.3 SR19's first sentence over identifier-5 ("If identifier-5 references a restricted
             // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
             // restricted to the same type") and SR20's converse, which the ADDRESS OF sender supplies through
@@ -233,7 +234,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         Place? returning = null;
         if (al.RETURNING() is not null)
         {
-            if (PtrResolvePointer(drefs[^1], "ALLOCATE RETURNING (ISO §14.9.3.3 SR3 — category data-pointer)") is not { } rp)
+            if (PtrResolvePointer(drefs[^1], "ALLOCATE RETURNING (ISO §14.9.3.3 SR3 — category data-pointer)", receiving: true) is not { } rp)
                 return new BoundNop();
             returning = rp;
         }
@@ -329,7 +330,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         var members = new List<BoundStatement>();
         foreach (var dref in fr.dataReference())
         {
-            if (PtrResolvePointer(dref, "a FREE operand (ISO §14.9.15.3 SR1 — data-pointers only)") is not { } p)
+            if (PtrResolvePointer(dref, "a FREE operand (ISO §14.9.15.3 SR1 — data-pointers only)", receiving: true) is not { } p)
                 return new BoundNop();
             members.Add(new BoundFree([p]));
         }
@@ -360,7 +361,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in drefs)
         {
             if (SetIndexNameOperand(dref)) return new BoundNop();
-            if (PtrResolvePointer(dref, "a SET UP/DOWN BY receiver mixed with data-pointers (ISO §14.9.39.3 SR23)") is not { } p)
+            if (PtrResolvePointer(dref, "a SET UP/DOWN BY receiver mixed with data-pointers (ISO §14.9.39.3 SR23)", receiving: true) is not { } p)
                 return new BoundNop();
             targets.Add(p);
         }
@@ -383,10 +384,12 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return true;
     }
 
-    /// <summary>Resolve a reference that must be a USAGE POINTER item (the 0869 pointer band).</summary>
-    private Place? PtrResolvePointer(Core.DataReferenceContext dref, string what)
+    /// <summary>Resolve a reference that must be a USAGE POINTER item (the 0869 pointer band). A RECEIVING operand
+    /// (SET's identifier-5, ALLOCATE RETURNING, FREE's operand, SET UP/DOWN's receiver) resolves through the one
+    /// receiving chokepoint and a sending one through the sending entry — the caller states which (kb/Work PB881).</summary>
+    private Place? PtrResolvePointer(Core.DataReferenceContext dref, string what, bool receiving)
     {
-        if (ctx.Refs.Resolve(dref) is { } p && p.Item.Pic?.Category is PicCategory.Pointer) return p;
+        if ((receiving ? host.Expr.ResolveReceiving(dref) : host.Expr.ResolveSending(dref)) is { } p &&p.Item.Pic?.Category is PicCategory.Pointer) return p;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
             $"'{DataBinder.WrittenText(dref)}': {what} shall be a USAGE POINTER data item");
         return null;

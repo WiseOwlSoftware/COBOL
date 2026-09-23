@@ -143,7 +143,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in sc.dataReference())
         {
             if (host.Expr.ResolveReceiving(dref) is not { } place)
-                return new BoundUnsupported($"SET CONTENT OF '{DataBinder.WrittenText(dref)}'");
+                return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
             string name = place.Item.CobolName ?? dref.GetText();
             var pic = place.Item.Pic;
 
@@ -358,7 +358,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + $"data-pointer (ISO §14.9.39.3 SR27) — '{toText}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
                 return new BoundNop();
             }
-            var place = ctx.Refs.Resolve(to);
+            var place = host.Expr.ResolveSending(to);
             if (place is null) return new BoundNop();
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.SavedPointer, null, place);
         }
@@ -376,7 +376,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         bool userDefault = ctx.CobolWords.Is(sl.cobolWord(1).GetText(), "USER-DEFAULT");
         var target = sl.dataReference();
-        if (ctx.Refs.Resolve(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
+        if (host.Expr.ResolveReceiving(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
         {
             ctx.Edition.Error("COBOLNET1668", $"SET {target.GetText()} TO LOCALE {(userDefault ? "USER-DEFAULT" : "LC_ALL")}: identifier-11 shall "
                 + "reference an elementary data item of category data-pointer (ISO §14.9.39.3 SR28)");
@@ -432,7 +432,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         foreach (var t in targetRefs)
         {
             if (SetIndexNameOperand(t, "receiving operand", "data-pointer", "ISO §14.9.39 Format 7, §14.9.39.3 SR17")) return new BoundNop();
-            if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
+            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be of category "
@@ -459,7 +459,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             }
             if (SetIndexNameOperand(senderRef, "sending operand", "data-pointer", "ISO §14.9.39 Format 7, §14.9.39.3 SR17")) return new BoundNop();
-            if (ctx.Refs.Resolve(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
+            if (host.Expr.ResolveSending(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 // ⛔ NAME THE RECEIVERS (kb/Work PB388). The message opened `SET … TO 'x'` and the diagnostic
                 // renderer transliterates U+2026 to ASCII, so what the user actually read was `SET . TO 'WS-N'`
@@ -524,7 +524,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         foreach (var t in targetRefs)
         {
             if (SetIndexNameOperand(t, "receiving operand", "program-pointer", "ISO §14.9.39 Format 9, §14.9.39.3 SR21")) return new BoundNop();
-            if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{t.GetText()}': the receiving operand of a program-pointer SET shall be USAGE "
@@ -546,7 +546,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             }
             if (SetIndexNameOperand(senderRef, "sending operand", "program-pointer", "ISO §14.9.39 Format 9, §14.9.39.3 SR21")) return new BoundNop();
-            if (ctx.Refs.Resolve(senderRef) is not { } sp
+            if (host.Expr.ResolveSending(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
@@ -623,7 +623,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         foreach (var t in targetRefs)
         {
             if (SetIndexNameOperand(t, "receiving operand", "function-pointer", "ISO §14.9.39 Format 8, §14.9.39.3 SR20")) return new BoundNop();
-            if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{t.GetText()}': the receiving operand of a function-pointer SET shall be USAGE "
@@ -645,7 +645,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             }
             if (SetIndexNameOperand(senderRef, "sending operand", "function-pointer", "ISO §14.9.39 Format 8, §14.9.39.3 SR20")) return new BoundNop();
-            if (ctx.Refs.Resolve(senderRef) is not { } sp
+            if (host.Expr.ResolveSending(senderRef) is not { } sp
                 || sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
@@ -694,7 +694,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         string? receiverProto = null;
         for (int i = 0; i < drefs.Length - 1; i++)
         {
-            if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            if (host.Expr.ResolveReceiving(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
@@ -745,7 +745,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetFunctionAddress(targets, externalized, null, ExpectedFormalsOf(receiverProto));
         }
         // The IDENTIFIER arm (§8.4.3.12.3 SR1): "Identifier-1 shall be of category alphanumeric or national."
-        if (ctx.Refs.Resolve(operand) is not { } namePlace)
+        if (host.Expr.ResolveSending(operand) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.FunctionAddressOperand,
                 $"SET {written} TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
@@ -821,7 +821,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             }
             return new BoundSetEntry(targets, CobolLiteral.Decode(lit.GetText()), null);
         }
-        if (ctx.Refs.Resolve(drefs[^1]) is not { } namePlace)
+        if (host.Expr.ResolveSending(drefs[^1]) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"SET {written} TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable "
@@ -842,7 +842,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(count);
         for (int i = 0; i < count; i++)
         {
-            if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            if (host.Expr.ResolveReceiving(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                     $"SET '{drefs[i].GetText()}': the receiving operand of {where} shall be USAGE "
@@ -942,7 +942,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
 
         // ── ARM 1: identifier-1 (§8.4.3.13.3 SR1 / §8.4.3.13.4 GR1a) ───────────────────────────────────────
-        if (ctx.Refs.Resolve(operandRef) is not { } namePlace)
+        if (host.Expr.ResolveSending(operandRef) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
                 $"SET {written} TO ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
@@ -1136,7 +1136,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // receiving list, and a CAPACITY register is what this receiver IS — so the format is CONSUMED here and the
         // reference's own rule is stated by the ONE screen that owns it (Refs.Resolve → CapacityPlaceOf). Nothing is
         // stacked on top of that diagnostic: the receiver is implemented; the reference is illegal.
-        if (cap.Place is not { } place) { ctx.Refs.Resolve(targets[0]); return new BoundNop(); }
+        // ⚠ ResolveSending, deliberately: the receiving chokepoint REFUSES a CAPACITY register (COBOLNET1523 —
+        // "except in a SET statement Format 14"), and this IS Format 14; the call exists only for the resolver's
+        // own reference diagnostic.
+        if (cap.Place is not { } place) { host.Expr.ResolveSending(targets[0]); return new BoundNop(); }
         if (targets.Count > 1)
         {
             ctx.Edition.Error("COBOLNET1524",
@@ -1201,7 +1204,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         var dref = targets[0];
         if (host.Expr.ResolveReceiving(dref) is not { } p)
-            return new BoundUnsupported($"SET {(explicitSizeOf ? "SIZE OF " : "")}'{DataBinder.WrittenText(dref)}'");
+            return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (!p.Item.IsDynamicLength)
         {
             ctx.Edition.Error("COBOLNET1568",

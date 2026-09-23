@@ -653,6 +653,21 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     // ── The RECEIVING chokepoint (hoisted from the ReportWriter partial at 10f; HOME here since 10q —
     //    the shared receiving spine the arithmetic/MOVE/SET pipelines consume). ──
 
+    /// <summary>Resolve a data reference that the statement does NOT store into — a sending operand, a key or
+    /// record NAME, a CALL/INVOKE target, a pointer or object reference that is only read — to its
+    /// <see cref="Place"/>: the demanding reference resolver (<see cref="ReferenceResolver.Resolve"/>) and
+    /// nothing else, because every screen <see cref="ResolveReceiving"/> adds is a RECEIVING-operand rule
+    /// (§13.18.15.3 SR2, §8.4.3.15.3 SR3, §8.4.3.6.3 SR1, §13.10.4 GR1) and would be a false rejection here.
+    /// <para>⛔ WHY A VERB BINDER NEVER CALLS <c>ctx.Refs.Resolve</c> ITSELF (kb/Work PB881). The resolver answers
+    /// only "where does this live", so a binder that reached it directly for a RECEIVING operand opted out of every
+    /// receiving-operand prohibition in silence: <c>INSPECT CA REPLACING …</c> and <c>READ … INTO CA</c> rewrote a
+    /// CONSTANT RECORD that the identical MOVE refuses (§13.18.15.3 SR2: "Neither the data item described by the
+    /// subject of the entry nor any data item subordinate to the subject of the entry shall be specified as a
+    /// receiving data item" — a rule over the OPERAND ROLE, never over a statement). Two named entries make the
+    /// role a decision written at every site — this one or <see cref="ResolveReceiving"/> — and
+    /// <c>ReceivingResolutionDriftTests</c> fails the build of a binder under <c>Verbs/</c> that bypasses both.</para></summary>
+    public Place? ResolveSending(Core.DataReferenceContext dref) => ctx.Refs.Resolve(dref);
+
     /// <summary>Resolve a RECEIVING data reference to its <see cref="Place"/> — the ONE receiving-side
     /// chokepoint (MOVE targets, arithmetic resultants, SET receivers). A report counter here is rejected at
     /// bind time: LINE-COUNTER shall not be a receiving operand (ISO §8.4.3.15 SR3 — illegal); PAGE-COUNTER as a

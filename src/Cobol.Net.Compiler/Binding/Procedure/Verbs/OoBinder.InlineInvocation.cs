@@ -179,7 +179,7 @@ internal sealed partial class OoBinder
             return new BoundExprError("inline method invocation through NULL");
         }
         if (target.dataReference() is { } dr0 && ctx.Refs.Probe(dr0) is not null
-            && ctx.Refs.Resolve(dr0) is { } r0
+            && host.Expr.ResolveSending(dr0) is { } r0
             && r0.Item.Pic is { Category: PicCategory.ObjectReference } p0
             && (p0.ObjectRef ?? ObjectRefDescriptor.Universal).IsUniversal)
         {

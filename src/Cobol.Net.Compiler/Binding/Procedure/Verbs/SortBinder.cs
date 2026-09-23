@@ -318,7 +318,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// active SORT's input procedure) is a runtime seam in CobolSort (EC checking OFF, COBOLNET_DESIGN §18.16).</summary>
     public BoundStatement BindRelease(Core.ReleaseStatementContext rel)
     {
-        if (rel.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
+        if (rel.dataReference() is not { } rn || host.Expr.ResolveSending(rn) is not { } record)
             return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
         // ⛔ SR1 IS A SYNTAX RULE AND IS DECIDED HERE, NOT AT RUN TIME (kb/Work PB236, row SR-14.9.32.3-1).
         // The STAGE was the wrong one, and the cost was measured: with the statement on a path the flow GO TOs
@@ -379,8 +379,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         BoundMove? into = null;
         if (r.INTO() is not null)
         {
-            if (r.dataReference() is not { } d || ctx.Refs.Resolve(d) is not { } ip)
-                return new BoundUnsupported($"RETURN INTO '{r.dataReference()?.GetText()}' (unresolvable receiver)");
+            if (r.dataReference() is not { } d || host.Expr.ResolveReceiving(d) is not { } ip)
+                return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
             into = host.Move.BindIntoPhrase(file, area, ip, IntoPhraseRules.Return);
         }
         List<BoundStatement>? atEnd = null, notAtEnd = null;
@@ -465,7 +465,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in drefs)
         {
             // Qualification supported (e.g. ST139A's `KEY-1 OF DATA-NAME-1`) via the one reference resolver.
-            if (ctx.Refs.Resolve(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{DataBinder.WrittenText(dref)}'";
+            if (host.Expr.ResolveSending(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{DataBinder.WrittenText(dref)}'";
             DataItem item = kp.Item;
             DataItem root = SortRootOf(item);
             if (!file.Records.Contains(root))

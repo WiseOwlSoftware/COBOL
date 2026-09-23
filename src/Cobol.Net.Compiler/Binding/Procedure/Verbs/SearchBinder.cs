@@ -83,8 +83,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR3 c) 1.)
                 else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2.)
             }
-            else if (ctx.Refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR3 b)
-            else return new BoundUnsupported($"SEARCH VARYING '{v.GetText()}'");
+            else if (host.Expr.ResolveReceiving(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR3 b)
+            else return new BoundNop();   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         }
 
         List<BoundStatement>? atEnd = null;
