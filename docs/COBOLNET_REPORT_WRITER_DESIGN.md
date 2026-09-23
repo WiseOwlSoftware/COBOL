@@ -333,7 +333,7 @@ off-by-one through every later counter check.
   an elementary entry with a COLUMN clause also contains a SOURCE, VALUE or SUM clause; SR11 — PICTURE,
   COLUMN, SOURCE, VALUE, SUM and GROUP INDICATE only in an elementary entry; SR13 — an elementary VALUE entry
   has a COLUMN clause; SR15 — BLANK WHEN ZERO / JUSTIFIED need a COLUMN clause. SR8 is `ScreenReportLineNesting`
-  (§13.18.35.3 SR4), SR9 the binder's `ReportColumnWithoutLine` arm, SR12/SR14 the PICTURE arm (it needs the
+  (§13.18.35.3 SR4), SR9 the binder's `ReportColumnWithoutLine` arm, §13.15.3 SR12/SR14 the PICTURE arm (it needs the
   analysed picture). ⛔ **The binder never invents an operand**: a printable entry with no SOURCE/VALUE/SUM
   operand left (SR10 refused it, or each written operand was refused at its own clause) produces NO field —
   the figurative-SPACE sender that once stood in for it is gone, pinned by

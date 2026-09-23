@@ -319,7 +319,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
     statement-shaped cases.
   - **An activator that enables nothing raises nothing**, fatal or not, and execution continues as if the
     activation had returned without a RAISING phrase. There is no boundary "terminate loudly" default —
-    §14.6.13.1.3 #8 governs a condition that already EXISTS, and GR1 b) stops one coming into existence in an
+    §14.6.13.1.3 #8 governs a condition that already EXISTS, and GOBACK's §14.9.18.4 GR1 b) stops one coming into existence in an
     unchecked activator.
   - ⛔ **A staged condition NAMES THE ACTIVATION IT WAS STAGED FOR** (kb/Work PB892 Arm B). GR1 b) raises it in ONE
     element — the one the returning element returns to — so the staged slots (`ExceptionEngine._propagated` /

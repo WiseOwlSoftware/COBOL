@@ -19,6 +19,15 @@
       *> C5 PERFORM UNTIL FUNCTION PB892MISS = 7 - no definition is
       *>    locatable, EC-FUNCTION-NOT-FOUND (8.4.3.2.4 GR6) is enabled
       *>    and its declarative resumes after the PERFORM.
+      *> ISO 10.6.2 SR1: the function prototype precedes every other
+      *> source unit of the compilation group.
+       IDENTIFICATION DIVISION.
+       FUNCTION-ID. PB892MISS IS PROTOTYPE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 R PIC 9.
+       PROCEDURE DIVISION RETURNING R.
+       END FUNCTION PB892MISS.
        >>TURN EC-USER-PB2 EC-FUNCTION-NOT-FOUND CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB892I.
@@ -62,13 +71,6 @@
            DISPLAY "AFTER-5".
            STOP RUN.
        END PROGRAM PB892I.
-       IDENTIFICATION DIVISION.
-       FUNCTION-ID. PB892MISS IS PROTOTYPE.
-       DATA DIVISION.
-       LINKAGE SECTION.
-       01 R PIC 9.
-       PROCEDURE DIVISION RETURNING R.
-       END FUNCTION PB892MISS.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB892K.
        IDENTIFICATION DIVISION.
