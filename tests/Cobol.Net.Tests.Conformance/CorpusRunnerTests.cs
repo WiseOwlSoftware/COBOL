@@ -21,12 +21,28 @@ internal static class ConformanceCorpus
     // gate whose ACCEPT edition is 85); 2002/2014/2023 carry the post-85 introductions.
     internal static string[] EditionDirs { get; } = ["85", "2002", "2014", "2023"];
 
+    /// <summary>
+    /// ⛔ A name listed TWICE (in one list, or in both) THROWS. A duplicate is the shape a union-resolved merge
+    /// conflict leaves in these flat lists, and it is invisible to every local gate: the theory row is listed
+    /// once per occurrence by <c>--list-tests</c> but executed once, so only CI's shard-population guard sees
+    /// the difference (train 50: <c>2023/pb854_eop_perform_when</c> listed three times, "8073 of 8074").
+    /// Refusing at load makes the local run fail first, and names the entry.
+    /// </summary>
     internal static Manifest Load(string dir)
     {
         using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(dir, "manifest.json")));
         static IReadOnlyList<string> Arr(JsonElement root, string name) =>
             [.. root.GetProperty(name).EnumerateArray().Select(e => e.GetString()!)];
-        return new Manifest(Arr(doc.RootElement, "enabled"), Arr(doc.RootElement, "pending"));
+        var manifest = new Manifest(Arr(doc.RootElement, "enabled"), Arr(doc.RootElement, "pending"));
+        string[] dups = [.. manifest.Enabled.Concat(manifest.Pending)
+            .GroupBy(n => n, StringComparer.Ordinal).Where(g => g.Count() > 1).Select(g => g.Key)];
+        if (dups.Length > 0)
+        {
+            throw new InvalidOperationException(
+                $"{Path.Combine(dir, "manifest.json")} lists {string.Join(", ", dups)} more than once");
+        }
+
+        return manifest;
     }
 
     internal static IEnumerable<object[]> EnabledPositive()
