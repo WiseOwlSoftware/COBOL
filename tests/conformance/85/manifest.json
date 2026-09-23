@@ -145,7 +145,8 @@
   "pb873_signed_argument_image_carried_formal",
   "pb966_move_corresponding_through_alias",
   "pb979_unstring_receiver_size",
-  "pb970_image_carried_binary_packed_argument"
+  "pb970_image_carried_binary_packed_argument",
+  "pb1007_function_temporary_character_receivers"
  ],
  "pending": []
 }

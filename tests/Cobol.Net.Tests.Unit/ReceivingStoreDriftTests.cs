@@ -51,4 +51,32 @@ public sealed class ReceivingStoreDriftTests
         Assert.Contains("RuntimeApi.DynStore(", home);
         Assert.Contains("RuntimeApi.StrStoreAligned(", home);
     }
+
+    /// <summary>kb/Work PB1013 — ACCEPT format 1 sizes its device transfer by the RECEIVER's size at execution
+    /// (ISO §14.9.1.4 GR3/GR4 "the size of the receiving data item"; an ANY LENGTH receiver's is its argument's,
+    /// §13.18.2.4 GR1 b)), which is <c>ReceivingStore.CharacterPositions</c>. Every elementary arm used to spell the
+    /// DECLARED width itself (<c>DisplayTextWidth</c>, <c>pic.Length</c>, <c>DynamicReceivingSize</c>), so an ANY
+    /// LENGTH receiver took one character. This fails if any device read in <c>EmitAcceptDevice</c> other than the
+    /// group-image store and the reference-modified slice sizes itself.</summary>
+    [Fact]
+    public void AcceptDevice_SizesEveryElementaryTransferByTheOneReceiverSize()
+    {
+        string src = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "AcceptDisplayEmitter.cs"));
+        int start = src.IndexOf("private void EmitAcceptDevice(", StringComparison.Ordinal);
+        Assert.True(start >= 0, "EmitAcceptDevice not found — the drift test must follow the method");
+        int end = src.IndexOf("/// <summary>", start, StringComparison.Ordinal);
+        string body = end < 0 ? src[start..] : src[start..end];
+        Assert.Contains("ReceivingStore.CharacterPositions(target)", body);
+        var offenders = new List<string>();
+        foreach (var line in body.Split('\n'))
+        {
+            if (line.TrimStart().StartsWith("//") || line.Contains("WriteGroupImage", StringComparison.Ordinal)) continue;
+            foreach (Match m in Regex.Matches(line, @"AcceptSource\.Device(?:Boolean)?\(([^)]*)\)"))
+                if (m.Groups[1].Value is not ("{size}" or "{len}"))
+                    offenders.Add(line.Trim());
+        }
+        Assert.True(offenders.Count == 0,
+            "An ACCEPT device arm sizes its transfer from something other than the receiver's run-time size "
+            + "(ReceivingStore.CharacterPositions — ISO §14.9.1.4 GR3; kb/Work PB1013):\n" + string.Join("\n", offenders));
+    }
 }

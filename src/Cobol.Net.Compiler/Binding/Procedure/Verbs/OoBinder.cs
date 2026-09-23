@@ -683,12 +683,15 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (fnOperand is BoundNumericLiteral foldedNum) { numLitRaw = foldedNum.Text; arithCtx = null; }
             else if (fnOperand is BoundStringLiteral { Category: PicCategory.Alphanumeric } foldedText)
             { foldedAlnum = foldedText.Value; arithCtx = null; }
-            // ⚠ A NUMERIC-typed function stays on the expression arm (which refuses it for this non-numeric formal,
-            // as before): the §15.4 temporary's numeric description (SendingValueTemp.FunctionValuePic, 30 digits,
-            // scale 9) is an implementor representation MOVE never moves FROM, so crossing it into a character
-            // formal would spell the value differently than `MOVE FUNCTION f TO x` does — a named residue
-            // (the wave-49 PB923 report), not a silent divergence.
-            else if (fnOperand is not BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric } }) { }
+            // ⛔ A NUMERIC-typed function takes the SAME lane (kb/Work PB1007). It used to stay on the expression arm,
+            // which refused `BY CONTENT FUNCTION INTEGER(N)` into a PIC X formal as legal source, because the §15.4
+            // temporary moved as its 30-digit implementor description rather than as the function. The temporary now
+            // IS the function for every MOVE (SendingValueTemp.OfComputed: an INTEGER function at scale 0, the text
+            // image DOC-A.1-92's literal form), so rule 2 d)'s MOVE question is asked of it by the ONE chain
+            // (OoConformance.ContentMismatch → Table 16): an INTEGER function (§15.2 item 5) conforms to an
+            // alphanumeric formal and a NUMERIC one (item 4, the Noninteger row) does not — the answer
+            // `MOVE FUNCTION f TO x` gets for the same pair.
+            else if (fnOperand is not BoundComputedOperand { Expr: BoundIntrinsicCall }) { }
             else if (host.SendingValue.Materialize(fnOperand, "invokearg") is { } fnTemp) inlinePlace = fnTemp;
             else
             {
@@ -699,7 +702,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
         if (dref is not null || inlinePlace is not null)
         {
-            string argText = dref?.GetText() ?? arithCtx!.GetText();
+            string argText = dref?.GetText() ?? DataBinder.WrittenText(arithCtx!);   // as written — `FUNCTION NUMVAL("3.7")`, never run together
             // The role follows the passing mode (kb/Work PB881): §14.9.23.3 SR21 makes identifier-5 — an explicit
             // BY CONTENT argument — "a sending operand", and SR20 makes identifier-3, the BY REFERENCE argument
             // every other identifier is assumed to be (GR6 a), "a receiving operand", so it passes every receiving

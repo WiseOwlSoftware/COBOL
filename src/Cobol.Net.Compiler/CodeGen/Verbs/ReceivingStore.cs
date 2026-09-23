@@ -50,6 +50,32 @@ internal static class ReceivingStore
     /// the size it stores cannot disagree about the same receiver (kb/Work PB979).</summary>
     public static string AnyLengthWidth(Place target) => $"{PlaceRenderer.Read(target)}.Length";
 
+    /// <summary>The SIZE of a receiving operand in CHARACTER POSITIONS at execution — a C# int expression, because an
+    /// ANY LENGTH receiver's size is its carrier's (ISO §13.18.2.4 GR1 b), "n is the length of the corresponding
+    /// argument or returning item of the activating runtime element") and so is not known to the binder. It is the
+    /// ONE answer to "how big is the receiver" for every statement whose rules are written over the receiver's size
+    /// rather than over a MOVE — ACCEPT format 1 (§14.9.1.4 GR3/GR4: "the same size as the receiving data item"),
+    /// and UNSTRING's examined size (<see cref="ExaminationSize"/>, which is this less a separate sign's position).
+    /// ⛔ ACCEPT used to size its device window from the DECLARED width, so an ANY LENGTH receiver — whose PICTURE
+    /// is one symbol (§13.18.2.3 SR1) — took ONE character of the record whatever argument it was bound to
+    /// (kb/Work PB1013), the same defect UNSTRING carried until PB979.
+    /// <list type="bullet">
+    /// <item>a reference-modified receiver — §8.4.3.3.4 GR6's unique data item, the evaluated slice's length;</item>
+    /// <item>a group — its character positions (a bit / national group's as-if positions, D20/PB79);</item>
+    /// <item>a dynamic-length item — <see cref="DynamicReceivingSize"/> (DETERMINATION D-DL2);</item>
+    /// <item>an ANY LENGTH item — <see cref="AnyLengthWidth"/>;</item>
+    /// <item>otherwise the elementary item's text positions, <see cref="DataItem.DisplayTextWidthOf"/> (a numeric
+    ///   item's digits plus a SEPARATE sign's position).</item>
+    /// </list></summary>
+    public static string CharacterPositions(Place target) => target switch
+    {
+        RefModPlace => $"{PlaceRenderer.Read(target)}.Length",
+        _ when target.Item.IsGroup => $"{target.Item.AsIfPic?.Length ?? target.Item.ImageWidth}",
+        _ when target.Item.IsDynamicLength => $"{DynamicReceivingSize(target.Item)}",
+        _ when target.Item.IsAnyLength => AnyLengthWidth(target),
+        _ => $"{(target.Item.Pic is { } pic ? DataItem.DisplayTextWidthOf(pic) : 0)}",
+    };
+
     /// <summary>ISO §14.9.48.4 GR11 b) — UNSTRING without a governing delimiter: "the number of characters examined
     /// is equal to the size of the current receiving area. However, if the sign of the receiving item is defined
     /// as occupying a separate character position, the number of characters examined is one less than the size of
@@ -57,22 +83,14 @@ internal static class ReceivingStore
     /// the size is the receiver's AT EXECUTION (kb/Work PB979 — it was a binder integer: one character for an ANY
     /// LENGTH receiver, and a reference-modified one was staged as not implemented):
     /// <list type="bullet">
-    /// <item>a reference-modified receiver — §8.4.3.3.4 GR6's unique data item, whose size is the evaluated
-    ///   modifier length (the slice read's length);</item>
-    /// <item>a group — its character positions (a bit / national group's as-if positions, D20/PB79);</item>
-    /// <item>a dynamic-length item — <see cref="DynamicReceivingSize"/> (DETERMINATION D-DL2);</item>
-    /// <item>an ANY LENGTH item — <see cref="AnyLengthWidth"/>;</item>
-    /// <item>a numeric item — its DIGIT positions: a SEPARATE sign is GR11 b)'s "one less", an over-punched
-    ///   one occupies no position (SR4 bars the symbol P);</item>
-    /// <item>otherwise the PICTURE's character positions.</item>
+    /// <item>a numeric item (never reference-modified, dynamic-length or ANY LENGTH here — §13.18.2.3 SR1 and
+    ///   §8.5.1.10.1 admit neither for a numeric item) — its DIGIT positions: a SEPARATE sign is GR11 b)'s "one
+    ///   less", an over-punched one occupies no position (SR4 bars the symbol P);</item>
+    /// <item>otherwise the receiver's <see cref="CharacterPositions"/> — the ONE size reader.</item>
     /// </list></summary>
     public static string ExaminationSize(Place target) => target switch
     {
-        RefModPlace => $"{PlaceRenderer.Read(target)}.Length",
-        _ when target.Item.IsGroup => $"{target.Item.AsIfPic?.Length ?? target.Item.ImageWidth}",
-        _ when target.Item.IsDynamicLength => $"{DynamicReceivingSize(target.Item)}",
-        _ when target.Item.IsAnyLength => AnyLengthWidth(target),
-        _ when target.Item.Pic is { Category: PicCategory.Numeric } pic => $"{pic.Digits}",
-        _ => $"{target.Item.Pic?.Length ?? 0}",
+        not RefModPlace when target.Item is { IsGroup: false, Pic: { Category: PicCategory.Numeric } pic } => $"{pic.Digits}",
+        _ => CharacterPositions(target),
     };
 }

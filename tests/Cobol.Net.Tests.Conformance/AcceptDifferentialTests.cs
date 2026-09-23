@@ -496,4 +496,100 @@ public sealed class AcceptDifferentialTests
 
         AssertOutputs(source, expected: "2026161", clock: "2026-06-10T14:30:45.67", dialect: 2002);
     }
+
+    // kb/Work PB1013 — §14.9.1.4 GR3/GR4 size the device transfer by "the size of the receiving data item", and an
+    // ANY LENGTH receiver's size is its ARGUMENT's: §13.18.2.4 GR1 b) treats it "as though there were n repetitions
+    // of the picture symbol … where n is the length of the corresponding argument". So a PIC X ANY LENGTH bound to a
+    // 6-character argument takes the record's leftmost SIX characters (GR4b ignores the rest), a PIC N one bound to
+    // N(4) takes four, a PIC 1 one bound to 1(5) takes five (each '1' boolean one, every other character boolean
+    // zero — the documented GR1 conversion), and a short record is stored aligned left, space-filled (GR4a with the
+    // GR2 card image). The transfer used to be sized by the declared PICTURE — one symbol (§13.18.2.3 SR1) — so every
+    // one of these stored ONE character. One record is consumed per ACCEPT.
+    [Fact]
+    public void Device_AnyLengthReceiver_TransfersTheArgumentsSize()
+        => AssertOutputs("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACCANYL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 X6 PIC X(6) VALUE "ABCDEF".
+            01 N4 PIC N(4) VALUE N"abcd".
+            01 B5 PIC 1(5) VALUE B"00000".
+            01 S6 PIC X(6) VALUE "ZZZZZZ".
+            PROCEDURE DIVISION.
+                CALL "ACCANYX" USING X6.
+                CALL "ACCANYN" USING N4.
+                CALL "ACCANYB" USING B5.
+                CALL "ACCANYX" USING S6.
+                DISPLAY X6 "]" N4 "]" B5 "]" S6 "]".
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACCANYX.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L PIC X ANY LENGTH.
+            PROCEDURE DIVISION USING L.
+                ACCEPT L.
+                GOBACK.
+            END PROGRAM ACCANYX.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACCANYN.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L PIC N ANY LENGTH.
+            PROCEDURE DIVISION USING L.
+                ACCEPT L.
+                GOBACK.
+            END PROGRAM ACCANYN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACCANYB.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L PIC 1 ANY LENGTH.
+            PROCEDURE DIVISION USING L.
+                ACCEPT L.
+                GOBACK.
+            END PROGRAM ACCANYB.
+            END PROGRAM ACCANYL.
+            """,
+            expected: "QRSTUV]wxyz]10110]AB    ]",
+            stdin: "QRSTUVWX\nwxyzv\n1011011\nAB\n",
+            dialect: 2002);
+
+    // The same rule through a SEPARATELY COMPILED user-defined function (§13.18.2.3 SR2/SR4 — a function's BY
+    // REFERENCE formal may be ANY LENGTH): the argument X5 is five characters, so ACCEPT stores five, and the
+    // store is the argument's own storage (BY REFERENCE), which the caller then shows.
+    [Fact]
+    public void Device_AnyLengthFunctionFormal_TransfersTheArgumentsSize()
+        => AssertOutputs("""
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. ACCANYF.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L PIC X ANY LENGTH.
+            01 R PIC 9(4).
+            PROCEDURE DIVISION USING BY REFERENCE L RETURNING R.
+                ACCEPT L.
+                MOVE FUNCTION LENGTH(L) TO R.
+                GOBACK.
+            END FUNCTION ACCANYF.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACCANYM.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION ACCANYF.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 X5 PIC X(5) VALUE "ABCDE".
+            01 N PIC 9(4).
+            PROCEDURE DIVISION.
+                MOVE FUNCTION ACCANYF(X5) TO N.
+                DISPLAY N "]" X5 "]".
+                STOP RUN.
+            END PROGRAM ACCANYM.
+            """,
+            expected: "0005]HIJKL]",
+            stdin: "HIJKLMNOP\n",
+            dialect: 2002);
 }

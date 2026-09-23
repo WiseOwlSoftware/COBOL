@@ -413,6 +413,12 @@ internal static class OperandText
         // All three kinds of group, and the GR8 current-extent arm of each, are THE ONE group value reader's
         // (PlaceRenderer.SendingGroupValue — kb/Work PB178's one-reader law, which BoundaryImageChannelTests holds).
         if (p.Item.IsGroup) return PlaceRenderer.SendingGroupValue(p);
+        // ⛔ THE §15.4 TEMPORARY OF A NUMERIC FUNCTION'S RETURNED VALUE IS TEXT IN THE FUNCTION'S OWN FORM — DOC-A.1-92's
+        // literal form, exactly as NumericIntrinsicText renders the un-materialized call, so a materialized function
+        // (the MOVE multi-receiver hoist, an EVALUATE subject, an INVOKE argument) and the call it froze produce the
+        // same characters in a character receiver (kb/Work PB1007 — the wide description's zero-padded digits did not).
+        if (p.Item is { IsFunctionReturnedValue: true, Pic: { Category: PicCategory.Numeric, IsFloat: false } fvp })
+            return RuntimeApi.NumFormatFunctionText(PlaceRenderer.Read(p), fvp.Scale, deSign);
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)

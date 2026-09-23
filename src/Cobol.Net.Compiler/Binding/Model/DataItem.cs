@@ -643,6 +643,18 @@ public sealed class DataItem
         "a synthesized-temp discrimination (kb/Work R26), not a data description clause")]
     public bool IsCompilerTemp { get; internal set; }
 
+    /// <summary>True for the §15.4 TEMPORARY holding a NUMERIC function's returned value ("The evaluation of a function
+    /// produces a returned value in a temporary elementary data item") when a statement materializes it once
+    /// (<c>SendingValueTemp.Materialize</c> — the MOVE multi-receiver hoist, an EVALUATE subject, an INVOKE argument).
+    /// The flag carries DOC-A.1-92's determination onto the item: a numeric function's returned value used as TEXT
+    /// is the LITERAL form of its value (§15.4.1 leaves the representation to the implementor), so the temporary's
+    /// character image is that literal form — never the zero-padded digits of the implementor's wide description,
+    /// which made <c>MOVE FUNCTION INTEGER(N) TO A B</c> store <c>0000</c> where <c>MOVE FUNCTION INTEGER(N) TO A</c>
+    /// stores <c>3</c> (kb/Work PB1007). Read by <c>OperandText</c>'s field image, the ONE text reader.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a synthesized-temp discrimination (kb/Work PB1007), set on the materialized temp, not a data description clause")]
+    public bool IsFunctionReturnedValue { get; internal set; }
+
     /// <summary>True for a group item (has children, no PICTURE).</summary>
     public bool IsGroup => Pic is null && Children.Count > 0;
 

@@ -88,6 +88,13 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     internal static readonly PicInfo FunctionValuePic =
         new(PicCategory.Numeric, Usage.Display, Length: 30, Digits: 30, Scale: 9, Signed: true);
 
+    /// <summary>The §15.4 temporary's description for an INTEGER function's returned value (§15.2 item 5 — "no
+    /// digits to the right of the decimal point"): the same 30-digit wide tier as <see cref="FunctionValuePic"/>,
+    /// at scale 0, so the temporary's literal-form text image (DOC-A.1-92) is the integer the function renders
+    /// directly, with no fraction digits (kb/Work PB1007).</summary>
+    internal static readonly PicInfo IntegerFunctionValuePic =
+        new(PicCategory.Numeric, Usage.Display, Length: 30, Digits: 30, Scale: 0, Signed: true);
+
     /// <summary>Materialize <paramref name="op"/>'s value into the implementor's intermediate result item and
     /// return the <see cref="Place"/> holding it, or <see langword="null"/> when the operand needs no
     /// materialization (a literal / figurative constant) or carries a description this clone cannot freeze (a
@@ -114,6 +121,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // facts and DynMaxSize carries only the second (§8.5.1.10.1), so a fixed-length clone keeps the real
         // default rather than being stamped with a bound no rule gives it (kb/Work PB463).
         temp.IsDynamicLength = model.DynLimit > 0;
+        temp.IsFunctionReturnedValue = model.FunctionValue;
         if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;
         if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
         // The store is a plain BoundMove, NOT a re-entry into MoveBinder.BindMoveOf: the statement's own syntax
@@ -211,8 +219,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     }
 
     /// <summary>The intermediate result item's description: the cloned model plus, for a run-time-length
-    /// carrier, its §8.5.1.10 limit (0 = a fixed-length clone). Null when the operand is not materialized.</summary>
-    private readonly record struct TempModel(DataItem Item, int DynLimit);
+    /// carrier, its §8.5.1.10 limit (0 = a fixed-length clone). Null when the operand is not materialized.
+    /// <paramref name="FunctionValue"/> marks the §15.4 temporary of a NUMERIC function's returned value, whose
+    /// character image is DOC-A.1-92's literal form (<see cref="DataItem.IsFunctionReturnedValue"/>).</summary>
+    private readonly record struct TempModel(DataItem Item, int DynLimit, bool FunctionValue = false);
 
     /// <summary>⛔ THE ONE description derivation — every <see cref="BoundOperand"/> leaf is named, so a leaf
     /// added tomorrow is a COMPILE error here rather than a silent fall-through to "no hoist" (the
@@ -285,10 +295,22 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // A folded arithmetic sum (FUNCTION LENGTH of a variable-length group, §15.50.4 r7) and every other
         // arithmetic-expression operand are numeric by §8.8.1.
         PicCategory cat = c.Expr is BoundIntrinsicCall ic ? ic.ResultCategory : PicCategory.Numeric;
+        // ⛔ THE TEMPORARY IS THE RETURNED VALUE, SO IT MUST MOVE AS THE FUNCTION MOVES (kb/Work PB1007). §14.9.25.4
+        // GR1's equivalence — MOVE a TO temp / MOVE temp TO b / MOVE temp TO c — is exact only if `MOVE temp TO b`
+        // stores what `MOVE a TO b` stores, and for a character receiver that is DOC-A.1-92's literal form of the
+        // value: the temporary is FLAGGED (IsFunctionReturnedValue) so its text image is that form, and an INTEGER
+        // function (§15.2 item 5, "no digits to the right of the decimal point", resolved per call by the ONE
+        // IntrinsicResultType reader) is described at scale 0, so the literal form carries no fraction digits — the
+        // form the function itself renders. It used to be the 30-digit image of FunctionValuePic, left-justified:
+        // `MOVE FUNCTION INTEGER(N) TO A B` stored 0000 in both where `MOVE FUNCTION INTEGER(N) TO A` stores 3.
         if (cat is PicCategory.Numeric)
             return new TempModel(
-                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = FunctionValuePic },
-                DynLimit: 0);
+                new DataItem
+                {
+                    Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn",
+                    Pic = IntrinsicResultType.IsIntegerOperand(c) ? IntegerFunctionValuePic : FunctionValuePic,
+                },
+                DynLimit: 0, FunctionValue: true);
         return CharacterCarrier("__SENDVAL-FNS", "__sendvalFns", cat, CharacterUsage(cat), FunctionTextLimit);
     }
 

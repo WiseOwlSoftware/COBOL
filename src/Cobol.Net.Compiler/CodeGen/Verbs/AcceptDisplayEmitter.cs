@@ -95,6 +95,12 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
             return;
         }
 
+        // ⛔ THE TRANSFER SIZE IS THE RECEIVER'S, AT EXECUTION — §14.9.1.4 GR3/GR4 are written over "the size of the
+        // receiving data item", and an ANY LENGTH receiver's size is its carrier's (§13.18.2.4 GR1 b)), never the one
+        // symbol its PICTURE spells (§13.18.2.3 SR1). Every elementary arm below reads this ONE expression
+        // (ReceivingStore.CharacterPositions); each used to read the declared width, so an ANY LENGTH receiver
+        // bound to a 6-character argument stored ONE character of the record (kb/Work PB1013).
+        string size = ReceivingStore.CharacterPositions(target);
         var pic = item.Pic!;
         switch (pic)
         {
@@ -108,7 +114,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
                 // ("the characters ARE the storage") — true only of the pre-V59 zoned windows; against a
                 // V59 byte-form window it spliced DisplayTextWidth characters into a StorageWidth window
                 // (PIC 9(4) COMP under REDEFINES: "1234" became the two bytes 31 32 = 12594).
-                string image = $"AcceptSource.Device({item.DisplayTextWidth})";
+                string image = $"AcceptSource.Device({size})";
                 string value = ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item);
                 w.Line(item.StoreAsImage || target is RedefViewPlace
                     ? PlaceRenderer.Write(target, RuntimeApi.NumFormatImage(value, item.ProfileName))
@@ -127,13 +133,13 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
                     ? RuntimeApi.NumFormatImageFloat(fvalue, item.ProfileName, fpic.IsSingle)
                     : fvalue));
                 return;
-            case { Category: PicCategory.Boolean } bpic:
+            case { Category: PicCategory.Boolean }:
                 // A BOOLEAN device receiver (SR1 does not exclude it): GR1's implementor-defined conversion is
                 // AcceptSource.DeviceBoolean — each transferred '1' converts to boolean one, EVERY other
                 // character (a '0', a pad space, any device character) to boolean zero, so the §13.18.40.4
                 // GR14 '0'/'1' representation invariant holds for any input (the old default-arm raw store put
                 // pad SPACES into boolean storage — kb/Work PB139).
-                w.Line(PlaceRenderer.Write(target, $"AcceptSource.DeviceBoolean({bpic.Length})"));
+                w.Line(PlaceRenderer.Write(target, $"AcceptSource.DeviceBoolean({size})"));
                 return;
             default:
                 // Alphanumeric / alphabetic / national / edited: the characters store as-is (GR3/GR4 — no
@@ -142,10 +148,11 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
                 // character per national position, so Device(pic.Length) is exact (kb/Work PB139).
                 // A DYNAMIC-LENGTH receiver's size is its MAXIMUM size (D-DL2), and the transferred characters
                 // become its content through the ONE receiving store (§8.5.1.10.4; kb/Work PB871) — the PICTURE's
-                // single symbol (§13.18.19.3 SR1) used to make every ACCEPT store one character.
+                // single symbol (§13.18.19.3 SR1) used to make every ACCEPT store one character. An ANY LENGTH
+                // receiver takes exactly its carrier's length of characters (kb/Work PB1013).
                 w.Line(PlaceRenderer.Write(target, item.IsDynamicLength
-                    ? ReceivingStore.Characters(item, $"AcceptSource.Device({ReceivingStore.DynamicReceivingSize(item)})", "")
-                    : $"AcceptSource.Device({pic.Length})"));
+                    ? ReceivingStore.Characters(item, $"AcceptSource.Device({size})", "")
+                    : $"AcceptSource.Device({size})"));
                 return;
         }
     }

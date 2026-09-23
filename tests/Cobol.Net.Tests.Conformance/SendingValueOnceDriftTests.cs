@@ -142,6 +142,115 @@ public sealed class SendingValueOnceDriftTests
     /// <para>This test is the net under the residue named on GR-14.9.25.4-1: an earlier revision of kb/Work
     /// PB394 froze an OCCURS DEPENDING group sender at its MAXIMUM extent, and a JUSTIFIED receiver is exactly
     /// where that showed up.</para></summary>
+    /// <summary>kb/Work PB1007 — §14.9.25.4 GR1's equivalence is only an equivalence if the intermediate MOVES AS the
+    /// sender: `MOVE a TO temp / MOVE temp TO b` must store what `MOVE a TO b` stores, for EVERY receiver category.
+    /// The §15.4 temporary of an INTEGER function held the value exactly but moved as its 30-digit implementor
+    /// description, so each character receiver of a two-receiver MOVE took leading zeros where the one-receiver MOVE
+    /// took the function's literal form (DOC-A.1-92): `MOVE FUNCTION INTEGER(N) TO A B` stored 0000. This compares
+    /// the hoisted store with the single-receiver control per function and per receiver category, so a new receiver
+    /// category or a new temporary description inherits the check rather than the defect.</summary>
+    [Theory]
+    [InlineData("SVF01", "FUNCTION INTEGER(W-N)")]            // §15.44 — 3
+    [InlineData("SVF02", "FUNCTION INTEGER-PART(-12.5)")]     // §15.49 — a negative integer: GR6 a) drops the sign
+    [InlineData("SVF03", "FUNCTION ORD(\"A\")")]               // §15.70 — an integer from a character argument
+    [InlineData("SVF04", "FUNCTION MOD(-7 3)")]               // §15.64 — 2
+    [InlineData("SVF05", "FUNCTION MAX(3 7)")]                // §15.59 — integer when every argument is (§15.2 item 5)
+    public void MaterializedIntegerFunction_MovesAsTheFunctionDoes(string pid, string fn)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-N PIC 9V9 VALUE 3.7.
+            01 X1 PIC X(6).
+            01 X2 PIC X(6).
+            01 X3 PIC X(6).
+            01 J1 PIC X(6) JUSTIFIED RIGHT.
+            01 J2 PIC X(6) JUSTIFIED RIGHT.
+            01 N1 PIC N(6).
+            01 N2 PIC N(6).
+            01 E1 PIC -(5)9.
+            01 E2 PIC -(5)9.
+            01 S1 PIC S9(6).
+            01 S2 PIC S9(6).
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE {fn} TO X1.
+                MOVE {fn} TO X2, X3.
+                MOVE {fn} TO J1.
+                MOVE {fn} TO J2, E2.
+                MOVE {fn} TO N1.
+                MOVE {fn} TO N2, S2.
+                MOVE {fn} TO E1.
+                MOVE {fn} TO S1.
+                IF X1 = X2 AND X1 = X3 AND J1 = J2 AND N1 = N2 AND E1 = E2 AND S1 = S2
+                    DISPLAY "SAME"
+                ELSE
+                    DISPLAY "X[" X1 "|" X2 "|" X3 "] J[" J1 "|" J2 "] N[" N1 "|" N2 "] E[" E1 "|" E2 "] S["
+                        S1 "|" S2 "]"
+                END-IF.
+                STOP RUN.
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("SAME", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
+    }
+
+    /// <summary>kb/Work PB1007 — the SAME §15.4 temporary crosses an INVOKE: §14.8.2.3.3 2) d) makes a BY CONTENT
+    /// argument for a non-numeric formal conform "as for a MOVE statement", and the argument's value reaches the
+    /// formal through the materialized temporary. So the formal must hold what `MOVE FUNCTION f TO x` stores into an
+    /// item of the formal's description — per formal category. The INVOKE used to refuse every numeric-typed function
+    /// here (COBOLNET0828, the expression arm) because the temporary did not move as the function.</summary>
+    [Theory]
+    [InlineData("SVI01", "FUNCTION INTEGER(W-N)", "PIC X(6)")]
+    [InlineData("SVI02", "FUNCTION INTEGER-PART(-12.5)", "PIC X(6) JUSTIFIED RIGHT")]
+    [InlineData("SVI03", "FUNCTION ORD(\"A\")", "PIC N(6)")]
+    [InlineData("SVI04", "FUNCTION MOD(-7 3)", "PIC -(5)9")]
+    public void InvokeContentIntegerFunction_StoresWhatTheMoveStores(string pid, string fn, string pic)
+    {
+        string src = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS {pid}C.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 O USAGE OBJECT REFERENCE {pid}C.
+            01 W-N PIC 9V9 VALUE 3.7.
+            01 R {pic}.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE {pid}C "NEW" RETURNING O.
+                MOVE {fn} TO R.
+                DISPLAY "[" R "]".
+                INVOKE O "M" USING BY CONTENT {fn}.
+                STOP RUN.
+            END PROGRAM {pid}.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. {pid}C.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 P1 {pic}.
+            PROCEDURE DIVISION USING P1.
+                DISPLAY "[" P1 "]".
+            END METHOD M.
+            END OBJECT.
+            END CLASS {pid}C.
+            """;
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        var lines = stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
+        Assert.Equal(2, lines.Length);
+        Assert.Equal(lines[0], lines[1]);
+    }
+
     [Fact]
     public void RunTimeLengthSender_KeepsItsLength_UnderAJustifiedReceiver()
     {

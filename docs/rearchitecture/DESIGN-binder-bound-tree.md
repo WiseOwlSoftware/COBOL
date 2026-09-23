@@ -547,7 +547,11 @@ The materializer creates that intermediate result item through `DataBinder.Creat
 synthesized-temp constructor) with the **operand's own description**, so the store into it is an identity move
 and the equivalence is exact: a data item clones its description (§8.4.3.3.4 GR6's "unique data item" when
 reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a function-identifier takes §15.4's
-"temporary elementary data item" — the same `FunctionValuePic` the §15.4 subscript temp uses, written once.
+"temporary elementary data item" — the same `FunctionValuePic` the §15.4 subscript temp uses, written once, or
+`IntegerFunctionValuePic` (scale 0) for an INTEGER function (§15.2 item 5). A NUMERIC function's temporary is flagged
+`DataItem.IsFunctionReturnedValue`, and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
+form — so `MOVE temp TO b` stores in a CHARACTER receiver what `MOVE a TO b` stores (kb/Work PB1007: the
+unflagged 30-digit description moved as zero-padded digits, `MOVE FUNCTION INTEGER(N) TO A B` storing `0000`).
 A literal or figurative constant is NOT materialized: §8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
 description of its own.
 
