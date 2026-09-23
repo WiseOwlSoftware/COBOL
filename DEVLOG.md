@@ -13,6 +13,12 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1652 — 2026-09-22 21:50 PDT — Ledger v62 at train 50: the trend point for trains 49, 50 and 51
+
+The Conformance Ledger artifact was republished as v62 from `gen_ledger.py` at `0ad34ddf5` (trains 49, 51 and 50,
+registrar #12): GAP 2130 · closed 2218 · DNS 369. This commits the trend point the generator appended to
+`ledger-trend.json`; `gen_ledger.py --check` now reports the page matches the repo exactly.
+
 ## Entry 1651 — 2026-09-22 21:28 PDT — Landing train 50: wave 49 (AA–AG), seven clusters, fifteen notes, GAP −31 to 2130
 
 Landing train 50 carried wave 49's SEVEN clusters and FIFTEEN notes to `landed` in one landing. It is the first train
