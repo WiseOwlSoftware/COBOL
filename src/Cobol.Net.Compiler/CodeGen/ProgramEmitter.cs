@@ -303,15 +303,23 @@ internal sealed class ProgramEmitter
 
             foreach (var b in unit.Bridges)
             {
-                if (b.Kind == "presence")
+                switch (b.Kind)
                 {
-                    w.Line($"private bool {b.Field} => {b.Path};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
-                    continue;
+                    case CallBridgeKind.Presence:
+                        w.Line($"private bool {b.Field} => {b.Path};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
+                        continue;
+                    case CallBridgeKind.Cell:
+                        w.Line($"private StorageCell {b.Field} => {b.Path};   // the cell behind a GLOBAL cell-backed item of a containing program (ISO §13.18.27.4 GR2; kb/Work PB1009)");
+                        continue;
                 }
                 string type = b.Kind switch
                 {
-                    "index" => "long",
-                    "backing" => "string",
+                    CallBridgeKind.Index => "long",
+                    CallBridgeKind.Backing => "string",
+                    CallBridgeKind.Address => "ManagedPointer",
+                    // The carrier's cell type is the formal's own crossing form — the ONE dispatch the container
+                    // declares it with (a resident formal has no Place, so it classifies from its DataItem).
+                    CallBridgeKind.Carrier => $"ManagedPointer<{FormalCarrierType(b.Formal!, FormalCrossing(b.Formal!, null))}>",
                     _ => b.Item!.Occurs is not null ? b.Item.ElementType + "[]" : b.Item.ElementType,
                 };
                 w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
@@ -515,7 +523,7 @@ internal sealed class ProgramEmitter
                 if (f.CarrierResident)
                 {
                     // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
-                    // reads/writes through this carrier (its CsName IS `__lnkpN.Value`). An ANY LENGTH formal
+                    // reads/writes through this carrier (its CsName IS `__lnk{Uid}.Value`). An ANY LENGTH formal
                     // (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
                     // A BY VALUE formal adopts the DETACHED value-copy cell instead (§14.2.3 GR10 — the

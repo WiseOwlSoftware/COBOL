@@ -57,9 +57,31 @@ internal sealed class BoundUnit
     public string ClassRef => Parent is null ? ClassName : Parent.ClassRef + "." + ClassName;
 }
 
-/// <summary>One inherited-GLOBAL bridge a nested class emits: a <c>ref</c>-returning property aliasing the
-/// containing instance's field (ISO §13.18.27 GR2 — the name is visible in every contained program; the
-/// STORAGE stays the container's). <paramref name="Kind"/>: "field" (a global root's typed field), "backing"
-/// (a Tier-B class's string backing), "index" (an INDEXED BY <c>long</c> field of a global table), or "presence"
-/// (a GLOBAL formal parameter's omitted-presence member — kb/Work PB971; a plain <c>bool</c>, not a ref).</summary>
-internal sealed record CallBridge(string Field, string Path, string Kind, DataItem? Item);
+/// <summary>One inherited-GLOBAL bridge a nested class emits: a property aliasing the containing instance's
+/// member (ISO §13.18.27 GR2 — the name is visible in every contained program; the STORAGE stays the
+/// container's). Built ONLY by <c>DataBinder.GlobalBridgesOf</c>, the one list of the members a reference to a
+/// global root can render (kb/Work PB1009). <paramref name="Formal"/> is set for a
+/// <see cref="CallBridgeKind.Carrier"/> bridge — the emitter derives the carrier's cell type from it.</summary>
+internal sealed record CallBridge(string Field, string Path, CallBridgeKind Kind, DataItem? Item,
+    LinkageFormal? Formal = null);
+
+/// <summary>The member shape a <see cref="CallBridge"/> aliases (kb/Work PB1009).</summary>
+internal enum CallBridgeKind
+{
+    /// <summary>A global root's own typed field (<c>ref {ElementType}</c>).</summary>
+    Field,
+    /// <summary>A Tier-B class's string backing (<c>ref string</c>).</summary>
+    Backing,
+    /// <summary>The <c>StorageCell</c> behind a cell-backed class (EXTERNAL / BASED / ADDRESS-OF-taken) — a
+    /// get-only alias, since two of the three are computed properties.</summary>
+    Cell,
+    /// <summary>A BASED class's implicit data-address pointer (<c>ref ManagedPointer</c>, ISO §13.18.5.4 GR2).</summary>
+    Address,
+    /// <summary>A carrier-resident LINKAGE formal's <c>ManagedPointer&lt;T&gt;</c> carrier (its field IS
+    /// <c>carrier.Value</c>).</summary>
+    Carrier,
+    /// <summary>An INDEXED BY <c>long</c> field of a global table.</summary>
+    Index,
+    /// <summary>A GLOBAL formal's omitted-argument presence member (a plain <c>bool</c>, not a ref — kb/Work PB971).</summary>
+    Presence,
+}

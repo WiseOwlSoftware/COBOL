@@ -379,7 +379,9 @@
   "pb979_unstring_any_length_national",
   "pb981_fd_pointer_record",
   "pb943_group_sender_conversions",
-  "pb970_image_carried_packed_returning_invoke"
+  "pb970_image_carried_packed_returning_invoke",
+  "pb1009_global_linkage_formal",
+  "pb1019_address_of_linkage_formal"
   ],
   "pending": []
 }

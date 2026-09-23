@@ -175,7 +175,7 @@ CALLEE side — LINKAGE + PROCEDURE DIVISION USING:
       public long Run(ManagedRef<long> p0){ LK_CTR = p0; /*proc body*/ return _ret; }   // refs to LK-CTR read/write LK_CTR.Value
   ADD 1 TO LK-CTR.  ->  LK_CTR.Value = CobolNum.Store(LK_CTR.Value + 1L, 0, _P_LK_CTR);   // the one unavoidable indirection
   header BY VALUE (ISO §14.2.2 using-phrase; 2002): PROCEDURE DIVISION USING BY VALUE LK-V.
-  ->  __lnkp0 = CobolArgAdapt.NumValue(__args, 0, _P_LK_V, scale);   // a DETACHED cell conformed to the formal — the §14.2.3
+  ->  __lnk{Uid} = CobolArgAdapt.NumValue(__args, 0, _P_LK_V, scale);   // a DETACHED cell conformed to the formal — the §14.2.3
       // GR10 "COMPUTE without ROUNDED" value copy; stores hit only the cell (NO copy-out — never the caller). Modes thread
       // per §14.2.3 GR4 (transitive; BY REFERENCE assumed first); LinkageFormal.ByValue carries the resolution. §14.2.2 SR2
       // restricts BY VALUE formals to class numeric/message-tag/object/pointer (COBOLNET1553); the carried leg is fixed-point
@@ -499,7 +499,9 @@ loud (kb/Work PB177 arm B, the eighth two-arm-dispatch instance). The exposure w
 CALLEE's own LINKAGE formal copy-in (`ProgramEmitter`) and Report Writer's `CONTROL IS <group>` both call this
 pair, and separate compilation means the caller-side `ArgText` screen gives the callee nothing.
 
-**Boundary-copy limitation (known, accepted — re-architect only if a test ever observes it):** group formals are boundary-copied (`FromImage` at activation entry, `AsImage` copy-out at activation exit), not live-aliased; a STRICT reading of GR8 implies live sharing (a caller-side mutation of the group mid-call — e.g. from a re-entered container — would not be seen by the callee until the next activation). No NIST program observes mid-call group mutation from the caller's side; elementary formals ARE live-aliased (carrier-resident, per-access).
+**Boundary-copy limitation (known, accepted — re-architect only if a test ever observes it):** group formals are boundary-copied (`FromImage` at activation entry, `AsImage` copy-out at activation exit), not live-aliased; a STRICT reading of GR8 implies live sharing (a caller-side mutation of the group mid-call — e.g. from a re-entered container — would not be seen by the callee until the next activation). No NIST program observes mid-call group mutation from the caller's side; elementary formals ARE live-aliased (carrier-resident, per-access) — EXCEPT an elementary formal whose address is taken (kb/Work PB1019): ISO §8.4.3.11.3 SR1 admits a linkage-section item as `ADDRESS OF`'s identifier-1 and §8.4.3.11.4 GR1 makes the result "the address of identifier-1", which the BASED machinery dereferences to a `StorageCell`; a resident formal's storage is reachable only through the carrier's accessor and has no cell. `DataBinder.CallBindLinkage` therefore makes any formal named by an `ADDRESS OF` sender in the unit or a contained program NON-resident (the same `PtrScanAddressOfSenders` scan the pointer pass forces cells from), so it takes the boundary-copy arm above over a callee-local cell. The same limitation then applies to it, plus one more: its address is the callee cell's, so it does not compare equal (§8.8.4.2.16) to the caller's `ADDRESS OF` the argument.
+
+**Carrier names and GLOBAL formals (kb/Work PB1009).** A formal's carrier is `__lnk{Uid}`, not positional: a GLOBAL formal (§13.18.27.3 SR1 b) admits GLOBAL in the linkage section) is referenced from every contained program by the SAME field text (`__lnk{Uid}.Value`) through a ref-bridge, and a positional name collided with the contained program's own formals. The bridges a contained program declares come from ONE list, `DataBinder.GlobalBridgesOf` — per root: the field, or a Tier-B backing plus the `StorageCell` behind a cell-backed class plus a BASED class's address pointer, or a resident formal's carrier; then the omitted-presence member and the index fields. `GlobalBridgeResidenceDriftTests` (Unit) runs one row per residence. An `ADDRESS OF` a global name taken in a CONTAINED program forces the cell in the CONTAINER, which owns the storage (`PtrBindBasedAndAddressables` scans the nested programs for this unit's GLOBAL names), and `ADDRESS OF` renders the cell the class names (`RedefinesClass.BackingCellCsName`), bridged or not.
 
 ### RECURSIVE programs and functions/methods need per-activation data; a `static class Program` cannot recurse or hold per-activation copies.
 
@@ -573,7 +575,7 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
   kind "presence"); a method's is its `__omittedN` parameter. Pinned by `OmittedFormalGuardDriftTests`.
   GR12's exemption — *“except as an argument”* — and §8.8.4.8.4 GR1c's TRANSITIVE omission are ONE emitted
   fact: `CallEmitter.WholeFormal` recognizes an argument that IS a whole formal parameter **by identity against
-  the unit's own `LinkageFormal` items** (`CallUnitState.Formals`) — never by a `__lnkp` name match, which could
+  the unit's own `LinkageFormal` items** (`CallUnitState.Formals`) — never by a `__lnk` name match, which could
   only see a CARRIER-RESIDENT formal — and `CallEmitter.Forwarded` guards EVERY mode's carrier build with the
   incoming carrier's presence, so the forward neither reads the formal (a BY CONTENT snapshot is a read) nor
   loses its omitted state (a group formal's copy-in field always answers `IsNull` false). A SUBITEM, a

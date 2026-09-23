@@ -141,7 +141,8 @@ public sealed class LinkageCarrierDriftTests : CobolNetTestBase
         Assert.Equal("IN SUB", stdout);
 
         string generated = File.ReadAllText(Path.Combine(TempDir, "prog.g.cs"));
-        Assert.Contains($"private ManagedPointer<{carrier}> __lnkp0", generated);
-        Assert.DoesNotContain("ManagedPointer<string> __lnkp0", generated);
+        // The carrier is Uid-keyed (`__lnk{Uid}` — kb/Work PB1009), so the name is matched by shape.
+        Assert.Matches($@"private ManagedPointer<{System.Text.RegularExpressions.Regex.Escape(carrier)}> __lnk\d+ ", generated);
+        Assert.DoesNotMatch(@"ManagedPointer<string> __lnk\d+ ", generated);
     }
 }

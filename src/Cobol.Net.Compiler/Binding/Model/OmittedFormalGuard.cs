@@ -25,7 +25,7 @@ namespace CobolNet.Binding.Model;
 /// <param name="FormalName">The COBOL name, for the diagnostic detail.</param>
 /// <param name="CarrierPrefix">Non-null when the root segment's field text BEGINS with a reference-type carrier
 /// that is passed through the guard rather than taken by <c>ref</c>: a carrier-resident formal's
-/// <c>__lnkpN</c> (its field text is <c>__lnkpN.Value</c>) or a cell-backed class's <c>StorageCell</c>.</param>
+/// <c>__lnk{Uid}</c> (its field text is <c>__lnk{Uid}.Value</c>) or a cell-backed class's <c>StorageCell</c>.</param>
 public sealed record OmittedFormalGuard(string Presence, ActivatedElementKind Kind, string FormalName,
     string? CarrierPrefix = null)
 {
@@ -51,7 +51,7 @@ public sealed record OmittedFormalGuard(string Presence, ActivatedElementKind Ki
         string tail = $"{Presence}, {nameof(ActivatedElementKind)}.{Kind}, \"{FormalName}\")";
         if (CarrierPrefix is not { } carrier)
             return $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Ref)}(ref {rootText}, {tail}";
-        // The carrier is the leading reference-type part of the root text ("__lnkp0" of "__lnkp0.Value", after
+        // The carrier is the leading reference-type part of the root text ("__lnk7" of "__lnk7.Value", after
         // any "__outer." re-anchoring); the rest ("…Value") applies to what the guard hands back.
         int at = rootText.IndexOf(carrier, System.StringComparison.Ordinal);
         if (at < 0)

@@ -519,8 +519,15 @@ internal sealed class BinderDriver
         // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
         // from ITS container before it bound (units bind container-first).
         if (unit.Parent is not null) data.InheritConfiguration(unit.Parent.Data);
+        // The container's GLOBAL constant-names (§13.18.27.4 GR1–GR2; kb/Work PB1009) — compile-time
+        // substitutions, so they join BEFORE this unit binds, and a local data-name shadows them after. EVERY
+        // container, nearest first (the nearest global declaration wins): an intermediate program's own NON-global
+        // declaration of the name hides nothing from the programs it contains.
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+            data.InheritGlobalConstants(anc.Data);
 
         data.Bind(unit.Ctx);
+        data.DropShadowedConstants();
         unit.Data = data;
 
         // The unit's EC-EXTERNAL enablement facts (ISO §14.8.4.1): the ACTIVATED-element mask is the group
@@ -577,18 +584,10 @@ internal sealed class BinderDriver
                             if (!data.Conditions.TryGetValue(condName, out var list)) data.Conditions[condName] = list = [];
                             list.Add(cond);
                         }
-                if (g.Class is { Tier: RedefinesTier.StringCanonical } cls)
-                    unit.Bridges.Add(new CallBridge(cls.BackingCsName, outer + cls.BackingCsName, "backing", null));
-                else
-                    unit.Bridges.Add(new CallBridge(g.CsName, outer + g.CsName, "field", g));
-                // A GLOBAL FORMAL PARAMETER of the container (§13.18.27.3 SR1b admits GLOBAL in the linkage
-                // section): its guarded references in THIS program read the container's presence member under
-                // the same Uid-keyed name (kb/Work PB971).
-                if (g.OmittedGuard is { } og)
-                    unit.Bridges.Add(new CallBridge(og.Presence, outer + og.Presence, "presence", g));
-                foreach (string idxName in IndexNamesUnder(g))
-                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
-                        unit.Bridges.Add(new CallBridge(field, outer + field, "index", null));
+                // Every container member a reference to the root can render, from the ONE list the container's
+                // binder owns (kb/Work PB1009 — the per-residence arms used to be spelled here, and the
+                // carrier-resident formal and the BASED item's address pointer were missing from them).
+                unit.Bridges.AddRange(anc.Data.GlobalBridgesOf(g, outer));
             }
         }
 

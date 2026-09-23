@@ -267,10 +267,10 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         var (item, occursDisp) = r;
         DataItem root = item;
         while (root.Parent is { } p) root = p;
-        bool cellBacked = root.Class is { Tier: RedefinesTier.StringCanonical } cls
-            && (cls.BasedPointerField is not null
-                || ctx.Data.PtrAddressableCellOf.ContainsKey(cls)
-                || ctx.Data.CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName));
+        // The CLASS says whether it is cell-backed (RedefinesClass.IsCellBacked — set by the one forcer for all three
+        // surfaces), never this unit's own tables: a contained program's ADDRESS OF a GLOBAL name addresses the
+        // CONTAINER's cell, which the container's tables list and this unit's do not (kb/Work PB1009).
+        bool cellBacked = root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: true };
         if (!cellBacked)
         {
             // ⛔ NAME THE ACTUAL REASON. The cell forcer already recorded WHY it refused — the residue clause
@@ -279,10 +279,11 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // one surface that could not say what was wrong was the one the user reads. Its two siblings
             // (CallMakeExternal, PtrBindBasedAndAddressables) had always interpolated it; this was the third
             // arm of that dispatch. The list survives only as the fallback for the shapes that never reach
-            // the forcer at all: an OCCURS-resident anchor, a carrier-resident LINKAGE formal.
+            // the forcer at all: an OCCURS-resident anchor. (A carrier-resident LINKAGE formal no longer reaches
+            // here — an addressed formal is never resident, kb/Work PB1019.)
             string why = root.Class is { Tier: RedefinesTier.Rejected, RejectReason: { } reason }
                 ? reason
-                : "an OCCURS-resident anchor or a carrier-resident LINKAGE formal — named increment residue";
+                : "an OCCURS-resident anchor — named increment residue";
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{addrRef.GetText()}': the operand's record could not be placed on addressable "
                 + $"cell storage ({why}; ISO §8.4.3.11)");

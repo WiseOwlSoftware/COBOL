@@ -41,14 +41,13 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             return item.ClassOffset == 0 && ReferenceEquals(item, root) && a.OccursDisplacement is null
                 ? addr
                 : RuntimeApi.PtrUpBy(addr, off);
-        if (ctx.Data.PtrAddressableCellOf.TryGetValue(cls, out var cell))
-            return $"ManagedPointer.At({cell}, {off})";
-        // ⛔ The SAME seed expression the backing property emits (DataEmitter.ExternalCellSeed — the ONE
-        // composer): whichever of the two runs first CREATES the run-unit cell, so a divergence here would make
-        // the record's initial content depend on statement order.
-        if (ctx.Data.CallExternalBackings.FirstOrDefault(b => b.BackingCsName == cls.BackingCsName) is { } ext)
-            return $"ManagedPointer.At(ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                + $"{new DataEmitter(ctx).ExternalCellSeed(ext)}), {off})";
+        // Every other cell-backed class — ADDRESS-OF-forced or EXTERNAL — addresses the cell member the class
+        // NAMES (RedefinesClass.BackingCellCsName): the unit's own per-instance cell, the EXTERNAL cell property
+        // over ExternalStore (whose one seed composer the property already calls), or — in a contained program —
+        // the ref-bridge to the container's cell (kb/Work PB1009). This used to look the class up in THIS unit's
+        // tables, which a contained program's ADDRESS OF a GLOBAL name could never satisfy.
+        if (cls.IsCellBacked)
+            return $"ManagedPointer.At({cls.BackingCellCsName}, {off})";
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 

@@ -23,7 +23,7 @@ public abstract record OmittedProbe
 {
     private OmittedProbe() { }
 
-    /// <summary>The program/function arm: the formal's <c>ManagedPointer</c> carrier field (<c>__lnkpN</c>).</summary>
+    /// <summary>The program/function arm: the formal's <c>ManagedPointer</c> carrier field (<c>__lnk{Uid}</c>).</summary>
     public sealed record Carrier(string CarrierField) : OmittedProbe;
 
     /// <summary>The method arm: the name of the formal's <c>bool</c> omitted-presence parameter.</summary>

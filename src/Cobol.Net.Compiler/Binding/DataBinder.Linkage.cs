@@ -17,7 +17,8 @@ using Core = CobolParserCore;
 /// </summary>
 /// <param name="Item">The LINKAGE-section 01/77 item the header USING operand names.</param>
 /// <param name="Position">The 0-based positional slot (ISO §14.2.3 GR2 — correspondence is positional, never by name).</param>
-/// <param name="CarrierField">The emitted <c>ManagedPointer&lt;T&gt;</c> field name (<c>__lnkpN</c>).</param>
+/// <param name="CarrierField">The emitted <c>ManagedPointer&lt;T&gt;</c> field name (<c>__lnk{Uid}</c> — Uid-keyed so a
+/// contained program's ref-bridge of a GLOBAL formal cannot collide with its own formals; kb/Work PB1009).</param>
 /// <param name="CarrierResident">True when the formal is CARRIER-RESIDENT: an elementary formal whose every
 /// reference reads/writes the caller's storage through <c>carrier.Value</c> (the design's "one unavoidable
 /// indirection" — per-access aliasing per ISO §14.2.3 GR8). False for a group formal or a REDEFINED elementary
@@ -141,7 +142,7 @@ public sealed partial class DataBinder
 
     /// <summary>The C# names of class-level fields the <c>FieldEmitter</c> must NOT declare because another
     /// mechanism provides the member: a carrier-resident LINKAGE formal's "field" IS the carrier accessor
-    /// (<c>__lnkpN.Value</c> — the caller owns the storage, ISO §13.7.1 / §14.2.3 GR8), and an inherited
+    /// (<c>__lnk{Uid}.Value</c> — the caller owns the storage, ISO §13.7.1 / §14.2.3 GR8), and an inherited
     /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §13.18.27 GR2 —
     /// global index-names are shared, never duplicated). (READ-ONLY view — P6 Step 5; the inherited-index
     /// suppression writes through <see cref="SeedInheritedGlobalIndex"/>.)</summary>
@@ -153,6 +154,47 @@ public sealed partial class DataBinder
     /// bridges their fields into the nested classes. (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<DataItem> CallGlobalRoots => _callGlobalRoots;
     private readonly List<DataItem> _callGlobalRoots = [];
+
+    /// <summary>⛔ THE ONE LIST OF THIS UNIT'S MEMBERS THAT A REFERENCE TO GLOBAL ROOT <paramref name="g"/> CAN
+    /// RENDER (kb/Work PB1009) — each becomes a bridge in a contained program, re-anchored behind
+    /// <paramref name="outer"/> (ISO §13.18.27.4 GR2: "A statement in a program contained directly or indirectly
+    /// within a program that describes a global name may reference that name without describing it again" — the
+    /// storage stays the container's). A reference renders the root's STORAGE member and, for the residences that
+    /// have them, the members around it, so every residence §13.18.27.3 SR1 b) admits (file, working-storage,
+    /// local-storage, linkage) is answered here:
+    /// <list type="bullet">
+    /// <item>a Tier-B class (REDEFINES / EXTERNAL / BASED / ADDRESS-OF-taken) → its string backing, plus the
+    /// <c>StorageCell</c> behind it when the class is cell-backed (a pointer-class member's slot and an
+    /// <c>ADDRESS OF</c> both name the cell), plus a BASED class's implicit data-address pointer (every
+    /// reference displaces by it, and SET ADDRESS OF / ALLOCATE / FREE write it);</item>
+    /// <item>a CARRIER-RESIDENT formal → its <c>ManagedPointer</c> carrier (its "field" IS
+    /// <c>carrier.Value</c>, so the bridge is the carrier, never the accessor text);</item>
+    /// <item>any other root → its field;</item>
+    /// <item>a guarded formal → its omitted-presence member (kb/Work PB971); a table → its index fields.</item>
+    /// </list>
+    /// ⛔ A new residence adds its member HERE, and <c>GlobalBridgeResidenceDriftTests</c> is red until it does.</summary>
+    internal IEnumerable<CallBridge> GlobalBridgesOf(DataItem g, string outer)
+    {
+        if (g.Class is { Tier: RedefinesTier.StringCanonical } cls)
+        {
+            yield return new CallBridge(cls.BackingCsName, outer + cls.BackingCsName, CallBridgeKind.Backing, null);
+            if (cls.IsCellBacked)
+                yield return new CallBridge(cls.BackingCellCsName, outer + cls.BackingCellCsName, CallBridgeKind.Cell, null);
+            if (cls.BasedPointerField is { } addr)
+                yield return new CallBridge(addr, outer + addr, CallBridgeKind.Address, null);
+        }
+        else if (_linkageFormals.FirstOrDefault(f => f.CarrierResident && ReferenceEquals(f.Item, g)) is { } rf)
+            yield return new CallBridge(rf.CarrierField, outer + rf.CarrierField, CallBridgeKind.Carrier, g, rf);
+        else
+            yield return new CallBridge(g.CsName, outer + g.CsName, CallBridgeKind.Field, g);
+        // A GLOBAL FORMAL PARAMETER of the container: its guarded references in the contained program read the
+        // container's presence member under the same Uid-keyed name (kb/Work PB971).
+        if (g.OmittedGuard is { } og)
+            yield return new CallBridge(og.Presence, outer + og.Presence, CallBridgeKind.Presence, g);
+        foreach (string idxName in IndexNamesUnder(g))
+            if (IndexFields.TryGetValue(idxName, out string? field))
+                yield return new CallBridge(field, outer + field, CallBridgeKind.Index, null);
+    }
 
     /// <summary>The EXTERNAL records' synthesized run-unit backings (ISO §13.18.22; emitted as
     /// <c>ref</c>-properties over <c>ExternalStore</c>). (READ-ONLY view — P6 Step 5.)</summary>
@@ -202,6 +244,11 @@ public sealed partial class DataBinder
         // grammar's one-parameter-per-node shape (the CALL callArgument precedent).
         int pos = 0;
         bool byValue = false;
+        // The names any ADDRESS OF in this unit or a contained one takes (the SAME scan the pointer pass forces
+        // cells from — a GLOBAL formal can be addressed from a contained program, kb/Work PB1009/PB1019).
+        var addressed = DataBinder.PtrScanAddressOfSenders(pd)
+            .Concat(program.nestedProgram().SelectMany(DataBinder.PtrScanAddressOfSenders))
+            .Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var prm in pd.usingClause()?.usingParameter() ?? [])
         {
             using var _ = Edition.At(prm);
@@ -268,7 +315,13 @@ public sealed partial class DataBinder
                         + "object/pointer BY VALUE formals are carried");
             }
 
-            string carrier = $"__lnkp{pos}";
+            // ⛔ THE CARRIER NAME IS Uid-KEYED, NOT POSITIONAL (kb/Work PB1009). A carrier-resident formal's
+            // "field" IS `carrier.Value`, and a GLOBAL formal (§13.18.27.3 SR1 b) admits GLOBAL in the linkage
+            // section) is referenced from every contained program by that same text through a ref-bridge — so
+            // a positional `__lnkp0` collided with the contained program's OWN first formal: its references to
+            // either item read one carrier, and the bridge declared a second member of the same name. The
+            // Uid-keyed name (the `__omit{Uid}` presence member's rule) cannot collide within a group.
+            string carrier = $"__lnk{item.Uid}";
             // Carrier-resident = per-access aliasing of the caller's storage (design D1: "refs to LK-CTR
             // read/write LK_CTR.Value — the one unavoidable indirection"). Available for an elementary
             // fixed-point/character formal NOT overlaid by another linkage entry; a group formal (a different
@@ -289,8 +342,18 @@ public sealed partial class DataBinder
             // resident arm dereferenced `f.Item.Pic!` on a group whose Pic was, correctly, null — a compiler
             // NullReferenceException on legal source. The structural test cannot go stale: the forest under this
             // root is complete when CallBindLinkage runs. kb/Work PB495.
+            // ⛔ AN ADDRESSED FORMAL IS NOT RESIDENT (kb/Work PB1019). ISO §8.4.3.11.3 SR1 admits a linkage-section
+            // item as identifier-1 of ADDRESS OF, and §8.4.3.11.4 GR1 makes the result "the address of
+            // identifier-1" — an address the BASED machinery dereferences to a StorageCell. A resident formal's
+            // storage is the caller's, reached only through the carrier's accessor, so it has no cell to address;
+            // forcing one used to build the cell's name from the accessor text (`_scell___lnkp0.Value` — Roslyn
+            // CS1003 on conforming source). An addressed formal therefore takes the round-trip arm every group
+            // formal already takes: its storage is a callee-local cell (PtrBindBasedAndAddressables forces it),
+            // the caller's image copied in at entry and out at return — §14.2.3 GR8's "as if the formal parameter
+            // occupies the same storage area as the argument", realized at the activation boundary.
             bool resident = item.Children.Count == 0 && item.IsElementary
-                && !redefined && item.Pic is { IsFloat: false };
+                && !redefined && item.Pic is { IsFloat: false }
+                && !addressed.Contains(item.CobolName ?? "");
             if (resident)
             {
                 // The item's C# "path" becomes the carrier's Value accessor: every Place built over it reads

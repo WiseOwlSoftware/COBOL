@@ -62,10 +62,41 @@ public sealed partial class DataBinder
     public sealed record ConstantDef(
         string Name, PicCategory Category, string Text, bool IsInteger, bool IsGlobal, string RawText);
 
-    /// <summary>The per-unit compile-time constant table (§13.10.4 GR1 substitution source). GLOBAL visibility
-    /// into contained programs (the [IS GLOBAL] phrase) is parsed and recorded but not yet propagated — a
-    /// nested-program reference fails loud as an unresolved name (recorded P10 residue).</summary>
+    /// <summary>The per-unit compile-time constant table (§13.10.4 GR1 substitution source). It also holds the
+    /// GLOBAL constants of every containing program (<see cref="InheritGlobalConstants"/>, kb/Work PB1009), named
+    /// in <see cref="_inheritedConstants"/> until a local declaration shadows them.</summary>
     private readonly Dictionary<string, ConstantDef> _constants = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The names in <see cref="_constants"/> that came from a container, not from this unit's own entries.</summary>
+    private readonly HashSet<string> _inheritedConstants = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>ISO §13.18.27.4 GR1–GR2 for constant-names (kb/Work PB1009): "A constant-name, data-name, file-name,
+    /// report-name, or screen-name described using a GLOBAL clause is a global name", and "A statement in a program
+    /// contained directly or indirectly within a program that describes a global name may reference that name
+    /// without describing it again". A constant occupies no storage, so it needs no bridge — the container's
+    /// folded definition joins this unit's table BEFORE this unit binds (definition precedes reference, the §13.10.4
+    /// GR1 substitution model). The caller passes EVERY container, nearest first, and the first definition of a
+    /// name wins — "directly or indirectly", with the nearest global declaration taking precedence. A local declaration of
+    /// the same name shadows (§8.4.6): a local constant entry replaces the inherited one
+    /// (<see cref="BindConstantEntry"/>), and a local data-name removes it (<see cref="DropShadowedConstants"/>).</summary>
+    internal void InheritGlobalConstants(DataBinder container)
+    {
+        foreach (var (name, def) in container._constants)
+            if (def.IsGlobal && _constants.TryAdd(name, def))
+                _inheritedConstants.Add(name);
+    }
+
+    /// <summary>After this unit's DATA DIVISION is bound: an inherited GLOBAL constant whose name this unit declares
+    /// as a data item is SHADOWED by it (§8.4.6 — the nearest declaration of a name is the one referenced), so it
+    /// leaves the table before any procedure reference can substitute it (kb/Work PB1009).</summary>
+    internal void DropShadowedConstants()
+    {
+        foreach (string name in _inheritedConstants.Where(ByName.ContainsKey).ToList())
+        {
+            _constants.Remove(name);
+            _inheritedConstants.Remove(name);
+        }
+    }
 
     /// <summary>The defined constant named <paramref name="name"/>, or null (§13.10.4 GR1 lookup).</summary>
     internal ConstantDef? FindConstant(string name) => _constants.TryGetValue(name, out var d) ? d : null;
@@ -150,6 +181,11 @@ public sealed partial class DataBinder
             : BindConstantArithmetic(name, isGlobal, cv.arithmeticExpression(), where);
         if (def is null) return;
 
+        // A container's GLOBAL constant of the same name is SHADOWED by this local entry (§8.4.6 scope of names;
+        // kb/Work PB1009). ⚠ DETERMINATION: SR9's "duplicates another constant-name" is read within one source
+        // element — the contained program's own declaration is the one its references mean, as for any global
+        // data-name it redeclares — not as a cross-element obligation to repeat the container's specification.
+        if (_inheritedConstants.Remove(name)) _constants.Remove(name);
         // §13.10.3 SR9: a duplicate constant-name shall carry the SAME specification as the prior entry.
         if (_constants.TryGetValue(name, out var prior))
         {

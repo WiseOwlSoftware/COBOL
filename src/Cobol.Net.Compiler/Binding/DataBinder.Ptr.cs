@@ -74,7 +74,16 @@ public sealed partial class DataBinder
             _ptrBasedBridges.Add((cls.BackingCsName, cls.BackingCellCsName, addr, cls.Width));
         }
 
-        foreach (var (name, quals, method) in PtrScanAddressOfTargets(program))
+        // The addressed names: this unit's own procedure division(s), plus — kb/Work PB1009 — every CONTAINED
+        // program's, restricted to this unit's GLOBAL names. §13.18.27.4 GR2 lets a contained program reference
+        // a global name "without describing it again", and the storage it references is THIS unit's, so the
+        // decision that the storage must be addressable belongs here, where the storage is declared. (A name the
+        // contained program also declares locally shadows the global one; forcing the global's cell anyway is
+        // harmless — it changes where the value lives, never what it is.)
+        var targets = PtrScanAddressOfTargets(program).Select(t => (t.Name, t.Qualifiers, t.Method, Contained: false))
+            .Concat(program.nestedProgram().SelectMany(PtrScanAddressOfSenders)
+                .Select(t => (t.Name, t.Qualifiers, Method: (OoMethodSymbol?)null, Contained: true)));
+        foreach (var (name, quals, method, contained) in targets)
         {
             // An unqualified head keeps the historical first-candidate pick (a duplicate-name mis-force is
             // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §8.4.2.2
@@ -86,6 +95,7 @@ public sealed partial class DataBinder
                 continue;   // unresolved / ambiguous — the SET bind reports 0869 with the source text
             DataItem root = hit;
             while (root.Parent is { } p) root = p;
+            if (contained && !CallGlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
             if (root.IsBased) continue;                 // ADDRESS OF a based item reads its implicit pointer (§8.6.5)
             // A METHOD's LINKAGE formal (or its RETURNING item) crosses the method boundary as its typed carrier
             // (§14.9.23.4 GR8; OoEmitter.EmitMethod's copy-in/copy-out), so re-basing it onto a cell would leave
@@ -165,7 +175,9 @@ public sealed partial class DataBinder
             yield return (n, q, null);
     }
 
-    private static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfSenders(IParseTree pd)
+    /// <summary>The data-address-identifier heads under one parse subtree (a procedure division or a whole
+    /// contained program) — shared with <c>DataBinder.CallBindLinkage</c>'s addressed-formal scan (kb/Work PB1019).</summary>
+    internal static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfSenders(IParseTree pd)
     {
         foreach (var ctx in PtrDescendants(pd))
             if (ctx is Core.DataAddressIdentifierContext { } dai && dai.dataReference() is { } target)

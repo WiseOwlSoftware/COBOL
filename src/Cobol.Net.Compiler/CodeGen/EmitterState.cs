@@ -344,7 +344,7 @@ internal sealed class CallUnitState
     /// the omitted-argument condition is true" — and §14.9.4.4 GR12's "except as an argument" exemption: a
     /// rebuilt carrier answers <c>IsNull</c> false, so the next callee saw a PRESENT argument, and a rebuilt
     /// BY CONTENT snapshot READ the omitted formal and raised EC-PROGRAM-ARG-OMITTED where the exemption
-    /// applies. ⛔ The recognition is STRUCTURAL (identity against these items), never a <c>__lnkp</c> name
+    /// applies. ⛔ The recognition is STRUCTURAL (identity against these items), never a <c>__lnk</c> name
     /// match: the name match only ever saw a CARRIER-RESIDENT formal, which is exactly why a GROUP formal —
     /// whose carrier is a copy-in field, not the caller's storage — lost its omission.
     /// Set per unit alongside <see cref="ReturningPlace"/>.</summary>

@@ -632,9 +632,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>The PROCEDURE DIVISION USING formal this argument place denotes AS A WHOLE, or null
     /// (ISO §8.8.4.8.4 GR1c / §14.9.4.4 GR12 — kb/Work PB165).
-    /// <para>⛔ THE TEST IS IDENTITY AGAINST THE UNIT'S FORMAL LIST, not a <c>__lnkp</c> prefix match on the
+    /// <para>⛔ THE TEST IS IDENTITY AGAINST THE UNIT'S FORMAL LIST, not a <c>__lnk</c> prefix match on the
     /// emitted field name. The name match could only ever see a CARRIER-RESIDENT formal — <c>DataBinder</c>
-    /// rewrites just those to <c>__lnkpN.Value</c> — so a GROUP formal, whose carrier is a copy-in field with
+    /// rewrites just those to <c>__lnk{Uid}.Value</c> — so a GROUP formal, whose carrier is a copy-in field with
     /// an ordinary name, fell through and lost its omitted state on every forward. Identity sees both, and it
     /// keeps seeing both when a future residency rule changes.</para>
     /// <para>Identity against the formal's own <c>DataItem</c> is itself the whole-item test: a SUBITEM
