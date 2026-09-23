@@ -28,7 +28,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
     private _T_0 WS_TBL = new _T_0 { WS_ELEM = new long[] { 0L, 0L, 0L, 0L, 0L } };   // WS-TBL
     private long J = 0L;   // J
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

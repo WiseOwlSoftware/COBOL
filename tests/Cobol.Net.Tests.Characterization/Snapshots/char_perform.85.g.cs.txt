@@ -14,7 +14,7 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
     private long I = 0L;   // I
     private long T = 0L;   // T
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

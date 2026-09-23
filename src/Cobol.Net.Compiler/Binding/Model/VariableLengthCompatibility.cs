@@ -174,38 +174,78 @@ internal static class VariableLengthCompatibility
         return string.Join(",", outp);
     }
 
-    /// <summary>The CHARACTER-POSITION spans of a FIXED-length group's tables within its record image, in
-    /// declaration order — the compile-time half of <c>CobolVarGroup.FromFixedImage</c> (kb/Work PB393). It is
-    /// what lets a fixed group stand on the other side of an ISO §14.9.25.4 GR9 move: §8.5.1.12.3 sentence 3
-    /// treats its table "as though it were a dynamic-capacity table whose capacity is either its fixed number of
-    /// occurrences or the value of the DEPENDING operand", so the group decomposes into the SAME carrier the
-    /// variable-length side composes, and the two sides' components then line up one for one exactly as
-    /// §8.5.1.12.2's positional correspondence says they do.
-    /// <para>A width of −1 marks an OCCURS DEPENDING table, whose current extent is a run-time length; ISO
-    /// §13.18.38.3 SR22 makes it the trailing storage of its record, so "the rest of the image" IS its current
-    /// occurrences. <see langword="null"/> when the layout cannot be spanned in characters at compile time — a
-    /// subtree with a USAGE BIT leaf (§8.5.1.6.3's shared-byte runs make the sum non-positional), a group that is
-    /// itself variable-length (it has its own composer and never needs this), or a variable-occurrence table that
-    /// is not the last atom (which SR22 forbids, so the guard is a proof, not a case).</para></summary>
-    public static IReadOnlyList<(int At, int Width)>? FlatTableSpans(DataItem g)
+    /// <summary>⛔ THE GROUP'S §8.5.1.12 LAYOUT as the runtime reads it — flat <c>(kind, chars, elementChars)</c>
+    /// triples in CHARACTER positions, the kinds being <c>CobolVarGroup.Layout*</c> (kb/Work PB965). It is the
+    /// compile-time half of <c>CobolVarGroup.CorrespondingSpans</c>, which pairs a FIXED group's layout with a
+    /// VARIABLE-length group's and answers which of the fixed group's tables correspond (§8.5.1.12.2) — the
+    /// spans <c>CobolVarGroup.FromFixedImage</c> lifts out so a fixed group can stand on the other side of an
+    /// ISO §14.9.25.4 GR9 move, a §14.8.2.2 CALL argument/formal pair or a §14.8.3.2 returning pair.
+    /// <para>It replaced <c>FlatTableSpans</c>, which answered "EVERY table of the fixed group" — a fact about
+    /// ONE group, where §8.5.1.12.2's correspondence ("they occupy the same relative byte positions within
+    /// their groups") is a fact about the PAIR. A fixed table opposite plain bytes of the variable-length group
+    /// was lifted as a component anyway, every later component shifted one place, and the wrong table was
+    /// moved (measured: `MOVE SRC TO VLG` with a leading two-occurrence table landed that table in the dynamic
+    /// one). Across a CALL each side is compiled apart, so the layout TRAVELS (<c>CobolArg.Layout</c>) and the
+    /// pair is decided where both are in hand.</para>
+    /// <para>Fixed material is merged into one run; a fixed table carries its whole width, an OCCURS DEPENDING
+    /// table its maximum (§14.8.2.2: "the maximum length is used"; §13.18.38.3 SR22 makes it the last atom), a
+    /// dynamic-capacity table one element (§8.5.1.12.3 sentence 4), a dynamic-length item nothing.
+    /// <see langword="null"/> for a non-group or a subtree with a USAGE BIT leaf (§8.5.1.6.3's shared-byte runs
+    /// make a character position non-positional).</para></summary>
+    public static int[]? Layout(DataItem g)
     {
-        if (!ItemCategory.IsGroupItem(g) || IsVariableLength(g) || g.HasBitDescendant) return null;
-        var spans = new List<(int At, int Width)>();
-        int at = 0;
-        var atoms = AtomsOf(g);
-        for (int i = 0; i < atoms.Count; i++)
+        if (!ItemCategory.IsGroupItem(g) || g.HasBitDescendant) return null;
+        var outp = new List<int>();
+        int run = 0;
+        void Flush()
         {
-            var a = atoms[i];
-            if (a.Kind is AtomKind.Table)
-            {
-                bool odo = a.Item.OccursSpec is { DependingName: not null };
-                if (odo && i != atoms.Count - 1) return null;   // SR22 says this cannot happen
-                spans.Add((at, odo ? -1 : a.ImageChars));
-            }
-            at += a.ImageChars;
+            if (run == 0) return;
+            outp.AddRange([CobolNet.Runtime.CobolVarGroup.LayoutFixed, run, 0]);
+            run = 0;
         }
-        return spans;
+        foreach (var a in AtomsOf(g))
+        {
+            switch (a.Kind)
+            {
+                case AtomKind.Fixed:
+                    run += a.ImageChars;
+                    break;
+                case AtomKind.DynamicLength:
+                    Flush();
+                    outp.AddRange([CobolNet.Runtime.CobolVarGroup.LayoutDynamicLength, 0, 0]);
+                    break;
+                default:
+                    Flush();
+                    int kind = a.DynamicCapacity ? CobolNet.Runtime.CobolVarGroup.LayoutDynamicTable
+                        : a.Item.OccursSpec is { DependingName: not null } ? CobolNet.Runtime.CobolVarGroup.LayoutOdoTable
+                        : CobolNet.Runtime.CobolVarGroup.LayoutTable;
+                    outp.AddRange([kind, a.ImageChars, a.Item.ImageWidth]);
+                    break;
+            }
+        }
+        Flush();
+        return [.. outp];
     }
+
+    /// <summary>True when a layout has anything but fixed material — a table or a variable-length member, the
+    /// only atoms §8.5.1.12.2's correspondence can pair. A layout of fixed material alone states nothing beyond the
+    /// group's length, which the runtime recovers from the carrier (<c>CobolVarGroup.FixedRun</c>), so the
+    /// boundary does not emit it.</summary>
+    public static bool HasTableOrVariable(int[] layout)
+    {
+        for (int k = 0; k < layout.Length; k += 3)
+            if (layout[k] != CobolNet.Runtime.CobolVarGroup.LayoutFixed) return true;
+        return false;
+    }
+
+    /// <summary>The spans of <paramref name="fixedGroup"/>'s tables that correspond to
+    /// <paramref name="varGroup"/>'s dynamic-capacity tables — the compile-time call of the ONE correspondence
+    /// walk (<c>CobolVarGroup.CorrespondingSpans</c>), for a pair both of whose descriptions are in hand (the
+    /// §14.9.25.4 GR9 MOVE). Null when either layout cannot be stated or the pair does not correspond.</summary>
+    public static int[]? CorrespondingSpans(DataItem fixedGroup, DataItem varGroup) =>
+        Layout(fixedGroup) is { } f && Layout(varGroup) is { } v
+            ? CobolNet.Runtime.CobolVarGroup.CorrespondingSpans(f, v)
+            : null;
 
     /// <summary>Null when <paramref name="one"/> and <paramref name="other"/> are COMPATIBLE per §8.5.1.12,
     /// else the reason, worded for a diagnostic. Two FIXED-length groups are compatible outright (§8.5.1.12.1:
@@ -224,21 +264,57 @@ internal static class VariableLengthCompatibility
         if (!oneGroup || !otherGroup)
             return $"'{(oneGroup ? other : one).CobolName}' is not a group: a variable-length group is "
                 + "compatible only with a group (ISO §8.5.1.12.1)";
-        return Walk(AtomsOf(one), AtomsOf(other), one, other);
+        return Walk(AtomsOf(one), AtomsOf(other), one, other, null);
     }
 
-    private static string? Walk(List<Atom> a, List<Atom> b, DataItem ga, DataItem gb)
+    /// <summary>⛔ THE PAIR-RELATIVE LENGTHS of two groups at least one of which is a variable-length group, in
+    /// CHARACTER positions — the only lengths a size rule may compare for such a pair (kb/Work PB965). A
+    /// variable-length group has no length of its own: its collapsed <see cref="DataItem.ImageWidth"/> counts a
+    /// dynamic-capacity table as one element, which is a convention for a pair of MATCHING dynamic-capacity
+    /// tables only (§8.5.1.12.3 sentence 4). When the corresponding table is NOT a dynamic-capacity table,
+    /// §8.5.1.12.3 sentence 3 decides instead — "For purposes of determining compatibility, the dynamic-capacity
+    /// table is considered to be the same length as the corresponding table" — a fact about the PAIR, so it is
+    /// answered by the SAME walk that decides the correspondence, never by either item alone. Comparing the
+    /// collapsed width is what refused a compatible variable-length argument BY REFERENCE into a fixed-length
+    /// formal ("the formal (7 character positions) exceeds the argument (5)"). Material past the shorter group's
+    /// last character counts on its own side only. Null when the pair is not compatible (<see cref="Mismatch"/>
+    /// says why) or either side is not a group.</summary>
+    public static (long One, long Other)? PairCharWidths(DataItem one, DataItem other)
+    {
+        if (!ItemCategory.IsGroupItem(one) || !ItemCategory.IsGroupItem(other)) return null;
+        var tally = new CharTally();
+        return Walk(AtomsOf(one), AtomsOf(other), one, other, tally) is null ? (tally.A, tally.B) : null;
+    }
+
+    /// <summary>The per-side character-position accumulator <see cref="PairCharWidths"/> threads through the
+    /// walk; null for a bare compatibility question.</summary>
+    private sealed class CharTally
+    {
+        public long A, B;
+    }
+
+    private static string? Walk(List<Atom> a, List<Atom> b, DataItem ga, DataItem gb, CharTally? tally)
     {
         int ia = 0, ib = 0;
         long pa = 0, pb = 0;
         while (ia < a.Count || ib < b.Count)
         {
-            if (ia >= a.Count) return Tail(b, ib, gb, ga);
-            if (ib >= b.Count) return Tail(a, ia, ga, gb);
+            if (ia >= a.Count) return Tail(b, ib, gb, ga, tally, sideA: false);
+            if (ib >= b.Count) return Tail(a, ia, ga, gb, tally, sideA: true);
             // The two sides are walked to the SAME relative byte position before any correspondence is decided:
             // §8.5.1.12.2 states BOTH correspondences as "the same relative byte positions within their groups".
-            if (pa < pb) { if (Skip(a, ref ia, ref pa, ga) is { } e) return e; continue; }
-            if (pb < pa) { if (Skip(b, ref ib, ref pb, gb) is { } e) return e; continue; }
+            if (pa < pb)
+            {
+                if (tally is not null) tally.A += a[ia].ImageChars;
+                if (Skip(a, ref ia, ref pa, ga) is { } e) return e;
+                continue;
+            }
+            if (pb < pa)
+            {
+                if (tally is not null) tally.B += b[ib].ImageChars;
+                if (Skip(b, ref ib, ref pb, gb) is { } e) return e;
+                continue;
+            }
 
             var x = a[ia];
             var y = b[ib];
@@ -280,12 +356,21 @@ internal static class VariableLengthCompatibility
                 // makes each one element long — which is the Width each atom already carries.
                 long len = x.DynamicCapacity && y.DynamicCapacity ? x.ElementBytes
                     : x.DynamicCapacity ? y.Width : x.Width;
+                if (tally is not null)
+                {
+                    // The same two sentences in CHARACTER positions: sentence 4 leaves each matching
+                    // dynamic-capacity table one element long; sentence 3 gives both the fixed table's length.
+                    bool both = x.DynamicCapacity && y.DynamicCapacity;
+                    tally.A += both || !x.DynamicCapacity ? x.ImageChars : y.ImageChars;
+                    tally.B += both || !y.DynamicCapacity ? y.ImageChars : x.ImageChars;
+                }
                 pa += len; pb += len; ia++; ib++;
                 continue;
             }
             // Plain bytes on both sides: consume one atom and let the position compare above re-align. Widths
             // may differ freely — the standard constrains the POSITIONS of the variable-length items, not the
             // shape of the fixed material between them.
+            if (tally is not null) tally.A += x.ImageChars;
             pa += x.Width; ia++;
         }
         return null;
@@ -314,13 +399,20 @@ internal static class VariableLengthCompatibility
     /// longer group is beyond the last character of the shorter group, the dynamic capacity table is treated as
     /// if it corresponds to a space-filled fixed-length table" — and grants it to TABLES ONLY. A trailing
     /// dynamic-LENGTH item still needs a real counterpart (rule 3), so it fails.</summary>
-    private static string? Tail(List<Atom> list, int i, DataItem host, DataItem other)
+    private static string? Tail(List<Atom> list, int i, DataItem host, DataItem other, CharTally? tally, bool sideA)
     {
         for (; i < list.Count; i++)
+        {
+            if (tally is not null)
+            {
+                if (sideA) tally.A += list[i].ImageChars;
+                else tally.B += list[i].ImageChars;
+            }
             if (list[i].Kind is AtomKind.DynamicLength)
                 return $"the dynamic-length item '{list[i].Item.CobolName}' of '{host.CobolName}' lies beyond "
                     + $"the last byte of '{other.CobolName}', which therefore has no corresponding "
                     + "dynamic-length item (ISO §8.5.1.12.1 rule 3 / §8.5.1.12.2)";
+        }
         return null;
     }
 
@@ -328,7 +420,7 @@ internal static class VariableLengthCompatibility
     /// recurses into the SAME relation (a table of variable-length groups is exactly the shape rule 2 exists
     /// for); an elementary element has no atoms of its own and its byte length was compared by the caller.</summary>
     private static string? Elements(DataItem x, DataItem y) =>
-        x.IsGroup && y.IsGroup ? Walk(AtomsOf(x), AtomsOf(y), x, y)
+        x.IsGroup && y.IsGroup ? Walk(AtomsOf(x), AtomsOf(y), x, y, null)
         : x.IsGroup != y.IsGroup
             ? $"'{(x.IsGroup ? y : x).CobolName}' is elementary and '{(x.IsGroup ? x : y).CobolName}' is a group"
             : null;

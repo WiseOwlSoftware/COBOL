@@ -337,6 +337,32 @@ public static class OoConformance
                 return TierCIsland.Reason(arg, "argument group");
             if (!formal.BoundaryImageCapable)
                 return TierCIsland.Reason(formal, "formal group");
+            // ⛔ A VARIABLE-LENGTH PAIR HAS NO LENGTH OF ITS OWN TO COMPARE (kb/Work PB965) — the collapsed
+            // ImageWidth below counts a dynamic-capacity table as one element, a convention §8.5.1.12.3 grants only
+            // to two MATCHING dynamic-capacity tables. Which size rule applies is the activation mode's:
+            //  • RETURNING (§14.8.3.2): the length sentence governs only when "neither of them is strongly typed
+            //    or a variable length group" — compatibility, checked above, is the WHOLE rule.
+            //  • BY REFERENCE (§14.8.2.2 rule 1): it binds only an ALPHANUMERIC group item, which a variable-length
+            //    group is not (§3.11 "alphanumeric group item": "group item except for … a variable-length group
+            //    item"). Two variable-length groups: compatibility is the whole rule. A fixed-length group opposite
+            //    one: rule 1 binds the fixed side, measured in the lengths §8.5.1.12.3 sentence 3 gives the PAIR
+            //    ("the dynamic-capacity table is considered to be the same length as the corresponding table").
+            //  • Override/prototype SIGNATURE equality (§9.3.8.2.3 — neither flag): unchanged, strict equality.
+            if (VariableLengthCompatibility.IsVariableLength(formal) || VariableLengthCompatibility.IsVariableLength(arg))
+            {
+                if (byRefGroupPrefix)
+                {
+                    if (VariableLengthCompatibility.IsVariableLength(formal)
+                        && VariableLengthCompatibility.IsVariableLength(arg))
+                        return null;
+                    var (fw, aw) = VariableLengthCompatibility.PairCharWidths(formal, arg)!.Value;
+                    return fw > aw
+                        ? $"the formal ({fw} character positions) exceeds the argument ({aw}) (ISO §14.8.2.2 "
+                          + "rule 1, in the lengths §8.5.1.12.3 gives the pair — the formal shall not be larger)"
+                        : null;
+                }
+                if (anyLengthActivationRelax) return null;
+            }
             // §14.8.2.2 rule 1 (BY REFERENCE): the formal may be SMALLER than (a prefix of) the argument —
             // the callee sees the leading formal-width character positions; the tail survives write-back.
             // Override signatures and RETURNING pairs keep strict equality.

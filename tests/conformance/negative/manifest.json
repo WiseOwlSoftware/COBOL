@@ -1324,7 +1324,9 @@
   "pb716-special-names-bare-word",
   "pb862-unavailable-device-name",
   "pb862-write-advancing-device-mnemonic",
-  "pb790-alphabet-through-with-also"
+  "pb790-alphabet-through-with-also",
+  "pb965-fixed-table-off-position",
+  "pb965-vlg-into-larger-fixed-formal"
  ],
  "pending": []
 }

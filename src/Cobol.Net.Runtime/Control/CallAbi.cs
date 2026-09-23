@@ -36,7 +36,19 @@ public enum CobolPassMode
 /// <param name="Carrier">The storage carrier (<see cref="ManagedPointer.Null"/> for OMITTED, GR11).</param>
 /// <param name="Num">The numeric description of the carried storage; null for character, group, pointer,
 /// object-reference and index storage, whose carrier needs no numeric reinterpretation.</param>
-public readonly record struct CobolArg(CobolPassMode Mode, ManagedPointer Carrier, NumProfile? Num)
+/// <param name="Layout">⛔ The GROUP description of the carried storage (kb/Work PB965): its §8.5.1.12 layout
+/// (the triples <see cref="CobolVarGroup.CorrespondingSpans"/> reads), stated for a group that has a table or a
+/// variable-length member — the one fact a boundary needs to put a FIXED-length group opposite a
+/// VARIABLE-length one. §8.5.1.12.2's correspondence is a relation between the two groups' layouts and the two
+/// sides of a CALL are compiled apart, so the layout travels with the storage exactly as <see cref="Num"/>
+/// does; null for every other carrier, and for a group with neither (whose correspondence with any
+/// variable-length group fails, which the null answers).</param>
+/// <remarks>⛔ A RETURNING ITEM CROSSES AS A <see cref="CobolArg"/> TOO (kb/Work PB962 + PB965). Its storage is
+/// the activating element's (§14.2.3 GR6 NOTE 1), so the delivery performed at the activated element's return
+/// needs the RECEIVER's description as much as an argument's adapter needs the argument's — a group receiver's
+/// layout to meet a compatible group of a different shape (§14.8.3.2), a numeric receiver's profile. A bare
+/// carrier could state neither.</remarks>
+public readonly record struct CobolArg(CobolPassMode Mode, ManagedPointer Carrier, NumProfile? Num, int[]? Layout = null)
 {
     /// <summary>The carried storage's digit count; 0 when <see cref="Num"/> is null.</summary>
     public int Digits => Num?.Digits ?? 0;
@@ -56,7 +68,7 @@ public interface ICobolProgram
     /// <summary>Activate as a CALLed program: map <paramref name="args"/> positionally onto the LINKAGE formals
     /// (ISO §14.2.3 GR2 — correspondence is positional, never by name), run, and deliver the RETURNING value (if
     /// any) through <paramref name="returning"/> (§14.2.3 GR7).</summary>
-    void Call(CobolArg[] args, ManagedPointer? returning);
+    void Call(CobolArg[] args, CobolArg? returning);
 
     /// <summary>Activate as the run-unit's main program (no arguments; LINKAGE unbound, ISO §13.7.4 GR3).</summary>
     void Activate();
@@ -403,12 +415,29 @@ public static class CobolArgAdapt
     /// <para><paramref name="width"/> = <c>-1</c> is the ANY LENGTH mode (ISO §13.18.2 GR1): the formal's length
     /// IS the caller's argument length, so the callee sees the caller's FULL string (a zero-length argument
     /// yields the zero-length item, GR1a) and every write re-fits to the argument's CURRENT length (GR1b — the
-    /// item behaves as n repetitions of its picture symbol, n fixed by the activation).</para></summary>
-    public static ManagedPointer<string> Text(CobolArg[] args, int i, int width)
+    /// item behaves as n repetitions of its picture symbol, n fixed by the activation).</para>
+    /// <para>⛔ <paramref name="groupLayout"/> is stated for a GROUP formal only — its §8.5.1.12 layout, or the
+    /// empty array for a group with no table (whose one §8.5.1.12 fact is its length, <see cref="CobolVarGroup.FixedRun"/>).
+    /// It admits a VARIABLE-LENGTH GROUP argument (kb/Work PB965): §14.8.2.2 "If either the formal parameter or
+    /// the argument is a variable length group, the formal parameter and the argument shall be compatible, as
+    /// described in 8.5.1.12", and §8.5.1.12.1 admits the pair "only one of the operands may be a variable-length
+    /// group". The argument arrives on the §8.5.1.12 carrier with its layout (<see cref="CobolArg.Layout"/>); the
+    /// ONE correspondence walk (<see cref="CobolVarGroup.CorrespondingSpans"/>) pairs the formal's tables with
+    /// the argument's dynamic-capacity tables, the view reads the argument's image through it
+    /// (<see cref="CobolVarGroup.ToFixedImage"/> — each table fitted to the formal's occurrence count, §8.5.1.12.3
+    /// sentence 3), and a store overlays the argument's storage (<see cref="CobolVarGroup.OverlayFixedImage"/>,
+    /// §14.2.3 GR8). Before PB965's finisher the pair was refused at bind by a size compare on the collapsed
+    /// width, and this arm did not exist.</para></summary>
+    public static ManagedPointer<string> Text(CobolArg[] args, int i, int width, int[]? groupLayout = null)
     {
         if (!Present(args, i)) return Omitted<string>(i);
         switch (args[i].Carrier)
         {
+            case ManagedPointer<CobolVarGroup> vp when VarGroupSpans(args[i], groupLayout, width) is { } spans:
+                return ManagedPointer<string>.OverField(
+                    () => CobolVarGroup.ToFixedImage(vp.Value ?? CobolVarGroup.Empty, width, spans),
+                    v => vp.Value = CobolVarGroup.OverlayFixedImage(vp.Value ?? CobolVarGroup.Empty,
+                        CobolString.Store(v, width), spans));
             case ManagedPointer<string> sp when width < 0:   // ANY LENGTH (§13.18.2 GR1) — the full-string view
                 return ManagedPointer<string>.OverField(
                     () => sp.Value ?? "",
@@ -490,9 +519,14 @@ public static class CobolArgAdapt
     /// (<paramref name="formal"/>), never the argument's digit run under a hard-coded unsigned profile, which
     /// is what dropped the sign of <c>-12.34</c>. <paramref name="formal"/> is null only for a formal with no
     /// numeric description, which takes the argument's own image.</para></summary>
-    public static ManagedPointer<string> TextValue(CobolArg[] args, int i, int width, NumProfile? formal, int formalScale)
+    public static ManagedPointer<string> TextValue(CobolArg[] args, int i, int width, NumProfile? formal, int formalScale,
+        int[]? groupLayout = null)
     {
         if (!Present(args, i)) return Omitted<string>(i);
+        // A variable-length group argument into a fixed-length GROUP formal BY CONTENT (kb/Work PB965): §14.8.2.2
+        // rule 2's MOVE, which §14.9.25.4 GR9 performs through the same correspondence (§8.5.1.12.3 sentence 3).
+        if (args[i].Carrier is ManagedPointer<CobolVarGroup> vp && VarGroupSpans(args[i], groupLayout, width) is { } vspans)
+            return ManagedPointer<string>.Cell(CobolVarGroup.ToFixedImage(vp.Value ?? CobolVarGroup.Empty, width, vspans));
         if (formal is { } f)
         {
             string? image = f.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64
@@ -516,13 +550,33 @@ public static class CobolArgAdapt
     /// <see cref="CobolVarGroup"/> the caller built, aliased whole: unlike <see cref="Text"/> there is no width
     /// window to apply here, because the fixed run and the component list are BOTH re-fitted by the receiving
     /// group's own emitted distributor — which knows its own geometry and is the only thing that can. A
-    /// non-var-group carrier means the sides disagreed about the crossing shape, which §8.5.1.12
-    /// compatibility is checked at bind precisely to prevent; it degrades to the omitted carrier rather than
-    /// silently reinterpreting storage.</summary>
-    public static ManagedPointer<CobolVarGroup> VarGroup(CobolArg[] args, int i)
+    /// <para>⛔ A FIXED-LENGTH GROUP ARGUMENT IS A LEGAL SENDER TOO (kb/Work PB965). §14.8.2.2 requires only that
+    /// "the formal parameter and the argument shall be compatible, as described in 8.5.1.12", and §8.5.1.12.1
+    /// admits the pair ("only one of the operands may be a variable-length group"). Such an argument arrives on
+    /// the fixed group's own character carrier, carrying its layout (<see cref="CobolArg.Layout"/>); the formal's
+    /// layout is <paramref name="formalLayout"/>, and <see cref="CobolVarGroup.CorrespondingSpans"/> pairs them.
+    /// The view decomposes the argument's image into the §8.5.1.12 carrier — its corresponding table crossing at
+    /// its fixed occurrence count (§8.5.1.12.3 sentence 3) — and, BY REFERENCE, writes the formal's changes back
+    /// into the SAME storage (§14.2.3 GR8) through the inverse. Before PB965 this arm did not exist: the
+    /// argument read as an empty carrier and the callee's stores were lost.</para>
+    /// <para>⚠ The callee cannot grow a fixed-length argument's table past its fixed extent — that storage has
+    /// no more occurrences — so the write-back fits each component to its table exactly as §14.6.9.2 fits a
+    /// dynamic sending table into a non-dynamic receiving one: superfluous occurrences are not moved, missing
+    /// ones are space filled (<see cref="CobolVarGroup.ToFixedImage"/>).</para>
+    /// <para>Any other carrier, or a layout pair that does not correspond, means the two sides do not conform
+    /// (§14.8.2.2 via §14.9.4.4 GR3 d)) — loud, never a silent reinterpretation.</para></summary>
+    public static ManagedPointer<CobolVarGroup> VarGroup(CobolArg[] args, int i, int[] formalLayout)
     {
         if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
-        return args[i].Carrier is ManagedPointer<CobolVarGroup> vp ? vp : Unreadable<CobolVarGroup>(args, i, "a variable-length group formal");
+        return args[i].Carrier switch
+        {
+            ManagedPointer<CobolVarGroup> vp => vp,
+            ManagedPointer<string> sp when CobolVarGroup.CorrespondingSpans(FixedLayoutOf(args[i], sp), formalLayout) is { } spans =>
+                ManagedPointer<CobolVarGroup>.OverField(
+                    () => CobolVarGroup.FromFixedImage(sp.Value ?? "", spans),
+                    v => sp.Value = CobolVarGroup.ToFixedImage(v, sp.Value?.Length ?? 0, spans)),
+            _ => Unreadable<CobolVarGroup>(args, i, "a variable-length group formal"),
+        };
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a DYNAMIC LENGTH formal (ISO §13.18.19; kb/Work PB165).
@@ -559,13 +613,18 @@ public static class CobolArgAdapt
 
     /// <summary>The BY VALUE / BY CONTENT twin of <see cref="VarGroup"/> (ISO §14.2.3 GR9/GR10 — a copy
     /// allocated by the activating element): a DETACHED cell holding the argument's carrier value, so the
-    /// callee's stores never reach the caller's storage.</summary>
-    public static ManagedPointer<CobolVarGroup> VarGroupValue(CobolArg[] args, int i)
+    /// callee's stores never reach the caller's storage. A fixed-length group argument decomposes through the
+    /// same correspondence <see cref="VarGroup"/> uses (kb/Work PB965).</summary>
+    public static ManagedPointer<CobolVarGroup> VarGroupValue(CobolArg[] args, int i, int[] formalLayout)
     {
         if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
-        return args[i].Carrier is ManagedPointer<CobolVarGroup> vp
-            ? ManagedPointer<CobolVarGroup>.Cell(vp.Value ?? CobolVarGroup.Empty)
-            : Unreadable<CobolVarGroup>(args, i, "a BY VALUE variable-length group formal");
+        return args[i].Carrier switch
+        {
+            ManagedPointer<CobolVarGroup> vp => ManagedPointer<CobolVarGroup>.Cell(vp.Value ?? CobolVarGroup.Empty),
+            ManagedPointer<string> sp when CobolVarGroup.CorrespondingSpans(FixedLayoutOf(args[i], sp), formalLayout) is { } spans =>
+                ManagedPointer<CobolVarGroup>.Cell(CobolVarGroup.FromFixedImage(sp.Value ?? "", spans)),
+            _ => Unreadable<CobolVarGroup>(args, i, "a BY VALUE variable-length group formal"),
+        };
     }
 
     /// <summary>Adapt argument <paramref name="i"/> to a MANAGED-SLOT formal — a formal of class pointer or
@@ -602,99 +661,212 @@ public static class CobolArgAdapt
         return args[i].Carrier is ManagedPointer<T> mp ? ManagedPointer<T>.Cell(mp.Value) : Unreadable<T>(args, i, "a BY VALUE pointer or object-reference formal");
     }
 
-    /// <summary>Deliver a RETURNING value to the caller's RETURNING carrier (ISO §14.2.3 GR7 — at termination the
-    /// returning item's value transfers to the activating element's RETURNING identifier). Null-tolerant: a CALL
-    /// without RETURNING discards the value (deep-dive edge case). The overload set spans the four native
-    /// carriers (kb/Work R12); a cross-carrier delivery rides the numeric-cell pair (Int128 lane, bits at the
-    /// UInt128 ends).</summary>
-    public static void StoreReturn(ManagedPointer? ret, long value) => StoreReturnNum(ret, value);
+    /// <summary>Deliver a RETURNING value to the caller's RETURNING item (ISO §14.6.5 — "the result is placed in
+    /// the data item referenced by that RETURNING phrase of that activating statement"). Null-tolerant: a CALL
+    /// without RETURNING discards the value (§14.9.4.4 GR4 has no receiver). <paramref name="ret"/> is the
+    /// receiver's carrier AND description (<see cref="CobolArg"/> — kb/Work PB962/PB965), built by the activating
+    /// element exactly as it builds a BY REFERENCE argument.
+    /// <para>These description-free numeric legs serve a returning item with no numeric profile (USAGE INDEX);
+    /// every fixed-point returning item delivers through <see cref="StoreReturn(CobolArg?, Int128, NumProfile)"/>
+    /// or <see cref="StoreReturn(CobolArg?, string, NumProfile)"/>, which carry the sending description.</para></summary>
+    public static void StoreReturn(CobolArg? ret, long value) => StoreReturnNum(ret, value, null);
 
-    /// <inheritdoc cref="StoreReturn(ManagedPointer?, long)"/>
-    public static void StoreReturn(ManagedPointer? ret, ulong value) => StoreReturnNum(ret, (Int128)value);
+    /// <inheritdoc cref="StoreReturn(CobolArg?, long)"/>
+    public static void StoreReturn(CobolArg? ret, ulong value) => StoreReturnNum(ret, (Int128)value, null);
 
-    /// <inheritdoc cref="StoreReturn(ManagedPointer?, long)"/>
-    public static void StoreReturn(ManagedPointer? ret, Int128 value) => StoreReturnNum(ret, value);
+    /// <inheritdoc cref="StoreReturn(CobolArg?, long)"/>
+    public static void StoreReturn(CobolArg? ret, Int128 value) => StoreReturnNum(ret, value, null);
 
-    /// <inheritdoc cref="StoreReturn(ManagedPointer?, long)"/>
+    /// <inheritdoc cref="StoreReturn(CobolArg?, long)"/>
     /// <remarks>The string leg renders the UNSIGNED value's own text BEFORE the bits reinterpretation — the
     /// Int128 lane carries a top-half UInt128 as negative bits, which is exactly right for a typed cell and
     /// exactly wrong for a character image.</remarks>
-    public static void StoreReturn(ManagedPointer? ret, UInt128 value)
+    public static void StoreReturn(CobolArg? ret, UInt128 value)
     {
-        if (ret is ManagedPointer<string> sp) { sp.Value = value.ToString(); return; }
-        StoreReturnNum(ret, unchecked((Int128)value));
+        if (ret?.Carrier is ManagedPointer<string> sp) { sp.Value = value.ToString(); return; }
+        StoreReturnNum(ret, unchecked((Int128)value), null);
     }
 
-    private static void StoreReturnNum(ManagedPointer? ret, Int128 value)
+    /// <summary>⛔ A FIXED-POINT RETURNING ITEM HELD AS A NATIVE CELL (kb/Work PB962). <paramref name="sent"/> is
+    /// the returning item's own description. §14.6.5 places "the content of the data item referenced by that
+    /// RETURNING phrase" into the receiver, and §14.8.3.3 makes a conforming receiver's PICTURE and USAGE the
+    /// same as the sender's — so the delivery is a CONTENT transfer under that one description: the value into a
+    /// native cell, and into an image-carried receiver the value's character representation under the
+    /// description, never the value's C# text (<c>Int128.ToString</c> dropped the sign's representation and the
+    /// digit count — a <c>-12.5</c> in <c>PIC S9(3)V9</c> arrived in an image-carried receiver as <c>+12.5</c>).
+    /// An image-carried receiver's string carrier speaks the item's operand text (its write half decodes with
+    /// <c>ParseDisplay</c> under the receiver's profile), which is <see cref="CobolNum.FormatDisplay(Int128, in NumProfile)"/>.</summary>
+    public static void StoreReturn(CobolArg? ret, Int128 value, NumProfile sent) => StoreReturnNum(ret, value, sent);
+
+    /// <inheritdoc cref="StoreReturn(CobolArg?, Int128, NumProfile)"/>
+    public static void StoreReturn(CobolArg? ret, UInt128 value, NumProfile sent)
     {
-        if (ret is null) return;
-        if (WriteNumericCell(ret, value)) return;
-        if (WriteRealCell(ret, (double)value)) return;
-        if (ret is ManagedPointer<string> sp) { sp.Value = value.ToString(); return; }
-        Undeliverable(ret, $"the numeric result {value}");
+        // A 16-byte unsigned container beyond Int128's range only arises from a COMP-5 capacity value; its
+        // character representation is its own digits (the bits lane would read negative).
+        if (ret?.Carrier is ManagedPointer<string> sp && value > (UInt128)Int128.MaxValue) { sp.Value = value.ToString(); return; }
+        StoreReturnNum(ret, unchecked((Int128)value), sent);
     }
 
-    /// <summary>String-shaped RETURNING delivery (see <see cref="StoreReturn(ManagedPointer?, long)"/>).
+    /// <summary>⛔ A FLOATING-POINT RETURNING ITEM (kb/Work PB962's sibling sweep — the delivery set was "total
+    /// over the carriers" except this one: a <c>USAGE FLOAT-LONG</c> returning item's <c>double</c> matched no
+    /// overload and the generated C# did not compile, CS0315). §14.8.3.3 gives a conforming receiver the same
+    /// USAGE, so the value lands in the receiver's float cell as it stands; any other receiver is a pair
+    /// §14.8.3.3 does not admit (§14.9.4.4 GR3 d)), loud rather than a guessed conversion.</summary>
+    public static void StoreReturn(CobolArg? ret, double value)
+    {
+        if (ret is not { Carrier: var c }) return;
+        if (WriteRealCell(c, value)) return;
+        Undeliverable(c, $"the floating-point result {value}");
+    }
+
+    private static void StoreReturnNum(CobolArg? ret, Int128 value, NumProfile? sent)
+    {
+        if (ret is not { Carrier: var c }) return;
+        if (WriteNumericCell(c, value)) return;
+        if (WriteRealCell(c, sent is { } rs ? CobolFloat.ScaledToDouble(value, rs.FractionScale) : (double)value)) return;
+        if (c is ManagedPointer<string> sp)
+        {
+            sp.Value = sent is { } s ? CobolNum.FormatDisplay(value, s) : value.ToString();
+            return;
+        }
+        Undeliverable(c, $"the numeric result {value}");
+    }
+
+    /// <summary>⛔ A FIXED-POINT RETURNING ITEM HELD AS A CHARACTER IMAGE (a redefined or otherwise image-carried
+    /// item — kb/Work PB962). <paramref name="text"/> is the item's operand text and <paramref name="sent"/> its
+    /// description. This is a CONTENT transfer, not a value conversion: §14.6.5 places "the content of the data
+    /// item" into the receiver, and §14.8.3.3 gives a conforming receiver the same PICTURE and USAGE. So an
+    /// image-carried receiver takes the text as it stands, and a native cell takes it decoded under the ONE
+    /// description both items share — the decode every character view of a native cell uses
+    /// (<see cref="CobolNum.ParseDisplay"/>), which answers for ANY content. Before PB962 this pair rode the
+    /// description-free leg below, which re-parsed the text as a C# number and ABORTED the run unit with
+    /// EC-PROGRAM-ARG-MISMATCH whenever the content was not a digit run (spaces after a zero-length MOVE) —
+    /// citing §14.8.3.3 against a pair §14.8.3.3 admits.
+    /// <para>⚠ A NATIVE cell holds a VALUE, not characters, so content that is not a valid numeric
+    /// representation arrives as the value <c>ParseDisplay</c> reads from it — the same residue every character
+    /// view of a native numeric cell has (a BY REFERENCE character formal's store, a group MOVE into it).</para></summary>
+    public static void StoreReturn(CobolArg? ret, string text, NumProfile sent)
+    {
+        if (ret is not { Carrier: var c }) return;
+        if (c is ManagedPointer<string> sp) { sp.Value = text; return; }
+        if (sent.ByteForm is NumericByteForm.Ieee32 or NumericByteForm.Ieee64)
+        {
+            StoreReturn(ret, text);
+            return;
+        }
+        Int128 v = CobolNum.ParseDisplay(text, sent);
+        if (WriteNumericCell(c, v)) return;
+        if (WriteRealCell(c, CobolFloat.ScaledToDouble(v, sent.FractionScale))) return;
+        Undeliverable(c, $"the numeric result \"{text}\"");
+    }
+
+    /// <summary>String-shaped RETURNING delivery of a returning item with NO numeric description — an
+    /// alphanumeric (or other character-class) elementary item, or a group with no table.
     /// <para>⛔ TOTAL OVER THE CARRIERS THIS COMPILER EMITS, AND NEVER A SILENT NO-OP (kb/Work PB165 closing
-    /// GR-14.9.4.4-4). This used to be <c>string</c>-carrier or a <c>long</c>-carrier <c>long.TryParse</c> and
-    /// nothing else, so a character result delivered into a <c>ulong</c>/<c>Int128</c>/<c>UInt128</c>
-    /// identifier-3 — every PIC 9(19)+ receiver — was DISCARDED with no store and no diagnostic (measured: a
-    /// callee returning "000123" left a <c>PIC 9(30)</c> identifier-3 at its previous value 7). §14.9.4.4 GR4
-    /// says "the result of the activated program is placed into identifier-3"; nothing happening is the one
-    /// outcome that rule excludes.</para>
-    /// <para>A cross-CARRIER pair can only arise from source §14.8.3.3 already declares non-conforming (it
-    /// requires the same PICTURE and USAGE clauses), which §14.9.4.4 GR3d makes EC-PROGRAM-ARG-MISMATCH when
-    /// checking is enabled in both elements. The delivery therefore reads the result's DIGIT IMAGE — the
-    /// characters the receiver would have seen had the pair conformed by length — and a shape with no delivery
-    /// at all is loud rather than lost.</para></summary>
-    public static void StoreReturn(ManagedPointer? ret, string value)
+    /// GR-14.9.4.4-4). §14.9.4.4 GR4 says "the result of the activated program is placed into identifier-3";
+    /// nothing happening is the one outcome that rule excludes.</para>
+    /// <para>A numeric receiver of a character-class sender is a pair §14.8.3.3 declares non-conforming (it
+    /// requires the same PICTURE and USAGE clauses), which §14.9.4.4 GR3d makes EC-PROGRAM-ARG-MISMATCH. The
+    /// delivery reads the result's DIGIT IMAGE — the characters the receiver would have seen had the pair
+    /// conformed by length — and a result with no such reading is loud rather than lost. A NUMERIC sender never
+    /// reaches this leg: it carries its description (<see cref="StoreReturn(CobolArg?, string, NumProfile)"/>).</para></summary>
+    public static void StoreReturn(CobolArg? ret, string value)
     {
-        if (ret is null) return;                                   // a CALL without RETURNING discards (GR4 has no receiver)
-        if (ret is ManagedPointer<string> sp) { sp.Value = value; return; }
+        if (ret is not { Carrier: var c } r) return;               // a CALL without RETURNING discards (GR4 has no receiver)
+        if (c is ManagedPointer<string> sp) { sp.Value = value; return; }
+        // A table-less fixed group into a variable-length receiver (kb/Work PB965): its one §8.5.1.12 fact is
+        // its length (CobolVarGroup.FixedRun).
+        if (c is ManagedPointer<CobolVarGroup> vp && r.Layout is { } rl
+            && CobolVarGroup.CorrespondingSpans(CobolVarGroup.FixedRun(value.Length), rl) is { } vspans)
+        {
+            vp.Value = CobolVarGroup.FromFixedImage(value, vspans);
+            return;
+        }
         string t = value.Trim();
-        if (Int128.TryParse(t, out Int128 v) && WriteNumericCell(ret, v)) return;
+        if (Int128.TryParse(t, out Int128 v) && WriteNumericCell(c, v)) return;
         if (double.TryParse(t, System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture, out double d) && WriteRealCell(ret, d)) return;
-        Undeliverable(ret, $"the character result \"{value}\"");
+                System.Globalization.CultureInfo.InvariantCulture, out double d) && WriteRealCell(c, d)) return;
+        Undeliverable(c, $"the character result \"{value}\"");
     }
+
+    /// <summary>⛔ A FIXED-LENGTH GROUP returning item with a table (kb/Work PB965). <paramref name="layout"/> is
+    /// its §8.5.1.12 layout. §14.8.3.2: "If either the sending or the receiving operand is a variable length
+    /// group, the sending operand and the receiving operand shall be compatible, as described in 8.5.1.12" — so
+    /// a VARIABLE-length receiver is legal, and the image decomposes into its carrier at the spans the two
+    /// layouts correspond at (<see cref="CobolVarGroup.CorrespondingSpans"/>), the fixed table crossing at its
+    /// occurrence count (§8.5.1.12.3 sentence 3). A character receiver takes the image as it stands.</summary>
+    public static void StoreReturnGroup(CobolArg? ret, string image, int[] layout)
+    {
+        if (ret is not { Carrier: var c } r) return;
+        if (c is ManagedPointer<string> sp) { sp.Value = image; return; }
+        if (c is ManagedPointer<CobolVarGroup> vp && r.Layout is { } rl
+            && CobolVarGroup.CorrespondingSpans(layout, rl) is { } spans)
+        {
+            vp.Value = CobolVarGroup.FromFixedImage(image, spans);
+            return;
+        }
+        Undeliverable(c, "the group result");
+    }
+
+    /// <summary>The §8.5.1.12 layout of a FIXED-length group on a character carrier: the one it carries, or —
+    /// for a group with no table, which carries none — the single fixed run of its length
+    /// (<see cref="CobolVarGroup.FixedRun"/>).</summary>
+    private static int[] FixedLayoutOf(in CobolArg a, ManagedPointer<string> sp) =>
+        a.Layout ?? CobolVarGroup.FixedRun(sp.Value?.Length ?? 0);
+
+    /// <summary>The pair's correspondence spans when a VARIABLE-length group argument <paramref name="a"/> meets a
+    /// fixed-length GROUP formal of <paramref name="width"/> characters whose layout is
+    /// <paramref name="groupLayout"/> (the empty array = a table-less group, <see cref="CobolVarGroup.FixedRun"/>);
+    /// null for a non-group formal, an argument that carries no layout, or a pair that does not correspond.</summary>
+    private static int[]? VarGroupSpans(in CobolArg a, int[]? groupLayout, int width) =>
+        groupLayout is null || a.Layout is not { } argLayout ? null
+        : CobolVarGroup.CorrespondingSpans(groupLayout.Length == 0 ? CobolVarGroup.FixedRun(width) : groupLayout, argLayout);
 
     /// <summary>The RETURNING delivery has no leg for this (result shape, carrier) pair — §14.9.4.4 GR4's
-    /// "placed into identifier-3" cannot be honoured, and §14.8.3.3's conformance rules are what such a pair
+    /// "placed into identifier-3" cannot be honoured, and §14.8.3's conformance rules are what such a pair
     /// violates (§14.9.4.4 GR3d ⇒ EC-PROGRAM-ARG-MISMATCH). Raised through the same
     /// <see cref="CobolCallException"/> the activation-time GR3d count check uses, so a run unit sees ONE
     /// EC-PROGRAM-ARG-MISMATCH mechanism — never a silent discard, which is what this replaced.</summary>
     private static void Undeliverable(ManagedPointer ret, string what) =>
         throw new CobolCallException(
             $"RETURNING delivery: {what} has no conforming store into the activating element's RETURNING item "
-            + $"(carrier {ret.GetType().Name}) — ISO §14.8.3.3 requires the same PICTURE and USAGE clauses; "
-            + "§14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH",
+            + $"(carrier {ret.GetType().Name}) — ISO §14.8.3 conformance; §14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH",
             "EC-PROGRAM-ARG-MISMATCH");
 
     /// <summary>Variable-length-group RETURNING delivery (ISO §14.8.3.2's compatibility sentence — the
-    /// returning half of the same admission §14.8.2.2 grants arguments; kb/Work PB204).</summary>
-    public static void StoreReturn(ManagedPointer? ret, CobolVarGroup value)
+    /// returning half of the same admission §14.8.2.2 grants arguments; kb/Work PB204). <paramref name="layout"/>
+    /// is the sending group's §8.5.1.12 layout: a FIXED-length receiver is legal too (§8.5.1.12.1 "only one of
+    /// the operands may be a variable-length group"), and the carrier is rebuilt into its image at the spans the
+    /// receiver's layout corresponds at — a dynamic table's occurrences fitted to the fixed table as §14.6.9.2
+    /// fits a dynamic sender into a non-dynamic receiver (kb/Work PB965).</summary>
+    public static void StoreReturn(CobolArg? ret, CobolVarGroup value, int[] layout)
     {
-        if (ret is null) return;
-        if (ret is ManagedPointer<CobolVarGroup> vp) { vp.Value = value; return; }
-        Undeliverable(ret, "the variable-length-group result");
+        if (ret is not { Carrier: var c } r) return;
+        if (c is ManagedPointer<CobolVarGroup> vp) { vp.Value = value; return; }
+        if (c is ManagedPointer<string> sp && CobolVarGroup.CorrespondingSpans(FixedLayoutOf(r, sp), layout) is { } spans)
+        {
+            sp.Value = CobolVarGroup.ToFixedImage(value, sp.Value?.Length ?? 0, spans);
+            return;
+        }
+        Undeliverable(c, "the variable-length-group result");
     }
 
     /// <summary>Data-pointer RETURNING delivery (kb/Work PB133 wave B — §14.2.3 GR7 over a USAGE POINTER
     /// item; the PB111 shape: legal source drew CS1503 because no overload matched the carrier type).</summary>
-    public static void StoreReturn(ManagedPointer? ret, ManagedPointer value)
+    public static void StoreReturn(CobolArg? ret, ManagedPointer value)
     {
-        if (ret is null) return;
-        if (ret is ManagedPointer<ManagedPointer> pp) { pp.Value = value; return; }
-        Undeliverable(ret, "the data-pointer result");
+        if (ret is not { Carrier: var c }) return;
+        if (c is ManagedPointer<ManagedPointer> pp) { pp.Value = value; return; }
+        Undeliverable(c, "the data-pointer result");
     }
 
     /// <summary>Program-pointer RETURNING delivery (kb/Work PB133 wave B — §13.18.60 GR24's identity
     /// struct crosses by value; same CS1503 shape as the data pointer).</summary>
-    public static void StoreReturn(ManagedPointer? ret, ProgramPointer value)
+    public static void StoreReturn(CobolArg? ret, ProgramPointer value)
     {
-        if (ret is null) return;
-        if (ret is ManagedPointer<ProgramPointer> pp) { pp.Value = value; return; }
-        Undeliverable(ret, "the program-pointer result");
+        if (ret is not { Carrier: var c }) return;
+        if (c is ManagedPointer<ProgramPointer> pp) { pp.Value = value; return; }
+        Undeliverable(c, "the program-pointer result");
     }
 
     /// <summary>Object-reference RETURNING delivery (kb/Work PB133 wave B). The CobolObject constraint keeps
@@ -702,12 +874,12 @@ public static class CobolArgAdapt
     /// specific lanes above stay untouched. An IDENTICALLY-described returning pair (the §14.8.3 conforming
     /// case a prototype-less CALL can realize today) matches the typed carrier exactly; the cross-class
     /// described relationship rides the §14.8.2/§14.8.3 conformance campaign (PB133 wave C).</summary>
-    public static void StoreReturn<T>(ManagedPointer? ret, T? value) where T : CobolObject
+    public static void StoreReturn<T>(CobolArg? ret, T? value) where T : CobolObject
     {
-        if (ret is null) return;
-        if (ret is ManagedPointer<T?> tp) { tp.Value = value; return; }
-        if (ret is ManagedPointer<CobolObject?> op) { op.Value = value; return; }
-        Undeliverable(ret, "the object-reference result");
+        if (ret is not { Carrier: var c }) return;
+        if (c is ManagedPointer<T?> tp) { tp.Value = value; return; }
+        if (c is ManagedPointer<CobolObject?> op) { op.Value = value; return; }
+        Undeliverable(c, "the object-reference result");
     }
 
     /// <summary>The omitted/absent CALL argument's carrier (ISO §14.9.4.4 GR11–GR12; kb/Work PB133 wave C):

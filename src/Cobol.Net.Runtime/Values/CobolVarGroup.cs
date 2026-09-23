@@ -70,6 +70,94 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
         return new CobolVarGroup(f, d);
     }
 
+    // ── The §8.5.1.12 LAYOUT of a group, and the correspondence between two of them (kb/Work PB965) ─────────────
+    //
+    // A group's layout is a FLAT sequence of (kind, chars, elementChars) triples in CHARACTER positions, left to
+    // right, computed at compile time from the group's own §8.5.1.12 atoms (VariableLengthCompatibility.Layout —
+    // REDEFINES subtrees dropped, scalar subordinate groups flattened, a table kept whole). It is the group's
+    // DESCRIPTION as far as §8.5.1.12 needs one, and it travels with the group across an activation boundary
+    // (CobolArg.Layout) exactly as a numeric item's NumProfile does, because the two sides of a CALL are compiled
+    // apart and the correspondence is a fact about the PAIR.
+
+    /// <summary>Layout atom kind: fixed material (bytes that are neither a table nor dynamic).</summary>
+    public const int LayoutFixed = 0;
+    /// <summary>Layout atom kind: a table with a fixed number of occurrences; chars = its whole width.</summary>
+    public const int LayoutTable = 1;
+    /// <summary>Layout atom kind: an OCCURS DEPENDING table; chars = its maximum width (§13.18.38.3 SR22 makes
+    /// it the last atom, so its current extent is "the rest of the image").</summary>
+    public const int LayoutOdoTable = 2;
+    /// <summary>Layout atom kind: a dynamic-capacity table (§8.5.1.9); chars = ONE element's width.</summary>
+    public const int LayoutDynamicTable = 3;
+    /// <summary>Layout atom kind: a dynamic-length elementary item (§8.5.1.10); chars = 0.</summary>
+    public const int LayoutDynamicLength = 4;
+
+    /// <summary>⛔ THE ONE §8.5.1.12.2 CORRESPONDENCE between a FIXED-length group and a VARIABLE-length group,
+    /// answered as the character spans of the FIXED group's tables that correspond to the variable-length group's
+    /// dynamic-capacity tables, in order — exactly the <paramref name="fixedLayout"/>-relative spans
+    /// <see cref="FromFixedImage"/> and <see cref="ToFixedImage"/> take. Null when the pair is NOT compatible.
+    /// <para>§8.5.1.12.2: "Two tables correspond if at least one of them is a dynamic-capacity table and they
+    /// occupy the same relative byte positions within their groups." — so a fixed table corresponds only when a
+    /// dynamic-capacity table STARTS where it starts; every other fixed table is plain material, and lifting it
+    /// out as a component (what "every table of the fixed group" did before PB965) shifted every later component
+    /// one place and moved the wrong table. §8.5.1.12.3 sentence 3 treats the fixed table "as though it were a
+    /// dynamic-capacity table whose capacity is either its fixed number of occurrences or the value of the
+    /// DEPENDING operand", and makes the dynamic one "the same length as the corresponding table", so the walk
+    /// advances BOTH sides by the fixed table's width there. Corresponding tables match only "when the byte
+    /// length of their elements is equal" (sentence 2).</para>
+    /// <para>Every dynamic-LENGTH item of the variable-length group needs a corresponding dynamic-length item
+    /// (§8.5.1.12.1 rule 3), which a fixed-length group has none of — so one fails the pair. A dynamic-capacity
+    /// table whose position is BEYOND the fixed group's last character takes §8.5.1.12.2's last sentence: it "is
+    /// treated as if it corresponds to a space-filled fixed-length table", so it gets NO component — the carrier
+    /// then leaves it absent (<see cref="HasDyn"/> false), which is the §14.6.9.4 space fill at an unaffected
+    /// capacity rather than an invented length.</para>
+    /// <para>Used at COMPILE time by the §14.9.25.4 GR9 MOVE (both groups known) and at RUN time by the CALL
+    /// boundary (each side compiled apart) — one walk, so the two cannot disagree about which table is
+    /// which.</para></summary>
+    public static int[]? CorrespondingSpans(int[]? fixedLayout, int[] varLayout)
+    {
+        // No stated layout: nothing is known about the fixed side's shape, not even its length.
+        if (fixedLayout is null) return null;
+        int nF = fixedLayout.Length / 3, nV = varLayout.Length / 3;
+        var spans = new List<int>();
+        int i = 0, j = 0, pf = 0, pv = 0;
+        while (j < nV)
+        {
+            int vk = varLayout[3 * j], vc = varLayout[3 * j + 1], ve = varLayout[3 * j + 2];
+            bool vDynamic = vk is LayoutDynamicTable or LayoutDynamicLength;
+            // The fixed side lags: its atom lies wholly before the variable side's position — plain material.
+            if (i < nF && pf < pv) { pf += fixedLayout![3 * i + 1]; i++; continue; }
+            // No fixed atom STARTS at the variable side's position.
+            if (pv < pf || i >= nF)
+            {
+                if (!vDynamic) { pv += vc; j++; continue; }
+                // §8.5.1.12.2's last sentence — a dynamic-capacity table past the shorter group's end.
+                if (vk == LayoutDynamicTable && i >= nF && pv >= pf) { j++; continue; }
+                return null;
+            }
+            // Both sides stand at the same relative position.
+            if (vk == LayoutDynamicLength) return null;
+            int fk = fixedLayout![3 * i], fc = fixedLayout[3 * i + 1], fe = fixedLayout[3 * i + 2];
+            if (vk == LayoutDynamicTable)
+            {
+                if (fk is not (LayoutTable or LayoutOdoTable) || fe != ve) return null;
+                spans.Add(pf);
+                spans.Add(fk == LayoutOdoTable ? -1 : fc);
+                pf += fc; pv += fc; i++; j++;
+                continue;
+            }
+            // Plain material on the variable side (bytes, or a table that is not dynamic): consume it; the
+            // fixed side re-aligns on the next pass. Widths may differ freely — §8.5.1.12 constrains only the
+            // POSITIONS of the variable-length items.
+            pv += vc; j++;
+        }
+        return [.. spans];
+    }
+
+    /// <summary>The layout of a fixed-length group that states none — a group with no table crosses without one
+    /// (<c>CobolArg.Layout</c> is null), and its only §8.5.1.12 fact is its length: one run of fixed material,
+    /// which corresponds to a dynamic-capacity table only through §8.5.1.12.2's beyond-the-end sentence.</summary>
+    public static int[] FixedRun(int chars) => [LayoutFixed, chars, 0];
+
     /// <summary>⛔ THE FIXED-LENGTH GROUP'S VIEW OF THIS CARRIER — the adapter that lets a FIXED group stand on
     /// the other side of an ISO §14.9.25.4 GR9 move (kb/Work PB393). §8.5.1.12.1 admits the pair explicitly
     /// ("either both operands may be variable-length groups or only one of the operands may be a variable-length
@@ -78,8 +166,9 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
     /// occurrences or the value of the DEPENDING operand, as applicable" — §14.6.9.1 states the same conversion
     /// for the operation itself. So a fixed group decomposes into EXACTLY this carrier: its record image with
     /// each corresponding table's character span lifted out as a component, in order.
-    /// <para><paramref name="spans"/> is a FLAT (offset, width) pair list in character positions, computed at
-    /// compile time from the group's own §8.5.1.12 atom layout. A width of −1 means "to the end of the image" —
+    /// <para><paramref name="spans"/> is a FLAT (offset, width) pair list in character positions — the PAIR's
+    /// correspondence, <see cref="CorrespondingSpans"/>, never "every table of the fixed group" (kb/Work PB965).
+    /// A width of −1 means "to the end of the image" —
     /// the occurs-depending table, whose current extent is a run-time length and which §13.18.38.3 SR22 makes
     /// the trailing storage of its record, so "the rest" IS its current occurrences.</para></summary>
     public static CobolVarGroup FromFixedImage(string image, int[] spans)
@@ -124,6 +213,36 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
         }
         outp.Append(fixedAt >= v.Fixed.Length ? "" : v.Fixed[fixedAt..]);
         return CobolString.Store(outp.ToString(), totalWidth);
+    }
+
+    /// <summary>⛔ A FIXED-LENGTH VIEW'S STORE BACK INTO A VARIABLE-LENGTH GROUP'S STORAGE (kb/Work PB965) — the
+    /// BY REFERENCE write-back of a fixed-length group FORMAL whose argument is a variable-length group. §14.2.3
+    /// GR8: "the activated runtime element operates as if the formal parameter occupies the same storage area as
+    /// the argument", so a store through the formal reaches only the argument storage the formal overlays and
+    /// leaves the rest as it stands:
+    /// <list type="bullet">
+    ///   <item>each corresponding table (<paramref name="spans"/>, the pair's <see cref="CorrespondingSpans"/>)
+    ///     is written OVER the argument's current occurrences, never re-sized. ⚠ DETERMINATION (§8.5.1.12 and
+    ///     §14.2.3 are silent): a formal whose table has a FIXED occurrence count cannot change the argument
+    ///     table's current capacity — that description has no capacity to state — so an occurrence the argument
+    ///     does not have is not stored and one past the formal's count is untouched, the mirror of
+    ///     <see cref="ToFixedImage"/>'s rule for the reverse pair;</item>
+    ///   <item>the fixed material the formal covers is replaced and the argument's material past it survives —
+    ///     the §14.8.2.2 rule 1 prefix, and every component past the formal's last character.</item>
+    /// </list></summary>
+    public static CobolVarGroup OverlayFixedImage(CobolVarGroup current, string image, int[] spans)
+    {
+        var view = FromFixedImage(image, spans);
+        string fixedRun = view.Fixed.Length >= current.Fixed.Length
+            ? view.Fixed[..current.Fixed.Length]
+            : view.Fixed + current.Fixed[view.Fixed.Length..];
+        var dyn = (string[])current.Dynamic.Clone();
+        for (int k = 0; k < view.Dynamic.Length && k < dyn.Length; k++)
+        {
+            string was = dyn[k], now = view.Dynamic[k];
+            dyn[k] = now.Length >= was.Length ? now[..was.Length] : now + was[now.Length..];
+        }
+        return new CobolVarGroup(fixedRun, dyn);
     }
 
     /// <summary>Split a dynamic-capacity table's carried content into its occurrences at

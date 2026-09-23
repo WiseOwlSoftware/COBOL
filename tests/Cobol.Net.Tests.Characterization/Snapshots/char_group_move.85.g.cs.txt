@@ -38,7 +38,7 @@ internal sealed class _PRG_CHAR_GROUP_MOVE : ICobolProgram
     private _T_0 WS_SRC = new _T_0 { S_NAME = new string(' ', 4), S_QTY = CobolNum.FormatImage(0L, _P_2) };   // WS-SRC
     private _T_3 WS_DST = new _T_3 { D_NAME = new string(' ', 4), D_QTY = CobolNum.FormatImage(0L, _P_5) };   // WS-DST
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

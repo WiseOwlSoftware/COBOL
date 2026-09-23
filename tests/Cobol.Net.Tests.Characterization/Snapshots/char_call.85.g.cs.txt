@@ -12,7 +12,7 @@ internal sealed class _PRG_CHAR_CALL : ICobolProgram
     internal static readonly NumProfile _P_0 = new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private long WS_ARG = 55L;   // WS-ARG
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

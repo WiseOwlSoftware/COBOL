@@ -14,7 +14,7 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
     private string OUT_REC = new string(' ', 10);   // OUT-REC
     private string WS_EOF = CobolString.Store("N", 1);   // WS-EOF
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

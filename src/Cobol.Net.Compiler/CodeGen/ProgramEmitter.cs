@@ -139,8 +139,19 @@ internal sealed class ProgramEmitter
             // profile field RecordStructEmitter declares for every elementary numeric item.
             ? f.Item.IsElementary && f.Item.Pic is { Category: PicCategory.Numeric } fp && fp.Usage is not Usage.Index
                 ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", f.Item.ProfileName, $"{fp.Scale}")
-                : RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", "null", "0")
-            : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}");
+                : RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", "null", "0", GroupFormalLayout(f.Item))
+            : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}",
+                GroupFormalLayout(f.Item));
+
+    /// <summary>A fixed-length GROUP formal's §8.5.1.12 layout, the one fact a VARIABLE-LENGTH group argument
+    /// needs to meet it (ISO §14.8.2.2 / §8.5.1.12.2; kb/Work PB965) — its layout literal when it has a table,
+    /// <see cref="RuntimeApi.NoTableGroupLayout"/> when it has none (its length is then the whole description),
+    /// and null for a formal that is not a group, which no variable-length group is compatible with
+    /// (§8.5.1.12.1).</summary>
+    private static string? GroupFormalLayout(DataItem formal) =>
+        !ItemCategory.IsGroupItem(formal) || VariableLengthCompatibility.Layout(formal) is not { } layout ? null
+        : VariableLengthCompatibility.HasTableOrVariable(layout) ? CallEmitter.LayoutArray(layout)
+        : RuntimeApi.NoTableGroupLayout;
 
     /// <summary>⛔ THE ONE ADOPTION EXPRESSION for a formal's carrier at the activation boundary — one arm per
     /// <see cref="CallCrossing"/>, each with its BY REFERENCE (§14.2.3 GR8 aliasing) and BY VALUE (GR10
@@ -163,10 +174,12 @@ internal sealed class ProgramEmitter
                 ? RuntimeApi.ArgAdaptSlotValue("__args", f.Position, carrier)
                 : RuntimeApi.ArgAdaptSlot("__args", f.Position, carrier),
             // §8.5.1.12's component carrier, adopted whole — there is no width window to apply, because the
-            // receiving group's own FromVarImage is what re-fits both halves (kb/Work PB204).
+            // receiving group's own FromVarImage is what re-fits both halves (kb/Work PB204). The formal's own
+            // §8.5.1.12 layout rides along so a FIXED-length group argument can be met at the spans the pair
+            // corresponds at (§14.8.2.2; kb/Work PB965).
             CallCrossing.VarGroup => f.ByValue
-                ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position)
-                : RuntimeApi.ArgAdaptVarGroup("__args", f.Position),
+                ? RuntimeApi.ArgAdaptVarGroupValue("__args", f.Position, FormalLayout(f.Item))
+                : RuntimeApi.ArgAdaptVarGroup("__args", f.Position, FormalLayout(f.Item)),
             _ => FormalTextCarrier(f, textWidth),
         };
 
@@ -462,7 +475,7 @@ internal sealed class ProgramEmitter
         BoundUnit unit, List<(LinkageFormal Formal, Place? Place, CallCrossing Crossing, string Carrier)> formals,
         CodeWriter w)
     {
-        using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
+        using (w.Block("public void Call(CobolArg[] __args, CobolArg? __ret)"))
         {
             // §14.9.4.4 GR3e runs OUTSIDE this method: the external-conformance check is an activation-ATTEMPT
             // step that precedes GR3g's transfer of control, so the activation boundary calls
@@ -547,15 +560,42 @@ internal sealed class ProgramEmitter
                     });
             }
             if (_callState.ReturningPlace is { } ret)
-                // §14.8.3.2's variable-length sentence is the RETURNING half of the same admission §14.8.2.2
-                // grants arguments (kb/Work PB204) — the returning item delivers through the same carrier.
-                w.Line(CallEmitter.CallPlaceIsVarGroup(ret)
-                    ? $"{RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.VarGroupImage(ret, "RETURNING item"))};"
-                    : CallEmitter.CallPlaceIsString(ret)
-                    ? $"{RuntimeApi.ArgAdaptStoreReturn("__ret", CallEmitter.CallStringRead(ret))};"
-                    : $"{RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.Read(ret))};");
+                w.Line($"{ReturningDelivery(ret)};");
         }
     }
+
+    /// <summary>⛔ THE RETURNING DELIVERY (ISO §14.6.5 — "The result of the execution of a program, function, or
+    /// method that specifies a RETURNING phrase in its procedure division header, is the content of the data
+    /// item referenced by that RETURNING phrase"), with the SENDING item's description beside its content
+    /// (kb/Work PB962/PB965) — the receiver's arrives on <c>__ret</c> itself (<c>CobolArg</c>):
+    /// <list type="bullet">
+    /// <item>a variable-length group — its §8.5.1.12 carrier plus its layout (§14.8.3.2's compatibility
+    /// sentence admits a FIXED-length receiver, which the runtime meets at the corresponding spans);</item>
+    /// <item>a fixed-length group with a table — its image plus its layout (the same sentence, other way
+    /// round);</item>
+    /// <item>a fixed-point numeric item — its content plus its <c>NumProfile</c>: §14.8.3.3 gives a conforming
+    /// receiver the same PICTURE and USAGE, so the delivery is a content transfer under that one description,
+    /// never a re-parse of the text as a number (which aborted on spaces);</item>
+    /// <item>anything else — its content alone.</item>
+    /// </list></summary>
+    private static string ReturningDelivery(Place ret)
+    {
+        string? layout = CallEmitter.BoundaryLayout(ret);
+        if (CallEmitter.CallPlaceIsVarGroup(ret))
+            return RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.VarGroupImage(ret, "RETURNING item"), layout!);
+        string? profile = ret.DenotedItem is { Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index } } item
+            ? item.ProfileName : null;
+        if (CallEmitter.CallPlaceIsString(ret))
+            return layout is not null
+                ? RuntimeApi.ArgAdaptStoreReturnGroup("__ret", CallEmitter.CallStringRead(ret), layout)
+                : RuntimeApi.ArgAdaptStoreReturn("__ret", CallEmitter.CallStringRead(ret), profile);
+        return RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.Read(ret), profile);
+    }
+
+    /// <summary>A variable-length group formal's §8.5.1.12 layout, emitted for its adapter (kb/Work PB965).</summary>
+    private static string FormalLayout(DataItem formal) =>
+        CallEmitter.LayoutArray(VariableLengthCompatibility.Layout(formal)
+            ?? throw new InvalidOperationException($"variable-length formal '{formal.CobolName}' has no §8.5.1.12 layout"));
 
     /// <summary>Emit the module registrar + the run-unit entry wrapper. <c>__CobolModule</c> is the ONE public,
     /// well-known discovery surface of a compiled module (deep-dive D2; the generated program classes are

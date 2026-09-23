@@ -16,7 +16,7 @@ internal sealed class _PRG_CHAR_MOVE_BASIC : ICobolProgram
     private long WS_SIGNED = 0L;   // WS-SIGNED
     private string WS_EDITED = new string(' ', 10);   // WS-EDITED
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

@@ -1258,9 +1258,11 @@ internal static class RuntimeApi
     public static string ArgAdaptNum(string args, int position, string profile, string scale, string carrier = "long") =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Num)}<{carrier}>({args}, {position}, {profile}, {scale})";
 
-    /// <summary>A LINKAGE formal's text carrier adoption — <c>CobolArgAdapt.Text</c>.</summary>
-    public static string ArgAdaptText(string args, int position, string width) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width})";
+    /// <summary>A LINKAGE formal's text carrier adoption — <c>CobolArgAdapt.Text</c>. <paramref name="groupLayout"/>
+    /// is a GROUP formal's §8.5.1.12 layout expression (kb/Work PB965), null for any other formal.</summary>
+    public static string ArgAdaptText(string args, int position, string width, string? groupLayout = null) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width}"
+        + $"{(groupLayout is null ? "" : $", {groupLayout}")})";
 
     /// <summary>A DYNAMIC LENGTH formal's text carrier adoption — <c>CobolArgAdapt.DynText</c> (ISO §13.18.19;
     /// §14.2.3 GR9's second-regime dynamic-length record — kb/Work PB165).</summary>
@@ -1280,13 +1282,18 @@ internal static class RuntimeApi
     /// <summary>A FIXED-length group's decomposition into the same carrier (ISO §8.5.1.12.3 sentence 3 /
     /// §14.6.9.1 — its table is treated as a dynamic-capacity table of its fixed or DEPENDING count), so a fixed
     /// group can stand on the other side of a §14.9.25.4 GR9 move (kb/Work PB393). <paramref name="spans"/> is
-    /// the flat (offset, width) pair list from <c>VariableLengthCompatibility.FlatTableSpans</c>.</summary>
+    /// the flat (offset, width) pair list from <c>VariableLengthCompatibility.CorrespondingSpans</c> (the PAIR's §8.5.1.12.2 correspondence).</summary>
     public static string VarGroupFromFixedImage(string image, string spans) =>
         $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.FromFixedImage)}({image}, {spans})";
 
     /// <summary>The inverse of <see cref="VarGroupFromFixedImage"/> — rebuild the fixed group's record image.</summary>
     public static string VarGroupToFixedImage(string carrier, int totalWidth, string spans) =>
         $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.ToFixedImage)}({carrier}, {totalWidth}, {spans})";
+
+    /// <summary>A fixed-length formal's store back over a variable-length argument's storage (§14.2.3 GR8;
+    /// kb/Work PB965) — <c>CobolVarGroup.OverlayFixedImage</c>.</summary>
+    public static string VarGroupOverlayFixedImage(string current, string image, string spans) =>
+        $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.OverlayFixedImage)}({current}, {image}, {spans})";
 
     /// <summary>A DETACHED variable-length carrier cell (BY CONTENT / BY VALUE, §14.2.3 GR9/GR10).</summary>
     public static string VarGroupCell(string value) => $"ManagedPointer<{VarGroupType}>.Cell({value})";
@@ -1296,12 +1303,12 @@ internal static class RuntimeApi
         $"ManagedPointer<{VarGroupType}>.OverField(() => {get}, __v => {{ {set} }})";
 
     /// <summary>A LINKAGE formal's variable-length carrier adoption — <c>CobolArgAdapt.VarGroup</c>.</summary>
-    public static string ArgAdaptVarGroup(string args, int position) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroup)}({args}, {position})";
+    public static string ArgAdaptVarGroup(string args, int position, string formalLayout) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroup)}({args}, {position}, {formalLayout})";
 
     /// <summary>The BY VALUE / BY CONTENT twin — <c>CobolArgAdapt.VarGroupValue</c> (§14.2.3 GR9/GR10).</summary>
-    public static string ArgAdaptVarGroupValue(string args, int position) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroupValue)}({args}, {position})";
+    public static string ArgAdaptVarGroupValue(string args, int position, string formalLayout) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.VarGroupValue)}({args}, {position}, {formalLayout})";
 
     // ── The MANAGED-SLOT boundary carrier (class pointer / class object-reference; kb/Work PB663). The FOURTH
     //    crossing form: its value is a managed reference with no byte image, so neither the native numeric cell
@@ -1328,8 +1335,14 @@ internal static class RuntimeApi
     /// <c>CobolArgAdapt.TextValue</c>. <paramref name="profile"/> / <paramref name="scale"/> are the FORMAL's
     /// description (the record GR10's COMPUTE fills — kb/Work PB873), <c>"null"</c> / <c>"0"</c> for a formal
     /// with no numeric description.</summary>
-    public static string ArgAdaptTextValue(string args, int position, string width, string profile, string scale) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.TextValue)}({args}, {position}, {width}, {profile}, {scale})";
+    public static string ArgAdaptTextValue(string args, int position, string width, string profile, string scale,
+        string? groupLayout = null) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.TextValue)}({args}, {position}, {width}, {profile}, {scale}"
+        + $"{(groupLayout is null ? "" : $", {groupLayout}")})";
+
+    /// <summary>The §8.5.1.12 layout argument of a TABLE-LESS group formal — the empty array, which the adapter
+    /// reads as <c>CobolVarGroup.FixedRun(width)</c> (kb/Work PB965); allocation-free at every activation.</summary>
+    public const string NoTableGroupLayout = "System.Array.Empty<int>()";
 
     /// <summary>The ACTIVATING element's §14.2.3 GR9/GR10 argument crossing — <c>CobolArgAdapt.LandForFormal</c>
     /// wrapped around a built <c>CobolArg</c> (kb/Work PB640). <paramref name="carrier"/> is the FORMAL's
@@ -1345,9 +1358,16 @@ internal static class RuntimeApi
     public static string ArgAdaptPresent(string args, int position) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Present)}({args}, {position})";
 
-    /// <summary>RETURNING delivery into the caller's cell (§14.2.3 GR7) — <c>CobolArgAdapt.StoreReturn</c>.</summary>
-    public static string ArgAdaptStoreReturn(string ret, string value) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturn)}({ret}, {value})";
+    /// <summary>RETURNING delivery into the caller's item (§14.6.5) — <c>CobolArgAdapt.StoreReturn</c>.
+    /// <paramref name="description"/> is the SENDING item's description when it has one — its
+    /// <c>NumProfile</c> field, or a variable-length group's layout array (kb/Work PB962/PB965).</summary>
+    public static string ArgAdaptStoreReturn(string ret, string value, string? description = null) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturn)}({ret}, {value}{(description is null ? "" : $", {description}")})";
+
+    /// <summary>A fixed-length group returning item with a table — <c>CobolArgAdapt.StoreReturnGroup</c>: its
+    /// image plus its §8.5.1.12 layout (kb/Work PB965).</summary>
+    public static string ArgAdaptStoreReturnGroup(string ret, string image, string layout) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturnGroup)}({ret}, {image}, {layout})";
 
     /// <summary>The emitted-text reference to a <see cref="CobolPassMode"/> value — <c>nameof</c>-anchored like
     /// <see cref="RoundingText"/>, so a member rename breaks HERE, never the generated text.</summary>

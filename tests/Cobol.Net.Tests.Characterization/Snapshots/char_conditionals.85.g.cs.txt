@@ -14,7 +14,7 @@ internal sealed class _PRG_CHAR_CONDITIONALS : ICobolProgram
     private string WS_C = CobolString.Store("A", 1);   // WS-C
     private string __sendval2_EVALUATE = new string(' ', 1);   // __SENDVAL-2
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

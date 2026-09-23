@@ -343,7 +343,9 @@
   "pb572_national_redefines_receiver",
   "pb846_sort_table_occurs_keys",
   "pb873_by_value_image_carried_formal",
-  "pb615_unreadable_argument_carrier"
+  "pb615_unreadable_argument_carrier",
+  "pb962_returning_content_transfer",
+  "pb965_odo_group_argument_length"
   ],
   "pending": []
 }

@@ -18,7 +18,7 @@ public sealed class ProgramActivationMaskTests
     private sealed class Fake : ICobolProgram
     {
         public System.Action? OnCall;
-        public void Call(CobolArg[] args, ManagedPointer? returning) => OnCall?.Invoke();
+        public void Call(CobolArg[] args, CobolArg? returning) => OnCall?.Invoke();
         public void Activate() { }
         public void CloseFiles() { }
     }

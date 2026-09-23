@@ -18,7 +18,7 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
     private long C = 0L;   // C
     private long SMALL = 0L;   // SMALL
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

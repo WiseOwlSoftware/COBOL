@@ -14,7 +14,7 @@ internal sealed class _PRG_CHAR_REDEFINES : ICobolProgram
     private long WS_A = 0L;   // WS-A
     private string _redef_WS_G = CobolString.Store((new string(' ', 2) + new string(' ', 2)), 4);   // REDEFINES backing for WS-G
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

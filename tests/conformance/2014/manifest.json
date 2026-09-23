@@ -114,7 +114,11 @@
   "pb457_capacity_register_qualified",
   "pb907_through_alias_vlg_move",
   "pb848_pointer_usage_to_optional",
-  "pb847_function_pointer_call"
+  "pb847_function_pointer_call",
+  "pb965_fixed_group_vlg_boundary",
+  "pb965_fixed_group_vlg_invoke",
+  "pb965_vlg_into_fixed_boundary",
+  "pb965_vlg_into_fixed_invoke"
  ],
  "pending": []
 }

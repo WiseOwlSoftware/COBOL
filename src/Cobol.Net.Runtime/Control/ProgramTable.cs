@@ -200,7 +200,7 @@ public sealed class ProgramTable
     /// Failures raise <see cref="CobolCallException"/> — the call site's ON OVERFLOW / ON EXCEPTION phrase (when
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
-    public void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
+    public void CallProgram(string name, string callerPath, CobolArg[] args, CobolArg? returning,
         bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND",
         bool siteArgMismatchChecking = false)
     {
@@ -419,7 +419,7 @@ public sealed class ProgramTable
     /// this implementation defines it as the EC-PROGRAM-NOT-FOUND loud failure (never a silent no-op). The
     /// held name is an OUTERMOST program's identity, so the §8.4.6.3 rule-4 leg of the SAME
     /// <see cref="CallProgram"/> resolution finds it from any caller (the singular-pattern rule).</summary>
-    public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, ManagedPointer? returning,
+    public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, CobolArg? returning,
         bool siteHandlesPropagation = false)
     {
         // §14.9.4.4 GR3b names TWO DISTINCT conditions and the NULL case is the FIRST of them: "If the data item
@@ -452,7 +452,7 @@ public sealed class ProgramTable
     /// EC-FUNCTION-NOT-FOUND as the locate-miss name — never a second lookup path. The program-pointer twin is
     /// <see cref="CallPointer"/>.</summary>
     public void CallFunctionPointer(FunctionPointer target, string callerPath, CobolArg[] args,
-        ManagedPointer? returning, bool siteHandlesPropagation = false)
+        CobolArg? returning, bool siteHandlesPropagation = false)
     {
         if (target.IsNull)
         {

@@ -18,7 +18,7 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
     private string WS_T = CobolString.Store("abc", 5);   // WS-T
     private string WS_U = new string(' ', 5);   // WS-U
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

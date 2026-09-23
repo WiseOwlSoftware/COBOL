@@ -25,7 +25,7 @@ internal sealed class _PRG_CHAR_RENAMES : ICobolProgram
     }
     private _T_0 WS_REC = new _T_0 { WS_A = new string(' ', 2), WS_B = new string(' ', 2), WS_C = new string(' ', 2) };   // WS-REC
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

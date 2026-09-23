@@ -480,6 +480,27 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line(PlaceRenderer.Write(tp, $"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39.4 GR9 — reference copy)");
     }
 
+    /// <summary>The spans of a FIXED-length group argument's tables that correspond to a variable-length group
+    /// formal's dynamic-capacity tables (kb/Work PB965) — null when the argument is itself variable-length (it
+    /// composes its own carrier) or is not a group place the correspondence can be stated for.</summary>
+    private static int[]? FixedArgumentSpans(Place arg, DataItem formal) =>
+        arg is not RedefViewPlace and not RefModPlace
+        && !CallEmitter.CallPlaceIsVarGroup(arg)
+        && arg.DenotedItem is { IsImageCapable: true } item
+            ? VariableLengthCompatibility.CorrespondingSpans(item, formal)
+            : null;
+
+    /// <summary>The mirror of <see cref="FixedArgumentSpans"/> (kb/Work PB965): the spans of a FIXED-length group
+    /// <paramref name="fixedSide"/>'s tables that correspond to the dynamic-capacity tables of the VARIABLE-length
+    /// group place <paramref name="varSide"/> — a variable-length argument into a fixed-length group formal, or a
+    /// RETURNING pair with one side of each (§14.8.2.2 / §14.8.3.2: "shall be compatible, as described in
+    /// 8.5.1.12"). Null for any other pair — including two variable-length groups, which cross component-wise.</summary>
+    private static int[]? VarPlaceSpans(Place varSide, DataItem fixedSide) =>
+        CallEmitter.CallPlaceIsVarGroup(varSide) && ItemCategory.IsGroupItem(fixedSide)
+        && !VariableLengthCompatibility.IsVariableLength(fixedSide)
+            ? VariableLengthCompatibility.CorrespondingSpans(fixedSide, varSide.Item)
+            : null;
+
     private static string OoUnivCallerRead(Place p) =>
         p is RefModPlace ? PlaceRenderer.Read(p)
         : CallEmitter.CallPlaceIsVarGroup(p) ? PlaceRenderer.VarGroupImage(p, "INVOKE argument")
@@ -927,17 +948,30 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // the group's §8.5.1.12 components, not a width-fitted image — there is no width to fit, and
                 // the receiving side's own FromVarImage re-fits both halves. Bind has already run the
                 // compatibility relation (OoBinder → DescriptionMismatch), so the pairing is sound here.
+                // ⛔ A FIXED-length group argument is admitted too (§8.5.1.12.1 "only one of the operands may be
+                // a variable-length group"; kb/Work PB965): it decomposes at the spans of ITS tables that
+                // correspond to the formal's dynamic-capacity tables — the ONE correspondence walk, run here at
+                // compile time because both descriptions are in hand.
                 w.Line($"{RuntimeApi.VarGroupType} {tmp} = {(a.Source is { } vgp
-                    ? PlaceRenderer.VarGroupImage(vgp, "INVOKE argument")
+                    ? FixedArgumentSpans(vgp, a.Formal) is { } fs
+                        ? RuntimeApi.VarGroupFromFixedImage(CallEmitter.CallStringRead(vgp), CallEmitter.LayoutArray(fs))
+                        : PlaceRenderer.VarGroupImage(vgp, "INVOKE argument")
                     : RuntimeApi.VarGroupEmpty)};");
             }
+            else if (a.Source is { } vsp && VarPlaceSpans(vsp, a.Formal) is { } vs)
+                // ⛔ A VARIABLE-length group argument into a FIXED-length group formal (§14.8.2.2; kb/Work PB965):
+                // the formal reads the argument's image through the pair's correspondence, each corresponding
+                // table fitted to the formal's occurrence count (§8.5.1.12.3 sentence 3).
+                w.Line($"string {tmp} = {RuntimeApi.VarGroupToFixedImage(PlaceRenderer.VarGroupImage(vsp, "INVOKE argument"), a.Formal.ImageWidth, CallEmitter.LayoutArray(vs))};");
             else if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
             {
                 // The image crossing. BY REFERENCE allows a SMALLER formal (§14.8.2.2 rule 1 — a PREFIX of
                 // the argument): pass the leading formal-width characters; the write-back below splices the
                 // prefix back, preserving the argument's tail. CONTENT pads/truncates per MOVE.
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
-                string read = a.Source is { } gsp ? CallEmitter.CallStringRead(gsp) : CsLiteral(a.StringLiteral ?? "");
+                string read = a.Source is { } gsp
+                    ? a.ByContent ? CallEmitter.CallContentRead(gsp) : CallEmitter.CallStringRead(gsp)
+                    : CsLiteral(a.StringLiteral ?? "");
                 w.Line($"string {tmp} = {RuntimeApi.StrStore(read, $"{fw}")};");
             }
             else if (stringCarried)
@@ -1017,8 +1051,20 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // Copy-out to the CALLER's storage (BY REFERENCE — §14.2.3 GR8 at statement granularity).
             if (OoVarGroupCarried(a.Formal))
                 // No prefix splice: a variable-length crossing carries whole components, so the write-back is
-                // the exact inverse of the read (kb/Work PB204).
-                Post(PlaceRenderer.WriteVarGroupImage(src, tmp, "INVOKE copy-out into"));
+                // the exact inverse of the read (kb/Work PB204) — for a FIXED-length argument, the inverse of
+                // its decomposition, each component fitted to its fixed table as §14.6.9.2 fits a dynamic
+                // sender into a non-dynamic receiver (kb/Work PB965).
+                Post(FixedArgumentSpans(src, a.Formal) is { } ws
+                    ? CallEmitter.CallStringWrite(src,
+                        RuntimeApi.VarGroupToFixedImage(tmp, src.Item.ImageWidth, CallEmitter.LayoutArray(ws)))
+                    : PlaceRenderer.WriteVarGroupImage(src, tmp, "INVOKE copy-out into"));
+            else if (VarPlaceSpans(src, a.Formal) is { } wv)
+                // …and its write-back OVERLAYS the argument's storage (§14.2.3 GR8): the argument's tables keep
+                // their current capacities and its material past the formal survives (kb/Work PB965).
+                Post(PlaceRenderer.WriteVarGroupImage(src,
+                    RuntimeApi.VarGroupOverlayFixedImage(PlaceRenderer.VarGroupImage(src, "INVOKE copy-out into"), tmp,
+                        CallEmitter.LayoutArray(wv)),
+                    "INVOKE copy-out into"));
             else if (a.Formal.IsGroup || src.Item.IsGroup)
             {
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
@@ -1059,8 +1105,21 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             bool retString = OoStringCarried(rs);
             w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23.4; null receiver → EC-OO-NULL, GR5)");
             foreach (var pLine in post) w.Line(pLine);
-            if (OoVarGroupCarried(rs))
+            // ⛔ A RETURNING pair with ONE variable-length side (§14.8.3.2 "If either the sending or the receiving
+            // operand is a variable length group, the sending operand and the receiving operand shall be
+            // compatible, as described in 8.5.1.12"; kb/Work PB965): delivered through the pair's correspondence
+            // — a dynamic table's occurrences fitted to the fixed table (§14.6.9.2), a fixed table crossing at its
+            // occurrence count (§8.5.1.12.3 sentence 3). The same two legs the program ABI's StoreReturn takes.
+            if (OoVarGroupCarried(rs) && recv is not RedefViewPlace && recv.DenotedItem is { } ri
+                && !CallEmitter.CallPlaceIsVarGroup(recv) && ItemCategory.IsGroupItem(ri)
+                && VariableLengthCompatibility.CorrespondingSpans(ri, rs) is { } rvs)
+                w.Line(CallEmitter.CallStringWrite(inv.Returning,
+                    RuntimeApi.VarGroupToFixedImage(tmp, ri.ImageWidth, CallEmitter.LayoutArray(rvs))));
+            else if (OoVarGroupCarried(rs))
                 w.Line(PlaceRenderer.WriteVarGroupImage(inv.Returning, tmp, "INVOKE RETURNING delivery into"));
+            else if (ItemCategory.IsGroupItem(rs) && VarPlaceSpans(recv, rs) is { } fvs)
+                w.Line(PlaceRenderer.WriteVarGroupImage(inv.Returning,
+                    RuntimeApi.VarGroupFromFixedImage(tmp, CallEmitter.LayoutArray(fvs)), "INVOKE RETURNING delivery into"));
             else if (rs.IsGroup || recv.Item.IsGroup)
                 w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
             else if (recv is RefModPlace)

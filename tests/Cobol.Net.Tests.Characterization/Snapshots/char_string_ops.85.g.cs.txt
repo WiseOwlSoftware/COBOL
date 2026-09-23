@@ -16,7 +16,7 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
     private string WS_P1 = new string(' ', 5);   // WS-P1
     private string WS_P2 = new string(' ', 5);   // WS-P2
 
-    public void Call(CobolArg[] __args, ManagedPointer? __ret)
+    public void Call(CobolArg[] __args, CobolArg? __ret)
     {
         __asCalled = true;
         try { __Activate(); } finally { __asCalled = false; }

@@ -128,7 +128,7 @@ public static class ProgramRegistry
     public static void RunMain(string path) => RunUnit.Current.Programs.RunMain(path);
 
     /// <inheritdoc cref="ProgramTable.CallProgram"/>
-    public static void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
+    public static void CallProgram(string name, string callerPath, CobolArg[] args, CobolArg? returning,
         bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND",
         bool siteArgMismatchChecking = false)
         => RunUnit.Current.Programs.CallProgram(name, callerPath, args, returning, siteHandlesPropagation,
@@ -151,11 +151,11 @@ public static class ProgramRegistry
 
     /// <inheritdoc cref="ProgramTable.CallPointer"/>
     public static void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args,
-        ManagedPointer? returning, bool siteHandlesPropagation = false)
+        CobolArg? returning, bool siteHandlesPropagation = false)
         => RunUnit.Current.Programs.CallPointer(target, callerPath, args, returning, siteHandlesPropagation);
 
     /// <inheritdoc cref="ProgramTable.CallFunctionPointer"/>
     public static void CallFunctionPointer(FunctionPointer target, string callerPath, CobolArg[] args,
-        ManagedPointer? returning, bool siteHandlesPropagation = false)
+        CobolArg? returning, bool siteHandlesPropagation = false)
         => RunUnit.Current.Programs.CallFunctionPointer(target, callerPath, args, returning, siteHandlesPropagation);
 }

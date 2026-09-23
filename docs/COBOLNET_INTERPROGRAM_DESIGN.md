@@ -376,6 +376,57 @@ been transferred, marks it in the ordinary GR3i way. `Omitted<T>` is now reached
 argument. Golden `2002/pb615_unreadable_argument_carrier`; unit
 `CallAbiNumericCarrierDriftTests.ACarrierOutsideTheSix_FailsTheActivationWithArgMismatch`.
 
+**⛔ A FIXED-LENGTH GROUP OPPOSITE A VARIABLE-LENGTH ONE (kb/Work PB965).** §8.5.1.12.1 admits the pair ("only
+one of the operands may be a variable-length group") and §14.8.2.2 / §14.8.3.2 import it into every boundary. The
+fixed group decomposes into the same `CobolVarGroup` (`FromFixedImage`) and is rebuilt from it (`ToFixedImage`)
+at the spans of ITS tables that CORRESPOND to the variable-length group's dynamic-capacity tables — and
+correspondence is a fact about the PAIR (§8.5.1.12.2: "they occupy the same relative byte positions within their
+groups"), so it is computed by ONE walk, `CobolVarGroup.CorrespondingSpans(fixedLayout, varLayout)`, over each
+group's §8.5.1.12 LAYOUT (`VariableLengthCompatibility.Layout` — `(kind, chars, elementChars)` triples: fixed run,
+fixed table, occurs-depending table, dynamic-capacity table, dynamic-length item). The corresponding fixed table
+crosses at its fixed occurrence count (§8.5.1.12.3 sentence 3); a fixed table opposite plain bytes is plain
+material (the former `FlatTableSpans` lifted EVERY table and moved the wrong one); a dynamic-capacity table past the
+fixed group's last character gets no component (§8.5.1.12.2's last sentence — the receiver's §14.6.9.4 space fill).
+The two sides of a CALL are compiled apart, so each side's LAYOUT TRAVELS: `CobolArg.Layout` carries an argument's
+(or the RETURNING receiver's) layout, emitted for a group with a table or a variable-length member; the formal's
+adapter (`CobolArgAdapt.VarGroup/VarGroupValue(args, i, formalLayout)`) and the RETURNING legs
+(`StoreReturnGroup`, `StoreReturn(ret, CobolVarGroup, layout)`) pair them; a table-less fixed group states only
+its length (`CobolVarGroup.FixedRun`). The §14.9.25.4 GR9 MOVE and the typed INVOKE know both descriptions at
+compile time and call the SAME walk there (`VariableLengthCompatibility.CorrespondingSpans`). ⚠ DETERMINATION: a
+callee cannot grow a fixed-length argument's table past its fixed extent — that storage has no more occurrences —
+so the write-back fits each component to its table as §14.6.9.2 fits a dynamic sending table into a non-dynamic
+receiving one ("superfluous elements are not moved"; missing ones are space filled). Goldens
+`2014/pb965_fixed_group_vlg_boundary`, `2014/pb965_fixed_group_vlg_invoke`; negative
+`pb965-fixed-table-off-position`; unit `BoundaryGroupCorrespondenceTests`.
+
+**⛔ THE REVERSE PAIR, AND THE SIZE RULE A VARIABLE-LENGTH PAIR TAKES (kb/Work PB965, finisher).** A variable-length
+group has no length of its own: its collapsed `ImageWidth` counts a dynamic-capacity table as one element, which
+§8.5.1.12.3 grants only to two MATCHING dynamic-capacity tables. So `OoConformance.DescriptionMismatch` — the one
+comparator behind COBOLNET1688 (CALL argument), 1736 (CALL RETURNING) and 0828 (INVOKE) — decides the size question
+per activation mode once either side is a variable-length group: a RETURNING pair takes compatibility alone (§14.8.3.2's
+length sentence applies only when "neither of them is strongly typed or a variable length group"); BY REFERENCE,
+§14.8.2.2 rule 1 binds only an ALPHANUMERIC group item (§3.11 excludes a variable-length group), so two
+variable-length groups take compatibility alone and a fixed group opposite one compares in the lengths §8.5.1.12.3
+sentence 3 gives the PAIR ("the dynamic-capacity table is considered to be the same length as the corresponding
+table") — `VariableLengthCompatibility.PairCharWidths`, the SAME walk that decides the correspondence. Override and
+prototype signature equality (§9.3.8.2.3) keeps strict equality. The admitted VARIABLE-into-FIXED pairs run through
+the same correspondence: every group formal states its layout to `CobolArgAdapt.Text` / `TextValue`
+(`ProgramEmitter.GroupFormalLayout`; `System.Array.Empty<int>()` for a table-less group, read as `FixedRun(width)`),
+whose variable-carrier arm reads the argument through `ToFixedImage`; the typed INVOKE does the same at compile time
+(`OoEmitter.VarPlaceSpans`), including both mixed RETURNING directions. ⚠ DETERMINATION: a formal with a FIXED
+occurrence count cannot change the argument table's current capacity, so a BY REFERENCE store OVERLAYS the argument's
+storage (`CobolVarGroup.OverlayFixedImage`, §14.2.3 GR8): the occurrences the argument has are written, one it lacks
+is not, one past the formal's count is untouched, and material past a prefix formal survives. Goldens
+`2014/pb965_vlg_into_fixed_boundary`, `2014/pb965_vlg_into_fixed_invoke`; negative
+`pb965-vlg-into-larger-fixed-formal`.
+
+**An OCCURS DEPENDING group argument's two lengths.** §14.8.2.2: "For an argument or formal parameter that is
+described as an occurs-depending group item passed by reference, the maximum length is used. For an occurs-depending
+group item passed by content, the length of the argument is determined by the rules of the OCCURS clause for a
+sending data item." BY REFERENCE reads `CallEmitter.CallStringRead` (the whole allocation); BY CONTENT reads
+`CallEmitter.CallContentRead` — the §13.18.38.4 GR8 current extent through `PlaceRenderer.SendingGroupImage` — at the
+CALL snapshot and at the INVOKE BY CONTENT arm alike. Golden `2002/pb965_odo_group_argument_length`.
+
 `CobolVarGroup` is `(string Fixed, string[] Dynamic)` and is the §8.5.1.12 model itself, not an encoding:
 `Fixed` is the group's image with every variable-length component collapsed to nothing — the exact accounting
 §8.5.1.12.3 states the relation in, which is why two COMPATIBLE groups lay it out identically — and `Dynamic`
@@ -498,12 +549,30 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
 - RETURNING a group item: an **image-form** group — every leaf `DataItem.ElementImageCapable`, i.e. character-stored OR any pinned numeric byte form (zoned DISPLAY, binary, packed, COMP-5, IEEE float, INDEX) — is carried; the caller temp deep-clones the description and the image crosses via AsImage/FromImage (§8.4.3.2.4 GR1; §14.2.2 SR5 places no category restriction, and none on usage either). Only the strong-typed / internal-REDEFINES / variable-length shapes and a **pointer- or object-class LEAF** stage loud (the per-shape COBOLNET1510 residues in `UdfBinder.UdfReturningResidue`). A byte-form numeric leaf was listed here as a residue until PB164's F8 widened the screen off its hand-rolled DISPLAY-only usage union onto the derived predicate (kb/Work PB199).
 - **RETURNING delivery is TOTAL (§14.9.4.4 GR4; kb/Work PB165).** With no caller target the value is discarded —
   GR4 has no receiver. With one, `CobolArgAdapt.StoreReturn` **stores or raises**, never no-ops: legs exist for
-  every `ElementType` the compiler emits (`long`/`ulong`/`Int128`/`UInt128`, `double`/`float`, `string`,
+  every `ElementType` the compiler emits (`long`/`ulong`/`Int128`/`UInt128`, `double`, `string`,
   `CobolVarGroup`, `ManagedPointer`, `ProgramPointer`, `CobolObject`), and a pair with no leg raises
-  `CobolCallException("EC-PROGRAM-ARG-MISMATCH")` citing §14.8.3.3 and §14.9.4.4 GR3d. A cross-CARRIER pair can
-  only come from source §14.8.3.3 already declares non-conforming (it requires the same PICTURE and USAGE
-  clauses), so the character legs deliver the result's DIGIT IMAGE — what the receiver would have seen had the
-  pair conformed by length. A silent discard is the one outcome GR4's *“is placed into identifier-3”* excludes.
+  `CobolCallException("EC-PROGRAM-ARG-MISMATCH")` citing §14.8.3 and §14.9.4.4 GR3d. (The `double` leg was
+  missing until kb/Work PB962's sweep: a `USAGE FLOAT-LONG` returning item did not compile, CS0315.) A silent
+  discard is the one outcome GR4's *“is placed into identifier-3”* excludes.
+- **⛔ The RETURNING item crosses as a `CobolArg` — carrier AND description (kb/Work PB962 + PB965).**
+  `ICobolProgram.Call(CobolArg[] args, CobolArg? returning)`: the activating element builds the returning item's
+  `CobolArg` exactly as it builds a BY REFERENCE argument's (`CallEmitter.ReturningArgText` over the one
+  `PlaceDescription`), because its storage is the activating element's (§14.2.3 GR6 NOTE 1) and the delivery,
+  which runs in the activated element, needs the RECEIVER's shape. The activated element passes its SENDING
+  item's description beside the content (`ProgramEmitter.ReturningDelivery`). **The delivery is a CONTENT
+  transfer** — §14.6.5: the result "is the content of the data item referenced by that RETURNING phrase" — under
+  the one description a conforming pair shares (§14.8.3.3 requires the same PICTURE and USAGE): a fixed-point
+  item's native value lands in a native cell and, in an image-carried receiver, as its representation under the
+  description (`CobolNum.FormatDisplay` — the value's C# text dropped the sign's over-punch); an image-carried
+  item's text lands as it stands in an image-carried receiver and decoded under the description
+  (`CobolNum.ParseDisplay`, which answers for any content) in a native cell. Before PB962 the text leg re-parsed
+  the content as a C# number and ABORTED the run unit whenever it was not a digit run (spaces). ⚠ A NATIVE cell
+  holds a value, so content that is not a valid numeric representation reads as the value `ParseDisplay` gives
+  it — the same residue every character view of a native numeric cell has. The character legs of a
+  description-free sender (an alphanumeric item into a numeric receiver — a pair §14.8.3.3 does not admit) still
+  read the result's digit image, loud when there is none. A ZONED image-carried item's boundary text IS its
+  storage, so `CallEmitter.CallStringWrite` stores it as it stands (fitted) rather than decoding and re-encoding
+  it, which lost exactly the non-digit content; a BINARY/PACKED item's boundary text is still its operand text.
 - CALL to a NULL program-pointer → EC-PROGRAM-PTR-NULL; unresolvable name → EC-PROGRAM-NOT-FOUND; both are activation failures and take the GR3h partition below.
 - **The GR3h/GR3i partition of a failed activation, and the ACTIVATION BOUNDARY that makes it decidable.** §14.9.4.4 GR3h routes a failure on THREE independent facts, and the emitted CALL expresses each one separately (`CallEmitter.EmitCall`; kb/Work PB233):
   1. **Which phrase is written.** Only ON EXCEPTION diverts — GR3h item 1 names it, and §14.6.13.1.3 #1 admits only "a conditional phrase without the NOT phrase". A CALL carrying only NOT ON EXCEPTION is governed by item 2 or item 3 exactly as a phrase-free CALL is. (It formerly emitted the catch on *either* phrase and silently discarded the failure.)

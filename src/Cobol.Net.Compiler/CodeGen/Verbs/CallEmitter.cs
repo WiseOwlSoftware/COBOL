@@ -247,7 +247,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private string InvocationText(BoundCallProgram c, bool siteHandlesPropagation, bool argMismatchChecking)
     {
         string head = $"{CsLiteral(callState.SelfPath)}, {ArgsArrayText(c)}, "
-            + $"{(c.Returning is { } rp ? RefCarrier(rp) : "null")}";
+            + $"{(c.Returning is { } rp ? ReturningArgText(rp) : "null")}";
         string site = siteHandlesPropagation ? ", siteHandlesPropagation: true" : "";
         if (c.IsPointerTarget && c.DynamicName is BoundFieldOperand pf)
             return c.IsFunction
@@ -429,6 +429,43 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                                           fp.ClrType, ecState.SizeTruncationChecking)
             : built;
 
+    /// <summary>⛔ THE DESCRIPTION a place's storage carries across the activation boundary, as the trailing
+    /// <c>CobolArg</c> constructor arguments (kb/Work PB873 + PB965): an elementary NUMERIC item's whole
+    /// <c>NumProfile</c> (Place.DenotedItem — a reference-modified view denotes no item and is character storage;
+    /// a USAGE INDEX item's storage description has no digit positions for a profile to state), and a GROUP's
+    /// §8.5.1.12 layout when it has a table or a variable-length member (<c>VariableLengthCompatibility.Layout</c>
+    /// — the fact §8.5.1.12.2's correspondence needs from each side, since the two sides are compiled apart). ONE
+    /// renderer for the argument and the RETURNING item, because both are storage the activating element owns
+    /// and the activated element reaches through a carrier.</summary>
+    private string PlaceDescription(Place p)
+    {
+        string meta = p.DenotedItem is { Pic: { Category: PicCategory.Numeric } pp } && pp.Usage is not Usage.Index
+            ? pp.ProfileInitializer(ctx.SignEncoding)
+            : "null";
+        return BoundaryLayout(p) is { } layout ? $"{meta}, {layout}" : meta;
+    }
+
+    /// <summary>The emitted §8.5.1.12 layout of a group place that has a table or a variable-length member, or
+    /// null when it has neither (a null layout answers "no correspondence" on the runtime side, which is right
+    /// for such a group). A reference-modified or redefinition view is character storage, never a group.</summary>
+    internal static string? BoundaryLayout(Place p) =>
+        p is not RedefViewPlace and not RefModPlace
+        && p.DenotedItem is { } item
+        && VariableLengthCompatibility.Layout(item) is { } layout
+        && VariableLengthCompatibility.HasTableOrVariable(layout)
+            ? LayoutArray(layout)
+            : null;
+
+    /// <summary>The C# array literal of a §8.5.1.12 layout.</summary>
+    internal static string LayoutArray(int[] layout) => $"new int[] {{ {string.Join(", ", layout)} }}";
+
+    /// <summary>The RETURNING item's <c>CobolArg</c> (kb/Work PB962/PB965): the same BY REFERENCE carrier an
+    /// argument gets (§14.2.3 GR6 NOTE 1 — "the storage for the returning item is allocated in the activating
+    /// source unit") plus the same description, so the activated element's delivery can place the result by
+    /// the RECEIVER's shape.</summary>
+    private string ReturningArgText(Place rp) =>
+        $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(rp)}, {PlaceDescription(rp)})";
+
     /// <summary>The C# <c>CobolArg</c> expression for one bound CALL argument BEFORE the §14.2.3 GR9/GR10
     /// landing <see cref="LandedForFormal"/> wraps around it.</summary>
     private string ArgCarrierText(BoundCallArg a)
@@ -457,9 +494,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // characters sees its representation (§14.2.3 GR8 / GR9's first branch). Only an elementary NUMERIC
             // item has one (Place.DenotedItem — a reference-modified view denotes no item and is character storage), and a USAGE INDEX item's storage
             // description has no digit positions for a profile to state.
-            string meta = p.DenotedItem is { Pic: { Category: PicCategory.Numeric } pp } && pp.Usage is not Usage.Index
-                ? pp.ProfileInitializer(ctx.SignEncoding)
-                : "null";
+            // ⛔ …and a GROUP's §8.5.1.12 layout (kb/Work PB965) rides beside it: the one description a
+            // variable-length group formal needs to meet a fixed-length group argument (§14.8.2.2).
+            string meta = PlaceDescription(p);
             // ⛔ V59 RESIDUE FIX: the predicate is IsImageCapable, not the pre-V59 IsCharacterImage. A group whose
             // only non-character leaf is BINARY/PACKED now HAS a whole-group image — V59 gave those leaves their
             // pinned bytes — and `RecordStructEmitter` emits AsImage()/FromImage() for exactly IsImageCapable
@@ -517,7 +554,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             string snapshot = CrossingOf(p) switch
             {
                 CallCrossing.VarGroup => RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupImage(p, "CALL argument")),
-                CallCrossing.Text => $"ManagedPointer<string>.Cell({CallStringRead(p)})",
+                CallCrossing.Text => $"ManagedPointer<string>.Cell({CallContentRead(p)})",
                 // Native and Managed both snapshot the storage's own value into a detached cell of its own
                 // carrier — §14.2.3 GR9/GR10's allocated record, whose filling is "a COMPUTE statement without
                 // the ROUNDED phrase" for a numeric formal and "a SET statement" for one of class object or
@@ -806,6 +843,17 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             ? PlaceRenderer.GroupImage(p)   // the FULL image (GR8 is a sending-operand rule, not a boundary one) — window or struct (kb/Work PB80)
             : OperandText.FieldImage(p);
 
+    /// <summary>⛔ THE BY CONTENT READ of a character-image argument — <see cref="CallStringRead"/>, except that an
+    /// OCCURS DEPENDING group sends only its current extent. ISO §14.8.2.2 states the two lengths apart: "For an
+    /// argument or formal parameter that is described as an occurs-depending group item passed by reference, the
+    /// maximum length is used. For an occurs-depending group item passed by content, the length of the argument
+    /// is determined by the rules of the OCCURS clause for a sending data item" — §13.18.38.4 GR8's current-count
+    /// part, which <see cref="PlaceRenderer.SendingGroupImage"/> owns. Both the CALL and the INVOKE BY CONTENT
+    /// arms read through here (kb/Work PB965 finisher — measured: `CALL … USING BY CONTENT OG` with the ODO count
+    /// at 2 of 5 delivered all five occurrences).</summary>
+    internal static string CallContentRead(Place p) =>
+        p is OdoGroupPlace ? PlaceRenderer.SendingGroupImage(p, "CALL BY CONTENT argument") : CallStringRead(p);
+
     internal static string CallStringWrite(Place p, string value) =>
         // The boundary WRITE half of the §14.2.3 GR8/GR9 full-allocation rule above: a group (including an
         // occurs-depending group — OdoGroupPlace.Write delegates to the full-width struct) distributes the whole
@@ -834,6 +882,16 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // boundary convention carries the DISPLAY image, and a byte-form windowed / image-stored NUMERIC
         // receiver must DECODE it and re-encode through the ONE byte-form recipe (the same MOVE/ACCEPT
         // store shape) — the raw splice put the returned CHARACTERS into a StorageWidth window.
+        // ⛔ …EXCEPT A ZONED ONE, whose DISPLAY image IS its storage (kb/Work PB962). For it the decode/re-encode
+        // is not a representation change but a VALUE conversion, and a value conversion loses exactly the
+        // content that is not a valid numeric representation: a callee's RETURNING item holding spaces came
+        // home as 000. §14.6.5 delivers "the content of the data item" and §14.2.3 GR8 makes a BY REFERENCE
+        // formal "occupy the same storage area as the argument" — content in, content out — so the boundary
+        // text is stored as it stands, fitted to the item's character positions. (A BINARY/PACKED item's
+        // boundary text is still its operand text, not its storage bytes — the separate channel question.)
+        : (p.Item.StoreAsImage || p is RedefViewPlace)
+            && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, ByteForm: NumericByteForm.Zoned }
+            ? PlaceRenderer.Write(p, RuntimeApi.StrStore(value, $"{p.Item.ImageWidth}"))
         : (p.Item.StoreAsImage || p is RedefViewPlace)
             && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
             ? PlaceRenderer.Write(p, RuntimeApi.NumFormatImage(
