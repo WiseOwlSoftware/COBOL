@@ -105,7 +105,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// that divergence is a CS0103 in generated code; reading it here retires the mirroring (kb/Work PB168;
     /// the one-rule-one-place discipline).</summary>
     public bool EmitsStaticReset =>
-        (UnitStaticWs && (StaticRootFields.Count > 0 || StaticBasedBridgeAddrs.Count > 0))
+        (UnitStaticWs && (StaticRootFields.Count > 0 || StaticBasedBridgeAddrs.Count > 0
+                          || StaticAddressableCells.Count > 0 || StaticIndexCells.Count > 0))
         || (UnitStaticFiles && Files.Count > 0);
 
     /// <summary>The unit's WORKING-STORAGE SECTION roots, in source order — the subset of <see cref="Roots"/>
@@ -677,12 +678,30 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     _staticIndexCells.Add(basedCell);
             return;
         }
-        if (root.Class is { } c && (c.BasedPointerField is not null || PtrAddressableCellOf.ContainsKey(c)))
+        if (root.Class is { } ac && PtrAddressableCellOf.TryGetValue(ac, out var addrCell))
         {
-            Edition.Error(DiagnosticCatalog.RecursiveWsPointerBacked,
-                $"'{root.CobolName ?? "FILLER"}': an ADDRESS-OF-taken record in the {section} of "
-                + "a RECURSIVE program or function is recognized but its static cell storage is not yet "
-                + "implemented (ISO §13.5.4 GR1 / §14.6.2.3.2 #5; the BASED half landed with kb/Work PB154)");
+            // kb/Work PB234 — an ADDRESS-OF-taken record of a RECURSIVE unit's static WS. §13.5.4 GR1 makes the
+            // data STATIC — one copy shared by every activation — and its storage IS the forced StorageCell (the
+            // backing is a ref-bridge over it), so the CELL is what goes static; §14.6.2.3.2 action 2 then
+            // re-seeds it in place from __ResetStatics. Nothing in §8.4.3.11, §11.10.4 or §14.9.5.4 forbids the
+            // source this used to refuse (COBOLNET0899): a static item's address is simply the one copy's.
+            // Every root of the class (the canonical and each REDEFINES view) names the ONE cell.
+            _staticAddressableCells.Add(addrCell);
+            foreach (var idx in IndexNamesUnder(root))
+                if (_indexFields.TryGetValue(idx, out var addrIdxCell))
+                    _staticIndexCells.Add(addrIdxCell);
+            return;
+        }
+        if (root.Class is { } c && c.BasedPointerField is not null)
+        {
+            // A non-BASED root of a BASED item's class — a level-01 REDEFINES of it (§13.18.44 does not forbid
+            // one, and §13.18.5.3 names only class object and dynamic length). Its storage is the based item's
+            // ALLOCATED cell reached through the ONE bridge the BASED root above already routed static, so it
+            // has no storage of its own to route; only its index cells do (kb/Work PB234 — this arm used to
+            // refuse the source with the same COBOLNET0899 as the ADDRESS OF arm).
+            foreach (var idx in IndexNamesUnder(root))
+                if (_indexFields.TryGetValue(idx, out var viewIdxCell))
+                    _staticIndexCells.Add(viewIdxCell);
             return;
         }
         if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))

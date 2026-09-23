@@ -172,6 +172,14 @@ public sealed partial class DataBinder
     public IReadOnlySet<string> StaticBasedBridgeAddrs => _staticBasedBridgeAddrs;
     private readonly HashSet<string> _staticBasedBridgeAddrs = new(StringComparer.Ordinal);
 
+    /// <summary>The ADDRESS-OF cell fields of a RECURSIVE unit's static WORKING-STORAGE (kb/Work PB234): the
+    /// record's <c>StorageCell</c> — its ONE storage, which <c>ManagedPointer.At</c> aliases — emits STATIC
+    /// (§13.5.4 GR1: one copy shared by every activation) and <c>__ResetStatics</c> re-seeds it IN PLACE
+    /// (§14.6.2.3.2 action 2), where the old routing REJECTED `ADDRESS OF` a static item outright
+    /// (COBOLNET0899 — legal source refused).</summary>
+    public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
+    private readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
+
     /// <summary>Method root (01/77) → its owning method symbol (M2-OO-1h). The post-build passes (OdoResolve,
     /// ResolveRedefines) run AFTER <see cref="OoScopeSubtree"/> has moved method names out of the global maps, and
     /// <see cref="ActiveMethodScope"/> is null then — so they resolve a method item's data-name-1 / REDEFINES

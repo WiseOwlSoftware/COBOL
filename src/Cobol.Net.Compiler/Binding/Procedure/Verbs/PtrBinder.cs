@@ -49,12 +49,12 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         Place? source = null;
         BoundAddressOf? address = null;
         bool toNull = send.NULL_() is not null;
-        if (!toNull && send.ADDRESS() is not null)
+        if (send.dataAddressIdentifier() is { } dai)
         {
             // identifier-6 as a §8.4.3.11 data-address-identifier — §8.4.3.11.4 GR1: "Data-address-identifier
             // creates a unique data item of class pointer and category data-pointer", which is precisely what
             // SR17's second sentence ("Identifier-6 shall be of category data-pointer") demands of it.
-            if (PtrBindAddressOf(send.dataReference()) is not { } addr) return new BoundNop();
+            if (BindDataAddress(dai) is not { } addr) return new BoundNop();
             address = addr;
         }
         else if (!toNull)
@@ -77,7 +77,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         var senderRestriction = address is { } addrSend ? StrongTypeModel.AddressOfRestriction(addrSend.Item)
                               : source is { } ptrSend ? StrongTypeModel.PointerRestriction(ptrSend.Item)
                               : default;
-        string senderText = toNull ? "NULL" : send.dataReference().GetText();
+        string senderText = toNull ? "NULL"
+            : (send.dataAddressIdentifier()?.dataReference() ?? send.dataReference()).GetText();
 
         var receivers = new List<BoundPointerReceiver>(sa.setAddressReceiver().Length);
         foreach (var r in sa.setAddressReceiver())
@@ -180,7 +181,13 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// wrong storage, and the diagnostic INTERPOLATES the class's own RejectReason rather than listing the
     /// reasons it might have been (kb/Work PB231). A COMP/float/INDEX leaf is NOT un-forcible any more:
     /// every numeric byte form rides the cell (kb/Work PB164), and neither is a USAGE BIT leaf: the
-    /// §8.5.1.6.3 packing rides it too (kb/Work PB231).</summary>
+    /// §8.5.1.6.3 packing rides it too (kb/Work PB231).
+    /// <para>⛔ THE ONE BINDER FOR EVERY <c>dataAddressIdentifier</c> SURFACE (kb/Work PB239) — the SET Format-7
+    /// sender and the CALL argument (§14.9.4.3 SR3/SR4) both reach it, so the operand rules and the
+    /// cell-backing check are stated once.</para></summary>
+    internal BoundAddressOf? BindDataAddress(Core.DataAddressIdentifierContext dai) => PtrBindAddressOf(dai.dataReference());
+
+    /// <summary>The operand half of <see cref="BindDataAddress"/>.</summary>
     private BoundAddressOf? PtrBindAddressOf(Core.DataReferenceContext addrRef)
     {
         if (ctx.Refs.ResolveForAddressOf(addrRef) is not { } r)

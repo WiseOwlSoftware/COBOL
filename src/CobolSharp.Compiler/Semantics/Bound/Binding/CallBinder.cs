@@ -134,6 +134,14 @@ internal sealed class CallBinder
         var arguments = new List<BoundCallArgument>();
         if (ctx.callUsingPhrase() is { } usingCtx)
         {
+            // kb/Work PB239: an address-identifier argument (§14.9.4.3 SR3/SR4) is a greenfield-only construct —
+            // this differential oracle never modelled it, so the statement falls through to the unsupported
+            // path exactly as any other post-oracle construct does (never a null operand bound as an argument).
+            if (usingCtx.callArgument().Any(a => a.addressIdentifier() != null
+                    || a.callByReference()?.addressIdentifier() != null
+                    || a.callByContent()?.addressIdentifier() != null
+                    || a.callByValue()?.addressIdentifier() != null))
+                return null;
             var currentMode = ParameterMode.ByReference;
             foreach (var argCtx in usingCtx.callArgument())
             {

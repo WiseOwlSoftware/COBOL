@@ -1580,6 +1580,15 @@ internal sealed class VersionConformancePass
         public override object? VisitSetAddressStatement(CobolParserCore.SetAddressStatementContext ctx)
         { _p.Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)"); return base.VisitChildren(ctx); }
 
+        /// <summary>An ADDRESS-IDENTIFIER operand (ISO §8.4.3.1.2 identifier Format 9 — the §8.4.3.11 data arm or
+        /// the §8.4.3.13 program arm) — a COBOL-2002 introduction with the pointer classes (kb/Work PB239). The
+        /// <c>addressIdentifier</c> rule is the operand's GENERAL spelling; the SET Formats 7 and 9 name their
+        /// senders' arms directly and carry their own statement gates, so this override fires exactly for the
+        /// surfaces that take the identifier as an ordinary operand — today the CALL argument (§14.9.4.3 SR3/SR4)
+        /// — and for every future surface that spells it through the same rule.</summary>
+        public override object? VisitAddressIdentifier(CobolParserCore.AddressIdentifierContext ctx)
+        { _p.Check(Constructs.AddressIdentifier2002, "an address-identifier operand (ISO §8.4.3.1.2 Format 9)"); return base.VisitChildren(ctx); }
+
         /// <summary>ALLOCATE (ISO §14.9.3) — a COBOL-2002 introduction. Recognition-based so a below-2002 ALLOCATE
         /// names its edition even when its RETURNING fails to resolve (SR3/0869; the bind-time gate that formerly
         /// carried this — StatementBinder.Ptr.cs — is removed this commit, DEVLOG 724).</summary>
@@ -1658,6 +1667,11 @@ internal sealed class VersionConformancePass
             // CALL … RETURNING (§14.9.4) — a 2002 introduction (Exec Step E — folded from the CallBinder gate).
             if (ctx.callReturningPhrase() is not null)
                 _p.Check(Constructs.CallReturning2002, "CALL … RETURNING");
+            // CALL … AS {NESTED | program-prototype-name-1} (§14.9.4.2 Format 2) — a 2002 introduction with the
+            // program prototypes (§8.9 reserves NESTED from 2002). The FMT-14.9.4.2 row carried this as residue
+            // and kb/Work PB239 re-measured it: an 85 compile accepted `CALL "X" AS NESTED` silently.
+            if (ctx.callAsPhrase() is not null)
+                _p.Check(Constructs.CallAsPhrase2002, "the CALL … AS phrase (ISO §14.9.4.2 Format 2)");
             return base.VisitChildren(ctx);
         }
 

@@ -1429,14 +1429,12 @@ public static class DiagnosticCatalog
     // BOOLEAN positions and the substrate's positions are the same positions — §8.4.3.3.4 GR5a. It carried the
     // shared 0899 recognized-not-implemented code, so no number is freed and none is reallocated. Verified
     // before removal: no `.err` fixture in the corpus expected it, so no green test was pinning the gap open.)
-    public static readonly DiagnosticDescriptor RecursiveWsPointerBacked = new(
-        NotImplemented, "recursive-working-storage-pointer-backed", EditionSeverity.Error,
-        "An ADDRESS-OF-taken record in the WORKING-STORAGE of a RECURSIVE program or function is recognized "
-        + "but its static addressable-cell storage is not yet implemented (the cell is per-instance today, "
-        + "which would re-initialize per activation). The BASED half landed with kb/Work PB154: a BASED "
-        + "root's data lives in its allocated cell and its data-address pointer is a static bridge field "
-        + "that CANCEL resets to NULL (§14.6.2.3.2 action 5).",
-        "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
+    // (RecursiveWsPointerBacked — `recursive-working-storage-pointer-backed` — was DELETED by kb/Work PB234, which
+    // implemented the model it deferred: an ADDRESS-OF-taken record of a RECURSIVE unit's static WS routes its
+    // StorageCell onto the static channel (DataBinder.StaticAddressableCells) and __ResetStatics re-seeds it in
+    // place; a level-01 REDEFINES of a BASED record rides the based root's static bridge. It carried the shared
+    // 0899 recognized-not-implemented code, so no number is freed and none is reallocated. Verified before
+    // removal: no `.err` fixture in the corpus expected it.)
     // kb/Work PB206 — the THIRD ARM of §13.18.63.3's VALUE-literal SIZE rule. SR4, SR5 and SR10 are the same
     // sentence pair written once per category ("… shall not exceed the size indicated by an explicit PICTURE
     // clause" for an elementary item; "… shall not exceed the size of the group item" for a group one); the

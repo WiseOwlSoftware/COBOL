@@ -876,7 +876,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         var drefs = spa.dataReference();
         var pai = spa.programAddressIdentifier();
-        var operandLit = pai.nonNumericLiteral();
         var operandRef = pai.dataReference();
         // ⚠ `drefs` IS the receiving-operand list and nothing else. The program-address-identifier is its own
         // grammar RULE (§8.4.3.13.2 is an identifier format, not a statement phrase), so its operand lives
@@ -908,21 +907,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             }
 
-        // ── ARM 2: literal-1 (§8.4.3.13.3 SR2 / §8.4.3.13.4 GR1b) ──────────────────────────────────────────
-        if (operandLit is { } nn)
-        {
-            if (ProgramAddressLiteral(nn, written) is not { } value) return new BoundNop();
-            return RestrictedReceiverNeedsPrototype(receiverProto, $"literal \"{value}\"", written)
-                ? new BoundNop()
-                : new BoundSetEntry(targets, value, null);
-        }
-
-        string word = operandRef.GetText();
-        // ── ARM 3: program-prototype-name-1 (§8.4.3.13.3 SR3) ──────────────────────────────────────────────
-        // A REPOSITORY program-specifier (§12.3.8.2). Asked FIRST, like the function twin: the name is a
-        // user-defined word in a slot where the standard lists the prototype meaning, and §8.3.2.2 keeps the
-        // two name types apart by context.
-        if (host.ProgramPrototypes?.GetValueOrDefault(word) is { } proto)
+        if (BindProgramAddressOperand(pai, $"SET {written} TO") is not { } operand) return new BoundNop();
+        if (operand.Prototype is { } word)
         {
             // GR3: this identifier is a program-pointer RESTRICTED to `word`. SR22 then requires the
             // receiver's prototype to have the same signature — an unrestricted receiver meets no condition.
@@ -937,29 +923,56 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §14.9.39.3 SR22)");
                 return new BoundNop();
             }
-            // GR2's EXTERNALIZED program-name, never the source word (kb/Work PB303).
-            return new BoundSetEntry(targets, proto.ExternalizedName, null);
+            return new BoundSetEntry(targets, operand.NameLiteral, null);
         }
+        string senderWhat = operand.NamePlace is null
+            ? $"literal \"{operand.NameLiteral}\""
+            : $"identifier '{operandRef!.GetText()}'";
+        return RestrictedReceiverNeedsPrototype(receiverProto, senderWhat, written)
+            ? new BoundNop()
+            : new BoundSetEntry(targets, operand.NameLiteral, operand.NamePlace);
+    }
+
+    /// <summary>⛔ THE ONE BINDER FOR A §8.4.3.13 PROGRAM-ADDRESS-IDENTIFIER OPERAND (kb/Work PB239) — the SET
+    /// Format-9 sender and the CALL argument (§14.9.4.3 SR3/SR4, an address-identifier being §8.4.3.1.2
+    /// identifier Format 9) both bind through it, so the three braced arms and their three syntax rules are
+    /// stated once. <paramref name="site"/> is the statement text that precedes the identifier in a message
+    /// (<c>SET P TO</c>, <c>CALL … USING</c>). Null having reported.
+    /// <para>Three braced operand arms, three syntax rules, all on
+    /// <see cref="DiagnosticCatalog.ProgramAddressOperand"/>: SR1 identifier-1, SR2 literal-1, SR3
+    /// program-prototype-name-1 — asked FIRST, like the function twin: the name is a user-defined word in a slot
+    /// where the standard lists the prototype meaning, and §8.3.2.2 keeps the two name types apart by
+    /// context.</para></summary>
+    internal BoundProgramAddress? BindProgramAddressOperand(Core.ProgramAddressIdentifierContext pai, string site)
+    {
+        // ── ARM 2: literal-1 (§8.4.3.13.3 SR2 / §8.4.3.13.4 GR1b) ──────────────────────────────────────────
+        if (pai.nonNumericLiteral() is { } nn)
+            return ProgramAddressLiteral(nn, site) is { } value ? new BoundProgramAddress(value, null, null) : null;
+
+        var operandRef = pai.dataReference();
+        string word = operandRef.GetText();
+        // ── ARM 3: program-prototype-name-1 (§8.4.3.13.3 SR3) — GR2's EXTERNALIZED program-name, never the
+        //    source word (kb/Work PB303). ──
+        if (host.ProgramPrototypes?.GetValueOrDefault(word) is { } proto)
+            return new BoundProgramAddress(proto.ExternalizedName, null, word);
 
         // ── ARM 1: identifier-1 (§8.4.3.13.3 SR1 / §8.4.3.13.4 GR1a) ───────────────────────────────────────
         if (host.Expr.ResolveSending(operandRef) is not { } namePlace)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET {written} TO ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
+                $"{site} ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
-            return new BoundNop();
+            return null;
         }
         if (namePlace.Item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.National))
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET {written} TO ADDRESS OF PROGRAM {word}: identifier-1 shall be of category alphanumeric or "
+                $"{site} ADDRESS OF PROGRAM {word}: identifier-1 shall be of category alphanumeric or "
                 + $"national (ISO §8.4.3.13.3 SR1) — '{word}' is of category "
                 + $"{namePlace.Item.Pic?.Category.ToString()?.ToLowerInvariant() ?? "(none)"}");
-            return new BoundNop();
+            return null;
         }
-        return RestrictedReceiverNeedsPrototype(receiverProto, $"identifier '{word}'", written)
-            ? new BoundNop()
-            : new BoundSetEntry(targets, null, namePlace);
+        return new BoundProgramAddress(null, namePlace, null);
     }
 
     /// <summary>§8.4.3.13.3 SR2 over the literal arm of a program-address-identifier: "Literal-1 shall be an
@@ -967,7 +980,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// literal are excluded by the same sentence — none of them is an alphanumeric or national literal — and a
     /// §8.8.3 concatenation expression folds first, because §8.8.3.3 GR3 makes it "equivalent to a literal of
     /// the same class and value". Returns null having reported.</summary>
-    private string? ProgramAddressLiteral(Core.NonNumericLiteralContext nn, string written)
+    private string? ProgramAddressLiteral(Core.NonNumericLiteralContext nn, string site)
     {
         string? value =
             nn.figurativeConstant() is not null ? null
@@ -981,14 +994,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (value is null)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET {written} TO ADDRESS OF PROGRAM {nn.GetText()}: literal-1 shall be an alphanumeric or national "
+                $"{site} ADDRESS OF PROGRAM {nn.GetText()}: literal-1 shall be an alphanumeric or national "
                 + "literal whose length is not zero (ISO §8.4.3.13.3 SR2)");
             return null;
         }
         if (value.Length == 0)
         {
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"SET {written} TO ADDRESS OF PROGRAM \"\": literal-1 shall be an alphanumeric or national literal "
+                $"{site} ADDRESS OF PROGRAM \"\": literal-1 shall be an alphanumeric or national literal "
                 + "whose length is not zero (ISO §8.4.3.13.3 SR2)");
             return null;
         }

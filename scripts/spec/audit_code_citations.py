@@ -427,7 +427,12 @@ CS_STRING = re.compile(r'"(?:[^"\\\n]|\\.)*"')
 BARE_KIND = re.compile(r"(?<![A-Za-z0-9-])(GR|SR)(?![A-Za-z0-9{-])(?!\s*\d)")
 
 _HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)\s*(.*)$")
-_FORMAT_LINE = re.compile(r"^\s*Format\s+(\d+)\s*(?:\(([^)]*)\))?\s*:")
+#: A `Format n (name):` banner line of a `.2` General format(s) subclause. ⚠ THE COLON IS OPTIONAL AFTER A
+#: PARENTHESIZED NAME THAT ENDS THE LINE (kb/Work PB239): the transcription of §8.4.3.1.2 prints `Format 8
+#: (predefined-address)` and `Format 9 (address-identifier)` with no colon, so the audit read §8.4.3.1.2 as
+#: having no Format 9 and accused every correct citation of identifier Format 9 — the address-identifier.
+#: A bare `Format n` with neither a name nor a colon is still not a banner (it is prose).
+_FORMAT_LINE = re.compile(r"^\s*Format\s+(\d+)\s*(?:\(([^)]*)\)\s*(?::|$)|:)")
 _RULE_LINE = re.compile(r"^\s*(\d+)\\\)\s")
 #: The standard PARTITIONS a rule block by general format, in its own words, on a line of its own: `ALL
 #: FORMATS`, `FORMAT 1`, `FORMATS 1 AND 2`. That partition is what makes FORMAT-RULE exact.

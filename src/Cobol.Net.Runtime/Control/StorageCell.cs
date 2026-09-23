@@ -51,4 +51,16 @@ public sealed class StorageCell
     /// within the released storage area become undefined"): the byte image and the managed slots are one
     /// storage area and are released together, so a released cell cannot keep a dangling pointer alive.</summary>
     internal void ClearSlots() => _slots = null;
+
+    /// <summary>Return a STATIC cell to its initial state IN PLACE (ISO §14.6.2.3.2 action 2 — kb/Work PB234):
+    /// the byte image becomes <paramref name="image"/> (the declaration's own VALUE-honoring seed) and every
+    /// managed slot reads null again, which is §13.18.63's initial state for a pointer or object member with no
+    /// VALUE. IN PLACE, never a fresh cell, because the cell IS the storage a <c>ManagedPointer.At</c> window
+    /// aliases: a RECURSIVE unit's WORKING-STORAGE is ONE static copy (§13.5.4 GR1), so a pointer taken before
+    /// the CANCEL still names that copy after it.</summary>
+    public void Reinitialize(string image)
+    {
+        Ref = image;
+        _slots = null;
+    }
 }

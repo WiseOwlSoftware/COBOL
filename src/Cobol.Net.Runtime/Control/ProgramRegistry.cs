@@ -139,6 +139,25 @@ public static class ProgramRegistry
     public static ProgramPointer EntryOf(string name, out bool notFound)
         => RunUnit.Current.Programs.EntryOf(name, out notFound);
 
+    /// <summary>A §8.4.3.13 PROGRAM-ADDRESS-IDENTIFIER evaluated as a CALL ARGUMENT (ISO §14.9.4.3 SR3; kb/Work
+    /// PB239) — <see cref="EntryOf"/>, with §8.4.3.13.4 GR4's miss delivered the way §14.9.4.4 GR3a requires of an
+    /// argument: "identifier-2 … [is] evaluated … at the beginning of the execution of the CALL statement. If an
+    /// exception condition exists, no program is called and execution proceeds as specified in General rule 3h."
+    /// With EC-PROGRAM-NOT-FOUND checking enabled (<paramref name="checkNotFound"/>, the CALL statement's own
+    /// compile-time TURN state) the miss is raised as the CALL's own pre-transfer failure — thrown while the
+    /// argument array is built, before the registry is entered, so the CALL site's GR3h arms take it exactly as
+    /// they take its locate failure. Unchecked, the condition is not raised (§14.6.13.1.4) and the argument is
+    /// GR4's predefined address NULL.</summary>
+    public static ProgramPointer EntryOfArgument(string name, bool checkNotFound)
+    {
+        var p = EntryOf(name, out bool notFound);
+        if (notFound && checkNotFound)
+            throw new CobolCallException(
+                $"ADDRESS OF PROGRAM '{name?.Trim()}': the program could not be located (ISO §8.4.3.13.4 GR4 — "
+                + "EC-PROGRAM-NOT-FOUND; §14.9.4.4 GR3a — no program is called)", "EC-PROGRAM-NOT-FOUND");
+        return p;
+    }
+
     /// <inheritdoc cref="ProgramTable.FunctionAddressOf"/>
     public static FunctionPointer FunctionAddressOf(string name, out bool notFound)
         => RunUnit.Current.Programs.FunctionAddressOf(name, out notFound);

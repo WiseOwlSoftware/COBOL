@@ -84,6 +84,13 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
                 // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
                 if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingCsName))
                     stmts.Add($"{cls.BackingCsName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
+                // An ADDRESS-OF-taken record's static StorageCell (kb/Work PB234): re-seeded IN PLACE with the SAME
+                // image its declaration carries (ProgramEmitter's cell initializer — one composer, ImageInitOf), so
+                // a pointer taken before the CANCEL still names the unit's one copy (§13.5.4 GR1).
+                else if (ReferenceEquals(cls.Canonical, root)
+                         && ctx.Data.PtrAddressableCellOf.TryGetValue(cls, out var cell)
+                         && ctx.Data.StaticAddressableCells.Contains(cell))
+                    stmts.Add($"{cell}.Reinitialize({RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")});   // {root.CobolName ?? "FILLER"} (ADDRESS-OF cell, §14.6.2.3.2 #2)");
             }
             else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
                 && ctx.Data.StaticRootFields.Contains(root.CsName))

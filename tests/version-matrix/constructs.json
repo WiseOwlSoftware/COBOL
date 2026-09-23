@@ -2415,6 +2415,19 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\n01 B PIC X(5) BASED.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET ADDRESS OF B TO P.\n    STOP RUN.\n"
   },
   {
+   "id": "address-identifier-2002",
+   "status": "active",
+   "description": "An address-identifier OPERAND (ISO §8.4.3.1.2 identifier Format 9: the §8.4.3.11 data-address-identifier ADDRESS OF identifier-1 or the §8.4.3.13 program-address-identifier ADDRESS OF PROGRAM ...) outside the SET formats that gate themselves - today the CALL argument §14.9.4.3 SR3/SR4 name (kb/Work PB239): bare, BY REFERENCE, BY CONTENT or (Format 2) BY VALUE, always a sending operand that crosses as a detached pointer value. Introduced 2002 with the pointer classes. Recognition gate on the addressIdentifier rule, so every future surface that spells the identifier through it is gated automatically.",
+   "display": "an address-identifier operand (ADDRESS OF ...)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §8.4.3.1.2 Format 9 (address-identifier) + §8.4.3.11 / §8.4.3.13; §14.9.4.3 SR3/SR4 (the CALL argument); kb/Work PB239; recognition gate VisitAddressIdentifier; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AIDX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"AIDX2\" USING BY CONTENT ADDRESS OF X.\n    STOP RUN.\n"
+  },
+  {
    "id": "pointer-arithmetic-2002",
    "status": "active",
    "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO §14.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: an amount that does not evaluate to an integer is a runtime EC-SIZE-ADDRESS fatal, and GR20's own arm - a resulting address outside the implementor data-pointer range (DOC-A.1-216) - is EC-RANGE-PTR with the operand unchanged, two rules with two conditions via CobolPtr.UpByAmount). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated.",
@@ -2679,6 +2692,19 @@
    "expectDiagnostic": "COBOLNET0884",
    "vcr": "2002 introduction (derive from the 2002 standard)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWCRET.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"RWCRSUB\" RETURNING RC.\n    STOP RUN.\nEND PROGRAM RWCRET.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. RWCRSUB.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LR PIC 99.\nPROCEDURE DIVISION RETURNING LR.\nMAIN.\n    MOVE 5 TO LR.\n    GOBACK.\nEND PROGRAM RWCRSUB.\n"
+  },
+  {
+   "id": "call-as-phrase-2002",
+   "status": "active",
+   "description": "CALL Format 2 (program-prototype) - the AS phrase, ISO §14.9.4.2 Format 2 (AS NESTED / AS program-prototype-name-1), introduced 2002 with program prototypes and the NESTED reserved word (§8.9: NESTED reserved from 2002). The FMT-14.9.4.2 row's residue 'the AS-phrase edition gate' re-measured by kb/Work PB239: an 85 compile ACCEPTED `CALL \"X\" AS NESTED` with no diagnostic. Recognition gate on callAsPhrase; the bare program-prototype-name spelling of Format 2 needs no gate of its own because its REPOSITORY paragraph is already 2002-gated.",
+   "display": "the CALL ... AS phrase (program-prototype format)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §14.9.4.2 Format 2 (the AS phrase); §8.9 (NESTED reserved from 2002); kb/Work PB239 re-measure of FMT-14.9.4.2; recognition gate VisitCallStatement; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CASX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(6) VALUE \"ABCDEF\".\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"CASX2\" AS NESTED USING X.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. CASX2.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X(6).\nPROCEDURE DIVISION USING L.\nP.\n    EXIT PROGRAM.\nEND PROGRAM CASX2.\nEND PROGRAM CASX1.\n"
   },
   {
    "id": "goback-bare-2002",

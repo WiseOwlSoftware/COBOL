@@ -46,7 +46,7 @@ public sealed partial class DataBinder
 
     /// <summary>The post-build data-pointer pass (runs beside <see cref="CallBindExternalAndGlobal"/> — the
     /// proven post-classification tier-overwrite seam): (1) every BASED root becomes a pointer-routed
-    /// StringCanonical template; (2) every plain record named by a <c>SET p TO ADDRESS OF x</c> operand is
+    /// StringCanonical template; (2) every plain record named by a data-address-identifier (<c>ADDRESS OF x</c> — a SET sender or a CALL argument) is
     /// forced onto a per-instance cell so its address is takeable. The pre-scan is a parse-tree walk — the
     /// data pass must decide storage BEFORE any statement binds (emission shape is per-class).</summary>
     internal void PtrBindBasedAndAddressables(Core.ProgramUnitContext program)
@@ -114,23 +114,22 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>Collect the data-names taken by a Format-7 <c>ADDRESS OF x</c> SENDER — the ONLY
-    /// data-address-identifier surface in the grammar (§8.4.3.11). The head name + its OF/IN qualifiers are
-    /// yielded for EVERY operand shape (a subscripted operand forces the same containing record — the
-    /// occurrence displacement is a bind-time offset over the ONE cell, never separate storage).
-    /// <para>⛔ IT IS THE SENDER'S ARM, ASKED OF THE SENDER'S OWN RULE (kb/Work PB450). This used to test
-    /// <c>GetChild(1)</c> against the ADDRESS token and read <c>dataReference(1)</c> — a token-position
-    /// re-derivation of which of two fixed productions had matched. §14.9.39.2 Format 7 is now ONE production
-    /// whose receiving operands are a LIST, so a positional index names nothing: an `ADDRESS OF` in a RECEIVING
-    /// operand is data-name-1, a BASED item that is never storage-forced, and only
-    /// <c>setAddressSender</c>'s own ADDRESS phrase is a data-address-identifier.</para></summary>
+    /// <summary>Collect the data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the procedure
+    /// division. The head name + its OF/IN qualifiers are yielded for EVERY operand shape (a subscripted operand
+    /// forces the same containing record — the occurrence displacement is a bind-time offset over the ONE cell,
+    /// never separate storage).
+    /// <para>⛔ IT WALKS THE IDENTIFIER'S OWN RULE, NOT A STATEMENT (kb/Work PB239). It used to recognize only a
+    /// SET Format-7 sender, so the day a second surface took the identifier — the CALL argument §14.9.4.3
+    /// SR3/SR4 name — its record would have been left off cell storage and the bind would have refused it.
+    /// Every surface now spells the identifier through the ONE <c>dataAddressIdentifier</c> rule, so every one
+    /// of them is forced here by construction. The receiving <c>ADDRESS OF data-name-1</c> of SET Format 7 is a
+    /// different rule (<c>setAddressReceiver</c>) and is never forced: it names a BASED item (kb/Work PB450).
+    /// </para></summary>
     private static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
     {
         if (program.procedureDivision() is not { } pd) yield break;
         foreach (var ctx in PtrDescendants(pd))
-            if (ctx is Core.SetAddressStatementContext sa
-                && sa.setAddressSender() is { } send && send.ADDRESS() is not null
-                && send.dataReference() is { } target)
+            if (ctx is Core.DataAddressIdentifierContext { } dai && dai.dataReference() is { } target)
             {
                 if (target.cobolWord() is not { } head) continue;
                 var quals = new List<string>();

@@ -192,6 +192,7 @@ public static class Constructs
     public const string FunctionPrototype2002 = "function-prototype-2002";
     public const string ProgramPrototype2002 = "program-prototype-2002";
     public const string SetAddress2002 = "set-address-2002";
+    public const string AddressIdentifier2002 = "address-identifier-2002";
     public const string PointerArithmetic2002 = "pointer-arithmetic-2002";
     public const string FileSharingClause2002 = "file-sharing-clause-2002";
     public const string LockModeClause2002 = "lock-mode-clause-2002";
@@ -213,6 +214,7 @@ public static class Constructs
     public const string ArithmeticIntermediatePrecision2023 = "arithmetic-intermediate-precision-2023";
     public const string SyncOnGroup2023 = "sync-on-group-2023";
     public const string CallReturning2002 = "call-returning-2002";
+    public const string CallAsPhrase2002 = "call-as-phrase-2002";
     public const string GobackBare2002 = "goback-bare-2002";
     public const string InspectBackward2023 = "inspect-backward-2023";
     public const string InitializeFiller2002 = "initialize-filler-2002";

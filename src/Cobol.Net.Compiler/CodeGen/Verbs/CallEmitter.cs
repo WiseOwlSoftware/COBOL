@@ -49,7 +49,7 @@ internal enum CallCrossing
 /// the ONE CALL-boundary string-carrier trio (<see cref="CallPlaceIsString"/>/<see cref="CallStringRead"/>/
 /// <see cref="CallStringWrite"/>) Report Writer and the program-class emission reuse.</summary>
 internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, CallUnitState callState,
-    EcEmitter ec, MoveEmitter move, DispatchState dispatch)
+    EcEmitter ec, MoveEmitter move, DispatchState dispatch, PtrEmitter ptr)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the ON/NOT-ON
     /// EXCEPTION phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
@@ -484,6 +484,23 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             string bv = BooleanRenderer.Render(cb, num);
             if (a.ContentBoolWidth > 0) bv = RuntimeApi.BoolResize(bv, $"{a.ContentBoolWidth}");
             return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({bv}), null)";
+        }
+        // ⛔ AN ADDRESS-IDENTIFIER CROSSES AS A DETACHED POINTER VALUE IN EVERY MODE (kb/Work PB239). §14.9.4.3
+        // SR4 makes it a SENDING operand even BY REFERENCE and SR5 withholds the receiving role, so the carrier is
+        // a cell holding "the unique data item of class pointer" §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 create — the
+        // callee's pointer formal adopts it through the Managed crossing like any pointer argument, and a store
+        // into that formal reaches the cell, never the program's storage (Annex D.6.5.6.4: "it will never be
+        // updated even when passed by reference"). The mode still rides the wire for the callee's adapters.
+        if (a.DataAddress is { } da)
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<ManagedPointer>.Cell({ptr.AddressOfText(da)}), null)";
+        if (a.ProgramAddress is { } pa)
+        {
+            string nameExpr = pa.NameLiteral is { } lit
+                ? CsLiteral(lit)
+                : $"({PlaceRenderer.Read(pa.NamePlace!)}).Trim()";   // §8.4.3.13.4 GR1a — the identifier's content
+            bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<ProgramPointer>.Cell("
+                + $"ProgramRegistry.EntryOfArgument({nameExpr}, {CallBool(checkNotFound)})), null)";
         }
         if (a.Place is { } p)
         {

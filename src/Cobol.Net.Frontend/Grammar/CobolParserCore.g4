@@ -1288,11 +1288,21 @@ callUsingPhrase
 // wins; parenthesize — `USING (N + 1)` — to force the expression reading (the paren cannot start a
 // dataReference or literal, so it selects the arithmeticExpression arm unambiguously). OMITTED joins both the bare list and the BY REFERENCE arm (§14.9.4.2
 // Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}`).
+// ⛔ THE ADDRESS-IDENTIFIER ARM (kb/Work PB239). §14.9.4.3 SR3 — "Identifier-2 shall reference an
+// address-identifier or a data item defined in the file, working-storage, local-storage, or linkage section" —
+// and SR4 ("… or if identifier-2 is an address-identifier, identifier-2 is a sending operand") name a second
+// operand kind that no CALL alternative could spell: ADDRESS OF existed only inside SET, so `CALL "S" USING
+// BY CONTENT ADDRESS OF R` was a bare COBOL0001 on conforming source. It is the §8.4.3.1.2 identifier FORMAT 9
+// (`addressIdentifier`, below) and it joins every operand slot identifier-2 / identifier-4 occupies — the bare
+// argument, BY REFERENCE, BY CONTENT and BY VALUE (Annex D: address-identifiers "may be passed … with all
+// three passing mechanisms"). ADDRESS is a reserved token that heads no other alternative, so each arm is
+// unambiguous and every spelling that parsed before parses identically.
 callArgument
     : callByReference
     | callByValue
     | callByContent
     | OMITTED
+    | addressIdentifier   // §14.9.4.3 SR3/SR4 — a sending operand whatever the mode
     | {boolExprAhead()}? booleanExpression
     | literal
     | dataReference       // bare argument = the transitive mode (GR5) / the formal's mode (GR9)
@@ -1300,7 +1310,7 @@ callArgument
     ;
 
 callByReference
-    : BY? REFERENCE (dataReference | OMITTED)
+    : BY? REFERENCE (addressIdentifier | dataReference | OMITTED)
     ;
 
 // BY is an OPTIONAL word before VALUE exactly as before REFERENCE/CONTENT — only VALUE is underlined in the
@@ -1326,7 +1336,7 @@ callByReference
 // ⚠ ADDITIVE: `arithmeticExpression()` still exists as a generated accessor and merely returns null on the
 // new arm, which the LEGACY binder (which shares this grammar until the P15 cut-over) now tests for.
 callByValue
-    : BY? VALUE (arithmeticExpression | literal)   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
+    : BY? VALUE (addressIdentifier | arithmeticExpression | literal)   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
     ;
 
 // ⛔ THE TWO FORMATS' BY CONTENT OPERAND SETS DIFFER, AND ONE RULE CANNOT BE BOTH (fix-queue PB46, CALL half).
@@ -1347,7 +1357,7 @@ callByValue
 // bare-identifier path: ANTLR predicts the alternative that matches the WHOLE operand, so `A` takes the
 // dataReference arm and `A + 1` falls through to the expression one.
 callByContent
-    : BY? CONTENT ({boolExprAhead()}? booleanExpression | literal | dataReference | arithmeticExpression)
+    : BY? CONTENT (addressIdentifier | {boolExprAhead()}? booleanExpression | literal | dataReference | arithmeticExpression)
     ;
 
 callReturningPhrase
@@ -1608,9 +1618,34 @@ setAddressReceiver
 // category data-pointer", exactly what SR17's second sentence demands of identifier-6), or the predefined
 // address NULL (§14.9.39.3 SR19). ⚠ The NULL arm is why setObjectReferenceStatement is listed BEFORE this rule
 // in setStatement: `SET obj-ref TO NULL` is token-identical and belongs to Format 5.
+// ⛔ THE SENDER'S ADDRESS PHRASE IS THE ONE `dataAddressIdentifier` RULE (kb/Work PB239), not an inline
+// `ADDRESS OF?` spelling of its own: §8.4.3.11 is an IDENTIFIER format, and a second copy of it here is how the
+// CALL argument list came to have none. The receiving `ADDRESS OF data-name-1` above is deliberately NOT that
+// rule — Annex D: "the ADDRESS OF phrase in the receiving operand of a SET statement is not considered a
+// data-address-identifier" (§8.4.3.11.3 SR5 forbids one as a receiving operand).
 setAddressSender
-    : (ADDRESS OF?)? dataReference
+    : dataAddressIdentifier
+    | dataReference
     | NULL_
+    ;
+
+// §8.4.3.1.2 identifier FORMAT 9 — "address-identifier": `{ data-address-identifier-1 |
+// program-address-identifier-1 }` (§8.4.3.1.3 SR10: "Address-identifiers are defined by 8.4.3.11,
+// Data-address-identifier and 8.4.3.13, Program-address-identifier"). ⚠ The function-address-identifier of
+// §8.4.3.12 is NOT a member: Format 9 prints two arms, and §8.4.3.1.2 lists no identifier format for the
+// FUNCTION twin, so it is reachable only where a general format names it (SET Format 8). PROGRAM is a
+// reserved token that can never head a dataReference, so the program arm cannot be claimed by the data arm.
+addressIdentifier
+    : programAddressIdentifier
+    | dataAddressIdentifier
+    ;
+
+// §8.4.3.11.2 DATA-ADDRESS-IDENTIFIER: `ADDRESS OF identifier-1`, with ADDRESS the whole underline roster
+// (rendered, folio 140 — kb/Work PB695), so OF is optional. ONE rule for every surface that takes it: the SET
+// Format-7 sender and the CALL argument (kb/Work PB239); the data pass forces each named record onto cell
+// storage by walking THESE nodes, so a new surface that uses the rule is storage-forced automatically.
+dataAddressIdentifier
+    : ADDRESS OF? dataReference
     ;
 
 // SET { identifier-12 } … TO ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }

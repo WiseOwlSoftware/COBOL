@@ -65,6 +65,23 @@ public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand
     /// own store fits the value). The same width §14.9.8.4 GR3 states for a boolean COMPUTE.</summary>
     public int ContentBoolWidth { get; init; }
 
+    /// <summary>An ADDRESS-IDENTIFIER argument (ISO §14.9.4.3 SR3; kb/Work PB239) — §8.4.3.1.2 identifier
+    /// Format 9, in its DATA arm (§8.4.3.11, <c>ADDRESS OF identifier-1</c>). Its OWN value channel beside
+    /// <see cref="Place"/> and <see cref="Value"/>, because it is neither: §8.4.3.11.4 GR1 makes it "a unique data
+    /// item of class pointer and category data-pointer", which has no storage of the program's to alias.
+    /// <para>⛔ SR4 makes it a SENDING operand WHATEVER the mode — "If the BY REFERENCE phrase is not specified
+    /// or implied for an identifier-2 OR IF IDENTIFIER-2 IS AN ADDRESS-IDENTIFIER, identifier-2 is a sending
+    /// operand" — and SR5 withholds the receiving role from it, so it always crosses as a detached pointer
+    /// VALUE: a callee's store into its formal reaches that value and never the program's storage (Annex D:
+    /// "it will never be updated even when passed by reference"). <see cref="Mode"/> still records the mode
+    /// the source wrote, which the §14.9.4.3 SR19/SR21 mode correspondence reads.</para></summary>
+    public BoundAddressOf? DataAddress { get; init; }
+
+    /// <summary>The PROGRAM arm of the same identifier Format 9 (§8.4.3.13, <c>ADDRESS OF PROGRAM …</c>) —
+    /// "a unique data item of class pointer and category program-pointer" (§8.4.3.13.4 GR1), crossing exactly
+    /// as <see cref="DataAddress"/> does. kb/Work PB239.</summary>
+    public BoundProgramAddress? ProgramAddress { get; init; }
+
     /// <summary>The CORRESPONDING FORMAL PARAMETER (ISO §14.2.3 GR2 — the positional correspondence), when the
     /// activated element's description is known to the ACTIVATING element at bind time, and null otherwise.
     /// <para>⛔ It is null for exactly the crossing §14.2.3 GR9's FIRST branch describes — "a program for which

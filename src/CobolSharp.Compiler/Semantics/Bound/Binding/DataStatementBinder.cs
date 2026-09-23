@@ -234,28 +234,32 @@ internal sealed class DataStatementBinder
     {
         var recvs = ctx.setAddressReceiver();
         var send = ctx.setAddressSender();
-        if (recvs.Length != 1 || send?.dataReference() == null) return null;
+        // kb/Work PB239: the sender's ADDRESS phrase is now the shared `dataAddressIdentifier` rule, so its operand
+        // is read through that node; `sendRef` is the operand in either spelling.
+        var sendAddr = send?.dataAddressIdentifier();
+        var sendRef = sendAddr?.dataReference() ?? send?.dataReference();
+        if (recvs.Length != 1 || sendRef == null) return null;
         var recv = recvs[0];
 
         if (recv.ADDRESS() != null)
         {
             // SET ADDRESS OF based TO ptr : the target is the based/linkage item (no expression location — it is
             // addressed through its own pointer); the source is another pointer whose value is copied in.
-            if (send.ADDRESS() != null) return null;   // ADDRESS OF sender into a based receiver — greenfield only
+            if (sendAddr != null) return null;   // ADDRESS OF sender into a based receiver — greenfield only
             var basedSym = _ctx.Semantic.ResolveData(recv.dataReference().cobolWord().GetText());
             if (basedSym == null) return null;
-            if (_ctx.Expression.BindDataReferenceWithSubscripts(send.dataReference()) is not BoundIdentifierExpression srcPtr
+            if (_ctx.Expression.BindDataReferenceWithSubscripts(sendRef) is not BoundIdentifierExpression srcPtr
                 || srcPtr.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
                 return null;
             return new BoundSetPointerStatement(basedSym, PointerSetSourceKind.FromPointer, srcPtr.Symbol);
         }
 
         // SET ptr TO ADDRESS OF item : build a ManagedPointer over the addressed item's storage.
-        if (send.ADDRESS() == null) return null;
+        if (sendAddr == null) return null;
         if (_ctx.Expression.BindDataReferenceWithSubscripts(recv.dataReference()) is not BoundIdentifierExpression ptr
             || ptr.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
             return null;
-        var addrItem = _ctx.Expression.BindDataReferenceWithSubscripts(send.dataReference());
+        var addrItem = _ctx.Expression.BindDataReferenceWithSubscripts(sendRef);
         if (addrItem is not BoundIdentifierExpression) return null;
         return new BoundSetPointerStatement(ptr.Symbol, PointerSetSourceKind.FromAddressOf, addressOfItem: addrItem);
     }

@@ -321,8 +321,11 @@ internal sealed class ProgramEmitter
             {
                 // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.
                 string seed = RuntimeApi.StrStore(new DataEmitter(Current.Ctx).ImageInitOf(canonical), $"{cellWidth}");
-                w.Line($"private readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
-                w.Line($"private ref string {backing} => ref {cellField}.Ref;");
+                // A RECURSIVE unit's static-WS record emits its cell STATIC (§13.5.4 GR1 — one copy on the
+                // class), re-seeded in place by __ResetStatics (§14.6.2.3.2 action 2; kb/Work PB234).
+                string mod = data.StaticAddressableCells.Contains(cellField) ? "private static" : "private";
+                w.Line($"{mod} readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
+                w.Line($"{mod} ref string {backing} => ref {cellField}.Ref;");
             }
             foreach (var (backing, cellProp, addrField, width) in data.PtrBasedBridges)
             {

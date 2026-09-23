@@ -224,7 +224,13 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
         string at = runtimeByteDisplacement is null or "" or "0"
             ? $"{item.ClassBitOffset}"
             : $"{BitLayout.BitsPerCharacter} * ({runtimeByteDisplacement}) + {item.ClassBitOffset}";
-        return window with { Coding = new BitWindow(at + occursBitTerms, BitLayout.WidthBits(item)) };
+        return window with
+        {
+            Coding = new BitWindow(at + occursBitTerms, BitLayout.WidthBits(item))
+            {
+                ClassRelativeExpr = $"{item.ClassBitOffset}{occursBitTerms}",
+            },
+        };
     }
 
     /// <inheritdoc/>
@@ -245,7 +251,16 @@ public abstract record WindowCoding;
 /// <summary>A <see cref="RedefViewPlace"/>'s BIT window: the 0-based ABSOLUTE bit offset within the class's one
 /// byte backing (the D10 transitional expression string) and the member's boolean-position count
 /// (§13.18.29.4 GR1b's <c>m</c> for a bit group, the PICTURE 1(n) length for a bit leaf).</summary>
-public sealed record BitWindow(string OffsetExpr, int Bits) : WindowCoding;
+public sealed record BitWindow(string OffsetExpr, int Bits) : WindowCoding
+{
+    /// <summary>The CLASS-RELATIVE part of <see cref="OffsetExpr"/> — the member's static in-class bit offset plus
+    /// each in-class OCCURS level's <c>(index − 1) × stride</c> term, WITHOUT the runtime byte displacement a
+    /// BASED class adds (kb/Work PB240). §14.9.4.3 SR6/SR8 ask whether a BY REFERENCE bit operand "is aligned on
+    /// a byte boundary", and that displacement is a whole number of BYTES by construction (a pointer addresses
+    /// characters), so this is the part that can move the answer — and, being all-literal exactly when every
+    /// subscript is, the part whose static provability the rules' second clause demands.</summary>
+    public string ClassRelativeExpr { get; init; } = OffsetExpr;
+}
 
 /// <summary>A <see cref="RedefViewPlace"/>'s NATIONAL window (kb/Work PB231 — RESIDUE-11): the member occupies
 /// <see cref="RedefViewPlace.Width"/> bytes of the backing, two per national character position (ISO

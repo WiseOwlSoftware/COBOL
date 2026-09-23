@@ -1217,6 +1217,15 @@ public sealed record BoundSetPointer(
 /// <c>AccessPath</c>/<c>FixedTableSegment</c>) — a <c>BoundExpr</c> when PHASE 15 removes SUBSCRIPT mode.</summary>
 public sealed record BoundAddressOf(DataItem Item, string? OccursDisplacement = null);
 
+/// <summary>A bound §8.4.3.13 PROGRAM-ADDRESS-IDENTIFIER (<c>ADDRESS OF PROGRAM …</c>) as a pointer VALUE: the
+/// program named by a compile-time <paramref name="NameLiteral"/> (literal-1, or program-prototype-name-1's
+/// EXTERNALIZED name — §8.4.3.13.4 GR2) or by the run-time content of <paramref name="NamePlace"/>
+/// (identifier-1, GR1a). <paramref name="Prototype"/> is set exactly for the program-prototype-name-1 arm, which
+/// GR3 makes a program-pointer RESTRICTED to that prototype. Produced by the ONE operand binder
+/// (<c>SetBinder.BindProgramAddressOperand</c>) for both surfaces that take it — the SET Format-9 sender and the
+/// CALL argument (kb/Work PB239).</summary>
+public sealed record BoundProgramAddress(string? NameLiteral, Place? NamePlace, string? Prototype);
+
 /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; SR21 — both sides
 /// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-7 twin.</summary>
 public sealed record BoundSetProgramPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;

@@ -71,7 +71,7 @@ internal sealed class UnitEmitters
         Sort = new SortEmitter(Ctx, SeqIo, Move, Arith);   // no NumericRenderer since RELEASE moved to the ONE record-area channel (kb/Work PB327)
         ReportWriter = new ReportWriterEmitter(Ctx, Num, Refs, Move, Cond, dispatchState);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set);
-        Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move, dispatchState);
+        Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move, dispatchState, Ptr);
         Statements = new StatementEmitter(this, oo, dispatchState);
         Dispatch = new DispatchEmitter(Ctx, dispatchState, ecState, AlterSwitch, ReportWriter, SeqIo, Ec, Statements);
 

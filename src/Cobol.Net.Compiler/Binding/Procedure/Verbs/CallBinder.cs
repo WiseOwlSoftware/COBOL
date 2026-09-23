@@ -209,6 +209,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
                     continue;
                 }
+                if (byRef.addressIdentifier() is { } refAddr)
+                {
+                    // §14.9.4.3 SR3/SR4 — an address-identifier BY REFERENCE is still a SENDING operand, so it
+                    // never meets the receiving chokepoint below (kb/Work PB239).
+                    if (AddressArg(refAddr, CobolPassMode.Reference) is not { } ra) return new BoundNop();
+                    args.Add(ra);
+                    continue;
+                }
                 if (byRef.dataReference() is not { } byRefDref)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "CALL … USING BY REFERENCE with neither an identifier nor OMITTED "
                         + "(ISO §14.9.4.2)");
@@ -225,6 +233,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else if (a.callByContent() is { } byContent)
             {
                 mode = CobolPassMode.Content;
+                // Format 1's `{ identifier-2 } …` includes the address-identifier SR3 names (kb/Work PB239).
+                if (byContent.addressIdentifier() is { } contentAddr)
+                {
+                    if (AddressArg(contentAddr, CobolPassMode.Content) is not { } ca) return new BoundNop();
+                    args.Add(ca);
+                    continue;
+                }
                 // ── ONE OPERAND, THREE CHANNELS — normalized once, exactly as OoBindInvokeArg does ──
                 // The grammar parses BY CONTENT wide (both formats share this rule). The reduction is
                 // §14.9.4.4 GR8's and lives in ONE place (kb/Work PB238 — the BY VALUE arm below and both
@@ -283,6 +298,15 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
+                // identifier-4 as an address-identifier: §14.9.4.3 SR22 admits class pointer BY VALUE, and
+                // §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 make each arm "a unique data item of class pointer"
+                // (kb/Work PB239).
+                if (byValue.addressIdentifier() is { } valueAddr)
+                {
+                    if (AddressArg(valueAddr, CobolPassMode.Value) is not { } va) return new BoundNop();
+                    args.Add(va);
+                    continue;
+                }
                 // ── §14.9.4.4 GR8 APPLIES HERE TOO, AND THAT IS THE WHOLE OF kb/Work PB238 ────────────────
                 // "An argument that consists merely of a single identifier or literal is regarded as an
                 // identifier or literal rather than an arithmetic or boolean expression." The printed
@@ -345,6 +369,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 }
                 else
                     return new BoundUnsupported($"CALL USING BY VALUE argument '{byValue.GetText()}'");
+            }
+            else if (a.addressIdentifier() is { } bareAddr)
+            {
+                // A keyword-less address-identifier (kb/Work PB239). Format 1: the prevailing GR5 mode.
+                // Format 2: GR9 a)1 assumes BY REFERENCE for an argument that meets SR3 — which names the
+                // address-identifier explicitly — and GR9 b) BY VALUE when the corresponding formal is BY VALUE.
+                CobolPassMode addrMode = mode;
+                if (formatTwo && calleeFormals is not null)
+                    addrMode = args.Count < calleeFormals.Count && calleeFormals[args.Count].ByValue
+                        ? CobolPassMode.Value : CobolPassMode.Reference;
+                if (AddressArg(bareAddr, addrMode) is not { } ba) return new BoundNop();
+                args.Add(ba);
             }
             else if (a.dataReference() is { } bare)
             {
@@ -545,6 +581,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentMode,
                         $"CALL … argument {i + 1} passes BY VALUE where the corresponding formal parameter "
                         + $"'{f.Item.CobolName}' is not BY VALUE (ISO §14.9.4.3 SR21)");
+                // An ADDRESS-IDENTIFIER argument (kb/Work PB239) is a pointer VALUE with no storage behind it, so
+                // neither the description comparator nor the MOVE/COMPUTE regime below has anything to compare;
+                // its law is the class-pointer paragraph both passing regimes share (AddressConformanceReason).
+                else if (arg.DataAddress is not null || arg.ProgramAddress is not null)
+                {
+                    if (AddressConformanceReason(f.Item, arg) is { } awhy)
+                        ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
+                            $"{calleeWhere} argument {i + 1} (an address-identifier) does not conform to formal "
+                            + $"parameter '{f.Item.CobolName}': {awhy}");
+                }
                 // §14.8.2.3.2 / §14.8.2.2 (BY REFERENCE only — 14.8.2.3.3 puts BY CONTENT / BY VALUE in the
                 // MOVE/SET-validity regime instead): the same-description check, through THE one comparator
                 // (OoConformance.DescriptionMismatch — previously INVOKE-only; a NESTED call is the same
@@ -552,7 +598,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // at bind it is the design's diagnostic lane.
                 else if (arg.Mode is CobolPassMode.Reference && arg.Place is { } ap
                          && CobolNet.Compiler.Oo.OoConformance.DescriptionMismatch(f.Item, ap.Item,
-                                byRefGroupPrefix: true) is { } why)
+                                byRefGroupPrefix: true,
+                                // §14.8.2.3.2 rules d/e — ACTIVATION mode, the INVOKE twin's (OoBinder) setting.
+                                // PAIR mode demanded the same ANY LENGTH clause on both sides, so a plain
+                                // argument meeting an ANY LENGTH formal — the clause's whole purpose, rule d:
+                                // "its length is considered to match the length of the corresponding
+                                // argument" — was refused at every AS NESTED call (kb/Work PB240).
+                                anyLengthActivationRelax: true) is { } why)
                     ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
                         $"{calleeWhere} argument {i + 1} ('{ap.Item.CobolName}') does not conform to formal "
                         + $"parameter '{f.Item.CobolName}': {why} (ISO §14.8.2)");
@@ -710,6 +762,78 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             _ => null,
         };
     }
+
+    /// <summary>Bind ONE address-identifier argument (ISO §8.4.3.1.2 identifier Format 9; §14.9.4.3 SR3/SR4 —
+    /// kb/Work PB239) through the ONE operand binder of each arm — <c>PtrBinder.BindDataAddress</c> for
+    /// §8.4.3.11, <c>SetBinder.BindProgramAddressOperand</c> for §8.4.3.13 — the same binders the SET senders use,
+    /// so the operand rules (the cell-backing check, §8.4.3.13.3 SR1–SR3) are stated once. Null having reported.
+    /// <para>⚠ DETERMINATION — §14.9.4.3 SR10 does not reach it. SR10 bars a Format-1 BY REFERENCE identifier-2
+    /// "of class object or pointer", and §8.4.3.11.4 GR1 makes an address-identifier "a unique data item of class
+    /// pointer". Read literally the two would forbid `CALL "S" USING ADDRESS OF R` (BY REFERENCE implied); the
+    /// reading chosen is the one SR3–SR5 and Annex D.6.5.6.4 state — "address-identifiers may be passed in the
+    /// non-prototype formats of the CALL statements, and with all three passing mechanisms … it will never be
+    /// updated even when passed by reference. It behaves like being passed by content." SR10 protects program
+    /// storage from being aliased by a callee that sees it untyped; an address-identifier crosses as a detached
+    /// value (SR4, SR5), so there is no storage for that rule to protect. GnuCOBOL, IBM and Micro Focus all accept
+    /// the spelling (the CLAUDE.md rule-1 precedence, were the text read as latitude).</para></summary>
+    private BoundCallArg? AddressArg(Core.AddressIdentifierContext ai, CobolPassMode mode)
+    {
+        if (ai.dataAddressIdentifier() is { } dai)
+            return host.Ptr.BindDataAddress(dai) is { } addr
+                ? new BoundCallArg(mode, null, null) { DataAddress = addr }
+                : null;
+        return host.Set.BindProgramAddressOperand(ai.programAddressIdentifier(), "CALL … USING") is { } pa
+            ? new BoundCallArg(mode, null, null) { ProgramAddress = pa }
+            : null;
+    }
+
+    /// <summary>§14.8.2's verdict for ONE address-identifier argument against its formal (kb/Work PB239). Both
+    /// passing regimes reach the same law: BY REFERENCE is §14.8.2.3.2's class-pointer paragraph — "If either the
+    /// argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall
+    /// be of class pointer and the corresponding items shall be of the same category. If either is a restricted
+    /// pointer, both shall be restricted and of the same type" — and BY CONTENT / BY VALUE is §14.8.2.3.3's "as
+    /// if a SET statement were performed … with the argument as the sending operand", whose Format 7 / Format 9
+    /// rules (§14.9.39.3 SR17/SR19, SR21/SR22) demand the same category and the same restriction. The category is
+    /// §8.4.3.11.4 GR1 (data-pointer) or §8.4.3.13.4 GR1 (program-pointer); the restriction is §8.4.3.11.4 GR2
+    /// (the type of a strongly-typed identifier-1) or §8.4.3.13.4 GR3 (program-prototype-name-1). Null when
+    /// conformant.</summary>
+    private string? AddressConformanceReason(DataItem formal, BoundCallArg arg)
+    {
+        var fcat = formal.Pic?.Category;
+        if (arg.DataAddress is { } da)
+        {
+            if (fcat is not PicCategory.Pointer)
+                return "a data-address-identifier is a data item of category data-pointer (ISO §8.4.3.11.4 GR1), "
+                    + "so the formal parameter shall be of category data-pointer (ISO §14.8.2.3.2 / §14.8.2.3.3)";
+            var argR = StrongTypeModel.AddressOfRestriction(da.Item);
+            var formalR = StrongTypeModel.PointerRestriction(formal);
+            return (argR.IsRestricted || formalR.IsRestricted) && !StrongTypeModel.SameRestriction(argR, formalR)
+                ? $"one is a RESTRICTED data-pointer and the other is not restricted to the same type (argument: "
+                  + $"{argR}; formal: {formalR}) — if either is a restricted pointer, both shall be restricted and "
+                  + "of the same type (ISO §14.8.2.3.2; §8.4.3.11.4 GR2)"
+                : null;
+        }
+        if (arg.ProgramAddress is { } pa)
+        {
+            if (fcat is not PicCategory.ProgramPointer)
+                return "a program-address-identifier is a data item of category program-pointer (ISO §8.4.3.13.4 "
+                    + "GR1), so the formal parameter shall be of category program-pointer (ISO §14.8.2.3.2 / §14.8.2.3.3)";
+            string? formalProto = formal.Pic?.RestrictedPrototypeName;
+            if (formalProto is null && pa.Prototype is null) return null;
+            return formalProto is null || pa.Prototype is null
+                   || !PrototypeSignatures.Same(PrototypeSignature(formalProto), PrototypeSignature(pa.Prototype))
+                ? $"one is a RESTRICTED program-pointer and the other is not restricted to a program-prototype of "
+                  + $"the same signature (argument: {pa.Prototype ?? "unrestricted"}; formal: "
+                  + $"{formalProto ?? "unrestricted"}) — ISO §14.8.2.3.2; §8.4.3.13.4 GR3"
+                : null;
+        }
+        return null;
+    }
+
+    /// <summary>A program-prototype-name's bound signature through the §8.4.6.8 scope table (null for a
+    /// §12.3.8.4 GR10 c) prototype, which <see cref="PrototypeSignatures.Same"/> treats as conforming).</summary>
+    private CalleeSignature? PrototypeSignature(string prototypeName) =>
+        host.ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true ? p.Signature : null;
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>
     /// <summary>The ONE program-name-literal reader (kb/Work PB130) — §14.9.4.3 SR2 / §14.9.5.3 SR2 admit
@@ -1052,14 +1176,24 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         string? name = item.CobolName;
         string role = isReturning ? "RETURNING item" : "USING argument";
 
-        // SR11 (Format 1: identifier-2 AND identifier-3) / SR18 (Format 2: identifier-4); Format 2's
-        // RETURNING rides §14.8.3 via SR25 — a prototype-less callee's formal cannot be proven ANY LENGTH
-        // (the §13.18.2.3 SR2 NOTE). INVOKE permits it (§14.8.2.3.2 rule e).
-        if (item.IsAnyLength)
+        // ⛔ THE ANY LENGTH SCREEN IS EXACTLY AS WIDE AS THE TWO RULES THAT STATE IT (kb/Work PB240):
+        //   SR11 (FORMAT 1) — "Identifier-2 and identifier-3 shall not be described with the ANY LENGTH clause":
+        //        every USING operand in every mode, and the RETURNING item.
+        //   SR18 (FORMAT 2) — "Identifier-4 shall not be described with the ANY LENGTH clause": identifier-4 is
+        //        the BY CONTENT / BY VALUE operand of the Format-2 figure, so only those modes.
+        // A FORMAT-2 BY REFERENCE identifier-2 and a Format-2 identifier-3 are NOT screened here, because no
+        // syntax rule forbids them: SR25 hands both to §14.8's conformance rules, which ADMIT an ANY LENGTH
+        // operand against an ANY LENGTH formal/returning item — §14.8.2.3.2 rule e) ("If the argument is
+        // described with the ANY LENGTH clause, the corresponding formal parameter shall be described with the
+        // ANY LENGTH clause") and §14.8.3.3 rule 4 (the receiving returning item likewise) — and the
+        // activation-mode DescriptionMismatch in the conformance loop below states exactly those. The screen
+        // used to fire for EVERY Format-2 operand, refusing a contained program that forwards its own ANY
+        // LENGTH formal `CALL "C" AS NESTED USING BY REFERENCE L` to another ANY LENGTH formal — legal source
+        // (§13.18.2.3 SR2/SR3 make such a formal exist only in a contained program, function or method).
+        bool anyLengthBanned = !formatTwo || (!isReturning && mode is CobolPassMode.Content or CobolPassMode.Value);
+        if (item.IsAnyLength && anyLengthBanned)
             ctx.Edition.Error("COBOLNET1542", $"CALL {role} '{name}' is described with the ANY LENGTH clause "
-                + (formatTwo
-                    ? (isReturning ? "(ISO §14.8.3 via §14.9.4.3 SR25)" : "(ISO §14.9.4.3 SR18)")
-                    : "(ISO §14.9.4.3 SR11)"));
+                + (formatTwo ? "(ISO §14.9.4.3 SR18)" : "(ISO §14.9.4.3 SR11)"));
 
         // SR3 sentence 2: BY REFERENCE (specified or implied) shall not carry factory/instance object data.
         if (!isReturning && mode is CobolPassMode.Reference && ctx.Data.OoIsObjectData(item))
@@ -1131,6 +1265,30 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             core = dec.Inner;
         }
+        // ⛔ THE TIER-B REDEFINES VIEW (kb/Work PB240). A bit member of a REDEFINES class is a window over the
+        // class's ONE backing, not a member path, so the walk below never saw it and the screen ACCEPTED the
+        // operand unproven — a genuinely misaligned bit item crossed BY REFERENCE through any redefinition of
+        // its record (measured: `05 R REDEFINES X. 10 RB1 PIC 1(3) BIT. 10 RB2 PIC 1(8) BIT.` passed RB2,
+        // which starts at bit 3). The position is still statically known: §13.18.44.4 GR1 — "Storage association
+        // for the subject of the entry starts at the first bit of the data item referenced by data-name-2" —
+        // puts every redefinition at the redefined item's own first bit, so the class canonical's start within its
+        // record (the SAME §8.5.1.6.3 walk, over its own parent chain) plus the member's class-relative bit
+        // offset (BitWindow.ClassRelativeExpr — its in-class offset and each in-class subscript's stride) IS the
+        // occurrence's start. A BASED class's runtime displacement is whole bytes and cannot move the answer.
+        if (core is RedefViewPlace { Bit: { } bw, ViewItem.Class: { } viewCls })
+        {
+            if (ConstIndex(bw.ClassRelativeExpr) is not { } rel)
+            {
+                ctx.Edition.Error(DiagnosticCatalog.CallBitAlignment,
+                    $"CALL {role} '{p.Item.CobolName}': a bit item's subscripts shall consist of only "
+                    + "fixed-point numeric literals or all-literal arithmetic expressions without "
+                    + $"exponentiation (ISO {clause})");
+                return;
+            }
+            if (RecordBitOffset(viewCls.Canonical) is not { } canon) return;   // an unmodelled chain — never reject
+            ReportMisaligned(canon + rel + extra);
+            return;
+        }
         AccessPath? path = core switch { MemberPlace mp => mp.Path, DynTablePlace dp => dp.Path, _ => null };
         if (path is null) return;
         var chain = new List<DataItem>();
@@ -1164,11 +1322,32 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 bit += (k - 1) * (long)BitLayout.StrideBits(chain[i]);   // a SUBSCRIPT stride — ALIGNED strides whole bytes (§13.18.1.4 GR2)
             }
         }
-        bit += extra;
-        if (bit % BitLayout.BitsPerCharacter != 0)
-            ctx.Edition.Error(DiagnosticCatalog.CallBitAlignment,
-                $"CALL {role} '{p.Item.CobolName}' starts at bit {bit} of its record — a bit item passed by "
-                + $"reference shall be aligned on a byte boundary (ISO {clause} / §8.5.1.6.3)");
+        ReportMisaligned(bit + extra);
+
+        void ReportMisaligned(long start)
+        {
+            if (start % BitLayout.BitsPerCharacter != 0)
+                ctx.Edition.Error(DiagnosticCatalog.CallBitAlignment,
+                    $"CALL {role} '{p.Item.CobolName}' starts at bit {start} of its record — a bit item passed by "
+                    + $"reference shall be aligned on a byte boundary (ISO {clause} / §8.5.1.6.3)");
+        }
+    }
+
+    /// <summary>The start bit of <paramref name="item"/> within its level-01 record — the §8.5.1.6.3 cursor walk
+    /// (<see cref="BitLayout.StartBitWithin"/>) summed over its parent chain, with every OCCURS level at its
+    /// FIRST occurrence; null when a link of the chain is unmodelled. Used for a REDEFINES class's canonical
+    /// (kb/Work PB240), whose ancestors carry no OCCURS: a class whose backing sits inside a table has no place
+    /// the resolver can build.</summary>
+    private static long? RecordBitOffset(DataItem item)
+    {
+        long bit = 0;
+        for (var d = item; d.Parent is { } parent; d = parent)
+        {
+            int within = BitLayout.StartBitWithin(parent, d);
+            if (within < 0) return null;
+            bit += within;
+        }
+        return bit;
     }
 
     /// <summary>Evaluate a rendered subscript/ref-mod index that SR6/SR8 permit — an integer literal or an
