@@ -14,27 +14,30 @@ namespace CobolNet.Binding;
 /// </summary>
 public sealed class RefModZeroLengthState
 {
-    private readonly IReadOnlyList<RefModZeroLengthEvent> _events;
+    private readonly DirectiveTimeline<RefModZeroLengthEvent> _events;
 
     /// <summary>The empty state — no directive; every site is OFF (the §7.3.23.3 GR1 default).</summary>
-    public static readonly RefModZeroLengthState Empty = new([]);
+    public static readonly RefModZeroLengthState Empty = new(DirectiveTimeline<RefModZeroLengthEvent>.Empty);
 
-    private RefModZeroLengthState(IReadOnlyList<RefModZeroLengthEvent> events) => _events = events;
+    private RefModZeroLengthState(DirectiveTimeline<RefModZeroLengthEvent> events) => _events = events;
 
     /// <summary>Build the state from the frontend's directive events (already introduction-gated + syntax-checked by
-    /// <see cref="RefModZeroLengthDirectiveProcessor"/>). Null/empty ⇒ the OFF default everywhere.</summary>
+    /// <see cref="RefModZeroLengthDirectiveProcessor"/>). Null/empty ⇒ the OFF default everywhere. A
+    /// <see cref="DirectiveTimeline{T}"/> carries the PUSH/POP history: a POP-revoked toggle is skipped
+    /// (§7.3.20.4 GR1/GR3; kb/Work PB941).</summary>
     public static RefModZeroLengthState Build(IReadOnlyList<RefModZeroLengthEvent>? events)
-        => events is null || events.Count == 0 ? Empty : new RefModZeroLengthState(events);
+        => events is null || events.Count == 0 ? Empty : new RefModZeroLengthState(DirectiveTimeline<RefModZeroLengthEvent>.Of(events));
 
     /// <summary>Is <c>REF-MOD-ZERO-LENGTH</c> ON at a reference modification on <paramref name="siteLine"/>? The
     /// most recent toggle strictly BEFORE the site wins; OFF when no toggle precedes it.</summary>
     public bool IsOnAt(int siteLine)
     {
         bool on = false;   // §7.3.23.3 GR1 — the default is OFF
-        foreach (var e in _events)
+        for (int k = 0; k < _events.Count; k++)
         {
+            var e = _events[k];
             if (e.Line >= siteLine) break;   // events are in line order; a directive applies to succeeding text only
-            on = e.On;
+            if (_events.InEffectAt(k, siteLine)) on = e.On;   // a POP-revoked toggle is gone (kb/Work PB941)
         }
         return on;
     }
@@ -46,11 +49,11 @@ public sealed class RefModZeroLengthState
     /// (and EC-BOUND-REF-MOD checking is on).</summary>
     public bool IsUnspecifiedAt(int siteLine)
     {
-        foreach (var e in _events)
+        for (int k = 0; k < _events.Count; k++)
         {
-            if (e.Line >= siteLine) break;   // no toggle reaches the site
-            return false;                     // a toggle (ON or OFF) precedes it — explicitly specified
+            if (_events[k].Line >= siteLine) break;           // no toggle reaches the site
+            if (_events.InEffectAt(k, siteLine)) return false; // a live toggle (ON or OFF) precedes it — explicitly specified
         }
-        return true;
+        return true;   // none, or every one was revoked by a POP back to the unspecified state (kb/Work PB941)
     }
 }

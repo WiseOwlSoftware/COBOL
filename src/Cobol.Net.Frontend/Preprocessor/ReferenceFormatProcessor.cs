@@ -116,8 +116,10 @@ public static class ReferenceFormatProcessor
         // on unchanged (kb/Work PB794). Leaving it in the text is what produced `COBOL0001: unexpected '>'`
         // before PB725 and, once PB725 taught the driver to swallow the word, silence.
         var switches = new List<(int Index, bool? Fixed)>();
+        var stackOps = new List<(int Index, DirectiveStackOp Op)>();   // §7.3.20 / §7.3.22 — kb/Work PB941
         for (int i = 0; i < lines.Length; i++)
-            if (TryMatchDirective(lines[i], out string operand))
+            if (TryMatchStackOp(lines[i], i + 1, out var stackOp)) stackOps.Add((i, stackOp));
+            else if (TryMatchDirective(lines[i], out string operand))
             {
                 // The §7.3 compiler-directive facility's introduction gate for the ONE directive that cannot be
                 // gated with its siblings: this stage CONSUMES the >>SOURCE FORMAT line (it must — the following
@@ -146,13 +148,18 @@ public static class ReferenceFormatProcessor
         // segment empty, so its format governs from the next line). Emit one output line per source line, the
         // directive lines blanked — a fixed segment's continuation joins reduce its line count exactly as the
         // whole-file path already does.
+        bool initialFixed = IsFixedForm(string.Join('\n', lines[..switches[0].Index]));
+        var segments = WithPoppedFormats(switches, stackOps, initialFixed);
         var outLines = new List<string>();
         var outOrigins = new List<int>();   // the 1-based source line of each output line (kb/Work PB82)
-        bool segFixed = IsFixedForm(string.Join('\n', lines[..switches[0].Index]));
+        bool segFixed = initialFixed;
         int segStart = 0;
-        for (int s = 0; s <= switches.Count; s++)
+        for (int s = 0; s <= segments.Count; s++)
         {
-            int segEnd = s < switches.Count ? switches[s].Index : lines.Length;   // exclusive
+            // A >>POP boundary KEEPS its line — DirectiveSiteProcessor consumes it after COPY — so the line closes
+            // the segment it ends, in that segment's format; a >>SOURCE line is discarded here (§6.5 step 1).
+            bool keepsLine = s < segments.Count && segments[s].KeepsLine;
+            int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
                 if (segFixed)
@@ -164,15 +171,60 @@ public static class ReferenceFormatProcessor
                 else
                     for (int k = segStart; k < segEnd; k++) { outLines.Add(lines[k].TrimEnd('\r')); outOrigins.Add(k + 1); }   // free: as-is
             }
-            if (s < switches.Count)
+            if (s < segments.Count)
             {
-                outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
-                outOrigins.Add(switches[s].Index + 1);
-                segFixed = switches[s].Fixed ?? segFixed;   // a malformed operand selects no format (PB794)
-                segStart = switches[s].Index + 1;
+                if (!keepsLine)
+                {
+                    outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
+                    outOrigins.Add(segments[s].Index + 1);
+                }
+                segFixed = segments[s].Fixed;
+                segStart = segments[s].Index + 1;
             }
         }
         return Mapped(outLines, outOrigins, sourcePath);
+    }
+
+    /// <summary>
+    /// The segment boundaries once PUSH/POP are applied to the reference format (§7.3.20 / §7.3.22; kb/Work
+    /// PB941): the &gt;&gt;SOURCE switches, each resolved to the format it leaves in force (a malformed operand
+    /// selects none and carries the current one on — kb/Work PB794), merged in line order with every &gt;&gt;POP
+    /// that RESTORES a different format than the one in force. The format is carried by the ONE
+    /// <see cref="DirectiveStateStack"/> — this stage's share of the directive state, as the conditional-
+    /// compilation driver holds the compilation variables. A PUSH/POP written before the first &gt;&gt;SOURCE can
+    /// only save and restore <paramref name="initialFixed"/>, so the auto-detected initial segment is unaffected.
+    /// </summary>
+    private static List<(int Index, bool Fixed, bool KeepsLine)> WithPoppedFormats(
+        List<(int Index, bool? Fixed)> switches, List<(int Index, DirectiveStackOp Op)> stackOps, bool initialFixed)
+    {
+        bool current = initialFixed;
+        var state = new DirectiveStateStack().Carry(Constructs.SourceFormatDirective2002,
+            new DirectiveValueCarrier<bool>(() => current, saved => current = saved));
+        var segments = new List<(int Index, bool Fixed, bool KeepsLine)>(switches.Count);
+        int o = 0;
+        foreach (var (index, fixedForm) in switches)
+        {
+            for (; o < stackOps.Count && stackOps[o].Index < index; o++) ApplyStackOp(stackOps[o].Index, stackOps[o].Op);
+            current = fixedForm ?? current;
+            segments.Add((index, current, false));
+        }
+        for (; o < stackOps.Count; o++) ApplyStackOp(stackOps[o].Index, stackOps[o].Op);
+        return segments;
+
+        void ApplyStackOp(int index, DirectiveStackOp op)
+        {
+            bool before = current;
+            state.Apply(op);
+            if (current != before) segments.Add((index, current, true));
+        }
+    }
+
+    /// <summary>Match a <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> line in the raw (pre-normalization) text — the same
+    /// margin-R cut and fixed-form sequence-area allowance as <see cref="TryMatchDirective"/>.</summary>
+    private static bool TryMatchStackOp(string rawLine, int line, out DirectiveStackOp op)
+    {
+        string l = rawLine.TrimEnd('\r');
+        return DirectiveStackOp.TryParse(l.Length > MarginR ? l[..MarginR] : l, line, out op, allowSequenceArea: true);
     }
 
     /// <summary>Assemble output lines and their source lines into a <see cref="MappedText"/> of <paramref name="file"/>.</summary>

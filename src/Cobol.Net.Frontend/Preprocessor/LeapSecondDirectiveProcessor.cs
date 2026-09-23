@@ -30,20 +30,33 @@ public static class LeapSecondDirectiveProcessor
 
     /// <summary>Process <paramref name="text"/>: edition-gate + syntax-check each directive, resolve the group's
     /// ON/OFF state, blank the directive lines. Returns the text and whether ON is in effect for the group.</summary>
+    /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text (§7.3.20 / §7.3.22; kb/Work
+    /// PB941), replayed over the ON/OFF state up to the first compilation unit — the point at which the group's
+    /// state is taken, since §7.3.17.3 SR1 admits no LEAP-SECOND directive after it.</para>
     public static (string Text, bool LeapSecondOn) Process(
-        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null,
+        IReadOnlyList<DirectiveStackOp>? stackOps = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, false);
         var lines = text.Split('\n');
         bool on = false, insideUnit = false;
+        bool? atFirstUnit = null;
+        var state = new DirectiveStateStack(stackOps ?? []).Carry(Constructs.LeapSecondDirective2002,
+            new DirectiveValueCarrier<bool>(() => on, saved => on = saved));
         for (int i = 0; i < lines.Length; i++)
         {
             string trimmed = lines[i].TrimEnd('\r').TrimStart();
-            if (!insideUnit && CompilationUnitStart.IsAt(trimmed)) insideUnit = true;
+            if (!insideUnit && CompilationUnitStart.IsAt(trimmed))
+            {
+                insideUnit = true;
+                state.AdvanceTo(i + 1);   // a PUSH/POP before the first unit still acts on the group's state
+                atFirstUnit = on;
+            }
             // The ONE compiler-directive line parse (kb/Work PB794) — it removes the §7.3.3 SR3/SR4 inline
             // comment this stage's own slicing did not know about, so `>>LEAP-SECOND ON *> on` folds ON instead
             // of drawing a malformed-operand error.
             if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
+            if (!insideUnit) state.AdvanceTo(i + 1);   // the PUSH/POP written before this directive
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             // Neither the EDITION nor the OPERAND SYNTAX is decided here. The introduction gate (§7.3.17 is a
@@ -61,7 +74,8 @@ public static class LeapSecondDirectiveProcessor
                 on = word != "OFF";   // §7.3.17.2: ON is un-underlined, so a bare >>LEAP-SECOND selects it
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
-        return (string.Join('\n', lines), on);
+        if (atFirstUnit is null) state.AdvanceToEnd();   // no unit at all: the state at the end of the text
+        return (string.Join('\n', lines), atFirstUnit ?? on);
     }
 
 }

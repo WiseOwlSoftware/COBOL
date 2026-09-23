@@ -4383,6 +4383,19 @@ public static class DiagnosticCatalog
         "COBOLNET2187", "directive-in-exception-checking-perform", EditionSeverity.Warning,
         "A TURN, PUSH or POP directive is written inside an exception-checking PERFORM statement.",
         "ISO §7.3.25.3 / §7.3.22.3 / §7.3.20.3");
+
+    /// <summary>COBOLNET2297 — an UNSUCCESSFUL <c>&gt;&gt;POP directive-name</c>: the named directive's state was
+    /// never saved by a PUSH in this compilation group, or every saved state was already restored. ISO §7.3.20.4
+    /// GR2 makes the warning an implementor OBLIGATION — "the POP directive is unsuccessful and the implementor
+    /// shall provide a warning mechanism that the POP directive was unsuccessful" — and Annex A.1 item 140 marks
+    /// it REQUIRED. A warning, not an error: the standard defines the unsuccessful POP as a processed directive
+    /// that restores nothing, and the program means exactly that (kb/Work PB941). GR2 speaks of directive-name
+    /// only, so a <c>&gt;&gt;POP ALL</c> with nothing stored draws no warning.</summary>
+    public static readonly DiagnosticDescriptor PopDirectiveUnsuccessful = new(
+        "COBOLNET2297", "pop-directive-unsuccessful", EditionSeverity.Warning,
+        "A POP directive names a directive whose state was not saved by a PUSH directive, or was already restored "
+        + "by an earlier POP; nothing is restored.",
+        "ISO §7.3.20.4 GR2");
     /// <summary>A PICTURE clause was written on a data description entry that HAS SUBORDINATE ENTRIES.
     /// §13.18.40.3 SR1 is the whole rule — "The PICTURE clause may be specified only at the elementary level" —
     /// and §8.5.1.3.1 says which entries those are: "The most basic subdivisions of a record, that is, those not

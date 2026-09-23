@@ -66,16 +66,17 @@ public sealed class Frontend
     /// <summary>The <c>&gt;&gt;TURN</c> directive events of the LAST parsed source (ISO §7.3.25), anchored to
     /// 1-based lines of the final preprocessed text (so token <c>Start.Line</c> is directly comparable — the
     /// compile-time TurnState's basis, deep-dive D10). Empty when the source has no TURN directives.</summary>
-    public IReadOnlyList<TurnEvent> TurnEvents { get; private set; } = [];
+    public DirectiveTimeline<TurnEvent> TurnEvents { get; private set; } = DirectiveTimeline<TurnEvent>.Empty;
 
     /// <summary>The frontend's <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive events (ISO §7.3.23) — they build the
     /// group's compile-time <see cref="Binding.RefModZeroLengthState"/> (the per-line zero-length allowance fold).</summary>
-    public IReadOnlyList<RefModZeroLengthEvent> RefModZeroLengthEvents { get; private set; } = [];
+    public DirectiveTimeline<RefModZeroLengthEvent> RefModZeroLengthEvents { get; private set; } =
+        DirectiveTimeline<RefModZeroLengthEvent>.Empty;
 
     /// <summary>The frontend's <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> directive events (ISO §7.3.14 /
     /// §7.3.15) — they build the group's compile-time <see cref="Binding.FlagState"/> (the per-line per-option
     /// migration-flag fold that <c>FlagConformancePass</c> queries). Empty when the source has no FLAG directives.</summary>
-    public IReadOnlyList<FlagEvent> FlagEvents { get; private set; } = [];
+    public DirectiveTimeline<FlagEvent> FlagEvents { get; private set; } = DirectiveTimeline<FlagEvent>.Empty;
 
     /// <summary>The frontend's <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10) — the per-group
     /// reserved/context-sensitive/intrinsic word-table modification the post-lex <c>CobolWordsRewriter</c>
@@ -157,8 +158,10 @@ public sealed class Frontend
         // "where was a TURN / PUSH / POP written" for the binder's single lexical-containment predicate (owner
         // decision D20; kb/Work PB595). It also consumes the >>PUSH / >>POP lines, which the conditional-
         // compilation driver now leaves for it (LeftDirectives) because that driver runs before COPY has settled
-        // the line frame and cannot name the resultant line a directive ended on. Line-count preserving.
-        (text, DirectiveSites) = DirectiveSiteProcessor.Process(text);
+        // the line frame and cannot name the resultant line a directive ended on — recording each as a
+        // DirectiveStackOp every stage below replays over the state it holds, and warning (COBOLNET2297) for an
+        // unsuccessful named POP (§7.3.20 / §7.3.22; kb/Work PB941). Line-count preserving.
+        (text, DirectiveSites, var stackOps) = DirectiveSiteProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "DirectiveSiteProcessor changed the line count — every directive site would misanchor (hazard H3)");
@@ -166,7 +169,7 @@ public sealed class Frontend
         // >>TURN directive collection runs LAST — after COPY (so copybook TURNs are seen) and after the
         // line-count-neutral NIST substitution — on the FINAL text, so each TurnEvent.Line is directly
         // comparable to the parser tokens' Start.Line (the TurnState anchor, deep-dive D10 / hazard H3).
-        (text, TurnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap);
+        (text, TurnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "TurnDirectiveProcessor changed the line count — TURN scoping would silently misanchor (hazard H3)");
@@ -181,7 +184,7 @@ public sealed class Frontend
         // >>REF-MOD-ZERO-LENGTH (ISO §7.3.23): recognize + edition-gate + collect the per-line zero-length toggle
         // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
         // >>TURN anchoring discipline). Line-count preserving like the two stages above.
-        (text, RefModZeroLengthEvents) = RefModZeroLengthDirectiveProcessor.Process(text);
+        (text, RefModZeroLengthEvents) = RefModZeroLengthDirectiveProcessor.Process(text, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
@@ -189,7 +192,7 @@ public sealed class Frontend
         // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
-        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
+        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");
@@ -197,14 +200,14 @@ public sealed class Frontend
         // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
         // the CobolWordsMap (the post-lex rewriter + composed ReservedWordSet consume it), edition-gate the
         // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
-        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
+        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
 
         // >>LEAP-SECOND (ISO §7.3.17): the ONE compilation-group ON/OFF fact the §15.3 date/time consumers read
         // (kb/Work PB65 — it used to be consumed and discarded). Line-count preserving like the stages above.
-        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap);
+        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "LeapSecondDirectiveProcessor changed the line count (hazard H3)");
@@ -216,11 +219,12 @@ public sealed class Frontend
     /// dedicated stages above — ONE list, in the order those stages run (PUSH / POP / TURN for the site scan,
     /// then TURN, PROPAGATE, REF-MOD-ZERO-LENGTH, FLAG-02 / FLAG-14, COBOL-WORDS, LEAP-SECOND). A new directive
     /// with behavior is one entry here plus its stage.
-    /// <para>PUSH and POP are here for their POSITION, not yet for their behavior: §7.3.22.3 SR4 and §7.3.20.3
-    /// SR4 are rules about WHERE they are written, and only the final line frame can say (kb/Work PB595). The
-    /// driver used to consume them; <see cref="Preprocessor.DirectiveSiteProcessor"/> records the site and
-    /// consumes them there instead, which is also where their §7.3.20 / §7.3.22 directive-state semantics land
-    /// when they are implemented.</para>
+    /// <para>PUSH and POP are here for their POSITION and their OPS: §7.3.22.3 SR4 and §7.3.20.3 SR4 are rules
+    /// about WHERE they are written, and only the final line frame can say (kb/Work PB595), and
+    /// <see cref="Preprocessor.DirectiveSiteProcessor"/> records each as a <see cref="DirectiveStackOp"/> that the
+    /// later state-holding stages replay through the ONE <see cref="DirectiveStateStack"/> (§7.3.20 / §7.3.22,
+    /// kb/Work PB941). The driver applies them too, in encounter order, to the state IT holds (DEFINE and the
+    /// running FLAG options) before leaving the line.</para>
     /// This set answers WHICH STAGE OWNS THE LINE and nothing else: every word in it is also a
     /// <c>CompilerDirectiveCatalog</c> row, and the EDITION question was already answered by the driver before the
     /// line reached these stages (kb/Work PB725), which is why none of them takes a dialect any more.

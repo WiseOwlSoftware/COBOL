@@ -169,6 +169,30 @@ public static class CompilerDirectiveCatalog
         return w.Length > 0 && w[0] != '-' && w[^1] != '-';
     }
 
+    /// <summary>The row ids of every directive whose STATE a <c>&gt;&gt;PUSH ALL</c> saves — ISO §7.3.22.4 GR2:
+    /// "the state of all of the directives other than EVALUATE, IF, PAGE, POP, or PUSH are saved" (kb/Work PB941).
+    /// DERIVED, never hand-written: the catalog's rows minus the PUSH row's own
+    /// <see cref="DirectiveOperandSyntax.ExcludedDirectives"/> (the §7.3.22.3 SR1 list, which is the same five), so a
+    /// new directive row joins the pushed set by existing. Ordered by row id.</summary>
+    public static IReadOnlyList<string> PushableRows => PushableRowsLazy.Value;
+
+    private static readonly Lazy<IReadOnlyList<string>> PushableRowsLazy = new(() =>
+    {
+        var push = Find("PUSH")?.DirectiveOperand
+            ?? throw new InvalidOperationException("constructs.json: no PUSH directive row with a directiveOperand");
+        var excluded = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string name in push.ExcludedDirectives)
+            if (Find(name) is { } row) excluded.Add(row.Id);
+        return [.. Map.Value.Values.Select(r => r.Id).Distinct().Where(id => !excluded.Contains(id))
+                   .Order(StringComparer.Ordinal)];
+    });
+
+    /// <summary>The row id of the directive <paramref name="directiveName"/> names when it is a PUSH/POP
+    /// <c>directive-name</c> operand (§7.3.20.2 / §7.3.22.2) — null when the word heads no directive or names one
+    /// §7.3.20.3 SR1 / §7.3.22.3 SR1 exclude.</summary>
+    public static string? PushableRowOf(string directiveName) =>
+        Find(directiveName) is { } row && PushableRows.Contains(row.Id, StringComparer.Ordinal) ? row.Id : null;
+
     /// <summary>
     /// The same gate addressed by ROW ID rather than by word — for the one stage that must gate a directive it
     /// consumes before the shared recognition point ever sees it (<c>&gt;&gt;SOURCE FORMAT</c>, whose line the

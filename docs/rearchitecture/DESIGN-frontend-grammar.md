@@ -652,6 +652,41 @@ Target changes:
    (consistent with the top-level exception boundary), not a raw exception.
 4. The preprocessor remains hand-written (not the dead `CobolPreprocessor.g4`); that grammar is deleted (§3.4).
 
+#### 3.6.1 Directive state — `>>PUSH` / `>>POP` (kb/Work PB941)
+
+ISO §7.3.22.4 GR2 makes PUSH/POP a rule about a SET — "the state of all of the directives other than EVALUATE, IF,
+PAGE, POP, or PUSH" — while the state itself lives where each directive is processed: the reference format in the
+normalizer, the compilation variables and the frontend-inline FLAG options in the conditional-compilation driver,
+the line-scoped toggles (TURN, REF-MOD-ZERO-LENGTH, FLAG-02/14) and the group-prefix values (COBOL-WORDS,
+LEAP-SECOND) in the post-COPY stages. The design is therefore ONE mechanism with carriers, never per-directive save
+code:
+
+* **`DirectiveStateStack`** (Frontend/Preprocessor) — the PUSH/POP pairing: a stack PER pushable directive row,
+  `PUSH ALL` fanning out to `CompilerDirectiveCatalog.PushableRows` (DERIVED from the PUSH row's
+  `excludedDirectives`, so a new directive row is pushed by existing), a POP removing the most recent save, and
+  `Apply` answering §7.3.20.4 GR2's "unsuccessful". Each state-holding stage runs its own instance over the same
+  PUSH/POP sequence and registers an `IDirectiveStateCarrier` for the rows it holds; every instance keeps a stack
+  for every row, so the pairing is identical in every stage.
+* **Where the ops come from.** The normalizer and the conditional-compilation driver meet PUSH/POP lines in
+  encounter order and `Apply` them directly (the driver only in an emitting branch). `DirectiveSiteProcessor`
+  records the ops of the FINAL text, blanks the lines, and issues the one COBOLNET2297 warning; every later stage
+  REPLAYS those ops with `AdvanceTo(line)` as it scans.
+* **Line-scoped folds** keep their event lists: a carrier over a `DirectiveEventLog` saves "how many events were in
+  effect" and restores by REVOKING every event recorded since, at the POP line. The binder folds a
+  `DirectiveTimeline<T>` with one extra test (`InEffectAt` / TurnState's `RevokedFor`); events are never reordered
+  or synthesized.
+* **Group-prefix values** (COBOL-WORDS, LEAP-SECOND) replay the ops up to the first compilation unit — the point
+  §7.3.10.3 SR1 / §7.3.17.3 SR1 close the region — and take the state in effect there.
+* **`DirectiveStateRegistry`** accounts for every pushable row: carried (naming the stage types and the
+  `DirectiveResults` members) or, with its rule, why this compiler holds no state (LISTING — no listing is produced,
+  §7.3.18.3 GR1; DISPLAY — stateless; CALL-CONVENTION and PROPAGATE — no state implemented; FLAG-85 /
+  FLAG-NATIVE-ARITHMETIC — removed at 2023, the only edition with PUSH). `DirectiveStateStackTests` is the drift
+  gate: the registry equals the pushable set, every carrier is a real stage, every `DirectiveResults` member is
+  claimed, and every carried row has a PUSH/change/POP behavioural case.
+
+The implicit PUSH ALL / POP ALL that §14.9.28.4 GR14 assumes around an exception-checking PERFORM's handlers is
+modelled for the TURN state only (`TurnState.WithAllDisabledFrom` + `EcBinder`), not through this mechanism.
+
 ### 3.7 Parse-tree consumption — a typed `Cst/` façade (D6)
 
 **Contract problem:** the binder reaches into raw generated contexts with ~336 `GetText()` calls. Renaming a

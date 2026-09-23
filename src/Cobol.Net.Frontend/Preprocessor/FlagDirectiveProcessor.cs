@@ -24,12 +24,19 @@ public static class FlagDirectiveProcessor
 {
     /// <summary>Process <paramref name="text"/>: edition-gate each directive word, collect the FLAG-02/FLAG-14
     /// toggle events, syntax-check each operand, and blank the directive lines. Line-count preserving.</summary>
-    public static (string Text, IReadOnlyList<FlagEvent> Events) Process(
-        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+    /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text, replayed over the toggles —
+    /// FLAG-02 and FLAG-14 are two directives, saved and restored independently (§7.3.20 / §7.3.22; kb/Work
+    /// PB941).</para>
+    public static (string Text, DirectiveTimeline<FlagEvent> Events) Process(
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null,
+        IReadOnlyList<DirectiveStackOp>? stackOps = null)
     {
-        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
+        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, DirectiveTimeline<FlagEvent>.Empty);
         var lines = text.Split('\n');
-        List<FlagEvent>? events = null;
+        var events = new DirectiveEventLog<FlagEvent>();
+        var state = new DirectiveStateStack(stackOps ?? [])
+            .Carry(Constructs.Flag02Directive2014, events.CarrierFor(Constructs.Flag02Directive2014))
+            .Carry(Constructs.Flag14Directive2023, events.CarrierFor(Constructs.Flag14Directive2023));
         for (int i = 0; i < lines.Length; i++)
         {
             // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
@@ -53,8 +60,10 @@ public static class FlagDirectiveProcessor
             // COBOLNET0903 obsolete WARNING at 2023 — §7.3.14.1 NOTE / §4.2.13: obsolete elements are still
             // SUPPORTED and merely flagged, never rejected/removed). This stage collects the options.
 
+            state.AdvanceTo(i + 1);   // the PUSH/POP written before this directive (§7.3.20 / §7.3.22)
             if (FlagDirectiveLine.TryParse(directive, operand, out var options, out bool on, out string? error))
-                (events ??= []).Add(new FlagEvent(i + 1, directive, on, options));
+                events.Add(directive == FlagDirective.Flag02 ? Constructs.Flag02Directive2014 : Constructs.Flag14Directive2023,
+                    new FlagEvent(i + 1, directive, on, options));
             else
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FlagDirectiveMalformed.Code,
                     $">>{keyword} is malformed: {error} (ISO §7.3.{(directive == FlagDirective.Flag02 ? "14" : "15")}.2)",
@@ -62,7 +71,8 @@ public static class FlagDirectiveProcessor
 
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
-        return (string.Join('\n', lines), (IReadOnlyList<FlagEvent>?)events ?? []);
+        state.AdvanceToEnd();
+        return (string.Join('\n', lines), events.ToTimeline());
     }
 
     /// <summary>Does the directive body begin with <paramref name="keyword"/> as a whole word (the next char is

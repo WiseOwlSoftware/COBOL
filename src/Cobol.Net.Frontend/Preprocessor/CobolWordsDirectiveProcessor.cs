@@ -28,16 +28,23 @@ public static class CobolWordsDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: edition-gate each <c>&gt;&gt;COBOL-WORDS</c> line, parse its
     /// option, enforce SR1/SR2/SR5, and blank the directive lines. Returns the composed override map (empty when
     /// no directive is present). Line-count preserving.</summary>
+    /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text (§7.3.20 / §7.3.22; kb/Work
+    /// PB941), replayed over the entries up to the first IDENTIFICATION DIVISION: a POP COBOL-WORDS there
+    /// withdraws every entry written since its PUSH, and the map is the set in effect where §7.3.10.3 SR1 closes
+    /// the region.</para>
     public static (string Text, CobolWordsMap Map) Process(
-        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+        string text, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null,
+        IReadOnlyList<DirectiveStackOp>? stackOps = null)
     {
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, CobolWordsMap.Empty);
         var lines = text.Split('\n');
-        List<CobolWordsOp>? ops = null;
+        var ops = new List<CobolWordsOp>();
         // SR5 (§7.3.10.3 / D.12.1): a COBOL word may be contained in a literal of at most ONE directive in the
         // group (the modified word AND its substitute both count). First occurrence wins; a repeat is the error.
         var seenWords = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         bool sawFirstIdDivision = false;
+        var state = new DirectiveStateStack(stackOps ?? []).Carry(Constructs.CobolWordsDirective2023,
+            new DirectiveValueCarrier<int>(() => ops.Count, keep => ops.RemoveRange(keep, ops.Count - keep)));
 
         for (int i = 0; i < lines.Length; i++)
         {
@@ -46,13 +53,18 @@ public static class CobolWordsDirectiveProcessor
             // header is optional (§11.2.1), so the boundary is the ONE unit-start test (kb/Work PB829).
             if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
             {
-                if (!sawFirstIdDivision && CompilationUnitStart.IsAt(trimmed)) sawFirstIdDivision = true;
+                if (!sawFirstIdDivision && CompilationUnitStart.IsAt(trimmed))
+                {
+                    sawFirstIdDivision = true;
+                    state.AdvanceTo(i + 1);   // the PUSH/POP of the region act on the entries; later ones cannot
+                }
                 continue;
             }
             // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
             // and the trailing inline comment (SR3/SR4) are its rules, not this stage's — `>>COBOL-WORDS
             // RESERVE "ZQX" *> why` used to be rejected as a malformed entry list.
             if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
+            if (!sawFirstIdDivision) state.AdvanceTo(i + 1);   // the PUSH/POP written before this directive
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
 
@@ -76,12 +88,13 @@ public static class CobolWordsDirectiveProcessor
                     else
                         seenWords[w] = i;
                 }
-                (ops ??= []).Add(op);
+                ops.Add(op);
             }
 
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
-        return (string.Join('\n', lines), ops is null ? CobolWordsMap.Empty : new CobolWordsMap(ops));
+        if (!sawFirstIdDivision) state.AdvanceToEnd();   // no unit at all: the state at the end of the text
+        return (string.Join('\n', lines), ops.Count == 0 ? CobolWordsMap.Empty : new CobolWordsMap(ops));
     }
 
     /// <summary>The words a directive contributes to the SR5 uniqueness multiset (both operands).</summary>

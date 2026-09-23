@@ -1,6 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 
 namespace CobolNet.Frontend.Preprocessor;
 
@@ -28,9 +31,10 @@ public readonly record struct DirectiveSite(int Line, string Word);
 /// <para>It also CONSUMES the two lines no other stage owns. <c>&gt;&gt;PUSH</c> and <c>&gt;&gt;POP</c> were
 /// blanked by the conditional-compilation driver, which runs BEFORE COPY expansion has settled the line frame and
 /// therefore cannot say which resultant line a directive ended on; they are now left in the text by that driver
-/// (<c>Frontend.LeftDirectives</c>) and blanked here instead, at the point where their position is knowable. The
-/// directive-state SEMANTICS of §7.3.20 / §7.3.22 (save and restore the directive state) remain unimplemented —
-/// unchanged by this stage, which alters no behaviour beyond recording the sites — and this is where they land.
+/// (<c>Frontend.LeftDirectives</c>) and blanked here instead, at the point where their position is knowable. Before
+/// blanking a PUSH/POP it records the line as a <see cref="DirectiveStackOp"/>: the §7.3.20 / §7.3.22 directive
+/// state SEMANTICS are the <see cref="DirectiveStateStack"/>, which every later stage holding directive state
+/// replays over these ops (kb/Work PB941), and the one unsuccessful-POP warning of §7.3.20.4 GR2 is issued here.
 /// <c>&gt;&gt;TURN</c>'s line is NOT blanked here: <see cref="TurnDirectiveProcessor"/> owns that directive's
 /// parse, its syntax rules and its blanking, and this stage runs just before it.</para>
 /// </summary>
@@ -46,13 +50,18 @@ public static class DirectiveSiteProcessor
     private static readonly IReadOnlySet<string> Consumed =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "PUSH", "POP" };
 
-    /// <summary>Record the position-ruled directive sites on <paramref name="text"/> and blank the lines this
-    /// stage consumes. Line-count preserving.</summary>
-    public static (string Text, IReadOnlyList<DirectiveSite> Sites) Process(string text)
+    /// <summary>Record the position-ruled directive sites on <paramref name="text"/>, record the PUSH/POP ops the
+    /// later stages replay (<see cref="DirectiveStateStack"/>), warn for each unsuccessful named POP (§7.3.20.4
+    /// GR2, <c>COBOLNET2297</c> — here, once, because only this stage sees every PUSH/POP of the final text), and
+    /// blank the lines this stage consumes. Line-count preserving.</summary>
+    public static (string Text, IReadOnlyList<DirectiveSite> Sites, IReadOnlyList<DirectiveStackOp> StackOps) Process(
+        string text, DiagnosticBag? diagnostics = null, string sourcePath = "<source>", SourceLineMap? lineMap = null)
     {
-        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
+        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, [], []);
         var lines = text.Split('\n');
         List<DirectiveSite>? sites = null;
+        List<DirectiveStackOp>? ops = null;
+        DirectiveStateStack? pairing = null;   // carries nothing: it answers GR2's "was it saved?" and no more
         bool blanked = false;
         for (int i = 0; i < lines.Length; i++)
         {
@@ -62,10 +71,20 @@ public static class DirectiveSiteProcessor
             if (!PositionRuled.Contains(directive.Word)) continue;
             (sites ??= []).Add(new DirectiveSite(i + 1, directive.Word));
             if (!Consumed.Contains(directive.Word)) continue;
+            if (DirectiveStackOp.TryParse(directive, i + 1, out var op))
+            {
+                (ops ??= []).Add(op);
+                if (!(pairing ??= new DirectiveStateStack()).Apply(op) && op.Row is not null && diagnostics is not null)
+                    diagnostics.ReportWarning(DiagnosticCatalog.PopDirectiveUnsuccessful.Code,
+                        $">>POP {directive.Operand.ToUpperInvariant()} is unsuccessful: no state of that directive "
+                        + "was saved by a PUSH directive that an earlier POP has not already restored, so nothing "
+                        + "is restored (ISO §7.3.20.4 GR2)",
+                        lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0), default);
+            }
             lines[i] = "";   // blank, never delete — line-count preserving (H3)
             blanked = true;
         }
-        if (sites is null) return (text, []);
-        return (blanked ? string.Join('\n', lines) : text, sites);
+        if (sites is null) return (text, [], []);
+        return (blanked ? string.Join('\n', lines) : text, sites, ops ?? (IReadOnlyList<DirectiveStackOp>)[]);
     }
 }

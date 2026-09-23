@@ -16,17 +16,19 @@ namespace CobolNet.Binding;
 /// </summary>
 public sealed class FlagState
 {
-    private readonly IReadOnlyList<FlagEvent> _events;
+    private readonly DirectiveTimeline<FlagEvent> _events;
 
     /// <summary>The empty state — no directive; every option is OFF (the GR5 default) at every line.</summary>
-    public static readonly FlagState Empty = new([]);
+    public static readonly FlagState Empty = new(DirectiveTimeline<FlagEvent>.Empty);
 
-    private FlagState(IReadOnlyList<FlagEvent> events) => _events = events;
+    private FlagState(DirectiveTimeline<FlagEvent> events) => _events = events;
 
     /// <summary>Build the state from the frontend's directive events (already syntax-checked by
-    /// <see cref="FlagDirectiveProcessor"/>). Null/empty ⇒ the OFF default everywhere.</summary>
+    /// <see cref="FlagDirectiveProcessor"/>). Null/empty ⇒ the OFF default everywhere. A
+    /// <see cref="DirectiveTimeline{T}"/> carries the PUSH/POP history: a POP-revoked toggle is skipped
+    /// (§7.3.20.4 GR1/GR3; kb/Work PB941).</summary>
     public static FlagState Build(IReadOnlyList<FlagEvent>? events)
-        => events is null || events.Count == 0 ? Empty : new FlagState(events);
+        => events is null || events.Count == 0 ? Empty : new FlagState(DirectiveTimeline<FlagEvent>.Of(events));
 
     /// <summary>Whether <paramref name="option"/> is flagging (ON) at a construct on
     /// <paramref name="siteLine"/>. The most recent toggle affecting the option strictly BEFORE the site wins;
@@ -36,10 +38,12 @@ public sealed class FlagState
     {
         var directive = FlagOptions.Info(option).Directive;
         bool on = false;   // GR5 — every option defaults OFF
-        foreach (var e in _events)
+        for (int k = 0; k < _events.Count; k++)
         {
+            var e = _events[k];
             if (e.Line >= siteLine) break;                       // events are line-ordered; only preceding text applies
             if (e.Which != directive) continue;                  // the other directive cannot toggle this option
+            if (!_events.InEffectAt(k, siteLine)) continue;      // revoked by a POP (kb/Work PB941)
             bool affects = e.Options.Count == 0 || e.Options.Contains(option);   // empty ⇒ ALL fan-out
             if (affects) on = e.On;
         }

@@ -28,9 +28,22 @@ public sealed class TurnState
     /// imperative-statement-1 can legally START there (`PERFORM WITH LOCATION GO TO … WHEN …` on one line),
     /// and the GR14 handler floor is placed AT the first WHEN's line, where a handler statement can also
     /// start. Both synthetics must cover their own line or the same-line statement silently escapes checking
-    /// — measured: the one-line form raised nothing while the two-line form raised and caught.</summary>
+    /// — measured: the one-line form raised nothing while the two-line form raised and caught.
+    /// <paramref name="RevokedAt"/> is the line of the <c>&gt;&gt;POP</c> that restored the checking state saved
+    /// before this directive (§7.3.20.4 GR1/GR3; kb/Work PB941) — from that line on the event is as though it had
+    /// never been written. <see cref="int.MaxValue"/> for a directive no POP undid, and for every synthetic.</summary>
     private readonly record struct Ev(int Line, string Ec, string? File, bool On, bool WithLocation,
-        bool Inclusive = false);
+        bool Inclusive = false, int RevokedAt = int.MaxValue)
+    {
+        /// <summary>Is this event written AFTER the statement starting on <paramref name="statementLine"/>? GR5 —
+        /// a directive governs SUCCEEDING statements only; an Inclusive synthetic also governs its own line. The
+        /// events are line-ordered, so a fold stops at the first such event.</summary>
+        public bool After(int statementLine) => Line >= statementLine && !(Inclusive && Line == statementLine);
+
+        /// <summary>Has a POP revoked this event before the statement starting on <paramref name="statementLine"/>
+        /// (§7.3.20.4 GR1/GR3)? A revoked event is skipped, never a stopping point — later events still apply.</summary>
+        public bool RevokedFor(int statementLine) => statementLine >= RevokedAt;
+    }
 
     private readonly List<Ev> _events = [];
 
@@ -46,14 +59,18 @@ public sealed class TurnState
     public static TurnState Build(IReadOnlyList<TurnEvent>? events, EditionContext edition)
     {
         if (events is null || events.Count == 0) return Empty;
+        var timeline = DirectiveTimeline<TurnEvent>.Of(events);   // the PUSH/POP history (kb/Work PB941)
         var s = new TurnState();
-        foreach (var ev in events)
+        for (int k = 0; k < timeline.Count; k++)
+        {
+            var ev = timeline[k];
             foreach (var (ec, file) in ev.Names)
             {
                 // Resolution + the 0711/0878/1636 diagnostics live in the ONE funnel (kb/Work R05).
                 if (!EcNameResolution.TryResolve(edition, ec, ">>TURN", out var info)) continue;
-                s._events.Add(new Ev(ev.Line, info.Name, file, ev.On, ev.WithLocation));
+                s._events.Add(new Ev(ev.Line, info.Name, file, ev.On, ev.WithLocation, RevokedAt: timeline.RevokedAt(k)));
             }
+        }
         return s;
     }
 
@@ -143,9 +160,9 @@ public sealed class TurnState
         {
             // Events are in line order; GR5 — a directive governs SUCCEEDING statements only. A synthetic
             // Inclusive event (the GR14 implicit enable / handler floor) also governs a statement starting
-            // ON its own line — see the Ev remark (kb/Work R14).
-            if (e.Line >= statementLine && !(e.Inclusive && e.Line == statementLine)) break;
-            if (!NameMatches(e.Ec, level3)) continue;
+            // ON its own line — see the Ev remark (kb/Work R14). A POP-revoked event is skipped (kb/Work PB941).
+            if (e.After(statementLine)) break;
+            if (e.RevokedFor(statementLine) || !NameMatches(e.Ec, level3)) continue;
             if (e.File is not null && (file is null || !e.File.Equals(file, StringComparison.OrdinalIgnoreCase)))
                 continue;   // a file-scoped event applies only to that file (GR6/GR8)
             last = e;
@@ -175,8 +192,8 @@ public sealed class TurnState
         List<(string Ec, bool On)>? evs = null;
         foreach (var e in _events)
         {
-            if (e.Line >= statementLine && !(e.Inclusive && e.Line == statementLine)) break;
-            if (e.File is not null) continue;
+            if (e.After(statementLine)) break;
+            if (e.File is not null || e.RevokedFor(statementLine)) continue;   // a POP-revoked event is gone (PB941)
             // Only the LAST event naming a given exception-name can ever be a query's last match, so an earlier
             // one with the same name is dead weight in the emitted literal. Dropping it preserves the fold
             // exactly (the relative order of the surviving, differently-named events is untouched) and bounds

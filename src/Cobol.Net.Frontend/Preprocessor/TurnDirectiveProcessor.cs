@@ -31,17 +31,23 @@ public static class TurnDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: collect the TURN events, blank the directive lines. At
     /// <paramref name="dialectLevel"/> &lt; 2002 a <c>&gt;&gt;TURN</c> is the four-compilers diagnostic (the EC
     /// model is 2002+ — COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN per-edition gating), never silently ignored.</summary>
-    public static (string Text, IReadOnlyList<TurnEvent> Events) Process(
-        string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null)
+    /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text (§7.3.20 / §7.3.22), replayed
+    /// over this stage's events so a POP revokes the toggles written since its PUSH (kb/Work PB941).</para>
+    public static (string Text, DirectiveTimeline<TurnEvent> Events) Process(
+        string text, int dialectLevel, DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null,
+        IReadOnlyList<DirectiveStackOp>? stackOps = null)
     {
-        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
+        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, DirectiveTimeline<TurnEvent>.Empty);
         var lines = text.Split('\n');
-        List<TurnEvent>? events = null;
+        var events = new DirectiveEventLog<TurnEvent>();
+        var state = new DirectiveStateStack(stackOps ?? [])
+            .Carry(Constructs.TurnDirective2002, events.CarrierFor(Constructs.TurnDirective2002));
         for (int i = 0; i < lines.Length; i++)
         {
             // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
             // and the trailing inline comment (SR3/SR4) are its rules, not this stage's.
             if (!CompilerDirectiveLine.TryParse(lines[i], "TURN", out string operand)) continue;
+            state.AdvanceTo(i + 1);   // the PUSH/POP written before this TURN (§7.3.20 / §7.3.22)
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
@@ -50,10 +56,11 @@ public static class TurnDirectiveProcessor
             // COBOLNET0900. COBOLNET0875 is RETIRED; never reallocate it. dialectLevel survives here because
             // ParseTurn passes it to the exception-name edition window (§14.6.13.1), a different rule.
             if (ParseTurn(operand, i + 1, dialectLevel, diagnostics, loc) is { } ev)
-                (events ??= []).Add(ev);
+                events.Add(Constructs.TurnDirective2002, ev);
             lines[i] = "";   // blank, never delete — line-count preserving (H3)
         }
-        return (string.Join('\n', lines), (IReadOnlyList<TurnEvent>?)events ?? []);
+        state.AdvanceToEnd();
+        return (string.Join('\n', lines), events.ToTimeline());
     }
 
     /// <summary>Parse one directive body: <c>{ec-name [file-name]…}… CHECKING {ON [WITH LOCATION] | OFF}</c>

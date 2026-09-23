@@ -98,6 +98,12 @@ public static class ConditionalCompilationProcessor
         private readonly IReadOnlySet<string> _leave;
         private readonly Dictionary<string, CtValue> _defines = new(StringComparer.OrdinalIgnoreCase);
         private readonly FlagScanState _flagScan = new();
+        // §7.3.20 / §7.3.22 (kb/Work PB941): THIS stage's share of the directive state a PUSH saves and a POP
+        // restores — the compilation-variable table (every instance at once, §7.3.22.4 GR3) and the running FLAG
+        // options — carried by the ONE DirectiveStateStack mechanism, fed in encounter order so a copybook's
+        // PUSH/POP act where they are met. The unsuccessful-POP warning is not issued here: the post-COPY
+        // DirectiveSiteProcessor sees every PUSH/POP of the final text and issues it once.
+        private readonly DirectiveStateStack _directiveState = new();
         private readonly DirectiveDiag _diag;
         private readonly CompileTimeExpressionEvaluator _evaluator;
         private readonly Stack<Frame> _stack = new();
@@ -134,6 +140,12 @@ public static class ConditionalCompilationProcessor
                 vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
                 decimalPointIsComma: false);
             _copy = copy;
+            _directiveState
+                .Carry(Constructs.DefineDirective2002, new DirectiveValueCarrier<Dictionary<string, CtValue>>(
+                    () => new Dictionary<string, CtValue>(_defines, StringComparer.OrdinalIgnoreCase),
+                    saved => { _defines.Clear(); foreach (var (k, v) in saved) _defines[k] = v; }))
+                .Carry(Constructs.Flag02Directive2014, _flagScan.CarrierFor(FlagDirective.Flag02))
+                .Carry(Constructs.Flag14Directive2023, _flagScan.CarrierFor(FlagDirective.Flag14));
         }
 
         /// <summary>Process <paramref name="text"/> (source or copybook) into the manipulated text, sharing this
@@ -283,6 +295,10 @@ public static class ConditionalCompilationProcessor
                     default:
                         // A >> directive other than the conditional-compilation set handled above. Its edition
                         // gate already fired above; what is left here is the DISPOSITION of the line.
+                        // A PUSH/POP acts on this stage's share of the directive state where it is met — in an
+                        // emitting branch only, like every other directive (kb/Work PB941) — and its line then
+                        // takes the ordinary disposition below (left for DirectiveSiteProcessor).
+                        if (emitting && DirectiveStackOp.TryParse(line, 0, out var stackOp)) _directiveState.Apply(stackOp);
                         if (!emitting) emit = "";
                         else if (_leave.Contains(keyword))
                         {
@@ -358,6 +374,17 @@ public static class ConditionalCompilationProcessor
             foreach (var opt in options.Count == 0 ? FlagOptions.OptionsOf(which) : options) _on[opt] = on;
         }
         public bool IsOn(FlagOption opt) => _on.TryGetValue(opt, out bool v) && v;
+
+        /// <summary>The PUSH/POP carrier of one directive's options (§7.3.22.4 GR1 / §7.3.20.4 GR1; kb/Work
+        /// PB941) — FLAG-02 and FLAG-14 are two directives, saved and restored independently.</summary>
+        public IDirectiveStateCarrier CarrierFor(FlagDirective which) =>
+            new DirectiveValueCarrier<Dictionary<FlagOption, bool>>(
+                () => FlagOptions.OptionsOf(which).Where(_on.ContainsKey).ToDictionary(o => o, o => _on[o]),
+                saved =>
+                {
+                    foreach (var opt in FlagOptions.OptionsOf(which)) _on.Remove(opt);
+                    foreach (var (opt, on) in saved) _on[opt] = on;
+                });
     }
 
     // ── DEFINE (§7.3.11) ──────────────────────────────────────────────────────────────────────────────────────
