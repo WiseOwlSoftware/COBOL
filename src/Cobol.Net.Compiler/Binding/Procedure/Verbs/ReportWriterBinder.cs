@@ -98,6 +98,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             if (RwFindReport(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + "description entry in the report section (ISO §14.9.21.3 SR1)");
+            if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §14.9.21.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(new BoundInitiate([r]));
         }
         return BoundImplicitSeries.Of(members);
@@ -116,17 +117,22 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
                     + "clause in the report description entry (ISO §14.9.16.3 SR2)");
+            if (RejectContainedReportFile(summary, $"GENERATE {name}", "ISO §14.9.16.3 SR4") is { } notGlobal) return notGlobal;
             return new BoundGenerate(summary, null);   // summary reporting (GR2)
         }
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
         // a report-name") AND the §8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
         string where = $"GENERATE {name}{(qualifier is null ? "" : $" OF {qualifier}")}";
-        if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.Reports, name, qualifier, where,
-                out var report, out var group) != ReportGroupResolution.Match.None)
+        if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.VisibleReports, name, qualifier, where,
+                out var report, out var group, ctx.Data) != ReportGroupResolution.Match.None)
         {
             if (group!.Kind != ReportGroupKindModel.Detail)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"{where}: the named report group is not a "
                     + "DETAIL group (ISO §14.9.16.3 SR1)");
+            // SR3's REPORT half ("the report description entry in which data-name-1 is specified ... shall contain a
+            // GLOBAL clause") holds by construction — a container's non-GLOBAL report is not visible here at all,
+            // so its groups resolve to nothing (§13.18.27.4 GR2). The FILE half is asked here.
+            if (RejectContainedReportFile(report!, where, "ISO §14.9.16.3 SR3") is { } notGlobal) return notGlobal;
             return new BoundGenerate(report!, group);
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
@@ -147,6 +153,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             if (RwFindReport(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + "description entry in the report section (ISO §14.9.46.3 SR1)");
+            if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §14.9.46.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(new BoundTerminate([r]));
         }
         return BoundImplicitSeries.Of(members);
@@ -171,9 +178,24 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReportSuppressContext,
                 "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §14.9.45.3 SR1)");
         }
-        var report = ctx.Data.Reports.First(r => r.Groups.Contains(group));
+        var report = ctx.Data.VisibleReports.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report);
     }
+
+    /// <summary>⛔ THE ONE CHECK of the rule the three report-driving verbs each restate (kb/Work PB369): "If
+    /// report-name-1 is defined in a containing program, the file description entry associated with report-name-1
+    /// shall contain a GLOBAL clause" — §14.9.21.3 SR2 (INITIATE), §14.9.46.3 SR2 (TERMINATE), §14.9.16.3 SR4
+    /// (GENERATE report-name) and the file half of §14.9.16.3 SR3 (GENERATE data-name). The report itself is
+    /// visible only because it is GLOBAL (<see cref="DataBinder.VisibleReports"/>); the statement drives output to
+    /// its FILE, which a contained program may reference only when the FD is GLOBAL too (§13.18.27.3 SR3). Null
+    /// when the statement may proceed — the report is this unit's own, or its file is GLOBAL.</summary>
+    private BoundStatement? RejectContainedReportFile(ReportModel report, string where, string rule) =>
+        ctx.Data.ReportDepth(report) > 0 && report.File is { IsGlobal: false } file
+            ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ContainedReportFileNotGlobal,
+                $"{where}: report '{report.Name}' is defined in a containing program and its file description entry "
+                + $"'{file.CobolName}' does not contain a GLOBAL clause; the file description entry associated with a "
+                + $"containing program's report shall contain a GLOBAL clause ({rule})")
+            : null;
 
     /// <summary>ISO §14.9.49.3 SR10 (kb/Work PB363): "The GENERATE, INITIATE, or TERMINATE statements shall not
     /// appear in a paragraph within a USE BEFORE REPORTING procedure." ONE guard read by all three verbs, over the
@@ -202,7 +224,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     public bool CheckControlDataStores(BoundStatement core)
     {
         List<DataItem>? controls = null;
-        foreach (var r in ctx.Data.Reports)
+        foreach (var r in ctx.Data.VisibleReports)
             foreach (var c in r.Controls)
                 if (c.Item is { } item) (controls ??= []).Add(item);
         if (controls is null) return false;
@@ -232,7 +254,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     }
 
     private ReportModel? RwFindReport(string name) =>
-        ctx.Data.Reports.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        ctx.Data.VisibleReports.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §8.4.3.15) ahead of normal name
     /// resolution (the LINAGE-COUNTER idiom in <c>FieldOperand</c>/<c>RefExpr</c>). Returns null when the
@@ -245,7 +267,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (!isPage && dref.LINE_COUNTER() is null) return null;
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
         return CounterReportOf(dref, reg) is { } report
-            ? new BoundReportCounterRef(report, isPage)
+            ? new BoundReportCounterRef(report, isPage, ctx.Data.ReportDepth(report))
             : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
 
@@ -257,7 +279,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// the sending side, because BOTH directions ask <see cref="CounterReportOf"/> (kb/Work PB429).</summary>
     public Place? CounterPlace(Core.DataReferenceContext dref) =>
         CounterReportOf(dref, "PAGE-COUNTER") is { } report
-            ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister)
+            ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister, ctx.Data.ReportDepth(report))
             : null;
 
     /// <summary>⛔ THE ONE RESOLUTION OF A COUNTER REFERENCE TO ITS REPORT, read by the SENDING
@@ -276,8 +298,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 + "description entry (ISO §8.4.3.15.3 SR2 / §8.4.2.2)");
             return null;
         }
-        if (ctx.Data.Reports.Count == 1) return ctx.Data.Reports[0];
-        ctx.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, ctx.Data.Reports.Count == 0
+        // §8.4.6.2.5 — the counters of a GLOBAL report are global; §8.4.6.2.1 rule 3 — the nearest declaring
+        // source element's reports hide a container's, so "exactly one report" is asked of the nearest ones.
+        var nearest = ctx.Data.NearestInScope(ctx.Data.VisibleReports, r => r);
+        if (nearest.Count == 1) return nearest[0];
+        ctx.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, nearest.Count == 0
             ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "
               + "counters are generated per report)"
             : $"unqualified {reg} with more than one report: qualify by report-name (ISO §8.4.3.15.3 SR2 / §8.4.2.2)");

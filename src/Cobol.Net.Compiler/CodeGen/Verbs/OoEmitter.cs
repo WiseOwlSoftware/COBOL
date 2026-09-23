@@ -250,7 +250,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // A REPORT SECTION in this object/factory (Report Writer is a complete subsystem — the class emit path
             // just has to CALL it, the same class-emit-gap shape as inc 3/5): the engines construct AFTER their FDs
             // register (COBOLNET_REPORT_WRITER_DESIGN §4). Early-returns when Reports.Count == 0.
-            U.ReportWriter.EmitReportConstruction(bound, w);
+            U.ReportWriter.EmitReportConstruction(w);
             foreach (var f in hostFiles.Where(f => f.InstanceKeyField is not null))
                 w.Line($"__TrackInstanceFile({FileKeyExpr(f)});");   // closed + dropped when the object is deleted (§9.1.4)
         }
@@ -329,6 +329,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         ecState.UnitHasF3Perform = false;     // an F3 PERFORM inside a method is loud-rejected (§9.1-B) — never emitted here
         dispatch.UseDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
         dispatch.OuterGlobalUse = false;
+        dispatch.BeforeReportingSelectors.Clear();   // no GR4 report selector crosses into a class unit (kb/Work PB369)
         dispatch.DebugActive = false;            // a class owns no USE FOR DEBUGGING facility — clear any bleed (VCR 7.17)
         dispatch.UnitHasResume = bound.Ec?.HasResume ?? false;   // a METHOD declarative's RESUME needs the PERFORM landing (kb/Work PB1010)
         callState.InheritedStatusPlace.Clear();

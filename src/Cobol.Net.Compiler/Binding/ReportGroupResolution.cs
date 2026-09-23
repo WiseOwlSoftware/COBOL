@@ -54,24 +54,29 @@ internal static class ReportGroupResolution
     /// EVERY candidate (a qualified reference restricts the candidate reports to the named one) and reports
     /// COBOLNET1920 when more than one survives — §8.4.2.2.1 / §8.4.2.2.3 SR1.</summary>
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
+    /// <param name="scope">The procedure division's binder when <paramref name="reports"/> includes GLOBAL reports
+    /// inherited from containers: candidates from more than one source element are narrowed to the NEAREST one
+    /// before ambiguity is asked (§8.4.6.2.1 rule 3 — <see cref="DataBinder.NearestInScope"/>). Null for the
+    /// data-division site, whose reports are all the unit's own.</param>
     public static Match Resolve(EditionContext edition, IReadOnlyList<ReportModel> reports,
-        string head, string? qualifier, string where, out ReportModel? report, out ReportGroupModel? group)
+        string head, string? qualifier, string where, out ReportModel? report, out ReportGroupModel? group,
+        DataBinder? scope = null)
     {
         report = null;
         group = null;
-        List<(ReportModel Report, ReportGroupModel Group)>? extra = null;
+        var found = new List<(ReportModel Report, ReportGroupModel Group)>();
         foreach (var r in reports)
         {
             if (qualifier is not null && !r.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase)) continue;
             foreach (var g in r.Groups)
-            {
-                if (g.Name is null || !head.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) continue;
-                if (report is null) (report, group) = (r, g);
-                else (extra ??= []).Add((r, g));
-            }
+                if (g.Name is not null && head.Equals(g.Name, StringComparison.OrdinalIgnoreCase))
+                    found.Add((r, g));
         }
-        if (report is null) return Match.None;
-        if (extra is null) return Match.Found;
+        if (scope is not null) found = scope.NearestInScope(found, f => f.Report);
+        if (found.Count == 0) return Match.None;
+        (report, group) = found[0];
+        if (found.Count == 1) return Match.Found;
+        var extra = found.Skip(1);
 
         // §8.4.2.2.3 SR1 — the reference does not preclude ambiguity. Name every report that carries the group
         // so the fix (which qualifier to write) is in the message.

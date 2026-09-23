@@ -157,15 +157,18 @@ internal sealed class OoDriver(BindSession session)
     /// (a class contains no programs); program↔class file sharing is EXTERNAL only (§9.1.5). Both → COBOLNET1520.</summary>
     private static void OoGateClassGlobal(DataBinder data, string clsName, string half, EditionContext edition)
     {
-        foreach (var f in data.Files)
-            if (f.IsGlobal)
-                edition.Error("COBOLNET1520", $"class '{clsName}': {half} file '{f.CobolName}' specifies the GLOBAL "
-                    + "clause — GLOBAL shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
-        // A GLOBAL level-01 DATA item (§13.18.27 SR1) — CallBindExternalAndGlobal collected it into CallGlobalRoots
-        // (meaningless in a class, which contains no programs). An FD-record GLOBAL is already covered by the file loop.
-        foreach (var g in data.CallGlobalRoots)
-            if (!data.Files.Any(f => f.Records.Contains(g)))
-                edition.Error("COBOLNET1520", $"class '{clsName}': {half} data item '{g.CobolName}' specifies the "
-                    + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
+        // The three entry kinds §13.18.27.3 SR1 lets carry GLOBAL, judged by ONE rule with ONE message.
+        var globals = data.Files.Where(f => f.IsGlobal).Select(f => ("file", (string?)f.CobolName))
+            // A GLOBAL report description entry (§13.18.27.3 SR1 e)) — the third entry kind SR4 bars here; it used
+            // to be covered only by the RD GLOBAL staging, which kb/Work PB369 lifted.
+            .Concat(data.Reports.Where(r => r.IsGlobal).Select(r => ("report", (string?)r.Name)))
+            // A GLOBAL level-01 DATA item (§13.18.27 SR1) — CallBindExternalAndGlobal collected it into
+            // CallGlobalRoots (meaningless in a class, which contains no programs). An FD-record GLOBAL is already
+            // covered by the file arm.
+            .Concat(data.CallGlobalRoots.Where(g => !data.Files.Any(f => f.Records.Contains(g)))
+                .Select(g => ("data item", g.CobolName)));
+        foreach (var (kind, name) in globals)
+            edition.Error("COBOLNET1520", $"class '{clsName}': {half} {kind} '{name}' specifies the GLOBAL clause — "
+                + "GLOBAL shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
     }
 }

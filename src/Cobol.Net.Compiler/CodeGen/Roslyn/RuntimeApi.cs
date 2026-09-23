@@ -1293,31 +1293,39 @@ internal static class RuntimeApi
 
     /// <summary>The per-program-instance engine field of the report at <paramref name="reportIndex"/>
     /// (<c>ReportModel.CsIndex</c>) — the ONE spelling of that field, so the emitter and the place renderer
-    /// cannot drift apart.</summary>
-    public static string ReportEngine(int reportIndex) => $"__RPT_{reportIndex}";
+    /// cannot drift apart.
+    /// <para><paramref name="depth"/> is the containment distance to the DECLARING program (0 = this one): a GLOBAL
+    /// report (ISO §13.18.27.4 GR2; kb/Work PB369) is one engine, owned by the program that declares it and reached
+    /// from a contained program through the <c>__outer</c> chain.</para></summary>
+    public static string ReportEngine(int reportIndex, int depth = 0) => $"{OuterChain(depth)}__RPT_{reportIndex}";
+
+    /// <summary>The instance-chain prefix from a contained program's class to its <paramref name="depth"/>-th
+    /// container (<c>__outer.</c> repeated; empty for 0) — the ONE spelling of the walk the generated contained
+    /// classes expose (ProgramEmitter: <c>private readonly Outer __outer</c>).</summary>
+    public static string OuterChain(int depth) => depth == 0 ? "" : string.Concat(Enumerable.Repeat("__outer.", depth));
 
     /// <summary>Read a report counter (ISO §8.4.3.15.4 GR1 — "PAGE-COUNTER and LINE-COUNTER reference temporary
     /// unsigned integer data items of class and category numeric, which are maintained for each report"): the
     /// engine's <c>PageCounter</c> / <c>LineCounter</c>. THE ONE SPELLING — the numeric renderer's sending
     /// <c>BoundReportCounterRef</c> and the place renderer's receiving <c>ReportPageCounterPlace</c> both read
     /// through here, so the two directions cannot name different members (kb/Work PB429).</summary>
-    public static string ReportCounterRead(int reportIndex, bool isPage) =>
-        $"{ReportEngine(reportIndex)}.{(isPage ? nameof(CobolReport.PageCounter) : nameof(CobolReport.LineCounter))}";
+    public static string ReportCounterRead(int reportIndex, int depth, bool isPage) =>
+        $"{ReportEngine(reportIndex, depth)}.{(isPage ? nameof(CobolReport.PageCounter) : nameof(CobolReport.LineCounter))}";
 
     /// <summary>Assign PAGE-COUNTER from the procedure division (ISO §8.4.3.15.3 SR1; SR3 bars LINE-COUNTER and
     /// ONLY LINE-COUNTER from the receiving side) — <c>CobolReport.SetPageCounter</c>.</summary>
-    public static string ReportPageCounterWrite(int reportIndex, string valueExpr) =>
-        $"{ReportEngine(reportIndex)}.{nameof(CobolReport.SetPageCounter)}((long)({valueExpr}));";
+    public static string ReportPageCounterWrite(int reportIndex, int depth, string valueExpr) =>
+        $"{ReportEngine(reportIndex, depth)}.{nameof(CobolReport.SetPageCounter)}((long)({valueExpr}));";
 
     /// <summary>Read a SUM counter's content, unscaled at the counter's own scale (ISO §13.18.54.4 GR1/GR4) —
     /// <c>CobolReport.SumValue</c>. <paramref name="counterId"/> is the ENTRY's ordinal, GR1's identity.</summary>
-    public static string ReportSumRead(int reportIndex, int counterId) =>
-        $"{ReportEngine(reportIndex)}.{nameof(CobolReport.SumValue)}({counterId})";
+    public static string ReportSumRead(int reportIndex, int depth, int counterId) =>
+        $"{ReportEngine(reportIndex, depth)}.{nameof(CobolReport.SumValue)}({counterId})";
 
     /// <summary>Alter a SUM counter's content from the procedure division (ISO §13.18.54.4 GR12) —
     /// <c>CobolReport.SetSumValue</c>, at the counter's own scale.</summary>
-    public static string ReportSumWrite(int reportIndex, int counterId, string valueExpr) =>
-        $"{ReportEngine(reportIndex)}.{nameof(CobolReport.SetSumValue)}({counterId}, (long)({valueExpr}));";
+    public static string ReportSumWrite(int reportIndex, int depth, int counterId, string valueExpr) =>
+        $"{ReportEngine(reportIndex, depth)}.{nameof(CobolReport.SetSumValue)}({counterId}, (long)({valueExpr}));";
 
     /// <summary>Decode a DISPLAY image back into a native numeric leaf, preserving unset positions from the
     /// current value — <c>CobolNum.StoreDisplay</c>.</summary>

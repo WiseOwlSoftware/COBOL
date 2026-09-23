@@ -92,7 +92,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                     using (w.Block("if (!__reportsConstructed)"))
                     {
                         w.Line("__reportsConstructed = true;");
-                        reportWriter.EmitReportConstruction(bound, w);
+                        reportWriter.EmitReportConstruction(w);
                     }
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections

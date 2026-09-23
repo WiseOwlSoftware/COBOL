@@ -152,10 +152,16 @@ public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLe
 
     public ReportGroupLine[] Lines { get; } = lines;
 
-    /// <summary>The USE BEFORE REPORTING declarative hook (ISO §14.9.49 Format 2, GR8/GR9): invoked just before
-    /// this report group is produced, in the program instance's context. Null when no declarative names this
-    /// group. (The SUPPRESS statement, §14.9.45, is not yet parsed — its suppression flag is staged with it.)</summary>
-    public Action? BeforeReporting { get; set; }
+    /// <summary>The group's ordinal within its report, in report-description order — assigned by
+    /// <see cref="CobolReport.AddGroup"/>, which the generated construction calls in that order. It is the key a
+    /// statement's USE BEFORE REPORTING selector is asked with (ISO §14.9.49.4 GR4/GR8).
+    /// <para>⛔ THERE IS NO PER-GROUP HOOK. Which declarative runs before a group is produced is NOT a property of
+    /// the group: §14.9.49.4 GR4 ("FORMATS 1 AND 2") selects it from the source element that contains the
+    /// statement that caused the group to be produced, and then from the GLOBAL declaratives of its containers —
+    /// so one group of a GLOBAL report (§13.18.27) runs different declaratives for a GENERATE written in the
+    /// declaring program and for one written in a contained program. The selector therefore travels with the
+    /// GENERATE / TERMINATE call (kb/Work PB369).</para></summary>
+    public int Index { get; internal set; } = -1;
 
     /// <summary>The (column, width) spans of this group's GROUP INDICATE printable items (ISO §13.18.29): they
     /// print on the first presentation after an INITIATE / page advance / control break and are blanked on
@@ -241,6 +247,15 @@ public sealed class CobolReport(
     /// PAGE-COUNTER to 1 instead of incrementing it (§14.9.16.4 GR6d, GR4a).</summary>
     private bool _resetPageCounterAtAdvance;
 
+    private int _groupCount;               // the next ReportGroup.Index AddGroup assigns
+
+    /// <summary>The executing statement's USE BEFORE REPORTING selector (ISO §14.9.49.4 GR4/GR8): asked with a
+    /// group's <see cref="ReportGroup.Index"/> just before that group is produced, it runs the qualifying
+    /// declarative — the one in the source element containing the GENERATE / TERMINATE, else a GLOBAL one of a
+    /// container — and answers whether one ran. Set for the duration of one GENERATE or TERMINATE and cleared
+    /// after it; null when no declarative anywhere in the statement's scope names a group of this report.</summary>
+    private Func<int, bool>? _beforeReporting;
+
     private ReportGroup? _reportHeading, _pageHeading, _pageFooting, _reportFooting;
     private readonly Dictionary<string, ReportGroup> _details = new(StringComparer.OrdinalIgnoreCase);
     private readonly SortedDictionary<int, ReportGroup> _controlHeadings = [];   // by control level (0 = most major)
@@ -308,6 +323,7 @@ public sealed class CobolReport(
     /// diagnosed at bind).</summary>
     public void AddGroup(ReportGroup g)
     {
+        g.Index = _groupCount++;
         switch (g.Kind)
         {
             case ReportGroupKind.ReportHeading: _reportHeading = g; break;
@@ -426,7 +442,15 @@ public sealed class CobolReport(
     /// GR7: a GENERATE for an INACTIVE report raises EC-REPORT-INACTIVE and does nothing; §14.9.49.4 GR10: one
     /// executed inside a USE BEFORE REPORTING range raises EC-FLOW-REPORT, is unsuccessful, and leaves the state
     /// of the report unchanged (kb/Work PB326).</summary>
-    public void Generate(string? detailName)
+    public void Generate(string? detailName, Func<int, bool>? beforeReporting = null)
+    {
+        var saved = _beforeReporting;   // restored, not cleared: a GR10-refused nested call must not clobber it
+        _beforeReporting = beforeReporting;
+        try { GenerateCore(detailName); }
+        finally { _beforeReporting = saved; }
+    }
+
+    private void GenerateCore(string? detailName)
     {
         // §14.9.49.4 GR10 — see Initiate: unsuccessful, report state unchanged, the raise gated by checking.
         if (RunUnit.Current.ReportFlow.InBeforeReporting)
@@ -517,7 +541,15 @@ public sealed class CobolReport(
     /// footing prints minor→major as though a most-major break occurred (GR3b), the page footing of the last
     /// page prints (§13.18.57.4 GR6f — every page's last group; "immediately followed by the report footing"),
     /// the report footing prints (GR3c), and the control items are restored (GR3d). GR6: the file is NOT closed.</summary>
-    public void Terminate()
+    public void Terminate(Func<int, bool>? beforeReporting = null)
+    {
+        var saved = _beforeReporting;   // see Generate
+        _beforeReporting = beforeReporting;
+        try { TerminateCore(); }
+        finally { _beforeReporting = saved; }
+    }
+
+    private void TerminateCore()
     {
         // §14.9.49.4 GR10 — see Initiate: unsuccessful, report state unchanged, the raise gated by checking.
         if (RunUnit.Current.ReportFlow.InBeforeReporting)
@@ -585,15 +617,16 @@ public sealed class CobolReport(
     /// end-of-group sum reset (§13.18.54.4 GR2) — is NOT skipped.</summary>
     private bool RunBeforeReporting(ReportGroup group)
     {
-        if (group.BeforeReporting is { } hook)
+        if (_beforeReporting is { } select)
         {
             // §14.9.49.4 GR10 — THE ONE PLACE the BEFORE REPORTING range is entered. Every presentation path
             // (PresentBody / PresentPageHeading / PresentPageFooting / PresentHeadingFooting) funnels through
             // this method, so the range cannot be half-tracked. try/finally: the declarative can throw a fatal
-            // EC out of the hook.
+            // EC out of the hook. The range is entered around the SELECTION as well as the run: a selection that
+            // finds no qualifying declarative executes no statement, so the wider bracket observes nothing.
             var flow = RunUnit.Current.ReportFlow;
             flow.Enter();
-            try { hook(); }
+            try { select(group.Index); }
             finally { flow.Exit(); }
         }
         if (!_suppressCurrent) return false;

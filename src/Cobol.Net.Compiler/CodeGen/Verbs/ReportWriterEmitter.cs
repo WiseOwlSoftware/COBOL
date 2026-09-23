@@ -304,7 +304,7 @@ internal sealed class ReportWriterEmitter(
     /// registered BEFORE the engine's first write, COBOLNET_REPORT_WRITER_DESIGN §4): the engine with its
     /// §13.18.39.4 geometry, each group with its compose table, the CONTROL get/set delegates (§13.18.16), the
     /// SUM counters (§13.18.54), and the USE BEFORE REPORTING hooks (§14.9.49 Format 2 GR8).</summary>
-    public void EmitReportConstruction(BoundProgram bound, CodeWriter w)
+    public void EmitReportConstruction(CodeWriter w)
     {
         var reports = ctx.Data.Reports;
         if (reports.Count == 0) return;
@@ -455,18 +455,86 @@ internal sealed class ReportWriterEmitter(
                 }
             }
         }
-        // USE BEFORE REPORTING hooks (ISO §14.9.49 Format 2 GR8): the engine invokes the declarative's bounded
-        // dispatch just before the named group is produced. __RunUse exists whenever declaratives do.
-        var decls = bound.Declaratives ?? [];
-        for (int i = 0; i < decls.Count; i++)
-            if (decls[i].ReportGroup is { } hooked)
-                foreach (var r in reports)
-                {
-                    int gi = r.Groups.IndexOf(hooked);
-                    if (gi >= 0)
-                        w.Line($"__rg{r.CsIndex}_{gi}.BeforeReporting = () => {dispatch.RunUseCall(i, decls[i].Range)};");
-                }
+        // ⛔ NO USE BEFORE REPORTING HOOK IS INSTALLED HERE (kb/Work PB369). The declarative run before a group is
+        // produced is selected per STATEMENT (§14.9.49.4 GR4 — "FORMATS 1 AND 2"), so it travels with the GENERATE /
+        // TERMINATE call as the selector EmitBeforeReportingSelectors writes; an engine-wide hook installed by the
+        // declaring program would run the declaring program's NON-global declaratives for a contained program's
+        // GENERATE of a GLOBAL report, and could never run the contained program's own.
     }
+
+    // ── The §14.9.49.4 GR4 Format-2 selector (kb/Work PB369) ─────────────────────────────────────────────────
+
+    /// <summary>The per-report selector member a unit emits, named by the report's compilation-unique
+    /// <see cref="ReportModel.Uid"/> so a contained program and its containers agree on it.</summary>
+    private static string SelectorName(ReportModel r) => $"__BeforeReporting_{r.Uid}";
+
+    /// <summary>The cached delegate over <see cref="SelectorName"/> handed to the engine (one allocation per
+    /// program instance, not per GENERATE).</summary>
+    private static string SelectorField(ReportModel r) => $"__brSel_{r.Uid}";
+
+    /// <summary>Does a qualifying USE BEFORE REPORTING declarative for a group of <paramref name="r"/> exist in
+    /// <paramref name="unit"/> (any, when <paramref name="globalOnly"/> is false; only a GLOBAL one otherwise) or,
+    /// as a GLOBAL one, in a container between it and the program that declares the report? §14.9.49.4 GR4: a) the
+    /// source element containing the statement, then b) "a qualifying declarative with the GLOBAL attribute in the
+    /// next inclusive directly containing source element", repeated outward. The walk stops at the declaring
+    /// program: no program outside it can name the report's groups (§13.18.27.4 GR2).</summary>
+    public static bool ChainSelects(BoundUnit? unit, ReportModel r, bool globalOnly)
+    {
+        for (; unit is not null && unit.Data.VisibleReports.Contains(r); unit = unit.Parent, globalOnly = true)
+        {
+            if (unit.Bound.Declaratives is { } ds
+                && ds.Any(d => d.ReportGroup is { } g && r.Groups.Contains(g) && (!globalOnly || d.Global)))
+                return true;
+            if (unit.Data.ReportDepth(r) == 0) break;   // the declaring program — GR4 b)'s walk ends here
+        }
+        return false;
+    }
+
+    /// <summary>Emit, for every report <paramref name="unit"/> can see whose GR4 chain has a qualifying
+    /// declarative, the selector the engine asks just before producing each group (§14.9.49.4 GR8): the unit's
+    /// own declarative for the group — any, when the statement is this unit's (GR4 a)); only a GLOBAL one when
+    /// the walk arrived from a contained program (GR4 b)) — run in THIS instance (the declaring program's data,
+    /// §8.4.6.2), else the next container outward. Records the reports whose statements pass it in
+    /// <see cref="DispatchState.BeforeReportingSelectors"/>.</summary>
+    public void EmitBeforeReportingSelectors(BoundUnit unit, CodeWriter w)
+    {
+        dispatch.BeforeReportingSelectors.Clear();
+        var decls = unit.Bound.Declaratives ?? [];
+        foreach (var r in unit.Data.VisibleReports)
+        {
+            if (!ChainSelects(unit, r, globalOnly: false)) continue;
+            dispatch.BeforeReportingSelectors.Add(r);
+            w.Line();
+            w.Line($"private System.Func<int, bool>? {SelectorField(r)};   // RD {r.Name}: the cached selector (ISO §14.9.49.4 GR4)");
+            using (w.Block($"public bool {SelectorName(r)}(int __gi, bool __globalOnly)   // RD {r.Name} — ISO §14.9.49.4 GR4 / GR8"))
+            {
+                var cases = new List<string>();
+                var seen = new HashSet<int>();
+                for (int i = 0; i < decls.Count; i++)
+                    if (decls[i].ReportGroup is { } g && r.Groups.IndexOf(g) is var gi and >= 0 && seen.Add(gi))
+                        cases.Add(decls[i].Global
+                            ? $"case {gi}: {dispatch.RunUseCall(i, decls[i].Range)}; return true;   // USE GLOBAL BEFORE REPORTING {g.Name}"
+                            : $"case {gi}: if (!__globalOnly) {{ {dispatch.RunUseCall(i, decls[i].Range)}; return true; }} break;   // USE BEFORE REPORTING {g.Name} (GR4 a) only)");
+                if (cases.Count > 0)
+                    using (w.Block("switch (__gi)"))
+                        foreach (string c in cases) w.Line(c);
+                w.Line(unit.Data.ReportDepth(r) > 0 && ChainSelects(unit.Parent, r, globalOnly: true)
+                    ? $"return __outer.{SelectorName(r)}(__gi, true);   // GR4 b) — the next directly containing source element"
+                    : "return false;   // no qualifying declarative — the group is produced with none (GR4 b) exhausted)");
+            }
+        }
+    }
+
+    /// <summary>The engine argument a GENERATE / TERMINATE passes: this unit's cached selector for
+    /// <paramref name="r"/>, or nothing when no declarative in its GR4 chain names a group of the report.</summary>
+    private string SelectorArgument(ReportModel r) =>
+        dispatch.BeforeReportingSelectors.Contains(r)
+            ? $"{SelectorField(r)} ??= __gi => {SelectorName(r)}(__gi, false)"
+            : "";
+
+    /// <summary>The engine of <paramref name="r"/> as THIS unit reaches it — its own field, or the declaring
+    /// container's through the <c>__outer</c> chain for an inherited GLOBAL report (§13.18.27.4 GR2).</summary>
+    private string Engine(ReportModel r) => RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.ReportDepth(r));
 
     // ── Verb emission (ISO §14.9.21 / §14.9.16 / §14.9.46) ───────────────────────────────────────────────────
 
@@ -474,7 +542,7 @@ internal sealed class ReportWriterEmitter(
     public void EmitInitiate(BoundInitiate s)
     {
         foreach (var r in s.Reports)
-            ctx.Writer.Line($"__RPT_{r.CsIndex}.Initiate();");
+            ctx.Writer.Line($"{Engine(r)}.Initiate();");
     }
 
     /// <summary>GENERATE: detail reporting names the detail group; summary reporting (the report-name form,
@@ -488,14 +556,16 @@ internal sealed class ReportWriterEmitter(
             ctx.Writer.Line(LoudStmt($"GENERATE of an unnamed detail group of report {s.Report.Name}"));
             return;
         }
-        ctx.Writer.Line($"__RPT_{s.Report.CsIndex}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")});");
+        string sel = SelectorArgument(s.Report);
+        ctx.Writer.Line($"{Engine(s.Report)}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")}"
+            + $"{(sel.Length > 0 ? ", " + sel : "")});");
     }
 
     /// <summary>TERMINATE: one engine call per report, in written order (§14.9.46.4 GR4).</summary>
     public void EmitTerminate(BoundTerminate s)
     {
         foreach (var r in s.Reports)
-            ctx.Writer.Line($"__RPT_{r.CsIndex}.Terminate();");
+            ctx.Writer.Line($"{Engine(r)}.Terminate({SelectorArgument(r)});");
     }
 
     /// <summary>SUPPRESS PRINTING (§14.9.45): set the one-shot suppression flag on the engine of the report that
@@ -503,5 +573,5 @@ internal sealed class ReportWriterEmitter(
     /// engine consumes it at the next group presentation (GR2 — current instance only), inhibiting printing,
     /// page advance, NEXT GROUP and LINE-COUNTER changes but NOT the end-of-group sum reset.</summary>
     public void EmitSuppress(BoundSuppress s) =>
-        ctx.Writer.Line($"__RPT_{s.Report.CsIndex}.SuppressPrinting();");
+        ctx.Writer.Line($"{Engine(s.Report)}.SuppressPrinting();");
 }

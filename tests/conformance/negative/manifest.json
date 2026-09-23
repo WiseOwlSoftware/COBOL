@@ -1458,7 +1458,9 @@
   "pb363-control-item-altered",
   "pb232-entry-convention-name",
   "pb232-entry-convention-contained",
-  "pb859-occurs-zero-times"
+  "pb859-occurs-zero-times",
+  "pb369-contained-generate-non-global-report",
+  "pb369-contained-report-file-not-global"
  ],
  "pending": []
 }

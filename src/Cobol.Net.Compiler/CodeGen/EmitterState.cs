@@ -236,6 +236,12 @@ internal sealed class DispatchState
     /// <c>__IoCheck</c> walks outward). Set per unit by the program-class emission.</summary>
     public bool OuterGlobalUse { get; set; }
 
+    /// <summary>The reports whose GENERATE / TERMINATE statements in the unit being emitted pass a USE BEFORE
+    /// REPORTING selector (ISO §14.9.49.4 GR4 / GR8; kb/Work PB369) — the reports the unit emitted a selector
+    /// member for. Written per unit by <c>ReportWriterEmitter.EmitBeforeReportingSelectors</c> before any statement
+    /// of the unit is emitted; cleared by the OO class-unit emission.</summary>
+    public HashSet<Binding.ReportModel> BeforeReportingSelectors { get; } = new(ReferenceEqualityComparer.Instance);
+
     /// <summary>The program being emitted has an ACTIVE X3.23-1985 USE FOR DEBUGGING procedure-trigger facility
     /// (WITH DEBUGGING MODE + a procedure-subject debugging declarative; VCR Table 7 row 7.17). Gates the debug
     /// scaffolding — the <c>__dbgItem</c>/<c>__dbgCause</c> fields, the <c>__RunDebug</c> helper, the per-subject

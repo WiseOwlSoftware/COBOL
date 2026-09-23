@@ -571,6 +571,19 @@ internal sealed class BinderDriver
                 if (f.IsGlobal)
                     data.FilesByName.TryAdd(f.CobolName, f);
 
+        // GLOBAL RD inheritance (ISO §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369) — the report-name,
+        // its groups and its sum counters, nearest container first so the nearer declaration hides. Like a GLOBAL
+        // FD, the report is SHARED, never re-declared: the child's verbs hold the container's ReportModel and
+        // reach its engine through the __outer chain (DataBinder.ReportDepth).
+        int reportDepth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            reportDepth++;
+            foreach (var r in anc.Data.Reports)
+                if (r.IsGlobal)
+                    data.InheritGlobalReport(r, reportDepth);
+        }
+
         // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent
         // binds before its children), so the GLOBAL bridge below can carry a guarded root's presence member.
         Procedure.EcBinder.MarkFormals(data.LinkageFormals, SourceElementKindOf(unit), session.Turn);

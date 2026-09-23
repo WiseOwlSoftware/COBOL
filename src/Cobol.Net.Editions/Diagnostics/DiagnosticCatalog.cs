@@ -849,9 +849,9 @@ public static class DiagnosticCatalog
         "COMPLETION_ROADMAP_COUNCIL", RecognizedNotImplemented);
 
     // ── COBOLNET0899 — Report Writer, deferred features ──────────────────────────────────────────────
-    public static readonly DiagnosticDescriptor ReportGlobalClause = new(
-        NotImplemented, "report-global-clause", EditionSeverity.Error,
-        "The GLOBAL clause on a report description is not yet implemented.", "ISO §13.18.27", RecognizedNotImplemented);
+    // ⛔ `ReportGlobalClause` (`report-global-clause`) LIVED HERE AND IS GONE (kb/Work PB369): the GLOBAL clause on
+    // a report description entry (§13.18.27.3 SR1 e)) is implemented — contained-program visibility of the
+    // report-name, its groups and its sum counters, and the §14.9.49.4 GR4 Format-2 declarative selection.
     public static readonly DiagnosticDescriptor ReportCodeClause = new(
         NotImplemented, "report-code-clause", EditionSeverity.Error,
         "The CODE clause on a report description is not yet implemented.", "ISO §13.18.12", RecognizedNotImplemented);
@@ -5012,6 +5012,18 @@ public static class DiagnosticCatalog
         + "(§13.18.38.3 SR16 / SR28), RECORD integer-2 / integer-4 (§13.18.43.3 SR7 / SR8), WRITE ADVANCING "
         + "(§14.9.51.3 SR15).",
         "ISO §5.5 1)");
+    /// <summary>§14.9.16.3 SR3/SR4, §14.9.21.3 SR2, §14.9.46.3 SR2 — a contained program's GENERATE, INITIATE or
+    /// TERMINATE names a GLOBAL report (§13.18.27.3 SR1 e)) of a containing program whose file description entry
+    /// is not GLOBAL (kb/Work PB369). The report is visible; the statement drives output to its file, which the
+    /// contained program may not reference (the §13.18.27.3 SR3 posture, restated per verb).</summary>
+    public static readonly DiagnosticDescriptor ContainedReportFileNotGlobal = new(
+        "COBOLNET2392", "contained-report-file-not-global", EditionSeverity.Error,
+        "A GENERATE, INITIATE, or TERMINATE statement in a contained program names a report defined in a "
+        + "containing program, and the file description entry associated with that report does not contain a "
+        + "GLOBAL clause. ISO §14.9.21.3 SR2 / §14.9.46.3 SR2 / §14.9.16.3 SR4: \"If report-name-1 is defined in a "
+        + "containing program, the file description entry associated with report-name-1 shall contain a GLOBAL "
+        + "clause\"; §14.9.16.3 SR3 says the same of a detail group's report and file. Add IS GLOBAL to the FD.",
+        "ISO §14.9.16.3 SR3/SR4 · §14.9.21.3 SR2 · §14.9.46.3 SR2");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

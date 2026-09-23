@@ -1690,9 +1690,11 @@ public sealed class ReferenceResolver(DataBinder data)
         if (suffixes.Length > 1) return null;                            // more than one qualifier — not a counter reference
         if (!data.SumCounters.TryGetValue(name, out var homonyms)) return null;
         string? qualifier = suffixes.Length == 1 ? suffixes[0].qualification().cobolWord().GetText() : null;
-        var matches = qualifier is null
+        // §8.4.6.2.1 rule 3 — a counter of a report this source element declares hides a same-named counter of a
+        // container's GLOBAL report; only candidates of the NEAREST declaring element can be ambiguous.
+        var matches = data.NearestInScope(qualifier is null
             ? homonyms
-            : homonyms.Where(h => h.Report.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase)).ToList();
+            : homonyms.Where(h => h.Report.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase)), h => h.Report);
         if (matches.Count == 0)
         {
             // A qualifier that names no report carrying this counter: the name IS a sum counter, so the ordinary
@@ -1714,7 +1716,7 @@ public sealed class ReferenceResolver(DataBinder data)
             return null;
         }
         var (rep, sum) = matches[0];
-        return new ReportSumCounterPlace(rep.CsIndex, sum.Id, sum.Register);
+        return new ReportSumCounterPlace(rep.CsIndex, sum.Id, sum.Register, data.ReportDepth(rep));
     }
 
     /// <summary>The STRUCTURAL access path for an item — the <see cref="MemberPlace"/>/<see cref="DynTablePlace"/>

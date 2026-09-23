@@ -463,6 +463,43 @@ public sealed class OoSpineTests
             END CLASS GOCLS.
             """).Replace("\r\n", "\n")), "COBOLNET1520");
 
+    /// <summary>kb/Work PB369 — §13.18.27.3 SR4 bars GLOBAL on a REPORT description entry too (SR1 e) is the
+    /// third entry kind it names). The RD GLOBAL staging used to answer this shape with "not yet implemented";
+    /// once the clause was implemented for programs, the class arm needed its own SR4 refusal.</summary>
+    [Fact]
+    public void ObjectReport_Global_1520()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOGR1.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS GRCLS.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOGR1.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. GRCLS.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT GRF ASSIGN TO "g.rpt".
+            DATA DIVISION.
+            FILE SECTION.
+            FD GRF REPORT IS GR-1.
+            REPORT SECTION.
+            RD GR-1 IS GLOBAL.
+            01 GR-DET TYPE DE LINE PLUS 1.
+               02 COLUMN 1 PIC XX VALUE "DE".
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS GRCLS.
+            """).Replace("\r\n", "\n")), "COBOLNET1520");
+
     /// <summary>M2-OO-1i review — §13.18.27.3 SR4 bars GLOBAL on a DATA item too (not just an FD) in a factory /
     /// instance / method definition. A GLOBAL level-01 in an OBJECT WORKING-STORAGE is COBOLNET1520 (was silently
     /// accepted — a false-negative diagnostic).</summary>

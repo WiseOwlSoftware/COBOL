@@ -74,6 +74,16 @@ public sealed class ReportModel
     /// (<c>__RPT_{CsIndex}</c>).</summary>
     public int CsIndex { get; set; }
 
+    /// <summary>A compilation-unique identity (drawn from the declaring unit's disjoint uid band). It names the
+    /// members every program that can see this report emits for it — the §14.9.49.4 GR4 USE BEFORE REPORTING
+    /// selector in particular, whose name must agree between a contained program and its containers.</summary>
+    public required int Uid { get; init; }
+
+    /// <summary>The RD entry specifies the GLOBAL clause (ISO §13.18.27.3 SR1 e)): the report-name is a global
+    /// name, and so is every data-name subordinate to it (§13.18.27.4 GR1) — its report groups and its sum
+    /// counters — visible to every program the declaring program contains, directly or indirectly (GR2).</summary>
+    public bool IsGlobal { get; set; }
+
     /// <summary>This report's PAGE-COUNTER AS A DATA ITEM (ISO §8.4.3.15.4 GR1 — "temporary unsigned integer
     /// data items of class and category numeric, which are maintained for each report"): the implicitly-defined
     /// register a procedure division RECEIVING reference resolves to (§8.4.3.15.3 SR1, kb/Work PB429). Off
@@ -603,6 +613,65 @@ public sealed partial class DataBinder
     public IReadOnlyList<ReportModel> Reports => _reports;
     private readonly List<ReportModel> _reports = [];
 
+    /// <summary>⛔ THE REPORTS A PROCEDURE DIVISION REFERENCE CAN NAME — this unit's own report description
+    /// entries, then the GLOBAL ones of its containers, nearest container first (ISO §13.18.27.4 GR1/GR2; kb/Work
+    /// PB369). Every NAME resolution (a report-name, a report group, a sum counter, a LINE-/PAGE-COUNTER
+    /// qualifier, a USE BEFORE REPORTING operand) reads THIS list; <see cref="Reports"/> stays the list of reports
+    /// this unit DECLARES — the ones it constructs, owns the storage of, and validates. A container's report is
+    /// never re-declared here: the entry is the container's own <see cref="ReportModel"/>, reached at run time
+    /// through the <c>__outer</c> chain <see cref="ReportDepth"/> measures.</summary>
+    public IReadOnlyList<ReportModel> VisibleReports => _inheritedReports.Count == 0 ? _reports : _visibleReports;
+    private readonly List<ReportModel> _visibleReports = [];
+    private readonly Dictionary<ReportModel, int> _inheritedReports = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>How many containment levels out the storage of <paramref name="report"/> lives: 0 for a report this
+    /// unit declares, n for a GLOBAL report inherited from its n-th container (the length of the <c>__outer</c>
+    /// chain a reference renders through).</summary>
+    public int ReportDepth(ReportModel report) => _inheritedReports.TryGetValue(report, out int depth) ? depth : 0;
+
+    /// <summary>ISO §8.4.6.2.1 rule 3 — when a name is declared both in this source element and as a global name
+    /// of a container (or in two containers), "the item in source element B is the referenced item", else the one
+    /// in the nearest containing element: of <paramref name="candidates"/> keep those whose report lives at the
+    /// smallest <see cref="ReportDepth"/>. The ONE application of the rule to a report-scoped name — a report
+    /// group (<c>ReportGroupResolution.Resolve</c>), a sum counter (<c>ReferenceResolver.SumCounterFor</c>) and an
+    /// unqualified LINE-/PAGE-COUNTER (<c>ReportWriterBinder.CounterReportOf</c>) — so ambiguity (§8.4.2.2.3 SR1)
+    /// is asked only among candidates of one source element.</summary>
+    internal List<T> NearestInScope<T>(IEnumerable<T> candidates, Func<T, ReportModel> reportOf)
+    {
+        var nearest = new List<T>();
+        int best = int.MaxValue;
+        foreach (var c in candidates)
+        {
+            int depth = ReportDepth(reportOf(c));
+            if (depth < best) { nearest.Clear(); best = depth; }
+            if (depth == best) nearest.Add(c);
+        }
+        return nearest;
+    }
+
+    /// <summary>Make a container's GLOBAL report visible here (ISO §13.18.27.4 GR1/GR2): its report-name, its
+    /// report groups (reached through the report), and its sum counters (GR1 — "All data-names subordinate to a
+    /// global name are global names"). Called by <c>BinderDriver.BindUnitData</c> AFTER this unit's own data
+    /// division has bound, nearest container first, so a name this unit declares — or a nearer container already
+    /// supplied — hides the farther one (§8.4.6.2). Returns false when the report-name is hidden.</summary>
+    internal bool InheritGlobalReport(ReportModel report, int depth)
+    {
+        if (VisibleReports.Any(r => r.Name.Equals(report.Name, StringComparison.OrdinalIgnoreCase))) return false;
+        if (_inheritedReports.Count == 0) _visibleReports.AddRange(_reports);
+        _visibleReports.Add(report);
+        _inheritedReports[report] = depth;
+        foreach (var sum in report.Sums)
+        {
+            // A sum counter is a data-name subordinate to the report (GR1). A LOCAL declaration of the same name
+            // hides it; a same-named counter of this unit's own reports is a homonym the report-name qualifier
+            // resolves, exactly as between two reports of one program (kb/Work PB882).
+            if (sum.Name is not { } sn || ByName.ContainsKey(sn)) continue;
+            if (!_sumCounters.TryGetValue(sn, out var homonyms)) _sumCounters[sn] = homonyms = [];
+            homonyms.Add((report, sum));
+        }
+        return true;
+    }
+
     /// <summary>Bind the REPORT SECTION's RD entries into <see cref="Reports"/> (ISO §13.14/§13.15). Runs after
     /// <c>BindFileControl</c>/<c>BindFileSection</c> (the FD REPORT clauses are captured there); SOURCE/CONTROL
     /// data references resolve post-build in <see cref="ResolveReports"/> (the FILE STATUS pattern — one
@@ -619,6 +688,7 @@ public sealed partial class DataBinder
             {
                 Name = name,
                 CsIndex = Reports.Count,
+                Uid = _uidCounter++,
                 // §8.4.3.15.4 GR1 — the counter exists per REPORT, so its register is built here, once, with the
                 // RD (kb/Work PB429). The SUM counter's Register is built the same way a few hundred lines below.
                 PageCounterRegister = new DataItem
@@ -657,15 +727,17 @@ public sealed partial class DataBinder
     }
 
     /// <summary>Bind one RD entry's description clauses: PAGE geometry (§13.18.39) with the GR3 defaults,
-    /// CONTROL (§13.18.16); GLOBAL (§13.18.27 on an RD) and CODE (§13.18.12) stage loud.</summary>
+    /// CONTROL (§13.18.16), GLOBAL (§13.18.27 on an RD); CODE (§13.18.12) stages loud.</summary>
     private void BindReportDescriptionClauses(Core.ReportDescriptionEntryContext rd, ReportModel model)
     {
         bool heading = false, firstDetail = false, lastDetail = false, footing = false;
         foreach (var clause in rd.reportDescriptionClause())
         {
+            // §13.18.27.3 SR1 e) — the report-name is a global name. The containment half (visibility in contained
+            // programs, §13.18.27.4 GR1/GR2, and the declarative a contained GENERATE selects, §14.9.49.4 GR4) is
+            // BinderDriver's inheritance walk and the emitter's GR4 selector (kb/Work PB369).
             if (clause.reportGlobalClause() is not null)
-                Edition.Error(DiagnosticCatalog.ReportGlobalClause, $"RD '{model.Name}': the GLOBAL clause on a report description "
-                    + "(ISO §13.18.27) is not yet implemented — cross-program report visibility is staged");
+                model.IsGlobal = true;
             else if (clause.reportCodeClause() is not null)
                 Edition.Error(DiagnosticCatalog.ReportCodeClause, $"RD '{model.Name}': the CODE clause (ISO §13.18.12) is not yet "
                     + "implemented");

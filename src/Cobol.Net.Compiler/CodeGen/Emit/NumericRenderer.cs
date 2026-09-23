@@ -172,7 +172,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     // renderer). The member name comes from RuntimeApi, which the RECEIVING side (ReportPageCounterPlace, §8.4.3.15.3
     // SR1) also reads — one spelling for the two directions (kb/Work PB429).
     public NumX Visit(BoundReportCounterRef n) =>
-        new(RuntimeApi.ReportCounterRead(n.Report.CsIndex, n.IsPage), 0);
+        new(RuntimeApi.ReportCounterRead(n.Report.CsIndex, n.Depth, n.IsPage), 0);
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.

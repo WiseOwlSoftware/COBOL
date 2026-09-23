@@ -589,7 +589,7 @@ public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterIt
 /// pipeline reads and writes it at the counter's own scale. Backend-neutral, like
 /// <see cref="CapacityRegisterPlace"/>: no C# text lives here.
 /// </summary>
-public sealed record ReportSumCounterPlace(int ReportIndex, int CounterId, DataItem RegisterItem) : Place
+public sealed record ReportSumCounterPlace(int ReportIndex, int CounterId, DataItem RegisterItem, int Depth = 0) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => RegisterItem.Pic;
@@ -616,7 +616,7 @@ public sealed record ReportSumCounterPlace(int ReportIndex, int CounterId, DataI
 /// scale 0), which is what makes an out-of-range or negative sender behave as it would for any other unsigned
 /// integer receiver.</para>
 /// </summary>
-public sealed record ReportPageCounterPlace(int ReportIndex, DataItem RegisterItem) : Place
+public sealed record ReportPageCounterPlace(int ReportIndex, DataItem RegisterItem, int Depth = 0) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => RegisterItem.Pic;

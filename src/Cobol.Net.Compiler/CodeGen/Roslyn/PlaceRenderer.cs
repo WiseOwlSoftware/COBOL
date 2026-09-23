@@ -102,12 +102,12 @@ internal static class PlaceRenderer
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
         // A REPORT SECTION sum counter (§13.18.54.4 GR1/GR4/GR12): RWCS engine state, read at the counter's own
         // scale. The identity is the ENTRY's ordinal, never GR5's data-name (kb/Work PB882).
-        ReportSumCounterPlace s => RuntimeApi.ReportSumRead(s.ReportIndex, s.CounterId),
+        ReportSumCounterPlace s => RuntimeApi.ReportSumRead(s.ReportIndex, s.Depth, s.CounterId),
         // A report's PAGE-COUNTER (ISO §8.4.3.15.4 GR1 — a temporary unsigned integer maintained per report):
         // RWCS engine state, scale 0. Reachable on the SENDING side only through a receiving place that is then
         // read back (a rounded/size-error resultant); the plain sending reference is BoundReportCounterRef, and
         // BOTH render through the one RuntimeApi spelling (kb/Work PB429).
-        ReportPageCounterPlace pc => RuntimeApi.ReportCounterRead(pc.ReportIndex, isPage: true),
+        ReportPageCounterPlace pc => RuntimeApi.ReportCounterRead(pc.ReportIndex, pc.Depth, isPage: true),
         // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
         DebugRegisterPlace d => DebugRead(d.Member),
         // The predefined object reference EXCEPTION-OBJECT (ISO §8.4.3.6.4 GR1 — "references the current exception
@@ -222,11 +222,11 @@ internal static class PlaceRenderer
         // A REPORT SECTION sum counter as a RECEIVER — ISO §13.18.54.4 GR12: "It is permissible for procedure
         // division statements to alter the content of sum counters." The store goes to the RWCS engine, at the
         // counter's own scale (GR1); there is no storage to write (kb/Work PB840).
-        ReportSumCounterPlace s => RuntimeApi.ReportSumWrite(s.ReportIndex, s.CounterId, rhs),
+        ReportSumCounterPlace s => RuntimeApi.ReportSumWrite(s.ReportIndex, s.Depth, s.CounterId, rhs),
         // A report's PAGE-COUNTER as a RECEIVER — ISO §8.4.3.15.3 SR1 admits it wherever an integer data item
         // may appear, and SR3 bars only LINE-COUNTER from the receiving side. The store goes to the RWCS engine;
         // there is no storage to write (kb/Work PB429).
-        ReportPageCounterPlace pc => RuntimeApi.ReportPageCounterWrite(pc.ReportIndex, rhs),
+        ReportPageCounterPlace pc => RuntimeApi.ReportPageCounterWrite(pc.ReportIndex, pc.Depth, rhs),
         // Unreachable: a COBOL program never assigns to a DEBUG-* register (X3.23-1985 — the runtime populates it via
         // the injected debug trigger); a receiving-position use is rejected at bind time. The backstop for a
         // receiver path that forgot the gate.

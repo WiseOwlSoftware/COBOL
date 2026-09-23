@@ -157,7 +157,9 @@
   "pb362_declaratives_reference_boundary",
   "pb363_before_reporting_legal_store",
   "pb859_integer_n_zero_permitted",
-  "pb992_character_channel_numeric"
+  "pb992_character_channel_numeric",
+  "pb369_global_report_use_selection",
+  "pb369_global_file_use_selection"
  ],
  "pending": []
 }

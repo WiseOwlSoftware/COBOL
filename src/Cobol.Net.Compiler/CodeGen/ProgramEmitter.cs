@@ -258,7 +258,7 @@ internal sealed class ProgramEmitter
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             statusDepth++;
-            string outerPrefix = string.Concat(Enumerable.Repeat("__outer.", statusDepth));
+            string outerPrefix = RuntimeApi.OuterChain(statusDepth);
             foreach (var f in anc.Data.Files)
                 if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
                     && anc.Refs.ResolveItem(si) is { } sp && PrefixPlace(sp, outerPrefix) is { } pp)
@@ -391,6 +391,9 @@ internal sealed class ProgramEmitter
                     + "   // ISO §14.6.13.1.4 #3 / §14.9.49.4 GR3");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
+            // The Format-2 half of §14.9.49.4 GR4 (kb/Work PB369): per visible report, the selector its GENERATE
+            // and TERMINATE statements hand the engine. Emitted BEFORE the dispatcher, which emits the statements.
+            Current.ReportWriter.EmitBeforeReportingSelectors(unit, w);
             w.Line();
 
             if (unit.Bound.Paragraphs.Count > 0)
@@ -442,12 +445,14 @@ internal sealed class ProgramEmitter
         _ => null,
     };
 
-    /// <summary>True when <paramref name="u"/> or any of its containers declares a <c>USE … GLOBAL</c>
-    /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward).</summary>
+    /// <summary>True when <paramref name="u"/> or any of its containers declares a FORMAT 1 <c>USE GLOBAL AFTER …</c>
+    /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward). A
+    /// Format-2 <c>USE GLOBAL BEFORE REPORTING</c> is GR4's other half and has its own walk, the per-report selector
+    /// (<c>ReportWriterEmitter.EmitBeforeReportingSelectors</c>; kb/Work PB369) — it never reaches an I-O check.</summary>
     private static bool ChainHasGlobalUse(BoundUnit? u)
     {
         for (; u is not null; u = u.Parent)
-            if (u.Bound.Declaratives is { } ds && ds.Any(d => d.Global)) return true;
+            if (u.Bound.Declaratives is { } ds && ds.Any(d => d.Global && d.ReportGroup is null)) return true;
         return false;
     }
 

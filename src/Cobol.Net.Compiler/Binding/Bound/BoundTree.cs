@@ -202,7 +202,7 @@ public sealed record BoundLinageCounterRef(FileModel File) : BoundExpr;
 /// Writer Control System alone maintains (GR1–GR4) — runtime-sourced from the report's engine instance (the
 /// register-attaches-to-its-subsystem rule, the <see cref="BoundLinageCounterRef"/> precedent), never a storage
 /// item. SR3 bars LINE-COUNTER from receiving positions (receiving resolution rejects at bind).</summary>
-public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage) : BoundExpr;
+public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage, int Depth = 0) : BoundExpr;
 
 // ⛔ `BoundReportSumRef` IS GONE (kb/Work PB840 × PB882), and this comment stands where it was so it is not
 // re-added. It was a SECOND way to read a sum counter, alongside the ordinary identifier machinery, and it
