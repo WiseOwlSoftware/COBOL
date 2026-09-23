@@ -144,8 +144,9 @@ public sealed partial class DataBinder
     /// mechanism provides the member: a carrier-resident LINKAGE formal's "field" IS the carrier accessor
     /// (<c>__lnk{Uid}.Value</c> — the caller owns the storage, ISO §13.7.1 / §14.2.3 GR8), and an inherited
     /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §13.18.27 GR2 —
-    /// global index-names are shared, never duplicated). (READ-ONLY view — P6 Step 5; the inherited-index
-    /// suppression writes through <see cref="SeedInheritedGlobalIndex"/>.)</summary>
+    /// global index-names are shared, never duplicated). (READ-ONLY view — P6 Step 5; written by the LINKAGE and
+    /// OO binders. The inherited-index seeding member this comment once named was deleted by kb/Work PB919, whose
+    /// per-table index declarations now carry an inherited GLOBAL index-name.)</summary>
     public IReadOnlySet<string> CallSuppressedRootFields => _callSuppressedRootFields;
     private readonly HashSet<string> _callSuppressedRootFields = new(StringComparer.Ordinal);
 
