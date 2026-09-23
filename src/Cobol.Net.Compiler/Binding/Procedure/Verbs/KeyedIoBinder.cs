@@ -138,8 +138,14 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         BoundRecordLock lock_, RetrySpec? retry)
     {
         if (w.writeBeforeAfter() is not null || w.writeAtEndOfPage() is not null)
-            return new BoundUnsupported($"WRITE ADVANCING / END-OF-PAGE on {file.Organization} file "
-                + $"'{file.CobolName}' (ISO §14.9.51 — print-control phrases are for sequential print files)");
+            // ⛔ A SYNTAX RULE, NOT A DEFERRAL (kb/Work PB909): SR3 is SR2's mirror, and COBOLNET1720 is where SR2
+            // already lands. It is an error in BOTH lanes — Format 2 gives a print-control phrase no meaning to bind.
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoPhraseForbiddenHere, $"the "
+                + (w.writeBeforeAfter() is not null ? "ADVANCING" : "END-OF-PAGE")
+                + $" phrase shall not be specified for a WRITE statement that references the "
+                + $"{file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}': \"If the organization "
+                + "of the write file is indexed or relative, format 2 shall be specified\" (ISO §14.9.51.3 SR3), and "
+                + "Format 2 prints no print-control phrase");
         KeyedInvalidKey? invalid =
             w.writeInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedWrite(file, record,

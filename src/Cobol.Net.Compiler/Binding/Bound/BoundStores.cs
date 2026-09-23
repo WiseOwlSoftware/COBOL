@@ -106,6 +106,7 @@ public static class BoundStores
 
         // ── Pure control / read-only / model-routed statements (survey "pure" list) ─────────────────────
         public StoreKind? Visit(BoundUnsupported n) => StoreKind.None;
+        public StoreKind? Visit(BoundRejected n) => StoreKind.None;
         public StoreKind? Visit(BoundStop n) => StoreKind.None;
         public StoreKind? Visit(BoundStopLiteral n) => StoreKind.None;
         public StoreKind? Visit(BoundDisplay n) => StoreKind.None;

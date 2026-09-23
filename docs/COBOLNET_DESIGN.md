@@ -141,7 +141,13 @@ other, not just against the legacy oracle.
 ### 1.4 Loud-failure invariant
 
 (1) An unbound/unsupported construct emits a **tracked deferral diagnostic** + a runtime guard
-(`throw new NotImplementedCobolFeature(...)`), never a silent `// TODO` no-op. (2) **Bind success ⇒ emit MUST
+(`throw new NotImplementedCobolFeature(...)`), never a silent `// TODO` no-op. ⛔ The deferral is for LEGAL
+source only. A statement the SOURCE got wrong — a shape no general format prints, an operand its syntax rules
+exclude — binds to `BoundRejected`, whose one factory (`BoundRejected.Report`) records the error before it
+returns, so a refusal can be neither silent nor compiled (`StatementEmitter` throws if one arrives). The deferral
+(`BoundUnsupported`, announced as the COBOLNET1756 warning from the `StatementBinder.BindStatement` funnel) is
+never announced for a statement whose bind already drew an error, and `BoundDeferralDriftTests` fails on a
+deferral whose message states a violated rule (kb/Work PB909). (2) **Bind success ⇒ emit MUST
 produce compilable C#** — any Roslyn error on generated code is an ICE (surfaced with the `.g.cs` path), never a user
 error. This is the structural enforcement of the project's "fail LOUD" culture.
 

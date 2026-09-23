@@ -416,6 +416,7 @@ public sealed class ReferenceResolver(DataBinder data)
             if (ScreenSubscriptArity(dref, item, e.Count)) return null;   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
             indexExprs = e;
         }
+        else if (ScreenSubscriptArity(dref, item, 0)) return null;   // §8.4.2.3.3 SR5 — none written (kb/Work PB681)
 
         // A level-66 RENAMES alias (ISO §13.18.45): one elementary-alphanumeric view COMPOSED over the spanned
         // leaves — reads concatenate their images, writes distribute slices back. This slice covers STRING-VALUED
@@ -937,6 +938,7 @@ public sealed class ReferenceResolver(DataBinder data)
             if (ScreenSubscriptArity(dref, item, e.Count)) return null;   // §8.4.2.3.3 SR2/SR3
             indexExprs = e;
         }
+        else if (ScreenSubscriptArity(dref, item, 0)) return null;   // §8.4.2.3.3 SR5 (kb/Work PB681) — the same both arms
         return PlaceForItem(item, indexExprs);
     }
 
@@ -955,25 +957,36 @@ public sealed class ReferenceResolver(DataBinder data)
     /// COBOL.NET does not yet implement as a receiver" — a promise, about source no edition of the standard will
     /// ever admit (the PB489 shape) — while <c>DISPLAY PLAIN (1)</c> COMPILED CLEAN and aborted at run time on
     /// <c>NotImplementedCobolFeatureException</c>, where §4.2.2 requires a compile-time mechanism.</para>
-    /// <para>⚠ IT SCREENS ONLY A REFERENCE THAT WRITES SUBSCRIPTS, and that boundary is SR5's: "Each table
-    /// element reference shall be subscripted EXCEPT when such reference appears" as a SEARCH subject, in a
-    /// REDEFINES clause, in an OCCURS KEY IS phrase, in a SORT statement's KEY phrase or table subject, in a
-    /// screen description entry's FROM/TO/USING phrase, or as a SUM clause addend — seven contexts only the
-    /// owning binder can recognize, so an OMITTED list is left exactly as it was. Writing a subscript where none
-    /// may be written, or writing the wrong number of them, has no such exception at any edition.</para></summary>
+    /// <para><b>SR5</b> — "Each table element reference shall be subscripted except when such reference appears"
+    /// as a SEARCH subject, in a REDEFINES clause, in an OCCURS KEY IS phrase, in a SORT statement's KEY phrase or
+    /// table subject, in a screen description entry's FROM/TO/USING phrase, or as a SUM clause addend. ⛔ NONE OF
+    /// THOSE SEVEN CONTEXTS REACHES THIS SCREEN, which is why an OMITTED list is screened here too (kb/Work PB681):
+    /// the SEARCH subject resolves through <see cref="ResolveTableOperand"/>, the SORT table subject and keys
+    /// through the SORT binder's own data-description walk, and REDEFINES / OCCURS KEY / SUM through the data
+    /// binder — never through <see cref="Resolve"/> or <see cref="ResolveForItem"/>, the two callers of this
+    /// screen. Before PB681 the omitted case was left to <see cref="PlaceForItem"/>, whose null NOBODY reported:
+    /// <c>MOVE E TO B</c> over a table element compiled clean and aborted the run unit at the MOVE.</para></summary>
     private bool ScreenSubscriptArity(Core.DataReferenceContext dref, DataItem item, int written)
     {
-        // ⛔ THE SR5 BOUNDARY IS STRUCTURAL, NOT A PROPERTY OF THE CALLERS: a reference that writes NO subscript
-        // is never this screen's business, whatever reached it. Both call sites happen to guard on a subscript
-        // group being present, and that is a fact about them; this is the rule.
+        // ⛔ THE SR5 BOUNDARY IS A PROPERTY OF THE ENTRY POINTS, and it is written down where they are: the seven
+        // contexts that may omit a table element's subscripts resolve through their own entries (see the summary),
+        // so every reference that reaches THIS screen is outside them and SR5 applies with no exception.
         int arity = item.SubscriptArity;
-        if (written == 0 || written == arity) return false;
+        if (written == arity) return false;
         // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (_diagnosed).
         if (_probing) return true;
         if (!_diagnosed.Add(dref)) return true;
         string text = dref.GetText();
         string subject = item.CobolName ?? item.CsName;
-        if (arity == 0)
+        if (written == 0)
+            data.Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
+                $"'{text}': '{subject}' is a table element — its description contains, or is subordinate to, "
+                + $"{arity} OCCURS clause{(arity == 1 ? "" : "s")} — and ISO §8.4.2.3.3 SR5 requires \"Each table "
+                + "element reference shall be subscripted\" outside seven contexts (a SEARCH subject, a REDEFINES "
+                + "clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen FROM/TO/USING phrase, a "
+                + $"SUM addend), none of which this is. Write {arity} subscript{(arity == 1 ? "" : "s")}, "
+                + "outermost first.");
+        else if (arity == 0)
             data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"'{text}': a subscript is written on '{subject}', whose data description entry neither "
                 + "contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it "
@@ -1189,11 +1202,15 @@ public sealed class ReferenceResolver(DataBinder data)
         var qualifiers = written.Qualifiers;
         var subCtx = written.SubscriptGroup;
         if (FindItem(name, qualifiers) is not { } item) return null;
-        if (subCtx is null) return (item, null);
+        // §8.4.2.3.3 SR2/SR3/SR5 through the ONE screen the other two entries use (kb/Work PB681): an ADDRESS OF
+        // operand is an identifier like any other, and the omitted-list arm used to return the address of the
+        // table's FIRST occurrence for `ADDRESS OF E` — no subscript, no diagnostic, a pointer nobody asked for.
+        if (subCtx is null) return ScreenSubscriptArity(dref, item, 0) ? null : (item, null);
         List<IToken> ixNames = [];
         var (exprs, isRefMod) = InterpretSubscripts(subCtx, ixNames);
         if (isRefMod || exprs is null) return null;
         ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
+        if (ScreenSubscriptArity(dref, item, exprs.Count)) return null;   // §8.4.2.3.3 SR2/SR3
         // The in-class OCCURS levels outer→inner — the PlaceForItem Tier-B walk (same layout, same formula).
         var occursLevels = new List<DataItem>();
         for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, item.Class); n = n.Parent)

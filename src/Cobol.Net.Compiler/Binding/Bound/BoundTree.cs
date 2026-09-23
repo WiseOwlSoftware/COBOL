@@ -662,8 +662,45 @@ public abstract record BoundStatement;
 /// diagnostic (<see cref="Editions.Diagnostics.DiagnosticCatalog.StatementOperandRule"/> or the rule's own
 /// descriptor, per ISO §4.2.2 ¶2's compile-time mechanism) and binds to <see cref="BoundNop"/>; it does NOT
 /// come here. If you are about to construct one of these while holding a §/SR citation for why the SOURCE is
-/// wrong, that citation is telling you this is the wrong node.</para></summary>
+/// wrong, that citation is telling you this is the wrong node — build a <see cref="BoundRejected"/> instead.
+/// <c>BoundDeferralDriftTests</c> scans every construction site's message for the vocabulary of a violated rule
+/// (a syntax-rule number, "shall", "extension", "general format") and fails the build on one (kb/Work PB909).
+/// <para>An operand the reference resolver could not bind is the one case a SITE cannot classify — the null means
+/// "reported" (an undefined name, a subscript on a non-table) or "a shape the resolver has not built" — so the
+/// funnel classifies it: a <c>BoundUnsupported</c> from a statement whose bind already drew an error is a
+/// refused statement and announces nothing.</para></summary>
 public sealed record BoundUnsupported(string Feature) : BoundStatement;
+
+/// <summary>⛔ A REFUSAL, AND NOTHING ELSE (kb/Work PB909): a statement the SOURCE got wrong — written in a shape no
+/// general format prints, or with an operand its syntax rules exclude. It is the other half of the split that
+/// <see cref="BoundUnsupported"/> used to carry alone, when an ungrammatical statement and an unbuilt feature both
+/// compiled to the same COBOLNET1756 warning and the same run-time abort (INSPECT … REPLACING TRAILING and
+/// SEARCH … NOT AT END shipped that way — a warning at compile time, a crash in production, and nothing in the
+/// build output that stopped a release).
+/// <para>The WRONG USE IS UNREPRESENTABLE: the constructor is private and <see cref="Report"/> is the only way to
+/// obtain one, and it records the error (ISO §4.2.2 ¶2's compile-time indication) before it returns — so a refusal
+/// can never be silent, and since any error fails the compile before code generation, a refusal can never be
+/// compiled into a program either (<c>StatementEmitter</c> throws if one ever arrives).</para></summary>
+public sealed record BoundRejected : BoundStatement
+{
+    /// <summary>The descriptor the refusal was reported under — always an <see cref="Editions.EditionSeverity.Error"/>.</summary>
+    public Editions.Diagnostics.DiagnosticDescriptor Rule { get; }
+
+    private BoundRejected(Editions.Diagnostics.DiagnosticDescriptor rule) => Rule = rule;
+
+    /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal node. A
+    /// warning-severity descriptor is a programming error: a refusal that does not fail the compile would reach
+    /// code generation with no meaning to emit.</summary>
+    public static BoundRejected Report(EditionContext edition, Editions.Diagnostics.DiagnosticDescriptor rule,
+        string message)
+    {
+        if (rule.Severity != Editions.EditionSeverity.Error)
+            throw new InvalidOperationException(
+                $"BoundRejected needs an error-severity descriptor; {rule.Code} is {rule.Severity} (kb/Work PB909).");
+        edition.Error(rule, message);
+        return new BoundRejected(rule);
+    }
+}
 
 /// <summary>The STOP RUN / GOBACK termination status phrase (ISO §14.9.42 / §14.9.18.2 — COBOL-2002 on STOP,
 /// COBOL-2023 on GOBACK): <c>WITH {ERROR | NORMAL} STATUS [value]</c>. <paramref name="Error"/> selects the OS

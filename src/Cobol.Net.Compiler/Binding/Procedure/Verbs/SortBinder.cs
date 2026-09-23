@@ -211,6 +211,14 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                         + "subordinate to it (ISO §14.9.40.3 SR14a)");   // PB236
                     return new BoundNop();
                 }
+                // ⛔ TWO VERDICTS, WHICH USED TO SHARE ONE DEFERRAL (kb/Work PB909): an inner OCCURS between the key
+                // and data-name-2 is the SOURCE's error (SR14 e), while a REDEFINES-view key is legal source this
+                // typed-array path has not built. Asked in that order, so a key that is both is refused, not deferred.
+                if (KeyUnderInnerOccurs(table, key))
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"SORT table key '{kn}': \"If the data item identified by a key "
+                        + "data-name is subordinate to data-name-2, it shall not be described with an OCCURS clause, and "
+                        + "it shall not be subordinate to an entry that is also subordinate to data-name-2 and contains "
+                        + "an OCCURS clause\" (ISO §14.9.40.3 SR14 e)");
                 // A key of class national orders under the NATIONAL collating sequence — the GR5 lead-in
                 // ("the national collating sequence that applies to the comparison of key data items of class
                 // national"), resolved by GR5a/GR5b like its alphanumeric twin. It used to stage LOUD here, with
@@ -636,6 +644,16 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         return string.Join(".", segs);
     }
 
+    /// <summary>§14.9.40.3 SR14 e): the key, or an entry between it and data-name-2, carries an OCCURS clause.
+    /// A predicate over the DATA DESCRIPTION alone — the member path below answers a storage question and returns
+    /// null for a REDEFINES view too, so it cannot tell the source's error from the compiler's gap.</summary>
+    private static bool KeyUnderInnerOccurs(DataItem table, DataItem key)
+    {
+        for (DataItem? n = key; n is not null && !ReferenceEquals(n, table); n = n.Parent)
+            if (n.Occurs is not null) return true;
+        return false;
+    }
+
     /// <summary>The C# member path of <paramref name="key"/> RELATIVE to a table-element variable ("" when the key
     /// IS the element), or null when an inner OCCURS / REDEFINES view intervenes (SR14e; the suppressed view field
     /// does not exist on the element struct).</summary>
@@ -646,7 +664,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         var segs = new List<string>();
         for (DataItem? n = key; n is not null && !ReferenceEquals(n, table); n = n.Parent)
         {
-            if (n.Occurs is not null) return null;   // §14.9.40.3 SR14e
+            if (n.Occurs is not null) return null;   // §14.9.40.3 SR14 e — refused earlier by KeyUnderInnerOccurs
             segs.Add(n.CsName);
             if (n.Parent is null) return null;        // ran off the root without meeting the table
         }

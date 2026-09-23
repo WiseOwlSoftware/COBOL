@@ -233,7 +233,10 @@ public static class DiagnosticCatalog
         + "organization or a file with relative organization and sequential access mode.\" ISO §14.9.51.3 "
         + "syntax rule 2: \"If the organization of the write file is sequential, format 1 shall be "
         + "specified.\" — and Format 1 of §14.9.51.2 carries no INVALID KEY bracket, so the phrase is "
-        + "excluded from a sequential-organization WRITE. ISO §14.9.30.3 "
+        + "excluded from a sequential-organization WRITE. Its mirror, syntax rule 3: \"If the organization of "
+        + "the write file is indexed or relative, format 2 shall be specified.\" — and Format 2 carries neither "
+        + "the ADVANCING nor the END-OF-PAGE phrase, so those are excluded from a relative or indexed WRITE in "
+        + "BOTH lanes (Format 2 gives a print-control phrase no meaning to bind under --permissive). ISO §14.9.30.3 "
         + "syntax rule 6: \"None of the phrases ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS shall be "
         + "specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.\" "
         + "ISO §14.9.30.3 syntax rule 7: \"The phrase PREVIOUS shall not be specified if FILE ORGANIZATION "
@@ -248,7 +251,7 @@ public static class DiagnosticCatalog
         + "dropping the phrase instead of binding it was kb/Work PB691. On a sequential READ the same "
         + "obligation is §14.9.30.4 GR13c, which transfers control to NOT INVALID KEY on a successful read "
         + "(kb/Work PB334).",
-        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.51.3 SR2 · §14.9.30.3 SR6 · §14.9.30.3 SR7 "
+        "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.51.3 SR2 · §14.9.51.3 SR3 · §14.9.30.3 SR6 · §14.9.30.3 SR7 "
         + "· §14.9.30.2 Format 1");
     // The MIRROR of COBOLNET1720, and the falsely-PERMISSIVE twin of the OCR's falsely-restrictive bias
     // (kb/Work PB350). §5.2.6.2 makes BRACKETS the only thing that lets a portion of a general format be
@@ -2522,9 +2525,13 @@ public static class DiagnosticCatalog
         + "§8.4.3.3.4 GR6 — the result is an elementary data item, so it is not a group item), or a SET "
         + "operand the statement's own format does not admit: a switch-status condition-name in Format 4 "
         + "(§14.9.39.3 SR6 — condition-name-1 shall be associated with a conditional variable) or a "
-        + "Format-3 name that is no external-switch mnemonic (SR5). Rejected at bind — the statement is not "
-        + "run.",
-        "ISO §14.9.2.3 / §14.9.25.3 / §14.9.32.3 / §14.9.34.3 / §14.9.35.3 / §14.9.44.3 / §14.9.51.3");
+        + "Format-3 name that is no external-switch mnemonic (SR5), an INITIATE or TERMINATE report-name that "
+        + "no report description entry defines (§14.9.21.3 SR1 / §14.9.46.3 SR1), a GENERATE operand that "
+        + "names neither a detail report group nor a report (§14.9.16.3 SR1 / SR2), or a table-SORT key "
+        + "described with, or subordinate to, an OCCURS inside data-name-2 (§14.9.40.3 SR14 e). Rejected at "
+        + "bind — the statement is not run.",
+        "ISO §14.9.2.3 / §14.9.16.3 / §14.9.21.3 / §14.9.25.3 / §14.9.32.3 / §14.9.34.3 / §14.9.35.3 / "
+        + "§14.9.40.3 / §14.9.44.3 / §14.9.46.3 / §14.9.51.3");
     /// <summary>COBOLNET1756 — the DEFERRAL announcing itself. A statement the grammar accepted but this
     /// compiler binds to <c>BoundUnsupported</c> is staged to a loud run-time refusal (COBOLNET_DESIGN §1.4);
     /// before kb/Work PB236 that staging was invisible at compile time, so a program carrying an unimplemented
@@ -2539,8 +2546,34 @@ public static class DiagnosticCatalog
         "A statement this compiler has not implemented was accepted and staged to a loud run-time refusal "
         + "(COBOLNET_DESIGN §1.4): the compilation succeeds and every other statement runs, but reaching this "
         + "one aborts the run unit with NotImplementedCobolFeatureException. This is a gap in COBOL.NET, not an "
-        + "error in the source — the warning exists so the gap is visible before the program is run.",
+        + "error in the source — the warning exists so the gap is visible before the program is run. It is "
+        + "never raised for a statement whose bind already drew an error: a refused statement makes no claim "
+        + "about the compiler.",
         "COBOLNET_DESIGN §1.4", "statement-not-implemented");
+    /// <summary>COBOLNET2269 — a statement written in a SHAPE none of its general formats prints (kb/Work PB909).
+    /// The grammar accepts some shapes the standard does not print — vendor extensions (INSPECT … TRAILING,
+    /// SEARCH … NOT AT END, the ENTRY statement) and the defensive residue of a union-parsed rule — and each used
+    /// to reach the binder's DEFERRAL carrier, so a program the standard gives no meaning to compiled with a
+    /// COBOLNET1756 warning claiming COBOL.NET was incomplete, and aborted the run unit when the statement ran.
+    /// ISO §4.2.2 ¶1 fixes what may be accepted — "An implementation shall accept the syntax and provide the
+    /// functionality for all standard language elements" — and ¶2 requires the compile-time indication of
+    /// "violations of the general formats and the explicit syntax rules of standard COBOL". This
+    /// implementation declares no vendor dialect under which an extension could be admitted (the COBOLNET1941 /
+    /// COBOLNET1970 posture), so the shape is refused at every edition and every strictness. The CODE is the
+    /// mechanism; the MESSAGE names the statement and the general format it departs from.</summary>
+    public static readonly DiagnosticDescriptor StatementFormatShape = new(
+        "COBOLNET2269", "statement-format-shape", EditionSeverity.Error,
+        "A statement is written in a shape that none of its ISO general formats prints, so the standard gives "
+        + "it no meaning: for example INSPECT … TALLYING … FOR FIRST or FOR TRAILING and INSPECT … REPLACING "
+        + "TRAILING (§14.9.22.2 prints only CHARACTERS / ALL / LEADING in a tallying-phrase and CHARACTERS / "
+        + "ALL / LEADING / FIRST in a replacing-phrase), SEARCH or SEARCH ALL with a NOT AT END phrase "
+        + "(§14.9.37.2 prints AT END alone), or the ENTRY statement (ISO/IEC 1989 defines none). Refused at "
+        + "every edition and every strictness: §4.2.2 makes a general format the definition of what may be "
+        + "written, and this implementation declares no vendor dialect under which an extension could be "
+        + "admitted. Rewrite the statement in a printed format — e.g. an INSPECT … REPLACING TRAILING becomes "
+        + "a reference-modified INSPECT … REPLACING ALL over the trailing span, and SEARCH … NOT AT END "
+        + "becomes a WHEN branch.",
+        "ISO §4.2.2");
     // ── The ASSIGN … USING operand screens (kb/Work PB324): §12.4.5.2 SR7's two halves, checked post-build once
     // the data forest is indexed. Two codes, not one, because the halves have different causes and different
     // repairs — a wrong category is a declaration to change, a subordinate operand is a whole design to move. ──
@@ -3641,6 +3674,23 @@ public static class DiagnosticCatalog
         + "a screen entry's FROM/TO/USING phrase and a report SUM addend — and this diagnostic is never raised for "
         + "a reference that writes none; writing too many has no such exception.",
         "ISO §8.4.2.3.3 SR3");
+
+    /// <summary>COBOLNET2270 — §8.4.2.3.3 SR5: a table element referenced with NO subscript outside the seven
+    /// contexts that rule lists (kb/Work PB681). The third member of the written-subscript family 2096/2097 opened,
+    /// screened at the same place: before it, the reference resolver returned an unreported null for the omitted
+    /// list and the statement compiled into a run-time <c>NotImplemented</c> — <c>MOVE E TO B</c> over a table
+    /// element compiled clean at every edition and aborted the run unit when the MOVE executed.</summary>
+    public static readonly DiagnosticDescriptor TableElementNotSubscripted = new(
+        "COBOLNET2270", "table-element-not-subscripted", EditionSeverity.Error,
+        "A table element is referenced without subscripts. ISO §8.4.2.3.3 SR5: \"Each table element reference "
+        + "shall be subscripted except when such reference appears: a) As the subject of a SEARCH statement. b) In "
+        + "a REDEFINES clause. c) In the KEY IS phrase of an OCCURS clause. d) In the KEY phrase of a SORT statement "
+        + "that references a table. e) As the subject of a SORT statement that references a table … f) In the FROM, "
+        + "TO, or USING clause of a screen description entry when the subject of the entry has an OCCURS clause. g) "
+        + "As a data-name addend in the SUM clause of a report description entry.\" A table element is an item whose "
+        + "description contains an OCCURS clause or is subordinate to one; write one subscript per OCCURS clause, "
+        + "outermost first (SR3), or name the containing group instead if the whole table was meant.",
+        "ISO §8.4.2.3.3 SR5");
 
     // ── COBOLNET2106 / COBOLNET2107 — EVALUATE's TWO REMAINING SYNTAX-RULE SCREENS (kb/Work PB399) ───────
     //    §14.9.13.3 SR2 (the selection-object count) and SR4/SR9 (the range-expression's operands). Both were

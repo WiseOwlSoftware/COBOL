@@ -364,7 +364,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
                 return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT PROGRAM")) is { } r
                     ? new BoundExitProgram(r)
-                    : new BoundUnsupported("EXIT PROGRAM RAISING identifier (exception object — the OO wave; ISO §14.9.14.3 SR5)");
+                    : new BoundUnsupported("EXIT PROGRAM RAISING identifier (the exception-object form of the RAISING phrase — the OO wave)");
             return new BoundExitProgram();
         }
         if (e.SECTION() is not null)   // §14.9.14 Format 4, GR7 — transfer to the section's end (its return mechanism)

@@ -154,7 +154,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         else if (prototype is null)
             // The bracket may be omitted only in Format 2, where the outer brace then supplies the operand. With
             // neither a target nor a prototype there is nothing to activate.
-            return new BoundUnsupported("CALL target form");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "CALL with neither a program identifier or literal nor a "
+                + "program-prototype-name: every CALL format names the program to activate (ISO §14.9.4.2)");
 
         // §14.9.4.4 GR7: "If the NESTED phrase is not specified, program-prototype-name-1 is used to determine
         // the characteristics of the called program." Its externalized name is the program-name whenever
@@ -200,7 +201,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 if (byRef.dataReference() is not { } byRefDref)
-                    return new BoundUnsupported("CALL USING BY REFERENCE form");
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "CALL … USING BY REFERENCE with neither an identifier nor OMITTED "
+                        + "(ISO §14.9.4.2)");
                 // kb/Work PB128: a BY REFERENCE argument is a RECEIVING operand and rides the ONE receiving
                 // chokepoint — the direct Refs.Resolve bypass skipped the CONSTANT RECORD (§13.18.15.3 SR2),
                 // CAPACITY-register (§13.18.38 SR30–32), constant-name and LINE-COUNTER screens, letting a
@@ -846,7 +848,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (p.Raising is { } raising)
             return host.Ec.EcBindRaising(raising, g.Start.Line, EcRaiseSite.Goback) is { } r
                 ? new BoundGoback(source, r) { ReturningMove = returningMove }
-                : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
+                : new BoundUnsupported("GOBACK RAISING identifier (the exception-object form of the RAISING phrase — the OO wave)");
         // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually
         // exclusive with RAISING by the grammar). The emit passes the decoded status to the OS only in a MAIN
         // program (§14.9.18.4 GR3/GR10 — a called-program status is inert).

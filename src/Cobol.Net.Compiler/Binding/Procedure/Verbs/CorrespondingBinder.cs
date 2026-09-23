@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Validation;
@@ -27,7 +28,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         add.CORRESPONDING() is not null || add.CORR() is not null
             ? Bind(CorrVerb.Add, add.dataReference(), host.Expr.RoundingOf(add.roundedPhrase()),
                 host.BindSizeError(add.arithmeticOnSizeError()))
-            : new BoundUnsupported("ADD statement form");
+            : BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "ADD: the statement matches no ADD format (ISO §14.9.2.2)");
 
     /// <summary>Bind <c>SUBTRACT {CORRESPONDING|CORR} id-4 FROM id-5 [ROUNDED] [ON SIZE ERROR …] [END-SUBTRACT]</c>
     /// (ISO §14.9.44.2 Format 3; SR5 — CORR ≡ CORRESPONDING).</summary>
@@ -35,7 +36,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         sub.CORRESPONDING() is not null || sub.CORR() is not null
             ? Bind(CorrVerb.Subtract, sub.dataReference(), host.Expr.RoundingOf(sub.roundedPhrase()),
                 host.BindSizeError(sub.arithmeticOnSizeError()))
-            : new BoundUnsupported("SUBTRACT statement form");
+            : BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SUBTRACT: the statement matches no SUBTRACT format (ISO §14.9.44.2)");
 
     /// <summary>
     /// Bind a CORRESPONDING statement (ISO §14.7.6): resolve both group operands ONCE, hoist their anchors (item
@@ -69,7 +70,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         };
         string verbName = rule.Verb;
         if (groups.Length < 2)
-            return new BoundUnsupported($"{verbName} CORRESPONDING operand shape");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"{verbName} CORRESPONDING: its general format prints exactly two group "
+                + "operands, the sending group and the receiving group");
         if (ctx.Refs.Resolve(groups[0]) is not { } src)
             return new BoundUnsupported($"{verbName} CORRESPONDING source group '{groups[0].GetText()}'");
         if (ctx.Refs.Resolve(groups[1]) is not { } dst)

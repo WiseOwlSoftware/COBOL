@@ -1328,7 +1328,13 @@
   "pb862-write-advancing-device-mnemonic",
   "pb790-alphabet-through-with-also",
   "pb965-fixed-table-off-position",
-  "pb965-vlg-into-larger-fixed-formal"
+  "pb965-vlg-into-larger-fixed-formal",
+  "pb909-inspect-replacing-trailing",
+  "pb909-search-not-at-end",
+  "pb909-search-all-not-at-end",
+  "pb909-entry-statement",
+  "pb909-write-advancing-indexed",
+  "pb681-table-element-not-subscripted"
  ],
  "pending": []
 }

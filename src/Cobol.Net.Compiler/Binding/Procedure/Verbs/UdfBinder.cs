@@ -453,7 +453,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         if (e.raisingPhrase() is { } raising)
             return host.Ec.EcBindRaising(raising, e.Start.Line, EcRaiseSite.Exit("EXIT FUNCTION")) is { } r
                 ? new BoundGoback(null, r)
-                : new BoundUnsupported("EXIT FUNCTION RAISING identifier (exception object — ISO §14.9.14.3 SR5)");
+                : new BoundUnsupported("EXIT FUNCTION RAISING identifier (the exception-object form of the RAISING phrase — the OO wave)");
         return new BoundGoback(null);
     }
 

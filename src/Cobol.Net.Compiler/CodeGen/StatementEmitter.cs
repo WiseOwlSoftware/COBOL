@@ -268,6 +268,12 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 
     public bool Visit(BoundUnsupported n) { _ctx.Writer.Line(LoudStmt(n.Feature)); return false; }
 
+    /// <summary>A refusal can never be compiled into a program (kb/Work PB909): <see cref="BoundRejected.Report"/>
+    /// recorded an error, and an error fails the compile before code generation. Arriving here means that
+    /// invariant broke, and emitting anything — a no-op, a loud stage — would ship a statement the source got wrong.</summary>
+    public bool Visit(BoundRejected n) => throw new InvalidOperationException(
+        $"a statement refused under {n.Rule.Code} reached code generation (kb/Work PB909)");
+
     // ── DISPLAY / MOVE / arithmetic ──────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundDisplay n) { _acceptDisplay.EmitDisplay(n); return false; }
     public bool Visit(BoundMove n) { _move.Emit(n); return false; }

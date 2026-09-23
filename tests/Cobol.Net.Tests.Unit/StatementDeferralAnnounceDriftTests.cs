@@ -28,19 +28,24 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class StatementDeferralAnnounceDriftTests
 {
-    /// <summary>ENTRY is a pure job-1 deferral: ISO/IEC 1989 defines no ENTRY statement, the grammar accepts
-    /// the vendor extension, and the binder stages it loud. It sits behind a GO TO so the RUN never reaches
-    /// it — before PB236 that made the staged loud unobservable at EVERY stage.</summary>
+    /// <summary>A table SORT over a REDEFINES view is a pure job-1 deferral: legal COBOL-2014+ source (§14.9.40
+    /// Format 2) that the typed-array sort path has not built. It sits behind a GO TO so the RUN never reaches
+    /// it — before PB236 that made the staged loud unobservable at EVERY stage.
+    /// <para>⚠ This row used ENTRY until kb/Work PB909, and that was a PIN OF THE WRONG KIND (kb/Work PB938): ISO/IEC
+    /// 1989 defines no ENTRY statement, so the test was asserting that a vendor extension is a gap in COBOL.NET
+    /// rather than source the standard does not contain. ENTRY is now refused (COBOLNET2269).</para></summary>
     private const string DeferralProgram = """
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB236ANNOUNCE.
 DATA DIVISION.
 WORKING-STORAGE SECTION.
-01 WS-X PIC X(5).
+01 RAW PIC X(9) VALUE "312".
+01 VIEW REDEFINES RAW.
+   05 T PIC 9 OCCURS 9.
 PROCEDURE DIVISION.
 MAIN.
     GO TO SKIPPER.
-    ENTRY "PB236ANNOUNCEE".
+    SORT T ASCENDING KEY T.
 SKIPPER.
     DISPLAY "DONE".
     STOP RUN.
@@ -79,8 +84,8 @@ MAIN.
     {
         var (_, _, warnings) = Compile(DeferralProgram);
         string w = warnings.Single(x => x.Contains("COBOLNET1756", StringComparison.Ordinal));
-        Assert.Contains("pb236.cob(9,", w, StringComparison.Ordinal);   // the ENTRY line, not the program
-        Assert.Contains("ENTRY", w, StringComparison.Ordinal);
+        Assert.Contains("pb236.cob(11,", w, StringComparison.Ordinal);   // the SORT line, not the program
+        Assert.Contains("SORT", w, StringComparison.Ordinal);
     }
 
     [Fact]

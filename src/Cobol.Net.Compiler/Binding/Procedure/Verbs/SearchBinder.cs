@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
@@ -50,6 +51,16 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         return table;
     }
 
+    /// <summary>The ONE refusal of a NOT AT END phrase on either SEARCH format (kb/Work PB909). ISO §14.9.37.2
+    /// prints <c>[ AT END imperative-statement-1 ]</c> alone in Format 1 AND in Format 2, and nothing else; the
+    /// grammar's shared <c>searchAtEndClause</c> admits the vendor NOT AT END branch, which both arms used to stage
+    /// as a DEFERRAL — a COBOLNET1756 warning and a run-unit abort. One helper, so the two arms cannot disagree
+    /// (feedback_two_arm_dispatch).</summary>
+    private BoundRejected NotAtEndShape(string verb) => BoundRejected.Report(ctx.Edition,
+        DiagnosticCatalog.StatementFormatShape,
+        $"{verb} … NOT AT END: ISO §14.9.37.2 prints an AT END phrase alone, in both SEARCH formats — there is "
+        + "no NOT AT END phrase. Test for a hit in a WHEN branch instead");
+
     /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). identifier-1 is resolved and screened by
     /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names
     /// another index OF THE SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified
@@ -79,7 +90,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         List<BoundStatement>? atEnd = null;
         if (s.searchAtEndClause() is { } ae)
         {
-            if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
+            if (ae.NOT() is not null) return NotAtEndShape("SEARCH");
             atEnd = host.BindBlocks(ae.statementBlock());
         }
         // A WHEN condition re-evaluates on every scan pass — §14.9.37.4 GR1, "Any subscripting specified in a WHEN
@@ -138,7 +149,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         List<BoundStatement>? atEnd = null;
         if (s.searchAtEndClause() is { } ae)
         {
-            if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
+            if (ae.NOT() is not null) return NotAtEndShape("SEARCH ALL");
             atEnd = host.BindBlocks(ae.statementBlock());
         }
         // The Format-2 WHEN re-evaluates per probe of this implementation's scan technique (GR9 — the search

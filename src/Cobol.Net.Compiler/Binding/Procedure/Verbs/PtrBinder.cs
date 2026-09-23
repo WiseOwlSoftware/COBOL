@@ -184,6 +184,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         if (ctx.Refs.ResolveForAddressOf(addrRef) is not { } r)
         {
+            // The resolver's own §8.4.2.3.3 screen already named the rule (kb/Work PB681) — once per reference.
+            if (ctx.Refs.WasDiagnosed(addrRef)) return null;
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{addrRef.GetText()}': the operand is unresolvable, reference-modified, or "
                 + "mis-subscripted — ADDRESS OF takes a (possibly qualified/subscripted) data item "
@@ -350,7 +352,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
         var drefs = ud.dataReference();
-        if (drefs.Length == 0) return new BoundUnsupported("SET … UP/DOWN BY — no receiving operand");
+        if (drefs.Length == 0)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … UP BY / DOWN BY with no receiving operand (ISO §14.9.39.2)");
         // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to
         // VersionConformancePass (Step 14b), firing on the self-identifying BoundSetPointerUpDown node.
         var targets = new List<Place>(drefs.Length);

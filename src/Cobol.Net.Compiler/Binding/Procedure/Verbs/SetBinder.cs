@@ -106,7 +106,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                         senderNull: sorNull, senderSelf: sorSelf, senderSuper: sorSuper),
             };
         }
-        return new BoundUnsupported($"SET form '{set.GetText()}'");
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"SET '{set.GetText()}': the statement matches no SET format (ISO §14.9.39.2)");
     }
 
     /// <summary><c>SET CONTENT OF { identifier-14 } … TO { FARTHEST-FROM-ZERO [IN-ARITHMETIC-RANGE] |
@@ -688,7 +688,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     private BoundStatement BindSetFunctionAddress(Core.SetFunctionAddressStatementContext sfa)
     {
         var drefs = sfa.dataReference();
-        if (drefs.Length < 2) return new BoundUnsupported("SET … TO ADDRESS OF FUNCTION — no receiving operand");
+        if (drefs.Length < 2)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ADDRESS OF FUNCTION with no receiving operand (ISO §14.9.39.2)");
         var targets = new List<Place>(drefs.Length - 1);
         string? receiverProto = null;
         for (int i = 0; i < drefs.Length - 1; i++)
@@ -801,7 +802,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var drefs = se.dataReference();
         bool identForm = se.nonNumericLiteral() is null;
         int targetCount = identForm ? drefs.Length - 1 : drefs.Length;
-        if (targetCount < 1) return new BoundUnsupported("SET … TO ENTRY — no receiving operand");
+        if (targetCount < 1)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ENTRY with no receiving operand (ISO §14.9.39.2)");
         if (BindProgramAddressTargets(drefs, targetCount, "SET … TO ENTRY") is not { } targets)
             return new BoundNop();
         // The receiving operands AS WRITTEN — a statement ECHO names them (kb/Work PB388); only the FORM
@@ -881,7 +883,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // under `pai`, not flattened into this context's dataReference list — unlike the FUNCTION twin, whose
         // sender phrase is written inline in setFunctionAddressStatement and therefore has to drop the last
         // element. Getting that wrong is silent: the last receiver is simply never screened or stored.
-        if (drefs.Length < 1) return new BoundUnsupported("SET … TO ADDRESS OF PROGRAM — no receiving operand");
+        if (drefs.Length < 1)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ADDRESS OF PROGRAM with no receiving operand (ISO §14.9.39.2)");
         if (BindProgramAddressTargets(drefs, drefs.Length, "SET … TO ADDRESS OF PROGRAM") is not { } targets)
             return new BoundNop();
         // The receiving operands AS WRITTEN — every echo of the statement below names them, and the two

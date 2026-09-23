@@ -103,7 +103,8 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // CORRESPONDING test above, so what remains here is a defensive arm over the one printed receiving
         // shape, and it must not claim an unimplemented feature that this binder in fact implements.
         if (move.moveSendingOperand() is not { } send || move.moveReceivingPhrase()?.dataReferenceList() is not { } targets)
-            return new BoundUnsupported($"MOVE statement form '{move.GetText()}' (ISO §14.9.25.2 Format 1)");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"MOVE '{move.GetText()}': Format 1 prints one sending operand and "
+                + "TO identifier-2 … (ISO §14.9.25.2)");
         BoundOperand source = send.literal() is { } lit ? host.Expr.LiteralOperand(lit)
             : send.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
             // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).

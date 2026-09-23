@@ -92,7 +92,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
-                return new BoundUnsupported($"INITIATE '{rn.GetText()}' — not a report description entry (ISO §14.9.21.3 SR1)");
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
+                    + "description entry in the report section (ISO §14.9.21.3 SR1)");
             members.Add(new BoundInitiate([r]));
         }
         return BoundImplicitSeries.Of(members);
@@ -123,7 +124,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     + "DETAIL group (ISO §14.9.16.3 SR1)");
             return new BoundGenerate(report!, group);
         }
-        return new BoundUnsupported($"GENERATE '{name}' names neither a detail report group nor a report (ISO §14.9.16.3 SR1/SR2)");
+        // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
+        // caller") — so this is the report, never a deferral (kb/Work PB909).
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO §14.9.16.3 SR1) "
+            + "nor a report description entry (SR2)");
     }
 
     /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46 SR1; §14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
@@ -135,7 +139,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
-                return new BoundUnsupported($"TERMINATE '{rn.GetText()}' — not a report description entry (ISO §14.9.46.3 SR1)");
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
+                    + "description entry in the report section (ISO §14.9.46.3 SR1)");
             members.Add(new BoundTerminate([r]));
         }
         return BoundImplicitSeries.Of(members);

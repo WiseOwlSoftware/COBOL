@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Bound;
 using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
@@ -130,7 +131,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         foreach (var entry in al.alterEntry())
         {
             if (entry.procedureName() is not { Length: >= 2 } names)
-                return new BoundUnsupported($"ALTER entry '{entry.GetText()}' (malformed)");
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"ALTER '{entry.GetText()}': each ALTER entry is procedure-name-1 TO "
+                    + "[PROCEED TO] procedure-name-2 (X3.23-1985 ALTER statement)");
             // ⛔ BOTH ALTER OPERANDS ARE procedure-names AND GO THROUGH THE ONE RESOLUTION (kb/Work PB390):
             // an unresolvable name is reported at COMPILE time, not staged to a run-time abort blaming a gap in
             // COBOL.NET. proc-1 additionally has to be a PARAGRAPH (a section resolves to a multi-pc range and

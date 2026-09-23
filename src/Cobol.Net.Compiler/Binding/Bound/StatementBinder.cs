@@ -382,6 +382,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int savedLine = StatementLine, savedActivations = data.OperandActivations;
         StatementLine = s.Start.Line;
         data.OperandActivations = 0;
+        int errorMark = data.Edition.Diagnostics.Count;
         var core = BindStatementCore(s);
         // ⛔ THE DEFERRAL ANNOUNCES ITSELF (kb/Work PB236). `BoundUnsupported` was the carrier for three
         // incompatible jobs — a feature COBOL.NET has not built, an ill-formed OPERAND, and an illegal
@@ -397,7 +398,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // measured (two of START's five refusals carried a diagnostic and three did not). A WARNING, not an
         // error: the gap is the COMPILER's, so it must not fail a compile the standard gives a meaning to —
         // §1.4's staged-loud posture is unchanged, it merely stopped being silent.
-        if (core is BoundUnsupported unsupported)
+        // ⛔ AND ONLY FOR A STATEMENT NOTHING REFUSED (kb/Work PB909). A site that knows the SOURCE is wrong builds
+        // a BoundRejected, which reported its own error; but an operand the resolver returned null for is the one
+        // case a site cannot classify — the null is either REPORTED (an undefined name, a subscript on a
+        // non-table item) or a shape the resolver has not built — and the error count since this statement began
+        // is what tells the two apart. A statement whose bind already drew an error is a refused statement: the
+        // compile fails anyway, and announcing a gap in COBOL.NET on top of it (`INSPECT A(1) …` on a non-table
+        // item used to draw COBOLNET2096 AND "not implemented") sends the user after the wrong party.
+        if (core is BoundUnsupported unsupported && data.Edition.Diagnostics.Count == errorMark)
             data.Edition.Warning(DiagnosticCatalog.StatementNotImplemented,
                 $"{unsupported.Feature} — not implemented; reaching this statement aborts the run unit "
                 + "(COBOLNET_DESIGN §1.4)");
@@ -479,7 +487,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.invokeStatement() is { } inv => Oo.OoBindInvoke(inv),   // §14.9.23 — OO method invocation (2002+ grammar-gated)
         _ when s.callStatement() is { } call => Call.BindCall(call),
         _ when s.cancelStatement() is { } cancel => Call.BindCancel(cancel),
-        _ when s.entryStatement() is not null => new BoundUnsupported("ENTRY (ISO/IEC 1989 defines no ENTRY statement — vendor extension; interprogram design)"),
+        // ENTRY: ISO/IEC 1989 defines no ENTRY statement — a vendor extension, which this implementation admits under
+        // no dialect (kb/Work PB909; the COBOLNET1941/1970 posture). It used to be a DEFERRAL (a COBOLNET1756
+        // warning and a run-time abort), which is a promise to build something the standard does not contain.
+        _ when s.entryStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and "
+            + "this implementation admits none (ISO §4.2.2). Make the entry point a separate program, or a "
+            + "nested program, and CALL it"),
         // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated ≥2002 by
         // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
         // conforming '85 posture; accepted-inert as a no-op.

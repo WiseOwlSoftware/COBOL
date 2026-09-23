@@ -122,4 +122,19 @@ public sealed class SubscriptAdmissionDriftTests
         Assert.Contains("DiagnosticCatalog.SubscriptOnNonTableItem", text, StringComparison.Ordinal);
         Assert.Contains("DiagnosticCatalog.SubscriptCountMismatch", text, StringComparison.Ordinal);
     }
+
+    /// <summary>kb/Work PB681 — the THIRD arm of the written-subscript family, §8.4.2.3.3 SR5's omitted list, on
+    /// EVERY entry that resolves an identifier: <c>Resolve</c>, <c>ResolveForItem</c> (the condition-name
+    /// conditional variable) and <c>ResolveForAddressOf</c>. Each used to return an unreported null — or, for
+    /// ADDRESS OF, the first occurrence's address — so <c>MOVE E TO B</c> over a table element compiled clean and
+    /// aborted at run time. An entry that forgets the omitted arm is the two-arm-dispatch shape
+    /// (feedback_two_arm_dispatch); this pins all three.</summary>
+    [Fact]
+    public void TheOmittedSubscriptList_IsScreenedAtEveryIdentifierEntry()
+    {
+        string text = File.ReadAllText(ReferenceResolver);
+        Assert.Equal(3, Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, 0\)").Count);
+        Assert.Single(Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, exprs\.Count\)"));
+        Assert.Contains("DiagnosticCatalog.TableElementNotSubscripted", text, StringComparison.Ordinal);
+    }
 }

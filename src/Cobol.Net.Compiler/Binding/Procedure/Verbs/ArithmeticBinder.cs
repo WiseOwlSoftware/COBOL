@@ -100,7 +100,9 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindMultiply(Core.MultiplyStatementContext mul)
     {
-        if (mul.multiplyOperand() is not { } aCtx) return new BoundUnsupported("MULTIPLY form");
+        if (mul.multiplyOperand() is not { } aCtx)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "MULTIPLY with no multiplicand: every MULTIPLY format prints identifier-1 or "
+                + "literal-1 after the verb (ISO §14.9.26.2)");
         var a = host.Expr.BindExpr(aCtx);
         var byOps = mul.multiplyByOperand();
         var sizeErr = host.BindSizeError(mul.arithmeticOnSizeError());
@@ -133,7 +135,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindDivide(Core.DivideStatementContext div)
     {
-        if (div.divideOperand() is not { } aCtx) return new BoundUnsupported("DIVIDE form");
+        if (div.divideOperand() is not { } aCtx) return DivideShape();
         var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
         var sizeErr = host.BindSizeError(div.arithmeticOnSizeError());
 
@@ -206,8 +208,13 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §14.9.12.2 Formats 3–5)");
             return new BoundNop();
         }
-        return new BoundUnsupported("DIVIDE form");
+        return DivideShape();
     }
+
+    /// <summary>The ONE refusal for a DIVIDE the grammar parsed but no DIVIDE format prints (kb/Work PB909) —
+    /// both of the union parse's defensive arms, so they cannot drift apart.</summary>
+    private BoundRejected DivideShape() => BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "DIVIDE: every DIVIDE format prints "
+        + "identifier-1 or literal-1 followed by an INTO or a BY phrase (ISO §14.9.12.2)");
 
     /// <summary>§14.9.2.2 / §14.9.44.2 / §14.9.26.2 / §14.9.12.2's ONE Format-2 discipline (kb/Work PB134):
     /// the TO/FROM/BY/INTO operand of a GIVING form is ONE `{identifier | literal}` sending operand with no
@@ -242,7 +249,9 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // 2002 introduction gate lives in VersionConformancePass.VisitComputeStatement (GateBooleanOperators
         // — kb/Work PB157 corrected the stale {is2002()}? claim here).
         if (compute.booleanExpression() is { } boolExpr) return BindComputeBoolean(compute, boolExpr);
-        if (compute.arithmeticExpression() is not { } expr) return new BoundUnsupported("COMPUTE without an expression");
+        if (compute.arithmeticExpression() is not { } expr)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "COMPUTE with no expression after '=': both COMPUTE formats print an "
+                + "arithmetic or a boolean expression (ISO §14.9.8.2)");
         // F1 → F2 re-route: `COMPUTE bool-item = bool-item` parses as Format 1 (a sole-identifier RHS predicts
         // the arithmetic alt), so a boolean receiver or a sole boolean-category RHS re-routes to the boolean
         // bind (the "ANTLR alternative-order reality" precedent). A boolean RHS/receiver never reaches the
