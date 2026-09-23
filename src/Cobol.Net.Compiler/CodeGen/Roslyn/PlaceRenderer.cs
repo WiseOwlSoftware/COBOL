@@ -41,13 +41,14 @@ internal static class PlaceRenderer
             ? RuntimeApi.NumFormatImageFloat(Read(n.Inner), n.Inner.Item.ProfileName)
             : RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
         // A GROUP viewed as its character image for reference modification (ISO §8.4.3.3.3 SR1 / §8.4.3.3.4 GR6 —
-        // kb/Work PB70): the generated AsImage(); an occurs-depending group with data-name-1 outside sends its
-        // CURRENT-count part (§13.18.38 GR8, so a position past the count is EC-BOUND-REF-MOD, not a read of the
-        // unused area); a Tier-C group (a VARIABLE-LENGTH group or a group with a pointer/object-class leaf, kb/Work PB164 + R40) has no image and stays the loud island.
-        GroupImagePlace g => !g.Inner.Item.IsImageCapable
-            ? EmitText.LoudValue("string", TierCIsland.Reason(g.Inner.Item, "reference modification of group"))
-            : g.Inner is OdoGroupPlace { DependingInside: false } odo ? SendingImage(odo)
-            : GroupImage(g.Inner),
+        // kb/Work PB70), READ: §8.4.3.3.4 GR5 makes the unique data item "a subset of the data item referenced by
+        // identifier-1", so a ref-mod READ references the group as a SENDING operand and an occurs-depending group
+        // sends only its CURRENT-count part under BOTH §13.18.38.4 GR8 arms — GR8a (data-name-1 outside) and GR8b
+        // ("included in the same group and the group data item is referenced as a sending operand"). A position
+        // past the count is therefore EC-BOUND-REF-MOD, never a read of the unused table area (kb/Work PB202: this
+        // arm used to gate the slice on data-name-1 lying OUTSIDE and read the MAXIMUM image for a depending-inside
+        // group). The receiving direction is GroupImageAs(…, Receiving) — the splice base in the Write arm below.
+        GroupImagePlace g => GroupImageAs(g.Inner, AccessDir.Sending, "reference modification of group"),
         // A BIT GROUP reference-modified in BIT POSITIONS (ISO §8.4.3.3.4 GR5a; §8.4.3.3.3 SR1's last sentence;
         // §13.18.29.4 GR1b's as-if PICTURE 1(m)) — kb/Work PB173. AsBits() is the generated unpacked boolean
         // string (GroupImageCodec.EmitBitMethods, already emitted for every bit group); the RefModPlace above
@@ -149,7 +150,7 @@ internal static class PlaceRenderer
         // or truncation to the right". `OperandPic` is the ONE category reader — it answers the bit group's as-if
         // PICTURE 1(m) (Boolean), which is what RefModPlace.Category on the very next line of Place.cs already
         // used; D20's consumer-switch sweep named that site and omitted these two, and that omission IS the bug.
-        RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(Read(r.Inner), RmStart(r), RmLen(r), rhs,
+        RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(SpliceBase(r.Inner), RmStart(r), RmLen(r), rhs,
             r.Inner.Item.OperandPic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
         // Decode the spliced image back into the typed field (via the FormatImage/StoreImage pair — the same
         // bytes the read produced, so a splice round-trips whatever the item's byte form is).
@@ -303,8 +304,24 @@ internal static class PlaceRenderer
     /// <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> — §8.4.3.3.4 GR5c allows the zero-length result, and §14.9.25.4 GR1
     /// makes the zero-length MOVE receiver a no-op, never a raise).</summary>
     public static string WriteFill(RefModPlace p, string fillChar) =>
-        Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar,
+        Write(p.Inner, RuntimeApi.StrSpliceInto(SpliceBase(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar,
             allowZeroLength: p.AllowZeroLength));
+
+    /// <summary>The BASE a reference-modified RECEIVER splices into — the inner place read in the RECEIVING
+    /// direction (kb/Work PB202). A ref-mod receiver's group is a §13.18.38.4 GR8 RECEIVING operand, so a
+    /// depending-INSIDE occurs-depending group presents its MAXIMUM length (GR8b's second sentence — "If the
+    /// group is a receiving operand, the maximum length of the group will be used"), while a depending-OUTSIDE
+    /// one presents its current extent (GR8a) and its store is the ReceiveInto splice. Reading the base with the
+    /// SENDING reader instead truncates a depending-inside group to its current extent, and the maximum-length
+    /// store then writes that short image back over the whole group — the receiving twin of the read defect,
+    /// on all three channels (image, bit, national).</summary>
+    private static string SpliceBase(Place inner) => inner switch
+    {
+        GroupImagePlace g => GroupImageAs(g.Inner, AccessDir.Receiving, "reference modification into group"),
+        BitImagePlace b => BitsAs(b.Inner, AccessDir.Receiving),
+        NatImagePlace n => NatAs(n.Inner, AccessDir.Receiving),
+        _ => Read(inner),
+    };
 
     /// <summary>
     /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §14.9.25.4 GR4 — a group receiver is
@@ -340,8 +357,8 @@ internal static class PlaceRenderer
         // group-image store can land on one; distributing it into the spanned leaves IS the WriteRenames store
         // the Write switch already owns, never a second FromImage (kb/Work PB430).
         RenamesPlace => Write(group, image),
-        _ when !group.Item.IsImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
-        OdoGroupPlace { DependingInside: false } odo => ReceiveInto(odo, image),
+        _ when !group.ImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),   // the OPERAND's capability (kb/Work PB189)
+        OdoGroupPlace odo when UsesCurrentExtent(odo, AccessDir.Receiving) => ReceiveInto(odo, image),   // GR8a
         OdoGroupPlace odo => WriteGroupImage(odo.Inner, image, context),   // GR8b — the maximum length, whatever the inner's storage shape
         DynTablePlace dyn => $"{RenderPath(dyn.Path, AccessDir.Receiving)}.FromImage({image});",
         _ => $"{Read(group)}.FromImage({image});",
@@ -373,7 +390,7 @@ internal static class PlaceRenderer
         // The MemberPlace inner still meets the guard below with the exact predicate, so the CS1061 fix
         // holds: guard fires ⟺ the struct has no AsImage.
         OdoGroupPlace o => GroupImage(o.Inner, context),
-        _ when !group.Item.IsImageCapable =>
+        _ when !group.ImageCapable =>   // the OPERAND's capability (kb/Work PB189)
             EmitText.LoudValue("string", TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.AsImage()",
     };
@@ -438,7 +455,20 @@ internal static class PlaceRenderer
     /// into <c>.AsImage()</c> (CS1061), and it returned the MAXIMUM image where GR8 wants the current extent
     /// (kb/Work PB178). One rule, one place.</para></summary>
     public static string SendingGroupImage(Place group, string context = "whole-group image of") =>
-        group is OdoGroupPlace o ? SendingImage(o, context) : GroupImage(group, context);
+        GroupImageAs(group, AccessDir.Sending, context);
+
+    /// <summary>⛔ THE §13.18.38.4 GR8 DIRECTION LAW, written once (kb/Work PB202): an occurs-depending group
+    /// operand uses only its CURRENT-count part when it is SENDING (GR8a and GR8b agree) or when data-name-1 lies
+    /// OUTSIDE it (GR8a, either direction); only a depending-INSIDE group as a RECEIVING operand takes the maximum
+    /// length (GR8b's second sentence). Every channel reader below — image, bit, national — asks THIS, so the two
+    /// directions cannot drift apart per channel again.</summary>
+    private static bool UsesCurrentExtent(OdoGroupPlace o, AccessDir dir) =>
+        dir == AccessDir.Sending || !o.DependingInside;
+
+    /// <summary>A group operand's character image as seen in direction <paramref name="dir"/> — the GR8
+    /// current-extent slice when <see cref="UsesCurrentExtent"/>, otherwise the full (maximum) image.</summary>
+    private static string GroupImageAs(Place group, AccessDir dir, string context) =>
+        group is OdoGroupPlace o && UsesCurrentExtent(o, dir) ? SendingImage(o, context) : GroupImage(group, context);
 
     /// <summary>⛔ <b>THE ONE READER OF A GROUP OPERAND'S SENDING VALUE</b> — the dispatch over ISO §13.18.29.4's
     /// three kinds of group, written once. A BIT group is "treated as though it were an elementary data item of
@@ -474,8 +504,12 @@ internal static class PlaceRenderer
     /// <para>A Tier-B <c>RedefViewPlace</c> never reaches here: <c>ReferenceResolver</c> does not wrap one in a
     /// <see cref="BitImagePlace"/> (kb/Work PB203 holds that gap), and §13.18.44.3 SR5 bars an occurs-depending
     /// table on either side of a REDEFINES, so <c>OdoGroupPlace</c> over a view cannot carry one either.</para></summary>
-    public static string SendingBits(Place group) =>
-        group is OdoGroupPlace o
+    public static string SendingBits(Place group) => BitsAs(group, AccessDir.Sending);
+
+    /// <summary>A bit group's boolean-position string as seen in direction <paramref name="dir"/> (the GR8 law
+    /// is <see cref="UsesCurrentExtent"/>).</summary>
+    private static string BitsAs(Place group, AccessDir dir) =>
+        group is OdoGroupPlace o && UsesCurrentExtent(o, dir)
             ? $"{Read(o.Inner)}.AsBits().Substring(0, {LengthExpr(o)})"
             : $"{Read(group)}.AsBits()";
 
@@ -484,7 +518,7 @@ internal static class PlaceRenderer
     /// modifies only the current extent: the stored prefix is spliced over the live bit string, positions past the
     /// count untouched. GR8b (data-name-1 inside) keeps the maximum length, which is the plain arm.</summary>
     public static string WriteBits(Place group, string bits) =>
-        group is OdoGroupPlace { DependingInside: false } o
+        group is OdoGroupPlace o && UsesCurrentExtent(o, AccessDir.Receiving)
             ? $"{Read(o.Inner)}.FromBits({RuntimeApi.StrSpliceInto($"{Read(o.Inner)}.AsBits()", "1", LengthExpr(o), bits, "'0'", allowZeroLength: true)});"
             : $"{Read(group)}.FromBits({bits});";
 
@@ -499,8 +533,12 @@ internal static class PlaceRenderer
     /// <para>The ODO extent arrives in BYTES (<see cref="CharLengthExpr"/> slices the AsImage channel), so the
     /// national-position count is that extent over <c>CobolBits.BytesPerNational</c> — the ONE pinned size
     /// (§13.18.60.4 GR8 leaves it to the implementor; D-N1 pins two), never a literal 2 written here.</para></summary>
-    public static string SendingNat(Place group) =>
-        group is OdoGroupPlace o
+    public static string SendingNat(Place group) => NatAs(group, AccessDir.Sending);
+
+    /// <summary>A national group's national-position string as seen in direction <paramref name="dir"/> (the GR8
+    /// law is <see cref="UsesCurrentExtent"/>).</summary>
+    private static string NatAs(Place group, AccessDir dir) =>
+        group is OdoGroupPlace o && UsesCurrentExtent(o, dir)
             ? $"{Read(o.Inner)}.AsNat().Substring(0, {NatLengthExpr(o)})"
             : $"{Read(group)}.AsNat()";
 
@@ -509,7 +547,7 @@ internal static class PlaceRenderer
     /// the group) modifies only the current extent; GR8b keeps the maximum length, the plain arm — exactly
     /// <see cref="WriteBits"/>'s split.</summary>
     public static string WriteNat(Place group, string value) =>
-        group is OdoGroupPlace { DependingInside: false } o
+        group is OdoGroupPlace o && UsesCurrentExtent(o, AccessDir.Receiving)
             ? $"{Read(o.Inner)}.FromNat({RuntimeApi.StrSpliceInto($"{Read(o.Inner)}.AsNat()", "1", NatLengthExpr(o), value, null, allowZeroLength: true)});"
             : $"{Read(group)}.FromNat({value});";
 

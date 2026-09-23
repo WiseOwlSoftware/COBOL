@@ -33,7 +33,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // member under REDEFINES is even legal is kb/Work PB177's screen question — the emitter defends
         // regardless, per the GroupImage doc's own law about window shapes).
         var parts = d.Operands.Select(o =>
-            o is BoundFieldOperand { Place: { Item: { IsGroup: true, IsImageCapable: false } } vp }
+            o is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false } vp }
                 && vp is not RedefViewPlace
                 && vp.Item.CurrentExtentImageCapable
             ? $"{PlaceRenderer.Read(vp)}.CurrentImage()"

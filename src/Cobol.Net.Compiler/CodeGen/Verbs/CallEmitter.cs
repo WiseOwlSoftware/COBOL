@@ -529,7 +529,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // 8.5.1.12" — an admission, checked at bind by OoConformance.DescriptionMismatch — so staging it
             // loud here refused conforming source. Only a group with NO boundary image at all (a
             // pointer/object-class leaf, or a variable-length shape outside the current-extent gate) is loud.
-            if (p.Item.IsGroup && !p.Item.BoundaryImageCapable && p is not RedefViewPlace)
+            // Asked of the OPERAND (Place.BoundaryImageCapable — a subscripted dynamic-table element has an image
+            // although its entry does not, kb/Work PB189).
+            if (p.Item.IsGroup && !p.BoundaryImageCapable && p is not RedefViewPlace)
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group"))
                     + "), null)";

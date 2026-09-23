@@ -126,8 +126,35 @@ public sealed class BoundaryImageChannelTests
             string body = src[at..(src.IndexOf("};", at, StringComparison.Ordinal) + 2)];
             Assert.Contains("RedefViewPlace", body);
             Assert.Contains("OdoGroupPlace", body);
-            Assert.Contains("IsImageCapable", body);
+            // ⛔ The capability is asked of the OPERAND (Place.ImageCapable), never of the declaring entry
+            // (kb/Work PB189): `group.Item.IsImageCapable` refused a subscripted dynamic-capacity-table ELEMENT —
+            // an ordinary fixed-length group, §8.5.1.12.1 — although its struct carries AsImage().
+            Assert.Contains("group.ImageCapable", body);
+            Assert.DoesNotContain("Item.IsImageCapable", body);
         }
+    }
+
+    /// <summary>⛔ THE §13.18.38.4 GR8 DIRECTION LAW IS WRITTEN ONCE (kb/Work PB202). GR8a and GR8b agree that a
+    /// SENDING occurs-depending group uses only its current-count part; only a depending-INSIDE group as a
+    /// RECEIVING operand takes the maximum. The ref-mod READ arm used to spell its own
+    /// <c>OdoGroupPlace { DependingInside: false }</c> test and read the MAXIMUM image of a depending-inside group,
+    /// while the plain MOVE path (through <c>SendingGroupImage</c>) was right — one rule, two spellings, one wrong.
+    /// So: no <c>DependingInside</c> pattern anywhere in the renderer but <c>UsesCurrentExtent</c>; the ref-mod read
+    /// arm is the SENDING view; and the ref-mod RECEIVER's splice base is the RECEIVING view on every channel (its
+    /// sending-direction read truncated a depending-inside national group under the maximum-length store).</summary>
+    [Fact]
+    public void PlaceRenderer_Gr8DirectionLaw_IsOnePredicate_AndTheRefModArmsAskIt()
+    {
+        string src = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs"));
+        Assert.DoesNotContain("DependingInside: false", src);
+        Assert.Contains("dir == AccessDir.Sending || !o.DependingInside", src);
+        Assert.Contains("GroupImagePlace g => GroupImageAs(g.Inner, AccessDir.Sending,", src);
+        Assert.Contains("RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(SpliceBase(r.Inner)", src);
+        Assert.Contains("Write(p.Inner, RuntimeApi.StrSpliceInto(SpliceBase(p.Inner)", src);
+        foreach (string arm in new[] { "GroupImagePlace g => GroupImageAs(g.Inner, AccessDir.Receiving",
+                                       "BitImagePlace b => BitsAs(b.Inner, AccessDir.Receiving)",
+                                       "NatImagePlace n => NatAs(n.Inner, AccessDir.Receiving)" })
+            Assert.Contains(arm, src);
     }
 
     /// <summary>The BIT channel is a two-arm dispatch too (kb/Work PB173): a <c>BitImagePlace</c> without BOTH
@@ -147,7 +174,10 @@ public sealed class BoundaryImageChannelTests
         string src = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs"));
         Assert.Contains("BitImagePlace b => SendingBits(b.Inner)", src);
         Assert.Contains("BitImagePlace b => WriteBits(b.Inner, rhs)", src);
-        foreach (string one in new[] { "SendingBits", "WriteBits" })
+        // SendingBits delegates to the direction-parameterized BitsAs (kb/Work PB202 — the GR8 direction law), so
+        // the arm-carrying bodies are BitsAs and WriteBits.
+        Assert.Contains("string SendingBits(Place group) => BitsAs(group, AccessDir.Sending);", src);
+        foreach (string one in new[] { "BitsAs", "WriteBits" })
         {
             int at = src.IndexOf($"string {one}(", StringComparison.Ordinal);
             Assert.True(at > 0, $"PlaceRenderer.{one} not found — the ONE bit {(one.StartsWith("Write") ? "writer" : "reader")} was renamed or removed.");

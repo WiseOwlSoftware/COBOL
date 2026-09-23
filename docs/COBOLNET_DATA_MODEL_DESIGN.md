@@ -993,7 +993,9 @@ remaining question is a syntax rule reported by `CapacityPlaceOf`, never a "not 
 
 **Group image (decided).** A dynamic table is NOT image-capable (`IsCharacterImage`/`IsImageCapable` return false) —
 a containing group drops out of the STATIC record codec exactly like the Tier-C float/COMP-5 island; the element
-`record struct` keeps its own AsImage/FromImage (single-element MOVE works). A containing group instead carries a
+`record struct` keeps its own AsImage/FromImage, and a SUBSCRIPTED element is an ordinary fixed-length group operand
+(§8.5.1.12.1 — the dynamic axis is the table's): `Place.ImageCapable` answers `ElementImageCapable` for a
+`DynTablePlace` over the table entry, so DISPLAY / MOVE / ref-mod / CALL of `T(n)` use the element image (kb/Work PB189). A containing group instead carries a
 **CURRENT-EXTENT** codec, `AsVarImage()`/`FromVarImage()` over `CobolVarGroup` (gated on
 `DataItem.CurrentExtentImageCapable`; kb/Work PB204) — the §8.5.1.12 model as a wire form: the fixed run with every
 variable component collapsed to nothing, plus each component's current content in order. **That codec, not a byte

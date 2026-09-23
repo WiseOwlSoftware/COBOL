@@ -290,7 +290,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // character group — its fixed-point leaves decode their zoned slices (GR4: filled without
             // consideration for the individual items, over the implementor digit-image representation). Only
             // the genuinely incapable receiver (a VARIABLE-LENGTH group or a group with a pointer/object-class leaf, kb/Work PB164 + R40) stays loud (§1.4).
-            if (!target.Item.IsImageCapable)
+            if (!target.ImageCapable)   // the OPERAND's capability — a dynamic-table ELEMENT has an image (kb/Work PB189)
             {
                 ctx.Writer.Line(LoudStmt(TierCIsland.Reason(target.Item, "MOVE to group")));
                 return;
@@ -398,7 +398,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ? g.Item.CurrentExtentImageCapable
                 ? PlaceRenderer.VarGroupImage(g, "the sending variable-length group")
                 : null
-            : VariableLengthCompatibility.CorrespondingSpans(g.Item, other) is { } spans && g.Item.IsImageCapable
+            : VariableLengthCompatibility.CorrespondingSpans(g.Item, other) is { } spans && g.ImageCapable
                 ? RuntimeApi.VarGroupFromFixedImage(
                     PlaceRenderer.SendingGroupImage(g, "the sending group of a variable-length group MOVE"),
                     SpanArray(spans))
@@ -411,7 +411,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ? g.Item.CurrentExtentImageCapable
                 ? PlaceRenderer.WriteVarGroupImage(g, carrier, "the receiving variable-length group")
                 : null
-            : VariableLengthCompatibility.CorrespondingSpans(g.Item, other) is { } spans && g.Item.IsImageCapable
+            : VariableLengthCompatibility.CorrespondingSpans(g.Item, other) is { } spans && g.ImageCapable
                 ? PlaceRenderer.WriteGroupImage(g,
                     RuntimeApi.VarGroupToFixedImage(carrier, g.Item.ImageWidth, SpanArray(spans)),
                     "the receiving group of a variable-length group MOVE")

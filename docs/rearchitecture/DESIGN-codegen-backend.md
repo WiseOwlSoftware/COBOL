@@ -207,9 +207,13 @@ binding**. The bind orchestration lives in the binder phase (`BinderDriver.Bind`
 **Invariant C-1 — THE ONE GROUP-IMAGE CHANNEL.** The character image of a group operand has exactly four arms,
 and they are stated once, in `PlaceRenderer`: a Tier-B / BASED string-canonical view's `Read` ALREADY IS the
 image (§13.18.44.4 GR1 — one storage area, so a second encoding would be a second storage); an `OdoGroupPlace`
-is unwrapped first, and in a SENDING context sliced to §13.18.38.4 GR8's CURRENT extent (GR8a and GR8b agree on
-the sending direction — only a RECEIVING operand takes the maximum); an imageless group (`IsImageCapable` false)
-stages the Tier-C loud; otherwise it is the struct's generated `AsImage()`. `GroupImage` / `SendingGroupImage` /
+is unwrapped first, and sliced to §13.18.38.4 GR8's CURRENT extent exactly when `UsesCurrentExtent(odo, dir)` says
+so — the direction law written once (GR8a and GR8b agree on the SENDING direction; only a depending-INSIDE group as a
+RECEIVING operand takes the maximum), asked by every channel (`AsImage` / `AsBits` / `AsNat`), by the reference-
+modification READ (a sending reference, §8.4.3.3.4 GR5) and by the ref-mod receiver's splice BASE (`SpliceBase`, the
+receiving direction — kb/Work PB202); an imageless OPERAND (`Place.ImageCapable` false — asked of the referenced
+operand, never of the declaring entry, so a subscripted dynamic-capacity-table element is image-capable although its
+table entry is not, kb/Work PB189) stages the Tier-C loud; otherwise it is the struct's generated `AsImage()`. `GroupImage` / `SendingGroupImage` /
 `WriteGroupImage` / `WriteFullGroupImage` are those arms. **No consumer may spell `.AsImage()` / `.FromImage(`
 for itself**, and each takes a `context` string so routing through the ONE reader costs no diagnostic quality.
 

@@ -75,6 +75,25 @@ public abstract record Place
     /// <para>A consumer whose question the decoration ANSWERS (the operand's extent, its slice, its coding) must
     /// keep switching on the decorated place — this is for the storage-form switch only.</para></summary>
     public Place Undecorated => this is PlaceDecorator d ? d.Inner.Undecorated : this;
+
+    /// <summary>⛔ <b>DOES THE OPERAND THIS PLACE REFERENCES HAVE A CHARACTER IMAGE?</b> (kb/Work PB189) — the
+    /// capability question asked of the REFERENCED OPERAND, never of the declaring entry. The two differ for
+    /// exactly one shape: a subscripted element of a DYNAMIC-capacity table. The dynamic axis belongs to the
+    /// TABLE (§8.5.1.12.1 — "a group item whose data description has at least one dynamic-length elementary item
+    /// or dynamic-capacity table as a subordinate item"), so the table entry's own
+    /// <see cref="DataItem.IsImageCapable"/> is false, while ONE occurrence of it has no such subordinate and is an
+    /// ordinary fixed-length item whose record struct carries <c>AsImage()</c>/<c>FromImage()</c> (emitted for
+    /// <see cref="DataItem.ElementImageCapable"/>). A consumer that asked the entry refused a legal §14.9.11.4 GR4
+    /// operand (DISPLAY T(3)) at run time although the image sat on the element's struct.
+    /// <para>Decorators forward (the decoration never changes which occurrence is referenced);
+    /// <see cref="DynTablePlace"/> overrides. Every image guard — <c>PlaceRenderer.GroupImage</c>,
+    /// <c>WriteGroupImage</c> and the DISPLAY sender's current-extent arm — asks THIS.</para></summary>
+    public virtual bool ImageCapable => Item.IsImageCapable;
+
+    /// <summary>The operand-level twin of <see cref="DataItem.BoundaryImageCapable"/> (kb/Work PB189): the
+    /// fixed half asks <see cref="ImageCapable"/> (the OPERAND), the variable-length half the entry's own
+    /// current-extent composer.</summary>
+    public bool BoundaryImageCapable => ImageCapable || Item.CurrentExtentImageCapable;
 }
 
 /// <summary>
@@ -93,6 +112,9 @@ public abstract record PlaceDecorator(Place Inner) : Place
 
     /// <inheritdoc/>
     public override DataItem Item => Inner.Item;
+
+    /// <inheritdoc/>
+    public override bool ImageCapable => Inner.ImageCapable;
 }
 
 /// <summary>
@@ -129,6 +151,12 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 
     /// <inheritdoc/>
     public override DataItem Item => ElementItem;
+
+    /// <summary>A subscripted reference to the dynamic-capacity table entry itself denotes ONE OCCURRENCE, whose
+    /// capability is the element shape's (<see cref="DataItem.ElementImageCapable"/>) — the dynamic axis is the
+    /// table's, not the occurrence's (kb/Work PB189; §8.5.1.12.1). A member path beneath the element asks its
+    /// own item as usual.</summary>
+    public override bool ImageCapable => ElementItem.IsDynamicTable ? ElementItem.ElementImageCapable : ElementItem.IsImageCapable;
 }
 
 /// <summary>
