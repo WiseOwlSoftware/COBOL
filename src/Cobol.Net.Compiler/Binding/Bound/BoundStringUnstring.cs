@@ -32,11 +32,21 @@ public sealed record BoundStringStmt(
 /// GR7 — or a field read at execution) and whether the ALL phrase collapses contiguous occurrences (GR7).</summary>
 public sealed record BoundUnstringDelimiter(BoundOperand Value, bool All);
 
-/// <summary>One UNSTRING receiving area with its optional DELIMITER IN / COUNT IN companions (§14.9.48.2).
-/// <paramref name="NoDelimSize"/> is the GR11b examination size used when no DELIMITED phrase governs: the
-/// receiver's size in character positions, one less when its sign occupies a separate character position
-/// (−1 marks a reference-modified receiver whose size is not static).</summary>
-public sealed record BoundUnstringReceiver(Place Target, Place? DelimiterIn, Place? CountIn, int NoDelimSize);
+/// <summary>One UNSTRING receiving area with its optional DELIMITER IN / COUNT IN companions (§14.9.48.2), and
+/// the STORES ISO §14.9.48.4 GR11 c)/d) make of it — each a <see cref="BoundMove"/> BOUND through
+/// <c>MoveBinder.BindMoveOf</c> from the statement's conceptual item (<see cref="BoundUnstringStmt.Examined"/> /
+/// <see cref="BoundUnstringStmt.Delimiting"/>), because both rules move "according to the rules for the MOVE
+/// statement" (kb/Work PB979). They are child statements, so the generated <c>StatementChildren</c> walk reaches
+/// them like any other move.
+/// <para><paramref name="ZeroFill"/> is GR8's own store for a NUMERIC receiver — "When any examination encounters
+/// two contiguous delimiters, the current receiving area shall be … zero-filled if it is described as numeric" —
+/// which the MOVE rules alone would not give (a zero-length alphanumeric sender is SPACE by §14.9.25.4 GR1/GR2).
+/// Null for every other receiver, where GR8's space fill IS the MOVE rules' answer.</para>
+/// <para>The GR11 b) examination SIZE is not carried: it is the receiving area's size at the moment the
+/// statement executes (an ANY LENGTH or reference-modified receiver has no static one), so the emitter asks
+/// <c>ReceivingStore.ExaminationSize</c> of <paramref name="Target"/> at the point of use.</para></summary>
+public sealed record BoundUnstringReceiver(
+    Place Target, Place? DelimiterIn, Place? CountIn, BoundMove Store, BoundMove? DelimiterStore, BoundMove? ZeroFill);
 
 /// <summary><c>UNSTRING source [DELIMITED BY …] INTO receivers… [WITH POINTER ptr] [TALLYING IN tly]
 /// [ON/NOT ON OVERFLOW …]</c> (ISO §14.9.48).</summary>
@@ -47,4 +57,15 @@ public sealed record BoundUnstringStmt(
     // OperandText.AsString (THE one string-context renderer), it was merely wrapping the Place to get there.
     BoundOperand Source, IReadOnlyList<BoundUnstringDelimiter> Delimiters, IReadOnlyList<BoundUnstringReceiver> Receivers,
     Place? Pointer, Place? Tallying,
-    IReadOnlyList<BoundStatement>? OnOverflow, IReadOnlyList<BoundStatement>? NotOnOverflow) : BoundStatement;
+    IReadOnlyList<BoundStatement>? OnOverflow, IReadOnlyList<BoundStatement>? NotOnOverflow) : BoundStatement
+{
+    /// <summary>GR11 c)'s conceptual item — "the characters examined, excluding any delimiting characters",
+    /// "treated as an elementary national data item if identifier-1 is of category national, and otherwise as an
+    /// elementary alphanumeric data item" (<c>SendingValueTemp.ConceptualCharacterItem</c>). The emitter writes each
+    /// examination into it; every receiver's <see cref="BoundUnstringReceiver.Store"/> moves FROM it.</summary>
+    public required Place Examined { get; init; }
+
+    /// <summary>GR11 d)'s conceptual item — the delimiting characters, same category rule — present exactly when
+    /// some receiver carries a DELIMITER IN phrase.</summary>
+    public Place? Delimiting { get; init; }
+}

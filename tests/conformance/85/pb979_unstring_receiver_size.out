@@ -1,0 +1,8 @@
+RM1  [*ABC*DE*] OVF
+RM2  [DEFG*DE*] 08 OVF
+RM3  [DHEL*DE*]
+SEP  +123 [456] OVF
+GR8  012 000 034 [XXX]
+GR8A [12 ] [   ] [   34]
+DLM  [AB ] [CD ] [ HEL*DE;]
+GRP  [ABCDE] OVF

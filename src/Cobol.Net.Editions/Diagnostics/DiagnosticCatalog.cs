@@ -4683,6 +4683,20 @@ public static class DiagnosticCatalog
         + "— the capacity of the structure's PREFIXED length field (ISO §12.3.7.4 GR18: 65535 for SHORT PREFIXED, "
         + "32767 for SIGNED SHORT PREFIXED), bounded by the implementor maximum.",
         "ISO §13.18.19.3 SR2 / SR4");
+    /// <summary>The all-or-nothing operand-class rule of STRING, UNSTRING and INSPECT (kb/Work PB980) — ONE
+    /// diagnostic for one rule shape, reported through <c>AllOrNothingClass</c>. STRING's half used to report as
+    /// COBOLNET1626 (it shares a numbered rule with STRING's usage sentence); UNSTRING's and INSPECT's were not
+    /// enforced at all.</summary>
+    public static readonly DiagnosticDescriptor CharacterOperandClassMix = new(
+        "COBOLNET2306", "character-operand-class-mix", EditionSeverity.Error,
+        "A STRING, UNSTRING or INSPECT statement mixes operands of class national (or, for INSPECT, class boolean) "
+        + "with operands of another class. STRING §14.9.43.3 SR1: \"If any one of literal-1, literal-2, "
+        + "identifier-1, identifier-2, or identifier-3 is of class national, then all shall be of class national.\" "
+        + "UNSTRING §14.9.48.3 SR3 says the same of identifier-1 through identifier-5 and both literals (a numeric "
+        + "INTO receiver answers with its usage — SR4 pairs usage national with the national operands and usage "
+        + "display with the others). INSPECT §14.9.22.3 SR4 says it of every operand except the TALLYING counter, for "
+        + "class boolean and for class national. A figurative constant takes identifier-1's class and never mixes.",
+        "ISO §14.9.43.3 SR1; §14.9.48.3 SR3; §14.9.22.3 SR4");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

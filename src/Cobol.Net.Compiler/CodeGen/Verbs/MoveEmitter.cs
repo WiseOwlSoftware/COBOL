@@ -132,7 +132,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — the item is n
             // repetitions of its picture symbol, n = the activating argument's length).
             : PlaceRenderer.Write(target, ConvertSource(source, target.Item,
-                target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : null));
+                target.Item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : null));
 
     /// <summary>MOVE of an alphanumeric figurative constant (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE) or an ALL
     /// "literal" containing a non-digit into an ELEMENTARY NUMERIC receiver — the PRE-REMOVAL semantics of a
@@ -212,7 +212,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // The width-fitted image (§14.6.8): receiver character-position count via the ONE canonical ImageWidth
         // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
         // An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the carrier's current length).
-        string gw = item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{item.ImageWidth}";
+        string gw = item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : $"{item.ImageWidth}";
         string image = ReceivingStore.Characters(item, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw);
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B

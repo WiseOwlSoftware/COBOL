@@ -63,7 +63,7 @@ internal sealed class UnitEmitters
         Initialize = new InitializeEmitter(Ctx, Move);
         Corresponding = new CorrespondingEmitter(Ctx, Num, Move, Arith, Ec);
         Inspect = new InspectEmitter(Ctx, Num, Arith);
-        Strings = new StringEmitter(Ctx, Num, Arith, Ec);
+        Strings = new StringEmitter(Ctx, Num, Arith, Ec, Move);
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec, dispatchState);
         Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move);
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);

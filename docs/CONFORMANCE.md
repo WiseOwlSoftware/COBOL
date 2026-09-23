@@ -169,8 +169,8 @@ of an unsupported facility.
   §14.9.39.4 GR39 gives every position a dynamic-length item grows by. **Rejected reading:** the CURRENT length,
   which makes an empty dynamic-length item unwritable by STRING (every character an overflow) and makes UNSTRING
   examine zero characters. Written once for the emitters (`ReceivingStore.DynamicReceivingSize`, beside the one
-  elementary character receiving store `ReceivingStore.Characters`) and read by UNSTRING's binder
-  (`StringUnstringBinder.StrUnstrReceiveSize`); witnessed by `conformance:2014/pb871_dynamic_length_receivers`
+  elementary character receiving store `ReceivingStore.Characters`) and read by UNSTRING's examination size
+  (`ReceivingStore.ExaminationSize`, kb/Work PB979); witnessed by `conformance:2014/pb871_dynamic_length_receivers`
   (STRING into an empty item, into a longer one, through a grown gap and past the maximum; UNSTRING with and
   without DELIMITED BY).
 - **D-DL3 — the DYNAMIC LENGTH STRUCTURE clause: the PREFIXED length field bounds the item, the layout is
@@ -190,6 +190,21 @@ of an unsupported facility.
   name (COBOLNET2257) rather than silently mapped to one of them. Witnessed by `conformance:2014/pb829_dynamic_length_structure`
   (a 70000-character sender stores 65535 / 32767 / 70000 / 70000 / LIMIT 10) and
   `conformance:negative/pb829-dynamic-length-structure-limit`.
+- **D-UN3 — which side of UNSTRING's all-national rule a NUMERIC receiver stands on** (2026-09-22; kb/Work
+  PB980, row `SR-14.9.48.3-3`). §14.9.48.3 SR3 is category-worded: *"If any of identifier-1, identifier-2,
+  identifier-3, identifier-4, identifier-5, literal-1, or literal-2 are of category national, then all shall be of
+  category national."* SR4 then admits identifier-4 *"as usage display and category alphabetic, alphanumeric, or
+  numeric; or as usage national and category national or numeric"*. A numeric receiver is never category national,
+  so SR3 read by category alone would forbid every national sender from reaching SR4's usage-national numeric
+  receiver, leaving that arm of SR4 unusable — no reading of the two rules together supports that. **COBOL.NET
+  reads SR4's own pairing into SR3: a usage-national numeric identifier-4 stands with the national operands, a
+  usage-display numeric identifier-4 with the others**; every other operand answers by its §8.5.2.1 class through
+  `IntrinsicArgumentRules.ClassOf`, and a figurative delimiter (GR7: it takes identifier-1's class) never mixes.
+  **Rejected readings:** category alone (above), and exempting numeric receivers entirely, which would admit a
+  usage-display numeric receiver beside a national sender where SR4's pairing says otherwise. Implemented in
+  `StringUnstringBinder.BindUnstring` over the shared `AllOrNothingClass` predicate (COBOLNET2306); witnessed by
+  `conformance:2002/pb979_unstring_any_length_national` (national sender into two usage-national numeric receivers)
+  and `conformance:negative/pb980-unstring-national-mix`.
 - **D-ODO1 — how many occurrences of an occurs-depending table an INITIALIZE statement initializes, when the
   VALUE phrase is what qualifies them** (2026-09-20; kb/Work PB577, row `GR-13.18.63.4-6`). Two rules answer and
   they do not agree. §13.18.63.4 GR6 says *"the initialization of the associated data item behaves as if the

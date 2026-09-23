@@ -783,6 +783,18 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// because SR3 is ACCEPT's own rule over the same receiver classes Table 16 refuses (kb/Work PB887).</summary>
     public static readonly ImplicitMovePhrase AcceptTemporal =
         new("ACCEPT … FROM DATE/DAY/DAY-OF-WEEK/TIME", "ISO §14.9.1.4 GR6") { ValidityAskedByStatement = true };
+    /// <summary>UNSTRING's store of the examined characters into identifier-4 — ISO §14.9.48.4 GR11 c), "shall be
+    /// moved into the current receiving area according to the rules for the MOVE statement" (kb/Work PB979). The
+    /// validity question is the statement's own: §14.9.48.3 SR4 names the admissible receivers (and SR10 the
+    /// groups), and the sender is the conceptual elementary alphanumeric / national item GR11 c) defines, so the
+    /// MOVE screens are not asked a second time.</summary>
+    public static readonly ImplicitMovePhrase UnstringInto =
+        new("UNSTRING … INTO", "ISO §14.9.48.4 GR11 c)") { ValidityAskedByStatement = true };
+
+    /// <summary>UNSTRING's store of the delimiting characters into identifier-5 — ISO §14.9.48.4 GR11 d), the same
+    /// sentence for the DELIMITER IN phrase; §14.9.48.3 SR2 is the statement's own validity screen for it.</summary>
+    public static readonly ImplicitMovePhrase UnstringDelimiterIn =
+        new("UNSTRING … DELIMITER IN", "ISO §14.9.48.4 GR11 d)") { ValidityAskedByStatement = true };
 
     /// <summary>How ONE receiver of this move names itself in a diagnostic. The name is nullable because a
     /// receiver may be FILLER or an unnamed record area.</summary>

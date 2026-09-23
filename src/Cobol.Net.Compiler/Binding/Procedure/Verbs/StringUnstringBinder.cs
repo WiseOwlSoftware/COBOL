@@ -108,11 +108,16 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // class national." It names FIVE operands and was enforced at none of them — `01 NN PIC N(2). 01 XX
         // PIC X(8). STRING NN DELIMITED BY SIZE INTO XX` compiled clean and transcoded silently. A rule
         // implemented at half of its positions is how this one came to be implemented at one of three.
-        if (Sr1MixesNational(values, delims, intoOperand))
-            return Sr1Reject($"STRING INTO '{intoText}'",
-                "mixes class NATIONAL with a non-national operand; SR1 requires that if any one of literal-1, "
-                + "literal-2, identifier-1, identifier-2 or identifier-3 is of class national, ALL shall be of "
-                + "class national");
+        // The ONE all-or-nothing predicate (kb/Work PB980 — UNSTRING SR3 and INSPECT SR4 state the same rule).
+        CobolClass?[] stringClasses =
+            [IntrinsicArgumentRules.ClassOf(intoOperand), .. values.Select(IntrinsicArgumentRules.ClassOf),
+             .. delims.Select(d => d is null ? null : IntrinsicArgumentRules.ClassOf(d))];
+        if (AllOrNothingClass.Violated(CobolClass.National, stringClasses))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandClassMix, $"STRING INTO '{intoText}' "
+                + AllOrNothingClass.Offence(CobolClass.National, "ISO §14.9.43.3 SR1") + " (ISO §14.9.43.3 SR1)");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+        }
 
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
@@ -170,7 +175,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 delims.Add(new BoundUnstringDelimiter(v, all));
             }
 
-        var receivers = new List<BoundUnstringReceiver>();
+        var areas = new List<(Place Target, Place? DelimiterIn, Place? CountIn)>();
         foreach (var ip in un.unstringIntoPhrase())
             foreach (var t in ip.unstringIntoTarget())
             {
@@ -223,11 +228,34 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                             + "data item without the symbol P (ISO §14.9.48.3 SR5)");
                     countIn = c6;
                 }
-                receivers.Add(new BoundUnstringReceiver(target, delimIn, countIn, StrUnstrReceiveSize(target)));
+                areas.Add((target, delimIn, countIn));
             }
-        if (delims.Count == 0 && receivers.Any(r => r.NoDelimSize < 0))
-            return new BoundUnsupported(
-                "UNSTRING without DELIMITED BY into a reference-modified receiver (no static reception size, ISO §14.9.48.4 GR11b)");
+
+        // ⛔ SR3 (kb/Work PB980): "If any of identifier-1, identifier-2, identifier-3, identifier-4, identifier-5,
+        // literal-1, or literal-2 are of category national, then all shall be of category national" — the rule shape
+        // STRING SR1 and INSPECT SR4 share, asked of the ONE predicate. identifier-6 (COUNT IN) is not named.
+        // ⚖ A NUMERIC identifier-4 answers with its USAGE. SR4 admits a numeric receiver of usage display OR usage
+        // national — "usage display and category alphabetic, alphanumeric, or numeric; or … usage national and
+        // category national or numeric" — and read by CATEGORY alone SR3 would make the second arm unusable (a
+        // numeric receiver is never category national, so no national sender could ever reach it), which no reading
+        // of the two rules together supports. SR4's own pairing is the answer: a usage-national numeric receiver
+        // stands with the national operands, a usage-display one with the others (DETERMINATION D-UN3,
+        // docs/CONFORMANCE.md §3).
+        CobolClass?[] sr3Classes =
+        [
+            IntrinsicArgumentRules.ClassOf(source),
+            .. delims.Select(d => IntrinsicArgumentRules.ClassOf(d.Value)),
+            .. areas.Select(a => a.Target.DenotedItem is not null && a.Target.Item.OperandPic is { Category: PicCategory.Numeric } np
+                ? (CobolClass?)(np.Usage is Usage.National ? CobolClass.National : CobolClass.Alphanumeric)
+                : IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(a.Target))),
+            .. areas.Where(a => a.DelimiterIn is not null).Select(a => IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(a.DelimiterIn!))),
+        ];
+        if (AllOrNothingClass.Violated(CobolClass.National, sr3Classes))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.CharacterOperandClassMix, $"UNSTRING '{senderText}' "
+                + AllOrNothingClass.Offence(CobolClass.National, "ISO §14.9.48.3 SR3") + " (ISO §14.9.48.3 SR3)");
+            return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+        }
 
         Place? pointer = null;
         if (un.unstringWithPointer()?.dataReference() is { } pd)
@@ -253,7 +281,38 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         List<BoundStatement>? onOvf = null, notOvf = null;
         if (un.unstringOnOverflow() is { } ov)
             (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => host.BindBlocks([b]));
-        return new BoundUnstringStmt(source, delims, receivers, pointer, tallying, onOvf, notOvf);
+
+        // ⛔ GR11 c) / d) ARE MOVES (kb/Work PB979). "The characters examined … shall be treated as an elementary
+        // national data item if identifier-1 is of category national, and otherwise as an elementary alphanumeric
+        // data item, and shall be moved into the current receiving area according to the rules for the MOVE
+        // statement" — so the statement's conceptual item is minted once, and every receiver's store is a MOVE
+        // from it bound through the ONE move binder. The emitter used to carry a private copy of the MOVE rules
+        // per receiver category, and a copy is where ANY LENGTH, reference-modified and dynamic-length receivers
+        // went missing. Bound AFTER every syntax screen above, so a refused statement mints nothing.
+        var itemCategory = IntrinsicArgumentRules.ClassOf(source) is CobolClass.National
+            ? PicCategory.National : PicCategory.Alphanumeric;
+        var examined = ConceptualItem(itemCategory, "unstring");
+        Place? delimiting = areas.Any(a => a.DelimiterIn is not null) ? ConceptualItem(itemCategory, "unsdelim") : null;
+        var receivers = new List<BoundUnstringReceiver>(areas.Count);
+        foreach (var (target, delimIn, countIn) in areas)
+            receivers.Add(new BoundUnstringReceiver(
+                target, delimIn, countIn,
+                host.Move.BindMoveOf(new BoundFieldOperand(examined), [target], ImplicitMovePhrase.UnstringInto),
+                delimIn is null ? null
+                    : host.Move.BindMoveOf(new BoundFieldOperand(delimiting!), [delimIn], ImplicitMovePhrase.UnstringDelimiterIn),
+                // GR8 — "zero-filled if it is described as numeric": a receiver DESCRIBED as numeric (a
+                // reference-modified slice is the §8.4.3.3.4 GR6 unique item, not the numeric description).
+                target.DenotedItem is not null && target.Item.OperandPic is { Category: PicCategory.Numeric }
+                    ? host.Move.BindMoveOf(new BoundFigurative('Z'), [target], ImplicitMovePhrase.UnstringInto)
+                    : null));
+        return new BoundUnstringStmt(source, delims, receivers, pointer, tallying, onOvf, notOvf)
+        {
+            Examined = examined, Delimiting = delimiting,
+        };
+
+        Place ConceptualItem(PicCategory category, string tag) =>
+            host.SendingValue.ConceptualCharacterItem(category, tag)
+            ?? throw new InvalidOperationException($"UNSTRING: the {tag} conceptual item (ISO §14.9.48.4 GR11) did not resolve");
     }
 
     /// <summary>Bind a STRING/UNSTRING SENDING operand position (exactly one of a function-identifier, a data
@@ -332,37 +391,10 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         _ => null,
     };
 
-    /// <summary>ISO §14.9.43.3 SR1's SECOND sentence — "If any one of literal-1, literal-2, identifier-1,
-    /// identifier-2, or identifier-3 is of class national, then all shall be of class national." True when the
-    /// statement mixes them.
-    /// <para>The class comes from <c>IntrinsicArgumentRules.ClassOf</c>, THE §8.5.2.1 Table-2 reader, so this
-    /// rule and the MOVE/INITIALIZE class screens cannot disagree about what an operand's class is. An operand
-    /// the table cannot decide statically contributes NO opinion — and a FIGURATIVE constant is exactly such an
-    /// operand BY THE STANDARD'S OWN WORDING, not by this compiler's limits: §8.3.3.6.4 GR1 says "when a
-    /// figurative constant is used in a context requiring national characters, the figurative constant
-    /// represents a national character value. Otherwise … an alphanumeric character value", so SPACE beside a
-    /// national operand IS national and can never be the mismatch.</para></summary>
-    private static bool Sr1MixesNational(BoundOperand[] values, BoundOperand?[] delims, BoundOperand into)
-    {
-        bool anyNational = false, anyOther = false;
-        Tally(into);
-        foreach (var v in values) Tally(v);
-        foreach (var d in delims) if (d is not null) Tally(d);
-        return anyNational && anyOther;
-
-        void Tally(BoundOperand op)
-        {
-            switch (IntrinsicArgumentRules.ClassOf(op))
-            {
-                case CobolClass.National: anyNational = true; break;
-                case null: break;                       // not statically decidable — no opinion
-                default: anyOther = true; break;
-            }
-        }
-    }
-
-    /// <summary>The ONE report site for an ISO §14.9.43.3 SR1 violation — so the three identifier positions and
-    /// the two literal positions cannot drift onto different diagnostics for one sentence.</summary>
+    /// <summary>The ONE report site for SR1's FIRST sentence (ISO §14.9.43.3 — the usage / literal-kind rule) — so
+    /// the three identifier positions and the two literal positions cannot drift onto different diagnostics for
+    /// one sentence. The SECOND sentence (the all-national rule) is the rule shape UNSTRING SR3 and INSPECT SR4
+    /// share, and reports through <see cref="AllOrNothingClass"/> as COBOLNET2306 (kb/Work PB980).</summary>
     private BoundStatement Sr1Reject(string where, string offence)
     {
         ctx.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"{where} {offence} (ISO §14.9.43.3 SR1)");
@@ -450,18 +482,4 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // residue #2 lands — a national-edited ITEM is 0899 at declaration; shaped for that landing.)
         or { Category: PicCategory.National, EditMask: null }
         or { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.National };
-
-    /// <summary>The UNSTRING no-DELIMITED reception size (ISO §14.9.48.4 GR11b): the receiving area's size in
-    /// character positions — a group's image width, an alphanumeric/edited item's character length, and a numeric
-    /// item's DIGIT positions (GR11b excludes a separate sign position; an over-punched sign occupies none). A
-    /// reference-modified receiver has no static size (−1; rejected by the caller when it would be needed).</summary>
-    private static int StrUnstrReceiveSize(Place p) =>
-        p is RefModPlace ? -1
-        : p.Item.IsGroup ? p.Item.AsIfPic?.Length ?? p.Item.ImageWidth   // a bit / national group: its as-if positions (D20/PB79)
-        // A DYNAMIC-LENGTH receiver's size is its MAXIMUM size (DETERMINATION D-DL2, docs/CONFORMANCE.md §3 — the
-        // same reading CodeGen's ReceivingStore.DynamicReceivingSize gives STRING and ACCEPT; kb/Work PB871): its
-        // PICTURE is one symbol (§13.18.19.3 SR1), which made GR11b examine a single character.
-        : p.Item.IsDynamicLength ? p.Item.DynMaxSize
-        : p.Item.Pic is { Category: PicCategory.Numeric } pic ? pic.Digits
-        : p.Item.Pic?.Length ?? 0;
 }

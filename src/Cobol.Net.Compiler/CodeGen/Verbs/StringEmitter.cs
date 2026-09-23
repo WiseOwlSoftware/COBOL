@@ -13,7 +13,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// <summary>The STRING / UNSTRING verb emitter (P7 Step 9d — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter.StringUnstring partial). Every runtime-member
 /// fragment routes through <see cref="RuntimeApi"/>.</summary>
-internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, EcEmitter ec)
+internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, EcEmitter ec, MoveEmitter move)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the ON/NOT-ON
     /// OVERFLOW phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
@@ -118,15 +118,43 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             w.Line($"{ovf} = true;");                                                 // GR15a; GR16a terminates — no transfer
         using (w.Block("else"))
         {
+            // GR11 b)'s examination size is read only when it can govern: with no DELIMITED phrase, or when every
+            // delimiter is an IDENTIFIER — GR9: "When neither literal-1 nor literal-2 is specified and all data items
+            // referenced by identifier-2 and identifier-3 are zero-length items, it is as if the DELIMITED phrase
+            // were not specified". A literal delimiter is never zero-length (SR1), so one of them settles it; an
+            // identifier is a data item OR a function-identifier (§8.4.3.1.2), and either may be zero-length.
+            bool sizeCanGovern = s.Delimiters.All(d => d.Value is BoundFieldOperand or BoundComputedOperand);
             for (int k = 0; k < s.Receivers.Count; k++)
             {
                 var r = s.Receivers[k];
                 string cnt = $"__unsCnt{id}_{k}", fld = $"__unsFld{id}_{k}", dlm = $"__unsDlm{id}_{k}";
-                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, alls, $"{r.NoDelimSize}", ptr, fld, dlm)};");
+                // GR11 b): "the size of the current receiving area" — a property of the receiver AT EXECUTION (an
+                // ANY LENGTH formal's argument length, a reference modifier's evaluated length), asked of the ONE
+                // receiving-size reader (kb/Work PB979: this was a binder integer, 1 for ANY LENGTH, and a
+                // reference-modified receiver was staged as not implemented).
+                string size = sizeCanGovern ? ReceivingStore.ExaminationSize(r.Target) : "0";
+                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, alls, size, ptr, fld, dlm)};");
                 using (w.Block($"if ({cnt} >= 0)"))                                   // −1: not acted upon (GR11g)
                 {
-                    MoveString(r.Target, fld);                                        // GR11c — per the MOVE rules
-                    if (r.DelimiterIn is { } di) MoveString(di, dlm);                 // GR11d — "" ⇒ space fill via the move
+                    // GR11 c): the examined characters ARE the conceptual elementary item, moved "according to
+                    // the rules for the MOVE statement" — by the bound MOVE, never a private copy of its rules.
+                    w.Line(PlaceRenderer.Write(s.Examined, ReceivingStore.Characters(s.Examined.Item, fld, "")));
+                    if (r.ZeroFill is { } zero)
+                    {
+                        // GR8: two contiguous delimiters zero-fill a NUMERIC receiver (the MOVE rules would give
+                        // the zero-length sender's SPACE, §14.9.25.4 GR1/GR2).
+                        using (w.Block($"if ({cnt} == 0)")) move.Emit(zero);
+                        using (w.Block("else")) move.Emit(r.Store);
+                    }
+                    else
+                        move.Emit(r.Store);
+                    if (r.DelimiterStore is { } ds)
+                    {
+                        // GR11 d): the delimiting characters, the same conceptual-item shape; an end-of-data
+                        // delimiting condition leaves them empty, which the MOVE rules space-fill (GR1/GR2).
+                        w.Line(PlaceRenderer.Write(s.Delimiting!, ReceivingStore.Characters(s.Delimiting!.Item, dlm, "")));
+                        move.Emit(ds);
+                    }
                     if (r.CountIn is { } ci) arith.StoreArith(ci, new NumX(cnt, 0), CobolRounding.Truncation);   // GR11e
                     w.Line($"{tly} += 1;");                                           // GR14 — per receiver acted upon
                 }
@@ -189,88 +217,5 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             return;
         }
         w.Line(PlaceRenderer.Write(p, imageExpr));
-    }
-
-    /// <summary>Store a run-time string (the UNSTRING examined characters / matched delimiter) into a receiver
-    /// "according to the rules for the MOVE statement" with the source treated as an ELEMENTARY ALPHANUMERIC item
-    /// (ISO §14.9.48.4 GR11c/GR11d) — the same conversions the bound-operand MOVE path applies, re-rendered here
-    /// for a C# string expression: group ⇒ the GR4 whole-group fill; alphanumeric ⇒ left-justified space-fill /
-    /// right-truncate (a JUSTIFIED receiver right-justifies per §14.9.25.4 GR6c — DataItem.Justified);
-    /// alphanumeric-edited ⇒ the insertion mask; numeric / numeric-edited ⇒ the alphanumeric sender is an UNSIGNED
-    /// integer (§14.9.25.4 GR6), so an empty extraction stores 0 — the GR8 zero-fill — through the receiver's
-    /// PICTURE store (or its edit mask).</summary>
-    private void MoveString(Place target, string valueExpr)
-    {
-        var w = ctx.Writer;
-        if (target is RefModPlace)
-        {
-            // A reference-modified receiver: SpliceInto left-justifies, space-fills, and truncates to the slice.
-            w.Line(PlaceRenderer.Write(target, valueExpr));
-            return;
-        }
-        if (target.Item.IsGroup)
-        {
-            // ⛔ V59 RESIDUE (DA5): IsImageCapable, not the pre-V59 IsCharacterImage. This is a POSITIONAL
-            // character transfer INTO the group's storage — the same job a group MOVE does, and
-            // MoveEmitter already admits a COMP/PACKED group here (§14.9.25.4 GR4: no conversion, filled
-            // without consideration for the individual items). Refusing it while MOVE allows it made two
-            // verbs disagree about the same receiver — and that is not merely a consistency argument:
-            // §14.9.43.4 GR3a says STRING transfers into identifier-3 "in accordance with the MOVE
-            // statement rules for alphanumeric-to-alphanumeric moves", so whatever an alphanumeric MOVE
-            // may deposit into a group, STRING may deposit into the SAME group; §14.9.22.3 SR1 goes
-            // further and names "an alphanumeric or national group item" as a valid INSPECT identifier-1
-            // outright, applying its usage requirement only to an ELEMENTARY operand. Both cite.py-checked. ⚠ "BYTES ARE NOT TEXT" does NOT apply: that rule
-            // governs RENDERING a COMP leaf's VALUE as text (DisplayTextWidth), not writing characters
-            // positionally over its bytes. A pointer/object-leafed or variable-length group is still
-            // imageless and stays loud (kb/Work PB164 + R40 — an INDEX-leaf group images now) — the
-            // wording matches the predicate actually tested.
-            // The ONE group-image store (MOVE rules — §14.9.48.4 GR11c: a §13.18.38.4 GR8a current-extent splice for an
-            // occurs-depending receiver, the Tier-B window, the Tier-C loud island; kb/Work PB80).
-            w.Line(PlaceRenderer.WriteGroupImage(target, RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}"), "UNSTRING INTO group"));
-            return;
-        }
-        switch (target.Item.Pic)
-        {
-            case { Category: PicCategory.NumericEdited } npic:
-            {
-                // §14.9.48.4 GR11 c) transfers the examined characters "according to the rules for the MOVE
-                // statement", so a numeric-edited receiver takes the ALPHANUMERIC-sender rules whole: the
-                // §14.9.25.4 GR6 d) 3 31-character size rule AND GR6 d) 1's EC-DATA-INCOMPATIBLE (kb/Work
-                // PB426/PB844 — UNSTRING is a MOVE-rules channel, not a second private conversion).
-                string unsignedInt = RuntimeApi.NumFromAlphanumeric(valueExpr, sending: true);   // the form dispatch is EditFormatFor's (D21/PB66)
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatFor(npic, new NumX(unsignedInt, 0), unsignedInt, "0", ctx.EditCfg(target.Item.Pic))));
-                return;
-            }
-            case { IsCharacterEdited: true } aePic:
-                // The mask and the item's EDITING rules render together from the one PicInfo (§13.18.40.5 rule 3;
-                // kb/Work PB490). BOTH edited character categories take this arm through the ONE predicate —
-                // Table 7 gives them the same single type of editing (kb/Work PB492). Unreachable for UNSTRING
-                // today (§14.9.48.3 SR4 names the plain categories, screened in StringUnstringBinder), and kept
-                // so the two arms cannot drift apart if SR4's screen ever moves.
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatSimpleInsertion(valueExpr, aePic)));
-                return;
-            case { Category: PicCategory.Alphanumeric or PicCategory.National, Length: var len }:
-                // A JUSTIFIED receiver right-justifies — left space-fill / left truncation (§14.9.25.4 GR6c).
-                // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — n is fixed
-                // by the activation's argument), never its one-symbol Pic.Length. A DYNAMIC-LENGTH receiver takes
-                // the examined characters whole (§14.9.25.4 GR8 -> §8.5.1.10.4) — through the ONE receiving store
-                // (kb/Work PB871). A NATIONAL receiver (SR4 admits it, and GR11c moves a national sender "as an
-                // elementary national data item") stores exactly like alphanumeric on the character substrate
-                // (§14.6.8.5) — the same arm MoveEmitter and the ACCEPT emitter use.
-                string wS = target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{len}";
-                w.Line(PlaceRenderer.Write(target, ReceivingStore.Characters(target.Item, valueExpr, wS)));
-                return;
-            case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
-                // The MOVE-rules channel again (§14.9.48.4 GR11 c) → §14.9.25.4 GR6 d) 3 / d) 1): both arms of
-                // this receiver dispatch take the same checked, capped decode — kb/Work PB426.
-                string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr, sending: true), "0", target.Item.ProfileName);
-                w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage
-                    ? RuntimeApi.NumFormatImage(stored, target.Item.ProfileName)
-                    : ArithmeticEmitter.Narrow(stored, target.Item)));
-                return;
-            default:
-                w.Line(LoudStmt($"UNSTRING receiver '{target.Item.CobolName}' (usage display, category alphabetic/alphanumeric/numeric — ISO §14.9.48.3 SR4)"));
-                return;
-        }
     }
 }

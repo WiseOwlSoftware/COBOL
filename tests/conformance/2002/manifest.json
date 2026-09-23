@@ -350,7 +350,8 @@
   "pb965_odo_group_argument_length",
   "pb894_program_prototype_2002",
   "pb971_program_arg_omitted",
-  "pb971_function_arg_omitted"
+  "pb971_function_arg_omitted",
+  "pb979_unstring_any_length_national"
   ],
   "pending": []
 }

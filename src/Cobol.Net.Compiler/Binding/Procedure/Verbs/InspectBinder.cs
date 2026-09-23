@@ -91,7 +91,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // binary/packed/float/index elementary item has no character image to inspect. USAGE NATIONAL joined
         // the admitted set at Phase 4a (M2-DATA-3): a national item is a plain string under D-N1, so the
         // character-based INSPECT machinery applies unchanged (the cross-class operand-MIX validation across
-        // the whole operand set is residue #12). Display-form boolean items pass the Display arm.
+        // the whole operand set is SR4, enforced in BindPhrases — kb/Work PB980). Display-form boolean items pass the Display arm.
         // ⛔ DA7 — A COMPILE-TIME DIAGNOSTIC, not a run-time stage. The verdict was always right (SR1 genuinely bars
         // an elementary binary/packed/float/index identifier-1), but returning BoundUnsupported meant the illegal
         // program COMPILED CLEAN and threw only when control reached the INSPECT. The standard promises a syntax
@@ -117,6 +117,35 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// two copies of the phrase walk (PB10) — the target's SHAPE is the only thing that differs, and it differs
     /// only in whether a Place exists to store back into.</summary>
     private BoundStatement BindPhrases(BoundOperand targetOperand, Core.InspectStatementContext ins)
+    {
+        // ⛔ ISO §14.9.22.3 SR4 (kb/Work PB980; formerly "Phase-4a residue #12"): "If any of identifier-1,
+        // identifier-3, identifier-4, identifier-5, identifier-6, identifier-7, literal-1, literal-2, literal-3,
+        // literal-4, or literal-5 references an elementary data item or literal of class boolean or national,
+        // then all shall reference a data item or literal of class boolean or national, respectively." The
+        // TALLYING counter (identifier-2) is not named. The rule shape STRING SR1 and UNSTRING SR3 share, asked of
+        // the ONE predicate (AllOrNothingClass).
+        _sr4Operands = [Sr4Entry(targetOperand)];
+        try
+        {
+            var bound = BindPhraseOperands(targetOperand, ins);
+            if (bound is BoundInspect)
+            {
+                var all = _sr4Operands.Select(e => e.Class).ToArray();
+                var triggers = _sr4Operands.Where(e => e.Triggers).Select(e => e.Class).ToArray();
+                foreach (var governing in (ReadOnlySpan<CobolClass>)[CobolClass.Boolean, CobolClass.National])
+                    if (AllOrNothingClass.Violated(governing, all, triggers))
+                    {
+                        ctx.Edition.Error(DiagnosticCatalog.CharacterOperandClassMix, $"INSPECT '{ins.dataReference()?.GetText() ?? "identifier-1"}' "
+                            + AllOrNothingClass.Offence(governing, "ISO §14.9.22.3 SR4") + " (ISO §14.9.22.3 SR4)");
+                        return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
+                    }
+            }
+            return bound;
+        }
+        finally { _sr4Operands = null; }
+    }
+
+    private BoundStatement BindPhraseOperands(BoundOperand targetOperand, Core.InspectStatementContext ins)
     {
         bool backward = ins.BACKWARD() is not null;   // inspect-backward-2023: the pass owns the edition gate (Exec Step E)
 
@@ -262,6 +291,29 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// to the pattern size.</summary>
     private (BoundOperand Op, bool Figurative) InspectCharOperand(Core.InspectCharContext c)
     {
+        var bound = InspectCharOperandOf(c);
+        // SR4's operand record (kb/Work PB980). A FIGURATIVE operand (and a bare symbolic character, which IS one)
+        // takes identifier-1's class by SR3 — "When identifier-1 is of class national, the class of the figurative
+        // constant is national; when identifier-1 is of class boolean, the figurative constant is of class
+        // boolean" — so it is never recorded and can never be the mismatch.
+        if (!bound.Figurative) _sr4Operands?.Add(Sr4Entry(bound.Op));
+        return bound;
+    }
+
+    /// <summary>The operand classes of the INSPECT statement being bound, for ISO §14.9.22.3 SR4 — set for the
+    /// duration of <see cref="BindPhrases"/> and read once at its end. Every sending-operand position funnels
+    /// through <see cref="InspectCharOperand"/>, so recording there reaches all of them without a per-phrase copy.</summary>
+    private List<(CobolClass? Class, bool Triggers)>? _sr4Operands;
+
+    /// <summary>One SR4 entry: the operand's §8.5.2.1 class, and whether it can TRIGGER the rule — SR4 is written
+    /// over an operand that "references an ELEMENTARY data item or literal of class boolean or national", while
+    /// "all shall reference a data item or literal" of that class, so a group conforms by its class but never
+    /// triggers.</summary>
+    private static (CobolClass? Class, bool Triggers) Sr4Entry(BoundOperand op) =>
+        (IntrinsicArgumentRules.ClassOf(op), op is not BoundFieldOperand { Place.Item.IsGroup: true });
+
+    private (BoundOperand Op, bool Figurative) InspectCharOperandOf(Core.InspectCharContext c)
+    {
         var fig = c.figurativeConstant() ?? c.literal()?.nonNumericLiteral()?.figurativeConstant();
         if (fig is not null)
         {
@@ -286,7 +338,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (c.literal()?.nonNumericLiteral()?.STRINGLIT() is { } s)
             return (new BoundStringLiteral(CobolLiteral.Decode(s.GetText())), false);
         // National/boolean literal operands decode char-correct (the class-mix SR validation across the
-        // INSPECT operand set — §14.9.22.3 SR2/SR3's per-class forms — is named Phase-4a residue #12).
+        // INSPECT operand set is §14.9.22.3 SR4, recorded by InspectCharOperand and enforced in BindPhrases — kb/Work PB980).
         if (c.literal()?.nonNumericLiteral()?.NATLIT() is { } nlit)
             return (host.Expr.NationalLiteralOperand(nlit.GetText()), false);
         if (c.literal()?.nonNumericLiteral()?.BOOLLIT() is { } blit)

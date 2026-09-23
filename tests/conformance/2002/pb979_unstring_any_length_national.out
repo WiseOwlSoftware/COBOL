@@ -1,0 +1,4 @@
+NAT  [AB ] 012 000 [XYZ ] [ ]
+DLM  [PQ  ] [,     ] 02
+SIZE [PQ,R] [STUVW ]
+ARGS [STUVW ] [PQ,R]

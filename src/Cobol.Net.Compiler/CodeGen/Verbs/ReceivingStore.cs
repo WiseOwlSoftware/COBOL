@@ -42,4 +42,37 @@ internal static class ReceivingStore
     /// number of character positions "may vary during program execution", and the current length would make an
     /// empty item unwritable by STRING — every character an overflow (measured before this fix).</summary>
     public static int DynamicReceivingSize(DataItem target) => target.DynMaxSize;
+
+    /// <summary>The width of an ANY LENGTH receiving operand — its CARRIER's current length, because ISO §13.18.2.4
+    /// GR1 b) makes n "the length of the corresponding argument or returning item of the activating runtime
+    /// element", never the one symbol its PICTURE spells. The ONE spelling, read by the
+    /// MOVE store (<c>MoveEmitter</c>) and by <see cref="ExaminationSize"/>, so the size a statement examines and
+    /// the size it stores cannot disagree about the same receiver (kb/Work PB979).</summary>
+    public static string AnyLengthWidth(Place target) => $"{PlaceRenderer.Read(target)}.Length";
+
+    /// <summary>ISO §14.9.48.4 GR11 b) — UNSTRING without a governing delimiter: "the number of characters examined
+    /// is equal to the size of the current receiving area. However, if the sign of the receiving item is defined
+    /// as occupying a separate character position, the number of characters examined is one less than the size of
+    /// the current receiving area. Size is defined as number of character positions." A C# int expression, because
+    /// the size is the receiver's AT EXECUTION (kb/Work PB979 — it was a binder integer: one character for an ANY
+    /// LENGTH receiver, and a reference-modified one was staged as not implemented):
+    /// <list type="bullet">
+    /// <item>a reference-modified receiver — §8.4.3.3.4 GR6's unique data item, whose size is the evaluated
+    ///   modifier length (the slice read's length);</item>
+    /// <item>a group — its character positions (a bit / national group's as-if positions, D20/PB79);</item>
+    /// <item>a dynamic-length item — <see cref="DynamicReceivingSize"/> (DETERMINATION D-DL2);</item>
+    /// <item>an ANY LENGTH item — <see cref="AnyLengthWidth"/>;</item>
+    /// <item>a numeric item — its DIGIT positions: a SEPARATE sign is GR11 b)'s "one less", an over-punched
+    ///   one occupies no position (SR4 bars the symbol P);</item>
+    /// <item>otherwise the PICTURE's character positions.</item>
+    /// </list></summary>
+    public static string ExaminationSize(Place target) => target switch
+    {
+        RefModPlace => $"{PlaceRenderer.Read(target)}.Length",
+        _ when target.Item.IsGroup => $"{target.Item.AsIfPic?.Length ?? target.Item.ImageWidth}",
+        _ when target.Item.IsDynamicLength => $"{DynamicReceivingSize(target.Item)}",
+        _ when target.Item.IsAnyLength => AnyLengthWidth(target),
+        _ when target.Item.Pic is { Category: PicCategory.Numeric } pic => $"{pic.Digits}",
+        _ => $"{target.Item.Pic?.Length ?? 0}",
+    };
 }

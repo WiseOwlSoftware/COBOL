@@ -1346,7 +1346,9 @@
   "pb909-write-advancing-indexed",
   "pb681-table-element-not-subscripted",
   "pb966-add-corr-level66-alias",
-  "pb966-initialize-level66-alias"
+  "pb966-initialize-level66-alias",
+  "pb980-unstring-national-mix",
+  "pb980-inspect-national-mix"
  ],
  "pending": []
 }

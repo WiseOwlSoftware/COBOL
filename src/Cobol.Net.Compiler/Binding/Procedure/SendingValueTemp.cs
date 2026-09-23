@@ -243,18 +243,13 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // unique data item GR6 describes is carried by a run-time-length item, whose current length IS the slice
         // length (§8.5.1.10.4). Its class/category/usage are GR6's, read through the ONE reader.
         if (place is RefModPlace rm)
-            return new TempModel(
-                new DataItem
-                {
-                    Level = 1, CobolName = "__SENDVAL-REFMOD", CsName = "__sendvalRefMod",
-                    Pic = new PicInfo(rm.Category, UsageOf(rm.Inner.Item), Length: 0, Digits: 0, Scale: 0, Signed: false),
-                },
+            return CharacterCarrier("__SENDVAL-REFMOD", "__sendvalRefMod", rm.Category, UsageOf(rm.Inner.Item),
                 // ⛔ THE CAPACITY IS COUNTED IN THE POSITIONS REFERENCE MODIFICATION INDEXES (§8.4.3.3.4 GR5 a),
                 // through the ONE reader — never in the item's character OCCUPANCY (kb/Work PB886). A slice of a
                 // USAGE BIT item may be up to its BOOLEAN-position count long and a slice of a DYNAMIC LENGTH item
                 // up to its §13.18.19.4 GR2 LIMIT, both of which ImageWidth answers with a smaller number (1 and 0),
                 // so the intermediate silently truncated the value it exists to preserve.
-                DynLimit: Math.Max(1, rm.InnerPositions));
+                limit: Math.Max(1, rm.InnerPositions));
         var item = place.Item;
         // A DYNAMIC-LENGTH elementary sender IS frozen exactly, by the carrier the standard defines for it:
         // §8.5.1.10.4 — "A dynamic-length elementary item that is used as a sending operand … is treated as a
@@ -294,14 +289,51 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             return new TempModel(
                 new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = FunctionValuePic },
                 DynLimit: 0);
-        return new TempModel(
-            new DataItem
+        return CharacterCarrier("__SENDVAL-FNS", "__sendvalFns", cat, CharacterUsage(cat), FunctionTextLimit);
+    }
+
+    /// <summary>THE ONE description of a RUN-TIME-LENGTH character carrier (§8.5.1.10.4 — a dynamic-length
+    /// elementary item "used as a sending operand … is treated as a fixed-length data item whose length is the
+    /// dynamic-length elementary item's current length"): a PICTURE of the category and usage with no static
+    /// length, plus the §8.5.1.10 limit. The reference-modified sender, the character function result and the
+    /// conceptual item of <see cref="ConceptualCharacterItem"/> are all this one shape.</summary>
+    private static TempModel CharacterCarrier(string cobolName, string csName, PicCategory category, Usage usage, int limit) =>
+        new(new DataItem
             {
-                Level = 1, CobolName = "__SENDVAL-FNS", CsName = "__sendvalFns",
-                Pic = new PicInfo(cat, cat is PicCategory.National ? Usage.National : Usage.Display,
-                                  Length: 0, Digits: 0, Scale: 0, Signed: false),
+                Level = 1, CobolName = cobolName, CsName = csName,
+                Pic = new PicInfo(category, usage, Length: 0, Digits: 0, Scale: 0, Signed: false),
             },
-            DynLimit: FunctionTextLimit);
+            DynLimit: limit);
+
+    /// <summary>The usage of a character category's carrier: NATIONAL for category national, DISPLAY otherwise.</summary>
+    private static Usage CharacterUsage(PicCategory category) =>
+        category is PicCategory.National ? Usage.National : Usage.Display;
+
+    /// <summary>
+    /// ⛔ <b>THE CONCEPTUAL SENDING ITEM</b> of a statement whose own general rule DEFINES an elementary sender and
+    /// then stores it "according to the rules for the MOVE statement" (kb/Work PB979). ISO §14.9.48.4 GR11 c):
+    /// "The characters examined, excluding any delimiting characters, shall be treated as an elementary national
+    /// data item if identifier-1 is of category national, and otherwise as an elementary alphanumeric data item,
+    /// and shall be moved into the current receiving area according to the rules for the MOVE statement" — and
+    /// GR11 d) says the same of the delimiting characters.
+    /// <para>The item has a RUN-TIME length (the number of characters examined), so it is the
+    /// <see cref="CharacterCarrier"/> shape, limited only by the largest character value the runtime carries. The
+    /// statement's emitter writes the characters into it and the receiver's store is an ordinary
+    /// <see cref="BoundMove"/> from it, BOUND through <c>MoveBinder.BindMoveOf</c> — so every receiver shape the
+    /// MOVE statement knows (ANY LENGTH, reference-modified, dynamic-length, national, group, JUSTIFIED, numeric)
+    /// is stored by the one MOVE mechanism rather than by a verb-private copy of it.</para>
+    /// <para>Unlike <see cref="Materialize"/> it registers NO pre-op: the item's value is produced INSIDE the
+    /// statement, once per receiving area, by the carrying statement itself.</para></summary>
+    /// <param name="category">Category alphanumeric or national — GR11 c)'s two cases.</param>
+    /// <param name="tag">A short source tag for the temp's synthesized names.</param>
+    internal Place? ConceptualCharacterItem(PicCategory category, string tag)
+    {
+        var model = CharacterCarrier("__CONCEPT", "__concept", category, CharacterUsage(category),
+                                     CobolNet.Runtime.CobolDynString.MaxLength);
+        var temp = ctx.Data.CreateCompilerTemp(model.Item, "__CONCEPT-", "__concept", tag);
+        temp.IsDynamicLength = true;
+        temp.DynMaxSize = model.DynLimit;
+        return ctx.Refs.ResolveItem(temp);
     }
 
     /// <summary>The implementor's maximum length for a §15.4 returned value of a character category — the bound
