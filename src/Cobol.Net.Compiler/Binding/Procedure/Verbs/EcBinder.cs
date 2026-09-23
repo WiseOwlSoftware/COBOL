@@ -555,6 +555,16 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundInitiate:
                     Query(InitiateNames);
                     break;
+                // The sort-merge flow conditions (kb/Work PB349). PRECISE: the ONLY raise sites are CobolSort's
+                // RELEASE / RETURN statement entries, reached from exactly these bound nodes — the implicit USING
+                // release and GIVING return use the unchecked primitives, because GR1 of each verb governs the
+                // STATEMENT the program writes. Without these arms the names reached no statement's enabled set.
+                case BoundRelease:
+                    Query(["EC-FLOW-RELEASE"]);
+                    break;
+                case BoundReturn:
+                    Query(["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN"]);
+                    break;
                 case BoundGenerate:
                     Query(GenerateNames);
                     break;

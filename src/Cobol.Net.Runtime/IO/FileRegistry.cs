@@ -461,12 +461,18 @@ public sealed class FileRegistry
 
     /// <summary>Plain <c>WRITE record</c> (ISO §14.9.51); <paramref name="length"/> is the varying-record length
     /// (§13.18.43 GR13a), -1 = the record's own size.</summary>
-    public void Write(string name, string image, int length, LinagePage? page)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Write(image, length, page); }
+    public void Write(string name, string image, int length, LinagePage? page) =>
+        SequentialOf(name, "WRITE").Write(image, length, page);
 
     /// <summary><c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c>; <paramref name="lines"/> = -1 is PAGE.</summary>
-    public void WriteAdvancing(string name, string image, int lines, bool before, LinagePage? page)
-    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteAdvancing(image, lines, before, page); }
+    public void WriteAdvancing(string name, string image, int lines, bool before, LinagePage? page) =>
+        SequentialOf(name, "WRITE ADVANCING").WriteAdvancing(image, lines, before, page);
+
+    /// <summary>The sequential connector a sequential-surface entry acts on: an unregistered name and a keyed
+    /// connector are both compiler defects (the binder routes keyed files to the keyed entries), so both are
+    /// LOUD — the old <c>TryGetValue</c> guard wrote nothing and reported nothing (kb/Work PB360).</summary>
+    private SequentialConnector SequentialOf(string name, string verb) =>
+        Require(name) as SequentialConnector ?? throw MisroutedVerb(verb, name, Require(name));
 
     /// <summary>
     /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — THE ONE PLACE a statement establishes the connector's
@@ -566,7 +572,12 @@ public sealed class FileRegistry
 
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed verb.</summary>
     public void SetRelativeKey(string name, long rrn)
-    { if (_files.TryGetValue(name, out var c) && c is RelativeConnector r) r.SetPendingKey(rrn); }
+    {
+        // A RELATIVE KEY is staged only for a relative connector the binder resolved; a miss is a compiler defect
+        // and a dropped key would make the next keyed verb act on the PREVIOUS record number (kb/Work PB360).
+        if (Require(name) is RelativeConnector r) r.SetPendingKey(rrn);
+        else throw MisroutedVerb("RELATIVE KEY staging", name, Require(name));
+    }
 
     /// <summary>The RRN last made available/released — the §14.9.30 GR25 / §14.9.51 GR29a MOVE-back source.</summary>
     public long RelativeSlot(string name) =>
@@ -1297,7 +1308,7 @@ public sealed class FileRegistry
         bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
     {
         image = "";
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — released by the EXECUTION of the statement, so before anything
@@ -1379,7 +1390,7 @@ public sealed class FileRegistry
         bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
     {
         image = "";
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — on EXECUTION
@@ -1411,7 +1422,7 @@ public sealed class FileRegistry
         FileRetryKind retryKind, int retryAmount, LinagePage? page, WriteAdvance advance = default)
     {
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.51.4 GR10 / §12.4.5.9.4 GR6
@@ -1434,7 +1445,7 @@ public sealed class FileRegistry
     public string RewriteShared(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, int retryAmount)
     {
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         // The record identity costs an allocation on the keyed organizations, so it is taken only when some
@@ -1480,7 +1491,7 @@ public sealed class FileRegistry
     /// record is inaccessible to another connector regardless of that connector's own lock mode).</summary>
     public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
     {
-        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         // The record identity is taken only when a §9.1.16 question can have a non-trivial answer (kb/Work PB669).
@@ -1526,11 +1537,14 @@ public sealed class FileRegistry
     };
 
     /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1): release every record lock this connector holds and set
-    /// status 00; UNLOCK of a file not open is status 42.</summary>
+    /// status 00; UNLOCK of a file not open is status 42 (§9.1.13.7 item 2). §14.9.47.4 GR3 makes the I-O status
+    /// update UNCONDITIONAL, so an unregistered name is a compiler defect and goes through <see cref="Require"/>
+    /// like every other entry — the old <c>TryGetValue</c>-and-return set no status and raised nothing, a clean
+    /// exit 0 for a statement that did nothing (kb/Work PB360).</summary>
     public void Unlock(string name, bool records)
     {
         _ = records;
-        if (!_files.TryGetValue(name, out var c)) return;
+        var c = Require(name);
         if (!c.IsOpen) { c.SetStatus(FileStatusCode.FileNotOpen); return; }
         if (_physical.TryGet(c.HostPath, out var st)) PhysicalFileTable.ReleaseAllForConnector(st, name);
         c.SetStatus(FileStatusCode.Success);
@@ -1630,10 +1644,7 @@ public sealed class FileRegistry
     /// state: it changes at every OPEN/SORT/MERGE, so nothing may cache it.</summary>
     public string HostPathOf(string name) => _files.TryGetValue(name, out var c) ? c.HostPath : name;
 
-    private void SetStatusOf(string name, string status)
-    {
-        if (_files.TryGetValue(name, out var c)) c.SetStatus(status);
-    }
+    private void SetStatusOf(string name, string status) => Require(name).SetStatus(status);
 
     /// <summary>Deregister a connector's open entry on CLOSE and release its record locks (§9.1.15's <i>"The file
     /// lock is removed by an explicit or implicit CLOSE statement executed for that file connector"</i> /

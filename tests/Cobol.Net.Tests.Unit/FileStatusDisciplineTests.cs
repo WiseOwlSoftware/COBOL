@@ -136,6 +136,47 @@ public sealed class FileStatusDisciplineTests
         Assert.Throws<InvalidOperationException>(() => reg.Status("NEVER-REGISTERED"));
     }
 
+    // kb/Work PB360 — the statement entries that survived PB140 on a TryGetValue guard: UNLOCK returned having set
+    // no status (§14.9.47.4 GR3 makes the update unconditional), the five governed record verbs invented '30',
+    // and the staging / sequential-surface entries dropped the call. Every one is now the Require chokepoint.
+    public static TheoryData<string> StatementEntries() => new()
+    {
+        "Unlock", "ReadShared", "ReadKeyedShared", "WriteShared", "RewriteShared", "DeleteShared",
+        "Write", "WriteAdvancing", "SetRelativeKey",
+    };
+
+    [Theory]
+    [MemberData(nameof(StatementEntries))]
+    public void StatementEntry_OnAnUnregisteredName_IsLoud(string entry)
+    {
+        var reg = new FileRegistry();
+        const string n = "NEVER-REGISTERED";
+        Action act = entry switch
+        {
+            "Unlock" => () => reg.Unlock(n, records: false),
+            "ReadShared" => () => reg.ReadShared(n, false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out _),
+            "ReadKeyedShared" => () => reg.ReadKeyedShared(n, 0, "", FileRecordLock.None, false, FileRetryKind.None, 0, out _),
+            "WriteShared" => () => reg.WriteShared(n, "X", -1, FileRecordLock.None, FileRetryKind.None, 0, null),
+            "RewriteShared" => () => reg.RewriteShared(n, "X", -1, FileRecordLock.None, FileRetryKind.None, 0),
+            "DeleteShared" => () => reg.DeleteShared(n, "", FileRetryKind.None, 0),
+            "Write" => () => reg.Write(n, "X", -1, null),
+            "WriteAdvancing" => () => reg.WriteAdvancing(n, "X", 1, false, null),
+            "SetRelativeKey" => () => reg.SetRelativeKey(n, 1),
+            _ => throw new ArgumentOutOfRangeException(nameof(entry)),
+        };
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    // The sequential-surface / relative-key staging entries on the WRONG organization are the misrouted-verb arm.
+    [Fact]
+    public void SequentialSurface_OnAKeyedConnector_IsLoud()
+    {
+        var reg = new FileRegistry();
+        reg.RegisterRelative("R", Tmp("seqsurf"), 8, false, SeqAccess, 4, -1, -1);
+        Assert.Throws<InvalidOperationException>(() => reg.Write("R", "X", -1, null));
+        Assert.Throws<InvalidOperationException>(() => reg.WriteAdvancing("R", "X", 1, false, null));
+    }
+
     // §14.9.6.3 SR1 binds REEL/UNIT to sequential organization; a keyed connector reaching the surface is a
     // compiler defect and must be loud, never a silently-skipped status assignment.
     [Fact]

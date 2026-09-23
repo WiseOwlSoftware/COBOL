@@ -1214,6 +1214,21 @@ internal static class RuntimeApi
     public static string SortRelease(string sd, string image) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image})";
 
+    /// <summary>The RELEASE STATEMENT — <c>CobolSort.ReleaseStatement</c> (§14.9.32.4 GR1's phase test, then GR2).
+    /// The implicit USING release (§14.9.40.4 GR12 b) renders <see cref="SortRelease"/> instead.</summary>
+    public static string SortReleaseStatement(string sd, string image) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image})";
+
+    /// <summary>The RETURN STATEMENT — <c>CobolSort.ReturnStatement</c> (§14.9.34.4 GR1 + GR3's phase and at-end
+    /// tests, then GR3's retrieval). The implicit GIVING return renders <see cref="SortReturn"/> instead.</summary>
+    public static string SortReturnStatement(string sd, string imgVar) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReturnStatement)}({sd}, out var {imgVar})";
+
+    /// <summary>Enter a SORT's INPUT PROCEDURE (<c>output: false</c>) or a SORT/MERGE's OUTPUT PROCEDURE
+    /// (<c>output: true</c>) — <c>CobolSort.EnterProcedure</c>, the phase the two verbs' GR1 test.</summary>
+    public static string SortEnterProcedure(string sd, bool output) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.EnterProcedure)}({sd}, output: {(output ? "true" : "false")})";
+
     /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8).</summary>
     public static string SortSort(string sd, string keys, string dupsInOrder) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {keys}, {dupsInOrder})";

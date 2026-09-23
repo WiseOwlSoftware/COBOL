@@ -785,6 +785,46 @@ public sealed class ExceptionEngine
     /// return, and the caller leaves the SET unexecuted exactly as GR31 requires.</summary>
     public void FlowSearchError(string detail) => FatalIfEnabled(FlowSearchChecking, "EC-FLOW-SEARCH", detail);
 
+    // ──── THE SORT-MERGE FLOW conditions (§14.9.32.4 GR1, §14.9.34.4 GR1 + GR3; kb/Work PB349) ─────────────
+    //
+    // All three are Table 13 FATAL. The phase they test is CobolSort's (the store's procedure phase and its
+    // at-end latch), and the raise precedes the statement's action, so a USE declarative that RESUMEs AT NEXT
+    // STATEMENT leaves the RELEASE / RETURN unexecuted. With checking OFF the standard states no lenient outcome
+    // for GR1 and calls GR3's result undefined, so the statement proceeds exactly as it did before the raise
+    // existed (the deterministic refinements CobolSort documents) — §14.6.13.1.1: nothing is raised.
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-RELEASE checking enabled (fatal).</summary>
+    public bool FlowReleaseChecking
+    {
+        get => _checking.FlowRelease;
+        set => _checking.FlowRelease = value;
+    }
+
+    /// <summary>Raise EC-FLOW-RELEASE (§14.9.32.4 GR1; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
+    public void FlowReleaseError(string detail) => FatalIfEnabled(FlowReleaseChecking, "EC-FLOW-RELEASE", detail);
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-RETURN checking enabled (fatal).</summary>
+    public bool FlowReturnChecking
+    {
+        get => _checking.FlowReturn;
+        set => _checking.FlowReturn = value;
+    }
+
+    /// <summary>Raise EC-FLOW-RETURN (§14.9.34.4 GR1; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
+    public void FlowReturnError(string detail) => FatalIfEnabled(FlowReturnChecking, "EC-FLOW-RETURN", detail);
+
+    /// <summary>True while the currently-executing statement has EC-SORT-MERGE-RETURN checking enabled (fatal).</summary>
+    public bool SortMergeReturnChecking
+    {
+        get => _checking.SortMergeReturn;
+        set => _checking.SortMergeReturn = value;
+    }
+
+    /// <summary>Raise EC-SORT-MERGE-RETURN (§14.9.34.4 GR3; Table 13 Fatal) when checking is enabled; otherwise
+    /// return, and the RETURN's "undefined" result is the store's deterministic at-end-again.</summary>
+    public void SortMergeReturnError(string detail) =>
+        FatalIfEnabled(SortMergeReturnChecking, "EC-SORT-MERGE-RETURN", detail);
+
     // ──── THE REPORT WRITER's four statement-precondition conditions (kb/Work PB326) ───────────────
     //
     // All four are Table 13 FATAL and all four are LENIENT with checking off, and -- as with EC-FLOW-SEARCH above
@@ -1444,6 +1484,36 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FlowSearchError"/>
     public static void FlowSearchError(string detail) => E.FlowSearchError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowReleaseChecking"/>
+    public static bool FlowReleaseChecking
+    {
+        get => E.FlowReleaseChecking;
+        set => E.FlowReleaseChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowReleaseError"/>
+    public static void FlowReleaseError(string detail) => E.FlowReleaseError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowReturnChecking"/>
+    public static bool FlowReturnChecking
+    {
+        get => E.FlowReturnChecking;
+        set => E.FlowReturnChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowReturnError"/>
+    public static void FlowReturnError(string detail) => E.FlowReturnError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeReturnChecking"/>
+    public static bool SortMergeReturnChecking
+    {
+        get => E.SortMergeReturnChecking;
+        set => E.SortMergeReturnChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeReturnError"/>
+    public static void SortMergeReturnError(string detail) => E.SortMergeReturnError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.FlowReportChecking"/>
     public static bool FlowReportChecking

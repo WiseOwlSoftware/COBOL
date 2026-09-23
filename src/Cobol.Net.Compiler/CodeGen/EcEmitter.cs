@@ -347,6 +347,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // as support. Its Table 13 neighbour EC-FLOW-GLOBAL-EXIT has no row because the standard states no
         // general rule that SETS it (see ExceptionEngine.FlowGlobalGobackError).
         ("EC-FLOW-GLOBAL-GOBACK", "FlowGlobalGobackChecking"),  // §14.9.18.4 GR6 — GOBACK in a global declarative's range
+        // The sort-merge flow conditions (kb/Work PB349). Before these rows the three names were catalog entries
+        // with no gate, no flag and no raise site, so `>>TURN EC-FLOW-RELEASE CHECKING ON` compiled clean and
+        // wired nothing. Each rides a flag CobolSort's statement entry consults against the store's phase.
+        ("EC-FLOW-RELEASE", "FlowReleaseChecking"),             // §14.9.32.4 GR1 — RELEASE outside its SORT's input procedure
+        ("EC-FLOW-RETURN", "FlowReturnChecking"),               // §14.9.34.4 GR1 — RETURN outside its SORT/MERGE's output procedure
+        ("EC-SORT-MERGE-RETURN", "SortMergeReturnChecking"),    // §14.9.34.4 GR3 — RETURN after the at end condition in the same output procedure
         // The Report Writer's four statement-precondition conditions (kb/Work PB326). Each rides a flag its
         // runtime raise site in CobolReport consults; each is Table 13 Fatal, and each leaves the verb
         // unexecuted whether or not the raise happens (the standard states every lenient outcome outright).

@@ -133,6 +133,19 @@ public struct CheckingFlags
     /// standard states no general rule that sets it — see <c>ExceptionEngine.FlowGlobalGobackError</c>.</summary>
     public bool FlowGlobalGoback;
 
+    /// <summary>EC-FLOW-RELEASE — a RELEASE executed other than within the range of an input procedure being
+    /// executed by a SORT statement that references the file-name associated with its record-name-1
+    /// (§14.9.32.4 GR1; kb/Work PB349).</summary>
+    public bool FlowRelease;
+
+    /// <summary>EC-FLOW-RETURN — a RETURN executed other than within the range of an output procedure being
+    /// executed by a MERGE or SORT statement that references its file-name-1 (§14.9.34.4 GR1; kb/Work PB349).</summary>
+    public bool FlowReturn;
+
+    /// <summary>EC-SORT-MERGE-RETURN — a RETURN executed in the current output procedure after the at end
+    /// condition for its file has occurred (§14.9.34.4 GR3; kb/Work PB349).</summary>
+    public bool SortMergeReturn;
+
     /// <summary>EC-REPORT-ACTIVE — an INITIATE of a report that is already in the active state
     /// (§14.9.21.4 GR2).</summary>
     public bool ReportActive;

@@ -45,7 +45,10 @@ internal sealed class SortEmitter(EmitContext ctx,
             foreach (var input in so.Using)
                 EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null, tx);
         else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
+        {
+            w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: false)};   // §14.9.32.4 GR1 — RELEASE is legal from here to the sequence phase");
             Statements.EmitProcedureRange(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
+        }
 
         // Phase b — sequence (GR9b).
         w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
@@ -55,7 +58,10 @@ internal sealed class SortEmitter(EmitContext ctx,
             foreach (var output in so.Giving)
                 EmitGivingFile(output, sd, tx);
         else if (so.OutputProcedure is { IsEmpty: false } op)
+        {
+            w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §14.9.34.4 GR1 — RETURN is legal until the statement ends");
             Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
+        }
 
         // §14.9.40.4 GR17's landing point: "the SORT statement is terminated" skips the REMAINING implicit
         // transfers and the phases after them, but still releases the sort store — terminating the statement is
@@ -93,7 +99,10 @@ internal sealed class SortEmitter(EmitContext ctx,
             foreach (var output in mg.Giving)
                 EmitGivingFile(output, sd, tx);   // GR12 — each file-name-4 receives the WHOLE merged result
         else if (mg.OutputProcedure is { IsEmpty: false } op)
+        {
+            w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §14.9.34.4 GR1 — RETURN is legal until the statement ends");
             Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR9)");
+        }
         // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
         // rule is the same one: §14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised inside
         // an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole statement here
@@ -419,25 +428,27 @@ internal sealed class SortEmitter(EmitContext ctx,
         {
             // §13.18.43 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
             // Out-of-range lengths are EC-SORT-MERGE-RELEASE (GR14b; checking OFF, §18.16).
-            w.Line($"{RuntimeApi.SortRelease(sd, RuntimeApi.StrRefMod(image, "1", $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}"))};");
+            w.Line($"{RuntimeApi.SortReleaseStatement(sd, RuntimeApi.StrRefMod(image, "1", $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}"))};");
             return;
         }
         // GR13b/c (no DEPENDING — incl. a varying m-TO-n SD): the named record's own size; the image renders at
-        // exactly that width, so the release carries it.
-        w.Line($"{RuntimeApi.SortRelease(sd, image)};");
+        // exactly that width, so the release carries it. The STATEMENT entry: §14.9.32.4 GR1's phase test.
+        w.Line($"{RuntimeApi.SortReleaseStatement(sd, image)};");
     }
 
     /// <summary>RETURN (ISO §14.9.34): pull the next record in key order into the SD record area (GR3); a varying
     /// SD restores the returned record's length into the DEPENDING item (§13.18.43 GR15); INTO then MOVEs the
     /// record area to the receiver (GR5 — skipped when at end); control goes to NOT AT END / AT END (GR3/GR4).
-    /// At end the record area is undefined and further RETURNs are EC-SORT-MERGE-RETURN (GR3; checking OFF,
-    /// §18.16 — the store deterministically reports at-end again).</summary>
+    /// At end the record area is undefined and a further RETURN in the same output procedure is
+    /// EC-SORT-MERGE-RETURN (GR3); with that checking off the store deterministically reports at-end again.</summary>
     public void EmitReturn(BoundReturn rt)
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(rt.File);
         string tmp = $"__srt{ctx.Names.NextSort()}";
-        using (w.Block($"if ({RuntimeApi.SortReturn(sd, tmp)})"))
+        // The STATEMENT entry — §14.9.34.4 GR1's phase test and GR3's after-at-end test precede the retrieval
+        // (kb/Work PB349); the implicit GIVING loop renders the unchecked SortReturn.
+        using (w.Block($"if ({RuntimeApi.SortReturnStatement(sd, tmp)})"))
         {
             // GR3 — made available in the record area: the returned record IS the current record, at its own length.
             seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp);

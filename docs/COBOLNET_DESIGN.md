@@ -824,6 +824,16 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   decodes its UTF-16BE byte pairs back to national POSITIONS before comparing (§8.8.4.2.9 compares national
   character positions), a BOOLEAN key compares by value with boolean-zero extension and no sequence (§8.8.4.2.8),
   and a NUMERIC key decodes algebraically through its own profile (§8.8.4.2.4).
+- **The SORT/MERGE procedure PHASE lives in the sort store (kb/Work PB349).** A store exists only while its
+  SORT/MERGE statement executes (`Init` → `Close`); the emitter marks the INPUT and OUTPUT procedure ranges with
+  `CobolSort.EnterProcedure`, `Sort` ends the input phase, and an output-procedure at-end sets the GR3 latch. The
+  program's RELEASE and RETURN STATEMENTS render the checked entries `ReleaseStatement` / `ReturnStatement`, which
+  test that phase before acting — §14.9.32.4 GR1 EC-FLOW-RELEASE, §14.9.34.4 GR1 EC-FLOW-RETURN, §14.9.34.4 GR3
+  EC-SORT-MERGE-RETURN, each a `FatalAmbientGates` row whose `QueryFor` arm is the bound RELEASE / RETURN node —
+  while the implicit USING release and GIVING return keep the unchecked `Release` / `Return` primitives, because
+  each verb's GR1 governs the statement the program writes. With checking off nothing is raised and the statement
+  proceeds (a RELEASE with no SORT executing has no store to release to). EC-SORT-MERGE-ACTIVE (§14.9.40.4
+  GR10/GR13, §14.9.24.4 GR8) has no raise site yet; "a statement is already executing" is this same store state.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
   its §14.4 zoned digit image (width = `Pic.Digits`, trailing-overpunch sign; ISO §13.18.60 USAGE GR4 implementor

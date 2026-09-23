@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime.IO;
 
 /// <summary>
@@ -70,9 +72,21 @@ public static class CobolSort
         /// <summary>Its NATIONAL twin — GR5 determines the two sequences SEPARATELY, so they snapshot
         /// separately and a statement may carry one, both or neither.</summary>
         public CobolCollation? NatCollation;
-        // The EC-FLOW-RELEASE / EC-FLOW-RETURN / EC-SORT-MERGE-ACTIVE phase tracking (§14.9.32 GR1 / §14.9.34 GR1 /
-        // §14.9.40 GR10+GR13) attaches here when the EC model lands — checking is OFF by default (SSOT §18.16).
+        /// <summary>Which procedure of the executing SORT/MERGE statement is running — the state §14.9.32.4 GR1
+        /// ("within the range of an input procedure being executed by a SORT statement that references the
+        /// file-name") and §14.9.34.4 GR1 ("within the range of an output procedure being executed by a MERGE or
+        /// SORT statement that references file-name-1") test. The store exists only between <see cref="Init(string,
+        /// CobolCollation?, CobolCollation?)"/> and <see cref="Close"/>, so "no store" is "no statement executing".</summary>
+        public ProcedurePhase Phase;
+        /// <summary>§14.9.34.4 GR3's latch: the at end condition has occurred for this file in the current output
+        /// procedure, so a further RETURN is EC-SORT-MERGE-RETURN.</summary>
+        public bool AtEndReached;
     }
+
+    /// <summary>The procedure phase of an executing SORT/MERGE (see <see cref="Store.Phase"/>). <c>None</c> covers
+    /// every part of the statement that runs no program procedure: the USING/GIVING transfers and the sequence
+    /// phase — a USE declarative that runs from an implicit transfer is not in the range of either procedure.</summary>
+    private enum ProcedurePhase { None, Input, Output }
 
     private static readonly Dictionary<string, Store> Files = new(StringComparer.OrdinalIgnoreCase);
 
@@ -102,6 +116,60 @@ public static class CobolSort
         f.LastReturnedLength = 0;
         f.Collation = collation?.Snapshot();
         f.NatCollation = national?.Snapshot();
+        f.Phase = ProcedurePhase.None;
+        f.AtEndReached = false;
+    }
+
+    /// <summary>Enter the SORT's INPUT PROCEDURE (<paramref name="output"/> false) or the SORT/MERGE's OUTPUT
+    /// PROCEDURE (true) — emitted immediately before the bounded dispatch of the procedure range. The input phase
+    /// ends when <see cref="Sort"/> begins the sequence phase; the output phase ends at <see cref="Close"/>.</summary>
+    public static void EnterProcedure(string name, bool output)
+    {
+        var f = Get(name);
+        f.Phase = output ? ProcedurePhase.Output : ProcedurePhase.Input;
+        f.AtEndReached = false;
+    }
+
+    /// <summary>The RELEASE STATEMENT (ISO §14.9.32.4). GR1: "A RELEASE statement may be executed only when it is
+    /// within the range of an input procedure being executed by a SORT statement that references the file-name
+    /// associated with record-name-1. If it is executed at any other time, the EC-FLOW-RELEASE exception condition
+    /// is set to exist." The test precedes the release, so a raise leaves the record unreleased; with checking off
+    /// nothing is raised (§14.6.13.1.1) and the record is released as GR2 describes — a store with no executing
+    /// SORT is discarded by the next <see cref="Init(string, CobolCollation?, CobolCollation?)"/>. The implicit
+    /// USING transfer (§14.9.40.4 GR12 b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).</summary>
+    public static void ReleaseStatement(string name, string image)
+    {
+        if (!Files.TryGetValue(name, out var f) || f.Phase != ProcedurePhase.Input)
+            ExceptionState.FlowReleaseError($"RELEASE for sort file {name}: not within the range of an input "
+                + "procedure being executed by a SORT statement that references it (ISO §14.9.32.4 GR1)");
+        if (f is null) return;   // no SORT executing: there is no sort file to release to — never a stranded store
+        f.Records.Add(image ?? "");
+    }
+
+    /// <summary>The RETURN STATEMENT (ISO §14.9.34.4). GR1: a RETURN "may be executed only when it is within the
+    /// range of an output procedure being executed by a MERGE or SORT statement that references file-name-1. If it
+    /// is executed at any other time, the EC-FLOW-RETURN exception condition is set to exist." GR3: "After the
+    /// execution of imperative-statement-1 in the AT END phrase, no RETURN statement may be executed as part of
+    /// the current output procedure. If such a RETURN statement is executed, the EC-SORT-MERGE-RETURN exception
+    /// condition is set to exist and the results of the execution of the RETURN statement are undefined." Both
+    /// tests precede the retrieval; with checking off the store's deterministic answer stands (at end again, or
+    /// at end for a file with no executing statement). The implicit GIVING transfer uses <see cref="Return"/>.</summary>
+    public static bool ReturnStatement(string name, out string image)
+    {
+        if (!Files.TryGetValue(name, out var f) || f.Phase != ProcedurePhase.Output)
+            ExceptionState.FlowReturnError($"RETURN for sort-merge file {name}: not within the range of an output "
+                + "procedure being executed by a MERGE or SORT statement that references it (ISO §14.9.34.4 GR1)");
+        else if (f.AtEndReached)
+            ExceptionState.SortMergeReturnError($"RETURN for sort-merge file {name}: executed after the at end "
+                + "condition in the current output procedure (ISO §14.9.34.4 GR3)");
+        if (f is null)
+        {
+            image = "";   // no statement executing: nothing to make available — the at end path
+            return false;
+        }
+        bool got = Return(name, out image);
+        if (!got && f.Phase == ProcedurePhase.Output) f.AtEndReached = true;
+        return got;
     }
 
     /// <summary>Mark the start of the next USING stream (MERGE only): records released after this call belong to
@@ -113,9 +181,9 @@ public static class CobolSort
     }
 
     /// <summary>RELEASE one record image at its released length (ISO §14.9.32 GR2; §14.9.40 GR12b for the implicit
-    /// USING release). Seam: a RELEASE outside the active SORT's input procedure is EC-FLOW-RELEASE (§14.9.32 GR1)
-    /// and a record size outside the SD's record range is EC-SORT-MERGE-RELEASE (§14.9.40 GR12b) — exception
-    /// checking is OFF by default (COBOLNET_DESIGN §18.16), so the store accepts the record as written.</summary>
+    /// USING release) — the UNCHECKED primitive: the RELEASE statement's §14.9.32.4 GR1 test lives in
+    /// <see cref="ReleaseStatement"/>. Seam: a record size outside the SD's record range is EC-SORT-MERGE-RELEASE
+    /// (§14.9.40 GR12b), which has no raise site yet, so the store accepts the record as written.</summary>
     public static void Release(string name, string image) => Get(name).Records.Add(image ?? "");
 
     /// <summary>The sequence phase (ISO §14.9.40 GR9b): a STABLE key sort. Stability realizes GR3's DUPLICATES IN
@@ -126,6 +194,7 @@ public static class CobolSort
     {
         _ = duplicatesInOrder;   // stability is unconditional — GR3 satisfied, GR4 (undefined) safely refined
         var f = Get(name);
+        f.Phase = ProcedurePhase.None;   // the sequence phase ends the input procedure (§14.9.40.4 GR9 a/b)
         int n = f.Records.Count;
         var idx = new int[n];
         for (int i = 0; i < n; i++) idx[i] = i;
@@ -179,10 +248,9 @@ public static class CobolSort
     }
 
     /// <summary>RETURN the next record in key order (ISO §14.9.34 GR3): <see langword="true"/> with the record's
-    /// image at its own length, or <see langword="false"/> at end. Seams: a RETURN outside the active output
-    /// procedure is EC-FLOW-RETURN (GR1) and a RETURN after the at-end condition is EC-SORT-MERGE-RETURN (GR3,
-    /// result undefined) — checking OFF (COBOLNET_DESIGN §18.16), so a post-end RETURN deterministically reports
-    /// at-end again (a conformant refinement of "undefined").</summary>
+    /// image at its own length, or <see langword="false"/> at end — the UNCHECKED primitive the implicit GIVING
+    /// transfer uses; the RETURN statement's GR1 / GR3 tests live in <see cref="ReturnStatement"/>. A post-end
+    /// call deterministically reports at-end again (a conformant refinement of GR3's "undefined").</summary>
     public static bool Return(string name, out string image)
     {
         var f = Get(name);
