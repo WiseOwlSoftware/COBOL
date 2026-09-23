@@ -230,6 +230,8 @@ public static class CobolSort
     {
         private readonly Key[] _keys;
         private readonly Int128[]?[] _numeric;
+        /// <summary>The unsigned 16-byte binary key columns (kb/Work PB186) — see <see cref="NumProfile.ImageExceedsInt128"/>.</summary>
+        private readonly UInt128[]?[] _unsignedWide;
         private readonly double[]?[] _float;
         private readonly Collation.CollationKey[]?[] _collationKeys;
         private readonly string[]?[] _slices;
@@ -237,10 +239,11 @@ public static class CobolSort
         /// order and for the two classes GR5 names no sequence for (numeric, boolean).</summary>
         private readonly CobolCollation?[] _seq;
 
-        private KeyColumns(Key[] keys, Int128[]?[] numeric, double[]?[] floats, Collation.CollationKey[]?[] collationKeys, string[]?[] slices, CobolCollation?[] seq)
+        private KeyColumns(Key[] keys, Int128[]?[] numeric, UInt128[]?[] unsignedWide, double[]?[] floats, Collation.CollationKey[]?[] collationKeys, string[]?[] slices, CobolCollation?[] seq)
         {
             _keys = keys;
             _numeric = numeric;
+            _unsignedWide = unsignedWide;
             _float = floats;
             _collationKeys = collationKeys;
             _slices = slices;
@@ -251,6 +254,7 @@ public static class CobolSort
         {
             int n = records.Count;
             var numeric = new Int128[]?[keys.Length];
+            var unsignedWide = new UInt128[]?[keys.Length];
             var floats = new double[]?[keys.Length];
             var collationKeys = new Collation.CollationKey[]?[keys.Length];
             var slices = new string[]?[keys.Length];
@@ -268,6 +272,17 @@ public static class CobolSort
                     var col = new double[n];
                     for (int i = 0; i < n; i++) col[i] = CobolNum.ParseImageFloat(Slice(records[i], key), key.Profile);
                     floats[k] = col;
+                }
+                // An UNSIGNED 16-byte binary key (kb/Work PB186): its [0, 2^128) range does not fit the Int128
+                // column — the signed decode returns a value at or above 2^127 as a NEGATIVE Int128, so ALL-ONES
+                // would sort before 7. §14.9.40.4 GR8 / §14.9.24.4 GR3 compare keys "according to the rules for
+                // comparison of operands in a relation condition", which for numeric operands is §8.8.4.2.4's
+                // algebraic value, so the key decodes through the unsigned lane and orders as a UInt128.
+                else if (key.Class is KeyClass.Numeric && key.Profile.ImageExceedsInt128)
+                {
+                    var col = new UInt128[n];
+                    for (int i = 0; i < n; i++) col[i] = CobolNum.ParseImageU128(Slice(records[i], key), key.Profile);
+                    unsignedWide[k] = col;
                 }
                 else if (key.Class is KeyClass.Numeric)
                 {
@@ -288,7 +303,7 @@ public static class CobolSort
                     slices[k] = col;
                 }
             }
-            return new KeyColumns(keys, numeric, floats, collationKeys, slices, seq);
+            return new KeyColumns(keys, numeric, unsignedWide, floats, collationKeys, slices, seq);
         }
 
         /// <summary>⛔ THE ONE class → collating-sequence selection (ISO §14.9.40.4 GR5 / §14.9.24.4 GR5): the
@@ -310,6 +325,7 @@ public static class CobolSort
             {
                 int c;
                 if (_numeric[k] is { } nums) c = nums[x].CompareTo(nums[y]);
+                else if (_unsignedWide[k] is { } uws) c = uws[x].CompareTo(uws[y]);
                 else if (_float[k] is { } fs) c = fs[x].CompareTo(fs[y]);
                 else if (_collationKeys[k] is { } ck) c = ck[x].CompareTo(ck[y]);
                 else
@@ -354,7 +370,8 @@ public static class CobolSort
     /// values order identically to the scaled ones.</summary>
     /// <summary>Decode a fixed-point numeric key's window with the leaf's own profile (zoned/radix-2/BCD —
     /// V59). A profile with NO byte form (<see cref="NumericByteForm.None"/> — no shipping usage since R40) throws
-    /// the codec's loud invariant break rather than yielding an invented ordering; float keys take the algebraic lane in
+    /// the codec's loud invariant break rather than yielding an invented ordering; float keys and UNSIGNED 16-byte
+    /// binary keys (<see cref="NumProfile.ImageExceedsInt128"/>, kb/Work PB186) take their own lanes in
     /// <see cref="KeyColumns.Build"/>, never this one.</summary>
     private static Int128 NumericKey(string image, in Key k) => CobolNum.ParseImage(Slice(image, k), k.Profile);
 }

@@ -189,4 +189,13 @@ public readonly record struct NumProfile
     /// <see cref="FractionDigits"/> (V fraction + leading P − trailing P). May be negative; <see cref="CobolNum.Rescale"/>
     /// handles a negative scale natively.</summary>
     public int FractionScale => FractionDigits;
+
+    /// <summary>True when this item's BYTE IMAGE can hold a value the signed <see cref="Int128"/> decode lane cannot
+    /// represent: an UNSIGNED 16-byte radix-2 image, whose [0, 2^128) container range (kb/Work R10 — the item
+    /// owns its full container) reaches past <see cref="Int128.MaxValue"/>. <see cref="CobolNum.ParseImage"/> returns such a value
+    /// reinterpreted — bit-identical but NEGATIVE at or above 2^127 — so a reader that ORDERS decoded values (a
+    /// SORT/MERGE key column) must take the <see cref="CobolNum.ParseImageU128"/> lane instead (kb/Work PB186). The
+    /// runtime twin of the compiler's <c>PicInfo.IsUnsignedWideBinary</c>, stated over the image rather than the
+    /// carrier: a narrower unsigned binary image fits Int128 whole, and a signed one is ordered by its sign.</summary>
+    public bool ImageExceedsInt128 => ByteForm == NumericByteForm.Binary && !Signed && StorageLength >= 16;
 }

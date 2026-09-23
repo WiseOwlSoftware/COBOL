@@ -92,6 +92,8 @@
   "pb714_merge_using_sharing_read_only",
   "pb714_sort_giving_open_status",
   "pb714_sort_using_sharing_read_only",
+  "pb837_sort_implicit_io_status",
+  "pb186_sort_unsigned_wide_binary_key",
   "pb253_prose_float_sdidi_container",
   "pb288_call_argument_scale_landing",
   "pb623_float_landing_exact",

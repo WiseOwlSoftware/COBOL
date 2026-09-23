@@ -1351,6 +1351,21 @@ pinned at the registry, on the exact call the emitter renders — `CobolFileLock
 rides three conformance goldens (`pb714_sort_using_sharing_read_only`,
 `pb714_merge_using_sharing_read_only`, `pb714_sort_giving_open_status`).
 
+**The same holds for every as-if statement AFTER the open: one status, one hook, per statement (kb/Work
+PB837).** GR12's closing paragraph — *"These implicit functions are performed such that any applicable USE
+procedures are executed"* — covers the as-if READ (GR12 b) / GR7 b)), the as-if WRITE (GR15 b) / MERGE GR12 b))
+and the as-if CLOSE (GR12 c) / GR15 c)) exactly as it covers the OPEN, and §14.9.49.4 GR6 runs the procedure
+*"upon the unsuccessful execution of an input-output operation unless an AT END or INVALID KEY phrase takes
+precedence"*. So `EmitInputFile` stores and hooks the retrieval that ended its loop (with `atEndHandled`, the
+as-if READ's own AT END phrase) BEFORE the CLOSE, and the CLOSE gets its own hook; `EmitGivingFile` hooks each
+unsuccessful WRITE inside its loop and ends the file's processing on the boundary condition alone
+(`IoStatusClass.WriteBoundary` — '34' §14.9.51.4 GR20, '24' GR33 b)), which is the one write failure the GR15 /
+MERGE GR12 paragraph names (*"On the first attempt to write outside the externally defined boundaries of the
+file … the processing of the file is terminated"*). One hook after the CLOSE, the former shape, read the
+CLOSE's status for all three and ran no declarative for a failed retrieval whose CLOSE succeeded. Witness:
+`2023/pb837_sort_implicit_io_status` ('61' → '47' → '42' for SORT and MERGE USING; one '71' for a LINE
+SEQUENTIAL GIVING file).
+
 ### D23. The implicit MOVE of a `… FROM` / `… INTO` phrase is BOUND by the MOVE binder, as a sub-statement of the I-O node — never synthesized in the emitter.
 
 A bound node built AFTER binding is never checked by a bind pass. Every `… FROM` phrase (RELEASE §14.9.32,

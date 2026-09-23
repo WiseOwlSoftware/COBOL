@@ -106,8 +106,9 @@ internal sealed class SortEmitter(EmitContext ctx,
     /// <summary>The implicit USING transfer for one input file (SORT GR12 / MERGE GR7): OPEN INPUT, READ-loop
     /// releasing each record, CLOSE — through the ordinary runtime file verbs so status (and declaratives,
     /// later) behave exactly as for explicit I/O. The loop ends on AT END or ANY unsuccessful read (a missing
-    /// file's failed OPEN makes the first READ unsuccessful — never a spin). The file's FILE STATUS item observes
-    /// the final (CLOSE) status, the only value visible after the statement.</summary>
+    /// file's failed OPEN makes the first READ unsuccessful — never a spin). Each of the three as-if statements
+    /// stores its own status and offers it to its own USE hook (kb/Work PB837); the file's FILE STATUS item then
+    /// holds the final (CLOSE) status, the only value visible after the statement.</summary>
     private bool EmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying, string endLabel)
     {
         var w = ctx.Writer;
@@ -144,15 +145,24 @@ internal sealed class SortEmitter(EmitContext ctx,
                 ? RuntimeApi.FileCurrentRecord(f)
                 : RuntimeApi.StrStore(tmp, $"{sdWidth}"))};");
         }
-        w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
+        // ⛔ TWO as-if statements, TWO statuses, TWO hooks (kb/Work PB837). The loop above exits ONLY on an
+        // unsuccessful retrieval, so the connector's status here IS that retrieval's — the as-if READ of
+        // §14.9.40.4 GR12 b) / §14.9.24.4 GR7 b) — and it is offered to the USE procedure BEFORE GR12 c) / GR7 c)'s
+        // CLOSE overwrites it: "These implicit functions are performed such that any applicable USE procedures are
+        // executed" (GR12's closing paragraph), and §14.9.49.4 GR6 runs the procedures "upon the unsuccessful
+        // execution of an input-output operation unless an AT END or INVALID KEY phrase takes precedence". The
+        // as-if READ carries the AT END phrase, so the at end condition ('10') is the one status its hook passes
+        // over (atEndHandled) — a '30', or the '47' GR2 of §14.9.30.4 gives a READ on a connector whose implicit
+        // OPEN failed, reaches the declarative exactly as it would from an explicit READ. The one hook that used
+        // to sit after the CLOSE read the CLOSE's status for both, so a failed retrieval followed by a successful
+        // CLOSE ('00') ran no declarative at all.
         seqIo.EmitStoreFileStatus(input);
-        // GR12b: the implicit READ is "as if with the AT END phrase" - at-end never fires a declarative; any
-        // OTHER read/close failure still does.
-        // ⛔ The status this hook reads is the implicit CLOSE's, not the retrieval's - GR12 c)'s CLOSE was
-        // emitted above and overwrote it - so a record-retrieval failure whose CLOSE then succeeds reaches no
-        // declarative at all, though §14.9.40.4 GR12 b) makes that retrieval an as-if READ (MERGE §14.9.24.4
-        // GR7 b) is word-identical) whose exception §14.9.49.4 GR6 owes one. Filed as a defect, not fixed here.
-        return seqIo.EmitUseHook(input, atEndHandled: true, notNormalLabel: endLabel) | terminable;
+        terminable |= seqIo.EmitUseHook(input, atEndHandled: true, notNormalLabel: endLabel);
+        w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
+        // The as-if CLOSE gets the hook an explicit CLOSE gets (SequentialIoEmitter.EmitClose): no AT END phrase
+        // exists on a CLOSE, so nothing takes precedence over its declarative.
+        seqIo.EmitStoreFileStatus(input);
+        return seqIo.EmitUseHook(input, notNormalLabel: endLabel) | terminable;
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
@@ -172,12 +182,30 @@ internal sealed class SortEmitter(EmitContext ctx,
         bool terminable = EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
             "implicit OPEN OUTPUT (ISO §14.9.40.4 GR15a / §14.9.24.4 GR12a)", endLabel);
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
+        {
             // "Each record is written as if a WRITE statement without any optional phrases had been executed"
-            // (GR15 b) / MERGE GR13 b) — through the ONE governed WRITE entry, like every other emitted WRITE
+            // (GR15 b) / MERGE GR12 b) — through the ONE governed WRITE entry, like every other emitted WRITE
             // (kb/Work PB683). GR15 a) opens the file SHARING WITH NO OTHER, under which §9.1.15 1) ignores
             // record locks, so the governed body's release/acquire discipline is vacuous here — but the routing
             // decision is not the emitter's to make, and the runtime is where the open mode is known.
-            w.Line($"{RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
+            string ws = $"__srw{ctx.Names.NextSort()}";
+            w.Line($"string {ws} = {RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
+            // ⛔ EACH as-if WRITE owes its OWN hook (kb/Work PB837, the GIVING twin of the USING retrieval): GR15's
+            // closing paragraph performs the implicit functions "such that any associated USE AFTER
+            // EXCEPTION/ERROR procedures are executed", and the write has no phrase that could take precedence
+            // (§14.9.49.4 GR6). A single hook after the CLOSE read the CLOSE's status for every failed write.
+            // Emitted only on an unsuccessful write, so the per-record cost of a clean transfer is one test.
+            using (w.Block($"if ({IoStatusClass.Unsuccessful(ws)})"))
+            {
+                seqIo.EmitStoreFileStatus(output);
+                terminable |= seqIo.EmitUseHook(output, notNormalLabel: endLabel);
+                // "On the first attempt to write outside the externally defined boundaries of the file, any USE
+                // AFTER EXCEPTION procedure … is executed; if that USE procedure completes normally or if no such
+                // USE procedure is specified, the processing of the file is terminated as in General rule 15c"
+                // (MERGE GR12's paragraph: "as in General rule 12c") — the CLOSE below.
+                w.Line($"if ({IoStatusClass.WriteBoundary(ws)}) break;   // GR15 / MERGE GR12 — terminated as in GR15c");
+            }
+        }
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
         seqIo.EmitStoreFileStatus(output);
         return seqIo.EmitUseHook(output, notNormalLabel: endLabel) | terminable;
@@ -392,10 +420,16 @@ internal sealed class SortEmitter(EmitContext ctx,
                 : LoudValue("int", TierCIsland.Reason($"table-sort key '{k.CobolName}' over a mixed-usage group"));
         return k.Pic switch
         {
-            // sending: true — a key comparison REFERENCES the content of both operands, so §14.6.13.2 rule 2
-            // applies to a windowed numeric key exactly as it does to an arithmetic operand (kb/Work PB230).
-            { Category: PicCategory.Numeric, IsFloat: false } when k.StoreAsImage =>
-                $"{RuntimeApi.NumParseImage(pa, k.ProfileName, sending: true)}.CompareTo({RuntimeApi.NumParseImage(pb, k.ProfileName, sending: true)})",
+            // ⛔ A WINDOWED numeric key decodes through THE ONE windowed reader (kb/Work PB186), never a lane
+            // spelled here: this arm used to call the SIGNED image decode for every form, so an unsigned 16-byte
+            // binary key at or above 2^127 compared as a negative value, and it excluded the FLOAT form outright,
+            // leaving a windowed COMP-1/COMP-2 key to the native arm's `CompareTo` on its IEEE-byte STRING. Both
+            // operands are the same item, so the scales agree and the decoded values compare directly — GR19's
+            // "rules for comparison of operands in a relation condition" are §8.8.4.2.4's algebraic value for a
+            // numeric key. SendingRef.Normal — a key comparison REFERENCES the content of both operands, so
+            // §14.6.13.2 rules 2 and 3 apply to a windowed key exactly as to an arithmetic operand (kb/Work PB230).
+            { Category: PicCategory.Numeric } pic when k.StoreAsImage =>
+                $"{NumericRenderer.WindowedNum(pa, k, pic, SendingRef.Normal).Expr}.CompareTo({NumericRenderer.WindowedNum(pb, k, pic, SendingRef.Normal).Expr})",
             { Category: PicCategory.Numeric, IsFloat: false } => $"({pa}).CompareTo({pb})",
             { Category: PicCategory.Numeric } => $"({pa}).CompareTo({pb})",   // COMP-1/2 — IEEE value order
             _ => RuntimeApi.StrCompare(pa, pb, weightsArg),

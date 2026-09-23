@@ -360,6 +360,39 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private static NumX AlnumNum(string imageExpr, SendingRef sending) =>
         new(RuntimeApi.NumFromAlphanumeric(imageExpr, sending.AlphanumericChecked()), 0);
 
+    /// <summary>⛔ THE ONE WINDOWED NUMERIC READER — the value of a numeric leaf stored as its CHARACTER IMAGE
+    /// (<see cref="DataItem.StoreAsImage"/>: whole-group-aliased / Tier-B), decoded from <paramref name="image"/>
+    /// through the leaf's own profile. Three lanes, chosen by the PICTURE, and every reader that needs a windowed
+    /// leaf's VALUE — the numeric renderer's own place arm and the table SORT's key comparer (kb/Work PB186) —
+    /// reaches them HERE, so a new lane lands once:
+    /// <list type="bullet">
+    /// <item>FLOAT — the window holds the item's IEEE interchange bytes and decodes through the distinctly-named
+    ///   float lane, wrapped in CobolFloat.Sending (EC-DATA-NOT-FINITE, §14.6.13.2 item 3) unless exempt.</item>
+    /// <item>UNSIGNED 16-BYTE BINARY (<see cref="PicInfo.IsUnsignedWideBinary"/>) — ParseImageU128 reinterprets
+    ///   bit-identically into the UInt128 lane, which keeps the item's full [0, 2^128) container range (kb/Work
+    ///   R10); decoded SIGNED, a value at or above 2^127 turns negative — the scout's silent wrong answer, and a
+    ///   wrong ORDER in a SORT. There is deliberately no 8-byte twin: ParseImage already returns an unsigned item's
+    ///   full width as a non-negative Int128 and every ulong fits Int128, so only the 16-byte range needs it.</item>
+    /// <item>EVERY OTHER FORM — the signed Int128 lane, THE FIXED-POINT SENDING-READ CHOKEPOINT (kb/Work PB230): only
+    ///   a WINDOWED leaf can hold content that fails its own numeric class condition (a native-carrier leaf can
+    ///   only hold digits, which is exactly why ConditionRenderer folds `IS NUMERIC` on one to the constant true),
+    ///   so this is where ISO §14.6.13.2 rule 2's EC-DATA-INCOMPATIBLE can arise: under checking
+    ///   ParseImageSending raises for content that "would evaluate to false in a numeric class condition"; with
+    ///   checking off, or in an exempt context, the decode stays the tolerant deterministic one the standard's
+    ///   "undefined" permits.</item>
+    /// </list></summary>
+    internal static NumX WindowedNum(string image, DataItem item, PicInfo pic, SendingRef sending) => pic switch
+    {
+        { IsFloat: true } => new NumX(
+            sending.FloatChecked()
+                ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false))
+                : RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false),
+            0, Real: true),
+        { IsUnsignedWideBinary: true } =>
+            new NumX(RuntimeApi.NumParseImageU128(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true),
+        _ => new NumX(RuntimeApi.NumParseImage(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale),
+    };
+
     /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the
     /// numeric-edited de-edit, which stays loud here — it requires the instance emission config).
     /// <paramref name="sending"/> names the §14.6.13.2 exempt context of this reference
@@ -410,45 +443,22 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // sweep): a NATIONAL group is Table 16's National row (§13.18.29.4 GR2b) and §14.9.25.4 GR6 d) 3 decodes
         // its CHARACTER positions, not the UTF-16BE bytes its image carries.
         null => AlnumNum(PlaceRenderer.SendingGroupValue(p, "numeric use of group item"), sending),
+        // ⛔ EVERY WINDOWED (StoreAsImage) numeric leaf decodes through THE ONE windowed reader, WindowedNum above —
+        // float, unsigned-wide and the signed Int128 lane alike (kb/Work PB186: the table SORT comparer used to spell
+        // its own signed-only copy). It precedes the native float arm: with the order reversed, a Tier-B float view
+        // rendered `(double)(<string window>)` (the Step D arm-1 dissolution — the design scout's pre-loaded CS0030).
+        { } pic when p.Item.StoreAsImage => WindowedNum(PlaceRenderer.Read(p), p.Item, pic, sending),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction). The
         // sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking, §14.6.13.2
         // item 3) UNLESS this is an exempt context (sign condition / same-usage MOVE — SendingRef.FloatChecked()
-        // false = raw read; note rule 2's arm below reads its OWN, shorter exemption list off the same value).
-        // ⛔ THE WINDOWED-FLOAT ARM PRECEDES THE NATIVE FLOAT ARM (the Step D arm-1 dissolution — the design
-        // scout's pre-loaded CS0030: with the order reversed, a Tier-B float view rendered
-        // `(double)(<string window>)`). The window's IEEE bytes decode through the distinctly-named lane.
-        { IsFloat: true } when p.Item.StoreAsImage => new NumX(
-            sending.FloatChecked()
-                ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, binary32Carrier: false))
-                : RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, binary32Carrier: false),
-            0, Real: true),
+        // false = raw read; note rule 2's arm in WindowedNum reads its OWN, shorter exemption list off the same value).
         { IsFloat: true } => new NumX(
             sending.FloatChecked() ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
             0, Real: true),
-        // (A COPY of a float item's content — not an arithmetic read — is FloatCarrierRead below: this arm widens
-        // to binary64 because arithmetic evaluates there (D16), and a widening quiets a signaling NaN.)
-        // The windowed 16-byte UNSIGNED arm precedes the signed decode (the scout's silent-wrong-answer: a
-        // wide unsigned COMP-5 window decoded SIGNED above Int128.MaxValue's bit pattern) — ParseImageU128
-        // reinterprets bit-identically into the UInt128 lane, which keeps the item's full [0, 2^128) container
-        // range (§13.18.60.4 GR12).
-        // ⛔ THERE IS NO 8-BYTE (IsUnsignedLongBinary) TWIN HERE, and adding one back would be duplication:
-        // ParseBinaryImage already returns an unsigned item's FULL width as a non-negative Int128, and every
-        // ulong value fits Int128 — so the generic StoreAsImage arm below decodes a `PIC 9(10..18) COMP-5`
-        // window identically. Only the 16-byte range genuinely exceeds the signed carrier.
-        { IsUnsignedWideBinary: true } pic when p.Item.StoreAsImage =>
-            new NumX(RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true),
-        // ⛔ THE FIXED-POINT SENDING-READ CHOKEPOINT — the twin of the float arms above, and the arm that had no
-        // check at all until kb/Work PB230. A numeric leaf stored as its character image (whole-group-aliased /
-        // Tier-B) decodes the STORED BYTES to its unscaled value for numeric use — zoned digits for DISPLAY,
-        // radix-2 / BCD for BINARY / PACKED (V59). Only such a WINDOWED leaf can hold content that fails its own
-        // numeric class condition (a native-carrier leaf can only hold digits, which is exactly why
-        // ConditionRenderer folds `IS NUMERIC` on one to the constant true), so this is where ISO §14.6.13.2
-        // rule 2's EC-DATA-INCOMPATIBLE can arise: under checking ParseImageSending raises for content that
-        // "would evaluate to false in a numeric class condition"; with checking off, or in an exempt context,
-        // the decode stays the tolerant deterministic one the standard's "undefined" permits.
-        { } pic when p.Item.StoreAsImage =>
-            new NumX(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), pic.Scale),
+        // (A COPY of a float item's content — not an arithmetic read — is FloatCarrierRead below: this arm and
+        // WindowedNum's float lane widen to binary64 because arithmetic evaluates there (D16), and a widening
+        // quiets a signaling NaN.)
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
         // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);

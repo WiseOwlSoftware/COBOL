@@ -43,4 +43,11 @@ internal static class IoStatusClass
 
     /// <summary>The invalid key condition — §9.1.13.5's <c>'2x'</c> values.</summary>
     public static string InvalidKey(string status) => $"{status}[0] == '2'";
+
+    /// <summary>An attempt to WRITE outside the externally defined boundaries of the file — the '34' of
+    /// §14.9.51.4 GR20 (sequential organization: "the I-O status value of the write file connector is set to '34'") and
+    /// the '24' of §14.9.51.4 GR33 b) (relative or indexed organization: "the I-O status associated with the write file
+    /// connector is set to '24'"). The one condition SORT GR15 / MERGE GR12's implicit WRITE loop terminates on
+    /// (kb/Work PB837). Whole-value, not a class test: '2x' and '3x' each hold values that are not this.</summary>
+    public static string WriteBoundary(string status) => $"({status} == \"24\" || {status} == \"34\")";
 }
