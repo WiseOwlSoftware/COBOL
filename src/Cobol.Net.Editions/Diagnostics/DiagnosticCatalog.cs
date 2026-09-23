@@ -4293,22 +4293,21 @@ public static class DiagnosticCatalog
         + "they could take effect.",
         "ISO §13.18.63.3 / §13.18.63.2");
 
-    /// <summary>COBOLNET2168 — a VALUE clause on an entry whose USAGE is OBJECT-REFERENCE or MESSAGE-TAG
-    /// (ISO §13.18.63.3 SR9), and the sibling shape one level out: the predefined address NULL written as the
-    /// literal of a VALUE clause on a USAGE POINTER entry. SR9's four usages were screened two at a time —
-    /// PROGRAM-POINTER and FUNCTION-POINTER had a diagnostic band already and the other two did not — so an
-    /// OBJECT REFERENCE VALUE reached the code generator and either vanished (a quoted literal) or failed the
-    /// Roslyn compilation (VALUE NULL → CS0029). kb/Work PB557.</summary>
+    /// <summary>COBOLNET2168 — a VALUE clause on a data item of class index, message-tag, object or pointer
+    /// (ISO §13.16.3 SR10; §13.18.63.3 SR9 restates four of those usages by name), whether the entry wrote the
+    /// USAGE clause or acquired it from its group (§13.18.60.4 GR1). SR9's four usages were screened two at a
+    /// time until kb/Work PB557, and USAGE INDEX — which SR9 does not name and SR10 does — until kb/Work PB515:
+    /// `77 I USAGE INDEX VALUE 7.` compiled clean and seeded the index item.</summary>
     public static readonly DiagnosticDescriptor ValueOnNonLiteralUsage = new(
         "COBOLNET2168", "value-on-non-literal-usage", EditionSeverity.Error,
-        "§13.18.63.3 SR9: \"The VALUE clause shall not be specified if a USAGE clause with a phrase of "
-        + "FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER is also specified.\" For the "
-        + "plain-POINTER sibling the licence is different and the outcome the same: SR9 does not name USAGE "
-        + "POINTER, but §13.18.63.2 format 1 takes literal-1, and §8.4.3.10.1 makes NULL \"a predefined address "
-        + "of class pointer or a predefined content of class message-tag\" — an identifier under §8.4.3, not a "
-        + "literal. §13.18.63.4 GR4 settles what such an item's initial value is with no VALUE clause at all: "
-        + "\"data items of class message-tag, class object, and class pointer are initialized to null\".",
-        "ISO §13.18.63.3 / §13.18.63.4 / §8.4.3.10.1");
+        "§13.16.3 SR10: \"The VALUE clause shall not be specified for data items of class index, message-tag, "
+        + "object, or pointer.\" §8.5.2.1 Table 2 files USAGE INDEX under class index, USAGE OBJECT REFERENCE under "
+        + "class object, and USAGE POINTER, FUNCTION-POINTER and PROGRAM-POINTER under class pointer; §13.18.63.3 "
+        + "SR9 restates the rule for FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE and PROGRAM-POINTER. NULL is no "
+        + "escape: §8.4.3.10.1 makes it \"a predefined address of class pointer or a predefined content of class "
+        + "message-tag\", not a literal. §13.18.63.4 GR4 settles such an item's initial value with no VALUE clause "
+        + "at all: \"data items of class message-tag, class object, and class pointer are initialized to null\".",
+        "ISO §13.16.3 SR10 / §13.18.63.3 SR9 / §13.18.63.4 GR4");
 
     // ── COBOLNET2172 / COBOLNET2173 — A WRITTEN SHAPE NO GENERAL FORMAT PRINTS (kb/Work PB412, PB421) ──────
     // Both are PARSE-layer diagnostics, and the stage is the point. Each names a shape the grammar used to
@@ -5067,6 +5066,22 @@ public static class DiagnosticCatalog
         "A BLANK WHEN ZERO or JUSTIFIED clause was specified for an item whose category or usage the clause does "
         + "not admit.",
         "ISO §13.18.8.3 SR1/SR2 · §13.18.32.3 SR3");
+
+    /// <summary>COBOLNET2406 — a VALUE clause written where §13.18.63.3 forbids its PLACEMENT (kb/Work PB550,
+    /// PB551): a format 1 or format 2 VALUE clause in an entry that contains a REDEFINES clause or is subordinate
+    /// to one (SR12, carried into format 2 by SR16), or a format 3 (condition-name) VALUE clause in an entry
+    /// subordinate to a CONSTANT RECORD entry (SR25). Both compiled clean: the redefining entry's VALUE was
+    /// silently discarded, and the condition-name under a CONSTANT RECORD was accepted and live.</summary>
+    public static readonly DiagnosticDescriptor ValueClausePlacement = new(
+        "COBOLNET2406", "value-clause-placement", EditionSeverity.Error,
+        "A VALUE clause is written in an entry where the standard forbids it. ISO §13.18.63.3 SR12: \"The VALUE "
+        + "clause shall not be specified in a data description entry that contains a REDEFINES clause or in an "
+        + "entry that is subordinate to an entry containing a REDEFINES clause\" (SR16 applies it to format 2). "
+        + "SR25: \"A format 3, 4, or 5 VALUE clause shall not be specified in any data description entry that "
+        + "contains the CONSTANT RECORD clause, or in any data description entry subordinate to a data description "
+        + "entry that contains the CONSTANT RECORD clause.\" Initialize the redefined entry instead; a level-88 "
+        + "entry under a REDEFINES entry and the format 1 VALUEs that give a CONSTANT RECORD its content remain legal.",
+        "ISO §13.18.63.3 SR12 / SR16 / SR25");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

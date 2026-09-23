@@ -1897,11 +1897,23 @@ public sealed partial class DataBinder
                 // collected by ExtractValueOperandList and stored as FieldValueSource), so
                 // `10 COLUMN 1 PIC ZZ9.99 VALUE 10.` compiled clean at --std 85 and PRINTED the 2023 edited image
                 // ` 10.00`, while `01 X PIC ZZ9.99 VALUE 10.` was refused there (kb/Work PB921, the third arm).
-                // The question is asked by the ONE screen, per operand, once the picture is settled — a
-                // multi-operand format-4 clause (§13.18.63.3 SR35) gates each of its literals.
-                foreach (string reportRaw in valueRaws)
-                    ScreenNumericEditedNumericLiteral(pic, reportRaw,
-                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
+                // ⛔ AND IT IS NOT THE ONLY ALL-FORMATS RULE THE REPORT ARM SKIPPED (kb/Work PB586's sibling sweep):
+                // §13.18.63.3 SRs 1-9 open "ALL FORMATS", so SR2's range ("all literals in the VALUE clause shall
+                // be numeric and shall be permissible values within the range indicated by the PICTURE clause"),
+                // SR3's sign and SR4/SR5's class bind a format-4 literal exactly as a format-1 one. MEASURED
+                // before: `03 COLUMN 1 PIC 9(2) VALUE 12345.` printed `45` and `PIC 9(2) VALUE -3` printed `03` —
+                // silent truncation at every edition — and `PIC 9(2) VALUE "AB"` leaked Roslyn CS0103 against the
+                // generated C#. So each operand now takes THE funnel every other format's literal takes (SR6's
+                // edition gate included, which is why the narrower call that stood here is gone), and the text it
+                // returns — the --permissive rewrite, or a fixed-point subject's expansion of a floating-point
+                // literal — is what the printable item stores. The subject is an ELEMENTARY item: a printable item
+                // is one (§13.18.14), and its size is its PICTURE's, written or §13.15.3 SR14-implied.
+                // Per operand, once the picture is settled — a multi-operand format-4 clause (§13.18.63.3 SR35)
+                // screens each of its literals.
+                for (int vr = 0; vr < valueRaws.Count; vr++)
+                    valueRaws[vr] = ScreenValueLiteral(pic, valueRaws[vr],
+                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'",
+                        ValueSubject.ForElementary(pic, isDynamicLength: false, isAnyLength: false));
                 // §13.18.53.3 SR3 — "If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry
                 // shall define either a numeric data item or a numeric-edited data item." The receiving operand
                 // of GR2's implicit COMPUTE is this printable item (kb/Work PB852).

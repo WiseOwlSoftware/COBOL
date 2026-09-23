@@ -202,18 +202,44 @@ format-3/5-only phrases — the THROUGH phrase, `IN alphabet-name-1`, `WHEN SET 
 `{IS INVALID | ARE VALID}` — and `BindEntry`, which binds only non-88 entries, reports **COBOLNET2167** and binds
 nothing when one appears. Nothing screened it before: `VALUE 1 THRU 5` on a numeric level-01 entry reached the
 code generator as the glued text `1THRU5` and failed the Roslyn compilation, and `VALUE "A" THRU "C"` on an
-alphanumeric one compiled clean and stored that glued text truncated to the picture width. (b) §13.18.63.3 SR9 —
-"*The VALUE clause shall not be specified if a USAGE clause with a phrase of FUNCTION-POINTER, MESSAGE-TAG,
-OBJECT-REFERENCE, or PROGRAM-POINTER is also specified*". `UsageFamilies.AdmitsNoValueLiteral` is that set, beside
-`UsageFamilies.IsPictureless` and in the same shape, read by ONE screen reporting **COBOLNET2168**; the screen
-covered two of the four — exactly the two that already had a diagnostic band — so an OBJECT REFERENCE entry with
-a quoted VALUE ran clean with the literal discarded and one with `VALUE NULL` failed the backend compilation.
-⚠ USAGE POINTER is a deliberate addition SR9 does not name: §13.18.63.2 format 1 takes literal-1, §8.4.3.10.1
-makes NULL a predefined ADDRESS rather than a literal, §8.3.3.6.2 does not list it among the figurative
-constants, and no syntax rule of §13.18.63.3 types a literal for a subject of class pointer — while
-§13.18.63.4 GR4 already initializes such an item to null with no clause written, so the prohibition costs
-nothing. `Cobol.Net.Tests.Unit.ValueClauseUsageSetDriftTests` re-reads SR9's own sentence out of
-`specs/ISO_COBOL.md` on every run, because a behavioural probe cannot contradict a wrong set.
+alphanumeric one compiled clean and stored that glued text truncated to the picture width. (b) §13.16.3 SR10 —
+"*The VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer*" —
+of which §13.18.63.3 SR9 restates four by usage (FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE,
+PROGRAM-POINTER). `UsageFamilies.AdmitsNoValueLiteral` is SR10's class set spelled as the usages §8.5.2.1 Table 2
+files under those classes — INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, PROGRAM-POINTER —
+beside `UsageFamilies.IsPictureless` and in the same shape, and it is read by TWO screens reporting ONE
+**COBOLNET2168**: `BindEntry` for the entry's own USAGE clause and `UsageInheritanceElementary` for the usage an
+elementary item acquires from its group (§13.18.60.4 GR1), with the cited rule from ONE sentence,
+`UsageFamilies.NoValueClauseRule`. The set was first written from SR9 alone and covered two of its four usages
+(kb/Work PB557: an OBJECT REFERENCE VALUE ran clean with the literal discarded, `VALUE NULL` failed the backend);
+then it lacked USAGE INDEX, which SR9 does not name and SR10 does (kb/Work PB515: `77 I USAGE INDEX VALUE 7.`
+compiled at every edition and seeded the index item). §13.18.63.4 GR4 initializes the object and pointer classes
+to null with no clause written, so the prohibition costs nothing. `Cobol.Net.Tests.Unit.ValueClauseUsageSetDriftTests`
+re-derives the set from SR10 and Table 2 (and SR9's usages) out of `specs/ISO_COBOL.md` on every run, because a
+behavioural probe cannot contradict a wrong set.
+
+**⛔ THE VALUE CLAUSE'S PLACEMENT RULES ARE ONE SCREEN** (`DataBinder.ValuePlacement`, kb/Work PB550 + PB551,
+**COBOLNET2406**). §13.18.63.3 SR12 (format 1; SR16 carries it into format 2) bars a VALUE clause in an entry
+that contains a REDEFINES clause or is subordinate to one; SR25 bars a format 3, 4 or 5 VALUE clause in or under
+a CONSTANT RECORD entry. Both ask one question of the entry's ancestor chain, so both are asked at the moment the
+chain exists — `BindEntries` right after an entry is attached (formats 1/2), `BindCondition` for a level-88
+(format 3) — per WRITTEN entry, so a TYPE clone never re-reports. SR12 keys on the WRITTEN clause
+(`RedefinesTargetName`), never the storage fact: the redefined ANCHOR keeps its VALUE, an FD's implicit
+redefinitions and a SAME RECORD AREA record write no clause, and a level-88 under a REDEFINES entry is format 3,
+which SR24 does not bring under SR12. SR25's format-4 leg is vacuous under today's grammar (a report group entry
+admits no CONSTANT RECORD clause) and its format-5 leg belongs to the declined VALIDATE facility. Before the
+screen both shapes compiled clean: a redefining entry's VALUE was silently discarded (a REDEFINES view never
+seeds the storage it shares), and a condition-name under a CONSTANT RECORD was live.
+
+**⛔ §13.18.63.3 SR2/SR3 ARE ALL-FORMATS RULES, AND ONE FUNNEL ASKS THEM FOR EVERY FORMAT** (kb/Work PB208,
+PB586). `DataBinder.ScreenValueLiteral` is the ONE literal screen — SR2's class half (`ValidateValueCategory`),
+its range half and SR3's sign (`ValidateNumericValue`, **COBOLNET1625**), SR6's edition gate — and every VALUE
+literal of every format now takes it: format 1's item VALUE, format 2's per-occurrence literals, format 3's
+literal-2, both ends of a THROUGH range and literal-4 (the conditional variable's picture as the subject,
+§13.18.63.4 GR19), and format 4's report-section literals. Format 3 used to call the class half directly, so
+`88 C-BIG VALUE 12345` on `PIC 9(2)` compiled at every edition; format 4 reached only SR6's edition gate, so
+`COLUMN 1 PIC 9(2) VALUE 12345` PRINTED `45` and `PIC 9(2) VALUE "AB"` leaked Roslyn CS0103. The group-level
+VALUE is the one direct caller of the class half left, because a group's category is never numeric (§8.5.2.1).
 
 **⛔ AND §13.18.63.3 SR30 NEEDS NO SCREEN OF ITS OWN** (kb/Work PB558) — "*Condition-name and
 content-validation formats shall not be specified in the report section*" is a CONSEQUENCE of two rules each

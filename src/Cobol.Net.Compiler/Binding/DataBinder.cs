@@ -890,6 +890,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation, $"'{item.CobolName ?? "FILLER"}': a "
                     + "format 2 PICTURE clause shall not be specified in any data item subordinate to a data item "
                     + "described with the CONSTANT RECORD clause (ISO §13.18.40.3 SR32)");
+            // §13.18.63.3 SR12/SR16 — the VALUE clause's PLACEMENT, asked here for the same reason as the two
+            // screens above: the ancestor chain exists only once the entry is attached (DataBinder.ValuePlacement;
+            // its format-3 twin, SR25, is asked by BindCondition).
+            ScreenItemValuePlacement(item);
             stack.Push(item);
             lastDescribed = item;   // ISO §13.16.3 SR24's "the entry describing the item", for a following 88
             // A TYPEDEF template's items (root + subordinates) are NOT globally referenceable (ISO §13.18.58.4 GR1) —
@@ -2072,7 +2076,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="BuildTableValueSpecs"/>' per-occurrence literals reached the emitter unscreened, so
     /// <c>05 B PIC 9(4) COMP OCCURS 2 VALUE "0012" FROM (1) TO (2)</c> compiled clean at strict 2023 where its
     /// format-1 twin is COBOLNET1657. The <c>feedback_two_arm_dispatch</c> shape on the VALUE clause's own formats;
-    /// extracting the screen is the fix, so a rule added here reaches every format BY CONSTRUCTION (kb/Work PB208).</para></summary>
+    /// extracting the screen is the fix, so a rule added here reaches every format BY CONSTRUCTION (kb/Work PB208).</para>
+    /// <para>⛔ <b>And format 3 (kb/Work PB586).</b> The level-88 literals — every literal-2, both ends of a
+    /// literal-2 THROUGH literal-3 range, and the WHEN SET TO FALSE literal-4 — called
+    /// <see cref="ValidateValueCategory"/> directly, SR2's CLASS half only, so `01 W PIC 9(2). 88 C-BIG VALUE
+    /// 12345.` compiled clean at every edition (a condition-name that can never be true) while its format-1 twin
+    /// `01 W2 PIC 9(2) VALUE 12345.` was COBOLNET1625. SR2 and SR3 open "ALL FORMATS" and speak of "all literals
+    /// in the VALUE clause", so the third arm of the dispatch PB208 unified now takes the same funnel, with the
+    /// CONDITIONAL VARIABLE's picture as the subject whose range the literal must fit (§13.18.63.4 GR19 gives the
+    /// condition-name its conditional variable's characteristics). The funnel's one SIZE rule below stays dark
+    /// for it, because <see cref="ValueSubject.ForConditionName"/> carries no size (kb/Work PB598). The report
+    /// section's format 4 printable-item literals were the fourth arm, reached by NO part of this funnel but SR6's
+    /// edition gate: `03 COLUMN 1 PIC 9(2) VALUE 12345.` printed `45`. They take it too (DataBinder.Reports).</para></summary>
     private string ScreenValueLiteral(PicInfo pic, string raw, string where, ValueSubject subject)
     {
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
@@ -2100,9 +2115,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // ⛔ THE SIZE IS THE SUBJECT'S, not pic.Length — the SAME discipline the SR4/SR5/SR10 size arms follow
         // (kb/Work PB598). This IS a size rule, so a subject that indicates no size has none to be measured
         // against; today the two quantities coincide for every subject that reaches here (a numeric-edited
-        // picture is neither DYNAMIC LENGTH — §13.18.19.3 SR1 admits only one 'N' or 'X' — nor a group nor a
-        // condition-name, since this funnel serves the item VALUE only), and writing it this way is what keeps
-        // them from diverging if it ever serves another subject kind.
+        // picture is neither DYNAMIC LENGTH — §13.18.19.3 SR1 admits only one 'N' or 'X' — nor a group), and a
+        // CONDITION-NAME subject, which this funnel also serves (kb/Work PB586), carries no size at all, so the
+        // check stays dark for it exactly as §13.18.63.3 SR4/SR5's size sentences do (kb/Work PB598).
         if (pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
             && raw.StartsWith('"') && subject.SizePositions is { } editedWidth
             && CobolLiteral.Decode(raw).Length > editedWidth)
@@ -2178,9 +2193,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// figurative constant that is permitted in a MOVE statement to a receiving item of that category" — is
     /// those same three rules restated for it. Writing it twice is how the two answers drift.</para>
     ///
-    /// <para>⚠ <b>Reached through <see cref="ScreenValueLiteral"/></b> for the item VALUE of EVERY
-    /// format (kb/Work PB208), and directly by exactly two other kinds of site: the level-88 arms, and
-    /// the group-level VALUE (<c>DataBinder.GroupValue</c>). A NEW direct caller inherits only ONE of SR2's
+    /// <para>⚠ <b>Reached through <see cref="ScreenValueLiteral"/></b> for the item VALUE of formats 1 and 2
+    /// (kb/Work PB208), the level-88 literals of format 3 and the report-section literals of format 4 (kb/Work
+    /// PB586 — the first called here directly and the second not at all, and that is how SR2's range half never
+    /// reached either), and directly by exactly one other kind of site: the
+    /// group-level VALUE (<c>DataBinder.GroupValue</c>). A NEW direct caller inherits only ONE of SR2's
     /// two halves — the CLASS half here, never the RANGE half <see cref="ValidateNumericValue"/> carries —
     /// so route it through the funnel unless its subject cannot be of category numeric at all, which is the
     /// group arm's standing reason (§8.5.2.1 gives a group item category alphanumeric, national or
@@ -3333,6 +3350,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         if (entry.dataName()?.GetText() is not { } name) return;
         var cond = new Condition88 { Name = name, Parent = parent };
+        // §13.18.63.3 SR25 — a format 3 VALUE clause under a CONSTANT RECORD entry (DataBinder.ValuePlacement,
+        // the ONE placement screen; kb/Work PB551).
+        ScreenConditionValuePlacement(name, parent);
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -3409,8 +3429,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 // ValueSubject.ForConditionName() and not the conditional variable's size
                                 // (kb/Work PB598 — the derivation is on that factory).
                                 var condSubject = ValueSubject.ForConditionName();
-                                rawLo = ValidateValueCategory(rp, rawLo, $"condition-name '{name}'", condSubject);
-                                rawHi = ValidateValueCategory(rp, rawHi, $"condition-name '{name}'", condSubject);
+                                rawLo = ScreenValueLiteral(rp, rawLo, $"condition-name '{name}'", condSubject);
+                                rawHi = ScreenValueLiteral(rp, rawHi, $"condition-name '{name}'", condSubject);
                             }
                             cond.Values.Add((rawLo, rawHi));
                         }
@@ -3431,7 +3451,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 // NULL = a non-literal operand, already reported (kb/Work PB732).
                                 if (RawValueOperandText(op, $"condition-name '{name}'") is not { } raw) continue;
                                 if (parent.OperandPic is { } sp)
-                                    raw = ValidateValueCategory(sp, raw, $"condition-name '{name}'",
+                                    raw = ScreenValueLiteral(sp, raw, $"condition-name '{name}'",
                                         ValueSubject.ForConditionName());
                                 cond.Values.Add((raw, null));
                             }
@@ -3557,7 +3577,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // NULL = not a literal position at all, already reported at the ONE report (kb/Work PB732).
         if (RawValueOperandText(falseOp, where) is not { } raw) return;
         if (parent.OperandPic is { } fp)
-            raw = ValidateValueCategory(fp, raw, where, ValueSubject.ForConditionName());
+            raw = ScreenValueLiteral(fp, raw, where, ValueSubject.ForConditionName());
         cond.FalseValue = raw;
         CheckFalseValueDistinct(cond, parent, where);
     }
@@ -4194,10 +4214,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? OoBindObjectRefDescriptor(objectRefUsage, entryWhere, section)
             : ObjectRefDescriptor.Universal;
 
-        // A VALUE clause is prohibited on EVERY usage whose subject admits no literal —
-        // UsageFamilies.AdmitsNoValueLiteral (PicInfo.cs), THE ONE SET — §13.18.63.3 SR9's four, plus the
-        // data-pointer that §13.18.63.2 format 1 and §8.4.3.10.1 reach the same way. (Their PICTURE prohibition is the §13.16.3 SR8 screen
-        // above, over the ONE picture-less set — the same shape, one file over.)
+        // A VALUE clause is prohibited on EVERY usage whose subject admits none —
+        // UsageFamilies.AdmitsNoValueLiteral (PicInfo.cs), THE ONE SET — §13.16.3 SR10's classes index,
+        // message-tag, object and pointer, of which §13.18.63.3 SR9 restates four by usage. (Their PICTURE
+        // prohibition is the §13.16.3 SR8 screen above, over the ONE picture-less set — the same shape, one file
+        // over.) The usage an elementary item ACQUIRES from its group (§13.18.60.4 GR1) is screened against the
+        // same set by UsageInheritanceElementary, with the same diagnostic (kb/Work PB515).
         //
         // ⛔ THIS WAS A FOUR-ARM RULE WITH TWO ARMS WRITTEN (kb/Work PB557), and the two that were written are
         // exactly the two that already had a diagnostic band. Which arm did I fix? BOTH MISSING ONES, and the
@@ -4222,14 +4244,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (UsageFamilies.AdmitsNoValueLiteral(entryUsage) && (rawValue is not null || tableValues is not null))
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"{entryWhere}: the VALUE clause shall not be "
-                + $"specified with USAGE {UsageFamilies.UsageWord(entryUsage)}"
-                + (entryUsage is Usage.Pointer
-                    // The data-pointer arm is NOT SR9's — say which rule is being applied, so the message can be
-                    // checked against the standard rather than taken on trust.
-                    ? " — §13.18.63.2 format 1 takes literal-1, and no syntax rule of §13.18.63.3 types a literal "
-                      + "for a subject of class pointer; NULL is a predefined address (ISO §8.4.3.10.1), not a "
-                      + "literal. §13.18.63.4 GR4 already initializes such an item to null with no VALUE clause"
-                    : " (ISO §13.18.63.3 SR9)"));
+                + $"specified with USAGE {UsageFamilies.UsageWord(entryUsage)} ({UsageFamilies.NoValueClauseRule(entryUsage)})");
             rawValue = null;
             tableValues = null;
         }
@@ -5643,6 +5658,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // else §13.18.60.3 SR13b's implied DISPLAY. `acquired` is the GR1 half — the half that had no screens.
         bool acquired = item.OwnUsage is null && item.Pending is PicPending.None && fromGroup.Effective is not null;
         Usage effective = item.OwnUsage ?? (acquired ? fromGroup.Effective!.Value : Usage.Display);
+
+        // §13.16.3 SR10 — "The VALUE clause shall not be specified for data items of class index, message-tag,
+        // object, or pointer" — for the usage the item ACQUIRED. The class is the item's whichever way the usage
+        // reached it, so `01 G USAGE INDEX. 05 A VALUE 1.` is the same violation as `05 A USAGE INDEX VALUE 1.`,
+        // with the same diagnostic BindEntry reports for the written clause (kb/Work PB515: the acquired spelling
+        // compiled clean and seeded the index item). The value is dropped after the report, as there.
+        if (acquired && UsageFamilies.AdmitsNoValueLiteral(effective) && (item.RawValue is not null || item.TableValues is not null))
+        {
+            Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"data item '{name}': the VALUE clause shall not "
+                + $"be specified with USAGE {UsageFamilies.UsageWord(effective)}, inherited from its group "
+                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective)}; §13.18.60.4 GR1)");
+            item.RawValue = null;
+            item.TableValues = null;
+        }
 
         if (item.Pic is null)
         {

@@ -161,7 +161,10 @@
   "pb369_global_report_use_selection",
   "pb369_global_file_use_selection",
   "pb919_index_name_qualified",
-  "pb518_clause_placement_legal"
+  "pb518_clause_placement_legal",
+  "pb515_index_item_without_value",
+  "pb550_redefines_value_placement",
+  "pb586_level88_range_boundaries"
  ],
  "pending": []
 }

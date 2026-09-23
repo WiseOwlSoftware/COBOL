@@ -1,10 +1,9 @@
 *> reject-at: 2002 2014 2023
-*> ISO 1989:2023 - the SIBLING one level out from 13.18.63.3 SR9, and it needs its own derivation because SR9
-*> does NOT name USAGE POINTER. 13.18.63.2 format 1 takes literal-1; 8.4.3.10.1 makes NULL "a predefined
-*> address of class pointer or a predefined content of class message-tag" - an identifier under 8.4.3, not a
-*> literal - and 8.3.3.6.2 does not list it among the figurative constants either. No syntax rule of
-*> 13.18.63.3 types a literal for a subject of class pointer: SR2 types one for numeric, SR4 for alphabetic /
-*> alphanumeric / alphanumeric-edited, SR5 for national, SR6/SR7 for numeric-edited, SR10 for boolean.
+*> ISO 1989:2023 13.16.3 SR10 - "The VALUE clause shall not be specified for data items of class index,
+*> message-tag, object, or pointer" - and 8.5.2.1 Table 2 files category data-pointer (USAGE POINTER) under
+*> class pointer. (13.18.63.3 SR9 restates the rule for four usages and does not name POINTER; SR10 does, by
+*> class - kb/Work PB515.) NULL is no escape: 8.4.3.10.1 makes it "a predefined address of class pointer or a
+*> predefined content of class message-tag", an identifier under 8.4.3, not a literal.
 *> Nothing is lost by the prohibition: 13.18.63.4 GR4 - "data items of class message-tag, class object, and
 *> class pointer are initialized to null" - already gives the item this value with no clause written, which
 *> tests/conformance/2002/pb557_pointer_class_initial_value_is_null pins. (COBOLNET2168)

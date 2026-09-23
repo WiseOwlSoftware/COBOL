@@ -1467,7 +1467,12 @@
   "pb507-blank-when-zero-binary",
   "pb518-global-below-level-1",
   "pb518-external-fd-filler-record",
-  "pb519-external-redefines"
+  "pb519-external-redefines",
+  "pb515-value-on-index-item",
+  "pb550-value-in-redefining-entry",
+  "pb551-condition-name-under-constant-record",
+  "pb586-level88-literal-out-of-range",
+  "pb586-report-literal-out-of-range"
  ],
  "pending": []
 }

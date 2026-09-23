@@ -244,19 +244,25 @@ public static class UsageFamilies
         // ── the DETERMINATION above: the standard float usages SR8's list predates ──
         || IsStandardFloat(u);
 
-    /// <summary>⛔ THE ONE SET of usages whose subject admits NO VALUE-clause literal at all — the SR9 four
-    /// plus the plain data-pointer, written as a SET because §13.18.63.3 states the rule over a CLASS and the
-    /// usages are merely how that class is spelled (kb/Work PB557).
+    /// <summary>⛔ THE ONE SET of usages whose subject admits NO VALUE clause at all — ISO §13.16.3 SR10's four
+    /// CLASSES, spelled as the usages §8.5.2.1 Table 2 files under them (kb/Work PB557, PB515).
     ///
-    /// <para>§13.18.63.3 SR9 names four of them outright: "The VALUE clause shall not be specified if a USAGE
-    /// clause with a phrase of FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or PROGRAM-POINTER is also
-    /// specified." USAGE POINTER is NOT in that sentence, and it reaches the same answer by the clause's own
-    /// general format instead: §13.18.63.2 format 1 takes literal-1, and the only spelling a programmer reaches
-    /// for is NULL — which §8.4.3.10.1 makes "a predefined address of class pointer or a predefined content of
-    /// class message-tag", an identifier under §8.4.3 and not a literal, and which §8.3.3.6.2 does NOT list among
-    /// the figurative constants. No syntax rule types a literal for a data-pointer subject either: SR2 types one
-    /// for a numeric subject, SR4 for alphabetic / alphanumeric / alphanumeric-edited, SR5 for national, SR6/SR7
-    /// for numeric-edited and SR10 for boolean — class pointer appears in none of them.</para>
+    /// <para><b>The rule is class-keyed, and it is the data description entry's.</b> §13.16.3 SR10: "The VALUE
+    /// clause shall not be specified for data items of class index, message-tag, object, or pointer." Table 2
+    /// puts category index in class index (USAGE INDEX), category message-tag in class message-tag, category
+    /// object-reference in class object (USAGE OBJECT REFERENCE), and categories data-pointer, function-pointer
+    /// and program-pointer in class pointer (USAGE POINTER / FUNCTION-POINTER / PROGRAM-POINTER). So six usages,
+    /// one rule. <c>ValueClauseUsageSetDriftTests</c> re-derives the set from SR10 and Table 2 on every run.</para>
+    ///
+    /// <para>§13.18.63.3 SR9 is the VALUE clause's own restatement of four of them: "The VALUE clause shall not be
+    /// specified if a USAGE clause with a phrase of FUNCTION-POINTER, MESSAGE-TAG, OBJECT-REFERENCE, or
+    /// PROGRAM-POINTER is also specified." It names the usages a programmer WRITES; SR10 names the classes, and
+    /// is the one that reaches USAGE INDEX and the plain data-pointer. ⛔ USAGE INDEX was the arm this set was
+    /// missing while it was written from SR9 alone (kb/Work PB515): `77 I USAGE INDEX VALUE 7.` compiled clean
+    /// at every edition and the value was LIVE — `SET N TO I` yielded 007, so illegal source silently acquired a
+    /// defined initial occurrence number. (No VALUE NULL escape exists for any of them: §8.4.3.10.1 makes NULL "a
+    /// predefined address of class pointer or a predefined content of class message-tag", an identifier under
+    /// §8.4.3 and not a literal.)</para>
     ///
     /// <para>§13.18.63.4 GR4 is what makes the prohibition harmless rather than a loss of expressiveness: "When
     /// VALUE clauses take effect, data items with a VALUE clause are initialized to the specified value and data
@@ -271,10 +277,24 @@ public static class UsageFamilies
     /// needs a prototype the repository work has not landed. A rule written only over its reachable arms is how
     /// the other two went missing for the life of the tree.</para></summary>
     public static bool AdmitsNoValueLiteral(Usage u) => u
-        // —— §13.18.63.3 SR9's four, verbatim ——
-        is Usage.FunctionPointer or Usage.MessageTag or Usage.ObjectReference or Usage.ProgramPointer
-        // —— the data-pointer sibling, by §13.18.63.2 format 1 + §8.4.3.10.1 ——
-        or Usage.Pointer;
+        // —— §13.16.3 SR10, class by class through §8.5.2.1 Table 2 ——
+        is Usage.Index                                                          // class index
+        or Usage.MessageTag                                                     // class message-tag
+        or Usage.ObjectReference                                                // class object
+        or Usage.Pointer or Usage.FunctionPointer or Usage.ProgramPointer;      // class pointer
+
+    /// <summary>The ISO rule a <see cref="AdmitsNoValueLiteral"/> refusal cites for <paramref name="u"/> — the
+    /// VALUE clause's own §13.18.63.3 SR9 where it names the usage, else the data description entry's
+    /// §13.16.3 SR10, which names the class. One sentence for both sites that screen the rule (the entry's own
+    /// USAGE clause in <c>BindEntry</c>, and the usage an elementary item ACQUIRES from its group under
+    /// §13.18.60.4 GR1 in <c>UsageInheritancePass</c>), so the two spellings of one item cannot cite differently.</summary>
+    public static string NoValueClauseRule(Usage u) => u switch
+    {
+        Usage.FunctionPointer or Usage.MessageTag or Usage.ObjectReference or Usage.ProgramPointer
+            => "ISO §13.18.63.3 SR9; §13.16.3 SR10",
+        Usage.Index => "a data item of class index — ISO §13.16.3 SR10",
+        _ => "a data item of class pointer — ISO §13.16.3 SR10",
+    };
 
     /// <summary>The §13.18.60 USAGE keyword for a usage, for the §13.18.63.3 SR14 diagnostic text — always a
     /// spelling the programmer could have WRITTEN.

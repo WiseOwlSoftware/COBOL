@@ -394,7 +394,8 @@
   "pb970_pointer_by_content_storage_image",
   "pb1019_address_of_method_formal",
   "pb1010_method_declaratives",
-  "pb992_returning_character_content"
+  "pb992_returning_character_content",
+  "pb551_constant_record_value_content"
   ],
   "pending": []
 }

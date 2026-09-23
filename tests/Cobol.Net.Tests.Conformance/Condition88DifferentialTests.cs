@@ -39,10 +39,12 @@ public sealed class Condition88DifferentialTests
                 DISPLAY WS-FLAG.
             """));
 
+    // PIC 9(3), not 9(2): the level-88 literal 100 must be a permissible value of the conditional variable's
+    // PICTURE (ISO §13.18.63.3 SR2; kb/Work PB586) — under 9(2) the program is illegal and draws COBOLNET1625.
     [Fact]
     public void NumericRange_Thru()
         => AssertSameAsLegacy(Program("""
-            01 WS-GRADE PIC 9(2) VALUE 75.
+            01 WS-GRADE PIC 9(3) VALUE 75.
                88 PASSING VALUE 60 THRU 100.
                88 FAILING VALUE 0 THRU 59.
                88 PERFECT VALUE 100.

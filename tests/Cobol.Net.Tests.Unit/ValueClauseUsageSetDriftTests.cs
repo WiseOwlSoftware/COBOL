@@ -8,7 +8,8 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ <see cref="UsageFamilies.AdmitsNoValueLiteral"/> AGAINST ITS OWN SOURCE — ISO §13.18.63.3 SR9, re-read out
+/// ⛔ <see cref="UsageFamilies.AdmitsNoValueLiteral"/> AGAINST ITS OWN SOURCES — ISO §13.16.3 SR10 (the classes, through
+/// §8.5.2.1 Table 2) and §13.18.63.3 SR9 (four of them by usage), re-read out
 /// of <c>specs/ISO_COBOL.md</c> on every run. The twin of <see cref="PicturelessUsageSetDriftTests"/>, for the
 /// same reason and against the same failure: SR9 names FOUR usages and the compiler screened TWO of them —
 /// exactly the two that already had a diagnostic band — for the life of the tree (kb/Work PB557). An
@@ -75,30 +76,83 @@ public sealed class ValueClauseUsageSetDriftTests
         Assert.Equal([], unmodelled);
     }
 
-    /// <summary>The converse: every member the set claims is EITHER named by SR9 or is <c>POINTER</c>, the one
-    /// deliberate addition, whose licence is written out beside the predicate (§13.18.63.2 format 1 takes
-    /// literal-1; §8.4.3.10.1 makes NULL a predefined address, not a literal; §8.3.3.6.2 does not list it among
-    /// the figurative constants; and no syntax rule of §13.18.63.3 types a literal for a subject of class
-    /// pointer). ⛔ Anything else added to the set fails here until its own derivation is written down.</summary>
-    [Fact]
-    public void EveryMember_IsSr9Named_OrTheDocumentedPointerAddition()
+    /// <summary>ISO §13.16.3 SR10's class list, read out of the spec: "The VALUE clause shall not be specified
+    /// for data items of class index, message-tag, object, or pointer."</summary>
+    private static List<string> Sr10ClassNames()
     {
-        var named = Sr9UsageNames()
-            .Select(n => n.ToUpperInvariant().Replace("OBJECT-REFERENCE", "OBJECT REFERENCE"))
-            .ToHashSet();
-        foreach (Usage u in Enum.GetValues<Usage>())
-        {
-            if (!UsageFamilies.AdmitsNoValueLiteral(u)) continue;
-            if (named.Contains(UsageFamilies.UsageWord(u))) continue;
-            Assert.True(u is Usage.Pointer,
-                $"UsageFamilies.AdmitsNoValueLiteral({u}) is true, but ISO §13.18.63.3 SR9 does not name USAGE "
-                + $"{UsageFamilies.UsageWord(u)} and it is not the documented POINTER addition. Either the "
-                + "standard names it (fix the scanner or the transcription) or a derivation has to be written "
-                + "down beside the predicate first.");
-        }
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        int start = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+13\.16\.3\b"));
+        Assert.True(start >= 0, "§13.16.3 is missing from specs/ISO_COBOL.md — this guard must follow the clause.");
+        string? sr10 = lines[start..].Take(200).FirstOrDefault(
+            l => Regex.IsMatch(l, @"^10\\?\)\s") && l.Contains("VALUE clause shall not be specified", StringComparison.Ordinal));
+        Assert.NotNull(sr10);
+        var m = Regex.Match(sr10!, @"data items of class (.+?)\.\s*$");
+        Assert.True(m.Success, $"§13.16.3 SR10's class list did not parse — the clause reads: {sr10}");
+        var names = m.Groups[1].Value.Replace(", or ", ", ").Replace(" or ", ", ")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        Assert.True(names.Count >= 4, $"only {names.Count} classes parsed from §13.16.3 SR10 — fix the scanner.");
+        return names;
     }
 
-    /// <summary>A usage that admits no VALUE literal admits no PICTURE either — §13.16.3 SR8 names all five of
+    /// <summary>ISO §8.5.2.1 Table 2, read out of the spec: each class → the categories it holds.</summary>
+    private static Dictionary<string, List<string>> TableTwo()
+    {
+        string[] lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
+        int start = Array.FindIndex(lines, l => l.Contains("Table 2 — Class and category relationships", StringComparison.Ordinal));
+        Assert.True(start >= 0, "§8.5.2.1 Table 2 is missing from specs/ISO_COBOL.md.");
+        var map = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (string l in lines[(start + 1)..].SkipWhile(l => !l.StartsWith('|')).TakeWhile(l => l.StartsWith('|')))
+        {
+            var cells = l.Trim('|').Split('|').Select(c => c.Trim()).ToArray();
+            if (cells.Length != 2 || cells[0] is "Class" || cells[0].StartsWith('-')) continue;
+            map[cells[0]] = cells[1].Split("<br>").Select(c => c.Trim()).ToList();
+        }
+        Assert.True(map.Count >= 9, $"only {map.Count} Table 2 rows parsed — fix the scanner.");
+        return map;
+    }
+
+    /// <summary>The USAGE word a Table 2 category of one of SR10's classes is declared with (§13.18.60.2): the
+    /// category name IS the usage word, bar data-pointer (USAGE POINTER) and object-reference (the two words
+    /// OBJECT REFERENCE).</summary>
+    private static string UsageWordOfCategory(string category) => category.ToUpperInvariant() switch
+    {
+        "DATA-POINTER" => "POINTER",
+        "OBJECT-REFERENCE" => "OBJECT REFERENCE",
+        var w => w,
+    };
+
+    /// <summary>⛔ THE SET IS §13.16.3 SR10's, EXACTLY (kb/Work PB515): every usage whose Table 2 category sits in
+    /// one of SR10's classes admits no VALUE clause, and no other usage is in the set. USAGE INDEX was the arm
+    /// missing while the set was written from §13.18.63.3 SR9 alone — `77 I USAGE INDEX VALUE 7.` compiled and
+    /// seeded the index item.</summary>
+    [Fact]
+    public void TheSet_IsSr10sClasses_ThroughTableTwo()
+    {
+        var table = TableTwo();
+        var expected = new HashSet<string>();
+        foreach (string cls in Sr10ClassNames())
+        {
+            Assert.True(table.TryGetValue(cls, out var cats),
+                $"§13.16.3 SR10 names class '{cls}', which §8.5.2.1 Table 2 does not list — fix the scanner.");
+            foreach (string c in cats!) expected.Add(UsageWordOfCategory(c));
+        }
+        var byWord = Enum.GetValues<Usage>().ToLookup(u => UsageFamilies.UsageWord(u));
+        foreach (string word in expected)
+        {
+            Assert.True(byWord.Contains(word), $"§13.16.3 SR10 reaches USAGE {word}, which has no Usage member.");
+            foreach (Usage u in byWord[word])
+                Assert.True(UsageFamilies.AdmitsNoValueLiteral(u),
+                    $"ISO §13.16.3 SR10 forbids a VALUE clause on USAGE {word} (its §8.5.2.1 Table 2 class is one "
+                    + $"SR10 names), but UsageFamilies.AdmitsNoValueLiteral({u}) is false.");
+        }
+        foreach (Usage u in Enum.GetValues<Usage>())
+            if (UsageFamilies.AdmitsNoValueLiteral(u))
+                Assert.True(expected.Contains(UsageFamilies.UsageWord(u)),
+                    $"UsageFamilies.AdmitsNoValueLiteral({u}) is true, but USAGE {UsageFamilies.UsageWord(u)} is "
+                    + "not of a class §13.16.3 SR10 names — the set would refuse a VALUE the standard admits.");
+    }
+
+    /// <summary>A usage that admits no VALUE literal admits no PICTURE either — §13.16.3 SR8 names all six of
     /// them. The two sets are independent facts about the same usages, so a member that fell out of one and not
     /// the other is a drift nothing else would see: it would mean an item whose representation a picture
     /// character-string CAN describe was nevertheless refused an initial value.</summary>
