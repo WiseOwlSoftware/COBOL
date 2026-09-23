@@ -247,7 +247,8 @@ internal static class PlaceRenderer
         foreach (var seg in ap.Segments)
             path = seg switch
             {
-                RootFieldSegment r => r.CsField,
+                // A formal parameter's root renders through its *-ARG-OMITTED guard (kb/Work PB971).
+                RootFieldSegment r => r.Guard is { } g ? g.Render(r.CsField) : r.CsField,
                 MemberSegment m => path + "." + m.CsMember,
                 FixedTableSegment f => RuntimeApi.TableAt(path, f.OneBasedIndex),
                 DynTableSegment d => $"{path}.{(dir == AccessDir.Sending ? "RefSending" : "RefReceiving")}({d.OneBasedIndex})",

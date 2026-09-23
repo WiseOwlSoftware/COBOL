@@ -86,6 +86,13 @@ public struct CheckingFlags
     /// omitted-argument condition or an argument position (§14.9.4.4 GR12; kb/Work PB133 wave C).</summary>
     public bool ProgramArgOmitted;
 
+    /// <summary>EC-FUNCTION-ARG-OMITTED — the same reference in an ACTIVATED FUNCTION (§8.4.3.2.4 GR8;
+    /// kb/Work PB971). One condition per activated-element kind, never the program's name in a function.</summary>
+    public bool FunctionArgOmitted;
+
+    /// <summary>EC-OO-ARG-OMITTED — the same reference in an INVOKED METHOD (§14.9.23.4 GR10; kb/Work PB971).</summary>
+    public bool OoArgOmitted;
+
     /// <summary>EC-BOUND-SUBSCRIPT — a subscript below 1 or above the highest permissible occurrence number
     /// (§8.4.2.3.4 GR2).</summary>
     public bool BoundSubscript;

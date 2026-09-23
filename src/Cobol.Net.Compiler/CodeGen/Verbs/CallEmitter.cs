@@ -547,7 +547,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // call initiation; the mode rides the wire so the arg is honest about which rule produced it
             // (the BY VALUE callee re-conforms through its own NumValue cell, GR10).
             // ⛔ The snapshot READS the operand, so when the operand is a forwarded formal the read has to be
-            // guarded: an omitted formal's accessor raises EC-PROGRAM-ARG-OMITTED, and GR12 says this
+            // guarded: a reference to an omitted formal raises its *-ARG-OMITTED (kb/Work PB971), and GR12 says this
             // reference form does not. The guard also carries the omission on, per GR1c.
             string snapshot = CrossingOf(p) switch
             {

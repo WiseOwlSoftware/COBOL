@@ -725,6 +725,32 @@ public sealed class ExceptionEngine
     public void ProgramArgOmittedError(string detail)
         => FatalIfEnabled(ProgramArgOmittedChecking, "EC-PROGRAM-ARG-OMITTED", detail);
 
+    /// <summary>True while EC-FUNCTION-ARG-OMITTED checking is enabled (fatal).</summary>
+    public bool FunctionArgOmittedChecking
+    {
+        get => _checking.FunctionArgOmitted;
+        set => _checking.FunctionArgOmitted = value;
+    }
+
+    /// <summary>Raise EC-FUNCTION-ARG-OMITTED (§8.4.3.2.4 GR8: a reference, in an activated FUNCTION, to a
+    /// parameter for which the omitted-argument condition is true; Table 13 Fatal) when checking is enabled;
+    /// otherwise return and the lenient benign value stands (kb/Work PB971).</summary>
+    public void FunctionArgOmittedError(string detail)
+        => FatalIfEnabled(FunctionArgOmittedChecking, "EC-FUNCTION-ARG-OMITTED", detail);
+
+    /// <summary>True while EC-OO-ARG-OMITTED checking is enabled (fatal).</summary>
+    public bool OoArgOmittedChecking
+    {
+        get => _checking.OoArgOmitted;
+        set => _checking.OoArgOmitted = value;
+    }
+
+    /// <summary>Raise EC-OO-ARG-OMITTED (§14.9.23.4 GR10: a reference, in an invoked METHOD, to a parameter for
+    /// which the omitted-argument condition is true; Table 13 Fatal) when checking is enabled; otherwise return
+    /// and the method's initial-state local stands (kb/Work PB971).</summary>
+    public void OoArgOmittedError(string detail)
+        => FatalIfEnabled(OoArgOmittedChecking, "EC-OO-ARG-OMITTED", detail);
+
     // ── EC-OO-UNIVERSAL: the ACTIVATOR half of the §14.9.23.4 GR7c "enabled in both" gate ─────────────────────
 
     /// <summary>True while the currently-executing INVOKE has EC-OO-UNIVERSAL checking enabled in the ACTIVATING
@@ -1361,6 +1387,26 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.ProgramArgOmittedError"/>
     public static void ProgramArgOmittedError(string detail) => E.ProgramArgOmittedError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FunctionArgOmittedChecking"/>
+    public static bool FunctionArgOmittedChecking
+    {
+        get => E.FunctionArgOmittedChecking;
+        set => E.FunctionArgOmittedChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FunctionArgOmittedError"/>
+    public static void FunctionArgOmittedError(string detail) => E.FunctionArgOmittedError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.OoArgOmittedChecking"/>
+    public static bool OoArgOmittedChecking
+    {
+        get => E.OoArgOmittedChecking;
+        set => E.OoArgOmittedChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.OoArgOmittedError"/>
+    public static void OoArgOmittedError(string detail) => E.OoArgOmittedError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.BoundOdoChecking"/>
     public static bool BoundOdoChecking

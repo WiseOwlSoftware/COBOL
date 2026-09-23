@@ -32,7 +32,7 @@ namespace CobolNet.Runtime;
 /// name's checking enabled (>>TURN, §7.3.25) can set the last exception status and run the §14.9.49 F3
 /// declarative selection over the precise condition.
 /// <para>⛔ NOT every failure inside a called program: a reference to an OMITTED argument raises
-/// EC-PROGRAM-ARG-OMITTED (§14.9.4.4 GR12) through the CALLEE's own checked-raise gate, precisely because it is
+/// EC-PROGRAM-ARG-OMITTED (§14.9.4.4 GR12) at the reference, in the CALLEE (OmittedFormal), precisely because it is
 /// an in-execution raise and not an activation failure — the old carrier threw this exception for it and every
 /// enclosing CALL site read it as its own GR3h failure (kb/Work PB133). <see cref="ControlTransferred"/> is the
 /// general form of that distinction.</para>

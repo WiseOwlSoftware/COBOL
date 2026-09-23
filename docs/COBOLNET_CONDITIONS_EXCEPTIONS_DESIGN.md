@@ -354,7 +354,9 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
     an activator that had disabled it ran when the callee had it on; §7.3.25.4 GR6/GR8 make both reachable inside
     ONE compilation group. `BoundRaising` now has no enablement field at all, by design.
 - **The EC-PROGRAM bridge rides `CobolCallException.EcName`.** The registry latches the Table 13 level-3 name
-  (NOT-FOUND / RECURSIVE-CALL / CANCEL-ACTIVE / ARG-OMITTED); a CALL/CANCEL under enabled checking emits a
+  (NOT-FOUND / RECURSIVE-CALL / CANCEL-ACTIVE — NOT ARG-OMITTED, which is a REFERENCE-time condition of the called
+  element, raised by `OmittedFormal` under the element-kind ambient gate; kb/Work PB971); a CALL/CANCEL under
+  enabled checking emits a
   name-FILTERED catch (`when (__ce.EcName == …)`) that sets the status and either flags the statement's own
   ON EXCEPTION phrase (it wins — §14.6.13.1.3 #1) or runs the F3 selection + fatal default. A non-enabled name
   falls through — checking-off behavior unchanged.

@@ -377,10 +377,15 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// EC-FLOW-REPORT). PRECISE, as <see cref="InitiateNames"/>.</summary>
     private static readonly string[] TerminateNames = ["EC-REPORT-INACTIVE", "EC-FLOW-REPORT"];
 
-    /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.</summary>
+    /// <summary>The EC-PROGRAM family a CALL/CANCEL raises through <c>CobolCallException</c>.
+    /// <para>⛔ NOT EC-PROGRAM-ARG-OMITTED (kb/Work PB971). It sat here as though the ACTIVATOR raised it; §14.9.4.4
+    /// GR12 raises it at a REFERENCE in the called program, so its membership enabled the flag only around the
+    /// CALL — in the caller, whose flags the activation boundary sets aside — and never at the callee statement
+    /// that references the formal. It is now queried for EVERY statement under the element-kind rule
+    /// (<see cref="ArgOmittedName"/>).</para></summary>
     private static readonly string[] ProgramNames =
     [
-        "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE", "EC-PROGRAM-ARG-OMITTED",
+        "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE",
         // §14.8.2.1 via §14.9.4.4 GR3d (kb/Work PB133 wave C2b) — the dynamic Format-1 count check at
         // activation; membership here is BOTH what lets the site's catch arm name it AND what makes
         // CallEmitter pass the ACTIVATING half of GR3d's enabled-in-both gate (siteArgMismatchChecking).
@@ -400,9 +405,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// function-identifier — because that is the only node whose emitted invocation passes
     /// <c>notFoundEc: "EC-FUNCTION-NOT-FOUND"</c>. EC-FUNCTION-PTR-NULL (GR6c) is raised only by an activation
     /// THROUGH a function-pointer (<c>ProgramTable.CallFunctionPointer</c>, kb/Work PB847), so it is queried
-    /// precisely for that node below rather than listed here; EC-FUNCTION-ARG-OMITTED (GR8) has no raise site
-    /// yet and is not named: an unraisable name in this list would make every activation report as checkable and
-    /// emit a dead catch arm.</summary>
+    /// precisely for that node below rather than listed here; EC-FUNCTION-ARG-OMITTED (GR8) is not an ACTIVATION
+    /// failure at all — it is raised at a reference inside the function (kb/Work PB971), and every statement of
+    /// the function queries it under the element-kind rule (<see cref="ArgOmittedName"/>).</summary>
     private static readonly string[] FunctionActivationNames = ["EC-FUNCTION-NOT-FOUND"];
 
     /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
@@ -691,6 +696,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // is a no-op.
             if (ctx.EcState.Turn.Enabled("EC-FLOW-USE", null, line))
                 enabled.Add(("EC-FLOW-USE", null));
+            // THE *-ARG-OMITTED CONDITION OF THIS ELEMENT'S KIND (kb/Work PB971 — §14.9.4.4 GR12 program,
+            // §8.4.3.2.4 GR8 function, §14.9.23.4 GR10 method) rides an ambient per-statement gate for the reason
+            // EC-BOUND-REF-MOD does: its raise site is the REFERENCE, rendered inline through the formal's guarded
+            // root (OmittedFormalGuard) in any operand of any verb, so no node kind can key it. The guard raises
+            // only when the argument was actually omitted, so the flag around a formal-free statement is a no-op.
+            if (ctx.EcState.Turn.Enabled(ArgOmittedName, null, line))
+                enabled.Add((ArgOmittedName, null));
             // EC-BOUND-REF-MOD (fatal, §8.4.3.3.4) rides an ambient per-statement gate: a reference modification
             // whose leftmost/length is out of range (or an unallowed zero-length) raises it while checking is
             // enabled. Wrapped conservatively (any statement in a checking-on region) — the raise fires only at an

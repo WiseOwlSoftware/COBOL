@@ -29,7 +29,9 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
     public AccessPath Reroot(string prefix)
     {
         if (Segments.Count == 0 || Segments[0] is not RootFieldSegment root) return this;
-        var segs = new List<AccessSegment>(Segments.Count) { new RootFieldSegment(prefix + root.CsField) };
+        // The guard's presence member is Uid-keyed and bridged under the same name (kb/Work PB971), so only the
+        // storage text is re-anchored; the guard travels unchanged.
+        var segs = new List<AccessSegment>(Segments.Count) { root with { CsField = prefix + root.CsField } };
         for (int i = 1; i < Segments.Count; i++) segs.Add(Segments[i]);
         return new AccessPath(segs);
     }
@@ -43,8 +45,10 @@ public sealed record AccessPath(IReadOnlyList<AccessSegment> Segments)
 public abstract record AccessSegment;
 
 /// <summary>The root of the path — a static or instance C# field (or, after <see cref="AccessPath.Reroot"/>, a
-/// contained-program <c>__outer</c>-prefixed root expression, or a CORRESPONDING anchor local).</summary>
-public sealed record RootFieldSegment(string CsField) : AccessSegment;
+/// contained-program <c>__outer</c>-prefixed root expression, or a CORRESPONDING anchor local).
+/// <paramref name="Guard"/> is non-null when the root is a FORMAL PARAMETER whose reference can raise its
+/// *-ARG-OMITTED condition (kb/Work PB971): the backend then renders the root through the runtime guard.</summary>
+public sealed record RootFieldSegment(string CsField, OmittedFormalGuard? Guard = null) : AccessSegment;
 
 /// <summary>A <c>.Member</c> access on the accumulated path (a nested <c>record struct</c> member).</summary>
 public sealed record MemberSegment(string CsMember) : AccessSegment;

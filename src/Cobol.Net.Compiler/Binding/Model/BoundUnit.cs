@@ -60,5 +60,6 @@ internal sealed class BoundUnit
 /// <summary>One inherited-GLOBAL bridge a nested class emits: a <c>ref</c>-returning property aliasing the
 /// containing instance's field (ISO §13.18.27 GR2 — the name is visible in every contained program; the
 /// STORAGE stays the container's). <paramref name="Kind"/>: "field" (a global root's typed field), "backing"
-/// (a Tier-B class's string backing), or "index" (an INDEXED BY <c>long</c> field of a global table).</summary>
+/// (a Tier-B class's string backing), "index" (an INDEXED BY <c>long</c> field of a global table), or "presence"
+/// (a GLOBAL formal parameter's omitted-presence member — kb/Work PB971; a plain <c>bool</c>, not a ref).</summary>
 internal sealed record CallBridge(string Field, string Path, string Kind, DataItem? Item);

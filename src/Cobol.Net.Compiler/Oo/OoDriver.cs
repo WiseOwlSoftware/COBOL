@@ -108,6 +108,9 @@ internal sealed class OoDriver(BindSession session)
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§8.4.3.8; slice 3b)
         };
         binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
+        // kb/Work PB971 — the method formals' EC-OO-ARG-OMITTED guards (§14.9.23.4 GR10), before any body binds.
+        Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.Methods, session.Turn);
+        Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.FactoryMethods, session.Turn);
         cls.Bound = binder.BindMethodRoster(cls.Symbol, cls.Symbol.Methods);
 
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory

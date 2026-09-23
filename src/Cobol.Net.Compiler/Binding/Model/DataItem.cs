@@ -524,6 +524,13 @@ public sealed class DataItem
         "the same classifier's stored-member verdict")]
     public bool IsCanonical { get; set; } = true;
 
+    /// <summary>The reference-time *-ARG-OMITTED fact when this item is a FORMAL PARAMETER of its source element
+    /// and the compilation group can enable the kind's condition (kb/Work PB971 — ISO §14.9.4.4 GR12, §8.4.3.2.4
+    /// GR8, §14.9.23.4 GR10). Every access path rooted here carries it; null otherwise.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a fact of the formal-parameter ROLE (the PROCEDURE DIVISION USING operand), not of the data description")]
+    public OmittedFormalGuard? OmittedGuard { get; set; }
+
     /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
     /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The
     /// post-build pass routes every reference through the pointer (Phase-4b increment 2).</summary>

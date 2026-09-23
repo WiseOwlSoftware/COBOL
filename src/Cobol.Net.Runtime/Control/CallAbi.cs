@@ -111,8 +111,8 @@ public interface ICobolProgram
 /// persisted byte image.
 /// <para>TWO DIFFERENT FAILURES, TWO DIFFERENT ANSWERS (kb/Work PB615). A missing / OMITTED argument yields the
 /// omitted carrier (<see cref="Omitted{T}"/>): §14.9.4.4 GR11 makes the omitted-argument condition true, and a
-/// reference raises EC-PROGRAM-ARG-OMITTED under checking (GR12) and reads the type's benign empty value
-/// without it. A SUPPLIED argument whose carrier the formal's adapter cannot read is NOT omitted — it is a
+/// reference reads the type's benign empty value — the GR12 raise is the REFERENCE's, through
+/// <see cref="OmittedFormal"/> (kb/Work PB971), never the carrier's. A SUPPLIED argument whose carrier the formal's adapter cannot read is NOT omitted — it is a
 /// violation of the §14.8.2 conformance rules, and §14.9.4.4 GR3 d) answers it with "the program call is not successful"
 /// (EC-PROGRAM-ARG-MISMATCH): <see cref="Unreadable{T}"/> fails the activation LOUD, never a silent zero
 /// indistinguishable from an omitted argument.</para>
@@ -364,7 +364,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<T> Num<T>(CobolArg[] args, int i, NumProfile formal, int formalScale)
         where T : struct, System.Numerics.INumberBase<T>
     {
-        if (!Present(args, i)) return Omitted<T>(i);
+        if (!Present(args, i)) return Omitted<T>();
         switch (args[i].Carrier)
         {
             case ManagedPointer<T> tp when args[i].Scale == formalScale:
@@ -430,7 +430,7 @@ public static class CobolArgAdapt
     /// width, and this arm did not exist.</para></summary>
     public static ManagedPointer<string> Text(CobolArg[] args, int i, int width, int[]? groupLayout = null)
     {
-        if (!Present(args, i)) return Omitted<string>(i);
+        if (!Present(args, i)) return Omitted<string>();
         switch (args[i].Carrier)
         {
             case ManagedPointer<CobolVarGroup> vp when VarGroupSpans(args[i], groupLayout, width) is { } spans:
@@ -504,7 +504,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<T> NumValue<T>(CobolArg[] args, int i, NumProfile formal, int formalScale)
         where T : struct, System.Numerics.INumberBase<T> =>
         // Land's 16-byte-unsigned result is container BITS (R10); CreateTruncating reinterprets them exactly.
-        !Present(args, i) ? Omitted<T>(i)
+        !Present(args, i) ? Omitted<T>()
         : LandScalar(args[i], formal, formalScale, checking: false) is { } v
             ? ManagedPointer<T>.Cell(T.CreateTruncating(v))
             : Unreadable<T>(args, i, "a BY VALUE numeric formal");
@@ -522,7 +522,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<string> TextValue(CobolArg[] args, int i, int width, NumProfile? formal, int formalScale,
         int[]? groupLayout = null)
     {
-        if (!Present(args, i)) return Omitted<string>(i);
+        if (!Present(args, i)) return Omitted<string>();
         // A variable-length group argument into a fixed-length GROUP formal BY CONTENT (kb/Work PB965): §14.8.2.2
         // rule 2's MOVE, which §14.9.25.4 GR9 performs through the same correspondence (§8.5.1.12.3 sentence 3).
         if (args[i].Carrier is ManagedPointer<CobolVarGroup> vp && VarGroupSpans(args[i], groupLayout, width) is { } vspans)
@@ -567,7 +567,7 @@ public static class CobolArgAdapt
     /// (§14.8.2.2 via §14.9.4.4 GR3 d)) — loud, never a silent reinterpretation.</para></summary>
     public static ManagedPointer<CobolVarGroup> VarGroup(CobolArg[] args, int i, int[] formalLayout)
     {
-        if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
+        if (!Present(args, i)) return Omitted<CobolVarGroup>();
         return args[i].Carrier switch
         {
             ManagedPointer<CobolVarGroup> vp => vp,
@@ -597,7 +597,7 @@ public static class CobolArgAdapt
     /// </summary>
     public static ManagedPointer<string> DynText(CobolArg[] args, int i, int limit)
     {
-        if (!Present(args, i)) return Omitted<string>(i);
+        if (!Present(args, i)) return Omitted<string>();
         return args[i].Carrier switch
         {
             ManagedPointer<string> sp => ManagedPointer<string>.OverField(
@@ -617,7 +617,7 @@ public static class CobolArgAdapt
     /// same correspondence <see cref="VarGroup"/> uses (kb/Work PB965).</summary>
     public static ManagedPointer<CobolVarGroup> VarGroupValue(CobolArg[] args, int i, int[] formalLayout)
     {
-        if (!Present(args, i)) return Omitted<CobolVarGroup>(i);
+        if (!Present(args, i)) return Omitted<CobolVarGroup>();
         return args[i].Carrier switch
         {
             ManagedPointer<CobolVarGroup> vp => ManagedPointer<CobolVarGroup>.Cell(vp.Value ?? CobolVarGroup.Empty),
@@ -645,7 +645,7 @@ public static class CobolArgAdapt
     /// <see cref="VarGroup"/> does.</para></summary>
     public static ManagedPointer<T> Slot<T>(CobolArg[] args, int i)
     {
-        if (!Present(args, i)) return Omitted<T>(i);
+        if (!Present(args, i)) return Omitted<T>();
         return args[i].Carrier is ManagedPointer<T> mp ? mp : Unreadable<T>(args, i, "a pointer or object-reference formal");
     }
 
@@ -657,7 +657,7 @@ public static class CobolArgAdapt
     /// to apply, which is why the numeric lane's landing machinery has no counterpart here.</summary>
     public static ManagedPointer<T> SlotValue<T>(CobolArg[] args, int i)
     {
-        if (!Present(args, i)) return Omitted<T>(i);
+        if (!Present(args, i)) return Omitted<T>();
         return args[i].Carrier is ManagedPointer<T> mp ? ManagedPointer<T>.Cell(mp.Value) : Unreadable<T>(args, i, "a BY VALUE pointer or object-reference formal");
     }
 
@@ -882,14 +882,6 @@ public static class CobolArgAdapt
         Undeliverable(c, "the object-reference result");
     }
 
-    /// <summary>The omitted/absent CALL argument's carrier (ISO §14.9.4.4 GR11–GR12; kb/Work PB133 wave C):
-    /// IsNull answers true — what makes the §8.8.4.8 omitted-argument condition and GR1c's TRANSITIVE
-    /// omission work through the ordinary Present test — and a reference raises EC-PROGRAM-ARG-OMITTED
-    /// through the CA10 checked-raise gate IN THE CALLEE's engine. Checking OFF stays lenient (reads answer
-    /// the type's benign empty value, stores are ignored — GR12 leaves the content undefined; the documented
-    /// implementor choice). The old carrier threw CobolCallException unconditionally, which the CALL SITE's
-    /// catch arm treated as an ACTIVATION failure — an in-execution raise unwound into the CALLER's
-    /// ON EXCEPTION phrase, which GR3i forbids.</summary>
     /// <summary>⛔ A SUPPLIED ARGUMENT THE FORMAL CANNOT READ (kb/Work PB615) — never the omitted carrier. Every
     /// adapter's type switch ends here once its readable arms are exhausted: the argument's carrier is outside the
     /// shapes the formal's crossing form can take, which only a pairing that violates §14.8.2's conformance rules
@@ -901,9 +893,8 @@ public static class CobolArgAdapt
     /// the RETURNING delivery (<see cref="Undeliverable"/>) use — one EC-PROGRAM-ARG-MISMATCH mechanism — marked
     /// <see cref="CobolCallException.RaisedAtAdoption"/> so the activation boundary keeps it attributable to THIS
     /// CALL's GR3h rather than marking it as a condition propagated from the called program (GR3i).
-    /// <para>Before PB615 each switch fell to <see cref="Omitted{T}"/>, whose read raises only under
-    /// EC-PROGRAM-ARG-OMITTED checking and otherwise answers <c>default</c> — a supplied argument read as zero,
-    /// silently, and a wrong exception-name when checking was on.</para></summary>
+    /// <para>Before PB615 each switch fell to <see cref="Omitted{T}"/>, whose read answered <c>default</c> — a
+    /// supplied argument read as zero, silently, indistinguishable from an omitted one.</para></summary>
     private static ManagedPointer<T> Unreadable<T>(CobolArg[] args, int position, string formal) =>
         throw new CobolCallException(
             $"CALL argument #{position + 1}: its carrier ({args[position].Carrier.GetType().Name}) cannot be read "
@@ -911,11 +902,19 @@ public static class CobolArgAdapt
             + "§14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH)",
             "EC-PROGRAM-ARG-MISMATCH") { RaisedAtAdoption = true };
 
-    private static ManagedPointer<T> Omitted<T>(int position) => ManagedPointer<T>.OmittedArgument(
+    /// <summary>The omitted/absent CALL argument's carrier (ISO §14.9.4.4 GR11; kb/Work PB133 wave C): IsNull
+    /// answers true — what makes the §8.8.4.8 omitted-argument condition and GR1c's TRANSITIVE omission work
+    /// through the ordinary Present test. Reads answer the type's benign empty value and stores are ignored.
+    /// <para>⛔ The carrier RAISES NOTHING (kb/Work PB971). The *-ARG-OMITTED condition is a fact about the
+    /// REFERENCE and about the kind of element that owns the formal (§14.9.4.4 GR12 program, §8.4.3.2.4 GR8
+    /// function, §14.9.23.4 GR10 method), so it is raised at the rendered reference by
+    /// <see cref="OmittedFormal"/>. This carrier used to raise EC-PROGRAM-ARG-OMITTED on read: the PROGRAM name
+    /// in a function, and never for a group formal (whose reference reads the callee's boundary copy, not this
+    /// carrier). Checking off, GR12 leaves the content undefined — the benign value is the documented
+    /// implementor choice.</para></summary>
+    private static ManagedPointer<T> Omitted<T>() => ManagedPointer<T>.OmittedArgument(
         () =>
         {
-            RunUnit.Current.Exceptions.ProgramArgOmittedError(
-                $"reference to omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12)");
             // The benign empty value per carrier shape — a REFERENCE carrier must not hand back null and
             // turn a documented GR12 leniency into an NRE (kb/Work PB204 added the var-group carrier).
             if (typeof(T) == typeof(string)) return (T)(object)"";
@@ -930,6 +929,6 @@ public static class CobolArgAdapt
             if (typeof(T) == typeof(ManagedPointer)) return (T)(object)ManagedPointer.Null;
             return default!;
         },
-        _ => RunUnit.Current.Exceptions.ProgramArgOmittedError(
-            $"store into omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12)"));
+        // GR12 leaves a store into the omitted formal undefined: it is ignored (there is no caller storage).
+        _ => { });
 }

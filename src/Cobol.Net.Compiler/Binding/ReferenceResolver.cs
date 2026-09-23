@@ -1230,7 +1230,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <see langword="null"/> when the containing path is unavailable (the canonical is within an OCCURS table).</summary>
     private static AccessPath? BuildBackingPath(RedefinesClass cls) =>
         cls.Canonical.Parent is not { } parent
-            ? new AccessPath([new RootFieldSegment(cls.BackingCsName)])
+            ? new AccessPath([new RootFieldSegment(cls.BackingCsName, OmittedFormalGuard.Of(cls.Canonical))])
             : BuildAccessPath(parent, []) is { } parentPath ? parentPath.Add(new MemberSegment(cls.BackingCsName)) : null;
 
     /// <summary>The STRUCTURAL access path to the <c>StorageCell</c> behind a CELL-BACKED class's backing —
@@ -1243,8 +1243,17 @@ public sealed class ReferenceResolver(DataBinder data)
     /// never emitted.</para></summary>
     internal static AccessPath? BuildCellPath(RedefinesClass? cls) =>
         cls is { IsCellBacked: true, Canonical.Parent: null }
-            ? new AccessPath([new RootFieldSegment(cls.BackingCellCsName)])
+            // The cell is a reference-type StorageCell held in a READONLY field, so its guard passes it through
+            // rather than taking it by ref (kb/Work PB971).
+            ? new AccessPath([new RootFieldSegment(cls.BackingCellCsName,
+                OmittedFormalGuard.Of(cls.Canonical) is { } g ? g with { CarrierPrefix = cls.BackingCellCsName } : null)])
             : null;
+
+    /// <summary>⛔ THE ONE ROOT SEGMENT OF AN ITEM'S ACCESS PATH (kb/Work PB971): the item's field, carrying the
+    /// *-ARG-OMITTED guard when the item is a formal parameter (<see cref="OmittedFormalGuard.Of"/>), so every
+    /// path builder — element, whole table, Tier-B backing — checks a reference to an omitted formal the same
+    /// way, and a new builder that roots through here cannot forget it.</summary>
+    private static RootFieldSegment RootOf(DataItem root) => new(root.CsName, OmittedFormalGuard.Of(root));
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
@@ -1345,8 +1354,13 @@ public sealed class ReferenceResolver(DataBinder data)
         chain.Reverse();
         for (int i = 0; i < chain.Count - 1; i++)   // any table STRICTLY above → ambiguous whole-table reference
             if (chain[i].IsTable) return null;
-        return string.Join(".", chain.Select(n => n.CsName));
+        return string.Join(".", chain.Select((n, i) => i == 0 ? RootText(n) : n.CsName));
     }
+
+    /// <summary>The D10 transitional STRING twin of <see cref="RootOf"/>: the root item's field text, through the
+    /// guard's one rendering when the item is a formal parameter (kb/Work PB971).</summary>
+    private static string RootText(DataItem root) =>
+        OmittedFormalGuard.Of(root) is { } g ? g.Render(root.CsName) : root.CsName;
 
     /// <summary>Why a written reference that NAMES a CAPACITY register still has no place (kb/Work PB457). Each arm
     /// is a syntax rule, not a hole: the register's name identifies it outright (§13.18.38.3 SR30 first sentence),
@@ -1564,7 +1578,7 @@ public sealed class ReferenceResolver(DataBinder data)
         bool first = true;
         foreach (var seg in chain)
         {
-            segs.Add(first ? new RootFieldSegment(seg.CsName) : new MemberSegment(seg.CsName));
+            segs.Add(first ? RootOf(seg) : new MemberSegment(seg.CsName));
             first = false;
             if (seg.Occurs is not null) segs.Add(new FixedTableSegment(indexExprs[si++]));       // fixed OCCURS → CobolTable.At
             else if (seg.IsDynamicTable) segs.Add(new DynTableSegment(indexExprs[si++]));         // dynamic OCCURS → RefSending/RefReceiving
@@ -1593,7 +1607,7 @@ public sealed class ReferenceResolver(DataBinder data)
         int oi = 0;
         foreach (var n in chain)
         {
-            segs.Add(first ? new RootFieldSegment(n.CsName) : new MemberSegment(n.CsName));
+            segs.Add(first ? RootOf(n) : new MemberSegment(n.CsName));
             first = false;
             if (ReferenceEquals(n, table)) break;
             if (!n.IsTable) continue;
@@ -1620,7 +1634,9 @@ public sealed class ReferenceResolver(DataBinder data)
         int si = 0;
         foreach (var seg in chain)
         {
-            path += path.Length == 0 ? seg.CsName : "." + seg.CsName;
+            // The root through THE one guarded-root rendering (kb/Work PB971): a subscript or reference-
+            // modification position that names an omitted formal is a reference to it, like any other.
+            path += path.Length == 0 ? RootText(seg) : "." + seg.CsName;
             // A FIXED OCCURS routes through the ref-returning CobolTable.At (ISO §8.4.2.3.4 GR2): an out-of-range
             // occurrence continues benignly with subscript checking off (COBOL-85 semantics — conditions and FAIL
             // paths legally evaluate one-past-the-end references), instead of a raw CLR IndexOutOfRangeException.

@@ -132,7 +132,10 @@ alternative, a flag on OPTIONAL formals only, cannot carry that case). The flag 
 (`__omittedN`, lower-case so no upper-cased `ParamName` can collide); `OoSignatureOf` declares the pair and
 `OoArgPair` renders it at every caller — the typed INVOKE, the covariant adapter, the universal switch and the
 PROPERTY setter — so signature and argument lists cannot drift. In the body an omitted formal's local starts at
-its initial state (no copy-in) and is not copied out. The universal switch admits `__a.Length` down to one past
+its initial state (no copy-in) and is not copied out; every REFERENCE to it (or to a subordinate) renders through
+`OmittedFormal.Ref(ref local, __omittedN, Method, …)`, which raises EC-OO-ARG-OMITTED under checking (§14.9.23.4
+GR10; kb/Work PB971 — COBOLNET_INTERPROGRAM_DESIGN's OMITTED paragraph holds the one mechanism for all three
+element kinds). The universal switch admits `__a.Length` down to one past
 the last non-OPTIONAL formal (§14.8.2.1; §9.3.6 match rule 1), reads `CobolInvokeArg.Omitted`, and exempts a
 spelled OMITTED (descriptor `CobolInvokeArg.OmittedDescriptor`) from the descriptor check against an OPTIONAL
 formal only (§9.3.6 match rule 3 b) — "no further checking is performed"). Binder side: `OoBindResolvedInvoke`

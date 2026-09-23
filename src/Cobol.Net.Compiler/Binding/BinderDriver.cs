@@ -547,6 +547,10 @@ internal sealed class BinderDriver
                 if (f.IsGlobal)
                     data.FilesByName.TryAdd(f.CobolName, f);
 
+        // kb/Work PB971 — the formals' *-ARG-OMITTED guards, set BEFORE any contained program binds (a parent
+        // binds before its children), so the GLOBAL bridge below can carry a guarded root's presence member.
+        Procedure.EcBinder.MarkFormals(data.LinkageFormals, SourceElementKindOf(unit), session.Turn);
+
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
@@ -568,6 +572,11 @@ internal sealed class BinderDriver
                     unit.Bridges.Add(new CallBridge(cls.BackingCsName, outer + cls.BackingCsName, "backing", null));
                 else
                     unit.Bridges.Add(new CallBridge(g.CsName, outer + g.CsName, "field", g));
+                // A GLOBAL FORMAL PARAMETER of the container (§13.18.27.3 SR1b admits GLOBAL in the linkage
+                // section): its guarded references in THIS program read the container's presence member under
+                // the same Uid-keyed name (kb/Work PB971).
+                if (g.OmittedGuard is { } og)
+                    unit.Bridges.Add(new CallBridge(og.Presence, outer + og.Presence, "presence", g));
                 foreach (string idxName in IndexNamesUnder(g))
                     if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
                         unit.Bridges.Add(new CallBridge(field, outer + field, "index", null));

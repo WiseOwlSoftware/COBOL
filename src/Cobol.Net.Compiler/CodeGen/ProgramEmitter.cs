@@ -293,6 +293,11 @@ internal sealed class ProgramEmitter
 
             foreach (var b in unit.Bridges)
             {
+                if (b.Kind == "presence")
+                {
+                    w.Line($"private bool {b.Field} => {b.Path};   // a GLOBAL formal's omitted-argument presence (ISO §8.8.4.8.4 GR1; kb/Work PB971)");
+                    continue;
+                }
                 string type = b.Kind switch
                 {
                     "index" => "long",
@@ -342,6 +347,11 @@ internal sealed class ProgramEmitter
                 };
                 w.Line($"private ManagedPointer<{carrier}> {f.CarrierField} = {init};   "
                     + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §13.7.1; design D1)");
+                // The presence member every guarded reference to this formal reads (kb/Work PB971): Uid-keyed, so
+                // a contained program's GLOBAL bridge of it (BinderDriver) cannot collide with its own formals.
+                if (f.Item.OmittedGuard is { } og)
+                    w.Line($"private bool {og.Presence} => {f.CarrierField}.IsNull;   "
+                        + "// the omitted-argument condition of this formal (ISO §8.8.4.8.4 GR1; §14.9.4.4 GR11)");
             }
             w.Line();
 

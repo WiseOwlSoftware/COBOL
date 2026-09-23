@@ -364,8 +364,7 @@ argument reached a REDEFINED (image-carried) `PIC S9(4)V99` formal as `00123D` (
   (the operand text `OperandText.FieldImage` produces), before GR9/GR10's COMPUTE.
 
 **A supplied argument the formal cannot read (kb/Work PB615).** Every adapter's type switch used to end in the
-§14.9.4.4 GR12 OMITTED carrier, whose read raises EC-PROGRAM-ARG-OMITTED only under checking and otherwise answers
-`default` — a supplied argument read as ZERO, silently, indistinguishable from an omitted one. It is not omitted:
+§14.9.4.4 GR12 OMITTED carrier, whose read answered `default` — a supplied argument read as ZERO, silently, indistinguishable from an omitted one. It is not omitted:
 a carrier outside the formal's crossing form is a §14.8.2 conformance violation, and §14.9.4.4 GR3 d) answers it
 "the program call is not successful" with EC-PROGRAM-ARG-MISMATCH. `CobolArgAdapt.Unreadable<T>` raises exactly
 that through the same `CobolCallException` the GR3d count check and `StoreReturn`'s `Undeliverable` use, marked
@@ -508,8 +507,24 @@ a constant-name, on the literal §13.10.4 GR1/GR2 substitutes.
 - Bare argument resolution (§14.9.4.4 GR9): a bare arg with a BY REFERENCE formal becomes BY REFERENCE if it is a valid receiving operand, else BY CONTENT (e.g. a literal/expression).
 - **OMITTED / trailing-omitted argument (GR11–12), and FORWARDING one (kb/Work PB133 wave C → PB165).** The
   carrier is Null; the §8.8.4.8 omitted-argument condition IS `IsNull`; referencing an omitted formal outside
-  the two sanctioned forms raises EC-PROGRAM-ARG-OMITTED through the CA10 checked-raise gate **in the callee's**
-  engine (checking off stays lenient with the documented benign-empty read — GR12 leaves the content undefined).
+  the two sanctioned forms raises EC-PROGRAM-ARG-OMITTED **at the reference, in the callee** (checking off stays
+  lenient with the documented benign-empty read — GR12 leaves the content undefined).
+  ⛔ **THE RAISE IS THE REFERENCE'S, KEYED TO THE OWNING ELEMENT'S KIND (kb/Work PB971).** §14.9.4.4 GR12
+  (program), §8.4.3.2.4 GR8 (function) and §14.9.23.4 GR10 (method) are one rule written three times, so it lives
+  in one place per half. BIND: `EcBinder.MarkFormals` gives every formal's root `DataItem` an
+  `OmittedFormalGuard` (presence expression · `ActivatedElementKind` · name) — only when the compilation group can
+  enable the kind's name at all, so a unit with no such >>TURN renders byte-identically — and every access-path
+  builder roots through `ReferenceResolver.RootOf` / `RootText`, so EVERY rendered reference (any verb, any operand,
+  a subordinate, a REDEFINES view, a subscript or ref-mod position, a GLOBAL formal from a contained program) wraps
+  its root in `OmittedFormal.Ref(ref …)` / `OmittedFormal.Carrier(…)`; and every statement queries >>TURN for
+  `OmittedFormal.ConditionName(EcBinder.ElementKindOf(element))`, so the statement's §7.3.25.4 scope sets the flag
+  the guard tests. RUNTIME: `OmittedFormal` raises through the kind's checked helper
+  (`Program`/`Function`/`OoArgOmittedError`); the omitted CALL carrier raises NOTHING any more. Before PB971 the
+  name was queried only around a CALL (as if the activator raised it), so no referencing statement ever enabled
+  it; the carrier's read raised the PROGRAM name in a function; and a group formal's boundary copy and a method's
+  copy-in local were never checked. The presence member of a program/function formal is `__omit{Uid}`
+  (`ProgramEmitter`), bridged under the same name into a contained program for a GLOBAL formal (`CallBridge`
+  kind "presence"); a method's is its `__omittedN` parameter. Pinned by `OmittedFormalGuardDriftTests`.
   GR12's exemption — *“except as an argument”* — and §8.8.4.8.4 GR1c's TRANSITIVE omission are ONE emitted
   fact: `CallEmitter.WholeFormal` recognizes an argument that IS a whole formal parameter **by identity against
   the unit's own `LinkageFormal` items** (`CallUnitState.Formals`) — never by a `__lnkp` name match, which could

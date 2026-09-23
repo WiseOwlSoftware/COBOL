@@ -348,7 +348,9 @@
   "pb615_unreadable_argument_carrier",
   "pb962_returning_content_transfer",
   "pb965_odo_group_argument_length",
-  "pb894_program_prototype_2002"
+  "pb894_program_prototype_2002",
+  "pb971_program_arg_omitted",
+  "pb971_function_arg_omitted"
   ],
   "pending": []
 }
