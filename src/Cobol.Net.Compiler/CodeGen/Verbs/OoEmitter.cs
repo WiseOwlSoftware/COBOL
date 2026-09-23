@@ -1087,6 +1087,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // never a numeric store. Pointer/ProgramPointer joined this arm with the §14.8.2.3.2 class-pointer
             // conformance rule (fix-queue PB46) — before that they were unreachable, and the plain arm below
             // would have run Num.AsNum over a ManagedPointer.
+            // An ADDRESS-IDENTIFIER argument (kb/Work PB1021) crosses the same verbatim carrier, its value
+            // rendered by the ONE address-operand renderer — a detached pointer value (§14.9.23.3 SR19).
+            else if (a.Address is { } ao)
+                w.Line($"{a.Formal.ElementType} {tmp} = {U.Ptr.AddressOperandText(ao)};");
             else if (a.Formal.Pic is { Category: PicCategory.ObjectReference or PicCategory.Pointer
                                                  or PicCategory.ProgramPointer or PicCategory.FunctionPointer })
                 w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");

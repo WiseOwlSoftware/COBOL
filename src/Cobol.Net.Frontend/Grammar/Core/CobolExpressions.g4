@@ -214,8 +214,20 @@ primaryCondition
 // Relational
 // =========================
 
+// ⛔ THE ADDRESS-IDENTIFIER IS A RELATION OPERAND (kb/Work PB1021). §8.8.4.2.2 Format 3
+// (message-tag-object-or-pointer-reference) prints `identifier-3 … identifier-4`, and §8.4.3.1.2 identifier
+// FORMAT 9 makes an address-identifier an identifier; §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 make each arm "a unique
+// data item of class pointer", which is exactly what §8.8.4.2.3 SR5 asks of identifier-3 and identifier-4. With
+// only valueOperand here `IF P = ADDRESS OF X` was a bare COBOL0001 on conforming source. It is the ONE
+// `addressIdentifier` rule PB239 gave the CALL argument (CobolParserCore.g4), so the §8.4.3.11 storage forcing
+// (DataBinder.PtrScanAddressOfTargets walks that rule's nodes) and the 2002 introduction gate
+// (VersionConformancePass.VisitAddressIdentifier) reach this surface with no change of their own. ADDRESS is a
+// reserved word that heads no valueOperand, so the new arm is unambiguous and every relation that parsed before
+// parses identically — the shared comparison DFA (the DEVLOG-621 lesson) is not re-predicted on any old input.
+// The abbreviated relation (§8.8.4.12) reaches it through the same rule.
 comparisonOperand
-    : valueOperand
+    : addressIdentifier   // §8.8.4.2.2 Format 3 identifier-3 / identifier-4 (kb/Work PB1021)
+    | valueOperand
     ;
 
 // ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
@@ -624,8 +636,12 @@ argumentList
 // precedes it so a non-numeric literal-2 keeps the literal arm, and `booleanExpression` takes the proven
 // {boolExprAhead()}? gate because its leaf `valueOperand` matches everything the other two arms match.
 // ⚠ OMITTED IS FIRST AND IS A RESERVED WORD (§8.9), so it can never be a data-name and shadows nothing.
+// ⛔ THE ADDRESS-IDENTIFIER JOINS AS identifier-2 (kb/Work PB1021): §8.4.3.4.4 GR1 makes these the arguments of
+// `INVOKE … USING`, whose §14.9.23.3 SR9 names the address-identifier outright — the SAME `addressIdentifier` rule
+// the INVOKE statement's own invokeArgument takes. ADDRESS is reserved and heads no other alternative.
 argument
     : OMITTED
+    | addressIdentifier   // §14.9.23.3 SR9 / SR19 via §8.4.3.4.4 GR1 (kb/Work PB1021)
     | {boolExprAhead()}? booleanExpression
     | literal
     | arithmeticExpression

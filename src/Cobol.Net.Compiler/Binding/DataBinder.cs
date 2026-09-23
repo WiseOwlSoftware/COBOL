@@ -468,7 +468,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             else if (re.FUNCTION() is not null && re.INTRINSIC() is not null)
             {
                 if (re.ALL() is not null) RepositoryAllIntrinsic = true;
-                else foreach (var inf in re.functionName()) RepositoryIntrinsics.Add(inf.GetText());
+                else foreach (var inf in re.functionName())
+                {
+                    // An intrinsic-function-name-1 is one of the names §12.3.8.3 SR1 compares (kb/Work PB1017).
+                    using (Edition.At(re))
+                        CheckRepositorySpecification(inf.GetText(), new RepositorySpecification(IntrinsicKind, null, null),
+                            inf.GetText());
+                    RepositoryIntrinsics.Add(inf.GetText());
+                }
             }
         }
 

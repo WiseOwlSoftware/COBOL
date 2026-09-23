@@ -234,6 +234,9 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         BoundNumericLiteral or BoundStringLiteral or BoundFigurative or BoundAllLiteral => null,
         BoundOperandError => null,                 // already diagnosed
         BoundBoolOperand => null,                  // the §8.8.2 boolean-expression channel (COMPUTE Format 2)
+        // An address-identifier (kb/Work PB1021) is "a unique data item of class pointer" CREATED at the reference
+        // (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1) — it has no storage an earlier store could change.
+        BoundAddressOperand => null,
         BoundFieldOperand f => OfPlace(f.Place),
         BoundCurrentRecord cr => OfPlace(cr.Area),
         BoundComputedOperand c => OfComputed(c),

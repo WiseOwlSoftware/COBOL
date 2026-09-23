@@ -90,12 +90,20 @@ internal static class OperandPositions
         "an integer data item",
         OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule);
 
+    /// <summary>ISO §14.9.51.3 SR14 — WRITE … ADVANCING identifier-2 (kb/Work PB1023). The brace's OTHER
+    /// alternative, integer-1 (SR15 — "positive or zero"), is a literal and is screened beside this row by
+    /// <c>SequentialIoBinder.BindAdvancing</c> under the same diagnostic.</summary>
+    public static readonly OperandPosition WriteAdvancingIdentifier = new(
+        "WRITE ADVANCING", "identifier-2", "§14.9.51.3 SR14",
+        "an integer data item",
+        OperandClasses.IntegerItem, DiagnosticCatalog.WriteAdvancingOperand);
+
     /// <summary>Every row (the drift test holds this against the declared fields, so a row cannot be declared
     /// and forgotten here).</summary>
     public static IReadOnlyList<OperandPosition> All { get; } =
     [
         GoToDependingSelector, SearchVaryingIdentifier, SetIndexAssignmentReceiver,
-        PerformVaryingIdentifier, PerformVaryingIdentifierFromIndex,
+        PerformVaryingIdentifier, PerformVaryingIdentifierFromIndex, WriteAdvancingIdentifier,
     ];
 }
 

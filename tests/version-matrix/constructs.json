@@ -2429,10 +2429,10 @@
   {
    "id": "address-identifier-2002",
    "status": "active",
-   "description": "An address-identifier OPERAND (ISO §8.4.3.1.2 identifier Format 9: the §8.4.3.11 data-address-identifier ADDRESS OF identifier-1 or the §8.4.3.13 program-address-identifier ADDRESS OF PROGRAM ...) outside the SET formats that gate themselves - today the CALL argument §14.9.4.3 SR3/SR4 name (kb/Work PB239): bare, BY REFERENCE, BY CONTENT or (Format 2) BY VALUE, always a sending operand that crosses as a detached pointer value. Introduced 2002 with the pointer classes. Recognition gate on the addressIdentifier rule, so every future surface that spells the identifier through it is gated automatically.",
+   "description": "An address-identifier OPERAND (ISO §8.4.3.1.2 identifier Format 9: the §8.4.3.11 data-address-identifier ADDRESS OF identifier-1 or the §8.4.3.13 program-address-identifier ADDRESS OF PROGRAM ...) outside the SET formats that gate themselves - the CALL argument §14.9.4.3 SR3/SR4 name (kb/Work PB239: bare, BY REFERENCE, BY CONTENT or (Format 2) BY VALUE, always a sending operand that crosses as a detached pointer value), the INVOKE argument §14.9.23.3 SR9/SR19 name (bare, BY REFERENCE, BY CONTENT, and the §8.4.3.4 inline form's argument) and the §8.8.4.2.2 Format 3 relation operand (kb/Work PB1021). Introduced 2002 with the pointer classes. Recognition gate on the addressIdentifier rule, so every future surface that spells the identifier through it is gated automatically.",
    "display": "an address-identifier operand (ADDRESS OF ...)",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §8.4.3.1.2 Format 9 (address-identifier) + §8.4.3.11 / §8.4.3.13; §14.9.4.3 SR3/SR4 (the CALL argument); kb/Work PB239; recognition gate VisitAddressIdentifier; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+   "citation": "ISO §8.4.3.1.2 Format 9 (address-identifier) + §8.4.3.11 / §8.4.3.13; §14.9.4.3 SR3/SR4 (the CALL argument); §14.9.23.3 SR9 (the INVOKE argument); §8.8.4.2.2 Format 3 (the relation operand); kb/Work PB239, PB1021; recognition gate VisitAddressIdentifier; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",

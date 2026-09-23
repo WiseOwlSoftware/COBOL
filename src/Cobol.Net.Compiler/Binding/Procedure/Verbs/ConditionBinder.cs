@@ -758,8 +758,22 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
+        {
+            // An address-identifier is class pointer (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1), never the "single
+            // numeric data item … or any form of arithmetic expression" §8.8.4.7.3 SR1 admits (kb/Work PB1021).
+            if (operands[0].addressIdentifier() is { } signAddr)
+            {
+                carry.Reset();
+                ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
+                    $"'{DataBinder.WrittenText(signAddr)}' is an address-identifier — a data item of class pointer "
+                    + "(ISO §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1) — and a sign condition's operand shall be \"any single "
+                    + "numeric data item described with a usage other than a standard floating-point usage, or any "
+                    + "form of arithmetic expression\" (ISO §8.8.4.7.3 SR1)");
+                return Refused($"sign condition over '{DataBinder.WrittenText(signAddr)}'");
+            }
             return BindSignConditionOn(cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z',
                 not, operands[0].valueOperand(), carry);
+        }
 
 
         if (cmp.comparisonOperator() is { } opCtx && operands.Length >= 2)
@@ -787,7 +801,21 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
         // A bare single operand — resolve as a sole-operand condition (88 / switch / simple-boolean / abbreviated).
         if (operands.Length == 1)
+        {
+            // A bare address-identifier is the OBJECT of an abbreviated relation (§8.8.4.12) when a subject and
+            // operator are carried, and otherwise no condition at all (§8.8.4.2.1) — kb/Work PB1021.
+            if (operands[0].addressIdentifier() is { } bareAddr && carry is not { Subject: not null, Op: not null })
+            {
+                carry.Reset();
+                ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
+                    $"'{DataBinder.WrittenText(bareAddr)}' is used as a condition, but it is an address-identifier — "
+                    + "a data item of class pointer (ISO §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1): a conditional expression "
+                    + "is a relation, boolean, class, condition-name, switch-status, sign or omitted-argument "
+                    + "condition, or a combination of them (ISO §8.8.4.2.1; §8.8.4.1)");
+                return Refused($"condition '{DataBinder.WrittenText(bareAddr)}'");
+            }
             return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
+        }
 
         return Refused($"condition '{cmp.GetText()}'");
     }
@@ -1063,8 +1091,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         Core.ArithmeticExpressionContext? arith) => SolePrimary(arith)?.inlineMethodInvocation();
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>
+    /// <para>⛔ AN ADDRESS-IDENTIFIER IS A RELATION OPERAND (kb/Work PB1021): §8.8.4.2.2 Format 3 prints
+    /// identifier-3 / identifier-4, §8.4.3.1.2 identifier FORMAT 9 is an identifier, and §8.4.3.11.4 GR1 /
+    /// §8.4.3.13.4 GR1 make it "a unique data item of class pointer" — so it binds through the ONE
+    /// address-identifier binder into a <see cref="BoundAddressOperand"/>, and the §8.8.4.2.3 SR5 band
+    /// (<c>StatementValidation.CheckRelationalOperands</c>) screens its class and category like any pointer
+    /// operand. A refused operand has been reported by that binder.</para>
     private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand) =>
-        ComparisonOperandOf(operand.valueOperand());
+        operand.addressIdentifier() is { } ai
+            ? host.Ptr.BindAddressIdentifier(ai, "a relation condition") as BoundOperand
+              ?? new BoundOperandError($"address-identifier '{DataBinder.WrittenText(ai)}'")
+            : ComparisonOperandOf(operand.valueOperand());
 
     /// <summary>Bind a <c>valueOperand</c> as a comparison operand (the shared body of <see cref="ComparisonOperand"/>
     /// and the boolean-alt unwrap path — feedback_one_mechanism_per_job).</summary>

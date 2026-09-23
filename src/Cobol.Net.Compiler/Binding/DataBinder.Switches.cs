@@ -625,12 +625,8 @@ public sealed partial class DataBinder
     /// the literal was rejected (and reported).
     /// <para>§12.3.8.3 SR2: "Literal-1, literal-2, literal-3, literal-4, and literal-5 shall be alphanumeric literals
     /// or national literals and shall be neither figurative constants nor zero-length literals" — the SAME sentence
-    /// the identification paragraphs restate, so the ONE <c>ExternalizedName.Screen</c> (kb/Work PB303). SR1: "If
-    /// any object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1,
-    /// intrinsic-function-name-1 or property-name-1 is specified more than once in the REPOSITORY paragraph, all
-    /// the specifications for that name shall be identical" — asked per (specifier kind, name). Ordinal on the
-    /// externalized name: it is an operating-environment name, not a COBOL word, so §8.3.2's case-insensitivity
-    /// does not reach it.</para></summary>
+    /// the identification paragraphs restate, so the ONE <c>ExternalizedName.Screen</c> (kb/Work PB303). SR1 is asked
+    /// of the WHOLE specification by <see cref="CheckRepositorySpecification"/> (kb/Work PB1017).</para></summary>
     private string? BindSpecifierExternalizedName(Core.RepositoryEntryContext re, string kind, string name, string tag)
     {
         using var _ = Edition.At(re);   // the sink stamps every report below with THIS entry's position (PB82)
@@ -642,23 +638,64 @@ public sealed partial class DataBinder
                     collate: Collating, natCollate: NationalCollating) is not { } literal) return null;
             externalized = literal;
         }
-        var key = (kind, name.ToUpperInvariant());
-        if (_repositorySpecified.TryGetValue(key, out var prior))
-        {
-            if (!string.Equals(prior, externalized, StringComparison.Ordinal))
-                Edition.Error(DiagnosticCatalog.RepositoryProgramSpecifier,
-                    $"REPOSITORY {kind} '{name}' is specified more than once with different externalized names "
-                    + $"('{prior}' then '{externalized}'); ISO §12.3.8.3 syntax rule 1 requires all the "
-                    + "specifications for one name to be identical");
-            return prior;
-        }
-        _repositorySpecified[key] = externalized;
-        return externalized;
+        var spec = new RepositorySpecification(kind, re.externalizedNamePhrase() is null ? null : externalized,
+            ExpandsText(re.expandsPhrase()));
+        return CheckRepositorySpecification(name, spec, externalized) ?? externalized;
     }
 
-    /// <summary>(specifier kind, upper-cased declared name) → the externalized name its FIRST specification gave:
-    /// the §12.3.8.3 SR1 memory of <see cref="BindSpecifierExternalizedName"/>, for THIS unit's REPOSITORY.</summary>
-    private readonly Dictionary<(string Kind, string Name), string> _repositorySpecified = [];
+    /// <summary>ONE REPOSITORY specification of a name, as §12.3.8.3 SR1 compares it: the specifier KIND (class,
+    /// interface, program, property, user-defined function, or intrinsic function), the value of its
+    /// <c>[ AS literal-n ]</c> (null when absent — the name is then externalized by the implementor's mapping of the
+    /// user-defined word, §8.3.2.2, so two case spellings of one word are one specification), and the canonical
+    /// text of its <c>[ EXPANDS … USING … ]</c> phrase (null when absent). Every part of the written specification
+    /// that carries a meaning is a component, so "identical" is record equality.</summary>
+    private sealed record RepositorySpecification(string Kind, string? As, string? Expands)
+    {
+        public override string ToString() =>
+            $"{Kind}{(As is null ? "" : $" AS \"{As}\"")}{(Expands is null ? "" : " " + Expands)}";
+    }
+
+    /// <summary>The kind an intrinsic-function-name-1 of <c>FUNCTION { intrinsic-function-name-1 } … INTRINSIC</c>
+    /// is specified with.</summary>
+    private const string IntrinsicKind = "FUNCTION … INTRINSIC";
+
+    /// <summary>⛔ THE ONE §12.3.8.3 SR1 CHECK, OVER THE WHOLE SPECIFICATION (kb/Work PB1017). "If any
+    /// object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1,
+    /// intrinsic-function-name-1 or property-name-1 is specified more than once in the REPOSITORY paragraph, all
+    /// the specifications for that name shall be identical." The rule is keyed on THE NAME — not on (kind, name) —
+    /// and compares everything the specification says: its kind, its externalized name, and its EXPANDS phrase.
+    /// It used to compare the externalized name alone, per kind, so `CLASS QC EXPANDS QP USING QA` then
+    /// `CLASS QC EXPANDS QP USING QB` (two different classes created under one name, §12.3.8.4 GR5), a name
+    /// specified as a CLASS and as an INTERFACE, and `FUNCTION F INTRINSIC` beside `FUNCTION F` were all accepted.
+    /// The externalized name is compared ordinally — an operating-environment name, not a COBOL word — and the
+    /// declared name case-insensitively (§8.3.2). Returns the FIRST specification's externalized name when this one
+    /// repeats a name (after reporting a difference), null when the name is new.</summary>
+    private string? CheckRepositorySpecification(string name, RepositorySpecification spec, string externalized)
+    {
+        string key = name.ToUpperInvariant();
+        if (_repositorySpecified.TryGetValue(key, out var first))
+        {
+            var (prior, priorExternalized) = first;
+            if (prior != spec)
+                Edition.Error(DiagnosticCatalog.RepositoryProgramSpecifier,
+                    $"REPOSITORY '{name}' is specified more than once with different specifications ('{prior}' then "
+                    + $"'{spec}'); ISO §12.3.8.3 syntax rule 1 requires all the specifications for one name to be "
+                    + "identical");
+            return priorExternalized;
+        }
+        _repositorySpecified[key] = (spec, externalized);
+        return null;
+    }
+
+    /// <summary>The canonical text of an EXPANDS phrase — <c>EXPANDS target USING actual …</c>, each word
+    /// upper-cased (§8.3.2: a user-defined word is case-insensitive), so two spellings of one phrase compare equal.</summary>
+    private static string? ExpandsText(Core.ExpandsPhraseContext? ep) => ep is null ? null
+        : $"EXPANDS {ep.expandsTarget().GetText().ToUpperInvariant()} USING "
+          + string.Join(" ", ep.expandsActual().Select(a => a.GetText().ToUpperInvariant()));
+
+    /// <summary>Upper-cased declared name → its FIRST specification and the externalized name it gave: the
+    /// §12.3.8.3 SR1 memory, for THIS unit's REPOSITORY.</summary>
+    private readonly Dictionary<string, (RepositorySpecification Spec, string Externalized)> _repositorySpecified = [];
 
 
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §12.3.7

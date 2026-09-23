@@ -391,7 +391,43 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             : wba.dataReference() is { } d ? host.Expr.FieldOperand(d)
             : wba.literal() is { } lit ? host.Expr.LiteralOperand(lit)
             : new BoundNumericLiteral("1");
+        ScreenAdvancingCount(lines, wba);
         return new BoundAdvancing(before, false, lines);
+    }
+
+    /// <summary>⛔ THE ADVANCING COUNT'S TWO ALTERNATIVES, SCREENED ON THE BOUND SHAPE (kb/Work PB1023). §14.9.51.2
+    /// prints `{ identifier-2 | integer-1 } [ LINE | LINES ]`, and each alternative has its own rule: SR14 —
+    /// "Identifier-2 shall reference an integer data item" — is the <see cref="OperandPositions.WriteAdvancingIdentifier"/>
+    /// row of the ONE operand-class screen; SR15 — "Integer-1 shall be positive or zero" — closes the literal, which
+    /// is an INTEGER literal by its name (§8.3.3.3.2: "An integer literal is a fixed-point numeric literal that
+    /// contains no decimal point"), asked of the ONE integer classifier. The screen keys on the BOUND shape, not the
+    /// parse arm, because a constant-name parses as a dataReference and stands for integer-1 (§13.10.4 GR1), and
+    /// the grammar's wide `literal` arm admits shapes neither alternative names. Before this, a PIC X item holding
+    /// "2" advanced two lines, a PIC 9V9 holding 1.5 advanced one, and `ADVANCING 1.5 LINES` / `"2" LINES` /
+    /// `-1 LINES` compiled — every one silently.</summary>
+    private void ScreenAdvancingCount(BoundOperand lines, Core.WriteBeforeAfterContext wba)
+    {
+        switch (lines)
+        {
+            case BoundOperandError:
+                return;   // reported where it was made
+            case BoundFieldOperand { Place: var p }:
+                OperandClassScreen.Screen(ctx.Edition, OperandPositions.WriteAdvancingIdentifier, p,
+                    DataBinder.WrittenText(wba.dataReference()!));
+                return;
+            case BoundNumericLiteral n when IntrinsicResultType.IsIntegerOperand(n) && !n.Text.TrimStart().StartsWith('-'):
+            case BoundFigurative { Kind: 'Z' }:   // ZERO read numerically is the integer 0 (§8.3.3.6.4 GR4)
+                return;
+            default:
+                string text = wba.dataReference() is { } dr ? DataBinder.WrittenText(dr)
+                    : wba.literal() is { } l ? DataBinder.WrittenText(l)
+                    : DataBinder.WrittenText(wba.integerLiteral());
+                ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingOperand,
+                    $"WRITE ADVANCING integer-1 '{text}' shall be an integer literal that is positive or zero "
+                    + "(ISO §14.9.51.3 SR15; §8.3.3.3.2 — \"An integer literal is a fixed-point numeric literal that "
+                    + "contains no decimal point\"), or identifier-2 an integer data item (SR14)");
+                return;
+        }
     }
 
     /// <summary>The ADVANCING operand is a SPECIAL-NAMES mnemonic-name. §14.9.51.3 SR16: "<i>When mnemonic-name-1

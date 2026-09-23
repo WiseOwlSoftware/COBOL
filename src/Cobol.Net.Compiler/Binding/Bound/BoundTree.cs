@@ -1226,6 +1226,22 @@ public sealed record BoundAddressOf(DataItem Item, string? OccursDisplacement = 
 /// CALL argument (kb/Work PB239).</summary>
 public sealed record BoundProgramAddress(string? NameLiteral, Place? NamePlace, string? Prototype);
 
+/// <summary>A bound ADDRESS-IDENTIFIER used as an ordinary OPERAND — ISO §8.4.3.1.2 identifier FORMAT 9, exactly
+/// one of its two arms set: <paramref name="Data"/> (§8.4.3.11, category data-pointer — §8.4.3.11.4 GR1) or
+/// <paramref name="Program"/> (§8.4.3.13, category program-pointer — §8.4.3.13.4 GR1). Each arm "creates a unique
+/// data item of class pointer", which is why it is a <see cref="BoundOperand"/> of its own rather than a
+/// <see cref="BoundFieldOperand"/>: the item has no storage of the program's, so there is no <see cref="Place"/>
+/// to read or write, and §8.4.3.11.3 SR5 / §8.4.3.13.3 SR4 forbid it as a receiving operand.
+/// <para>Produced by the ONE binder of the rule (<c>PtrBinder.BindAddressIdentifier</c>) for every surface that
+/// takes the identifier as an operand — the relation condition (§8.8.4.2.2 Format 3) and the INVOKE argument
+/// (§14.9.23.3 SR9/SR19; kb/Work PB1021). The CALL argument carries the same two arms on
+/// <c>BoundCallArg.DataAddress</c> / <c>ProgramAddress</c> (kb/Work PB239).</para></summary>
+public sealed record BoundAddressOperand(BoundAddressOf? Data, BoundProgramAddress? Program) : BoundOperand
+{
+    /// <summary>The §8.5.2.1 Table 2 category of the unique data item the identifier creates.</summary>
+    public PicCategory Category => Data is not null ? PicCategory.Pointer : PicCategory.ProgramPointer;
+}
+
 /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; SR21 — both sides
 /// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-7 twin.</summary>
 public sealed record BoundSetProgramPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;

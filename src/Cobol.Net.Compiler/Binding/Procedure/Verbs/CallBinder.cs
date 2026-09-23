@@ -586,7 +586,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // its law is the class-pointer paragraph both passing regimes share (AddressConformanceReason).
                 else if (arg.DataAddress is not null || arg.ProgramAddress is not null)
                 {
-                    if (AddressConformanceReason(f.Item, arg) is { } awhy)
+                    if (host.Ptr.AddressConformanceReason(f.Item, arg.DataAddress, arg.ProgramAddress) is { } awhy)
                         ctx.Edition.Error(DiagnosticCatalog.CallArgumentConformance,
                             $"{calleeWhere} argument {i + 1} (an address-identifier) does not conform to formal "
                             + $"parameter '{f.Item.CobolName}': {awhy}");
@@ -776,64 +776,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// storage from being aliased by a callee that sees it untyped; an address-identifier crosses as a detached
     /// value (SR4, SR5), so there is no storage for that rule to protect. GnuCOBOL, IBM and Micro Focus all accept
     /// the spelling (the CLAUDE.md rule-1 precedence, were the text read as latitude).</para></summary>
-    private BoundCallArg? AddressArg(Core.AddressIdentifierContext ai, CobolPassMode mode)
-    {
-        if (ai.dataAddressIdentifier() is { } dai)
-            return host.Ptr.BindDataAddress(dai) is { } addr
-                ? new BoundCallArg(mode, null, null) { DataAddress = addr }
-                : null;
-        return host.Set.BindProgramAddressOperand(ai.programAddressIdentifier(), "CALL … USING") is { } pa
-            ? new BoundCallArg(mode, null, null) { ProgramAddress = pa }
+    private BoundCallArg? AddressArg(Core.AddressIdentifierContext ai, CobolPassMode mode) =>
+        host.Ptr.BindAddressIdentifier(ai, "CALL … USING") is { } ao
+            ? new BoundCallArg(mode, null, null) { DataAddress = ao.Data, ProgramAddress = ao.Program }
             : null;
-    }
-
-    /// <summary>§14.8.2's verdict for ONE address-identifier argument against its formal (kb/Work PB239). Both
-    /// passing regimes reach the same law: BY REFERENCE is §14.8.2.3.2's class-pointer paragraph — "If either the
-    /// argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall
-    /// be of class pointer and the corresponding items shall be of the same category. If either is a restricted
-    /// pointer, both shall be restricted and of the same type" — and BY CONTENT / BY VALUE is §14.8.2.3.3's "as
-    /// if a SET statement were performed … with the argument as the sending operand", whose Format 7 / Format 9
-    /// rules (§14.9.39.3 SR17/SR19, SR21/SR22) demand the same category and the same restriction. The category is
-    /// §8.4.3.11.4 GR1 (data-pointer) or §8.4.3.13.4 GR1 (program-pointer); the restriction is §8.4.3.11.4 GR2
-    /// (the type of a strongly-typed identifier-1) or §8.4.3.13.4 GR3 (program-prototype-name-1). Null when
-    /// conformant.</summary>
-    private string? AddressConformanceReason(DataItem formal, BoundCallArg arg)
-    {
-        var fcat = formal.Pic?.Category;
-        if (arg.DataAddress is { } da)
-        {
-            if (fcat is not PicCategory.Pointer)
-                return "a data-address-identifier is a data item of category data-pointer (ISO §8.4.3.11.4 GR1), "
-                    + "so the formal parameter shall be of category data-pointer (ISO §14.8.2.3.2 / §14.8.2.3.3)";
-            var argR = StrongTypeModel.AddressOfRestriction(da.Item);
-            var formalR = StrongTypeModel.PointerRestriction(formal);
-            return (argR.IsRestricted || formalR.IsRestricted) && !StrongTypeModel.SameRestriction(argR, formalR)
-                ? $"one is a RESTRICTED data-pointer and the other is not restricted to the same type (argument: "
-                  + $"{argR}; formal: {formalR}) — if either is a restricted pointer, both shall be restricted and "
-                  + "of the same type (ISO §14.8.2.3.2; §8.4.3.11.4 GR2)"
-                : null;
-        }
-        if (arg.ProgramAddress is { } pa)
-        {
-            if (fcat is not PicCategory.ProgramPointer)
-                return "a program-address-identifier is a data item of category program-pointer (ISO §8.4.3.13.4 "
-                    + "GR1), so the formal parameter shall be of category program-pointer (ISO §14.8.2.3.2 / §14.8.2.3.3)";
-            string? formalProto = formal.Pic?.RestrictedPrototypeName;
-            if (formalProto is null && pa.Prototype is null) return null;
-            return formalProto is null || pa.Prototype is null
-                   || !PrototypeSignatures.Same(PrototypeSignature(formalProto), PrototypeSignature(pa.Prototype))
-                ? $"one is a RESTRICTED program-pointer and the other is not restricted to a program-prototype of "
-                  + $"the same signature (argument: {pa.Prototype ?? "unrestricted"}; formal: "
-                  + $"{formalProto ?? "unrestricted"}) — ISO §14.8.2.3.2; §8.4.3.13.4 GR3"
-                : null;
-        }
-        return null;
-    }
-
-    /// <summary>A program-prototype-name's bound signature through the §8.4.6.8 scope table (null for a
-    /// §12.3.8.4 GR10 c) prototype, which <see cref="PrototypeSignatures.Same"/> treats as conforming).</summary>
-    private CalleeSignature? PrototypeSignature(string prototypeName) =>
-        host.ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true ? p.Signature : null;
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>
     /// <summary>The ONE program-name-literal reader (kb/Work PB130) — §14.9.4.3 SR2 / §14.9.5.3 SR2 admit

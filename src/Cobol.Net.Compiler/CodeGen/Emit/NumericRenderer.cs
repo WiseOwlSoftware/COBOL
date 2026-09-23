@@ -307,6 +307,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         ? new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0)
         : AlnumNum(EmitText.CsLiteral(n.Value), _sending);
     public NumX Visit(BoundOperandError n) => new(EmitText.LoudValue("long", n.Feature), 0);
+    // An address-identifier (kb/Work PB1021) is class pointer: the binder admits it only as a relation operand, which
+    // ConditionRenderer's pointer arms render, and an INVOKE argument, which OoEmitter renders — never a
+    // character or numeric value. Reaching this is a binder hole, so it is LOUD, never a guessed value.
+    public NumX Visit(BoundAddressOperand n) => new(EmitText.LoudValue("long", "address-identifier as a numeric operand"), 0);
     // THE CURRENT RECORD in a NUMERIC context (kb/Work PB339): an alphanumeric operand decoded as an unsigned
     // integer, exactly as the alphanumeric field arm below decodes one (§14.9.25.3 Table 16). ⛔ REACHABLE, not a
     // backstop: a FORMAT 3 `RECORD CONTAINS m TO n` file (whose §14.9.30.4 GR4 b) move carries no group-move

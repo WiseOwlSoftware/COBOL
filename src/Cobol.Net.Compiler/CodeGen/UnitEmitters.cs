@@ -90,6 +90,7 @@ internal sealed class UnitEmitters
         ControlFlow.Ec = Ec;   // CA36: SEARCH with EC-RANGE checking + no AT END dispatches via EcEmitter.EcDispatchExpr
         Call.Statements = Statements;
         Cond.Calls = Call;   // BoundUdfEvaluated — the per-evaluation function-activation text (P10 Step 10)
-        Cond.Statements = Statements;   // …and its NON-call pre-ops (a D18 subscript temp store), captured as text
+        Cond.Statements = Statements;
+        Cond.Ptr = Ptr;   // an address-identifier relation operand (kb/Work PB1021)   // …and its NON-call pre-ops (a D18 subscript temp store), captured as text
     }
 }

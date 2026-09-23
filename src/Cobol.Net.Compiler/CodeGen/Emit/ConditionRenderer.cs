@@ -31,6 +31,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// than a second hand-written renderer.</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
+    /// <summary>The pointer-value renderer an address-identifier relation operand reads through (kb/Work PB1021).</summary>
+    internal PtrEmitter Ptr { get; set; } = null!;
+
     /// <summary>Render a bound condition as a C# boolean expression. Dispatch is the generated exhaustive
     /// <see cref="IBoundConditionVisitor{T}"/> (PHASE-07 Step 6e): every BoundCondition leaf has a Visit below, so a
     /// new leaf is a COMPILE error — the former loud <c>_ =></c> default is gone.</summary>
@@ -173,22 +176,36 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // Data-pointer relations (Phase-4b; §8.8.4.2.16 — ManagedPointer.SameTarget: both-NULL / same-storage;
         // the NULL figurative renders as the null carrier). Before the figurative branch (NULL must not
         // width-materialize against a pointer).
+        // ⛔ An ADDRESS-IDENTIFIER operand (kb/Work PB1021) is one of each pair's operand kinds: §8.4.3.11.4 GR1 /
+        // §8.4.3.13.4 GR1 make it "a unique data item of class pointer" of the data- or program-pointer category,
+        // so it rides the SAME category arm a pointer data item does, read through the ONE value renderer.
         static bool IsPtr(BoundOperand o) =>
-            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.Pointer;
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.Pointer
+            || o is BoundAddressOperand { Data: not null };
         if (IsPtr(r.Left) || IsPtr(r.Right))
         {
-            static string PtrRead(BoundOperand o) => o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "null";
+            string PtrRead(BoundOperand o) => o switch
+            {
+                BoundFieldOperand f => PlaceRenderer.Read(f.Place),
+                BoundAddressOperand ao => Ptr.AddressOperandText(ao),
+                _ => "null",
+            };
             string core = $"ManagedPointer.SameTarget({PtrRead(r.Left)}, {PtrRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
         // Program-pointer relations (P10 Step 7; §8.8.4.2.16 — ProgramPointer.SameTarget: both-NULL / the same
         // program's identity; the NULL figurative renders as the Null carrier — a struct, never C# null).
         static bool IsPp(BoundOperand o) =>
-            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.ProgramPointer;
+            o is BoundFieldOperand f && f.Place.Item.OperandPic?.Category == PicCategory.ProgramPointer
+            || o is BoundAddressOperand { Program: not null };
         if (IsPp(r.Left) || IsPp(r.Right))
         {
-            static string PpRead(BoundOperand o) =>
-                o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "ProgramPointer.Null";
+            string PpRead(BoundOperand o) => o switch
+            {
+                BoundFieldOperand f => PlaceRenderer.Read(f.Place),
+                BoundAddressOperand ao => Ptr.AddressOperandText(ao),
+                _ => "ProgramPointer.Null",
+            };
             string core = $"ProgramPointer.SameTarget({PpRead(r.Left)}, {PpRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }

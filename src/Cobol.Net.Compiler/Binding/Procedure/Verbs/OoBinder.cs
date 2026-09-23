@@ -589,6 +589,25 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return null;
         }
 
+        // ⛔ AN ADDRESS-IDENTIFIER ARGUMENT (kb/Work PB1021 — the INVOKE twin of PB239's CALL arm). §14.9.23.3 SR9:
+        // "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file,
+        // working-storage, local-storage, or linkage section"; SR19: "If identifier-3 references an
+        // address-identifier, identifier-3 is a sending operand" — so whatever phrase was written it crosses as a
+        // detached pointer VALUE and never writes back (§8.4.3.11.3 SR5 / §8.4.3.13.3 SR4 withhold the receiving
+        // role). SR5 c) applies "14.8.2, Parameters", whose class-pointer law is the ONE verdict the CALL argument
+        // reads (PtrBinder.AddressConformanceReason).
+        if (arg.Address is { } addrCtx)
+        {
+            if (host.Ptr.BindAddressIdentifier(addrCtx, verb + " … USING") is not { } ao) return null;
+            if (host.Ptr.AddressConformanceReason(formal, ao.Data, ao.Program) is { } awhy)
+            {
+                Err($"USING argument '{DataBinder.WrittenText(addrCtx)}' (an address-identifier) does not conform to "
+                    + $"formal parameter '{formal.CobolName}': {awhy}");
+                return null;
+            }
+            return new BoundInvokeArg(formal, null, null, null, WriteBack: false, ByContent: true) { Address = ao };
+        }
+
         bool explicitReference = arg.ByReferenceWritten;
         // ⛔ A BARE ARGUMENT OF THE INLINE FORM IS BY CONTENT, AND THAT IS THE GENERAL FORMAT SPEAKING.
         // §8.4.3.4.2 prints NO passing phrase at all, and §8.4.3.4.4 GR1 makes the arguments those of

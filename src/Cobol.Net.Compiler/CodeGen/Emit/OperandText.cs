@@ -529,6 +529,10 @@ internal static class OperandText
         public string Visit(BoundComputedOperand n) =>
             EmitText.LoudValue("string", "computed expression in a string context");
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
+        // An address-identifier (kb/Work PB1021) is class pointer: the binder admits it only as a relation operand, which
+        // ConditionRenderer's pointer arms render, and an INVOKE argument, which OoEmitter renders — never a
+        // character or numeric value. Reaching this is a binder hole, so it is LOUD, never a guessed value.
+        public string Visit(BoundAddressOperand n) => EmitText.LoudValue("string", "address-identifier as a character operand");
         // A boolean EXPRESSION operand is intercepted at AsString's ENTRY (it needs the per-unit renderer); this
         // cached visitor arm is the unreachable backstop.
         public string Visit(BoundBoolOperand n) => EmitText.LoudValue("string", $"bound operand '{nameof(BoundBoolOperand)}'");
@@ -556,6 +560,7 @@ internal static class OperandText
         public bool Visit(BoundFigurative n) => false;
         public bool Visit(BoundNumericLiteral n) => false;
         public bool Visit(BoundOperandError n) => false;
+        public bool Visit(BoundAddressOperand n) => false;   // class pointer — never string-carried (kb/Work PB1021)
         public bool Visit(BoundBoolOperand n) => false;
     }
 }

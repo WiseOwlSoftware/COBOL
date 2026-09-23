@@ -1483,6 +1483,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } nested
                 ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (§15.66) + boolean (§15.13 — the '0'/'1' substrate)
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
+        // An address-identifier (kb/Work PB1021) is class pointer: the binder admits it only as a relation operand, which
+        // ConditionRenderer's pointer arms render, and an INVOKE argument, which OoEmitter renders — never a
+        // character or numeric value. Reaching this is a binder hole, so it is LOUD, never a guessed value.
+        public string Visit(BoundAddressOperand n) => EmitText.LoudValue("string", "address-identifier as a character argument");
         // Admitted PER-FUNCTION (PB59): the raw source-text image via the ONE OperandText channel where the
         // function's §15.x.3 rule admits a numeric literal (see StrNum); Loud everywhere else — see Str's ⛔.
         public string Visit(BoundNumericLiteral n) => admitNumeric ? OperandText.AsString(n, owner.Num) : Loud(n);

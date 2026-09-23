@@ -3,6 +3,8 @@
   "enabled": [
   "pb1006_source_format_in_false_path",
   "pb1001_line_next_page",
+  "pb1017_repository_identical_repeats",
+  "pb1021_address_identifier_operands",
   "pb892_performed_declarative_resume",
   "pb892_operand_activation_resume",
   "pb972_raising_conformance",

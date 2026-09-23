@@ -4826,6 +4826,20 @@ public static class DiagnosticCatalog
         + "every step of the scan. Refused in both dialect lanes.",
         "ISO §14.9.37.3 SR5");
 
+    /// <summary>The WRITE … ADVANCING count is neither an integer data item (identifier-2, §14.9.51.3 SR14) nor an
+    /// integer literal that is positive or zero (integer-1, SR15) — kb/Work PB1023. identifier-2 is the
+    /// <c>OperandPositions.WriteAdvancingIdentifier</c> row of the ONE operand-class screen.</summary>
+    public static readonly DiagnosticDescriptor WriteAdvancingOperand = new(
+        "COBOLNET2365", "write-advancing-operand", EditionSeverity.Error,
+        "The ADVANCING phrase of a WRITE statement counts lines with an operand its syntax rules do not admit. ISO "
+        + "§14.9.51.3 SR14: \"Identifier-2 shall reference an integer data item.\" SR15: \"Integer-1 shall be "
+        + "positive or zero.\" An alphanumeric, numeric-edited, group, index, floating-point or scaled item is refused "
+        + "(§14.9.51.4 GR25 a) advances the page \"the number of lines equal to that value\" — a count of lines, "
+        + "defined only for an integer), and so is a literal that is not an unsigned integer; before this screen a PIC X item holding \"2\" advanced two lines and a PIC 9V9 "
+        + "holding 1.5 advanced one. A constant-name standing for an integer literal is integer-1. Refused in both "
+        + "dialect lanes.",
+        "ISO §14.9.51.3 SR14 / SR15");
+
     /// <summary>A SET Format-1 (index-assignment) operand violates §14.9.39.3 SR1–SR4 (kb/Work PB212).</summary>
     public static readonly DiagnosticDescriptor SetIndexAssignmentOperand = new(
         "COBOLNET2326", "set-index-assignment-operand", EditionSeverity.Error,

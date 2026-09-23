@@ -1,5 +1,6 @@
 {
  "enabled": [
+  "pb1023_write_advancing_count",
   "pb829_assign_device_class",
   "pb957_next_group_forms",
   "pb957_next_group_control",

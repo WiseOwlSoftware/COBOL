@@ -379,6 +379,7 @@ public sealed class SendingValueOnceDriftTests
     {
         string[] expected =
         [
+            nameof(BoundAddressOperand),    // no intermediate — a pointer value created at the reference (PB1021)
             nameof(BoundAllLiteral),        // no intermediate — §8.3.3.6.4 GR2 sizes it from the RECEIVER
             nameof(BoundBoolOperand),       // no intermediate — the §8.8.2 boolean-expression channel
             nameof(BoundComputedOperand),   // §15.4's temporary elementary data item

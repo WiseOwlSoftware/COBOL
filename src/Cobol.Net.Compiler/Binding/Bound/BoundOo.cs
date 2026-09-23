@@ -107,6 +107,11 @@ public sealed record BoundInvokeArg(
     /// the omitted-argument condition for <see cref="Formal"/> shall be true in the invoked method (§14.9.23.4
     /// GR9), and the binder has proved the formal OPTIONAL (§14.9.23.3 SR18).</summary>
     public bool Omitted { get; init; }
+
+    /// <summary>An ADDRESS-IDENTIFIER argument (§14.9.23.3 SR9; kb/Work PB1021): no <see cref="Source"/>, no
+    /// literal — the pointer VALUE §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 create, a SENDING operand whatever the
+    /// written phrase (SR19), so <see cref="WriteBack"/> is always false for it.</summary>
+    public BoundAddressOperand? Address { get; init; }
 }
 
 /// <summary>A bound UNIVERSAL-receiver INVOKE (deep-dive D10/D-U5): there is NO formal roster at compile

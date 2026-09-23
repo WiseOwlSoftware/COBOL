@@ -187,6 +187,70 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// cell-backing check are stated once.</para></summary>
     internal BoundAddressOf? BindDataAddress(Core.DataAddressIdentifierContext dai) => PtrBindAddressOf(dai.dataReference());
 
+    /// <summary>⛔ THE ONE BINDER OF AN <c>addressIdentifier</c> OPERAND — ISO §8.4.3.1.2 identifier FORMAT 9,
+    /// either arm (kb/Work PB1021). The data arm goes through <see cref="BindDataAddress"/> (the cell-backing check,
+    /// §8.4.3.11.3), the program arm through <c>SetBinder.BindProgramAddressOperand</c> (§8.4.3.13.3 SR1–SR3), the
+    /// same binders the SET senders use — so every surface that takes the identifier (the CALL argument, the INVOKE
+    /// argument, the relation operand) states its operand rules once. <paramref name="site"/> names the surface in
+    /// a diagnostic. Null having reported.</summary>
+    internal BoundAddressOperand? BindAddressIdentifier(Core.AddressIdentifierContext ai, string site)
+    {
+        if (ai.dataAddressIdentifier() is { } dai)
+            return BindDataAddress(dai) is { } addr ? new BoundAddressOperand(addr, null) : null;
+        return host.Set.BindProgramAddressOperand(ai.programAddressIdentifier(), site) is { } pa
+            ? new BoundAddressOperand(null, pa)
+            : null;
+    }
+
+    /// <summary>§14.8.2's verdict for ONE address-identifier ARGUMENT against its formal parameter — the CALL
+    /// argument (kb/Work PB239) and the INVOKE argument (kb/Work PB1021) alike, because §14.9.23.3 SR5 c) sends
+    /// INVOKE to the same "14.8.2, Parameters" CALL reads. Both passing regimes reach the same law: BY REFERENCE is
+    /// §14.8.2.3.2's class-pointer paragraph — "If either the argument or the formal parameter is of class
+    /// pointer, the corresponding formal parameter or argument shall be of class pointer and the corresponding
+    /// items shall be of the same category. If either is a restricted pointer, both shall be restricted and of the
+    /// same type" — and BY CONTENT / BY VALUE is §14.8.2.3.3's "as if a SET statement were performed … with the
+    /// argument as the sending operand", whose Format 7 / Format 9 rules (§14.9.39.3 SR17/SR19, SR21/SR22) demand
+    /// the same category and the same restriction. The category is §8.4.3.11.4 GR1 (data-pointer) or §8.4.3.13.4
+    /// GR1 (program-pointer); the restriction is §8.4.3.11.4 GR2 (the type of a strongly-typed identifier-1) or
+    /// §8.4.3.13.4 GR3 (program-prototype-name-1). Null when conformant.</summary>
+    internal string? AddressConformanceReason(DataItem formal, BoundAddressOf? data, BoundProgramAddress? program)
+    {
+        var fcat = formal.Pic?.Category;
+        if (data is { } da)
+        {
+            if (fcat is not PicCategory.Pointer)
+                return "a data-address-identifier is a data item of category data-pointer (ISO §8.4.3.11.4 GR1), "
+                    + "so the formal parameter shall be of category data-pointer (ISO §14.8.2.3.2 / §14.8.2.3.3)";
+            var argR = StrongTypeModel.AddressOfRestriction(da.Item);
+            var formalR = StrongTypeModel.PointerRestriction(formal);
+            return (argR.IsRestricted || formalR.IsRestricted) && !StrongTypeModel.SameRestriction(argR, formalR)
+                ? $"one is a RESTRICTED data-pointer and the other is not restricted to the same type (argument: "
+                  + $"{argR}; formal: {formalR}) — if either is a restricted pointer, both shall be restricted and "
+                  + "of the same type (ISO §14.8.2.3.2; §8.4.3.11.4 GR2)"
+                : null;
+        }
+        if (program is { } pa)
+        {
+            if (fcat is not PicCategory.ProgramPointer)
+                return "a program-address-identifier is a data item of category program-pointer (ISO §8.4.3.13.4 "
+                    + "GR1), so the formal parameter shall be of category program-pointer (ISO §14.8.2.3.2 / §14.8.2.3.3)";
+            string? formalProto = formal.Pic?.RestrictedPrototypeName;
+            if (formalProto is null && pa.Prototype is null) return null;
+            return formalProto is null || pa.Prototype is null
+                   || !PrototypeSignatures.Same(PrototypeSignature(formalProto), PrototypeSignature(pa.Prototype))
+                ? $"one is a RESTRICTED program-pointer and the other is not restricted to a program-prototype of "
+                  + $"the same signature (argument: {pa.Prototype ?? "unrestricted"}; formal: "
+                  + $"{formalProto ?? "unrestricted"}) — ISO §14.8.2.3.2; §8.4.3.13.4 GR3"
+                : null;
+        }
+        return null;
+    }
+
+    /// <summary>A program-prototype-name's bound signature through the §8.4.6.8 scope table (null for a
+    /// §12.3.8.4 GR10 c) prototype, which <see cref="PrototypeSignatures.Same"/> treats as conforming).</summary>
+    private CalleeSignature? PrototypeSignature(string prototypeName) =>
+        host.ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true ? p.Signature : null;
+
     /// <summary>The operand half of <see cref="BindDataAddress"/>.</summary>
     private BoundAddressOf? PtrBindAddressOf(Core.DataReferenceContext addrRef)
     {

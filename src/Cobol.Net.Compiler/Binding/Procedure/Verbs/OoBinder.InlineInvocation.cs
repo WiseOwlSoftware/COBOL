@@ -25,6 +25,8 @@ using Core = CobolParserCore;
 /// <param name="Expression">The operand is an EXPRESSION rather than an identifier or a literal — it has no
 /// storage, so §14.9.23.3 SR9 cannot make it BY REFERENCE. True only for the inline form's bare arguments,
 /// where no passing phrase exists to say so; an INVOKE spells the mode itself.</param>
+/// <param name="Address">The operand is an ADDRESS-IDENTIFIER (§8.4.3.1.2 identifier Format 9) — §14.9.23.3 SR9
+/// names it for identifier-3 and SR19 makes it a SENDING operand (kb/Work PB1021).</param>
 internal readonly record struct InvocationArg(
     bool ByValueWritten,
     bool ByReferenceWritten,
@@ -34,12 +36,14 @@ internal readonly record struct InvocationArg(
     Core.BooleanExpressionContext? Bool,
     Core.ArithmeticExpressionContext? Arith,
     Core.LiteralContext? Literal,
-    Core.DataReferenceContext? Ref)
+    Core.DataReferenceContext? Ref,
+    Core.AddressIdentifierContext? Address = null)
 {
     /// <summary>The INVOKE statement's <c>invokeArgument</c> reading (§14.9.23.2).</summary>
     public static InvocationArg OfInvokeArgument(Core.InvokeArgumentContext a) => new(
         a.VALUE() is not null, a.REFERENCE() is not null, a.CONTENT() is not null, Omitted: a.OMITTED() is not null,
-        Expression: false, a.booleanExpression(), a.arithmeticExpression(), a.literal(), a.dataReference());
+        Expression: false, a.booleanExpression(), a.arithmeticExpression(), a.literal(), a.dataReference(),
+        a.addressIdentifier());
 
     /// <summary>The inline form's <c>argument</c> reading (§8.4.3.4.2). No passing phrase exists in that
     /// general format, so the mode is §14.9.23.4 GR6's default — exactly what a bare INVOKE argument takes.
@@ -48,8 +52,9 @@ internal readonly record struct InvocationArg(
     /// one; what survives as an expression genuinely has no storage.</summary>
     public static InvocationArg OfInlineArgument(Core.ArgumentContext a) => new(
         ByValueWritten: false, ByReferenceWritten: false, ByContentWritten: false,
-        Omitted: a.OMITTED() is not null, Expression: a.literal() is null && a.OMITTED() is null,
-        a.booleanExpression(), a.arithmeticExpression(), a.literal(), Ref: null);
+        Omitted: a.OMITTED() is not null,
+        Expression: a.literal() is null && a.OMITTED() is null && a.addressIdentifier() is null,
+        a.booleanExpression(), a.arithmeticExpression(), a.literal(), Ref: null, a.addressIdentifier());
 }
 
 /// <summary>

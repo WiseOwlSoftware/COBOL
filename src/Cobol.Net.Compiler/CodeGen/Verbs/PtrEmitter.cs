@@ -52,6 +52,27 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 
+    /// <summary>⛔ THE ONE C# EXPRESSION FOR A §8.4.3.13 PROGRAM-ADDRESS-IDENTIFIER VALUE (kb/Work PB1021): the
+    /// program named by literal-1 / program-prototype-name-1's externalized name, or by the run-time CONTENT of
+    /// identifier-1 (§8.4.3.13.4 GR1a), located through the run-unit program table. GR4's miss is EC-PROGRAM-NOT-
+    /// FOUND with the predefined NULL as the value; <paramref name="callArgument"/> selects the CALL argument's
+    /// delivery (§14.9.4.4 GR3a — the CALL's own pre-transfer failure) over the ordinary-operand one (the fatal
+    /// in-statement raise), and the checking state is this statement's compile-time TURN state.</summary>
+    public string ProgramAddressText(BoundProgramAddress pa, bool callArgument)
+    {
+        string nameExpr = pa.NameLiteral is { } lit
+            ? CsLiteral(lit)
+            : $"({PlaceRenderer.Read(pa.NamePlace!)}).Trim()";   // §8.4.3.13.4 GR1a — the identifier's content
+        bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
+        return $"ProgramRegistry.{(callArgument ? "EntryOfArgument" : "EntryOfOperand")}({nameExpr}, "
+            + $"{(checkNotFound ? "true" : "false")})";
+    }
+
+    /// <summary>The C# value expression of an address-identifier OPERAND (§8.4.3.1.2 identifier Format 9), either
+    /// arm — a <c>ManagedPointer</c> for the data arm, a <c>ProgramPointer</c> for the program arm.</summary>
+    public string AddressOperandText(BoundAddressOperand a) =>
+        a.Data is { } da ? AddressOfText(da) : ProgramAddressText(a.Program!, callArgument: false);
+
     /// <summary>ONE <c>ADDRESS OF data-name-1</c> receiver of a SET Format 7 (ISO §14.9.39.4 GR13 — "the
     /// address identified by identifier-6 is assigned to each based item referenced by data-name-1 in the order
     /// specified"): the based item's implicit data-address pointer (§8.6.5) takes the address VALUE — a

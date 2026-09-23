@@ -169,8 +169,9 @@ public sealed class OperandStringChannelDriftTests
         // No intrinsic argument can BE one today (it is built only for a READ/RETURN INTO implicit MOVE), and
         // a loud arm for an unreachable-but-imageable operand is precisely PB25's wrong-stage failure.
         string[] delegated = ["BoundFieldOperand", "BoundFigurative", "BoundAllLiteral", "BoundCurrentRecord"];
+        // BoundAddressOperand (kb/Work PB1021) is class pointer: neither channel can image it, and both answer LOUD.
         string[] divergent = ["BoundBoolOperand", "BoundComputedOperand",
-                              "BoundStringLiteral", "BoundOperandError"];
+                              "BoundStringLiteral", "BoundOperandError", "BoundAddressOperand"];
         string[] admittedPerFunction = ["BoundNumericLiteral"];
         var unclassified = strArg.Except(delegated).Except(divergent).Except(admittedPerFunction).Order().ToList();
         Assert.True(unclassified.Count == 0,

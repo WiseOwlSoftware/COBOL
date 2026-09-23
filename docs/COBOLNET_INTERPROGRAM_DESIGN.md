@@ -51,7 +51,7 @@ Decision-complete design for cross-program data + calls in COBOL.NET (COBOL→ty
 
 **The pipeline, in three stages, each in the place its inputs are.**
 
-1. **Syntax → `DataBinder.ProgramSpecifiers`** (`BindProgramSpecifier`): one entry per written specifier, keyed by prototype name, carrying the externalized name (literal-3, else the name — §12.3.8.4 GR10 NOTE 1). §12.3.8.3 SR1 (repeated specifications shall be identical) and SR2 (literal-3's class) are checked here, where the written text is. The set inherits into contained units through `InheritConfiguration`, beside its REPOSITORY siblings — §12.3.8.4 GR10 scopes the name to "the containing environment division".
+1. **Syntax → `DataBinder.ProgramSpecifiers`** (`BindProgramSpecifier`): one entry per written specifier, keyed by prototype name, carrying the externalized name (literal-3, else the name — §12.3.8.4 GR10 NOTE 1). §12.3.8.3 SR1 (repeated specifications shall be identical) and SR2 (literal-3's class) are checked here, where the written text is — SR1 by the ONE `DataBinder.CheckRepositorySpecification`, keyed on the NAME across every specifier kind and comparing the WHOLE specification (kind, AS literal, EXPANDS phrase; an intrinsic-function-name-1 is kind `FUNCTION … INTRINSIC`), kb/Work PB1017. The set inherits into contained units through `InheritConfiguration`, beside its REPOSITORY siblings — §12.3.8.4 GR10 scopes the name to "the containing environment division".
 2. **Resolution → `BinderDriver.ProgramPrototypesOf(unit, …)`**, run in the same group pass that builds the user-function table, because both need every unit's DATA bound. `BuildProgramDetailsTable` is the IN-GROUP half of §12.3.8.4 GR10, keyed by EXTERNALIZED name (`BoundUnit.ExternalizedName` — see D7): the group's outermost program definitions (GR10 a)) and, behind them, its program PROTOTYPE definitions — §11.10.2 Format 2's `PROGRAM-ID … IS PROTOTYPE` source unit (GR10 b), kb/Work PB894). The two arms have one consequence ("the details are taken from" that unit), so they are ONE table layered in a)-then-b) order rather than two lookups. A specifier whose externalized name hits it resolves WITH a signature; one that misses resolves WITHOUT one, which is GR10 c): "the details are taken from the external repository", and **this implementation's external repository is the run unit's program registry**, consulted at activation (§14.9.4.4 GR3 b), EC-PROGRAM-NOT-FOUND on a miss). §8.4.6.8's second spelling (a containing program definition's program-name, no specifier needed) registers in the same table, which is also how §12.3.8.3 SR15's "this specifier is ignored" is realized — the definition overwrites the specifier's entry.
 3. **Reference → `CallBinder`**, through the ONE `ResolvePrototype` lookup that both verbs call, and the ONE `BarePrototypeWord` shape test that decides whether an identifier-shaped operand may be read as a prototype name at all.
 
@@ -241,11 +241,26 @@ content." The grammar spells the identifier through ONE `addressIdentifier` rule
 storage by walking those nodes, and each arm binds through the ONE operand binder its SET twin uses
 (`PtrBinder.BindDataAddress`, `SetBinder.BindProgramAddressOperand`). At a Format-2 boundary the pairing is
 §14.8.2.3.2's class-pointer paragraph (same category; restricted ⇔ restricted to the same type) —
-`CallBinder.AddressConformanceReason`. A program arm that cannot be located is §8.4.3.13.4 GR4's NULL, raised as
+`PtrBinder.AddressConformanceReason`, the ONE verdict the INVOKE argument reads too. A program arm that cannot be located is §8.4.3.13.4 GR4's NULL, raised as
 EC-PROGRAM-NOT-FOUND while the argument array is built when the CALL's checking enables it (§14.9.4.4 GR3a — "no
 program is called"), so the CALL's own GR3h arms take it. ⚠ DETERMINATION: §14.9.4.3 SR10's Format-1 ban on a
 BY REFERENCE item "of class … pointer" does not reach an address-identifier — SR3–SR5 and Annex D.6.5.6.4 admit it
 in the non-prototype format with every mechanism, and there is no program storage for SR10 to protect.
+
+**THE SAME IDENTIFIER AS AN ORDINARY OPERAND — the INVOKE argument and the relation operand (kb/Work PB1021).**
+§14.9.23.3 SR9 names the address-identifier for INVOKE's identifier-3 exactly as §14.9.4.3 SR3 does for CALL, and
+SR19 makes it a sending operand; §8.8.4.2.2 Format 3's identifier-3 / identifier-4 admit it as "a unique data item
+of class pointer" (§8.4.3.11.4 GR1 / §8.4.3.13.4 GR1). Both surfaces spell the ONE `addressIdentifier` rule
+(`invokeArgument` in every phrase, the §8.4.3.4 inline `argument`, and `comparisonOperand`), so the storage forcing
+and the 2002 introduction gate reach them with no change of their own, and both bind through the ONE
+`PtrBinder.BindAddressIdentifier` into a `BoundAddressOperand` — a `BoundOperand` of its own, because the item it
+denotes has no storage and therefore no `Place`. The ONE category / class classifiers
+(`IntrinsicResultType.OperandCategory`, `IntrinsicArgumentRules.ClassOf`) answer data-pointer / program-pointer
+and class pointer for it, so the §8.8.4.2.3 SR5 band screens it like any pointer operand, and
+`ConditionRenderer`'s pointer arms read it through the ONE value renderer (`PtrEmitter.AddressOperandText`). An
+INVOKE argument crosses the pointer carrier verbatim and never writes back. A program arm that cannot be located as
+an ORDINARY operand raises EC-PROGRAM-NOT-FOUND the way every in-statement fatal condition is raised
+(`ProgramRegistry.EntryOfOperand`), because §14.9.4.4 GR3a's pre-transfer delivery is the CALL statement's alone.
 
 **THE MANAGED SLOT — THE FOURTH FORM, AND ONE CLASSIFICATION FOR BOTH SIDES (kb/Work PB663).** A class-pointer
 or class-object-reference item's value IS a managed reference; it has no byte image at all (the same fact

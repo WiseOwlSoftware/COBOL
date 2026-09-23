@@ -494,14 +494,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         if (a.DataAddress is { } da)
             return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<ManagedPointer>.Cell({ptr.AddressOfText(da)}), null)";
         if (a.ProgramAddress is { } pa)
-        {
-            string nameExpr = pa.NameLiteral is { } lit
-                ? CsLiteral(lit)
-                : $"({PlaceRenderer.Read(pa.NamePlace!)}).Trim()";   // §8.4.3.13.4 GR1a — the identifier's content
-            bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
             return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<ProgramPointer>.Cell("
-                + $"ProgramRegistry.EntryOfArgument({nameExpr}, {CallBool(checkNotFound)})), null)";
-        }
+                + $"{ptr.ProgramAddressText(pa, callArgument: true)}), null)";
         if (a.Place is { } p)
         {
             // THE CARRIED DESCRIPTION (kb/Work PB873): the argument's WHOLE numeric profile — sign, sign

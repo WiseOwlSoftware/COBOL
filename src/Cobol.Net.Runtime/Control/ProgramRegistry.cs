@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -155,6 +157,27 @@ public static class ProgramRegistry
             throw new CobolCallException(
                 $"ADDRESS OF PROGRAM '{name?.Trim()}': the program could not be located (ISO §8.4.3.13.4 GR4 — "
                 + "EC-PROGRAM-NOT-FOUND; §14.9.4.4 GR3a — no program is called)", "EC-PROGRAM-NOT-FOUND");
+        return p;
+    }
+
+    /// <summary>A §8.4.3.13 PROGRAM-ADDRESS-IDENTIFIER evaluated as an ordinary OPERAND — a relation-condition
+    /// operand (§8.8.4.2.2 Format 3) or an INVOKE argument (§14.9.23.3 SR9/SR19); kb/Work PB1021. §8.4.3.13.4 GR4:
+    /// "If the runtime system cannot locate the program, the EC-PROGRAM-NOT-FOUND exception condition is set to
+    /// exist and the value of the address-identifier is the predefined address NULL." EC-PROGRAM-NOT-FOUND is a
+    /// FATAL condition (Table 13), so with its checking enabled (<paramref name="checkNotFound"/>, the carrying
+    /// statement's compile-time TURN state) the miss is raised the way every in-expression fatal condition is — the
+    /// last-exception status set, then the fatal throw the statement guard selects a USE declarative for. Unchecked,
+    /// the condition is not raised (§14.6.13.1.4) and the value is GR4's NULL. The CALL argument has its own
+    /// <see cref="EntryOfArgument"/>, because §14.9.4.4 GR3a/GR3h make the miss the CALL's pre-transfer failure.</summary>
+    public static ProgramPointer EntryOfOperand(string name, bool checkNotFound)
+    {
+        var p = EntryOf(name, out bool notFound);
+        if (notFound && checkNotFound)
+        {
+            string detail = $"ADDRESS OF PROGRAM '{name?.Trim()}': the program could not be located (ISO §8.4.3.13.4 GR4)";
+            ExceptionState.Set("EC-PROGRAM-NOT-FOUND", fatal: true);
+            throw new CobolFatalException("EC-PROGRAM-NOT-FOUND", detail);
+        }
         return p;
     }
 

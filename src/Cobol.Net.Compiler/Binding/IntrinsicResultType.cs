@@ -313,6 +313,9 @@ internal static class IntrinsicResultType
         // A boolean EXPRESSION operand (the B-op tier, §8.8.2) is class and category boolean — the classifier is
         // TOTAL over the operand kinds so the relation checkpoint asks it instead of re-deriving (kb/Work PB68).
         BoundBoolOperand => PicCategory.Boolean,
+        // An ADDRESS-IDENTIFIER operand (kb/Work PB1021): §8.4.3.11.4 GR1 data-pointer / §8.4.3.13.4 GR1
+        // program-pointer — the category §8.8.4.2.3 SR5's same-category test reads.
+        BoundAddressOperand ao => ao.Category,
         _ => null,
     };
 

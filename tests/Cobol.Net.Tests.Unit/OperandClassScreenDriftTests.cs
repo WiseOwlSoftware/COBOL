@@ -53,7 +53,17 @@ public sealed class OperandClassScreenDriftTests
             "           PERFORM VARYING SLOT FROM 1 BY 1 UNTIL F = 1 CONTINUE END-PERFORM.\n           STOP RUN.\n",
         [OperandPositions.PerformVaryingIdentifierFromIndex] =
             "           PERFORM VARYING SLOT FROM IDX BY 1 UNTIL F = 1 CONTINUE END-PERFORM.\n           STOP RUN.\n",
+        [OperandPositions.WriteAdvancingIdentifier] =
+            "           OPEN OUTPUT OCSFILE.\n           WRITE OCSREC AFTER ADVANCING SLOT LINES.\n           CLOSE OCSFILE.\n           STOP RUN.\n",
     };
+
+    /// <summary>The ONE file every template may name (a WRITE row needs a file to write): a sequential print file
+    /// <c>OCSFILE</c> with record <c>OCSREC</c> (PF is a reserved word).
+    /// Declared for every template so the source prelude is one shape.</summary>
+    private const string FileControl =
+        "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
+        + "           SELECT OCSFILE ASSIGN TO \"ocs.txt\" ORGANIZATION SEQUENTIAL.\n";
+    private const string FileSection = "       FILE SECTION.\n       FD OCSFILE.\n       01 OCSREC PIC X(5).\n";
 
     [Fact]
     public void All_HoldsEveryDeclaredRow()
@@ -109,8 +119,8 @@ public sealed class OperandClassScreenDriftTests
         var (name, decl, classes) = Shapes[shape];
         if (!Templates.TryGetValue(pos, out var body)) return;   // EveryRow_HasATemplate reports it
         string source =
-            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. OCS" + row + "X" + shape + ".\n" +
-            "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n" +
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. OCS" + row + "X" + shape + ".\n" + FileControl +
+            "       DATA DIVISION.\n" + FileSection + "       WORKING-STORAGE SECTION.\n" +
             "       01 T.\n          05 E OCCURS 3 INDEXED BY IDX PIC X.\n" +
             "       01 F PIC 9 VALUE 1.\n" +
             "       " + decl + "\n" +

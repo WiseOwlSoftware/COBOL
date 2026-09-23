@@ -422,6 +422,7 @@ internal static class IntrinsicArgumentRules
         BoundComputedOperand { Expr: BoundIndexRef } => CobolClass.Index,
         BoundComputedOperand => CobolClass.Numeric,
         BoundBoolOperand => CobolClass.Boolean,   // a boolean EXPRESSION argument (§8.4.3.2.3 SR8; kb/Work PB65)
+        BoundAddressOperand => CobolClass.Pointer,   // §8.4.3.11.4 GR1 / §8.4.3.13.4 GR1 — "a unique data item of class pointer" (kb/Work PB1021)
         _ => null,
     };
 

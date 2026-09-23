@@ -211,11 +211,19 @@ invokeUsing
 // spellings (§5.2.6.2 brackets / §5.2.6.3 braces). §14.9.23.3 SR18 legislates the phrase by name. CALL's
 // callByReference / callArgument have carried the same pair since PB130; this was the one consumer without it.
 // OMITTED is a reserved word (§8.9), so neither arm shadows a data-name.
+// ⛔ THE ADDRESS-IDENTIFIER ARM, IN EVERY PHRASE (kb/Work PB1021 — the INVOKE twin of PB239's CALL fix).
+// §14.9.23.3 SR9: "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file,
+// working-storage, local-storage, or linkage section", and SR19 makes it a SENDING operand. identifier-5 (the
+// BY CONTENT / BY VALUE operand) is an identifier too, and §8.4.3.1.2 identifier FORMAT 9 is an identifier, so
+// the ONE `addressIdentifier` rule joins all four operand slots — exactly the four CALL's callArgument gives it.
+// ADDRESS is reserved and heads no other alternative, so each arm is unambiguous and every spelling that parsed
+// before parses identically.
 invokeArgument
-    : BY? VALUE arithmeticExpression   // BY optional (kb/Work PB130 — only VALUE is underlined)
-    | BY? REFERENCE (dataReference | OMITTED)
-    | BY? CONTENT ({boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
+    : BY? VALUE (addressIdentifier | arithmeticExpression)   // BY optional (kb/Work PB130 — only VALUE is underlined)
+    | BY? REFERENCE (addressIdentifier | dataReference | OMITTED)
+    | BY? CONTENT (addressIdentifier | {boolExprAhead()}? booleanExpression | literal | arithmeticExpression)
     | OMITTED
+    | addressIdentifier   // §14.9.23.3 SR9 / SR19 — a sending operand whatever the mode
     | dataReference
     | literal
     ;
