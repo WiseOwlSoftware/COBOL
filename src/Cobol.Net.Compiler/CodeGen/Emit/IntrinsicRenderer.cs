@@ -476,21 +476,113 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
         "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
         // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
-        "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf, screenLead: true),
+        // The lead is the DISCOUNT BASE 1 + rate, formed on the rate's exact carrier after the ONE screen
+        // (kb/Work PB1000 — see PresentValueBase).
+        "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf, lead: a => PresentValueBase(ic, a)),
         // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
         _ => RuntimeApi.Intrinsic(method, ArgArray(ic, 0, "double", DblOf)
-            ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => i == 0 ? DomainArg(ic, ic.Args[0]) : Dbl(ic, i)))),
+            ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => i == 0 ? LeadArg(ic, method) : Dbl(ic, i)))),
     };
+
+    /// <summary>
+    /// The binary64-family bodies that take argument-1 on its EXACT carrier instead of its binary64 — a
+    /// <c>CobolDec</c> overload in <c>CobolIntrinsics.Float.cs</c> — and which carriers each takes that way
+    /// (kb/Work PB999).
+    /// </summary>
+    /// <remarks>
+    /// <para>The §15.4.1 licence makes the RETURNED value an implementor-defined approximation; it does not make
+    /// the ARGUMENT one. Each member is a body whose result for the narrowed substitute is not an approximation of
+    /// its result for the real argument:</para>
+    /// <list type="bullet">
+    ///   <item><see cref="ExactIntake.Sdidi"/> — the substitute is wrong only past binary64's RANGE, which only an
+    ///         SDIDI reaches (10^±6144, §8.8.1.5.2: a floating-point literal, a product past the Int128 window);
+    ///         a scaled operand is inside it, where binary64's RELATIVE error is the ordinary approximation.
+    ///         <c>Log</c> / <c>Log10</c> — §15.55.4 r1 / §15.56.4 r1: log10(10^−400) is −400 (every decimal128
+    ///         value's logarithm is a normal binary64, |log10| ≤ 6176), not log10(+0.0) = −∞. <c>Sqrt</c> (the native
+    ///         arm; the standard modes are <c>SqrtDec</c>'s) — §15.84.4 r4: the root of 10^−400 is the representable
+    ///         10^−200.</item>
+    ///   <item><see cref="ExactIntake.EveryExact"/> — the substitute is wrong wherever it is INEXACT at magnitude:
+    ///         <c>Sin</c> / <c>Cos</c> / <c>Tan</c> (§15.82.4 r1 / §15.20.4 r1 / §15.89.4 r1) pay the narrowing as an
+    ///         ABSOLUTE error, about |x|·2^−53 — a whole period once |x| passes ~10^16, which a 17-digit scaled item
+    ///         already reaches — so every exact operand, scaled or SDIDI, is reduced modulo 2π exactly from 2π up:
+    ///         sin(1.0E40) answered +0.6468 where sin(10^40) is −0.5696, and sin(10^400) computed sin(+∞) = NaN,
+    ///         which RAISED EC-ARGUMENT-FUNCTION on an argument §15.82.3 restricts only to class numeric.</item>
+    /// </list>
+    /// <para>Not members, each because the substitute's result IS the approximation: EXP / EXP10 (an argument past
+    /// binary64 means a result past it, and one below it has e^x = 1 to every binary64 digit), ATAN (π/2 at ±∞),
+    /// ACOS / ASIN (the §15.8.3 / §15.10.3 domain [−1, +1] is inside binary64 — the ONE screen rejects the rest).
+    /// A float operand IS its binary64 and keeps the double body.</para>
+    /// <para>⛔ A domain member still passes the ONE argument-domain screen (§15.3 rule 14; kb/Work PB952): its
+    /// operand is <c>CobolIntrinsics.DomainDecAdmitted</c>, <c>DomainDec</c>'s predicate returning the admitted
+    /// carrier instead of its binary64, so the rule is decided in one place on either lane.</para>
+    /// </remarks>
+    internal static readonly FrozenDictionary<string, ExactIntake> WholeRangeBodies = new Dictionary<string, ExactIntake>
+    {
+        ["Log"] = ExactIntake.Sdidi, ["Log10"] = ExactIntake.Sdidi, ["Sqrt"] = ExactIntake.Sdidi,
+        ["Sin"] = ExactIntake.EveryExact, ["Cos"] = ExactIntake.EveryExact, ["Tan"] = ExactIntake.EveryExact,
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>Which exact carriers a <see cref="WholeRangeBodies"/> member takes unnarrowed.</summary>
+    internal enum ExactIntake
+    {
+        /// <summary>An SDIDI operand only — the narrowing is wrong only past binary64's range.</summary>
+        Sdidi,
+        /// <summary>A scaled operand too (lifted exactly by <c>CobolDec.From</c>) — the narrowing is an absolute
+        /// error.</summary>
+        EveryExact,
+    }
+
+    /// <summary>Argument-1 of the default binary64-family arm: an operand a <see cref="WholeRangeBodies"/> member
+    /// takes exactly stays (or is lifted exactly into) a <c>CobolDec</c>, screened by
+    /// <see cref="RuntimeApi.DomainArgAdmitted"/> when the row has a domain; every other operand is
+    /// <see cref="DomainArg"/>'s screened binary64.</summary>
+    /// <remarks>INTAKE(EXACT) — a whole-range body's operand on an exact carrier, unnarrowed (kb/Work PB999); any
+    /// other operand falls through to <see cref="DomainArg"/>, whose contract is APPROXIMATED.</remarks>
+    private string LeadArg(BoundIntrinsicCall ic, string method)
+    {
+        NumX x = num.AsNum(ic.Args[0], num.Receiver);
+        bool exact = WholeRangeBodies.TryGetValue(method, out var intake)
+            && (x.Dec || intake is ExactIntake.EveryExact && !x.Real);
+        return exact ? ExactArg(ic, x) : DomainArg(ic, x);
+    }
+
+    /// <summary>Argument-1 on an EXACT carrier as a <c>CobolDec</c> expression — an SDIDI as it is, a scaled or
+    /// unsigned-wide operand lifted exactly (<c>CobolDec.From</c> holds any Int128 at any scale) — and, when the
+    /// row has a §15.x.3 value domain, through the ONE screen's admitted form
+    /// (<see cref="RuntimeApi.DomainArgAdmitted"/>: a <c>CobolDec?</c>, null = rejected). A float operand has no
+    /// exact carrier beyond its binary64 and never reaches here.</summary>
+    /// <remarks>INTAKE(EXACT) — the carrier unnarrowed; the body narrows only what it computes from it.</remarks>
+    private string ExactArg(BoundIntrinsicCall ic, NumX x)
+    {
+        NumX dec = x.Dec ? x : new NumX(num.DecOperand(x), 0, Dec: true);
+        return ic.Sig.Domain is IntrinsicDomain.None
+            ? dec.Expr
+            : RuntimeApi.DomainArgAdmitted(dec, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+    }
+
+    /// <summary>PRESENT-VALUE's leading value: the discount base <c>1 + argument-1</c>
+    /// (<c>CobolIntrinsics.PresentValueBase</c>), from the rate's exact carrier after the ONE §15.74.3 r2 screen
+    /// (<see cref="ExactArg"/>), or from a float rate's own binary64 after <see cref="DomainArg"/>.</summary>
+    /// <remarks>⛔ The base, not the rate (kb/Work PB1000): <c>1 + rate</c> cancels at the domain's bound, so a body
+    /// forming it from the NARROWED rate turned the legal −0.99999999999999999999 into a base of 0 and answered ∞.
+    /// INTAKE(EXACT) for an exact carrier; INTAKE(APPROXIMATED) for a float one, whose binary64 IS the argument.</remarks>
+    private string PresentValueBase(BoundIntrinsicCall ic, BoundOperand a)
+    {
+        NumX x = num.AsNum(a, num.Receiver);
+        return RuntimeApi.Intrinsic("PresentValueBase", x.Real ? DomainArg(ic, x) : ExactArg(ic, x));
+    }
 
     /// <summary>Argument-1 of a binary64-family call, SCREENED against the row's §15.x.3 value domain on its exact
     /// carrier before it becomes the body's double (kb/Work PB952 — <see cref="RuntimeApi.DomainArg"/>); a row with
     /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
     /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
-    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) =>
+    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, num.Receiver));
+
+    private static string DomainArg(BoundIntrinsicCall ic, NumX x) =>
         ic.Sig.Domain is IntrinsicDomain.None
-            ? DblOf(a)
-            : RuntimeApi.DomainArg(num.AsNum(a, num.Receiver), ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+            ? NumericRenderer.Real(x)
+            : RuntimeApi.DomainArg(x, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
 
     private NumX RenderFloat(BoundIntrinsicCall ic, string method)
     {
@@ -746,11 +838,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <c>CobolTable.AllArgs</c> over the place's ranges — each a lambda over the index vector, so a nested
     /// dynamic-capacity table's capacity reads the OUTER occurrence's — with the element rendered by
     /// <paramref name="element"/> from the element operand (its subscripts are the index variable's slots).</summary>
-    private static string AllArgsExpr(TableAllPlace all, string csType, Func<BoundOperand, string> element)
+    /// <param name="lead">When given, renders the FIRST enumerated element instead (<c>CobolTable.AllArgs</c>'s
+    /// lead lambda) — the table(ALL) is the leading argument and its first element is argument-1.</param>
+    private static string AllArgsExpr(TableAllPlace all, string csType, Func<BoundOperand, string> element,
+        Func<BoundOperand, string>? lead = null)
     {
         string v = all.IndexVar;
         var counts = all.Counts.Select(c => $"{v} => (long)({AllCountExpr(c)})");
-        return RuntimeApi.TableAllArgs(csType, counts, $"{v} => {element(new BoundFieldOperand(all.Element))}");
+        var e = new BoundFieldOperand(all.Element);
+        return RuntimeApi.TableAllArgs(csType, counts, $"{v} => {element(e)}", lead is null ? null : $"{v} => {lead(e)}");
     }
 
     /// <summary>One ALL level's range as a C# <c>long</c>-valued expression — the ONE occurrence-count renderer
@@ -762,16 +858,21 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// table(ALL) argument is among them (else null — the caller keeps its comma-list form, byte-identical to
     /// before): runs of written operands become array literals, each ALL an <see cref="AllArgsExpr"/>, joined
     /// in source order by <c>CobolTable.ArgConcat</c> — the ONE array a <c>params T[]</c> body binds to.</summary>
-    private string? ArgArray(BoundIntrinsicCall ic, int from, string csType, Func<BoundOperand, string> render)
+    /// <param name="lead">When given, renders the list's FIRST argument (the operand at <paramref name="from"/>, or
+    /// the first element that operand's table(ALL) enumerates) — a leading argument with its own intake.</param>
+    private string? ArgArray(BoundIntrinsicCall ic, int from, string csType, Func<BoundOperand, string> render,
+        Func<BoundOperand, string>? lead = null)
     {
         if (!ic.Args.Skip(from).Any(a => a is BoundFieldOperand { Place: TableAllPlace })) return null;
         var parts = new List<string>();
         var run = new List<string>();
         void Flush() { if (run.Count > 0) { parts.Add($"new {csType}[] {{ {string.Join(", ", run)} }}"); run.Clear(); } }
+        Func<BoundOperand, string>? firstLead = lead;   // consumed by the first argument only
         foreach (var a in ic.Args.Skip(from))
         {
-            if (a is BoundFieldOperand { Place: TableAllPlace all }) { Flush(); parts.Add(AllArgsExpr(all, csType, render)); }
-            else run.Add(render(a));
+            if (a is BoundFieldOperand { Place: TableAllPlace all }) { Flush(); parts.Add(AllArgsExpr(all, csType, render, firstLead)); }
+            else run.Add((firstLead ?? render)(a));
+            firstLead = null;
         }
         Flush();
         return parts.Count == 1 ? parts[0] : RuntimeApi.TableArgConcat(csType, parts);
@@ -781,21 +882,21 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// amounts): the tail may enumerate; a table(ALL) in the LEADING position itself is legal too (§15.3 puts no
     /// position on the ALL — "as if each table element … were specified"), so then the flat list is bound once
     /// and split at run time.</summary>
-    /// <param name="screenLead">Screen the LEADING argument against the row's argument-1 domain
-    /// (<see cref="DomainArg"/>). When that argument is itself a table(ALL) the lead is an element of the flat
-    /// binary64 array, so it is screened on that double — the one shape where the exact carrier is not in hand.</param>
-    private string LeadThenTail(BoundIntrinsicCall ic, string method, string prefix, string csType, Func<BoundOperand, string> render, string mid = "", bool screenLead = false)
+    /// <param name="lead">The LEADING argument's own intake (PRESENT-VALUE's screened discount base), in place of
+    /// <paramref name="render"/>. ⛔ Also when that argument is itself a table(ALL) (kb/Work PB1000): the lead then
+    /// renders the enumeration's FIRST element — argument-1 (ISO §15.3 rule 14's left-to-right order) — from the
+    /// element operand, inside the walk (<c>CobolTable.AllArgs</c>'s lead lambda), before it joins the list.
+    /// Screening the list's <c>[0]</c> instead read a binary64 image: a legal rate −0.99999999999999999999 had
+    /// already become −1.0 there and was refused under §15.74.3 r2.</param>
+    private string LeadThenTail(BoundIntrinsicCall ic, string method, string prefix, string csType, Func<BoundOperand, string> render, string mid = "", Func<BoundOperand, string>? lead = null)
     {
         if (ic.Args[0] is BoundFieldOperand { Place: TableAllPlace })
         {
             string xs = NextWithVar();
-            string lead = screenLead && ic.Sig.Domain is not IntrinsicDomain.None
-                ? RuntimeApi.DomainArg(new NumX($"{xs}[0]", 0, Real: true), ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!)
-                : $"{xs}[0]";
-            return RuntimeApi.With(ArgArray(ic, 0, csType, render)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{lead}, {mid}{xs}[1..]"));
+            return RuntimeApi.With(ArgArray(ic, 0, csType, render, lead)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{xs}[0], {mid}{xs}[1..]"));
         }
         string tail = ArgArray(ic, 1, csType, render) ?? string.Join(", ", ic.Args.Skip(1).Select(render));
-        return RuntimeApi.Intrinsic(method, $"{prefix}{(screenLead ? DomainArg(ic, ic.Args[0]) : render(ic.Args[0]))}, {mid}{tail}");
+        return RuntimeApi.Intrinsic(method, $"{prefix}{(lead ?? render)(ic.Args[0])}, {mid}{tail}");
     }
 
     /// <summary>The number of arguments a call's list stands for when it is a compile-time fact — every table(ALL)

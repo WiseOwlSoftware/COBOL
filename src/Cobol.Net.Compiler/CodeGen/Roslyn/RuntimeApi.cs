@@ -458,12 +458,24 @@ internal static class RuntimeApi
     /// conversion moves across −1, 0 or +1, so it takes the binary64 arm.</summary>
     public static string DomainArg(Emit.NumX x, CobolNet.Binding.IntrinsicDomain domain, string function, string rule)
     {
-        string tail = $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.ArgumentDomain)}.{domain}, "
-            + $"{Emit.EmitText.CsLiteral(function)}, {Emit.EmitText.CsLiteral(rule)}";
+        string tail = DomainTail(domain, function, rule);
         return x.Dec ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainDec)}({x.Expr}, {tail})"
             : x.Real || x.U ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainReal)}({Emit.NumericRenderer.Real(x)}, {tail})"
             : $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainScaled)}((Int128)({x.Expr}), {x.Scale}, {tail})";
     }
+
+    /// <summary>The SAME screen over an SDIDI operand whose body takes the carrier UNNARROWED
+    /// (<c>IntrinsicRenderer.WholeRangeBodies</c>; kb/Work PB999) — <c>CobolIntrinsics.DomainDecAdmitted</c>, which
+    /// shares <c>DomainDec</c>'s predicate and returns the admitted <c>CobolDec?</c> (null = rejected) instead of
+    /// its binary64.</summary>
+    public static string DomainArgAdmitted(Emit.NumX x, CobolNet.Binding.IntrinsicDomain domain, string function, string rule) =>
+        x.Dec
+            ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainDecAdmitted)}({x.Expr}, {DomainTail(domain, function, rule)})"
+            : throw new InvalidOperationException("DomainArgAdmitted screens an SDIDI operand only");
+
+    private static string DomainTail(CobolNet.Binding.IntrinsicDomain domain, string function, string rule) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.ArgumentDomain)}.{domain}, "
+        + $"{Emit.EmitText.CsLiteral(function)}, {Emit.EmitText.CsLiteral(rule)}";
 
     /// <summary>A VALUE-SEMANTICS rescale — <c>CobolNum.Rescale</c>. ⛔ Every render of this today NARROWS to
     /// scale 0 (an integer intrinsic argument, a LINAGE line number, an unstringing pointer), where the plain
@@ -882,8 +894,9 @@ internal static class RuntimeApi
     /// <summary>A table(ALL) intrinsic argument's enumeration (ISO §15.3; kb/Work PB62) — <c>CobolTable.AllArgs&lt;T&gt;</c>
     /// over one range lambda per ALL level (each <c>Func&lt;long[], long&gt;</c>, the index vector in) and the element
     /// lambda; yields the <c>T[]</c> a <c>params T[]</c> body binds to.</summary>
-    public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda) =>
-        $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda})";
+    public static string TableAllArgs(string csType, IEnumerable<string> countLambdas, string elementLambda, string? leadLambda = null) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.AllArgs)}<{csType}>(new Func<long[], long>[] {{ {string.Join(", ", countLambdas)} }}, {elementLambda}"
+        + (leadLambda is null ? ")" : $", {leadLambda})");
 
     /// <summary>The intrinsic argument list assembled from written operands and enumerations, in source order —
     /// <c>CobolTable.ArgConcat&lt;T&gt;</c>.</summary>

@@ -159,14 +159,20 @@ public static class CobolTable
     /// reference to the function-identifier is undefined." COBOL.NET defines the undefined case as
     /// EC-ARGUMENT-FUNCTION (set when checking is on) and terminates the reference with that name either way — a
     /// zero-argument list is never handed to a body whose result over nothing is itself undefined.</para>
+    /// <para><paramref name="lead"/>, when given, renders the FIRST element enumerated in place of
+    /// <paramref name="element"/>: the table(ALL) is then the function's leading argument, and its first implicit
+    /// element is argument-1 (the enumeration order above), which a body such as PRESENT-VALUE screens against its
+    /// argument-1 value domain on the element's EXACT carrier (kb/Work PB1000) before it joins the binary64 list.
+    /// Which element is first is known only here — an inner ALL level may range over nothing for the first outer
+    /// occurrence — so the choice is made by the walk, not by the caller's subscripts.</para>
     /// </summary>
-    public static T[] AllArgs<T>(Func<long[], long>[] counts, Func<long[], T> element)
+    public static T[] AllArgs<T>(Func<long[], long>[] counts, Func<long[], T> element, Func<long[], T>? lead = null)
     {
         var idx = new long[counts.Length];
         var list = new List<T>();
         void Walk(int level)
         {
-            if (level == counts.Length) { list.Add(element(idx)); return; }
+            if (level == counts.Length) { list.Add(list.Count == 0 && lead is not null ? lead(idx) : element(idx)); return; }
             long n = counts[level](idx);
             for (long i = 1; i <= n; i++) { idx[level] = i; Walk(level + 1); }
         }

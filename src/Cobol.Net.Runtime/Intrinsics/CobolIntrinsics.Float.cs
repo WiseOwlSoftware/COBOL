@@ -59,10 +59,25 @@ public static partial class CobolIntrinsics
 
     /// <inheritdoc cref="DomainScaled"/>
     public static double DomainDec(CobolDec value, ArgumentDomain domain, string function, string rule) =>
+        AdmitsDec(value, domain) ? value.ToDouble() : DomainViolation(domain, function, rule);
+
+    /// <summary>The SAME screen as <see cref="DomainDec"/> — one predicate, <see cref="AdmitsDec"/> — for a body
+    /// that takes its argument on the SDIDI carrier UNNARROWED (kb/Work PB999; the renderer's
+    /// <c>IntrinsicRenderer.WholeRangeBodies</c>). It returns the admitted value itself rather than its binary64,
+    /// because the SDIDI reaches 10^±6144 and binary64 does not: <c>DomainDec</c>'s <c>ToDouble</c> turned the
+    /// LEGAL argument 10^−400 into +0.0, and LOG10 of it into −∞ where §15.56.4 r1 requires −400. A rejected
+    /// argument raises exactly as <c>DomainDec</c> does and comes back <c>null</c> — the carrier's NaN — which the
+    /// body turns into the NaN every rejected argument becomes on its way to the §15.3 default.</summary>
+    public static CobolDec? DomainDecAdmitted(CobolDec value, ArgumentDomain domain, string function, string rule)
+    {
+        if (AdmitsDec(value, domain)) return value;
+        DomainViolation(domain, function, rule);
+        return null;
+    }
+
+    private static bool AdmitsDec(CobolDec value, ArgumentDomain domain) =>
         Admits(domain, Math.Sign(CobolDec.Compare(value, MinusOneDec)), Math.Sign(value.Sig.CompareTo(Int128.Zero)),
-               Math.Sign(CobolDec.Compare(value, OneDec)))
-            ? value.ToDouble()
-            : DomainViolation(domain, function, rule);
+               Math.Sign(CobolDec.Compare(value, OneDec)));
 
     /// <inheritdoc cref="DomainScaled"/>
     public static double DomainReal(double value, ArgumentDomain domain, string function, string rule) =>
@@ -137,6 +152,71 @@ public static partial class CobolIntrinsics
     public static double Sqrt(double x) => Math.Abs(Math.Sqrt(x));   // §15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
     public static double Log(double x) => Math.Log(x);       // §15.55 — domain: the screen (§15.55.3 r2)
     public static double Log10(double x) => Math.Log10(x);   // §15.56 — domain: the screen (§15.56.3 r2)
+
+    // ── The WHOLE-RANGE bodies: an SDIDI argument taken UNNARROWED (kb/Work PB999) ───────────────────────────────
+    // ⛔ AN ARGUMENT OUTSIDE BINARY64'S RANGE IS STILL A LEGAL ARGUMENT. The SDIDI (a floating-point literal, a
+    // product past the Int128 window, a float-decimal item) reaches 10^±6144; binary64 stops near 10^±308. The
+    // family narrowed every argument with ToDouble BEFORE the body, so `FUNCTION LOG10(1.0E-200 * 1.0E-200)` computed
+    // log10(+0.0) = −∞ and answered the §15.3 default 0 where §15.56.4 r1 requires "the approximation of the
+    // logarithm to the base 10 of argument-1", −400; LOG10(10^400) computed log10(+∞); SQRT(10^−400) answered 0,
+    // not 10^−200; and SIN/COS/TAN(10^400) computed sin(+∞) = NaN and RAISED EC-ARGUMENT-FUNCTION on an argument
+    // §15.82 / §15.20 / §15.89 do not restrict at all. The overloads below take the CobolDec itself (the domain
+    // rows through the ONE screen, DomainDecAdmitted, whose null is a rejected argument) and compute from the
+    // decimal's own exponent and significand whenever the value is not a normal binary64 (LOG / LOG10 / SQRT), or
+    // reduce it modulo 2π exactly whenever it is at least 2π in magnitude (SIN / COS / TAN — narrowing a periodic
+    // argument costs an ABSOLUTE error, a whole period by 10^16: sin(1.0E40) answered +0.6468 where sin(10^40) is
+    // −0.5696); elsewhere they ARE the double bodies above, ulp for ulp.
+
+    /// <summary>§15.55 LOG of an SDIDI argument: ln(Sig·10^Exp) = ln Sig + Exp·ln 10 off the normal binary64 range
+    /// (|result| ≥ ~700 there, so the sum loses nothing to cancellation). <c>null</c> = rejected by §15.55.3 r2.</summary>
+    public static double Log(CobolDec? x) =>
+        x is not { } v ? double.NaN
+        : v.ToDouble() is var d && double.IsNormal(d) ? Math.Log(d) : Math.Log((double)v.Sig) + v.Exp * Ln10;
+
+    /// <summary>§15.56 LOG10 of an SDIDI argument: log10(Sig·10^Exp) = log10 Sig + Exp off the normal binary64
+    /// range. <c>null</c> = rejected by §15.56.3 r2.</summary>
+    public static double Log10(CobolDec? x) =>
+        x is not { } v ? double.NaN
+        : v.ToDouble() is var d && double.IsNormal(d) ? Math.Log10(d) : Math.Log10((double)v.Sig) + v.Exp;
+
+    /// <summary>§15.84 SQRT of an SDIDI argument under NATIVE arithmetic (§15.84.4 r4; the standard modes take
+    /// <see cref="SqrtDec"/>). Off the normal binary64 range the root is taken on the exact carrier
+    /// (<see cref="CobolDec.Sqrt"/>) and only THEN narrowed — SQRT(10^−400) is the representable 10^−200, not the
+    /// root of an underflowed +0.0. <c>null</c> = rejected by §15.84.3 r2.</summary>
+    public static double Sqrt(CobolDec? x) =>
+        x is not { } v ? double.NaN
+        : v.ToDouble() is var d && (v.Sig == 0 || double.IsNormal(d)) ? Sqrt(d)
+        : CobolDec.Sqrt(v, CobolRounding.NearestEven).ToDouble();
+
+    /// <summary>§15.82 SIN of an SDIDI argument, reduced modulo 2π on the EXACT carrier (<see cref="PeriodicArg"/>):
+    /// sin(10^400) is an ordinary value in [−1, +1], not sin(+∞), and sin(10^40) is sin of 10^40, not of the
+    /// binary64 nearest it.</summary>
+    public static double Sin(CobolDec x) => Math.Sin(PeriodicArg(x));
+
+    /// <summary>§15.20 COS of an SDIDI argument (<see cref="PeriodicArg"/>).</summary>
+    public static double Cos(CobolDec x) => Math.Cos(PeriodicArg(x));
+
+    /// <summary>§15.89 TAN of an SDIDI argument (<see cref="PeriodicArg"/>).</summary>
+    public static double Tan(CobolDec x) => Math.Tan(PeriodicArg(x));
+
+    /// <summary>The binary64 a periodic body computes on for an SDIDI argument: the argument itself below 2π in
+    /// magnitude (its conversion error is then relative, and the body's result carries it as an ordinary
+    /// approximation), otherwise ±(|x| reduced modulo 2π EXACTLY, <see cref="ReduceTwoPi"/>). Past 2π the conversion
+    /// error is ABSOLUTE — about |x|·2^−53, a whole period once |x| passes ~10^16 — so narrowing first answers for
+    /// a different argument, and past binary64's range it answers for +∞ (NaN, which raised EC-ARGUMENT-FUNCTION on
+    /// a legal argument).</summary>
+    private static double PeriodicArg(CobolDec x)
+    {
+        double d = x.ToDouble();
+        if (Math.Abs(d) < TwoPiDouble) return d;
+        double r = ReduceTwoPi(x);
+        return x.Sig < 0 ? -r : r;
+    }
+
+    private const double TwoPiDouble = 2 * Math.PI;
+
+    /// <summary>ln 10, correctly rounded.</summary>
+    private const double Ln10 = 2.302585092994045684017991454684364208;
     public static double Exp(double x) => Math.Exp(x);       // §15.34 — e ** argument (COBOL-2002+)
     public static double Exp10(double x) => Math.Pow(10, x); // §15.35 — 10 ** argument (COBOL-2002+)
 
@@ -168,17 +248,34 @@ public static partial class CobolIntrinsics
         periods <= 0 ? AnnuityDomain(rate, periods)          // r2 (rate ≥ 0) is the screen's (kb/Work PB952)
         : rate == 0 ? 1d / periods : rate / (1 - Math.Pow(1 + rate, -periods));
 
-    /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n. Domain: §15.74.3 r2
-    /// (rate &gt; −1) — a rate at or below −1 zeroes or inverts the discount base and the sum is undefined.</summary>
-    public static double PresentValue(double rate, params double[] amounts)
+    /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n, over the DISCOUNT BASE
+    /// <c>1 + rate</c> — which the caller forms on the rate's exact carrier (<see cref="PresentValueBase(CobolDec?)"/>)
+    /// or its binary64 (<see cref="PresentValueBase(double)"/>). Domain: §15.74.3 r2 (rate &gt; −1) — a rate at or
+    /// below −1 zeroes or inverts the base and the sum is undefined.</summary>
+    /// <remarks>⛔ THE BODY TAKES THE BASE, NOT THE RATE (kb/Work PB1000). <c>1 + rate</c> cancels exactly where a
+    /// rate is legal and close to its bound: the binary64 of −0.99999999999999999999 is −1.0, so a body forming the
+    /// base from a NARROWED rate divided by 0 and answered ±∞ (then EC-ARGUMENT-FUNCTION) for a rate §15.74.3 r2
+    /// admits, where the base is 10^−20 and the value 100 · 10^20. Formed on the exact carrier and only then
+    /// narrowed, the base keeps binary64's RELATIVE error, which is the §15.4.1 native approximation.</remarks>
+    public static double PresentValue(double discountBase, params double[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
-        // §15.74.3 r2 (rate > −1) is the argument-domain screen's (DomainScaled, kb/Work PB952): a legal rate
-        // just above −1 converts to −1.0, and a test here would raise on it.
+        // §15.74.3 r2 (rate > −1) is the argument-domain screen's (DomainScaled / DomainDecAdmitted, kb/Work
+        // PB952): a legal rate just above −1 converts to −1.0, and a test here would raise on it.
         double pv = 0;
-        for (int i = 0; i < amounts.Length; i++) pv += amounts[i] / Math.Pow(1 + rate, i + 1);
+        for (int i = 0; i < amounts.Length; i++) pv += amounts[i] / Math.Pow(discountBase, i + 1);
         return pv;
     }
+
+    /// <summary>PRESENT-VALUE's discount base <c>1 + argument-1</c> formed on the rate's EXACT carrier (an SDIDI, or
+    /// a scaled operand lifted exactly by <c>CobolDec.From</c>) and only then narrowed (kb/Work PB1000).
+    /// <c>null</c> = rejected by the ONE screen (<see cref="DomainDecAdmitted"/>) — the carrier's NaN.</summary>
+    public static double PresentValueBase(CobolDec? rate) =>
+        rate is not { } r ? double.NaN : CobolDec.Add(OneDec, r, CobolRounding.NearestEven).ToDouble();
+
+    /// <summary>The discount base of a FLOATING rate: the operand IS its binary64, so <c>1 + rate</c> is its own
+    /// value (exact by Sterbenz's lemma for every rate in [−1, −½], where the cancellation lives).</summary>
+    public static double PresentValueBase(double rate) => 1 + rate;
 
     // ── Statistics over doubles (ISO §15.86 / §15.98) ─────────────────────────────────────────────────────────
 

@@ -29,6 +29,8 @@
        01 AMT         PIC 9(3) VALUE 100.
        01 W-R         PIC S9(3)V9(6) VALUE 0.
        01 W-F         USAGE COMP-2.
+       01 PT.
+          05 PR       PIC S9V9(30) OCCURS 2 TIMES.
        PROCEDURE DIVISION.
        DECLARATIVES.
        H SECTION.
@@ -71,9 +73,19 @@
            COMPUTE W-R = FUNCTION ANNUITY(MINUS-TINY 3).
            DISPLAY "PRESENT-VALUE-MINUS-ONE".
            COMPUTE W-F = FUNCTION PRESENT-VALUE(-1 AMT).
-      *>   the nearest legal rate: no condition (100 / (1E-30) is past W-F's range only in binary64's
-      *>   rounding of the rate, which 15.4.1 leaves to the implementor - the observable is the silence).
+      *>   the nearest legal rate: no condition (the value is 100 / 1E-30 - kb/Work PB1000 forms the
+      *>   discount base 1 + rate on the exact rate; the observable here is the silence).
            DISPLAY "PRESENT-VALUE-INSIDE".
            COMPUTE W-F = FUNCTION PRESENT-VALUE(INSIDE-M1 AMT).
+      *>   The same two rates as a table(ALL) lead (kb/Work PB1000): argument-1 is the table's FIRST
+      *>   implicit element (15.3 r14), screened on its exact value - the screen used to read the
+      *>   enumerated binary64, where INSIDE-M1 is already -1.0, and refused it.
+           MOVE -1 TO PR(1).
+           MOVE AMT TO PR(2).
+           DISPLAY "PRESENT-VALUE-ALL-MINUS-ONE".
+           COMPUTE W-F = FUNCTION PRESENT-VALUE(PR(ALL)).
+           MOVE INSIDE-M1 TO PR(1).
+           DISPLAY "PRESENT-VALUE-ALL-INSIDE".
+           COMPUTE W-F = FUNCTION PRESENT-VALUE(PR(ALL)).
            DISPLAY "DONE".
            STOP RUN.
