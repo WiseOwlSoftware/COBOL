@@ -247,6 +247,65 @@ public sealed class LinageConformanceTests
             """), "lngby8.prt",
             "AAAA\r\n\r\nBBBB\r\n");
 
+    // ── kb/Work PB964: a WRITE with no ADVANCING phrase after an AFTER-placed record ─────────────────────────
+    // §14.9.51.4 GR25: "If the ADVANCING phrase is not used, automatic advancing shall be provided by the
+    // implementor to act as if the user has specified AFTER ADVANCING 1 LINE", and GR25 f): "the line is
+    // presented after the representation of the printed page is advanced". An AFTER write leaves its record on
+    // an unterminated line; the plain WRITE's one advance ends that line and the record lands on the next one.
+    // Before PB964 the print arm presented first (a BEFORE placement) and the line sequential arm never advanced,
+    // so both welded the two records onto one physical line — invisible to a same-width COBOL read-back, which
+    // is why these pin BYTES. One case per write arm: print stream, LINAGE page, line sequential, line sequential
+    // with LINAGE, and PAGE (a form feed, GR25 h)) as the AFTER write.
+
+    [Theory]
+    [InlineData("LNGBY9", "lngby9.prt", "", "RECORD CONTAINS 4 CHARACTERS", 85)]
+    [InlineData("LNGBYA", "lngbya.prt", "", "LINAGE IS 10 LINES", 85)]
+    [InlineData("LNGBYB", "lngbyb.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", "RECORD CONTAINS 4 CHARACTERS", 2023)]
+    [InlineData("LNGBYC", "lngbyc.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", "LINAGE IS 10 LINES", 2023)]
+    public void Bytes_PlainWriteAfterAnAfterWrite_AdvancesFirst_NoWeld(
+        string programId, string file, string org, string fd, int edition)
+        => AssertBytes(BytesProgram(programId, file, org, fd, """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC AFTER ADVANCING 1 LINE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC.
+                MOVE "CCCC" TO P-REC.
+                WRITE P-REC.
+            """), file,
+            "\r\nAAAA\r\nBBBB\r\nCCCC\r\n", edition);
+
+    [Theory]
+    [InlineData("LNGBYD", "lngbyd.prt", "", 85)]
+    [InlineData("LNGBYE", "lngbye.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", 2023)]
+    public void Bytes_PlainWriteAfterAdvancingPage_AdvancesFirst_NoWeld(string programId, string file, string org, int edition)
+        => AssertBytes(BytesProgram(programId, file, org, "RECORD CONTAINS 4 CHARACTERS", """
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC AFTER ADVANCING PAGE.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC.
+            """), file,
+            "\fAAAA\r\nBBBB\r\n", edition);
+
+    [Theory]
+    // The OTHER placements keep their own answers — the plain WRITE's placement is the only thing PB964 moved.
+    // A BEFORE write after an AFTER write presents on the line the device stands on (GR25 e): "the line is
+    // presented before the representation of the printed page is advanced") — the same line, as AFTER
+    // ADVANCING 0 LINES does (GR25 c)); a BEFORE write followed by an AFTER write is two advances, so one blank
+    // line; and a plain WRITE after a BEFORE write, whose advance already ended the line, adds no blank line.
+    [InlineData("LNGBYF", "lngbyf.prt", "AFTER ADVANCING 1 LINE", "BEFORE ADVANCING 1 LINE", "\r\nAAAABBBB\r\nCCCC\r\n")]
+    [InlineData("LNGBYG", "lngbyg.prt", "BEFORE ADVANCING 1 LINE", "AFTER ADVANCING 1 LINE", "AAAA\r\n\r\nBBBB\r\nCCCC\r\n")]
+    [InlineData("LNGBYH", "lngbyh.prt", "BEFORE ADVANCING 1 LINE", "", "AAAA\r\nBBBB\r\nCCCC\r\n")]
+    [InlineData("LNGBYI", "lngbyi.prt", "AFTER ADVANCING 1 LINE", "AFTER ADVANCING 0 LINES", "\r\nAAAABBBB\r\nCCCC\r\n")]
+    public void Bytes_LineSequential_EveryPlacementMix(string programId, string file, string first, string second, string expected)
+        => AssertBytes(BytesProgram(programId, file, "\n        ORGANIZATION IS LINE SEQUENTIAL", "RECORD CONTAINS 4 CHARACTERS", $"""
+                MOVE "AAAA" TO P-REC.
+                WRITE P-REC {first}.
+                MOVE "BBBB" TO P-REC.
+                WRITE P-REC {second}.
+                MOVE "CCCC" TO P-REC.
+                WRITE P-REC.
+            """), file, expected, 2023);
+
     [Fact]
     // ⛔ THE SECOND ARM OF THE WRITE DISPATCH — a LINE SEQUENTIAL LINAGE file gets the SAME logical page. This is
     // the arm kb/Work PB523 found unfixed while its record-sequential twin was fixed: a plain WRITE there emitted

@@ -139,7 +139,7 @@ NC131A	NC	green	-	valid	-
 NC132A	NC	green	-	valid	-
 NC133A	NC	green	-	valid	-
 NC134A	NC	green	-	valid	-
-NC135A	NC	green	-	valid	-
+NC135A	NC	divergent	-	valid	ISO §14.9.51.4 GR25 + GR25 f) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
 NC136A	NC	green	-	valid	-
 NC137A	NC	green	-	valid	-
 NC138A	NC	green	-	valid	-
@@ -254,7 +254,7 @@ SM205A	SM	green	-	valid	-
 SM206A	SM	green	-	valid	-
 SM207A	SM	green	-	valid	-
 SM208A	SM	green	-	valid	-
-SQ101M	SQ	divergent	-	valid	ISO §14.9.51 GR25a — WRITE ADVANCING identifier operands (overpunch/COMP); §14.9.51.4 GR (c) — BEFORE ADVANCING ZERO (WRT-TEST-GF-25) is NO repositioning: the legacy advanced one line (kb/Work PB87)
+SQ101M	SQ	divergent	-	valid	ISO §14.9.51 GR25a — WRITE ADVANCING identifier operands (overpunch/COMP); §14.9.51.4 GR (c) — BEFORE ADVANCING ZERO (WRT-TEST-GF-25) is NO repositioning: the legacy advanced one line (kb/Work PB87); §14.9.51.4 GR25 + GR25 f) (WRT-TEST-GF-19/20) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
 SQ102A	SQ	green	-	valid	-
 SQ103A	SQ	green	-	valid	-
 SQ104A	SQ	green	-	valid	-
@@ -346,12 +346,12 @@ ST133A	ST	green	-	valid	-
 ST134A	ST	green	-	valid	-
 ST135A	ST	green	-	valid	-
 ST136A	ST	green	-	valid	-
-ST137A	ST	green	-	valid	-
-ST139A	ST	green	-	valid	-
-ST140A	ST	green	-	valid	-
-ST144A	ST	green	-	valid	-
+ST137A	ST	divergent	-	valid	ISO §14.9.51.4 GR25 + GR25 f) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
+ST139A	ST	divergent	-	valid	ISO §14.9.51.4 GR25 + GR25 f) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
+ST140A	ST	divergent	-	valid	ISO §14.9.51.4 GR25 + GR25 f) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
+ST144A	ST	divergent	-	valid	ISO §14.9.51.4 GR25 + GR25 f) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
 ST146A	ST	divergent	-	valid	ISO §14.9.30 GR18 — record area undefined after an unsuccessful READ (undefined choice)
-ST147A	ST	green	-	valid	-
+ST147A	ST	divergent	-	valid	ISO §14.9.51.4 GR25 + GR25 f) — a WRITE with no ADVANCING phrase acts as AFTER ADVANCING 1 LINE, so after an AFTER-placed line it advances FIRST and presents on the next line: the legacy presented it on the open line (two records welded onto one print line) (kb/Work PB964)
 CM101M	CM	pending	-	none	cataloged (not asserted)
 CM102M	CM	pending	-	none	cataloged (not asserted)
 CM103M	CM	pending	-	none	cataloged (not asserted)

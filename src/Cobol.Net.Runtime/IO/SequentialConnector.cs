@@ -1012,8 +1012,11 @@ public sealed class SequentialConnector : FileConnector
         // ADVANCING 1, ISO §14.9.51 GR25, and the counter advances by one, §13.18.34 GR7c3) — an omitted
         // ADVANCING phrase still line-advances (a raw fixed-width block would weld onto the previous line). In
         // the pending-advance stream model (each AFTER-write leads with its newline; CLOSE supplies the final
-        // one), the write-then-advance shape reproduces the print stream the golden corpus encodes.
-        if ((_printControl || page is not null) && !_lineSequential) return WriteAdvancing(image, 1, before: true, page);
+        // one), the write-then-advance shape reproduces the print stream the golden corpus encodes — on a line
+        // nothing left OPEN. Where a line IS open (an AFTER write's record, presented after its advance), the one
+        // implicit advance is placed FIRST, as GR25 f) places AFTER's: see ImplicitAdvanceIsBefore (kb/Work PB964).
+        if ((_printControl || page is not null) && !_lineSequential)
+            return WriteAdvancing(image, 1, before: ImplicitAdvanceIsBefore, page);
         // §14.9.51.4 GR23: "For a line sequential file, if the record area contains one or more characters that
         // are not in the implementor-defined character set defined for a line sequential file, the execution of
         // the WRITE statement is unsuccessful and the I-O status in the write file connector is set to '71'."
@@ -1051,10 +1054,34 @@ public sealed class SequentialConnector : FileConnector
     /// (§13.18.34.4 GR6 b) — see <see cref="Position"/>).</returns>
     private bool EmitLineSequentialRecord(string data, LinagePage? page)
     {
-        if (page is null || !HasLogicalPage) { EmitRecordLine(data); return true; }
+        if (page is null || !HasLogicalPage)
+        {
+            // The one implicit advance, placed by the same question the print arm asks: on an open line it is
+            // the travel that ENDS that line (§14.9.51.4 GR25 f)'s AFTER placement — kb/Work PB964, where the
+            // record used to weld onto the AFTER write's line); otherwise it is the record's own delimiter.
+            if (!ImplicitAdvanceIsBefore) AdvanceLines(1);
+            EmitRecordLine(data);
+            return true;
+        }
+        if (ImplicitAdvanceIsBefore) { Present(data, page); return Position(1, page); }
+        if (!Position(1, page)) return false;
         Present(data, page);
-        return Position(1, page);
+        return true;
     }
+
+    /// <summary>⛔ THE ONE PLACEMENT QUESTION OF A WRITE THAT HAS NO ADVANCING PHRASE, asked by every arm that
+    /// performs one (the print/LINAGE arm through <see cref="WriteAdvancing"/>, and both line sequential arms of
+    /// <see cref="EmitLineSequentialRecord"/>). §14.9.51.4 GR25: <i>"If the ADVANCING phrase is not used,
+    /// automatic advancing shall be provided by the implementor to act as if the user has specified AFTER
+    /// ADVANCING 1 LINE."</i> The advance is ONE line — §13.18.34.4 GR7 counts it once — and its placement
+    /// follows the device's LINE STATE (<see cref="_lineOpen"/>): when an AFTER-placed record still stands on an
+    /// unterminated line, the advance comes first (GR25 f), "the line is presented after the representation of
+    /// the printed page is advanced") and ends that line, so the record lands on the next one; when no line is
+    /// open, the stream's established write-then-advance shape (a record followed by its line terminator — the
+    /// shape a line sequential record and the NIST print corpus both carry) already puts it on a fresh line.
+    /// Before kb/Work PB964 the print arm always placed it second and the line sequential arm never advanced at
+    /// all, so a plain WRITE after an AFTER write welded two records onto one physical line.</summary>
+    private bool ImplicitAdvanceIsBefore => !_lineOpen;
 
     /// <summary>Print-control <c>WRITE record [BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> (ISO §14.9.51.4
     /// GR25): for
