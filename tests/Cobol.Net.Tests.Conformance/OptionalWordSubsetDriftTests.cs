@@ -872,9 +872,9 @@ public sealed class OptionalWordSubsetDriftTests
             try
             {
                 string src = Path.Combine(dir, unit + ".cob");
-                File.WriteAllText(src, source);
+                src = CompiledProgramCache.StageSource(src, source);
                 string dll = Path.Combine(dir, unit + ".dll");
-                var r = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: f.Edition));
+                var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: f.Edition));
                 Assert.True(r.Success,
                     $"ISO §{f.Clause}: the optional words [{spelling}] must compile at --std {f.Edition} " +
                     $"(§5.2.3 — they are printed WITHOUT an underline): {string.Join("\n", r.Errors)}");

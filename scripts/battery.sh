@@ -36,6 +36,10 @@
 # Usage:  bash scripts/battery.sh [outdir]        # everything
 #         SKIP_GUARD=1 SKIP_DIFF=1 bash scripts/battery.sh    # the greenfield legs only
 set -u
+# ⛔ THE BATTERY RUNS COLD (kb/Work PB985; DESIGN-test-build-ci §3.12): the Conformance runner's compiled-program
+# cache is for RE-GATES after a test-only fix; the comprehensive gate recompiles every program from scratch, so
+# it is never the cache that is being measured. `COBOLNET_COMPILE_CACHE=on bash scripts/battery.sh` overrides.
+export COBOLNET_COMPILE_CACHE="${COBOLNET_COMPILE_CACHE:-off}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 OUT="${1:-${TMPDIR:-/tmp}/battery-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$OUT"

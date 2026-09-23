@@ -172,7 +172,7 @@ public abstract class CorpusRunnerTestsBase<TSlot>
             string dll = Path.Combine(tmp, name + ".dll");
             // kb/Work PB803 — a golden may declare its own compile options in its leading comment block
             // (`*> options: sign-encoding=ascii`); one with no header compiles exactly as it always did.
-            var r = CobolNet.CompilerDriver.Compile(ConformanceCorpus.ApplySourceOptions(
+            var r = CompiledProgramCache.Compile(ConformanceCorpus.ApplySourceOptions(
                 File.ReadAllText(src),
                 new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: int.Parse(edition))));
             Assert.True(r.Success, $"[{edition}/{name}] must compile strict: {string.Join("\n", r.Errors)}");

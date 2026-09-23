@@ -38,8 +38,8 @@ public sealed class SizeErrorDispositionTests
         try
         {
             string src = Path.Combine(dir, "prog.cob"), dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023));
+            src = CompiledProgramCache.StageSource(src, source);
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023));
             Assert.True(r.Success, "[compile] " + string.Join("\n", r.Errors));
             return CutRunner.RunExit(dll, dir);
         }

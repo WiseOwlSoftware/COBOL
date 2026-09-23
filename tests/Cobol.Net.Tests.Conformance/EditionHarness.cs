@@ -28,8 +28,8 @@ public static class EditionHarness
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            src = CompiledProgramCache.StageSource(src, source);
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, Permissive: permissive));
             return (r.Success, r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")], r.Warnings);
         }
@@ -58,7 +58,7 @@ public static class EditionHarness
         {
             // checkOnly = parse + edition-validate + bind (NO Roslyn backend) — the compile VERDICT is settled
             // pre-backend, so the INV-1 continuity sweep uses it (the ~29-min→<1-min speedup, DEVLOG 627).
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, testName + ".dll"), NistTestName: testName, DialectLevel: edition,
                 Permissive: permissive, CheckOnly: checkOnly));
             return (r.Success, r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")]);
@@ -76,9 +76,9 @@ public static class EditionHarness
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: edition, Permissive: permissive));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: edition, Permissive: permissive));
             if (!r.Success) return (false, "", $"[compile] {r.Status}: {string.Join("\n", r.Errors)}");
             return CutRunner.Run(dll, dir);
         }

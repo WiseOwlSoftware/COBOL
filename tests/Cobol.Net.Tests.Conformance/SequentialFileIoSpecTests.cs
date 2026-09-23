@@ -28,9 +28,9 @@ public sealed class SequentialFileIoSpecTests
         {
             if (stage is { } s) File.WriteAllText(Path.Combine(dir, s.Name), s.Content);
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CobolNet.CompilerDriver.Options(
                 src, dll, DialectLevel: edition, Permissive: permissive));
             Assert.True(r.Success, $"must compile at --std {edition}"
                 + (permissive ? " --permissive: " : " strict: ") + string.Join("\n", r.Errors));

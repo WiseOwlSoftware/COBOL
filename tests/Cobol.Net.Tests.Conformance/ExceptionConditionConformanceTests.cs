@@ -1770,7 +1770,7 @@ public sealed class ExceptionConditionConformanceTests
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, """
+            src = CompiledProgramCache.StageSource(src, """
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. ECT046.
                 DATA DIVISION.
@@ -1782,7 +1782,7 @@ public sealed class ExceptionConditionConformanceTests
                     DISPLAY WS-A.
                     STOP RUN.
                 """);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: 2023));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             string generated = File.ReadAllText(Path.Combine(dir, "prog.g.cs"));

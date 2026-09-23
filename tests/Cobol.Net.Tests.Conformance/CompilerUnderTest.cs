@@ -123,9 +123,9 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
         {
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
             if (!result.Success)
                 return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -152,9 +152,9 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
         {
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
             if (!result.Success)
                 return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}", null);
 
@@ -190,8 +190,8 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
                 if (!m.Success) return (false, "", "[harness] a companion module has no PROGRAM-ID to name its assembly after");
                 string name = m.Groups[1].Value;
                 string csrc = Path.Combine(dir, name + ".cob");
-                File.WriteAllText(csrc, companion);
-                var cr = CompilerDriver.Compile(new CompilerDriver.Options(
+                csrc = CompiledProgramCache.StageSource(csrc, companion);
+                var cr = CompiledProgramCache.Compile(new CompilerDriver.Options(
                     csrc, Path.Combine(dir, name + ".dll"), DialectLevel: dialectLevel));
                 if (!cr.Success)
                     return (false, "", $"[cobolnet compile {name}] {cr.Status}: {string.Join("\n", cr.Errors)}");
@@ -199,8 +199,8 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
 
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            src = CompiledProgramCache.StageSource(src, source);
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
             if (!result.Success)
                 return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -219,9 +219,9 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
         {
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
 
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
             if (!result.Success)
                 return (-1, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -247,7 +247,7 @@ public sealed class LegacyCompiler : ICompilerUnderTest
         {
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
 
             var compilation = new LegacyCompilation();
             var result = compilation.Compile(src, dll);

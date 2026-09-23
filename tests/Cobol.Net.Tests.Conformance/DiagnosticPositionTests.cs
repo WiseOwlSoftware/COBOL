@@ -26,7 +26,7 @@ public sealed class DiagnosticPositionTests : IDisposable
     /// error + warning line the driver produced.</summary>
     private (bool Ok, List<string> Lines) Compile(string mainName, int edition = 2023, bool checkOnly = true)
     {
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
             Path.Combine(_dir, mainName), Path.Combine(_dir, "out.dll"), DialectLevel: edition, CheckOnly: checkOnly));
         return (r.Success, [.. r.Errors, .. r.Warnings]);
     }

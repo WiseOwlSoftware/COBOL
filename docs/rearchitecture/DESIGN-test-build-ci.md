@@ -613,6 +613,94 @@ and would have kept reporting success over ZERO goldens. Both now key on the met
 tree, and immune to the next re-partition. The shard-population job (§3.8) is what catches this class of error for
 the sharded leg, and it was re-run locally against the split tree: 349+349+349+1080+1354+1761 = 5242 = discovered.
 
+### 3.12 THE COMPILED-PROGRAM CACHE — reducing the WORK of a re-gate (kb/Work PB985)
+
+§3.11 ended with the parallelism lever exhausted and "reduce the WORK" as the one left. The largest repeated work
+is the lander's whole-Conformance re-gate after a TEST-ONLY fix (a probe template, a stale test-ref, a pinned
+expectation — the dominant cause of trains 46–48's first-gate reds): ~7,900 cases recompiled although no compiler
+or runtime bit changed. `tests/Cobol.Net.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
+compiled program. **A hit still RUNS the program** — runtime behaviour is what a case checks; only the compile is
+skipped.
+
+**Where a case's time goes (measured first, PB985 obligation 1; Debug build, serial, a loaded host).** A sampled
+corpus case: front end + bind ≈ 60 ms, emit + Roslyn + packaging ≈ 40 ms, the program RUN (a `dotnet` child
+process) ≈ 176 ms. A sampled NIST case: front end + bind ≈ 634 ms, emit + Roslyn ≈ 98 ms, run ≈ 203 ms. So
+**Roslyn emit is NOT the dominant cost — the COBOL front end is**, and the cache is sized to skip the WHOLE compile
+(front end, bind, emit), not only the backend. The run is irreducible; it bounds what a cache can recover.
+
+**The key is complete, by construction and by test.** A cache that omits one compiler input returns a stale
+program — a green verdict about code that no longer exists — so the key is everything the output depends on:
+
+| axis | how it is keyed | proof (`CompiledProgramCacheDriftTests`) |
+|---|---|---|
+| the compiler's own bits | SHA-256 of every non-framework assembly in `Cobol.Net.Compiler`'s reference closure (compiler, front end, editions, runtime, Roslyn, ANTLR) + the exact shared-framework build + culture + working directory | a byte flipped in one closure assembly changes the fingerprint; every loaded `Cobol.Net.*` product assembly is in the closure |
+| every compile option | **reflection** over `CompilerDriver.Options`, rendered per TYPE; an unknown type THROWS | every property is flipped by type-derived value and must change the key — an option added tomorrow is covered with no edit |
+| the source | its full path and its content hash | an edit misses; the same text at another path misses |
+| copybooks, probes, environment | the compiler's OWN record, `CompilerDriver.Result.Inputs` (below), re-verified on every lookup | an edited copybook misses; a copybook that newly SHADOWS the one found misses; a `>>DEFINE … PARAMETER` variable set/changed misses |
+| the clock | never keyed — a compilation that read it (WHEN-COMPILED) is **never stored** | the WHEN-COMPILED program misses every time; a program without it never reads the clock |
+| the output DIRECTORY | deliberately NOT keyed (only the output file name) | the same programs compiled cold into two directories agree byte-for-byte in every output file, diagnostic and warning |
+
+**`CompilationInputs` — the compiler states its own inputs.** The one structural change to the product: every
+AMBIENT read a compilation makes — the source and copybook reads, every copybook-search probe (including the ones
+that found nothing — an absent answer is an input), the NIST default-library probe, a directive's environment
+variable, the WHEN-COMPILED clock — goes through `src/Cobol.Net.Frontend/Pipeline/CompilationInputs.cs`, which
+performs the read AND records it; `CompilerDriver.Result.Inputs` carries the record and `Result.OutputFiles` every
+file the compile wrote (the backend and the packager report their own writes). That is the dependency list any
+incremental build needs (the `gcc -MD` shape), not a test-only affordance; the cache re-derives nothing. The
+WHEN-COMPILED stamp is captured LAZILY (still once per compilation), so only a compilation that renders it depends on
+the clock. Two source-form drift tests keep "complete" true: an ambient-read API anywhere in
+`Cobol.Net.Compiler`/`Frontend`/`Editions` outside `CompilationInputs.cs` is red unless its line says why it is not
+a compilation input (the compiler's own deployment, its own output), and the compiler may expose no public mutable
+static. A third keeps the SCOPE true: the one direct `CompilerDriver.Compile` in the Conformance assembly is
+`CompiledProgramCache.CompileCold`.
+
+**What is not keyed, and why that is safe.** Roslyn compiles a program against the host's trusted-platform set,
+which in a test host includes the TEST assemblies — deliberately unkeyed, or a test-only fix could never hit. The
+only way one could shape the output is by the program BINDING to it, which would appear as an assembly reference;
+the cache reads the produced assembly's reference table and refuses to store a program that references anything
+outside the keyed closure or the framework. A backend failure is never stored. Runtime-library code the compiler
+calls at compile time is covered by the closure hash (its bits) — its own ambient reads are run-time behaviour by
+construction and are not scanned; a compile-time call into one would be a defect the ambient scan does not see.
+
+**Stable source paths.** A harness that wrote its program into a fresh random directory had a different
+`SourcePath` — a different key — every run. `CompiledProgramCache.StageSource(plannedPath, text)` places the text
+at a CONTENT-addressed path (`<store>/src/<hash>/<name>`), alone in its directory, so the same text compiles to the
+same key every run; the run directory stays per-case. With the cache OFF it writes to `plannedPath` exactly as
+before, so a cold run keeps the historical layout.
+
+**Store, concurrency, eviction.** Default store `.cache/compiled-programs/` under the worktree root (git-ignored):
+parallel worktrees never share one, and a removed worktree takes its store with it (`COBOLNET_COMPILE_CACHE_DIR`
+relocates it). Entries (`entries/<key>.json`) name content-addressed, Brotli-compressed blobs (`blobs/<sha>`) — the
+1.8 MB runtime every program deploys is stored once. Every write is temp-file-then-rename, so parallel test
+collections and parallel test hosts only ever see whole files; a torn or evicted entry is a MISS, never an error —
+correctness never depends on the cache. Once per test process, under an exclusive lock file, a store over its cap
+(`COBOLNET_COMPILE_CACHE_MAX_MB`, default 4096) drops its least-recently-used half and every blob no survivor
+names (blobs younger than ten minutes are spared for a concurrent writer), and staged sources untouched for a week
+go. Each process appends its hit/miss tally to `stats.log`.
+
+**The switch.** `COBOLNET_COMPILE_CACHE=off` disables it, `=on` forces it. Unset, it is ON for local gates
+(`build-local`, the lander) and OFF under CI (`CI` set — GitHub Actions always sets it); `scripts/battery.sh`
+exports `off`, so **the battery and CI run COLD** (PB985 obligation 4 — the owner may decide otherwise).
+
+**Measured (PB985 obligation 5)** — the whole Conformance assembly, 7,951 cases, three back-to-back runs on one
+unchanged tree at `BelowNormal` priority on the shared 32-core host (2026-09-22): **cold, cache off: 22 m 53 s**;
+**first gate, cache on and empty: 21 m 31 s** (12,886 compilations stored — the store's overhead is inside the
+noise); **re-gate, warm, no product change: 1 m 27 s** (13,133 hits, 27 misses — the 6 WHEN-COMPILED programs and
+the few harnesses whose sources live in a per-case random directory beside their copybooks — all 7,951 green in
+all three). The compile, not the run, was the wall-clock pole under full parallel load: the populate run's
+compilations summed to 25,217 thread-seconds (~2 s each under contention, against ~0.1 s serial), while the
+program runs, being separate processes, spread across the cores. The whole store was 49 MB.
+
+**⛔ A Debug build must not depend on the commit it was built at.** The three runs above shared one HEAD. The
+lander's real re-gate COMMITS the test-only fix first, and the SDK then stamped the new commit into every
+assembly (`AssemblyInformationalVersion` "1.0.0+&lt;sha&gt;", and the Source Link map whose PDB checksum the
+assembly embeds) — every compiler bit changed, every case missed, and every incremental build recompiled every
+project. `Directory.Build.props` therefore sets `EnableSourceControlManagerQueries=false` (and drops the revision
+suffix) for **Debug only**; Release, the shipped build, keeps its stamp. `ADebugBuild_DoesNotStampTheCommit`
+pins it on the built bits. Re-measured on the real flow — populate at one commit (14 m 0 s, a quieter host), then
+a TEST-ONLY commit (that very test), rebuild, whole assembly: **build 5 s + 1 m 18 s, 13,133 hits / 27 misses,
+7,952 green.**
+
 ---
 
 ## 4. Current → target module changes

@@ -19,25 +19,30 @@ internal static class AssemblyPackager
     /// <summary>Package the emitted assembly at <paramref name="outputDllPath"/>: runtimeconfig + runtime deploy.
     /// (The design sketch passed the Roslyn <c>EmitResult</c> + options; the output path is the one input the
     /// packaging actually consumes — reduced accordingly.)</summary>
-    public static void Package(string outputDllPath)
+    /// <returns>Every file packaging wrote, as full paths (kb/Work PB985 — the backend's output set).</returns>
+    public static IReadOnlyList<string> Package(string outputDllPath)
     {
-        WriteRuntimeConfig(outputDllPath);
-        DeployRuntime(outputDllPath);
+        var written = new List<string> { WriteRuntimeConfig(outputDllPath) };
+        if (DeployRuntime(outputDllPath) is { } runtime) written.Add(runtime);
+        return written;
     }
 
     /// <summary>Copy <c>Cobol.Net.Runtime.dll</c> next to the compiled program so it resolves at run time.</summary>
-    private static void DeployRuntime(string outputDllPath)
+    private static string? DeployRuntime(string outputDllPath)
     {
         string dest = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputDllPath))!, "Cobol.Net.Runtime.dll");
-        if (!string.Equals(RuntimePath, dest, StringComparison.OrdinalIgnoreCase) && File.Exists(RuntimePath))
-            File.Copy(RuntimePath, dest, overwrite: true);
+        if (string.Equals(RuntimePath, dest, StringComparison.OrdinalIgnoreCase)
+            || !File.Exists(RuntimePath))   // not a compilation input: the runtime is part of the compiler's own deployment
+            return null;
+        File.Copy(RuntimePath, dest, overwrite: true);
+        return dest;
     }
 
     /// <summary>
     /// Write the <c>.runtimeconfig.json</c> next to the emitted assembly so it is launchable via
     /// <c>dotnet &lt;name&gt;.dll</c>, targeting the same shared framework the compiler is running on.
     /// </summary>
-    private static void WriteRuntimeConfig(string outputDllPath)
+    private static string WriteRuntimeConfig(string outputDllPath)
     {
         var v = Environment.Version;
         string json = $$"""
@@ -51,6 +56,8 @@ internal static class AssemblyPackager
           }
         }
         """;
-        File.WriteAllText(Path.ChangeExtension(outputDllPath, ".runtimeconfig.json"), json);
+        string path = Path.GetFullPath(Path.ChangeExtension(outputDllPath, ".runtimeconfig.json"));
+        File.WriteAllText(path, json);
+        return path;
     }
 }

@@ -167,8 +167,8 @@ public sealed class ObjectRefDescriptorDriftTests
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(
+            src = CompiledProgramCache.StageSource(src, source);
+            var r = CompiledProgramCache.Compile(new CobolNet.CompilerDriver.Options(
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: 2002));
             return (r.Success, string.Join("\n", r.Errors));
         }

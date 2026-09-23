@@ -52,6 +52,11 @@ public sealed class Frontend
     /// Defaults strict, matching <c>EditionContext</c>.</summary>
     public bool Permissive { get; init; }
 
+    /// <summary>The compilation's AMBIENT-INPUT record (kb/Work PB985): the source read, every copybook probe and
+    /// read, every environment variable a directive consulted. A driver that must record reads it makes BEFORE the
+    /// front end (the source-existence probe, the NIST copy library) passes its own instance here.</summary>
+    public CompilationInputs Inputs { get; init; } = new();
+
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
@@ -118,7 +123,7 @@ public sealed class Frontend
     /// </summary>
     private MappedText Preprocess(string sourcePath, DiagnosticBag diagnostics)
     {
-        string raw = File.ReadAllText(sourcePath);
+        string raw = Inputs.ReadAllText(sourcePath);
         string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
         // The archive-marker strip is line-count preserving (markers become blank lines), so the origin map the
@@ -135,9 +140,10 @@ public sealed class Frontend
         // the expanded group. leave* keep the post-85 directive families flowing to their dedicated stages below.
         // COPY runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
-            dialectLevel: DialectLevel, permissive: Permissive);
+            dialectLevel: DialectLevel, permissive: Permissive, inputs: Inputs);
         mapped = ConditionalCompilationProcessor.ProcessWithCopyMapped(mapped, sourceDir, copy, LeftDirectives,
-            diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel, permissive: Permissive);
+            diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel, permissive: Permissive,
+            inputs: Inputs);
 
         // From here on the text is in its FINAL line frame: every stage below is line-count preserving (asserted),
         // so `mapped.Lines` stays the origin of each resultant line and the directive stages' event lines are the

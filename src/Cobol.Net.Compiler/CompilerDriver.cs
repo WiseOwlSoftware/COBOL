@@ -68,18 +68,34 @@ public static class CompilerDriver
     {
         /// <summary>True iff a runnable assembly was produced.</summary>
         public bool Success => Status == Outcome.Success;
+
+        /// <summary>The compilation's AMBIENT inputs (kb/Work PB985): every file it read, every path it probed
+        /// (found or not), every environment variable a directive consulted, and whether it read the clock. With
+        /// <see cref="Options"/> and the compiler's own bits these are EVERYTHING the output depends on — the
+        /// dependency record an incremental build or a compiled-program cache keys on.</summary>
+        public Frontend.CompilationInputs Inputs { get; init; } = new();
+
+        /// <summary>Every file this compilation WROTE, as full paths (the <c>.g.cs</c>, the assembly, the packaged
+        /// runtime config and runtime) — empty when it wrote nothing.</summary>
+        public IReadOnlyList<string> OutputFiles { get; init; } = [];
     }
 
     /// <summary>Compile <paramref name="options"/> to a runnable console assembly.</summary>
     public static Result Compile(Options options)
     {
-        if (!File.Exists(options.SourcePath))
-            return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], []);
+        // kb/Work PB985 — the ONE ambient-input record of this compilation: every read below that is not the
+        // options themselves (the source-existence probe, the default-library probe, the front end's source and
+        // copybook reads, a directive's environment read, the emitter's WHEN-COMPILED clock) goes through it.
+        var inputs = new Frontend.CompilationInputs();
+        if (!inputs.FileExists(options.SourcePath))
+            return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], [])
+                { Inputs = inputs };
 
         // Phase 1 — front-end: preprocess + parse.
         var diagnostics = new DiagnosticBag();
         var frontend = new Frontend.Frontend
         {
+            Inputs = inputs,
             NistTestName = options.NistTestName,
             DialectLevel = options.DialectLevel,
             // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
@@ -95,7 +111,7 @@ public static class CompilerDriver
         if (options.NistTestName is not null
             && Path.GetDirectoryName(Path.GetFullPath(options.SourcePath)) is { } srcDir
             && Path.GetFullPath(Path.Combine(srcDir, "..", "copylib")) is { } copylib
-            && Directory.Exists(copylib))
+            && inputs.DirectoryExists(copylib))
             frontend.AddCopySearchPath(copylib);
 
         var tree = frontend.Parse(options.SourcePath, diagnostics);
@@ -104,7 +120,8 @@ public static class CompilerDriver
         var feWarnings = diagnostics.Diagnostics.Where(d => !d.IsError).Select(d => d.ToString()!).ToList();
         if (tree is null || diagnostics.HasErrors)
             return new Result(Outcome.FrontendError, "", null,
-                diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!).ToList(), feWarnings);
+                diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!).ToList(), feWarnings)
+                { Inputs = inputs };
 
         // Phase 2 — BIND under the targeted EDITION, then emit typed-native C#. The Binder phase
         // (BinderDriver.Bind behind emitter.Bind, P6) runs the DECLARED manifest whose NAMED TERMINAL pass is the
@@ -131,7 +148,8 @@ public static class CompilerDriver
         var emitter = new CSharpEmitter();
         var bound = emitter.Bind(tree, edition, frontend.Directives);   // Phase 2a — BIND (terminal = conformance pass)
         if (edition.Diagnostics.Count > 0)
-            return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
+                { Inputs = inputs };
 
         // Check-only: every edition-gating diagnostic is now produced (parse + the bind manifest incl. its
         // terminal conformance pass), so the compile VERDICT is settled — the verdict already includes the pass's
@@ -139,7 +157,7 @@ public static class CompilerDriver
         // backend + the dll/g.cs writes) — the dominant cost — since no runnable assembly is wanted (the INV-1
         // continuity sweep / CLI `check-batch`).
         if (options.CheckOnly)
-            return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);
+            return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]) { Inputs = inputs };
 
         // Phases 2b + 3 — the BACKEND (the ICodeGenBackend seam, P7 Step 1): render the bound tree and compile
         // the result. Everything after Bind sits behind the seam so a second backend (direct CIL, PHASE 16) is a
@@ -147,15 +165,16 @@ public static class CompilerDriver
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         var artifact = backend.Emit(bound, new BackendOptions(
-            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition));
+            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs));
         if (!artifact.Success)
             return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                 artifact.Diagnostics
                     .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                     .Select(d => d.ToString())
-                    .ToList(), [.. feWarnings, .. edition.Warnings]);
+                    .ToList(), [.. feWarnings, .. edition.Warnings])
+                { Inputs = inputs, OutputFiles = artifact.OutputFiles };
 
         return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [],
-            [.. feWarnings, .. edition.Warnings]);
+            [.. feWarnings, .. edition.Warnings]) { Inputs = inputs, OutputFiles = artifact.OutputFiles };
     }
 }

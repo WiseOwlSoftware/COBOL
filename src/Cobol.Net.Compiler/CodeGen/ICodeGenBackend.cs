@@ -28,8 +28,10 @@ public enum BackendId
 /// no-behavior-change, and today's backend emits no symbols. A later phase wires it).</param>
 /// <param name="WriteSource">Write the generated intermediate source (the <c>.g.cs</c>) next to the assembly.
 /// Meaningful only for a source-producing backend; a direct-IL backend ignores it.</param>
+/// <param name="Inputs">The compilation's ambient-input record (kb/Work PB985) — a backend that reads anything
+/// outside the bound tree (the WHEN-COMPILED clock) reads it through this, so the record stays complete.</param>
 public sealed record BackendOptions(string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true);
+    bool EmitPdb = true, bool WriteSource = true, CobolNet.Frontend.CompilationInputs? Inputs = null);
 
 /// <summary>The outcome of one backend emission (DESIGN-codegen-backend §2.2).</summary>
 /// <param name="Success">True iff a runnable assembly was produced.</param>
@@ -37,8 +39,11 @@ public sealed record BackendOptions(string OutputPath, string AssemblyName, Edit
 /// <param name="GeneratedSourcePath">The intermediate-source path (<c>.g.cs</c>), when the backend produced one —
 /// set even on failure (the source is written before compilation, the primary debugging artifact).</param>
 /// <param name="AssemblyPath">The produced assembly path on success; null on failure.</param>
+/// <param name="OutputFiles">EVERY file the emission wrote, as full paths — the intermediate source, the assembly
+/// and whatever packaging deployed beside it (kb/Work PB985): the complete output set a build cache must store
+/// and restore, stated by the component that wrote it rather than re-derived by the caller.</param>
 public sealed record BackendArtifact(bool Success, IReadOnlyList<Diagnostic> Diagnostics,
-    string? GeneratedSourcePath, string? AssemblyPath);
+    string? GeneratedSourcePath, string? AssemblyPath, IReadOnlyList<string> OutputFiles);
 
 /// <summary>
 /// THE backend seam (P7 Step 1; DESIGN-codegen-backend §2.2): everything after the Binder phase — rendering the

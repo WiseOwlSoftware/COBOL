@@ -21,9 +21,9 @@ public sealed class ApostropheValueDifferentialTests
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: 85));
+            var r = CompiledProgramCache.Compile(new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: 85));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             var (ok, stdout, detail) = CutRunner.Run(dll, dir);
             Assert.True(ok, detail);

@@ -28,8 +28,8 @@ public sealed class FileControlKeyRuleSpecTests
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
-            var r = CobolNet.CompilerDriver.Compile(
+            src = CompiledProgramCache.StageSource(src, source);
+            var r = CompiledProgramCache.Compile(
                 new CobolNet.CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"), DialectLevel: edition));
             return [.. r.Errors];
         }

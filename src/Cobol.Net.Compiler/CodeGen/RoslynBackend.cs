@@ -28,7 +28,8 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// compiling, so the debugging artifact survives a failed compile), then <see cref="Compile"/>.</remarks>
     public BackendArtifact Emit(Binding.Model.BoundCompilation program, BackendOptions options)
     {
-        string csharp = _emitter.EmitBound(program);
+        string csharp = _emitter.EmitBound(program, options.Inputs);
+        var written = new List<string>();
 
         string outDir = Path.GetDirectoryName(Path.GetFullPath(options.OutputPath)) is { Length: > 0 } d ? d : ".";
         Directory.CreateDirectory(outDir);
@@ -37,12 +38,17 @@ internal sealed class RoslynBackend : ICodeGenBackend
         {
             csPath = Path.ChangeExtension(options.OutputPath, ".g.cs");
             File.WriteAllText(csPath, csharp);
+            written.Add(Path.GetFullPath(csPath));
         }
 
         var result = Compile(csharp, options.OutputPath, options.AssemblyName);
-        if (result.Success) AssemblyPackager.Package(options.OutputPath);   // P7 Step 2 — packaging off Compile
+        if (result.Success)
+        {
+            written.Add(Path.GetFullPath(options.OutputPath));
+            written.AddRange(AssemblyPackager.Package(options.OutputPath));   // P7 Step 2 — packaging off Compile
+        }
         return new BackendArtifact(result.Success, result.Diagnostics, csPath,
-            result.Success ? options.OutputPath : null);
+            result.Success ? options.OutputPath : null, written);
     }
 
     /// <summary>The outcome of a backend compilation.</summary>
@@ -86,7 +92,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
             // A failed Emit leaves a partial/0-byte output file behind; running it dies with the misleading
             // "hostpolicy.dll required" error (the swept phantom-RUNERR class — ST133A/ST134A/SQ203A were
             // misread as environmental flakes). The output file exists only when the compile SUCCEEDED.
-            try { if (File.Exists(outputDllPath)) File.Delete(outputDllPath); } catch (IOException) { }
+            try { if (File.Exists(outputDllPath)) File.Delete(outputDllPath); } catch (IOException) { }   // not a compilation input: cleanup of this compile's own output
         }
 
         return new Result(emit.Success, emit.Diagnostics);
@@ -107,13 +113,13 @@ internal sealed class RoslynBackend : ICodeGenBackend
 
     private static ImmutableArray<MetadataReference> BuildReferenceAssemblies()
     {
-        string tpa = (string)(AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "");
+        string tpa = (string)(AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "");   // not a compilation input: the host's own framework reference set
         var refs = tpa.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             .Where(static p => p.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             .Select(static p => (MetadataReference)MetadataReference.CreateFromFile(p))
             .ToList();
         // The COBOL.NET runtime the generated program calls (CobolNum / CobolString).
-        if (File.Exists(AssemblyPackager.RuntimePath))
+        if (File.Exists(AssemblyPackager.RuntimePath))   // not a compilation input: the runtime is part of the compiler's own deployment
             refs.Add(MetadataReference.CreateFromFile(AssemblyPackager.RuntimePath));
         return [.. refs];
     }

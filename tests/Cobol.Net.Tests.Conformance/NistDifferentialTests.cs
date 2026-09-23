@@ -96,7 +96,7 @@ public abstract class NistDifferentialTestsBase<TSlot>
                 {
                     string pSrc = TestRepo.Nist("programs", p + ".cob");
                     string pDll = Path.Combine(dir, p + ".dll");
-                    var pResult = CompilerDriver.Compile(new CompilerDriver.Options(pSrc, pDll, NistTestName: p,
+                    var pResult = CompiledProgramCache.Compile(new CompilerDriver.Options(pSrc, pDll, NistTestName: p,
                         DialectLevel: NistStd, Permissive: NistPermissive));
                     if (!pResult.Success)
                         return (false, "", $"[chain {p}] compile {pResult.Status}: {string.Join("\n", pResult.Errors)}");
@@ -105,7 +105,7 @@ public abstract class NistDifferentialTestsBase<TSlot>
                     if (!pOk) return (false, "", $"[chain {p}] run exit non-zero: {pDetail}");
                 }
 
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, NistTestName: testName,
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, NistTestName: testName,
                 DialectLevel: NistStd, Permissive: NistPermissive));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");

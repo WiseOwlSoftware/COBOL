@@ -9,4 +9,14 @@
     <Authors>Brent Rector</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <!-- kb/Work PB985 (DESIGN-test-build-ci §3.12): a DEBUG build's bits must depend on its SOURCES, not on the commit
+       it was built at. The SDK queries git and stamps the commit into AssemblyInformationalVersion ("1.0.0+<sha>")
+       and into the Source Link map the PDB carries (whose checksum the assembly embeds), so every commit changed
+       every assembly - the compiled-program cache keys on the compiler's bits and missed on every
+       case of every re-gate that followed a commit, and every incremental build recompiled every project. Release
+       (the shipped build) keeps the stamp; nothing reads it in Debug. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
 </Project>

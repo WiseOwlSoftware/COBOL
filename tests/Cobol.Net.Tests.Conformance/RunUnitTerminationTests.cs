@@ -20,8 +20,8 @@ public sealed class RunUnitTerminationTests
     private static void CompileTo(string source, string dir, string name)
     {
         string src = Path.Combine(dir, name + ".cob");
-        File.WriteAllText(src, source);
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: 2023));
+        src = CompiledProgramCache.StageSource(src, source);
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: 2023));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 

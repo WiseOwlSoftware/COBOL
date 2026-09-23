@@ -32,7 +32,7 @@ public sealed class CurrentDateOffsetPinTests
         {
             string src = Path.Combine(dir, programId + ".cob");
             string dll = Path.Combine(dir, programId + ".dll");
-            File.WriteAllText(src, $"""
+            src = CompiledProgramCache.StageSource(src, $"""
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. {programId}.
                 DATA DIVISION.
@@ -44,7 +44,7 @@ public sealed class CurrentDateOffsetPinTests
                     DISPLAY CD
                     STOP RUN.
                 """);
-            var compiled = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023));
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 2023));
             Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
 
             var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,

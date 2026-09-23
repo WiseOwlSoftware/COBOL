@@ -29,13 +29,6 @@ public sealed class SourceText
         return new SourceText(text, fileName);
     }
 
-    /// <summary>Reads a file from disk and wraps it as a <see cref="SourceText"/>.</summary>
-    public static SourceText FromFile(string path)
-    {
-        var text = File.ReadAllText(path);
-        return new SourceText(text, path);
-    }
-
     /// <summary>Returns the character at the given zero-based absolute position.</summary>
     public char this[int index] => _text[index];
 

@@ -41,8 +41,18 @@ internal sealed class ProgramEmitter
     /// by every unit of the run unit — contained source units bake the CONTAINING compilation's stamp (r2's
     /// second sentence). Per-compilation, NOT per-process (kb/Work PB120): a long-lived compiler process gives
     /// each successive compilation its OWN capture.</summary>
-    private readonly string _whenCompiledStamp =
-        RuntimeApi.DateFormat21(Binding.Procedure.IntrinsicBinder.CompileClock());
+    private readonly Lazy<string> _whenCompiledStamp;
+
+    /// <param name="inputs">The compilation's ambient-input record (kb/Work PB985). The WHEN-COMPILED capture reads
+    /// the compile clock THROUGH it, and only on first use — a compilation that never renders WHEN-COMPILED never
+    /// reads the clock, so its output is a function of its inputs alone.</param>
+    internal ProgramEmitter(CobolNet.Frontend.CompilationInputs? inputs = null)
+    {
+        var recorder = inputs ?? new CobolNet.Frontend.CompilationInputs();
+        _whenCompiledStamp = new Lazy<string>(
+            () => RuntimeApi.DateFormat21(recorder.ReadCompilationTime(Binding.Procedure.IntrinsicBinder.CompileClock)),
+            LazyThreadSafetyMode.None);
+    }
 
     /// <summary>The CURRENT unit's collaborator set — re-created by <see cref="BeginUnit"/> at each unit
     /// switch (the ONE unit-switch entry all three unit kinds share, Step 9m/9n).</summary>

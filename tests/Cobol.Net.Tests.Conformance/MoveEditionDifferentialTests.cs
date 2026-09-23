@@ -69,8 +69,8 @@ public sealed class MoveEditionDifferentialTests
         {
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
-            File.WriteAllText(src, source);
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll,
+            src = CompiledProgramCache.StageSource(src, source);
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll,
                 DialectLevel: edition, Permissive: permissive));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");

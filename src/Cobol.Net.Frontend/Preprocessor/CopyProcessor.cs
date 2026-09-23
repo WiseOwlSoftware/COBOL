@@ -17,8 +17,14 @@ public sealed class CopyProcessor(
     string sourceName = "<source>",
     bool strict = false,
     int dialectLevel = 85,
-    bool permissive = false)
+    bool permissive = false,
+    CompilationInputs? inputs = null)
 {
+    /// <summary>The compilation's ambient-input gateway (kb/Work PB985): every copybook probe and read below goes
+    /// through it, so the record names each library text the group incorporated AND each candidate that was not
+    /// there. A caller that passes none (the legacy oracle, the standalone preprocess CLI) gets a private one.</summary>
+    private readonly CompilationInputs _inputs = inputs ?? new CompilationInputs();
+
     // One COBOLNET0902 per compilation for the VCR-row-4 gate (COPY REPLACING non-pseudo-text, W3 — DEVLOG 598).
     private bool _nonPseudoTextFlagged;
 
@@ -421,7 +427,7 @@ public sealed class CopyProcessor(
 
         // Library text is itself in reference (fixed) format — normalize to free form so inserted lines align in
         // the program's source area; then COPY … REPLACING (same text-word matching as REPLACE, ISO §7.2.4).
-        var normalizedMapped = NormalizeCopybookMapped(File.ReadAllText(copybookPath), copybookPath);
+        var normalizedMapped = NormalizeCopybookMapped(_inputs.ReadAllText(copybookPath), copybookPath);
         string normalized = normalizedMapped.Text;
         // §7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
         // contain a COPY statement" — GR12 permits nesting only WITHOUT replacing. Before this check the
@@ -811,11 +817,11 @@ public sealed class CopyProcessor(
             foreach (var searchPath in _searchPaths)
             {
                 string libDir = Path.Combine(searchPath, libraryName);
-                if (!Directory.Exists(libDir)) continue;
+                if (!_inputs.DirectoryExists(libDir)) continue;
                 foreach (var ext in CopybookExtensions)
                 {
                     string fullPath = Path.Combine(libDir, textName + ext);
-                    if (File.Exists(fullPath))
+                    if (_inputs.FileExists(fullPath))
                         return fullPath;
                 }
             }
@@ -826,7 +832,7 @@ public sealed class CopyProcessor(
             foreach (var ext in CopybookExtensions)
             {
                 string fullPath = Path.Combine(searchPath, textName + ext);
-                if (File.Exists(fullPath))
+                if (_inputs.FileExists(fullPath))
                     return fullPath;
             }
         }

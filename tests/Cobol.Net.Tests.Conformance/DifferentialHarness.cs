@@ -29,7 +29,7 @@ public sealed class DifferentialHarness
             string src = Path.Combine(tempDir, "p.cob");
             File.WriteAllText(src,
                 "IDENTIFICATION DIVISION.\nPROGRAM-ID. P.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"OK\".\n    STOP RUN.\n");
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(tempDir, "p.dll")));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, Path.Combine(tempDir, "p.dll")));
             Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
         }
         finally

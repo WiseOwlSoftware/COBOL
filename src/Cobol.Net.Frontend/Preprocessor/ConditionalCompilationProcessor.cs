@@ -53,7 +53,7 @@ public static class ConditionalCompilationProcessor
         DiagnosticBag? diagnostics = null, string? sourcePath = null, int dialectLevel = 2023,
         bool permissive = false)
         => new Run(leaveDirectives, diagnostics, sourcePath, copy: null, sourceDir: null,
-                dialectLevel, permissive)
+                dialectLevel, permissive, inputs: null)
             .Render(text);
 
     /// <summary>
@@ -77,11 +77,11 @@ public static class ConditionalCompilationProcessor
     /// parser's, the binder's, EXCEPTION-LOCATION's) can name what the user edits.</summary>
     public static MappedText ProcessWithCopyMapped(MappedText text, string sourceDir, CopyProcessor copyProcessor,
         IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel,
-        bool permissive = false)
+        bool permissive = false, CompilationInputs? inputs = null)
     {
         copyProcessor.RegisterSourceDir(sourceDir);
         var expanded = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
-            dialectLevel, permissive).Render(text);
+            dialectLevel, permissive, inputs).Render(text);
         return CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
     }
 
@@ -121,11 +121,15 @@ public static class ConditionalCompilationProcessor
         private readonly int _dialectLevel;
         private readonly EditionInfo _edition;
         private readonly DiagnosticBag? _bag;
+        // The compilation's ambient-input gateway (kb/Work PB985) — a >>DEFINE … PARAMETER value is read from the
+        // environment THROUGH it, so the variable and its value are part of the compilation's recorded inputs.
+        private readonly CompilationInputs _inputs;
 
         public Run(IReadOnlySet<string>? leaveDirectives,
             DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir,
-            int dialectLevel, bool permissive)
+            int dialectLevel, bool permissive, CompilationInputs? inputs)
         {
+            _inputs = inputs ?? new CompilationInputs();
             _leave = leaveDirectives ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             _dialectLevel = dialectLevel;
             _edition = EditionInfo.Of(dialectLevel, permissive);
@@ -290,7 +294,7 @@ public static class ConditionalCompilationProcessor
                         }
                         break;
                     case "DEFINE":
-                        if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel);   // a DEFINE in an omitted branch has no effect
+                        if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel, _inputs);   // a DEFINE in an omitted branch has no effect
                         break;
                     default:
                         // A >> directive other than the conditional-compilation set handled above. Its edition
@@ -412,7 +416,7 @@ public static class ConditionalCompilationProcessor
     }
 
     private static void ApplyDefine(string rest, Dictionary<string, CtValue> defines,
-        CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag, int dialectLevel)
+        CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag, int dialectLevel, CompilationInputs inputs)
     {
         var (name, kind, operand, over) = SplitDefine(rest);
         if (name.Length == 0) return;
@@ -429,7 +433,7 @@ public static class ConditionalCompilationProcessor
             {
                 // GR4 — the value is obtained from the operating environment; unavailable ⇒ NOT defined. A value
                 // that parses as a numeric literal is numeric, else alphanumeric.
-                string? env = Environment.GetEnvironmentVariable(name);
+                string? env = inputs.GetEnvironmentVariable(name);
                 if (env is null) { defines.Remove(name); return; }
                 var pv = decimal.TryParse(env, NumberStyles.Number, CultureInfo.InvariantCulture, out var num)
                     ? CtValue.Numeric(num, env) : CtValue.Alphanumeric(env);

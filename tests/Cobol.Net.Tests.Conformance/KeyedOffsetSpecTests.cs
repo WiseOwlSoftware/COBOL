@@ -25,9 +25,9 @@ public sealed class KeyedOffsetSpecTests
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, source);
+            src = CompiledProgramCache.StageSource(src, source);
             string dll = Path.Combine(dir, "prog.dll");
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: 85));
+            var r = CompiledProgramCache.Compile(new CobolNet.CompilerDriver.Options(src, dll, DialectLevel: 85));
             Assert.True(r.Success, "must compile strict: " + string.Join("\n", r.Errors));
             return CutRunner.Run(dll, dir);
         }
@@ -44,7 +44,7 @@ public sealed class KeyedOffsetSpecTests
         try
         {
             string src = Path.Combine(dir, "prog.cob");
-            File.WriteAllText(src, """
+            src = CompiledProgramCache.StageSource(src, """
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. KOFFSR8.
                 DATA DIVISION.
@@ -57,7 +57,7 @@ public sealed class KeyedOffsetSpecTests
                     DISPLAY A-WIDE.
                     STOP RUN.
                 """);
-            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CobolNet.CompilerDriver.Options(
                 src, Path.Combine(dir, "prog.dll"), DialectLevel: 85));
             Assert.False(r.Success, "an SR8-illegal wider redefinition must be rejected");
             Assert.Contains(r.Errors, e => e.Contains("COBOLNET1539"));

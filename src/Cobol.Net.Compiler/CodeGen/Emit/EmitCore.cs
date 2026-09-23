@@ -16,7 +16,7 @@ namespace CobolNet.CodeGen.Emit;
 /// receiver a numeric render is computed for now travels BY PARAMETER (<see cref="ReceiverContext"/>), killing
 /// the H1 staleness class by construction.
 /// </summary>
-internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAllocator names, string whenCompiledStamp)
+internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAllocator names, Lazy<string> whenCompiledStamp)
 {
     /// <summary>The C# output writer.</summary>
     public CodeWriter Writer { get; } = writer;
@@ -25,8 +25,10 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// <see cref="ProgramEmitter"/> (one compilation of one run unit), so every unit of the run unit — the
     /// containing compilation unit and its contained source units alike — bakes the SAME constant (r2's second
     /// sentence), while the next compilation in the same process gets a FRESH capture (kb/Work PB120: a
-    /// process-static Lazy handed every subsequent compilation the FIRST one's timestamp).</summary>
-    public string WhenCompiledStamp { get; } = whenCompiledStamp;
+    /// process-static Lazy handed every subsequent compilation the FIRST one's timestamp). Read LAZILY (kb/Work
+    /// PB985): the clock is consulted only by a compilation that renders WHEN-COMPILED, so only that compilation's
+    /// output — and its recorded inputs — depend on when it ran.</summary>
+    public string WhenCompiledStamp => whenCompiledStamp.Value;
 
     /// <summary>The bound DATA DIVISION model.</summary>
     public DataBinder Data { get; } = data;

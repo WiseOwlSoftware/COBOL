@@ -33,7 +33,7 @@ public sealed class SpecPinnedNistTests
         Directory.CreateDirectory(dir);
         try
         {
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "NC236A.dll"), NistTestName: "NC236A", DialectLevel: 85));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             var (runOk, _, detail) = CutRunner.Run(Path.Combine(dir, "NC236A.dll"), dir);
@@ -61,7 +61,7 @@ public sealed class SpecPinnedNistTests
         Directory.CreateDirectory(dir);
         try
         {
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "NC235A.dll"), NistTestName: "NC235A", DialectLevel: 85));
             Assert.True(r.Success, string.Join("; ", r.Errors));
             var (runOk, _, detail) = CutRunner.Run(Path.Combine(dir, "NC235A.dll"), dir);
@@ -98,7 +98,7 @@ public sealed class SpecPinnedNistTests
         Directory.CreateDirectory(dir);
         try
         {
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "ST127A.dll"), NistTestName: "ST127A", DialectLevel: 2002));
             string all = string.Join("\n", r.Errors);
             Assert.DoesNotContain("COBOLNET0901", all, StringComparison.Ordinal);
@@ -140,7 +140,7 @@ public sealed class SpecPinnedNistTests
         Directory.CreateDirectory(dir);
         try
         {
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "NC201A.dll"), NistTestName: "NC201A", DialectLevel: 85));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             var (runOk, _, detail) = CutRunner.Run(Path.Combine(dir, "NC201A.dll"), dir);

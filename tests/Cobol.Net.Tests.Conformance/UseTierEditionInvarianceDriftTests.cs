@@ -157,8 +157,8 @@ public sealed class UseTierEditionInvarianceDriftTests
         try
         {
             string src = Path.Combine(dir, "usetier.cob");
-            File.WriteAllText(src, Source.Replace("{0}", directives));
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            src = CompiledProgramCache.StageSource(src, Source.Replace("{0}", directives));
+            var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "usetier.dll"), DialectLevel: edition));
             Assert.True(r.Success, $"--std {edition}: " + string.Join("\n", r.Errors));
             Assert.NotNull(r.GeneratedCsPath);

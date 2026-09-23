@@ -38,9 +38,11 @@ using Core = CobolParserCore;
 internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>The injectable compile-time clock for WHEN-COMPILED (§15.99.3 r2 — the COMPILATION timestamp;
-    /// deep-dive D6). One capture per process: every unit compiled in this run shares the stamp, which the
-    /// backend bakes into the generated source as a string constant.</summary>
-    internal static Func<DateTimeOffset> CompileClock { get; set; } = () => DateTimeOffset.Now;
+    /// deep-dive D6). One capture per COMPILATION (kb/Work PB120), shared by every unit of that compilation, which
+    /// the backend bakes into the generated source as a string constant. Never INVOKED directly: the one read is
+    /// <c>CompilationInputs.ReadCompilationTime</c> (ProgramEmitter), which records that the compilation's output
+    /// depends on the clock (kb/Work PB985).</summary>
+    internal static Func<DateTimeOffset> CompileClock { get; set; } = () => DateTimeOffset.Now;   // recorded at its call site: CompilationInputs.ReadCompilationTime
 
     /// <summary>FUNCTION call in an expression position (the <c>BindPrimary</c> hook). A trailing
     /// <c>refModPart</c> reference-modifies the RESULT (ISO §8.4.3.3.3 SR2 — fix-queue PB8).</summary>

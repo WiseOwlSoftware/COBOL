@@ -45,7 +45,7 @@ internal sealed class UnitEmitters
 
     public UnitEmitters(CodeWriter w, DataBinder data, ReferenceResolver refs, NameAllocator names,
         DispatchState dispatchState, EcState ecState, CallUnitState callState, OoEmitter oo,
-        string whenCompiledStamp)
+        Lazy<string> whenCompiledStamp)
     {
         Refs = refs;
         Ctx = new EmitContext(w, data, names, whenCompiledStamp);
