@@ -1519,6 +1519,41 @@ internal static class RuntimeApi
     public static string PtrSlotWrite(string cellExpr, string byteOffsetExpr, string valueExpr) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.SlotWrite)}({cellExpr}, {byteOffsetExpr}, {valueExpr})";
 
+    // ── A CELL-BACKED area's DYNAMIC-LENGTH half (kb/Work PB1026) — StorageCell's dynamic slots ──────────────────
+
+    /// <summary>The current content of a dynamic-length member of a cell-backed area — <c>StorageCell.DynAt</c>.</summary>
+    public static string CellDynRead(string cellExpr, int ordinal) =>
+        $"{cellExpr}.{nameof(StorageCell.DynAt)}({ordinal})";
+
+    /// <summary>Store a dynamic-length member's new content — <c>StorageCell.SetDynAt</c>, the receiving twin of
+    /// <see cref="CellDynRead"/>. <paramref name="valueExpr"/> already carries §8.5.1.10.4's receiving rule.</summary>
+    public static string CellDynWrite(string cellExpr, int ordinal, string valueExpr) =>
+        $"{cellExpr}.{nameof(StorageCell.SetDynAt)}({ordinal}, {valueExpr})";
+
+    /// <summary>A C# collection expression of int constants — the <c>ReadOnlySpan&lt;int&gt;</c> layout arguments
+    /// of the cell's variable-length group helpers (constant data, so no allocation at the call).</summary>
+    private static string IntSpan(IEnumerable<int> xs) => $"[{string.Join(", ", xs)}]";
+
+    /// <summary>A cell-backed variable-length group's CONTIGUOUS image (§8.5.1.11.2) — <c>StorageCell.ContiguousAt</c>.</summary>
+    public static string CellVarContiguous(string cellExpr, string fixedAtExpr, int fixedWidth, int dynBase,
+                                           IEnumerable<int> dynFixedAt) =>
+        $"{cellExpr}.{nameof(StorageCell.ContiguousAt)}({fixedAtExpr}, {fixedWidth}, {dynBase}, {IntSpan(dynFixedAt)})";
+
+    /// <summary>Make a contiguous image a cell-backed variable-length group's content — <c>StorageCell.StoreContiguousAt</c>.</summary>
+    public static string CellVarStoreContiguous(string cellExpr, string fixedAtExpr, int fixedWidth, int dynBase,
+                                                IEnumerable<int> dynFixedAt, IEnumerable<int> dynMax, string imageExpr) =>
+        $"{cellExpr}.{nameof(StorageCell.StoreContiguousAt)}({fixedAtExpr}, {fixedWidth}, {dynBase}, "
+        + $"{IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {imageExpr})";
+
+    /// <summary>A cell-backed variable-length group's §8.5.1.12 component carrier — <c>StorageCell.VarGroupAt</c>.</summary>
+    public static string CellVarCarrier(string cellExpr, string fixedAtExpr, int fixedWidth, int dynBase, int dynCount) =>
+        $"{cellExpr}.{nameof(StorageCell.VarGroupAt)}({fixedAtExpr}, {fixedWidth}, {dynBase}, {dynCount})";
+
+    /// <summary>Distribute a component carrier into a cell-backed variable-length group — <c>StorageCell.StoreVarGroupAt</c>.</summary>
+    public static string CellVarStoreCarrier(string cellExpr, string fixedAtExpr, int fixedWidth, int dynBase,
+                                             IEnumerable<int> dynMax, string carrierExpr) =>
+        $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {fixedWidth}, {dynBase}, {IntSpan(dynMax)}, {carrierExpr})";
+
     /// <summary>The INVOKE null-receiver guard (EC-OO-NULL, §14.9.23.4 GR5) — <c>CobolObject.RequireNonNull</c>.</summary>
     public static string ObjRequireNonNull(string receiver) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.RequireNonNull)}({receiver})";

@@ -2290,8 +2290,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 {
                     // r7b / r6b — the CURRENT length of the leaf, in bytes: LENGTH reads a national leaf's storage
                     // channel (LengthInBytes — r6's byte count); BYTE-LENGTH is the storage image already.
-                    if (cPath is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
-                    Add(new BoundIntrinsicCall(sig, [new BoundFieldOperand(new MemberPlace(cPath, c))], PicCategory.Numeric)
+                    // A CELL-BACKED group's dynamic-length subordinate (an EXTERNAL record, an ADDRESS-OF-taken
+                    // record — kb/Work PB1026) has no member path: its content rides the cell's dynamic slot, and
+                    // its place is built by THE ONE window builder over the same cell (Place.DynSlotWindow).
+                    Place? cPlace = cPath is not null ? new MemberPlace(cPath, c)
+                        : inner is RedefViewPlace { Coding: VarGroupWindow vg } rv
+                            ? RedefViewPlace.For(rv.Backing, c, rv.OffsetExpr, cell: vg.Cell)
+                            : null;
+                    if (cPlace is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.CsName}' could not be addressed"); return; }
+                    Add(new BoundIntrinsicCall(sig, [new BoundFieldOperand(cPlace)], PicCategory.Numeric)
                             { LengthInBytes = !bytes && c.Pic is { Category: PicCategory.National } });
                 }
                 else if (c.IsGroup) Walk(c, cPath);

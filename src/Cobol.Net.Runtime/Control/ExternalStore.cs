@@ -9,8 +9,11 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static class ExternalStore
 {
-    /// <inheritdoc cref="ExternalTable.Cell"/>
+    /// <inheritdoc cref="ExternalTable.Cell(string, string)"/>
     public static StorageCell Cell(string name, string initialImage) => RunUnit.Current.External.Cell(name, initialImage);
+
+    /// <inheritdoc cref="ExternalTable.Cell(string, Func{StorageCell})"/>
+    public static StorageCell Cell(string name, Func<StorageCell> create) => RunUnit.Current.External.Cell(name, create);
 
     /// <summary>Register one external description at an activation entry and run the §14.8.4 conformance check.
     /// The gate realizes §14.8.4.1's both-elements rule: the ACTIVATING element's mask (latched by the activation

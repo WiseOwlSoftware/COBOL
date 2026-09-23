@@ -210,7 +210,7 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
     /// <see cref="NationalWindow"/> (the transcoded national characters), and it does NOT hold for
     /// <see cref="SlotWindow"/>, whose read is a managed pointer/object reference (kb/Work PB231). Stated once,
     /// here, so a fourth coding cannot silently inherit the wrong half of the assumption.</summary>
-    public bool ReadsCharacterImage => Coding is not SlotWindow;
+    public bool ReadsCharacterImage => Coding is not SlotWindow;   // a DynSlotWindow / VarGroupWindow reads a string (kb/Work PB1026)
 
     /// <summary>⛔ THE ONE Tier-B window builder (kb/Work PB203). Three sites compose this window — the resolver
     /// (<c>ReferenceResolver.PlaceForItem</c>), the INITIALIZE receiver cursor and the MOVE CORRESPONDING leaf
@@ -259,6 +259,22 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
                     $"'{item.CobolName ?? item.CsName}' is of a pointer class and its storage class has no "
                     + "backing StorageCell — a managed slot has nowhere to live (ISO §14.9.3.4 GR9; kb/Work "
                     + "PB231). Such a class must be Rejected at classification, never given a byte window.");
+        // ⛔ A DYNAMIC-LENGTH MEMBER'S CONTENT IS NOT IN THE BYTES EITHER (kb/Work PB1026): it rides the cell's
+        // dynamic slot (§8.5.1.10.3's "located elsewhere"), and a group over such members reads and writes as its
+        // contiguous image (§8.5.1.11.2). The same backstop as the pointer arm: only a cell has slots, and the
+        // REDEFINES classifier refuses a dynamic-length member before any place is built for its class.
+        if (DynSlotWindow.CarriedBySlot(item) || VarGroupWindow.Applies(item))
+            return cell is null
+                ? throw new System.InvalidOperationException(
+                    $"'{item.CobolName ?? item.CsName}' is or contains a dynamic-length item and its storage class "
+                    + "has no backing StorageCell — the content has nowhere to live (ISO §8.5.1.10.3; kb/Work "
+                    + "PB1026). Such a class must be Rejected at classification, never given a byte window.")
+                : window with
+                {
+                    Coding = DynSlotWindow.CarriedBySlot(item)
+                        ? new DynSlotWindow(cell, item.ClassDynOrdinal)
+                        : VarGroupWindow.Of(item, cell),
+                };
         if (NationalWindow.PositionsOf(item) is { } positions)
             return window with { Coding = new NationalWindow(positions) };
         if (!BitLayout.IsBitItem(item)) return window;
@@ -330,6 +346,13 @@ public sealed record NationalWindow(int Positions) : WindowCoding
         item is { IsElementary: true, Pic.Usage: Usage.National } ? item.ElementaryImageWidth : null;
 }
 
+/// <summary>A window coding whose value lives (wholly or partly) on the class's backing <c>StorageCell</c> rather
+/// than in its byte image — so it carries a SECOND structural path, the cell (<see cref="Cell"/>), beside
+/// <see cref="RedefViewPlace.Backing"/>. ⛔ ONE BASE, so every consumer that re-anchors a place (the containment
+/// prefix, <c>ProgramEmitter.PrefixPlace</c>) re-anchors EVERY cell-carrying coding with one expression — a coding
+/// added later cannot be forgotten there (kb/Work PB1026 added two).</summary>
+public abstract record CellWindowCoding(AccessPath Cell) : WindowCoding;
+
 /// <summary>A <see cref="RedefViewPlace"/>'s MANAGED-SLOT window (kb/Work PB231 — the pointer third): the member
 /// is of a pointer class, whose value is a managed reference and therefore has no byte image at all. Its bytes in
 /// the class backing are RESERVED placeholder positions — <see cref="RedefViewPlace.Width"/> of them, the item's
@@ -345,7 +368,7 @@ public sealed record NationalWindow(int Positions) : WindowCoding
 /// of class object or class pointer in the allocated storage are initialized to null" holds for every allocation
 /// path that exists or will exist, and the read renders the item's own <c>PicInfo.DefaultInitializer</c> as the
 /// null state — the SAME expression an ordinary declared pointer field is seeded from.</para></summary>
-public sealed record SlotWindow(AccessPath Cell) : WindowCoding
+public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
 {
     /// <summary>⛔ THE ONE test for "does this member ride the area's managed slots rather than its bytes?" (the
     /// <see cref="NationalWindow.PositionsOf"/> model — the gate and the geometry must not be able to disagree
@@ -368,6 +391,51 @@ public sealed record SlotWindow(AccessPath Cell) : WindowCoding
         item.IsElementary && item.Pic is
             { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer
                   or PicCategory.ObjectReference };
+}
+
+/// <summary>A <see cref="RedefViewPlace"/>'s DYNAMIC-LENGTH window (kb/Work PB1026): the member is a dynamic-length
+/// elementary item of a CELL-BACKED class. ISO §8.5.1.10.3 — "Dynamic-length elementary items may be physically
+/// located in memory within the record they are subordinate to, or they may be located elsewhere in the computer's
+/// memory" — and this implementation locates it in the cell's dynamic slot numbered <paramref name="Ordinal"/> (its
+/// place among the class's dynamic-length items, in storage order), so every description sharing the cell
+/// (§13.18.22.4 GR1 / GR4 b)) shares its content. It occupies ZERO bytes of the backing (its
+/// <see cref="DataItem.ByteWidth"/>), which is §8.5.1.12.3's own accounting of the fixed run. Its read IS its
+/// content string, so <see cref="RedefViewPlace.ReadsCharacterImage"/> holds.</summary>
+public sealed record DynSlotWindow(AccessPath Cell, int Ordinal) : CellWindowCoding(Cell)
+{
+    /// <summary>⛔ THE ONE test for "does this member ride a dynamic-length slot?" — an elementary dynamic-length
+    /// item. The cell forcer's gate (<c>DataBinder.ForceStringCanonical</c>), the REDEFINES classifier's carrier
+    /// question and the geometry (<see cref="RedefViewPlace.For"/>) all ask it.</summary>
+    public static bool CarriedBySlot(DataItem item) => item is { IsElementary: true, IsDynamicLength: true };
+}
+
+/// <summary>A <see cref="RedefViewPlace"/>'s VARIABLE-LENGTH GROUP window (kb/Work PB1026): a group of a CELL-BACKED
+/// class with dynamic-length items under it. Its fixed run is <see cref="RedefViewPlace.Width"/> bytes of the
+/// backing from the window's offset; its dynamic-length items are the cell's dynamic slots <paramref name="DynBase"/>
+/// onward, sitting at fixed-run positions <paramref name="DynFixedAt"/> (relative to the group) with maximum sizes
+/// <paramref name="DynMax"/>. ISO §8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
+/// were in fact contiguous with its neighbors whenever a procedural operation is applied to a group containing it"
+/// — is why its read is the CONTIGUOUS image (<c>StorageCell.ContiguousAt</c>), exactly what a declared group's
+/// generated <c>CurrentImage()</c> composes.</summary>
+public sealed record VarGroupWindow(AccessPath Cell, int DynBase, IReadOnlyList<int> DynFixedAt,
+                                    IReadOnlyList<int> DynMax) : CellWindowCoding(Cell)
+{
+    /// <summary>The coding for <paramref name="group"/> when it has dynamic-length items under it, else null.
+    /// The layout is read off the class walk (<see cref="DataItem.ClassOffset"/> /
+    /// <see cref="DataItem.ClassDynOrdinal"/>), never recomputed, so the group and its members cannot disagree
+    /// about where a component sits.</summary>
+    public static VarGroupWindow? Of(DataItem group, AccessPath cell)
+    {
+        if (!group.IsGroup) return null;
+        var dyn = DataItem.DescendantsOf(group).Where(DynSlotWindow.CarriedBySlot).ToList();
+        return dyn.Count == 0 ? null
+            : new VarGroupWindow(cell, dyn[0].ClassDynOrdinal,
+                dyn.Select(d => d.ClassOffset - group.ClassOffset).ToList(), dyn.Select(d => d.DynMaxSize).ToList());
+    }
+
+    /// <summary>True when <paramref name="group"/> would take this coding.</summary>
+    public static bool Applies(DataItem group) =>
+        group.IsGroup && DataItem.DescendantsOf(group).Any(DynSlotWindow.CarriedBySlot);
 }
 
 /// <summary>

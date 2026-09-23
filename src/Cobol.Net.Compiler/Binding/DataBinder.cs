@@ -6597,6 +6597,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + $"— {where}";
             return RedefinesTier.Rejected;
         }
+        // ⛔ THE SAME CARRIER QUESTION FOR A DYNAMIC-LENGTH LEAF (kb/Work PB1026): its content rides the cell's
+        // dynamic slots (Place.DynSlotWindow), which a stored backing does not have. Unreachable through a REDEFINES
+        // clause on conforming source — §13.18.44.3 SR17: "Neither data-name-2 nor the subject of the entry shall be
+        // a variable-length group or a dynamic-length elementary item" — and a file's implicit area never links an
+        // out-of-line record (D-FRA). Kept as the loud guard: never a zero-width alias of a dynamic item.
+        if (!cls.IsCellBacked && leaves.FirstOrDefault(DynSlotWindow.CarriedBySlot) is { } dynLeaf)
+        {
+            reject = $"'{dynLeaf.CobolName ?? "FILLER"}' is a dynamic-length item, whose content rides a storage "
+                + "cell's dynamic slots (ISO §8.5.1.10.3), and a shared area's stored backing has none "
+                + $"— {where}";
+            return RedefinesTier.Rejected;
+        }
 
         // Tier A — every member is an elementary item sharing the canonical's CLR storage type AND its image width:
         // one stored field, the rest pass-throughs (a numeric view reinterprets the shared value via its own scale).

@@ -237,12 +237,16 @@ of an unsupported facility.
   previous staged-loud posture; no rule forbids it); treating the file's character bytes as the dynamic item's
   storage (the item's content would be bounded by the area and padded by it, contradicting §8.5.1.10.4's "the new
   value becomes the content of the item"); a length-prefixed record image (that is the DYNAMIC LENGTH STRUCTURE
-  clause's representation, §8.5.1.10.2, not claimed — COBOLNET1562). **Residue, stated:** an EXTERNAL file whose
-  area has an out-of-line record is refused by name as not yet implemented (a SORT/MERGE or indexed key that
-  follows a variable-length member is D-KWV below). Implemented once — `FileModel.IsOutOfLineRecord`,
+  clause's representation, §8.5.1.10.2, not claimed — COBOLNET1562). **EXTERNAL** (kb/Work PB1026): §13.18.22.4 GR4 b)
+  makes "the data contained in all record description entries" of an EXTERNAL file external, so an out-of-line
+  record of such a file is run-unit storage of its own, shared by every describer — keyed by the FILE's
+  externalized name (GR5) and the record's ordinal among the file's out-of-line records in declaration order,
+  since GR5 externalizes no record name; a pointer-class record is carried the same way (§13.18.22.3 SR4 restricts
+  the clause "specified for a data item", and here it is specified for the file). (A SORT/MERGE or indexed key that
+  follows a variable-length member is D-KWV below.) Implemented once — `FileModel.IsOutOfLineRecord`,
   `DataBinder.LinkImplicitRecordArea`, `SequentialIoEmitter.EmitRecordAreaStore`, `OperandText.RecordAreaImage`,
   `CobolVarGroup.FromContiguous` (COBOLNET_FILES_DESIGN D27); witnessed by
-  `conformance:2014/pb981_fd_variable_length_records` and `conformance:2002/pb981_fd_pointer_record`.
+  `conformance:2014/pb981_fd_variable_length_records`, `conformance:2002/pb981_fd_pointer_record` and `conformance:2014/pb1026_external_out_of_line_records`.
 - **D-KWV — the byte positions of a key that follows a variable-length member of its record** (2026-09-22; kb/Work
   PB1025). A SORT/MERGE key (§14.9.40.3 SR6 / §14.9.24.3 SR4) and an indexed RECORD KEY / ALTERNATE RECORD KEY
   (§12.4.5.12 / §12.4.5.6) are byte positions of the record, and a record with a dynamic-length member is sent and

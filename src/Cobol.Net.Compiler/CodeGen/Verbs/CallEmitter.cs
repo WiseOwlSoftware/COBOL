@@ -806,7 +806,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // CurrentExtentImageCapable ALREADY implies both `IsGroup` and `!IsImageCapable` — a variable-length
         // group has a dynamic child whose own IsImageCapable is false, so the group's is too. The conjuncts
         // are left out rather than restated: a redundant conjunct is a claim that can rot.
-        p is not RedefViewPlace and not RefModPlace && p.Item.CurrentExtentImageCapable;
+        // A cell-backed variable-length group view (kb/Work PB1026) IS such a group: its carrier is the cell's.
+        (p is not RedefViewPlace and not RefModPlace || p is RedefViewPlace { Coding: VarGroupWindow })
+        && p.Item.CurrentExtentImageCapable;
 
     /// <summary>True when a place crosses the activation boundary as a MANAGED SLOT — the FOURTH crossing form
     /// (kb/Work PB663). It is exactly <c>SlotWindow.CarriedBySlot</c>, the ONE test the data model already uses

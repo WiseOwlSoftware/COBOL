@@ -57,8 +57,8 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 > redefined"): a strongly-typed item anywhere in a record that shares its area is COBOLNET1532, tested on BOTH
 > sides of the pair because the sharing is symmetric. A dynamic-length, variable-length-group or pointer-class
 > record never joins the class at all — it is an OUT-OF-LINE record (D27). What can still be staged loud as
-> COBOLNET0899 (`implicit-record-area-shape`) is a character-window record with a byte-window residue, and an
-> EXTERNAL file's area that has an out-of-line record (D27) — never borrowed from a REDEFINES rule. A report
+> COBOLNET0899 (`implicit-record-area-shape`) is a character-window record with a byte-window residue — never
+> borrowed from a REDEFINES rule. A report
 > description's level-1 entries are NOT implicit redefinitions (§13.18.33.4 GR3's second sentence) and never join a
 > class.
 
@@ -113,8 +113,17 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   `IndexedConnector.KeyOf` find a key exactly where a READ / RETURN puts it. An indexed connector with such a key
   (`_layoutKeys`) takes every key from the record AS WRITTEN (`AreaKey`; the WRITE / REWRITE frame), never from an
   image fitted to the area width, because truncation would move the key.
-- **EXTERNAL.** An EXTERNAL file whose area has an out-of-line record is staged loud (COBOLNET0899): its run-unit
-  cell would carry only the character half.
+- **EXTERNAL** (kb/Work PB1026). §13.18.22.4 GR4 b) makes "the data contained in all record description entries"
+  of an EXTERNAL file external, so BOTH halves of the area are run-unit storage (`CallBindExternalAndGlobal`): the
+  character half is ONE cell keyed `FD::<externalized name>`, re-based through `FileModel.CharacterAnchor`, and
+  each out-of-line record gets a cell of its OWN, keyed `FD::<name>#<k>` by its ordinal k among the file's
+  out-of-line records in declaration order — the key every describer computes from its own FD, since GR5
+  externalizes the FILE name and never a record name. Each such cell is the ordinary cell-backed storage shape
+  (`ForceStringCanonical`): a dynamic-length record's content and a variable-length group's dynamic members ride
+  the cell's DYNAMIC SLOTS (`Place.DynSlotWindow` / `VarGroupWindow`, COBOLNET_DATA_MODEL_DESIGN D-SLOT), a
+  pointer record its managed slot. The READ / WRITE halves above are unchanged: they already go through
+  `PlaceRenderer`, whose cell arms compose and decompose the same contiguous image. It used to be staged loud
+  (COBOLNET0899) — the character half alone would have split GR4 b)'s one area in two.
 
 **Rejected alternatives.** Stage the shapes loud (the PB836 posture — rejects legal source); make the record area a
 cell with managed slots for a pointer record (the pointer still has no character image to send, and a dynamic

@@ -97,6 +97,12 @@ internal static class PlaceRenderer
         RedefViewPlace { Coding: SlotWindow s } v => RuntimeApi.PtrSlotRead(
             RenderPath(s.Cell, AccessDir.Sending), $"(int)({v.OffsetExpr})",
             v.ViewItem.ElementType, v.ViewItem.Pic!.DefaultInitializer),
+        // A DYNAMIC-LENGTH member of a cell-backed class (kb/Work PB1026): its content rides the cell's dynamic
+        // slot (§8.5.1.10.3 — "located elsewhere"), so every description sharing the cell reads the same content.
+        RedefViewPlace { Coding: DynSlotWindow d } => RuntimeApi.CellDynRead(RenderPath(d.Cell, AccessDir.Sending), d.Ordinal),
+        // A VARIABLE-LENGTH GROUP of a cell-backed class (kb/Work PB1026): read as its contiguous image at its
+        // current extent — §8.5.1.11.2, the same composition a declared group's CurrentImage() performs.
+        RedefViewPlace { Coding: VarGroupWindow g } v => CellVarContiguous(v, g),
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
@@ -211,6 +217,13 @@ internal static class PlaceRenderer
         // (§13.18.44.4 GR1 — one storage area, and every other member's positions are its own).
         RedefViewPlace { Coding: SlotWindow s } v =>
             $"{RuntimeApi.PtrSlotWrite(RenderPath(s.Cell, AccessDir.Sending), $"(int)({v.OffsetExpr})", rhs)};",
+        // Store a DYNAMIC-LENGTH member's new content into the cell's dynamic slot (kb/Work PB1026) — the receiving
+        // twin of the slot read. rhs already carries §8.5.1.10.4's receiving rule (CobolDynString.Store).
+        RedefViewPlace { Coding: DynSlotWindow d } => $"{RuntimeApi.CellDynWrite(RenderPath(d.Cell, AccessDir.Sending), d.Ordinal, rhs)};",
+        // A VARIABLE-LENGTH GROUP of a cell-backed class receiving a character value (kb/Work PB1026): the value is
+        // a contiguous image (§8.5.1.11.2), decomposed by the ONE take step determination D-FRA states.
+        RedefViewPlace { Coding: VarGroupWindow g } v => $"{RuntimeApi.CellVarStoreContiguous(RenderPath(g.Cell, AccessDir.Sending),
+            $"(int)({v.OffsetExpr})", v.Width, g.DynBase, g.DynFixedAt, g.DynMax, rhs)};",
         // Splice the new image back into the class's ONE backing, preserving its full width (§13.18.44).
         RedefViewPlace v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
             $"{RuntimeApi.StrSpliceInto(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString(), rhs)};",
@@ -269,6 +282,11 @@ internal static class PlaceRenderer
 
     // A Tier-B view's 1-based window start = the 0-based offset expression + 1 (OffsetExpr is the D10 transitional string).
     private static string RvOffset(RedefViewPlace v) => $"(int)({v.OffsetExpr} + 1)";
+
+    /// <summary>The contiguous image of a cell-backed variable-length group view (kb/Work PB1026).</summary>
+    private static string CellVarContiguous(RedefViewPlace v, VarGroupWindow g) =>
+        RuntimeApi.CellVarContiguous(RenderPath(g.Cell, AccessDir.Sending), $"(int)({v.OffsetExpr})", v.Width,
+            g.DynBase, g.DynFixedAt);
 
     // The reference-modification start/length are `long`-valued expressions but the runtime takes `int` positions —
     // cast at the call site. Start/Length are the P5.11/D10 TRANSITIONAL string carrier (a rendered index expression);
@@ -406,6 +424,8 @@ internal static class PlaceRenderer
     public static string VarGroupImage(Place group, string context = "activation-boundary image of") => group switch
     {
         OdoGroupPlace o => VarGroupImage(o.Inner, context),
+        RedefViewPlace { Coding: VarGroupWindow g } v => RuntimeApi.CellVarCarrier(RenderPath(g.Cell, AccessDir.Sending),
+            $"(int)({v.OffsetExpr})", v.Width, g.DynBase, g.DynFixedAt.Count),   // kb/Work PB1026
         _ when !group.Item.CurrentExtentImageCapable =>
             EmitText.LoudValue(RuntimeApi.VarGroupType, TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.AsVarImage()",
@@ -417,6 +437,8 @@ internal static class PlaceRenderer
     public static string WriteVarGroupImage(Place group, string value, string context) => group switch
     {
         OdoGroupPlace o => WriteVarGroupImage(o.Inner, value, context),
+        RedefViewPlace { Coding: VarGroupWindow g } v => $"{RuntimeApi.CellVarStoreCarrier(RenderPath(g.Cell, AccessDir.Sending),
+            $"(int)({v.OffsetExpr})", v.Width, g.DynBase, g.DynMax, value)};",   // kb/Work PB1026
         _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.FromVarImage({value});",
     };
@@ -430,6 +452,7 @@ internal static class PlaceRenderer
     public static string VarGroupCurrentImage(Place group, string context) => group switch
     {
         OdoGroupPlace o => VarGroupCurrentImage(o.Inner, context),
+        RedefViewPlace { Coding: VarGroupWindow } v => Read(v),   // the cell composition (kb/Work PB1026)
         _ when !group.Item.CurrentExtentImageCapable =>
             EmitText.LoudValue("string", TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.CurrentImage()",
@@ -441,6 +464,7 @@ internal static class PlaceRenderer
     public static string WriteVarGroupContiguous(Place group, string record, string context) => group switch
     {
         OdoGroupPlace o => WriteVarGroupContiguous(o.Inner, record, context),
+        RedefViewPlace { Coding: VarGroupWindow } v => Write(v, record),   // the cell decomposition (kb/Work PB1026)
         _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.FromContiguousImage({record});",
     };

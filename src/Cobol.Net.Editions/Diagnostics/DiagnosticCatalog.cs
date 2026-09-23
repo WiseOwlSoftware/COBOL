@@ -177,9 +177,9 @@ public static class DiagnosticCatalog
     /// §13.18.44.3 REDEFINES-clause rejection the binder used to borrow for it (the source contains no REDEFINES
     /// clause). ⚠ Since kb/Work PB981 a dynamic-length, variable-length-group or pointer-class record is NOT such a
     /// shape — it is an OUT-OF-LINE record (determination D-FRA, docs/CONFORMANCE.md §3) and compiles. What remains
-    /// is a character-window record with a byte-window residue (<c>DataBinder.ByteWindowResidueOf</c>) and the
-    /// run-unit EXTERNAL area of a file that has an out-of-line record (its run-unit cell carries only the
-    /// character half).</summary>
+    /// is a character-window record with a byte-window residue (<c>DataBinder.ByteWindowResidueOf</c>). (The
+    /// run-unit EXTERNAL area of a file with an out-of-line record left this diagnostic at kb/Work PB1026: each
+    /// out-of-line record is a run-unit cell of its own.)</summary>
     public static readonly DiagnosticDescriptor ImplicitRecordAreaShape = new(
         NotImplemented, "implicit-record-area-shape", EditionSeverity.Error,
         "The records of one file description (ISO §13.18.33.4 GR3), or of the files of one record-area SAME "

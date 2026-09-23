@@ -43,6 +43,9 @@ internal sealed class DataEmitter
     /// <summary>See <see cref="GroupImageCodec.ImageInitOf"/>.</summary>
     public string ImageInitOf(DataItem item, bool useValues = true) => _codec.ImageInitOf(item, useValues);
 
+    /// <summary>See <see cref="GroupImageCodec.CellDynSeeds"/>.</summary>
+    public string CellDynSeeds(DataItem item, bool useValues = true) => _codec.CellDynSeeds(item, useValues);
+
     /// <summary>See <see cref="ValueInitializer.InitializerFrom"/> — the §13.18.63 VALUE recipe over an operand
     /// the caller supplies (the report section's format-4 lane; kb/Work PB506).</summary>
     public string ValueImageOf(DataItem item, string raw) => _values.InitializerFrom(item, raw);

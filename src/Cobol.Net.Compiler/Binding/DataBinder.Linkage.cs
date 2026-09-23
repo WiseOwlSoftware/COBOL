@@ -503,27 +503,26 @@ public sealed partial class DataBinder
             if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null })
                 CallMakeExternal(item);
 
-        // EXTERNAL FDs: the record area is ONE run-unit cell keyed by the externalized FILE name (§13.18.22.4
-        // GR4b/GR5 — the records of every describer alias it; multi-01 records under the FD are already one
-        // REDEFINES class, so re-basing the first record re-bases the whole area). The GR6 same-byte-count
-        // conformance check across describers is EC-band work (§14.8.4) — not enforced here.
-        // ⛔ AN OUT-OF-LINE RECORD (FileModel.IsOutOfLineRecord — determination D-FRA, kb/Work PB981) has no
-        // window over the cell, so the run-unit cell would carry only the CHARACTER half of the area and every
-        // describer would keep its own copy of the rest — GR4b's one area silently split in two. Staged LOUD.
+        // EXTERNAL FDs: the record area is run-unit storage keyed by the externalized FILE name (§13.18.22.4
+        // GR4 b) / GR5 — the records of every describer alias it). The GR6 same-byte-count conformance check across
+        // describers is EC-band work (§14.8.4) — ExternalStore.Describe.
+        // ⛔ THE WHOLE AREA, BOTH HALVES (kb/Work PB1026; determination D-FRA). The CHARACTER half — every record
+        // with a window, already one implicit-redefinition class (LinkImplicitRecordArea) — is ONE cell keyed
+        // "FD::<name>", re-based through its anchor. Each OUT-OF-LINE record (FileModel.IsOutOfLineRecord — a
+        // dynamic-length record, a variable-length group, a pointer-class record) is not part of that class, so it
+        // gets a cell of its OWN, keyed "FD::<name>#<k>" by its ordinal k among the file's out-of-line records in
+        // declaration order: the key a describer can compute from its own FD (GR5 externalizes the FILE name, never
+        // a record name — two describers name their records as they like, IC227A), and the cell carries the
+        // record's content and its dynamic-length items (StorageCell.DynAt) or its pointer value (SlotAt), so GR4 b)'s
+        // "the data contained in all record description entries" is ONE copy per run unit. It used to be staged
+        // loud as COBOLNET0899: the character half alone would have split the area in two.
         foreach (var file in Files)
             if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
             {
-                if (file.Records.FirstOrDefault(FileModel.IsOutOfLineRecord) is { } outOfLine)
-                {
-                    using var __ = Edition.At(outOfLine);
-                    Edition.Error(DiagnosticCatalog.ImplicitRecordAreaShape,
-                        $"the record area of EXTERNAL file '{file.CobolName}' is external — \"the data contained in all record description entries\" (ISO "
-                        + $"§13.18.22.4 GR4 b)) — and record '{outOfLine.CobolName}' is an out-of-line record (a dynamic-length, "
-                        + "variable-length-group or pointer-class record) with no window over it: an EXTERNAL record "
-                        + "area of that shape is recognized but not yet implemented");
-                    continue;
-                }
-                CallMakeExternal(file.Records[0], "FD::" + extName);
+                if (file.CharacterAnchor is { } anchor) CallMakeExternal(anchor, "FD::" + extName);
+                int k = 0;
+                foreach (var record in file.Records.Where(FileModel.IsOutOfLineRecord))
+                    CallMakeExternal(record, $"FD::{extName}#{++k}");
             }
 
         // GLOBAL FDs: the record-names of a GLOBAL FD are GLOBAL names (ISO §13.18.30 — the file-name and the
@@ -650,7 +649,8 @@ public sealed partial class DataBinder
         // clause; §13.18.22 conditions EXTERNAL on nothing subordinate at all. A bit leaf is admitted by all
         // three, so the reject was rejects-legal-source — the same argument that retired the negative fixture
         // pb151-based-comp-leaf at the PB164 landing. Its residue clause now names the ACTUAL leaf.
-        if (leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null) is { } residue)
+        if ((leaves.Select(ByteWindowResidueOf).FirstOrDefault(r => r is not null)
+             ?? cls.Members.Select(VariableLengthCellResidueOf).FirstOrDefault(r => r is not null)) is { } residue)
         {
             cls.Classify(RedefinesTier.Rejected, cls.Width,
                 $"{what} '{item.CobolName}' has {residue} — the shared byte cell cannot carry it");
@@ -676,6 +676,13 @@ public sealed partial class DataBinder
             AssignClassOffsets(member, 0, cls);
             member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
         }
+        // ⛔ THE CELL'S DYNAMIC-LENGTH HALF (kb/Work PB1026): each dynamic-length leaf rides the cell's dynamic slot
+        // numbered by its storage order among the class's dynamic-length leaves (Place.DynSlotWindow;
+        // StorageCell.DynAt). It occupies zero bytes of the backing — its ByteWidth — so the class walk above has
+        // already laid out the FIXED RUN every variable-length group view of the class composes over.
+        int dynOrdinal = 0;
+        foreach (var leaf in leaves.Where(DynSlotWindow.CarriedBySlot))
+            leaf.ClassDynOrdinal = dynOrdinal++;
         // ⛔ EVERY byte-form numeric leaf windowed over the string backing decodes/encodes its IMAGE — the
         // same rule ClassifyRedefinesClasses applies to a Tier-B class, applied here for the synth class.
         // The predicate MUST be the one CellCapable admits above (THE ONE image predicate): the Step D
@@ -688,6 +695,26 @@ public sealed partial class DataBinder
             if (leaf.Pic is { Category: PicCategory.Numeric, HasImageByteForm: true })
                 MarkImageForced(leaf);   // the collected image fact
         return cls;
+    }
+
+    /// <summary>The variable-length shapes a cell cannot carry (kb/Work PB1026), or null. A dynamic-length item
+    /// rides a slot numbered once per ITEM, so one that repeats — under an OCCURS within the record — has no slot
+    /// per occurrence; a dynamic-capacity table has no fixed run to window at all. Both are the same shapes a
+    /// declared variable-length group's current-extent composer excludes (CONFORMANCE.md A.1 item 57's "a
+    /// runtime-length item inside a table element"), so the cell refuses exactly what the struct refuses.</summary>
+    private static string? VariableLengthCellResidueOf(DataItem member)
+    {
+        foreach (var d in DataItem.DescendantsOf(member).Prepend(member))
+        {
+            if (d.IsDynamicTable)
+                return $"a dynamic-capacity table ('{d.CobolName ?? "FILLER"}', ISO §8.5.1.9) with no fixed extent";
+            if (DynSlotWindow.CarriedBySlot(d))
+                for (var a = d; a is not null && !ReferenceEquals(a, member.Parent); a = a.Parent)
+                    if (a.Occurs is not null || a.OccursSpec is not null)
+                        return $"a dynamic-length item inside a table element ('{d.CobolName ?? "FILLER"}', ISO "
+                            + "§8.5.1.10) with no slot per occurrence";
+        }
+        return null;
     }
 
     /// <summary>Seed the unique-id counter so every unit of a multi-program compilation gets a disjoint

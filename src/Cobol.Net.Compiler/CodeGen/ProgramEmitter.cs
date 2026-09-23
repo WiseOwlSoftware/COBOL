@@ -440,7 +440,7 @@ internal sealed class ProgramEmitter
         RedefViewPlace r => r with
         {
             Backing = r.Backing.Reroot(prefix),
-            Coding = r.Coding is SlotWindow s ? new SlotWindow(s.Cell.Reroot(prefix)) : r.Coding,
+            Coding = r.Coding is CellWindowCoding c ? c with { Cell = c.Cell.Reroot(prefix) } : r.Coding,
         },
         _ => null,
     };

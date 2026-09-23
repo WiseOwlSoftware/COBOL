@@ -32,11 +32,14 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // .CurrentImage() on it is CS1061 on `string` (the PB176 skeptic round; whether a dynamic-length
         // member under REDEFINES is even legal is kb/Work PB177's screen question — the emitter defends
         // regardless, per the GroupImage doc's own law about window shapes).
+        // A CELL-BACKED variable-length group view (an EXTERNAL record, an ADDRESS-OF-taken record — kb/Work
+        // PB1026) is the exception: its view composes the same current-extent image from the cell, through the
+        // same dispatcher (PlaceRenderer.VarGroupCurrentImage).
         var parts = d.Operands.Select(o =>
             o is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false } vp }
-                && vp is not RedefViewPlace
+                && (vp is not RedefViewPlace || vp is RedefViewPlace { Coding: VarGroupWindow })
                 && vp.Item.CurrentExtentImageCapable
-            ? $"{PlaceRenderer.Read(vp)}.CurrentImage()"
+            ? PlaceRenderer.VarGroupCurrentImage(vp, "DISPLAY of")
             // A strongly-typed group with a class pointer/object leaf (kb/Work PB244): a legal identifier-1
             // (§14.9.11.3 SR1 bars only an item OF class pointer/object; a strongly-typed group's class is its
             // type-name, §8.5.2.1) whose GR1 device conversion is ours to define — CONFORMANCE.md A.1 item 56:

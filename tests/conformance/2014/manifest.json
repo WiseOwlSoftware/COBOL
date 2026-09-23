@@ -129,7 +129,8 @@
   "pb969_function_pointer_empty_arguments",
   "pb981_fd_variable_length_records",
   "pb1025_key_after_dynamic_member",
-  "pb232_entry_convention_cobol"
+  "pb232_entry_convention_cobol",
+  "pb1026_external_out_of_line_records"
  ],
  "pending": []
 }

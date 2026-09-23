@@ -78,6 +78,15 @@ public sealed class ExternalTable
         return h;
     }
 
+    /// <summary>The same cell, created by <paramref name="create"/> when the run unit first names it — the form a
+    /// cell with a SEEDED dynamic-length half needs (kb/Work PB1026), since its seed must run once, at creation,
+    /// and never again on a later describer's access.</summary>
+    public StorageCell Cell(string name, Func<StorageCell> create)
+    {
+        if (!_cells.TryGetValue(name, out var h)) _cells[name] = h = create();
+        return h;
+    }
+
     /// <summary>Register <paramref name="describer"/>'s description of external <paramref name="name"/> and check
     /// its conformance against every OTHER describer already registered in the run unit (ISO §14.8.4; raise points
     /// §14.9.4.4 GR3e / §14.9.23.4 GR7d). <paramref name="gate"/> is the pre-ANDed enablement mask — CALL-site

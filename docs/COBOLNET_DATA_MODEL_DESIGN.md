@@ -416,6 +416,22 @@ content-validation half is separately answered by the declined A.4.14 facility (
   national-form numeric / numeric-edited / boolean of §13.18.60.3 SR12, whose arm stopped being a derived-only
   answer when kb/Work PB646 removed the COBOLNET0899 staging (D-N7); the predicate is now the single test
   `Pic.Usage is National` — and the POINTER family. **Nothing is refused today.**
+- **D-SLOT, the DYNAMIC-LENGTH half (kb/Work PB1026, 2026-09-23).** A dynamic-length item of a CELL-BACKED
+  class (an EXTERNAL record, an EXTERNAL file's out-of-line record, an ADDRESS-OF-taken record) has no fixed
+  character positions — §8.5.1.10.3 lets it be "located elsewhere in the computer's memory" — so it rides the
+  SAME cell's slots too: the DYNAMIC slots, keyed by the item's ordinal among the class's dynamic-length items
+  (`DataItem.ClassDynOrdinal`, assigned once by `ForceStringCanonical`; negative keys, so they never meet a pointer
+  slot's byte offset). It occupies zero bytes of the image — its `ByteWidth`, §8.5.1.12.3's accounting of the fixed
+  run — and contributes nothing to the cell seed (`GroupImageCodec.ImageInitOfOne`); its VALUE seeds the slot
+  (`GroupImageCodec.CellDynSeeds` → `StorageCell.SeedDyn`, §8.6.4). Two codings carry it: `Place.DynSlotWindow`
+  (the leaf — `StorageCell.DynAt` / `SetDynAt`) and `Place.VarGroupWindow` (a group over such leaves, which reads
+  and writes as its CONTIGUOUS image, §8.5.1.11.2 — `StorageCell.ContiguousAt` / `StoreContiguousAt`, the D-FRA
+  take step — and crosses a variable-length MOVE / boundary as its `CobolVarGroup` carrier —
+  `VarGroupAt` / `StoreVarGroupAt`). Both derive from `Place.CellWindowCoding`, the one base every re-anchoring
+  consumer reads. **Refused** (`DataBinder.VariableLengthCellResidueOf`): a dynamic-length item inside a table
+  element (no slot per occurrence) and a dynamic-capacity table — exactly the shapes a declared group's
+  current-extent composer excludes. Before this, such a leaf was a ZERO-WIDTH byte window: `01 G EXTERNAL.
+  05 A PIC X(3). 05 D PIC X DYNAMIC LENGTH.` displayed only A, silently.
 - **D-SLOT the MANAGED SLOTS of a shared storage area** (kb/Work PB231, 2026-09-05 — the pointer third). A
   data item of class pointer or class object holds a MANAGED REFERENCE, which is not a byte sequence, so it is
   the one leaf kind a byte window genuinely cannot express. It does not ride the area's bytes: **`StorageCell`

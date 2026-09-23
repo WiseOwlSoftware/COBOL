@@ -65,6 +65,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // Placed beside the national coding below because it is the same kind of decision: how the member's
         // value carrier relates to the bytes it occupies.
         if (SlotWindow.CarriedBySlot(item)) return SlotPlaceholder(item.ByteWidth);
+        // ⛔ A DYNAMIC-LENGTH LEAF CONTRIBUTES NO BYTES AT ALL (kb/Work PB1026): its content rides the cell's
+        // dynamic slot (Place.DynSlotWindow), and it occupies zero positions of the area's fixed run — its
+        // ByteWidth, §8.5.1.12.3's "all dynamic-length elementary items are considered to be of zero length". Its
+        // VALUE, if any, is the slot's seed (CellDynSeeds). A one-character fill here displaced every following
+        // member of an ADDRESS-OF-taken variable-length group by one position.
+        if (DynSlotWindow.CarriedBySlot(item)) return "\"\"";
         string image = CarrierInitOfOne(item, useValues, subs);
         // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
         // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a
@@ -79,6 +85,22 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // A GROUP is never wrapped: PositionsOf answers null for it, and its national children were each
         // wrapped by their own recursion through here.
         return NationalWindow.PositionsOf(item) is not null ? RuntimeApi.NatBytes(image) : image;
+    }
+
+    /// <summary>⛔ THE ONE SEEDER OF A CELL'S DYNAMIC-LENGTH HALF (kb/Work PB1026) — the twin of
+    /// <see cref="ImageInitOf"/> for the slots <see cref="ImageInitOfOne"/> leaves out: a
+    /// <c>.SeedDyn(ordinal, content)</c> call per dynamic-length item of <paramref name="root"/>'s cell-backed class
+    /// whose initial content is not empty — §8.6.4 via the VALUE clause's own recipe
+    /// (<see cref="ValueInitializer.InitializerFrom"/>'s dynamic-length arm: MOVE-like, truncated to the maximum
+    /// size; absent a VALUE the initial length is zero, which an unwritten slot already is). Empty when there is
+    /// nothing to seed, so every cell without such an item is emitted exactly as before.</summary>
+    public string CellDynSeeds(DataItem root, bool useValues = true)
+    {
+        if (!useValues) return "";
+        var seeds = DataItem.DescendantsOf(root).Prepend(root)
+            .Where(d => DynSlotWindow.CarriedBySlot(d) && d.ClassDynOrdinal >= 0 && d.RawValue is not null)
+            .Select(d => $".{nameof(CobolNet.Runtime.StorageCell.SeedDyn)}({d.ClassDynOrdinal}, {vals.InitializerFrom(d, d.RawValue)})");
+        return string.Concat(seeds);
     }
 
     /// <summary>One MEMBER's contribution to its group's compile-time image seed — the COMPILE-TIME twin of

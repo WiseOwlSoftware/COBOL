@@ -47,6 +47,99 @@ public sealed class StorageCell
     /// <see cref="SlotAt"/>.</summary>
     public void SetSlotAt(int byteOffset, object? value) => (_slots ??= [])[byteOffset] = value;
 
+    // ── THE DYNAMIC-LENGTH HALF OF THE SAME AREA (kb/Work PB1026) ───────────────────────────────────────────────
+    //
+    // A dynamic-length elementary item has no fixed character positions: ISO §8.5.1.10.3 — "Dynamic-length
+    // elementary items may be physically located in memory within the record they are subordinate to, or they may
+    // be located elsewhere in the computer's memory". Inside a CELL-BACKED area (an EXTERNAL record, an EXTERNAL
+    // file's out-of-line record, an ADDRESS-OF-taken record) the "elsewhere" is a managed slot of the SAME cell,
+    // so every description that shares the cell shares the item's content too (§13.18.22.4 GR1 / GR4 b)). It
+    // occupies ZERO positions of Ref — the area's FIXED RUN, exactly the CobolVarGroup.Fixed accounting
+    // (§8.5.1.12.3: "all dynamic-length elementary items are considered to be of zero length") — and its content
+    // rides the slot keyed by its ordinal among the area's dynamic-length items. The keys are negative, so they can
+    // never meet a pointer slot, which is keyed by a byte offset (≥ 0).
+
+    private static int DynKey(int ordinal) => -1 - ordinal;
+
+    /// <summary>The current content of the area's <paramref name="ordinal"/>-th dynamic-length item — empty
+    /// until one is stored — ISO §8.6.4: "If no VALUE clause is specified, the length of that item in its initial state is zero".</summary>
+    public string DynAt(int ordinal) => SlotAt(DynKey(ordinal)) as string ?? "";
+
+    /// <summary>Store the <paramref name="ordinal"/>-th dynamic-length item's new content. The caller has already
+    /// applied §8.5.1.10.4's receiving rule (<c>CobolDynString.Store</c>), exactly as it does for a declared
+    /// field.</summary>
+    public void SetDynAt(int ordinal, string content) => SetSlotAt(DynKey(ordinal), content);
+
+    /// <summary>Seed a dynamic-length item's INITIAL content (its VALUE clause, §8.6.4) and return this cell — the
+    /// fluent form the generated cell initializers chain onto <c>new StorageCell { Ref = … }</c> and
+    /// <see cref="Reinitialize"/>.</summary>
+    public StorageCell SeedDyn(int ordinal, string content)
+    {
+        SetDynAt(ordinal, content);
+        return this;
+    }
+
+    /// <summary>A variable-length group of this area as its §8.5.1.12 component carrier: the group's fixed run
+    /// (<paramref name="fixedWidth"/> positions of <see cref="Ref"/> from <paramref name="fixedAt"/>) and its
+    /// <paramref name="dynCount"/> dynamic-length items from ordinal <paramref name="dynBase"/> — the same carrier a
+    /// declared group's generated <c>AsVarImage()</c> builds.</summary>
+    public CobolVarGroup VarGroupAt(int fixedAt, int fixedWidth, int dynBase, int dynCount)
+    {
+        var dyn = new string[dynCount];
+        for (int k = 0; k < dynCount; k++) dyn[k] = DynAt(dynBase + k);
+        return new CobolVarGroup(FixedRun(fixedAt, fixedWidth), dyn);
+    }
+
+    /// <summary>Distribute a component carrier into the group — the receiving twin of <see cref="VarGroupAt"/>,
+    /// and the twin of a declared group's <c>FromVarImage</c>: the fixed run is stored at its width (padded or
+    /// truncated, §14.9.25.4 GR9's fixed part), and each dynamic-length item takes its component as its new
+    /// content, truncated on the right at its maximum size (§8.5.1.10.4).</summary>
+    public void StoreVarGroupAt(int fixedAt, int fixedWidth, int dynBase, ReadOnlySpan<int> dynMax, CobolVarGroup v)
+    {
+        Ref = CobolString.SpliceInto(Ref, fixedAt + 1, fixedWidth, CobolString.Store(v.Fixed, fixedWidth));
+        for (int k = 0; k < dynMax.Length; k++)
+            SetDynAt(dynBase + k, CobolDynString.Store(v.Dyn(k), dynMax[k]));
+    }
+
+    /// <summary>A variable-length group of this area as its CONTIGUOUS image at its current extent — ISO
+    /// §8.5.1.11.2: "a variable-length data item behaves in all respects as though it were in fact contiguous with
+    /// its neighbors whenever a procedural operation is applied to a group containing it". Each dynamic-length item
+    /// sits at its fixed-run position <paramref name="dynFixedAt"/> (relative to the group) — the declared group's
+    /// <c>CurrentImage()</c>, composed from the cell.</summary>
+    public string ContiguousAt(int fixedAt, int fixedWidth, int dynBase, ReadOnlySpan<int> dynFixedAt)
+    {
+        string run = FixedRun(fixedAt, fixedWidth);
+        var sb = new System.Text.StringBuilder(fixedWidth);
+        int at = 0;
+        for (int k = 0; k < dynFixedAt.Length; k++)
+        {
+            sb.Append(run, at, dynFixedAt[k] - at);
+            at = dynFixedAt[k];
+            sb.Append(DynAt(dynBase + k));
+        }
+        sb.Append(run, at, run.Length - at);
+        return sb.ToString();
+    }
+
+    /// <summary>Make a contiguous image the group's content — the inverse of <see cref="ContiguousAt"/> by the ONE
+    /// take step (<c>CobolVarGroup.FromContiguous</c>, determination D-FRA): each dynamic-length item takes as many
+    /// characters as the image holds beyond the fixed material still to come, up to its maximum size.</summary>
+    public void StoreContiguousAt(int fixedAt, int fixedWidth, int dynBase, ReadOnlySpan<int> dynFixedAt,
+                                  ReadOnlySpan<int> dynMax, string image)
+    {
+        // Unit 1 per component: a dynamic-length item contributes its content character for character, the same
+        // unit a declared group's generated layout gives it (GroupImageCodec.ContiguousLayout).
+        var ones = new int[dynFixedAt.Length];
+        var max = new long[dynMax.Length];
+        for (int k = 0; k < ones.Length; k++) { ones[k] = 1; max[k] = dynMax[k]; }
+        StoreVarGroupAt(fixedAt, fixedWidth, dynBase, dynMax,
+            CobolVarGroup.FromContiguous(image ?? "", fixedWidth, dynFixedAt.ToArray(), ones, max));
+    }
+
+    private string FixedRun(int fixedAt, int fixedWidth) =>
+        CobolString.Store(fixedAt >= Ref.Length ? "" : Ref.Substring(fixedAt, Math.Min(fixedWidth, Ref.Length - fixedAt)),
+            fixedWidth);
+
     /// <summary>Drop every managed slot — FREE (§14.9.15.4 GR1a, "the contents of any data items located
     /// within the released storage area become undefined"): the byte image and the managed slots are one
     /// storage area and are released together, so a released cell cannot keep a dangling pointer alive.</summary>
@@ -58,9 +151,10 @@ public sealed class StorageCell
     /// VALUE. IN PLACE, never a fresh cell, because the cell IS the storage a <c>ManagedPointer.At</c> window
     /// aliases: a RECURSIVE unit's WORKING-STORAGE is ONE static copy (§13.5.4 GR1), so a pointer taken before
     /// the CANCEL still names that copy after it.</summary>
-    public void Reinitialize(string image)
+    public StorageCell Reinitialize(string image)
     {
         Ref = image;
         _slots = null;
+        return this;   // a dynamic-length item's VALUE is re-seeded by a chained SeedDyn (kb/Work PB1026)
     }
 }

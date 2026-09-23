@@ -608,6 +608,23 @@ public sealed class DataItem
         "computed post-build by DataBinder.AssignClassOffsets over the clone's OWN redefines class")]
     public int ClassOffset { get; internal set; }
 
+    /// <summary>This dynamic-length item's ordinal among the dynamic-length items of its CELL-BACKED class, in
+    /// storage order — the cell's dynamic slot it rides (<see cref="DynSlotWindow"/>; kb/Work PB1026). -1 when
+    /// the item is not such a member. ONE writer: <c>DataBinder.ForceStringCanonical</c>, the cell forcer.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "computed post-build by DataBinder.ForceStringCanonical over the clone's OWN cell-backed class")]
+    public int ClassDynOrdinal { get; internal set; } = -1;
+
+    /// <summary>Every item under <paramref name="group"/>, depth first in declaration (storage) order.</summary>
+    public static IEnumerable<DataItem> DescendantsOf(DataItem group)
+    {
+        foreach (var c in group.Children)
+        {
+            yield return c;
+            foreach (var d in DescendantsOf(c)) yield return d;
+        }
+    }
+
     /// <summary>The start of this view's window within its class's shared area expressed in BITS — the unit
     /// §13.18.44.4 GR1 itself uses ("Storage association … starts at the first BIT of the data item referenced by
     /// data-name-2 and continues over an area sufficient to contain the number of BITS required"). For every

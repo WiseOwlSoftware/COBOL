@@ -98,7 +98,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // own codec writes the zero ENCODING. ISO mandates no initial value for a plain EXTERNAL at all
             // (§14.6.2.3.3 leaves it undefined), so this is a consistency fix, not a corrected answer — but two
             // seeders composing different bytes for one cell is exactly how the next one becomes wrong.
-            string init = new DataEmitter(Ctx).ExternalCellSeed(ext);
+            var de = new DataEmitter(Ctx);
+            string init = de.ExternalCellSeed(ext);
+            // A dynamic-length item's VALUE seeds the cell's dynamic half ONCE, when the run unit creates the cell
+            // (kb/Work PB1026) — only a CONSTANT RECORD has one here (§13.18.63.4 GR4 a) for the plain external item).
+            string dynSeeds = de.CellDynSeeds(ext.Record, useValues: ext.Record.IsConstantRecord);
+            if (dynSeeds.Length > 0) init = $"static () => new StorageCell {{ Ref = {init} }}{dynSeeds}";
             // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the area's MANAGED SLOTS
             // are two halves of ONE StorageCell, so naming the cell once and defining the backing as `ref
             // {cell}.Ref` makes that an identity rather than two expressions that happen to agree.
@@ -148,7 +153,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// image expression the Tier-B stored backing uses (the based_pointer first-run lesson: a default image loses
     /// VALUE). ONE composer for the member's declaration and a method's per-activation re-seed.</summary>
     private string AddressableCellInit(DataItem canonical, int cellWidth) =>
-        $"new StorageCell {{ Ref = {RuntimeApi.StrStore(new DataEmitter(Ctx).ImageInitOf(canonical), $"{cellWidth}")} }}";
+        $"new StorageCell {{ Ref = {RuntimeApi.StrStore(new DataEmitter(Ctx).ImageInitOf(canonical), $"{cellWidth}")} }}"
+        + new DataEmitter(Ctx).CellDynSeeds(canonical);   // the cell's dynamic-length half (kb/Work PB1026)
 
     /// <summary>The per-ACTIVATION data-pointer members of one method (kb/Work PB956): for each cell-backed
     /// LOCAL-STORAGE / LINKAGE root, the member and the fresh value an activation starts from — a BASED root's

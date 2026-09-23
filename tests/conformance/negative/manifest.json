@@ -1461,7 +1461,8 @@
   "pb859-occurs-zero-times",
   "pb369-contained-generate-non-global-report",
   "pb369-contained-report-file-not-global",
-  "pb919-index-name-ambiguous"
+  "pb919-index-name-ambiguous",
+  "pb1026-external-dynamic-record-at-2002"
  ],
  "pending": []
 }
