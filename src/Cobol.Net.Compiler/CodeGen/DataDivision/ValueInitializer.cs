@@ -180,7 +180,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             if (pic.IsFloat)
                 return RuntimeApi.NumFormatImageFloat(
                     effRaw is { } fv && FigurativeInitializer(fv, pic) is null ? RawValueAsFloat(fv, pic) : "0d",
-                    item.ProfileName);
+                    item.ProfileName, pic.IsSingle);
             string unscaled = effRaw is { } rv && FigurativeInitializer(rv, pic) is null
                 ? EmitText.UnscaledAtScale(rv, pic.Scale)
                 : "0L";

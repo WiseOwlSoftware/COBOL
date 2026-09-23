@@ -116,6 +116,29 @@ public static partial class CobolNum
             ? FormatIeeeBits(BitConverter.SingleToUInt32Bits((float)value), 4, item.FloatLittleEndian)
             : FormatIeeeBits(BitConverter.DoubleToUInt64Bits(value), 8, item.FloatLittleEndian);
 
+    /// <summary>⛔ THE BINARY32 CARRIER'S OWN ENCODE LANE (kb/Work PB961) — a <c>float</c> in, its binary32 bits
+    /// out, with NO binary64 anywhere between. <see cref="FormatImageFloat(double, in NumProfile)"/> cannot be that
+    /// lane for a <c>float</c> value: the argument widens to <c>double</c> at the call, and an ISO/IEC 60559 format
+    /// conversion QUIETS a signaling NaN (x64 <c>cvtss2sd</c> sets the quiet bit), so SET CONTENT …
+    /// FLOAT-NOT-A-NUMBER-SIGNALING into a windowed FLOAT-BINARY-32 stored <c>0x7FC00001</c> — a QUIET NaN — where
+    /// ISO §14.9.39.4 rule 35 requires "a canonical representation of a signaling NaN", and a same-usage MOVE or a
+    /// group image round trip quieted one that §14.9.25.4 rule 6 c) says "is transferred to the receiving data
+    /// item without change". The emitter picks this lane from the ITEM (<c>RuntimeApi.NumFormatImageFloat</c>'s
+    /// <c>single</c> argument), never from the value's C# type. Distinctly named for its twin's CS0121 reason.</summary>
+    public static string FormatImageSingle(float value, in NumProfile item) =>
+        item.ByteForm is NumericByteForm.Ieee32
+            ? FormatIeeeBits(BitConverter.SingleToUInt32Bits(value), 4, item.FloatLittleEndian)
+            : FormatImageFloat(value, item);
+
+    /// <summary>The binary32 carrier's own DECODE lane — the twin of <see cref="FormatImageSingle"/>: the image's
+    /// binary32 bits reinterpreted as a <c>float</c>, never through <see cref="ParseImageFloat"/>'s <c>double</c>,
+    /// whose Ieee32 arm widens and so quiets a signaling NaN (kb/Work PB961). <see cref="ParseImageFloat"/> stays
+    /// the ARITHMETIC read, where the widening is the operation.</summary>
+    public static float ParseImageSingle(string image, in NumProfile item) =>
+        item.ByteForm is NumericByteForm.Ieee32
+            ? BitConverter.UInt32BitsToSingle((uint)ImageFloatBits(image, item))
+            : (float)ParseImageFloat(image, item);
+
     /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
     public static double ParseImageFloat(string image, in NumProfile item)
     {
@@ -144,7 +167,7 @@ public static partial class CobolNum
 
     /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
     public static float StoreImage(string image, in NumProfile item, float current) =>
-        (float)ParseImageFloat(image, item);
+        ParseImageSingle(image, item);
 
     /// <inheritdoc cref="FormatImageFloat(double, in NumProfile)"/>
     public static double StoreImage(string image, in NumProfile item, double current) =>

@@ -476,11 +476,21 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
         "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
         // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
-        "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf),
+        "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf, screenLead: true),
         // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
         _ => RuntimeApi.Intrinsic(method, ArgArray(ic, 0, "double", DblOf)
-            ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))),
+            ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => i == 0 ? DomainArg(ic, ic.Args[0]) : Dbl(ic, i)))),
     };
+
+    /// <summary>Argument-1 of a binary64-family call, SCREENED against the row's §15.x.3 value domain on its exact
+    /// carrier before it becomes the body's double (kb/Work PB952 — <see cref="RuntimeApi.DomainArg"/>); a row with
+    /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
+    /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
+    /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
+    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) =>
+        ic.Sig.Domain is IntrinsicDomain.None
+            ? DblOf(a)
+            : RuntimeApi.DomainArg(num.AsNum(a, num.Receiver), ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
 
     private NumX RenderFloat(BoundIntrinsicCall ic, string method)
     {
@@ -771,15 +781,21 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// amounts): the tail may enumerate; a table(ALL) in the LEADING position itself is legal too (§15.3 puts no
     /// position on the ALL — "as if each table element … were specified"), so then the flat list is bound once
     /// and split at run time.</summary>
-    private string LeadThenTail(BoundIntrinsicCall ic, string method, string prefix, string csType, Func<BoundOperand, string> render, string mid = "")
+    /// <param name="screenLead">Screen the LEADING argument against the row's argument-1 domain
+    /// (<see cref="DomainArg"/>). When that argument is itself a table(ALL) the lead is an element of the flat
+    /// binary64 array, so it is screened on that double — the one shape where the exact carrier is not in hand.</param>
+    private string LeadThenTail(BoundIntrinsicCall ic, string method, string prefix, string csType, Func<BoundOperand, string> render, string mid = "", bool screenLead = false)
     {
         if (ic.Args[0] is BoundFieldOperand { Place: TableAllPlace })
         {
             string xs = NextWithVar();
-            return RuntimeApi.With(ArgArray(ic, 0, csType, render)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{xs}[0], {mid}{xs}[1..]"));
+            string lead = screenLead && ic.Sig.Domain is not IntrinsicDomain.None
+                ? RuntimeApi.DomainArg(new NumX($"{xs}[0]", 0, Real: true), ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!)
+                : $"{xs}[0]";
+            return RuntimeApi.With(ArgArray(ic, 0, csType, render)!, xs, RuntimeApi.Intrinsic(method, $"{prefix}{lead}, {mid}{xs}[1..]"));
         }
         string tail = ArgArray(ic, 1, csType, render) ?? string.Join(", ", ic.Args.Skip(1).Select(render));
-        return RuntimeApi.Intrinsic(method, $"{prefix}{render(ic.Args[0])}, {mid}{tail}");
+        return RuntimeApi.Intrinsic(method, $"{prefix}{(screenLead ? DomainArg(ic, ic.Args[0]) : render(ic.Args[0]))}, {mid}{tail}");
     }
 
     /// <summary>The number of arguments a call's list stands for when it is a compile-time fact — every table(ALL)

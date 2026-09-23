@@ -993,8 +993,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
             else if (a.Formal.Pic is { IsFloat: true })
                 // Same-usage float (bind-enforced): read the float value directly — never through the
-                // scaled-integer path (the review's silent-truncation finding).
-                w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
+                // scaled-integer path (the review's silent-truncation finding) — and on the item's OWN carrier
+                // (NumericRenderer.FloatCarrierRead): a same-usage transfer is §14.9.25.4 GR6 c)'s "without
+                // change", which a windowed binary32 decoded through binary64 is not (kb/Work PB961).
+                w.Line($"{a.Formal.ElementType} {tmp} = {NumericRenderer.FloatCarrierRead(a.Source!, SendingRef.SameUsageMove)};");
             // BY CONTENT arithmetic-expression-1 (§14.9.23.2; fix-queue PB46) — §14.8.2.3.3 rule 2a transfers it
             // "according to the rules of the COMPUTE statement", i.e. rescale + truncate into the formal's
             // description through the OWNER's internal profile, exactly as the identifier CONTENT arm below

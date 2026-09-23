@@ -260,7 +260,7 @@ internal static class OperandText
             // or the wave-2 IEEE forms — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164) —
             // the same recipes the group codec uses, the float family through its distinctly-named lane.
             { HasImageByteForm: true, IsFloat: true } =>
-                RuntimeApi.NumFormatImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName),
+                RuntimeApi.NumFormatImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, p.Item.Pic!.IsSingle),
             { HasImageByteForm: true } =>
                 RuntimeApi.NumFormatImage(PlaceRenderer.Read(p), p.Item.ProfileName),
             _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, context)),
@@ -305,7 +305,7 @@ internal static class OperandText
         // being signed numeric" — a float item has no PICTURE and no operational sign to drop.
         if (pic.IsFloat)
         {
-            string dec = RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName);
+            string dec = RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, binary32Carrier: pic.IsSingle);
             return RuntimeApi.FloatDisplay(sending.FloatChecked() ? RuntimeApi.FloatSending(dec) : dec);
         }
         // A 16-byte UNSIGNED BinaryCapacity window (UInt128 carrier, kb/Work R10): the unsigned parse twin

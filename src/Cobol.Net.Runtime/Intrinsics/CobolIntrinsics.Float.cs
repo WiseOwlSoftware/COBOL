@@ -18,42 +18,125 @@ namespace CobolNet.Runtime;
 /// </summary>
 public static partial class CobolIntrinsics
 {
+    // ── The argument-1 VALUE domains (ISO §15.3 rule 14; kb/Work PB952) ────────────────────────────────────────
+
+    /// <summary>The rational bounds a §15.x.3 "The value of argument-1 shall be …" rule states for the §15.4.1
+    /// binary64 family — the whole set, read off the standard (<c>IntrinsicArgumentDomainDriftTests</c> keeps the
+    /// catalog's <c>Domain</c> column equal to it).</summary>
+    public enum ArgumentDomain
+    {
+        /// <summary>[−1, +1] — ACOS §15.8.3 rule 2, ASIN §15.10.3 rule 2.</summary>
+        ClosedUnit,
+        /// <summary>[0, ∞) — SQRT §15.84.3 rule 2 ("zero or positive"), ANNUITY §15.9.3 rule 2.</summary>
+        NonNegative,
+        /// <summary>(0, ∞) — LOG §15.55.3 rule 2, LOG10 §15.56.3 rule 2 ("greater than zero").</summary>
+        Positive,
+        /// <summary>(−1, ∞) — PRESENT-VALUE §15.74.3 rule 2 ("greater than −1").</summary>
+        AboveMinusOne,
+    }
+
+    /// <summary>⛔ THE ONE argument-domain SCREEN of the binary64 family, and it runs on the EXACT operand, BEFORE the
+    /// binary64 conversion (kb/Work PB952). §15.3 rule 14: "If the evaluation of an argument results in an incorrect
+    /// value for that argument … the EC-ARGUMENT-FUNCTION exception condition is set to exist" — a rule about the
+    /// ARGUMENT'S value, and the binary64 the body computes on is not that value. The bodies used to decide it
+    /// after the conversion, two ways and both partial: ACOS/ASIN by the NaN <c>Math.Acos</c> returns past ±1,
+    /// SQRT/LOG/LOG10 by an explicit test on the double (PB246). A correctly-rounded conversion moves a value
+    /// ACROSS a bound: <c>1.000000000000000001</c> (PIC 9V9(18), held exactly) becomes 1.0, so under armed checking
+    /// <c>ASIN</c> answered π/2 and raised nothing; <c>-0.99999999999999999999</c> becomes −1.0, so PRESENT-VALUE
+    /// raised on a legal rate; an SDIDI's <c>ToDouble</c> underflows a tiny negative to −0.0, which SQRT's
+    /// <c>x &lt; 0</c> admitted. So each carrier is screened on its own terms: an exact scaled integer
+    /// (<see cref="DomainScaled"/>), the SDIDI (<see cref="DomainDec"/>), or a value that IS a binary64 already —
+    /// a float operand, whose double is its exact value (<see cref="DomainReal"/>).</summary>
+    /// <returns>The binary64 the body computes on; when the argument is outside the domain, the condition is
+    /// raised (fatal under checking) and NaN is returned, so the body's result is NaN and <see cref="RealResult"/>
+    /// / <see cref="FromDouble"/> hand back the §15.3 documented default exactly as for every other rejected
+    /// argument.</returns>
+    public static double DomainScaled(Int128 unscaled, int scale, ArgumentDomain domain, string function, string rule) =>
+        Admits(domain, CompareScaled(unscaled, scale, -1), (int)Int128.Sign(unscaled),
+               CompareScaled(unscaled, scale, 1))
+            ? CobolFloat.ScaledToDouble(unscaled, scale)
+            : DomainViolation(domain, function, rule);
+
+    /// <inheritdoc cref="DomainScaled"/>
+    public static double DomainDec(CobolDec value, ArgumentDomain domain, string function, string rule) =>
+        Admits(domain, Math.Sign(CobolDec.Compare(value, MinusOneDec)), Math.Sign(value.Sig.CompareTo(Int128.Zero)),
+               Math.Sign(CobolDec.Compare(value, OneDec)))
+            ? value.ToDouble()
+            : DomainViolation(domain, function, rule);
+
+    /// <inheritdoc cref="DomainScaled"/>
+    public static double DomainReal(double value, ArgumentDomain domain, string function, string rule) =>
+        !double.IsNaN(value) && Admits(domain, value.CompareTo(-1d), Math.Sign(value),
+               value.CompareTo(1d))
+            ? value
+            : DomainViolation(domain, function, rule);
+
+    private static readonly CobolDec OneDec = CobolDec.From(1, 0);
+    private static readonly CobolDec MinusOneDec = CobolDec.From(-1, 0);
+
+    /// <summary>The domain decided from the argument's sign against −1, 0 and +1 — the only bounds the rules state.</summary>
+    private static bool Admits(ArgumentDomain domain, int vsMinusOne, int vsZero, int vsOne) => domain switch
+    {
+        ArgumentDomain.ClosedUnit => vsMinusOne >= 0 && vsOne <= 0,
+        ArgumentDomain.NonNegative => vsZero >= 0,
+        ArgumentDomain.Positive => vsZero > 0,
+        ArgumentDomain.AboveMinusOne => vsMinusOne > 0,
+        _ => throw new ArgumentOutOfRangeException(nameof(domain), domain, "no such argument domain"),
+    };
+
+    /// <summary>sign(<c>unscaled × 10^−scale</c> − <paramref name="bound"/>) for a bound of ±1, EXACTLY: against
+    /// 10^scale when the scale is non-negative (a magnitude past 10^38 at scale ≥ 39 is below 1); a negative scale
+    /// is an integer multiple of ten, so only zero lies inside (−10, 10).</summary>
+    private static int CompareScaled(Int128 unscaled, int scale, int bound)
+    {
+        if (scale < 0) return unscaled == 0 ? -bound : Math.Sign(unscaled.CompareTo(Int128.Zero));
+        if (scale > 38) return -bound;
+        Int128 unit = Pow10.AsWide(scale);
+        return Math.Sign(unscaled.CompareTo(bound > 0 ? unit : -unit));
+    }
+
+    private static double DomainViolation(ArgumentDomain domain, string function, string rule)
+    {
+        Exceptions.ExceptionState.ArgumentError($"{function} argument-1 shall be {domain switch
+        {
+            ArgumentDomain.ClosedUnit => "greater than or equal to -1 and less than or equal to +1",
+            ArgumentDomain.NonNegative => "greater than or equal to zero",
+            ArgumentDomain.Positive => "greater than zero",
+            _ => "greater than -1",
+        }} (ISO {rule})");
+        return double.NaN;
+    }
+
     // ── Trigonometric / logarithmic (each returns the §15.x.4 equivalent-expression value) ────────────────────
-    public static double Acos(double x) => Math.Acos(x);     // §15.8 — arccos in [0, π]; |x|>1 → NaN → 0
-    public static double Asin(double x) => Math.Asin(x);     // §15.10 — arcsin in [−π/2, π/2]
+    // ⛔ NO DOMAIN TEST IN ANY BODY BELOW. ACOS / ASIN / SQRT / LOG / LOG10 carry §15.x.3 rule-2 VALUE domains and
+    // every one is decided by the screen above, on the exact operand, before the value reaches the body
+    // (IntrinsicRenderer.FloatBody applies it from the catalog row's Domain column). A second test here, on the
+    // double, would be the partial copy PB952 removed — and for a legal argument rounded onto a bound it would
+    // raise where the rule does not.
+    public static double Acos(double x) => Math.Acos(x);     // §15.8.4 r1 — arccos in [0, π]
+    public static double Asin(double x) => Math.Asin(x);     // §15.10.4 r1 — arcsin in [−π/2, π/2]
     public static double Atan(double x) => Math.Atan(x);     // §15.11 — arctan in (−π/2, π/2)
     public static double Cos(double x) => Math.Cos(x);       // §15.20
     public static double Sin(double x) => Math.Sin(x);       // §15.82
     public static double Tan(double x) => Math.Tan(x);       // §15.89
-    /// <summary>SQRT (§15.84) on the NATIVE carrier. TWO rules meet in this one line and each was missing
-    /// (kb/Work PB246).</summary>
-    /// <remarks><para>⛔ §15.84.3 <b>rule 2</b> — "The value of argument-1 shall be zero or positive" — is a
-    /// VALUE constraint, so §15.3 rule 14 makes it EC-ARGUMENT-FUNCTION at run time, exactly as Log/Log10 two
-    /// lines below decide theirs AT THE BODY. This was a bare <c>Math.Sqrt</c> whose only detector was the NaN
-    /// artifact, and its comment named rule 1 (the CLASS rule) for the rule 2 obligation. The artifact is not
-    /// total: <c>NumericRenderer.Real</c> converts an SDIDI operand through <c>CobolDec.ToDouble</c>, which is
-    /// <c>(double)Sig * Math.Pow(10, Exp)</c>, so for <c>Exp ≤ −324</c> the power underflows to +0.0 and a
-    /// NEGATIVE argument arrives as −0.0 — and <c>Math.Sqrt(-0.0)</c> is −0.0, not NaN, which
-    /// <c>RealResult</c>/<c>FromDouble</c> (both screening <c>IsNaN</c> alone) then pass straight through.
-    /// The explicit guard closes the domain by construction rather than by artifact.</para>
+    /// <summary>SQRT (§15.84) on the NATIVE carrier.</summary>
+    /// <remarks><para>§15.84.3 <b>rule 2</b> ("The value of argument-1 shall be zero or positive") is decided by the
+    /// <see cref="DomainScaled"/> screen on the exact operand (kb/Work PB952 — the explicit <c>x &lt; 0</c> test
+    /// PB246 put here was the right rule on the wrong value: an SDIDI's <c>ToDouble</c> underflows a tiny negative
+    /// argument to −0.0, which it admitted).</para>
     /// <para>⛔ §15.84.4 <b>rule 4</b> — "When native arithmetic is in effect, the returned value is the
-    /// ABSOLUTE VALUE of the approximation of the square root of argument-1" — was not implemented at all, only
-    /// unreachable-by-argument. The phrase is not decoration: IEC 60559 mandates <c>sqrt(−0) = −0</c> precisely
-    /// so that sqrt is NOT the absolute value there, while <c>|−0.0|</c> is +0.0. −0.0 is a LEGAL argument-1
-    /// (rule 2 admits zero) that a COMP-1/COMP-2 item reaches by ordinary underflow, and the receiver-less/float
-    /// arm renders it unquantized through <c>CobolFloat.Display</c>, which is IEEE-faithful and prints the sign.
-    /// <c>Math.Abs</c> IS rule 4, and it is the only input on which it does any work.</para>
+    /// ABSOLUTE VALUE of the approximation of the square root of argument-1" (kb/Work PB246). IEC 60559 mandates
+    /// <c>sqrt(−0) = −0</c> precisely so that sqrt is NOT the absolute value there, while <c>|−0.0|</c> is +0.0.
+    /// −0.0 is a LEGAL argument-1 (rule 2 admits zero) that a COMP-1/COMP-2 item reaches by ordinary underflow,
+    /// and the receiver-less/float arm renders it unquantized through <c>CobolFloat.Display</c>, which is
+    /// IEEE-faithful and prints the sign. <c>Math.Abs</c> IS rule 4, and it is the only input on which it does
+    /// any work.</para>
     /// <para>The APPROXIMATION half needs nothing: <c>Math.Sqrt</c> is IEC 60559 correctly-rounded, and SQRT's
     /// catalog row carries <c>Codomain.None</c> correctly — §15.84.4 states no bound, so the
     /// <c>FromDoubleBounded</c> clamp must not apply.</para></remarks>
-    public static double Sqrt(double x) =>
-        x < 0 ? Exceptions.ExceptionState.ArgumentError("SQRT argument-1 shall be zero or positive (ISO §15.84.3 rule 2)")
-              : Math.Abs(Math.Sqrt(x));                  // §15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
-    // §15.55.3 r2 / §15.56.3 r2: the argument domain is > 0. A ≤ 0 argument is a real ARGUMENT-rule violation → raise
-    // EC-ARGUMENT-FUNCTION at the body (§15.3 default 0 when checking off — the long result widens to double), NOT the
-    // saturating −∞ that FromDouble now returns for a legal EXP overflow (CA24). ArgumentError throws when checking on.
-    public static double Log(double x) => x <= 0 ? Exceptions.ExceptionState.ArgumentError("LOG argument must be > 0 (ISO §15.55.3 r2)") : Math.Log(x);
-    public static double Log10(double x) => x <= 0 ? Exceptions.ExceptionState.ArgumentError("LOG10 argument must be > 0 (ISO §15.56.3 r2)") : Math.Log10(x);
+    public static double Sqrt(double x) => Math.Abs(Math.Sqrt(x));   // §15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
+    public static double Log(double x) => Math.Log(x);       // §15.55 — domain: the screen (§15.55.3 r2)
+    public static double Log10(double x) => Math.Log10(x);   // §15.56 — domain: the screen (§15.56.3 r2)
     public static double Exp(double x) => Math.Exp(x);       // §15.34 — e ** argument (COBOL-2002+)
     public static double Exp10(double x) => Math.Pow(10, x); // §15.35 — 10 ** argument (COBOL-2002+)
 
@@ -82,7 +165,7 @@ public static partial class CobolIntrinsics
     /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §15.9.3 r2 (rate ≥ 0) and r3
     /// (periods a positive integer — integrality is the upstream IntArg latitude; positivity is checked here).</summary>
     public static double Annuity(double rate, double periods) =>
-        rate < 0 || periods <= 0 ? AnnuityDomain(rate, periods)
+        periods <= 0 ? AnnuityDomain(rate, periods)          // r2 (rate ≥ 0) is the screen's (kb/Work PB952)
         : rate == 0 ? 1d / periods : rate / (1 - Math.Pow(1 + rate, -periods));
 
     /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n. Domain: §15.74.3 r2
@@ -90,7 +173,8 @@ public static partial class CobolIntrinsics
     public static double PresentValue(double rate, params double[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
-        if (rate <= -1) return PresentValueDomain(rate);
+        // §15.74.3 r2 (rate > −1) is the argument-domain screen's (DomainScaled, kb/Work PB952): a legal rate
+        // just above −1 converts to −1.0, and a test here would raise on it.
         double pv = 0;
         for (int i = 0; i < amounts.Length; i++) pv += amounts[i] / Math.Pow(1 + rate, i + 1);
         return pv;

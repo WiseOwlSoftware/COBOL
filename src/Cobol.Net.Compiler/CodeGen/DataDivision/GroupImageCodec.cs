@@ -227,7 +227,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 useValues && effRaw is { } fraw && !fraw.StartsWith('"')
                     && vals.FigurativeInitializer(fraw, pic) is null
                     ? ValueInitializer.RawValueAsFloat(fraw, pic) : "0d",
-                item.ProfileName);
+                item.ProfileName, pic.IsSingle);
         // ⛔ THE TIER-B IMAGE ARM'S NO-VALUE SEED — §14.6.2.3.2 action 1's BACKGROUND on the image axis
         // (kb/Work PB152). This was the arm PB151 could not reach: the ALLOCATE fix landed with its fill decoder
         // PRIVATE to PtrEmitter, so this fall-through went on hardcoding ' ' / '0' with no way to consult the
@@ -287,7 +287,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // (alphanumeric / edited / StoreAsImage) passes through.
             : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
                 ? (d.Pic.IsFloat
-                    ? $"{d.CsName}.CurrentImage(__e => {RuntimeApi.NumFormatImageFloat("__e", d.ProfileName)})"
+                    ? $"{d.CsName}.CurrentImage(__e => {RuntimeApi.NumFormatImageFloat("__e", d.ProfileName, d.Pic.IsSingle)})"
                     : $"{d.CsName}.CurrentImage(__e => {RuntimeApi.NumFormatImage("__e", d.ProfileName)})")
                 : $"{d.CsName}.CurrentImage(static __e => __e)"
         : d.IsDynamicLength ? d.CsName   // §15.50.4 r7b — the current content at its current length
@@ -476,7 +476,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         d.IsGroup ? "(__e, __x) => { __e.FromImage(__x); return __e; }"
         : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
             ? (d.Pic.IsFloat
-                ? $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImageFloat("__x", d.ProfileName)}"
+                ? $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImageFloat("__x", d.ProfileName, binary32Carrier: d.Pic.IsSingle)}"
                 : $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImage("__x", d.ProfileName, sending: false)}")
             : "(__e, __x) => __x";
 
@@ -698,12 +698,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                // A FLOAT leaf encodes through the IEEE lane (kb/Work PB164 wave 2 — distinctly named so
                // integer call sites stay unambiguous).
                : f.NumLeaf is { } leaf ? (leaf.Pic!.IsFloat
-                    ? RuntimeApi.NumFormatImageFloat(f.Name, leaf.ProfileName)
+                    ? RuntimeApi.NumFormatImageFloat(f.Name, leaf.ProfileName, leaf.Pic.IsSingle)
                     : RuntimeApi.NumFormatImage(f.Name, leaf.ProfileName))
                : f.Name)
         : f.IsGroupStruct ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => __e.AsImage()))"
         : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => {(l.Pic!.IsFloat
-                ? RuntimeApi.NumFormatImageFloat("__e", l.ProfileName)
+                ? RuntimeApi.NumFormatImageFloat("__e", l.ProfileName, l.Pic.IsSingle)
                 : RuntimeApi.NumFormatImage("__e", l.ProfileName))}))"
         : $"string.Concat({f.Name})";
 
@@ -790,7 +790,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private static string CarrierFromChars(PhysicalModel.Physical f, string chars) =>
         f.NumLeaf is { } leaf
             ? $"({leaf.Pic!.ClrType}){(leaf.Pic!.IsFloat
-                    ? RuntimeApi.NumParseImageFloat(chars, leaf.ProfileName)
+                    ? RuntimeApi.NumParseImageFloat(chars, leaf.ProfileName, binary32Carrier: leaf.Pic.IsSingle)
                     : RuntimeApi.NumParseImage(chars, leaf.ProfileName, sending: false))}"
             : chars;
 }

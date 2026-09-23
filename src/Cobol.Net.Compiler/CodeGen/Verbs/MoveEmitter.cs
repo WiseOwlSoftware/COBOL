@@ -658,7 +658,19 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 {
                     bool sameUsage = source is BoundFieldOperand fsrc
                         && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
-                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, sameUsage ? SendingRef.SameUsageMove : SendingRef.MoveToNumeric);
+                    // ⛔ A SAME-USAGE FLOAT MOVE IS A COPY, NOT A CONVERSION (kb/Work PB961). §14.9.25.4 GR6 c):
+                    // "When the receiving data item is described with the same usage specification as the sending
+                    // operand, the data in the sending operand is transferred to the receiving data item without
+                    // change" — NOTE 3 names NaN representations as what that preserves. The algebraic path below
+                    // widens a binary32 sender to binary64, which QUIETS a signaling NaN, so the copy reads the
+                    // sender on its OWN carrier (a float stays a float end to end) and re-encodes only the
+                    // receiver's endianness, which is the one change GR6 c) permits.
+                    if (sameUsage)
+                    {
+                        string raw = NumericRenderer.FloatCarrierRead(((BoundFieldOperand)source).Place, SendingRef.SameUsageMove);
+                        return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(raw, target.ProfileName, pic.IsSingle) : raw;
+                    }
+                    NumX fsrcNum = num.AsNum(source, ReceiverContext.None, SendingRef.MoveToNumeric);
                     // §14.9.25.4 GR6 d)4.a: "If the algebraic value of the sending operand is farther from zero than
                     // is permitted by the usage specifications of the receiving data item, the EC-DATA-OVERFLOW
                     // exception condition is set to exist" — a FATAL condition (Table 13), MOVE-only, armed by
@@ -677,7 +689,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                             : $"({pic.ClrType})({NumericRenderer.Real(fsrcNum)})";
                     // A WINDOWED float receiver (Tier-B / image-stored — the Step D arm-1 dissolution) re-encodes
                     // as its IEEE window bytes.
-                    return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName) : fval;
+                    return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName, pic.IsSingle) : fval;
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)

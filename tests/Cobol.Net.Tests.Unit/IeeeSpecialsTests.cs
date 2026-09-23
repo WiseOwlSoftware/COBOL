@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.CodeGen;
+using CobolNet.Runtime;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -74,16 +76,42 @@ public sealed class IeeeSpecialsTests
     [InlineData(35, false, true)]
     [InlineData(35, true, false)]
     [InlineData(35, true, true)]
-    public void TheEmittedExpression_EvaluatesToTheDocumentedBits(int generalRule, bool single, bool negative)
+    public void TheStoredImage_CarriesTheDocumentedBits(int generalRule, bool single, bool negative)
     {
         var which = Of(generalRule);
-        // ⛔ THE TWO HALVES OF THE DETERMINATION, ASSERTED EQUAL. Bits() is what the test above decodes and what
-        // CONFORMANCE.md §7 publishes; Text() is what the emitter actually writes into the generated C#. Nothing
-        // else forces them to agree — an edit to one is exactly the drift this catches. The evaluation is done
-        // here rather than by string comparison, so the test asks "what does the emitted source MEAN".
-        string text = IeeeSpecials.Text(which, single, negative);
+        // ⛔ THE STORED IMAGE, NOT THE EXPRESSION (kb/Work PB961). This test used to evaluate the emitted
+        // expression by hand and passed while every stored FLOAT-BINARY-32 signaling NaN was QUIET: the
+        // expression was right, and the pipeline behind it — a JIT constant carried as a double, and a binary32
+        // image lane that widened through double — quieted it. So it now follows the value the whole way: the
+        // text the emitter writes (RuntimeApi.FloatFromBits over IeeeSpecials.Bits) names the runtime call and
+        // the literal, the literal is fed to THAT call, and the result is stored through the carrier's own image
+        // lane, in both byte orders, then read back — as bits, and as the carrier value the typed store takes.
         ulong expected = IeeeSpecials.Bits(which, single, negative);
-        Assert.Equal(expected, Evaluate(text, single));
+        string text = RuntimeApi.FloatFromBits(expected, single);
+        Assert.StartsWith(single ? "CobolFloat.FromBinary32Bits(0x" : "CobolFloat.FromBinary64Bits(0x", text);
+        ulong literal = Convert.ToUInt64(new string([.. text[(text.IndexOf("0x", StringComparison.Ordinal) + 2)..].TakeWhile(Uri.IsHexDigit)]), 16);
+        Assert.Equal(expected, literal);
+        foreach (bool little in new[] { false, true })
+        {
+            var profile = new NumProfile
+            {
+                Digits = 0,
+                FractionDigits = 0,
+                Signed = true,
+                Truncation = NumericTruncation.DigitCount,
+                ByteForm = single ? NumericByteForm.Ieee32 : NumericByteForm.Ieee64,
+                StorageLength = single ? 4 : 8,
+                FloatLittleEndian = little,
+            };
+            string image = single
+                ? CobolNum.FormatImageSingle(CobolFloat.FromBinary32Bits((uint)literal), profile)
+                : CobolNum.FormatImageFloat(CobolFloat.FromBinary64Bits(literal), profile);
+            Assert.Equal(expected, CobolNum.ImageFloatBits(image, profile));
+            ulong back = single
+                ? BitConverter.SingleToUInt32Bits(CobolNum.StoreImage(image, profile, 0f))
+                : BitConverter.DoubleToUInt64Bits(CobolNum.StoreImage(image, profile, 0d));
+            Assert.Equal(expected, back);
+        }
     }
 
     /// <summary>The §14.9.39.4 general rule a theory row names — GR33 is the infinity, GR34 the quiet NaN,
@@ -96,29 +124,4 @@ public sealed class IeeeSpecialsTests
         35 => IeeeSpecial.SignalingNaN,
         _ => throw new ArgumentOutOfRangeException(nameof(generalRule), generalRule, "not a §14.9.39.4 Format-15 float rule"),
     };
-
-    /// <summary>Evaluate the small closed set of expression shapes <see cref="IeeeSpecials.Text"/> produces —
-    /// a CLR infinity constant, or a BitConverter reinterpretation of a hex literal — and return the raw bits.
-    /// Deliberately a tiny recogniser rather than a Roslyn script: a shape this reader does not know is a FAILED
-    /// assertion, so a third expression form cannot slip through unverified.</summary>
-    private static ulong Evaluate(string text, bool single)
-    {
-        if (text.EndsWith("PositiveInfinity", StringComparison.Ordinal))
-            return single
-                ? (uint)BitConverter.SingleToInt32Bits(float.PositiveInfinity)
-                : (ulong)BitConverter.DoubleToInt64Bits(double.PositiveInfinity);
-        if (text.EndsWith("NegativeInfinity", StringComparison.Ordinal))
-            return single
-                ? (uint)BitConverter.SingleToInt32Bits(float.NegativeInfinity)
-                : (ulong)BitConverter.DoubleToInt64Bits(double.NegativeInfinity);
-        int at = text.IndexOf("0x", StringComparison.Ordinal);
-        Assert.True(at >= 0, $"unrecognised IEEE-special expression shape: {text}");
-        string hex = new([.. text[(at + 2)..].TakeWhile(Uri.IsHexDigit)]);
-        ulong bits = Convert.ToUInt64(hex, 16);
-        // Round-trip through the very conversion the generated code performs, so the assertion covers the
-        // BitConverter call the emitter names and not merely the literal beside it.
-        return single
-            ? (uint)BitConverter.SingleToInt32Bits(BitConverter.Int32BitsToSingle(unchecked((int)(uint)bits)))
-            : (ulong)BitConverter.DoubleToInt64Bits(BitConverter.Int64BitsToDouble(unchecked((long)bits)));
-    }
 }

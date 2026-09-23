@@ -420,12 +420,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // `(double)(<string window>)`). The window's IEEE bytes decode through the distinctly-named lane.
         { IsFloat: true } when p.Item.StoreAsImage => new NumX(
             sending.FloatChecked()
-                ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName))
-                : RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName),
+                ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, binary32Carrier: false))
+                : RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, binary32Carrier: false),
             0, Real: true),
         { IsFloat: true } => new NumX(
             sending.FloatChecked() ? RuntimeApi.FloatSending($"(double)({PlaceRenderer.Read(p)})") : $"(double)({PlaceRenderer.Read(p)})",
             0, Real: true),
+        // (A COPY of a float item's content — not an arithmetic read — is FloatCarrierRead below: this arm widens
+        // to binary64 because arithmetic evaluates there (D16), and a widening quiets a signaling NaN.)
         // The windowed 16-byte UNSIGNED arm precedes the signed decode (the scout's silent-wrong-answer: a
         // wide unsigned COMP-5 window decoded SIGNED above Int128.MaxValue's bit pattern) — ParseImageU128
         // reinterprets bit-identically into the UInt128 lane, which keeps the item's full [0, 2^128) container
@@ -652,6 +654,21 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         if (Checked)
             return new NumX($"CobolNum.{(op == "+" ? "AddChecked" : "SubChecked")}({Align(a, s)}, {Align(b, s)})", s);
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s);
+    }
+
+    /// <summary>⛔ A FLOAT ITEM'S CONTENT ON ITS OWN CARRIER — <c>float</c> for binary32, <c>double</c> for
+    /// binary64 — for a COPY of that content, never for arithmetic (kb/Work PB961). The arithmetic read
+    /// (<see cref="FieldNumCore"/>'s float arms) widens to binary64 because D16 evaluates there, and an ISO/IEC
+    /// 60559 widening QUIETS a signaling NaN; a transfer §14.9.25.4 GR6 c) makes "without change" must not take
+    /// it. A windowed (image-stored) item decodes through the binary32 carrier lane
+    /// (<c>CobolNum.ParseImageSingle</c>). The §14.6.13.2 rule 3 read check is decided by the ONE reader of that
+    /// rule's exemption list, <see cref="SendingRefRules.FloatChecked"/>, exactly as on the arithmetic read.</summary>
+    internal static string FloatCarrierRead(Place p, SendingRef sending)
+    {
+        string raw = p.Item.StoreAsImage
+            ? RuntimeApi.NumParseImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, binary32Carrier: p.Item.Pic!.IsSingle)
+            : PlaceRenderer.Read(p);
+        return sending.FloatChecked() ? RuntimeApi.FloatSending(raw) : raw;
     }
 
     /// <summary>Rescale a value's unscaled long up to <paramref name="toScale"/> (widening only here → exact).

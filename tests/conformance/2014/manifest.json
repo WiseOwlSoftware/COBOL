@@ -4,6 +4,7 @@
   "pb892_inline_invocation_resume",
   "pb829_dynamic_length_structure",
   "pb225_float_class_conditions",
+  "pb961_signaling_nan_binary32",
   "pb880_move_corresponding_zero_length_pair",
   "pb653_nested_float_rounded_mode",
   "pb654_prohibited_gate_one_evaluation",

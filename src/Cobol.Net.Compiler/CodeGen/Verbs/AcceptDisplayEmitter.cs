@@ -124,7 +124,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
                 // rules), so no EC-DATA-OVERFLOW; a WINDOWED receiver re-encodes its IEEE window bytes.
                 string fvalue = $"({fpic.ClrType})AcceptSource.DeviceFloat()";
                 w.Line(PlaceRenderer.Write(target, item.StoreAsImage
-                    ? RuntimeApi.NumFormatImageFloat(fvalue, item.ProfileName)
+                    ? RuntimeApi.NumFormatImageFloat(fvalue, item.ProfileName, fpic.IsSingle)
                     : fvalue));
                 return;
             case { Category: PicCategory.Boolean } bpic:

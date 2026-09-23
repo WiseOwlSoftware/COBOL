@@ -27,42 +27,39 @@ public enum IeeeSpecial
 /// name IS the carrier and nothing is approximated here. FLOAT-BINARY-128 and the two FLOAT-DECIMAL usages are
 /// Annex A.3 items 17/19 documented non-support, refused at declaration (COBOLNET1564), so no receiver of those
 /// usages reaches this code.</para>
-/// <para>⛔ EVERY NaN IS SPELLED AS A BIT PATTERN, never as a CLR constant or a negation. <c>double.NaN</c> is
+/// <para>⛔ EVERY VALUE IS SPELLED AS A BIT PATTERN, never as a CLR constant or a negation. <c>double.NaN</c> is
 /// 0xFFF8000000000000 — its sign bit is SET — so GR34's "otherwise the sign is positive" would have to be
 /// written <c>-double.NaN</c> and would then depend on how a constant negation folds; and the CLR has no
-/// signaling-NaN constant at all, because every managed arithmetic path quiets one. A
-/// <c>BitConverter.Int64BitsToDouble</c> / <c>Int32BitsToSingle</c> call is a reinterpretation, performs no
-/// arithmetic, and so cannot quiet the value.</para></summary>
+/// signaling-NaN constant at all, because every managed arithmetic path quiets one.</para>
+/// <para>⛔ AND A BIT PATTERN IS NOT ENOUGH ON ITS OWN (kb/Work PB961). This class used to emit an inline
+/// <c>BitConverter.Int32BitsToSingle(unchecked((int)0x7F800001))</c> on the premise that "a reinterpretation
+/// performs no arithmetic, and so cannot quiet the value". The EXPRESSION cannot; the PIPELINE did, twice: the
+/// JIT folds an inline reinterpretation of a constant into a floating constant, which it carries as a
+/// <c>double</c> (the binary32 SNaN came out <c>0x7FC00001</c> in an optimized build), and the binary32 image
+/// lane widened the value through <c>double</c> on its way to the item's bytes. The value now reaches the item
+/// through <c>CobolFloat.FromBinary32Bits</c> (opaque to the JIT) and <c>CobolNum.FormatImageSingle</c> (no
+/// binary64), and <c>IeeeSpecialsTests</c> asserts the STORED image, not the expression.</para></summary>
 internal static class IeeeSpecials
 {
-    /// <summary>The C# expression for <paramref name="which"/> in the interchange format of the receiver's
-    /// carrier.</summary>
+    /// <summary>⛔ THE TABLE — the interchange-format bits of <paramref name="which"/> for the receiver's carrier,
+    /// and the ONLY place they are written (binary32 in the low 32 bits). The emitter spells them through
+    /// <c>RuntimeApi.FloatFromBits</c> — an opaque runtime call, never an inline constant (kb/Work PB961 — see
+    /// <c>CobolFloat.FromBinary32Bits</c> for why a JIT constant quieted the binary32 signaling NaN) — so the
+    /// emitted value is these bits by construction, and a test DECODES them (is it a NaN? is the quiet bit where
+    /// GR34/GR35 require? is the sign GR3x's?) instead of string-matching emitted text.
+    /// <para>ISO/IEC 60559:2020 Clause 3: a NaN has the biased exponent all ones and a nonzero significand; the
+    /// LEADING significand bit distinguishes them — SET is quiet, CLEAR is signaling (and a signaling NaN needs
+    /// some other significand bit nonzero, so the payload is the minimal 1).</para>
+    /// <code>
+    ///   binary32  quiet +  0x7FC00000           signaling +  0x7F800001
+    ///   binary64  quiet +  0x7FF8000000000000   signaling +  0x7FF0000000000001
+    /// </code>
+    /// <para>The payload is A.1 item 176's implementor-defined value: ZERO for the quiet form (the canonical NaN
+    /// every IEEE implementation produces) and ONE for the signaling form (the smallest payload that keeps the
+    /// significand nonzero). Both are published in docs/CONFORMANCE.md §7, DOC-A.1-176.</para></summary>
     /// <param name="single">True for binary32 (<c>float</c> — USAGE FLOAT-BINARY-32), false for binary64.</param>
     /// <param name="negative">GR33/GR34/GR35's own last sentence: the SIGN phrase's sign, positive when the
     /// phrase is absent.</param>
-    internal static string Text(IeeeSpecial which, bool single, bool negative)
-    {
-        if (which is IeeeSpecial.Infinity)
-            return $"{(single ? "float" : "double")}.{(negative ? "Negative" : "Positive")}Infinity";
-        // ISO/IEC 60559:2020 Clause 3 / §6.2.1: a NaN has the biased exponent all ones and a nonzero significand;
-        // the LEADING significand bit distinguishes them — SET is quiet, CLEAR is signaling (and a signaling NaN
-        // needs some other significand bit nonzero, so the payload is the minimal 1).
-        //   binary32  quiet +  0x7FC00000   signaling +  0x7F800001
-        //   binary64  quiet +  0x7FF8000000000000   signaling +  0x7FF0000000000001
-        // The payload is A.1 item 176's implementor-defined value: ZERO for the quiet form (the canonical NaN
-        // every IEEE implementation produces) and ONE for the signaling form (the smallest payload that keeps
-        // the significand nonzero). Both are published in docs/CONFORMANCE.md §7, DOC-A.1-176.
-        bool quiet = which is IeeeSpecial.QuietNaN;
-        char signNibble = negative ? 'F' : '7';
-        return single
-            ? $"System.BitConverter.Int32BitsToSingle(unchecked((int)0x{signNibble}{(quiet ? "FC00000" : "F800001")}))"
-            : $"System.BitConverter.Int64BitsToDouble(unchecked((long)0x{signNibble}{(quiet ? "FF8000000000000" : "FF0000000000001")}))";
-    }
-
-    /// <summary>The raw bits the <see cref="Text"/> expression evaluates to — the same table, as a value rather
-    /// than as source. It exists so a test can DECODE the determination (is it a NaN? is the quiet bit where
-    /// GR34/GR35 require? is the sign GR3x's?) instead of string-matching the emitted text, and so the two can
-    /// be asserted equal to each other.</summary>
     internal static ulong Bits(IeeeSpecial which, bool single, bool negative)
     {
         ulong signBit = negative ? (single ? 0x8000_0000UL : 0x8000_0000_0000_0000UL) : 0UL;

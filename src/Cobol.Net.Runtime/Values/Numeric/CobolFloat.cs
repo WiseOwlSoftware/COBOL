@@ -49,6 +49,23 @@ public static class CobolFloat
             NumberStyles.Float, CultureInfo.InvariantCulture);
     }
 
+    /// <summary>⛔ THE ONE WAY GENERATED CODE MATERIALIZES A FLOAT FROM ITS INTERCHANGE BITS (ISO §14.9.39.4 rules
+    /// 33–35 — the SET Format-15 canonical values; kb/Work PB961). An OPAQUE call, deliberately: a
+    /// <c>BitConverter.Int32BitsToSingle(&lt;constant&gt;)</c> written inline in the generated C# is a JIT
+    /// constant, and RyuJIT carries a floating constant as a <c>double</c> — so an optimized build folded the
+    /// binary32 signaling NaN <c>0x7F800001</c> through a binary32 → binary64 conversion and stored the QUIET
+    /// <c>0x7FC00001</c> (measured: Release, x64, .NET 10; the unoptimized build kept the bits). No arithmetic and
+    /// no conversion can reach the bits through a <see cref="MethodImplOptions.NoInlining"/> call whose argument
+    /// is an integer, so rule 35's "canonical representation of a signaling NaN" survives by construction, not
+    /// by the JIT's current folding policy. The binary64 twin is not affected today and takes the same shape so
+    /// there is one mechanism, not a width-dependent pair.</summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    public static float FromBinary32Bits(uint bits) => BitConverter.UInt32BitsToSingle(bits);
+
+    /// <inheritdoc cref="FromBinary32Bits"/>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    public static double FromBinary64Bits(ulong bits) => BitConverter.UInt64BitsToDouble(bits);
+
     /// <summary>10^0 … 10^22 — every power of ten a double represents EXACTLY.</summary>
     private static readonly double[] ExactPow10 =
     [

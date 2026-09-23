@@ -25,6 +25,14 @@ public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 /// QUANTIZED value, against Int128 scale-37 constants (<c>CobolIntrinsics.FromDoubleBounded</c>).</summary>
 public enum IntrinsicCodomain { None, UnitOpen, HalfPi, Pi }
 
+/// <summary>The rational VALUE domain a §15.x.3 "The value of argument-1 shall be …" rule states for a §15.4.1
+/// binary64-family row (kb/Work PB952) — the argument-side twin of <see cref="IntrinsicCodomain"/>. §15.3 rule 14
+/// makes a value outside it EC-ARGUMENT-FUNCTION, and the renderer screens it on the EXACT operand before the
+/// binary64 conversion (<c>CobolIntrinsics.DomainScaled</c> / <c>DomainDec</c> / <c>DomainReal</c>), because a
+/// correctly-rounded conversion moves a value across the bound. <c>IntrinsicArgumentDomainDriftTests</c> derives
+/// the column from the standard's own rule text, so a new row with such a rule cannot omit it.</summary>
+public enum IntrinsicDomain { None, ClosedUnit, NonNegative, Positive, AboveMinusOne }
+
 /// <summary>How a catalog row binds: <see cref="Runtime"/> — a runtime body; <see cref="Fold"/> — a
 /// compile-time fold; <see cref="Deferred"/> — the renderer's never-hit backstop (P11 drove the backlog to
 /// zero and it stays only so an unregistered row fails LOUD).
@@ -54,7 +62,8 @@ public readonly record struct IntrinsicSig(
     string ArgKinds, string RuntimeMethod, IntrinsicBind Bind, bool Float,
     int IntroducedIn, int? RemovedIn = null,
     IntrinsicResultRule Result = IntrinsicResultRule.Fixed,
-    IntrinsicCodomain Codomain = IntrinsicCodomain.None)
+    IntrinsicCodomain Codomain = IntrinsicCodomain.None,
+    IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null)
 {
     /// <summary>The §15.3 kind code of argument position <paramref name="i"/> (0-based; the last code repeats).</summary>
     public char ArgKind(int i) =>
@@ -124,17 +133,17 @@ public static class IntrinsicCatalog
 
         // ── The 1989 Intrinsic Function Module (IntroducedIn 85 — the NIST IF101A..IF142A surface) ──────────
         // §15.4.1 floating-math family (double + FromDouble quantization; Float: true).
-        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.Pi));         // §15.8.4 r1: [0, π], π irrational
-        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.HalfPi));     // §15.10.4 r1: [−π/2, π/2], irrational
+        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.Pi, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§15.8.3 rule 2"));         // §15.8.4 r1: [0, π], π irrational
+        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.HalfPi, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§15.10.3 rule 2"));     // §15.10.4 r1: [−π/2, π/2], irrational
         Add(new("ATAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Atan", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.HalfPi));     // §15.11.4 r1: (−π/2, π/2), OPEN
         Add(new("COS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Cos", IntrinsicBind.Runtime, true, 85));             // §15.20
         Add(new("SIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sin", IntrinsicBind.Runtime, true, 85));             // §15.82
         Add(new("TAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Tan", IntrinsicBind.Runtime, true, 85));             // §15.89
-        Add(new("SQRT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sqrt", IntrinsicBind.Runtime, true, 85));           // §15.84
-        Add(new("LOG", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log", IntrinsicBind.Runtime, true, 85));             // §15.55
-        Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85));         // §15.56
-        Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85));    // §15.9
-        Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85)); // §15.74
+        Add(new("SQRT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sqrt", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§15.84.3 rule 2"));           // §15.84
+        Add(new("LOG", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§15.55.3 rule 2"));             // §15.55
+        Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§15.56.3 rule 2"));         // §15.56
+        Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§15.9.3 rule 2"));    // §15.9
+        Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§15.74.3 rule 2")); // §15.74
         Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.UnitOpen));        // §15.75.4 r1: [0, 1), OPEN
         Add(new("STANDARD-DEVIATION", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "StandardDeviation", IntrinsicBind.Runtime, true, 85)); // §15.86
         Add(new("VARIANCE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "Variance", IntrinsicBind.Runtime, true, 85));          // §15.98

@@ -181,10 +181,18 @@ internal static class RuntimeApi
     public static string NumSendingImage(string image, string profile, bool sending) =>
         sending ? $"{nameof(CobolNum)}.{nameof(CobolNum.SendingImage)}({image}, {profile})" : image;
 
-    /// <summary>The FLOAT decode lane (kb/Work PB164 wave 2) — <c>CobolNum.ParseImageFloat</c>, the IEEE bit
-    /// reinterpretation (the Int128 lane would numerically CONVERT).</summary>
-    public static string NumParseImageFloat(string image, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageFloat)}({image}, {profile})";
+    /// <summary>The FLOAT decode lane (kb/Work PB164 wave 2) — the IEEE bit reinterpretation (the Int128 lane would
+    /// numerically CONVERT).</summary>
+    /// <param name="binary32Carrier">NO DEFAULT, so every site states which value it wants (kb/Work PB961).
+    /// <c>true</c> — the item is binary32 (<c>PicInfo.IsSingle</c>) and the read is a STORE, COPY, class test or
+    /// DISPLAY of its content: <c>CobolNum.ParseImageSingle</c>, a <c>float</c> with no binary64 between, because
+    /// a binary32 → binary64 widening QUIETS a signaling NaN (§14.9.25.4 GR6 c) — a same-usage transfer is
+    /// "without change"). <c>false</c> — a binary64 item, or an ARITHMETIC read of either width, where the
+    /// widening is the operation: <c>CobolNum.ParseImageFloat</c>, a <c>double</c>.</param>
+    public static string NumParseImageFloat(string image, string profile, bool binary32Carrier) =>
+        binary32Carrier
+            ? $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageSingle)}({image}, {profile})"
+            : $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageFloat)}({image}, {profile})";
 
     /// <summary>The UNSIGNED decode twins (the Step D arm-1 dissolution) — a ulong/UInt128-carried window
     /// decodes to its container value, bit-identically through the signed lane.
@@ -202,10 +210,18 @@ internal static class RuntimeApi
     public static string NumParseImageU128(string image, string profile, bool sending) =>
         $"{nameof(CobolNum)}.{(sending ? nameof(CobolNum.ParseImageU128Sending) : nameof(CobolNum.ParseImageU128))}({image}, {profile})";
 
-    /// <summary>The FLOAT encode lane (kb/Work PB164 wave 2) — <c>CobolNum.FormatImageFloat</c>, distinctly
-    /// named because FormatImage overloads on a float would make integer call sites ambiguous.</summary>
-    public static string NumFormatImageFloat(string value, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImageFloat)}({value}, {profile})";
+    /// <summary>The FLOAT encode lane (kb/Work PB164 wave 2) — distinctly named because FormatImage overloads on a
+    /// float would make integer call sites ambiguous.</summary>
+    /// <param name="binary32">NO DEFAULT (kb/Work PB961): the RECEIVING item's width, <c>PicInfo.IsSingle</c>. A
+    /// binary32 item encodes through <c>CobolNum.FormatImageSingle</c> after an explicit <c>(float)</c> — a no-op on
+    /// a <c>float</c> value, the item's own narrowing on a <c>double</c> one — so a binary32 value never widens on
+    /// its way to its own bytes (a widening quiets a signaling NaN, which ISO §14.9.39.4 rule 35 and §14.9.25.4
+    /// GR6 c) both forbid). The choice is keyed on the ITEM, never on the value's C# type, so a new site cannot
+    /// pick the wrong lane by passing the right-looking expression.</param>
+    public static string NumFormatImageFloat(string value, string profile, bool binary32) =>
+        binary32
+            ? $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImageSingle)}((float)({value}), {profile})"
+            : $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImageFloat)}({value}, {profile})";
 
     // ── Strings (CobolString) ──
 
@@ -434,6 +450,21 @@ internal static class RuntimeApi
         _ => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CodomainPi37)}",
     };
 
+    /// <summary>⛔ THE argument-1 domain screen (ISO §15.3 rule 14; kb/Work PB952) — <c>CobolIntrinsics.DomainScaled</c>
+    /// / <c>DomainDec</c> / <c>DomainReal</c> over the operand on its OWN carrier, returning the binary64 the body
+    /// computes on. The carrier picks the overload by NAME (an integer expression converts to Int128 and to double
+    /// alike — CS0121): the exact scaled integer at its scale, the SDIDI, or a binary64 that is already the value.
+    /// A UInt128 operand (a 16-byte unsigned COMP-5, scale 0) is its own double's integer, which no correctly-rounded
+    /// conversion moves across −1, 0 or +1, so it takes the binary64 arm.</summary>
+    public static string DomainArg(Emit.NumX x, CobolNet.Binding.IntrinsicDomain domain, string function, string rule)
+    {
+        string tail = $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.ArgumentDomain)}.{domain}, "
+            + $"{Emit.EmitText.CsLiteral(function)}, {Emit.EmitText.CsLiteral(rule)}";
+        return x.Dec ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainDec)}({x.Expr}, {tail})"
+            : x.Real || x.U ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainReal)}({Emit.NumericRenderer.Real(x)}, {tail})"
+            : $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainScaled)}((Int128)({x.Expr}), {x.Scale}, {tail})";
+    }
+
     /// <summary>A VALUE-SEMANTICS rescale — <c>CobolNum.Rescale</c>. ⛔ Every render of this today NARROWS to
     /// scale 0 (an integer intrinsic argument, a LINAGE line number, an unstringing pointer), where the plain
     /// rescale is exact. It is NOT a landing into a receiver: a receiver-bound alignment takes
@@ -609,6 +640,17 @@ internal static class RuntimeApi
     /// round-trip, §14.9.11 GR1 implementor-defined).</summary>
     public static string FloatDisplay(string value) =>
         $"{nameof(CobolFloat)}.{nameof(CobolFloat.Display)}({value})";
+
+    /// <summary>A float carrier's value FROM ITS INTERCHANGE BITS — <c>CobolFloat.FromBinary32Bits</c> /
+    /// <c>FromBinary64Bits</c> over an unsigned hex literal (binary32 in the low 32 bits of <paramref name="bits"/>).
+    /// The SET Format-15 canonical values (ISO §14.9.39.4 rules 33–35, <c>IeeeSpecials.Bits</c>) are spelled ONLY
+    /// through this: an opaque runtime call, because an inline <c>BitConverter</c> reinterpretation of a constant
+    /// is a JIT floating constant, and the JIT's binary64 constant quiets a binary32 signaling NaN (kb/Work
+    /// PB961).</summary>
+    public static string FloatFromBits(ulong bits, bool single) =>
+        single
+            ? $"{nameof(CobolFloat)}.{nameof(CobolFloat.FromBinary32Bits)}(0x{(uint)bits:X8}u)"
+            : $"{nameof(CobolFloat)}.{nameof(CobolFloat.FromBinary64Bits)}(0x{bits:X16}UL)";
 
     /// <summary>The checked store of a MOVE algebraic value into a SINGLE-precision float receiver —
     /// <c>CobolFloat.StoreSingleChecked(src)</c>: raises the fatal EC-DATA-OVERFLOW when a finite source overflows to

@@ -1337,7 +1337,7 @@ public sealed record BoundSetSize(Place Target, BoundExpr Amount, int MaxSize) :
 /// standard floating-point usage, i.e. to the ISO/IEC 60559:2020 basic interchange format the rules name.
 /// ⛔ The ENUM rides here, not the backend expression: a bound node states what the standard requires, and how
 /// to spell an infinity is the code generator's question (a second backend behind <c>ICodeGenBackend</c> spells
-/// it differently). <c>IeeeSpecials.Text</c> does the spelling. Null exactly when <paramref name="Store"/> is
+/// it differently). <c>RuntimeApi.FloatFromBits</c> does the spelling, over <c>IeeeSpecials.Bits</c>. Null exactly when <paramref name="Store"/> is
 /// set.</param>
 /// <param name="NegativeSign">GR33/GR34/GR35's own last sentence — the SIGN phrase's sign, false when the phrase
 /// is absent ("otherwise the sign is positive"). Meaningless, and always false, on a <paramref name="Store"/>

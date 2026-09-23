@@ -235,10 +235,10 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         {
             if (st.Ieee is { } which)
             {
-                string ieee = IeeeSpecials.Text(which,
-                    single: st.Target.Item.Pic!.Usage is Usage.FloatBinary32, negative: st.NegativeSign);
+                bool single = st.Target.Item.Pic!.IsSingle;
+                string ieee = RuntimeApi.FloatFromBits(IeeeSpecials.Bits(which, single, st.NegativeSign), single);
                 ctx.Writer.Line(PlaceRenderer.Write(st.Target, st.Target.Item.StoreAsImage
-                    ? RuntimeApi.NumFormatImageFloat(ieee, st.Target.Item.ProfileName)
+                    ? RuntimeApi.NumFormatImageFloat(ieee, st.Target.Item.ProfileName, st.Target.Item.Pic!.IsSingle)
                     : ieee));
                 continue;
             }
