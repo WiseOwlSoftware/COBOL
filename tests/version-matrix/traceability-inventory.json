@@ -18501,13 +18501,13 @@
   "ordinal": 2,
   "subject": "Report description entry",
   "rule-digest": "f0b8f2f6e134",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/Cobol.Net.Compiler/Binding/UnrepeatedElements.cs#AtMostOnce",
+  "test-ref": "conformance:85/pb483_control_final_first; conformance:negative/pb483-report-format-element-repeated; conformance-test:ReportClauseFormatScreenTests.ControlFinal_FirstThenDataNames_Accepted; conformance-test:ReportClauseFormatScreenTests.ControlClause_Twice_2423; conformance-test:ReportClauseFormatScreenTests.PageClause_Twice_2423",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB483 sibling sweep (wave 58). The clauses following report-name-1 are parsed in any order (reportDescriptionClause*; the golden writes CONTROL after PAGE). An ORDER licence is not a repetition licence: 13.14.2 prints each clause in its own bracket with no ellipsis (5.2.6.2 / 5.2.7), so a repeated GLOBAL, CODE, CONTROL or PAGE clause is COBOLNET2423 - two CONTROL clauses used to concatenate silently into one hierarchy.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.14.4-1",
@@ -18891,13 +18891,13 @@
   "ordinal": 5,
   "subject": "Data description entry",
   "rule-digest": "58aada85fd5e",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
+  "test-ref": "conformance:negative/pb519-external-redefines; conformance:85/pb518_clause_placement_legal; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered; unit:DataClausePlacementDriftTests.ExternalOnTheAnchor_StillRebasesTheWholeClass",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB519 — The BASED leg is enforced and cites SR5 verbatim (`01 B IS EXTERNAL BASED PIC X(4).` -> COBOLNET0881). The REDEFINES leg is enforced NOWHERE and is not merely permissive: `01 A PIC X(4) VALUE \"ABCD\". 01 B REDEFINES A IS EXTERNAL PIC X(4).` compiles clean and `DISPLAY A` prints four SPACES at every edition — CallBindExternalAndGlobal re-bases the redefines ANCHOR's whole class onto the run-unit ExternalStore cell (its own comment: 'an EXTERNAL record that is also a redefines anchor folds its whole class onto the shared backing'), so A silently loses its VALUE. Editions: the REDEFINES leg is live from 1985; the BASED leg from 2002. See finding data-description-entry-p2/F3. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry (~2827-2836 — the BASED x EXTERNAL arm, COBOLNET0881, quoting SR5); no site anywhere for the REDEFINES x EXTERNAL half. src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal:328 is where the unscreened combination then does damage.",
-  "state": "GAP"
+  "notes": "kb/Work PB519 LANDED. Both legs of 'The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES or BASED clause' are ONE NotWith row of the clause-placement table (ClausePlacementRules.Rules), screened at BindEntry -> COBOLNET2404; the BASED leg's private COBOLNET0881 arm in the BASED block is deleted. The refusal DROPS the EXTERNAL clause, so HasExternalClause is false and CallBindExternalAndGlobal (which now reads only the admitted bound facts, never the parse tree) cannot re-base the redefinER - the runtime arm that folded the redefines ANCHOR onto the external cell and discarded its VALUE; an InvalidOperationException now guards that invariant. MEASURED on this worktree at 85/2002/2014/2023: `01 A PIC X(4) VALUE \"ABCD\". 01 B REDEFINES A IS EXTERNAL PIC X(4).` -> COBOLNET2404 (was: compiled clean, DISPLAY A printed spaces); EXTERNAL on the ANCHOR still re-bases the whole class (golden pb518_clause_placement_legal, X=1234 through a second program). The BASED leg is live from 2002 (BASED's introduction), the REDEFINES leg from 1985.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-6",
@@ -18906,13 +18906,13 @@
   "ordinal": 6,
   "subject": "Data description entry",
   "rule-digest": "b725ba4b10bc",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
-  "test-ref": "conformance:negative/constant-record-level",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/constant-record-level; conformance:negative/pb518-global-below-level-1; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB518 — The CONSTANT RECORD half conforms and is pinned by a spec-derived negative: `05 H CONSTANT RECORD PIC X(4)` -> COBOLNET1549 'the CONSTANT RECORD clause may be specified only in a data description entry whose level-number is 1 (ISO §13.16.3 SR6)'. The GLOBAL half is NOT enforced at any level: `01 G. 05 H IS GLOBAL PIC X(4) VALUE \"ABCD\".` compiles and runs clean at 85/2002/2014/2023 with no diagnostic, and the clause is silently dropped (the level test is a `continue` in the registration scan, so the item is simply not registered as global). Level 77 is also admitted, which SR6 and §13.18.27.3 SR1b (cite-checked) both forbid — kb/Work PB163 records exactly this as landed-with-residue item (a) 'the 01/77 admission is looser than both SRs ... a clause-site screen belonging to the §13.18.27 checks'; the level-5 silent drop measured here is wider than that residue text. See finding data-description-entry-p2/F2. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry (~2744-2748 — the CONSTANT RECORD level test, COBOLNET1549 quoting SR6); src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal:355 (`if (... lvl is not (1 or 77)) continue;` — the GLOBAL half, a silent filter, not a check)",
-  "state": "GAP"
+  "notes": "kb/Work PB518 LANDED. The GLOBAL half is the Residence row of the clause-placement table (level 1, in the file / working-storage / local-storage / linkage section per 13.18.27.3 SR1 b)) -> COBOLNET2404, at the clause site; the registration scan's `continue` filter that silently annulled the clause is gone. Level 77 is refused too - SR6 says level-number 1 and 13.16.3 SR1 lists 77 as a distinct level-number. MEASURED at 85/2002/2014/2023: `01 G. 05 H IS GLOBAL ...` and `77 H IS GLOBAL ...` -> COBOLNET2404 (were: accepted, clause dropped). The CONSTANT RECORD half is unchanged (BindEntry's CONSTANT RECORD block, COBOLNET1549, conformance:negative/constant-record-level).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-7",
@@ -18921,13 +18921,13 @@
   "ordinal": 7,
   "subject": "Data description entry",
   "rule-digest": "76154300747a",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenFileRecordEntryNames",
+  "test-ref": "conformance:negative/pb518-external-fd-filler-record; unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB518 — Both halves unenforced, and both fail SILENTLY. (1) `01 FILLER IS EXTERNAL PIC X(4).` and `01 FILLER IS GLOBAL PIC X(4) VALUE \"ABCD\".` compile and run clean at 85/2002/2014/2023 — the clause is discarded, so the item is neither externalized nor visible to a contained program, and the user is told nothing. (2) The file-description half — 'or for record descriptions associated with a file description entry that contains the EXTERNAL or GLOBAL clause' — has no check either: an `FD F IS EXTERNAL.` over `01 FILLER PIC X(10).` compiles clean (probe q_sr7_fd.cob). A DataBinder.Reports.cs comment at ~317 asserts 'A GENERATE-able detail always has a data-name (§13.16.3 SR7) — unreachable unless the binder let ...', i.e. an invariant the binder does not in fact establish. See finding data-description-entry-p2/F2. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal:357 (`if (entry.dataName()?.GetText() is not { } name) continue;`) — the only place the entry-name is consulted for an EXTERNAL/GLOBAL entry, and it is a skip, not a diagnostic. No site at all for the file-description-entry half.",
-  "state": "GAP"
+  "notes": "kb/Work PB518 LANDED. Both halves: the entry's own EXTERNAL/GLOBAL clause without the data-name format (the DataNameRequired row, BindEntry) and a record description of an EXTERNAL or GLOBAL FD without one (ScreenFileRecordEntryNames, after the FD's clause loop and before the implied record, which is not written) -> COBOLNET2404. MEASURED at 85/2002/2014/2023: `01 FILLER IS EXTERNAL`, `01 FILLER IS GLOBAL`, `01 IS GLOBAL` (implied FILLER), `FD F IS EXTERNAL. 01 FILLER PIC X(10).` and `FD F IS GLOBAL. 01 FILLER ...` all refused (were: accepted, clause silently dropped).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-8",
@@ -18966,13 +18966,13 @@
   "ordinal": 10,
   "subject": "Data description entry",
   "rule-digest": "2462f276d57b",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#AdmitsNoValueLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary",
+  "test-ref": "conformance:negative/pb515-value-on-index-item; conformance:85/pb515_index_item_without_value; conformance:negative/pb557-value-null-on-pointer; conformance:negative/pb557-value-on-object-reference; conformance-test:ValueClauseScreenTests.IndexItem_WithValue_IsRejected_WrittenAndInherited; conformance-test:ValueClauseScreenTests.IndexItem_WithoutValue_Compiles; unit:ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB515 — Only ONE of the four classes is screened, and by a DIFFERENT rule. BindEntry rejects a VALUE clause on USAGE PROGRAM-POINTER / FUNCTION-POINTER (COBOLNET0881, cited as §13.18.63 SR9) -- probe z_progptr_value. The rest of class pointer, and classes index and object, are not screened by SR10 or anything else: (a) CLASS INDEX -- `77 I USAGE INDEX VALUE 7.` compiles clean at 2023 and 85 AND the value is HONOURED: `SET N TO I` displays 007 (probes sr10_index_value, q_index_value_85, r_index_value); the same holds for an index item inside a group (z_index_value_grp). Illegal source silently given a defined initial occurrence number. (b) CLASS POINTER, data-pointer leg -- `77 P USAGE POINTER VALUE NULL.` (and VALUE ZERO) reaches Roslyn and the compile dies with `CS0029: Cannot implicitly convert type 'string' to 'CobolNet.Runtime.ManagedPointer'` against generated C# (probes sr10_pointer_value, sr10_pointer_value_zero, z_ptr_value_ws) -- a loud failure, but unnamed and pointing at .g.cs. (c) CLASS OBJECT -- `77 O USAGE OBJECT REFERENCE VALUE NULL.` dies the same way (`CS0029 ... CobolObject`, probe sr10_objref_value). (d) CLASS MESSAGE-TAG -- vacuous: USAGE MESSAGE-TAG has no grammar at all (`no viable alternative at input 'MESSAGE-TAG'`, probe z_msgtag), so no message-tag item can be declared to carry a VALUE. The rule wants ONE class-keyed screen at the entry, where PicInfo/Usage already classifies the item, not three usage-keyed branches of which two are missing.",
-  "state": "GAP"
+  "notes": "kb/Work PB515, LANDED (wave 58). \"The VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer\" (cite --check OK, §13.16.3 10)). UsageFamilies.AdmitsNoValueLiteral is now THIS rule's class set, spelled as the usages §8.5.2.1 Table 2 files under the four classes: INDEX (class index), MESSAGE-TAG, OBJECT REFERENCE (class object), POINTER / FUNCTION-POINTER / PROGRAM-POINTER (class pointer); ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo re-derives it from SR10 and Table 2 in the spec on every run, both directions. It was written from §13.18.63.3 SR9 alone and so lacked USAGE INDEX: `77 I USAGE INDEX VALUE 7.` compiled at every edition and seeded the index item. Two screens, one diagnostic (COBOLNET2168) and one cited sentence (UsageFamilies.NoValueClauseRule): BindEntry for the entry's own USAGE clause, UsageInheritanceElementary for a usage ACQUIRED from a group under §13.18.60.4 GR1 (`01 G USAGE INDEX. 05 A VALUE 1.` compiled clean before). The pointer and object classes were already refused (PB557) and are unchanged; the message-tag leg reports beside the facility decline (COBOLNET1943 + COBOLNET2168). MEASURED on the wave-58 build at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-11",
@@ -18981,13 +18981,13 @@
   "ordinal": 11,
   "subject": "Data description entry",
   "rule-digest": "afee46f60526",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntries",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckElementaryOnlyClauses",
+  "test-ref": "conformance:negative/pb512-justified-on-a-group; conformance:negative/pb527-picture-on-a-group; unit:DataClausePlacementDriftTests.EveryElementaryOnlySubject_IsRefusedOnAGroup",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB512 — None of the three clauses is checked for elementary-ness. BindEntry sets `justified` / `blankWhenZero` / `pictureText` with no group test, and nothing downstream re-asks (the only group/elementary screen in the entry is GROUP-USAGE's §13.18.29.3 SR1, COBOLNET1653, which is the mirror image). All three probed clean at --std 2023 and --std 85: (a) `01 G JUSTIFIED RIGHT. 05 A PIC X(5).` compiles and the clause is INERT -- `MOVE 'ab' TO G` displays `ab   `, byte-identical to the twin without JUSTIFIED (probes r_group_just vs r_group_nojust, q_group_just_85), so a programmer who wrote it gets neither the behaviour nor a diagnostic; same at a subordinate level (z_group_just_sub). (b) `01 G BLANK WHEN ZERO. 05 A PIC 9(3) VALUE 0.` compiles and is inert -- G displays `000` (probe r_group_bwz, q_group_bwz_85). (c) `01 G PIC X(3). 05 A PIC X(3).` is the worst: the PICTURE makes G elementary, the subordinate entries are still attached by BindEntries and then SILENTLY DROPPED by the emitter (the generated class declares only `string G`), and the first reference to A leaves the compiler reporting raw Roslyn `CS1061` against generated C# (probes sr11_group_pic, h_group_pic_ref, q_group_pic_85, z_group_pic_multi).",
-  "state": "GAP"
+  "notes": "kb/Work PB512 LANDED. The PICTURE, JUSTIFIED and BLANK WHEN ZERO legs are the ElementaryOnly rows of the clause-placement table, applied by ONE pass over the finished forest (CheckElementaryOnlyClauses, called from CheckPictureRequired) with the subordinate-count test of 8.5.1.3.1: PICTURE keeps COBOLNET2191 (13.18.40.3 SR1), JUSTIFIED / BLANK WHEN ZERO report COBOLNET2403; the recovery clears the clause. MEASURED at 85/2002/2014/2023: `01 G JUSTIFIED RIGHT. 05 A PIC X(5).` and `01 G BLANK WHEN ZERO. 05 A PIC 9(3).` -> COBOLNET2403 (were: accepted and INERT). DataClausePlacementDriftTests makes every ElementaryOnly subject prove it is refused on a group.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-12",
@@ -19161,13 +19161,13 @@
   "ordinal": 23,
   "subject": "Data description entry",
   "rule-digest": "729eed24e9ed",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCondition; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ConditionQualifierChainMatches; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ReportMisqualifiedCondition; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#MisqualifiedConditionText",
+  "test-ref": "conformance:85/pb567_condition_name_qualification; conformance:negative/pb567-condition-name-misqualified",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB567 — Verified by construction and by probe. Two identically-named condition-names on two different records resolve through the conditional variable's ancestry: `01 G1. 05 S PIC X VALUE \"A\". 88 IS-A VALUE \"A\". 01 G2. 05 S PIC X VALUE \"B\". 88 IS-A VALUE \"A\".` gives `IS-A OF S OF G1` TRUE, `IS-A OF S OF G2` FALSE and `IS-A IN G2` FALSE — i.e. the condition-name is reachable through, and only through, the name hierarchy under its own data-name, with no ambiguity error. The named test asserts the same qualification path over TYPEDEF-cloned conditions, but asserts compile-clean only, not the truth values; a value-asserting golden would close this row more strongly. || REFUTED: PARTIAL — REFUTED -> PARTIAL, on two independent grounds, both measured.\n(1) ONLY HALF THE RULE IS IMPLEMENTED. 'Each condition-name is subordinate to THE data-name with which it is associated' asserts a relation with a positive and a negative side: the condition-name resolves through that data-name and its containing groups, and it resolves through NOTHING ELSE. The positive side is genuinely solid -- I widened the adjudicator's three probes to nine and every one is right: qualification by a NON-IMMEDIATE ancestor (`IS-A OF G1`, which the adjudicator never tried -- they only tried the negative `IS-A IN G2`), full qualification, a three-deep hierarchy where G, M and S each serve as qualifier, an 88 on a level-77 item, an 88 on a level-01 elementary item, an 88 on an alphanumeric GROUP, subscripting inherited from the conditional variable (`IS-X (1)` F / `IS-X (2)` T), SET through a non-immediate qualifier, and the ambiguity diagnostic COBOLNET1639 when two identically-named 88s make an unqualified reference non-unique. The NEGATIVE side does not exist. A condition-name reference qualified by a data-name it is NOT subordinate to is neither resolved nor diagnosed: `IF IS-A OF H1` (H1 an unrelated record that has no IS-A), `IF IS-A OF T` (an unrelated elementary item), `IF IS-A OF G2 OF G1` (both names real, no containment between them) and `IF IS-A OF G1 OF S` (real ancestors in REVERSED hierarchical order, which 8.4.2.2 forbids) ALL compile clean, exit 0, and emit `NotImplemented.Value<bool>(\"condition 'IS-AOFH1'\")` into the generated C# -- a run-time NotImplementedCobolFeatureException. `SET IS-A OF H1 TO TRUE` likewise compiles clean, emitting `NotImplemented.Run(\"SET 'IS-AOFH1' TO TRUE (not a condition-name)\")`. This is the two_arm_dispatch shape and I measured both arms side by side in ONE program: the DATA-name arm has the failure branch -- `MOVE \"C\" TO ST-CODE OF NOSUCHREC` gives COBOLNET1639 \"'ST-CODE' is declared, but not under the given qualifier (NOSUCHREC)\" -- while the CONDITION-name arm, the arm this rule is about, has none. So the compiler enforces subordination for data-names and merely PERMITS it for condition-names. Two halves, one verified => PARTIAL. (The fallback is shared with an entirely undeclared name -- `IF NO-SUCH-COND` and `SET NO-SUCH-COND TO TRUE` behave identically -- so the missing branch is one place: the condition-name arm of the qualifier walk in ReferenceResolver, which the adjudicator itself named as this row's code-location.)\n(2) THE CITED TEST CANNOT FAIL FOR THIS RULE'S REASON, so the test-ref must be cleared to empty. conformance-test:TypedefConditionTests.TwoRecordsQualifiedConditions_CompileClean asserts ONLY `ok == true` over a program whose condition-name content is `SET OPEN-ST OF DOOR TO TRUE` and `IF OPEN-ST OF DOOR AND CLOSED-ST OF GATE`. Because both of those statement forms degrade to compile-clean NotImplemented stubs when the condition-name does not resolve, I took that test's EXACT source, changed only the condition-name qualifiers to nonsense (`OPEN-ST OF NOSUCHREC`, `NOT-A-COND OF GATE`), and it still compiled clean at --std 2002, exit 0. Its only real teeth are the `MOVE \"C\" TO ST-CODE OF GATE` line -- a DATA-name, which does have a failure branch -- so the test pins the TYPEDEF clone of ST-CODE, not condition-name subordination. It is a green gate with no power over this row (green_gates_arent_evidence), and it was also written for 13.18.58.4 GR1, a different question. With it removed the row has no closing test, which is fine and expected -- but it is now PARTIAL-untested, not CONFORMS.\nEditions unchanged (85,2002,2014,2023): the qualified positive case behaves identically at --std 85, 2002 and 2014, and the missing negative branch is edition-independent.\nCosmetic defect noticed in passing, worth a sweep line: every qualified reference is rendered in diagnostics and in the NotImplemented feature string with the OF/IN separators stripped -- 'IS-AOFS', 'IS-AOFG2OFG1', 'ST-CODEOFNOSUCHREC' -- so the user is shown a name they did not write. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCondition:2105 (`new Condition88 { Name = name, Parent = parent }` + `parent.Own88s.Add(cond)` — the condition hangs off its conditional variable, which is what makes it subordinate); the qualifier walk that consumes it is src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs",
-  "state": "GAP"
+  "notes": "kb/Work PB567 — both sides of the subordination relation are now implemented and witnessed. POSITIVE: a condition-name resolves through its conditional variable and that variable's containing groups, innermost first with gaps (8.4.2.2.3 SR4/SR5), and through its record's FILE (8.4.2.2.2 Format 2's [ file-name-1 ], confirmed on the rendered PDF page 150) — the qualifier walk is now the ONE DataBinder walk (ConditionQualifierChainMatches over QualifierChainMatchesFrom); the private ConditionBinder.MatchesQualifiers copy had no file-name arm, so `FA-OK OF FR OF FA-FILE` compiled clean and aborted at run time with NotImplemented (measured before the fix). Value-asserting golden 85/pb567_condition_name_qualification pins eight truth values (full, non-immediate ancestor, the other variable, IN, three-deep, file-qualified x2, SET through a qualifier). NEGATIVE: a declared level-88 written under qualifiers its variable is not subordinate to (unrelated record, unrelated elementary item, two unrelated real names, real ancestors in reversed order, a wrong file) is reported COBOLNET1639 with ONE wording (ReferenceResolver.MisqualifiedConditionText) at every site — the IF/PERFORM/EVALUATE bare-operand analysis (classified as the condition-name it was written as, so EVALUATE no longer reports a Table-15 pairing error about an identifier), SET Format 4 (no longer 'is not a condition-name: no level-88 entry declares it'), the data-reference fallback and the SEARCH ALL Format-2 screen. Before, the IF arm said \"'IS-A' is not defined — no declaration gives the name\" while the 88 was declared. The refuter's measurement that these compiled clean to NotImplemented stubs no longer held on the w58 base (a later landing had routed them to the not-defined report); the file-qualified POSITIVE case still did.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.16.3-24",
@@ -19926,13 +19926,13 @@
   "ordinal": 1,
   "subject": "BLANK WHEN ZERO clause",
   "rule-digest": "d2d8daaa6227",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+  "test-ref": "unit:DataClausePlacementDriftTests.ClauseOnAnInadmissibleSubject_IsRefused; unit:DataClausePlacementDriftTests.ClauseOnAnAdmissibleSubject_BindsClean; conformance:85/pb518_clause_placement_legal",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB507 — UNDER-REJECTS at every edition. Probes (pinned cobol.exe, --std 85/2002/2014/2023, all identical): `01 WS-ALPHA PIC X(5) BLANK WHEN ZERO.` compiles clean and the clause is silently ignored (probe a1); `01 WS-SIGNED PIC S9(5) BLANK WHEN ZERO.` compiles and MOVE 0 leaves `0000{` rather than being rejected for the picture symbol 'S' (probe a2); `01 WS-GRP BLANK WHEN ZERO.` on a GROUP item compiles and is ignored (probe a4). The rule EXISTS in the legacy engine - src/CobolSharp.Compiler/Semantics/DataItemClassifier.cs:127 reports CBL0802 for exactly this - and was never carried into the typed-native binder, so the differential net cannot see it either (the legacy arm rejects, the greenfield arm accepts, and no greenfield test asserts the reject). Sibling witness for the same missing-validator mechanism: `01 WS-J PIC 9(5) JUSTIFIED RIGHT BLANK WHEN ZERO.` also compiles (probe c1) where the legacy engine reports CBL0804. See finding bwz-syntax-rules-unenforced. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:2306-2307 - the ONLY consumer of blankWhenZeroClause in src/Cobol.Net.*; it sets `blankWhenZero = true` and validates nothing. No sibling check exists anywhere in the typed-native tree (grep of `blankWhenZero|BlankWhenZero` over src/Cobol.Net.* returns only producers/consumers, never a diagnostic). || editions, verbatim from the adjudication: 85/2002/2014/2023",
-  "state": "GAP"
+  "notes": "kb/Work PB507 LANDED. The CheckClauseSubjects pass (after UsageInheritancePass and CheckPictureRequired) refuses BLANK WHEN ZERO on any category but numeric / numeric-edited -> COBOLNET2405 (alphanumeric, alphabetic, national, boolean, pointer, ...). The 'S' half is 13.18.40.3's own SR22 (COBOLNET1934, PictureComposition) - the same fact reported once, at the picture; 13.18.8.4 GR2 re-defines the admitted numeric subject as numeric-edited. The group leg is 13.16.3 SR11 (COBOLNET2403). MEASURED at 85/2002/2014/2023: `01 WS-ALPHA PIC X(5) BLANK WHEN ZERO.` -> COBOLNET2405; `PIC S9(5) BLANK WHEN ZERO` -> COBOLNET1934; `01 WS-GRP BLANK WHEN ZERO.` group -> COBOLNET2403.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.8.3-2",
@@ -19941,13 +19941,13 @@
   "ordinal": 2,
   "subject": "BLANK WHEN ZERO clause",
   "rule-digest": "29e38e8869e7",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+  "test-ref": "conformance:negative/pb507-blank-when-zero-binary; unit:DataClausePlacementDriftTests.ClauseOnAnInadmissibleSubject_IsRefused; unit:DataClausePlacementDriftTests.ClauseOnAnAdmissibleSubject_BindsClean",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB507 — UNDER-REJECTS at every edition. Probe a3: `01 WS-COMP PIC 9(5) USAGE COMP BLANK WHEN ZERO.` compiles clean at --std 85/2002/2014/2023 and the clause is silently dropped (MOVE 0 then DISPLAY gives `00000`, no blanking, no diagnostic). SR2 requires the subject be usage display or usage national; every other usage must be rejected and none is. Separately, the `usage national` half of the rule is currently UNREACHABLE: a numeric or numeric-edited PICTURE with USAGE NATIONAL is refused upstream as a Phase-4a residue - COBOLNET0899 via DiagnosticCatalog.NationalData, emitted at src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:252 (probe a5) - which is owner-owned recognized-but-not-implemented non-support, not adjudicated here. Clustered into finding bwz-syntax-rules-unenforced with SR1 (same mechanism: the clause has no validator at all). || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:2306-2307 (no usage validation); the usage that reaches PictureAnalyzer.Analyze at src/Cobol.Net.Compiler/Binding/DataBinder.cs:2591-2592 is never checked against display/national. || editions, verbatim from the adjudication: 85/2002/2014/2023 (the `usage national` arm is COBOL-2002 and later; at COBOL-85 the rule admits usage display only)",
-  "state": "GAP"
+  "notes": "kb/Work PB507 LANDED. Reads the EFFECTIVE usage after 13.18.60.4 GR1 inheritance, so a written and an inherited non-display/national usage are the same violation -> COBOLNET2405. MEASURED at 85/2002/2014/2023: `PIC 9(5) USAGE COMP BLANK WHEN ZERO` -> COBOLNET2405 (was: accepted, a zero store displayed 00000); `USAGE PACKED-DECIMAL` likewise; USAGE NATIONAL is admitted and blanks. The inherited spelling `01 G COMP. 05 A PIC 999 BLANK WHEN ZERO.` is refused first by 13.18.60.3 SR3 (COBOLNET0881, the GR2-promoted numeric-edited picture under USAGE BINARY) - a compile error either way.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.8.4-1",
@@ -21066,13 +21066,13 @@
   "ordinal": 2,
   "subject": "CONTROL clause",
   "rule-digest": "62bc0967d9f8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+  "test-ref": "conformance:85/pb483_control_final_first; conformance:negative/pb483-control-final-placement",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB483 LANDED (wave 58). FINAL is associated with the highest level because the 13.18.16.2 format admits it only as the first operand (COBOLNET2421 otherwise), so it is Controls[0]; it never breaks mid-report (equivalent to a data item whose value does not change). Witness: pb483_control_final_first - the WS-K break at the third GENERATE produces CF WS-K alone, and TERMINATE (14.9.46.4 GR3 b) produces CF WS-K then CF FINAL.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.16.4-3",
@@ -21576,13 +21576,13 @@
   "ordinal": 1,
   "subject": "EXTERNAL clause",
   "rule-digest": "d6ad4d6abf80",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
+  "test-ref": "unit:DataClausePlacementDriftTests.MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered; unit:DataClausePlacementDriftTests.External_OutsideWorkingStorage_IsRefused; conformance:85/pb518_clause_placement_legal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "Closed by the kb/Work PB518 landing (the same registration-scan filter was this rule's only site). The EXTERNAL Residence row: level 1 in the working-storage section, or a level-1 type declaration in any section -> else COBOLNET2404; the file description entry arm is the FD's own fileGlobalExternalClause (BindFileSection). MEASURED at 2023: EXTERNAL at level 05, at level 77, in LOCAL-STORAGE, in LINKAGE and on a FILE SECTION record -> COBOLNET2404 (were: accepted, clause silently dropped - the scan's `externalLegal` / level `continue` filters).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.22.3-2",
@@ -22611,13 +22611,13 @@
   "ordinal": 1,
   "subject": "JUSTIFIED clause",
   "rule-digest": "2535f37260e7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckElementaryOnlyClauses",
+  "test-ref": "conformance:negative/pb512-justified-on-a-group; unit:DataClausePlacementDriftTests.EveryElementaryOnlySubject_IsRefusedOnAGroup",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "Closed by the kb/Work PB512 landing: 13.18.32.3 SR1 restates 13.16.3 SR11's JUSTIFIED leg, and both are the ONE ElementaryOnly row -> COBOLNET2403.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.32.3-2",
@@ -22641,13 +22641,13 @@
   "ordinal": 3,
   "subject": "JUSTIFIED clause",
   "rule-digest": "e3d2e346dd5a",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckClauseSubjects",
+  "test-ref": "unit:DataClausePlacementDriftTests.ClauseOnAnInadmissibleSubject_IsRefused; unit:DataClausePlacementDriftTests.ClauseOnAnAdmissibleSubject_BindsClean; conformance:85/pb518_clause_placement_legal",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "Closed by the kb/Work PB507 landing (its JUSTIFIED sibling witness c1). JUSTIFIED is admitted for categories alphabetic, alphanumeric, boolean and national, never an edited category (PicInfo.EditMask) -> else COBOLNET2405. MEASURED at 2023: `PIC 9(5) JUSTIFIED`, `PIC ZZ9 JUST`, `PIC XXBXX JUSTIFIED`, `USAGE INDEX JUSTIFIED`, `PIC 9(5) JUSTIFIED RIGHT BLANK WHEN ZERO` -> COBOLNET2405 (were: accepted). PIC X / A / N / 1 JUSTIFIED bind clean and right-justify.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.32.3-4",
@@ -22656,13 +22656,13 @@
   "ordinal": 4,
   "subject": "JUSTIFIED clause",
   "rule-digest": "914fa324b0ff",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "unit:DataClausePlacementDriftTests.JustifiedOnADynamicLengthItem_IsRefused",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "Enforced by 13.16.3 SR18's permitted set (DYNAMIC LENGTH admits only level-number, entry-name, PICTURE, USAGE and VALUE), which is the same fact: MEASURED at 2014 `01 D PIC X DYNAMIC LENGTH JUSTIFIED.` -> COBOLNET1563 naming JUSTIFIED. No TYPE / SAME AS composition can pair them (both copy from an SR18-screened entry). DataBinder.ClausePlacement.cs CheckClauseSubjects documents why it has no second arm. DYNAMIC LENGTH is a 2014 introduction.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.32.4-1",
@@ -22866,13 +22866,13 @@
   "ordinal": 2,
   "subject": "LINAGE clause",
   "rule-digest": "c6a1a3a0dee1",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveLinage; src/Cobol.Net.Compiler/Binding/DataBinder.cs#LinageOperandShapeFault",
+  "test-ref": "conformance:negative/pb524-linage-operand-not-unsigned-integer; conformance:85/pb524_linage_operand_shapes",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB524 — NO CLASS/CATEGORY/SIGN/SCALE/ELEMENTARY SCREEN EXISTS. Each of the four conjuncts of 'elementary unsigned numeric integer' was probed against the pinned compiler and every one of them compiles CLEAN: p5_group.cob binds a GROUP item as data-name-1; p6_alpha.cob and p19_alphapage.cob bind an ALPHANUMERIC `PIC X(3) VALUE \"007\"` and the run reads page size 7 out of it (`WRITE ... AFTER ADVANCING 6 LINES` reports NO-EOP and LINAGE-COUNTER 7); p3_signed.cob binds a SIGNED `PIC S9(3) VALUE -5` (accepted at compile time, then an unhandled InvalidOperationException at OPEN); p4_nonint.cob binds a NON-INTEGER `PIC 9V9 VALUE 5.5` and SequentialIoEmitter.LinageOpExpr (:145-156) silently RESCALES it to 5 with CobolRounding.Truncation. The emitter's own comment at :146-148 states the assumption - 'scale 0 by SR2's elementary-unsigned-integer rule, with a defensive rescale' - which is the shape of a rule ASSUMED true by the consumer and enforced by nobody. Finding: linage-syntax-rules-unimplemented. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:1101-1110 (BindLinageClause - no legality screen) and :1181-1184 (ResolveFiles - a bare ByName first-match lookup); the only operand check in the tree is src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:155, a CODEGEN-time loud stub",
-  "state": "GAP"
+  "notes": "kb/Work PB524 (landed): ResolveLinage screens every resolved LINAGE data-name operand against all four conjuncts of SR2 and names the first one broken under COBOLNET2025 - a group item (not elementary), a non-numeric item or an index item (class index), a non-integer (PicInfo.IsIntegerDescription: fixed-point with no fraction; a floating-point item is refused), a signed item. Measured on the implementer's build: group, PIC X(3), PIC S9(3), PIC 9V9 and alphanumeric FOOTING/BOTTOM operands each rejected at every edition; the positive golden binds a DISPLAY PIC 9(3) page and USAGE COMP PIC 99 margins and pins the GR7/GR26b counter/EOP sequence.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.34.3-3",
@@ -22881,13 +22881,13 @@
   "ordinal": 3,
   "subject": "LINAGE clause",
   "rule-digest": "31edcc600bdb",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveLinage",
+  "test-ref": "conformance:negative/pb524-linage-footing-beyond-page; conformance:85/pb524_linage_operand_shapes",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB524 — A PURELY STATIC RULE OVER TWO LITERALS, CHECKED ONLY AT RUN TIME AND THEN AS A CRASH. <lane3 scratch>/out-b3/probe/linage/p7_sr3.cob (`LINAGE IS 5 LINES WITH FOOTING AT 7`) compiles CLEAN at every edition; both operands are integer literals and BindLinageClause has them both in hand at DataBinder.cs:1106-1110, so the comparison needs no analysis whatever. The violation surfaces only when the program RUNS, as an unhandled System.InvalidOperationException out of SequentialConnector.EvaluateLinage (:126-134) at OPEN OUTPUT. That run-time check is a different obligation - it is GR6b's value rule 2 over the EVALUATED values - and its response is a process kill, not a diagnostic. Nothing implements SR3. Finding: linage-syntax-rules-unimplemented. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:1101-1110 (BindLinageClause - no legality screen) and :1181-1184 (ResolveFiles - a bare ByName first-match lookup); the only operand check in the tree is src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:155, a CODEGEN-time loud stub",
-  "state": "GAP"
+  "notes": "kb/Work PB524 (landed): with integer-1 and integer-2 both literals, FOOTING greater than the page size is refused at compile time under COBOLNET2025 (it used to reach run time and throw a CLR InvalidOperationException); the equality boundary (FOOTING AT 4 on a page of 4) compiles and runs in the positive golden. A data-name on either side makes the relation a run-time value governed by 13.18.34.4 GR3, outside this syntax rule.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.34.3-4",
@@ -24652,11 +24652,11 @@
   "subject": "PICTURE clause",
   "rule-digest": "4814c7f75604",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.PictureRequired.cs#CheckPictureAtElementaryLevel",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ClausePlacement.cs#CheckElementaryOnlyClauses",
   "test-ref": "conformance:negative/pb527-picture-on-a-group; conformance:85/pb527_picture_placement; unit:PicturePlacementInvariantDriftTests.PictureOnAnEntryWithSubordinates_IsReportedAndLeavesTheModelClassifiable; unit:PicturePlacementInvariantDriftTests.EveryBoundItem_IsAGroupOrElementary_NeverBothAndNeverNeither",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB527 LANDED. 'The PICTURE clause may be specified only at the elementary level' is ALL FORMATS and reads identically at all four editions; 8.5.1.3.1 supplies which entries are elementary ('The most basic subdivisions of a record, that is, those not further subdivided, are called elementary items'), so the test is the SUBORDINATE COUNT. It had NO enforcement site anywhere and no diagnostic named it. It is screened now by COBOLNET2191, in the one pass that already holds the rule's converse (13.16.3 SR8's closing guard), over the finished forest -- neither direction can be asked at entry bind, because the subordinate entries are not parsed when BindEntry runs and PictureAnalyzer has no view of the tree. MEASURED on this worktree's own build at 85/2002/2014/2023: `01 G PIC X(3). 05 A PIC X.` -> COBOLNET2191 naming SR1 and 8.5.1.3.1 (it compiled CLEAN at every edition before, dropped A from the record struct, and `DISPLAY A` crashed the backend with CS1061 against a generated .g.cs). The recovery CLEARS the PICTURE rather than the subordinates, so the entry becomes the group its hierarchy declares and the model's classification stays total -- DataItem.IsElementary is `Pic is not null` and IsGroup is `Pic is null && Children.Count > 0`, so an entry with both is NEITHER, which is why the shape reached Roslyn at all. PicturePlacementInvariantDriftTests asserts that totality over thirteen legal data-division shapes and asserts the repair on three illegal ones; it FAILS (3 of 16) with the recovery removed, measured. The over-rejection guard conformance:85/pb527_picture_placement pins the populations the screen must leave alone: nested groups, a level-66 RENAMES, a level-88 over a PICTURE-bearing conditional variable, and an elementary 01.",
+  "notes": "kb/Work PB527 LANDED. 'The PICTURE clause may be specified only at the elementary level' is ALL FORMATS and reads identically at all four editions; 8.5.1.3.1 supplies which entries are elementary ('The most basic subdivisions of a record, that is, those not further subdivided, are called elementary items'), so the test is the SUBORDINATE COUNT. It had NO enforcement site anywhere and no diagnostic named it. It is screened now by COBOLNET2191, in the one pass that already holds the rule's converse (13.16.3 SR8's closing guard), over the finished forest -- neither direction can be asked at entry bind, because the subordinate entries are not parsed when BindEntry runs and PictureAnalyzer has no view of the tree. MEASURED on this worktree's own build at 85/2002/2014/2023: `01 G PIC X(3). 05 A PIC X.` -> COBOLNET2191 naming SR1 and 8.5.1.3.1 (it compiled CLEAN at every edition before, dropped A from the record struct, and `DISPLAY A` crashed the backend with CS1061 against a generated .g.cs). The recovery CLEARS the PICTURE rather than the subordinates, so the entry becomes the group its hierarchy declares and the model's classification stays total -- DataItem.IsElementary is `Pic is not null` and IsGroup is `Pic is null && Children.Count > 0`, so an entry with both is NEITHER, which is why the shape reached Roslyn at all. PicturePlacementInvariantDriftTests asserts that totality over thirteen legal data-division shapes and asserts the repair on three illegal ones; it FAILS (3 of 16) with the recovery removed, measured. The over-rejection guard conformance:85/pb527_picture_placement pins the populations the screen must leave alone: nested groups, a level-66 RENAMES, a level-88 over a PICTURE-bearing conditional variable, and an elementary 01. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.PictureRequired.cs#CheckPictureAtElementaryLevel (the PICTURE row joined the clause-placement table's ElementaryOnly screen (kb/Work PB512), and the method was folded into DataBinder.ClausePlacement.cs#CheckElementaryOnlyClauses)",
   "state": "OK"
  },
  {
@@ -27561,13 +27561,13 @@
   "ordinal": 1,
   "subject": "SIGN clause",
   "rule-digest": "0439a5039410",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs; src/Cobol.Net.Compiler/Binding/ScreenFacility.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.SignClause.cs#CheckSignClauses; src/Cobol.Net.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportEntry",
+  "test-ref": "conformance:85/pb537_sign_clause_subjects; conformance:negative/pb537-sign-clause-subject; conformance-test:ReportClauseFormatScreenTests.SignClause_IllegalSubject_2422_AllEditions; conformance-test:ReportClauseFormatScreenTests.SignClause_IllegalSubject_2422_2023; conformance-test:ReportClauseFormatScreenTests.SignClause_LegalSubject_Accepted; conformance-test:ReportClauseFormatScreenTests.SignClause_ReportEntryWithoutS_2422",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB537 — ONE OF THE PROHIBITED SHAPES IS CAUGHT; EVERY OTHER ONE IS ADMITTED SILENTLY AND INERTLY. ENFORCED: a floating-point numeric-edited picture carries no symbol 'S' (§13.18.40.6 Table 10 row E), so `01 A PIC +9.9E+99 SIGN IS LEADING.` is COBOLNET1658 (probe sg_sr1_floatedit), with negative golden conformance:negative/pb66-float-edited-picture-symbols line 26 -- a spec-derived witness for that ONE shape, which cannot close the row. UNENFORCED, each probed clean and measurably INERT at --std 85, 2002, 2014 and 2023: an UNSIGNED numeric entry `01 A PIC 9(3) SIGN IS LEADING.` (sg_sr1_unsigned, sg_sr1_9_2002/2014/2023, sg85_sr1_x_*); an ALPHANUMERIC ELEMENTARY item `01 A PIC X(3) SIGN IS LEADING.` -- the third bullet admits an alphanumeric GROUP item, never an alphanumeric elementary one (sg_sr1_alnum, sg_ed_sr1_x_85/2002/2014/2023); a NATIONAL ELEMENTARY item `PIC N(3)` (sg_sr1_national); a NUMERIC-EDITED entry `PIC ZZ9` (sg_sr1_numedit -- MOVE through it is byte-identical to the same entry without the clause); and a BIT GROUP item `01 G GROUP-USAGE IS BIT SIGN IS LEADING.` (sg_sr1_bitgroup) -- the rule's three group kinds are alphanumeric, national and strongly-typed, and a bit group item is none of them. Harm is UNDER-REJECTS only: PicInfo.SignKindFor (PicInfo.cs:593-599) is consulted for a signed NUMERIC subject alone, so an illegally-placed clause changes no width and no value. THE LEGAL ARMS ALL WORK: a signed numeric data entry (sg_sr1_signed_ok); an alphanumeric group (sg_sr1_group_ok, `G=[-012]`); a strongly-typed group whose TYPE copy carries the clause through DataBinder.cs:1956-1960 (sg_sr1_strong, `U=[-012]`); and a NUMERIC REPORT GROUP description entry (DataBinder.Reports.cs:428 -> sg_report_sign, whose report line really is `-012`). The SCREEN description entry bullet is owner-declined A.4.2 non-support (COBOLNET1560, kb/Work PB260) and is not adjudicable here. See finding sign-sr1-sr2-placement-unscreened. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:2668-2673 (the ONLY site enforcing this rule); capture at DataBinder.cs:2377-2378 and DataBinder.Reports.cs:427-428; src/Cobol.Net.Compiler/Binding/ScreenFacility.cs:89 || editions, verbatim from the adjudication: 85,2002,2014,2023 (the screen-entry, national-group and strongly-typed-group bullets are COBOL-2002 and later)",
-  "state": "GAP"
+  "notes": "kb/Work PB537 LANDED (wave 58). ONE subject screen, COBOLNET2422: an elementary entry (data description OR report group description - SR1's first two bullets are one test, DataBinder.SignClauseElementaryDefect) must be category numeric with an 'S' in its WRITTEN picture character-string; a group must be an alphanumeric, national or strongly-typed group item (ItemCategory.GroupKindsOf - a GROUP-USAGE BIT group, declared or inherited by 13.16.4 GR1, and a variable-length group are refused). The data-description arm is the post-forest CheckSignClauses pass (after UsageInheritancePass, before InheritSignClauses) over the entries that WROTE the clause - a TYPE copy or a SAME AS ancestor clause (13.18.49.4 GR5) is not re-screened. The former float-edited special case (COBOLNET1658) is this rule's numeric-edited arm and was deleted. The SCREEN description entry bullet is owner-declined A.4.2 non-support (COBOLNET1560, kb/Work PB260). Refused before: PIC 9(3), PIC X(3), PIC N(3), PIC ZZ9, USAGE INDEX, FLOAT-LONG, a bit group, a nested bit group, a report entry PIC 9(3) - each compiled clean at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.52.3-2",
@@ -27576,13 +27576,13 @@
   "ordinal": 2,
   "subject": "SIGN clause",
   "rule-digest": "4f1ee00b521e",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect",
+  "test-ref": "conformance:negative/pb537-sign-clause-subject; conformance-test:ReportClauseFormatScreenTests.SignClause_IllegalSubject_2422_AllEditions; conformance-test:ReportClauseFormatScreenTests.SignClause_LegalSubject_Accepted",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB537 — NO USAGE SCREEN EXISTS ANYWHERE FOR THE SIGN CLAUSE. src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs carries exactly two SIGN-named descriptors -- SignClauseWithLocalePicture (§13.16.3 SR19, a different rule) and StrongGroupOrderingSignedLeaf -- and DataBinder.cs:2378 captures the clause without ever consulting the entry's usage. MEASURED CLEAN at --std 85, 2002, 2014 and 2023: `01 A PIC S9(4) USAGE COMP SIGN IS LEADING SEPARATE.` (sg_sr2_comp, sg_sr2_comp_2002/2014/2023, sg85_sr2_comp_85), `... USAGE COMP-3 SIGN IS TRAILING SEPARATE.` (sg_sr2_comp3), `... USAGE COMP-5 SIGN IS LEADING.` (sg_sr2_comp5) and `01 A USAGE INDEX SIGN IS LEADING.` (sg_sr2_index). Harm is UNDER-REJECTS ONLY, and that was verified rather than assumed: PicInfo.SignKindFor returns \"BinaryMinus\" for every non-DISPLAY usage before it ever looks at the SignSpec, so the COMP item keeps its 2-byte binary form and its leading-minus image -- `A=[-0012]`, BYTE-LENGTH 2, byte-for-byte identical to the same entry WITHOUT the clause (sg_inert_comp). No COBOLNET code is allocated for the rule. THE `national` HALF IS CURRENTLY UNREACHABLE: a signed numeric item with USAGE NATIONAL is COBOLNET0899 'national-form numeric data ... not yet implemented' (§13.18.60.3 SR12 Phase-4a residue; probe sg_nat_elem_sign), so only the `display` half of the rule has an observable subject today. See finding sign-sr1-sr2-placement-unscreened. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs:2377-2378 (capture, no usage screen); src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs:593-599 (SignKindFor -- the silent swallow) || editions, verbatim from the adjudication: 85,2002,2014,2023 (the `national` alternative is COBOL-2002 and later)",
-  "state": "GAP"
+  "notes": "kb/Work PB537 LANDED (wave 58). COBOLNET2422 when the usage of an elementary item whose entry WRITES the SIGN clause is other than display or national - its own USAGE clause or one inherited from a group (13.18.60.4 GR1: 01 G USAGE COMP. 05 A PIC S9(4) SIGN LEADING. is refused). A SIGN clause on a GROUP is not SR2's subject (it names 'an elementary item for which the SIGN clause is specified'), so 01 G USAGE COMP SIGN LEADING. is legal and GR1 applies the clause only to display/national subordinates (ApplyEffectiveSign). PIC S9(4) COMP / COMP-3 / COMP-5 / PACKED-DECIMAL / BINARY with SIGN each compiled clean before.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.52.3-3",
@@ -30142,8 +30142,8 @@
   "subject": "VALUE clause",
   "rule-digest": "6ecb7044eda1",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenValueLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenTableValueLiterals",
-  "test-ref": "conformance:negative/pb94-value-alphanumeric-on-numeric; conformance:negative/pb94-value-nonnumeric-on-numeric; conformance:negative/pb208-table-value-alphanumeric-on-numeric; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.Format2Sr2Screen_FiresAtEveryEdition; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenValueLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenTableValueLiterals; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindCondition; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs",
+  "test-ref": "conformance:negative/pb94-value-alphanumeric-on-numeric; conformance:negative/pb94-value-nonnumeric-on-numeric; conformance:negative/pb208-table-value-alphanumeric-on-numeric; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.Format2Sr2Screen_FiresAtEveryEdition; conformance-test:ValueLiteralClassTests.ClassMismatch_IsAnErrorStrict_AndTheRepresentableValueWithAWarningPermissive; conformance:negative/pb586-level88-literal-out-of-range; conformance:negative/pb586-report-literal-out-of-range; conformance:85/pb586_level88_range_boundaries; conformance-test:ValueClauseScreenTests.Level88Literal_OutsideTheConditionalVariablesRange_IsRejected; conformance-test:ValueClauseScreenTests.ReportLiteral_OutsideThePrintableItemsRange_IsRejected",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505) -- SAME VERDICT, SAME MECHANISM, NEW NAME FOR THE CALL SITE. PB208's ValidateTableValues was SPLIT: its ALL-FORMATS literal screen kept its place at entry bind beside the format-1 call site and is now DataBinder.ScreenTableValueLiterals; the clause's GEOMETRY moved to the post-forest ResolveTableValues pass, because 13.18.63.3 SR18-SR23 are written against the entry's OCCURS ANCESTORS and DataItem.Parent does not exist while the entry binds. The literal screen deliberately did NOT move with it: SR2 is a property of the literal and the subject's own PICTURE, and keeping both formats on ONE timeline is what Format1AndFormat2_ScreenTheSameLiteralAlike pins. No behaviour change -- re-measured, `05 B PIC 9(4) COMP OCCURS 2 VALUE \"0012\" FROM (1) TO (2).` draws COBOLNET1657 at all four editions and the --permissive rewrite still reaches every occurrence.",
@@ -30157,8 +30157,8 @@
   "subject": "VALUE clause",
   "rule-digest": "af538a1b29ec",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue",
-  "test-ref": "conformance:negative/pb97-value-edited-truncation; conformance:negative/pb66-value-float-edited-truncation; conformance:2023/pb97_value_literal_form_and_88_edited",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenValueLiteral",
+  "test-ref": "conformance:negative/pb97-value-edited-truncation; conformance:negative/pb66-value-float-edited-truncation; conformance:2023/pb97_value_literal_form_and_88_edited; conformance-test:ValueClauseScreenTests.Level88Literal_OutsideTheConditionalVariablesRange_IsRejected; conformance-test:ValueClauseScreenTests.ReportLiteral_OutsideThePrintableItemsRange_IsRejected",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "LANDED 2026-08-18 (PB97). A NEGATIVE literal requires a signed numeric subject or 'a numeric-edited data item with a representation of a sign' — an editing sign symbol (+ - CR DB; for the floating-point form the significand's own sign, never the exponent's +): PIC ZZ9.99 VALUE -5 and PIC 9.99E+9 VALUE -1.23E+5 are COBOLNET1625, PIC -ZZ9.99 VALUE -5 and PIC S9(5)V99 VALUE -1.5E+3 seed. (A leading + into an unsigned subject is not rejected — no data is lost.)",
@@ -30291,13 +30291,13 @@
   "ordinal": 12,
   "subject": "VALUE clause",
   "rule-digest": "8feffabc975f",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement",
+  "test-ref": "conformance:negative/pb550-value-in-redefining-entry; conformance:85/pb550_redefines_value_placement; conformance-test:ValueClauseScreenTests.Value_InOrUnderARedefiningEntry_IsRejected_AtEveryEdition; conformance-test:ValueClauseScreenTests.Sr12_Controls_Compile",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB550 — THE RULE IS WRITTEN DOWN NOWHERE AND EVERY SHAPE IT NAMES COMPILES CLEAN. MEASURED at the pin, all silently and with the VALUE DISCARDED: (a) the same-entry arm, `05 A PIC X(4) VALUE \"AAAA\". 05 B REDEFINES A PIC X(4) VALUE \"ZZZZ\".` -> A and B both display [AAAA] (probe b_sr12_run); (b) at level 01, `01 A PIC X(4) VALUE \"AAAA\". 01 B REDEFINES A PIC X(4) VALUE \"ZZZZ\".` -> both [AAAA] (c_sr12_01_redefines); (c) the subordinate arm, `05 B REDEFINES A. 10 C PIC X(2) VALUE \"ZZ\".` -> A [AAAA], C [AA] (b_sr12_sub_run); (d) a GROUP-level VALUE in a REDEFINES entry (c_sr12_group_value); (e) through SR16, a Format-2 table VALUE under a REDEFINES, `05 B REDEFINES A. 10 T PIC X(2) OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3).` -> A [AAAAAA], T(1) [AA] (d_sr16_sr12_sub). EDITION-INVARIANT: the same program compiles at --std 85, 2002 and 2014 too (b_sr12_85, b_sr12_2002, b_sr12_2014); Annex E records no change to SR12. OVER-REJECTION CONTROL PASSES: a REDEFINES entry with no VALUE compiles and displays the redefined content (e_sr12_control). HARM is UNDER-REJECTS + SILENT: the answer the compiler gives is the one 13.18.63.4 GR5/GR9 would give for the conforming spelling, so no value is wrong -- but a programmer who wrote the second VALUE gets neither it nor a word about it. SR12 reaches formats 1 and 2 only (SR16 lists it; SR24, SR34 and SR36 do not), and the compiler correctly accepts a level-88 under a REDEFINES (sr12_88_under_redefines). See findings value-clause-p1/F3. || code sites, verbatim from the adjudication: NO SITE. `grep -rn '13.18.63.3 SR12\\|13.18.63 SR12' src/` returns exactly one hit and it is a COMMENT that ASSUMES the rule holds -- src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs:50 (\"13.18.63.3 SR12 bars a VALUE in the ...\"). The two places that see both facts and could enforce it: src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry (the per-entry clause capture, where redefinesTargetName and rawValue are local siblings, :2196-2400) and src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs:73 (the existing per-written-entry 13.18.44.3 SR12/SR14 screen, COBOLNET1697/1701 -- the shape this check would join)",
-  "state": "GAP"
+  "notes": "kb/Work PB550, LANDED (wave 58). \"The VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause\" (cite --check OK, §13.18.63.3 12)). DataBinder.ValuePlacement is the ONE placement screen (COBOLNET2406), asked in BindEntries the moment an entry is attached, over the entry's ancestor chain and keyed on the WRITTEN clause (RedefinesTargetName) - never the storage fact, so an FD's implicit redefinitions and a SAME RECORD AREA record are not its subject. Every shape the rule names is refused at every edition: the same-entry arm at levels 05 and 01, a subordinate at any depth, and a group-level VALUE on the redefining entry. Before: all compiled clean and the redefining entry's VALUE was DISCARDED (a REDEFINES view never seeds the storage it shares with its anchor). Over-rejection controls pinned: the redefined anchor's own VALUE, a REDEFINES entry with no VALUE, a level-88 under it (format 3 - SR24 does not import SR12), and a later non-subordinate sibling all compile (85/pb550_redefines_value_placement).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-13",
@@ -30351,13 +30351,13 @@
   "ordinal": 16,
   "subject": "VALUE clause",
   "rule-digest": "3652f9545633",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.GroupValue.cs#IsGroupValueSubject; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenTableValueLiterals; src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#AreaOf",
-  "test-ref": "conformance:negative/pb208-table-value-alphanumeric-on-numeric; conformance:2023/pb505_table_value_geometry; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.GroupLevelTableValue_InitializesTheAreaPerOccurrence",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement",
+  "test-ref": "conformance:negative/pb208-table-value-alphanumeric-on-numeric; conformance:2023/pb505_table_value_geometry; conformance-test:ValueFormat2Tests.Format1AndFormat2_ScreenTheSameLiteralAlike; conformance-test:ValueFormat2Tests.GroupLevelTableValue_InitializesTheAreaPerOccurrence; conformance-test:ValueClauseScreenTests.Format2Value_UnderARedefiningEntry_IsRejected_BySr16",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "RE-VERDICTED 2026-09-09 (kb/Work PB505). FOUR OF THE SIX PULLED-IN RULES NOW REACH THE FORMAT-2 CARRIER WITH WITNESSES; THE REMAINING TWO ARE NOT SR16's FAILURE AND EACH IS TRACKED ELSEWHERE. SR16 is \"Syntax rules 10, 11,12,13,14,and 15 above apply\", so its own obligation is that the format-2 carrier is not EXEMPT from them. SR10: now reaches it -- the boolean table VALUE draws COBOLNET0898 (was: compiled clean and seeded \"AB00\"), and Format1AndFormat2_ScreenTheSameLiteralAlike keeps the two formats' verdict sets equal by construction. SR11: reaches it (`01 T PIC ZZ9.99 OCCURS 2 VALUE 12.5 FROM (1) TO (2).` DISPLAYs [ 12.50| 12.50]). SR13/SR14: reach it by construction -- IsGroupValueSubject reads TableValues beside RawValue -- and the group-level format-2 VALUE now also DEPOSITS 13.18.63.4 GR5's area per occurrence instead of being silently discarded (GroupValueSlicer.AreaOf reads DataItem.ValueAt; MEASURED `05 GT OCCURS 2 VALUE \"ABCD\" FROM (1) TO (2).` over two PIC X(2) members gives [AB/CD|AB/CD], golden line 4). STILL OPEN, BOTH BY INHERITANCE: SR12 has NO SITE ON EITHER VALUE CARRIER -- `05 B REDEFINES A PIC X(2) OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3).` and its format-1 twin both compile clean at strict 2023 (re-measured on this tree) -- so the pull-in is vacuous rather than broken; that absence is SR-13.18.63.3-12's row and kb/Work PB550's mechanism. SR15 (screen section) has no reachable population: the A.4.2 screen module is owner-declined and its witness debt is kb/Work PB260. This row closes when PB550 lands SR12.",
-  "state": "GAP"
+  "notes": "RE-VERDICTED 2026-09-23 (kb/Work PB550, wave 58) - the row's stated closing condition (\"This row closes when PB550 lands SR12\") is met. SR16 is \"Syntax rules 10, 11,12,13,14,and 15 above apply\" (cite --check OK, §13.18.63.3 16)); PB505 witnessed SR10, SR11, SR13 and SR14 on the format-2 carrier, and SR12 now reaches it through the same placement screen as format 1, reading DataItem.TableValues beside RawValue: `05 B REDEFINES A PIC X(2) OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3).` and the subordinate `10 T ... OCCURS 3 VALUE \"ZZ\" FROM (1) TO (3)` under a REDEFINES entry are COBOLNET2406 citing SR12 and SR16 (both compiled clean with the value discarded before). SR15 governs the screen section only, whose A.4.2 module is owner-declined, so it has no reachable population here (witness debt kb/Work PB260).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-17",
@@ -30486,13 +30486,13 @@
   "ordinal": 25,
   "subject": "VALUE clause",
   "rule-digest": "9f070c3060e2",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs; src/Cobol.Net.Compiler/Binding/DataBinder.Constants.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenConditionValuePlacement",
+  "test-ref": "conformance:negative/pb551-condition-name-under-constant-record; conformance:2002/pb551_constant_record_value_content; conformance-test:ValueClauseScreenTests.ConditionName_UnderAConstantRecord_IsRejected; conformance-test:ValueClauseScreenTests.ConstantRecord_Format1Content_Compiles",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB551 — THE RULE IS WRITTEN DOWN NOWHERE AND ITS SHAPES RUN. MEASURED at STRICT --std 2023: `01 CR CONSTANT RECORD. 05 X PIC 9 VALUE 1. 88 F VALUE 1.` -- a format-3 VALUE in an entry subordinate to a CONSTANT RECORD entry -- compiles clean and F evaluates TRUE at run time (probe b_sr25_constrec_88_run); so does the deeper subordinate arm `01 CR CONSTANT RECORD. 05 H. 10 X PIC 9 VALUE 1. 88 F VALUE 1.` (c_sr25_deep_88). THE PREMISE IS LIVE, not a no-op clause: `MOVE 5 TO X` on that same record draws COBOLNET1548 (the CONSTANT RECORD receiver guard, b_sr25_constrec_receiver), and the clause is edition-gated below 2002 (COBOLNET0900 at --std 85, b_sr25_85). OVER-REJECTION CONTROL passes: a FORMAT-1 VALUE under a CONSTANT RECORD is required, not forbidden -- it IS the record's content -- and `05 X PIC 9 VALUE 7.` displays [7] (e_sr25_control); a landing must bar formats 3, 4 and 5 only. Formats 4 and 5 are unreachable in practice (a report group cannot be subordinate to a WS/LS CONSTANT RECORD; format 5 is refused by name as the declined A.4.14 module, kb/Work PB283), so format 3 is the whole live population. HARM is UNDER-REJECTS + SILENT. EDITIONS: 2002 taken from the CONSTANT RECORD clause's own introduction gate -- Annex E lists no item for it, so the spec-derivation of that edition is a dossier gap. See findings value-clause-p1/F4. || code sites, verbatim from the adjudication: NO SITE. The CONSTANT RECORD clause-conflict block that would carry it -- src/Cobol.Net.Compiler/Binding/DataBinder.cs:715-734 -- enumerates 13.18.15.3 SR1 (WS/LS placement), 13.16.3 SR13 (ANY LENGTH / BASED / BLANK WHEN ZERO / SYNCHRONIZED / TYPEDEF subordinate) and 13.18.40.3 SR32 (format-2 PICTURE subordinate), and NOT 13.18.63.3 SR25; the subtree predicate the check needs already exists as #IsConstantRecordItem (src/Cobol.Net.Compiler/Binding/DataBinder.Constants.cs:84-89) and is used by the three rules beside it",
-  "state": "GAP"
+  "notes": "kb/Work PB551, LANDED (wave 58). \"A format 3, 4, or 5 VALUE clause shall not be specified in any data description entry that contains the CONSTANT RECORD clause, or in any data description entry subordinate to a data description entry that contains the CONSTANT RECORD clause\" (cite --check OK, §13.18.63.3 25)). FORMAT 3: BindCondition asks the ONE placement screen (DataBinder.ValuePlacement, COBOLNET2406) over the conditional variable's ancestor chain; a level-88 under a CONSTANT RECORD entry, at any depth, is refused (before: compiled clean and the condition-name was live). The record's FORMAT-1 content stays legal (2002/pb551_constant_record_value_content). FORMAT 4 IS VACUOUS under today's grammar: a report group description entry admits no CONSTANT RECORD clause (reportGroupClause has no such alternative), so the shape cannot be written - this row is NOT closed on a format-4 witness; if the report group entry ever gains the clause, the leg stops being vacuous. FORMAT 5 belongs to the owner-declined VALIDATE facility (A.4.14), refused by name (COBOLNET1708).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.63.3-26",
@@ -36006,13 +36006,13 @@
   "ordinal": 3,
   "subject": "COMPUTE statement",
   "rule-digest": "44a3116c2c7b",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#Gr3Width",
-  "test-ref": "conformance:2002/pb230_incompatible_boolean_sending; conformance:2002/boolean_ops; conformance:2023/boolean_shift; conformance:2023/boolean_shift_mixed; conformance:2023/pb157_compute_bit_group; conformance:2023/pb79_group_usage_bit",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/BooleanRenderer.cs#RenderAtItemWidth; src/Cobol.Net.Runtime/Values/Text/CobolBool.cs#ToItemWidth",
+  "test-ref": "conformance:2002/pb230_incompatible_boolean_sending; conformance:2002/boolean_ops; conformance:2023/boolean_shift; conformance:2023/boolean_shift_mixed; conformance:2023/pb157_compute_bit_group; conformance:2023/pb79_group_usage_bit; conformance:2002/pb589_bool_refmod_width; conformance:2023/pb589_call_content_bool_width; unit:CobolBoolTests.ItemWidth_LiteralNeverWidens; unit:CobolBoolTests.ItemWidth_MaxOverItemsThroughEveryOperator",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "GR3's 'subject to ... 14.6.13.2' leg is now DISCHARGED (kb/Work PB230). 14.6.13.2 rule 1 - the content of a BOOLEAN sending item that would evaluate to false in a boolean class condition - had no raise site: EcBinder.EcWrap gated the whole EC-DATA-INCOMPATIBLE family on `node is BoundMove`, and no boolean read consulted it either. MEASURED, not assumed: a category-boolean item's storage is one character per boolean position (13.18.40.4 GR14's representation license, D-B1), so `MOVE \"1Q01\"` through a REDEFINES window then `COMPUTE RB = BB` propagated the Q straight into the boolean RESULT (RB = 1Q010000) - a silent WRONG ANSWER, not merely a missing condition. CobolBool.Sending now raises it at BOTH boolean sending-read channels (BooleanRenderer's BoundBoolRef for the value channel, OperandText.SendingVerbatim for the character channel), sharing the 8.8.4.4 GR3 e scan with CobolClass.IsBoolean and differing from it only at zero length, where rule 1 has no content to call invalid; pinned by pb230_incompatible_boolean_sending (both channels, B-NOT, the zero-length non-raise). The width model landed with PB157/PB173 and is unchanged. RESIDUE KEEPING PARTIAL, and it is NOT this mechanism: RefModLen's NON-LITERAL ref-mod length still falls back to the inner item's FULL length - a reference-modification defect (8.4.3.3.4), adjacent to open PB202/PB205, which now carry this row so it is not orphaned.",
-  "state": "GAP"
+  "notes": "GR3's 'subject to ... 14.6.13.2' leg was DISCHARGED by kb/Work PB230 (CobolBool.Sending at both boolean sending-read channels, pinned by pb230_incompatible_boolean_sending). The last residue - a reference-modified operand with a RUN-TIME length counted at its inner item's FULL length (the deleted ConditionBinder.RefModLen fallback) - is closed by kb/Work PB589: the largest-ITEM width is carried at run time beside the value (CobolBoolSized; each item leaf CobolBool.Item, each literal CobolBool.Literal, CobolBool.ToItemWidth at the root), so B(1:N), B(K:) and a BOOLEAN-OF-INTEGER whose argument-2 is a run-time value (a function-identifier references a temporary data item, 8.4.3.2.4 GR1) are each counted at the length of the value they actually produced. One renderer serves every site that states this width: COMPUTE Format 2 and the BY CONTENT boolean argument of CALL and INVOKE. Measured before/after on the same program: COMPUTE R8 = B8(1:N) B-OR B\"1111111\" with N=3 gave 11111110, now 11100000; B8(K:) with K=6 the same; BOOLEAN-OF-INTEGER(3, W) B-OR B\"0000001\" with W=2 gave 11000010, now 11000000; CALL ... BY CONTENT B8(1:N) B-OR B\"1111111\" into a PIC 1 ANY LENGTH formal gave [11111110] LEN=8, now [111] LEN=3. The bit-group width model (PB157/PB173) is unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#Gr3Width (kb/Work PB589 deleted the bind-time Gr3Width: the GR3 width is a run-time quantity and is now carried beside the value by BooleanRenderer.RenderAtItemWidth / CobolBool.ToItemWidth)",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.9.3-1",
@@ -42068,7 +42068,7 @@
   "rule-digest": "b7014f3ecd56",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem",
-  "test-ref": "conformance:2002/pb331_read_lock_brackets; conformance:negative/pb358-record-key-source; conformance:negative/pb358-alternate-key-source",
+  "test-ref": "conformance:2002/pb331_read_lock_brackets; conformance:negative/pb358-record-key-source; conformance:negative/pb358-alternate-key-source; conformance:negative/pb481-read-key-refmod",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "kb/Work PB358 LANDED 2026-09-09. RULE: 'Data-name-1 or record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY clause associated with file-name-1.' (cite.py --check 14.9.30.3 OK.)\nWHY CONFORMS RATHER THAN PARTIAL: SR11's subject is the READ statement's KEY phrase operand, a claimed facility. Both of its operand classes are now accounted for. data-name-1: KeyedIoBinder.BindRead resolves the operand and calls Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item); a miss raises COBOLNET0864 naming SR11. The match is by STORAGE POSITION rather than by name, the stronger reading, cited against 12.4.5.12.4 GR4 - so REDEFINES and duplicate names still resolve, and an operand SHORTER than the key at the same offset is refused (kb/Work PB354 split the shared lookup into KeyIndexOfKeyItem for GR4 / 14.9.41.3 SR6 a) and GenericKeyIndex for SR6 b); BindRead asks the FIRST, which is what SR11 states - there is no generic-key arm in SR11 at all). Witnessed by conformance:2002/pb331_read_lock_brackets: three Format-2 reads name the prime RECORD KEY through the KEY phrase and return the right records (R1=ALPHA, R2=BRAVO) or the invalid key condition (R3=INVALID|23, 9.1.13.5 3) a)).\nrecord-key-name-1: unwritable BY A DOCUMENTED DECISION and, since 2026-09-09, REFUSED BY NAME rather than by a generic parse error. A record-key-name is defined by the SOURCE phrase of the RECORD KEY / ALTERNATE RECORD KEY clause (8.4.6.2.4; the name class is 8.3.2.2.24); Annex A.3 item 40 makes that phrase processor-dependent; docs/CONFORMANCE.md section 2 row 40 declines it; COBOLNET1954 names the decline at every edition on both clauses, and the five conformance:negative/pb358-* fixtures pin it. The declined half is owned by SR-14.9.41.3-7, which carries DOCUMENTED-NON-SUPPORT. This row was PARTIAL only because that decline was unwitnessed - it is the exact condition the previous note recorded ('PB358 is the note that carries the decline to a NAMED diagnostic').\nEDITIONS: the 2023 text carries no edition marker on this clause and Annex E is a 2014-to-2023 delta only.",
@@ -58956,13 +58956,13 @@
   "ordinal": 0,
   "subject": "CONTROL clause",
   "rule-digest": "153fc8c423fc",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+  "test-ref": "conformance:85/pb483_control_final_first; conformance:negative/pb483-control-final-placement; conformance-test:ReportClauseFormatScreenTests.ControlFinal_Twice_2421; conformance-test:ReportClauseFormatScreenTests.ControlFinal_AfterDataName_2421; conformance-test:ReportClauseFormatScreenTests.ControlFinal_FirstThenDataNames_Accepted",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB483 LANDED (wave 58). The rendered figure (PDF p422) prints {CONTROL IS | CONTROLS ARE} { {data-name-1}... | FINAL [data-name-1]... }: FINAL once, FIRST, the ellipsis on the data-name bracket alone (5.2.7). The grammar parses the superset (FINAL | dataReference)+ and BindReportDescriptionClauses refuses a FINAL written twice or after a data-name, COBOLNET2421. Before: CONTROLS ARE FINAL FINAL CX built a second FINAL level that could never break, and CONTROL CX FINAL made FINAL the MINOR level (TERMINATE printed CF FINAL before CF CX).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.17.2",
