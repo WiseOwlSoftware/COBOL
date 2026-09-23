@@ -367,12 +367,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>⛔ AND THE LEVEL-66 ARM IS SR6'S, NOT SR12'S. Its message quoted "shall not be described with
     /// level-number 66" under whatever <c>clause</c> the caller passed, so a <c>MOVE CORRESPONDING</c> over a
     /// RENAMES entry attributed to §14.9.25.3 SR12 eight words SR12 does not contain — a citation that passes
-    /// <c>cite.py --check</c> on the arithmetic spelling and is false on the MOVE one. SR12 refuses the same
-    /// operand for its own reason (a RENAMES entry is not a group data item), and now says so.</para>
-    /// <para>⛔ THE LEVEL-66 CASE GETS ITS OWN REASON. A RENAMES entry has <c>Pic</c> null and no
-    /// <c>Children</c>, so <see cref="DataItem.IsGroup"/> is false for it and it used to be reported as an
-    /// "elementary operand" — rejected for a reason the rule does not give. It is excluded BY NAME, and the
-    /// message says so.</para>
+    /// <c>cite.py --check</c> on the arithmetic spelling and is false on the MOVE one. (Its replacement then
+    /// claimed "a RENAMES entry is not a group data item" under SR12 — false for the THROUGH form, which GR2
+    /// makes one; kb/Work PB966.)</para>
+    /// <para>⛔ THE LEVEL-66 CASE GETS ITS OWN REASON — AND ONLY WHERE THE RULE GIVES ONE (kb/Work PB966). The
+    /// arithmetic SR6 excludes level 66 BY NAME, asked of <see cref="Place.DenotedItem"/> so the non-THROUGH
+    /// alias (which resolves to data-name-2's place) cannot slip past it. MOVE's SR12 names no level number: a
+    /// THROUGH alias IS an alphanumeric group item (§13.18.45.4 GR2) and is admitted, and a non-THROUGH alias is
+    /// judged by data-name-2's attributes (GR1).</para>
     /// <para>⛔ AND THE OPERAND IS A <see cref="Place"/>, NOT A <see cref="DataItem"/>, BECAUSE SR12's SECOND
     /// HALF IS ABOUT THE REFERENCE (kb/Work PB390). "…and shall not be reference-modified" cannot be asked of
     /// the resolved item: a reference modifier rides on the <see cref="RefModPlace"/> DECORATOR and
@@ -403,17 +405,25 @@ internal sealed class StatementValidation(DataBinder data)
                     + "Name the group itself, or MOVE the modified reference to a matching item.");
                 return false;
             }
-        DataItem item = operand.Item;
-        if (item.Renames is not null)
+        // ⛔ "DESCRIBED WITH LEVEL-NUMBER 66" IS AN IDENTITY QUESTION, SO IT ASKS THE DENOTED ITEM (kb/Work PB966).
+        // The non-THROUGH alias resolves to data-name-2's own place (§13.18.45.4 GR1), whose Item is data-name-2 —
+        // asked of Item, `ADD CORRESPONDING ALIAS-OF-GROUP TO G` passed SR6's "shall not be described with
+        // level-number 66" because the entry it asked about was the 05, not the 66. DenotedItem is the entry the
+        // NAME denotes (Place.DenotesAs), for both RENAMES forms.
+        if (rule.ExcludesLevel66 && operand.DenotedItem?.Renames is not null)
         {
-            data.Edition.Error(DiagnosticCatalog.StatementOperandRule, rule.ExcludesLevel66
-                ? $"{rule.Verb} CORRESPONDING operand '{refText}' is described with level-number 66 — the "
-                  + $"operands \"shall not be described with level-number 66\" (ISO {rule.Clause})"
-                : $"{rule.Verb} CORRESPONDING operand '{refText}' is described with level-number 66, so it is "
-                  + $"not a group data item — the operands shall be {ItemCategory.Spell(rule.Admitted)} "
-                  + $"(ISO {rule.Clause})");
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{rule.Verb} CORRESPONDING operand '{refText}' is described with level-number 66 — the "
+                + $"operands \"shall not be described with level-number 66\" (ISO {rule.Clause})");
             return false;
         }
+        // ⛔ AND WHERE THE RULE DOES NOT NAME LEVEL 66, A LEVEL-66 ENTRY IS JUDGED BY WHAT IT IS (kb/Work PB966).
+        // MOVE's SR12 asks only for "group data items", and §13.18.45.4 GR2 — "When the THROUGH phrase is
+        // specified, data-name-1 defines an alphanumeric group item that includes all elementary items" — makes a
+        // THROUGH alias exactly that; GroupKindsOf answers Alphanumeric for it. What stood here refused EVERY
+        // level-66 operand by name under SR12, which names no level number: legal source rejected. The
+        // non-THROUGH alias takes data-name-2's attributes (GR1), so it is a group exactly when data-name-2 is.
+        DataItem item = operand.Item;
         GroupKinds kinds = ItemCategory.GroupKindsOf(item);
         if ((kinds & rule.Admitted) != GroupKinds.None) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule, kinds is GroupKinds.None
@@ -983,10 +993,18 @@ internal sealed class StatementValidation(DataBinder data)
     /// a diagnostic code, and unreachable; the violation reached the user as an unhandled run-time
     /// <c>NotImplementedCobolFeatureException</c>. Asking the resolved item is also what makes the rule
     /// QUALIFICATION-correct: `INITIALIZE R66 IN REC-2` names one entry, and a name lookup that returns every
-    /// same-named candidate answers about the wrong one as readily as the right one.</para></summary>
-    public bool CheckInitializeTargetRenames(string refText, DataItem item)
+    /// same-named candidate answers about the wrong one as readily as the right one.</para>
+    /// <para>⛔ AND IT ASKS THE ENTRY THE NAME DENOTES, NOT THE ONE WHOSE STORAGE IS USED (kb/Work PB966). The
+    /// non-THROUGH alias resolves to data-name-2's own place (§13.18.45.4 GR1), whose <see cref="Place.Item"/> is
+    /// data-name-2 — so `INITIALIZE GALIAS` over `66 GALIAS RENAMES SG` compiled and initialized SG, measured,
+    /// while its THROUGH sibling was refused. <see cref="Place.DenotedItem"/> answers the level-66 entry for both
+    /// forms; a reference-modified operand (whose DenotedItem is null — there is no declared item) is asked
+    /// through its inner reference, as before.</para></summary>
+    public bool CheckInitializeTargetRenames(string refText, Place place)
     {
-        if (item.Renames is null) return true;
+        Place named = place;
+        while (named.DenotedItem is null && named is PlaceDecorator d) named = d.Inner;
+        if ((named.DenotedItem ?? place.Item).Renames is null) return true;
         data.Edition.Error("COBOLNET0835",
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
             + "clause (ISO §14.9.20.3 SR5)");

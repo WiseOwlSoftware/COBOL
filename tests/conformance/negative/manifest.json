@@ -1343,7 +1343,9 @@
   "pb909-search-all-not-at-end",
   "pb909-entry-statement",
   "pb909-write-advancing-indexed",
-  "pb681-table-element-not-subscripted"
+  "pb681-table-element-not-subscripted",
+  "pb966-add-corr-level66-alias",
+  "pb966-initialize-level66-alias"
  ],
  "pending": []
 }

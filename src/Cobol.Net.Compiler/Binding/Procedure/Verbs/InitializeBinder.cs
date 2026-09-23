@@ -227,7 +227,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired
         // and the violation shipped as an unhandled NotImplementedCobolFeatureException naming a missing
         // compiler feature instead of the reader's illegal program (kb/Work PB416).
-        if (!ctx.Validation.CheckInitializeTargetRenames(dref.GetText(), place.Item)) return;
+        if (!ctx.Validation.CheckInitializeTargetRenames(dref.GetText(), place)) return;
         // ISO §14.9.20.3 SR1 — the class screen, asked of the ONE §8.5.2.1 Table-2 classifier. See
         // DiagnosticCatalog.InitializeTargetClass for why this cannot be folded into GR5a1's exclusion below.
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)

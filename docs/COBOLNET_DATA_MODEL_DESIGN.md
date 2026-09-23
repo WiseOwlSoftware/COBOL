@@ -56,6 +56,13 @@ Fixed-point = native `long` holding the UNSCALED value; scale is compile-time me
 == 7. LEVELS 66 (RENAMES) and 88 (condition-names) ==
   • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.39.4 GR6). The binder captures 88 entries as `Condition88` records on their conditional variable (IMPLEMENTED — `DataBinder.Conditions` multimap); ensure the captured VALUE list covers THRU ranges + multiple literals.
   • 66 RENAMES: a re-grouping alias over a contiguous run FROM..THRU of sibling elementary items. DECISION: model as a Place that is an ALIAS — for the common case (RENAMES of a single elementary, or a whole-group read/write) emit a computed property that concatenates/splits the underlying members' char images. The general overlapping-bytes RENAMES is a storage-overlay case → defer to G6 (the byte-image fallback) and flag loud. Capture RenamesInfo (FROM/THRU + qualifiers) now; resolution is deferred-pass like legacy.
+    A THROUGH alias answers two DIFFERENT questions from two fields, and each rule asks the one it means: its STORAGE
+    (`RenamesInfo.Span` — the record's characters tiled by non-redefining leaves; atoms, images, reads and writes) and
+    its MEMBERSHIP (`RenamesInfo.IncludedElementaryItems` — §13.18.45.4 GR2's "all elementary items starting with
+    data-name-2 … and concluding with data-name-3", in declaration order; §14.7.6's "a data item in D1" for MOVE
+    CORRESPONDING, kb/Work PB966, determination D-CORR66 in docs/CONFORMANCE.md). A rule about WHICH ENTRY a
+    reference names — "described with level-number 66", "shall not contain a RENAMES clause" — asks
+    `Place.DenotedItem`, never `Place.Item`: the no-THROUGH alias resolves to data-name-2's own place.
 
 == 8. REDEFINES — the storage-overlay boundary ==
 > **Canonical REDEFINES design.** The 4-tier one-canonical-backing model below is the design; the SSOT is

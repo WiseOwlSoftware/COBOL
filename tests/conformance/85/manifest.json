@@ -135,7 +135,8 @@
   "pb664_string_operand_screen",
   "pb810_read_46_takes_no_at_end",
   "pb862_implementor_names",
-  "pb873_signed_argument_image_carried_formal"
+  "pb873_signed_argument_image_carried_formal",
+  "pb966_move_corresponding_through_alias"
  ],
  "pending": []
 }

@@ -48,6 +48,49 @@ public sealed class RenamesInfo
 
     /// <summary>True for a single no-THRU alias (Tier A forward, GR1); false for a THRU span (a Tier-B composition, GR2).</summary>
     public bool IsAlias => ThruName is null;
+
+    /// <summary>⛔ THE DATA ITEMS A THROUGH ALIAS <i>INCLUDES</i>, in declaration order — §13.18.45.4 GR2 verbatim:
+    /// <i>"When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item that includes all
+    /// elementary items starting with data-name-2 (if data-name-2 is an elementary item) or the first elementary
+    /// item in data-name-2 (if data-name-2 is a group item), and concluding with data-name-3 (if data-name-3 is an
+    /// elementary item) or the last elementary item in data-name-3 (if data-name-3 is a group item)."</i>
+    /// <para>This is the alias's MEMBERSHIP, which is a different question from its STORAGE (<see cref="Span"/>):
+    /// the span is the record's characters tiled by non-redefining leaves (a REDEFINES view is never counted
+    /// twice), while GR2 names the ELEMENTARY ITEMS — every one of them between the two endpoints in the order
+    /// the entries are written, a redefining entry's items included. The one reader today is §14.7.6's "a data
+    /// item in D1" when D1 is an alias (kb/Work PB966); a rule asking which items an alias INCLUDES reads this,
+    /// and a rule asking which characters it OCCUPIES reads <see cref="Span"/>.</para>
+    /// <para>Empty for the no-THROUGH form (GR1 gives the alias data-name-2's own attributes — it is that item,
+    /// and has no members of its own) and for an alias whose operands did not resolve.</para></summary>
+    public IReadOnlyList<DataItem> IncludedElementaryItems => _included ??= ComputeIncluded();
+
+    private IReadOnlyList<DataItem>? _included;
+
+    private IReadOnlyList<DataItem> ComputeIncluded()
+    {
+        if (From is not { } from || Thru is not { } thru) return [];
+        DataItem root = from;
+        while (root.Parent is { } up) root = up;
+        DataItem first = from, last = thru;
+        while (!first.IsElementary && first.Children.Count > 0) first = first.Children[0];
+        while (!last.IsElementary && last.Children.Count > 0) last = last.Children[^1];
+        var items = new List<DataItem>();
+        bool inside = false, done = false;
+        void Walk(DataItem n)
+        {
+            if (done) return;
+            if (n.IsElementary)
+            {
+                if (ReferenceEquals(n, first)) inside = true;
+                if (inside) items.Add(n);
+                if (ReferenceEquals(n, last)) done = true;
+                return;
+            }
+            foreach (var c in n.Children) Walk(c);
+        }
+        Walk(root);
+        return done ? items : [];
+    }
 }
 
 /// <summary>

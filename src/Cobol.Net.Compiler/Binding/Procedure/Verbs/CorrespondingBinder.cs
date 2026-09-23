@@ -88,7 +88,9 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // "already failed the resolves above"; it does not. DataBinder.BindRenames builds it with Pic null and
         // no Children into `_lastRoot.Renames66`, so DataItem.IsGroup is false for it and it landed in the
         // elementary-operand arm — rejected for a reason the rule does not give. SR6 excludes it BY NAME, and
-        // StatementValidation now says so.
+        // StatementValidation now says so. MOVE's SR12 names no level number, and a THROUGH alias IS an
+        // alphanumeric group item (§13.18.45.4 GR2), so it is admitted there (kb/Work PB966) and its members are
+        // the elementary items GR2 says it includes (CorrMembers).
         // ⛔ AND SR12's SECOND HALF IS NOW CHECKED INSTEAD OF ASSUMED (kb/Work PB390). What stood here claimed
         // SR12's "not reference-modified" half "DOES hold structurally: reference modification resolves only over
         // elementary character items, never a group" — false. A group item IS reference-modifiable and has its own
@@ -132,22 +134,21 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         List<CorrespondingPair> pairs, CobolRounding rounding)
     {
         var dstByName = new Dictionary<string, List<DataItem>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var d in dst.Children)
+        foreach (var d in CorrMembers(dst))
         {
-            if (!CorrEligible(d)) continue;
             if (!dstByName.TryGetValue(d.CobolName!, out var list)) dstByName[d.CobolName!] = list = [];
             list.Add(d);
         }
         // Rule 6 is SYMMETRIC ("the name … is unique after application of the implied qualifiers"): a duplicated
         // eligible name on EITHER side makes the implied qualified reference ambiguous — excluded, not an error.
         // (The legacy matcher checked only the target side; the spec governs.)
+        List<DataItem> srcMembers = CorrMembers(src);
         var srcCount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var s in src.Children)
-            if (CorrEligible(s)) srcCount[s.CobolName!] = srcCount.GetValueOrDefault(s.CobolName!) + 1;
+        foreach (var s in srcMembers)
+            srcCount[s.CobolName!] = srcCount.GetValueOrDefault(s.CobolName!) + 1;
 
-        foreach (var s in src.Children)
+        foreach (var s in srcMembers)
         {
-            if (!CorrEligible(s)) continue;
             if (srcCount[s.CobolName!] > 1) continue;                          // rule 6, source side
             if (!dstByName.TryGetValue(s.CobolName!, out var cands)) continue; // rule 1: no same-named target
             if (cands.Count > 1) continue;                                     // rule 6, target side
@@ -223,6 +224,51 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// <c>USAGE NATIONAL</c> awaiting COBOLNET0881) — and §14.7.6 speaks only of "a data item in D1". Keeping it
     /// in a MOVE-validity filter made the exclusion invisible to ADD and SUBTRACT CORRESPONDING, which reached
     /// it only through rule 3's numeric test by luck of ordering.</para></summary>
+    /// <summary>⛔ THE DATA ITEMS "IN" ONE LEVEL OF A CORRESPONDING OPERAND, rule 1/4/5-eligible, in declaration
+    /// order — the ONE place the matcher asks, so both operands (D1 AND D2) answer the same way (kb/Work PB966).
+    /// For an ordinary group they are its eligible subordinate entries. For a level-66 THROUGH alias —
+    /// §13.18.45.4 GR2, "data-name-1 defines an alphanumeric group item that includes all elementary items
+    /// starting with data-name-2 … and concluding with data-name-3" — they are those ELEMENTARY items
+    /// (<see cref="RenamesInfo.IncludedElementaryItems"/>).
+    /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §7, kb/Work PB966): §14.7.6 rule 1 compares "the same
+    /// qualifiers, if any, up to, but not including, D1 and D2", and an alias is in no included item's
+    /// qualifier chain — the items are subordinate to the renamed RECORD, not to the alias. Read with GR2's own
+    /// wording, the alias includes elementary items and no groups, so each included item stands directly in D1
+    /// with NO qualifier between it and D1: it corresponds by data-name alone with an item at the first level of
+    /// the other operand, and a name included twice falls to rule 6. Rejected: reading the record's intermediate
+    /// groups inside the window as qualifiers — GR2 does not include them in the alias. Rules 4 and 5 still apply,
+    /// to the included item and to every group between it and the window's enclosing group (the lowest group
+    /// containing both endpoints): an item under an OCCURS or a REDEFINES entry inside the window is excluded
+    /// exactly as it would be under a group subordinate to D1.</para></summary>
+    private static List<DataItem> CorrMembers(DataItem group)
+    {
+        if (group.Renames is not { IsAlias: false } ren)
+            return group.Children.Where(CorrEligible).ToList();
+        DataItem? enclosing = EnclosingGroup(ren);
+        var members = new List<DataItem>();
+        foreach (var e in ren.IncludedElementaryItems)
+        {
+            if (!CorrEligible(e)) continue;
+            bool excluded = false;
+            for (DataItem? a = e.Parent; a is not null && !ReferenceEquals(a, enclosing); a = a.Parent)
+                if (a.IsTable || a.RedefinesTargetName is not null) { excluded = true; break; }   // rule 5
+            if (!excluded) members.Add(e);
+        }
+        return members;
+    }
+
+    /// <summary>The lowest group containing both of a THROUGH alias's endpoints — the groups strictly below it
+    /// are the ones the window spans, so they are the ones rule 5 is asked of (see <see cref="CorrMembers"/>).</summary>
+    private static DataItem? EnclosingGroup(RenamesInfo ren)
+    {
+        if (ren.From is not { } from || ren.Thru is not { } thru) return null;
+        var ancestors = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        for (DataItem? a = from.Parent; a is not null; a = a.Parent) ancestors.Add(a);
+        for (DataItem? a = thru.Parent; a is not null; a = a.Parent)
+            if (ancestors.Contains(a)) return a;
+        return null;
+    }
+
     private static bool CorrEligible(DataItem item) =>
         item.CobolName is not null
         && (item.IsGroup || item.IsElementary)
@@ -291,6 +337,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         private readonly DataItem _groupItem;
         private readonly ReferenceResolver _refs;
         private bool _hoisted;
+        private bool _isAlias;                 // a level-66 THROUGH alias: each member resolves on its own
 
         private CorrAccess(List<CorrespondingHoist> hoists, string local, Place? group, string offsetInit,
             bool isMember, bool subscripted, AccessPath? backing, DataItem groupItem, ReferenceResolver refs)
@@ -319,6 +366,12 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
                     subscripted: m.Path.HasIndex, backing: null, m.Item, refs),
                 RedefViewPlace v => new CorrAccess(hoists, local, group: null, offsetInit: v.OffsetExpr, isMember: false,
                     subscripted: false, v.Backing, v.Item, refs),
+                // A level-66 THROUGH alias (kb/Work PB966): its members are the elementary items §13.18.45.4 GR2
+                // says it includes, none subject to an OCCURS clause (§13.18.45.3 SR3 keeps both endpoints out of
+                // one, and CorrMembers excludes an item under an OCCURS inside the window), so each is identified
+                // by its own unsubscripted reference — there is nothing to anchor at statement start.
+                RenamesPlace n => new CorrAccess(hoists, local, group: null, offsetInit: "", isMember: false,
+                    subscripted: false, backing: null, n.Item, refs) { _isAlias = true },
                 _ => null,
             };
 
@@ -327,6 +380,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         public Place? ChildPlace(IReadOnlyList<DataItem> chain)
         {
             DataItem leaf = chain[^1];
+            // An alias member is ELEMENTARY (GR2 includes no groups), so its chain is the member alone.
+            if (_isAlias) return chain.Count == 1 ? _refs.ResolveItem(leaf) : null;
             if (_isMember)
             {
                 if (chain.All(CorrPlainMember))
