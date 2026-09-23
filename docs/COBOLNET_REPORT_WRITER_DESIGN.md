@@ -78,8 +78,8 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
   settled (a multi-operand format-4 clause — SR35 — gates each of its literals). `NumericEditedValueEditionGateDriftTests`
   carries the report spelling beside the three data-division ones, so the property is one property.
 - **Physical output** goes through the report file's ordinary connector (`CobolFile.WriteAdvancing` — the
-  print-control stream). The engine tracks `_physLine` (physical position) separately from LINE-COUNTER so
-  a future NEXT GROUP (which moves LINE-COUNTER, §8.4.3.15.4 GR4) cannot corrupt positioning.
+  print-control stream). The engine tracks `_physLine` (physical position) separately from LINE-COUNTER,
+  because a NEXT GROUP clause moves LINE-COUNTER without printing (§8.4.3.15.4 GR4, §13.18.37.4).
   ⛔ **A LINE NUMBER IS A PAGE LINE NUMBER, AND LINE 1 IS WHERE THE STREAM ALREADY RESTS** (kb/Work PB484):
   §13.18.35.4 GR6 prints the line "on the page at that vertical location" and GR7 makes every unoccupied
   line above it blank, so the travel to line `target` is `target − 1` while the page is still empty
@@ -94,7 +94,8 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | `Initiate` | §14.9.21.4 GR1a–c (sums←0, LC←0, PC←1), GR2 (active re-INITIATE **raises EC-REPORT-ACTIVE**, no other effect), GR3 (the file is NOT opened here — it shall ALREADY be open OUTPUT/EXTEND, else **EC-REPORT-FILE-MODE** and no action is taken on the report; the detection half of §14.9.27.4 GR7), GR4 (→active). §14.9.49.4 GR10 outranks all three — see the RANGE row |
 | `Generate(detail?)` | GR4 first-GENERATE sequence (RH once → PH → CHs major→minor → detail); GR5 subsequent (break: CFs minor→break with PRIOR control values per §13.18.16.4 GR4a, then CHs break→minor); GR2 summary (null detail); GR7 inactive **raises EC-REPORT-INACTIVE** and does nothing; SUM accumulation per §13.18.54.4 GR7c (after break processing) |
 | page fit | §13.18.35.4 GR4b absolute (integer-1 > LC) / GR4c relative (trial = LC + Σ relative values ≤ the §13.18.57.4 GR8 lower limit: DE→LAST DETAIL, CH→LAST CH, CF→FOOTING); the chronologically FIRST body group since INITIATE is exempt (GR4); only body groups test (§13.18.57.3 SR15) |
-| page advance | §14.9.16.4 GR6 in order: PF → physical advance (form feed) → CODE re-eval (staged) → PC+1 → LC←0 → PH |
+| page advance | §14.9.16.4 GR6 in order: PF → physical advance (form feed) → CODE re-eval (staged) → PC+1, or PC←1 after a NEXT GROUP NEXT PAGE WITH RESET (GR6d / §13.18.37.4 GR6) → LC←0 → PH. The feed itself (b–e) is `PageFeed`, shared with the report heading that stands on a page by itself |
+| NEXT GROUP | §13.18.37 (kb/Work PB957) — the bound clause is the runtime's own `ReportNextGroup` record on `ReportGroup.NextGroup`, applied by the ONE method `ApplyNextGroup` after a group's last line (GR2). RH (GR3): absolute LC←integer-1, relative LC+=integer-2, NEXT PAGE → the RH is alone on page 1 and `PageFeed` runs with no PF (§13.18.57.4 GR6f 1) and PC←1 when WITH RESET (§14.9.16.4 GR4a). Body (GR4): absolute LC←integer-1 when LC is below it, else integer-1 goes to the SAVE LOCATION with LC←FOOTING, and the next non-dummy body group takes the forced advance then GR4a 1 (absolute first line: LC←saved, fit re-applied) or GR4a 3 (relative: first line at saved+1 unless the group would pass its lower limit — then a second advance and FIRST DETAIL); a TERMINATE next discards the save and restores LC ("no effect at all"); relative adds integer-2 below FOOTING else LC←FOOTING (an unpaged report has no FOOTING — the distance is added); NEXT PAGE LC←FOOTING and arms the GR6 reset. CF (GR1): only the footing AT the break level applies its clause — at TERMINATE the most major one (§14.9.46.4 GR3b). PF (GR5): absolute/relative move LC, which places a relative RF (§13.18.35.4 GR5b5). A dummy or SUPPRESSed group never reaches it (§8.4.3.15.4 GR5, §14.9.45.4 GR3). GR4a 2 (a next group opening with LINE … NEXT PAGE) is unreachable while that phrase stages loud |
 | line placement | §13.18.35.4 GR5a (absolute → integer-1), GR5b1 RH (HEADING+n−1), GR5b2 PH (RH-on-page aware), **GR5b3 body (FIRST body group on page → FIRST DETAIL, relative value IGNORED; else LC+n)**, GR5b4 PF (FOOTING+n), GR5b5 RF (PF-on-page aware), GR7 subsequent lines, GR6 LC-before-compose, GR8 final LC = last line printed |
 | `Terminate` | §14.9.46.4 GR1 (inactive → **EC-REPORT-INACTIVE**, the statement is unsuccessful), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d (controls→prior, CFs minor→major, restore), §13.18.57.4 GR6f (final-page PF, "immediately followed by" the RF), GR3c (RF), GR6 (file NOT closed) |
 | controls | §13.18.16.4 GR1 (operand order = hierarchy), GR2 (FINAL highest, never breaks mid-report), GR3 (first GENERATE saves priors; major→minor compare), GR4a (CF composes under restored prior values), GR5 (TERMINATE = most-major break). Break key = the item's CHARACTER IMAGE via generated get/set delegates (representation-faithful for every category; restore decodes via `CobolNum.StoreDisplay` for native numeric leaves) |
@@ -148,6 +149,18 @@ off-by-one through every later counter check.
   clause OPENS a new report line (**LINE is legal at ANY level** — RW101A puts `LINE PLUS 1` on an 03; a
   binder that reads LINE only at the 01 produces a lineless group and a never-moving LINE-COUNTER); an entry
   with a COLUMN clause appends a printable field to the CURRENT line. TYPE abbreviations per §13.18.57.3 SR9.
+- **PLUS and + are ONE grammar fragment** (kb/Work PB951): `reportRelativeSign : PLUSWORD | PLUS` is the only
+  spelling of a relative operand in `CobolReportWriter.g4`, referenced by the LINE, COLUMN and NEXT GROUP
+  productions (§13.18.35.3 SR1 / §13.18.14.3 SR2 / §13.18.37.3 SR2 each print "PLUS and + are synonyms"), and
+  every binder reader asks `reportRelativeSign()`. `GrammarRelativeSignDriftTests` pins that every parser rule
+  naming the word also names the symbol, and that the report grammar spells the pair in that one rule.
+- **NEXT GROUP** (§13.18.37; kb/Work PB957) is captured on its level 1 entry's group during the walk and bound
+  by `BindNextGroupClauses` once the RD's groups are complete (the TYPE clause may follow it in the entry, and
+  SR6a/SR6c/SR7 read the group's lines). It screens §13.15.3 SR6 over the flat entry array and §13.18.37.3
+  SR1/SR3/SR4/SR5/SR6/SR7 per group on **COBOLNET2284**; "the minimum last line number of the report group" is
+  the GR5/GR7 placement walked over the group's UNCONDITIONAL lines (`MinimumLastLine` — a PRESENT WHEN or
+  OCCURS DEPENDING line may be absent, and absence can only leave the last line higher up). The binding is the
+  runtime's own `ReportNextGroup` record, which the emitter writes verbatim.
 - **A REPEATING ENTRY IS A SUBTREE REPLAY, AND THAT IS THE ONLY REPETITION MECHANISM** (§13.18.38 format 3 —
   `OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]`; kb/Work PB565).
   `ReportOccursOf` reads the clause and enforces its syntax rules (one bundled code, `COBOLNET2021`: SR1a no
@@ -406,8 +419,8 @@ COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter); **
 (§13.18.35.3 SR10, bound as §13.18.35.4 GR9's simple OCCURS, SR4 and SR10 a/b/c/d screened on COBOLNET2199) —
 all three §13.15.4 GR3 vehicles live, edition-gated 2002.
 
-**Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):** NEXT GROUP
-(§13.18.37, incl. the WITH RESET PAGE-COUNTER form); CODE (§13.18.12); LINE … NEXT PAGE / ON NEXT PAGE;
+**Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):** CODE
+(§13.18.12); LINE … NEXT PAGE / ON NEXT PAGE;
 **a VARYING counter inside a FROM/BY expression (the §13.18.64.3 SR3-legal BY
 self-reference; `report-varying-counter-in-expression`)**; **FUNCTION inside a PRESENT WHEN condition
 (`report-condition-function` — the UDF activation-hoist is statement-context machinery)**; **GROUP INDICATE on

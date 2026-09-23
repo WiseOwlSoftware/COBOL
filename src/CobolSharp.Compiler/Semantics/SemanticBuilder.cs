@@ -1048,7 +1048,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 else if (lop.integerLiteral() is { } li && int.TryParse(li.GetText(), out int lv))
                 {
                     group.LineValue = lv;
-                    group.LineRelative = lop.PLUSWORD() != null;
+                    group.LineRelative = lop.reportRelativeSign() != null;
                 }
             }
             if (clause.reportColumnClause()?.reportColumnOperand(0)?.integerLiteral() is { } colLit

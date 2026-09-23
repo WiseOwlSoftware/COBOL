@@ -113,6 +113,23 @@ public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string>
     public Func<bool>? Present { get; } = present;
 }
 
+/// <summary>The three forms of the NEXT GROUP clause (ISO §13.18.37.2): <c>integer-1</c>, <c>{PLUS|+} integer-2</c>
+/// and <c>NEXT PAGE [WITH RESET]</c> — "exactly one alternative shall be selected".</summary>
+public enum ReportNextGroupKind
+{
+    /// <summary>NEXT GROUP integer-1 — an absolute line number (§13.18.37.3 SR1).</summary>
+    Absolute,
+    /// <summary>NEXT GROUP PLUS integer-2 — a relative vertical distance (SR1; SR2 — PLUS and + are synonyms).</summary>
+    Relative,
+    /// <summary>NEXT GROUP NEXT PAGE — the next group begins a new page.</summary>
+    NextPage,
+}
+
+/// <summary>A report group's NEXT GROUP clause (ISO §13.18.37): its form, integer-1 / integer-2 (0 for NEXT PAGE),
+/// and whether the NEXT PAGE form carries WITH RESET (GR6 — PAGE-COUNTER is set to 1 at the next page advance).
+/// The engine applies it after the group's last line is printed (GR2), per the group's type (GR3–GR5).</summary>
+public sealed record ReportNextGroup(ReportNextGroupKind Kind, int Value, bool Reset = false);
+
 /// <summary>One report group (ISO §13.15 report group description entry): its TYPE, name (referenced by GENERATE
 /// for a detail, §14.9.16 SR1), control level (CH/CF — index into the report's control hierarchy, −1 otherwise),
 /// and its report lines in declaration order.</summary>
@@ -136,6 +153,9 @@ public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLe
     /// print on the first presentation after an INITIATE / page advance / control break and are blanked on
     /// every other presentation.</summary>
     public List<(int Column, int Width)> IndicateFields { get; } = [];
+
+    /// <summary>The group's NEXT GROUP clause (ISO §13.18.37; §13.15.3 SR6 — level 1 only), null when none.</summary>
+    public ReportNextGroup? NextGroup { get; set; }
 }
 
 /// <summary>
@@ -146,7 +166,7 @@ public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLe
 /// (§13.18.35.4 GR6). There is no byte plan, no registration kinds — the typed-native singular pattern.
 /// Physical output goes through the report file's connector via <see cref="CobolFile.WriteAdvancing"/>
 /// (a print-control stream); <see cref="_physLine"/> tracks the physical position independently of
-/// LINE-COUNTER so a future NEXT GROUP (which moves LINE-COUNTER, §8.4.3.15.4 GR4) cannot corrupt positioning.
+/// LINE-COUNTER, because a NEXT GROUP clause moves LINE-COUNTER without printing (§8.4.3.15.4 GR4, §13.18.37.4).
 /// </summary>
 public sealed class CobolReport(
     string name, string fileName, int lineWidth, bool paged,
@@ -197,6 +217,21 @@ public sealed class CobolReport(
     private bool _indicateFresh;           // GROUP INDICATE freshness (§13.18.29 — run / page / control-group start)
     private bool _suppressCurrent;         // §14.9.45 — a SUPPRESS executed in the presenting group's USE BEFORE REPORTING
     private int _physLine;                 // physical line position on the current page (0 = top, nothing printed)
+
+    /// <summary>The NEXT GROUP SAVE LOCATION (ISO §13.18.37.4 GR4a): integer-1 of a body group's absolute NEXT
+    /// GROUP clause that LINE-COUNTER had already reached; 0 = empty (an absolute integer-1 is ≥ FIRST DETAIL ≥ 1,
+    /// SR6b). While it is set, LINE-COUNTER holds the FOOTING integer and the next non-dummy body group is placed
+    /// by GR4a 1–3 instead of the ordinary §13.18.35.4 GR4/GR5 rules.</summary>
+    private int _nextGroupSave;
+
+    /// <summary>LINE-COUNTER as the group that filled <see cref="_nextGroupSave"/> left it — restored when a
+    /// TERMINATE is the next statement for the report, because GR4a says the clause then has "no effect at
+    /// all".</summary>
+    private long _lineCounterBeforeSave;
+
+    /// <summary>ISO §13.18.37.4 GR6 — a NEXT GROUP NEXT PAGE WITH RESET was processed: the next page advance sets
+    /// PAGE-COUNTER to 1 instead of incrementing it (§14.9.16.4 GR6d, GR4a).</summary>
+    private bool _resetPageCounterAtAdvance;
 
     private ReportGroup? _reportHeading, _pageHeading, _pageFooting, _reportFooting;
     private readonly Dictionary<string, ReportGroup> _details = new(StringComparer.OrdinalIgnoreCase);
@@ -368,6 +403,8 @@ public sealed class CobolReport(
         _pfOnThisPage = false;
         _indicateFresh = true;                         // §13.18.29 — the run's first presentation indicates
         _physLine = 0;
+        _nextGroupSave = 0;                            // §13.18.37.4 — no NEXT GROUP carries across an INITIATE
+        _resetPageCounterAtAdvance = false;
         foreach (var c in _controls) c.Prior = null;   // priors are saved by the first GENERATE (§13.18.16.4 GR3)
     }
 
@@ -401,8 +438,8 @@ public sealed class CobolReport(
         if (!_started)
         {
             _started = true;
-            // GR4a: the report heading, exactly once. (An RH on a page by itself needs NEXT GROUP NEXT PAGE —
-            // staged loud at bind, so the in-flow placement below is the only reachable shape.)
+            // GR4a: the report heading, exactly once. An RH whose NEXT GROUP clause is NEXT PAGE is on a page by
+            // itself, and its page advance happens inside the presentation (ApplyNextGroup, §13.18.37.4 GR3c).
             if (_reportHeading is { } rh) PresentHeadingFooting(rh);
             // GR4b / GR6: the page heading precedes the chronologically first body group.
             if (_pageHeading is not null) PresentPageHeading();
@@ -423,8 +460,11 @@ public sealed class CobolReport(
                 current[i] = _controls[i].Get();
                 if (_controls[i].Prior is { } prior) _controls[i].Set(prior);
             }
+            // §13.18.37.4 GR1 — a control footing's NEXT GROUP clause "has no effect when it is specified in a
+            // control footing that is at a level other than the highest level at which the control break is
+            // detected": only the footing AT the break level applies it.
             for (int i = _controls.Count - 1; i >= breakLevel; i--)
-                if (_controlFootings.TryGetValue(i, out var cf)) PresentBody(cf);
+                if (_controlFootings.TryGetValue(i, out var cf)) PresentBody(cf, applyNextGroup: i == breakLevel);
             for (int i = 0; i < _controls.Count; i++)
             {
                 _controls[i].Set(current[i]);
@@ -486,6 +526,15 @@ public sealed class CobolReport(
         }
         if (_started)           // GR2 — no GENERATE ⇒ no group processing of any kind
         {
+            // §13.18.37.4 GR4a — an absolute NEXT GROUP whose integer-1 went into the save location "will have no
+            // effect at all if a TERMINATE is next executed for the report": the save location is discarded and
+            // LINE-COUNTER is what the group's own last line left it, so the control footings below neither take
+            // the forced page advance nor the save-location placement.
+            if (_nextGroupSave != 0)
+            {
+                _nextGroupSave = 0;
+                LineCounter = _lineCounterBeforeSave;
+            }
             if (_controls.Count > 0 && _controls[0].Prior is not null)
             {
                 var current = new string[_controls.Count];
@@ -494,8 +543,10 @@ public sealed class CobolReport(
                     current[i] = _controls[i].Get();
                     if (_controls[i].Prior is { } prior) _controls[i].Set(prior);   // GR3a
                 }
-                for (int i = _controls.Count - 1; i >= 0; i--)                      // GR3b — minor → major
-                    if (_controlFootings.TryGetValue(i, out var cf)) PresentBody(cf);
+                // GR3b — minor → major, "as though a control break has been sensed in the most major control data item", so the
+                // most major footing is the one §13.18.37.4 GR1 lets apply its NEXT GROUP clause.
+                for (int i = _controls.Count - 1; i >= 0; i--)
+                    if (_controlFootings.TryGetValue(i, out var cf)) PresentBody(cf, applyNextGroup: i == 0);
                 for (int i = 0; i < _controls.Count; i++) _controls[i].Set(current[i]);   // GR3d
             }
             // §13.18.57.4 GR6f: the page footing prints as the last report group on EACH page — including the
@@ -546,7 +597,7 @@ public sealed class CobolReport(
     /// <summary>Present a BODY group (detail / CH / CF — §13.18.57.3 SR15): the §13.18.35.4 GR4 page-fit test
     /// (skipped for the chronologically first body group since INITIATE), a failed fit's §14.9.16.4 GR6 page
     /// advance, then each line per GR5 (first line) / GR7 (subsequent lines).</summary>
-    private void PresentBody(ReportGroup group)
+    private void PresentBody(ReportGroup group, bool applyNextGroup = true)
     {
         bool suppressed = RunBeforeReporting(group);   // §14.9.49 GR8; true ⇒ a §14.9.45 SUPPRESS executed
         var lines = group.Lines;
@@ -566,7 +617,12 @@ public sealed class CobolReport(
         // totals stay correct. The addends were already accumulated in Generate/Terminate (§13.18.54.4 GR7).
         if (suppressed) { EndOfGroupSumReset(group); return; }
 
-        if (_paged && !_firstBodySinceInitiate)
+        // The first line's position when the preceding body group's absolute NEXT GROUP filled the save location
+        // (§13.18.37.4 GR4a 3) — the ordinary GR5 placement otherwise.
+        long? firstTarget = null;
+        if (_nextGroupSave != 0)
+            firstTarget = PlaceAfterSavedNextGroup(lines, present, first, LowerLimit(group));
+        else if (_paged && !_firstBodySinceInitiate)
         {
             // §13.18.35.4 GR4b (absolute): fit iff integer-1 > LINE-COUNTER. GR4c (relative): trial =
             // LINE-COUNTER + Σ integer-2 over the group's relative LINE clauses; fit iff trial ≤ the group's
@@ -602,9 +658,9 @@ public sealed class CobolReport(
                 // §13.18.35.4 GR5a: absolute → integer-1. GR5b3 (paged, relative): the FIRST body group on the
                 // page lands at FIRST DETAIL (the relative value is IGNORED); otherwise LINE-COUNTER + integer-2.
                 // GR5c (unpaged, relative): LINE-COUNTER + integer-2. "First" = the first PRESENT line (GR5).
-                target = lines[i].Kind == ReportLineKind.Absolute ? lines[i].Value
+                target = firstTarget ?? (lines[i].Kind == ReportLineKind.Absolute ? lines[i].Value
                     : _paged && _firstBodyOnPage ? _firstDetail
-                    : LineCounter + RelativeValue(lines[i]);
+                    : LineCounter + RelativeValue(lines[i]));
                 isFirst = false;
             }
             else
@@ -614,7 +670,110 @@ public sealed class CobolReport(
         _firstBodySinceInitiate = false;
         _firstBodyOnPage = false;
         if (group.Kind == ReportGroupKind.Detail) _indicateFresh = false;   // §13.18.29 — repeats now suppress
+        if (applyNextGroup) ApplyNextGroup(group);   // §13.18.37.4 GR2 — after the group's last line is printed
         EndOfGroupSumReset(group);
+    }
+
+    /// <summary>⛔ ISO §13.18.37.4 GR4a — THE NEXT NON-DUMMY BODY GROUP AFTER A SAVED ABSOLUTE NEXT GROUP. The
+    /// preceding body group's integer-1 was not below LINE-COUNTER, so it went into the save location and
+    /// LINE-COUNTER was set to the FOOTING integer, "causing a page advance to take place just before any other
+    /// non-dummy body group is printed for the report" — the advance is the GR's stated effect, so it is taken
+    /// here unconditionally rather than re-derived from a page-fit test. Then:
+    /// <list type="number">
+    /// <item>a first LINE clause that is absolute: "the save location is moved to LINE-COUNTER and the page fit
+    /// test is re-applied before the first line of the body group is printed" (GR4a 1; the returned null lets
+    /// the ordinary absolute placement stand);</item>
+    /// <item>(GR4a 2 is the absolute LINE clause WITH the NEXT PAGE phrase, which the binder stages loud —
+    /// COBOLNET0899 report-line-next-page — so no group reaching the engine begins with one);</item>
+    /// <item>only relative LINE clauses: "its first line will be printed on the next line following the line
+    /// number in the save location, unless this will result in some line of this body group being printed
+    /// beyond its lower permitted limit. In the latter case, a second page advance takes place, resulting in a
+    /// page devoid of body groups, and the next body group is printed on the following page with no reference to
+    /// the save location" (GR4a 3).</item>
+    /// </list>
+    /// A dummy group (no lines, or every line absent under PRESENT WHEN) and a SUPPRESSed one never reach here,
+    /// so they leave the save location for the next non-dummy group, as the GR requires.</summary>
+    private long? PlaceAfterSavedNextGroup(ReportGroupLine[] lines, bool[]? present, int first, int lowerLimit)
+    {
+        long saved = _nextGroupSave;
+        _nextGroupSave = 0;
+        AdvancePage();
+        if (lines[first].Kind == ReportLineKind.Absolute)
+        {
+            LineCounter = saved;                                             // GR4a 1
+            if (lines[first].Value <= LineCounter) AdvancePage();            // the re-applied §13.18.35.4 GR4b test
+            return null;
+        }
+        // GR4a 3 — the first line at saved + 1; every later present line adds what it adds to a GR4c trial sum.
+        long last = saved + 1;
+        for (int i = first + 1; i < lines.Length; i++)
+            if (present is null || present[i]) last += lines[i].TrialInterval;
+        if (last <= lowerLimit) return saved + 1;
+        AdvancePage();                                                       // the page devoid of body groups
+        return null;                                                         // FIRST DETAIL, no save reference
+    }
+
+    /// <summary>⛔ THE ONE PLACE A NEXT GROUP CLAUSE TAKES EFFECT (ISO §13.18.37.4), called after the group's
+    /// last line is printed (GR2 — "modifies the value of the current report's LINE-COUNTER after the printing of
+    /// the last line, if any, of the report group in whose description the clause appears"). Every presentation
+    /// path that can carry the clause reaches it — body groups (GR4), the report heading (GR3) and the page
+    /// footing (GR5); §13.18.37.3 SR4 keeps it out of a page heading and a report footing, which the binder
+    /// enforces. A dummy group and a SUPPRESSed one return before this call (§8.4.3.15.4 GR5: neither affects
+    /// LINE-COUNTER or PAGE-COUNTER; §14.9.45.4 GR3 names NEXT GROUP among what SUPPRESS inhibits).</summary>
+    private void ApplyNextGroup(ReportGroup group)
+    {
+        if (group.NextGroup is not { } ng) return;
+        switch (group.Kind)
+        {
+            case ReportGroupKind.ReportHeading:
+                switch (ng.Kind)
+                {
+                    case ReportNextGroupKind.Absolute: LineCounter = ng.Value; break;    // GR3a
+                    case ReportNextGroupKind.Relative: LineCounter += ng.Value; break;   // GR3b
+                    default:
+                        // GR3c — "the report heading is printed on the first page of the report as the only report
+                        // group on that page and LINE-COUNTER is then set equal to zero"; §14.9.16.4 GR4a — "an
+                        // advance is made to the next physical page, and PAGE-COUNTER is either incremented by 1
+                        // or, if the report heading's NEXT GROUP clause has the WITH RESET phrase, set to 1". No
+                        // page footing closes that page (§13.18.57.4 GR6f 1 — "on the first page, if it is
+                        // occupied only by a report heading group") and the page heading follows through the
+                        // ordinary GENERATE flow (GR4b).
+                        _resetPageCounterAtAdvance = ng.Reset;
+                        PageFeed();
+                        break;
+                }
+                break;
+            case ReportGroupKind.PageFooting:
+                // GR5 — the clause "affects any report footing defined in the current report using only relative
+                // LINE clauses": the footing is placed from LINE-COUNTER (§13.18.35.4 GR5b5), so moving it here IS
+                // the effect. (SR5 forbids NEXT PAGE in a page footing.)
+                if (ng.Kind == ReportNextGroupKind.Absolute) LineCounter = ng.Value;         // GR5a
+                else if (ng.Kind == ReportNextGroupKind.Relative) LineCounter += ng.Value;   // GR5b
+                break;
+            case ReportGroupKind.ControlHeading or ReportGroupKind.Detail or ReportGroupKind.ControlFooting:
+                switch (ng.Kind)
+                {
+                    case ReportNextGroupKind.Absolute:                                       // GR4a
+                        if (LineCounter < ng.Value) LineCounter = ng.Value;
+                        else
+                        {
+                            _nextGroupSave = ng.Value;
+                            _lineCounterBeforeSave = LineCounter;
+                            LineCounter = _footing;
+                        }
+                        break;
+                    case ReportNextGroupKind.Relative:                                       // GR4b
+                        // An unpaged report has no FOOTING integer to clamp against (§13.18.39.4 GR2a — one page of
+                        // indefinite length), so the relative distance is simply added there.
+                        LineCounter = !_paged || LineCounter + ng.Value < _footing ? LineCounter + ng.Value : _footing;
+                        break;
+                    default:                                                                 // GR4c
+                        LineCounter = _footing;
+                        if (ng.Reset) _resetPageCounterAtAdvance = true;                     // GR6
+                        break;
+                }
+                break;
+        }
     }
 
     /// <summary>⛔ THE ONE PLACEMENT RULE FOR A SUBSEQUENT LINE OF A REPORT GROUP (ISO §13.18.35.4 GR7 with
@@ -684,11 +843,20 @@ public sealed class CobolReport(
 
     /// <summary>The §14.9.16.4 GR6 page advance, in the GR's order: (a) the page footing, (b) the physical
     /// advance to the next page, (c) CODE re-evaluation — the CODE clause is staged loud at bind, so this point
-    /// is a cited no-op — (d) PAGE-COUNTER + 1 (the NEXT GROUP … WITH RESET reset-to-1 form is staged with NEXT
-    /// GROUP), (e) LINE-COUNTER ← 0, (f) the page heading.</summary>
+    /// is a cited no-op — (d) PAGE-COUNTER + 1, or 1 after a NEXT GROUP NEXT PAGE WITH RESET, (e) LINE-COUNTER ←
+    /// 0, (f) the page heading.</summary>
     private void AdvancePage()
     {
         if (_pageFooting is not null) PresentPageFooting();                  // GR6a
+        PageFeed();                                                          // GR6b–e
+        if (_pageHeading is not null) PresentPageHeading();                  // GR6f
+    }
+
+    /// <summary>The PAGE FEED itself — §14.9.16.4 GR6 b) to e), shared by the body-group page advance above and
+    /// by the report heading that stands on a page by itself (§14.9.16.4 GR4a / §13.18.37.4 GR3c), which takes
+    /// the feed without a page footing or a page heading around it.</summary>
+    private void PageFeed()
+    {
         // ⛔ page: null. A REPORT file has NO LINAGE clause to supply one — ISO §13.4.5.2 Format 3 (report) is
         // the file description entry format for a file with a REPORT clause and its clause list carries no
         // linage-clause at all (only Format 1, sequential, does). The Report Writer owns this file's page model
@@ -696,13 +864,16 @@ public sealed class CobolReport(
         // for §13.18.34 GR6 to evaluate here (kb/Work PB673).
         CobolFile.WriteAdvancing(_fileName, "", -1, before: false, page: null);   // GR6b — form feed
         _physLine = 0;
-        PageCounter += 1;                                                    // GR6d
+        // GR6d — "If the page advance was preceded by the printing of a group whose description has a NEXT GROUP
+        // clause with the NEXT PAGE and WITH RESET phrases, PAGE-COUNTER is set to 1; otherwise PAGE-COUNTER is
+        // incremented by 1" (§13.18.37.4 GR6 — "immediately after the page feed caused by the next page advance").
+        PageCounter = _resetPageCounterAtAdvance ? 1 : PageCounter + 1;
+        _resetPageCounterAtAdvance = false;
         LineCounter = 0;                                                     // GR6e
         _firstBodyOnPage = true;
         _rhOnThisPage = false;
         _pfOnThisPage = false;
         _indicateFresh = true;                                               // §13.18.29 — a new page indicates
-        if (_pageHeading is not null) PresentPageHeading();                  // GR6f
     }
 
     /// <summary>Present the page heading (placement ISO §13.18.35.4 GR5b2: absolute → integer-1; relative with no
@@ -749,6 +920,7 @@ public sealed class CobolReport(
             PresentLine(target, l, pf);
         }
         _pfOnThisPage = true;
+        ApplyNextGroup(pf);   // §13.18.37.4 GR5
     }
 
     /// <summary>Present the report heading or report footing in flow (placement ISO §13.18.35.4 GR5b1 for RH —
@@ -774,6 +946,7 @@ public sealed class CobolReport(
             PresentLine(target, l, group);
         }
         if (group.Kind == ReportGroupKind.ReportHeading) _rhOnThisPage = true;
+        ApplyNextGroup(group);   // §13.18.37.4 GR3 (a report footing carries none — §13.18.37.3 SR4)
     }
 
     /// <summary>Present ONE report line: LINE-COUNTER is set to the computed line number FIRST (ISO §13.18.35.4

@@ -76,7 +76,9 @@ public sealed class ReservedWordMigrationGateDriftTests
 
     // ── The behavioural half: a greedy operand list must not absorb the word under --permissive ──────────────
 
-    /// <summary>A report group description entry whose VALUE clause is followed by <c>{0}</c>. The VALUE operand
+    /// <summary>A report group description entry whose VALUE clause is followed by <c>{0}</c>. It carries a COLUMN
+    /// clause because §13.15.3 SR13 requires one in every elementary entry with a VALUE clause (kb/Work PB853 made
+    /// that rule live, and the COLUMN-less control stopped compiling). The VALUE operand
     /// list (<c>valueItem</c>, ISO §13.18.63.2 format 4 — <c>{VALUE IS|VALUES ARE} {literal-1} …</c>, one or MORE
     /// literals, so the list is deliberately greedy and must NOT be narrowed) bottoms out at <c>cobolWord</c>,
     /// which is the user-defined-word slot §8.3.2.1 rule 1 governs. When the gate admits an always-reserved word

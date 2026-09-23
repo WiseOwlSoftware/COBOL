@@ -329,6 +329,11 @@ internal sealed class ReportWriterEmitter(
                         + (l.Anchor > 0 ? $", {l.Anchor}, {l.RelativeBase}, {l.TrialInterval}" : "") + ")")) + " }";
                 w.Line($"var __rg{r.CsIndex}_{gi} = new ReportGroup(ReportGroupKind.{group.Kind}, "
                     + $"{CsLiteral(group.Name ?? "")}, {group.ControlLevel}, {lines});");
+                // The NEXT GROUP clause (§13.18.37; kb/Work PB957) — the bound runtime record, written verbatim; the
+                // engine applies it after the group's last line (GR2).
+                if (group.NextGroup is { } ng)
+                    w.Line($"__rg{r.CsIndex}_{gi}.NextGroup = new ReportNextGroup(ReportNextGroupKind.{ng.Kind}, "
+                        + $"{ng.Value}, {(ng.Reset ? "true" : "false")});");
                 w.Line($"__RPT_{r.CsIndex}.AddGroup(__rg{r.CsIndex}_{gi});");
                 // GROUP INDICATE items (§13.18.29): the engine blanks them on repeated presentations — one span
                 // per absolute COLUMN operand (a relative operand with GROUP INDICATE is staged loud at bind).

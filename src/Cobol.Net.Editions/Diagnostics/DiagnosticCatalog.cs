@@ -764,6 +764,21 @@ public static class DiagnosticCatalog
         + "and if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified (SR15).",
         "ISO §13.15.3 SR10/SR11/SR13/SR15");
 
+    /// <summary>A NEXT GROUP clause (ISO §13.18.37) that a syntax rule forbids where it is written (kb/Work PB957):
+    /// outside a level 1 entry (§13.15.3 SR6); an integer beyond the page limit, or 9999 when the report is not
+    /// divided into pages (§13.18.37.3 SR1); an absolute or NEXT PAGE form in a report that is not divided into
+    /// pages (SR3); in a page heading or a report footing (SR4); NEXT PAGE in a page footing (SR5); or an
+    /// integer outside the region SR6 (absolute) or SR7 (relative) fixes for the group's type.</summary>
+    public static readonly DiagnosticDescriptor ReportNextGroupClauseRule = new(
+        "COBOLNET2284", "report-next-group-clause-rule", EditionSeverity.Error,
+        "A NEXT GROUP clause violates one of its syntax rules: it may be specified only in a level 1 entry "
+        + "(§13.15.3 SR6); integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
+        + "divided into pages (§13.18.37.3 SR1); if the report is not divided into pages, only the relative form "
+        + "may be specified (SR3); the clause shall not be specified in a page heading or report footing (SR4); "
+        + "the NEXT PAGE phrase shall not be specified in a page footing (SR5); and the absolute and relative "
+        + "integers shall lie within the bounds SR6 and SR7 set for a report heading, a body group and a page "
+        + "footing.", "ISO §13.18.37.3 SR1/SR3–SR7; §13.15.3 SR6");
+
     public static readonly DiagnosticDescriptor ExternalTypeRule = new(
         "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
         "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
@@ -821,9 +836,11 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportLineNextPage = new(
         NotImplemented, "report-line-next-page", EditionSeverity.Error,
         "LINE … NEXT PAGE is not yet implemented.", "ISO §13.18.35", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ReportNextGroupClause = new(
-        NotImplemented, "report-next-group-clause", EditionSeverity.Error,
-        "The NEXT GROUP clause is not yet implemented.", "ISO §13.18.37", RecognizedNotImplemented);
+    // ⛔ `ReportNextGroupClause` (`report-next-group-clause`) LIVED HERE AND IS GONE (kb/Work PB957), and this
+    // comment stands where it did so it is not re-added. It refused the NEXT GROUP clause (§13.18.37) by name at
+    // every edition; the clause is now LIVE — bound by DataBinder.Reports BindNextGroupClauses and applied by the
+    // report engine's ApplyNextGroup after a group's last line (§13.18.37.4 GR2–GR6). Its syntax rules report
+    // through ReportNextGroupClauseRule (COBOLNET2284). The id is retired, never reallocated.
     // ⛔ `ReportOccursInGroup` (`report-occurs-in-group`) AND `ReportMultipleLine` (`report-multiple-line`) LIVED
     // HERE AND ARE GONE (kb/Work PB565), and this comment stands where they did so neither is re-added. They
     // staged the VERTICAL repetition of a report group description entry — an OCCURS clause on an entry that

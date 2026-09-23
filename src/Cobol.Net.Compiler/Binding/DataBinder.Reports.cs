@@ -10,6 +10,8 @@ namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
 using CobolNet.Compiler.Oo;
+using ReportNextGroup = CobolNet.Runtime.IO.ReportNextGroup;
+using ReportNextGroupKind = CobolNet.Runtime.IO.ReportNextGroupKind;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //  REPORT SECTION binding (ISO/IEC 1989:2023 §13.6 report section / §13.14 report description / §13.15 report
@@ -156,6 +158,15 @@ public sealed class ReportGroupModel
     public int ControlLevel { get; set; } = -1;
 
     public List<ReportLineModel> Lines { get; } = [];
+
+    /// <summary>The group's NEXT GROUP clause as written on its level 1 entry (ISO §13.18.37; §13.15.3 SR6), null
+    /// when none — captured during the entry walk because the TYPE clause the syntax rules depend on may follow it
+    /// in the same entry, and bound by <c>BindNextGroupClauses</c> once the group is complete.</summary>
+    public CobolParserCore.ReportNextGroupClauseContext? NextGroupClause { get; set; }
+
+    /// <summary>The bound NEXT GROUP clause — the runtime's own record, which the emitter writes verbatim, so the
+    /// engine and the model cannot disagree about its shape (ISO §13.18.37.2).</summary>
+    public CobolNet.Runtime.IO.ReportNextGroup? NextGroup { get; set; }
 }
 
 /// <summary>The LINE clause form of one report line (ISO §13.18.35; the NEXT PAGE phrases are staged loud) —
@@ -714,6 +725,144 @@ public sealed partial class DataBinder
         ScreenReportLineNesting(entries, model);
         ScreenReportEntryClausePresence(entries, model);
         BindReportEntries(entries, 0, entries.Length, model, new ReportGroupBuild());
+        BindNextGroupClauses(entries, model);
+    }
+
+    /// <summary>⛔ THE NEXT GROUP CLAUSE (ISO §13.18.37; kb/Work PB957), bound once per RD after every group is
+    /// complete — its syntax rules read the group's TYPE (which may follow the clause in the entry) and, for SR6a,
+    /// SR6c and SR7, the group's lines. The binding is the runtime's own
+    /// <see cref="CobolNet.Runtime.IO.ReportNextGroup"/>; the engine applies it after the group's last line is
+    /// printed (§13.18.37.4 GR2).
+    /// <list type="bullet">
+    /// <item>§13.15.3 SR6 — "The NEXT GROUP clause may be specified only in a level 1 entry." Screened over the flat
+    /// entry array, so a §13.18.38 Format 3 replay cannot report it once per repetition.</item>
+    /// <item>§13.18.37.3 SR1 — "Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is
+    /// not divided into pages." (Unsigned: the grammar's integerLiteral carries no sign, and SR2's PLUS/+ is the
+    /// relative operator, not a sign.)</item>
+    /// <item>SR3 — "If the report is not divided into pages, only the relative form of the clause may be
+    /// specified."</item>
+    /// <item>SR4 — "The NEXT GROUP clause shall not be specified in a page heading or report footing."</item>
+    /// <item>SR5 — "The NEXT PAGE phrase shall not be specified in a page footing."</item>
+    /// <item>SR6 a/b/c and SR7 a/b — the absolute and relative integers against the report heading, body group and
+    /// page footing regions. "The minimum last line number of the report group" is the last line the group
+    /// prints when every line that can be absent IS absent (a PRESENT WHEN chain or an OCCURS DEPENDING guard):
+    /// an absent line can only leave the last line where an earlier line put it, so the unconditional lines
+    /// alone bound it from below. A group with no unconditional line has no such bound and the comparison with
+    /// it is not made.</item>
+    /// </list></summary>
+    private void BindNextGroupClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    {
+        foreach (var ge in entries)
+        {
+            if (int.TryParse(ge.levelNumber().GetText(), out int level) && level == 1) continue;
+            foreach (var c in ge.reportGroupClause())
+                if (c.reportNextGroupClause() is { } misplaced)
+                {
+                    using var _ = Edition.At(misplaced);
+                    Edition.Error(DiagnosticCatalog.ReportNextGroupClauseRule, $"RD '{model.Name}' entry "
+                        + $"'{ge.reportGroupName()?.GetText() ?? "FILLER"}' is a level {level} entry; the NEXT GROUP "
+                        + "clause may be specified only in a level 1 entry (ISO §13.15.3 SR6)");
+                }
+        }
+        foreach (var g in model.Groups)
+        {
+            if (g.NextGroupClause is not { } ngc) continue;
+            using var _ = Edition.At(ngc);
+            var ng = ngc.PAGE() is not null
+                ? new ReportNextGroup(ReportNextGroupKind.NextPage, 0, ngc.RESET() is not null)
+                : new ReportNextGroup(ngc.reportRelativeSign() is not null
+                    ? ReportNextGroupKind.Relative : ReportNextGroupKind.Absolute,
+                    int.Parse(ngc.integerLiteral().GetText()));
+            g.NextGroup = ng;
+            string where = $"RD '{model.Name}' group '{g.Name ?? "FILLER"}' ({ReportGroupTypeWords(g.Kind)})";
+            void Violation(string rule) =>
+                Edition.Error(DiagnosticCatalog.ReportNextGroupClauseRule, $"{where}: {rule}");
+
+            if (g.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.ReportFooting)
+            {
+                Violation("the NEXT GROUP clause shall not be specified in a page heading or report footing (ISO "
+                    + "§13.18.37.3 SR4)");
+                continue;
+            }
+            if (ng.Kind == ReportNextGroupKind.NextPage)
+            {
+                if (g.Kind == ReportGroupKindModel.PageFooting)
+                    Violation("the NEXT PAGE phrase shall not be specified in a page footing (ISO §13.18.37.3 SR5)");
+                if (!model.Paged)
+                    Violation("the report is not divided into pages, so only the relative form of the NEXT GROUP "
+                        + "clause may be specified (ISO §13.18.37.3 SR3)");
+                continue;
+            }
+            bool absolute = ng.Kind == ReportNextGroupKind.Absolute;
+            int limit = model.Paged ? model.PageLimit : 9999;
+            if (ng.Value > limit)
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {ng.Value} exceeds "
+                    + (model.Paged ? $"the page limit {limit}" : "9999, the limit for a report that is not divided into pages")
+                    + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
+                    + "divided into pages (ISO §13.18.37.3 SR1)");
+            if (!model.Paged)
+            {
+                if (absolute)
+                    Violation("the report is not divided into pages, so only the relative form of the NEXT GROUP "
+                        + "clause may be specified (ISO §13.18.37.3 SR3)");
+                continue;   // SR6/SR7 are stated against the page regions, which an unpaged report has none of
+            }
+            int? minLast = g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageFooting
+                ? MinimumLastLine(g, model) : null;
+            switch (g.Kind, absolute)
+            {
+                case (ReportGroupKindModel.ReportHeading, true)
+                    when ng.Value >= model.FirstDetail || (minLast is { } m && ng.Value <= m):
+                    Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the report "
+                        + $"heading ({minLast?.ToString() ?? "none"}) and less than the FIRST DETAIL integer "
+                        + $"{model.FirstDetail} (ISO §13.18.37.3 SR6a)");
+                    break;
+                case (ReportGroupKindModel.ControlHeading or ReportGroupKindModel.Detail
+                      or ReportGroupKindModel.ControlFooting, true)
+                    when ng.Value < model.FirstDetail || ng.Value > model.Footing:
+                    Violation($"integer-1 {ng.Value} shall lie between the FIRST DETAIL integer {model.FirstDetail} and "
+                        + $"the FOOTING integer {model.Footing}, inclusive (ISO §13.18.37.3 SR6b)");
+                    break;
+                case (ReportGroupKindModel.PageFooting, true) when minLast is { } m && ng.Value <= m:
+                    Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the page "
+                        + $"footing ({m}) (ISO §13.18.37.3 SR6c)");
+                    break;
+                case (ReportGroupKindModel.ReportHeading, false) when minLast is { } m && m + ng.Value >= model.FirstDetail:
+                    Violation($"the minimum last line number of the report heading ({m}) plus integer-2 {ng.Value} shall "
+                        + $"be less than the FIRST DETAIL integer {model.FirstDetail} (ISO §13.18.37.3 SR7a)");
+                    break;
+                case (ReportGroupKindModel.PageFooting, false) when minLast is { } m && m + ng.Value > model.PageLimit:
+                    Violation($"the minimum last line number of the page footing ({m}) plus integer-2 {ng.Value} shall "
+                        + $"not exceed the page limit {model.PageLimit} (ISO §13.18.37.3 SR7b)");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>The MINIMUM LAST LINE NUMBER of a report heading or page footing (ISO §13.18.37.3 SR6a/SR6c/SR7):
+    /// the §13.18.35.4 GR5/GR7 placement walked over the group's UNCONDITIONAL lines only — first line absolute →
+    /// integer-1, relative → HEADING + integer-2 − 1 (GR5b1, report heading) or FOOTING + integer-2 (GR5b4, page
+    /// footing); later lines absolute → integer-1, relative → the previous line + integer-2, and a §13.18.38.4
+    /// GR12c/GR12d STEP line → its anchor + its displacement, the anchors seeded as the engine seeds them. Null
+    /// when every line can be absent.</summary>
+    private static int? MinimumLastLine(ReportGroupModel g, ReportModel model)
+    {
+        int? pos = null;
+        var anchors = new Dictionary<int, int>();
+        foreach (var l in g.Lines)
+        {
+            if (l.PresentWhenCtxs.Count > 0 || l.RepetitionGuards.Count > 0) continue;   // may be absent
+            int relative = l.Kind == ReportLineKindModel.Step ? l.RelativeBase : l.Value;
+            int target = l.Kind == ReportLineKindModel.Absolute ? l.Value
+                : pos is null ? (g.Kind == ReportGroupKindModel.ReportHeading ? model.Heading + relative - 1
+                                                                              : model.Footing + relative)
+                : l.Kind == ReportLineKindModel.Step && anchors.TryGetValue(l.Anchor, out int a) ? a + l.Value
+                : pos.Value + relative;
+            if (l.Anchor != 0 && (l.Kind != ReportLineKindModel.Step || !anchors.ContainsKey(l.Anchor)))
+                anchors[l.Anchor] = target - (l.Kind == ReportLineKindModel.Step ? l.Value : 0);
+            pos = target;
+        }
+        return pos;
     }
 
     /// <summary>ISO §13.18.35.3 SR4 — "Within a given report group description entry, an entry that contains a
@@ -1004,7 +1153,7 @@ public sealed partial class DataBinder
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
                     + "NEXT PAGE phrase shall appear only with the first operand (ISO §13.18.35.3 SR10a)");
             if (ops[k].integerLiteral() is not { } lit) continue;   // a bare `ON NEXT PAGE` operand
-            if (ops[k].PLUSWORD() is not null) { relativeSeen = true; continue; }
+            if (ops[k].reportRelativeSign() is not null) { relativeSeen = true; continue; }
             // b) "All absolute operands, if present, shall precede all relative operands, if present."
             if (relativeSeen)
             {
@@ -1308,12 +1457,15 @@ public sealed partial class DataBinder
                     lineOperand = ops.Length > 1 ? ops[ordinal % ops.Length] : ops[0];
                     lineOperandIndex = ops.Length > 1 ? ordinal % ops.Length : 0;
                 }
-                else if (clause.reportNextGroupClause() is not null)
-                    Edition.Error(DiagnosticCatalog.ReportNextGroupClause, $"RD '{model.Name}': the NEXT GROUP clause (ISO §13.18.37) is "
-                        + "not yet implemented");
+                else if (clause.reportNextGroupClause() is { } ngc)
+                {
+                    // Captured on the level 1 entry's group; its syntax rules (and §13.15.3 SR6 for any other
+                    // level) are screened once the group is complete — BindNextGroupClauses (kb/Work PB957).
+                    if (level == 1) group.NextGroupClause = ngc;
+                }
                 else if (clause.reportColumnClause() is { } cc)
                     foreach (var op in cc.reportColumnOperand())
-                        columns.Add(new ReportColumnSpec(op.PLUSWORD() is not null, int.Parse(op.integerLiteral().GetText())));
+                        columns.Add(new ReportColumnSpec(op.reportRelativeSign() is not null, int.Parse(op.integerLiteral().GetText())));
                 else if (clause.reportSourceClause() is { } sc)
                 {
                     // Every written operand of the clause (§13.18.53.2's ellipsis) — the SR6 count below reads
@@ -1720,7 +1872,7 @@ public sealed partial class DataBinder
     private static ReportLineModel RepeatedLine(
         Core.ReportLineOperandContext op, int operand, Core.ReportGroupEntryContext anchorKey, ReportGroupBuild st)
     {
-        bool relative = op.PLUSWORD() is not null;
+        bool relative = op.reportRelativeSign() is not null;
         int value = int.Parse(op.integerLiteral().GetText());
         int shift = st.Shift(ReportRepetitionAxis.Vertical);
         bool anchored = st.Repetitions.Exists(
@@ -1759,7 +1911,7 @@ public sealed partial class DataBinder
         for (int k = start; k < end; k++)
             foreach (var clause in entries[k].reportGroupClause())
                 if (clause.reportLineClause() is { } lc
-                    && lc.reportLineOperand().Any(o => o.PLUSWORD() is null && o.integerLiteral() is not null))
+                    && lc.reportLineOperand().Any(o => o.reportRelativeSign() is null && o.integerLiteral() is not null))
                     return true;
         return false;
     }
@@ -1770,7 +1922,7 @@ public sealed partial class DataBinder
     {
         for (int k = start; k < end; k++)
             foreach (var clause in entries[k].reportGroupClause())
-                if (clause.reportColumnClause() is { } cc && cc.reportColumnOperand().Any(o => o.PLUSWORD() is null))
+                if (clause.reportColumnClause() is { } cc && cc.reportColumnOperand().Any(o => o.reportRelativeSign() is null))
                     return true;
         return false;
     }
@@ -1809,7 +1961,7 @@ public sealed partial class DataBinder
                 {
                     if (op.integerLiteral() is not { } lit) continue;
                     int v = int.Parse(lit.GetText());
-                    if (op.PLUSWORD() is not null)
+                    if (op.reportRelativeSign() is not null)
                     {
                         anyRelative = true;
                         if (lines > 0) relativeSpan += v;

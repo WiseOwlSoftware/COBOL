@@ -126,7 +126,7 @@ reportGroupType
     | (REPORT FOOTING | RF)
     ;
 
-// {LINE|LINES} [NUMBER|NUMBERS] [IS|ARE] {integer [ON NEXT PAGE] | PLUS integer | [ON] NEXT PAGE}...  (§13.18.35 F1)
+// {LINE|LINES} [NUMBER|NUMBERS] [IS|ARE] {integer [ON NEXT PAGE] | {PLUS|+} integer | [ON] NEXT PAGE}...  (§13.18.35 F1)
 // The multi-operand form (a "multiple LINE clause", §13.18.35.3 SR10) and the LINES/NUMBERS/ARE spellings are
 // COBOL-2002 — introduction-gated post-bind by VersionConformancePass ParseArm.VisitReportLineClause; the
 // multi-operand repetition itself stages LOUD at bind (COBOLNET0899 report-multiple-line).
@@ -135,17 +135,29 @@ reportLineClause
     ;
 
 reportLineOperand
-    : PLUSWORD integerLiteral
+    : reportRelativeSign integerLiteral
     | integerLiteral (ON? NEXT PAGE)?
     | ON? NEXT PAGE
     ;
 
-// NEXT GROUP IS {integer | PLUS integer | NEXT PAGE}  (§13.18.37)
-reportNextGroupClause
-    : NEXT GROUP IS? (PLUSWORD integerLiteral | integerLiteral | NEXT PAGE)
+// ⛔ THE ONE SPELLING OF A REPORT-WRITER RELATIVE OPERAND (kb/Work PB951). The same sentence is printed at three
+// clauses — ISO §13.18.35.3 SR1 (LINE), §13.18.14.3 SR2 (COLUMN) and §13.18.37.3 SR2 (NEXT GROUP): "PLUS and + are
+// synonyms." — and each general format prints the pair as a nested brace (PDF pp. 386/420/427, rendered). The three
+// productions each wrote the WORD alone, so `LINE + 1` was a bare COBOL0001; one fragment referenced by every
+// relative operand makes the next clause that takes one unable to regress to a single spelling
+// (GrammarRelativeSignDriftTests pins it). PLUSWORD is the reserved word PLUS, PLUS the '+' symbol (CobolLexer.g4).
+reportRelativeSign
+    : PLUSWORD
+    | PLUS
     ;
 
-// {COLUMN|COLUMNS|COL|COLS} [NUMBER|NUMBERS] [IS|ARE] {integer | PLUS integer}...  (§13.18.14 F1)
+// NEXT GROUP IS {integer-1 | {PLUS|+} integer-2 | NEXT PAGE [WITH RESET]}  (§13.18.37.2, PDF p427 rendered — both
+// the outer and the inner delimiters are braces). Bound by DataBinder.Reports BindNextGroupClauses (kb/Work PB957).
+reportNextGroupClause
+    : NEXT GROUP IS? (reportRelativeSign integerLiteral | integerLiteral | NEXT PAGE (WITH? RESET)?)
+    ;
+
+// {COLUMN|COLUMNS|COL|COLS} [NUMBER|NUMBERS] [IS|ARE] {integer | {PLUS|+} integer}...  (§13.18.14 F1)
 // The multi-operand form (a "multiple COLUMN clause", §13.18.14.3 SR10), the relative PLUS operand, and the
 // COL/COLS/COLUMNS/NUMBERS/ARE spellings are COBOL-2002 — introduction-gated post-bind by VersionConformancePass
 // ParseArm.VisitReportColumnClause. The LEFT/CENTER/RIGHT alignment phrase has no grammar surface
@@ -155,7 +167,7 @@ reportColumnClause
     ;
 
 reportColumnOperand
-    : PLUSWORD? integerLiteral
+    : reportRelativeSign? integerLiteral
     ;
 
 // {SOURCE|SOURCES} [IS|ARE] {identifier-1}...  (§13.18.53 Format)

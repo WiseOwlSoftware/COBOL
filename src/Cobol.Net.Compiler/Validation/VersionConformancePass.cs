@@ -1163,7 +1163,7 @@ internal sealed class VersionConformancePass
             if (ctx.COL() is not null || ctx.COLS() is not null || ctx.COLUMNS() is not null
                 || ctx.NUMBERS() is not null || ctx.ARE() is not null
                 || ctx.reportColumnOperand().Length > 1
-                || ctx.reportColumnOperand().Any(o => o.PLUSWORD() is not null))
+                || ctx.reportColumnOperand().Any(o => o.reportRelativeSign() is not null))
                 _p.Check(Constructs.ReportMultiColumn2002, "the multiple/relative COLUMN clause forms (report group description)");
             return base.VisitChildren(ctx);
         }
