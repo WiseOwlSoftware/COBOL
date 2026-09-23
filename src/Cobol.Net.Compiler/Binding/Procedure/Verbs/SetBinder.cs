@@ -143,7 +143,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in sc.dataReference())
         {
             if (host.Expr.ResolveReceiving(dref) is not { } place)
-                return new BoundUnsupported($"SET CONTENT OF '{dref.GetText()}'");
+                return new BoundUnsupported($"SET CONTENT OF '{DataBinder.WrittenText(dref)}'");
             string name = place.Item.CobolName ?? dref.GetText();
             var pic = place.Item.Pic;
 
@@ -403,7 +403,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (dref is null || host.Expr.IndexFieldOf(dref) is null) return false;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"SET '{dref.GetText()}': an index-name cannot be the {position} of a {carrier} SET — that operand "
+            $"SET '{DataBinder.WrittenText(dref)}': an index-name cannot be the {position} of a {carrier} SET — that operand "
             + $"shall be of category {carrier} ({cite}). An index-name operand belongs to Format 1, whose "
             + "receiver is a data item of class index or an integer data item (ISO §14.9.39.3 SR1)");
         return true;
@@ -1071,7 +1071,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<BoundSetTarget>();
         foreach (var dref in recvs)
         {
-            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
+            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{DataBinder.WrittenText(dref)}'");
             targets.Add(t);
         }
         return new BoundSetTo(targets, host.Expr.BindIndexWindowExpr(amount));   // SET is an r7 window (kb/Work R29)
@@ -1108,7 +1108,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<BoundSetTarget>();
         foreach (var dref in recvs)
         {
-            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
+            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{DataBinder.WrittenText(dref)}'");
             targets.Add(t);
         }
         return new BoundSetUpDown(targets, host.Expr.BindIndexWindowExpr(amount), down);
@@ -1201,7 +1201,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         var dref = targets[0];
         if (host.Expr.ResolveReceiving(dref) is not { } p)
-            return new BoundUnsupported($"SET {(explicitSizeOf ? "SIZE OF " : "")}'{dref.GetText()}'");
+            return new BoundUnsupported($"SET {(explicitSizeOf ? "SIZE OF " : "")}'{DataBinder.WrittenText(dref)}'");
         if (!p.Item.IsDynamicLength)
         {
             ctx.Edition.Error("COBOLNET1568",

@@ -51,6 +51,13 @@ internal static class ExternalizedName
     /// <param name="rejectZeroLength">False ONLY for §11.3.3 SR1 (CLASS-ID), which omits the exclusion.</param>
     /// <param name="collate">The active alphanumeric PROGRAM COLLATING SEQUENCE, when one is bound.</param>
     /// <param name="natCollate">Its national twin, when one is bound.</param>
+    /// <summary>The value an AS-phrase literal gives, WITHOUT diagnosing — for a reader that must know the
+    /// externalized name but is not the phrase's screen (OoRepositoryScope, kb/Work PB974). Null for any literal
+    /// <see cref="Screen"/> would reject, so both agree on which names exist.</summary>
+    public static string? Peek(Core.LiteralContext lit) =>
+        Screen(lit, new EditionContext(2023), DiagnosticCatalog.ExternalizedNameLiteral, "", "", "",
+            rejectZeroLength: true);
+
     public static string? Screen(
         Core.LiteralContext lit, EditionContext edition, DiagnosticDescriptor code,
         string where, string tag, string rule, bool rejectZeroLength = true,

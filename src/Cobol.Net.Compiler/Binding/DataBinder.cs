@@ -334,7 +334,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>The unit's REPOSITORY PROPERTY specifier names (§12.3.8) — the §8.4.3.9.3 SR1 gate for
     /// object-property references (case-insensitive per §8.3.2).</summary>
-    internal HashSet<string> OoRepositoryProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <para>Keyed by property-name-1 → the name the property is known by in the declared classes: literal-4 when
+    /// the specifier writes <c>AS literal-4</c> (§12.3.8.2, kb/Work PB974), otherwise property-name-1 itself.</para>
+    internal Dictionary<string, string> OoRepositoryProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The unit's REPOSITORY PROGRAM specifiers (ISO §12.3.8.2's program-specifier, <c>PROGRAM
     /// program-prototype-name-1 [AS literal-3]</c>) keyed by program-prototype-name — the ONE declaration surface
@@ -350,6 +352,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
     /// function of the same name" — so the binder's user-function dispatch precedes the intrinsic catalog.</summary>
     internal HashSet<string> UserFunctionNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The unit's user-defined-function specifiers by function-prototype-name-1 → EXTERNALIZED name:
+    /// literal-5 when <c>AS literal-5</c> is written (§12.3.8.4 GR11 NOTE 2 — "Literal-5, if specified, is the
+    /// externalized name of the function prototype; otherwise, the externalized name is function-prototype-name-1"),
+    /// otherwise the name itself. GR11's search of the compilation group runs in
+    /// <c>BinderDriver.UserFunctionsOf</c>, the twin of <c>ProgramPrototypesOf</c> (kb/Work PB974).</summary>
+    internal Dictionary<string, string> FunctionSpecifiers { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The unit's REPOSITORY intrinsic-function specifiers by name (§12.3.8 —
     /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §8.4.3.2 SR2 precondition that lets the word
@@ -432,20 +441,33 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // VersionConformancePass ParseArm.VisitRepositoryEntry (14g.5). The PROPERTY name still registers here for
             // reference resolution; INTERFACE/CLASS names are declarative-only in this loop (the pass-1 table resolves
             // them), so they no longer need a branch.
+            // Every specifier's `[ AS literal-n ]` (§12.3.8.2) is screened HERE, once — §12.3.8.3 SR2 (the literal's
+            // class) and SR1 (a repeated name shall be specified identically) — by BindSpecifierExternalizedName;
+            // what each externalized name RESOLVES to is its consumer's (kb/Work PB974).
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
-                OoRepositoryProperties.Add(pn.GetText());
+                OoRepositoryProperties[pn.GetText()] =
+                    BindSpecifierExternalizedName(re, "PROPERTY", pn.GetText(), "literal-4") ?? pn.GetText();
             // §12.3.8.2's program-specifier (kb/Work PB237): `PROGRAM program-prototype-name-1 [AS literal-3]`.
             else if (re.PROGRAM() is not null && re.programPrototypeName() is { } ppn)
                 BindProgramSpecifier(re, ppn.GetText());
-            else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)
+            else if (re.CLASS() is not null && re.className() is { } cn)
+                BindSpecifierExternalizedName(re, "CLASS", cn.GetText(), "literal-1");
+            else if (re.INTERFACE() is not null && re.interfaceName() is { } inm)
+                BindSpecifierExternalizedName(re, "INTERFACE", inm.GetText(), "literal-2");
+            // §12.3.8.2 user-defined-function-specifier `FUNCTION function-prototype-name-1 [AS literal-5]`.
+            else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is [var fn])
+            {
                 UserFunctionNames.Add(fn.GetText());
-            // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a named intrinsic — the §8.4.3.2 SR2 keyword-
-            // omission enabler (M2-UDF-4). `FUNCTION ALL INTRINSIC` carries no functionName; `FUNCTION name
-            // INTRINSIC` does.
+                FunctionSpecifiers[fn.GetText()] =
+                    BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") ?? fn.GetText();
+            }
+            // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a LIST of intrinsic-function-names (§12.3.8.2's
+            // `{ intrinsic-function-name-1 } …`, kb/Work PB974) — the §8.4.3.2 SR2 keyword-omission enabler
+            // (M2-UDF-4). `FUNCTION ALL INTRINSIC` carries no functionName.
             else if (re.FUNCTION() is not null && re.INTRINSIC() is not null)
             {
                 if (re.ALL() is not null) RepositoryAllIntrinsic = true;
-                else if (re.functionName() is { } inf) RepositoryIntrinsics.Add(inf.GetText());
+                else foreach (var inf in re.functionName()) RepositoryIntrinsics.Add(inf.GetText());
             }
         }
 
@@ -1294,9 +1316,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (<c>LINAGE-COUNTEROFLPF</c>), which is unreadable in a diagnostic about the spelling itself.
     /// <para>⛔ ONE DEFINITION for every binder that quotes source back at the programmer — the EVALUATE
     /// selection-object screens quote a WHEN phrase and a range-expression, and <c>WHEN1ALSO2</c> /
-    /// <c>"A"THRU5</c> are not what anybody wrote (kb/Work PB399).</para></summary>
-    internal static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) =>
-        ctx.Start.InputStream.GetText(new Antlr4.Runtime.Misc.Interval(ctx.Start.StartIndex, ctx.Stop.StopIndex));
+    /// <c>"A"THRU5</c> are not what anybody wrote (kb/Work PB399), and neither is the qualified reference
+    /// <c>WS-CINNOGRP</c> that COBOLNET1639 used to echo for <c>WS-C IN NOGRP</c> (kb/Work PB983).</para>
+    /// <para>A reference continued across source lines keeps ONE space per separator run, and a node with no
+    /// complete source extent (an error-recovered one) falls back to its token text rather than throwing inside a
+    /// diagnostic.</para></summary>
+    internal static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx)
+    {
+        if (ctx.Start is not { StartIndex: >= 0 } start || ctx.Stop is not { } stop || stop.StopIndex < start.StartIndex
+            || start.InputStream is null)
+            return ctx.GetText();
+        string raw = start.InputStream.GetText(new Antlr4.Runtime.Misc.Interval(start.StartIndex, stop.StopIndex));
+        return raw.AsSpan().IndexOfAny('\r', '\n') < 0 ? raw
+            : System.Text.RegularExpressions.Regex.Replace(raw, @"\s*[\r\n]\s*", " ");
+    }
 
     /// <summary>⛔ THE SHAPES A <i>data-name-n</i> OPERAND MAY NOT BE WRITTEN IN (kb/Work PB489). Where a general
     /// format prints <c>data-name-n</c>, the reference is a QUALIFIED-DATA-NAME — ISO §8.4.2.2.2 Format 1,
@@ -3249,6 +3282,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // (COBOLNET1708), so screening its head here would be a second diagnostic on one entry.
                     if (value.validateValidPhrase() is null)
                         CheckValueConnective(value, pairedConnective: true, $"condition-name '{name}'");
+                    // `[ IN alphabet-name-1 ]`, IN optional (kb/Work PB983) — decided BEFORE the operand loop,
+                    // because with IN omitted the parser has handed the word in AS the last operand.
+                    var (alphaName, alphaOperand) = RangeAlphabetPhraseOf(value);
                     foreach (var vi in value.valueItem())
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).
@@ -3320,6 +3356,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         else
                             foreach (var op in vi.valueClauseOperand())
                             {
+                                if (op == alphaOperand) continue;   // alphabet-name-1, not a literal-2
                                 // §13.18.63 SR4/SR5/SR24→SR10 (both directions): an N"…"/B"…" literal seeds
                                 // only its own category, and a national/boolean conditional variable takes only
                                 // its own literal form — the ONE canonical checker (0898 band). A bit /
@@ -3357,7 +3394,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // pins (tests/conformance/2002/pb695_value_false_optional_words), on a rule that says nothing
                     // about it. The class read is still the variable's, which §13.18.63.3 SR4/SR5 make the
                     // literals' own class.
-                    if (value.IN() is not null && value.IDENTIFIER()?.GetText() is { } alphaName)
+                    if (alphaName is not null)
                     {
                         if (!cond.Values.Any(v => v.High is not null))
                             Edition.Error(DiagnosticCatalog.ValueAlphabetWithoutThrough, $"condition-name "
@@ -3384,6 +3421,49 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
             list.Add(cond);
         }
+    }
+
+    /// <summary>THE <c>[ IN alphabet-name-1 ]</c> phrase of a condition-name VALUE clause (ISO §13.18.63.2 formats
+    /// 3 and 5), as (the alphabet-name written, the operand node that spelled it) — or (null, null) when the clause
+    /// has none. The operand is non-null only for the IN-OMITTED spelling, which the caller must then skip as a
+    /// literal (kb/Work PB983).
+    /// <para>⛔ <c>IN</c> IS AN OPTIONAL WORD. Neither format underlines it (PDF p546 / folio 516), so §5.2.3
+    /// makes <c>88 MID VALUE "A" THRU "Z" AL</c> conforming. The grammar cannot see that spelling: §13.10.3 SR2
+    /// lets a constant-name stand wherever a format writes a literal, so a bare trailing word is by POSITION one
+    /// more literal-2, and the operand loop takes it. The SYMBOL decides it — ISO §8.3.2.2 ("a given
+    /// user-defined word may be used as only one type of user-defined word"; its exceptions pair constant-names
+    /// with data-names, never with alphabet-names), so a LAST operand that is a bare word naming a declared
+    /// alphabet IS the phrase, and any other word keeps its literal-position reading (and its COBOLNET1639 when
+    /// it names nothing). The EVALUATE range-expression prints the same phrase, and there the grammar CAN decide
+    /// it by position (<c>valueRange</c>); <c>TrailingInPhraseDriftTests</c> pins the two together.</para>
+    /// <para>A lone operand is never peeled: the clause needs a literal-2 before the phrase.</para>
+    /// <para>⛔ AND THE IN SPELLING HAS THE SAME AMBIGUITY THE EVALUATE ARM HAS (kb/Work PB843's other arm): over a
+    /// constant-name operand — <c>VALUE "M" THRU K IN AL</c> — the greedy qualification loop takes <c>IN AL</c> as
+    /// a qualifier of K, and the clause's own <c>IN</c> is never parsed. A trailing <c>IN word</c> suffix naming a
+    /// declared alphabet is the phrase by the same §8.3.2.2 argument; the operand is registered in
+    /// <see cref="_alphabetPeeledOperands"/> so every literal-position reader sees K alone.</para></summary>
+    private (string? Name, Core.ValueClauseOperandContext? Operand) RangeAlphabetPhraseOf(Core.ValueClauseContext value)
+    {
+        if (value.IN() is not null) return (value.cobolWord()?.GetText(), null);
+        var items = value.valueItem();
+        if (items.Length == 0) return (null, null);
+        var ops = items[^1].valueClauseOperand();
+        var last = items[^1].valueClauseRange() is { } range ? range.valueClauseOperand(1) : ops.LastOrDefault();
+        if (last is null || WrittenValueOperandWord(last) is not { } dref) return (null, null);
+        // The IN spelling, claimed as a qualifier.
+        if (dref.dataReferenceSuffix() is { Length: > 0 } suffixes)
+        {
+            if (suffixes[^1].qualification() is { } q && q.IN() is not null && q.ChildCount == 2
+                && q.cobolWord().GetText() is var qualWord && IsAlphabetName(qualWord))
+            {
+                _alphabetPeeledOperands[last] = ReferenceResolver.WithoutTrailingSuffix(dref);
+                return (qualWord, null);
+            }
+            return (null, null);
+        }
+        // The IN-omitted spelling: a bare last operand, after at least one literal-2.
+        if (items[^1].valueClauseRange() is not null || (items.Length == 1 && ops.Length == 1)) return (null, null);
+        return dref.GetText() is var word && IsAlphabetName(word) ? (word, last) : (null, null);
     }
 
     /// <summary>Screen <c>[ WHEN SET TO FALSE IS literal-4 ]</c> — Format 3's SECOND literal position (ISO
@@ -4991,14 +5071,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="IsLiteralValueOperand"/>, <see cref="ReportNonLiteralValueOperand"/>,
     /// <see cref="SymbolicValueRawText"/> and <c>ConstantValueRawText</c> (kb/Work PB732; it was the same
     /// sole-child walk written out twice). Any operator or suffix on the way down makes the operand a
-    /// non-constant, non-symbolic shape, which is exactly what a null says.</summary>
-    private static Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op)
+    /// non-constant, non-symbolic shape, which is exactly what a null says.
+    /// <para>An operand whose trailing <c>IN alphabet-name-1</c> the parser took as a qualifier answers with the
+    /// reference WITHOUT that suffix (<see cref="_alphabetPeeledOperands"/>, kb/Work PB983), so every reader sees
+    /// the word the symbol decided.</para></summary>
+    private Core.DataReferenceContext? BareValueOperandWord(Core.ValueClauseOperandContext op) =>
+        _alphabetPeeledOperands.TryGetValue(op, out var peeled) ? peeled : WrittenValueOperandWord(op);
+
+    /// <summary>The sole-child walk <see cref="BareValueOperandWord"/> answers with when no phrase was peeled.</summary>
+    private static Core.DataReferenceContext? WrittenValueOperandWord(Core.ValueClauseOperandContext op)
     {
         Antlr4.Runtime.Tree.IParseTree? n = op.unaryExpression();
         while (n is not null and not Core.DataReferenceContext)
             n = n.ChildCount == 1 ? n.GetChild(0) : null;
         return n as Core.DataReferenceContext;
     }
+
+    /// <summary>VALUE operands whose written reference ended in the <c>IN alphabet-name-1</c> phrase that the
+    /// greedy qualification loop claimed (<c>VALUE "M" THRU K IN AL</c>, K a constant-name) → the reference with
+    /// that suffix cut off (<see cref="ReferenceResolver.WithoutTrailingSuffix"/>). Filled only by
+    /// <see cref="RangeAlphabetPhraseOf"/>.</summary>
+    private readonly Dictionary<Core.ValueClauseOperandContext, Core.DataReferenceContext> _alphabetPeeledOperands = [];
 
     /// <summary>The VALUE operands this binder has already diagnosed — one report per source operand even when
     /// two callers read the same node (<see cref="ExtractValue"/> screens a THRU range or a glued literal list

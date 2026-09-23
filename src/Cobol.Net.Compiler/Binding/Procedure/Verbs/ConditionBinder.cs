@@ -111,9 +111,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§13.18.29.4 GR1a).
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is PicCategory.Boolean) return new BoundBoolRef(p);
-            ctx.Edition.Error("COBOLNET1511", $"operand '{dref.GetText()}' in a boolean expression is not a "
+            ctx.Edition.Error("COBOLNET1511", $"operand '{DataBinder.WrittenText(dref)}' in a boolean expression is not a "
                 + "boolean data item (ISO §8.8.2 — boolean operands only)");
-            return new BoundBoolError($"non-boolean operand '{dref.GetText()}'");
+            return new BoundBoolError($"non-boolean operand '{DataBinder.WrittenText(dref)}'");
         }
         // A sole FUNCTION reference whose result is class boolean — §8.8.2's "an identifier referencing a boolean
         // data item": a function-identifier IS an identifier (§8.4.3.1.2) referencing a temporary data item
@@ -1076,12 +1076,12 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
-                    $"the condition-name '{dref.GetText()}' matches {matches.Count} level-88 declarations "
+                    $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations "
                     + "(ISO §8.4.2.2 — qualification shall establish uniqueness); --permissive resolves to "
                     + "the first declaration");
             else
                 ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                    $"the condition-name '{dref.GetText()}' does not uniquely identify a level-88 — "
+                    $"the condition-name '{DataBinder.WrittenText(dref)}' does not uniquely identify a level-88 — "
                     + $"{matches.Count} declarations match (ISO §8.4.2.2 Format 2 — qualification shall "
                     + "establish uniqueness). Qualify by the conditional variable or its containing groups");
         }

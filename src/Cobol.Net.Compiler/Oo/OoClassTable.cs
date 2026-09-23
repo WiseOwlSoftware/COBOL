@@ -39,6 +39,16 @@ public sealed class OoClassTable
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
     public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
 
+    /// <summary>The class whose EXTERNALIZED name (its CLASS-ID's <c>AS literal-1</c>, or its name) is
+    /// <paramref name="externalized"/> — what a REPOSITORY class-specifier's <c>AS literal-1</c> names (ISO §12.3.8.4
+    /// GR2; kb/Work PB974). Compared as the group's other externalized names are (case-insensitive).</summary>
+    public OoClassSymbol? FindByExternalizedName(string externalized) =>
+        _classes.FirstOrDefault(c => string.Equals(c.ExternalizedName, externalized, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The interface twin of <see cref="FindByExternalizedName"/> (literal-2).</summary>
+    public OoInterfaceSymbol? FindInterfaceByExternalizedName(string externalized) =>
+        _interfaces.FirstOrDefault(i => string.Equals(i.ExternalizedName, externalized, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>True when <paramref name="name"/> names a PARAMETERIZED class or interface definition of the group
     /// (kb/Work PB759). Such a definition is a skeleton (§9.3.12 / §9.3.13) and is deliberately NOT in this table
     /// — <see cref="OoExpansion"/> puts its EXPANSIONS here instead — so a lookup of its name misses; this is what

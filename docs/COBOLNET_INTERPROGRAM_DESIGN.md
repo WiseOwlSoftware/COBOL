@@ -47,7 +47,7 @@ Decision-complete design for cross-program data + calls in COBOL.NET (COBOL→ty
 
 ### D6. The program-prototype registry is ONE per-unit name→`ProgramPrototype` table, built the way the user-function table is built, and it feeds ONE `CalleeSignature` shared with `AS NESTED` (kb/Work PB237).
 
-`REPOSITORY. PROGRAM program-prototype-name-1 [AS literal-3].` (§12.3.8.2's program-specifier) is the ONE surface that declares a program-prototype-name, and three constructs take that name as their subject: CALL Format 2's `AS` arm (§14.9.4.3 SR16), CALL Format 2's bare operand (§14.9.4.4 GR3 b) third bullet), and CANCEL's third brace alternative (§14.9.5.3 SR3 / §14.9.5.4 GR1 c)).
+`REPOSITORY. PROGRAM program-prototype-name-1 [AS literal-3].` (§12.3.8.2's program-specifier; its AS literal is screened by `DataBinder.BindSpecifierExternalizedName`, the ONE screen every REPOSITORY specifier's `[ AS literal-n ]` shares since kb/Work PB974 — the user-defined-function specifier's twin resolution is `BinderDriver.UserFunctionsOf`) is the ONE surface that declares a program-prototype-name, and three constructs take that name as their subject: CALL Format 2's `AS` arm (§14.9.4.3 SR16), CALL Format 2's bare operand (§14.9.4.4 GR3 b) third bullet), and CANCEL's third brace alternative (§14.9.5.3 SR3 / §14.9.5.4 GR1 c)).
 
 **The pipeline, in three stages, each in the place its inputs are.**
 

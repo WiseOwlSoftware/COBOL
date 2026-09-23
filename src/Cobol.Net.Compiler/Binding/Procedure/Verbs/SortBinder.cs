@@ -439,14 +439,14 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         foreach (var dref in drefs)
         {
             // Qualification supported (e.g. ST139A's `KEY-1 OF DATA-NAME-1`) via the one reference resolver.
-            if (ctx.Refs.Resolve(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{dref.GetText()}'";
+            if (ctx.Refs.Resolve(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{DataBinder.WrittenText(dref)}'";
             DataItem item = kp.Item;
             DataItem root = SortRootOf(item);
             if (!file.Records.Contains(root))
-                return $"SORT/MERGE key '{dref.GetText()}' is not described in a record of '{file.CobolName}' "
+                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' is not described in a record of '{file.CobolName}' "
                     + "(ISO §14.9.40.3 SR6a)";
             if (Model.RecordLayout.OffsetInRecord(root, item) is not { } off)
-                return $"SORT/MERGE key '{dref.GetText()}' — key data-names shall not be subject to any OCCURS "
+                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
                     + "clause (ISO §14.9.40.3 SR6b/SR6f)";
             // ⛔ THE CLASS IS THE OPERAND'S, AND IT IS ASKED ONCE (kb/Work PB678). §14.9.40.4 GR5 / §14.9.24.4 GR5
             // select the collating sequence by the KEY's class, so the key descriptor carries the class rather
@@ -461,10 +461,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // with ImageWidth the three keys N"A"/N"B"/N"C" all collapsed onto the shared high byte U+0000 and
             // compared EQUAL, which is a stable sort returning the release order.
             int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ByteWidth;
-            if (len <= 0) return $"SORT/MERGE key '{dref.GetText()}' has no character image";
+            if (len <= 0) return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' has no character image";
             // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
             if (file.Varying is { Min: { } min } && off + len > min)
-                ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{dref.GetText()}' occupies character positions "
+                ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' occupies character positions "
                     + $"{off + 1}..{off + len} of the record, but '{file.CobolName}' describes variable-length records "
                     + $"with minimum size {min} — all key data items shall be contained within the first {min} bytes "
                     + "(ISO §14.9.40.3 SR6g)");

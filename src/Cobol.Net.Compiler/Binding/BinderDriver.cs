@@ -624,7 +624,7 @@ internal sealed class BinderDriver
         var binder = new StatementBinder(data, unit.Refs)
         {
             OoClasses = session.OoClasses,
-            UserFunctions = userFunctions,
+            UserFunctions = UserFunctionsOf(unit, userFunctions),
             // §8.4.6.6 — inside a function definition its OWN name is a referable function-prototype-name
             // (self-recursion without a repository entry; §12.3.8 GR11 makes a present self-entry a no-op).
             UdfSelfName = unit.IsFunction ? unit.Name : null,
@@ -957,6 +957,30 @@ internal sealed class BinderDriver
     /// The §14.2 procedure-division-header rule "The RETURNING phrase shall be specified in a function
     /// definition" (:23666) is checked HERE, once per unit — even an uncalled function without RETURNING is
     /// ill-formed.</summary>
+    /// <summary>The user-defined functions ONE unit may reference, by the function-prototype-name it WRITES — the
+    /// function twin of <see cref="ProgramPrototypesOf"/> (kb/Work PB974). A specifier with no AS phrase names the
+    /// group's function of that word (the <paramref name="group"/> table's key, unchanged). A specifier
+    /// <c>FUNCTION name AS literal-5</c> names the function whose EXTERNALIZED name is literal-5 — §12.3.8.4 GR11
+    /// NOTE 2: "Literal-5, if specified, is the externalized name of the function prototype" — searched per GR11 a)
+    /// / b) over the group's definitions and then its prototypes (the table already holds a definition in place of
+    /// its same-name prototype). No match leaves the name unmapped: GR11 c)'s external repository, which this
+    /// implementation holds no compile-time signature for, and the reference draws COBOLNET1505 at its use.
+    /// A unit with no AS function specifier shares the group table (no copy).</summary>
+    private static IReadOnlyDictionary<string, UserFunctionSignature> UserFunctionsOf(
+        BoundUnit unit, IReadOnlyDictionary<string, UserFunctionSignature> group)
+    {
+        Dictionary<string, UserFunctionSignature>? own = null;
+        foreach (var (name, externalized) in unit.Data.FunctionSpecifiers)
+        {
+            if (string.Equals(name, externalized, StringComparison.Ordinal)) continue;
+            own ??= new Dictionary<string, UserFunctionSignature>(group, StringComparer.OrdinalIgnoreCase);
+            var target = group.Values.FirstOrDefault(f => NameEq(f.Externalized, externalized));
+            if (target is null) own.Remove(name);
+            else own[name] = target;
+        }
+        return own ?? group;
+    }
+
     private static Dictionary<string, UserFunctionSignature> BuildUserFunctionTable(
         IReadOnlyList<BoundUnit> units, EditionContext edition)
     {

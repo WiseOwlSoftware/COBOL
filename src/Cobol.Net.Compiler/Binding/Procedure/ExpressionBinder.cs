@@ -310,7 +310,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
-                : new BoundOperandError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
+                : new BoundOperandError($"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15) — RWCS registers, intercepted ahead of name resolution
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
         : host.Rw.CounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
@@ -391,10 +391,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // the error-recovery path, where saying WHY still beats "unresolved". R38 — the same honesty for a
         // declared ALPHABET-NAME in a data position (the INSPECT CONVERTING alphabet extension adjudication).
         if (ctx.Data.ScreenNames.Contains(name))
-            return $"reference '{dref.GetText()}' — declared in the SCREEN SECTION, an optional facility "
+            return $"reference '{DataBinder.WrittenText(dref)}' — declared in the SCREEN SECTION, an optional facility "
                  + "COBOL.NET does not support (COBOLNET1560; docs/CONFORMANCE.md §5)";
         if (ctx.Data.Alphabets.ContainsKey(name) || ctx.Data.NationalAlphabets.ContainsKey(name))
-            return $"reference '{dref.GetText()}' — declared as an ALPHABET-name (SPECIAL-NAMES), which this "
+            return $"reference '{DataBinder.WrittenText(dref)}' — declared as an ALPHABET-name (SPECIAL-NAMES), which this "
                  + "position does not reference as a data item (kb/Work R38 adjudicates the vendor "
                  + "alphabet-operand extension)";
         string? reason = ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var named)
@@ -402,7 +402,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 .FirstOrDefault(c => c is { Tier: RedefinesTier.Rejected, RejectReason: not null })
                 ?.RejectReason
             : null;
-        return reason is null ? $"reference '{dref.GetText()}'" : $"reference '{dref.GetText()}' — {reason}";
+        return reason is null ? $"reference '{DataBinder.WrittenText(dref)}'" : $"reference '{DataBinder.WrittenText(dref)}' — {reason}";
     }
 
     /// <summary>Bind a data reference in a numeric-expression position: an INDEXED BY index-name reads its
@@ -413,7 +413,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? kof   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
-                : new BoundExprError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
+                : new BoundExprError($"LINAGE-COUNTER reference '{DataBinder.WrittenText(dref)}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15): in the PROCEDURE DIVISION the registers may appear
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
         : host.Rw.CounterExpr(dref) is { } rcx ? rcx
@@ -451,18 +451,18 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{dref.GetText()}' is used as an arithmetic operand; §13.18.38.3 r7 "
+                    $"the index-name '{DataBinder.WrittenText(dref)}' is used as an arithmetic operand; §13.18.38.3 r7 "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or a relation "
                     + "condition — accepted under --permissive, computing the occurrence number");
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{dref.GetText()}' is not an arithmetic operand (ISO §8.8.1.1 names no "
+                    $"the index-name '{DataBinder.WrittenText(dref)}' is not an arithmetic operand (ISO §8.8.1.1 names no "
                     + "index-names; §13.18.38.3 r7 admits an index-name only in a subscript, PERFORM/SEARCH "
                     + "VARYING, SET, or a relation condition). SET a data item to the index first "
-                    + $"(SET data-item TO {dref.GetText()}) — or --permissive accepts it as the occurrence "
+                    + $"(SET data-item TO {DataBinder.WrittenText(dref)}) — or --permissive accepts it as the occurrence "
                     + "number");
-                return new BoundExprError($"index-name '{dref.GetText()}' in an arithmetic expression");
+                return new BoundExprError($"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");
             }
         }
         return new BoundIndexRef(ix);
@@ -701,7 +701,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // receiving operand; without this the name would fall to Refs.Resolve and fail as merely "unresolved".
         if (ctx.Data.ConstantOf(dref) is not null)
         {
-            ctx.Edition.Error(DiagnosticCatalog.ConstantAsReceiver, $"constant-name '{dref.GetText()}' shall "
+            ctx.Edition.Error(DiagnosticCatalog.ConstantAsReceiver, $"constant-name '{DataBinder.WrittenText(dref)}' shall "
                 + "not be specified as a receiving operand — it substitutes a literal (ISO §13.10.4 GR1)");
             return null;
         }
@@ -725,7 +725,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         {
             if (!ctx.Refs.WasDiagnosed(dref))
                 ctx.Edition.Error(DiagnosticCatalog.ReceivingReferenceNotImplemented,
-                    $"receiving operand '{dref.GetText()}' names a declared item in a reference shape COBOL.NET does "
+                    $"receiving operand '{DataBinder.WrittenText(dref)}' names a declared item in a reference shape COBOL.NET does "
                     + "not yet implement as a receiver (COBOLNET_DESIGN §1.4 — rejected rather than dropped)");
             return null;
         }
@@ -740,7 +740,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         }
         // A CONSTANT RECORD's content cannot be modified — neither the record nor any subordinate may be a
         // receiving operand (ISO §13.18.15.3 SR2 → COBOLNET1548; DataBinder.RejectConstantStore).
-        if (ctx.Data.RejectConstantStore(place, $"receiving operand '{dref.GetText()}'")) return null;
+        if (ctx.Data.RejectConstantStore(place, $"receiving operand '{DataBinder.WrittenText(dref)}'")) return null;
         return place;
     }
 

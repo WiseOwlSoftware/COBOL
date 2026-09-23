@@ -126,7 +126,12 @@ public sealed class ReferenceResolver(DataBinder data)
             if (cls is null) return null;                    // interface-typed receivers: property prototypes are a later refinement (0899 at the interface)
         }
 
-        string getName = NamingConvention.GetAccessorName(name), setName = NamingConvention.SetAccessorName(name);
+        // §12.3.8.2's property-specifier `PROPERTY property-name-1 [ AS literal-4 ]` (kb/Work PB974): the source writes
+        // property-name-1, and literal-4 — when written — is the property as the declared classes know it (§12.3.8.3
+        // SR16 a)), so the accessors are looked up under THAT name. Without a specifier the reference is still
+        // reported below (SR1), under the name as written.
+        string known = data.OoRepositoryProperties.TryGetValue(name, out var specified) ? specified : name;
+        string getName = NamingConvention.GetAccessorName(known), setName = NamingConvention.SetAccessorName(known);
         var get = factory ? cls.FindFactoryMethod(getName) : cls.FindMethod(getName);
         var set = factory ? cls.FindFactoryMethod(setName) : cls.FindMethod(setName);
         if (get is null && set is null) return null;         // not a property of the roster → generic diagnosis
@@ -139,7 +144,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // prepend a GET that §8.4.3.9.4 GR2 says a write-only occurrence must not invoke.)
         if (_probing) return model.IsGroup ? null : model;
 
-        if (!data.OoRepositoryProperties.Contains(name))
+        if (!data.OoRepositoryProperties.ContainsKey(name))
             data.Edition.Error("COBOLNET0843",
                 $"the object-property reference '{name}' OF '{recv}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
@@ -279,7 +284,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // whether the construct is admitted is R38's open adjudication, not this diagnostic's.
         if (data.ScreenNames.Contains(name)
             || data.Alphabets.ContainsKey(name) || data.NationalAlphabets.ContainsKey(name)) return;
-        string text = dref.GetText();
+        string text = DataBinder.WrittenText(dref);
         string msg;
         if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
@@ -409,6 +414,7 @@ public sealed class ReferenceResolver(DataBinder data)
         List<string> indexExprs = [];
         if (subCtx is not null)
         {
+            if (ScreenEmptyParentheses(dref, subCtx)) return null;   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             List<IToken> ixNames = [];
             var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
             if (isRefMod || e is null) return null;   // unsupported subscript form → loud
@@ -501,7 +507,7 @@ public sealed class ReferenceResolver(DataBinder data)
         {
             if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
-                    $"'{dref.GetText()}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
+                    $"'{DataBinder.WrittenText(dref)}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
             return null;
         }
         return (cleanRef is not null ? ReadRefMod(cleanRef) : ReadRefMod(refCtx!)) is { } spec
@@ -929,6 +935,7 @@ public sealed class ReferenceResolver(DataBinder data)
         List<string> indexExprs = [];
         if (subCtx is not null)
         {
+            if (ScreenEmptyParentheses(dref, subCtx)) return null;   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             List<IToken> ixNames = [];
             var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
             if (isRefMod || e is null) return null;
@@ -940,6 +947,42 @@ public sealed class ReferenceResolver(DataBinder data)
         }
         else if (ScreenSubscriptArity(dref, item, 0)) return null;   // §8.4.2.3.3 SR5 (kb/Work PB681) — the same both arms
         return PlaceForItem(item, indexExprs);
+    }
+
+    /// <summary>⛔ A DATA REFERENCE FOLLOWED BY EMPTY PARENTHESES — <c>WS-X()</c> or <c>WS-X( )</c> — is neither
+    /// form a parenthesis after a data-name can take (kb/Work PB969): §8.4.2.3.2 writes a subscript list as
+    /// <c>( subscript … )</c>, at least one subscript, and §8.4.3.3.2 a reference modifier as
+    /// <c>( leftmost-position : [ length ] )</c>, a required leftmost position. Returns <see langword="true"/> when
+    /// the reference is rejected, so the caller returns null.
+    /// <para>The GRAMMAR admits the empty group because the same capture carries a keyword-omitted
+    /// function-identifier's argument list, where §8.4.3.2.2 brackets the arguments inside the parentheses and
+    /// <c>F()</c> is the zero-argument spelling — only the resolved symbol tells a function from a data item, and
+    /// a name that reached THIS resolver resolved to a data item. The whitespace-only spelling was the same group
+    /// before the grammar admitted the empty one, and it compiled CLEAN on the sending side (<c>DISPLAY WS-X( )</c>
+    /// aborted at RUN time on NotImplementedCobolFeatureException) while the receiving side drew COBOLNET0899's
+    /// "not yet implemented" — so this closes a compile-clean-then-abort as well as keeping the new spelling out.
+    /// It is asked of the written GROUP, before the subscript interpreter, because the interpreter gives up on a
+    /// whitespace-only group silently.</para></summary>
+    /// <summary>THE test for an empty written parenthesis group — nothing but separators inside it (kb/Work PB969).
+    /// One definition for every reader that must refuse <c>X()</c> on a data reference.</summary>
+    internal static bool IsEmptyGroup(Core.SubscriptOrRefModContext group) =>
+        group.subToken().All(t => t.SUB_WS() is not null);
+
+    /// <summary>The COBOLNET2309 message body (the quoted reference is the caller's).</summary>
+    internal const string EmptyParenthesesMessage = "parentheses with nothing inside them follow a data reference. A "
+        + "subscript list writes at least one subscript (ISO §8.4.2.3.2 — \"( subscript … )\") and a reference "
+        + "modifier a leftmost position (ISO §8.4.3.3.2); empty parentheses belong only to a function-identifier "
+        + "with no arguments (ISO §8.4.3.2.2). Remove the parentheses, or write the subscript.";
+
+    private bool ScreenEmptyParentheses(Core.DataReferenceContext dref, Core.SubscriptOrRefModContext group)
+    {
+        if (!IsEmptyGroup(group)) return false;
+        // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (_diagnosed).
+        if (_probing) return true;
+        if (!_diagnosed.Add(dref)) return true;
+        data.Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
+            $"'{DataBinder.WrittenText(dref)}': " + EmptyParenthesesMessage);
+        return true;
     }
 
     /// <summary>⛔ §8.4.2.3.3 SR2 AND SR3 — THE WRITTEN SUBSCRIPT LIST AGAINST THE ITEM'S DIMENSIONS, asked ONCE
@@ -976,7 +1019,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // R30 purity: a probe never diagnoses (kb/Work PB157); one report per written reference (_diagnosed).
         if (_probing) return true;
         if (!_diagnosed.Add(dref)) return true;
-        string text = dref.GetText();
+        string text = DataBinder.WrittenText(dref);
         string subject = item.CobolName ?? item.CsName;
         if (written == 0)
             data.Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
@@ -1469,7 +1512,7 @@ public sealed class ReferenceResolver(DataBinder data)
     {
         if (cap.Place is { } place) return place;
         if (_probing || !_diagnosed.Add(dref)) return null;   // R30 purity: a probe never diagnoses (kb/Work PB157)
-        string text = dref.GetText();
+        string text = DataBinder.WrittenText(dref);
         string subject = cap.Register.CobolName ?? cap.Register.CsName;
         string table = cap.Table.CobolName ?? cap.Table.CsName;
         switch (cap.Fault)
@@ -1543,7 +1586,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // A qualifier that names no report carrying this counter: the name IS a sum counter, so the ordinary
             // resolver would only report "not defined". Name the real rule instead (§8.4.2.2.2 / §8.4.2.2.3 SR1).
             if (report && _diagnosed.Add(dref))
-                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{dref.GetText()}': '{name}' is a sum counter "
+                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
                     + $"(ISO §13.18.54.4 GR5), but no report description entry named '{qualifier}' contains one — a "
                     + "sum counter may be qualified only by the report-name of the report that defines it "
                     + "(ISO §8.4.2.2.2 Format 1).");
@@ -1552,7 +1595,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (matches.Count > 1)
         {
             if (report && _diagnosed.Add(dref))
-                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{dref.GetText()}': the reference is ambiguous — "
+                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': the reference is ambiguous — "
                     + $"{matches.Count} entries establish a sum counter named '{name}' (ISO §13.18.54.4 GR1 gives "
                     + "each entry its own counter). A reference shall uniquely identify one resource (ISO "
                     + "§8.4.2.2.1); qualify it by report-name, or give the entries distinct data-names.");

@@ -776,12 +776,15 @@ valueClause
       // IN comes FIRST in both. The rule had them reversed, which rejected the printed spelling
       // `88 CN VALUE 1 IN AL1 WHEN SET TO FALSE 0` (COBOL0001) while accepting an order no format prints.
       // Found by the same sweep; §5.2.6.2 makes bracket ORDER part of the format, not free.
-      // ⚠ `IN` ITSELF IS UN-UNDERLINED (an optional word) AND IS DELIBERATELY NOT RELAXED HERE. §13.10.3 SR2
-      // lets a constant-name stand "anywhere that a format specifies a literal", so alphabet-name-1 with IN
-      // omitted is indistinguishable from one more literal-2 — ANTLR's greedy operand loop above always wins
-      // and an `IN?` would be a DEAD branch. That residue is reported, not papered over with unreachable
-      // grammar (kb/Work PB695 family 2 report).
-      (IN IDENTIFIER)?
+      // ⚠ `IN` ITSELF IS UN-UNDERLINED (an optional word — formats 3 AND 5, PDF p546 / folio 516) AND IS
+      // DELIBERATELY NOT RELAXED HERE. §13.10.3 SR2 lets a constant-name stand "anywhere that a format specifies
+      // a literal", so alphabet-name-1 with IN omitted is indistinguishable BY POSITION from one more literal-2 —
+      // the greedy operand loop above always takes it, and an `IN?` here would be a dead branch. It is decided
+      // where it CAN be: by symbol, in the binder (DataBinder.RangeAlphabetPhraseOf, kb/Work PB983) — §8.3.2.2
+      // puts alphabet-names and constant-names in disjoint types, so a LAST operand that names a declared
+      // alphabet is the phrase. alphabet-name-1 is a user-defined word, so the IN spelling takes `cobolWord`
+      // (the EVALUATE range-expression's own spelling), not the narrower IDENTIFIER token.
+      (IN cobolWord)?
       valueClauseFalsePhrase?
       // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail
       // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOLNET1708 at bind. Written as

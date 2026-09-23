@@ -75,8 +75,15 @@ valueClauseOperand
 // declared alphabet is the phrase, and the reference is bound without it (ReferenceResolver.WithoutTrailingSuffix).
 // The LITERAL-operand spelling the printed figure shows never meets the ambiguity, since a literal takes no
 // qualifier.
+// ⛔ AND `IN` IS OPTIONAL (kb/Work PB983): the printed phrase underlines neither `IN` nor anything else in the
+// bracket (PDF p649 / folio 619 — "[ IN alphabet-name-1 ]" is plain type), so §5.2.3 makes `WHEN "M" THRU "A" AL`
+// conforming. With IN omitted the word is unambiguous HERE: after a complete right-hand operand only ALSO, WHEN or
+// the imperative statement's verb (all reserved) may follow a selection object, so a bare user-defined word can be
+// nothing but alphabet-name-1 — whose TYPE the binder still checks (EvaluateBinder.RangeAlphabet). The VALUE
+// clause's identical phrase cannot be decided by position (see CobolData.g4 valueClause); its binder peels it by
+// symbol instead, and TrailingInPhraseDriftTests pins both formats together.
 valueRange
-    : valueOperand (THRU | THROUGH) valueOperand (IN cobolWord)?
+    : valueOperand (THRU | THROUGH) valueOperand (IN? cobolWord)?
     ;
 
 // Range form for VALUE clauses (no binary arithmetic).

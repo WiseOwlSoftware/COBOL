@@ -284,7 +284,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 Compiler.Oo.OoNameResolution.Want.Class).Class is { } cls)
             return OoBindClassInvoke(site, cls, methodName);
         ctx.Edition.Error("COBOLNET0823",
-            $"INVOKE: '{dref.GetText()}' is neither a resolvable data item nor a class this source element "
+            $"INVOKE: '{DataBinder.WrittenText(dref)}' is neither a resolvable data item nor a class this source element "
             + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
         return new BoundNop();
     }
@@ -905,7 +905,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Refs.Resolve(dref) is not { } p)
             {
                 ctx.Edition.Error("COBOLNET0866",
-                    $"INVOKE: the argument '{dref.GetText()}' is not resolvable to storage");
+                    $"INVOKE: the argument '{DataBinder.WrittenText(dref)}' is not resolvable to storage");
                 return new BoundNop();
             }
             if (ctx.Data.OoIsObjectData(p.Item))

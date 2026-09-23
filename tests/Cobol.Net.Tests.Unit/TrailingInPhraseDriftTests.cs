@@ -33,10 +33,14 @@ public sealed class TrailingInPhraseDriftTests
     {
         ["valueRange"] = (Path.Combine("Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "EvaluateBinder.cs"),
             "BindRangeHigh"),
+        // §13.18.63.2 formats 3 and 5 print the SAME `[ IN alphabet-name-1 ]` phrase after the literal list, and a
+        // constant-name (§13.10.3 SR2) is an identifier-ending operand there too (kb/Work PB983).
+        ["valueClause"] = (Path.Combine("Cobol.Net.Compiler", "Binding", "DataBinder.cs"), "RangeAlphabetPhraseOf"),
     };
 
     /// <summary>Operand rules whose parse can END in a <c>dataReference</c> (and so in a greedy qualifier).</summary>
-    private const string IdentifierEndingOperand = @"(?:valueOperand|dataReference|arithmeticExpression|comparisonOperand|identifier)";
+    private const string IdentifierEndingOperand =
+        @"(?:valueOperand|valueClauseOperand|valueItem|dataReference|arithmeticExpression|comparisonOperand|identifier)";
 
     private static IReadOnlyList<string> RulesWithTrailingInAfterIdentifier()
     {
@@ -50,7 +54,7 @@ public sealed class TrailingInPhraseDriftTests
                 var m = Regex.Match(chunk, @"\A\s*(?<name>[a-z]\w*)\s*:(?<body>.*)\z", RegexOptions.Singleline);
                 if (!m.Success) continue;
                 if (Regex.IsMatch(m.Groups["body"].Value,
-                        IdentifierEndingOperand + @"\s*\(?\s*IN\s+cobolWord"))
+                        IdentifierEndingOperand + @"[\s)*?]*\(?\s*IN\??\s+cobolWord"))
                     hits.Add(m.Groups["name"].Value);
             }
         }
@@ -64,6 +68,7 @@ public sealed class TrailingInPhraseDriftTests
         // A run must assert its population (feedback_verdict_evidence_invariant): valueRange IS such a rule, so
         // an empty scan means the scan broke, not that the grammar is clean.
         Assert.Contains("valueRange", rules);
+        Assert.Contains("valueClause", rules);
         var unowned = rules.Where(r => !Consumers.ContainsKey(r)).ToList();
         Assert.True(unowned.Count == 0,
             $"grammar rule(s) {string.Join(", ", unowned)} follow an identifier-ending operand with `IN cobolWord`. "
@@ -79,5 +84,25 @@ public sealed class TrailingInPhraseDriftTests
                 $"{rule}'s consumer {member} no longer re-reads the trailing qualifier through "
                 + "ReferenceResolver.WithoutTrailingSuffix in " + file);
         }
+    }
+
+    /// <summary>⛔ `IN` IS AN OPTIONAL WORD IN ALL THREE FORMATS THAT PRINT `[ IN alphabet-name-1 ]` — §14.9.13.2's
+    /// range-expression and §13.18.63.2 formats 3 and 5 (none underlines it; §5.2.3) — and this pins the two
+    /// places that honour it together (kb/Work PB983): the EVALUATE rule admits the word with IN omitted, where
+    /// position alone decides it, and the VALUE clause's binder peels an IN-less LAST operand that names an
+    /// alphabet, because there only the symbol can. Either half regressing re-opens the rejection of legal
+    /// source on one of the two clauses §14.7.8 governs in one sentence.</summary>
+    [Fact]
+    public void RangeAlphabetPhrase_InIsOptional_InEveryFormatThatPrintsIt()
+    {
+        string grammar = Regex.Replace(File.ReadAllText(TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar",
+            "Core", "CobolExpressions.g4"))), @"//[^\r\n]*", "");
+        Assert.Matches(new Regex(@"\bvalueRange\s*:[^;]*\(\s*IN\?\s+cobolWord\s*\)\?"), grammar);
+        string binder = File.ReadAllText(TestRepo.Src(Path.Combine("Cobol.Net.Compiler", "Binding", "DataBinder.cs")));
+        int at = binder.IndexOf("RangeAlphabetPhraseOf(Core.ValueClauseContext", StringComparison.Ordinal);
+        Assert.True(at >= 0, "DataBinder.RangeAlphabetPhraseOf — the VALUE clause's IN-omitted peel — is gone");
+        string body = binder.Substring(at, Math.Min(2500, binder.Length - at));
+        Assert.Contains("IsAlphabetName(", body);
+        Assert.Contains("value.IN() is not null", body);
     }
 }

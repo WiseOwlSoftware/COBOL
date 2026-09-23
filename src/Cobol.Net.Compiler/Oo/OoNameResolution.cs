@@ -109,10 +109,14 @@ public static class OoNameResolution
     {
         if (table is null) return default;
         var scope = table.RepositoryScopeFor(site);
-        if (want is Want.Class or Want.Either
-            && scope.DeclaresClass(name) && table.Find(name) is { } cls) return new Result(cls, null);
-        if (want is Want.Interface or Want.Either
-            && scope.DeclaresInterface(name) && table.FindInterface(name) is { } ifc) return new Result(null, ifc);
+        // A specifier with `AS literal-n` names the definition whose EXTERNALIZED name is the literal (§12.3.8.4 GR2,
+        // kb/Work PB974); without it the declared word names the definition of that name.
+        if (want is Want.Class or Want.Either && scope.ClassTarget(name, out var clsExt)
+            && (clsExt is null ? table.Find(name) : table.FindByExternalizedName(clsExt)) is { } cls)
+            return new Result(cls, null);
+        if (want is Want.Interface or Want.Either && scope.InterfaceTarget(name, out var ifcExt)
+            && (ifcExt is null ? table.FindInterface(name) : table.FindInterfaceByExternalizedName(ifcExt)) is { } ifc)
+            return new Result(null, ifc);
         return default;
     }
 }
@@ -129,25 +133,35 @@ public sealed class OoRepositoryScope
     /// §8.4.6.4 offers no third source for a visible name.</summary>
     public static readonly OoRepositoryScope Empty = new([], []);
 
-    private readonly HashSet<string> _classes;
-    private readonly HashSet<string> _interfaces;
+    // Declared name → the EXTERNALIZED name the specifier's `AS literal-n` gives, or null when it wrote none (the
+    // containing definition's own name, too): null resolves by the declared word (kb/Work PB974).
+    private readonly Dictionary<string, string?> _classes;
+    private readonly Dictionary<string, string?> _interfaces;
 
-    private OoRepositoryScope(HashSet<string> classes, HashSet<string> interfaces)
+    private OoRepositoryScope(Dictionary<string, string?> classes, Dictionary<string, string?> interfaces)
     {
         _classes = classes;
         _interfaces = interfaces;
     }
 
-    public bool DeclaresClass(string name) => _classes.Contains(name);
-    public bool DeclaresInterface(string name) => _interfaces.Contains(name);
+    public bool DeclaresClass(string name) => _classes.ContainsKey(name);
+    public bool DeclaresInterface(string name) => _interfaces.ContainsKey(name);
+
+    /// <summary>Whether <paramref name="name"/> is a class-name in this scope, and the externalized name its
+    /// specifier's AS phrase gave it (null: resolve by the declared word).</summary>
+    public bool ClassTarget(string name, out string? externalized) => _classes.TryGetValue(name, out externalized);
+
+    /// <summary>The interface twin of <see cref="ClassTarget"/>.</summary>
+    public bool InterfaceTarget(string name, out string? externalized) =>
+        _interfaces.TryGetValue(name, out externalized);
 
     /// <summary>Build the scope visible at <paramref name="site"/> by walking its parse-tree ancestors: every
     /// REPOSITORY paragraph on the way out contributes (the reference's own source element first, then each
     /// containing one — §12.3.4 GR1), and a class / interface definition contributes its own name.</summary>
     public static OoRepositoryScope Build(RuleContext? site)
     {
-        var classes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var interfaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var classes = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var interfaces = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         for (RuleContext? c = site; c is not null; c = c.Parent)
         {
             switch (c)
@@ -155,10 +169,12 @@ public sealed class OoRepositoryScope
                 case Core.ClassDefinitionContext cd:
                     // className()[0] is the class's OWN name; the rest are the INHERITS operands
                     // (§11.3.2's `[ INHERITS FROM { object-class-name-2 } … ]`), which are REFERENCES.
-                    if (cd.classIdParagraph()?.className().FirstOrDefault() is { } cn) classes.Add(cn.GetText());
+                    // §12.3.8.3 SR5/SR8: a specifier naming the containing definition "is ignored" — its own name
+                    // resolves to it, whatever an inner entry wrote.
+                    if (cd.classIdParagraph()?.className().FirstOrDefault() is { } cn) classes[cn.GetText()] = null;
                     break;
                 case Core.InterfaceDefinitionContext idf:
-                    if (idf.interfaceName().FirstOrDefault() is { } inm) interfaces.Add(inm.GetText());
+                    if (idf.interfaceName().FirstOrDefault() is { } inm) interfaces[inm.GetText()] = null;
                     break;
             }
             // The environment division of THIS context, when it directly carries one. Only a source-element
@@ -170,13 +186,19 @@ public sealed class OoRepositoryScope
         return classes.Count == 0 && interfaces.Count == 0 ? Empty : new OoRepositoryScope(classes, interfaces);
     }
 
-    private static void Collect(Core.EnvironmentDivisionContext env, HashSet<string> classes,
-        HashSet<string> interfaces)
+    private static void Collect(Core.EnvironmentDivisionContext env, Dictionary<string, string?> classes,
+        Dictionary<string, string?> interfaces)
     {
+        // The source element's OWN specifiers are collected before a containing element's (the ancestor walk runs
+        // outward), so TryAdd keeps the innermost declaration — §12.3.4 GR1 spreads a container's entries to
+        // contained units, and a contained unit's own specifier for the same name is the one in force there.
+        // The literal is read by the PURE ExternalizedName.Peek: DataBinder.BindSpecifierExternalizedName reports
+        // on it, once, and a rejected literal resolves by the declared word — its own fallback.
         foreach (var re in SpecifierEntries(env))
         {
-            if (re.className() is { } cn) classes.Add(cn.GetText());
-            else if (re.interfaceName() is { } inm) interfaces.Add(inm.GetText());
+            string? ext = re.externalizedNamePhrase() is { } asPhrase ? ExternalizedName.Peek(asPhrase.literal()) : null;
+            if (re.className() is { } cn) classes.TryAdd(cn.GetText(), ext);
+            else if (re.interfaceName() is { } inm) interfaces.TryAdd(inm.GetText(), ext);
         }
     }
 

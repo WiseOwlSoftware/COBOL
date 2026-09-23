@@ -234,12 +234,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             && data.Symbols.TryResolveCondition(dref.cobolWord()?.GetText() ?? "", data.ActiveScope, out var cn)
             && cn.Count > 0)
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {dref.GetText()} … — '{dref.cobolWord()?.GetText()}' is a "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{dref.cobolWord()?.GetText()}' is a "
                 + "condition-name, and Format 2 prints condition-name-1 as an ALTERNATIVE to the whole "
                 + "`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO §14.9.37.2 "
-                + $"Format 2). Write `WHEN {dref.GetText()}` alone, or compare the key data-name itself.");
+                + $"Format 2). Write `WHEN {DataBinder.WrittenText(dref)}` alone, or compare the key data-name itself.");
         if (pos < 0)
-            return Key(table, $"'{dref.GetText()}' is not referenced in the KEY phrase of the OCCURS clause "
+            return Key(table, $"'{DataBinder.WrittenText(dref)}' is not referenced in the KEY phrase of the OCCURS clause "
                 + $"associated with '{table.CobolName}' — data-name-1 and all repetitions of data-name-2 \"shall "
                 + $"be referenced in the KEY phrase\" (ISO §14.9.37.3 SR8). The KEY phrase declares {KeyList(keys)}.");
         referenced[pos] = true;
@@ -248,7 +248,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // SR12 — "Data-name-1, data-name-2, identifier-3, or identifier-4 shall not specify a variable-length
         // group." The predicate is the ONE VariableLengthCompatibility module (§8.5.1.12), never a second walk.
         if (VariableLengthCompatibility.IsVariableLength(item!))
-            ok &= Key(table, $"'{dref.GetText()}' specifies a variable-length group; data-name-1 and data-name-2 "
+            ok &= Key(table, $"'{DataBinder.WrittenText(dref)}' specifies a variable-length group; data-name-1 and data-name-2 "
                 + "\"shall not specify a variable-length group\" (ISO §14.9.37.3 SR12)");
         return ok;
     }
@@ -281,7 +281,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // and not K2" (it referenced neither — it referenced K2), while with `ASCENDING KEY IS K1 K2` the SR11
         // violation in `WHEN CN OF K2 (IX)` went unreported. One reference, one resolution.
         if (conditions.ConditionOf(dref) is not { } cond)
-            return Key(table, $"'{dref.GetText()}' does not uniquely identify a condition-name — '{name}' is "
+            return Key(table, $"'{DataBinder.WrittenText(dref)}' does not uniquely identify a condition-name — '{name}' is "
                 + "declared, but not under the written qualifiers (ISO §8.4.2.2 Format 2 — a condition-name "
                 + "qualifies by its conditional variable and/or that variable's containing groups)");
         bool ok = true;
@@ -357,12 +357,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     {
         bool ok = true;
         if (KeyPositionOf(item, keyItems) >= 0)
-            ok &= Sending(table, $"the sending operand '{dref.GetText()}' is referenced in the KEY phrase of the "
+            ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is referenced in the KEY phrase of the "
                 + $"OCCURS clause associated with '{table.CobolName}'; {role} \"shall be neither referenced in "
                 + "the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first "
                 + "index-name associated with identifier-1\" (ISO §14.9.37.3 SR10)");
         if (UsesIndex(dref, firstIndex))
-            ok &= Sending(table, $"the sending operand '{dref.GetText()}' is subscripted by '{firstIndex}', the "
+            ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is subscripted by '{firstIndex}', the "
                 + $"first index-name associated with '{table.CobolName}'; {role} \"shall be neither referenced "
                 + "in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the "
                 + "first index-name associated with identifier-1\" (ISO §14.9.37.3 SR10) — the search varies that "
@@ -413,20 +413,20 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             ? [.. segs[pos].Where(t => t.Type != Core.SUB_WS)]
             : [];
         if (toks.Count == 0)
-            return Key(table, $"'{dref.GetText()}' is not subscripted by '{firstIndex}': it \"shall be "
+            return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
                 + "subscripted by the first index-name associated with identifier-1 along with any subscripts "
                 + $"required to uniquely identify the data item\" (ISO §14.9.37.3 {rule})");
         if (toks[0].Type != Core.SUB_IDENTIFIER
             || !string.Equals(toks[0].Text, firstIndex, StringComparison.OrdinalIgnoreCase))
-            return Key(table, $"'{dref.GetText()}' selects identifier-1's occurrence with '{Written(toks)}' where "
+            return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
                 + $"(ISO §14.9.37.3 {rule})");
         if (toks.Count == 1) return true;
         return toks[1].Type is Core.SUB_PLUS or Core.SUB_MINUS
                              or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
-            ? Key(table, $"'{dref.GetText()}' writes '{Written(toks)}': \"the index-name subscript shall not be "
+            ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "
                 + $"followed by a '+' or a '–'\" (ISO §14.9.37.3 {rule})")
-            : Key(table, $"'{dref.GetText()}' selects identifier-1's occurrence with '{Written(toks)}' where the "
+            : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
                 + $"first index-name '{firstIndex}' alone is required (ISO §14.9.37.3 {rule})");
     }
 

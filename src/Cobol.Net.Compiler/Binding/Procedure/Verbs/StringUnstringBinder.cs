@@ -356,7 +356,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     {
         var op = host.Expr.FieldOperand(dref);
         return host.Expr.ScreenIndexNameOperand(op, dref.GetText(), role)
-            ? new BoundOperandError($"{role}: the index-name '{dref.GetText()}' (ISO §13.18.38.3 r7)")
+            ? new BoundOperandError($"{role}: the index-name '{DataBinder.WrittenText(dref)}' (ISO §13.18.38.3 r7)")
             : op;
     }
 

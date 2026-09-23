@@ -113,12 +113,14 @@ public sealed class PartialExpressionSpineDriftTests
 
     /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §14.9.13.2's range-expression; §14.7.8 rule 2) —
     /// present, and present on the EVALUATE range specifically. Its VALUE-clause twin lives in
-    /// <c>CobolData.g4</c>'s <c>valueClause</c>, where §14.7.8's first sentence puts it.</summary>
+    /// <c>CobolData.g4</c>'s <c>valueClause</c>, where §14.7.8's first sentence puts it. IN is an OPTIONAL word in
+    /// both (not underlined, §5.2.3; kb/Work PB983): the EVALUATE rule admits it omitted, and the VALUE clause's
+    /// IN-less spelling is peeled by symbol in the binder (<c>TrailingInPhraseDriftTests</c> pins that half).</summary>
     [Fact]
     public void ValueRange_CarriesTheInAlphabetPhrase()
     {
-        Assert.Equal("valueOperand (THRU | THROUGH) valueOperand (IN cobolWord)?",
+        Assert.Equal("valueOperand (THRU | THROUGH) valueOperand (IN? cobolWord)?",
             RuleBody("CobolExpressions.g4", "valueRange"));
-        Assert.Contains("(IN IDENTIFIER)?", RuleBody("CobolData.g4", "valueClause"), StringComparison.Ordinal);
+        Assert.Contains("(IN cobolWord)?", RuleBody("CobolData.g4", "valueClause"), StringComparison.Ordinal);
     }
 }

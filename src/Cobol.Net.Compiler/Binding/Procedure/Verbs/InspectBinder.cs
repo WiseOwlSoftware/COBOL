@@ -350,7 +350,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Data.SymbolicOf(dref) is { } sym)
                 return (new BoundStringLiteral(sym.Value) { Category = sym.National ? PicCategory.National : PicCategory.Alphanumeric }, true);
             if (ctx.Refs.Resolve(dref) is not { } p)
-                return (new BoundOperandError($"INSPECT operand '{dref.GetText()}'"), false);
+                return (new BoundOperandError($"INSPECT operand '{DataBinder.WrittenText(dref)}'"), false);
             ctx.Validation.CheckInspectOperandUsage(p, dref.GetText());   // SR2 — pure check
             return (new BoundFieldOperand(p), false);
         }

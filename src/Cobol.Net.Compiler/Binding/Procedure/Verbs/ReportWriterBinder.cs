@@ -185,7 +185,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
         return CounterReportOf(dref, reg) is { } report
             ? new BoundReportCounterRef(report, isPage)
-            : new BoundExprError($"{reg} reference '{dref.GetText()}'");
+            : new BoundExprError($"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
 
     /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §8.4.3.15.3

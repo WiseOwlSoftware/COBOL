@@ -216,7 +216,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 || op.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
             {
                 ctx.Edition.Error("COBOLNET0849",
-                    $"{site.Context} '{dref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE "
+                    $"{site.Context} '{DataBinder.WrittenText(dref)}': identifier-1 shall be a USAGE OBJECT REFERENCE "
                     + $"data item ({site.Cite(site.ObjectRule)})");
                 return null;
             }

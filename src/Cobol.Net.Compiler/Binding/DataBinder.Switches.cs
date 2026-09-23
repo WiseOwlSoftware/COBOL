@@ -114,6 +114,16 @@ public sealed partial class DataBinder
     /// <param name="where">The construct, for the diagnostic ("EVALUATE WHEN range", "condition-name 'X'").</param>
     public bool TryResolveRangeAlphabet(string alphabetName, CollatingClass rangeClass, string where)
     {
+        // The TYPE first: a word that names no alphabet at all is not alphabet-name-1, whatever the range's class —
+        // and since IN is an optional word (kb/Work PB983), a stray trailing word after a THROUGH range reaches here
+        // too, so it must be told it names nothing rather than that the range's class forbids a phrase it never was.
+        if (!IsAlphabetName(alphabetName))
+        {
+            Edition.Error(DiagnosticCatalog.RangeAlphabetUndeclared, $"{where}: '{alphabetName}' after the THROUGH "
+                + "phrase is in the [ IN alphabet-name-1 ] position, but it does not name an alphabet declared in "
+                + "SPECIAL-NAMES (ISO §12.3.7; §14.9.13.3 SR3)");
+            return false;
+        }
         // SR3 sentence 1 — the phrase is admitted only over a range a COLLATING SEQUENCE can order. §14.7.8 rule 1
         // orders a numeric range algebraically and names no sequence at all, and rule 2 (the sequence rule) is
         // written for "alphanumeric or national literals"; a boolean range cannot carry THROUGH in the first place
@@ -152,18 +162,13 @@ public sealed partial class DataBinder
             RegisterRangeCollation(alphabetName, ad);
             return true;
         }
-        // The name is declared, but in the other class's domain — SR3 sentence 2's violation, told apart from a
-        // name that is not an alphabet at all so the message names the rule the program actually broke.
-        if (national ? Alphabets.ContainsKey(alphabetName) : NationalAlphabets.ContainsKey(alphabetName))
-        {
-            Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: the THROUGH operands are of class "
-                + $"{(national ? "national" : "alphabetic / alphanumeric")}, so alphabet-name-1 shall reference an "
-                + $"alphabet that defines {(national ? "a national" : "an alphanumeric")} collating sequence — "
-                + $"'{alphabetName}' declares the other class (ISO §14.9.13.3 SR3 / §13.18.63.3 SR31)");
-            return false;
-        }
-        Edition.Error(DiagnosticCatalog.RangeAlphabetUndeclared, $"{where}: 'IN {alphabetName}' — '{alphabetName}' "
-            + "does not name an alphabet declared in SPECIAL-NAMES (ISO §12.3.7; §14.9.13.3 SR3)");
+        // The name IS an alphabet (the type test above) but not in this class's domain, so it is declared in the
+        // other one — SR3 sentence 2's violation, told apart from a word that is no alphabet at all so the message
+        // names the rule the program actually broke.
+        Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: the THROUGH operands are of class "
+            + $"{(national ? "national" : "alphabetic / alphanumeric")}, so alphabet-name-1 shall reference an "
+            + $"alphabet that defines {(national ? "a national" : "an alphanumeric")} collating sequence — "
+            + $"'{alphabetName}' declares the other class (ISO §14.9.13.3 SR3 / §13.18.63.3 SR31)");
         return false;
     }
 
@@ -449,7 +454,8 @@ public sealed partial class DataBinder
         foreach (var (k, v) in container.ProgramSpecifiers) ProgramSpecifiers.TryAdd(k, v);
         RepositoryIntrinsics.UnionWith(container.RepositoryIntrinsics);
         if (container.RepositoryAllIntrinsic) RepositoryAllIntrinsic = true;
-        OoRepositoryProperties.UnionWith(container.OoRepositoryProperties);
+        foreach (var (k, v) in container.OoRepositoryProperties) OoRepositoryProperties.TryAdd(k, v);
+        foreach (var (k, v) in container.FunctionSpecifiers) FunctionSpecifiers.TryAdd(k, v);
         // OPTIONS (§11.9.4 GR1) — the containee's own OPTIONS paragraph overrides clause by clause at Bind.
         _inheritedOptions = container.Options;
     }
@@ -589,31 +595,53 @@ public sealed partial class DataBinder
     /// (<c>BuildUserFunctionTable</c>). Collecting the SYNTAX here and resolving it there is the same split.</para></summary>
     private void BindProgramSpecifier(Core.RepositoryEntryContext re, string name)
     {
+        // A rejected literal-3 registers NO prototype (the PB237 posture — a CALL through it then draws the
+        // undeclared-prototype diagnostic rather than silently activating the declared word).
+        if (BindSpecifierExternalizedName(re, "PROGRAM", name, "literal-3") is { } externalized)
+            ProgramSpecifiers.TryAdd(name, new ProgramSpecifier(name, externalized));
+    }
+
+    /// <summary>⛔ THE ONE SCREEN OF A REPOSITORY SPECIFIER'S <c>[ AS literal-n ]</c> — class (literal-1), interface
+    /// (literal-2), program (literal-3), property (literal-4) and user-defined function (literal-5), §12.3.8.2
+    /// (kb/Work PB974; the program specifier had it alone, PB237). Returns the externalized name — the literal's
+    /// value, or the declared name when there is no AS phrase (§12.3.8.4 GR10 NOTE 1 / GR11 NOTE 2) — or null when
+    /// the literal was rejected (and reported).
+    /// <para>§12.3.8.3 SR2: "Literal-1, literal-2, literal-3, literal-4, and literal-5 shall be alphanumeric literals
+    /// or national literals and shall be neither figurative constants nor zero-length literals" — the SAME sentence
+    /// the identification paragraphs restate, so the ONE <c>ExternalizedName.Screen</c> (kb/Work PB303). SR1: "If
+    /// any object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1,
+    /// intrinsic-function-name-1 or property-name-1 is specified more than once in the REPOSITORY paragraph, all
+    /// the specifications for that name shall be identical" — asked per (specifier kind, name). Ordinal on the
+    /// externalized name: it is an operating-environment name, not a COBOL word, so §8.3.2's case-insensitivity
+    /// does not reach it.</para></summary>
+    private string? BindSpecifierExternalizedName(Core.RepositoryEntryContext re, string kind, string name, string tag)
+    {
         using var _ = Edition.At(re);   // the sink stamps every report below with THIS entry's position (PB82)
-        string externalized = name;   // §12.3.8.4 GR10 NOTE 1: without AS, the externalized name IS the prototype name
+        string externalized = name;
         if (re.externalizedNamePhrase() is { } asPhrase)
         {
-            // §12.3.8.3 SR2 is the SAME sentence the five id paragraphs restate — one screen, kb/Work PB303.
-            string where = $"REPOSITORY PROGRAM '{name}' AS {asPhrase.literal().GetText()}";
             if (ExternalizedName.Screen(asPhrase.literal(), Edition, DiagnosticCatalog.RepositoryProgramSpecifier,
-                    where, "literal-3", "ISO §12.3.8.3 SR2",
-                    collate: Collating, natCollate: NationalCollating) is not { } lit3) return;
-            externalized = lit3;
+                    $"REPOSITORY {kind} '{name}' AS {asPhrase.literal().GetText()}", tag, "ISO §12.3.8.3 SR2",
+                    collate: Collating, natCollate: NationalCollating) is not { } literal) return null;
+            externalized = literal;
         }
-        // §12.3.8.3 SR1 — a repeated name is legal, an INCONSISTENT repeat is not. Ordinal on the externalized
-        // name: it is an operating-environment name, not a COBOL word, so §8.3.2's case-insensitivity does not
-        // reach it (the KEY is case-insensitive because program-prototype-name-1 IS a COBOL word).
-        if (ProgramSpecifiers.TryGetValue(name, out var prior))
+        var key = (kind, name.ToUpperInvariant());
+        if (_repositorySpecified.TryGetValue(key, out var prior))
         {
-            if (!string.Equals(prior.ExternalizedName, externalized, StringComparison.Ordinal))
+            if (!string.Equals(prior, externalized, StringComparison.Ordinal))
                 Edition.Error(DiagnosticCatalog.RepositoryProgramSpecifier,
-                    $"REPOSITORY PROGRAM '{name}' is specified more than once with different externalized names "
-                    + $"('{prior.ExternalizedName}' then '{externalized}'); ISO §12.3.8.3 syntax rule 1 requires "
-                    + "all the specifications for one name to be identical");
-            return;
+                    $"REPOSITORY {kind} '{name}' is specified more than once with different externalized names "
+                    + $"('{prior}' then '{externalized}'); ISO §12.3.8.3 syntax rule 1 requires all the "
+                    + "specifications for one name to be identical");
+            return prior;
         }
-        ProgramSpecifiers[name] = new ProgramSpecifier(name, externalized);
+        _repositorySpecified[key] = externalized;
+        return externalized;
     }
+
+    /// <summary>(specifier kind, upper-cased declared name) → the externalized name its FIRST specification gave:
+    /// the §12.3.8.3 SR1 memory of <see cref="BindSpecifierExternalizedName"/>, for THIS unit's REPOSITORY.</summary>
+    private readonly Dictionary<(string Kind, string Name), string> _repositorySpecified = [];
 
 
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §12.3.7

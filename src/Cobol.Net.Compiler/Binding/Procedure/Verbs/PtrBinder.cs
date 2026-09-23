@@ -377,7 +377,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         if (host.Expr.IndexFieldOf(dref) is null) return false;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"SET '{dref.GetText()}': an index-name cannot be a receiving operand of a data-pointer SET — "
+            $"SET '{DataBinder.WrittenText(dref)}': an index-name cannot be a receiving operand of a data-pointer SET — "
             + "identifier-9 shall be of category data-pointer (ISO §14.9.39.2 Format 10, §14.9.39.3 SR23). An "
             + "index-name operand belongs to Format 2, whose receiving operand is index-name-3");
         return true;
@@ -388,7 +388,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         if (ctx.Refs.Resolve(dref) is { } p && p.Item.Pic?.Category is PicCategory.Pointer) return p;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"'{dref.GetText()}': {what} shall be a USAGE POINTER data item");
+            $"'{DataBinder.WrittenText(dref)}': {what} shall be a USAGE POINTER data item");
         return null;
     }
 
@@ -414,7 +414,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // send the reader hunting a BASED clause for a name that is not declared at all (the PB457 shape).
         if (item is null && ctx.Refs.WasDiagnosed(dref)) return null;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"'{dref.GetText()}': the operand shall be a BASED level-01/77 item (ISO §14.9.39.3 SR18 / "
+            $"'{DataBinder.WrittenText(dref)}': the operand shall be a BASED level-01/77 item (ISO §14.9.39.3 SR18 / "
             + "§14.9.3.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
         return null;
     }

@@ -267,6 +267,12 @@ public sealed partial class DataBinder
             if (suffix.qualification() is { } q) qualifiers.Add(q.cobolWord().GetText());
             else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } sub)
             {
+                if (ReferenceResolver.IsEmptyGroup(sub))
+                {
+                    Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
+                        $"{where}: LENGTH OF '{DataBinder.WrittenText(dref)}': " + ReferenceResolver.EmptyParenthesesMessage);
+                    return null;
+                }
                 // §13.10.3 SR3: all subscripts of data-name-2 shall be literals. (A subscript never changes
                 // the LENGTH — every occurrence has the same description — so the tokens are only validated.)
                 var toks = new List<Antlr4.Runtime.IToken>();
@@ -283,7 +289,7 @@ public sealed partial class DataBinder
         DataItem? item = new ReferenceResolver(this).FindItem(baseName, qualifiers);
         if (item is null)
         {
-            Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: LENGTH OF '{dref.GetText()}' — the "
+            Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: LENGTH OF '{DataBinder.WrittenText(dref)}' — the "
                 + "data-name is not defined at this point (a constant entry reads only PRECEDING declarations; "
                 + "ISO §13.10.3 SR4 rules out the reverse dependence)");
             return null;
@@ -305,7 +311,7 @@ public sealed partial class DataBinder
         if (width <= 0)
         {
             // A TYPE-clause reference not yet expanded / a pending PICTURE-less usage — loud, never a wrong 0.
-            Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the length of '{dref.GetText()}' is "
+            Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the length of '{DataBinder.WrittenText(dref)}' is "
                 + "not computable at this point in the data division (ISO §13.10.4 GR6 — the §15.50 LENGTH "
                 + "value; a TYPE-expanded or usage-pending operand is a recorded residue)");
             return null;

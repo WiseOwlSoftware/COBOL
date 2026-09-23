@@ -119,7 +119,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // Before this, a string-category receiver aborted at RUN time and a numeric one silently computed.
         if (send.dataReference() is { } sdref
             && host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
-            source = new BoundOperandError($"MOVE of the index-name '{sdref.GetText()}' (ISO §13.18.38.3 r7)");
+            source = new BoundOperandError($"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §13.18.38.3 r7)");
         var resolved = host.Expr.ResolveTargets(targets.dataReference());
         return BindMoveOf(source, resolved);
     }

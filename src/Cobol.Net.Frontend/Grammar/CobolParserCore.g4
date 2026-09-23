@@ -425,22 +425,30 @@ configurationParagraph
 // interfaces and properties a source element references, plus the intrinsic-function-names usable without the word
 // FUNCTION. Each entry starts with its specifier keyword, so the rule cannot over-run into the next section; an
 // optional period after each entry tolerates both the one-period-per-paragraph and period-per-entry styles.
-// ⚠ The `AS literal` phrase is carried by the PROGRAM specifier ONLY, because that is the only specifier whose
-// externalized name this compiler BINDS (kb/Work PB237). §12.3.8.2 prints `[AS literal-n]` on the class, interface,
-// property and user-defined-function specifiers too; parsing those without binding literal-1/2/4/5 would silently
-// DISCARD the externalized name §12.3.8.4 GR2 assigns — a silent wrong answer, strictly worse than the parse error.
-// They land with their own subsystems (the OO wave and the UDF prototype wave).
+// ⛔ EVERY SPECIFIER THAT PRINTS `[ AS literal-n ]` CARRIES THE ONE `externalizedNamePhrase` (kb/Work PB974; rendered
+// PDF p334-335 / folios 304-305 — AS underlined, the phrase bracketed, after the declared name and BEFORE the class and
+// interface specifiers' EXPANDS phrase). §12.3.8.4 GR2: "literal-1, literal-2, literal-3, or literal-5 is the
+// externalized name by which the class, interface, function, or program, respectively, is known to the operating
+// environment", and the property specifier's literal-4 names the property the declared classes implement. The local
+// name stays the word the source element writes; what it RESOLVES to is found by the literal — OoRepositoryScope
+// (class / interface), BinderDriver.UserFunctionsOf (function), BinderDriver.ProgramPrototypesOf (program) and
+// ReferenceResolver.OoTryBindPropertyReference (property). The PROGRAM specifier had it alone (kb/Work PB237) and the
+// other four refused `CLASS BOXY AS "R11BOX"` with COBOLNET0901 (AS reserved).
+// ⛔ AND THE INTRINSIC SPECIFIER TAKES A LIST: `FUNCTION { intrinsic-function-name-1 } … INTRINSIC` (same page) — one
+// name only refused `FUNCTION PI E INTRINSIC` (COBOL0307). The user-defined-function specifier is the one-name form
+// WITHOUT INTRINSIC; ALL(*) tells the two apart on the trailing INTRINSIC keyword.
 repositoryParagraph
     : REPOSITORY DOT (repositoryEntry DOT?)*
     ;
 
 repositoryEntry
     : FUNCTION ALL INTRINSIC
-    | FUNCTION functionName INTRINSIC?
-    | CLASS className expandsPhrase?   // OO (2002): CLASS class-name [AS literal] [EXPANDS …] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
-    | INTERFACE interfaceName expandsPhrase?   // OO (2002): the interface specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
+    | FUNCTION functionName+ INTRINSIC
+    | FUNCTION functionName externalizedNamePhrase?   // §12.3.8.2 user-defined-function-specifier [AS literal-5]
+    | CLASS className externalizedNamePhrase? expandsPhrase?   // OO (2002): CLASS class-name [AS literal-1] [EXPANDS …] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
+    | INTERFACE interfaceName externalizedNamePhrase? expandsPhrase?   // OO (2002): the interface specifier [AS literal-2] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
     | PROGRAM programPrototypeName externalizedNamePhrase?   // §12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
-    | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
+    | PROPERTY propertyName externalizedNamePhrase?     // OO (2002): the property specifier [AS literal-4] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
     ;
 
 // §12.3.8.2 class-specifier / interface-specifier `[ EXPANDS object-class-name-2 USING { object-class-name-3 |
@@ -659,8 +667,17 @@ subscriptPart
 // Inside SUBSCRIPT mode: captures all content as a flat sequence of SUBSCRIPT-mode tokens.
 // The binding layer interprets the content: SUB_COLON → ref-mod, else → subscript list.
 // This avoids the need for the grammar to distinguish subscripts from ref-mod.
+// ⛔ THE GROUP MAY BE EMPTY (kb/Work PB969). This one capture also carries the keyword-omitted function-identifier's
+// argument list (§8.4.3.2.3 SR2 lets FUNCTION be omitted for a prototype, a function-pointer, a REPOSITORY-declared
+// intrinsic), and §8.4.3.2.2 prints that list `[ ( [ {argument-1 | OMITTED} ] … ) ]` — the arguments bracketed INSIDE
+// the parentheses, so `F()` is the zero-argument spelling, and for a function-pointer §8.4.3.2.3 SR5 ("If
+// function-pointer-name-1 is specified, the parentheses shall be specified") makes it the ONLY one. `subToken+` refused
+// it with COBOL0001 while `F( )` — one SUB_WS token — parsed; an empty group is now that same whitespace-only group. A
+// DATA reference with empty parentheses is still illegal (§8.4.2.3.2 writes `( subscript … )`, §8.4.3.3.2 a required
+// leftmost-position) and is refused BY NAME in the resolver (ReferenceResolver.ScreenEmptyParentheses), never here:
+// only the resolved symbol says whether the word before the parenthesis is a function or a data item.
 subscriptOrRefMod
-    : subToken+
+    : subToken*
     ;
 
 // Any token that can appear inside subscript/ref-mod parentheses
@@ -689,7 +706,7 @@ subToken
     | SUB_OF
     | SUB_IN
     | SUB_ALL
-    | SUB_LPAREN subToken+ SUB_RPAREN                                  // nested parens
+    | SUB_LPAREN subToken* SUB_RPAREN                                  // nested parens — `MAX(RANDOM() A)` (§8.4.3.2.3 SR6's NOTE)
     ;
 
 // refModPart for non-identifier context (default mode)

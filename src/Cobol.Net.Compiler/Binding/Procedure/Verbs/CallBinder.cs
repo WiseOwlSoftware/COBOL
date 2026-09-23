@@ -140,7 +140,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
             else if (ctx.Refs.Resolve(dref) is not { } place)
-                return new BoundUnsupported($"CALL target '{dref.GetText()}'");
+                return new BoundUnsupported($"CALL target '{DataBinder.WrittenText(dref)}'");
             else
             {
                 dynamicName = new BoundFieldOperand(place);
@@ -154,7 +154,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                          is { } tCls and not (CobolClass.Alphanumeric or CobolClass.National))
                 {
                     ctx.Edition.Error(DiagnosticCatalog.CallTargetCategory,
-                        $"CALL target '{dref.GetText()}' is of class {tCls.ToString().ToLowerInvariant()}; ISO "
+                        $"CALL target '{DataBinder.WrittenText(dref)}' is of class {tCls.ToString().ToLowerInvariant()}; ISO "
                         + "§14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
                     return new BoundNop();
                 }
@@ -809,7 +809,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         is { } cCls and not (CobolClass.Alphanumeric or CobolClass.National))
                     {
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
-                            $"CANCEL target '{dref.GetText()}' is of class {cCls.ToString().ToLowerInvariant()}; "
+                            $"CANCEL target '{DataBinder.WrittenText(dref)}' is of class {cCls.ToString().ToLowerInvariant()}; "
                             + "ISO §14.9.5.3 SR1 admits an alphanumeric or national data item");
                         continue;
                     }
@@ -844,7 +844,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§14.9.18 GR2
             // — the activation result; the grammar already 2002-gates the phrase).
             if (ctx.Refs.Resolve(dref) is not { } rp)
-                return new BoundUnsupported($"GOBACK RETURNING '{dref.GetText()}'");
+                return new BoundUnsupported($"GOBACK RETURNING '{DataBinder.WrittenText(dref)}'");
             source = rp;
         }
         // ⛔ The RETURNING move is BOUND here (kb/Work PB880) — into the program's procedure-division RETURNING
@@ -1006,7 +1006,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         if (ctx.Data.ConstantOf(dref) is not { } k || k.Category is PicCategory.Numeric) return;
         ctx.Edition.Error(DiagnosticCatalog.CallByValueLiteralKind,
-            $"CALL … USING {dref.GetText()} with a {(mode is CobolPassMode.Value ? "BY VALUE" : "BY CONTENT")} "
+            $"CALL … USING {DataBinder.WrittenText(dref)} with a {(mode is CobolPassMode.Value ? "BY VALUE" : "BY CONTENT")} "
             + $"formal parameter: the constant-name substitutes the {k.Category.ToString().ToLowerInvariant()} "
             + $"literal {k.RawText} (ISO §13.10.4 GR1/GR2), and §14.9.4.3 SR23 requires literal-2 to be a numeric "
             + "literal when the corresponding formal parameter is specified with the BY VALUE phrase");

@@ -147,9 +147,13 @@ public sealed partial class DataBinder
                     + (factory && only ? "the FACTORY OF and ONLY phrases" : factory ? "the FACTORY OF phrase" : "the ONLY phrase")
                     + " — those phrases belong to the object-class-name-1 alternative of the general format; the "
                     + "interface-name-1 alternative carries neither (ISO §13.18.60.2; §13.18.60.4 GR22 c))");
-            return ObjectRefDescriptor.Interface(name);
+            return ObjectRefDescriptor.Interface(resolved.Interface!.Name);
         }
-        return ObjectRefDescriptor.ObjectClass(name, factory, only);
+        // ⛔ The descriptor carries the RESOLVED definition's name, not the word written: a REPOSITORY specifier's
+        // `AS literal-1` makes the local word (BOXY) name the class whose externalized name is the literal
+        // (§12.3.8.4 GR2, kb/Work PB974), and every downstream reader of the descriptor looks the class up by
+        // this name in the group's table.
+        return ObjectRefDescriptor.ObjectClass(resolved.Class!.Name, factory, only);
     }
 
     /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
@@ -352,7 +356,7 @@ public sealed partial class DataBinder
             {
                 dref = vb.dataReference();
                 Edition.Error(DiagnosticCatalog.ByValueFormalCarrier,
-                    $"{where}: the BY VALUE phrase on method formal parameter '{dref.GetText()}' is recognized "
+                    $"{where}: the BY VALUE phrase on method formal parameter '{DataBinder.WrittenText(dref)}' is recognized "
                     + "(ISO §14.2.2 SR2) but a method's value-copy formal is not yet implemented on the INVOKE "
                     + "channel");
             }

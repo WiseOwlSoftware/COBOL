@@ -2020,14 +2020,14 @@ public sealed partial class DataBinder
         {
             // A report-name qualifier naming a DIFFERENT report's counter is legal (§8.4.3.15 SR2) — staged.
             if (dref.cobolWord() is { } q && !q.GetText().Equals(model.Name, StringComparison.OrdinalIgnoreCase))
-                Edition.Error(DiagnosticCatalog.ReportSourceOtherReportCounter, $"RD '{model.Name}': SOURCE {dref.GetText()} — a counter of "
+                Edition.Error(DiagnosticCatalog.ReportSourceOtherReportCounter, $"RD '{model.Name}': SOURCE {DataBinder.WrittenText(dref)} — a counter of "
                     + "another report (ISO §8.4.3.15.3 SR2) is not yet implemented");
             return new FieldCounterSource(dref.PAGE_COUNTER() is not null);
         }
         foreach (var sfx in dref.dataReferenceSuffix())
             if (sfx.subscriptPart() is not null || sfx.refModPart() is not null)
             {
-                Edition.Error(DiagnosticCatalog.ReportSourceSubscripted, $"RD '{model.Name}': SOURCE {dref.GetText()} — a subscripted or "
+                Edition.Error(DiagnosticCatalog.ReportSourceSubscripted, $"RD '{model.Name}': SOURCE {DataBinder.WrittenText(dref)} — a subscripted or "
                     + "reference-modified SOURCE operand (ISO §13.18.53) is not yet implemented");
                 return null;
             }
@@ -2637,15 +2637,15 @@ public sealed partial class DataBinder
         var (name, quals) = KeyReference(dref);
         var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0)
-            Edition.Error(code, $"{where} '{dref.GetText()}' is subscripted. A control operand may not be subject "
+            Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
                 + "to an OCCURS clause (ISO §13.18.16.3 SR3), and a subscript may be written only for an item that "
                 + "has one (§8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
         if (sfx.RefMods > 1)
-            Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{dref.GetText()}' carries {sfx.RefMods} reference "
+            Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{DataBinder.WrittenText(dref)}' carries {sfx.RefMods} reference "
                 + "modifications; a reference-modified item cannot itself be reference-modified (ISO §8.4.3.3.3 "
                 + "SR3). Compose the positions into one modifier instead.");
         else if (sfx.NonLiteral)
-            Edition.Error(code, $"{where} '{dref.GetText()}' is reference-modified with a leftmost-position or "
+            Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is reference-modified with a leftmost-position or "
                 + $"length that is not an integer literal. The operand may be reference-modified, but if it is, "
                 + $"leftmost-position and length shall be integer literals ({rule}) — the prior control has the "
                 + "same data description as the slice (§13.18.16.4 GR3), so its extent is fixed at compile time.");

@@ -248,7 +248,7 @@ One resolver — `ReferenceResolver.Resolve(DataReferenceContext) → Place` —
 ### 3.4 The two-phase resolver (the grammar forces it)
 
 The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscript/ref-mod content is a RAW
-`subToken+` stream (SUBSCRIPT lexer mode); `(I J)` (subscripts) and `(3:2)` (ref-mod) are syntactically identical —
+`subToken*` stream (SUBSCRIPT lexer mode); `(I J)` (subscripts) and `(3:2)` (ref-mod) are syntactically identical —
 **the presence of `SUB_COLON` decides.** So:
 
 - **Phase A (syntactic flatten):** walk suffixes into `{qualifiers[], subscriptGroups[][], refMod?}`. A `(...)` group

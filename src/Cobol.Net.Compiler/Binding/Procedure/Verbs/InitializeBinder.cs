@@ -233,7 +233,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeTargetClass,
-                $"INITIALIZE '{dref.GetText()}' — identifier-1 is of class index, the one class ISO "
+                $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is of class index, the one class ISO "
                 + "§14.9.20.3 SR1's list excludes (it admits a strongly-typed item and classes alphabetic, "
                 + "alphanumeric, boolean, message-tag, national, numeric, object and pointer); only SET, SEARCH, "
                 + "a relation condition and the argument positions of §13.18.60.3 SR10 may reference an index "
@@ -288,7 +288,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         };
         if (cursor is null)
         {
-            actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}' (unsupported place kind)"));
+            actions.Add(new InitializeErrorAction($"INITIALIZE target '{DataBinder.WrittenText(dref)}' (unsupported place kind)"));
             return;
         }
         ExpandInitialize(cursor, spec, actions, place.Item, SeedOccurrenceKey(place), identifier1: true);

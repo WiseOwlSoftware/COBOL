@@ -1091,7 +1091,7 @@ regression bisects to one step.
 ### 9.1 Goal
 Replace the lexer **SUBSCRIPT mode** (`CobolLexer.g4` — entered via `LPAREN` after a data-name token, emits the
 `SUB_*` token family, popped by `SUB_RPAREN`) and the **flat uninterpreted stream** it feeds
-(`subscriptOrRefMod : subToken+`, `CobolParserCore.g4`) — which the binder RE-PARSES by hand
+(`subscriptOrRefMod : subToken*`, `CobolParserCore.g4`) — which the binder RE-PARSES by hand
 (`ReferenceResolver.InterpretSubscripts` / `HasDepth0Colon` / `SplitSubscriptTokens` / `RenderSegment`, and the
 ~250-line recursive-descent arithmetic parser over `SUB_*` in `StatementBinder.Intrinsics.cs`) — with **real
 grammar parse nodes**: a subscript list, a ref-mod, and a FUNCTION argument list parsed as `arithmeticExpression`
@@ -1140,7 +1140,7 @@ This is the gating question; §9.5's staging depends on the answer.
 - **Option B — narrow the language: require commas.** The mode can be fully removed, but `X(I J)` / `MAX(A B)`
   become parse errors — a **spec violation** the NIST corpus + INV-1-strong would flag. Not recommended.
 - **Option C — interpret in-mode.** Keep the mode but give it real grammar rules (parse `SUB_*` structurally
-  instead of the flat `subToken+`), deleting only the C# re-parsers. Smaller, but leaves the mode.
+  instead of the flat `subToken*`), deleting only the C# re-parsers. Smaller, but leaves the mode.
 
 **Recommendation: Option A** — it honors the spec (hard-invariant 3) and still deletes the hand-rolled parsers,
 which is the substance of the owner's directive. Frame "fully remove" as "remove the uninterpreted flat-stream +

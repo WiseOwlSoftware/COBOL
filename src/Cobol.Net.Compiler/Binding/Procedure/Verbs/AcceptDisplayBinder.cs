@@ -47,7 +47,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // diagnostic (COBOLNET1637), not the §8.4.2.1 UNDEFINED report the demanding resolve would produce.
         if (ac.dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
-            ctx.Edition.Error("COBOLNET1637", $"ACCEPT receiver '{dref.GetText()}' is an index-name — an "
+            ctx.Edition.Error("COBOLNET1637", $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
                 + "index-name is not an identifier (ISO §8.4.3.1.2) and ACCEPT is not among the contexts that "
                 + "may reference one (§13.18.38.3 r7); SET a data item to it first (§14.9.39)");
             return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
@@ -216,7 +216,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         {
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
             if (ctx.Data.ScreenNames.Contains(name))
-                return $"'{dref.GetText()}' is declared in the SCREEN SECTION, so this is the screen format even "
+                return $"'{DataBinder.WrittenText(dref)}' is declared in the SCREEN SECTION, so this is the screen format even "
                      + "though it is spelled exactly like the device format";
         }
         return null;

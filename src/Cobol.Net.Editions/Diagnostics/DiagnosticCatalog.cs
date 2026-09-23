@@ -324,7 +324,8 @@ public static class DiagnosticCatalog
         "ISO §14.9.4.3 SR16 / §14.9.5.3 SR3 / §12.3.8.2 / §8.4.6.8");
     public static readonly DiagnosticDescriptor RepositoryProgramSpecifier = new(
         "COBOLNET1761", "repository-program-specifier", EditionSeverity.Error,
-        "The REPOSITORY program-specifier's own declaration rules (ISO §12.3.8.3, ALL SPECIFIERS). Rule 1: \"If "
+        "A REPOSITORY specifier's declaration rules (ISO §12.3.8.3, ALL SPECIFIERS) — asked of the class, interface, "
+        + "program, property and user-defined-function specifiers alike (kb/Work PB974). Rule 1: \"If "
         + "any object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1, "
         + "intrinsic-function-name-1 or property-name-1 is specified more than once in the REPOSITORY paragraph, "
         + "all the specifications for that name shall be identical.\" Rule 2: \"Literal-1, literal-2, literal-3, "
@@ -4683,6 +4684,7 @@ public static class DiagnosticCatalog
         + "— the capacity of the structure's PREFIXED length field (ISO §12.3.7.4 GR18: 65535 for SHORT PREFIXED, "
         + "32767 for SIGNED SHORT PREFIXED), bounded by the implementor maximum.",
         "ISO §13.18.19.3 SR2 / SR4");
+
     /// <summary>The all-or-nothing operand-class rule of STRING, UNSTRING and INSPECT (kb/Work PB980) — ONE
     /// diagnostic for one rule shape, reported through <c>AllOrNothingClass</c>. STRING's half used to report as
     /// COBOLNET1626 (it shares a numbered rule with STRING's usage sentence); UNSTRING's and INSPECT's were not
@@ -4698,6 +4700,15 @@ public static class DiagnosticCatalog
         + "class boolean and for class national. A figurative constant takes identifier-1's class and never mixes.",
         "ISO §14.9.43.3 SR1; §14.9.48.3 SR3; §14.9.22.3 SR4");
 
+    /// <summary>A data reference followed by EMPTY parentheses (kb/Work PB969). The grammar's subscript capture admits
+    /// the empty group because the keyword-omitted function-identifier's zero-argument list rides it.</summary>
+    public static readonly DiagnosticDescriptor EmptyParenthesesOnDataReference = new(
+        "COBOLNET2309", "empty-parentheses-on-data-reference", EditionSeverity.Error,
+        "A data reference is followed by parentheses with nothing inside them — WS-X() or WS-X( ). ISO §8.4.2.3.2 "
+        + "writes a subscript list as ( subscript … ), at least one subscript, and §8.4.3.3.2 a reference modifier as "
+        + "( leftmost-position : [ length ] ). Empty parentheses are the zero-argument form of a function-identifier "
+        + "(§8.4.3.2.2 brackets argument-1 inside them), which a data-name is not.",
+        "ISO §8.4.2.3.2; §8.4.3.3.2; §8.4.3.2.2");
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
