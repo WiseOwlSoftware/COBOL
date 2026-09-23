@@ -57,8 +57,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                         }
                         foreach (var v in f.Varyings)
                         {
-                            if (v.FromCtx is { } fc) v.From = host.Expr.BindIndexWindowExpr(fc);   // RW VARYING (kb/Work R29 — lenient window)
-                            if (v.ByCtx is { } bc) v.By = host.Expr.BindIndexWindowExpr(bc);
+                            // §13.18.64.2 writes FROM/BY as plain arithmetic-expression-1/-2, and the RW VARYING is
+                            // on NEITHER index clause's list (§13.18.38.3 r7 names only PERFORM's and SEARCH's
+                            // VARYING; §13.18.60.3 SR10 names no VARYING) — so both screens apply (kb/Work PB215).
+                            if (v.FromCtx is { } fc) v.From = host.Expr.BindExpr(fc);
+                            if (v.ByCtx is { } bc) v.By = host.Expr.BindExpr(bc);
                         }
                     }
                 }

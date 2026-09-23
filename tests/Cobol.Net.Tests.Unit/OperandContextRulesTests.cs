@@ -56,8 +56,9 @@ public sealed class OperandContextRulesTests
     /// is exactly as harmful as a missing row — and the two exempt contexts are exempt for a REASON that is
     /// citable: CALL … BY VALUE is governed by §14.9.4.3 SR22 and an intrinsic argument by the function's own
     /// §15.x argument rule, both NARROWER than §8.8.1.1, so quoting §8.8.1.1 at their programmer names a rule
-    /// that was not broken (the COBOLNET1628 lesson). ArithmeticIndexWindow is the r7 window, so the index-name
-    /// screen must NOT fire there — and CallByValue is likewise exempt because SR22 screens the operand itself.
+    /// that was not broken (the COBOLNET1628 lesson). ArithmeticIndexWindow and ArithmeticIndexNameWindow are
+    /// the r7 windows, so the index-name screen must NOT fire there — and CallByValue is likewise exempt because
+    /// SR22 screens the operand itself.
     /// </summary>
     /// <para>⛔ AXIS 3 IS NOT A CONSEQUENCE OF AXIS 1, and this row set is where that was measured. §13.18.60.3
     /// SR10 admits a class-INDEX DATA item "in a SEARCH or SET statement, a relation condition, an intrinsic
@@ -78,7 +79,11 @@ public sealed class OperandContextRulesTests
             ["Arithmetic"] = (true, true, false),
             ["FunctionArgument"] = (false, true, true),   // SR10: "an intrinsic function argument"
             ["CallByValue"] = (false, false, true),       // SR10: "the USING phrase of a CALL"
+            // SET / SEARCH / a relation condition: on r7's list AND SR10's.
             ["ArithmeticIndexWindow"] = (true, false, true),
+            // A subscript segment / PERFORM VARYING: on r7's list ("as a subscript; in the VARYING phrase of a
+            // PERFORM statement"), NOT on SR10's (kb/Work PB215).
+            ["ArithmeticIndexNameWindow"] = (true, false, false),
         };
 
     public static TheoryData<string> AllMembers()

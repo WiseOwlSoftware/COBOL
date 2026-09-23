@@ -429,7 +429,7 @@ PB169–PB172 burn-down cluster followed from that default, and the four defects
 decision was recorded in four different places: an enum member at ten sites, a call-site comment at two, a
 private category switch at three, and **nowhere at all** in `ReferenceResolver`'s token renderer.
 
-Every operand slot answers **two independent axes**, and both now live in `OperandContextRules.Rules()`
+Every operand slot answers **three independent axes**, and both now live in `OperandContextRules.Rules()`
 (`ExpressionBinder.cs`), a switch with no discard arm:
 
 | Axis | Question | Clause |
@@ -441,7 +441,8 @@ Every operand slot answers **two independent axes**, and both now live in `Opera
 | `OperandContext` | A | B | C | Why |
 |---|---|---|---|---|
 | `Arithmetic` | screen | screen | no | the plain arithmetic-expression position |
-| `ArithmeticIndexWindow` | screen | exempt | yes | r7 lists it (subscript · PERFORM/SEARCH VARYING · SET · relation operand) |
+| `ArithmeticIndexWindow` | screen | exempt | yes | BOTH lists name it (SET · SEARCH · relation operand) |
+| `ArithmeticIndexNameWindow` | screen | exempt | no | r7 lists it, SR10 does not (subscript segment · PERFORM VARYING FROM/BY) — PB215 |
 | `FunctionArgument` | exempt | screen | yes | the function's own §15.x argument rule governs (COBOLNET1627) |
 | `CallByValue` | exempt | exempt | yes | §14.9.4.3 SR22 governs, and screens the operand itself (COBOLNET1628) |
 
@@ -457,9 +458,10 @@ A **subscript** and **PERFORM VARYING** are on r7's list and not SR10's; an **in
 USING** phrase are on SR10's and not r7's. Deriving C from A ("class index is not class numeric") rejected
 `SET IN1 TO IDN1` in **eight NIST programs** — every one a SET statement SR10 names outright. A rule that
 enumerates CONTEXTS cannot be modelled as a property of the OPERAND
-(`feedback_model_the_rule_shape_not_one_case`). `ArithmeticIndexWindow` was built to name r7's list and so
-cannot express SR10's; the residual over-admission that leaves (PERFORM/RW VARYING and a compound subscript
-segment) is registered as **PB215**, not papered over.
+(`feedback_model_the_rule_shape_not_one_case`). The two lists are therefore TWO ROWS (kb/Work PB215): the
+contexts on both lists (`ArithmeticIndexWindow`) and the contexts on r7's alone (`ArithmeticIndexNameWindow`).
+The Report Writer's VARYING (§13.18.64.2, plain `arithmetic-expression-1/-2`) is on NEITHER list and needs no
+member of its own — the row it would declare is `Arithmetic`'s, so it binds through `BindExpr`.
 
 **The funnel's entry points, classified.** A slot is in exactly one row; a new statement operand belongs in one
 before it is written.
@@ -474,7 +476,9 @@ to offer, and `dialect_two_axes` constrains the leniencies this compiler impleme
 | Entry | Rule that governs | Where | r7 lane |
 |---|---|---|---|
 | ADD/SUBTRACT/MULTIPLY/DIVIDE senders · COMPUTE RHS · CONTINUE AFTER · RETRY · ALLOCATE · START WITH LENGTH · boolean-shift count · CALL BY CONTENT/REFERENCE arithmetic arg | §8.8.1.1 — genuinely `arithmetic-expression-1` | `BindExpr` | arithmetic: warn+coerce |
-| SET TO / UP BY / CAPACITY / SIZE · pointer SET UP BY · PERFORM VARYING FROM/BY · RW VARYING · D18 **subscript** segment · compound relation / EVALUATE operand | §8.8.1.1 + r7 window | `BindIndexWindowExpr` | exempt (r7 lists them) — ⚠ except RW VARYING, which r7 does NOT list; see PB215 |
+| SET TO / UP BY / CAPACITY / SIZE · pointer SET UP BY · compound relation / EVALUATE operand | §8.8.1.1 + r7 window + SR10 | `BindIndexWindowExpr` | exempt (r7 lists them) |
+| PERFORM VARYING FROM/BY · D18 **subscript** segment | §8.8.1.1 + r7 window; SR10 does NOT list them, so an index **data item** takes axis A (PB215) | `BindIndexNameWindowOperandExpr` / `BindIndexNameWindowExpr` | exempt (r7 lists them) |
+| RW VARYING FROM/BY | §13.18.64.2 → §8.8.1.1; on neither index list (PB215) | `BindExpr` | arithmetic: warn+coerce |
 | D18 **ref-mod** segment | §8.4.3.3.3 SR4 → §8.8.1.1; **r7 does NOT list a ref-mod position** | `BindExpr` (PB170/PB172) | arithmetic: warn+coerce |
 | simple/compound subscript name · ref-mod bound name (the token renderer's fast path) | §8.4.2.3.2 / §8.4.3.3.3 SR4 → §8.8.1.1 | axis A: `ReferenceResolver.ScreenPositionOperandClass`; axis B: `ResolveSubscriptName`'s index arm → `IndexNameInPositionError` (a SEPARATE site — the table used to leave this row's axis B undeclared) | arithmetic: warn+coerce (PB219) |
 | sign-condition operand | §8.8.4.7.3 SR1 → §8.8.1.1 | `BindOperandExpr` — reached by a **wrapper WALK**, not `BindExprCore` (PB171) | arithmetic: warn+coerce |

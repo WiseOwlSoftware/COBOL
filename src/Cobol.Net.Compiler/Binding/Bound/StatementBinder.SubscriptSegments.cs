@@ -102,7 +102,7 @@ public sealed partial class StatementBinder
         // SR4 makes both ref-mod bounds plain arithmetic expressions, so they bind under Arithmetic, where the
         // r7 screen fires.
         var value = position == SegmentPosition.Subscript
-            ? Expr.BindIndexWindowExpr(frag.arithmeticExpression())   // a SUBSCRIPT is an r7 window (kb/Work R29)
+            ? Expr.BindIndexNameWindowExpr(frag.arithmeticExpression())   // a SUBSCRIPT: r7 yes, SR10 no (kb/Work R29, PB215)
             : Expr.BindExpr(frag.arithmeticExpression());             // a ref-mod bound is NOT (§8.4.3.3.3 SR4)
         if (value is BoundExprError) return null;   // already diagnosed by the expression binder
 

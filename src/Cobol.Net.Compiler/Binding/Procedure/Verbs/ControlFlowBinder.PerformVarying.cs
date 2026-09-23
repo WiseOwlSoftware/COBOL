@@ -172,8 +172,9 @@ internal sealed partial class ControlFlowBinder
     {
         int mark = host.Udf.PendingCount;
         // §14.9.28.3 SR3 is the rule that closes THIS operand list, so a non-numeric literal is sent to it
-        // rather than to §8.8.1.1 alone. PERFORM VARYING is a §13.18.38.3 r7 index-name window (kb/Work R29).
-        BoundExpr e = host.Expr.BindIndexWindowOperandExpr(op,
+        // rather than to §8.8.1.1 alone. PERFORM VARYING is a §13.18.38.3 r7 index-name window (kb/Work R29) but
+        // not on §13.18.60.3 SR10's index-data-item list, and §14.9.28.3 SR2 wants a numeric item (kb/Work PB215).
+        BoundExpr e = host.Expr.BindIndexNameWindowOperandExpr(op,
             "\"Each literal shall be numeric\" (ISO §14.9.28.3 SR3)");
         // GR12's window, applied before anything else can read the operand: an operand whose setting/augmenting
         // operation repeats carries its function activations to that operation (kb/Work PB437).

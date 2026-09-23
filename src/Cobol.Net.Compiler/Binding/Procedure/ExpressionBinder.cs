@@ -64,13 +64,19 @@ internal enum OperandContext
     /// </remarks>
     CallByValue,
 
-    /// <summary>An arithmetic-expression position INSIDE one of §13.18.38.3 r7's index-name windows — a
-    /// subscript, the VARYING phrase of PERFORM or SEARCH, the SET statement, or a relation-condition operand
-    /// (kb/Work R29). The §8.8.1.1 class screening is identical to <see cref="Arithmetic"/>; ONLY the
-    /// index-name interception differs: r7 admits an index-name here, so <c>T(IX + 1)</c>,
-    /// <c>SET IX UP BY N</c>, <c>PERFORM … VARYING V FROM IX</c> and <c>IF IX = 2</c> stay legal while
-    /// <c>COMPUTE N = IX + 1</c> does not.</summary>
+    /// <summary>An arithmetic-expression position that BOTH index clauses list — the SET statement and a
+    /// relation-condition operand (and the SEARCH statement): §13.18.38.3 r7 admits an INDEX-NAME here and
+    /// §13.18.60.3 SR10 admits an INDEX DATA ITEM here (kb/Work R29, PB215). The §8.8.1.1 class screening is
+    /// otherwise identical to <see cref="Arithmetic"/>, so <c>SET IX UP BY N</c>, <c>SET IX TO IDN</c> and
+    /// <c>IF IX = 2</c> stay legal while <c>COMPUTE N = IX + 1</c> does not.</summary>
     ArithmeticIndexWindow,
+
+    /// <summary>An arithmetic-expression position that §13.18.38.3 r7 lists and §13.18.60.3 SR10 does NOT — a
+    /// SUBSCRIPT and the VARYING phrase of a PERFORM statement (kb/Work PB215). An index-NAME is a legal operand
+    /// here (<c>T(IX + 1)</c>, <c>PERFORM … VARYING V FROM IX</c>); an index DATA ITEM is not, because SR10's
+    /// closed list has no subscript and no PERFORM entry — so <c>E(IDX / 1)</c> and
+    /// <c>PERFORM VARYING V FROM IDX</c> take §8.8.1.1's class screen like any arithmetic operand.</summary>
+    ArithmeticIndexNameWindow,
 }
 
 /// <summary>⛔ THE TWO AXES EVERY OPERAND SLOT DECIDES, AS A TABLE (kb/Work PB169–PB172 — the burn-down cluster's
@@ -87,8 +93,9 @@ internal enum OperandContext
 ///         rule that was not broken.</item>
 ///   <item><b>IndexNameScreen</b> — is the §13.18.38.3 r7 index-name screen applied HERE? r7's closed context
 ///         list is "as a subscript · PERFORM VARYING · SEARCH VARYING · SET · an operand in a relation
-///         condition", which is exactly <see cref="OperandContext.ArithmeticIndexWindow"/>; CALL BY VALUE is
-///         exempt because SR22 screens the operand itself.</item>
+///         condition", which is exactly <see cref="OperandContext.ArithmeticIndexWindow"/> plus
+///         <see cref="OperandContext.ArithmeticIndexNameWindow"/>; CALL BY VALUE is exempt because SR22 screens
+///         the operand itself.</item>
 ///   <item><b>IndexDataItemAdmitted</b> — does §13.18.60.3 SR10 admit a class-INDEX <i>data item</i> here?
 ///         ⛔ THIS IS A THIRD AXIS, NOT A CONSEQUENCE OF THE FIRST, and treating it as one was a measured
 ///         over-reach: SR10's list is "a SEARCH or SET statement, a relation condition, an intrinsic function
@@ -117,21 +124,20 @@ internal static class OperandContextRules
         OperandContext.Arithmetic            => (true,      true,            false),
         OperandContext.FunctionArgument      => (false,     true,            true),   // SR10: "an intrinsic function argument"
         OperandContext.CallByValue           => (false,     false,           true),   // SR10: "the USING phrase of a CALL"
-        // ⚠ SR10 names three of this context's sites outright — a SET statement (every SET format, including
-        // CAPACITY / SIZE / pointer UP BY), a SEARCH statement, and a relation condition — so class INDEX is
-        // ADMITTED here. It does NOT name PERFORM VARYING, the Report Writer's VARYING, or a subscript, which
-        // this one member also serves; those stay admitted, which is the PRE-EXISTING behaviour and is
-        // registered as its own defect rather than closed by a member split guessed at under time pressure
-        // (kb/Work PB215). The SIMPLE subscript and ref-mod bound do not come through here at all — they are
-        // screened in ReferenceResolver, where SR10's silence on subscripts is enforced correctly; the residual
-        // subscript shape is the COMPOUND segment that actually reaches the D18 materializer, i.e. `E(IDX / 1)`
-        // or `E(FUNCTION INTEGER(IDX))` — NOT `E(IDX + 1)`, which stays on the renderer's fast path and IS
-        // rejected (measured; three of the five hand-off exits are order-dependent, so a name reached before the
-        // exit is screened anyway). ⚠ AXIS B HAS ITS OWN RESIDUAL ON THIS ROW: `IndexNameScreen = false` exempts
-        // the index-NAME screen at the Report Writer's VARYING, which is on NEITHER clause's list — r7 names
-        // only PERFORM's and SEARCH's VARYING — and `VARYING RV-A FROM <index-name>` compiles clean under strict
-        // (measured 2026-08-31; PB215 carries it).
+        // ⛔ THE TWO INDEX LISTS ARE DIFFERENT, SO THEY ARE TWO ROWS (kb/Work PB215). r7 (index-NAME) lists "as
+        // a subscript; in the VARYING phrase of a PERFORM statement; in the VARYING phrase of a SEARCH
+        // statement; in the SET statement; as an operand in a relation condition". SR10 (index DATA ITEM)
+        // lists "a SEARCH or SET statement, a relation condition, an intrinsic function argument, …". One
+        // member used to serve both, so it could not say no to an index data item in a subscript or PERFORM
+        // VARYING, and every such site answered SR10's question with r7's list.
+        //   · SET (every format, incl. CAPACITY / SIZE / pointer UP BY), SEARCH, a relation condition: on BOTH.
         OperandContext.ArithmeticIndexWindow => (true,      false,           true),
+        //   · a subscript's compound segment, PERFORM VARYING FROM/BY: on r7's list only. (The SIMPLE
+        //     subscript never comes through here — ReferenceResolver screens it by the same two rules.)
+        OperandContext.ArithmeticIndexNameWindow => (true,  false,           false),
+        //   · the Report Writer's VARYING FROM/BY (§13.18.64.2: plain arithmetic-expression-1/-2) is on
+        //     NEITHER list, so it binds under Arithmetic — both screens on. It needs no member of its own: the
+        //     row it would declare IS Arithmetic's.
         _ => throw new ArgumentOutOfRangeException(nameof(c), c,
             "a new OperandContext must declare ALL THREE axes in OperandContextRules.Rules() — whether ISO "
             + "§8.8.1.1's class screen governs the position, whether §13.18.38.3 r7's index-name screen applies, "
@@ -429,7 +435,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The §13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
     /// in a subscript, PERFORM/SEARCH VARYING, SET, and a relation condition — those positions bind under
-    /// <see cref="OperandContext.ArithmeticIndexWindow"/> and pass through. A true arithmetic position
+    /// <see cref="OperandContext.ArithmeticIndexWindow"/> or <see cref="OperandContext.ArithmeticIndexNameWindow"/>
+    /// (the two rows differ only on §13.18.60.3 SR10's index DATA item, kb/Work PB215) and pass through. The
+    /// report writer's VARYING is NOT r7's "VARYING phrase of a PERFORM statement" and takes this screen. A true arithmetic position
     /// (COMPUTE and the arithmetic verbs, RETRY, CONTINUE AFTER, a reference-modification bound per
     /// §8.4.3.3.3 SR4 …) or a compound function-argument expression is NOT in the list and §8.8.1.1 does not
     /// name index-names among arithmetic operands — the classic vendor extension (GnuCOBOL computes the
@@ -487,9 +495,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // interception (handled before this point), exactly as the enum doc states — R29 flipped eleven call
         // sites (SET, PERFORM/SEARCH VARYING, compound subscripts, compound relation/EVALUATE operands) to the
         // window context and this guard was never widened, so `SET IX TO <PIC X item>` silently digit-decoded
-        // under STRICT while `ADD` drew 0844. The two contexts are now the two rows of
-        // <see cref="OperandContextRules.Rules"/> that declare NumericClassScreen, so the pair cannot drift apart
-        // again (kb/Work PB172).
+        // under STRICT while `ADD` drew 0844. The arithmetic contexts are now the rows of
+        // <see cref="OperandContextRules.Rules"/> that declare NumericClassScreen, so they cannot drift apart
+        // again (kb/Work PB172; the index window became two rows with kb/Work PB215).
         // ⛔ THE VERDICT IS THE ONE CLASSIFIER'S, not this method's (kb/Work PB170): before, a private category
         // switch decided admissibility and had no index-data-item arm, so `COMPUTE N = IDX + 1` with `01 IDX
         // USAGE INDEX` compiled clean under STRICT and computed the occurrence number — while the receiving-side
@@ -498,9 +506,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         var rules = context.Rules();
         // ⛔ SR10 IS ASKED BEFORE §8.8.1.1, because it is a DIFFERENT rule about a DIFFERENT thing: §8.8.1.1
         // says what an arithmetic expression may be built from, §13.18.60.3 SR10 enumerates the CONTEXTS an
-        // index data item may be referenced in — and three of this window's sites (SET, SEARCH, a relation
-        // condition) are on that list by name. Deriving SR10 from "class index is not class numeric" rejected
-        // `SET IN1 TO IDN1` in eight NIST programs; the rule enumerates contexts, so the context has to answer.
+        // index data item may be referenced in — and SET, SEARCH and a relation condition are on that list by
+        // name. Deriving SR10 from "class index is not class numeric" rejected `SET IN1 TO IDN1` in eight NIST
+        // programs; the rule enumerates contexts, so the context has to answer — and where it answers no (a
+        // subscript, PERFORM VARYING: kb/Work PB215) the operand falls through to §8.8.1.1's class screen.
         bool indexItem = p.DenotedItem is not null && p.Item.Pic is { Usage: Usage.Index };
         if (indexItem && rules.IndexDataItemAdmitted) return new BoundNumRef(p);
         if (rules.NumericClassScreen
@@ -844,10 +853,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="BindByValueExpr"/>.</para></summary>
     public BoundExpr BindExpr(IParseTree node) => BindExprCore(node, OperandContext.Arithmetic);
 
-    /// <summary>Bind an arithmetic expression sitting INSIDE one of §13.18.38.3 r7's index-name windows —
-    /// subscripts, SET amounts/values, PERFORM/SEARCH (and RW) VARYING operands, relation/EVALUATE operands —
-    /// where an index-name is a legal operand (kb/Work R29). Identical to <see cref="BindExpr"/> otherwise.</summary>
+    /// <summary>Bind an arithmetic expression at a position BOTH index clauses list — SET amounts/values and
+    /// relation/EVALUATE operands — where an index-name (§13.18.38.3 r7) and an index data item (§13.18.60.3
+    /// SR10) are legal operands (kb/Work R29, PB215). Identical to <see cref="BindExpr"/> otherwise.</summary>
     public BoundExpr BindIndexWindowExpr(IParseTree node) => BindExprCore(node, OperandContext.ArithmeticIndexWindow);
+
+    /// <summary>Bind an arithmetic expression at a position §13.18.38.3 r7 lists and §13.18.60.3 SR10 does not —
+    /// a subscript segment: an index-NAME is legal, an index DATA ITEM is not (kb/Work PB215).</summary>
+    public BoundExpr BindIndexNameWindowExpr(IParseTree node) =>
+        BindExprCore(node, OperandContext.ArithmeticIndexNameWindow);
 
     /// <summary>Bind a <c>CALL … USING BY VALUE</c> operand. Identical to <see cref="BindExpr"/> except that the
     /// §8.8.1.1 numeric-operand screen does not apply: the operand's legality is ISO §14.9.4.3 SR22's business
@@ -1117,16 +1131,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     public BoundExpr BindOperandExpr(IParseTree node, string? positionRule = null) =>
         BindOperandExprCore(node, OperandContext.Arithmetic, positionRule);
 
-    /// <summary>The INDEX-WINDOW twin of <see cref="BindOperandExpr"/>: the same breadth-first wrapper walk, run
-    /// under <see cref="OperandContext.ArithmeticIndexWindow"/> so an index-name is a legal operand (ISO
-    /// §13.18.38.3 r7 — subscripts, SET amounts, PERFORM/SEARCH VARYING operands; kb/Work R29). It exists because
-    /// PERFORM VARYING's FROM/BY slots are a <c>valueOperand</c> WRAPPER (§14.9.28.2's brace group, kb/Work
-    /// PB432): <see cref="BindIndexWindowExpr"/> would reach <see cref="BindOperandExprCore"/> through
+    /// <summary>The INDEX-NAME-WINDOW twin of <see cref="BindOperandExpr"/>: the same breadth-first wrapper walk,
+    /// run under <see cref="OperandContext.ArithmeticIndexNameWindow"/> so an index-name is a legal operand (ISO
+    /// §13.18.38.3 r7 — "in the VARYING phrase of a PERFORM statement"; kb/Work R29) and an index DATA ITEM is
+    /// not (§13.18.60.3 SR10 has no PERFORM entry; kb/Work PB215). It exists because PERFORM VARYING's FROM/BY
+    /// slots are a <c>valueOperand</c> WRAPPER (§14.9.28.2's brace group, kb/Work PB432):
+    /// <see cref="BindIndexNameWindowExpr"/> would reach <see cref="BindOperandExprCore"/> through
     /// <see cref="BindExprCore"/>'s default arm but could not thread <paramref name="positionRule"/>, so a
     /// non-numeric literal there cited §8.8.1.1 alone instead of the rule that closes THAT operand list.</summary>
     /// <param name="positionRule">See <see cref="NonNumericInNumericContext"/>.</param>
-    public BoundExpr BindIndexWindowOperandExpr(IParseTree node, string? positionRule = null) =>
-        BindOperandExprCore(node, OperandContext.ArithmeticIndexWindow, positionRule);
+    public BoundExpr BindIndexNameWindowOperandExpr(IParseTree node, string? positionRule = null) =>
+        BindOperandExprCore(node, OperandContext.ArithmeticIndexNameWindow, positionRule);
 
     /// <inheritdoc cref="BindOperandExpr"/>
     private BoundExpr BindOperandExprCore(IParseTree node, OperandContext context, string? positionRule = null)
