@@ -320,13 +320,16 @@ internal sealed class ReportWriterEmitter(
                 // presentation, BEFORE any LINE processing (§13.18.41.4 GR2); unconditional lines keep the
                 // three-argument construction (the characterization-pinned text). A line that seeds or steps
                 // from a §13.18.38.4 GR12c/GR12d step anchor adds the anchor triple, which then forces the
-                // PRESENT argument to be written out even when it is null.
+                // PRESENT argument to be written out even when it is null. A first line whose LINE clause carries
+                // the NEXT PAGE phrase (§13.18.35.2 Format 1; kb/Work PB1001) adds it as a NAMED argument, so every
+                // phrase-less line keeps its text.
                 string lines = group.Lines.Count == 0
                     ? "System.Array.Empty<ReportGroupLine>()"
                     : "new[] { " + string.Join(", ", group.Lines.Select((l, li) =>
                         $"new ReportGroupLine(ReportLineKind.{l.Kind}, {l.Value}, __RPT_C_{r.CsIndex}_{gi}_{li}"
                         + (LinePresent(l) is { } lp ? $", () => {lp}" : l.Anchor > 0 ? ", null" : "")
-                        + (l.Anchor > 0 ? $", {l.Anchor}, {l.RelativeBase}, {l.TrialInterval}" : "") + ")")) + " }";
+                        + (l.Anchor > 0 ? $", {l.Anchor}, {l.RelativeBase}, {l.TrialInterval}" : "")
+                        + (l.NextPage ? ", nextPage: true" : "") + ")")) + " }";
                 w.Line($"var __rg{r.CsIndex}_{gi} = new ReportGroup(ReportGroupKind.{group.Kind}, "
                     + $"{CsLiteral(group.Name ?? "")}, {group.ControlLevel}, {lines});");
                 // The NEXT GROUP clause (§13.18.37; kb/Work PB957) — the bound runtime record, written verbatim; the

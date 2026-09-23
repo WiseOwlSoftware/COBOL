@@ -49,8 +49,9 @@ public enum ReportGroupKind { ReportHeading, PageHeading, ControlHeading, Detail
 
 /// <summary>A report line's LINE clause form (ISO §13.18.35): absolute (<c>LINE n</c>), relative
 /// (<c>LINE PLUS n</c>), or — for a repetition of a VERTICALLY repeating entry whose line is relative — the
-/// STEP placement of §13.18.38.4 GR12c/GR12d. The <c>NEXT PAGE</c> phrases are rejected loud at bind time
-/// (legal, staged — COBOLNET_REPORT_WRITER_DESIGN §6), so the engine never sees them.</summary>
+/// STEP placement of §13.18.38.4 GR12c/GR12d. The <c>NEXT PAGE</c> phrase is not a kind: it is
+/// <see cref="ReportGroupLine.NextPage"/> on an absolute (<c>integer-1 ON NEXT PAGE</c>) or relative (the bare
+/// <c>ON NEXT PAGE</c> operand) first line.</summary>
 public enum ReportLineKind
 {
     /// <summary>LINE NUMBER integer-1 — the line stands at that page line number (ISO §13.18.35.4 GR5a/GR7a).</summary>
@@ -72,8 +73,15 @@ public enum ReportLineKind
 /// LINE-COUNTER</c> print the line's OWN number and every SOURCE an implicit MOVE executed "when the line is
 /// printed" (§13.18.53.4 GR1/GR3).</summary>
 public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string> compose, Func<bool>? present = null,
-    int anchor = 0, int relativeBase = 0, int trialInterval = 0)
+    int anchor = 0, int relativeBase = 0, int trialInterval = 0, bool nextPage = false)
 {
+    /// <summary>The line's LINE clause carries the NEXT PAGE phrase (ISO §13.18.35.2 Format 1). The binder sets it
+    /// only on a group's first report line (§13.18.35.3 SR7), and the engine reads it only on the group's first
+    /// PRESENT line — "Which LINE clause is taken to be the first may depend on the current values of conditions in
+    /// PRESENT WHEN clauses" (§13.18.35.4 GR4/GR5): a body group then declares its page fit unsuccessful without a
+    /// test (GR4a), and a report footing begins on a new page (GR5a).</summary>
+    public bool NextPage { get; } = nextPage;
+
     /// <summary>Absolute, relative, or a repeating entry's STEP placement (ISO §13.18.35 / §13.18.38.4 GR12).</summary>
     public ReportLineKind Kind { get; } = kind;
 
@@ -550,8 +558,9 @@ public sealed class CobolReport(
                 for (int i = 0; i < _controls.Count; i++) _controls[i].Set(current[i]);   // GR3d
             }
             // §13.18.57.4 GR6f: the page footing prints as the last report group on EACH page — including the
-            // final page (exception: a last page occupied only by an RF on a page by itself, which requires the
-            // staged LINE NEXT PAGE form). When an RF follows, the PF is "immediately followed by" it.
+            // final page (exception GR6f 2: a last page occupied only by an RF on a page by itself — the RF's LINE
+            // NEXT PAGE form, whose own page feed PresentHeadingFooting takes after this PF). When an RF not on a
+            // page by itself follows, the PF is "immediately followed by" it.
             if (_pageFooting is not null) PresentPageFooting();
             if (_reportFooting is { } rf) PresentHeadingFooting(rf);   // GR3c
         }
@@ -635,7 +644,9 @@ public sealed class CobolReport(
             // LAST DETAIL 25 and one PLUS 1 line: 25+1 > 25), and GR5b3 then IGNORES the first line's relative
             // value anyway (first body group on the new page lands at FIRST DETAIL). Encoded as Σ over all.
             bool fit;
-            if (lines[first].Kind == ReportLineKind.Absolute)
+            if (lines[first].NextPage)
+                fit = false;   // GR4a — "no page fit test takes place and the page fit is declared unsuccessful"
+            else if (lines[first].Kind == ReportLineKind.Absolute)
                 fit = lines[first].Value > LineCounter;
             else
             {
@@ -683,8 +694,13 @@ public sealed class CobolReport(
     /// <item>a first LINE clause that is absolute: "the save location is moved to LINE-COUNTER and the page fit
     /// test is re-applied before the first line of the body group is printed" (GR4a 1; the returned null lets
     /// the ordinary absolute placement stand);</item>
-    /// <item>(GR4a 2 is the absolute LINE clause WITH the NEXT PAGE phrase, which the binder stages loud —
-    /// COBOLNET0899 report-line-next-page — so no group reaching the engine begins with one);</item>
+    /// <item>a first LINE clause that is absolute WITH the NEXT PAGE phrase: "a page advance takes place, the save
+    /// location is moved to LINE-COUNTER and a new page fit test and subsequent processing take place as for an
+    /// identical report group without the NEXT PAGE phrase" (GR4a 2). ⚠ The advance GR4a 2 names is the one the
+    /// save location already forces — not a second one: where §13.18.37.4 means a second advance it says so
+    /// ("a second page advance takes place, resulting in a page devoid of body groups", GR4a 3), and a second
+    /// one here would leave a page with no report group on it at all. So GR4a 2 IS GR4a 1, and the phrase has
+    /// no further effect on this path (docs/CONFORMANCE.md, the LINE NEXT PAGE block);</item>
     /// <item>only relative LINE clauses: "its first line will be printed on the next line following the line
     /// number in the save location, unless this will result in some line of this body group being printed
     /// beyond its lower permitted limit. In the latter case, a second page advance takes place, resulting in a
@@ -700,7 +716,7 @@ public sealed class CobolReport(
         AdvancePage();
         if (lines[first].Kind == ReportLineKind.Absolute)
         {
-            LineCounter = saved;                                             // GR4a 1
+            LineCounter = saved;                                             // GR4a 1 (and GR4a 2 — see above)
             if (lines[first].Value <= LineCounter) AdvancePage();            // the re-applied §13.18.35.4 GR4b test
             return null;
         }
@@ -926,12 +942,22 @@ public sealed class CobolReport(
     /// <summary>Present the report heading or report footing in flow (placement ISO §13.18.35.4 GR5b1 for RH —
     /// relative → HEADING + integer-2 − 1; GR5b5 for RF — relative → FOOTING + integer-2 unless a page footing
     /// printed on the same page, then LINE-COUNTER + integer-2; absolute → integer-1 for both). "First" = the
-    /// first PRESENT line (§13.18.41.4 GR2/GR5); an all-absent group prints nothing (GR2b).</summary>
+    /// first PRESENT line (§13.18.41.4 GR2/GR5); an all-absent group prints nothing (GR2b).
+    /// <para>A report footing whose first present line carries the NEXT PAGE phrase is ON A PAGE BY ITSELF:
+    /// "the first line is printed beginning on a new page" (§13.18.35.4 GR5a). The page feed is the bare
+    /// §14.9.16.4 GR6 b)–e) one — no page footing after it (§13.18.57.4 GR6f 2, "on the last page, if it is
+    /// occupied only by a report footing group") and no page heading before the footing (GR6b, "except when the
+    /// report group about to be printed is a report footing on a page by itself"). Its first line is integer-1
+    /// (GR5a); the bare <c>ON NEXT PAGE</c> form, which writes no integer, starts at the upper limit of a report
+    /// footing on a page by itself, the HEADING integer (§13.18.57.4 GR7f — ⚠ a determination,
+    /// docs/CONFORMANCE.md).</para></summary>
     private void PresentHeadingFooting(ReportGroup group)
     {
         if (RunBeforeReporting(group)) return;   // §14.9.49 GR8; §14.9.45 SUPPRESS ⇒ inhibit this instance (no sum reset in an RH/RF)
         var (present, first) = BeginPresentation(group.Lines);
         if (first < 0) return;
+        bool ownPage = _paged && group.Kind == ReportGroupKind.ReportFooting && group.Lines[first].NextPage;
+        if (ownPage) PageFeed();                                                                   // GR5a
         bool isFirst = true;
         for (int i = 0; i < group.Lines.Length; i++)
         {
@@ -939,6 +965,7 @@ public sealed class CobolReport(
             var l = group.Lines[i];
             long target = !isFirst ? SubsequentTarget(l)                                           // GR7
                 : l.Kind == ReportLineKind.Absolute ? l.Value
+                : ownPage ? _heading                                                               // §13.18.57.4 GR7f
                 : group.Kind == ReportGroupKind.ReportHeading ? _heading + RelativeValue(l) - 1    // GR5b1
                 : _pfOnThisPage ? LineCounter + RelativeValue(l)                                   // GR5b5
                 : _footing + RelativeValue(l);                                                     // GR5b5

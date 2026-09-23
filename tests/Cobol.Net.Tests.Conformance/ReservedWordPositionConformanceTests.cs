@@ -36,7 +36,7 @@ public sealed class ReservedWordPositionConformanceTests
         FD RPT
             REPORT IS R-1.
         REPORT SECTION.
-        RD R-1.
+        RD R-1 PAGE LIMIT 60.
         01 DET TYPE DETAIL.
             03 LINE 1.
                 05 COLUMN 27 PIC X(4) VALUE "MARK".

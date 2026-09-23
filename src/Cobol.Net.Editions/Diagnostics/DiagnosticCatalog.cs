@@ -744,7 +744,11 @@ public static class DiagnosticCatalog
         + "present, shall precede all relative operands, if present\"; c) \"The occurrences of integer-1, if "
         + "present, shall be in ascending numerical order\"; d) \"An OCCURS clause shall not also be present in "
         + "the same entry\". SR4 forbids a LINE clause in an entry subordinate to one that also contains a LINE "
-        + "clause.", "ISO §13.18.35.3 SR4/SR10");
+        + "clause. SR3: \"Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not "
+        + "divided into pages.\" SR5: \"If the report is not divided into pages, all its LINE clauses shall be "
+        + "relative.\" SR7: \"Within a given report group description, a NEXT PAGE phrase, if present, shall be "
+        + "specified only in the first LINE clause.\" SR8: \"The NEXT PAGE phrase may appear only in the description "
+        + "of a body group or a report footing.\"", "ISO §13.18.35.3 SR3/SR4/SR5/SR7/SR8/SR10");
 
     // ── COBOLNET2247 — the §13.15.3 CLAUSE-PRESENCE family of a report group description entry, one code for
     //    the family (the COBOLNET2021 / COBOLNET2199 bundling precedent); kb/Work PB853. ──
@@ -833,9 +837,13 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportCodeClause = new(
         NotImplemented, "report-code-clause", EditionSeverity.Error,
         "The CODE clause on a report description is not yet implemented.", "ISO §13.18.12", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ReportLineNextPage = new(
-        NotImplemented, "report-line-next-page", EditionSeverity.Error,
-        "LINE … NEXT PAGE is not yet implemented.", "ISO §13.18.35", RecognizedNotImplemented);
+    // ⛔ `ReportLineNextPage` (`report-line-next-page`) LIVED HERE AND IS GONE (kb/Work PB1001), and this comment
+    // stands where it did so it is not re-added. It refused the LINE clause's NEXT PAGE phrase (§13.18.35.2 Format
+    // 1 — `integer-1 ON NEXT PAGE` and the bare `ON NEXT PAGE` operand) at every edition, and orphaned the
+    // group's COLUMN entries into a second, cascading error. The phrase is now LIVE: a flag on the group's first
+    // report line (DataBinder.Reports RepeatedLine) that the engine reads as §13.18.35.4 GR4a (body group — the
+    // page fit is declared unsuccessful) and GR5a (report footing — it begins on a new page). Its syntax rules
+    // SR3/SR5/SR7/SR8 report through the LINE clause family code, COBOLNET2199 (ScreenReportLineClauses).
     // ⛔ `ReportNextGroupClause` (`report-next-group-clause`) LIVED HERE AND IS GONE (kb/Work PB957), and this
     // comment stands where it did so it is not re-added. It refused the NEXT GROUP clause (§13.18.37) by name at
     // every edition; the clause is now LIVE — bound by DataBinder.Reports BindNextGroupClauses and applied by the

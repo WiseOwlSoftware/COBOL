@@ -40,6 +40,16 @@ public sealed class ReportModel
 
     // The §13.18.39.4 GR2 page regions (GR3 defaults applied by the binder; meaningful only when Paged).
     public int PageLimit { get; set; }
+
+    /// <summary>⛔ THE ONE VERTICAL OPERAND LIMIT — "the page limit, or 9999 if the report is not divided into
+    /// pages". The standard writes that sentence for the LINE clause (§13.18.35.3 SR3) and again for the NEXT
+    /// GROUP clause (§13.18.37.3 SR1); both screens read it here, with <see cref="VerticalLimitWords"/> naming it
+    /// in their diagnostics.</summary>
+    public int VerticalLimit => Paged ? PageLimit : 9999;
+
+    /// <summary>What <see cref="VerticalLimit"/> is, in a diagnostic's words.</summary>
+    public string VerticalLimitWords => Paged ? $"the page limit {PageLimit}"
+        : "9999, the limit for a report that is not divided into pages";
     public int Heading { get; set; }
     public int FirstDetail { get; set; }
     public int LastControlHeading { get; set; }
@@ -169,8 +179,8 @@ public sealed class ReportGroupModel
     public CobolNet.Runtime.IO.ReportNextGroup? NextGroup { get; set; }
 }
 
-/// <summary>The LINE clause form of one report line (ISO §13.18.35; the NEXT PAGE phrases are staged loud) —
-/// plus the STEP placement a later occurrence of a VERTICALLY repeating entry takes (§13.18.38.4 GR12c/GR12d).
+/// <summary>The LINE clause form of one report line (ISO §13.18.35; the NEXT PAGE phrase is a flag on the line,
+/// <see cref="ReportLineModel.NextPage"/>, not a kind) — plus the STEP placement a later occurrence of a VERTICALLY repeating entry takes (§13.18.38.4 GR12c/GR12d).
 /// The names and the meanings are the runtime <c>ReportLineKind</c>'s; the model is what the emitter copies.</summary>
 public enum ReportLineKindModel { Absolute, Relative, Step }
 
@@ -198,6 +208,13 @@ public sealed class ReportLineModel(ReportLineKindModel kind, int value)
     /// occurrence, 0 otherwise — "the vertical interval between successive occurrences is added into the trial
     /// sum once for each occurrence beyond the first". Absolute and relative lines compute their own.</summary>
     public int TrialInterval { get; init; }
+
+    /// <summary>The line's LINE clause carries the NEXT PAGE phrase (ISO §13.18.35.2 Format 1 — <c>integer-1 ON
+    /// NEXT PAGE</c>, or the bare <c>ON NEXT PAGE</c> operand). Set on the FIRST occurrence only: §13.18.35.3 SR7
+    /// allows the phrase only in the group's first LINE clause, and SR10a only with a multiple LINE clause's first
+    /// operand, so a later occurrence of the same clause places as the phrase-less form. The engine reads it on
+    /// the group's first PRESENT line (§13.18.35.4 GR4a / GR5a).</summary>
+    public bool NextPage { get; init; }
 
     /// <summary>The PRESENT WHEN condition chain (01 → line entry) as captured parse contexts (§13.18.41).</summary>
     public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
@@ -723,6 +740,7 @@ public sealed partial class DataBinder
     {
         var entries = rd.reportGroupEntry();
         ScreenReportLineNesting(entries, model);
+        ScreenReportLineClauses(entries, model);
         ScreenReportEntryClausePresence(entries, model);
         BindReportEntries(entries, 0, entries.Length, model, new ReportGroupBuild());
         BindNextGroupClauses(entries, model);
@@ -772,7 +790,7 @@ public sealed partial class DataBinder
                 ? new ReportNextGroup(ReportNextGroupKind.NextPage, 0, ngc.RESET() is not null)
                 : new ReportNextGroup(ngc.reportRelativeSign() is not null
                     ? ReportNextGroupKind.Relative : ReportNextGroupKind.Absolute,
-                    int.Parse(ngc.integerLiteral().GetText()));
+                    LineInteger(ngc.integerLiteral()));
             g.NextGroup = ng;
             string where = $"RD '{model.Name}' group '{g.Name ?? "FILLER"}' ({ReportGroupTypeWords(g.Kind)})";
             void Violation(string rule) =>
@@ -794,10 +812,8 @@ public sealed partial class DataBinder
                 continue;
             }
             bool absolute = ng.Kind == ReportNextGroupKind.Absolute;
-            int limit = model.Paged ? model.PageLimit : 9999;
-            if (ng.Value > limit)
-                Violation($"{(absolute ? "integer-1" : "integer-2")} {ng.Value} exceeds "
-                    + (model.Paged ? $"the page limit {limit}" : "9999, the limit for a report that is not divided into pages")
+            if (ng.Value > model.VerticalLimit)
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerLiteral().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
                     + "divided into pages (ISO §13.18.37.3 SR1)");
             if (!model.Paged)
@@ -863,6 +879,74 @@ public sealed partial class DataBinder
             pos = target;
         }
         return pos;
+    }
+
+    /// <summary>⛔ THE LINE CLAUSE'S OPERAND RULES (ISO §13.18.35.3 SR3, SR5, SR7, SR8; kb/Work PB1001 + PB1002),
+    /// screened ONCE per WRITTEN clause over the flat entry array — the <see cref="ScreenReportLineNesting"/>
+    /// shape, so a §13.18.38 Format 3 subtree replay cannot report one clause once per repetition. They read the
+    /// RD's page model (bound before the groups — <c>BindReportDescriptionClauses</c>) and the group's TYPE, which
+    /// the level 1 entry carries (<see cref="GroupKindOf"/>, the one TYPE reader).
+    /// <list type="bullet">
+    /// <item>SR3 — "Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not
+    /// divided into pages." The NEXT GROUP clause's SR1 is the same sentence and reads the same two limits.</item>
+    /// <item>SR5 — "If the report is not divided into pages, all its LINE clauses shall be relative." ⚠ The bare
+    /// <c>ON NEXT PAGE</c> operand is not the relative FORM (<c>{PLUS|+} integer-2</c>, SR3's "Integer-2 specifies
+    /// a relative line number"), exactly as §13.18.37.3 SR3 — "only the relative form of the clause may be
+    /// specified" — excludes NEXT GROUP NEXT PAGE from an unpaged report; a report of one page of indefinite
+    /// length (§13.18.39.4 GR2a) has no next page to begin (docs/CONFORMANCE.md, the LINE NEXT PAGE block).</item>
+    /// <item>SR7 — "Within a given report group description, a NEXT PAGE phrase, if present, shall be specified
+    /// only in the first LINE clause." (A multiple LINE clause's later operands are SR10a's, in
+    /// <see cref="MultipleLineOperands"/>, and are not reported twice.)</item>
+    /// <item>SR8 — "The NEXT PAGE phrase may appear only in the description of a body group or a report
+    /// footing."</item>
+    /// </list></summary>
+    private void ScreenReportLineClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    {
+        var kind = ReportGroupKindModel.Detail;
+        bool firstLineClause = true;
+        foreach (var ge in entries)
+        {
+            if (int.TryParse(ge.levelNumber().GetText(), out int level) && level == 1)
+            {
+                kind = ge.reportGroupClause().Select(c => c.reportTypeClause()?.reportGroupType())
+                    .LastOrDefault(t => t is not null) is { } t ? GroupKindOf(t) : ReportGroupKindModel.Detail;
+                firstLineClause = true;
+            }
+            foreach (var clause in ge.reportGroupClause())
+            {
+                if (clause.reportLineClause() is not { } lc) continue;
+                using var _ = Edition.At(lc);
+                void Violation(string rule) =>
+                    Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': {rule}");
+                var ops = lc.reportLineOperand();
+                for (int k = 0; k < ops.Length; k++)
+                {
+                    var op = ops[k];
+                    bool absolute = op.integerLiteral() is not null && op.reportRelativeSign() is null;
+                    if (op.integerLiteral() is { } lit)
+                    {
+                        if (LineInteger(lit) > model.VerticalLimit)
+                            Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
+                                + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
+                                + "is not divided into pages (ISO §13.18.35.3 SR3)");
+                    }
+                    if (!model.Paged && (absolute || op.NEXT() is not null))
+                        Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
+                            + (absolute ? $"LINE {op.integerLiteral()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
+                                        : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
+                            + " (ISO §13.18.35.3 SR5)");
+                    if (op.NEXT() is null) continue;
+                    if (k == 0 && !firstLineClause)
+                        Violation("a NEXT PAGE phrase, if present, shall be specified only in the first LINE clause of "
+                            + "the report group description (ISO §13.18.35.3 SR7)");
+                    if (kind is not (ReportGroupKindModel.ControlHeading or ReportGroupKindModel.Detail
+                        or ReportGroupKindModel.ControlFooting or ReportGroupKindModel.ReportFooting))
+                        Violation($"the NEXT PAGE phrase may appear only in the description of a body group or a report "
+                            + $"footing, not a {ReportGroupTypeWords(kind)} (ISO §13.18.35.3 SR8)");
+                }
+                firstLineClause = false;
+            }
+        }
     }
 
     /// <summary>ISO §13.18.35.3 SR4 — "Within a given report group description entry, an entry that contains a
@@ -1640,13 +1724,7 @@ public sealed partial class DataBinder
                     + "§13.18.60.3 SR2, imported into the report group description entry by §13.15.4 GR2)");
 
             if (lineOperand is { } lop)
-            {
-                if (lop.NEXT() is not null)
-                    Edition.Error(DiagnosticCatalog.ReportLineNextPage, $"RD '{model.Name}': LINE … NEXT PAGE (ISO §13.18.35) is "
-                        + "not yet implemented");
-                else
-                    opened = RepeatedLine(lop, lineOperandIndex, anchorKey, st);
-            }
+                opened = RepeatedLine(lop, lineOperandIndex, group.Lines.Count == 0, anchorKey, st);
             if (opened is not null)
             {
                 st.Line = opened;
@@ -1869,27 +1947,42 @@ public sealed partial class DataBinder
     /// relative line reproduces exactly that against LINE-COUNTER. That is also the whole of a multiple LINE
     /// clause's §13.18.35.4 GR9 equivalence, whose "unequal vertical intervals" are its several operands.</para>
     /// </summary>
+    /// <para>THE NEXT PAGE PHRASE (ISO §13.18.35.2 Format 1; kb/Work PB1001) is a FLAG on the group's first line,
+    /// never a kind: <c>integer-1 ON NEXT PAGE</c> is an absolute line and the bare <c>ON NEXT PAGE</c> operand a
+    /// relative one, so every placement rule below and in the engine stays the phrase-less rule, and the phrase
+    /// adds exactly what §13.18.35.4 GR4a ("no page fit test takes place and the page fit is declared
+    /// unsuccessful") and GR5a ("the first line is printed beginning on a new page" — a report footing) say.
+    /// <paramref name="groupFirstLine"/> is true only for the group's first report line — the only one SR7 lets
+    /// carry the phrase — so a later occurrence of a repeated clause places as its phrase-less twin.</para>
+    /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md, the LINE NEXT PAGE block): the bare operand writes no
+    /// integer. §13.18.35.4 GR4c's "relative … without the NEXT PAGE phrase" names it a relative clause, and its
+    /// integer-2 is never read where the phrase applies — GR5b3 places the first body group on a page at the
+    /// FIRST DETAIL integer whatever integer-2 says, and a report footing on a page by itself starts at its
+    /// §13.18.57.4 GR7f upper limit, the HEADING integer. The only place an integer-2 IS read is a LATER
+    /// occurrence of a repeated bare clause, which advances one line (<see cref="BareNextPageInterval"/>).</para>
     private static ReportLineModel RepeatedLine(
-        Core.ReportLineOperandContext op, int operand, Core.ReportGroupEntryContext anchorKey, ReportGroupBuild st)
+        Core.ReportLineOperandContext op, int operand, bool groupFirstLine, Core.ReportGroupEntryContext anchorKey,
+        ReportGroupBuild st)
     {
-        bool relative = op.reportRelativeSign() is not null;
-        int value = int.Parse(op.integerLiteral().GetText());
+        bool nextPage = groupFirstLine && op.NEXT() is not null;
+        bool relative = op.reportRelativeSign() is not null || op.integerLiteral() is null;
+        int value = op.integerLiteral() is { } lit ? LineInteger(lit) : BareNextPageInterval;
         int shift = st.Shift(ReportRepetitionAxis.Vertical);
         bool anchored = st.Repetitions.Exists(
             r => r.Spec.Axis == ReportRepetitionAxis.Vertical && r.Spec.Step is not null);
         if (!relative)
-            return new ReportLineModel(ReportLineKindModel.Absolute, value + shift);
+            return new ReportLineModel(ReportLineKindModel.Absolute, value + shift) { NextPage = nextPage };
         if (!anchored)
         {
             st.VerticalCursor += value;      // GR4c: "incremented by integer-2 for each subsequent LINE clause"
-            return new ReportLineModel(ReportLineKindModel.Relative, value);
+            return new ReportLineModel(ReportLineKindModel.Relative, value) { NextPage = nextPage };
         }
         var key = (anchorKey, operand, st.Undisplaced(ReportRepetitionAxis.Vertical));
         if (!st.LineAnchors.TryGetValue(key, out int anchor)) st.LineAnchors[key] = anchor = st.LineAnchors.Count + 1;
         if (shift == 0)
         {
             st.AnchorOffset[anchor] = st.VerticalCursor += value;
-            return new ReportLineModel(ReportLineKindModel.Relative, value) { Anchor = anchor };
+            return new ReportLineModel(ReportLineKindModel.Relative, value) { Anchor = anchor, NextPage = nextPage };
         }
         // The GR4c contribution is this line's expected offset minus the cursor, so Σ over the group is exactly
         // "the expected position of the last line of the report group" however the repetitions interleave.
@@ -1903,6 +1996,17 @@ public sealed partial class DataBinder
             TrialInterval = interval,
         };
     }
+
+    /// <summary>The integer-2 a LATER occurrence of a repeated bare <c>ON NEXT PAGE</c> operand places by — the
+    /// next line (see the determination on <see cref="RepeatedLine"/>). The first occurrence never reads it.</summary>
+    private const int BareNextPageInterval = 1;
+
+    /// <summary>A LINE or NEXT GROUP clause integer as written. A literal too large for an <c>int</c> saturates
+    /// rather than throwing: it already exceeds every limit §13.18.35.3 SR3 / §13.18.37.3 SR1 admit
+    /// (<see cref="ReportModel.VerticalLimit"/>), and <see cref="ScreenReportLineClauses"/> /
+    /// <c>BindNextGroupClauses</c> report it there.</summary>
+    private static int LineInteger(Core.IntegerLiteralContext lit) =>
+        int.TryParse(lit.GetText(), out int v) ? v : int.MaxValue;
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a LINE clause with an ABSOLUTE operand
     /// (ISO §13.18.38.3 SR25a/SR25b).</summary>
@@ -2000,24 +2104,23 @@ public sealed partial class DataBinder
         return false;
     }
 
+    /// <summary>THE ONE TYPE READER: the report group type a TYPE clause names (ISO §13.18.57 Format 2 + the SR9
+    /// abbreviations). <see cref="BindGroupType"/> and the flat-entry screens that need the TYPE before the group is
+    /// built (<see cref="ScreenReportLineClauses"/>) both read it here.</summary>
+    private static ReportGroupKindModel GroupKindOf(Core.ReportGroupTypeContext t) =>
+        t.RH() is not null || (t.REPORT() is not null && t.HEADING() is not null) ? ReportGroupKindModel.ReportHeading
+        : t.PH() is not null || (t.PAGE() is not null && t.HEADING() is not null) ? ReportGroupKindModel.PageHeading
+        : t.CH() is not null || (t.CONTROL() is not null && t.HEADING() is not null) ? ReportGroupKindModel.ControlHeading
+        : t.DE() is not null || t.DETAIL() is not null ? ReportGroupKindModel.Detail
+        : t.CF() is not null || (t.CONTROL() is not null && t.FOOTING() is not null) ? ReportGroupKindModel.ControlFooting
+        : t.PF() is not null || (t.PAGE() is not null && t.FOOTING() is not null) ? ReportGroupKindModel.PageFooting
+        : ReportGroupKindModel.ReportFooting;
+
     /// <summary>Map a TYPE clause (ISO §13.18.57 Format 2 + the SR9 abbreviations) onto the group model,
     /// capturing the CH/CF control operand.</summary>
     private void BindGroupType(Core.ReportGroupTypeContext t, ReportGroupModel group, ReportModel model)
     {
-        if (t.RH() is not null || (t.REPORT() is not null && t.HEADING() is not null))
-            group.Kind = ReportGroupKindModel.ReportHeading;
-        else if (t.PH() is not null || (t.PAGE() is not null && t.HEADING() is not null))
-            group.Kind = ReportGroupKindModel.PageHeading;
-        else if (t.CH() is not null || (t.CONTROL() is not null && t.HEADING() is not null))
-            group.Kind = ReportGroupKindModel.ControlHeading;
-        else if (t.DE() is not null || t.DETAIL() is not null)
-            group.Kind = ReportGroupKindModel.Detail;
-        else if (t.CF() is not null || (t.CONTROL() is not null && t.FOOTING() is not null))
-            group.Kind = ReportGroupKindModel.ControlFooting;
-        else if (t.PF() is not null || (t.PAGE() is not null && t.FOOTING() is not null))
-            group.Kind = ReportGroupKindModel.PageFooting;
-        else
-            group.Kind = ReportGroupKindModel.ReportFooting;
+        group.Kind = GroupKindOf(t);
 
         if (group.Kind is ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting)
         {
