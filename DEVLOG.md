@@ -13,6 +13,12 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1647 — 2026-09-22 18:12 PDT — Ledger v61 at battery #85: the trend point for trains 47 and 48
+
+The Conformance Ledger artifact was republished as v61 from `gen_ledger.py` at `c752785a6` (trains 47 + 48 and
+battery #85): GAP 2198 · closed 2150 · DNS 369. This commits the trend point the generator appended to
+`ledger-trend.json`; `gen_ledger.py --check` now reports the page matches the repo exactly.
+
 ## Entry 1646 — 2026-09-22 17:22 PDT — Battery #85 at train 48's head: every compiler leg green, three differential flips, all three conformance fixes
 
 **What ran.** One `bash scripts/battery.sh` in an isolated worktree pinned at main `0abe2c80f` (train 48), after copying

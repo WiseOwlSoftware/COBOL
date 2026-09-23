@@ -676,6 +676,15 @@
       "dns": 369,
       "label": "Battery #84 at ec095d120 (tr",
       "battery": null
+    },
+    {
+      "sha": "c752785a",
+      "date": "2026-09-22",
+      "gap": 2198,
+      "closed": 2150,
+      "dns": 369,
+      "label": "Battery #85 at train 48's he",
+      "battery": null
     }
   ]
 }
