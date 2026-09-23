@@ -644,7 +644,7 @@ internal sealed class ControlFlowBinder
         var atEnd = new List<BoundStatement>();
         if (ctx.searchAtEndClause() is { } atEndCtx)
         {
-            foreach (var imp in atEndCtx.statementBlock())
+            foreach (var imp in new[] { atEndCtx.statementBlock() })
                 foreach (var stmt in imp.statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
@@ -667,7 +667,8 @@ internal sealed class ControlFlowBinder
 
         // Bind WHEN clauses
         var whens = new List<BoundSearchWhenClause>();
-        foreach (var whenCtx in ctx.searchAllWhenClause())
+        // Format 2 prints exactly ONE WHEN phrase (ISO §14.9.37.2; the shared grammar spells it — kb/Work PB446).
+        if (ctx.searchAllWhenClause() is { } whenCtx)
         {
             var cond = _ctx.Condition.BindCondition(whenCtx.condition());
             var stmts = new List<BoundStatement>();
@@ -684,7 +685,7 @@ internal sealed class ControlFlowBinder
         var atEnd = new List<BoundStatement>();
         if (ctx.searchAtEndClause() is { } atEndCtx)
         {
-            foreach (var imp in atEndCtx.statementBlock())
+            foreach (var imp in new[] { atEndCtx.statementBlock() })
                 foreach (var stmt in imp.statement())
                 {
                     var bound = _ctx.BindStatement(stmt);

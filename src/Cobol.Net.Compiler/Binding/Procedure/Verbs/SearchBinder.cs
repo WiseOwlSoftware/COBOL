@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
@@ -55,23 +56,40 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         return table;
     }
 
-    /// <summary>The ONE refusal of a NOT AT END phrase on either SEARCH format (kb/Work PB909). ISO §14.9.37.2
-    /// prints <c>[ AT END imperative-statement-1 ]</c> alone in Format 1 AND in Format 2, and nothing else; the
-    /// grammar's shared <c>searchAtEndClause</c> admits the vendor NOT AT END branch, which both arms used to stage
-    /// as a DEFERRAL — a COBOLNET1756 warning and a run-unit abort. One helper, so the two arms cannot disagree
-    /// (feedback_two_arm_dispatch).</summary>
-    private BoundRejected NotAtEndShape(string verb) => BoundRejected.Report(ctx.Edition,
-        DiagnosticCatalog.StatementFormatShape,
-        $"{verb} … NOT AT END: ISO §14.9.37.2 prints an AT END phrase alone, in both SEARCH formats — there is "
-        + "no NOT AT END phrase. Test for a hit in a WHEN branch instead");
+    /// <summary>The ALL-FORMATS phrases both formats print identically — <c>[ AT END imperative-statement-1 ]</c>
+    /// and the WHEN arms' <c>{ imperative-statement-2 | NEXT SENTENCE }</c> under an optional END-SEARCH — bound
+    /// in ONE place so the two arms cannot disagree (feedback_two_arm_dispatch). §14.9.37.3 SR4 is asked here
+    /// for both formats. The AT END phrase is exactly the printed one: the NOT AT END phrase neither format
+    /// prints is refused by the GRAMMAR now (kb/Work PB446 — it used to parse, and a helper here refused it).
+    /// A NEXT SENTENCE arm binds through the statement funnel, which admits it only as the WHOLE arm
+    /// (<see cref="StatementBinder.IsNextSentenceArm"/>).</summary>
+    private (List<BoundStatement>? AtEnd, List<BoundSearchWhen> Whens) Phrases(string verb,
+        Core.SearchAtEndClauseContext? ae, ITerminalNode? endSearch,
+        IReadOnlyList<(Core.ConditionContext Cond, Core.StatementBlockContext Arm)> whens)
+    {
+        ctx.Validation.CheckSearchEndSearchNextSentence(verb, endSearch, whens.Select(w => w.Arm));
+        var atEnd = ae is null ? null : host.BindBlocks([ae.statementBlock()]);
+        // A WHEN condition re-evaluates on every scan pass — §14.9.37.4 GR1, "Any subscripting specified in a
+        // WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The
+        // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
+        // implementor-specified technique (Format 2) — so a user-function reference inside it activates per
+        // evaluation: the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
+        var bound = whens.Select(w =>
+            {
+                var udfMark = host.Udf.Mark;
+                var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(w.Cond), udfMark);
+                return new BoundSearchWhen(cond, host.BindBlocks([w.Arm]));
+            })
+            .ToList();
+        return (atEnd, bound);
+    }
 
     /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). identifier-1 is resolved and screened by
     /// <see cref="Identifier1"/>; the scan uses the table's FIRST index (§14.9.37.4 GR3 a) — unless VARYING names
     /// another index OF THE SAME TABLE, which then IS the search index (GR3 c) 1.: "If index-name-1 is specified
     /// in the INDEXED BY phrase in the OCCURS clause associated with identifier-1, the index referenced by
     /// index-name-1 is the search index"); VARYING a different table's index (GR3 c) 2.) or a data item (GR3 b)
-    /// increments that item in step with the search index. NOT AT END is a non-ISO extension — it fails loud by
-    /// name.</summary>
+    /// increments that item in step with the search index.</summary>
     public BoundStatement BindSearch(Core.SearchStatementContext s)
     {
         var drefs = s.dataReference();
@@ -111,24 +129,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             else return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         }
 
-        List<BoundStatement>? atEnd = null;
-        if (s.searchAtEndClause() is { } ae)
-        {
-            if (ae.NOT() is not null) return NotAtEndShape("SEARCH");
-            atEnd = host.BindBlocks(ae.statementBlock());
-        }
-        // A WHEN condition re-evaluates on every scan pass — §14.9.37.4 GR1, "Any subscripting specified in a WHEN
-        // phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The process
-        // is then repeated using the new index setting" — so a user-function reference inside it activates per
-        // pass: the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
-        var whens = s.searchWhenClause()
-            .Select(wc =>
-            {
-                var udfMark = host.Udf.Mark;
-                var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(wc.condition()), udfMark);
-                return new BoundSearchWhen(cond, host.BindBlocks([wc.statementBlock()]));
-            })
-            .ToList();
+        var (atEnd, whens) = Phrases("SEARCH", s.searchAtEndClause(), s.END_SEARCH(),
+            [.. s.searchWhenClause().Select(wc => (wc.condition(), wc.statementBlock()))]);
         return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
             DependItem: OdoModel.SearchDepending(table, ctx.Refs),
             DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
@@ -170,23 +172,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // compile time, and one compile reports every violation it can see).
         ctx.Validation.CheckSearchAllFormat2(s, table, ctx.Refs, host.Cond);
 
-        List<BoundStatement>? atEnd = null;
-        if (s.searchAtEndClause() is { } ae)
-        {
-            if (ae.NOT() is not null) return NotAtEndShape("SEARCH ALL");
-            atEnd = host.BindBlocks(ae.statementBlock());
-        }
-        // The Format-2 WHEN re-evaluates per probe of this implementation's scan technique (GR9 — the search
-        // technique is implementor-specified), so a user-function reference activates per probe: the same
-        // per-evaluation wrapper as Format 1 (§8.4.3.2.4 GR1/GR6a).
-        var whens = s.searchAllWhenClause()
-            .Select(wc =>
-            {
-                var udfMark = host.Udf.Mark;
-                var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(wc.condition()), udfMark);
-                return new BoundSearchWhen(cond, host.BindBlocks([wc.statementBlock()]));
-            })
-            .ToList();
+        // Format 2 prints exactly ONE WHEN phrase (its ellipsis is on the AND bracket — kb/Work PB446), and the
+        // grammar now spells that, so there is one arm.
+        var wc = s.searchAllWhenClause();
+        var (atEnd, whens) = Phrases("SEARCH ALL", s.searchAtEndClause(), s.END_SEARCH(),
+            [(wc.condition(), wc.statementBlock())]);
         return new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
             DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)

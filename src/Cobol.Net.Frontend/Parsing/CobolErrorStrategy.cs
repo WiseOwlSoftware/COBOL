@@ -192,6 +192,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2418, spellingMsg, -1));   // outranks 0a: the sign-
             // condition shape fails at an IS / NOT the enclosing statement cannot continue with, which 0a reads as an
             // empty imperative-statement — the misspelled keyword is the cause, the empty block its symptom.
+        // ⛔ 0e. THE SEARCH PHRASES NO SEARCH FORMAT PRINTS (kb/Work PB446). The two SEARCH rules now spell the
+        // two printed formats exactly, so their complement arrives here; each shape is read from the PARSER
+        // STATE (the half-built or just-completed SEARCH context), never from a scan for a keyword.
+        if (SearchFormatShapeMessage(recognizer, token, stream) is { } searchMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2269, searchMsg, 0));
 
         if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2173,
@@ -325,6 +330,92 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (prev?.Type == CobolLexer.TO) prev = GetToken(stream, token.TokenIndex - 2);
         return prev?.Type == CobolLexer.GO ? GoToFormats.DiagnoseWrittenShape(0, hasDepending: true) : null;
     }
+
+    // ── The SEARCH general-format complement (kb/Work PB446) ──
+
+    /// <summary>The §14.9.37.2 message for a SEARCH written with a phrase neither general format prints, or null.
+    /// Format 1 is <c>SEARCH identifier-1 [VARYING …] [AT END imperative-statement-1] {WHEN condition-1 {…}} …
+    /// [END-SEARCH]</c>; Format 2 is <c>SEARCH ALL identifier-1 [AT END imperative-statement-1] WHEN … [AND …] …
+    /// {…} [END-SEARCH]</c> (rendered from PDF page 750 / printed folio 720). Three complement shapes, each read
+    /// from the parser state:
+    /// <list type="bullet">
+    ///   <item>A KEY phrase — the failure is AT the SEARCH context itself (the table operand is complete and the
+    ///         statement's own next element was expected), and the offending token is KEY.</item>
+    ///   <item>A NOT AT END phrase — a SEARCH context with no WHEN phrase yet is on the stack (the failure is in
+    ///         the AT END region, possibly inside its last statement) and the tokens at the failure spell
+    ///         <c>NOT [AT] END</c>.</item>
+    ///   <item>A second Format-2 WHEN — the Format-2 statement has already COMPLETED (its one WHEN phrase
+    ///         matched), so the SEARCH ALL context is the rightmost descendant of an enclosing context and ends
+    ///         immediately before the offending WHEN.</item>
+    /// </list></summary>
+    private static string? SearchFormatShapeMessage(Parser recognizer, IToken token, ITokenStream stream)
+    {
+        const string formats = " ISO §14.9.37.2 prints two SEARCH formats and ";
+        var ctx = recognizer.Context;
+        if (token.Type == CobolLexer.KEY
+            && ctx is CobolParserCore.SearchStatementContext or CobolParserCore.SearchAllStatementContext)
+            return (ctx is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
+                + " … KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
+                + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause (§14.9.37.3 SR7), and the "
+                + "Format-2 WHEN phrase names it. Remove the phrase.";
+
+        bool notAtEnd = token.Type == CobolLexer.NOT ? IsAtEndAhead(stream, token.TokenIndex + 1)
+            : token.Type is CobolLexer.AT or CobolLexer.END
+              && PreviousDefault(stream, token.TokenIndex)?.Type == CobolLexer.NOT
+              && IsAtEndAhead(stream, token.TokenIndex);
+        // "No WHEN phrase yet" is asked of the WHEN TOKEN, not of the clause context: single-token insertion
+        // reports a missing WHEN from INSIDE the just-entered (Format-2) WHEN clause, whose context already exists.
+        if (notAtEnd)
+            for (RuleContext? c = ctx; c is not null; c = c.Parent)
+            {
+                if (c is CobolParserCore.SearchStatementContext s1)
+                    return s1.searchWhenClause().Any(w => w.WHEN() is not null) ? null
+                        : "SEARCH … NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
+                          + "AT END phrase. Test for a hit in a WHEN branch instead.";
+                if (c is CobolParserCore.SearchAllStatementContext s2)
+                    return s2.searchAllWhenClause()?.WHEN() is not null ? null
+                        : "SEARCH ALL … NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
+                          + "NOT AT END phrase. Test for a hit in the WHEN branch instead.";
+            }
+
+        if (token.Type == CobolLexer.WHEN)
+            for (var c = ctx; c is not null; c = c.Parent as ParserRuleContext)
+                for (var d = LastRuleChild(c); d is not null; d = LastRuleChild(d))
+                    if (d is CobolParserCore.SearchAllStatementContext sa && sa.Stop is { } stop
+                        && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
+                        return "SEARCH ALL with a second WHEN phrase: Format 2 prints exactly ONE WHEN phrase — its "
+                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO §14.9.37.2, with "
+                            + "§5.2.7), so a further key condition is written as an AND phrase of the one WHEN.";
+        return null;
+    }
+
+    /// <summary>True when the default-channel tokens from <paramref name="index"/> spell <c>[AT] END</c>.</summary>
+    private static bool IsAtEndAhead(ITokenStream stream, int index)
+    {
+        var t = GetToken(stream, index);
+        while (t is not null && t.Channel != TokenConstants.DefaultChannel) t = GetToken(stream, t.TokenIndex + 1);
+        if (t?.Type == CobolLexer.AT) t = NextDefault(stream, t.TokenIndex);
+        return t?.Type == CobolLexer.END;
+    }
+
+    private static IToken? NextDefault(ITokenStream stream, int index)
+    {
+        for (var t = GetToken(stream, index + 1); t is not null; t = GetToken(stream, t.TokenIndex + 1))
+            if (t.Channel == TokenConstants.DefaultChannel) return t;
+        return null;
+    }
+
+    private static IToken? PreviousDefault(ITokenStream stream, int index)
+    {
+        for (var t = GetToken(stream, index - 1); t is not null; t = GetToken(stream, t.TokenIndex - 1))
+            if (t.Channel == TokenConstants.DefaultChannel) return t;
+        return null;
+    }
+
+    /// <summary>The LAST child when it is a rule context; null when it is a token (nothing to the right of a token
+    /// can be the completed SEARCH ALL).</summary>
+    private static ParserRuleContext? LastRuleChild(ParserRuleContext c) =>
+        c.ChildCount > 0 ? c.GetChild(c.ChildCount - 1) as ParserRuleContext : null;
 
     // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──
 

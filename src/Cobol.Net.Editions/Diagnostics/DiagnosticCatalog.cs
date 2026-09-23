@@ -2618,14 +2618,20 @@ public static class DiagnosticCatalog
     /// "violations of the general formats and the explicit syntax rules of standard COBOL". This
     /// implementation declares no vendor dialect under which an extension could be admitted (the COBOLNET1941 /
     /// COBOLNET1970 posture), so the shape is refused at every edition and every strictness. The CODE is the
-    /// mechanism; the MESSAGE names the statement and the general format it departs from.</summary>
+    /// mechanism; the MESSAGE names the statement and the general format it departs from. Two emit layers
+    /// (kb/Work PB446): the binder, for a shape the grammar parses (and for a NEXT SENTENCE written anywhere but
+    /// the whole of an IF Format-2 or SEARCH WHEN phrase — <c>StatementBinder.IsNextSentenceArm</c>), and the
+    /// parse-layer twin in <c>DiagnosticDescriptors</c>, for a SEARCH phrase the grammar now refuses (NOT AT END,
+    /// a KEY phrase, a second Format-2 WHEN).</summary>
     public static readonly DiagnosticDescriptor StatementFormatShape = new(
         "COBOLNET2269", "statement-format-shape", EditionSeverity.Error,
         "A statement is written in a shape that none of its ISO general formats prints, so the standard gives "
         + "it no meaning: for example INSPECT … TALLYING … FOR FIRST or FOR TRAILING and INSPECT … REPLACING "
         + "TRAILING (§14.9.22.2 prints only CHARACTERS / ALL / LEADING in a tallying-phrase and CHARACTERS / "
         + "ALL / LEADING / FIRST in a replacing-phrase), SEARCH or SEARCH ALL with a NOT AT END phrase "
-        + "(§14.9.37.2 prints AT END alone), or the ENTRY statement (ISO/IEC 1989 defines none). Refused at "
+        + "(§14.9.37.2 prints AT END alone), a KEY phrase or a second WHEN phrase on SEARCH ALL (§14.9.37.2 "
+        + "Format 2 prints one WHEN and no KEY phrase), NEXT SENTENCE anywhere but the whole of an IF Format-2 "
+        + "THEN/ELSE phrase or a SEARCH WHEN phrase (§14.9.19.2, §14.9.37.2), or the ENTRY statement (ISO/IEC 1989 defines none). Refused at "
         + "every edition and every strictness: §4.2.2 makes a general format the definition of what may be "
         + "written, and this implementation declares no vendor dialect under which an extension could be "
         + "admitted. Rewrite the statement in a printed format — e.g. an INSPECT … REPLACING TRAILING becomes "
@@ -3200,6 +3206,20 @@ public static class DiagnosticCatalog
         + "searched level); this diagnostic asks for no MINIMUM count, and a screen that did would reject "
         + "legal source — the CCVS suite writes the bare form throughout (kb/Work PB443).",
         "ISO §14.9.37.3 SR1, SR2, SR3");
+
+    /// <summary>COBOLNET2409 — ISO §14.9.37.3 SR4, both SEARCH formats: END-SEARCH and a NEXT SENTENCE WHEN arm
+    /// in one statement (kb/Work PB444). Before, the pair compiled and was given a MEANING — NEXT SENTENCE jumped
+    /// past the terminator to the separator period — with no message beyond the unrelated archaic-feature
+    /// warning, and none at all below COBOL-2023.</summary>
+    public static readonly DiagnosticDescriptor SearchEndSearchNextSentence = new(
+        "COBOLNET2409", "search-end-search-next-sentence", EditionSeverity.Error,
+        "A SEARCH or SEARCH ALL statement specifies both the END-SEARCH phrase and a WHEN phrase whose body is "
+        + "NEXT SENTENCE. ISO §14.9.37.3 SR4: \"If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase "
+        + "shall not be specified.\" With END-SEARCH the statement no longer runs to the separator period that "
+        + "NEXT SENTENCE targets (§14.9.37.4 GR1 a)), so the standard gives the pair no meaning. Write CONTINUE in "
+        + "the WHEN phrase (control then goes to the end of the SEARCH statement), or drop END-SEARCH and end the "
+        + "sentence with a period.",
+        "ISO §14.9.37.3 SR4");
 
     // ── COBOLNET1976–1977 — the level-88 condition-name association rules (ISO §13.16.3 SR24) ──────────
 

@@ -75,34 +75,26 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
 
         var keyItems = OdoModel.KeyItems(table);
         string firstIndex = table.IndexNames[0];
+        // SR11's accumulator: which KEY PHRASE POSITIONS the WHEN referenced. Format 2's general format prints ONE
+        // WHEN phrase (its ellipsis sits on the AND bracket, not on the WHEN brace as Format 1's does), and the
+        // grammar spells exactly that (kb/Work PB446), so per-WHEN IS per-statement.
+        // A WHEN with no condition context at all is an ERROR NODE: the parse has already failed and reported,
+        // and every walk below would dereference it — `searchAllWhenClause : WHEN condition statementBlock` makes
+        // the condition mandatory, so this is never a silent skip of a well-formed WHEN.
+        if (s.searchAllWhenClause()?.condition() is not { } cond) return true;
+        var referenced = new bool[keys.Count];
+        var conjuncts = new List<Core.ComparisonExpressionContext>();
+        if (!TryConjuncts(cond, conjuncts, out string? why))
+            return validation.RejectStatementOperand(
+                $"SEARCH ALL '{table.CobolName}' WHEN {cond.GetText()} — the Format-2 WHEN phrase "
+                + "is `data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a "
+                + $"bare condition-name, repeated with AND (ISO §14.9.37.2 Format 2); this WHEN specifies "
+                + $"{why}. The serial SEARCH (Format 1) is the form whose WHEN takes any conditional "
+                + "expression (§14.9.37.3 SR6).");
         bool ok = true;
-        foreach (var wc in s.searchAllWhenClause())
-        {
-            // SR11's accumulator, per WHEN phrase: which KEY PHRASE POSITIONS this WHEN referenced. Format 2's
-            // general format prints ONE WHEN (its ellipsis sits outside the AND bracket, not outside the WHEN
-            // group as Format 1's does), so per-WHEN and per-statement coincide for any program the format
-            // admits; scoping it to the WHEN keeps each one screened on its own terms.
-            // A WHEN with no condition context at all is an ERROR NODE: the parse has already failed and
-            // reported, and every walk below would dereference it. Never a silent skip of a well-formed WHEN —
-            // `searchAllWhenClause : WHEN condition statementBlock*` makes the condition mandatory.
-            if (wc.condition() is not { } cond) continue;
-            var referenced = new bool[keys.Count];
-            var conjuncts = new List<Core.ComparisonExpressionContext>();
-            if (!TryConjuncts(cond, conjuncts, out string? why))
-            {
-                validation.RejectStatementOperand(
-                    $"SEARCH ALL '{table.CobolName}' WHEN {cond.GetText()} — the Format-2 WHEN phrase "
-                    + "is `data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a "
-                    + $"bare condition-name, repeated with AND (ISO §14.9.37.2 Format 2); this WHEN specifies "
-                    + $"{why}. The serial SEARCH (Format 1) is the form whose WHEN takes any conditional "
-                    + "expression (§14.9.37.3 SR6).");
-                ok = false;
-                continue;
-            }
-            foreach (var ce in conjuncts)
-                ok &= CheckConjunct(ce, table, keys, keyItems, firstIndex, referenced);
-            ok &= CheckPrecedingKeys(table, keys, referenced);
-        }
+        foreach (var ce in conjuncts)
+            ok &= CheckConjunct(ce, table, keys, keyItems, firstIndex, referenced);
+        ok &= CheckPrecedingKeys(table, keys, referenced);
         return ok;
     }
 

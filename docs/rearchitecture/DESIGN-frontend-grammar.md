@@ -1028,6 +1028,16 @@ shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4. That combinat
 question rather than the cardinality slip §3.11 fixes, and refusing it would newly reject source this compiler
 has always compiled; recorded here and in the `.g4` rather than inherited silently from the quantifier.
 
+**The SEARCH formats (kb/Work PB446).** `searchAtEndClause` is `AT? END statementBlock` — the READ/RETURN
+`NOT AT END` arm it used to carry leaked into BOTH SEARCH formats through the shared rule — and
+`searchAllStatement` carries exactly ONE `searchAllWhenClause` (Format 2's ellipsis is on the `[ AND … ]`
+bracket) and no KEY phrase (the home-grown `searchAllKeyPhrase` was read by no binder). The complement is a syntax
+error that `CobolErrorStrategy.SearchFormatShapeMessage` re-codes as COBOLNET2269 from the parser state
+(COBOLNET_CONTROL_FLOW_DESIGN D18). **NEXT SENTENCE stays a `statement` alternative** so that `statementBlock`
+spells the printed `{ statement | NEXT SENTENCE }` braces; its POSITION is decided in the binder funnel
+(`StatementBinder.IsNextSentenceArm`), because narrowing it in the grammar would re-parse the illegal
+`IF A NEXT SENTENCE DISPLAY X.` with DISPLAY as the sentence's next statement — a silent change of meaning.
+
 ### 3.12 The lexer keeps every distinction the standard draws (kb/Work PB510, PB569)
 
 **One token per reserved word.** ZERO, ZEROS and ZEROES — and SPACE/SPACES, HIGH-VALUE/HIGH-VALUES,

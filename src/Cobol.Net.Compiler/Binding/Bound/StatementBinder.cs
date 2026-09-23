@@ -506,7 +506,17 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.validateFacilityStatement() is not null
             => BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
-        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(Ctx.SourceLine(s)),
+        // NEXT SENTENCE is a PHRASE, not a statement: the grammar parses it as one so `statementBlock` spells the
+        // printed `{ statement | NEXT SENTENCE }` braces, and THIS is where its position is decided — admitted only
+        // as a whole brace alternative (IsNextSentenceArm), refused everywhere else (kb/Work PB446).
+        _ when s.nextSentenceStatement() is not null => IsNextSentenceArm(s.Parent as Core.StatementBlockContext)
+            ? new BoundNextSentence(Ctx.SourceLine(s))
+            : BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "NEXT SENTENCE: it is a "
+                + "phrase of exactly three general formats — IF Format 2 (§14.9.19.2), as the whole of the THEN or "
+                + "ELSE phrase, and both SEARCH formats (§14.9.37.2), as the whole of a WHEN phrase's body — and "
+                + "this position is none of them: not an AT END or other conditional phrase, not an inline PERFORM "
+                + "or EVALUATE body, not a sentence of its own, and never beside another statement in the same "
+                + "phrase. Use CONTINUE, or restructure with a scope terminator"),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).
@@ -572,6 +582,20 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     internal List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
         blocks.SelectMany(b => b.statement()).Select(BindStatement).ToList();
+
+    /// <summary>⛔ THE ONE READING OF THE PRINTED <c>{ statement | NEXT SENTENCE }</c> BRACES (kb/Work PB446). True
+    /// when <paramref name="block"/> is exactly the NEXT SENTENCE alternative of one of the three general formats
+    /// that print it — IF Format 2's THEN or ELSE phrase (ISO §14.9.19.2) and a WHEN phrase of either SEARCH
+    /// format (§14.9.37.2) — and so the WHOLE of that phrase: a brace offers alternatives, one of which is
+    /// written (§5.2.6.3), never both. Read from the parse tree's own shape, so the funnel that binds the
+    /// statement and the SEARCH SR4 screen (<c>StatementValidation.CheckSearchEndSearchNextSentence</c>) ask the
+    /// same question. Anywhere else the grammar lets NEXT SENTENCE through — an AT END phrase (whose operand is
+    /// an imperative-statement), an inline PERFORM or EVALUATE body, a sentence of its own, beside another
+    /// statement — no format prints it. ⚠ IF Format 2's arms under an END-IF are admitted here per the PB396
+    /// DETERMINATION recorded on <c>ifStatement</c> in CobolControlFlow.g4.</summary>
+    internal static bool IsNextSentenceArm(Core.StatementBlockContext? block) =>
+        block is { Parent: Core.IfStatementContext or Core.SearchWhenClauseContext or Core.SearchAllWhenClauseContext }
+        && block.statement() is [{ } only] && only.nextSentenceStatement() is not null;
 
     // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
 

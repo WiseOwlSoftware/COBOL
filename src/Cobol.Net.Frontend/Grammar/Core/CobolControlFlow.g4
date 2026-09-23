@@ -344,41 +344,48 @@ searchStatement
     ;
 
 // `{ WHEN condition-1 { imperative-statement-2 | NEXT SENTENCE } } …` (rendered from PDF page 750 / printed
-// folio 720): the body is a BRACE alternation ⇒ exactly one shall be specified (§5.2.6.3), and NEXT SENTENCE is
-// itself a `statement` here, so `statementBlock` spells both alternatives (kb/Work PB396).
+// folio 720): the body is a BRACE alternation ⇒ exactly one shall be specified (§5.2.6.3). NEXT SENTENCE is a
+// `statement` to the grammar, so `statementBlock` spells both alternatives, and the binder's ONE arm reader
+// (`StatementBinder.BindArm`) is what admits it — and only as the WHOLE arm (kb/Work PB396, PB446).
 searchWhenClause
     : WHEN condition statementBlock
     ;
 
+// ⛔ `[ AT END imperative-statement-1 ]` — AND NOTHING ELSE, IN BOTH FORMATS (kb/Work PB446; PDF page 750). This
+// rule used to carry a `(NOT AT? END statementBlock)?` arm: the READ/RETURN phrase, which neither SEARCH format
+// prints, admitted on BOTH at once because the rule is shared — and refused only downstream, by a binder helper
+// that existed solely to name a shape the grammar should never have produced. The shape now arrives as a syntax
+// error that CobolErrorStrategy re-codes by name (COBOLNET2269, the one statement-format-shape code).
 // ISO 5.2.3: AT is printed WITHOUT an underline in every AT END phrase in the standard — measured across all
 // 11 occurrences on pages 600-829, none underlined. It is an OPTIONAL WORD, so `SEARCH … END …` is CONFORMING
-// ISO, not a vendor extension. This rule was the lone hold-out: readAtEnd, returnAtEndPhrase and
-// writeAtEndOfPage already carried `AT?`, and this one instead admitted the AT-less form through a separate
-// alternative labelled a NIST/IBM extension — which both mis-stated the standard and silently denied the
-// AT-less spelling to the NOT branch. `AT?` subsumes that alternative.
+// ISO, not a vendor extension.
 searchAtEndClause
     : AT? END statementBlock
-      (NOT AT? END statementBlock)?
     ;
 
 // ==========================================
 // SEARCH ALL (§14.9.37 — Binary Search)
 // ==========================================
 
+// ⛔ FORMAT 2 PRINTS ONE WHEN PHRASE AND NO KEY PHRASE (kb/Work PB446; rendered from PDF page 750 / printed folio
+// 720). The ellipsis sits on the `[ AND … ]` BRACKET, not on the WHEN brace (§5.2.7 scopes an ellipsis to the
+// delimited portion immediately to its left), so the WHEN phrase occurs exactly once and its AND phrase repeats
+// — the `searchAllWhenClause+` this rule carried admitted N WHENs and, nested in an enclosing WHEN-bearing
+// statement, captured the enclosing statement's next WHEN as its own. And there is no `KEY IS` phrase in any
+// edition's SEARCH format: the key lives in the OCCURS clause (§14.9.37.3 SR7), and the home-grown
+// `searchAllKeyPhrase` this rule referenced was read by NO binder, so the phrase was accepted and silently
+// discarded. Both shapes now arrive as syntax errors that CobolErrorStrategy re-codes as COBOLNET2269.
 searchAllStatement
     : SEARCH ALL dataReference
-      searchAllKeyPhrase?
       searchAtEndClause?
-      searchAllWhenClause+
+      searchAllWhenClause
       END_SEARCH?
     ;
 
-searchAllKeyPhrase
-    : KEY IS dataReference
-    ;
-
 // Format 2's trailing `{ imperative-statement-2 | NEXT SENTENCE }` is a brace alternation ⇒ required
-// (§5.2.6.3; kb/Work PB396).
+// (§5.2.6.3; kb/Work PB396). `condition` is the general rule on the standing superset posture: the Format-2
+// operand shape (data-name-1 IS EQUAL TO … / condition-name-1, AND-joined) is decomposed and screened ONCE by
+// SearchAllFormat2Rules (COBOLNET_CONTROL_FLOW_DESIGN D12), which names the rule a violation breaks.
 searchAllWhenClause
     : WHEN condition statementBlock
     ;

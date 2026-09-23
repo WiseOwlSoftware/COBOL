@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Diagnostics.CodeAnalysis;
+using Antlr4.Runtime.Tree;
 
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
@@ -739,6 +740,26 @@ internal sealed class StatementValidation(DataBinder data)
     private bool Identifier1(string verb, string written, string message)
     {
         data.Edition.Error(DiagnosticCatalog.SearchIdentifier1Operand, $"{verb} {written}: {message}");
+        return false;
+    }
+
+    /// <summary>ISO §14.9.37.3 SR4, an ALL-FORMATS rule — "If the END-SEARCH phrase is specified, the NEXT SENTENCE
+    /// phrase shall not be specified" (kb/Work PB444). Both formats call it with their WHEN arms, so the two cannot
+    /// disagree. "The NEXT SENTENCE phrase" is the WHEN phrase's own brace alternative — an arm that IS NEXT
+    /// SENTENCE (<see cref="StatementBinder.IsNextSentenceArm"/>, the ONE reading of that alternative); a NEXT
+    /// SENTENCE inside an IF nested in a WHEN arm is the IF's phrase, not this statement's. Reported and the bind
+    /// continues (§4.2.2 ¶2 — the compile has failed, and one compile reports every violation it can see).</summary>
+    /// <param name="verb">"SEARCH" or "SEARCH ALL", for the message.</param>
+    /// <param name="endSearch">The END-SEARCH phrase, or null.</param>
+    /// <param name="whenArms">The WHEN phrases' bodies, in source order.</param>
+    public bool CheckSearchEndSearchNextSentence(string verb, ITerminalNode? endSearch,
+                                                 IEnumerable<Core.StatementBlockContext> whenArms)
+    {
+        if (endSearch is null || !whenArms.Any(StatementBinder.IsNextSentenceArm)) return true;
+        data.Edition.Error(DiagnosticCatalog.SearchEndSearchNextSentence,
+            $"{verb}: the END-SEARCH phrase is specified and a WHEN phrase's body is NEXT SENTENCE — \"If the "
+            + "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §14.9.37.3 "
+            + "SR4). Write CONTINUE in that WHEN phrase, or remove END-SEARCH and end the sentence with a period.");
         return false;
     }
 

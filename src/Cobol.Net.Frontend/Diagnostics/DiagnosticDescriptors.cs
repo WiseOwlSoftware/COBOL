@@ -552,6 +552,16 @@ public static partial class DiagnosticDescriptors
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
+    // COBOLNET2269: a statement written in a shape none of its general formats prints (kb/Work PB909) — the
+    // parse-layer twin, for the shapes the grammar now REFUSES rather than admits and hands to the binder: the
+    // SEARCH phrases no SEARCH format prints (NOT AT END, a KEY phrase, a second Format-2 WHEN; kb/Work PB446).
+    // Same single-sourcing as 2172/2173: ONE code, the message composed at the CobolErrorStrategy site.
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOLNET2269 = new(
+        CobolNet.Editions.Diagnostics.DiagnosticCatalog.StatementFormatShape.Code,
+        DiagnosticSeverity.Error, "{0}");
+
+    // ══════════════════════════════════════
     // COBOL0400–0412: Bound tree builder
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL0400 = new("COBOL0400", DiagnosticSeverity.Warning,
