@@ -48396,13 +48396,13 @@
   "ordinal": 1,
   "subject": "USE statement",
   "rule-digest": "8ac9d604bb80",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore",
+  "test-ref": "conformance:negative/pb361-use-outside-declaratives; unit:DeclarativesStructuralRulesTests.AUseStatementInANondeclarativeParagraph_IsRefused; unit:DeclarativesStructuralRulesTests.ASecondUseStatementInsideADeclarativeParagraph_IsRefused",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB361. The rule has three halves. (a) 'shall immediately follow a section header' and (c) 'shall appear in a sentence by itself' ARE enforced: DeclCollectSection requires the declarative section's FIRST sentence to hold exactly one statement and that statement to be a useStatement, else COBOLNET0897 'the first sentence shall consist of a single USE statement (ISO 14.2.4 / 14.9.49 SR1)'. Probe pair.cob (`USE AFTER STANDARD ERROR PROCEDURE ON F1 DISPLAY \"X\".`) -> COBOLNET0897, correct. (b) 'in the declaratives portion of the procedure division' is NOT enforced. `useStatement` is a plain alternative of CobolParserCore.g4#statement, so a USE sentence parses anywhere in the procedure division; nothing in the nondeclarative bind path recognises it, so it falls through StatementBinder.BindStatementCore's `_ => new BoundUnsupported(...)` arm. Probe outside.cob (a USE in nondeclarative paragraph M2) compiles clean with ZERO diagnostics and runs to completion; probe second.cob (a SECOND USE inside a declarative PARAGRAPH, after the section's legal first-sentence USE) likewise compiles and runs clean. Probe reach.cob (the same statement made reachable) does not diagnose either -- it dies at run time with `NotImplementedCobolFeatureException: a COBOL feature that is not yet implemented was reached at run time: statement 'USEAFTERSTANDARDERRORPROCEDUREONF1'`, which misattributes illegal source to a missing feature. 4.2.2 requires the compile-time warning mechanism to indicate violations of the explicit syntax rules. (d) 'The remainder of the section shall consist of zero, one, or more procedural paragraphs' is satisfied: leading sentences written after the USE become an anonymous paragraph, which is exactly the 14.2.1 Format 1 declaratives shape `use-statement. [ sentence ] ... [ paragraph-name-1. [ sentence ] ... ] ...` read with 14.4.3. SCOPE LIMIT, not counted here: a DECLARATIVES portion inside a METHOD procedure division is rejected loud by StatementBinder.BindMethodRoster with DiagnosticCatalog.OoMethodDeclaratives ('DECLARATIVES inside a method are recognized but not yet implemented', anchored ISO 14.2.1) -- a declared staged loud whose primary owner is 14.2.1 Format 3, outside this clause. No test asserts COBOLNET0897 anywhere in tests/, so this row is untested even for its implemented halves.",
-  "state": "GAP"
+  "notes": "kb/Work PB361 LANDED. All three halves enforced. (a) immediately follows a section header and (c) in a sentence by itself: DeclCollectSection, COBOLNET0897, unchanged. (b) in the declaratives portion: the legal first sentence is consumed by DeclCollectSection and never bound as a statement, so every useStatement reaching StatementBinder.BindStatementCore is misplaced by construction and is refused there with COBOLNET2377 (formerly the bottom arm's BoundUnsupported: a COBOLNET1756 'not implemented' warning and a run-time abort). Every edition: COBOL-85's rule unchanged.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-2",
@@ -48426,13 +48426,13 @@
   "ordinal": 3,
   "subject": "USE statement",
   "rule-digest": "61ac9f5cba3d",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
+  "test-ref": "unit:DeclarativesStructuralRulesTests.APerformOrGoToOutOfADeclarative_IsWarned_AndCompiles; unit:DeclarativesStructuralRulesTests.AResumeAtANondeclarativeProcedure_IsNotWarned; unit:DeclarativesStructuralRulesTests.OnlyPerformAndResume_ClaimAnExemptionFromTheDeclarativesBoundary",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB362. No implementing code exists. Searched src/Cobol.Net.* for every declarative-boundary predicate: the ONLY consumer of ProcedureTableBuilder.EntryPc (the pc that separates the declarative pcs from the nondeclarative ones) in any verb binder is EcBinder.cs:114/137, and those two sites implement RESUME's OWN 14.9.33.3 SR1/SR3, not this rule -- a real clause answering a different question. ControlFlowBinder.BindGoTo and BindPerform resolve through Table.ResolveProcedure with no declarative/nondeclarative test at all. Probe sr3.cob: a declarative paragraph containing `PERFORM NONDECL-P.` AND `GO TO NONDECL-P.`, both naming a nondeclarative paragraph, compiles with ZERO diagnostics at --std 2023. 4.2.2 requires the compile-time warning mechanism to indicate violations of explicit syntax rules; nothing here indicates it, at any edition or strictness. || EDITIONS AS ADJUDICATED: 1985, 2002, 2014, 2023 (the 'except in a RESUME statement' exception from 2002, with the RESUME statement)",
-  "state": "GAP"
+  "notes": "kb/Work PB362 LANDED. A reference written in a declarative section to a nondeclarative procedure by any statement but RESUME draws the WARNING COBOLNET2375, the 4.2.2 warning mechanism; severity is determination D-DECLREF (docs/CONFORMANCE.md 3: follows GnuCOBOL; the source runs as written). Tested once, in the one procedure-name funnel ResolveProcedureOperand, of SECTION identity; only RESUME (ProcedureReferenceKind.Resume) is exempt, so a new verb inherits the rule.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-4",
@@ -48441,13 +48441,13 @@
   "ordinal": 4,
   "subject": "USE statement",
   "rule-digest": "a3844145acff",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
+  "test-ref": "conformance:85/pb362_declaratives_reference_boundary; conformance:negative/pb362-goto-into-declarative; unit:DeclarativesStructuralRulesTests.AGoToIntoADeclarativeFromTheNondeclarativePortion_IsRefused; unit:DeclarativesStructuralRulesTests.AGoToIntoADifferentDeclarativeSection_IsRefused; unit:DeclarativesStructuralRulesTests.AnAlterOfAndToADeclarativeParagraph_IsRefused; unit:DeclarativesStructuralRulesTests.AnAlterToProceedToADeclarativeParagraph_IsRefused; unit:DeclarativesStructuralRulesTests.ASortInputProcedureNamingADeclarativeSection_IsRefused; unit:DeclarativesStructuralRulesTests.PerformIntoADeclarative_AndAnyReferenceWithinTheSameSection_AreAccepted",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB362. No implementing code exists, and the compiler's design comments state the permission it never restricts: ProcedureTableBuilder.cs:124-125 ('the declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit PERFORM/GO TO -- SR4') and CodeGen/DispatchEmitter.cs:92 ('entered only via __RunUse or an explicit PERFORM/GO TO (SR4)') both cite SR4 while describing GO TO entry, which is precisely what SR4 forbids -- the rule permits ONLY a PERFORM. Probe sr4.cob: a nondeclarative paragraph containing `GO TO DP1.` where DP1 is a declarative paragraph compiles with ZERO diagnostics at --std 2023. The permitted half (PERFORM into a declarative paragraph) does work, but its only coverage is UseDeclarativeDifferentialTests.PerformIntoDeclarative_RunsAsPlainProcedure, which asserts via DifferentialGolden.Assert -- a baked legacy-oracle comparison, i.e. a characterization test, which cannot close a row. test-ref therefore empty.",
-  "state": "GAP"
+  "notes": "kb/Work PB362 LANDED. A procedure of a declarative section referenced from outside THAT section (the nondeclarative portion or a different declarative section) by any statement but PERFORM is the ERROR COBOLNET2376 (determination D-DECLREF). Asked of section identity in ResolveProcedureOperand, so GO TO (both formats), ALTER (both operands) and the SORT/MERGE INPUT/OUTPUT PROCEDURE phrases are covered by one predicate; the two design comments that described GO TO entry as the SR4 design were corrected.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-5",
@@ -48531,13 +48531,13 @@
   "ordinal": 10,
   "subject": "USE statement",
   "rule-digest": "abc22054e5a3",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectInBeforeReporting; src/Cobol.Net.Compiler/Binding/Procedure/EnclosingContext.cs#InBeforeReportingProcedure",
+  "test-ref": "conformance:negative/pb363-generate-in-before-reporting; unit:DeclarativesStructuralRulesTests.AReportWriterVerbInABeforeReportingProcedure_IsRefused; unit:DeclarativesStructuralRulesTests.GenerateInitiateAndTerminate_ReadTheOneSr10Guard",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB363. No implementing code. ReportWriterBinder.BindGenerate, BindInitiate and BindTerminate each validate only their own operand (14.9.16 SR1/SR2, 14.9.21 SR1, 14.9.46 SR1) and never ask where they are being bound. Probe sr10.cob: the rw_suppress.cob conformance program with its USE BEFORE REPORTING paragraph rewritten to `TERMINATE R-SUP. INITIATE R-SUP. GENERATE DET-A.` compiles with ZERO diagnostics at --std 2023 -- all three forbidden statements accepted inside the declarative. The mechanism the check needs already exists five methods away, in the SAME file: ReportWriterBinder.BindSuppress finds the enclosing Format-2 declarative with `ctx.Table.Declaratives.FirstOrDefault(d => d.ReportGroup is not null && ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc)` and rejects a misplaced SUPPRESS with COBOLNET1581 for 14.9.45.3 SR1. SR10 is the exact converse predicate over the same expression and was never written. || EDITIONS AS ADJUDICATED: 1985, 2002, 2014, 2023 (Report Writer, A.4.11 Partial)",
-  "state": "GAP"
+  "notes": "kb/Work PB363 LANDED. GENERATE, INITIATE and TERMINATE bound in a USE BEFORE REPORTING procedure are refused with COBOLNET2378 through ONE guard over the one bind-position probe (ctx.Enclosing), the same probe SUPPRESS's converse 14.9.45.3 SR1 reads. The run-time twin (a GENERATE reached through a PERFORM) is 14.9.49.4 GR10, kb/Work PB326.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-11",
@@ -48546,13 +48546,13 @@
   "ordinal": 11,
   "subject": "USE statement",
   "rule-digest": "619fc2b454e3",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores; src/Cobol.Net.Compiler/Binding/Bound/BoundStores.cs#StoresInto; src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+  "test-ref": "conformance:85/pb363_before_reporting_legal_store; conformance:negative/pb363-control-item-altered; unit:DeclarativesStructuralRulesTests.AStoreIntoAControlDataItem_IsRefused; unit:DeclarativesStructuralRulesTests.OtherStatementsInABeforeReportingProcedure_AreAccepted",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB363. No implementing code -- no site in src/Cobol.Net.* correlates a store target with a report's CONTROL operands. Probe sr11.cob: the rw_suppress.cob conformance program (whose RD declares `CONTROL IS WS-GRP`) with its USE BEFORE REPORTING paragraph rewritten to `MOVE 9 TO WS-GRP. ADD 1 TO WS-GRP.` compiles with ZERO diagnostics at --std 2023. This is statically checkable with the pieces already present: ReportModel.Controls holds the control data items (DataBinder.Reports.cs), the enclosing-declarative resolver is ReportWriterBinder.BindSuppress's Declaratives/BindCursor expression, and Binding/Bound/BoundStores.cs already computes each bound statement's StoreKind and target -- so the rule is a walk of the declarative's pc range asking whether any store target is a control item. 4.2.2 requires the warning mechanism to indicate violations of explicit syntax rules; nothing does. || EDITIONS AS ADJUDICATED: 1985, 2002, 2014, 2023 (Report Writer, A.4.11 Partial)",
-  "state": "GAP"
+  "notes": "kb/Work PB363 LANDED. Every statement bound in a USE BEFORE REPORTING procedure is asked, in BindStatement, whether the emitter-verified store classification (BoundStores.StoresInto, the generated exhaustive visitor) stores into any report's control data item, a group containing one, or an item subordinate to one; COBOLNET2378, one diagnostic per store (a nested statement reports at its own position and suppresses its container's). A BY REFERENCE CALL argument / INVOKE write-back is not counted: whether the callee alters it is not decidable from the source element. Residual not claimed: a store through a REDEFINES alias of a record that holds the control item is not related to it (the hierarchy test only) - a narrower-than-rule reading that never rejects legal source.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.49.3-12",

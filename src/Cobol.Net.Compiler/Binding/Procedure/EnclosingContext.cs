@@ -114,6 +114,10 @@ internal readonly struct EnclosingContext
     /// associated USE statement" (ISO §14.9.14.3 SR2, §14.9.18.3 SR1, §14.9.33.3 SR2)?</summary>
     public bool InGlobalDeclarative => Declarative is { Global: true };
 
+    /// <summary>Is this statement in a USE BEFORE REPORTING procedure (a Format-2 declarative, ISO §14.9.49.2) —
+    /// the position §14.9.45.3 SR1 admits SUPPRESS in and §14.9.49.3 SR10 / SR11 restrict (kb/Work PB363)?</summary>
+    public bool InBeforeReportingProcedure => Declarative is { ReportGroup: not null };
+
     /// <summary>The NEAREST enclosing PERFORM statement's format, or null when this statement is inside none.
     /// The WHEN / FINALLY frames are transparent here: a statement in a handler body is still inside its
     /// exception-checking PERFORM (§14.9.14.4 GR4). An OUT-OF-LINE PERFORM never appears — it does not

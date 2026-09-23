@@ -96,7 +96,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                     }
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
-            // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).
+            // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM (ISO §14.9.49.3 SR4 —
+            // no other statement may reference them from outside their section; kb/Work PB362).
             // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
             dispatchState.EmitDebugCause(w, "StartProgram");
             // The top-level run is bounded at the last MAIN paragraph (F3HandlerBasePc − 1) when the unit has

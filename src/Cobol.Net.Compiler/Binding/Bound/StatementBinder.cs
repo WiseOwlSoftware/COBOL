@@ -387,7 +387,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         data.OperandActivations = 0;
         int errorMark = data.Edition.ErrorsRecorded, refusalMark = data.Edition.RefusalsBound;
         int unbuiltMark = data.Edition.UnbuiltMark;
+        int controlStoreMark = _controlStoreReports;
         var core = BindStatementCore(s);
+        // ISO §14.9.49.3 SR11 (kb/Work PB363) — asked HERE, of every statement bound in a USE BEFORE REPORTING
+        // procedure, because this is the one funnel every statement passes through. A nested statement binds (and
+        // is asked) first, at its own position; the enclosing statement is asked only when none of its nested
+        // statements already reported, so one store is one diagnostic.
+        if (Ctx.Enclosing.InBeforeReportingProcedure && _controlStoreReports == controlStoreMark
+            && Rw.CheckControlDataStores(core))
+            _controlStoreReports++;
         bool drewError = data.Edition.ErrorsRecorded != errorMark;
         // ⛔ THE REFUSAL LEDGER'S CHECK (kb/Work PB1029). A refusal node — a BoundRejected, or a refused operand or
         // condition — says the SOURCE is wrong and that its site reported why. If this statement bound one and
@@ -448,6 +456,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// profile is taken at (<c>UdfBinder.DrainPending</c>; kb/Work PB892). Saved and restored around a nested
     /// statement by <see cref="BindStatement"/>.</summary>
     internal int StatementLine { get; private set; }
+
+    /// <summary>How many §14.9.49.3 SR11 violations <see cref="BindStatement"/> has reported — compared across a
+    /// statement's bind so an enclosing statement does not report again the store its nested statement reported.</summary>
+    private int _controlStoreReports;
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {
@@ -513,6 +525,17 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
         // conforming '85 posture; accepted-inert as a no-op.
         _ when s.enterStatement() is not null => new BoundNop(),
+        // USE (ISO §14.9.49.3 SR1 — kb/Work PB361). The ONE legal position, the first sentence of a declarative
+        // section, is consumed by ProcedureTableBuilder.DeclCollectSection and never reaches this binder, so a USE
+        // statement bound HERE is misplaced by construction: in a nondeclarative paragraph, in a declarative
+        // paragraph, or after the section's first sentence. It used to fall to the bottom arm and be announced as
+        // a feature COBOL.NET had not implemented.
+        _ when s.useStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.UseStatementPlacement,
+            "USE: a USE statement shall immediately follow a section header in the declaratives portion of the "
+            + "procedure division and shall appear in a sentence by itself (ISO §14.9.49.3 SR1); this one is "
+            + (Ctx.Enclosing.InDeclarative
+                ? "inside a declarative section, after its first sentence"
+                : "in the nondeclarative portion of the procedure division")),
         _ when s.sortStatement() is { } srt => Sort.BindSort(srt),
         _ when s.mergeStatement() is { } mrg => Sort.BindMerge(mrg),
         _ when s.releaseStatement() is { } rls => Sort.BindRelease(rls),

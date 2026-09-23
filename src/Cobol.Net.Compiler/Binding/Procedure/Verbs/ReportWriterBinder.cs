@@ -91,6 +91,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// ("processing resumes at the next implicit INITIATE statement, if any") has a boundary to land on.</summary>
     public BoundStatement BindInitiate(Core.InitiateStatementContext stmt)
     {
+        if (RejectInBeforeReporting("INITIATE") is { } refused) return refused;
         var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
@@ -106,6 +107,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// reporting) or a report-name whose RD has a CONTROL clause (SR2 — summary reporting, GR2).</summary>
     public BoundStatement BindGenerate(Core.GenerateStatementContext stmt)
     {
+        if (RejectInBeforeReporting("GENERATE") is { } refused) return refused;
         var (name, qualifier) = ReportGroupResolution.Parts(stmt.reportGroupReference());
         // The report-name form (SR2, summary reporting) has NO qualifier — §8.4.2.2 gives a report-name no
         // qualifier at all — so a qualified operand can only be the data-name form and skips this arm.
@@ -138,6 +140,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// been executed for each report-name-1" and its per-implicit-statement resumption point.</summary>
     public BoundStatement BindTerminate(Core.TerminateStatementContext stmt)
     {
+        if (RejectInBeforeReporting("TERMINATE") is { } refused) return refused;
         var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
@@ -170,6 +173,62 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         }
         var report = ctx.Data.Reports.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report);
+    }
+
+    /// <summary>ISO §14.9.49.3 SR10 (kb/Work PB363): "The GENERATE, INITIATE, or TERMINATE statements shall not
+    /// appear in a paragraph within a USE BEFORE REPORTING procedure." ONE guard read by all three verbs, over the
+    /// ONE bind-position probe SUPPRESS's converse rule (§14.9.45.3 SR1) reads, so the three cannot drift apart.
+    /// The rule is lexical ("appear in a paragraph"); the same question asked of a statement REACHED through a
+    /// PERFORM at run time is §14.9.49.4 GR10's EC-FLOW-REPORT (kb/Work PB326). Null when the statement may
+    /// proceed.</summary>
+    private BoundStatement? RejectInBeforeReporting(string verb) =>
+        ctx.Enclosing.InBeforeReportingProcedure
+            ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.UseBeforeReportingRestriction,
+                $"{verb}: this statement is in USE BEFORE REPORTING declarative section "
+                + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"The GENERATE, INITIATE, or TERMINATE statements "
+                + "shall not appear in a paragraph within a USE BEFORE REPORTING procedure\" (ISO §14.9.49.3 SR10)")
+            : null;
+
+    /// <summary>ISO §14.9.49.3 SR11 (kb/Work PB363): "A USE BEFORE REPORTING procedure shall not alter the value of
+    /// any control data item." Asked of one BOUND statement, through the ONE store classification
+    /// (<see cref="BoundStores.StoresInto"/>), by <c>StatementBinder.BindStatement</c> for every statement bound in a
+    /// USE BEFORE REPORTING procedure — so every verb that can store is covered by the classification's
+    /// totality, never by a per-verb list here.
+    /// <para>"Alter the value" is read over the storage the control data item occupies: a store into the item, into
+    /// a group that contains it, or into an item subordinate to it (a MOVE to the record that holds the control
+    /// field alters the field). "Any control data item" is literal — the control data items of every report of
+    /// the source element, not only the report whose group the procedure names.</para></summary>
+    /// <returns>True HAVING REPORTED a violation.</returns>
+    public bool CheckControlDataStores(BoundStatement core)
+    {
+        List<DataItem>? controls = null;
+        foreach (var r in ctx.Data.Reports)
+            foreach (var c in r.Controls)
+                if (c.Item is { } item) (controls ??= []).Add(item);
+        if (controls is null) return false;
+
+        DataItem? hit = null;
+        if (!BoundStores.StoresInto(core, stored =>
+            {
+                foreach (var c in controls)
+                    if (SameStorageLine(stored, c)) { hit = c; return true; }
+                return false;
+            }))
+            return false;
+        ctx.Edition.Error(DiagnosticCatalog.UseBeforeReportingRestriction,
+            $"this statement alters control data item '{hit!.CobolName}' in USE BEFORE REPORTING declarative section "
+            + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"A USE BEFORE REPORTING procedure shall not alter the "
+            + "value of any control data item\" (ISO §14.9.49.3 SR11)");
+        return true;
+    }
+
+    /// <summary>Is one of the two items the other or an ancestor of it — the hierarchy in which a store into one
+    /// alters the other's value?</summary>
+    private static bool SameStorageLine(DataItem a, DataItem b)
+    {
+        for (var x = b; x is not null; x = x.Parent) if (ReferenceEquals(x, a)) return true;
+        for (var x = a.Parent; x is not null; x = x.Parent) if (ReferenceEquals(x, b)) return true;
+        return false;
     }
 
     private ReportModel? RwFindReport(string name) =>

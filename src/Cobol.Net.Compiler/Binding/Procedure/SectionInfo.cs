@@ -14,10 +14,10 @@ namespace CobolNet.Binding.Procedure;
 /// produces the same numbers (kb/Work PB440; see <see cref="PcRange"/>).</para></summary>
 /// <param name="isDeclarative">True for a section of the DECLARATIVES portion (ISO §14.3). It is a property of
 /// the section, not of its pc numbers: the declarative sections share the ONE pc space with the ordinary
-/// procedure division (they are entered by the USE dispatch, an explicit PERFORM or a GO TO), so "is this pc
+/// procedure division (they are entered by the USE dispatch or an explicit PERFORM — ISO §14.9.49.3 SR4), so "is this pc
 /// below <c>EntryPc</c>" is an arithmetic re-derivation of a fact the collection already knows. The rules that
-/// ask — §14.9.28.3 SR11's PERFORM range, and the analogous constraints on GO TO, ALTER and the SORT/MERGE
-/// procedure phrases — ask about the SECTION.</param>
+/// ask — §14.9.28.3 SR11's PERFORM range, and §14.9.49.3 SR3/SR4's declaratives boundary on every procedure-name
+/// reference (<c>StatementValidation.CheckDeclarativesBoundary</c>) — ask about the SECTION.</param>
 internal sealed class SectionInfo(string name, int startPc, bool isDeclarative = false)
 {
     public string Name { get; } = name;

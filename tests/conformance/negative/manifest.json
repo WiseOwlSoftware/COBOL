@@ -1449,7 +1449,11 @@
   "pb1010-declaratives-outside-method",
   "pb1025-indexed-key-beyond-minimum",
   "pb1025-sort-key-after-dynamic-beyond-minimum",
-  "pb1025-alternate-key-beyond-minimum"
+  "pb1025-alternate-key-beyond-minimum",
+  "pb361-use-outside-declaratives",
+  "pb362-goto-into-declarative",
+  "pb363-generate-in-before-reporting",
+  "pb363-control-item-altered"
  ],
  "pending": []
 }

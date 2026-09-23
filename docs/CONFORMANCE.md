@@ -788,6 +788,25 @@ of an unsupported facility.
   reading — admitting them as user words at every edition — would make each vendor construct ambiguous with a
   data reference in every operand list.
 
+- **D-DECLREF — the declaratives reference boundary: an SR4 violation is an error, an SR3 violation is a warning
+  (kb/Work PB362).** §14.9.49.3 SR3 ("Within a declarative procedure, there shall be no reference to any
+  nondeclarative procedures except in a RESUME statement") and SR4 ("Procedure-names within a declarative section
+  may be referenced in a different declarative section or in a nondeclarative procedure only with a PERFORM
+  statement") are syntax rules. For a syntax rule the standard requires only §4.2.2's "warning mechanism", so the
+  standard settles WHETHER a reference violates the boundary, but not the severity. The severity is therefore
+  implementor latitude, and the owner's precedence (ISO, then GnuCOBOL, then IBM or Micro Focus) decides it. An
+  **SR4** violation is an **ERROR, COBOLNET2376**. A GO TO, an ALTER, or a SORT/MERGE INPUT or OUTPUT PROCEDURE
+  phrase that enters a USE procedure from outside its section has no activating USE for §14.9.49.4 GR7's return,
+  and GnuCOBOL refuses a reference into DECLARATIVES from outside them. An **SR3** violation is a **WARNING,
+  COBOLNET2375**, as it is in GnuCOBOL. A PERFORM or GO TO of a nondeclarative procedure from a USE procedure runs
+  as written, is common in production source, and IBM Enterprise COBOL and Micro Focus accept it without comment.
+  ⚠ The GnuCOBOL postures are recalled, not measured: the implementer host has no GnuCOBOL install, and the
+  differential run is where they are confirmed. Both rules are asked of SECTION identity in the one
+  procedure-name funnel (`ProcedureTableBuilder.ResolveProcedureOperand` →
+  `StatementValidation.CheckDeclarativesBoundary`), so every statement that takes a procedure-name inherits them.
+  Only PERFORM and RESUME claim an exemption. Pinned by `unit:DeclarativesStructuralRulesTests`,
+  `conformance:85/pb362_declaratives_reference_boundary` and `conformance:negative/pb362-goto-into-declarative`.
+
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following whole facilities are **not implemented**, and every element of each is **recognized and refused or

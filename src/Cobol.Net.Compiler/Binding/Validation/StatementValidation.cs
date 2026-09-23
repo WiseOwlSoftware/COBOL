@@ -304,6 +304,63 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    /// <summary>⛔ ISO §14.9.49.3 SR3 and SR4 — the DECLARATIVES BOUNDARY on a procedure-name reference (kb/Work
+    /// PB362). A two-arm rule whose arms point in OPPOSITE directions, and each arm exempts a different verb:
+    /// <list type="bullet">
+    /// <item><b>SR3, OUT of a declarative</b> — "Within a declarative procedure, there shall be no reference to any
+    /// nondeclarative procedures except in a RESUME statement." The reference is written inside a declarative
+    /// section and names a procedure outside the declaratives portion.</item>
+    /// <item><b>SR4, INTO a declarative section</b> — "Procedure-names within a declarative section may be
+    /// referenced in a different declarative section or in a nondeclarative procedure only with a PERFORM
+    /// statement." The reference names a procedure of a declarative section and is written anywhere outside THAT
+    /// section.</item>
+    /// </list>
+    /// <para>Both are asked of SECTION IDENTITY (the collected <see cref="Procedure.SectionInfo"/> the reference is
+    /// written in and the one the resolution carries), never of pc arithmetic — the PB433 shape.</para>
+    /// <para>⚠ DETERMINATION (docs/CONFORMANCE.md §3, "Declaratives reference boundary"): the standard asks of a
+    /// syntax-rule violation only §4.2.2's warning mechanism, so the SEVERITY is ours to choose, and the owner's
+    /// precedence (ISO, then GnuCOBOL) settles it: an SR4 violation is an ERROR — a GO TO, ALTER or SORT/MERGE
+    /// procedure phrase that enters a USE procedure from outside has no activating USE to return to (§14.9.49.4
+    /// GR7), and GnuCOBOL refuses it ("invalid reference … in DECLARATIVES") — while an SR3 violation is a
+    /// WARNING, as GnuCOBOL's is: a PERFORM of a nondeclarative paragraph from a USE procedure is executable as
+    /// written and is common in production source, which IBM Enterprise COBOL and Micro Focus accept outright.</para>
+    /// <para>Every edition: both rules are COBOL-85's USE syntax rules carried unchanged into 2023.</para></summary>
+    /// <param name="target">The resolved procedure.</param>
+    /// <param name="referencingSection">The section containing the reference (null outside every section).</param>
+    /// <param name="name">The procedure-name as written, for the message.</param>
+    /// <param name="verb">The statement or phrase, for the message.</param>
+    /// <param name="kind">Which statement writes the reference — PERFORM and RESUME are the two exemptions.</param>
+    /// <returns>False HAVING REPORTED the SR4 error; true otherwise (including after the SR3 warning).</returns>
+    public bool CheckDeclarativesBoundary(
+        ResolvedProcedure target, SectionInfo? referencingSection, string name, string verb,
+        ProcedureReferenceKind kind)
+    {
+        bool fromDeclarative = referencingSection is { IsDeclarative: true };
+        // SR4 — a procedure of a declarative section, referenced from outside THAT section by anything but PERFORM.
+        if (target.IsDeclarative && !ReferenceEquals(target.Section, referencingSection)
+            && kind != ProcedureReferenceKind.Perform)
+        {
+            data.Edition.Error(DiagnosticCatalog.DeclarativeReferencedFromOutside,
+                $"{verb} '{name}': '{name}' is a procedure of declarative section '{target.Section!.Name}', and this "
+                + "statement is " + (fromDeclarative
+                    ? $"in a different declarative section, '{referencingSection!.Name}'"
+                    : "in the nondeclarative portion of the procedure division")
+                + " — \"Procedure-names within a declarative section may be referenced in a different declarative "
+                + "section or in a nondeclarative procedure only with a PERFORM statement\" (ISO §14.9.49.3 SR4). A USE "
+                + "procedure is entered by its USE dispatch or performed; PERFORM it, or move the shared code out of "
+                + "the declaratives.");
+            return false;
+        }
+        // SR3 — a nondeclarative procedure, referenced from inside a declarative procedure by anything but RESUME.
+        if (fromDeclarative && !target.IsDeclarative && kind != ProcedureReferenceKind.Resume)
+            data.Edition.Warning(DiagnosticCatalog.DeclarativeReferencesNondeclarative,
+                $"{verb} '{name}': '{name}' is in the nondeclarative portion of the procedure division, and this "
+                + $"statement is in declarative section '{referencingSection!.Name}' — \"Within a declarative "
+                + "procedure, there shall be no reference to any nondeclarative procedures except in a RESUME "
+                + "statement\" (ISO §14.9.49.3 SR3)");
+        return true;
+    }
+
     /// <summary>One end of a procedure range, described the way SR11 divides them: the declarative section it
     /// belongs to, or the nondeclarative portion (ISO §14.3).</summary>
     private static string Portion(ResolvedProcedure end, string name) =>

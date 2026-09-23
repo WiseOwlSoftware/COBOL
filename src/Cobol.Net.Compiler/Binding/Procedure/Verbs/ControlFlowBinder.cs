@@ -439,16 +439,15 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // the first binder, but delivered as a BoundUnsupported, i.e. compiled into the program as a run-time
         // abort blaming COBOL.NET for a gap. Each arm names its OWN rule number; fixing one and not the other is
         // the two-arm defect this project keeps finding.
-        if (ctx.Table.ResolveProcedureOperand(names[0], "PERFORM", PerformNameRule("Procedure-name-1", "SR12")) is not { } first)
+        if (ctx.Table.ResolveProcedureOperand(names[0], "PERFORM", PerformNameRule("Procedure-name-1", "SR12"),
+                ProcedureReferenceKind.Perform) is not { } first)
             return BoundRejected.Reported(ctx.Edition);
         var range = first.Range;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
-            if (ctx.Table.ResolveProcedureOperand(names[1], "PERFORM THRU", PerformNameRule("Procedure-name-2", "SR13")) is not { } thru)
+            if (ctx.Table.ResolveProcedureOperand(names[1], "PERFORM THRU", PerformNameRule("Procedure-name-2", "SR13"),
+                    ProcedureReferenceKind.Perform) is not { } thru)
                 return BoundRejected.Reported(ctx.Edition);
-            // ⛔ SR11 — THE DECLARATIVES CONSTRAINT ON THE COMPOSED RANGE (kb/Work PB433). It is checked HERE,
-            // where BOTH ends are resolved and both still carry their owning sections, because the composition
-            // below throws the sections away and leaves a pc pair no later pass can ask the question of.
             // ⛔ SR11 — THE DECLARATIVES CONSTRAINT ON THE COMPOSED RANGE (kb/Work PB433). It is checked HERE,
             // where BOTH ends are resolved and both still carry their owning sections, because the composition
             // below throws the sections away and leaves a pc pair no later pass can ask the question of.

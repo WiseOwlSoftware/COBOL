@@ -20,6 +20,28 @@ internal enum ProcedureAmbiguityRule
     InSectionDuplicate,
 }
 
+/// <summary>What KIND of statement writes a procedure-name reference — the one fact ISO §14.9.49.3 SR3 and SR4
+/// turn on. The declaratives boundary may be crossed by a reference only in two directions and only by one verb
+/// each: SR3 ("Within a declarative procedure, there shall be no reference to any nondeclarative procedures except
+/// in a RESUME statement") lets a RESUME reach OUT of a declarative, and SR4 ("Procedure-names within a
+/// declarative section may be referenced in a different declarative section or in a nondeclarative procedure only
+/// with a PERFORM statement") lets a PERFORM reach IN.
+/// <para>⛔ <see cref="Other"/> IS THE DEFAULT, AND THAT IS THE RULE (kb/Work PB362): every statement except those
+/// two is restricted, so a verb added later that takes a procedure-name inherits both restrictions without being
+/// taught them. Only the two exempt verbs have to say who they are.</para></summary>
+internal enum ProcedureReferenceKind
+{
+    /// <summary>Any statement other than PERFORM and RESUME — GO TO (both formats), ALTER, and the SORT/MERGE
+    /// INPUT and OUTPUT PROCEDURE phrases today.</summary>
+    Other,
+
+    /// <summary>A PERFORM statement's procedure-name-1 / procedure-name-2 — SR4's exemption.</summary>
+    Perform,
+
+    /// <summary>A RESUME AT procedure-name-1 — SR3's exemption.</summary>
+    Resume,
+}
+
 /// <summary>An unresolvable procedure-name reference, with everything the ONE reporting step needs to name the
 /// rule and the candidates. Carried out of the resolver rather than reported inside it, because the resolver is
 /// also the QUIET prescan path.</summary>

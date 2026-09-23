@@ -587,6 +587,13 @@ GO-TO-out-of-and-back-into a PERFORM range are correct *for free*.
 - **DECLARATIVES/USE:** ONE pc index space over ALL paragraphs INCLUDING declaratives (so every pc value agrees), but
   `Main` starts at `EntryParagraphIndex` (first paragraph after END DECLARATIVES, ISO §14.4). A declarative is
   reached ONLY via a `Dispatch(declStart, declEnd)` call from the runtime I/O/error path, never main fall-through.
+  The declaratives' STRUCTURAL syntax rules live at three funnels, never per verb (kb/Work PB361–PB363): §14.9.49.3
+  SR1's USE placement — the legal first sentence is consumed by `DeclCollectSection`, so any `useStatement` that
+  reaches `BindStatementCore` is misplaced (COBOLNET2377); SR3/SR4's reference boundary — asked of section identity
+  in `ResolveProcedureOperand`, the one procedure-name funnel, with only PERFORM (SR4) and RESUME (SR3) exempt
+  (COBOLNET2376 error / COBOLNET2375 warning, determination D-DECLREF); SR10/SR11's USE BEFORE REPORTING
+  restrictions — `ctx.Enclosing.InBeforeReportingProcedure`, read by GENERATE/INITIATE/TERMINATE and by
+  `BindStatement`'s store check over `BoundStores.StoresInto` (COBOLNET2378).
   (Avoid the legacy off-by-N: dispatch order excluding declaratives while pc values include them.)
 - **EVALUATE → a chained if/else-if/else, NOT a C# switch** (ISO §14.9.13.4 GR4: process each WHEN left-to-right,
   first match). WHEN arms are ranges/conditions/multiple-ALSO/ANY/partial-expressions — not constant case labels.

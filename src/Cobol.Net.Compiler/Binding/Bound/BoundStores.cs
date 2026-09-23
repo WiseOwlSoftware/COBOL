@@ -51,14 +51,28 @@ public static class BoundStores
     /// classification; <see langword="null"/> = a statement type outside the classified taxonomy (stage
     /// loud, never guess). A property temp occurs at exactly ONE Place in the tree, so the first store
     /// found is total.</summary>
-    public static StoreKind? StoreKindOf(BoundStatement s, DataItem item) => s.Accept(new StoreKindVisitor(item));
+    public static StoreKind? StoreKindOf(BoundStatement s, DataItem item) =>
+        s.Accept(new StoreKindVisitor(x => ReferenceEquals(x, item), crossingsStore: true));
+
+    /// <summary>Does <paramref name="s"/>, or any statement nested in it, STORE into an item
+    /// <paramref name="matches"/> accepts? The second client (kb/Work PB363, ISO §14.9.49.3 SR11 "A USE BEFORE
+    /// REPORTING procedure shall not alter the value of any control data item"): the same emitter-verified
+    /// classification, asked of a SET of items instead of one.
+    /// <para>A BY REFERENCE CALL argument and an INVOKE write-back are NOT stores here: whether the callee alters
+    /// the argument is not decidable from this source element, and a syntax rule that fired on the possibility
+    /// would reject a conforming program. The OO property desugar counts them (it must run the SET accessor after
+    /// a crossing), which is why the choice is a parameter of the walk and not of the node.</para>
+    /// <para>A statement outside the classified taxonomy (the <see langword="null"/> arms: pointer, object and
+    /// carrier stores) answers false: none of them stores into a data item that has a PICTURE.</para></summary>
+    public static bool StoresInto(BoundStatement s, Func<DataItem, bool> matches) =>
+        s.Accept(new StoreKindVisitor(matches, crossingsStore: false)) is StoreKind.Write or StoreKind.ReadWrite;
 
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
     /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>.</summary>
-    private sealed class StoreKindVisitor(DataItem item) : IBoundStatementVisitor<StoreKind?>
+    private sealed class StoreKindVisitor(Func<DataItem, bool> matches, bool crossingsStore) : IBoundStatementVisitor<StoreKind?>
     {
-        private bool Hit(Place? p) => p is not null && ReferenceEquals(p.Item, item);
+        private bool Hit(Place? p) => p is not null && matches(p.Item);
         private bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp && Hit(sp.Place);
         /// <summary>The RECEIVER of a bound <c>… INTO</c> implicit move (kb/Work PB348 — identifier-1 now rides
         /// the move rather than the I-O node). Asked of the move's own target list, which is the same single
@@ -90,10 +104,10 @@ public static class BoundStores
             foreach (var a in actions)
                 switch (a)
                 {
-                    case InitializeStore st when st.Target.Item == item: return true;
-                    case InitializeSetNull sn when sn.Target.Item == item: return true;
+                    case InitializeStore st when matches(st.Target.Item): return true;
+                    case InitializeSetNull sn when matches(sn.Target.Item): return true;
                     // §14.9.20.4 GR4/GR6b's implicit SET stores into its TARGET (identifier-2 is the sender).
-                    case InitializeSetFrom sf when sf.Target.Item == item: return true;
+                    case InitializeSetFrom sf when matches(sf.Target.Item): return true;
                     case InitializeLoop lp when InitStores(lp.Body): return true;
                     // A Format-2 (table) VALUE select stores into the receiver on EVERY arm it has (ISO
                     // §14.9.20.4 GR5c1c) — the arms differ only in which literal reaches it, so any one of them
@@ -240,11 +254,11 @@ public static class BoundStores
 
         // ── CALL / INVOKE (BY REFERENCE crossings: copy-in + writeback = ReadWrite) ──────────────────────
         public StoreKind? Visit(BoundCallProgram n) =>
-            n.Args.Any(a => a.Mode == CobolPassMode.Reference && Hit(a.Place))
+            crossingsStore && n.Args.Any(a => a.Mode == CobolPassMode.Reference && Hit(a.Place))
                 ? StoreKind.ReadWrite
                 : StoreOrKids(Hit(n.Returning), StoreKind.Write, n.OnException, n.NotOnException);
         public StoreKind? Visit(BoundInvoke n) =>
-            (n.Args?.Any(a => a.WriteBack && Hit(a.Source)) ?? false) ? StoreKind.ReadWrite
+            crossingsStore && (n.Args?.Any(a => a.WriteBack && Hit(a.Source)) ?? false) ? StoreKind.ReadWrite
             : Hit(n.Returning) ? StoreKind.Write
             : StoreKind.None;
 

@@ -4937,6 +4937,53 @@ public static class DiagnosticCatalog
         + "refusal reaches, so the reference is neither reported as undefined nor announced as a COBOL.NET gap.",
         "ISO §8.4.2.1 (the reference identifies no bindable resource)");
 
+    /// <summary>§14.9.49.3 SR3 — a statement in a declarative procedure references a nondeclarative procedure, and
+    /// the statement is not RESUME (kb/Work PB362). A WARNING by determination (docs/CONFORMANCE.md §3): §4.2.2 asks
+    /// only for a warning mechanism, the reference is executable as written, and the owner's precedence follows
+    /// GnuCOBOL, which warns.</summary>
+    public static readonly DiagnosticDescriptor DeclarativeReferencesNondeclarative = new(
+        "COBOLNET2375", "declarative-references-nondeclarative", EditionSeverity.Warning,
+        "A statement in a declarative procedure names a procedure in the nondeclarative portion of the procedure "
+        + "division. ISO §14.9.49.3 SR3: \"Within a declarative procedure, there shall be no reference to any "
+        + "nondeclarative procedures except in a RESUME statement.\" The program compiles and the statement runs "
+        + "as written; the warning is the §4.2.2 indication that the source is outside the standard.",
+        "ISO §14.9.49.3 SR3");
+
+    /// <summary>§14.9.49.3 SR4 — a procedure of a declarative section is referenced from outside that section by a
+    /// statement other than PERFORM (kb/Work PB362). An ERROR by determination (docs/CONFORMANCE.md §3).</summary>
+    public static readonly DiagnosticDescriptor DeclarativeReferencedFromOutside = new(
+        "COBOLNET2376", "declarative-referenced-from-outside", EditionSeverity.Error,
+        "A GO TO, ALTER, or SORT/MERGE INPUT or OUTPUT PROCEDURE phrase names a procedure of a declarative section "
+        + "from outside that section. ISO §14.9.49.3 SR4: \"Procedure-names within a declarative section may be "
+        + "referenced in a different declarative section or in a nondeclarative procedure only with a PERFORM "
+        + "statement.\" A USE procedure is entered by its USE dispatch or by a PERFORM, which returns; a transfer "
+        + "into it has no activating USE to return to.",
+        "ISO §14.9.49.3 SR4");
+
+    /// <summary>§14.9.49.3 SR1 — a USE statement written anywhere other than immediately after a declarative
+    /// section header (kb/Work PB361). The grammar admits USE as an ordinary statement so that the misplacement is
+    /// named here rather than reported as a bare syntax error; the legal position is consumed by the declarative
+    /// collection, so every USE statement that reaches the statement binder is misplaced.</summary>
+    public static readonly DiagnosticDescriptor UseStatementPlacement = new(
+        "COBOLNET2377", "use-statement-placement", EditionSeverity.Error,
+        "A USE statement appears somewhere other than immediately after a section header in the declaratives "
+        + "portion. ISO §14.9.49.3 SR1: \"A USE statement, when present, shall immediately follow a section header "
+        + "in the declaratives portion of the procedure division and shall appear in a sentence by itself.\" A USE "
+        + "statement is not executable; it describes when its declarative section runs.",
+        "ISO §14.9.49.3 SR1");
+
+    /// <summary>§14.9.49.3 SR10 / SR11 — the two restrictions on a USE BEFORE REPORTING procedure (kb/Work PB363):
+    /// no GENERATE, INITIATE, or TERMINATE statement in its paragraphs, and no alteration of a control data
+    /// item.</summary>
+    public static readonly DiagnosticDescriptor UseBeforeReportingRestriction = new(
+        "COBOLNET2378", "use-before-reporting-restriction", EditionSeverity.Error,
+        "A USE BEFORE REPORTING procedure contains a statement its syntax rules forbid. ISO §14.9.49.3 SR10: \"The "
+        + "GENERATE, INITIATE, or TERMINATE statements shall not appear in a paragraph within a USE BEFORE "
+        + "REPORTING procedure.\" SR11: \"A USE BEFORE REPORTING procedure shall not alter the value of any "
+        + "control data item.\" The procedure runs inside the report writer's processing of a report group, and "
+        + "the report's control break detection has already read the control data items.",
+        "ISO §14.9.49.3 SR10 / SR11");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

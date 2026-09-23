@@ -129,8 +129,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         var used = new HashSet<string>(StringComparer.Ordinal);
 
         // DECLARATIVES first (ISO §14.2.3 GR1 — execution begins with the first NONdeclarative procedure; the
-        // declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit
-        // PERFORM/GO TO — SR4). The walk records the BoundDeclarative scopes (StatementBinder.Declaratives.cs).
+        // declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit PERFORM —
+        // §14.9.49.3 SR4 admits no other reference into a declarative section from outside it, and
+        // ResolveProcedureOperand enforces it, kb/Work PB362). The walk records the BoundDeclarative scopes
+        // (StatementBinder.Declaratives.cs).
         foreach (var dp in pd.declarativePart())
             foreach (var sec in dp.declarativeSection())
             {
@@ -182,15 +184,26 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// PERFORM COMPILED, produced an assembly, and aborted the run unit claiming COBOL.NET had not implemented a
     /// feature; on a path the flow skipped it said nothing at all. ISO §4.2.2 ¶2 requires the compile-time
     /// mechanism. The message itself lives in the ONE syntax-rule catalog
-    /// (<see cref="Validation.StatementValidation.RejectProcedureName"/>), never here.</para></summary>
+    /// (<see cref="Validation.StatementValidation.RejectProcedureName"/>), never here.</para>
+    /// <para>⛔ THE DECLARATIVES BOUNDARY IS TESTED HERE, ONCE, FOR EVERY STATEMENT (kb/Work PB362). ISO §14.9.49.3
+    /// SR3 and SR4 restrict every procedure-name REFERENCE, and this is the funnel every statement reference passes
+    /// through, so a verb that takes a procedure-name inherits both rules by construction. The quiet prescan
+    /// (<see cref="ResolveProcedureQuiet"/>) is not a reference of its own and is not tested.</para></summary>
     /// <param name="pn">The procedure-name as written.</param>
     /// <param name="verb">The statement or phrase for the message, e.g. "PERFORM", "SORT INPUT PROCEDURE".</param>
     /// <param name="rule">The caller's OWN syntax rule quoted with its citation (PERFORM §14.9.28.3 SR12/SR13);
     /// "" where the statement states none and §8.4.2.1 alone decides (GO TO, ALTER, RESUME AT).</param>
-    public ResolvedProcedure? ResolveProcedureOperand(Core.ProcedureNameContext pn, string verb, string rule = "")
+    /// <param name="kind">Which statement writes the reference, for the declaratives boundary (ISO §14.9.49.3
+    /// SR3/SR4). Only PERFORM and RESUME pass anything but the default — see
+    /// <see cref="ProcedureReferenceKind"/>.</param>
+    public ResolvedProcedure? ResolveProcedureOperand(
+        Core.ProcedureNameContext pn, string verb, string rule = "",
+        ProcedureReferenceKind kind = ProcedureReferenceKind.Other)
     {
         var resolved = Resolve(pn);
-        if (resolved.Procedure is { } procedure) return procedure;
+        if (resolved.Procedure is { } procedure)
+            return ctx.Validation.CheckDeclarativesBoundary(procedure, ctx.CurrentSection, pn.GetText(), verb, kind)
+                ? procedure : null;
         string head = pn.GetChild(0).GetText();
         // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
         // reference that uniquely identifies that resource", but they are different rules with different
