@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Runtime;
 
 namespace CobolNet.Binding.Bound;
@@ -70,6 +71,19 @@ public sealed partial class StatementBinder
     /// later widening lands in one of them only.</para></summary>
     private static PicInfo SegmentTempPic => Procedure.SendingValueTemp.FunctionValuePic;
 
+    /// <summary>The COBOLNET2363 text for a segment that is not an arithmetic expression (kb/Work PB1030) — the
+    /// word ALL in a subscript names §8.4.2.3.3 SR6's two contexts; anything else names the position's own rule.</summary>
+    private static string IllegalSegmentMessage(string segment, SegmentPosition position) =>
+        position == SegmentPosition.RefMod
+            ? $"'{segment}' is written as a reference-modification bound, but a leftmost-position and a length shall "
+              + "be arithmetic expressions (ISO §8.4.3.3.3 SR4)."
+        : string.Equals(segment, "ALL", StringComparison.OrdinalIgnoreCase)
+            ? "the subscript ALL is written where it is not permitted: ISO §8.4.2.3.3 SR6 — \"The subscript ALL may "
+              + "be used only\" when the subscripted identifier is an intrinsic function argument, or as the rightmost "
+              + "or only subscript of a table in the table format of a SORT statement. Write the occurrence you mean."
+        : $"'{segment}' is written as a subscript, but a subscript is ALL, an arithmetic expression, or an index-name "
+          + "optionally followed by + or - and an integer (ISO §8.4.2.3.2).";
+
     /// <summary>Materialize one function-bearing subscript / ref-mod segment (the D18 route; the
     /// <c>ReferenceResolver.MaterializeSegment</c> hook). Returns the §15.4 temporary the segment's value lands
     /// in, or <see langword="null"/> to leave the caller's loud posture untouched.
@@ -87,11 +101,19 @@ public sealed partial class StatementBinder
     private DataItem? MaterializeSubscriptSegment(string text, SegmentPosition position, int line)
     {
         if (Frontend.Parsing.SubscriptExpressionFragment.Parse(text, Ctx.Edition.Edition, Ctx.Retypes) is not { } frag)
-            // A segment that does not parse as an arithmetic expression is NOT a diagnosis of the source: the
-            // renderer also routes here for shapes it merely cannot render (SUB_ALL, a string literal), each of
-            // which needs its own clause read before it is admitted or rejected by name. Staying null preserves
-            // the pre-D18 behaviour for them exactly.
+        {
+            // ⛔ A SEGMENT THAT IS NOT AN ARITHMETIC EXPRESSION IS NOT A SUBSCRIPT (kb/Work PB1030). The renderer
+            // routes here every token it cannot render itself, and this parse is the adjudicator: §8.4.2.3.2 writes
+            // a subscript as ALL, arithmetic-expression-1, or index-name-1 [{+|-} integer-1] (the last renders on
+            // the fast path and never arrives here), and §8.4.3.3.3 SR4 makes both reference-modifier bounds
+            // arithmetic expressions. What fails the parse is therefore the word ALL outside the two places
+            // §8.4.2.3.3 SR6 admits it — an intrinsic-function argument or a SORT table's rightmost subscript,
+            // neither of which resolves through here — or not a subscript at all (`E("A")`). This used to return
+            // null UNREPORTED, and the resolver's caller bound a run-time NotImplemented: `DISPLAY E("A")`
+            // compiled with a "not implemented" warning and aborted the run unit.
+            Ctx.Edition.Error(DiagnosticCatalog.NotASubscript, IllegalSegmentMessage(text.Trim(), position));
             return null;
+        }
 
         // ⛔ THE POSITION DECIDES THE CONTEXT (kb/Work PB170/PB172). ISO §13.18.38.3 r7 lists five contexts in
         // which an index-name may be referenced — "as a subscript; in the VARYING phrase of a PERFORM statement;
@@ -104,7 +126,13 @@ public sealed partial class StatementBinder
         var value = position == SegmentPosition.Subscript
             ? Expr.BindIndexNameWindowExpr(frag.arithmeticExpression())   // a SUBSCRIPT: r7 yes, SR10 no (kb/Work R29, PB215)
             : Expr.BindExpr(frag.arithmeticExpression());             // a ref-mod bound is NOT (§8.4.3.3.3 SR4)
-        if (value is BoundExprError) return null;   // already diagnosed by the expression binder
+        if (value is BoundExprError err)
+        {
+            // Refused: the expression binder reported it. Unbuilt: an operand of the segment is a deferred shape, so
+            // the REFERENCE is deferred too, not refused (kb/Work PB1030) — the resolver reads that from here.
+            if (err.IsUnbuilt) refs.NoteSegmentDeferred();
+            return null;
+        }
 
         // The MODEL is a description carrier only: CreateCompilerTemp clones its Pic (and, for a group, its
         // subtree) and mints the temp's own names, so the model's own names are never emitted or registered.

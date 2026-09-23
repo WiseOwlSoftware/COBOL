@@ -136,8 +136,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // program-prototype-name-1 determines the externalized program-name of the program being
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
-            else if (host.Expr.ResolveSending(dref) is not { } place)
-                return new BoundUnsupported($"CALL target '{DataBinder.WrittenText(dref)}'");
+            else if (host.Expr.ResolveSending(dref) is var calleeAnswer && calleeAnswer.Place is not { } place)
+                return calleeAnswer.Refusal(ctx.Edition);   // the resolver's answer picks the node (kb/Work PB1030)
             else
             {
                 dynamicName = new BoundFieldOperand(place);
@@ -259,9 +259,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // tree (kb/Work PB221 — this arm used to commit the probe's Place, so `BY CONTENT E(XE)` with
                 // `XE PIC X(4)` compiled clean while the BY REFERENCE operand of the same statement drew
                 // COBOLNET0844, and a function-bearing subscript bound occurrence 1).
-                if (cDref is not null && ctx.Refs.Probe(cDref) is not null
-                    && host.Expr.ResolveSending(cDref) is { } cp)
+                if (cDref is not null && ctx.Refs.Probe(cDref) is not null)
                 {
+                    // Discriminated as identifier-2: the committed answer decides, never a fall-through to the
+                    // expression arms (kb/Work PB1030).
+                    if (host.Expr.ResolveSending(cDref) is var cr && cr.Place is not { } cp) return cr.Refusal(ctx.Edition);
                     ScreenCallOperand(cp, CobolPassMode.Content, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
                 }
@@ -323,9 +325,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     Sr23LiteralIsNumeric(vlit, "BY VALUE");
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, host.Expr.LiteralOperand(vlit)));
                 }
-                else if (vDref is { } vdref && ctx.Refs.Probe(vdref) is not null
-                         && host.Expr.ResolveSending(vdref) is { } vp)
+                else if (vDref is { } vdref && ctx.Refs.Probe(vdref) is not null)
                 {
+                    if (host.Expr.ResolveSending(vdref) is var vr && vr.Place is not { } vp) return vr.Refusal(ctx.Edition);   // kb/Work PB1030
                     // identifier-4 — a SENDING operand (SR17), crossing on ITS OWN carrier and its own
                     // Digits/Scale through the Place arm of CallEmitter.ArgText, exactly as the BY CONTENT
                     // identifier does. Probe-to-discriminate then Resolve-to-commit, the PB221 discipline.
@@ -422,8 +424,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // A sending operand resolves through the SENDING resolver: the receiving chokepoint's screens
                 // (§13.18.15.3 SR2, the CAPACITY register, LINE-COUNTER) are receiving-operand rules and would
                 // be false rejections here.
-                if ((byContentAssumed || bareMode is CobolPassMode.Value
-                        ? host.Expr.ResolveSending(bare) : host.Expr.ResolveReceiving(bare)) is not { } bp)
+                Place? bp;
+                if (byContentAssumed || bareMode is CobolPassMode.Value)
+                {
+                    if (host.Expr.ResolveSending(bare) is var br && (bp = br.Place) is null)
+                        return OperandUnresolved(bare, "USING argument", br);
+                }
+                else if ((bp = host.Expr.ResolveReceiving(bare)) is null)
                     return OperandUnresolved(bare, "USING argument");
                 ScreenCallOperand(bp, bareMode, formatTwo, isReturning: false);
                 // §14.9.4.3 SR22's OTHER arm (kb/Work PB132): "identifier-4 OR ITS CORRESPONDING FORMAL
@@ -470,8 +477,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(nlit)));
                 else if (nBareLit is { } nbl && host.Expr.NonNumericLiteralOperand(nbl) is { } nblOp)
                     args.Add(new BoundCallArg(Gr9BareLiteralMode(calleeFormals, args.Count), null, nblOp));
-                else if (nDref is { } ndref && host.Expr.ResolveSending(ndref) is { } np)
+                else if (nDref is { } ndref)
                 {
+                    if (host.Expr.ResolveSending(ndref) is var nr && nr.Place is not { } np) return nr.Refusal(ctx.Edition);   // kb/Work PB1030
                     ScreenCallOperand(np, CobolPassMode.Content, formatTwo, isReturning: false);
                     args.Add(new BoundCallArg(CobolPassMode.Content, np, null));
                 }
@@ -861,7 +869,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         + "identifier-1, literal-1 or program-prototype-name-1");
                     continue;
                 }
-                if (host.Expr.ResolveSending(dref) is { } p)
+                // ⛔ A TARGET THAT DID NOT RESOLVE IS NEVER DROPPED SILENTLY (kb/Work PB1030): a reported one keeps
+                // binding the rest for their diagnostics (the compile fails anyway); a DEFERRED one refuses the
+                // statement, which would otherwise run and skip that target.
+                if (host.Expr.ResolveSending(dref) is var cr && cr.Outcome == RefOutcome.Deferred) return cr.Refusal(ctx.Edition);
+                if (cr.Place is { } p)
                 {
                     // §14.9.5.3 SR1 (kb/Work PB154): "Identifier-1 shall be defined as an alphanumeric or
                     // national data item" — the CALL twin's class screen (PB132) that this arm never got:
@@ -906,8 +918,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§14.9.18 GR2
             // — the activation result; the grammar already 2002-gates the phrase).
-            if (host.Expr.ResolveSending(dref) is not { } rp)
-                return new BoundUnsupported($"GOBACK RETURNING '{DataBinder.WrittenText(dref)}'");
+            if (host.Expr.ResolveSending(dref) is var gr && gr.Place is not { } rp)
+                return gr.Refusal(ctx.Edition);   // kb/Work PB1030
             source = rp;
         }
         // ⛔ The RETURNING move is BOUND here (kb/Work PB880) — into the program's procedure-division RETURNING
@@ -1092,7 +1104,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// SR3/SR7 rejection at bind time — the R32 posture distinguishes "declared in an unsupported section"
     /// from "not defined", and the old BoundUnsupported staged the answer to run time (the PB88 wrong-stage
     /// shape). Everything else keeps the staged-loud posture.</summary>
-    private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role)
+    /// <param name="answer">The SENDING resolver's closed answer (kb/Work PB1030); absent for a receiving operand,
+    /// whose chokepoint (<see cref="ExpressionBinder.ResolveReceiving"/>) reports every null it returns.</param>
+    private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role, RefResolution? answer = null)
     {
         string text = dref.GetText();
         if (ctx.Data.ScreenNames.Contains(text))
@@ -1102,7 +1116,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 + (role.StartsWith("RETURNING") ? "SR7" : "SR3")
                 + " requires a data item defined in the file, working-storage, local-storage, or linkage section");
         }
-        return new BoundUnsupported($"CALL {role} '{text}'");
+        return answer?.Refusal(ctx.Edition) ?? BoundRejected.Reported(ctx.Edition);
     }
 
     /// <summary>The CALL operand chokepoint (kb/Work PB132) — ISO §14.9.4.3 SR3/SR6/SR8/SR10/SR11/SR12/SR18

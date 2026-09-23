@@ -68,8 +68,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 }
                 return new BoundRaiseObject(null);
             }
-            if (host.Expr.ResolveSending(oref.dataReference()!) is not { } op
-                || op.Item.Pic?.Category is not PicCategory.ObjectReference)
+            // kb/Work PB1030: a reference that did not resolve is the resolver's diagnostic, never SR2's.
+            if (host.Expr.ResolveSending(oref.dataReference()!).PlaceOrReported(ctx.Edition) is not { } op)
+                return BoundRejected.Reported(ctx.Edition);
+            if (op.Item.Pic?.Category is not PicCategory.ObjectReference)
             {
                 return BoundRejected.Report(ctx.Edition, "COBOLNET0848",
                     $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
@@ -205,8 +207,9 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             // STATICALLY true in v1 (D-EO5: a typed reference only ever holds a conforming object, no
             // universal identifier-1 exists, and factory objects cannot enter a typed reference).
             if (raising.dataReference() is not { } dref) return null;
-            if (host.Expr.ResolveSending(dref) is not { } op
-                || op.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
+            // kb/Work PB1030: a reference that did not resolve is the resolver's diagnostic (null = reported).
+            if (host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition) is not { } op) return null;
+            if (op.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
             {
                 ctx.Edition.Error("COBOLNET0849",
                     $"{site.Context} '{DataBinder.WrittenText(dref)}': identifier-1 shall be a USAGE OBJECT REFERENCE "

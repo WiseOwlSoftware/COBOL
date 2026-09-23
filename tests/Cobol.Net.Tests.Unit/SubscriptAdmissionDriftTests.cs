@@ -118,7 +118,8 @@ public sealed class SubscriptAdmissionDriftTests
     public void BothSubscriptScreens_AreWiredAtTheOneResolutionSite()
     {
         string text = File.ReadAllText(ReferenceResolver);
-        Assert.Equal(2, Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, e\.Count\)").Count);
+        // kb/Work PB1030: the written list is read by ONE method, ReadSubscripts, which every entry calls.
+        Assert.Single(Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, e\.Count\)"));
         Assert.Contains("DiagnosticCatalog.SubscriptOnNonTableItem", text, StringComparison.Ordinal);
         Assert.Contains("DiagnosticCatalog.SubscriptCountMismatch", text, StringComparison.Ordinal);
     }
@@ -133,8 +134,10 @@ public sealed class SubscriptAdmissionDriftTests
     public void TheOmittedSubscriptList_IsScreenedAtEveryIdentifierEntry()
     {
         string text = File.ReadAllText(ReferenceResolver);
-        Assert.Equal(3, Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, 0\)").Count);
-        Assert.Single(Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, exprs\.Count\)"));
+        // kb/Work PB1030: the three entries share ONE reading of the written list (ReadSubscripts), so the omitted
+        // arm is written once and each entry is pinned to calling it — an entry that stops calling it is red here.
+        Assert.Single(Regex.Matches(text, @"ScreenSubscriptArity\(dref, item, 0\)"));
+        Assert.Equal(3, Regex.Matches(text, @"ReadSubscripts\(dref, item, [^,]+, out var \w+\)").Count);
         Assert.Contains("DiagnosticCatalog.TableElementNotSubscripted", text, StringComparison.Ordinal);
     }
 }

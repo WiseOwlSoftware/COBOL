@@ -353,8 +353,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"{first} TO {toText}: identifier-10 shall reference an elementary data item of category "
                     + $"data-pointer (ISO §14.9.39.3 SR27) — '{toText}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
             }
-            var place = host.Expr.ResolveSending(to);
-            if (place is null) return new BoundUnsupported("SET LOCALE receiving operand");
+            if (host.Expr.ResolveSending(to) is var toAnswer && toAnswer.Place is not { } place)
+                return toAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.SavedPointer, null, place);
         }
         // Neither: the ONE undeclared-locale-name diagnostic, with this site named (SR26).
@@ -450,7 +450,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + "an arithmetic expression (ISO §14.9.39.2 Format 7, §14.9.39.3 SR17)");
             }
             if (SetIndexNameOperand(senderRef, "sending operand", "data-pointer", "ISO §14.9.39 Format 7, §14.9.39.3 SR17")) return BoundRejected.Reported(ctx.Edition);
-            if (host.Expr.ResolveSending(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
+            if (host.Expr.ResolveSending(senderRef) is var spAnswer && spAnswer.Place is not { } sp)
+                return spAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
+            if (sp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 // ⛔ NAME THE RECEIVERS (kb/Work PB388). The message opened `SET … TO 'x'` and the diagnostic
                 // renderer transliterates U+2026 to ASCII, so what the user actually read was `SET . TO 'WS-N'`
@@ -533,8 +535,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + "literal or an arithmetic expression (ISO §14.9.39.2 Format 9, §14.9.39.3 SR21)");
             }
             if (SetIndexNameOperand(senderRef, "sending operand", "program-pointer", "ISO §14.9.39 Format 9, §14.9.39.3 SR21")) return BoundRejected.Reported(ctx.Edition);
-            if (host.Expr.ResolveSending(senderRef) is not { } sp
-                || sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            if (host.Expr.ResolveSending(senderRef) is var spAnswer && spAnswer.Place is not { } sp)
+                return spAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
+            if (sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     // ⛔ NAME THE RECEIVERS (kb/Work PB388's sweep, finished here): the renderer transliterates
@@ -627,8 +630,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + "never a literal or an arithmetic expression (ISO §14.9.39.2 Format 8, §14.9.39.3 SR20)");
             }
             if (SetIndexNameOperand(senderRef, "sending operand", "function-pointer", "ISO §14.9.39 Format 8, §14.9.39.3 SR20")) return BoundRejected.Reported(ctx.Edition);
-            if (host.Expr.ResolveSending(senderRef) is not { } sp
-                || sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            if (host.Expr.ResolveSending(senderRef) is var spAnswer && spAnswer.Place is not { } sp)
+                return spAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
+            if (sp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"SET {SetFormatSelection.Written(targetRefs)} TO "   // kb/Work PB388
@@ -722,8 +726,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetFunctionAddress(targets, externalized, null, ExpectedFormalsOf(receiverProto));
         }
         // The IDENTIFIER arm (§8.4.3.12.3 SR1): "Identifier-1 shall be of category alphanumeric or national."
-        if (host.Expr.ResolveSending(operand) is not { } namePlace)
+        // A DEFERRED shape is the resolver's to announce; only a word that identifies nothing earns SR2's reading.
+        if (host.Expr.ResolveSending(operand) is var nameAnswer && nameAnswer.Place is not { } namePlace)
         {
+            if (nameAnswer.Outcome == RefOutcome.Deferred) return nameAnswer.Refusal(ctx.Edition);   // kb/Work PB1030
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.FunctionAddressOperand,
                 $"SET {written} TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §8.4.3.12.3 SR2 / §8.4.6.6) nor a resolvable identifier "
@@ -795,12 +801,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             }
             return new BoundSetEntry(targets, CobolLiteral.Decode(lit.GetText()), null);
         }
-        if (host.Expr.ResolveSending(drefs[^1]) is not { } namePlace)
-        {
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                $"SET {written} TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable "
-                + "(ISO §8.4.3.13.4 GR1a)");
-        }
+        // The resolver reported (or defers) the reference; "the ENTRY identifier is unresolvable" on top named
+        // no rule the program broke (kb/Work PB1030).
+        if (host.Expr.ResolveSending(drefs[^1]) is var entryAnswer && entryAnswer.Place is not { } namePlace)
+            return entryAnswer.Refusal(ctx.Edition);
         return new BoundSetEntry(targets, null, namePlace);
     }
 
@@ -928,8 +932,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundProgramAddress(proto.ExternalizedName, null, word);
 
         // ── ARM 1: identifier-1 (§8.4.3.13.3 SR1 / §8.4.3.13.4 GR1a) ───────────────────────────────────────
-        if (host.Expr.ResolveSending(operandRef) is not { } namePlace)
+        // A DEFERRED shape is the resolver's to announce; only a word that identifies nothing earns SR3's reading.
+        if (host.Expr.ResolveSending(operandRef) is var nameAnswer && nameAnswer.Place is not { } namePlace)
         {
+            if (nameAnswer.Outcome == RefOutcome.Deferred) { nameAnswer.PlaceOrReported(ctx.Edition); return null; }   // 0899, reported (kb/Work PB1030)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
                 $"{site} ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
@@ -1331,8 +1337,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     return BoundRejected.Reported(ctx.Edition);
                 }
                 // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
-                if (ctx.Refs.ResolveForItem(dref, cond.Parent) is not { } parent)
-                    return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
+                if (ctx.Refs.ResolveForItem(dref, cond.Parent) is var parentAnswer && parentAnswer.Place is not { } parent)
+                    return parentAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
                 // §14.9.39.3 SR7 — "If the FALSE phrase is specified, the FALSE phrase shall be specified in the
                 // VALUE clause of the data description entry for condition-name-1." The TRUE arm needs no twin
                 // screen: §13.18.63.3 SR24 already makes a VALUE clause mandatory on a level-88 entry, so

@@ -458,9 +458,13 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Resolve a reference that must be a USAGE POINTER item (the 0869 pointer band). A RECEIVING operand
     /// (SET's identifier-5, ALLOCATE RETURNING, FREE's operand, SET UP/DOWN's receiver) resolves through the one
     /// receiving chokepoint and a sending one through the sending entry — the caller states which (kb/Work PB881).</summary>
+    /// <para>Null means REPORTED (kb/Work PB1030): a reference that did not resolve carries the resolver's or the
+    /// receiving chokepoint's diagnostic, never a second "shall be a USAGE POINTER" one naming the wrong rule.</para>
     private Place? PtrResolvePointer(Core.DataReferenceContext dref, string what, bool receiving)
     {
-        if ((receiving ? host.Expr.ResolveReceiving(dref) : host.Expr.ResolveSending(dref)) is { } p &&p.Item.Pic?.Category is PicCategory.Pointer) return p;
+        if ((receiving ? host.Expr.ResolveReceiving(dref) : host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition))
+            is not { } p) return null;
+        if (p.Item.Pic?.Category is PicCategory.Pointer) return p;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
             $"'{DataBinder.WrittenText(dref)}': {what} shall be a USAGE POINTER data item");
         return null;

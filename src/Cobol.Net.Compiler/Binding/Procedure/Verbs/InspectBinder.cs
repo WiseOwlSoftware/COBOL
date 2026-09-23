@@ -89,10 +89,14 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // all: `INSPECT CA REPLACING ALL "a" BY "b"` over a CONSTANT RECORD rewrote the constant, where the
         // identical MOVE is refused. The SAME `modifies` fact BindFunctionTarget partitions on selects the entry,
         // so the function-identifier arm and the data-reference arm cannot disagree (feedback_two_arm_dispatch).
-        if ((modifies ? host.Expr.ResolveReceiving(ins.dataReference())
-                      : host.Expr.ResolveSending(ins.dataReference())) is not { } target)
-            return modifies ? BoundRejected.Reported(ctx.Edition)   // the receiving chokepoint reported it — not a deferral (kb/Work PB236)
-                : new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
+        Place? target;
+        if (modifies)
+        {
+            if ((target = host.Expr.ResolveReceiving(ins.dataReference())) is null)
+                return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236)
+        }
+        else if (host.Expr.ResolveSending(ins.dataReference()) is var sent && (target = sent.Place) is null)
+            return sent.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a
         // binary/packed/float/index elementary item has no character image to inspect. USAGE NATIONAL joined
         // the admitted set at Phase 4a (M2-DATA-3): a national item is a plain string under D-N1, so the
@@ -360,8 +364,8 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             // with the SR6 / GR14 figurative expansion the literal figuratives get.
             if (ctx.Data.SymbolicOf(dref) is { } sym)
                 return (new BoundStringLiteral(sym.Value) { Category = sym.National ? PicCategory.National : PicCategory.Alphanumeric }, true);
-            if (host.Expr.ResolveSending(dref) is not { } p)
-                return (BoundOperandError.Unbuilt(ctx.Edition, $"INSPECT operand '{DataBinder.WrittenText(dref)}'"), false);
+            if (host.Expr.ResolveSending(dref) is var pr && pr.Place is not { } p)
+                return (pr.OperandError(ctx.Edition), false);   // the resolver's answer (kb/Work PB1030)
             ctx.Validation.CheckInspectOperandUsage(p, dref.GetText());   // SR2 — pure check
             return (new BoundFieldOperand(p), false);
         }

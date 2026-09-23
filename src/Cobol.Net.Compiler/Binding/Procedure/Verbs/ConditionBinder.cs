@@ -110,8 +110,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + "(ISO §8.8.2)");
         }
         // A sole data reference to a category-boolean item.
-        if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && host.Expr.ResolveSending(dref) is { } p)
+        if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref)
         {
+            // The resolver's own answer when it built no place (kb/Work PB1030) — never the 1511 default below,
+            // which told a user whose name was undefined (already COBOLNET1639) that it was "not a boolean operand".
+            if (host.Expr.ResolveSending(dref) is var r && r.Place is not { } p) return r.BoolError(ctx.Edition);
             // THE ONE category reader (D20/PB79): a ref-mod view's category (GR6), else the item's own picture or a
             // bit group's as-if PICTURE 1(m) — a bit group IS a boolean operand (§13.18.29.4 GR1a).
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
@@ -896,9 +899,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 + (probe.OperandCategory is { } cat ? $" of category {cat.ToString().ToLowerInvariant()}" : "");
         else if (dref is { } undefined)
         {
-            // A word that names nothing is the resolver's own diagnostic (COBOLNET1639), not a second one here.
-            host.Expr.ResolveSending(undefined);
-            return Refused($"condition '{text}'");
+            // A word that names nothing is the resolver's own diagnostic (COBOLNET1639), not a second one here —
+            // and a shape it DEFERS is announced, not refused (kb/Work PB1030).
+            return Unresolved(host.Expr.ResolveSending(undefined), $"condition '{text}'");
         }
         ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
             $"'{text}' is used as a condition, but it is {what ?? "a literal, a figurative constant, a function reference or an arithmetic expression"}: "
@@ -919,6 +922,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     internal BoundConditionError Refused(string feature)
     {
         ctx.Edition.NoteRefusal(DiagnosticCatalog.UnreportedConditionRefusal, $"the condition form {feature}");
+        return ConditionErrorNode(feature);
+    }
+
+    /// <summary>The condition node for a reference the resolver built no place for, chosen FROM its closed answer
+    /// (kb/Work PB1030): a DEFERRED shape is already on the unbuilt ledger and is announced by the statement funnel
+    /// (COBOLNET1756) — it is not a refusal of the source; a REPORTED one is <see cref="Refused"/>.</summary>
+    internal BoundConditionError Unresolved(RefResolution answer, string feature) =>
+        answer.Outcome == RefOutcome.Deferred ? ConditionErrorNode(answer.Feature) : Refused(feature);
+
+    /// <summary>The ONE construction of <see cref="BoundConditionError"/> — reached only from <see cref="Refused"/>
+    /// and <see cref="Unresolved"/> (<c>ConditionErrorConstructionDriftTests</c>).</summary>
+    private static BoundConditionError ConditionErrorNode(string feature)
+    {
         return new BoundConditionError(feature);
     }
 
@@ -937,10 +953,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
             // Capture EC-RANGE-INVALID checking (§14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
-                ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
+                ctx.Refs.ResolveForItem(dref, cond.Parent) is var parentAnswer && parentAnswer.Place is { } parent
                     ? new BoundCondition88(parent, cond,
                         ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
-                    : Refused($"condition-name '{cond.Name}' (unresolvable conditional variable)"));
+                    : Unresolved(parentAnswer, $"condition-name '{cond.Name}' (unresolvable conditional variable)"));
         // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
         // wins), BEFORE the abbreviated-carry fallback.
         if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)

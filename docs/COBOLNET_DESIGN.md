@@ -154,9 +154,16 @@ that records itself on `EditionContext`: `BoundRejected`, and the operand-level 
 `ConditionBinder.Refused`. The ONE funnel every statement passes, `StatementBinder.BindStatement`, reads the ledger:
 a statement that bound a refusal and drew no error fails the compile with the internal COBOLNET2362 (a refused
 condition keeps COBOLNET2319), and a statement that drew no error announces its `BoundUnsupported` or its first
-unbuilt operand as the COBOLNET1756 warning. A null from the reference resolver is the one case a SITE cannot
-classify (reported, or an unbuilt shape), so it binds to `BoundUnsupported` / `Unbuilt` and the funnel's error
-count decides — kb/Work PB1030 replaces that with a typed resolver result. `BoundDeferralDriftTests` fails on a
+unbuilt operand as the COBOLNET1756 warning. ⛔ **THE RESOLVER'S ANSWER IS CLOSED (kb/Work PB1030).**
+`ReferenceResolver.Resolve` / `ResolveForItem` (and `ExpressionBinder.ResolveSending`) return a `RefResolution` —
+exactly one of `Place`, `Reported` (the resolver reported the rule: an undefined name, a subscript screen, something in
+a subscript position that is not a subscript — COBOLNET2363, a reference to a refused declaration — COBOLNET2364) or
+`Deferred` (a legal shape not built, named by one `DeferredShape` census member). The resolver puts every deferral on
+the unbuilt ledger before any caller sees it, so a caller that drops the answer cannot make it silent, and a caller
+builds its node FROM the answer (`Refusal` / `OperandError` / `ExprError` / `BoolError`; `PlaceOrReported` where the
+caller cannot carry a deferral, which reports it as recognized-not-implemented, COBOLNET0899). The receiving
+chokepoint `ResolveReceiving` consumes the answer itself and still returns `Place?`, null meaning reported.
+`RefResolutionDriftTests` pins the census, the ledger and the callers. `BoundDeferralDriftTests` fails on a
 deferral whose message states a violated rule (kb/Work PB909); `RefusalNodeDriftTests` keeps the refusal
 constructors private and keeps report-then-`BoundNop` and failure-guarded `BoundNop` out of the binder (a genuine
 no-op on a guarded arm is marked `// no-op:`). (2) **Bind success ⇒ emit MUST

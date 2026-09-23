@@ -76,11 +76,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         }
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in s.sortKeyPhrase())
-            if (SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys) is { } err)
-            {
-                ctx.Validation.RejectStatementOperand(err);   // PB236
-                return BoundRejected.Reported(ctx.Edition);
-            }
+            if (!SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys))
+                return BoundRejected.Reported(ctx.Edition);   // reported by SortAddFileKeys (PB236, PB1030)
 
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase());
         if (collErr is { } ce) return ce;
@@ -272,11 +269,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
 
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in m.mergeKeyPhrase())
-            if (SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys) is { } err)
-            {
-                ctx.Validation.RejectStatementOperand(err);   // PB236
-                return BoundRejected.Reported(ctx.Edition);
-            }
+            if (!SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys))
+                return BoundRejected.Reported(ctx.Edition);   // reported by SortAddFileKeys (PB236, PB1030)
 
         var (collating, collErr) = SortBindCollating(m.sortCollatingPhrase());
         if (collErr is { } ce) return ce;
@@ -328,8 +322,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// active SORT's input procedure) is a runtime seam in CobolSort (EC checking OFF, COBOLNET_DESIGN §18.16).</summary>
     public BoundStatement BindRelease(Core.ReleaseStatementContext rel)
     {
-        if (rel.dataReference() is not { } rn || host.Expr.ResolveSending(rn) is not { } record)
+        if (rel.dataReference() is not { } rn)
             return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
+        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
+            return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         // ⛔ SR1 IS A SYNTAX RULE AND IS DECIDED HERE, NOT AT RUN TIME (kb/Work PB236, row SR-14.9.32.3-1).
         // The STAGE was the wrong one, and the cost was measured: with the statement on a path the flow GO TOs
         // past, the program compiled clean AND ran to normal completion with no message at any stage — illegal
@@ -442,26 +438,28 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §14.9.40 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>
     /// begins with its own ASCENDING|DESCENDING, so per-phrase application IS GR1 — and GR2: significance is
-    /// statement order, which the appended list preserves). Returns an error string, or null on success.</summary>
-    private string? SortAddFileKeys(bool descending, Core.DataReferenceListContext? list, FileModel file,
+    /// statement order, which the appended list preserves). Returns false when the phrase was REFUSED and reported.</summary>
+    private bool SortAddFileKeys(bool descending, Core.DataReferenceListContext? list, FileModel file,
         List<BoundSortMergeKey> keys)
     {
         var drefs = list?.dataReference() ?? [];
         if (drefs.Length == 0)
-            return "SORT/MERGE key phrase without data-name-1 — the file formats require key data-names "
-                + "(ISO §14.9.40.2 Format 1 / §14.9.24.2)";
+            return Reject("SORT/MERGE key phrase without data-name-1 — the file formats require key data-names "
+                + "(ISO §14.9.40.2 Format 1 / §14.9.24.2)");
         foreach (var dref in drefs)
         {
             // Qualification supported (e.g. ST139A's `KEY-1 OF DATA-NAME-1`) via the one reference resolver.
-            if (host.Expr.ResolveSending(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{DataBinder.WrittenText(dref)}'";
+            // A key that did not resolve carries the resolver's diagnostic, never a second "unresolvable" one
+            // (kb/Work PB1030).
+            if (host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition) is not { } kp) return false;
             DataItem item = kp.Item;
             DataItem root = SortRootOf(item);
             if (!file.Records.Contains(root))
-                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' is not described in a record of '{file.CobolName}' "
-                    + "(ISO §14.9.40.3 SR6a)";
+                return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' is not described in a record of '{file.CobolName}' "
+                    + "(ISO §14.9.40.3 SR6a)");
             if (Model.RecordLayout.OffsetInRecord(root, item) is null)
-                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
-                    + "clause (ISO §14.9.40.3 SR6b/SR6f)";
+                return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
+                    + "clause (ISO §14.9.40.3 SR6b/SR6f)");
             // ⛔ THE CLASS IS THE OPERAND'S, AND IT IS ASKED ONCE (kb/Work PB678). §14.9.40.4 GR5 / §14.9.24.4 GR5
             // select the collating sequence by the KEY's class, so the key descriptor carries the class rather
             // than a single "numeric?" bit — and it reads OperandPic, the ONE operand-category reader (D20), so a
@@ -475,7 +473,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // with ImageWidth the three keys N"A"/N"B"/N"C" all collapsed onto the shared high byte U+0000 and
             // compared EQUAL, which is a stable sort returning the release order.
             int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ByteWidth;
-            if (len <= 0) return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' has no character image";
+            if (len <= 0) return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' has no character image");
             // ⛔ THE KEY'S WINDOW IN ITS RECORD, AND HOW FAR IT CAN REACH (kb/Work PB1025): RecordLayout.KeyWindowOf
             // is the ONE answer the indexed key rules read too. A key a dynamic-length item or a dynamic-capacity
             // table precedes has no fixed position in the contiguous image the store holds (§8.5.1.11.2), so it
@@ -483,8 +481,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // name here (kb/Work PB981), which rejected legal source whenever trailing fixed material kept it
             // within the minimum record size.
             if (Model.RecordLayout.KeyWindowOf(root, item, len) is not { } win)
-                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
-                    + "clause (ISO §14.9.40.3 SR6b/SR6f)";
+                return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
+                    + "clause (ISO §14.9.40.3 SR6b/SR6f)");
             // §14.9.40.3 SR6 g) / §14.9.24.3 SR4 g): with variable-length records every key lies within the first
             // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
             // measured at its furthest reach (every preceding member at its maximum). ⛔ The minimum is the file's
@@ -510,7 +508,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 cls is CollatingClass.Numeric ? item : null,
                 win.FollowsVariable ? ctx.Refs.ResolveItem(root) : null));
         }
-        return null;
+        return true;
+
+        bool Reject(string err) { ctx.Validation.RejectStatementOperand(err); return false; }   // PB236
     }
 
     /// <summary>Resolve the COLLATING SEQUENCE phrase into the GR5 sequence PAIR. ISO §14.9.40.4 GR5 /

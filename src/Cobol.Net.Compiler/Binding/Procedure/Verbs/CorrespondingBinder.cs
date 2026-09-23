@@ -72,8 +72,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         if (groups.Length < 2)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"{verbName} CORRESPONDING: its general format prints exactly two group "
                 + "operands, the sending group and the receiving group");
-        if (host.Expr.ResolveSending(groups[0]) is not { } src)
-            return new BoundUnsupported($"{verbName} CORRESPONDING source group '{groups[0].GetText()}'");
+        if (host.Expr.ResolveSending(groups[0]) is var srcR && srcR.Place is not { } src)
+            return srcR.Refusal(ctx.Edition);   // kb/Work PB1030
         if (host.Expr.ResolveReceiving(groups[1]) is not { } dst)
             return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         // ⛔ BOTH OPERANDS SHALL BE GROUP ITEMS, AND THAT IS A SYNTAX RULE, SO IT IS DECIDED AT BIND TIME

@@ -167,8 +167,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // warning — the compiler announcing ITS gap for what is the program's mistake.
         // The call sits BEFORE the `file.IsSequential` reroute below, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
-        if (w.recordName()?.dataReference() is not { } rn || host.Expr.ResolveSending(rn) is not { } record)
+        if (w.recordName()?.dataReference() is not { } rn)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
+        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
+            return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO §14.9.51.3 SR5)", out var file))
@@ -320,8 +322,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // sentence, not one rule, so each site quotes its OWN clause and the shared MECHANISM is the helper, not
         // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
         // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
-        if (rw.recordName()?.dataReference() is not { } rn || host.Expr.ResolveSending(rn) is not { } record)
+        if (rw.recordName()?.dataReference() is not { } rn)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+        if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
+            return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO §14.9.35.3 SR1)", out var file))

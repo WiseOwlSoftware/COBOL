@@ -227,7 +227,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// staging and stays silent, so the caller's loud posture is unchanged. A caller asking "IS this a data
     /// item?" with a legal alternative on no (the SET format sniffs, the INVOKE class-name receiver, the
     /// boolean/float reroutes) reads <see cref="Probe"/> instead.</summary>
-    public Place? Resolve(Core.DataReferenceContext dref) => ResolveImpl(dref, report: true);
+    public RefResolution Resolve(Core.DataReferenceContext dref) => ResolveImpl(dref, report: true);
 
     /// <summary>The SPECULATIVE form of <see cref="Resolve"/>: identical resolution, but a name that identifies
     /// no item returns null SILENTLY — for type-discriminating probes whose null arm continues to a legal
@@ -247,7 +247,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// A caller that has finished discriminating asks <see cref="Resolve"/> for the Place that enters the tree,
     /// which is the pattern <c>SetBinder.BindSetLocale</c> already used.</para></summary>
     public ProbeResult? Probe(Core.DataReferenceContext dref) =>
-        ResolveImpl(dref, report: false) is { } p
+        ResolveImpl(dref, report: false).Place is { } p
             ? new ProbeResult(p.Item, p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category)
             : null;
 
@@ -274,17 +274,31 @@ public sealed class ReferenceResolver(DataBinder data)
     /// ambiguity defeat resolution (§8.4.2.2 — qualification shall establish uniqueness).</summary>
     internal void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
+        // kb/Work R32 — a name DECLARED in the SCREEN SECTION is not undefined. Since kb/Work PB260 the section
+        // itself is REFUSED (COBOLNET1560), so "is not defined" would send the user hunting a declaration that is
+        // right there — the reference is to a REFUSED declaration (COBOLNET2364). Before kb/Work PB1030 this arm
+        // reported NOTHING, and the statement bound a run-time NotImplemented announced as a COBOL.NET gap.
+        if (data.ScreenNames.Contains(name))
+        {
+            ReportRefusedDeclaration(dref, name, "a SCREEN SECTION entry — COBOLNET1560");
+            return;
+        }
         if (!_diagnosed.Add(dref)) return;
-        // kb/Work R32 — a name DECLARED in the SCREEN SECTION is not undefined. Since kb/Work PB260 the
-        // section itself is REFUSED (COBOLNET1560), so the compile already fails with the true cause; adding
-        // the §8.4.2.1 "is not defined" verdict on top would send the user hunting a declaration that is right
-        // there. Suppressing it here is cascade control, not leniency. The SAME shape for a
-        // declared ALPHABET-NAME referenced in a data position (kb/Work R38 — GnuCOBOL's INSPECT CONVERTING
-        // alphabet extension): declared-in-another-namespace is a different verdict than "not defined", and
-        // whether the construct is admitted is R38's open adjudication, not this diagnostic's.
-        if (data.ScreenNames.Contains(name)
-            || data.Alphabets.ContainsKey(name) || data.NationalAlphabets.ContainsKey(name)) return;
         string text = DataBinder.WrittenText(dref);
+        // A declared ALPHABET-NAME written where a data item is required (kb/Work R38, PB1030). ISO §8.4.2.1: "a
+        // statement shall contain a reference that uniquely identifies that resource", and an alphabet-name
+        // (SPECIAL-NAMES) identifies no data item — so the reference identifies no resource of the kind the
+        // position needs. R38 adjudicated the vendor alphabet-operand forms (GnuCOBOL's INSPECT CONVERTING
+        // alphabet) as extensions no edition admits, and the owner's 2026-08-08 decision keeps COBOL.NET
+        // strict-ISO permanently; this arm used to report nothing and let the statement abort at run time.
+        if (data.Alphabets.ContainsKey(name) || data.NationalAlphabets.ContainsKey(name))
+        {
+            data.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                $"'{text}' is declared as an alphabet-name in the SPECIAL-NAMES paragraph, not as a data item, so "
+                + "this reference identifies no data item (ISO §8.4.2.1: \"a statement shall contain a reference "
+                + "that uniquely identifies that resource\").");
+            return;
+        }
         string msg;
         if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
@@ -317,24 +331,83 @@ public sealed class ReferenceResolver(DataBinder data)
     /// and later ACTIVATE — twice). Save/restored, not cleared: a COMMIT resolution can nest inside hooks.</summary>
     private bool _probing;
 
-    private Place? ResolveImpl(Core.DataReferenceContext dref, bool report)
+    /// <summary>Set when a subscript or reference-modifier SEGMENT of the current resolution failed because one of
+    /// its own operands is a deferred shape (the materializer's expression came back
+    /// <see cref="BoundExprError.IsUnbuilt"/>), so the segment's null is a DEFERRAL, not a refusal (kb/Work PB1030).
+    /// Save/restored per resolution exactly as <see cref="_probing"/> is: the materializer can re-enter this
+    /// resolver for a nested reference.</summary>
+    private bool _segmentDeferred;
+
+    /// <summary>Called by the segment materializer when a segment's expression came back UNBUILT (not refused) —
+    /// see <see cref="_segmentDeferred"/>.</summary>
+    internal void NoteSegmentDeferred() => _segmentDeferred = true;
+
+    private RefResolution ResolveImpl(Core.DataReferenceContext dref, bool report)
     {
-        bool savedProbing = _probing;
+        bool savedProbing = _probing, savedSegment = _segmentDeferred;
         _probing = !report;
-        try { return ResolveImplCore(dref, report); }
-        finally { _probing = savedProbing; }
+        _segmentDeferred = false;
+        try
+        {
+            var answer = ResolveImplCore(dref, report);
+            // ⛔ A DEFERRAL GOES ON THE LEDGER HERE, BEFORE ANY CALLER SEES IT (kb/Work PB1030): the statement
+            // funnel announces it (COBOLNET1756) whatever the caller then does with the answer — a caller that
+            // drops it (`.OfType<Place>()`) cannot make it silent. A probe records nothing (R30 purity).
+            if (report && answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
+            return answer;
+        }
+        finally { _probing = savedProbing; _segmentDeferred = savedSegment; }
     }
 
-    private Place? ResolveImplCore(Core.DataReferenceContext dref, bool report)
+    /// <summary>The non-place answer for a SEGMENT (subscript or reference-modifier) the renderer could not
+    /// render: deferred when the resolver has no materializer (a data-division resolver) or the segment's own
+    /// operand is deferred; otherwise REPORTED — the materializer reports every segment it refuses (kb/Work
+    /// PB1030: a segment that is not an arithmetic expression is not a subscript, ISO §8.4.2.3.2).</summary>
+    private RefResolution SegmentFailure(string written) =>
+        MaterializeSegment is null ? RefResolution.Deferred(DeferredShape.SegmentWithoutStatement, written)
+        : _segmentDeferred ? RefResolution.Deferred(DeferredShape.DeferredSegmentOperand, written)
+        : RefResolution.Refused(written);
+
+    /// <summary>The non-place answer when <see cref="PlaceForItem"/> built no place: its deferred shape, or —
+    /// when it names none — a REJECTED REDEFINES view, whose data description entry was refused at its
+    /// declaration (Tier D, <see cref="RedefinesTier.Rejected"/>). A reference to it is reported here, once per
+    /// reference (COBOLNET2364), because the statement holding it must say why it cannot bind.</summary>
+    private RefResolution ItemFailure(Core.DataReferenceContext dref, DataItem item, DeferredShape? deferred)
+    {
+        string written = DataBinder.WrittenText(dref);
+        if (deferred is { } shape) return RefResolution.Deferred(shape, written);
+        ReportRefusedDeclaration(dref, item.CobolName ?? item.CsName, item.Class?.RejectReason);
+        return RefResolution.Refused(written);
+    }
+
+    /// <summary>COBOLNET2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
+    /// view; a SCREEN SECTION name, the section being declined as COBOLNET1560). The compile has already failed at
+    /// the declaration; this names the consequence at the statement, instead of "not defined" (the name IS
+    /// declared) or "not implemented" (it is not a gap in COBOL.NET).</summary>
+    private void ReportRefusedDeclaration(Core.DataReferenceContext dref, string name, string? why)
+    {
+        if (_probing || !_diagnosed.Add(dref)) return;   // R30 purity; one report per written reference
+        string text = DataBinder.WrittenText(dref);
+        data.Edition.Error(DiagnosticCatalog.ReferenceToRefusedDeclaration,
+            (text == name ? $"'{text}' names a data item" : $"'{text}' names '{name}'") + ", whose declaration was refused"
+            + (why is null ? "" : $" ({why})") + "; see the error at the declaration. The reference cannot be bound.");
+    }
+
+    private RefResolution ResolveImplCore(Core.DataReferenceContext dref, bool report)
     {
         DataReferenceCst r = dref;
+        // The three answers (kb/Work PB1030). The written text is built only on a failure path.
+        RefResolution Refused() => RefResolution.Refused(DataBinder.WrittenText(dref));
+        RefResolution Deferred(DeferredShape shape) => RefResolution.Deferred(shape, DataBinder.WrittenText(dref));
+        static RefResolution Resolved(Place place) => RefResolution.Resolved(place, "");
         // A special register — LINAGE-COUNTER (I-O control system, ISO §8.4.3.14), LINE-/PAGE-COUNTER (Report
         // Writer control system, ISO §8.4.3.15) — is runtime-sourced, never a storage Place; the binder routes it
         // to BoundLinageCounterRef / BoundReportCounterRef (StatementBinder.ReportWriter.cs). The early return is
         // LOAD-BEARING for the QUALIFIED form (`LINAGE-COUNTER OF file`, `LINE-COUNTER OF report`): there
         // r.BaseName is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
-        if (r.Register != SpecialRegister.None) return null;
-        if (r.BaseName is not { } name) return null;
+        if (r.Register != SpecialRegister.None) return Deferred(DeferredShape.UnroutedSpecialRegister);
+        // No base word outside a special register is a parse-error recovery node: the parser reported it.
+        if (r.BaseName is not { } name) return Refused();
 
         // The OCCURS DYNAMIC CAPACITY register (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9): an implicitly-
         // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
@@ -342,7 +415,8 @@ public sealed class ReferenceResolver(DataBinder data)
         // {tablePath}.Capacity. The NAME identifies it outright (§13.18.38.3 SR30 first sentence — "Data-name-3
         // shall not be defined elsewhere in the source element"), so every other question is a predicate over the
         // reference AS WRITTEN and belongs to this one screen, not to a fall-through (kb/Work PB457).
-        if (CapacityRegisterFor(dref) is { } capReg) return CapacityPlaceOf(dref, capReg);
+        if (CapacityRegisterFor(dref) is { } capReg)
+            return CapacityPlaceOf(dref, capReg) is { } capPlace ? Resolved(capPlace) : Refused();
 
         // The PREDEFINED OBJECT REFERENCE EXCEPTION-OBJECT (ISO §8.4.3.6; kb/Work PB922): §8.4.3.6.3 SR2 —
         // "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external
@@ -357,7 +431,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // The RECEIVING half of SR1 is screened at the ONE receiving chokepoint (ExpressionBinder.ResolveReceiving);
         // this arm is what makes the SENDING half legal source rather than a typo.
         // The predicate is <see cref="IsExceptionObjectRegister"/> — the ONE answer every caller asks for.
-        if (IsExceptionObjectRegister(dref)) return new ExceptionObjectPlace(data.ExceptionObjectRegister);
+        if (IsExceptionObjectRegister(dref)) return Resolved(new ExceptionObjectPlace(data.ExceptionObjectRegister));
 
         // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
         // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
@@ -365,7 +439,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). Only the plain
         // unqualified/unsubscripted form is covered — a reference-modified/qualified DEBUG-* falls through to loud.
         if (data.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
-            return new DebugRegisterPlace(dbg.Item, dbg.Member);
+            return Resolved(new DebugRegisterPlace(dbg.Item, dbg.Member));
 
         // A REPORT SECTION SUM COUNTER (ISO §13.18.54.4 GR5 — the data-name after the level number names the
         // COUNTER, not the printable item; GR12 permits procedure division statements to read and alter it): an
@@ -373,7 +447,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // CAPACITY-register pattern — to a ReportSumCounterPlace whose read/write are SumValue/SetSumValue
         // (kb/Work PB840). Qualification is by REPORT-NAME (§8.4.2.2.2 Format 1's file-report-qualifier), which
         // is what distinguishes two reports' same-named counters.
-        if (SumCounterFor(dref, name, report) is { } sumReg) return sumReg;
+        if (SumCounterFor(dref, name, report) is { } sumReg) return Resolved(sumReg);
 
         // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
         var written = ReadWritten(dref);
@@ -394,7 +468,7 @@ public sealed class ReferenceResolver(DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                     $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
                     + "be reference-modified (ISO §8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
-            return null;
+            return Refused();
         }
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
@@ -408,21 +482,10 @@ public sealed class ReferenceResolver(DataBinder data)
             // The NAME resolves to nothing — a typo or a mis-qualification, never a feature gap (kb/Work R30).
             // Every later null in this method is an unsupported-shape staging of a name that DID resolve.
             if (report) ReportUnidentified(dref, name, qualifiers);
-            return null;
+            return Refused();
         }
 
-        List<string> indexExprs = [];
-        if (subCtx is not null)
-        {
-            if (ScreenEmptyParentheses(dref, subCtx)) return null;   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
-            List<IToken> ixNames = [];
-            var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
-            if (isRefMod || e is null) return null;   // unsupported subscript form → loud
-            ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
-            if (ScreenSubscriptArity(dref, item, e.Count)) return null;   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
-            indexExprs = e;
-        }
-        else if (ScreenSubscriptArity(dref, item, 0)) return null;   // §8.4.2.3.3 SR5 — none written (kb/Work PB681)
+        if (ReadSubscripts(dref, item, subCtx, out var indexExprs) is { } subscriptFailure) return subscriptFailure;
 
         // A level-66 RENAMES alias (ISO §13.18.45): one elementary-alphanumeric view COMPOSED over the spanned
         // leaves — reads concatenate their images, writes distribute slices back. This slice covers STRING-VALUED
@@ -430,7 +493,9 @@ public sealed class ReferenceResolver(DataBinder data)
         // composed numeric leaf are a later slice). No subscripts: a RENAMES operand cannot have/live under OCCURS.
         if (item.Renames is { } ren)
         {
-            if (indexExprs.Count > 0) return null;
+            // A level-66 entry is never a table element, so a written subscript was refused by §8.4.2.3.3 SR2
+            // above (ScreenSubscriptArity) — this arm is unreachable, and the refusal ledger holds it to that.
+            if (indexExprs.Count > 0) return Refused();
             // The no-THRU form is an ALIAS: §13.18.45.4 GR1 — "all of the data attributes of data-name-2 become
             // the data attributes of data-name-1 and the storage area occupied by data-name-2 becomes the storage
             // area occupied by data-name-1". Attributes AND storage forward to the renamed item's place (numeric
@@ -443,10 +508,13 @@ public sealed class ReferenceResolver(DataBinder data)
             // sibling (a RenamesPlace, which keeps its own Item) was correctly refused by. `DenotesAs` records the
             // alias on the renamed item's own place, so nothing about the ACCESS changes and only the identity
             // question answers differently.
+            // A RENAMES entry whose operands did not resolve was refused at its declaration (COBOLNET1655,
+            // §13.18.45.3), and the data binder leaves it with no From and an empty Span.
+            if (ren.Thru is null ? ren.From is null : ren.Span.Count == 0)
+                return ItemFailure(dref, item, null);
             if (ren.Thru is null)
-                return ren.From is { } fwd && PlaceForItem(fwd, []) is { } fwdPlace
-                    ? fwdPlace with { DenotesAs = item } : null;
-            if (ren.Span.Count == 0) return null;
+                return PlaceForItem(ren.From!, [], out var fwdDeferred) is { } fwdPlace
+                    ? Resolved(fwdPlace with { DenotesAs = item }) : ItemFailure(dref, ren.From!, fwdDeferred);
             var leafPlaces = new List<Place>(ren.Span.Count);
             var widths = new List<int>(ren.Span.Count);
             foreach (var part in ren.Span)
@@ -456,7 +524,8 @@ public sealed class ReferenceResolver(DataBinder data)
                 {
                     // ONE occurrence (or the one-and-only cell) of the leaf, possibly a partial slice of it (kb/Work
                     // PB96): the cell's place, then its ref-mod view when the part does not cover the whole cell.
-                    if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [occIdx.ToString()]) is not { } cellRaw) return null;
+                    if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [occIdx.ToString()], out var cellDeferred) is not { } cellRaw)
+                        return ItemFailure(dref, leaf, cellDeferred);
                     Place cell = cellRaw;
                     bool cellString = data.IsImageBackedEarly(leaf) || cell is RedefViewPlace
                         || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
@@ -464,7 +533,7 @@ public sealed class ReferenceResolver(DataBinder data)
                     if (!cellString)
                     {
                         if (leaf.Pic is not { IsCharacterFormNumeric: true })   // THE ONE character-form predicate (kb/Work PB646)
-                            return null;
+                            return Deferred(DeferredShape.RenamesNonCharacterLeaf);
                         cell = new NumericImagePlace(cell);
                     }
                     if (part.IsPartial) cell = new RefModPlace(cell, part.Start.ToString(), part.Length.ToString());
@@ -477,7 +546,8 @@ public sealed class ReferenceResolver(DataBinder data)
                 int occ = leaf.Occurs ?? 1;
                 for (int k = 1; k <= occ; k++)
                 {
-                    if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [k.ToString()]) is not { } lpRaw) return null;
+                    if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [k.ToString()], out var leafDeferred) is not { } lpRaw)
+                        return ItemFailure(dref, leaf, leafDeferred);
                     Place lp = lpRaw;
                     bool stringValued = data.IsImageBackedEarly(leaf) || lp is RedefViewPlace
                         || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
@@ -487,19 +557,19 @@ public sealed class ReferenceResolver(DataBinder data)
                     if (!stringValued)
                     {
                         if (leaf.Pic is not { IsCharacterFormNumeric: true })   // THE ONE character-form predicate (kb/Work PB646)
-                            return null;
+                            return Deferred(DeferredShape.RenamesNonCharacterLeaf);
                         lp = new NumericImagePlace(lp);
                     }
                     widths.Add(leaf.ImageWidth);   // a whole part: every occurrence, at the leaf's width (kb/Work PB96)
                     leafPlaces.Add(lp);
                 }
             }
-            return new RenamesPlace(leafPlaces, item, widths);
+            return Resolved(new RenamesPlace(leafPlaces, item, widths));
         }
 
-        if (PlaceForItem(item, indexExprs) is not { } inner) return null;
+        if (PlaceForItem(item, indexExprs, out var deferred) is not { } inner) return ItemFailure(dref, item, deferred);
 
-        if (refCtx is null && cleanRef is null) return inner;
+        if (refCtx is null && cleanRef is null) return Resolved(inner);
         // ⛔ ISO §8.4.3.3.3 SR1 — WHAT identifier-1 MAY BE, in ONE place (kb/Work PB70). An excluded shape is a
         // bind-time rejection (COBOLNET1647), never the run-time NotImplemented a sending ref-mod used to reach nor
         // the silent drop a receiving one fell into.
@@ -508,11 +578,11 @@ public sealed class ReferenceResolver(DataBinder data)
             if (!_probing && _diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
                     $"'{DataBinder.WrittenText(dref)}': reference modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
-            return null;
+            return Refused();
         }
-        return (cleanRef is not null ? ReadRefMod(cleanRef) : ReadRefMod(refCtx!)) is { } spec
-            ? RefModView(item, inner, spec)
-            : null;
+        if ((cleanRef is not null ? ReadRefMod(cleanRef) : ReadRefMod(refCtx!)) is not { } spec)
+            return SegmentFailure(DataBinder.WrittenText(dref));   // a bound the materializer refused or deferred (§8.4.3.3.3 SR4)
+        return RefModView(item, inner, spec) is { } view ? Resolved(view) : Deferred(DeferredShape.NumericRefModSubstrate);
     }
 
     /// <summary>Reference-modify an ALREADY-RESOLVED place — §8.4.3.1.4 GR1 g)'s tail ("a reference modifier
@@ -815,21 +885,26 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <see cref="ResolveItem"/> path go through it, so EVERY consumer (verb operands, level-88 / SET conditional
     /// variables, FD record areas) sees identical view resolution.
     /// </summary>
-    private Place? PlaceForItem(DataItem item, IReadOnlyList<string> indexExprs)
+    private Place? PlaceForItem(DataItem item, IReadOnlyList<string> indexExprs) => PlaceForItem(item, indexExprs, out _);
+
+    /// <param name="deferred">On a null return, the <see cref="DeferredShape"/> this builder has not built — or null
+    /// when the item is a REJECTED (Tier D) REDEFINES view, refused at its own declaration (kb/Work PB1030).</param>
+    private Place? PlaceForItem(DataItem item, IReadOnlyList<string> indexExprs, out DeferredShape? deferred)
     {
+        deferred = null;
         // A WHOLE (unsubscripted) OCCURS DYNAMIC table reference has no element access — it would otherwise fold to a
         // MemberPlace wrapping the bare CobolDynTable<T> object, which is uncompilable in any value context. Fail
         // LOUD here (data-model D9); FUNCTION LENGTH and other whole-table operations route to a dedicated
         // DynWholeTablePlace in a later increment. A SUBSCRIPTED dynamic element (indexExprs non-empty) is inc 3's
         // access path and is NOT caught by this guard.
-        if (item.IsDynamicTable && indexExprs.Count == 0) return null;
+        if (item.IsDynamicTable && indexExprs.Count == 0) { deferred = DeferredShape.DynamicWholeTable; return null; }
         if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
         {
             // The backing is emitted in the canonical's containing struct (FieldEmitter.PhysicalFields), so a NESTED
             // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
             // top-level (static-field) class. Fail loud if the parent path is unavailable (e.g. it is itself within an
             // OCCURS), rather than emit an unqualified reference that does not exist in scope.
-            if (BuildBackingPath(sc) is not { } backing) return null;
+            if (BuildBackingPath(sc) is not { } backing) { deferred = DeferredShape.NestedClassBacking; return null; }
             // A SUBSCRIPTED view: each OCCURS level on the item's path WITHIN the class displaces the window by
             // (occurrence − 1) × that level's per-occurrence width — the redefined table lays its occurrences
             // end-to-end in the ONE backing (ISO §13.18.44). ClassOffset is the occurrence-1 position; subscripts
@@ -838,7 +913,7 @@ public sealed class ReferenceResolver(DataBinder data)
             for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, sc); n = n.Parent)
                 if (n.Occurs is not null) occursLevels.Add(n);
             occursLevels.Reverse();
-            if (occursLevels.Count != indexExprs.Count) return null;   // wrong subscript count → loud
+            if (occursLevels.Count != indexExprs.Count) { deferred = DeferredShape.UnbuiltAccessPath; return null; }   // an item-path caller's count
             string offset = item.ClassOffset.ToString();
             // The BIT twin of the same displacement, for a USAGE BIT member (kb/Work PB203): a bit item's
             // occurrences lie at successive BIT positions (§8.5.1.6.3's "next bit position in storage"; the same
@@ -875,7 +950,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
         // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.
         if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
-            return null;
+            return null;   // Tier D (Rejected) — refused at the declaration; `deferred` stays null
         DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
             ? ac.Canonical : item;
         // A subscripted element whose access path crosses an OCCURS DYNAMIC level (data-model D9): the sending and
@@ -885,11 +960,11 @@ public sealed class ReferenceResolver(DataBinder data)
         for (DataItem? n = accessItem; n is not null; n = n.Parent)
             if (n.IsDynamicTable)
             {
-                if (BuildAccessPath(accessItem, indexExprs) is not { } dynPath) return null;
+                if (BuildAccessPath(accessItem, indexExprs) is not { } dynPath) { deferred = DeferredShape.UnbuiltAccessPath; return null; }
                 return new DynTablePlace(dynPath, item);
             }
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
-        if (BuildAccessPath(accessItem, indexExprs) is not { } path) return null;
+        if (BuildAccessPath(accessItem, indexExprs) is not { } path) { deferred = DeferredShape.UnbuiltAccessPath; return null; }
         // (Resolving a group no longer mutates WholeGroupReferenced — the "which groups are whole-image operands"
         // analysis is the post-bind UsageCollectionPass, which walks the BOUND tree and collects ONLY true
         // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9.25.4 MOVE GR4.)
@@ -927,26 +1002,48 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>The place for an already-resolved <paramref name="item"/> using the SUBSCRIPTS of
     /// <paramref name="dref"/> — the condition-name-with-subscripts form (ISO §8.4.2.3 Format 2): a level-88
-    /// reference's subscripts identify the occurrence of its CONDITIONAL VARIABLE. Null for an unhandled subscript
-    /// form (the caller fails loud).</summary>
-    public Place? ResolveForItem(Core.DataReferenceContext dref, DataItem item)
+    /// reference's subscripts identify the occurrence of its CONDITIONAL VARIABLE. The same closed answer as
+    /// <see cref="Resolve"/> (kb/Work PB1030), with a deferral put on the unbuilt ledger the same way.</summary>
+    public RefResolution ResolveForItem(Core.DataReferenceContext dref, DataItem item)
     {
-        var subCtx = SubscriptGroupOf(dref);
-        List<string> indexExprs = [];
-        if (subCtx is not null)
+        bool savedSegment = _segmentDeferred;
+        _segmentDeferred = false;
+        try
         {
-            if (ScreenEmptyParentheses(dref, subCtx)) return null;   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
-            List<IToken> ixNames = [];
-            var (e, isRefMod) = InterpretSubscripts(subCtx, ixNames);
-            if (isRefMod || e is null) return null;
-            ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
             // SR2 names the CONDITIONAL VARIABLE for a condition-name reference (§8.4.2.3 Format 2), which is
-            // exactly the item this overload is handed — so the same screen applies unchanged (kb/Work PB877).
-            if (ScreenSubscriptArity(dref, item, e.Count)) return null;   // §8.4.2.3.3 SR2/SR3
-            indexExprs = e;
+            // exactly the item this entry is handed — so the ONE subscript reading applies unchanged (kb/Work PB877).
+            var answer = ReadSubscripts(dref, item, SubscriptGroupOf(dref), out var indexExprs)
+                ?? (PlaceForItem(item, indexExprs, out var deferred) is { } place
+                    ? RefResolution.Resolved(place, "") : ItemFailure(dref, item, deferred));
+            if (answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
+            return answer;
         }
-        else if (ScreenSubscriptArity(dref, item, 0)) return null;   // §8.4.2.3.3 SR5 (kb/Work PB681) — the same both arms
-        return PlaceForItem(item, indexExprs);
+        finally { _segmentDeferred = savedSegment; }
+    }
+
+    /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST OF <paramref name="dref"/> AGAINST <paramref name="item"/>, read ONCE for
+    /// both commit entries (<see cref="Resolve"/> and <see cref="ResolveForItem"/> each carried a copy before kb/Work
+    /// PB1030): §8.4.2.3.2's empty-parentheses screen, the segment renderer, §8.4.2.3.3 SR4's index-name
+    /// association and the SR2/SR3/SR5 arity screen. Null when the list is acceptable (<paramref name="indexExprs"/>
+    /// then holds the rendered subscripts); otherwise the non-place answer.</summary>
+    private RefResolution? ReadSubscripts(Core.DataReferenceContext dref, DataItem item,
+        Core.SubscriptOrRefModContext? subCtx, out List<string> indexExprs)
+    {
+        indexExprs = [];
+        if (subCtx is null)
+            return ScreenSubscriptArity(dref, item, 0)   // §8.4.2.3.3 SR5 — none written (kb/Work PB681)
+                ? RefResolution.Refused(DataBinder.WrittenText(dref)) : null;
+        if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
+            return RefResolution.Refused(DataBinder.WrittenText(dref));
+        List<IToken> ixNames = [];
+        // A subscript group never carries a depth-0 colon (WrittenReference), so the ref-mod arm is not reachable.
+        var (e, _) = InterpretSubscripts(subCtx, ixNames);
+        if (e is null) return SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
+        ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
+        if (ScreenSubscriptArity(dref, item, e.Count))   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
+            return RefResolution.Refused(DataBinder.WrittenText(dref));
+        indexExprs = e;
+        return null;
     }
 
     /// <summary>⛔ A DATA REFERENCE FOLLOWED BY EMPTY PARENTHESES — <c>WS-X()</c> or <c>WS-X( )</c> — is neither
@@ -1267,12 +1364,9 @@ public sealed class ReferenceResolver(DataBinder data)
         // §8.4.2.3.3 SR2/SR3/SR5 through the ONE screen the other two entries use (kb/Work PB681): an ADDRESS OF
         // operand is an identifier like any other, and the omitted-list arm used to return the address of the
         // table's FIRST occurrence for `ADDRESS OF E` — no subscript, no diagnostic, a pointer nobody asked for.
-        if (subCtx is null) return ScreenSubscriptArity(dref, item, 0) ? null : (item, null);
-        List<IToken> ixNames = [];
-        var (exprs, isRefMod) = InterpretSubscripts(subCtx, ixNames);
-        if (isRefMod || exprs is null) return null;
-        ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
-        if (ScreenSubscriptArity(dref, item, exprs.Count)) return null;   // §8.4.2.3.3 SR2/SR3
+        // The ONE written-subscript reading every identifier entry shares (kb/Work PB1030 extracted it).
+        if (ReadSubscripts(dref, item, subCtx, out var exprs) is not null) return null;
+        if (subCtx is null) return (item, null);
         // The in-class OCCURS levels outer→inner — the PlaceForItem Tier-B walk (same layout, same formula).
         var occursLevels = new List<DataItem>();
         for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, item.Class); n = n.Parent)

@@ -371,7 +371,9 @@ types:** `BoundRejected`, `BoundExprError`, `BoundOperandError` and `BoundBoolEr
 obtained only through factories (`Report` / `Reported`; `Refused` / `Unbuilt` / `Carry` / `Report`) that put them on
 the `EditionContext` refusal ledger, which `StatementBinder.BindStatement` checks per statement (COBOLNET2362 for a
 refusal that drew no error; COBOLNET1756 for an unbuilt operand) — `COBOLNET_DESIGN.md` §1.4 is the contract and
-`RefusalNodeDriftTests` the drift test. (If the owner declines a source generator, the
+`RefusalNodeDriftTests` the drift test. The reference resolver's own answer is closed the same way (kb/Work PB1030):
+`RefResolution` — `Place | Reported | Deferred` — from which a caller picks its refusal node, with `DeferredShape` the one
+census of unbuilt reference shapes (`RefResolutionDriftTests`). (If the owner declines a source generator, the
 fallback is a hand-written `abstract` visitor base with no default method — the compiler then forces every
 visitor to implement every node; slightly more boilerplate, same exhaustiveness guarantee. See OPEN QUESTION 1.)
 

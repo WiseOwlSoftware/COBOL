@@ -323,7 +323,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : ConstantOperand(dref) is { } konst ? konst   // a constant-name substitutes its literal (§13.10.3 SR2)
         : ctx.Data.SymbolicOf(dref) is { } sym ? SymbolicOperand(sym)   // a symbolic character is a figurative constant (§12.3.7.4 GR11; PB110)
-        : ctx.Refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : BoundOperandError.Unbuilt(ctx.Edition, RefFailure(dref));
+        : ctx.Refs.Resolve(dref) is var r && r.Place is { } p ? new BoundFieldOperand(p) : r.OperandError(ctx.Edition);   // kb/Work PB1030
 
     /// <summary>The §13.18.38.3 r7 screen for an operand slot OUTSIDE the five contexts that may reference an
     /// index-name (a subscript · PERFORM VARYING · SEARCH VARYING · SET · a relation-condition operand) — kb/Work
@@ -385,31 +385,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             _ => new BoundStringLiteral(k.Text),
         };
 
-    /// <summary>The loud-failure text for an unresolvable data reference — when the name belongs to a REJECTED
-    /// shared-storage class (a Tier-C / national REDEFINES, an unsupported cell shape), the class's
-    /// <c>RejectReason</c> rides along so the runtime loud names WHY, not just the reference (the
-    /// design's "references then fail loud" contract, made self-explanatory).</summary>
-    private string RefFailure(Core.DataReferenceContext dref)
-    {
-        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-        // kb/Work R32 — a name declared in the SCREEN SECTION: name the actual cause, not a bare unresolved
-        // reference. Since kb/Work PB260 the section is REFUSED (COBOLNET1560) so this text is reached only on
-        // the error-recovery path, where saying WHY still beats "unresolved". R38 — the same honesty for a
-        // declared ALPHABET-NAME in a data position (the INSPECT CONVERTING alphabet extension adjudication).
-        if (ctx.Data.ScreenNames.Contains(name))
-            return $"reference '{DataBinder.WrittenText(dref)}' — declared in the SCREEN SECTION, an optional facility "
-                 + "COBOL.NET does not support (COBOLNET1560; docs/CONFORMANCE.md §5)";
-        if (ctx.Data.Alphabets.ContainsKey(name) || ctx.Data.NationalAlphabets.ContainsKey(name))
-            return $"reference '{DataBinder.WrittenText(dref)}' — declared as an ALPHABET-name (SPECIAL-NAMES), which this "
-                 + "position does not reference as a data item (kb/Work R38 adjudicates the vendor "
-                 + "alphabet-operand extension)";
-        string? reason = ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var named)
-            ? named.Select(i => i.Class)
-                .FirstOrDefault(c => c is { Tier: RedefinesTier.Rejected, RejectReason: not null })
-                ?.RejectReason
-            : null;
-        return reason is null ? $"reference '{DataBinder.WrittenText(dref)}'" : $"reference '{DataBinder.WrittenText(dref)}' — {reason}";
-    }
 
     /// <summary>Bind a data reference in a numeric-expression position: an INDEXED BY index-name reads its
     /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); the LINAGE-COUNTER register reads its
@@ -429,8 +404,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : ctx.Data.ConstantOf(dref) is { } k
             ? k.Category is PicCategory.Numeric ? new BoundNumLiteral(CheckLiteral(k.Text))
                 : NonNumericConstantExpr(dref.GetText(), k.Category)
-        : ctx.Refs.Resolve(dref) is { } p ? OperandRef(dref, p, context)
-        : BoundExprError.Unbuilt(ctx.Edition, RefFailure(dref));
+        : ctx.Refs.Resolve(dref) is var r && r.Place is { } p ? OperandRef(dref, p, context)
+        : r.ExprError(ctx.Edition);   // kb/Work PB1030 — the resolver's answer picks Refused or Unbuilt
 
     /// <summary>The §13.18.38.3 r7 screen for an INDEX-NAME reached as an expression operand (kb/Work R29 —
     /// the arithmetic sibling of R16's statement-slot screen). r7's closed context list admits an index-name
@@ -675,7 +650,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// receiving data item" — a rule over the OPERAND ROLE, never over a statement). Two named entries make the
     /// role a decision written at every site — this one or <see cref="ResolveReceiving"/> — and
     /// <c>ReceivingResolutionDriftTests</c> fails the build of a binder under <c>Verbs/</c> that bypasses both.</para></summary>
-    public Place? ResolveSending(Core.DataReferenceContext dref) => ctx.Refs.Resolve(dref);
+    /// <para>⛔ IT RETURNS THE RESOLVER'S CLOSED ANSWER (kb/Work PB1030), so a caller chooses its refusal node FROM
+    /// it — <see cref="RefResolution.Refusal"/> and its operand/expression/condition twins — instead of guessing
+    /// whether a null was reported or unbuilt, or reporting an "unresolvable" error of its own on top.</para>
+    public RefResolution ResolveSending(Core.DataReferenceContext dref) => ctx.Refs.Resolve(dref);
 
     /// <summary>Resolve a RECEIVING data reference to its <see cref="Place"/> — the ONE receiving-side
     /// chokepoint (MOVE targets, arithmetic resultants, SET receivers). A report counter here is rejected at
@@ -738,7 +716,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // replaced (COBOLNET0899 "not yet implemented", the compiler conceding the construct was legal) could
         // not be repaired verb by verb. The report is resolved by the SAME method the sending side uses.
         if (dref.PAGE_COUNTER() is not null) return host.Rw.CounterPlace(dref);
-        var place = ctx.Refs.Resolve(dref);
+        var answer = ctx.Refs.Resolve(dref);
+        var place = answer.Place;
         // ⛔ THE ONE RECEIVING CHOKEPOINT NEVER DROPS A RECEIVER SILENTLY (kb/Work PB70): `MOVE "Z" TO OK1 TB(2:1) OK2`
         // used to move into OK1 and OK2 and skip TB without a word — the resolver's unsupported-shape null fell
         // through .OfType<Place>() in ResolveTargets / Receivers. An undefined name or a rejected shape was already
@@ -747,7 +726,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // of the statement running one receiver short.
         if (place is null)
         {
-            if (!ctx.Refs.WasDiagnosed(dref))
+            // ⛔ THE RESOLVER'S ANSWER, NOT A GUESS (kb/Work PB1030): only a DEFERRED shape is reported here.
+            if (answer.Outcome == RefOutcome.Deferred)
                 ctx.Edition.Error(DiagnosticCatalog.ReceivingReferenceNotImplemented,
                     $"receiving operand '{DataBinder.WrittenText(dref)}' names a declared item in a reference shape COBOL.NET does "
                     + "not yet implement as a receiver (COBOLNET_DESIGN §1.4 — rejected rather than dropped)");

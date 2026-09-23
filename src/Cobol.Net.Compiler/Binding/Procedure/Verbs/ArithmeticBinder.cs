@@ -260,7 +260,11 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (receiverBoolean || rhsBoolean)
         {
             BoundBoolExpr rerouted;
-            if (ConditionBinder.SoleDataRef(expr) is { } sd && host.Expr.ResolveSending(sd) is { } sp
+            var sole = ConditionBinder.SoleDataRef(expr) is { } sd && ctx.Refs.Probe(sd) is not null
+                ? host.Expr.ResolveSending(sd) : null;
+            if (sole is { Place: null })
+                rerouted = sole.BoolError(ctx.Edition);   // the resolver's own answer (kb/Work PB1030)
+            else if (sole?.Place is { } sp
                 && (sp is RefModPlace rm2 ? rm2.Category : sp.Item.OperandPic?.Category) is PicCategory.Boolean)
                 rerouted = new BoundBoolRef(sp);
             else

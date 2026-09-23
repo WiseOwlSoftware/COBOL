@@ -2042,6 +2042,14 @@ public static class DiagnosticCatalog
         + "(COBOLNET_DESIGN §1.4: an unsupported shape fails loud, never silently). The statement is rejected rather "
         + "than run with the receiver dropped.", "COBOLNET_DESIGN §1.4",
         RecognizedNotImplemented);
+    // kb/Work PB1030: the SENDING twin — a reference the resolver DEFERS, in a position whose binder has no node that
+    // can carry a deferral (a pointer / object-reference operand, a helper answering "place or reported").
+    public static readonly DiagnosticDescriptor ReferenceShapeNotImplemented = new(
+        NotImplemented, "reference-shape-not-implemented", EditionSeverity.Error,
+        "An operand names a declared item in a reference shape COBOL.NET does not yet implement in this position "
+        + "(COBOLNET_DESIGN §1.4: an unsupported shape fails loud, never silently). The statement is rejected.",
+        "COBOLNET_DESIGN §1.4",
+        RecognizedNotImplemented);
     // kb/Work PB128: arithmetic RESULTANTS never had a compile-time category screen — COMPUTE X-item = 1
     // compiled and died in StoreArith's run-time loud, where §4.2.2 requires a compile-time mechanism.
     public static readonly DiagnosticDescriptor ArithmeticResultantCategory = new(
@@ -4889,6 +4897,27 @@ public static class DiagnosticCatalog
         + "breaks. The compile is failed rather than let the refused node reach the generated program, where it "
         + "would abort the run unit when executed. Please report the source that produced it.",
         "COBOL.NET internal (no ISO rule)");
+
+    // kb/Work PB1030 — the reference resolver's segment materializer is the adjudicator of what may stand in a
+    // subscript or reference-modifier position; a segment that is not an arithmetic expression used to come back
+    // null UNREPORTED, and `DISPLAY E("A")` compiled with a "not implemented" warning and aborted at run time.
+    public static readonly DiagnosticDescriptor NotASubscript = new(
+        "COBOLNET2363", "not-a-subscript", EditionSeverity.Error,
+        "Something that is not a subscript is written in a subscript or reference-modifier position. ISO §8.4.2.3.2: "
+        + "a subscript is ALL, arithmetic-expression-1, or index-name-1 optionally followed by + or - and integer-1; "
+        + "§8.4.2.3.3 SR6: \"The subscript ALL may be used only\" when the subscripted identifier is an intrinsic "
+        + "function argument, or as the rightmost or only subscript of a table in a SORT statement's table format; "
+        + "§8.4.3.3.3 SR4: \"Leftmost-position and length shall be arithmetic expressions.\"",
+        "ISO §8.4.2.3.2 · §8.4.2.3.3 SR6 · §8.4.3.3.3 SR4");
+    // kb/Work PB1030 — a reference to a name whose own declaration was refused: before, the resolver answered null
+    // without a word and the statement was announced as a COBOL.NET gap ("not implemented").
+    public static readonly DiagnosticDescriptor ReferenceToRefusedDeclaration = new(
+        "COBOLNET2364", "reference-to-refused-declaration", EditionSeverity.Error,
+        "A statement references a name whose declaration the compiler refused — a REDEFINES entry its syntax rules "
+        + "reject (Tier D), a RENAMES entry whose operands did not resolve, or a SCREEN SECTION entry (the section is "
+        + "declined, COBOLNET1560). The declaration's own error names the rule; this one names the statement the "
+        + "refusal reaches, so the reference is neither reported as undefined nor announced as a COBOL.NET gap.",
+        "ISO §8.4.2.1 (the reference identifies no bindable resource)");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

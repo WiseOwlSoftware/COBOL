@@ -103,7 +103,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 if (kind != ReadKind.Random)
                     ctx.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
                         + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
-                else if (host.Expr.ResolveSending(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
+                else if (host.Expr.ResolveSending(keyRef).PlaceOrReported(ctx.Edition) is not { } keyPlace)
+                    return BoundRejected.Reported(ctx.Edition);   // the resolver's diagnostic, never SR11's (kb/Work PB1030)
+                else if (Model.RecordLayout.KeyIndexOfKeyItem(file, keyPlace.Item) is not { } ki)
                 {
                     return BoundRejected.Report(ctx.Edition, "COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
@@ -312,9 +314,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (length is not null && file.Organization != FileOrganization.Indexed)
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
                 + "indexed organization (ISO §14.9.41.3 SR8)");
-        Place? operand = kp?.dataReference() is { } dref ? host.Expr.ResolveSending(dref) : null;
-        if (kp is not null && operand is null)
-            return new BoundUnsupported($"START KEY operand '{kp.dataReference().GetText()}'");
+        Place? operand = null;
+        if (kp?.dataReference() is { } dref && host.Expr.ResolveSending(dref) is var keyAnswer
+            && (operand = keyAnswer.Place) is null)
+            return keyAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
 
         // §14.9.41.3 SR4 — "Data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses."
         // ⛔ ITS OWN NAMED CHECK, AHEAD OF BOTH ORGANIZATION ARMS (kb/Work PB354 part 2/3). It used to have no

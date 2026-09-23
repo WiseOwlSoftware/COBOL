@@ -150,25 +150,28 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // (§14.9.23.3 SR7) — the D10 dynamic path, live as of the universal wave.
         if (inv.invokeMethodName().dataReference() is { } mref)
         {
-            if (target.dataReference() is not { } uref || host.Expr.ResolveSending(uref) is not { } urecv
-                || urecv.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectRef.IsUniversal: true })
+            // kb/Work PB1030: a reference that did not resolve is the resolver's diagnostic, never SR7's.
+            Place? urecv = null;
+            if (target.dataReference() is { } uref
+                && (urecv = host.Expr.ResolveSending(uref).PlaceOrReported(ctx.Edition)) is null)
+                return BoundRejected.Reported(ctx.Edition);
+            if (urecv?.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectRef.IsUniversal: true })
             {
                 return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     "INVOKE: identifier-2 (a method name held in a data item) is permitted only when "
                     + "identifier-1 is a UNIVERSAL object reference (ISO §14.9.23.3 SR7)");
             }
-            if (host.Expr.ResolveSending(mref) is not { } msrc)
-            {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
-                    $"INVOKE: the method-name identifier '{mref.GetText()}' is not resolvable to storage");
-            }
+            // The resolver reported (or, for a deferred shape, PlaceOrReported reported) why it did not resolve —
+            // a second "not resolvable to storage" error on top named no rule (kb/Work PB1030).
+            if (host.Expr.ResolveSending(mref).PlaceOrReported(ctx.Edition) is not { } msrc)
+                return BoundRejected.Reported(ctx.Edition);
             if (msrc.Item.Pic?.Category is not PicCategory.Alphanumeric && !msrc.Item.IsGroup)
             {
                 return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
                     $"INVOKE: identifier-2 ('{mref.GetText()}') shall be of class alphanumeric "
                     + "(ISO §14.9.23.3 SR8; national identifier-2 is a later refinement)");
             }
-            return OoBindUniversalInvoke(site, urecv, methodLiteral: null, methodSource: msrc);
+            return OoBindUniversalInvoke(site, urecv!, methodLiteral: null, methodSource: msrc);
         }
         // §8.8.3.3 GR3: an alphanumeric/national concatenation expression stands anywhere a literal of that
         // class may — including INVOKE literal-1 (§14.9.23.3 SR2); a boolean-class concat stays null → 0823.
@@ -292,8 +295,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // so this is a Probe; the else-tail below reports when NEITHER reading holds (R30).
         // ⛔ Probe to DISCRIMINATE, RESOLVE to commit (kb/Work PB221): a probe is unscreened, so its Place must
         // never enter the bound tree — the receiver's subscripts would bypass every position screen.
-        if (ctx.Refs.Probe(dref) is not null && host.Expr.ResolveSending(dref) is { } receiver)
-            return OoBindInstanceInvoke(site, receiver, methodName);
+        if (ctx.Refs.Probe(dref) is not null)
+            // Discriminated as identifier-1: the committed answer decides, never the class-name reading (kb/Work PB1030).
+            return host.Expr.ResolveSending(dref) is var ra && ra.Place is { } receiver
+                ? OoBindInstanceInvoke(site, receiver, methodName) : ra.Refusal(ctx.Edition);
         // The class-name-1 alternative is scoped by §8.4.6.4 to the names this SOURCE ELEMENT may reference,
         // so the partition asks the ONE funnel (kb/Work PB365 — `OoClasses.Find` asked the whole group).
         if (Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(),
@@ -725,10 +730,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // every other identifier is assumed to be (GR6 a), "a receiving operand", so it passes every receiving
             // prohibition (§13.18.15.3 SR2 — a CONSTANT RECORD shall not be one).
             if ((inlinePlace ?? (dref is null ? null
-                    : explicitContent ? host.Expr.ResolveSending(dref) : host.Expr.ResolveReceiving(dref))) is not { } place)
+                    : explicitContent ? host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition)
+                    : host.Expr.ResolveReceiving(dref))) is not { } place)
             {
-                Err($"USING argument '{argText}' is not resolvable to storage (or uses a reference "
-                    + "form not yet carried across INVOKE)");
+                // A data reference's null is already reported, by the resolver or the receiving chokepoint (kb/Work
+                // PB1030); only an argument that is neither a reference nor an inline invocation reaches Err.
+                if (dref is null)
+                    Err($"USING argument '{argText}' is not resolvable to storage (or uses a reference "
+                        + "form not yet carried across INVOKE)");
                 return null;
             }
             // §14.9.23.3 SR 10: object data (factory/instance WS) cannot cross BY REFERENCE — explicit
@@ -1190,9 +1199,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // Probe, then RESOLVE to commit, because a probe's Place is unscreened and must never enter the
             // bound tree (kb/Work PB221).
             var sniff = ctx.Refs.Probe(senderRef);
-            if (sniff is { Item.Pic: { Category: PicCategory.ObjectReference } spic } sn
-                && host.Expr.ResolveSending(senderRef) is { } sp)
+            if (sniff is { Item.Pic: { Category: PicCategory.ObjectReference } spic } sn)
             {
+                if (host.Expr.ResolveSending(senderRef).PlaceOrReported(ctx.Edition) is not { } sp)
+                    return BoundRejected.Reported(ctx.Edition);   // the committed answer (kb/Work PB1030)
                 // The receiver's description selects SR10 / SR12 / SR14 and the sender's answers it — ONE
                 // table, OoConformance.ObjectRefAssignmentMismatch. The former `ObjectClassName is not null`
                 // pre-guard is gone: the table returns null for a universal receiver itself (SR8), so the
