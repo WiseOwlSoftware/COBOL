@@ -1372,8 +1372,25 @@ unsuccessful WRITE inside its loop and ends the file's processing on the boundar
 MERGE GR12 paragraph names (*"On the first attempt to write outside the externally defined boundaries of the
 file … the processing of the file is terminated"*). One hook after the CLOSE, the former shape, read the
 CLOSE's status for all three and ran no declarative for a failed retrieval whose CLOSE succeeded. Witness:
-`2023/pb837_sort_implicit_io_status` ('61' → '47' → '42' for SORT and MERGE USING; one '71' for a LINE
-SEQUENTIAL GIVING file).
+`2023/pb837_sort_implicit_io_status` ('61' → '47' for SORT and MERGE USING, where the fatal '47' ends the
+statement; one '71' for a LINE SEQUENTIAL GIVING file, which ends the SORT too).
+
+**Each hook is followed by its DISPOSITION — one table, `SortEmitter.RuleFor` (kb/Work PB993).** A hook alone
+only runs the procedure; what the status then does to the statement is the verb's rule, and before PB993 no site
+had one — a fatal GIVING OPEN ('30') ran the declarative, then again for every record's WRITE ('48') against the
+unopened file, then for the CLOSE ('42'), and the SORT "completed". Now every as-if statement goes
+`EmitTransferHook` → the hook (`EmitTransferUse`) → `EmitDisposition`, which renders the table's cell for a fatal
+status (`IoStatusClass.Fatal`, §9.1.13.1's class) and for any other unsuccessful one as `goto` the statement's end
+label (TERMINATE), `goto` the GIVING file's bypass label after its CLOSE (BYPASS, MERGE GR12 a) only), or nothing
+(CONTINUE). The default cell is §9.1.13.1's — a fatal status transfers "to the end of the statement that produced
+the fatal exception condition", the SORT/MERGE — and the MERGE cells that turn on "an applicable USE procedure that
+completes normally" (GR7 a), GR12 a), GR12 b)) read that fact from the hook itself: `__IoCheck` / `__IoCheckEc`
+answer -1 when a procedure ran and completed normally and -3 when none applied (the EC-free `__IoCheck` answers a
+bool), and the transfer passes `__verbRule` so a fatal status under EC-I-O checking is the verb's to dispose of
+(§14.6.13.1.3 2) precedes 5)/7)). A terminated statement performs none of its remaining implicit functions, so a
+GIVING file whose WRITE terminated it is still open afterwards (determination in `docs/CONFORMANCE.md` §3).
+`SortTransferRuleDriftTests` pins every cell and that the hook is reached from ONE place in the emitter. Witness:
+`2002/pb993_sort_merge_transfer_termination` (nine legs, one per cell family).
 
 ### D23. The implicit MOVE of a `… FROM` / `… INTO` phrase is BOUND by the MOVE binder, as a sub-statement of the I-O node — never synthesized in the emitter.
 

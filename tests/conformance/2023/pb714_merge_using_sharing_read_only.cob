@@ -29,10 +29,16 @@
       *> OPEN carries SHARING WITH READ ONLY; FA-OTH holds the same physical
       *> file open EXTEND, and Table 19 row "SHARING WITH READ ONLY / INPUT"
       *> x column "sharing with all other / extend I-O output" is
-      *> Unsuccessful open => 9.1.13.9 item 1 => '61'.  FB is untouched, so
-      *> the merge still delivers FB's records: GR4 orders equal keys by
-      *> USING-file order, and a file that released nothing contributes
-      *> nothing.
+      *> Unsuccessful open => 9.1.13.9 item 1 => '61'.  '61' is nonfatal and
+      *> the USE procedure completes normally, so the MERGE "continues
+      *> processing as if the exception condition did not exist" (14.9.24.4
+      *> GR7 a).  The as-if READ of the connector that did not open is then
+      *> unsuccessful '47' (14.9.30.4 GR2) - FATAL, and with no MERGE rule of
+      *> its own for a failed retrieval 9.1.13.1 transfers control "to the
+      *> end of the statement that produced the fatal exception condition"
+      *> (kb/Work PB993): FB is never read and FM-OUT is never created - its
+      *> OPEN INPUT below answers '35', and the read-back loop, which stops
+      *> on any unsuccessful status, counts 0.
            SELECT FA ASSIGN TO "pb714mroa.dat"
                ORGANIZATION IS SEQUENTIAL
                SHARING WITH ALL OTHER
@@ -56,7 +62,11 @@
       *> file connector" — so the implicit OPEN OUTPUT is refused '61'
       *> whatever sharing mode it carries.  What this leg pins is that the
       *> refusal is STORED: the USE procedure GR12 a) invokes sees '61' and
-      *> not the seeded "ZZ".
+      *> not the seeded "ZZ".  '61' is nonfatal and the USE procedure
+      *> completes normally, so the file "is processed as if the exception
+      *> did not exist" (14.9.24.4 GR12 a); each as-if WRITE then fails '48'
+      *> and, its USE procedure completing normally, "the MERGE continues
+      *> execution" (GR12 b) - both records; the as-if CLOSE answers '42'.
            SELECT FC ASSIGN TO "pb714mroc.dat"
                ORGANIZATION IS SEQUENTIAL
                FILE STATUS IS FC-ST.
@@ -135,7 +145,8 @@
            MOVE 0 TO N.
            MOVE "N" TO EOF-FLAG.
            OPEN INPUT FM-OUT.
-           PERFORM UNTIL EOF-FLAG = "Y"
+           DISPLAY "M1-OUT-OPEN=" FM-ST.
+           PERFORM UNTIL EOF-FLAG = "Y" OR FM-ST NOT = "00"
                READ FM-OUT
                    AT END MOVE "Y" TO EOF-FLAG
                    NOT AT END ADD 1 TO N

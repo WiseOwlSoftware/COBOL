@@ -271,9 +271,16 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // procedure-name never transferred on the plain (non-EC-masked) path of any I-O verb (kb/Work PB141;
         // RESUME NEXT STATEMENT survived only because discarding −1 happens to mean fall-through). An EC-free
         // build keeps the void form byte-identical.
+        // ⛔ THE HOOK REPORTS WHETHER A PROCEDURE RAN (kb/Work PB993). Every explicit I-O statement treats "no
+        // declarative applied" and "a declarative completed normally" alike — both fall through — but the SORT/MERGE
+        // implicit transfers do not: MERGE's rules turn on "an applicable USE procedure that completes normally"
+        // (§14.9.24.4 GR7 a), GR12 a)/b)). So the EC-model form answers -3 (no procedure) apart from -1 (ran,
+        // completed normally), exactly as __IoCheckEc and __EcDispatch already do, and the EC-free form answers a
+        // bool (a void __RunUse that returns HAS completed normally — RESUME is an EC-model statement, and every
+        // other not-normal completion unwinds by its own signal). Callers that do not need the answer discard it.
         bool ecInt = ecState.Active;
-        string none = ecInt ? "return -1;" : "return;";
-        using (w.Block($"{mod}{(ecInt ? "int" : "void")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
+        string none = ecInt ? "return -1;" : "return false;";
+        using (w.Block($"{mod}{(ecInt ? "int" : "bool")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             w.Line($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")}) {none}   // successful — no declarative (ISO §14.9.49.4 GR6)");
@@ -281,7 +288,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             w.Line($"if (__invKey && {IoStatusClass.InvalidKey("__st")}) {none}   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
             string run(int i) => ecInt
                 ? $"return {dispatchState.RunUseCall(i, decls[i].Range)};"
-                : $"{dispatchState.RunUseCall(i, decls[i].Range)}; return;";
+                : $"{dispatchState.RunUseCall(i, decls[i].Range)}; return true;";
             // The GR3a/GR5 file-name tier and the GR3b/GR6b–e open-mode tier are rendered by the ONE
             // UseTierEmitter that __IoCheckEc and __RunGlobalUse also use. Both tiers are EDITION-INVARIANT —
             // the determination is written once, on UseTierEmitter itself (kb/Work PB344).
@@ -292,8 +299,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // DECLARING program's instance — its data (§8.4.6.2) — via the container's __RunGlobalUse (whose
             // RESUME, if any, resolves in the DECLARING program's own dispatch, never this one's pc space).
             if (dispatchState.OuterGlobalUse)
-                w.Line("__outer.__RunGlobalUse(__f);");
-            if (ecInt) w.Line("return -1;");
+                w.Line(ecInt ? "if (__outer.__RunGlobalUse(__f)) return -1;" : "if (__outer.__RunGlobalUse(__f)) return true;");
+            w.Line(ecInt ? "return -3;   // no qualifying declarative (the __EcDispatch convention)" : "return false;");
         }
         w.Line();
     }

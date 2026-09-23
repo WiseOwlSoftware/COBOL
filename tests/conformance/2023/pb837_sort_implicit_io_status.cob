@@ -31,21 +31,28 @@
       *> the READ statement is unsuccessful and the I-O status value for
       *> file-name-1 is set to '47'" - which is not the at end condition,
       *> so the AT END phrase does not take precedence and the USE
-      *> procedure runs.  The retrieval ends there (it is unsuccessful),
-      *> and the as-if CLOSE of a connector that is not open is
-      *> unsuccessful with '42' (14.9.6.4 GR1) - a third invocation.
-      *> EXPECTED per leg: 61, 47, 42, then no record from that file.
+      *> procedure runs.  '47' is FATAL (9.1.13.1), so the statement is
+      *> terminated after that invocation (kb/Work PB993): SORT by GR12 b)
+      *> "If a fatal exception condition exists ... the SORT is
+      *> terminated", MERGE by 9.1.13.1's transfer "to the end of the
+      *> statement that produced the fatal exception condition".  No as-if
+      *> CLOSE, no OUTPUT PROCEDURE, and the MERGE never reads M-OK.
+      *> EXPECTED per leg: 61, 47, then the status after is '47'.
       *>
       *> LEG 3 (GIVING).  The GIVING file is LINE SEQUENTIAL and the middle
       *> sorted record holds X"01", outside the line sequential character
       *> set (Annex A.1 item 115, docs/CONFORMANCE.md DOC-A.1-115: U+0020
       *> and above).  14.9.51.4 GR23: "the execution of the WRITE statement
       *> is unsuccessful and the I-O status ... is set to '71'" - one USE
-      *> invocation with '71', and since '71' is not an attempt to write
-      *> outside the file's boundaries the transfer goes on (the GR15
-      *> boundary paragraph is the only one that ends it) - "C" is still
-      *> written, and the as-if CLOSE succeeds without a declarative.
-      *> EXPECTED: one 71, then the file reads back A and C.
+      *> invocation with '71'.  '71' is not an attempt to write outside the
+      *> file's boundaries (GR15's boundary paragraph closes the file), but
+      *> it is FATAL (9.1.13.1: "any that begin with the digit 3, 4, or 7"),
+      *> and SORT - unlike MERGE GR12 b) - has no rule that continues past
+      *> a failed WRITE, so 9.1.13.1 transfers control to the end of the
+      *> SORT (kb/Work PB993).  The as-if CLOSE is never executed, so the
+      *> GIVING file is still open when the SORT ends (docs/CONFORMANCE.md,
+      *> the PB993 determination): the program's own CLOSE succeeds.
+      *> EXPECTED: one 71, the CLOSE '00', then the file reads back A only.
       *>
       *> Every invocation displays a running sequence number, so the ORDER
       *> is part of the expected output.
@@ -157,6 +164,8 @@
                INPUT PROCEDURE IS FEED
                GIVING G-OUT.
            DISPLAY "G-AFTER=" G-ST.
+           CLOSE G-OUT.
+           DISPLAY "G-CLOSE=" G-ST.
            MOVE "N" TO EOF-FLAG.
            OPEN INPUT G-OUT.
            PERFORM UNTIL EOF-FLAG = "Y"

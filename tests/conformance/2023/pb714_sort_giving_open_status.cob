@@ -20,10 +20,13 @@
       *> REWRITE, START, UNLOCK or WRITE statement and prior to the
       *> execution of ... any applicable exception processing statements" —
       *> with 12.4.5.8.4 GR1 puts it in the FILE STATUS item before the USE
-      *> procedure GR15 a) invokes ("if there is an applicable USE procedure
-      *> that completes normally, processing for the file connector that
-      *> caused the exception condition is bypassed").  D-ST is seeded "ZZ",
-      *> so an implicit OPEN that stored no status shows as "ZZ".
+      *> procedure GR15's closing paragraph invokes ("If a nonfatal
+      *> exception condition exists for file-name-3 as a result of the
+      *> implicit OPEN during file initiation, and there is an applicable
+      *> USE procedure that completes normally, or no applicable USE
+      *> procedure is available, the SORT statement continues").  D-ST is
+      *> seeded "ZZ", so an implicit OPEN that stored no status shows as
+      *> "ZZ".
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -78,7 +81,18 @@
       *> open mode is OUTPUT is Unsuccessful open in all five columns —
       *> 9.1.13.9 1) e), "An attempt is made to open a physical file in the
       *> output mode and the physical file is currently open by another file
-      *> connector" — so the implicit OPEN OUTPUT is refused '61'.
+      *> connector" — so the implicit OPEN OUTPUT is refused '61'.  '61' is
+      *> nonfatal, so the SORT continues (GR15, above) and its first as-if
+      *> WRITE meets a connector that is not open: 14.9.51.4 => '48'.  '48'
+      *> is FATAL (9.1.13.1: "any that begin with the digit 3, 4, or 7"),
+      *> and SORT has no rule of its own for a failed implicit WRITE other
+      *> than the boundary one, so 9.1.13.1's own disposition governs:
+      *> "control is transferred to the end of the statement that produced
+      *> the fatal exception condition" - the SORT is terminated after that
+      *> one USE invocation (kb/Work PB993; 14.6.13.1.3 2): "If the
+      *> executed statement is a MERGE or SORT statement, then the rules
+      *> for those statements apply").  No further WRITE, no as-if CLOSE:
+      *> the last status stored is the WRITE's '48'.
        LEG-1.
            OPEN INPUT F-OTH.
            SORT SRT-FILE ON ASCENDING KEY SRT-REC

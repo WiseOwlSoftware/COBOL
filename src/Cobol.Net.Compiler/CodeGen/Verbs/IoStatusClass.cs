@@ -50,4 +50,12 @@ internal static class IoStatusClass
     /// connector is set to '24'"). The one condition SORT GR15 / MERGE GR12's implicit WRITE loop terminates on
     /// (kb/Work PB837). Whole-value, not a class test: '2x' and '3x' each hold values that are not this.</summary>
     public static string WriteBoundary(string status) => $"({status} == \"24\" || {status} == \"34\")";
+
+    /// <summary>A FATAL exception condition — §9.1.13.1: "Certain classes of I-O status values indicate fatal
+    /// exception conditions. These are: any that begin with the digit 3, 4, or 7, and any that begin with the digit
+    /// 9 that the implementor defines as fatal." The class lives in the RUNTIME (<c>ExceptionCatalog
+    /// .IsFatalIoStatus</c>, which the generated <c>__IoCheckEc</c> already asks), so this renders a call to it
+    /// rather than a second copy of the digit set. §9.1.13.1 makes fatality a property of the STATUS VALUE, not of
+    /// exception checking — the SORT/MERGE implicit-transfer dispositions ask it with checking off (kb/Work PB993).</summary>
+    public static string Fatal(string status) => $"CobolNet.Runtime.Exceptions.ExceptionCatalog.IsFatalIoStatus({status})";
 }

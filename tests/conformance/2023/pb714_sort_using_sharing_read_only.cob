@@ -36,7 +36,14 @@
       *> connectors other than this one, to input mode."  The other
       *> connector is open EXTEND, so Table 19 row "SHARING WITH READ ONLY /
       *> INPUT" x column "sharing with all other / extend I-O output" is
-      *> Unsuccessful open => 9.1.13.9 item 1 => '61'.
+      *> Unsuccessful open => 9.1.13.9 item 1 => '61'.  '61' is nonfatal, so
+      *> the SORT continues (GR12 a) and the as-if READ of the connector that
+      *> did not open is unsuccessful '47' (14.9.30.4 GR2) - FATAL, and GR12
+      *> b)'s "If a fatal exception condition exists ... the SORT is
+      *> terminated" ends the statement after that USE invocation (kb/Work
+      *> PB993): no as-if CLOSE, and the GIVING phase never runs, so F1-OUT
+      *> is never created - its OPEN INPUT below answers '35' and the
+      *> read-back loop, which stops on any unsuccessful status, counts 0.
            SELECT F1-IN ASSIGN TO "pb714sro1.dat"
                ORGANIZATION IS SEQUENTIAL
                SHARING WITH ALL OTHER
@@ -76,7 +83,8 @@
       *> the SAME open-INPUT connector leg 2 tolerates, Table 19 row
       *> "SHARING WITH NO OTHER / EXTEND I-O INPUT OUTPUT" is Unsuccessful
       *> open in every column => '61'.  An implementation that applied READ
-      *> ONLY unconditionally would answer '00' here.
+      *> ONLY unconditionally would answer '00' here.  From the '61' on, the
+      *> leg runs exactly as leg 1: '47', the SORT terminated, no F3-OUT.
            SELECT F3-IN ASSIGN TO "pb714sro3.dat"
                ORGANIZATION IS SEQUENTIAL
                SHARING WITH NO OTHER
@@ -157,7 +165,8 @@
            MOVE 0 TO N.
            MOVE "N" TO EOF-FLAG.
            OPEN INPUT F1-OUT.
-           PERFORM UNTIL EOF-FLAG = "Y"
+           DISPLAY "L1-OUT-OPEN=" G1-ST.
+           PERFORM UNTIL EOF-FLAG = "Y" OR G1-ST NOT = "00"
                READ F1-OUT
                    AT END MOVE "Y" TO EOF-FLAG
                    NOT AT END ADD 1 TO N
@@ -182,7 +191,7 @@
            MOVE 0 TO N.
            MOVE "N" TO EOF-FLAG.
            OPEN INPUT F2-OUT.
-           PERFORM UNTIL EOF-FLAG = "Y"
+           PERFORM UNTIL EOF-FLAG = "Y" OR G2-ST NOT = "00"
                READ F2-OUT
                    AT END MOVE "Y" TO EOF-FLAG
                    NOT AT END ADD 1 TO N
@@ -208,7 +217,8 @@
            MOVE 0 TO N.
            MOVE "N" TO EOF-FLAG.
            OPEN INPUT F3-OUT.
-           PERFORM UNTIL EOF-FLAG = "Y"
+           DISPLAY "L3-OUT-OPEN=" G3-ST.
+           PERFORM UNTIL EOF-FLAG = "Y" OR G3-ST NOT = "00"
                READ F3-OUT
                    AT END MOVE "Y" TO EOF-FLAG
                    NOT AT END ADD 1 TO N

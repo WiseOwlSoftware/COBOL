@@ -43,9 +43,20 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// kb/Work PB344), and the only per-statement inputs are the phrases it wrote, which are the flags
     /// below.</para></summary>
     public bool EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false,
-        bool onExceptionHandled = false, string? notNormalLabel = null)
+        bool onExceptionHandled = false, string? notNormalLabel = null, bool verbDisposes = false,
+        string? useCompletedVar = null)
     {
         var w = ctx.Writer;
+        // verbDisposes / useCompletedVar — the SORT/MERGE implicit transfers only (kb/Work PB993). verbDisposes
+        // tells __IoCheckEc that the VERB's rules dispose of a fatal status (§14.6.13.1.3 2) precedes 5)/7)), so
+        // it must not end the run unit; useCompletedVar, where the verb's rule turns on it, declares a bool that is
+        // true when an applicable procedure ran and completed normally (§14.9.24.4 GR7 a), GR12 a)/b)). A
+        // not-normal completion never reaches the declaration: the notNormalLabel jump and the RESUME transfer
+        // above it have already left.
+        void Completed(string expr)
+        {
+            if (useCompletedVar is not null) w.Line($"bool {useCompletedVar} = {expr};   // an applicable USE procedure ran and completed normally");
+        }
         // §14.6.13.1.2 #1: a declarative that executes a RESUME does not complete normally. The ≥ 0 arm above
         // each of these already leaves the statement (a transfer of control), so the arm this adds is the
         // RESUME AT NEXT STATEMENT one, which otherwise falls through into the rest of the enclosing statement.
@@ -65,15 +76,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 ? (CsLiteral(ecState.Info!.StatementName), CsLiteral(ecState.Info!.Location))
                 : ("null", "null");
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
-                + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc});");
+                + $"{(invalidKeyHandled ? "true" : "false")}, {(onExceptionHandled ? "true" : "false")}, {mask}, {locMask}, {stmt}, {loc}"
+                + $"{(verbDisposes ? ", __verbRule: true" : "")});");
             w.Line(dispatch.ResumeTransfer($"__ior{id}"));
             NotNormal(id);
+            Completed($"__ior{id} == -1");
             return notNormalLabel is not null;
         }
-        if (!dispatch.UseDecls) return false;
+        if (!dispatch.UseDecls) { Completed("false"); return false; }
         // An ON EXCEPTION phrase is the statement's own handler for EVERY unsuccessful family (§14.9.10.4
         // GR20c) — no declarative runs, and the plain path has no EC to raise, so the hook is a no-op.
-        if (onExceptionHandled) return false;
+        if (onExceptionHandled) { Completed("false"); return false; }
         if (ecState.Active)
         {
             // The EC-model __IoCheck returns the declarative's RESUME action — consumed exactly like the
@@ -82,11 +95,15 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
             w.Line(dispatch.ResumeTransfer($"__ior{id}"));
             NotNormal(id);
+            Completed($"__ior{id} == -1");
             return notNormalLabel is not null;
         }
-        // The non-EC void form cannot report a resume action, and it does not need to: RESUME is a §14.9.33
-        // statement of the EC model, so a group without it has no declarative that can end in one.
-        w.Line($"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
+        // The non-EC form cannot report a resume action, and it does not need to: RESUME is a §14.9.33 statement
+        // of the EC model, so a group without it has no declarative that can end in one. It answers only whether
+        // a procedure ran (and, returning, completed normally) — discarded except by the SORT/MERGE transfers.
+        string call = $"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")})";
+        if (useCompletedVar is not null) Completed(call);
+        else w.Line($"{call};");
         return false;
     }
 

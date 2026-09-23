@@ -36,15 +36,14 @@ internal sealed class SortEmitter(EmitContext ctx,
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(so.File);
-        string end = TerminationLabel();
-        bool terminable = false;
+        var tx = new Transfer(TerminationLabel(), merge: false);
         w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
 
         // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
         // EC-SORT-MERGE-FILE-OPEN; EC checking OFF by default, COBOLNET_DESIGN §18.16 — seam in CobolSort).
         if (so.Using.Count > 0)
             foreach (var input in so.Using)
-                terminable |= EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null, end);
+                EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null, tx);
         else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
             Statements.EmitProcedureRange(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
 
@@ -54,15 +53,16 @@ internal sealed class SortEmitter(EmitContext ctx,
         // Phase c — return (GR9c).
         if (so.Giving.Count > 0)
             foreach (var output in so.Giving)
-                terminable |= EmitGivingFile(output, sd, end);
+                EmitGivingFile(output, sd, tx);
         else if (so.OutputProcedure is { IsEmpty: false } op)
             Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
 
         // §14.9.40.4 GR17's landing point: "the SORT statement is terminated" skips the REMAINING implicit
         // transfers and the phases after them, but still releases the sort store — terminating the statement is
-        // not abandoning the run unit. Emitted only when an implicit transfer can actually jump here, so a SORT
-        // in a program with no USE declaratives is byte-identical.
-        if (terminable) w.Line($"{end}: ;");
+        // not abandoning the run unit. It is also where every FATAL implicit-transfer status lands (RuleFor —
+        // §9.1.13.1's "control is transferred to the end of the statement", kb/Work PB993), so any SORT with a
+        // USING or GIVING file jumps here; one with only procedures emits no label.
+        if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
         w.Line($"{RuntimeApi.SortClose(sd)};");
     }
 
@@ -81,25 +81,24 @@ internal sealed class SortEmitter(EmitContext ctx,
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
-        string end = TerminationLabel();
-        bool terminable = false;
+        var tx = new Transfer(TerminationLabel(), merge: true);
         w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
         foreach (var input in mg.Using)
         {
             w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
-            terminable |= EmitInputFile(input, sd, mg.RecordWidth, mg.Varying is not null, end);
+            EmitInputFile(input, sd, mg.RecordWidth, mg.Varying is not null, tx);
         }
         w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys))};   // the GR5 sequences are the Init snapshot's");
         if (mg.Giving.Count > 0)
             foreach (var output in mg.Giving)
-                terminable |= EmitGivingFile(output, sd, end);   // GR12 — each file-name-4 receives the WHOLE merged result
+                EmitGivingFile(output, sd, tx);   // GR12 — each file-name-4 receives the WHOLE merged result
         else if (mg.OutputProcedure is { IsEmpty: false } op)
             Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR9)");
         // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
         // rule is the same one: §14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised inside
         // an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole statement here
         // rather than falling into the next USING stream.
-        if (terminable) w.Line($"{end}: ;");
+        if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
         w.Line($"{RuntimeApi.SortClose(sd)};");
     }
 
@@ -109,7 +108,7 @@ internal sealed class SortEmitter(EmitContext ctx,
     /// file's failed OPEN makes the first READ unsuccessful — never a spin). Each of the three as-if statements
     /// stores its own status and offers it to its own USE hook (kb/Work PB837); the file's FILE STATUS item then
     /// holds the final (CLOSE) status, the only value visible after the statement.</summary>
-    private bool EmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying, string endLabel)
+    private void EmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying, Transfer tx)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(input);
@@ -120,9 +119,9 @@ internal sealed class SortEmitter(EmitContext ctx,
         // ONLY phrase had been executed; otherwise, the initiation is performed as if an OPEN statement with the
         // INPUT phrase and WITHOUT a SHARING phrase is executed." The condition is a compile-time fact, so it is
         // decided HERE and never re-derived in the runtime (kb/Work PB714).
-        bool terminable = EmitImplicitOpen(input, BoundOpenMode.Input,
+        EmitImplicitOpen(input, BoundOpenMode.Input,
             input.Sharing == SharingMode.AllOther ? SharingMode.ReadOnly : null,
-            "implicit OPEN INPUT (ISO §14.9.40.4 GR12a / §14.9.24.4 GR7a)", endLabel);
+            "implicit OPEN INPUT (ISO §14.9.40.4 GR12a / §14.9.24.4 GR7a)", TransferIo.UsingOpen, tx);
         // §14.9.40 GR12 b) / §14.9.24 GR7 b): "Each record is obtained as if a READ statement with the NEXT
         // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
         // GOVERNED read (§14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
@@ -157,19 +156,19 @@ internal sealed class SortEmitter(EmitContext ctx,
         // to sit after the CLOSE read the CLOSE's status for both, so a failed retrieval followed by a successful
         // CLOSE ('00') ran no declarative at all.
         seqIo.EmitStoreFileStatus(input);
-        terminable |= seqIo.EmitUseHook(input, atEndHandled: true, notNormalLabel: endLabel);
+        EmitTransferHook(input, RuntimeApi.FileStatus(f), TransferIo.UsingRead, tx, atEndHandled: true);
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
         // The as-if CLOSE gets the hook an explicit CLOSE gets (SequentialIoEmitter.EmitClose): no AT END phrase
         // exists on a CLOSE, so nothing takes precedence over its declarative.
         seqIo.EmitStoreFileStatus(input);
-        return seqIo.EmitUseHook(input, notNormalLabel: endLabel) | terminable;
+        EmitTransferHook(input, RuntimeApi.FileStatus(f), TransferIo.UsingClose, tx);
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
     /// cursor (EACH file receives the full result), OPEN OUTPUT, RETURN→WRITE loop, CLOSE. A fixed-length GIVING
     /// file space-fills a shorter returned record to its record width (GR16c / MERGE GR13c — the connector's
     /// fixed-width fit); a relative GIVING file's key sequence 1..n (GR15b) is the G5 relative slice.</summary>
-    private bool EmitGivingFile(FileModel output, string sdLit, string endLabel)
+    private void EmitGivingFile(FileModel output, string sdLit, Transfer tx)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(output);
@@ -179,8 +178,12 @@ internal sealed class SortEmitter(EmitContext ctx,
         // performed as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed."
         // §9.1.15 1) is what that buys: "The sharing with no other mode specifies exclusive access to a physical
         // file" (kb/Work PB714).
-        bool terminable = EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
-            "implicit OPEN OUTPUT (ISO §14.9.40.4 GR15a / §14.9.24.4 GR12a)", endLabel);
+        // MERGE GR12 a)'s "processing for the file connector that caused the exception condition is bypassed"
+        // skips THIS file's WRITE loop and CLOSE and goes on to the next file-name-4 (kb/Work PB993).
+        tx.BypassLabel = $"__srtBy{ctx.Names.NextSort()}";
+        tx.Bypassed = false;
+        EmitImplicitOpen(output, BoundOpenMode.Output, SharingMode.NoOther,
+            "implicit OPEN OUTPUT (ISO §14.9.40.4 GR15a / §14.9.24.4 GR12a)", TransferIo.GivingOpen, tx);
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
         {
             // "Each record is written as if a WRITE statement without any optional phrases had been executed"
@@ -198,17 +201,22 @@ internal sealed class SortEmitter(EmitContext ctx,
             using (w.Block($"if ({IoStatusClass.Unsuccessful(ws)})"))
             {
                 seqIo.EmitStoreFileStatus(output);
-                terminable |= seqIo.EmitUseHook(output, notNormalLabel: endLabel);
+                string? used = EmitTransferUse(output, TransferIo.GivingWrite, tx);
                 // "On the first attempt to write outside the externally defined boundaries of the file, any USE
                 // AFTER EXCEPTION procedure … is executed; if that USE procedure completes normally or if no such
                 // USE procedure is specified, the processing of the file is terminated as in General rule 15c"
-                // (MERGE GR12's paragraph: "as in General rule 12c") — the CLOSE below.
+                // (MERGE GR12's paragraph: "as in General rule 12c") — the CLOSE below. The boundary is the one
+                // write failure whose rule is specific, so it is tested BEFORE the general disposition (a '34' is
+                // fatal by §9.1.13.1's class, and would otherwise terminate the whole statement).
                 w.Line($"if ({IoStatusClass.WriteBoundary(ws)}) break;   // GR15 / MERGE GR12 — terminated as in GR15c");
+                EmitDisposition(ws, used, TransferIo.GivingWrite, tx);
             }
         }
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
         seqIo.EmitStoreFileStatus(output);
-        return seqIo.EmitUseHook(output, notNormalLabel: endLabel) | terminable;
+        EmitTransferHook(output, RuntimeApi.FileStatus(f), TransferIo.GivingClose, tx);
+        if (tx.Bypassed) w.Line($"{tx.BypassLabel}: ;   // MERGE GR12 a) — the bypassed file's processing ends here");
+        tx.BypassLabel = null;
     }
 
     /// <summary>⛔ THE ONE IMPLICIT OPEN OF SORT AND MERGE — every <i>"as if an OPEN statement …"</i> initiation
@@ -238,8 +246,8 @@ internal sealed class SortEmitter(EmitContext ctx,
     /// <para>No RETRY and no NO REWIND: none of the four rules names either phrase, and §14.7.9.3 GR4 a) makes
     /// the absent RETRY phrase "no further attempt" — which is what <see cref="SequentialIoEmitter.RenderRetry"/>
     /// renders for a null spec, borrowed rather than re-spelled so the two OPEN sites cannot drift.</para></summary>
-    private bool EmitImplicitOpen(FileModel file, BoundOpenMode mode, SharingMode? sharing, string ruleComment,
-        string endLabel)
+    private void EmitImplicitOpen(FileModel file, BoundOpenMode mode, SharingMode? sharing, string ruleComment,
+        TransferIo io, Transfer tx)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(file);
@@ -259,10 +267,141 @@ internal sealed class SortEmitter(EmitContext ctx,
         }
         seqIo.EmitStoreFileStatus(file);   // §9.1.13.1 / §12.4.5.8.4 GR1 — before the declarative, not after it
         // A failed implicit OPEN reaches a USE declarative (GR12a / GR15a); one that does not complete normally
-        // terminates the SORT/MERGE rather than letting the transfer proceed against an unopened connector
-        // (§14.9.40.4 GR17 — and GR15's own "If a fatal exception condition exists for file-name-3 as a result of
-        // the implicit OPEN during file initiation, the SORT is terminated" is the same rule for the fatal half).
-        return seqIo.EmitUseHook(file, notNormalLabel: endLabel);
+        // terminates the SORT/MERGE (§14.9.40.4 GR17), and the verb's own rule then disposes of the status —
+        // GR15's "If a fatal exception condition exists for file-name-3 as a result of the implicit OPEN during
+        // file initiation, the SORT is terminated" among them (kb/Work PB993).
+        EmitTransferHook(file, RuntimeApi.FileStatus(f), io, tx);
+    }
+
+    /// <summary>One SORT/MERGE statement's implicit-transfer emission state: the statement's end label (the
+    /// landing of "the SORT/MERGE statement is terminated"), the verb, whether anything jumped to the label, and
+    /// the current GIVING file's bypass label (MERGE GR12 a)).</summary>
+    private sealed class Transfer(string endLabel, bool merge)
+    {
+        public string EndLabel { get; } = endLabel;
+        public bool Merge { get; } = merge;
+        public bool Terminable { get; set; }
+        public string? BypassLabel { get; set; }
+        public bool Bypassed { get; set; }
+    }
+
+    /// <summary>The as-if input-output statements of the implicit transfers — every statement GR12/GR15 (SORT) and
+    /// GR7/GR12 (MERGE) perform "such that any applicable USE procedures are executed".</summary>
+    internal enum TransferIo { UsingOpen, UsingRead, UsingClose, GivingOpen, GivingWrite, GivingClose }
+
+    /// <summary>What an as-if statement's unsuccessful I-O status does to the statement, after its USE procedure.</summary>
+    internal enum Disposition { Continue, Terminate, Bypass }
+
+    /// <summary>A transfer rule: the disposition of a FATAL and of a NONFATAL unsuccessful status, each split on
+    /// whether an applicable USE procedure ran and completed normally.</summary>
+    internal readonly record struct TransferRule(Disposition FatalCompleted, Disposition FatalOtherwise,
+        Disposition NonfatalCompleted, Disposition NonfatalOtherwise)
+    {
+        public bool NeedsCompletion => FatalCompleted != FatalOtherwise || NonfatalCompleted != NonfatalOtherwise;
+    }
+
+    /// <summary>⛔ THE ONE TABLE OF THE SORT/MERGE IMPLICIT-TRANSFER TERMINATION RULES (kb/Work PB993). Every as-if
+    /// statement of every transfer reads its disposition HERE, so the verb axis (SORT/MERGE) and the statement
+    /// axis (OPEN/READ/WRITE/CLOSE × USING/GIVING) are one lookup, never an arm per call site
+    /// (<c>SortTransferRuleDriftTests</c> pins that every cell is answered).
+    /// <para><b>The default is §9.1.13.1's.</b> A fatal status (3x/4x/7x, and 9x, which this implementation
+    /// defines as fatal) is disposed of "after the execution of any applicable exception processing statement, or
+    /// if none applies, after completion of the normal input-output control system error processing", and this
+    /// implementation CONTINUES the run unit: "control is transferred to the end of the statement that produced the
+    /// fatal exception condition unless the rules for that statement define other behavior". The statement that
+    /// produced it is the SORT/MERGE — the as-if statement is not a statement of the program (§14.9.33.4 GR2 a) 1.)
+    /// — so the default fatal disposition is TERMINATE. §14.6.13.1.3 2) ("If the executed statement is a MERGE or
+    /// SORT statement, then the rules for those statements apply") puts these rules ahead of the run-unit
+    /// termination §14.6.13.1.3 5)/7) would impose under checking, so the hook passes <c>__verbRule</c>. A
+    /// nonfatal status continues (§14.6.13.1.4: "execution continues as if the exception did not occur unless there
+    /// are one or more specific rules").</para>
+    /// <para><b>The specific rules</b>, each overriding the default for its own cell:</para>
+    /// <list type="bullet">
+    /// <item>SORT GIVING OPEN — §14.9.40.4 GR15: "If a fatal exception condition exists for file-name-3 as a result
+    ///   of the implicit OPEN during file initiation, the SORT is terminated" (the default, stated); the nonfatal
+    ///   half continues with or without a USE procedure.</item>
+    /// <item>SORT USING OPEN — §14.9.40.4 GR12 a): a nonfatal status continues "if there is an applicable USE
+    ///   procedure that completes normally or if there is no applicable USE procedure"; GR12 b)'s "If a fatal
+    ///   exception condition exists for file-name-1, the SORT is terminated" is the fatal half (⚠ DETERMINATION:
+    ///   file-name-1 is the sort file, which has no I-O status, so the sentence can only mean the USING file whose
+    ///   processing the rule describes — GR12 b)'s own "at end condition exists for file-name-1" has the same slip;
+    ///   the reading agrees with the default either way).</item>
+    /// <item>MERGE USING OPEN — §14.9.24.4 GR7 a): "If a nonfatal exception condition exists as a result of the
+    ///   execution of the implicit OPEN statement, the MERGE statement is terminated unless there is an applicable
+    ///   USE procedure that completes normally".</item>
+    /// <item>MERGE USING CLOSE — GR7's closing paragraph: a nonfatal CLOSE continues with a USE that completes
+    ///   normally and with none.</item>
+    /// <item>MERGE GIVING OPEN — §14.9.24.4 GR12 a): "If a fatal exception condition exists as a result of this
+    ///   implicit OPEN statement and there is an applicable USE procedure that completes normally, processing for the
+    ///   file connector that caused the exception condition is bypassed"; without one, the default.</item>
+    /// <item>MERGE GIVING WRITE — §14.9.24.4 GR12 b): "If an exception condition exists as a result of this implicit
+    ///   WRITE statement and there is an applicable USE procedure that completes normally, the MERGE continues
+    ///   execution, otherwise the MERGE statement is terminated" — fatal and nonfatal alike.</item>
+    /// <item>The WRITE boundary ('24'/'34') — both verbs close the file (GR15 / MERGE GR12 closing paragraphs); it
+    ///   is tested at the WRITE site before this table, because it is specific to one status value.</item>
+    /// </list>
+    /// <para>⚠ DETERMINATION — "an exception condition exists" means an UNSUCCESSFUL status (first character not
+    /// '0'). A successful '0x' (an OPTIONAL file's '05', say) runs no USE procedure (§14.9.49.4 GR6: "upon the
+    /// unsuccessful execution") and leaves the connector usable, so it never terminates a transfer.</para></summary>
+    internal static TransferRule RuleFor(bool merge, TransferIo io) => (merge, io) switch
+    {
+        (true, TransferIo.UsingOpen) => new(Disposition.Terminate, Disposition.Terminate, Disposition.Continue, Disposition.Terminate),
+        (true, TransferIo.GivingOpen) => new(Disposition.Bypass, Disposition.Terminate, Disposition.Continue, Disposition.Continue),
+        (true, TransferIo.GivingWrite) => new(Disposition.Continue, Disposition.Terminate, Disposition.Continue, Disposition.Terminate),
+        _ => new(Disposition.Terminate, Disposition.Terminate, Disposition.Continue, Disposition.Continue),
+    };
+
+    /// <summary>The as-if statement's USE hook and its disposition, in that order (the USE procedure runs first —
+    /// every rule above is stated "after" it). <paramref name="status"/> is the C# expression of the status the
+    /// as-if statement produced.</summary>
+    private void EmitTransferHook(FileModel file, string status, TransferIo io, Transfer tx, bool atEndHandled = false)
+    {
+        string? used = EmitTransferUse(file, io, tx, atEndHandled);
+        EmitDisposition(status, used, io, tx);
+    }
+
+    /// <summary>The as-if statement's USE hook: jumps to the end label when the procedure does not complete
+    /// normally (§14.9.40.4 GR17; §14.9.33.4 GR2 a) 1.), and, only where the rule turns on it, declares the
+    /// "an applicable USE procedure completed normally" local and returns its name.</summary>
+    private string? EmitTransferUse(FileModel file, TransferIo io, Transfer tx, bool atEndHandled = false)
+    {
+        string? used = RuleFor(tx.Merge, io).NeedsCompletion ? $"__sru{ctx.Names.NextSort()}" : null;
+        tx.Terminable |= seqIo.EmitUseHook(file, atEndHandled: atEndHandled, notNormalLabel: tx.EndLabel,
+            verbDisposes: true, useCompletedVar: used);
+        return used;
+    }
+
+    /// <summary>Render <see cref="RuleFor"/>'s cell for one as-if statement: a fatal status, then any other
+    /// unsuccessful one. A Continue cell emits nothing.</summary>
+    private void EmitDisposition(string status, string? used, TransferIo io, Transfer tx)
+    {
+        var w = ctx.Writer;
+        var rule = RuleFor(tx.Merge, io);
+        string fatal = Render(rule.FatalCompleted, rule.FatalOtherwise, used, tx);
+        string nonfatal = Render(rule.NonfatalCompleted, rule.NonfatalOtherwise, used, tx);
+        string tag = $"   // {(tx.Merge ? "MERGE" : "SORT")} {io} — the implicit-transfer rule (kb/Work PB993)";
+        if (fatal.Length > 0)
+            w.Line($"if ({IoStatusClass.Fatal(status)}) {{ {fatal} }}{tag}");
+        if (nonfatal.Length > 0)
+            w.Line($"{(fatal.Length > 0 ? "else " : "")}if ({IoStatusClass.Unsuccessful(status)}) {{ {nonfatal} }}{(fatal.Length > 0 ? "" : tag)}");
+    }
+
+    private static string Render(Disposition completed, Disposition otherwise, string? used, Transfer tx)
+    {
+        string Jump(Disposition d)
+        {
+            switch (d)
+            {
+                case Disposition.Terminate: tx.Terminable = true; return $"goto {tx.EndLabel};";
+                case Disposition.Bypass: tx.Bypassed = true; return $"goto {tx.BypassLabel ?? throw new InvalidOperationException("bypass outside a GIVING file")};";
+                default: return "";
+            }
+        }
+        if (completed == otherwise) return Jump(completed);
+        string a = Jump(completed), b = Jump(otherwise);
+        if (a.Length == 0) return $"if (!{used}) {b}";
+        if (b.Length == 0) return $"if ({used}) {a}";
+        return $"if ({used}) {a} else {b}";
     }
 
     /// <summary>RELEASE (ISO §14.9.32): FROM first MOVEs into the record (GR4 — identical to the explicit MOVE),

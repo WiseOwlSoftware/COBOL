@@ -666,10 +666,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <c>__mask</c> gates by name — checking is per-(name, file) at COMPILE time), the F3 GR3c–g selection
     /// behind the F1 tiers, and the fatal-status default (status 3x/4x/7x/9x + enabled checking → abnormal
     /// termination unless a RESUME redirected — §9.1.13.1 / §14.9.49.4 GR12c; checking off keeps today's
-    /// continue-on-error behavior, scout hazard H6).</summary>
+    /// continue-on-error behavior, scout hazard H6), which a SORT/MERGE implicit transfer suppresses with
+    /// <c>__verbRule</c> (§14.6.13.1.3 2) — kb/Work PB993). Returns the resume action, -1 when a procedure completed
+    /// normally, or -3 when none applied.</summary>
     public void EmitIoCheckEc(IReadOnlyList<BoundDeclarative> decls, CodeWriter w, bool asLocal)
     {
-        using (w.Block($"{MemberMod(asLocal)}int __IoCheckEc(string __f, bool __atEnd, bool __invKey, bool __onExc, int __mask, int __locMask, string? __stmt, string? __loc)"))
+        using (w.Block($"{MemberMod(asLocal)}int __IoCheckEc(string __f, bool __atEnd, bool __invKey, bool __onExc, int __mask, int __locMask, string? __stmt, string? __loc, bool __verbRule = false)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             // ⛔ THE RAISED NAME COMES FROM THE RUNTIME, NOT FROM THE STATUS ALONE (kb/Work PB526). §9.1.13.1's
@@ -681,7 +683,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             // §15.32.3 r1 / §15.30.3 r1 are PER-CONDITION: the location operands record only when the RAISED
             // name's own TURN carried WITH LOCATION (__locMask shares __mask's bit positions — kb/Work R06).
             w.Line("bool __wl = __ec is not null && (__locMask & ExceptionCatalog.IoBit(__ec)) != 0;");
-            w.Line("if (__en) ExceptionState.SetIo(__ec!, ExceptionCatalog.IsFatalIoStatus(__st), __f, __st, __wl ? __stmt : null, __wl ? __loc : null);");
+            w.Line($"if (__en) ExceptionState.SetIo(__ec!, {IoStatusClass.Fatal("__st")}, __f, __st, __wl ? __stmt : null, __wl ? __loc : null);");
             using (w.Block($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")})"))
             {
                 // A successful completion: '00' raises nothing; '0x' (x≠0) is EC-I-O-WARNING — F3 may select it
@@ -740,10 +742,18 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             }
             else EmitUseTiers();
             w.Line("if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed (§14.9.33)");
-            w.Line("if (__en && ExceptionCatalog.IsFatalIoStatus(__st))");
+            // ⛔ §14.6.13.1.3 2) PRECEDES 5) and 7): "If the executed statement is a MERGE or SORT statement, then
+            // the rules for those statements apply." A SORT/MERGE implicit transfer passes __verbRule, and the fatal
+            // disposition is then the verb's own (SortEmitter.EmitTransferDisposition — terminate the statement,
+            // bypass the file, or continue), never the run-unit termination below (kb/Work PB993).
+            w.Line($"if (__en && !__verbRule && {IoStatusClass.Fatal("__st")})");
             w.Line("    throw new CobolFatalException(__ec!, \"I-O status \" + __st + \" on \" + __f"
                 + " + (__stmt is null ? \"\" : \" (\" + __stmt + \")\")) { Dispatched = true };   // §9.1.13.1 fatal classes; §14.6.13.1.3 #5/#7 (dispatched above)");
-            w.Line("return -1;");
+            // -1 = a qualifying procedure ran and completed normally; -3 = none qualified (HookNoProcedure). The two
+            // are the same to every explicit I-O statement (both fall through) but not to the SORT/MERGE implicit
+            // transfers, whose rules turn on "an applicable USE procedure that completes normally" (§14.9.24.4
+            // GR7 a), GR12 a)/b)) — kb/Work PB993.
+            w.Line("return __sel;");
         }
         w.Line();
     }

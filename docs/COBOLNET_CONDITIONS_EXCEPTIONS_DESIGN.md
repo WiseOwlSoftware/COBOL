@@ -646,7 +646,11 @@ while a format 1 SORT statement is active does not complete normally, the SORT s
 to it on the RESUME-AT-NEXT-STATEMENT action (§14.6.13.1.2 #1 is what makes a RESUME a completion that is not
 normal); the RESUME-AT-procedure-name action already leaves through `__pc`, and every other not-normal completion
 (GOBACK / EXIT PROGRAM / STOP / a fatal condition) unwinds by its own signal. The label sits before the sort
-store's release, so a terminated SORT statement is not a leaked sort.
+store's release, so a terminated SORT statement is not a leaked sort. The same label is where a procedure that DID
+complete normally lands when the verb's own rule terminates the statement: §14.6.13.1.3 2) ("If the executed
+statement is a MERGE or SORT statement, then the rules for those statements apply") precedes 5)/7), so these
+sites call `__IoCheckEc(…, __verbRule: true)`, which skips the fatal throw, and dispose of the status from
+`SortEmitter.RuleFor` (kb/Work PB993; `COBOLNET_FILES_DESIGN.md`, the implicit-transfer section).
 
 **The re-entrancy guard IS the EC-FLOW-USE raise site (kb/Work PB368).** §14.9.49.4 GR2 (ALL FORMATS) is one
 sentence and its whole normative content is a RAISE: *"During the execution of a USE procedure, if a statement

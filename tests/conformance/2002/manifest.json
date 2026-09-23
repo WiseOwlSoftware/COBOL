@@ -8,6 +8,7 @@
   "pb606_call_not_on_propagated",
   "pb987_property_per_evaluation",
   "pb244_pointer_group_transfer",
+  "pb993_sort_merge_transfer_termination",
   "pb892_performed_declarative_resume",
   "pb892_operand_activation_resume",
   "pb972_raising_conformance",
