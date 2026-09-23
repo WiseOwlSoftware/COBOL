@@ -67,7 +67,8 @@ public sealed class ClauseOperandCaptureDriftTests
         string src = DataBinderSource();
         var hits = Regex.Matches(src, FirstWordReduction);
         Assert.Single(hits);
-        string capture = MethodBody(src, "private static (string Base, IReadOnlyList<string> Quals) KeyReference(");
+        // internal since kb/Work PB1018: the SORT table-key phrase captures its qualifiers through this same one.
+        string capture = MethodBody(src, "internal static (string Base, IReadOnlyList<string> Quals) KeyReference(");
         Assert.Contains(hits[0].Value, capture, StringComparison.Ordinal);
     }
 

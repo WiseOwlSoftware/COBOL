@@ -3,10 +3,18 @@
 namespace CobolNet.Binding.Model;
 
 /// <summary>ONE data-name-2 of an OCCURS KEY phrase (ISO §13.18.38) together with the direction word that governs
-/// it. <c>Name</c> is the key's own unqualified name: §13.18.38.3 SR3 confines data-name-2 to "the entry containing
-/// the OCCURS clause or an entry subordinate to" it, so the name always resolves WITHIN the table
-/// (<see cref="OdoModel.FindWithin"/>) and needs no qualifier chain of its own.</summary>
-public readonly record struct OccursKey(string Name, bool Descending);
+/// it: the key's name, its IN/OF qualifiers AS WRITTEN (innermost first), and the direction.
+/// <para>⛔ THE QUALIFIERS ARE PART OF THE KEY (kb/Work PB1018). §13.18.38.3 SR3 confines data-name-2 to "the entry
+/// containing the OCCURS clause or an entry subordinate to" it, but it does not make the name unique there: a table
+/// element <c>E</c> holding <c>A.K</c> and <c>B.K</c> must write <c>KEY IS K OF B</c>, and §8.4.2.2.3 SR1 makes that
+/// qualification the ONLY thing that says which K is the key. This record used to carry the bare name with a
+/// comment claiming the qualifier chain "adds nothing", and the lookup took the FIRST K under the table — so a
+/// legal <c>SEARCH ALL … WHEN K OF B (IX) = 2</c> was refused and the table SORT keyed on A's K.</para></summary>
+public readonly record struct OccursKey(string Name, IReadOnlyList<string> Qualifiers, bool Descending)
+{
+    /// <summary>The key as the programmer wrote it (<c>K OF B</c>), for a diagnostic that quotes the phrase.</summary>
+    public string Written => DataBinder.WrittenQualified(Name, Qualifiers);
+}
 
 /// <summary>
 /// The structured OCCURS description (ISO/IEC 1989:2023 §13.18.38) attached to a table's <see cref="DataItem"/>:
@@ -51,6 +59,12 @@ public sealed class OccursSpec
     /// ever contradicted their shape — feedback_a_dead_lookup_is_also_unverified.)</summary>
     public List<OccursKey> Keys { get; } = [];
 
+    /// <summary>The KEY phrase RESOLVED, one entry per <see cref="Keys"/> entry in the same order — set by the
+    /// post-build <c>DataBinder.OccursKeyResolve</c> pass through the ONE §8.4.2.2 resolver (a TYPEDEF clone gets its
+    /// own spec and is resolved against its own subtree, like <see cref="Depending"/>). An entry is
+    /// <see langword="null"/> where the key identifies no unique item within the table — reported there, once.</summary>
+    public List<DataItem?> ResolvedKeys { get; } = [];
+
     // ── Format 4: DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; data-model D9) ──────────────────
 
     /// <summary>True for a Format-4 DYNAMIC-capacity table (§8.5.1.9) — its capacity varies at run time. Mutually
@@ -80,28 +94,16 @@ public sealed class OccursSpec
 /// hierarchy in <c>Place.cs</c>, P5.11a.)</summary>
 public static class OdoModel
 {
-    /// <summary>The first item named <paramref name="name"/> AT or WITHIN <paramref name="table"/> — the ONE
-    /// "resolve a name against the table it belongs to" walk. Two rules are written that way and used to carry a
-    /// copy each: the OCCURS KEY phrase (ISO §13.18.38.3 SR3 — data-name-2 is "the name of either the entry
-    /// containing the OCCURS clause or an entry subordinate to the entry containing the OCCURS clause") and the
-    /// SORT table-key phrase (§14.9.40.3 SR14 a) — "The data item identified by a key data-name shall be the same
-    /// as, or subordinate to, the data item referenced by data-name-2"). The table entry itself is tested FIRST
-    /// because both rules admit it in so many words.</summary>
-    public static DataItem? FindWithin(DataItem table, string name)
-    {
-        if (string.Equals(table.CobolName, name, StringComparison.OrdinalIgnoreCase)) return table;
-        foreach (var c in table.Children)
-            if (FindWithin(c, name) is { } found) return found;
-        return null;
-    }
-
     /// <summary>The table's OCCURS KEY phrase resolved to items, in the phrase's own significance order
     /// (ISO §13.18.38.4 GR3) — one entry per <see cref="OccursSpec.Keys"/> entry, <see langword="null"/> where the
-    /// key data-name resolves to nothing within the table. Empty for a table with no KEY phrase, which is exactly
-    /// the §14.9.37.3 SR7 condition ("The OCCURS clause associated with identifier-1 shall contain the KEY
-    /// phrase").</summary>
+    /// key data-name identifies no unique item within the table. Empty for a table with no KEY phrase, which is
+    /// exactly the §14.9.37.3 SR7 condition ("The OCCURS clause associated with identifier-1 shall contain the KEY
+    /// phrase"). The resolution itself is <c>DataBinder.OccursKeyResolve</c>'s, done ONCE after the forest is
+    /// built (kb/Work PB1018); every consumer — SEARCH ALL and the table SORT — reads it here.</summary>
     public static List<DataItem?> KeyItems(DataItem table) =>
-        table.OccursSpec is { } spec ? [.. spec.Keys.Select(k => FindWithin(table, k.Name))] : [];
+        table.OccursSpec is { } spec
+            ? spec.ResolvedKeys.Count == spec.Keys.Count ? spec.ResolvedKeys : [.. spec.Keys.Select(_ => (DataItem?)null)]
+            : [];
 
     /// <summary>The occurrence of <paramref name="table"/> in the OCCURS nesting <paramref name="item"/> sits
     /// under, counting OUTERMOST first — i.e. the position, in the subscript list a reference to

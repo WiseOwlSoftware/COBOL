@@ -1302,7 +1302,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// SR10 / §13.18.54.3 SR8 twins — must NOT use this helper alone either: it binds as if the operand were
     /// unmodified, which is a silent wrong answer. Those three go through
     /// <c>DataBinder.Reports.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
-    private static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
+    internal static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
     {
         string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
         var quals = new List<string>();

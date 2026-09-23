@@ -381,8 +381,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         bool ok = true;
         for (int i = 0; i < last; i++)
             if (!referenced[i])
-                ok &= Key(table, $"the WHEN phrase references the key '{keys[last].Name}' but not the more "
-                    + $"significant key '{keys[i].Name}' that precedes it in the KEY phrase; when a key is "
+                ok &= Key(table, $"the WHEN phrase references the key '{keys[last].Written}' but not the more "
+                    + $"significant key '{keys[i].Written}' that precedes it in the KEY phrase; when a key is "
                     + "referenced, \"all preceding data-names in that KEY phrase or their associated "
                     + "condition-names shall also be referenced\" (ISO §14.9.37.3 SR11). The KEY phrase declares "
                     + $"{KeyList(keys)}, in descending order of significance (§13.18.38.4 GR3).");
@@ -481,7 +481,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     private static string Written(List<IToken> toks) => string.Concat(toks.Select(t => t.Text));
 
     private static string KeyList(IReadOnlyList<OccursKey> keys) =>
-        string.Join(", ", keys.Select(k => $"{(k.Descending ? "DESCENDING" : "ASCENDING")} {k.Name}"));
+        string.Join(", ", keys.Select(k => $"{(k.Descending ? "DESCENDING" : "ASCENDING")} {k.Written}"));
 
     // ── The two sinks (each returns false, so a call site reads as a verdict) ────────────────────────────────
 

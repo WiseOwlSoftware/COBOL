@@ -4864,6 +4864,19 @@ public static class DiagnosticCatalog
         + "type declaration (a template that describes no data item) do not have.",
         "ISO §13.16.3 SR21");
 
+    /// <summary>An OCCURS KEY data-name-2 names no data item that is the table entry or subordinate to it
+    /// (kb/Work PB1018). It used to compile clean — nothing checked the phrase until a SEARCH ALL or a table SORT
+    /// read it.</summary>
+    public static readonly DiagnosticDescriptor OccursKeyNotWithinTable = new(
+        "COBOLNET2353", "occurs-key-not-within-table", EditionSeverity.Error,
+        "A data-name of an OCCURS clause's ASCENDING / DESCENDING KEY phrase does not identify the entry containing "
+        + "the OCCURS clause or an entry subordinate to it. ISO §13.18.38.3 SR3: \"The first specification of "
+        + "data-name-2 shall be the name of either the entry containing the OCCURS clause or an entry subordinate to "
+        + "the entry containing the OCCURS clause. Subsequent specification of data-name-2 shall be subordinate to "
+        + "the entry containing the OCCURS clause.\" Name a data item of the table, qualified (K OF B) where the table "
+        + "holds more than one item of that name.",
+        "ISO §13.18.38.3 SR3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

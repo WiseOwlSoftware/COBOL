@@ -2066,7 +2066,10 @@ failure branches were fired once before it was trusted.
   (file-format SORT is 85). Its KEY phrase is BRACKETED (Format 1 braces it — rendered, folio 746), so
   `SORT table-name` alone is conforming when the table's OCCURS clause has a KEY phrase (§14.9.40.3 SR15) and
   sorts on that phrase's keys in their written significance order and direction (§14.9.40.4 GR21), read from
-  the ONE `OccursSpec.Keys` model SEARCH ALL also reads. The grammar's key list is zero-or-more; SR15 and
+  the ONE `OccursSpec.Keys` model SEARCH ALL also reads (resolved once, qualifiers and all, by
+  `DataBinder.OccursKeyResolve` — kb/Work PB1018). A written table key and the table subject data-name-2 resolve
+  through the §8.4.2.2 resolver too (`SubtreeCandidates` over data-name-2 / `ResolveTableOperand`): never the
+  first same-named item. The grammar's key list is zero-or-more; SR15 and
   Format 1's at-least-one are screened in `SortBinder` on the resolved operand (kb/Work PB846). MERGE has no
   table format, so its key list stays one-or-more in the grammar. Note also row 27: MERGE newly prohibited in another MERGE's output procedure / a
   file-format SORT input-output procedure at 2023.

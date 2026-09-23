@@ -41,7 +41,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         string name = operand.cobolWord()?.GetText() ?? operand.GetText();
         return ctx.Data.FilesByName.TryGetValue(name, out var file)
             ? SortBindFile(s, file)
-            : SortBindTable(s, name);
+            : SortBindTable(s, operand, name);
     }
 
     /// <summary>Bind the Format-1 file sort: SD operand (SR4), keys (SR6 + GR1/GR2), DUPLICATES (GR3),
@@ -127,7 +127,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind the Format-2 in-place TABLE sort (ISO §14.9.40 GR18–GR24) over the typed element array.
     /// Introduced by ISO/IEC 1989:2002 (the table-SORT format is absent from ANSI X3.23-1985; M2 feature catalog,
     /// docs/ISO2023_CONFORMANCE_PLAN.md) — rejected below <c>--std 2002</c>.</summary>
-    private BoundStatement SortBindTable(Core.SortStatementContext s, string name)
+    private BoundStatement SortBindTable(Core.SortStatementContext s, Core.DataReferenceContext operand, string name)
     {
         // table-sort-2002: the pass owns the edition gate (Exec Step E — the F2 shape is syntactic).
 
@@ -140,10 +140,16 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return new BoundNop();
         }
 
-        // SR13: data-name-2 shall have an OCCURS clause. Resolve like SEARCH does: the named table item.
-        if (!ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var candidates)
-            || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
+        // SR13: data-name-2 shall have an OCCURS clause. Resolved like SEARCH's identifier-1 — the ordinary §8.4.2.2
+        // resolution of the WRITTEN reference, qualifiers and all (ReferenceResolver.ResolveTableOperand). This arm
+        // used to look up the base word and take the FIRST same-named item with an OCCURS clause, so `SORT E OF G2`
+        // with a table E in each of two groups sorted G1's — the SEARCH arm's PB-era defect, left in its twin
+        // (kb/Work PB1018's sibling sweep). An ambiguous or undeclared name is reported by the resolver itself.
+        bool declared = ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _);
+        DataItem? table = declared ? ctx.Refs.ResolveTableOperand(operand)?.Item : null;
+        if (table?.Occurs is null)
         {
+            if (declared && table is null && ctx.Refs.WasDiagnosed(operand)) return new BoundNop();
             ctx.Validation.RejectStatementOperand($"SORT of '{name}' — neither a SELECTed/SD file nor an OCCURS "
                 + "table: file-name-1 shall be described in an SD (ISO §14.9.40.3 SR4) and data-name-2 shall be "
                 + "described with an OCCURS clause (SR13)");   // PB236
@@ -182,7 +188,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 // reported where the OCCURS clause is bound; nothing further to say here.
                 if (keyItems[i] is not { } tk) return new BoundNop();
                 if (TableSortKey(table, specKeys[i].Descending, tk) is not { } k)
-                    return TableSortKeyUnsupported(specKeys[i].Name);
+                    return TableSortKeyUnsupported(specKeys[i].Written);
                 keys.Add(k);
             }
         }
@@ -198,17 +204,21 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             }
             foreach (var dref in drefs)
             {
-                string kn = dref.cobolWord()?.GetText() ?? dref.GetText();
+                string kn = DataBinder.WrittenText(dref);
                 // §14.9.40.3 SR14 a)'s own walk — "The data item identified by a key data-name shall be the same
-                // as, or subordinate to, the data item referenced by data-name-2" — through the ONE
-                // OdoModel.FindWithin (kb/Work PB445): §13.18.38.3 SR3 states the same walk for the OCCURS KEY
-                // phrase, and this binder used to carry a private copy of it (SortFindUnder) with the "the same
-                // as" arm spelled as a separate ternary at the call site.
-                DataItem? key = OdoModel.FindWithin(table, kn);
+                // as, or subordinate to, the data item referenced by data-name-2" — over data-name-2's subtree,
+                // narrowed by the WRITTEN qualifiers and counted (kb/Work PB1018): the same §8.4.2.2 subtree
+                // resolution the OCCURS KEY phrase takes (DataBinder.OccursKeyResolve, §13.18.38.3 SR3). The base
+                // word alone used to be looked up here and the FIRST same-named item taken, so `SORT E ASCENDING
+                // K OF B` keyed on A's K. Ambiguity is §8.4.2.2.3 SR1's verdict, reported by the ONE verdict.
+                var (baseName, quals) = DataBinder.KeyReference(dref);
+                DataItem? key = ctx.Data.UniqueOrReportAmbiguous(ctx.Data.SubtreeCandidates(table, baseName, quals),
+                    "SORT table key", kn, out bool ambiguous);
                 if (key is null)
                 {
-                    ctx.Validation.RejectStatementOperand($"SORT table key '{kn}' is not data-name-2 nor "
-                        + "subordinate to it (ISO §14.9.40.3 SR14a)");   // PB236
+                    if (!ambiguous)
+                        ctx.Validation.RejectStatementOperand($"SORT table key '{kn}' is not data-name-2 nor "
+                            + "subordinate to it (ISO §14.9.40.3 SR14a)");   // PB236
                     return new BoundNop();
                 }
                 // ⛔ TWO VERDICTS, WHICH USED TO SHARE ONE DEFERRAL (kb/Work PB909): an inner OCCURS between the key

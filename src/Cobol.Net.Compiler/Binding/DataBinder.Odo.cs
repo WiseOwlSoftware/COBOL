@@ -29,9 +29,10 @@ public sealed partial class DataBinder
         // ONE list in PHRASE ORDER — ISO §13.18.38.4 GR3 "If more than one data-name-2 is specified, they are
         // specified in descending order of significance", which is what §14.9.37.3 SR11 is a rule about. Splitting
         // the phrase into per-direction lists would lose the relative order of a mixed
-        // `ASCENDING KEY IS A B DESCENDING KEY IS C`. The BASE name only (`cobolWord`): §13.18.38.3 SR3 confines
-        // data-name-2 to the OCCURS entry or an entry subordinate to it, so the qualifier chain adds nothing and
-        // `GetText()` over the whole dataReference would glue `K OF E` into `KOFE`.
+        // `ASCENDING KEY IS A B DESCENDING KEY IS C`. The name AND ITS QUALIFIERS (kb/Work PB1018): §13.18.38.3 SR3
+        // confines data-name-2 to the OCCURS entry or an entry subordinate to it, but two subordinates may share the
+        // name, and then `K OF B` is the only thing that says which one is the key (§8.4.2.2.3 SR1). The capture
+        // used to keep the base word alone, and the lookup took the first K under the table.
         var keys = new List<OccursKey>();
         foreach (var kc in occ.occursKeyClause())
         {
@@ -42,8 +43,8 @@ public sealed partial class DataBinder
             // refusal is the verdict, and a key named by its written spelling would only draw a second one.
             foreach (var k in kc.dataReference())
             {
-                var (keyName, _) = ClauseDataName(k, $"{where}: OCCURS … KEY IS");
-                if (!_refusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, descending));
+                var (keyName, keyQuals) = ClauseDataName(k, $"{where}: OCCURS … KEY IS");
+                if (!_refusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, keyQuals, descending));
             }
         }
 
@@ -121,6 +122,51 @@ public sealed partial class DataBinder
             + $"'{WrittenText(capRef)}' is qualified; data-name-3 is DEFINED by the phrase (ISO §13.18.38.3 SR30), "
             + "and a defining occurrence is a bare data-name whose qualification SR30 itself supplies");
         return null;
+    }
+
+    /// <summary>Post-build OCCURS KEY pass (kb/Work PB1018): resolve every data-name-2 of every table's KEY phrase
+    /// ONCE, into <see cref="OccursSpec.ResolvedKeys"/>, which SEARCH ALL and the table SORT then read.
+    /// <para>The candidates are the table's OWN subtree (ISO §13.18.38.3 SR3 — "The first specification of
+    /// data-name-2 shall be the name of either the entry containing the OCCURS clause or an entry subordinate to
+    /// the entry containing the OCCURS clause. Subsequent specification of data-name-2 shall be subordinate to the
+    /// entry containing the OCCURS clause"), narrowed by the WRITTEN qualifiers through the ONE §8.4.2.2 matcher and
+    /// counted by the ONE ambiguity verdict (§8.4.2.2.3 SR1). A key that identifies nothing there is SR3's error,
+    /// COBOLNET2353 — it used to be reported by nobody: an unknown key compiled clean and the table SORT then
+    /// quietly did nothing. The subtree walk, not the name index, because a TYPEDEF clone's members are off the
+    /// index and each clone must bind its OWN key (§13.18.58.4 GR1), exactly as its DEPENDING ON does.</para></summary>
+    internal void OccursKeyResolve()
+    {
+        foreach (var table in AllItems())
+        {
+            if (table.OccursSpec is not { Keys.Count: > 0 } spec) continue;
+            using var _ = Edition.At(table);
+            string subject = table.CobolName ?? table.CsName;
+            spec.ResolvedKeys.Clear();
+            for (int i = 0; i < spec.Keys.Count; i++)
+            {
+                var key = spec.Keys[i];
+                string written = WrittenQualified(key.Name, key.Qualifiers);
+                var within = SubtreeCandidates(table, key.Name, key.Qualifiers);
+                DataItem? item = UniqueOrReportAmbiguous(within, $"OCCURS … KEY IS data-name-2 of '{subject}'", written,
+                    out bool ambiguous);
+                if (item is null && !ambiguous)
+                    Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
+                        $"OCCURS … KEY IS '{written}' on '{subject}': no data item so named "
+                        + (key.Qualifiers.Count > 0 ? "under the written qualifiers " : "")
+                        + $"is '{subject}' itself or subordinate to it — \"The first specification of data-name-2 "
+                        + "shall be the name of either the entry containing the OCCURS clause or an entry subordinate "
+                        + "to the entry containing the OCCURS clause\" (ISO §13.18.38.3 SR3)");
+                else if (i > 0 && ReferenceEquals(item, table))
+                {
+                    Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
+                        $"OCCURS … KEY IS '{written}' on '{subject}': only the FIRST key data-name may name the "
+                        + "table entry itself — \"Subsequent specification of data-name-2 shall be subordinate to the "
+                        + "entry containing the OCCURS clause\" (ISO §13.18.38.3 SR3)");
+                    item = null;
+                }
+                spec.ResolvedKeys.Add(item);
+            }
+        }
     }
 
     /// <summary>

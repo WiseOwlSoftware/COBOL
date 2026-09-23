@@ -94,6 +94,9 @@ internal static class BindPipeline
         new BindPass("CheckGroupValueDeclarations", PassPhase.StrongTypeChecked, PassPhase.StrongTypeChecked, d => d.CheckGroupValueDeclarations()),
         new BindPass("OdoResolve", PassPhase.StrongTypeChecked, PassPhase.OccursResolved, d => d.OdoResolve()),
         new BindPass("DynamicResolve", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.DynamicResolve()),
+        // The OCCURS KEY phrase (§13.18.38.3 SR3) resolved ONCE through the §8.4.2.2 resolver, qualifiers and all
+        // (kb/Work PB1018) — after the forest and every TYPEDEF clone exist, before SEARCH ALL / the table SORT read it.
+        new BindPass("OccursKeyResolve", PassPhase.OccursResolved, PassPhase.OccursResolved, d => d.OccursKeyResolve()),
         // The §13.18.63.3 SR18–SR23 Format-2 (table) VALUE geometry + the §13.18.63.4 GR12–GR16 odometer
         // resolution (kb/Work PB505; DataBinder.TableValue.cs). Placed HERE, and no earlier, because every one of
         // those rules is written against the entry's OCCURS ANCESTORS — DataItem.Parent is assigned only after
