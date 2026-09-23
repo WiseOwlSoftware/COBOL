@@ -247,6 +247,12 @@ public sealed partial class DataBinder
     /// COBOL literal spellings.</para></summary>
     public Dictionary<string, string> OrderTables { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>SPECIAL-NAMES <c>DYNAMIC LENGTH STRUCTURE</c> declarations (case-insensitive
+    /// dynamic-length-structure-name → its layout; ISO §12.3.7.2; kb/Work PB829), read by the DYNAMIC LENGTH clause's
+    /// dynamic-length-structure-name-1 (§13.18.19.3 SR2 / SR4). Configuration-section names reach contained source
+    /// elements (§8.4.6.1), so the dictionary inherits with its siblings.</summary>
+    public Dictionary<string, DynamicLengthStructure> DynamicLengthStructures { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>SPECIAL-NAMES <c>LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}</c> declarations
     /// (case-insensitive locale-name → the symbol; ISO §12.3.7.2; DESIGN-locale-facility seam S1, T1): the locale-name
     /// is a user-defined word (§8.3.2.2) referenced by <c>ALPHABET … IS LOCALE locale-name-2</c> (§12.3.7.3 SR24), SET
@@ -424,6 +430,7 @@ public sealed partial class DataBinder
         foreach (var (k, v) in container.Alphabets) Alphabets.TryAdd(k, v);
         foreach (var (k, v) in container.NationalAlphabets) NationalAlphabets.TryAdd(k, v);
         foreach (var (k, v) in container.OrderTables) OrderTables.TryAdd(k, v);
+        foreach (var (k, v) in container.DynamicLengthStructures) DynamicLengthStructures.TryAdd(k, v);   // §8.4.6.1
         foreach (var (k, v) in container.Locales) Locales.TryAdd(k, v);   // §12.3.7.4 GR1 — locale-names reach contained units
         // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§12.3.6 GR9–GR11) and CHARACTER CLASSIFICATION (GR1 — every
         // OBJECT-COMPUTER clause applies to the contained units)
@@ -620,6 +627,9 @@ public sealed partial class DataBinder
         Core.CharacterClassificationClauseContext? ccClause = null;
         var classClauses = new List<Core.ClassDefinitionClauseContext>();
         var symbolicClauses = new List<Core.SymbolicCharactersClauseContext>();
+        // The names THIS source element declares — a containing element's inherited names may be re-declared
+        // (§8.4.6.1: each source element "may use identical user-defined words"), its own may not (§8.4.2.1).
+        var ownDls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var para in EnvDivisions(program)
                      .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []))
         {
@@ -663,6 +673,7 @@ public sealed partial class DataBinder
                 // (PB25 → T0), and before that a raw parse error at the clause's own literal.
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
+                if (entry.dynamicLengthStructureClause() is { } dls) { DynamicLengthStructureBind(dls, ownDls); continue; }
                 if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
                 // CLASS and SYMBOLIC CHARACTERS bind AFTER the walk (kb/Work PB110): their IN alphabet-name may be
                 // declared by a LATER ALPHABET clause of the same paragraph (the clauses are order-free — the
@@ -942,6 +953,55 @@ public sealed partial class DataBinder
             return false;
         }
         return true;
+    }
+
+    /// <summary>Declare one <c>DYNAMIC LENGTH [STRUCTURE] name [IS] {…}</c> clause (ISO §12.3.7.2; kb/Work PB829):
+    /// the layout is read off the choice-indicator group — PREFIXED and DELIMITED, one or more, each at most once
+    /// (§5.2.6.4, through the one reader <see cref="ChoiceIndicators.AtMostOnce{T}"/>) — or is the
+    /// physical-structure-name-1 alternative, whose allowable names §12.3.7.3 SR32 leaves to the implementor and
+    /// this implementor provides NONE of (docs/CONFORMANCE.md §3 D-DL3), so that alternative is refused by name.
+    /// A second declaration of one name in the same source element is refused too: every reference to it would
+    /// fail §8.4.2.1's "a reference that uniquely identifies that resource".</summary>
+    private void DynamicLengthStructureBind(Core.DynamicLengthStructureClauseContext dls, HashSet<string> ownNames)
+    {
+        if (dls.cobolWord() is not { } nameCtx || dls.dynamicLengthLayout() is not { } layout) return;   // a parse error already
+        string name = nameCtx.GetText();
+        string where = $"DYNAMIC LENGTH STRUCTURE {name}";
+        DynamicLengthStructure declared;
+        if (layout.cobolWord() is { } physical)
+        {
+            Edition.Error(DiagnosticCatalog.DynamicLengthStructureInvalid,
+                $"{where} IS {physical.GetText()}: '{physical.GetText()}' is not a physical-structure-name this "
+                + "implementation supports — ISO §12.3.7.3 SR32 (\"The implementor shall specify the names supported "
+                + "for physical-structure-name-1\") leaves the names to the implementor and COBOL.NET supports none; "
+                + "describe the layout with the PREFIXED and/or DELIMITED phrases (docs/CONFORMANCE.md §3 D-DL3)");
+            declared = new DynamicLengthStructure(name, DynamicLengthPrefix.None, Delimited: false, physical.GetText());
+        }
+        else
+        {
+            var prefixed = ChoiceIndicators.AtMostOnce(Edition, layout.dynamicLengthPrefixedPhrase(), where,
+                "the PREFIXED phrase", "12.3.7.2");
+            var delimited = ChoiceIndicators.AtMostOnce(Edition, layout.dynamicLengthDelimitedPhrase(), where,
+                "the DELIMITED phrase", "12.3.7.2");
+            var prefix = prefixed is null ? DynamicLengthPrefix.None
+                : (prefixed.SIGNED() is not null, prefixed.dynamicLengthShortWord() is not null) switch
+                {
+                    (false, false) => DynamicLengthPrefix.Unsigned32,
+                    (true, false) => DynamicLengthPrefix.Signed32,
+                    (false, true) => DynamicLengthPrefix.Unsigned16,
+                    (true, true) => DynamicLengthPrefix.Signed16,
+                };
+            declared = new DynamicLengthStructure(name, prefix, Delimited: delimited is not null, null);
+        }
+        if (!ownNames.Add(name))
+        {
+            using var _ = Edition.At(nameCtx);
+            Edition.Error(DiagnosticCatalog.DynamicLengthStructureInvalid,
+                $"{where}: the dynamic-length-structure-name '{name}' is already declared in this SPECIAL-NAMES "
+                + "paragraph, so no reference to it could uniquely identify one layout (ISO §8.4.2.1)");
+            return;
+        }
+        DynamicLengthStructures[name] = declared;   // replaces an INHERITED same-named structure (§8.4.6.1)
     }
 
     private void OrderTableBind(Core.OrderTableClauseContext ot)

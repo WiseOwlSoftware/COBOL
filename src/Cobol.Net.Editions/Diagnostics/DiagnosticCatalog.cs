@@ -4643,6 +4643,47 @@ public static class DiagnosticCatalog
         + "marker.",
         "ISO §10.6.1");
 
+    /// <summary>COBOLNET2256 — an ASSIGN clause whose TO-phrase list is not one this implementation allows (ISO
+    /// §12.4.5.2 SR5, determination DOC-A.1-71; kb/Work PB829). The general format admits the list; the grammar used
+    /// to take ONE operand and answered a second with COBOL0308.</summary>
+    public static readonly DiagnosticDescriptor AssignTargetListNotAllowed = new(
+        "COBOLNET2256", "assign-target-list-not-allowed", EditionSeverity.Error,
+        "The TO phrase of an ASSIGN clause lists operands in a combination this implementation does not allow. "
+        + "ISO §12.4.5.1 writes `ASSIGN [TO] {device-name-1 | literal-1} …`, and ISO §12.4.5.2 SR5: \"The meaning "
+        + "and rules for the allowable specification of device-name-1 and the value of literal-1 are defined by "
+        + "the implementor.\" COBOL.NET allows ONE operand, which names the physical file, or a device class (DISK "
+        + "or PRINTER) followed by ONE operand naming the file (docs/CONFORMANCE.md §7 DOC-A.1-71).",
+        "ISO §12.4.5.2 SR5 / Annex A.1 item 71");
+
+    /// <summary>COBOLNET2257 — a SPECIAL-NAMES DYNAMIC LENGTH STRUCTURE clause this implementation refuses: it names
+    /// a physical-structure-name, of which COBOL.NET supports none (ISO §12.3.7.3 SR32, determination D-DL3), or it
+    /// re-declares a dynamic-length-structure-name the same paragraph already declares (§8.4.2.1). kb/Work PB829 —
+    /// the clause had no grammar and was COBOL0001 "unexpected 'DYNAMIC'".</summary>
+    public static readonly DiagnosticDescriptor DynamicLengthStructureInvalid = new(
+        "COBOLNET2257", "dynamic-length-structure-invalid", EditionSeverity.Error,
+        "A DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES paragraph (ISO §12.3.7.2) cannot be accepted. "
+        + "Either it names a physical-structure-name — ISO §12.3.7.3 SR32: \"The implementor shall specify the "
+        + "names supported for physical-structure-name-1\", and COBOL.NET supports none (docs/CONFORMANCE.md §3 "
+        + "D-DL3), so the layout must be described with the PREFIXED and/or DELIMITED phrases — or it declares a "
+        + "dynamic-length-structure-name that the same paragraph already declares, so no reference could uniquely "
+        + "identify one layout (ISO §8.4.2.1).",
+        "ISO §12.3.7.3 SR32 / §8.4.2.1");
+
+    /// <summary>COBOLNET2258 — a DYNAMIC LENGTH clause's dynamic-length-structure-name-1 that corresponds to no
+    /// DYNAMIC LENGTH STRUCTURE declaration (ISO §13.18.19.3 SR2), or a LIMIT phrase larger than the maximum length
+    /// that structure is associated with (SR4). kb/Work PB829 — the reference was refused outright as "not yet
+    /// supported" (COBOLNET1562, retired and never to be reallocated).</summary>
+    public static readonly DiagnosticDescriptor DynamicLengthStructureReference = new(
+        "COBOLNET2258", "dynamic-length-structure-reference", EditionSeverity.Error,
+        "A DYNAMIC LENGTH clause's dynamic-length-structure-name-1 violates a syntax rule of ISO §13.18.19.3. SR2: "
+        + "\"If dynamic-length-structure-name-1 is specified, it shall correspond to a dynamic-length-structure-name "
+        + "specified in the DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES paragraph\" (this source element's "
+        + "or a containing one's). SR4: \"If the LIMIT phrase and dynamic-structure-name-1 are both specified, "
+        + "integer-1 shall not be greater than the maximum length associated with dynamic-length-structure-name-1\" "
+        + "— the capacity of the structure's PREFIXED length field (ISO §12.3.7.4 GR18: 65535 for SHORT PREFIXED, "
+        + "32767 for SIGNED SHORT PREFIXED), bounded by the implementor maximum.",
+        "ISO §13.18.19.3 SR2 / SR4");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

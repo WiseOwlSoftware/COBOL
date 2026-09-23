@@ -964,7 +964,7 @@ internal sealed class VersionConformancePass
         /// variable-length, minimum-length-zero PIC X/N elementary string). Parse-arm (recognition) like the ANY
         /// LENGTH gate: <c>DataItem.IsDynamicLength</c> is cleared by the binder on every SR1/SR18 shape violation,
         /// so a bound-arm home would drop the 0900 on exactly the declaration-error paths. The §13.18.19.3 /
-        /// §13.16.3 SR18 shape SRs stay bind-time (DataBinder.BindEntry, COBOLNET1561/1562/1563).</summary>
+        /// §13.16.3 SR18 shape SRs stay bind-time (DataBinder.BindEntry, COBOLNET1561/1563/2258).</summary>
         public override object? VisitDynamicLengthClause(CobolParserCore.DynamicLengthClauseContext ctx)
         {
             if (InGatedDataEntry(ctx)) _p.Check(Constructs.DynamicLengthItem2014, "the DYNAMIC LENGTH clause");
@@ -1353,6 +1353,16 @@ internal sealed class VersionConformancePass
             // so the phrase is recognized by SHAPE, the same test the binder applies (DataBinder.IsAlphabetLocalePhrase).
             if (ctx.alphabetDefinition() is { } ldef && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(ldef, _cobolWords))
                 _p.Check(Constructs.AlphabetLocale2002, "the ALPHABET LOCALE phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        public override object? VisitDynamicLengthStructureClause(CobolParserCore.DynamicLengthStructureClauseContext ctx)
+        {
+            // The SPECIAL-NAMES DYNAMIC LENGTH STRUCTURE clause (ISO §12.3.7.2; kb/Work PB829) — a COBOL-2014
+            // introduction with the DYNAMIC LENGTH clause it serves. Gated on RECOGNITION: DYNAMIC is reserved at
+            // every edition, so the clause parses at all four and the sub-2014 answer is this explanatory
+            // introduction diagnostic, not a parse error.
+            _p.Check(Constructs.DynamicLengthStructure2014, "the DYNAMIC LENGTH STRUCTURE clause");
             return base.VisitChildren(ctx);
         }
 

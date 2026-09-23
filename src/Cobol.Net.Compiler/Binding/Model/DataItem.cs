@@ -577,6 +577,15 @@ public sealed class DataItem
         "the LIMIT phrase of the DYNAMIC LENGTH clause (ISO §13.18.19.4 GR2), riding it")]
     public int DynMaxSize { get; set; } = CobolNet.Runtime.CobolDynString.MaxLength;
 
+    /// <summary>The SPECIAL-NAMES dynamic-length structure this item's DYNAMIC LENGTH clause names (ISO §13.18.19.3
+    /// SR2 — dynamic-length-structure-name-1), or null when the clause names none and the structure is the
+    /// implementor's (SR3). Its PREFIXED length field is one of <see cref="DynMaxSize"/>'s §8.5.1.10.1 candidates, and
+    /// two corresponding items describe the same DYNAMIC LENGTH clause only when they name the same structure
+    /// (§8.5.3.1). Meaningful only when <see cref="IsDynamicLength"/> is set (kb/Work PB829).</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "dynamic-length-structure-name-1 of the DYNAMIC LENGTH clause (ISO §13.18.19.2), riding it")]
+    public DynamicLengthStructure? DynStructure { get; set; }
+
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.
     /// ONE writer: <c>DataBinder.AssignClassOffsets</c> — the classifier's offset walk, shared by the cell forcer

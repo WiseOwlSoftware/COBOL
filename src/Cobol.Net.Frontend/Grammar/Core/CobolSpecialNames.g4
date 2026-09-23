@@ -42,6 +42,9 @@ specialNameEntry
     // (kb/Work PB101). ORDER became a lexer token at kb/Work PB704, which retired the clause's text predicate but
     // NOT this ordering requirement.
     | orderTableClause DOT?
+    // DYNAMIC is reserved at every edition, so it heads no switch entry — but it is listed ahead of
+    // implementorSwitchEntry anyway, the LOCALE / ORDER TABLE posture for a clause with a keyword anchor.
+    | dynamicLengthStructureClause DOT?
     | implementorSwitchEntry DOT?
     // ⛔ THE §12.3.7.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p320 /
     // folio 290): alphabet-name-clause · CLASS · CRT STATUS · CURRENCY SIGN · CURSOR · DECIMAL-POINT ·
@@ -89,8 +92,52 @@ orderTableClause
     : ORDER TABLE cobolWord IS? literal
     ;
 
-// switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1] [OFF [STATUS] [IS] condition-name-2]
-// (ISO §12.3.7.2). ⛔ MEASURED, NOT TRANSCRIBED (kb/Work PB695, §5.2.3 / §8.3.2.4.3): on printed folio 290 the
+// dynamic-length-structure-clause (ISO §12.3.7.2; kb/Work PB829 — it had NO rule, so the clause was COBOL0001
+// "unexpected 'DYNAMIC'"):
+//   DYNAMIC LENGTH [STRUCTURE] dynamic-length-structure-name-1 [IS]
+//       { |[SIGNED] [SHORT] PREFIXED|  |DELIMITED| }  |  physical-structure-name-1
+// ⛔ RENDERED from the printed page (PDF p321 / folio 291), not the OCR: DYNAMIC, LENGTH, SIGNED, SHORT, PREFIXED and DELIMITED are
+// underlined; STRUCTURE and IS are not, so both are optional words (§5.2.3). The PREFIXED / DELIMITED pair sits in
+// CHOICE INDICATORS (§5.2.6.4 — braces: ONE OR MORE of the alternatives, any order, each at most once), which the
+// grammar writes as `(…)+` and `ChoiceIndicators.AtMostOnce` reads the at-most-once half of at bind — the one
+// reader of that rule. STRUCTURE, SHORT and PREFIXED are not lexer tokens (context words, never reserved), so they
+// are recognized by TEXT through the parser base's one `Word` funnel; each predicate sits at the LEFT EDGE of its
+// own rule, where it steers prediction (a mid-alternative predicate throws instead of steering). The clause is a
+// COBOL-2014 introduction, gated at its node by VersionConformancePass (`dynamic-length-structure-2014`).
+dynamicLengthStructureClause
+    : DYNAMIC LENGTH dynamicLengthStructureWord? cobolWord IS? dynamicLengthLayout
+    ;
+
+dynamicLengthStructureWord
+    : {wordAhead("STRUCTURE")}? IDENTIFIER
+    ;
+
+dynamicLengthLayout
+    : (dynamicLengthPrefixedPhrase | dynamicLengthDelimitedPhrase)+
+    | cobolWord                                   // physical-structure-name-1 (§12.3.7.3 SR32 — implementor names)
+    ;
+
+// [SIGNED] [SHORT] PREFIXED — the length-field prefix (SPECIAL-NAMES paragraph, §12.3.7.4 GR18).
+dynamicLengthPrefixedPhrase
+    : SIGNED? dynamicLengthShortWord? dynamicLengthPrefixedWord
+    ;
+
+dynamicLengthShortWord
+    : {wordAhead("SHORT")}? IDENTIFIER
+    ;
+
+dynamicLengthPrefixedWord
+    : {wordAhead("PREFIXED")}? IDENTIFIER
+    ;
+
+// DELIMITED — the binary-zero delimiter (SPECIAL-NAMES paragraph, §12.3.7.4 GR19). A rule of its own so the at-most-once reader sees it as a
+// context like its sibling.
+dynamicLengthDelimitedPhrase
+    : DELIMITED
+    ;
+
+// SPECIAL-NAMES switch entry: switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1] [OFF [STATUS] [IS]
+// condition-name-2] (ISO §12.3.7.2). ⛔ MEASURED, NOT TRANSCRIBED (kb/Work PB695, §5.2.3 / §8.3.2.4.3): on printed folio 290 the
 // switch rows carry EXACTLY TWO underline rules — under ON and under OFF. IS and STATUS are un-underlined in
 // every one of the three lines, so `SW1 MN1`, `ON STATUS C1`, `ON C1` and `OFF C2` are all conforming spellings
 // of the same entry. The IS of `[IS mnemonic-name-1]` was demanded here and the ON arm's STATUS/IS were split

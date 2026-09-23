@@ -76,6 +76,7 @@ public static class Constructs
     public const string OptionsInitialize2023 = "options-initialize-2023";
     public const string OccursDynamic2014 = "occurs-dynamic-2014";
     public const string DynamicLengthItem2014 = "dynamic-length-item-2014";
+    public const string DynamicLengthStructure2014 = "dynamic-length-structure-2014";
     public const string TypeClause2002 = "type-clause-2002";
     public const string TypedefDef2002 = "typedef-def-2002";
     public const string SameAsClause2002 = "same-as-clause-2002";

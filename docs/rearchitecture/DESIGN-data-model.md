@@ -147,6 +147,22 @@ public abstract record StorageForm
 }
 ```
 
+**A dynamic-length elementary item (§8.5.1.10) is `StorageForm.DynamicString(Category, MaxSize)` — a native
+`string`, never a byte image.** Its MAXIMUM SIZE is §8.5.1.10.1's "smallest of" three candidates — the LIMIT phrase,
+the largest integer the PREFIXED length field of its dynamic-length-structure-name can hold, and the implementor
+maximum (`docs/CONFORMANCE.md` §7 DOC-A.1-62) — computed by the ONE producer `CobolDynString.MaxSizeOf` and carried
+as `DataItem.DynMaxSize` to every store, SET SIZE and argument adapter. The structure the DYNAMIC LENGTH clause names
+is a SPECIAL-NAMES declaration (§12.3.7.2 dynamic-length-structure-clause; kb/Work PB829), bound into
+`DataBinder.DynamicLengthStructures` (inherited by contained source elements, §8.4.6.1) as a
+`Model/DynamicLengthStructure` and linked from the item as `DataItem.DynStructure`: it decides the PREFIXED candidate
+(§12.3.7.4 GR18 — SHORT PREFIXED 65535, SIGNED SHORT PREFIXED 32767, the 32-bit fields past the implementor
+maximum), §13.18.19.3 SR4's bound on the LIMIT phrase, and — as part of the DYNAMIC LENGTH clause — §8.5.3.1's
+same-type test. The layout itself (length field, GR19's binary-zero delimiter) is RECORDED on the model, not
+materialized: §8.5.1.10.3 leaves the item's location to the implementor, and no COBOL.NET operation gives the item a
+byte image a program can address (a variable-length group has no fixed record window — the record-area image of
+one is the loud `TierCIsland` stage). A physical-structure-name is an implementor set COBOL.NET leaves EMPTY
+(§12.3.7.3 SR32; determination D-DL3 in `docs/CONFORMANCE.md` §3), refused as COBOLNET2257.
+
 **Key rule (unifies invariant #1 + #2):** `CharImage` is the ONE case that subsumes *every* string-stored leaf,
 including a numeric-DISPLAY leaf promoted by whole-group use and an image-stored Tier-B binary/packed view. The
 promotion is a `StorageForm.NativeInt → CharImage` transition **inside `StorageFormPass`**, never a mutable bool flip.

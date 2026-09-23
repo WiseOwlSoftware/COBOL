@@ -61,9 +61,8 @@ public sealed class CobolDynStringTests
     public void MaxSizeOf_NoLimitPhrase_IsTheImplementorMaximum()
         => Assert.Equal(CobolDynString.MaxLength, CobolDynString.MaxSizeOf(null));
 
-    /// <summary>A LIMIT phrase below the implementor maximum IS the maximum size — it is the smaller of the two
-    /// candidates §8.5.1.10.1 lists (the PREFIXED one cannot apply; see <see cref="CobolDynString.MaxSizeOf"/>).
-    /// </summary>
+    /// <summary>A LIMIT phrase below the implementor maximum IS the maximum size — it is the smaller of the
+    /// candidates §8.5.1.10.1 lists when the item names no PREFIXED structure.</summary>
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -95,6 +94,19 @@ public sealed class CobolDynStringTests
         int max = CobolDynString.MaxSizeOf(limit is { } v ? (Int128)v : null);
         Assert.InRange(max, 0, CobolDynString.MaxLength);
     }
+
+    /// <summary>§8.5.1.10.1's PREFIXED candidate (kb/Work PB829): the length field of the item's
+    /// dynamic-length-structure-name bounds the maximum size — "the smallest of" the three — so a SHORT PREFIXED
+    /// field (65535, §12.3.7.4 GR18) beats an absent or larger LIMIT, a smaller LIMIT beats the field, and a
+    /// 32-bit field never raises the implementor maximum.</summary>
+    [Theory]
+    [InlineData(null, 65_535L, 65_535)]
+    [InlineData(100_000L, 32_767L, 32_767)]
+    [InlineData(10L, 65_535L, 10)]
+    [InlineData(null, 4_294_967_295L, 0x3FFF_FFDF)]
+    [InlineData(null, 2_147_483_647L, 0x3FFF_FFDF)]
+    public void MaxSizeOf_PrefixedCandidate_IsTheSmallestOfTheThree(long? limit, long prefixed, int expected)
+        => Assert.Equal(expected, CobolDynString.MaxSizeOf(limit is { } v ? (Int128)v : null, prefixed));
 
     // ── §14.9.39 Format 16 GR37–GR39 — SET [SIZE OF] ───────────────────────────────────────────────────────────
 

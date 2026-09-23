@@ -36,15 +36,18 @@ public static class CobolDynString
     /// the PREFIXED phrase; the maximum permitted by the implementor". <paramref name="limitPhrase"/> is
     /// integer-1 of the LIMIT phrase (§13.18.19.4 GR2) or null when the phrase is absent; it arrives as an
     /// <see cref="Int128"/> so a literal far past <see cref="int"/> is COMPARED at its written value rather than
-    /// narrowed first. The PREFIXED candidate never applies here: PREFIXED rides a dynamic-length-structure-name
-    /// (§13.18.19.3 SR2 / §12.3.7), which the compiler refuses outright (COBOLNET1562), so no such usage exists
-    /// to bound the size. ⛔ ONE producer, so every consumer — the binder, the emitters and the two helpers below —
-    /// sees a real bound in <c>[0, MaxLength]</c> and nothing needs a "no LIMIT" special case.</summary>
-    public static int MaxSizeOf(Int128? limitPhrase) =>
-        limitPhrase is not { } lim ? MaxLength
-        : lim <= 0 ? 0
-        : lim >= MaxLength ? MaxLength
-        : (int)lim;
+    /// narrowed first. <paramref name="prefixedMaximum"/> is the PREFIXED candidate — the largest integer the length
+    /// field of the item's dynamic-length-structure-name can hold (§12.3.7.4 GR18), or null when the item names no
+    /// structure or its structure has no PREFIXED phrase (kb/Work PB829). ⛔ ONE producer, so every consumer — the
+    /// binder, the emitters and the two helpers below — sees a real bound in <c>[0, MaxLength]</c> and nothing needs
+    /// a "no LIMIT" special case.</summary>
+    public static int MaxSizeOf(Int128? limitPhrase, long? prefixedMaximum = null)
+    {
+        Int128 bound = MaxLength;
+        if (limitPhrase is { } lim && lim < bound) bound = lim;
+        if (prefixedMaximum is { } pre && pre < bound) bound = pre;
+        return bound <= 0 ? 0 : (int)bound;
+    }
 
     /// <summary>
     /// Store <paramref name="value"/> into a dynamic-length receiver (ISO §8.5.1.10.4): the new content replaces the

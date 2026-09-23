@@ -40,8 +40,13 @@ fileControlClauseGroup
       DOT
     ;
 
+// ASSIGN [TO] {device-name-1 | literal-1} … [USING data-name-1] | ASSIGN USING data-name-1 (ISO §12.4.5.1, every
+// format). ⛔ THE ELLIPSIS IS ON THE INNER BRACE PAIR (rendered, kb/Work PB829 — folios 312-314), so the TO phrase
+// is a LIST and `assignTarget+` is the general format. What the list MEANS, and which lists are allowed, is the
+// implementor's (§12.4.5.2 SR5): COBOL.NET's determination (docs/CONFORMANCE.md §7 row DOC-A.1-71) is applied BY
+// NAME at bind, in `AssignTargetRule` — never by a one-operand grammar that answered a legal list with COBOL0308.
 assignClause
-    : ASSIGN TO? assignTarget (USING dataReference)?
+    : ASSIGN TO? assignTarget+ (USING dataReference)?
     | ASSIGN USING dataReference
     ;
 

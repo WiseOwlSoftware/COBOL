@@ -125,6 +125,13 @@ public abstract class CobolParserCoreBase : Parser
     protected bool memoryUnitAhead()
         => Word(TokenStream.LT(1), "WORDS") || Word(TokenStream.LT(1), "MODULES");
 
+    /// <summary>The next token spells the context word <paramref name="word"/> — a word a general format names that
+    /// is no lexer token and is never reserved (§8.9), so it arrives as an IDENTIFIER and is recognized by its TEXT
+    /// through the one <see cref="Word"/> funnel (>>COBOL-WORDS applied). Written as the LEFT-EDGE predicate of a
+    /// one-word rule (e.g. <c>dynamicLengthPrefixedWord : {wordAhead("PREFIXED")}? IDENTIFIER</c>), which is where
+    /// a predicate steers prediction rather than throwing (kb/Work PB829, the dynamic-length-structure-clause).</summary>
+    protected bool wordAhead(string word) => Word(TokenStream.LT(1), word);
+
     /// <summary>X3.23-1985 <c>SEGMENT-LIMIT IS segment-number</c> — the word SEGMENT-LIMIT (kb/Work PB830).</summary>
     protected bool segmentLimitAhead() => Word(TokenStream.LT(1), "SEGMENT-LIMIT");
 

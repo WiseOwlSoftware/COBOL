@@ -183,11 +183,18 @@ public static class StrongTypeModel
     private static bool SameEssentialCharacteristics(DataItem x, DataItem y) =>
         x.IsAligned == y.IsAligned                                            // ALIGNED        §13.18.1
         && x.BlankWhenZero == y.BlankWhenZero                                 // BLANK WHEN ZERO §13.18.8
-        && x.IsDynamicLength == y.IsDynamicLength                             // DYNAMIC LENGTH  §13.18.20
+        && x.IsDynamicLength == y.IsDynamicLength                             // DYNAMIC LENGTH  §13.18.19
         && (!x.IsDynamicLength || x.DynMaxSize == y.DynMaxSize)               //   … and its LIMIT
+        && (!x.IsDynamicLength || SameDynStructure(x, y))                     //   … and its structure-name (PB829)
         && x.Justified == y.Justified                                         // JUSTIFIED      §13.18.32
         && x.Synchronized == y.Synchronized                                   // SYNCHRONIZED   §13.18.55
         && SameAnalyzedProfile(x.Pic, y.Pic);                                 // PICTURE + SIGN + USAGE
+
+    /// <summary>The DYNAMIC LENGTH clause's dynamic-length-structure-name-1 (§13.18.19.2) is part of the clause
+    /// §8.5.3.1 requires to be the same: both name no structure, or both name the same one (a name is unique in its
+    /// source element and inherited by reference, so name equality is identity).</summary>
+    private static bool SameDynStructure(DataItem x, DataItem y) =>
+        string.Equals(x.DynStructure?.Name, y.DynStructure?.Name, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>The PICTURE / SIGN / USAGE conjunct, with §8.5.3.1's three exceptions.
     /// <para>The comparison is <see cref="PicInfo"/>'s OWN record equality — every analyzed axis, and every axis

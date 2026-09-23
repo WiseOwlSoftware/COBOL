@@ -822,10 +822,21 @@ newly-closed format as the standing witness that the rendering was right.
   gated below 2002 as `identification-header-optional-2002` (X3.23-1985 required it). The text-level directive
   stages that must know where the first unit begins (COBOL-WORDS §7.3.10.3 SR1, LEAP-SECOND §7.3.17.3 SR1) read
   ONE test, `Preprocessor/CompilationUnitStart.IsAt` — the COBOL-WORDS copy had known only the header line.
-- **The §12.3.7.2 `dynamic-length-structure-clause` is not modelled at all**, so
-  `DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` answers `COBOL0001: unexpected 'DYNAMIC'`. That is a
-  rejects-legal-source gap that predates and is unaffected by this change (DYNAMIC is a reserved token no
-  alternative admits, so the catch-all never saw it).
+- **The §12.4.5.1 ASSIGN TO phrase is a LIST, and the grammar now says so.** Every format prints `ASSIGN [TO]
+  {device-name-1 | literal-1} …` with the ellipsis on the inner brace pair; `assignClause` took ONE
+  `assignTarget`, so `ASSIGN TO "a" "b"` was COBOL0308. It is `assignTarget+` (superset parse), and WHICH lists are
+  allowed is §12.4.5.2 SR5's implementor determination (`docs/CONFORMANCE.md` §7 DOC-A.1-71: one operand, or DISK /
+  PRINTER then one operand), read at bind in ONE place, `Binding/AssignTargetRule`, and refused BY NAME
+  (COBOLNET2256). A consequence for this mechanism: a word run after an ASSIGN operand is now further TO operands,
+  not a residue clause, so it draws COBOLNET2256 rather than COBOLNET1970.
+- **The §12.3.7.2 `dynamic-length-structure-clause` is modelled** (kb/Work PB829 finisher). It had no rule at all
+  (`DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` was COBOL0001 — DYNAMIC is a reserved token no alternative admitted,
+  so the catch-all never saw it). `dynamicLengthStructureClause` writes the RENDERED format: STRUCTURE and IS
+  optional (un-underlined), the PREFIXED / DELIMITED pair as `(…)+` with the at-most-once half of its choice
+  indicators read by `ChoiceIndicators.AtMostOnce` at bind, and the context words STRUCTURE / SHORT / PREFIXED
+  recognized by text through the parser base's `wordAhead` (the one `Word` funnel), each as the left-edge predicate
+  of its own one-word rule. Gated below 2014 (`dynamic-length-structure-2014`); its semantics are
+  `DESIGN-data-model.md` §2.1.
 
 ### 3.11 The required imperative-statement operand — the quantifier IS the rule (kb/Work PB396)
 

@@ -17,7 +17,11 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT F ASSIGN TO "pb829fc.dat" WIBBLE WOBBLE.
+      *> The residue follows ORGANIZATION, not ASSIGN: since the TO phrase became the list ISO 12.4.5.1
+      *> prints (kb/Work PB829 finisher), words after an ASSIGN operand are further TO operands, refused
+      *> by the ISO 12.4.5.2 SR5 determination (COBOLNET2256), not by this closed-format rule.
+           SELECT F ASSIGN TO "pb829fc.dat" ORGANIZATION IS SEQUENTIAL
+               WIBBLE WOBBLE.
        DATA DIVISION.
        FILE SECTION.
        FD  F.

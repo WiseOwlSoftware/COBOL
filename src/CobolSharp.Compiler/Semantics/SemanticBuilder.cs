@@ -804,9 +804,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // Clauses (ASSIGN, ORGANIZATION, ACCESS, keys, FILE STATUS) — any order per ISO §12.4.5.2 SR1.
         foreach (var clause in ctx.fileControlClauses())
         {
-            if (clause.assignClause()?.assignTarget() is { } assignCtx)
+            // The shared grammar's TO phrase is a list (ISO §12.4.5.1; kb/Work PB829): the oracle takes the operand that
+            // names the file - the last - which is COBOL.NET's DOC-A.1-71 reading of every list it allows.
+            if (clause.assignClause()?.assignTarget() is { Length: > 0 } assignCtxs)
             {
-                string assignText = assignCtx.GetText();
+                string assignText = assignCtxs[^1].GetText();
                 // String literal → explicit host path; identifier → implementor-defined
                 if (assignText.Length >= 2 &&
                     (assignText[0] == '"' || assignText[0] == '\''))

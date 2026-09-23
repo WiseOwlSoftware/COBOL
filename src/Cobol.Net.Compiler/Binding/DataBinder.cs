@@ -921,8 +921,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // the FILE-NAME, so its records landed in `<file-name>.txt` (kb/Work PB324).
                 if (clauses.assignClause() is { } asg)
                 {
-                    file.AssignTarget = asg.assignTarget() is { } tgt
-                        ? (tgt.STRINGLIT() is { } s ? CobolLiteral.Decode(s.GetText()) : tgt.GetText())
+                    // The TO phrase is a LIST (§12.4.5.1's ellipsis); which lists are allowable and what one names
+                    // is the §12.4.5.2 SR5 determination, read in ONE place (AssignTargetRule, DOC-A.1-71).
+                    file.AssignTarget = asg.assignTarget() is { Length: > 0 } tgts
+                        ? AssignTargetRule.Resolve(Edition, tgts, name)
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
@@ -2796,6 +2798,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             to.IsDynamicLength = true;
             to.DynMaxSize = from.DynMaxSize;    // §8.5.1.10.1's maximum size rides the clause (kb/Work PB463)
+            to.DynStructure = from.DynStructure;   // … and so does its dynamic-length-structure-name (kb/Work PB829)
         }
         to.TypeName ??= from.TypeName;     // a data-name-1 declared with TYPE carries its type identity (§8.5.3)
         to.StrongType |= from.StrongType;
@@ -3723,7 +3726,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
         Int128? dynLengthLimit = null; // integer-1 of the LIMIT phrase (§13.18.19.4 GR2); null = the phrase is absent
         string dynLengthLimitText = "";// integer-1 AS WRITTEN, for the COBOLNET2027 report
-        string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
+        string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name-1 (§13.18.19.2)
+        DynamicLengthStructure? dynStructure = null;   // … and the SPECIAL-NAMES declaration it resolves to (SR2)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
         Core.ExternalizedNamePhraseContext? externalAs = null;   // the EXTERNAL clause's `AS literal-1` (§13.18.22.2; kb/Work PB511)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
@@ -3786,8 +3790,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     isAnyLength = true;
                 else if (clause.Context.dynamicLengthClause() is { } dl)
                 {
-                    // DYNAMIC LENGTH (§8.5.1.10 / §13.18.19) — SR1 + the §13.16.3 SR18 clause-exclusion + the
-                    // structure-name non-support are validated below (the ANY LENGTH pattern). The COBOL-2014
+                    // DYNAMIC LENGTH (§8.5.1.10 / §13.18.19) — SR1, SR2, SR4 and the §13.16.3 SR18 clause-exclusion
+                    // are validated below (the ANY LENGTH pattern). The COBOL-2014
                     // introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause (recognition —
                     // IsDynamicLength is cleared on every SR violation, so a bound-arm gate would drop the 0900).
                     isDynamicLength = true;
@@ -4591,15 +4595,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + $"(ISO §13.18.19.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
                 isDynamicLength = false;
             }
-            // §13.18.19.3 SR2/SR3: a dynamic-length-structure-name refers to a SPECIAL-NAMES DYNAMIC LENGTH
-            // STRUCTURE (§12.3.7 — PREFIXED/DELIMITED/physical layout). COBOL.NET does not yet support the physical
-            // structure declaration, so a naming reference is rejected LOUD rather than silently defaulting the
-            // layout (a staged residue; the 2023 SET-length enhancement, VCR row 60, is separately P13).
-            else if (dynLengthStructureName is not null)
+            // §13.18.19.3 SR2: "If dynamic-length-structure-name-1 is specified, it shall correspond to a
+            // dynamic-length-structure-name specified in the DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES
+            // paragraph" — this source element's, or a containing one's (§8.4.6.1; InheritConfiguration). The name
+            // used to be refused outright as "not yet supported" (COBOLNET1562, retired): the clause it names had no
+            // grammar at all (kb/Work PB829).
+            else if (dynLengthStructureName is not null
+                     && !DynamicLengthStructures.TryGetValue(dynLengthStructureName, out dynStructure))
             {
-                Edition.Error("COBOLNET1562", $"{entryWhere}: a DYNAMIC LENGTH clause naming a "
-                    + $"dynamic-length-structure-name ('{dynLengthStructureName}') is not yet supported "
-                    + "(ISO §13.18.19.3 SR2 / §12.3.7 DYNAMIC LENGTH STRUCTURE)");
+                Edition.Error(DiagnosticCatalog.DynamicLengthStructureReference, $"{entryWhere}: the DYNAMIC LENGTH "
+                    + $"clause names '{dynLengthStructureName}', which is not a dynamic-length-structure-name "
+                    + "declared by a DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES paragraph (ISO §13.18.19.3 SR2)");
+                isDynamicLength = false;
+            }
+            // §13.18.19.3 SR4: "If the LIMIT phrase and dynamic-structure-name-1 are both specified, integer-1 shall
+            // not be greater than the maximum length associated with dynamic-length-structure-name-1" — the
+            // structure's length-field capacity, bounded by the implementor maximum (DynamicLengthStructure.MaximumLength).
+            else if (dynStructure is not null && dynLengthLimit is { } limit4 && limit4 > dynStructure.MaximumLength)
+            {
+                Edition.Error(DiagnosticCatalog.DynamicLengthStructureReference, $"{entryWhere}: the DYNAMIC LENGTH "
+                    + $"clause's LIMIT phrase specifies {dynLengthLimitText} characters, more than the "
+                    + $"{dynStructure.MaximumLength} associated with dynamic-length-structure-name '{dynStructure.Name}' "
+                    + "(ISO §13.18.19.3 SR4)");
                 isDynamicLength = false;
             }
             // §13.16.3 SR18: with DYNAMIC LENGTH the ONLY other clauses permitted are level-number, entry-name,
@@ -4624,15 +4641,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             // §8.5.1.10.1 — the item's MAXIMUM SIZE is "the smallest of" the LIMIT phrase value, the largest
             // integer storable in the PREFIXED usage, and the maximum permitted by the implementor. The PREFIXED
-            // candidate cannot apply: it rides a dynamic-length-structure-name, refused above by COBOLNET1562. The
-            // rule is written ONCE, in CobolDynString.MaxSizeOf, so the binder, the emitters and the two runtime
-            // helpers all see the same real bound — never a "no LIMIT" sentinel (kb/Work PB463).
+            // candidate is the length field of the dynamic-length-structure-name the clause names, when that
+            // structure has a PREFIXED phrase (kb/Work PB829). The rule is written ONCE, in
+            // CobolDynString.MaxSizeOf, so the binder, the emitters and the two runtime helpers all see the same
+            // real bound — never a "no LIMIT" sentinel (kb/Work PB463).
             if (dynLengthLimit is { } limitAsked && limitAsked > CobolDynString.MaxLength)
                 Edition.Warning(DiagnosticCatalog.DynLengthLimitAboveImplementorMaximum,
                     $"{entryWhere}: the DYNAMIC LENGTH clause's LIMIT phrase specifies {dynLengthLimitText} "
                     + $"characters, above this implementation's maximum of {CobolDynString.MaxLength}; the maximum "
                     + $"size of the item is therefore {CobolDynString.MaxLength} characters (ISO §8.5.1.10.1)");
-            item.DynMaxSize = CobolDynString.MaxSizeOf(dynLengthLimit);
+            item.DynMaxSize = CobolDynString.MaxSizeOf(dynLengthLimit, dynStructure?.PrefixedMaximum);
+            item.DynStructure = dynStructure;
         }
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).

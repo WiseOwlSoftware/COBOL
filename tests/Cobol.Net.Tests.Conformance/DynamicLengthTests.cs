@@ -11,7 +11,8 @@ namespace CobolNet.Tests.Conformance;
 /// The DYNAMIC LENGTH elementary item (ISO §8.5.1.10 / §13.18.19, COBOL-2014; PHASE-12 wave 2): a variable-length,
 /// minimum-length-zero PIC X/N string. The declaration-shape rules whose violation must be a LOUD bind-time
 /// rejection, never a silent mis-compile (COBOLNET_DESIGN §1.4): §13.18.19.3 SR1 (PICTURE exactly one N or X →
-/// COBOLNET1561), the dynamic-length-structure-name non-support (§13.18.19.3 SR2 / §12.3.7 → COBOLNET1562), and
+/// COBOLNET1561), a dynamic-length-structure-name no SPECIAL-NAMES clause declares or whose length field a LIMIT
+/// exceeds (§13.18.19.3 SR2/SR4 → COBOLNET2258), the DYNAMIC LENGTH STRUCTURE clause's own refusals (COBOLNET2257), and
 /// §13.16.3 SR18 (only level-number/entry-name/PICTURE/USAGE/VALUE permitted → COBOLNET1563). The run behavior
 /// (truncate-to-LIMIT, current-length MOVE, FUNCTION LENGTH) is the <c>dynamic_length_*</c> conformance corpus; the
 /// edition-gating is the <c>dynamic-length-item-2014</c> version-matrix row — these assert the negative gating and
@@ -51,15 +52,78 @@ public sealed class DynamicLengthTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1561");
     }
 
-    /// <summary>§13.18.19.3 SR2 / §12.3.7 — a dynamic-length-structure-name references a SPECIAL-NAMES DYNAMIC LENGTH
-    /// STRUCTURE (PREFIXED/DELIMITED/physical layout), unsupported today: staged loud (COBOLNET1562), never a
-    /// silently-defaulted layout.</summary>
+    private static string WithStructures(string specialNames, string entry) => """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. DLS.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+        """ + "\n" + specialNames + "\n" + """
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        """ + "\n" + entry + "\n" + """
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+            DISPLAY "X".
+            STOP RUN.
+        """;
+
+    /// <summary>§13.18.19.3 SR2 — dynamic-length-structure-name-1 "shall correspond to a
+    /// dynamic-length-structure-name specified in the DYNAMIC LENGTH STRUCTURE clause in the SPECIAL-NAMES
+    /// paragraph" (kb/Work PB829). A declared name compiles; an undeclared one is COBOLNET2258. (It used to be
+    /// refused whether declared or not — COBOLNET1562, "not yet supported", retired — because the clause that
+    /// declares one had no grammar.)</summary>
     [Fact]
-    public void StructureName_Rejected1562()
+    public void StructureName_Declared_Accepted_Undeclared_Rejected2258()
     {
-        var (ok, diag) = EditionHarness.Compile(Prog("01 WS-D PIC X DYNAMIC LENGTH MYSTRUCT LIMIT IS 10."), 2014);
-        Assert.False(ok, "a DYNAMIC LENGTH clause naming a structure-name must be rejected (ISO §13.18.19.3 SR2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1562");
+        var (ok, diag) = EditionHarness.Compile(WithStructures(
+            "    DYNAMIC LENGTH STRUCTURE MYSTRUCT IS PREFIXED.", "01 WS-D PIC X DYNAMIC LENGTH MYSTRUCT LIMIT IS 10."), 2014);
+        Assert.True(ok, $"a declared dynamic-length-structure-name must be accepted:\n{string.Join("\n", diag)}");
+        (ok, diag) = EditionHarness.Compile(Prog("01 WS-D PIC X DYNAMIC LENGTH MYSTRUCT LIMIT IS 10."), 2014);
+        Assert.False(ok, "an undeclared dynamic-length-structure-name must be rejected (ISO §13.18.19.3 SR2)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET2258");
+    }
+
+    /// <summary>§13.18.19.3 SR4 — a LIMIT phrase may not exceed the maximum length associated with the structure:
+    /// SHORT PREFIXED holds 65535 (§12.3.7.4 GR18), so 65535 is accepted and 65536 is COBOLNET2258.</summary>
+    [Theory]
+    [InlineData("65535", true)]
+    [InlineData("65536", false)]
+    public void StructureName_LimitAboveTheLengthField_Rejected2258(string limit, bool legal)
+    {
+        var (ok, diag) = EditionHarness.Compile(WithStructures(
+            "    DYNAMIC LENGTH STRUCTURE S16 IS SHORT PREFIXED.", $"01 WS-D PIC X DYNAMIC LENGTH S16 LIMIT IS {limit}."), 2014);
+        Assert.True(legal == ok, string.Join("\n", diag));
+        if (!legal) EditionHarness.AssertHasDiagnostic(diag, "COBOLNET2258");
+    }
+
+    /// <summary>§12.3.7.3 SR32 — the implementor specifies the physical-structure-names, and COBOL.NET specifies
+    /// none (docs/CONFORMANCE.md §3 D-DL3): the alternative is refused by name, COBOLNET2257. A second declaration of
+    /// one name in the paragraph is COBOLNET2257 too (§8.4.2.1), and a repeated PREFIXED phrase is the
+    /// choice-indicator rule (§5.2.6.4, COBOLNET2104).</summary>
+    [Theory]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS VARSTRING.", "COBOLNET2257")]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS PREFIXED\n    DYNAMIC LENGTH STRUCTURE S1 IS DELIMITED.", "COBOLNET2257")]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS PREFIXED SIGNED PREFIXED.", "COBOLNET2104")]
+    public void StructureClause_Refused(string specialNames, string code)
+    {
+        var (ok, diag) = EditionHarness.Compile(WithStructures(specialNames, "01 WS-D PIC X DYNAMIC LENGTH S1."), 2014);
+        Assert.False(ok, "the DYNAMIC LENGTH STRUCTURE clause must be refused");
+        EditionHarness.AssertHasDiagnostic(diag, code);
+    }
+
+    /// <summary>The printed §12.3.7.2 format, every spelling (rendered: STRUCTURE and IS un-underlined; PREFIXED
+    /// and DELIMITED in choice indicators — one or more, any order).</summary>
+    [Theory]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS PREFIXED.")]
+    [InlineData("    DYNAMIC LENGTH S1 SIGNED PREFIXED.")]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 SIGNED SHORT PREFIXED DELIMITED.")]
+    [InlineData("    DYNAMIC LENGTH S1 IS DELIMITED SHORT PREFIXED.")]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS DELIMITED.")]
+    public void StructureClause_EverySpelling_Accepted(string specialNames)
+    {
+        var (ok, diag) = EditionHarness.Compile(WithStructures(specialNames, "01 WS-D PIC X DYNAMIC LENGTH S1."), 2014);
+        Assert.True(ok, $"the §12.3.7.2 spelling must be accepted:\n{string.Join("\n", diag)}");
     }
 
     /// <summary>§13.16.3 SR18 — with DYNAMIC LENGTH the only other clauses permitted are level-number, entry-name,
