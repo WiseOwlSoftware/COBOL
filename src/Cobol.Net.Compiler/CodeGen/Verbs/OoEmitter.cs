@@ -463,19 +463,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         item.Pic is { Category: PicCategory.Numeric, IsFloat: false } p && p.ByteForm is NumericByteForm.Zoned
         && p.Usage is not Usage.National;
 
-    /// <summary>The item's native value (its own carrier type) decoded from its byte image — the ONE decode the
-    /// NativeBoxOverImage bridge uses in both directions of both sides.</summary>
-    private static string OoImageToNative(DataItem item, string image) =>
-        item.Pic!.IsFloat
-            ? $"({item.Pic.ClrType}){RuntimeApi.NumParseImageFloat(image, item.ProfileName)}"
-            : RuntimeApi.NumStoreImage(image, item.ProfileName, $"default({item.Pic.ClrType})");
-
-    /// <summary>The item's byte image encoded from its native value — the inverse of <see cref="OoImageToNative"/>.</summary>
-    private static string OoNativeToImage(DataItem item, string native) =>
-        item.Pic!.IsFloat
-            ? RuntimeApi.NumFormatImageFloat(native, item.ProfileName)
-            : RuntimeApi.NumFormatImage(native, item.ProfileName);
-
     /// <summary>The callee-side unbox: box value → a local in the FORMAL's own crossing form.</summary>
     private static string OoUnivUnbox(DataItem item, string box) =>
         // The variable-length carrier boxes and unboxes VERBATIM — it is already the crossing form, and its
@@ -483,7 +470,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // spelled `(string)box!` into a `ref CobolVarGroup` parameter: CS1503 on a method merely DECLARED,
         // the PB177 arm-A shape exactly.
         OoVarGroupCarried(item) ? $"({RuntimeApi.VarGroupType}){box}!"
-        : OoUnivNativeBoxOverImage(item) ? OoNativeToImage(item, $"({item.Pic!.ClrType}){box}!")
+        : OoUnivNativeBoxOverImage(item) ? NumericRenderer.ImageOfCarrier($"({item.Pic!.ClrType}){box}!", item)
         : OoStringCarried(item) ? $"(string){box}!"
         : OoUnivImageBridged(item) ? RuntimeApi.NumStoreDisplay($"(string){box}!", item.ProfileName, $"({item.ElementType})0")
         : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
@@ -492,7 +479,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <summary>The callee-side re-box: a local in the formal's crossing form → the canonical box form.</summary>
     private static string OoUnivRebox(DataItem item, string local) =>
         OoUnivImageBridged(item) ? RuntimeApi.NumFormatDisplay(local, item.ProfileName)
-        : OoUnivNativeBoxOverImage(item) ? $"(object?){OoImageToNative(item, local)}"
+        : OoUnivNativeBoxOverImage(item) ? $"(object?){NumericRenderer.CarrierOfImage(local, item)}"
         : $"(object?){local}";
 
     /// <summary>Caller-side universal dispatch (D-U6): box every argument per ITS OWN descriptor's canonical
@@ -597,14 +584,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         p is RefModPlace ? PlaceRenderer.Read(p)
         : CallEmitter.CallPlaceIsVarGroup(p) ? PlaceRenderer.VarGroupImage(p, "INVOKE argument")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Read(new NumericImagePlace(p))
-        : OoUnivNativeBoxOverImage(p.Item) ? $"(object?){OoImageToNative(p.Item, PlaceRenderer.Read(p))}"   // kb/Work PB187
+        : OoUnivNativeBoxOverImage(p.Item) ? $"(object?){NumericRenderer.CarrierOfImage(PlaceRenderer.Read(p), p.Item)}"   // kb/Work PB187
         : PlaceRenderer.Read(p);
 
     private static string OoUnivCallerWrite(Place p, string box) =>
         p is RefModPlace ? PlaceRenderer.Write(p, $"(string){box}!")
         : CallEmitter.CallPlaceIsVarGroup(p)
             ? PlaceRenderer.WriteVarGroupImage(p, $"({RuntimeApi.VarGroupType}){box}!", "INVOKE copy-out into")
-        : OoUnivNativeBoxOverImage(p.Item) ? PlaceRenderer.Write(p, OoNativeToImage(p.Item, $"({p.Item.Pic!.ClrType}){box}!"))   // kb/Work PB187
+        : OoUnivNativeBoxOverImage(p.Item) ? PlaceRenderer.Write(p, NumericRenderer.ImageOfCarrier($"({p.Item.Pic!.ClrType}){box}!", p.Item))   // kb/Work PB187
         : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
         : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? PlaceRenderer.Write(p, $"({pic.ClrType}){box}")
@@ -1197,7 +1184,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 Post(OoStringCarried(src.Item) ? PlaceRenderer.Write(src, tmp) : PlaceRenderer.Write(new NumericImagePlace(src), tmp));
             else
                 Post(src.Item.StoreAsImage
-                    ? PlaceRenderer.Write(src, ValueImage(tmp, src.Item))
+                    ? PlaceRenderer.Write(src, NumericRenderer.ImageOfCarrier(tmp, src.Item))
                     : PlaceRenderer.Write(src, tmp));
         }
 
@@ -1251,9 +1238,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? RuntimeApi.StrStore(tmp, $"{Math.Max(1, rvp.Length)}")
                     : tmp));
             else if (retString)   // string-carried result into native-numeric storage
-                w.Line(PlaceRenderer.Write(recv, $"({recv.Item.ElementType}){ImageValue(tmp, recv.Item)}"));
+                w.Line(PlaceRenderer.Write(recv, NumericRenderer.CarrierOfImage(tmp, recv.Item)));
             else                  // native result into image-stored numeric storage
-                w.Line(PlaceRenderer.Write(recv, ValueImage(tmp, recv.Item)));
+                w.Line(PlaceRenderer.Write(recv, NumericRenderer.ImageOfCarrier(tmp, recv.Item)));
         }
         else
         {
@@ -1272,21 +1259,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// Self/Super/Factory + UNIVERSAL dispatches all pick up; NEW needs none (the generated ctor runs no
     /// user statements, D4). Gated on <c>EcState.Active</c>, which spans class units.</summary>
     private void EmitInvokePickup(IActivatingStatement site) => U.Call.EmitPropagationPickup(site);
-
-    /// <summary>The STORAGE image of a numeric VALUE under an image-stored item's own description — THE record-image
-    /// codec, the float lane on its own encoder (kb/Work PB970). The INVOKE boundary's string carrier of a numeric
-    /// item is its storage image, as the CALL boundary's is, so a native value entering an image-stored item's
-    /// window is encoded, never rendered as its DISPLAY digits.</summary>
-    private static string ValueImage(string value, DataItem item) =>
-        item.Pic is { IsFloat: true }
-            ? RuntimeApi.NumFormatImageFloat(value, item.ProfileName)
-            : RuntimeApi.NumFormatImage(value, item.ProfileName);
-
-    /// <summary>The inverse of <see cref="ValueImage"/>: a storage image decoded to the item's value.</summary>
-    private static string ImageValue(string image, DataItem item) =>
-        item.Pic is { IsFloat: true }
-            ? RuntimeApi.NumParseImageFloat(image, item.ProfileName)
-            : RuntimeApi.NumParseImage(image, item.ProfileName, sending: false);
 
     private string OoStringReadOf(Place sp, BoundInvokeArg a, string qualProfile)
     {

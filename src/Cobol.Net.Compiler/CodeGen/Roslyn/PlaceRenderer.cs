@@ -38,7 +38,7 @@ internal static class PlaceRenderer
         // float), so this arm was a CS1503 on the first NATIVE float read through its image, e.g. a COMP-1
         // argument crossing to a windowed COMP-1 formal. An image-stored float is already its image.
         NumericImagePlace n => n.Inner.Item is { Pic.IsFloat: true, StoreAsImage: false }
-            ? RuntimeApi.NumFormatImageFloat(Read(n.Inner), n.Inner.Item.ProfileName)
+            ? NumericRenderer.ImageOfCarrier(Read(n.Inner), n.Inner.Item)
             : RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
         // A GROUP viewed as its character image for reference modification (ISO §8.4.3.3.3 SR1 / §8.4.3.3.4 GR6 —
         // kb/Work PB70), READ: §8.4.3.3.4 GR5 makes the unique data item "a subset of the data item referenced by
@@ -156,7 +156,7 @@ internal static class PlaceRenderer
         // bytes the read produced, so a splice round-trips whatever the item's byte form is).
         // The float twin of the read arm above (kb/Work PB187) — the IEEE decode, narrowed to the carrier type.
         NumericImagePlace n => n.Inner.Item is { Pic.IsFloat: true, StoreAsImage: false }
-            ? Write(n.Inner, $"({n.Inner.Item.Pic!.ClrType}){RuntimeApi.NumParseImageFloat(rhs, n.Inner.Item.ProfileName)}")
+            ? Write(n.Inner, NumericRenderer.CarrierOfImage(rhs, n.Inner.Item))
             : Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         // The spliced group image goes back through the ONE group-image store (kb/Work PB70).
         GroupImagePlace g => WriteGroupImage(g.Inner, rhs, "reference modification into group"),

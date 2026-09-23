@@ -673,6 +673,25 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// it. A windowed (image-stored) item decodes through the binary32 carrier lane
     /// (<c>CobolNum.ParseImageSingle</c>). The §14.6.13.2 rule 3 read check is decided by the ONE reader of that
     /// rule's exemption list, <see cref="SendingRefRules.FloatChecked"/>, exactly as on the arithmetic read.</summary>
+    /// <summary>A NATIVE carrier's value decoded from its item's STORAGE image — the ONE crossing decode, a COPY of
+    /// the content and never an arithmetic read, so a binary32 item takes the binary32 lane (kb/Work PB961). Every
+    /// boundary that meets a native side and an image-carried side of the same numeric description asks it: the
+    /// INVOKE copy-out and RETURNING into native storage (kb/Work PB970), the universal (object) crossing's box over
+    /// an image-carried side and the numeric-image place's write arm (kb/Work PB187). It is the inverse of
+    /// <see cref="ImageOfCarrier"/>; the fixed-point half is <c>CobolNum.StoreImage</c>, the write half of
+    /// <c>FormatImage</c>.</summary>
+    internal static string CarrierOfImage(string image, DataItem item) =>
+        item.Pic!.IsFloat
+            ? $"({item.Pic.ClrType}){RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: item.Pic.IsSingle)}"
+            : RuntimeApi.NumStoreImage(image, item.ProfileName, $"default({item.Pic.ClrType})");
+
+    /// <summary>The item's STORAGE image encoded from a native carrier value — the inverse of
+    /// <see cref="CarrierOfImage"/> (the float lane on its own encoder, keyed on the ITEM's width, kb/Work PB961).</summary>
+    internal static string ImageOfCarrier(string value, DataItem item) =>
+        item.Pic!.IsFloat
+            ? RuntimeApi.NumFormatImageFloat(value, item.ProfileName, item.Pic.IsSingle)
+            : RuntimeApi.NumFormatImage(value, item.ProfileName);
+
     internal static string FloatCarrierRead(Place p, SendingRef sending)
     {
         string raw = p.Item.StoreAsImage

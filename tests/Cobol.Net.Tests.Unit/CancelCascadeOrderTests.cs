@@ -18,7 +18,7 @@ public sealed class CancelCascadeOrderTests
 {
     private sealed class Probe(string name, List<string> log) : ICobolProgram
     {
-        public void Call(CobolArg[] args, ManagedPointer? returning) { }
+        public void Call(CobolArg[] args, CobolArg? returning) { }
         public void Activate() { }
         public void CloseFiles() => log.Add("close " + name);
     }

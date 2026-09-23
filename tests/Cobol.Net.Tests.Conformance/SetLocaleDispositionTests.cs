@@ -75,9 +75,11 @@ public sealed class SetLocaleDispositionTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1639"));   // never "'LOCALE' is not defined"
     }
 
-    /// <summary>At COBOL-85 LOCALE is a user word: `SET LOCALE TO 5` over an integer item named LOCALE is Format 1
+    /// <summary>At COBOL-85 LOCALE is a user word: `SET LOCALE TO I5` over an integer item named LOCALE is Format 1
     /// (§14.9.39 — an elementary integer item receiver) and runs; the USER-DEFAULT-first shape is the one locale arm
-    /// that stays edition-gated because `SET LOCALE USER-DEFAULT TO X` IS a legal '85 two-receiver SET.</summary>
+    /// that stays edition-gated because `SET LOCALE USER-DEFAULT TO I7` IS a legal '85 two-receiver SET. The senders
+    /// are index-names because §14.9.39.3 SR4 requires one for a numeric receiver ("If identifier-1 references a
+    /// numeric data item, index-name-2 shall be specified" — COBOLNET2326, kb/Work PB212).</summary>
     [Fact]
     public void At85_LocaleIsAUserWord_SetFormat1Runs()
     {
@@ -88,10 +90,13 @@ public sealed class SetLocaleDispositionTests
                    WORKING-STORAGE SECTION.
                    01 LOCALE PIC 9.
                    01 USER-DEFAULT PIC 9.
-                   01 X PIC 9 VALUE 7.
+                   01 T.
+                      05 E PIC X OCCURS 9 INDEXED BY I5 I7.
                    PROCEDURE DIVISION.
-                       SET LOCALE TO 5.
-                       SET LOCALE USER-DEFAULT TO X.
+                       SET I5 TO 5.
+                       SET I7 TO 7.
+                       SET LOCALE TO I5.
+                       SET LOCALE USER-DEFAULT TO I7.
                        DISPLAY LOCALE USER-DEFAULT.
                        STOP RUN.
             """;

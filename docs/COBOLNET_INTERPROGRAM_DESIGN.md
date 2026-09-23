@@ -390,7 +390,7 @@ as it stands; the ABI's numeric legs over a string carrier (`LandScalar`, `ArgDo
 is unchanged. Before PB970 the image-carried side spoke the OPERAND text (`OperandText.FieldImage`) while the
 native side's `Text` adapter had spoken storage since PB873: `PIC S9(5) COMP-3` −42 passed BY REFERENCE to a
 REDEFINED formal arrived as bytes `00 00 0C` and came home as `02303`. The INVOKE boundary follows the same
-convention (`OoEmitter.ValueImage`/`ImageValue` for the native↔image copy-out and RETURNING arms; a BY CONTENT
+convention (`NumericRenderer.ImageOfCarrier`/`CarrierOfImage` — the ONE native↔storage-image pair, shared with the OO universal crossing — for the native↔image copy-out and RETURNING arms; a BY CONTENT
 argument into an image-carried fixed-point formal is the §14.8.2.3.3 rule-2a COMPUTE into the formal's
 description, encoded under the OWNER-qualified profile).
 
