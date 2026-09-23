@@ -332,7 +332,7 @@ BoundSetProgramPointer --[ §14.9.39 F9 SR21 program-pointer     ]-->  ProgramPo
 **Runtime behavior.** Every CLASS-ID emits a C# class rooted at `CobolObject`. Resolved invokes render as `new`, virtual `RequireNonNull(recv).M(...)`, `base.M(...)`, or factory-singleton calls; the universal path calls `CobolObject.__CobolInvoke(name, CobolInvokeArg[], returning)` — a reflection-free per-class switch (AOT-safe) that descriptor-checks each `CobolInvokeArg` and chains to `base` for §9.3.6 resolution order. `BoundMethodReturn` throws `MethodReturn`, caught at the method entry to unwind nested `__Dispatch` frames. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
-BoundInvoke(New)        --[ §16.2.1 GR8: OBJECT REF RETURNING, no USING ]-->  new Class()                     (CobolObject)
+BoundInvoke(New)        --[ §16.2.1.2 GR1: allocate + return OBJECT REF ]-->  new Class()                     (CobolObject)
 BoundInvoke(Instance)   --[ §14.9.23.4 GR5 null guard + §9.3.6 virtual  ]-->  RequireNonNull(recv).M(..)      (CobolObject)
 BoundInvoke(Self/Super) --[ §8.4.3.8 GR2/GR3 dispatch start            ]-->  this.M(..) / base.M(..)         (CobolObject)
 BoundInvoke(Factory)    --[ §11.4 factory singleton                    ]-->  CLS__FACTORY.__Instance.M(..)   (CobolObject)

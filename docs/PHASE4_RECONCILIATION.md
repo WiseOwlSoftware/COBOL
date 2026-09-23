@@ -109,7 +109,7 @@ surface; no grammar change), with these deviations/realizations — recorded per
 4. **The content-arg "temp of the formal's PIC" is realized by the runtime ABI, not a bind-time temp:**
    literal/arith args ride the existing `BoundCallArg` value forms; `CobolArgAdapt.Num/Text` conform the cell
    to the callee's profile (same-scale cells alias; a scale difference gets the rescaling truncation view) —
-   observably the §14.2.3 GR9 copy-in. ~~Header BY VALUE formals (GR5c) are not modeled (LinkageFormal carries
+   observably the §14.2.3 GR9 copy-in. ~~Header BY VALUE formals (§14.2.3 GR10) are not modeled (LinkageFormal carries
    no mode); follow-up with the program-CALL header modes.~~ **CLOSED P10 Step 10 (2026-07-16):** the §14.2.2
    using-phrase parses per-parameter, `LinkageFormal.ByValue` threads the §14.2.3 GR4 transitivity, and the
    callee adopts a GR10 DETACHED value-copy cell (`CobolArgAdapt.NumValue`/`TextValue`, copy-out skipped) on
@@ -194,7 +194,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   intrinsic-in-UDF, and the GR5a BY REFERENCE argument mutation visible in the caller: A=0005).
 
 **Documented deviations (deliberate, cited):**
-- **§12.3.8 SR10 forward reference without a prototype.** SR10 admits a repository FUNCTION specifier only
+- **§12.3.8.3 SR10 forward reference without a prototype.** SR10 admits a repository FUNCTION specifier only
   naming (a) a function PROTOTYPE in the group, (b) a definition specified PREVIOUSLY, or (c) an
   external-repository entry. The whole-source corpus places callers FIRST — strictly conforming spelling
   needs `IS PROTOTYPE`, which is M2-UDF-3 (NOT-STARTED). Accepting the in-group forward DEFINITION is a
@@ -681,7 +681,7 @@ both ways); negative corpus +1 (based-level-05).
   Everything else audited conforming: A2N (Table 16 AN→National Yes + GR6a conversion), NUM=042
   (Numeric-int→National Yes), boolean JR=0011 (§13.18.32 GR2 bit-zero left fill), MOVE ZERO/INITIALIZE fills
   (GR4 :6375 / GR6c), equality-only boolean relations, `<` national ordering under the default national PCS,
-  `MOVE B-NAME TO B-FLAG` display-form→bit-form (§8.8.4.2.8's usage-independence, value moved per GR6a :28925).
+  `MOVE B-NAME TO B-FLAG` display-form→bit-form (§8.8.4.2.8's usage-independence, value moved per §14.9.25.4 GR6 a)).
 
 - **STORAGE DECISIONS (the documented implementor choices — record in COBOLNET_DESIGN with the WHY).**
   **D-N1 National representation**: an elementary national item is a plain C# `string` of `Length` characters

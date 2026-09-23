@@ -2092,11 +2092,10 @@ result. Run the long legs ONE AT A TIME.
   sites) — baseline **ZERO findings** over 4666
   files, `--self-test` PASS. The ordinal family is LINE-based, so a citation inside a DIAGNOSTIC MESSAGE STRING is under the gate
   for the first time; two of PB388's defects lived exactly there. Two further ordinal checks — RULE (the clause
-  has no such rule number) and SUBITEM (that rule has no sub-items) — are sound, GATE under `src/`, `tests/`
-  and `scripts/` since PB388's wave-47 sweep derived every site there, and are NOT yet gating in the PROSE
-  scopes: **41 on 2026-09-22** (32 RULE · 9 SUBITEM, all in `docs/` and `kb/`), each
-  needing its own derivation. They print their count PER FAMILY on every gate run and `--check-all`
-  gates on them. ⛔ The ordinal arm's attribution carries a VETO since kb/Work PB900: a rule
+  has no such rule number) and SUBITEM (that rule has no sub-items) — are sound and GATE in EVERY scanned
+  file since PB388's wave-48 prose sweep derived the last site in `docs/` and `kb/` (wave 47 had derived
+  `src/`, `tests/` and `scripts/`); `MEASURED_BACKLOG` is empty, so `--check` and `--check-all` agree, and a
+  future check that lands with a backlog re-enters that set by name. ⛔ The ordinal arm's attribution carries a VETO since kb/Work PB900: a rule
   designator is written once and referred BACK to in the same sentence, so a finding is dropped when
   some clause the line ALREADY NAMES admits the ordinal. Measured: 209 findings without it, 170 with
   it, 54 under a join-only reading that would have discarded 116 real accusations. Wired into `scripts/build-local.{sh,ps1}`

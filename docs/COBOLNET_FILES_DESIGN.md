@@ -1749,7 +1749,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   ALTERNATE ordering's last record (with the two orderings inverted, the FIRST record), and left every following
   sequential READ walking that alternate (14.9.30.4 GR21 b)'s "Otherwise, the key of reference is set to the last
   key of reference in the file position indicator"); where the alternate carried SUPPRESS WHEN it additionally
-  HID records that 12.4.5.6.4 GR6 withholds from the ALTERNATE path only and GR18/GR19's primary-key view must
+  HID records that 12.4.5.6.4 GR6 withholds from the ALTERNATE path only and §14.9.41.4 GR18/GR19's primary-key view must
   include. The relative and sequential arms have no key of reference and pass no such argument. Goldens:
   `conformance:2002/pb356_start_first_last_indexed` (the inverted orderings, the four following prime-order
   READs, and GR18/GR19's empty-file '23') and `conformance:2023/pb356_start_first_last_suppressed` (the

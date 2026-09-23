@@ -175,7 +175,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundKeyedDelete` | DELETE record [INVALID KEY] | §14.9.10 Format 1 | GR2–4 by prior READ / key; FPI unaffected | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundKeyedDeleteFile` | DELETE FILE (remove physical file) | §14.9.10 Format 2 | grammar gate {is2023()}; GR14 absent→'05' | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundKeyedStart` | START positioning (FIRST/LAST/KEY) | §14.9.41 | GR8/GR15 EQUAL default; SR3 NOT EQUAL rejected | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundLinageCounterRef` | LINAGE-COUNTER register read | §8.4.3.14 | GR7b read-only; runtime-sourced (SR2 bars receiving) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundLinageCounterRef` | LINAGE-COUNTER register read | §8.4.3.14 | §13.18.34.4 GR7b read-only; runtime-sourced (§8.4.3.14.3 SR2 bars receiving) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 
 ## SORT / MERGE
 
@@ -184,7 +184,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundSort` | File SORT (release/sequence/return) | §14.9.40 Format 1 | GR9 three-phase; procedure = bounded dispatch | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundMerge` | k-way MERGE of pre-sorted files | §14.9.24 | GR4 stable; GR12 each GIVING gets full result | Bind→Emit · DispatchEmitter | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundRelease` | RELEASE record to active sort | §14.9.32 | GR4 FROM ≡ MOVE then RELEASE; short images space-fill | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundReturn` | RETURN next sorted record [AT END] | §14.9.34 | GR3 key-order; GR15 restore varying length | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundReturn` | RETURN next sorted record [AT END] | §14.9.34 | GR3 key-order; §13.18.43.4 GR15 restores the varying length | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundSortMergeKey` | One sort/merge key window | §14.9.40 GR1 | GR5/GR8 collating vs algebraic; SR6a fixed positions | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundTableSort` | In-place table SORT (typed array) | §14.9.40 Format 2 | typed-array compare (design §8.2); GR20/24 extent | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundTableSortKey` | One table-sort key member-path | §14.9.40 GR23 | empty path = element itself | Bind | [[kb/Diagrams/IR Node Hierarchy]] |

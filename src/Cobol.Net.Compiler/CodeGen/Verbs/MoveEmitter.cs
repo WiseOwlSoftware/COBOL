@@ -337,9 +337,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// activation boundary.</para></summary>
     private bool VariableLengthGroupMove(Place target, BoundOperand source)
     {
-        // GR9's antecedent: BOTH operands are group items AND one or both is a VARIABLE-LENGTH group. A
+        // §14.9.25.4 GR9's antecedent: BOTH operands are group items AND one or both is a VARIABLE-LENGTH group. A
         // reference-modified operand is an ELEMENTARY alphanumeric item by rule (§8.4.3.3.4 GR6), never a group.
-        // ⛔ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2), so it meets MOVE §14.9.25.4 GR9's first conjunct and is
+        // ⛔ A level-66 THROUGH alias IS a group item (§13.18.45.4 GR2), so it meets §14.9.25.4 GR9's first conjunct and is
         // asked as ItemCategory.IsGroupItem — the CATEGORY question — never the structural IsGroup, which it
         // fails for want of subordinate entries (kb/Work PB907; the bind-side twin is
         // StatementValidation.CheckVariableLengthMove, and the two must ask the same predicate). It is never

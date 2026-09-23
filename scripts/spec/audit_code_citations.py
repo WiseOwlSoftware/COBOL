@@ -76,11 +76,11 @@ same question as which rules the standard prints (it carries a `parse_gaps` coun
 standard's own text is what every ordinal is resolved against and what vetoes a finding. Without the submodule
 they report SKIPPED, by name, exactly as PHANTOM does.
 
-⚠ RULE AND SUBITEM REPORT BUT DO NOT GATE, and that is a MEASURED debt, not a judgement about the checks. Both
-are sound — each was confirmed against the standard's own rule markers — and on the day they were written they
-found 195 sites in 124 files, every one of them needing its own derivation before it can be repaired. They print
-on every run, with their count; `--check-all` is the gate for the sweep that closes them, and it becomes
-`--check` when it does.
+⚠ RULE AND SUBITEM GATE EVERYWHERE since kb/Work PB388's wave-48 prose sweep. Both are sound — each was
+confirmed against the standard's own rule markers — and on the day they were written they found 195 sites in 124
+files, every one needing its own derivation; they reported without gating (`MEASURED_BACKLOG`) while waves 47–48
+derived those sites, and left that set when the last one was repaired. `--check-all` remains the gate for any
+future check that lands with a backlog of its own.
 
 ⚠ THE CONTEXT IS THE COMMENT BLOCK PLUS THE DECLARATION IT INTRODUCES, not the single line, and that is what
 makes SUBJECT quiet enough to gate on. A first draft matched line-by-line and reported 92 candidates of which 64
@@ -393,24 +393,20 @@ ADJACENT = 12
 #: clause/quote pairings and wrong clause/ordinal pairings in the same table — one register, one opt-out.
 ORDINAL_MARKERS = (MARKER, "audit-doc-citations: names-misfilings")
 
-#: The ordinal checks that are SOUND but arrived with a backlog larger than the change that added them.
-#: They report on every run and gate under `--check-all`; see the note in `main`.
+#: The checks that are SOUND but arrive with a backlog larger than the change that adds them. Such a check
+#: reports on every run and gates under `--check-all` until its sweep closes; see the note in `main`.
 #: ⛔ A CHECK LEAVES THIS SET THE DAY ITS BACKLOG REACHES ZERO, IN THE SAME CHANGE — that is what keeps a
 #: burned-down arm from regrowing while the others are still being swept. DIAG-UNQUALIFIED left it when PB388's
-#: sweep qualified its last message string (wave 47); RULE and SUBITEM remain.
-MEASURED_BACKLOG = frozenset({"RULE", "SUBITEM"})
-
-#: ⛔ …AND A BACKLOG ARM GATES IN EVERY SCOPE IT HAS BURNED TO ZERO. PB388's wave-47 sweep derived every RULE
-#: and SUBITEM site in the compiler, its tests and its goldens, so under these prefixes the two arms GATE now —
-#: a new wrong ordinal in code a user runs, or in a golden that pins it, fails `--check` on the commit that
-#: writes it. The PROSE backlog (`docs/`, `kb/`) still reports without gating until its own sweep closes; when
-#: it does, RULE and SUBITEM leave `MEASURED_BACKLOG` and this tuple goes with them.
-GATED_BACKLOG_SCOPES = ("src/", "tests/", "scripts/")
+#: wave-47 sweep qualified its last message string; RULE and SUBITEM gated under `src/`, `tests/` and `scripts/`
+#: from that sweep, and left it outright when the wave-48 prose sweep derived the last site in `docs/` and `kb/`
+#: (kb/Work PB388). The set is EMPTY: every check gates in every file the corpus scans — including the ones no
+#: scope prefix named (`CLAUDE.md`), which is why the per-scope tuple went with the backlog rather than being
+#: widened. A new check that lands with a backlog enters here, by name, with its owner in kb/Work.
+MEASURED_BACKLOG: frozenset[str] = frozenset()
 
 
 def _gates(finding) -> bool:
-    kind, site = finding[0], finding[1]
-    return kind not in MEASURED_BACKLOG or site.startswith(GATED_BACKLOG_SCOPES)
+    return finding[0] not in MEASURED_BACKLOG
 
 #: A C# string literal — where a citation stops being a note to a reader and becomes text a USER is shown.
 #: Verbatim (`@"…"`) and raw (`"""…"""`) literals are not matched and do not need to be: a diagnostic message
@@ -1137,9 +1133,9 @@ def main() -> int:
         tally = {k: sum(1 for f in backlog if f[0] == k) for k in sorted({f[0] for f in backlog})}
         print(f"\n⚠ {len(backlog)} MEASURED, NOT YET GATING "
               f"({' · '.join(f'{n} {k}' for k, n in tally.items())}) — "
-              "RULE/SUBITEM name a rule number or sub-item their clause does not have — in the PROSE "
-              f"scopes only; under {'/'.join(GATED_BACKLOG_SCOPES)} they gate. Each needs its own derivation "
-              "from the standard; the prose sweep is owned in kb/Work (PB388). `--check-all` gates on them.")
+              f"the checks in MEASURED_BACKLOG ({', '.join(sorted(MEASURED_BACKLOG))}) arrived with a backlog; "
+              "each site needs its own derivation from the standard, the sweep is owned in kb/Work, and "
+              "`--check-all` gates on them.")
         if args.check:
             # Under the per-commit gate this is a HEADLINE, not a wall: the count is the fact another lane
             # needs, and the list is one command away. Run without --check (or with --check-all) to see it.
