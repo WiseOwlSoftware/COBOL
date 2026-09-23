@@ -5,6 +5,13 @@ description: Use BEFORE dispatching any fleet, lander, implementer or adjudicati
 
 # Workstream — token-frugal, restart-safe orchestration
 
+> ⛔ **THE MANDATORY PRACTICES ARE IN ONE FILE — `templates/MANDATORY-PRACTICES.md` — AND ARE ENFORCED.** Owner
+> 2026-09-23: "All these best practices must be durably recorded for all future to must use." Every brief points at
+> it; implementer/finisher dispatch specs are RENDERED by `make_dispatch_specs.py <groups.json>` from
+> `templates/dispatch-spec-implementer.md` (never hand-written in a scratchpad); `check_practices.py` must print
+> `=== PRACTICES CHECK: GREEN ===` over the briefs and over every rendered spec before a Workflow call. A new
+> practice is added THERE, with its reason and measurement, and to `check_practices.py` — nowhere else.
+
 > ⛔ **Owner standing instruction (2026-09-02).** Twenty-eight concurrent Opus agents burned ~20% of a session window
 > in eleven minutes; ~fifty exhausted a window in ~2.5 h; two cutoffs in one day (the reset hour is NOT fixed — read it
 > off the 429). A RESUMED long transcript re-reads its whole context on every turn, so resuming eight 300-turn

@@ -1,0 +1,57 @@
+DISPATCH SPEC — wave {wave} ({letter}), {group}: {notes}
+Brief: E:\CobolSharp\.claude\skills\workstream\templates\fix-lane-implementer-brief.md — read it WHOLE first; {{PB}} = {lead}.
+Base: your worktree is cut from current main ({base}). CLAUDE.md rule 1 carries the ISO → GnuCOBOL → IBM/Micro Focus
+precedence for implementation options; obey it.
+
+Codes allocated: {codes}, in order; list the ones you use and RETURN the ones you do not.
+Report: {S}\reports\{slug}-{lead}-report.md   (wave-prefixed, so a later agent never overwrites an earlier report)
+Scratch:  {S}\{slug}\
+Report your ACTUAL branch (`git branch --show-current`).
+{pred}
+THE GROUP IS ONE ROOT: {root}. Read every note first — {files} — they carry the forensic detail, the citations, the
+probes and the CODE SITES. ⛔ START FROM THE NOTE'S CODE SITES (and `python scripts/spec/where.py <clause>` when it
+exists) — do not re-survey the codebase: orientation (grep/read) was 46 % of every implementer's tokens in waves 45–57.
+Do not re-derive what the notes measured, but DO re-run every probe on your own build.
+
+{body}
+
+⛔ GRACEFUL STOP: before EACH new step check for {S}\STOP; if it exists, checkpoint-commit, write STATUS.md NEXT and
+your report, and return status SPLIT. Never start a build or gate once STOP exists.
+
+⛔ HOW TO WAIT FOR A LONG JOB (measured 2026-09-22, wave 45): a workflow agent that ENDS ITS TURN while a background
+build/gate is running is RETURNED BY THE HARNESS AND ITS BACKGROUND PROCESS IS KILLED. So:
+1. Start the gate in the background, logging to a file:
+     PowerShell (run_in_background): pwsh -NoProfile -File scripts/build-local.ps1 -Filter "<filter>" -Priority BelowNormal *> <log>
+2. Then BLOCK in the foreground until the verdict line appears, in chunks under the 10-minute tool limit:
+     Bash (timeout 590000): timeout 580 bash -c 'tail -n +1 -f "<log>" | grep -m1 -E "=== WAVE-LOCAL GATE: "' ; tail -3 "<log>"
+   If it times out with no verdict, issue the SAME command again. Do not use `sleep`; do not end your turn.
+3. Only after the verdict line is in hand: record it, checkpoint, write the report, return the structured result.
+
+⚠ SIZING: if the group proves to be two mechanisms, finish the first at its root, checkpoint at the note boundary, and
+return SPLIT rather than pass the 220-turn cap.
+
+⛔ RE-PROBE FIRST, EVERY NOTE, on YOUR build (`dotnet build CobolSharp.sln -c Debug`, expect 0/0). A note that no longer
+reproduces is re-verdicted and reported DISCHARGED with the evidence — a real outcome, not a failure.
+
+⛔ CITATIONS: `python scripts/spec/cite.py --check <clause> "<text>"` for EVERY § you write into code, a golden or the
+report — including the ones the notes carry. A citation you did not --check is not a citation.
+
+⛔ SIBLING SWEEP (CLAUDE.md rule 4): every bug is a pattern. Which ARM of the dispatch did you fix, and where is the other?
+
+GATE: your own tests + `~Drift|~EditionGate` + the Unit assembly, ALWAYS with `-Priority BelowNormal`. A shared seam
+(any `.g4`, the MOVE emitter/classifier, the reference resolver, the EC emitter, code every verb shares) ADDS
+`~CorpusRunner|~Nist` — say so. ⛔ NEVER run the whole Conformance assembly — that is the lander's job.
+⛔ `python scripts/semgrep/verify.py` must not increase any rule's count (train 57 dropped a cluster for +20 BigInteger).
+Print a real verdict line; never leave a placeholder in the report.
+
+GOLDENS: one positive at the introducing edition + one negative below it, a copy per edition only where behaviour differs.
+Parser + emitter + golden + manifest entry in ONE commit.
+
+REGISTER: flip each note's `status` and write its `closes_rows` IN THE COMMIT THAT LANDS IT (with `closes_rows_reason:`
+when it closes none). Run `python scripts/spec/work.py check`. Do NOT open a list anywhere — new defects are LEADS in your
+report, each with its repro path and code site (file:line) so the registrar does not re-survey.
+
+CHECKPOINT: `git commit -m "WIP checkpoint: …"` after every mechanism and every gate, plus `STATUS.md` (DONE / NEXT /
+BLOCKED / GATE / batch paths / codes used). Turn cap 220 — at the cap, checkpoint, write NEXT, return SPLIT.
+
+Report ≤ 60 lines, following `templates/implementer-report-template.md`, one section per note.

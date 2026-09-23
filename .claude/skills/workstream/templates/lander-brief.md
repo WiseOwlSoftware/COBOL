@@ -1,3 +1,5 @@
+⛔ FIRST read `E:\CobolSharp\.claude\skills\workstream\templates\MANDATORY-PRACTICES.md` WHOLE — its rules for your role and for all roles bind you and override anything older below.
+
 ⚠ THIS IS THE SINGLE-CLUSTER FORM. When two or more clusters are ready, use `lander-train-brief.md` instead — ⓜ a landing is ~90 % fixed cost, so one cluster costs 10.4 M against 5.1 M per cluster at five (`.claude/skills/workstream/SKILL.md` §3). Spend a lander on one cluster only when nothing else is ready or the fix is blocking. Either way: ONE LANDING PER LANDER TRANSCRIPT.
 
 You are the LANDER for fix-lane cluster {CLUSTER} of the COBOL.NET compiler. You are in a FRESH isolated git worktree of E:\CobolSharp cut from current `main`. Read CLAUDE.md first (rules 6, 7, 8 bind you). The implementer's report is in `{REPORT_PATH}`; its uncommitted work is in worktree `{IMPL_WORKTREE}` (branch `{IMPL_BRANCH}`), cut from an OLDER main. Main has moved since (read `git log --oneline {IMPL_BASE}..HEAD`).

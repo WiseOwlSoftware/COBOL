@@ -56,8 +56,11 @@ const REF_OUT = {
   required: ['slug', 'verdicts', 'what_i_tried'],
 }
 
+const STOP = args.stopFile || ''
 const COMMON = `
-You work in the COBOL.NET project. SOURCE OF TRUTH FOR CODE: the PINNED worktree ${PIN} (read-only snapshot, so verdicts
+${STOP ? `⛔ GRACEFUL STOP (MANDATORY-PRACTICES P3): before EACH rule check for the file ${STOP}; if it exists, make sure every decided rule is
+in your checkpoint file and return at once with what is decided (summary starting "STOPPED"). Never start a probe once it exists.
+` : ''}You work in the COBOL.NET project. SOURCE OF TRUTH FOR CODE: the PINNED worktree ${PIN} (read-only snapshot, so verdicts
 are attributable; it carries its OWN built compiler at ${PIN}/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe — use THAT
 for probes, never the main tree's). SPEC: E:\\CobolSharp\\specs\\ISO_COBOL.md (ISO/IEC 1989:2023). Read E:\\CobolSharp\\CLAUDE.md
 first — its eight rules bind you. You may run python scripts under ${PIN}/scripts (cite.py) and the pinned cobol.exe
