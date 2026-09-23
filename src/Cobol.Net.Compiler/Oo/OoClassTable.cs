@@ -193,16 +193,11 @@ public sealed class OoClassTable
                     edition.Error("COBOLNET0840",
                         $"interface '{iname}', method '{pname}': OVERRIDE/FINAL may not appear in a method "
                         + "PROTOTYPE (ISO §11.7.3 SR2/SR8)");
-                if (pd?.procedureUnit().Length > 0 || pd?.declarativePart().Length > 0)
-                    edition.Error("COBOLNET0840",
-                        $"interface '{iname}', method '{pname}': a method prototype has no procedure body "
-                        + "(ISO §10.6.2 SR4 — header only)");
-                if (m.dataDivision() is { } pdd
-                    && (pdd.workingStorageSection() is not null || pdd.localStorageSection() is not null
-                        || pdd.fileSection() is not null))
-                    edition.Error("COBOLNET0840",
-                        $"interface '{iname}', method '{pname}': a prototype's data division may carry only "
-                        + "a LINKAGE SECTION (ISO §10.6.2 SR4)");
+                // §10.6.2 SR4 a)-f) — the ONE prototype-body screen every prototype kind shares (kb/Work PB894).
+                // This arm used to carry its own two of the six restrictions, with the data division checked
+                // against three of its five non-linkage sections.
+                PrototypeUnitRules.ScreenBody($"interface '{iname}', method '{pname}'", m.optionsParagraph(),
+                    m.environmentDivision(), m.dataDivision(), pd, edition);
                 if (m.methodPropertySelector() is not null)
                 {
                     edition.Error(DiagnosticCatalog.OoInterfacePropertyPrototype,

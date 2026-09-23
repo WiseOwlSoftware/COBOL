@@ -155,17 +155,16 @@ public sealed class ExitPlacementContextDriftTests
         Assert.True(ok, string.Join("\n", diagnostics));
     }
 
-    /// <summary>⚠ A KNOWN GAP PINNED SO THAT CLOSING IT IS LOUD. §14.2.2 SR10's fifth source element is a program
-    /// prototype definition (ISO §11.10.2 Format 2 — <c>PROGRAM-ID. name IS PROTOTYPE.</c>), and this compiler
-    /// cannot parse one: <c>programIdAttribute</c> in <c>CobolIdentification.g4</c> admits only COMMON / INITIAL /
-    /// RECURSIVE / GLOBAL, so PROTOTYPE is met as a reserved word (COBOLNET0901) — while the FUNCTION-ID twin has
-    /// its <c>(IS? PROTOTYPE)?</c> tail. One construct, two arms, one built.
-    /// <para>This fact asserts the CURRENT refusal, not a desired one. It exists because
-    /// <c>SourceElementKind.ProgramPrototype</c> is the arm of §14.9.14.3 SR7 that nothing can exercise today, and
-    /// a modelled-but-unreachable arm is an unverified one: when the grammar arm lands, this fact goes RED and
-    /// whoever lands it has to come here and pin SR7's program-prototype verdict for real.</para></summary>
+    /// <summary>SR7's program-PROTOTYPE arm, pinned for real now that §11.10.2 Format 2 parses (kb/Work PB894 —
+    /// this fact used to pin the COBOLNET0901 parse refusal so that closing the gap would be loud). §14.2.2 SR10's
+    /// fifth source element is a program prototype definition and its procedure division is a PROGRAM's, so
+    /// §14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a program procedure division") does NOT
+    /// refuse EXIT PROGRAM there — <c>SourceElementKind.ProgramPrototype</c> is admitted beside
+    /// <c>Program</c>. What refuses it is §10.6.2 SR4 f), "The procedure division shall contain only a procedure
+    /// division header": the statement is not an SR7 placement error but a prototype-body error (COBOLNET2272).
+    /// Both halves are asserted, so neither can hold for the wrong reason.</summary>
     [Fact]
-    public void ProgramPrototypeDefinition_IsNotYetWritable_SoSr7sPrototypeArmIsUnexercised()
+    public void ProgramPrototypeDefinition_ExitProgram_IsRefusedBySr4fNotBySr7()
     {
         string src = """
             IDENTIFICATION DIVISION.
@@ -184,7 +183,9 @@ public sealed class ExitPlacementContextDriftTests
             END PROGRAM PBXP02.
 
             """;
-        EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(src, 2023), "COBOLNET0901");
+        var diagnostics = EditionHarness.GetDiagnostics(src, 2023);
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET2272");
+        EditionHarness.AssertNoDiagnostic(diagnostics, ExitPlacement);
     }
 
     /// <summary>The three §14.2.2 SR10 source elements that are NOT a program: a function definition, a function

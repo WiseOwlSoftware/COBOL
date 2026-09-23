@@ -650,7 +650,9 @@ internal sealed class ProgramEmitter
         // The run-unit main is the first top-level PROGRAM unit (§8.3.1). A prototype precedes every other unit
         // (§10.6.2 SR1), so units[0] may be a prototype; a function/prototype-only module (a callable library —
         // the cross-assembly UDF-3 target) has no main and only exposes Register() for the sibling probe.
-        var mainUnit = units.FirstOrDefault(u => u.Parent is null && !u.IsFunction);
+        // A PROGRAM prototype (§11.10.2 Format 2, kb/Work PB894) is not a program definition and has no body
+        // (§10.6.2 SR4 f), so it is never the main — the same exclusion the Register loop above applies.
+        var mainUnit = units.FirstOrDefault(u => u is { Parent: null, IsFunction: false, IsPrototype: false });
         using (w.Block("internal static class Program"))
         using (w.Block("private static void Main()"))
         {

@@ -305,6 +305,7 @@ internal sealed class BinderDriver
 
         foreach (var group in tree.compilationGroup())
         {
+            PrototypeUnitRules.ScreenOrder(group, edition);   // §10.6.2 SR1 (kb/Work PB894)
             classDefs.AddRange(group.classDefinition());
             ifaceDefs.AddRange(group.interfaceDefinition());   // §11.6 — collected, NEVER silently dropped (the W2 rule)
             foreach (var pu in group.programUnit())
@@ -345,9 +346,22 @@ internal sealed class BinderDriver
             ?? fid?.programName()?.GetText()
             ?? $"PROGRAM{index}";
         bool isFunction = pid is null && fid is not null;
-        // §11.5 Format 2 — a signature-only prototype unit (M2-UDF-3). The COBOL-2002 introduction gate is now
-        // VersionConformancePass.Run (14g.5, bound-arm over group.Units — BoundUnit.IsPrototype is drop-proof).
-        bool isPrototype = fid?.PROTOTYPE() is not null;
+        // A signature-only prototype unit — a FUNCTION-ID prototype (M2-UDF-3) or a §11.10.2 Format-2 PROGRAM-ID
+        // prototype (kb/Work PB894; §11.10.4 GR6 — program-prototype-name-1 identifies the prototype, literal-1
+        // its externalized name, which the AS arm below already reads for either paragraph). ONE grammar node,
+        // `prototypePhrase`, answers for both kinds — until PB894 this read the FUNCTION-ID paragraph alone, so
+        // IsPrototype could never be true for a program. The COBOL-2002 introduction gates are
+        // VersionConformancePass.Run (bound-arm over group.Units — BoundUnit.IsPrototype is drop-proof).
+        bool isPrototype = (pid?.prototypePhrase() ?? fid?.prototypePhrase()) is not null;
+        if (isPrototype)
+        {
+            // §10.6.2 SR4 (the body) and §10.6.1 (the unit's shape) — ONE screen for every prototype kind.
+            string what = $"{(isFunction ? "FUNCTION-ID" : "PROGRAM-ID")} '{name}' IS PROTOTYPE";
+            PrototypeUnitRules.ScreenBody(what,
+                idBody?.identificationParagraph().Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null),
+                ctx.environmentDivision(), ctx.dataDivision(), ctx.procedureDivision(), edition);
+            PrototypeUnitRules.ScreenUnitShape(what, ctx, parent is not null, edition);
+        }
         bool initial = false, common = false, recursive = false;
         foreach (var attr in pid?.programIdAttributes()?.programIdAttribute() ?? [])
         {
@@ -580,10 +594,12 @@ internal sealed class BinderDriver
         // is nonconforming source, and both tables below silently keep the first definition and drop the
         // second — the shape §8.3.2.2 exists to forbid.
         CheckDefinitionNameUniqueness(ctx.Units, ctx.Session.OoClasses, ctx.Session.Edition);
+        CheckPrototypeSignaturePairs(ctx.Units, ctx.Session.Edition);
         var userFunctions = BuildUserFunctionTable(ctx.Units, ctx.Session.Edition);
         // kb/Work PB237 — the compilation group's program definitions by EXTERNALIZED name, the search space
         // §12.3.8.4 GR10 a) names. Built once for the whole group, exactly like the user-function table beside it.
-        var programDefinitions = BuildProgramDefinitionTable(ctx.Units);
+        // PB894 adds GR10 b): an in-group program PROTOTYPE definition, behind the definitions.
+        var programDefinitions = BuildProgramDetailsTable(ctx.Units);
         foreach (var unit in ctx.Units) BindUnitProcedure(unit, userFunctions, programDefinitions, ctx.Session);
     }
 
@@ -634,10 +650,9 @@ internal sealed class BinderDriver
     /// statements bind on its CLASS unit's binder under an entered method scope (<c>BinderContext.SourceElement</c>).
     /// <para>A FUNCTION prototype's procedure division is BOUND by this compiler — the §10.1 general format
     /// admits one and the parser accepts its paragraphs, measured: a prototype carrying <c>EXIT PROGRAM</c>
-    /// reaches <c>BindExit</c>. A PROGRAM prototype is a different story: <c>MakeUnit</c> reads
-    /// <c>IsPrototype</c> off the FUNCTION-ID paragraph alone, and the grammar's <c>programIdAttribute</c> has no
-    /// PROTOTYPE arm at all, so <see cref="SourceElementKind.ProgramPrototype"/> cannot be produced today. It is
-    /// modelled because it is one of §14.2.2 SR10's five, not because it is reachable.</para></summary>
+    /// reaches <c>BindExit</c> (and is refused there by §10.6.2 SR4 f) — COBOLNET2272 — before any placement
+    /// rule matters). A PROGRAM prototype classifies the same way since kb/Work PB894 made §11.10.2 Format 2
+    /// writable and <c>MakeUnit</c> read <c>IsPrototype</c> off the shared <c>prototypePhrase</c>.</para></summary>
     private static SourceElementKind SourceElementKindOf(BoundUnit unit) => unit.IsFunction
         ? (unit.IsPrototype ? SourceElementKind.FunctionPrototype : SourceElementKind.FunctionDefinition)
         : (unit.IsPrototype ? SourceElementKind.ProgramPrototype : SourceElementKind.Program);
@@ -832,12 +847,50 @@ internal sealed class BinderDriver
                 : $"{kind} '{name}' AS \"{externalized}\"";
     }
 
-    private static Dictionary<string, CalleeSignature> BuildProgramDefinitionTable(IReadOnlyList<BoundUnit> units)
+    /// <summary>§10.6.2 SR2 and SR3 — the SAME sentence written once per kind: "If a compilation group contains
+    /// both a program definition and a program prototype definition with the same externalized name, the
+    /// signatures of these two compilation units shall be the same" (SR2), and its function twin (SR3). ONE check
+    /// for both, over the ONE signature comparison (<see cref="PrototypeSignatures.Same"/> — mode, OPTIONAL and
+    /// §14.8.2's description per formal, and the returning item). kb/Work PB894: SR2 had no check at all (a
+    /// program prototype could not be written), and SR3's was an argument-COUNT comparison keyed on the
+    /// declared word rather than the externalized name the rule names.</summary>
+    private static void CheckPrototypeSignaturePairs(IReadOnlyList<BoundUnit> units, EditionContext edition)
+    {
+        foreach (var proto in units)
+        {
+            if (!proto.IsPrototype) continue;
+            var definition = units.FirstOrDefault(d => d is { IsPrototype: false, Parent: null }
+                && d.IsFunction == proto.IsFunction && NameEq(d.ExternalizedName, proto.ExternalizedName));
+            if (definition is null
+                || PrototypeSignatures.Same(Signature(proto), Signature(definition)))
+                continue;
+            string kind = proto.IsFunction ? "function" : "program";
+            var body = proto.Ctx.identificationDivision()?.identificationBody();
+            using var _ = edition.At((ParserRuleContext?)(body?.programIdParagraph()?.programName()
+                ?? body?.functionIdParagraph()?.programName()) ?? proto.Ctx);
+            edition.Error("COBOLNET1513",
+                $"{kind} prototype '{proto.Name}' and the {kind} definition '{definition.Name}' share the "
+                + $"externalized name \"{proto.ExternalizedName}\" but not a signature — the USING formals (count, "
+                + "BY REFERENCE / BY VALUE, OPTIONAL, description) or the RETURNING item differ; the signatures "
+                + $"of these two compilation units shall be the same (ISO §10.6.2 {(proto.IsFunction ? "SR3" : "SR2")})");
+        }
+
+        static CalleeSignature Signature(BoundUnit u) => new(u.Data.LinkageFormals, u.Data.LinkageReturning);
+    }
+
+    /// <summary>The IN-GROUP half of §12.3.8.4 GR10 — externalized name → the calling details a REPOSITORY
+    /// program-specifier takes from this compilation group. GR10 a) (a program DEFINITION) and GR10 b) (a program
+    /// PROTOTYPE definition, §11.10.2 Format 2 — kb/Work PB894) have the SAME consequence, "the details are taken
+    /// from" that unit, so they are ONE table: definitions are registered first and a prototype only fills a
+    /// name no definition holds, which is exactly a)'s "otherwise" precedence. A name in neither is GR10 c), the
+    /// external repository — this implementation's run-unit program registry.</summary>
+    private static Dictionary<string, CalleeSignature> BuildProgramDetailsTable(IReadOnlyList<BoundUnit> units)
     {
         var map = new Dictionary<string, CalleeSignature>(StringComparer.OrdinalIgnoreCase);
-        foreach (var u in units)
-            if (u is { IsFunction: false, IsPrototype: false, Parent: null })
-                map.TryAdd(u.ExternalizedName, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
+        foreach (bool prototypes in (bool[])[false, true])
+            foreach (var u in units)
+                if (u is { IsFunction: false, Parent: null } && u.IsPrototype == prototypes)
+                    map.TryAdd(u.ExternalizedName, new CalleeSignature(u.Data.LinkageFormals, u.Data.LinkageReturning));
         return map;
     }
 
@@ -860,11 +913,11 @@ internal sealed class BinderDriver
     {
         var map = new Dictionary<string, ProgramPrototype>(StringComparer.OrdinalIgnoreCase);
         foreach (var (name, spec) in unit.Data.ProgramSpecifiers)
-            // GR10 a): the in-group definition supplies the details. Otherwise GR10 c) — the external repository,
-            // i.e. this implementation's run-unit program registry, resolved at execution (§14.9.4.4 GR3 b)) — so
-            // the prototype is legal and simply carries no compile-time signature. (GR10 b), an in-group program
-            // PROTOTYPE DEFINITION, needs §11.10.2 Format 2's `PROGRAM-ID … IS PROTOTYPE` source-unit kind, which
-            // this compiler does not yet accept; when it lands it slots in between these two arms.)
+            // GR10 a) / b): the in-group definition — else the in-group program PROTOTYPE definition (kb/Work
+            // PB894) — supplies the details; BuildProgramDetailsTable already layered the two in that order.
+            // Otherwise GR10 c) — the external repository, i.e. this implementation's run-unit program registry,
+            // resolved at execution (§14.9.4.4 GR3 b)) — so the prototype is legal and simply carries no
+            // compile-time signature.
             map[name] = new ProgramPrototype(name, spec.ExternalizedName,
                 programDefinitions.GetValueOrDefault(spec.ExternalizedName));
         // §8.4.6.8's second spelling: "the program-name of a containing program definition" is a referable
@@ -941,17 +994,8 @@ internal sealed class BinderDriver
             table[name] = new UserFunctionSignature(name, u.ExternalizedName, u.Data.LinkageReturning, u.Data.LinkageFormals);
         foreach (var (name, p) in protos)
         {
-            if (defs.TryGetValue(name, out var def))
-            {
-                // §10.6.2 SR3 — an in-group prototype+definition pair shall have the SAME signature. Light check
-                // (argument count; full §8.13 external-repository conformance is staged residue).
-                if (p.Data.LinkageFormals.Count != def.Data.LinkageFormals.Count)
-                    edition.Error("COBOLNET1513",
-                        $"FUNCTION '{name}': the IS PROTOTYPE signature declares {p.Data.LinkageFormals.Count} "
-                        + $"argument(s) but the in-group definition declares {def.Data.LinkageFormals.Count} — a "
-                        + "function prototype and a same-name definition shall have the same signature (ISO §10.6.2 SR3)");
-                continue;   // the definition's signature is authoritative (GR11a)
-            }
+            // §10.6.2 SR3's same-signature obligation is CheckPrototypeSignaturePairs' (both kinds, one test).
+            if (defs.ContainsKey(name)) continue;   // the definition's signature is authoritative (GR11a)
             table[name] = new UserFunctionSignature(name, p.ExternalizedName, p.Data.LinkageReturning, p.Data.LinkageFormals);
         }
         return table;

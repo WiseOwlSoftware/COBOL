@@ -110,7 +110,7 @@ identificationBody
 // body, so a caller resolves a separately-compiled definition across the run unit (M2-UDF-3). The optional tail
 // is a unique-leading-token additive change on a LOCAL rule (never a shared core), gated 2002+.
 functionIdParagraph
-    : FUNCTION_ID DOT programName externalizedNamePhrase? (IS? PROTOTYPE)? DOT   // [AS literal-1] rides BOTH formats (ISO §11.5.2 F1/F2 print it between the name and IS PROTOTYPE); IS PROTOTYPE introduction-gated post-bind by VersionConformancePass.Run (bound-arm over CallUnit.IsPrototype; rearch 14g.5); position-safe (dedicated tail, programName consumes a bare name)
+    : FUNCTION_ID DOT programName externalizedNamePhrase? prototypePhrase? DOT  // [AS literal-1] rides BOTH formats (ISO §11.5.2 F1/F2 print it between the name and IS PROTOTYPE); IS PROTOTYPE introduction-gated by VersionConformancePass ParseArm.VisitPrototypePhrase (kb/Work PB894); position-safe (dedicated tail, programName consumes a bare name)
     ;
 
 // ------------------------------------------
@@ -150,8 +150,22 @@ externalizedNamePhrase
 // kb/Work PB303's exact inversion — `AS` fell through dataReferenceAttribute → cobolWord, so 2002+ rejected
 // it with COBOLNET0901 (AS is reserved from 2002) while '85 — the ONE edition whose PROGRAM-ID paragraph has
 // no AS phrase — accepted it and folded the literal into the program name.
+// ⛔ AND §11.10.2 FORMAT 2 (prototype) — `PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE .`
+// (kb/Work PB894; the §10.6.1 program-prototype source unit prints the same paragraph). It used to be UNWRITABLE:
+// this rule offered only the Format-1 attribute group, so `PROGRAM-ID. P IS PROTOTYPE.` drew COBOLNET0901 on the
+// reserved word while the byte-identical FUNCTION-ID tail compiled. The two formats are alternatives — IS
+// PROTOTYPE never combines with COMMON / INITIAL / RECURSIVE — and the tail is the ONE `prototypePhrase` both
+// paragraphs share, so BinderDriver.MakeUnit reads one node for either unit kind.
 programIdParagraph
-    : PROGRAM_ID DOT programName externalizedNamePhrase? (IS? programIdAttributes PROGRAM?)? DOT
+    : PROGRAM_ID DOT programName externalizedNamePhrase? (prototypePhrase | IS? programIdAttributes PROGRAM?)? DOT
+    ;
+
+// The `IS PROTOTYPE` tail of §11.10.2 Format 2 and of the FUNCTION-ID paragraph's prototype format — ONE rule for
+// the one phrase (IS is not underlined in either printed figure, so it is optional). The COBOL-2002 introductions
+// (function-prototype-2002 / program-prototype-2002) are recognition-fired on THIS node by VersionConformancePass
+// ParseArm.VisitPrototypePhrase, the parent paragraph picking the row.
+prototypePhrase
+    : IS? PROTOTYPE
     ;
 
 // §11.10.2 program-name-1 is a user-defined word (§8.3.2.2). The `reservedGatedWord` alternative is the

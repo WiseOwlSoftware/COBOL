@@ -1276,7 +1276,9 @@ public static class DiagnosticCatalog
         + "are `88 [condition-name] value-clause .` — and §13.16.3 SR1 closes the set for everything else: "
         + "\"Level-number may be 77 or 1 through 49.\" §13.16.3 SR2 adds the one obligation that runs the other "
         + "way: \"The data-name format of the entry-name clause shall be specified if level-number is 77\", which "
-        + "SR4 extends to an OMITTED entry-name (\"it is as though the filler format … were specified\"). This is "
+        + "SR4 extends to an OMITTED entry-name (\"it is as though the filler format … were specified\"). Formats 2 "
+        + "and 3 print their names UNBRACKETED and carry no entry-name clause, so a nameless or FILLER 66 entry and "
+        + "a FILLER 88 entry are neither format either; only format 4 brackets its condition-name (kb/Work PB849). This is "
         + "the FORMAT axis; COBOLNET1746 is the SECTION axis, and a level-number can violate either alone.",
         "ISO §13.18.33.4 GR2 / §13.16.3");
     // §13.18.57.3 SR10 governs the whole WRITTEN reference, not just its name (kb/Work PB205): the operand
@@ -4603,6 +4605,43 @@ public static class DiagnosticCatalog
         + "a device's to ACCEPT and DISPLAY. COBOL.NET's feature-names are C01 (top of the next page) and CSP "
         + "(suppress spacing).",
         "ISO §14.9.51.3 SR16");
+
+    /// <summary>COBOLNET2272 — the body of a program, function or method PROTOTYPE carries something ISO §10.6.2
+    /// SR4 a)–f) forbids (kb/Work PB894). ONE code for the one rule, whichever kind of prototype and whichever of
+    /// the six restrictions — <c>PrototypeUnitRules.ScreenBody</c> is its only reporter.</summary>
+    public static readonly DiagnosticDescriptor PrototypeBody = new(
+        "COBOLNET2272", "prototype-body", EditionSeverity.Error,
+        "A program prototype, function prototype or method prototype carries a part its definition may not. ISO "
+        + "§10.6.2 SR4: \"The following restrictions apply to program prototypes, function prototypes, and method "
+        + "prototypes: a) The identification division shall not contain an ARITHMETIC clause. b) The environment "
+        + "division shall not contain an object-computer paragraph. c) The only clauses that may be specified in "
+        + "the SPECIAL-NAMES paragraph are the ALPHABET clause, the CURRENCY clause, the DECIMAL-POINT clause, the "
+        + "LOCALE clause, and the SYMBOLIC-CHARACTERS clause. d) The environment division shall not contain an "
+        + "input-output section. e) The data division may contain only a linkage section. f) The procedure "
+        + "division shall contain only a procedure division header.\" A prototype describes a signature; it has "
+        + "no storage and no statements of its own.",
+        "ISO §10.6.2 SR4");
+
+    /// <summary>COBOLNET2273 — a program or function prototype follows another kind of source unit in its
+    /// compilation group (ISO §10.6.2 SR1; kb/Work PB894).</summary>
+    public static readonly DiagnosticDescriptor PrototypeOrder = new(
+        "COBOLNET2273", "prototype-order", EditionSeverity.Error,
+        "A program prototype or function prototype is written after a program, function, class or interface "
+        + "definition. ISO §10.6.2 SR1: \"Within a compilation group, function-prototypes and program-prototypes "
+        + "shall precede all other types of source units.\"",
+        "ISO §10.6.2 SR1");
+
+    /// <summary>COBOLNET2274 — a program or function prototype is not written in its §10.6.1 source-unit format:
+    /// it is contained in a program, contains a source unit, or omits its end marker (kb/Work PB894).</summary>
+    public static readonly DiagnosticDescriptor PrototypeUnitFormat = new(
+        "COBOLNET2274", "prototype-unit-format", EditionSeverity.Error,
+        "A program prototype or function prototype does not follow its §10.6.1 source-unit format. ISO §10.6.1 "
+        + "prints the program-prototype and function-prototype formats with the end marker UNBRACKETED "
+        + "(`END PROGRAM program-prototype-name-1.` / `END FUNCTION function-prototype-name-1.`) and with no "
+        + "contained source-unit slot, and a program definition's format contains only program definitions — so "
+        + "a prototype is never contained, never contains another source unit, and always ends with its end "
+        + "marker.",
+        "ISO §10.6.1");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

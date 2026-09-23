@@ -189,6 +189,7 @@ public static class Constructs
     public const string SegmentNumbersRemoved2002 = "segment-numbers-removed-2002";
     public const string UserFunctionInvocation2002 = "user-function-invocation-2002";
     public const string FunctionPrototype2002 = "function-prototype-2002";
+    public const string ProgramPrototype2002 = "program-prototype-2002";
     public const string SetAddress2002 = "set-address-2002";
     public const string PointerArithmetic2002 = "pointer-arithmetic-2002";
     public const string FileSharingClause2002 = "file-sharing-clause-2002";

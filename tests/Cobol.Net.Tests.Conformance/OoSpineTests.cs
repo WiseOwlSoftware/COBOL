@@ -1924,9 +1924,10 @@ public sealed class OoSpineTests
             END INTERFACE OTHER52.
             """), "COBOLNET0840");
 
-    /// <summary>§10.6.2 SR4 — a method prototype is a header only; a body is the 0840 family.</summary>
+    /// <summary>§10.6.2 SR4 f) — a method prototype is a header only. A body is COBOLNET2272, the ONE
+    /// prototype-body screen every prototype kind shares (kb/Work PB894; formerly the 0840 family).</summary>
     [Fact]
-    public void Interface_PrototypeWithBody_0840()
+    public void Interface_PrototypeWithBody_2272()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             INTERFACE-ID. ISPK53.
@@ -1937,7 +1938,7 @@ public sealed class OoSpineTests
                 CONTINUE.
             END METHOD PING.
             END INTERFACE ISPK53.
-            """), "COBOLNET0840");
+            """), "COBOLNET2272");
 
     /// <summary>§11.7 SR6 — a GET accessor has no USING and exactly one RETURNING (0842).</summary>
     [Fact]

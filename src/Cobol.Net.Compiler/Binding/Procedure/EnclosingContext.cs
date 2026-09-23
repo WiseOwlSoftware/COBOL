@@ -23,14 +23,12 @@ internal enum SourceElementKind
     /// still a PROGRAM's — the noun in §14.2.2 SR10's fifth item is "program" — so it is admitted wherever SR7
     /// says "a program procedure division"; the alternative reading would reject source the standard never
     /// forbids.
-    /// <para>⚠ CURRENTLY UNREACHABLE, and measured so rather than assumed: the grammar's
-    /// <c>programIdAttribute</c> admits only COMMON / INITIAL / RECURSIVE / GLOBAL, so ISO §11.10.2's Format-2
-    /// <c>PROGRAM-ID. name IS PROTOTYPE.</c> does not parse (COBOLNET0901 on the reserved word PROTOTYPE), and
-    /// <c>BinderDriver.MakeUnit</c> derives <c>IsPrototype</c> from the FUNCTION-ID paragraph alone. The member
-    /// exists because it is one of §14.2.2 SR10's five and because the day that grammar arm lands, the
-    /// classification is already right — it is NOT a claim that this compiler accepts program prototypes.
-    /// <c>ExitPlacementContextDriftTests</c> pins the parse refusal, so landing the grammar turns that fact RED
-    /// and forces a re-verification of this arm.</para></summary>
+    /// <para>REACHABLE since kb/Work PB894 made §11.10.2 Format 2 writable (<c>prototypePhrase</c>, shared with
+    /// FUNCTION-ID). Any statement in a prototype's procedure division is refused by §10.6.2 SR4 f)
+    /// (COBOLNET2272, <c>PrototypeUnitRules</c>), NOT by the placement rules — which is what
+    /// <c>ExitPlacementContextDriftTests.ProgramPrototypeDefinition_ExitProgram_IsRefusedBySr4fNotBySr7</c>
+    /// pins; §14.9.4.3 SR13's NESTED screen (<c>CallBinder</c>) refuses this element, because its "program
+    /// definition" does not name it.</para></summary>
     ProgramPrototype,
 
     /// <summary>A function definition (ISO §10.4; FUNCTION-ID). NOT a program procedure division.</summary>

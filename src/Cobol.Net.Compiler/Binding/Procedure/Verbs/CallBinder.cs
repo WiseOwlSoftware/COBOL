@@ -58,14 +58,23 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else
             {
-                // §14.9.4.3 SR13: "The NESTED phrase may be specified only in a program definition" — a
-                // function or method definition contains no programs (kb/Work PB132; the capability was one
-                // property access away and BindCall never read it).
-                if (host.InMethod || host.UdfSelfName is not null)
+                // §14.9.4.3 SR13: "The NESTED phrase may be specified only in a program definition" — ONE
+                // question of the §14.2.2 SR10 enumeration (kb/Work PB894). It used to be the two-bit predicate
+                // `InMethod || UdfSelfName is not null`, which excluded a method and a function but ADMITTED a
+                // program PROTOTYPE definition — the fifth element, which the rule's "program definition" does
+                // not name (unobservable until §11.10.2 Format 2 parsed).
+                if (ctx.Enclosing.SourceElement is var element and not SourceElementKind.Program)
                 {
+                    string noun = element switch
+                    {
+                        SourceElementKind.MethodDefinition => "method definition",
+                        SourceElementKind.ProgramPrototype => "program prototype definition",
+                        SourceElementKind.FunctionPrototype => "function prototype definition",
+                        _ => "function definition",
+                    };
                     ctx.Edition.Error(DiagnosticCatalog.CallAsNestedContext,
-                        $"CALL … AS NESTED inside a {(host.InMethod ? "method" : "function")} definition: the "
-                        + "NESTED phrase may be specified only in a program definition (ISO §14.9.4.3 SR13)");
+                        $"CALL … AS NESTED inside a {noun}: the NESTED phrase may be specified only in a program "
+                        + "definition (ISO §14.9.4.3 SR13)");
                     return new BoundNop();
                 }
                 // §14.9.4.3 SR15: literal-1 shall be specified, and shall name a COMMON program or a program

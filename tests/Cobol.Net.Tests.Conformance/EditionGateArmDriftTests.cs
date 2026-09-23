@@ -49,9 +49,6 @@ public sealed class EditionGateArmDriftTests
     // StartFirstLast2002, StartWithLength2002) are gone because none of them had an answer to fill in.
     private static readonly Dictionary<string, string> BoundArmResolvedFact = new(StringComparer.Ordinal)
     {
-        ["FunctionPrototype2002"] =
-            "BoundUnit.IsPrototype — a FUNCTION-ID paragraph's IS PROTOTYPE marking is settled while binding the "
-            + "unit's identification division, and the gate runs per bound unit, not per parse node (Step 14g.5)",
         ["SetObjectReference2002"] =
             "the Format-5 RE-ROUTE: `SET a TO b` reaches OoBinder as an object-reference SET only when both "
             + "operands RESOLVE to PicCategory.ObjectReference — setObjectReferenceStatement is one spelling of "

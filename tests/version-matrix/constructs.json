@@ -2366,15 +2366,28 @@
   {
    "id": "function-prototype-2002",
    "status": "active",
-   "description": "A FUNCTION-ID ... IS PROTOTYPE separate-compilation function prototype (ISO §11.5 Format 2 / §10.6 / §12.3.8). A signature-only unit - LINKAGE-only data division + a header-only PROCEDURE DIVISION (§10.6.2 SR4) - registers a signature but emits no runtime module; a same-name in-group DEFINITION (GR11a) or a separately-compiled sibling assembly is the activation target (§8.4.3.2.4 GR6b -> EC-FUNCTION-NOT-FOUND on absence). LIVE (Phase 4c M2-UDF-3, DEVLOG 624). The {is2002()}?-gated IS PROTOTYPE tail is dead below 2002 -> the W1.5 EditionGateHints parse-layer mapping names the edition (0900).",
+   "description": "A FUNCTION-ID ... IS PROTOTYPE separate-compilation function prototype (ISO §11.5 Format 2 / §10.6 / §12.3.8). A signature-only unit - LINKAGE-only data division + a header-only PROCEDURE DIVISION (§10.6.2 SR4) - registers a signature but emits no runtime module; a same-name in-group DEFINITION (GR11a) or a separately-compiled sibling assembly is the activation target (§8.4.3.2.4 GR6b -> EC-FUNCTION-NOT-FOUND on absence). LIVE (Phase 4c M2-UDF-3, DEVLOG 624). The IS PROTOTYPE tail is the `prototypePhrase` rule shared with PROGRAM-ID Format 2; below 2002 VersionConformancePass ParseArm.VisitPrototypePhrase names the edition (0900) on recognition (kb/Work PB894).",
    "display": "a FUNCTION-ID … IS PROTOTYPE (separate-compilation function prototype)",
    "diagnosticCode": "COBOLNET0900",
-   "citation": "ISO §11.5 Format 2 / §10.6 / §12.3.8; LIVE (Phase 4c M2-UDF-3) — a signature-only unit (LINKAGE-only data + a header-only PD, §10.6.2 SR4) registers a signature but emits no runtime module; a separately-compiled definition is resolved by the run unit's sibling probe (§8.4.3.2.4 GR6b → EC-FUNCTION-NOT-FOUND on absence); the PROTOTYPE tail is {is2002()}?-gated + a W1.5 parse-layer 0900 mapping",
+   "citation": "ISO §11.5 Format 2 / §10.6 / §12.3.8; LIVE (Phase 4c M2-UDF-3) — a signature-only unit (LINKAGE-only data + a header-only PD, §10.6.2 SR4) registers a signature but emits no runtime module; a separately-compiled definition is resolved by the run unit's sibling probe (§8.4.3.2.4 GR6b → EC-FUNCTION-NOT-FOUND on absence); the PROTOTYPE tail (prototypePhrase) is recognition-gated by ParseArm.VisitPrototypePhrase",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
    "vcr": "M2 UDF catalog (PHASE4_RECONCILIATION M2-UDF-3); 2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
    "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. FPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(6).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nEND FUNCTION FPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMFP1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION FPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(6).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION FPROTO(7).\n    STOP RUN.\nEND PROGRAM VMFP1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. FPROTO.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(6).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * L-X.\n    GOBACK.\nEND FUNCTION FPROTO.\n"
+  },
+  {
+   "id": "program-prototype-2002",
+   "status": "active",
+   "description": "A PROGRAM-ID ... IS PROTOTYPE program prototype definition (ISO §11.10.2 Format 2 / §10.6.1 program-prototype; kb/Work PB894). A signature-only source unit - the §10.6.2 SR4 restrictions (LINKAGE-only data division, header-only procedure division, no I-O section / OBJECT-COMPUTER / ARITHMETIC, restricted SPECIAL-NAMES) are screened by the ONE prototype-body screen shared with the function prototype - that registers no runtime module; a REPOSITORY `PROGRAM name` specifier resolves to it by §12.3.8.4 GR10 b) when no in-group definition shares its externalized name. The grammar tail is the shared `prototypePhrase`; the introduction gate is VersionConformancePass ParseArm.VisitPrototypePhrase, recognition-fired.",
+   "display": "a PROGRAM-ID … IS PROTOTYPE (program prototype definition)",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO §11.10.2 Format 2 / §10.6.1 / §10.6.2 / §12.3.8.4 GR10 b)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "kb/Work PB894; dated with its twin function-prototype-2002 and the REPOSITORY PROGRAM specifier repository-program-2002 that is its only consumer; PROTOTYPE reserved from 2002 (user-word-prototype-2002)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\nPROCEDURE DIVISION USING L-X.\nEND PROGRAM PPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMPP1.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM VMPP1.\n"
   },
   {
    "id": "set-address-2002",

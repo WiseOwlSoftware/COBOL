@@ -38,11 +38,12 @@ internal sealed class BoundUnit
     /// <summary>True for a FUNCTION-ID unit (ISO §9.4 — a user-defined function; program-shaped except it
     /// RETURNs a value and always possesses the recursive attribute).</summary>
     public bool IsFunction;
-    /// <summary>True for a FUNCTION-ID … IS PROTOTYPE unit (ISO §11.5 Format 2 / §10.6.2 SR4 — a
-    /// signature-only unit: LINKAGE-only data + a header-only procedure division). It contributes its
-    /// signature to the user-function table (M2-UDF-3) but emits NO body and does NOT register in the run
-    /// unit — the separately-compiled definition (in-group per GR11a, else a sibling assembly) is the
-    /// activation target. Always implies <see cref="IsFunction"/>.</summary>
+    /// <summary>True for a prototype definition — FUNCTION-ID … IS PROTOTYPE or PROGRAM-ID … IS PROTOTYPE
+    /// (ISO §11.10.2 Format 2; kb/Work PB894) — a signature-only unit (§10.6.2 SR4: LINKAGE-only data + a
+    /// header-only procedure division, screened by <c>PrototypeUnitRules</c>). A function prototype contributes
+    /// its signature to the user-function table (M2-UDF-3), a program prototype to the REPOSITORY program-specifier
+    /// resolution (§12.3.8.4 GR10 b)); neither emits a body nor registers in the run unit — the definition
+    /// (in-group, else separately compiled) is the activation target. <see cref="IsFunction"/> says which kind.</summary>
     public bool IsPrototype;
     public DataBinder Data = null!;
     public ReferenceResolver Refs = null!;

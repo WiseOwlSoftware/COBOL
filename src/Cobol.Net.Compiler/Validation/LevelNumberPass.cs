@@ -155,6 +155,52 @@ internal static class LevelNumberRules
             && Array.Exists(clauses, c => c.valueClause()?.validateValidPhrase() is not null);
     }
 
+    /// <summary>The NAME obligation of the §13.16.2 format this entry is written in — the requirement text when
+    /// the entry's name slot breaks it, <see langword="null"/> when it does not. The ONE place the rule lives
+    /// (kb/Work PB849): every format is read off its printed figure (§13.16.2, PDF p394 rendered), so a new
+    /// level-number format is one more arm here, not one more hand-written case in the pass.
+    /// <list type="bullet">
+    /// <item>Format 1 is <c>level-number [ entry-name-clause ]</c>: the entry-name clause — data-name OR FILLER
+    /// (§13.18.20.3 SR3) — and it may be omitted (§13.16.3 SR4). Only level 77 narrows it: §13.16.3 SR2, "The
+    /// data-name format of the entry-name clause shall be specified if level-number is 77", and an omitted
+    /// entry-name is the filler format by SR4.</item>
+    /// <item>Format 2 is <c>66 data-name-1 RENAMES …</c> (also §13.18.45.2) — data-name-1 printed UNBRACKETED and
+    /// NOT as an entry-name clause, so neither omission nor FILLER (the entry-name clause's filler format,
+    /// §13.18.20.2 format 3, which only format 1 carries) is the format.</item>
+    /// <item>Format 3 is <c>88 condition-name-1 value-clause .</c> — the name unbracketed; format 4 is
+    /// <c>88 [ condition-name-2 ] value-clause .</c>, whose value-clause is §13.18.63.2 format 5 with its
+    /// required <c>{ INVALID | VALID }</c> choice. So a nameless 88 is legal only with that phrase (§13.16.3
+    /// SR24, "Format 3 or 4 is used for each condition-name"), and FILLER is never a condition-name in
+    /// either.</item>
+    /// </list></summary>
+    internal static string? EntryNameObligation(CobolParserCore.DataDescriptionEntryContext entry, int level)
+    {
+        var name = entry.dataName();
+        bool isFiller = name is not null && name.FILLER() is not null;
+        return level switch
+        {
+            77 when name is null || isFiller =>
+                "the data-name format of the entry-name clause shall be specified if level-number is 77 — a "
+                + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §13.16.3 SR2, SR4)",
+            66 when name is null || isFiller =>
+                "the renames format of the data description entry is written `66 data-name-1 RENAMES …` and "
+                + "names data-name-1 unconditionally; it carries no entry-name clause, so the entry can be "
+                + "neither unnamed nor FILLER (ISO §13.16.2 format 2, §13.18.45.2, §13.18.33.4 GR2b)",
+            88 when isFiller =>
+                "a condition-name entry names a condition-name — `88 condition-name-1 value-clause .` or "
+                + "`88 [condition-name-2] value-clause .` — and carries no entry-name clause, so FILLER, the "
+                + "entry-name clause's filler format, is not a name either format admits "
+                + "(ISO §13.16.2 formats 3 and 4, §13.18.20.2 format 3, §13.16.3 SR24)",
+            88 when name is null && !HasContentValidationPhrase(entry) =>
+                "the condition-name format of the data description entry is written `88 condition-name-1 "
+                + "value-clause .` and names condition-name-1 unconditionally; only the validation format, "
+                + "`88 [condition-name-2] value-clause .`, may omit it, and its value clause requires the "
+                + "INVALID or VALID phrase, which this entry has not got — so this entry is neither format "
+                + "(ISO §13.16.2 formats 3 and 4, §13.18.63.2 format 5, §13.16.3 SR24)",
+            _ => null,
+        };
+    }
+
     /// <summary>The entry's own name, for the diagnostic. Every arm's name is optional in the grammar (an
     /// unnamed entry is FILLER), so the caller gets a stable stand-in rather than a null.</summary>
     internal static string EntryName(RuleContext? entry) => entry switch
@@ -303,24 +349,15 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
             // statement returns on a missing data-name, so `88 VALUE 1.` parsed (VALUE opens the value clause,
             // not the name slot), bound nothing, produced no diagnostic and compiled to a .dll — whatever the
             // programmer meant by it silently gone.
-            case (EntryBodyForm.ValueOnly, 88) when entry.dataName() is null
-                                                    && !LevelNumberRules.HasContentValidationPhrase(entry):
-                Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
-                    "the condition-name format of the data description entry is written `88 condition-name-1 "
-                    + "value-clause .` and names condition-name-1 unconditionally; only the validation format, "
-                    + "`88 [condition-name-2] value-clause .`, may omit it, and its value clause requires the "
-                    + "INVALID or VALID phrase, which this entry has not got — so this entry is neither format "
-                    + "(ISO §13.16.2 formats 3 and 4, §13.18.63.2 format 5, §13.16.3 SR24)");
-                break;
-
-            // §13.16.3 SR2: "The data-name format of the entry-name clause shall be specified if level-number is
-            // 77." An omitted entry-name is the filler format by SR4 ("If no entry-name clause is specified, it
-            // is as though the filler format … were specified"), so both spellings fail the same rule.
-            case (_, 77) when entry.dataName() is not { } n
-                              || n.GetText().Equals("FILLER", StringComparison.OrdinalIgnoreCase):
-                Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
-                    "the data-name format of the entry-name clause shall be specified if level-number is 77 — a "
-                    + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §13.16.3 SR2, SR4)");
+            //
+            // ⛔ ONE ARM FOR EVERY FORMAT WITH A NAME SLOT (kb/Work PB849). The obligation is a property of the
+            // (level, format) pair and lives in ONE place, LevelNumberRules.EntryNameObligation. Before PB849 it
+            // was two hand-written arms — 77 and this nameless-88 case — and the third format whose name is
+            // printed unbracketed, renames, had NONE: `66 RENAMES A THRU B.` and `66 FILLER RENAMES A THRU B.`
+            // compiled silently and the entry evaporated, and so did `88 FILLER VALUE "A".` (FILLER is the
+            // entry-name clause's filler format, which only format 1 carries).
+            case (_, 66 or 77 or 88) when LevelNumberRules.EntryNameObligation(entry, level) is { } requirement:
+                Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text, requirement);
                 break;
         }
     }

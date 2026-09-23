@@ -57,8 +57,8 @@ namespace CobolNet.Validation;
 /// fails, because the typedef ITEM is discarded from the forest when RegisterTypeDecl rejects it or it binds into
 /// method scope). <b>14g.3–14g.5 (DONE)</b> completed the DATA/PIC/OO migration: OO class/interface + OCCURS DYNAMIC
 /// (14g.3, parse-arm); file SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING (14g.4, parse-arm — the recon's
-/// bound-arm SHARING/LOCK-MODE reclassified for the same drop-proof reason); FUNCTION-PROTOTYPE (14g.5, bound-arm over
-/// <c>BoundUnit.IsPrototype</c>) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
+/// bound-arm SHARING/LOCK-MODE reclassified for the same drop-proof reason); FUNCTION- and PROGRAM-PROTOTYPE (parse-arm
+/// over the shared <c>prototypePhrase</c> since kb/Work PB894; 14g.5 had it bound-arm) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
 /// national-edited PICTURE forms (14g.5, bound-arm via <see cref="PictureConstructId"/> — each keyed on the
 /// analyzed <c>PicInfo</c>'s own shape: <c>IsFloatEdited</c>, and a category-national picture's <c>EditMask</c>).
 /// The one principled exception is the
@@ -103,11 +103,6 @@ internal sealed class VersionConformancePass
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
         foreach (var unit in group.Units)
         {
-            // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) — a COBOL-2002 introduction. Bound-arm: BoundUnit.IsPrototype
-            // is set at unit creation and every unit (top-level, nested, function) is a BoundUnit in group.Units, so it
-            // is scope-exact + drop-proof, with the former MakeUnit Check's constant where-string (Step 14g.5).
-            if (unit.IsPrototype)
-                pass.Check(Constructs.FunctionPrototype2002, "a FUNCTION-ID … IS PROTOTYPE (function prototype)");
             pass.WalkProgram(unit.Bound);
             pass.GateData(unit.Data);
         }
@@ -1806,6 +1801,20 @@ internal sealed class VersionConformancePass
         /// `externalizedNamePhrase?` and nothing else (kb/Work PB303). The specifier's OWN
         /// repository-program-2002 gate stands beside this one exactly as options-paragraph-2002 stands beside
         /// arithmetic-standard-2002 — two true statements about one line of source.</summary>
+        /// <summary>The IS PROTOTYPE tail — FUNCTION-ID's prototype format and §11.10.2 Format 2 (PROGRAM-ID), both
+        /// COBOL-2002 introductions. ONE parse node, <c>prototypePhrase</c>, identifies both, so the gate is
+        /// recognition-fired here (kb/Work PB894). It used to be a BOUND-arm check over <c>BoundUnit.IsPrototype</c>,
+        /// adjudicated there only because the FUNCTION-ID tail had no rule of its own; once the shared rule existed
+        /// a parse rule identified the construct, and PB353's placement rule puts the gate on the parse arm.</summary>
+        public override object? VisitPrototypePhrase(CobolParserCore.PrototypePhraseContext ctx)
+        {
+            if (ctx.Parent is CobolParserCore.FunctionIdParagraphContext)
+                _p.Check(Constructs.FunctionPrototype2002, "a FUNCTION-ID … IS PROTOTYPE (function prototype)");
+            else
+                _p.Check(Constructs.ProgramPrototype2002, "a PROGRAM-ID … IS PROTOTYPE (program prototype)");
+            return base.VisitChildren(ctx);
+        }
+
         public override object? VisitExternalizedNamePhrase(CobolParserCore.ExternalizedNamePhraseContext ctx)
         {
             _p.Check(Constructs.ExternalizedNameAs2002, "the AS externalized-name phrase");
