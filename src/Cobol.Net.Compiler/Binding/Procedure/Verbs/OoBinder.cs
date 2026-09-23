@@ -62,16 +62,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var form = op.Factory ? InvokeForm.Factory : InvokeForm.Instance;
             var tempPlace = ctx.Refs.ResolveItem(op.Temp)!;
 
-            if (needGet)
-            {
-                if (op.Get is null)
-                    ctx.Edition.Error("COBOLNET0843",
-                        $"the object-property reference {where} is a SENDING operand but the class has no "
-                        + "GET property method (ISO §8.4.3.9.3 SR3 — WITH NO GET, or no accessor defined)");
-                else
-                    pre.Add(new BoundInvoke(form, op.ClassCsName, op.Receiver, op.Get.CsName, tempPlace,
-                        null, op.Get.Binding!.Returning, op.Get.Owner?.CsName));
-            }
+            if (needGet && PropertyGet(op) is { } get) pre.Add(get);
             if (needSet)
             {
                 if (op.Set is null)
@@ -92,6 +83,44 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         ctx.Data.OperandActivations += pre.Count + post.Count;
         return new BoundSequence([.. pre.Select(Operand), core, .. post.Select(Operand)]);
         static BoundStatement Operand(BoundStatement s) => ((IActivatingStatement)s).AsExpressionActivation();
+    }
+
+    /// <summary>The §8.4.3.9.4 GR1 GET of one SENDING property reference — "as though" an INVOKE of the GET
+    /// property method RETURNING the reference's temp — or null after SR3's diagnostic when the class has no GET.
+    /// ONE builder for both places a GET is placed: the statement-level wrap (<see cref="OoWrapPropertyOps"/>) and
+    /// a per-evaluation window (<see cref="OoDrainPropertyGets"/>).</summary>
+    private BoundInvoke? PropertyGet(DataBinder.OoPendingPropertyOp op)
+    {
+        if (op.Get is null)
+        {
+            ctx.Edition.Error("COBOLNET0843",
+                $"the object-property reference '{op.PropName}' OF '{op.ReceiverName}' is a SENDING operand but the "
+                + "class has no GET property method (ISO §8.4.3.9.3 SR3 — WITH NO GET, or no accessor defined)");
+            return null;
+        }
+        return new BoundInvoke(op.Factory ? InvokeForm.Factory : InvokeForm.Instance, op.ClassCsName, op.Receiver,
+            op.Get.CsName, ctx.Refs.ResolveItem(op.Temp)!, null, op.Get.Binding!.Returning, op.Get.Owner?.CsName);
+    }
+
+    /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
+    /// window (<c>UdfBinder.UdfAttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
+    /// EVALUATE object, a non-first AND/OR operand, a VARYING BY / AFTER FROM operand) and return their GETs.
+    /// ISO §8.8.4.13 2): "Values are established for arithmetic expressions and functions if and when the
+    /// conditions containing them are evaluated" — an object-property reference is an inline activation of its
+    /// GET method, so it is fetched at EACH evaluation, and not at all when a short-circuit (§8.8.4.13 1)) never
+    /// reaches it (kb/Work PB987: it used to be hoisted once for the whole statement). Every reference a window
+    /// drains is SENDING — neither a condition nor an arithmetic expression has a receiving operand — so no
+    /// store-polarity classification is needed and GR2's SET never arises here.</summary>
+    internal List<BoundStatement> OoDrainPropertyGets(int mark)
+    {
+        var ops = ctx.Data.OoPendingPropertyOps;
+        if (ops.Count <= mark) return [];
+        var taken = ops.GetRange(mark, ops.Count - mark);
+        ops.RemoveRange(mark, ops.Count - mark);
+        var gets = new List<BoundStatement>(taken.Count);
+        foreach (var op in taken)
+            if (PropertyGet(op) is { } get) gets.Add(get);
+        return gets;
     }
 
 

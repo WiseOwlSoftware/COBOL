@@ -5,6 +5,8 @@
   "pb1001_line_next_page",
   "pb1017_repository_identical_repeats",
   "pb1021_address_identifier_operands",
+  "pb606_call_not_on_propagated",
+  "pb987_property_per_evaluation",
   "pb892_performed_declarative_resume",
   "pb892_operand_activation_resume",
   "pb972_raising_conformance",

@@ -374,8 +374,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // that statement's own BindStatement. The UDF wrap is the INNER sequence (function activations are
         // always pre-ops, §8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
         // wrap — still runs before the activation that consumes its temp.
-        int udfMark = Udf.PendingCount;
-        int mark = data.OoPendingPropertyOps.Count;
+        var marks = Udf.Mark;
         // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §7.3.25 profile an
         // operand activation carries, and THIS statement counts only the activations it drains itself — both are
         // saved around a nested statement's bind and restored after it.
@@ -417,8 +416,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // such statement carrying a function-identifier or an object-property reference; Rewrap therefore lands
         // the hoist on the FIRST implicit statement — the one whose operands it evaluates — and leaves the series
         // outermost. A non-series statement goes through untouched.
-        core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, udfMark));
-        core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, mark));
+        core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, marks.PreOps));
+        core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, marks.PropertyOps));
         // ISO §14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
         // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
         // multi-operand statement's landing is the implicit statement the activation belongs to.

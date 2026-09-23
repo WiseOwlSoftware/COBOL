@@ -158,7 +158,7 @@ internal sealed partial class ControlFlowBinder
         var from = BindVaryingOperand(ops[0], firstLevel ? VaryingSlot.FirstFrom : VaryingSlot.AfterFrom);
         var by = ops.Length > 1 ? BindVaryingOperand(ops[1], VaryingSlot.By) : OmittedBy;
         CheckVaryingOperandRules(dref, var, from, by);
-        int untilMark = host.Udf.PendingCount;
+        var untilMark = host.Udf.Mark;
         return new VaryingLevel(var, from.Expr, by.Expr,
             host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), untilMark), from.Kind);
     }
@@ -170,7 +170,7 @@ internal sealed partial class ControlFlowBinder
     /// reaches the ONE numeric-context literal reading instead of failing to parse at all.</para></summary>
     private VaryingOperand BindVaryingOperand(Core.ValueOperandContext op, VaryingSlot slot)
     {
-        int mark = host.Udf.PendingCount;
+        var mark = host.Udf.Mark;
         // §14.9.28.3 SR3 is the rule that closes THIS operand list, so a non-numeric literal is sent to it
         // rather than to §8.8.1.1 alone. PERFORM VARYING is a §13.18.38.3 r7 index-name window (kb/Work R29) but
         // not on §13.18.60.3 SR10's index-data-item list, and §14.9.28.3 SR2 wants a numeric item (kb/Work PB215).

@@ -102,8 +102,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // implementation's loud abnormal termination). A NOT ON phrase can only be reached by a normal
             // return, so it needs no guard here — GR3i.
             w.Line(invocation);
-            if (c.NotOnException is { } notBare) Statements.EmitStatementList(notBare);   // GR3i — a non-exception return
-            EmitPropagationPickup(c);
+            string? propagatedBare = EmitPropagationPickup(c, reportRaised: c.NotOnException is not null);
+            if (c.NotOnException is { } notBare) EmitNotOnException(notBare, callErr: null, propagatedBare);
             return false;
         }
         int id = ctx.Names.NextCall();
@@ -128,16 +128,32 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 + $"&& {RuntimeApi.CallEcIsProgramOrExternalText($"__cp{pid}.EcName")}) {{ {flag} = true; }}"
                 + "   // §14.9.4.4 GR3h item 1 (checking not enabled → no status is set) / GR3i");
         }
+        // §14.9.4.4 GR3i's two outcomes of a SUCCESSFUL call are ALTERNATIVES (kb/Work PB606): "If an exception
+        // condition is propagated from the called program, execution continues as specified in 14.6.13.1 …;
+        // otherwise, control is transferred … to imperative-statement-2". So the propagation is picked up FIRST
+        // — before either phrase body, which also keeps an activation inside a phrase body from consuming THIS
+        // CALL's staging — and NOT ON EXCEPTION runs only when the pickup raised nothing. A failed activation
+        // stages nothing, so the pickup is a no-op on the ON EXCEPTION path.
+        string? propagated = EmitPropagationPickup(c, reportRaised: c.NotOnException is not null);
         if (c.OnException is { } on)
-        {
             using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
-            if (c.NotOnException is { } notAlso)
-                using (w.Block("else")) Statements.EmitStatementList(notAlso);
-        }
-        else if (c.NotOnException is { } not)
-            using (w.Block($"if (!__callErr{id})")) Statements.EmitStatementList(not);   // GR3i — only on a non-exception return
-        EmitPropagationPickup(c);
+        if (c.NotOnException is { } not)
+            EmitNotOnException(not, callErr: $"__callErr{id}", propagated);
         return false;
+    }
+
+    /// <summary>The CALL statement's NOT ON EXCEPTION arm — ISO §14.9.4.4 GR3i: imperative-statement-2 runs only
+    /// when the program was successfully called (<paramref name="callErr"/> is false, or null when nothing can
+    /// fail the activation catchably) AND no exception condition was propagated from it
+    /// (<paramref name="propagated"/>, the pickup's raised flag, or null when the group emits no pickup).
+    /// §14.6.13.1.4 3) says the same from the other side: a nonfatal condition whose declarative completes
+    /// normally leaves "the imperative-statement in that phrase … not executed".</summary>
+    private void EmitNotOnException(IReadOnlyList<BoundStatement> not, string? callErr, string? propagated)
+    {
+        var guards = new[] { callErr, propagated }.OfType<string>().Select(g => "!" + g).ToList();
+        if (guards.Count == 0) { Statements.EmitStatementList(not); return; }
+        using (ctx.Writer.Block($"if ({string.Join(" && ", guards)})   // §14.9.4.4 GR3i — a successful call that propagated nothing"))
+            Statements.EmitStatementList(not);
     }
 
     /// <summary>§14.9.4.4 GR3a's once-only identification (kb/Work PB133 wave B): rewrite the ALIASING
@@ -334,13 +350,20 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// the per-name question for a name chosen at run time. Before kb/Work PB408 the group gate was the ONLY
     /// gate and the per-name test was taken in the callee, so this site raised conditions the activating element
     /// had turned off and skipped ones it had turned on.</para></summary>
-    public void EmitPropagationPickup(IActivatingStatement site)
+    /// <returns>With <paramref name="reportRaised"/>, the name of a <c>bool</c> local that is true once a
+    /// propagated condition (a name or an object) was RAISED here — the §14.9.4.4 GR3i "propagated" test the
+    /// CALL's NOT ON EXCEPTION phrase keys on (kb/Work PB606). Null when no pickup is emitted (nothing can be
+    /// raised) or no caller asked.</returns>
+    public string? EmitPropagationPickup(IActivatingStatement site, bool reportRaised = false)
     {
-        if (!ecState.Active) return;
+        if (!ecState.Active) return null;
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
+        string? raised = reportRaised ? $"__praised{id}" : null;
+        if (raised is not null) w.Line($"bool {raised} = false;");
         using (w.Block($"if (ExceptionState.TakePropagatedObject(out var __po{id}))   // §14.6.13.1.5 — an exception OBJECT propagated"))
         {
+            if (raised is not null) w.Line($"{raised} = true;");
             w.Line($"ExceptionState.SetObject(__po{id});   // GR1b2 — the current exception object HERE (the activator)");
             w.Line($"int __or{id} = {ec.ObjDispatchExpr($"__po{id}")};   // rule 2 — USE AFTER EXCEPTION OBJECT (GR14)");
             w.Line(Resume(site.InExpression, $"__or{id}", "   // RESUME AT procedure-name"));
@@ -357,12 +380,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         using (w.Block($"if (ExceptionState.TakeRaisedPropagation({CsLiteral(site.ActivatorChecking.Encoded)}, "
             + $"out var __pn{id}, out var __pf{id}))   // §14.9.18.4 GR1b — raised HERE iff checking is enabled HERE"))
         {
+            if (raised is not null) w.Line($"{raised} = true;");
             w.Line($"int __pr{id} = {ec.EcDispatchExpr($"__pn{id}", "\"\"")};");
             w.Line(Resume(site.InExpression, $"__pr{id}"));
             w.Line($"if (__pr{id} != -2 && __pf{id}) throw new CobolFatalException(__pn{id}, "
                 + "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
                 + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\") { Dispatched = true };");
         }
+        return raised;
     }
 
     /// <summary>The RESUME landing of one activation site's dispatch result — the ONE place the two kinds of

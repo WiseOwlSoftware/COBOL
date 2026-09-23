@@ -525,7 +525,7 @@ public sealed partial class DataBinder
     /// store-polarity classification and there are no post-ops.</para>
     /// <para>It lives on <c>DataBinder</c> because that is the ONLY binder both clients can reach: the procedure
     /// dependency is one-way, <c>StatementBinder(DataBinder, ReferenceResolver)</c>, so ReferenceResolver's
-    /// materialization hook cannot register on <c>UdfBinder</c>. <c>UdfBinder.PendingCount</c> is the mark for the
+    /// materialization hook cannot register on <c>UdfBinder</c>. <c>UdfBinder.Mark</c> is the mark for the
     /// mark-on-entry / drain-own-suffix protocol at the <c>BindStatement</c> chokepoint, and it now covers BOTH
     /// kinds — which is why a function subscript in a per-evaluation window rides
     /// <c>UdfAttachPerEvaluation</c> with no extra wiring.</para></summary>

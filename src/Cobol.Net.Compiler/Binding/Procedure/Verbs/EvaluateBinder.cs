@@ -436,7 +436,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // short-circuit is between PAIRS, never inside one).
             if (pair.Object is EvaluateObjectOperand.Condition)
             {
-                int objMark2 = host.Udf.PendingCount;
+                var objMark2 = host.Udf.Mark;
                 if (ObjectAsCondition(item, pair) is { } objCond2)
                     return new BoundNot(new BoundLogical("^",
                         [subjCond, host.Udf.UdfAttachPerEvaluation(objCond2, objMark2)]));
@@ -448,7 +448,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // NOT condition-2: it falls through to the partial arm below, which splices the subject in.
         if (pair.Object is not EvaluateObjectOperand.PartialExpression && item.condition() is { } cond)
         {
-            int objMark = host.Udf.PendingCount;
+            var objMark = host.Udf.Mark;
             var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), objMark);
             return subjFalse ? new BoundNot(bound) : bound;   // EVALUATE TRUE/FALSE WHEN <condition>
         }
@@ -469,7 +469,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // character boolean object here as well.
         if (pair.Object is EvaluateObjectOperand.Condition && ObjectAsCondition(item, pair) is { } objCond)
         {
-            int objMark = host.Udf.PendingCount;
+            var objMark = host.Udf.Mark;
             var bound = host.Udf.UdfAttachPerEvaluation(objCond, objMark);
             return subjFalse ? new BoundNot(bound) : bound;
         }
@@ -497,7 +497,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 return host.Cond.Refused("EVALUATE TRUE/FALSE paired with a value WHEN object");
             var content = slot.InPlaceValue is BoundFieldOperand inPlace ? inPlace : subjValue;
             var spliced = new ConditionBinder.PartialSubjectOperand(subjOp, subjValue, content);
-            int objMark = host.Udf.PendingCount;
+            var objMark = host.Udf.Mark;
             var partialCond = item.partialExpression() is { } partial
                 ? host.Cond.BindPartialExpression(partial, spliced)
                 : item.condition() is { } leadingClass
@@ -520,7 +520,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
         if (item.valueRange() is { } range)
         {
-            int objMark = host.Udf.PendingCount;
+            var objMark = host.Udf.Mark;
             var lo = BindValueOperand(range.valueOperand(0));
             var (hi, alphabetWord) = BindRangeHigh(range);
             // ⛔ SR4 + SR9 BEFORE THE CLASS IS ASKED (kb/Work PB399). CollatingSelection.ForComparison's own
@@ -574,7 +574,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         }
         if (item.valueOperand() is { } v)
         {
-            int objMark = host.Udf.PendingCount;
+            var objMark = host.Udf.Mark;
             return host.Udf.UdfAttachPerEvaluation(
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }

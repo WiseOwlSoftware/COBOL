@@ -1305,7 +1305,7 @@ cannot render.
 nested recursion, so a USER-defined function in a subscript falls out of the same change); synthesize the temp via
 `DataBinder.CreateCompilerTemp`, already "THE ONE synthesized-compiler-temp constructor"; register a statement-scoped
 pending PRE-op drained at the `BindStatement` chokepoint — the mark-on-entry / drain-own-suffix protocol that
-ALREADY serves two clients (`Udf.PendingCount`, `data.OoPendingPropertyOps`). The subscript segment then renders
+ALREADY serves two clients (`Udf.Mark`, `data.OoPendingPropertyOps`). The subscript segment then renders
 as an ordinary data-name through the existing `ResolveSubscriptName`.
 ⭐ **Prefer GENERALIZING the UDF pending list to a third list**: a function-identifier is never a receiving operand
 (**§8.4.3.2.3 SR1**), so intrinsic and user-function activations are both unconditional pre-ops with identical

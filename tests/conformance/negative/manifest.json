@@ -10,6 +10,8 @@
   "pb1017-repository-specification-not-identical",
   "pb1023-write-advancing-count",
   "pb1021-address-identifier-relation-at-85",
+  "pb606-call-not-on-propagated-below-2002",
+  "pb987-property-per-evaluation-below-2002",
   "pb892-performed-declarative-resume-below-2002",
   "pb892-operand-activation-below-2002",
   "pb971-arg-omitted-below-2002",

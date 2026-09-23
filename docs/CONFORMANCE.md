@@ -434,6 +434,21 @@ of an unsupported facility.
   runtime element" — is false, and the host runs no pickup, so the staged condition is never raised, fatal or
   not (a COBOL pickup takes a staging only in the activation the staging names — kb/Work PB892). No COBOL exception condition, and no .NET exception, crosses into a non-COBOL
   activator. (kb/Work PB408.)
+- **A condition PROPAGATED from a called program versus the CALL's NOT ON EXCEPTION phrase (§14.9.4.4 GR3 i) —
+  "If an exception condition is propagated from the called program, execution continues as specified in 14.6.13.1,
+  Exception conditions; otherwise, control is transferred to the end of the CALL statement or, if the NOT ON
+  EXCEPTION phrase is specified, to imperative-statement-2")**: **the two are alternatives — once a propagated
+  condition is RAISED in the activator (§14.9.18.4 GR1 b): checking for it enabled THERE), imperative-statement-2
+  is never executed**, whatever §14.6.13.1 then does: a fatal condition terminates or runs its declarative; a
+  nonfatal one whose declarative completes normally continues after the CALL (§14.6.13.1.4 3) says so outright:
+  "the imperative-statement in that phrase is not executed"); a RESUME AT NEXT STATEMENT leaves the CALL; and a
+  nonfatal one with NO applicable declarative, where §14.6.13.1.4 4) hands back to "the rules for that statement",
+  takes GR3 i)'s own first branch again rather than its "otherwise" — the reading that keeps the rule's two outcomes
+  exclusive (the rejected reading, which would run imperative-statement-2 for exactly that last case, makes the
+  word "otherwise" do nothing). A condition staged by the callee but NOT enabled in the activator is never raised
+  (§14.6.13.1.1), so it propagates nothing and NOT ON EXCEPTION runs. An exception OBJECT takes the same
+  disposition. The pickup precedes both phrase bodies, so an activation written inside a phrase body can never
+  consume the CALL's own staging. (kb/Work PB606; golden `2002/pb606_call_not_on_propagated`.)
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
   documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —
   .NET `System.Decimal` (a 128-bit decimal type, **28–29 significant decimal digits**, magnitude up to ≈ ±7.9×10²⁸).

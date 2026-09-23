@@ -523,7 +523,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // The UNTIL condition is evaluated per iteration (§14.9.28 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
             // once-per-statement hoist (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
-            int udfMark = host.Udf.PendingCount;
+            var udfMark = host.Udf.Mark;
             var cond = host.Cond.BindCondition(u.condition());
             return new PerformUntil(host.Udf.UdfAttachPerEvaluation(cond, udfMark), u.AFTER() is not null);
         }

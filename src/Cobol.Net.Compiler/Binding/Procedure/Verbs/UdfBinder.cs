@@ -47,7 +47,7 @@ using Core = CobolParserCore;
 /// <see cref="IntrinsicBinder"/> (the argument bind reaches back into its <c>BindArgOperand</c>). The
 /// host.UserFunctions/host.UdfSelfName injection surface STAYS on the StatementBinder host (BinderDriver's
 /// object-initializer contract — re-homed at 10t); the statement-scoped <c>_udfPendingCalls</c> mark/drain
-/// suffix protocol is exposed through <see cref="PendingCount"/> for the host's BindStatement /
+/// suffix protocol is exposed through <see cref="Mark"/> for the host's BindStatement /
 /// BindFlatSequence chokepoints. The line-65 <c>ConstructRegistry.Check</c> stays THE documented bind-time
 /// gate exception (fires on RECOGNITION, pre-hoist), moved VERBATIM.</summary>
 internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
@@ -61,9 +61,17 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="BoundCallProgram"/>.</para></summary>
     private List<BoundStatement> Pending => ctx.Data.PendingPreOps;
 
-    /// <summary>The pending-list mark for the host chokepoints (the suffix-drain protocol) — now covering BOTH
-    /// pre-op kinds, so the per-evaluation machinery below serves function subscripts with no extra wiring.</summary>
-    internal int PendingCount => Pending.Count;
+    /// <summary>The mark of BOTH statement-scoped pending lists at one instant — the pre-op list
+    /// (<see cref="DataBinder.PendingPreOps"/>: function activations, inline method invocations, function-bearing
+    /// subscript temps) and the object-property op list (<see cref="DataBinder.OoPendingPropertyOps"/>).</summary>
+    internal readonly record struct PendingMark(int PreOps, int PropertyOps);
+
+    /// <summary>The pending-list mark for the host chokepoints (the suffix-drain protocol). ⛔ IT MARKS BOTH LISTS
+    /// (kb/Work PB987): a per-evaluation window drains everything that activates while it binds — a function, an
+    /// inline invocation AND an object-property GET — so none of the three can be hoisted out of a condition that
+    /// is evaluated repeatedly or conditionally. It marked only the pre-op list until PB987, and a property
+    /// reference in <c>PERFORM UNTIL P OF S &gt; 3</c> was fetched ONCE for the whole loop.</summary>
+    internal PendingMark Mark => new(Pending.Count, ctx.Data.OoPendingPropertyOps.Count);
 
     /// <summary>Bind one user-function reference (the <see cref="BindIntrinsicCore"/> dispatch target for a
     /// REPOSITORY-declared name, which per §12.3.8.2 GR12 refers to the user function and never a same-named
@@ -376,12 +384,16 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
     /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
     /// so before PB892 they carried an empty profile and every condition they propagated was discarded.</para></summary>
-    private List<BoundStatement>? DrainPending(int mark)
+    private List<BoundStatement>? DrainPending(int mark, List<BoundStatement>? leading = null)
     {
         var calls = Pending;
-        if (calls.Count <= mark) return null;
-        var taken = calls.GetRange(mark, calls.Count - mark);
-        calls.RemoveRange(mark, calls.Count - mark);
+        var taken = leading ?? [];
+        if (calls.Count > mark)
+        {
+            taken.AddRange(calls.GetRange(mark, calls.Count - mark));
+            calls.RemoveRange(mark, calls.Count - mark);
+        }
+        if (taken.Count == 0) return null;
         EcCheckingProfile? profile = null;
         for (int i = 0; i < taken.Count; i++)
         {
@@ -392,6 +404,15 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         }
         return taken;
     }
+
+    /// <summary>Drain one per-evaluation window's suffix of BOTH lists (<see cref="Mark"/>): the object-property
+    /// GETs first — the statement-level order, where the property wrap is the OUTER sequence, so a property
+    /// argument's GET precedes the activation that consumes its temp — then the pre-ops, in registration order.
+    /// Every property reference a window drains is a SENDING operand (a condition or an arithmetic expression
+    /// has no receiving operand), so each one is a §8.4.3.9.4 GR1 GET (<c>OoBinder.OoDrainPropertyGets</c>).</summary>
+    private List<BoundStatement>? DrainPerEvaluation(PendingMark mark) =>
+        DrainPending(mark.PreOps, host.Oo.OoDrainPropertyGets(mark.PropertyOps));
+
     /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)
     /// into the hoisted <see cref="BoundSequence"/>: every activation is a PRE-op — a function-identifier
     /// is never a receiving operand (§8.4.3.2.3 SR1), so unlike property references there is no polarity
@@ -412,8 +433,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// window the statement evaluates conditionally or repeatedly (§8.8.4.13 r2). The drained suffix leaves
     /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
     /// the condition unchanged (zero cost for the UDF-free path).</summary>
-    internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, int mark) =>
-        DrainPending(mark) is { } taken ? new BoundUdfEvaluated(taken, cond) : cond;
+    internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, PendingMark mark) =>
+        DrainPerEvaluation(mark) is { } taken ? new BoundUdfEvaluated(taken, cond) : cond;
 
     /// <summary>The EXPRESSION twin of <see cref="UdfAttachPerEvaluation"/>: attach the activations registered
     /// while <paramref name="e"/> bound (those past <paramref name="mark"/>) to the OPERAND as a
@@ -427,8 +448,8 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// first-level FROM and the UNTIL condition accepted the same construct — a capability limit shipped as a
     /// diagnostic, pinned green by two tests. The carrier the condition already used is what the augment and
     /// re-initialization sites needed too.</para></summary>
-    internal BoundExpr UdfAttachPerEvaluation(BoundExpr e, int mark) =>
-        DrainPending(mark) is { } taken ? new BoundUdfEvaluatedExpr(taken, e) : e;
+    internal BoundExpr UdfAttachPerEvaluation(BoundExpr e, PendingMark mark) =>
+        DrainPerEvaluation(mark) is { } taken ? new BoundUdfEvaluatedExpr(taken, e) : e;
 
     /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
     /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges

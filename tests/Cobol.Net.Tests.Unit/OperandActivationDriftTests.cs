@@ -45,7 +45,7 @@ public sealed class OperandActivationDriftTests
     public void ActivationSiteResumes_GoThroughTheOperandAwareHelper()
     {
         string call = CodeGenFile("Verbs", "CallEmitter.cs");
-        foreach (var method in new[] { "public void EmitPropagationPickup(", "private void EmitCallEcCatch(" })
+        foreach (var method in new[] { "public string? EmitPropagationPickup(", "private void EmitCallEcCatch(" })
         {
             string body = MethodBody(call, method);
             Assert.DoesNotContain("dispatch.ResumeTransfer(", body);

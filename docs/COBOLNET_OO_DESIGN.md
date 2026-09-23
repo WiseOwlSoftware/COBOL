@@ -245,7 +245,13 @@ override/0829/implements machinery applies to accessors UNCHANGED. The 0842 band
 SR5 clause+explicit duplicate, §13.18.42.3 SR4 superclass property collision, no-OCCURS subject, no-FILLER
 subject. Property REFERENCES (`P OF obj` — the §8.4.3.9.4 GR1–GR3 implicit-INVOKE desugar with
 BoundSequence + temps; detected at the ReferenceResolver resolution-failure chokepoint by the
-single-qualifier + roster-property shape) are live. STAGED (named 0899, never a generic guard): GET/SET
+single-qualifier + roster-property shape) are live. The GET's PLACEMENT follows the reference's evaluation
+window exactly as a function activation's does (kb/Work PB987; §8.8.4.13 2)): a reference evaluated once per
+statement is a statement-level pre-op, but one written in a per-evaluation window — a PERFORM UNTIL / VARYING
+condition, a SEARCH WHEN, an EVALUATE object, a non-first AND/OR operand, a VARYING BY / AFTER FROM operand — is
+drained by that window (`UdfBinder.Mark` marks BOTH pending lists; `OoBinder.OoDrainPropertyGets`) and fetched at
+each evaluation, and not at all when a short-circuit never reaches it. Every such reference is sending, so the
+window never needs the GR2 SET. STAGED (named 0899, never a generic guard): GET/SET
 PROPERTY prototypes in interfaces. REGISTRY: interface-definition-2002, repository-interface-2002,
 repository-property-2002, implements-clause-2002, property-clause-2002, method-property-selector-2002
 (constructs.json rows for the four independently-reachable gates; bind-time `ConstructRegistry.Check` gates —

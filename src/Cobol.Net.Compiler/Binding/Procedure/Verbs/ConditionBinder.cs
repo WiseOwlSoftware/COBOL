@@ -477,7 +477,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             var ch = ctx.GetChild(i);
             if (ch is ITerminalNode) continue;   // the AND / OR / XOR / EXCLUSIVE-OR connective tokens
-            int udfMark = host.Udf.PendingCount;
+            var udfMark = host.Udf.Mark;
             parts.Add(BindCondition(ch, carry));
             if (parts.Count > 1 && op != "^")
                 parts[^1] = host.Udf.UdfAttachPerEvaluation(parts[^1], udfMark);
