@@ -117,6 +117,17 @@ public sealed partial class DataBinder
     /// alphanumeric, or national" test and its national-vs-alphanumeric split are the same question that rule
     /// answers, so it is asked once and passed in.</param>
     /// <param name="where">The construct, for the diagnostic ("EVALUATE WHEN range", "condition-name 'X'").</param>
+    /// <summary>⛔ THE EDITION GATE OF THE <c>[ IN alphabet-name-1 ]</c> RANGE PHRASE — a COBOL-2002 addition
+    /// (constructs.json <c>range-in-alphabet-2002</c>; the edge is DERIVED and the derivation is the row's, kb/Work
+    /// PB1015). It sits at the one resolver and not in the parse arm because the phrase is decided by SYMBOL: IN is
+    /// an optional word (PB983), so `THRU "M" AL` is the phrase only when AL names an alphabet, and an EVALUATE
+    /// identifier-4 `IN AL` parses as a qualification until EvaluateBinder peels it (PB843). No recognition-time
+    /// arm can see those spellings; every spelling reaches here once it IS the phrase. The VALUE clause's
+    /// no-THROUGH refusal (§13.18.63.3 SR31, COBOLNET ValueAlphabetWithoutThrough) calls it too, so a phrase the
+    /// binder refuses for another reason still names its edition.</summary>
+    internal void GateRangeAlphabetPhrase(string where) =>
+        ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.RangeInAlphabet2002, where);
+
     public bool TryResolveRangeAlphabet(string alphabetName, CollatingClass rangeClass, string where)
     {
         // The TYPE first: a word that names no alphabet at all is not alphabet-name-1, whatever the range's class —
@@ -129,6 +140,7 @@ public sealed partial class DataBinder
                 + "SPECIAL-NAMES (ISO §12.3.7; §14.9.13.3 SR3)");
             return false;
         }
+        GateRangeAlphabetPhrase(where);
         // SR3 sentence 1 — the phrase is admitted only over a range a COLLATING SEQUENCE can order. §14.7.8 rule 1
         // orders a numeric range algebraically and names no sequence at all, and rule 2 (the sequence rule) is
         // written for "alphanumeric or national literals"; a boolean range cannot carry THROUGH in the first place

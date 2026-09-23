@@ -254,39 +254,50 @@ public sealed partial class DataBinder
     /// length in character positions, read from <c>DataItem.ImageWidth</c> (THE width authority the FUNCTION
     /// LENGTH fold reads; maximum-allocation based, so the GR6 occurs-depending-group exception — "the maximum
     /// size of the data item is used" — holds by construction). SR checks: SR3 all subscripts shall be
-    /// literals; SR10 no ANY LENGTH operand; SR12 no dynamic-length operand. data-name-2 must already be bound
+    /// literals; §8.4.2.3.3 SR2/SR3/SR5 the subscript count against the item's OCCURS depth, through
+    /// <see cref="ReferenceResolver.ScreenSubscriptArity"/> (kb/Work PB1016); SR10 no ANY LENGTH operand; SR12 no
+    /// dynamic-length operand. data-name-2 must already be bound
     /// (definition-before-reference — SR4 rules out the reverse dependence).</summary>
     private ConstantDef? BindConstantLength(
         string name, bool isGlobal, Core.DataReferenceContext dref, string where)
     {
         string? baseName = dref.cobolWord()?.GetText();
         if (baseName is null) return null;
-        var qualifiers = new List<string>();
-        foreach (var suffix in dref.dataReferenceSuffix())
+        // ⛔ THE ONE DECOMPOSITION (ReferenceResolver.ReadWritten, kb/Work PB443/PB1016). This walked the suffix
+        // list itself and looked only at a suffix's OWN subscript part, so a subscript hung off a qualification
+        // (`CELL OF ROWX (3 2)`) was neither SR3-checked nor counted, and a separately parsed refModPart was
+        // dropped unread.
+        var w = ReferenceResolver.ReadWritten(dref);
+        if (w.IsReferenceModified)
         {
-            if (suffix.qualification() is { } q) qualifiers.Add(q.cobolWord().GetText());
-            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } sub)
-            {
-                if (ReferenceResolver.IsEmptyGroup(sub))
-                {
-                    Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
-                        $"{where}: LENGTH OF '{DataBinder.WrittenText(dref)}': " + ReferenceResolver.EmptyParenthesesMessage);
-                    return null;
-                }
-                // §13.10.3 SR3: all subscripts of data-name-2 shall be literals. (A subscript never changes
-                // the LENGTH — every occurrence has the same description — so the tokens are only validated.)
-                var toks = new List<Antlr4.Runtime.IToken>();
-                ReferenceResolver.CollectLeafTokens(sub, toks);
-                if (toks.Any(t => t.Type is not (Core.SUB_INTEGERLIT or Core.INTEGERLIT or Core.SUB_WS
-                        or Core.SUB_LPAREN or Core.SUB_RPAREN or Core.SUB_COMMA)))
-                {
-                    Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: all subscripts of the LENGTH "
-                        + "OF operand shall be literals (ISO §13.10.3 SR3)");
-                    return null;
-                }
-            }
+            Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: LENGTH OF '{DataBinder.WrittenText(dref)}' — "
+                + "the operand is data-name-2 (ISO §13.10.2), a data-name, and a data-name is not reference-modified");
+            return null;
         }
-        DataItem? item = new ReferenceResolver(this).FindItem(baseName, qualifiers);
+        var resolver = new ReferenceResolver(this);
+        int written = 0;   // the subscripts as written — §8.4.2.3.3 SR2/SR3/SR5's operand, screened below
+        if (w.SubscriptGroup is { } sub)
+        {
+            if (ReferenceResolver.IsEmptyGroup(sub))
+            {
+                Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
+                    $"{where}: LENGTH OF '{DataBinder.WrittenText(dref)}': " + ReferenceResolver.EmptyParenthesesMessage);
+                return null;
+            }
+            // §13.10.3 SR3: all subscripts of data-name-2 shall be literals. (A subscript never changes
+            // the LENGTH — every occurrence has the same description — so the tokens are only validated.)
+            var toks = new List<Antlr4.Runtime.IToken>();
+            ReferenceResolver.CollectLeafTokens(sub, toks);
+            if (toks.Any(t => t.Type is not (Core.SUB_INTEGERLIT or Core.INTEGERLIT or Core.SUB_WS
+                    or Core.SUB_LPAREN or Core.SUB_RPAREN or Core.SUB_COMMA)))
+            {
+                Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: all subscripts of the LENGTH "
+                    + "OF operand shall be literals (ISO §13.10.3 SR3)");
+                return null;
+            }
+            written = resolver.SubscriptSegments(dref)?.Count ?? 0;
+        }
+        DataItem? item = resolver.FindItem(baseName, w.Qualifiers);
         if (item is null)
         {
             Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: LENGTH OF '{DataBinder.WrittenText(dref)}' — the "
@@ -294,6 +305,12 @@ public sealed partial class DataBinder
                 + "ISO §13.10.3 SR4 rules out the reverse dependence)");
             return null;
         }
+        // ⛔ §8.4.2.3.3 SR2/SR3/SR5 — THE SUBSCRIPTS AGAINST THE ITEM'S DIMENSIONS, through the ONE screen every
+        // procedure-division reference takes (kb/Work PB1016). §13.10.3 SR3 above constrains only the FORM of a
+        // subscript ("All subscripts of data-name-1 and data-name-2 shall be literals"); whether one may be
+        // written at all, and how many, is §8.4.2.3.3's, and a constant entry is not among SR5's seven
+        // exemptions. `CONSTANT AS LENGTH OF PLAIN (1)` over a non-table item compiled and yielded 7.
+        if (resolver.ScreenSubscriptArity(dref, item, written)) return null;
         if (item.IsAnyLength)
         {
             Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the LENGTH OF operand shall not be "

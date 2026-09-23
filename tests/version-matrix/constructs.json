@@ -2217,6 +2217,18 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVALFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CV PIC 9 VALUE 1.\n   88 CN VALUE 1 WHEN SET TO FALSE IS 7.\nPROCEDURE DIVISION.\nMAIN.\n    IF CN DISPLAY \"Y\" ELSE DISPLAY \"N\" END-IF.\n    STOP RUN.\n"
   },
   {
+   "id": "range-in-alphabet-2002",
+   "description": "The THROUGH range's [ IN alphabet-name-1 ] phrase - ISO 14.9.13.2's range-expression (EVALUATE WHEN) and 13.18.63.2 formats 3 and 5 (the condition-name VALUE clause), governed together by 14.7.8 rule 2 ('When the IN alphabet-name phrase is specified, the collating sequence used for range evaluation is the collating sequence defined by that alphabet'). A COBOL-2002 addition - DERIVED, not quoted: the 2023 Annex E covers 2014->2023 only and lists no range/collation delta, so the phrase is present by 2014; the repo holds no 2002 or 2014 text; COBOL-85's EVALUATE and VALUE formats carry a bare THROUGH pair ordered by the program collating sequence, and 14.7.8 rule 2's own NOTE ('to allow an implementor to define the collating sequence in a manner compatible with previous COBOL implementations') and its locale arm (LC_COLLATE - the locale facility, LOCALE reserved from 2002 per reserved-words.json) place the phrase with 2002's collation rework. Gated at the ONE resolver both formats reach, DataBinder.TryResolveRangeAlphabet (kb/Work PB1015), because the phrase is decided by SYMBOL, not by position: IN is an optional word (kb/Work PB983) and an EVALUATE identifier-4 IN word parses as a qualification until the binder peels it (PB843), so no parse-arm recognition can see every spelling. Fires only once the word IS an alphabet-name (a word naming no alphabet is not the phrase).",
+   "display": "the THROUGH range's IN alphabet-name phrase",
+   "diagnosticCode": "COBOLNET0900",
+   "citation": "ISO 14.9.13.2 (range-expression) / 13.18.63.2 formats 3 and 5; 14.7.8 rule 2; 14.9.13.3 SR3 / 13.18.63.3 SR31; a COBOL-2002 addition (derived - no 85->2002 row in the 2023 Annex E, the A1 gap D18); bind-site gate (DataBinder.TryResolveRangeAlphabet)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOLNET0900",
+   "vcr": "THROUGH range IN alphabet-name-1 phrase (COBOL-2002, derived); A1 authority-sufficiency gap (D18); kb/Work PB1015",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRNGIN.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET AL IS NATIVE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-C PIC X VALUE \"C\".\nPROCEDURE DIVISION.\nMAIN.\n    EVALUATE WS-C\n        WHEN \"A\" THRU \"M\" IN AL DISPLAY \"IN\"\n        WHEN OTHER DISPLAY \"OUT\"\n    END-EVALUATE.\n    STOP RUN.\n"
+  },
+  {
    "id": "set-condition-false-2002",
    "description": "SET condition-name TO FALSE (ISO 14.9.39 Format 4 - the FALSE arm). 14.9.39.4 GR7 places 'the literal in the FALSE phrase of the VALUE clause associated with condition-name-1' in the conditional variable, and 14.9.39.3 SR7 requires that phrase to be there (COBOLNET2049). A COBOL-2002 addition on the same derived authority as its VALUE-clause half (value-false-phrase-2002): COBOL-85's Format 4 has the TRUE arm only. Recognition-fired by VersionConformancePass.ParseArm.VisitSetBooleanStatement on the FALSE_ token, so the gate survives the SR7 refusal. The row's source necessarily writes the VALUE phrase too, so below 2002 BOTH gates fire - the matrix asserts presence of the code, not its multiplicity. kb/Work PB555.",
    "display": "SET condition-name TO FALSE",

@@ -3444,10 +3444,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     if (alphaName is not null)
                     {
                         if (!cond.Values.Any(v => v.High is not null))
+                        {
+                            if (IsAlphabetName(alphaName)) GateRangeAlphabetPhrase($"condition-name '{name}'");
                             Edition.Error(DiagnosticCatalog.ValueAlphabetWithoutThrough, $"condition-name "
                                 + $"'{name}': alphabet-name '{alphaName}' is written with no THROUGH phrase in "
                                 + "the clause, so there are no \"literals specified in the THROUGH phrase\" for "
                                 + "it to order (ISO §13.18.63.3 SR31)");
+                        }
                         else if (TryResolveRangeAlphabet(alphaName,
                                 CollatingSelection.ForComparison(parent.OperandPic?.Category, parent.OperandPic?.Category),
                                 $"condition-name '{name}'"))
