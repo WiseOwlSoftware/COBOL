@@ -43,7 +43,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
 
     /// <summary>Does <see cref="EcDispatchExpr"/> render a real selector for this unit (rather than the
     /// no-declarative constant)? Asked by the two emissions that must AGREE with it and with each other: the
-    /// <c>ICobolProgram.NonfatalDispatch</c> override (ProgramEmitter — the runtime raise path's entry into the
+    /// <c>INonfatalSelector.NonfatalDispatch</c> override (ProgramEmitter — the runtime raise path's entry into the
     /// selection) and the RESUME landing the same path needs (<see cref="EmitGatesOrInner"/>). If one were
     /// emitted without the other a <c>RaiseResumeSignal</c> would have no landing site, so the condition is
     /// spelled ONCE here rather than at both (kb/Work PB367b).</summary>
@@ -269,7 +269,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// inner dispatch (the fatal-gated or the plain) the statement needs — plus the RESUME landing for the
     /// selection those gates' raise sites now run.
     /// <para>A nonfatal condition raised INSIDE the runtime selects its declarative there (§14.6.13.1.4 #3,
-    /// through <c>ICobolProgram.NonfatalDispatch</c>), because the raise has no statement-level node an emitter
+    /// through <c>INonfatalSelector.NonfatalDispatch</c>), because the raise has no statement-level node an emitter
     /// could hang a dispatch on. A declarative that completes normally returns to the raise point and the
     /// statement finishes; a RESUME does not — §14.9.33.4 GR2/GR3 transfer control OUT of the interrupted
     /// statement, and the runtime expresses that as a <c>ResumeSignal</c> it cannot itself land. This catch is
@@ -565,10 +565,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// matching uses the catalog's longest-family-prefix predicate (so the open EC-USER-*/EC-IMP-* names select
     /// correctly). The GR3g outward-GLOBAL continuation is realized only on the I-O path (the existing F1
     /// <c>__RunGlobalUse</c> walk) — recorded in the deep-dive.</summary>
-    public void EmitDispatchSelector(BoundProgram bound, CodeWriter w)
+    public void EmitDispatchSelector(IReadOnlyList<BoundDeclarative> decls, CodeWriter w, bool asLocal)
     {
-        var decls = bound.Declaratives ?? [];
-        using (w.Block("private int __EcDispatch(string __ec, string __f)"))
+        using (w.Block($"{MemberMod(asLocal)}int __EcDispatch(string __ec, string __f)"))
         {
             void Tier(string comment, Func<string, Binding.Model.FileModel?, int, string?> condition)
             {
@@ -627,10 +626,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// (EXCEPTION-OBJECT references the object on declarative entry) already holds — the raise site set the
     /// register before dispatching. A null object matches nothing (spec-literal: no class describes it) → -3,
     /// the caller's §14.6.13.1.5 conversion.</para></summary>
-    public void EmitObjDispatchSelector(BoundProgram bound, CodeWriter w)
+    public void EmitObjDispatchSelector(IReadOnlyList<BoundDeclarative> decls, CodeWriter w, bool asLocal)
     {
-        var decls = bound.Declaratives ?? [];
-        using (w.Block("private int __EcObjDispatch(object? __obj)"))
+        using (w.Block($"{MemberMod(asLocal)}int __EcObjDispatch(object? __obj)"))
         {
             EmitObjDispatchPass(decls, eo => (eo as BoundEoClass)?.Symbol.FactoryOrInstanceCsTypes,
                 "// GR14 a) — object-class-name-1 entries, in the order the USE statements are specified", w);
@@ -669,10 +667,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// behind the F1 tiers, and the fatal-status default (status 3x/4x/7x/9x + enabled checking → abnormal
     /// termination unless a RESUME redirected — §9.1.13.1 / §14.9.49.4 GR12c; checking off keeps today's
     /// continue-on-error behavior, scout hazard H6).</summary>
-    public void EmitIoCheckEc(BoundProgram bound, CodeWriter w)
+    public void EmitIoCheckEc(IReadOnlyList<BoundDeclarative> decls, CodeWriter w, bool asLocal)
     {
-        var decls = bound.Declaratives ?? [];
-        using (w.Block("private int __IoCheckEc(string __f, bool __atEnd, bool __invKey, bool __onExc, int __mask, int __locMask, string? __stmt, string? __loc)"))
+        using (w.Block($"{MemberMod(asLocal)}int __IoCheckEc(string __f, bool __atEnd, bool __invKey, bool __onExc, int __mask, int __locMask, string? __stmt, string? __loc)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             // ⛔ THE RAISED NAME COMES FROM THE RUNTIME, NOT FROM THE STATUS ALONE (kb/Work PB526). §9.1.13.1's
@@ -759,11 +756,18 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// (imp-2/imp-3) with WHEN COMMON (imp-4, GR19): COMMON runs ONLY after the handler COMPLETES (falls off →
     /// <c>-1</c>); a RESUME NEXT STATEMENT (<c>-2</c>) is a transfer out of the handler and short-circuits COMMON
     /// (design SSOT §9.6 Q3). Both handler bodies are bounded pc-ranges run by the reused <c>__RunUse</c>.</summary>
-    public void EmitPerformInterceptor(CodeWriter w)
+    public void EmitPerformInterceptor(CodeWriter w, bool asLocal)
     {
-        EmitEcPerformMember(w);
-        EmitRunF3(w, asLocal: false);
+        EmitEcPerformMember(w, asLocal);
+        EmitRunF3(w, asLocal);
     }
+
+    /// <summary>The declaration modifier of a generated selection member: a class MEMBER for a program (and the
+    /// class-level funnels of a COBOL class), a LOCAL FUNCTION inside an OO method whose own declaratives or
+    /// Format-3 PERFORM give it method-scoped selection (kb/Work PB1010; design SSOT §9.10) — a local function
+    /// of the same name shadows the class member, so every raise site in the method's body reaches the method's
+    /// OWN selection (§14.9.49.4 GR3/GR4 a)) with no second spelling of the call.</summary>
+    internal static string MemberMod(bool asLocal) => asLocal ? "" : "private ";
 
     /// <summary>Emit the class-member <c>__EcPerform</c> raise-site funnel (ISO §14.9.28.4 GR17: a matching WHEN
     /// preempts the USE declaratives). ALWAYS a class member — it reaches a handler only through
@@ -771,9 +775,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// class-callable even when the F3 PERFORM (and hence <c>__RunF3</c>/<c>__RunUse</c>) is METHOD-LOCAL (an OO
     /// method's F3 PERFORM, design SSOT §9.10). Emitted once per program (the interceptor) and once per class that
     /// has any method-F3 (<see cref="OoEmitter"/>, gated on <c>bound.Ec.HasF3Perform</c>).</summary>
-    public void EmitEcPerformMember(CodeWriter w)
+    public void EmitEcPerformMember(CodeWriter w, bool asLocal = false)
     {
-        using (w.Block("private int __EcPerform(string __ec, string __f)"))
+        using (w.Block($"{MemberMod(asLocal)}int __EcPerform(string __ec, string __f)"))
         {
             w.Line("int __a = ExceptionState.RunTopFrame(__ec, __f.Length == 0 ? null : __f, out bool __h);");
             w.Line($"return __h ? __a : {(ecState.UnitHasF3 ? "__EcDispatch(__ec, __f)" : "-3")};   "
@@ -788,7 +792,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// Matcher, emitted inline where the F3 PERFORM statement is (so a method-local <c>__RunF3</c> is in scope).</summary>
     public void EmitRunF3(CodeWriter w, bool asLocal)
     {
-        using (w.Block($"{(asLocal ? "" : "private ")}int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
+        using (w.Block($"{MemberMod(asLocal)}int __RunF3(int __u, int __pc, int __cu, int __cpc)"))
         {
             // §14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL is assumed at the end of
             // imperative-statement-1" — so imp-2/3/4 run with NO exception checking enabled (§14.6.13.1.1: "if

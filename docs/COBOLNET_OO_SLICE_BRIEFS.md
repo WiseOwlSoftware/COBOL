@@ -841,7 +841,7 @@ private int __EcObjDispatch(object? __obj)
 ```
 `__obj is FOO` covers subclasses exactly per GR14a; a null object matches nothing → -3 (raising a null
 identifier is degenerate but spec-literal: EXCEPTION-OBJECT holds null, no declarative can match). Program
-units only — declaratives inside methods remain 0899 (StatementBinder.Oo.cs:114-117 unchanged).
+units only — declaratives inside methods were then 0899; they are implemented since kb/Work PB1010 (COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN, METHOD-SCOPED SELECTION).
 **Rejected:** matching by class-name string against `GetType().Name` (breaks on inheritance and is
 reflection-shaped); folding F4 entries into `EcEntries` (different match domain — GR3 explicitly bypasses the
 F1/F3 tiers for object raises).

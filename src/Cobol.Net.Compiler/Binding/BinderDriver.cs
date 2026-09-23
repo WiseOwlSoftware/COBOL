@@ -196,7 +196,9 @@ internal sealed class BinderDriver
         // import (CS0103).
         bool anyFiles = units.Any(u => u.Data.Files.Count > 0)
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
-            || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0);
+            || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0)
+            // a METHOD's own declaratives emit the same __IoCheck (kb/Work PB1010)
+            || classes.Any(c => c.Symbol.Methods.Concat(c.Symbol.FactoryMethods).Any(m => m.Binding is { Declaratives.Count: > 0 }));
 
         return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
             anyFiles);

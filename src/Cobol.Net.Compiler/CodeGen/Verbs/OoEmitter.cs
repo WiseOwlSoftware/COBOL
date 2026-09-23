@@ -43,6 +43,36 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     private static Place MethodRootPlace(DataItem root) =>
         new MemberPlace(new AccessPath([new RootFieldSegment(root.CsName)]), root);
 
+    /// <summary>⛔ THE ONE VALUE A METHOD LINKAGE ROOT HANDS BACK ACROSS THE ACTIVATION BOUNDARY — the BY REFERENCE
+    /// copy-out (§14.2.3 GR8) and the RETURNING delivery (§14.9.23.4 GR8) both read it, so the storage arms
+    /// cannot drift between them: a Tier-B REDEFINES canonical's string backing local; an ADDRESS-OF-taken
+    /// root's addressable cell (kb/Work PB1019 — <see cref="MethodCellFormalLoad"/>); a variable-length or fixed
+    /// group's image; else the root's own local.</summary>
+    private string MethodBoundaryValue(DataEmitter fields, DataItem root, string what) =>
+        fields.MethodRedefinesBackingDecl(root) is { } bk ? bk.Name
+        : root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: true } ? MethodCellFormalLoad(root)
+        : OoVarGroupCarried(root) ? PlaceRenderer.VarGroupImage(MethodRootPlace(root), what + " of")
+        : root.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(root), what)
+        : root.CsName;
+
+    /// <summary>An ADDRESS-OF-taken method LINKAGE root (kb/Work PB1019, method arm) lives in its per-activation
+    /// <c>StorageCell</c> (<see cref="PtrActivationSeed"/>), so its crossing value is read from that storage: a
+    /// root that crosses as characters (<see cref="OoCrossingType"/> <c>string</c> — a group, or an elementary item
+    /// stored as its image) is the cell's whole backing image; a typed crossing reads the item through its
+    /// place (the window over the cell).</summary>
+    private string MethodCellFormalLoad(DataItem root) =>
+        OoCrossingType(root) == "string" ? root.Class!.BackingCsName : PlaceRenderer.Read(MethodCellPlace(root));
+
+    /// <summary>The inverse of <see cref="MethodCellFormalLoad"/>: store the argument into the root's cell.</summary>
+    private string MethodCellFormalStore(DataItem root, string value) =>
+        OoCrossingType(root) == "string"
+            ? $"{root.Class!.BackingCsName} = {RuntimeApi.StrStore(value, $"{root.Class!.Width}")};"
+            : PlaceRenderer.Write(MethodCellPlace(root), value);
+
+    private Place MethodCellPlace(DataItem root) =>
+        Refs.ResolveItem(root) ?? throw new InvalidOperationException(
+            $"OO method: the ADDRESS-OF-taken LINKAGE root '{root.CobolName}' resolved to no place");
+
     private UnitEmitters U => program.Current;
     private EmitContext Ctx => U.Ctx;
     private NumericRenderer Num => U.Num;
@@ -300,6 +330,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         dispatch.UseDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
         dispatch.OuterGlobalUse = false;
         dispatch.DebugActive = false;            // a class owns no USE FOR DEBUGGING facility — clear any bleed (VCR 7.17)
+        dispatch.UnitHasResume = bound.Ec?.HasResume ?? false;   // a METHOD declarative's RESUME needs the PERFORM landing (kb/Work PB1010)
         callState.InheritedStatusPlace.Clear();
 
         using (w.Block($"public {(sealedType ? "sealed " : "")}class {csName} : {baseCsName}"))
@@ -329,7 +360,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             bool classHasF3Perform = bound.Ec is { HasF3Perform: true };
             bool savedUnitF3P = ecState.UnitHasF3Perform;
             ecState.UnitHasF3Perform = classHasF3Perform;
-            if (bound.Ec is { HasIoChecked: true }) U.Ec.EmitIoCheckEc(bound, w);
+            if (bound.Ec is { HasIoChecked: true }) U.Ec.EmitIoCheckEc([], w, asLocal: false);
             if (classHasF3Perform) U.Ec.EmitEcPerformMember(w);   // the raise-site funnel, once per class (§9.10.1-C1)
             ecState.UnitHasF3Perform = savedUnitF3P;
             if (bound.Paragraphs.Count > 0)
@@ -673,6 +704,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var ptrSeeds = PtrActivationSeed(Ctx.Data, m).ToList();
             for (int i = 0; i < ptrSeeds.Count; i++)
                 w.Line($"{ptrSeeds[i].Type} __ptrSv{i} = {ptrSeeds[i].Member}; {ptrSeeds[i].Member} = {ptrSeeds[i].Fresh};   // per-activation data-pointer storage (ISO §8.6.4)");
+            // The ACTIVATION's nonfatal selector (kb/Work PB1010 — the method twin of ProgramTable's install): a
+            // condition raised at a RUNTIME site while this method executes selects over THIS method's declaratives
+            // (§14.9.49.4 GR4 a)), never its invoker's. Saved here, installed where the method's own selection is in
+            // scope (below), restored in the activation's finally. Only an EC-model group raises through it.
+            bool nfInstall = ecState.Active && (m.Binding!.EntryPc <= m.Binding!.EndPc || m.Binding!.Declaratives.Count > 0);
+            if (nfInstall)
+                w.Line("var __nfM = ExceptionState.NonfatalDispatcher;   // the invoker's selector (ISO §14.6.13.1.4 #3)");
             w.Line("try");
             w.Line("{");
             if (Ctx.Data.Classification is { } cls)
@@ -705,6 +743,18 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // dispatch shape again). Without it a method-scoped view root declared its OWN local, splitting
                 // one §13.18.44 storage area in two; and now that a collapsed GROUP emits no record-struct type
                 // at all it would be a CS0246 on legal source.
+                // An ADDRESS-OF-taken LINKAGE formal (kb/Work PB1019, method arm): its storage is the per-activation
+                // StorageCell PtrActivationSeed just re-seeded with the initial image (§14.2.3 GR6 for the RETURNING
+                // item and an omitted formal), so a PRESENT formal copies the argument into that cell — the same
+                // boundary copy every other formal takes, into the one storage its ADDRESS OF names (§8.4.3.11.4 GR1).
+                if (root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: true } cellCls
+                    && ReferenceEquals(cellCls.Canonical, root))
+                {
+                    if (m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root)) is { } cf)
+                        w.Line($"if (!{cf.OmittedFlag}) {{ {MethodCellFormalStore(root, cf.ParamName)} }}   "
+                            + $"// LINKAGE formal {root.CobolName} (BY REFERENCE copy-in to its addressable cell, §14.2.3 GR8)");
+                    continue;
+                }
                 if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;
                 var (type, init) = fields.RootDecl(root);
                 var formal = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
@@ -752,48 +802,54 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 foreach (var idx in DataBinder.IndexNamesUnder(root))
                     if (m.DataScope.IndexFields.TryGetValue(idx, out var cell))
                         w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §8.6.4)");
-            // Per-method Format-3 (exception-checking) PERFORM context (design SSOT §9.10) — set ONLY for a method
-            // that HAS an F3 PERFORM (its handler pc-ranges were appended to the class pc space), restored after, so
-            // a non-F3 method is byte-identical. F3HandlerBasePc is the CLASS handler base (region marking in
-            // EmitDispatchMethod + HandlerUseId = DeclCount + (pc − base)); DeclCount 0 (a method has no USE decls).
+            // ⛔ THE METHOD IS ITS OWN SELECTION SCOPE (kb/Work PB1010; design SSOT §9.10). §14.9.49.4 GR3 selects
+            // over "the USE statements in the source element" and GR4 a) makes that the element containing the
+            // raising statement — this method. So the per-unit selection state is set to THIS method's for the
+            // duration of its body and restored after: its USE declaratives (§14.2.2 SR10 admits them in a method
+            // definition) and/or its Format-3 PERFORM handlers (whose pc-ranges were appended to the class pc space;
+            // F3HandlerBasePc is the CLASS handler base, HandlerUseId = DeclCount + (pc − base)). A method with
+            // neither keeps no selection machinery and is byte-identical.
+            var mDecls = m.Binding!.Declaratives;
             bool methodF3 = m.Binding!.HandlerCount > 0;
-            bool savedUnitF3P = ecState.UnitHasF3Perform;
-            int savedDeclCount = dispatch.DeclCount;
-            int? savedBase = dispatch.F3HandlerBasePc;
-            // ⛔ UNCONDITIONAL, unlike the F3 fields beside it: a method definition declares no USE procedures, so
-            // §14.9.18.4 GR6 has no GLOBAL declarative to be within the range of and the emitted method must not
-            // inherit the last PROGRAM's slots from this run-unit-lifetime state object (kb/Work PB409).
+            bool methodSelects = methodF3 || mDecls.Count > 0;
+            var savedSel = (ecState.UnitHasF3Perform, ecState.UnitHasF3, ecState.UnitHasF4, dispatch.UseDecls,
+                dispatch.DeclCount, dispatch.F3HandlerBasePc);
+            // ⛔ UNCONDITIONAL: a method is contained in no source element with a procedure division (§14.2.2
+            // SR12/SR13), so §14.9.18.4 GR6 has no GLOBAL declarative to be within the range of and the emitted
+            // method must not inherit the last PROGRAM's slots from this run-unit-lifetime state object (kb/Work PB409).
             var savedGlobalDecls = dispatch.GlobalDeclIds;
             dispatch.GlobalDeclIds = [];
-            if (methodF3)
+            if (methodSelects)
             {
-                ecState.UnitHasF3Perform = true;                    // raise sites in this method emit __EcPerform
-                dispatch.DeclCount = 0;
-                dispatch.F3HandlerBasePc = bound.F3HandlerBasePc;   // the class handler base
+                ecState.UnitHasF3Perform = methodF3;                            // raise sites emit __EcPerform
+                ecState.UnitHasF3 = mDecls.Any(d => d.EcEntries is not null);   // → the method's __EcDispatch
+                ecState.UnitHasF4 = mDecls.Any(d => d.Eo is not null);          // → the method's __EcObjDispatch
+                dispatch.UseDecls = mDecls.Count > 0;                            // I-O verbs call the method's __IoCheck
+                dispatch.DeclCount = mDecls.Count;
+                dispatch.F3HandlerBasePc = methodF3 ? bound.F3HandlerBasePc : null;
             }
-            if (m.Binding!.EntryPc <= m.Binding!.EndPc)
+            if (m.Binding!.EntryPc <= m.Binding!.EndPc || mDecls.Count > 0)
             {
                 // The method's slice of the class's one pc space, as a LOCAL FUNCTION (captures the locals
-                // above by reference — zero allocation for direct calls).
+                // above by reference — zero allocation for direct calls). The slice opens at the method's
+                // declarative sections (DeclStartPc), entered only through the method's own __RunUse.
                 string saved = dispatch.DispatchName;
                 dispatch.DispatchName = "__MDispatch";
                 if (methodF3)
-                {
-                    // Method-LOCAL Format-3 machinery (§9.10): __useActive re-entrancy guards sized to the CLASS total
-                    // handler count (the ONE HandlerUseId formula; a method uses only its own contiguous sub-range of
-                    // slots). __MDispatch carries the method's real slice AND its handler sub-range as cases; __RunUse/
-                    // __RunF3 (local functions calling __MDispatch) are reached only by the frame Matcher emitted inline
-                    // in imp-1, which the method-local capture reaches (design verified SOUND, C# emission lens).
-                    int hTotal = bound.F3HandlerBasePc is int cb ? bound.Paragraphs.Count - cb : 0;
-                    w.Line($"bool[] __useActive = new bool[{hTotal}];   // method-local Format-3 handler re-entrancy guards (§14.9.49.4 GR2)");
                     U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
-                        m.Binding!.EntryPc, m.Binding!.EndPc,
+                        m.Binding!.DeclStartPc, m.Binding!.EndPc,
                         m.Binding!.HandlerStartPc, m.Binding!.HandlerStartPc + m.Binding!.HandlerCount - 1);
-                    using (w.Block("int __RunUse(int __id, int __startPc, int __endPc)")) U.Dispatch.EmitRunUseBody(w, ecModel: true);
-                    U.Ec.EmitRunF3(w, asLocal: true);
-                }
                 else
-                    U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.Binding!.EntryPc, m.Binding!.EndPc);
+                    U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
+                        m.Binding!.DeclStartPc, m.Binding!.EndPc);
+                if (methodSelects)
+                    // The ONE selection-machinery emitter, as LOCAL FUNCTIONS of this method (they call the local
+                    // __MDispatch and capture the method's data). __useActive is sized to the declaratives plus the
+                    // CLASS total handler count (the ONE HandlerUseId formula).
+                    U.Dispatch.EmitUseMachinery(mDecls,
+                        methodF3 && bound.F3HandlerBasePc is int cb ? bound.Paragraphs.Count - cb : 0,
+                        hasIoChecked: mDecls.Count > 0 && bound.Ec is { HasIoChecked: true },
+                        hasF3Perform: methodF3, w, asLocal: true);
                 dispatch.DispatchName = saved;
                 // The ACTIVATION boundary's checking scope (kb/Work PB841 — the INVOKE twin of ProgramTable.CallProgram):
                 // the method's statements are its own source text (§7.3.25.4 GR6), so they start from all-off whatever
@@ -801,6 +857,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // __CobolInvoke's §14.9.23.4 GR7c check has read the activator's EC-OO-UNIVERSAL half.
                 string restore = "ExceptionState.RestoreChecking(__ckM);";
                 w.Line("var __ckM = ExceptionState.PushAllCheckingOff();   // the method's checking baseline (§7.3.25.4 GR6)");
+                if (nfInstall)
+                    w.Line("ExceptionState.NonfatalDispatcher = " + (U.Ec.UnitHasDispatchFunnel
+                        ? $"new NonfatalSelectorFn(__ec => {U.Ec.EcDispatchExpr("__ec", "\"\"")});"
+                        : "NonfatalSelectorFn.None;")
+                        + "   // this method's USE selection for a runtime-site nonfatal raise (§14.9.49.4 GR4 a))");
                 if (methodF3)
                 {
                     // The F3-method entry FLOOR (§9.10.1-C2): a method is a separate source element — its own unmatched
@@ -815,30 +876,21 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }} "
                         + $"finally {{ {restore} }}   // GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
             }
-            ecState.UnitHasF3Perform = savedUnitF3P;
-            dispatch.DeclCount = savedDeclCount;
-            dispatch.F3HandlerBasePc = savedBase;
+            (ecState.UnitHasF3Perform, ecState.UnitHasF3, ecState.UnitHasF4, dispatch.UseDecls,
+                dispatch.DeclCount, dispatch.F3HandlerBasePc) = savedSel;
             dispatch.GlobalDeclIds = savedGlobalDecls;
             // BY REFERENCE copy-out (§14.2.3 GR8) / RETURNING (§14.9.23.4 GR8). A Tier-B REDEFINES canonical's
             // storage IS its string backing (a width-correct image), not the suppressed root struct — write that
             // back / return that, else the generated C# names an undeclared local (review A/emission).
             foreach (var f in m.Binding!.Formals)
             {
-                string src = fields.MethodRedefinesBackingDecl(f.Item) is { } bk ? bk.Name
-                    : OoVarGroupCarried(f.Item)
-                        ? PlaceRenderer.VarGroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out of")
-                    : f.Item.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(f.Item), "OO method BY REFERENCE copy-out")
-                    : f.Item.CsName;
+                string src = MethodBoundaryValue(fields, f.Item, "OO method BY REFERENCE copy-out");
                 // No copy-out for an omitted formal: there is no argument, and the caller's slot is a placeholder.
                 w.Line($"if (!{f.OmittedFlag}) {f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
             }
             if (m.Binding!.Returning is { } r)
             {
-                string src = fields.MethodRedefinesBackingDecl(r) is { } bk ? bk.Name
-                    : OoVarGroupCarried(r)
-                        ? PlaceRenderer.VarGroupImage(MethodRootPlace(r), "OO method RETURNING delivery of")
-                    : r.IsGroup ? PlaceRenderer.GroupImage(MethodRootPlace(r), "OO method RETURNING delivery")
-                    : r.CsName;
+                string src = MethodBoundaryValue(fields, r, "OO method RETURNING delivery");
                 w.Line($"return {src};   // the invocation result (§14.9.23.4 GR8)");
             }
             // Close the PB36 activation try. The finally must cover every exit — the RETURNING `return` above, a
@@ -846,7 +898,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // frame and every later MODULE-NAME reads one element too deep.
             w.Line("}");
             string ptrRestore = string.Concat(ptrSeeds.Select((p, i) => $"{p.Member} = __ptrSv{i}; "));
-            w.Line($"finally {{ {ptrRestore}__ms.Pop(); }}   // §15.65.4 — the activation ends with the method");
+            string nfRestore = nfInstall ? "ExceptionState.NonfatalDispatcher = __nfM; " : "";
+            w.Line($"finally {{ {ptrRestore}{nfRestore}__ms.Pop(); }}   // §15.65.4 — the activation ends with the method");
             callState.MethodFormals = [];
         }
         w.Line();

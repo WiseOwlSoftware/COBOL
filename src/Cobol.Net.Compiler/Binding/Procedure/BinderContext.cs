@@ -109,13 +109,14 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <summary>⛔ THE PLACEMENT-RULE PROBE. Recomputed per read from the live bind position, never cached.</summary>
     public EnclosingContext Enclosing => new(SourceElement, _constructs, DeclarativeAtCursor());
 
-    /// <summary>The declarative section containing <see cref="BindCursor"/>, or null. The declarative sections
-    /// occupy the pcs below <c>EntryPc</c> (StatementBinder.Declaratives.cs) — ONE lookup, so a second placement
-    /// rule cannot acquire a second, differently-guarded copy of it (it had exactly one asker, RESUME, and three
-    /// rules that needed it and did not ask).</summary>
+    /// <summary>The declarative section containing <see cref="BindCursor"/>, or null — ONE lookup, so a second
+    /// placement rule cannot acquire a second, differently-guarded copy of it (it had exactly one asker, RESUME,
+    /// and three rules that needed it and did not ask). Each declarative section is a contiguous pc run
+    /// (<see cref="BoundDeclarative.Contains"/>), so the scan needs no "below EntryPc" bound — which a CLASS unit
+    /// could not supply, since each METHOD's declaratives sit below that method's own entry (kb/Work PB1010).</summary>
     private BoundDeclarative? DeclarativeAtCursor()
     {
-        if (_table is null || BindCursor < 0 || BindCursor >= _table.EntryPc) return null;
+        if (_table is null || BindCursor < 0) return null;
         var declaratives = _table.Declaratives;
         for (int i = 0; i < declaratives.Count; i++)
             if (declaratives[i].Contains(BindCursor)) return declaratives[i];

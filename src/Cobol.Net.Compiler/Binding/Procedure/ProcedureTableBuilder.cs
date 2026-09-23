@@ -371,13 +371,39 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // Four instances of ONE sentence — "the same X shall not be specified in more than one USE statement within
     // the same procedure division" — so ONE mechanism enforces all four (ConstructOperandRegister{TKey} holds
     // the construct-vs-operand boundary those rules draw; the USE STATEMENT is the construct here, the Format-2
-    // COLLATING SEQUENCE CLAUSE is the construct for its second consumer). Per procedure division by
-    // construction: a ProcedureTableBuilder is built per bound unit, and DECLARATIVES inside a method are
-    // rejected loud (DiagnosticCatalog.OoMethodDeclaratives), so no second procedure division shares these.
-    private readonly ConstructOperandRegister<int> _useModes = new();                                      // SR7
-    private readonly ConstructOperandRegister<string> _useFiles = new(StringComparer.OrdinalIgnoreCase);    // SR8
-    private readonly ConstructOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
-    private readonly ConstructOperandRegister<string> _useEcPairs = new(StringComparer.OrdinalIgnoreCase);  // SR14
+    // COLLATING SEQUENCE CLAUSE is the construct for its second consumer). ⛔ PER PROCEDURE DIVISION: a
+    // ProcedureTableBuilder is built per bound unit, and a CLASS unit's one builder collects EVERY method's
+    // procedure division (kb/Work PB1010 — a method definition takes Format 1, §14.2.2 SR10), so
+    // CollectMethodDeclaratives re-makes these four for each method's declaratives: a file named in one
+    // method's USE is not "more than one USE statement within the same procedure division" as another's.
+    private ConstructOperandRegister<int> _useModes = new();                                      // SR7
+    private ConstructOperandRegister<string> _useFiles = new(StringComparer.OrdinalIgnoreCase);    // SR8
+    private ConstructOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
+    private ConstructOperandRegister<string> _useEcPairs = new(StringComparer.OrdinalIgnoreCase);  // SR14
+
+    /// <summary>Collect a METHOD's declaratives portion (kb/Work PB1010; ISO §14.2.2 SR10 — "Formats 1 and 2 may be
+    /// specified in a source element if and only if that source element is a function definition, a function
+    /// prototype definition, a method definition, a program definition, or a program prototype definition"), at
+    /// the current end of the class's ONE pc space and under the method scope the caller has entered
+    /// (<see cref="BinderContext.CurrentMethodScope"/>), through the SAME <see cref="DeclCollectSection"/> a
+    /// program's declaratives take. Returns the method's own <see cref="BoundDeclarative"/>s in source order —
+    /// §14.9.49.4 GR3 analyzes "the USE statements in the source element", and a method IS the source element
+    /// that contains its statements (GR4 a)), so the emitter selects over exactly this list for them.</summary>
+    public IReadOnlyList<BoundDeclarative> CollectMethodDeclaratives(Core.ProcedureDivisionContext pd, HashSet<string> used)
+    {
+        _useModes = new();
+        _useFiles = new(StringComparer.OrdinalIgnoreCase);
+        _useReportGroups = new();
+        _useEcPairs = new(StringComparer.OrdinalIgnoreCase);
+        int first = _declaratives.Count;
+        foreach (var dp in pd.declarativePart())
+            foreach (var sec in dp.declarativeSection())
+            {
+                using var _ = ctx.Edition.At(sec);
+                DeclCollectSection(sec, used);
+            }
+        return _declaratives.Count == first ? [] : [.. _declaratives.Skip(first)];
+    }
 
     /// <summary>Close the USE statement just bound: its operands become the procedure division's, so a repeat
     /// in a LATER USE statement is the violation SR7/SR8/SR9/SR14 name and a repeat inside the statement itself
@@ -450,7 +476,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             AddParagraph(name, [], info, used);
 
         info.CloseAt(_paras.Count - 1);
-        _sections.Declare(info.Name, info);
+        // A METHOD's declarative section is a name in the METHOD's procedure division (§8.3.2.2.28 — "A section-name
+        // identifies a section in the procedure division"), declared where the method's other sections are — the
+        // same split AddParagraph makes for paragraph-names (kb/Work PB1010).
+        (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
 
         if (scope is { } s)
             // ISO §14.9.49.3 SR1: "The remainder of the section shall consist of zero, one, or more procedural

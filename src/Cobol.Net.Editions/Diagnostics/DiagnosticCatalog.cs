@@ -1390,9 +1390,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor OoInterfacePropertyPrototype = new(
         NotImplemented, "oo-interface-property-prototype", EditionSeverity.Error,
         "A GET/SET PROPERTY prototype in an interface is not yet implemented.", "ISO §10.6.2", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor OoMethodDeclaratives = new(
-        NotImplemented, "oo-method-declaratives", EditionSeverity.Error,
-        "DECLARATIVES inside a method are recognized but not yet implemented.", "ISO §14.2.1", RecognizedNotImplemented);
+    // ⛔ `oo-method-declaratives` is DELETED, not disabled (kb/Work PB1010): ISO §14.2.2 SR10 admits the declaratives
+    // format in a method definition, and a method's declaratives now bind and dispatch as its own (the per-method
+    // declarative table + the method-local selection machinery) — never reallocate the id.
     // ⛔ `oo-method-raising-last` is DELETED, not disabled (kb/Work PB410): the method arm no longer decides
     // §14.9.18.3 SR5 at all — it asks the same PlacementRules screen the program arm asks, so RAISING LAST in a
     // method's PERFORM WHEN phrase is ACCEPTED and one outside either admitted position is refused by

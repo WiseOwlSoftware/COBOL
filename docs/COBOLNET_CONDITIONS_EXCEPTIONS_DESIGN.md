@@ -81,7 +81,8 @@ OO mechanism (feedback_one_mechanism_per_job):
   `OoConformance.InterfaceConformsTo`, which shares `MethodConformanceMismatches` with the IMPLEMENTS pass)
   to a listed interface; d) never universal.
 - **PROPAGATE ON** (:24606) is an un-implemented directive — the pickup's rule-3 hole is documented in the
-  generated comment (residue). Method declaratives and object VIEWS (EC-OO-CONFORMANCE) stay 0899-named; the
+  generated comment (residue). Object VIEWS (EC-OO-CONFORMANCE) stay 0899-named; method declaratives are
+  implemented (kb/Work PB1010 — the METHOD-SCOPED SELECTION paragraph below); the
   interface / FACTORY-OF / ACTIVE-CLASS legs of the RAISING phrase are implemented (above — kb/Work PB389 on the
   operand end, PB815/PB814 on the header end). Every exception-object raise site renders its operand through
   `RuntimeApi.AsExceptionObject`, the one explicit conversion an interface-typed reference needs.
@@ -673,7 +674,26 @@ wrong outright, because a declarative may PERFORM a paragraph anywhere and GR2 s
 USE procedure. (b) **Only a DECLARATIVE id is a USE procedure.** The exception-checking PERFORM's imp-2/3/4
 handler ranges share `__RunUse` and its `__useActive` array but are selected by §14.9.28.4 GR17, not §14.9.49.4
 GR3 — GR2 does not reach them — so the emitted guard raises only below `DispatchState.DeclCount` (an OO method's
-method-local `__RunUse` is all handlers, DeclCount 0, and emits the bare guard unchanged). Every arm is pinned by
+method-local `__RunUse` numbers the METHOD's own declaratives first, then the class's handler slots — the same
+split, so a method with no declaratives emits the bare guard unchanged).
+
+*METHOD-SCOPED SELECTION (kb/Work PB1010).* §14.2.2 SR10 admits the declaratives format in a method definition, and
+§14.9.49.4 GR3/GR4 a) select over "the USE statements in the source element" containing the raising statement — the
+METHOD, which is contained in no source element with a procedure division of its own (§14.2.2 SR12/SR13), so no
+GR4 b) GLOBAL walk exists for it. Binding: `StatementBinder.BindMethodRoster` collects each method's declarative
+sections through `ProcedureTableBuilder.CollectMethodDeclaratives` — the SAME `DeclCollectSection` a program's take,
+with the SR7/SR8/SR9/SR14 registers re-made per method procedure division and the sections declared in the method
+scope — at the head of the method's pc slice (`OoMethodBinding.DeclStartPc .. EntryPc−1`, §14.2.3 GR1), onto
+`OoMethodBinding.Declaratives`. Emission: `OoEmitter.EmitMethod` points the per-unit selection state
+(`UnitHasF3`/`UnitHasF4`/`UnitHasF3Perform`, `UseDecls`, `DeclCount`, `F3HandlerBasePc`) at the method for its
+body and calls the ONE `DispatchEmitter.EmitUseMachinery` with `asLocal` — `__useActive`, `__RunUse`, `__IoCheck`,
+`__IoCheckEc`, `__EcDispatch`, `__EcObjDispatch`, `__EcPerform`, `__RunF3` become LOCAL FUNCTIONS that capture the
+method's data and shadow any class-level funnel, so every raise site's unchanged call reaches the method's own
+selection. A RUNTIME-site nonfatal raise reaches it through the activation's `INonfatalSelector`: the method installs
+a `NonfatalSelectorFn` over its selection (or `NonfatalSelectorFn.None` when it has none — so a method's raise can
+no longer select its INVOKER's declaratives) and restores the invoker's in the activation's `finally`, the twin of
+`ProgramTable`'s install. An OBJECT/FACTORY file's key is a per-instance field, so `UseTierEmitter` labels it with
+a case guard rather than a constant. Every arm is pinned by
 `FlowUseReentrancyTests` plus `conformance:2002/pb368_flow_use_reentrancy`.
 
 *The MULTI-OPERAND arm — the per-implicit-statement boundary (kb/Work PB419).* §14.9.33.4 GR2 a) qualifies its

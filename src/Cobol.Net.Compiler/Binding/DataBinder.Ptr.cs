@@ -97,13 +97,6 @@ public sealed partial class DataBinder
             while (root.Parent is { } p) root = p;
             if (contained && !CallGlobalRoots.Contains(root)) continue;   // not a global name — not this unit's to force
             if (root.IsBased) continue;                 // ADDRESS OF a based item reads its implicit pointer (§8.6.5)
-            // A METHOD's LINKAGE formal (or its RETURNING item) crosses the method boundary as its typed carrier
-            // (§14.9.23.4 GR8; OoEmitter.EmitMethod's copy-in/copy-out), so re-basing it onto a cell would leave
-            // the crossing with no storage to copy through. It stays un-forced and the SET bind reports the
-            // named residue — the same "carrier-resident LINKAGE formal" verdict the program path gives.
-            if (method?.Binding is { } mb
-                && (mb.Formals.Any(f => ReferenceEquals(f.Item, root)) || ReferenceEquals(mb.Returning, root)))
-                continue;
             if (root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)) continue;
             if (root.Class is { Tier: RedefinesTier.StringCanonical } ext
                 && CallExternalBackings.Any(b => b.BackingCsName == ext.BackingCsName))

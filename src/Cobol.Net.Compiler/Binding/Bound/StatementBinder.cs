@@ -222,9 +222,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>
     /// Bind a CLASS body: every method's paragraphs flatten into the class's ONE pc space (source order), each
-    /// method holding its contiguous exit-bounded range — the emit-into-a-type spine's binding half. The part-2
-    /// scope binds parameterless void methods completely; a method's own data division, PD USING/RETURNING/
-    /// RAISING formals, and declaratives are recognized-but-staged loud (port slice 2), never silently skipped.
+    /// method holding its contiguous exit-bounded range — the emit-into-a-type spine's binding half. A method's
+    /// DECLARATIVES (kb/Work PB1010 — §14.2.2 SR10 admits Format 1 in a method definition) are collected first,
+    /// at the head of its range exactly as a program's are (§14.2.3 GR1 — execution begins with the first
+    /// nondeclarative procedure), so the method's slice is [DeclStartPc..EndPc] and its entry is EntryPc.
     /// </summary>
     public BoundProgram BindMethodRoster(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> roster)
     {
@@ -244,6 +245,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 // direct field read/write (D-P1; observably identical to the §13.18.42 GR1/GR2 implicit
                 // MOVE methods). It still occupies a roster slot (override/implements machinery applies).
                 m.Binding!.EntryPc = table.Paragraphs.Count;
+                m.Binding!.DeclStartPc = m.Binding!.EntryPc;
                 m.Binding!.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
                 methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
                 continue;
@@ -254,13 +256,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             var scope = new OoMethodScope { Data = m.DataScope, MethodName = m.Name, Formals = m.Binding!.Formals };
             scopeToMethod[scope] = m;         // §9.10 — handler pc-ranges map back to this method via its scope
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
+            m.Binding!.DeclStartPc = table.Paragraphs.Count;
             m.Binding!.EntryPc = table.Paragraphs.Count;
             if (m.Ctx.procedureDivision() is { } pd)
             {
-                if (pd.declarativePart().Length > 0)
-                    data.Edition.Error(DiagnosticCatalog.OoMethodDeclaratives,
-                        $"class '{cls.Name}', method '{m.Name}': DECLARATIVES inside a method (ISO §14.2.1) "
-                        + "are recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
+                // The method's declaratives portion (§14.2.1 Format 1; §14.2.2 SR10): the declarative sections take
+                // the pcs BELOW the method's entry, reached only through its USE selection or an explicit PERFORM
+                // (§14.9.49.3 SR4) — the program layout, one method at a time (kb/Work PB1010).
+                m.Binding!.Declaratives = table.CollectMethodDeclaratives(pd, used);
+                m.Binding!.EntryPc = table.Paragraphs.Count;
                 // §14.4.3 — a method's procedure division may also open with unnamed sentences (same rule as a
                 // program's; the header form is shared). They take the method's ENTRY pc, set just above.
                 table.AddAnonymousParagraph(pd.sentence(), null, used);

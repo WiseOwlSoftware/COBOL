@@ -112,7 +112,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
         // EC-free program's source is unchanged.
         if (dispatchState.UseDecls || bound.Ec is { HasIoChecked: true } || bound.Ec is { HasF3Perform: true })
-            EmitUseMachinery(bound, w);   // an F3 PERFORM needs __RunUse/__EcPerform even with no USE declaratives (§14.9.28)
+            EmitUseMachinery(bound.Declaratives ?? [], bound.F3HandlerBasePc is int hb0 ? bound.Paragraphs.Count - hb0 : 0,
+                bound.Ec is { HasIoChecked: true }, bound.Ec is { HasF3Perform: true }, w, asLocal: false);   // an F3 PERFORM needs __RunUse/__EcPerform even with no USE declaratives (§14.9.28)
         if (dispatchState.DebugActive) EmitDebugRunner(w);
         EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
             0, bound.Paragraphs.Count - 1);
@@ -230,32 +231,40 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <c>__RunUse</c> bounded-dispatch invoker, and the <c>__IoCheck</c> selector (GR3/GR5/GR6 + §9.1.13.1:
     /// after an unsuccessful I-O status not covered by the statement's own AT END / INVALID KEY phrase, run at
     /// most ONE declarative — file-scoped first, then the open-mode scope incl. a file in the process of being
-    /// opened).</summary>
-    private void EmitUseMachinery(BoundProgram bound, CodeWriter w)
+    /// opened).
+    /// <para>⛔ THE ONE SELECTION-MACHINERY EMITTER for a program AND an OO method (kb/Work PB1010): a method whose
+    /// own declaratives (§14.2.2 SR10 admits them) or Format-3 PERFORM give it a selection scope calls it with
+    /// <paramref name="asLocal"/> true, so every member below becomes a LOCAL FUNCTION of the emitted method —
+    /// capturing the method's locals (its LINKAGE / LOCAL-STORAGE data, which its USE procedures reference) and
+    /// shadowing any class-level funnel of the same name, which is how each raise site in the body reaches the
+    /// declaratives of the source element containing it (§14.9.49.4 GR4 a)) and never a sibling method's.
+    /// <paramref name="f3Handlers"/> is the handler slot count above the declarative slots — the unit's own
+    /// appended handlers for a program, the CLASS total for a method (the ONE <c>HandlerUseId</c> formula).</para></summary>
+    public void EmitUseMachinery(IReadOnlyList<BoundDeclarative> decls, int f3Handlers, bool hasIoChecked,
+        bool hasF3Perform, CodeWriter w, bool asLocal)
     {
-        var decls = bound.Declaratives ?? [];
+        string mod = EcEmitter.MemberMod(asLocal);
         // The exception-checking (Format-3) PERFORM handler bodies (imp-2/3/4) are appended pc-ranges invoked by the
         // SAME __RunUse; each needs a __useActive slot above the declarative slots (§14.9.28.4 GR17). H is 0 until the
         // pc-range synthesis wave, so a non-F3-PERFORM unit's array is byte-identical.
-        int f3Handlers = bound.F3HandlerBasePc is int hb ? bound.Paragraphs.Count - hb : 0;
-        if (decls.Count > 0 || bound.Ec is { HasF3Perform: true })
+        if (decls.Count > 0 || hasF3Perform)
         {
-            w.Line($"private readonly bool[] __useActive = new bool[{decls.Count + f3Handlers}];   // §14.9.49.4 GR2 re-entrancy guards");
+            w.Line($"{(asLocal ? "" : "private readonly ")}bool[] __useActive = new bool[{decls.Count + f3Handlers}];   // §14.9.49.4 GR2 re-entrancy guards");
             if (ecState.Active)
                 // The EC-model form: __RunUse RETURNS the declarative's resume action (the dispatch result
                 // protocol — EcEmitter): a RESUME statement unwinds via ResumeSignal (§14.9.33; the
                 // StopRun/ProgramReturn exception-as-control precedent) and __RunUse converts it to the
                 // action; normal completion is -1 (§14.6.13.1.2). Emitted ONLY when the group uses the
                 // EC model — an EC-free build keeps the void form byte-identical.
-                using (w.Block("private int __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: true);
+                using (w.Block($"{mod}int __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: true);
             else
-                using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: false);
+                using (w.Block($"{mod}void __RunUse(int __id, int __startPc, int __endPc)")) EmitRunUseBody(w, ecModel: false);
             w.Line();
         }
-        if (decls.Any(d => d.EcEntries is not null)) ec.EmitDispatchSelector(bound, w);
-        if (decls.Any(d => d.Eo is not null)) ec.EmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
-        if (bound.Ec is { HasIoChecked: true }) ec.EmitIoCheckEc(bound, w);
-        if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w);   // __EcPerform + __RunF3 (§14.9.28 F3 interceptor)
+        if (decls.Any(d => d.EcEntries is not null)) ec.EmitDispatchSelector(decls, w, asLocal);
+        if (decls.Any(d => d.Eo is not null)) ec.EmitObjDispatchSelector(decls, w, asLocal);   // F4 (EC-OO)
+        if (hasIoChecked) ec.EmitIoCheckEc(decls, w, asLocal);
+        if (ecState.UnitHasF3Perform) ec.EmitPerformInterceptor(w, asLocal);   // __EcPerform + __RunF3 (§14.9.28 F3 interceptor)
         if (!dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         // Under the EC model __RunUse RETURNS the declarative's resume action, and __IoCheck must HAND IT BACK
         // to the verb site — the old `__RunUse(…); return;` discarded it, so a Format-1 declarative's RESUME AT
@@ -264,7 +273,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // build keeps the void form byte-identical.
         bool ecInt = ecState.Active;
         string none = ecInt ? "return -1;" : "return;";
-        using (w.Block($"private {(ecInt ? "int" : "void")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
+        using (w.Block($"{mod}{(ecInt ? "int" : "void")} __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line($"string __st = {RuntimeApi.FileStatus("__f")};");
             w.Line($"if (__st.Length == 0 || {IoStatusClass.Successful("__st")}) {none}   // successful — no declarative (ISO §14.9.49.4 GR6)");

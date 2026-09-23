@@ -63,7 +63,7 @@ public readonly record struct CobolArg(CobolPassMode Mode, ManagedPointer Carrie
 /// (positional formal mapping, §14.2.3 GR2); <see cref="Activate"/> runs it as the run-unit main program;
 /// <see cref="CloseFiles"/> closes this program's file connectors (CANCEL §14.9.5 GR9 implicit CLOSE).
 /// </summary>
-public interface ICobolProgram
+public interface ICobolProgram : INonfatalSelector
 {
     /// <summary>Activate as a CALLed program: map <paramref name="args"/> positionally onto the LINKAGE formals
     /// (ISO §14.2.3 GR2 — correspondence is positional, never by name), run, and deliver the RETURNING value (if
@@ -100,7 +100,32 @@ public interface ICobolProgram
     /// it without emitting anything, which is what keeps the zero-scaffolding invariant true for every program
     /// that declares no USE AFTER EXCEPTION CONDITION declarative and every non-COBOL implementation of this
     /// interface.</para></summary>
-    int NonfatalDispatch(string ec) => -3;
+    int INonfatalSelector.NonfatalDispatch(string ec) => -3;
+}
+
+/// <summary>The §14.6.13.1.4 #3 selection of ONE runtime element, seen from a RUNTIME raise site: the activation
+/// now executing installs its selector in <see cref="Exceptions.ExceptionState.NonfatalDispatcher"/> and restores
+/// its activator's on return, so a nonfatal condition detected inside the runtime selects over the declaratives of
+/// the source element containing the raising statement (§14.9.49.4 GR4 a)) and never its activator's. A PROGRAM
+/// is its own selector (<see cref="ICobolProgram"/>, installed by <c>ProgramTable</c>); an OO METHOD is a runtime
+/// element too (§15.65.4 r5 — "an INVOKE statement" activates one) and installs a <see cref="NonfatalSelectorFn"/>
+/// over its own selection — or <see cref="NonfatalSelectorFn.None"/> when it declares none (kb/Work PB1010).</summary>
+public interface INonfatalSelector
+{
+    /// <summary>The dispatch result protocol: <c>-1</c> completed normally, <c>-2</c> RESUME AT NEXT STATEMENT,
+    /// <c>-3</c> no qualifying declarative, <c>≥ 0</c> RESUME AT that pc (see <see cref="ICobolProgram"/>).</summary>
+    int NonfatalDispatch(string ec);
+}
+
+/// <summary>A method activation's <see cref="INonfatalSelector"/> — the method's own generated selection (a local
+/// function capturing the activation's data) behind the runtime's one interface (kb/Work PB1010).</summary>
+public sealed class NonfatalSelectorFn(Func<string, int> select) : INonfatalSelector
+{
+    /// <summary>The selector of an element that declares no USE procedures and no exception-checking PERFORM:
+    /// "no qualifying declarative", shared, allocation-free.</summary>
+    public static readonly NonfatalSelectorFn None = new(static _ => -3);
+
+    public int NonfatalDispatch(string ec) => select(ec);
 }
 
 /// <summary>

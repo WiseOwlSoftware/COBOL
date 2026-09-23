@@ -384,7 +384,7 @@ internal sealed class ProgramEmitter
             // ProgramTable installs it). A unit with no F3 machinery emits nothing and takes the interface
             // default's "no qualifying declarative", which is what keeps the zero-scaffolding invariant.
             if (Current.Ec.UnitHasDispatchFunnel)
-                w.Line($"int ICobolProgram.NonfatalDispatch(string __ec) => {Current.Ec.EcDispatchExpr("__ec", "\"\"")};"
+                w.Line($"int INonfatalSelector.NonfatalDispatch(string __ec) => {Current.Ec.EcDispatchExpr("__ec", "\"\"")};"
                     + "   // ISO §14.6.13.1.4 #3 / §14.9.49.4 GR3");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);

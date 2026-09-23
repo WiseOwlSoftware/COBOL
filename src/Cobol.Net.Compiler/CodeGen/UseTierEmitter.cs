@@ -55,7 +55,12 @@ internal static class UseTierEmitter
                 for (int i = 0; i < decls.Count; i++)
                     if (Qualifies(decls[i]))
                         foreach (var f in decls[i].Files)
-                            w.Line($"case {FileKeyExpr(f)}: {action(i)}");
+                            // An OBJECT/FACTORY file's key is its per-instance field, not a constant, so its label is a
+                            // case guard (a METHOD's USE ON an object file — kb/Work PB1010; C# CS9135 otherwise). A
+                            // program file's literal key keeps its constant label.
+                            w.Line(f.InstanceKeyField is null
+                                ? $"case {FileKeyExpr(f)}: {action(i)}"
+                                : $"case var _ when __f == {FileKeyExpr(f)}: {action(i)}");
             }
         if (!decls.Any(d => Qualifies(d) && d.ModeIndex is not null)) return;
         string head = $"switch ({RuntimeApi.FileOpenModeOf("__f")})";   // open-mode scope (GR3 b)/GR6 b)–e))

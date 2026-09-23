@@ -414,7 +414,7 @@ public sealed class ExceptionEngine
     /// <summary>The runtime element whose declaratives §14.6.13.1.4 #3 selects over — the ACTIVATION now
     /// executing, installed and restored by the activation boundary (<c>ProgramTable.RunMain</c> /
     /// <c>CallProgram</c>), null outside any COBOL activation. A generated program class overrides
-    /// <see cref="ICobolProgram.NonfatalDispatch"/> only when it has Format-3 selection machinery; every other
+    /// <see cref="INonfatalSelector.NonfatalDispatch"/> only when it has Format-3 selection machinery; every other
     /// element takes the interface's default and answers <see cref="NoDeclarative"/>, which is why installing it
     /// unconditionally is correct and why an element with no declaratives costs nothing.
     /// <para>⛔ This is the channel a RUNTIME raise site reaches a declarative through, and it has to be the
@@ -422,7 +422,7 @@ public sealed class ExceptionEngine
     /// not currently save (see kb/Work PB367b's report), so binding the selector to the raising STATEMENT would
     /// let a callee's raise run the ACTIVATOR's declaratives — a wrong-program dispatch. Bound to the activation,
     /// the callee's own (possibly default) selector answers.</para></summary>
-    public ICobolProgram? NonfatalDispatcher { get; set; }
+    public INonfatalSelector? NonfatalDispatcher { get; set; }
 
     // ── EC-ARGUMENT-FUNCTION ambient statement gate ───────────────────────────────────────────────────────────
 
@@ -1641,7 +1641,7 @@ public static class ExceptionState
     public static void StorageNotAvailError(string detail) => E.StorageNotAvailError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.NonfatalDispatcher"/>
-    public static ICobolProgram? NonfatalDispatcher
+    public static INonfatalSelector? NonfatalDispatcher
     {
         get => E.NonfatalDispatcher;
         set => E.NonfatalDispatcher = value;
