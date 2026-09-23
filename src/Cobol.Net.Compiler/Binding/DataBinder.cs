@@ -3909,8 +3909,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
                             if (sym is not null) locale = new LocaleRef(sym);
                         }
+                        // A ZERO integer-1 is ISO §5.5 1)'s, reported by the one integer-n screen
+                        // (Validation/IntegerOperandPass, COBOLNET2386 — kb/Work PB859); only a value too large for
+                        // any character count is this clause's own to report.
+                        bool zero = lp.integerLiteral().GetText().AsSpan().Trim('0').IsEmpty;
                         int size = int.TryParse(lp.integerLiteral().GetText(), out int sz) && sz > 0 ? sz : 0;
-                        if (size == 0)
+                        if (size == 0 && !zero)
                             Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation,
                                 $"data item '{cobolName ?? "FILLER"}': SIZE IS {lp.integerLiteral().GetText()} — "
                                 + "integer-1 gives the item's character positions and shall be a nonzero unsigned "

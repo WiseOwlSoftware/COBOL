@@ -81,13 +81,13 @@
   "ordinal": 1,
   "subject": "Description techniques",
   "rule-digest": "144924cb280b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass; src/Cobol.Net.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules",
+  "test-ref": "conformance:negative/pb859-occurs-zero-times; conformance:85/pb859_integer_n_zero_permitted; conformance-test:IntegerOperandZeroTests.ZeroWhereNoRulePermitsIt_IsCOBOLNET2386; conformance-test:IntegerOperandZeroTests.ZeroWhereItsRulePermitsIt_IsAccepted; unit:IntegerOperandSlotDriftTests.EveryGrammarRuleWritingIntegerLiteral_IsClassified",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB859 (+ PB910, the PERFORM 0 TIMES instance of the same rule), wave 56. BOTH halves of 5.5 1) are now enforced for every integer-n: UNSIGNED by construction (the grammar's integerLiteral : INTEGERLIT, pinned by SignedIntegerSlotDriftTests) and NONZERO by ONE pre-bind screen over every integerLiteral in the tree (Validation/IntegerOperandPass, COBOLNET2386). The associated rules that 'otherwise specify' are ONE table keyed by grammar rule, each citing its rule (13.18.34.3 SR4, 13.18.35.3 SR3, 13.18.38.3 SR16/SR28, 13.18.43.3 SR7/SR8, 14.9.51.3 SR15), and IntegerOperandSlotDriftTests derives the rule set from the generated parser in both directions so a new integer-n site cannot be added unclassified. OCCURS 0 TIMES used to reach Roslyn as CS0029.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-5.5-2",
@@ -12996,13 +12996,13 @@
   "ordinal": 1,
   "subject": "ENTRY-CONVENTION clause",
   "rule-digest": "8c11562ca953",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionForbiddenIn",
+  "test-ref": "conformance:negative/pb232-entry-convention-contained; conformance:2014/pb232_entry_convention_cobol",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "kb/Work PB232 (wave 56): the clause's source element is read off the parse tree at the one OPTIONS construction point; a contained program, a method definition and a FACTORY / OBJECT paragraph are refused (COBOLNET2385); an outermost program, a class and an interface definition accept it.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.7.4-1",
@@ -13041,13 +13041,13 @@
   "ordinal": 3,
   "subject": "ENTRY-CONVENTION clause",
   "rule-digest": "946478a3b63c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf",
+  "test-ref": "conformance:negative/pb232-entry-convention-name",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2014,2023",
+  "notes": "kb/Work PB232 (wave 56): the implementor-defined meaning is that NO entry-convention-name-1 is defined (docs/CONFORMANCE.md §7 DOC-A.1-64); one written is refused by name, COBOLNET2385.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.7.4-4",
@@ -14076,13 +14076,13 @@
   "ordinal": 11,
   "subject": "SPECIAL-NAMES paragraph",
   "rule-digest": "99467bdc037c",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind",
-  "test-ref": "unit:StandardCompareTests.Literal9_ObeysSr10AndSr11",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#OrderTableBind; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#TryClauseTextLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#LiteralPhraseOperand",
+  "test-ref": "unit:StandardCompareTests.Literal9_ObeysSr10AndSr11; conformance-test:ClassClauseForPhraseTests.ZeroLengthLiteral_IsSR11",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB101 T7: literal-9's half — a symbolic-character figurative constant or a zero-length literal is refused (COBOLNET0898 citing SR11). Literal-1..6 (the ALPHABET / CLASS / SYMBOLIC operands) are the pre-existing binders' half of the same rule and are not re-verdicted here; PARTIAL records that this landing owns only literal-9.",
-  "state": "GAP"
+  "notes": "kb/Work PB226 (wave 56). All SEVEN literals SR11 names are screened: literal-4 (LOCALE) and literal-9 (ORDER TABLE) through TryClauseTextLiteral (COBOLNET0898); literal-1/-2/-3 (ALPHABET literal phrase) and literal-5/-6 (CLASS range) through the ONE SPECIAL-NAMES operand decoder LiteralPhraseOperand, which kb/Work PB976 (79b438d82) made shared by both clauses and which already refused the zero-length half (COBOLNET1906 / COBOLNET1671). The residue this landing closed: a symbolic-character name in an ALPHABET literal phrase drew the CLASS rule (SR14 b2) instead of SR11; it is now refused under SR11 in either clause order (the paragraph's symbolic names are read syntactically before any clause binds). In a CLASS range a symbolic-character name cannot be written at all - the grammar admits only literals there - so it is refused at parse.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.3.7.3-12",
@@ -35331,13 +35331,13 @@
   "ordinal": 10,
   "subject": "CALL statement",
   "rule-digest": "846b7af7b69d",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Runtime/Control/CallAbi.cs#ICobolProgram",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/CallAbi.cs#ICobolProgram; src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf",
+  "test-ref": "conformance:2014/pb232_entry_convention_cobol; conformance:negative/pb232-entry-convention-name",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Re-read at 14.9.4.4 10) under the 'FORMAT 2' heading; citation validated (`cite.py --check 14.9.4.4 \"Control is transferred to the called program in a manner consistent with the entry convention specified for the program.\"` -> OK, General rules 10). Referent chased and re-validated independently: 11.9.7.4 GR4c (`cite.py --check 11.9.7.4 \"In all other cases, the entry convention is COBOL\"` -> OK, General rules 4 c); GR2 - when COBOL is specified the naming and mapping of program-names are per 8.3.2.2 and 'other aspects of the entry convention are implementor-defined'; GR3 - an entry-convention-name-1's meaning is implementor-defined; 11.9.7.3 SR1 permits the clause only in a class / function / function-prototype / interface / program-prototype definition or a program definition NOT contained within another program. || UPHELD. VERIFIED HALF: on the only reachable Format-2 arm (AS NESTED - the prototype arm is NOT-IMPLEMENTED, see the GR-14.9.4.4-7 row) the callee is by SR15 a contained or COMMON program, which SR1 forbids from carrying ENTRY-CONVENTION, so its convention is COBOL by GR4c, and COBOL.NET realizes exactly that: one uniform entry ABI `ICobolProgram.Call(CobolArg[] args, ManagedPointer? returning)` reached through ProgramTable.CallProgram, with the 8.3.2.2 name mapping case-insensitive via ProgramTable.NameEquals (OrdinalIgnoreCase) and the name trimmed at the call site. UNVERIFIED / MISSING HALF: an ENTRY-CONVENTION clause that IS written is parsed and dropped - OptionsBinder.Apply stores `m with { EntryConvention = ec.GetText() }` into OptionsModel.EntryConvention and a grep over src/ finds no reader in CodeGen or Runtime (only VersionConformancePass, for the introduction gate and the reserved-word exemption), so `ENTRY-CONVENTION IS <entry-convention-name-1>` on an outermost program is accepted and silently activated with the COBOL convention; and the prototype arm - where a program-prototype definition may legitimately declare a foreign convention - does not exist. What would close the row: consume OptionsModel.EntryConvention (at minimum a targeted diagnostic naming an entry-convention-name-1 this implementation defines no meaning for, the honest 11.9.7.4 GR3 posture), plus the Format-2 prototype arm and a golden. Edition claim: Format 2 is a COBOL-2002 addition and GR10 is printed under that heading.",
-  "state": "GAP"
+  "notes": "kb/Work PB232 (wave 56): the ENTRY-CONVENTION clause is now READ. Control is transferred in a manner consistent with the program's entry convention because COBOL is the only convention provided (docs/CONFORMANCE.md §7 DOC-A.1-64) and every runtime element is activated through the one COBOL ABI (ICobolProgram.Call via ProgramTable.CallProgram, §8.3.2.2 case-insensitive name mapping per §11.9.7.4 GR2); a program that names any other convention is refused by name (COBOLNET2385, §11.9.7.4 GR3) instead of being silently activated with the COBOL convention. The positive golden CALLs a contained program by its name in a different case (GR2 / §8.3.2.2). The program-prototype arm of Format 2 (a prototype declaring a foreign convention) is the program-prototype registry's, not this row's.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.4.4-11",
@@ -62841,13 +62841,13 @@
   "ordinal": 64,
   "subject": "ENTRY-CONVENTION clause (entry-convention-names, their meanings and the default when not specified)",
   "rule-digest": "d54ce33f0ee7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-64; src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#EntryConventionOf",
+  "test-ref": "conformance:negative/pb232-entry-convention-name; conformance:2014/pb232_entry_convention_cobol",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work PB232 (wave 56): optional item, Not provided - no entry-convention-name is defined; COBOL is the one convention and the default (GR4 c). A named convention is COBOLNET2385.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-65",

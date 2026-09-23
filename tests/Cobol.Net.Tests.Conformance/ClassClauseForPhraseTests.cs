@@ -90,6 +90,10 @@ public sealed class ClassClauseForPhraseTests
     [Theory]
     [InlineData("PB976Z1", "CLASS C9 IS \"\" \"A\".", "COBOLNET1671: CLASS C9: \"\" — an operand shall not be a zero-length literal (ISO §12.3.7.3 SR11)")]
     [InlineData("PB976Z2", "CLASS C9 IS \"A\".\n    ALPHABET AX IS \"\", \"A\".", "COBOLNET1906: ALPHABET AX: \"\" — an operand shall not be a zero-length literal (ISO §12.3.7.3 SR11)")]
+    // kb/Work PB226 — SR11's OTHER half in the ALPHABET literal phrase: a symbolic-character name is refused under
+    // SR11 itself (it used to draw the class rule, SR14 b2), whichever order the two clauses are written in.
+    [InlineData("PB226S1", "ALPHABET AX IS \"A\" ALSO BEL\n    SYMBOLIC CHARACTERS BEL IS 8.", "COBOLNET1906: ALPHABET AX: BEL — an operand shall not be a symbolic-character figurative constant (ISO §12.3.7.3 SR11)")]
+    [InlineData("PB226S2", "SYMBOLIC CHARACTERS BEL IS 8\n    ALPHABET AX IS \"A\" THRU BEL.", "COBOLNET1906: ALPHABET AX: BEL — an operand shall not be a symbolic-character figurative constant (ISO §12.3.7.3 SR11)")]
     public void ZeroLengthLiteral_IsSR11(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
     /// <summary>kb/Work PB977 — a FOR phrase written AFTER the clause's definition is refused BY NAME, the same code

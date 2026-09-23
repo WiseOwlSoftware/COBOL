@@ -4984,6 +4984,35 @@ public static class DiagnosticCatalog
         + "the report's control break detection has already read the control data items.",
         "ISO §14.9.49.3 SR10 / SR11");
 
+    /// <summary>§11.9.7 — an ENTRY-CONVENTION clause written where §11.9.7.3 SR1 does not permit it, or naming an
+    /// entry-convention-name-1, of which this implementation defines none (§11.9.7.4 GR3; Annex A.1 item 64,
+    /// docs/CONFORMANCE.md §7). The clause used to be parsed and read by nothing but the edition gate, so any
+    /// convention name compiled clean and the program was silently activated with the COBOL convention
+    /// (kb/Work PB232).</summary>
+    public static readonly DiagnosticDescriptor EntryConventionViolation = new(
+        "COBOLNET2385", "entry-convention-violation", EditionSeverity.Error,
+        "An ENTRY-CONVENTION clause is specified in a source element that may not carry it, or names an "
+        + "entry-convention-name this implementation does not define. ISO §11.9.7.3 SR1: 'The ENTRY-CONVENTION "
+        + "clause may be specified only in a class definition, a function definition, a function-prototype "
+        + "definition, an interface definition, a program prototype definition, or a program definition that is not "
+        + "contained within another program.' §11.9.7.4 GR3: 'When entry-convention-name-1 is specified, the "
+        + "meaning of the entry convention is implementor-defined.' COBOL.NET provides only the COBOL convention.",
+        "ISO §11.9.7.3 SR1; §11.9.7.4 GR3");
+
+    /// <summary>ISO §5.5 1) — an <c>integer-n</c> operand of a general format is written as zero where no associated
+    /// rule permits it. The one screen is <c>Validation/IntegerOperandPass</c>, with the per-position exceptions in
+    /// ONE table (kb/Work PB859). Before it, nothing enforced the NONZERO half anywhere: <c>OCCURS 0 TIMES</c>
+    /// compiled and reached Roslyn as CS0029 errors in generated C#.</summary>
+    public static readonly DiagnosticDescriptor IntegerOperandZero = new(
+        "COBOLNET2386", "integer-operand-zero", EditionSeverity.Error,
+        "An integer-n operand is zero. ISO §5.5 1): 'When the term integer-n (n = 1, 2, ...) is used in a general "
+        + "format and associated rules, it refers to a fixed-point integer literal that shall be unsigned and nonzero "
+        + "unless otherwise specified in the associated rules.' Only the positions whose rules expressly permit zero "
+        + "accept it - LINAGE TOP/BOTTOM (§13.18.34.3 SR4), a relative LINE (§13.18.35.3 SR3), the OCCURS lower bound "
+        + "(§13.18.38.3 SR16 / SR28), RECORD integer-2 / integer-4 (§13.18.43.3 SR7 / SR8), WRITE ADVANCING "
+        + "(§14.9.51.3 SR15).",
+        "ISO §5.5 1)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

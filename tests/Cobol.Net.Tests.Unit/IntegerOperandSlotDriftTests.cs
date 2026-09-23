@@ -1,0 +1,66 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+
+using System;
+using System.Linq;
+using CobolNet.Frontend.Generated;
+using CobolNet.Validation;
+using Xunit;
+
+namespace CobolNet.Tests.Unit;
+
+/// <summary>
+/// ⛔ ISO §5.5 1)'s NONZERO default is enforced by ONE screen (<c>Validation/IntegerOperandPass</c>, kb/Work PB859)
+/// over every <c>integerLiteral</c> — "the term 'integer-n' … refers to a fixed-point integer literal that shall be
+/// unsigned and nonzero unless otherwise specified in the associated rules". The screen is automatic; what is NOT
+/// automatic is the EXCEPTION question — does this format's rule otherwise-specify? — and a new grammar rule that
+/// writes <c>integerLiteral</c> gets the default silently. So the exception table's key set is DERIVED from the
+/// generated parser here, in both directions: every rule context exposing an <c>integerLiteral()</c> accessor must
+/// be classified, and every classified type must still expose one.
+/// </summary>
+public sealed class IntegerOperandSlotDriftTests
+{
+    private static Type[] RulesThatWriteIntegerLiteral() =>
+        typeof(CobolParserCore).GetNestedTypes()
+            .Where(t => t.GetMethods().Any(m => m.Name == "integerLiteral" && m.DeclaringType == t))
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
+            .ToArray();
+
+    [Fact]
+    public void EveryGrammarRuleWritingIntegerLiteral_IsClassified()
+    {
+        var derived = RulesThatWriteIntegerLiteral();
+        Assert.True(derived.Length >= 30, $"only {derived.Length} rules write integerLiteral — the scrape is blind");
+        var missing = derived.Where(t => !IntegerOperandRules.Slots.ContainsKey(t)).Select(t => t.Name).ToArray();
+        Assert.True(missing.Length == 0,
+            "grammar rule(s) write integerLiteral but are not classified in IntegerOperandRules.Slots — read the "
+            + "format's associated rules for a zero permission (§5.5 1) 'unless otherwise specified') and add a row: "
+            + string.Join(", ", missing));
+    }
+
+    [Fact]
+    public void EveryClassifiedRule_StillWritesIntegerLiteral()
+    {
+        var derived = RulesThatWriteIntegerLiteral().ToHashSet();
+        var stale = IntegerOperandRules.Slots.Keys.Where(t => !derived.Contains(t)).Select(t => t.Name).ToArray();
+        Assert.True(stale.Length == 0, "IntegerOperandRules.Slots names rule(s) that no longer write integerLiteral: "
+            + string.Join(", ", stale));
+    }
+
+    /// <summary>A zero permission is a claim about the STANDARD, so it carries its rule; a not-governed row carries
+    /// its reason. Neither may be blank.</summary>
+    [Fact]
+    public void EveryException_CarriesItsBasis()
+    {
+        foreach (var slot in ExceptionSlots())
+        {
+            Assert.False(string.IsNullOrWhiteSpace(slot.Basis));
+            if (slot.Kind == IntegerSlotKind.ZeroPermitted) Assert.StartsWith("ISO §", slot.Basis);
+        }
+    }
+
+    private static System.Collections.Generic.IEnumerable<IntegerSlot> ExceptionSlots() =>
+        IntegerOperandRules.Slots.Values
+            .Select(c => { try { return c(null!, null!); } catch (Exception) { return IntegerSlot.Default; } })
+            .Where(s => s.Kind != IntegerSlotKind.NonZero);
+}

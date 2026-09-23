@@ -61,6 +61,10 @@ internal sealed class BinderDriver
         // malformed structure can preempt it. The three sibling passes further down run POST-bind only because they
         // consume the bound model; this one has no such reason to wait. kb/Work PB485.
         global::CobolNet.Validation.LevelNumberPass.Run(tree, edition);
+        // ISO §5.5 1) — every integer-n is NONZERO unless an associated rule says otherwise (kb/Work PB859). Pre-bind
+        // for the level-number screen's reason: a pure syntax rule over the raw tree, and a zero OCCURS bound left to
+        // the binder used to reach Roslyn as CS0029 in generated C#.
+        global::CobolNet.Validation.IntegerOperandPass.Run(tree, edition);
         // §7.3.22.3 SR3 / §7.3.20.3 SR3 — WHERE a >>PUSH ALL / >>POP ALL may be written (kb/Work PB1005). Also a
         // pure position rule over the tree and the directive sites; no tree walk unless the source has one.
         global::CobolNet.Validation.PushPopAllPlacementPass.Run(tree, directives.DirectiveSites, edition);

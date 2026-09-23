@@ -61,8 +61,8 @@ internal static class OptionsBinder
             return m with { Arithmetic = ArithmeticOf(am, edition) };
         if (c.defaultRoundedClause()?.roundingModeName() is { } dr)
             return m with { DefaultRounding = RoundingModes.Map(dr) };
-        if (c.entryConventionClause()?.entryConventionName() is { } ec)
-            return m with { EntryConvention = ec.GetText() };
+        if (c.entryConventionClause() is { } ec)
+            return m with { EntryConvention = EntryConventionOf(ec, edition) };
         if (c.floatBinaryClause()?.endiannessPhrase() is { } fb)
             return m with { FloatBinaryEndianness = FloatFormatPhrase.Endianness(fb) };
         if (c.floatDecimalClause()?.floatDecimalEncoding() is { } fd)
@@ -72,6 +72,57 @@ internal static class OptionsBinder
         if (c.optionsInitializeClause() is { } init)
             return m with { Initialize = InitializeOf(init, edition) };
         return m;
+    }
+
+    /// <summary>The ENTRY-CONVENTION clause (ISO §11.9.7) — screened HERE, at the single construction point every
+    /// options-bearing production reaches (the <see cref="ArithmeticOf"/> precedent), so the clause is read by
+    /// something other than the edition gate (kb/Work PB232).
+    ///
+    /// <para>§11.9.7.3 SR1 — "The ENTRY-CONVENTION clause may be specified only in a class definition, a function
+    /// definition, a function-prototype definition, an interface definition, a program prototype definition, or a
+    /// program definition that is not contained within another program." The clause's source element is read off
+    /// the parse tree: a contained program, a method definition, and a class's FACTORY / OBJECT paragraph are the
+    /// options-bearing elements the list leaves out.</para>
+    ///
+    /// <para>§11.9.7.4 GR3 — "When entry-convention-name-1 is specified, the meaning of the entry convention is
+    /// implementor-defined." This implementation defines NO entry-convention-name (docs/CONFORMANCE.md §7, Annex A.1
+    /// item 64): every runtime element is activated through the one COBOL convention, <c>ICobolProgram.Call</c>
+    /// with the §8.3.2.2 name mapping (GR2). A name written anyway is refused by name rather than silently activated
+    /// with the COBOL convention — a silently-ignored calling convention is a clean compile and a wrong ABI at the
+    /// boundary.</para></summary>
+    private static string EntryConventionOf(Core.EntryConventionClauseContext ec, EditionContext? edition)
+    {
+        string name = ec.entryConventionName().GetText();
+        if (edition is null) return name;
+        using var _ = edition.At(ec);
+        if (EntryConventionForbiddenIn(ec) is { } element)
+            edition.Error(DiagnosticCatalog.EntryConventionViolation, $"the ENTRY-CONVENTION clause is specified in "
+                + $"{element} — it may be specified only in a class, function, function-prototype, interface or "
+                + "program-prototype definition, or a program definition that is not contained within another "
+                + "program (ISO §11.9.7.3 SR1)");
+        if (!name.Equals("COBOL", StringComparison.OrdinalIgnoreCase))
+            edition.Error(DiagnosticCatalog.EntryConventionViolation, $"ENTRY-CONVENTION IS {name}: this "
+                + "implementation defines no entry-convention-name — the meaning of one is implementor-defined "
+                + "(ISO §11.9.7.4 GR3) and the only convention provided is COBOL (Annex A.1 item 64)");
+        return name;
+    }
+
+    /// <summary>The source element §11.9.7.3 SR1 leaves out that <paramref name="ec"/> is written in, or null when
+    /// the clause is where SR1 permits it. The NEAREST enclosing element decides: a method's OPTIONS paragraph sits
+    /// inside a class definition, and it is the method that is the clause's source element.</summary>
+    private static string? EntryConventionForbiddenIn(Core.EntryConventionClauseContext ec)
+    {
+        for (Antlr4.Runtime.RuleContext? n = ec.Parent; n is not null; n = n.Parent)
+            switch (n)
+            {
+                case Core.MethodDefinitionContext: return "a method definition";
+                case Core.FactoryParagraphContext: return "a factory definition";
+                case Core.ObjectParagraphContext: return "an object definition";
+                case Core.NestedProgramContext: return "a program contained within another program";
+                case Core.ProgramUnitContext or Core.ClassDefinitionContext or Core.InterfaceDefinitionContext:
+                    return null;
+            }
+        return null;
     }
 
     /// <summary>The ARITHMETIC clause's mode — AND the one place COBOL.NET declines STANDARD-BINARY.

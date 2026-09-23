@@ -1455,7 +1455,10 @@
   "pb361-use-outside-declaratives",
   "pb362-goto-into-declarative",
   "pb363-generate-in-before-reporting",
-  "pb363-control-item-altered"
+  "pb363-control-item-altered",
+  "pb232-entry-convention-name",
+  "pb232-entry-convention-contained",
+  "pb859-occurs-zero-times"
  ],
  "pending": []
 }

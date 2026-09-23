@@ -747,6 +747,13 @@ public sealed partial class DataBinder
                 }
             }
             if (para.specialNamesParagraph() is not { } sn) continue;
+            // The paragraph's symbolic-character NAMES, read syntactically before any clause binds: the clauses are
+            // order-free, so an ALPHABET clause may precede the SYMBOLIC CHARACTERS clause that declares a name it
+            // writes — and §12.3.7.3 SR11 must still recognize it (kb/Work PB226).
+            _paragraphSymbolicNames = sn.specialNameEntry()
+                .Select(e => e.symbolicCharactersClause()).OfType<Core.SymbolicCharactersClauseContext>()
+                .SelectMany(sc => sc.symbolicCharacterEntry()).SelectMany(e => e.cobolWord())
+                .Select(w => w.GetText()).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var entry in sn.specialNameEntry())
             {
                 using var _ = Edition.At(entry);
@@ -1475,6 +1482,10 @@ public sealed partial class DataBinder
             "SR17", '2', '3', '4', "a THROUGH phrase", inSet);
     }
 
+    /// <summary>The symbolic-character names the SPECIAL-NAMES paragraph being bound declares (see
+    /// <c>SwitchBindSpecialNames</c>) — read by the §12.3.7.3 SR11 arm of <see cref="LiteralPhraseOperand"/>.</summary>
+    private HashSet<string> _paragraphSymbolicNames = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>⛔ THE ONE SPECIAL-NAMES literal-operand decoder (ISO §12.3.7.3 SR14 b/c for the ALPHABET clause,
     /// SR17 b/c for the CLASS clause — see <see cref="LiteralPhraseRules"/>): the characters one operand stands
     /// for, or null when it violates its clause's rule (the diagnostic is already reported).</summary>
@@ -1559,6 +1570,15 @@ public sealed partial class DataBinder
                 // the only shape it can legally take, and inside a multi-operand phrase it is a class-rule
                 // violation — never the characters of its own spelling (kb/Work PB770 leg e).
                 if (AlphabetFigurative(w.GetText(), r.National) is { } wordValue) return wordValue;
+                // §12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
+                // constant nor a zero-length literal": a symbolic-character name reaches here as a word, and it is
+                // THAT rule it breaks, not the class rule below (kb/Work PB226).
+                if (_paragraphSymbolicNames.Contains(w.GetText()) || SymbolicCharacters.ContainsKey(w.GetText()))
+                {
+                    Edition.Error(r.Code, $"{r.What}: {w.GetText()} — an operand shall not be a symbolic-character "
+                        + "figurative constant (ISO §12.3.7.3 SR11)");
+                    return null;
+                }
                 Edition.Error(r.Code, $"{r.What}: {w.GetText()} is not a literal — each operand shall be a numeric "
                     + $"literal, {(r.National ? "a NATIONAL" : "an alphanumeric")} literal or a figurative constant "
                     + $"(ISO §12.3.7.3 {r.Rule(r.ClassItem)}; §12.3.7.4 GR10)");

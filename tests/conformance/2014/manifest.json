@@ -128,7 +128,8 @@
   "pb965_vlg_into_fixed_invoke",
   "pb969_function_pointer_empty_arguments",
   "pb981_fd_variable_length_records",
-  "pb1025_key_after_dynamic_member"
+  "pb1025_key_after_dynamic_member",
+  "pb232_entry_convention_cobol"
  ],
  "pending": []
 }

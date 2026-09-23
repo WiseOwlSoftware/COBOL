@@ -28,8 +28,9 @@ public sealed record OptionsModel
     /// its own MODE. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.6.3 r2).</summary>
     public CobolRounding DefaultRounding { get; init; } = CobolRounding.NearestAwayFromZero;
 
-    /// <summary>ENTRY-CONVENTION clause (§11.9.7): <c>COBOL</c> or an implementor entry-convention-name, as written;
-    /// null when absent (the entry convention is then COBOL, §11.9.7.4).</summary>
+    /// <summary>ENTRY-CONVENTION clause (§11.9.7): <c>COBOL</c> or an entry-convention-name, as written; null when
+    /// absent (the entry convention is then COBOL, §11.9.7.4 GR4 c). Only COBOL is provided — any other name is
+    /// refused by <c>OptionsBinder.EntryConventionOf</c> (COBOLNET2385, kb/Work PB232).</summary>
     public string? EntryConvention { get; init; }
 
     /// <summary>FLOAT-BINARY clause endianness (§11.9.8). <see cref="FloatEndianness.Unspecified"/> when absent (the

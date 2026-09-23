@@ -155,7 +155,8 @@
   "pb1007_function_temporary_character_receivers",
   "pb1018_occurs_key_qualified",
   "pb362_declaratives_reference_boundary",
-  "pb363_before_reporting_legal_store"
+  "pb363_before_reporting_legal_store",
+  "pb859_integer_n_zero_permitted"
  ],
  "pending": []
 }
