@@ -14,8 +14,12 @@
        and into the Source Link map the PDB carries (whose checksum the assembly embeds), so every commit changed
        every assembly - the compiled-program cache keys on the compiler's bits and missed on every
        case of every re-gate that followed a commit, and every incremental build recompiled every project. Release
-       (the shipped build) keeps the stamp; nothing reads it in Debug. -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+       (the shipped build) keeps the stamp; nothing reads it in Debug.
+       ⛔ An EMPTY Configuration is Debug here: this file is imported BEFORE Microsoft.Common.props defaults
+       Configuration, so a project built on its own without -c (every CI build step) sees '' - only a solution
+       build passes Configuration=Debug as a global property. Keyed on 'Debug' alone, CI still stamped the
+       commit (train 52's first CI run, CompiledProgramCacheDriftTests.ADebugBuild_DoesNotStampTheCommit). -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' or '$(Configuration)' == ''">
     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
