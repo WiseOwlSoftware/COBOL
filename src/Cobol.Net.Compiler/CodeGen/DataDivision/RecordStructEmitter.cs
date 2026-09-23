@@ -111,7 +111,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
 
     /// <summary>The C# (type, initializer) pair for declaring one root as a METHOD LOCAL (the OO slice-2
     /// LINKAGE/LOCAL-STORAGE mapping) — the same composed initializer a field declaration gets, so a group
-    /// local's OCCURS arrays and VALUE seeds are identical to field semantics (§14.5.3: LOCAL-STORAGE
+    /// local's OCCURS arrays and VALUE seeds are identical to field semantics (§8.6.4: LOCAL-STORAGE
     /// re-initializes on every activation — a C# local declaration does exactly that).</summary>
     public (string Type, string Init) RootDecl(DataItem item) => (item.FieldType, vals.FieldInit(item));
 
@@ -120,7 +120,10 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// this backing (it is method-scoped), so <c>OoEmitMethod</c> emits it as a method LOCAL of type
     /// <c>string</c> — the members are windows over it (via <see cref="RedefViewPlace"/>). Null otherwise.</summary>
     public (string Name, string Init)? MethodRedefinesBackingDecl(DataItem root) =>
-        root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
+        // A CELL-BACKED class (BASED / ADDRESS OF — kb/Work PB956) has no stored string: its backing is the
+        // class-level `ref` bridge over the cell, and a local of the same name would SHADOW it, splitting the
+        // one storage area in two.
+        root.Class is { Tier: RedefinesTier.StringCanonical, IsCellBacked: false } cls && ReferenceEquals(cls.Canonical, root)
             ? (cls.BackingCsName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
             : null;
 

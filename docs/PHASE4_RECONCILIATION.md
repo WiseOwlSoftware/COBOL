@@ -602,7 +602,8 @@ The 4-lens find→2-skeptic-verify workflow (wf_4c49e522-ec0) over the landed di
   half**)** — the carrier-resident CsName rewrite would poison the based BackingCsName into invalid C#;
   0889 now covers both clauses.
 - **BASED/ADDRESS OF in a CLASS unit → CS0103** — class binders ran the pointer pass but the OO emitter has
-  no cell/bridge loops; staged loud (0899, the DataBinder.Oo method-WS EXTERNAL/GLOBAL gate posture).
+  no cell/bridge loops; staged loud (0899) until kb/Work PB956 — the OO type-halves now render the SAME
+  members through `OoEmitter.EmitPointerBackings`, with method LOCAL-STORAGE members per activation.
 - **FREE's nonfatal EC set never ran the declarative** — the checked leg now emits the §14.6.13.1.3 #5
   sequence (status set → F3 selection → RESUME-AT honored, no-handler continues).
 

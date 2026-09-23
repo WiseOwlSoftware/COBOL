@@ -5,6 +5,7 @@ using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
+using CobolNet.Compiler.Oo;
 
 namespace CobolNet.Binding;
 
@@ -51,19 +52,6 @@ public sealed partial class DataBinder
     /// data pass must decide storage BEFORE any statement binds (emission shape is per-class).</summary>
     internal void PtrBindBasedAndAddressables(Core.ProgramUnitContext program)
     {
-        // Class units stage LOUD (the DataBinder.Oo 0899 gate pattern — method-WS EXTERNAL/GLOBAL took the
-        // same posture): the OO emitter renders FieldEmitter output only, never the program-class cell/bridge
-        // loops, so a BASED item or ADDRESS-OF target in OBJECT/method data would reference undeclared
-        // members (a CS0103 compiler-crash channel — the review finding).
-        if (OoIsClassUnit)
-        {
-            if (Roots.Any(r => r.IsBased) || PtrScanAddressOfTargets(program).Any())
-                Edition.Error(DiagnosticCatalog.OoBasedInClass, "BASED data or ADDRESS OF in a class definition's data "
-                    + "divisions is recognized but not yet implemented (the OO cell/bridge emission — a "
-                    + "named Phase-4b residue; ISO §13.18.5 / §8.4.3.11)");
-            return;
-        }
-
         foreach (var root in Roots.Where(r => r.IsBased))
         {
             // A rejected class keeps its RejectReason — and the rejection is a BIND-TIME diagnostic now
@@ -86,19 +74,26 @@ public sealed partial class DataBinder
             _ptrBasedBridges.Add((cls.BackingCsName, cls.BackingCellCsName, addr, cls.Width));
         }
 
-        foreach (var (name, quals) in PtrScanAddressOfTargets(program))
+        foreach (var (name, quals, method) in PtrScanAddressOfTargets(program))
         {
-            // An unqualified head keeps the historical candidates[0] pick (a duplicate-name mis-force is
+            // An unqualified head keeps the historical first-candidate pick (a duplicate-name mis-force is
             // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §8.4.2.2
-            // qualification machinery so the RIGHT record is forced.
-            DataItem? hit = quals.Count == 0
-                ? ByName.TryGetValue(name, out var candidates) && candidates.Count > 0 ? candidates[0] : null
-                : new ReferenceResolver(this).FindItem(name, quals);
+            // qualification machinery so the RIGHT record is forced. Inside a METHOD both lookups run in the
+            // method's own scope (§11.7.4 GR5 — a method-local name shadows object data and is invisible to the
+            // unit-wide maps, which OoScopeSubtree emptied of it), exactly as the SET bind will resolve it.
+            DataItem? hit = PtrResolveAddressOfTarget(name, quals, method);
             if (hit is null)
                 continue;   // unresolved / ambiguous — the SET bind reports 0869 with the source text
             DataItem root = hit;
             while (root.Parent is { } p) root = p;
             if (root.IsBased) continue;                 // ADDRESS OF a based item reads its implicit pointer (§8.6.5)
+            // A METHOD's LINKAGE formal (or its RETURNING item) crosses the method boundary as its typed carrier
+            // (§14.9.23.4 GR8; OoEmitter.EmitMethod's copy-in/copy-out), so re-basing it onto a cell would leave
+            // the crossing with no storage to copy through. It stays un-forced and the SET bind reports the
+            // named residue — the same "carrier-resident LINKAGE formal" verdict the program path gives.
+            if (method?.Binding is { } mb
+                && (mb.Formals.Any(f => ReferenceEquals(f.Item, root)) || ReferenceEquals(mb.Returning, root)))
+                continue;
             if (root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)) continue;
             if (root.Class is { Tier: RedefinesTier.StringCanonical } ext
                 && CallExternalBackings.Any(b => b.BackingCsName == ext.BackingCsName))
@@ -112,6 +107,33 @@ public sealed partial class DataBinder
             _ptrAddressableCellOf[cls] = cell;
             _ptrAddressableBackings.Add((cls.BackingCsName, cell, cls.Canonical, cls.Width));
         }
+
+        // ⛔ A METHOD's cell-backed data takes its STORAGE DURATION from its section (kb/Work PB956): a method
+        // WORKING-STORAGE record is ONE per-class copy persisting across activations (§8.6.4 static items / OO deep-dive D3 —
+        // the static channel every other method-WS root rides), so its implicit pointer or its cell is a STATIC
+        // member. A LOCAL-STORAGE or LINKAGE record is per ACTIVATION (§8.6.4; §8.6.5 — a based entry's implicit
+        // pointer lives as long as the entry's storage) — OoEmitter.EmitMethod re-seeds its member on entry and
+        // restores the activator's on exit, so a recursive activation never sees its caller's address.
+        foreach (var root in OoMethodScopedRoots)
+            if (OoRootOwner.TryGetValue(root, out var owner) && owner.Binding!.StaticRoots.Contains(root)
+                && root.Class is { IsCellBacked: true } c && ReferenceEquals(c.Canonical, root))
+            {
+                if (c.BasedPointerField is { } bp) _staticBasedBridgeAddrs.Add(bp);
+                else if (PtrAddressableCellOf.ContainsKey(c)) _staticAddressableCells.Add(c.BackingCellCsName);
+            }
+    }
+
+    /// <summary>Resolve one scanned <c>ADDRESS OF</c> head in the scope its statement will bind in: the owning
+    /// METHOD's (§11.7.4 GR5) when <paramref name="method"/> is set, else the unit's.</summary>
+    private DataItem? PtrResolveAddressOfTarget(string name, List<string> quals, OoMethodSymbol? method)
+    {
+        var scope = method is null ? Model.Scope.Program : new Model.Scope(method.DataScope);
+        if (quals.Count == 0)
+            return Symbols.TryResolve(name, scope, out var candidates) && candidates.Count > 0 ? candidates[0] : null;
+        var saved = ActiveMethodScope;
+        ActiveMethodScope = method?.DataScope;
+        try { return new ReferenceResolver(this).FindItem(name, quals); }
+        finally { ActiveMethodScope = saved; }
     }
 
     /// <summary>Collect the data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the procedure
@@ -125,9 +147,26 @@ public sealed partial class DataBinder
     /// of them is forced here by construction. The receiving <c>ADDRESS OF data-name-1</c> of SET Format 7 is a
     /// different rule (<c>setAddressReceiver</c>) and is never forced: it names a BASED item (kb/Work PB450).
     /// </para></summary>
-    private static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
+    private IEnumerable<(string Name, List<string> Qualifiers, OoMethodSymbol? Method)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
     {
+        // A CLASS unit's statements live in its METHODS' procedure divisions — the synthetic unit OoDriver
+        // binds carries the data divisions only — so each method body is scanned and its targets carry the
+        // method whose scope resolves them (kb/Work PB956).
+        if (OoIsClassUnit)
+        {
+            foreach (var m in OoBoundMethods)
+                if (m.Ctx?.procedureDivision() is { } mpd)
+                    foreach (var (n, q) in PtrScanAddressOfSenders(mpd))
+                        yield return (n, q, m);
+            yield break;
+        }
         if (program.procedureDivision() is not { } pd) yield break;
+        foreach (var (n, q) in PtrScanAddressOfSenders(pd))
+            yield return (n, q, null);
+    }
+
+    private static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfSenders(IParseTree pd)
+    {
         foreach (var ctx in PtrDescendants(pd))
             if (ctx is Core.DataAddressIdentifierContext { } dai && dai.dataReference() is { } target)
             {

@@ -504,10 +504,12 @@ public sealed class OoClassTable
                             OoNameResolution.Want.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
                             "COBOLNET0840", citation).Interface is { } isym)
                     {
-                        if (into.Contains(isym))
-                            edition.Error("COBOLNET0840",
-                                $"class '{sym.Name}' ({where}): duplicate IMPLEMENTS '{iref.GetText()}' ({citation})");
-                        else
+                        // A REPEATED interface-name is legal and changes nothing (kb/Work PB946): §11.8.2/§11.4.2
+                        // print `IMPLEMENTS { interface-name-1 } …`, §11.8.3/§11.4.3 have exactly two syntax rules
+                        // (REPOSITORY membership; conformance) and neither forbids a repeat — where the standard
+                        // DOES forbid one it says so, §11.3.3 SR7 and §11.6.3 SR6 for the two INHERITS clauses. The
+                        // implemented set is what §11.8.4 GR2 consumes, so the second occurrence is absorbed.
+                        if (!into.Contains(isym))
                             into.Add(isym);
                     }
                 }

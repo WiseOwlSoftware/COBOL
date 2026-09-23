@@ -27,7 +27,7 @@ public sealed class OoMethodBinding
     /// entry): each becomes a capturable C# LOCAL of the emitted method.</summary>
     public List<DataItem> LinkageRoots { get; } = [];
 
-    /// <summary>LOCAL-STORAGE roots → C# locals, re-initialized on every activation (§14.5.3).</summary>
+    /// <summary>LOCAL-STORAGE roots → C# locals, re-initialized on every activation (§8.6.4).</summary>
     public List<DataItem> LocalRoots { get; } = [];
 
     /// <summary>Method WORKING-STORAGE roots → STATIC fields (D3 — shared across instances, persistent across

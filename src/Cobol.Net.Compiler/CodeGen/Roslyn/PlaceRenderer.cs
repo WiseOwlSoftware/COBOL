@@ -33,7 +33,13 @@ internal static class PlaceRenderer
         // A NUMERIC item viewed as its character image (ISO §8.4.3.3.4 GR6 ref-mod; §13.18.45 a RENAMES span leaf):
         // the BYTES it occupies — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED
         // (V59), which is what a span over it renames.
-        NumericImagePlace n => RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
+        // ⛔ A NATIVE FLOAT carrier takes the IEEE lane (kb/Work PB187): FormatImage has no float overload (the
+        // runtime names the float lanes distinctly — an integer argument would be ambiguous between Int128 and
+        // float), so this arm was a CS1503 on the first NATIVE float read through its image, e.g. a COMP-1
+        // argument crossing to a windowed COMP-1 formal. An image-stored float is already its image.
+        NumericImagePlace n => n.Inner.Item is { Pic.IsFloat: true, StoreAsImage: false }
+            ? RuntimeApi.NumFormatImageFloat(Read(n.Inner), n.Inner.Item.ProfileName)
+            : RuntimeApi.NumFormatImage(Read(n.Inner), n.Inner.Item.ProfileName),
         // A GROUP viewed as its character image for reference modification (ISO §8.4.3.3.3 SR1 / §8.4.3.3.4 GR6 —
         // kb/Work PB70): the generated AsImage(); an occurs-depending group with data-name-1 outside sends its
         // CURRENT-count part (§13.18.38 GR8, so a position past the count is EC-BOUND-REF-MOD, not a read of the
@@ -147,7 +153,10 @@ internal static class PlaceRenderer
             r.Inner.Item.OperandPic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
         // Decode the spliced image back into the typed field (via the FormatImage/StoreImage pair — the same
         // bytes the read produced, so a splice round-trips whatever the item's byte form is).
-        NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
+        // The float twin of the read arm above (kb/Work PB187) — the IEEE decode, narrowed to the carrier type.
+        NumericImagePlace n => n.Inner.Item is { Pic.IsFloat: true, StoreAsImage: false }
+            ? Write(n.Inner, $"({n.Inner.Item.Pic!.ClrType}){RuntimeApi.NumParseImageFloat(rhs, n.Inner.Item.ProfileName)}")
+            : Write(n.Inner, RuntimeApi.NumStoreImage(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         // The spliced group image goes back through the ONE group-image store (kb/Work PB70).
         GroupImagePlace g => WriteGroupImage(g.Inner, rhs, "reference modification into group"),
         // The spliced BOOLEAN string goes back through the generated FromBits, which distributes the boolean

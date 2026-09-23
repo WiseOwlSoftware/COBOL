@@ -27,7 +27,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 {
     /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
     /// the group-image channel every other operand path already uses (kb/Work PB177 arm A).
-    /// <para>A method's LINKAGE / LOCAL-STORAGE roots are C# LOCALS, not fields (§14.5.3 — re-initialized each
+    /// <para>A method's LINKAGE / LOCAL-STORAGE roots are C# LOCALS, not fields (§8.6.4 — re-initialized each
     /// activation), so there was no <see cref="Place"/> to hand <see cref="PlaceRenderer"/> and the three
     /// boundary sites spelled <c>.AsImage()</c> / <c>.FromImage(</c> themselves, with no capability guard and no
     /// window arm. A root local is structurally an <see cref="AccessPath"/> of exactly one
@@ -75,6 +75,64 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"private StorageCell {ext.CellCsName} => ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
                 + $"{init});   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5.4 GR8)");
             w.Line($"private ref string {ext.BackingCsName} => ref {ext.CellCsName}.Ref;");
+        }
+    }
+
+    /// <summary>Emit the data-pointer members of a data forest (ISO §13.18.5 BASED / §8.4.3.11 ADDRESS OF — the
+    /// Phase-4b increment-2 cell surfaces): each ADDRESS-OF-taken record's <c>StorageCell</c> + its backing
+    /// bridge, and each BASED root's implicit data-address pointer + its deref cell + backing. ⛔ THE ONE RENDERER
+    /// for the program class AND the OO type-halves (kb/Work PB956): the OO emitter rendered
+    /// <c>FieldEmitter</c> output only, so a class had to REFUSE every BASED item and ADDRESS OF target (a whole-unit
+    /// COBOLNET0899) — the members the bound places name did not exist.
+    /// <para>Storage duration follows the owning section. A RECURSIVE unit's static-WS based root and a method
+    /// WORKING-STORAGE root emit STATIC members (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); a method
+    /// LOCAL-STORAGE / LINKAGE root's member is per ACTIVATION, so it is not <c>readonly</c> — <see cref="EmitMethod"/>
+    /// re-seeds it on entry (<see cref="PtrActivationSeed"/>) and restores the activator's on exit.</para></summary>
+    public void EmitPointerBackings(DataBinder data, CodeWriter w)
+    {
+        foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
+        {
+            bool isStatic = data.StaticAddressableCells.Contains(cellField);
+            bool perActivation = !isStatic && data.OoMethodScopedRoots.Contains(canonical);
+            string mod = isStatic ? "private static readonly" : perActivation ? "private" : "private readonly";
+            string rmod = isStatic ? "private static" : "private";
+            w.Line($"{mod} StorageCell {cellField} = {AddressableCellInit(canonical, cellWidth)};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
+            w.Line($"{rmod} ref string {backing} => ref {cellField}.Ref;");
+        }
+        foreach (var (backing, cellProp, addrField, width) in data.PtrBasedBridges)
+        {
+            // A RECURSIVE unit's static-WS based root — and a method WORKING-STORAGE based root — emits its bridge
+            // STATIC (§13.5.4 GR1 / §8.6.4 static items — one copy on the class); the RECURSIVE one is reset to NULL by
+            // __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
+            string mod = data.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
+            w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5.4 GR2 — initially NULL)");
+            // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
+            // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
+            // the cell, so both halves see the same null/bounds verdict.
+            w.Line($"{mod} StorageCell {cellProp} => {RuntimeApi.PtrDeref(addrField, $"{width}")};   // BASED deref bridge (GR3/GR4 loud)");
+            w.Line($"{mod} ref string {backing} => ref {cellProp}.Ref;");
+        }
+    }
+
+    /// <summary>The fresh <c>StorageCell</c> of an ADDRESS-OF-taken record — seeded with the SAME VALUE-honoring
+    /// image expression the Tier-B stored backing uses (the based_pointer first-run lesson: a default image loses
+    /// VALUE). ONE composer for the member's declaration and a method's per-activation re-seed.</summary>
+    private string AddressableCellInit(DataItem canonical, int cellWidth) =>
+        $"new StorageCell {{ Ref = {RuntimeApi.StrStore(new DataEmitter(Ctx).ImageInitOf(canonical), $"{cellWidth}")} }}";
+
+    /// <summary>The per-ACTIVATION data-pointer members of one method (kb/Work PB956): for each cell-backed
+    /// LOCAL-STORAGE / LINKAGE root, the member and the fresh value an activation starts from — a BASED root's
+    /// implicit pointer starts NULL (§13.18.5.4 GR2), an ADDRESS-OF-taken record starts a fresh cell holding its
+    /// initial image (§8.6.4 — local storage is initialized on each activation).</summary>
+    private IEnumerable<(string Member, string Type, string Fresh)> PtrActivationSeed(DataBinder data, OoMethodSymbol m)
+    {
+        foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
+        {
+            if (root.Class is not { IsCellBacked: true } cls || !ReferenceEquals(cls.Canonical, root)) continue;
+            if (cls.BasedPointerField is { } addr)
+                yield return (addr, "ManagedPointer", "ManagedPointer.Null");
+            else if (data.PtrAddressableCellOf.TryGetValue(cls, out var cell))
+                yield return (cell, "StorageCell", AddressableCellInit(root, cls.Width));
         }
     }
 
@@ -257,6 +315,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // resolves its own activation LOCAL (EmitMethod).
             ObjectComputerEmit.EmitMembers(data, w, classificationField: false);
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
+            EmitPointerBackings(data, w);        // BASED bridges + ADDRESS-OF cells of object/factory AND method data (kb/Work PB956)
             U.ReportWriter.EmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
             EmitFileMembers(csName, data, bound, w);   // M2-OO-1i: object/factory file connectors + report construction register in an emitted ctor
             // A method file verb under >>TURN EC-I-O … CHECKING emits an __IoCheckEc call (§9.1.13.1 fatal-status
@@ -387,6 +446,36 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         !OoStringCarried(item)
         && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };   // CARRIAGE, not image form (kb/Work PB646)
 
+    /// <summary>D-U6a's OTHER bridge (kb/Work PB187): true when the item's canonical box is its NATIVE value — a
+    /// byte-form numeric other than zoned DISPLAY boxes by value (N:Float / N:Binary / N:Packed …) — while its
+    /// local crossing form is the IMAGE string, because the item is windowed (a REDEFINES / cell-backed class
+    /// member) or was promoted by StorageFormPass.UnifyCrossing. The box is decided by DESCRIPTOR and never by
+    /// either side's storage, so the side whose storage is the image converts through the item's own byte
+    /// form; without this arm the callee cast a boxed float to <c>string</c> (InvalidCastException on legal
+    /// source) and a windowed caller boxed its image where the callee expected the value.</summary>
+    private static bool OoUnivNativeBoxOverImage(DataItem item) =>
+        OoStringCarried(item) && !item.IsGroup && !OoUnivDisplayBoxed(item)
+        && item.Pic is { HasImageByteForm: true } && item.Pic.Usage is not Usage.National;
+
+    /// <summary>True when the descriptor's canonical box is the zoned display IMAGE (N:Display:*) — the item's
+    /// usage, never its storage (D-U6a).</summary>
+    private static bool OoUnivDisplayBoxed(DataItem item) =>
+        item.Pic is { Category: PicCategory.Numeric, IsFloat: false } p && p.ByteForm is NumericByteForm.Zoned
+        && p.Usage is not Usage.National;
+
+    /// <summary>The item's native value (its own carrier type) decoded from its byte image — the ONE decode the
+    /// NativeBoxOverImage bridge uses in both directions of both sides.</summary>
+    private static string OoImageToNative(DataItem item, string image) =>
+        item.Pic!.IsFloat
+            ? $"({item.Pic.ClrType}){RuntimeApi.NumParseImageFloat(image, item.ProfileName)}"
+            : RuntimeApi.NumStoreImage(image, item.ProfileName, $"default({item.Pic.ClrType})");
+
+    /// <summary>The item's byte image encoded from its native value — the inverse of <see cref="OoImageToNative"/>.</summary>
+    private static string OoNativeToImage(DataItem item, string native) =>
+        item.Pic!.IsFloat
+            ? RuntimeApi.NumFormatImageFloat(native, item.ProfileName)
+            : RuntimeApi.NumFormatImage(native, item.ProfileName);
+
     /// <summary>The callee-side unbox: box value → a local in the FORMAL's own crossing form.</summary>
     private static string OoUnivUnbox(DataItem item, string box) =>
         // The variable-length carrier boxes and unboxes VERBATIM — it is already the crossing form, and its
@@ -394,6 +483,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // spelled `(string)box!` into a `ref CobolVarGroup` parameter: CS1503 on a method merely DECLARED,
         // the PB177 arm-A shape exactly.
         OoVarGroupCarried(item) ? $"({RuntimeApi.VarGroupType}){box}!"
+        : OoUnivNativeBoxOverImage(item) ? OoNativeToImage(item, $"({item.Pic!.ClrType}){box}!")
         : OoStringCarried(item) ? $"(string){box}!"
         : OoUnivImageBridged(item) ? RuntimeApi.NumStoreDisplay($"(string){box}!", item.ProfileName, $"({item.ElementType})0")
         : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
@@ -401,7 +491,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>The callee-side re-box: a local in the formal's crossing form → the canonical box form.</summary>
     private static string OoUnivRebox(DataItem item, string local) =>
-        OoUnivImageBridged(item) ? RuntimeApi.NumFormatDisplay(local, item.ProfileName) : $"(object?){local}";
+        OoUnivImageBridged(item) ? RuntimeApi.NumFormatDisplay(local, item.ProfileName)
+        : OoUnivNativeBoxOverImage(item) ? $"(object?){OoImageToNative(item, local)}"
+        : $"(object?){local}";
 
     /// <summary>Caller-side universal dispatch (D-U6): box every argument per ITS OWN descriptor's canonical
     /// form, dispatch through the GR5 null guard with the bind-normalized literal or the runtime-normalized
@@ -505,12 +597,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         p is RefModPlace ? PlaceRenderer.Read(p)
         : CallEmitter.CallPlaceIsVarGroup(p) ? PlaceRenderer.VarGroupImage(p, "INVOKE argument")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Read(new NumericImagePlace(p))
+        : OoUnivNativeBoxOverImage(p.Item) ? $"(object?){OoImageToNative(p.Item, PlaceRenderer.Read(p))}"   // kb/Work PB187
         : PlaceRenderer.Read(p);
 
     private static string OoUnivCallerWrite(Place p, string box) =>
         p is RefModPlace ? PlaceRenderer.Write(p, $"(string){box}!")
         : CallEmitter.CallPlaceIsVarGroup(p)
             ? PlaceRenderer.WriteVarGroupImage(p, $"({RuntimeApi.VarGroupType}){box}!", "INVOKE copy-out into")
+        : OoUnivNativeBoxOverImage(p.Item) ? PlaceRenderer.Write(p, OoNativeToImage(p.Item, $"({p.Item.Pic!.ClrType}){box}!"))   // kb/Work PB187
         : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
         : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? PlaceRenderer.Write(p, $"({pic.ClrType}){box}")
@@ -519,7 +613,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <summary>
     /// Emit one METHOD-ID as a real typed C# method (slice 2 — deep-dive D3/D6/D7/D8): BY REFERENCE formals as
     /// <c>ref</c> parameters copied into CAPTURABLE locals (a local function cannot capture a by-ref parameter),
-    /// LINKAGE/LOCAL-STORAGE roots as locals (LOCAL-STORAGE re-initializes each activation, §14.5.3), the
+    /// LINKAGE/LOCAL-STORAGE roots as locals (LOCAL-STORAGE re-initializes each activation, §8.6.4), the
     /// method's paragraph slice as a LOCAL-FUNCTION dispatcher (<c>__MDispatch</c> — it captures the locals by
     /// reference, so PERFORM recursion and the implicitly-RECURSIVE method rule, §12032/:12032, are structural),
     /// the ref copy-out, and the RETURNING local as the C# return value (§14.9.23.4 GR8). D7: <c>virtual</c> by
@@ -537,12 +631,22 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 ? (m.IsFinal && !m.Owner.IsFinal ? "sealed override" : "override")
                 : (m.IsFinal || m.Owner.IsFinal) ? "" : "virtual";
             string pmods = pmod.Length == 0 ? "" : pmod + " ";
+            // ⛔ THROUGH THE SUBJECT'S PLACE, never its C# name (kb/Work PB956): a subject whose record is
+            // cell-backed (an ADDRESS OF target) or a Tier-B REDEFINES window has NO field of its own — its storage
+            // is a window over the class backing — so `=> {CsName}` was a CS0103 on legal source. A plain field's
+            // place renders as its name, so the ordinary accessor is unchanged.
+            var subjPlace = Refs.ResolveItem(subject);
+            string getExpr = subjPlace is null ? subject.CsName : PlaceRenderer.Read(subjPlace);
             if (m.Accessor == 'G')
-                w.Line($"public {pmods}{retType} {m.CsName}() => {subject.CsName};   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)");
+                w.Line($"public {pmods}{retType} {m.CsName}() => {getExpr};   // PROPERTY {m.PropertyName} GET (§13.18.42.4 GR1)");
             else
+            {
                 // The setter's one formal (§11.7.3 SR7) crosses through the SAME signature builder as every
                 // method, so a PROPERTY SET that overrides or implements a written SET method cannot drift from it.
-                w.Line($"public {pmods}void {m.CsName}({sig}) {{ {subject.CsName} = {m.Binding!.Formals[0].ParamName}; }}   // PROPERTY {m.PropertyName} SET (GR2)");
+                string param = m.Binding!.Formals[0].ParamName;
+                string store = subjPlace is null ? $"{subject.CsName} = {param};" : PlaceRenderer.Write(subjPlace, param);
+                w.Line($"public {pmods}void {m.CsName}({sig}) {{ {store} }}   // PROPERTY {m.PropertyName} SET (GR2)");
+            }
             w.Line();
             return;
         }
@@ -576,6 +680,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             string __mLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true);
             string __cLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Owner.Name.ToUpperInvariant(), quote: true);
             w.Line($"var __ms = {RuntimeApi.ModuleStack()}; __ms.Push({__mLit}, {__cLit}, false);   // §15.65.4 r5 — INVOKE is an activation");
+            // The per-ACTIVATION data-pointer members (kb/Work PB956): save the activator's, start this activation
+            // fresh, and restore in the activation's finally — so a recursive INVOKE on the same object neither
+            // inherits nor clobbers its caller's based address or LOCAL-STORAGE cell (§8.6.4; §8.6.5).
+            var ptrSeeds = PtrActivationSeed(Ctx.Data, m).ToList();
+            for (int i = 0; i < ptrSeeds.Count; i++)
+                w.Line($"{ptrSeeds[i].Type} __ptrSv{i} = {ptrSeeds[i].Member}; {ptrSeeds[i].Member} = {ptrSeeds[i].Fresh};   // per-activation data-pointer storage (ISO §8.6.4)");
             w.Line("try");
             w.Line("{");
             if (Ctx.Data.Classification is { } cls)
@@ -642,19 +752,19 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view → no local (review C)
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
                 {
-                    w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§14.5.3)");
+                    w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§8.6.4)");
                     continue;
                 }
                 if (root.Class is { Tier: RedefinesTier.StringCanonical }) continue;   // a view — a window over the backing, no local (kb/Work PB203)
                 var (type, init) = fields.RootDecl(root);
-                w.Line($"{type} {root.CsName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§14.5.3)");
+                w.Line($"{type} {root.CsName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§8.6.4)");
             }
-            // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§14.5.3; M2-OO-1h step 4) —
+            // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§8.6.4; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
             foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
                 foreach (var idx in DataBinder.IndexNamesUnder(root))
                     if (m.DataScope.IndexFields.TryGetValue(idx, out var cell))
-                        w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §14.5.3)");
+                        w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §8.6.4)");
             // Per-method Format-3 (exception-checking) PERFORM context (design SSOT §9.10) — set ONLY for a method
             // that HAS an F3 PERFORM (its handler pc-ranges were appended to the class pc space), restored after, so
             // a non-F3 method is byte-identical. F3HandlerBasePc is the CLASS handler base (region marking in
@@ -748,7 +858,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // GOBACK unwinding as MethodReturn, and an exception propagating to the invoker — or the stack leaks a
             // frame and every later MODULE-NAME reads one element too deep.
             w.Line("}");
-            w.Line("finally { __ms.Pop(); }   // §15.65.4 — the activation ends with the method");
+            string ptrRestore = string.Concat(ptrSeeds.Select((p, i) => $"{p.Member} = __ptrSv{i}; "));
+            w.Line($"finally {{ {ptrRestore}__ms.Pop(); }}   // §15.65.4 — the activation ends with the method");
             callState.MethodFormals = [];
         }
         w.Line();

@@ -129,12 +129,13 @@ public sealed class DisplayUsageUnionDriftTests
             // exclusion and fell to a Tier-C runtime loud.
             ["Binding/ReferenceResolver.cs"] = (0, 1),
 
-            // DISPLAY-ONLY (2), both CARRIAGE:
-            //  the whole-group promotion to CharImage storage — same question, and same D-N1 half-storage
-            //      reason, as MarkImageLeaves above.
-            //  UnifyCrossing's windowed-float vs native-float OO crossing — registered separately as
-            //      kb/Work PB187; do not "migrate" it here.
-            ["Binding/Passes/StorageFormPass.cs"] = (2, 0),
+            // DISPLAY-ONLY (1), CARRIAGE: the whole-group promotion to CharImage storage — same question, and same
+            //      D-N1 half-storage reason, as MarkImageLeaves above.
+            //  ⛔ WAS 2: UnifyCrossing's OO crossing reconciliation left with kb/Work PB187 — it asks "does the
+            //      native side HAVE a byte image to be promoted to?", which is PicInfo.HasImageByteForm (minus the
+            //      national-form numeric, PB646's carriage exclusion), so a windowed float/binary formal and its
+            //      native prototype twin now agree on ONE crossing form.
+            ["Binding/Passes/StorageFormPass.cs"] = (1, 0),
 
             // DISPLAY-ONLY (2), both CARRIAGE (MarkImageForced):
             //  the figurative pass — a NON-DIGIT figurative fill deposits fill CHARACTERS into the receiver's
@@ -151,7 +152,10 @@ public sealed class DisplayUsageUnionDriftTests
             // rejected BY THE STANDARD.
             ["Binding/Procedure/Verbs/StringUnstringBinder.cs"] = (0, 1),
 
-            // KEEPER, OUT-OF-WAVE — D-U6a's UNIVERSAL box bridge, the same OO crossing as kb/Work PB187.
+            // KEEPER — D-U6a's UNIVERSAL box bridge: OoUnivImageBridged asks whether the canonical box is the ZONED
+            // display image over a NATIVE local, which is genuinely the DISPLAY-only question. Its twin for every
+            // other byte form (native box over an IMAGE local) is OoUnivNativeBoxOverImage, which reads
+            // HasImageByteForm — kb/Work PB187.
             ["CodeGen/Verbs/OoEmitter.cs"] = (1, 0),
 
             // ⛔ TWO FILES LEFT THIS INVENTORY WITH kb/Work PB646, both because the question they ask is the

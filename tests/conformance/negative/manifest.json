@@ -51,6 +51,8 @@
   "pb240-call-any-length-format1",
   "pb240-call-any-length-content-format2",
   "pb240-call-any-length-formal-mismatch",
+  "pb521-property-with-based",
+  "pb521-property-with-typedef",
   "pb225-float-class-not-standard-float",
   "pb225-numeric-content-class-not-numeric",
   "pb225-float-class-below-2014",

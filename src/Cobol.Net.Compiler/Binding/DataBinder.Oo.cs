@@ -30,7 +30,7 @@ public sealed class OoMethodDataScope
 /// <summary>
 /// The METHOD-data half of the data binder (OO deep-dive D3/D6 — port slice 2): a method's LINKAGE SECTION
 /// (→ typed C# parameters via capturable locals), LOCAL-STORAGE SECTION (→ C# locals, re-initialized each
-/// activation, §14.5.3), and — in the editions that permit it — WORKING-STORAGE (→ STATIC fields, shared across
+/// activation, §8.6.4), and — in the editions that permit it — WORKING-STORAGE (→ STATIC fields, shared across
 /// instances and persistent across activations per §11.7; ILLEGAL in 2023 per §13.5.3 SR 1, gated by the
 /// version-conformance pass's <c>method-working-storage-window</c> row). Items bind into the CLASS's one forest (so
 /// USAGE/SIGN inheritance, object-reference resolution, profiles, and struct types all apply unchanged) but
@@ -47,6 +47,12 @@ public sealed partial class DataBinder
     /// that is NOT method-scoped is then OBJECT data — §14.9.23.3 SR 10 bans it from crossing an INVOKE
     /// BY REFERENCE (a bare object-data argument is assumed BY CONTENT instead, §14.9.23.4 GR6a2).</summary>
     public bool OoIsClassUnit { get; init; }
+
+    /// <summary>Every METHOD whose data this binder bound, in bind order — the roster whose procedure divisions
+    /// the data-pointer pre-scan walks (a class unit's synthetic program carries no procedure division of its
+    /// own; kb/Work PB956).</summary>
+    internal IReadOnlyList<OoMethodSymbol> OoBoundMethods => _ooBoundMethods;
+    private readonly List<OoMethodSymbol> _ooBoundMethods = [];
 
     /// <summary>Every method-scoped root of the class (union over all methods) — the SR 10 discriminator:
     /// an item whose 01/77 root is NOT in this set, in a class unit, is object data.</summary>
@@ -176,7 +182,9 @@ public sealed partial class DataBinder
     /// record's <c>StorageCell</c> — its ONE storage, which <c>ManagedPointer.At</c> aliases — emits STATIC
     /// (§13.5.4 GR1: one copy shared by every activation) and <c>__ResetStatics</c> re-seeds it IN PLACE
     /// (§14.6.2.3.2 action 2), where the old routing REJECTED `ADDRESS OF` a static item outright
-    /// (COBOLNET0899 — legal source refused).</summary>
+    /// (COBOLNET0899 — legal source refused). A METHOD's WORKING-STORAGE record's cell rides the same set (kb/Work
+    /// PB956 — §8.6.4 static items, one copy per class), the <see cref="StaticBasedBridgeAddrs"/> twin for the
+    /// addressable-cell surface.</summary>
     public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
     private readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
 
@@ -254,6 +262,7 @@ public sealed partial class DataBinder
     {
         string where = $"method '{m.Name}'";
         m.Binding ??= new OoMethodBinding();   // the after-data-bind half attaches HERE (P9 R7 — phase-explicit)
+        _ooBoundMethods.Add(m);
         // A method definition shall NOT contain an ENVIRONMENT DIVISION: the configuration section (§12.3.3 SR2)
         // and the input-output section / FILE-CONTROL (§12.4.3 SR1) may appear only in a factory or instance
         // definition — never a method. (Object/factory FILE-CONTROL is the M2-OO-1i object/factory ENV+FILE leg;
@@ -638,6 +647,19 @@ public sealed partial class DataBinder
             var pc = clauses?.Select(c => c.propertyClause()).FirstOrDefault(c => c is not null);
             if (pc is null) continue;
             string where = $"class '{cls.Name}'{(factory ? " (FACTORY)" : "")}";
+            // §13.16.3 SR21 — asked of the ENTRY'S OWN CLAUSES, before any subject lookup (kb/Work PB521): a TYPEDEF
+            // entry is a template BindEntries keeps off Roots, so a lookup-first check never saw it, and a BASED
+            // entry used to be refused only by the whole-unit "BASED in a class" stage that kb/Work PB956 lifted.
+            bool based = clauses!.Any(c => c.basedClause() is not null);
+            bool typedef = clauses!.Any(c => c.typedefClause() is not null);
+            if (based || typedef)
+            {
+                Edition.Error(DiagnosticCatalog.PropertyWithBasedOrTypedef, $"{where}: '{entry.dataName()?.GetText() ?? "FILLER"}' "
+                    + $"specifies the PROPERTY clause together with {(based && typedef ? "the BASED and TYPEDEF clauses" : based ? "a BASED clause" : "a TYPEDEF clause")} "
+                    + "— the PROPERTY clause shall not be specified in the same data description entry as a BASED "
+                    + "clause or a TYPEDEF clause (ISO §13.16.3 SR21)");
+                continue;
+            }
             if (entry.dataName()?.GetText() is not { } subjName)
             {
                 Edition.Error("COBOLNET0842", $"{where}: a PROPERTY clause requires a named data item "

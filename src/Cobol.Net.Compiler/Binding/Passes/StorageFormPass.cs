@@ -126,8 +126,17 @@ internal static class StorageFormPass
         {
             if (StringCarried(a) == StringCarried(b)) return false;
             var native = a.Storage is StorageForm.CharImage { Category: PicCategory.Numeric } ? b : a;
-            if (native.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                return false;   // only the display-numeric pair can diverge — the CARRIAGE question (kb/Work PB646)
+            // ⛔ EVERY BYTE-FORM NUMERIC, not the DISPLAY pair alone (kb/Work PB187). "Only the display-numeric pair
+            // can diverge" was true while ComputeTier refused every float / COMP-5 / BINARY-* / INDEX leaf in a
+            // REDEFINES / EXTERNAL / BASED class; the PB164 arm-1 dissolution admitted them, so a formal that is
+            // REDEFINED in its LINKAGE SECTION (§14.2.2 NOTE 2 — the clause is on the redefiner, never on the
+            // formal) is CharImage(Numeric) while its prototype/override twin stays native, and returning false
+            // here left the two C# signatures disagreeing (`ref string` against `ref float`). Every
+            // HasImageByteForm item HAS a byte image, so the one reconciliation is "promote the native side to
+            // the image form". A NATIONAL-form numeric stays out: its carrier positions are half its storage
+            // (D-N1), the CARRIAGE question kb/Work PB646 settled.
+            if (native.Pic is not { HasImageByteForm: true } || native.Pic.Usage is Usage.National)
+                return false;
             native.Storage = new StorageForm.CharImage(native.ImageWidth, PicCategory.Numeric);
             return true;
         }

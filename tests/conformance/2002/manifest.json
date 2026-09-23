@@ -14,6 +14,8 @@
   "pb239_call_address_identifier",
   "pb234_recursive_address_of_static",
   "pb240_call_operand_screens",
+  "oo_based_class_data",
+  "oo_implements_repeated",
   "pb225_float_class_words_are_user_words",
   "pb760_classification_national_group",
   "pb878_invoke_content_move_rules",

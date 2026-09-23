@@ -22,10 +22,10 @@ namespace CobolNet.Tests.Conformance;
 /// method-local NON-based item that legally shadows an object-level BASED one accepted for rebasing. A lookup
 /// that is merely INCOMPLETE fails one way; one that answers a DIFFERENT question fails both.</para>
 ///
-/// <para>⚠ Every program here also draws <c>COBOLNET0899</c> — BASED data in a class definition's data divisions
-/// is a named Phase-4b residue — so none of them compiles and the assertions are about the SR18 diagnostic
-/// alone. That residue is exactly why the resolver fix is sequenced FIRST: when it lifts, these verdicts are the
-/// visible behaviour of that landing.</para>
+/// <para>The positive programs here COMPILE now (kb/Work PB956): BASED data and ADDRESS OF targets in a class
+/// definition's data divisions used to draw a whole-unit <c>COBOLNET0899</c>, and PB467 sequenced this resolver
+/// fix first so that these verdicts would be the visible behaviour of the landing that lifted it. The positive
+/// cases therefore assert the whole compilation, not only the absence of the SR18 diagnostic.</para>
 /// </summary>
 public sealed class BasedItemScopeTests
 {
@@ -62,8 +62,9 @@ public sealed class BasedItemScopeTests
     [Fact]
     public void ObjectLevelBasedItem_SatisfiesSr18()
     {
-        var (_, errors, _) = EditionHarness.CompileFull(Cls("PB467CA", Based, "01 FILLER-X PIC X.", Rebase), 2002);
+        var (ok, errors, _) = EditionHarness.CompileFull(Cls("PB467CA", Based, "01 FILLER-X PIC X.", Rebase), 2002);
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
     /// <summary>THE SAME DECLARATION, MOVED into the method's LOCAL-STORAGE. §13.16.3 SR16 admits BASED there
@@ -73,8 +74,9 @@ public sealed class BasedItemScopeTests
     [Fact]
     public void MethodLocalBasedItem_SatisfiesSr18()
     {
-        var (_, errors, _) = EditionHarness.CompileFull(Cls("PB467CB", "01 FILLER-Y PIC X.", Based, Rebase), 2002);
+        var (ok, errors, _) = EditionHarness.CompileFull(Cls("PB467CB", "01 FILLER-Y PIC X.", Based, Rebase), 2002);
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
     /// <summary>A method-local NON-based item legally shadowing an object-level BASED one of the same spelling.
@@ -103,9 +105,10 @@ public sealed class BasedItemScopeTests
     [Fact]
     public void Allocate_OfAMethodLocalBasedItem_SatisfiesSr1()
     {
-        var (_, errors, _) = EditionHarness.CompileFull(
+        var (ok, errors, _) = EditionHarness.CompileFull(
             Cls("PB467CE", "01 FILLER-W PIC X.", Based, "    ALLOCATE MB RETURNING P1."), 2002);
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0869");
+        Assert.True(ok, string.Join("\n", errors));   // kb/Work PB956 — the class compiles, no 0899
     }
 
     /// <summary>ALLOCATE of the method-local non-based shadow violates §14.9.3.3 SR1, the other arm.</summary>

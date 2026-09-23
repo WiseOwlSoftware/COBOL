@@ -1372,10 +1372,10 @@ public static class DiagnosticCatalog
     // have documented a code the compiler cannot produce. COBOLNET0899 itself is the shared
     // recognized-not-implemented CODE and stays: ~40 other descriptors emit it. Only this NAME is retired, and
     // the name is never to be reused for anything else.
-    public static readonly DiagnosticDescriptor OoBasedInClass = new(
-        NotImplemented, "oo-based-in-class", EditionSeverity.Error,
-        "BASED data / ADDRESS OF in a class definition's data division is not yet implemented.",
-        "ISO §13.18.60", RecognizedNotImplemented);
+    // ⛔ `oo-based-in-class` (COBOLNET0899, "BASED data / ADDRESS OF in a class definition's data division is not
+    // yet implemented") was DELETED by kb/Work PB956: the OO type-halves now render the SAME BASED bridges and
+    // ADDRESS-OF cells the program class does (OoEmitter.EmitPointerBackings), so no site can raise it. The NAME is
+    // retired and never reused.
     public static readonly DiagnosticDescriptor OoExternalMethodWorkingStorage = new(
         NotImplemented, "oo-external-method-working-storage", EditionSeverity.Error,
         "EXTERNAL on a method WORKING-STORAGE item is not yet implemented.", "ISO §14.5", RecognizedNotImplemented);
@@ -4815,6 +4815,18 @@ public static class DiagnosticCatalog
         + "lanes; under --permissive, SR3 and SR4 (an arithmetic value or index data item sent to an integer "
         + "item, an arithmetic value sent to an index data item) are warnings and the value is stored.",
         "ISO §14.9.39.3 SR1-SR4");
+
+    /// <summary>§13.16.3 SR21 — a PROPERTY clause in the same data description entry as a BASED or a TYPEDEF clause
+    /// (kb/Work PB521, landed with kb/Work PB956: the a) leg used to be "enforced" only by the whole-unit refusal of
+    /// BASED data in a class, and the b) leg by nothing — a TYPEDEF entry never reaches the property roster).</summary>
+    public static readonly DiagnosticDescriptor PropertyWithBasedOrTypedef = new(
+        "COBOLNET2333", "property-with-based-or-typedef", EditionSeverity.Error,
+        "A data description entry specifies the PROPERTY clause together with a BASED clause or a TYPEDEF clause. "
+        + "ISO §13.16.3 SR21: \"The PROPERTY clause shall not be specified in the same data description entry as: "
+        + "a) a BASED clause, b) a TYPEDEF clause.\" A property's GET and SET methods act on the object's own "
+        + "storage for the item, which a based entry (a template with no storage until an address is set) and a "
+        + "type declaration (a template that describes no data item) do not have.",
+        "ISO §13.16.3 SR21");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

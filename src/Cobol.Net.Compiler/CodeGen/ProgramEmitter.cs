@@ -317,28 +317,7 @@ internal sealed class ProgramEmitter
                 w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27.4 GR2 — container storage, contained visibility)");
             }
             _oo.EmitExternalBackings(data, w);
-            foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
-            {
-                // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.
-                string seed = RuntimeApi.StrStore(new DataEmitter(Current.Ctx).ImageInitOf(canonical), $"{cellWidth}");
-                // A RECURSIVE unit's static-WS record emits its cell STATIC (§13.5.4 GR1 — one copy on the
-                // class), re-seeded in place by __ResetStatics (§14.6.2.3.2 action 2; kb/Work PB234).
-                string mod = data.StaticAddressableCells.Contains(cellField) ? "private static" : "private";
-                w.Line($"{mod} readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
-                w.Line($"{mod} ref string {backing} => ref {cellField}.Ref;");
-            }
-            foreach (var (backing, cellProp, addrField, width) in data.PtrBasedBridges)
-            {
-                // A RECURSIVE unit's static-WS based root emits its bridge STATIC (§13.5.4 GR1 — one copy on
-                // the class), reset to NULL by __ResetStatics (§14.6.2.3.2 action 5; kb/Work PB154).
-                string mod = data.StaticBasedBridgeAddrs.Contains(addrField) ? "private static" : "private";
-                w.Line($"{mod} ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5.4 GR2 — initially NULL)");
-                // ⛔ THE CELL FIRST, THE BACKING OVER IT (kb/Work PB231): the byte image and the addressed area's
-                // MANAGED SLOTS are two halves of ONE StorageCell, and the GR3/GR4 loud deref happens once, on
-                // the cell, so both halves see the same null/bounds verdict.
-                w.Line($"{mod} StorageCell {cellProp} => {RuntimeApi.PtrDeref(addrField, $"{width}")};   // BASED deref bridge (GR3/GR4 loud)");
-                w.Line($"{mod} ref string {backing} => ref {cellProp}.Ref;");
-            }
+            _oo.EmitPointerBackings(data, w);   // BASED bridges + ADDRESS-OF cells — the ONE renderer the OO type-half shares (kb/Work PB956)
 
             new DataEmitter(Current.Ctx).Emit();
 
