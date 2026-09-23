@@ -542,7 +542,7 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 
 ## Edge cases
 
-- Transitive passing mode: at the CALL site the BY CONTENT and BY REFERENCE phrases are transitive across the following arguments until the next such phrase, defaulting to BY REFERENCE (§14.9.4.4 GR5 — a Format-1 CALL has no BY VALUE); BY VALUE (only in the Format-2 program-prototype CALL) rides the argument-correspondence BY REFERENCE/BY VALUE transitivity (§14.2.3 GR4). One CallBinder mode-threading pass threads all three, drop its byte emission.
+- Transitive passing mode: at the CALL site the BY CONTENT and BY REFERENCE phrases are transitive across the following arguments until the next such phrase, defaulting to BY REFERENCE (§14.9.4.4 GR5 — a Format-1 CALL has no BY VALUE); BY VALUE (only in the Format-2 program-prototype CALL) rides the argument-correspondence BY REFERENCE/BY VALUE transitivity (§14.2.3 GR4). One CallBinder mode-threading pass threads all three, drop its byte emission. **The Format-1 narrowing's `--permissive` lane (kb/Work PB162):** §14.9.4.2 Format 1 admits `identifier-2` only, so BY VALUE, a BY CONTENT literal / expression and a bare literal / expression on a CALL with no AS phrase are COBOLNET0899 errors under strict; `--permissive` reports the same code as a warning and binds each with the Format-2 semantics it spells (a detached BY CONTENT value; the Value mode) — the vendor spellings GnuCOBOL, IBM and Micro Focus accept. All five sites frame through ONE helper, `CallBinder.Format1VendorSpelling`.
 
 **FORMAT 2'S ARGUMENT CLASSIFICATION — ONE reduction, then the mode (§14.9.4.4 GR8 + GR9; kb/Work PB238).**
 GR8 — "An argument that consists merely of a single identifier or literal is regarded as an identifier or

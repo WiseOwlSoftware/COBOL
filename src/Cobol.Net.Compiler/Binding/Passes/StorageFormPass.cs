@@ -64,6 +64,15 @@ internal static class StorageFormPass
         foreach (var d in ctx.AllBindersAndInterfaces())
             foreach (var group in d.WholeGroupReferenced)
                 AddNumericDisplayLeaves(group, promoted);
+        // (4) THE ELEMENTARY TWIN of (3) (kb/Work PB992): an elementary item a CHARACTER CHANNEL writes — a group
+        //     move's receiver, a BY REFERENCE crossing, a CALL RETURNING receiver (UsageCollectionPass). A native
+        //     carrier holds a VALUE, so characters with no numeric reading could not survive in it; the leaf
+        //     stores its character image instead, the one representation that holds every content. A REDEFINES
+        //     class member keeps its tier's classification (the bind-time image facts' same exclusion).
+        foreach (var d in ctx.AllBindersAndInterfaces())
+            foreach (var item in d.CharacterChannelItems)
+                if (item.Class is null && IsImagePromotable(item))
+                    promoted.Add(item);
         return promoted;
 
         static void AddNumericDisplayLeaves(DataItem item, HashSet<DataItem> promoted)
@@ -79,11 +88,17 @@ internal static class StorageFormPass
                 // HALF of it for usage NATIONAL (D-N1 — two bytes per position). A national-form numeric leaf
                 // contributes to the group image by the D-N7 composition instead, and promoting one was
                 // measured to corrupt a group-to-group MOVE between two of them.
-                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                else if (IsImagePromotable(child))
                     promoted.Add(child);
             }
         }
     }
+
+    /// <summary>The ONE eligibility test for image promotion: an elementary fixed-point numeric item of usage
+    /// DISPLAY — the CARRIAGE question, not the image-form one (kb/Work PB646; the reasoning is at the whole-group
+    /// arm above). Shared by the whole-group promotion and the character-channel promotion (kb/Work PB992).</summary>
+    private static bool IsImagePromotable(DataItem item) =>
+        !item.IsGroup && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };
 
     /// <summary>The STORAGE-level twin of <see cref="HarmonizeOverrideCrossings"/> (P5.7): the identical
     /// override-chain + implements-pair fixed point, deciding string-carriage off the just-classified

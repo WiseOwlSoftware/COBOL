@@ -239,7 +239,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         string image = national ? RuntimeApi.NatReadWindow(area, "0", positions)
             : bit ? RuntimeApi.BitsUnpack(area, positions)
             : area;
-        // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
+        // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge — never a
+        // usage-DISPLAY one, which this move's kind promotes to its image (UsageCollectionPass → StorageFormPass,
+        // kb/Work PB992), so only a BINARY/PACKED/national receiver takes this arm (kb/Work PB970); every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
         bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage

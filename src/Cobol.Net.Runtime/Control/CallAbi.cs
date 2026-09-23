@@ -509,9 +509,16 @@ public static class CobolArgAdapt
     /// sentence 3), and a store overlays the argument's storage (<see cref="CobolVarGroup.OverlayFixedImage"/>,
     /// §14.2.3 GR8). Before PB965's finisher the pair was refused at bind by a size compare on the collapsed
     /// width, and this arm did not exist.</para></summary>
-    public static ManagedPointer<string> Text(CobolArg[] args, int i, int width, int[]? groupLayout = null)
+    /// <remarks><paramref name="formalNum"/> is an image-stored NUMERIC formal's own description (kb/Work PB992) —
+    /// read only by the omitted arm, whose benign value (the documented §14.9.4.4 GR12 leniency: "a numeric view
+    /// answers zero") is then the formal's ZERO image rather than the empty string.</remarks>
+    public static ManagedPointer<string> Text(CobolArg[] args, int i, int width, int[]? groupLayout = null,
+                                              NumProfile? formalNum = null)
     {
-        if (!Present(args, i)) return Omitted<string>();
+        if (!Present(args, i))
+            return formalNum is { } fz
+                ? ManagedPointer<string>.OmittedArgument(() => CobolNum.FormatImage(0, fz), _ => { })
+                : Omitted<string>();
         if (groupLayout is null && IsPointerContent(args[i])) args = WithPointerContent(args, i, width);
         switch (args[i].Carrier)
         {
@@ -826,7 +833,9 @@ public static class CobolArgAdapt
     /// description-free leg below, which re-parsed the text as a C# number and ABORTED the run unit with
     /// EC-PROGRAM-ARG-MISMATCH whenever the content was not a digit run (spaces after a zero-length MOVE) —
     /// citing §14.8.3.3 against a pair §14.8.3.3 admits.
-    /// <para>⚠ A NATIVE cell holds a VALUE, not characters, so content that is not a valid numeric
+    /// <para>A usage-DISPLAY receiver never reaches the native arm below: a CALL RETURNING receiver is a character
+    /// channel, so the compiler stores it as its image (kb/Work PB992, <c>StorageFormPass</c>). For the other
+    /// usages (kb/Work PB970) a NATIVE cell holds a VALUE, not characters, so content that is not a valid numeric
     /// representation arrives as the value <c>ParseImage</c> reads from it — the same residue every character
     /// view of a native numeric cell has (a BY REFERENCE character formal's store, a group MOVE into it).</para></summary>
     public static void StoreReturn(CobolArg? ret, string text, NumProfile sent)
@@ -859,7 +868,10 @@ public static class CobolArgAdapt
     public static void StoreReturn(CobolArg? ret, string value)
     {
         if (ret is not { Carrier: var c } r) return;               // a CALL without RETURNING discards (GR4 has no receiver)
-        if (c is ManagedPointer<string> sp) { sp.Value = value; return; }
+        // A CHARACTER receiver takes the text. A NUMERIC receiver on a character carrier (an image-stored item —
+        // every usage-DISPLAY CALL RETURNING receiver is one, kb/Work PB992) is the non-conforming pair below,
+        // and reads the same digit image a native cell does, written back in its own record representation.
+        if (c is ManagedPointer<string> sp && r.Num is null) { sp.Value = value; return; }
         // A table-less fixed group into a variable-length receiver (kb/Work PB965): its one §8.5.1.12 fact is
         // its length (CobolVarGroup.FixedRun).
         if (c is ManagedPointer<CobolVarGroup> vp && r.Layout is { } rl
@@ -869,7 +881,11 @@ public static class CobolArgAdapt
             return;
         }
         string t = value.Trim();
-        if (Int128.TryParse(t, out Int128 v) && WriteNumericCell(c, v)) return;
+        if (Int128.TryParse(t, out Int128 v))
+        {
+            if (WriteNumericCell(c, v)) return;
+            if (c is ManagedPointer<string> ns && r.Num is { } rn) { ns.Value = CobolNum.FormatImage(v, rn); return; }
+        }
         if (double.TryParse(t, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out double d) && WriteRealCell(c, d)) return;
         Undeliverable(c, $"the character result \"{value}\"");

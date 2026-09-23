@@ -208,6 +208,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
 
+    /// <summary>ELEMENTARY items a CHARACTER CHANNEL can write — collected after binding by
+    /// <see cref="Passes.UsageCollectionPass"/> beside <see cref="WholeGroupReferenced"/>, and promoted by
+    /// <c>StorageFormPass</c> exactly as a whole-referenced group's leaves are (kb/Work PB992). A channel that
+    /// delivers CHARACTERS rather than a value — §14.9.25.4 GR4's group move into an elementary receiver, and
+    /// §14.2.3 GR8's shared storage between a BY REFERENCE argument and its formal parameter, where §14.8.2.3.2
+    /// rule 1 admits a formal of any description "of the same length", and the CALL RETURNING receiver — can
+    /// deposit content that is not a numeric value, and a native carrier holds only a value.</summary>
+    public HashSet<DataItem> CharacterChannelItems { get; } = [];
+
     /// <summary>The COLLECTED image-storage facts (PHASE-05 Step 7 — the flag-write sites become fact records):
     /// every elementary item some bind-time rule forces to store its CHARACTER IMAGE, recorded at the exact
     /// moment the legacy <c>StoreAsImage = true</c> writes fired — Tier-B/CALL-cell REDEFINES leaves (resolve),

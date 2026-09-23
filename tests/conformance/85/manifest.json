@@ -156,7 +156,8 @@
   "pb1018_occurs_key_qualified",
   "pb362_declaratives_reference_boundary",
   "pb363_before_reporting_legal_store",
-  "pb859_integer_n_zero_permitted"
+  "pb859_integer_n_zero_permitted",
+  "pb992_character_channel_numeric"
  ],
  "pending": []
 }

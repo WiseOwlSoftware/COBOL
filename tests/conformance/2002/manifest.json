@@ -393,7 +393,8 @@
   "pb1018_table_sort_qualified_keys",
   "pb970_pointer_by_content_storage_image",
   "pb1019_address_of_method_formal",
-  "pb1010_method_declaratives"
+  "pb1010_method_declaratives",
+  "pb992_returning_character_content"
   ],
   "pending": []
 }

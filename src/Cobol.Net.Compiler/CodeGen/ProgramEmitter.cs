@@ -151,7 +151,10 @@ internal sealed class ProgramEmitter
                 ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", f.Item.ProfileName, $"{fp.Scale}")
                 : RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{fixedWidth}", "null", "0", GroupFormalLayout(f.Item))
             : RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{fixedWidth}",
-                GroupFormalLayout(f.Item));
+                GroupFormalLayout(f.Item),
+                // An image-stored NUMERIC formal (kb/Work PB992) states its description, so an OMITTED
+                // argument's benign read is the numeric zero the documented GR12 leniency promises.
+                f.Item.IsElementary && f.Item.StoreAsImage ? f.Item.ProfileName : null);
 
     /// <summary>A fixed-length GROUP formal's §8.5.1.12 layout, the one fact a VARIABLE-LENGTH group argument
     /// needs to meet it (ISO §14.8.2.2 / §8.5.1.12.2; kb/Work PB965) — its layout literal when it has a table,

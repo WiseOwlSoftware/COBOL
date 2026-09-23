@@ -1339,10 +1339,14 @@ internal static class RuntimeApi
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Num)}<{carrier}>({args}, {position}, {profile}, {scale})";
 
     /// <summary>A LINKAGE formal's text carrier adoption — <c>CobolArgAdapt.Text</c>. <paramref name="groupLayout"/>
-    /// is a GROUP formal's §8.5.1.12 layout expression (kb/Work PB965), null for any other formal.</summary>
-    public static string ArgAdaptText(string args, int position, string width, string? groupLayout = null) =>
+    /// is a GROUP formal's §8.5.1.12 layout expression (kb/Work PB965), null for any other formal;
+    /// <paramref name="formalProfile"/> is an image-stored NUMERIC formal's profile field (kb/Work PB992), null
+    /// for any other formal.</summary>
+    public static string ArgAdaptText(string args, int position, string width, string? groupLayout = null,
+                                      string? formalProfile = null) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width}"
-        + $"{(groupLayout is null ? "" : $", {groupLayout}")})";
+        + $"{(groupLayout is null ? "" : $", {groupLayout}")}"
+        + $"{(formalProfile is null ? "" : $", formalNum: {formalProfile}")})";
 
     /// <summary>A DYNAMIC LENGTH formal's text carrier adoption — <c>CobolArgAdapt.DynText</c> (ISO §13.18.19;
     /// §14.2.3 GR9's second-regime dynamic-length record — kb/Work PB165).</summary>

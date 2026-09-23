@@ -63,10 +63,18 @@ internal static class UsageCollectionPass
         IEnumerable<DataItem>? extraFormalGroups = null)
     {
         var set = data.WholeGroupReferenced;
+        var channels = data.CharacterChannelItems;
 
         // Boundary-copied program formals — a group formal crosses as its character image (§14.2.3 GR8).
         foreach (var lf in data.LinkageFormals)
             if (!lf.CarrierResident && lf.Item.IsGroup) set.Add(lf.Item);
+
+        // ⛔ An ELEMENTARY BY REFERENCE formal is a character channel's far end (kb/Work PB992): ISO §14.2.3 GR8 —
+        // "the activated runtime element operates as if the formal parameter occupies the same storage area as
+        // the argument" — and a Format-1 activator's argument need only be "of the same length" (§14.8.2.3.2
+        // rule 1), so the characters the formal holds may be ones no numeric VALUE represents.
+        foreach (var lf in data.LinkageFormals)
+            if (!lf.ByValue && !lf.Item.IsGroup) channels.Add(lf.Item);
 
         // The program/function PROCEDURE DIVISION RETURNING group item crosses the activation boundary as its image.
         if (data.LinkageReturning is { IsGroup: true } ret) set.Add(ret);
@@ -76,7 +84,7 @@ internal static class UsageCollectionPass
             foreach (var g in extraFormalGroups)
                 if (g.IsGroup) set.Add(g);
 
-        var v = new Visitor(set);
+        var v = new Visitor(set, channels);
         foreach (var prog in programs)
             if (prog is not null)
                 foreach (var para in prog.Paragraphs)
@@ -89,7 +97,7 @@ internal static class UsageCollectionPass
     /// <see cref="BoundStatementTree.StatementChildren"/>. The per-leaf <c>Visit</c> collects ONLY the node's direct
     /// operands/conditions/init-actions — nested statements are the recursion's job, so containers whose only
     /// group-bearing content is nested statements have an empty <c>Visit</c>.</summary>
-    private sealed class Visitor(HashSet<DataItem> set) : IBoundStatementVisitor<bool>
+    private sealed class Visitor(HashSet<DataItem> set, HashSet<DataItem> channels) : IBoundStatementVisitor<bool>
     {
         public void Walk(BoundStatement s)
         {
@@ -99,7 +107,17 @@ internal static class UsageCollectionPass
         }
 
         // ── whole-group operand positions ──
-        public bool Visit(BoundMove n) { Op(n.Source); foreach (var t in n.Targets) P(t); return false; }
+        public bool Visit(BoundMove n)
+        {
+            Op(n.Source);
+            foreach (var t in n.Targets) P(t);
+            // ISO §14.9.25.4 GR4: a group sender's move into an ELEMENTARY receiver "is treated exactly as if it
+            // were an alphanumeric to alphanumeric elementary move, except that there is no conversion" — the
+            // receiver takes the sending CHARACTERS (kb/Work PB992). The node's own kind decides, per receiver.
+            for (int i = 0; i < n.Targets.Count; i++)
+                if (n.Stores[i].Kind is MoveKind.GroupToElementary) Channel(n.Targets[i]);
+            return false;
+        }
         public bool Visit(BoundExceptionPerform n) => false;   // no direct data operands; imp-1..5 walked via StatementChildren
         public bool Visit(BoundDisplay n) { foreach (var o in n.Operands) Op(o); return false; }
         public bool Visit(BoundAccept n) { P(n.Target); return false; }
@@ -150,8 +168,18 @@ internal static class UsageCollectionPass
         public bool Visit(BoundCallProgram n)
         {
             Op(n.DynamicName);
-            foreach (var a in n.Args) { P(a.Place); Op(a.Value); }
+            foreach (var a in n.Args)
+            {
+                P(a.Place); Op(a.Value);
+                // §14.2.3 GR8's shared storage — the formal's characters ARE the argument's (kb/Work PB992).
+                if (a.Mode is CobolNet.Runtime.CobolPassMode.Reference && !a.Omitted) Channel(a.Place);
+            }
             P(n.Returning);
+            // §14.6.5: the result "is the content of the data item" the callee's RETURNING phrase references, and
+            // §14.9.4.4 GR4 places it into identifier-3 — a CONTENT transfer, whatever that content is. A
+            // user-defined function's result temporary is exempt: it mirrors its model's storage form already
+            // (the compiler-temp re-sync in StorageFormPass), which is the same answer reached structurally.
+            if (!n.IsFunction) Channel(n.Returning);
             return false;
         }
         public bool Visit(BoundCancel n) { foreach (var (_, dn) in n.Targets) Op(dn); return false; }
@@ -306,6 +334,16 @@ internal static class UsageCollectionPass
         private void SetT(BoundSetTarget t)
         {
             if (t is SetPlaceTarget p) P(p.Place);
+        }
+
+        /// <summary>Record the item a character channel writes through <paramref name="place"/> (kb/Work PB992).
+        /// A Tier-B REDEFINES window already IS a character image, and an OCCURS DYNAMIC element stores through
+        /// its table codec; every other place — a reference-modified view included, whose store splices into
+        /// the item's own character positions (§8.4.3.3.4 GR6) — names the item whose storage it reaches.</summary>
+        private void Channel(Place? place)
+        {
+            if (place is null or RedefViewPlace or DynTablePlace || place.Item.IsGroup) return;
+            channels.Add(place.Item);
         }
 
         private void P(Place? place)
