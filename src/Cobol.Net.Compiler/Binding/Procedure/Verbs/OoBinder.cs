@@ -84,7 +84,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         null, op.Set.Owner?.CsName));
             }
         }
-        return pre.Count + post.Count == 0 ? core : new BoundSequence([.. pre, core, .. post]);
+        if (pre.Count + post.Count == 0) return core;
+        // §8.4.3.9.4 GR1/GR2: each accessor is invoked "as though" by an INVOKE, but it is written as an OPERAND of
+        // the statement, so a condition it propagates resumes after THAT statement — the operand-activation mark
+        // UdfBinder.DrainPending gives a function reference (kb/Work PB892; §14.9.33.4 GR2 a) 2.). Its checking
+        // profile is EcBinder.EcWrap's sequence stamp, which reaches these steps.
+        ctx.Data.OperandActivations += pre.Count + post.Count;
+        return new BoundSequence([.. pre.Select(Operand), core, .. post.Select(Operand)]);
+        static BoundStatement Operand(BoundStatement s) => ((IActivatingStatement)s).AsExpressionActivation();
     }
 
 

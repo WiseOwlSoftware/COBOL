@@ -121,6 +121,16 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   STATEMENT (suppresses a fatal — §14.6.13.1.3 #5 NOTE 2), `-3` no qualifying declarative, `≥0` RESUME AT
   procedure-name's pc (≡ GO TO, §14.9.33.4 GR3). There is no `ExceptionDispatch` registry class: the F3 selector is
   the GENERATED `__EcDispatch` (source-ordered GR3c–g tiers over the program's own declaratives).
+  ⛔ **The same `ResumeSignal` has a SECOND entry and a second landing** (kb/Work PB892). A declarative is entered by
+  an exception (above) OR by a PERFORM in the nondeclarative portion (§14.9.49.3 SR4 — the only reference a
+  nondeclarative procedure may make to one). For that PERFORM §14.9.33.4 GR2 b) puts RESUME AT NEXT STATEMENT's
+  implicit CONTINUE "immediately follows the last statement of the terminating procedure referenced in that PERFORM
+  statement", and GR3 makes RESUME AT procedure-name a GO TO. The binder marks such a PERFORM
+  `BoundOutOfLinePerform.EntersDeclarative` (the range is declarative, `ctx.Enclosing.Declarative` is null — a
+  PERFORM written INSIDE a declarative is not it: its RESUME belongs to whatever ran the enclosing declarative), and
+  `ControlFlowEmitter.EmitPerformedRange` wraps that one execution of the range in `catch (ResumeSignal)` — NEXT
+  STATEMENT completes the range (the control phrase goes on), procedure-name is `ResumeTransfer`. Emitted only in a
+  unit that has a RESUME (`DispatchState.UnitHasResume`), so every other PERFORM is byte-identical.
 - **The TURN fold runs at BIND time, not emit time:** bound nodes carry no parse context, so the
   binder (which has the statement's line) queries the TurnState and wraps the statement in `BoundEcChecked`
   carrying the decision (`EcStatementInfo`: enabled (name, file) pairs, WITH LOCATION, statement name, the §15.30.3
@@ -287,10 +297,46 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
     `IActivatingStatement` at the one `BindStatement` exit, recursing into a desugar sequence, so a new
     activating node inherits it by implementing the interface. Whether the pickup is EMITTED still gates on the
     group's EC participation (zero scaffolding); whether it RAISES gates on the profile.
-  - **An activator that enables nothing raises nothing**, fatal or not: the staged condition is discarded by
-    `ProgramTable.ApplyPropagationDefault` and execution continues as if the CALL had returned without a RAISING
-    phrase. There is no boundary "terminate loudly" default — §14.6.13.1.3 #8 governs a condition that already
-    EXISTS, and GR1 b) stops one coming into existence in an unchecked activator.
+  - **An OPERAND activation — a function reference, an inline method invocation, an object-property accessor —
+    has no statement of its own, and ONE landing gives it one** (kb/Work PB892). §14.9.33.4 GR2 a) 2. makes the
+    applicable statement for a condition it propagates "the statement in which the inline invocation or function
+    invocation was specified", and GR2 a) 3. the LOWEST such statement. `UdfBinder.DrainPending` (the one drain of
+    the pending pre-op list) and `OoBinder.OoWrapPropertyOps` mark every activation they hand to a carrier
+    `IActivatingStatement.InExpression`, and `DrainPending` stamps its profile there — a per-evaluation window's
+    activations live inside a CONDITION or an OPERAND, where `EcWrap`'s statement-shaped stamp never reaches.
+    `StatementBinder.BindStatement` wraps a statement that drained any in `BoundActivationSite` (a save/zero/restore
+    counter, so a nested statement's activations count only toward it). The pickup of an `InExpression` site
+    lands a RESUME through `DispatchState.OperandActivationResume` — it THROWS `RaiseResumeSignal` for RESUME AT
+    procedure-name and for RESUME AT NEXT STATEMENT — and `EcEmitter.EmitActivationSite` catches it around the
+    statement with the ordinary `ResumeTransfer`. One mechanism covers both shapes the old code split: a HOISTED
+    activation (whose -2 used to fall back INTO the statement — a COMPUTE completed with the function's result),
+    and a PER-EVALUATION one inside an immediately-invoked lambda (where no `goto` can leave, which is why
+    `CallEmitter.FunctionActivationText` used to emit no pickup and the registry DISCARDED every
+    condition a function propagated from a PERFORM UNTIL, a SEARCH WHEN, an EVALUATE object or a short-circuited
+    operand). That second activation text is deleted: the lambda body is `EmitCall`'s own output, captured, so the
+    EC-FUNCTION-NOT-FOUND arm and the pickup are the same in both positions. `EcWrap.QueryFor` asks every
+    activation family for a `BoundActivationSite`, because a window's activations are invisible to its
+    statement-shaped cases.
+  - **An activator that enables nothing raises nothing**, fatal or not, and execution continues as if the
+    activation had returned without a RAISING phrase. There is no boundary "terminate loudly" default —
+    §14.6.13.1.3 #8 governs a condition that already EXISTS, and GR1 b) stops one coming into existence in an
+    unchecked activator.
+  - ⛔ **A staged condition NAMES THE ACTIVATION IT WAS STAGED FOR** (kb/Work PB892 Arm B). GR1 b) raises it in ONE
+    element — the one the returning element returns to — so the staged slots (`ExceptionEngine._propagated` /
+    `_propagatedObject`) carry the ACTIVATING activation's identity, and `TakeRaisedPropagation` /
+    `TakePropagatedObject` take a staging only when the pickup runs IN that activation. The identity is the run
+    unit's ONE activation record, `ModuleStack` (every mechanism §15.65.4 r5 names pushes a frame there: CALL,
+    function reference and the main program in `ProgramTable`, INVOKE and inline invocation in the method body), and
+    each frame carries a unique, never-reused activation id (`CurrentActivation` / `ActivatingActivation`). The
+    anonymous slot it replaced let a pickup-free activator (an EC-free group — zero scaffolding) leave a staging
+    for WHICHEVER EC-active pickup ran next anywhere in the run unit: a separately compiled EC-free main that
+    INVOKEd a raising method made a later EC-active program's INVOKE of a method raising nothing run its
+    declarative. The CALL path had hidden the hole behind a registry discard after every pickup-free CALL
+    (`siteHandlesPropagation: false` → `ApplyPropagationDefault`); an INVOKE is a direct .NET call with no
+    chokepoint for one, so the discard was the CALL-only half of a rule and is DELETED — one mechanism for every
+    activation kind. A staging no pickup in its activator takes is never raised; a later staging overwrites it.
+    The two separately-compiled witnesses are `ExceptionConditionConformanceTests.GobackRaising_*Activation*`;
+    `StagedPropagationIdentityTests` (Unit) pins the rule on the engine.
   - **`RAISING LAST EXCEPTION` carries GR1b3a** (`SetPropagatingLast(pdRaising, stmt, loc)`): a level-3 EC-USER
     condition that the containing element's PD-header RAISING phrase does not name propagates as
     **EC-RAISING-NOT-SPECIFIED** (Table 13 Fatal, §14.6.13.1.6, whose third column names this case) instead. The
@@ -299,7 +345,8 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
     `RAISING EXCEPTION exception-name-1` arm, whose name is known then.
   - A MAIN program's GOBACK RAISING has no activator, so its RAISING phrase is IGNORED and the program terminates
     as an ordinary STOP (§14.9.18.4 GR3); an EXIT PROGRAM RAISING with no calling element raises nothing and acts
-    as CONTINUE (§14.9.14.4 GR2) — in both cases `RunMain` discards the staged condition rather than terminating.
+    as CONTINUE (§14.9.14.4 GR2) — in both cases the staging is for NO activation (`ActivatingActivation` is −1 for
+    the main frame), so nothing can take it and the run unit ends normally.
   - ⛔ **Historical (kb/Work PB408):** the enablement test used to be folded into `BoundRaising.Enabled` at bind
     time from the **RAISING element's own** TURN state, and `EmitRaisingStage` branched on it — staging nothing
     for a disabled nonfatal name and throwing `CobolFatalException` inside the CALLEE for a disabled fatal one.

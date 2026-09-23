@@ -131,21 +131,21 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
     // short-circuited &&/|| operand position skips them exactly when COBOL's rule 1 skips the operand.
     public string Visit(BoundUdfEvaluated n) =>
-        $"new Func<bool>(() => {{ {string.Join(" ", n.Activations.Select(PreOpText))} "
-        + $"return {Render(n.Inner)}; }})()";
+        $"new Func<bool>(() => {{\n{string.Concat(n.Activations.Select(PreOpText))}return {Render(n.Inner)}; }})()";
 
-    /// <summary>One pending PRE-op rendered for EXPRESSION position (inside the IIFE above).
-    /// <para>The two arms are a SEMANTIC split, not an incidental one. A user-function activation must NOT reuse
-    /// the statement-position CALL text: <see cref="CallEmitter.FunctionActivationText"/> deliberately omits
-    /// <c>siteHandlesPropagation</c>, because a declarative RESUME pickup is a <c>__pc</c>-anchored statement
-    /// surface that cannot run inside an expression. Every other pre-op — today a D18 function-bearing subscript's
-    /// §15.4 temporary store (fix-queue PB17) — has no such expression/statement divergence, so it renders through
-    /// the ONE statement emitter, captured as text.</para></summary>
-    private string PreOpText(BoundStatement s) => s switch
-    {
-        BoundCallProgram c => Calls.FunctionActivationText(c),
-        _ => ctx.Writer.CaptureText(() => Statements.EmitStatement(s)).Replace('\n', ' '),
-    };
+    /// <summary>One pending PRE-op rendered for EXPRESSION position (inside the IIFE above), through the ONE
+    /// statement emitter, captured as text — a user-function activation exactly as a hoisted one is emitted, with
+    /// its exception arms and its §14.9.18.4 GR1 b) propagation pickup.
+    /// <para>⛔ THERE IS NO SECOND ACTIVATION TEXT ANY MORE (kb/Work PB892). A function activation used to render
+    /// here through a dedicated single-statement text that emitted no propagation pickup, on the ground
+    /// that a RESUME is a <c>__pc</c>-anchored statement surface a lambda cannot hold; so the registry's boundary
+    /// default (since removed) DISCARDED every condition a function propagated from a PERFORM UNTIL, a SEARCH WHEN, an EVALUATE
+    /// object or a short-circuited operand, although §14.9.18.4 GR1 b) raises it in the activating element. The
+    /// activation is marked <c>InExpression</c> at bind, so its pickup leaves by throwing to the carrying
+    /// statement's <c>BoundActivationSite</c> — never by a <c>goto</c> — and it can run inside the lambda.</para>
+    /// <para>The captured text keeps its line breaks: a trailing <c>//</c> comment in it would otherwise swallow
+    /// the rest of the lambda.</para></summary>
+    private string PreOpText(BoundStatement s) => ctx.Writer.CaptureText(() => Statements.EmitStatement(s));
 
     private string RenderRelational(BoundRelational r)
     {

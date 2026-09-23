@@ -467,7 +467,11 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // condition was ever evaluated and no induction variable was ever set, while the byte-identical INLINE
         // form of the same phrase gave exactly the GR13 e) answer. Emptiness now rides the RANGE
         // (PcRange.IsEmpty) into the emitter, which emits the loop scaffold around an EMPTY body.
-        return new BoundOutOfLinePerform(range, BindPerformControl(p), ctx.SourceLine(p));
+        // §14.9.33.4 GR2 b)'s PERFORM: written in the nondeclarative portion, referencing a declarative procedure
+        // (SR11 has already put both THRU ends in the one declarative section). A PERFORM written INSIDE a
+        // declarative is not it — a RESUME under that one belongs to whatever ran the enclosing declarative.
+        bool entersDeclarative = first.IsDeclarative && ctx.Enclosing.Declarative is null;
+        return new BoundOutOfLinePerform(range, BindPerformControl(p), ctx.SourceLine(p), entersDeclarative);
     }
 
     /// <summary>An inline PERFORM is Format 3 (exception-checking) iff it carries any WHEN phrase (ordinary /

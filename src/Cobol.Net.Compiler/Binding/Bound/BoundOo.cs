@@ -59,6 +59,12 @@ public sealed record BoundInvoke(
     /// <inheritdoc/>
     public BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile)
         => this with { ActivatorChecking = profile };
+
+    /// <inheritdoc/>
+    public bool InExpression { get; init; }
+
+    /// <inheritdoc/>
+    public BoundStatement AsExpressionActivation() => this with { InExpression = true };
 }
 
 /// <summary>One bound INVOKE argument (deep-dive D6; §14.9.23.4 GR6): the FORMAL it corresponds to
@@ -121,6 +127,12 @@ public sealed record BoundInvokeUniversal(
     /// <inheritdoc/>
     public BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile)
         => this with { ActivatorChecking = profile };
+
+    /// <inheritdoc/>
+    public bool InExpression { get; init; }
+
+    /// <inheritdoc/>
+    public BoundStatement AsExpressionActivation() => this with { InExpression = true };
 }
 
 /// <summary>One universal-dispatch argument: the storage and its conformance descriptor (D-U3).</summary>

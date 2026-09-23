@@ -33,6 +33,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // pc let ControlFlowEmitter derive each handler's __useActive id (DeclCount + pc − base). Null base ⇒ no F3.
         dispatchState.DeclCount = bound.Declaratives?.Count ?? 0;
         dispatchState.F3HandlerBasePc = bound.F3HandlerBasePc;
+        dispatchState.UnitHasResume = bound.Ec?.HasResume ?? false;   // §14.9.33.4 GR2 b)'s PERFORM landing
         // §14.9.18.4 GR6 (kb/Work PB409): the GLOBAL declaratives' __useActive slots, so a GOBACK can ask at run
         // time whether it is executing within one's RANGE. Empty for a program with no USE … GLOBAL, which keeps
         // such a program's generated source byte-identical.

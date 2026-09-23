@@ -373,6 +373,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // ── Exception-condition model (ISO §7.3.25 / §14.9.29 / §14.9.33 / §14.9.39) ─────────────────────────────
     public bool Visit(BoundRaiseObject n) => _ecEmit.EmitRaiseObject(n);   // EC-OO (§14.9.29; §14.6.13.1.5)
     public bool Visit(BoundEcChecked n) => _ecEmit.EmitChecked(n);         // TURN scope (§7.3.25)
+    public bool Visit(BoundActivationSite n) => _ecEmit.EmitActivationSite(n);   // §14.9.33.4 GR2 a) 2. (PB892)
     public bool Visit(BoundRaise n) => _ecEmit.EmitRaise(n);               // RAISE (§14.9.29)
     public bool Visit(BoundResume n) { _ecEmit.EmitResume(n); return true; }   // RESUME (§14.9.33) — unwinds
     public bool Visit(BoundSetLastException n) { _ctx.Writer.Line("ExceptionState.Clear();   // SET LAST EXCEPTION TO OFF (ISO §14.9.39 F13)"); return false; }

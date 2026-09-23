@@ -7,6 +7,7 @@ using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
+using CobolNet.Runtime.Exceptions;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -365,13 +366,30 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// its subject UNCHANGED and keeps the generated source byte-identical on the function-free path.
     /// <para>It is one method because the three callers differ ONLY in the node they wrap the drained suffix in;
     /// three copies of the take-and-remove pair is the shape where one of them eventually forgets the remove and
-    /// double-activates.</para></summary>
+    /// double-activates.</para>
+    /// <para>⛔ IT IS ALSO WHERE AN OPERAND ACTIVATION IS STAMPED (kb/Work PB892). Everything it drains that is an
+    /// <see cref="IActivatingStatement"/> is an activation WRITTEN INSIDE the statement now binding — a function
+    /// reference or an inline method invocation — so it is marked
+    /// <see cref="IActivatingStatement.InExpression"/> (§14.9.33.4 GR2 a) 2.: the applicable statement is "the
+    /// statement in which the inline invocation or function invocation was specified") and given THAT statement's
+    /// §7.3.25 checking profile (§14.9.18.4 GR1 b) — "if checking for that exception condition is enabled in the
+    /// activating runtime element"). The profile cannot wait for <c>EcBinder.EcWrap</c>'s stamp: a per-evaluation
+    /// window's activations live inside a CONDITION or an OPERAND, which that statement-shaped walk never enters,
+    /// so before PB892 they carried an empty profile and every condition they propagated was discarded.</para></summary>
     private List<BoundStatement>? DrainPending(int mark)
     {
         var calls = Pending;
         if (calls.Count <= mark) return null;
         var taken = calls.GetRange(mark, calls.Count - mark);
         calls.RemoveRange(mark, calls.Count - mark);
+        EcCheckingProfile? profile = null;
+        for (int i = 0; i < taken.Count; i++)
+        {
+            if (taken[i] is not IActivatingStatement a) continue;
+            profile ??= ctx.EcState.Turn.ProfileAt(host.StatementLine);
+            taken[i] = ((IActivatingStatement)a.AsExpressionActivation()).WithActivatorChecking(profile);
+            ctx.Data.OperandActivations++;
+        }
         return taken;
     }
     /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)

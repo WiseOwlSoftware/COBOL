@@ -54,6 +54,31 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public string ObjDispatchExpr(string objExpr) =>
         ecState.UnitHasF4 ? $"__EcObjDispatch({objExpr})" : "-3";
 
+    /// <summary>Emit the statement an OPERAND activation was specified in (kb/Work PB892) — the landing of
+    /// <see cref="DispatchState.OperandActivationResume"/>. ISO §14.9.33.4 GR2 a) 2. makes that statement the
+    /// applicable one for a condition a function reference or an inline invocation propagates, and GR2 a) 3. makes
+    /// it the LOWEST such statement, which is why every statement that drained an activation carries its own
+    /// landing: the nearest one catches. RESUME AT procedure-name transfers (GR3); RESUME AT NEXT STATEMENT falls
+    /// out after the statement (GR2).
+    /// <para>Only a unit whose selection machinery can return a RESUME emits the landing — the same
+    /// zero-scaffolding reasoning as the nonfatal-gate landing in <see cref="EmitGatesOrInner"/>: with no
+    /// <c>__EcDispatch</c>/<c>__EcPerform</c> and no <c>__EcObjDispatch</c> every pickup answers "no qualifying
+    /// declarative" and nothing is ever thrown.</para></summary>
+    public bool EmitActivationSite(BoundActivationSite site)
+    {
+        if (!ecState.Active || !(UnitHasDispatchFunnel || ecState.UnitHasF4))
+            return Statements.EmitStatement(site.Inner);
+        var w = ctx.Writer;
+        int id = ctx.Names.NextEc();
+        using (w.Block("try"))
+            Statements.EmitStatement(site.Inner);
+        // A `goto` out of a catch CLAUSE is legal C#, so the landing uses the dispatcher-transfer idiom (PB405).
+        w.Line($"catch (RaiseResumeSignal __as{id}) {{ {dispatch.ResumeTransfer($"__as{id}.TargetPc", "")} }}"
+            + "   // RESUME after a condition an operand activation propagated: the statement it was specified in "
+            + "(§14.9.33.4 GR2 a) 2./3.; GR3)");
+        return false;   // conservative: a RESUME may continue after a statement that otherwise transfers
+    }
+
     /// <summary>RAISE identifier-1 (ISO §14.9.29.4 GR2; §14.6.13.1.5): set EXCEPTION-OBJECT, run the F4
     /// declarative if one matches (GR14 — GR3: F4 REPLACES the F1/F3 tiers for object raises), and in EVERY
     /// no-match/complete case continue with the next statement — a RAISE of an object is NEVER fatal by

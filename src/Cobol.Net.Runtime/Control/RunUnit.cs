@@ -31,6 +31,7 @@ public sealed class RunUnit
 
     public RunUnit()
     {
+        Exceptions = new ExceptionEngine(Modules);   // the staged-RAISING slot names its activation (kb/Work PB892)
         Programs = new ProgramTable(this);
         // The text-processing subsystems' cheap, idempotent initialization (Collation/CollationRuntime.cs): the key
         // cache configuration from the environment; the derived tables stay lazy unless COBOL_COLLATION_WARMUP asks.
@@ -41,7 +42,7 @@ public sealed class RunUnit
     public ProgramTable Programs { get; }
 
     /// <summary>The run-unit-wide LAST EXCEPTION STATUS register + propagation slots (§14.6.13.1.1).</summary>
-    public ExceptionEngine Exceptions { get; } = new();
+    public ExceptionEngine Exceptions { get; }
 
     /// <summary>The run-unit EXTERNAL data store (§8.6.7 / §13.18.22).</summary>
     public ExternalTable External { get; } = new();

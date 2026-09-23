@@ -235,11 +235,40 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             EmitPerform(p.Control, () =>
             {
                 w.Line($"__dbgCause = __dbgFirst{fid} ? DebugCause.Transfer : DebugCause.PerformLoop; __dbgFirst{fid} = false; __dbgLine = {p.SourceLine};");
-                Statements.EmitProcedureRange(p.Range);
+                EmitPerformedRange(p);
             }, inline: false);
         }
         else
-            EmitPerform(p.Control, () => Statements.EmitProcedureRange(p.Range), inline: false);
+            EmitPerform(p.Control, () => EmitPerformedRange(p), inline: false);
+    }
+
+    /// <summary>One execution of an out-of-line PERFORM's range — the bounded dispatch, and, for a PERFORM that
+    /// ENTERS A DECLARATIVE from the nondeclarative portion in a unit that has RESUME, the RESUME landing ISO
+    /// §14.9.33.4 GR2 b) gives that PERFORM:
+    /// <list type="bullet">
+    ///   <item>RESUME AT NEXT STATEMENT — "the implicit CONTINUE statement immediately follows the last statement
+    ///         of the terminating procedure referenced in that PERFORM statement": the range's own end, so the
+    ///         landing simply completes this execution of the range and the PERFORM's control phrase goes on;</item>
+    ///   <item>RESUME AT procedure-name — GR3, "as if a GO TO procedure-name-1 were executed": the transfer every
+    ///         other resume landing takes (<see cref="DispatchState.ResumeTransfer"/>).</item>
+    /// </list>
+    /// ⛔ THE SAME SIGNAL HAS TWO ENTRIES AND EACH NEEDS ITS LANDING (kb/Work PB892). A declarative is entered by
+    /// an exception (§14.9.49 — <c>__RunUse</c> catches the <c>ResumeSignal</c> and returns the action to the raise
+    /// site) or by this PERFORM (SR4); only the first had a landing, so a performed declarative's RESUME escaped
+    /// every frame and killed the run unit with an unhandled .NET exception.</summary>
+    private void EmitPerformedRange(BoundOutOfLinePerform p)
+    {
+        if (!(p.EntersDeclarative && dispatch.UnitHasResume))
+        {
+            Statements.EmitProcedureRange(p.Range);
+            return;
+        }
+        var w = ctx.Writer;
+        int id = ctx.Names.NextEc();
+        using (w.Block("try"))
+            Statements.EmitProcedureRange(p.Range);
+        w.Line($"catch (ResumeSignal __rp{id}) {{ {dispatch.ResumeTransfer($"__rp{id}.TargetPc", "")} }}"
+            + "   // §14.9.33.4 GR2 b) NEXT STATEMENT → after the range's last statement; GR3 procedure-name → GO TO");
     }
 
 
@@ -429,13 +458,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// index-name-4 is done each time the content of the data item referenced by the identifier or the index
     /// referenced by the index-name is used in a setting or augmenting operation", and §8.4.3.2.4 GR1/GR6a makes
     /// a function-identifier's value "determined when the function is referenced at runtime". kb/Work PB437.
-    /// <para>⛔ STATEMENTS, NOT AN IIFE, AND THE DIFFERENCE IS SEMANTIC. The condition twin
-    /// (<c>ConditionRenderer.Visit(BoundUdfEvaluated)</c>) must render an immediately-invoked
-    /// <c>Func&lt;bool&gt;</c> because a condition sits in a C# loop HEADER where no statement can precede it per
-    /// iteration — and it pays for that with <c>CallEmitter.FunctionActivationText</c>, which deliberately omits
-    /// <c>siteHandlesPropagation</c> because a declarative RESUME pickup is a <c>__pc</c>-anchored statement
-    /// surface that cannot run inside an expression. Every site that calls THIS method is a statement position,
-    /// so the activation goes through the ONE statement emitter with that surface intact. Each of the three call
+    /// <para>STATEMENTS, NOT AN IIFE. The condition twin (<c>ConditionRenderer.Visit(BoundUdfEvaluated)</c>) must
+    /// render an immediately-invoked <c>Func&lt;bool&gt;</c> because a condition sits in a C# loop HEADER where no
+    /// statement can precede it per iteration; every site that calls THIS method is a statement position, so the
+    /// activations are emitted directly. Both go through the ONE statement emitter, and in both a condition an
+    /// activation propagates leaves through the PERFORM's <c>BoundActivationSite</c> (kb/Work PB892). Each of the three call
     /// sites (the GR13 a)/b) initialization, the GR13 e) 2 a. / c) 4 re-initialization, and the augment) emits
     /// the activations exactly once per operation, because each renders the operand exactly once.</para>
     /// <para>Every other expression renders unchanged, so a varying phrase with no function reference produces

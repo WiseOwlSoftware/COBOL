@@ -246,15 +246,13 @@ public sealed record BoundExprError(string Feature) : BoundExpr;
 /// identifier-3, identifier-4, identifier-6, identifier-7, index-name-2, and index-name-4 is done each time the
 /// content … is used in a setting or augmenting operation" — a PERFORM VARYING BY operand (per augment) and an
 /// AFTER level's FROM operand (per outer-augment re-initialization). kb/Work PB437.
-/// <para>⛔ THE CONSUMER EMITS THE ACTIVATIONS AS STATEMENTS, IT DOES NOT RENDER AN IIFE, and the difference is
-/// semantic, not stylistic. <see cref="BoundUdfEvaluated"/> must be an immediately-invoked <c>Func&lt;bool&gt;</c>
-/// because a condition sits in a C# loop HEADER where no statement can precede it per iteration, and that form
-/// pays a price <see cref="CobolNet.CodeGen.Emit.ConditionRenderer"/> documents: the activation is rendered by
-/// <c>CallEmitter.FunctionActivationText</c>, which deliberately omits <c>siteHandlesPropagation</c> because a
-/// declarative RESUME pickup is a <c>__pc</c>-anchored STATEMENT surface that cannot run inside an expression.
-/// The set/augment windows ARE statement positions, so the consumer (<c>ControlFlowEmitter.RenderPerEvaluation</c>)
-/// emits each activation through the ONE statement emitter immediately before the operation that reads the
-/// value — once per operation, with the full RESUME-capable surface intact.</para>
+/// <para>THE CONSUMER EMITS THE ACTIVATIONS AS STATEMENTS, IT DOES NOT RENDER AN IIFE. <see cref="BoundUdfEvaluated"/>
+/// must be an immediately-invoked <c>Func&lt;bool&gt;</c> because a condition sits in a C# loop HEADER where no
+/// statement can precede it per iteration; the set/augment windows ARE statement positions, so the consumer
+/// (<c>ControlFlowEmitter.RenderPerEvaluation</c>) emits each activation through the ONE statement emitter
+/// immediately before the operation that reads the value — once per operation. Either way the activation is
+/// <c>InExpression</c>, and a RESUME for a condition it propagates leaves through the carrying statement's
+/// <see cref="BoundActivationSite"/> (kb/Work PB892).</para>
 /// <para>Like its condition twin, <paramref name="Activations"/> is <see cref="BoundStatement"/> so it carries
 /// BOTH pending pre-op kinds: a user-function activation and a §15.4 function-bearing-subscript temporary
 /// store (kb/Work PB17). A rendering site that does NOT own the window fails LOUD rather than dropping the
@@ -1009,7 +1007,15 @@ public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyLi
 // DEBUG-LINE value when the transfer reaches a debug subject (VCR Table 7 row 7.17; the causing statement, DB101A —
 // PERF-ITERATION-TEST pins the PERFORM line :611-617, GO-TO-TEST the GO TO line :482-489, on every iteration). 0
 // when the debug facility is inactive (never read then).
-public sealed record BoundOutOfLinePerform(PcRange Range, BoundPerformControl Control, int SourceLine = 0) : BoundStatement;
+/// <para><paramref name="EntersDeclarative"/> — this PERFORM is written in the NONDECLARATIVE portion and its
+/// range is a declarative procedure (§14.9.49.3 SR4 admits exactly this reference). It is then the landing of
+/// §14.9.33.4 GR2 b): "If the declarative was not executed because of an exception condition but was executed
+/// instead by a PERFORM statement in the nondeclarative portion of the source element that referenced the
+/// declarative procedure, the implicit CONTINUE statement immediately follows the last statement of the terminating
+/// procedure referenced in that PERFORM statement" — the other arm of the ONE resume signal, whose exception arm
+/// lands in <c>__RunUse</c> (kb/Work PB892).</para>
+public sealed record BoundOutOfLinePerform(PcRange Range, BoundPerformControl Control, int SourceLine = 0,
+    bool EntersDeclarative = false) : BoundStatement;
 
 /// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.17 Format 1;
 /// §14.9.17.4 GR1 "control is transferred to procedure-name-1"). (§14.9.20 — carried here and on the DEPENDING
@@ -1604,7 +1610,37 @@ public interface IActivatingStatement
     /// hoisted ones inside a desugar sequence: a new activating node inherits the stamp by implementing the
     /// interface, never by remembering to set a property at its own construction site.</summary>
     BoundStatement WithActivatorChecking(CobolNet.Runtime.Exceptions.EcCheckingProfile profile);
+
+    /// <summary>True when this activation is not a statement of its own but an operand of one — a user-defined
+    /// function reference, an inline method invocation, or an object-property accessor lowered onto an activation
+    /// (kb/Work PB892). ISO §14.9.33.4 GR2 a) 2.: "for an inline invocation or a function invocation, it is the
+    /// statement in which the inline invocation or function invocation was specified" that a RESUME AT NEXT
+    /// STATEMENT resumes after — so its propagation pickup leaves THROUGH that carrying statement's
+    /// <see cref="BoundActivationSite"/> rather than falling back into the statement it is an operand of.</summary>
+    bool InExpression { get; }
+
+    /// <summary>Return this node marked <see cref="InExpression"/>. Set at the ONE place an operand activation
+    /// leaves the binder's pending lists for its carrier (<c>UdfBinder.DrainPending</c>,
+    /// <c>OoBinder.OoWrapPropertyOps</c>).</summary>
+    BoundStatement AsExpressionActivation();
 }
+
+/// <summary>⛔ THE STATEMENT AN OPERAND ACTIVATION BELONGS TO (kb/Work PB892) — the lowest-level statement whose
+/// operands carry a function reference, an inline method invocation or an object-property accessor, wherever in
+/// that statement the activation sits: hoisted before it (a <see cref="BoundSequence"/> step), or evaluated
+/// per-evaluation inside one of its conditions or operands (<see cref="BoundUdfEvaluated"/> /
+/// <see cref="BoundUdfEvaluatedExpr"/>).
+/// <para>It is the landing of the transfer ISO §14.9.33.4 GR2 a) 2. and 3. prescribe for a condition that such an
+/// activation propagates (§14.9.18.4 GR1 b)): "for an inline invocation or a function invocation, it is the
+/// statement in which the inline invocation or function invocation was specified", and "the lowest level
+/// statement, not the containing statement". The activation's pickup cannot express that transfer itself — an
+/// expression-position activation runs inside a C# expression, where no <c>goto</c> can leave, and a hoisted one
+/// runs BEFORE the statement, where falling through re-enters it — so it throws
+/// <c>RaiseResumeSignal</c> and this node catches it: RESUME AT procedure-name transfers (GR3); RESUME AT NEXT
+/// STATEMENT continues after <paramref name="Inner"/>.</para>
+/// <para>Created by <c>StatementBinder.BindStatement</c> exactly when the statement drained an operand
+/// activation, so a statement without one binds byte-identically.</para></summary>
+public sealed record BoundActivationSite(BoundStatement Inner) : BoundStatement;
 
 /// <summary><c>RAISE EXCEPTION exception-name-1</c> (ISO §14.9.29; SR1 — level-3 only, validated at bind).
 /// The TURN decision is baked in at bind time (§14.6.13.1.1: an exception condition is raised only when checking

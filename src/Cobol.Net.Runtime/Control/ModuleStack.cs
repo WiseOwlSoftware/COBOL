@@ -27,17 +27,37 @@ namespace CobolNet.Runtime;
 /// </summary>
 public sealed class ModuleStack
 {
-    private readonly record struct Frame(string Name, string Outermost, bool IsNested, bool IsMain);
+    private readonly record struct Frame(string Name, string Outermost, bool IsNested, bool IsMain, long Activation);
 
     private readonly List<Frame> _stack = [];
 
+    /// <summary>The last activation identity handed out — monotonic for the life of the run unit and never
+    /// reset, so no two activations, live or finished, ever share one.</summary>
+    private long _lastActivation;
+
     /// <summary>Push the run-unit main program (TOP-LEVEL, §15.65.4 r10; ACTIVATING → single space, r5).</summary>
-    public void PushMain(string name) => _stack.Add(new(name, name, IsNested: false, IsMain: true));
+    public void PushMain(string name) => _stack.Add(new(name, name, IsNested: false, IsMain: true, ++_lastActivation));
 
     /// <summary>Push a CALLed / referenced element (its name, its compilation unit's outermost program-id, and
     /// whether it is a contained/nested program).</summary>
     public void Push(string name, string outermost, bool isNested)
-        => _stack.Add(new(name, outermost, isNested, IsMain: false));
+        => _stack.Add(new(name, outermost, isNested, IsMain: false, ++_lastActivation));
+
+    // ── ACTIVATION IDENTITY (kb/Work PB892 Arm B) ─────────────────────────────────────────────────────────────
+    // This stack is the run unit's ONE record of which activation is running: every activation mechanism
+    // §15.65.4 r5 names pushes a frame here (ProgramTable.CallProgram / RunMain for a CALL, a function reference
+    // and the main program; the method body itself for an INVOKE and an inline invocation). So it is also the
+    // one place that can answer §14.9.18.4 GR1 b)'s question "which activation is the ACTIVATING runtime element
+    // of the element that is returning with RAISING" — a question with no other runtime chokepoint, because a
+    // typed INVOKE is a direct .NET call. Each frame therefore carries a unique activation identity.
+
+    /// <summary>The identity of the RUNNING activation (the top frame), or 0 outside any activation.</summary>
+    public long CurrentActivation => _stack.Count > 0 ? _stack[^1].Activation : 0;
+
+    /// <summary>The identity of the activation that ACTIVATED the running one (the frame beneath the top), or
+    /// −1 when the running element was activated by the operating environment or a non-COBOL host — an
+    /// identity no activation ever has, so nothing staged for it can be taken.</summary>
+    public long ActivatingActivation => _stack.Count >= 2 ? _stack[^2].Activation : -1;
 
     /// <summary>Pop the current element on activation return (paired with every push in a finally).</summary>
     public void Pop() { if (_stack.Count > 0) _stack.RemoveAt(_stack.Count - 1); }

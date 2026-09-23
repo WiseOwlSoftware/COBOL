@@ -431,6 +431,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             BoundSequence seq => new BoundSequence([.. seq.Steps.Select(st => StampActivators(st, profile))]),
             BoundImplicitSeries ser =>
                 new BoundImplicitSeries([.. ser.Members.Select(st => StampActivators(st, profile))]),
+            BoundActivationSite site => new BoundActivationSite(StampActivators(site.Inner, profile)),
             IActivatingStatement a => a.WithActivatorChecking(profile),
             _ => node,
         };
@@ -451,7 +452,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // THIS element's §7.3.25 state at THIS line into the run. The recursion reaches the activations a
         // desugar hoisted into a sequence (a user-function reference inside a COMPUTE); a new activating node
         // inherits the stamp by implementing IActivatingStatement, never by remembering to set a property.
-        if (bound is IActivatingStatement or BoundSequence or BoundImplicitSeries)   // the shapes a profile lands on
+        if (bound is IActivatingStatement or BoundSequence or BoundImplicitSeries or BoundActivationSite)   // the shapes a profile lands on
             bound = StampActivators(bound, ctx.EcState.Turn.ProfileAt(line));
         var enabled = new List<(string Ec, FileModel? File)>();
         void Query(IEnumerable<string> names, FileModel? file = null)
@@ -479,6 +480,20 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             if (node is BoundImplicitSeries series)
             {
                 foreach (var member in series.Members) QueryFor(member);
+                return;
+            }
+            // A statement carrying OPERAND activations (kb/Work PB892) keeps its own families, and its activations
+            // contribute theirs — including the per-evaluation ones inside a condition or an operand, which no
+            // statement-shaped step exposes to the cases below. Which activation kinds the windows hold is not
+            // visible here, so every activation family is asked: the conservative wrap, as for the ambient
+            // families (a name no raise site of this statement can produce binds a guard that never fires).
+            if (node is BoundActivationSite site)
+            {
+                Query(ProgramNames);
+                Query(ExternalNames);
+                Query(FunctionActivationNames);
+                Query(OoInvokeNames);
+                QueryFor(site.Inner);
                 return;
             }
             switch (node)
@@ -773,7 +788,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         if (enabled.Count == 0) return bound;
         // A sequence's steps can re-contribute a family (two hoisted activations ⇒ ProgramNames twice) —
         // the checked wrapper carries each (name, connector) once.
-        if (bound is BoundSequence or BoundImplicitSeries) enabled = enabled.Distinct().ToList();
+        if (bound is BoundSequence or BoundImplicitSeries or BoundActivationSite) enabled = enabled.Distinct().ToList();
         ctx.EcState.Checked = true;
         if (enabled.Any(e => e.Ec.StartsWith("EC-I-O", StringComparison.Ordinal))) ctx.EcState.IoChecked = true;
         // §15.32.3 r3: the recorded name comes from Table 12's 'Statement name' column, resolved from the

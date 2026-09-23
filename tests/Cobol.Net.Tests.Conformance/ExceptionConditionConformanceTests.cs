@@ -819,7 +819,7 @@ public sealed class ExceptionConditionConformanceTests
              // file can sit in different checking states; the PB408 tests below measure exactly that, in both
              // directions, and it was the axis this test holds fixed (feedback_reachability_is_measured_not_deduced).
              //
-             // Two defects were fixed on this path. ProgramTable.ApplyPropagationDefault used to throw for a
+             // Two defects were fixed on this path. ProgramTable's boundary default (removed by PB892) used to throw for a
              // staged FATAL condition citing §14.6.13.1.3 #8 — a misapplication, since #8's latitude governs what
              // may happen once a fatal condition EXISTS and GR1b stops it existing in an unchecked activator at
              // all. The staging side then made the same mistake one element further in (kb/Work PB408).
@@ -1980,6 +1980,150 @@ public sealed class ExceptionConditionConformanceTests
         var lines = stdout.Split('\n');
         Assert.Equal($"S=[{new string(' ', 63)}]", lines[0]);
         Assert.Equal($"T=[{new string(' ', 31)}]", lines[1]);
+    }
+
+    // ── kb/Work PB892 Arm B — a staged RAISING condition names the ACTIVATION it was staged for ─────────────────
+    // The class module is compiled ALONE so the element that INVOKEs it can be EC-free: within one compilation
+    // group a RAISING phrase makes every element EC-active (every activation site then emits a pickup), so the
+    // defect — an activator that emits NO pickup leaving the staged condition for SOMEONE ELSE's pickup — is only
+    // reachable across a compilation boundary. P892K hands out the object; K892.RAISE1 ends GOBACK RAISING.
+
+    private const string Pb892ClassModule = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. P892K.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS K892.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 W-OBJ USAGE OBJECT REFERENCE K892.
+        LINKAGE SECTION.
+        01 L-OBJ USAGE OBJECT REFERENCE.
+        PROCEDURE DIVISION RETURNING L-OBJ.
+        MAIN-P.
+            INVOKE K892 "NEW" RETURNING W-OBJ.
+            SET L-OBJ TO W-OBJ.
+            GOBACK.
+        END PROGRAM P892K.
+        IDENTIFICATION DIVISION.
+        CLASS-ID. K892.
+        IDENTIFICATION DIVISION.
+        OBJECT.
+        PROCEDURE DIVISION.
+        METHOD-ID. QUIET.
+        PROCEDURE DIVISION.
+        Q-P.
+            DISPLAY "IN-QUIET".
+            GOBACK.
+        END METHOD QUIET.
+        METHOD-ID. RAISE1.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LR PIC 9.
+        PROCEDURE DIVISION RETURNING LR RAISING EC-USER-BZ.
+        R-P.
+            DISPLAY "IN-RAISE1".
+            MOVE 1 TO LR.
+            GOBACK RAISING EXCEPTION EC-USER-BZ.
+        END METHOD RAISE1.
+        END OBJECT.
+        END CLASS K892.
+        """;
+
+    [Fact]   // §14.9.18.4 GR1 b): "an exception condition is raised in the activating runtime element if checking for
+             // that exception condition is enabled in the activating runtime element". The activator of RAISE1 is the
+             // EC-FREE main, which enables nothing — so EC-USER-BZ is raised NOWHERE. P892X is a DIFFERENT activation
+             // (and not RAISE1's activator); its INVOKE of QUIET, which raises nothing, must not run its declarative.
+             // Before PB892 Arm B the staged slot was anonymous and run-unit-wide: the main's INVOKE left it standing
+             // and P892X's pickup took it, printing DECL-IN-X after IN-QUIET.
+    public void GobackRaising_StagedForAnUncheckedActivator_IsNotTakenByALaterActivation()
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. P892A.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OBJ USAGE OBJECT REFERENCE.
+            01 RV PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                CALL "P892K" RETURNING OBJ.
+                INVOKE OBJ "RAISE1" RETURNING RV.
+                DISPLAY "A-AFTER-RAISE1".
+                CALL "P892X".
+                DISPLAY "A-END".
+                STOP RUN.
+            """, Pb892ClassModule, """
+            >>TURN EC-USER-BZ CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. P892X.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OBJ USAGE OBJECT REFERENCE.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            HB SECTION. USE AFTER EXCEPTION CONDITION EC-USER-BZ.
+            HB-P.
+                DISPLAY "DECL-IN-X".
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-P.
+                CALL "P892K" RETURNING OBJ.
+                INVOKE OBJ "QUIET".
+                DISPLAY "X-AFTER-QUIET".
+                GOBACK.
+            """);
+        Assert.True(ok, detail + stdout);
+        Assert.Equal("IN-RAISE1\nA-AFTER-RAISE1\nIN-QUIET\nX-AFTER-QUIET\nA-END", stdout);
+    }
+
+    [Fact]   // The same rule one level deeper, and its positive control. P892Y enables EC-USER-BZ and CALLs the
+             // EC-free P892E, which INVOKEs RAISE1: RAISE1's activator is P892E (unchecked), so the condition is not
+             // raised there — and P892Y's CALL pickup, running in a DIFFERENT activation, must not take it either
+             // (a fence at the CALL would not help: the staging happened INSIDE the call). Then P892Y INVOKEs
+             // RAISE1 itself: now P892Y IS the activator and checking is enabled there, so GR1 b) raises the
+             // condition in P892Y and its declarative runs (normal completion → execution continues, §14.6.13.1.3).
+    public void GobackRaising_IsRaisedOnlyInItsOwnActivator_AcrossAnUncheckedIntermediate()
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunWith("""
+            >>TURN EC-USER-BZ CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. P892Y.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OBJ USAGE OBJECT REFERENCE.
+            01 RV PIC 9.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            HY SECTION. USE AFTER EXCEPTION CONDITION EC-USER-BZ.
+            HY-P.
+                DISPLAY "DECL-IN-Y".
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-P.
+                CALL "P892E".
+                DISPLAY "Y-AFTER-CALL".
+                CALL "P892K" RETURNING OBJ.
+                INVOKE OBJ "RAISE1" RETURNING RV.
+                DISPLAY "Y-AFTER-RAISE1".
+                STOP RUN.
+            """, Pb892ClassModule, """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. P892E.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OBJ USAGE OBJECT REFERENCE.
+            01 RV PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-P.
+                CALL "P892K" RETURNING OBJ.
+                INVOKE OBJ "RAISE1" RETURNING RV.
+                DISPLAY "E-AFTER-RAISE1".
+                GOBACK.
+            """);
+        Assert.True(ok, detail + stdout);
+        Assert.Equal("IN-RAISE1\nE-AFTER-RAISE1\nY-AFTER-CALL\nIN-RAISE1\nDECL-IN-Y\nY-AFTER-RAISE1", stdout);
     }
 
     [Fact]   // The hole the funnel closed: USE AFTER EC with a LEVEL-2 name of a 2023-only family (EC-MCS) at

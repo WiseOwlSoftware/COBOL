@@ -361,8 +361,8 @@ of an unsupported facility.
   through the activation's returning carrier exactly as for a COBOL activator (GR2), and the host resumes at its
   own call site. A RAISING phrase stages its condition and nothing consumes it: a non-COBOL element enables
   checking for nothing, so GR1 b)'s test — "if checking for that exception condition is enabled in the activating
-  runtime element" — is false and `ProgramTable.ApplyPropagationDefault` discards the staged condition without
-  raising it, fatal or not. No COBOL exception condition, and no .NET exception, crosses into a non-COBOL
+  runtime element" — is false, and the host runs no pickup, so the staged condition is never raised, fatal or
+  not (a COBOL pickup takes a staging only in the activation the staging names — kb/Work PB892). No COBOL exception condition, and no .NET exception, crosses into a non-COBOL
   activator. (kb/Work PB408.)
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
   documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —

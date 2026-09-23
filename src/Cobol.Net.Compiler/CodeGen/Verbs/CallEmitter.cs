@@ -74,9 +74,10 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // statement-local evaluated here, once.
         c = HoistOnceOnlyIdentification(c, w);
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
-        // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
+        // runs the §14.9.49 F3 selection and honors RESUME); an EC-free site emits none, and the staging — which
+        // names THIS activation (kb/Work PB892 Arm B) — is then never raised anywhere (§14.9.18.4 GR1 b)).
         // §14.9.4.4 GR3d's ACTIVATING half (kb/Work PB133 wave C2b): this statement's TURN state.
-        string invocation = InvocationText(c, siteHandlesPropagation: ecState.Active,
+        string invocation = InvocationText(c,
             argMismatchChecking: EnabledProgramNames().Contains("EC-PROGRAM-ARG-MISMATCH"));
 
         var ecProg = EnabledProgramNames();
@@ -118,8 +119,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // falls through to §14.6.13.1, because §14.9.4.4 GR3i says that once the program "was successfully
         // called" the ON EXCEPTION phrase is ignored.
         string? flag = hasPhrase ? $"__callErr{id}" : null;
-        if (ecProg.Count > 0) EmitCallEcCatch(ecProg, byPhrase: hasOn, flag);
-        if (ecOther.Count > 0) EmitCallEcCatch(ecOther, byPhrase: false, flag);
+        if (ecProg.Count > 0) EmitCallEcCatch(ecProg, byPhrase: hasOn, flag, c.InExpression);
+        if (ecOther.Count > 0) EmitCallEcCatch(ecOther, byPhrase: false, flag, c.InExpression);
         if (hasOn)
         {
             int pid = ctx.Names.NextEc();
@@ -215,25 +216,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         return local;
     }
 
-    /// <summary>The <c>CobolArg[]</c> expression of one bound call's arguments — the ONE argument-array text
-    /// both the statement-position <see cref="EmitCall"/> and the per-evaluation
-    /// <see cref="FunctionActivationText"/> render (singular-pattern rule).</summary>
+    /// <summary>The <c>CobolArg[]</c> expression of one bound call's arguments — the ONE argument-array text of
+    /// <see cref="EmitCall"/>, which renders every activation, statement-position or operand (kb/Work PB892).</summary>
     private string ArgsArrayText(BoundCallProgram c) => c.Args.Count == 0
         ? "System.Array.Empty<CobolArg>()"
         : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(ArgText))} }}";
 
-    /// <summary>The single-statement activation text of one user-defined-function call for an EXPRESSION-POSITION
-    /// per-evaluation window (<c>BoundUdfEvaluated</c> — ISO §8.4.3.2.4 GR1/GR6a: the activation runs when the
-    /// containing condition text evaluates). Function references carry no ON EXCEPTION phrases (§8.4.3.2), and a
-    /// declarative RESUME pickup is a statement-position surface (<c>__pc</c>-anchored) that cannot run inside an
-    /// expression — so the invocation goes out WITHOUT <c>siteHandlesPropagation</c>: a callee-staged RAISING
-    /// condition takes the registry's activation-boundary default (fatal → loud termination, nonfatal → stands in
-    /// the last-exception status; ISO §14.6.13.1.3 #8 / §14.6.13.1.4 — the same posture as an EC-free caller).</summary>
-    internal string FunctionActivationText(BoundCallProgram c) =>
-        InvocationText(c, siteHandlesPropagation: false, argMismatchChecking: false);
-
-    /// <summary>⛔ THE ONE ACTIVATION-INVOCATION RENDERER — the statement-position <see cref="EmitCall"/> and the
-    /// expression-position <see cref="FunctionActivationText"/> both render through it, so the three activation
+    /// <summary>⛔ THE ONE ACTIVATION-INVOCATION RENDERER — <see cref="EmitCall"/> renders every activation through it —
+    /// statement-position and operand (kb/Work PB892) — so the three activation
     /// targets cannot be taught to one site and not the other (the two-arm dispatch, kb/Work PB847: the
     /// per-evaluation site read <c>c.LiteralName!</c> and had no pointer arm at all).
     /// <list type="bullet">
@@ -244,19 +234,18 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     ///         function-prototype's externalized name — <c>ProgramRegistry.CallProgram</c>.</item>
     /// </list>
     /// A pointer's carrier goes straight to the registry, never a name-string read.</summary>
-    private string InvocationText(BoundCallProgram c, bool siteHandlesPropagation, bool argMismatchChecking)
+    private string InvocationText(BoundCallProgram c, bool argMismatchChecking)
     {
         string head = $"{CsLiteral(callState.SelfPath)}, {ArgsArrayText(c)}, "
             + $"{(c.Returning is { } rp ? ReturningArgText(rp) : "null")}";
-        string site = siteHandlesPropagation ? ", siteHandlesPropagation: true" : "";
         if (c.IsPointerTarget && c.DynamicName is BoundFieldOperand pf)
             return c.IsFunction
-                ? $"ProgramRegistry.CallFunctionPointer({PlaceRenderer.Read(pf.Place)}, {head}{site});"
-                : $"ProgramRegistry.CallPointer({PlaceRenderer.Read(pf.Place)}, {head}{site});";
+                ? $"ProgramRegistry.CallFunctionPointer({PlaceRenderer.Read(pf.Place)}, {head});"
+                : $"ProgramRegistry.CallPointer({PlaceRenderer.Read(pf.Place)}, {head});";
         string nameExpr = c.LiteralName is { } literal
             ? CsLiteral(literal)
             : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
-        return $"ProgramRegistry.CallProgram({nameExpr}, {head}{site}"
+        return $"ProgramRegistry.CallProgram({nameExpr}, {head}"
             + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")}"   // §8.4.3.2.4 GR6b
             + $"{(argMismatchChecking ? ", siteArgMismatchChecking: true" : "")});";
     }
@@ -310,7 +299,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// statement's business (GR3i) and must fall through to §14.6.13.1. A CobolCallException whose name is not
     /// enabled likewise falls through to the next arm / propagates — the checking-off behavior unchanged.</para>
     /// </summary>
-    private void EmitCallEcCatch(List<string> ecNames, bool byPhrase, string? phraseFlag)
+    private void EmitCallEcCatch(List<string> ecNames, bool byPhrase, string? phraseFlag, bool inExpression = false)
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
@@ -327,7 +316,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             else
             {
                 w.Line($"int __r{id} = {ec.EcDispatchExpr($"__ce{id}.EcName", "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__r{id}"));
+                w.Line(Resume(inExpression, $"__r{id}"));
                 w.Line($"if (__r{id} != -2) throw new CobolFatalException(__ce{id}.EcName, __ce{id}.Message) {{ Dispatched = true }};   // §14.6.13.1.3 #5/#7 (dispatched here)");
             }
         }
@@ -354,12 +343,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             w.Line($"ExceptionState.SetObject(__po{id});   // GR1b2 — the current exception object HERE (the activator)");
             w.Line($"int __or{id} = {ec.ObjDispatchExpr($"__po{id}")};   // rule 2 — USE AFTER EXCEPTION OBJECT (GR14)");
-            w.Line(dispatch.ResumeTransfer($"__or{id}", "   // RESUME AT procedure-name"));
+            w.Line(Resume(site.InExpression, $"__or{id}", "   // RESUME AT procedure-name"));
             using (w.Block($"if (__or{id} == -3)   // rule 3 PROPAGATE ON: directive not implemented (residue); rule 4 —"))
             {
                 w.Line("ExceptionState.Set(\"EC-OO-EXCEPTION\", true);   // as if EXCEPTION EC-OO-EXCEPTION (:24608)");
                 w.Line($"int __oq{id} = {ec.EcDispatchExpr("\"EC-OO-EXCEPTION\"", "\"\"")};   // the name enters the F3 tiers");
-                w.Line(dispatch.ResumeTransfer($"__oq{id}", ""));
+                w.Line(Resume(site.InExpression, $"__oq{id}", ""));
                 w.Line($"if (__oq{id} != -2) throw new CobolFatalException(\"EC-OO-EXCEPTION\", "
                     + "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\") { Dispatched = true };");
             }
@@ -369,12 +358,21 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             + $"out var __pn{id}, out var __pf{id}))   // §14.9.18.4 GR1b — raised HERE iff checking is enabled HERE"))
         {
             w.Line($"int __pr{id} = {ec.EcDispatchExpr($"__pn{id}", "\"\"")};");
-            w.Line(dispatch.ResumeTransfer($"__pr{id}"));
+            w.Line(Resume(site.InExpression, $"__pr{id}"));
             w.Line($"if (__pr{id} != -2 && __pf{id}) throw new CobolFatalException(__pn{id}, "
                 + "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
                 + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\") { Dispatched = true };");
         }
     }
+
+    /// <summary>The RESUME landing of one activation site's dispatch result — the ONE place the two kinds of
+    /// activation part: a CALL / INVOKE STATEMENT is itself §14.9.33.4 GR2 a) 2.'s applicable statement, so its
+    /// transfer is the ordinary <see cref="DispatchState.ResumeTransfer"/>; an OPERAND activation's applicable
+    /// statement is the one it was written in, which it leaves through
+    /// <see cref="DispatchState.OperandActivationResume"/> (kb/Work PB892).</summary>
+    private string Resume(bool inExpression, string resultVar,
+        string comment = "   // RESUME AT procedure-name (§14.9.33.4 GR3)") =>
+        inExpression ? dispatch.OperandActivationResume(resultVar) : dispatch.ResumeTransfer(resultVar, comment);
 
     /// <summary>The C# <c>CobolArg</c> expression for one bound CALL argument (caller side; design D1/D2).
     /// BY REFERENCE builds an accessor carrier over the caller's storage (§14.2.3 GR8); BY CONTENT/BY VALUE
@@ -400,8 +398,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// the §14.9.49 F3 selection and honours RESUME. The landing is emitted INSIDE the argument expression, so
     /// the throw happens while the <c>CobolArg[]</c> is being built — before <c>ProgramRegistry.CallProgram</c>
     /// is entered, which is exactly GR3g's ordering — and it works in an EXPRESSION-position activation (a
-    /// user-defined function reference, <see cref="FunctionActivationText"/>) where no statement could be
-    /// emitted at all.</para>
+    /// user-defined function reference inside a per-evaluation condition window) as well as at statement
+    /// position.</para>
     /// <para>Only BY CONTENT / BY VALUE, and only a FIXED-POINT NUMERIC formal: BY REFERENCE is GR8's storage
     /// aliasing with no crossing conversion; a group, index, pointer, object or edited formal takes GR9's
     /// MOVE leg; a formal "of class index, object, or pointer" takes GR9's SET leg — and USAGE INDEX is why the
@@ -926,7 +924,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>Emit GOBACK (ISO §14.9.18): move the RETURNING source into the header RETURNING item (GR2 — the
     /// activation result), stage a RAISING exception condition for the activator (the EC model — picked up at
-    /// the activating CALL site or by the registry's boundary default), then raise <see cref="ProgramReturn"/> —
+    /// the activating statement's pickup, and never raised when the activator emitted none — kb/Work PB892), then raise <see cref="ProgramReturn"/> —
     /// caught at THIS program's activation entry, returning control to the activator (called program) or ending
     /// the run unit (main program, GR3).</summary>
     public bool EmitGoback(BoundGoback g)
@@ -991,8 +989,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     }
 
     /// <summary>Stage a <c>RAISING</c> phrase's exception condition for the ACTIVATOR (ISO §14.9.18.4 GR1 b) /
-    /// §14.9.14.4 GR3 — consumed by the activating statement's pickup, or discarded by <c>ProgramRegistry</c>'s
-    /// boundary default when the site emitted none). Staging is UNCONDITIONAL and raises nothing here.
+    /// §14.9.14.4 GR3 — consumed by the activating statement's pickup; the staging names the activating
+    /// ACTIVATION, so when that activator emitted no pickup nothing else can take it — kb/Work PB892 Arm B).
+    /// Staging is UNCONDITIONAL and raises nothing here.
     /// <para>⛔ IT USED TO BRANCH ON A BIND-TIME <c>Enabled</c> FLAG, AND THAT FLAG WAS THIS ELEMENT'S OWN
     /// <c>&gt;&gt;TURN</c> STATE (kb/Work PB408). GR1 b) names one element and it is the other one: "an exception
     /// condition is raised in the activating runtime element if checking for that exception condition is enabled

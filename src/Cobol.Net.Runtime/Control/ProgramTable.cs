@@ -136,11 +136,11 @@ public sealed class ProgramTable
         mainExc.NonfatalDispatcher = inst;
         try
         {
+            // A GOBACK … RAISING in the MAIN program stages for no activation at all (ModuleStack.ActivatingActivation
+            // is −1 for the main frame), so nothing can ever take it — §14.9.18.4 GR3: "A RAISING phrase, if
+            // specified, is ignored" (kb/Work PB892 Arm B).
             try { inst.Activate(); }
             finally { n.Active--; _owner.Modules.Pop(); mainExc.NonfatalDispatcher = savedNonfatalDispatcher; }
-            // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
-            // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
-            ApplyPropagationDefault();
         }
         // The §14.6.12 abnormal-termination surface for a FATAL condition that reached the run-unit boundary
         // unhandled — BOTH families, so neither escapes as a raw CLR crash: exception-condition fatals
@@ -175,24 +175,6 @@ public sealed class ProgramTable
         Environment.ExitCode = 1;
     }
 
-    /// <summary>Discard an exception condition staged by the returning element's
-    /// <c>GOBACK / EXIT PROGRAM … RAISING</c> when the activating CALL site emitted no pickup of its own — i.e.
-    /// the activator has NOT enabled checking for it.
-    ///
-    /// <para>§14.9.18.4 GR1b is explicit and conditional: "If the RAISING phrase is specified, an exception
-    /// condition is raised in the activating runtime element IF CHECKING FOR THAT EXCEPTION CONDITION IS ENABLED
-    /// in the activating runtime element, and execution continues in that runtime element as specified in the
-    /// rules for the activating statement". An unchecked activator therefore never has the condition raised in
-    /// it at all — fatal or not — and execution simply continues after the CALL. GR3 says the same for the
-    /// main-program half: a GOBACK with no activator "operates as if executing a STOP statement … A RAISING
-    /// phrase, if specified, is ignored."</para>
-    ///
-    /// <para>⚠ This used to throw for a FATAL staged condition, citing §14.6.13.1.3 #8. That was a
-    /// misapplication: #8's implementor latitude governs what may happen once a fatal condition EXISTS, and
-    /// GR1b stops it from ever coming into existence in an unchecked activator. The returning element's own
-    /// last-exception status, set by SetPropagating, still stands (§14.6.13.1.4).</para></summary>
-    private void ApplyPropagationDefault() => _owner.Exceptions.TakePropagated(out _, out _);
-
     /// <summary>
     /// Execute one CALL (ISO §14.9.4.4): resolve <paramref name="name"/> from <paramref name="callerPath"/> per
     /// the §8.4.6.3 scope rules (GR3b), enforce the non-recursive re-entry rule (GR3f), pick the instance per the
@@ -201,8 +183,7 @@ public sealed class ProgramTable
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
     public void CallProgram(string name, string callerPath, CobolArg[] args, CobolArg? returning,
-        bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND",
-        bool siteArgMismatchChecking = false)
+        string notFoundEc = "EC-PROGRAM-NOT-FOUND", bool siteArgMismatchChecking = false)
     {
         // The EC-EXTERNAL enablement handshake, half 1 (§14.8.4.1 / §14.9.4.4 GR3e; kb/Work PB133): the
         // site's pending mask is consumed by THIS activation attempt — success or failure — so a NOT-FOUND
@@ -335,10 +316,11 @@ public sealed class ProgramTable
                                            // so a later explicit CANCEL is GR7's no-op
         }
 
-        // The callee may have staged an exception condition via GOBACK/EXIT PROGRAM … RAISING (§14.9.18 GR).
-        // An EC-active CALL site consumes it itself (siteHandlesPropagation — the generated pickup runs the
-        // §14.9.49 F3 selection and honors RESUME); otherwise apply the boundary default here.
-        if (!siteHandlesPropagation) ApplyPropagationDefault();
+        // ⛔ NO BOUNDARY DEFAULT HERE (kb/Work PB892 Arm B). A condition the callee staged with GOBACK / EXIT
+        // PROGRAM … RAISING names THIS activation's activator (ExceptionEngine — the staged slot carries the
+        // ModuleStack identity), so only a pickup emitted in the activating element can take it, and an activator
+        // that emitted none never has it raised — §14.9.18.4 GR1 b) for an unchecked activator. A discard here
+        // was the CALL-only half of that rule; the INVOKE half had no chokepoint to put one in.
     }
 
     /// <summary>Resolve a program-address-identifier's ENTRY operand (ISO §8.4.3.13): locate the OUTERMOST
@@ -419,8 +401,7 @@ public sealed class ProgramTable
     /// this implementation defines it as the EC-PROGRAM-NOT-FOUND loud failure (never a silent no-op). The
     /// held name is an OUTERMOST program's identity, so the §8.4.6.3 rule-4 leg of the SAME
     /// <see cref="CallProgram"/> resolution finds it from any caller (the singular-pattern rule).</summary>
-    public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, CobolArg? returning,
-        bool siteHandlesPropagation = false)
+    public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, CobolArg? returning)
     {
         // §14.9.4.4 GR3b names TWO DISTINCT conditions and the NULL case is the FIRST of them: "If the data item
         // referenced by identifier-1 contains the predefined address NULL, the EC-PROGRAM-PTR-NULL exception
@@ -439,7 +420,7 @@ public sealed class ProgramTable
                 "CALL through a NULL program-pointer: the pointer contains the predefined address NULL "
                 + "(ISO §14.9.4.4 GR3b — EC-PROGRAM-PTR-NULL)", "EC-PROGRAM-PTR-NULL");
         }
-        CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation);
+        CallProgram(target.Name!, callerPath, args, returning);
     }
 
     /// <summary>Activate the function a FUNCTION-POINTER holds — a function-identifier written with
@@ -452,7 +433,7 @@ public sealed class ProgramTable
     /// EC-FUNCTION-NOT-FOUND as the locate-miss name — never a second lookup path. The program-pointer twin is
     /// <see cref="CallPointer"/>.</summary>
     public void CallFunctionPointer(FunctionPointer target, string callerPath, CobolArg[] args,
-        CobolArg? returning, bool siteHandlesPropagation = false)
+        CobolArg? returning)
     {
         if (target.IsNull)
         {
@@ -462,8 +443,7 @@ public sealed class ProgramTable
                 + "NULL, so no function is activated (ISO §8.4.3.2.4 GR6c — EC-FUNCTION-PTR-NULL)",
                 "EC-FUNCTION-PTR-NULL");
         }
-        CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation,
-            notFoundEc: "EC-FUNCTION-NOT-FOUND");
+        CallProgram(target.Name!, callerPath, args, returning, notFoundEc: "EC-FUNCTION-NOT-FOUND");
     }
 
     /// <summary>

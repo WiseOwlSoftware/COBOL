@@ -65,6 +65,11 @@ internal sealed class DispatchState
     public int DeclCount { get; set; }
     public int? F3HandlerBasePc { get; set; }
 
+    /// <summary>The unit contains a RESUME statement (<c>EcFeatures.HasResume</c>) — so a <c>ResumeSignal</c> can
+    /// be thrown at all, and a PERFORM that enters a declarative needs its §14.9.33.4 GR2 b) landing. Set per unit
+    /// beside <see cref="DeclCount"/>; a unit without RESUME emits byte-identical PERFORMs.</summary>
+    public bool UnitHasResume { get; set; }
+
     /// <summary>The <c>__useActive</c> ids of this unit's <c>USE … GLOBAL</c> declaratives — empty when it
     /// declares none. Set per unit beside <see cref="DeclCount"/>, and cleared around an OO method body (a
     /// method has no USE declaratives of its own).</summary>
@@ -204,6 +209,23 @@ internal sealed class DispatchState
     /// it itself spelled the transfer as a capturable <c>break</c> (kb/Work PB405).</summary>
     public string ResumeTransfer(string resultVar, string comment = "   // RESUME AT procedure-name (§14.9.33.4 GR3)")
         => $"if ({resultVar} >= 0) {{ {TransferOut(resultVar)} }}{comment}";
+
+    /// <summary>The RESUME landing of a dispatch result selected for a condition an OPERAND activation propagated
+    /// (<see cref="IActivatingStatement.InExpression"/> — a function reference, an inline method
+    /// invocation, an object-property accessor; kb/Work PB892). ISO §14.9.33.4 GR2 a) 2.: "for an inline
+    /// invocation or a function invocation, it [the applicable statement] is the statement in which the inline
+    /// invocation or function invocation was specified" — so RESUME AT NEXT STATEMENT leaves THAT statement, and
+    /// GR3's RESUME AT procedure-name leaves it too. Neither can be written here: the activation may be running
+    /// inside a C# expression (a per-evaluation window's immediately-invoked lambda), where no <c>goto</c> can
+    /// leave, and even a hoisted one sits BEFORE the statement, so <see cref="ResumeTransfer"/>'s fall-through
+    /// would re-enter the very statement GR2 says to abandon. Both actions therefore unwind as
+    /// <c>RaiseResumeSignal</c> to the carrying statement's <c>BoundActivationSite</c>, which lands them with
+    /// <see cref="ResumeTransfer"/>. A declarative that completed normally (-1) or no qualifying declarative (-3)
+    /// leaves the activation's result in place and the statement continues (§14.9.18.4 GR1 b) "execution continues
+    /// … as specified in the rules for the activating statement after the result … is returned").</summary>
+    public string OperandActivationResume(string resultVar) =>
+        $"if ({resultVar} >= 0 || {resultVar} == ResumeSignal.NextStatement) throw new RaiseResumeSignal({resultVar});"
+        + "   // RESUME leaves the statement the activation was specified in (§14.9.33.4 GR2 a) 2.)";
 
     /// <summary>The program being emitted declares USE procedures (drives the <c>__IoCheck</c> hooks). Set per
     /// unit by the dispatcher emission; cleared by the OO class-unit emission (a class owns no USE

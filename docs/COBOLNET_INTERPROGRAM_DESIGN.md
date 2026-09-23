@@ -301,8 +301,8 @@ and a CALL/INVOKE is not an `IArithmeticStatement`, so a statement compiled unde
 carries the try/catch that sets the last exception status, runs the §14.9.49 F3 selection and honours RESUME.
 The landing is emitted INSIDE the argument expression, so the raise happens while the `CobolArg[]` is being
 built — before `ProgramRegistry.CallProgram` is entered, which is GR3 g)'s ordering — and it works in an
-EXPRESSION-position activation (a user-defined function reference, `CallEmitter.FunctionActivationText`) where
-no statement could be emitted at all. The kernel is chosen at COMPILE time from `EcState.SizeTruncationChecking`,
+EXPRESSION-position activation (a user-defined function reference inside a per-evaluation condition window) as
+well as at statement position. The kernel is chosen at COMPILE time from `EcState.SizeTruncationChecking`,
 the same way the arithmetic store chooses `checkedLanding`, so a unit with checking off emits the landing it
 always had.
 

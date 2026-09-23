@@ -146,6 +146,7 @@ public static class BoundStores
         // a container exactly like BoundSequence for this query, since any member may carry the store.
         public StoreKind? Visit(BoundImplicitSeries n) => Kids(n.Members);
         public StoreKind? Visit(BoundEcChecked n) => n.Inner.Accept(this);
+        public StoreKind? Visit(BoundActivationSite n) => n.Inner.Accept(this);
         public StoreKind? Visit(BoundIf n) => Kids(n.Then, n.Else);
         public StoreKind? Visit(BoundEvaluate n) => Kids([.. n.Whens.SelectMany(w => w.Statements)], n.Other);
         public StoreKind? Visit(BoundInlinePerform n) => StoreOrKids(

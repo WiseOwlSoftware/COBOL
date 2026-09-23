@@ -376,6 +376,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // wrap — still runs before the activation that consumes its temp.
         int udfMark = Udf.PendingCount;
         int mark = data.OoPendingPropertyOps.Count;
+        // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §7.3.25 profile an
+        // operand activation carries, and THIS statement counts only the activations it drains itself — both are
+        // saved around a nested statement's bind and restored after it.
+        int savedLine = StatementLine, savedActivations = data.OperandActivations;
+        StatementLine = s.Start.Line;
+        data.OperandActivations = 0;
         var core = BindStatementCore(s);
         // ⛔ THE DEFERRAL ANNOUNCES ITSELF (kb/Work PB236). `BoundUnsupported` was the carrier for three
         // incompatible jobs — a feature COBOL.NET has not built, an ill-formed OPERAND, and an illegal
@@ -405,8 +411,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // outermost. A non-series statement goes through untouched.
         core = BoundImplicitSeries.Rewrap(core, n => Udf.UdfWrapCalls(n, udfMark));
         core = BoundImplicitSeries.Rewrap(core, n => Oo.OoWrapPropertyOps(n, mark));
+        // ISO §14.9.33.4 GR2 a) 2./3. — the statement an operand activation was specified in is where a RESUME AT
+        // NEXT STATEMENT for the condition it propagates lands. Through Rewrap like the hoist above, so a
+        // multi-operand statement's landing is the implicit statement the activation belongs to.
+        if (data.OperandActivations > 0) core = BoundImplicitSeries.Rewrap(core, n => new BoundActivationSite(n));
+        StatementLine = savedLine;
+        data.OperandActivations = savedActivations;
         return Ec.EcWrap(s, core);
     }
+
+    /// <summary>The source line of the statement now binding — the §7.3.25 line an operand activation's checking
+    /// profile is taken at (<c>UdfBinder.DrainPending</c>; kb/Work PB892). Saved and restored around a nested
+    /// statement by <see cref="BindStatement"/>.</summary>
+    internal int StatementLine { get; private set; }
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {

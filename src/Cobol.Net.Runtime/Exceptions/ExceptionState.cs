@@ -16,6 +16,16 @@ namespace CobolNet.Runtime.Exceptions;
 /// </summary>
 public sealed class ExceptionEngine
 {
+    /// <summary>An engine with no activation record (a unit test driving the engine directly): every staging is
+    /// taken by the next pickup, since there is no second activation to tell apart.</summary>
+    public ExceptionEngine() { }
+
+    /// <summary>The run unit's engine, linked to the run unit's ONE activation record (<see cref="ModuleStack"/>)
+    /// so a staged <c>GOBACK / EXIT … RAISING</c> condition can name the activation it was staged FOR
+    /// (§14.9.18.4 GR1 b); kb/Work PB892 Arm B).</summary>
+    public ExceptionEngine(ModuleStack activations) => _activations = activations;
+
+    private readonly ModuleStack? _activations;
     /// <summary>The last raised level-3 exception-name (uppercase), or null when no exception condition exists.</summary>
     public string? LastName { get; private set; }
 
@@ -134,7 +144,29 @@ public sealed class ExceptionEngine
 
     // ── GOBACK / EXIT … RAISING propagation (§14.9.18 GR / §14.6.13.1.3 #6 shape) ────────────────────────────
 
-    private (string Name, bool Fatal, string? Statement, string? Location)? _propagated;
+    private (string Name, bool Fatal, string? Statement, string? Location, long For)? _propagated;
+
+    // ── ⛔ A STAGED CONDITION NAMES THE ACTIVATION IT WAS STAGED FOR (kb/Work PB892 Arm B) ──────────────────────
+    // §14.9.18.4 GR1 b) raises the condition "in the ACTIVATING runtime element if checking for that exception
+    // condition is enabled in the activating runtime element" — ONE element, the one the returning element
+    // returns to. Before this, the slot was run-unit-wide and anonymous, and "who takes it" was left to whichever
+    // pickup ran next: an activator that emitted no pickup (an EC-free group — zero scaffolding) left it standing,
+    // and the next EC-active pickup ANYWHERE in the run unit took it, running a declarative for a condition that
+    // was never raised (a separately compiled EC-free main INVOKEs a raising method; a later EC-active program's
+    // INVOKE of a method that raises NOTHING then ran its declarative). A CALL site hid the hole only because the
+    // registry discarded behind every pickup-free CALL; an INVOKE is a direct .NET call with no such chokepoint.
+    // So the RULE is written here, once, for every activation mechanism: staging records the activating
+    // activation's identity (ModuleStack.ActivatingActivation — the frame beneath the returning element's own), and
+    // a pickup takes the condition only when it runs IN that activation (ModuleStack.CurrentActivation). A staging
+    // no pickup in its activator ever takes is simply never raised, which is GR1 b) for an unchecked activator.
+
+    /// <summary>The activation a staging made NOW is for — the activator of the running (returning) element.</summary>
+    private long StagingFor => _activations?.ActivatingActivation ?? 0;
+
+    /// <summary>A staging made for <paramref name="stagedFor"/> is this pickup's to take: the pickup runs in that
+    /// activation. A staging for any other activation is left alone — never raised here, and never discarded
+    /// here either, because its own activator's pickup may still be ahead of it.</summary>
+    private bool IsForThisActivation(long stagedFor) => stagedFor == (_activations?.CurrentActivation ?? 0);
 
     /// <summary>STAGE an exception condition for the ACTIVATOR (GOBACK / EXIT PROGRAM / method-return … RAISING,
     /// §14.9.18.4 GR1 b) / §14.9.14.4 GR3). Staging is UNCONDITIONAL and raises nothing here: §14.9.18.4 GR1 b) localises
@@ -149,14 +181,14 @@ public sealed class ExceptionEngine
     /// activator's declarative; they simply no longer pre-empt the enablement question.</para></summary>
     public void SetPropagating(string name, bool fatal, string? statement = null, string? location = null)
     {
-        _propagated = (name.ToUpperInvariant(), fatal, statement, location);
+        _propagated = (name.ToUpperInvariant(), fatal, statement, location, StagingFor);
         _propagatedObject = default;   // the slots are mutually exclusive — a name supersedes a staged object
     }
 
     // ── The exception-OBJECT propagation slot (§14.6.13.1.5; GOBACK/EXIT/EXIT METHOD … RAISING identifier).
     //    Mutually exclusive with _propagated — a GOBACK stages exactly ONE of a name or an object. ──
 
-    private (bool Has, CobolObject? Obj) _propagatedObject;
+    private (bool Has, CobolObject? Obj, long For) _propagatedObject;
 
     /// <summary>Stage an exception OBJECT for the activator (GOBACK / EXIT PROGRAM / method-return RAISING
     /// identifier-1, §14.9.18.4 GR1b): the returning element's status reflects the raise (GR1b1 via
@@ -165,17 +197,19 @@ public sealed class ExceptionEngine
     public void SetPropagatingObject(CobolObject? obj)
     {
         SetObject(obj);
-        _propagatedObject = (true, obj);
+        _propagatedObject = (true, obj, StagingFor);
         _propagated = null;
     }
 
-    /// <summary>Consume the staged exception object at the activating CALL/INVOKE site (mirrors
-    /// <see cref="TakePropagated"/>; clears the slot).</summary>
+    /// <summary>Consume the staged exception object at the activating CALL/INVOKE site — only when it was staged
+    /// for THIS activation (the same identity test as <see cref="TakeRaisedPropagation"/>).</summary>
     public bool TakePropagatedObject(out CobolObject? obj)
     {
-        (bool has, obj) = _propagatedObject;
+        obj = null;
+        if (!_propagatedObject.Has || !IsForThisActivation(_propagatedObject.For)) return false;
+        obj = _propagatedObject.Obj;
         _propagatedObject = default;
-        return has;
+        return true;
     }
 
     /// <summary>Stage the LAST EXCEPTION for the activator — <c>GOBACK / EXIT … RAISING LAST EXCEPTION</c>,
@@ -207,17 +241,17 @@ public sealed class ExceptionEngine
     public void SetPropagatingLast(string[]? pdRaising = null, string? statement = null, string? location = null)
     {
         // An OBJECT status re-propagates the OBJECT (GR1b3a's second sentence → the §14.6.13.1.5 rules).
-        if (LastName == ExceptionState.ObjectSentinel) { _propagatedObject = (true, ExceptionObject); _propagated = null; return; }
+        if (LastName == ExceptionState.ObjectSentinel) { _propagatedObject = (true, ExceptionObject, StagingFor); _propagated = null; return; }
         if (LastName is not { } n) return;   // GR1b3b — nothing is raised, the RAISING phrase is ignored
         if (ExceptionCatalog.UnderLevel2(n, "EC-USER") && !Names(pdRaising).Contains(n, StringComparer.OrdinalIgnoreCase))
         {
             // GR1b3a's third sentence — the fatality comes from the catalog (Table 13), never a literal here.
             bool fatal = !ExceptionCatalog.TryGet(RaisingNotSpecified, out var rns)
                 || rns.Fatality is not EcFatality.Nonfatal;
-            _propagated = (RaisingNotSpecified, fatal, statement, location);
+            _propagated = (RaisingNotSpecified, fatal, statement, location, StagingFor);
         }
         else
-            _propagated = (n, LastFatal, LastStatement, LastLocation);
+            _propagated = (n, LastFatal, LastStatement, LastLocation, StagingFor);
         _propagatedObject = default;   // the slots are mutually exclusive
     }
 
@@ -244,30 +278,13 @@ public sealed class ExceptionEngine
     {
         name = "";
         fatal = false;
-        if (_propagated is not { } p) return false;
+        if (_propagated is not { } p || !IsForThisActivation(p.For)) return false;   // not staged for THIS activation
         _propagated = null;
         if (!EcCheckingProfile.Of(activatorChecking).Enabled(p.Name)) return false;   // GR1b — not raised here
         Set(p.Name, p.Fatal, p.Statement, p.Location);
         name = p.Name;
         fatal = p.Fatal;
         return true;
-    }
-
-    /// <summary>DISCARD a staged propagation without raising it — the activation-boundary default for a site
-    /// that emitted no pickup at all (<see cref="Control.ProgramTable.CallProgram"/>'s
-    /// <c>siteHandlesPropagation: false</c>). Such an activator enables checking for nothing, so GR1 b)'s test
-    /// is false by construction and the discard IS the rule, not a fallback.</summary>
-    public bool TakePropagated(out string name, out bool fatal)
-    {
-        if (_propagated is { } p)
-        {
-            _propagated = null;
-            (name, fatal) = (p.Name, p.Fatal);
-            return true;
-        }
-        name = "";
-        fatal = false;
-        return false;
     }
 
     // ── The ambient checking flags: ONE save/restore discipline (kb/Work PB891 / PB841) ──────────────────────
@@ -1284,8 +1301,6 @@ public static class ExceptionState
     public static bool TakeRaisedPropagation(string activatorChecking, out string name, out bool fatal)
         => E.TakeRaisedPropagation(activatorChecking, out name, out fatal);
 
-    /// <inheritdoc cref="ExceptionEngine.TakePropagated"/>
-    public static bool TakePropagated(out string name, out bool fatal) => E.TakePropagated(out name, out fatal);
 
     /// <inheritdoc cref="ExceptionEngine.DataPtrNullChecking"/>
     public static bool DataPtrNullChecking
