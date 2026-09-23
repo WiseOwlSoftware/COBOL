@@ -356,9 +356,12 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// binds only on an actual INVOKE under <c>&gt;&gt;TURN EC-OO-* CHECKING ON</c>.</summary>
     private static readonly string[] OoInvokeNames = ["EC-OO-NULL", "EC-OO-METHOD", "EC-OO-UNIVERSAL"];
 
-    /// <summary>EC-FLOW-SEARCH (§14.9.39.4 GR31) — a capacity SET executed during a SEARCH of the same table.
-    /// PRECISE: the only statement that can raise it is the capacity SET itself.</summary>
-    private static readonly string[] FlowSearchNames = ["EC-FLOW-SEARCH"];
+    /// <summary>The conditions ONLY a capacity SET (Format 14) can raise, so they bind PRECISELY on that node:
+    /// EC-FLOW-SEARCH (§14.9.39.4 GR31 — the SET executed during a SEARCH of the same table) and EC-BOUND-SET
+    /// (GR30's second arm — the new capacity above the expected maximum capacity; kb/Work PB460). Implicit growth
+    /// raises EC-BOUND-OVERFLOW instead (§8.5.1.9.6 GR1), so EC-BOUND-SET has no inline raise site and needs no
+    /// ambient gate.</summary>
+    private static readonly string[] SetCapacityNames = ["EC-FLOW-SEARCH", "EC-BOUND-SET"];
 
     /// <summary>The conditions an INITIATE raises (ISO §14.9.21.4 GR2 EC-REPORT-ACTIVE, GR3 EC-REPORT-FILE-MODE
     /// — GR3 being the detection half of §14.9.27.4 GR7 — and §14.9.49.4 GR10 EC-FLOW-REPORT). PRECISE: the raise
@@ -537,7 +540,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 // — growth also happens on IMPLICIT receiving-reference growth, which renders inline — so it
                 // takes the ambient tail gate below. The two are deliberately not merged.
                 case BoundSetCapacity:
-                    Query(FlowSearchNames);
+                    Query(SetCapacityNames);
                     break;
                 // §14.9.18.4 GR6 — PRECISE, like BoundSetCapacity: the only statement that can set
                 // EC-FLOW-GLOBAL-GOBACK is a GOBACK, and the emitter's run-time `__useActive` test is the raise

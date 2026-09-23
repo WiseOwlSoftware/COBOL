@@ -113,6 +113,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     [
         ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §15.19.4 r1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
         ("EC-BOUND-OVERFLOW", "BoundOverflowChecking"),     // §8.5.1.9.6 GR1 — OCCURS DYNAMIC implicit growth
+        ("EC-BOUND-SET", "BoundSetChecking"),               // §14.9.39.4 GR30 — OCCURS DYNAMIC explicit SET (kb/Work PB460)
         // These two USED TO CARRY THEIR OWN, SECOND enablement mechanism — the ThruMember carrier was emitted
         // only under checking, and SetSize took a `checkStorage` argument — which put their raises outside the
         // engine's (flag, name) pair and therefore outside the §14.6.13.1.4 #3 selection it runs (kb/Work PB367b).

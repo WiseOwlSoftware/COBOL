@@ -1186,8 +1186,10 @@ refused both. Golden `tests/conformance/2014/pb500_format1_value_dynamic_table` 
 mixed entry where a Format 1 and a Format 2 VALUE sit over one dynamic table and only the latter moves the capacity.
 
 `CobolDynTable` wires **EC-BOUND-OVERFLOW** since P13 (the receiving-subscript implicit grow past the expected
-capacity raises through the ambient `BoundOverflowChecking` gate, first crossing only); **EC-BOUND-SET** remains the
-flagged nonfatal follow-on.
+capacity raises through the ambient `BoundOverflowChecking` gate, first crossing only) and **EC-BOUND-SET** (kb/Work
+PB460): `SetCapacity` raises it on EVERY SET Format 14 whose new capacity exceeds the expected maximum capacity
+(§14.9.39.4 GR30's second arm — no first-crossing exemption), BEFORE the change, through `BoundSetChecking`, which
+the EC binder enables precisely on `BoundSetCapacity`. `docs/CONFORMANCE.md` A.4.4 records the two determinations.
 Resolved open questions: the VALUE-derived capacity is §13.18.63.4 GR16's, implemented over the whole FORMAT 2
 surface by `DataBinder.ResolveTableValues` and reaching no FORMAT 1 VALUE (the band-scoping paragraph above);
 EC-FLOW-SEARCH in CORE.

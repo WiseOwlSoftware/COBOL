@@ -405,7 +405,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>SET data-pointer assignment (§14.9.39 Format 7; Phase-4b increment 1): every target shall
     /// be USAGE POINTER (COBOLNET0869 otherwise); the sender is the NULL figurative or another data pointer
-    /// (SELF/SUPER are object-only — 0869). ADDRESS OF senders/receivers are increment 2 (staged loud).</summary>
+    /// (SELF/SUPER are object-only — 0869). A pointer-item sender is screened per receiver for §14.9.39.3 SR19's
+    /// restricted-data-pointer rule through PtrBinder's one screen (kb/Work PB548); the <c>ADDRESS OF</c>
+    /// spellings reach Format 7 through setAddressStatement / <c>PtrBinder.BindSetAddress</c>.</summary>
     private BoundStatement BindSetPointer(
         IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
         bool toNull, bool senderIsSelfSuper, string? senderText = null)
@@ -465,6 +467,21 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + "another USAGE POINTER item, or ADDRESS OF an identifier (ISO §14.9.39 Format 7)");
             }
             source = sp;
+            // ⛔ THE THIRD ARM (kb/Work PB548). §14.9.39.3 SR19 — "If identifier-5 references a restricted
+            // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
+            // restricted to the same type" — and its unnumbered continuation ("If identifier-6 references a
+            // restricted data-pointer, either identifier-5 shall reference a data-pointer restricted to the same
+            // type …") are one rule about each (receiver, sender) pair, asked through PtrBinder's ONE screen, the
+            // same call BindSetAddress makes for its identifier-5 receivers. This route used to check only the
+            // category, so `SET P TO R` stored an unrestricted address into a restricted data-pointer. TO NULL
+            // (the branch not taken here) is admitted by SR19's own words.
+            var senderRestriction = StrongTypeModel.PointerRestriction(sp.Item);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                if (!host.Ptr.ScreenPointerReceiverRestriction(targets[i], targetRefs[i].GetText(),
+                        senderRestriction, senderRef.GetText(), addressSender: false))
+                    return BoundRejected.Reported(ctx.Edition);
+            }
         }
         // Every receiver on THIS route is identifier-5 (§14.9.39.3 SR17) — the `ADDRESS OF data-name-1`
         // spelling of the printed brace reaches Format 7 through setAddressStatement / PtrBinder instead, and

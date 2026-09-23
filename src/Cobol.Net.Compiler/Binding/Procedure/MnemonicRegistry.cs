@@ -22,7 +22,9 @@ using Core = CobolParserCore;
 /// binder reported it, COBOLNET2241); a switch entry with no mnemonic declares nothing a statement can
 /// reference.</para>
 /// (P7 Step 10h — moved off the ACCEPT partial onto <see cref="BinderContext"/>: ACCEPT-FROM, DISPLAY-UPON and
-/// the WRITE SR13 / SR16 / ADVANCING legs share the ONE per-unit map.)</summary>
+/// the WRITE SR13 / SR16 / ADVANCING legs share the ONE per-unit map; since kb/Work PB454 so do SET Format 3's
+/// switch operand (§14.9.39.3 SR5) and the condition binder's "that is a switch mnemonic" diagnostic, which used
+/// to read a second, switch-only map built by a second walk of the same entries.)</summary>
 internal sealed class MnemonicRegistry
 {
     private Dictionary<string, ImplementorName>? _map;

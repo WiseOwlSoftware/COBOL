@@ -91,8 +91,8 @@ public static class ExceptionCatalog
         // introduction edition; 2023 = the names VERSION_CHANGE_REFERENCE rows 40/61 record as new in 2023
         // (EC-MCS-*, EC-FLOW-APPLY-COMMIT/-COMMIT/-ROLLBACK, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING,
         // EC-I-O-RECORD-CONTENT). 2014 = the dynamic-capacity-table EC names (§8.5.1.9 is a COBOL-2014 feature):
-        // EC-BOUND-OVERFLOW. (EC-BOUND-SET, the explicit-SET twin, stays a nonfatal staged follow-on — audited
-        // when it lands.) The IntroducedIn is observably inert where the enabling construct is itself
+        // EC-BOUND-OVERFLOW. (EC-BOUND-SET, the explicit-SET twin, is raised by CobolDynTable.SetCapacity — kb/Work
+        // PB460; its IntroducedIn is unaudited and left at the model's 2002.) The IntroducedIn is observably inert where the enabling construct is itself
         // edition-gated (a dyn table cannot exist below 2014 to overflow), but the metadata is kept correct.
         void L3(string name, EcFatality f, int introduced = 2002) =>
             t[name] = new EcInfo(name, 3, Level2OfName(name), f, introduced);

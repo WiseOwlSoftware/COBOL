@@ -3,6 +3,9 @@
  "enabled": [
   "pb567-condition-name-misqualified",
   "pb589-bool-refmod-width-below-2002",
+  "pb454-set-option2-switch-name",
+  "pb548-set-unrestricted-into-restricted",
+  "pb548-set-restricted-into-unrestricted",
   "pb349-sort-flow-turn-at-85",
   "pb1006-source-format-false-path-below-2002",
   "pb1002-unpaged-next-page",

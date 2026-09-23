@@ -539,6 +539,21 @@ public sealed class ExceptionEngine
     /// only while checking is enabled (§14.6.13.1.1). The growth proceeds regardless.</summary>
     public void BoundOverflowError(string detail) => NonfatalIfEnabled(BoundOverflowChecking, "EC-BOUND-OVERFLOW");
 
+    // ── EC-BOUND-SET ambient statement gate (OCCURS DYNAMIC explicit SET past the expected capacity) ─────────────
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-SET checking enabled. A dynamic-capacity
+    /// table's explicit capacity SET (<c>CobolDynTable.SetCapacity</c>) consults it.</summary>
+    public bool BoundSetChecking
+    {
+        get => _checking.BoundSet;
+        set => _checking.BoundSet = value;
+    }
+
+    /// <summary>Record EC-BOUND-SET when a SET Format 14 statement gives a dynamic-capacity table a new capacity
+    /// above its expected maximum capacity (§14.9.39.4 GR30, second arm — every such SET, not only the first
+    /// crossing). Nonfatal (Table 13), so it never throws on its own account; the change follows the raise (kb/Work PB460).</summary>
+    public void BoundSetError(string detail) => NonfatalIfEnabled(BoundSetChecking, "EC-BOUND-SET");
+
     // ── EC-RANGE-INVALID ambient statement gate (an inverted alphanumeric/national THROUGH range) ──────────────
 
     /// <summary>True while the currently-executing statement has EC-RANGE-INVALID checking enabled. The THROUGH
@@ -1689,6 +1704,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.BoundOverflowError"/>
     public static void BoundOverflowError(string detail) => E.BoundOverflowError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundSetChecking"/>
+    public static bool BoundSetChecking
+    {
+        get => E.BoundSetChecking;
+        set => E.BoundSetChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundSetError"/>
+    public static void BoundSetError(string detail) => E.BoundSetError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.RangeInvalidChecking"/>
     public static bool RangeInvalidChecking

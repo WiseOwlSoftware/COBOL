@@ -20,12 +20,11 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>SPECIAL-NAMES switch mnemonic-names (case-insensitive) → the implementor switch-name they set
-    /// (ISO §12.3.7.2 switch arm; §12.3.7.3 SR5 — mnemonic-name-1 may be specified only in a SET statement). ONLY a
-    /// switch-name's mnemonic is here (kb/Work PB862): a device-name's mnemonic used to land here too, so
-    /// <c>CONSOLE IS CON</c> + <c>SET CON TO ON</c> compiled and "set" the console. An entry with no mnemonic
-    /// registers nothing — the switch-name itself is not a mnemonic-name, and SET's operand is one (§14.9.39.3 SR5).</summary>
-    public Dictionary<string, string> SwitchMnemonics { get; } = new(StringComparer.OrdinalIgnoreCase);
+    // ⛔ NO SWITCH-MNEMONIC MAP LIVES HERE (kb/Work PB454). A switch's mnemonic-name is read, like every other
+    // SPECIAL-NAMES mnemonic, from the ONE per-unit registry `Procedure.MnemonicRegistry` (BinderContext.Mnemonics),
+    // whose value is the ImplementorName ROW, so SET Format 3 (§14.9.39.3 SR5) asks the row's KIND. This file used
+    // to keep a second, switch-only map built by a second walk of the same entries — the walk in which an Option-2
+    // entry (status phrases, no mnemonic) entered the switch-NAME itself as a mnemonic.
 
     /// <summary>Switch-status condition-names (case-insensitive) → (implementor switch-name, posited-ON) (ISO
     /// §12.3.7 GR2; §8.4.4.2 Format 1 SR1 — the condition-name shall be associated with a switch-name in
@@ -435,9 +434,11 @@ public sealed partial class DataBinder
     /// inherited, and inside a contained program of a DECIMAL-POINT IS COMMA unit NUMVAL("123,45") valued 0
     /// while NUMVAL("123.45") valued 123.45 — the exact inversion of §15.67.3 r5, with no diagnostic
     /// (kb/Work PB60 / AR-15.67.3-5). §11.9.4 GR1's OPTIONS inheritance rides the same call.
-    /// <para>⚠ One sibling still lives elsewhere: the Format-4 device-name mnemonics (DISPLAY UPON / ACCEPT FROM)
-    /// inherit through <c>MnemonicRegistry.Of</c>'s enclosing-unit PARSE-TREE walk — correct, but a second
-    /// mechanism for the same rule; fold it in here when the environment division gets a bound model.</para>
+    /// <para>⚠ One sibling still lives elsewhere: EVERY SPECIAL-NAMES mnemonic-name — the switch mnemonics SET reads
+    /// as much as the device and feature mnemonics DISPLAY UPON / ACCEPT FROM / WRITE ADVANCING read (kb/Work
+    /// PB454 moved the switch ones there rather than keep a second copy here) — inherits through
+    /// <c>MnemonicRegistry.Of</c>'s enclosing-unit PARSE-TREE walk: correct, but a second mechanism for the same
+    /// rule; fold it in here when the environment division gets a bound model.</para>
     /// </summary>
     internal void InheritConfiguration(DataBinder container)
     {
@@ -446,7 +447,6 @@ public sealed partial class DataBinder
         foreach (var (k, v) in container._currencySigns) _currencySigns.TryAdd(k, v);
         _explicitCurrencyStrings.UnionWith(container._explicitCurrencyStrings);
         _dollarSpecified = container._dollarSpecified;
-        foreach (var (k, v) in container.SwitchMnemonics) SwitchMnemonics.TryAdd(k, v);
         foreach (var (k, v) in container.SwitchConditions) SwitchConditions.TryAdd(k, v);
         foreach (var (k, v) in container.UserClasses) UserClasses.TryAdd(k, v);
         foreach (var (k, v) in container.Alphabets) Alphabets.TryAdd(k, v);
@@ -795,9 +795,10 @@ public sealed partial class DataBinder
     /// shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1.</i>" — is
     /// decided HERE, once, from the ONE table (<see cref="ImplementorNames"/>): a name that is not a row, or a
     /// non-switch name written with ON/OFF STATUS, is COBOLNET2241 (kb/Work PB862) and registers nothing. A switch
-    /// row registers its mnemonic (SET, §12.3.7.3 SR5) and its condition-names (§12.3.7.4 GR2); a device or
-    /// feature row's mnemonic is read by the procedure binders through <c>BinderContext.Mnemonics</c>, which
-    /// classifies it by the same <see cref="ImplementorNameEntry"/>.</summary>
+    /// row registers its condition-names (§12.3.7.4 GR2) here; EVERY row's mnemonic — a switch's for SET
+    /// (§12.3.7.3 SR5) as much as a device's or feature's — is read by the procedure binders through
+    /// <c>BinderContext.Mnemonics</c>, which classifies it by the same <see cref="ImplementorNameEntry"/>
+    /// (kb/Work PB454: one walk of the entries for mnemonics, not two).</summary>
     private void BindImplementorNameEntry(Core.ImplementorSwitchEntryContext sw)
     {
         var e = ImplementorNameEntry.Read(sw);
@@ -808,7 +809,6 @@ public sealed partial class DataBinder
         }
         if (e.Row!.Kind != SystemNameKind.Switch) return;
         string switchName = e.Row.Name;
-        if (e.Mnemonic is { } m) SwitchMnemonics.TryAdd(m, switchName);
         if (e.OnCondition is { } on) SwitchConditions.TryAdd(on, (switchName, true));
         if (e.OffCondition is { } off) SwitchConditions.TryAdd(off, (switchName, false));
     }

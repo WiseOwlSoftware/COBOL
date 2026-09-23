@@ -198,7 +198,14 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// re-assembly. <c>setSwitchPhrase</c> is now the printed unit, so a phrase IS a node and the loop is the
     /// rule: one group, its receivers, its ON/OFF.</para>
     /// <para>Every receiver must name a settable external switch's mnemonic (SR5) — an unresolvable name fails
-    /// loud, never a silent skip.</para></summary>
+    /// loud, never a silent skip.</para>
+    /// <para>⛔ THE OPERAND IS LOOKED UP IN THE ONE MNEMONIC REGISTRY and its row's KIND decides (kb/Work PB454).
+    /// This used to read a second, switch-only map (<c>DataBinder.SwitchMnemonics</c>) built by a second walk of
+    /// the same SPECIAL-NAMES entries, and that second walk is where an Option-2 switch clause (status phrases,
+    /// no mnemonic) once entered the switch-NAME itself as a mnemonic, so <c>SET SWITCH-1 TO ON</c> bound. One
+    /// walk (<see cref="MnemonicRegistry"/>, which also carries the §12.3.4 GR1 inheritance into contained units
+    /// and the OO scopes) now answers every mnemonic question — SET's, WRITE ADVANCING's, ACCEPT/DISPLAY's and the
+    /// condition binder's — so the switch/device/feature distinction is decided in one place.</para></summary>
     public BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw)
     {
         var switches = new List<(string Name, bool On)>();
@@ -209,18 +216,24 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             foreach (var dref in phrase.dataReference())
             {
                 string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-                if (!ctx.Data.SwitchMnemonics.TryGetValue(name, out var implName))
+                if (!ctx.Mnemonics.Of(dref).TryGetValue(name, out var row) || row.Kind != SystemNameKind.Switch)
                 {
                     // SR5 is decided here, so it is REPORTED here (kb/Work PB390 — the Format-3 sibling of the
                     // Format-4 condition-name rule; both used to ship as a run-time "not implemented" abort).
                     ctx.Validation.RejectStatementOperand($"SET '{name}' TO {(on ? "ON" : "OFF")} — "
                         + "\"mnemonic-name-1 shall be associated with an external switch, the status of which may "
-                        + "be altered\" (ISO §14.9.39.3 SR5), and no SPECIAL-NAMES paragraph in this source "
-                        + $"element associates '{name}' with a switch-name");
+                        + "be altered\" (ISO §14.9.39.3 SR5), and "
+                        + (row is not null
+                            ? $"'{name}' is the mnemonic-name of the {ImplementorNames.KindWord(row.Kind)} '{row.Name}'"
+                            : ImplementorNames.Lookup(name) is { } named
+                                ? $"'{name}' is itself a {ImplementorNames.KindWord(named.Kind)}, an implementor-name "
+                                  + "(ISO §8.3.2.3.11), not a mnemonic-name — the SPECIAL-NAMES entry "
+                                  + $"'{named.Name} IS mnemonic-name' declares the name SET takes"
+                                : $"no SPECIAL-NAMES paragraph in this source element associates '{name}' with a switch-name"));
                     bad = true;
                     continue;   // screen EVERY receiver: two bad mnemonics draw two diagnostics
                 }
-                switches.Add((implName, on));
+                switches.Add((row.Name, on));
             }
         }
         return bad ? BoundRejected.Reported(ctx.Edition) : new BoundSetSwitches(switches);

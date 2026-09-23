@@ -134,8 +134,16 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// <summary>§14.9.39.3 SR19's first and THIRD sentences over ONE identifier-5 receiver of a Format-7
     /// statement whose sender is a pointer item or a data-address-identifier. Both directions are asked here
     /// because they are one rule about one (receiver, sender) pair, and a Format-7 statement may now hold
-    /// several receivers — a per-statement screen would have answered for operand zero only.</summary>
-    private bool ScreenPointerReceiverRestriction(
+    /// several receivers — a per-statement screen would have answered for operand zero only.
+    /// <para>⛔ ONE SCREEN, EVERY ARM THAT STORES INTO IDENTIFIER-5 (kb/Work PB548). Format 7 reaches the binder
+    /// by TWO routes: <see cref="BindSetAddress"/> (setAddressStatement — an <c>ADDRESS OF</c> on either side) and
+    /// <c>SetBinder.BindSetPointer</c> (setToValueStatement / setObjectReferenceStatement re-routed on the
+    /// receivers' category — the plain <c>SET p TO q</c>). The second route never asked this question, so an
+    /// UNRESTRICTED pointer was stored into a RESTRICTED one and a based item rebased through it read another
+    /// type's storage — exactly what §13.18.60.4 GR23's last sentence ("A restricted data-pointer shall contain
+    /// only the predefined address NULL or the address of a data item of the specified type") forbids. Both
+    /// routes now call THIS method; there is no second copy of the rule.</para></summary>
+    internal bool ScreenPointerReceiverRestriction(
         Place receiver, string receiverText, StrongTypeModel.TypeRestriction sourceRestriction,
         string senderText, bool addressSender)
     {

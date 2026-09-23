@@ -94,8 +94,8 @@ public sealed class CobolDynTable<T>
     /// (§8.5.1.9.5). A request past <see cref="MaxOccurrences"/> raises EC-BOUND-TABLE-LIMIT (fatal, capacity
     /// unchanged). This is the pure grow primitive: EC-BOUND-OVERFLOW on implicit growth past the expected capacity
     /// (§8.5.1.9.6 GR1) is raised by <see cref="RefReceiving"/> BEFORE calling here (only implicit growth qualifies);
-    /// EC-BOUND-SET on an explicit SET past the expected capacity (§14.9.39 GR30) stays a nonfatal staged follow-on —
-    /// being nonfatal, it produces identical observable results with checking OFF (the default).</summary>
+    /// EC-BOUND-SET on an explicit SET past the expected capacity (§14.9.39.4 GR30's second arm) is raised by
+    /// <see cref="SetCapacity"/> BEFORE the capacity changes, as this one is (kb/Work PB460).</summary>
     /// <remarks>⛔ <paramref name="newCount"/> is <see cref="Int128"/>, and THAT IS THE POINT (kb/Work PB459):
     /// the implementor-maximum test is written ONCE, here, and it has to see the request BEFORE any narrowing.
     /// The explicit-SET path used to hand this an <c>(int)</c> cast of a <c>long</c>, so a capacity request of
@@ -146,6 +146,22 @@ public sealed class CobolDynTable<T>
         // next is NOT repeated here: it is written once, in GrowTo, which the IMPLICIT-growth path needs too. A
         // new capacity above the maximum can never be clamped to the minimum (min ≤ max), so reaching GrowTo
         // through the growth arm below applies GR30's two tests in their stated order anyway.
+        // ⛔ GR30's SECOND ARM (kb/Work PB460): "… the EC-BOUND-TABLE-LIMIT exception condition is set to exist and
+        // the capacity of the table is unchanged; otherwise, if an expected maximum capacity is specified for the
+        // table and the new capacity of the table exceeds that expected maximum capacity, the EC-BOUND-SET
+        // exception condition is set to exist." "Otherwise" is the request NOT above the implementor maximum
+        // (GrowTo raises the first arm for that one). Unlike implicit growth's EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1,
+        // first crossing only), nothing here exempts a table ALREADY past its expected capacity: every explicit
+        // SET whose NEW capacity exceeds it raises — a TO / UP BY / DOWN BY that leaves it above as much as one
+        // that takes it there. The rule does not make the capacity unchanged (contrast its first arm), so the
+        // change is made. ⚠ ORDER — the SAME shape as the implicit twin in RefReceiving, and §8.5.1.9.6's model
+        // of an exceeded expected capacity ("the operation shall be allowed to continue"): the condition is
+        // raised FIRST and the change follows. With checking off, or a declarative that completes normally
+        // (§14.6.13.1.4 3)), the change is made; a RESUME that leaves the statement abandons it with the rest of
+        // the statement. Nonfatal (Table 13) — it records the status only while checking is enabled.
+        if (n <= MaxOccurrences && _expected is { } exp && n > exp)
+            ExceptionState.BoundSetError(
+                $"SET of an OCCURS DYNAMIC capacity to {n} exceeds the expected capacity {exp} (ISO §14.9.39.4 GR30)");
         if (n > _count) { GrowTo(n); return; }               // grow: n > _count ≥ _min, so no clamp can apply
         // GR30's minimum clamp — "If the new capacity of the table is less than the minimum capacity defined in
         // the corresponding OCCURS clause, the new capacity of the table shall be the minimum capacity" — over a

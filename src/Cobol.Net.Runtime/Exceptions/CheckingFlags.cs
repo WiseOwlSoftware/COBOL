@@ -35,6 +35,10 @@ public struct CheckingFlags
     /// <summary>EC-BOUND-OVERFLOW — a dynamic-capacity table receiving item grown past its expected bound.</summary>
     public bool BoundOverflow;
 
+    /// <summary>EC-BOUND-SET — an explicit SET of a dynamic-capacity table's capacity whose new capacity exceeds the
+    /// table's expected maximum capacity (§14.9.39.4 GR30, second arm; kb/Work PB460).</summary>
+    public bool BoundSet;
+
     /// <summary>EC-RANGE-INVALID — an alphanumeric/national THROUGH range whose starting value collates after its
     /// ending value (§14.7.8 rule 2), in a level-88 VALUE THRU or an EVALUATE WHEN range.</summary>
     public bool RangeInvalid;

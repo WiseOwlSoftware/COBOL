@@ -143,11 +143,35 @@ public sealed class ImplementorNamesDriftTests
     [InlineData("           SWITCH-1 IS SW1.", "           DISPLAY \"X\" UPON SW1.", "COBOLNET0817")]
     [InlineData("           CSP IS NOSP.", "           DISPLAY \"X\" UPON NOSP.", "COBOLNET0817")]
     [InlineData("           CONSOLE IS CON.", "           SET CON TO ON.", "COBOLNET1757")]
+    [InlineData("           CSP IS NOSP.", "           SET NOSP TO ON.", "COBOLNET1757")]
+    // kb/Work PB454 — an Option-2 switch entry (status phrases, no mnemonic) declares no name SET can take; the
+    // switch-NAME is an implementor-name (§8.3.2.3.11), never mnemonic-name-1 (§14.9.39.3 SR5).
+    [InlineData("           SWITCH-1 ON STATUS IS SW-ON.", "           SET SWITCH-1 TO ON.", "COBOLNET1757")]
     public void MnemonicUse_IsKeyedOnTheNamesKind(string special, string procedure, string code)
     {
         var (ok, errors) = Compile(special, procedure, 2023);
         Assert.False(ok, $"compiled: {special} / {procedure}");
         Assert.Contains(errors, e => e.Contains(code, StringComparison.Ordinal));
+    }
+
+    /// <summary>⛔ ONE WALK FOR MNEMONICS (kb/Work PB454). Every SPECIAL-NAMES mnemonic-name — a switch's for SET as
+    /// much as a device's or a feature's — is answered by <c>Procedure.MnemonicRegistry</c>, whose value is the
+    /// <see cref="ImplementorName"/> row. <c>DataBinder</c> used to keep a second, switch-only mnemonic map built by
+    /// a second walk of the same entries, and that walk is where an Option-2 entry entered the switch-NAME itself as
+    /// a mnemonic. This fails the moment a mnemonic-keyed member reappears on the data binder.</summary>
+    [Fact]
+    public void DataBinder_KeepsNoSecondMnemonicMap()
+    {
+        var members = typeof(CobolNet.Binding.DataBinder)
+            .GetMembers(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static
+                        | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic
+                        | System.Reflection.BindingFlags.DeclaredOnly)
+            .Where(m => m.MemberType is System.Reflection.MemberTypes.Field or System.Reflection.MemberTypes.Property)
+            .Where(m => m.Name.Contains("Mnemonic", StringComparison.OrdinalIgnoreCase))
+            .Select(m => m.Name).ToList();
+        Assert.True(members.Count == 0,
+            "DataBinder declares a mnemonic-keyed member (" + string.Join(", ", members) + "); mnemonic-names are "
+            + "answered by Procedure.MnemonicRegistry alone (kb/Work PB454)");
     }
 
     /// <summary>The CLASS clause's FOR phrase at its PRINTED position (§12.3.7.2, folio 290 — between class-name-1
