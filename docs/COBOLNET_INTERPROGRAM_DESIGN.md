@@ -263,7 +263,7 @@ an ORDINARY operand raises EC-PROGRAM-NOT-FOUND the way every in-statement fatal
 (`ProgramRegistry.EntryOfOperand`), because §14.9.4.4 GR3a's pre-transfer delivery is the CALL statement's alone.
 
 **THE MANAGED SLOT — THE FOURTH FORM, AND ONE CLASSIFICATION FOR BOTH SIDES (kb/Work PB663).** A class-pointer
-or class-object-reference item's value IS a managed reference; it has no byte image at all (the same fact
+or class-object-reference item's value IS a managed reference, not a byte image (the same fact
 `SlotWindow.CarriedBySlot` states for storage — PB231). Its carrier is therefore its own `PicInfo.ClrType`,
 exactly as a numeric leaf's is, and §14.8.2.3.2 removes any need to convert at the boundary: *“If either the
 argument or the formal parameter is of class pointer, the corresponding formal parameter or argument shall be of
@@ -273,6 +273,19 @@ aliases a same-`T` carrier and fails the activation with EC-PROGRAM-ARG-MISMATCH
 PB615 — see "A supplied argument the formal cannot read" below), and `SlotValue<T>` is
 §14.2.3 GR10's detached record — which GR10 fills with *“a SET statement”* for this class, i.e. the reference
 copy itself.
+
+**⛔ A POINTER BY CONTENT INTO A NON-POINTER FORMAL IS ITS STORAGE IMAGE (kb/Work PB970 arm 2).** §14.8.2.3.2 is
+the BY REFERENCE rule; BY CONTENT, §14.8.2.3.3 rule 1 asks only that *“the formal parameter shall be of the same
+length as the corresponding argument”* when the program is called with no program-specifier and no NESTED phrase,
+and §14.2.3 GR9 moves the argument *“to this allocated record without conversion”*. So a `USAGE POINTER` (or
+PROGRAM-POINTER / FUNCTION-POINTER) argument BY CONTENT into a `PIC X(8)` or 8-byte binary formal is conforming,
+and the formal holds the pointer's 8 storage positions. `CobolArgAdapt.WithPointerContent` — asked first by
+`Text` (non-group formal) and `Num` — replaces a class-pointer carrier of a BY CONTENT argument with a DETACHED
+string cell holding `PointerImage.OfCarrier(…)` (DOC-A.1-216), after which the ordinary storage-image arms adopt
+it. BY REFERENCE and BY VALUE (GR10 fills the formal's own description by COMPUTE/SET) stay EC-PROGRAM-ARG-MISMATCH,
+a group formal stays refused (§14.8.2.2 rule 2's MOVE), and a rule-2 activation is refused at BIND —
+`OoConformance.MoveContentMismatch` asks §14.9.25.3 SR1 of the sender before Table 16, because rule 2d is *“the
+same as for a MOVE statement”*.
 
 ⛔ **The ACTIVATING and the ACTIVATED sides now read ONE classification**, `CallCrossing` +
 `CallEmitter.CrossingOf` / `ProgramEmitter.FormalCrossing`. They were two formulations of one rule — a caller

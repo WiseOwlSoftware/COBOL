@@ -8,9 +8,8 @@
       *> result of the execution of a program, function, or method that
       *> specifies a RETURNING phrase in its procedure division header,
       *> is the content of the data item referenced by that RETURNING
-      *> phrase."  14.8.2.3.3 rule 2a: a BY CONTENT crossing into a
-      *> method formal transfers "according to the rules of the COMPUTE
-      *> statement".
+      *> phrase."  14.8.2.3.3 rule 2a: for a method formal "the
+      *> conformance rules are the same as for a COMPUTE statement".
       *> Derivation (no measured value is used):
       *>   RETURNING: the callee's returning item holds -123 (resp. the
       *>   method's -77 / -88); its content arrives in the receiver,

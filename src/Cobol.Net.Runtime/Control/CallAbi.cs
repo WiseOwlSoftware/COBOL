@@ -360,6 +360,39 @@ public static class CobolArgAdapt
         }
     }
 
+    /// <summary>⛔ A CLASS-POINTER ARGUMENT PASSED BY CONTENT TO A NON-POINTER FORMAL arrives as its STORAGE IMAGE
+    /// (kb/Work PB970 arm 2). ISO §14.8.2.3.3 1) — for a program activated with no program-specifier and no NESTED
+    /// phrase, "the formal parameter shall be of the same length as the corresponding argument" is the whole
+    /// conformance rule when the formal "is not of class object or pointer", so a <c>USAGE POINTER</c> argument
+    /// BY CONTENT into a <c>PIC X(8)</c> (or an 8-byte binary) formal is CONFORMING; and §14.2.3 GR9 says what the
+    /// formal then holds: "That argument is moved to this allocated record without conversion" — the pointer's
+    /// 8 storage positions, which <see cref="PointerImage"/> defines (DOC-A.1-216). The record is detached (GR9 —
+    /// it "does not occupy the same storage area as the argument"), so the image rides a fresh string cell and the
+    /// ordinary character / numeric arms adopt it exactly as they adopt any other storage image.
+    /// <para>Only BY CONTENT: BY REFERENCE §14.8.2.3.2 requires a pointer formal for a pointer argument, and BY
+    /// VALUE GR10 allocates the formal's own description filled by COMPUTE or SET, neither of which a pointer can
+    /// send to a non-pointer — both stay the loud <see cref="Unreadable{T}"/> they are. A GROUP formal is not
+    /// routed here either: §14.8.2.2 2) makes that pairing a MOVE, which a pointer cannot send. Nor is a formal of
+    /// any length but the pointer's 8 (<paramref name="formalWidth"/>; negative = ANY LENGTH, whose length rule
+    /// 2c "considered to match"): rule 1's same-length requirement is the pairing's whole conformance, and its
+    /// violation is §14.9.4.4 GR3 d)'s EC-PROGRAM-ARG-MISMATCH (conformance:2002/pb615_unreadable_argument_carrier).
+    /// Returns <paramref name="args"/> itself (no allocation) whenever the argument is anything else.</para></summary>
+    /// <summary>The cheap pre-test for <see cref="WithPointerContent"/>: a BY CONTENT argument on a class-pointer
+    /// slot. Asked first so the common (non-pointer) crossing never computes the formal's image width.</summary>
+    private static bool IsPointerContent(in CobolArg a) =>
+        a.Mode is CobolPassMode.Content
+        && a.Carrier is ManagedPointer<ManagedPointer> or ManagedPointer<ProgramPointer> or ManagedPointer<FunctionPointer>;
+
+    private static CobolArg[] WithPointerContent(CobolArg[] args, int i, int formalWidth)
+    {
+        if (args[i].Mode is not CobolPassMode.Content || PointerImage.OfCarrier(args[i].Carrier) is not { } image
+            || formalWidth >= 0 && formalWidth != image.Length)
+            return args;
+        var copy = (CobolArg[])args.Clone();
+        copy[i] = args[i] with { Carrier = ManagedPointer<string>.Cell(image), Num = null };
+        return copy;
+    }
+
     /// <summary>Adapt argument <paramref name="i"/> to a NUMERIC formal described by <paramref name="formal"/>
     /// (the callee's profile) at <paramref name="formalScale"/>. GENERIC over the formal's CARRIER
     /// (<c>long</c> / <c>ulong</c> / <c>Int128</c> / <c>UInt128</c> — <c>PicInfo.ClrType</c>'s integer set;
@@ -374,6 +407,8 @@ public static class CobolArgAdapt
         where T : struct, System.Numerics.INumberBase<T>
     {
         if (!Present(args, i)) return Omitted<T>();
+        if (IsPointerContent(args[i]))
+            args = WithPointerContent(args, i, formal.StorageLength > 0 ? formal.StorageLength : CobolNum.FormatImage(Int128.Zero, formal).Length);
         switch (args[i].Carrier)
         {
             case ManagedPointer<T> tp when args[i].Scale == formalScale:
@@ -452,6 +487,7 @@ public static class CobolArgAdapt
     public static ManagedPointer<string> Text(CobolArg[] args, int i, int width, int[]? groupLayout = null)
     {
         if (!Present(args, i)) return Omitted<string>();
+        if (groupLayout is null && IsPointerContent(args[i])) args = WithPointerContent(args, i, width);
         switch (args[i].Carrier)
         {
             case ManagedPointer<CobolVarGroup> vp when VarGroupSpans(args[i], groupLayout, width) is { } spans:

@@ -684,6 +684,15 @@ public static class OoConformance
                 argIsGroup ? "a group argument does not conform to a numeric formal (§14.8.2.3.3)"
                 : argCat is PicCategory.Numeric ? null
                 : "COMPUTE-rule conformance needs a numeric argument (ISO §14.8.2.3.3 rule 2a)",
+            // A CLASS-POINTER formal takes the SET rules, not the MOVE rules (§14.8.2.3.3: "If the formal parameter
+            // is of class pointer or an object reference described without the ACTIVE-CLASS phrase, the conformance
+            // rules shall be the same as if a SET statement were performed"), and a SET of an identifier into a
+            // pointer is category-to-same-category (§14.9.39.3 SR17 data-pointer, SR20 function-pointer, SR21
+            // program-pointer). This arm used to fall into the default MOVE arm, where Table 16 happened to admit the pair;
+            // once that arm asks §14.9.25.3 SR1 (kb/Work PB970 arm 2) it would refuse every pointer argument.
+            PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer =>
+                argCat == f.Category ? null
+                : $"a {f.Category} formal takes an argument of the same pointer category (SET rules, §14.8.2.3.3)",
             PicCategory.ObjectReference =>
                 argCat is PicCategory.ObjectReference && arg.Pic is { } ap
                     ? ObjectRefAssignmentMismatch(classes, ap, f)
@@ -710,8 +719,18 @@ public static class OoConformance
     /// non-numeric formal (SR8) and a variable-length-group argument at an incompatible formal (SR9) were
     /// admitted where the written MOVE of the same pair is refused). ONE call for both the alphanumeric-formal and
     /// the other-category arms of <see cref="ContentMismatch"/>. Null when conformant.</summary>
-    private static string? MoveContentMismatch(DataItem formal, Place argPlace) =>
-        MoveTable16.Validity(new BoundFieldOperand(argPlace), Table16Operand.Of(formal), formal)?.Reason;
+    private static string? MoveContentMismatch(DataItem formal, Place argPlace)
+    {
+        var sender = new BoundFieldOperand(argPlace);
+        // ⛔ SR1 FIRST — the MOVE question's class screen, which MoveTable16.Validity leaves to its askers because
+        // each frames it differently (kb/Work PB970 arm 2). Rule 2d is "the same as for a MOVE statement", and a
+        // MOVE whose sending operand is of class pointer or object is refused by §14.9.25.3 SR1 before Table 16 is
+        // consulted. Without it a POINTER argument BY CONTENT to a PIC X(8) formal of a NESTED or prototyped
+        // activation compiled — the runtime then delivered the pointer's storage image, which is §14.8.2.3.3
+        // rule 1's answer for a rule-1 activation only, on source rule 2 says is in error.
+        return MoveTable16.SenderClassRefusal(sender)
+            ?? MoveTable16.Validity(sender, Table16Operand.Of(formal), formal)?.Reason;
+    }
 
     /// <summary>ISO §14.8.2.3.3 rule 2a for an ARITHMETIC-EXPRESSION argument: "the conformance rules are the
     /// same as for a COMPUTE statement", whose receiving operand is category numeric — so a non-numeric formal
