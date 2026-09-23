@@ -5376,13 +5376,13 @@
   "ordinal": 1,
   "subject": "Qualification",
   "rule-digest": "551024429315",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/QualifiedNameClasses.cs#QualifiedNameClasses; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveIndexName; src/Cobol.Net.Compiler/Binding/Model/IndexDeclaration.cs#IndexNameRegistry",
+  "test-ref": "conformance:negative/pb919-index-name-ambiguous; conformance:85/pb919_index_name_qualified; conformance-test:IndexNameUniquenessTests.DuplicatedIndexName_QualifiedThroughItsTable_IsSR6; conformance-test:IndexNameUniquenessTests.ContainedProgram_LocalIndexWins_GlobalReachableQualified",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB919, wave 57. 8.4.2.2.1 1) 'Qualification of a user-defined name is required unless ... No other name has the identical spelling' - the last name class without it (index-names) now requires qualification exactly when a second visible declaration shares the spelling; a unique index-name (JX in the golden) needs none. Visibility follows 8.4.6.2.3 (an index-name's scope is its table's) and 8.4.6.2.1 3) (a contained program's own declaration wins over a container's GLOBAL one), in IndexNameRegistry.Candidates.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.2.2.1-2",
@@ -5466,13 +5466,13 @@
   "ordinal": 1,
   "subject": "Qualification",
   "rule-digest": "f514d35c893e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/QualifiedNameClasses.cs#QualifiedNameClasses; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveIndexName; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/Cobol.Net.Compiler/Binding/Model/SymbolTable.cs#IndexCandidates",
+  "test-ref": "conformance:negative/pb919-index-name-ambiguous; conformance:85/pb919_index_name_qualified; conformance-test:IndexNameUniquenessTests.DuplicatedIndexName_Unqualified_IsSR1; conformance-test:TypedefResidueTests.IndexedTypeReferencedTwice_EachCloneOwnsItsIndex; unit:QualifiedNameClassDriftTests.EveryPrintedQualifiedNameFormat_HasExactlyOneRow",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB919, wave 57. SR1 is now enforced for EVERY 8.4.2.2.2 qualified-name format through a named resolution each: data-name (QualifiedCandidates, counted by UniqueOrReportAmbiguous / ReportUnidentified), condition-name (ConditionBinder.ConditionOf), index-name (NEW: ReferenceResolver.ResolveIndexName over SymbolTable.IndexCandidates, counted by the same generic UniqueOrReportAmbiguous<T> verdict, COBOLNET1639), procedure-name (ResolveProcedureWord), LINAGE-COUNTER (LinageFileOf), LINE-/PAGE-COUNTER (CounterReportOf); screen-name and record-key-name are declared only by DECLINED facilities (A.4.2 SCREEN SECTION, A.3 item 40). QualifiedNameClassDriftTests derives the format list from the standard's own 8.4.2.2.2 text and fails on an unrouted format. Before: index-names were keyed name -> cell, de-duplicated on insert, so two tables' INDEXED BY IX shared one cell and a bare IX compiled clean.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.2.2.3-2",
@@ -5541,13 +5541,13 @@
   "ordinal": 6,
   "subject": "Qualification",
   "rule-digest": "0be8dad91151",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#IndexQualifierChainMatches; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#IndexFieldOf; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ResolveSubscriptName",
+  "test-ref": "conformance:85/pb919_index_name_qualified; conformance-test:IndexNameUniquenessTests.DuplicatedIndexName_QualifiedThroughItsTable_IsSR6; conformance-test:IndexNameUniquenessTests.QualifierNamingNoDeclaringTable_IsNotDefined; conformance-test:IndexNameUniquenessTests.OtherTablesQualifiedIndex_AsSubscript_IsSR4",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB919, wave 57. The 8.4.2.2.2 Format 3 qualified-index-name 'index-name-1 [data-qualifier]... [file-report-qualifier]' is accepted in every position that admits an index-name - SET, PERFORM/SEARCH VARYING, a relation condition, a subscript - with the qualifier chain starting AT the table (SR6: 'may include the name of the table with which the index-name is associated, as well as any name by which that table may be qualified'), IN and OF equivalent (SR3). A qualifier that names no declaring table is COBOLNET1639 citing SR6. Before: every qualified form was 'not defined'.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.2.2.3-7",
@@ -21696,13 +21696,13 @@
   "ordinal": 4,
   "subject": "EXTERNAL clause",
   "rule-digest": "f2a8797e5a8c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindExternalAndGlobal; src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#ForceStringCanonical; src/Cobol.Net.Compiler/Binding/Model/Place.cs#DynSlotWindow; src/Cobol.Net.Runtime/Control/StorageCell.cs#DynAt",
+  "test-ref": "conformance:2014/pb1026_external_out_of_line_records; conformance:2002/oo_external_file_shared; conformance:2002/pb511_external_as_name; conformance:negative/pb1026-external-dynamic-record-at-2002",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB1026. cite.py --check 13.18.22.4 \"the data contained in all record description entries subordinate to that file description entry is external\" -> OK GR4 b). a) the external file connector: one run-unit connector per externalized file name (oo_external_file_shared, pb511_external_as_name). b) ALL the record data is run-unit storage: the character half is one cell keyed FD::<name>; each OUT-OF-LINE record (D-FRA: a dynamic-length record, a variable-length group, a pointer record) is its own cell keyed FD::<name>#<k> by its ordinal among the file's out-of-line records (GR5 externalizes the file name, never a record name), its dynamic-length content riding the cell's dynamic slots (StorageCell.DynAt; Place.DynSlotWindow / VarGroupWindow). The 2014 golden has three separately compiled programs describing the file under different record names: each sees the others' dynamic-length, variable-length-group and pointer record values, and a READ in one program lands in all of them (D-FRA take step). Staged loud (COBOLNET0899) before PB1026.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.22.4-5",
@@ -37536,13 +37536,13 @@
   "ordinal": 3,
   "subject": "GENERATE statement",
   "rule-digest": "674c0c99ede8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#InheritGlobalReport",
+  "test-ref": "conformance:negative/pb369-contained-report-file-not-global; conformance:negative/pb369-contained-generate-non-global-report; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.16.3 \"the report description entry in which data-name-1 is specified and the file description entry associated with that report description entry shall contain a GLOBAL clause\" -> OK, SR 3). Both halves hold. The RD half by construction: only a GLOBAL report of a container is visible to a contained program (DataBinder.VisibleReports), so a group of a non-GLOBAL one does not resolve and the GENERATE is refused COBOLNET1757 (negative/pb369-contained-generate-non-global-report). The FD half: RejectContainedReportFile, the one check the four verb rules share, refuses a GLOBAL report whose FD is not GLOBAL with COBOLNET2392.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.16.3-4",
@@ -37551,13 +37551,13 @@
   "ordinal": 4,
   "subject": "GENERATE statement",
   "rule-digest": "721526fd0771",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+  "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.16.3 \"If report-name-1 is defined in a containing program\" -> OK, SR 4). The summary-reporting GENERATE report-name-1 of a container's GLOBAL report is refused COBOLNET2392 when the report's FD is not GLOBAL, and binds when it is; one check (RejectContainedReportFile) with INITIATE/TERMINATE and the file half of SR3.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.16.4-1",
@@ -38511,13 +38511,13 @@
   "ordinal": 2,
   "subject": "INITIATE statement",
   "rule-digest": "721526fd0771",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate",
+  "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.21.3 \"the file description entry associated with report-name-1 shall contain a GLOBAL clause\" -> OK, SR 2). A contained program's INITIATE of a container's GLOBAL report whose FD is not GLOBAL is refused COBOLNET2392 (RejectContainedReportFile, shared with GENERATE and TERMINATE); a non-GLOBAL report of a container is not visible at all (13.18.27.4 GR2) and draws SR1's 'shall be defined by a report description entry'.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.21.3-3",
@@ -45352,11 +45352,11 @@
   "subject": "SET statement",
   "rule-digest": "bb7b0f65fc2d",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ScreenIndexNameAssociation; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#IndexNameInHierarchy",
-  "test-ref": "conformance:negative/pb459-index-name-not-in-table; conformance:2023/pb459_set_index_amount_guards; unit:SetIndexAmountLandingDriftTests.TheSpecStatesTheSetAmountIntegralityGuard_InExactlyTheRulesThisTestCovers",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#ScreenIndexNameAssociation; src/Cobol.Net.Compiler/Binding/DataBinder.cs#RegisterIndexes; src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#DeclaredInHierarchy",
+  "test-ref": "conformance:negative/pb459-index-name-not-in-table; conformance:2023/pb459_set_index_amount_guards; unit:SetIndexAmountLandingDriftTests.TheSpecStatesTheSetAmountIntegralityGuard_InExactlyTheRulesThisTestCovers; conformance-test:IndexNameUniquenessTests.OtherTablesQualifiedIndex_AsSubscript_IsSR4",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB459.md LANDED. FORMATS 1 AND 2 GR1 - 'Index-names are associated with a given table by being specified in the INDEXED BY phrase of the OCCURS clause for that table' (cite.py --check 14.9.39.4 PASS). The association is recorded by DataBinder (DataItem.IndexNames on the OCCURS-bearing entry) and is now CONSUMED on the reference side as well as by SEARCH: ReferenceResolver.ScreenIndexNameAssociation applies 8.4.2.3.3 SR4 - 'Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced that contains an INDEXED BY phrase specifying that index-name' (cite.py --check 8.4.2.3.3 PASS) - and rejects a cross-table index subscript with COBOLNET1961 in BOTH dialect lanes. The prior adjudication charged this row with the MISSING RANGE TESTS of GR2a1b/GR2a3b/GR4a, and that premise was re-derived and CORRECTED during the fix: the limit those arms cite is the IMPLEMENTOR'S index range (13.18.38.4 GR2), not the table's bounds - every one of them ends 'even if that occurrence is not a valid occurrence within this table' - so the range half needs no index-to-table map at all and a table-bounds test there would reject legal source. What GR1's association actually serves on the reference side is SR4, which was measured missing (MOVE 77 TO E2 (IX1), with IX1 the index of another table, compiled clean and wrote through the wrong occurrence number) and is now a compile-time diagnostic. The range half is closed under GR-14.9.39.4-4 and -L2.* by CobolIndex, whose implementor range is documented as CONFORMANCE.md section 7 row DOC-A.1-128 (A.1 item 128, required + documented).",
+  "notes": "kb/Work/PB459.md LANDED. FORMATS 1 AND 2 GR1 - 'Index-names are associated with a given table by being specified in the INDEXED BY phrase of the OCCURS clause for that table' (cite.py --check 14.9.39.4 PASS). The association is recorded by DataBinder (DataItem.IndexNames on the OCCURS-bearing entry) and is now CONSUMED on the reference side as well as by SEARCH: ReferenceResolver.ScreenIndexNameAssociation applies 8.4.2.3.3 SR4 - 'Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced that contains an INDEXED BY phrase specifying that index-name' (cite.py --check 8.4.2.3.3 PASS) - and rejects a cross-table index subscript with COBOLNET1961 in BOTH dialect lanes. The prior adjudication charged this row with the MISSING RANGE TESTS of GR2a1b/GR2a3b/GR4a, and that premise was re-derived and CORRECTED during the fix: the limit those arms cite is the IMPLEMENTOR'S index range (13.18.38.4 GR2), not the table's bounds - every one of them ends 'even if that occurrence is not a valid occurrence within this table' - so the range half needs no index-to-table map at all and a table-bounds test there would reject legal source. What GR1's association actually serves on the reference side is SR4, which was measured missing (MOVE 77 TO E2 (IX1), with IX1 the index of another table, compiled clean and wrote through the wrong occurrence number) and is now a compile-time diagnostic. The range half is closed under GR-14.9.39.4-4 and -L2.* by CobolIndex, whose implementor range is documented as CONFORMANCE.md section 7 row DOC-A.1-128 (A.1 item 128, required + documented). kb/Work PB919 (wave 57): the association is now an IndexDeclaration(name, table, cell) minted per table by DataBinder.RegisterIndexes, and SR4 is judged against the RESOLVED declaration (DeclaredInHierarchy, by identity) rather than the spelling - so EB(IX OF EA), with both tables INDEXED BY IX, is refused where a spelling test would pass it. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#IndexNameInHierarchy (kb/Work PB919 replaced the spelling test with DeclaredInHierarchy (identity of the resolved declaration))",
   "state": "OK"
  },
  {
@@ -47781,13 +47781,13 @@
   "ordinal": 2,
   "subject": "TERMINATE statement",
   "rule-digest": "721526fd0771",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate",
+  "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds; conformance:85/pb369_global_report_use_selection",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.46.3 \"the file description entry associated with report-name-1 shall contain a GLOBAL clause\" -> OK, SR 2). Refused COBOLNET2392 by the shared RejectContainedReportFile when the FD is not GLOBAL; the legal shape (GLOBAL RD on a GLOBAL FD, TERMINATE in a grandchild) runs in conformance:85/pb369_global_report_use_selection.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.46.3-3",
@@ -48696,13 +48696,13 @@
   "ordinal": 4,
   "subject": "USE statement",
   "rule-digest": "8952827588c4",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs#ChainHasGlobalUse; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
-  "test-ref": "conformance-test:InterProgramFileDifferentialTests.GlobalUse_ContainedFailureFiresOuterGlobalDeclarative",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs#ChainHasGlobalUse; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitBeforeReportingSelectors; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#ChainSelects; src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BindUnitData; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#InheritGlobalReport; src/Cobol.Net.Runtime/IO/ReportWriter.cs#RunBeforeReporting",
+  "test-ref": "conformance-test:InterProgramFileDifferentialTests.GlobalUse_ContainedFailureFiresOuterGlobalDeclarative; conformance:85/pb369_global_report_use_selection; conformance:85/pb369_global_file_use_selection; unit:GlobalReportScopeTests.AContainersGlobalDeclarative_IsReachedByTheOutwardWalk; unit:GlobalReportScopeTests.AContainersNonGlobalDeclarative_IsNotSelectedForAContainedGenerate; unit:GlobalReportScopeTests.AContainedDeclarativeOnAGlobalGroup_SuppressesTheContainersEngine; unit:GlobalReportScopeTests.TheReportEngine_HasNoPerGroupHook",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.49.4 \"a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element\" -> OK, GR 4 b). FORMAT 1 is implemented and covered: the contained unit's own declaratives are consulted first (GR4a), then `__outer.__RunGlobalUse(__f)` examines the container's GLOBAL declaratives file-scope-first, runs the handler in the DECLARING instance, and recurses outward one container at a time, stopping false at the outermost (GR4b's 'repeated with the next higher directly containing source element'). The named test asserts a spec-derived expected string (AssertSpecPinned, not the legacy-baked DifferentialGolden path) for exactly that walk. PARTIAL because FORMAT 2 has NO implementation: EmitRunGlobalUse emits only `Files` and `ModeIndex` arms, and ReportWriterEmitter.EmitReportConstruction wires `BeforeReporting` only from the EMITTING unit's own `bound.Declaratives`, so a `USE GLOBAL BEFORE REPORTING` declarative can never be selected from a contained program. Upstream it is also unreachable: a report description entry may carry GLOBAL (cite.py --check 13.18.27.3 \"A report description entry\" -> OK, SR 1 e), but MEASURED (out-b1/probe/gr4-global-f2/p1.cob) `RD R-1 GLOBAL` is rejected `COBOLNET0899: RD 'R-1': the GLOBAL clause on a report description (ISO 13.18.27) is not yet implemented - cross-program report visibility is staged`. See finding [gr4-format2-global-absent]. GR4a's beat-the-outer half has only a legacy-baked witness (InterProgramFileDifferentialTests.GlobalFd_ContainedOwnUseOnInheritedFile_BeatsOuterGlobal routes through DifferentialGolden.Assert, whose expected value is a baked legacy run - a regression net, not a spec oracle). || EDITIONS AS ADJUDICATED: 1985/2002/2014/2023 (the rule is headed FORMATS 1 AND 2; both formats and the GLOBAL clause predate 2002). No Annex E entry touches it.",
-  "state": "GAP"
+  "notes": "kb/Work PB369 LANDED. Rule text (cite.py --check 14.9.49.4 \"the qualifying declarative in the source element that contains the statement that caused the condition to exist\" -> OK, GR 4 a); cite.py --check 14.9.49.4 \"a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element\" -> OK, GR 4 b)). BOTH FORMATS ARE NOW IMPLEMENTED AND WITNESSED BY SPEC-DERIVED GOLDENS. FORMAT 1: __IoCheck's local tier (GR4 a)), then __outer.__RunGlobalUse walking outward over Format-1 GLOBAL declaratives only (ChainHasGlobalUse no longer counts a Format-2 GLOBAL declarative); conformance:85/pb369_global_file_use_selection is the spec-pinned witness for BOTH halves - a contained program's own USE on the inherited GLOBAL file beats the container's GLOBAL one (a), a declarative-free grandchild reaches the outermost GLOBAL one past a non-GLOBAL middle one (b). FORMAT 2: the selection is per STATEMENT, so there is no per-group engine hook any more; each unit that can see a report and whose GR4 chain (itself: any declarative; each container up to the declaring program: GLOBAL only) names one of its groups emits __BeforeReporting_{uid}(gi, globalOnly), and GENERATE / TERMINATE pass it to the engine, which asks it by ReportGroup.Index just before producing each group. The upstream blocker is gone: RD GLOBAL (13.18.27.3 SR1 e)) is implemented - the report-name, its groups and its sum counters are visible in contained programs (13.18.27.4 GR1/GR2) and reached through the __outer chain. conformance:85/pb369_global_report_use_selection witnesses a) (a contained program's own non-GLOBAL declarative beats the container's GLOBAL one; the container's own GENERATE runs its own non-GLOBAL one), b) past a non-GLOBAL middle declarative, the NEGATIVE of b) (a container's non-GLOBAL declarative is NOT selected for a contained GENERATE), and a CF FINAL group produced by a grandchild's TERMINATE. || EDITIONS AS ADJUDICATED: 1985/2002/2014/2023 (the rule is headed FORMATS 1 AND 2; both formats, nested programs and the GLOBAL clause are COBOL-85).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.49.4-5",
@@ -48757,11 +48757,11 @@
   "subject": "USE statement",
   "rule-digest": "fe4c0afca299",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/Cobol.Net.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/Cobol.Net.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentBody; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentHeadingFooting",
-  "test-ref": "conformance-test:ReportWriterConformanceTests.UseBeforeReporting_Gr8_RunsBeforeEachProduction; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_UseProcedureIsTheWholeSection; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/Cobol.Net.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentBody; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/Cobol.Net.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitBeforeReportingSelectors",
+  "test-ref": "conformance-test:ReportWriterConformanceTests.UseBeforeReporting_Gr8_RunsBeforeEachProduction; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_UseProcedureIsTheWholeSection; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative; conformance-test:ReportWriterConformanceTests.UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated; conformance:85/pb369_global_report_use_selection",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB367 (LANDED), PB367b (LANDED). Rule text (cite.py --check 14.9.49.4 \"The declarative is invoked just before the named report group is produced\" -> OK, GR 8). ALL SEVEN GROUP TYPES ARE NOW WITNESSED, not covered by reading: UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative gives RH / PH / CH / DE / CF / PF / RF one declarative each, each writing its OWN digit into the item every group SOURCEs, so a group can print its own digit only if ITS declarative ran immediately before IT was produced - the printed report is RH 1 / PH 2 / CH 3 / DE 4 / CF 5 / PF 6 / RF 7, in the order 14.9.16.4 GR4 a)-d), 14.9.46.4 GR3 b)/c) and 13.18.57.4 GR6 f) require. THE PRESENT WHEN EDGE IS ADJUDICATED as an implementor determination and pinned: the declarative runs BEFORE the group's PRESENT WHEN conditions are evaluated. 14.9.49.4 GR9 d) performs the declarative 'Before the processing of any LINE clauses defined for the report group' and 13.18.41.4 GR2 evaluates condition-1 'before the processing of any LINE clauses for the report group' - the same boundary, with no rule ordering them, both before the page fit test - so the order is the implementor's; it is settled this way because the reverse makes the declarative's execution depend on data the declarative exists to set, and a level-01 PRESENT WHEN would silently suppress the procedure that would have made the group present. UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated is the witness (the group is absent until its own declarative makes it present) and the determination is recorded in COBOLNET_REPORT_WRITER_DESIGN's PRESENT WHEN row. || EDITIONS AS ADJUDICATED: 1985/2002/2014/2023 (FORMAT 2, the Report Writer facility). No Annex E entry touches it.",
+  "notes": "kb/Work PB367 (LANDED), PB367b (LANDED). Rule text (cite.py --check 14.9.49.4 \"The declarative is invoked just before the named report group is produced\" -> OK, GR 8). ALL SEVEN GROUP TYPES ARE NOW WITNESSED, not covered by reading: UseBeforeReporting_Gr8_EveryGroupTypeInvokesItsOwnDeclarative gives RH / PH / CH / DE / CF / PF / RF one declarative each, each writing its OWN digit into the item every group SOURCEs, so a group can print its own digit only if ITS declarative ran immediately before IT was produced - the printed report is RH 1 / PH 2 / CH 3 / DE 4 / CF 5 / PF 6 / RF 7, in the order 14.9.16.4 GR4 a)-d), 14.9.46.4 GR3 b)/c) and 13.18.57.4 GR6 f) require. THE PRESENT WHEN EDGE IS ADJUDICATED as an implementor determination and pinned: the declarative runs BEFORE the group's PRESENT WHEN conditions are evaluated. 14.9.49.4 GR9 d) performs the declarative 'Before the processing of any LINE clauses defined for the report group' and 13.18.41.4 GR2 evaluates condition-1 'before the processing of any LINE clauses for the report group' - the same boundary, with no rule ordering them, both before the page fit test - so the order is the implementor's; it is settled this way because the reverse makes the declarative's execution depend on data the declarative exists to set, and a level-01 PRESENT WHEN would silently suppress the procedure that would have made the group present. UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated is the witness (the group is absent until its own declarative makes it present) and the determination is recorded in COBOLNET_REPORT_WRITER_DESIGN's PRESENT WHEN row. || EDITIONS AS ADJUDICATED: 1985/2002/2014/2023 (FORMAT 2, the Report Writer facility). No Annex E entry touches it. retired-witness: src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction (kb/Work PB369 - the engine-construction method no longer installs a per-group BEFORE REPORTING hook; the declarative a group runs is selected per GENERATE/TERMINATE by the unit's __BeforeReporting selector (EmitBeforeReportingSelectors))",
   "state": "OK"
  },
  {
