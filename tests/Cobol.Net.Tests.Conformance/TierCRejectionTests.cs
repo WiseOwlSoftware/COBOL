@@ -13,8 +13,8 @@ namespace CobolNet.Tests.Conformance;
 /// (the 8-byte occurrence-number image; <c>DisplayIndexGroup_RendersVerbatimBytes</c> pins THAT working
 /// behavior below), so the island's remaining boundaries are the VARIABLE-LENGTH group (the primary lock
 /// fixture) and a POINTER/OBJECT-CLASS leaf (the R40 fleet's correction — every NUMERIC kind is in, the
-/// pointer/object categories are not; <c>DisplayPointerGroup_FailsLoud</c>/<c>MovePointerGroup_FailsLoud</c>
-/// pin that arm). DISPLAY of a COMPOSABLE variable-length group is NOT here: it renders the documented A.1 item-57
+/// pointer/object categories had no image until kb/Work PB244 gave them the ONE-WAY transfer image —
+/// <c>DisplayPointerGroup_RendersPlaceholderPositions</c>/<c>MovePointerGroup_SendsPlaceholderPositions</c> pin it WORKING). DISPLAY of a COMPOSABLE variable-length group is NOT here: it renders the documented A.1 item-57
 /// format (<c>2023/pb164_vlg_display</c>); the DISPLAY loud lives on the UNCOMPOSABLE shape
 /// (<c>DisplayOdoGroupWithDynamicMember_FailsLoudNotCs1061</c>). ACCEPT/STRING receivers and INSPECT's identifier-1
 /// are BIND-screened by their own syntax rules (§14.9.1.3 SR6 / §14.9.43.3 SR11 / §14.9.22.3 SR1) and pinned as such.
@@ -73,25 +73,21 @@ public sealed class TierCRejectionTests
     [Fact] public void StringIntoGroup_BindRejected() => AssertBindRejected("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
     [Fact] public void AcceptIntoGroup_BindRejected() => AssertBindRejected("    ACCEPT WS-G.");
 
-    /// <summary>The POINTER/OBJECT-CLASS arm of the island (the R40 fleet's correction — the leaf-kind
-    /// boundary did NOT close entirely: pointer/object categories have no character image and R40's pin
-    /// covers the numeric kinds only). Compiles, throws Tier-C, names the pointer/object mechanism.
-    ///
-    /// <para>⛔ THE GROUP IS A STRONG TYPEDEF, AND THAT IS FORCED BY THE STANDARD, not a stylistic choice.
-    /// This fixture was written <c>01 WS-GP. 05 WS-GP-P USAGE POINTER.</c> — an ordinary group with a pointer
-    /// member — which ISO §13.18.60.3 SR14 does not permit: "A USAGE clause with the MESSAGE-TAG, OBJECT
-    /// REFERENCE, POINTER, FUNCTION-POINTER, or PROGRAM-POINTER phrase may be specified only for an elementary
-    /// data item at level 1 or an elementary data item subordinate to a type declaration that includes the
-    /// STRONG phrase." The declaration screen (kb/Work PB183, COBOLNET1724) now rejects that at compile time, so
-    /// the fixture was NONCONFORMING SOURCE and these tests were passing on a program the standard forbids.
-    /// A STRONG typedef is the ONE conforming spelling of "a group whose leaf is class pointer", so it is what
-    /// the arm must be exercised through. Measured: both legs still reach the Tier-C stage with the identical
-    /// message — no strong-type MOVE guard intercepts the MOVE leg — so the boundary under test is unchanged
-    /// and this is a source repair, not a weakened assertion. ⛔ Do NOT "fix" a future failure here by relaxing
-    /// the SR14 screen; the screen is right and the program was wrong.</para></summary>
-    private static void AssertPointerGroupLoud(string proc)
+    /// <summary>The POINTER/OBJECT-CLASS leg, pinned WORKING (kb/Work PB244). A strongly-typed group with a class
+    /// pointer leaf is a legal DISPLAY identifier-1 (ISO §14.9.11.3 SR1 bars only an item OF class message-tag,
+    /// object or pointer; a strongly-typed group's class is its type-name, §8.5.2.1) and a legal MOVE sender
+    /// (§14.9.25.3 SR2 constrains only a strongly-typed RECEIVER). Both used to compile and abort at run time with
+    /// the Tier-C loud — a green test pinned that refusal. They now transfer the group's ONE-WAY storage image:
+    /// the pointer leaf contributes its 8 reserved placeholder positions (spaces), exactly what the same group
+    /// shows from a BASED storage cell (D-SLOT; CONFORMANCE.md A.1 item 56).
+    /// <para>⛔ THE GROUP IS A STRONG TYPEDEF, AND THAT IS FORCED BY THE STANDARD: §13.18.60.3 SR14 admits a
+    /// POINTER usage only at level 1 or subordinate to a type declaration that includes the STRONG phrase
+    /// (COBOLNET1724 rejects the ordinary-group spelling). Do NOT relax that screen to simplify a fixture.</para>
+    /// <para>What stays refused is NOT this: comparison and every read-back ask the two-way capability, because
+    /// the placeholder image is neither injective nor invertible (<c>DataItem.TransferImageCapable</c>).</para></summary>
+    private static string PointerGroupRun(string proc)
     {
-        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun($$"""
+        var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun($$"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. TIERCRE5.
             DATA DIVISION.
@@ -100,19 +96,22 @@ public sealed class TierCRejectionTests
                05 WS-GP-A PIC X(3).
                05 WS-GP-P USAGE POINTER.
             01 WS-GP TYPE GPT.
-            01 WS-DST PIC X(7).
+            01 WS-DST PIC X(13).
             PROCEDURE DIVISION.
             MAIN.
+                MOVE "abc" TO WS-GP-A OF WS-GP.
             {{proc}}
                 STOP RUN.
             """);
-        Assert.False(ok, "a pointer-leafed group has no whole-group image — loud (§1.4)");
-        Assert.Contains("Tier-C", detail);
-        Assert.Contains("pointer/object", detail);
+        Assert.True(ok, $"a pointer-leafed strong group is a legal transfer operand (kb/Work PB244): {detail}");
+        return stdout.TrimEnd('\r', '\n');
     }
 
-    [Fact] public void DisplayPointerGroup_FailsLoud() => AssertPointerGroupLoud("    DISPLAY WS-GP.");
-    [Fact] public void MovePointerGroup_FailsLoud() => AssertPointerGroupLoud("    MOVE WS-GP TO WS-DST.");
+    [Fact] public void DisplayPointerGroup_RendersPlaceholderPositions() =>
+        Assert.Equal("[abc        ]", PointerGroupRun("    DISPLAY \"[\" WS-GP \"]\"."));
+
+    [Fact] public void MovePointerGroup_SendsPlaceholderPositions() =>
+        Assert.Equal("[abc          ]", PointerGroupRun("    MOVE WS-GP TO WS-DST. DISPLAY \"[\" WS-DST \"]\"."));
 
     /// <summary>The R40 leg, pinned WORKING: an INDEX-leaf group displays its verbatim content — the leaf's
     /// occurrence number as 8 big-endian two's-complement bytes (the R40 pin; A.1 items 56 + 211). SET (one

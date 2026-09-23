@@ -90,6 +90,12 @@ public abstract record Place
     /// <c>WriteGroupImage</c> and the DISPLAY sender's current-extent arm — asks THIS.</para></summary>
     public virtual bool ImageCapable => Item.IsImageCapable;
 
+    /// <summary>The operand-level twin of <see cref="DataItem.TransferImageCapable"/> (kb/Work PB244) — the
+    /// ONE-WAY transfer image, asked of the REFERENCED operand for the same reason as <see cref="ImageCapable"/>.
+    /// Only the transfer readers (DISPLAY, a MOVE's sending group) ask it; comparison and every read-back keep
+    /// <see cref="ImageCapable"/>.</summary>
+    public virtual bool TransferImageCapable => Item.TransferImageCapable;
+
     /// <summary>The operand-level twin of <see cref="DataItem.BoundaryImageCapable"/> (kb/Work PB189): the
     /// fixed half asks <see cref="ImageCapable"/> (the OPERAND), the variable-length half the entry's own
     /// current-extent composer.</summary>
@@ -115,6 +121,9 @@ public abstract record PlaceDecorator(Place Inner) : Place
 
     /// <inheritdoc/>
     public override bool ImageCapable => Inner.ImageCapable;
+
+    /// <inheritdoc/>
+    public override bool TransferImageCapable => Inner.TransferImageCapable;
 }
 
 /// <summary>
@@ -157,6 +166,10 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
     /// table's, not the occurrence's (kb/Work PB189; §8.5.1.12.1). A member path beneath the element asks its
     /// own item as usual.</summary>
     public override bool ImageCapable => ElementItem.IsDynamicTable ? ElementItem.ElementImageCapable : ElementItem.IsImageCapable;
+
+    /// <summary>The <see cref="ImageCapable"/> law applied to the one-way transfer image (kb/Work PB244).</summary>
+    public override bool TransferImageCapable =>
+        ElementItem.IsDynamicTable ? ElementItem.ElementTransferImageCapable : ElementItem.TransferImageCapable;
 }
 
 /// <summary>

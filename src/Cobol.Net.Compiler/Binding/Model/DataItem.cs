@@ -730,6 +730,33 @@ public sealed class DataItem
                 || Pic is { HasImageByteForm: true }
             : IsGroup && Children.All(c => c.IsImageCapable);
 
+    /// <summary>⛔ THE ONE-WAY TRANSFER IMAGE capability (kb/Work PB244): true when this item's STORAGE can be
+    /// rendered as characters for a consumer that sends them OUT and never reads them back into the group nor
+    /// compares them — the DISPLAY transfer (ISO §14.9.11.4 GR1/GR4/GR6) and a MOVE's sending group (§14.9.25.4
+    /// GR4). It is <see cref="IsImageCapable"/> widened by exactly ONE leaf kind: a class pointer/object leaf
+    /// (<see cref="SlotWindow.CarriedBySlot"/>), which contributes its <see cref="ByteWidth"/> RESERVED
+    /// placeholder positions — the same positions it occupies in a byte-addressed storage area under D-SLOT
+    /// (COBOLNET_DATA_MODEL_DESIGN; the managed reference itself has no byte form, so it is not rendered).
+    /// <para>⛔ WHY A SEPARATE CAPABILITY AND NOT A WIDER <see cref="IsImageCapable"/>: the placeholder image is
+    /// NOT INJECTIVE (two groups differing only in a pointer render alike) and has no inverse (a pointer cannot
+    /// be decoded from placeholder characters). So every consumer that COMPARES an image (§8.8.4.2.12 equality
+    /// of two strongly-typed groups — image-equal ⟺ element-equal holds only for the two-way codec) or reads one
+    /// BACK (FromImage — CALL/INVOKE copy-back, a record READ, a group MOVE receiver) keeps asking
+    /// <see cref="IsImageCapable"/>, and would give a silent wrong answer if this were folded into it.</para>
+    /// <para>On conforming source such a group is always inside a STRONG type declaration (§13.18.60.3 SR14),
+    /// and it is a legal DISPLAY operand: §14.9.11.3 SR1 excludes only an identifier that references a data
+    /// item "of class message-tag, object, or pointer", and a strongly-typed group's class is its type-name
+    /// (§8.5.2.1).</para></summary>
+    public bool TransferImageCapable =>
+        IsImageCapable || (!IsDynamicTable && !IsDynamicLength && ElementTransferImageCapable);
+
+    /// <summary>The element-shape half of <see cref="TransferImageCapable"/> — the twin of
+    /// <see cref="ElementImageCapable"/>, and the gate on which the record struct emits its one-way
+    /// <c>AsImage()</c> (<c>GroupImageCodec.EmitImageMethods</c>).</summary>
+    public bool ElementTransferImageCapable =>
+        ElementImageCapable
+        || (IsElementary ? SlotWindow.CarriedBySlot(this) : IsGroup && Children.All(c => c.TransferImageCapable));
+
     /// <summary>True when this item is a VARIABLE-LENGTH GROUP (ISO §8.5.1.12.1) whose CURRENT-EXTENT image is
     /// well defined: every member is <see cref="IsImageCapable"/>, a dynamic-length leaf (its current content IS
     /// its image), a dynamic-capacity table of <see cref="ElementImageCapable"/> elements, or a nested SCALAR

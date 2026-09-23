@@ -158,7 +158,9 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             // TABLE's element struct has a well-defined per-occurrence image the current-extent composer
             // concatenates (CS1061 without it) — the STATIC record codec still consults IsImageCapable at
             // every consumer, so no dynamic group joins a record window; methods emitted ⊇ methods used.
-            if (item.ElementImageCapable) codec.EmitImageMethods(item, w);
+            // A group with a class pointer/object leaf gets the ONE-WAY AsImage only (kb/Work PB244 - the
+            // DISPLAY / MOVE-sender transfer image; EmitImageMethods withholds FromImage).
+            if (item.ElementTransferImageCapable) codec.EmitImageMethods(item, w);
             // A VARIABLE-LENGTH group instead carries CurrentImage() — the §14.9.11.4 GR7 documented DISPLAY
             // format (A.1 item 57; kb/Work PB164): fixed members by the ONE member-image law, dynamic members
             // at their current extent. DISPLAY-only — such a group stays out of the static record codec (D9).

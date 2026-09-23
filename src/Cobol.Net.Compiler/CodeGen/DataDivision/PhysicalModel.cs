@@ -55,7 +55,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// how the CARRIER becomes characters, and §13.18.60.3 SR12's national-form numeric is both at once — a
     /// native fixed-point carrier whose zoned digit run is written in national characters. Null on every
     /// non-national field.</param>
-    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null);
+    internal readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null, IReadOnlyList<DataItem>? BitRun = null, DataItem? NatLeaf = null, bool SlotLeaf = false);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).
     /// <para>⚠ <paramref name="subs"/> is the OCCURRENCE CONTEXT (see <see cref="ValueInitializer.FieldInit"/>) and
@@ -155,7 +155,10 @@ internal sealed class PhysicalModel(EmitContext ctx)
                     c.IsGroup, Values.FieldInit(c, subs), comment, occurs, null, run);
                 continue;
             }
-            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs), comment, occurs, numLeaf, null, natLeaf);
+            // A class pointer/object leaf (kb/Work PB244): its slice of the one-way transfer image is its reserved
+            // placeholder positions (D-SLOT) - GroupImageCodec.SlotPlaceholder, the same recipe the storage seed uses.
+            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, Values.FieldInit(c, subs), comment, occurs, numLeaf, null, natLeaf,
+                SlotWindow.CarriedBySlot(c));
         }
     }
 

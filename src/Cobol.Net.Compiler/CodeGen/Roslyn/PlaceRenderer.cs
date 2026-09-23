@@ -377,7 +377,10 @@ internal static class PlaceRenderer
     /// <see cref="WriteGroupImage"/>'s parameter of the same name — so a consumer can route through THE ONE
     /// reader and still keep its own site-specific reason (kb/Work PB178: the alternative, a consumer
     /// spelling <c>.AsImage()</c> itself to preserve its message, is exactly the copy this law forbids).</para></summary>
-    public static string GroupImage(Place group, string context = "whole-group image of") => group switch
+    /// <param name="transfer">True for a ONE-WAY TRANSFER consumer (DISPLAY, a MOVE's sending group - kb/Work
+    /// PB244): the guard then asks <see cref="Place.TransferImageCapable"/>, which also admits a group with a class
+    /// pointer/object leaf (its reserved placeholder positions). Comparison and every read-back leave it false.</param>
+    public static string GroupImage(Place group, string context = "whole-group image of", bool transfer = false) => group switch
     {
         RedefViewPlace => Read(group),
         // The READ twin of WriteGroupImage's RenamesPlace arm (kb/Work PB907): a level-66 THROUGH alias is an
@@ -389,8 +392,8 @@ internal static class PlaceRenderer
         // working read into a loud throw (CallStringRead hands the WRAPPER in, unlike the other callers).
         // The MemberPlace inner still meets the guard below with the exact predicate, so the CS1061 fix
         // holds: guard fires ⟺ the struct has no AsImage.
-        OdoGroupPlace o => GroupImage(o.Inner, context),
-        _ when !group.ImageCapable =>   // the OPERAND's capability (kb/Work PB189)
+        OdoGroupPlace o => GroupImage(o.Inner, context, transfer),
+        _ when !(transfer ? group.TransferImageCapable : group.ImageCapable) =>   // the OPERAND's capability (kb/Work PB189; PB244)
             EmitText.LoudValue("string", TierCIsland.Reason(group.Item, context)),
         _ => $"{Read(group)}.AsImage()",
     };
@@ -454,8 +457,8 @@ internal static class PlaceRenderer
     /// MISSING, so <c>Read(OdoGroupPlace o) =&gt; Read(o.Inner)</c> handed a Tier-B / BASED string window straight
     /// into <c>.AsImage()</c> (CS1061), and it returned the MAXIMUM image where GR8 wants the current extent
     /// (kb/Work PB178). One rule, one place.</para></summary>
-    public static string SendingGroupImage(Place group, string context = "whole-group image of") =>
-        GroupImageAs(group, AccessDir.Sending, context);
+    public static string SendingGroupImage(Place group, string context = "whole-group image of", bool transfer = false) =>
+        GroupImageAs(group, AccessDir.Sending, context, transfer);
 
     /// <summary>⛔ THE §13.18.38.4 GR8 DIRECTION LAW, written once (kb/Work PB202): an occurs-depending group
     /// operand uses only its CURRENT-count part when it is SENDING (GR8a and GR8b agree) or when data-name-1 lies
@@ -467,8 +470,8 @@ internal static class PlaceRenderer
 
     /// <summary>A group operand's character image as seen in direction <paramref name="dir"/> — the GR8
     /// current-extent slice when <see cref="UsesCurrentExtent"/>, otherwise the full (maximum) image.</summary>
-    private static string GroupImageAs(Place group, AccessDir dir, string context) =>
-        group is OdoGroupPlace o && UsesCurrentExtent(o, dir) ? SendingImage(o, context) : GroupImage(group, context);
+    private static string GroupImageAs(Place group, AccessDir dir, string context, bool transfer = false) =>
+        group is OdoGroupPlace o && UsesCurrentExtent(o, dir) ? SendingImage(o, context, transfer) : GroupImage(group, context, transfer);
 
     /// <summary>⛔ <b>THE ONE READER OF A GROUP OPERAND'S SENDING VALUE</b> — the dispatch over ISO §13.18.29.4's
     /// three kinds of group, written once. A BIT group is "treated as though it were an elementary data item of
@@ -489,8 +492,8 @@ internal static class PlaceRenderer
 
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
-    public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of") =>
-        $"{GroupImage(p.Inner, context)}.Substring(0, {CharLengthExpr(p)})";
+    public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of", bool transfer = false) =>
+        $"{GroupImage(p.Inner, context, transfer)}.Substring(0, {CharLengthExpr(p)})";
 
     /// <summary>⛔ THE ONE READER OF A BIT GROUP'S OPERAND VALUE (ISO §13.18.29.4 GR1b — "a bit group is treated as
     /// though it were an elementary data item of usage bit and class and category boolean described with PICTURE

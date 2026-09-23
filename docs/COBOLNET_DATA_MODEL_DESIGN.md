@@ -430,6 +430,16 @@ content-validation half is separately answered by the declined A.4.14 facility (
     that exists or will exist, and the read renders the item's own `PicInfo.DefaultInitializer` as the null
     state — the same expression an ordinary declared pointer field is seeded from. FREE drops the slots with
     the image (§14.9.15.4 GR1a); they are one storage area.
+  - **The RECORD-STRUCT twin: a ONE-WAY transfer image (kb/Work PB244).** A strongly-typed group holding such a
+    leaf in an ordinary record struct has no cell, but it has the same STORAGE: `DataItem.TransferImageCapable`
+    admits it and `GroupImageCodec.EmitImageMethods` emits its `AsImage()` with each slot leaf contributing
+    `GroupImageCodec.SlotPlaceholder` — the one recipe the cell seed (`ImageInitOfOne`) also spells — and NO
+    `FromImage`. Only the TRANSFER readers ask it (DISPLAY, a MOVE's sending group, through the `transfer:`
+    flag of `PlaceRenderer.GroupImage` / `SendingGroupImage` / `OperandText.AsStorageImage`). ⛔ It is NOT
+    folded into `IsImageCapable`: the placeholder image is not injective (two groups differing only in a
+    pointer render alike) and has no inverse, so §8.8.4.2.12 equality — image-based for the two-way codec —
+    and every read-back (CALL/INVOKE copy-back, READ, a group MOVE receiver) keep asking the two-way
+    capability and stay refused.
   - **The slots belong to the CELL, never to the item**, and that is the whole point: EXTERNAL sharing,
     ADDRESS OF aliasing and `SET ADDRESS OF` re-pointing all mean "two descriptions of ONE storage area", so a
     pointer member re-pointed through one description is visible through every other. Each cell surface now

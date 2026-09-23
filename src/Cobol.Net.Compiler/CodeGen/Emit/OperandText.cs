@@ -200,14 +200,18 @@ internal static class OperandText
     /// i.e. this same channel plus the rule only that operand has (kb/Work PB327/PB339).</para></summary>
     public static string NonElementaryMoveSender(BoundOperand op, NumericRenderer num, string context) => op switch
     {
-        BoundFieldOperand f => AsStorageImage(f.Place, context),
+        // A MOVE's sending group is a ONE-WAY transfer (kb/Work PB244): its characters go to the receiver and are
+        // never read back into it, so a strongly-typed group with a class pointer/object leaf sends its storage
+        // image - the leaf's reserved placeholder positions - under §14.9.25.4 GR4.
+        BoundFieldOperand f => AsStorageImage(f.Place, context, transfer: true),
         _ => AsString(op, num, deSign: false),
     };
 
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>
-    public static string AsStorageImage(Place p, string context = "raw-storage image (CONVERT ANY) of")
+    /// <param name="transfer">A ONE-WAY transfer consumer (kb/Work PB244) - see <c>PlaceRenderer.GroupImage</c>.</param>
+    public static string AsStorageImage(Place p, string context = "raw-storage image (CONVERT ANY) of", bool transfer = false)
     {
         // §8.4.3.3.4 GR6 — a ref-mod view is an elementary item over the underlying item's characters; its
         // storage is the slice's characters (a NATIONAL slice keeps category national, so its bytes are UTF-16BE).
@@ -237,7 +241,7 @@ internal static class OperandText
         // `CobolStr.RefMod(...).AsImage()` was a backend CS1061. `SendingGroupImage` owns all four arms —
         // the RedefViewPlace window, the OdoGroupPlace §13.18.38 GR8 current-extent slice (the arm this site
         // used to spell itself, one line above), the capability guard, and the plain struct image.
-        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, context);
+        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, context, transfer);
         return p.Item.Pic switch
         {
             { Category: PicCategory.National } => RuntimeApi.NatBytes(PlaceRenderer.Read(p)),
@@ -392,7 +396,9 @@ internal static class OperandText
         // a stale comment describing the old representation is exactly how the two-predicate residue below spread.
         // Only a VARIABLE-LENGTH group or a group with a pointer/object-class leaf has no image and stays loud
         // (kb/Work PB164 + R40 — there is no "Tier-C island" left for a numeric leaf: every numeric usage has a
-        // pinned byte form). This is the WRITE / RELEASE / DISPLAY / compare sender path.
+        // pinned byte form). This is the WRITE / RELEASE / DISPLAY / compare sender path. (A pointer/object-leafed
+        // group's ONE-WAY transfer image is served before this by the DISPLAY and MOVE-sender arms — kb/Work PB244;
+        // this two-way path keeps refusing it, since compare needs an injective image.)
         // A BIT GROUP operates as an elementary boolean item of PICTURE 1(m) (§13.18.29.4 GR1b; D20/PB79): its
         // operand value is its BIT STRING (the subordinates' boolean positions concatenated), never the packed
         // byte image AsImage yields; a NATIONAL group's operand value IS its character image (GR2b).

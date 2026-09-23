@@ -64,7 +64,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // without this the pointer contributed its PICTURE-less zero-width nothing and displaced the rest.
         // Placed beside the national coding below because it is the same kind of decision: how the member's
         // value carrier relates to the bytes it occupies.
-        if (SlotWindow.CarriedBySlot(item)) return $"new string(' ', {item.ByteWidth})";
+        if (SlotWindow.CarriedBySlot(item)) return SlotPlaceholder(item.ByteWidth);
         string image = CarrierInitOfOne(item, useValues, subs);
         // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
         // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a
@@ -480,10 +480,22 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : $"(__e, __x) => ({d.Pic.ClrType}){RuntimeApi.NumParseImage("__x", d.ProfileName, sending: false)}")
             : "(__e, __x) => __x";
 
+    /// <summary>THE ONE RECIPE for what a class pointer/object leaf occupies in a byte image (kb/Work PB231 ->
+    /// PB244): <paramref name="width"/> RESERVED placeholder positions, spaces. The storage seed of a
+    /// byte-addressed area (<see cref="ImageInitOfOne"/> - D-SLOT) and the one-way transfer image
+    /// (<see cref="AsImageOf"/>) both spell it through here, so a strongly-typed group DISPLAYs the same
+    /// characters whether it lives in a record struct or in a BASED/ADDRESS-OF storage cell.</summary>
+    internal static string SlotPlaceholder(int width) => $"new string(' ', {width})";
+
+    /// <summary>The whole-group image facility of a record struct. <c>AsImage()</c> is emitted for every
+    /// <see cref="DataItem.ElementTransferImageCapable"/> group; <c>FromImage</c> (and the bit / national faces)
+    /// only for the two-way <see cref="DataItem.ElementImageCapable"/> ones - a group with a class pointer/object
+    /// leaf has a one-way image and no inverse (kb/Work PB244; see <see cref="DataItem.TransferImageCapable"/>).</summary>
     public void EmitImageMethods(DataItem group, CodeWriter w)
     {
         var members = phys.PhysicalChildrenOf(group);
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
+        if (!group.ElementImageCapable) return;   // one-way (PB244): no FromImage over a pointer/object leaf
         using (w.Block("public void FromImage(string __s)"))
         {
             w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
@@ -674,6 +686,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(BitCarrierOf)),
                                   $"{run.Sum(BitLayout.RunBits)}")
         : f.Width == 0 ? "\"\""
+        // A class pointer/object leaf (kb/Work PB244) contributes its reserved placeholder positions, every
+        // occurrence at once (Width is already per-occurrence width x OCCURS). Reached only through the one-way
+        // AsImage of a TransferImageCapable group - FromImage is never emitted over such a leaf.
+        : f.SlotLeaf ? SlotPlaceholder(f.Width)
         // ⛔ A NATIONAL LEAF IMAGES AS ITS BYTES (kb/Work PB327): two per character position, high-order first
         // (ISO §13.18.60.4 GR8 leaves the size to the implementor — D-N1 pins two, UTF-16BE), through the ONE
         // serializer CobolBits.NatBytes that the Tier-B window, the EXTERNAL/BASED cell seed and CONVERT's
