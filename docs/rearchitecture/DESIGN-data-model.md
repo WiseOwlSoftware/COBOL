@@ -651,6 +651,24 @@ PB570's defect would have had to pass: the word-only matrix was green throughout
 and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence, screened by
 the `CheckPictureRequired` closing guard; its SR9 VALUE-implied exception is §2.7a, applied one pass EARLIER.
 
+#### 2.7.2 `CheckSignClauses` — ISO §13.18.52.3 SR1/SR2, the SIGN clause's subject (landed; kb/Work PB537)
+
+SR1 admits a SIGN clause only on "a numeric data or screen description entry whose picture character-string
+contains the symbol 'S'", "a numeric report group description entry whose picture character-string contains the
+symbol 'S'", or "an alphanumeric group item, national group item, or strongly-typed group item"; SR2 requires "the
+usage of an elementary item for which the SIGN clause is specified" to be display or national. **ONE
+elementary-subject test** (`DataBinder.SignClauseElementaryDefect`) is read by both entry kinds; the group bullet
+reads the one group-kind classifier (`ItemCategory.GroupKindsOf`, so a `GROUP-USAGE BIT` group — declared or
+inherited by §13.16.4 GR1 — and a variable-length group are refused). The data-description arm is a POST-FOREST
+pass after `UsageInheritancePass` (group-ness, the group kind and an inherited usage are all settled there) and
+before `InheritSignClauses` (a refused clause is cleared and must not shed onto subordinates). ⛔ **Its subject is
+the entry that WROTE the clause** — entry bind records it (`_signClauseWritten`) — because `DataItem.OwnSign` is
+also written by the TYPE copy (§13.18.57.4 GR1) and the SAME AS ancestor transform (§13.18.49.4 GR5); screening
+those would report a template once per reference site and refuse a SAME AS of an alphanumeric item under a signed
+group. The report arm screens the printable item where its picture is analyzed (`BindReportEntry`). The former
+float-edited special case (reported under the PICTURE code `COBOLNET1658`) was this rule's numeric-edited arm and
+is gone; the §13.16.3 SR19 LOCALE screen is a different rule and stays.
+
 #### 2.7a `SynthesizeImpliedPictures` — ISO §13.16.3 SR9, the VALUE-implied PICTURE (landed; kb/Work PB504/PB831)
 
 ⛔ **SR9 is APPLIED, never excused.** The rule says the PICTURE clause *may be omitted* when the data-item format

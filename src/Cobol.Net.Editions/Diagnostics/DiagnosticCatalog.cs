@@ -5083,6 +5083,49 @@ public static class DiagnosticCatalog
         + "entry under a REDEFINES entry and the format 1 VALUEs that give a CONSTANT RECORD its content remain legal.",
         "ISO §13.18.63.3 SR12 / SR16 / SR25");
 
+    /// <summary>COBOLNET2421 — the §13.18.16.2 CONTROL clause general format (kb/Work PB483): FINAL is ONE
+    /// optional word written BEFORE the repeated data-name-1 bracket, never a repeatable operand. The grammar
+    /// parses the superset <c>(FINAL | data-name)+</c> so the violation is named here rather than as a bare
+    /// syntax error.</summary>
+    public static readonly DiagnosticDescriptor ReportControlFinalPlacement = new(
+        "COBOLNET2421", "report-control-final-placement", EditionSeverity.Error,
+        "FINAL is written more than once in a CONTROL clause, or after a data-name-1. ISO §13.18.16.2 prints the "
+        + "second operand form as `FINAL [ data-name-1 ] …`: FINAL once, first, and the ellipsis applies only to "
+        + "the bracket enclosing data-name-1 (§5.2.7: \"the ellipsis applies to the portion of the format between "
+        + "the determined pair of delimiters\"). §13.18.16.4 GR2: \"FINAL, if specified, is associated with the "
+        + "highest level in the hierarchy\" — a FINAL written anywhere else would be a level that is not the "
+        + "highest, and a second FINAL a level that can never break. Write FINAL once, as the first operand.",
+        "ISO §13.18.16.2 · §5.2.7 · §13.18.16.4 GR2");
+
+    /// <summary>COBOLNET2422 — the SIGN clause's placement rules, §13.18.52.3 SR1 (what the clause may be written
+    /// on) and SR2 (the usage of an elementary subject) — kb/Work PB537. One screen for the data description
+    /// entry and the report group description entry, whose SR1 bullets are the same test.</summary>
+    public static readonly DiagnosticDescriptor SignClauseSubject = new(
+        "COBOLNET2422", "sign-clause-subject", EditionSeverity.Error,
+        "A SIGN clause is written on an entry it may not be written on. ISO §13.18.52.3 SR1: \"The SIGN clause "
+        + "may be specified only for: — a numeric data or screen description entry whose picture character-string "
+        + "contains the symbol 'S' — a numeric report group description entry whose picture character-string "
+        + "contains the symbol 'S' — an alphanumeric group item, national group item, or strongly-typed group "
+        + "item.\" SR2: \"The usage of an elementary item for which the SIGN clause is specified shall be display "
+        + "or national.\" An unsigned, alphanumeric, national, edited or PICTURE-less elementary item, a bit group "
+        + "or variable-length group item, and a signed item of any usage other than display or national each "
+        + "violate one of the two rules.",
+        "ISO §13.18.52.3 SR1 / SR2");
+
+    /// <summary>COBOLNET2423 — a general-format element that is written in its own bracket WITHOUT an ellipsis
+    /// is written more than once (§5.2.6.2 / §5.2.7). The report description entry's clauses (§13.14.2) and the
+    /// PAGE clause's phrases (§13.18.39.2) may be written in any order (§13.14.3 SR2, §13.18.39.3 SR4), but an
+    /// order licence is not a repetition licence (kb/Work PB483's sibling sweep).</summary>
+    public static readonly DiagnosticDescriptor FormatElementRepeated = new(
+        "COBOLNET2423", "format-element-repeated", EditionSeverity.Error,
+        "A clause or phrase is written more than once where its general format admits it once. ISO §5.2.6.2: "
+        + "brackets indicate that the enclosed element \"may be explicitly specified or that portion of the "
+        + "general format may be omitted\"; §5.2.7: repetition is indicated only by an ellipsis, which \"applies to "
+        + "the portion of the format between the determined pair of delimiters\". A rule that lets the elements be "
+        + "written in any order (§13.14.3 SR2, §13.18.39.3 SR4) does not let any of them be written twice. Delete "
+        + "the repeated clause or phrase.",
+        "ISO §5.2.6.2 · §5.2.7");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

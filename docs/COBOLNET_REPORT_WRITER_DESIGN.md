@@ -402,7 +402,7 @@ LINE-/PAGE-COUNTER; **the arithmetic-expression-1 operand of BOTH value clauses 
 SR3/SR5/SR7 screened, §13.18.54.3 SR3/SR6 screened; kb/Work PB852 × PB883); **the SUM counter's data-name in
 the procedure division's name space** (§13.18.54.4 GR5 + GR12 — read AND altered, `ReportSumCounterPlace`;
 kb/Work PB840); CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
-break) **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
+break) — **FINAL only as the FIRST operand, once** (§13.18.16.2 `FINAL [ data-name-1 ] …`, COBOLNET2421, kb/Work PB483), each RD clause and PAGE phrase at most once (§13.14.2 / §13.18.39.2 with §5.2.6.2 / §5.2.7, COBOLNET2423, `UnrepeatedElements`), the printable item's SIGN clause screened by §13.18.52.3 SR1/SR2 through the data description entry's own test (COBOLNET2422, kb/Work PB537) — **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
 TYPE CH/CF and SUM RESET ON operands that name the level carry the same ref-mod, §13.18.57.3 SR10 /
 §13.18.54.3 SR8); **SUM with SUBSCRIPTED addends** (§13.18.54.3 SR5's identifier-1 is §8.4.3.1.2 Format 2's qualified-data-name-with-subscripts — a literal, index-name or expression subscript, bound in the procedure phase) + UPON (SR7-screened against the report-group funnel) + RESET, the repeated `SUM … UPON …` group into the ONE counter of the entry (SR1 / GR1 / GR7c2) and the `SUM OF` optional word; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
 **the four RWCS statement-precondition exception conditions** (EC-FLOW-REPORT §14.9.49.4 GR10,

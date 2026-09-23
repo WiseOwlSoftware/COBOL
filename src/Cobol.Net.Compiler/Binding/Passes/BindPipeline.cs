@@ -78,6 +78,11 @@ internal static class BindPipeline
         // and after UsageInheritancePass because SR2's usage may be INHERITED (§13.18.60.4 GR1). Before
         // everything that reads the flags (the edit/store emitters), so a refused clause is never applied.
         new BindPass("CheckClauseSubjects", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckClauseSubjects()),
+        // The §13.18.52.3 SR1/SR2 SIGN clause subject screen (kb/Work PB537). Placed HERE for the ALIGNED screen's
+        // reason — SR1's group bullet asks the group KIND (a bit group can be one by §13.16.4 GR1 inheritance) and
+        // SR2 asks the elementary item's usage (§13.18.60.4 GR1 can supply it) — and BEFORE InheritSignClauses,
+        // because a refused clause is cleared and must not go on to shed onto subordinates.
+        new BindPass("CheckSignClauses", PassPhase.UsageResolved, PassPhase.UsageResolved, d => d.CheckSignClauses()),
         new BindPass("InheritSignClauses", PassPhase.UsageResolved, PassPhase.SignResolved, d => d.InheritSignClauses()),
         // The §13.18.13.3 SR3 a)/b) CODE-SET record screen — §13.18.52.3 SR3's twin (kb/Work PB536). Placed
         // HERE, immediately after InheritSignClauses, and the placement IS the fix: SR3 asks whether a record

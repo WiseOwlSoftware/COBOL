@@ -731,7 +731,19 @@ public sealed partial class DataBinder
     private void BindReportDescriptionClauses(Core.ReportDescriptionEntryContext rd, ReportModel model)
     {
         bool heading = false, firstDetail = false, lastDetail = false, footing = false;
-        foreach (var clause in rd.reportDescriptionClause())
+        // §13.14.2 prints each clause in its own bracket with no ellipsis; §13.14.3 SR2 licenses any ORDER, never a
+        // repeat (COBOLNET2423 — the grammar's `reportDescriptionClause*` admits both).
+        var rdClauses = rd.reportDescriptionClause();
+        string rdWhere = $"RD '{model.Name}'";
+        UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportGlobalClause() is not null), rdWhere,
+            "the GLOBAL clause", "13.14.2");
+        UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportCodeClause() is not null), rdWhere,
+            "the CODE clause", "13.14.2");
+        UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportControlClause() is not null), rdWhere,
+            "the CONTROL clause", "13.14.2");
+        UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportPageClause() is not null), rdWhere,
+            "the PAGE clause", "13.14.2");
+        foreach (var clause in rdClauses)
         {
             // §13.18.27.3 SR1 e) — the report-name is a global name. The containment half (visibility in contained
             // programs, §13.18.27.4 GR1/GR2, and the declarative a contained GENERATE selects, §14.9.49.4 GR4) is
@@ -744,10 +756,24 @@ public sealed partial class DataBinder
             else if (clause.reportControlClause() is { } ctl)
             {
                 // Operand order IS the hierarchy, major→minor (§13.18.16.4 GR1); FINAL is the highest level (GR2).
+                int clauseStart = model.Controls.Count;   // a repeated CONTROL clause is COBOLNET2423 above
                 for (int i = 0; i < ctl.ChildCount; i++)
                     switch (ctl.GetChild(i))
                     {
                         case Antlr4.Runtime.Tree.ITerminalNode t when t.Symbol.Type == CobolLexer.FINAL:
+                            // ⛔ THE GENERAL FORMAT, not a syntax rule (kb/Work PB483): §13.18.16.2 prints
+                            // `FINAL [ data-name-1 ] …` — FINAL once, FIRST, the ellipsis on the data-name bracket
+                            // alone (§5.2.7). The grammar's `(FINAL | dataReference)+` admits FINAL anywhere and
+                            // any number of times; before this screen `CONTROLS ARE FINAL FINAL CX` built a second
+                            // FINAL level that could never break, and `CONTROL CX FINAL` made FINAL the MINOR
+                            // level — contradicting GR2 — so TERMINATE printed CF FINAL before CF CX.
+                            if (model.Controls.Count > clauseStart)
+                                Edition.Error(DiagnosticCatalog.ReportControlFinalPlacement, $"RD '{model.Name}': "
+                                    + (model.Controls.Skip(clauseStart).Any(c => c.IsFinal)
+                                        ? "FINAL is written more than once in the CONTROL clause"
+                                        : $"FINAL is written after the data-name '{model.Controls[^1].Display}'")
+                                    + " — ISO §13.18.16.2 admits FINAL once, as the first operand (`FINAL "
+                                    + "[ data-name-1 ] …`, §5.2.7), and §13.18.16.4 GR2 makes it the highest level");
                             model.Controls.Add(new ReportControlModel { IsFinal = true });
                             break;
                         case Core.DataReferenceContext dref:
@@ -779,7 +805,18 @@ public sealed partial class DataBinder
             {
                 model.Paged = true;
                 model.PageLimit = int.Parse(page.integerLiteral().GetText());
-                foreach (var sub in page.reportPageSubclause())
+                // §13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
+                // never a repeat — `HEADING 1 HEADING 2` used to keep the last value silently (COBOLNET2423).
+                var subs = page.reportPageSubclause();
+                UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => s.HEADING() is not null), rdWhere,
+                    "the PAGE clause's HEADING phrase", "13.18.39.2");
+                UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => s.FIRST() is not null), rdWhere,
+                    "the PAGE clause's FIRST DETAIL phrase", "13.18.39.2");
+                UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => s.LAST() is not null), rdWhere,
+                    "the PAGE clause's LAST DETAIL phrase", "13.18.39.2");
+                UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => s.FOOTING() is not null), rdWhere,
+                    "the PAGE clause's FOOTING phrase", "13.18.39.2");
+                foreach (var sub in subs)
                 {
                     int v = int.Parse(sub.integerLiteral().GetText());
                     if (sub.HEADING() is not null) { model.Heading = v; heading = true; }
@@ -1890,6 +1927,16 @@ public sealed partial class DataBinder
                 // §13.15 citation that does not say it (kb/Work PB541).
                 if (usageText is null && inheritedUsage is null)
                     ScreenReportUsage(pic.Usage, model, entryName, picText is null ? null : $"PICTURE {picText}");
+                // §13.18.52.3 SR1's report bullet — "a numeric report group description entry whose picture
+                // character-string contains the symbol 'S'" — and SR2, through the ONE elementary-subject test the
+                // data description entry reads (kb/Work PB537: this arm had no screen at all).
+                if (ownSign is not null
+                    && SignClauseElementaryDefect(pic, picText, "report group description entry") is { } signDefect)
+                {
+                    Edition.Error(DiagnosticCatalog.SignClauseSubject,
+                        $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {signDefect}");
+                    ownSign = null;
+                }
                 // ⛔ §13.18.63.3 SR6 NAMES FORMAT 4 — "literals in formats 1, 2, and 4 of the VALUE clause may be
                 // numeric" — so a report-section printable item's numeric literal rides the SAME COBOL-2023
                 // introduction (Annex E.3.3 item 43) as its format-1 and format-2 siblings. It did not: the

@@ -4495,12 +4495,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // capacity is SR15's 1..36 significand digits, checked by the analyzer (kb/Work PB66 — DigitPositions is 0 there).
         if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, IsFloatEdited: false } && pic.DigitPositions > 0)
             Edition.CheckDigitCapacity(pic.DigitPositions, $"data item '{cobolName ?? "FILLER"}' (PICTURE {pictureText})");
-        // §13.18.52.3 SR1: a SIGN clause needs a picture with the symbol S — a floating-point edited picture cannot
-        // carry one (its significand's sign is a fixed-insertion editing symbol, Table 8), so the clause is illegal here.
-        if (pic is { IsFloatEdited: true } && ownSign is not null)
-            Edition.Error(DiagnosticCatalog.PictureFloatEdited, $"{entryWhere}: the SIGN clause may be specified only for a "
-                + "numeric entry whose picture contains the symbol S — a floating-point numeric-edited picture has none "
-                + "(ISO §13.18.52.3 SR1; §13.18.40.6 Table 10 row E)");
+        // (§13.18.52.3 SR1/SR2 — the SIGN clause's subject — is CheckSignClauses, post-forest: the float-edited
+        // special case that used to stand here is its numeric-edited arm, kb/Work PB537.)
         // §13.16.3 SR19 — the SIGN clause shall not be specified with a format-2 (LOCALE) PICTURE: the sign
         // representation is the LOCALE's (§13.18.40.5 r13). The SCREEN description twin (§13.17.3 SR9) rides the
         // screen arm; a REPORT GROUP entry carries NO such rule (§13.15.3) and the pair is legal there (PB113).
@@ -4662,6 +4658,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             SameAsName = sameAsName,
         };
         if (sameAsName is not null) item.SameAsQualifiers.AddRange(sameAsQuals);
+        // §13.18.52.3 SR1/SR2 speak about the entry that WROTE the SIGN clause — screened post-forest by
+        // CheckSignClauses (DataBinder.SignClause.cs), where group-ness and the inherited usage are known.
+        if (ownSign is not null) _signClauseWritten.Add(item);
         // The Format 2 (table) VALUE's ALL-FORMATS literal screen (§13.18.63.3 SR2/SR3 + SR16's pull-in). The
         // clause's GEOMETRY (SR18–SR23) and its §13.18.63.4 GR12–GR16 resolution are the post-forest
         // ResolveTableValues pass — they read the entry's OCCURS ANCESTORS, which do not exist yet here.
