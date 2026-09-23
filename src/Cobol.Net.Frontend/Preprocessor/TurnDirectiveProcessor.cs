@@ -40,14 +40,11 @@ public static class TurnDirectiveProcessor
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, DirectiveTimeline<TurnEvent>.Empty);
         var lines = text.Split('\n');
         var events = new DirectiveEventLog<TurnEvent>();
-        var state = new DirectiveStateStack(stackOps ?? [])
-            .Carry(Constructs.TurnDirective2002, events.CarrierFor(Constructs.TurnDirective2002));
         for (int i = 0; i < lines.Length; i++)
         {
             // The ONE compiler-directive line parse (kb/Work PB794): the indicator's optional space (§7.3.3 SR5)
             // and the trailing inline comment (SR3/SR4) are its rules, not this stage's.
             if (!CompilerDirectiveLine.TryParse(lines[i], "TURN", out string operand)) continue;
-            state.AdvanceTo(i + 1);   // the PUSH/POP written before this TURN (§7.3.20 / §7.3.22)
 
             var loc = lineMap?.Locate(i + 1, sourcePath) ?? new SourceLocation(sourcePath, 0, i, 0);   // the SOURCE origin of resultant line i (kb/Work PB82)
             // The introduction gate fired at the ONE directive-recognition point (CompilerDirectiveCatalog,
@@ -56,11 +53,10 @@ public static class TurnDirectiveProcessor
             // COBOLNET0900. COBOLNET0875 is RETIRED; never reallocate it. dialectLevel survives here because
             // ParseTurn passes it to the exception-name edition window (§14.6.13.1), a different rule.
             if (ParseTurn(operand, i + 1, dialectLevel, diagnostics, loc) is { } ev)
-                events.Add(Constructs.TurnDirective2002, ev);
+                events.Add(Constructs.TurnDirective2002, i + 1, ev);
             lines[i] = "";   // blank, never delete — line-count preserving (H3)
         }
-        state.AdvanceToEnd();
-        return (string.Join('\n', lines), events.ToTimeline());
+        return (string.Join('\n', lines), events.ToTimeline(stackOps ?? []));
     }
 
     /// <summary>Parse one directive body: <c>{ec-name [file-name]…}… CHECKING {ON [WITH LOCATION] | OFF}</c>

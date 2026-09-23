@@ -4394,6 +4394,20 @@ public static class DiagnosticCatalog
         "A POP directive names a directive whose state was not saved by a PUSH directive, or was already restored "
         + "by an earlier POP; nothing is restored.",
         "ISO §7.3.20.4 GR2");
+
+    /// <summary>COBOLNET2344 — a <c>&gt;&gt;PUSH ALL</c> or <c>&gt;&gt;POP ALL</c> written where §7.3.22.3 SR3 /
+    /// §7.3.20.3 SR3 do not admit it: "If ALL is specified, the POP directive shall be specified only in a
+    /// compilation unit, between clauses in divisions other than the procedure division, and between statements in
+    /// the procedure division" (PUSH: the same). Two arms: OUTSIDE every compilation unit (before the first, or
+    /// after an END marker), and INSIDE a clause or statement rather than between two. A WARNING: §4.2.2 requires
+    /// "a warning mechanism … to indicate violations of the general formats and the explicit syntax rules", and the
+    /// directive is processed as written (the D20 disposition of the sibling SR4 bans, COBOLNET2187). kb/Work
+    /// PB1005.</summary>
+    public static readonly DiagnosticDescriptor PushPopAllPlacement = new(
+        "COBOLNET2344", "push-pop-all-placement", EditionSeverity.Warning,
+        "A PUSH ALL or POP ALL directive is written outside a compilation unit, or inside a clause or statement "
+        + "rather than between two.",
+        "ISO §7.3.22.3 SR3 / §7.3.20.3 SR3");
     /// <summary>A PICTURE clause was written on a data description entry that HAS SUBORDINATE ENTRIES.
     /// §13.18.40.3 SR1 is the whole rule — "The PICTURE clause may be specified only at the elementary level" —
     /// and §8.5.1.3.1 says which entries those are: "The most basic subdivisions of a record, that is, those not

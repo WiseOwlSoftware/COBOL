@@ -44,12 +44,9 @@ public static class RefModZeroLengthDirectiveProcessor
         if (!text.Contains(">>", StringComparison.Ordinal)) return (text, DirectiveTimeline<RefModZeroLengthEvent>.Empty);
         var lines = text.Split('\n');
         var events = new DirectiveEventLog<RefModZeroLengthEvent>();
-        var state = new DirectiveStateStack(stackOps ?? [])
-            .Carry(Constructs.RefModZeroLength2023, events.CarrierFor(Constructs.RefModZeroLength2023));
         for (int i = 0; i < lines.Length; i++)
         {
             if (!CompilerDirectiveLine.TryParse(lines[i], Keyword, out string operand)) continue;
-            state.AdvanceTo(i + 1);   // the PUSH/POP written before this directive (§7.3.20 / §7.3.22)
 
             // The introduction gate (§7.3.23 is a COBOL-2023 addition) already fired at the ONE
             // directive-recognition point — CompilerDirectiveCatalog, from the ref-mod-zero-length-2023 row's
@@ -59,10 +56,9 @@ public static class RefModZeroLengthDirectiveProcessor
             // no longer re-implements the >> / keyword / operand slicing that missed a §7.3.3 SR3 inline comment.
             if (CompilerDirectiveCatalog.TryOperandWord(Keyword, operand, out string word)
                 && word is "" or "ON" or "OFF")
-                events.Add(Constructs.RefModZeroLength2023, new RefModZeroLengthEvent(i + 1, word != "OFF"));
+                events.Add(Constructs.RefModZeroLength2023, i + 1, new RefModZeroLengthEvent(i + 1, word != "OFF"));
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }
-        state.AdvanceToEnd();
-        return (string.Join('\n', lines), events.ToTimeline());
+        return (string.Join('\n', lines), events.ToTimeline(stackOps ?? []));
     }
 }

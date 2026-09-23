@@ -30,4 +30,24 @@ public sealed record DirectiveResults(
     /// <summary>No directives at all — the OFF/empty default for every member.</summary>
     public static readonly DirectiveResults None = new(DirectiveTimeline<TurnEvent>.Empty, DirectiveTimeline<RefModZeroLengthEvent>.Empty,
         DirectiveTimeline<FlagEvent>.Empty, CobolWordsMap.Empty, false, []);
+
+    /// <summary>These results with <paramref name="ops"/> — PUSH/POP ops only a LATER phase can place — replayed
+    /// into EVERY event timeline together with the written ones (<see cref="DirectiveTimeline{T}.WithStackOps"/>).
+    /// The one caller is the binder's §14.9.28.4 GR14 implicit PUSH ALL / POP ALL around an exception-checking
+    /// PERFORM's handlers (kb/Work PB1004). ⛔ A new timeline member joins this method —
+    /// <c>ExceptionPerformDirectiveScopeTests</c> fails for a <see cref="DirectiveTimeline{T}"/> member it does not
+    /// replay. The group-prefix values need nothing: COBOL-WORDS and LEAP-SECOND cannot be written inside a
+    /// compilation unit (§7.3.10.3 SR1, §7.3.17.3 SR1), so no PERFORM can bracket them.</summary>
+    public DirectiveResults WithStackOps(IReadOnlyList<DirectiveStackOp> ops) =>
+        ops.Count == 0 || !HasLineScopedEvents() ? this : this with
+    {
+        TurnEvents = TurnEvents.WithStackOps(ops),
+        RefModZeroLengthEvents = RefModZeroLengthEvents.WithStackOps(ops),
+        FlagEvents = FlagEvents.WithStackOps(ops),
+    };
+
+    /// <summary>True when any event timeline holds an event — the binder's test for whether the GR14 implicit ops
+    /// are worth a parse-tree walk (kb/Work PB1004). ⛔ It names the same members as <see cref="WithStackOps"/>, and
+    /// a new timeline member joins both.</summary>
+    public bool HasLineScopedEvents() => TurnEvents.Count + RefModZeroLengthEvents.Count + FlagEvents.Count > 0;
 }

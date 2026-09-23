@@ -12,7 +12,9 @@ namespace CobolNet.Frontend.Preprocessor;
 /// <param name="Line">The 1-based resultant-text line, directly comparable to a token's <c>Start.Line</c>
 /// (the <c>&gt;&gt;TURN</c> anchoring discipline — hazard H3).</param>
 /// <param name="Word">The compiler-directive word, upper-cased (§7.3.3 SR6 / §8.12).</param>
-public readonly record struct DirectiveSite(int Line, string Word);
+/// <param name="AllForm">True for a <c>&gt;&gt;PUSH ALL</c> / <c>&gt;&gt;POP ALL</c> — the form §7.3.22.3 SR3 and
+/// §7.3.20.3 SR3 confine to positions between clauses / statements of a compilation unit (kb/Work PB1005).</param>
+public readonly record struct DirectiveSite(int Line, string Word, bool AllForm = false);
 
 /// <summary>
 /// The POSITION-RULED compiler directives (ISO §7.3): the three whose syntax rules are about WHERE the directive
@@ -69,9 +71,10 @@ public static class DirectiveSiteProcessor
             // trailing inline comment are its rules, not this stage's.
             if (!CompilerDirectiveLine.TryParse(lines[i], out var directive)) continue;
             if (!PositionRuled.Contains(directive.Word)) continue;
-            (sites ??= []).Add(new DirectiveSite(i + 1, directive.Word));
+            bool isOp = DirectiveStackOp.TryParse(directive, i + 1, out var op);
+            (sites ??= []).Add(new DirectiveSite(i + 1, directive.Word, AllForm: isOp && op.Row is null));
             if (!Consumed.Contains(directive.Word)) continue;
-            if (DirectiveStackOp.TryParse(directive, i + 1, out var op))
+            if (isOp)
             {
                 (ops ??= []).Add(op);
                 if (!(pairing ??= new DirectiveStateStack()).Apply(op) && op.Row is not null && diagnostics is not null)

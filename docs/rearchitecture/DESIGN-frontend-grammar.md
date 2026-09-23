@@ -678,10 +678,12 @@ code:
   encounter order and `Apply` them directly (the driver only in an emitting branch). `DirectiveSiteProcessor`
   records the ops of the FINAL text, blanks the lines, and issues the one COBOLNET2297 warning; every later stage
   REPLAYS those ops with `AdvanceTo(line)` as it scans.
-* **Line-scoped folds** keep their event lists: a carrier over a `DirectiveEventLog` saves "how many events were in
-  effect" and restores by REVOKING every event recorded since, at the POP line. The binder folds a
-  `DirectiveTimeline<T>` with one extra test (`InEffectAt` / TurnState's `RevokedFor`); events are never reordered
-  or synthesized.
+* **Line-scoped folds** keep their event lists: a stage COLLECTS its events into a `DirectiveEventLog` (row, line,
+  event) and `ToTimeline(ops)` REPLAYS the op program over them through the stack — a per-row carrier saves "how
+  many events were in effect" and restores by REVOKING every event recorded since, at the POP line. The binder folds
+  a `DirectiveTimeline<T>` with one extra test (`InEffectAt` / TurnState's `RevokedFor`); events are never reordered
+  or synthesized. A timeline keeps its events AND its op program, so its revocations are always a replay, never a
+  patch — which is what lets a later phase add ops only it can place (`WithStackOps`, below).
 * **Group-prefix values** (COBOL-WORDS, LEAP-SECOND) replay the ops up to the first compilation unit — the point
   §7.3.10.3 SR1 / §7.3.17.3 SR1 close the region — and take the state in effect there.
 * **`DirectiveStateRegistry`** accounts for every pushable row: carried (naming the stage types and the
@@ -691,8 +693,25 @@ code:
   gate: the registry equals the pushable set, every carrier is a real stage, every `DirectiveResults` member is
   claimed, and every carried row has a PUSH/change/POP behavioural case.
 
-The implicit PUSH ALL / POP ALL that §14.9.28.4 GR14 assumes around an exception-checking PERFORM's handlers is
-modelled for the TURN state only (`TurnState.WithAllDisabledFrom` + `EcBinder`), not through this mechanism.
+* **The implicit PUSH ALL / POP ALL of §14.9.28.4 GR14** ("An implicit PUSH ALL followed by TURN OFF ALL is
+  assumed at the end of imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit
+  POP ALL …") go through THIS mechanism (kb/Work PB1004). Only the parse tree can place them, so the binder collects
+  them before binding (`ExceptionPerformDirectiveScope.ImplicitOps`: PUSH at imperative-statement-1's last line,
+  POP at the END-PERFORM line, token order on a shared line) and `DirectiveResults.WithStackOps` replays them with
+  the written ops into EVERY event timeline — so a TURN, REF-MOD-ZERO-LENGTH or FLAG-02/14 written in a WHEN or
+  FINALLY phrase is revoked at END-PERFORM, and one written in imperative-statement-1 (before the PUSH) survives.
+  `ExceptionPerformDirectiveScopeTests` holds the drift test that every `DirectiveTimeline<T>` member is replayed.
+  The TURN OFF ALL half is `TurnState.WithAllDisabledFrom` (the handler floor) in `EcBinder`. The pre-parse states —
+  SOURCE FORMAT in the normalizer, DEFINE and the frontend-inline FLAG options in the conditional-compilation
+  driver — are fixed before any parse tree exists and do not see these two ops.
+* **Where the ALL form may be written** (§7.3.22.3 SR3 / §7.3.20.3 SR3: "only in a compilation unit, between clauses
+  in divisions other than the procedure division, and between statements in the procedure division") is decided by
+  `Validation/PushPopAllPlacementPass` from the directive sites (`DirectiveSite.AllForm`) and the parse tree: the
+  directive's position is the gap between the tokens around its line; outside every unit, or inside the innermost
+  `…Clause` / statement context spanning the gap (unless the gap is a boundary of a nested one), draws the §4.2.2
+  warning COBOLNET2344 (kb/Work PB1005). A reference-format note that belongs here: §7.2.1 Step 1 REQUIRES a SOURCE
+  FORMAT directive in the false path of an IF/EVALUATE to be processed, which is why the normalizer runs over the
+  whole text before conditional compilation (kb/Work PB1006, retired).
 
 ### 3.7 Parse-tree consumption — a typed `Cst/` façade (D6)
 

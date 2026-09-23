@@ -42,6 +42,12 @@ internal sealed class BinderDriver
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
         // The frontend's directive outputs travel as ONE record (kb/Work PB65); absent ⇒ every directive's default.
         directives ??= Frontend.Preprocessor.DirectiveResults.None;
+        // §14.9.28.4 GR14's implicit PUSH ALL / POP ALL around every exception-checking PERFORM's handlers, placed
+        // by the parse tree and replayed with the written >>PUSH / >>POP through the one directive-state stack, so
+        // EVERY line-scoped directive state is restored at END-PERFORM, not only TURN (kb/Work PB1004). Skipped
+        // (no tree walk) when the source has no line-scoped directive to restore.
+        if (directives.HasLineScopedEvents())
+            directives = directives.WithStackOps(ExceptionPerformDirectiveScope.ImplicitOps(tree));
         var turnEvents = directives.TurnEvents;
         var refModZlEvents = directives.RefModZeroLengthEvents;
         var flagEvents = directives.FlagEvents;
@@ -55,6 +61,9 @@ internal sealed class BinderDriver
         // malformed structure can preempt it. The three sibling passes further down run POST-bind only because they
         // consume the bound model; this one has no such reason to wait. kb/Work PB485.
         global::CobolNet.Validation.LevelNumberPass.Run(tree, edition);
+        // §7.3.22.3 SR3 / §7.3.20.3 SR3 — WHERE a >>PUSH ALL / >>POP ALL may be written (kb/Work PB1005). Also a
+        // pure position rule over the tree and the directive sites; no tree walk unless the source has one.
+        global::CobolNet.Validation.PushPopAllPlacementPass.Run(tree, directives.DirectiveSites, edition);
 
         // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
