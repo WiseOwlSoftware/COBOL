@@ -382,7 +382,41 @@ def e(s) -> str:
     return html.escape(str(s), quote=True)
 
 
-def trend_svg(pts: list[dict], battery_n: str) -> str:
+def battery_point(pts: list[dict], bat: dict) -> int | None:
+    """Index of the trend point the CURRENT battery ran on, or None when the series never recorded it.
+
+    ⛔ Not "the first point carrying any battery flag": that read the OLDEST flagged point and labelled it with the
+    CURRENT battery's number, so the page printed "-1506 since battery #85" (the delta from an August battery) and
+    put battery #85's mark on an August point."""
+    try:
+        n_ = int(bat["n"])
+    except (TypeError, ValueError):
+        n_ = None
+    sha = str(bat.get("sha", ""))[:8]
+    for i in range(len(pts) - 1, -1, -1):
+        p = pts[i]
+        if (n_ is not None and p.get("battery") == n_) or (sha and str(p.get("sha", "")).startswith(sha)):
+            return i
+    return None
+
+
+def gap_at(sha: str) -> int | None:
+    """GAP of the inventory AS COMMITTED at `sha` — measured from that tree, never from the trend series, which
+    records a point only when the generator happened to run and so can miss whole trains."""
+    if not sha:
+        return None
+    r = subprocess.run(["git", "show", f"{sha}:{INVENTORY.relative_to(REPO).as_posix()}"], cwd=REPO,
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.returncode != 0:
+        return None
+    try:
+        return sum(1 for row in json.loads(r.stdout) if row.get("state") != "OK")
+    except (ValueError, TypeError):
+        return None
+
+
+def trend_svg(pts: list[dict], bat: dict) -> str:
+    battery_n = bat["n"]
     """A line of GAP-over-landings, drawn to ONE scale with every label naming a value the chart reaches.
 
     The y labels are the series' own min and max (not round numbers above and below them), so no tick can point
@@ -396,7 +430,7 @@ def trend_svg(pts: list[dict], battery_n: str) -> str:
     xs = [x0 + step * i for i in range(len(pts))]
     ys = [(ytop + ybot) / 2 if hi == lo else ytop + (hi - p["gap"]) / (hi - lo) * (ybot - ytop) for p in pts]
 
-    bi = next((i for i, p in enumerate(pts) if p.get("battery")), None)
+    bi = battery_point(pts, bat)
     parts = [f'<line class="tl-grid" x1="{x0}" y1="{base}" x2="{x1}" y2="{base}"></line>']
     if bi is not None:
         parts.append(f'<line class="tl-mark" x1="{xs[bi]:.0f}" y1="18" x2="{xs[bi]:.0f}" y2="{base}"></line>')
@@ -461,8 +495,8 @@ def render(ctx: dict) -> str:
     parked = ", ".join(i["id"] for i in wk["owner_parked"]) or "none"
     a4 = cf["a4"]
     a3 = cf["a3"]
-    base_gap = next((p["gap"] for p in pts if p.get("battery")), pts[0]["gap"]) if pts else inv["gap"]
-    gap_delta = (pts[-1]["gap"] if pts else inv["gap"]) - base_gap
+    bat_gap = gap_at(str(bat.get("sha", "")))
+    gap_delta = None if bat_gap is None else inv["gap"] - bat_gap
 
     return TEMPLATE.format(
         title=TITLE,
@@ -524,10 +558,10 @@ def render(ctx: dict) -> str:
         vcr_todo=n(cp["vcr_todo"]), vcr_done=n(cp["vcr_done"]), vcr_total=n(cp["vcr_total"]),
         vcr_pct=f'{100.0 * cp["vcr_done"] / cp["vcr_total"]:.1f}',
         vcr_gated=n(cp["vcr_gated"]), vcr_ref=n(cp["vcr_ref"]), vcr_pin=n(cp["vcr_pin"]),
-        trend_svg=trend_svg(pts, bat["n"]),
+        trend_svg=trend_svg(pts, bat),
         trend_from=n(pts[0]["gap"]) if pts else "—", trend_to=n(pts[-1]["gap"]) if pts else "—",
         trend_points=n(len(pts)),
-        gap_delta_word=("unchanged" if gap_delta == 0 else f"{gap_delta:+d}"),
+        gap_delta_word=("not recorded" if gap_delta is None else "unchanged" if gap_delta == 0 else f"{gap_delta:+d}"),
         in_flight=ctx["in_flight"],
     )
 
