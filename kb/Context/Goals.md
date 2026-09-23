@@ -18,7 +18,7 @@ tags:
 # Goals & Process Rules
 
 ## North Star (owner decision D13)
-A **commercial-quality, decades-sustainable COBOL compiler, 100% CONFORMING to ISO/IEC 1989:2023 per §4.2.16, with
+A **commercial-quality, decades-sustainable COBOL compiler, 100% CONFORMING to ISO/IEC 1989:2023 per §4.2.1, with
 correct support for all prior editions (1985 / 2002 / 2014).** "100% conforming" = the mandatory core of each edition
 complete + every required implementor-documentation item; optional modules/processor-dependent elements may remain
 *documented non-support* (the `CONFORMANCE.md` dispositions are part of the deliverable, not a waiver). "Implement

@@ -42,7 +42,7 @@ diagnostic). `--permissive` softens removals for migration. See [[kb/Spec/Versio
 [[kb/Semantics/Passes]].
 
 ## What does "done" mean for this project?
-Owner decision **D13**: 100% conformance per ISO §4.2.16 across all four editions. Mechanically, **done = the P14
+Owner decision **D13**: 100% conformance per ISO §4.2.1 across all four editions. Mechanically, **done = the P14
 Step-0 four-edition traceability inventory at zero-GAP.** Optional modules may remain documented non-support. See
 [[kb/Context/Goals]] and [[kb/Modernization/Tasks]].
 

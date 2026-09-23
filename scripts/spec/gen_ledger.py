@@ -595,7 +595,7 @@ TEMPLATE = """<title>{title}</title>
   <p class="eyebrow">ISO/IEC 1989:2023 · Four editions · Owner decision D13</p>
   <h1>{title}</h1>
   <p class="asof">As of <b>{head_date}</b> · measured tree <b class="mono">{head_sha}</b> · last comprehensive battery <b>#{bat_n}</b> on <b class="mono">{bat_sha}</b> — <b>{bat_since} commits back</b>, {bat_since_code} of them touching <span class="mono">src/</span> or <span class="mono">tests/</span></p>
-  <p class="mission">v1.0 is defined as <strong>100% conforming per ISO §4.2.16 across all four editions</strong> (85 / 2002 / 2014 / 2023) — mandatory core complete plus every required implementor-documentation item; optional modules may remain documented non-support. Done is measured by one instrument: the traceability inventory at <strong>zero GAP</strong>.</p>
+  <p class="mission">v1.0 is <strong>a conforming implementation of the whole of ISO/IEC 1989 in each of its four editions</strong> (85 / 2002 / 2014 / 2023), as §4.2.1 defines conformance: every required normative element of Clause 6 (Reference format) through Clause 16 (Standard classes), and every criterion of §4.2.2 through §4.2.17 — acceptance of standard source, implementor-defined and processor-dependent elements, limits, and the §4.2.16 user documentation among them. The optional modules of Annex A.4 are either implemented or documented as not provided, as §4.2.1 permits. Done is measured by one instrument: every normative rule as a row of the traceability inventory, at <strong>zero GAP</strong>.</p>
 </header>
 
 <section aria-label="Headline meter">

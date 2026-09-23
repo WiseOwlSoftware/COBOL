@@ -2,7 +2,7 @@
 
 > **STATUS: DESIGN — decision-complete methodology + plan.** This is the exhaustive, spec-anchored conformance review
 > that is the PHASE-14 definition of DONE (owner decision D13: commercial-quality, 100% CONFORMING to ISO/IEC
-> 1989:2023 per §4.2.16 with correct support for 1985/2002/2014). It re-grounds the P14 Step-0 "traceability
+> 1989:2023 per §4.2.1 with correct support for 1985/2002/2014). It re-grounds the P14 Step-0 "traceability
 > inventory" as **spec-first and exhaustive** — the spec text is the ORACLE, not a differential. Spec-first is the
 > only going priority (memory `feedback_spec_is_the_oracle`).
 

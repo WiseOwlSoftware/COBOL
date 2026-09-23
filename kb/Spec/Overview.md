@@ -53,7 +53,7 @@ Five whole facilities are not implemented: **MCS asynchronous messaging** (SEND/
 
 ## Four-editions mission
 
-The North Star (owner decision **D13**): a compiler **100% conforming per §4.2.16 across all four editions** —
+The North Star (owner decision **D13**): a compiler **100% conforming per §4.2.1 across all four editions** —
 1985, 2002, 2014, 2023 — selected by `--std 85|2002|2014|2023`, default **COBOL-2023** (or 85 under `--nist`).
 "Done" is defined as the **PHASE-14 Step-0 traceability inventory** (every Annex A.1 required documentation item) at
 zero GAP. See [[kb/Spec/Version Targeting]] and [[kb/Modernization/Tasks]].

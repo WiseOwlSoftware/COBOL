@@ -21,7 +21,7 @@ distinct from the project's engineering doctrine (which lives in [[kb/Context/Do
 
 §4 defines what "conforming" means: a conforming processor accepts and correctly processes the mandatory language of
 its claimed edition, documents every processor-dependent choice (§4.2.16 → [[docs/CONFORMANCE]]), and rejects or
-warns on unsupported syntactically-detectable elements. The owner target (**D13**) is 100% conformance per §4.2.16
+warns on unsupported syntactically-detectable elements. The owner target (**D13**) is 100% conformance per §4.2.1
 across editions 1985/2002/2014/2023. See [[kb/Spec/Overview]].
 
 ## Reference format (§6)
