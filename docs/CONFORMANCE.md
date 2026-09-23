@@ -722,6 +722,24 @@ of an unsupported facility.
   here (the implementer host has no GnuCOBOL install). Implemented at `CorrespondingBinder.cs#CorrMembers` over
   `RenamesInfo.IncludedElementaryItems`, and pinned by `conformance:85/pb966_move_corresponding_through_alias`.
 
+- **D-RW1 — reserved words added for nonstandard extensions (§4.2.10; kb/Work PB655).** §4.2.10: "An
+  implementation that introduces additional reserved words as nonstandard extensions conforms to this Working
+  Draft International Standard, even though the additional reserved words may prevent translation of some
+  conforming compilation groups", and "Documentation associated with an implementation … shall specify any
+  reserved words added for nonstandard extensions" (`cite.py --check 4.2.10 "shall specify any reserved words
+  added for nonstandard extensions"` → OK). This is that specification. Every OTHER keyword the lexer tokenizes is
+  a legal user-defined word wherever ISO §8.9 leaves it free (reservation-gated per edition) and, for a §8.10
+  context-sensitive word, everywhere outside its context — `CobolWordsDriftTests` proves that join empty. The
+  words below are reserved at EVERY edition although ISO reserves none of them, following GnuCOBOL (the model
+  implementation for implementor latitude), because each spells a vendor construct this compiler recognizes:
+  **CHANNEL, COMP-1, COMP-2, COMP-3, COMP-4, COMP-5, COMPUTATIONAL-1, COMPUTATIONAL-2, COMPUTATIONAL-3,
+  COMPUTATIONAL-4, COMPUTATIONAL-5, END-INVOKE, END-JSON, END-MERGE, END-METHOD, END-SORT, END-XML, ENTRY,
+  GENERIC, JSON, PACKED, REMARKS, XML**. The single source is `tests/version-matrix/cobol-words.json`
+  `extensionReserved`; `CobolWordsDriftTests` fails when this list, that array and the lexer disagree.
+  ⚠ DETERMINATION (owner may overturn): reserving them keeps the vendor forms recognizable by name; the rejected
+  reading — admitting them as user words at every edition — would make each vendor construct ambiguous with a
+  data reference in every operand list.
+
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following whole facilities are **not implemented**, and every element of each is **recognized and refused or

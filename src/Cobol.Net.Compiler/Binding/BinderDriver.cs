@@ -80,6 +80,7 @@ internal sealed class BinderDriver
             Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl,
             DirectiveSites = directives.DirectiveSites,
             CobolWords = cobolWordsMap ?? CobolNet.Editions.CobolWordsMap.Empty,
+            Retypes = tree.TokenRetypes,
             LeapSecond = directives.LeapSecondOn,
         };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
@@ -485,6 +486,7 @@ internal sealed class BinderDriver
             OoClasses = session.OoClasses,
             RefModZeroLength = session.RefModZeroLength,
             CobolWords = session.CobolWords,   // >>COBOL-WORDS intrinsic-function-name synonym/removal (§7.3.10)
+            Retypes = session.Retypes,         // the fragment re-parses read words as the tree does (kb/Work PB655)
             LeapSecond = session.LeapSecond,   // >>LEAP-SECOND ON — the §15.3 seconds-subfield / time-form bound (§7.3.17)
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.

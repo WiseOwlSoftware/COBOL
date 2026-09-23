@@ -61,7 +61,7 @@ internal static class OptionsBinder
             return m with { Arithmetic = ArithmeticOf(am, edition) };
         if (c.defaultRoundedClause()?.roundingModeName() is { } dr)
             return m with { DefaultRounding = RoundingModes.Map(dr) };
-        if (c.entryConventionClause()?.cobolWord() is { } ec)
+        if (c.entryConventionClause()?.entryConventionName() is { } ec)
             return m with { EntryConvention = ec.GetText() };
         if (c.floatBinaryClause()?.endiannessPhrase() is { } fb)
             return m with { FloatBinaryEndianness = FloatFormatPhrase.Endianness(fb) };

@@ -22,24 +22,34 @@ public sealed class WhenOperandAheadDriftTests
             .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t))
             .ToHashSet(StringComparer.Ordinal);
 
+    /// <summary>The tokens a WHEN operand list can actually annex: the name-slot rows MINUS the reservation-gated
+    /// ones, which are never <c>cobolWord</c> alternatives (kb/Work PB655 — a gated word reaches a name slot only as
+    /// the IDENTIFIER the token-level gate retypes a DECLARED free word to, and then annexing it is right).
+    /// The gated set is the lexer's generated one, so the two cannot drift.</summary>
     private static HashSet<string> NameSlotTokens()
     {
         string path = TestRepo.VersionMatrix("cobol-words.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        var field = typeof(CobolLexer).GetField("_reservationGatedTokens",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(field);
+        var gated = ((HashSet<int>)field!.GetValue(null)!)
+            .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t)).ToHashSet(StringComparer.Ordinal);
+        Assert.True(gated.Count > 50, $"only {gated.Count} reservation-gated tokens read — the reflection broke");
         return doc.RootElement.GetProperty("words").EnumerateArray()
             .Where(e => e.GetProperty("nameSlot").GetBoolean())
             .Select(e => e.GetProperty("token").GetString()!)
+            .Where(t => !gated.Contains(t))
             .ToHashSet(StringComparer.Ordinal);
     }
 
-    /// <summary>The stop-set is pinned: exactly the 9 current cobolWord∩statement-leader verbs plus the two
-    /// anticipatory forward verbs (GET/PARSE). A change to the method's array must update this pin (and the FU
-    /// reasoning in the method doc-comment).</summary>
+    /// <summary>The stop-set is pinned: the anticipatory forward verb PARSE only. The nine statement verbs and GET
+    /// it used to carry are all reservation-gated, so none is a cobolWord since kb/Work PB655. A change to the
+    /// method's array must update this pin (and the FU reasoning in the method doc-comment).</summary>
     [Fact]
     public void StopSet_IsPinned()
     {
-        var expected = new HashSet<string>(StringComparer.Ordinal)
-        { "RESUME", "RAISE", "VALIDATE", "UNLOCK", "SEND", "RECEIVE", "COMMIT", "ROLLBACK", "ENTER", "GET", "PARSE" };
+        var expected = new HashSet<string>(StringComparer.Ordinal) { "PARSE" };
         var actual = StopTokenNames();
         Assert.True(expected.SetEquals(actual),
             $"WhenOperandStopTokens drift: expected [{string.Join(",", expected.OrderBy(x => x))}] "

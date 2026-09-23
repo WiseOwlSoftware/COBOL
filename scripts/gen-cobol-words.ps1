@@ -215,31 +215,36 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('cobolWord')
 $gated = $gatedTokenSet
+$sep = ':'
 for ($i = 0; $i -lt $nameSlotTokens.Count; $i++) {
-    $sep = if ($i -eq 0) { ':' } else { '|' }
     $tok = $nameSlotTokens[$i]
-    # kb/Work PB137/PB693: a reservation-gated word leaves the user-word space exactly where 8.9 reserves it,
-    # so no operand list absorbs the bare keyword there while user-word use at the other editions survives.
-    # ⛔ THE PREDICATE TAKES THE COBOL WORD, NEVER THE ANTLR TOKEN NAME (kb/Work PB792). userWordHere() looks the
-    # argument up in reserved-words.json, which is keyed by the SPELLING — so emitting the token name left every
-    # hyphenated gated word (END-RECEIVE, END-SEND, B-AND, GROUP-USAGE, …) with a gate that silently never fired:
-    # Find("END_RECEIVE") is null, the word reads as unreserved at every edition, and the operand list absorbs it
-    # on BOTH severity axes. To-Word is the same mapping the rwMap lookup above uses.
+    # ⛔ A RESERVATION-GATED WORD IS NOT A cobolWord ALTERNATIVE AT ALL (kb/Work PB655). It used to be one,
+    # behind {userWordHere("W")}? — and ANTLR evaluates a semantic predicate only at the LEFT EDGE of the
+    # decision it is predicting. cobolWord sits deep inside every reference, so for an ENCLOSING decision the
+    # gate was invisible: `SET P TO NULL` at 2002 chose the SET-to-identifier format on the strength of a NULL
+    # "name" the gate would then refuse, and the parse failed (feedback_left_edge_predicates). The gate is now
+    # TOKEN-LEVEL: the word stays its keyword token here, and ReservationGateRewriter (Frontend.LexAndParse)
+    # retypes it to IDENTIFIER — before the authoritative parse, where every prediction sees it — exactly when
+    # §8.9 leaves it free at the compile edition AND the program DECLARES it (a reservedGatedWord definition
+    # slot). Its only grammar home is reservedGatedWord below.
     # kb/Work PB805 + PB655: EVERY keyword-token alternative also carries {!keywordContinuesHere()}? — hoisted
     # into each greedy operand list's loop decision, it ends the list wherever the enclosing construct can read
     # the word as its next KEYWORD (the follow set is computed from the ATN; CobolParserCoreBase). IDENTIFIER is
     # never a keyword, so it stays bare. One predicate for every word and every list: the hand-written per-word
     # guards (PROPERTY, DEFAULT, DELETE FILE's phrase words) it replaced were the per-site list rule 5 forbids.
+    if ($gated.Contains($tok)) { continue }
     if ($tok -eq 'IDENTIFIER') { [void]$sb.AppendLine("    $sep $tok") }
-    elseif ($gated.Contains($tok)) { [void]$sb.AppendLine("    $sep {userWordHere(`"$(To-Word $tok)`") && !keywordContinuesHere()}? $tok") }
     else { [void]$sb.AppendLine("    $sep {!keywordContinuesHere()}? $tok") }
+    $sep = '|'
 }
 [void]$sb.AppendLine('    ;')
-# ---- 5b. Emit reservedGatedWord — the SAME derived gate set, predicate INVERTED (kb/Work PB300/PB693) ----
-# A gated word leaves cobolWord exactly where §8.9 reserves it (step 5). That is right for every REFERENCE
-# slot, but a DECLARATION naming the word must still PARSE at those editions, or the §8.9 funnel's targeted
-# COBOLNET0901 ("'X' is a reserved word in COBOL-nnnn") degrades to a raw COBOL0001 parse error that never
-# names the cause. dataName and programName therefore re-admit the same words under the INVERSE predicate.
+# ---- 5b. Emit reservedGatedWord — the SAME derived gate set, with NO predicate (kb/Work PB300/PB693/PB655) ----
+# A gated word is never a cobolWord (step 5). That is right for every REFERENCE slot, but a DECLARATION naming
+# the word must still PARSE, for two readers: where §8.9 RESERVES it the funnel answers with the targeted
+# COBOLNET0901 ("'X' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 parse error that never names
+# the cause; where §8.9 leaves it FREE this match IS the declaration ReservationGateRewriter looks for, and the
+# re-parse then sees the word as an IDENTIFIER everywhere. Every definition slot therefore offers this rule.
+# No predicate: a predicate is what could not steer prediction (step 5), and the token type alone is the fact.
 # That re-admission used to be a HAND-WRITTEN list of two words in CobolData.g4 (COMMIT/ROLLBACK) — so CRT and
 # CURSOR, gated by kb/Work PB301, never got their 0901 and nobody noticed; then the GATE ITSELF was a
 # hand-set flag and fifty-one §8.9-straddling words never got one (PB693). Deriving BOTH halves from the ONE
@@ -250,16 +255,17 @@ if ($gatedTokens.Count -lt 1) {
     throw "the derived gate set is empty: dataName references reservedGatedWord, and an empty rule is invalid ANTLR"
 }
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('// The DECLARATION-position twin of the gated cobolWord alternatives (kb/Work PB300/PB137/PB693): the')
-[void]$sb.AppendLine('// SAME derived rows under the INVERSE predicate, so `01 <word> PIC X.` and `PROGRAM-ID. <word>.`')
-[void]$sb.AppendLine('// still PARSE where §8.9 reserves the word and the funnel answers with a targeted COBOLNET0901')
-[void]$sb.AppendLine('// instead of a parse error. VersionConformancePass.VisitReservedGatedWord is the ONE funnel arm:')
-[void]$sb.AppendLine('// every use of this rule is a definition slot, so a new slot needs no new C# (kb/Work PB693).')
+[void]$sb.AppendLine('// The DECLARATION home of every reservation-gated word (kb/Work PB300/PB137/PB693/PB655). A gated word')
+[void]$sb.AppendLine('// is never a cobolWord; the TOKEN-LEVEL gate (ReservationGateRewriter) retypes it to IDENTIFIER where')
+[void]$sb.AppendLine('// §8.9 leaves it free AND a definition slot below matched it. Where §8.9 reserves it, the match stands')
+[void]$sb.AppendLine('// and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOLNET0901: every')
+[void]$sb.AppendLine('// use of this rule is a definition slot, so a new slot needs no new C#.')
 [void]$sb.AppendLine('reservedGatedWord')
 for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
-    $sep = if ($i -eq 0) { ':' } else { '|' }
-    [void]$sb.AppendLine("    $sep {!userWordHere(`"$(To-Word $gatedTokens[$i])`")}? $($gatedTokens[$i])")
+    $sep = if ($i -eq 0) { ': (' } else { '  |' }
+    [void]$sb.AppendLine("    $sep $($gatedTokens[$i])")
 }
+[void]$sb.AppendLine('      ) { gatedDeclaration(TokenStream.LT(-1)); }')
 [void]$sb.AppendLine('    ;')
 Set-Content -LiteralPath $g4Out -Value $sb.ToString().TrimEnd() -Encoding utf8
 
@@ -280,9 +286,9 @@ $cs = [System.Text.StringBuilder]::new()
 foreach ($t in $subTrigTokens) { [void]$cs.AppendLine("        $t,") }
 [void]$cs.AppendLine('    };')
 [void]$cs.AppendLine('')
-[void]$cs.AppendLine('    /// <summary>The RESERVATION-GATED token types (kb/Work PB693) — the same derived set step 4b')
-[void]$cs.AppendLine('    /// puts behind {userWordHere("W")}? in cobolWord. A parse error ON one of these is the §8.9')
-[void]$cs.AppendLine('    /// violation itself (the gate is why no name-slot alternative matched), so CobolErrorListener')
+[void]$cs.AppendLine('    /// <summary>The RESERVATION-GATED token types (kb/Work PB693/PB655) — the same derived set step 4b')
+[void]$cs.AppendLine('    /// keeps out of cobolWord and ReservationGateRewriter retypes where §8.9 frees a declared word. A parse')
+[void]$cs.AppendLine('    /// error ON one of these is the §8.9 violation itself (no name-slot alternative takes the token), so CobolErrorListener')
 [void]$cs.AppendLine('    /// answers with the targeted COBOLNET0901 instead of a raw COBOL0001 that never names the cause.')
 [void]$cs.AppendLine('    /// Generated, so a newly gated word needs no edit anywhere.</summary>')
 [void]$cs.AppendLine('    internal static bool IsReservationGated(int tokenType) => _reservationGatedTokens.Contains(tokenType);')

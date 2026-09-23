@@ -51,6 +51,9 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// function-name synonym / removal through it. <c>Empty</c> when there is no directive.</summary>
     public CobolNet.Editions.CobolWordsMap CobolWords => data.CobolWords;
 
+    /// <summary>The post-lex token decisions every fragment re-parse applies (kb/Work PB655).</summary>
+    public CobolNet.Frontend.Parsing.TokenRetypes Retypes => data.Retypes;
+
     /// <summary>The edition-invariant SR check catalog (P7 Step 10 — pure checks only: each reports to
     /// <see cref="Edition"/> and returns the verdict; the verb binder owns all error+placeholder control
     /// flow).</summary>

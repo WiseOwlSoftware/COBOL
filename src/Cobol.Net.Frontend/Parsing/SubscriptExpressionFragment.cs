@@ -28,7 +28,7 @@ public static class SubscriptExpressionFragment
 {
     /// <summary>Parse one subscript / reference-modifier segment's source text (verbatim from the char stream so
     /// spacing survives) to the fragment CST, or <see langword="null"/> on any syntax error.</summary>
-    public static CobolParserCore.SubscriptExpressionFragmentContext? Parse(string text, EditionInfo edition) =>
-        FragmentParse.Parse(text, edition, prime: null, rewriteZero: true,
+    public static CobolParserCore.SubscriptExpressionFragmentContext? Parse(string text, EditionInfo edition, TokenRetypes retypes) =>
+        FragmentParse.Parse(text, edition, retypes, prime: null, rewriteZero: true,
             static p => p.subscriptExpressionFragment());
 }

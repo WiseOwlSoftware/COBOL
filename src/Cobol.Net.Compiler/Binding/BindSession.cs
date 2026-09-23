@@ -33,6 +33,11 @@ internal sealed class BindSession
     /// function-name synonyms through it. Defaults to <see cref="CobolWordsMap.Empty"/> (no directive).</summary>
     public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
 
+    /// <summary>The post-lex token decisions the tree was parsed under (kb/Work PB655 — the §8.9 words the token-level
+    /// gate freed, plus the <c>&gt;&gt;COBOL-WORDS</c> map), handed to every fragment re-parse so it reads each word as
+    /// the tree does. From <c>CompilationUnitContext.TokenRetypes</c>.</summary>
+    public Frontend.Parsing.TokenRetypes Retypes { get; init; } = Frontend.Parsing.TokenRetypes.None;
+
     /// <summary>The group's <c>&gt;&gt;LEAP-SECOND</c> state (ISO §7.3.17; kb/Work PB65): true when ON — a
     /// formatted-time argument's seconds subfield may be 60 (§15.3.3.3) and standard numeric time form is bounded at
     /// 86,401 (GR4). Every unit's <see cref="DataBinder.LeapSecond"/> carries it to the intrinsic renderer.</summary>

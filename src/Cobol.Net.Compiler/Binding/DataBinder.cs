@@ -54,6 +54,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Defaults to <see cref="Editions.CobolWordsMap.Empty"/> (no directive) for direct test construction.</summary>
     public Editions.CobolWordsMap CobolWords { get; init; } = Editions.CobolWordsMap.Empty;
 
+    /// <summary>The post-lex token decisions the tree was parsed under (<see cref="BindSession.Retypes"/>; kb/Work
+    /// PB655) — every fragment re-parse applies them. <c>None</c> for direct test construction.</summary>
+    public Frontend.Parsing.TokenRetypes Retypes { get; init; } = Frontend.Parsing.TokenRetypes.None;
+
     /// <summary>The group's <c>&gt;&gt;LEAP-SECOND</c> state (ISO §7.3.17; kb/Work PB65) — the intrinsic renderer
     /// passes it to every §15.3 date/time runtime function that reads a seconds subfield or a standard numeric
     /// time form (SECONDS-FROM-FORMATTED-TIME, TEST-FORMATTED-DATETIME, INTEGER-OF-FORMATTED-DATE, FORMATTED-TIME,
@@ -3896,12 +3900,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // Table 11 → COBOLNET1673).
                     if (clause.Context.pictureClause()?.pictureLocalePhrase() is { } lp)
                     {
-                        var lw = lp.cobolWord();   // [0] = the word LOCALE itself; [1] = locale-name-1 when written
+                        var localeName = lp.cobolWord();   // locale-name-1 when written; LOCALE itself is the formatWord (kb/Work PB764)
                         var locale = LocaleRef.Current;
-                        if (lw.Length > 1)
+                        if (localeName is not null)
                         {
-                            var sym = ResolveLocaleName(lw[1].GetText(),
-                                $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE {lw[1].GetText()}",
+                            var sym = ResolveLocaleName(localeName.GetText(),
+                                $"data item '{cobolName ?? "FILLER"}' PICTURE … LOCALE {localeName.GetText()}",
                                 "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
                             if (sym is not null) locale = new LocaleRef(sym);
                         }

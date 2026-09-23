@@ -44,16 +44,16 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ProgramPrototype? prototype = null;
         if (call.callAsPhrase() is { } asPhrase)
         {
-            string asWord = asPhrase.cobolWord().GetText();
-            // >>COBOL-WORDS (ISO §7.3.10.4; kb/Work PB250): NESTED is §8.9-reserved but is no lexer token, so an
-            // EQUATEd synonym reaches this arm and an UNDEFINE'd NESTED must fall to the prototype-name arm.
-            asNested = ctx.CobolWords.Is(asWord, "NESTED");
+            // The grammar decided the brace (kb/Work PB764): the NESTED keyword arm is a formatWord, recognized
+            // through the >>COBOL-WORDS map (ISO §7.3.10.4; kb/Work PB250) — an EQUATEd synonym takes it and an
+            // UNDEFINE'd NESTED falls to the program-prototype-name arm, a cobolWord.
+            asNested = asPhrase.formatWord() is not null;
             if (!asNested)
             {
                 // §14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a program-specifier in the
                 // REPOSITORY paragraph." ONE lookup answers it, because ProgramPrototypesOf also registers
                 // §8.4.6.8's no-specifier spelling (a containing program definition's program-name).
-                if (ResolvePrototype(asWord, "CALL … AS") is not { } proto) return BoundRejected.Reported(ctx.Edition);
+                if (ResolvePrototype(asPhrase.cobolWord().GetText(), "CALL … AS") is not { } proto) return BoundRejected.Reported(ctx.Edition);
                 prototype = proto;
             }
             else

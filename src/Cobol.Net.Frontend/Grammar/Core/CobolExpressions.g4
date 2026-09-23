@@ -285,17 +285,14 @@ comparisonExpression
 //   ALL FOURTEEN ARE OFFERED. Each keyword alternative is one line here plus one ClassConditionModel row plus
 // one ConditionRenderer.RenderClass arm, and ClassConditionTableDriftTests fails if any of the three is missed
 // (the seven COBOL-2014 numeric-content alternatives landed together — kb/Work PB225).
-//   ⛔ BOOLEAN AND THE SEVEN 2014 WORDS COME AFTER cobolWord AND THAT ORDER IS THE EDITION GATE. BOOLEAN is a COBOL-2002 reserved
-// word (ReservedWords.Table: not reserved at 85, reserved at 2002/2014/2023), so `cobolWord`'s own
-// `{userWordHere("BOOLEAN")}? BOOLEAN` alternative matches it at COBOL-85 ONLY — where `CLASS BOOLEAN IS "01"`
-// in SPECIAL-NAMES is conforming source and `IF X IS BOOLEAN` names that user class. At 2002+ the predicate is
-// false, that alternative is not viable, and prediction reaches the keyword alternative below. Put the keyword
-// FIRST and ANTLR (first matching alternative) would steal the COBOL-85 user-class reading — rejecting legal
-// source. So the class condition needs NO binder-side introduction gate: the word is unreachable as a keyword
-// below 2002, which is the XOR/boolean-operator precedent this file's condition binder already records. The
-// seven numeric-content words are the same shape one edition later: reserved from 2014 (ReservedWords.Table),
-// so below 2014 `IF X IS FLOAT-INFINITY` names a SPECIAL-NAMES class and at 2014+ it is the §8.8.4.4.4 GR3
-// alternative.
+//   ⛔ BOOLEAN AND THE SEVEN 2014 WORDS ARE KEYWORDS HERE ONLY WHERE §8.9 RESERVES THEM (kb/Work PB655). BOOLEAN
+// is a COBOL-2002 reserved word (not reserved at 85), the seven numeric-content words are reserved from 2014, and
+// below those editions each is an ordinary user-defined word: `CLASS BOOLEAN IS "01"` in SPECIAL-NAMES is
+// conforming COBOL-85 and `IF X IS BOOLEAN` names that user class. The token-level reservation gate retypes such
+// a DECLARED class to IDENTIFIER, so it arrives through cobolWord; a keyword token that still arrives below its
+// edition is an UNDECLARED class-name-1, and ConditionBinder reads it as one (→ COBOLNET1639) instead of as the
+// §8.8.4.4.4 GR3 alternative. (Until PB655 the gate was a cobolWord predicate and the ORDER of these alternatives
+// was the edition gate; a predicate past the left edge of an enclosing decision cannot be one.)
 className
     : NUMERIC
     | ALPHABETIC

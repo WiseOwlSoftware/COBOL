@@ -255,21 +255,21 @@ public sealed class Frontend
         // SUBSCRIPTED data name; the lexer must open SUBSCRIPT mode at its following '(' even though the word is
         // still lexed as its keyword token (the retype below runs post-lex, after the '(' decision is frozen).
         // Set BEFORE any tokenization (ZeroTokenRewriter.Fill). A no-op when no de-reserved word is a keyword token.
-        if (!CobolWordsMap.IsEmpty)
-            lexer.SetCobolWordsDataNames(CobolWordsRewriter.DeReservedTokenTypes(CobolWordsMap));
+        var retypes = TokenRetypes.None with { CobolWords = CobolWordsMap };
+        retypes.PrimeLexer(lexer);
         var tokens = new CommonTokenStream(lexer);
         ZeroTokenRewriter.Rewrite(tokens);
         // >>COBOL-WORDS (ISO §7.3.10.4) — retype tokens per the per-group override: synonyms (EQUATE/SUBSTITUTE)
         // become their canonical keyword, de-reserved words (UNDEFINE/SUBSTITUTE) become IDENTIFIERs. A no-op when
         // the source has no directive (byte-identical).
-        CobolWordsRewriter.Rewrite(tokens, CobolWordsMap);
+        retypes.Rewrite(tokens);
 
         // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
         // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §8.9/§8.10 words the lexer deliberately does
         // not tokenize, so only CobolWordsMap.Resolve can reach them — kb/Work PB250.
         // ⛔ BOTH AXES, not just the year (kb/Work PB693). The parser's <c>Edition</c> is the single source its
-        // predicates read, and the reservation gate <c>userWordHere</c> asks the PERMISSIVE axis: the migration
-        // mode must keep a §8.9-reserved word parseable as a user-defined word so the funnel can WARN instead of
+        // predicates read, and the reservation gate (<c>userWordHere</c>) asks the PERMISSIVE axis: the migration
+        // mode must keep a §8.9-reserved word usable as a user-defined word so the funnel can WARN instead of
         // the parse dying. Setting only DialectLevel left Permissive false for every real compile, so
         // `--permissive` could not save a program that names a reservation-gated word — the one thing the mode
         // exists for. Every other stage of this pipeline is already handed `Permissive`; the parser was the gap.
@@ -278,8 +278,24 @@ public sealed class Frontend
             Edition = EditionInfo.Of(DialectLevel, Permissive),
             CobolWords = CobolWordsMap,
         };
-        parser.RemoveErrorListeners();
 
+        // ⛔ THE TOKEN-LEVEL §8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
+        // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
+        var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
+            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath));
+
+        return parser.NumberOfSyntaxErrors > 0 ? null : tree;
+    }
+
+    /// <summary>One parse of the whole token stream from token 0: fast SLL prediction first (with a
+    /// <see cref="BailErrorStrategy"/> so an ambiguity throws rather than hangs), falling back to full LL on
+    /// failure.</summary>
+    private CobolParserCore.CompilationUnitContext ParsePass(CobolParserCore parser, CommonTokenStream tokens,
+        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath)
+    {
+        tokens.Seek(0);
+        parser.Reset();
+        parser.RemoveErrorListeners();
         // ⛔ THE SLL PASS IS SPECULATIVE AND MUST NOT DIAGNOSE (kb/Work PB396). SLL is an APPROXIMATION of LL:
         // it can fail on input full LL prediction accepts, and when it fails the LL pass below re-derives every
         // diagnostic from token 0 — so a listener attached across both passes reported each real syntax error
@@ -287,12 +303,11 @@ public sealed class Frontend
         // CobolErrorStrategy's), and reported a FALSE error whenever SLL was merely the weaker predictor. The
         // listener is therefore attached to the AUTHORITATIVE pass only. Measured on `IF X = 1 END-IF`: two
         // errors at the same (8,12) before, one after.
-        CobolParserCore.CompilationUnitContext tree;
         try
         {
             parser.Interpreter.PredictionMode = PredictionMode.SLL;
             parser.ErrorHandler = new BailErrorStrategy();
-            tree = parser.compilationUnit();
+            return parser.compilationUnit();
         }
         catch (Exception e) when (e is ParseCanceledException or RecognitionException)
         {
@@ -305,9 +320,8 @@ public sealed class Frontend
             parser.Interpreter.PredictionMode = PredictionMode.LL;
             parser.ErrorHandler = new CobolErrorStrategy();
             parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap));
-            tree = parser.compilationUnit();
+            parser.AddErrorListener(gateWitness);
+            return parser.compilationUnit();
         }
-
-        return parser.NumberOfSyntaxErrors > 0 ? null : tree;
     }
 }

@@ -21,7 +21,7 @@ public static class FunctionArgFragment
     /// <summary>Parse function-argument text (the content BETWEEN the reference's parentheses, verbatim from
     /// the source char stream so spacing survives) to the fragment CST, or <see langword="null"/> on any
     /// syntax error — the caller reports and stays loud, never a partial parse.</summary>
-    public static CobolParserCore.FunctionArgListFragmentContext? Parse(string text, EditionInfo edition) =>
-        FragmentParse.Parse(text, edition, static l => l.PrimeFunctionArgs(), rewriteZero: true,
+    public static CobolParserCore.FunctionArgListFragmentContext? Parse(string text, EditionInfo edition, TokenRetypes retypes) =>
+        FragmentParse.Parse(text, edition, retypes, static l => l.PrimeFunctionArgs(), rewriteZero: true,
             static p => p.functionArgListFragment());
 }

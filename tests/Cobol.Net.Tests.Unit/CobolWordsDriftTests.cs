@@ -86,17 +86,23 @@ public sealed class CobolWordsDriftTests
         return alts;
     }
 
-    /// <summary>The parser's generated <c>cobolWord</c> alternatives equal the JSON <c>nameSlot=true</c> tokens.</summary>
+    /// <summary>The JSON <c>nameSlot=true</c> tokens are exactly the generated <c>cobolWord</c> alternatives plus the
+    /// <c>reservedGatedWord</c> ones, and no token is in both (kb/Work PB655: a gated word's name reading is the
+    /// token-level retype, never a cobolWord alternative).</summary>
     [Fact]
     public void CobolWordsG4_CobolWord_Matches_Json_NameSlot()
     {
         var json = LoadJsonWords().Where(w => w.NameSlot).Select(w => w.Token).ToHashSet(StringComparer.Ordinal);
-        var g4 = ParseCobolWordAlternatives();
+        var cobolWord = ParseCobolWordAlternatives();
+        var gated = ParseRuleAlternatives("reservedGatedWord").Keys.ToHashSet(StringComparer.Ordinal);
+        var g4 = cobolWord.Union(gated).ToHashSet(StringComparer.Ordinal);
 
         var onlyJson = json.Where(w => !g4.Contains(w)).Take(5).ToList();
         var onlyG4 = g4.Where(w => !json.Contains(w)).Take(5).ToList();
-        Assert.True(onlyJson.Count == 0 && onlyG4.Count == 0,
-            $"cobolWord drift: json={json.Count} g4={g4.Count} json-only=[{string.Join(",", onlyJson)}] g4-only=[{string.Join(",", onlyG4)}]");
+        var both = cobolWord.Intersect(gated).Take(5).ToList();
+        Assert.True(onlyJson.Count == 0 && onlyG4.Count == 0 && both.Count == 0,
+            $"cobolWord drift: json={json.Count} g4={g4.Count} json-only=[{string.Join(",", onlyJson)}] "
+            + $"g4-only=[{string.Join(",", onlyG4)}] in-both-rules=[{string.Join(",", both)}]");
     }
 
     /// <summary>⛔ THE §8.3.2.1 INVARIANT (kb/Work PB693) — every name-slot word that ISO §8.9 reserves at ANY
@@ -107,38 +113,40 @@ public sealed class CobolWordsDriftTests
     /// Fifty-one further words had the same §8.9 straddle and the same ungated admission.
     /// <para>The gate was a hand-set <c>reservationGated</c> JSON flag; it is now DERIVED by
     /// <c>gen-cobol-words.ps1</c> step 4b from <c>reserved-words.json</c> (CLAUDE.md rule 5 — never a
-    /// hand-maintained list where a structure belongs). This test recomputes the derivation independently and
-    /// pins BOTH halves of the emitted gate: <c>cobolWord</c> under <c>{userWordHere("W")}?</c> (a user word
-    /// exactly where §8.9 leaves it free) and <c>reservedGatedWord</c> under <c>{!userWordHere("W")}?</c> (a
-    /// DECLARATION still parses where §8.9 reserves it, so the funnel's targeted COBOLNET0901 names the word
-    /// instead of a raw COBOL0001). Set-equality in both directions, so neither a missing gate nor a stray one
-    /// survives.</para></summary>
+    /// hand-maintained list where a structure belongs). This test recomputes the derivation independently.</para>
+    /// <para>⛔ AND THE GATE IS TOKEN-LEVEL, NEVER A PREDICATE (kb/Work PB655). A <c>{userWordHere("W")}?</c> on a
+    /// <c>cobolWord</c> alternative sits past the left edge of every enclosing decision, where ANTLR does not
+    /// evaluate it — <c>SET P TO NULL</c> at 2002 then chose the wrong format. So: the derived set is EXACTLY
+    /// <c>reservedGatedWord</c>, with no predicate and with the <c>gatedDeclaration</c> action the token-level gate
+    /// reads; NONE of it is a <c>cobolWord</c> alternative; and no reservation predicate survives anywhere in the
+    /// generated grammar.</para></summary>
     [Fact]
     public void CobolWordsG4_ReservationGate_Is_Derived_From_Section89()
     {
         var expected = DerivedGateSet();
         Assert.NotEmpty(expected);   // dataName references reservedGatedWord; an empty rule is invalid ANTLR
 
-        var gatedInCobolWord = ParseGatedAlternatives("cobolWord", negatedGate: false);
-        var missing = expected.Where(w => !gatedInCobolWord.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
-        var stray = gatedInCobolWord.Where(w => !expected.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
+        var declaration = ParseRuleAlternatives("reservedGatedWord");
+        var missing = expected.Where(w => !declaration.ContainsKey(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
+        var stray = declaration.Keys.Where(w => !expected.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0 && stray.Count == 0,
-            $"cobolWord reservation-gate drift: §8.9 requires {expected.Count} gated alternatives, the grammar has "
-            + $"{gatedInCobolWord.Count}. UNGATED but §8.9-reserved ({missing.Count}): "
-            + $"[{string.Join(",", missing.Take(8))}{(missing.Count > 8 ? ",…" : "")}] — each one lets an operand "
-            + $"list absorb a reserved word (kb/Work PB693). Gated but never reserved ({stray.Count}): "
-            + $"[{string.Join(",", stray.Take(8))}{(stray.Count > 8 ? ",…" : "")}]. Re-run scripts/gen-cobol-words.ps1.");
+            $"reservedGatedWord drift: §8.9 derives {expected.Count} gated words, the rule has {declaration.Count}. "
+            + $"Missing ({missing.Count}): [{string.Join(",", missing.Take(8))}{(missing.Count > 8 ? ",…" : "")}]; "
+            + $"never reserved ({stray.Count}): [{string.Join(",", stray.Take(8))}{(stray.Count > 8 ? ",…" : "")}]. "
+            + "Re-run scripts/gen-cobol-words.ps1.");
+        Assert.True(declaration.Values.All(p => p.Length == 0), "a reservedGatedWord alternative carries a predicate");
 
-        // The other half, and the reason the two are asserted together: the SAME words carry the INVERTED gate in
-        // reservedGatedWord. A word gated in one rule and absent from the other is the desync this pins — it is
-        // exactly what happened when the declaration half was a hand-written list (CRT/CURSOR, kb/Work PB300).
-        var gatedInDeclarationRule = ParseGatedAlternatives("reservedGatedWord", negatedGate: true);
-        Assert.True(expected.SetEquals(gatedInDeclarationRule),
-            $"reservedGatedWord ({gatedInDeclarationRule.Count}) does not equal the derived gate set "
-            + $"({expected.Count}) — the two halves of the gate must name the same words");
+        var inCobolWord = ParseCobolWordAlternatives().Where(expected.Contains).Take(5).ToList();
+        Assert.True(inCobolWord.Count == 0,
+            $"gated word(s) are cobolWord alternatives again: [{string.Join(",", inCobolWord)}] — a gated name reading "
+            + "is the token-level retype (ReservationGateRewriter), never a predicate prediction cannot see");
 
-        // Confidence alignment (the generator's RW-3 throw, asserted from the other side): the grammar gate keys
-        // on userWordHere() = !IsReservedAt (outside the migration mode), which is confidence-blind, while the §8.9 funnel only REPORTS
+        string g4 = File.ReadAllText(GeneratedWordsG4());
+        Assert.DoesNotContain("userWordHere", g4);
+        Assert.Contains("{ gatedDeclaration(TokenStream.LT(-1)); }", g4);
+
+        // Confidence alignment (the generator's RW-3 throw, asserted from the other side): the token-level gate
+        // keys on userWordHere() = !IsReservedAt (outside the migration mode), which is confidence-blind, while the §8.9 funnel only REPORTS
         // high-confidence rows. A gated lower-confidence word would be rejected with a bare parse error and no
         // COBOLNET0901 to explain it.
         var confidence = LoadConfidence();
@@ -201,6 +209,82 @@ public sealed class CobolWordsDriftTests
             $"RW-1: subscriptTrigger-only word(s) not 2023-reserved keywords: [{string.Join(",", rwViolations)}] — a stray user-word belongs in cobolWord too");
     }
 
+    /// <summary>⛔ NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655). A word the lexer
+    /// tokenizes never reaches <c>IDENTIFIER</c>, so unless <c>cobolWord</c> admits its token it is refused as a
+    /// user-defined word at EVERY edition — a raw COBOL0001, never a §8.9 diagnostic. §8.3.2.1 3) makes a §8.10
+    /// context-sensitive word a legal user-defined word outside its context, and a word §8.9 does not reserve at
+    /// edition E is one at E; 99 tokens once broke that (<c>01 GOBACK PIC X.</c> at COBOL-85, <c>01 PAGE PIC X.</c>
+    /// at COBOL-2023, <c>01 SIGNED PIC X.</c> anywhere).
+    /// <para>The join reads the COMPILED lexer vocabulary — every default-mode token whose rule is a single word
+    /// literal — so the next token the grammar adds is checked with no edit here. It must be admitted by a
+    /// <c>nameSlot</c> row (the derived gate of step 4b then keeps it out wherever §8.9 reserves it), be §8.9-reserved
+    /// at all four editions (a pure keyword), or be one of the <c>extensionReserved</c> words ISO §4.2.10 lets an
+    /// implementation reserve for a nonstandard extension — and that list must name only words ISO reserves
+    /// nowhere, and must equal the §4.2.10 documentation in <c>docs/CONFORMANCE.md</c> D-RW1.</para></summary>
+    [Fact]
+    public void LexerWordTokens_Cost_The_User_No_Word_Iso_Leaves_Free()
+    {
+        var vocab = CobolLexer.DefaultVocabulary;
+        var wordTokens = new Dictionary<string, string>(StringComparer.Ordinal);   // token -> word
+        for (int t = 1; t <= CobolLexer.SUB_RPAREN + 400; t++)
+        {
+            string? sym = vocab.GetSymbolicName(t), lit = vocab.GetLiteralName(t);
+            if (sym is null || lit is null || sym.StartsWith("SUB_", StringComparison.Ordinal)
+                || sym.StartsWith("PIC_", StringComparison.Ordinal)) continue;
+            string word = lit.Trim('\'').ToUpperInvariant();
+            if (Regex.IsMatch(word, "^[A-Z][A-Z0-9-]*$")) wordTokens[sym] = word;
+        }
+        Assert.True(wordTokens.Count > 400, $"the lexer vocabulary yielded {wordTokens.Count} word tokens — the read broke");
+
+        var admitted = LoadJsonWords().Where(w => w.NameSlot).Select(w => w.Token).ToHashSet(StringComparer.Ordinal);
+        var reserved = LoadReservedIntervals();
+        var contextSensitive = LoadContextSensitive();
+        var extension = LoadExtensionReserved();
+
+        // No residual: the §8.9 gate is TOKEN-LEVEL (ReservationGateRewriter), so a word that is also an operand-
+        // position keyword (NULL, SELF, ADDRESS, …) is admitted like every other — prediction never sees a gate.
+        var leaks = wordTokens.Where(kv => !admitted.Contains(kv.Key))
+            .Where(kv => !(reserved.TryGetValue(kv.Value, out var f) && f.All(x => x)))
+            .Where(kv => !extension.Contains(kv.Value))
+            .Select(kv => kv.Value).OrderBy(w => w, StringComparer.Ordinal).ToList();
+        Assert.True(leaks.Count == 0,
+            $"{leaks.Count} lexer token(s) refuse a word ISO leaves free at >=1 edition: [{string.Join(",", leaks.Take(8))}"
+            + $"{(leaks.Count > 8 ? ",…" : "")}] — add a cobol-words.json nameSlot row (the §8.9 gate is derived) and "
+            + "re-run scripts/gen-cobol-words.ps1, or, for a vendor-only word, an extensionReserved entry + CONFORMANCE.md D-RW1");
+
+        // The exemption is only for words ISO reserves NOWHERE and that the lexer really tokenizes, unadmitted.
+        var tokenWords = wordTokens.Values.ToHashSet(StringComparer.Ordinal);
+        var badExt = extension.Where(w => reserved.ContainsKey(w) || contextSensitive.Contains(w) || !tokenWords.Contains(w)
+                                          || wordTokens.Any(kv => kv.Value == w && admitted.Contains(kv.Key)))
+                              .OrderBy(w => w, StringComparer.Ordinal).ToList();
+        Assert.True(badExt.Count == 0,
+            $"extensionReserved word(s) that are ISO words, not lexer tokens, or admitted anyway: [{string.Join(",", badExt)}]");
+
+        // §4.2.10: "Documentation … shall specify any reserved words added for nonstandard extensions."
+        string conformance = File.ReadAllText(TestRepo.Docs("CONFORMANCE.md"));
+        var d = Regex.Match(conformance, @"\*\*D-RW1 .*?\r?\n\r?\n", RegexOptions.Singleline);   // CONFORMANCE.md is CRLF
+        Assert.True(d.Success, "docs/CONFORMANCE.md lost its D-RW1 determination (§4.2.10 documentation)");
+        // The bold list wraps across (CRLF) lines, so the separator is a comma plus ANY whitespace.
+        var documented = Regex.Matches(d.Value, @"\*\*([A-Z][A-Z0-9-]*(?:,\s+[A-Z][A-Z0-9-]*)+)\*\*")
+            .SelectMany(m => Regex.Split(m.Groups[1].Value, @",\s+")).ToHashSet(StringComparer.Ordinal);
+        Assert.True(documented.SetEquals(extension),
+            $"CONFORMANCE.md D-RW1 lists {documented.Count} word(s), cobol-words.json extensionReserved {extension.Count} — §4.2.10 requires the two to agree");
+    }
+
+    private static HashSet<string> LoadExtensionReserved()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("cobol-words.json")));
+        return doc.RootElement.GetProperty("extensionReserved").EnumerateArray()
+            .Select(e => e.GetProperty("word").GetString()!).ToHashSet(StringComparer.Ordinal);
+    }
+
+    private static HashSet<string> LoadContextSensitive()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("context-sensitive-words.json")));
+        return doc.RootElement.GetProperty("words").EnumerateArray()
+            .Select(e => e.GetProperty("word").GetString()!).ToHashSet(StringComparer.Ordinal);
+    }
+
     /// <summary>Structural invariants the generator guarantees (a regression here means the JSON or script broke).</summary>
     [Fact]
     public void Structural_Sanity()
@@ -213,60 +297,35 @@ public sealed class CobolWordsDriftTests
         Assert.True(ident.NameSlot && ident.SubscriptTrigger, "IDENTIFIER must be nameSlot=true AND subscriptTrigger=true");
     }
 
-    private static HashSet<string> ParseCobolWordAlternatives()
+    private static string GeneratedWordsG4()
     {
         string path = TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolWords.g4");
         Assert.True(File.Exists(path), $"generated grammar missing: {path} — run scripts/gen-cobol-words.ps1");
-        var alts = new HashSet<string>(StringComparer.Ordinal);
-        bool inRule = false;
-        foreach (var raw in File.ReadAllLines(path))
-        {
-            string line = raw.Trim();
-            if (line == "cobolWord") { inRule = true; continue; }
-            if (!inRule) continue;
-            if (line == ";") break;
-            // One alternative per line: ': X' or '| X', optionally behind a reservation-gate predicate
-            // '| {userWordHere("X")}? X' (kb/Work PB137/PB693 — the generator emits it for every gated word).
-            var m = Regex.Match(line, @"^[:|]\s*(?:\{[^}]*\}\?\s*)?([A-Z][A-Z0-9_]*)\s*$");
-            if (m.Success) alts.Add(m.Groups[1].Value);
-        }
-        return alts;
+        return path;
     }
 
-    /// <summary>The tokens of one generated rule's GATED alternatives — <c>| {userWordHere("X")}? X</c> when
-    /// <paramref name="negatedGate"/> is false, <c>| {!userWordHere("X")}? X</c> when it is true. Ungated
-    /// alternatives are ignored, so this reads the gate itself rather than the rule's membership. Note the
-    /// POLARITY: <c>cobolWord</c> carries the PLAIN predicate (admit the word where it is a user word) and
-    /// <c>reservedGatedWord</c> the NEGATED one, so <paramref name="negatedGate"/> is true for the declaration
-    /// half — the mirror image of the retired <c>reservedHere</c> spelling (kb/Work PB693).</summary>
-    private static HashSet<string> ParseGatedAlternatives(string ruleName, bool negatedGate)
+    /// <summary>The single-token alternatives of one generated rule. One alternative per line: <c>: X</c>,
+    /// <c>| X</c> or (reservedGatedWord's grouped form) <c>: ( X</c>, optionally behind a predicate
+    /// <c>{…}?</c>; the predicate texts are returned too so a test can assert what gates what.</summary>
+    private static Dictionary<string, string> ParseRuleAlternatives(string ruleName)
     {
-        string path = TestRepo.Src("Cobol.Net.Frontend", "Grammar", "Core", "CobolWords.g4");
-        Assert.True(File.Exists(path), $"generated grammar missing: {path} — run scripts/gen-cobol-words.ps1");
-        // ⛔ The predicate argument is the COBOL WORD (hyphens); the alternative is the ANTLR TOKEN (underscores).
-        // userWordHere() looks its argument up in reserved-words.json, which is keyed by SPELLING, so emitting the
-        // token name there left every hyphenated gated word — END-RECEIVE, END-SEND, B-AND, GROUP-USAGE and ten
-        // more — with a gate that silently never fired at any edition or either severity axis (kb/Work PB792).
-        // cobolWord's gated alternatives also carry `&& !keywordContinuesHere()` (kb/Work PB805); the
-        // declaration twin does not — both spellings are read here, the gate itself is the userWordHere call.
-        var pattern = new Regex(@"^[:|]\s*\{(!?)userWordHere\(""([A-Z][A-Z0-9-]*)""\)(?: && !keywordContinuesHere\(\))?\}\?\s*([A-Z][A-Z0-9_]*)\s*$");
-        var alts = new HashSet<string>(StringComparer.Ordinal);
+        var alts = new Dictionary<string, string>(StringComparer.Ordinal);   // token -> predicate text ("" = none)
         bool inRule = false;
-        foreach (var raw in File.ReadAllLines(path))
+        foreach (var raw in File.ReadAllLines(GeneratedWordsG4()))
         {
             string line = raw.Trim();
             if (line == ruleName) { inRule = true; continue; }
             if (!inRule) continue;
             if (line == ";") break;
-            if (pattern.Match(line) is not { Success: true } m) continue;
-            if ((m.Groups[1].Value == "!") != negatedGate) continue;
-            // The gate names the WORD its token spells — the reserved-words.json lookup key, not the token name.
-            Assert.Equal(ToWord(m.Groups[3].Value), m.Groups[2].Value);
-            alts.Add(m.Groups[3].Value);
+            var m = Regex.Match(line, @"^(?::\s*\(|[:|])\s*(?:\{([^}]*)\}\?\s*)?([A-Z][A-Z0-9_]*)\s*$");
+            if (m.Success) alts[m.Groups[2].Value] = m.Groups[1].Value;
         }
-        Assert.True(inRule, $"rule '{ruleName}' not found in {path} — run scripts/gen-cobol-words.ps1");
+        Assert.True(inRule, $"rule '{ruleName}' not found — run scripts/gen-cobol-words.ps1");
         return alts;
     }
+
+    private static HashSet<string> ParseCobolWordAlternatives() =>
+        ParseRuleAlternatives("cobolWord").Keys.ToHashSet(StringComparer.Ordinal);
 
     /// <summary>word → its four §8.9 reservation flags, in edition order {85, 2002, 2014, 2023}.</summary>
     internal static Dictionary<string, bool[]> LoadReservedIntervals()

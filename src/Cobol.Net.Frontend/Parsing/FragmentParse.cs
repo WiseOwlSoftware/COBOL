@@ -52,17 +52,23 @@ public static class FragmentParse
     /// <param name="rewriteZero">Apply <see cref="ZeroTokenRewriter"/> to the token stream — required wherever
     /// the fragment's grammar can contain an ARITHMETIC EXPRESSION, since §8.8.1.1 admits the figurative ZERO as
     /// an operand and only the rewrite makes it matchable.</param>
-    public static T? Parse<T>(string text, EditionInfo edition, System.Action<CobolLexer>? prime,
+    /// <param name="retypes">The post-lex token decisions of the tree this text came from
+    /// (<c>CompilationUnitContext.TokenRetypes</c>) — so the fragment reads every word exactly as the tree does: a
+    /// §8.9 word the program declared where the edition frees it (kb/Work PB655) and a <c>&gt;&gt;COBOL-WORDS</c>
+    /// synonym or de-reserved word (ISO §7.3.10.4) are the same tokens here as there.</param>
+    public static T? Parse<T>(string text, EditionInfo edition, TokenRetypes retypes, System.Action<CobolLexer>? prime,
         bool rewriteZero, System.Func<CobolParserCore, T> rule) where T : class
     {
         var flag = new SyntaxErrorFlag();
         var lexer = new CobolLexer(new AntlrInputStream(text));
+        retypes.PrimeLexer(lexer);
         prime?.Invoke(lexer);
         lexer.RemoveErrorListeners();
         lexer.AddErrorListener(flag);
         var tokens = new CommonTokenStream(lexer);
         if (rewriteZero) ZeroTokenRewriter.Rewrite(tokens);
-        var parser = new CobolParserCore(tokens) { Edition = edition };
+        retypes.Rewrite(tokens);
+        var parser = new CobolParserCore(tokens) { Edition = edition, CobolWords = retypes.CobolWords };
         parser.RemoveErrorListeners();
         parser.AddErrorListener(flag);
         var tree = rule(parser);

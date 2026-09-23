@@ -70,8 +70,11 @@ specialNameEntry
 // word, so `SPECIAL-NAMES. LOCALE IS FOO.` is a legal implementor-switch entry and must keep parsing as one —
 // below 2002 localeClauseAhead() is false and this alternative is unreachable.
 localeClause
-    : {localeClauseAhead()}? cobolWord cobolWord IS? (cobolWord | literal)
+    : {localeClauseAhead()}? formatWord cobolWord IS? (cobolWord | literal)
     ;
+// ⚠ Three slots, three KINDS of word (kb/Work PB764): the keyword LOCALE is a formatWord (a use OF the reserved
+// word, §5.2.2); locale-name-1 is a user-defined word (§8.3.2.2) and external-locale-name-1 a SYSTEM-NAME
+// (§8.3.2.3.1) — §8.3.2.1 rule 1 forbids a reserved word as EITHER, so both stay cobolWord for the §8.9 funnel.
 
 // ORDER TABLE ordering-name-1 IS literal-9 (ISO §12.3.7.2 — the LAST item of the SPECIAL-NAMES general format,
 // bracketed and therefore at most once). ORDER *is* a lexer token (kb/Work PB704 — a keyword slot may not borrow
@@ -281,7 +284,17 @@ alphabetDefinition
     : NATIVE
     | STANDARD_1
     | STANDARD_2
+    | alphabetLocalePhrase
     | alphabetEntry (COMMA? alphabetEntry)*
+    ;
+
+// `IS LOCALE [ locale-name-2 ]` (§12.3.7.2, either branch; kb/Work PB100/PB101): LOCALE is the phrase's own
+// KEYWORD — a formatWord (kb/Work PB764), recognized by text because it has no lexer token (IntrinsicBinder reads
+// `LOWER-CASE(x LOCALE …)` as a bare word) — and locale-name-2 a REFERENCE to a SPECIAL-NAMES locale-name
+// (§12.3.7.3 SR24). Not edition-gated: below 2002 the ONE construct gate (alphabet-locale-2002) names the phrase.
+// ALL(*) prefers the entry list whenever the words that follow cannot end the phrase (`LOCALE ALSO "A"`).
+alphabetLocalePhrase
+    : {wordAhead("LOCALE")}? formatWord cobolWord?
     ;
 
 // literal-1 [ {THROUGH|THRU} literal-2 | {ALSO literal-3}… ] — ⚠ A DELIBERATE SUPERSET (kb/Work PB790). The printed

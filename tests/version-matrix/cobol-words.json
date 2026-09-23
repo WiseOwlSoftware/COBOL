@@ -8,10 +8,28 @@
    "note": "USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS (13.18.60.2, 2002+): a required word of the general format. ISO 8.9 reserves it from 2002 only (reserved-words.json r85 false), so at --std 85 it is an ordinary user word and `01 ACTIVE-CLASS PIC X.` is legal COBOL-85 - RESERVATION-GATED (the FACTORY precedent, derived in gen-cobol-words.ps1 step 4b), admitted to cobolWord only where 8.9 does not reserve it. kb/Work PB389."
   },
   {
+   "token": "ADDRESS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "ALIGNED",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the ALIGNED clause (13.18.1) of the 13.16.2 Format-1 data description entry. Reserved 2002+; a USER WORD at 85, so the hard lexer token added for kb/Work PB487 must not break its legal 85 use as a data-name (the CONSTANT/BASED precedent). Before PB487 the word had no token at all and the genericDataClause catch-all swallowed the CLAUSE silently"
+  },
+  {
+   "token": "ALLOCATE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "ALTER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "APPLY",
@@ -32,6 +50,12 @@
    "note": "the constant entry's AS phrase (13.10, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT twin; P10 Step 15). DELIBERATELY not a subscript trigger: `AS (arith-expr)` in a constant entry must lex the parenthesized expression in normal mode — a table NAMED As subscripted at 85 is the safe under-trigger (the BIT precedent, FU-1)"
   },
   {
+   "token": "AUTHOR",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "AUTO",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -44,10 +68,28 @@
    "note": "LOCK MODE AUTOMATIC (12.4.5.9, 2002+): 8.10 context-sensitive, a user word at every edition"
   },
   {
+   "token": "AWAY_FROM_ZERO",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
    "token": "BACKGROUND_COLOR",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "screen BACKGROUND-COLOR attribute (token BACKGROUND_COLOR = 'BACKGROUND-COLOR'). ISO 8.10 lists it CONTEXT-SENSITIVE (\"screen description entry\") and 8.9 does NOT reserve it at any edition, so `01 BACKGROUND-COLOR PIC X.` is legal COBOL at 85/2002/2014/2023 - yet the lexer tokenizes the word and cobolWord did not admit it, so the declaration was a parse error. kb/Work PB301 (found by the A.4.2 screen-word sweep)."
+  },
+  {
+   "token": "BACKWARD",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: INSPECT statement) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "BASED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "BELL",
@@ -56,10 +98,34 @@
    "note": "screen attribute: a legal data-name in non-screen contexts"
   },
   {
+   "token": "BINARY_CHAR",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "BINARY_DOUBLE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "BINARY_ENCODING",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+  },
+  {
+   "token": "BINARY_LONG",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "BINARY_SHORT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "BIT",
@@ -104,10 +170,46 @@
    "note": "boolean inclusive-or operator (2002, 8.7.2): a user word below 2002"
   },
   {
+   "token": "B_SHIFT_L",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2023 only, so it is a legal user-defined word at 85/2002/2014; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "B_SHIFT_LC",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2023 only, so it is a legal user-defined word at 85/2002/2014; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "B_SHIFT_R",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2023 only, so it is a legal user-defined word at 85/2002/2014; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "B_SHIFT_RC",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2023 only, so it is a legal user-defined word at 85/2002/2014; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "B_XOR",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "boolean exclusive-or operator (2002, 8.7.2): a user word below 2002"
+  },
+  {
+   "token": "CAPACITY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: OCCURS clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "CLASS_ID",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "CLOCK_UNITS",
@@ -170,10 +272,28 @@
    "note": "the SPECIAL-NAMES CURSOR clause word - the CRT twin, same 8.9 2002-only reservation and the same reservation gate. kb/Work PB301."
   },
   {
+   "token": "CYCLE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: EXIT statement) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
    "token": "DATA_POINTER",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "an INITIALIZE category-name (ISO 14.9.20.2 'where category-name is:' - one of the thirteen words the printed figure encloses in a brace with choice indicators). Its lexer token was added for kb/Work PB415, which found the rule spelling five of the thirteen. ISO 8.9 reserves it from 2002 only (reserved-words.json r85=false), so it is a legal user word at COBOL-85 and this nameSlot row is what keeps `01 Data-Pointer PIC X.` legal there while the DERIVED reservation gate and the 8.9 funnel name it above 85 - the PROGRAM-POINTER/FUNCTION-POINTER precedent exactly. subscriptTrigger=true because a table may be named Data-Pointer and no Data-Pointer-bearing format is followed by a left parenthesis. It is the category-name of a USAGE POINTER item (8.5.2.6); the USAGE spelling is the unhyphenated POINTER"
+  },
+  {
+   "token": "DATE_COMPILED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "DATE_WRITTEN",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "DEBUGGING",
@@ -216,6 +336,18 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "PICTURE EDITING phrase (ISO 13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25). USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for PICTURE EDITING does not break its legal user-word use below 2023 (the COMMIT/VALIDATE precedent)."
+  },
+  {
+   "token": "END_ACCEPT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "END_DISPLAY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "END_RECEIVE",
@@ -290,10 +422,34 @@
    "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
   },
   {
+   "token": "FINALLY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2023 only, so it is a legal user-defined word at 85/2002/2014; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "FLOAT_BINARY",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
+  },
+  {
+   "token": "FLOAT_BINARY_128",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2014/2023 only, so it is a legal user-defined word at 85/2002; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "FLOAT_BINARY_32",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2014/2023 only, so it is a legal user-defined word at 85/2002; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "FLOAT_BINARY_64",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2014/2023 only, so it is a legal user-defined word at 85/2002; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "FLOAT_DECIMAL",
@@ -302,10 +458,34 @@
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
   },
   {
+   "token": "FLOAT_DECIMAL_16",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2014/2023 only, so it is a legal user-defined word at 85/2002; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "FLOAT_DECIMAL_34",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2014/2023 only, so it is a legal user-defined word at 85/2002; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "FLOAT_EXTENDED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "FLOAT_INFINITY",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
+  },
+  {
+   "token": "FLOAT_LONG",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "FLOAT_NOT_A_NUMBER",
@@ -317,13 +497,19 @@
    "token": "FLOAT_NOT_A_NUMBER_QUIET",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "8.8.4.4.2 class-condition alternative (2014+; kb/Work PB225) - its ONLY surface, since 14.9.39.2 format 15 does not offer it. A user word at 85/2002 (a SPECIAL-NAMES class-name there), funnel-0901'd >=2014 - the FLOAT_NOT_A_NUMBER twin"
+   "note": "ISO 8.9 reserves it at 2014/2023 only, so it is a legal user-defined word at 85/2002; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "FLOAT_NOT_A_NUMBER_SIGNALING",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
+  },
+  {
+   "token": "FLOAT_SHORT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "FOREGROUND_COLOR",
@@ -344,10 +530,22 @@
    "note": "the FD FORMAT clause (13.18.24), the Annex A.4.8 optional module this implementation DECLINES (CONFORMANCE.md 5; refused by COBOLNET1705 at bind). FORMAT gained a lexer token when the clause gained a parse surface, so the nameSlot row is what keeps a COBOL-85 data item NAMED Format legal - ReservedWords.Table has FORMAT r85=false, reserved 2002+, and the 8.9 funnel COBOLNET0901 names it above 85. subscriptTrigger=true because a table may be named Format and nothing in the FORMAT clause is followed by '(' (the AS row's deliberate false has no analogue here)"
   },
   {
+   "token": "FREE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "FULL_",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "screen FULL attribute (token FULL_ = 'FULL'): a legal data-name in non-screen contexts"
+  },
+  {
+   "token": "FUNCTION_ID",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "FUNCTION_POINTER",
@@ -360,6 +558,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "METHOD-ID GET PROPERTY (11.7, 2002+): a user word at 85, funnel-0901'd >=2002"
+  },
+  {
+   "token": "GOBACK",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "GROUP_USAGE",
@@ -404,10 +608,34 @@
    "note": "FACTORY/OBJECT IMPLEMENTS (11.8): 8.10 context-sensitive, a user word at EVERY edition (never funneled)"
   },
   {
+   "token": "INHERITS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "INITIALIZED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: ALLOCATE statement and OCCURS clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "INSTALLATION",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "INTERFACE",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "END INTERFACE / repository INTERFACE specifier (2002+): a user word at 85, funnel-0901'd >=2002"
+  },
+  {
+   "token": "INTERFACE_ID",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "INTERMEDIATE",
@@ -416,16 +644,40 @@
    "note": "OPTIONS-paragraph word (ISO 11.9): reserved only inside OPTIONS"
   },
   {
+   "token": "INTRINSIC",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: function-specifier of the REPOSITORY paragraph) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "INVOKE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "IN_ARITHMETIC_RANGE",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "SET CONTENT OF ... TO numeric-content value word (14.9.39.2 format 15, 2014+): a user word at 85/2002, funnel-0901'd >=2014 (kb/Work PB452; the FUNCTION_POINTER precedent)"
   },
   {
+   "token": "LABEL",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "LENGTH",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "START WITH LENGTH / FUNCTION LENGTH. 8.9-reserved at all editions per reserved-words.json: syntactically admitted in a name slot, funnel-gated (see the RW cross-check note in gen-cobol-words.ps1)"
+  },
+  {
+   "token": "LOCAL_STORAGE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "LOCATION",
@@ -462,6 +714,54 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the MESSAGE-TAG usage (13.18.60; the MCS data surface, docs/CONFORMANCE.md 4 item 1). Reserved at 2023 only (Annex E.2 item 25); a USER WORD at 85/2002/2014, so the hard lexer token added for kb/Work PB487 must not break its legal use as a data-name below 2023 (the MESSAGE precedent, same direction)"
+  },
+  {
+   "token": "METHOD",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "METHOD_ID",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "MULTIPLE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "NEAREST_AWAY_FROM_ZERO",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: INTERMEDIATE ROUNDING clause and ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "NEAREST_EVEN",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: INTERMEDIATE ROUNDING clause and ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "NEAREST_TOWARD_ZERO",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: INTERMEDIATE ROUNDING clause and ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "NULL_",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "OBJECT",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "OBJECT_REFERENCE",
@@ -506,6 +806,12 @@
    "note": "WITH LOCK ON ... ONLY (2002+): 8.10 context-sensitive, a user word at every edition"
   },
   {
+   "token": "OPTIONS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "ORDER",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -524,10 +830,22 @@
    "note": "the file-control PADDING CHARACTER clause word (ANSI X3.23-1985 Sequential I-O; deleted post-2002 - VCR Table 7 row 7.20). ISO 8.9 does NOT reserve PADDING at 2014 or 2023 (reserved-words.json r2014/r2023 false; the 2023 list runs PACKED-DECIMAL to PAGE with no PADDING, and the word appears NOWHERE in the 2023 text), so `01 PADDING PIC X.` is legal COBOL at both editions - yet the lexer tokenizes the word and cobolWord did not admit it, so the declaration was a parse error at EVERY edition. RESERVATION-GATED (the COMMIT/ROLLBACK precedent, kb/Work PB137; the CRT/CURSOR precedent, kb/Work PB301): admitted only where 8.9 does not reserve it, so the clause still parses at 85/2002 where the word IS reserved. kb/Work PB300."
   },
   {
+   "token": "PARAGRAPH",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: EXIT statement) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
    "token": "PARSE",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "JSON/XML PARSE (2014+): a legal user word everywhere else"
+  },
+  {
+   "token": "POSITION",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85/2002/2014 only, so it is a legal user-defined word at 2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "PRESENT",
@@ -536,10 +854,22 @@
    "note": "the report PRESENT WHEN clause (13.18.41, 2002+): a user word at 85, funnel-0901'd >=2002 (P10 Step 13)"
   },
   {
+   "token": "PREVIOUS",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: READ statement) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
    "token": "PROCEDURES",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "USE FOR DEBUGGING ON ALL PROCEDURES ('85; VCR row 7.17)"
+  },
+  {
+   "token": "PROCEED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85/2002/2014 only, so it is a legal user-defined word at 2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "PROCESSING",
@@ -552,6 +882,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "USAGE PROGRAM-POINTER (13.18.60 GR24, 2002+): a user word at 85, funnel-0901'd >=2002 (the CONSTANT precedent; P10 Step 7)"
+  },
+  {
+   "token": "PROHIBITED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: INTERMEDIATE ROUNDING clause and ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
   },
   {
    "token": "PROPERTY",
@@ -590,10 +926,22 @@
    "note": "MCS RECEIVE (ISO 14.9.31). NON-MONOTONIC reservation: reserved 85, USER WORD 2002/2014, re-reserved 2023 (Annex E.2 item 25). nameSlot keeps `01 RECEIVE PIC X.` legal at 2002/2014. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
   },
   {
+   "token": "RECURSIVE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: PROGRAM-ID paragraph) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
    "token": "REFERENCES",
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "USE FOR DEBUGGING ON ALL REFERENCES OF ('85; VCR row 7.17)"
+  },
+  {
+   "token": "REPOSITORY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "REQUIRED",
@@ -618,6 +966,18 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the RETRY phrase (14.7.9, 2002+): a user word below 2002, funnel-0901'd >=2002"
+  },
+  {
+   "token": "RETURNING",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "REVERSED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "REVERSE_VIDEO",
@@ -656,6 +1016,18 @@
    "note": "screen SECURE: a legal data-name in non-screen contexts"
   },
   {
+   "token": "SECURITY",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "SELF",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
    "token": "SEND",
    "nameSlot": true,
    "subscriptTrigger": true,
@@ -672,6 +1044,12 @@
    "nameSlot": false,
    "subscriptTrigger": true,
    "note": "functionName collision (FUNCTION SIGN): a reserved keyword. Lexer subscript-trigger only"
+  },
+  {
+   "token": "SIGNED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: DYNAMIC LENGTH STRUCTURE clause and USAGE clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
   },
   {
    "token": "SORT",
@@ -704,10 +1082,52 @@
    "note": "RESUME AT NEXT STATEMENT (14.9.33): EC family, a user word at every edition"
   },
   {
+   "token": "STRONG",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: TYPEDEF clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
    "token": "SUM",
    "nameSlot": false,
    "subscriptTrigger": true,
    "note": "functionName collision (FUNCTION SUM): a reserved keyword. Lexer subscript-trigger only"
+  },
+  {
+   "token": "SUPER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "TAPE",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
+  },
+  {
+   "token": "TOWARD_GREATER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "TOWARD_LESSER",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "TRUNCATION",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: INTERMEDIATE ROUNDING clause and ROUNDED phrase) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "TYPEDEF",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.9 reserves it at 2002/2014/2023 only, so it is a legal user-defined word at 85; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
    "token": "UNDERLINE_",
@@ -720,6 +1140,12 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "the UNLOCK statement (14.9.47, 2002+): a user word below 2002, funnel-0901'd >=2002"
+  },
+  {
+   "token": "UNSIGNED",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: USAGE clause) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
   },
   {
    "token": "VALID",
@@ -750,6 +1176,112 @@
    "nameSlot": true,
    "subscriptTrigger": true,
    "note": "logical exclusive-or operator (2023, 8.8.4.9; Annex E.2 item 25): a user word below 2023; the operator meaning is gated in the expression tiers"
+  },
+  {
+   "token": "YYYYDDD",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: ACCEPT statement) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  },
+  {
+   "token": "YYYYMMDD",
+   "nameSlot": true,
+   "subscriptTrigger": true,
+   "note": "ISO 8.10 context-sensitive word (context: ACCEPT statement) with no 8.9 row at any edition: a keyword only in that context and a legal user-defined word everywhere else (8.3.2.1 3) - admitted so the lexer token no longer costs the user the word (kb/Work PB655)."
+  }
+ ],
+ "extensionReserved": [
+  {
+   "word": "CHANNEL",
+   "note": "SPECIAL-NAMES CHANNEL-n carriage-control mnemonic source (IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "COMP-1",
+   "note": "USAGE COMP-1 (single-precision float; IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "COMP-2",
+   "note": "USAGE COMP-2 (double-precision float; IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "COMP-3",
+   "note": "USAGE COMP-3 (packed decimal; IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "COMP-4",
+   "note": "USAGE COMP-4 (binary; IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "COMP-5",
+   "note": "USAGE COMP-5 (native binary; IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "COMPUTATIONAL-1",
+   "note": "long spelling of COMP-1"
+  },
+  {
+   "word": "COMPUTATIONAL-2",
+   "note": "long spelling of COMP-2"
+  },
+  {
+   "word": "COMPUTATIONAL-3",
+   "note": "long spelling of COMP-3"
+  },
+  {
+   "word": "COMPUTATIONAL-4",
+   "note": "long spelling of COMP-4"
+  },
+  {
+   "word": "COMPUTATIONAL-5",
+   "note": "long spelling of COMP-5"
+  },
+  {
+   "word": "END-INVOKE",
+   "note": "INVOKE scope terminator (vendor OO extension; ISO INVOKE has none)"
+  },
+  {
+   "word": "END-JSON",
+   "note": "JSON GENERATE/PARSE scope terminator (IBM extension)"
+  },
+  {
+   "word": "END-MERGE",
+   "note": "MERGE scope terminator (vendor extension; ISO MERGE has none)"
+  },
+  {
+   "word": "END-METHOD",
+   "note": "vendor spelling of the END METHOD marker"
+  },
+  {
+   "word": "END-SORT",
+   "note": "SORT scope terminator (vendor extension; ISO SORT has none)"
+  },
+  {
+   "word": "END-XML",
+   "note": "XML GENERATE/PARSE scope terminator (IBM extension)"
+  },
+  {
+   "word": "ENTRY",
+   "note": "ENTRY statement (alternate entry point; IBM/GnuCOBOL extension)"
+  },
+  {
+   "word": "GENERIC",
+   "note": "GnuCOBOL extension word"
+  },
+  {
+   "word": "JSON",
+   "note": "JSON GENERATE/PARSE statements (IBM extension)"
+  },
+  {
+   "word": "PACKED",
+   "note": "USAGE PACKED-DECIMAL shorthand (GnuCOBOL extension)"
+  },
+  {
+   "word": "REMARKS",
+   "note": "REMARKS paragraph (COBOL-68/74 identification-division paragraph kept as an extension)"
+  },
+  {
+   "word": "XML",
+   "note": "XML GENERATE/PARSE statements (IBM extension)"
   }
  ]
 }

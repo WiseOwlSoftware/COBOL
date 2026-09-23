@@ -153,11 +153,17 @@ public sealed class InvokeContentOperandChannelTests
     /// only from COBOL-2002 (<c>reserved-words.json</c> r85 false), so at <c>--std 85</c> it IS an ordinary
     /// user-defined word: the BY VALUE operand list may legitimately take it as one more <c>identifier-5</c>, the
     /// statement parses, and NO §8.9 diagnostic is due. The reservation gate has to make exactly this distinction,
-    /// and before kb/Work PB792 it made none — the 2023 arm behaved like this one.</summary>
+    /// and before kb/Work PB792 it made none — the 2023 arm behaved like this one.
+    /// <para>The program DECLARES B-AND: the gate is token-level since kb/Work PB655, and a free word is a user word
+    /// exactly when the program declares it (an undeclared one keeps its keyword reading — the only other reading
+    /// is an unresolvable reference).</para></summary>
     [Fact]
     public void ByValue_BooleanOperatorSpelling_IsAnOrdinaryUserWordAtCobol85()
     {
-        var args = ArgsOf("INVOKE O \"M\" USING BY VALUE B1 B-AND B2.", edition: 85);
+        var r = Parse(Prog("INVOKE O \"M\" USING BY VALUE B1 B-AND B2.").Replace("01 N PIC", "01 B-AND PIC X.\n01 N PIC"), 85);
+        Assert.NotNull(r.Tree);
+        Assert.False(r.Diags.HasErrors, string.Join("\n", r.Diags.Diagnostics.Select(d => d.ToString())));
+        var args = Descendants<CobolParserCore.InvokeArgumentContext>(r.Tree!).ToList();
         Assert.Null(args[0].booleanExpression());
         Assert.True(args.Count > 1,
             "at COBOL-85 B-AND is not reserved, so it stands as one more BY VALUE operand");

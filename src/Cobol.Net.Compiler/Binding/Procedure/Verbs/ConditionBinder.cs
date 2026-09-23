@@ -615,9 +615,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             : cls.ALPHABETIC_UPPER() is not null ? ClassConditionModel.AlphabeticUpper
             : cls.ALPHABETIC_LOWER() is not null ? ClassConditionModel.AlphabeticLower
             : cls.BOOLEAN() is not null ? ClassConditionModel.Boolean
-            // The seven COBOL-2014 numeric-content alternatives (§8.8.4.4.4 GR3 g)–m); kb/Work PB225). Reachable
-            // as keywords at 2014+ only — below that the reservation gate hands the same spelling to cobolWord,
-            // where it is a SPECIAL-NAMES class-name (the BOOLEAN precedent in CobolExpressions.g4).
+            // The seven COBOL-2014 numeric-content alternatives (§8.8.4.4.4 GR3 g)–m); kb/Work PB225). Keywords
+            // at 2014+ only — below that the spelling is a SPECIAL-NAMES class-name (the edition check below).
             : cls.FARTHEST_FROM_ZERO() is not null ? ClassConditionModel.FarthestFromZero
             : cls.FLOAT_INFINITY() is not null ? ClassConditionModel.FloatInfinity
             : cls.FLOAT_NOT_A_NUMBER() is not null ? ClassConditionModel.FloatNotANumber
@@ -626,6 +625,20 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             : cls.IN_ARITHMETIC_RANGE() is not null ? ClassConditionModel.InArithmeticRange
             : cls.NEAREST_TO_ZERO() is not null ? ClassConditionModel.NearestToZero
             : null;
+        // ⛔ A KEYWORD ALTERNATIVE IS ITS KEYWORD ONLY WHERE §8.9 RESERVES THE WORD (kb/Work PB655). BOOLEAN (2002)
+        // and the seven 2014 words used to be unreachable here below their edition because the reservation gate
+        // was a cobolWord PREDICATE and cobolWord comes first; the gate is token-level now, so a DECLARED class of
+        // that spelling arrives as an IDENTIFIER, and a keyword token that still reaches this rule at an edition
+        // where §8.9 leaves the word free is an UNDECLARED class-name-1 / alphabet-name-1 reference — §8.8.4.4.2
+        // offers no other reading there. It falls to the name arms below and draws their §8.4.2.1 COBOLNET1639
+        // (`IF X IS BOOLEAN` at 85 used to compile clean for a moment on this branch — measured).
+        string? userWord = cls.cobolWord()?.GetText();
+        if (kind is not null && cls.Start.Text.ToUpperInvariant() is var kw
+            && !Editions.ReservedWordSet.Default.RejectsAt(kw, ctx.Edition.Edition.Year))
+        {
+            kind = null;
+            userWord = cls.Start.Text;
+        }
         if (kind is { } k)
         {
             var opnd = operand();
@@ -633,7 +646,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return new BoundClassCondition(opnd, k, not);
         }
         // Every other alternative is a user-defined word — the class condition's alphabet-name-1 / class-name-1.
-        return BindUserWordClassCondition(cls.cobolWord()?.GetText() ?? cls.GetText(), not, operand);
+        return BindUserWordClassCondition(userWord ?? cls.GetText(), not, operand);
     }
 
     /// <summary>§14.9.13.3 SR5's "class condition without the identifier" written as a BARE user-defined word

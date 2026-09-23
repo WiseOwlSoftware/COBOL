@@ -81,6 +81,36 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     /// there. <c>conformance:negative/oo-multi-base-super</c> and the OO corpus exercise the method path.</para></summary>
     public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx) => null;
 
+    /// <summary>The rule contexts this pass REFUSES WHOLE — exactly the entry-point rules of
+    /// <c>Grammar/Core/CobolDeclined.g4</c>, each with its <c>VisitXxx</c> override below.
+    /// <c>DeclinedFacilityDriftTests.TheDeclinedRoots_AreTheGrammarsEntryPoints</c> derives the same set from the
+    /// grammar file, so a new declined construct cannot join the grammar without joining this set.</summary>
+    internal static readonly IReadOnlySet<Type> DeclinedConstructRoots = new HashSet<Type>
+    {
+        typeof(CobolParserCore.ValidationClauseContext),
+        typeof(CobolParserCore.ValidateValidPhraseContext),
+        typeof(CobolParserCore.ApplyCommitClauseContext),
+    };
+
+    /// <summary>The declined construct enclosing <paramref name="node"/>, or null. ⛔ THE ONE ANSWER to "is this
+    /// syntax inside a construct refused whole?", for any other pass that must not diagnose inside one — today
+    /// the §8.9 funnel (<c>VersionConformancePass.VisitCobolWord</c>; kb/Work PB764 moved it here from a private
+    /// ancestor walk there). There is no syntax of OURS inside a declined A.4 construct to diagnose: §4.2.7 makes
+    /// the element one an implementation "may, but need not, implement", and A.4.1 admits its syntax "only when
+    /// support … is claimed" — so one diagnostic per declined construct (the override below, which does not
+    /// descend) is the whole posture. The §13.18.62.2 ON group's FORMAT / CONTENT / RELATION were the sharpest
+    /// case: the funnel printed "'FORMAT' is a reserved word … cannot be used as a user-defined word" beside
+    /// COBOLNET1708, a false statement next to the true one.
+    /// <para>⛔ NOT §4.2.6: that clause's "not required to diagnose syntax errors within this unsupported syntax"
+    /// is written of Annex A.3 PROCESSOR-DEPENDENT elements, and these rules are Annex A.4 optional ones (kb/Work
+    /// PB709).</para></summary>
+    internal static Antlr4.Runtime.RuleContext? EnclosingDeclinedConstruct(Antlr4.Runtime.RuleContext node)
+    {
+        for (var a = node.Parent; a is not null; a = a.Parent)
+            if (DeclinedConstructRoots.Contains(a.GetType())) return a;
+        return null;
+    }
+
     /// <summary>The §13.16.2 "validation-clauses" group of the DECLINED A.4.14 VALIDATE facility: CLASS
     /// (§13.18.11), DEFAULT (§13.18.17), DESTINATION (§13.18.18), INVALID (§13.18.31), PRESENT WHEN format 2
     /// (§13.18.41), VARYING's validation leg (§13.18.64) and VALIDATE-STATUS / VAL-STATUS (§13.18.62).

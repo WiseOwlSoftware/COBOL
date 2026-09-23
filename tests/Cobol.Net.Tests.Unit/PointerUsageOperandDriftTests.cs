@@ -81,9 +81,12 @@ public sealed class PointerUsageOperandDriftTests
     public void TheOverlap_IsReadFromTheAtn_AndIsNotEmpty()
     {
         var words = ClauseLeadingWordsCobolWordAdmits();
-        // PROPERTY begins the §13.18.42 PROPERTY clause and HIGH-ORDER-RIGHT is a USAGE-clause tail phrase; both
-        // are cobolWord alternatives, so if either drops out the derivation (not the grammar) is what broke.
-        Assert.Contains("PROPERTY", words);
+        // SECURE begins the §13.18.50 SECURE clause and HIGH-ORDER-RIGHT is a USAGE-clause tail phrase; both are
+        // cobolWord alternatives, so if either drops out the derivation (not the grammar) is what broke.
+        // ⚠ It named PROPERTY (§13.18.42) until the PB655 merge: PROPERTY is §8.9-reserved from 2002, so since the
+        // token-level reservation gate it is a `reservedGatedWord` alternative only — never FIRST(cobolWord) — and
+        // at an edition that leaves it free the rewriter retypes a DECLARED one to IDENTIFIER (the plain name arm).
+        Assert.Contains("SECURE", words);
         Assert.Contains("HIGH-ORDER-RIGHT", words);
     }
 

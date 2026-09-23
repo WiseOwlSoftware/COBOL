@@ -378,28 +378,37 @@ public sealed class Compilation
         var parser = new CobolParserCore(tokenStream);
         parser.DialectLevel = dialectLevel;
 
-        parser.RemoveErrorListeners();
-        parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath));
-        parser.ErrorHandler = new CobolErrorStrategy();
+        // ⛔ THE TOKEN-LEVEL §8.9 GATE (ISO §8.3.2.1 1); kb/Work PB655). A reservation-gated word is not a cobolWord
+        // alternative, so this oracle — which parses the SAME grammar — must run the SAME gate loop as the greenfield
+        // Frontend, or a word §8.9 leaves free at its edition (COL at COBOL-85) can never be read as a name.
+        var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokenStream, TokenRetypes.None, diagnostics,
+            (bag, witness) =>
+            {
+                tokenStream.Seek(0);
+                parser.Reset();
+                parser.RemoveErrorListeners();
+                parser.AddErrorListener(new CobolErrorListener(bag, sourcePath));
 
-        // Two-stage parsing: try fast SLL mode first, fall back to full LL on error.
-        // BailErrorStrategy forces SLL to throw on ambiguity instead of hanging.
-        parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.SLL;
-        parser.ErrorHandler = new Antlr4.Runtime.BailErrorStrategy();
-        CobolParserCore.CompilationUnitContext tree;
-        try
-        {
-            tree = parser.compilationUnit();
-        }
-        catch (Exception)
-        {
-            // SLL failed — retry with full LL prediction and normal error handling
-            tokenStream.Seek(0);
-            parser.Reset();
-            parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.LL;
-            parser.ErrorHandler = new CobolErrorStrategy();
-            tree = parser.compilationUnit();
-        }
+                // Two-stage parsing: try fast SLL mode first, fall back to full LL on error.
+                // BailErrorStrategy forces SLL to throw on ambiguity instead of hanging.
+                parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.SLL;
+                parser.ErrorHandler = new Antlr4.Runtime.BailErrorStrategy();
+                try
+                {
+                    return parser.compilationUnit();
+                }
+                catch (Exception)
+                {
+                    // SLL failed — retry with full LL prediction and normal error handling; the gate's witness
+                    // listens to this authoritative pass only.
+                    tokenStream.Seek(0);
+                    parser.Reset();
+                    parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.LL;
+                    parser.ErrorHandler = new CobolErrorStrategy();
+                    parser.AddErrorListener(witness);
+                    return parser.compilationUnit();
+                }
+            });
         return parser.NumberOfSyntaxErrors > 0 ? null : tree;
     }
 

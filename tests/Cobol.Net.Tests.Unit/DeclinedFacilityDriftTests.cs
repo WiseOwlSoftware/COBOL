@@ -98,6 +98,21 @@ public sealed class DeclinedFacilityDriftTests
             + "would parse the construct and ignore it: " + string.Join(", ", missing));
     }
 
+    /// <summary>The set of contexts the pass refuses WHOLE — which other passes consult through
+    /// <c>DeclinedFacilityPass.EnclosingDeclinedConstruct</c> (the §8.9 funnel since kb/Work PB764) — is exactly
+    /// the grammar's entry points, so a new declined construct cannot be refused here yet diagnosed inside
+    /// by another pass.</summary>
+    [Fact]
+    public void TheDeclinedRoots_AreTheGrammarsEntryPoints()
+    {
+        var fromGrammar = EntryPointRules().Select(r => $"{char.ToUpperInvariant(r[0])}{r[1..]}Context")
+            .OrderBy(n => n, StringComparer.Ordinal).ToList();
+        var fromPass = CobolNet.Validation.DeclinedFacilityPass.DeclinedConstructRoots.Select(t => t.Name)
+            .OrderBy(n => n, StringComparer.Ordinal).ToList();
+        Assert.True(fromGrammar.Count >= 3, "the entry-point scan found too few rules to compare");
+        Assert.Equal(fromGrammar, fromPass);
+    }
+
     /// <summary>Prove the guard above can FAIL (feedback_green_gates_arent_evidence): a rule name that is NOT
     /// overridden must be reported. Run against a fabricated name rather than by mutating the real file.</summary>
     [Fact]

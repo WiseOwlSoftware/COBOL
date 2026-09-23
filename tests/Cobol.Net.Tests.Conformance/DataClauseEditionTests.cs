@@ -99,10 +99,12 @@ public sealed class DataClauseEditionTests
 
     /// <summary>A FILLER (nameless) level-01 TYPEDEF still names its edition at 85 — the parse node is present even
     /// though <c>RegisterTypeDecl</c> discards the item (unnamed → COBOLNET1529, never added to <c>TypeDecls</c>). A
-    /// bound-arm gate saw nothing to fire (Defect 1).</summary>
+    /// bound-arm gate saw nothing to fire (Defect 1).
+    /// <para>Spelled with FILLER: at COBOL-85 §8.9 does not reserve TYPEDEF, so the nameless spelling
+    /// <c>01 TYPEDEF PIC X.</c> is a legal data item NAMED TYPEDEF there (kb/Work PB655) — no TYPEDEF clause at all.</para></summary>
     [Fact]
     public void FillerTypedef_At85_StillGatesOnce()
-        => Assert.Equal(1, Count0900(Prog("01 TYPEDEF PIC X."), 85, "the TYPEDEF clause"));
+        => Assert.Equal(1, Count0900(Prog("01 FILLER TYPEDEF PIC X."), 85, "the TYPEDEF clause"));
 
     /// <summary>A DUPLICATE type-name gates TWICE at 85 — one 0900 per written TYPEDEF — even though the second
     /// <c>TypeDecls.TryAdd</c> fails (COBOLNET1529, item discarded). A bound-arm gate collapsed the pair to one

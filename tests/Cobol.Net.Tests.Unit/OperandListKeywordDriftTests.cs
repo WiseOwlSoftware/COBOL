@@ -48,7 +48,7 @@ public sealed class OperandListKeywordDriftTests
             keywordAlts++;
             if (!m.Groups[1].Value.Contains("!keywordContinuesHere()", StringComparison.Ordinal)) bare.Add(m.Groups[2].Value);
         }
-        Assert.True(keywordAlts > 100, $"only {keywordAlts} keyword alternatives read — the parse of {path} broke");
+        Assert.True(keywordAlts > 40, $"only {keywordAlts} keyword alternatives read — the parse of {path} broke");
         Assert.True(bare.Count == 0,
             $"{bare.Count} cobolWord keyword alternative(s) lack {{!keywordContinuesHere()}}?: [{string.Join(",", bare.Take(8))}] "
             + "— re-run scripts/gen-cobol-words.ps1 (kb/Work PB805)");

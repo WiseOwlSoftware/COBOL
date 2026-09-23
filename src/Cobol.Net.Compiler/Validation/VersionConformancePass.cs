@@ -545,6 +545,28 @@ internal sealed class VersionConformancePass
         _ => false,
     };
 
+    /// <summary>True when <paramref name="ctx"/> is the SOLE word of a bare (unsuffixed, operator-free)
+    /// function argument — the shape a §15 phrase word occupies. The walk ascends the sole-child
+    /// expression spine (primary → unary → power → multiplicative → additive → arithmeticExpression);
+    /// any operator, suffix, or extra operand makes the word a provable operand.
+    /// <para>Shared with <c>FormatWordDriftTests</c> (kb/Work PB764): it is one of the two NON-positional reasons
+    /// the §8.9 funnel lets a reserved-word <c>cobolWord</c> pass, so the drift test asks the same question.</para></summary>
+    internal static bool IsBareFunctionArgumentWord(CobolParserCore.CobolWordContext ctx)
+    {
+        if (ctx.Parent is not CobolParserCore.DataReferenceContext dref
+            || dref.dataReferenceSuffix().Length != 0)
+            return false;
+        Antlr4.Runtime.RuleContext? n = dref.Parent;
+        while (n is CobolParserCore.PrimaryExpressionContext or CobolParserCore.UnaryExpressionContext
+            or CobolParserCore.PowerExpressionContext or CobolParserCore.MultiplicativeExpressionContext
+            or CobolParserCore.AdditiveExpressionContext or CobolParserCore.ArithmeticExpressionContext)
+        {
+            if (n.ChildCount != 1) return false;   // an operator / second operand — provably an operand
+            n = n.Parent;
+        }
+        return n is CobolParserCore.FunctionArgumentContext;
+    }
+
     /// <summary>
     /// The parse-tree arm of the conformance pass (rearch PHASE-03 Step 14h): the ABSORBED
     /// <c>EditionValidator</c>. It walks the raw compilation unit (ANTLR <c>-no-listener -visitor</c>, so
@@ -1355,9 +1377,9 @@ internal sealed class VersionConformancePass
                 && _cobolWords.Resolve(w.GetText().ToUpperInvariant()) is "UCS-4" or "UTF-8" or "UTF-16")
                 _p.Check(Constructs.AlphabetNational2002, $"the ALPHABET {w.GetText().ToUpperInvariant()} phrase");
             // `IS LOCALE [locale-name-2]` (§12.3.7.2, either branch) — the locale facility's collating sequence, a 2002
-            // introduction (Annex A.4.9 item 10; kb/Work PB101). LOCALE is a plain word below 2002 (a code-name there),
-            // so the phrase is recognized by SHAPE, the same test the binder applies (DataBinder.IsAlphabetLocalePhrase).
-            if (ctx.alphabetDefinition() is { } ldef && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(ldef, _cobolWords))
+            // introduction (Annex A.4.9 item 10; kb/Work PB101). The grammar recognizes the phrase at every edition as
+            // its own rule (alphabetLocalePhrase — LOCALE is its formatWord keyword, kb/Work PB764), which the binder reads too.
+            if (ctx.alphabetDefinition()?.alphabetLocalePhrase() is not null)
                 _p.Check(Constructs.AlphabetLocale2002, "the ALPHABET LOCALE phrase");
             return base.VisitChildren(ctx);
         }
@@ -1408,7 +1430,7 @@ internal sealed class VersionConformancePass
         /// rule; the words' POSITION tells them apart (format 12's LOCALE follows the identifier and TO).</summary>
         public override object? VisitSetLocaleStatement(CobolParserCore.SetLocaleStatementContext ctx)
         {
-            bool save = ctx.cobolWord(0).Start.TokenIndex > ctx.dataReference().Start.TokenIndex;
+            bool save = ctx.setLocaleSource() is null;   // F12 has no Format-11 TO operand
             _p.Check(save ? Constructs.SetSaveLocale2002 : Constructs.SetLocale2002,
                 save ? "SET … TO LOCALE (save-locale, §14.9.39 Format 12)" : "SET LOCALE (set-locale, §14.9.39 Format 11)");
             return base.VisitChildren(ctx);
@@ -2437,25 +2459,6 @@ internal sealed class VersionConformancePass
         /// (<see cref="ReservedWordSet.RejectsAt"/> — the conservative policy); severity routes through
         /// <see cref="EditionSeverityPolicy"/> (error strict / warning permissive, the 0901 band row).
         /// </summary>
-        /// <summary>True when <paramref name="ctx"/> is the SOLE word of a bare (unsuffixed, operator-free)
-        /// function argument — the shape a §15 phrase word occupies. The walk ascends the sole-child
-        /// expression spine (primary → unary → power → multiplicative → additive → arithmeticExpression);
-        /// any operator, suffix, or extra operand makes the word a provable operand.</summary>
-        private static bool IsBareFunctionArgumentWord(CobolParserCore.CobolWordContext ctx)
-        {
-            if (ctx.Parent is not CobolParserCore.DataReferenceContext dref
-                || dref.dataReferenceSuffix().Length != 0)
-                return false;
-            Antlr4.Runtime.RuleContext? n = dref.Parent;
-            while (n is CobolParserCore.PrimaryExpressionContext or CobolParserCore.UnaryExpressionContext
-                or CobolParserCore.PowerExpressionContext or CobolParserCore.MultiplicativeExpressionContext
-                or CobolParserCore.AdditiveExpressionContext or CobolParserCore.ArithmeticExpressionContext)
-            {
-                if (n.ChildCount != 1) return false;   // an operator / second operand — provably an operand
-                n = n.Parent;
-            }
-            return n is CobolParserCore.FunctionArgumentContext;
-        }
 
         public override object? VisitCobolWord(CobolParserCore.CobolWordContext ctx)
         {
@@ -2492,101 +2495,21 @@ internal sealed class VersionConformancePass
             // capture never surfaced them here.)
             if (IsBareFunctionArgumentWord(ctx))
                 return base.VisitChildren(ctx);
-            // The ENTRY-CONVENTION value slot (§11.9.7 general format: ENTRY-CONVENTION IS {COBOL |
-            // entry-convention-name}): COBOL there is the FORMAT'S OWN keyword alternative — grammar-matched
-            // as cobolWord exactly so the funnel decides by context — and an implementor entry-convention-name
-            // is a use of an implementor name, never a user-defined-word DEFINITION. Skip the funnel for the
-            // slot (the EXCEPTION-OBJECT predefined-register precedent; P10 Step 12 — surfaced when the
-            // OPTIONS paragraph began parsing at 2002 and the options-entry-convention-2014 matrix row's
-            // 2014 cell hit the COBOL reservation).
-            if (ctx.Parent is CobolParserCore.EntryConventionClauseContext)
+            // ⛔ NO KEYWORD SLOT IS EXEMPTED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB764). This method used to
+            // carry a LADDER — six `ctx.Parent is …Context` arms (ENTRY-CONVENTION, CALL AS NESTED, the SPECIAL-NAMES
+            // LOCALE clause, ALPHABET IS LOCALE, PICTURE LOCALE, CHARACTER CLASSIFICATION) and an ancestor walk over
+            // SET LOCALE — each saying "this cobolWord is the general format's own keyword, not a name". A keyword
+            // standing where its format prints it is a use OF the word (ISO §5.2.2 / §5.2.3), outside §8.3.2.1 rule 1
+            // entirely; but a list of the places that happens is exactly what forgot `SORT … WITH DUPLICATES IN ORDER`
+            // for two trains (kb/Work PB704). Those keywords now parse as `formatWord` — IDENTIFIER, never cobolWord —
+            // so this funnel does not meet them BY CONSTRUCTION, and the next general format that spells a keyword by
+            // text needs no C# here (`FormatWordDriftTests` fails if it borrows cobolWord instead).
+            // ⚠ The ladder was also WRONG in two slots: it exempted ENTRY-CONVENTION's entry-convention-name-1 and the
+            // LOCALE clause's external-locale-name-1, which are SYSTEM-NAMES (§8.3.2.3.1) — and §8.3.2.1 rule 1 forbids
+            // a reserved word as a system-name exactly as it does as a user-defined word. They reach the funnel now.
+            // What remains below is not position-keyed: a DECLINED construct is refused whole, by the pass that owns it.
+            if (DeclinedFacilityPass.EnclosingDeclinedConstruct(ctx) is not null)
                 return base.VisitChildren(ctx);
-            // The SPECIAL-NAMES LOCALE clause (§12.3.7 general format:
-            // `LOCALE locale-name-1 IS { external-locale-name-1 | literal-4 }`). LOCALE is not a lexer token, so
-            // the clause's OWN KEYWORD is grammar-matched as a cobolWord — and the funnel was reading it as a
-            // user-defined word, reporting `'LOCALE' is a reserved word … and cannot be used as a user-defined
-            // word` about a program that uses it as nothing of the sort. The clause already diagnoses correctly
-            // (then COBOLNET1518, the era's item-10 non-support; the clause BINDS since PB64 T1); the second diagnostic was a FALSE
-            // statement about the source, printed beside a true one (fix-queue PB27).
-            // ⚠ POSITION-EXACT, because the three cobolWord slots are three different KINDS of word:
-            //   [0] the keyword LOCALE — a use OF the reserved word            → exempt
-            //   [1] locale-name-1      — a genuine USER-DEFINED word           → stays funneled
-            //   [2] external-locale-name-1 — an IMPLEMENTOR name whose allowable values §12.3.7 GR5 leaves to
-            //       the implementor, never a user-defined-word definition      → exempt (ENTRY-CONVENTION's
-            //       entry-convention-name is the same shape and the same precedent)
-            // Exempting the whole clause would have hidden a real §8.9 violation in slot [1].
-            // `CALL … AS NESTED` (§14.9.4.2 Format 2; fix-queue PB46 CALL half). The AS phrase is grammar-matched
-            // as `AS cobolWord` because the brace's two arms are the RESERVED word NESTED and a
-            // program-prototype-NAME, and only the binder can tell them apart. NESTED there is a use OF the
-            // reserved word, not a user-defined word — the same shape as the LOCALE clause below.
-            // ⚠ EXACTLY THE WORD NESTED, because the OTHER arm genuinely IS a user-defined word:
-            // program-prototype-name-1 is declared in the REPOSITORY paragraph (§14.9.4.3 SR16), so a reserved
-            // word written there is a real §8.9 violation and must keep reaching the funnel.
-            if (ctx.Parent is CobolParserCore.CallAsPhraseContext
-                && _cobolWords.Is(ctx.Start.Text, "NESTED"))
-                return base.VisitChildren(ctx);
-            if (ctx.Parent is CobolParserCore.LocaleClauseContext locale
-                && locale.cobolWord() is { Length: > 1 } localeWords
-                && !ReferenceEquals(ctx, localeWords[1]))
-                return base.VisitChildren(ctx);
-            // ⛔ THE SPECIAL-NAMES ORDER TABLE EXEMPTION IS GONE, AND ITS ABSENCE IS THE POINT (kb/Work PB704).
-            // It exempted slot [0] of `ORDER TABLE ordering-name-1 IS literal-9` (§12.3.7.2) because the clause's
-            // own keyword ORDER had no lexer token and rode `cobolWord`. Patching ONE keyword slot inside this
-            // funnel left the word's OTHER general-format position — `SORT … WITH DUPLICATES IN ORDER`
-            // (§14.9.40.2) — refused as a user-defined word at every edition from 2002, for two trains
-            // (feedback_two_arm_dispatch). ORDER is now a lexer token with a `cobol-words.json` nameSlot row, so
-            // NEITHER position reaches this funnel and `01 ORDER PIC X.` still draws its 0901 through
-            // `reservedGatedWord` — the fix belongs in the BORROWING RULE, never in a hand list here.
-            // The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (§12.3.7.2; kb/Work PB100): LOCALE is the phrase's
-            // own keyword (not a lexer token — it arrives as the first definition entry's cobolWord) and locale-name-2 is a
-            // REFERENCE to a SPECIAL-NAMES locale-name (LIVE since PB64 T1/T3 — the named IS LOCALE alphabet). The PB27 shape.
-            if (ctx.Parent is CobolParserCore.AlphabetEntryContext ae
-                && ae.Parent is CobolParserCore.AlphabetDefinitionContext adef
-                && CobolNet.Binding.DataBinder.IsAlphabetLocalePhrase(adef, _cobolWords))
-                return base.VisitChildren(ctx);
-            // PICTURE Format 2's `LOCALE [IS locale-name-1] SIZE IS integer-1` (§13.18.40.2; kb/Work PB100, LIVE
-            // since PB64 T6): LOCALE is the phrase's own keyword (a use OF the reserved word — exempt) and
-            // locale-name-1 a REFERENCE to a SPECIAL-NAMES locale-name (reference positions stay unchecked by
-            // the funnel's policy; SR37 is the binder's COBOLNET1664).
-            if (ctx.Parent is CobolParserCore.PictureLocalePhraseContext)
-                return base.VisitChildren(ctx);
-            // The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (§12.3.6.2; kb/Work PB78) — the same shape as the
-            // LOCALE clause: CLASSIFICATION is the clause's own keyword (not a lexer token), and each locale-phrase is
-            // either a format keyword (LOCALE / SYSTEM-DEFAULT / USER-DEFAULT — uses OF reserved words) or a
-            // REFERENCE to a SPECIAL-NAMES locale-name (reference positions stay unchecked by the funnel's policy).
-            // The clause BINDS since PB64 T5 (A.4.9 item 7 claimed); a second, false statement
-            // about SYSTEM-DEFAULT being "used as a user-defined word" is exactly the PB27 shape.
-            if (ctx.Parent is CobolParserCore.CharacterClassificationClauseContext or CobolParserCore.ClassificationForPhraseContext)
-                return base.VisitChildren(ctx);
-            // SET LOCALE … / SET … TO LOCALE … (§14.9.39 Formats 11/12; kb/Work PB92, implemented PB64 T1): the cobolWords
-            // are the format's own keywords (LOCALE, the locale categories, LC_ALL, USER-DEFAULT) — uses OF reserved
-            // words (§8.9 context-sensitive: the LC_ words are NOT reserved, they are recognized by text in this
-            // statement only). Its TO operand is a dataReference whose word may itself be one of the format's keywords
-            // (USER-DEFAULT / SYSTEM-DEFAULT) — an IDENTIFIER token is checked position-blind, so the whole statement's
-            // subtree is exempt (an ancestor walk, the EXCEPTION-OBJECT shape).
-            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
-                if (a is CobolParserCore.SetLocaleStatementContext)
-                    return base.VisitChildren(ctx);
-            // Inside a DECLINED Annex-A.4 construct (Grammar/Core/CobolDeclined.g4) — the PB27/PB100 shape, and
-            // the sharpest instance of it, because the whole construct is being REFUSED by name in the same
-            // compile. §13.18.62.2's ON group names FORMAT / CONTENT / RELATION, which are the clause's OWN
-            // keywords: FORMAT is §8.9-reserved from 2002 but has no lexer token and RELATION is §8.10
-            // context-sensitive, so both arrive as cobolWord and the funnel printed "'FORMAT' is a reserved
-            // word … and cannot be used as a user-defined word" beside COBOLNET1708 — a FALSE statement about
-            // the source, printed next to the true one. There is no syntax of OURS inside a declined A.4
-            // construct to diagnose — §4.2.7 makes the element one we "may, but need not, implement" and A.4.1
-            // admits its syntax "only when support … is claimed" — so one diagnostic per declined construct is
-            // the whole posture, which is what DeclinedFacilityPass itself takes (it does not descend either).
-            // ⛔ NOT §4.2.6: that clause's "not required to diagnose syntax errors within this unsupported syntax"
-            // is written of Annex A.3 PROCESSOR-DEPENDENT elements, and these three rules are Annex A.4 optional
-            // ones (kb/Work PB709). Whole-subtree, by ancestor walk: an IDENTIFIER token is
-            // checked position-blind, so a per-slot exemption would leave the next declined clause's keywords
-            // exposed (feedback_two_arm_dispatch).
-            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
-                if (a is CobolParserCore.ValidationClauseContext
-                    or CobolParserCore.ValidateValidPhraseContext
-                    or CobolParserCore.ApplyCommitClauseContext)
-                    return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT ANYWHERE INSIDE A STATEMENT is a reference to the PREDEFINED OBJECT REFERENCE
             // (§8.4.3.6), never a user-defined word: §8.4.3.6.3 SR2 declares the name ("implicitly described as
             // class object and category object reference, as an external data item, and as a universal object

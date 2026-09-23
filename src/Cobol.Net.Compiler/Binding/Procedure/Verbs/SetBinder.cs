@@ -44,7 +44,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // used to be refused by name with COBOLNET1518 — kb/Work PB92 before that: "'LOCALE' is not defined").
         if (set.setLocaleStatement() is { } sl)
         {
-            bool save = sl.cobolWord(0).Start.TokenIndex > sl.dataReference().Start.TokenIndex;   // F12: the words follow the identifier
+            bool save = sl.setLocaleSource() is null;   // F12 has no Format-11 TO operand (the grammar splits the two formats)
             return save ? BindSaveLocale(sl) : BindSetLocale(sl);
         }
         // F6 attribute (§14.9.39; Annex A.4.2 item 24) — DECLINED: the screen module. It had NO grammar
@@ -271,7 +271,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// shall be an elementary data item of category data-pointer (SR27 → COBOLNET1668).</summary>
     private BoundStatement BindSetLocale(Core.SetLocaleStatementContext sl)
     {
-        var words = sl.cobolWord();                 // [0] = LOCALE, [1..] = categories | USER-DEFAULT
+        var words = sl.formatWord();                // [0] = LOCALE, [1..] = categories | USER-DEFAULT (formatWords, kb/Work PB764)
         bool setsUserDefault = false;
         var categories = LocaleCategorySet.None;
         // >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4; kb/Work PB250): USER-DEFAULT and the LC_ categories are
@@ -323,19 +323,23 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             }
         }
         // The TO operand: USER-DEFAULT / SYSTEM-DEFAULT / locale-name-1 / identifier-10.
-        var to = sl.dataReference();
-        string toText = to.GetText();
+        // The grammar split the keywords from the names (setLocaleSource, kb/Work PB764): USER-DEFAULT / SYSTEM-DEFAULT
+        // arrive as a formatWord, identifier-10 / locale-name-1 as the dataReference.
+        var source = sl.setLocaleSource();
         string first = setsUserDefault ? "SET LOCALE USER-DEFAULT" : $"SET LOCALE {string.Join(' ', words.Skip(1).Select(x => x.GetText()))}";
-        if (ctx.CobolWords.Is(toText, "USER-DEFAULT") || ctx.CobolWords.Is(toText, "SYSTEM-DEFAULT"))
+        if (source.formatWord() is { } keyword)
         {
-            bool user = ctx.CobolWords.Is(toText, "USER-DEFAULT");
+            string kw = keyword.GetText();
+            bool user = ctx.CobolWords.Is(kw, "USER-DEFAULT");
             if (setsUserDefault)
             {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleUserDefaultSource, $"{first} TO {toText.ToUpperInvariant()}: if USER-DEFAULT is specified as the first operand, "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleUserDefaultSource, $"{first} TO {kw.ToUpperInvariant()}: if USER-DEFAULT is specified as the first operand, "
                     + "identifier-10 or locale-name-1 shall be specified in the TO phrase (ISO §14.9.39.3 SR25)");
             }
             return new BoundSetLocale(categories, false, user ? LocaleSetSource.UserDefault : LocaleSetSource.SystemDefault, null, null);
         }
+        var to = source.dataReference();
+        string toText = to.GetText();
         // A bare word that is a declared locale-name (SR26) — before any data item of the same spelling: the
         // locale-name is the format's FIRST listed meaning for a user word here, and §8.3.2.2 keeps the two name
         // types apart by context.
@@ -365,7 +369,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// are LOCALE and LC_ALL (GR26) or USER-DEFAULT (GR27) — the predicate admitted exactly those.</summary>
     private BoundStatement BindSaveLocale(Core.SetLocaleStatementContext sl)
     {
-        bool userDefault = ctx.CobolWords.Is(sl.cobolWord(1).GetText(), "USER-DEFAULT");
+        bool userDefault = ctx.CobolWords.Is(sl.formatWord(1).GetText(), "USER-DEFAULT");
         var target = sl.dataReference();
         if (host.Expr.ResolveReceiving(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
         {

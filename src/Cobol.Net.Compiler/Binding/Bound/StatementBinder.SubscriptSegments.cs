@@ -86,7 +86,7 @@ public sealed partial class StatementBinder
     /// No ON SIZE ERROR phrase: the temp is 30 digits wide precisely so a size error is unreachable.</para></summary>
     private DataItem? MaterializeSubscriptSegment(string text, SegmentPosition position, int line)
     {
-        if (Frontend.Parsing.SubscriptExpressionFragment.Parse(text, Ctx.Edition.Edition) is not { } frag)
+        if (Frontend.Parsing.SubscriptExpressionFragment.Parse(text, Ctx.Edition.Edition, Ctx.Retypes) is not { } frag)
             // A segment that does not parse as an arithmetic expression is NOT a diagnosis of the source: the
             // renderer also routes here for shapes it merely cannot render (SUB_ALL, a string literal), each of
             // which needs its own clause read before it is admitted or rejected by name. Staying null preserves

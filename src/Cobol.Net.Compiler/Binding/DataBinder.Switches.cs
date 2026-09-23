@@ -880,7 +880,7 @@ public sealed partial class DataBinder
             foreach (var f in fors)
             {
                 bool nat = f.NATIONAL() is not null;
-                var phrase = ClassificationPhrase(f.cobolWord().GetText(), nat);
+                var phrase = ClassificationPhrase(f.localePhrase().GetText(), nat);
                 if (phrase is null) return;
                 if ((nat ? national : alphanumeric) is not null)
                 {
@@ -893,13 +893,13 @@ public sealed partial class DataBinder
         }
         else
         {
-            var words = cc.cobolWord();   // [0] = CLASSIFICATION, [1] = locale-phrase-1, [2] = locale-phrase-2
-            if (words.Length < 2) return;  // a malformed shape already drew a parse error
-            alphanumeric = ClassificationPhrase(words[1].GetText(), national: false);
+            var phrases = cc.localePhrase();   // [0] = locale-phrase-1, [1] = locale-phrase-2
+            if (phrases.Length < 1) return;    // a malformed shape already drew a parse error
+            alphanumeric = ClassificationPhrase(phrases[0].GetText(), national: false);
             if (alphanumeric is null) return;
-            if (words.Length > 2)
+            if (phrases.Length > 1)
             {
-                national = ClassificationPhrase(words[2].GetText(), national: true);
+                national = ClassificationPhrase(phrases[1].GetText(), national: true);
                 if (national is null) return;
             }
         }
@@ -949,8 +949,8 @@ public sealed partial class DataBinder
     /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§8.1.5 — run time; L1 item 4).</summary>
     private void LocaleBind(Core.LocaleClauseContext loc)
     {
-        var words = loc.cobolWord();                  // [0] = the keyword LOCALE, [1] = locale-name-1, [2] = external-locale-name-1 (word branch)
-        string name = words[1].GetText();
+        var words = loc.cobolWord();                  // [0] = locale-name-1, [1] = external-locale-name-1 (word branch); LOCALE is the formatWord
+        string name = words[0].GetText();
         string external;
         bool fromLiteral = loc.literal() is not null;
         if (fromLiteral)
@@ -958,7 +958,7 @@ public sealed partial class DataBinder
             // SR10 / SR11 for literal-4 — the ONE text-literal rule the ORDER TABLE clause's literal-9 shares.
             if (!TryClauseTextLiteral(loc.literal()!, $"LOCALE {name} IS {loc.literal()!.GetText()}", "literal-4", out external)) return;
         }
-        else external = words[2].GetText();
+        else external = words[1].GetText();
         var symbol = new LocaleSymbol(name, external, fromLiteral);
         if (!Locales.TryAdd(name, symbol))
         {
@@ -1137,12 +1137,13 @@ public sealed partial class DataBinder
         var def = alpha.alphabetDefinition();
         bool national = ForPhraseIsNational(alpha.specialNamesForPhrase(), alpha.misplacedSpecialNamesForPhrase());
         // `IS LOCALE [locale-name-2]` — either branch (§12.3.7.2): Annex A.4.9 item 10 ("LOCALE phrases in the
-        // ALPHABET clause"). LOCALE is not a lexer token, so the phrase arrives as one or two code-name-shaped entries
-        // (kb/Work PB100 fixed the false "reserved word used as a user-defined word" it used to draw); it is a plain
-        // word below 2002 (a code-name-1 there), so the phrase is 2002+ only. Since kb/Work PB101 the bare form is
-        // IMPLEMENTED and the named form is refused by name until the LOCALE clause lands (design §12 T1).
-        if (Edition.DialectLevel >= 2002 && IsAlphabetLocalePhrase(def, CobolWords))
+        // ALPHABET clause"). The grammar recognizes it as its own rule — LOCALE is the phrase's KEYWORD, a formatWord
+        // (kb/Work PB764; PB100 fixed the false "reserved word used as a user-defined word" it used to draw) — at every
+        // edition, and below 2002 the ONE construct gate (VersionConformancePass, alphabet-locale-2002) refuses it, so
+        // there is nothing to bind there.
+        if (def.alphabetLocalePhrase() is { } localePhrase)
         {
+            if (Edition.DialectLevel < 2002) return;
             // `IS LOCALE` (no locale-name-2) — the LOCALE-based collating sequence of the locale CURRENT at each use
             // (§12.3.7.4 GR7e; §12.3.6.4 GR11/GR12): the runtime LocaleCollation over the derived CLDR/UCA engine (kb/Work
             // PB101 — the T3 arm; determination L5 makes one locale sequence serve both classes). Table 6 row LOCALE: a
@@ -1154,9 +1155,9 @@ public sealed partial class DataBinder
             // whose availability is decided at use (EC-LOCALE-MISSING). An undeclared name is COBOLNET1664 and the
             // alphabet falls back to the current-locale form so the rest of the program still binds.
             var locale = LocaleCollatingSpec.CurrentLocale;
-            if (def.alphabetEntry().Length == 2)
+            if (localePhrase.cobolWord() is { } localeName)
             {
-                var sym = ResolveLocaleName(def.alphabetEntry()[1].GetText(), $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} IS LOCALE {def.alphabetEntry()[1].GetText()}",
+                var sym = ResolveLocaleName(localeName.GetText(), $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} IS LOCALE {localeName.GetText()}",
                     "ISO §12.3.7.3 SR24 — locale-name-2 shall be a locale-name defined by the LOCALE clause");
                 if (sym is not null) locale = new LocaleCollatingSpec(new LocaleRef(sym));
             }
@@ -1365,19 +1366,6 @@ public sealed partial class DataBinder
     /// or null. These are §8.9 CONTEXT-SENSITIVE words scoped to the ALPHABET clause — they arrive as a single
     /// plain <c>cobolWord</c> alphabet entry (never lexer keywords; they stay user-definable elsewhere), so the
     /// shape is: exactly one entry, no THROUGH/ALSO, one cobolWord, whose text is one of the three names.</summary>
-    /// <summary>The ALPHABET clause's `IS LOCALE [locale-name-2]` phrase (ISO §12.3.7.2; kb/Work PB100): the first
-    /// definition entry is the bare word LOCALE, optionally followed by one bare-word entry (locale-name-2) — LOCALE is
-    /// not a lexer token, so the phrase arrives as one or two code-name-shaped entries.</summary>
-    internal static bool IsAlphabetLocalePhrase(Core.AlphabetDefinitionContext def, Editions.CobolWordsMap cobolWords)
-    {
-        var entries = def.alphabetEntry();
-        if (entries.Length is 0 or > 2) return false;
-        foreach (var e in entries)
-            if (e.THRU() is not null || e.THROUGH() is not null || e.ALSO().Length > 0 || e.ChildCount != 1 || e.GetChild(0) is not Core.CobolWordContext)
-                return false;
-        return cobolWords.Is(entries[0].GetText(), "LOCALE");
-    }
-
     private static string? CodeSetNameOf(Core.AlphabetDefinitionContext def, Editions.CobolWordsMap cobolWords)
     {
         if (def.alphabetEntry() is not [{ } entry]) return null;

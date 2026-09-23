@@ -146,6 +146,20 @@ public abstract class CobolParserCoreBase : Parser
     private bool Word(IToken? t, string text)
         => CobolNet.Frontend.Parsing.CobolWordsRewriter.TokenIs(t, text, CobolWords);
 
+    /// <summary>The next token spells one of <paramref name="words"/> — the LEFT-EDGE predicate of a
+    /// <c>formatWord</c> brace alternative (kb/Work PB764): <c>{wordAhead("NESTED")}? formatWord | cobolWord</c>
+    /// takes the general format's KEYWORD arm exactly when the word is that keyword, through the one
+    /// <see cref="Word"/> comparison (so &gt;&gt;COBOL-WORDS reaches it both ways). The words are LITERAL
+    /// arguments at the use site, never a rule parameter: a predicate that reads a parameter is context-dependent
+    /// and cannot be evaluated while ANTLR predicts from an enclosing rule.</summary>
+    protected bool wordAhead(params string[] words)
+    {
+        var t = TokenStream.LT(1);
+        foreach (var w in words)
+            if (Word(t, w)) return true;
+        return false;
+    }
+
     /// <summary>True when the token spells one of the §14.9.39 Format-11 locale-category words (LC_… /
     /// USER-DEFAULT), through the <see cref="Word"/> funnel so the directive reaches them.</summary>
     private bool IsLocaleCategory(IToken? t) => Array.Exists(LocaleCategories, c => Word(t, c));
@@ -349,11 +363,47 @@ public abstract class CobolParserCoreBase : Parser
     /// <para>A SEPARATE predicate from <see cref="reservedHere"/> rather than a permissive clause inside it:
     /// <see cref="facilityWord"/> and the SPECIAL-NAMES CRT/CURSOR clause guards ask the OTHER question — "is this
     /// token the reserved keyword here" — and must keep recognizing their clauses under <c>--permissive</c>.</para></summary>
-    protected bool userWordHere(string keyword)
+    internal bool userWordHere(string keyword)
         // ReservedWordSet.Default, not a composed overlay: Canonical() has ALREADY applied this compilation
         // group's >>COBOL-WORDS directive (an UNDEFINE'd word returns null — a user word at every edition),
         // exactly as reservedHere does, so composing the overlay twice would double-count it.
         => Canonical(keyword) is not { } w || ReservedWordSet.Default.AdmitsAsUserWord(w, Edition);
+
+    /// <summary>The reservation-gated words this parse matched in a DEFINITION slot (the generated
+    /// <c>reservedGatedWord</c> rule's action, <see cref="gatedDeclaration"/>) that this compile ADMITS as user-defined
+    /// words (<see cref="userWordHere"/>) — the input of the token-level §8.9 gate, <see cref="ReservationGateRewriter"/>
+    /// (kb/Work PB655). Upper-case, canonical spelling. Cleared by <see cref="Reset"/>, so each parse pass reports its own.</summary>
+    internal IReadOnlyCollection<string> FreeGatedDeclarations => (IReadOnlyCollection<string>?)_freeGatedDeclarations ?? [];
+
+    private HashSet<string>? _freeGatedDeclarations;
+
+    /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was DECLARED — every use of that rule is a
+    /// definition slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact). Recorded only when
+    /// §8.9 leaves it free here; where §8.9 reserves it the match stands and the funnel answers COBOLNET0901.
+    /// Actions never run during prediction.</summary>
+    protected void gatedDeclaration(IToken? word)
+    {
+        if (word?.Text is { Length: > 0 } t && userWordHere(t))
+            (_freeGatedDeclarations ??= new(StringComparer.Ordinal)).Add(t.ToUpperInvariant());
+    }
+
+    /// <summary>The token-level gate's SECOND witness (kb/Work PB655): a syntax error whose offending token is a
+    /// reservation-gated word §8.9 leaves free here. The keyword reading failed to parse, and the only other reading
+    /// ISO gives the word at this edition is a user-defined word — so it is retyped exactly as a declared one is.
+    /// This is what reaches a name the program introduces in a slot that does not offer <c>reservedGatedWord</c>
+    /// (a SPECIAL-NAMES class-name, an index-name, …) and every reference to it. Called by the syntax-error
+    /// listener of the authoritative pass.</summary>
+    internal void NoteGatedOffender(IToken? offending)
+    {
+        if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) gatedDeclaration(offending);
+    }
+
+    public override void Reset()
+    {
+        base.Reset();
+        _freeGatedDeclarations = null;
+        _declaredNames = null;
+    }
 
     /// <summary>⛔ WHICH READING WINS WHEN A WORD COULD BE EITHER (kb/Work PB805 + PB655) — true when the lookahead
     /// word, standing where a greedy operand list could take one more <c>cobolWord</c>, can instead be read as a
@@ -810,9 +860,11 @@ public abstract class CobolParserCoreBase : Parser
     /// <summary>
     /// The Format-3 PERFORM WHEN operand-list CONTINUATION stop-set (design §1.3 / §1.6): the context-sensitive
     /// verbs that are <c>cobolWord</c>s (so they would otherwise be annexed as a spurious exception-name /
-    /// file-name) yet ALSO lead a dispatcher statement (imperative-statement-2) —
-    /// RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER lead a statement now; GET/PARSE are
-    /// carried anticipatorily (future statement verbs) so the set is forward-complete.
+    /// file-name) yet ALSO lead a dispatcher statement (imperative-statement-2). Only PARSE is left, carried
+    /// anticipatorily (a future statement verb). RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER/GET
+    /// left with kb/Work PB655: each is RESERVATION-GATED, so it is never a <c>cobolWord</c> alternative at all — it
+    /// reaches a name slot only as the IDENTIFIER the token-level gate retypes a DECLARED free word to, and then it
+    /// IS a name and annexing it is right.
     /// Pure reserved verbs (MOVE, ADD, DISPLAY, IF, PERFORM…) are NOT cobolWords, so the <c>cobolWord</c> grammar
     /// element itself stops the loop at them — no entry needed. The Format-3 phrase keywords FINALLY / OTHER /
     /// COMMON are likewise not cobolWords (FINALLY is a pure reserved keyword; OTHER/COMMON always were), so they
@@ -821,8 +873,6 @@ public abstract class CobolParserCoreBase : Parser
     /// </summary>
     public static readonly int[] WhenOperandStopTokens =
     {
-        CobolLexer.RESUME, CobolLexer.RAISE, CobolLexer.VALIDATE, CobolLexer.UNLOCK, CobolLexer.SEND,
-        CobolLexer.RECEIVE, CobolLexer.COMMIT, CobolLexer.ROLLBACK, CobolLexer.GET, CobolLexer.ENTER,
         CobolLexer.PARSE,
     };
 

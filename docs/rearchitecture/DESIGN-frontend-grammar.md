@@ -365,29 +365,65 @@ from it:
    with exact reconciliation pins on both asymmetry sides) so the two sources cannot silently disagree; a
    violation fails generation (fail-hard, like the existing drift test).
 
-**Reservation gating has TWO halves, and the gate set itself is DERIVED — there is no flag (kb/Work PB693).**
-ISO §8.3.2.1 rule 1 is the whole rule: *"Reserved words shall not be used as user-defined words or
-system-names."* `cobolWord` IS the user-defined-word slot, so **every** name-slot word that §8.9 reserves at some
-edition must leave that slot at those editions — otherwise an operand list absorbs the word and the construct it
-begins vanishes. Step 4b of `gen-cobol-words.ps1` therefore computes the gate set from `reserved-words.json`:
-a `nameSlot` row whose word is reserved at >=1 edition is gated, full stop. The generator emits each gated word
-twice, with opposite predicates:
+**The reservation gate is TOKEN-LEVEL, and the gate set itself is DERIVED — there is no flag (kb/Work PB693,
+PB655).** ISO §8.3.2.1 rule 1 is the whole rule: *"Reserved words shall not be used as user-defined words or
+system-names."* A lexer token that §8.9 reserves at SOME editions is a keyword there and an ordinary user-defined
+word at the others (GOBACK and NULL at COBOL-85, ALTER and AUTHOR from 2002, CONSTANT at 85, …). Step 4b of
+`gen-cobol-words.ps1` computes that set from `reserved-words.json`: a `nameSlot` row whose word is reserved at
+>=1 edition is gated, full stop. A gated word is **never a `cobolWord` alternative**; its only grammar home is
+the generated `reservedGatedWord` rule — an alternative of every DEFINITION slot (`dataName`, `programName`,
+`sectionName`, `paragraphName`, the SELECT file-name) with no predicate and one action, `gatedDeclaration`.
 
-- in `cobolWord` as `{userWordHere("W")}? W` — the word is a user word exactly where §8.9 leaves it free; and
-- in `reservedGatedWord` as `{!userWordHere("W")}? W` — an alternative of the DEFINITION slots `dataName`,
-  `programName`, `sectionName`, `paragraphName` and the SELECT file-name, so a DECLARATION naming the word still
-  PARSES where §8.9 reserves it and `VersionConformancePass`'s funnel answers with the targeted COBOLNET0901
-  ("'W' is a reserved word in COBOL-nnnn") instead of a raw COBOL0001 "no viable alternative". The funnel arm
-  hangs on `VisitReservedGatedWord`, the RULE — so a NEW definition slot needs no C# at all.
+The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
+its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it — the greenfield
+`Frontend.LexAndParse` and the legacy differential oracle's `Compilation.LexAndParse` alike, because both parse
+this grammar and a front end that skips the loop can never read a gated word as a name; train 49 dropped PB655
+over exactly that third arm, and `ReservationGateParseEntryDriftTests` now fails on any source file that calls
+`compilationUnit()` without the loop). A parse pass that meets a gated word the compile edition leaves free
+(`userWordHere`) either in a `reservedGatedWord` definition slot, or as the offending token of a syntax error
+(the keyword reading failed, and the only other reading §8.9 leaves is a user-defined word — this is how a name
+introduced in a slot that does not offer `reservedGatedWord`, an index-name or a SPECIAL-NAMES class-name,
+is reached), has found a user-defined word: every occurrence of that word is retyped to `IDENTIFIER` and the
+source is parsed again. Each round frees at least one more word and a retyped token can never be declared again,
+so the loop ends; a program that declares no such word parses exactly once, and only the last pass's diagnostics
+are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration matches `reservedGatedWord` and
+`VersionConformancePass`'s funnel answers with the targeted COBOLNET0901 (`VisitReservedGatedWord`, which hangs on
+the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOLNET0901 by
+`CobolErrorListener` (below).
 
-⛔ **`W` in the PREDICATE is the COBOL WORD, not the ANTLR token name (kb/Work PB792).** `userWordHere` resolves
-its argument through `>>COBOL-WORDS` and then looks it up in `reserved-words.json`, which is keyed by SPELLING, so
-the generator emits `{userWordHere("END-RECEIVE")}? END_RECEIVE` — hyphens in the string, underscores on the
-alternative. It used to emit the token name on both sides, and `Find("END_RECEIVE")` is null: **thirteen of the
-fifty-nine gated words (every hyphenated one — B-AND/B-NOT/B-OR/B-XOR, CLOCK-UNITS, END-RECEIVE, END-SEND,
-EXCLUSIVE-OR, FUNCTION-POINTER, GROUP-USAGE, PROGRAM-POINTER, VALIDATE-STATUS, VAL-STATUS) carried a gate that
-silently never fired**, at any edition and on both severity axes. `CobolWordsDriftTests.ParseGatedAlternatives`
-now asserts `ToWord(token) == predicateArgument`, so the two spellings cannot drift apart again.
+⛔ **WHY NOT A PREDICATE — it was one, and it could not work (kb/Work PB655, `feedback_left_edge_predicates`).**
+Until PB655 every gated word was a `cobolWord` alternative behind `{userWordHere("W")}?`. ANTLR evaluates a
+semantic predicate only at the LEFT EDGE of the decision it is predicting, and `cobolWord` sits deep inside every
+reference, so for every ENCLOSING decision the gate was invisible: at COBOL-2002, where NULL is reserved,
+`SET P TO NULL` chose the SET-to-identifier format on the strength of a NULL "name" the gate then refused, and the
+parse failed with COBOLNET0901. Admitting PB655's 73 words that way turned 115 Conformance cases red. A token
+type is visible to every prediction; that is the whole reason the gate lives there.
+
+⛔ **WHY DECLARED, NOT MERELY FREE — a DETERMINATION.** The union grammar still spells a construct at the editions
+that lack it so its named edition gate can answer (`GOBACK.` at COBOL-85 → "the GOBACK statement requires
+COBOL-2002"), and the migration mode admits a word the edition ADDED while that word is also the edition's
+keyword. Retyping every free word unconditionally (GnuCOBOL's per-standard reserved list) would turn `GOBACK.` on
+its own line at COBOL-85 into a PARAGRAPH named GOBACK — silently. So a free word is a user word exactly when the
+program uses it as one. A keyword alternative whose word is free at the compile edition and that the program did
+not declare is an undeclared user-word reference where §8.9 gives it no keyword reading: `className`'s BOOLEAN
+and the seven 2014 numeric-content words are read as class-name-1 by `ConditionBinder` there (→ COBOLNET1639),
+which the ORDER of the `className` alternatives used to do while the gate was a predicate.
+
+**The same decision reaches every re-parse of the text (`Parsing/TokenRetypes`).** The binder RE-LEXES source
+text for the D18 subscript / reference-modifier segment and the D2 keyword-omitted argument list
+(`FragmentParse`); a fragment that lexed afresh would read `T(GOBACK + 1)` — GOBACK a declared item at COBOL-85 —
+as the keyword again. `TokenRetypes` (the `>>COBOL-WORDS` map plus the freed words) is stored on the tree
+(`CompilationUnitContext.TokenRetypes`), carried by `BindSession` → `DataBinder` → `BinderContext`, and applied by
+`FragmentParse` exactly as `LexAndParse` applies it — which also gives the fragments the `>>COBOL-WORDS` retype
+they lacked.
+
+⛔ **NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655).** A word the lexer tokenizes never
+reaches `IDENTIFIER` by itself, so without a `nameSlot` row it is refused as a user-defined word at every edition.
+`CobolWordsDriftTests.LexerWordTokens_Cost_The_User_No_Word_Iso_Leaves_Free` joins the COMPILED lexer vocabulary
+against the rows: every single-word token must be admitted (a §8.10 context-sensitive word as a plain `cobolWord`,
+a §8.9-straddling word through the token-level gate), be §8.9-reserved at all four editions, or be one of the
+`extensionReserved` words ISO §4.2.10 lets an implementation reserve for a nonstandard extension (documented as
+`docs/CONFORMANCE.md` D-RW1).
 
 **`userWordHere` is the §8.9 admission rule, and it lives in `ReservedWordSet.AdmitsAsUserWord`** — the assembly
 that owns §8.9 — so the grammar gate and the funnel that reports COBOLNET0901 cannot disagree about which
@@ -446,15 +482,35 @@ having no token is not safety, it is the SAME defect by the other route, and `SO
 edition", never "does it carry a token"**, and the fix is the same either way: the word becomes a lexer token
 with a `cobol-words.json` nameSlot row, so the reservation gate + `reservedGatedWord` keep the NAME slot correct
 at every edition and the KEYWORD slot never enters `cobolWord`. ORDER took that shape at PB704 (retiring the
-`orderTableAhead()` text predicate and the funnel's ORDER TABLE slot exemption with it). The words still routed
-through `cobolWord` as keywords are LOCALE, CLASSIFICATION, the LC_ categories, SYSTEM-DEFAULT/USER-DEFAULT,
-NESTED, COBOL, ATTRIBUTE, RELATION, UCS-4/UTF-8/UTF-16, NONE, RECEIVED; the unreserved ones are inert (the funnel
-computes `RejectsAt` false), and each reserved one is held off the funnel by a NAMED exemption in
-`VisitCobolWord` — a hand list, and therefore the next PB704. LOCALE's is load-bearing for a stated reason
-(`IntrinsicBinder.KeywordWordOf` needs `LOWER-CASE(x LOCALE …)` to arrive as bare words), so retiring the list is
-a design change, not a sweep. The computer paragraphs' old word sink (`computerAttributes`) is gone (kb/Work
-PB830, §3.10): their residue is the `unrecognizedClause` error production, and their deleted '85 clauses are
-modelled rules.
+`orderTableAhead()` text predicate and the funnel's ORDER TABLE slot exemption with it).
+
+⛔ **A KEYWORD THAT CANNOT TAKE A TOKEN RIDES `formatWord`, NEVER `cobolWord` (kb/Work PB764).** Some keywords
+cannot become tokens: LOCALE must stay a bare word inside `LOWER-CASE(x LOCALE …)`, which
+`IntrinsicBinder.KeywordWordOf` reads by text, and the LC_ categories and CLASSIFICATION are §8.10
+context-sensitive. Until PB764 each §8.9-reserved one (LOCALE, NESTED, COBOL, SYSTEM-DEFAULT, USER-DEFAULT) reached
+the funnel as a `cobolWord` and was held off it by a NAMED exemption in `VisitCobolWord` — six `ctx.Parent is`
+arms and an ancestor walk, a hand list and therefore the next PB704. They now parse through the shared rule
+`formatWord : IDENTIFIER` (`CobolParserCore.g4`), the twin of `reservedGatedWord`: the funnel visits `cobolWord`
+only, so it never meets a `formatWord` BY CONSTRUCTION, and the list is gone. The recognizing predicate stays at a
+LEFT EDGE, in one of two shapes: the enclosing clause's own text predicate where the slot is only the keyword
+(`localeClause`, `pictureLocalePhrase`, `characterClassificationClause`, `setLocaleStatement`), or a
+literal-argument `{wordAhead("NESTED")}?` on the keyword arm of a brace that offers the keyword OR a name
+(`callAsPhrase`, `entryConventionName`, `localePhrase`, `setLocaleSource`, `alphabetLocalePhrase`). Never a rule
+parameter: a predicate that reads `$w` is context-dependent and ANTLR cannot evaluate it while predicting from an
+enclosing rule. The NAME arm of each brace stays `cobolWord`, and that split exposed two slots the ladder had
+exempted WRONGLY: `entry-convention-name-1` and `external-locale-name-1` are SYSTEM-NAMES (§8.3.2.3.1), and §8.3.2.1
+rule 1 forbids a reserved word there exactly as in a user-defined word, so `LOCALE L1 IS USER-DEFAULT` is now
+COBOLNET0901 (`conformance:negative/pb764-reserved-word-as-system-name`). What the funnel still lets pass is
+NON-positional only: a bare §15 function-argument phrase word, a construct declined whole
+(`DeclinedFacilityPass.EnclosingDeclinedConstruct`, its set drift-tested against `CobolDeclined.g4`'s entry points),
+and the EXCEPTION-OBJECT / DEBUG- registers. `FormatWordDriftTests` derives the tokenless §8.9-reserved words from
+`reserved-words.json` and the lexer, parses every enabled positive golden that writes one at its own edition, and
+fails on any such word that reaches `cobolWord` outside those allowances — so a new format that borrows
+`cobolWord` for its keyword fails even if a ladder arm is re-grown to silence its golden. The §8.10
+context-sensitive keywords in a keyword-OR-name slot (ATTRIBUTE, RELATION, UCS-4/UTF-8/UTF-16) may still ride
+`cobolWord`: §8.9 never reserves them, so the funnel is inert for them. The computer paragraphs' old word sink
+(`computerAttributes`) is gone (kb/Work PB830, §3.10): their residue is the `unrecognizedClause` error
+production, and their deleted '85 clauses are modelled rules.
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
 `CobolErrorListener` asks the parser whether the offending token is reservation-gated (the generated
@@ -511,22 +567,22 @@ list whose body opens with a name; there it walks the ATN from the loop's EXIT t
 stack and ends the list when the lookahead can be matched as a KEYWORD of what follows (`cobolWord` and
 `reservedGatedWord` count as name positions, not keyword positions). The rule it implements: §8.3.2.1 1)
 (a reserved word is never a user-defined word) and 3) (a context-sensitive word is a keyword inside its
-construct). A word §8.9 leaves FREE at the compile edition takes its keyword reading only when the program does
-not DECLARE it (`declareName`, a grammar action on `dataName` and the SELECT file-name): declared, ISO gives one
-reading and it stays an operand (`DISPLAY "A=" ALTER` at 2002); undeclared, the user-word reading could only be
-an unresolved reference, so the union grammar's named edition gate answers (`DISPLAY X END-DISPLAY` at 85). ⚠
-That last clause is a DETERMINATION — GnuCOBOL takes the user-word reading unconditionally; this compiler differs
-only in the diagnostic an undeclared use draws. `OperandListKeywordDriftTests` bans hand-written `TokenStream.LA(`
+construct). A §8.9-straddling word reaches such a list only as the IDENTIFIER the token-level gate made of a
+DECLARED free word, so it is simply one more operand (`DISPLAY "A=" ALTER` at 2002); undeclared, it is still its
+keyword token, `cobolWord` does not offer it, and the union grammar's named edition gate answers
+(`DISPLAY X END-DISPLAY` at 85). `declareName` (a grammar action on `dataName` and the SELECT file-name) remains
+only for the §15 function-name words BIT/LENGTH/NATIONAL, which are `cobolWord` alternatives by the gate's one
+exclusion. `OperandListKeywordDriftTests` bans hand-written `TokenStream.LA(`
 guards in the parser grammar and proves the GROUP-USAGE family over its derived population.
 
 `CobolWordsDriftTests` asserts the generated grammar fragments match the JSON (parallel to the existing
 `ReservedWordsDriftTests`), and `CobolWordsG4_ReservationGate_Is_Derived_From_Section89` RECOMPUTES the step-4b
 derivation independently — from `reserved-words.json` and the `functionName` rule, never from the grammar it is
-checking — then pins set-equality in BOTH directions against the emitted `cobolWord` and `reservedGatedWord`
-gates, plus the confidence alignment the generator throws on (a gated word must be a high-confidence row, or the
-grammar would reject where the conservative funnel stays silent). A word reserved at EVERY edition is gated too:
-its `cobolWord` half is then unreachable by design — §8.9 never leaves it free — and the declaration half carries
-the whole job. Result: adding a context-sensitive keyword — a
+checking — then pins set-equality in BOTH directions against the emitted `reservedGatedWord`, that none of it is
+a `cobolWord` alternative, that no `userWordHere` predicate survives in the generated grammar, plus the confidence
+alignment the generator throws on (a gated word must be a high-confidence row, or the grammar would reject where
+the conservative funnel stays silent). A word reserved at EVERY edition is gated too: §8.9 never frees it, so the
+token-level gate never retypes it and the declaration half carries the whole job. Result: adding a context-sensitive keyword — a
 reservation-gated one included — is a **one-line JSON edit**; the lexer HashSet, the two parser rules, and the
 reserved-word funnel can no longer silently disagree.
 
@@ -588,11 +644,12 @@ decisions: (1) the X3.23-1985 clauses ISO 2002 deleted are MODELLED — `memoryS
 are `objectComputerClause` alternatives, `debuggingModeClause` hangs off SOURCE-COMPUTER's name — and each is
 gated at its own node (`VisitMemorySizeClause` / `VisitSegmentLimitClause` / `VisitDebuggingModeClause`); both
 paragraphs end in the `unrecognizedClause` error production (§3.10; kb/Work PB830 replaced the `~DOT` sink that
-was there). (2) `characterClassificationClause : CHARACTER
-{classificationAhead()}? cobolWord (…)` — CLASSIFICATION is not a token (a plain word at '85), so the arm is
-predicated on the word after CHARACTER; the clause BINDS since kb/Work PB64 T5 (A.4.9 item 7 claimed; it was
-parse-to-diagnose COBOLNET1518 until then — the LOCALE clause's shape), and its words are exempt from the §8.9
-funnel exactly as the LOCALE clause's are. The name-less clause form is the 2002 relaxation of the '85 required-name
+was there). (2) `characterClassificationClause :
+{classificationAhead()}? CHARACTER? formatWord (…)` — CLASSIFICATION is not a token (a plain word at '85), so the
+arm is predicated on the word itself, from the left edge; the clause BINDS since kb/Work PB64 T5 (A.4.9 item 7
+claimed; it was parse-to-diagnose COBOLNET1518 until then — the LOCALE clause's shape), and its keywords
+(CLASSIFICATION, and LOCALE / SYSTEM-DEFAULT / USER-DEFAULT in `localePhrase`) are `formatWord`s the §8.9 funnel
+never meets, while a locale-name-1 reference stays a `cobolWord` (kb/Work PB764). The name-less clause form is the 2002 relaxation of the '85 required-name
 format (`computer-name-optional-2002`, `VisitObjectComputerParagraph`); `sourceComputerParagraph` is
 `((computerName debuggingModeClause? unrecognizedClause?)? DOT)?`. The legacy oracle reads the clause list too.
 

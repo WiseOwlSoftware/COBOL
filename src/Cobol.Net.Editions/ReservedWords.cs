@@ -111,9 +111,9 @@ public sealed class ReservedWordSet
     }
 
     /// <summary>⛔ THE §8.9 USER-DEFINED-WORD SLOT ADMISSION RULE (kb/Work PB693, PB792) — true when a compile at
-    /// <paramref name="edition"/> may read <paramref name="upperWord"/> as a user-defined word. The parser's
-    /// <c>cobolWord</c> reservation gate (<c>CobolParserCoreBase.userWordHere</c>) IS this predicate, so the
-    /// grammar gate and the §8.9 funnel cannot disagree about which occurrences are names (§8.3.2.1 rule 1:
+    /// <paramref name="edition"/> may read <paramref name="upperWord"/> as a user-defined word. The frontend's
+    /// token-level reservation gate (<c>CobolParserCoreBase.userWordHere</c> → <c>ReservationGateRewriter</c>,
+    /// kb/Work PB655) IS this predicate, so the gate and the §8.9 funnel cannot disagree about which occurrences are names (§8.3.2.1 rule 1:
     /// "Reserved words shall not be used as user-defined words or system-names").
     /// <para>⛔ THE MIGRATION MODE IS NOT A BLANKET EXEMPTION, and writing it as one (<c>Permissive || …</c> in the
     /// parser) was kb/Work PB792. <c>--permissive</c> "accepts constructs the targeted edition REMOVED", so it

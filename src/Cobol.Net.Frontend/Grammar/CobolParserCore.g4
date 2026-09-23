@@ -169,12 +169,11 @@ prototypePhrase
     ;
 
 // §11.10.2 program-name-1 is a user-defined word (§8.3.2.2). The `reservedGatedWord` alternative is the
-// DECLARATION re-admission the reservation gate needs (kb/Work PB693, the dataName precedent): a §8.9-reserved
-// word is gated OUT of cobolWord at the editions that reserve it, so without this `PROGRAM-ID. UNLOCK.` at
-// --std 2002 answers a raw COBOL0001 "no viable alternative" instead of the targeted COBOLNET0901 that names
-// §8.9 — and this slot is one of the four IsProvableUserWordPosition definition slots the funnel screens.
-// The two alternatives carry EXACTLY INVERSE predicates, so at most one can match: no ambiguity, and the
-// slot's grammar (PROGRAM-ID DOT <word>) admits no competing production.
+// DECLARATION home of every reservation-gated word (kb/Work PB693/PB655, the dataName precedent): a gated word
+// is never a cobolWord, so without this `PROGRAM-ID. UNLOCK.` at --std 2002 answers a raw COBOL0001 "no
+// viable alternative" instead of the targeted COBOLNET0901 that names §8.9 — and where §8.9 leaves the word
+// FREE, this match is the declaration the token-level gate retypes the word for. A retyped word is an
+// IDENTIFIER, so the two alternatives never compete for one token.
 programName
     : cobolWord
     | reservedGatedWord
@@ -259,10 +258,38 @@ defaultRoundedClause
     : DEFAULT ROUNDED MODE? IS? roundingModeName
     ;
 
+// ⛔ A GENERAL-FORMAT KEYWORD WITH NO LEXER TOKEN, MATCHED BY TEXT (kb/Work PB764) — the twin of
+// `reservedGatedWord`. §5.2.2: "Keywords are reserved words or context-sensitive words … required in order to
+// select the functionality associated with that keyword"; §5.2.3 makes the uncapitalized ones optional words. A
+// word standing where its own general format prints it is a USE OF that word, never the user-defined word or
+// system-name §8.3.2.1 rule 1 governs — so a keyword slot may not borrow `cobolWord` (DESIGN-frontend-grammar
+// "A KEYWORD SLOT MAY NOT BORROW cobolWord"), whose every occurrence the §8.9 funnel screens as a name.
+// Some keywords cannot take a lexer token (LOCALE must stay a bare word inside `LOWER-CASE(x LOCALE …)`, which
+// IntrinsicBinder reads by text; the LC_ categories and CLASSIFICATION are §8.10 context-sensitive), so they ride
+// this rule instead: IDENTIFIER, never `cobolWord`, so the funnel (`VersionConformancePass.VisitCobolWord`) does
+// not meet it BY CONSTRUCTION — no per-slot exemption list exists to forget the next slot. The recognizing
+// predicate stays where it always was: at the enclosing clause's left edge (localeClauseAhead,
+// classificationAhead, …) for a slot that is ONLY the keyword, or at the left edge of the brace alternative
+// (`{wordAhead("NESTED")}? formatWord | cobolWord`) where the general format offers the keyword OR a name.
+// A literal-argument predicate, never a rule parameter: a parameterized predicate is context-dependent and ANTLR
+// cannot evaluate it while predicting from an enclosing rule (feedback_left_edge_predicates).
+// `FormatWordDriftTests` fails when a keyword the parser recognizes by text reaches `cobolWord` instead.
+formatWord
+    : IDENTIFIER
+    ;
+
 // §11.9.7 — ENTRY-CONVENTION IS {COBOL | entry-convention-name}. The value is matched as cobolWord (COBOL or an
 // implementor name), text-distinguished in the binder, so COBOL need not be reserved globally.
 entryConventionClause
-    : ENTRY_CONVENTION IS? cobolWord
+    : ENTRY_CONVENTION IS? entryConventionName
+    ;
+
+// { COBOL | entry-convention-name-1 } — COBOL is the format's KEYWORD (a formatWord, kb/Work PB764);
+// entry-convention-name-1 is a SYSTEM-NAME (§8.3.2.3.1), which §8.3.2.1 rule 1 forbids a reserved word to be, so it
+// stays a cobolWord the §8.9 funnel screens.
+entryConventionName
+    : {wordAhead("COBOL")}? formatWord
+    | cobolWord
     ;
 
 // §11.9.8 — FLOAT-BINARY [DEFAULT] IS {HIGH-ORDER-LEFT | HIGH-ORDER-RIGHT}.
@@ -565,11 +592,18 @@ segmentLimitClause
 // shape). classificationAhead() therefore reads the CHARACTER-then-CLASSIFICATION pair or a bare leading
 // CLASSIFICATION, and demands the clause actually continue — a lone word before the period is a computer-name.
 characterClassificationClause
-    : {classificationAhead()}? CHARACTER? cobolWord (classificationForPhrase+ | IS? cobolWord cobolWord?)
+    : {classificationAhead()}? CHARACTER? formatWord (classificationForPhrase+ | IS? localePhrase localePhrase?)
     ;
 
 classificationForPhrase
-    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? localePhrase
+    ;
+
+// §12.3.6.2 locale-phrase-1 / locale-phrase-2: { locale-name-1 | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT } — three
+// KEYWORDS (formatWord, kb/Work PB764) and one REFERENCE to a SPECIAL-NAMES locale-name (§12.3.6.3 SR3).
+localePhrase
+    : {wordAhead("LOCALE", "SYSTEM-DEFAULT", "USER-DEFAULT")}? formatWord
+    | cobolWord
     ;
 
 // PROGRAM COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
@@ -1272,8 +1306,12 @@ callTarget
 // MODULE-NAME phrase words (CURRENT / ACTIVATING / STACK / TOP-LEVEL) are already handled. Tokenizing it would
 // break `FUNCTION MODULE-NAME(NESTED)`, force an entry in fnArgPhraseWord, and make NESTED asymmetric with those
 // siblings — all to answer a question the binder answers in one comparison.
+// ⛔ BUT THE KEYWORD ARM IS A formatWord (kb/Work PB764): the brace is { NESTED | program-prototype-name-1 }, and
+// only the NAME arm is a user-defined word the §8.9 funnel screens (a prototype-name is declared in the REPOSITORY
+// paragraph, §14.9.4.3 SR16, so a reserved word there is a real violation). The predicate reads NESTED through the
+// >>COBOL-WORDS map, so an UNDEFINE'd NESTED falls to the name arm and an EQUATEd synonym takes the keyword arm.
 callAsPhrase
-    : AS cobolWord
+    : AS ({wordAhead("NESTED")}? formatWord | cobolWord)
     ;
 
 callUsingPhrase
@@ -1467,15 +1505,23 @@ setStatement
 // USER-DEFAULT-first shape. The TO operand is ONE dataReference split at bind: a locale-name (§14.9.39.3 SR26), a
 // data-pointer identifier-10 (SR27), USER-DEFAULT or SYSTEM-DEFAULT. LOCALE / LC_* / USER-DEFAULT / SYSTEM-DEFAULT are
 // plain words (reserved 2002+, §8.9 — the predicates are edition-gated like localeClauseAhead), so the arms are
-// predicated on the word texts; every word inside is exempt from the §8.9 funnel, as the LOCALE clause's are.
+// predicated on the word texts, and every one of them is a `formatWord` (kb/Work PB764) — the format's own
+// keywords, which the §8.9 funnel never meets. Only identifier-10 / locale-name-1 in the TO operand are names.
 // ⛔ THE PREDICATES ARE LEFT-EDGE. A predicate after SET is not hoisted into prediction — it is asserted only when
 // the alternative is entered — and the first cut put them mid-alternative: ANTLR chose this rule for `SET IDX-1 TO
 // SUB-1.` (the two arms share the SET … TO … prefix) and every NIST program with a SET died with "rule
 // setLocaleStatement failed predicate". Left-edge, a false predicate makes the alternative non-viable and the
 // ordinary SET forms are chosen as before.
 setLocaleStatement
-    : {setLocaleAhead()}? SET cobolWord cobolWord+ TO dataReference      // F11: LOCALE {category+ | USER-DEFAULT} TO …
-    | {saveLocaleAhead()}? SET dataReference TO cobolWord cobolWord      // F12: identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}
+    : {setLocaleAhead()}? SET formatWord formatWord+ TO setLocaleSource  // F11: LOCALE {category+ | USER-DEFAULT} TO …
+    | {saveLocaleAhead()}? SET dataReference TO formatWord formatWord    // F12: identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}
+    ;
+
+// Format 11's TO operand: { identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT } — two keywords and two
+// names; the names stay ONE dataReference the binder splits (§14.9.39.3 SR26 / SR27).
+setLocaleSource
+    : {wordAhead("USER-DEFAULT", "SYSTEM-DEFAULT")}? formatWord
+    | dataReference
     ;
 
 // ⛔ SET program-pointer+ TO ENTRY {literal | identifier} IS A VENDOR EXTENSION, NOT AN ISO FORMAT — and this

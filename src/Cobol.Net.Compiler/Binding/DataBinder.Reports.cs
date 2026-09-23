@@ -1603,12 +1603,12 @@ public sealed partial class DataBinder
                     // NOT pair it with a SIGN check: §13.15.3 carries no twin of §13.16.3 SR19 — the pair is legal here.
                     if (clause.pictureClause()!.pictureLocalePhrase() is { } rlp)
                     {
-                        var lw = rlp.cobolWord();
+                        var localeName = rlp.cobolWord();   // locale-name-1; LOCALE is the formatWord (kb/Work PB764)
                         var locale = LocaleRef.Current;
-                        if (lw.Length > 1)
+                        if (localeName is not null)
                         {
-                            var sym = ResolveLocaleName(lw[1].GetText(),
-                                $"RD '{model.Name}' entry '{entryName ?? "FILLER"}' PICTURE … LOCALE {lw[1].GetText()}",
+                            var sym = ResolveLocaleName(localeName.GetText(),
+                                $"RD '{model.Name}' entry '{entryName ?? "FILLER"}' PICTURE … LOCALE {localeName.GetText()}",
                                 "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
                             if (sym is not null) locale = new LocaleRef(sym);
                         }

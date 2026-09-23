@@ -257,10 +257,10 @@ dataName
     : ( cobolWord
     | FILLER
     | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
-    // kb/Work PB137: the reservation-gated words leave cobolWord exactly where §8.9 reserves them (so operand
-    // lists cannot absorb the bare facility verbs), but a DECLARATION naming one must still PARSE so the §8.9
-    // funnel's targeted COBOLNET0901 can NAME the reserved word instead of a generic parse error (the
-    // user-word-commit pin). ⛔ THIS WAS A HAND-WRITTEN LIST OF TWO WORDS (COMMIT/ROLLBACK) and it silently
+    // kb/Work PB137/PB655: a reservation-gated word is never a cobolWord (so operand lists cannot absorb the
+    // bare facility verbs), but a DECLARATION naming one must still PARSE — where §8.9 reserves it so the
+    // funnel's targeted COBOLNET0901 can NAME the word instead of a generic parse error (the user-word-commit
+    // pin), and where §8.9 frees it because this match is what the token-level gate retypes the word for. ⛔ THIS WAS A HAND-WRITTEN LIST OF TWO WORDS (COMMIT/ROLLBACK) and it silently
     // rotted: CRT and CURSOR became reservation-gated with kb/Work PB301 and were never added here, so
     // `01 CRT PIC X.` at --std 2002 answered COBOL0001 "no viable alternative" instead of naming §8.9.
     // `reservedGatedWord` is GENERATED from the SAME cobol-words.json `reservationGated` flag that generates
@@ -508,7 +508,7 @@ pictureClause
 // required IS this rule used to demand before locale-name-1 rejected legal source (kb/Work PB114). A superset
 // parse admits editingPhrase* alongside; format 2 has no EDITING phrase and the binder diagnoses the pairing.
 pictureLocalePhrase
-    : {pictureLocaleAhead()}? cobolWord (IS? cobolWord)? SIZE IS? integerLiteral
+    : {pictureLocaleAhead()}? formatWord (IS? cobolWord)? SIZE IS? integerLiteral   // LOCALE = formatWord (kb/Work PB764)
     ;
 
 // EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §13.18.40.2 Format 1). `IS` is

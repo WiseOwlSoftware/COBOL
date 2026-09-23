@@ -36,5 +36,5 @@ public static class DirectiveExpressionFragment
         Parse(text, static p => p.constantConditionalExpressionFragment());
 
     private static T? Parse<T>(string text, System.Func<CobolParserCore, T> rule) where T : class =>
-        FragmentParse.Parse(text, EditionInfo.Latest, static l => l.PrimeDirectiveExpr(), rewriteZero: true, rule);
+        FragmentParse.Parse(text, EditionInfo.Latest, TokenRetypes.None, static l => l.PrimeDirectiveExpr(), rewriteZero: true, rule);
 }

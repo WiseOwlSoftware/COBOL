@@ -473,7 +473,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (sp.subscriptOrRefMod() is not { } som) return [];
         string text = som.Start.InputStream.GetText(
             new Antlr4.Runtime.Misc.Interval(som.Start.StartIndex, som.Stop.StopIndex));
-        if (Frontend.Parsing.FunctionArgFragment.Parse(text, ctx.Edition.Edition) is { } frag)
+        if (Frontend.Parsing.FunctionArgFragment.Parse(text, ctx.Edition.Edition, ctx.Retypes) is { } frag)
             return ArgsOf(frag.functionArgList());
         ctx.Edition.Error("COBOLNET1543", $"malformed function-argument list '({text})' — an argument is an "
             + "identifier, a literal, a boolean expression, or an arithmetic expression (ISO §8.4.3.2.3 SR8)");
