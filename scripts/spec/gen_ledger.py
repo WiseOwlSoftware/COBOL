@@ -87,10 +87,16 @@ RESOLVING = ("CONFORMS", "DOCUMENTED-NON-SUPPORT")
 #: Verdicts that name a DEFECT — the rows `DefectiveRowCoverageDriftTests` requires a live `kb/Work` note to own.
 DEFECTIVE = ("PARTIAL", "NOT-IMPLEMENTED", "DIVERGES")
 
-#: Display names for the clause buckets that have one. Presentation only — a clause missing from this map still
-#: renders, with no subtitle. It is deliberately NOT a list of clauses to work.
+#: Display names for the clause buckets — the top-level clause titles of ISO/IEC 1989:2023 exactly as
+#: specs/ISO_COBOL.md prints them (`## N Title`). Presentation only — a clause missing from this map still renders,
+#: with no subtitle. It is deliberately NOT a list of clauses to work. (A static map, not read from the spec at run
+#: time: the spec is a private submodule that CI does not check out, and `--check` must render identically there.)
 CLAUSE_TITLE = {
-    "13": "Data Division", "14": "Procedure Division", "15": "Intrinsic functions",
+    "1": "Scope", "2": "Normative references", "3": "Terms and definitions", "4": "Conformance",
+    "5": "Description techniques", "6": "Reference format", "7": "Compiler directing facility",
+    "8": "Language fundamentals", "9": "I-O, objects, and user-defined functions",
+    "10": "Structured compilation group", "11": "Identification Division", "12": "Environment Division",
+    "13": "Data Division", "14": "Procedure Division", "15": "Intrinsic functions", "16": "Standard classes",
     "A": "Annex A.1 (impl. docs)",
 }
 

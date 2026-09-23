@@ -13,6 +13,16 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1654 — 2026-09-22 23:23 PDT — Every clause in the ledger's burn-down is named
+
+Owner: "some, like section 14 have a label … others, like section 8 … are not labeled. I have no idea what section 8
+is." `gen_ledger.py`'s CLAUSE_TITLE named only §13, §14, §15 and Annex A.1. It now carries every top-level clause
+title of ISO/IEC 1989:2023 exactly as `specs/ISO_COBOL.md` prints them (`## N Title`): §4 Conformance · §5 Description
+techniques · §6 Reference format · §7 Compiler directing facility · §8 Language fundamentals · §9 I-O, objects, and
+user-defined functions · §10 Structured compilation group · §11 Identification Division · §12 Environment Division
+· §16 Standard classes (plus §1–§3). A static map by design: the spec is a private submodule CI does not check out,
+and `--check` must render identically there. Published as ledger v64.
+
 ## Entry 1653 — 2026-09-22 23:13 PDT — The Conformance Ledger shows current state only, and its "since battery" delta is measured, not guessed
 
 Owner: "Clean up the COBOL artifact. It has far too much historical dev log like info." The ledger's one
