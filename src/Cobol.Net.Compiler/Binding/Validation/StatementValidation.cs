@@ -1433,6 +1433,12 @@ internal sealed class StatementValidation(DataBinder data)
     public void CheckRelationalOperands(BoundOperand left, string op, BoundOperand right)
     {
         CheckFormat3Relation(left, op, right);
+        // ISO §8.3.3.6.3 SR3 — a multi-character ALL literal shall not be ASSOCIATED with a numeric or
+        // numeric-edited item, and §8.3.3.6.4 GR2's NOTE 1 names "compared with it" as an association. Asked of
+        // the ONE predicate the MOVE edition pass asks (FigurativeAssociation — kb/Work PB422), in either
+        // operand order; this checkpoint is every relation's (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN).
+        CheckFigurativeAssociation(left, right);
+        CheckFigurativeAssociation(right, left);
         // ⛔ The class of an operand is asked of the ONE classifier (IntrinsicResultType.OperandCategory — total
         // over literals, fields, ref-mod views, groups, ALL literals, boolean expressions and COMPUTED operands),
         // never re-derived here (kb/Work PB68): the local switch that stood here had no arm for a
@@ -1490,6 +1496,17 @@ internal sealed class StatementValidation(DataBinder data)
                     + "element-by-element algebraic comparison of ISO §8.8.4.2.12/§8.8.4.2.4 — recognized but "
                     + "not yet implemented (the image comparison carries equality and unsigned orderings only)");
         }
+    }
+
+    /// <summary>§8.3.3.6.3 SR3 over one side of a relation: <paramref name="figurative"/> compared with the DATA
+    /// ITEM <paramref name="other"/> names — an elementary item's own category (a reference-modified view is
+    /// operated upon as alphanumeric, §8.4.3.3.4 GR2, and a group is never numeric, §8.5.2.1, so neither is SR3's).</summary>
+    private void CheckFigurativeAssociation(BoundOperand figurative, BoundOperand other)
+    {
+        if (!FigurativeAssociation.IsMultiCharacterAll(figurative)
+            || other is not BoundFieldOperand { Place: var place } || place is RefModPlace || place.Item.IsGroup) return;
+        FigurativeAssociation.GateSr3(data.Edition.Edition, data.Edition.Sink, figurative, place.Item.Pic?.Category,
+            $"a comparison of ALL \"{((BoundAllLiteral)figurative).Literal}\" with {place.Item.CobolName}");
     }
 
     /// <summary>⛔ THE ONE §8.8.4.2.2 FORMAT 3 SCREEN — the "message-tag-object-or-pointer-reference relation

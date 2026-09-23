@@ -97,9 +97,10 @@ public sealed class MoveEditionDifferentialTests
 
     [Fact]
     // §8.3.3.6.4 GR2 repetition with right truncation — ALL "57" → PIC 9(3) stores 575. A multi-character ALL
-    // associated with a numeric item violates §8.3.3.6.3 SR3 at 2023 (see the 0902 gate below), but the '85
-    // legacy oracle accepts it with exactly this repeat-truncate value (the '85 obsolete element; provisional).
-    public void AllDigitMultiCharacter_RepeatTruncate_At85_Sr3Provisional()
+    // associated with a numeric item is §8.3.3.6.3 SR3's, removed by ISO 2002 (the gate below); at 85 it is the
+    // '85 OBSOLETE element and admitted with exactly this repeat-truncate value (kb/Work PB422's determination,
+    // VCR Table 7 row 7.13 — a derived edge; the golden twin is 85/pb422_all_multichar_numeric_85).
+    public void AllDigitMultiCharacter_RepeatTruncate_At85_Sr3ObsoleteElement()
         => AssertSpecAndLegacy(Program("MVEDA3", "01 W-INT PIC 9(3).",
             "    MOVE ALL \"57\" TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[575]");
 
@@ -273,15 +274,67 @@ public sealed class MoveEditionDifferentialTests
         EditionHarness.AssertNoDiagnostic(w85, "COBOLNET0902");
     }
 
-    [Fact]
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
     // §8.3.3.6.3 SR3: an ALL literal LONGER THAN ONE character shall not be associated with a numeric or
-    // numeric-edited item — so a multi-character digit-only ALL is NOT the SR5 exception: 0902 at 2023.
-    public void MultiCharacterDigitAll_Error0902_At2023_Sr3()
+    // numeric-edited item. It is NOT an SR5 row (SR5's digit-only exception has no length qualifier), so the
+    // diagnostic names SR3 and its own edge — removed 2002, not 2023 (kb/Work PB422; VCR Table 7 row 7.13).
+    public void MultiCharacterDigitAll_Error0902_From2002_Sr3(int edition)
     {
         var source = Program("MVEDD6", "01 W-INT PIC 9(3).", "    MOVE ALL \"57\" TO W-INT.");
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023);
+        var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(errors, "§8.3.3.6.3 SR3");
+        EditionHarness.AssertNoDiagnostic(errors, "§14.9.25.3 SR5");
+    }
+
+    [Theory]
+    [InlineData("IF W-INT = ALL \"57\" DISPLAY \"EQ\" END-IF.")]
+    [InlineData("IF ALL \"57\" NOT = W-INT DISPLAY \"NE\" END-IF.")]
+    [InlineData("EVALUATE W-INT WHEN ALL \"57\" DISPLAY \"EQ\" END-EVALUATE.")]
+    [InlineData("PERFORM UNTIL W-INT = ALL \"57\" MOVE 575 TO W-INT END-PERFORM.")]
+    // §8.3.3.6.4 GR2's NOTE 1 — "compared with it" is an association too, so SR3 reaches every relation (the
+    // one relation checkpoint, either operand order): accepted at 85, 0902 from 2002, a warning under
+    // --permissive with the comparison still evaluated.
+    public void MultiCharacterAll_ComparedWithNumeric_Sr3(string statement)
+    {
+        var source = Program("MVEDD8", "01 W-INT PIC 9(3) VALUE 575.", "    " + statement);
+        var (ok85, e85, w85) = EditionHarness.CompileFull(source, 85);
+        Assert.True(ok85, string.Join(Environment.NewLine, e85));
+        EditionHarness.AssertNoDiagnostic(w85, "COBOLNET0902");
+        foreach (var edition in new[] { 2002, 2014, 2023 })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(source, edition);
+            Assert.False(ok);
+            EditionHarness.AssertHasDiagnostic(errors, "§8.3.3.6.3 SR3");
+        }
+        var (okP, _, wP) = EditionHarness.CompileFull(source, 2023, permissive: true);
+        Assert.True(okP);
+        EditionHarness.AssertHasDiagnostic(wP, "§8.3.3.6.3 SR3");
+    }
+
+    [Theory]
+    [InlineData("IF W-INT = ALL \"5\" DISPLAY \"EQ\" END-IF.")]
+    [InlineData("IF W-X = ALL \"57\" DISPLAY \"EQ\" END-IF.")]
+    [InlineData("IF W-INT(1:2) = ALL \"57\" DISPLAY \"EQ\" END-IF.")]
+    [InlineData("IF W-GRP = ALL \"57\" DISPLAY \"EQ\" END-IF.")]
+    // SR3's scope boundary: a ONE-character ALL literal, an alphanumeric item, a reference-modified view of a
+    // numeric item (operated upon as alphanumeric, §8.4.3.3.4 GR2) and a group are none of them SR3's.
+    public void Sr3ScopeBoundary_NotRefused_At2023(string statement)
+    {
+        var source = Program("MVEDD9",
+            """
+            01 W-INT PIC 9(3) VALUE 575.
+            01 W-X PIC X(3).
+            01 W-GRP.
+               05 W-GN PIC 9(3).
+            """, "    " + statement);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
+        Assert.True(ok, string.Join(Environment.NewLine, errors));
+        EditionHarness.AssertNoDiagnostic(warnings, "§8.3.3.6.3 SR3");
     }
 
     [Fact]

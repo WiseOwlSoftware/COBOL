@@ -13,6 +13,8 @@
   "pb446-search-at-end-next-sentence",
   "pb446-search-when-next-sentence-mixed",
   "pb446-next-sentence-inline-perform",
+  "pb422-all-multichar-move-numeric",
+  "pb422-all-multichar-compare-numeric",
   "pb349-sort-flow-turn-at-85",
   "pb1006-source-format-false-path-below-2002",
   "pb1002-unpaged-next-page",

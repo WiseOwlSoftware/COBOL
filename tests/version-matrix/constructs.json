@@ -1509,7 +1509,7 @@
   },
   {
    "id": "move-alphanumeric-figurative-removed-2023",
-   "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case; QUOTE rides its own dual row move-quote-numeric-obsolete-2014 (obsolete 2014 first, Annex E.2 item 21 - the adversarial-review correction). Documented residues (DEVLOG 595): pre-removal image semantics cover elementary numeric-DISPLAY receivers - a Tier-A REDEFINES-class or BINARY/PACKED/COMP-5/float receiver stays a NARROW runtime-loud guard (legal-per-ISO-2014 shapes, no corpus hits); multi-char digit-only ALL rides this row at 2023 (the 2002 edge unproven in-repo, VCR 7.13). Gate: StatementBinder.MoveFigurative.cs (W2 track A, DEVLOG 593).",
+   "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case; QUOTE rides its own dual row move-quote-numeric-obsolete-2014 (obsolete 2014 first, Annex E.2 item 21 - the adversarial-review correction). Documented residues (DEVLOG 595): pre-removal image semantics cover elementary numeric-DISPLAY receivers - a Tier-A REDEFINES-class or BINARY/PACKED/COMP-5/float receiver stays a NARROW runtime-loud guard (legal-per-ISO-2014 shapes, no corpus hits); a MULTI-CHARACTER ALL literal is not this row's - it is 8.3.3.6.3 SR3's, row all-literal-multichar-numeric-removed-2002 (kb/Work PB422, VCR 7.13). Gate: VersionConformancePass.GateSr5 (W2 track A, DEVLOG 593; PB879).",
    "display": "MOVE of an alphanumeric figurative constant (SPACE/HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item",
    "diagnosticCode": "COBOLNET0902",
    "citation": "Annex E.2 item 1 bullet 1; §14.9.25.3 SR5; VCR row 1 — permitted through 2014 (pre-removal semantics preserved permissive), REMOVED 2023 except the digit-only-ALL-to-integer case; QUOTE rides its own dual row (obsolete 2014 first — E.2 item 21)",
@@ -1531,6 +1531,18 @@
    "expectDiagnostic": "COBOLNET0903",
    "vcr": "VCR rows 92/128 (F.2 item 2; 14.9.25.3 SR5 + NOTE)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVALLD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-INT PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE ALL \"5\" TO W-INT.\n    DISPLAY W-INT.\n    STOP RUN.\n"
+  },
+  {
+   "id": "all-literal-multichar-numeric-removed-2002",
+   "description": "The figurative constant ALL literal-1 with a literal-1 longer than one character ASSOCIATED with a numeric or numeric-edited item - moved to it (the written MOVE, an implicit FROM/INTO move, INITIALIZE REPLACING's hypothetical MOVE) or compared with it (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN) - prohibited by ISO 8.3.3.6.3 SR3, which is edition-unqualified in 2023 and absent from Annex E, so 2014 agrees. DERIVED edge (VCR Table 7 row 7.13; no 1985/2002/2014 text in-repo): an obsolete element of ANSI X3.23-1985 deleted by ISO 2002 with the rest of that list - accepted at 85 with the 8.3.3.6.4 GR2 repeat-and-truncate value (ALL \"57\" -> PIC 9(3) = 575), 0902 at 2002+ (warning under --permissive, value preserved). One predicate: FigurativeAssociation (kb/Work PB422); askers VersionConformancePass.GateSr5 and StatementValidation.CheckRelationalOperands.",
+   "display": "a multi-character ALL literal associated with a numeric or numeric-edited item",
+   "diagnosticCode": "COBOLNET0902",
+   "citation": "§8.3.3.6.3 SR3; an obsolete ANSI X3.23-1985 element deleted by ISO 2002 (DERIVED edge — VCR Table 7 row 7.13)",
+   "introducedIn": 85,
+   "removedIn": 2002,
+   "expectDiagnostic": "COBOLNET0902",
+   "vcr": "VCR Table 7 row 7.13 (8.3.3.6.3 SR3)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVALLM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-INT PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE ALL \"57\" TO W-INT.\n    DISPLAY W-INT.\n    STOP RUN.\n"
   },
   {
    "id": "national-data-2002",

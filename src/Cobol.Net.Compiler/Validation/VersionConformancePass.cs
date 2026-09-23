@@ -323,8 +323,8 @@ internal sealed class VersionConformancePass
             string where = m.ImplicitOf is { } phrase
                 ? $"MOVE {figText} TO {t.Item.CobolName}, {phrase.Where(t.Item.CobolName)}"
                 : $"MOVE {figText} TO {t.Item.CobolName}";
-            GateSr5(m.Source, integerReceiver: pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 },
-                    where);
+            GateSr5(m.Source, pic.Category,
+                    integerReceiver: pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 }, where);
         }
     }
 
@@ -343,10 +343,16 @@ internal sealed class VersionConformancePass
     /// <summary>⭐ §14.9.25.3 SR5's THREE EDITION ROWS, in ONE place, for one (SR5-listed sender, numeric or
     /// numeric-edited receiver) pair — asked by the written MOVE (<see cref="GateMove"/>, per receiving item) and by
     /// INITIALIZE REPLACING's hypothetical MOVE (<see cref="GateInitialize"/>, per category). Before kb/Work PB879
-    /// the rows lived inline in <see cref="GateMove"/>, which only a bound <c>BoundMove</c> node reaches.</summary>
-    private void GateSr5(BoundOperand source, bool integerReceiver, string where)
+    /// the rows lived inline in <see cref="GateMove"/>, which only a bound <c>BoundMove</c> node reaches.
+    /// <para>⛔ §8.3.3.6.3 SR3 IS ASKED FIRST, AND IT IS NOT A §14.9.25.3 SR5 ROW (kb/Work PB422): a multi-character
+    /// <c>ALL literal</c> associated with a numeric or numeric-edited item is SR3's, whose edition edge (removed
+    /// 2002) is not §14.9.25.3 SR5's (removed 2023) — §14.9.25.3 SR5's digit-only exception has no length qualifier, so <c>ALL "57"</c>
+    /// was never SR5's to refuse. The predicate and its row live in <see cref="FigurativeAssociation"/>, shared
+    /// with the relation checkpoint; when SR3 decides the pair no SR5 row is asked of it.</para></summary>
+    private void GateSr5(BoundOperand source, PicCategory receiverCategory, bool integerReceiver, string where)
     {
-        if (source is BoundAllLiteral { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
+        if (FigurativeAssociation.GateSr3(_edition, _sink, source, receiverCategory, where)) return;
+        if (source is BoundAllLiteral { IsDigitOnly: true } && integerReceiver)
             // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).
             Check(Constructs.MoveAllDigitIntegerObsolete2023, where);
         else if (source is BoundFigurative { Kind: 'Q' })
@@ -381,7 +387,9 @@ internal sealed class VersionConformancePass
             if (Sr5FigurativeText(item.Sender) is not { } figText) continue;
             foreach (var cat in (ReadOnlySpan<InitializeCategory>)[InitializeCategory.Numeric, InitializeCategory.NumericEdited])
                 if (item.Categories.Contains(cat))
-                    GateSr5(item.Sender, integerReceiver: cat is InitializeCategory.Numeric,
+                    GateSr5(item.Sender,
+                        cat is InitializeCategory.Numeric ? PicCategory.Numeric : PicCategory.NumericEdited,
+                        integerReceiver: cat is InitializeCategory.Numeric,
                         $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {figText} (the MOVE "
                         + "ISO §14.9.20.3 SR4 requires to be valid)");
         }

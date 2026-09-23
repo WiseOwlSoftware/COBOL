@@ -367,9 +367,9 @@ decision.
 > ALL "5"→9(3)=555, →9V9=5.5); non-digit fills deposit the character image via the `StoreAsImage` character-image
 > storage form (legacy-oracle-adjudicated, provisional per ratified decision 1). Two legacy NON-conformances
 > documented and not mirrored (legacy CBL0906 compile-rejects QUOTE/HIGH/LOW→numeric at every standard;
-> legacy DISPLAYs a space-filled numeric as empty). ⚠ Open Table-7 research row: §8.3.3.6.3 SR3's
-> multi-character-ALL-with-numeric prohibition may be an '85-obsolete→2002 deletion — no in-repo evidence
-> beyond the 2023 SR text, so it currently rides the 2023 removal row (under-strict at 2002/2014, provisional).
+> legacy DISPLAYs a space-filled numeric as empty). A multi-character ALL literal
+> is NOT on these rows: §8.3.3.6.3 SR3 bars its association with a numeric/numeric-edited item, removed 2002
+> (`all-literal-multichar-numeric-removed-2002`, VCR Table 7 row 7.13 — a derived edge; kb/Work PB422).
 > **(b) The loud-guard sweep** — `PictureAnalyzer.ParseUsage`/`Analyze` take `(EditionContext, where)`: the silent
 > Display catch-all is dead; the 2002+ recognized-but-unimplemented inventory (NATIONAL, BIT, POINTER, OBJECT
 > REFERENCE, BINARY-CHAR family, FLOAT-SHORT/LONG/EXTENDED, PIC N/1/E) routes its registry row (0900 below
