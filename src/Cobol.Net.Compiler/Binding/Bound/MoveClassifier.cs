@@ -97,7 +97,7 @@ public static class MoveClassifier
     /// <c>m.Source</c>.</para>
     /// </summary>
     public static BoundOperand Sender(BoundOperand source, Place target) =>
-        source is BoundStringLiteral { Value.Length: 0 } zl && !IsDynamicLengthReceiver(target)
+        source is BoundStringLiteral { Value.Length: 0 } zl && SubstitutesForZeroLength(target)
             // GR3 for the boolean literal, GR2 for the alphanumeric and national ones — BoundStringLiteral is the
             // ONE node for all three categories, so the two rules are one two-armed answer rather than two screens.
             ? new BoundFigurative(zl.Category is PicCategory.Boolean ? 'Z' : 'S')
@@ -110,17 +110,26 @@ public static class MoveClassifier
     /// not a description, so this cannot be decided at bind time; it returns the sending PLACE whose current
     /// length the emitted store must test, or <see langword="null"/> when no test is needed.
     ///
-    /// <para><b>The receiver filter is a PROOF, not a shortcut.</b> A test is emitted only for a NUMERIC or
-    /// NUMERIC-EDITED receiving operand, because for every other category the two readings are the same store:
-    /// an empty sending value aligns per §14.6.8 and pads the whole receiver with its category's fill — space
-    /// for alphabetic / alphanumeric / national and their edited forms (§14.6.8.3–14.6.8.5), the boolean zero
-    /// for a boolean one (§14.6.8.6, "with zero fill … to the right") — and the figurative GR2/GR3 substitutes
-    /// fills the same width with the same character (§8.3.3.6.4 GR2 over the same category; SPACE against a
-    /// boolean receiver is DETERMINATION D-B2's boolean zero). They diverge only where the fill is NOT what an
-    /// empty sender produces: a numeric receiver takes the figurative's character image where an empty sender
-    /// decodes to zero, and a numeric-edited one takes a whole-width fill where an empty sender edits 0 into
-    /// the mask.</para>
-    ///
+    /// <para>⛔ <b>THE RECEIVER FILTER IS THE RULE'S OWN SET, NOT A LIST OF CATEGORIES</b> (kb/Work PB943). GR2/GR3
+    /// substitute "if … the receiving operand is other than a dynamic-length elementary item" — a SET the code can
+    /// ask directly (<see cref="SubstitutesForZeroLength"/>, the same predicate <see cref="Sender"/> asks for a
+    /// written literal). The filter used to be NUMERIC and NUMERIC-EDITED receivers only, excused by a doc
+    /// comment asserting that for every other category "the two readings are the same store". That argument
+    /// held only for an ELEMENTARY ALPHANUMERIC or NATIONAL sender into an unedited receiver, and three measured
+    /// counter-examples refute it: a zero-length GROUP sender is a GR4 group move (no editing, alphanumeric
+    /// fill), so <c>MOVE ZG TO PIC XX/XX</c> stored five spaces where GR1's SPACE edits to <c>"  /  "</c>; a
+    /// zero-length BIT GROUP sender substitutes GR3's ZERO, so <c>MOVE BG TO PIC X(3)</c> stored three spaces
+    /// where ZERO stores <c>"000"</c>; and into a boolean receiver a group move deposits alphanumeric spaces
+    /// where SPACE is D-B2's boolean zero. Asking the rule makes the next receiver kind automatic: the zero arm is
+    /// the statement's own dispatch over the substituted figurative (<c>MoveEmitter.EmitStore</c>), so whatever
+    /// SPACE / ZERO means for that receiver is what it stores.</para>
+    /// <para>⚠ <b>DETERMINATION — a GR9 move keeps GR9.</b> When both operands are group items and one is a
+    /// VARIABLE-LENGTH group, §14.9.25.3 SR9 admits the statement only because both are compatible GROUPS, and
+    /// §14.9.25.4 GR9 then defines the move component by component — including a sender whose components are
+    /// all empty (its step 1 sets a receiving dynamic-length item's length to zero). Rewriting that sender into
+    /// a figurative would produce a statement SR9 forbids (a figurative is not a compatible group), so the
+    /// specific rule governs and no test is emitted. Rejected reading: GR1 over GR9, which fills a receiving
+    /// dynamic-length member with a space GR9 says it does not hold.</para>
     /// <para><b>The sender filter is total</b>, because everything else is normalized into it: the two
     /// RUNTIME-LENGTH elementary shapes are a DYNAMIC LENGTH item (§8.5.4 item 4) and an ANY LENGTH item
     /// (item 3), and <c>MoveBinder</c> materializes a reference-modified (item 9) or function-identifier (item 6)
@@ -146,13 +155,24 @@ public static class MoveClassifier
     /// covers the others without a second site if SR9 ever admits one.</para>
     /// </summary>
     public static Place? ZeroLengthItemRoute(BoundOperand source, Place target) =>
-        target.DenotedItem is not null
-        && target.Item.OperandPic is { Category: PicCategory.Numeric or PicCategory.NumericEdited }
-        && source is BoundFieldOperand { Place.DenotedItem: not null } f
+        source is BoundFieldOperand { Place.DenotedItem: not null } f
+        && SubstitutesForZeroLength(target)
+        && !IsVariableLengthGroupMove(f.Place, target)
         && (f.Place.Item is { IsGroup: false } si ? si.IsDynamicLength || si.IsAnyLength
                                                   : f.Place.Item.MinimumLengthIsZero)
             ? f.Place
             : null;
+
+    /// <summary>§14.9.25.4 GR9's antecedent — "If both the sending operand and the receiving data item are group
+    /// items and one or both is a variable-length group" — asked of a sending PLACE, for
+    /// <see cref="ZeroLengthItemRoute"/>'s determination. A level-66 THROUGH alias is a group item
+    /// (§13.18.45.4 GR2), so the CATEGORY question is asked, never the structural one — the same predicate
+    /// <c>MoveEmitter.VariableLengthGroupMove</c> and <c>StatementValidation.CheckVariableLengthMove</c> ask.</summary>
+    private static bool IsVariableLengthGroupMove(Place sender, Place target) =>
+        target.DenotedItem is not null
+        && ItemCategory.IsGroupItem(sender.Item) && ItemCategory.IsGroupItem(target.Item)
+        && (VariableLengthCompatibility.IsVariableLength(sender.Item)
+            || VariableLengthCompatibility.IsVariableLength(target.Item));
 
     /// <summary>The figurative constant GR1's route substitutes for a zero-length SENDING ITEM — GR2's SPACE for
     /// an alphanumeric or national item, GR3's ZERO for a boolean one, read off the sending item's own category
@@ -176,11 +196,11 @@ public static class MoveClassifier
     /// 2718281828459045235360287471352 — the freeze re-rounded a value that can never be zero-length.</para></summary>
     public static bool NeedsLengthFreeze(BoundOperand source, IReadOnlyList<Place> targets)
     {
+        // The receiver half is the ROUTE's own predicate, never a second copy of it: a freeze exists only so the
+        // route has a field to read, and a receiver the route would test is a receiver that needs one.
         if (!CanBeZeroLengthItem(source)) return false;
         foreach (var t in targets)
-            if (t.DenotedItem is not null
-                && t.Item.OperandPic is { Category: PicCategory.Numeric or PicCategory.NumericEdited })
-                return true;
+            if (SubstitutesForZeroLength(t)) return true;
         return false;
     }
 
@@ -215,9 +235,13 @@ public static class MoveClassifier
     /// <summary>GR2/GR3's exclusion: "the receiving operand is other than a dynamic-length elementary item"
     /// (ISO §8.5.1.10 / §13.18.19 — the item whose current length the store REPLACES rather than pads, so a
     /// zero-length sender legitimately leaves it empty). A ref-mod receiver is the elementary ALPHANUMERIC
-    /// unique item of §8.4.3.3.4 GR6, never the dynamic-length item underneath it.</summary>
-    private static bool IsDynamicLengthReceiver(Place target) =>
-        target.DenotedItem is not null && target.Item.IsDynamicLength;
+    /// unique item of §8.4.3.3.4 GR6, never the dynamic-length item underneath it.
+    /// <para>⛔ ASKED BY ALL THREE ARMS OF THE SUBSTITUTION — the written literal (<see cref="Sender"/>), the
+    /// zero-length item (<see cref="ZeroLengthItemRoute"/>) and the freeze that serves it
+    /// (<see cref="NeedsLengthFreeze"/>) — because GR1 routes the item INTO GR2/GR3 and the set is theirs. The
+    /// item arms used to carry their own numeric-only copy (kb/Work PB943).</para></summary>
+    private static bool SubstitutesForZeroLength(Place target) =>
+        !(target.DenotedItem is not null && target.Item.IsDynamicLength);
 
     /// <summary>The dispatch kind of storing <paramref name="source"/> into <paramref name="target"/> —
     /// EXACTLY the pre-P7.7 <c>EmitMove</c> dispatch order: ref-mod receiver → group receiver → group sender →

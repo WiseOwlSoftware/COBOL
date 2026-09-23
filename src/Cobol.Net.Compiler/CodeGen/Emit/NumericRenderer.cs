@@ -406,7 +406,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //       wrong ANSWER, independent of (a)'s crash.
         // The capability guard now lives in the ONE reader too (it stages the same Tier-C loud), so the
         // former `when p.Item.IsImageCapable` arm and its hand-written twin below collapse into this one.
-        null => AlnumNum(PlaceRenderer.SendingGroupImage(p, "numeric use of group item"), sending),
+        // ⛔ …and through the ONE GROUP VALUE reader, never the image reader alone (kb/Work PB944's sibling
+        // sweep): a NATIONAL group is Table 16's National row (§13.18.29.4 GR2b) and §14.9.25.4 GR6 d) 3 decodes
+        // its CHARACTER positions, not the UTF-16BE bytes its image carries.
+        null => AlnumNum(PlaceRenderer.SendingGroupValue(p, "numeric use of group item"), sending),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction). The
         // sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking, §14.6.13.2

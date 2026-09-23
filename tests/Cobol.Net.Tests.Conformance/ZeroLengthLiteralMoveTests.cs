@@ -312,4 +312,53 @@ public sealed class ZeroLengthLiteralMoveTests
         Assert.False(ok, "the zero-length literal's OWN category decides Table 16 (ISO §14.9.25.3 SR10)");
         EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0819");
     }
+
+    // ── GR1 IS ONE STATEMENT WITH GR2/GR3 — for EVERY receiver the rule's set contains (kb/Work PB943) ──────────
+
+    /// <summary>⛔ <b>THE DRIFT TEST FOR THE RECEIVER FILTER.</b> §14.9.25.4 GR1 — "If identifier-1 is a
+    /// zero-length item, it is as if literal-1 were specified as a zero-length literal" — makes
+    /// <c>MOVE zero-length-item TO R</c> and <c>MOVE zero-length-literal TO R</c> the SAME statement for every
+    /// receiving operand GR2/GR3 name: "other than a dynamic-length elementary item". So instead of an expected
+    /// value per cell, each row moves a zero-length SENDER and its matching zero-length LITERAL ("" · B"" · N"",
+    /// by the sender's category) into twin receivers of EVERY category Table 16 admits for that sender, and the
+    /// two images must agree. The filter this replaced admitted only numeric and numeric-edited receivers,
+    /// excused by a doc comment asserting the other categories "are the same store"; three kinds of row below
+    /// measured that false (an edited receiver, a boolean one, and a bit-group sender's GR3 ZERO into a
+    /// character one). A new sender shape or receiver category is one line here, and the test cannot pass by
+    /// accident: a receiver the route skips shows the group move's or the empty value's image instead.</summary>
+    [Theory]
+    // an ALPHANUMERIC group (§8.5.4 item 1; §13.18.29.4 GR3) — Table 16 exempts it, so every category is admitted
+    [InlineData("ZLG1", "01 G. 05 GE PIC X OCCURS 0 TO 4 DEPENDING ON N.", "\"\"",
+        "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
+    // the same, of NATIONAL leaves — its storage image is bytes, two per national position (D-N1)
+    [InlineData("ZLG2", "01 G. 05 GE PIC N USAGE NATIONAL OCCURS 0 TO 4 DEPENDING ON N.", "\"\"",
+        "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
+    // a BIT group — an elementary BOOLEAN sender (§13.18.29.4 GR1 b)); GR3's ZERO; Table 16's Boolean row
+    [InlineData("ZLG3", "01 G GROUP-USAGE BIT. 05 GE PIC 1 OCCURS 0 TO 8 DEPENDING ON N.", "B\"\"",
+        "X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN")]
+    // a NATIONAL group — an elementary NATIONAL sender (GR2 b)); GR2's SPACE; Table 16's National row
+    [InlineData("ZLG4", "01 G GROUP-USAGE NATIONAL. 05 GE PIC N OCCURS 0 TO 4 DEPENDING ON N.", "N\"\"",
+        "1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
+    // a DYNAMIC LENGTH item at length zero (§8.5.4 item 4)
+    [InlineData("ZLG5", "01 G PIC X DYNAMIC LENGTH LIMIT 9.", "\"\"",
+        "A(3)|X(3)|XX/XX|1(4)|1(3) USAGE BIT|N(3)|NN/NN|9(3)|ZZ9")]
+    public void Gr1_ZeroLengthItem_IsTheWrittenLiteral_AtEveryReceiverOfGr2sSet(
+        string pid, string sender, string literal, string pictures)
+    {
+        var pics = pictures.Split('|');
+        var ws = new System.Text.StringBuilder("01 N PIC 9 VALUE 0.\n" + sender + "\n");
+        var proc = new System.Text.StringBuilder(sender.Contains("DYNAMIC") ? "MOVE \"\" TO G.\n" : "");
+        for (int i = 0; i < pics.Length; i++)
+        {
+            ws.Append($"01 I{i} PIC {pics[i]}.\n01 L{i} PIC {pics[i]}.\n");
+            proc.Append($"MOVE G TO I{i}.\nMOVE {literal} TO L{i}.\n")
+                .Append($"DISPLAY \"I{i}=[\" I{i} \"]\".\nDISPLAY \"L{i}=[\" L{i} \"]\".\n");
+        }
+        var lines = Run(Prog(pid, ws.ToString(), proc.ToString()), 2023).Split('\n');
+        Assert.Equal(2 * pics.Length, lines.Length);   // the population the verdict rests on
+        for (int i = 0; i < pics.Length; i++)
+            Assert.True(lines[2 * i][1..] == lines[2 * i + 1][1..],
+                $"PIC {pics[i]}: the zero-length item stored {lines[2 * i]} but the zero-length literal GR1 says "
+                + $"it is AS IF stored {lines[2 * i + 1]} (ISO §14.9.25.4 GR1 → GR2/GR3)");
+    }
 }

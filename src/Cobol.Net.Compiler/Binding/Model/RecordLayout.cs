@@ -77,10 +77,21 @@ internal static class RecordLayout
             }
             if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                 continue;   // a forwarded view
-            w += (c.IsGroup ? PhysicalWidth(c) : c.ByteWidth) * (c.Occurs ?? 1);
+            w += PhysicalOccurrenceWidth(c) * (c.Occurs ?? 1);
         }
         return w;
     }
+
+    /// <summary>ONE OCCURRENCE of <paramref name="item"/> on the PHYSICAL (codec, byte) basis — the per-child
+    /// contribution <see cref="PhysicalWidth"/> multiplies by the child's OCCURS count, written once because three
+    /// walks need it: <see cref="PhysicalWidth"/>'s sum, <see cref="OffsetOf"/>'s advance, and the §13.18.38.4 GR8
+    /// occurs-depending extent (<c>OdoModel.WrapGroup</c>), whose per-occurrence STRIDE has to be in the same unit
+    /// as the group image it slices. ⛔ That third reader used to take <c>table.ImageWidth</c> — CHARACTER
+    /// positions, which a national leaf counts once where this basis counts it twice (§13.18.60.4 GR8; D-N1) —
+    /// against a <see cref="PhysicalWidth"/> total in BYTES, so the fixed prefix came out as the difference and a
+    /// zero-occurrence national table sent half its maximum image (kb/Work PB943).</summary>
+    internal static int PhysicalOccurrenceWidth(DataItem item) =>
+        item.IsGroup ? PhysicalWidth(item) : item.ByteWidth;
 
     /// <summary>The item's character offset within its record AREA on the PHYSICAL (codec) basis: the offset inside
     /// its own 01 root, which IS the area offset because every secondary 01 under an FD is a synthesized REDEFINES
@@ -124,7 +135,7 @@ internal static class RecordLayout
                 if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                     continue;                                             // a forwarded view
                 if (c.RedefinesTargetName is not null) continue;          // overlays its target — no advance
-                running += (c.IsGroup ? PhysicalWidth(c) : c.ByteWidth) * (c.Occurs ?? 1);
+                running += PhysicalOccurrenceWidth(c) * (c.Occurs ?? 1);
             }
         }
     }

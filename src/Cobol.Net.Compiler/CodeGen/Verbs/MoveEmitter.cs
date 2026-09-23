@@ -40,20 +40,25 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             {
                 // The LENGTH to test is the sending operand's CURRENT one. For the elementary shapes (§8.5.4
                 // items 3, 4, and 6/9 after their materialization) that is the carrier's own `.Length`; for a
-                // GROUP (items 1, 2, 5, 7 — kb/Work PB896) it is the group's SENDING IMAGE, which §13.18.38.4
-                // GR8 a) already narrows to the occurs-depending current extent. Asking the plain place would
-                // read the MAXIMUM extent and the test could never fire.
-                string len = zlSend.Item.IsGroup && !zlSend.Item.IsAsIfElementary
-                    ? $"{OperandText.NonElementaryMoveSender(source, num, "zero-length-item test of")}.Length"
+                // GROUP (items 1, 2, 5, 7 — kb/Work PB896) it is the group's SENDING VALUE, which §13.18.38.4
+                // GR8 a) already narrows to the occurs-depending current extent — through THE ONE group value
+                // reader, because a bit or national group's plain Read() is its STRUCT and has no length at all
+                // (kb/Work PB943: `NG.Length`, CS1061). Asking the plain place would also read the MAXIMUM extent
+                // and the test could never fire.
+                string len = zlSend.Item.IsGroup
+                    ? $"{PlaceRenderer.SendingGroupValue(zlSend, "zero-length-item test of")}.Length"
                     : $"{PlaceRenderer.Read(zlSend)}.Length";
-                // ⛔ THE ELSE ARM IS THE STATEMENT'S OWN STORE, WHATEVER KIND IT IS. GR1's substitution changes
-                // the move's KIND — a group sender becomes a literal one, so GR4's first sentence makes the
-                // zero-length arm an ELEMENTARY move while the non-zero arm stays the group move — and an else
-                // arm hard-wired to ElementaryStore could only ever carry the elementary kinds (kb/Work PB896).
-                ctx.Writer.Line($"if ({len} == 0) {{ "
-                    + ElementaryStore(target, MoveClassifier.ZeroLengthItemFigurative(zlSend),
-                                      MoveSenderOrigin.ZeroLengthItem)
-                    + " } else {");
+                // ⛔ BOTH ARMS ARE THE STATEMENT'S OWN DISPATCH. GR1's substitution changes the move's KIND — a
+                // group sender becomes a literal one, so GR4's first sentence makes the zero-length arm an
+                // ELEMENTARY move while the non-zero arm stays the group move (kb/Work PB896) — and the zero arm's
+                // kind is whatever the substituted figurative dispatches to against THIS receiver: the image fill
+                // into a numeric one, the edited fill into an edited one, a slice fill into a reference-modified
+                // one, a group fill into a group (kb/Work PB943 — the arm used to be hard-wired to the elementary
+                // store, which is why the route could only ever serve the numeric receivers it was filtered to).
+                var fig = MoveClassifier.ZeroLengthItemFigurative(zlSend);
+                ctx.Writer.Line($"if ({len} == 0) {{");
+                EmitStore(target, fig, MoveClassifier.Kind(fig, target), MoveSenderOrigin.ZeroLengthItem);
+                ctx.Writer.Line("} else {");
                 EmitStore(target, source, kind, origin);
                 ctx.Writer.Line("}");
                 continue;
@@ -209,11 +214,31 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ctx.Writer.Line(LoudStmt(TierCIsland.Reason(item, "group MOVE into")));
             return;
         }
-        // The width-fitted image (§14.6.8): receiver character-position count via the ONE canonical ImageWidth
-        // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
-        // An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the carrier's current length).
-        string gw = item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : $"{item.ImageWidth}";
-        string image = ReceivingStore.Characters(item, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw);
+        // The width-fitted image (§14.6.8), fitted in the receiver's STORAGE positions — the unit the sending
+        // group's image is in. GR4's move is "an alphanumeric to alphanumeric elementary move, except that there
+        // is no conversion of data from one form of internal representation to another", so the receiving AREA
+        // takes the sending bytes as they are and the receiver's own representation is decoded FROM them, never
+        // the sending characters re-encoded into it (kb/Work PB943's sibling sweep). For every DISPLAY-usage
+        // receiver the two units coincide (ByteWidth IS ImageWidth: V occupies no position, SIGN SEPARATE adds
+        // one, P adds none — §13.18.40). ⛔ For a USAGE NATIONAL receiver they do not — §13.18.60.4 GR8's uniform
+        // size, pinned at two bytes by D-N1 — and for a USAGE BIT receiver the area is its ceil(n/8) packed bytes:
+        // both used to take the group's BYTES as their CHARACTERS, so `MOVE AG TO PIC N(4)` stored the sending
+        // characters widened (a conversion GR4 forbids) and `MOVE AG TO PIC 1(3) USAGE BIT` left the letter "A"
+        // in a boolean carrier. An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the
+        // carrier's current length, in its own positions).
+        // ReceivingStore.AnyLengthWidth is the ONE spelling of an ANY LENGTH receiver's width (kb/Work PB979).
+        string len = item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : "";
+        bool national = item.Pic is { Usage: Usage.National };
+        bool bit = item.Pic is { Usage: Usage.Bit };
+        string positions = item.IsAnyLength ? len : $"{(bit ? item.Pic!.Length : item.ImageWidth)}";
+        string gw = !item.IsAnyLength ? $"{item.ByteWidth}"
+            : national ? $"({len} * {RuntimeApi.BytesPerNational})"
+            : bit ? $"(({len} + {BitLayout.BitsPerCharacter - 1}) / {BitLayout.BitsPerCharacter})"
+            : len;
+        string area = ReceivingStore.Characters(item, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw);
+        string image = national ? RuntimeApi.NatReadWindow(area, "0", positions)
+            : bit ? RuntimeApi.BitsUnpack(area, positions)
+            : area;
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.

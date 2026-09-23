@@ -561,6 +561,36 @@ count, never a copy of the clause's four group bullets. Which of those four is r
 business: a variable-length group may move only to or from a compatible group, so items 5 and 7 are refused at
 compile time and item 1 — the occurs-depending group with integer-1 zero — is the shape that gets here.
 
+**The route's RECEIVER set is GR2/GR3's, asked through one predicate** (kb/Work PB943).
+`MoveClassifier.SubstitutesForZeroLength` — "the receiving operand is other than a dynamic-length elementary
+item" — is asked by all three arms of the substitution: `Sender` (the written literal), `ZeroLengthItemRoute`
+(the item) and `NeedsLengthFreeze` (the freeze that serves it). The item arms used to carry a NUMERIC /
+NUMERIC-EDITED category filter, excused as a proof that every other category stores the same thing either way;
+it was true only for an elementary alphanumeric or national sender into an unedited receiver. A zero-length
+GROUP sender is a GR4 group move (no editing, alphanumeric fill), so an edited receiver lost its insertion
+characters and a boolean one took alphanumeric spaces; a zero-length BIT group's GR3 ZERO became spaces in a
+character receiver. The zero arm is therefore the statement's own dispatch (`MoveEmitter.EmitStore` over
+`Kind(figurative, target)`), so whatever SPACE / ZERO means for that receiver — an image fill, an edited fill,
+a slice fill, a group fill — is what it stores. ⚠ One DETERMINATION: when both operands are groups and one is a
+VARIABLE-LENGTH group, GR9 governs and no test is emitted (SR9 admits the statement only as a compatible-group
+move, which a figurative is not). `ZeroLengthLiteralMoveTests.Gr1_ZeroLengthItem_IsTheWrittenLiteral_AtEveryReceiverOfGr2sSet`
+is the drift test: each zero-length sender shape against every receiver category Table 16 admits for it, the
+item and the matching zero-length literal into twin receivers, the two images required equal.
+
+**A group SENDER's value has one reader, and a group move's receiving AREA is in storage units** (kb/Work
+PB943/PB944). `PlaceRenderer.SendingGroupValue` is the §13.18.29.4 dispatch — a bit group sends its boolean
+positions, a national group its national positions, an alphanumeric group its storage image — and every
+consumer asks it (`OperandText.FieldAsString`, `NumericRenderer.FieldNumCore`, the zero-length test); the numeric
+decoder used to read every group through the image alone, so a national group into `PIC 9(3)` decoded UTF-16BE
+bytes as digits. GR4's group move into an ELEMENTARY receiver (`MoveEmitter.EmitGroupToElementaryMove`) fits the
+sending image to the receiver's STORAGE width (`DataItem.ByteWidth`) and decodes the receiver's representation
+from it — a USAGE NATIONAL receiver's two bytes per position (D-N1), a USAGE BIT receiver's packed bits — because
+GR4 forbids "conversion of data from one form of internal representation to another"; the sending characters are
+never re-encoded into it. And the §13.18.38.4 GR8 current extent (`OdoModel.WrapGroup`) computes its
+per-occurrence stride on the same PHYSICAL basis as the group total it is subtracted from
+(`RecordLayout.PhysicalOccurrenceWidth`); a character-width stride against a byte-width total made a zero-count
+national table send half its maximum image.
+
 **Who calls it, and when.** `MoveBinder.BindMoveOf` materializes the sender when there is more than one
 receiving operand; `EvaluateBinder`'s per-subject `SubjectSlot` materializes a value subject when more than one
 selection pair reads it (a THRU object reads it twice — GR4 a) 5.). At ONE use the single render already IS one

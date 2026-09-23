@@ -165,7 +165,12 @@ public static class OdoModel
         // extent computation can raise EC-BOUND-ODO below it; the runtime floor used to be hardcoded 0, which
         // made a below-minimum DEPENDING value clamp silently instead of setting the condition.
         int min = table.OccursSpec?.Min ?? 0;
-        int elem = bitUnits ? BitLayout.StrideBits(table) : table.ImageWidth;   // per-occurrence STRIDE (§13.18.1.4 GR2 for ALIGNED)
+        // per-occurrence STRIDE (§13.18.1.4 GR2 for ALIGNED). ⛔ In the SAME UNIT as the total it is subtracted
+        // from and the image it slices: bits for a bit-bearing subtree, otherwise the PHYSICAL (byte) basis the
+        // record codec lays out — never ImageWidth's character positions, which count a national leaf once where
+        // the image counts it twice (kb/Work PB943: the prefix came out as the difference, so a zero-occurrence
+        // national table sent half its maximum image and every count below the maximum sent too much).
+        int elem = bitUnits ? BitLayout.StrideBits(table) : Model.RecordLayout.PhysicalOccurrenceWidth(table);
         int fixedUnits = bitUnits
             ? BitLayout.StartBitOf(group, table)
             : Model.RecordLayout.PhysicalWidth(group) - elem * max;            // SR22 — the variable tail is trailing

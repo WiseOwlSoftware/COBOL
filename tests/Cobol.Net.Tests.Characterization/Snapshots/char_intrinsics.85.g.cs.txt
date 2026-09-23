@@ -17,6 +17,7 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
     private long WS_R = 0L;   // WS-R
     private string WS_T = CobolString.Store("abc", 5);   // WS-T
     private string WS_U = new string(' ', 5);   // WS-U
+    private string __sendval5_MOVE = "";   // __SENDVAL-5
 
     public void Call(CobolArg[] __args, CobolArg? __ret)
     {
@@ -47,7 +48,12 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
                 case 0:   // MAIN-PARA
                 {
                     WS_R = (long)(CobolNum.Store(CobolIntrinsics.MaxAt(0, true, new Int128[] { WS_A, WS_B }, new int[] { 0, 0 }), 0, _P_2, CobolRounding.Truncation));
-                    WS_U = CobolString.Store(CobolIntrinsics.UpperCase(WS_T), 5);
+                    __sendval5_MOVE = CobolDynString.Store(CobolIntrinsics.UpperCase(WS_T), 32767);
+                    if (__sendval5_MOVE.Length == 0) {
+                    WS_U = new string(' ', 5);
+                    } else {
+                    WS_U = CobolString.Store(__sendval5_MOVE, 5);
+                    }
                     System.Console.WriteLine(CobolNum.FormatDisplay(WS_R, _P_2) + WS_U);
                     System.Console.WriteLine("5");
                     throw new StopRun();

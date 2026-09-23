@@ -402,22 +402,17 @@ internal static class OperandText
         // literal), and the character-unit extent it then computed was NEGATIVE for a sub-byte element, so the
         // operand rendered as the EMPTY string. `SendingBits` is the ONE bit reader and carries the GR8a
         // current-extent arm itself, so the ODO shape is served here rather than routed past.
-        if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.Bit) return PlaceRenderer.SendingBits(p);
         // ⛔ THE NATIONAL TWIN, AND IT IS THE SAME DEFECT SHAPE ONE CATEGORY OVER (kb/Work PB327). A national
         // group operates as an elementary NATIONAL item of PICTURE N(m) (§13.18.29.4 GR2b), so its operand value
         // is its m national CHARACTER positions — never AsImage()'s 2m UTF-16BE bytes, which is what AsImage()
         // became when a national leaf was admitted to the byte-addressed record codec.
-        if (p.Item.IsAsIfElementary && p.Item.GroupUsage is GroupUsage.National) return PlaceRenderer.SendingNat(p);
         // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the
         // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
         // the zero-length item of §8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/
         // UNSTRING source); the receiving direction split lives at the store sites.
-        if (p is OdoGroupPlace odo) return PlaceRenderer.SendingGroupImage(odo);
-        // THE ONE READER (kb/Work PB178). Reaching here p is neither a RefModPlace, an OdoGroupPlace nor a
-        // RedefViewPlace — the three early returns above own those shapes — so this is byte-identical to the
-        // `Read(p).AsImage()` it replaces; routing it anyway is what removes the third self-spelled copy and
-        // lets the source-level drift test (BoundaryImageChannelTests) hold the law.
-        if (p.Item.IsGroup) return PlaceRenderer.GroupImage(p);
+        // All three kinds of group, and the GR8 current-extent arm of each, are THE ONE group value reader's
+        // (PlaceRenderer.SendingGroupValue — kb/Work PB178's one-reader law, which BoundaryImageChannelTests holds).
+        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupValue(p);
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)

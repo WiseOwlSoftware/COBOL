@@ -431,6 +431,23 @@ internal static class PlaceRenderer
     public static string SendingGroupImage(Place group, string context = "whole-group image of") =>
         group is OdoGroupPlace o ? SendingImage(o, context) : GroupImage(group, context);
 
+    /// <summary>⛔ <b>THE ONE READER OF A GROUP OPERAND'S SENDING VALUE</b> — the dispatch over ISO §13.18.29.4's
+    /// three kinds of group, written once. A BIT group is "treated as though it were an elementary data item of
+    /// usage bit … described with PICTURE 1(m)" (GR1b), so its value is its boolean positions
+    /// (<see cref="SendingBits"/>); a NATIONAL group is the same with PICTURE N(m) (GR2b), so its value is its
+    /// national positions (<see cref="SendingNat"/>); an ALPHANUMERIC group (GR3) sends its storage image
+    /// (<see cref="SendingGroupImage"/>). Each arm carries §13.18.38.4 GR8's current-extent slice itself.
+    /// <para>Three readers used to spell this dispatch, and one of them did not (kb/Work PB944's sibling sweep):
+    /// <c>OperandText.FieldAsString</c> had the bit and national arms, while <c>NumericRenderer.FieldNumCore</c>
+    /// decoded EVERY group through the alphanumeric image — so <c>MOVE NG TO PIC 9(3)</c> over a GROUP-USAGE
+    /// NATIONAL group holding N"12" decoded the UTF-16BE BYTES 00 31 00 32 as digits, where §14.9.25.4 GR6 d) 3
+    /// treats a national sender "as if it were an unsigned integer" of its character positions — and the
+    /// GR1 zero-length-item test in <c>MoveEmitter</c> read a national group's STRUCT <c>.Length</c> (CS1061).</para></summary>
+    public static string SendingGroupValue(Place group, string context = "whole-group image of") =>
+        !group.Item.IsAsIfElementary ? SendingGroupImage(group, context)
+        : group.Item.GroupUsage is GroupUsage.Bit ? SendingBits(group)
+        : SendingNat(group);
+
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
     public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of") =>
