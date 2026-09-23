@@ -29,7 +29,9 @@ namespace CobolNet.Validation;
 /// (<c>unrecognizedClause</c>), this pass is its ONE consumer, and <see cref="ClosedFormats.ByContext"/> is its
 /// ONE table; <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
 /// parser, in BOTH directions, so a new closed format cannot parse into silence and a stale row cannot linger.
-/// Adding a closed format is `| unrecognizedClause` plus a table row — no code here changes.</para>
+/// Adding a closed format is `| unrecognizedClause` plus a table row — no code here changes. (The pass owns one
+/// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
+/// position no format prints; see <see cref="VisitMisplacedSpecialNamesForPhrase"/>.)</para>
 ///
 /// <para>WHY A PARSE-TREE WALK AND NOT A BINDER HOOK — the <see cref="DeclinedFacilityPass"/> argument, and here
 /// it is load-bearing rather than convenient. The §13.16.2 refusal used to live in <c>DataBinder.BindEntry</c>,
@@ -85,6 +87,30 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             + $"{format.FormatLabel}general format lists the {format.Noun}s that may be specified, and it is a "
             + "closed list");
         return null;   // nothing below an error production is diagnosed — one diagnostic per word run
+    }
+
+    /// <summary>A SPECIAL-NAMES FOR phrase written AFTER its clause's definition (kb/Work PB977) — the second error
+    /// production this pass owns, and the same posture: source no edition admits, refused at every edition and
+    /// every strictness. ISO §12.3.7.2 prints <c>FOR {ALPHANUMERIC | NATIONAL}</c> only immediately after the name
+    /// the ALPHABET / CLASS clause declares, and before the first symbolic-character-1 of SYMBOLIC CHARACTERS; the
+    /// trailing spelling is owned by no dialect (CLAUDE.md rule 1's precedence — GnuCOBOL takes the phrase only
+    /// before IS). ONE visitor for all three clauses: the ALPHABET one used to be ACCEPTED as a "historical
+    /// superset" and the CLASS one drew a bare parse error — one spelling, two answers.</summary>
+    public override object? VisitMisplacedSpecialNamesForPhrase(CobolParserCore.MisplacedSpecialNamesForPhraseContext ctx)
+    {
+        string clause = ctx.Parent switch
+        {
+            CobolParserCore.AlphabetClauseContext a => $"ALPHABET {a.cobolWord().GetText()}",
+            CobolParserCore.ClassDefinitionClauseContext c => $"CLASS {c.cobolWord(0).GetText()}",
+            _ => "SYMBOLIC CHARACTERS",
+        };
+        string where = ctx.Parent is CobolParserCore.SymbolicCharactersClauseContext
+            ? "before the first symbolic-character-1" : "between the name and IS";
+        var phrase = ctx.specialNamesForPhrase();
+        string words = string.Join(" ", Enumerable.Range(0, phrase.ChildCount).Select(i => phrase.GetChild(i).GetText()));
+        _edition.Error(DiagnosticCatalog.SpecialNamesForPhraseMisplaced, $"{clause}: the phrase '{words}' "
+            + $"follows the clause's definition — the FOR phrase belongs {where} (ISO §12.3.7.2 general format)");
+        return null;
     }
 
     /// <summary>The name of the entry the offending word run sits in, for a message that points at the user's own

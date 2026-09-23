@@ -1335,14 +1335,14 @@ internal sealed class VersionConformancePass
 
         /// <summary>ALPHABET … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — a COBOL-2002 introduction; the base ALPHABET
         /// clause is version-invariant. One of the three SPECIAL-NAMES FOR-phrase sites (all one constructId +
-        /// where-string), gated once per clause on the FOR phrase's presence (either the ISO position between the
-        /// name and IS, or the accepted postfix superset — the <c>specialNamesForPhrase</c> subrule covers both).
+        /// where-string), gated once per clause on the FOR phrase's presence at its ISO position between the name
+        /// and IS (a trailing FOR phrase is refused at every edition by ClosedFormatPass — kb/Work PB977).
         /// The UCS-4/UTF-8/UTF-16 coded-set phrases (§12.3.7.2, the FOR NATIONAL branch) are §8.9
         /// CONTEXT-SENSITIVE words arriving as plain cobolWord entries — recognized here BY TEXT (never lexer
         /// keywords) and gated as their own 2002 introduction (alphabet-national-2002).</summary>
         public override object? VisitAlphabetClause(CobolParserCore.AlphabetClauseContext ctx)
         {
-            if (ctx.specialNamesForPhrase().Length > 0)
+            if (ctx.specialNamesForPhrase() is not null)
                 _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
             if (ctx.alphabetDefinition() is { } def && def.alphabetEntry() is [{ ChildCount: 1 } entry]
                 && entry.GetChild(0) is CobolParserCore.CobolWordContext w

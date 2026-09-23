@@ -658,11 +658,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return new BoundConditionError($"class condition '{word}'");
         }
         // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
-        if (ctx.Data.UserClasses.TryGetValue(word, out string? members))
+        if (ctx.Data.UserClasses.TryGetValue(word, out var userClass))
         {
             var opnd = operand();
             CheckClassConditionOperand(opnd, ClassConditionModel.ClassName);   // SR3 + SR4 name class-name-1
-            return new BoundUserClassCondition(opnd, members, not);
+            return new BoundUserClassCondition(opnd, userClass.Members, not);
         }
         // An ALPHABET-NAME class (§8.8.4.4.4 GR3 a — kb/Work PB109): membership of the CODED CHARACTER SET the
         // alphabet identifies (the LOCALE refusal above already took Table 6's blank row). It used to fall to the

@@ -1963,10 +1963,13 @@ public static class DiagnosticCatalog
         "ISO §12.3.7.3 SR16");
     public static readonly DiagnosticDescriptor ClassClauseViolation = new(
         "COBOLNET1671", "class-clause", EditionSeverity.Error,
-        "A SPECIAL-NAMES CLASS clause names an ordinal position that does not exist: a numeric literal-5/-6 shall be "
-        + "within the range one through the number of characters in the native character set or, when the IN phrase is "
-        + "specified, in the character set referenced by alphabet-name-4 (ISO §12.3.7.3 SR17 b2; the ordinal resolves in "
-        + "THAT set — §12.3.7.4 GR12 a). (A LOCALE alphabet under IN is COBOLNET1669 — SR17 d.)",
+        "A SPECIAL-NAMES CLASS clause violates one of ISO §12.3.7.3 SR17's class-dependent sub-rules (the message names "
+        + "which; b applies when the ALPHANUMERIC phrase is specified or implied, c under NATIONAL): 1) the IN phrase's "
+        + "alphabet-name-4 shall define a character set of the clause's class; 2) a numeric literal shall be an unsigned "
+        + "integer from one through the number of characters in the native set or, under IN, in the set referenced by "
+        + "alphabet-name-4 (the ordinal resolves in THAT set — §12.3.7.4 GR12 a); 3) each noninteger literal shall be "
+        + "of the clause's class; 4) each literal of a THROUGH phrase shall be one character; 5) the characters "
+        + "specified shall not outnumber that set. (A LOCALE alphabet under IN is COBOLNET1669 — SR17 d.)",
         "ISO §12.3.7.3 SR17");
     public static readonly DiagnosticDescriptor CodeSetClauseViolation = new(
         "COBOLNET1672", "code-set-clause", EditionSeverity.Error,
@@ -4709,6 +4712,19 @@ public static class DiagnosticCatalog
         + "( leftmost-position : [ length ] ). Empty parentheses are the zero-argument form of a function-identifier "
         + "(§8.4.3.2.2 brackets argument-1 inside them), which a data-name is not.",
         "ISO §8.4.2.3.2; §8.4.3.3.2; §8.4.3.2.2");
+
+    /// <summary>A SPECIAL-NAMES FOR ALPHANUMERIC / FOR NATIONAL phrase written after the clause's definition
+    /// (kb/Work PB977) — refused by name in ClosedFormatPass for the ALPHABET, CLASS and SYMBOLIC CHARACTERS
+    /// clauses alike.</summary>
+    public static readonly DiagnosticDescriptor SpecialNamesForPhraseMisplaced = new(
+        "COBOLNET2315", "special-names-for-phrase-misplaced", EditionSeverity.Error,
+        "A FOR ALPHANUMERIC / FOR NATIONAL phrase of the SPECIAL-NAMES paragraph is written after the clause's "
+        + "definition. ISO §12.3.7.2 prints it in one position only — immediately after the name the clause declares "
+        + "(ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS …, ALPHABET alphabet-name-2 FOR NATIONAL IS …, CLASS "
+        + "class-name-1 [FOR {ALPHANUMERIC | NATIONAL}] IS …) or, for SYMBOLIC CHARACTERS, before the first "
+        + "symbolic-character-1. No edition and no dialect admits the trailing spelling; move the phrase.",
+        "ISO §12.3.7.2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

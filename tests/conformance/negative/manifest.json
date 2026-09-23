@@ -9,6 +9,8 @@
   "pb972-raising-interface-not-inherited",
   "pb972-raising-override-widens",
   "pb973-method-formal-named-n-below-2002",
+  "pb977-special-names-for-trailing",
+  "pb976-class-national-alnum-literal",
   "pb225-float-class-not-standard-float",
   "pb225-numeric-content-class-not-numeric",
   "pb225-float-class-below-2014",

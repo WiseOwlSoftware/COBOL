@@ -789,6 +789,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   the error production) AND reflects over the generated parser (every context type carrying an
   `unrecognizedClause()` accessor has a table row, and every row is still carried), so adding a closed format is
   `| unrecognizedClause` plus a table row, and forgetting the row fails the build.
+- **Its second error production — a KNOWN phrase in the WRONG position.** `misplacedSpecialNamesForPhrase`
+  (kb/Work PB977) parses a SPECIAL-NAMES `FOR {ALPHANUMERIC | NATIONAL}` phrase written AFTER the definition of an
+  ALPHABET, CLASS or SYMBOLIC CHARACTERS clause — a position §12.3.7.2 never prints and no dialect owns — so
+  `ClosedFormatPass.VisitMisplacedSpecialNamesForPhrase` refuses it by name (COBOLNET2315) at every edition, one
+  visitor for the three clauses. It replaced two opposite answers to one spelling: the ALPHABET postfix was an
+  accepted "historical superset", the CLASS postfix a bare `COBOL0001: unexpected 'FOR'`. The binders read it only
+  to recover the intended class (`DataBinder.ForPhraseIsNational`).
 
 **The ordering a fixer owes, and why.** Audit the format from the RENDERED printed page first, model what the
 grammar is missing, and only THEN close the list. Doing (3) before (1) and (2) rejects legal source that is

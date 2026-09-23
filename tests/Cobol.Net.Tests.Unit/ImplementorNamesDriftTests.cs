@@ -151,10 +151,12 @@ public sealed class ImplementorNamesDriftTests
     }
 
     /// <summary>The CLASS clause's FOR phrase at its PRINTED position (§12.3.7.2, folio 290 — between class-name-1
-    /// and IS), with and without the optional FOR, is accepted; the old postfix position is not.</summary>
+    /// and IS), with and without the optional FOR, is accepted; the old postfix position is not (COBOLNET2315, kb/Work
+    /// PB977). A NATIONAL class's literals are national literals (§12.3.7.3 SR17 c3 — kb/Work PB976 made the phrase
+    /// load-bearing, and this row used to write alphanumeric ones).</summary>
     [Theory]
     [InlineData("           CLASS HEX FOR ALPHANUMERIC IS \"0\" THRU \"9\" \"A\" THRU \"F\".", true)]
-    [InlineData("           CLASS HEX NATIONAL IS \"0\" THRU \"9\".", true)]
+    [InlineData("           CLASS HEX NATIONAL IS N\"0\" THRU N\"9\".", true)]
     [InlineData("           CLASS HEX IS \"0\" THRU \"9\" FOR NATIONAL.", false)]
     public void ClassForPhrase_AtItsPrintedPosition(string special, bool legal)
     {

@@ -1864,7 +1864,17 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     the flag). With a PROGRAM COLLATING SEQUENCE they are the sequence's EXTREME characters (ISO §8.3.3.6 GR6/7 +
     §12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
     subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
-    name and IS plus the historical postfix superset):
+    name and IS; a FOR phrase written after the definition — once an accepted "historical superset" on ALPHABET and a
+    bare parse error on CLASS — is the grammar's `misplacedSpecialNamesForPhrase` error production, refused by name
+    (COBOLNET2315) for ALPHABET, CLASS and SYMBOLIC CHARACTERS alike in `ClosedFormatPass`, kb/Work PB977):
+    - **⛔ ONE literal-operand decoder for the ALPHABET and CLASS clauses** (kb/Work PB976). §12.3.7.3 states the
+      same operand rules twice — SR14 b/c for the ALPHABET literal phrase, SR17 b/c for the CLASS clause, under
+      different item numbers — so `DataBinder.LiteralPhraseOperand` decodes every operand of both, held to a
+      per-clause `LiteralPhraseRules` value (the clause's descriptor, rule number and item numbers, its class, and
+      the CLASS clause's IN alphabet). The CLASS clause had its own copy that ignored the FOR phrase entirely, so
+      SR17's class-dependent half (the IN alphabet's class, each literal's class, one character under THROUGH) went
+      unenforced and figurative constants decoded as their own spelling. The FOR phrase of all three clauses is read
+      by ONE helper, `ForPhraseIsNational`; a user class records its class (`UserClassDef.National`).
     - **⛔ ONE table, ONE builder, ONE runtime carrier for BOTH classes** (kb/Work PB770). §12.3.7.4 GR7 k states its
       six sub-rules ONCE, "where the native coded character set is the type of coded character set or collating
       sequence being defined, either alphanumeric or national", and both native sets are the 65,536 UTF-16 code units

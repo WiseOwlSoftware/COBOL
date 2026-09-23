@@ -196,11 +196,13 @@ decimalPointClause
 // bracketed FOR group is on the CLASS line, the IS line holds the literals and the IN phrase). It used to be
 // spelled AFTER the literals, so the printed `CLASS X FOR NATIONAL IS "0"` was REFUSED (COBOL0305 at FOR) and the
 // unprinted `CLASS X IS "0" NATIONAL` was accepted — the exact inverse. No dialect owns the postfix spelling, so it
-// is gone rather than kept as a superset. FOR is an optional word (kb/Work PB695: folio 290 rules ALPHANUMERIC and
-// NATIONAL, never FOR), so `CLASS X NATIONAL IS "0"` is conforming. The phrase is the SHARED specialNamesForPhrase,
-// so its 2002 gate keys on the SUBRULE and not on a word the standard lets the user omit.
+// is never ACCEPTED; it is PARSED only as misplacedSpecialNamesForPhrase so ClosedFormatPass can refuse it BY NAME
+// (kb/Work PB977 — superset-parse / bind-narrow; it drew a bare `COBOL0001: unexpected 'FOR'`). FOR is an optional
+// word (kb/Work PB695: folio 290 rules ALPHANUMERIC and NATIONAL, never FOR), so `CLASS X NATIONAL IS "0"` is
+// conforming. The phrase is the SHARED specialNamesForPhrase, so its 2002 gate keys on the SUBRULE and not on a
+// word the standard lets the user omit.
 classDefinitionClause
-    : CLASS cobolWord specialNamesForPhrase? IS? classValueSet (IN cobolWord)?
+    : CLASS cobolWord specialNamesForPhrase? IS? classValueSet (IN cobolWord)? misplacedSpecialNamesForPhrase?
     ;
 
 // { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §12.3.7.2
@@ -230,7 +232,7 @@ classValueItem
 // the claim was made in the same change set that decided the grammar, and nothing checked it against the file.
 symbolicCharactersClause
     : SYMBOLIC CHARACTERS? specialNamesForPhrase?
-      symbolicCharacterEntry+ (IN cobolWord)?
+      symbolicCharacterEntry+ (IN cobolWord)? misplacedSpecialNamesForPhrase?
     ;
 
 symbolicCharacterEntry
@@ -239,9 +241,11 @@ symbolicCharacterEntry
 
 // ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS {NATIVE|STANDARD-1|STANDARD-2|literal-phrase…}
 // ALPHABET alphabet-name-2 FOR NATIONAL IS {NATIVE|UCS-4|UTF-8|UTF-16|literal-phrase…}   (ISO §12.3.7.2)
-// The FOR phrase's ISO position is BETWEEN the name and IS; the historical postfix position (after the
-// definition) is kept as an accepted superset (pre-existing corpus surface). The binder reads either site
-// and rejects a clause writing both. UCS-4/UTF-8/UTF-16 are §8.9 CONTEXT-SENSITIVE words (ALPHABET clause
+// The FOR phrase's ISO position is BETWEEN the name and IS. ⛔ The historical postfix position (after the
+// definition) is NOT a superset any dialect owns (kb/Work PB977, CLAUDE.md rule 1's precedence: GnuCOBOL's grammar
+// takes the FOR target only between the name and IS; IBM Enterprise COBOL's ALPHABET clause has no FOR phrase at
+// all — surveyed from the vendors' published syntax, not measured here): it compiled clean at strict 2023, and it
+// is now parsed only as misplacedSpecialNamesForPhrase, refused by name at every edition. UCS-4/UTF-8/UTF-16 are §8.9 CONTEXT-SENSITIVE words (ALPHABET clause
 // scope) — they arrive as ordinary cobolWord entries and are recognized BY TEXT in the binder/pass, never
 // as lexer keywords (they stay user-definable outside this clause).
 // ⛔ IS AND FOR ARE OPTIONAL WORDS (kb/Work PB695). Printed folio 291 ("where alphabet-name-clause is:") rules
@@ -249,7 +253,7 @@ symbolicCharacterEntry
 // neither IS in `alphabet-name-1 [ FOR ALPHANUMERIC ] IS …` / `alphabet-name-2 FOR NATIONAL IS …`, nor either
 // FOR. `ALPHABET A NATIVE` and `ALPHABET N NATIONAL IS UTF-8` are conforming and were both rejected.
 alphabetClause
-    : ALPHABET cobolWord specialNamesForPhrase? IS? alphabetDefinition specialNamesForPhrase?
+    : ALPHABET cobolWord specialNamesForPhrase? IS? alphabetDefinition misplacedSpecialNamesForPhrase?
     ;
 
 // ⛔ THE ONE `FOR {ALPHANUMERIC | NATIONAL}` PHRASE OF THE SPECIAL-NAMES PARAGRAPH (ISO §12.3.7.2) — its ALPHABET
@@ -261,6 +265,15 @@ alphabetClause
 // The class word stays REQUIRED, so the rule can never match empty and each site's enclosing `?` keeps its meaning.
 specialNamesForPhrase
     : FOR? (ALPHANUMERIC | NATIONAL)
+    ;
+
+// ⛔ AN ERROR PRODUCTION, NOT A FORMAT (kb/Work PB977): the FOR phrase written AFTER a clause's definition — the
+// position no edition of §12.3.7.2 prints and no dialect owns. It exists so that ONE visitor
+// (ClosedFormatPass.VisitMisplacedSpecialNamesForPhrase) refuses it by name for all three FOR-bearing clauses, and
+// the binders read it only to RECOVER the class the user evidently meant. A distinct rule, so no clause's
+// specialNamesForPhrase() accessor can ever return the misplaced one by mistake.
+misplacedSpecialNamesForPhrase
+    : specialNamesForPhrase
     ;
 
 // NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.
